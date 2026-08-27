@@ -221,6 +221,10 @@ def state(*, path: Path | None = None, now: float | None = None) -> str:
     if not isinstance(ts, (int, float)):
         return ABSENT
     now = time.time() if now is None else now
+    # suppression-lint: not-a-suppression silence -- this is an ELAPSED TIME in seconds since
+    # the seat's last heartbeat, not a mechanism that quiets anything. It is the INPUT to a
+    # liveness verdict that pages harder the larger it gets; nothing is folded, throttled or
+    # held back on it, and no alarm is re-armed.
     silence = now - float(ts)
     if silence >= CERTAINLY_DEAD_SECONDS:
         return DEAD                      # the fail-silent escape; no corroboration needed
@@ -316,6 +320,9 @@ def handoff_document(rec: dict, claims: dict, uncommitted: list[str] | None, now
     the reader is told the tree could not be read and to look himself, because "the seat died
     and we cannot see what it left" is the one state where a silent empty list does real damage.
     """
+    # suppression-lint: not-a-suppression silence_h -- the same elapsed time in HOURS, used
+    # only to render the sentence a human reads ("ran no tool for 3.2h"). It is reported, not
+    # acted on.
     silence_h = (now - float(rec.get("ts", now))) / 3600.0
     tools = ", ".join(t.get("tool", "?") for t in (rec.get("recent_tools") or [])) or "none recorded"
     claim_lines = "\n".join(
@@ -469,4 +476,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # SEAT GUARD, first non-import statement (2026-08-27). A daemon started from a
+    # foreign seat writes this tree while the real seat is also writing it; the guard
+    # refuses instead. Structural rule, enforced by
+    # tests/background/test_seat_guard_daemons.py::TestStructuralLock.
+    from background._seat import refuse_if_foreign
+
+    refuse_if_foreign("seat_continuity")
     raise SystemExit(main())

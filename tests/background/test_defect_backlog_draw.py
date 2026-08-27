@@ -142,8 +142,38 @@ def test_rung_is_in_authorized_set_enumeration() -> None:
 
     src = inspect.getsource(sup._is_drained_and_gated)
     assert "_declared_defect_backlog_draw" in src, "rung 4 not consulted by _is_drained_and_gated"
-    refill_src = inspect.getsource(sup._self_refill_draw)
-    assert "_declared_defect_backlog_draw" in refill_src, "rung 4 not in the _self_refill_draw ladder"
+
+    # THE DRAW IS TWO FUNCTIONS SINCE THE LANE 0 SPLIT, and this scan was keyed to the shape it
+    # had before. `_self_refill_draw` now composes the delivery seat's own decision ALONGSIDE
+    # `_self_refill_draw_ladder`, and every rung -- including this one -- lives in the ladder.
+    # Reading only the outer function found no rung 4 and reported the ladder broken while the
+    # mechanism was intact and firing: a control keyed to a structure that moved, which is the
+    # same shape as a citation keyed to a path that moved.
+    #
+    # Scanning the COMPOSED draw is what the assertion was always about. It is not weaker: rung 4
+    # deleted from both halves still reds, which is what the partner below pins.
+    refill_src = "\n".join(inspect.getsource(fn) for fn in
+                           (sup._self_refill_draw, sup._self_refill_draw_ladder))
+    assert "_declared_defect_backlog_draw" in refill_src, (
+        "rung 4 is in neither _self_refill_draw nor the ladder it delegates to -- rest can now "
+        "be granted with a declared fidelity defect still open (R17)")
+
+
+def test_the_composed_draw_scan_would_NOTICE_the_rung_going_missing() -> None:
+    """The partner for the widening above.
+
+    Joining two sources makes the haystack bigger, and a bigger haystack is exactly how a
+    presence-check quietly stops discriminating. This pins that the scan is reading the rung and
+    not merely reading a large string: strip the rung's name out of the composed source and the
+    same predicate must fail.
+    """
+    import inspect
+
+    composed = "\n".join(inspect.getsource(fn) for fn in
+                         (sup._self_refill_draw, sup._self_refill_draw_ladder))
+    assert "_declared_defect_backlog_draw" in composed
+    assert "_declared_defect_backlog_draw" not in composed.replace(
+        "_declared_defect_backlog_draw", "")
 
 
 def test_real_register_backlog_draw_consistent_with_open_defects() -> None:

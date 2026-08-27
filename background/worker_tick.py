@@ -268,6 +268,10 @@ def _claim_lock(pid: int, reason: str) -> bool:
         except FileExistsError:
             if reclaimed or invocation_in_flight():
                 return False                      # a live holder, or we already spent the reclaim
+            # suppression-lint: not-a-suppression suppress -- a best-effort unlink of a lock
+            # believed stale. Nothing is silenced: if the unlink fails the loop retries
+            # os.open with O_EXCL, hits FileExistsError with `reclaimed` now set, and REFUSES
+            # TO SPAWN. The failure's consequence is the loud one, not a quiet pass.
             with contextlib.suppress(Exception):  # stale -> reclaim once, then retry atomically
                 LOCK_FILE.unlink()
             continue
@@ -294,6 +298,9 @@ def _release_lock(*owned_pids: int) -> None:
             return
     except Exception:
         pass
+    # suppression-lint: not-a-suppression suppress -- best-effort RELEASE of a lock this
+    # process owns. A failed unlink leaves the lock looking stale, which the next tick's
+    # reclaim path above handles explicitly; it does not quiet an alarm or defer a page.
     with contextlib.suppress(Exception):
         LOCK_FILE.unlink()
 

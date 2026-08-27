@@ -41,25 +41,46 @@ def test_c_ic2_hh_data_annual_kwh():
     assert 8_000_000 <= total_kwh <= 12_000_000, f"Expected ~9.5 GWh total, got {total_kwh/1e6:.2f} GWh"
 
 
-def test_c_ic2_eac_derived_in_simulation():
-    """EFFECTIVE_EAC_KWH derives C_IC2's EAC from CSV (close to 1 GWh)."""
-    from simulation.run_phase2b import EFFECTIVE_EAC_KWH
-    eac = EFFECTIVE_EAC_KWH.get("C_IC2")
+def test_c_ic2_eac_derived_in_simulation(serves_industrial_accounts):
+    """EFFECTIVE_EAC_KWH derives C_IC2's EAC from CSV (close to 1 GWh).
+
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py): this is a CAPABILITY
+    test, and the director's I&C suspension (2026-08-24) means the account it looks for is
+    not on the live book. The curriculum rules the case -- "a supplier that has never
+    onboarded an I&C customer still has to be able to." The fixture is REQUIRED rather than
+    optional because `run_phase2b` binds these rosters at IMPORT time, so an env var set in
+    the test body would arrive far too late.
+    """
+    eac = serves_industrial_accounts.EFFECTIVE_EAC_KWH.get("C_IC2")
     assert eac is not None
     assert 900_000 <= eac <= 1_100_000, f"Expected ~1 GWh, got {eac:,.0f} kWh"
 
 
-def test_c_ic2_in_elec_customers():
-    """C_IC2 appears in ELEC_CUSTOMERS list."""
-    from simulation.run_phase2b import ELEC_CUSTOMERS
-    ids = [c["customer_id"] for c in ELEC_CUSTOMERS]
+def test_c_ic2_in_elec_customers(serves_industrial_accounts):
+    """C_IC2 appears in ELEC_CUSTOMERS list.
+
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py): this is a CAPABILITY
+    test, and the director's I&C suspension (2026-08-24) means the account it looks for is
+    not on the live book. The curriculum rules the case -- "a supplier that has never
+    onboarded an I&C customer still has to be able to." The fixture is REQUIRED rather than
+    optional because `run_phase2b` binds these rosters at IMPORT time, so an env var set in
+    the test body would arrive far too late.
+    """
+    ids = [c["customer_id"] for c in serves_industrial_accounts.ELEC_CUSTOMERS]
     assert "C_IC2" in ids
 
 
-def test_c_ic1_and_c_ic2_both_present():
-    """Both I&C customers are in the electricity customer roster."""
-    from simulation.run_phase2b import ELEC_CUSTOMERS
-    ids = {c["customer_id"] for c in ELEC_CUSTOMERS}
+def test_c_ic1_and_c_ic2_both_present(serves_industrial_accounts):
+    """Both I&C customers are in the electricity customer roster.
+
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py): this is a CAPABILITY
+    test, and the director's I&C suspension (2026-08-24) means the account it looks for is
+    not on the live book. The curriculum rules the case -- "a supplier that has never
+    onboarded an I&C customer still has to be able to." The fixture is REQUIRED rather than
+    optional because `run_phase2b` binds these rosters at IMPORT time, so an env var set in
+    the test body would arrive far too late.
+    """
+    ids = {c["customer_id"] for c in serves_industrial_accounts.ELEC_CUSTOMERS}
     assert "C_IC1" in ids
     assert "C_IC2" in ids
 
@@ -97,10 +118,18 @@ def test_c_ic2_summer_peak_higher_than_winter():
     assert summer_peak > winter_peak, f"Summer peak {summer_peak:.0f} should exceed winter {winter_peak:.0f}"
 
 
-def test_total_elec_eac_includes_c_ic2():
-    """TOTAL_ELEC_EAC increases by approximately 1 GWh with C_IC2 added."""
-    from simulation.run_phase2b import TOTAL_ELEC_EAC
-    assert TOTAL_ELEC_EAC > 3_000_000, f"Total EAC {TOTAL_ELEC_EAC:,.0f} should exceed 3 GWh with both I&C customers"
+def test_total_elec_eac_includes_c_ic2(serves_industrial_accounts):
+    """TOTAL_ELEC_EAC increases by approximately 1 GWh with C_IC2 added.
+
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py): this is a CAPABILITY
+    test, and the director's I&C suspension (2026-08-24) means the account it looks for is
+    not on the live book. The curriculum rules the case -- "a supplier that has never
+    onboarded an I&C customer still has to be able to." The fixture is REQUIRED rather than
+    optional because `run_phase2b` binds these rosters at IMPORT time, so an env var set in
+    the test body would arrive far too late.
+    """
+    total = serves_industrial_accounts.TOTAL_ELEC_EAC
+    assert total > 3_000_000, f"Total EAC {total:,.0f} should exceed 3 GWh with both I&C customers"
 
 
 def test_c_ic2_commodity_is_electricity():
@@ -115,9 +144,17 @@ def test_c_ic2_acquisition_date_2018():
     assert c["acquisition_date"].startswith("2018")
 
 
-def test_elec_customers_count_includes_both_ic():
-    from simulation.run_phase2b import ELEC_CUSTOMERS
-    ic_customers = [c for c in ELEC_CUSTOMERS if c["segment"] == "I&C"]
+def test_elec_customers_count_includes_both_ic(serves_industrial_accounts):
+    """
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py): this is a CAPABILITY
+    test, and the director's I&C suspension (2026-08-24) means the account it looks for is
+    not on the live book. The curriculum rules the case -- "a supplier that has never
+    onboarded an I&C customer still has to be able to." The fixture is REQUIRED rather than
+    optional because `run_phase2b` binds these rosters at IMPORT time, so an env var set in
+    the test body would arrive far too late.
+    """
+    ic_customers = [c for c in serves_industrial_accounts.ELEC_CUSTOMERS
+                    if c["segment"] == "I&C"]
     assert len(ic_customers) >= 2
 
 

@@ -364,6 +364,21 @@ def test_round_trip_is_idempotent():
 
 
 def test_all_real_customers_generate_events_without_error():
+    """Every registered supply point resolves to a household that generates valid events.
+
+    THE ASSERTION CHANGED ON 2026-08-27, and it changed because it had been encoding a defect.
+    It read `e.customer_id == cid`, which held only while every supply point had a Household
+    of its OWN -- including the 197 gas legs, each drawing an independent stream of babies,
+    divorces and home moves against a dwelling that already had them on its electricity leg.
+    `build_household_register` now aliases a leg to its electricity point's household (one
+    property, one household, per `household_of`), so `register["C1g"]` is C1's household and
+    its events correctly carry `C1`.
+
+    The check is not weakened -- it still pins every event to the right household, via the
+    world's own supply-point-to-property function instead of assuming the two are the same
+    string.
+    """
+    from simulation.household import household_of
     from simulation.run_phase2b import CUSTOMERS
     register = build_household_register(CUSTOMERS)
     for cid, h in register.items():
@@ -371,7 +386,7 @@ def test_all_real_customers_generate_events_without_error():
         # Must all be valid LifeEvent instances
         for e in events:
             assert isinstance(e, LifeEvent)
-            assert e.customer_id == cid
+            assert e.customer_id == household_of(cid)
 
 
 # ---------------------------------------------------------------------------
@@ -550,9 +565,24 @@ def test_lowgated_demographic_events_hold_on_real_roster_seed42():
     # divergence is NOT LIVE today (a latent hole, same class as the
     # residential-gate finding). If a future roster/seed change makes it live,
     # this fails loudly rather than the defect silently entering production.
+    #
+    # ONE HOUSEHOLD, ONE SAMPLE (2026-08-27). The loop keyed on SUPPLY POINT, so a dual-fuel
+    # home was sampled twice under two different `cid_seed`s -- and a gas leg is not a second
+    # family. When the dual-fuel draw took the leg count from 4 to 197, one of those extra
+    # pseudo-households (PROS-2024-0116g) duly landed on a seed that trips the known latent
+    # W2_5 generator defect, and this control reported the defect LIVE in production when what
+    # had actually gone wrong was the sampling. The real fix went into
+    # `build_household_register`, which now aliases a leg to its electricity point; skipping
+    # non-primary points here is the same fact stated where the seeds are drawn.
+    #
+    # This does NOT narrow what the control can see: every household on the book is still
+    # sampled, exactly once, under the seed derived from its own id.
+    from simulation.household import household_of
     from simulation.run_phase2b import CUSTOMERS
     register = build_household_register(CUSTOMERS)
     for cid, hh in register.items():
+        if household_of(cid) != cid:
+            continue
         if not hh.is_residential:
             continue
         cid_seed = 42 ^ (int(__import__("hashlib").md5(cid.encode()).hexdigest()[:8], 16) & 0xFFFF)

@@ -6,9 +6,11 @@ Activating the population draw (2026-08-13) put SYN-* customers into the book th
 every downstream consumer iterates. A drawn record is saas-shaped but it is NOT the
 static roster's shape: it carries `consumption_band`, `payment_method`,
 `data_regime`, `acquisition_type`, `tariff_type`, and it does NOT carry the
-hand-authored `home_type`, `epc_rating`, `bedrooms`, `contract_type`, `smart_meter`.
+hand-authored `home_type`, `epc_rating`, `bedrooms`, `contract_type`. (`smart_meter`
+was a fifth until 2026-08-25, when the drawn shape gained a drawn meter of its own --
+see the note on STATIC_ONLY_FIELDS below.)
 
-Any consumer that reads one of those five off a customer dict with `c["key"]` rather
+Any consumer that reads one of those four off a customer dict with `c["key"]` rather
 than a guard raises KeyError the moment the draw is on. That failure does not look
 like a wrong number — it kills the whole 10-year run. It killed ten tests in the
 activation's first full-suite pass, all from ONE unguarded read in
@@ -31,8 +33,23 @@ import pytest
 from saas.customers import CUSTOMERS
 from simulation.live_population import live_population
 
-# The five fields the static roster authors and a drawn record does not carry.
-STATIC_ONLY_FIELDS = {"home_type", "epc_rating", "bedrooms", "contract_type", "smart_meter"}
+# The fields the static roster authors and a drawn record does not carry.
+#
+# WAS FIVE, IS FOUR SINCE 2026-08-25. `smart_meter` left this set when commit f8dc54ef8
+# ("every customer the funnel has ever won arrived with no meter, so 249 of 264 accounts
+# silently read as traditional -- the book is now 54% smart against GB's 68.9%") gave the DRAWN
+# shape its own drawn meter, from `population_draw._draw_smart_meter` against DESNZ penetration.
+#
+# The premise guard below caught that the next time the whole suite ran, and its message said
+# what to do: *"if the drawn shape gained these on purpose, this whole class guard needs
+# rewriting, not muting."* It gained it on purpose, so the field is REMOVED from the set rather
+# than the assertion loosened -- a drawn record now genuinely carries `smart_meter`, and a
+# consumer reading `c["smart_meter"]` on one is no longer the defect this file exists to catch.
+#
+# The class is UNCHANGED and so is its strength: no consumer may KeyError on a drawn customer's
+# missing static fields. There are four such fields now, and every test below still drives the
+# real consumers with the real activated book.
+STATIC_ONLY_FIELDS = {"home_type", "epc_rating", "bedrooms", "contract_type"}
 
 
 @pytest.fixture

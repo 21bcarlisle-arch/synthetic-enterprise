@@ -319,4 +319,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # SEAT GUARD, first non-import statement (2026-08-27). A daemon started from a
+    # foreign seat writes this tree while the real seat is also writing it; the guard
+    # refuses instead. Structural rule, enforced by
+    # tests/background/test_seat_guard_daemons.py::TestStructuralLock.
+    from background._seat import refuse_if_foreign
+
+    refuse_if_foreign("seat_work_in_hand")
     raise SystemExit(main())

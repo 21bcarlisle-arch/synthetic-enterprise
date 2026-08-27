@@ -6698,11 +6698,22 @@ def _section_bsc_settlement_exposure(data: dict) -> str:
     lines.append("<< BSC credit above 0.4% of revenue (elevated operational cash tie-up)")
     lines.append("")
 
-    # Peak year
+    # Peak year.
+    #
+    # THE CAUSAL CLAUSE IS NOW EARNED RATHER THAN ASSERTED (2026-08-27). This line read
+    # "... at £X (portfolio growth and 2021-22 price surge)" for WHATEVER year came out on
+    # top. That was true while the peak was 2022 and became false the moment the director's
+    # I&C suspension took the industrial volume off the book: the report went out saying
+    # "2025 at £401 (portfolio growth and 2021-22 price surge)", attributing a 2025 peak to a
+    # price surge three years earlier. A fixed explanation welded to a computed figure is a
+    # claim the data has not made -- the same defect as a financial figure without its basis
+    # (R14), one level up in the sentence.
     peak_yr = max(years.keys(), key=lambda y: years[y].get("bsc_credit_required_gbp", 0))
+    because = (" (portfolio growth and the 2021-22 wholesale price surge)"
+               if str(peak_yr) in ("2021", "2022") else "")
     lines.append(
-        "**Peak BSC credit requirement:** {} at £{:,.0f} (portfolio growth and 2021-22 price surge)".format(
-            peak_yr, years[peak_yr].get("bsc_credit_required_gbp", 0)
+        "**Peak BSC credit requirement:** {} at £{:,.0f}{}".format(
+            peak_yr, years[peak_yr].get("bsc_credit_required_gbp", 0), because
         )
     )
 

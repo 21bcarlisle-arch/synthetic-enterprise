@@ -413,12 +413,52 @@ def build_household_register(
     `drawn_households` (B12) carries the world's drawn dwelling for each SYN-* home
     (`simulation.live_population.live_drawn_households()`); a customer absent from it
     is served by the authored-roster path exactly as before.
+
+    ONE PROPERTY, ONE HOUSEHOLD -- a gas leg is ALIASED to its electricity point's Household
+    rather than given one of its own. `household_of` below has said since KNIFE step 28 that
+    `C1` and `C1g` are two registrations against one physical property; this function did not
+    ask it, and minted a second Household per gas leg. The register is still keyed by SUPPLY
+    POINT, so `register["C1g"]` still resolves -- it now resolves to the SAME OBJECT as
+    `register["C1"]`.
+
+    WHAT THAT WAS COSTING (measured 2026-08-27, on the roster of the day): 197 of 419 supply
+    points were gas legs, and every one was residential and therefore drew its own independent
+    stream of life events. The world was giving each dual-fuel home two unrelated lives -- two
+    sets of babies, divorces and home moves against one dwelling, with the two halves free to
+    disagree about whether anybody still lived there. It was latent while only the authored
+    roster had gas legs (C1g-C4g, four of them); the 2026-08-26 dual-fuel draw scaled it to
+    197 and `test_lowgated_demographic_events_hold_on_real_roster_seed42` caught it, because
+    each extra pseudo-household is another seed sampled against a known latent generator
+    defect.
+
+    FAIL-VISIBLE, NOT FAIL-SILENT: a leg whose primary is not in `customers` gets its own
+    Household as before rather than a KeyError. That is a supply book that registered a gas
+    point with no electricity point, which is a real thing to notice and not a reason to stop
+    the run -- but it must not be silently identical to the healthy case, so it is counted in
+    `ORPHANED_GAS_LEGS` for anything that wants to assert on it.
     """
     drawn = drawn_households or {}
-    return {
-        c["customer_id"]: make_household(c, drawn.get(c["customer_id"]))
-        for c in customers
-    }
+    register: dict[str, Household] = {}
+    legs: list[str] = []
+    for c in customers:
+        cid = c["customer_id"]
+        if household_of(cid) != cid:
+            legs.append(cid)
+            continue
+        register[cid] = make_household(c, drawn.get(cid))
+    by_id = {c["customer_id"]: c for c in customers}
+    for cid in legs:
+        primary = household_of(cid)
+        if primary in register:
+            register[cid] = register[primary]
+        else:
+            ORPHANED_GAS_LEGS.add(cid)
+            register[cid] = make_household(by_id[cid], drawn.get(cid))
+    return register
+
+
+#: Gas legs seen with no electricity point in the same supply book. Empty on a healthy roster.
+ORPHANED_GAS_LEGS: set[str] = set()
 
 
 # --- WHICH SUPPLY POINTS ARE ONE HOUSEHOLD (KNIFE step 28, register §3w) ------

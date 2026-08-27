@@ -214,6 +214,57 @@ _STALE_CITATION: dict[str, str] = {
         "`test_the_metering_observable_is_present_and_the_derivation_honours_it`, which the index "
         "carries. The pin still exists; only the name in the log entry is stale."
     ),
+    # ---- 2026-08-27 batch. Four citations, and they are NOT all the same shape. -------------
+    # Two were renamed after landing (the ordinary stale case). TWO NAME A PATH NO COMMIT HAS
+    # EVER CARRIED, and that is the more interesting half: the pass wrote an honest log of work
+    # in its OWN TREE, left the tree uncommitted, and by the time a later tick landed the work it
+    # landed at a different path. The record outlived a path that was never in git. That is the
+    # disease the director named on 2026-08-26 -- finished work that never got committed --
+    # showing up a second time, in the records rather than the code.
+    #
+    # They are declared here rather than corrected in the stores, because a store note is a DATED
+    # LOG. Rewriting "company/billing" to "company/interfaces" would make pass 39 appear to have
+    # done something it did not do, and this repository's own rule is that a record which can be
+    # rewritten when it turns out to be wrong is not a record.
+    "tests/company/billing/test_collection_submission.py": (
+        "2026-08-27. NEVER IN ANY COMMIT under this path -- `git log --all` is empty on it. "
+        "EP6_wall_protocol_typing.039 (store committed 7f94bae95, 2026-08-21 15:55) logs pass "
+        "39's own working tree, where the submission leg sat under company/billing/. That tree "
+        "was never committed: 21c286c15 ('Three passes running have written this atom's record "
+        "into a tree that was never created') is the tick that finally landed the work, ten "
+        "hours EARLIER on the clock than the store note, and it landed it at "
+        "`company/interfaces/collection_submission.py` with "
+        "`tests/company/interfaces/test_collection_submission.py` beside it. The falsifier is "
+        "real and green today; only the path in the log entry was never true."
+    ),
+    "tests/tools/test_discovery_pass_ceiling.py::test_the_live_map_and_EP6s_predicate_agree_about_what_this_seat_cannot_pay_for": (
+        "2026-08-27. NEVER IN ANY COMMIT under this name -- `git log --all -S` finds no commit "
+        "that ever defined it. EP6_wall_protocol_typing.029 (store committed 6fd310d35, "
+        "2026-08-20 22:24) says it 'red on the disagreement first and is green on the removal'. "
+        "The check it describes -- a map cell claiming an instrument blocker its own predicate "
+        "says is gone -- is carried by "
+        "`test_no_map_cell_claims_an_instrument_blocker_its_own_predicate_says_is_gone` in the "
+        "same file, introduced at bf41f02ed ten hours before that store landed. Same subject, "
+        "same file, a name the log entry got wrong."
+    ),
+    "tests/company/core/test_three_horizon_clv.py": (
+        "2026-08-27. The ordinary stale shape: this file DID exist, in five commits. "
+        "EP1_clv_three_horizon.008 is the record of the pass that retired it -- its own text "
+        "says '`tests/company/core/test_three_horizon_clv.py` renamed to match', the rename "
+        "being `company/core/three_horizon_clv.py` -> `company/core/commitment_actual_forecast.py` "
+        "so that EP1 could take the name back. Landed at af3b477b5. The successor "
+        "`tests/company/core/test_commitment_actual_forecast.py` is in the index. The note is "
+        "honest history of a deliberate retirement, and reads as a broken citation only because "
+        "the sentence describing a rename necessarily names the thing that no longer exists."
+    ),
+    "tests/tools/test_site_structure.py::test_site1_expert_doors_have_mobile_pass": (
+        "2026-08-27. Also the ordinary stale shape: defined in two commits, retired at "
+        "58fcdc2e6 ('Weekend budget stand-down, and the 34 FileNotFoundError in last night's "
+        "census were one deletion the tests never followed'), which renamed it to "
+        "`test_site_doors_have_mobile_pass` -- the door set had stopped being SITE1's alone. "
+        "SITE1_expert_doors' 2026-07-16 entry describes the guard it built and R15-mutated; the "
+        "guard is still there under the shorter name."
+    ),
 }
 
 # THE ENUMERATION. Every mention the lexicon silences whose FILE the index does not carry, with
@@ -223,42 +274,28 @@ _STALE_CITATION: dict[str, str] = {
 # Keys are `<atom store stem>::<token>`. Deleting an entry when the file lands is the same
 # shrink-only discipline the markdown half's stale-entry test enforces.
 _DECLARED_HONEST_ABSENCE: dict[str, str] = {
-    "B11_evolutionary_tournament_harness::tests/background/test_tournament_harness.py": (
-        "2026-08-18. FRAME re-verification asserting the file's ABSENCE -- 'background/"
-        "tournament_harness.py and tests/background/test_tournament_harness.py still absent -- "
-        "confirmed'. B11 is epoch-4 gated; the note is reporting what BUILD must produce."
-    ),
+    # SIX ENTRIES DELETED 2026-08-27, shrink-only as the register's own rule requires, and for
+    # two different reasons worth keeping apart.
+    #
+    # THE DEBT WAS PAID (4): the EP1 and H27 entries all declared honesty about
+    # `tests/saas/test_clv_margin_basis.py` and `tests/tools/test_derived_basis_parentage_gate.py`
+    # being untracked. Both files are in the index now. A declaration that a landed file is
+    # absent describes nothing, and leaving it would silence a real future over-claim on those
+    # two paths.
+    #
+    # THE ATOM WAS DELETED (2): B11_evolutionary_tournament_harness and
+    # H18_harness_self_mutation_audit lost their stores at 7403b89c1 ("Nineteen atoms deleted:
+    # the harness held 43% of the queue"). There is no store left to be honest or dishonest.
     "B6_collateral_cash_death_loop::tests/saas/test_collateral_death_loop.py": (
         "2026-08-18. A FRAME open-question (Q5) reporting the atom's own file_scope is wrong: "
         "'this atom declares saas/treasury and tests/saas/test_collateral_death_loop.py and "
         "NEITHER EXISTS'. The record is correcting itself, not claiming a build."
-    ),
-    "H18_harness_self_mutation_audit::tests/controls/test_meta_control_mutation.py": (
-        "2026-08-18. A future deliverable in an L1->L2 Definition of Done -- 'a new tests/"
-        "controls/test_meta_control_mutation.py with both-directions (fire AND quiet) "
-        "assertions per organ'. Doc-only FRAME turn, level held at 0."
     ),
     "OPS_run_marker_sweep_livelock::tests/background/test_run_marker_sweep.py": (
         "2026-08-18. An inventory of two rival implementations preserved as RESCUE commits on "
         "their own branches -- 'a NEW 423-line tests/background/test_run_marker_sweep.py that "
         "exists nowhere else ... NEITHER IS MERGED AND THAT IS DELIBERATE'. The record states "
         "the non-landing as the decision."
-    ),
-    "EP1_clv_three_horizon::tests/saas/test_clv_margin_basis.py": (
-        "2026-08-18. A DISCOVER re-measurement at HEAD reporting the files are 'UNTRACKED "
-        "(`??`)' and that 'EVERY LEG STILL HOLDS and none of it has landed'. Waits on the "
-        "B_commercial lane's CLV margin-basis repair; declared in the markdown half's ratchet."
-    ),
-    "EP1_clv_three_horizon::tests/tools/test_derived_basis_parentage_gate.py": (
-        "2026-08-18. The same EP1 clause and the same repair."
-    ),
-    "H27_payment_belief_gap::tests/saas/test_clv_margin_basis.py": (
-        "2026-08-18. Hour #36 QUOTING its own declared ratchet -- 'Three violations, all on "
-        "disk, none ignored, `git log --all` empty on each'. A record correctly reporting a "
-        "known debt is the opposite of an over-claim."
-    ),
-    "H27_payment_belief_gap::tests/tools/test_derived_basis_parentage_gate.py": (
-        "2026-08-18. The same Hour #36 clause."
     ),
 }
 
@@ -592,26 +629,68 @@ def test_no_declared_honest_store_also_claims_the_same_citation():
     )
 
 
-def test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus():
-    """R15: the class control above must fire on its own named defect, measured not asserted.
+# The exact pair of spellings from the 2026-08-19 finding. ONE TRUE FACT, said two ways: the
+# store said the files were "UNTRACKED (`??`)" in two clauses and abbreviated it to "still `??`"
+# in two more. The word-only lexicon silenced the verbose spelling and judged the terse one an
+# over-claim, so the record's honesty had become a function of how verbosely its author restated
+# something they had already said correctly.
+_VERBOSE_SPELLING = "both are UNTRACKED (`??`) at HEAD, `tests/saas/test_clv_margin_basis.py`"
+_TERSE_SPELLING = "both still `??`, `tests/saas/test_clv_margin_basis.py` among them"
 
-    This re-runs the REAL committed corpus under the exact predicate that shipped before
-    2026-08-19 -- words only, no symbols. That is the state of the repository at b6148d907, when
-    the verdict sat red for ~24h against an accurate record. If this returns nothing, the class
-    control is decorative: it would not have caught the defect it was written for.
+
+def test_MUTATION_the_word_only_predicate_MISREADS_the_spelling_this_control_was_built_for():
+    """R15: the symbol half of the lexicon fires on its own named defect, measured not asserted.
+
+    RE-BASED 2026-08-27, and the reason is the good kind. This test used to re-run the REAL
+    committed corpus under the pre-2026-08-19 word-only predicate and assert a contradiction came
+    back, keyed on `EP1_clv_three_horizon::tests/saas/test_clv_margin_basis.py`. That worked
+    while EP1's debt was outstanding. Both files have since LANDED, the four declarations naming
+    them are deleted above, and the live corpus now yields no contradiction under EITHER
+    predicate -- so the assertion went red for the repair rather than for a defect, and the
+    control could not be demonstrated at all.
+
+    A CONTROL WHOSE R15 EVIDENCE DEPENDS ON A DEFECT STAYING IN THE CORPUS IS EVIDENCE WITH AN
+    EXPIRY DATE. It is green while the repository is broken and unfalsifiable once it is fixed,
+    which is backwards. The proof is therefore frozen: the two spellings from the finding are
+    fixed strings here, and what is asserted is the PREDICATE DIFFERENCE that the widening was
+    made of. That holds whatever the corpus does next.
     """
     historical = lambda clause: bool(_DISCLAIMS.search(clause))  # noqa: E731
-    claims, _, _ = _read(historical)
-    contradicted = _contradicted_declarations(claims)
-    assert contradicted, (
-        "under the pre-fix word-only predicate the class control found NO contradiction on the "
-        "real corpus -- it cannot fire on the defect it was built for, so it is not evidence "
-        "(R15). Either the EP1 clauses were rewritten, or the control is keyed wrong"
-    )
-    assert "EP1_clv_three_horizon::tests/saas/test_clv_margin_basis.py" in contradicted, (
-        f"the contradiction fired, but not on the EP1 clause this control was written for: "
-        f"{contradicted}"
-    )
+
+    # The defect, exactly: one fact, two spellings, two verdicts under the shipped-then predicate.
+    assert historical(_VERBOSE_SPELLING), (
+        "the verbose spelling contains the word 'UNTRACKED' and was ALWAYS silenced -- if this "
+        "fails the sample no longer reproduces the asymmetry the finding measured")
+    assert not historical(_TERSE_SPELLING), (
+        "the terse spelling has no word-list token, which is why it was judged an over-claim. "
+        "If the word lexicon now covers it, this mutation is no longer exercising the defect")
+
+    # And the fix: one fact, two spellings, ONE verdict.
+    assert _disclaims(_VERBOSE_SPELLING) and _disclaims(_TERSE_SPELLING), (
+        "the shipped predicate must read both spellings as the same statement")
+
+
+def test_the_contradiction_helper_still_reads_whatever_predicate_it_is_GIVEN():
+    """The wiring the frozen proof above no longer exercises end to end.
+
+    `_read` takes `disclaims` as a PARAMETER precisely so a mutation can weaken it. If that
+    parameter stopped being honoured, the test above would still pass on its fixed strings while
+    the real control silently read one predicate forever -- so the pass-through is asserted here
+    against the live corpus, on the property that cannot be faked: a strictly weaker predicate
+    cannot silence MORE than the real one.
+    """
+    _, silenced_now, stores = _read()
+    _, silenced_hist, _ = _read(lambda clause: bool(_DISCLAIMS.search(clause)))
+    assert stores >= _MIN_STORES
+    silenced_now_pairs = {(t, s) for t, stems in silenced_now.items() for s in stems}
+    silenced_hist_pairs = {(t, s) for t, stems in silenced_hist.items() for s in stems}
+    assert silenced_hist_pairs <= silenced_now_pairs, (
+        "the historical predicate silenced something the shipped one does not -- the shipped "
+        "predicate is meant to be a strict WIDENING, so this means the parameter is not reaching "
+        "the clause loop or the lexicon has narrowed")
+    # The corpus is currently clean under both, because EP1's debt was paid. That is a FACT about
+    # today's tree and deliberately not asserted as a floor: asserting it would re-create exactly
+    # the expiring evidence this pair was re-based to escape.
 
 
 def test_MUTATION_the_symbol_lexicon_does_not_silence_a_bare_credit():

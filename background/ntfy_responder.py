@@ -81,16 +81,31 @@ PROGRESS_RE = re.compile(
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import NTFY_TOPIC, NTFY_AUTH_TOKEN, was_sent_by_us  # noqa: E402
-from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+# BELOW the sys.path.insert, not at the top of the file. This module is launched as a SCRIPT
+# PATH (`python3 background/ntfy_responder.py`), so `background` is not importable until that
+# insert has run -- a top-of-file `from background import ...` raises ModuleNotFoundError before
+# a single line of the daemon executes. Caught by
+# `tests/background/test_declared_entrypoints_import_in_script_mode.py`, which exists for exactly
+# this, on the first full-suite run after the guard was wired in.
+from background import inbound_secret_redaction  # noqa: E402
+from background.notify import notify  # noqa: E402
+from background.ntfy_utils import NTFY_AUTH_TOKEN, NTFY_TOPIC, was_sent_by_us  # noqa: E402
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 
 
 def log(msg: str) -> None:
+    """Append to the responder log, with the inbound-credential guard applied HERE.
+
+    LOG_FILE is `docs/observability/ntfy-responder-log.md` -- inside the working tree -- and
+    several call sites below log `message[:60]`, which a 40-character token fits inside
+    comfortably. Redacting at the three write call sites and not here would have left the
+    third route open, which is the instance fix this was explicitly not to be. Guarding the
+    function instead means every future log line inherits it without remembering.
+    """
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    entry = f"\n- [{ts}] {msg}"
+    entry = f"\n- [{ts}] {inbound_secret_redaction.redact(msg)[0]}"
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(entry)
@@ -401,7 +416,27 @@ def _write_to_staging(message: str) -> Path | None:
     # delivery must never become dropping a distinct message, so uniquify.
     if path.exists():
         path = staging_dir / f"from_rich_{ts}_{uuid.uuid4().hex[:6]}.md"
-    path.write_text(f"# Inbound NTFY message from Rich\n\n{message}\n")
+    # INBOUND CREDENTIAL GUARD (2026-08-27, director-authorised). A live Cloudflare token
+    # reached docs/staging/done/ by exactly this line, and got there because nothing
+    # malfunctioned: the leak path IS the normal path. Redacts, never drops -- a message
+    # carrying a credential is still an instruction.
+    body, families = inbound_secret_redaction.redact(message)
+    header = "# Inbound NTFY message from Rich\n"
+    if families:
+        # The RAW message goes out of tree, so a false positive stays recoverable at the
+        # console while a true positive is still not in git.
+        raw = inbound_secret_redaction.preserve_raw(message, ts)
+        log(f"Redacted {len(families)} credential-shaped string(s) "
+            f"({', '.join(sorted(set(families)))}) from an inbound message before staging; "
+            f"raw {'preserved at ' + str(raw) if raw else 'could NOT be preserved out of tree'}")
+        # Recorded IN the staged file as well as the log: a reader of this instruction needs to
+        # know a word of it was replaced, or a redaction reads as something the director never
+        # wrote. Names the families and the count; never the values.
+        header += ("\n> REDACTED: {} credential-shaped string(s) removed before this file was "
+                   "written ({}). Raw message out of tree{}.\n".format(
+                       len(families), ", ".join(sorted(set(families))),
+                       f" at {raw}" if raw else " could not be preserved"))
+    path.write_text(f"{header}\n{body}\n")
     return path
 
 
@@ -483,23 +518,42 @@ def _quarantine(message: str, reason: str) -> Path:
     qdir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     path = qdir / f"from_rich_QUARANTINED_{ts}_{uuid.uuid4().hex[:8]}.md"
+    # The SAME inbound-credential guard as _write_to_staging. Quarantine is still the working
+    # tree: a flood message preserved in full is preserved in git, so redacting only the
+    # staging route would leave a credential one directory to the left.
+    body, families = inbound_secret_redaction.redact(message)
+    if families:
+        inbound_secret_redaction.preserve_raw(message, ts)
     path.write_text(
         "# QUARANTINED inbound NTFY message (flood guard)\n\n"
         f"Reason: {reason}\n\n"
         "The responder detected a machine-cadence flood and withheld this "
         "message from the scanned staging root. Nothing is dropped -- this file "
-        "preserves the content for manual review.\n\n---\n\n"
-        f"{message}\n"
+        "preserves the content for manual review.\n\n"
+        + (f"> REDACTED: {len(families)} credential-shaped string(s) "
+           f"({', '.join(sorted(set(families)))}); raw message out of tree.\n\n"
+           if families else "")
+        + f"---\n\n{body}\n"
     )
     return path
 
 
-def build_status_reply(staged_path: Path | None = None) -> str:
+def build_status_reply(staged_path: Path | None = None,
+                       redacted_families: list[str] | None = None) -> str:
+    """The ack. `redacted_families` makes a redaction VISIBLE to the director.
+
+    A silent redactor that ate one word of an instruction would be indistinguishable from him
+    having not written it -- the same looks-like-work-in-progress failure as a waiter with no
+    subject. He can restate; he cannot restate what he was never told had gone. The note
+    appears ONLY when something was removed, so it never becomes an unchanging status line
+    (R5)."""
     classification = "instruction" if staged_path else "status ping"
     action = "queued for Claude Code" if staged_path else "no action (message too short)"
+    note = inbound_secret_redaction.summarise(redacted_families or [])
     return (
         f"[{classification}] {action}\n"
-        f"Sim: {_run_progress_summary()}\n"
+        + (f"{note}\n" if note else "")
+        + f"Sim: {_run_progress_summary()}\n"
         f"{_gpu_summary()}\n"
         f"HEAD: {_git_head_summary()}"
     )
@@ -625,13 +679,20 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
             pass  # logging must never block real inbound processing
 
         staged_path = _write_to_staging(message)
-        reply = build_status_reply(staged_path)
+        # Recomputed rather than threaded out of _write_to_staging: `redact` is pure and
+        # cheap, and widening that function's return type would break its callers and its
+        # existing tests for no gain. The two calls cannot disagree.
+        reply = build_status_reply(staged_path, inbound_secret_redaction.redact(message)[1])
         notify(reply, kind="director_echo", headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
         log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})"
             + (f" — staged as {staged_path.name}" if staged_path else ""))
         update_agent_status(
             "ntfy-responder", status="idle",
-            last_action=f"Acked message: {message[:80]!r}",
+            # FOURTH in-tree route, found by looking for the others rather than by it
+            # failing: agent_status.json lives in docs/observability/ and is committed like
+            # everything else there, so an 80-character excerpt of a credential lands in git
+            # exactly as the staging file would have.
+            last_action=f"Acked message: {inbound_secret_redaction.redact(message)[0][:80]!r}",
             role="Receives NTFY messages from Rich; writes from_rich_*.md to staging",
             produces="docs/staging/from_rich_*.md",
         )

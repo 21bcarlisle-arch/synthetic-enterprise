@@ -27,6 +27,7 @@ WHAT IS ASSERTED, in two independent halves:
    below can feed it a synthetic non-compliant module and prove the census can fail. A census
    only ever tried on a compliant population cannot be shown to detect anything.
 """
+import ast
 import sys
 from pathlib import Path
 
@@ -51,13 +52,49 @@ EXEMPT = {
 }
 
 
+def _really_calls_the_gate(source: str) -> bool:
+    """Does this module CALL `run_fast_tests`, or merely mention it?
+
+    THE SUBSTRING TEST WAS NOT A TEST OF CALLING (2026-08-27). `GATE_ENTRY_POINT` is the literal
+    text `run_fast_tests(`, and `tests/background/test_publisher_deadline_exceeds_its_gate.py`
+    contains it inside a STRING LITERAL:
+
+        body = src[src.index("tests_ok, timed_out = run_fast_tests("):]
+
+    -- a module that reads the publisher's source to check where its refusal is composed. It
+    calls nothing, supplies no root, and cannot reach `resolve_scope` at any depth. The census
+    named it an offender anyway, and the only remedies on offer were to import a helper it has
+    no use for or to take an EXEMPT entry for a rule it never broke.
+
+    That is the mention-read-as-a-claim shape, and the honest fix is in the READER: parse the
+    module and look for a real `ast.Call`. The substring survives as a cheap pre-filter, and an
+    unparseable module FAILS CLOSED back to it -- a file this control cannot read is not thereby
+    innocent.
+    """
+    if GATE_ENTRY_POINT not in source:
+        return False
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return True
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id == "run_fast_tests":
+            return True
+        if isinstance(func, ast.Attribute) and func.attr == "run_fast_tests":
+            return True
+    return False
+
+
 def module_is_compliant(source: str) -> bool:
     """Does `source` obtain its gate root from the shared helper, given that it drives the gate?
 
     A module that never reaches the gate entry point is trivially compliant -- it cannot supply
     a root to the refusal. One that does must name the helper.
     """
-    if GATE_ENTRY_POINT not in source:
+    if not _really_calls_the_gate(source):
         return True
     return HELPER_MODULE in source
 
@@ -154,3 +191,50 @@ def test_the_census_predicate_can_fail(source, compliant):
     The live population is compliant, so the assertion above passes today either way -- this
     is what shows it would stop passing when a new module hand-builds a root."""
     assert module_is_compliant(source) is compliant
+
+
+# ── 3. THE NARROWING'S PARTNERS (2026-08-27) ─────────────────────────────────
+# A narrowing that also silences the normal shape is worse than the over-trigger it fixed, so
+# each direction gets its own assertion against a synthetic module.
+
+def test_a_module_that_really_CALLS_the_gate_is_still_caught():
+    """THE ONE THAT MATTERS. If the AST predicate stopped seeing real calls, this census would
+    pass over every hand-typed root -- the exact defect that wedged publishing twice on
+    2026-08-12 -- while looking greener than before."""
+    offender = (
+        "def test_thing(tmp_path):\n"
+        "    root = tmp_path / 'mine'\n"
+        "    root.mkdir()\n"
+        "    tests_ok, timed_out = run_fast_tests(root=root)\n"
+    )
+    assert _really_calls_the_gate(offender)
+    assert not module_is_compliant(offender)
+
+
+def test_a_qualified_call_is_caught_too():
+    source = "def t():\n    prc.run_fast_tests(root=r)\n"
+    assert _really_calls_the_gate(source)
+
+
+def test_a_module_that_only_QUOTES_the_entry_point_is_not_an_offender():
+    """The 2026-08-27 false positive, frozen. `test_publisher_deadline_exceeds_its_gate.py`
+    reads the publisher's own source to check where its refusal wording is composed."""
+    reader = (
+        "def test_the_refusal_is_composed_in_one_place():\n"
+        "    body = src[src.index('tests_ok, timed_out = run_fast_tests('):]\n"
+        "    assert '_gate_refusal(' in body\n"
+    )
+    assert not _really_calls_the_gate(reader)
+    assert module_is_compliant(reader)
+
+
+def test_an_unparseable_module_FAILS_CLOSED_to_the_substring():
+    """A file this control cannot read is not thereby innocent. The narrowing must not become a
+    way to escape the census by being syntactically broken."""
+    broken = "def t(:\n    run_fast_tests(root=r)\n"
+    assert _really_calls_the_gate(broken)
+    assert not module_is_compliant(broken)
+
+
+def test_a_module_that_never_mentions_the_gate_is_trivially_compliant():
+    assert module_is_compliant("def test_unrelated():\n    assert True\n")

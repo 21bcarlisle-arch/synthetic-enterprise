@@ -128,7 +128,27 @@ import yaml
 PROJECT = Path(__file__).resolve().parents[2]
 
 STORE_DIR = "docs/design/simplifications/"
-MAP_PATH = "docs/design/maturity_map.yaml"
+
+# THE MAP IS TWO FILES SINCE 2026-08-26 (`docs/design/MAP_SPLIT_2026-08-26.md`, commit
+# 7f11d9c7d). `maturity_map.yaml` keeps the 74 atoms that still carry a gap; the 224 that are at
+# or above their own target moved to `maturity_map_closed.yaml`. Nothing was deleted and no
+# record was edited -- the union is the same 298 atoms the single file held.
+#
+# That commit repointed 47 readers and then five more. THIS CONTROL WAS NOT AMONG THEM, and the
+# failure was silent in exactly the shape the split's own design note named as the hazard: it
+# went on reading one half, its subject fell from 316 declared file_scopes to 74, the store join
+# collapsed from 266 stores to 58, and it kept passing every claim it could still see. What
+# caught it was `test_the_symbol_population_is_not_vacuous` -- the floor that exists because a
+# control whose subject quietly empties reports GREEN forever. Its message was right: *"the store
+# root, the map read or the atom_id join is what changed -- fix the mechanism, do not lower the
+# floor."* It was the map read.
+#
+# Both halves are read FROM THE INDEX, not through `tools.maturity_map_store.load_atoms()`. The
+# canonical loader is right for a runtime reader and wrong here: this control judges what the
+# COMMIT BEING MADE will carry, and a loader that reads the working tree would let an uncommitted
+# map edit discharge a committed claim.
+MAP_PATHS = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml")
+MAP_PATH = MAP_PATHS[0]  # retained for message text; the SUBJECT is MAP_PATHS
 
 # A backticked identifier. `()` is stripped so `main()` and `main` are one symbol. Anything
 # carrying `/`, `.`, `*`, `::` or a space is a path, a glob, an attribute chain or prose -- the
@@ -260,11 +280,16 @@ def _file_scopes() -> dict[str, list[str]]:
     The map is the register in which an atom declares what it owns, so its committed state is what
     a committed note is claiming against.
     """
-    raw = _index_blob(MAP_PATH)
-    assert raw.strip(), (
-        f"the index carries no {MAP_PATH}. Without it no atom declares a file_scope and every "
-        "comparison below is vacuous -- an unavailable subject is a FAILED check"
-    )
+    halves = {p: _index_blob(p) for p in MAP_PATHS}
+    # REFUSES RATHER THAN DEGRADES, which is the split's own rule. A missing closed half would
+    # not look broken -- it would look like a smaller map, and every claim against a closed atom
+    # would silently stop being judged. Each half must be present and non-empty in the index.
+    for path, raw in halves.items():
+        assert raw.strip(), (
+            f"the index carries no {path}. The map is two files since 2026-08-26 and BOTH are "
+            "this control's subject; without one, every claim against an atom living there goes "
+            "unjudged -- an unavailable subject is a FAILED check"
+        )
     scopes: dict[str, list[str]] = {}
 
     def walk(node: object) -> None:
@@ -279,10 +304,11 @@ def _file_scopes() -> dict[str, list[str]]:
             for value in node:
                 walk(value)
 
-    walk(yaml.safe_load(raw))
+    for raw in halves.values():
+        walk(yaml.safe_load(raw))
     assert scopes, (
-        f"{MAP_PATH} parsed but declared NO file_scope for any atom. The map shape changed and "
-        "this control's subject went empty"
+        f"{' + '.join(MAP_PATHS)} parsed but declared NO file_scope for any atom. The map shape "
+        "changed and this control's subject went empty"
     )
     return scopes
 

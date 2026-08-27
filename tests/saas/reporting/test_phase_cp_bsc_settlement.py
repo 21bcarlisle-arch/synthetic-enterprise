@@ -40,11 +40,48 @@ def test_all_years():
         assert yr in result
 
 
-# 5. 2022 has highest credit requirement (around £10,200)
-def test_2022_peak_credit():
+# 5. The reported peak is the ACTUAL peak in the data it was given
+def test_peak_credit_matches_the_data():
+    """WAS `test_2022_peak_credit`, pinning "2022" and "10," against the live run output.
+
+    It went red on 2026-08-26 when the director's I&C suspension took the industrial volume
+    off the book: BSC credit cover tracks portfolio size, so the peak moved from 2022 (~£10k)
+    to 2025 (£401). Nothing malfunctioned -- the test was asserting a fact about a book the
+    company no longer has, which is a change-detector on a DIAGNOSTIC output (R12), not a
+    check of the section.
+
+    What is worth pinning is that the rendered sentence agrees with the table above it. The
+    expected peak is RE-DERIVED here from the same run data rather than read back from the
+    renderer -- independence, or this would pass against a section that reported any year at
+    all (R15 TAUTOLOGY).
+    """
+    data = _load_data()
+    years = data["years"]
+    expected_year = max(years, key=lambda y: years[y].get("bsc_credit_required_gbp", 0))
+    expected_gbp = years[expected_year]["bsc_credit_required_gbp"]
     result = _render()
-    # Value varies slightly between runs; check 2022 entry exists with ~£10k figure
-    assert "2022" in result and "10," in result
+    assert "**Peak BSC credit requirement:** {} at £{:,.0f}".format(
+        expected_year, expected_gbp) in result
+
+
+def test_the_peak_sentence_only_blames_the_price_surge_when_the_peak_IS_the_surge():
+    """The partner for the fix in `_section_bsc_settlement_exposure`.
+
+    The sentence used to carry "(portfolio growth and 2021-22 price surge)" for whatever year
+    came out on top, so the published report read "2025 at £401 (portfolio growth and 2021-22
+    price surge)" -- a cause three years before its effect. The clause is now conditional on
+    the peak year actually being 2021 or 2022.
+    """
+    result = _render()
+    peak_line = [ln for ln in result.splitlines() if "Peak BSC credit requirement" in ln][0]
+    years = _load_data()["years"]
+    peak_year = max(years, key=lambda y: years[y].get("bsc_credit_required_gbp", 0))
+    if str(peak_year) in ("2021", "2022"):
+        assert "price surge" in peak_line
+    else:
+        assert "price surge" not in peak_line, (
+            "the report is blaming the 2021-22 surge for a {} peak: {}".format(
+                peak_year, peak_line))
 
 
 # 6. 2025 flagged as << (0.51% > 0.40% threshold)
