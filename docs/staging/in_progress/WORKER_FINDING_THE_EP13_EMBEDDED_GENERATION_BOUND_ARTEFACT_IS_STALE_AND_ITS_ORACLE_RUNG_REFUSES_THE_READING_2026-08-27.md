@@ -2,6 +2,35 @@
 
 # The EP13 embedded-generation bound's artefact is stale, and its own oracle rung refuses the reading
 
+## PARKED IN-PROGRESS 2026-08-27 11:26 UTC — the one owed item is RUNNING, not waiting
+
+**Blocking sub-item: item 1 below (regenerate the artefact at the current `(12,4,3)` grid).**
+It was drawn by the scheduled tick that self-refilled `EP13_adapter_carbon_intensity`
+(level 2→3, `loop_stage: build`) and is **in flight now**, not queued:
+
+```
+nohup python3 -m tools.ep13_embedded_generation_bound
+  pid 807748, launched 11:26 UTC, log: docs/observability/ep13_regen_20260827.log
+```
+
+It loads only on-disk caches (`load_cached()`), so it needs no network and cannot block on one.
+The module prints nothing until it finishes — an empty log is normal, not a stall.
+
+**What unblocks this file:** `docs/observability/ep13_embedded_generation_bound.json` showing
+`cells: 144` instead of `192`. Until then item 1 is neither owed nor re-drawable.
+
+**If the process is gone and the artefact still reads 192**, the run died with the session — just
+relaunch the same command. Nothing is lost and nothing needs re-deciding; per the body below,
+the repair was already diagnosed and made, and only the re-measurement was left undone.
+
+**Then read the rungs in the stated order — `instrument_can_see_within_day` FIRST (items 2 and 3),
+and the refusal in "What must not happen" stands until item 1 is read.** `EP13` was verified still
+at `level_current: 2` during this tick, so no premature L3 claim exists.
+
+*Note for whoever edits this atom's map entry: it sits at 11,940 B against the 12,288 B per-atom
+cap (348 B of headroom, the fattest in the map), so a note written there will refuse the commit
+tree-wide. Rehome the narrative instead.*
+
 **Filed by the worker seat, 2026-08-27, while landing the uncommitted mid-work of the session
 that built this instrument. QUEUED, not fixed on sight (SELF-INTERRUPT DISCIPLINE): regenerating
 the artefact is a multi-hour compute job, the drawn tick's work was landing the code, and nothing
