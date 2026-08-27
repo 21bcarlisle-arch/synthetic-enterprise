@@ -82,3 +82,61 @@ person does. An `xfail` would be the same move wearing a decorator.
 
 So the control stays loud and stays failing, and it will keep failing until the AQ is derived.
 That is what a control is for.
+
+---
+
+## CORRECTION, 2026-08-27, same day, before any fix was built on it
+
+**The mechanism named above is wrong, and the title overstates it.** Recorded here rather than
+edited out: the diagnosis was published, so the correction is published beside it.
+
+### What I got wrong
+
+I wrote that `aq_kwh` and the metered volume are "two independent numbers ... nothing reconciles
+them". They are not independent. `simulation/household_demand.HouseholdDemandRegister` takes
+`aq_kwh` off the customer record as its BASE and applies a per-date multiplier to it — so the
+drawn AQ is precisely what the world meters against. My "derive the AQ from the dwelling instead"
+recommendation was therefore aimed at a seam that already exists.
+
+I reached that conclusion from a plausible shape (band-drawn AQ, big divergence) without reading
+the demand model. That is the R4 failure: I named a mechanism before I had checked the nearest
+working analogue.
+
+### What the evidence actually says
+
+`gas_eac_multiplier_for_date` on the four inverting accounts I sampled:
+
+| account | 2020 | 2022 | 2024 | 2025 | inverts in |
+|---|---|---|---|---|---|
+| PROS-2022-0047g | 1.25 | **0.12** | **0.12** | **0.12** | 2022, 2023, 2024, 2025 |
+| PROS-2023-0126g | 1.00 | 1.00 | **0.12** | **0.12** | 2023, 2025 |
+| PROS-2021-0044g | **0.12** | **0.12** | **0.12** | **0.12** | 2021 |
+| PROS-2016-0011g | 1.25 | 1.25 | 1.25 | 1.25 | 2020, by £0.52 |
+
+`GAS_HEAT_PUMP_RESIDUAL_FRACTION = 0.12`. **Three of the four are heat-pump adopters**, and the
+years they invert are the years after the pump goes in. The inversion tracks a DEMAND SHOCK, not
+a drawing method — a home whose gas use collapses to 12% while the contract it is priced on does
+not.
+
+The fourth has no pump, a flat 1.25 multiplier, and inverts by 52 pence. That is a different and
+much smaller case, and it is not explained here either.
+
+### What is still true, and it is the part that matters
+
+Unchanged and re-verified: 18 of 611 gas-leg customer-years invert, 0 of 721 electricity ones.
+The phenomenon belongs exclusively to the legs this seat added on 2026-08-26, so it remains this
+seat's defect to close.
+
+### What is NOT yet established
+
+Which side uses which volume. `annual_pnl` publishes `gross_gbp` and `net_gbp` but no
+`revenue_gbp`, so the comparison that would settle it — billed revenue against the volume the
+margin was computed on — was not made. Note also that `gross_gbp` goes NEGATIVE for a gas leg in
+2022 (PROS-2016-0011g, −£542.39), so any account of this must survive a year where the margin is
+a loss.
+
+**No fix should be built on the paragraph above the correction line.** The next step is to read
+how a gas leg's `gross_gbp` is derived and compare it against the invoiced volume for one
+heat-pump account across the year the pump lands. The control stays RED until that is done, for
+the same reason as before: it is a real arithmetic contradiction in this seat's own work, and
+absorbing it into a baseline or an xfail is the anti-pattern that file's own docstring names.
