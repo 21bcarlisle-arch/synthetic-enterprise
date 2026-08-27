@@ -1,312 +1,376 @@
 version: 1
-oriented_at: "2026-08-27T11:20:03.863528+00:00"
+oriented_at: "2026-08-27T17:20:29.355731+00:00"
 thesis_read: >-
-  Three hours, 21 commits, nine substantive, and the thesis got its first honest answer on the right
-  population: it is NEGATIVE, and that is the stretch working rather than failing. The director asked
-  at 09:23Z to "fix the renewal schedule and rerun the A/B" and both landed. The schedule bug was
-  real and large -- `roll_lifecycle_event` returned `None` for every renewal whose month fell past
-  the settled window, so whether a customer ever got a churn decision depended on whether their
-  anniversary fell on the 31st or the 1st, and six of the nine residential seed accounts were priced
-  at eighteen renewals and produced not one lifecycle event. Repaired, `scored_share_of_priced` goes
-  57.1% to 100.0%, the arm's advantage survives and more than halves to +£7,066 settled, and the
-  belief-quality result does not survive at all: `discrimination_auc` falls from 0.6944 to 0.4653 --
-  below a coin flip -- and it is not uniform noise, it is INVERTED in the middle of the arm's own
-  range (believed p_retain 0.346 realised 0.818 on n=11; believed 0.616 realised 0.000 on n=4). Read
-  beside the same artefact's other fields -- a median margin of £44.50/MWh against the flat rule's
-  £2.00, 24% of priced renewals decided by a bound rather than by the model, and 15 of 211 accounts
-  carrying 99.3% of the movement -- the honest sentence is that this company raised prices 22x on a
-  handful of accounts whose staying-or-leaving it could not predict. That is a claim about the book's
-  price elasticity, not about the company's belief, and the advantage is therefore NOT yet
-  attributable to inference. It is exactly the result the director said he wanted: a negative result
-  on the right population is worth more than a £3M headline on the wrong one. Two of the four focus
-  items are finished and gone from this list -- the full-window instruments were sized (559.8s per
-  pass measured, 2.85 GB peak, against a 632s upper bound) and the full-window A/B ran and now names
-  its book; and the director's 33 reds are reconciled to the node id, all closed, with the reason his
-  33 and the machine's 28 were never the same population. The machine also caught two of its own
-  errors before either was published -- a 9.4x level-vs-selection headline that was two confounds,
-  and a 15.8% "cap breach" that was fixed-term contracts running lawfully through a cap change. What
-  has not moved: EP1 was named for the sixth time and not worked, and its instruction went stale
-  within the hour, because `353fe96b8` changed the very estimator its ledger grades while that ledger
-  still reads `measured_at: 2026-08-26T11:46:22Z`. EP13 was given the company half for the fourth
-  time and delivered SIM-side work for the fourth time, and its own cheap close was unbuildable as
-  written. And one claim published this morning at 04:45 -- "the ladder: the win is NOT price" -- was
-  measured on the broken schedule, over a common population of six decisions, and nothing in the
-  document says so. Correcting that is the first thing this direction owes a reader.
+  Three hours, 8 commits, four substantive, and the shape of the project changed underneath the
+  previous direction rather than following it. First, correct the brief: it reports that NONE of the
+  previous focus was drawn. That is false, and the reason it is false is already written down --
+  `docs/staging/WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27.md`.
+  Three of four items were worked and landed: S1 landed at `bca9bb3af` and its weights were re-derived
+  from published evidence at `898d78239` (Ofgem/BMG 2024, n=3,235, savings-importance 41% overall and
+  35-44% across every reported subgroup); the A/B document's 2019 forward pointer landed at `bafa625d1`
+  along with `--level-arm` as a committed mode with 9 mutation-proven tests, which turned the
+  level-vs-selection split from an ad-hoc invocation into something a commit can reproduce; and
+  `CAN_THE_COMPANY_LEARN_PRICE_SENSITIVITY.md` landed at `88f5dcc61` with the predicted answer -- the
+  declared channel bands `get_churn_estimate`, which is the company's own belief and not an observation
+  of behaviour, so it carries none of S1's signal. Only EP1 went unworked, for the seventh time, and I
+  now think the reason is mine and not the lever's: it was ranked last every time, and Lane 0 items are
+  worked in my order until the tick runs out. Second, and this is the real event of the stretch: the
+  director spoke twice at 16:03Z and 16:36Z and moved the work himself. He ruled that the marginals come
+  from published evidence and are to be cited; that the Ofgem subgroup range is a BETWEEN-group statistic
+  and elasticity is close to orthogonal to observables, so genuine within-segment variance must be drawn;
+  that whether switching keys on pounds saved or percent saved must be ESTABLISHED and the world fixed if
+  it differs; and that a trait claiming discoverability with no observable must either be given a channel
+  or marked hidden, without waiting for him. All four are being answered right now -- 188 uncommitted
+  lines across the three simulation files turn `price_sensitivity_for_customer` into a continuous
+  `price_elasticity_for_customer` (`PRICE_ELASTICITY_SEGMENT_R2 = 0.02`, chosen deliberately against our
+  own thesis) and re-scale the price response to the household's own billed pounds rather than one
+  market-average bill; `channel_pref` is flipped to hidden with the reason written; and a new untracked
+  control, `tests/simulation/test_discoverability_claims_are_enforced.py`, makes the curriculum's own
+  discoverability claim falsifiable. That is the best world-side work this project has done and it is a
+  genuine raise of the ceiling the director named. **And none of it has been scored, because both
+  instruments that would score it are broken right now.** The three-arm A/B on the S1 world was launched
+  correctly at 15:08:25Z under `setsid` with a START/END wrapper, and it was killed without a traceback
+  at 15:12:53Z, 4m28s in, still inside the first arm; there is no `END rc=` line and no artefact, and
+  **2h12m passed before this orientation noticed**, with the Lane 0 file still parked in `in_progress/`
+  saying the run is in flight. The alarm about it fired and is sitting untracked in the staging root,
+  drawn by nobody. Meanwhile the noise-floor measurement that would tell us whether the -£1,388.80
+  selection figure is signal at all is running two seeds as I write, and it patches
+  `pdraw.price_sensitivity_for_customer` -- a symbol the churn decision stopped calling about nine
+  minutes before those processes started. `price_elasticity_for_customer` calls `_draw_curriculum_axis`
+  directly and never routes through the old name, so the patch reaches nothing, both seeds will return
+  identical nets, and that identity will read as a tight instrument when it is the signature of a dead
+  knob. This is the catalogued failure exactly: bit-for-bit reproduction across a world change is
+  BLINDNESS, not stability. So the honest read is that nothing went backwards and the world got
+  materially richer, but the project has started widening the world faster than it can measure the
+  effect, and measurement debt is now the binding constraint rather than world thinness. One correction
+  I owe against my own predecessors, including me: two directions have asserted that the CLV "cannot
+  tell its accounts apart", citing 33 of 33 accounts recovering exactly 0.05. The ledger's own
+  `hazard_calibration` block, which nobody read, shows seven distinct believed hazards across 401
+  decisions -- and in the 0.05 bucket, 263 decisions with 14 churns, the belief is nearly right
+  (believed over realised 0.939) while the 0.08 bucket is 7.6x too pessimistic. The collapse is a
+  property of the 33-account graded slice, which is selected on the outcome and whose excluded
+  counterpart is 2.96x richer, not of the estimator. That was inferred and stated as observed, which is
+  the R9 line.
 stretch_reviewed:
-  since: "2026-08-27T08:22:16.373339+00:00"
-  commits: 21
-  substantive: 9
+  since: "2026-08-27T14:24:24.243363+00:00"
+  commits: 8
+  substantive: 4
 focus:
-  - id: grade-the-renewal-churn-belief-over-the-whole-book
+  - id: the-noise-floor-must-patch-the-symbol-the-decision-calls
     what: >-
-      Build a HARNESS instrument that grades the company's renewal churn belief against the world's
-      realised outcome over EVERY renewal in a full-window control run, not the 25 the value arm
-      happened to price. For each renewal the world rolled, compute the company's own believed
-      probability the way the desk does -- `saas/churn_model.build_churn_risk(settlement_records,
-      customers, through_period=<the month being priced>)`, using only records observable before that
-      month -- and pair it with the world's logged lifecycle event. Publish, per believed-probability
-      bucket: n, mean believed, realised rate, and the count of accounts behind it. Then answer the
-      one question in a sentence with the evidence attached: is the inversion at believed p_retain
-      0.35-0.62 real at population scale, or is it n=4 and n=11? If it is real, name the MECHANISM --
-      `build_churn_risk` is `BASE_ANNUAL_CHURN_PROBABILITY + k x CHURN_UPLIFT_PER_BILL_SHOCK`, so the
-      candidate is that bill shock predicts the opposite of what the model assumes on this book, and
-      that is testable directly from the same pairs. Re-state the ladder's level error (believed 33%
-      against a realised 5.5%) on this population and say whether it survives. Do NOT change
-      `BASE_CHURN_RATE`, `CHURN_UPLIFT_PER_BILL_SHOCK` or any cap in this item -- R12, the AUC is a
-      diagnostic and never a thing to move. File the table as a finding under `docs/staging/` and bind
-      the paths with `delivery_lane.record_landing` as each piece lands.
+      The level-vs-selection noise floor is being measured with a patch that reaches nothing, and the
+      repair is to make it a committed mode rather than fix the scratchpad. Observed, from the code:
+      `simulation/population_draw.py` now defines BOTH `price_sensitivity_for_customer` (line 997, at
+      HEAD, now unused by the churn decision) and `price_elasticity_for_customer` (line 1055, working
+      tree); `simulation/customer_events.py:313-315` imports and calls the second; and the in-flight
+      measurement at
+      `/tmp/claude-1000/-/16aaaff2-7e7e-417f-83d5-80457b2eaadb/scratchpad/noise_floor.py:40` reassigns
+      `pdraw.price_sensitivity_for_customer`. `price_elasticity_for_customer` calls
+      `_draw_curriculum_axis` directly and never routes through the old name, so the seed never reaches
+      the decision. FIRST, cheaply: if those two PIDs are still alive, read their `SWEEP` lines when they
+      land and check whether the two seeds returned IDENTICAL nets -- identical output across two seeds
+      is the confirmation, and a non-identical one refutes this whole item, in which case say so and
+      close it. THEN build the durable form: add a noise-floor mode to `tools/run_value_cycle_ab.py`
+      that re-draws the elasticity assignment across N seeds and reports the spread in
+      `selection_gbp` and `level_share_of_advantage`, resolving the symbol through the SAME import the
+      decision uses so a future rename disconnects the runner loudly instead of silently. Two further
+      defects to carry across while you are in there: the scratchpad pins the level arm at the remembered
+      `renewal_margin_flat_level_gbp_per_mwh=44.5`, which is not the arm the committed runner runs (it
+      reads the value arm's own realised median off the same run), so it is the noise floor of a
+      different instrument; and the delete-the-dead-symbol question -- `price_sensitivity_for_customer`
+      should either lose its last caller and go, or keep one and be documented as the segment-level draw,
+      never sit there as a live-looking name nothing calls. R15 both ways: the mutation that must go red
+      is patching the OLD name and asserting the spread stays zero.
     why: >-
-      This is the engine of the thesis and it is currently measured at below a coin flip on 25
-      decisions. Four separately published numbers all rest on this one belief -- the A/B's 0.4653
-      AUC, the ladder's 33%-vs-5.5% level error, EP1's collapsed hazard, and the arm's -0.077
-      calibration error -- and every one of them was measured on a population small enough or broken
-      enough to be an artefact. One instrument diagnoses all four at once, which is why it goes first
-      under COMPOUNDING_WORK_FIRST. It is also the cheapest decisive thing available: it grades an
-      existing company function against an outcome the world already logs, changes no company code,
-      and cannot fail to produce a finding. Finished when the bucketed table exists as a named
-      artefact over a population an order of magnitude larger than 25, and the document says whether
-      the inversion is real and, if it is, what causes it. "The belief has no ranking power on this
-      book and here is why" is a complete and valuable answer; so is "the inversion was n=4". Do not
-      repair the estimator in the same act -- diagnose, then stop, and let the repair be drawn on the
-      evidence.
-  - id: the-third-arm-level-vs-selection
+      Every money reading this project has published in two days rests on a difference of £1,388.80
+      between two arms over roughly thirty renewals, and nobody has ever measured what that difference
+      does when nothing changes but the draw. That is the number the director will be shown, and the
+      instrument measuring its error bars is currently disconnected in a way that returns the most
+      flattering possible answer. It goes first because it is minutes of reading plus a contained change,
+      because the wrong reading is due to arrive within the hour, and because it makes item two's re-run
+      worth running at all -- a second row whose error bars are unknown is a number, not evidence.
+      Finished when a committed mode exists that a commit can reproduce, its symbol resolution cannot
+      silently detach, a mutation on the old name reds it, and the spread across seeds is stated beside
+      the -£1,388.80 so a reader can see whether the selection leg is distinguishable from zero. If the
+      spread turns out to be wider than the effect, that FINISHES this item and it is the most valuable
+      outcome available -- it means the level-vs-selection instrument cannot yet resolve what we have
+      been asking it, and every reading built on it needs the caveat.
+  - id: land-the-widened-world-then-run-the-three-arm-ab-once
     what: >-
-      Build the third arm properly, inside `renewal_margin_uplift`, exactly as
-      `docs/staging/done/WORKER_FINDING_THE_LEVEL_VS_SELECTION_TEST_CANNOT_BE_BUILT_FROM_THE_FLAT_CONSTANT_2026-08-27.md`
-      specifies: apply a FLAT uplift of the value arm's own realised median
-      (`decision_shape.median_margin_gbp_per_mwh` = 44.50) at exactly the renewals the value arm
-      prices, under the same lawful ceiling the value arm is held to. Do not override
-      `TARGET_MARGIN_GBP_PER_MWH` -- that route was built, run and withdrawn in this stretch and it
-      raises the base tariff of the whole book while the value arm's uplift touches 25 renewals, so it
-      changes the population as well as the level, and it lets one arm price above the Ofgem cap while
-      the other is clamped. Run it against the same book and seeds as
-      `value_cycle_ab_resi_renewal_fixed.json` and report the three nets side by side. Then say which
-      branch is true, in the artefact's own words: if flat-at-£44.50 reproduces the £7,066 the arm is
-      a price rise wearing a model; if it does not, the per-customer variation is worth something even
-      at AUC 0.4653 and the next question is what it is picking up. While you are in
-      `decide_margin`, the FLAT branch's unguarded ceiling -- it returns before the `lawful` filter,
-      so it CAN offer above the cap where the value arm cannot -- is a real latent defect and this arm
-      makes it bite; fix it or state why it cannot. R15: mutation-test the new arm both ways, and the
-      mutation that matters is the one that makes it a no-op.
+      Two acts, in order. FIRST, dispose of the dead run honestly. `docs/observability/three_arm_s1_run.log`
+      has its `START pid=1128717 pgid=1128717 sess=1128717 at=2026-08-27T15:08:25Z` line, 56,229 lines of
+      progress, a last write at 15:12:53Z, NO `END rc=` line, no traceback, and no
+      `docs/observability/value_cycle_ab_s1_three_arm.json`; PID 1128717 is gone. Killed from outside,
+      4m28s in, inside the first arm. A traceback would have been logged, so this was a signal -- check
+      the OOM counter (`background.resource_headroom.sample()` reported `oom_kills_total: 105` and
+      13,897 MB available of 24,032 MB at 17:21Z) and what else was resident at 15:12Z before asserting
+      the cause, and label it observed or inferred per R9. Update the Lane 0 file
+      `docs/staging/in_progress/LANE0_THREE_ARM_AB_ON_THE_S1_WORLD_2026-08-27.md` so it no longer says
+      the run is in flight, and action the alarm that already fired about it -- it is sitting UNTRACKED
+      in the staging root as
+      `WORKER_FINDING_REPEATING_ALARM_RE_RUN_THE_THREE_ARM_AB_ON_THE_S_WORLD_2026-08-27.md`, which means
+      the machinery caught this correctly and only the disposition failed. SECOND, land the widened world
+      before re-running, not after: the 188 uncommitted lines in `simulation/customer_events.py`,
+      `simulation/market_switching_propensity.py` and `simulation/population_draw.py`, the
+      `segmentation_curriculum_v1.json` edit, and the untracked
+      `tests/simulation/test_discoverability_claims_are_enforced.py`. If a live session still holds them,
+      coordinate rather than duplicate -- `git status` and the file mtimes are the check, and ADOPT what
+      is there, never rebuild it. Then run `python3 -m tools.run_value_cycle_ab --level-arm` ONCE, on a
+      CLEAN tree at a named commit, detached with a START/END wrapper AND a `python3 -m tools.wait_for
+      --pid N --subject ... --deadline ...` bound to it per R18, and add the second row to the three-arm
+      table in
+      `docs/staging/done/WORKER_FINDING_THE_VALUE_ARMS_ADVANTAGE_IS_THE_LEVEL_NOT_THE_SELECTION_2026-08-27.md`
+      naming the world by COMMIT, with the book from `book_identity.control_arm` and the settled clock
+      per R14. Report `control_net_gbp`, `value_arm_net_gbp`, `level_net_gbp`,
+      `level_share_of_advantage` (was 119.7%), `selection_gbp` (was -£1,388.80 over the decade) and
+      `level_gbp_per_mwh`.
     why: >-
-      The £7,066 is the only number the value cycle has produced on the right book, and it currently
-      cannot be reported as anything, because "the arm beats flat rules" and "raising prices 22x
-      mostly worked on this book" are the same evidence until this runs. The construction is already
-      specified and the two confounds that killed the cheap route are already written down, so this is
-      the one item on the list where several hours of a previous attempt are recoverable by not
-      repeating them. It is second rather than first because item one may change the belief this arm
-      would be measuring, and because a level-versus-selection answer is worth less when the selection
-      side is already known to carry no ranking power -- item one is what tells us whether that is
-      still true. Finished when three nets sit in one table in
-      `docs/design/THE_VALUE_CYCLE_REALISED_AB.md` with the book and clock named per R14, and the
-      document states which branch is true. A negative answer -- "it was the level" -- finishes this
-      item completely and is the more likely one.
-  - id: the-ladder-headline-rests-on-the-broken-schedule
+      This is the closed loop on the director's own reframing -- widen the world, then measure whether
+      there is now anything to select on -- and right now it is open at both ends: the widening is
+      uncommitted and the measurement is dead. It is second only because item one decides whether the
+      resulting number can be read. I have made one decision inside it that is mine and not his: run the
+      COMPOSITE world once, not S1 and the elasticity/pounds change separately. The previous direction
+      protected per-change attribution and I am giving it up deliberately -- each pass is tens of minutes,
+      the last one was killed, memory pressure is real, and the question on the table is whether a
+      widened world creates anything to select on at all. If it does, decomposing which axis did it is a
+      cheap follow-up; if it does not, the decomposition was never worth an hour. Finished when the run
+      is dead-or-alive on the record rather than presumed in flight, the world work is committed and
+      pushed with its controls green, and the second row exists naming its commit, its book and its
+      clock. R12 governs the reading: a selection leg still worth less than nothing FINISHES this
+      completely and is the honest and likely outcome of widening one axis. It is not a cue to tune the
+      arm until it wins.
+  - id: read-what-the-ep1-ledger-already-says-before-re-running-it
     what: >-
-      `docs/design/THE_VALUE_CYCLE_REALISED_AB.md` publishes, as its answer to "is the advantage
-      price rather than prediction", the section headed "the ladder: the win is NOT price". It was
-      measured at 04:45Z from `value_cycle_price_ladder_2019.json`, which predates the renewal-schedule
-      repair in `353fe96b8` by five hours, and its own `unmatched_diagnosis` records 18 decisions the
-      world never rolled and 6 accounts it never rolled at all -- the identical defect that was proven
-      eight hours later to invalidate the sibling `discrimination_auc` of 0.6944. Its two slopes rest
-      on a common population of SIX decisions carved by that bug. First act, and it is cheap: annotate
-      that section as provisional pending re-measurement, in the same supersession style the headline
-      table already uses, so no reader takes it as settled. Second act: re-run
-      `python3 -m tools.run_price_ladder` on the SAME 2019 window post-fix -- same window, not full
-      window, because the point is to isolate what the schedule repair changed and the 2019 ladder is
-      the nearest working analogue with a known cost (it completed in one tick at 04:45). Report the
-      rolled population before and after, and whether the 1.16x slope ratio and the 33%-vs-5.5% level
-      error survive. Keep rung 0: it is the null control the whole reading rests on and it reproduced
-      the flat-rules control to the last decimal. If a full-window ladder is wanted afterwards, it is
-      sized -- 53.3 min for `--rungs 0,0.5,1,2` at 559.8s/pass -- but 2.85 GB per pass against a 24 GB
-      guest with 94 lifetime OOM kills is why it is one instrument per tick.
+      Do NOT start by re-running the coupler -- start by reading the row that is already there, because
+      two directions including mine have described it wrongly. In
+      `docs/observability/coupled_gap_ledger.json -> EP1_clv_three_horizon`, `components.lifetime_level`
+      does show `distinct_hazards: 1` with `hazard_histogram {"0.05": 33}` and
+      `median_believed_tenure_years: 20.000000000000004`. But `components.hazard_calibration.by_believed_hazard`
+      in the SAME row lists seven distinct believed hazards -- 0.05, 0.08, 0.11, 0.14, 0.17, 0.20, 0.23 --
+      over 401 decisions, and the 0.05 bucket alone carries 263 of them with 14 churns and
+      `believed_over_realised: 0.939`, i.e. nearly right, while 0.08 carries 95 decisions at 7.6x too
+      pessimistic. And `components.population_selection` records `like_for_like_excluded_over_graded:
+      2.964`, `excluded_side_is_censored: true`, and a graded population of 33 against 230 excluded but
+      still supplied. Write the correction: the constant hazard is a property of the 33-account graded
+      SLICE -- selected on the outcome, drawn from the floor bucket, and materially poorer than the book
+      it was drawn from -- and not a demonstration that the estimator cannot tell accounts apart. Then
+      decide, and say why, whether the headline gap of 2.529 computed on that slice should be published
+      at all in its current form, given the baseline is fitted on an outcome-selected population and the
+      ledger's own `baseline` field already says so. Only after that, if a re-run still earns its cost,
+      run `python3 -m tools.couple_clv` at a commit at or after `353fe96b8` (the row is measured at
+      `8afa34ceb`, before the estimator changed) and land the new row.
+      WORKED AND CLOSED 2026-08-27 -- AND THIS ITEM'S OWN DIAGNOSIS WAS WRONG. Do not obey the instruction
+      above to write that "the constant hazard is a property of the graded SLICE": measurement refutes it.
+      At each account's EARLIEST snapshot -- the belief this measurement grades -- the hazard is 0.05 for
+      154 of 154 accounts, the whole book, so selection contributes nothing to the constant. This item
+      also miscounts its own evidence: THIRTEEN distinct believed hazards over 622 decisions, not seven
+      over 401 (401 is the sum of the first seven rows; the table was read to `0.23` and no further, and
+      the two largest omitted buckets, 0.41 at n=135 and 0.38 at n=56, are more pessimistic than the 0.08
+      bucket the item singled out on a single churn event). The cause is this measurement's
+      belief-selection rule -- grading every account at the one year-end where its bill-shock count is
+      structurally zero -- not the estimator and not the slice. See
+      `docs/observability/EP1_GRADED_SLICE_WHAT_IT_IS_EVIDENCE_FOR_2026-08-27.md`, which also records why
+      the gap is not published in its current form, why the re-run was not run, and why no level move is
+      available.
     why: >-
-      A published claim resting on a defect the project has already proven fatal to its sibling
-      statistic is the exact shape of false completion R1 and R3 exist for, and this one is worse than
-      an unfinished item because it reads as an answer. The annotation costs minutes and removes the
-      harm; the re-run is the measurement. It sits third because item one re-establishes the level
-      error on a proper population anyway and may make half of this redundant -- but only half: the
-      SLOPE reading, which is the actual "is the win price" answer, exists nowhere else. Finished when
-      the section carries its provisional note AND either a post-fix ladder artefact with its rolled
-      population stated, or a finding saying why the re-run could not run. The annotation alone is a
-      legitimate partial close if the run does not fit the tick.
-  - id: EP1_clv_three_horizon
-    what: >-
-      Smallest act yet, and different from the five before it: the ledger row is STALE, so re-measure
-      it before reasoning about it. `353fe96b8` changed `saas/churn_model.build_churn_risk` (it now
-      takes `through_period`) and `simulation/customer_events.py`, and EP1's hazard is
-      `latest.churn_probability` read off that same estimator -- but
-      `coupled_gap_ledger.json -> EP1_clv_three_horizon` still reads `measured_at:
-      2026-08-26T11:46:22Z` at `run_git_commit: 8afa34ceb`. Run `python3 -m tools.couple_clv`, land
-      the new row, and report three things against the old one: the gap (was 2.529), `distinct_hazards`
-      in `components.lifetime_level` (was 1 across 33 accounts), and `median_believed_tenure_years`
-      (was 20.0). Then say plainly which of two things is now true. If the collapse survives the
-      re-measure, the localisation stands owed and the named candidate is unchanged --
-      `clv_three_horizon.py:580` takes `hazard = latest.churn_probability` under a time model called
-      `LATEST_RENEWAL_CONDITIONED`, one point out of a trajectory of up to thirteen -- and the act is
-      to print, for the 33 graded accounts, every `churn_probability` in each trajectory beside the
-      value at `[-1]` and the hazard the ledger recovered, which localises it to either the time model
-      or the instrument's inversion. If the collapse is GONE, say so and say the schedule bug was its
-      cause, because that retires five stretches of diagnosis.
-    why: >-
-      Every EP1 instruction for five stretches has proposed a cure without a diagnosis, and the sixth
-      -- mine by inheritance -- asked for the diagnosis but was written against a ledger the code moved
-      out from under within the hour. Re-measuring first is not a delay, it is the only way to know
-      whether the thing being diagnosed still exists: the graded 33 all recovering exactly 0.05 across
-      nine belief years was always suspicious as a MECHANISM, and a schedule bug that silently decided
-      which accounts got churn decisions at all is a mechanism of exactly that kind. It sits fourth
-      because it is a re-run of an existing coupler and cannot block anything above it, and because
-      the gap it publishes is a diagnostic and never a thing to move (R12). Finished when the ledger
-      carries a row measured at a commit at or after `353fe96b8` and a document states whether the
-      hazard collapse survived. If it did survive and a changed estimator later puts more than one
-      distinct hazard into the graded population with the coupled rung genuinely met, a level move is
+      This is the company half of the director's steer and it has been misdiagnosed for six stretches,
+      which is worse than being unworked -- the machine has been reasoning from a fact it did not have.
+      It also matters to the thesis directly and separately from world richness: the thesis is
+      decisions customer-by-customer on lifetime value, and if the money-side belief is well calibrated
+      on two thirds of decisions and 7.6x pessimistic on the next bucket, that is a calibration problem
+      with a shape, not the flat degeneracy we have been describing. Ranked third and not last this time
+      on purpose: it has been last on six lists and was reached on none of them, and a ranking that never
+      gets reached is the same as not naming it. It is cheap -- the evidence is already on disk and the
+      first act is reading, not computing. Finished when a document states plainly what the graded slice
+      is and is not evidence for, the two prior direction records are corrected rather than quietly
+      superseded, and either a fresh ledger row exists or there is a written reason it was not worth the
+      hour. R12: the gap is a diagnostic and never a thing to move. If the re-measure genuinely puts more
+      than one distinct hazard into the graded population with the coupled rung met, a level move is
       available on that evidence -- self-certify with `record_level_up_self_certified`, and never
       `--no-verify` a `level_current` change.
-  - id: EP13_adapter_carbon_intensity
+  - id: make-every-curriculum-discoverability-claim-falsifiable
     what: >-
-      Fifth naming, and this time the act is ten minutes and its landing place is corrected. Grep for
-      a non-test importer of `company/sustainability/carbon_intensity_register.py` and of
-      `company/carbon/half_hourly_footprint.py`. Write the answer into
-      `docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md` and NOT into the maturity-map entry: that
-      entry sits at 11,940 B against the 12,288 B per-atom cap, so a note written there refuses the
-      commit tree-wide, which made the previous instruction's own cheap close unbuildable. If a real
-      company belief about emissions exists, build `tools/couple_carbon_intensity.py`, grade it against
-      the world's outturn and put the row in `coupled_gap_ledger.json` beside the others; R15,
-      mutation-test it both ways. If it does not exist, write exactly that: EP13's L3 is unreachable
-      until something under `company/` consumes the carbon number, and building that consumer is the
-      real owed work. Keep the framing -- L2 is "mechanically real, happy path" and the coupled rung
-      binds L3, so `level_current: 2` with no coupler is a supported level with no path to 3, not a
-      false claim. Separately, the SIM-side re-measurement parked in
-      `docs/staging/in_progress/WORKER_FINDING_THE_EP13_EMBEDDED_GENERATION_BOUND_ARTEFACT_IS_STALE...`
-      (pid 807748, launched 11:26Z) unblocks when the artefact reads `cells: 144` instead of 192 --
-      check it, and if the process is gone and it still reads 192, relaunch and leave the file parked.
+      Land and then generalise the control the director asked for in his own words at 16:36Z: *"if a
+      trait has no channel the company can observe, either give it one or mark it hidden. Don't leave it
+      claiming discoverable and don't wait for me to say so."* The instance work is in the tree and
+      untracked -- `tests/simulation/test_discoverability_claims_are_enforced.py` -- alongside the
+      `segmentation_curriculum_v1.json` edit that flips `channel_pref` to `hidden_truth_only: true` with
+      the reason recorded (`simulation/contact_propensity.py` keys on the ENGAGEMENT archetype and never
+      reads `channel_pref`, which no live module reads at all) and rewrites the `price_sensitivity` note
+      to describe the channel that now genuinely exists. Land that as part of item two, then close the
+      CLASS per R10: the control must enumerate EVERY axis the curriculum declares, and for each one with
+      `hidden_truth_only: false` assert that the drawn value reaches a live decision, so that a future
+      axis added with a fabricated channel note fails on arrival rather than at the next audit. Two R15
+      traps to avoid, both catalogued in this project's own record: the check must not pass when an axis
+      is missing, absent or malformed from the curriculum file, and it must not pass by importing the
+      function it is meant to prove is called -- prove the wiring from the decision's side, the way the
+      S1 test does. Note also that `segmentation_curriculum_v1.json` came back re-serialised with
+      escaped unicode (`—` for the em dashes, `0.3` for `0.30`); check that a round-trip through a
+      writer is intended and is not incidental churn hiding the real edit in a large diff.
     why: >-
-      The coupled triad says no world atom completes until the company has been tested against it, and
-      the director asked for this one in his own words on 2026-08-25 -- "say plainly what it does and
-      does not yet include." Four namings have produced four rounds of SIM-side science, all of it
-      correct and none of it the asked question, which is a pattern in the instruction rather than in
-      the tick: the previous version's escape hatch pointed at a file that could not accept the words.
-      It is last because the four above are on the thesis's spine, and because writing down that the
-      path to 3 is blocked is a legitimate and genuinely cheap close here. Finished when EP13 has
-      either a ledger row grading a real company belief against the world's outturn, or a frame
-      document stating plainly that no such belief exists and naming what would create one. A fifth
-      stretch of SIM-side work does not finish it, however good that work is.
+      A curriculum that promises a discovery channel which does not exist is the single most
+      thesis-corrosive defect available here, because it makes the company look weak for failing at
+      something that was impossible -- a supplier that tried to learn `channel_pref` would have been right
+      to try and would have failed forever, and we would have read that as a poor model. The thesis says
+      the advantage must come from INFERENCE and never ACCESS; the mirror of that is that a declared
+      inference route must be real. The director delegated this explicitly, so it needs no further word
+      from him, and my previous direction told a tick NOT to touch this file under R13 -- that instruction
+      is superseded and I am recording the reversal rather than letting it sit as a live contradiction.
+      Fourth because it is a control rather than a measurement and nothing above it waits on it. Finished
+      when the control is committed, covers every declared axis rather than the two just fixed, is
+      mutation-proven to fire on a fabricated channel note, and the curriculum file contains no
+      discoverability claim that the build does not implement.
 not_now:
+  - what: Running the three-arm A/B twice, to attribute S1 separately from the within-segment elasticity and the absolute-pounds rescale.
+    why: >-
+      This is the trade I actually made and it reverses my predecessor's. Per-change attribution was the
+      stated reason S2 and S3 were held back, and it is a good reason in general. It loses here on cost
+      and fragility against a question that does not need it: each pass is tens of minutes, the last one
+      was killed at 4m28s with no traceback, the OOM counter reads 105, and two three-arm passes are
+      already resident. The live question is whether a widened world creates anything to select on AT
+      ALL. If the composite answers yes, decomposing which axis did it is a cheap and well-motivated
+      follow-up; if it answers no, the decomposition was never worth the hour. One run, world named by
+      commit, composite stated honestly.
   - what: Wiring the value arm to the live renewal desk.
     why: >-
-      Rejected a sixth time, and this stretch supplied the strongest evidence yet against it: the arm's
-      own belief now measures `discrimination_auc` 0.4653 -- below a coin flip and INVERTED in the
-      middle of its range -- while it prices at 22x the flat rule, has 24% of its decisions set by a
-      bound rather than by the model, and concentrates 99.3% of its realised movement in 15 of 211
-      accounts. Wiring a live desk to a belief that is confidently wrong exactly where it is making
-      decisions is the one thing this evidence forbids. `renewal_margin_arm` stays "flat_rules" and
-      `company/policy/decision_policy.py` keeps defaulting to it. Ask again when item one says why the
-      belief is inverted and item two says whether the money was ever the model's.
-  - what: Repairing the churn estimator now that the inversion is visible -- re-levelling, re-fitting, or routing CLV to `estimate_churn_probability`.
+      Rejected an eighth time, and this stretch supplies a new reason rather than repeating the old one.
+      The old reason stands -- selection measured at -£1,388.80 over the decade and -£991.38 on 2019,
+      mildly value-destructive on both windows, against a belief grading 0.5586 on 478 renewals. The new
+      reason is stronger: item one shows we do not yet know that figure's error bars, because the only
+      instrument measuring them is patching a symbol the decision no longer calls. Wiring a live desk to
+      a chooser whose measured advantage is negative and whose measurement error is unmeasured is the one
+      move this evidence forbids twice over. `renewal_margin_arm` stays "flat_rules".
+  - what: Correcting the churn belief's level or its dose by editing the constants in `saas/churn_model.py`.
     why: >-
-      The most tempting item on the list and the one most likely to be a mistake. A −0.077 calibration
-      error and an AUC below 0.5 are an invitation to tune, and R12 makes the AUC a diagnostic and
-      never a thing to move; the last seat already nearly routed CLV to the "richer" 192-value
-      estimator and measured it at AUC 0.4841 (p=0.725) against the coarse step function's 0.6155
-      (p=0.004) -- richer was worse. Item one is deliberately written to diagnose and STOP for exactly
-      this reason. A repair made before the mechanism is named would also strand items two and three's
-      numbers the moment they land, which is the defect the 26 August book caused once already.
-  - what: The full-window price ladder, and the AB-then-ladder pair in one tick.
+      Rejected again, and the ledger reading in item three sharpens why. The belief is not uniformly
+      wrong -- it is nearly right on the 263-decision floor bucket (0.939) and 7.6x pessimistic on the
+      next one, so a single constant edit would break the part that works. Beneath that is the
+      architecture: the company is ALLOWED to be wrong, its models are approximations built from observed
+      outcomes, and a constant hand-set by the harness that measured it is ACCESS wearing the clothes of
+      inference, then graded by the very instrument that set it. The repair that counts is the company
+      LEARNING the level from what it observes.
+  - what: S3 -- the weighted trade-off across price, service, product, carbon and reputation that replaces the multiplicative stack.
     why: >-
-      Now sized rather than guessed -- 53.3 min for four rungs, 71.9 for six, 78.6 for the pair, all
-      inside the 120-minute bound -- so it is no longer arithmetically impossible, only imprudent. It
-      loses on two counts. The memory figure got worse on inspection: 2.85 GB per pass against a WSL2
-      guest reading 24.0 GB with 94 lifetime OOM kills, and a seven-pass ladder holds every rung's
-      decisions at once, which is how the 02:14 tick reached 15 GB. And the comparison that actually
-      needs making is the 2019 window post-fix against the 2019 window pre-fix, which is item three
-      and is cheaper. Full window returns once the schedule repair's effect on the ladder is known.
-  - what: The publish gate's speed -- 397s median commit hook against an 840s ceiling it has touched.
+      This is the item the director's own words point at most directly and the one that most raises the
+      ceiling, because it is what creates preference reversals and makes per-customer pricing genuinely
+      winnable. It still loses this stretch, and the reason has changed: it is no longer attribution, it
+      is that we would then have THREE unscored world changes and a scoring instrument known to be
+      broken. Widening the world is now cheaper than measuring it, which is exactly the imbalance that
+      produced this stretch's stall. Score what has landed, then take S3 with a working instrument. The
+      roadmap he asked for already exists in `WHAT_A_HOUSEHOLD_DECIDES_ON.md`, so nothing is lost by
+      sequencing it next rather than now.
+  - what: A new watcher for detached runs that die without an END line.
     why: >-
-      Inherited and rejected a second time on the same evidence, which has if anything strengthened:
-      21 commits landed in three hours without a wedge, the publisher reached origin 0.3 hours ago, and
-      the two gate defects found this stretch were both correctness rather than speed -- the gate
-      tested the worktree while the commit took the index, and its skip path never restamped the green
-      clock. A gate that is slow but not blocking loses to a belief measuring below a coin flip at the
-      centre of the thesis. It returns the moment a landing is actually refused for time, and if that
-      happens twice in one stretch it goes first.
-  - what: Fixing the seat's own steer-effectiveness control so it can see a Lane 0 focus item.
+      Tempting after a 2h12m blind spot, and wrong. The mechanism already worked: the START/END wrapper
+      made the death visible, and the alarm fired and is on disk in the staging root right now. What
+      failed was DISPOSITION -- nobody drew it. Adding a watcher to patch a symptom whose existing
+      mechanism functioned is precisely the accretion that OPERATIONAL_LAYER_DESIGN forbids and that
+      caused the 6h blackout. The fix is item two actioning the alarm that fired, plus binding the
+      relaunch to a `tools.wait_for` with a named subject and a deadline, which is R18 and already built.
+  - what: EP13 carbon intensity, and building `tools/couple_carbon_intensity.py`.
     why: >-
-      Rejected a fifth time, and this stretch shows the defect from the flattering side rather than the
-      damning one: `previous_focus_drawn` reported `steered: true` crediting EP1 and EP13 -- the two
-      items that did NOT finish -- while the two that DID finish, the sizing measurement and the red
-      census, are Lane 0 slugs the tracker cannot represent at all, because it is keyed by maturity-map
-      atom id. The signal is wrong in both directions and I reconstructed the stretch from 21 commits
-      and six artefact reads faster than the repair would take. It returns to focus the moment a
-      stretch stops being reconstructable from the commits alone.
-  - what: Working down the ~45 open findings in the staging root, and the class files.
+      Rejected a seventh time and I will keep saying why rather than dropping it silently. There is real
+      work there -- three grid-intensity tables disagreeing by up to 55.6%, the published one being
+      neither what the company reads nor what an adapter would feed -- and EP13 sitting at level 2 with
+      no coupler is a supported level with no route to 3. It is off the spine the director drew this
+      afternoon, and the last five namings each produced correct SIM-side work and never the asked
+      question. It stays off until the world-versus-instrument imbalance above is closed.
+  - what: The ~45 findings in the staging root, including the five repeating uncommitted-docs alarms.
     why: >-
-      Left queued under SELF_INTERRUPT_DISCIPLINE, which exists because the supply of harness findings
-      is infinite -- 41 LATENT and 4 RECORDED, none BLOCKING, and most of them auto-filed repeating
-      alarms about docs a mid-work session left uncommitted. Three of them are already answered inside
-      the focus items rather than worked separately: the A/B artefact naming its book was closed this
-      stretch, the size-then-run alarm is item three's subject, and the level-vs-selection alarm is
-      item two. The rest are hygiene, and none of them is on the thesis.
-  - what: The two R13 curriculum items -- reference-frame divergence, and book age.
+      Left queued under SELF_INTERRUPT_DISCIPLINE, because the supply is infinite: 44 LATENT, 4 RECORDED,
+      none BLOCKING. One exception, and it is deliberate: the re-run alarm about the dead A/B is NOT left
+      queued -- it is item two's opening act, because it is the one alarm in the pile whose subject is a
+      measurement the whole stretch depends on. The rest are mostly auto-filed notices about docs that
+      mid-work sessions left uncommitted, and the durable answer to those is landing work promptly, not
+      processing the notices.
+  - what: The seat's own steer-effectiveness control, which reported no focus items drawn while three of four were built and landed.
     why: >-
-      Recorded and deliberately not escalated, unchanged from the last two orientations. The company
-      is structurally unable to see the quantity the world punishes (`rate_increase_pct` never carries
-      the SVT level) and 31.3% of the ladder's decisions have the two references pointing opposite
-      ways; only 74.3% of the electricity book has any renewal decision in the window and the median
-      actionable account has two, which BOUNDS what any A/B on this book can show. Both are baseline
-      or curriculum questions that must be decided blind to company P&L, and this seat has read that
-      P&L. The director has taken book age -- "Book age is mine and I'll come back on it" -- so it is
-      his and pending, not owed by me. Neither blocks anything above.
+      Wrong in the same direction for a fourth consecutive stretch, and the diagnosis is already written
+      up in the staging root -- it keys on maturity-map atom ids and cannot see a Lane 0 kebab slug at
+      all. I am again choosing to USE the signal rather than repair it: I have read past it here and
+      corrected the record in `thesis_read`, and the actionable lesson this time is about RANK, not
+      lever -- EP1 failed seven times while sitting last, so it has moved up. Repairing the control would
+      tell me what I have already worked out, and it competes with measurement work that is currently the
+      binding constraint.
 wrong:
   - what: >-
-      A claim published this morning is standing on a defect the same document proves fatal five
-      hours later, and nothing says so. The section "the ladder: the win is NOT price" was measured at
-      04:45Z on `value_cycle_price_ladder_2019.json`; the renewal-schedule repair landed at
-      `353fe96b8` around 09:49Z. Observed: that artefact's own `unmatched_diagnosis` records 18
-      decisions the world never rolled and 6 accounts it never rolled at all, and its two slopes are
-      computed over a common population of six decisions. Inferred, and the inference is short: this
-      is the identical mechanism that the renewal-repair section shows invalidated the sibling
-      `discrimination_auc` of 0.6944, so the ladder's headline is at best unproven. Nobody has been
-      wrong on purpose here -- the repair simply landed after the reading -- but a reader of that
-      document today is told the price question is answered, and it is not.
+      The noise-floor measurement now in flight patches a function the churn decision no longer calls, so
+      it cannot see the thing it exists to measure. Observed, from the code and the process table:
+      `simulation/customer_events.py:313-315` imports and calls
+      `simulation.population_draw.price_elasticity_for_customer`; that function (line 1055) calls
+      `_draw_curriculum_axis` directly and never routes through `price_sensitivity_for_customer` (line
+      997, still present); and `noise_floor.py:40` reassigns `pdraw.price_sensitivity_for_customer`. The
+      rename landed in the working tree at 16:43-16:47Z and the two measurement processes started at
+      16:53:25Z, about nine minutes later. Its own docstring asserts that "patching the module attribute
+      reaches the live decision", which was true when it was written and false when it was run. The
+      predicted symptom is two seeds returning identical nets, which would read as a tight noise floor
+      and is instead the signature of a dead knob -- the catalogued lesson that bit-for-bit reproduction
+      across a world change is blindness, not stability. Caught before publication, not after.
     corrected: false
   - what: >-
-      EP1 was named for the sixth time and not worked, and this time the instruction was partly at
-      fault: it was written against `coupled_gap_ledger.json`'s EP1 row, and `353fe96b8` changed
-      `saas/churn_model.build_churn_risk` -- the estimator that row grades -- within the hour, while
-      the row still reads `measured_at: 2026-08-26T11:46:22Z` at `run_git_commit: 8afa34ceb`. A
-      direction that names a measurement should say what invalidates it; mine did not, so a worker
-      drawing it would have spent the tick diagnosing a number that no longer describes the code. The
-      re-measure is now the first act of the item rather than the assumed background.
+      The three-arm A/B run was killed 4m28s after launch and was still being described as in flight
+      2h12m later, by the parked Lane 0 file and by every reader after it. Observed:
+      `docs/observability/three_arm_s1_run.log` carries its START line at 15:08:25Z, 56,229 lines, a last
+      write at 15:12:53Z, no `END rc=` line and no traceback; `value_cycle_ab_s1_three_arm.json` does not
+      exist; PID 1128717 is gone. Absence of a traceback means a signal rather than an exception, so
+      memory pressure is the leading candidate (`oom_kills_total: 105`) -- inferred, not observed, and
+      item two says to establish it before asserting it. The handoff document described this exact
+      failure mode and told the next reader to check the log first; nobody did. Worth stating plainly
+      that the alarm machinery was NOT at fault -- the finding fired and is on disk untracked.
+    corrected: false
+  - what: >-
+      Two consecutive directions, including mine, asserted that the company's CLV "cannot tell its
+      accounts apart" and that 33 of 33 accounts recovering exactly 0.05 is "a FLOOR, not a belief",
+      treating it as a property of the estimator. Observed, in the same ledger row that was cited:
+      `components.hazard_calibration.by_believed_hazard` lists seven distinct believed hazards over 401
+      decisions, and `components.population_selection` records the graded 33 as outcome-selected against
+      230 excluded-but-still-supplied accounts averaging 2.96x more. The constant hazard is a property of
+      the graded slice. The conclusion was inferred from one component block and stated as established
+      without reading the adjacent one, which is the R9 line. Item three carries the written correction.
+      THIS CORRECTION IS ITSELF WRONG AND IS CORRECTED BELOW (2026-08-27): the constant hazard is not a
+      property of the graded slice either. Two of its three cited numbers are also wrong -- there are
+      THIRTEEN distinct believed hazards over 622 decisions, not seven over 401 (401 is the sum of the
+      first seven rows of the table; the reader stopped mid-table). Left in place rather than deleted so
+      the sequence of three wrong readings stays legible.
     corrected: true
   - what: >-
-      The level-vs-selection tool was built, run, and returned a 9.4x headline that was an artefact
-      twice over, and it was withdrawn in the same turn before anything was published. Confound one:
-      `decide_margin`'s FLAT branch returns before the `lawful` filter, so the counterfactual let one
-      arm offer £39.50 above the cap while clamping the other. Confound two, and fatal to the
-      approach: `renewal_margin_uplift` returns `MarginArmUplift(0.0)` for FLAT_RULES, so overriding
-      `TARGET_MARGIN_GBP_PER_MWH` raised the base tariff of every contract rather than the 25 renewals
-      the value arm priced. Recorded as an error rather than a save because several hours went into a
-      route whose second confound was readable in the adapter's first three lines -- but the catch
-      itself was the right move and took two minutes, made by asking what the number would have to
-      mean for it to be true.
+      My previous direction instructed a tick, in item three, "Do NOT edit
+      `docs/design/segmentation_curriculum_v1.json`: the marginals and its declared shares are the
+      director's under R13." At 16:36Z the director delegated exactly that, in terms: *"if a trait has no
+      channel the company can observe, either give it one or mark it hidden... Don't leave it claiming
+      discoverable and don't wait for me to say so."* The instruction was right when written and wrong
+      within two hours, and the tree already carries the edit. Recording the reversal rather than letting
+      a superseded prohibition sit in the record where a later reader could obey it.
     corrected: true
   - what: >-
-      A 15.8% breach rate against the Ofgem cap was measured -- 28,093 of 178,229 domestic electricity
-      settlement records above `get_cap_unit_rate_for_date` -- and was two minutes from being reported
-      as a compliance finding. It is not one: the default-tariff cap binds the OFFER and does not
-      reach backwards into a live fixed term, and `PROS-2019-0050` carries exactly one rate, £188.59,
-      across its whole breach window, which is a locked term and not a default tariff drifting. The
-      comparison was settled rates against a rule that governs offers. Caught, and the narrower real
-      question -- does the flat arm ever OFFER above the cap at a renewal -- is now item two's second
-      clause. The pattern is worth keeping: three measurement designs in one investigation each ran
-      perfectly and answered a question nobody had asked.
+      The brief this seat is handed reports `previous_focus_drawn.drawn: []` and warns that a repeat
+      means the steer is a no-op. Three of the four items were drawn, worked and landed this stretch
+      (`bca9bb3af`, `898d78239`, `bafa625d1`, `88f5dcc61`). The control keys on maturity-map atom ids and
+      cannot represent a Lane 0 kebab slug, which is written up in the staging root as its own finding.
+      A seat that took the brief at face value would have concluded its own mechanism had failed and
+      redesigned a lever that is working -- so this is recorded here rather than left for the next
+      orientation to trip over.
     corrected: true
   - what: >-
-      EP13 was given the company half for the fourth stretch and delivered the world half for the
-      fourth time, and the instruction was unbuildable in its cheap-close branch: it directed the
-      worker to write the "no company consumer exists" statement into the maturity-map entry, which
-      sits at 11,940 B against a 12,288 B per-atom cap, so that write would have refused the commit
-      tree-wide. Four failed namings with a defect in the naming is a pattern in the instruction, not
-      in the tick. The fifth version has one act, ten minutes, and a landing place that can accept it.
+      THIRD READING OF THE SAME ROW, correcting the two above and the focus item
+      `read-what-the-ep1-ledger-already-says-before-re-running-it` that I wrote. Direction one said EP1's
+      constant 0.05 hazard was a property of the ESTIMATOR ("cannot tell its accounts apart"). Direction
+      two said it was a property of the outcome-selected 33-account GRADED SLICE, "drawn from the floor
+      bucket". Both are refuted by measurement. Observed, by inverting EP1's own published
+      `tenure_expected`/`contract_term` ratio over every account-year snapshot in
+      `docs/reports/run_output_latest.json`: THIRTEEN distinct hazards across 457 snapshots, and 100 of
+      the 101 accounts holding more than one snapshot move off their first value -- so the estimator
+      discriminates fine. And at each account's EARLIEST snapshot the hazard is 0.05 for 154 of 154
+      accounts -- the whole book, not a selected 33 -- so selection contributes nothing to the constant.
+      The cause is the COUPLER'S BELIEF-SELECTION RULE: it grades every account at its first year-end,
+      where `churn_probability = BASE + 0 x UPLIFT` because no bill-shock history has accrued yet
+      (`saas/churn_model.py:39`, `company/analytics/clv_three_horizon.py:580`). The recovered hazards land
+      exactly on the 0.05+0.03k lattice, which confirms the inversion independently. Consequences taken in
+      `docs/observability/EP1_GRADED_SLICE_WHAT_IT_IS_EVIDENCE_FOR_2026-08-27.md`: the headline
+      `gap = 2.529` is NOT published in its current form (three compounding defects pulling different
+      ways), the re-run was NOT run because it structurally cannot change `distinct_hazards`, and NO level
+      move is available. The real defect is that `couple_clv`'s stated reason for taking the earliest
+      snapshot -- that a ceased account has no other -- is false for 14 of the 20 graded accounts still
+      present; that fix is queued as a build item, not done on sight.
     corrected: true
 for_the_director: []
