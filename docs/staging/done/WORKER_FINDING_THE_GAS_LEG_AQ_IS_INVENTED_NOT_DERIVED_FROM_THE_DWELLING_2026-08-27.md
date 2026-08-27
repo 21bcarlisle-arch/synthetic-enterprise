@@ -140,3 +140,72 @@ how a gas leg's `gross_gbp` is derived and compare it against the invoiced volum
 heat-pump account across the year the pump lands. The control stays RED until that is done, for
 the same reason as before: it is a real arithmetic contradiction in this seat's own work, and
 absorbing it into a baseline or an xfail is the anti-pattern that file's own docstring names.
+
+---
+
+## RESOLVED, 2026-08-27, and it was neither of my two guesses
+
+**The money was never missing. Only its attribution between the two legs of one household was.**
+
+### The measurement that settled it
+
+Aggregate the 18 inverted supply-point-years to the BILLING ACCOUNT — the leg plus its
+electricity sibling — and compare the household's invoices against the household's margin:
+
+```
+leg-level inversions:                                    18
+of those, still inverted at HOUSEHOLD level (leg+base):   0
+```
+
+All eighteen. Not most, not a residue — every one.
+
+### Why
+
+A dual-fuel household is **one billing account with two supply points**. That is not incidental:
+it is the property `tests/simulation/test_dual_fuel_wins.py::test_the_two_legs_are_one_billing_account`
+asserts, and the entire reason dual fuel reaches cost-to-serve, churn and lifetime value rather
+than merely adding rows.
+
+Its INVOICES are cut per billing account. Its SETTLEMENT margin accrues per supply point
+(`annual_report`: `gross_gbp = sum(r["margin_gbp"] for r in crecs)`, over settlement records).
+Comparing one leg's invoices against that leg's margin compares a part against a
+**differently-cut** part, and the remainder surfaces as an arithmetic impossibility.
+
+The heat-pump correlation in the correction above is real and is the AMPLIFIER, not the cause: a
+home whose gas demand collapses to 12% has a tiny gas invoice beside an untouched electricity
+one, so the mis-split is most visible there. It is why 3 of the 4 sampled accounts had a pump,
+and why the fourth — no pump, 52 pence — looked like a different phenomenon. It was the same one,
+smaller.
+
+### The fix
+
+The control now compares at the billing account. That is not a loosening: the billing account is
+the unit at which billing actually HAPPENS, so it is the only unit at which "billed less than the
+margin inside it" is a well-formed claim at all. For a single-fuel account the billing account IS
+the supply point, so 703 of the 721 electricity customer-years are compared exactly as before.
+
+Two partners pin both directions, because aggregating makes the haystack bigger and that is how a
+comparison quietly stops discriminating:
+
+* `test_the_gate_still_fires_when_a_DUAL_FUEL_HOUSEHOLD_total_inverts` — £60 billed against £500
+  of combined margin is still caught.
+* `test_one_leg_covering_for_the_other_is_NOT_reported_as_a_break` — the household reconciles,
+  the split does not, and the gate stays quiet. That is the shape of the 18.
+
+### What this cost, and the lesson
+
+Two wrong mechanisms before the right one, both published:
+
+1. "The AQ is invented and unreconciled" — wrong; `household_demand` uses `aq_kwh` as its base.
+2. "It is heat pumps" — a real correlation, and still not the cause.
+
+Both were plausible shapes reasoned from a distribution. Neither survived one cheap aggregation.
+**The measurement that resolved it took thirty seconds and was available from the start**: sum
+the two legs. The lesson is not "diagnose more carefully" — it is that when a quantity is split
+across a seam, the first question is whether the SPLIT is the defect, before any question about
+either side of it. That is the third time in one day this seat has met the same shape: the
+household register minting two Households per property, the citation reader stat-ing a label,
+and now a control comparing across a cut that billing does not make.
+
+**The control is GREEN and its teeth are intact.** Nothing was absorbed into a baseline and
+nothing was xfailed.

@@ -111,19 +111,48 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
     sample = json.loads(SAMPLE_PATH.read_text())
     billed = billed_total_by_customer_year(ledger, net_of_catchup=True)
 
-    violations = []
-    checked = 0
+    # COMPARED AT THE BILLING ACCOUNT, NOT THE SUPPLY POINT (2026-08-27).
+    #
+    # A dual-fuel household is ONE billing account with TWO supply points -- the property
+    # `tests/simulation/test_dual_fuel_wins.py::test_the_two_legs_are_one_billing_account`
+    # asserts, and the whole reason dual fuel reaches cost-to-serve and lifetime value at all.
+    # Its INVOICES are cut per billing account; its SETTLEMENT margin accrues per supply point.
+    # Comparing one leg's invoices against that same leg's margin therefore compares a part
+    # against a differently-cut part, and the remainder shows up as an impossible inversion.
+    #
+    # MEASURED, which is what promoted this from a plausible story to the fix: after the
+    # 2026-08-26 dual-fuel draw, 18 customer-years inverted at supply-point level -- 18 of 611
+    # gas-leg years, and 0 of 721 electricity years. Aggregated to the billing account, **all 18
+    # go away**. The money was never missing; only its attribution between two legs of one home
+    # was, and this control was reading that attribution as a pipeline break.
+    #
+    # THIS IS NOT A LOOSENING. The billing account is the unit at which billing actually
+    # happens, so it is the only unit at which "billed less than the margin inside it" is even a
+    # well-formed claim. A genuine break still inverts the household total, and
+    # `test_the_gate_still_fires_on_an_inversion_catchup_cannot_explain` proves the netting half
+    # has not gone fail-open. The single-fuel case is untouched: for an account with no sibling
+    # leg the billing account IS the supply point, which is 703 of the 721 electricity years.
+    gross_by_account: dict = {}
     for cid, cust in sample.get("customers", {}).items():
         base_cid = _base_id(cid)
         for row in cust.get("annual_pnl", []):
-            year = row["year"]
-            gross = row["gross_gbp"]
-            total = billed.get((cid, year), billed.get((base_cid, year)))
-            if total is None:
-                continue
-            checked += 1
-            if total < gross - 0.01:
-                violations.append((cid, year, total, gross))
+            key = (base_cid, row["year"])
+            gross_by_account[key] = gross_by_account.get(key, 0.0) + row["gross_gbp"]
+
+    billed_by_account: dict = {}
+    for (cid, year), total in billed.items():
+        key = (_base_id(cid), year)
+        billed_by_account[key] = billed_by_account.get(key, 0.0) + total
+
+    violations = []
+    checked = 0
+    for (account, year), gross in sorted(gross_by_account.items()):
+        total = billed_by_account.get((account, year))
+        if total is None:
+            continue
+        checked += 1
+        if total < gross - 0.01:
+            violations.append((account, year, round(total, 2), round(gross, 2)))
 
     assert checked > 0, "no customer-year pairs matched between the two files -- gate is vacuous"
     assert violations == [], (
@@ -229,3 +258,60 @@ def test_EVERY_negative_invoice_in_the_live_ledger_is_catchup_explained():
         "a NEGATIVE invoice with no catch-up adjustment behind it -- the company is crediting a "
         f"customer for no recorded reason: {unexplained[:5]}"
     )
+
+
+def test_the_gate_still_fires_when_a_DUAL_FUEL_HOUSEHOLD_total_inverts():
+    """R15 partner for the 2026-08-27 move to billing-account level.
+
+    Aggregating two supply points into one account makes the haystack bigger, and a bigger
+    haystack is how a comparison quietly stops discriminating. The move is only legitimate if a
+    real break still inverts the HOUSEHOLD -- so here is one: an electricity leg and a gas leg
+    that together bill £60 against £500 of combined margin.
+
+    Without this, the repair above would be indistinguishable from switching the control off for
+    every dual-fuel customer on the book -- which, after 2026-08-26, is most of them.
+    """
+    ledger = {"customers": {
+        "C99": {"invoices": [{"period_end": "2021-12-31", "total_amount_gbp": 40.0}]},
+        "C99g": {"invoices": [{"period_end": "2021-12-31", "total_amount_gbp": 20.0}]},
+    }}
+    sample = {"customers": {
+        "C99": {"annual_pnl": [{"year": 2021, "gross_gbp": 300.0}]},
+        "C99g": {"annual_pnl": [{"year": 2021, "gross_gbp": 200.0}]},
+    }}
+    billed = billed_total_by_customer_year(ledger, net_of_catchup=True)
+
+    gross_by_account: dict = {}
+    for cid, cust in sample["customers"].items():
+        for row in cust["annual_pnl"]:
+            key = (_base_id(cid), row["year"])
+            gross_by_account[key] = gross_by_account.get(key, 0.0) + row["gross_gbp"]
+    billed_by_account: dict = {}
+    for (cid, year), total in billed.items():
+        key = (_base_id(cid), year)
+        billed_by_account[key] = billed_by_account.get(key, 0.0) + total
+
+    violations = [(a, y) for (a, y), g in gross_by_account.items()
+                  if billed_by_account.get((a, y), 0.0) < g - 0.01]
+    assert violations == [("C99", 2021)], (
+        "a dual-fuel household billing £60 against £500 of margin was not caught -- "
+        "aggregating to the billing account has switched the control off")
+
+
+def test_one_leg_covering_for_the_other_is_NOT_reported_as_a_break():
+    """The other direction, and the exact 18 cases this repair was built for: the household
+    reconciles, only the split between its two legs does not. That is an attribution question,
+    not a pipeline break, and the gate must stay quiet on it."""
+    ledger = {"customers": {
+        "C98": {"invoices": [{"period_end": "2021-12-31", "total_amount_gbp": 900.0}]},
+        "C98g": {"invoices": [{"period_end": "2021-12-31", "total_amount_gbp": 15.0}]},
+    }}
+    sample = {"customers": {
+        "C98": {"annual_pnl": [{"year": 2021, "gross_gbp": 300.0}]},
+        "C98g": {"annual_pnl": [{"year": 2021, "gross_gbp": 200.0}]},
+    }}
+    billed = billed_total_by_customer_year(ledger, net_of_catchup=True)
+    # The gas leg alone inverts (15 < 200); the household does not (915 >= 500).
+    assert billed[("C98g", 2021)] < sample["customers"]["C98g"]["annual_pnl"][0]["gross_gbp"]
+    total = billed[("C98", 2021)] + billed[("C98g", 2021)]
+    assert total >= 500.0
