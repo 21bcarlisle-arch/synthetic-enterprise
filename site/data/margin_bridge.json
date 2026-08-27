@@ -1,36 +1,36 @@
 {
   "as_of_run": "run_output_latest.json",
-  "settlement_net_margin_gbp": 150185.76,
-  "ledger_net_margin_gbp": 534693.5,
-  "total_gap_gbp": 384507.73,
-  "gap_ratio_x": 3.56,
+  "settlement_net_margin_gbp": 152114.25,
+  "ledger_net_margin_gbp": 515870.03,
+  "total_gap_gbp": 363755.78,
+  "gap_ratio_x": 3.39,
   "items": [
     {
       "id": "noncommodity_cost_no_revenue_recognition",
       "label": "Non-commodity cost absorbed with no revenue recognition (root cause, dominant item)",
-      "amount_gbp": 383736.86,
+      "amount_gbp": 362782.31,
       "mechanism": "For non-pass-through (fixed) tariff settlement records, revenue_gbp never includes policy/network recovery -- Phase 40a's own design comment assumes it is 'baked into the locked unit rate' -- yet net_margin_gbp still deducts the full real policy_cost_gbp + network_cost_gbp regardless of tariff type (simulation/hedged_settlement.py, net_margin_gbp assignment). Every real bill (saas/bill_generator.py) separately charges and collects non_commodity_amount_gbp as cash; on the bill-derived ledger this amount flows into revenue and back out as a cost, cancelling to ~zero net effect (verified algebraically: ledger_gross reduces to commodity+standing-charge-minus-wholesale regardless of the specific non-commodity figure used). The settlement P&L has no such offsetting revenue line, so it absorbs the full cost as a pure loss. NOTE: this supersedes an earlier hypothesis (from the pre-existing E2_revenue_reconciliation atom) that the two independently-built non-commodity cost MODELS (settlement's granular per-levy calc vs the ledger's blended-rate calc) were the dominant driver -- direct calculation shows that divergence is real but immaterial here (the ledger's non-commodity figure cancels out of ledger_net regardless of its value), a genuinely different mechanism from what actually drives this gap.",
       "status": "explained"
     },
     {
       "id": "revenue_basis_difference",
       "label": "Commodity+standing-charge revenue basis difference",
-      "amount_gbp": 3711.28,
+      "amount_gbp": 2206.56,
       "mechanism": "Estimated-vs-actual meter reads, billing-period boundary effects, and the 'deemed' out-of-contract tariff path (simulation/hedged_settlement.py) which carries no standing-charge revenue at all, unlike every issued bill.",
       "status": "explained"
     },
     {
       "id": "residual",
       "label": "Back-billing catch-up adjustments (bill-total vs category-field sum)",
-      "amount_gbp": -2940.4,
-      "mechanism": "Difference between issued bills' total_amount_gbp and the sum of their own commodity/non-commodity/standing-charge/VAT category fields. Confirmed (not just plausible): sum(catchup_adjustment_gbp) across issued bills = -2940.48 -- matches this item to within a rounding penny. These are real back-billing catch-up credits (simulation/run_phase4c_on_phase2b.py _resolve_catchup) stamped onto the bill total outside the four category fields.",
+      "amount_gbp": -1233.09,
+      "mechanism": "Difference between issued bills' total_amount_gbp and the sum of their own commodity/non-commodity/standing-charge/VAT category fields. Confirmed (not just plausible): sum(catchup_adjustment_gbp) across issued bills = -1233.14 -- matches this item to within a rounding penny. These are real back-billing catch-up credits (simulation/run_phase4c_on_phase2b.py _resolve_catchup) stamped onto the bill total outside the four category fields.",
       "status": "explained"
     }
   ],
-  "explained_gbp": 384507.74,
-  "unexplained_remainder_gbp": -0.01,
+  "explained_gbp": 363755.78,
+  "unexplained_remainder_gbp": 0.0,
   "fully_explained": true,
-  "held_bills_excluded_from_ledger": 95,
+  "held_bills_excluded_from_ledger": 94,
   "note": "VAT is excluded from both sides (settlement never models VAT; the ledger subtracts vat_remittance_gbp from total_billed_gbp) -- checked, not a reconciling item. Bad debt (write-offs) is tracked separately on both sides and does not enter either net_margin_gbp figure -- checked, not a reconciling item for THIS bridge.",
   "one_bill_worked_example": {
     "customer_id": "C1",
@@ -40,15 +40,15 @@
       "consumption_kwh": 140.54
     },
     "financial_clock": {
-      "total_amount_gbp": 36.83,
+      "total_amount_gbp": 36.84,
       "non_commodity_amount_gbp": 8.71,
-      "ledger_net_margin_gbp": 17.85
+      "ledger_net_margin_gbp": 17.86
     },
     "regulatory_clock": {
-      "revenue_gbp": 26.36,
+      "revenue_gbp": 26.37,
       "wholesale_cost_gbp": 10.12,
       "capital_cost_gbp": 0.14,
-      "net_margin_gbp": 15.54
+      "net_margin_gbp": 15.55
     },
     "gap_gbp": 2.31,
     "gap_explanation": "Same mechanism as the portfolio-level bridge above, scoped to this one bill: for a non-pass-through (fixed) tariff, the settlement (regulatory) clock's revenue_gbp does not include policy/network cost recovery, while the bill separately charges and collects it as non_commodity_amount_gbp -- the ledger-equivalent financial clock recognises it, the regulatory clock's cost deduction does not have a matching revenue line."

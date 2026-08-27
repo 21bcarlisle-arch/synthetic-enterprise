@@ -71,7 +71,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0051-INV12286",
+      "id": "PROS-2025-0051-INV12041",
       "date": "2025-02-28",
       "period_start": "2025-02-12",
       "period_end": "2025-02-28",
@@ -112,7 +112,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0051-INV12287",
+      "id": "PROS-2025-0051-INV12042",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
@@ -153,7 +153,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0051-INV12288",
+      "id": "PROS-2025-0051-INV12043",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -194,7 +194,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0051-INV12289",
+      "id": "PROS-2025-0051-INV12044",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -235,7 +235,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0051-INV12290",
+      "id": "PROS-2025-0051-INV12045",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -282,17 +282,17 @@
       {
         "date": "2025-03-05",
         "type": "invoice_raised",
-        "invoice_number": 12286,
+        "invoice_number": 12041,
         "amount_gbp": 97.47,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12286 raised",
+        "description": "Invoice INV12041 raised",
         "running_balance_gbp": 97.47
       },
       {
         "date": "2025-03-19",
         "type": "payment_received",
-        "invoice_number": 12286,
+        "invoice_number": 12041,
         "amount_gbp": -97.47,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -302,17 +302,17 @@
       {
         "date": "2025-04-01",
         "type": "invoice_raised",
-        "invoice_number": 12287,
+        "invoice_number": 12042,
         "amount_gbp": 172.78,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12287 raised",
+        "description": "Invoice INV12042 raised",
         "running_balance_gbp": 172.78
       },
       {
         "date": "2025-04-15",
         "type": "payment_received",
-        "invoice_number": 12287,
+        "invoice_number": 12042,
         "amount_gbp": -172.78,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -322,17 +322,17 @@
       {
         "date": "2025-05-01",
         "type": "invoice_raised",
-        "invoice_number": 12288,
+        "invoice_number": 12043,
         "amount_gbp": 137.98,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12288 raised",
+        "description": "Invoice INV12043 raised",
         "running_balance_gbp": 137.98
       },
       {
         "date": "2025-05-15",
         "type": "payment_received",
-        "invoice_number": 12288,
+        "invoice_number": 12043,
         "amount_gbp": -137.98,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -342,27 +342,27 @@
       {
         "date": "2025-06-04",
         "type": "invoice_raised",
-        "invoice_number": 12289,
+        "invoice_number": 12044,
         "amount_gbp": 134.21,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12289 raised",
+        "description": "Invoice INV12044 raised",
         "running_balance_gbp": 134.21
       },
       {
         "date": "2025-06-08",
         "type": "invoice_raised",
-        "invoice_number": 12290,
+        "invoice_number": 12045,
         "amount_gbp": 29.62,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12290 raised",
+        "description": "Invoice INV12045 raised",
         "running_balance_gbp": 163.83
       },
       {
         "date": "2025-06-18",
         "type": "payment_received",
-        "invoice_number": 12289,
+        "invoice_number": 12044,
         "amount_gbp": -134.21,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -372,7 +372,7 @@
       {
         "date": "2025-06-22",
         "type": "payment_failed",
-        "invoice_number": 12290,
+        "invoice_number": 12045,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",

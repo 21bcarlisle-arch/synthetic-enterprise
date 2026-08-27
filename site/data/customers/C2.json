@@ -22,9 +22,9 @@
     "recommended_uplift_pct": null
   },
   "avg_hedge_fraction": 0.919,
-  "clv_gbp": 596.4,
+  "clv_gbp": 599.94,
   "churn_probability": 0.41,
-  "expected_lifetime_periods": 13.07,
+  "expected_lifetime_periods": 13.23,
   "forecast_annual_profit_gbp": 83.75,
   "forecast_cashflow": [
     {
@@ -177,6 +177,27 @@
     }
   ],
   "timeline": [
+    {
+      "date": "2017-04-01",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 122.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 10.80p/kWh -> 11.95p/kWh"
+    },
+    {
+      "date": "2018-04-01",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 128.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 12.00p/kWh -> 12.79p/kWh"
+    },
+    {
+      "date": "2019-04-01",
+      "type": "renewed",
+      "commodity": "electricity",
+      "detail": "Tariff renewed at 145.0 \u00a3/MWh",
+      "effect": "Unit rate stepped 12.60p/kWh -> 14.56p/kWh"
+    },
     {
       "date": "2020-03-31",
       "type": "renewed",
@@ -7637,6 +7658,17 @@
     },
     {
       "customer_id": "C2",
+      "date": "2017-04-01",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 1%.",
+      "company_belief": 0.145,
+      "sim_truth": 0.013,
+      "amount_gbp": null,
+      "outcome": "renewed",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C2",
       "date": "2018-04-01",
       "event_type": "journey_state",
       "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
@@ -7644,6 +7676,17 @@
       "sim_truth": 0.0,
       "amount_gbp": null,
       "outcome": null,
+      "framing_type": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2018-04-01",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 4%.",
+      "company_belief": 0.084,
+      "sim_truth": 0.037,
+      "amount_gbp": null,
+      "outcome": "renewed",
       "framing_type": null
     },
     {
@@ -7743,6 +7786,17 @@
       "sim_truth": 0.0,
       "amount_gbp": null,
       "outcome": null,
+      "framing_type": null
+    },
+    {
+      "customer_id": "C2",
+      "date": "2019-04-01",
+      "event_type": "outcome_renewed",
+      "description": "Renewal outcome: RENEWED -- company believed 7% churn risk at decision time, SIM realized probability was 2%.",
+      "company_belief": 0.071,
+      "sim_truth": 0.018,
+      "amount_gbp": null,
+      "outcome": "renewed",
       "framing_type": null
     },
     {

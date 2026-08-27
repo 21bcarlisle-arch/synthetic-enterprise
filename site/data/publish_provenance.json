@@ -1,34 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-27T08:36:47Z",
+    "checked_at": "2026-08-27T10:35:17Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_no_committed_discharge_cites_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year",
-      "FAILED tests/tools/test_evidence_pages.py::test_the_record_store_actually_supplies_the_citations",
-      "FAILED tests/tools/test_generate_customer_sample.py::test_business_customer_home_type_is_the_business_premises_type",
-      "FAILED tests/tools/test_generate_customer_sample_population_seam.py::test_resolve_book_flag_off_byte_identical_to_static_customers",
-      "FAILED tests/tools/test_generate_customer_sample_population_seam.py::test_resolve_book_flag_on_additively_carries_syn_cohort"
+      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_shadow_finder_is_derived_and_discriminates"
     ],
-    "nonblocking_reds_total": 22,
-    "open_findings": 36
+    "nonblocking_reds_total": 2,
+    "open_findings": 35
   },
   "last_verified": {
-    "generated_at": "2026-08-27T09:03:16Z",
-    "git_commit": "242ed962d",
-    "run_id": "run_output_242ed962d_20260827T083748Z.json",
-    "verified_at": "2026-08-27T09:03:16Z"
+    "generated_at": "2026-08-27T11:01:18Z",
+    "git_commit": "fed888d6f",
+    "run_id": "run_output_fed888d6f_20260827T103623Z.json",
+    "verified_at": "2026-08-27T11:01:18Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-27T09:03:16Z",
-    "git_commit": "242ed962d",
-    "run_id": "run_output_242ed962d_20260827T083748Z.json",
-    "verified_at": "2026-08-27T09:03:16Z"
+    "generated_at": "2026-08-27T11:01:18Z",
+    "git_commit": "fed888d6f",
+    "run_id": "run_output_fed888d6f_20260827T103623Z.json",
+    "verified_at": "2026-08-27T11:01:18Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-27T09:03:16Z"
+  "written_at": "2026-08-27T11:01:18Z"
 }
