@@ -63,8 +63,13 @@ Run:  python3 -m tools.run_value_cycle_ab [--end-year 2019]
 from __future__ import annotations
 
 import argparse
+import ast
 import collections
+import importlib
+import importlib.util
 import json
+import math
+import statistics
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -81,6 +86,11 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
+#: The noise-floor mode's own artefact. A SEPARATE file on purpose: it is the error bar ON
+#: `value_cycle_ab.json`, and writing it over the thing it qualifies would leave the published
+#: split with no reading beside it.
+NOISE_FLOOR_OUTPUT_PATH = (
+    PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_noise_floor.json")
 #: The coupler's own artefact, and the ONE place the regulated-allowance comparison is
 #: computed. Read here, never recomputed -- see `control_credibility`.
 ARMS_ARTEFACT = PROJECT_DIR / "docs" / "observability" / "value_based_pricing_arms.json"
@@ -1449,6 +1459,185 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     }
 
 
+# ---------------------------------------------------------------------------
+# THE NOISE FLOOR -- what does the level/selection split do when ONLY the draw moves?
+# ---------------------------------------------------------------------------
+#
+# WHY THIS IS A COMMITTED MODE AND NOT A SCRATCHPAD. The split above reports `selection_gbp` as a
+# difference between two arms over ~30 renewals, and every reading of it so far has assumed the
+# difference means something. It cannot be read at all until somebody has measured what the SAME
+# comparison does when nothing changes except WHICH households are drawn elastic. That measurement
+# existed only as a /tmp script, so no commit reproduced it and nothing tested it -- and the first
+# version of it patched a symbol the decision had stopped calling, which made every seed run the
+# identical world and returned the most flattering answer available (a noise floor of zero).
+
+#: The module that DRAWS a household's elasticity, and the module whose churn decision READS it.
+#: Named as strings, not imported, because the whole point of `resolve_elasticity_symbol` is to
+#: resolve the name through the decision's own import rather than pin a second copy of it here.
+ELASTICITY_DRAW_MODULE = "simulation.population_draw"
+ELASTICITY_DECISION_MODULE = "simulation.customer_events"
+
+
+def resolve_elasticity_symbol(decision_module: str = ELASTICITY_DECISION_MODULE,
+                              draw_module: str = ELASTICITY_DRAW_MODULE) -> str:
+    """The elasticity symbol THE CHURN DECISION IMPORTS -- read off the decision's own source.
+
+    A NOISE FLOOR IS A HARNESS KEYED TO A STRUCTURE THAT CAN MOVE, so it must not carry its own
+    copy of the name. On 2026-08-27 the decision moved from `price_sensitivity_for_customer` (a
+    segment level) to a continuous per-household elasticity; the harness went on patching the old
+    name, reached nothing, and reported a spread of zero across seeds -- a plausible number from a
+    measurement of nothing, which is R15's FAIL-SILENT shape and worse than a crash.
+
+    So the name is READ, never written down: this parses `decision_module` and returns the single
+    name it imports from `draw_module`. A rename that moves both sides is followed automatically;
+    a rename that leaves the decision importing something else, or importing nothing from the draw
+    module at all, RAISES here rather than silently measuring a disconnected symbol. More than one
+    such import is equally refused -- with two candidates this tool cannot know which one the
+    decision's price response consumes, and guessing is how the original defect happened.
+    """
+    spec = importlib.util.find_spec(decision_module)
+    if spec is None or not spec.origin:
+        raise AssertionError(
+            f"cannot locate `{decision_module}` on disk, so the symbol the churn decision imports "
+            "cannot be read. Refusing to guess it -- a noise floor patched onto a guessed name is "
+            "a measurement of nothing that reports a spread of zero.")
+    tree = ast.parse(Path(spec.origin).read_text(encoding="utf-8"))
+    names = sorted({
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module == draw_module
+        for alias in node.names
+    })
+    if len(names) != 1:
+        raise AssertionError(
+            "`{}` imports {} name(s) from `{}` ({}) -- this tool needs EXACTLY one to know which "
+            "symbol the price response actually calls. Re-point it deliberately rather than "
+            "letting it patch a symbol nothing reads.".format(
+                decision_module, len(names), draw_module, names or "none"))
+    return names[0]
+
+
+def _spread(values: list) -> dict:
+    """Mean/sd/range over the seeds, with `n` carried so a reader can weigh it."""
+    vals = [v for v in values if v is not None]
+    if not vals:
+        return {"n": 0, "mean": None, "stdev": None, "min": None, "max": None, "range": None,
+                "why_empty": "no seed produced this figure"}
+    return {
+        "n": len(vals),
+        "mean": statistics.mean(vals),
+        # Population of ONE has no spread -- reported as None, never as 0.0, because a zero here
+        # is exactly the reading the disconnected-patch defect produced (R15 fail-open).
+        "stdev": statistics.stdev(vals) if len(vals) > 1 else None,
+        "min": min(vals),
+        "max": max(vals),
+        "range": max(vals) - min(vals),
+    }
+
+
+def noise_floor(seeds: list[int], report_end: str | None = None,
+                runner=None, symbol: str | None = None) -> dict:
+    """Re-run the whole three-arm A/B once per seed, moving ONLY the elasticity assignment.
+
+    WHAT IS VARIED, AND ONLY THIS. The resolved elasticity symbol is rebound on the draw module so
+    every household's elasticity is drawn at `seed` instead of the run's own base seed. The book,
+    the weather, the settlement data and the population draw are untouched, so the spread this
+    produces is attributable to the assignment and to nothing else.
+
+    THE LEVEL ARM IS THE RUNNER'S OWN, at the value arm's realised median FOR THAT SEED. This is
+    not a detail: the scratchpad version pinned the level at a remembered 44.5 GBP/MWh, which is a
+    constant from a book that no longer exists, so it measured the noise floor of a DIFFERENT
+    instrument from the one that publishes. Each seed re-reads the median off its own run.
+
+    THE PATCH MUST BE OBSERVED TO FIRE, per seed. A rebind that reaches no call site produces a
+    byte-identical world, a spread of exactly zero, and a headline saying the selection leg is
+    perfectly stable -- the most flattering possible answer, arrived at by measuring nothing. The
+    counter makes that state RAISE. It is the floor on this tool's own subject and the reason the
+    R15 mutation (point `symbol` at the retired `price_sensitivity_for_customer`) goes red.
+
+    `runner` is injectable so the control can exercise this loop without three full decade passes.
+    """
+    if len(seeds) < 2:
+        raise AssertionError(
+            f"a noise floor needs at least two seeds; got {len(seeds)}. One seed is a run, not a "
+            "spread, and reporting it as a floor would understate the error bars to zero.")
+    draw = importlib.import_module(ELASTICITY_DRAW_MODULE)
+    name = symbol or resolve_elasticity_symbol()
+    real = getattr(draw, name, None)
+    if real is None:
+        raise AssertionError(
+            f"`{ELASTICITY_DRAW_MODULE}` has no attribute `{name}` to re-draw. Refusing to run.")
+
+    run = runner or (lambda: run_value_cycle_ab(report_end=report_end, level_arm=True))
+    rows = []
+    for seed in seeds:
+        calls = {"n": 0}
+
+        def patched(customer_id, _base_seed, curriculum=None, _s=int(seed), _r=real, _c=calls):
+            _c["n"] += 1
+            return _r(customer_id, _s, curriculum)
+
+        setattr(draw, name, patched)
+        try:
+            result = run()
+        finally:
+            setattr(draw, name, real)
+        if calls["n"] == 0:
+            raise AssertionError(
+                "seed {}: the elasticity patch on `{}.{}` was never called, so this run varied "
+                "NOTHING and its 'noise floor' would be an artefact reading zero. The churn "
+                "decision no longer reaches that symbol -- re-resolve it before trusting any "
+                "number here.".format(seed, ELASTICITY_DRAW_MODULE, name))
+        lvs = result["level_vs_selection"]
+        if not lvs.get("available"):
+            raise AssertionError(
+                "seed {}: the runner produced no level arm ({}), so there is no selection figure "
+                "to take a spread of.".format(seed, lvs.get("why_not")))
+        rows.append({
+            "seed": int(seed),
+            "elasticity_draws": calls["n"],
+            "level_gbp_per_mwh": lvs.get("level_gbp_per_mwh"),
+            "value_advantage_gbp": lvs["value_advantage_gbp"],
+            "level_advantage_gbp": lvs["level_advantage_gbp"],
+            "selection_gbp": lvs["selection_gbp"],
+            "level_share_of_advantage": lvs["level_share_of_advantage"],
+        })
+
+    selection = _spread([r["selection_gbp"] for r in rows])
+    share = _spread([r["level_share_of_advantage"] for r in rows])
+    # DISTINGUISHABLE FROM ZERO? The standard error of the mean over `n` seeds, doubled. Stated as
+    # a question the reader can re-answer, not as a pass/fail: nothing here gates anything (R12),
+    # and a selection leg that is NOT distinguishable is a complete result rather than a defect.
+    sem = None
+    distinguishable = None
+    if selection["stdev"] is not None and selection["n"] > 1:
+        sem = selection["stdev"] / math.sqrt(selection["n"])
+        distinguishable = abs(selection["mean"]) > 2 * sem
+    return {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "report_end": report_end,
+        "what_this_is": (
+            "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
+            "assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the "
+            "figure the level-vs-selection split publishes."),
+        "symbol_patched": f"{ELASTICITY_DRAW_MODULE}.{name}",
+        "symbol_resolution": (
+            "read from `{}`'s own import statement, not written down here, so a rename "
+            "disconnects this tool LOUDLY instead of silently returning a spread of zero"
+            .format(ELASTICITY_DECISION_MODULE)),
+        "seeds": rows,
+        "selection_gbp_spread": selection,
+        "level_share_spread": share,
+        "selection_sem_gbp": sem,
+        "selection_distinguishable_from_zero": distinguishable,
+        "how_to_read_this": (
+            "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
+            "instrument cannot yet resolve the question being asked of it, and every reading "
+            "built on it carries that caveat. That is a finding about the INSTRUMENT and not "
+            "about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (faster iteration)")
@@ -1457,8 +1646,43 @@ def main(argv: list[str] | None = None) -> int:
         "--level-arm", action="store_true",
         help=("also run `flat_at_level` at the value arm's own realised median, splitting the "
               "advantage into the LEVEL and the SELECTION. Costs a third full pass."))
+    ap.add_argument(
+        "--noise-floor-seeds",
+        help=("NOISE FLOOR mode: comma-separated seeds, e.g. 11111,22222,33333. Re-runs the whole "
+              "three-arm A/B once per seed with ONLY the per-household elasticity assignment "
+              "re-drawn, and reports the spread in `selection_gbp` and `level_share_of_advantage` "
+              "-- the error bar on the level-vs-selection split. Costs 3 full passes PER SEED."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+
+    if args.noise_floor_seeds:
+        seeds = [int(s) for s in args.noise_floor_seeds.split(",") if s.strip()]
+        floor = noise_floor(seeds, report_end=report_end)
+        out = args.out if args.out != OUTPUT_PATH else NOISE_FLOOR_OUTPUT_PATH
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(floor, indent=2), encoding="utf-8")
+        sel = floor["selection_gbp_spread"]
+        shr = floor["level_share_spread"]
+        print("value cycle A/B -- NOISE FLOOR over {} seed(s), {} window".format(
+            sel["n"], report_end or "full"))
+        print("  patched         {}".format(floor["symbol_patched"]))
+        for row in floor["seeds"]:
+            print("    seed {:<8} selection {:+,.2f} GBP   level share {}   ({} draws)".format(
+                row["seed"], row["selection_gbp"],
+                "{:.1%}".format(row["level_share_of_advantage"])
+                if row["level_share_of_advantage"] is not None else "undefined",
+                row["elasticity_draws"]))
+        print("  selection_gbp   mean {:+,.2f}  sd {}  range {:,.2f} ({:+,.2f} .. {:+,.2f})".format(
+            sel["mean"], "{:,.2f}".format(sel["stdev"]) if sel["stdev"] is not None else "n/a",
+            sel["range"], sel["min"], sel["max"]))
+        if shr["mean"] is not None:
+            print("  level share     mean {:.1%}  range {:.1%} .. {:.1%}".format(
+                shr["mean"], shr["min"], shr["max"]))
+        print("  DISTINGUISHABLE FROM ZERO?  {}".format(
+            {True: "yes", False: "NO -- the selection leg is inside its own noise",
+             None: "unknown"}[floor["selection_distinguishable_from_zero"]]))
+        print("  wrote {}".format(out))
+        return 0
 
     result = run_value_cycle_ab(report_end=report_end, level_arm=args.level_arm)
     args.out.parent.mkdir(parents=True, exist_ok=True)

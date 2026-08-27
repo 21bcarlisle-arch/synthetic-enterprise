@@ -25,6 +25,7 @@ from __future__ import annotations
 import pytest
 
 from simulation.market_switching_propensity import (
+    CALIBRATION_ANNUAL_BILL_GBP,
     PRICE_SENSITIVITY_WEIGHT,
     churn_position_multiplier,
     offer_position_multiplier,
@@ -231,6 +232,105 @@ def test_an_unknown_sensitivity_is_the_pre_change_behaviour_not_a_zero():
     assert perceived_price_differential(0.1, None) == pytest.approx(0.1)
 
 
+def test_the_response_is_to_POUNDS_and_scales_with_the_households_own_bill():
+    """POUNDS, NOT PERCENT — director, 2026-08-27: *"does the switching decision key on £ saved or
+    % saved? It changes the economics completely."*
+
+    Ofgem/BMG 2024 answers it: *"consumers value savings in absolute terms rather than in
+    proportion to their bill."* So the SAME percentage must move a large home more than a small
+    one, because it buys more visible money. Before this, `CALIBRATION_ANNUAL_BILL_GBP` was applied
+    to every household and both responded identically."""
+    at_10pct = [churn_position_multiplier(0.10, bill) for bill in (600.0, 1700.0, 8000.0)]
+    assert at_10pct == sorted(at_10pct), "a bigger bill must not respond LESS to the same percent"
+    assert len(set(at_10pct)) == 3, (
+        "three very different bills respond identically to the same percentage — the world is "
+        "still keyed on percent, and customer value cannot scale with consumption")
+
+
+def test_the_CALIBRATION_bill_reproduces_the_pre_change_world_exactly():
+    """The regression anchor. At the market-average bill the new path must be the old path to the
+    last bit, so any moved run figure is attributable to households having DIFFERENT bills and not
+    to the curve being re-levelled underneath everyone."""
+    for d in (-0.30, -0.10, 0.05, 0.20, 0.60):
+        assert churn_position_multiplier(d, CALIBRATION_ANNUAL_BILL_GBP) == (
+            pytest.approx(churn_position_multiplier(d)))
+
+
+@pytest.mark.parametrize("bill", [400.0, 1700.0, 5000.0])
+@pytest.mark.parametrize("d", [0.05, 0.15, 0.30])
+def test_the_no_free_lunch_identity_survives_ANY_bill(bill, d):
+    """R12 again, and it must hold per-bill rather than only at the calibration scale: the
+    guarantee is that no price position gains on BOTH legs, and a household-specific scale must not
+    open one."""
+    assert offer_position_multiplier(d, bill) * offer_position_multiplier(-d, bill) == (
+        pytest.approx(1.0))
+
+
+def test_the_bill_SUMS_BOTH_LEGS_of_a_dual_fuel_household():
+    """SUM ACROSS THE SEAM. A dual-fuel home's bill is its electricity AND its gas; scoring it on
+    the electricity leg alone understates the money at stake and makes every dual-fuel household
+    look less price-exposed than it is.
+
+    This repository has already paid once for reasoning about one leg of a two-leg household — the
+    2026-08-27 gas-leg inversion, where all 18 apparent anomalies vanished the moment the legs were
+    summed."""
+    from simulation.customer_events import _annual_bill_gbp
+
+    elec = [{"customer_id": "C1", "settlement_date": "2016-06-01", "revenue_gbp": 100.0}]
+    gas = [{"customer_id": "C1g", "settlement_date": "2016-06-01", "revenue_gbp": 40.0}]
+    both = _annual_bill_gbp("C1", elec + gas, "2017-01-01")
+    assert both == pytest.approx(140.0), (
+        f"the household's bill came to {both}, not the sum of its two legs — the gas leg is being "
+        "dropped from the money the household actually feels")
+
+
+def test_a_household_with_no_settled_history_gets_None_not_an_invented_bill():
+    """R15 FAIL-OPEN. A first renewal with no history has no bill to be felt; the caller's default
+    is the market-average scale. Returning 0.0 would make the household immune to any percentage,
+    and inventing a figure would put a fabricated number inside a churn decision."""
+    from simulation.customer_events import _annual_bill_gbp
+
+    assert _annual_bill_gbp("C1", [], "2017-01-01") is None
+    stale = [{"customer_id": "C1", "settlement_date": "2010-01-01", "revenue_gbp": 100.0}]
+    assert _annual_bill_gbp("C1", stale, "2017-01-01") is None, "a bill from six years ago is not this year's"
+
+
+def test_the_bill_window_cannot_see_past_the_term_start():
+    """POINT-IN-TIME. A record dated ON or AFTER the term start is this term's own settlement and
+    cannot inform the decision that PRICES this term."""
+    from simulation.customer_events import _annual_bill_gbp
+
+    recs = [
+        {"customer_id": "C1", "settlement_date": "2016-12-31", "revenue_gbp": 100.0},
+        {"customer_id": "C1", "settlement_date": "2017-01-01", "revenue_gbp": 999.0},
+        {"customer_id": "C1", "settlement_date": "2017-06-01", "revenue_gbp": 999.0},
+    ]
+    assert _annual_bill_gbp("C1", recs, "2017-01-01") == pytest.approx(100.0)
+
+
+def test_a_NUMERIC_weight_is_read_as_itself_and_not_swallowed_by_the_label_fallback():
+    """THE FAIL-OPEN THIS FUNCTION SHIPPED WITH FOR ONE AFTERNOON. When the decision moved to a
+    continuous per-household elasticity, callers began passing floats.
+    `PRICE_SENSITIVITY_WEIGHT.get(1.5, 1.0)` finds no such key and returns 1.0 — so every
+    household silently got the neutral weight and the entire draw was discarded, with nothing
+    raised and every function still exported.
+
+    The "unknown is 1.0" fallback is what hid it: written for an unrecognised LABEL, it quietly
+    absorbed a different kind of unknown entirely. This asserts a number survives as itself."""
+    for w in (0.35, 1.0, 2.13):
+        assert price_sensitivity_weight(w) == pytest.approx(w)
+        assert perceived_price_differential(0.10, w) == pytest.approx(0.10 * w)
+    assert price_sensitivity_weight("not_a_level") == 1.0, (
+        "an unrecognised LABEL should still fall back — that half was correct")
+
+
+def test_a_bool_is_refused_rather_than_silently_weighted():
+    """`bool` is an `int` in Python, so `isinstance(True, (int, float))` is True and a stray flag
+    would sail through as the weight 1.0 — indistinguishable from the neutral world."""
+    with pytest.raises(TypeError):
+        price_sensitivity_weight(True)
+
+
 def test_no_weight_is_zero_or_negative():
     """Zero is immunity; negative is a household that leaves BECAUSE you got cheaper, which would
     also invert the R12 identity's sign."""
@@ -256,13 +356,22 @@ def test_no_weight_is_zero_or_negative():
 #                             i.e. exactly HEAD before this change.
 # Both leave the module importable and the section-1..5 suite green.
 
-def _one_renewal(monkeypatch, sensitivity: str) -> float:
+def _one_renewal(monkeypatch, sensitivity) -> float:
     """`realized_churn_probability` for one account at one renewal, priced 20% above the SVT.
 
     DEARER ON PURPOSE: at parity the differential is 0.0 and `0.0 * w == 0.0` for every weight,
     so a parity fixture cannot distinguish any of this and would pass against both mutations —
     the FIXTURE-AT-THE-FALLBACK-VALUE shape. The probability is read, never the rolled event:
     the roll is a dice throw, the probability is the world's decision.
+
+    `sensitivity` is a LEVEL NAME or a raw weight; both resolve to the numeric elasticity the
+    decision now consumes. IT PATCHES `price_elasticity_for_customer`, AND THE MOVE FROM
+    `price_sensitivity_for_customer` IS THE POINT: when the decision changed to a continuous
+    per-household draw, this helper went on patching a function the decision no longer called, so
+    both arms of every comparison returned the same number. It failed LOUD — the assertions here
+    demand a DIFFERENCE, so a patch that reaches nothing reads as "the world is homogeneous"
+    rather than passing quietly. A control keyed to a structure that moved usually goes silent;
+    this one could not, and that is why it is written as a difference and not as a value.
     """
     from simulation import population_draw as pd
     from simulation.customer_events import roll_lifecycle_event
@@ -273,7 +382,10 @@ def _one_renewal(monkeypatch, sensitivity: str) -> float:
         _make_customers,
     )
 
-    monkeypatch.setattr(pd, "price_sensitivity_for_customer", lambda *a, **k: sensitivity)
+    weight = (PRICE_SENSITIVITY_WEIGHT.get(sensitivity, 1.0)
+              if isinstance(sensitivity, str) or sensitivity is None
+              else float(sensitivity))
+    monkeypatch.setattr(pd, "price_elasticity_for_customer", lambda *a, **k: weight)
 
     renewal = _first_renewal_date("2016-01-01")
     svt = get_svt_elec_rate_gbp_per_mwh(renewal)

@@ -67,6 +67,45 @@ def _price_differential_vs_market(
         return None
     return (float(new_rate_gbp_per_mwh) - float(svt)) / float(svt)
 
+def _annual_bill_gbp(
+    billing_account: str, records_so_far: list[dict], term_start_str: str
+) -> float | None:
+    """What we billed THIS household over the trailing year, across ALL its supply points.
+
+    THE SCALE THE PRICE RESPONSE IS FELT AGAINST. Ofgem/BMG 2024 found households value savings in
+    ABSOLUTE terms, so a percentage differential has to be turned into pounds against the
+    household's own spend rather than a market average -- see
+    `market_switching_propensity.churn_position_multiplier`.
+
+    SUMMED ACROSS THE LEGS, WHICH IS THE WHOLE POINT OF USING THE HOUSEHOLD AND NOT THE SUPPLY
+    POINT. A dual-fuel home's bill is its electricity AND its gas; scoring it on the electricity
+    leg alone would understate the money at stake by roughly a third and make every dual-fuel
+    household look less price-exposed than it is. This repository has already paid once for
+    reasoning about one leg of a two-leg household (the 2026-08-27 gas-leg inversion, where all 18
+    apparent anomalies vanished when the legs were summed).
+
+    RETURNS None, NOT A GUESS, when the trailing year is empty -- a first renewal with no settled
+    history has no bill to be felt, and the caller's default is the market-average scale. Inventing
+    a bill here would put a fabricated number into a churn decision.
+
+    Point-in-Time: `records_so_far` stops before this term by construction (see the caller), so
+    this can only ever see settled history.
+    """
+    start = date.fromisoformat(term_start_str)
+    window_start = start.replace(year=start.year - 1)
+    total = 0.0
+    seen = False
+    for rec in records_so_far:
+        if household_of(rec.get("customer_id", "")) != billing_account:
+            continue
+        settled = rec.get("settlement_date")
+        if not settled or not (window_start <= date.fromisoformat(settled) < start):
+            continue
+        total += float(rec.get("revenue_gbp") or 0.0)
+        seen = True
+    return total if seen and total > 0 else None
+
+
 # Disposition of a churned account's home-move outcome. Three-valued because the
 # WIN roll and the DELIVERY of that win are two different facts.
 HOME_MOVE_ACTIVATE_SUCCESSOR = "activate_successor"
@@ -263,12 +302,28 @@ def roll_lifecycle_event(
         # single-mechanism design exists to prevent. The deferred import is this module's
         # existing pattern for `household_segments` below, and is required here: `population_draw`
         # cannot import `live_population` (that direction is already taken).
+        #
+        # A CONTINUOUS PER-HOUSEHOLD ELASTICITY, NOT A SEGMENT MEAN (2026-08-27, director). The
+        # Ofgem subgroup range is a BETWEEN-GROUP statistic and says nothing about spread between
+        # individuals; real elasticity is close to orthogonal to observables, which is why
+        # couponing, time-limited offers and price walks work at all -- you cannot tell in advance
+        # who responds. Using the three subgroup means alone modelled a world where a household's
+        # segment gave its elasticity exactly, which is not a small spread but the WRONG QUANTITY.
         from simulation.live_population import run_base_seed
-        from simulation.population_draw import price_sensitivity_for_customer
+        from simulation.population_draw import price_elasticity_for_customer
 
-        sensitivity = price_sensitivity_for_customer(billing_account, run_base_seed())
-        felt = perceived_price_differential(differential, sensitivity)
-        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(felt)
+        elasticity = price_elasticity_for_customer(billing_account, run_base_seed())
+        felt = perceived_price_differential(differential, elasticity)
+        #
+        # AND THE SCALE IS THIS HOUSEHOLD'S OWN BILL, IN POUNDS, NOT A PERCENTAGE. The calibrated
+        # curve was always a function of an absolute annual saving; the conversion into it used one
+        # market-average bill for every household, so a small flat and a large house at the same
+        # percentage were modelled as facing the same money. Ofgem/BMG 2024: *"consumers value
+        # savings in absolute terms rather than in proportion to their bill."* Derived from what we
+        # have actually BILLED this household -- a fact a real supplier plainly has, and
+        # Point-in-Time safe because `records_so_far` stops before this term by construction.
+        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(
+            felt, annual_bill_gbp=_annual_bill_gbp(billing_account, records_so_far, term_start_str))
         effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --

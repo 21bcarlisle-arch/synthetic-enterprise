@@ -997,7 +997,20 @@ def draw_region_for_customer(
 def price_sensitivity_for_customer(
     customer_id: str, base_seed: int, curriculum: Optional[dict] = None
 ) -> str:
-    """Draw `customer_id`'s own price sensitivity — the SAME value `assign_cohort()` carries.
+    """Draw `customer_id`'s SEGMENT-LEVEL price sensitivity — the value `assign_cohort()` carries.
+
+    NOT WHAT THE CHURN DECISION CALLS, AND SAYING SO IS THE POINT OF THIS PARAGRAPH. Since the
+    2026-08-27 move to a continuous per-household elasticity, the price response in
+    `customer_events.roll_lifecycle_event` reads `price_elasticity_for_customer` below. This
+    function returns the three-level SEGMENT ("high"/"medium"/"low") and is retained as the
+    accessor for that level and for the cohort-agreement controls over it — it is deliberately
+    NOT re-wired into the elasticity path, which reaches `_draw_curriculum_axis` directly.
+
+    A HARNESS THAT PATCHES THIS NAME EXPECTING TO MOVE THE PRICE RESPONSE WILL REACH NOTHING and
+    report a spread of zero — a real defect, caught 2026-08-27 in the level-vs-selection noise
+    floor, where it made every seed run a byte-identical world and returned the most flattering
+    answer available. `tools.run_value_cycle_ab.resolve_elasticity_symbol` exists so no tool has
+    to hardcode the choice between these two names; its R15 mutation is pointing it here.
 
     THE SINGLE MECHANISM, for the same reason `draw_region_for_customer` is: this delegates to
     `_draw_curriculum_axis`, which is the exact call `assign_cohort` makes, keyed on the same
@@ -1013,6 +1026,68 @@ def price_sensitivity_for_customer(
     """
     c = curriculum if curriculum is not None else _load_cohort_curriculum()
     return _draw_curriculum_axis(customer_id, base_seed, "price_sensitivity", c)
+
+
+#: How much of a household's price elasticity its THREE-LEVEL segment explains. Everything else is
+#: within-segment and orthogonal to it.
+#:
+#: WHY THIS EXISTS AT ALL (director, 2026-08-27): *"The Ofgem subgroup range is a between-group
+#: statistic — it says nothing about spread between individuals, and elasticity is typically close
+#: to orthogonal to observables. That's why couponing, time-limited offers and price walks work at
+#: all: you can't tell in advance who responds."* The first version of this axis used the subgroup
+#: means as if they were the whole distribution, which modelled a world where knowing a
+#: household's segment told you its elasticity exactly. That is not a small spread — it is the
+#: WRONG QUANTITY, and it understates per-household randomness to nearly nothing.
+#:
+#: THE VALUE IS ANCHORED, CONSERVATIVELY. Ofgem/BMG's own Table 3 puts the Spearman correlation
+#: between energy SPEND and switching propensity at -0.07..+0.05, i.e. an observable explains
+#: **under 0.5%** of the variance in propensity. 0.02 is four times MORE generous than that
+#: measurement, and is the value chosen precisely because the honest read is ambiguous and the
+#: director's standing rule is to *"choose the option that makes per-customer pricing harder to
+#: win"* — more irreducible variance is that direction, and this errs against our own thesis.
+PRICE_ELASTICITY_SEGMENT_R2 = 0.02
+
+
+@functools.lru_cache(maxsize=8)
+def _within_segment_sigma(r2: float, shares_key: Tuple[Tuple[str, float], ...]) -> float:
+    """Lognormal sigma giving the within-segment variance implied by `r2`.
+
+    DERIVED, NEVER WRITTEN DOWN, so a director change to the marginals or to the evidenced
+    subgroup weights moves it rather than leaving a stale constant behind (the same discipline
+    `_LAST_INFORMED_SLOPE_PER_GBP` uses).
+    """
+    from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT
+
+    shares = dict(shares_key)
+    mean = sum(shares[k] * PRICE_SENSITIVITY_WEIGHT[k] for k in shares)
+    var_between = sum(shares[k] * (PRICE_SENSITIVITY_WEIGHT[k] - mean) ** 2 for k in shares)
+    var_within = var_between / r2 - var_between
+    return math.sqrt(math.log1p(var_within / (mean * mean)))
+
+
+def price_elasticity_for_customer(
+    customer_id: str, base_seed: int, curriculum: Optional[dict] = None
+) -> float:
+    """THIS household's own price elasticity weight — segment mean times a within-segment draw.
+
+    Mean 1.0 across the population, so it remains a mean-preserving spread and cannot re-level the
+    book (see `market_switching_propensity.PRICE_SENSITIVITY_WEIGHT`). The lognormal keeps every
+    weight strictly positive: a zero would make a household immune to price, and a negative one
+    would make it leave BECAUSE the price fell.
+
+    ITS OWN SUBSTREAM (C-S2), distinct from the `price_sensitivity` axis, so adding this cannot
+    perturb the segment draw any customer already had -- the byte-identical-cohort control that
+    `assign_cohort` rests on still holds.
+    """
+    c = curriculum if curriculum is not None else _load_cohort_curriculum()
+    from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT
+
+    level = _draw_curriculum_axis(customer_id, base_seed, "price_sensitivity", c)
+    shares = c["price_sensitivity_marginals"]["value"]
+    sigma = _within_segment_sigma(
+        PRICE_ELASTICITY_SEGMENT_R2, tuple(sorted(shares.items())))
+    rng = _cohort_substream(customer_id, base_seed, "price_elasticity_within")
+    return PRICE_SENSITIVITY_WEIGHT[level] * math.exp(rng.gauss(-0.5 * sigma * sigma, sigma))
 
 
 #: The three low-carbon assets whose adoption is tenure-gated per-asset. Kept in

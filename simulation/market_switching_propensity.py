@@ -152,8 +152,16 @@ CALIBRATION_ANNUAL_BILL_GBP = 1700.0
 _PARITY_RATE = _savings_to_rate(0.0)
 
 
-def offer_position_multiplier(price_differential_pct: float) -> float:
+def offer_position_multiplier(
+    price_differential_pct: float, annual_bill_gbp: float | None = None
+) -> float:
     """The world's response to OUR price against the market average. 1.0 at parity.
+
+    `annual_bill_gbp` is THE HOUSEHOLD'S OWN annual spend, and passing it is what makes this a
+    response to POUNDS rather than to a percentage. Default `None` keeps the market-average scale
+    (`CALIBRATION_ANNUAL_BILL_GBP`), which is right for a WIN-side quote to a prospect whose
+    consumption is not yet known. See `churn_position_multiplier` for why the loss side must not
+    take that default, and for the evidence that the decision is absolute rather than proportional.
 
     `price_differential_pct` is our price relative to the market average as a fraction:
     ``0.05`` = 5% above (dearer), ``-0.05`` = 5% below (cheaper). It is the SAME run
@@ -196,7 +204,8 @@ def offer_position_multiplier(price_differential_pct: float) -> float:
     Bounded by the curve itself, not by a clamp bolted on: `_savings_to_rate` saturates at
     0.22, so this returns [1/4.4, 4.4] across every finite input.
     """
-    our_saving_gbp = -float(price_differential_pct) * CALIBRATION_ANNUAL_BILL_GBP
+    bill = CALIBRATION_ANNUAL_BILL_GBP if annual_bill_gbp is None else float(annual_bill_gbp)
+    our_saving_gbp = -float(price_differential_pct) * bill
     if our_saving_gbp >= 0.0:
         return _savings_to_rate(our_saving_gbp) / _PARITY_RATE
     return _PARITY_RATE / _savings_to_rate(-our_saving_gbp)
@@ -293,16 +302,33 @@ PRICE_SENSITIVITY_WEIGHT: dict[str, float] = {
 }
 
 
-def price_sensitivity_weight(level: str | None) -> float:
+def price_sensitivity_weight(level: str | float | None) -> float:
     """This household's own weighting of a price differential. 1.0 when unknown.
 
-    UNKNOWN IS 1.0, NOT AN ERROR, and that is deliberate: the pre-2026-08-27 behaviour is exactly
+    ACCEPTS A NUMBER AS ITSELF, AND THE FIRST VERSION DID NOT -- a bug caught by its own wiring
+    test on 2026-08-27, the day it was written. When the decision moved to a CONTINUOUS
+    per-household elasticity, callers began passing a float; this function looked it up with
+    `PRICE_SENSITIVITY_WEIGHT.get(1.5, 1.0)`, found no such key, and returned **1.0**. Every
+    household silently got the neutral weight and the whole per-household draw was discarded,
+    while the module still exported everything it was supposed to.
+
+    That is the FAIL-OPEN-ON-UNREADABLE-INPUT shape, and the "unknown is 1.0" kindness below is
+    exactly what hid it: a fallback written for one kind of unknown (a level name nobody
+    recognises) silently absorbed a completely different one (a value this function was never
+    taught to read). A number is now read as the weight it is, and only a genuinely unrecognised
+    LABEL falls back.
+
+    UNKNOWN LABELS ARE STILL 1.0, deliberately: the pre-2026-08-27 behaviour is exactly
     `weight == 1.0` everywhere, so a caller that cannot resolve a sensitivity gets the world as it
     was rather than a crash or a silent zero. A zero would make the household immune to price,
     which is the failure this whole change exists to remove.
     """
     if level is None:
         return 1.0
+    if isinstance(level, bool):  # bool is an int; a True here is a caller bug, not a weight
+        raise TypeError("price sensitivity weight received a bool, which is never a weight")
+    if isinstance(level, (int, float)):
+        return float(level)
     return PRICE_SENSITIVITY_WEIGHT.get(level, 1.0)
 
 
@@ -325,8 +351,40 @@ def perceived_price_differential(price_differential_pct: float, sensitivity: str
     return float(price_differential_pct) * price_sensitivity_weight(sensitivity)
 
 
-def churn_position_multiplier(price_differential_pct: float) -> float:
+def churn_position_multiplier(
+    price_differential_pct: float, annual_bill_gbp: float | None = None
+) -> float:
     """The world's LOSS-side response to our price against the market. 1.0 at parity.
+
+    POUNDS, NOT PERCENT — and until 2026-08-27 this was wrong in a way that mattered. The
+    calibrated curve `_savings_to_rate` has ALWAYS been a function of an absolute annual saving in
+    GBP; what was wrong was the conversion into it, which multiplied the differential by the
+    market-average `CALIBRATION_ANNUAL_BILL_GBP` for EVERY household. A 3,000 kWh flat and a
+    25,000 kWh house 10% above the market were therefore modelled as facing the same GBP 170
+    shortfall, when the second faces several times that and, on the evidence, responds accordingly.
+    Passing the household's OWN annual spend is the whole fix; the curve needed no recalibration.
+
+    THE EVIDENCE THAT SETTLES IT, and it was published rather than reasoned about. Ofgem/BMG,
+    *Understanding Consumers' Energy Tariff Choices* (n=3,235, fieldwork Mar-Apr 2024):
+    *"consumers value savings in absolute terms rather than in proportion to their bill... it may
+    benefit suppliers to frame savings in cash rather than percentage terms, i.e. GBP 150 and not a
+    3% saving - particularly for customers with higher energy outgoings"*, and *"Reported household
+    spending on energy has a very limited impact on how consumers evaluate prospective deals."*
+    Its Table 3 is the same finding from the other side: the Spearman correlation between energy
+    SPEND and switching propensity runs -0.07 to +0.05, i.e. a big bill barely changes how eagerly
+    a household chases a given NUMBER OF POUNDS. What it changes is how many pounds a given
+    percentage is worth to them, which is exactly what this argument now carries.
+
+    WHAT IT MEANS ECONOMICALLY, because it is not a neutral refactor: customer value now scales
+    with consumption. A large home is cheaper to win and dearer to lose per point of margin,
+    because the same percentage buys a more visible saving. A percentage world cannot express that
+    and this one now can — and consumption is OBSERVABLE to a supplier, so unlike the hidden
+    sensitivity axis it is something the company can legitimately act on.
+
+    `annual_bill_gbp=None` retains the market-average scale. That is correct for a caller with no
+    household in hand and WRONG as a silent default at a renewal, where the supplier knows exactly
+    what it has billed; `simulation.customer_events` therefore derives it from the household's own
+    settled records rather than letting it default.
 
     THE RECIPROCAL OF `offer_position_multiplier` BELOW SATURATION, and deliberately NOT above
     it. Both legs share one curve so that the anti-goal-seek guarantee holds -- there is no
@@ -371,16 +429,17 @@ def churn_position_multiplier(price_differential_pct: float) -> float:
     R13: baseline fidelity, decided blind to company P&L, and it moves against the company --
     it makes over-pricing more expensive and cannot make anything cheaper.
     """
+    bill = CALIBRATION_ANNUAL_BILL_GBP if annual_bill_gbp is None else float(annual_bill_gbp)
     differential = float(price_differential_pct)
     if differential <= 0.0:
         # Cheaper or at parity: the reciprocal of the win leg, exactly. No extrapolation is
         # involved and none is invented -- a keener price cannot take churn below the crisis
         # floor the market series already carries.
-        return 1.0 / offer_position_multiplier(differential)
+        return 1.0 / offer_position_multiplier(differential, bill)
 
-    our_shortfall_gbp = differential * CALIBRATION_ANNUAL_BILL_GBP
+    our_shortfall_gbp = differential * bill
     if our_shortfall_gbp <= _CALIBRATED_SAVINGS_CEILING_GBP:
-        return 1.0 / offer_position_multiplier(differential)
+        return 1.0 / offer_position_multiplier(differential, bill)
 
     beyond = our_shortfall_gbp - _CALIBRATED_SAVINGS_CEILING_GBP
     extrapolated_rate = _MAX_RATE + _LAST_INFORMED_SLOPE_PER_GBP * beyond
