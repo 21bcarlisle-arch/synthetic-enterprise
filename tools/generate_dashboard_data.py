@@ -1742,6 +1742,12 @@ def extract_nudge_discovery(data):
     }
 
 
+#: How many accounts the NL-query context may NAME. Enough to answer "who makes and loses
+#: the money" from the extremes, far short of a per-account ledger. The block this bounds
+#: was 94% of the context and had no bound at all; see the note inside the function.
+QUERY_CONTEXT_NAMED_CUSTOMERS = 12
+
+
 def extract_query_context(data):
     """Build compact text summary (~2-4k chars) for NL query API context."""
     if not data:
@@ -1773,14 +1779,45 @@ def extract_query_context(data):
         row += hf_str
         lines.append(row)
     lines.append("")
-    lines.append("CUSTOMER LIFETIME NET MARGIN:")
-    for cid, cdata in sorted(data.get("per_customer_lifetime", {}).items()):
-        net = cdata.get("net_gbp", 0)
-        seg = cdata.get("segment", "")
-        comm = cdata.get("commodity", "")
-        rev = cdata.get("revenue_gbp", 0)
+    # BOUNDED, NEVER DROPPED (2026-08-27) -- the same shape as `doorbell_redaction`'s
+    # MAX_NAMED_DOCUMENTS, and for the same reason.
+    #
+    # This block enumerated EVERY account. On the book of 2026-08-15 that was a couple of dozen
+    # lines; measured today it is 24,833 characters of 26,368 -- 94% of a summary whose own
+    # docstring promises "~2-4k chars" -- and it broke the 8,000-char limit
+    # `test_extract_query_context_under_size_limit` sets for the API context window. The book
+    # grew (drawn population, then a gas leg per dual-fuel home) and an unbounded per-row
+    # enumeration grew with it. Nothing here malfunctioned; the shape was always O(book) inside
+    # a function that had promised to be O(1).
+    #
+    # THE EXTREMES ARE KEPT, not the alphabetical head. A question worth asking this context is
+    # "who makes and loses the money", so the best and worst by net margin are what survive; a
+    # `sorted(...)` prefix would have returned whichever accounts happen to sort first, which
+    # answers nothing. The remainder becomes a COUNT and a pointer, so a reader always knows
+    # what was left out and where the whole list lives.
+    per_customer = data.get("per_customer_lifetime", {})
+    ranked = sorted(per_customer.items(), key=lambda kv: kv[1].get("net_gbp", 0), reverse=True)
+    shown = ranked[:QUERY_CONTEXT_NAMED_CUSTOMERS] if len(ranked) > QUERY_CONTEXT_NAMED_CUSTOMERS \
+        else ranked
+    tail = ranked[-QUERY_CONTEXT_NAMED_CUSTOMERS:] if len(ranked) > 2 * QUERY_CONTEXT_NAMED_CUSTOMERS \
+        else []
+    lines.append("CUSTOMER LIFETIME NET MARGIN ({} accounts{}):".format(
+        len(ranked),
+        "" if not tail else ", best and worst {} shown".format(QUERY_CONTEXT_NAMED_CUSTOMERS)))
+    for cid, cdata in shown:
         lines.append("  {} ({}, {}): net=GBP{:,.0f}  revenue=GBP{:,.0f}".format(
-            cid, seg, comm, net, rev))
+            cid, cdata.get("segment", ""), cdata.get("commodity", ""),
+            cdata.get("net_gbp", 0), cdata.get("revenue_gbp", 0)))
+    if tail:
+        omitted = len(ranked) - len(shown) - len(tail)
+        if omitted > 0:
+            lines.append("  ... {} further accounts omitted -- the full per-account book is "
+                         "`per_customer_lifetime` in docs/reports/run_output_latest.json"
+                         .format(omitted))
+        for cid, cdata in tail:
+            lines.append("  {} ({}, {}): net=GBP{:,.0f}  revenue=GBP{:,.0f}".format(
+                cid, cdata.get("segment", ""), cdata.get("commodity", ""),
+                cdata.get("net_gbp", 0), cdata.get("revenue_gbp", 0)))
     lines.append("")
     retention = data.get("retention_log", [])
     retained = sum(1 for r in retention if r.get("outcome") == "retained")

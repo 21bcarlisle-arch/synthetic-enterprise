@@ -127,3 +127,62 @@ def test_extract_query_context_has_year_range(run_data):
     from tools.generate_dashboard_data import extract_query_context
     result = extract_query_context(run_data)
     assert "2016" in result or "2017" in result
+
+
+# ---------------------------------------------------------------------------
+# THE BOUND HOLDS AS THE BOOK GROWS (2026-08-27)
+# ---------------------------------------------------------------------------
+# `test_extract_query_context_under_size_limit` above measures the LIVE run output, so it only
+# reds once a book big enough has actually been produced -- which is what happened: the
+# per-account block reached 24,833 of 26,368 characters (94%) after the drawn population and a
+# gas leg per dual-fuel home, in a function whose docstring promises "~2-4k chars".
+#
+# That test cannot distinguish "the bound works" from "today's book happens to be small". These
+# two do: they drive the builder with a synthetic book far larger than any real one.
+
+def _book(n):
+    return {"ledger_pnl": {"revenue_gbp": 1.0}, "years": {},
+            "per_customer_lifetime": {
+                "ACC-{:06d}".format(i): {"net_gbp": float(i), "revenue_gbp": float(i) * 2,
+                                         "segment": "resi", "commodity": "electricity"}
+                for i in range(n)}}
+
+
+def test_the_context_stays_compact_for_a_book_far_larger_than_todays():
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(_book(10_000))
+    assert len(result) < 8000, (
+        "the per-account block is unbounded again: {} chars on a 10,000-account book"
+        .format(len(result)))
+
+
+def test_the_omitted_accounts_are_COUNTED_and_pointed_at_rather_than_silently_dropped():
+    """Bounded, never dropped. A summary that silently truncates reads as a complete list, and
+    the reader has no way to know a number came from part of the book."""
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(_book(500))
+    assert "500 accounts" in result
+    assert "further accounts omitted" in result
+    assert "per_customer_lifetime" in result, "the pointer to the full book must survive"
+
+
+def test_the_accounts_kept_are_the_EXTREMES_not_the_alphabetical_head():
+    """A question worth asking this context is "who makes and loses the money". A `sorted()`
+    prefix would return whichever ids happen to sort first, which answers nothing."""
+    from tools.generate_dashboard_data import QUERY_CONTEXT_NAMED_CUSTOMERS, extract_query_context
+    result = extract_query_context(_book(500))
+    assert "ACC-000499" in result, "the best account by net margin is missing"
+    assert "ACC-000000" in result, "the worst account by net margin is missing"
+    assert "ACC-000250" not in result, "a mid-book account should not have survived the bound"
+    named = [ln for ln in result.splitlines() if ln.startswith("  ACC-")]
+    assert len(named) == 2 * QUERY_CONTEXT_NAMED_CUSTOMERS
+
+
+def test_a_small_book_is_shown_WHOLE_and_carries_no_omission_line():
+    """The partner. The bound must not truncate a book that fits, nor claim an omission that
+    did not happen."""
+    from tools.generate_dashboard_data import extract_query_context
+    result = extract_query_context(_book(5))
+    assert "omitted" not in result
+    for i in range(5):
+        assert "ACC-{:06d}".format(i) in result
