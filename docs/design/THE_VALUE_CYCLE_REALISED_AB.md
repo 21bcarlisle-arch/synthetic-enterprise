@@ -32,6 +32,14 @@ fails and is recorded as bounding publication rather than construction.
 > rather than silently correcting: row 1's file records `enterprise_value_gbp: −118,252`, not the
 > −£110,731 the row quotes. The row is kept as published; the artefact is the record.
 >
+> **Why the current row was not re-run at HEAD, checked rather than assumed.** Its artefact is
+> stamped `353fe96b8` and HEAD has since moved to `5c1a05283`. `git diff --name-only 353fe96b8..HEAD
+> -- company/ saas/ simulation/ sim/ tools/` returns **nothing**: every commit in between is
+> documentation, a publish, or this file. The arm, the churn model, the world and the settlement
+> path are byte-identical, so a re-run would spend 25 minutes reproducing £7,066. **Do not re-run it
+> because the commit stamps differ — run that diff first.** It becomes stale the moment that command
+> returns a path.
+>
 > **What "book" means here, and why it is now in the table.** Until 2026-08-27 the artefacts could
 > not name their own population — the book resolves at import time from the curriculum file, so a
 > run on the wrong segments produced a clean, complete, entirely plausible artefact
