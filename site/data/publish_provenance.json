@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-27T07:13:47Z",
+    "checked_at": "2026-08-27T08:36:47Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_symbol.py::test_the_symbol_population_is_not_vacuous",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_no_committed_discharge_cites_a_falsifier_the_repository_does_not_have",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_defect_backlog_draw.py::test_rung_is_in_authorized_set_enumeration",
-      "FAILED tests/background/test_publish_gate_stub_roots_are_repo_shaped.py::test_every_module_that_drives_the_gate_uses_the_shared_root_shape"
+      "FAILED tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year",
+      "FAILED tests/tools/test_evidence_pages.py::test_the_record_store_actually_supplies_the_citations",
+      "FAILED tests/tools/test_generate_customer_sample.py::test_business_customer_home_type_is_the_business_premises_type",
+      "FAILED tests/tools/test_generate_customer_sample_population_seam.py::test_resolve_book_flag_off_byte_identical_to_static_customers",
+      "FAILED tests/tools/test_generate_customer_sample_population_seam.py::test_resolve_book_flag_on_additively_carries_syn_cohort"
     ],
-    "nonblocking_reds_total": 52,
+    "nonblocking_reds_total": 22,
     "open_findings": 36
   },
   "last_verified": {
-    "generated_at": "2026-08-27T07:30:33Z",
-    "git_commit": "f4b0b6334",
-    "run_id": "run_output_f4b0b6334_20260827T071447Z.json",
-    "verified_at": "2026-08-27T07:30:33Z"
+    "generated_at": "2026-08-27T09:03:16Z",
+    "git_commit": "242ed962d",
+    "run_id": "run_output_242ed962d_20260827T083748Z.json",
+    "verified_at": "2026-08-27T09:03:16Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-27T07:30:33Z",
-    "git_commit": "f4b0b6334",
-    "run_id": "run_output_f4b0b6334_20260827T071447Z.json",
-    "verified_at": "2026-08-27T07:30:33Z"
+    "generated_at": "2026-08-27T09:03:16Z",
+    "git_commit": "242ed962d",
+    "run_id": "run_output_242ed962d_20260827T083748Z.json",
+    "verified_at": "2026-08-27T09:03:16Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-27T07:30:33Z"
+  "written_at": "2026-08-27T09:03:16Z"
 }

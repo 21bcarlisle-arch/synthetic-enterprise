@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T07:30:04.684664+00:00",
+  "generated_at": "2026-08-27T08:53:35.811066+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -21,14 +21,14 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (publish_gate_wedged)",
+    "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
     "1 daemon(s) went stale: discovery-daemon",
     "total_open_atoms: 55 -> 74"
   ],
   "detail": {
     "new_decisions": [],
     "reserved_added": [
-      "publish_gate_wedged"
+      "executor-wall_escalated-f13e76f1"
     ],
     "reserved_cleared": [],
     "daemons_newly_stale": [
@@ -50,7 +50,7 @@
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
     "reserved_ids": [
-      "publish_gate_wedged"
+      "executor-wall_escalated-f13e76f1"
     ],
     "daemon_status": {
       "session-watchdog": "stale",
@@ -77,8 +77,8 @@
     "open_atoms": 74
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-27T06:56:46.883250+00:00",
-    "health_last_updated": "2026-08-27T07:29:48.438649+00:00",
+    "reserved_generated_at": "2026-08-27T08:38:37.668545+00:00",
+    "health_last_updated": "2026-08-27T08:53:31.899030+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
