@@ -1118,6 +1118,25 @@ outcomes and a belief whose aggregate agreement with the world is arithmetic coi
 
 ## 2026-08-27 (later) — the ladder: the win is NOT price. The world's curve and the company's agree about how hard price bites, and disagree by 6× about where it starts
 
+> **READ THE FULL-WINDOW LADDER BEFORE THIS ONE — its headline ratio is the better-powered
+> reading of the same statistic, and it points the other way.**
+>
+> | statistic | this section (2019) | [full window, 2016–2025](#2026-08-27-full-window--the-ladder-at-20162025-the-world-bites-less-than-the-company-believes-and-the-2019-reading-said-the-opposite) |
+> |---|---|---|
+> | common population (effective n) | 6 decisions | **22 decisions** |
+> | `median_world_over_believed` | **1.160** — world bites *harder* | **0.768** — world bites *softer* |
+> | decisions the world never rolled | 18, on 6 accounts | **0** |
+>
+> The section below is **kept and not rewritten**, and the reading it rests on — that the win is not
+> price — is *unchanged*: both windows agree the world responds to price and that the arm is not
+> charging into a curve it cannot see. What does **not** survive is the **direction and size of the
+> 1.16× figure**, which was computed on 6 decisions because 18 of the 2019 window's priced renewals
+> rolled *after* 2019-12-31 and were silently dropped. That truncation is a known defect, not merely
+> less data. The honest statement is **not** "the 2019 result was wrong" but *"the 2019 result was
+> never powered, and the full window is the first reading of it that is"* — and 22 is still small.
+>
+> **Quote 0.768, not 1.160.** Everything else in this section stands.
+
 **THE HEADLINE, because the direction asked for it in the place a reader hits it.** The fourth way
 for the arm's advantage to be hollow — that it comes from PRICE rather than from prediction — is
 **not supported**. The world punishes price hard and the company's own churn model knows roughly

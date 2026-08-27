@@ -65,6 +65,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -73,6 +74,7 @@ from company.policy.decision_policy import (
     VALUE_ARM_POLICY,
     policy_scope,
 )
+from company.pricing.value_based_renewal import FLAT_AT_LEVEL
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
@@ -1225,7 +1227,85 @@ def control_credibility() -> dict:
     }
 
 
-def run_value_cycle_ab(report_end: str | None = None) -> dict:
+def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
+                       level_gbp_per_mwh: float | None) -> dict:
+    """Split the value arm's advantage into the LEVEL it priced at and the SELECTION it made.
+
+    THE QUESTION THIS ANSWERS. The value arm beat flat rules while `discrimination_auc` sat at
+    0.4653 -- below a coin flip. An advantage that cannot be attributed to inference has to be
+    attributed to something, and what the arm demonstrably did was price HIGH. `flat_at_level`
+    applies ONE uplift to EXACTLY the renewals the value arm priced, through the same guards and
+    under the same lawful ceiling, so the two arms differ by the CHOOSING and by nothing else.
+    The residual `value - level` is what the choosing was worth.
+
+    THE LEVEL IS THE VALUE ARM'S OWN REALISED MEDIAN, READ OFF THE SAME RUN -- never a constant.
+    A hardcoded 44.50 would silently answer a question about the book that produced it: the whole
+    point of re-running this after the world widens is that the arm's median is free to move, and
+    a level pinned to the old book would measure the pin. `level_source` records which run the
+    number came from so a reader can check that rather than trust it.
+
+    ONLY REALISED NET IS SCORED HERE, and the enterprise-value reading is deliberately ABSENT
+    rather than published beside it as "a second clock" (R14 does not apply -- this is not two
+    honest bases disagreeing). `build_enterprise_value` projects CLV from `churn_risk`, the
+    company's own belief, and the value arm chooses its margin by maximising expected value under
+    `enriched_churn_estimate`. The arm optimises under a model and EV then re-scores the resulting
+    book under the same model: R15's TAUTOLOGY pattern, the checked value derived from the source
+    it checks. With the scoring belief anti-informative at AUC 0.4653 the value arm is guaranteed
+    to look better on EV whether or not its choices were good. Realised net is the only measure in
+    this artefact not derived from the company's own beliefs, so it is the verdict.
+    """
+    if level_m is None:
+        return {"available": False,
+                "why_not": ("the level arm was not run -- pass --level-arm. Without it the "
+                            "artefact cannot say whether the advantage was the level or the "
+                            "selection, and must not be read as if it could.")}
+
+    control_net = control_m["total_net_gbp"]
+    value_advantage = value_m["total_net_gbp"] - control_net
+    level_advantage = level_m["total_net_gbp"] - control_net
+    selection_gbp = value_advantage - level_advantage
+
+    # UNDEFINED RATHER THAN INFINITE, and it says which. A share is a fraction OF the value arm's
+    # advantage, so an advantage at or near zero has no share -- reporting one would be a divide
+    # by a rounding error dressed as a percentage (R15 fail-open: a number that appears whatever
+    # the inputs were). The selection figure below stays readable in that case and is reported.
+    share = None
+    if abs(value_advantage) > 1.0:
+        share = level_advantage / value_advantage
+
+    return {
+        "available": True,
+        "level_gbp_per_mwh": level_gbp_per_mwh,
+        "level_source": (
+            "the value arm's own realised median margin in THIS run "
+            "(`decision_shape.median_margin_gbp_per_mwh`), not a constant"),
+        "control_net_gbp": control_net,
+        "value_arm_net_gbp": value_m["total_net_gbp"],
+        "level_arm_net_gbp": level_m["total_net_gbp"],
+        "value_advantage_gbp": value_advantage,
+        "level_advantage_gbp": level_advantage,
+        # The residual. NEGATIVE means the choosing was worth less than nothing -- an arm that
+        # ranks worse than chance cannot select profitably, and that is a RESULT, not a defect
+        # to tune away (R12).
+        "selection_gbp": selection_gbp,
+        "level_share_of_advantage": share,
+        "share_undefined_reason": (
+            None if share is not None else
+            "the value arm's advantage is under GBP 1 -- a share of it would be noise"),
+        "basis": "settled net margin (R14) -- `net_margin_gbp` from the world's own settled records",
+        "how_to_read_this": (
+            "A share at or above 1.0 means the LEVEL explains all of the advantage and the "
+            "SELECTION is worth nothing or less. This is the natural measure of whether widening "
+            "the world gave the company something to infer: with a world whose households differ "
+            "only by circumstance there is almost nothing for per-customer selection to select "
+            "ON, and the level should carry it. A selection still worth less than nothing is a "
+            "complete answer and NOT a cue to tune the arm until it wins (R12). The "
+            "enterprise-value reading is withheld on purpose -- see this function's docstring."
+        ),
+    }
+
+
+def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -> dict:
     """Run the same window under both pricing arms and return the realised comparison.
 
     Both arms enter `policy_scope(...)` AND pass `policy=`, which is not belt-and-braces: the
@@ -1256,6 +1336,35 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
     delta_net = value_m["total_net_gbp"] - control_m["total_net_gbp"]
     shape = arm_decision_shape(value)
 
+    # THE THIRD ARM, at the value arm's OWN realised median, read off the run just completed.
+    # Third and not first because the level is not knowable until the value arm has chosen: this
+    # is a comparison against what the arm actually did on THIS book, not against a remembered
+    # number from a previous one.
+    level = None
+    level_m = None
+    level_result = None
+    level_shape = None
+    if level_arm:
+        level = shape.get("median_margin_gbp_per_mwh")
+        if level is None:
+            raise AssertionError(
+                "the value arm published no median margin, so there is no level to hold. Running "
+                "the third arm at an assumed level would compare the value arm against a number "
+                "this run did not produce. Refusing.")
+        level_policy = replace(
+            CURRENT_POLICY, name="level_arm", renewal_margin_arm=FLAT_AT_LEVEL,
+            renewal_margin_flat_level_gbp_per_mwh=float(level))
+        with policy_scope(level_policy):
+            level_result = run_phase4c(report_end=report_end, policy=level_policy)
+        level_m = realised_metrics(level_result)
+        # THE POPULATIONS MUST BE THE SAME ONES, and this checks rather than assumes it. The arm
+        # exists to price EXACTLY the renewals the value arm priced -- if it priced a different
+        # number of them, the residual carries the book as well as the choosing and the split is
+        # not readable. It is reported, not raised on: different prices cause different churn, so
+        # a small divergence is inherent to any arm comparison in a world where price affects
+        # retention (see the finding's own caveat) and suppressing the result would hide it.
+        level_shape = arm_decision_shape(level_result)
+
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "report_end": report_end,
@@ -1283,6 +1392,14 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
         },
         "control_arm": control_m,
         "value_arm": value_m,
+        # Present only when --level-arm ran. Absent rather than zero-filled: a level arm reported
+        # as GBP 0 by a run that never executed it is R15's fail-open shape, and this block is
+        # the subject of the level-vs-selection verdict below.
+        "level_arm": level_m,
+        "level_arm_decision_shape": level_shape,
+        # WAS THE ADVANTAGE THE LEVEL OR THE SELECTION? The standing measure of whether widening
+        # the world gave the company anything to infer -- see `level_vs_selection`.
+        "level_vs_selection": level_vs_selection(control_m, value_m, level_m, level),
         "realised_delta": {
             "net_margin_gbp": delta_net,
             "enterprise_value_gbp": (
@@ -1336,10 +1453,14 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (faster iteration)")
     ap.add_argument("--out", type=Path, default=OUTPUT_PATH)
+    ap.add_argument(
+        "--level-arm", action="store_true",
+        help=("also run `flat_at_level` at the value arm's own realised median, splitting the "
+              "advantage into the LEVEL and the SELECTION. Costs a third full pass."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
 
-    result = run_value_cycle_ab(report_end=report_end)
+    result = run_value_cycle_ab(report_end=report_end, level_arm=args.level_arm)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2), encoding="utf-8")
 
@@ -1367,6 +1488,14 @@ def main(argv: list[str] | None = None) -> int:
     bound = result["bound_attribution"]
     print("  WHO CHOSE   {}".format(
         bound["headline"] if bound.get("available") else bound.get("why_not")))
+    lvs = result["level_vs_selection"]
+    if lvs.get("available"):
+        share = lvs["level_share_of_advantage"]
+        print("  LEVEL vs SELECTION  level @{:,.2f} GBP/MWh -> {:+,.2f}; "
+              "value -> {:+,.2f}; selection {:+,.2f} GBP; level share {}".format(
+                  lvs["level_gbp_per_mwh"], lvs["level_advantage_gbp"],
+                  lvs["value_advantage_gbp"], lvs["selection_gbp"],
+                  "{:.1%}".format(share) if share is not None else "undefined"))
     print("  wrote {}".format(args.out))
     return 0
 
