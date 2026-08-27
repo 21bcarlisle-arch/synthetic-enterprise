@@ -2,11 +2,11 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 47 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 48 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 47 instances
+## The 48 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -31,6 +31,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_EPISODE_CLOSES_ON_AN_EMPTY_QUEUE_THAT_CANNOT_EMPTY_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS_2026-08-24.md` — RECORDED
 - `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_GATES_SKIP_PATH_NEVER_RESTAMPS_THE_GREEN_CLOCK_SO_THE_WEDGE_CROSS_CHECK_DECAYS_2026-08-27.md` — LATENT
 - `WORKER_FINDING_THE_GATE_SELECTS_BY_FILENAME_STEM_SO_A_RENAMED_KEYS_CONSUMERS_NEVER_RUN_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md` — LATENT
@@ -58,7 +59,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**273.0 recorded episode-hours** across 13 of the 47 instances; largest single recorded episode **60h**; 7 instance(s) name a published figure in scope.
+**273.0 recorded episode-hours** across 13 of the 48 instances; largest single recorded episode **60h**; 7 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
