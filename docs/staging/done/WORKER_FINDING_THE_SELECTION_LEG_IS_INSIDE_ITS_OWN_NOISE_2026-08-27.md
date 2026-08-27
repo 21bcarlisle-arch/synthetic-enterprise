@@ -113,6 +113,54 @@ unexplained.
 Four seeds is also a small n. The finding is that the instrument's error bar **exceeds the effect
 it publishes**; narrowing it is a matter of more seeds, and that is now a one-command run.
 
+## UPDATE, 2026-08-27 ~21:30 — six post-repair sweeps, and the first invocation of the committed mode
+
+Six further sweeps completed after the repair landed (`fixed_*.log`, 19:00 and 19:36). They are
+recorded here because they answer a question the four above could only answer by inference, and
+because they must NOT be pooled with them.
+
+| seed | control | value | level | adv_value | adv_level | **selection** | level share |
+|---|---|---|---|---|---|---|---|
+| 11111 | 115,559.69 | 124,493.95 | 122,719.74 | +8,934.26 | +7,160.06 | **+1,774.21** | 80.1% |
+| 22222 | 114,014.50 | 122,708.83 | 117,591.95 | +8,694.34 | +3,577.45 | **+5,116.89** | 41.2% |
+| 33333 | 114,860.46 | 122,596.70 | 126,170.51 | +7,736.24 | +11,310.05 | **−3,573.81** | 146.2% |
+| 44444 | 113,514.04 | 123,232.16 | 117,256.37 | +9,718.13 | +3,742.33 | **+5,975.80** | 38.5% |
+| 55555 | 115,315.76 | 122,225.19 | 125,443.08 | +6,909.43 | +10,127.32 | **−3,217.89** | 146.6% |
+| 66666 | 113,683.85 | 121,903.08 | 121,572.96 | +8,219.24 | +7,889.12 | **+330.12** | 96.0% |
+
+`selection_gbp`: mean **+1,067.55**, sd **4,035.80**, range **9,549.61** (−3,573.81 … +5,975.80).
+SEM over six seeds is £1,647.61, so |mean| is **0.65 SEM** — still not distinguishable from zero.
+`level_share_of_advantage`: mean **0.914**, range **0.385 … 1.466**.
+
+**What these six DO settle (`observed`).** The four seeds above established the spread; what was
+`inferred` was that the pre-repair patch reached nothing. These six are the first sweeps run
+wholly after the repair, and every one of them returns a **different** net. A patch that reaches
+the decision produces varying worlds; a patch that reaches nothing produces byte-identical ones.
+The repair is therefore confirmed in a real run, not only in the 9 unit tests.
+
+**What these six do NOT settle, and the reason to keep both tables.**
+
+1. **They are still the pinned instrument.** `observed`: the string `44.5` appears 308 times in
+   `fixed_11111.log`. These runs came from the `/tmp` scratchpad, which still pins
+   `renewal_margin_flat_level_gbp_per_mwh=44.5`. So they hold the level arm fixed while the value
+   arm moves with the seed, exactly as rows 2–4 of the published correction do. **The pinned-arm
+   caveat is not retired, and ±£4,036 remains an upper bound on the committed instrument's floor.**
+2. **They are a different world from the four seeds above.** Commit `9e52d2254` ("households
+   decide in POUNDS, and the elasticity spread was 3x too wide") landed at 19:06 — after the four
+   sweeps at 15:00–15:33 and before these six at 19:00+. The control nets moved from ~110–114k to
+   ~113.5–115.5k across that boundary. **Do not pool the two sets and do not quote a ten-seed
+   figure**: they measure different books. Each table stands on its own terms.
+
+**First invocation of the committed mode.** Everything about `--noise-floor-seeds` up to now was
+unit-tested and never run: `docs/observability/value_cycle_ab_noise_floor.json` did not exist, so
+the tool was an arm without a firing. It was launched at 21:27:30 on seeds 11111,22222,33333
+(`START pid=1464595 pgid=1464595 sess=1464595`, `setsid`-detached so it survives the tick that
+started it; ~35 min/seed). That run is the one that will retire caveat 1, because its level arm is
+each seed's own realised median rather than a remembered constant. Until its artefact exists, **no
+figure in this document was produced by a command a commit can reproduce** — both tables are
+scratchpad output, and that is the same provenance defect the published correction already
+records against itself.
+
 ## What this does NOT license
 
 Re-running until a seed agrees with the published number (R12). A selection leg inside its own
