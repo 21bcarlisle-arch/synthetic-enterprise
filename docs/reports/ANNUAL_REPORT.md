@@ -7,27 +7,27 @@ This report covers 2016–2025 (10 calendar years,
 the last partial). The business survived the full window.
 
 - Starting treasury: £250,000.00
-- Final treasury: £361,269.70
-  (£111,269.70 net change)
-- Solvency signal (final year): £2,185/customer (184 customers, OK; Ofgem floor £130/customer)
-- Customer bills (all-in): £1,316,078.49
-  VAT remitted to HMRC: (£66,662.68) | Revenue (ex-VAT): £1,249,415.81
-  Non-commodity pass-through: (£246,955.85)
-- Gross margin: £525,227.54
-- Capital costs: £9,357.51
-- Net margin: £515,870.03
+- Final treasury: £362,012.58
+  (£112,012.58 net change)
+- Solvency signal (final year): £2,168/customer (186 customers, OK; Ofgem floor £130/customer)
+- Customer bills (all-in): £1,325,497.35
+  VAT remitted to HMRC: (£67,031.35) | Revenue (ex-VAT): £1,258,466.01
+  Non-commodity pass-through: (£248,294.57)
+- Gross margin: £529,364.56
+- Capital costs: £9,423.20
+- Net margin: £519,941.36
 - Capital cost ratio: 1.8% of gross
 - Net margin as % of revenue: 41.3%
   (industry benchmark for a retail energy supplier: 2-5%)
 - Risk committee (Context Handshake) interventions: 0
-- Bills issued: 12372, average clarity 0.849,
+- Bills issued: 12468, average clarity 0.850,
   service quality score 0.887
-- Enterprise value (CLV sum across 126 billing accounts): £300,884.26
-- Cost to serve (whole portfolio): £55,030.58, net margin after cost to serve: £460,839.45
-- Hedge effectiveness (whole window): hedging cost £356,785.09 vs. a fully unhedged book (commodity-only: actual net £111,269.70 vs. naked net £468,054.79)
+- Enterprise value (CLV sum across 127 billing accounts): £298,951.78
+- Cost to serve (whole portfolio): £55,467.20, net margin after cost to serve: £464,474.16
+- Hedge effectiveness (whole window): hedging cost £359,582.74 vs. a fully unhedged book (commodity-only: actual net £112,012.58 vs. naked net £471,595.32)
 
-- **2021** (crisis year): net margin £5,902.95, 0 risk committee wake-up(s).
-- **2022** (crisis year): net margin £-17,926.35, 0 risk committee wake-up(s).
+- **2021** (crisis year): net margin £5,917.86, 0 risk committee wake-up(s).
+- **2022** (crisis year): net margin £-18,014.84, 0 risk committee wake-up(s).
 
 ## Consolidated Segmental Statement (CSS)
 
@@ -39,13 +39,13 @@ the last partial). The business survived the full window.
 
 | £, settlement basis | Elec — Domestic | Elec — Non-Dom | Gas — Domestic | Gas — Non-Dom | **Aggregate** |
 |---|---|---|---|---|---|
-| Revenue from sale of energy | £648,195 | £17,643 | £335,648 | £0 | £1,001,486 |
-| Direct fuel costs | (£257,959) | (£6,806) | (£212,467) | £0 | (£477,232) |
-| **Gross margin** | £390,236 | £10,837 | £123,180 | £0 | £524,254 |
-| Transportation (TNUoS/DUoS/BSUoS/gas transport) | (£158,394) | (£6,276) | (£70,550) | £0 | (£235,220) |
-| Environmental & social obligation costs | (£122,437) | (£4,851) | (£274) | £0 | (£127,562) |
-| Other direct costs (capital/collateral charges) | (£4,324) | (£120) | (£4,913) | £0 | (£9,358) |
-| **Segment contribution** (EBITDA, before central indirect) | £105,081 | £-411 | £47,444 | £0 | £152,114 |
+| Revenue from sale of energy | £653,345 | £17,643 | £337,585 | £0 | £1,008,573 |
+| Direct fuel costs | (£260,710) | (£6,806) | (£213,291) | £0 | (£480,807) |
+| **Gross margin** | £392,635 | £10,837 | £124,294 | £0 | £527,766 |
+| Transportation (TNUoS/DUoS/BSUoS/gas transport) | (£159,604) | (£6,277) | (£70,807) | £0 | (£236,689) |
+| Environmental & social obligation costs | (£123,324) | (£4,850) | (£278) | £0 | (£128,452) |
+| Other direct costs (capital/collateral charges) | (£4,377) | (£120) | (£4,926) | £0 | (£9,423) |
+| **Segment contribution** (EBITDA, before central indirect) | £105,330 | £-411 | £48,283 | £0 | £153,202 |
 
 > Transportation and environmental are shown split by the commodity-level transport:environmental ratio applied to each segment's sim-attributed non-commodity total (elec 56%/44%, gas 100%/0%); the per-segment non-commodity TOTAL is exact (settlement-attributed). CCL is non-domestic-only in reality — the ratio split is a disclosed approximation for the sub-line only.
 
@@ -53,10 +53,10 @@ the last partial). The business survived the full window.
 
 | Metric | Elec — Domestic | Elec — Non-Dom | Gas — Domestic | Gas — Non-Dom |
 |---|---|---|---|---|
-| Volume net of losses (MWh) | 2,546.1 | 133.6 | 5,470.6 | 0.0 |
-| WACOE/WACOG (£/MWh) | 101.31 | 50.93 | 38.84 | n/a |
-| WACOG (p/therm, gas) | — | — | 113.82 | — |
-| Meter points (12-mo avg of monthly closing) | 57.93 | 1.17 | 49.86 | 0.00 |
+| Volume net of losses (MWh) | 2,564.9 | 133.6 | 5,486.8 | 0.0 |
+| WACOE/WACOG (£/MWh) | 101.65 | 50.93 | 38.87 | n/a |
+| WACOG (p/therm, gas) | — | — | 113.93 | — |
+| Meter points (12-mo avg of monthly closing) | 58.35 | 1.17 | 50.28 | 0.00 |
 
 > WACOE/WACOG = direct fuel cost ÷ volume. Meter points are a 12-month average of monthly closing counts; the sim runs a small book of *representative* billing accounts, so these are single-digit by design (representative-account scale, not a real 50k+ portfolio).
 
@@ -66,17 +66,17 @@ the last partial). The business survived the full window.
 
 | Line | £ |
 |---|---:|
-| Gross margin (statutory) | £525,228 |
-| Indirect — bad debt | (£27,074) |
-| Indirect — cost-to-serve (customer service; metering/PSR/R&D not yet split) | (£55,031) |
-| Indirect — sales & marketing / acquisition | (£134,048) |
+| Gross margin (statutory) | £529,365 |
+| Indirect — bad debt | (£27,261) |
+| Indirect — cost-to-serve (customer service; metering/PSR/R&D not yet split) | (£55,467) |
+| Indirect — sales & marketing / acquisition | (£133,972) |
 | Indirect — central overhead | (£5,700) |
-| Indirect — capital/collateral charge | (£9,358) |
-| **EBITDA** | £294,018 |
+| Indirect — capital/collateral charge | (£9,423) |
+| **EBITDA** | £297,541 |
 | Depreciation & amortisation | £0 — **honest gap**: no fixed-asset / amortisation layer exists yet (no capitalised assets to depreciate). Registered, not fabricated. |
-| **EBIT** | £294,018 |
-| Corporation tax | (£63,568) |
-| **Profit for the year** | £230,449 |
+| **EBIT** | £297,541 |
+| Corporation tax | (£64,501) |
+| **Profit for the year** | £233,040 |
 
 > Indirect cost-to-serve is a single line; CSS guidance also names metering, PSR cost-to-serve and R&D as sub-components — these are **named gaps** (no sub-decomposition model yet), reported here rather than fabricated.
 
@@ -84,11 +84,11 @@ the last partial). The business survived the full window.
 
 | Reconciling item | £ |
 |---|---:|
-| CSS revenue (settlement basis) | £1,001,486 |
-| + Settled-to-billed basis difference (standing charges, estimated vs settled volume, restatements) | £247,929 |
-| = Statutory revenue (billed basis) | £1,249,416 |
-| Memo: total billed (accrued) | £1,316,078 |
-| Memo: cash collected (banked) | £1,289,442 |
+| CSS revenue (settlement basis) | £1,008,573 |
+| + Settled-to-billed basis difference (standing charges, estimated vs settled volume, restatements) | £249,893 |
+| = Statutory revenue (billed basis) | £1,258,466 |
+| Memo: total billed (accrued) | £1,325,497 |
+| Memo: cash collected (banked) | £1,298,672 |
 
 *R14 clocks: **settled** = CSS segmental P&L; **billed** = statutory revenue / total billed; **banked** = cash collected. The revenue basis difference is the single largest reconciling item and is expected — the CSS values energy on settled volume, the statutory accounts on what was billed.*
 
@@ -105,7 +105,7 @@ the last partial). The business survived the full window.
 
 ### Hedging policy note
 
-The company hedges wholesale volume forward to lock supply margin at the point of tariff sign-up. **Default (SVT-style) tariffs** are hedged on a rolling forward basis tracking the cap-implied demand curve; **fixed-term tariffs** are hedged to their contracted term at sign-up so the margin is fixed for the customer's term. **Volume risk** (weather / consumption deviation vs the hedged shape) is borne by the company, not the customer, on both tariff types — the customer's unit rate is fixed within term and the company absorbs the settlement volume variance. Over the window, hedging cost £356,785 versus a fully unhedged book.
+The company hedges wholesale volume forward to lock supply margin at the point of tariff sign-up. **Default (SVT-style) tariffs** are hedged on a rolling forward basis tracking the cap-implied demand curve; **fixed-term tariffs** are hedged to their contracted term at sign-up so the margin is fixed for the customer's term. **Volume risk** (weather / consumption deviation vs the hedged shape) is borne by the company, not the customer, on both tariff types — the customer's unit rate is fixed within term and the company absorbs the settlement volume variance. Over the window, hedging cost £359,583 versus a fully unhedged book.
 
 ## Board KPI Block
 
@@ -113,21 +113,21 @@ The company hedges wholesale volume forward to lock supply margin at the point o
 
 | KPI | Value | Basis / note |
 |---|---:|---|
-| Churn % (of avg customers, annualised) | 3.4% | 37 churned accounts over 10y; Centrica-style definition |
-| Complaints per 1,000 customers (annualised) | 56.0 | 61 complaints over window (Ofgem/CitA league-table metric) |
-| CSAT (avg score 0–10) | 6.5 | 28 survey responses (measured) |
+| Churn % (of avg customers, annualised) | 3.3% | 36 churned accounts over 10y; Centrica-style definition |
+| Complaints per 1,000 customers (annualised) | 55.6 | 61 complaints over window (Ofgem/CitA league-table metric) |
+| CSAT (avg score 0–10) | 6.6 | 27 survey responses (measured) |
 | NPS (avg annual) | -35 | 38 responses — **low volume, indicative only** |
-| Direct Debit share | 86.6% | 240/277 mandates active |
-| Estimated-read rate | 54.6% | 12372 meter reads; lower is better |
-| Contact-centre SLA breaches (SLC14-style) | 117 | of 2822 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
+| Direct Debit share | 87.0% | 241/277 mandates active |
+| Estimated-read rate | 54.2% | 12468 meter reads; lower is better |
+| Contact-centre SLA breaches (SLC14-style) | 119 | of 2847 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
 
 ### ARPU by segment (settlement revenue ÷ meter points, annualised)
 
 | Segment | ARPU £/yr |
 |---|---:|
-| Electricity — Domestic | £1,119 |
+| Electricity — Domestic | £1,120 |
 | Electricity — Non-Domestic | £1,512 |
-| Gas — Domestic | £673 |
+| Gas — Domestic | £671 |
 | Gas — Non-Domestic | n/a |
 
 > **Awaiting market backdrop (named gap):** relative metrics — churn spread vs rest-of-market and price-vs-cap positioning (the best-in-class AGL/Octopus pattern) — are blocked on the simulated competitor field, an already-identified Epoch-2 missing piece. Named here rather than omitted silently.
@@ -139,9 +139,9 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 
 | Risk Indicator | Value | RAG | Implication |
 |----------------|-------|-----|-------------|
-| Revenue concentration | HHI 57, I&C 0% | **GREEN** | Single I&C departure removes 14-29%% of margin |
-| Gas segment ROC | 9.7x (net £47,443.79 on £4,912.65 capital) | **GREEN** | Gas legs destroy capital; electricity cross-subsidises |
-| Churn blind miss rate | 20/37 departures (54%) | **RED** | Company did not forecast these churns |
+| Revenue concentration | HHI 56, I&C 0% | **GREEN** | Single I&C departure removes 14-29%% of margin |
+| Gas segment ROC | 9.8x (net £48,282.66 on £4,925.76 capital) | **GREEN** | Gas legs destroy capital; electricity cross-subsidises |
+| Churn blind miss rate | 20/36 departures (56%) | **RED** | Company did not forecast these churns |
 | Demand estimation error | Peak mean 1.8%, max 34.6% | **AMBER** | EAC drift from asset acquisitions; smart meters eliminate |
 | Pricing basis risk (worst year) | 2020: +29.5% mean over-estimate | **RED** | Over-priced contracts help margin but create churn risk |
 | Net margin % of revenue | 41.3% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
@@ -152,17 +152,17 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £525,227.54, capital £9,357.51, net £515,870.03. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £529,364.56, capital £9,423.20, net £519,941.36. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
 
 - **Capital cost as % of gross margin**: 1.8% (commodity basis, comparable to old model) / 1.8% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
-- **2021 net margin**: £5,902.95 under the new mandate vs. £-1,096.43 under the old reactive model.
+- **2021 net margin**: £5,917.86 under the new mandate vs. £-1,096.43 under the old reactive model.
 - **Net margin as % of revenue**: this run 41.3%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
 
 **Whole-run net margin, three ways:**
 
-- Mandate-hedged (actual, this run, Phase 9a): £515,870.03
+- Mandate-hedged (actual, this run, Phase 9a): £519,941.36
 - Old reactive model (actual, commodity-only): £26,779.56
-- Fully naked (this run's counterfactual, commodity-only): £468,054.79
+- Fully naked (this run's counterfactual, commodity-only): £471,595.32
 - Fully naked (old run's counterfactual, commodity-only): £33,476.19
 
 Comparing the two naked counterfactuals shows what changed in the underlying weather/price data between runs (LLM non-determinism in risk-committee responses also shifts these slightly run-to-run); comparing each model's actual to its own naked figure isolates what that model's hedging behaviour itself contributed.
@@ -178,7 +178,7 @@ This is the most strategically interesting question in the whole
 simulation: did the risk committee's hedging interventions actually make
 money, or just reduce variance?
 
-- hedging cost £356,785.09 vs. a fully unhedged book (commodity-only: actual net £111,269.70 vs. naked net £468,054.79)
+- hedging cost £359,582.74 vs. a fully unhedged book (commodity-only: actual net £112,012.58 vs. naked net £471,595.32)
 - **Best hedging decision of the run**: PROS-2022-0081g, term starting
   2022-03-13 (hedge fraction 0.97) -- hedging
   protected £794.06 vs. going naked.
@@ -195,64 +195,64 @@ Net margin (£) by segment, by year:
 |---|---|---|---|---|
 | 2016 | £290.90 | £1,094.01 | £641.95 | £2,026.85 |
 | 2017 | £75.27 | £1,570.08 | £1,061.54 | £2,706.88 |
-| 2018 | £-541.37 | £1,786.15 | £2,091.18 | £3,335.96 |
-| 2019 | £224.14 | £3,559.29 | £3,578.85 | £7,362.29 |
-| 2020 | £-100.15 | £5,731.52 | £6,036.85 | £11,668.22 |
-| 2021 | £-359.65 | £2,855.34 | £3,407.25 | £5,902.95 |
-| 2022 | £0.00 | £9,370.16 | £-27,296.50 | £-17,926.35 |
-| 2023 | £0.00 | £23,673.58 | £15,357.09 | £39,030.67 |
-| 2024 | £0.00 | £38,921.90 | £30,464.18 | £69,386.08 |
-| 2025 | £0.00 | £16,519.28 | £12,101.43 | £28,620.71 |
+| 2018 | £-541.37 | £2,007.90 | £2,091.18 | £3,557.71 |
+| 2019 | £224.14 | £3,542.03 | £3,578.85 | £7,345.03 |
+| 2020 | £-100.15 | £5,643.79 | £6,036.85 | £11,580.49 |
+| 2021 | £-359.65 | £2,870.25 | £3,407.25 | £5,917.86 |
+| 2022 | £0.00 | £9,195.31 | £-27,210.15 | £-18,014.84 |
+| 2023 | £0.00 | £23,117.76 | £15,427.99 | £38,545.74 |
+| 2024 | £0.00 | £39,630.21 | £30,993.91 | £70,624.11 |
+| 2025 | £0.00 | £16,658.74 | £12,253.31 | £28,912.04 |
 
 ## Customer Lifecycle Events
 
 Renewal decisions rolled at each annual renewal point across the simulation window.
-Retained: **441** renewals.  Lost (churned): **37** accounts.
+Retained: **446** renewals.  Lost (churned): **36** accounts.
 
-Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-0002, PROS-2018-0003, PROS-2018-0014, PROS-2018-0039, PROS-2019-0003, PROS-2019-0024, PROS-2019-0050, PROS-2020-0006, PROS-2020-0013, PROS-2020-0025, PROS-2020-0043, PROS-2020-0047, PROS-2020-0050, PROS-2020-0067, PROS-2021-0006, PROS-2021-0017, PROS-2021-0029, PROS-2021-0031, PROS-2021-0044, PROS-2021-0045, PROS-2021-0060, PROS-2021-0067, PROS-2021-0100, PROS-2022-0011, PROS-2022-0019, PROS-2022-0063, PROS-2022-0067, PROS-2022-0125, PROS-2023-0010, PROS-2023-0025, PROS-2023-0116, PROS-2024-0076
+Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-0002, PROS-2018-0014, PROS-2018-0039, PROS-2019-0003, PROS-2019-0024, PROS-2019-0050, PROS-2020-0013, PROS-2020-0025, PROS-2020-0042, PROS-2020-0043, PROS-2020-0047, PROS-2020-0050, PROS-2020-0067, PROS-2021-0017, PROS-2021-0029, PROS-2021-0031, PROS-2021-0044, PROS-2021-0045, PROS-2021-0060, PROS-2021-0067, PROS-2021-0100, PROS-2022-0011, PROS-2022-0019, PROS-2022-0063, PROS-2022-0067, PROS-2022-0125, PROS-2023-0010, PROS-2023-0025, PROS-2023-0116, PROS-2023-0172, PROS-2024-0076
 
 | Account | Date | Outcome | p(churn) | p(win-back) | p(retain) | Roll |
 |---------|------|---------|----------|-------------|-----------|------|
 | C1 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9699 | 0.1646 |
-| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9621 | 0.2812 |
-| C7 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9695 | 0.1050 |
-| PROS-2016-0003 | 2017-01-05 | renewed | 0.0500 | 0.5500 | 0.9670 | 0.2945 |
+| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9398 | 0.2812 |
+| C7 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9564 | 0.1050 |
+| PROS-2016-0003 | 2017-01-05 | renewed | 0.0500 | 0.5500 | 0.9674 | 0.2945 |
 | PROS-2016-0011 | 2017-01-11 | renewed | 0.0500 | 0.5500 | 0.9660 | 0.4726 |
-| PROS-2016-0020 | 2017-01-18 | renewed | 0.0500 | 0.5500 | 0.9782 | 0.6531 |
+| PROS-2016-0020 | 2017-01-18 | renewed | 0.0500 | 0.5500 | 0.9768 | 0.6531 |
 | C2 | 2017-04-01 | renewed | 0.0500 | 0.5500 | 0.9873 | 0.9036 |
 | C6 | 2017-04-01 | churned **CHURNED** | 0.0500 | 0.3500 | 0.9805 | 0.9972 |
 | C8 | 2017-04-01 | renewed | 0.0500 | 0.5500 | 0.9865 | 0.1564 |
-| C3 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9892 | 0.8297 |
-| C9 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9859 | 0.4802 |
-| C4 | 2017-10-01 | renewed | 0.0500 | 0.5500 | 0.9887 | 0.6403 |
+| C3 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9931 | 0.8297 |
+| C9 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9736 | 0.4802 |
+| C4 | 2017-10-01 | renewed | 0.0500 | 0.5500 | 0.9908 | 0.6403 |
 | C1 | 2017-12-31 | renewed | 0.0800 | 0.5500 | 0.9773 | 0.6188 |
-| C5 | 2017-12-31 | renewed | 0.1100 | 0.3500 | 0.9563 | 0.4449 |
-| C7 | 2017-12-31 | renewed | 0.1400 | 0.5500 | 0.9541 | 0.8255 |
-| PROS-2016-0003 | 2018-01-05 | churned **CHURNED** | 0.3200 | 0.5500 | 0.9461 | 0.9711 |
+| C5 | 2017-12-31 | renewed | 0.1100 | 0.3500 | 0.9179 | 0.4449 |
+| C7 | 2017-12-31 | renewed | 0.1400 | 0.5500 | 0.9177 | 0.8255 |
+| PROS-2016-0003 | 2018-01-05 | churned **CHURNED** | 0.3200 | 0.5500 | 0.8996 | 0.9711 |
 | PROS-2016-0011 | 2018-01-11 | renewed | 0.0800 | 0.5500 | 0.9635 | 0.3955 |
-| PROS-2017-0019 | 2018-01-14 | renewed | 0.0500 | 0.5500 | 0.9878 | 0.2091 |
-| PROS-2016-0020 | 2018-01-18 | renewed | 0.0800 | 0.5500 | 0.9830 | 0.1250 |
-| PROS-2017-0022 | 2018-01-19 | renewed | 0.0500 | 0.5500 | 0.9826 | 0.0008 |
+| PROS-2017-0019 | 2018-01-14 | renewed | 0.0500 | 0.5500 | 0.9908 | 0.2091 |
+| PROS-2016-0020 | 2018-01-18 | renewed | 0.0800 | 0.5500 | 0.9704 | 0.1250 |
+| PROS-2017-0022 | 2018-01-19 | renewed | 0.0500 | 0.5500 | 0.9869 | 0.0008 |
 | C2 | 2018-04-01 | renewed | 0.1700 | 0.5500 | 0.9630 | 0.7257 |
 | C8 | 2018-04-01 | renewed | 0.2000 | 0.5500 | 0.9521 | 0.6055 |
-| C3 | 2018-07-01 | renewed | 0.2000 | 0.5500 | 0.9437 | 0.9160 |
-| C9 | 2018-07-01 | renewed | 0.2900 | 0.5500 | 0.9180 | 0.0794 |
-| C4 | 2018-10-01 | churned **CHURNED** | 0.1400 | 0.5500 | 0.9124 | 0.9934 |
+| C3 | 2018-07-01 | renewed | 0.2000 | 0.5500 | 0.9633 | 0.9160 |
+| C9 | 2018-07-01 | renewed | 0.2900 | 0.5500 | 0.8462 | 0.0794 |
+| C4 | 2018-10-01 | churned **CHURNED** | 0.1400 | 0.5500 | 0.9231 | 0.9934 |
 | C1 | 2018-12-31 | renewed | 0.1700 | 0.5500 | 0.8780 | 0.0480 |
-| C5 | 2018-12-31 | renewed | 0.0800 | 0.3500 | 0.9142 | 0.3096 |
-| C7 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.8807 | 0.6312 |
-| PROS-2018-0002 | 2019-01-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9835 | 0.9949 |
-| PROS-2018-0003 | 2019-01-02 | renewed | 0.0500 | 0.5500 | 0.9925 | 0.8021 |
-| PROS-2018-0009 | 2019-01-08 | renewed | 0.0500 | 0.5500 | 0.9816 | 0.7338 |
+| C5 | 2018-12-31 | renewed | 0.0800 | 0.3500 | 0.9243 | 0.3096 |
+| C7 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.8586 | 0.6312 |
+| PROS-2018-0002 | 2019-01-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9723 | 0.9949 |
+| PROS-2018-0003 | 2019-01-02 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.8021 |
+| PROS-2018-0009 | 2019-01-08 | renewed | 0.0500 | 0.5500 | 0.9863 | 0.7338 |
 | PROS-2016-0011 | 2019-01-11 | renewed | 0.0500 | 0.5500 | 0.9828 | 0.0665 |
-| PROS-2018-0014 | 2019-01-11 | renewed | 0.0500 | 0.5500 | 0.9841 | 0.6794 |
-| PROS-2018-0016 | 2019-01-12 | renewed | 0.0500 | 0.5500 | 0.9774 | 0.9103 |
-| PROS-2018-0018 | 2019-01-13 | renewed | 0.0500 | 0.5500 | 0.9849 | 0.4133 |
-| PROS-2017-0019 | 2019-01-14 | renewed | 0.0800 | 0.5500 | 0.9665 | 0.8399 |
-| PROS-2018-0022 | 2019-01-15 | renewed | 0.0500 | 0.5500 | 0.9858 | 0.3682 |
+| PROS-2018-0014 | 2019-01-11 | renewed | 0.0500 | 0.5500 | 0.9726 | 0.6794 |
+| PROS-2018-0016 | 2019-01-12 | renewed | 0.0500 | 0.5500 | 0.9793 | 0.9103 |
+| PROS-2018-0018 | 2019-01-13 | renewed | 0.0500 | 0.5500 | 0.9732 | 0.4133 |
+| PROS-2017-0019 | 2019-01-14 | renewed | 0.0800 | 0.5500 | 0.9715 | 0.8399 |
+| PROS-2018-0022 | 2019-01-15 | renewed | 0.0500 | 0.5500 | 0.9737 | 0.3682 |
 | PROS-2018-0024 | 2019-01-16 | renewed | 0.0500 | 0.5500 | 0.9720 | 0.5048 |
-| PROS-2016-0020 | 2019-01-18 | renewed | 0.0500 | 0.5500 | 0.9894 | 0.7014 |
-| PROS-2017-0022 | 2019-01-19 | renewed | 0.0800 | 0.5500 | 0.9773 | 0.6982 |
+| PROS-2016-0020 | 2019-01-18 | renewed | 0.0500 | 0.5500 | 0.9802 | 0.7014 |
+| PROS-2017-0022 | 2019-01-19 | renewed | 0.0800 | 0.5500 | 0.9828 | 0.6982 |
 | PROS-2018-0035 | 2019-01-25 | renewed | 0.0500 | 0.5500 | 0.9932 | 0.3531 |
 | PROS-2018-0039 | 2019-01-31 | renewed | 0.0500 | 0.5500 | 0.9724 | 0.2463 |
 | PROS-2018-0043 | 2019-02-05 | renewed | 0.0500 | 0.5500 | 0.9847 | 0.2836 |
@@ -260,30 +260,30 @@ Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-00
 | C2 | 2019-04-01 | renewed | 0.1100 | 0.5500 | 0.9823 | 0.7074 |
 | C8 | 2019-04-01 | renewed | 0.1100 | 0.5500 | 0.9814 | 0.2491 |
 | C3 | 2019-07-01 | renewed | 0.2000 | 0.5500 | 0.9667 | 0.7895 |
-| C9 | 2019-07-01 | renewed | 0.2300 | 0.5500 | 0.9617 | 0.2871 |
+| C9 | 2019-07-01 | renewed | 0.2300 | 0.5500 | 0.9320 | 0.2871 |
 | C1 | 2019-12-31 | renewed | 0.2300 | 0.5500 | 0.9617 | 0.2972 |
-| C5 | 2019-12-31 | renewed | 0.3500 | 0.3500 | 0.9630 | 0.4302 |
-| C7 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.9630 | 0.7670 |
-| PROS-2018-0003 | 2020-01-02 | renewed | 0.0500 | 0.5500 | 0.9916 | 0.9362 |
-| PROS-2019-0003 | 2020-01-03 | renewed | 0.0500 | 0.5500 | 0.9916 | 0.1273 |
+| C5 | 2019-12-31 | renewed | 0.3500 | 0.3500 | 0.9299 | 0.4302 |
+| C7 | 2019-12-31 | renewed | 0.2900 | 0.5500 | 0.9269 | 0.7670 |
+| PROS-2018-0003 | 2020-01-02 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.9362 |
+| PROS-2019-0003 | 2020-01-03 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.1273 |
 | PROS-2018-0009 | 2020-01-08 | renewed | 0.4100 | 0.5500 | 0.9704 | 0.0183 |
 | PROS-2016-0011 | 2020-01-11 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.3303 |
-| PROS-2018-0014 | 2020-01-11 | renewed | 0.0800 | 0.5500 | 0.9893 | 0.9039 |
+| PROS-2018-0014 | 2020-01-11 | renewed | 0.0800 | 0.5500 | 0.9766 | 0.9039 |
 | PROS-2019-0008 | 2020-01-11 | renewed | 0.0500 | 0.5500 | 0.9948 | 0.4454 |
 | PROS-2018-0016 | 2020-01-12 | renewed | 0.0800 | 0.5500 | 0.9920 | 0.3861 |
 | PROS-2019-0009 | 2020-01-12 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.8073 |
-| PROS-2018-0018 | 2020-01-13 | renewed | 0.0800 | 0.5500 | 0.9893 | 0.0160 |
+| PROS-2018-0018 | 2020-01-13 | renewed | 0.0800 | 0.5500 | 0.9761 | 0.0160 |
 | PROS-2017-0019 | 2020-01-14 | renewed | 0.3800 | 0.5500 | 0.9704 | 0.7275 |
-| PROS-2018-0022 | 2020-01-15 | renewed | 0.0800 | 0.5500 | 0.9893 | 0.7699 |
+| PROS-2018-0022 | 2020-01-15 | renewed | 0.0800 | 0.5500 | 0.9760 | 0.7699 |
 | PROS-2018-0024 | 2020-01-16 | renewed | 0.1100 | 0.5500 | 0.9887 | 0.7819 |
-| PROS-2019-0012 | 2020-01-16 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.1955 |
-| PROS-2016-0020 | 2020-01-18 | renewed | 0.0500 | 0.5500 | 0.9948 | 0.0123 |
+| PROS-2019-0012 | 2020-01-16 | renewed | 0.0500 | 0.5500 | 0.9850 | 0.1955 |
+| PROS-2016-0020 | 2020-01-18 | renewed | 0.0500 | 0.5500 | 0.9883 | 0.0123 |
 | PROS-2017-0022 | 2020-01-19 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.6154 |
 | PROS-2019-0015 | 2020-01-19 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.7220 |
 | PROS-2018-0035 | 2020-01-25 | renewed | 0.0800 | 0.5500 | 0.9937 | 0.3589 |
 | PROS-2019-0021 | 2020-01-27 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.8993 |
-| PROS-2019-0023 | 2020-01-29 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.9420 |
-| PROS-2019-0024 | 2020-01-29 | renewed | 0.0500 | 0.5500 | 0.9947 | 0.7870 |
+| PROS-2019-0023 | 2020-01-29 | renewed | 0.0500 | 0.5500 | 0.9851 | 0.9420 |
+| PROS-2019-0024 | 2020-01-29 | renewed | 0.0500 | 0.5500 | 0.9880 | 0.7870 |
 | PROS-2018-0039 | 2020-01-31 | renewed | 0.0800 | 0.5500 | 0.9893 | 0.2730 |
 | PROS-2019-0027 | 2020-02-03 | renewed | 0.0500 | 0.5500 | 0.9933 | 0.9272 |
 | PROS-2018-0043 | 2020-02-05 | renewed | 0.0800 | 0.5500 | 0.9893 | 0.3847 |
@@ -292,135 +292,137 @@ Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-00
 | C2 | 2020-03-31 | renewed | 0.1100 | 0.5500 | 0.9890 | 0.8936 |
 | C8 | 2020-03-31 | renewed | 0.2600 | 0.5500 | 0.9723 | 0.1066 |
 | C3 | 2020-06-30 | renewed | 0.1700 | 0.5500 | 0.9807 | 0.9704 |
-| C9 | 2020-06-30 | renewed | 0.2300 | 0.5500 | 0.9693 | 0.5378 |
+| C9 | 2020-06-30 | renewed | 0.2300 | 0.5500 | 0.9491 | 0.5378 |
 | C1 | 2020-12-30 | renewed | 0.2900 | 0.5500 | 0.9613 | 0.8047 |
-| C5 | 2020-12-30 | renewed | 0.4100 | 0.3500 | 0.9029 | 0.7480 |
-| C7 | 2020-12-30 | renewed | 0.2000 | 0.5500 | 0.9649 | 0.4829 |
-| PROS-2018-0003 | 2021-01-01 | renewed | 0.0500 | 0.5500 | 0.9934 | 0.1577 |
+| C5 | 2020-12-30 | renewed | 0.4100 | 0.3500 | 0.8142 | 0.7480 |
+| C7 | 2020-12-30 | renewed | 0.2000 | 0.5500 | 0.9332 | 0.4829 |
+| PROS-2018-0003 | 2021-01-01 | renewed | 0.0500 | 0.5500 | 0.9958 | 0.1577 |
 | PROS-2020-0002 | 2021-01-01 | renewed | 0.0500 | 0.5500 | 0.9935 | 0.9086 |
-| PROS-2019-0003 | 2021-01-02 | renewed | 0.0500 | 0.5500 | 0.9941 | 0.5881 |
-| PROS-2020-0006 | 2021-01-03 | renewed | 0.0500 | 0.5500 | 0.9942 | 0.1742 |
-| PROS-2020-0009 | 2021-01-05 | renewed | 0.0500 | 0.5500 | 0.9961 | 0.2647 |
-| PROS-2018-0009 | 2021-01-07 | renewed | 0.0500 | 0.5500 | 0.9948 | 0.3481 |
-| PROS-2020-0012 | 2021-01-07 | renewed | 0.0500 | 0.5500 | 0.9947 | 0.0371 |
+| PROS-2019-0003 | 2021-01-02 | renewed | 0.0500 | 0.5500 | 0.9958 | 0.5881 |
+| PROS-2020-0006 | 2021-01-03 | renewed | 0.0500 | 0.5500 | 0.9956 | 0.1742 |
+| PROS-2020-0009 | 2021-01-05 | renewed | 0.0500 | 0.5500 | 0.9969 | 0.2647 |
+| PROS-2018-0009 | 2021-01-07 | renewed | 0.0500 | 0.5500 | 0.9958 | 0.3481 |
+| PROS-2020-0012 | 2021-01-07 | renewed | 0.0500 | 0.5500 | 0.9899 | 0.0371 |
 | PROS-2020-0013 | 2021-01-07 | renewed | 0.0500 | 0.5500 | 0.9947 | 0.3652 |
 | PROS-2016-0011 | 2021-01-10 | renewed | 0.1700 | 0.5500 | 0.9803 | 0.3999 |
-| PROS-2018-0014 | 2021-01-10 | renewed | 0.0500 | 0.5500 | 0.9940 | 0.8573 |
+| PROS-2018-0014 | 2021-01-10 | renewed | 0.0500 | 0.5500 | 0.9887 | 0.8573 |
 | PROS-2019-0008 | 2021-01-10 | renewed | 0.2900 | 0.5500 | 0.9839 | 0.5721 |
-| PROS-2018-0016 | 2021-01-11 | renewed | 0.3200 | 0.5500 | 0.9786 | 0.5934 |
+| PROS-2018-0016 | 2021-01-11 | renewed | 0.3200 | 0.5500 | 0.9861 | 0.5934 |
 | PROS-2019-0009 | 2021-01-11 | renewed | 0.4100 | 0.5500 | 0.9472 | 0.3578 |
-| PROS-2020-0016 | 2021-01-11 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.8690 |
-| PROS-2018-0018 | 2021-01-12 | renewed | 0.0500 | 0.5500 | 0.9938 | 0.1883 |
-| PROS-2017-0019 | 2021-01-13 | renewed | 0.1100 | 0.5500 | 0.9859 | 0.8716 |
-| PROS-2018-0022 | 2021-01-14 | renewed | 0.0500 | 0.5500 | 0.9904 | 0.5424 |
+| PROS-2020-0016 | 2021-01-11 | renewed | 0.0500 | 0.5500 | 0.9968 | 0.8690 |
+| PROS-2018-0018 | 2021-01-12 | renewed | 0.0500 | 0.5500 | 0.9883 | 0.1883 |
+| PROS-2017-0019 | 2021-01-13 | renewed | 0.1100 | 0.5500 | 0.9908 | 0.8716 |
+| PROS-2018-0022 | 2021-01-14 | renewed | 0.0500 | 0.5500 | 0.9855 | 0.5424 |
 | PROS-2018-0024 | 2021-01-15 | renewed | 0.0500 | 0.5500 | 0.9954 | 0.8661 |
-| PROS-2019-0012 | 2021-01-15 | renewed | 0.2900 | 0.5500 | 0.9738 | 0.5114 |
-| PROS-2016-0020 | 2021-01-17 | renewed | 0.0500 | 0.5500 | 0.9940 | 0.0329 |
-| PROS-2017-0022 | 2021-01-18 | renewed | 0.0800 | 0.5500 | 0.9853 | 0.1690 |
-| PROS-2019-0015 | 2021-01-18 | renewed | 0.2000 | 0.5500 | 0.9710 | 0.4309 |
+| PROS-2019-0012 | 2021-01-15 | renewed | 0.2900 | 0.5500 | 0.9505 | 0.5114 |
+| PROS-2016-0020 | 2021-01-17 | renewed | 0.0500 | 0.5500 | 0.9895 | 0.0329 |
+| PROS-2017-0022 | 2021-01-18 | renewed | 0.0800 | 0.5500 | 0.9891 | 0.1690 |
+| PROS-2019-0015 | 2021-01-18 | renewed | 0.2000 | 0.5500 | 0.9784 | 0.4309 |
 | PROS-2020-0022 | 2021-01-18 | renewed | 0.0500 | 0.5500 | 0.9909 | 0.3989 |
 | PROS-2020-0025 | 2021-01-19 | renewed | 0.0500 | 0.5500 | 0.9920 | 0.1787 |
 | PROS-2020-0032 | 2021-01-23 | renewed | 0.0500 | 0.5500 | 0.9927 | 0.7655 |
 | PROS-2018-0035 | 2021-01-24 | renewed | 0.0500 | 0.5500 | 0.9961 | 0.8426 |
 | PROS-2019-0021 | 2021-01-26 | renewed | 0.3200 | 0.5500 | 0.9765 | 0.3875 |
-| PROS-2019-0023 | 2021-01-28 | renewed | 0.4100 | 0.5500 | 0.9513 | 0.1416 |
-| PROS-2019-0024 | 2021-01-28 | renewed | 0.4100 | 0.5500 | 0.9358 | 0.0457 |
+| PROS-2019-0023 | 2021-01-28 | renewed | 0.4100 | 0.5500 | 0.9329 | 0.1416 |
+| PROS-2019-0024 | 2021-01-28 | renewed | 0.4100 | 0.5500 | 0.9041 | 0.0457 |
 | PROS-2018-0039 | 2021-01-30 | renewed | 0.1400 | 0.5500 | 0.9692 | 0.3444 |
-| PROS-2019-0027 | 2021-02-02 | renewed | 0.2000 | 0.5500 | 0.9742 | 0.1253 |
+| PROS-2019-0027 | 2021-02-02 | renewed | 0.2000 | 0.5500 | 0.9833 | 0.1253 |
 | PROS-2018-0043 | 2021-02-04 | renewed | 0.0500 | 0.5500 | 0.9904 | 0.3638 |
-| PROS-2020-0042 | 2021-02-07 | renewed | 0.0500 | 0.5500 | 0.9920 | 0.1123 |
-| PROS-2020-0043 | 2021-02-08 | renewed | 0.0500 | 0.5500 | 0.9919 | 0.5051 |
-| PROS-2020-0047 | 2021-02-11 | renewed | 0.0500 | 0.5500 | 0.9914 | 0.9555 |
-| PROS-2020-0048 | 2021-02-11 | renewed | 0.0500 | 0.5500 | 0.9900 | 0.3845 |
+| PROS-2020-0042 | 2021-02-07 | renewed | 0.0500 | 0.5500 | 0.9940 | 0.1123 |
+| PROS-2020-0043 | 2021-02-08 | renewed | 0.0500 | 0.5500 | 0.9885 | 0.5051 |
+| PROS-2020-0047 | 2021-02-11 | renewed | 0.0500 | 0.5500 | 0.9927 | 0.9555 |
+| PROS-2020-0048 | 2021-02-11 | renewed | 0.0500 | 0.5500 | 0.9921 | 0.3845 |
 | PROS-2020-0050 | 2021-02-12 | renewed | 0.0500 | 0.5500 | 0.9890 | 0.0292 |
 | PROS-2018-0053 | 2021-02-15 | renewed | 0.0500 | 0.5500 | 0.9894 | 0.4114 |
 | PROS-2019-0050 | 2021-02-21 | renewed | 0.3500 | 0.5500 | 0.8748 | 0.3434 |
-| PROS-2020-0067 | 2021-02-26 | renewed | 0.0500 | 0.5500 | 0.9822 | 0.6525 |
+| PROS-2020-0067 | 2021-02-26 | renewed | 0.0500 | 0.5500 | 0.9824 | 0.6525 |
 | C2 | 2021-03-31 | renewed | 0.2900 | 0.5500 | 0.9457 | 0.6102 |
 | C8 | 2021-03-31 | renewed | 0.2600 | 0.5500 | 0.9450 | 0.4901 |
-| C3 | 2021-06-30 | renewed | 0.2300 | 0.5500 | 0.9664 | 0.7139 |
-| C9 | 2021-06-30 | renewed | 0.2300 | 0.5500 | 0.9649 | 0.5305 |
+| C3 | 2021-06-30 | renewed | 0.2300 | 0.5500 | 0.9746 | 0.7139 |
+| C9 | 2021-06-30 | renewed | 0.2300 | 0.5500 | 0.9394 | 0.5305 |
 | C1 | 2021-12-30 | churned **CHURNED** | 0.2300 | 0.5500 | 0.9185 | 0.9691 |
-| C5 | 2021-12-30 | churned **CHURNED** | 0.2000 | 0.3500 | 0.2400 | 0.8247 |
+| C5 | 2021-12-30 | churned **CHURNED** | 0.2000 | 0.3500 | 0.5692 | 0.8247 |
 | C7 | 2021-12-30 | renewed | 0.2000 | 0.5500 | 0.9267 | 0.1963 |
-| PROS-2018-0003 | 2022-01-01 | renewed | 0.0500 | 0.5500 | 0.8655 | 0.0299 |
+| PROS-2018-0003 | 2022-01-01 | renewed | 0.0500 | 0.5500 | 0.7960 | 0.0299 |
 | PROS-2020-0002 | 2022-01-01 | renewed | 0.0500 | 0.5500 | 0.8634 | 0.1672 |
-| PROS-2019-0003 | 2022-01-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8662 | 0.8815 |
-| PROS-2020-0006 | 2022-01-03 | renewed | 0.0800 | 0.5500 | 0.8276 | 0.4383 |
-| PROS-2020-0009 | 2022-01-05 | renewed | 0.0800 | 0.5500 | 0.8513 | 0.7230 |
-| PROS-2018-0009 | 2022-01-07 | renewed | 0.0500 | 0.5500 | 0.8959 | 0.2885 |
-| PROS-2020-0012 | 2022-01-07 | renewed | 0.0800 | 0.5500 | 0.8327 | 0.4496 |
+| PROS-2019-0003 | 2022-01-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.7971 | 0.8815 |
+| PROS-2020-0006 | 2022-01-03 | renewed | 0.0800 | 0.5500 | 0.7385 | 0.4383 |
+| PROS-2020-0009 | 2022-01-05 | renewed | 0.0800 | 0.5500 | 0.7743 | 0.7230 |
+| PROS-2018-0009 | 2022-01-07 | renewed | 0.0500 | 0.5500 | 0.8416 | 0.2885 |
+| PROS-2020-0012 | 2022-01-07 | renewed | 0.0800 | 0.5500 | 0.9448 | 0.4496 |
 | PROS-2020-0013 | 2022-01-07 | churned **CHURNED** | 0.0800 | 0.5500 | 0.8297 | 0.9502 |
 | PROS-2016-0011 | 2022-01-10 | renewed | 0.0500 | 0.5500 | 0.9327 | 0.5658 |
-| PROS-2018-0014 | 2022-01-10 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9132 | 0.9511 |
-| PROS-2019-0008 | 2022-01-10 | renewed | 0.0500 | 0.5500 | 0.9281 | 0.6835 |
-| PROS-2018-0016 | 2022-01-11 | renewed | 0.0500 | 0.5500 | 0.9333 | 0.2067 |
-| PROS-2019-0009 | 2022-01-11 | renewed | 0.0500 | 0.5500 | 0.9102 | 0.7678 |
-| PROS-2020-0016 | 2022-01-11 | renewed | 0.0800 | 0.5500 | 0.8905 | 0.7723 |
-| PROS-2021-0006 | 2022-01-11 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8964 | 0.9639 |
-| PROS-2018-0018 | 2022-01-12 | renewed | 0.0500 | 0.5500 | 0.9116 | 0.4681 |
-| PROS-2017-0019 | 2022-01-13 | renewed | 0.0500 | 0.5500 | 0.8558 | 0.3409 |
-| PROS-2018-0022 | 2022-01-14 | renewed | 0.0500 | 0.5500 | 0.8579 | 0.6234 |
-| PROS-2018-0024 | 2022-01-15 | renewed | 0.0500 | 0.5500 | 0.8929 | 0.1002 |
-| PROS-2019-0012 | 2022-01-15 | renewed | 0.0500 | 0.5500 | 0.8701 | 0.4971 |
-| PROS-2016-0020 | 2022-01-17 | renewed | 0.0500 | 0.5500 | 0.9476 | 0.6850 |
-| PROS-2017-0022 | 2022-01-18 | renewed | 0.0500 | 0.5500 | 0.9222 | 0.2435 |
-| PROS-2019-0015 | 2022-01-18 | renewed | 0.0500 | 0.5500 | 0.9356 | 0.2296 |
+| PROS-2018-0014 | 2022-01-10 | renewed | 0.0500 | 0.5500 | 0.9695 | 0.9511 |
+| PROS-2019-0008 | 2022-01-10 | renewed | 0.0500 | 0.5500 | 0.9234 | 0.6835 |
+| PROS-2018-0016 | 2022-01-11 | renewed | 0.0500 | 0.5500 | 0.8960 | 0.2067 |
+| PROS-2019-0009 | 2022-01-11 | renewed | 0.0500 | 0.5500 | 0.9112 | 0.7678 |
+| PROS-2020-0016 | 2022-01-11 | renewed | 0.0800 | 0.5500 | 0.8343 | 0.7723 |
+| PROS-2021-0006 | 2022-01-11 | renewed | 0.0500 | 0.5500 | 0.9657 | 0.9639 |
+| PROS-2018-0018 | 2022-01-12 | renewed | 0.0500 | 0.5500 | 0.9691 | 0.4681 |
+| PROS-2017-0019 | 2022-01-13 | renewed | 0.0500 | 0.5500 | 0.7844 | 0.3409 |
+| PROS-2018-0022 | 2022-01-14 | renewed | 0.0500 | 0.5500 | 0.9457 | 0.6234 |
+| PROS-2018-0024 | 2022-01-15 | renewed | 0.0500 | 0.5500 | 0.8928 | 0.1002 |
+| PROS-2019-0012 | 2022-01-15 | renewed | 0.0500 | 0.5500 | 0.9506 | 0.4971 |
+| PROS-2016-0020 | 2022-01-17 | renewed | 0.0500 | 0.5500 | 0.9800 | 0.6850 |
+| PROS-2017-0022 | 2022-01-18 | renewed | 0.0500 | 0.5500 | 0.8811 | 0.2435 |
+| PROS-2019-0015 | 2022-01-18 | renewed | 0.0500 | 0.5500 | 0.9018 | 0.2296 |
 | PROS-2020-0022 | 2022-01-18 | renewed | 0.0800 | 0.5500 | 0.8560 | 0.3993 |
 | PROS-2020-0025 | 2022-01-19 | renewed | 0.0800 | 0.5500 | 0.9141 | 0.1101 |
 | PROS-2021-0017 | 2022-01-20 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8539 | 0.9680 |
 | PROS-2020-0032 | 2022-01-23 | renewed | 0.0800 | 0.5500 | 0.8083 | 0.0953 |
 | PROS-2018-0035 | 2022-01-24 | renewed | 0.0500 | 0.5500 | 0.8987 | 0.0810 |
 | PROS-2019-0021 | 2022-01-26 | renewed | 0.0500 | 0.5500 | 0.8878 | 0.6965 |
-| PROS-2021-0029 | 2022-01-26 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8828 | 0.9045 |
+| PROS-2021-0029 | 2022-01-26 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8224 | 0.9045 |
 | PROS-2021-0031 | 2022-01-27 | renewed | 0.0500 | 0.5500 | 0.8545 | 0.4054 |
-| PROS-2019-0023 | 2022-01-28 | renewed | 0.2600 | 0.5500 | 0.3716 | 0.3258 |
-| PROS-2019-0024 | 2022-01-28 | renewed | 0.0800 | 0.5500 | 0.8175 | 0.7213 |
+| PROS-2019-0023 | 2022-01-28 | renewed | 0.2600 | 0.5500 | 0.7604 | 0.3258 |
+| PROS-2019-0024 | 2022-01-28 | renewed | 0.0800 | 0.5500 | 0.9304 | 0.7213 |
 | PROS-2018-0039 | 2022-01-30 | churned **CHURNED** | 0.3200 | 0.5500 | 0.3287 | 0.8456 |
-| PROS-2019-0027 | 2022-02-02 | renewed | 0.0500 | 0.5500 | 0.8325 | 0.6752 |
+| PROS-2019-0027 | 2022-02-02 | renewed | 0.0500 | 0.5500 | 0.7466 | 0.6752 |
 | PROS-2018-0043 | 2022-02-04 | renewed | 0.1100 | 0.5500 | 0.6002 | 0.3031 |
-| PROS-2020-0042 | 2022-02-07 | renewed | 0.0800 | 0.5500 | 0.7816 | 0.6767 |
-| PROS-2020-0043 | 2022-02-08 | renewed | 0.0800 | 0.5500 | 0.7961 | 0.0517 |
-| PROS-2020-0047 | 2022-02-11 | churned **CHURNED** | 0.1100 | 0.5500 | 0.7869 | 0.7887 |
-| PROS-2020-0048 | 2022-02-11 | renewed | 0.1100 | 0.5500 | 0.7415 | 0.1359 |
-| PROS-2020-0050 | 2022-02-12 | churned **CHURNED** | 0.4100 | 0.5500 | 0.4553 | 0.8786 |
-| PROS-2021-0044 | 2022-02-12 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8468 | 0.9044 |
-| PROS-2021-0045 | 2022-02-13 | renewed | 0.0500 | 0.5500 | 0.8584 | 0.0515 |
-| PROS-2018-0053 | 2022-02-15 | renewed | 0.3800 | 0.5500 | 0.5083 | 0.4789 |
-| PROS-2021-0051 | 2022-02-16 | renewed | 0.0500 | 0.5500 | 0.8721 | 0.2404 |
-| PROS-2019-0050 | 2022-02-21 | churned **CHURNED** | 0.3800 | 0.5500 | 0.4988 | 0.7578 |
-| PROS-2021-0060 | 2022-02-25 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9025 | 0.9906 |
-| PROS-2020-0067 | 2022-02-26 | churned **CHURNED** | 0.4100 | 0.5500 | 0.3871 | 0.8131 |
-| PROS-2021-0062 | 2022-02-26 | renewed | 0.0500 | 0.5500 | 0.8621 | 0.2713 |
+| PROS-2020-0042 | 2022-02-07 | churned **CHURNED** | 0.0800 | 0.5500 | 0.6697 | 0.6767 |
+| PROS-2020-0043 | 2022-02-08 | renewed | 0.0800 | 0.5500 | 0.9205 | 0.0517 |
+| PROS-2020-0047 | 2022-02-11 | churned **CHURNED** | 0.1100 | 0.5500 | 0.6718 | 0.7887 |
+| PROS-2020-0048 | 2022-02-11 | renewed | 0.1100 | 0.5500 | 0.6018 | 0.1359 |
+| PROS-2020-0050 | 2022-02-12 | churned **CHURNED** | 0.4100 | 0.5500 | 0.4638 | 0.8786 |
+| PROS-2021-0044 | 2022-02-12 | churned **CHURNED** | 0.0500 | 0.5500 | 0.7716 | 0.9044 |
+| PROS-2021-0045 | 2022-02-13 | renewed | 0.0500 | 0.5500 | 0.8608 | 0.0515 |
+| PROS-2018-0053 | 2022-02-15 | renewed | 0.3800 | 0.5500 | 0.5091 | 0.4789 |
+| PROS-2021-0051 | 2022-02-16 | renewed | 0.0500 | 0.5500 | 0.8718 | 0.2404 |
+| PROS-2019-0050 | 2022-02-21 | churned **CHURNED** | 0.3800 | 0.5500 | 0.4989 | 0.7578 |
+| PROS-2021-0060 | 2022-02-25 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8520 | 0.9906 |
+| PROS-2020-0067 | 2022-02-26 | churned **CHURNED** | 0.4100 | 0.5500 | 0.0710 | 0.8131 |
+| PROS-2021-0062 | 2022-02-26 | renewed | 0.0500 | 0.5500 | 0.7910 | 0.2713 |
 | PROS-2021-0067 | 2022-03-05 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8535 | 0.8732 |
 | PROS-2021-0088 | 2022-03-24 | renewed | 0.0500 | 0.5500 | 0.8812 | 0.7041 |
 | C2 | 2022-03-31 | renewed | 0.3800 | 0.5500 | 0.9633 | 0.9547 |
 | C8 | 2022-03-31 | renewed | 0.2900 | 0.5500 | 0.9609 | 0.5712 |
-| PROS-2021-0100 | 2022-04-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9631 | 0.9868 |
-| C3 | 2022-06-30 | renewed | 0.3800 | 0.5500 | 0.9627 | 0.3748 |
-| C9 | 2022-06-30 | renewed | 0.3200 | 0.5500 | 0.9646 | 0.5875 |
+| PROS-2021-0100 | 2022-04-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9806 | 0.9868 |
+| C3 | 2022-06-30 | renewed | 0.3800 | 0.5500 | 0.9682 | 0.3748 |
+| C9 | 2022-06-30 | renewed | 0.3200 | 0.5500 | 0.9576 | 0.5875 |
 | SYN-2021-001 | 2022-12-23 | renewed | 0.0500 | 0.5500 | 0.9975 | 0.4958 |
-| C7 | 2022-12-30 | renewed | 0.3500 | 0.5500 | 0.9915 | 0.0637 |
+| C7 | 2022-12-30 | renewed | 0.3500 | 0.5500 | 0.9851 | 0.0637 |
 | PROS-2018-0003 | 2023-01-01 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.1335 |
 | PROS-2020-0002 | 2023-01-01 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.1534 |
 | PROS-2020-0006 | 2023-01-03 | renewed | 0.4100 | 0.5500 | 0.9824 | 0.1688 |
 | PROS-2020-0009 | 2023-01-05 | renewed | 0.4100 | 0.5500 | 0.9835 | 0.6147 |
 | PROS-2018-0009 | 2023-01-07 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.2730 |
-| PROS-2020-0012 | 2023-01-07 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.1449 |
+| PROS-2020-0012 | 2023-01-07 | renewed | 0.4100 | 0.5500 | 0.9724 | 0.1449 |
 | PROS-2016-0011 | 2023-01-10 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.7893 |
+| PROS-2018-0014 | 2023-01-10 | renewed | 0.4100 | 0.5500 | 0.9723 | 0.3023 |
 | PROS-2019-0008 | 2023-01-10 | renewed | 0.4100 | 0.5500 | 0.9688 | 0.0193 |
 | PROS-2022-0009 | 2023-01-10 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.1517 |
 | PROS-2018-0016 | 2023-01-11 | renewed | 0.4100 | 0.5500 | 0.9695 | 0.5153 |
 | PROS-2019-0009 | 2023-01-11 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.1536 |
 | PROS-2020-0016 | 2023-01-11 | renewed | 0.4100 | 0.5500 | 0.9830 | 0.4256 |
+| PROS-2021-0006 | 2023-01-11 | renewed | 0.4100 | 0.5500 | 0.9486 | 0.3713 |
 | PROS-2022-0010 | 2023-01-11 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.6558 |
-| PROS-2018-0018 | 2023-01-12 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.6434 |
+| PROS-2018-0018 | 2023-01-12 | renewed | 0.4100 | 0.5500 | 0.9722 | 0.6434 |
 | PROS-2022-0011 | 2023-01-12 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.8771 |
 | PROS-2017-0019 | 2023-01-13 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.0967 |
-| PROS-2018-0022 | 2023-01-14 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.1187 |
+| PROS-2018-0022 | 2023-01-14 | renewed | 0.4100 | 0.5500 | 0.9480 | 0.1187 |
 | PROS-2018-0024 | 2023-01-15 | renewed | 0.4100 | 0.5500 | 0.9830 | 0.7847 |
-| PROS-2019-0012 | 2023-01-15 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.1068 |
-| PROS-2016-0020 | 2023-01-17 | renewed | 0.4100 | 0.5500 | 0.9686 | 0.3035 |
+| PROS-2019-0012 | 2023-01-15 | renewed | 0.4100 | 0.5500 | 0.9484 | 0.1068 |
+| PROS-2016-0020 | 2023-01-17 | renewed | 0.4100 | 0.5500 | 0.9546 | 0.3035 |
 | PROS-2017-0022 | 2023-01-18 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.6465 |
 | PROS-2019-0015 | 2023-01-18 | renewed | 0.4100 | 0.5500 | 0.9695 | 0.0834 |
 | PROS-2020-0022 | 2023-01-18 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.4986 |
@@ -430,20 +432,19 @@ Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-00
 | PROS-2018-0035 | 2023-01-24 | renewed | 0.4100 | 0.5500 | 0.9870 | 0.8329 |
 | PROS-2019-0021 | 2023-01-26 | renewed | 0.4100 | 0.5500 | 0.9835 | 0.5086 |
 | PROS-2021-0031 | 2023-01-27 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.2558 |
-| PROS-2019-0023 | 2023-01-28 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.8559 |
-| PROS-2019-0024 | 2023-01-28 | renewed | 0.4100 | 0.5500 | 0.9824 | 0.3134 |
+| PROS-2019-0023 | 2023-01-28 | renewed | 0.4100 | 0.5500 | 0.9657 | 0.8559 |
+| PROS-2019-0024 | 2023-01-28 | renewed | 0.4100 | 0.5500 | 0.9726 | 0.3134 |
 | PROS-2022-0030 | 2023-01-28 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.7772 |
 | PROS-2019-0027 | 2023-02-02 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.8673 |
 | PROS-2018-0043 | 2023-02-04 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.8401 |
-| PROS-2020-0042 | 2023-02-07 | renewed | 0.4100 | 0.5500 | 0.9675 | 0.1357 |
-| PROS-2020-0043 | 2023-02-08 | renewed | 0.4100 | 0.5500 | 0.9686 | 0.1100 |
+| PROS-2020-0043 | 2023-02-08 | renewed | 0.4100 | 0.5500 | 0.9530 | 0.1100 |
 | PROS-2020-0048 | 2023-02-11 | renewed | 0.4100 | 0.5500 | 0.9835 | 0.1069 |
-| PROS-2022-0045 | 2023-02-11 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.7250 |
+| PROS-2022-0045 | 2023-02-11 | renewed | 0.0500 | 0.5500 | 0.9947 | 0.7250 |
 | PROS-2021-0045 | 2023-02-13 | renewed | 0.4100 | 0.5500 | 0.9780 | 0.5305 |
 | PROS-2018-0053 | 2023-02-15 | renewed | 0.4100 | 0.5500 | 0.9835 | 0.3153 |
-| PROS-2022-0046 | 2023-02-15 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.1661 |
+| PROS-2022-0046 | 2023-02-15 | renewed | 0.0500 | 0.5500 | 0.9931 | 0.1661 |
 | PROS-2021-0051 | 2023-02-16 | renewed | 0.4100 | 0.5500 | 0.9870 | 0.0734 |
-| PROS-2022-0047 | 2023-02-16 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.2006 |
+| PROS-2022-0047 | 2023-02-16 | renewed | 0.0500 | 0.5500 | 0.9949 | 0.2006 |
 | PROS-2022-0048 | 2023-02-16 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.6803 |
 | PROS-2022-0049 | 2023-02-17 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.4183 |
 | PROS-2021-0062 | 2023-02-26 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.6526 |
@@ -452,242 +453,245 @@ Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-00
 | PROS-2022-0071 | 2023-03-08 | renewed | 0.0500 | 0.5500 | 0.9960 | 0.7256 |
 | PROS-2022-0073 | 2023-03-11 | renewed | 0.0500 | 0.5500 | 0.9969 | 0.6388 |
 | PROS-2022-0081 | 2023-03-13 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.8128 |
-| PROS-2022-0082 | 2023-03-14 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.3067 |
+| PROS-2022-0082 | 2023-03-14 | renewed | 0.0500 | 0.5500 | 0.9937 | 0.3067 |
 | PROS-2022-0083 | 2023-03-15 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.5743 |
-| PROS-2022-0092 | 2023-03-20 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.5193 |
+| PROS-2022-0092 | 2023-03-20 | renewed | 0.0500 | 0.5500 | 0.9938 | 0.5193 |
 | PROS-2021-0088 | 2023-03-24 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.3228 |
 | PROS-2022-0097 | 2023-03-27 | renewed | 0.0500 | 0.5500 | 0.9963 | 0.7715 |
 | PROS-2022-0100 | 2023-03-28 | renewed | 0.0500 | 0.5500 | 0.9950 | 0.9400 |
 | C2 | 2023-03-31 | renewed | 0.3800 | 0.5500 | 0.9785 | 0.6357 |
 | C8 | 2023-03-31 | renewed | 0.3500 | 0.5500 | 0.9771 | 0.3785 |
-| PROS-2022-0120 | 2023-04-11 | renewed | 0.0500 | 0.5500 | 0.9840 | 0.2296 |
-| PROS-2022-0124 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9876 | 0.8014 |
+| PROS-2022-0120 | 2023-04-11 | renewed | 0.0500 | 0.5500 | 0.9810 | 0.2296 |
+| PROS-2022-0124 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9823 | 0.8014 |
 | PROS-2022-0125 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9910 | 0.5529 |
-| PROS-2022-0127 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9885 | 0.0943 |
+| PROS-2022-0127 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9915 | 0.0943 |
 | PROS-2022-0128 | 2023-04-14 | renewed | 0.0500 | 0.5500 | 0.9878 | 0.2629 |
-| PROS-2022-0130 | 2023-04-21 | renewed | 0.0500 | 0.5500 | 0.9894 | 0.1286 |
+| PROS-2022-0130 | 2023-04-21 | renewed | 0.0500 | 0.5500 | 0.9919 | 0.1286 |
 | C3 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.9688 | 0.9047 |
-| C9 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.9593 | 0.0307 |
+| C9 | 2023-06-30 | renewed | 0.4100 | 0.5500 | 0.9182 | 0.0307 |
 | SYN-2021-001 | 2023-12-23 | renewed | 0.0800 | 0.5500 | 0.9804 | 0.8242 |
-| C7 | 2023-12-30 | renewed | 0.4100 | 0.5500 | 0.9671 | 0.1905 |
-| PROS-2018-0003 | 2024-01-01 | renewed | 0.2900 | 0.5500 | 0.9365 | 0.1160 |
+| C7 | 2023-12-30 | renewed | 0.4100 | 0.5500 | 0.9441 | 0.1905 |
+| PROS-2018-0003 | 2024-01-01 | renewed | 0.2900 | 0.5500 | 0.9523 | 0.1160 |
 | PROS-2020-0002 | 2024-01-01 | renewed | 0.3200 | 0.5500 | 0.9337 | 0.6851 |
 | PROS-2023-0001 | 2024-01-02 | renewed | 0.0500 | 0.5500 | 0.9897 | 0.7060 |
-| PROS-2020-0006 | 2024-01-03 | churned **CHURNED** | 0.3500 | 0.5500 | 0.9414 | 0.9428 |
-| PROS-2020-0009 | 2024-01-05 | renewed | 0.2900 | 0.5500 | 0.9664 | 0.1772 |
-| PROS-2018-0009 | 2024-01-07 | renewed | 0.0500 | 0.5500 | 0.9901 | 0.8573 |
-| PROS-2020-0012 | 2024-01-07 | renewed | 0.2900 | 0.5500 | 0.9558 | 0.0724 |
+| PROS-2020-0006 | 2024-01-03 | renewed | 0.3500 | 0.5500 | 0.9558 | 0.9428 |
+| PROS-2020-0009 | 2024-01-05 | renewed | 0.2900 | 0.5500 | 0.9746 | 0.1772 |
+| PROS-2018-0009 | 2024-01-07 | renewed | 0.0500 | 0.5500 | 0.9925 | 0.8573 |
+| PROS-2020-0012 | 2024-01-07 | renewed | 0.2900 | 0.5500 | 0.9202 | 0.0724 |
 | PROS-2023-0010 | 2024-01-07 | renewed | 0.0500 | 0.5500 | 0.9925 | 0.3918 |
 | PROS-2023-0013 | 2024-01-09 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.8949 |
 | PROS-2016-0011 | 2024-01-10 | renewed | 0.4100 | 0.5500 | 0.9551 | 0.2807 |
+| PROS-2018-0014 | 2024-01-10 | renewed | 0.2900 | 0.5500 | 0.8952 | 0.7249 |
 | PROS-2019-0008 | 2024-01-10 | renewed | 0.4100 | 0.5500 | 0.9364 | 0.0782 |
 | PROS-2022-0009 | 2024-01-10 | renewed | 0.4100 | 0.5500 | 0.9663 | 0.5294 |
 | PROS-2023-0014 | 2024-01-10 | renewed | 0.0500 | 0.5500 | 0.9922 | 0.7319 |
-| PROS-2018-0016 | 2024-01-11 | renewed | 0.4100 | 0.5500 | 0.9815 | 0.2890 |
+| PROS-2018-0016 | 2024-01-11 | renewed | 0.4100 | 0.5500 | 0.9862 | 0.2890 |
 | PROS-2019-0009 | 2024-01-11 | renewed | 0.2900 | 0.5500 | 0.9587 | 0.6942 |
-| PROS-2020-0016 | 2024-01-11 | renewed | 0.2900 | 0.5500 | 0.9681 | 0.2199 |
-| PROS-2022-0010 | 2024-01-11 | renewed | 0.4100 | 0.5500 | 0.9238 | 0.6280 |
-| PROS-2023-0016 | 2024-01-11 | renewed | 0.0500 | 0.5500 | 0.9926 | 0.6560 |
-| PROS-2018-0018 | 2024-01-12 | renewed | 0.2900 | 0.5500 | 0.9660 | 0.3534 |
+| PROS-2020-0016 | 2024-01-11 | renewed | 0.2900 | 0.5500 | 0.9759 | 0.2199 |
+| PROS-2021-0006 | 2024-01-11 | renewed | 0.2900 | 0.5500 | 0.9231 | 0.3572 |
+| PROS-2022-0010 | 2024-01-11 | renewed | 0.4100 | 0.5500 | 0.9425 | 0.6280 |
+| PROS-2023-0016 | 2024-01-11 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.6560 |
+| PROS-2018-0018 | 2024-01-12 | renewed | 0.2900 | 0.5500 | 0.9354 | 0.3534 |
 | PROS-2022-0011 | 2024-01-12 | renewed | 0.4100 | 0.5500 | 0.9660 | 0.1392 |
-| PROS-2017-0019 | 2024-01-13 | renewed | 0.2000 | 0.5500 | 0.9586 | 0.5860 |
-| PROS-2018-0022 | 2024-01-14 | renewed | 0.2900 | 0.5500 | 0.9513 | 0.0304 |
+| PROS-2017-0019 | 2024-01-13 | renewed | 0.2000 | 0.5500 | 0.9688 | 0.5860 |
+| PROS-2018-0022 | 2024-01-14 | renewed | 0.2900 | 0.5500 | 0.9174 | 0.0304 |
 | PROS-2018-0024 | 2024-01-15 | renewed | 0.0800 | 0.5500 | 0.9864 | 0.9827 |
-| PROS-2019-0012 | 2024-01-15 | renewed | 0.2300 | 0.5500 | 0.9495 | 0.6512 |
-| PROS-2016-0020 | 2024-01-17 | renewed | 0.4100 | 0.5500 | 0.9488 | 0.8137 |
-| PROS-2017-0022 | 2024-01-18 | renewed | 0.4100 | 0.5500 | 0.9433 | 0.3464 |
-| PROS-2019-0015 | 2024-01-18 | renewed | 0.4100 | 0.5500 | 0.9575 | 0.6590 |
+| PROS-2019-0012 | 2024-01-15 | renewed | 0.2300 | 0.5500 | 0.9145 | 0.6512 |
+| PROS-2016-0020 | 2024-01-17 | renewed | 0.4100 | 0.5500 | 0.9034 | 0.8137 |
+| PROS-2017-0022 | 2024-01-18 | renewed | 0.4100 | 0.5500 | 0.9578 | 0.3464 |
+| PROS-2019-0015 | 2024-01-18 | renewed | 0.4100 | 0.5500 | 0.9684 | 0.6590 |
 | PROS-2020-0022 | 2024-01-18 | renewed | 0.4100 | 0.5500 | 0.8953 | 0.3985 |
 | PROS-2020-0025 | 2024-01-19 | renewed | 0.4100 | 0.5500 | 0.9565 | 0.1053 |
-| PROS-2023-0025 | 2024-01-21 | renewed | 0.0500 | 0.5500 | 0.9920 | 0.3652 |
-| PROS-2023-0026 | 2024-01-21 | renewed | 0.0500 | 0.5500 | 0.9920 | 0.6203 |
+| PROS-2023-0025 | 2024-01-21 | renewed | 0.0500 | 0.5500 | 0.9848 | 0.3652 |
+| PROS-2023-0026 | 2024-01-21 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.6203 |
 | PROS-2020-0032 | 2024-01-23 | renewed | 0.4100 | 0.5500 | 0.9588 | 0.4741 |
 | PROS-2018-0035 | 2024-01-24 | renewed | 0.4100 | 0.5500 | 0.9752 | 0.5831 |
 | PROS-2019-0021 | 2024-01-26 | renewed | 0.4100 | 0.5500 | 0.9592 | 0.6297 |
 | PROS-2021-0031 | 2024-01-27 | renewed | 0.4100 | 0.5500 | 0.9486 | 0.9166 |
-| PROS-2019-0023 | 2024-01-28 | renewed | 0.4100 | 0.5500 | 0.9470 | 0.7815 |
-| PROS-2019-0024 | 2024-01-28 | renewed | 0.4100 | 0.5500 | 0.9576 | 0.1890 |
+| PROS-2019-0023 | 2024-01-28 | renewed | 0.4100 | 0.5500 | 0.9151 | 0.7815 |
+| PROS-2019-0024 | 2024-01-28 | renewed | 0.4100 | 0.5500 | 0.9321 | 0.1890 |
 | PROS-2022-0030 | 2024-01-28 | renewed | 0.4100 | 0.5500 | 0.9603 | 0.2320 |
-| PROS-2019-0027 | 2024-02-02 | renewed | 0.4100 | 0.5500 | 0.9669 | 0.8861 |
+| PROS-2019-0027 | 2024-02-02 | renewed | 0.4100 | 0.5500 | 0.9750 | 0.8861 |
 | PROS-2018-0043 | 2024-02-04 | renewed | 0.0500 | 0.5500 | 0.9904 | 0.2680 |
-| PROS-2020-0042 | 2024-02-07 | renewed | 0.4100 | 0.5500 | 0.9631 | 0.8357 |
-| PROS-2020-0043 | 2024-02-08 | churned **CHURNED** | 0.4100 | 0.5500 | 0.9497 | 0.9766 |
-| PROS-2020-0048 | 2024-02-11 | renewed | 0.4100 | 0.5500 | 0.9726 | 0.0805 |
-| PROS-2022-0045 | 2024-02-11 | renewed | 0.0800 | 0.5500 | 0.9901 | 0.9714 |
-| PROS-2023-0039 | 2024-02-11 | renewed | 0.0500 | 0.5500 | 0.9918 | 0.6815 |
+| PROS-2020-0043 | 2024-02-08 | churned **CHURNED** | 0.3500 | 0.5500 | 0.9189 | 0.9766 |
+| PROS-2020-0048 | 2024-02-11 | renewed | 0.3500 | 0.5500 | 0.9813 | 0.0805 |
+| PROS-2022-0045 | 2024-02-11 | renewed | 0.0800 | 0.5500 | 0.9814 | 0.9714 |
+| PROS-2023-0039 | 2024-02-11 | renewed | 0.0500 | 0.5500 | 0.9845 | 0.6815 |
 | PROS-2021-0045 | 2024-02-13 | renewed | 0.0800 | 0.5500 | 0.9910 | 0.7783 |
 | PROS-2018-0053 | 2024-02-15 | renewed | 0.2900 | 0.5500 | 0.9728 | 0.7907 |
-| PROS-2022-0046 | 2024-02-15 | renewed | 0.4100 | 0.5500 | 0.9637 | 0.3635 |
+| PROS-2022-0046 | 2024-02-15 | renewed | 0.4100 | 0.5500 | 0.9316 | 0.3635 |
 | PROS-2021-0051 | 2024-02-16 | renewed | 0.4100 | 0.5500 | 0.9677 | 0.9176 |
-| PROS-2022-0047 | 2024-02-16 | renewed | 0.0800 | 0.5500 | 0.9913 | 0.2817 |
+| PROS-2022-0047 | 2024-02-16 | renewed | 0.0800 | 0.5500 | 0.9834 | 0.2817 |
 | PROS-2022-0048 | 2024-02-16 | renewed | 0.3500 | 0.5500 | 0.9677 | 0.5528 |
 | PROS-2022-0049 | 2024-02-17 | renewed | 0.4100 | 0.5500 | 0.9750 | 0.2441 |
-| PROS-2023-0045 | 2024-02-19 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.1515 |
+| PROS-2023-0045 | 2024-02-19 | renewed | 0.0500 | 0.5500 | 0.9879 | 0.1515 |
 | PROS-2021-0062 | 2024-02-26 | renewed | 0.4100 | 0.5500 | 0.9539 | 0.3300 |
 | PROS-2022-0063 | 2024-02-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.9750 | 0.9842 |
 | PROS-2022-0067 | 2024-02-28 | renewed | 0.3500 | 0.5500 | 0.9606 | 0.4045 |
 | PROS-2023-0065 | 2024-03-03 | renewed | 0.0500 | 0.5500 | 0.9957 | 0.5942 |
-| PROS-2023-0067 | 2024-03-03 | renewed | 0.0500 | 0.5500 | 0.9957 | 0.1365 |
+| PROS-2023-0067 | 2024-03-03 | renewed | 0.0500 | 0.5500 | 0.9901 | 0.1365 |
 | PROS-2022-0071 | 2024-03-07 | renewed | 0.2900 | 0.5500 | 0.9739 | 0.3610 |
 | PROS-2022-0073 | 2024-03-10 | renewed | 0.2300 | 0.5500 | 0.9845 | 0.6556 |
-| PROS-2023-0072 | 2024-03-11 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.7451 |
+| PROS-2023-0072 | 2024-03-11 | renewed | 0.0500 | 0.5500 | 0.9878 | 0.7451 |
 | PROS-2022-0081 | 2024-03-12 | renewed | 0.0800 | 0.5500 | 0.9910 | 0.7525 |
-| PROS-2022-0082 | 2024-03-13 | renewed | 0.3500 | 0.5500 | 0.9606 | 0.1528 |
+| PROS-2022-0082 | 2024-03-13 | renewed | 0.3500 | 0.5500 | 0.9154 | 0.1528 |
 | PROS-2022-0083 | 2024-03-14 | renewed | 0.3500 | 0.5500 | 0.9813 | 0.7502 |
-| PROS-2022-0092 | 2024-03-19 | renewed | 0.2300 | 0.5500 | 0.9741 | 0.3682 |
+| PROS-2022-0092 | 2024-03-19 | renewed | 0.2300 | 0.5500 | 0.9449 | 0.3682 |
 | PROS-2021-0088 | 2024-03-23 | renewed | 0.2300 | 0.5500 | 0.9741 | 0.4824 |
 | PROS-2022-0097 | 2024-03-26 | renewed | 0.2900 | 0.5500 | 0.9813 | 0.8185 |
 | PROS-2022-0100 | 2024-03-27 | renewed | 0.2900 | 0.5500 | 0.9750 | 0.5946 |
 | C2 | 2024-03-30 | renewed | 0.4100 | 0.5500 | 0.9756 | 0.8119 |
 | C8 | 2024-03-30 | renewed | 0.3800 | 0.5500 | 0.9555 | 0.0592 |
-| PROS-2023-0089 | 2024-03-30 | renewed | 0.0500 | 0.5500 | 0.9957 | 0.3242 |
-| PROS-2023-0090 | 2024-04-01 | renewed | 0.0500 | 0.5500 | 0.9925 | 0.1938 |
-| PROS-2023-0096 | 2024-04-06 | renewed | 0.0500 | 0.5500 | 0.9927 | 0.8298 |
-| PROS-2022-0120 | 2024-04-10 | renewed | 0.0800 | 0.5500 | 0.9883 | 0.2610 |
-| PROS-2022-0124 | 2024-04-13 | renewed | 0.0800 | 0.5500 | 0.9880 | 0.5129 |
+| PROS-2023-0089 | 2024-03-30 | renewed | 0.0500 | 0.5500 | 0.9901 | 0.3242 |
+| PROS-2023-0090 | 2024-04-01 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.1938 |
+| PROS-2023-0096 | 2024-04-06 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.8298 |
+| PROS-2022-0120 | 2024-04-10 | renewed | 0.0800 | 0.5500 | 0.9776 | 0.2610 |
+| PROS-2022-0124 | 2024-04-13 | renewed | 0.0800 | 0.5500 | 0.9771 | 0.5129 |
 | PROS-2022-0125 | 2024-04-13 | renewed | 0.1100 | 0.5500 | 0.9897 | 0.9138 |
-| PROS-2022-0127 | 2024-04-13 | renewed | 0.0800 | 0.5500 | 0.9881 | 0.2345 |
+| PROS-2022-0127 | 2024-04-13 | renewed | 0.0800 | 0.5500 | 0.9910 | 0.2345 |
 | PROS-2022-0128 | 2024-04-13 | renewed | 0.0800 | 0.5500 | 0.9882 | 0.7915 |
 | PROS-2023-0104 | 2024-04-18 | renewed | 0.0500 | 0.5500 | 0.9943 | 0.2023 |
-| PROS-2022-0130 | 2024-04-20 | renewed | 0.0800 | 0.5500 | 0.9909 | 0.0485 |
+| PROS-2022-0130 | 2024-04-20 | renewed | 0.0800 | 0.5500 | 0.9930 | 0.0485 |
 | PROS-2023-0113 | 2024-04-25 | renewed | 0.0500 | 0.5500 | 0.9941 | 0.2832 |
-| PROS-2023-0116 | 2024-04-25 | renewed | 0.0500 | 0.5500 | 0.9941 | 0.9175 |
-| PROS-2023-0125 | 2024-04-28 | renewed | 0.0500 | 0.5500 | 0.9909 | 0.4285 |
+| PROS-2023-0116 | 2024-04-25 | renewed | 0.0500 | 0.5500 | 0.9955 | 0.9175 |
+| PROS-2023-0125 | 2024-04-28 | renewed | 0.0500 | 0.5500 | 0.9830 | 0.4285 |
 | PROS-2023-0126 | 2024-04-29 | renewed | 0.0500 | 0.5500 | 0.9936 | 0.4143 |
-| PROS-2023-0127 | 2024-05-02 | renewed | 0.0500 | 0.5500 | 0.9928 | 0.1262 |
+| PROS-2023-0127 | 2024-05-02 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.1262 |
 | PROS-2023-0146 | 2024-05-24 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.2533 |
-| PROS-2023-0147 | 2024-05-27 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.0373 |
+| PROS-2023-0147 | 2024-05-27 | renewed | 0.0500 | 0.5500 | 0.9879 | 0.0373 |
 | PROS-2023-0152 | 2024-06-02 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.0612 |
 | PROS-2023-0158 | 2024-06-06 | renewed | 0.0500 | 0.5500 | 0.9923 | 0.5398 |
 | PROS-2023-0162 | 2024-06-09 | renewed | 0.0500 | 0.5500 | 0.9920 | 0.9372 |
 | PROS-2023-0166 | 2024-06-13 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.8706 |
-| PROS-2023-0172 | 2024-06-19 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.9925 |
+| PROS-2023-0172 | 2024-06-19 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9873 | 0.9925 |
 | PROS-2023-0177 | 2024-06-24 | renewed | 0.0500 | 0.5500 | 0.9944 | 0.5493 |
-| C3 | 2024-06-29 | renewed | 0.2300 | 0.5500 | 0.9722 | 0.0338 |
-| C9 | 2024-06-29 | renewed | 0.2300 | 0.5500 | 0.9651 | 0.0025 |
+| C3 | 2024-06-29 | renewed | 0.2300 | 0.5500 | 0.9801 | 0.0338 |
+| C9 | 2024-06-29 | renewed | 0.2300 | 0.5500 | 0.9338 | 0.0025 |
 | SYN-2021-001 | 2024-12-22 | renewed | 0.0500 | 0.5500 | 0.9837 | 0.1460 |
-| C7 | 2024-12-29 | renewed | 0.3800 | 0.5500 | 0.9196 | 0.4099 |
-| PROS-2018-0003 | 2024-12-31 | churned **CHURNED** | 0.4100 | 0.5500 | 0.9044 | 0.9147 |
-| PROS-2020-0002 | 2024-12-31 | renewed | 0.4100 | 0.5500 | 0.9482 | 0.4660 |
-| PROS-2023-0001 | 2025-01-01 | renewed | 0.3500 | 0.5500 | 0.9226 | 0.2076 |
-| PROS-2020-0009 | 2025-01-04 | renewed | 0.3800 | 0.5500 | 0.8718 | 0.2988 |
-| PROS-2018-0009 | 2025-01-06 | renewed | 0.0500 | 0.5500 | 0.9798 | 0.0317 |
-| PROS-2020-0012 | 2025-01-06 | renewed | 0.4100 | 0.5500 | 0.9136 | 0.3869 |
+| C7 | 2024-12-29 | renewed | 0.3800 | 0.5500 | 0.9041 | 0.4099 |
+| PROS-2018-0003 | 2024-12-31 | renewed | 0.4100 | 0.5500 | 0.9285 | 0.9147 |
+| PROS-2020-0002 | 2024-12-31 | renewed | 0.4100 | 0.5500 | 0.9452 | 0.4660 |
+| PROS-2023-0001 | 2025-01-01 | renewed | 0.3500 | 0.5500 | 0.9188 | 0.2076 |
+| PROS-2020-0006 | 2025-01-02 | renewed | 0.4100 | 0.5500 | 0.8674 | 0.0067 |
+| PROS-2020-0009 | 2025-01-04 | renewed | 0.3800 | 0.5500 | 0.8995 | 0.2988 |
+| PROS-2018-0009 | 2025-01-06 | renewed | 0.0500 | 0.5500 | 0.9849 | 0.0317 |
+| PROS-2020-0012 | 2025-01-06 | renewed | 0.4100 | 0.5500 | 0.8949 | 0.3869 |
 | PROS-2023-0010 | 2025-01-06 | churned **CHURNED** | 0.3500 | 0.5500 | 0.8979 | 0.9250 |
 | PROS-2024-0008 | 2025-01-07 | renewed | 0.0500 | 0.5500 | 0.9892 | 0.8311 |
 | PROS-2024-0009 | 2025-01-07 | renewed | 0.0500 | 0.5500 | 0.9892 | 0.3507 |
-| PROS-2023-0013 | 2025-01-08 | renewed | 0.3800 | 0.5500 | 0.8770 | 0.4924 |
+| PROS-2023-0013 | 2025-01-08 | renewed | 0.3800 | 0.5500 | 0.8766 | 0.4924 |
 | PROS-2024-0010 | 2025-01-08 | renewed | 0.0500 | 0.5500 | 0.9781 | 0.6637 |
 | PROS-2016-0011 | 2025-01-09 | renewed | 0.1400 | 0.5500 | 0.9378 | 0.3070 |
+| PROS-2018-0014 | 2025-01-09 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8887 | 0.9353 |
 | PROS-2019-0008 | 2025-01-09 | renewed | 0.3800 | 0.5500 | 0.9019 | 0.5453 |
 | PROS-2022-0009 | 2025-01-09 | renewed | 0.3800 | 0.5500 | 0.9274 | 0.8801 |
 | PROS-2023-0014 | 2025-01-09 | renewed | 0.2900 | 0.5500 | 0.9238 | 0.0979 |
-| PROS-2018-0016 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.9262 | 0.8777 |
+| PROS-2018-0016 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.9328 | 0.8777 |
 | PROS-2019-0009 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.9022 | 0.1993 |
-| PROS-2020-0016 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.8687 | 0.7805 |
-| PROS-2022-0010 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.8302 | 0.3660 |
-| PROS-2023-0016 | 2025-01-10 | renewed | 0.3500 | 0.5500 | 0.8731 | 0.2336 |
-| PROS-2018-0018 | 2025-01-11 | renewed | 0.3800 | 0.5500 | 0.8980 | 0.3046 |
-| PROS-2022-0011 | 2025-01-11 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8983 | 0.9969 |
-| PROS-2024-0012 | 2025-01-11 | renewed | 0.0500 | 0.5500 | 0.9867 | 0.5373 |
-| PROS-2017-0019 | 2025-01-12 | renewed | 0.3800 | 0.5500 | 0.8251 | 0.1147 |
+| PROS-2020-0016 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.8799 | 0.7805 |
+| PROS-2021-0006 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.8881 | 0.4758 |
+| PROS-2022-0010 | 2025-01-10 | renewed | 0.3800 | 0.5500 | 0.8418 | 0.3660 |
+| PROS-2023-0016 | 2025-01-10 | renewed | 0.3500 | 0.5500 | 0.8792 | 0.2336 |
+| PROS-2018-0018 | 2025-01-11 | renewed | 0.3800 | 0.5500 | 0.8867 | 0.3046 |
+| PROS-2022-0011 | 2025-01-11 | churned **CHURNED** | 0.3800 | 0.5500 | 0.8965 | 0.9969 |
+| PROS-2024-0012 | 2025-01-11 | renewed | 0.0500 | 0.5500 | 0.9865 | 0.5373 |
+| PROS-2017-0019 | 2025-01-12 | renewed | 0.3800 | 0.5500 | 0.8394 | 0.1147 |
 | PROS-2024-0014 | 2025-01-12 | renewed | 0.0500 | 0.5500 | 0.9777 | 0.1089 |
-| PROS-2018-0022 | 2025-01-13 | renewed | 0.3800 | 0.5500 | 0.8962 | 0.8621 |
+| PROS-2018-0022 | 2025-01-13 | renewed | 0.3800 | 0.5500 | 0.8859 | 0.8621 |
 | PROS-2018-0024 | 2025-01-14 | renewed | 0.0500 | 0.5500 | 0.9827 | 0.5102 |
-| PROS-2019-0012 | 2025-01-14 | renewed | 0.2600 | 0.5500 | 0.9010 | 0.1113 |
-| PROS-2016-0020 | 2025-01-16 | renewed | 0.3800 | 0.5500 | 0.9234 | 0.9053 |
-| PROS-2017-0022 | 2025-01-17 | renewed | 0.3800 | 0.5500 | 0.8189 | 0.7863 |
-| PROS-2019-0015 | 2025-01-17 | renewed | 0.3800 | 0.5500 | 0.8627 | 0.5514 |
+| PROS-2019-0012 | 2025-01-14 | renewed | 0.2600 | 0.5500 | 0.8882 | 0.1113 |
+| PROS-2016-0020 | 2025-01-16 | renewed | 0.3800 | 0.5500 | 0.9136 | 0.9053 |
+| PROS-2017-0022 | 2025-01-17 | renewed | 0.3800 | 0.5500 | 0.8302 | 0.7863 |
+| PROS-2019-0015 | 2025-01-17 | renewed | 0.3800 | 0.5500 | 0.8708 | 0.5514 |
 | PROS-2020-0022 | 2025-01-17 | renewed | 0.3800 | 0.5500 | 0.8075 | 0.5636 |
 | PROS-2020-0025 | 2025-01-18 | churned **CHURNED** | 0.3800 | 0.5500 | 0.9186 | 0.9874 |
-| PROS-2024-0022 | 2025-01-19 | renewed | 0.0500 | 0.5500 | 0.9810 | 0.6586 |
-| PROS-2023-0025 | 2025-01-20 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8119 | 0.9905 |
-| PROS-2023-0026 | 2025-01-20 | renewed | 0.4100 | 0.5500 | 0.8980 | 0.2629 |
+| PROS-2024-0022 | 2025-01-19 | renewed | 0.0500 | 0.5500 | 0.9822 | 0.6586 |
+| PROS-2023-0025 | 2025-01-20 | churned **CHURNED** | 0.4100 | 0.5500 | 0.7911 | 0.9905 |
+| PROS-2023-0026 | 2025-01-20 | renewed | 0.4100 | 0.5500 | 0.9058 | 0.2629 |
 | PROS-2020-0032 | 2025-01-22 | renewed | 0.4100 | 0.5500 | 0.9177 | 0.4554 |
 | PROS-2024-0027 | 2025-01-22 | renewed | 0.0500 | 0.5500 | 0.9750 | 0.8285 |
 | PROS-2018-0035 | 2025-01-23 | renewed | 0.4100 | 0.5500 | 0.9310 | 0.8184 |
 | PROS-2019-0021 | 2025-01-25 | renewed | 0.4100 | 0.5500 | 0.9136 | 0.1430 |
 | PROS-2021-0031 | 2025-01-26 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8981 | 0.9840 |
-| PROS-2019-0023 | 2025-01-27 | renewed | 0.4100 | 0.5500 | 0.8129 | 0.5637 |
-| PROS-2019-0024 | 2025-01-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8503 | 0.8699 |
+| PROS-2019-0023 | 2025-01-27 | renewed | 0.4100 | 0.5500 | 0.7916 | 0.5637 |
+| PROS-2019-0024 | 2025-01-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8333 | 0.8699 |
 | PROS-2022-0030 | 2025-01-27 | renewed | 0.4100 | 0.5500 | 0.8596 | 0.8396 |
 | PROS-2024-0036 | 2025-01-29 | renewed | 0.0500 | 0.5500 | 0.9827 | 0.1961 |
 | PROS-2024-0038 | 2025-01-31 | renewed | 0.0500 | 0.5500 | 0.9766 | 0.4373 |
-| PROS-2019-0027 | 2025-02-01 | renewed | 0.4100 | 0.5500 | 0.8886 | 0.5606 |
+| PROS-2019-0027 | 2025-02-01 | renewed | 0.4100 | 0.5500 | 0.8933 | 0.5606 |
 | PROS-2024-0040 | 2025-02-02 | renewed | 0.0500 | 0.5500 | 0.9750 | 0.8287 |
 | PROS-2018-0043 | 2025-02-03 | renewed | 0.4100 | 0.5500 | 0.9445 | 0.0911 |
-| PROS-2024-0041 | 2025-02-04 | renewed | 0.0500 | 0.5500 | 0.9869 | 0.3015 |
-| PROS-2020-0042 | 2025-02-06 | renewed | 0.4100 | 0.5500 | 0.7918 | 0.0314 |
-| PROS-2020-0048 | 2025-02-10 | renewed | 0.3800 | 0.5500 | 0.8327 | 0.6668 |
-| PROS-2022-0045 | 2025-02-10 | renewed | 0.4100 | 0.5500 | 0.9145 | 0.7907 |
-| PROS-2023-0039 | 2025-02-10 | renewed | 0.4100 | 0.5500 | 0.8904 | 0.7224 |
-| PROS-2024-0048 | 2025-02-10 | renewed | 0.0500 | 0.5500 | 0.9859 | 0.0033 |
-| PROS-2021-0045 | 2025-02-12 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8911 | 0.9536 |
-| PROS-2018-0053 | 2025-02-14 | renewed | 0.3800 | 0.5500 | 0.9208 | 0.0676 |
-| PROS-2022-0046 | 2025-02-14 | renewed | 0.3800 | 0.5500 | 0.8932 | 0.6495 |
-| PROS-2021-0051 | 2025-02-15 | renewed | 0.3800 | 0.5500 | 0.9069 | 0.0446 |
-| PROS-2022-0047 | 2025-02-15 | renewed | 0.3800 | 0.5500 | 0.9264 | 0.7371 |
+| PROS-2024-0041 | 2025-02-04 | renewed | 0.0500 | 0.5500 | 0.9902 | 0.3015 |
+| PROS-2020-0048 | 2025-02-10 | renewed | 0.3800 | 0.5500 | 0.8186 | 0.6668 |
+| PROS-2022-0045 | 2025-02-10 | renewed | 0.4100 | 0.5500 | 0.9055 | 0.7907 |
+| PROS-2023-0039 | 2025-02-10 | renewed | 0.4100 | 0.5500 | 0.8830 | 0.7224 |
+| PROS-2024-0048 | 2025-02-10 | renewed | 0.0500 | 0.5500 | 0.9861 | 0.0033 |
+| PROS-2021-0045 | 2025-02-12 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8925 | 0.9536 |
+| PROS-2018-0053 | 2025-02-14 | renewed | 0.3800 | 0.5500 | 0.9215 | 0.0676 |
+| PROS-2022-0046 | 2025-02-14 | renewed | 0.3800 | 0.5500 | 0.8844 | 0.6495 |
+| PROS-2021-0051 | 2025-02-15 | renewed | 0.3800 | 0.5500 | 0.9068 | 0.0446 |
+| PROS-2022-0047 | 2025-02-15 | renewed | 0.3800 | 0.5500 | 0.8800 | 0.7371 |
 | PROS-2022-0048 | 2025-02-15 | renewed | 0.3800 | 0.5500 | 0.9375 | 0.0809 |
-| PROS-2022-0049 | 2025-02-16 | renewed | 0.3800 | 0.5500 | 0.8752 | 0.3278 |
-| PROS-2023-0045 | 2025-02-18 | renewed | 0.4100 | 0.5500 | 0.9143 | 0.7019 |
-| PROS-2024-0056 | 2025-02-18 | renewed | 0.0500 | 0.5500 | 0.9911 | 0.7349 |
+| PROS-2022-0049 | 2025-02-16 | renewed | 0.3800 | 0.5500 | 0.9055 | 0.3278 |
+| PROS-2023-0045 | 2025-02-18 | renewed | 0.4100 | 0.5500 | 0.8951 | 0.7019 |
+| PROS-2024-0056 | 2025-02-18 | renewed | 0.0500 | 0.5500 | 0.9889 | 0.7349 |
 | PROS-2024-0057 | 2025-02-19 | renewed | 0.0500 | 0.5500 | 0.9697 | 0.4661 |
 | PROS-2024-0062 | 2025-02-23 | renewed | 0.0500 | 0.5500 | 0.9724 | 0.2460 |
-| PROS-2021-0062 | 2025-02-25 | renewed | 0.4100 | 0.5500 | 0.9031 | 0.4667 |
-| PROS-2022-0067 | 2025-02-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.7233 | 0.9396 |
-| PROS-2024-0065 | 2025-03-02 | renewed | 0.0500 | 0.5500 | 0.9803 | 0.0083 |
-| PROS-2023-0065 | 2025-03-03 | renewed | 0.4100 | 0.5500 | 0.9695 | 0.9248 |
-| PROS-2023-0067 | 2025-03-03 | renewed | 0.4100 | 0.5500 | 0.9414 | 0.2355 |
-| PROS-2024-0069 | 2025-03-03 | renewed | 0.0500 | 0.5500 | 0.9903 | 0.3532 |
-| PROS-2022-0071 | 2025-03-07 | renewed | 0.4100 | 0.5500 | 0.6229 | 0.1080 |
+| PROS-2021-0062 | 2025-02-25 | renewed | 0.4100 | 0.5500 | 0.9270 | 0.4667 |
+| PROS-2022-0067 | 2025-02-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.6976 | 0.9396 |
+| PROS-2024-0065 | 2025-03-02 | renewed | 0.0500 | 0.5500 | 0.9794 | 0.0083 |
+| PROS-2023-0065 | 2025-03-03 | renewed | 0.4100 | 0.5500 | 0.9785 | 0.9248 |
+| PROS-2023-0067 | 2025-03-03 | renewed | 0.4100 | 0.5500 | 0.8896 | 0.2355 |
+| PROS-2024-0069 | 2025-03-03 | renewed | 0.0500 | 0.5500 | 0.9818 | 0.3532 |
+| PROS-2022-0071 | 2025-03-07 | renewed | 0.4100 | 0.5500 | 0.4955 | 0.1080 |
 | PROS-2024-0076 | 2025-03-08 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9461 | 0.9968 |
 | PROS-2022-0073 | 2025-03-10 | renewed | 0.4100 | 0.5500 | 0.8302 | 0.1176 |
-| PROS-2023-0072 | 2025-03-11 | renewed | 0.4100 | 0.5500 | 0.8009 | 0.0775 |
+| PROS-2023-0072 | 2025-03-11 | renewed | 0.4100 | 0.5500 | 0.8526 | 0.0775 |
 | PROS-2022-0081 | 2025-03-12 | renewed | 0.4100 | 0.5500 | 0.8806 | 0.0846 |
-| PROS-2022-0082 | 2025-03-13 | renewed | 0.3800 | 0.5500 | 0.9564 | 0.8919 |
-| PROS-2022-0083 | 2025-03-14 | renewed | 0.3800 | 0.5500 | 0.8235 | 0.1833 |
+| PROS-2022-0082 | 2025-03-13 | renewed | 0.3800 | 0.5500 | 0.9184 | 0.8919 |
+| PROS-2022-0083 | 2025-03-14 | renewed | 0.3800 | 0.5500 | 0.8137 | 0.1833 |
 | PROS-2024-0081 | 2025-03-15 | renewed | 0.0500 | 0.5500 | 0.9569 | 0.8259 |
 | PROS-2024-0082 | 2025-03-17 | renewed | 0.0500 | 0.5500 | 0.9547 | 0.7145 |
 | PROS-2024-0083 | 2025-03-17 | renewed | 0.0500 | 0.5500 | 0.9414 | 0.5380 |
-| PROS-2022-0092 | 2025-03-19 | renewed | 0.3800 | 0.5500 | 0.7883 | 0.7607 |
+| PROS-2022-0092 | 2025-03-19 | renewed | 0.3800 | 0.5500 | 0.8501 | 0.7607 |
 | PROS-2024-0085 | 2025-03-19 | renewed | 0.0500 | 0.5500 | 0.9524 | 0.8065 |
-| PROS-2024-0087 | 2025-03-22 | renewed | 0.0500 | 0.5500 | 0.9887 | 0.0394 |
+| PROS-2024-0087 | 2025-03-22 | renewed | 0.0500 | 0.5500 | 0.9882 | 0.0394 |
 | PROS-2021-0088 | 2025-03-23 | renewed | 0.3800 | 0.5500 | 0.8459 | 0.1027 |
 | PROS-2022-0097 | 2025-03-26 | renewed | 0.3800 | 0.5500 | 0.8305 | 0.2531 |
 | PROS-2022-0100 | 2025-03-27 | renewed | 0.4100 | 0.5500 | 0.8996 | 0.0983 |
 | PROS-2024-0094 | 2025-03-29 | renewed | 0.0500 | 0.5500 | 0.9696 | 0.3536 |
 | C2 | 2025-03-30 | renewed | 0.4100 | 0.5500 | 0.8808 | 0.1514 |
 | C8 | 2025-03-30 | renewed | 0.3500 | 0.5500 | 0.8729 | 0.4808 |
-| PROS-2023-0089 | 2025-03-30 | renewed | 0.4100 | 0.5500 | 0.7536 | 0.1091 |
-| PROS-2023-0090 | 2025-04-01 | renewed | 0.4100 | 0.5500 | 0.8065 | 0.7146 |
-| PROS-2024-0096 | 2025-04-02 | renewed | 0.0500 | 0.5500 | 0.9811 | 0.4153 |
+| PROS-2023-0089 | 2025-03-30 | renewed | 0.4100 | 0.5500 | 0.7974 | 0.1091 |
+| PROS-2023-0090 | 2025-04-01 | renewed | 0.4100 | 0.5500 | 0.8193 | 0.7146 |
+| PROS-2024-0096 | 2025-04-02 | renewed | 0.0500 | 0.5500 | 0.9794 | 0.4153 |
 | PROS-2024-0098 | 2025-04-04 | renewed | 0.0500 | 0.5500 | 0.9815 | 0.2553 |
-| PROS-2023-0096 | 2025-04-06 | renewed | 0.3800 | 0.5500 | 0.9425 | 0.1219 |
-| PROS-2022-0120 | 2025-04-10 | renewed | 0.4100 | 0.5500 | 0.9024 | 0.6481 |
-| PROS-2024-0110 | 2025-04-11 | renewed | 0.0500 | 0.5500 | 0.9864 | 0.7998 |
-| PROS-2024-0111 | 2025-04-12 | renewed | 0.0500 | 0.5500 | 0.9845 | 0.1577 |
-| PROS-2022-0124 | 2025-04-13 | renewed | 0.4100 | 0.5500 | 0.8996 | 0.7087 |
+| PROS-2023-0096 | 2025-04-06 | renewed | 0.3800 | 0.5500 | 0.9569 | 0.1219 |
+| PROS-2022-0120 | 2025-04-10 | renewed | 0.4100 | 0.5500 | 0.8320 | 0.6481 |
+| PROS-2024-0110 | 2025-04-11 | renewed | 0.0500 | 0.5500 | 0.9898 | 0.7998 |
+| PROS-2024-0111 | 2025-04-12 | renewed | 0.0500 | 0.5500 | 0.9880 | 0.1577 |
+| PROS-2022-0124 | 2025-04-13 | renewed | 0.4100 | 0.5500 | 0.8876 | 0.7087 |
 | PROS-2022-0125 | 2025-04-13 | churned **CHURNED** | 0.4100 | 0.5500 | 0.9380 | 0.9496 |
-| PROS-2022-0127 | 2025-04-13 | renewed | 0.4100 | 0.5500 | 0.8148 | 0.4457 |
+| PROS-2022-0127 | 2025-04-13 | renewed | 0.4100 | 0.5500 | 0.8300 | 0.4457 |
 | PROS-2022-0128 | 2025-04-13 | renewed | 0.4100 | 0.5500 | 0.8996 | 0.6119 |
-| PROS-2024-0113 | 2025-04-15 | renewed | 0.0500 | 0.5500 | 0.9910 | 0.2902 |
-| PROS-2024-0116 | 2025-04-17 | renewed | 0.0500 | 0.5500 | 0.9830 | 0.0099 |
+| PROS-2024-0113 | 2025-04-15 | renewed | 0.0500 | 0.5500 | 0.9846 | 0.2902 |
+| PROS-2024-0116 | 2025-04-17 | renewed | 0.0500 | 0.5500 | 0.9807 | 0.0099 |
 | PROS-2023-0104 | 2025-04-18 | renewed | 0.4100 | 0.5500 | 0.8623 | 0.3207 |
-| PROS-2022-0130 | 2025-04-20 | renewed | 0.3800 | 0.5500 | 0.8839 | 0.0706 |
-| PROS-2024-0122 | 2025-04-20 | renewed | 0.0500 | 0.5500 | 0.9802 | 0.2898 |
+| PROS-2022-0130 | 2025-04-20 | renewed | 0.3800 | 0.5500 | 0.9088 | 0.0706 |
+| PROS-2024-0122 | 2025-04-20 | renewed | 0.0500 | 0.5500 | 0.9762 | 0.2898 |
 | PROS-2023-0113 | 2025-04-25 | renewed | 0.4100 | 0.5500 | 0.9362 | 0.8906 |
-| PROS-2023-0116 | 2025-04-25 | churned **CHURNED** | 0.4100 | 0.5500 | 0.8823 | 0.9483 |
-| PROS-2023-0125 | 2025-04-28 | renewed | 0.4100 | 0.5500 | 0.9549 | 0.8318 |
+| PROS-2023-0116 | 2025-04-25 | churned **CHURNED** | 0.4100 | 0.5500 | 0.9098 | 0.9483 |
+| PROS-2023-0125 | 2025-04-28 | renewed | 0.4100 | 0.5500 | 0.9159 | 0.8318 |
 | PROS-2024-0131 | 2025-04-28 | renewed | 0.0500 | 0.5500 | 0.9922 | 0.2564 |
 | PROS-2023-0126 | 2025-04-29 | renewed | 0.4100 | 0.5500 | 0.9650 | 0.3134 |
-| PROS-2023-0127 | 2025-05-02 | renewed | 0.4100 | 0.5500 | 0.9160 | 0.6313 |
-| PROS-2024-0147 | 2025-05-11 | renewed | 0.0500 | 0.5500 | 0.9902 | 0.3854 |
-| PROS-2024-0148 | 2025-05-12 | renewed | 0.0500 | 0.5500 | 0.9891 | 0.3160 |
+| PROS-2023-0127 | 2025-05-02 | renewed | 0.4100 | 0.5500 | 0.9350 | 0.6313 |
+| PROS-2024-0147 | 2025-05-11 | renewed | 0.0500 | 0.5500 | 0.9937 | 0.3854 |
+| PROS-2024-0148 | 2025-05-12 | renewed | 0.0500 | 0.5500 | 0.9833 | 0.3160 |
 | PROS-2024-0156 | 2025-05-23 | renewed | 0.0500 | 0.5500 | 0.9955 | 0.0149 |
 | PROS-2023-0146 | 2025-05-24 | renewed | 0.4100 | 0.5500 | 0.9647 | 0.3819 |
 | PROS-2024-0157 | 2025-05-24 | renewed | 0.0500 | 0.5500 | 0.9935 | 0.6132 |
-| PROS-2024-0160 | 2025-05-26 | renewed | 0.0500 | 0.5500 | 0.9942 | 0.7392 |
-| PROS-2023-0147 | 2025-05-27 | renewed | 0.4100 | 0.5500 | 0.9638 | 0.0758 |
+| PROS-2024-0160 | 2025-05-26 | renewed | 0.0500 | 0.5500 | 0.9953 | 0.7392 |
+| PROS-2023-0147 | 2025-05-27 | renewed | 0.4100 | 0.5500 | 0.9311 | 0.0758 |
 | PROS-2023-0152 | 2025-06-02 | renewed | 0.3500 | 0.5500 | 0.9652 | 0.3333 |
 | PROS-2024-0179 | 2025-06-05 | renewed | 0.0500 | 0.5500 | 0.9922 | 0.5012 |
 | PROS-2023-0158 | 2025-06-06 | renewed | 0.3500 | 0.5500 | 0.9459 | 0.0146 |
@@ -696,22 +700,22 @@ Accounts lost before end of window: C1, C4, C5, C6, PROS-2016-0003, PROS-2018-00
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 514.0%
-- **Average signed error:** +495.7% (over-estimates vs SIM)
-- **Renewal events with estimates:** 478
+- **Average absolute error:** 487.7%
+- **Average signed error:** +468.3% (over-estimates vs SIM)
+- **Renewal events with estimates:** 482
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
-| 2016 | 3 | +277.3% | 277.3% |
-| 2017 | 12 | +798.0% | 798.0% |
-| 2018 | 13 | +311.5% | 311.5% |
-| 2019 | 23 | +830.6% | 830.6% |
-| 2020 | 32 | +879.4% | 879.4% |
-| 2021 | 47 | +455.3% | 465.7% |
-| 2022 | 58 | -20.9% | 78.2% |
-| 2023 | 69 | +863.9% | 863.9% |
-| 2024 | 99 | +574.6% | 575.3% |
-| 2025 | 122 | +315.9% | 336.0% |
+| 2016 | 3 | +188.8% | 188.8% |
+| 2017 | 12 | +865.6% | 865.6% |
+| 2018 | 13 | +272.3% | 272.3% |
+| 2019 | 23 | +765.1% | 765.4% |
+| 2020 | 32 | +770.4% | 773.3% |
+| 2021 | 47 | +489.3% | 502.7% |
+| 2022 | 58 | -14.5% | 79.1% |
+| 2023 | 70 | +804.7% | 804.7% |
+| 2024 | 100 | +514.8% | 517.6% |
+| 2025 | 124 | +314.7% | 338.0% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
@@ -719,22 +723,22 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 
 ~35% of domestic/SME customers actively choose a new fixed deal at term end. ~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. Crisis years (2022) force all renewals passive (no fixed deals available).
 
-- **Total renewal events:** 478
-- **Active renewers:** 154 (32%) — mean company estimate 13.7%, abs error 667.6%
-- **Passive SVT-rollers:** 324 (68%) — mean company estimate 8.6%, abs error 441.0%
+- **Total renewal events:** 482
+- **Active renewers:** 154 (32%) — mean company estimate 13.6%, abs error 619.3%
+- **Passive SVT-rollers:** 328 (68%) — mean company estimate 8.6%, abs error 425.8%
 
 | Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
 |------|--------|---------|-----------|------------|---------------|----------------|
-| 2016 | 0 | 3 | 0.0% | 12.5% | 0.0% | 277.3% |
-| 2017 | 2 | 10 | 29.8% | 14.3% | 2039.5% | 549.7% |
-| 2018 | 7 | 6 | 23.5% | 10.9% | 504.4% | 86.5% |
-| 2019 | 10 | 13 | 18.8% | 12.2% | 1002.0% | 698.8% |
-| 2020 | 16 | 16 | 9.7% | 7.1% | 1016.4% | 742.5% |
-| 2021 | 14 | 33 | 9.4% | 5.3% | 315.4% | 529.5% |
-| 2022 | 0 | 58 | 0.0% | 5.7% | 0.0% | 78.2% |
-| 2023 | 26 | 43 | 11.5% | 8.4% | 1090.1% | 727.2% |
-| 2024 | 36 | 63 | 10.4% | 8.8% | 664.7% | 524.2% |
-| 2025 | 43 | 79 | 17.3% | 10.9% | 284.6% | 364.0% |
+| 2016 | 0 | 3 | 0.0% | 12.5% | 0.0% | 188.8% |
+| 2017 | 2 | 10 | 29.8% | 14.3% | 2664.4% | 505.8% |
+| 2018 | 7 | 6 | 23.5% | 10.9% | 433.4% | 84.3% |
+| 2019 | 10 | 13 | 18.8% | 12.2% | 921.7% | 645.2% |
+| 2020 | 16 | 16 | 9.7% | 7.1% | 819.6% | 727.0% |
+| 2021 | 14 | 33 | 9.4% | 5.3% | 333.0% | 574.6% |
+| 2022 | 0 | 58 | 0.0% | 5.7% | 0.0% | 79.1% |
+| 2023 | 26 | 44 | 11.4% | 8.4% | 989.9% | 695.3% |
+| 2024 | 36 | 64 | 10.4% | 8.9% | 549.4% | 499.7% |
+| 2025 | 43 | 81 | 17.0% | 10.8% | 337.3% | 338.4% |
 
 Passive renewers should show lower company estimates and lower SIM churn — high abs error for passive renewers indicates the passive model needs recalibration.
 
@@ -742,10 +746,10 @@ Passive renewers should show lower company estimates and lower SIM churn — hig
 
 Passive renewers roll to a new fixed deal by inaction. A rate above SVT creates latent churn risk: once the customer notices they're paying more than the cap, they switch. A rate below SVT signals loyalty value — the company is rewarding inertia.
 
-- **Passive renewal events with SVT data:** 324
-- **Above SVT (at-risk):** 65 (20%)
-- **Below/at SVT (protected):** 259 (80%)
-- **Mean rate vs SVT premium:** -5.6%
+- **Passive renewal events with SVT data:** 328
+- **Above SVT (at-risk):** 66 (20%)
+- **Below/at SVT (protected):** 262 (80%)
+- **Mean rate vs SVT premium:** -5.8%
 
 | Year | Passive Renewals | Above SVT | Avg Premium | Avg Fixed Rate (£/MWh) | Avg SVT (£/MWh) |
 |------|-----------------|-----------|-------------|----------------------|----------------|
@@ -755,10 +759,10 @@ Passive renewers roll to a new fixed deal by inaction. A rate above SVT creates 
 | 2019 | 13 | 0 (0%) | -15.1% | 142.9 | 168.8 |
 | 2020 | 16 | 0 (0%) | -26.7% | 130.5 | 178.1 |
 | 2021 | 33 | 1 (3%) | -11.8% | 153.6 | 174.1 |
-| 2022 | 58 | 52 (90%) | +50.7% | 324.0 | 222.6 |
-| 2023 | 43 | 0 (0%) | -46.2% | 320.4 | 625.8 |
-| 2024 | 63 | 0 (0%) | -18.7% | 215.5 | 264.8 |
-| 2025 | 79 | 11 (14%) | -4.7% | 242.1 | 254.4 |
+| 2022 | 58 | 52 (90%) | +50.8% | 324.1 | 222.6 |
+| 2023 | 44 | 0 (0%) | -46.4% | 319.7 | 626.8 |
+| 2024 | 64 | 0 (0%) | -18.6% | 215.8 | 264.9 |
+| 2025 | 81 | 12 (15%) | -4.6% | 242.1 | 254.2 |
 
 **Interpretation:** Premium > 0% means the company is charging passive renewers above the SVT rate — a regulatory and reputational risk. Premium < 0% means passive renewers are getting a better-than-SVT deal — the company is leaving margin on the table but building loyalty.
 
@@ -783,10 +787,10 @@ Crisis years (2021-22) remain negative — genuine market adversity, not model e
 | 2019 | 58 | 13.5% | 31.0% |
 | 2020 | 86 | 30.8% | 56.5% |
 | 2021 | 107 | 18.4% | 53.1% |
-| 2022 | 143 | 22.3% | 55.9% |
-| 2023 | 185 | 32.4% | 86.2% |
-| 2024 | 285 | 27.3% | 58.9% |
-| 2025 | 298 | 24.9% | 442.0% |
+| 2022 | 144 | 22.1% | 55.9% |
+| 2023 | 187 | 31.8% | 86.2% |
+| 2024 | 288 | 27.7% | 58.9% |
+| 2025 | 301 | 24.8% | 442.0% |
 
 ### Churn Estimate Error
 
@@ -806,16 +810,16 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
-| 2016 | 3 | 2.77× ⚠ | 3.37× |
-| 2017 | 12 | 7.98× ⚠ | 21.55× |
-| 2018 | 13 | 3.12× ⚠ | 17.32× |
-| 2019 | 23 | 8.31× ⚠ | 36.90× |
-| 2020 | 32 | 8.79× ⚠ | 44.98× |
-| 2021 | 47 | 4.66× ⚠ | 37.77× |
-| 2022 | 58 | 0.78× | 7.92× |
-| 2023 | 69 | 8.64× ⚠ | 64.58× |
-| 2024 | 99 | 5.75× ⚠ | 33.88× |
-| 2025 | 122 | 3.36× ⚠ | 51.16× |
+| 2016 | 3 | 1.89× | 2.50× |
+| 2017 | 12 | 8.66× ⚠ | 34.04× |
+| 2018 | 13 | 2.72× ⚠ | 9.55× |
+| 2019 | 23 | 7.65× ⚠ | 45.21× |
+| 2020 | 32 | 7.73× ⚠ | 44.98× |
+| 2021 | 47 | 5.03× ⚠ | 37.77× |
+| 2022 | 58 | 0.79× | 7.92× |
+| 2023 | 70 | 8.05× ⚠ | 64.58× |
+| 2024 | 100 | 5.18× ⚠ | 33.88× |
+| 2025 | 124 | 3.38× ⚠ | 51.16× |
 
 ### Demand Estimation Error (Phase AO)
 
@@ -833,9 +837,9 @@ the highest error; subsequent terms self-correct from billing history.
 | 2020 | 32 | 0.41% | 3.50% | Low — stable portfolio |
 | 2021 | 47 | 0.44% | 4.24% | Low — stable portfolio |
 | 2022 | 58 | 0.65% | 7.47% | Low — stable portfolio |
-| 2023 | 69 | 0.34% | 4.56% | Low — stable portfolio |
-| 2024 | 99 | 0.30% | 4.41% | Low — stable portfolio |
-| 2025 | 122 | 0.58% | 34.61% | Low — stable portfolio |
+| 2023 | 70 | 0.33% | 4.56% | Low — stable portfolio |
+| 2024 | 100 | 0.30% | 4.41% | Low — stable portfolio |
+| 2025 | 124 | 0.58% | 34.61% | Low — stable portfolio |
 
 **Trend:** demand estimation error grew from **0.07%** in 2016 to **1.83%** mean / **15.74%** max in 2018. Root cause: new asset acquisitions (Phase B life events) create a temporary estimation gap until the company observes a full billing cycle.
 Portfolio action: prioritise smart meter installation for high-EAC-drift accounts — interval data eliminates estimation error at renewal.
@@ -857,11 +861,11 @@ company billing estimation correctly tracks actual consumption.
 | 2020 | 32 | 0.4% | 3.5% |
 | 2021 | 47 | 0.4% | 4.2% |
 | 2022 | 58 | 0.6% | 7.5% |
-| 2023 | 69 | 0.3% | 4.6% |
-| 2024 | 99 | 0.3% | 4.4% |
-| 2025 | 122 | 0.6% | 34.6% |
+| 2023 | 70 | 0.3% | 4.6% |
+| 2024 | 100 | 0.3% | 4.4% |
+| 2025 | 124 | 0.6% | 34.6% |
 
-**478** of **478** renewals used prior billing records; **0** used SIM oracle fallback (first term, no billing history).
+**482** of **482** renewals used prior billing records; **0** used SIM oracle fallback (first term, no billing history).
 
 ## EAC Drift Snapshot (Phase AI)
 
@@ -877,59 +881,59 @@ Drift > +15%: EV/ASHP acquisition. Drift < −15%: solar installation or efficie
 | PROS-2020-0047 | 4,900 | 4,276 | -13% | efficiency improvement or reduced occupancy |
 | C7 | 13,179 | 12,155 | -8% | efficiency improvement or reduced occupancy |
 
-**Portfolio demand trend:** 81 customers increasing / 16 decreasing (mean drift: +0.6%)
+**Portfolio demand trend:** 82 customers increasing / 16 decreasing (mean drift: +0.6%)
 
 ## Company CRM — Event Log
 
 Dated artefacts of customer lifecycle events as seen by the company layer.
-Total events: **45** (37 churn, 8 acquisition)
+Total events: **45** (36 churn, 9 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
 | 2017-04-01 | CHURN | C6 | SIM p=0.02, company est=0.15 |
-| 2018-01-05 | CHURN | PROS-2016-0003 | SIM p=0.05, company est=0.13 |
+| 2018-01-05 | CHURN | PROS-2016-0003 | SIM p=0.10, company est=0.13 |
 | 2018-01-05 | ACQUISITION | PROS-2016-0003_3 | market-acquisition (predecessor: PROS-2016-0003) |
-| 2018-10-01 | CHURN | C4 | SIM p=0.09, company est=0.13 |
-| 2019-01-02 | CHURN | PROS-2018-0002 | SIM p=0.02, company est=0.25 |
+| 2018-10-01 | CHURN | C4 | SIM p=0.08, company est=0.13 |
+| 2019-01-02 | CHURN | PROS-2018-0002 | SIM p=0.03, company est=0.25 |
 | 2021-12-30 | CHURN | C1 | SIM p=0.08, company est=0.05 |
-| 2021-12-30 | CHURN | C5 | SIM p=0.95, company est=0.61 |
-| 2022-01-02 | CHURN | PROS-2019-0003 | SIM p=0.13, company est=0.05 |
+| 2021-12-30 | CHURN | C5 | SIM p=0.54, company est=0.61 |
+| 2022-01-02 | CHURN | PROS-2019-0003 | SIM p=0.20, company est=0.05 |
 | 2022-01-07 | CHURN | PROS-2020-0013 | SIM p=0.17, company est=0.05 |
-| 2022-01-10 | CHURN | PROS-2018-0014 | SIM p=0.09, company est=0.05 |
-| 2022-01-11 | CHURN | PROS-2021-0006 | SIM p=0.10, company est=0.05 |
 | 2022-01-20 | CHURN | PROS-2021-0017 | SIM p=0.15, company est=0.05 |
 | 2022-01-20 | ACQUISITION | PROS-2021-0017_3 | market-acquisition (predecessor: PROS-2021-0017) |
-| 2022-01-26 | CHURN | PROS-2021-0029 | SIM p=0.12, company est=0.08 |
+| 2022-01-26 | CHURN | PROS-2021-0029 | SIM p=0.18, company est=0.08 |
 | 2022-01-30 | CHURN | PROS-2018-0039 | SIM p=0.67, company est=0.05 |
-| 2022-02-11 | CHURN | PROS-2020-0047 | SIM p=0.21, company est=0.08 |
+| 2022-02-07 | CHURN | PROS-2020-0042 | SIM p=0.33, company est=0.05 |
+| 2022-02-11 | CHURN | PROS-2020-0047 | SIM p=0.33, company est=0.08 |
 | 2022-02-12 | CHURN | PROS-2020-0050 | SIM p=0.54, company est=0.05 |
-| 2022-02-12 | CHURN | PROS-2021-0044 | SIM p=0.15, company est=0.05 |
+| 2022-02-12 | CHURN | PROS-2021-0044 | SIM p=0.23, company est=0.05 |
 | 2022-02-21 | CHURN | PROS-2019-0050 | SIM p=0.50, company est=0.05 |
-| 2022-02-25 | CHURN | PROS-2021-0060 | SIM p=0.10, company est=0.13 |
-| 2022-02-26 | CHURN | PROS-2020-0067 | SIM p=0.61, company est=0.05 |
+| 2022-02-25 | CHURN | PROS-2021-0060 | SIM p=0.15, company est=0.13 |
+| 2022-02-26 | CHURN | PROS-2020-0067 | SIM p=0.93, company est=0.05 |
 | 2022-02-26 | ACQUISITION | PROS-2020-0067_3 | market-acquisition (predecessor: PROS-2020-0067) |
 | 2022-03-05 | CHURN | PROS-2021-0067 | SIM p=0.15, company est=0.08 |
-| 2022-04-02 | CHURN | PROS-2021-0100 | SIM p=0.04, company est=0.05 |
+| 2022-04-02 | CHURN | PROS-2021-0100 | SIM p=0.02, company est=0.05 |
 | 2023-01-18 | CHURN | PROS-2022-0019 | SIM p=0.00, company est=0.12 |
-| 2024-01-03 | CHURN | PROS-2020-0006 | SIM p=0.06, company est=0.08 |
-| 2024-02-08 | CHURN | PROS-2020-0043 | SIM p=0.05, company est=0.18 |
+| 2024-02-08 | CHURN | PROS-2020-0043 | SIM p=0.08, company est=0.18 |
 | 2024-02-27 | CHURN | PROS-2022-0063 | SIM p=0.03, company est=0.05 |
-| 2024-12-31 | CHURN | PROS-2018-0003 | SIM p=0.10, company est=0.11 |
-| 2024-12-31 | ACQUISITION | PROS-2018-0003_3 | market-acquisition (predecessor: PROS-2018-0003) |
+| 2024-06-19 | CHURN | PROS-2023-0172 | SIM p=0.01, company est=0.05 |
+| 2024-06-19 | ACQUISITION | PROS-2023-0172_3 | market-acquisition (predecessor: PROS-2023-0172) |
 | 2025-01-06 | CHURN | PROS-2023-0010 | SIM p=0.10, company est=0.12 |
+| 2025-01-09 | CHURN | PROS-2018-0014 | SIM p=0.11, company est=0.07 |
+| 2025-01-09 | ACQUISITION | PROS-2018-0014_3 | market-acquisition (predecessor: PROS-2018-0014) |
 | 2025-01-11 | CHURN | PROS-2022-0011 | SIM p=0.10, company est=0.05 |
 | 2025-01-18 | CHURN | PROS-2020-0025 | SIM p=0.08, company est=0.10 |
-| 2025-01-20 | CHURN | PROS-2023-0025 | SIM p=0.19, company est=0.16 |
+| 2025-01-20 | CHURN | PROS-2023-0025 | SIM p=0.21, company est=0.16 |
 | 2025-01-26 | CHURN | PROS-2021-0031 | SIM p=0.10, company est=0.10 |
-| 2025-01-27 | CHURN | PROS-2019-0024 | SIM p=0.15, company est=0.09 |
+| 2025-01-27 | CHURN | PROS-2019-0024 | SIM p=0.17, company est=0.09 |
 | 2025-01-27 | ACQUISITION | PROS-2019-0024_3 | market-acquisition (predecessor: PROS-2019-0024) |
 | 2025-02-12 | CHURN | PROS-2021-0045 | SIM p=0.11, company est=0.07 |
 | 2025-02-12 | ACQUISITION | PROS-2021-0045_3 | market-acquisition (predecessor: PROS-2021-0045) |
-| 2025-02-27 | CHURN | PROS-2022-0067 | SIM p=0.28, company est=0.23 |
+| 2025-02-27 | CHURN | PROS-2022-0067 | SIM p=0.30, company est=0.23 |
 | 2025-03-08 | CHURN | PROS-2024-0076 | SIM p=0.05, company est=0.26 |
 | 2025-04-13 | CHURN | PROS-2022-0125 | SIM p=0.06, company est=0.17 |
 | 2025-04-13 | ACQUISITION | PROS-2022-0125_3 | market-acquisition (predecessor: PROS-2022-0125) |
-| 2025-04-25 | CHURN | PROS-2023-0116 | SIM p=0.12, company est=0.27 |
+| 2025-04-25 | CHURN | PROS-2023-0116 | SIM p=0.09, company est=0.27 |
 | 2025-04-25 | ACQUISITION | PROS-2023-0116_3 | market-acquisition (predecessor: PROS-2023-0116) |
 
 **SIM ground truth vs company CRM reconciliation (year-end snapshots):**
@@ -942,10 +946,10 @@ Total events: **45** (37 churn, 8 acquisition)
 | 2019-12-31 | 4 accounts | 1 active | yes |
 | 2020-12-31 | 4 accounts | 1 active | yes |
 | 2021-12-31 | 6 accounts | 1 active | yes |
-| 2022-12-31 | 21 accounts | 3 active | yes |
-| 2023-12-31 | 22 accounts | 3 active | yes |
-| 2024-12-31 | 26 accounts | 4 active | yes |
-| 2025-12-31 | 37 accounts | 8 active | yes |
+| 2022-12-31 | 20 accounts | 3 active | yes |
+| 2023-12-31 | 21 accounts | 3 active | yes |
+| 2024-12-31 | 24 accounts | 4 active | yes |
+| 2025-12-31 | 36 accounts | 9 active | yes |
 
 ## Policy Costs — RO + CfD + CCL + CM + FiT + Mutualization (Phase 21a/27b/30a/31a/54)
 
@@ -962,13 +966,13 @@ CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand includi
 | 2019 | 3,855 | 666 | 139 | 743 | 1,036 | 0 | 6,439 |  |
 | 2020 | 5,513 | 818 | 147 | 1,298 | 1,612 | 0 | 9,388 |  |
 | 2021 | 7,070 | 431 | 146 | 1,438 | 1,815 | 1,189 | 12,089 |  |
-| 2022 | 7,967 | -1,548 | 0 | 1,148 | 2,144 | 3,095 | 12,807 | ⬇ CfD REBATE |
-| 2023 | 11,453 | 2,729 | 0 | 2,144 | 3,164 | 579 | 20,070 |  |
-| 2024 | 19,116 | 6,823 | 0 | 4,273 | 5,129 | 124 | 35,466 |  |
-| 2025 | 10,916 | 3,718 | 0 | 2,457 | 2,863 | 68 | 20,022 |  |
-| **Total** | **71,535** | **14,190** | **877** | **14,001** | **19,257** | **5,056** | **124,916** | |
+| 2022 | 8,102 | -1,574 | 0 | 1,168 | 2,180 | 3,148 | 13,024 | ⬇ CfD REBATE |
+| 2023 | 11,586 | 2,761 | 0 | 2,169 | 3,201 | 586 | 20,303 |  |
+| 2024 | 19,322 | 6,898 | 0 | 4,319 | 5,184 | 125 | 35,848 |  |
+| 2025 | 10,975 | 3,738 | 0 | 2,471 | 2,878 | 68 | 20,131 |  |
+| **Total** | **72,067** | **14,290** | **877** | **14,104** | **19,401** | **5,117** | **125,856** | |
 
-Total policy cost: £124,916 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
+Total policy cost: £125,856 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
 
 ### Rate coverage — EXTRAPOLATED RATES in this window
 
@@ -997,13 +1001,13 @@ I&C HV: DUoS only (Triad TNUoS is an annual lump tracked in the Triad section).
 | 2019 | 7,345 |  |
 | 2020 | 10,680 |  |
 | 2021 | 13,836 |  |
-| 2022 | 19,063 | BSUoS 100% demand-side from Apr 2022 |
-| 2023 | 30,553 | RIIO-ED2 from Apr 2023 |
-| 2024 | 43,691 |  |
-| 2025 | 23,323 |  |
-| **Total** | **161,600** | |
+| 2022 | 19,380 | BSUoS 100% demand-side from Apr 2022 |
+| 2023 | 30,906 | RIIO-ED2 from Apr 2023 |
+| 2024 | 44,174 |  |
+| 2025 | 23,449 |  |
+| **Total** | **162,881** | |
 
-Total network cost: £161,600 across all years. Pass-through: tariff unit rate includes network cost at term-start year's rate; settlement deducts it — basis risk near-zero for annual contracts.
+Total network cost: £162,881 across all years. Pass-through: tariff unit rate includes network cost at term-start year's rate; settlement deducts it — basis risk near-zero for annual contracts.
 
 ## Gas Policy Costs and Network Charges (Phase 30b)
 
@@ -1018,11 +1022,11 @@ GGL (Green Gas Levy): per-meter, from Nov 2021; tiny in £/MWh terms.
 | 2019 | 0 | 2,752 | 2,752 |
 | 2020 | 0 | 4,177 | 4,177 |
 | 2021 | 15 | 5,424 | 5,439 |
-| 2022 | 115 | 6,914 | 7,029 |
-| 2023 | 77 | 14,044 | 14,122 |
-| 2024 | 47 | 20,404 | 20,450 |
-| 2025 | 20 | 12,547 | 12,567 |
-| **Total** | **274** | **70,550** | **70,824** |
+| 2022 | 117 | 6,897 | 7,015 |
+| 2023 | 78 | 14,034 | 14,113 |
+| 2024 | 47 | 20,594 | 20,641 |
+| 2025 | 20 | 12,641 | 12,661 |
+| **Total** | **278** | **70,807** | **71,086** |
 
 Gas policy pass-through in tariff unit rate (CCL + GGL at term start); gas network pass-through likewise. Net basis risk near-zero for annual contracts.
 
@@ -1040,11 +1044,11 @@ Policy = gas CCL + GGL. Network = GDN + NTS. Net = gross − policy − network 
 | 2019 | 11,883 | 5,476 | 6,407 | 0 | 2,752 | 76 | 3,579 | +30.1% |
 | 2020 | 15,285 | 5,004 | 10,281 | 0 | 4,177 | 68 | 6,037 | +39.5% |
 | 2021 | 20,300 | 11,330 | 8,970 | 15 | 5,424 | 124 | 3,407 | +16.8% |
-| 2022 | 32,314 | 52,242 | -19,928 | 115 | 6,914 | 340 | -27,297 | -84.5% |
-| 2023 | 90,824 | 59,901 | 30,923 | 77 | 14,044 | 1,444 | 15,357 | +16.9% |
-| 2024 | 94,657 | 42,129 | 52,529 | 47 | 20,404 | 1,614 | 30,464 | +32.2% |
-| 2025 | 55,205 | 29,378 | 25,827 | 20 | 12,547 | 1,158 | 12,101 | +21.9% |
-| **Total** | **335,648** | **212,467** | **123,180** | **274** | **70,550** | **4,913** | **47,444** | **+14.1%** |
+| 2022 | 32,365 | 52,225 | -19,860 | 117 | 6,897 | 335 | -27,210 | -84.1% |
+| 2023 | 91,030 | 60,055 | 30,975 | 78 | 14,034 | 1,435 | 15,428 | +16.9% |
+| 2024 | 95,793 | 42,527 | 53,266 | 47 | 20,594 | 1,631 | 30,994 | +32.4% |
+| 2025 | 55,749 | 29,665 | 26,083 | 20 | 12,641 | 1,169 | 12,253 | +22.0% |
+| **Total** | **337,585** | **213,291** | **124,294** | **278** | **70,807** | **4,926** | **48,283** | **+14.3%** |
 
 Gas book net margin positive over the simulation period. Network charges (GDN + NTS, £9–18/MWh) dominate the gas non-commodity cost stack.
 
@@ -1057,16 +1061,16 @@ Watch < 2×, STRESS < 1× (account balance below regulatory floor).
 |------|-----------|----------|----------------------|----------------|--------|
 | 2016 | 252,658 | 12 | 21,055 | 161.96× | OK |
 | 2017 | 255,040 | 14 | 18,217 | 140.13× | OK |
-| 2018 | 258,926 | 25 | 10,357 | 79.67× | OK |
-| 2019 | 266,239 | 33 | 8,068 | 62.06× | OK |
-| 2020 | 277,481 | 47 | 5,904 | 45.41× | OK |
-| 2021 | 282,433 | 60 | 4,707 | 36.21× | OK |
-| 2022 | 258,769 | 84 | 3,081 | 23.70× | OK |
-| 2023 | 316,357 | 98 | 3,228 | 24.83× | OK |
-| 2024 | 383,574 | 150 | 2,557 | 19.67× | OK |
-| 2025 | 402,114 | 184 | 2,185 | 16.81× | OK |
+| 2018 | 259,148 | 25 | 10,366 | 79.74× | OK |
+| 2019 | 266,444 | 33 | 8,074 | 62.11× | OK |
+| 2020 | 277,598 | 47 | 5,906 | 45.43× | OK |
+| 2021 | 282,565 | 60 | 4,709 | 36.23× | OK |
+| 2022 | 258,934 | 84 | 3,083 | 23.71× | OK |
+| 2023 | 315,671 | 99 | 3,189 | 24.53× | OK |
+| 2024 | 384,444 | 151 | 2,546 | 19.59× | OK |
+| 2025 | 403,202 | 186 | 2,168 | 16.68× | OK |
 
-End-state (2025): **£2,185/account** across 184 billing accounts — OK.
+End-state (2025): **£2,168/account** across 186 billing accounts — OK.
 
 ## BSC Credit Cover — Working Capital Requirement (Phase 53)
 
@@ -1077,14 +1081,14 @@ Below 5× coverage ratio (treasury / credit cover) flags working capital stress.
 |------|-------------|---------------|-----------|----------------|--------|
 | 2016 | 25 | 30 | 252,658 | 8472.8× | OK |
 | 2017 | 26 | 31 | 255,040 | 8310.2× | OK |
-| 2018 | 45 | 54 | 258,926 | 4819.0× | OK |
-| 2019 | 41 | 49 | 266,239 | 5393.8× | OK |
-| 2020 | 46 | 55 | 277,481 | 5019.6× | OK |
-| 2021 | 115 | 138 | 282,433 | 2052.6× | OK |
-| 2022 | 268 | 322 | 258,769 | 804.4× | OK |
-| 2023 | 255 | 306 | 316,357 | 1033.3× | OK |
-| 2024 | 231 | 277 | 383,574 | 1382.7× | OK |
-| 2025 | 333 | 399 | 402,114 | 1006.9× | OK |
+| 2018 | 45 | 54 | 259,148 | 4823.2× | OK |
+| 2019 | 41 | 49 | 266,444 | 5398.0× | OK |
+| 2020 | 46 | 55 | 277,598 | 5021.7× | OK |
+| 2021 | 115 | 138 | 282,565 | 2053.5× | OK |
+| 2022 | 272 | 326 | 258,934 | 794.6× | OK |
+| 2023 | 259 | 310 | 315,671 | 1017.5× | OK |
+| 2024 | 236 | 283 | 384,444 | 1359.6× | OK |
+| 2025 | 338 | 406 | 403,202 | 994.0× | OK |
 
 
 
@@ -1116,12 +1120,12 @@ via the bill-shock history model. Crisis years (2021-22) see the largest spikes.
 | 2019 | 299 | 1113% | PROS-2016-0011g (2019-08-31) |
 | 2020 | 479 | 1638% | PROS-2018-0016g (2020-09-30) |
 | 2021 | 530 | 1486% | PROS-2017-0022g (2021-08-31) |
-| 2022 | 649 | 2757% | PROS-2022-0067 (2022-03-31) |
-| 2023 | 827 | 2965% | PROS-2023-0089 (2023-04-30) |
-| 2024 | 1294 | 2671% | PROS-2023-0096g (2024-08-31) |
-| 2025 | 737 | 2954% | PROS-2025-0100 (2025-04-30) |
+| 2022 | 656 | 2757% | PROS-2022-0067 (2022-03-31) |
+| 2023 | 835 | 2965% | PROS-2023-0089 (2023-04-30) |
+| 2024 | 1306 | 2671% | PROS-2023-0096g (2024-08-31) |
+| 2025 | 745 | 2954% | PROS-2025-0100 (2025-04-30) |
 
-Total: **5222** bill shock events across 10 years
+Total: **5257** bill shock events across 10 years
 
 **Top 10 worst single-period bill spikes:**
 
@@ -1151,10 +1155,10 @@ Threshold for elevated risk: >20% company gas churn estimate.
 | 2019 | 15 | 5% | 8% | 0 |
 | 2020 | 25 | 0% | 9% | 0 |
 | 2021 | 38 | 14% | 74% | 3 ⚠ |
-| 2022 | 35 | 30% | 75% | 35 ⚠ |
-| 2023 | 58 | 84% | 93% | 57 ⚠ |
-| 2024 | 85 | 0% | 0% | 0 |
-| 2025 | 102 | 17% | 45% | 42 ⚠ |
+| 2022 | 36 | 30% | 75% | 36 ⚠ |
+| 2023 | 59 | 84% | 93% | 58 ⚠ |
+| 2024 | 87 | 0% | 0% | 0 |
+| 2025 | 103 | 17% | 45% | 42 ⚠ |
 
 **Top elevated gas renewals (>20% estimated churn):**
 
@@ -1182,8 +1186,8 @@ Threshold for elevated risk: >20% company gas churn estimate.
 | Acquisition cost avoided (retained customers) | £1,450.00 |
 | **Full economic ROI (margin + acq savings)** | **£4,770.34** |
 
-Missed opportunities (churns with no offer): **36** (£18,082.48 expected margin lost without offer)
-- **Below threshold** (churn estimate under 30%): 36 (£18,082.48 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
+Missed opportunities (churns with no offer): **35** (£17,566.24 expected margin lost without offer)
+- **Below threshold** (churn estimate under 30%): 35 (£17,566.24 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
 
 ### Year-by-Year Breakdown
 
@@ -1193,10 +1197,10 @@ Missed opportunities (churns with no offer): **36** (£18,082.48 expected margin
 | 2018 | 2 | 2 | £102.01 | £1897.60 | £1795.59 | £633.57 |
 | 2019 | 3 | 3 | £56.45 | £977.60 | £921.15 | £478.81 |
 | 2021 | 1 | 0 | £325.24 | £0.00 | £-325.24 | £-22.85 |
-| 2022 | 0 | 0 | £0.00 | £0.00 | £0.00 | £6300.81 |
+| 2022 | 0 | 0 | £0.00 | £0.00 | £0.00 | £5599.04 |
 | 2023 | 0 | 0 | £0.00 | £0.00 | £0.00 | £444.54 |
-| 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £2279.21 |
-| 2025 | 1 | 1 | £42.31 | £613.71 | £571.40 | £6385.51 |
+| 2024 | 0 | 0 | £0.00 | £0.00 | £0.00 | £1702.56 |
+| 2025 | 1 | 1 | £42.31 | £613.71 | £571.40 | £7147.69 |
 
 ### Per-Offer Detail
 
@@ -1221,13 +1225,13 @@ Post-retention survival: how long did retained customers stay before churning or
 | PROS-2016-0020 | 2017-01-18 | (window end) | 107 | active |
 | C3 | 2017-07-01 | (window end) | 102 | active |
 | C5 | 2018-12-31 | 2021-12-30 | 36 | churned |
-| PROS-2018-0003 | 2019-01-02 | 2024-12-31 | 72 | churned |
+| PROS-2018-0003 | 2019-01-02 | (window end) | 84 | active |
 | PROS-2017-0019 | 2019-01-14 | (window end) | 84 | active |
 | PROS-2018-0035 | 2019-01-25 | (window end) | 83 | active |
 | PROS-2024-0081 | 2025-03-15 | (window end) | 10 | active |
 
-**Eventually churned (2/7)**: C5, PROS-2018-0003 — avg 54 months post-retention before final churn.
-**Still active (5/7)**: PROS-2016-0020, C3, PROS-2017-0019, PROS-2018-0035, PROS-2024-0081 — survived to simulation end.
+**Eventually churned (1/7)**: C5 — avg 36 months post-retention before final churn.
+**Still active (6/7)**: PROS-2016-0020, C3, PROS-2018-0003, PROS-2017-0019, PROS-2018-0035, PROS-2024-0081 — survived to simulation end.
 
 ## Retention as Deferral (H1 vs H2)
 
@@ -1240,20 +1244,20 @@ Every retention offer prices one renewal term margin (H1, assumed 12 months). Th
 | C3 | 2017-07-01 | 12 mo | still active | none yet | no |
 | C5 | 2018-12-31 | 12 mo | 36.0 mo | next_offer | no |
 | C5 | 2021-12-30 | 12 mo | 0.0 mo | churn | yes |
-| PROS-2018-0003 | 2019-01-02 | 12 mo | 71.9 mo | churn | no |
+| PROS-2018-0003 | 2019-01-02 | 12 mo | still active | none yet | no |
 | PROS-2017-0019 | 2019-01-14 | 12 mo | still active | none yet | no |
 | PROS-2018-0035 | 2019-01-25 | 12 mo | still active | none yet | no |
 | PROS-2024-0081 | 2025-03-15 | 12 mo | still active | none yet | no |
 
-1/4 resolved offers (25%) underperformed their assumed deferral window -- the next offer or churn arrived sooner than the term the discount was priced to buy.
+1/3 resolved offers (33%) underperformed their assumed deferral window -- the next offer or churn arrived sooner than the term the discount was priced to buy.
 
 Serial savers (2): C5 (2 offers, £412), PROS-2016-0020 (2 offers, £32).
 EV-negative (1/2): C5 -- churned anyway after £412 of cumulative discount spend across repeat offers. Managed-exit territory, not another offer.
 
 ## Enterprise Value Analysis (Phase 22a)
 
-**Full-history EV:** £300,884.26 — anchored to all 10 years including crisis losses
-**3yr-trailing EV:** £177,512.89 — based on last 3 years (2023, 2024, 2025), reflecting current earning power
+**Full-history EV:** £298,951.78 — anchored to all 10 years including crisis losses
+**3yr-trailing EV:** £177,923.76 — based on last 3 years (2023, 2024, 2025), reflecting current earning power
 
 The gap between the two is the weight of unrecovered crisis losses in the CLV anchor.
 When trailing EV > full-history EV, the company's recent performance is better than its
@@ -1265,168 +1269,169 @@ cumulative history suggests — a recovery signal.
 |------|----------:|
 | 2016 | £2,026.85 |
 | 2017 | £2,706.88 |
-| 2018 | £3,335.96 |
-| 2019 | £7,362.29 |
-| 2020 | £11,668.22 |
-| 2021 | £5,902.95 |
-| 2022 | £-17,926.35 |
-| 2023 | £39,030.67 | ← trailing
-| 2024 | £69,386.08 | ← trailing
-| 2025 | £28,620.71 | ← trailing
+| 2018 | £3,557.71 |
+| 2019 | £7,345.03 |
+| 2020 | £11,580.49 |
+| 2021 | £5,917.86 |
+| 2022 | £-18,014.84 |
+| 2023 | £38,545.74 | ← trailing
+| 2024 | £70,624.11 | ← trailing
+| 2025 | £28,912.04 | ← trailing
 
 **CLV by billing account:**
 
 | Account | Full-history CLV | 3yr-trailing CLV |
 |---------|----------------:|----------------:|
 | C1 | — | — |
-| C2 | £599.94 | £1,489.98 |
-| C3 | £353.86 | £912.22 |
+| C2 | £599.09 | £1,485.35 |
+| C3 | £353.31 | £909.38 |
 | C4 | — | — |
 | C5 | — | — |
 | C6 | — | — |
-| C7 | £-257.14 | £1,262.55 |
-| C8 | £1,003.51 | £1,587.22 |
-| C9 | £859.05 | £932.33 |
+| C7 | £-256.76 | £1,258.63 |
+| C8 | £1,002.04 | £1,582.30 |
+| C9 | £857.75 | £929.44 |
 | C_IC1 | — | — |
 | C_IC2 | — | — |
 | C_IC3 | — | — |
 | C_IC4 | — | — |
-| PROS-2016-0011 | — | £1,532.69 |
-| PROS-2016-0020 | — | £1,630.22 |
-| PROS-2017-0019 | — | £1,289.13 |
-| PROS-2017-0022 | — | £1,847.68 |
-| PROS-2018-0003 | — | £1,100.63 |
-| PROS-2018-0009 | — | £674.68 |
-| PROS-2018-0016 | — | £1,460.08 |
-| PROS-2018-0018 | — | £1,177.39 |
-| PROS-2018-0022 | — | £1,424.63 |
-| PROS-2018-0024 | — | £757.80 |
-| PROS-2018-0035 | — | £2,089.17 |
-| PROS-2018-0043 | — | £1,265.92 |
-| PROS-2018-0053 | — | £1,523.38 |
-| PROS-2019-0008 | — | £1,618.37 |
-| PROS-2019-0009 | — | £1,286.31 |
-| PROS-2019-0012 | — | £1,183.19 |
-| PROS-2019-0015 | — | £1,654.00 |
-| PROS-2019-0021 | — | £1,803.62 |
-| PROS-2019-0023 | — | £2,154.78 |
-| PROS-2019-0024 | — | £1,562.66 |
-| PROS-2019-0027 | — | £2,030.77 |
-| PROS-2020-0002 | — | £1,333.85 |
-| PROS-2020-0006 | — | £395.11 |
-| PROS-2020-0009 | — | £1,205.78 |
-| PROS-2020-0012 | — | £1,384.79 |
-| PROS-2020-0016 | — | £1,225.04 |
-| PROS-2020-0022 | — | £1,486.01 |
-| PROS-2020-0025 | — | £1,640.66 |
-| PROS-2020-0032 | — | £2,042.29 |
-| PROS-2020-0042 | — | £2,182.65 |
-| PROS-2020-0043 | — | £205.06 |
-| PROS-2020-0048 | — | £2,185.16 |
-| PROS-2021-0031 | — | £1,886.74 |
-| PROS-2021-0045 | — | £949.11 |
-| PROS-2021-0051 | — | £1,512.49 |
-| PROS-2021-0062 | — | £2,810.22 |
-| PROS-2021-0088 | — | £1,283.68 |
-| PROS-2022-0009 | — | £1,456.36 |
-| PROS-2022-0010 | — | £1,441.04 |
-| PROS-2022-0011 | — | £543.04 |
-| PROS-2022-0019 | — | £-432.47 |
-| PROS-2022-0030 | — | £1,875.96 |
-| PROS-2022-0045 | — | £1,072.71 |
-| PROS-2022-0046 | — | £1,724.74 |
-| PROS-2022-0047 | — | £1,267.36 |
-| PROS-2022-0048 | — | £1,546.91 |
-| PROS-2022-0049 | — | £1,750.18 |
-| PROS-2022-0063 | — | £1,817.48 |
-| PROS-2022-0067 | — | £1,329.34 |
-| PROS-2022-0071 | — | £1,456.45 |
-| PROS-2022-0073 | — | £1,334.52 |
-| PROS-2022-0081 | — | £1,117.48 |
-| PROS-2022-0082 | — | £1,643.86 |
-| PROS-2022-0083 | — | £1,470.80 |
-| PROS-2022-0092 | — | £1,187.34 |
-| PROS-2022-0097 | — | £1,481.61 |
-| PROS-2022-0100 | — | £1,414.24 |
-| PROS-2022-0120 | — | £739.61 |
-| PROS-2022-0124 | — | £1,501.26 |
-| PROS-2022-0125 | — | £889.88 |
-| PROS-2022-0127 | — | £1,259.44 |
-| PROS-2022-0128 | — | £1,344.90 |
-| PROS-2022-0130 | — | £1,533.76 |
-| PROS-2023-0001 | — | £1,387.14 |
-| PROS-2023-0010 | — | £859.10 |
-| PROS-2023-0013 | — | £1,290.39 |
-| PROS-2023-0014 | — | £1,178.06 |
-| PROS-2023-0016 | — | £1,214.66 |
-| PROS-2023-0025 | — | £1,164.24 |
-| PROS-2023-0026 | — | £1,625.97 |
-| PROS-2023-0039 | — | £2,003.83 |
-| PROS-2023-0045 | — | £1,844.77 |
-| PROS-2023-0065 | — | £1,560.91 |
-| PROS-2023-0067 | — | £1,821.03 |
-| PROS-2023-0072 | — | £1,405.28 |
-| PROS-2023-0089 | — | £1,708.56 |
-| PROS-2023-0090 | — | £1,483.59 |
-| PROS-2023-0096 | — | £1,571.74 |
-| PROS-2023-0104 | — | £1,646.23 |
-| PROS-2023-0113 | — | £1,628.90 |
-| PROS-2023-0116 | — | £1,270.41 |
-| PROS-2023-0125 | — | £1,664.30 |
-| PROS-2023-0126 | — | £1,239.59 |
-| PROS-2023-0127 | — | £1,576.30 |
-| PROS-2023-0146 | — | £805.81 |
-| PROS-2023-0147 | — | £838.65 |
-| PROS-2023-0152 | — | £826.46 |
-| PROS-2023-0158 | — | £1,006.93 |
-| PROS-2023-0162 | — | £1,217.18 |
-| PROS-2023-0166 | — | £906.09 |
-| PROS-2023-0172 | — | £800.00 |
-| PROS-2023-0177 | — | £776.85 |
-| PROS-2024-0008 | — | £1,760.58 |
-| PROS-2024-0009 | — | £1,581.32 |
-| PROS-2024-0010 | — | £1,714.82 |
-| PROS-2024-0012 | — | £1,090.52 |
-| PROS-2024-0014 | — | £2,138.52 |
-| PROS-2024-0022 | — | £810.43 |
-| PROS-2024-0027 | — | £1,653.40 |
-| PROS-2024-0036 | — | £1,642.13 |
-| PROS-2024-0038 | — | £1,350.97 |
-| PROS-2024-0040 | — | £1,377.90 |
-| PROS-2024-0041 | — | £1,283.03 |
-| PROS-2024-0048 | — | £1,223.57 |
-| PROS-2024-0056 | — | £1,029.93 |
-| PROS-2024-0057 | — | £1,221.54 |
-| PROS-2024-0062 | — | £1,372.27 |
-| PROS-2024-0065 | — | £1,197.61 |
-| PROS-2024-0069 | — | £1,186.48 |
-| PROS-2024-0076 | — | £492.18 |
-| PROS-2024-0081 | — | £1,345.20 |
-| PROS-2024-0082 | — | £776.22 |
-| PROS-2024-0083 | — | £1,438.26 |
-| PROS-2024-0085 | — | £1,060.13 |
-| PROS-2024-0087 | — | £1,142.99 |
-| PROS-2024-0094 | — | £427.06 |
-| PROS-2024-0096 | — | £965.38 |
-| PROS-2024-0098 | — | £874.99 |
-| PROS-2024-0110 | — | £891.06 |
-| PROS-2024-0111 | — | £1,027.78 |
-| PROS-2024-0113 | — | £906.10 |
-| PROS-2024-0116 | — | £1,006.71 |
-| PROS-2024-0122 | — | £899.10 |
-| PROS-2024-0131 | — | £1,033.98 |
-| PROS-2024-0147 | — | £894.51 |
-| PROS-2024-0148 | — | £861.91 |
-| PROS-2024-0156 | — | £457.72 |
-| PROS-2024-0157 | — | £440.83 |
-| PROS-2024-0160 | — | £161.08 |
-| PROS-2024-0179 | — | £297.43 |
-| PROS-2024-0191 | — | £486.92 |
-| PROS-2024-0195 | — | £410.68 |
-| PROS-2024-0196 | — | £535.86 |
-| PROS-2024-0197 | — | £386.83 |
-| PROS-2024-0199 | — | £561.60 |
-| PROS-2024-0200 | — | £557.29 |
+| PROS-2016-0011 | — | £1,527.89 |
+| PROS-2016-0020 | — | £1,624.80 |
+| PROS-2017-0019 | — | £1,284.46 |
+| PROS-2017-0022 | — | £1,842.10 |
+| PROS-2018-0003 | — | £1,341.04 |
+| PROS-2018-0009 | — | £668.97 |
+| PROS-2018-0014 | — | £928.99 |
+| PROS-2018-0016 | — | £1,462.68 |
+| PROS-2018-0018 | — | £1,177.17 |
+| PROS-2018-0022 | — | £1,419.78 |
+| PROS-2018-0024 | — | £754.94 |
+| PROS-2018-0035 | — | £2,082.69 |
+| PROS-2018-0043 | — | £1,261.99 |
+| PROS-2018-0053 | — | £1,517.88 |
+| PROS-2019-0008 | — | £1,594.04 |
+| PROS-2019-0009 | — | £1,283.50 |
+| PROS-2019-0012 | — | £1,179.48 |
+| PROS-2019-0015 | — | £1,648.95 |
+| PROS-2019-0021 | — | £1,798.02 |
+| PROS-2019-0023 | — | £2,148.09 |
+| PROS-2019-0024 | — | £1,557.81 |
+| PROS-2019-0027 | — | £2,024.46 |
+| PROS-2020-0002 | — | £1,334.18 |
+| PROS-2020-0006 | — | £1,412.52 |
+| PROS-2020-0009 | — | £1,196.47 |
+| PROS-2020-0012 | — | £1,380.49 |
+| PROS-2020-0016 | — | £1,220.44 |
+| PROS-2020-0022 | — | £1,481.42 |
+| PROS-2020-0025 | — | £1,635.58 |
+| PROS-2020-0032 | — | £2,035.94 |
+| PROS-2020-0043 | — | £203.28 |
+| PROS-2020-0048 | — | £2,184.25 |
+| PROS-2021-0006 | — | £1,254.61 |
+| PROS-2021-0031 | — | £1,880.88 |
+| PROS-2021-0045 | — | £943.93 |
+| PROS-2021-0051 | — | £1,507.27 |
+| PROS-2021-0062 | — | £2,801.45 |
+| PROS-2021-0088 | — | £1,279.70 |
+| PROS-2022-0009 | — | £1,447.22 |
+| PROS-2022-0010 | — | £1,430.66 |
+| PROS-2022-0011 | — | £544.10 |
+| PROS-2022-0019 | — | £-431.13 |
+| PROS-2022-0030 | — | £1,870.13 |
+| PROS-2022-0045 | — | £1,077.89 |
+| PROS-2022-0046 | — | £1,719.50 |
+| PROS-2022-0047 | — | £1,263.46 |
+| PROS-2022-0048 | — | £1,542.14 |
+| PROS-2022-0049 | — | £1,744.72 |
+| PROS-2022-0063 | — | £1,811.84 |
+| PROS-2022-0067 | — | £1,325.21 |
+| PROS-2022-0071 | — | £1,451.92 |
+| PROS-2022-0073 | — | £1,330.38 |
+| PROS-2022-0081 | — | £1,114.01 |
+| PROS-2022-0082 | — | £1,638.76 |
+| PROS-2022-0083 | — | £1,466.23 |
+| PROS-2022-0092 | — | £1,183.65 |
+| PROS-2022-0097 | — | £1,477.01 |
+| PROS-2022-0100 | — | £1,409.85 |
+| PROS-2022-0120 | — | £737.31 |
+| PROS-2022-0124 | — | £1,496.60 |
+| PROS-2022-0125 | — | £887.11 |
+| PROS-2022-0127 | — | £1,255.53 |
+| PROS-2022-0128 | — | £1,340.73 |
+| PROS-2022-0130 | — | £1,529.00 |
+| PROS-2023-0001 | — | £1,388.56 |
+| PROS-2023-0010 | — | £856.44 |
+| PROS-2023-0013 | — | £1,286.74 |
+| PROS-2023-0014 | — | £1,174.41 |
+| PROS-2023-0016 | — | £1,212.60 |
+| PROS-2023-0025 | — | £1,160.62 |
+| PROS-2023-0026 | — | £1,620.92 |
+| PROS-2023-0039 | — | £1,997.79 |
+| PROS-2023-0045 | — | £1,839.03 |
+| PROS-2023-0065 | — | £1,556.06 |
+| PROS-2023-0067 | — | £1,815.37 |
+| PROS-2023-0072 | — | £1,400.92 |
+| PROS-2023-0089 | — | £1,703.25 |
+| PROS-2023-0090 | — | £1,478.98 |
+| PROS-2023-0096 | — | £1,566.86 |
+| PROS-2023-0104 | — | £1,641.12 |
+| PROS-2023-0113 | — | £1,623.84 |
+| PROS-2023-0116 | — | £1,266.47 |
+| PROS-2023-0125 | — | £1,659.13 |
+| PROS-2023-0126 | — | £1,235.74 |
+| PROS-2023-0127 | — | £1,571.41 |
+| PROS-2023-0146 | — | £803.31 |
+| PROS-2023-0147 | — | £836.05 |
+| PROS-2023-0152 | — | £823.90 |
+| PROS-2023-0158 | — | £1,003.81 |
+| PROS-2023-0162 | — | £1,213.40 |
+| PROS-2023-0166 | — | £903.28 |
+| PROS-2023-0172 | — | £480.55 |
+| PROS-2023-0177 | — | £787.54 |
+| PROS-2024-0008 | — | £1,755.12 |
+| PROS-2024-0009 | — | £1,576.48 |
+| PROS-2024-0010 | — | £1,709.44 |
+| PROS-2024-0012 | — | £1,089.47 |
+| PROS-2024-0014 | — | £2,131.37 |
+| PROS-2024-0022 | — | £807.91 |
+| PROS-2024-0027 | — | £1,648.27 |
+| PROS-2024-0036 | — | £1,637.04 |
+| PROS-2024-0038 | — | £1,346.78 |
+| PROS-2024-0040 | — | £1,373.62 |
+| PROS-2024-0041 | — | £1,279.05 |
+| PROS-2024-0048 | — | £1,218.40 |
+| PROS-2024-0056 | — | £1,026.73 |
+| PROS-2024-0057 | — | £1,217.75 |
+| PROS-2024-0062 | — | £1,368.00 |
+| PROS-2024-0065 | — | £1,193.89 |
+| PROS-2024-0069 | — | £1,182.80 |
+| PROS-2024-0076 | — | £490.65 |
+| PROS-2024-0081 | — | £1,341.03 |
+| PROS-2024-0082 | — | £773.81 |
+| PROS-2024-0083 | — | £1,433.79 |
+| PROS-2024-0085 | — | £1,056.84 |
+| PROS-2024-0087 | — | £1,139.44 |
+| PROS-2024-0094 | — | £425.74 |
+| PROS-2024-0096 | — | £962.39 |
+| PROS-2024-0098 | — | £872.27 |
+| PROS-2024-0110 | — | £888.30 |
+| PROS-2024-0111 | — | £1,024.59 |
+| PROS-2024-0113 | — | £903.29 |
+| PROS-2024-0116 | — | £1,003.59 |
+| PROS-2024-0122 | — | £896.31 |
+| PROS-2024-0131 | — | £1,030.77 |
+| PROS-2024-0147 | — | £891.73 |
+| PROS-2024-0148 | — | £859.24 |
+| PROS-2024-0156 | — | £456.30 |
+| PROS-2024-0157 | — | £439.47 |
+| PROS-2024-0160 | — | £160.58 |
+| PROS-2024-0179 | — | £296.50 |
+| PROS-2024-0191 | — | £485.41 |
+| PROS-2024-0195 | — | £409.40 |
+| PROS-2024-0196 | — | £534.20 |
+| PROS-2024-0197 | — | £385.63 |
+| PROS-2024-0199 | — | £559.85 |
+| PROS-2024-0200 | — | £555.56 |
 | PROS-2024-0203 | — | — |
 | PROS-2024-0205 | — | — |
 | PROS-2024-0209 | — | — |
@@ -1474,7 +1479,7 @@ cumulative history suggests — a recovery signal.
 | PROS-2025-0160 | — | — |
 | PROS-2025-0163 | — | — |
 | PROS-2025-0170 | — | — |
-| SYN-2021-001 | — | £467.28 |
+| SYN-2021-001 | — | £465.83 |
 
 ## Customer Lifetime Value — Three Horizons (EP1)
 
@@ -1482,252 +1487,252 @@ The same book on three valuation bases, each carrying its own time model and its
 
 **Aggregate basis:** `tenure_expected` at a 10.0% discount rate.
 
-- Portfolio mean value per account: £1,024.22; median £362.15; total £129,051.63.
-- Population: 126 of 210 accounts. Excluded: ceased=37, no_margin_observed=47.
+- Portfolio mean value per account: £1,013.51; median £329.81; total £128,715.84.
+- Population: 127 of 210 accounts. Excluded: ceased=36, no_margin_observed=47.
 
 ### By segment
 
 | Segment | Mean value | Counted / available | Profitable? |
 |---|---|---|---|
 | SME | not estimable | 0 / 2 | no counted member |
-| resi | £1,024.22 | 126 / 208 | yes |
+| resi | £1,013.51 | 127 / 208 | yes |
 
 ### By account
 
 | Account | Contract term | Tenure expected | Portfolio cohort |
 |---|---|---|---|
-| C1 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| C2 | £44.92 | £75.69 | £220.06 |
-| C3 | £32.66 | £78.08 | £220.06 |
-| C4 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
+| C1 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| C2 | £44.92 | £75.69 | £217.27 |
+| C3 | £32.66 | £78.08 | £217.27 |
+| C4 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
 | C5 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | not estimable (no_cohort_peers) |
 | C6 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | not estimable (no_cohort_peers) |
-| C7 | £-20.06 | £-35.81 | £220.06 |
-| C8 | £82.31 | £156.45 | £220.06 |
-| C9 | £86.23 | £251.84 | £220.06 |
-| PROS-2016-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2016-0011 | £79.61 | £301.99 | £220.06 |
-| PROS-2016-0020 | £75.32 | £134.43 | £220.06 |
-| PROS-2017-0019 | £85.90 | £153.31 | £220.06 |
-| PROS-2017-0022 | £70.28 | £125.43 | £220.06 |
-| PROS-2018-0002 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2018-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2018-0009 | £76.75 | £532.82 | £220.06 |
-| PROS-2018-0014 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2018-0016 | £60.51 | £108.00 | £220.06 |
-| PROS-2018-0018 | £57.05 | £101.82 | £220.06 |
-| PROS-2018-0022 | £81.49 | £145.45 | £220.06 |
-| PROS-2018-0024 | £109.02 | £756.84 | £220.06 |
-| PROS-2018-0035 | £115.28 | £194.23 | £220.06 |
-| PROS-2018-0039 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2018-0043 | £106.98 | £180.24 | £220.06 |
-| PROS-2018-0053 | £114.13 | £203.70 | £220.06 |
-| PROS-2019-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2019-0008 | £53.31 | £95.14 | £220.06 |
-| PROS-2019-0009 | £71.23 | £127.14 | £220.06 |
-| PROS-2019-0012 | £104.17 | £249.02 | £220.06 |
-| PROS-2019-0015 | £79.05 | £141.08 | £220.06 |
-| PROS-2019-0021 | £120.71 | £203.38 | £220.06 |
-| PROS-2019-0023 | £134.12 | £225.97 | £220.06 |
-| PROS-2019-0024 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2019-0027 | £114.39 | £192.73 | £220.06 |
-| PROS-2019-0050 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0002 | £40.67 | £68.52 | £220.06 |
-| PROS-2020-0006 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0009 | £70.66 | £126.11 | £220.06 |
-| PROS-2020-0012 | £51.00 | £85.92 | £220.06 |
-| PROS-2020-0013 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0016 | £69.91 | £124.78 | £220.06 |
-| PROS-2020-0022 | £78.57 | £140.22 | £220.06 |
-| PROS-2020-0025 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0032 | £141.01 | £237.58 | £220.06 |
-| PROS-2020-0042 | £125.82 | £211.99 | £220.06 |
-| PROS-2020-0043 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0047 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0048 | £159.71 | £285.05 | £220.06 |
-| PROS-2020-0050 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2020-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0006 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0017 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0029 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0031 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0044 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0045 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0051 | £107.39 | £191.68 | £220.06 |
-| PROS-2021-0060 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0062 | £151.05 | £254.50 | £220.06 |
-| PROS-2021-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2021-0088 | £106.39 | £189.88 | £220.06 |
-| PROS-2021-0100 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0009 | £18.74 | £33.45 | £220.06 |
-| PROS-2022-0010 | £33.13 | £59.14 | £220.06 |
-| PROS-2022-0011 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0019 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0030 | £168.65 | £284.14 | £220.06 |
-| PROS-2022-0045 | £180.78 | £304.59 | £220.06 |
-| PROS-2022-0046 | £156.65 | £279.59 | £220.06 |
-| PROS-2022-0047 | £184.78 | £329.80 | £220.06 |
-| PROS-2022-0048 | £155.00 | £276.64 | £220.06 |
-| PROS-2022-0049 | £122.72 | £219.04 | £220.06 |
-| PROS-2022-0063 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0071 | £118.96 | £200.43 | £220.06 |
-| PROS-2022-0073 | £128.09 | £215.82 | £220.06 |
-| PROS-2022-0081 | £126.87 | £213.76 | £220.06 |
-| PROS-2022-0082 | £87.06 | £155.38 | £220.06 |
-| PROS-2022-0083 | £112.68 | £201.12 | £220.06 |
-| PROS-2022-0092 | £68.51 | £122.27 | £220.06 |
-| PROS-2022-0097 | £80.53 | £143.72 | £220.06 |
-| PROS-2022-0100 | £55.39 | £93.33 | £220.06 |
-| PROS-2022-0120 | £72.08 | £121.44 | £220.06 |
-| PROS-2022-0124 | £124.38 | £209.57 | £220.06 |
-| PROS-2022-0125 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2022-0127 | £115.98 | £195.41 | £220.06 |
-| PROS-2022-0128 | £119.08 | £200.64 | £220.06 |
-| PROS-2022-0130 | £148.74 | £265.47 | £220.06 |
-| PROS-2023-0001 | £249.44 | £474.11 | £220.06 |
-| PROS-2023-0010 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2023-0013 | £216.66 | £386.71 | £220.06 |
-| PROS-2023-0014 | £219.16 | £481.54 | £220.06 |
-| PROS-2023-0016 | £209.39 | £398.00 | £220.06 |
-| PROS-2023-0025 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2023-0026 | £279.28 | £470.55 | £220.06 |
-| PROS-2023-0039 | £362.20 | £610.25 | £220.06 |
-| PROS-2023-0045 | £328.66 | £553.73 | £220.06 |
-| PROS-2023-0065 | £268.69 | £452.70 | £220.06 |
-| PROS-2023-0067 | £324.60 | £546.90 | £220.06 |
-| PROS-2023-0072 | £235.88 | £397.43 | £220.06 |
-| PROS-2023-0089 | £302.61 | £509.84 | £220.06 |
-| PROS-2023-0090 | £254.41 | £428.64 | £220.06 |
-| PROS-2023-0096 | £287.68 | £513.46 | £220.06 |
-| PROS-2023-0104 | £290.75 | £489.86 | £220.06 |
-| PROS-2023-0113 | £287.59 | £484.53 | £220.06 |
-| PROS-2023-0116 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2023-0125 | £295.44 | £497.76 | £220.06 |
-| PROS-2023-0126 | £204.23 | £344.09 | £220.06 |
-| PROS-2023-0127 | £276.85 | £466.44 | £220.06 |
-| PROS-2023-0146 | £113.00 | £190.39 | £220.06 |
-| PROS-2023-0147 | £120.30 | £202.69 | £220.06 |
-| PROS-2023-0152 | £130.19 | £247.45 | £220.06 |
-| PROS-2023-0158 | £173.28 | £329.36 | £220.06 |
-| PROS-2023-0162 | £213.03 | £380.22 | £220.06 |
-| PROS-2023-0166 | £156.95 | £319.61 | £220.06 |
-| PROS-2023-0172 | £148.59 | £390.26 | £220.06 |
-| PROS-2023-0177 | £131.51 | £288.96 | £220.06 |
-| PROS-2024-0008 | £677.93 | £4,706.57 | £220.06 |
-| PROS-2024-0009 | £595.20 | £4,132.23 | £220.06 |
-| PROS-2024-0010 | £657.07 | £4,561.75 | £220.06 |
-| PROS-2024-0012 | £369.75 | £2,566.98 | £220.06 |
-| PROS-2024-0014 | £853.64 | £5,926.48 | £220.06 |
-| PROS-2024-0022 | £308.29 | £2,140.33 | £220.06 |
-| PROS-2024-0027 | £632.37 | £4,390.27 | £220.06 |
-| PROS-2024-0036 | £628.99 | £4,366.83 | £220.06 |
-| PROS-2024-0038 | £495.15 | £3,437.60 | £220.06 |
-| PROS-2024-0040 | £508.09 | £3,527.48 | £220.06 |
-| PROS-2024-0041 | £464.83 | £3,227.15 | £220.06 |
-| PROS-2024-0048 | £438.95 | £3,047.47 | £220.06 |
-| PROS-2024-0056 | £351.67 | £2,441.53 | £220.06 |
-| PROS-2024-0057 | £440.36 | £3,057.23 | £220.06 |
-| PROS-2024-0062 | £510.96 | £3,547.37 | £220.06 |
-| PROS-2024-0065 | £432.18 | £3,000.44 | £220.06 |
-| PROS-2024-0069 | £427.31 | £2,966.59 | £220.06 |
-| PROS-2024-0076 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0081 | £503.68 | £3,496.81 | £220.06 |
-| PROS-2024-0082 | £299.92 | £2,082.22 | £220.06 |
-| PROS-2024-0083 | £547.14 | £3,798.56 | £220.06 |
-| PROS-2024-0085 | £373.16 | £2,590.69 | £220.06 |
-| PROS-2024-0087 | £412.18 | £2,861.58 | £220.06 |
-| PROS-2024-0094 | £140.35 | £974.41 | £220.06 |
-| PROS-2024-0096 | £333.08 | £2,312.40 | £220.06 |
-| PROS-2024-0098 | £291.88 | £2,026.39 | £220.06 |
-| PROS-2024-0110 | £301.12 | £2,090.55 | £220.06 |
-| PROS-2024-0111 | £364.47 | £2,530.37 | £220.06 |
-| PROS-2024-0113 | £309.10 | £2,145.96 | £220.06 |
-| PROS-2024-0116 | £356.05 | £2,471.92 | £220.06 |
-| PROS-2024-0122 | £307.17 | £2,132.55 | £220.06 |
-| PROS-2024-0131 | £371.50 | £2,579.17 | £220.06 |
-| PROS-2024-0147 | £310.52 | £2,155.80 | £220.06 |
-| PROS-2024-0148 | £295.74 | £2,053.17 | £220.06 |
-| PROS-2024-0156 | £112.07 | £778.07 | £220.06 |
-| PROS-2024-0157 | £104.54 | £725.77 | £220.06 |
-| PROS-2024-0160 | £-24.04 | £-166.92 | £220.06 |
-| PROS-2024-0179 | £41.48 | £287.99 | £220.06 |
-| PROS-2024-0191 | £132.83 | £922.21 | £220.06 |
-| PROS-2024-0195 | £99.21 | £688.78 | £220.06 |
-| PROS-2024-0196 | £157.24 | £1,091.67 | £220.06 |
-| PROS-2024-0197 | £133.49 | £926.78 | £220.06 |
-| PROS-2024-0199 | £169.38 | £1,175.92 | £220.06 |
-| PROS-2024-0200 | £167.39 | £1,162.13 | £220.06 |
-| PROS-2024-0203 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0205 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0209 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0213 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0218 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0224 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0226 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0233 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2024-0235 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0013 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0022 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0030 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0033 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0039 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0041 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0042 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0049 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0051 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0055 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0060 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0062 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0073 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0075 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0077 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0079 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0083 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0084 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0085 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0087 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0093 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0094 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0095 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0100 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0103 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0106 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0110 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0114 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0119 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0121 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0136 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0149 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0151 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0153 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0156 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0160 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0163 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| PROS-2025-0170 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £220.06 |
-| SYN-2021-001 | £74.46 | £516.94 | £220.06 |
+| C7 | £-20.06 | £-35.81 | £217.27 |
+| C8 | £82.31 | £156.45 | £217.27 |
+| C9 | £86.23 | £251.84 | £217.27 |
+| PROS-2016-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2016-0011 | £79.61 | £301.98 | £217.27 |
+| PROS-2016-0020 | £75.32 | £134.44 | £217.27 |
+| PROS-2017-0019 | £85.39 | £152.41 | £217.27 |
+| PROS-2017-0022 | £70.27 | £125.43 | £217.27 |
+| PROS-2018-0002 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2018-0003 | £53.57 | £90.26 | £217.27 |
+| PROS-2018-0009 | £76.39 | £530.33 | £217.27 |
+| PROS-2018-0014 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2018-0016 | £61.54 | £109.84 | £217.27 |
+| PROS-2018-0018 | £57.28 | £102.23 | £217.27 |
+| PROS-2018-0022 | £81.50 | £145.46 | £217.27 |
+| PROS-2018-0024 | £109.03 | £756.92 | £217.27 |
+| PROS-2018-0035 | £115.28 | £194.23 | £217.27 |
+| PROS-2018-0039 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2018-0043 | £106.98 | £180.24 | £217.27 |
+| PROS-2018-0053 | £114.02 | £203.50 | £217.27 |
+| PROS-2019-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2019-0008 | £53.83 | £96.08 | £217.27 |
+| PROS-2019-0009 | £70.90 | £126.55 | £217.27 |
+| PROS-2019-0012 | £104.21 | £249.10 | £217.27 |
+| PROS-2019-0015 | £79.04 | £141.07 | £217.27 |
+| PROS-2019-0021 | £120.71 | £203.38 | £217.27 |
+| PROS-2019-0023 | £134.12 | £225.97 | £217.27 |
+| PROS-2019-0024 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2019-0027 | £114.39 | £192.73 | £217.27 |
+| PROS-2019-0050 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0002 | £41.06 | £69.17 | £217.27 |
+| PROS-2020-0006 | £46.56 | £78.44 | £217.27 |
+| PROS-2020-0009 | £70.15 | £125.21 | £217.27 |
+| PROS-2020-0012 | £51.00 | £85.92 | £217.27 |
+| PROS-2020-0013 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0016 | £69.60 | £124.22 | £217.27 |
+| PROS-2020-0022 | £78.56 | £140.22 | £217.27 |
+| PROS-2020-0025 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0032 | £141.01 | £237.59 | £217.27 |
+| PROS-2020-0042 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0043 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0047 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0048 | £161.73 | £288.66 | £217.27 |
+| PROS-2020-0050 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2020-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0006 | £47.04 | £83.95 | £217.27 |
+| PROS-2021-0017 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0029 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0031 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0044 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0045 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0051 | £107.44 | £191.75 | £217.27 |
+| PROS-2021-0060 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0062 | £151.03 | £254.46 | £217.27 |
+| PROS-2021-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2021-0088 | £106.39 | £189.88 | £217.27 |
+| PROS-2021-0100 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0009 | £18.05 | £32.21 | £217.27 |
+| PROS-2022-0010 | £32.24 | £57.55 | £217.27 |
+| PROS-2022-0011 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0019 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0030 | £168.65 | £284.14 | £217.27 |
+| PROS-2022-0045 | £182.01 | £306.65 | £217.27 |
+| PROS-2022-0046 | £156.67 | £279.62 | £217.27 |
+| PROS-2022-0047 | £184.79 | £329.81 | £217.27 |
+| PROS-2022-0048 | £155.00 | £276.65 | £217.27 |
+| PROS-2022-0049 | £122.72 | £219.03 | £217.27 |
+| PROS-2022-0063 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0067 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0071 | £118.96 | £200.43 | £217.27 |
+| PROS-2022-0073 | £128.09 | £215.82 | £217.27 |
+| PROS-2022-0081 | £126.87 | £213.76 | £217.27 |
+| PROS-2022-0082 | £87.06 | £155.38 | £217.27 |
+| PROS-2022-0083 | £112.68 | £201.12 | £217.27 |
+| PROS-2022-0092 | £68.51 | £122.27 | £217.27 |
+| PROS-2022-0097 | £80.53 | £143.72 | £217.27 |
+| PROS-2022-0100 | £55.39 | £93.33 | £217.27 |
+| PROS-2022-0120 | £72.08 | £121.44 | £217.27 |
+| PROS-2022-0124 | £124.38 | £209.57 | £217.27 |
+| PROS-2022-0125 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2022-0127 | £115.98 | £195.41 | £217.27 |
+| PROS-2022-0128 | £119.08 | £200.64 | £217.27 |
+| PROS-2022-0130 | £148.74 | £265.47 | £217.27 |
+| PROS-2023-0001 | £250.80 | £476.69 | £217.27 |
+| PROS-2023-0010 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2023-0013 | £216.75 | £386.85 | £217.27 |
+| PROS-2023-0014 | £219.16 | £481.54 | £217.27 |
+| PROS-2023-0016 | £209.80 | £398.77 | £217.27 |
+| PROS-2023-0025 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2023-0026 | £279.28 | £470.55 | £217.27 |
+| PROS-2023-0039 | £362.24 | £610.31 | £217.27 |
+| PROS-2023-0045 | £328.65 | £553.73 | £217.27 |
+| PROS-2023-0065 | £268.69 | £452.70 | £217.27 |
+| PROS-2023-0067 | £324.60 | £546.90 | £217.27 |
+| PROS-2023-0072 | £235.88 | £397.43 | £217.27 |
+| PROS-2023-0089 | £302.61 | £509.84 | £217.27 |
+| PROS-2023-0090 | £254.41 | £428.64 | £217.27 |
+| PROS-2023-0096 | £287.68 | £513.46 | £217.27 |
+| PROS-2023-0104 | £290.75 | £489.86 | £217.27 |
+| PROS-2023-0113 | £287.59 | £484.53 | £217.27 |
+| PROS-2023-0116 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2023-0125 | £295.44 | £497.76 | £217.27 |
+| PROS-2023-0126 | £204.23 | £344.09 | £217.27 |
+| PROS-2023-0127 | £276.85 | £466.44 | £217.27 |
+| PROS-2023-0146 | £113.00 | £190.39 | £217.27 |
+| PROS-2023-0147 | £120.30 | £202.69 | £217.27 |
+| PROS-2023-0152 | £130.19 | £247.45 | £217.27 |
+| PROS-2023-0158 | £173.28 | £329.36 | £217.27 |
+| PROS-2023-0162 | £213.03 | £380.22 | £217.27 |
+| PROS-2023-0166 | £156.95 | £319.61 | £217.27 |
+| PROS-2023-0172 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2023-0177 | £134.91 | £296.43 | £217.27 |
+| PROS-2024-0008 | £677.93 | £4,706.57 | £217.27 |
+| PROS-2024-0009 | £595.23 | £4,132.44 | £217.27 |
+| PROS-2024-0010 | £657.04 | £4,561.57 | £217.27 |
+| PROS-2024-0012 | £370.83 | £2,574.51 | £217.27 |
+| PROS-2024-0014 | £853.41 | £5,924.82 | £217.27 |
+| PROS-2024-0022 | £308.29 | £2,140.33 | £217.27 |
+| PROS-2024-0027 | £632.37 | £4,390.27 | £217.27 |
+| PROS-2024-0036 | £628.99 | £4,366.83 | £217.27 |
+| PROS-2024-0038 | £495.15 | £3,437.60 | £217.27 |
+| PROS-2024-0040 | £508.09 | £3,527.48 | £217.27 |
+| PROS-2024-0041 | £464.83 | £3,227.15 | £217.27 |
+| PROS-2024-0048 | £438.32 | £3,043.06 | £217.27 |
+| PROS-2024-0056 | £351.67 | £2,441.52 | £217.27 |
+| PROS-2024-0057 | £440.36 | £3,057.26 | £217.27 |
+| PROS-2024-0062 | £510.96 | £3,547.37 | £217.27 |
+| PROS-2024-0065 | £432.18 | £3,000.44 | £217.27 |
+| PROS-2024-0069 | £427.31 | £2,966.59 | £217.27 |
+| PROS-2024-0076 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0081 | £503.68 | £3,496.81 | £217.27 |
+| PROS-2024-0082 | £299.92 | £2,082.22 | £217.27 |
+| PROS-2024-0083 | £547.14 | £3,798.56 | £217.27 |
+| PROS-2024-0085 | £373.16 | £2,590.69 | £217.27 |
+| PROS-2024-0087 | £412.18 | £2,861.58 | £217.27 |
+| PROS-2024-0094 | £140.35 | £974.41 | £217.27 |
+| PROS-2024-0096 | £333.08 | £2,312.40 | £217.27 |
+| PROS-2024-0098 | £291.88 | £2,026.39 | £217.27 |
+| PROS-2024-0110 | £301.12 | £2,090.55 | £217.27 |
+| PROS-2024-0111 | £364.47 | £2,530.37 | £217.27 |
+| PROS-2024-0113 | £309.10 | £2,145.96 | £217.27 |
+| PROS-2024-0116 | £356.05 | £2,471.92 | £217.27 |
+| PROS-2024-0122 | £307.17 | £2,132.55 | £217.27 |
+| PROS-2024-0131 | £371.50 | £2,579.17 | £217.27 |
+| PROS-2024-0147 | £310.52 | £2,155.80 | £217.27 |
+| PROS-2024-0148 | £295.74 | £2,053.17 | £217.27 |
+| PROS-2024-0156 | £112.07 | £778.07 | £217.27 |
+| PROS-2024-0157 | £104.54 | £725.77 | £217.27 |
+| PROS-2024-0160 | £-24.04 | £-166.92 | £217.27 |
+| PROS-2024-0179 | £41.48 | £287.99 | £217.27 |
+| PROS-2024-0191 | £132.83 | £922.21 | £217.27 |
+| PROS-2024-0195 | £99.21 | £688.78 | £217.27 |
+| PROS-2024-0196 | £157.24 | £1,091.67 | £217.27 |
+| PROS-2024-0197 | £133.49 | £926.78 | £217.27 |
+| PROS-2024-0199 | £169.38 | £1,175.92 | £217.27 |
+| PROS-2024-0200 | £167.39 | £1,162.13 | £217.27 |
+| PROS-2024-0203 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0205 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0209 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0213 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0218 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0224 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0226 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0233 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2024-0235 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0013 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0022 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0030 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0033 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0039 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0041 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0042 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0049 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0051 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0055 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0060 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0062 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0073 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0075 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0077 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0079 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0083 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0084 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0085 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0087 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0093 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0094 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0095 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0100 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0103 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0106 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0110 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0114 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0119 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0121 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0136 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0149 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0151 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0153 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0156 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0160 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0163 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| PROS-2025-0170 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £217.27 |
+| SYN-2021-001 | £74.46 | £516.94 | £217.27 |
 
 ## CLV Trajectory
 
 Point-in-Time Customer Lifetime Value per billing account at each year-end.
 CLV is computed from churn renewal history and net margins accumulated up to that date only (Point-in-Time Blindfold). '—' = no renewal points yet.
 
-| Year | C1 | C2 | C3 | C4 | C5 | C7 | C8 | C9 | PROS-2016-0003 | PROS-2016-0011 | PROS-2016-0020 | PROS-2017-0019 | PROS-2017-0022 | PROS-2018-0003 | PROS-2018-0009 | PROS-2018-0014 | PROS-2018-0016 | PROS-2018-0018 | PROS-2018-0022 | PROS-2018-0024 | PROS-2018-0035 | PROS-2018-0039 | PROS-2018-0043 | PROS-2018-0053 | PROS-2019-0003 | PROS-2019-0008 | PROS-2019-0009 | PROS-2019-0012 | PROS-2019-0015 | PROS-2019-0021 | PROS-2019-0023 | PROS-2019-0024 | PROS-2019-0027 | PROS-2019-0050 | PROS-2020-0002 | PROS-2020-0006 | PROS-2020-0009 | PROS-2020-0012 | PROS-2020-0013 | PROS-2020-0016 | PROS-2020-0022 | PROS-2020-0025 | PROS-2020-0032 | PROS-2020-0042 | PROS-2020-0043 | PROS-2020-0047 | PROS-2020-0048 | PROS-2020-0050 | PROS-2020-0067 | PROS-2021-0031 | PROS-2021-0045 | PROS-2021-0051 | PROS-2021-0062 | PROS-2021-0088 | PROS-2022-0009 | PROS-2022-0010 | PROS-2022-0011 | PROS-2022-0030 | PROS-2022-0045 | PROS-2022-0046 | PROS-2022-0047 | PROS-2022-0048 | PROS-2022-0049 | PROS-2022-0063 | PROS-2022-0067 | PROS-2022-0071 | PROS-2022-0073 | PROS-2022-0081 | PROS-2022-0082 | PROS-2022-0083 | PROS-2022-0092 | PROS-2022-0097 | PROS-2022-0100 | PROS-2022-0120 | PROS-2022-0124 | PROS-2022-0125 | PROS-2022-0127 | PROS-2022-0128 | PROS-2022-0130 | PROS-2023-0001 | PROS-2023-0010 | PROS-2023-0013 | PROS-2023-0014 | PROS-2023-0016 | PROS-2023-0025 | PROS-2023-0026 | PROS-2023-0039 | PROS-2023-0045 | PROS-2023-0065 | PROS-2023-0067 | PROS-2023-0072 | PROS-2023-0089 | PROS-2023-0090 | PROS-2023-0096 | PROS-2023-0104 | PROS-2023-0113 | PROS-2023-0116 | PROS-2023-0125 | PROS-2023-0126 | PROS-2023-0127 | PROS-2023-0146 | PROS-2023-0147 | PROS-2023-0152 | PROS-2023-0158 | PROS-2023-0162 | PROS-2023-0166 | PROS-2023-0172 | PROS-2023-0177 | PROS-2024-0008 | PROS-2024-0009 | PROS-2024-0010 | PROS-2024-0012 | PROS-2024-0014 | PROS-2024-0022 | PROS-2024-0027 | PROS-2024-0036 | PROS-2024-0038 | PROS-2024-0040 | PROS-2024-0041 | PROS-2024-0048 | PROS-2024-0056 | PROS-2024-0057 | PROS-2024-0062 | PROS-2024-0065 | PROS-2024-0069 | PROS-2024-0081 | PROS-2024-0082 | PROS-2024-0083 | PROS-2024-0085 | PROS-2024-0087 | PROS-2024-0094 | PROS-2024-0096 | PROS-2024-0098 | PROS-2024-0110 | PROS-2024-0111 | PROS-2024-0113 | PROS-2024-0116 | PROS-2024-0122 | PROS-2024-0131 | PROS-2024-0147 | PROS-2024-0148 | PROS-2024-0156 | PROS-2024-0157 | PROS-2024-0160 | PROS-2024-0179 | PROS-2024-0191 | PROS-2024-0195 | PROS-2024-0196 | PROS-2024-0197 | PROS-2024-0199 | PROS-2024-0200 | SYN-2021-001 |
+| Year | C1 | C2 | C3 | C4 | C5 | C7 | C8 | C9 | PROS-2016-0003 | PROS-2016-0011 | PROS-2016-0020 | PROS-2017-0019 | PROS-2017-0022 | PROS-2018-0003 | PROS-2018-0009 | PROS-2018-0014 | PROS-2018-0016 | PROS-2018-0018 | PROS-2018-0022 | PROS-2018-0024 | PROS-2018-0035 | PROS-2018-0039 | PROS-2018-0043 | PROS-2018-0053 | PROS-2019-0003 | PROS-2019-0008 | PROS-2019-0009 | PROS-2019-0012 | PROS-2019-0015 | PROS-2019-0021 | PROS-2019-0023 | PROS-2019-0024 | PROS-2019-0027 | PROS-2019-0050 | PROS-2020-0002 | PROS-2020-0006 | PROS-2020-0009 | PROS-2020-0012 | PROS-2020-0013 | PROS-2020-0016 | PROS-2020-0022 | PROS-2020-0025 | PROS-2020-0032 | PROS-2020-0042 | PROS-2020-0043 | PROS-2020-0047 | PROS-2020-0048 | PROS-2020-0050 | PROS-2020-0067 | PROS-2021-0006 | PROS-2021-0031 | PROS-2021-0045 | PROS-2021-0051 | PROS-2021-0062 | PROS-2021-0088 | PROS-2022-0009 | PROS-2022-0010 | PROS-2022-0011 | PROS-2022-0030 | PROS-2022-0045 | PROS-2022-0046 | PROS-2022-0047 | PROS-2022-0048 | PROS-2022-0049 | PROS-2022-0063 | PROS-2022-0067 | PROS-2022-0071 | PROS-2022-0073 | PROS-2022-0081 | PROS-2022-0082 | PROS-2022-0083 | PROS-2022-0092 | PROS-2022-0097 | PROS-2022-0100 | PROS-2022-0120 | PROS-2022-0124 | PROS-2022-0125 | PROS-2022-0127 | PROS-2022-0128 | PROS-2022-0130 | PROS-2023-0001 | PROS-2023-0010 | PROS-2023-0013 | PROS-2023-0014 | PROS-2023-0016 | PROS-2023-0025 | PROS-2023-0026 | PROS-2023-0039 | PROS-2023-0045 | PROS-2023-0065 | PROS-2023-0067 | PROS-2023-0072 | PROS-2023-0089 | PROS-2023-0090 | PROS-2023-0096 | PROS-2023-0104 | PROS-2023-0113 | PROS-2023-0116 | PROS-2023-0125 | PROS-2023-0126 | PROS-2023-0127 | PROS-2023-0146 | PROS-2023-0147 | PROS-2023-0152 | PROS-2023-0158 | PROS-2023-0162 | PROS-2023-0166 | PROS-2023-0177 | PROS-2024-0008 | PROS-2024-0009 | PROS-2024-0010 | PROS-2024-0012 | PROS-2024-0014 | PROS-2024-0022 | PROS-2024-0027 | PROS-2024-0036 | PROS-2024-0038 | PROS-2024-0040 | PROS-2024-0041 | PROS-2024-0048 | PROS-2024-0056 | PROS-2024-0057 | PROS-2024-0062 | PROS-2024-0065 | PROS-2024-0069 | PROS-2024-0081 | PROS-2024-0082 | PROS-2024-0083 | PROS-2024-0085 | PROS-2024-0087 | PROS-2024-0094 | PROS-2024-0096 | PROS-2024-0098 | PROS-2024-0110 | PROS-2024-0111 | PROS-2024-0113 | PROS-2024-0116 | PROS-2024-0122 | PROS-2024-0131 | PROS-2024-0147 | PROS-2024-0148 | PROS-2024-0156 | PROS-2024-0157 | PROS-2024-0160 | PROS-2024-0179 | PROS-2024-0191 | PROS-2024-0195 | PROS-2024-0196 | PROS-2024-0197 | PROS-2024-0199 | PROS-2024-0200 | SYN-2021-001 |
 |------|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|------:|
 | 2016 | £859.59 | — | — | — | £1,229.24 | £1,754.46 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
 | 2017 | £817.77 | £2,323.21 | £586.63 | £695.96 | £458.88 | £1,292.21 | £2,004.77 | £864.27 | £2,268.34 | £2,290.21 | £2,028.49 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
 | 2018 | £730.18 | £1,494.63 | £301.63 | — | £-1,350.77 | £520.47 | £1,014.87 | £763.69 | — | £1,663.90 | £1,392.62 | £1,572.17 | £2,670.92 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| 2019 | £770.09 | £1,471.46 | £333.18 | — | £-774.91 | £430.39 | £1,055.62 | £664.02 | — | £1,513.08 | £1,227.18 | £1,386.24 | £1,923.37 | £179.45 | £459.69 | £2,020.07 | £2,690.69 | £1,784.28 | £1,898.03 | £1,165.49 | £2,330.37 | £2,126.88 | £944.47 | £2,015.63 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| 2020 | £726.37 | £1,420.43 | £423.75 | — | £-832.40 | £353.06 | £1,085.83 | £602.33 | — | £1,489.61 | £1,253.84 | £1,175.78 | £1,852.68 | £1,141.10 | £441.48 | £1,662.97 | £2,053.69 | £1,494.90 | £1,558.34 | £874.19 | £1,886.43 | £1,690.75 | £757.20 | £1,454.58 | £307.35 | £2,671.80 | £2,877.22 | £2,137.81 | £2,681.76 | £2,345.33 | £3,156.99 | £3,276.91 | £2,860.29 | £2,413.37 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| 2021 | £597.36 | £1,144.44 | £261.77 | — | £-1,125.21 | £111.44 | £1,031.83 | £430.10 | — | £1,075.77 | £1,014.45 | £832.40 | £1,373.99 | £786.92 | £202.87 | £611.02 | £1,196.83 | £887.66 | £1,127.30 | £448.90 | £1,202.87 | £1,176.47 | £521.82 | £1,146.54 | £233.92 | £1,073.29 | £1,147.95 | £959.64 | £1,347.34 | £1,121.39 | £1,450.36 | £1,486.31 | £1,252.33 | £1,650.18 | £1,624.03 | £1,882.41 | £1,300.09 | £1,341.38 | £400.54 | £1,269.01 | £1,656.52 | £1,085.45 | £1,675.00 | £2,384.08 | £-523.37 | £1,868.61 | £2,392.65 | £1,687.84 | £1,965.48 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
-| 2022 | — | £-177.13 | £-25.85 | — | — | £-981.96 | £115.92 | £427.80 | — | £-56.62 | £218.06 | £631.68 | £-339.59 | £-485.39 | £377.84 | — | £-271.03 | £64.63 | £273.19 | £803.38 | £193.64 | — | £999.07 | £815.11 | — | £-1,118.25 | £-11.17 | £602.06 | £-542.72 | £412.97 | £86.84 | £-247.78 | £-201.22 | — | £-1,668.94 | £-1,695.84 | £-280.60 | £-1,433.29 | — | £-366.70 | £-884.42 | £-4,215.41 | £-213.19 | £-1,206.59 | £-1,689.09 | — | £-257.99 | — | — | £-4,699.10 | £2,256.70 | £-1,431.01 | £-6,736.60 | £-47.20 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £141.59 |
-| 2023 | — | £-3.82 | £14.10 | — | — | £-579.43 | £255.05 | £473.89 | — | £123.08 | £601.40 | £627.95 | £96.88 | £-412.97 | £299.79 | — | £37.57 | £241.19 | £492.50 | £699.00 | £972.23 | — | £1,337.61 | £1,013.57 | — | £-283.06 | £209.69 | £638.20 | £93.20 | £1,063.35 | £902.64 | £302.85 | £983.22 | — | £-648.90 | £-703.42 | £111.89 | £-546.12 | — | £138.33 | £33.81 | £-1,596.36 | £1,156.40 | £1,030.89 | £-1,386.22 | — | £1,295.04 | — | — | £66.27 | £2,175.86 | £742.44 | £304.68 | £759.00 | £-4,741.48 | £-3,909.57 | £-2,943.41 | £2,002.32 | £4,895.96 | £1,395.00 | £4,547.94 | £2,154.04 | £211.72 | £1,028.02 | £133.75 | £503.62 | £1,479.48 | £2,471.78 | £-1,749.10 | £-55.27 | £-900.35 | £-1,788.93 | £-2,540.54 | £955.09 | £518.81 | £-847.56 | £1,194.82 | £999.18 | £1,139.21 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £-530.19 |
-| 2024 | — | £337.60 | £205.51 | — | — | £-218.08 | £603.01 | £534.18 | — | £530.45 | £781.11 | £837.97 | £647.70 | £95.50 | £503.33 | — | £491.27 | £564.35 | £844.53 | £857.54 | £1,233.21 | — | £1,424.79 | £1,104.85 | — | £395.03 | £616.58 | £869.50 | £687.51 | £1,177.32 | £1,144.70 | £800.12 | £1,139.08 | — | £232.34 | — | £657.43 | £415.88 | — | £677.76 | £702.73 | £-43.79 | £1,498.16 | £1,273.60 | — | — | £1,566.60 | — | — | £1,068.00 | £1,835.39 | £1,101.23 | £1,590.40 | £1,139.43 | £-186.25 | £60.07 | £-321.87 | £2,326.88 | £3,294.17 | £1,988.58 | £3,263.54 | £2,158.47 | £1,508.00 | — | £1,160.64 | £1,530.73 | £1,805.69 | £2,119.49 | £988.19 | £1,345.14 | £741.63 | £854.01 | £523.58 | £1,179.89 | £1,935.88 | £714.25 | £1,839.17 | £1,873.67 | £2,318.41 | £4,516.32 | £3,246.04 | £4,112.64 | £3,883.96 | £4,048.57 | £4,802.51 | £6,195.82 | £8,349.40 | £7,704.62 | £6,311.81 | £7,615.10 | £5,102.76 | £6,829.99 | £5,685.46 | £6,246.88 | £6,575.59 | £6,601.54 | £4,912.66 | £6,777.17 | £4,542.52 | £6,518.34 | £2,937.91 | £3,017.37 | £2,920.51 | £3,717.36 | £5,017.08 | £3,107.75 | £2,587.80 | £2,634.12 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £426.23 |
-| 2025 | — | £339.56 | £207.87 | — | — | £-148.21 | £574.85 | £498.24 | — | £549.30 | £692.19 | £719.47 | £620.07 | — | £494.22 | — | £472.71 | £513.64 | £733.73 | £779.65 | £1,032.00 | — | £1,072.26 | £910.24 | — | £406.91 | £543.75 | £748.81 | £624.27 | £946.06 | £944.08 | — | £938.81 | — | £350.52 | — | £587.01 | £439.52 | — | £580.84 | £620.63 | — | £1,156.50 | £1,031.91 | — | — | £1,246.45 | — | — | — | — | £814.18 | £1,186.84 | £875.42 | £159.69 | £282.30 | — | £1,485.97 | £1,895.08 | £1,334.66 | £1,873.69 | £1,362.35 | £1,045.60 | — | — | £1,115.79 | £1,240.12 | £1,329.93 | £765.20 | £990.44 | £641.51 | £730.11 | £519.57 | £755.60 | £1,303.87 | — | £1,215.81 | £1,248.32 | £1,508.17 | £2,387.58 | — | £2,135.81 | £1,989.14 | £2,004.28 | — | £2,843.01 | £3,687.07 | £3,345.61 | £2,735.17 | £3,304.35 | £2,401.22 | £3,080.43 | £2,589.81 | £2,835.90 | £2,959.68 | £2,927.51 | — | £3,007.45 | £2,078.95 | £2,818.19 | £1,150.33 | £1,224.66 | £1,246.14 | £1,658.63 | £2,099.98 | £1,462.39 | £1,287.90 | £1,193.63 | £5,112.30 | £4,488.44 | £4,954.99 | £2,788.27 | £6,437.37 | £2,324.84 | £4,768.73 | £4,743.27 | £3,733.93 | £3,831.57 | £3,505.34 | £3,310.17 | £2,652.00 | £3,320.77 | £3,853.17 | £3,259.09 | £3,222.33 | £3,798.25 | £2,261.71 | £4,126.02 | £2,814.02 | £3,108.26 | £1,058.41 | £2,511.74 | £2,201.07 | £2,270.76 | £2,748.50 | £2,330.96 | £2,685.01 | £2,316.39 | £2,801.50 | £2,341.63 | £2,230.16 | £845.14 | £788.34 | £-181.31 | £312.82 | £1,001.71 | £748.16 | £1,185.78 | £1,006.67 | £1,277.29 | £1,262.31 | £585.29 |
+| 2019 | £770.09 | £1,471.46 | £333.18 | — | £-774.91 | £430.39 | £1,055.62 | £664.02 | — | £1,513.08 | £1,227.18 | £1,386.24 | £1,923.37 | £1,755.69 | £459.69 | £2,020.07 | £2,690.69 | £1,784.28 | £1,898.03 | £1,165.49 | £2,330.37 | £2,126.88 | £944.47 | £2,015.63 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 2020 | £726.37 | £1,420.43 | £423.75 | — | £-832.40 | £353.06 | £1,085.83 | £602.33 | — | £1,489.61 | £1,253.84 | £1,175.78 | £1,852.68 | £1,598.45 | £441.48 | £1,662.97 | £2,053.69 | £1,494.90 | £1,558.34 | £874.19 | £1,886.43 | £1,690.75 | £757.20 | £1,454.58 | £307.35 | £2,671.80 | £2,877.22 | £2,137.81 | £2,681.76 | £2,345.33 | £3,156.99 | £3,276.91 | £2,860.29 | £2,413.37 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 2021 | £597.36 | £1,144.44 | £261.77 | — | £-1,125.21 | £111.44 | £1,031.83 | £430.10 | — | £1,075.77 | £1,014.45 | £832.40 | £1,373.99 | £1,128.60 | £202.87 | £611.02 | £1,196.83 | £887.66 | £1,127.30 | £448.90 | £1,202.87 | £1,176.47 | £521.82 | £1,146.54 | £233.92 | £1,073.29 | £1,147.95 | £959.64 | £1,347.34 | £1,121.39 | £1,450.36 | £1,486.31 | £1,252.33 | £1,650.18 | £1,624.03 | £1,882.41 | £1,300.09 | £1,341.38 | £400.54 | £1,269.01 | £1,656.52 | £1,085.45 | £1,675.00 | £2,384.08 | £-523.37 | £1,868.61 | £2,392.65 | £1,687.84 | £1,965.48 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 2022 | — | £-177.13 | £-25.85 | — | — | £-981.96 | £115.92 | £427.80 | — | £-56.62 | £218.54 | £622.44 | £-339.87 | £-222.21 | £377.84 | £-485.79 | £-258.39 | £64.85 | £273.99 | £804.36 | £193.64 | — | £999.07 | £813.83 | — | £-1,067.15 | £-21.44 | £602.89 | £-543.01 | £412.96 | £86.83 | £-247.78 | £-201.22 | — | £-1,668.94 | £-1,695.84 | £-280.60 | £-1,433.29 | — | £-375.26 | £-884.60 | £-4,215.27 | £-213.12 | — | £-1,654.30 | — | £-206.93 | — | — | £-3,195.57 | £-4,699.13 | £2,169.23 | £-1,425.30 | £-6,737.72 | £-47.20 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £141.59 |
+| 2023 | — | £-3.81 | £14.07 | — | — | £-578.38 | £254.58 | £472.99 | — | £122.89 | £600.59 | £620.24 | £96.65 | £-17.68 | £299.17 | £-440.62 | £56.21 | £244.35 | £491.77 | £697.96 | £970.47 | — | £1,335.08 | £1,010.50 | — | £-273.53 | £204.31 | £637.22 | £92.93 | £1,061.08 | £900.53 | £302.17 | £981.23 | — | £-647.40 | £-701.82 | £111.64 | £-544.88 | — | £132.09 | £33.66 | £-1,592.64 | £1,153.80 | — | £-1,365.84 | — | £1,323.79 | — | — | £-837.05 | £66.09 | £2,130.15 | £741.56 | £303.38 | £757.11 | £-4,757.81 | £-3,944.29 | £-2,921.28 | £1,997.91 | £4,885.18 | £1,391.92 | £4,537.92 | £2,149.30 | £211.26 | £1,025.75 | £133.45 | £502.51 | £1,476.22 | £2,466.34 | £-1,745.25 | £-55.15 | £-898.37 | £-1,784.99 | £-2,534.94 | £952.98 | £517.66 | £-845.69 | £1,192.19 | £996.98 | £1,136.70 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £-529.14 |
+| 2024 | — | £337.31 | £205.32 | — | — | £-217.94 | £602.49 | £533.81 | — | £529.43 | £779.56 | £831.30 | £646.30 | £427.46 | £502.24 | £260.41 | £501.31 | £565.82 | £842.73 | £855.45 | £1,230.63 | — | £1,421.06 | £1,102.30 | — | £399.99 | £612.22 | £868.16 | £686.27 | £1,175.71 | £1,143.88 | £799.21 | £1,137.10 | — | £232.04 | £325.49 | £655.96 | £414.95 | — | £672.35 | £701.31 | £-43.65 | £1,495.25 | — | — | — | £1,630.36 | — | — | £356.60 | £1,066.06 | £1,804.18 | £1,099.61 | £1,587.23 | £1,136.67 | £-196.57 | £42.26 | £-314.45 | £2,320.16 | £3,281.16 | £1,982.83 | £3,250.65 | £2,151.45 | £1,503.65 | — | £1,156.87 | £1,525.67 | £1,799.64 | £2,111.11 | £984.98 | £1,340.77 | £739.15 | £851.18 | £521.84 | £1,175.23 | £1,928.23 | £711.57 | £1,831.91 | £1,866.27 | £2,309.25 | £4,497.51 | £3,232.52 | £4,095.51 | £3,867.79 | £4,031.71 | £4,782.51 | £6,170.02 | £8,314.63 | £7,672.54 | £6,285.53 | £7,583.39 | £5,081.51 | £6,801.55 | £5,661.79 | £6,220.86 | £6,548.21 | £6,574.05 | £4,892.21 | £6,748.94 | £4,523.60 | £6,491.20 | £2,925.68 | £3,004.81 | £2,908.35 | £3,701.89 | £4,996.19 | £3,094.81 | £2,654.85 | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | — | £424.71 |
+| 2025 | — | £339.08 | £207.53 | — | — | £-147.98 | £573.99 | £497.45 | — | £548.01 | £690.64 | £713.72 | £618.67 | £505.63 | £490.53 | — | £479.84 | £514.45 | £731.96 | £777.42 | £1,029.56 | — | £1,069.49 | £907.57 | — | £410.06 | £540.13 | £747.13 | £622.94 | £944.23 | £942.68 | — | £936.93 | — | £352.96 | £390.36 | £581.33 | £438.44 | — | £576.71 | £619.22 | — | £1,154.02 | — | — | — | £1,290.43 | — | — | £375.55 | — | — | £812.57 | £1,183.95 | £873.06 | £153.25 | £273.82 | — | £1,481.40 | £1,900.59 | £1,330.54 | £1,866.31 | £1,358.12 | £1,042.22 | — | — | £1,112.16 | £1,235.76 | £1,324.84 | £762.80 | £987.34 | £639.18 | £727.64 | £517.88 | £752.70 | £1,298.88 | — | £1,211.15 | £1,243.53 | £1,502.19 | £2,390.45 | — | £2,127.93 | £1,980.90 | £1,999.70 | — | £2,831.92 | £3,673.08 | £3,332.51 | £2,724.49 | £3,291.45 | £2,391.85 | £3,068.40 | £2,579.70 | £2,824.38 | £2,948.13 | £2,916.08 | — | £2,995.71 | £2,070.83 | £2,807.19 | £1,145.84 | £1,219.88 | £1,240.87 | £1,651.63 | £2,091.45 | £1,455.99 | £1,219.41 | £5,087.02 | £4,466.48 | £4,930.30 | £2,782.61 | £6,403.74 | £2,313.34 | £4,745.14 | £4,719.81 | £3,715.47 | £3,812.62 | £3,488.01 | £3,289.04 | £2,638.87 | £3,304.38 | £3,834.12 | £3,242.97 | £3,206.39 | £3,779.47 | £2,250.53 | £4,105.61 | £2,800.10 | £3,092.89 | £1,053.18 | £2,499.32 | £2,190.19 | £2,259.53 | £2,734.91 | £2,319.43 | £2,671.73 | £2,304.93 | £2,787.65 | £2,330.05 | £2,219.13 | £840.96 | £784.44 | £-180.41 | £311.27 | £996.76 | £744.46 | £1,179.91 | £1,001.69 | £1,270.97 | £1,256.07 | £582.71 |
 
 ## Cost to Serve & Pricing Actions
 
-Whole-run totals (cumulative across all settlement periods). Average: £138.62, range £1.36–£719.85.
+Whole-run totals (cumulative across all settlement periods). Average: £139.72, range £1.36–£719.85.
 
 - C1: cost to serve £329.93, net margin after CTS £172.46
 - C1g: cost to serve £330.00, net margin after CTS £403.88
@@ -1744,43 +1749,43 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 - C9: cost to serve £491.72, net margin after CTS £1,067.06
 - PROS-2016-0003: cost to serve £109.99, net margin after CTS £166.58
 - PROS-2016-0003g: cost to serve £110.00, net margin after CTS £117.90
-- PROS-2016-0011: cost to serve £517.48, net margin after CTS £755.76
+- PROS-2016-0011: cost to serve £517.48, net margin after CTS £755.73
 - PROS-2016-0011g: cost to serve £517.60, net margin after CTS £160.70
-- PROS-2016-0020: cost to serve £516.43, net margin after CTS £920.81
+- PROS-2016-0020: cost to serve £516.43, net margin after CTS £920.88
 - PROS-2016-0020g: cost to serve £516.55, net margin after CTS £281.85
-- PROS-2017-0019: cost to serve £462.03, net margin after CTS £953.26
+- PROS-2017-0019: cost to serve £462.03, net margin after CTS £946.08
 - PROS-2017-0019g: cost to serve £462.15, net margin after CTS £265.92
-- PROS-2017-0022: cost to serve £461.28, net margin after CTS £826.21
+- PROS-2017-0022: cost to serve £461.28, net margin after CTS £826.15
 - PROS-2017-0022g: cost to serve £461.40, net margin after CTS £171.30
 - PROS-2018-0002: cost to serve £54.98, net margin after CTS £114.11
-- PROS-2018-0003: cost to serve £384.90, net margin after CTS £229.47
-- PROS-2018-0003g: cost to serve £385.00, net margin after CTS £-104.16 — **NET_NEGATIVE** (tariff uplift needed: +2.2%)
-- PROS-2018-0009: cost to serve £407.94, net margin after CTS £622.05
-- PROS-2018-0014: cost to serve £219.95, net margin after CTS £-20.66 — **NET_NEGATIVE** (tariff uplift needed: +0.6%)
-- PROS-2018-0014g: cost to serve £220.00, net margin after CTS £272.57
-- PROS-2018-0016: cost to serve £407.34, net margin after CTS £649.11
+- PROS-2018-0003: cost to serve £408.85, net margin after CTS £722.20
+- PROS-2018-0003g: cost to serve £408.96, net margin after CTS £-23.03 — **NET_NEGATIVE** (tariff uplift needed: +0.4%)
+- PROS-2018-0009: cost to serve £407.94, net margin after CTS £619.14
+- PROS-2018-0014: cost to serve £384.90, net margin after CTS £199.39
+- PROS-2018-0014g: cost to serve £385.00, net margin after CTS £79.33
+- PROS-2018-0016: cost to serve £407.34, net margin after CTS £661.88
 - PROS-2018-0016g: cost to serve £407.45, net margin after CTS £102.40 — MARGIN_SQUEEZE (below 2% benchmark)
-- PROS-2018-0018: cost to serve £407.19, net margin after CTS £500.67
+- PROS-2018-0018: cost to serve £407.19, net margin after CTS £503.55
 - PROS-2018-0018g: cost to serve £407.30, net margin after CTS £207.82
-- PROS-2018-0022: cost to serve £406.89, net margin after CTS £835.87
+- PROS-2018-0022: cost to serve £406.89, net margin after CTS £835.92
 - PROS-2018-0022g: cost to serve £407.00, net margin after CTS £176.21
-- PROS-2018-0024: cost to serve £406.74, net margin after CTS £883.60
+- PROS-2018-0024: cost to serve £406.74, net margin after CTS £883.69
 - PROS-2018-0035: cost to serve £405.38, net margin after CTS £1,274.43
 - PROS-2018-0035g: cost to serve £405.49, net margin after CTS £230.08
 - PROS-2018-0039: cost to serve £219.95, net margin after CTS £219.61
 - PROS-2018-0039g: cost to serve £220.00, net margin after CTS £251.61
 - PROS-2018-0043: cost to serve £403.73, net margin after CTS £1,396.18
-- PROS-2018-0053: cost to serve £402.07, net margin after CTS £1,099.45
+- PROS-2018-0053: cost to serve £402.07, net margin after CTS £1,098.10
 - PROS-2018-0053g: cost to serve £402.18, net margin after CTS £317.95
 - PROS-2019-0003: cost to serve £164.97, net margin after CTS £-120.32 — **NET_NEGATIVE** (tariff uplift needed: +5.1%)
 - PROS-2019-0003g: cost to serve £165.00, net margin after CTS £180.02
-- PROS-2019-0008: cost to serve £352.51, net margin after CTS £611.52
+- PROS-2019-0008: cost to serve £352.51, net margin after CTS £617.10
 - PROS-2019-0008g: cost to serve £352.60, net margin after CTS £-44.07 — **NET_NEGATIVE** (tariff uplift needed: +0.8%)
-- PROS-2019-0009: cost to serve £352.36, net margin after CTS £623.13
+- PROS-2019-0009: cost to serve £352.36, net margin after CTS £619.64
 - PROS-2019-0009g: cost to serve £352.45, net margin after CTS £135.15
-- PROS-2019-0012: cost to serve £351.76, net margin after CTS £717.15
+- PROS-2019-0012: cost to serve £351.76, net margin after CTS £717.46
 - PROS-2019-0012g: cost to serve £351.85, net margin after CTS £211.97
-- PROS-2019-0015: cost to serve £351.31, net margin after CTS £740.06
+- PROS-2019-0015: cost to serve £351.31, net margin after CTS £740.01
 - PROS-2019-0015g: cost to serve £351.40, net margin after CTS £101.40
 - PROS-2019-0021: cost to serve £350.10, net margin after CTS £1,145.44
 - PROS-2019-0021g: cost to serve £350.19, net margin after CTS £204.93
@@ -1792,74 +1797,74 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 - PROS-2019-0027g: cost to serve £349.14, net margin after CTS £61.28 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2019-0050: cost to serve £164.97, net margin after CTS £281.58
 - PROS-2019-0050g: cost to serve £165.00, net margin after CTS £219.20
-- PROS-2020-0002: cost to serve £298.89, net margin after CTS £603.30
+- PROS-2020-0002: cost to serve £298.89, net margin after CTS £606.89
 - PROS-2020-0002g: cost to serve £298.96, net margin after CTS £-224.16 — **NET_NEGATIVE** (tariff uplift needed: +4.9%)
-- PROS-2020-0006: cost to serve £219.94, net margin after CTS £336.75
-- PROS-2020-0006g: cost to serve £220.00, net margin after CTS £-670.01 — **NET_NEGATIVE** (tariff uplift needed: +20.1%)
-- PROS-2020-0009: cost to serve £298.28, net margin after CTS £615.89
-- PROS-2020-0009g: cost to serve £298.36, net margin after CTS £10.92 — MARGIN_SQUEEZE (below 2% benchmark)
+- PROS-2020-0006: cost to serve £298.59, net margin after CTS £711.01
+- PROS-2020-0006g: cost to serve £298.66, net margin after CTS £-277.00 — **NET_NEGATIVE** (tariff uplift needed: +5.6%)
+- PROS-2020-0009: cost to serve £298.28, net margin after CTS £611.39
+- PROS-2020-0009g: cost to serve £298.36, net margin after CTS £10.94 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2020-0012: cost to serve £297.98, net margin after CTS £589.68
 - PROS-2020-0012g: cost to serve £298.05, net margin after CTS £-114.26 — **NET_NEGATIVE** (tariff uplift needed: +2.8%)
 - PROS-2020-0013: cost to serve £109.98, net margin after CTS £-8.56 — **NET_NEGATIVE** (tariff uplift needed: +0.7%)
-- PROS-2020-0016: cost to serve £297.38, net margin after CTS £527.18
+- PROS-2020-0016: cost to serve £297.38, net margin after CTS £524.36
 - PROS-2020-0016g: cost to serve £297.45, net margin after CTS £93.03
-- PROS-2020-0022: cost to serve £296.33, net margin after CTS £643.69
+- PROS-2020-0022: cost to serve £296.33, net margin after CTS £643.66
 - PROS-2020-0022g: cost to serve £296.40, net margin after CTS £53.26 — MARGIN_SQUEEZE (below 2% benchmark)
-- PROS-2020-0025: cost to serve £274.93, net margin after CTS £211.37
+- PROS-2020-0025: cost to serve £274.93, net margin after CTS £211.42
 - PROS-2020-0025g: cost to serve £275.00, net margin after CTS £-200.07 — **NET_NEGATIVE** (tariff uplift needed: +3.7%)
-- PROS-2020-0032: cost to serve £295.57, net margin after CTS £1,262.66
+- PROS-2020-0032: cost to serve £295.57, net margin after CTS £1,262.68
 - PROS-2020-0032g: cost to serve £295.64, net margin after CTS £51.86 — MARGIN_SQUEEZE (below 2% benchmark)
-- PROS-2020-0042: cost to serve £293.31, net margin after CTS £1,441.77
-- PROS-2020-0042g: cost to serve £293.38, net margin after CTS £-268.86 — **NET_NEGATIVE** (tariff uplift needed: +4.5%)
-- PROS-2020-0043: cost to serve £219.94, net margin after CTS £-286.88 — **NET_NEGATIVE** (tariff uplift needed: +5.1%)
+- PROS-2020-0042: cost to serve £109.98, net margin after CTS £110.14
+- PROS-2020-0042g: cost to serve £110.00, net margin after CTS £176.02
+- PROS-2020-0043: cost to serve £219.94, net margin after CTS £-278.59 — **NET_NEGATIVE** (tariff uplift needed: +4.9%)
 - PROS-2020-0043g: cost to serve £220.00, net margin after CTS £-157.06 — **NET_NEGATIVE** (tariff uplift needed: +5.7%)
 - PROS-2020-0047: cost to serve £109.98, net margin after CTS £30.35 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2020-0047g: cost to serve £110.00, net margin after CTS £112.33
-- PROS-2020-0048: cost to serve £292.71, net margin after CTS £1,399.30
+- PROS-2020-0048: cost to serve £292.71, net margin after CTS £1,417.24
 - PROS-2020-0048g: cost to serve £292.78, net margin after CTS £17.48 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2020-0050: cost to serve £109.98, net margin after CTS £107.55
 - PROS-2020-0050g: cost to serve £110.00, net margin after CTS £113.79
 - PROS-2020-0067: cost to serve £109.98, net margin after CTS £10.50 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2020-0067g: cost to serve £110.00, net margin after CTS £88.39
-- PROS-2021-0006: cost to serve £54.99, net margin after CTS £-107.53 — **NET_NEGATIVE** (tariff uplift needed: +14.4%)
-- PROS-2021-0006g: cost to serve £55.00, net margin after CTS £28.89
+- PROS-2021-0006: cost to serve £242.39, net margin after CTS £371.35
+- PROS-2021-0006g: cost to serve £242.45, net margin after CTS £-37.54 — **NET_NEGATIVE** (tariff uplift needed: +1.4%)
 - PROS-2021-0017: cost to serve £54.99, net margin after CTS £-23.34 — **NET_NEGATIVE** (tariff uplift needed: +3.3%)
 - PROS-2021-0029: cost to serve £54.99, net margin after CTS £-132.38 — **NET_NEGATIVE** (tariff uplift needed: +20.5%)
 - PROS-2021-0029g: cost to serve £55.00, net margin after CTS £-2.05 — **NET_NEGATIVE** (tariff uplift needed: +0.4%)
-- PROS-2021-0031: cost to serve £219.94, net margin after CTS £908.46
+- PROS-2021-0031: cost to serve £219.94, net margin after CTS £908.45
 - PROS-2021-0031g: cost to serve £220.00, net margin after CTS £-222.55 — **NET_NEGATIVE** (tariff uplift needed: +5.7%)
 - PROS-2021-0044: cost to serve £54.99, net margin after CTS £22.65
 - PROS-2021-0044g: cost to serve £55.00, net margin after CTS £35.72
-- PROS-2021-0045: cost to serve £219.94, net margin after CTS £931.73
-- PROS-2021-0051: cost to serve £236.96, net margin after CTS £738.51
+- PROS-2021-0045: cost to serve £219.94, net margin after CTS £918.80
+- PROS-2021-0051: cost to serve £236.96, net margin after CTS £738.81
 - PROS-2021-0051g: cost to serve £237.03, net margin after CTS £23.63 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2021-0060: cost to serve £54.99, net margin after CTS £74.16
 - PROS-2021-0060g: cost to serve £55.00, net margin after CTS £-21.06 — **NET_NEGATIVE** (tariff uplift needed: +4.1%)
-- PROS-2021-0062: cost to serve £235.46, net margin after CTS £1,399.43
+- PROS-2021-0062: cost to serve £235.46, net margin after CTS £1,399.25
 - PROS-2021-0062g: cost to serve £235.52, net margin after CTS £-272.93 — **NET_NEGATIVE** (tariff uplift needed: +3.3%)
 - PROS-2021-0067: cost to serve £54.99, net margin after CTS £145.65
 - PROS-2021-0067g: cost to serve £55.00, net margin after CTS £3.72 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2021-0088: cost to serve £231.54, net margin after CTS £705.52
 - PROS-2021-0088g: cost to serve £231.60, net margin after CTS £49.49
 - PROS-2021-0100: cost to serve £54.99, net margin after CTS £148.91
-- PROS-2022-0009: cost to serve £187.55, net margin after CTS £359.77
+- PROS-2022-0009: cost to serve £187.55, net margin after CTS £356.06
 - PROS-2022-0009g: cost to serve £187.60, net margin after CTS £-260.01 — **NET_NEGATIVE** (tariff uplift needed: +6.9%)
-- PROS-2022-0010: cost to serve £187.40, net margin after CTS £366.86
+- PROS-2022-0010: cost to serve £187.40, net margin after CTS £362.11
 - PROS-2022-0010g: cost to serve £187.45, net margin after CTS £-190.50 — **NET_NEGATIVE** (tariff uplift needed: +5.7%)
-- PROS-2022-0011: cost to serve £164.95, net margin after CTS £-146.64 — **NET_NEGATIVE** (tariff uplift needed: +3.4%)
+- PROS-2022-0011: cost to serve £164.95, net margin after CTS £-144.43 — **NET_NEGATIVE** (tariff uplift needed: +3.3%)
 - PROS-2022-0011g: cost to serve £165.00, net margin after CTS £9.45 — MARGIN_SQUEEZE (below 2% benchmark)
 - PROS-2022-0019: cost to serve £54.98, net margin after CTS £-77.00 — **NET_NEGATIVE** (tariff uplift needed: +6.0%)
 - PROS-2022-0019g: cost to serve £55.00, net margin after CTS £-302.95 — **NET_NEGATIVE** (tariff uplift needed: +88.3%)
 - PROS-2022-0030: cost to serve £184.83, net margin after CTS £984.62
 - PROS-2022-0030g: cost to serve £184.89, net margin after CTS £-41.34 — **NET_NEGATIVE** (tariff uplift needed: +1.6%)
-- PROS-2022-0045: cost to serve £182.72, net margin after CTS £1,011.16
-- PROS-2022-0046: cost to serve £182.12, net margin after CTS £872.40
+- PROS-2022-0045: cost to serve £182.72, net margin after CTS £1,018.00
+- PROS-2022-0046: cost to serve £182.12, net margin after CTS £872.49
 - PROS-2022-0046g: cost to serve £182.18, net margin after CTS £-38.61 — **NET_NEGATIVE** (tariff uplift needed: +1.2%)
-- PROS-2022-0047: cost to serve £181.97, net margin after CTS £822.39
+- PROS-2022-0047: cost to serve £181.97, net margin after CTS £822.42
 - PROS-2022-0047g: cost to serve £182.03, net margin after CTS £161.14
-- PROS-2022-0048: cost to serve £181.97, net margin after CTS £797.74
+- PROS-2022-0048: cost to serve £181.97, net margin after CTS £797.76
 - PROS-2022-0048g: cost to serve £182.03, net margin after CTS £27.26 — MARGIN_SQUEEZE (below 2% benchmark)
-- PROS-2022-0049: cost to serve £181.82, net margin after CTS £735.73
+- PROS-2022-0049: cost to serve £181.82, net margin after CTS £735.70
 - PROS-2022-0049g: cost to serve £181.88, net margin after CTS £-82.52 — **NET_NEGATIVE** (tariff uplift needed: +2.0%)
 - PROS-2022-0063: cost to serve £109.96, net margin after CTS £668.10
 - PROS-2022-0063g: cost to serve £110.00, net margin after CTS £-300.65 — **NET_NEGATIVE** (tariff uplift needed: +10.7%)
@@ -1892,23 +1897,23 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 - PROS-2022-0128g: cost to serve £173.44, net margin after CTS £206.03
 - PROS-2022-0130: cost to serve £172.33, net margin after CTS £590.37
 - PROS-2022-0130g: cost to serve £172.38, net margin after CTS £201.30
-- PROS-2023-0001: cost to serve £133.77, net margin after CTS £341.29
+- PROS-2023-0001: cost to serve £133.77, net margin after CTS £345.89
 - PROS-2023-0001g: cost to serve £133.81, net margin after CTS £502.96
 - PROS-2023-0010: cost to serve £109.97, net margin after CTS £93.70
 - PROS-2023-0010g: cost to serve £110.00, net margin after CTS £374.92
-- PROS-2023-0013: cost to serve £132.72, net margin after CTS £279.45
+- PROS-2023-0013: cost to serve £132.72, net margin after CTS £279.74
 - PROS-2023-0013g: cost to serve £132.75, net margin after CTS £489.36
 - PROS-2023-0014: cost to serve £132.57, net margin after CTS £368.02
 - PROS-2023-0014g: cost to serve £132.60, net margin after CTS £311.06
-- PROS-2023-0016: cost to serve £132.41, net margin after CTS £347.62
+- PROS-2023-0016: cost to serve £132.41, net margin after CTS £349.00
 - PROS-2023-0016g: cost to serve £132.45, net margin after CTS £361.10
 - PROS-2023-0025: cost to serve £109.97, net margin after CTS £237.09
 - PROS-2023-0025g: cost to serve £110.00, net margin after CTS £476.10
 - PROS-2023-0026: cost to serve £130.91, net margin after CTS £470.28
 - PROS-2023-0026g: cost to serve £130.95, net margin after CTS £571.12
-- PROS-2023-0039: cost to serve £127.76, net margin after CTS £724.14
+- PROS-2023-0039: cost to serve £127.76, net margin after CTS £724.29
 - PROS-2023-0039g: cost to serve £127.78, net margin after CTS £626.44
-- PROS-2023-0045: cost to serve £126.55, net margin after CTS £613.11
+- PROS-2023-0045: cost to serve £126.55, net margin after CTS £613.10
 - PROS-2023-0045g: cost to serve £126.58, net margin after CTS £612.39
 - PROS-2023-0065: cost to serve £124.59, net margin after CTS £475.39
 - PROS-2023-0065g: cost to serve £124.62, net margin after CTS £526.51
@@ -1946,19 +1951,19 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 - PROS-2023-0162g: cost to serve £109.85, net margin after CTS £259.90
 - PROS-2023-0166: cost to serve £109.23, net margin after CTS £355.94
 - PROS-2023-0166g: cost to serve £109.25, net margin after CTS £151.83
-- PROS-2023-0172: cost to serve £108.33, net margin after CTS £285.09
-- PROS-2023-0172g: cost to serve £108.34, net margin after CTS £139.46
-- PROS-2023-0177: cost to serve £107.58, net margin after CTS £265.15
-- PROS-2023-0177g: cost to serve £107.59, net margin after CTS £142.35
+- PROS-2023-0172: cost to serve £54.99, net margin after CTS £58.01
+- PROS-2023-0172g: cost to serve £55.00, net margin after CTS £89.58
+- PROS-2023-0177: cost to serve £107.58, net margin after CTS £264.65
+- PROS-2023-0177g: cost to serve £107.59, net margin after CTS £153.38
 - PROS-2024-0008: cost to serve £77.89, net margin after CTS £406.90
 - PROS-2024-0008g: cost to serve £77.90, net margin after CTS £378.07
-- PROS-2024-0009: cost to serve £77.89, net margin after CTS £372.62
+- PROS-2024-0009: cost to serve £77.89, net margin after CTS £372.66
 - PROS-2024-0009g: cost to serve £77.90, net margin after CTS £316.56
-- PROS-2024-0010: cost to serve £77.74, net margin after CTS £357.21
+- PROS-2024-0010: cost to serve £77.74, net margin after CTS £357.19
 - PROS-2024-0010g: cost to serve £77.75, net margin after CTS £403.60
-- PROS-2024-0012: cost to serve £77.29, net margin after CTS £300.40
+- PROS-2024-0012: cost to serve £77.29, net margin after CTS £301.65
 - PROS-2024-0012g: cost to serve £77.30, net margin after CTS £127.73
-- PROS-2024-0014: cost to serve £77.14, net margin after CTS £408.48
+- PROS-2024-0014: cost to serve £77.14, net margin after CTS £408.20
 - PROS-2024-0014g: cost to serve £77.15, net margin after CTS £579.96
 - PROS-2024-0022: cost to serve £76.08, net margin after CTS £356.97
 - PROS-2024-0027: cost to serve £75.63, net margin after CTS £448.03
@@ -1971,11 +1976,11 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 - PROS-2024-0040g: cost to serve £73.99, net margin after CTS £267.64
 - PROS-2024-0041: cost to serve £73.67, net margin after CTS £258.39
 - PROS-2024-0041g: cost to serve £73.68, net margin after CTS £279.84
-- PROS-2024-0048: cost to serve £72.77, net margin after CTS £341.75
+- PROS-2024-0048: cost to serve £72.77, net margin after CTS £341.02
 - PROS-2024-0048g: cost to serve £72.78, net margin after CTS £166.51
-- PROS-2024-0056: cost to serve £71.56, net margin after CTS £240.48
+- PROS-2024-0056: cost to serve £71.56, net margin after CTS £240.47
 - PROS-2024-0056g: cost to serve £71.58, net margin after CTS £166.73
-- PROS-2024-0057: cost to serve £71.41, net margin after CTS £301.33
+- PROS-2024-0057: cost to serve £71.41, net margin after CTS £301.34
 - PROS-2024-0057g: cost to serve £71.42, net margin after CTS £208.56
 - PROS-2024-0062: cost to serve £70.81, net margin after CTS £298.80
 - PROS-2024-0062g: cost to serve £70.82, net margin after CTS £292.84
@@ -2129,25 +2134,23 @@ Whole-run totals (cumulative across all settlement periods). Average: £138.62, 
 
 **Activity-Based Pricing Actions**
 
-The following 41 customer(s) are loss-making after cost-to-serve and require immediate tariff review:
+The following 39 customer(s) are loss-making after cost-to-serve and require immediate tariff review:
   - C3g: net margin after CTS £-136.79 on revenue £7,404.89 — raise tariff by ≥1.8% to break even
   - C4: net margin after CTS £-40.15 on revenue £660.89 — raise tariff by ≥6.1% to break even
   - C5: net margin after CTS £-1,141.89 on revenue £14,940.64 — raise tariff by ≥7.6% to break even
   - C6: net margin after CTS £-108.80 on revenue £2,702.71 — raise tariff by ≥4.0% to break even
   - C7: net margin after CTS £-320.33 on revenue £22,378.69 — raise tariff by ≥1.4% to break even
-  - PROS-2018-0003g: net margin after CTS £-104.16 on revenue £4,806.02 — raise tariff by ≥2.2% to break even
-  - PROS-2018-0014: net margin after CTS £-20.66 on revenue £3,743.38 — raise tariff by ≥0.6% to break even
+  - PROS-2018-0003g: net margin after CTS £-23.03 on revenue £5,283.26 — raise tariff by ≥0.4% to break even
   - PROS-2019-0003: net margin after CTS £-120.32 on revenue £2,352.88 — raise tariff by ≥5.1% to break even
   - PROS-2019-0008g: net margin after CTS £-44.07 on revenue £5,651.08 — raise tariff by ≥0.8% to break even
   - PROS-2020-0002g: net margin after CTS £-224.16 on revenue £4,538.89 — raise tariff by ≥4.9% to break even
-  - PROS-2020-0006g: net margin after CTS £-670.01 on revenue £3,333.98 — raise tariff by ≥20.1% to break even
+  - PROS-2020-0006g: net margin after CTS £-277.00 on revenue £4,982.92 — raise tariff by ≥5.6% to break even
   - PROS-2020-0012g: net margin after CTS £-114.26 on revenue £4,103.38 — raise tariff by ≥2.8% to break even
   - PROS-2020-0013: net margin after CTS £-8.56 on revenue £1,261.74 — raise tariff by ≥0.7% to break even
   - PROS-2020-0025g: net margin after CTS £-200.07 on revenue £5,405.68 — raise tariff by ≥3.7% to break even
-  - PROS-2020-0042g: net margin after CTS £-268.86 on revenue £6,026.03 — raise tariff by ≥4.5% to break even
-  - PROS-2020-0043: net margin after CTS £-286.88 on revenue £5,620.43 — raise tariff by ≥5.1% to break even
+  - PROS-2020-0043: net margin after CTS £-278.59 on revenue £5,631.70 — raise tariff by ≥4.9% to break even
   - PROS-2020-0043g: net margin after CTS £-157.06 on revenue £2,748.58 — raise tariff by ≥5.7% to break even
-  - PROS-2021-0006: net margin after CTS £-107.53 on revenue £748.67 — raise tariff by ≥14.4% to break even
+  - PROS-2021-0006g: net margin after CTS £-37.54 on revenue £2,676.03 — raise tariff by ≥1.4% to break even
   - PROS-2021-0017: net margin after CTS £-23.34 on revenue £707.14 — raise tariff by ≥3.3% to break even
   - PROS-2021-0029: net margin after CTS £-132.38 on revenue £645.80 — raise tariff by ≥20.5% to break even
   - PROS-2021-0029g: net margin after CTS £-2.05 on revenue £530.74 — raise tariff by ≥0.4% to break even
@@ -2156,7 +2159,7 @@ The following 41 customer(s) are loss-making after cost-to-serve and require imm
   - PROS-2021-0062g: net margin after CTS £-272.93 on revenue £8,232.03 — raise tariff by ≥3.3% to break even
   - PROS-2022-0009g: net margin after CTS £-260.01 on revenue £3,780.49 — raise tariff by ≥6.9% to break even
   - PROS-2022-0010g: net margin after CTS £-190.50 on revenue £3,344.85 — raise tariff by ≥5.7% to break even
-  - PROS-2022-0011: net margin after CTS £-146.64 on revenue £4,358.43 — raise tariff by ≥3.4% to break even
+  - PROS-2022-0011: net margin after CTS £-144.43 on revenue £4,360.77 — raise tariff by ≥3.3% to break even
   - PROS-2022-0019: net margin after CTS £-77.00 on revenue £1,273.07 — raise tariff by ≥6.0% to break even
   - PROS-2022-0019g: net margin after CTS £-302.95 on revenue £342.91 — raise tariff by ≥88.3% to break even
   - PROS-2022-0030g: net margin after CTS £-41.34 on revenue £2,602.83 — raise tariff by ≥1.6% to break even
@@ -2180,32 +2183,32 @@ Active = current opportunity; churned = retrospective counterfactual.
 
 | Customer | Fuel | Seg | Status | Uplift needed | Total loss | Churn @ B/E | Decision |
 |----------|------|-----|--------|--------------|-----------|-------------|----------|
+| PROS-2018-0003g | gas | resi | active | +0.4% | £23.03 | 3% | Raise — churn risk manageable |
 | PROS-2021-0029g | gas | resi | active | +0.4% | £2.05 | 3% | Raise — churn risk manageable |
 | PROS-2022-0125 | elec | resi | churned | +0.5% | £18.81 | 7% | Raise — churn risk manageable |
-| PROS-2018-0014 | elec | resi | churned | +0.6% | £20.66 | 5% | Raise — churn risk manageable |
 | PROS-2020-0013 | elec | resi | churned | +0.7% | £8.56 | 6% | Raise — churn risk manageable |
 | PROS-2019-0008g | gas | resi | active | +0.8% | £44.07 | 3% | Raise — churn risk manageable |
 | PROS-2022-0046g | gas | resi | active | +1.2% | £38.61 | 5% | Raise — churn risk manageable |
 | PROS-2022-0082g | gas | resi | active | +1.3% | £52.59 | 5% | Raise — churn risk manageable |
 | C7 | elec | resi | active | +1.4% | £320.33 | 6% | Raise — churn risk manageable |
+| PROS-2021-0006g | gas | resi | active | +1.4% | £37.54 | 4% | Raise — churn risk manageable |
 | PROS-2022-0030g | gas | resi | active | +1.6% | £41.34 | 5% | Raise — churn risk manageable |
 | C3g | gas | resi | active | +1.8% | £136.79 | 4% | Raise — churn risk manageable |
 | PROS-2022-0049g | gas | resi | active | +2.0% | £82.52 | 5% | Raise — churn risk manageable |
 | PROS-2024-0160 | elec | resi | active | +2.0% | £29.19 | 10% | Raise — churn risk manageable |
 | PROS-2025-0041 | elec | resi | active | +2.1% | £19.92 | 11% | Raise — churn risk manageable |
-| PROS-2018-0003g | gas | resi | active | +2.2% | £104.16 | 4% | Raise — churn risk manageable |
 | PROS-2025-0077 | elec | resi | active | +2.3% | £12.06 | 11% | Raise — churn risk manageable |
 | PROS-2020-0012g | gas | resi | active | +2.8% | £114.26 | 5% | Raise — churn risk manageable |
 | PROS-2021-0017 | elec | resi | churned | +3.3% | £23.34 | 8% | Raise — churn risk manageable |
 | PROS-2021-0062g | gas | resi | active | +3.3% | £272.93 | 5% | Raise — churn risk manageable |
-| PROS-2022-0011 | elec | resi | churned | +3.4% | £146.64 | 9% | Raise — churn risk manageable |
+| PROS-2022-0011 | elec | resi | churned | +3.3% | £144.43 | 9% | Raise — churn risk manageable |
 | PROS-2020-0025g | gas | resi | active | +3.7% | £200.07 | 5% | Raise — churn risk manageable |
 | C6 | elec | SME | churned | +4.0% | £108.80 | 8% | Raise — churn risk manageable |
 | PROS-2021-0060g | gas | resi | active | +4.1% | £21.06 | 6% | Raise — churn risk manageable |
-| PROS-2020-0042g | gas | resi | active | +4.5% | £268.86 | 6% | Raise — churn risk manageable |
 | PROS-2020-0002g | gas | resi | active | +4.9% | £224.16 | 6% | Raise — churn risk manageable |
+| PROS-2020-0043 | elec | resi | churned | +4.9% | £278.59 | 9% | Raise — churn risk manageable |
 | PROS-2019-0003 | elec | resi | churned | +5.1% | £120.32 | 9% | Raise — churn risk manageable |
-| PROS-2020-0043 | elec | resi | churned | +5.1% | £286.88 | 9% | Raise — churn risk manageable |
+| PROS-2020-0006g | gas | resi | active | +5.6% | £277.00 | 6% | Raise — churn risk manageable |
 | PROS-2022-0097g | gas | resi | active | +5.6% | £192.35 | 8% | Raise — churn risk manageable |
 | PROS-2020-0043g | gas | resi | active | +5.7% | £157.06 | 6% | Raise — churn risk manageable |
 | PROS-2021-0031g | gas | resi | active | +5.7% | £222.55 | 6% | Raise — churn risk manageable |
@@ -2217,17 +2220,15 @@ Active = current opportunity; churned = retrospective counterfactual.
 | PROS-2025-0170g | gas | resi | active | +7.1% | £0.69 | 12% | Raise — churn risk manageable |
 | C5 | elec | SME | churned | +7.6% | £1,141.89 | 11% | Raise — churn risk manageable |
 | PROS-2022-0063g | gas | resi | active | +10.7% | £300.65 | 11% | Raise — churn risk manageable |
-| PROS-2021-0006 | elec | resi | churned | +14.4% | £107.53 | 17% | Raise — churn risk manageable |
-| PROS-2020-0006g | gas | resi | active | +20.1% | £670.01 | 15% | Raise — churn risk manageable |
 | PROS-2021-0029 | elec | resi | churned | +20.5% | £132.38 | 21% | Raise — churn risk manageable |
 | PROS-2022-0019g | gas | resi | active | +88.3% | £302.95 | 57% | Partial — incremental uplift advised |
 
-**Repriceable now (27)**: PROS-2021-0029g, PROS-2019-0008g, PROS-2022-0046g, PROS-2022-0082g, C7, PROS-2022-0030g, C3g, PROS-2022-0049g, PROS-2024-0160, PROS-2025-0041, PROS-2018-0003g, PROS-2025-0077, PROS-2020-0012g, PROS-2021-0062g, PROS-2020-0025g, PROS-2021-0060g, PROS-2020-0042g, PROS-2020-0002g, PROS-2022-0097g, PROS-2020-0043g, PROS-2021-0031g, PROS-2022-0010g, PROS-2022-0100g, PROS-2022-0009g, PROS-2025-0170g, PROS-2022-0063g, PROS-2020-0006g — break-even churn risk below 40%. Uplift advised.
-**Missed repricing window (13 churned)**: PROS-2022-0125, PROS-2018-0014, PROS-2020-0013, PROS-2021-0017, PROS-2022-0011, C6, PROS-2019-0003, PROS-2020-0043, PROS-2022-0019, C4, C5, PROS-2021-0006, PROS-2021-0029 — break-even price would not have triggered high churn. Earlier repricing might have changed economics.
+**Repriceable now (27)**: PROS-2018-0003g, PROS-2021-0029g, PROS-2019-0008g, PROS-2022-0046g, PROS-2022-0082g, C7, PROS-2021-0006g, PROS-2022-0030g, C3g, PROS-2022-0049g, PROS-2024-0160, PROS-2025-0041, PROS-2025-0077, PROS-2020-0012g, PROS-2021-0062g, PROS-2020-0025g, PROS-2021-0060g, PROS-2020-0002g, PROS-2020-0006g, PROS-2022-0097g, PROS-2020-0043g, PROS-2021-0031g, PROS-2022-0010g, PROS-2022-0100g, PROS-2022-0009g, PROS-2025-0170g, PROS-2022-0063g — break-even churn risk below 40%. Uplift advised.
+**Missed repricing window (11 churned)**: PROS-2022-0125, PROS-2020-0013, PROS-2021-0017, PROS-2022-0011, C6, PROS-2020-0043, PROS-2019-0003, PROS-2022-0019, C4, C5, PROS-2021-0029 — break-even price would not have triggered high churn. Earlier repricing might have changed economics.
 
 ## Margin Recovery Surcharges (Phase 16c + 19a)
 
-Company applied 89 recovery surcharge(s) at renewal based on prior-term losses (60 gas). Avg surcharge: 14.7%.
+Company applied 88 recovery surcharge(s) at renewal based on prior-term losses (60 gas). Avg surcharge: 15.0%.
 
 | Customer | Commodity | Term start | Prior margin | Prior revenue | Surcharge | Rate into surcharge | Rate out | Contracted |
 |----------|-----------|------------|-------------|--------------|-----------|--------------------|----------|-----------|
@@ -2237,13 +2238,12 @@ Company applied 89 recovery surcharge(s) at renewal based on prior-term losses (
 | C5 | electricity | 2021-12-30 | £-403.26 | £2,623.20 | +10.4% | £315.09/MWh | £347.78/MWh | £347.78/MWh |
 | C7 | electricity | 2021-12-30 | £-175.13 | £1,911.81 | +4.2% | £310.32/MWh | £323.23/MWh | £208.00/MWh |
 | PROS-2018-0014 | electricity | 2022-01-10 | £-92.80 | £951.21 | +4.8% | £279.27/MWh | £292.55/MWh | £292.55/MWh |
-| PROS-2019-0008 | electricity | 2022-01-10 | £-78.10 | £650.10 | +7.0% | £279.27/MWh | £298.85/MWh | £298.85/MWh |
-| PROS-2021-0006 | electricity | 2022-01-11 | £-83.47 | £748.67 | +6.2% | £290.23/MWh | £308.07/MWh | £308.07/MWh |
-| PROS-2018-0018 | electricity | 2022-01-12 | £-45.36 | £798.36 | +0.7% | £291.99/MWh | £293.97/MWh | £293.97/MWh |
-| PROS-2018-0024 | electricity | 2022-01-15 | £-40.61 | £653.34 | +1.2% | £336.45/MWh | £340.55/MWh | £340.55/MWh |
+| PROS-2019-0008 | electricity | 2022-01-10 | £-78.10 | £650.10 | +7.0% | £284.58/MWh | £304.54/MWh | £304.54/MWh |
+| PROS-2021-0006 | electricity | 2022-01-11 | £-83.47 | £748.67 | +6.2% | £290.20/MWh | £308.05/MWh | £308.05/MWh |
+| PROS-2018-0018 | electricity | 2022-01-12 | £-45.36 | £798.36 | +0.7% | £292.01/MWh | £294.00/MWh | £294.00/MWh |
+| PROS-2018-0024 | electricity | 2022-01-15 | £-40.61 | £653.34 | +1.2% | £336.59/MWh | £340.68/MWh | £340.68/MWh |
 | PROS-2018-0035 | electricity | 2022-01-24 | £-73.92 | £670.50 | +6.0% | £349.89/MWh | £370.96/MWh | £370.96/MWh |
 | PROS-2021-0029 | electricity | 2022-01-26 | £-38.11 | £645.80 | +0.9% | £344.82/MWh | £347.93/MWh | £347.93/MWh |
-| PROS-2020-0042g | gas | 2022-02-07 | £-42.15 | £764.40 | +0.5% | £163.89/MWh | £164.73/MWh | £40.70/MWh |
 | PROS-2021-0062g | gas | 2022-02-26 | £-123.19 | £1,047.77 | +6.8% | £158.89/MWh | £169.63/MWh | £40.70/MWh |
 | C2g | gas | 2022-03-31 | £-39.75 | £638.18 | +1.2% | £114.41/MWh | £115.82/MWh | £40.70/MWh |
 | C3g | gas | 2022-06-30 | £-161.38 | £691.34 | +18.3% | £102.51/MWh | £121.31/MWh | £73.70/MWh |
@@ -2254,22 +2254,24 @@ Company applied 89 recovery surcharge(s) at renewal based on prior-term losses (
 | PROS-2020-0009g | gas | 2023-01-05 | £-390.39 | £400.27 | +20.0% | £116.64/MWh | £139.97/MWh | £103.20/MWh |
 | PROS-2020-0012g | gas | 2023-01-07 | £-682.12 | £585.43 | +20.0% | £115.35/MWh | £138.42/MWh | £103.20/MWh |
 | PROS-2016-0011g | gas | 2023-01-10 | £-775.83 | £651.88 | +20.0% | £111.14/MWh | £133.37/MWh | £103.20/MWh |
-| PROS-2019-0008 | electricity | 2023-01-10 | £-188.93 | £1,321.40 | +9.3% | £290.49/MWh | £317.50/MWh | £317.50/MWh |
-| PROS-2019-0008g | gas | 2023-01-10 | £-869.15 | £710.97 | +20.0% | £111.40/MWh | £133.68/MWh | £103.20/MWh |
-| PROS-2022-0009 | electricity | 2023-01-10 | £-67.35 | £1,224.87 | +0.5% | £290.23/MWh | £291.68/MWh | £291.68/MWh |
-| PROS-2022-0009g | gas | 2023-01-10 | £-914.86 | £672.78 | +20.0% | £111.37/MWh | £133.64/MWh | £103.20/MWh |
-| PROS-2018-0016g | gas | 2023-01-11 | £-757.25 | £642.63 | +20.0% | £111.37/MWh | £133.65/MWh | £103.20/MWh |
+| PROS-2018-0014g | gas | 2023-01-10 | £-534.01 | £498.75 | +20.0% | £111.60/MWh | £133.91/MWh | £103.20/MWh |
+| PROS-2019-0008 | electricity | 2023-01-10 | £-172.41 | £1,343.34 | +7.8% | £290.59/MWh | £313.35/MWh | £313.35/MWh |
+| PROS-2019-0008g | gas | 2023-01-10 | £-869.15 | £710.97 | +20.0% | £110.96/MWh | £133.15/MWh | £103.20/MWh |
+| PROS-2022-0009 | electricity | 2023-01-10 | £-67.35 | £1,224.87 | +0.5% | £289.29/MWh | £290.73/MWh | £290.73/MWh |
+| PROS-2022-0009g | gas | 2023-01-10 | £-914.86 | £672.78 | +20.0% | £110.93/MWh | £133.12/MWh | £103.20/MWh |
+| PROS-2018-0016g | gas | 2023-01-11 | £-757.25 | £642.63 | +20.0% | £111.06/MWh | £133.27/MWh | £103.20/MWh |
 | PROS-2019-0009g | gas | 2023-01-11 | £-397.76 | £413.93 | +20.0% | £111.47/MWh | £133.76/MWh | £103.20/MWh |
 | PROS-2020-0016g | gas | 2023-01-11 | £-322.42 | £357.06 | +20.0% | £110.69/MWh | £132.83/MWh | £103.20/MWh |
-| PROS-2022-0010 | electricity | 2023-01-11 | £-111.61 | £1,500.79 | +2.4% | £293.69/MWh | £300.84/MWh | £300.84/MWh |
-| PROS-2022-0010g | gas | 2023-01-11 | £-690.64 | £600.26 | +20.0% | £109.91/MWh | £131.89/MWh | £103.20/MWh |
-| PROS-2018-0018g | gas | 2023-01-12 | £-355.20 | £388.17 | +20.0% | £108.57/MWh | £130.29/MWh | £103.20/MWh |
-| PROS-2022-0011 | electricity | 2023-01-12 | £-209.95 | £1,451.61 | +9.5% | £291.50/MWh | £319.08/MWh | £319.08/MWh |
-| PROS-2022-0011g | gas | 2023-01-12 | £-182.39 | £277.74 | +20.0% | £108.38/MWh | £130.05/MWh | £103.20/MWh |
+| PROS-2021-0006g | gas | 2023-01-11 | £-426.62 | £432.29 | +20.0% | £110.02/MWh | £132.02/MWh | £103.20/MWh |
+| PROS-2022-0010 | electricity | 2023-01-11 | £-111.61 | £1,500.79 | +2.4% | £292.48/MWh | £299.61/MWh | £299.61/MWh |
+| PROS-2022-0010g | gas | 2023-01-11 | £-690.64 | £600.26 | +20.0% | £108.90/MWh | £130.68/MWh | £103.20/MWh |
+| PROS-2018-0018g | gas | 2023-01-12 | £-355.20 | £388.17 | +20.0% | £108.65/MWh | £130.38/MWh | £103.20/MWh |
+| PROS-2022-0011 | electricity | 2023-01-12 | £-209.95 | £1,451.61 | +9.5% | £291.96/MWh | £319.59/MWh | £319.59/MWh |
+| PROS-2022-0011g | gas | 2023-01-12 | £-182.39 | £277.74 | +20.0% | £108.40/MWh | £130.08/MWh | £103.20/MWh |
 | PROS-2017-0019g | gas | 2023-01-13 | £-285.83 | £344.95 | +20.0% | £107.43/MWh | £128.92/MWh | £103.20/MWh |
 | PROS-2018-0022g | gas | 2023-01-14 | £-536.65 | £507.76 | +20.0% | £106.35/MWh | £127.62/MWh | £103.20/MWh |
 | PROS-2019-0012g | gas | 2023-01-15 | £-185.20 | £274.98 | +20.0% | £106.81/MWh | £128.17/MWh | £103.20/MWh |
-| PROS-2016-0020 | electricity | 2023-01-17 | £-107.61 | £1,241.86 | +3.7% | £345.46/MWh | £358.12/MWh | £358.12/MWh |
+| PROS-2016-0020 | electricity | 2023-01-17 | £-107.27 | £1,242.24 | +3.6% | £345.48/MWh | £358.04/MWh | £358.04/MWh |
 | PROS-2016-0020g | gas | 2023-01-17 | £-490.52 | £482.88 | +20.0% | £106.21/MWh | £127.45/MWh | £103.20/MWh |
 | PROS-2017-0022g | gas | 2023-01-18 | £-1,004.38 | £821.36 | +20.0% | £107.09/MWh | £128.51/MWh | £103.20/MWh |
 | PROS-2019-0015g | gas | 2023-01-18 | £-652.52 | £590.66 | +20.0% | £107.96/MWh | £129.56/MWh | £103.20/MWh |
@@ -2283,12 +2285,11 @@ Company applied 89 recovery surcharge(s) at renewal based on prior-term losses (
 | PROS-2019-0024g | gas | 2023-01-28 | £-921.17 | £716.97 | +20.0% | £107.70/MWh | £129.24/MWh | £103.20/MWh |
 | PROS-2022-0030g | gas | 2023-01-28 | £-484.84 | £494.83 | +20.0% | £108.93/MWh | £130.71/MWh | £103.20/MWh |
 | PROS-2019-0027g | gas | 2023-02-02 | £-779.08 | £704.19 | +20.0% | £109.54/MWh | £131.45/MWh | £103.20/MWh |
-| PROS-2020-0042g | gas | 2023-02-07 | £-1,237.49 | £1,009.86 | +20.0% | £109.28/MWh | £131.14/MWh | £103.20/MWh |
-| PROS-2020-0043g | gas | 2023-02-08 | £-579.77 | £576.16 | +20.0% | £110.18/MWh | £132.22/MWh | £103.20/MWh |
-| PROS-2020-0048g | gas | 2023-02-11 | £-863.73 | £782.31 | +20.0% | £131.71/MWh | £158.05/MWh | £103.20/MWh |
+| PROS-2020-0043g | gas | 2023-02-08 | £-579.77 | £576.16 | +20.0% | £110.23/MWh | £132.28/MWh | £103.20/MWh |
+| PROS-2020-0048g | gas | 2023-02-11 | £-863.73 | £782.31 | +20.0% | £132.55/MWh | £159.06/MWh | £103.20/MWh |
 | PROS-2018-0053g | gas | 2023-02-15 | £-259.82 | £355.89 | +20.0% | £128.54/MWh | £154.25/MWh | £103.20/MWh |
 | PROS-2022-0046g | gas | 2023-02-15 | £-745.54 | £636.96 | +20.0% | £128.37/MWh | £154.04/MWh | £103.20/MWh |
-| PROS-2021-0051 | electricity | 2023-02-16 | £-77.68 | £1,446.49 | +0.4% | £336.20/MWh | £337.45/MWh | £337.45/MWh |
+| PROS-2021-0051 | electricity | 2023-02-16 | £-77.02 | £1,447.35 | +0.3% | £336.20/MWh | £337.28/MWh | £337.28/MWh |
 | PROS-2021-0051g | gas | 2023-02-16 | £-452.18 | £495.06 | +20.0% | £127.34/MWh | £152.81/MWh | £103.20/MWh |
 | PROS-2022-0048g | gas | 2023-02-16 | £-435.62 | £483.14 | +20.0% | £127.35/MWh | £152.82/MWh | £103.20/MWh |
 | PROS-2022-0049g | gas | 2023-02-17 | £-865.10 | £794.09 | +20.0% | £126.22/MWh | £151.47/MWh | £103.20/MWh |
@@ -2319,7 +2320,6 @@ Company applied 89 recovery surcharge(s) at renewal based on prior-term losses (
 | SYN-2021-001 | electricity | 2023-12-23 | £-198.60 | £1,583.17 | +7.5% | £232.72/MWh | £250.28/MWh | £250.28/MWh |
 | C7 | electricity | 2023-12-30 | £-369.14 | £4,377.92 | +3.4% | £232.56/MWh | £240.54/MWh | £240.54/MWh |
 | PROS-2023-0001 | electricity | 2024-01-02 | £-126.00 | £1,532.43 | +3.2% | £239.76/MWh | £247.49/MWh | £247.49/MWh |
-| PROS-2018-0016 | electricity | 2024-01-11 | £-71.42 | £1,329.45 | +0.4% | £232.14/MWh | £233.00/MWh | £233.00/MWh |
 
 
 ## Flexibility Revenue — DSR & Capacity Market (Phase AG/NX)
@@ -2356,7 +2356,7 @@ Board-level synthesis of CRM and flexibility intelligence derived from observabl
 - **Retention offers made:** 9
 - **Offer acceptance rate:** 89% (8 retained / 1 churned despite offer)
 - **Estimated margin protected:** £3,870.74
-- **No-offer churns:** 36 total (0 blind miss / 0 deliberate pass)
+- **No-offer churns:** 35 total (0 blind miss / 0 deliberate pass)
 - **Retention coverage rate:** 20% of at-risk renewals received an offer
 
 ### 2. Flexibility Revenue Intelligence
@@ -2368,15 +2368,15 @@ Board-level synthesis of CRM and flexibility intelligence derived from observabl
 
 ### 3. Churn Pattern Analysis
 
-- **Total lifetime churn events:** 37
-- **Peak churn year:** 2022 (15 events)
-- **Net book movement:** 8 acquisitions − 37 churns = -29
+- **Total lifetime churn events:** 36
+- **Peak churn year:** 2022 (14 events)
+- **Net book movement:** 9 acquisitions − 36 churns = -27
 - **Portfolio trend:** shrinking
 
 ### 4. Board Recommendations
 
 1. **Flexibility revenue:** 10 customers enrolled in CM/DFS as of 2025. Prioritise EV+battery acquisition — combined enrollment earns ~£2,046/yr vs EV-only ~£930/yr.
-2. **Crisis-year churn:** 17 churn events in 2021–2022. Maintain minimum hedge floor pre-crisis to preserve pricing stability and limit bill-shock churn.
+2. **Crisis-year churn:** 16 churn events in 2021–2022. Maintain minimum hedge floor pre-crisis to preserve pricing stability and limit bill-shock churn.
 
 ## CRM Intelligence: Risk Triage (Final Year)
 
@@ -2384,177 +2384,178 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 
 | Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |
 |---------|-----|-----------|-----------|----------|-------------|-----------------|
-| C5 | SME | CRITICAL | 95% | 61% | +67.2% [overpriced] | £-1,141.89 |
+| PROS-2020-0067 | resi | CRITICAL | 93% | 5% | +63.4% [overpriced] | £10.50 |
 | PROS-2018-0039 | resi | CRITICAL | 67% | 5% | +69.3% [overpriced] | £219.61 |
-| PROS-2020-0067 | resi | CRITICAL | 61% | 5% | +63.4% [overpriced] | £10.50 |
-| PROS-2020-0050 | resi | CRITICAL | 54% | 5% | +70.2% [overpriced] | £107.55 |
+| C5 | SME | CRITICAL | 54% | 61% | +67.2% [overpriced] | £-1,141.89 |
+| PROS-2020-0050 | resi | CRITICAL | 54% | 5% | +69.2% [overpriced] | £107.55 |
+| PROS-2022-0071 | resi | CRITICAL | 50% | 28% | +11.0% [overpriced] | £599.11 |
 | PROS-2019-0050 | resi | CRITICAL | 50% | 5% | +64.8% [overpriced] | £281.58 |
-| PROS-2022-0071 | resi | HIGH | 38% | 28% | +11.0% [overpriced] | £599.11 |
-| PROS-2022-0067 | resi | MEDIUM | 28% | 23% | +3.3% | £454.45 |
-| PROS-2023-0089 | resi | MEDIUM | 25% | 25% | +6.0% [overpriced] | £595.87 |
-| PROS-2020-0047 | resi | MEDIUM | 21% | 8% | +71.8% [overpriced] | £30.35 |
-| PROS-2022-0092 | resi | MEDIUM | 21% | 7% | +8.3% [overpriced] | £350.78 |
-| PROS-2020-0042 | resi | MEDIUM | 21% | 22% | +2.3% | £1,441.77 |
-| PROS-2023-0072 | resi | MEDIUM | 20% | 7% | +7.6% [overpriced] | £512.17 |
-| PROS-2023-0090 | resi | MEDIUM | 19% | 29% | -2.4% | £508.43 |
-| PROS-2020-0022 | resi | MEDIUM | 19% | 9% | -1.3% | £643.69 |
-| PROS-2023-0025 | resi | MEDIUM | 19% | 16% | -2.9% | £237.09 |
-| PROS-2019-0023 | resi | MEDIUM | 19% | 9% | -3.0% | £1,370.49 |
-| PROS-2022-0127 | resi | MEDIUM | 19% | 28% | -3.2% | £450.79 |
-| PROS-2017-0022 | resi | MEDIUM | 18% | 8% | -2.3% | £826.21 |
-| PROS-2022-0083 | resi | MEDIUM | 18% | 24% | +1.9% | £580.62 |
-| PROS-2017-0019 | resi | MEDIUM | 17% | 10% | -2.9% | £953.26 |
+| PROS-2020-0042 | resi | HIGH | 33% | 5% | +78.0% [overpriced] | £110.14 |
+| PROS-2020-0047 | resi | HIGH | 33% | 8% | +73.0% [overpriced] | £30.35 |
+| PROS-2022-0067 | resi | HIGH | 30% | 23% | +3.3% | £454.45 |
+| PROS-2021-0044 | resi | MEDIUM | 23% | 5% | +69.2% [overpriced] | £22.65 |
+| PROS-2023-0025 | resi | MEDIUM | 21% | 16% | -2.9% | £237.09 |
+| PROS-2019-0023 | resi | MEDIUM | 21% | 9% | -3.0% | £1,370.49 |
+| PROS-2019-0003 | resi | MEDIUM | 20% | 5% | +61.6% [overpriced] | £-120.32 |
+| PROS-2023-0089 | resi | MEDIUM | 20% | 25% | +6.0% [overpriced] | £595.87 |
+| PROS-2020-0022 | resi | MEDIUM | 19% | 9% | -1.3% | £643.66 |
+| PROS-2022-0083 | resi | MEDIUM | 19% | 24% | +1.9% | £580.62 |
+| PROS-2020-0048 | resi | MEDIUM | 18% | 15% | +1.5% | £1,417.24 |
+| PROS-2023-0090 | resi | MEDIUM | 18% | 29% | -2.4% | £508.43 |
+| PROS-2021-0029 | resi | MEDIUM | 18% | 8% | +67.3% [overpriced] | £-132.38 |
 | PROS-2020-0013 | resi | MEDIUM | 17% | 5% | +49.4% [overpriced] | £-8.56 |
-| PROS-2022-0010 | resi | MEDIUM | 17% | 13% | -3.4% | £366.86 |
+| PROS-2022-0127 | resi | MEDIUM | 17% | 28% | -3.2% | £450.79 |
+| PROS-2017-0022 | resi | MEDIUM | 17% | 8% | -2.3% | £826.15 |
 | PROS-2022-0073 | resi | MEDIUM | 17% | 26% | +12.1% [overpriced] | £616.86 |
 | PROS-2022-0097 | resi | MEDIUM | 17% | 26% | +1.2% | £620.96 |
-| PROS-2020-0048 | resi | MEDIUM | 17% | 15% | +1.0% | £1,399.30 |
+| PROS-2022-0120 | resi | MEDIUM | 17% | 22% | -12.6% | £403.17 |
+| PROS-2019-0024 | resi | MEDIUM | 17% | 9% | -3.0% | £899.00 |
+| PROS-2017-0019 | resi | MEDIUM | 16% | 10% | -3.0% | £946.08 |
+| PROS-2022-0010 | resi | MEDIUM | 16% | 13% | -3.1% | £362.11 |
 | PROS-2021-0088 | resi | MEDIUM | 15% | 10% | +3.8% | £705.52 |
-| PROS-2021-0044 | resi | MEDIUM | 15% | 5% | +70.2% [overpriced] | £22.65 |
-| PROS-2019-0024 | resi | LOW | 15% | 9% | -3.0% | £899.00 |
+| PROS-2022-0092 | resi | LOW | 15% | 7% | +8.3% [overpriced] | £350.78 |
+| PROS-2021-0060 | resi | LOW | 15% | 13% | +58.2% [overpriced] | £74.16 |
+| PROS-2023-0072 | resi | LOW | 15% | 7% | +7.6% [overpriced] | £512.17 |
 | PROS-2021-0067 | resi | LOW | 15% | 8% | +67.3% [overpriced] | £145.65 |
 | PROS-2021-0017 | resi | LOW | 15% | 5% | +67.1% [overpriced] | £-23.34 |
 | PROS-2022-0030 | resi | LOW | 14% | 10% | -3.0% | £984.62 |
 | PROS-2023-0104 | resi | LOW | 14% | 29% | -3.9% | £683.16 |
-| PROS-2019-0015 | resi | LOW | 14% | 8% | -2.1% | £740.06 |
-| PROS-2019-0003 | resi | LOW | 13% | 5% | +61.6% [overpriced] | £-120.32 |
-| PROS-2020-0016 | resi | LOW | 13% | 17% | -3.4% | £527.18 |
-| PROS-2020-0009 | resi | LOW | 13% | 10% | -3.3% | £615.89 |
+| PROS-2020-0006 | resi | LOW | 13% | 9% | -3.5% | £711.01 |
+| PROS-2019-0015 | resi | LOW | 13% | 8% | -2.1% | £740.01 |
 | C8 | resi | LOW | 13% | 13% | +0.0% | £1,253.69 |
-| PROS-2023-0016 | resi | LOW | 13% | 14% | -3.1% | £347.62 |
-| PROS-2022-0049 | resi | LOW | 12% | 17% | -7.9% | £735.73 |
-| PROS-2023-0013 | resi | LOW | 12% | 17% | -4.0% | £279.45 |
+| PROS-2023-0013 | resi | LOW | 12% | 17% | -4.0% | £279.74 |
+| PROS-2023-0016 | resi | LOW | 12% | 14% | -2.7% | £349.00 |
+| PROS-2020-0016 | resi | LOW | 12% | 17% | -3.4% | £524.36 |
+| PROS-2022-0047 | resi | LOW | 12% | 12% | -11.2% | £822.42 |
 | PROS-2022-0081 | resi | LOW | 12% | 7% | -0.3% | £571.55 |
 | C2 | resi | LOW | 12% | 13% | +0.0% | £505.24 |
-| PROS-2023-0116 | resi | LOW | 12% | 27% | -6.9% | £435.70 |
-| PROS-2021-0029 | resi | LOW | 12% | 8% | +67.3% [overpriced] | £-132.38 |
-| PROS-2022-0130 | resi | LOW | 12% | 27% | -5.7% | £590.37 |
+| PROS-2023-0039 | resi | LOW | 12% | 5% | -1.6% | £724.29 |
+| PROS-2022-0046 | resi | LOW | 12% | 5% | -2.1% | £872.49 |
+| PROS-2018-0022 | resi | LOW | 11% | 7% | -2.6% | £835.92 |
+| PROS-2018-0018 | resi | LOW | 11% | 7% | -2.9% | £503.55 |
+| PROS-2022-0124 | resi | LOW | 11% | 7% | -3.2% | £464.99 |
+| PROS-2021-0006 | resi | LOW | 11% | 10% | -3.4% | £371.35 |
+| PROS-2019-0012 | resi | LOW | 11% | 7% | -3.4% | £717.46 |
+| PROS-2018-0014 | resi | LOW | 11% | 7% | -3.6% | £199.39 |
+| PROS-2023-0067 | resi | LOW | 11% | 11% | -18.0% | £446.29 |
+| PROS-2021-0045 | resi | LOW | 11% | 7% | -2.0% | £918.80 |
 | PROS-2019-0027 | resi | LOW | 11% | 7% | -1.4% | £1,218.32 |
-| PROS-2023-0039 | resi | LOW | 11% | 5% | -1.7% | £724.14 |
-| PROS-2021-0045 | resi | LOW | 11% | 7% | -1.8% | £931.73 |
-| PROS-2022-0046 | resi | LOW | 11% | 5% | -2.1% | £872.40 |
-| PROS-2018-0022 | resi | LOW | 10% | 7% | -2.6% | £835.87 |
-| PROS-2021-0006 | resi | LOW | 10% | 5% | +48.1% [overpriced] | £-107.53 |
+| PROS-2020-0012 | resi | LOW | 11% | 7% | -6.0% | £589.68 |
+| PROS-2023-0045 | resi | LOW | 10% | 5% | -6.1% | £613.10 |
+| PROS-2022-0011 | resi | LOW | 10% | 5% | -2.7% | £-144.43 |
 | PROS-2023-0010 | resi | LOW | 10% | 12% | -6.0% | £93.70 |
-| PROS-2018-0018 | resi | LOW | 10% | 7% | -2.9% | £500.67 |
-| PROS-2023-0026 | resi | LOW | 10% | 5% | -2.9% | £470.28 |
-| PROS-2021-0031 | resi | LOW | 10% | 10% | -2.9% | £908.46 |
-| PROS-2022-0011 | resi | LOW | 10% | 5% | -3.0% | £-146.64 |
+| PROS-2021-0031 | resi | LOW | 10% | 10% | -2.9% | £908.45 |
+| PROS-2020-0009 | resi | LOW | 10% | 9% | -4.7% | £611.39 |
+| PROS-2016-0003 | resi | LOW | 10% | 13% | -15.2% | £166.58 |
 | PROS-2022-0100 | resi | LOW | 10% | 10% | -3.2% | £514.29 |
-| PROS-2022-0124 | resi | LOW | 10% | 7% | -3.2% | £464.99 |
 | PROS-2022-0128 | resi | LOW | 10% | 7% | -3.2% | £460.04 |
-| PROS-2019-0012 | resi | LOW | 10% | 7% | -3.4% | £717.15 |
-| PROS-2019-0008 | resi | LOW | 10% | 26% | -3.6% | £611.52 |
-| PROS-2019-0009 | resi | LOW | 10% | 10% | -3.7% | £623.13 |
-| PROS-2022-0120 | resi | LOW | 10% | 22% | -12.6% | £403.17 |
-| PROS-2021-0060 | resi | LOW | 10% | 13% | +58.2% [overpriced] | £74.16 |
-| PROS-2021-0062 | resi | LOW | 10% | 12% | -12.7% | £1,399.43 |
-| PROS-2018-0003 | resi | LOW | 10% | 11% | -11.2% | £229.47 |
-| PROS-2021-0051 | resi | LOW | 9% | 11% | -12.1% | £738.51 |
-| C4 | resi | LOW | 9% | 13% | -4.2% | £-40.15 |
-| PROS-2018-0014 | resi | LOW | 9% | 5% | +40.6% [overpriced] | £-20.66 |
+| PROS-2019-0008 | resi | LOW | 10% | 26% | -3.6% | £617.10 |
+| PROS-2019-0009 | resi | LOW | 10% | 10% | -3.7% | £619.64 |
+| C7 | resi | LOW | 10% | 14% | -5.4% | £-320.33 |
+| PROS-2022-0045 | resi | LOW | 9% | 5% | +1.1% | £1,018.00 |
+| PROS-2022-0049 | resi | LOW | 9% | 17% | -7.9% | £735.70 |
+| PROS-2023-0026 | resi | LOW | 9% | 5% | -2.9% | £470.28 |
+| PROS-2021-0051 | resi | LOW | 9% | 11% | -12.1% | £738.81 |
+| PROS-2022-0130 | resi | LOW | 9% | 27% | -5.7% | £590.37 |
+| PROS-2023-0116 | resi | LOW | 9% | 27% | -6.9% | £435.70 |
+| PROS-2016-0020 | resi | LOW | 9% | 20% | -3.4% | £920.88 |
 | PROS-2019-0021 | resi | LOW | 9% | 7% | -0.9% | £1,145.44 |
-| PROS-2020-0012 | resi | LOW | 9% | 7% | -6.0% | £589.68 |
-| PROS-2023-0045 | resi | LOW | 9% | 5% | -6.1% | £613.11 |
-| PROS-2022-0045 | resi | LOW | 9% | 5% | -1.1% | £1,011.16 |
-| PROS-2023-0127 | resi | LOW | 8% | 6% | -6.3% | £565.11 |
-| PROS-2020-0032 | resi | LOW | 8% | 17% | -2.2% | £1,262.66 |
+| PROS-2023-0125 | resi | LOW | 8% | 5% | -15.7% | £694.96 |
+| PROS-2020-0032 | resi | LOW | 8% | 17% | -2.2% | £1,262.68 |
+| PROS-2022-0082 | resi | LOW | 8% | 5% | -16.5% | £515.97 |
 | C1 | resi | LOW | 8% | 5% | +0.0% | £172.46 |
-| PROS-2020-0025 | resi | LOW | 8% | 10% | -1.9% | £211.37 |
-| C7 | resi | LOW | 8% | 14% | -5.4% | £-320.33 |
-| PROS-2018-0053 | resi | LOW | 8% | 10% | -2.3% | £1,099.45 |
-| PROS-2023-0001 | resi | LOW | 8% | 7% | -3.9% | £341.29 |
-| PROS-2016-0020 | resi | LOW | 8% | 20% | -3.4% | £920.81 |
+| PROS-2020-0025 | resi | LOW | 8% | 10% | -1.9% | £211.42 |
+| PROS-2023-0001 | resi | LOW | 8% | 7% | -3.0% | £345.89 |
+| PROS-2020-0043 | resi | LOW | 8% | 18% | -19.3% | £-278.59 |
+| PROS-2018-0053 | resi | LOW | 8% | 10% | -2.5% | £1,098.10 |
+| C4 | resi | LOW | 8% | 13% | -4.2% | £-40.15 |
 | PROS-2023-0014 | resi | LOW | 8% | 14% | -3.5% | £368.02 |
-| PROS-2018-0016 | resi | LOW | 7% | 10% | -3.6% | £649.11 |
-| PROS-2022-0047 | resi | LOW | 7% | 12% | -11.3% | £822.39 |
-| PROS-2022-0009 | resi | LOW | 7% | 7% | -3.9% | £359.77 |
+| PROS-2021-0062 | resi | LOW | 7% | 12% | -12.7% | £1,399.25 |
+| PROS-2022-0009 | resi | LOW | 7% | 7% | -3.9% | £356.06 |
+| PROS-2018-0003 | resi | LOW | 7% | 11% | -11.2% | £722.20 |
 | PROS-2018-0035 | resi | LOW | 7% | 26% | -0.7% | £1,274.43 |
+| PROS-2023-0147 | resi | LOW | 7% | 5% | -21.6% [competitive] | £313.33 |
+| PROS-2018-0016 | resi | LOW | 7% | 10% | -3.6% | £661.88 |
+| C9 | resi | LOW | 7% | 11% | -20.6% [competitive] | £1,067.06 |
+| PROS-2023-0127 | resi | LOW | 6% | 6% | -6.3% | £565.11 |
 | PROS-2023-0113 | resi | LOW | 6% | 7% | -6.9% | £567.71 |
-| PROS-2022-0048 | resi | LOW | 6% | 5% | -10.0% | £797.74 |
-| PROS-2016-0011 | resi | LOW | 6% | 7% | -3.5% | £755.76 |
+| PROS-2022-0048 | resi | LOW | 6% | 5% | -10.0% | £797.76 |
+| PROS-2016-0011 | resi | LOW | 6% | 7% | -3.5% | £755.73 |
 | PROS-2022-0125 | resi | LOW | 6% | 17% | -3.2% | £-18.81 |
-| PROS-2020-0006 | resi | LOW | 6% | 8% | -13.0% | £336.75 |
-| PROS-2023-0067 | resi | LOW | 6% | 11% | -18.0% | £446.29 |
 | PROS-2024-0083 | resi | LOW | 6% | 10% | +11.3% [overpriced] | £382.85 |
 | PROS-2024-0081 | resi | LOW | 6% | 31% | +15.8% [overpriced] | £296.37 |
-| PROS-2023-0096 | resi | LOW | 6% | 6% | -11.2% | £462.86 |
 | PROS-2018-0043 | resi | LOW | 6% | 7% | -11.8% | £1,396.18 |
+| PROS-2020-0002 | resi | LOW | 5% | 11% | -10.3% | £606.89 |
 | PROS-2023-0158 | resi | LOW | 5% | 15% | -23.1% [competitive] | £419.62 |
-| PROS-2016-0003 | resi | LOW | 5% | 13% | -15.2% | £166.58 |
 | PROS-2024-0076 | resi | LOW | 5% | 26% | +14.2% [overpriced] | £2.45 |
-| PROS-2020-0002 | resi | LOW | 5% | 11% | -11.2% | £603.30 |
-| PROS-2020-0043 | resi | LOW | 5% | 18% | -19.3% | £-286.88 |
 | PROS-2024-0085 | resi | LOW | 5% | 7% | +8.3% [overpriced] | £283.50 |
 | PROS-2024-0082 | resi | LOW | 5% | 17% | +11.3% [overpriced] | £347.28 |
-| PROS-2023-0125 | resi | LOW | 5% | 5% | -15.7% | £694.96 |
-| PROS-2022-0082 | resi | LOW | 4% | 5% | -16.5% | £515.97 |
-| PROS-2021-0100 | resi | LOW | 4% | 5% | +21.3% [overpriced] | £148.91 |
-| PROS-2023-0147 | resi | LOW | 4% | 5% | -21.6% [competitive] | £313.33 |
+| PROS-2023-0096 | resi | LOW | 4% | 6% | -11.2% | £462.86 |
 | PROS-2023-0146 | resi | LOW | 4% | 5% | -22.3% [competitive] | £303.00 |
 | PROS-2023-0126 | resi | LOW | 4% | 23% | -15.6% | £620.39 |
-| C9 | resi | LOW | 3% | 11% | -20.6% [competitive] | £1,067.06 |
 | PROS-2023-0152 | resi | LOW | 3% | 5% | -22.8% [competitive] | £274.58 |
-| PROS-2023-0065 | resi | LOW | 3% | 14% | -19.1% | £475.39 |
 | PROS-2024-0094 | resi | LOW | 3% | 17% | +6.1% [overpriced] | £162.51 |
-| PROS-2024-0057 | resi | LOW | 3% | 5% | +1.5% | £301.33 |
-| C3 | resi | LOW | 3% | 14% | -19.5% | £573.78 |
+| PROS-2024-0057 | resi | LOW | 3% | 5% | +1.5% | £301.34 |
+| PROS-2018-0002 | resi | LOW | 3% | 25% | -11.9% | £114.11 |
 | PROS-2024-0062 | resi | LOW | 3% | 10% | +3.7% | £298.80 |
 | PROS-2022-0063 | resi | LOW | 2% | 5% | -24.1% [competitive] | £668.10 |
 | PROS-2024-0027 | resi | LOW | 2% | 5% | -1.5% | £448.03 |
 | PROS-2024-0040 | resi | LOW | 2% | 20% | +2.6% | £320.68 |
-| PROS-2024-0038 | resi | LOW | 2% | 5% | -2.6% | £393.38 |
-| PROS-2024-0014 | resi | LOW | 2% | 5% | -3.4% | £408.48 |
-| PROS-2024-0010 | resi | LOW | 2% | 15% | -3.7% | £357.21 |
-| PROS-2018-0009 | resi | LOW | 2% | 10% | -5.3% | £622.05 |
 | PROS-2024-0122 | resi | LOW | 2% | 25% | -5.7% | £251.43 |
+| PROS-2024-0038 | resi | LOW | 2% | 5% | -2.6% | £393.38 |
+| PROS-2024-0014 | resi | LOW | 2% | 5% | -3.4% | £408.20 |
+| PROS-2024-0010 | resi | LOW | 2% | 15% | -3.7% | £357.19 |
+| PROS-2023-0065 | resi | LOW | 2% | 14% | -19.1% | £475.39 |
 | PROS-2024-0065 | resi | LOW | 2% | 23% | -1.2% | £317.81 |
-| C6 | SME | LOW | 2% | 15% | -13.2% | £-108.80 |
-| PROS-2024-0022 | resi | LOW | 2% | 12% | -2.3% | £356.97 |
 | PROS-2024-0096 | resi | LOW | 2% | 17% | -2.4% | £219.38 |
-| PROS-2024-0098 | resi | LOW | 2% | 7% | -2.8% | £221.73 |
-| PROS-2018-0024 | resi | LOW | 2% | 17% | -3.4% | £883.60 |
-| PROS-2024-0036 | resi | LOW | 2% | 7% | -2.8% | £325.53 |
+| C3 | resi | LOW | 2% | 14% | -19.5% | £573.78 |
+| C6 | SME | LOW | 2% | 15% | -13.2% | £-108.80 |
+| PROS-2021-0100 | resi | LOW | 2% | 5% | +21.3% [overpriced] | £148.91 |
 | PROS-2024-0116 | resi | LOW | 2% | 17% | -3.7% | £267.14 |
-| PROS-2018-0002 | resi | LOW | 2% | 25% | -11.9% | £114.11 |
+| PROS-2024-0098 | resi | LOW | 2% | 7% | -2.8% | £221.73 |
+| PROS-2024-0069 | resi | LOW | 2% | 5% | -16.7% | £253.46 |
+| PROS-2024-0022 | resi | LOW | 2% | 12% | -2.3% | £356.97 |
+| PROS-2018-0024 | resi | LOW | 2% | 17% | -3.4% | £883.69 |
+| PROS-2024-0036 | resi | LOW | 2% | 7% | -2.8% | £325.53 |
+| PROS-2024-0148 | resi | LOW | 2% | 23% | -10.0% | £276.43 |
 | SYN-2021-001 | resi | LOW | 2% | 5% | -6.8% | £258.65 |
-| PROS-2024-0111 | resi | LOW | 2% | 6% | -6.0% | £291.34 |
-| PROS-2024-0048 | resi | LOW | 1% | 14% | -1.9% | £341.75 |
-| PROS-2024-0110 | resi | LOW | 1% | 23% | -10.4% | £240.60 |
-| PROS-2024-0012 | resi | LOW | 1% | 14% | -3.0% | £300.40 |
-| PROS-2024-0041 | resi | LOW | 1% | 14% | -11.0% | £258.39 |
+| PROS-2024-0113 | resi | LOW | 2% | 7% | -12.5% | £256.67 |
+| PROS-2018-0009 | resi | LOW | 2% | 10% | -6.0% | £619.14 |
+| PROS-2024-0048 | resi | LOW | 1% | 14% | -2.1% | £341.02 |
+| PROS-2024-0012 | resi | LOW | 1% | 14% | -2.7% | £301.65 |
+| PROS-2023-0172 | resi | LOW | 1% | 5% | -24.8% [competitive] | £58.01 |
+| PROS-2024-0111 | resi | LOW | 1% | 6% | -6.0% | £291.34 |
 | PROS-2024-0087 | resi | LOW | 1% | 23% | -1.1% | £299.27 |
-| PROS-2024-0148 | resi | LOW | 1% | 23% | -10.0% | £276.43 |
+| PROS-2024-0056 | resi | LOW | 1% | 23% | -6.4% | £240.47 |
 | PROS-2024-0008 | resi | LOW | 1% | 5% | -14.3% | £406.90 |
-| PROS-2024-0009 | resi | LOW | 1% | 6% | -14.3% | £372.62 |
-| PROS-2024-0147 | resi | LOW | 1% | 15% | -16.4% | £285.30 |
-| PROS-2024-0069 | resi | LOW | 1% | 5% | -16.7% | £253.46 |
-| PROS-2024-0113 | resi | LOW | 1% | 7% | -12.5% | £256.67 |
-| PROS-2024-0056 | resi | LOW | 1% | 23% | -6.4% | £240.48 |
+| PROS-2024-0009 | resi | LOW | 1% | 6% | -14.3% | £372.66 |
+| PROS-2024-0110 | resi | LOW | 1% | 23% | -10.4% | £240.60 |
+| PROS-2024-0041 | resi | LOW | 1% | 14% | -11.0% | £258.39 |
 | PROS-2023-0162 | resi | LOW | 1% | 11% | -19.2% | £496.01 |
 | PROS-2024-0131 | resi | LOW | 1% | 14% | -15.7% | £317.97 |
 | PROS-2024-0179 | resi | LOW | 1% | 5% | -22.9% [competitive] | £32.32 |
 | PROS-2024-0157 | resi | LOW | 1% | 7% | -21.5% [competitive] | £114.86 |
-| PROS-2024-0160 | resi | LOW | 1% | 19% | -23.2% [competitive] | £-29.19 |
+| PROS-2024-0147 | resi | LOW | 1% | 15% | -16.4% | £285.30 |
 | PROS-2023-0166 | resi | LOW | 1% | 5% | -24.9% [competitive] | £355.94 |
-| PROS-2023-0172 | resi | LOW | 1% | 5% | -24.8% [competitive] | £285.09 |
-| PROS-2023-0177 | resi | LOW | 1% | 5% | -25.9% [competitive] | £265.15 |
+| PROS-2023-0177 | resi | LOW | 1% | 5% | -26.0% [competitive] | £264.65 |
+| PROS-2024-0160 | resi | LOW | 0% | 19% | -23.2% [competitive] | £-29.19 |
 | PROS-2024-0156 | resi | LOW | 0% | 23% | -23.1% [competitive] | £110.36 |
 | PROS-2022-0019 | resi | LOW | 0% | 12% | -54.4% [competitive] | £-77.00 |
 
 **Risk Band Summary (latest renewal):**
-- CRITICAL (>=50%): 5 accounts
-- HIGH (>=30%): 1 accounts
-- MEDIUM (>=15%): 21 accounts
-- LOW (<15%): 130 accounts
-- Lifetime margin at risk (CRITICAL+HIGH): £76.45
-- Overpriced vs SVT within HIGH/CRITICAL band: 6 account(s) -- rate shock risk compounds churn probability
+- CRITICAL (>=50%): 6 accounts
+- HIGH (>=30%): 3 accounts
+- MEDIUM (>=15%): 20 accounts
+- LOW (<15%): 128 accounts
+- Lifetime margin at risk (CRITICAL+HIGH): £671.39
+- Overpriced vs SVT within HIGH/CRITICAL band: 8 account(s) -- rate shock risk compounds churn probability
 
-**Company blind spot:** 4 HIGH/CRITICAL account(s) where company churn estimate was <10%.
+**Company blind spot:** 6 HIGH/CRITICAL account(s) where company churn estimate was <10%.
+  - PROS-2020-0067: sim 93%, company est 5%
   - PROS-2018-0039: sim 67%, company est 5%
-  - PROS-2020-0067: sim 61%, company est 5%
   - PROS-2020-0050: sim 54%, company est 5%
   - PROS-2019-0050: sim 50%, company est 5%
+  - PROS-2020-0042: sim 33%, company est 5%
 
 ## Churn Root Cause Attribution
 
@@ -2563,55 +2564,54 @@ Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and comp
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
 | C6 | SME | 2017-04-01 | 1.0yr | -5.0% | -13.2% | 2% | 15% | £-108.80 |
-| PROS-2016-0003 | resi | 2018-01-05 | 2.0yr | +5.7% | -15.2% | 5% | 13% | £166.58 |
-| C4 | resi | 2018-10-01 | 2.0yr | +0.7% | -4.2% | 9% | 13% | £-40.15 |
-| PROS-2018-0002 | resi | 2019-01-02 | 1.0yr | -0.8% | -11.9% | 2% | 25% | £114.11 |
+| PROS-2016-0003 | resi | 2018-01-05 | 2.0yr | +5.7% | -15.2% | 10% | 13% | £166.58 |
+| C4 | resi | 2018-10-01 | 2.0yr | +0.7% | -4.2% | 8% | 13% | £-40.15 |
+| PROS-2018-0002 | resi | 2019-01-02 | 1.0yr | -0.8% | -11.9% | 3% | 25% | £114.11 |
 | C1 | resi | 2021-12-30 | 6.0yr | -32.3% | +0.0% | 8% | 5% | £172.46 |
-| C5 | SME | 2021-12-30 | 6.0yr | +11.5% | +67.2% | 95% | 61% | £-1,141.89 |
-| PROS-2019-0003 | resi | 2022-01-02 | 3.0yr | +11.4% | +61.6% | 13% | 5% | £-120.32 |
+| C5 | SME | 2021-12-30 | 6.0yr | +11.5% | +67.2% | 54% | 61% | £-1,141.89 |
+| PROS-2019-0003 | resi | 2022-01-02 | 3.0yr | +11.4% | +61.6% | 20% | 5% | £-120.32 |
 | PROS-2020-0013 | resi | 2022-01-07 | 2.0yr | +0.2% | +49.4% | 17% | 5% | £-8.56 |
-| PROS-2018-0014 | resi | 2022-01-10 | 4.0yr | +6.8% | +40.6% | 9% | 5% | £-20.66 |
-| PROS-2021-0006 | resi | 2022-01-11 | 1.0yr | +11.5% | +48.1% | 10% | 5% | £-107.53 |
 | PROS-2021-0017 | resi | 2022-01-20 | 1.0yr | +4.8% | +67.1% | 15% | 5% | £-23.34 |
-| PROS-2021-0029 | resi | 2022-01-26 | 1.0yr | +2.3% | +67.3% | 12% | 8% | £-132.38 |
+| PROS-2021-0029 | resi | 2022-01-26 | 1.0yr | +2.3% | +67.3% | 18% | 8% | £-132.38 |
 | PROS-2018-0039 | resi | 2022-01-30 | 4.0yr | +0.5% | +69.3% | 67% | 5% | £219.61 |
-| PROS-2020-0047 | resi | 2022-02-11 | 2.0yr | -2.5% | +71.8% | 21% | 8% | £30.35 |
-| PROS-2020-0050 | resi | 2022-02-12 | 2.0yr | -2.2% | +70.2% | 54% | 5% | £107.55 |
-| PROS-2021-0044 | resi | 2022-02-12 | 1.0yr | -2.2% | +70.2% | 15% | 5% | £22.65 |
+| PROS-2020-0042 | resi | 2022-02-07 | 2.0yr | -1.6% | +78.0% | 33% | 5% | £110.14 |
+| PROS-2020-0047 | resi | 2022-02-11 | 2.0yr | -1.8% | +73.0% | 33% | 8% | £30.35 |
+| PROS-2020-0050 | resi | 2022-02-12 | 2.0yr | -2.8% | +69.2% | 54% | 5% | £107.55 |
+| PROS-2021-0044 | resi | 2022-02-12 | 1.0yr | -2.8% | +69.2% | 23% | 5% | £22.65 |
 | PROS-2019-0050 | resi | 2022-02-21 | 3.0yr | +0.7% | +64.8% | 50% | 5% | £281.58 |
-| PROS-2021-0060 | resi | 2022-02-25 | 1.0yr | +0.7% | +58.2% | 10% | 13% | £74.16 |
-| PROS-2020-0067 | resi | 2022-02-26 | 2.0yr | +0.7% | +63.4% | 61% | 5% | £10.50 |
+| PROS-2021-0060 | resi | 2022-02-25 | 1.0yr | +0.7% | +58.2% | 15% | 13% | £74.16 |
+| PROS-2020-0067 | resi | 2022-02-26 | 2.0yr | +0.7% | +63.4% | 93% | 5% | £10.50 |
 | PROS-2021-0067 | resi | 2022-03-05 | 1.0yr | -0.6% | +67.3% | 15% | 8% | £145.65 |
-| PROS-2021-0100 | resi | 2022-04-02 | 1.0yr | +15.0% | +21.3% | 4% | 5% | £148.91 |
+| PROS-2021-0100 | resi | 2022-04-02 | 1.0yr | +15.0% | +21.3% | 2% | 5% | £148.91 |
 | PROS-2022-0019 | resi | 2023-01-18 | 1.0yr | -1.4% | -54.4% | 0% | 12% | £-77.00 |
-| PROS-2020-0006 | resi | 2024-01-03 | 4.0yr | -5.0% | -13.0% | 6% | 8% | £336.75 |
-| PROS-2020-0043 | resi | 2024-02-08 | 4.0yr | -5.0% | -19.3% | 5% | 18% | £-286.88 |
+| PROS-2020-0043 | resi | 2024-02-08 | 4.0yr | -5.0% | -19.3% | 8% | 18% | £-278.59 |
 | PROS-2022-0063 | resi | 2024-02-27 | 2.0yr | -3.9% | -24.1% | 2% | 5% | £668.10 |
-| PROS-2018-0003 | resi | 2024-12-31 | 7.0yr | -3.6% | -11.2% | 10% | 11% | £229.47 |
+| PROS-2023-0172 | resi | 2024-06-19 | 1.0yr | -0.9% | -24.8% | 1% | 5% | £58.01 |
 | PROS-2023-0010 | resi | 2025-01-06 | 2.0yr | -5.0% | -6.0% | 10% | 12% | £93.70 |
-| PROS-2022-0011 | resi | 2025-01-11 | 3.0yr | -3.6% | -3.0% | 10% | 5% | £-146.64 |
-| PROS-2020-0025 | resi | 2025-01-18 | 5.0yr | -3.5% | -1.9% | 8% | 10% | £211.37 |
-| PROS-2023-0025 | resi | 2025-01-20 | 2.0yr | -3.8% | -2.9% | 19% | 16% | £237.09 |
-| PROS-2021-0031 | resi | 2025-01-26 | 4.0yr | -4.8% | -2.9% | 10% | 10% | £908.46 |
-| PROS-2019-0024 | resi | 2025-01-27 | 6.0yr | -4.8% | -3.0% | 15% | 9% | £899.00 |
-| PROS-2021-0045 | resi | 2025-02-12 | 4.0yr | -3.6% | -1.8% | 11% | 7% | £931.73 |
-| PROS-2022-0067 | resi | 2025-02-27 | 3.0yr | -4.5% | +3.3% | 28% | 23% | £454.45 |
+| PROS-2018-0014 | resi | 2025-01-09 | 7.0yr | -3.6% | -3.6% | 11% | 7% | £199.39 |
+| PROS-2022-0011 | resi | 2025-01-11 | 3.0yr | -3.3% | -2.7% | 10% | 5% | £-144.43 |
+| PROS-2020-0025 | resi | 2025-01-18 | 5.0yr | -3.5% | -1.9% | 8% | 10% | £211.42 |
+| PROS-2023-0025 | resi | 2025-01-20 | 2.0yr | -3.8% | -2.9% | 21% | 16% | £237.09 |
+| PROS-2021-0031 | resi | 2025-01-26 | 4.0yr | -4.8% | -2.9% | 10% | 10% | £908.45 |
+| PROS-2019-0024 | resi | 2025-01-27 | 6.0yr | -4.8% | -3.0% | 17% | 9% | £899.00 |
+| PROS-2021-0045 | resi | 2025-02-12 | 4.0yr | -3.8% | -2.0% | 11% | 7% | £918.80 |
+| PROS-2022-0067 | resi | 2025-02-27 | 3.0yr | -4.5% | +3.3% | 30% | 23% | £454.45 |
 | PROS-2024-0076 | resi | 2025-03-08 | 1.0yr | -1.2% | +14.2% | 5% | 26% | £2.45 |
 | PROS-2022-0125 | resi | 2025-04-13 | 3.0yr | -5.0% | -3.2% | 6% | 17% | £-18.81 |
-| PROS-2023-0116 | resi | 2025-04-25 | 2.0yr | -5.0% | -6.9% | 12% | 27% | £435.70 |
+| PROS-2023-0116 | resi | 2025-04-25 | 2.0yr | -5.0% | -6.9% | 9% | 27% | £435.70 |
 
 **Root Cause Summary:**
-- Total churned accounts: 37
-- Lifetime margin lost: £4,669.41
-- Average tenure at departure: 2.7 years
-- Company blind misses (sim >=30%, co. est. <10%): 4 -- PROS-2018-0039, PROS-2020-0050, PROS-2019-0050, PROS-2020-0067
+- Total churned accounts: 36
+- Lifetime margin lost: £4,596.52
+- Average tenure at departure: 2.6 years
+- Company blind misses (sim >=30%, co. est. <10%): 6 -- PROS-2018-0039, PROS-2020-0042, PROS-2020-0047, PROS-2020-0050, PROS-2019-0050, PROS-2020-0067
 - Company-warned churns (co. est. >=20%): 5 -- PROS-2018-0002, C5, PROS-2022-0067, PROS-2024-0076, PROS-2023-0116
-- Crisis-era churns (2021-22): 17 -- absolute crisis price level, not rate-change delta, was the driver
-- Overpriced vs SVT at departure: 17 account(s) -- rate shock risk was observable but unactioned
+- Crisis-era churns (2021-22): 16 -- absolute crisis price level, not rate-change delta, was the driver
+- Overpriced vs SVT at departure: 16 account(s) -- rate shock risk was observable but unactioned
 
 ## Counterfactual Retention Value
 
-What would company-initiated retention offers have been worth for the 36 accounts that churned without an offer? Calibrated from 9 actual offers (observed retention rate 89%).
+What would company-initiated retention offers have been worth for the 35 accounts that churned without an offer? Calibrated from 9 actual offers (observed retention rate 89%).
 
 | Account | Seg | Churn Date | Co. Est. | Term Margin | Disc Rate | Retention Cost | CF Net Benefit | Assessment |
 |---------|-----|------------|----------|-------------|-----------|----------------|----------------|------------|
@@ -2622,43 +2622,42 @@ What would company-initiated retention offers have been worth for the 36 account
 | C1 | resi | 2021-12-30 | 5% | £-22.85 | 5% | £0.00 | n/a | CORRECT PASS |
 | PROS-2019-0003 | resi | 2022-01-02 | 5% | £557.11 | 5% | £27.86 | £467.36 | MISSED OPP. |
 | PROS-2020-0013 | resi | 2022-01-07 | 5% | £313.61 | 5% | £15.68 | £263.08 | MISSED OPP. |
-| PROS-2018-0014 | resi | 2022-01-10 | 5% | £595.54 | 5% | £29.78 | £499.59 | MISSED OPP. |
-| PROS-2021-0006 | resi | 2022-01-11 | 5% | £543.97 | 5% | £27.20 | £456.33 | MISSED OPP. |
-| PROS-2021-0017 | resi | 2022-01-20 | 5% | £372.78 | 5% | £18.64 | £312.72 | MISSED OPP. |
-| PROS-2021-0029 | resi | 2022-01-26 | 8% | £342.02 | 5% | £17.10 | £286.92 | MISSED OPP. |
+| PROS-2021-0017 | resi | 2022-01-20 | 5% | £372.80 | 5% | £18.64 | £312.73 | MISSED OPP. |
+| PROS-2021-0029 | resi | 2022-01-26 | 8% | £342.02 | 5% | £17.10 | £286.91 | MISSED OPP. |
 | PROS-2018-0039 | resi | 2022-01-30 | 5% | £396.73 | 5% | £19.84 | £332.81 | MISSED OPP. |
-| PROS-2020-0047 | resi | 2022-02-11 | 8% | £301.46 | 5% | £15.07 | £252.89 | MISSED OPP. |
-| PROS-2020-0050 | resi | 2022-02-12 | 5% | £350.37 | 5% | £17.52 | £293.92 | MISSED OPP. |
-| PROS-2021-0044 | resi | 2022-02-12 | 5% | £280.29 | 5% | £14.01 | £235.13 | MISSED OPP. |
-| PROS-2019-0050 | resi | 2022-02-21 | 5% | £400.37 | 5% | £20.02 | £335.86 | MISSED OPP. |
-| PROS-2021-0060 | resi | 2022-02-25 | 13% | £319.83 | 5% | £15.99 | £268.30 | MISSED OPP. |
-| PROS-2020-0067 | resi | 2022-02-26 | 5% | £592.22 | 5% | £29.61 | £496.81 | MISSED OPP. |
-| PROS-2021-0067 | resi | 2022-03-05 | 8% | £378.74 | 5% | £18.94 | £317.72 | MISSED OPP. |
+| PROS-2020-0042 | resi | 2022-02-07 | 5% | £446.71 | 5% | £22.34 | £374.74 | MISSED OPP. |
+| PROS-2020-0047 | resi | 2022-02-11 | 8% | £312.29 | 5% | £15.61 | £261.97 | MISSED OPP. |
+| PROS-2020-0050 | resi | 2022-02-12 | 5% | £339.54 | 5% | £16.98 | £284.84 | MISSED OPP. |
+| PROS-2021-0044 | resi | 2022-02-12 | 5% | £271.63 | 5% | £13.58 | £227.87 | MISSED OPP. |
+| PROS-2019-0050 | resi | 2022-02-21 | 5% | £400.27 | 5% | £20.01 | £335.78 | MISSED OPP. |
+| PROS-2021-0060 | resi | 2022-02-25 | 13% | £319.75 | 5% | £15.99 | £268.24 | MISSED OPP. |
+| PROS-2020-0067 | resi | 2022-02-26 | 5% | £592.07 | 5% | £29.60 | £496.68 | MISSED OPP. |
+| PROS-2021-0067 | resi | 2022-03-05 | 8% | £378.75 | 5% | £18.94 | £317.73 | MISSED OPP. |
 | PROS-2021-0100 | resi | 2022-04-02 | 5% | £555.76 | 5% | £27.79 | £466.22 | MISSED OPP. |
 | PROS-2022-0019 | resi | 2023-01-18 | 12% | £444.54 | 5% | £22.23 | £372.92 | MISSED OPP. |
-| PROS-2020-0006 | resi | 2024-01-03 | 8% | £471.47 | 5% | £23.57 | £395.51 | MISSED OPP. |
 | PROS-2020-0043 | resi | 2024-02-08 | 18% | £590.74 | 5% | £29.54 | £495.57 | MISSED OPP. |
 | PROS-2022-0063 | resi | 2024-02-27 | 5% | £603.07 | 5% | £30.15 | £505.91 | MISSED OPP. |
-| PROS-2018-0003 | resi | 2024-12-31 | 11% | £613.93 | 5% | £30.70 | £515.02 | MISSED OPP. |
+| PROS-2023-0172 | resi | 2024-06-19 | 5% | £508.75 | 5% | £25.44 | £426.79 | MISSED OPP. |
 | PROS-2023-0010 | resi | 2025-01-06 | 12% | £597.13 | 5% | £29.86 | £500.92 | MISSED OPP. |
-| PROS-2022-0011 | resi | 2025-01-11 | 5% | £635.78 | 5% | £31.79 | £533.35 | MISSED OPP. |
+| PROS-2018-0014 | resi | 2025-01-09 | 7% | £761.49 | 5% | £38.07 | £638.80 | MISSED OPP. |
+| PROS-2022-0011 | resi | 2025-01-11 | 5% | £639.74 | 5% | £31.99 | £536.67 | MISSED OPP. |
 | PROS-2020-0025 | resi | 2025-01-18 | 10% | £614.76 | 5% | £30.74 | £515.72 | MISSED OPP. |
 | PROS-2023-0025 | resi | 2025-01-20 | 16% | £611.75 | 5% | £30.59 | £513.19 | MISSED OPP. |
 | PROS-2021-0031 | resi | 2025-01-26 | 10% | £453.67 | 5% | £22.68 | £380.58 | MISSED OPP. |
 | PROS-2019-0024 | resi | 2025-01-27 | 9% | £462.38 | 5% | £23.12 | £387.89 | MISSED OPP. |
-| PROS-2021-0045 | resi | 2025-02-12 | 7% | £758.59 | 5% | £37.93 | £636.37 | MISSED OPP. |
+| PROS-2021-0045 | resi | 2025-02-12 | 7% | £755.32 | 5% | £37.77 | £633.63 | MISSED OPP. |
 | PROS-2022-0067 | resi | 2025-02-27 | 23% | £567.86 | 5% | £28.39 | £476.38 | MISSED OPP. |
 | PROS-2024-0076 | resi | 2025-03-08 | 26% | £607.91 | 5% | £30.40 | £509.97 | MISSED OPP. |
 | PROS-2022-0125 | resi | 2025-04-13 | 17% | £476.40 | 5% | £23.82 | £399.64 | MISSED OPP. |
 | PROS-2023-0116 | resi | 2025-04-25 | 27% | £599.29 | 5% | £29.96 | £502.73 | MISSED OPP. |
 
 **Counterfactual Summary:**
-- No-offer churns assessed: 36
+- No-offer churns assessed: 35
 - Correct no-offer (net-neg ETM): 1 (C1)
-- Missed opportunities (positive ETM, below detection): 35
-- Total term margin foregone: £18,105.34
-- Total retention cost (counterfactual): £952.75
-- Net counterfactual benefit: £15,140.88 (at 89% retention probability)
+- Missed opportunities (positive ETM, below detection): 34
+- Total term margin foregone: £17,589.10
+- Total retention cost (counterfactual): £926.94
+- Net counterfactual benefit: £14,707.81 (at 89% retention probability)
 - Root cause: company churn detection below threshold for all missed cases -- churn model underestimated bill-shock risk
 
 ## Pricing Basis Risk Attribution
@@ -2674,10 +2673,10 @@ Portfolio-wide mean error: +20.8%
 | 2019 | 58 | +12.9% | 31.0% | 43 | 2 | moderate over |
 | 2020 | 86 | +29.5% | 56.5% | 81 | 3 | HIGH OVER-PRICE |
 | 2021 | 107 | +4.2% | 53.1% | 56 | 36 | on target |
-| 2022 | 143 | +18.7% | 55.9% | 101 | 17 | HIGH OVER-PRICE |
-| 2023 | 185 | +28.6% | 86.2% | 154 | 22 | HIGH OVER-PRICE |
-| 2024 | 285 | +23.7% | 58.9% | 223 | 29 | HIGH OVER-PRICE |
-| 2025 | 298 | +22.1% | 442.1% | 225 | 22 | HIGH OVER-PRICE |
+| 2022 | 144 | +18.5% | 55.9% | 102 | 17 | HIGH OVER-PRICE |
+| 2023 | 187 | +27.7% | 86.2% | 154 | 24 | HIGH OVER-PRICE |
+| 2024 | 288 | +24.2% | 58.9% | 227 | 29 | HIGH OVER-PRICE |
+| 2025 | 301 | +22.1% | 442.1% | 227 | 22 | HIGH OVER-PRICE |
 
 **Basis Risk Summary:**
 - Portfolio mean tariff error: +20.8%
@@ -2696,14 +2695,14 @@ Elexon's Balancing and Settlement Code (BSC) requires suppliers to post credit c
 | 2019 | £49 | £41 | 0.12% |
 | 2020 | £55 | £46 | 0.11% |
 | 2021 | £138 | £115 | 0.20% |
-| 2022 | £322 | £268 | 0.24% |
-| 2023 | £306 | £255 | 0.13% |
-| 2024 | £277 | £231 | 0.10% |
-| 2025 | £399 | £333 | 0.27% |
+| 2022 | £326 | £272 | 0.24% |
+| 2023 | £310 | £259 | 0.13% |
+| 2024 | £283 | £236 | 0.11% |
+| 2025 | £406 | £338 | 0.27% |
 
 << BSC credit above 0.4% of revenue (elevated operational cash tie-up)
 
-**Peak BSC credit requirement:** 2025 at £399
+**Peak BSC credit requirement:** 2025 at £406
 ## Operational Unit Economics
 
 Revenue, gross margin, and net margin per active customer account. The dramatic rise in 2022-23 reflects wholesale price crisis inflating all revenue and cost metrics simultaneously.
@@ -2712,18 +2711,18 @@ Revenue, gross margin, and net margin per active customer account. The dramatic 
 |------|--------|----------|------------|----------|-------|
 | 2016 | 19 | £653 | £428 | £107 | 16.3% |
 | 2017 | 23 | £766 | £475 | £118 | 15.4% |
-| 2018 | 42 | £646 | £380 | £79 | 12.3% |
-| 2019 | 58 | £684 | £415 | £127 | 18.6% |
-| 2020 | 86 | £591 | £423 | £136 | 23.0% |
+| 2018 | 42 | £646 | £380 | £85 | 13.1% |
+| 2019 | 58 | £684 | £415 | £127 | 18.5% |
+| 2020 | 86 | £591 | £423 | £135 | 22.8% |
 | 2021 | 108 | £641 | £355 | £55 | 8.5% |
-| 2022 | 155 | £873 | £148 | £-116 | -13.2% << |
-| 2023 | 186 | £1,280 | £582 | £210 | 16.4% |
-| 2024 | 285 | £928 | £605 | £243 | 26.2% |
-| 2025 | 351 | £417 | £248 | £82 | 19.5% |
+| 2022 | 155 | £883 | £151 | £-116 | -13.2% << |
+| 2023 | 188 | £1,274 | £577 | £205 | 16.1% |
+| 2024 | 287 | £933 | £608 | £246 | 26.4% |
+| 2025 | 355 | £416 | £247 | £81 | 19.6% |
 
 << Net margin below 5% (below Ofgem FRA comfort threshold)
 
-**Best year per customer:** 2024 at £243 net/customer
+**Best year per customer:** 2024 at £246 net/customer
 **Worst year per customer:** 2022 at £-116 net/customer
 ## Customer Lifetime P&L by Commodity
 
@@ -2750,19 +2749,19 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2016-0011g | — | £678 | £678 |
 | PROS-2016-0020 | £1,437 | — | £1,437 |
 | PROS-2016-0020g | — | £798 | £798 |
-| PROS-2017-0019 | £1,415 | — | £1,415 |
+| PROS-2017-0019 | £1,408 | — | £1,408 |
 | PROS-2017-0019g | — | £728 | £728 |
 | PROS-2017-0022 | £1,287 | — | £1,287 |
 | PROS-2017-0022g | — | £633 | £633 |
 | PROS-2018-0002 | £169 | — | £169 |
-| PROS-2018-0003 | £614 | — | £614 |
-| PROS-2018-0003g | — | £281 | £281 |
-| PROS-2018-0009 | £1,030 | — | £1,030 |
-| PROS-2018-0014 | £199 | — | £199 |
-| PROS-2018-0014g | — | £493 | £493 |
-| PROS-2018-0016 | £1,056 | — | £1,056 |
+| PROS-2018-0003 | £1,131 | — | £1,131 |
+| PROS-2018-0003g | — | £386 | £386 |
+| PROS-2018-0009 | £1,027 | — | £1,027 |
+| PROS-2018-0014 | £584 | — | £584 |
+| PROS-2018-0014g | — | £464 | £464 |
+| PROS-2018-0016 | £1,069 | — | £1,069 |
 | PROS-2018-0016g | — | £510 | £510 |
-| PROS-2018-0018 | £908 | — | £908 |
+| PROS-2018-0018 | £911 | — | £911 |
 | PROS-2018-0018g | — | £615 | £615 |
 | PROS-2018-0022 | £1,243 | — | £1,243 |
 | PROS-2018-0022g | — | £583 | £583 |
@@ -2772,13 +2771,13 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2018-0039 | £440 | — | £440 |
 | PROS-2018-0039g | — | £472 | £472 |
 | PROS-2018-0043 | £1,800 | — | £1,800 |
-| PROS-2018-0053 | £1,502 | — | £1,502 |
+| PROS-2018-0053 | £1,500 | — | £1,500 |
 | PROS-2018-0053g | — | £720 | £720 |
 | PROS-2019-0003 | £45 | — | £45 |
 | PROS-2019-0003g | — | £345 | £345 |
-| PROS-2019-0008 | £964 | — | £964 |
+| PROS-2019-0008 | £970 | — | £970 |
 | PROS-2019-0008g | — | £309 | £309 |
-| PROS-2019-0009 | £975 | — | £975 |
+| PROS-2019-0009 | £972 | — | £972 |
 | PROS-2019-0009g | — | £488 | £488 |
 | PROS-2019-0012 | £1,069 | — | £1,069 |
 | PROS-2019-0012g | — | £564 | £564 |
@@ -2794,16 +2793,16 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2019-0027g | — | £410 | £410 |
 | PROS-2019-0050 | £447 | — | £447 |
 | PROS-2019-0050g | — | £384 | £384 |
-| PROS-2020-0002 | £902 | — | £902 |
+| PROS-2020-0002 | £906 | — | £906 |
 | PROS-2020-0002g | — | £75 | £75 |
-| PROS-2020-0006 | £557 | — | £557 |
-| PROS-2020-0006g | — | £-450 | £-450 * |
-| PROS-2020-0009 | £914 | — | £914 |
+| PROS-2020-0006 | £1,010 | — | £1,010 |
+| PROS-2020-0006g | — | £22 | £22 |
+| PROS-2020-0009 | £910 | — | £910 |
 | PROS-2020-0009g | — | £309 | £309 |
 | PROS-2020-0012 | £888 | — | £888 |
 | PROS-2020-0012g | — | £184 | £184 |
 | PROS-2020-0013 | £101 | — | £101 |
-| PROS-2020-0016 | £825 | — | £825 |
+| PROS-2020-0016 | £822 | — | £822 |
 | PROS-2020-0016g | — | £390 | £390 |
 | PROS-2020-0022 | £940 | — | £940 |
 | PROS-2020-0022g | — | £350 | £350 |
@@ -2811,20 +2810,20 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2020-0025g | — | £75 | £75 |
 | PROS-2020-0032 | £1,558 | — | £1,558 |
 | PROS-2020-0032g | — | £348 | £348 |
-| PROS-2020-0042 | £1,735 | — | £1,735 |
-| PROS-2020-0042g | — | £25 | £25 |
-| PROS-2020-0043 | £-67 | — | £-67 * |
+| PROS-2020-0042 | £220 | — | £220 |
+| PROS-2020-0042g | — | £286 | £286 |
+| PROS-2020-0043 | £-59 | — | £-59 * |
 | PROS-2020-0043g | — | £63 | £63 |
 | PROS-2020-0047 | £140 | — | £140 |
 | PROS-2020-0047g | — | £222 | £222 |
-| PROS-2020-0048 | £1,692 | — | £1,692 |
+| PROS-2020-0048 | £1,710 | — | £1,710 |
 | PROS-2020-0048g | — | £310 | £310 |
 | PROS-2020-0050 | £218 | — | £218 |
 | PROS-2020-0050g | — | £224 | £224 |
 | PROS-2020-0067 | £120 | — | £120 |
 | PROS-2020-0067g | — | £198 | £198 |
-| PROS-2021-0006 | £-53 | — | £-53 * |
-| PROS-2021-0006g | — | £84 | £84 |
+| PROS-2021-0006 | £614 | — | £614 |
+| PROS-2021-0006g | — | £205 | £205 |
 | PROS-2021-0017 | £32 | — | £32 |
 | PROS-2021-0029 | £-77 | — | £-77 * |
 | PROS-2021-0029g | — | £53 | £53 |
@@ -2832,8 +2831,8 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2021-0031g | — | £-3 | £-3 * |
 | PROS-2021-0044 | £78 | — | £78 |
 | PROS-2021-0044g | — | £91 | £91 |
-| PROS-2021-0045 | £1,152 | — | £1,152 |
-| PROS-2021-0051 | £975 | — | £975 |
+| PROS-2021-0045 | £1,139 | — | £1,139 |
+| PROS-2021-0051 | £976 | — | £976 |
 | PROS-2021-0051g | — | £261 | £261 |
 | PROS-2021-0060 | £129 | — | £129 |
 | PROS-2021-0060g | — | £34 | £34 |
@@ -2844,17 +2843,17 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2021-0088 | £937 | — | £937 |
 | PROS-2021-0088g | — | £281 | £281 |
 | PROS-2021-0100 | £204 | — | £204 |
-| PROS-2022-0009 | £547 | — | £547 |
+| PROS-2022-0009 | £544 | — | £544 |
 | PROS-2022-0009g | — | £-72 | £-72 * |
-| PROS-2022-0010 | £554 | — | £554 |
+| PROS-2022-0010 | £550 | — | £550 |
 | PROS-2022-0010g | — | £-3 | £-3 * |
-| PROS-2022-0011 | £18 | — | £18 |
+| PROS-2022-0011 | £21 | — | £21 |
 | PROS-2022-0011g | — | £174 | £174 |
 | PROS-2022-0019 | £-22 | — | £-22 * |
 | PROS-2022-0019g | — | £-248 | £-248 * |
 | PROS-2022-0030 | £1,169 | — | £1,169 |
 | PROS-2022-0030g | — | £144 | £144 |
-| PROS-2022-0045 | £1,194 | — | £1,194 |
+| PROS-2022-0045 | £1,201 | — | £1,201 |
 | PROS-2022-0046 | £1,055 | — | £1,055 |
 | PROS-2022-0046g | — | £144 | £144 |
 | PROS-2022-0047 | £1,004 | — | £1,004 |
@@ -2894,7 +2893,7 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2022-0128g | — | £379 | £379 |
 | PROS-2022-0130 | £763 | — | £763 |
 | PROS-2022-0130g | — | £374 | £374 |
-| PROS-2023-0001 | £475 | — | £475 |
+| PROS-2023-0001 | £480 | — | £480 |
 | PROS-2023-0001g | — | £637 | £637 |
 | PROS-2023-0010 | £204 | — | £204 |
 | PROS-2023-0010g | — | £485 | £485 |
@@ -2902,7 +2901,7 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2023-0013g | — | £622 | £622 |
 | PROS-2023-0014 | £501 | — | £501 |
 | PROS-2023-0014g | — | £444 | £444 |
-| PROS-2023-0016 | £480 | — | £480 |
+| PROS-2023-0016 | £481 | — | £481 |
 | PROS-2023-0016g | — | £494 | £494 |
 | PROS-2023-0025 | £347 | — | £347 |
 | PROS-2023-0025g | — | £586 | £586 |
@@ -2948,19 +2947,19 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2023-0162g | — | £370 | £370 |
 | PROS-2023-0166 | £465 | — | £465 |
 | PROS-2023-0166g | — | £261 | £261 |
-| PROS-2023-0172 | £393 | — | £393 |
-| PROS-2023-0172g | — | £248 | £248 |
-| PROS-2023-0177 | £373 | — | £373 |
-| PROS-2023-0177g | — | £250 | £250 |
+| PROS-2023-0172 | £113 | — | £113 |
+| PROS-2023-0172g | — | £145 | £145 |
+| PROS-2023-0177 | £372 | — | £372 |
+| PROS-2023-0177g | — | £261 | £261 |
 | PROS-2024-0008 | £485 | — | £485 |
 | PROS-2024-0008g | — | £456 | £456 |
 | PROS-2024-0009 | £451 | — | £451 |
 | PROS-2024-0009g | — | £394 | £394 |
 | PROS-2024-0010 | £435 | — | £435 |
 | PROS-2024-0010g | — | £481 | £481 |
-| PROS-2024-0012 | £378 | — | £378 |
+| PROS-2024-0012 | £379 | — | £379 |
 | PROS-2024-0012g | — | £205 | £205 |
-| PROS-2024-0014 | £486 | — | £486 |
+| PROS-2024-0014 | £485 | — | £485 |
 | PROS-2024-0014g | — | £657 | £657 |
 | PROS-2024-0022 | £433 | — | £433 |
 | PROS-2024-0027 | £524 | — | £524 |
@@ -2973,7 +2972,7 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2024-0040g | — | £342 | £342 |
 | PROS-2024-0041 | £332 | — | £332 |
 | PROS-2024-0041g | — | £354 | £354 |
-| PROS-2024-0048 | £415 | — | £415 |
+| PROS-2024-0048 | £414 | — | £414 |
 | PROS-2024-0048g | — | £239 | £239 |
 | PROS-2024-0056 | £312 | — | £312 |
 | PROS-2024-0056g | — | £238 | £238 |
@@ -3128,11 +3127,11 @@ Lifetime net margin per customer, split by electricity and gas. Loss-making acco
 | PROS-2025-0170 | £7 | — | £7 |
 | PROS-2025-0170g | — | £1 | £1 |
 | SYN-2021-001 | £449 | — | £449 |
-| **Total** | **£104,670** | **£47,444** | **£152,114** |
+| **Total** | **£104,919** | **£48,283** | **£153,202** |
 
-Loss-making accounts: PROS-2020-0006g (£-450), C5 (£-422), PROS-2022-0019g (£-248), PROS-2022-0063g (£-191), PROS-2021-0029 (£-77), PROS-2022-0009g (£-72), PROS-2020-0043 (£-67), PROS-2021-0006 (£-53), PROS-2021-0062g (£-37), PROS-2022-0100g (£-28), PROS-2022-0019 (£-22), PROS-2022-0097g (£-16), PROS-2022-0010g (£-3), PROS-2021-0031g (£-3), PROS-2025-0041 (£-1)
-Gas loss-making: PROS-2020-0006g (£-450), PROS-2022-0019g (£-248), PROS-2022-0063g (£-191), PROS-2022-0009g (£-72), PROS-2021-0062g (£-37), PROS-2022-0100g (£-28), PROS-2022-0097g (£-16), PROS-2022-0010g (£-3), PROS-2021-0031g (£-3)
-Gas portfolio net: £47,444 (31.2% of total)
+Loss-making accounts: C5 (£-422), PROS-2022-0019g (£-248), PROS-2022-0063g (£-191), PROS-2021-0029 (£-77), PROS-2022-0009g (£-72), PROS-2020-0043 (£-59), PROS-2021-0062g (£-37), PROS-2022-0100g (£-28), PROS-2022-0019 (£-22), PROS-2022-0097g (£-16), PROS-2022-0010g (£-3), PROS-2021-0031g (£-3), PROS-2025-0041 (£-1)
+Gas loss-making: PROS-2022-0019g (£-248), PROS-2022-0063g (£-191), PROS-2022-0009g (£-72), PROS-2021-0062g (£-37), PROS-2022-0100g (£-28), PROS-2022-0097g (£-16), PROS-2022-0010g (£-3), PROS-2021-0031g (£-3)
+Gas portfolio net: £48,283 (31.5% of total)
 
 ## Hedge Value-Add Analysis
 
@@ -3146,15 +3145,15 @@ Actual hedged net margin vs hypothetical spot-only (naked) net margin. Negative 
 | 2019 | £6,607 | £28,217 | £-21,610 |
 | 2020 | £10,100 | £33,377 | £-23,277 |
 | 2021 | £835 | £3,597 | £-2,762 |
-| 2022 | £-34,222 | £8,918 | £-43,139 |
-| 2023 | £45,921 | £161,643 | £-115,721 |
-| 2024 | £58,228 | £149,903 | £-91,675 |
-| 2025 | £15,527 | £44,663 | £-29,136 |
-| **Total** | **£111,270** | **£468,055** | **£-356,785** |
+| 2022 | £-34,273 | £8,968 | £-43,240 |
+| 2023 | £45,216 | £161,939 | £-116,722 |
+| 2024 | £59,522 | £152,615 | £-93,093 |
+| 2025 | £15,732 | £45,146 | £-29,414 |
+| **Total** | **£112,013** | **£471,595** | **£-359,582** |
 
-Largest hedging cost: **2023** (£115,721 vs naked)
+Largest hedging cost: **2023** (£116,722 vs naked)
 Smallest hedging cost: **2021** (£2,762 vs naked)
-Conclusion: systematic forward hedging cost £356,785 over 10 years vs spot purchasing.
+Conclusion: systematic forward hedging cost £359,582 over 10 years vs spot purchasing.
 
 ## Customer Service Quality
 
@@ -3168,10 +3167,10 @@ Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); co
 | 2019 | 0.833 G | 6.0% | 0.47% | 299 | 681 | RED ! |
 | 2020 | 0.837 G | 5.9% | 0.41% | 479 | 1020 | RED ! |
 | 2021 | 0.844 G | 5.8% | 0.43% | 530 | 1265 | RED ! |
-| 2022 | 0.851 G | 5.7% | 0.40% | 649 | 1504 | RED ! |
-| 2023 | 0.854 G | 5.6% | 0.43% | 827 | 2064 | RED ! |
-| 2024 | 0.860 G | 5.5% | 0.38% | 1294 | 3057 | RED ! |
-| 2025 | 0.858 G | 5.5% | 0.35% | 737 | 1861 | RED ! |
+| 2022 | 0.852 G | 5.6% | 0.40% | 656 | 1528 | RED ! |
+| 2023 | 0.854 G | 5.6% | 0.42% | 835 | 2088 | RED ! |
+| 2024 | 0.860 G | 5.5% | 0.38% | 1306 | 3091 | RED ! |
+| 2025 | 0.858 G | 5.6% | 0.35% | 745 | 1875 | RED ! |
 
 Worst clarity year: **2017** (0.790)
 Highest complaint probability: **2017** (6.3%)
@@ -3188,18 +3187,18 @@ Annual VaR ratio (committee trigger = 3.0) and year-end treasury balance.
 |------|-----------|--------|-----------|-------------|
 | 2016 | — | — | £252,658 | £2,027 |
 | 2017 | — | — | £255,040 | £2,707 |
-| 2018 | — | — | £258,926 | £3,336 |
-| 2019 | — | — | £266,239 | £7,362 |
-| 2020 | — | — | £277,481 | £11,668 |
-| 2021 | — | — | £282,433 | £5,903 |
-| 2022 | — | — | £258,769 | -£17,926 |
-| 2023 | — | — | £316,357 | £39,031 |
-| 2024 | — | — | £383,574 | £69,386 |
-| 2025 | — | — | £402,114 | £28,621 |
+| 2018 | — | — | £259,148 | £3,558 |
+| 2019 | — | — | £266,444 | £7,345 |
+| 2020 | — | — | £277,598 | £11,580 |
+| 2021 | — | — | £282,565 | £5,918 |
+| 2022 | — | — | £258,934 | -£18,015 |
+| 2023 | — | — | £315,671 | £38,546 |
+| 2024 | — | — | £384,444 | £70,624 |
+| 2025 | — | — | £403,202 | £28,912 |
 
 **Peak VaR year: 2016 (ratio 0.00)**
-**Treasury peak: 2025 (£402,114)**
-**Treasury growth: £252,658 → £402,114 (+£149,456)**
+**Treasury peak: 2025 (£403,202)**
+**Treasury growth: £252,658 → £403,202 (+£150,544)**
 
 > VaR ratio = portfolio stressed VaR ÷ treasury; ≥ 3.0 triggers committee review.
 > Treasury funded from net margin accumulation, never falling to zero across run.
@@ -3244,37 +3243,36 @@ Customers who reached a renewal/churn trigger but received no retention offer.
 | C1 | 2021-12 | 5.2% | -£23 | below threshold |
 | PROS-2019-0003 | 2022-01 | 4.5% | £557 | below threshold |
 | PROS-2020-0013 | 2022-01 | 4.5% | £314 | below threshold |
-| PROS-2018-0014 | 2022-01 | 4.5% | £596 | below threshold |
-| PROS-2021-0006 | 2022-01 | 5.0% | £544 | below threshold |
 | PROS-2021-0017 | 2022-01 | 4.5% | £373 | below threshold |
 | PROS-2021-0029 | 2022-01 | 8.4% | £342 | below threshold |
 | PROS-2018-0039 | 2022-01 | 4.5% | £397 | below threshold |
-| PROS-2020-0047 | 2022-02 | 8.4% | £301 | below threshold |
-| PROS-2020-0050 | 2022-02 | 5.0% | £350 | below threshold |
-| PROS-2021-0044 | 2022-02 | 4.5% | £280 | below threshold |
+| PROS-2020-0042 | 2022-02 | 4.5% | £447 | below threshold |
+| PROS-2020-0047 | 2022-02 | 8.4% | £312 | below threshold |
+| PROS-2020-0050 | 2022-02 | 5.0% | £340 | below threshold |
+| PROS-2021-0044 | 2022-02 | 4.5% | £272 | below threshold |
 | PROS-2019-0050 | 2022-02 | 5.0% | £400 | below threshold |
 | PROS-2021-0060 | 2022-02 | 13.5% | £320 | below threshold |
 | PROS-2020-0067 | 2022-02 | 5.0% | £592 | below threshold |
 | PROS-2021-0067 | 2022-03 | 8.4% | £379 | below threshold |
 | PROS-2021-0100 | 2022-04 | 4.5% | £556 | below threshold |
 | PROS-2022-0019 | 2023-01 | 12.0% | £445 | below threshold |
-| PROS-2020-0006 | 2024-01 | 8.0% | £471 | below threshold |
 | PROS-2020-0043 | 2024-02 | 18.0% | £591 | below threshold ⚑ |
 | PROS-2022-0063 | 2024-02 | 5.0% | £603 | below threshold |
-| PROS-2018-0003 | 2024-12 | 11.0% | £614 | below threshold |
+| PROS-2023-0172 | 2024-06 | 5.0% | £509 | below threshold |
 | PROS-2023-0010 | 2025-01 | 11.5% | £597 | below threshold |
-| PROS-2022-0011 | 2025-01 | 4.7% | £636 | below threshold |
+| PROS-2018-0014 | 2025-01 | 7.5% | £761 | below threshold |
+| PROS-2022-0011 | 2025-01 | 4.7% | £640 | below threshold |
 | PROS-2020-0025 | 2025-01 | 10.3% | £615 | below threshold |
 | PROS-2023-0025 | 2025-01 | 16.1% | £612 | below threshold ⚑ |
 | PROS-2021-0031 | 2025-01 | 10.3% | £454 | below threshold |
 | PROS-2019-0024 | 2025-01 | 8.5% | £462 | below threshold |
-| PROS-2021-0045 | 2025-02 | 7.5% | £759 | below threshold |
+| PROS-2021-0045 | 2025-02 | 7.5% | £755 | below threshold |
 | PROS-2022-0067 | 2025-02 | 22.5% | £568 | below threshold ⚑ |
 | PROS-2024-0076 | 2025-03 | 26.3% | £608 | below threshold ⚑ |
 | PROS-2022-0125 | 2025-04 | 16.9% | £476 | below threshold ⚑ |
 | PROS-2023-0116 | 2025-04 | 27.0% | £599 | below threshold ⚑ |
 
-**High-risk no-offer events (≥10% churn): 16** — £9,193 margin at risk.
+**High-risk no-offer events (≥10% churn): 15** — £8,579 margin at risk.
 
 ### Gas Renewal Risk — High-Churn Reprice Events (≥15% estimate)
 
@@ -3289,7 +3287,7 @@ Customers who reached a renewal/churn trigger but received no retention offer.
 | C3g | 2018-07 | 23.11 | 28.15 | 19.1% |
 | PROS-2019-0050g | 2021-02 | 24.53 | 30.00 | 19.4% |
 
-**High-risk gas reprices: 163**
+**High-risk gas reprices: 165**
 
 > ⚑ = customers with ≥15% churn estimate who received no retention offer.
 
@@ -3322,11 +3320,11 @@ Three-scenario P&L impact for the board (dual-fuel portfolio lifetime figures).
 
 | Scenario | Net Margin £ | vs Status Quo |
 |----------|-------------|--------------|
-| Status Quo (hold gas) | £139,445 | — |
-| Exit Gas (with churn risk) | £73,601 | -£65,844 |
-| Reprice to Breakeven | £140,493 | +£1,049 |
+| Status Quo (hold gas) | £140,541 | — |
+| Exit Gas (with churn risk) | £73,807 | -£66,734 |
+| Reprice to Breakeven | £141,140 | +£599 |
 
-**Loss-making gas accounts: PROS-2020-0006, PROS-2021-0031, PROS-2021-0062, PROS-2022-0009, PROS-2022-0010, PROS-2022-0019, PROS-2022-0063, PROS-2022-0097, PROS-2022-0100**
+**Loss-making gas accounts: PROS-2021-0031, PROS-2021-0062, PROS-2022-0009, PROS-2022-0010, PROS-2022-0019, PROS-2022-0063, PROS-2022-0097, PROS-2022-0100**
 **Board recommendation: REPRICE GAS**
 
 > Gas drag reduces dual-fuel net margin. Repricing to breakeven is preferable to exit
@@ -3344,10 +3342,10 @@ Average hedge fraction (0=fully naked, 1=fully hedged) per year.
 | 2019 | 88.8% | 85.0% | 93.2% | — | 57 |
 | 2020 | 87.8% | 85.0% | 91.1% | — | 86 |
 | 2021 | 88.3% | 85.0% | 96.6% | — | 105 |
-| 2022 | 94.5% | 85.0% | 97.8% | — | 128 |
-| 2023 | 91.5% | 85.0% | 95.7% | — | 184 |
-| 2024 | 88.0% | 85.0% | 92.9% | — | 279 |
-| 2025 | 85.7% | 85.0% | 90.4% | — | 287 |
+| 2022 | 94.5% | 85.0% | 97.8% | — | 130 |
+| 2023 | 91.6% | 85.0% | 95.7% | — | 186 |
+| 2024 | 88.0% | 85.0% | 92.9% | — | 281 |
+| 2025 | 85.7% | 85.0% | 90.4% | — | 289 |
 
 **Lowest portfolio hedge fraction: 2025 (85.7%)** — risk erosion from regime-change blindness.
 
@@ -3388,12 +3386,12 @@ Elexon BSC credit posting requirement and annual levy costs.
 | 2019 | £49 | £743 | — | £139 | £2,752 |
 | 2020 | £55 | £1,298 | — | £147 | £4,177 |
 | 2021 | £138 | £1,438 | £1,189 | £146 | £5,424 |
-| 2022 | £322 | £1,148 | £3,095 | £0 | £6,914 |
-| 2023 | £306 | £2,144 | £579 | £0 | £14,044 |
-| 2024 | £277 | £4,273 | £124 | £0 | £20,404 |
-| 2025 | £399 | £2,457 | £68 | £0 | £12,547 |
+| 2022 | £326 | £1,168 | £3,148 | £0 | £6,897 |
+| 2023 | £310 | £2,169 | £586 | £0 | £14,034 |
+| 2024 | £283 | £4,319 | £125 | £0 | £20,594 |
+| 2025 | £406 | £2,471 | £68 | £0 | £12,641 |
 
-**Peak BSC credit obligation: 2025 (£399)** — driven by portfolio volume growth and crisis price levels.
+**Peak BSC credit obligation: 2025 (£406)** — driven by portfolio volume growth and crisis price levels.
 **Mutualization levy first appeared in 2016** — reflects supplier failure costs passed to remaining suppliers via BSC.
 
 > BSC credit = Elexon-mandated deposit against settlement exposure. Scales with volume × price.
@@ -3405,19 +3403,19 @@ Lifetime P&L by year-of-acquisition cohort (all years to simulation end).
 
 | Cohort | Customers | Total Revenue £ | Gross Margin £ | Net Margin £ | Rev/Customer £ |
 |--------|-----------|----------------|---------------|-------------|----------------|
-| 2016 | 19 | £144,505 | £78,112 | £12,526 | £7,606 |
-| 2017 | 4 | £27,804 | £13,691 | £4,064 | £6,951 |
-| 2018 | 20 | £102,522 | £54,072 | £16,240 | £5,126 |
-| 2019 | 20 | £94,771 | £47,200 | £14,937 | £4,739 |
-| 2020 | 29 | £122,858 | £56,902 | £13,332 | £4,236 |
-| 2021 | 22 | £61,884 | £29,340 | £7,611 | £2,813 |
-| 2022 | 50 | £175,925 | £79,696 | £21,974 | £3,519 |
-| 2023 | 58 | £139,687 | £81,190 | £30,717 | £2,408 |
-| 2024 | 101 | £112,234 | £72,534 | £26,170 | £1,111 |
+| 2016 | 19 | £144,505 | £78,112 | £12,527 | £7,606 |
+| 2017 | 4 | £27,797 | £13,683 | £4,056 | £6,949 |
+| 2018 | 20 | £111,520 | £57,805 | £17,230 | £5,576 |
+| 2019 | 20 | £94,774 | £47,203 | £14,939 | £4,739 |
+| 2020 | 29 | £114,700 | £54,271 | £13,026 | £3,955 |
+| 2021 | 22 | £69,405 | £32,571 | £8,386 | £3,155 |
+| 2022 | 50 | £175,926 | £79,697 | £21,975 | £3,519 |
+| 2023 | 58 | £138,416 | £80,373 | £30,350 | £2,386 |
+| 2024 | 101 | £112,235 | £72,534 | £26,170 | £1,111 |
 | 2025 | 74 | £19,295 | £11,517 | £4,542 | £261 |
 
 **Best revenue/customer cohort: 2016 (£7,606/customer)**
-**Best net margin cohort: 2023 (£30,717)**
+**Best net margin cohort: 2023 (£30,350)**
 
 > Note: Gas customer legs excluded from electricity metrics; cohort = year of first contract.
 
@@ -3429,18 +3427,18 @@ Contracts for Difference levy (negative = credit to supplier in high-price perio
 |------|-----------|----------|-----------|-------------------|-------|
 | 2016 | +£8 | £1,229 | £-0 | — | 180 |
 | 2017 | +£122 | £1,642 | £92 | — | 267 |
-| 2018 | +£422 | £2,773 | £489 | — | 473 |
-| 2019 | +£666 | £3,855 | £36 | — | 681 |
-| 2020 | +£818 | £5,513 | £312 | — | 1020 |
-| 2021 | +£431 | £7,070 | £510 | — | 1265 |
-| 2022 | -£1,548 CREDIT | £7,967 | £1,016 | — | 1504 |
-| 2023 | +£2,729 | £11,453 | £2,080 | — | 2064 |
-| 2024 | +£6,823 | £19,116 | £724 | 1 | 3057 |
-| 2025 | +£3,718 | £10,916 | £184 | — | 1861 |
+| 2018 | +£422 | £2,773 | £267 | — | 473 |
+| 2019 | +£666 | £3,855 | £53 | — | 681 |
+| 2020 | +£818 | £5,513 | £400 | — | 1020 |
+| 2021 | +£431 | £7,070 | £495 | — | 1265 |
+| 2022 | -£1,574 CREDIT | £8,102 | £1,017 | — | 1528 |
+| 2023 | +£2,761 | £11,586 | £2,124 | — | 2088 |
+| 2024 | +£6,898 | £19,322 | £685 | 1 | 3091 |
+| 2025 | +£3,738 | £10,975 | £184 | — | 1875 |
 
-**CfD turned CREDIT in 2022: -£1,548 (high wholesale → CfD generators repay system)**
+**CfD turned CREDIT in 2022: -£1,574 (high wholesale → CfD generators repay system)**
 **Treasury drawdown years: 2024** (credit facility used)
-**Peak bad debt year: 2023 (£2,080)**
+**Peak bad debt year: 2023 (£2,124)**
 
 > CfD (Contracts for Difference): when wholesale > strike price, generators repay;
 > the net credit is passed through as a negative levy on supplier bills.
@@ -3457,13 +3455,13 @@ Gross margin (£) by customer segment and year.
 | 2019 | £15,801 | £6,407 | £1,873 | £24,080 |
 | 2020 | £24,523 | £10,281 | £1,576 | £36,381 |
 | 2021 | £27,885 | £8,970 | £1,462 | £38,317 |
-| 2022 | £42,857 | -£19,928 | £0 | £22,929 |
-| 2023 | £77,345 | £30,923 | £0 | £108,268 |
-| 2024 | £119,782 | £52,529 | £0 | £172,311 |
-| 2025 | £61,132 | £25,827 | £0 | £86,959 |
+| 2022 | £43,231 | -£19,860 | £0 | £23,371 |
+| 2023 | £77,442 | £30,975 | £0 | £108,417 |
+| 2024 | £121,328 | £53,266 | £0 | £174,593 |
+| 2025 | £61,514 | £26,083 | £0 | £87,597 |
 
-**Best gross margin year: 2024 (£172,311)** | **Worst: 2016 (£8,141)**
-**Loss-making: resi gas in 2022 (£-19,928)**
+**Best gross margin year: 2024 (£174,593)** | **Worst: 2016 (£8,141)**
+**Loss-making: resi gas in 2022 (£-19,860)**
 
 
 ## Price Cap Headroom (Tariff vs SVT)
@@ -3479,12 +3477,12 @@ Negative = below cap (headroom). Positive = above cap (I&C terms; SVT applies to
 | 2019 | 23 | -16.5% | 0/23 | -34.5% | +-3.2% |
 | 2020 | 32 | -26.4% | 0/32 | -37.9% | +-21.3% |
 | 2021 | 47 | -10.2% | 2/47 | -23.1% | +67.2% |
-| 2022 | 58 | +50.7% | 52/58 | -45.1% | +82.9% |
-| 2023 | 69 | -45.7% | 0/69 | -58.2% | +-5.4% |
-| 2024 | 99 | -18.8% | 0/99 | -29.6% | +-5.4% |
-| 2025 | 122 | -4.7% | 20/122 | -23.2% | +15.8% |
+| 2022 | 58 | +50.8% | 52/58 | -45.1% | +82.9% |
+| 2023 | 70 | -46.1% | 0/70 | -58.2% | +-5.4% |
+| 2024 | 100 | -18.6% | 0/100 | -29.6% | +-5.4% |
+| 2025 | 124 | -4.7% | 20/124 | -23.2% | +15.8% |
 
-**Best headroom year: 2023 (avg 45.7% below SVT)**
+**Best headroom year: 2023 (avg 46.1% below SVT)**
 **Largest above-SVT year: 2022** (52/58 terms above — note: I&C customers exempt from SVT cap)
 
 > SVT (Standard Variable Tariff) = Ofgem price cap. Residential tariffs must not exceed SVT.
@@ -3499,14 +3497,14 @@ Credit facility: £2M. Weekly burn estimated at 1% of year-end treasury.
 |------|-----------|----------|----------|----------|----------|----------|
 | 2016 | £252,658 | RED | RED | RED | RED | RED |
 | 2017 | £255,040 | RED | RED | RED | RED | RED |
-| 2018 | £258,926 | RED | RED | RED | RED | RED |
-| 2019 | £266,239 | RED | RED | RED | RED | RED |
-| 2020 | £277,481 | RED | RED | RED | RED | RED |
-| 2021 | £282,433 | RED | RED | RED | RED | RED |
-| 2022 | £258,769 | RED | RED | RED | RED | RED |
-| 2023 | £316,357 | RED | RED | RED | RED | RED |
-| 2024 | £383,574 | RED | RED | RED | RED | RED |
-| 2025 | £402,114 | RED | RED | RED | RED | RED |
+| 2018 | £259,148 | RED | RED | RED | RED | RED |
+| 2019 | £266,444 | RED | RED | RED | RED | RED |
+| 2020 | £277,598 | RED | RED | RED | RED | RED |
+| 2021 | £282,565 | RED | RED | RED | RED | RED |
+| 2022 | £258,934 | RED | RED | RED | RED | RED |
+| 2023 | £315,671 | RED | RED | RED | RED | RED |
+| 2024 | £384,444 | RED | RED | RED | RED | RED |
+| 2025 | £403,202 | RED | RED | RED | RED | RED |
 
 **Most stressed year: 2016 (5 RED scenario(s))**
 
@@ -3524,13 +3522,13 @@ Key per-customer and margin metrics by year.
 | 2019 | 58 | 22.7% | £896 | £415 | 2.08% |
 | 2020 | 86 | 28.8% | £801 | £418 | 2.13% |
 | 2021 | 108 | 16.5% | £847 | £335 | 2.10% |
-| 2022 | 155 | -3.3% | £1,086 | £156 | 1.92% |
-| 2023 | 186 | 22.4% | £1,509 | £553 | 1.99% |
-| 2024 | 285 | 36.8% | £1,165 | £617 | 2.08% |
-| 2025 | 351 | 29.9% | £510 | £260 | 2.95% |
+| 2022 | 155 | -3.3% | £1,095 | £157 | 1.92% |
+| 2023 | 188 | 22.4% | £1,502 | £549 | 1.99% |
+| 2024 | 287 | 37.1% | £1,171 | £622 | 2.08% |
+| 2025 | 355 | 30.1% | £510 | £261 | 2.95% |
 
-**Best EBIT%: 2024 (36.8%)** | **Worst EBIT%: 2022 (-3.3%)**
-**Peak revenue/customer: 2023 (£1,509)**
+**Best EBIT%: 2024 (37.1%)** | **Worst EBIT%: 2022 (-3.3%)**
+**Peak revenue/customer: 2023 (£1,502)**
 
 > Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).
 
@@ -3548,10 +3546,10 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 | 2019 | 5.97% | 6% | OK | 36.2% | 8% | ! |
 | 2020 | 5.91% | 6% | OK | 39.5% | 8% | ! |
 | 2021 | 5.79% | 8% | OK | 42.6% | 12% | ! |
-| 2022 | 5.67% | 8% | OK | 34.2% | 12% | ! |
-| 2023 | 5.62% | 8% | OK | 42.5% | 12% | ! |
-| 2024 | 5.48% | 6% | OK | 36.1% | 8% | ! |
-| 2025 | 5.53% | 6% | OK | 32.2% | 8% | ! |
+| 2022 | 5.63% | 8% | OK | 34.2% | 12% | ! |
+| 2023 | 5.59% | 8% | OK | 42.0% | 12% | ! |
+| 2024 | 5.47% | 6% | OK | 35.9% | 8% | ! |
+| 2025 | 5.55% | 6% | OK | 31.8% | 8% | ! |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
 **Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
@@ -3568,10 +3566,10 @@ Key metrics vs UK retail energy norms (Ofgem/Cornwall Insight). OK = within rang
 | 2019 | !22.7% | !46.3% | OK2.08% | ~2% |
 | 2020 | !28.8% | !52.2% | OK2.13% | ~0% |
 | 2021 | ~16.5% | !39.6% | OK2.10% | ~2% |
-| 2022 | OK-3.3% | OK14.4% | OK1.92% | OK10% |
-| 2023 | !22.4% | !36.7% | OK1.99% | ~1% |
-| 2024 | !36.8% | !53.0% | OK2.08% | ~1% |
-| 2025 | !29.9% | !51.0% | OK2.95% | OK3% |
+| 2022 | OK-3.3% | OK14.3% | OK1.92% | OK9% |
+| 2023 | !22.4% | !36.6% | OK1.99% | ~1% |
+| 2024 | !37.1% | !53.1% | OK2.08% | ~1% |
+| 2025 | !30.1% | !51.1% | OK2.95% | OK3% |
 
 **Benchmark ranges:** Net margin %: −5 to +8% green | Gross margin %: 0–20% green | Bad debt %: 0–5% green | Annual churn %: 3–35% green.
 **RED — review required: 2016, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025**
@@ -3583,45 +3581,44 @@ How well the company estimated churn probability versus actual simulation outcom
 | Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
 |----------|------|----------------|-----------------|-------|---------|
 | C6 | 2017-04 | 1.9% | 14.5% | +12.6pp | OVERESTIMATED |
-| PROS-2016-0003 | 2018-01 | 5.4% | 13.4% | +8.0pp | ACCURATE |
-| C4 | 2018-10 | 8.8% | 13.4% | +4.6pp | ACCURATE |
-| PROS-2018-0002 | 2019-01 | 1.7% | 25.2% | +23.5pp | OVERESTIMATED |
+| PROS-2016-0003 | 2018-01 | 10.0% | 13.4% | +3.3pp | ACCURATE |
+| C4 | 2018-10 | 7.7% | 13.4% | +5.7pp | ACCURATE |
+| PROS-2018-0002 | 2019-01 | 2.8% | 25.2% | +22.4pp | OVERESTIMATED |
 | C1 | 2021-12 | 8.2% | 5.2% | -2.9pp | ACCURATE |
-| C5 | 2021-12 | 95.0% | 61.0% | -34.0pp | UNDERESTIMATED |
-| PROS-2019-0003 | 2022-01 | 13.4% | 4.5% | -8.8pp | ACCURATE |
+| C5 | 2021-12 | 53.8% | 61.0% | +7.1pp | ACCURATE |
+| PROS-2019-0003 | 2022-01 | 20.3% | 4.5% | -15.8pp | UNDERESTIMATED |
 | PROS-2020-0013 | 2022-01 | 17.0% | 4.5% | -12.5pp | UNDERESTIMATED |
-| PROS-2018-0014 | 2022-01 | 8.7% | 4.5% | -4.2pp | ACCURATE |
-| PROS-2021-0006 | 2022-01 | 10.4% | 5.0% | -5.4pp | ACCURATE |
 | PROS-2021-0017 | 2022-01 | 14.6% | 4.5% | -10.1pp | UNDERESTIMATED |
-| PROS-2021-0029 | 2022-01 | 11.7% | 8.4% | -3.4pp | ACCURATE |
+| PROS-2021-0029 | 2022-01 | 17.8% | 8.4% | -9.4pp | ACCURATE |
 | PROS-2018-0039 | 2022-01 | 67.1% | 4.5% | -62.6pp | UNDERESTIMATED |
-| PROS-2020-0047 | 2022-02 | 21.3% | 8.4% | -13.0pp | UNDERESTIMATED |
-| PROS-2020-0050 | 2022-02 | 54.5% | 5.0% | -49.5pp | UNDERESTIMATED |
-| PROS-2021-0044 | 2022-02 | 15.3% | 4.5% | -10.8pp | UNDERESTIMATED |
+| PROS-2020-0042 | 2022-02 | 33.0% | 4.5% | -28.5pp | UNDERESTIMATED |
+| PROS-2020-0047 | 2022-02 | 32.8% | 8.4% | -24.5pp | UNDERESTIMATED |
+| PROS-2020-0050 | 2022-02 | 53.6% | 5.0% | -48.6pp | UNDERESTIMATED |
+| PROS-2021-0044 | 2022-02 | 22.8% | 4.5% | -18.3pp | UNDERESTIMATED |
 | PROS-2019-0050 | 2022-02 | 50.1% | 5.0% | -45.1pp | UNDERESTIMATED |
-| PROS-2021-0060 | 2022-02 | 9.8% | 13.5% | +3.7pp | ACCURATE |
-| PROS-2020-0067 | 2022-02 | 61.3% | 5.0% | -56.3pp | UNDERESTIMATED |
+| PROS-2021-0060 | 2022-02 | 14.8% | 13.5% | -1.3pp | ACCURATE |
+| PROS-2020-0067 | 2022-02 | 92.9% | 5.0% | -87.9pp | UNDERESTIMATED |
 | PROS-2021-0067 | 2022-03 | 14.6% | 8.4% | -6.3pp | ACCURATE |
-| PROS-2021-0100 | 2022-04 | 3.7% | 4.5% | +0.8pp | ACCURATE |
+| PROS-2021-0100 | 2022-04 | 1.9% | 4.5% | +2.6pp | ACCURATE |
 | PROS-2022-0019 | 2023-01 | 0.4% | 12.0% | +11.7pp | OVERESTIMATED |
-| PROS-2020-0006 | 2024-01 | 5.9% | 8.0% | +2.1pp | ACCURATE |
-| PROS-2020-0043 | 2024-02 | 5.0% | 18.0% | +13.0pp | OVERESTIMATED |
+| PROS-2020-0043 | 2024-02 | 8.1% | 18.0% | +9.9pp | ACCURATE |
 | PROS-2022-0063 | 2024-02 | 2.5% | 5.0% | +2.5pp | ACCURATE |
-| PROS-2018-0003 | 2024-12 | 9.6% | 11.0% | +1.4pp | ACCURATE |
+| PROS-2023-0172 | 2024-06 | 1.3% | 5.0% | +3.7pp | ACCURATE |
 | PROS-2023-0010 | 2025-01 | 10.2% | 11.5% | +1.3pp | ACCURATE |
-| PROS-2022-0011 | 2025-01 | 10.2% | 4.7% | -5.5pp | ACCURATE |
+| PROS-2018-0014 | 2025-01 | 11.1% | 7.5% | -3.7pp | ACCURATE |
+| PROS-2022-0011 | 2025-01 | 10.3% | 4.7% | -5.7pp | ACCURATE |
 | PROS-2020-0025 | 2025-01 | 8.1% | 10.3% | +2.1pp | ACCURATE |
-| PROS-2023-0025 | 2025-01 | 18.8% | 16.1% | -2.7pp | ACCURATE |
+| PROS-2023-0025 | 2025-01 | 20.9% | 16.1% | -4.8pp | ACCURATE |
 | PROS-2021-0031 | 2025-01 | 10.2% | 10.3% | +0.1pp | ACCURATE |
-| PROS-2019-0024 | 2025-01 | 15.0% | 8.5% | -6.4pp | ACCURATE |
-| PROS-2021-0045 | 2025-02 | 10.9% | 7.5% | -3.4pp | ACCURATE |
-| PROS-2022-0067 | 2025-02 | 27.7% | 22.5% | -5.1pp | ACCURATE |
+| PROS-2019-0024 | 2025-01 | 16.7% | 8.5% | -8.1pp | ACCURATE |
+| PROS-2021-0045 | 2025-02 | 10.8% | 7.5% | -3.3pp | ACCURATE |
+| PROS-2022-0067 | 2025-02 | 30.2% | 22.5% | -7.7pp | ACCURATE |
 | PROS-2024-0076 | 2025-03 | 5.4% | 26.3% | +20.9pp | OVERESTIMATED |
 | PROS-2022-0125 | 2025-04 | 6.2% | 16.9% | +10.7pp | OVERESTIMATED |
-| PROS-2023-0116 | 2025-04 | 11.8% | 27.0% | +15.2pp | OVERESTIMATED |
+| PROS-2023-0116 | 2025-04 | 9.0% | 27.0% | +17.9pp | OVERESTIMATED |
 
-**Outcomes: 9 underestimated / 21 accurate / 7 overestimated**
-**Mean absolute error: 13.0pp**
+**Outcomes: 10 underestimated / 20 accurate / 6 overestimated**
+**Mean absolute error: 15.0pp**
 **Systematic bias: company consistently UNDER-predicted churn risk.**
 
 > Company churn estimates derived from company-observable signals (bill shock,
@@ -3630,72 +3627,71 @@ How well the company estimated churn probability versus actual simulation outcom
 
 ## Counterfactual Retention & Threshold Optimisation
 
-**Current threshold:** 30% | F1=0.043
-**Optimal threshold:** 10% | F1=0.155
+**Current threshold:** 30% | F1=0.044
+**Optimal threshold:** 10% | F1=0.146
 
-**RAG [!]:** RED — 27 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
+**RAG [!]:** RED — 31 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
 
-**Missed retention opportunities:** 36 no-offer churns
-  Value at stake: £18,082
-  Counterfactually recoverable (with offer): 8/36
-  Net value recoverable (after offer cost): £3,204
+**Missed retention opportunities:** 35 no-offer churns
+  Value at stake: £17,566
+  Counterfactually recoverable (with offer): 3/35
+  Net value recoverable (after offer cost): £1,152
 
 ### Per-miss detail
 
 | Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |
 |------|----------|-----|-------|-------------|--------|----------|
 | 2017 | C6 | 15% | 2% | No | £1,583 | £-50 |
-| 2018 | PROS-2016-0003 | 13% | 5% | No | £438 | £-50 |
-| 2018 | C4 | 13% | 9% | No | £196 | £-50 |
-| 2019 | PROS-2018-0002 | 25% | 2% | No | £479 | £-50 |
+| 2018 | PROS-2016-0003 | 13% | 10% | No | £438 | £-50 |
+| 2018 | C4 | 13% | 8% | No | £196 | £-50 |
+| 2019 | PROS-2018-0002 | 25% | 3% | No | £479 | £-50 |
 | 2021 | C1 | 5% | 8% | No | £-23 | £-50 |
-| 2022 | PROS-2019-0003 | 5% | 13% | Yes | £557 | £507 |
+| 2022 | PROS-2019-0003 | 5% | 20% | No | £557 | £-50 |
 | 2022 | PROS-2020-0013 | 5% | 17% | No | £314 | £-50 |
-| 2022 | PROS-2018-0014 | 5% | 9% | No | £596 | £-50 |
-| 2022 | PROS-2021-0006 | 5% | 10% | No | £544 | £-50 |
 | 2022 | PROS-2021-0017 | 5% | 15% | No | £373 | £-50 |
-| 2022 | PROS-2021-0029 | 8% | 12% | Yes | £342 | £292 |
+| 2022 | PROS-2021-0029 | 8% | 18% | No | £342 | £-50 |
 | 2022 | PROS-2018-0039 | 5% | 67% | No | £397 | £-50 |
-| 2022 | PROS-2020-0047 | 8% | 21% | Yes | £301 | £251 |
-| 2022 | PROS-2020-0050 | 5% | 54% | No | £350 | £-50 |
-| 2022 | PROS-2021-0044 | 5% | 15% | No | £280 | £-50 |
+| 2022 | PROS-2020-0042 | 5% | 33% | Yes | £447 | £397 |
+| 2022 | PROS-2020-0047 | 8% | 33% | No | £312 | £-50 |
+| 2022 | PROS-2020-0050 | 5% | 54% | No | £340 | £-50 |
+| 2022 | PROS-2021-0044 | 5% | 23% | No | £272 | £-50 |
 | 2022 | PROS-2019-0050 | 5% | 50% | No | £400 | £-50 |
-| 2022 | PROS-2021-0060 | 13% | 10% | No | £320 | £-50 |
-| 2022 | PROS-2020-0067 | 5% | 61% | No | £592 | £-50 |
+| 2022 | PROS-2021-0060 | 13% | 15% | No | £320 | £-50 |
+| 2022 | PROS-2020-0067 | 5% | 93% | No | £592 | £-50 |
 | 2022 | PROS-2021-0067 | 8% | 15% | Yes | £379 | £329 |
-| 2022 | PROS-2021-0100 | 5% | 4% | No | £556 | £-50 |
+| 2022 | PROS-2021-0100 | 5% | 2% | No | £556 | £-50 |
 | 2023 | PROS-2022-0019 | 12% | 0% | No | £445 | £-50 |
-| 2024 | PROS-2020-0006 | 8% | 6% | Yes | £471 | £421 |
-| 2024 | PROS-2020-0043 | 18% | 5% | No | £591 | £-50 |
+| 2024 | PROS-2020-0043 | 18% | 8% | No | £591 | £-50 |
 | 2024 | PROS-2022-0063 | 5% | 2% | No | £603 | £-50 |
-| 2024 | PROS-2018-0003 | 11% | 10% | Yes | £614 | £564 |
+| 2024 | PROS-2023-0172 | 5% | 1% | No | £509 | £-50 |
 | 2025 | PROS-2023-0010 | 12% | 10% | No | £597 | £-50 |
-| 2025 | PROS-2022-0011 | 5% | 10% | No | £636 | £-50 |
+| 2025 | PROS-2018-0014 | 7% | 11% | No | £761 | £-50 |
+| 2025 | PROS-2022-0011 | 5% | 10% | No | £640 | £-50 |
 | 2025 | PROS-2020-0025 | 10% | 8% | No | £615 | £-50 |
-| 2025 | PROS-2023-0025 | 16% | 19% | No | £612 | £-50 |
+| 2025 | PROS-2023-0025 | 16% | 21% | No | £612 | £-50 |
 | 2025 | PROS-2021-0031 | 10% | 10% | No | £454 | £-50 |
-| 2025 | PROS-2019-0024 | 9% | 15% | Yes | £462 | £412 |
-| 2025 | PROS-2021-0045 | 7% | 11% | No | £759 | £-50 |
-| 2025 | PROS-2022-0067 | 23% | 28% | No | £568 | £-50 |
+| 2025 | PROS-2019-0024 | 9% | 17% | No | £462 | £-50 |
+| 2025 | PROS-2021-0045 | 7% | 11% | No | £755 | £-50 |
+| 2025 | PROS-2022-0067 | 23% | 30% | No | £568 | £-50 |
 | 2025 | PROS-2024-0076 | 26% | 5% | No | £608 | £-50 |
 | 2025 | PROS-2022-0125 | 17% | 6% | Yes | £476 | £426 |
-| 2025 | PROS-2023-0116 | 27% | 12% | No | £599 | £-50 |
+| 2025 | PROS-2023-0116 | 27% | 9% | No | £599 | £-50 |
 
 ### Threshold sensitivity curve
 
 | Threshold | Recall | Precision | F1 |
 |-----------|--------|-----------|----|
-| 0% | 1.000 | 0.077 | 0.144 |
-| 5% | 0.784 | 0.079 | 0.143 |
-| 10% | 0.459 | 0.093 | 0.155 ← optimal |
-| 15% | 0.216 | 0.089 | 0.126 |
-| 20% | 0.135 | 0.098 | 0.114 |
-| 25% | 0.108 | 0.143 | 0.123 |
-| 30% | 0.027 | 0.111 | 0.043 |
-| 35% | 0.027 | 0.250 | 0.049 |
-| 40% | 0.027 | 0.333 | 0.050 |
-| 45% | 0.027 | 1.000 | 0.053 |
-| 50% | 0.027 | 1.000 | 0.053 |
+| 0% | 1.000 | 0.075 | 0.139 |
+| 5% | 0.778 | 0.075 | 0.137 |
+| 10% | 0.444 | 0.087 | 0.146 ← optimal |
+| 15% | 0.222 | 0.089 | 0.127 |
+| 20% | 0.139 | 0.100 | 0.116 |
+| 25% | 0.111 | 0.143 | 0.125 |
+| 30% | 0.028 | 0.111 | 0.044 |
+| 35% | 0.028 | 0.250 | 0.050 |
+| 40% | 0.028 | 0.333 | 0.051 |
+| 45% | 0.028 | 1.000 | 0.054 |
+| 50% | 0.028 | 1.000 | 0.054 |
 
 ### Lift-per-pound by intervention class (Part 4)
 
@@ -3703,7 +3699,7 @@ Every no-offer churn is one of two different management problems: the model neve
 
 | Class | Misses | Assumed discount | Assumed effectiveness | Would retain | Net value | Lift/GBP |
 |-------|--------|-------------------|------------------------|---------------|-----------|----------|
-| Detection gate (never scored above offer threshold) | 36 | 3% | 12% | 4/36 | £144 | +0.08 |
+| Detection gate (never scored above offer threshold) | 35 | 3% | 12% | 1/35 | £-1,303 | -0.74 |
 
 ## Churn Model Quality (Phase NK)
 
@@ -3712,12 +3708,12 @@ Threshold: company_churn_estimate > 30% = predicted. Evaluated at each renewal e
 
 | Metric | Value | Interpretation |
 |--------|-------|----------------|
-| Total churn events | 37 | Customers who actually churned |
+| Total churn events | 36 | Customers who actually churned |
 | True Positives (TP) | 1 | Churn predicted AND happened |
 | False Positives (FP) | 8 | Churn predicted BUT customer renewed |
-| False Negatives (FN) | 36 | Churn NOT predicted BUT happened (blind miss) |
-| True Negatives (TN) | 433 | No churn predicted AND customer renewed |
-| **Recall** | **2.7%** | % of churners detected before departure |
+| False Negatives (FN) | 35 | Churn NOT predicted BUT happened (blind miss) |
+| True Negatives (TN) | 438 | No churn predicted AND customer renewed |
+| **Recall** | **2.8%** | % of churners detected before departure |
 | **Precision** | **11.1%** | % of retention offers to genuine churners |
 | **F1 Score** | **0.04** | Harmonic mean of recall and precision |
 
@@ -3744,11 +3740,11 @@ the model ever flag this customer, at any renewal, before they left?
 
 | Metric | Value |
 |--------|-------|
-| Churners | 37 |
-| Caught before departure (any renewal) | 2 |
+| Churners | 36 |
+| Caught before departure (any renewal) | 1 |
 | Never flagged | 35 |
-| **Episode recall** | **5.4%** |
-| Decayed after a prior save | 2 |
+| **Episode recall** | **2.8%** |
+| Decayed after a prior save | 1 |
 | Prevented-churn saves (retention offers that worked) | 8 |
 
 ### Per-Year Model Performance
@@ -3761,10 +3757,10 @@ the model ever flag this customer, at any renewal, before they left?
 | 2019 | 0 | 3 | 1 | 19 | 0% | 0% |
 | 2020 | 0 | 0 | 0 | 32 | 0% | 0% |
 | 2021 | 1 | 0 | 1 | 45 | 50% | 100% |
-| 2022 | 0 | 0 | 15 | 43 | 0% | 0% |
-| 2023 | 0 | 0 | 1 | 68 | 0% | 0% |
-| 2024 | 0 | 0 | 4 | 95 | 0% | 0% |
-| 2025 | 0 | 1 | 11 | 110 | 0% | 0% |
+| 2022 | 0 | 0 | 14 | 44 | 0% | 0% |
+| 2023 | 0 | 0 | 1 | 69 | 0% | 0% |
+| 2024 | 0 | 0 | 3 | 97 | 0% | 0% |
+| 2025 | 0 | 1 | 12 | 111 | 0% | 0% |
 
 ## Credit Risk & Capital Stress (Phase NR)
 
@@ -3773,15 +3769,15 @@ the model ever flag this customer, at any renewal, before they left?
 | Year | Revenue £ | Bad Debt £ | Bad Debt % | Crisis Stress £ |
 |------|-----------|------------|------------|-----------------|
 
-**Total bad debt (all years):** £5,442
-**Crisis stress incremental:** £8,164
+**Total bad debt (all years):** £5,318
+**Crisis stress incremental:** £7,976
 
 **RAG [~]:** AMBER — Credit stress material but below 1% revenue
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (351 active customers) under 12-month forward scenarios.
-Generated: 2026-08-27T11:23:08Z
+Generated: 2026-08-27T12:50:50Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -3815,13 +3811,13 @@ Mean and maximum absolute error between company tariff estimates and actual outt
 | 2019 | 58 | 13.5% | 31.0% | MODERATE |
 | 2020 | 86 | 30.8% | 56.5% | POOR |
 | 2021 | 107 | 18.4% | 53.1% | POOR |
-| 2022 | 143 | 22.3% | 55.9% | POOR |
-| 2023 | 185 | 32.4% | 86.2% | POOR |
-| 2024 | 285 | 27.3% | 58.9% | POOR |
-| 2025 | 298 | 24.9% | 442.0% | POOR |
+| 2022 | 144 | 22.1% | 55.9% | POOR |
+| 2023 | 187 | 31.8% | 86.2% | POOR |
+| 2024 | 288 | 27.7% | 58.9% | POOR |
+| 2025 | 301 | 24.8% | 442.0% | POOR |
 
 **Best accuracy year (n≥5): 2019 (13.5% mean error)**
-**Worst accuracy year (n≥5): 2023 (32.4% mean error)**
+**Worst accuracy year (n≥5): 2023 (31.8% mean error)**
 
 > Errors reflect the company's information gap: forward curves are approximations;
 > the company cannot observe simulation wholesale cost internals (epistemic blindfold).
@@ -3838,13 +3834,13 @@ Renewals the company repriced, and the recovery surcharges it applied at renewal
 | 2019 | 38 | -3.3 | 1 | 37 | 0 |
 | 2020 | 57 | -3.4 | 2 | 55 | 1 |
 | 2021 | 85 | -0.2 | 40 | 45 | 2 |
-| 2022 | 93 | -28.7 | 42 | 51 | 12 |
-| 2023 | 127 | -5.3 | 38 | 89 | 70 |
-| 2024 | 184 | -6.7 | 3 | 181 | 2 |
-| 2025 | 224 | -7.2 | 7 | 217 | 0 |
+| 2022 | 94 | -29.0 | 42 | 52 | 11 |
+| 2023 | 129 | -5.0 | 40 | 89 | 71 |
+| 2024 | 187 | -6.7 | 3 | 184 | 1 |
+| 2025 | 227 | -7.2 | 6 | 221 | 0 |
 
-**Total repriced renewals 2016-2025: 851** | **Peak avg adjustment: 2021 (+0.2 £/MWh)**
-**Margin recovery surcharges: 89 total** (70 in 2023)
+**Total repriced renewals 2016-2025: 860** | **Peak avg adjustment: 2021 (+0.2 £/MWh)**
+**Margin recovery surcharges: 88 total** (71 in 2023)
 
 > Margin recovery surcharges fire at RENEWAL, on the prior term's realised net margin: a loss exceeding 5% of that term's revenue triggers a surcharge of the excess, capped at +20% (`compute_margin_surcharge`).
 > Repriced renewals are the portfolio learning premium (`compute_portfolio_premium`); the Avg Delta spans the whole renewal move.
@@ -3858,19 +3854,19 @@ Estimated forward lifetime value of active billing accounts at each year-end.
 | 2016 | 3 | £3,843 | £1,281 | — |
 | 2017 | 11 | £15,631 | £1,421 | +£11,787 |
 | 2018 | 11 | £10,774 | £979 | £-4,856 |
-| 2019 | 22 | £27,615 | £1,255 | +£16,840 |
-| 2020 | 32 | £49,296 | £1,540 | +£21,681 |
-| 2021 | 47 | £49,790 | £1,059 | +£494 |
-| 2022 | 43 | £-22,864 | £-532 | £-72,654 |
-| 2023 | 68 | £18,758 | £276 | +£41,622 |
-| 2024 | 94 | £213,892 | £2,275 | +£195,134 |
-| 2025 * | 126 | £224,106 | £1,779 | — |
+| 2019 | 22 | £29,191 | £1,327 | +£18,417 |
+| 2020 | 32 | £49,753 | £1,555 | +£20,562 |
+| 2021 | 47 | £50,132 | £1,067 | +£379 |
+| 2022 | 44 | £-25,036 | £-569 | £-75,167 |
+| 2023 | 69 | £16,774 | £243 | +£41,810 |
+| 2024 | 95 | £210,578 | £2,217 | +£193,804 |
+| 2025 * | 127 | £222,210 | £1,750 | — |
 
-**Peak portfolio CLV: 2024 (£213,892)** | **Lowest: 2022 (£-22,864)**
-**Largest YoY gain: 2024 (+£195,134)**
-**Largest YoY fall: 2022 (£-72,654)**
+**Peak portfolio CLV: 2024 (£210,578)** | **Lowest: 2022 (£-25,036)**
+**Largest YoY gain: 2024 (+£193,804)**
+**Largest YoY fall: 2022 (£-75,167)**
 
-> \* Partial period — the run does not cover this year to its end, so it is shown as a reading in its own right and excluded from the Δ column and from the peak/lowest/largest-move figures above: 2025 (observed to 2025-06-07, 126 accounts valued). Ranking a part-year against full years would report the cutoff as a change in the book.
+> \* Partial period — the run does not cover this year to its end, so it is shown as a reading in its own right and excluded from the Δ column and from the peak/lowest/largest-move figures above: 2025 (observed to 2025-06-07, 127 accounts valued). Ranking a part-year against full years would report the cutoff as a change in the book.
 
 > Note: CLV snapshots are forward estimates at year-end based on remaining contract tenure and expected margins at that point in time.
 
@@ -3888,12 +3884,12 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 | 2019 | £51,975.39 | £15,606.69 | £12,290.87 | £24,077.83 | 46.3% | +£15,654.64 | +£4,425.04 | +£3,255.15 | +£7,974.46 |
 | 2020 | £68,898.99 | £14,445.51 | £18,498.81 | £35,954.67 | 52.2% | +£16,923.61 | £-1,161.18 | +£6,207.95 | +£11,876.84 |
 | 2021 | £91,506.39 | £30,912.04 | £24,389.18 | £36,205.17 | 39.6% | +£22,607.39 | +£16,466.53 | +£5,890.36 | +£250.50 |
-| 2022 | £168,351.69 | £112,454.35 | £31,672.08 | £24,225.26 | 14.4% | +£76,845.31 | +£81,542.32 | +£7,282.91 | £-11,979.91 |
-| 2023 | £280,596.76 | £129,898.34 | £47,831.45 | £102,866.97 | 36.7% | +£112,245.07 | +£17,443.99 | +£16,159.37 | +£78,641.71 |
-| 2024 | £332,077.68 | £92,179.62 | £64,042.77 | £175,855.28 | 53.0% | +£51,480.92 | £-37,718.72 | +£16,211.32 | +£72,988.32 |
-| 2025 | £179,096.46 | £59,573.10 | £28,183.20 | £91,340.16 | 51.0% | £-152,981.22 | £-32,606.53 | £-35,859.58 | £-84,515.12 |
+| 2022 | £169,681.47 | £113,449.72 | £31,967.36 | £24,264.40 | 14.3% | +£78,175.09 | +£82,537.68 | +£7,578.18 | £-11,940.77 |
+| 2023 | £282,376.47 | £131,017.13 | £48,107.95 | £103,251.39 | 36.6% | +£112,695.00 | +£17,567.41 | +£16,140.59 | +£78,986.99 |
+| 2024 | £336,162.78 | £93,140.76 | £64,630.21 | £178,391.81 | 53.1% | +£53,786.31 | £-37,876.37 | +£16,522.26 | +£75,140.42 |
+| 2025 | £180,952.06 | £60,072.27 | £28,362.70 | £92,517.09 | 51.1% | £-155,210.72 | £-33,068.49 | £-36,267.50 | £-85,874.73 |
 
-**Best GM year: 2024 (53.0%)** | **Worst GM year: 2022 (14.4%)**
+**Best GM year: 2024 (53.1%)** | **Worst GM year: 2022 (14.3%)**
 
 > Note: Non-commodity costs include network (DUoS/TNUoS), policy levies (RO/CfD/CCL/CM/FiT), and mutualization.
 
@@ -3906,16 +3902,16 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 | Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Residual Δ | Portfolio | Driver | RAG |
 |-----------|-------|---------|-----------|---------|---------|---------|-----------|---------|--------|-----|
 | 2016→2017 | +£680 | +£2,773 | -£92 | -£2 | -£637 | -£1,363 | -£0 | +4 | gross margin | AMBER |
-| 2017→2018 | +£629 | +£5,041 | -£397 | -£19 | -£1,981 | -£2,015 | -£0 | +19 | gross margin | AMBER |
-| 2018→2019 | +£4,026 | +£8,125 | +£453 | -£25 | -£2,028 | -£2,499 | +£0 | +16 | gross margin | AMBER |
-| 2019→2020 | +£4,306 | +£12,300 | -£276 | -£9 | -£2,949 | -£4,760 | +£0 | +28 | gross margin | AMBER |
-| 2020→2021 | -£5,765 | +£1,936 | -£198 | -£384 | -£2,715 | -£4,404 | -£0 | +22 | network costs | RED |
-| 2021→2022 | -£23,829 | -£15,388 | -£506 | -£400 | -£819 | -£6,716 | -£0 | +47 | gross margin | RED |
-| 2022→2023 | +£56,957 | +£85,339 | -£1,064 | -£1,472 | -£7,225 | -£18,620 | +£0 | +31 | gross margin | GREEN |
-| 2023→2024 | +£30,355 | +£64,042 | +£1,356 | -£181 | -£15,365 | -£19,497 | -£0 | +99 | gross margin | GREEN |
-| 2024→2025 | -£40,765 | -£85,352 | +£539 | +£353 | +£15,470 | +£28,224 | +£0 | +66 | gross margin | RED |
+| 2017→2018 | +£851 | +£5,041 | -£175 | -£19 | -£1,981 | -£2,015 | -£0 | +19 | gross margin | AMBER |
+| 2018→2019 | +£3,787 | +£8,125 | +£214 | -£25 | -£2,028 | -£2,499 | +£0 | +16 | gross margin | AMBER |
+| 2019→2020 | +£4,235 | +£12,300 | -£347 | -£9 | -£2,949 | -£4,760 | +£0 | +28 | gross margin | AMBER |
+| 2020→2021 | -£5,663 | +£1,936 | -£95 | -£384 | -£2,715 | -£4,404 | -£0 | +22 | network costs | RED |
+| 2021→2022 | -£23,933 | -£14,946 | -£522 | -£409 | -£1,038 | -£7,017 | -£0 | +47 | gross margin | RED |
+| 2022→2023 | +£56,561 | +£85,046 | -£1,108 | -£1,476 | -£7,239 | -£18,663 | +£0 | +33 | gross margin | GREEN |
+| 2023→2024 | +£32,078 | +£66,176 | +£1,439 | -£195 | -£15,514 | -£19,828 | -£0 | +99 | gross margin | GREEN |
+| 2024→2025 | -£41,712 | -£86,996 | +£501 | +£361 | +£15,744 | +£28,678 | +£0 | +68 | gross margin | RED |
 
-**Most damaging transition: 2024→2025 (-£40,765)** | **Best transition: 2022→2023 (+£56,957)**
+**Most damaging transition: 2024→2025 (-£41,712)** | **Best transition: 2022→2023 (+£56,561)**
 
 > Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: negative = costs rose (margin impact). Portfolio: active customer count change.
 
@@ -3925,20 +3921,20 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 
 An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that cash effect is correct and unchanged. This section shows how much of currently-recognised revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling resolved prior estimates.
 
-**Outstanding unbilled revenue accrual: £186,011.59** across 2059 bill(s) not yet confirmed by an actual read.
+**Outstanding unbilled revenue accrual: £185,707.22** across 2053 bill(s) not yet confirmed by an actual read.
 
-**Revenue restated this run: £447.97** across 979 catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view and D3_catchup_rebilling for the per-bill mechanism.
+**Revenue restated this run: £2,152.77** across 986 catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view and D3_catchup_rebilling for the per-bill mechanism.
 
 | Customer | Outstanding Accrual £ |
 |----------|------------------------|
-| PROS-2023-0013 | £3,517.16 |
+| PROS-2023-0013 | £3,517.50 |
 | PROS-2022-0063g | £3,018.77 |
 | PROS-2022-0073 | £2,909.28 |
-| PROS-2018-0016 | £2,850.49 |
 | PROS-2022-0127 | £2,848.92 |
+| PROS-2018-0016 | £2,848.25 |
 | PROS-2020-0012 | £2,843.51 |
 | PROS-2022-0124 | £2,745.69 |
-| PROS-2024-0010 | £2,575.02 |
+| PROS-2024-0010 | £2,574.99 |
 | PROS-2022-0071 | £2,499.30 |
 | PROS-2019-0024 | £2,424.03 |
 
@@ -3950,16 +3946,16 @@ Year-by-year bad debt rate and high-churn-risk customer concentration.
 |------|----------|--------------|-----------------|----------|-------|-----|
 | 2016 | £-0 | -0.00% | 0/3 | 0% | — STABLE | GREEN |
 | 2017 | £92 | 0.52% | 0/11 | 0% | ↑ DETERIORATING | GREEN |
-| 2018 | £489 | 1.80% | 1/12 | 8% | ↑ DETERIORATING | RED |
-| 2019 | £36 | 0.09% | 1/23 | 4% | ↓ IMPROVING | GREEN |
-| 2020 | £312 | 0.61% | 3/32 | 9% | ↑ DETERIORATING | GREEN |
-| 2021 | £510 | 0.74% | 6/47 | 13% | — STABLE | GREEN |
-| 2022 | £1,016 | 0.75% | 9/58 | 16% | — STABLE | AMBER |
-| 2023 | £2,080 | 0.87% | 42/69 | 61% | — STABLE | RED |
-| 2024 | £724 | 0.27% | 37/97 | 38% | ↓ IMPROVING | AMBER |
-| 2025 | £184 | 0.13% | 81/134 | 60% | ↓ IMPROVING | RED |
+| 2018 | £267 | 0.98% | 1/12 | 8% | ↑ DETERIORATING | AMBER |
+| 2019 | £53 | 0.13% | 1/23 | 4% | ↓ IMPROVING | GREEN |
+| 2020 | £400 | 0.79% | 3/32 | 9% | ↑ DETERIORATING | AMBER |
+| 2021 | £495 | 0.71% | 6/47 | 13% | — STABLE | GREEN |
+| 2022 | £1,017 | 0.74% | 9/58 | 16% | — STABLE | GREEN |
+| 2023 | £2,124 | 0.89% | 43/70 | 61% | — STABLE | RED |
+| 2024 | £685 | 0.26% | 36/98 | 37% | ↓ IMPROVING | AMBER |
+| 2025 | £184 | 0.12% | 83/135 | 61% | ↓ IMPROVING | RED |
 
-**Worst bad debt year: 2018 (1.80%)** | **Peak at-risk concentration: 2023 (61% of customers)**
+**Worst bad debt year: 2018 (0.98%)** | **Peak at-risk concentration: 2025 (61% of customers)**
 
 > At-risk = churn risk score >30% at year-end. Bad debt rate = written-off bad debt as % of annual revenue. RAG: GREEN <0.75% bad debt and <30% at-risk; RED >1.5% bad debt or >60% at-risk.
 
@@ -3976,9 +3972,9 @@ Benchmark: balanced UK small supplier targets resi 40-70%, I&C 20-50%, elec 70-9
 | 2019 | 92% | 8% | 0% | 73% | 27% | Residential | RED |
 | 2020 | 96% | 4% | 0% | 72% | 28% | Residential | RED |
 | 2021 | 96% | 4% | 0% | 77% | 23% | Residential | RED |
-| 2022 | 100% | 0% | 0% | 187% | -87% | Residential | RED |
+| 2022 | 100% | 0% | 0% | 185% | -85% | Residential | RED |
 | 2023 | 100% | 0% | 0% | 71% | 29% | Residential | RED |
-| 2024 | 100% | 0% | 0% | 70% | 30% | Residential | RED |
+| 2024 | 100% | 0% | 0% | 69% | 31% | Residential | RED |
 | 2025 | 100% | 0% | 0% | 70% | 30% | Residential | RED |
 
 > Portfolio composition within balanced range (no single segment >70% of gross margin).
@@ -3994,12 +3990,12 @@ Shadow discount: 8% off next term. Assumes P(accept) = (1 - churn\_estimate) x 9
 | 2018 | 2 | £634 | £455 | £40 | +£415 |
 | 2019 | 1 | £479 | £297 | £26 | +£271 |
 | 2021 | 1 | £-23 | £-18 | £-2 | +£-16 |
-| 2022 | 15 | £6,301 | £4,917 | £428 | +£4,490 |
+| 2022 | 14 | £5,599 | £4,364 | £380 | +£3,985 |
 | 2023 | 1 | £445 | £324 | £28 | +£296 |
-| 2024 | 4 | £2,279 | £1,687 | £147 | +£1,540 |
-| 2025 | 11 | £6,386 | £4,515 | £393 | +£4,122 |
+| 2024 | 3 | £1,703 | £1,276 | £111 | +£1,165 |
+| 2025 | 12 | £7,148 | £5,099 | £443 | +£4,656 |
 
-**Total opportunity cost vs actual: +£12,141 net** (gross £18,082 margin lost; £1,156 offer cost if all retained).
+**Total opportunity cost vs actual: +£11,794 net** (gross £17,566 margin lost; £1,123 offer cost if all retained).
 
 > The shadow strategy net gain is small because all no-offer churns were residential customers with low margins. I&C customers (large margins) already received retention offers — the current threshold strategy is near-optimal for the existing portfolio composition.
 
@@ -4017,12 +4013,12 @@ Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
 | 2019 | £275,890.32 | £4,331.28 | 63.7x | ✓ GREEN | Yes |
 | 2020 | £295,734.59 | £5,741.58 | 51.5x | ✓ GREEN | Yes |
 | 2021 | £310,842.30 | £7,625.53 | 40.8x | ✓ GREEN | Yes |
-| 2022 | £305,307.17 | £14,029.31 | 21.8x | ✓ GREEN | Yes |
-| 2023 | £368,194.61 | £23,383.06 | 15.8x | ✓ GREEN | Yes |
-| 2024 | £490,478.76 | £27,673.14 | 17.7x | ✓ GREEN | Yes |
-| 2025 | £544,017.68 | £14,924.70 | 36.5x | ✓ GREEN | Yes |
+| 2022 | £305,311.21 | £14,140.12 | 21.6x | ✓ GREEN | Yes |
+| 2023 | £368,425.56 | £23,531.37 | 15.7x | ✓ GREEN | Yes |
+| 2024 | £493,091.34 | £28,013.57 | 17.6x | ✓ GREEN | Yes |
+| 2025 | £547,540.97 | £15,079.34 | 36.3x | ✓ GREEN | Yes |
 
-**Weakest year:** 2023 — 15.8x (equity £368,194.61 vs monthly revenue £23,383.06). RAG: GREEN.
+**Weakest year:** 2023 — 15.7x (equity £368,425.56 vs monthly revenue £23,531.37). RAG: GREEN.
 **Strongest year:** 2016 — 165.9x.
 
 
@@ -4040,12 +4036,12 @@ Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.
 | 2019 | £51,975.39 | £19,317.52 | £164.20 | ✓ GREEN |  |
 | 2020 | £68,898.99 | £25,607.46 | £217.66 | ✓ GREEN |  |
 | 2021 | £91,506.39 | £34,009.87 | £289.08 | ✓ GREEN | CREDIT EXPECTED |
-| 2022 | £168,351.69 | £62,570.71 | £531.85 | ✓ GREEN | CREDIT EXPECTED |
-| 2023 | £280,596.76 | £104,288.46 | £886.45 | ✓ GREEN |  |
-| 2024 | £332,077.68 | £123,422.20 | £1,049.09 | ✓ GREEN |  |
-| 2025 | £179,096.46 | £66,564.18 | £565.80 | ✓ GREEN |  |
+| 2022 | £169,681.47 | £63,064.95 | £536.05 | ✓ GREEN | CREDIT EXPECTED |
+| 2023 | £282,376.47 | £104,949.92 | £892.07 | ✓ GREEN |  |
+| 2024 | £336,162.78 | £124,940.50 | £1,061.99 | ✓ GREEN |  |
+| 2025 | £180,952.06 | £67,253.85 | £571.66 | ✓ GREEN |  |
 
-**Peak reconciliation exposure:** 2024 — max adverse £1,049 (4.5 months weighted tail).
+**Peak reconciliation exposure:** 2024 — max adverse £1,062 (4.5 months weighted tail).
 
 _Note: Outstanding pool ≈ current-year revenue × (weighted outstanding months ÷ 12)._
 _Max adverse = pool × blended variance rate (0.5% HH + 4% non-HH, portfolio-weighted)._
@@ -4059,14 +4055,14 @@ WATCH = within 20% of threshold. BREACH = threshold crossed.
 |------|-----------|------------|----------|----------|------------|---------|
 | 2016 | 19 | £255,060.21 | £252,657.89 | 3078w | -0.00% | ✗ BREACH |
 | 2017 | 23 | £258,530.83 | £255,040.12 | 1976w | 0.52% | ✗ BREACH |
-| 2018 | 42 | £264,085.04 | £258,926.48 | 1204w | 1.80% | ✗ BREACH |
-| 2019 | 58 | £275,890.32 | £266,239.27 | 887w | 0.09% | ✗ BREACH |
-| 2020 | 86 | £295,734.59 | £277,480.78 | 999w | 0.61% | ✗ BREACH |
-| 2021 | 108 | £310,842.30 | £282,433.02 | 475w | 0.74% | ✗ BREACH |
-| 2022 | 155 | £305,307.17 | £258,768.64 | 120w | 0.75% | ✗ BREACH |
-| 2023 | 186 | £368,194.61 | £316,357.32 | 127w | 0.87% | ✗ BREACH |
-| 2024 | 285 | £490,478.76 | £383,573.99 | 216w | 0.27% | ✗ BREACH |
-| 2025 | 351 | £544,017.68 | £402,114.25 | 351w | 0.13% | ✗ BREACH |
+| 2018 | 42 | £264,085.04 | £259,148.23 | 1205w | 0.98% | ✗ BREACH |
+| 2019 | 58 | £275,890.32 | £266,443.76 | 888w | 0.13% | ✗ BREACH |
+| 2020 | 86 | £295,734.59 | £277,597.54 | 999w | 0.79% | ✗ BREACH |
+| 2021 | 108 | £310,842.30 | £282,564.78 | 475w | 0.71% | ✗ BREACH |
+| 2022 | 155 | £305,311.21 | £258,933.60 | 119w | 0.74% | ✗ BREACH |
+| 2023 | 188 | £368,425.56 | £315,670.90 | 125w | 0.89% | ✗ BREACH |
+| 2024 | 287 | £493,091.34 | £384,444.25 | 215w | 0.26% | ✗ BREACH |
+| 2025 | 355 | £547,540.97 | £403,201.87 | 349w | 0.12% | ✗ BREACH |
 
 **BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
 
@@ -4080,7 +4076,7 @@ G = GREEN (compliant), A = AMBER (watch), R = RED (breach).
 |--------|---------|------|------|------|------|------|------|------|------|------|------|
 | Governance | SLC 0-9 | G | G | G | G | G | G | G | G | G | G |
 | Billing/Metering | SLC 10-14 | G | A | G | G | G | G | G | G | G | G |
-| Payment/Debt | SLC 15-19 | G | G | A | G | G | G | G | G | G | G |
+| Payment/Debt | SLC 15-19 | G | G | G | G | G | G | G | G | G | G |
 | Information | SLC 20-24 | G | G | G | G | G | G | G | G | G | G |
 | Complaints | SLC 25-29 / Ofgem Time to Fix rules | G | G | G | G | G | G | G | G | G | G |
 | Vulnerable Cust | SLC 30-35 / PSR | G | G | G | G | G | G | G | G | G | G |
@@ -4088,9 +4084,9 @@ G = GREEN (compliant), A = AMBER (watch), R = RED (breach).
 | Environmental | SLC 41-50 / RO, CfD, EE obligation | G | G | G | G | G | G | G | G | G | G |
 | Network/BSC | SLC 51-60 / BSC obligations | G | G | G | G | G | G | G | G | G | G |
 | Financial Res. | SLC 4C / SFR Decision 2023 | G | G | G | G | G | G | G | G | G | G |
-| **Overall** |  | G | A | A | G | G | G | G | G | G | G |
+| **Overall** |  | G | A | G | G | G | G | G | G | G | G |
 
-**Watch years (AMBER):** 2017, 2018
+**Watch years (AMBER):** 2017
 
 _Note: Vulnerable customers, tariff/cap, and environmental domains defaulted to GREEN_
 _(these are modelled as compliant; detailed SLC breach simulation not yet implemented)._
@@ -4102,14 +4098,14 @@ UK suppliers must file annual supply returns to Ofgem. Filed by 31 March of the 
 |------|-----------|----------------------|----------|---------|---------------|
 | 2016 | Yes | 19/19/19 | 0.1 | 0.1 | £-0 |
 | 2017 | Yes | 23/23/23 | 0.1 | 0.1 | £4 |
-| 2018 | Yes | 42/42/42 | 0.1 | 0.2 | £12 |
+| 2018 | Yes | 42/42/42 | 0.1 | 0.2 | £6 |
 | 2019 | Yes | 58/58/58 | 0.2 | 0.2 | £1 |
-| 2020 | Yes | 86/86/86 | 0.2 | 0.3 | £4 |
+| 2020 | Yes | 86/86/86 | 0.2 | 0.3 | £5 |
 | 2021 | Yes | 108/108/108 | 0.3 | 0.4 | £5 |
 | 2022 | Yes | 155/155/155 | 0.7 | 0.7 | £7 |
-| 2023 | Yes | 186/186/186 | 1.0 | 1.8 | £11 |
-| 2024 | Yes | 285/285/285 | 1.1 | 1.9 | £3 |
-| 2025 | Yes | 351/351/351 | 0.6 | 1.1 | £1 |
+| 2023 | Yes | 188/188/188 | 1.0 | 1.8 | £11 |
+| 2024 | Yes | 287/287/287 | 1.1 | 1.9 | £2 |
+| 2025 | Yes | 355/355/355 | 0.6 | 1.1 | £1 |
 
 **All 10 annual returns filed** — full compliance 2016–2025.
 
@@ -4150,11 +4146,11 @@ ROC buy-out cost is the maximum supplier exposure; ROC market purchases reduce a
 | 2019 | 166.5 | 0.484 ROC/MWh | 80.6 | £48.78 | £3,931 |
 | 2020 | 233.6 | 0.471 ROC/MWh | 110.0 | £50.05 | £5,507 |
 | 2021 | 287.3 | 0.492 ROC/MWh | 141.4 | £50.80 | £7,181 |
-| 2022 | 309.5 | 0.491 ROC/MWh | 152.0 | £52.88 | £8,036 |
-| 2023 | 419.9 | 0.469 ROC/MWh | 196.9 | £59.01 | £11,621 |
-| 2024 | 620.3 | 0.491 ROC/MWh | 304.6 | £64.73 | £19,715 |
-| 2025 | 338.0 | 0.493 ROC/MWh | 166.6 | £67.06 | £11,174 |
-| **Total** | **2,679.8** | | | | **£73,061** |
+| 2022 | 314.8 | 0.491 ROC/MWh | 154.6 | £52.88 | £8,173 |
+| 2023 | 424.8 | 0.469 ROC/MWh | 199.2 | £59.01 | £11,757 |
+| 2024 | 627.1 | 0.491 ROC/MWh | 307.9 | £64.73 | £19,931 |
+| 2025 | 339.8 | 0.493 ROC/MWh | 167.5 | £67.06 | £11,234 |
+| **Total** | **2,698.6** | | | | **£73,610** |
 
 RO cost as % of total revenue (2016-2025): **5.8%** (industry benchmark 5-10%)
 
@@ -4172,10 +4168,10 @@ Ofgem FiT levelisation redistributes FiT payment obligations across all licensed
 | 2019 | 166.5 | GBP9.45 | GBP1,573.12 |
 | 2020 | 233.6 | GBP0.00 (scheme closed) | NIL |
 | 2021 | 287.3 | GBP0.00 (scheme closed) | NIL |
-| 2022 | 309.5 | GBP0.00 (scheme closed) | NIL |
-| 2023 | 419.9 | GBP0.00 (scheme closed) | NIL |
-| 2024 | 620.3 | GBP0.00 (scheme closed) | NIL |
-| 2025 | 338.0 | GBP0.00 (scheme closed) | NIL |
+| 2022 | 314.8 | GBP0.00 (scheme closed) | NIL |
+| 2023 | 424.8 | GBP0.00 (scheme closed) | NIL |
+| 2024 | 627.1 | GBP0.00 (scheme closed) | NIL |
+| 2025 | 339.8 | GBP0.00 (scheme closed) | NIL |
 | **Total** | | | **GBP4,335.48** |
 
 FiT levy as % of total revenue (levy years 2016-2019): **0.3%** (industry benchmark ~1-2%)
@@ -4218,9 +4214,9 @@ Eligible customers receive a GBP 140-150 rebate applied to their electricity bil
 | 2020 | 86 | 150,000 | OK (exempt) | N/A | NIL |
 | 2021 | 108 | 150,000 | OK (exempt) | N/A | NIL |
 | 2022 | 155 | 150,000 | OK (exempt) | N/A | NIL |
-| 2023 | 186 | 150,000 | OK (exempt) | N/A | NIL |
-| 2024 | 285 | 150,000 | OK (exempt) | N/A | NIL |
-| 2025 | 351 | 150,000 | OK (exempt) | N/A | NIL |
+| 2023 | 188 | 150,000 | OK (exempt) | N/A | NIL |
+| 2024 | 287 | 150,000 | OK (exempt) | N/A | NIL |
+| 2025 | 355 | 150,000 | OK (exempt) | N/A | NIL |
 
 > Portfolio is primarily I&C. Domestic customer count is far below WHD threshold -- no obligation to participate.
 > If domestic portfolio grows to 150,000+, WHD registration with Ofgem becomes mandatory.
@@ -4238,9 +4234,9 @@ Phases: ECO2 (2015-2018, GBP3.20/MWh), ECO3 (2018-2022, GBP4.50/MWh), ECO4 (2022
 | 2020 | ECO3 | GBP4.50 | 86 | OK (exempt) | GBP2 |
 | 2021 | ECO3 | GBP4.50 | 108 | OK (exempt) | GBP3 |
 | 2022 | ECO4 | GBP6.80 | 155 | OK (exempt) | GBP8 |
-| 2023 | ECO4 | GBP6.80 | 186 | OK (exempt) | GBP13 |
-| 2024 | ECO4 | GBP6.80 | 285 | OK (exempt) | GBP15 |
-| 2025 | ECO4 | GBP6.80 | 351 | OK (exempt) | GBP8 |
+| 2023 | ECO4 | GBP6.80 | 188 | OK (exempt) | GBP13 |
+| 2024 | ECO4 | GBP6.80 | 287 | OK (exempt) | GBP15 |
+| 2025 | ECO4 | GBP6.80 | 355 | OK (exempt) | GBP8 |
 
 Counterfactual total 2016-2025 (if 150k domestic): **GBP52**
 
@@ -4272,7 +4268,7 @@ Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid an
 ## Customer Strategic Value Matrix
 
 2x2 matrix: CLV (above/below median) × Churn probability (above/below median).
-Median CLV: £599.94 | Median churn: 35% | Total portfolio CLV: £2,559.21
+Median CLV: £599.09 | Median churn: 35% | Total portfolio CLV: £2,555.44
 
 **Population: 5 of 13 electricity account(s).** Boundaries are medians over the 5 account(s) that carry both a CLV and a churn probability. An account with neither is NOT counted as worth zero — see "Not placed" below. Total portfolio CLV is over the 5 account(s) that carry a CLV.
 
@@ -4280,34 +4276,34 @@ Median CLV: £599.94 | Median churn: 35% | Total portfolio CLV: £2,559.21
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C9 | £859.05 | 20% | 13.5 periods |
+| C9 | £857.75 | 20% | 13.5 periods |
 
-Quadrant CLV: £859.05 (34% of portfolio)
+Quadrant CLV: £857.75 (34% of portfolio)
 
 ### CRITICAL (High CLV, High Churn — priority intervention)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C8 | £1,003.51 | 35% | 13.4 periods |
-| C2 | £599.94 | 41% | 13.2 periods |
+| C8 | £1,002.04 | 35% | 13.3 periods |
+| C2 | £599.09 | 41% | 13.2 periods |
 
-Quadrant CLV: £1,603.45 (63% of portfolio)
+Quadrant CLV: £1,601.13 (63% of portfolio)
 
 ### MONITOR (Low CLV, Low Churn)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C3 | £353.86 | 26% | 13.7 periods |
+| C3 | £353.31 | 26% | 13.7 periods |
 
-Quadrant CLV: £353.86 (14% of portfolio)
+Quadrant CLV: £353.31 (14% of portfolio)
 
 ### EXIT (Low CLV, High Churn)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C7 | £-257.14 | 38% | 13.5 periods |
+| C7 | £-256.76 | 38% | 13.4 periods |
 
-Quadrant CLV: £-257.14 (-10% of portfolio)
+Quadrant CLV: £-256.76 (-10% of portfolio)
 
 ### Not placed (excluded from the boundaries above)
 
@@ -4336,14 +4332,14 @@ Quadrant CLV: £-257.14 (-10% of portfolio)
 | 2019 | 0.833 | 0.060 | 59 | 10 | HIGH COMPLAINTS |
 | 2020 | 0.837 | 0.059 | 76 | 15 | HIGH COMPLAINTS |
 | 2021 | 0.844 | 0.058 | 102 | 12 | HIGH COMPLAINTS |
-| 2022 | 0.851 | 0.057 | 151 | 28 | HIGH COMPLAINTS |
+| 2022 | 0.852 | 0.056 | 150 | 28 | HIGH COMPLAINTS |
 | 2023 | 0.854 | 0.056 | 183 | 29 | HIGH COMPLAINTS |
-| 2024 | 0.860 | 0.055 | 243 | 54 |  |
-| 2025 | 0.858 | 0.055 | 187 | 42 | HIGH COMPLAINTS |
+| 2024 | 0.860 | 0.055 | 242 | 54 |  |
+| 2025 | 0.858 | 0.056 | 188 | 43 | HIGH COMPLAINTS |
 
-**Overall service quality:** 88.7% | **Average billing clarity:** 0.849 | **Average complaint probability:** 0.057
+**Overall service quality:** 88.7% | **Average billing clarity:** 0.850 | **Average complaint probability:** 0.056
 
-**Acquisition performance:** 1103 attempts, 208 wins (19% win rate). cap-constrained gate blocked resi acquisition 2021-2023 (negative projected margin).
+**Acquisition performance:** 1102 attempts, 209 wins (19% win rate). cap-constrained gate blocked resi acquisition 2021-2023 (negative projected margin).
 
 **Lowest clarity: 2017** (0.790) — crisis complexity (multiple tariff changes, bill shock events) degraded statement clarity.
 
@@ -4360,10 +4356,10 @@ Regulatory context: Ofgem monitors bill shock as a consumer harm indicator.
 | 2019 | 46.8% | 299 | 681 | 44% | **HIGH** |
 | 2020 | 41.4% | 479 | 1020 | 47% | **HIGH** |
 | 2021 | 42.7% | 530 | 1265 | 42% | **HIGH** |
-| 2022 | 40.1% | 649 | 1504 | 43% | **HIGH** |
-| 2023 | 42.8% | 827 | 2064 | 40% | **HIGH** |
-| 2024 | 38.5% | 1294 | 3057 | 42% | **HIGH** |
-| 2025 | 35.0% | 737 | 1861 | 40% | **HIGH** |
+| 2022 | 39.7% | 656 | 1528 | 43% | **HIGH** |
+| 2023 | 42.3% | 835 | 2088 | 40% | **HIGH** |
+| 2024 | 38.3% | 1306 | 3091 | 42% | **HIGH** |
+| 2025 | 35.2% | 745 | 1875 | 40% | **HIGH** |
 
 **Crisis peak: 2019** — 46.8% average shock. Energy crisis drove wholesale costs above locked tariff rates,
 causing step-change increases at every renewal. SLC 21: suppliers must issue
@@ -4383,16 +4379,16 @@ renewable generators repaid back via levy mechanism).
 | 2019 | £3,855.45 | £665.87 | £139.21 | £742.73 | £1,036.12 | £6,439.38 | £7,344.67 |
 | 2020 | £5,513.09 | £817.62 | £147.03 | £1,298.09 | £1,612.26 | £9,388.10 | £10,679.66 |
 | 2021 | £7,069.93 | £430.97 | £145.80 | £1,437.72 | £1,814.65 | £12,088.55 | £13,836.42 |
-| 2022 | £7,967.38 | **£-1,547.64** | £0.00 | £1,147.56 | £2,144.45 | £12,807.03 | £19,062.93 |
-| 2023 | £11,453.37 | £2,729.19 | £0.00 | £2,144.13 | £3,164.05 | £20,070.17 | £30,552.63 |
-| 2024 | £19,116.09 | £6,823.12 | £0.00 | £4,273.31 | £5,129.05 | £35,465.63 | £43,690.70 |
-| 2025 | £10,916.16 | £3,718.12 | £0.00 | £2,457.34 | £2,862.95 | £20,022.18 | £23,322.75 |
+| 2022 | £8,102.46 | **£-1,573.96** | £0.00 | £1,167.61 | £2,180.41 | £13,024.44 | £19,380.17 |
+| 2023 | £11,586.18 | £2,760.91 | £0.00 | £2,168.65 | £3,200.75 | £20,302.65 | £30,906.14 |
+| 2024 | £19,321.67 | £6,897.82 | £0.00 | £4,318.67 | £5,184.44 | £35,848.02 | £44,174.42 |
+| 2025 | £10,975.25 | £3,738.29 | £0.00 | £2,470.67 | £2,878.49 | £20,130.67 | £23,449.29 |
 
 **CfD rebate in 2022:** Contracts for Difference (CfD) generators are paid
 the difference between strike price and reference price. When spot > strike (2022 crisis),
 the mechanism reverses — generators pay back, creating a negative levy for suppliers.
 
-Policy costs: £1,793.10 (2016) → £20,022.18 (2025). CAGR: 30.7%.
+Policy costs: £1,793.10 (2016) → £20,130.67 (2025). CAGR: 30.8%.
 
 ## Electricity vs Gas P&L Split
 
@@ -4402,14 +4398,14 @@ Year-by-year net margin by fuel. Gas became structurally loss-making from 2021.
 |------|----------|---------|----------|---------|-----------------|---------------|
 | 2016 | £1,384.90 | £641.95 | £9,845.67 | £2,563.29 | 20.7% | YES |
 | 2017 | £1,645.35 | £1,061.54 | £12,944.51 | £4,682.05 | 26.6% | YES |
-| 2018 | £1,244.78 | £2,091.18 | £19,201.86 | £7,935.07 | 29.2% | YES |
-| 2019 | £3,783.44 | £3,578.85 | £27,804.26 | £11,882.81 | 29.9% | YES |
-| 2020 | £5,631.37 | £6,036.85 | £35,540.91 | £15,285.23 | 30.1% | YES |
-| 2021 | £2,495.69 | £3,407.25 | £48,929.38 | £20,299.76 | 29.3% | YES |
-| 2022 | £9,370.16 | £-27,296.50 | £103,069.50 | £32,313.64 | 23.9% | **NO** |
-| 2023 | £23,673.58 | £15,357.09 | £147,342.64 | £90,823.80 | 38.1% | YES |
-| 2024 | £38,921.90 | £30,464.18 | £169,832.77 | £94,657.39 | 35.8% | YES |
-| 2025 | £16,519.28 | £12,101.43 | £91,327.24 | £55,204.67 | 37.7% | YES |
+| 2018 | £1,466.53 | £2,091.18 | £19,201.86 | £7,935.07 | 29.2% | YES |
+| 2019 | £3,766.18 | £3,578.85 | £27,804.26 | £11,882.81 | 29.9% | YES |
+| 2020 | £5,543.64 | £6,036.85 | £35,540.91 | £15,285.23 | 30.1% | YES |
+| 2021 | £2,510.60 | £3,407.25 | £48,929.38 | £20,299.76 | 29.3% | YES |
+| 2022 | £9,195.31 | £-27,210.15 | £104,456.10 | £32,364.54 | 23.7% | **NO** |
+| 2023 | £23,117.76 | £15,427.99 | £148,403.70 | £91,030.45 | 38.0% | YES |
+| 2024 | £39,630.21 | £30,993.91 | £171,941.09 | £95,792.95 | 35.8% | YES |
+| 2025 | £16,658.74 | £12,253.31 | £91,920.49 | £55,748.82 | 37.8% | YES |
 
 **Gas has been loss-making since 2022** (1 consecutive years). Electricity cross-subsidises gas supply.
 
@@ -4422,9 +4418,9 @@ Inputs: company billing records (per_cid_comm_pnl). Gas capital = hedge cost app
 
 | Scenario | Portfolio Net | vs Status Quo | Action |
 |----------|--------------|---------------|--------|
-| STATUS_QUO | £139,444.76 | — | Current strategy |
-| EXIT_GAS | £73,600.77 | £-65,843.99 | Remove gas; model elec churn risk |
-| REPRICE_GAS | £140,493.44 | £1,048.68 | Raise gas tariff to break-even |
+| STATUS_QUO | £140,541.29 | — | Current strategy |
+| EXIT_GAS | £73,806.90 | £-66,734.39 | Remove gas; model elec churn risk |
+| REPRICE_GAS | £141,139.96 | £598.67 | Raise gas tariff to break-even |
 
 **Recommended action: REPRICE_GAS**
 
@@ -4432,7 +4428,6 @@ Inputs: company billing records (per_cid_comm_pnl). Gas capital = hedge cost app
 
 | Account | Gas Net | Gas ROC | Revenue Uplift Needed |
 |---------|---------|---------|----------------------|
-| PROS-2020-0006g | £-450.01 | -18.04x | +13.5% |
 | PROS-2021-0031g | £-2.55 | -0.05x | +0.1% |
 | PROS-2021-0062g | £-37.40 | -0.23x | +0.5% |
 | PROS-2022-0009g | £-72.41 | -1.44x | +1.9% |
@@ -4442,12 +4437,12 @@ Inputs: company billing records (per_cid_comm_pnl). Gas capital = hedge cost app
 | PROS-2022-0097g | £-16.20 | -0.28x | +0.5% |
 | PROS-2022-0100g | £-28.47 | -0.50x | +0.8% |
 
-**Accretive gas accounts:** C1g (£733.88), PROS-2016-0003g (£227.90), PROS-2016-0011g (£678.30), PROS-2016-0020g (£798.40), C2g (£754.09), C3g (£355.05), C4g (£237.55), PROS-2017-0019g (£728.07), PROS-2017-0022g (£632.69), PROS-2018-0003g (£280.84), PROS-2018-0014g (£492.57), PROS-2018-0016g (£509.85), PROS-2018-0018g (£615.12), PROS-2018-0022g (£583.21), PROS-2018-0035g (£635.58), PROS-2018-0039g (£471.61), PROS-2018-0053g (£720.13), PROS-2019-0003g (£345.02), PROS-2019-0008g (£308.53), PROS-2019-0009g (£487.60), PROS-2019-0012g (£563.82), PROS-2019-0015g (£452.80), PROS-2019-0021g (£555.12), PROS-2019-0023g (£479.74), PROS-2019-0024g (£346.68), PROS-2019-0027g (£410.42), PROS-2019-0050g (£384.20), PROS-2020-0002g (£74.80), PROS-2020-0009g (£309.27), PROS-2020-0012g (£183.79), PROS-2020-0016g (£390.48), PROS-2020-0022g (£349.66), PROS-2020-0025g (£74.93), PROS-2020-0032g (£347.51), PROS-2020-0042g (£24.52), PROS-2020-0043g (£62.94), PROS-2020-0047g (£222.33), PROS-2020-0048g (£310.26), PROS-2020-0050g (£223.79), PROS-2020-0067g (£198.39), PROS-2021-0006g (£83.89), PROS-2021-0029g (£52.95), PROS-2021-0044g (£90.72), PROS-2021-0051g (£260.66), PROS-2021-0060g (£33.94), PROS-2021-0067g (£58.72), PROS-2021-0088g (£281.09), PROS-2022-0011g (£174.45), PROS-2022-0030g (£143.55), PROS-2022-0046g (£143.57), PROS-2022-0047g (£343.17), PROS-2022-0048g (£209.28), PROS-2022-0049g (£99.35), PROS-2022-0067g (£180.29), PROS-2022-0071g (£245.27), PROS-2022-0073g (£278.16), PROS-2022-0081g (£316.33), PROS-2022-0082g (£125.52), PROS-2022-0083g (£197.11), PROS-2022-0092g (£191.06), PROS-2022-0124g (£404.16), PROS-2022-0125g (£369.65), PROS-2022-0127g (£371.37), PROS-2022-0128g (£379.47), PROS-2022-0130g (£373.68), PROS-2023-0001g (£636.77), PROS-2023-0010g (£484.92), PROS-2023-0013g (£622.11), PROS-2023-0014g (£443.66), PROS-2023-0016g (£493.55), PROS-2023-0025g (£586.10), PROS-2023-0026g (£702.06), PROS-2023-0039g (£754.22), PROS-2023-0045g (£738.97), PROS-2023-0065g (£651.13), PROS-2023-0067g (£888.72), PROS-2023-0072g (£490.81), PROS-2023-0089g (£653.04), PROS-2023-0090g (£560.46), PROS-2023-0096g (£677.45), PROS-2023-0104g (£518.66), PROS-2023-0113g (£621.27), PROS-2023-0116g (£472.58), PROS-2023-0125g (£522.86), PROS-2023-0126g (£257.16), PROS-2023-0127g (£582.77), PROS-2023-0146g (£230.63), PROS-2023-0147g (£247.07), PROS-2023-0152g (£276.95), PROS-2023-0158g (£277.17), PROS-2023-0162g (£369.75), PROS-2023-0166g (£261.08), PROS-2023-0172g (£247.80), PROS-2023-0177g (£249.93), PROS-2024-0008g (£455.98), PROS-2024-0009g (£394.46), PROS-2024-0010g (£481.36), PROS-2024-0012g (£205.03), PROS-2024-0014g (£657.11), PROS-2024-0027g (£359.83), PROS-2024-0036g (£477.37), PROS-2024-0038g (£254.24), PROS-2024-0040g (£341.62), PROS-2024-0041g (£353.52), PROS-2024-0048g (£239.29), PROS-2024-0056g (£238.30), PROS-2024-0057g (£279.98), PROS-2024-0062g (£363.66), PROS-2024-0065g (£252.38), PROS-2024-0069g (£310.93), PROS-2024-0076g (£205.55), PROS-2024-0081g (£354.64), PROS-2024-0083g (£318.19), PROS-2024-0085g (£215.79), PROS-2024-0087g (£244.75), PROS-2024-0096g (£231.39), PROS-2024-0098g (£181.03), PROS-2024-0110g (£171.81), PROS-2024-0111g (£194.27), PROS-2024-0113g (£164.37), PROS-2024-0116g (£207.97), PROS-2024-0122g (£166.63), PROS-2024-0131g (£173.37), PROS-2024-0147g (£133.47), PROS-2024-0148g (£125.07), PROS-2024-0156g (£76.82), PROS-2024-0157g (£63.45), PROS-2024-0160g (£58.31), PROS-2024-0179g (£71.16), PROS-2024-0191g (£104.04), PROS-2024-0195g (£98.05), PROS-2024-0196g (£94.40), PROS-2024-0199g (£100.03), PROS-2024-0200g (£93.32), PROS-2024-0203g (£100.28), PROS-2024-0209g (£102.55), PROS-2024-0213g (£102.99), PROS-2024-0218g (£104.19), PROS-2024-0224g (£108.42), PROS-2024-0226g (£107.13), PROS-2024-0233g (£108.48), PROS-2024-0235g (£103.58), PROS-2025-0013g (£93.33), PROS-2025-0022g (£97.44), PROS-2025-0030g (£110.89), PROS-2025-0033g (£91.84), PROS-2025-0039g (£85.98), PROS-2025-0041g (£86.29), PROS-2025-0042g (£69.58), PROS-2025-0049g (£70.75), PROS-2025-0051g (£68.99), PROS-2025-0055g (£61.76), PROS-2025-0060g (£46.12), PROS-2025-0062g (£44.25), PROS-2025-0073g (£50.32), PROS-2025-0075g (£38.59), PROS-2025-0079g (£40.47), PROS-2025-0083g (£44.39), PROS-2025-0084g (£46.03), PROS-2025-0085g (£48.28), PROS-2025-0087g (£32.96), PROS-2025-0093g (£25.20), PROS-2025-0094g (£41.36), PROS-2025-0095g (£43.65), PROS-2025-0100g (£38.89), PROS-2025-0106g (£45.39), PROS-2025-0110g (£42.44), PROS-2025-0114g (£42.34), PROS-2025-0119g (£52.25), PROS-2025-0121g (£30.64), PROS-2025-0136g (£18.28), PROS-2025-0149g (£14.43), PROS-2025-0151g (£9.13), PROS-2025-0153g (£7.32), PROS-2025-0156g (£5.44), PROS-2025-0160g (£3.90), PROS-2025-0163g (£3.85), PROS-2025-0170g (£0.67) — these gas legs support customer retention without capital destruction.
+**Accretive gas accounts:** C1g (£733.88), PROS-2016-0003g (£227.90), PROS-2016-0011g (£678.30), PROS-2016-0020g (£798.40), C2g (£754.09), C3g (£355.05), C4g (£237.55), PROS-2017-0019g (£728.07), PROS-2017-0022g (£632.69), PROS-2018-0003g (£385.93), PROS-2018-0014g (£464.33), PROS-2018-0016g (£509.85), PROS-2018-0018g (£615.12), PROS-2018-0022g (£583.21), PROS-2018-0035g (£635.58), PROS-2018-0039g (£471.61), PROS-2018-0053g (£720.13), PROS-2019-0003g (£345.02), PROS-2019-0008g (£308.53), PROS-2019-0009g (£487.60), PROS-2019-0012g (£563.82), PROS-2019-0015g (£452.80), PROS-2019-0021g (£555.12), PROS-2019-0023g (£479.74), PROS-2019-0024g (£346.68), PROS-2019-0027g (£410.42), PROS-2019-0050g (£384.20), PROS-2020-0002g (£74.80), PROS-2020-0006g (£21.66), PROS-2020-0009g (£309.29), PROS-2020-0012g (£183.79), PROS-2020-0016g (£390.48), PROS-2020-0022g (£349.66), PROS-2020-0025g (£74.93), PROS-2020-0032g (£347.51), PROS-2020-0042g (£286.02), PROS-2020-0043g (£62.94), PROS-2020-0047g (£222.33), PROS-2020-0048g (£310.26), PROS-2020-0050g (£223.79), PROS-2020-0067g (£198.39), PROS-2021-0006g (£204.92), PROS-2021-0029g (£52.95), PROS-2021-0044g (£90.72), PROS-2021-0051g (£260.66), PROS-2021-0060g (£33.94), PROS-2021-0067g (£58.72), PROS-2021-0088g (£281.09), PROS-2022-0011g (£174.45), PROS-2022-0030g (£143.55), PROS-2022-0046g (£143.57), PROS-2022-0047g (£343.17), PROS-2022-0048g (£209.28), PROS-2022-0049g (£99.35), PROS-2022-0067g (£180.29), PROS-2022-0071g (£245.27), PROS-2022-0073g (£278.16), PROS-2022-0081g (£316.33), PROS-2022-0082g (£125.52), PROS-2022-0083g (£197.11), PROS-2022-0092g (£191.06), PROS-2022-0124g (£404.16), PROS-2022-0125g (£369.65), PROS-2022-0127g (£371.37), PROS-2022-0128g (£379.47), PROS-2022-0130g (£373.68), PROS-2023-0001g (£636.77), PROS-2023-0010g (£484.92), PROS-2023-0013g (£622.11), PROS-2023-0014g (£443.66), PROS-2023-0016g (£493.55), PROS-2023-0025g (£586.10), PROS-2023-0026g (£702.06), PROS-2023-0039g (£754.22), PROS-2023-0045g (£738.97), PROS-2023-0065g (£651.13), PROS-2023-0067g (£888.72), PROS-2023-0072g (£490.81), PROS-2023-0089g (£653.04), PROS-2023-0090g (£560.46), PROS-2023-0096g (£677.45), PROS-2023-0104g (£518.66), PROS-2023-0113g (£621.27), PROS-2023-0116g (£472.58), PROS-2023-0125g (£522.86), PROS-2023-0126g (£257.16), PROS-2023-0127g (£582.77), PROS-2023-0146g (£230.63), PROS-2023-0147g (£247.07), PROS-2023-0152g (£276.95), PROS-2023-0158g (£277.17), PROS-2023-0162g (£369.75), PROS-2023-0166g (£261.08), PROS-2023-0172g (£144.58), PROS-2023-0177g (£260.97), PROS-2024-0008g (£455.98), PROS-2024-0009g (£394.46), PROS-2024-0010g (£481.36), PROS-2024-0012g (£205.03), PROS-2024-0014g (£657.11), PROS-2024-0027g (£359.83), PROS-2024-0036g (£477.37), PROS-2024-0038g (£254.24), PROS-2024-0040g (£341.62), PROS-2024-0041g (£353.52), PROS-2024-0048g (£239.29), PROS-2024-0056g (£238.30), PROS-2024-0057g (£279.98), PROS-2024-0062g (£363.66), PROS-2024-0065g (£252.38), PROS-2024-0069g (£310.93), PROS-2024-0076g (£205.55), PROS-2024-0081g (£354.64), PROS-2024-0083g (£318.19), PROS-2024-0085g (£215.79), PROS-2024-0087g (£244.75), PROS-2024-0096g (£231.39), PROS-2024-0098g (£181.03), PROS-2024-0110g (£171.81), PROS-2024-0111g (£194.27), PROS-2024-0113g (£164.37), PROS-2024-0116g (£207.97), PROS-2024-0122g (£166.63), PROS-2024-0131g (£173.37), PROS-2024-0147g (£133.47), PROS-2024-0148g (£125.07), PROS-2024-0156g (£76.82), PROS-2024-0157g (£63.45), PROS-2024-0160g (£58.31), PROS-2024-0179g (£71.16), PROS-2024-0191g (£104.04), PROS-2024-0195g (£98.05), PROS-2024-0196g (£94.40), PROS-2024-0199g (£100.03), PROS-2024-0200g (£93.32), PROS-2024-0203g (£100.28), PROS-2024-0209g (£102.55), PROS-2024-0213g (£102.99), PROS-2024-0218g (£104.19), PROS-2024-0224g (£108.42), PROS-2024-0226g (£107.13), PROS-2024-0233g (£108.48), PROS-2024-0235g (£103.58), PROS-2025-0013g (£93.33), PROS-2025-0022g (£97.44), PROS-2025-0030g (£110.89), PROS-2025-0033g (£91.84), PROS-2025-0039g (£85.98), PROS-2025-0041g (£86.29), PROS-2025-0042g (£69.58), PROS-2025-0049g (£70.75), PROS-2025-0051g (£68.99), PROS-2025-0055g (£61.76), PROS-2025-0060g (£46.12), PROS-2025-0062g (£44.25), PROS-2025-0073g (£50.32), PROS-2025-0075g (£38.59), PROS-2025-0079g (£40.47), PROS-2025-0083g (£44.39), PROS-2025-0084g (£46.03), PROS-2025-0085g (£48.28), PROS-2025-0087g (£32.96), PROS-2025-0093g (£25.20), PROS-2025-0094g (£41.36), PROS-2025-0095g (£43.65), PROS-2025-0100g (£38.89), PROS-2025-0106g (£45.39), PROS-2025-0110g (£42.44), PROS-2025-0114g (£42.34), PROS-2025-0119g (£52.25), PROS-2025-0121g (£30.64), PROS-2025-0136g (£18.28), PROS-2025-0149g (£14.43), PROS-2025-0151g (£9.13), PROS-2025-0153g (£7.32), PROS-2025-0156g (£5.44), PROS-2025-0160g (£3.90), PROS-2025-0163g (£3.85), PROS-2025-0170g (£0.67) — these gas legs support customer retention without capital destruction.
 
 **Board Decision:**
 - Exit gas: I&C customers at 40% electricity churn risk when gas removed (relationship loss)
 - Reprice gas: increases customer cost but eliminates capital destruction
-- Status quo: unsustainable — gas legs destroying £47444 in net value
+- Status quo: unsustainable — gas legs destroying £48283 in net value
 
 ## Segment Capital Efficiency (Return-on-Capital)
 
@@ -4457,30 +4452,30 @@ ROC = lifetime net / lifetime capital. ROC < 0 = capital destroyer.
 | Segment | Lifetime Gross | Capital Deployed | Lifetime Net | ROC | Signal |
 |---------|---------------|------------------|--------------|-----|--------|
 | SME electricity | £10,837.23 | £120.44 | £-410.86 | -3.4x | CAPITAL DESTROYER |
-| resi electricity | £390,236.42 | £4,324.42 | £105,081.31 | 24.3x | Strong |
-| resi gas | £123,180.41 | £4,912.65 | £47,443.79 | 9.7x | Moderate |
+| resi electricity | £392,634.70 | £4,377.01 | £105,330.06 | 24.1x | Strong |
+| resi gas | £124,294.15 | £4,925.76 | £48,282.66 | 9.8x | Moderate |
 
 ## Portfolio Concentration Risk
 
-Revenue concentration analysis across 356 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **57** — LOW (<1,500).
+Revenue concentration analysis across 358 margin-positive accounts. Herfindahl-Hirschman Index (HHI): **56** — LOW (<1,500).
 
 **Segment Margin Share:**
-- resi: £103,802.84 (100.0% of total positive margin)
+- resi: £103,609.68 (100.0% of total positive margin)
 
 **Top 5 Accounts by Margin Contribution:**
 
 | Account | Segment | Lifetime Margin | Share | Latest Churn Risk | Margin at Risk |
 |---------|---------|-----------------|-------|-------------------|----------------|
-| PROS-2020-0042 | resi | £1,441.77 | 1.4% | 21% | £300.18 |
-| PROS-2021-0062 | resi | £1,399.43 | 1.3% | 10% | £135.60 |
-| PROS-2020-0048 | resi | £1,399.30 | 1.3% | 17% | £234.10 |
+| PROS-2020-0048 | resi | £1,417.24 | 1.4% | 18% | £257.09 |
+| PROS-2021-0062 | resi | £1,399.25 | 1.4% | 7% | £102.15 |
 | PROS-2018-0043 | resi | £1,396.18 | 1.3% | 6% | £77.49 |
-| PROS-2019-0023 | resi | £1,370.49 | 1.3% | 19% | £256.42 |
+| PROS-2019-0023 | resi | £1,370.49 | 1.3% | 21% | £285.61 |
+| PROS-2018-0035 | resi | £1,274.43 | 1.2% | 7% | £87.94 |
 
 
 ## Portfolio Learning Premium (Phase 17a + 19a)
 
-Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based on recent portfolio-wide margin rates: 172 surcharge(s), 678 discount(s).
+Company applied portfolio premium adjustments at 860 renewal(s) (378 gas) based on recent portfolio-wide margin rates: 173 surcharge(s), 686 discount(s).
 
 | Customer | Commodity | Term start | Mean recent margin | Portfolio premium | Rate into premium | Rate out | Contracted |
 |----------|-----------|------------|-------------------|-------------------|------------------|----------|-----------|
@@ -4723,31 +4718,33 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2016-0011 | electricity | 2022-01-10 | 7.6% | +0.2% | £273.83/MWh | £274.42/MWh | £274.42/MWh |
 | PROS-2016-0011g | gas | 2022-01-10 | -118.5% | +15.0% | £122.04/MWh | £140.35/MWh | £40.70/MWh |
 | PROS-2018-0014 | electricity | 2022-01-10 | 4.0% | +2.0% | £273.83/MWh | £279.27/MWh | £292.55/MWh |
-| PROS-2019-0008 | electricity | 2022-01-10 | 4.0% | +2.0% | £273.83/MWh | £279.27/MWh | £298.85/MWh |
-| PROS-2019-0008g | gas | 2022-01-10 | -116.0% | +15.0% | £122.03/MWh | £140.33/MWh | £40.70/MWh |
-| PROS-2018-0016 | electricity | 2022-01-11 | -5.2% | +6.6% | £276.27/MWh | £294.55/MWh | £294.55/MWh |
-| PROS-2018-0016g | gas | 2022-01-11 | -123.4% | +15.0% | £122.22/MWh | £140.55/MWh | £40.70/MWh |
-| PROS-2019-0009 | electricity | 2022-01-11 | -5.8% | +6.9% | £276.27/MWh | £295.30/MWh | £295.30/MWh |
-| PROS-2019-0009g | gas | 2022-01-11 | -123.8% | +15.0% | £122.41/MWh | £140.77/MWh | £40.70/MWh |
-| PROS-2020-0016 | electricity | 2022-01-11 | -4.9% | +6.5% | £276.27/MWh | £294.14/MWh | £294.14/MWh |
+| PROS-2018-0014g | gas | 2022-01-10 | -116.0% | +15.0% | £122.22/MWh | £140.56/MWh | £40.70/MWh |
+| PROS-2019-0008 | electricity | 2022-01-10 | 0.1% | +3.9% | £273.83/MWh | £284.58/MWh | £304.54/MWh |
+| PROS-2019-0008g | gas | 2022-01-10 | -110.0% | +15.0% | £122.03/MWh | £140.33/MWh | £40.70/MWh |
+| PROS-2018-0016 | electricity | 2022-01-11 | -6.6% | +7.3% | £276.27/MWh | £296.43/MWh | £296.43/MWh |
+| PROS-2018-0016g | gas | 2022-01-11 | -121.1% | +15.0% | £122.22/MWh | £140.55/MWh | £40.70/MWh |
+| PROS-2019-0009 | electricity | 2022-01-11 | -5.1% | +6.5% | £276.27/MWh | £294.35/MWh | £294.35/MWh |
+| PROS-2019-0009g | gas | 2022-01-11 | -120.8% | +15.0% | £122.41/MWh | £140.77/MWh | £40.70/MWh |
+| PROS-2020-0016 | electricity | 2022-01-11 | -4.5% | +6.3% | £276.27/MWh | £293.56/MWh | £293.56/MWh |
 | PROS-2020-0016g | gas | 2022-01-11 | -118.0% | +15.0% | £122.40/MWh | £140.76/MWh | £40.70/MWh |
-| PROS-2021-0006 | electricity | 2022-01-11 | -2.1% | +5.0% | £276.27/MWh | £290.23/MWh | £308.07/MWh |
-| PROS-2018-0018 | electricity | 2022-01-12 | -2.6% | +5.3% | £277.30/MWh | £291.99/MWh | £293.97/MWh |
-| PROS-2018-0018g | gas | 2022-01-12 | -104.8% | +15.0% | £122.61/MWh | £141.00/MWh | £40.70/MWh |
-| PROS-2017-0019 | electricity | 2022-01-13 | -6.5% | +7.3% | £322.32/MWh | £345.76/MWh | £345.76/MWh |
-| PROS-2017-0019g | gas | 2022-01-13 | -90.6% | +15.0% | £123.73/MWh | £142.29/MWh | £40.70/MWh |
-| PROS-2018-0022 | electricity | 2022-01-14 | -2.5% | +5.2% | £326.71/MWh | £343.79/MWh | £343.79/MWh |
+| PROS-2021-0006 | electricity | 2022-01-11 | -2.1% | +5.0% | £276.27/MWh | £290.20/MWh | £308.05/MWh |
+| PROS-2021-0006g | gas | 2022-01-11 | -110.0% | +15.0% | £122.39/MWh | £140.75/MWh | £40.70/MWh |
+| PROS-2018-0018 | electricity | 2022-01-12 | -2.6% | +5.3% | £277.30/MWh | £292.01/MWh | £294.00/MWh |
+| PROS-2018-0018g | gas | 2022-01-12 | -100.0% | +15.0% | £122.61/MWh | £141.00/MWh | £40.70/MWh |
+| PROS-2017-0019 | electricity | 2022-01-13 | -5.4% | +6.7% | £322.32/MWh | £343.98/MWh | £343.98/MWh |
+| PROS-2017-0019g | gas | 2022-01-13 | -92.7% | +15.0% | £123.73/MWh | £142.29/MWh | £40.70/MWh |
+| PROS-2018-0022 | electricity | 2022-01-14 | -2.5% | +5.3% | £326.71/MWh | £343.93/MWh | £343.93/MWh |
 | PROS-2018-0022g | gas | 2022-01-14 | -88.8% | +15.0% | £124.65/MWh | £143.35/MWh | £40.70/MWh |
-| PROS-2018-0024 | electricity | 2022-01-15 | 3.4% | +2.3% | £328.92/MWh | £336.45/MWh | £340.55/MWh |
-| PROS-2019-0012 | electricity | 2022-01-15 | 5.8% | +1.1% | £328.92/MWh | £332.52/MWh | £332.52/MWh |
+| PROS-2018-0024 | electricity | 2022-01-15 | 3.3% | +2.3% | £328.92/MWh | £336.59/MWh | £340.68/MWh |
+| PROS-2019-0012 | electricity | 2022-01-15 | 5.7% | +1.1% | £328.92/MWh | £332.65/MWh | £332.65/MWh |
 | PROS-2019-0012g | gas | 2022-01-15 | -86.4% | +15.0% | £125.96/MWh | £144.86/MWh | £40.70/MWh |
-| PROS-2016-0020 | electricity | 2022-01-17 | 12.6% | -2.3% | £281.38/MWh | £274.91/MWh | £274.91/MWh |
+| PROS-2016-0020 | electricity | 2022-01-17 | 12.5% | -2.3% | £281.38/MWh | £275.01/MWh | £275.01/MWh |
 | PROS-2016-0020g | gas | 2022-01-17 | -80.4% | +15.0% | £127.92/MWh | £147.11/MWh | £40.70/MWh |
-| PROS-2017-0022 | electricity | 2022-01-18 | 7.1% | +0.5% | £282.92/MWh | £284.21/MWh | £284.21/MWh |
+| PROS-2017-0022 | electricity | 2022-01-18 | 7.1% | +0.4% | £282.92/MWh | £284.17/MWh | £284.17/MWh |
 | PROS-2017-0022g | gas | 2022-01-18 | -89.4% | +15.0% | £128.87/MWh | £148.20/MWh | £40.70/MWh |
-| PROS-2019-0015 | electricity | 2022-01-18 | 1.8% | +3.1% | £282.92/MWh | £291.64/MWh | £291.64/MWh |
+| PROS-2019-0015 | electricity | 2022-01-18 | 1.9% | +3.1% | £282.92/MWh | £291.61/MWh | £291.61/MWh |
 | PROS-2019-0015g | gas | 2022-01-18 | -99.2% | +15.0% | £128.94/MWh | £148.28/MWh | £40.70/MWh |
-| PROS-2020-0022 | electricity | 2022-01-18 | -0.9% | +4.5% | £282.92/MWh | £295.52/MWh | £295.52/MWh |
+| PROS-2020-0022 | electricity | 2022-01-18 | -0.9% | +4.5% | £282.92/MWh | £295.51/MWh | £295.51/MWh |
 | PROS-2020-0022g | gas | 2022-01-18 | -100.4% | +15.0% | £128.93/MWh | £148.28/MWh | £40.70/MWh |
 | PROS-2020-0025 | electricity | 2022-01-19 | -2.5% | +5.2% | £283.64/MWh | £298.46/MWh | £298.46/MWh |
 | PROS-2020-0025g | gas | 2022-01-19 | -104.8% | +15.0% | £130.09/MWh | £149.60/MWh | £40.70/MWh |
@@ -4770,23 +4767,22 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2019-0027g | gas | 2022-02-02 | -112.3% | +15.0% | £140.23/MWh | £161.26/MWh | £40.70/MWh |
 | PROS-2018-0043 | electricity | 2022-02-04 | 8.4% | -0.2% | £381.20/MWh | £380.52/MWh | £380.52/MWh |
 | PROS-2020-0042 | electricity | 2022-02-07 | 11.1% | -1.6% | £376.07/MWh | £370.20/MWh | £370.20/MWh |
-| PROS-2020-0042g | gas | 2022-02-07 | -110.9% | +15.0% | £142.51/MWh | £163.89/MWh | £40.70/MWh |
-| PROS-2020-0043 | electricity | 2022-02-08 | 12.4% | -2.2% | £373.04/MWh | £364.91/MWh | £364.91/MWh |
-| PROS-2020-0043g | gas | 2022-02-08 | -114.9% | +15.0% | £143.01/MWh | £164.46/MWh | £40.70/MWh |
-| PROS-2020-0047 | electricity | 2022-02-11 | 13.0% | -2.5% | £366.49/MWh | £357.31/MWh | £357.31/MWh |
-| PROS-2020-0048 | electricity | 2022-02-11 | 13.0% | -2.5% | £366.49/MWh | £357.31/MWh | £357.31/MWh |
-| PROS-2020-0048g | gas | 2022-02-11 | -107.9% | +15.0% | £143.88/MWh | £165.46/MWh | £40.70/MWh |
-| PROS-2020-0050 | electricity | 2022-02-12 | 12.3% | -2.2% | £361.95/MWh | £354.08/MWh | £354.08/MWh |
-| PROS-2021-0044 | electricity | 2022-02-12 | 12.3% | -2.2% | £361.95/MWh | £354.08/MWh | £354.08/MWh |
-| PROS-2021-0045 | electricity | 2022-02-13 | 12.3% | -2.2% | £350.94/MWh | £343.30/MWh | £343.30/MWh |
-| PROS-2018-0053 | electricity | 2022-02-15 | 11.5% | -1.7% | £354.99/MWh | £348.81/MWh | £348.81/MWh |
-| PROS-2018-0053g | gas | 2022-02-15 | -111.1% | +15.0% | £143.07/MWh | £164.53/MWh | £40.70/MWh |
-| PROS-2021-0051 | electricity | 2022-02-16 | 13.6% | -2.8% | £340.17/MWh | £330.67/MWh | £330.67/MWh |
+| PROS-2020-0043 | electricity | 2022-02-08 | 11.1% | -1.6% | £373.04/MWh | £367.22/MWh | £367.22/MWh |
+| PROS-2020-0043g | gas | 2022-02-08 | -110.9% | +15.0% | £143.01/MWh | £164.46/MWh | £40.70/MWh |
+| PROS-2020-0047 | electricity | 2022-02-11 | 11.6% | -1.8% | £366.49/MWh | £359.84/MWh | £359.84/MWh |
+| PROS-2020-0048 | electricity | 2022-02-11 | 11.6% | -1.8% | £366.49/MWh | £359.84/MWh | £359.84/MWh |
+| PROS-2020-0048g | gas | 2022-02-11 | -109.4% | +15.0% | £143.88/MWh | £165.46/MWh | £40.70/MWh |
+| PROS-2020-0050 | electricity | 2022-02-12 | 13.6% | -2.8% | £361.95/MWh | £351.86/MWh | £351.86/MWh |
+| PROS-2021-0044 | electricity | 2022-02-12 | 13.6% | -2.8% | £361.95/MWh | £351.86/MWh | £351.86/MWh |
+| PROS-2021-0045 | electricity | 2022-02-13 | 13.6% | -2.8% | £350.94/MWh | £341.15/MWh | £341.15/MWh |
+| PROS-2018-0053 | electricity | 2022-02-15 | 11.6% | -1.8% | £354.99/MWh | £348.59/MWh | £348.59/MWh |
+| PROS-2018-0053g | gas | 2022-02-15 | -104.9% | +15.0% | £143.07/MWh | £164.53/MWh | £40.70/MWh |
+| PROS-2021-0051 | electricity | 2022-02-16 | 13.5% | -2.7% | £340.17/MWh | £330.89/MWh | £330.89/MWh |
 | PROS-2021-0051g | gas | 2022-02-16 | -100.3% | +15.0% | £142.36/MWh | £163.71/MWh | £40.70/MWh |
-| PROS-2019-0050 | electricity | 2022-02-21 | 6.6% | +0.7% | £340.38/MWh | £342.73/MWh | £342.73/MWh |
-| PROS-2021-0060 | electricity | 2022-02-25 | 6.6% | +0.7% | £326.82/MWh | £329.07/MWh | £329.07/MWh |
-| PROS-2020-0067 | electricity | 2022-02-26 | 6.6% | +0.7% | £337.58/MWh | £339.91/MWh | £339.91/MWh |
-| PROS-2021-0062 | electricity | 2022-02-26 | 6.6% | +0.7% | £337.58/MWh | £339.91/MWh | £339.91/MWh |
+| PROS-2019-0050 | electricity | 2022-02-21 | 6.6% | +0.7% | £340.38/MWh | £342.71/MWh | £342.71/MWh |
+| PROS-2021-0060 | electricity | 2022-02-25 | 6.6% | +0.7% | £326.82/MWh | £329.05/MWh | £329.05/MWh |
+| PROS-2020-0067 | electricity | 2022-02-26 | 6.6% | +0.7% | £337.58/MWh | £339.89/MWh | £339.89/MWh |
+| PROS-2021-0062 | electricity | 2022-02-26 | 6.6% | +0.7% | £337.58/MWh | £339.89/MWh | £339.89/MWh |
 | PROS-2021-0062g | gas | 2022-02-26 | -62.7% | +15.0% | £138.17/MWh | £158.89/MWh | £40.70/MWh |
 | PROS-2021-0067 | electricity | 2022-03-05 | 9.2% | -0.6% | £349.95/MWh | £347.89/MWh | £347.89/MWh |
 | PROS-2021-0088 | electricity | 2022-03-24 | 3.7% | +2.2% | £315.37/MWh | £322.18/MWh | £322.18/MWh |
@@ -4813,39 +4809,43 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2020-0012g | gas | 2023-01-07 | 2.5% | +2.7% | £112.29/MWh | £115.35/MWh | £103.20/MWh |
 | PROS-2016-0011 | electricity | 2023-01-10 | -1.3% | +4.7% | £278.16/MWh | £291.12/MWh | £291.12/MWh |
 | PROS-2016-0011g | gas | 2023-01-10 | 8.6% | -0.3% | £111.48/MWh | £111.14/MWh | £103.20/MWh |
-| PROS-2019-0008 | electricity | 2023-01-10 | -0.9% | +4.4% | £278.16/MWh | £290.49/MWh | £317.50/MWh |
-| PROS-2019-0008g | gas | 2023-01-10 | 8.1% | -0.1% | £111.47/MWh | £111.40/MWh | £103.20/MWh |
-| PROS-2022-0009 | electricity | 2023-01-10 | -0.7% | +4.3% | £278.16/MWh | £290.23/MWh | £291.68/MWh |
-| PROS-2022-0009g | gas | 2023-01-10 | 8.2% | -0.1% | £111.47/MWh | £111.37/MWh | £103.20/MWh |
-| PROS-2018-0016 | electricity | 2023-01-11 | 1.7% | +3.2% | £282.00/MWh | £290.91/MWh | £290.91/MWh |
-| PROS-2018-0016g | gas | 2023-01-11 | 7.6% | +0.2% | £111.16/MWh | £111.37/MWh | £103.20/MWh |
-| PROS-2019-0009 | electricity | 2023-01-11 | -0.7% | +4.4% | £282.00/MWh | £294.30/MWh | £294.30/MWh |
+| PROS-2018-0014 | electricity | 2023-01-10 | -0.9% | +4.4% | £278.16/MWh | £290.49/MWh | £290.49/MWh |
+| PROS-2018-0014g | gas | 2023-01-10 | 8.1% | -0.1% | £111.66/MWh | £111.60/MWh | £103.20/MWh |
+| PROS-2019-0008 | electricity | 2023-01-10 | -0.9% | +4.5% | £278.16/MWh | £290.59/MWh | £313.35/MWh |
+| PROS-2019-0008g | gas | 2023-01-10 | 8.9% | -0.5% | £111.47/MWh | £110.96/MWh | £103.20/MWh |
+| PROS-2022-0009 | electricity | 2023-01-10 | 0.0% | +4.0% | £278.16/MWh | £289.29/MWh | £290.73/MWh |
+| PROS-2022-0009g | gas | 2023-01-10 | 9.0% | -0.5% | £111.47/MWh | £110.93/MWh | £103.20/MWh |
+| PROS-2018-0016 | electricity | 2023-01-11 | 0.1% | +4.0% | £282.00/MWh | £293.16/MWh | £293.16/MWh |
+| PROS-2018-0016g | gas | 2023-01-11 | 8.2% | -0.1% | £111.16/MWh | £111.06/MWh | £103.20/MWh |
+| PROS-2019-0009 | electricity | 2023-01-11 | -0.9% | +4.4% | £282.00/MWh | £294.53/MWh | £294.53/MWh |
 | PROS-2019-0009g | gas | 2023-01-11 | 7.8% | +0.1% | £111.35/MWh | £111.47/MWh | £103.20/MWh |
-| PROS-2020-0016 | electricity | 2023-01-11 | -0.1% | +4.0% | £282.00/MWh | £293.39/MWh | £293.39/MWh |
+| PROS-2020-0016 | electricity | 2023-01-11 | 0.0% | +4.0% | £282.00/MWh | £293.25/MWh | £293.25/MWh |
 | PROS-2020-0016g | gas | 2023-01-11 | 9.2% | -0.6% | £111.34/MWh | £110.69/MWh | £103.20/MWh |
-| PROS-2022-0010 | electricity | 2023-01-11 | -0.3% | +4.1% | £282.00/MWh | £293.69/MWh | £300.84/MWh |
-| PROS-2022-0010g | gas | 2023-01-11 | 10.4% | -1.2% | £111.22/MWh | £109.91/MWh | £103.20/MWh |
-| PROS-2018-0018 | electricity | 2023-01-12 | 3.8% | +2.1% | £285.32/MWh | £291.38/MWh | £291.38/MWh |
-| PROS-2018-0018g | gas | 2023-01-12 | 12.5% | -2.2% | £111.07/MWh | £108.57/MWh | £103.20/MWh |
-| PROS-2022-0011 | electricity | 2023-01-12 | 3.7% | +2.2% | £285.32/MWh | £291.50/MWh | £319.08/MWh |
-| PROS-2022-0011g | gas | 2023-01-12 | 12.8% | -2.4% | £111.06/MWh | £108.38/MWh | £103.20/MWh |
-| PROS-2017-0019 | electricity | 2023-01-13 | 3.5% | +2.2% | £291.24/MWh | £297.73/MWh | £297.73/MWh |
+| PROS-2021-0006 | electricity | 2023-01-11 | -0.1% | +4.1% | £282.00/MWh | £293.47/MWh | £293.47/MWh |
+| PROS-2021-0006g | gas | 2023-01-11 | 10.4% | -1.2% | £111.33/MWh | £110.02/MWh | £103.20/MWh |
+| PROS-2022-0010 | electricity | 2023-01-11 | 0.6% | +3.7% | £282.00/MWh | £292.48/MWh | £299.61/MWh |
+| PROS-2022-0010g | gas | 2023-01-11 | 12.2% | -2.1% | £111.22/MWh | £108.90/MWh | £103.20/MWh |
+| PROS-2018-0018 | electricity | 2023-01-12 | 3.4% | +2.3% | £285.32/MWh | £291.93/MWh | £291.93/MWh |
+| PROS-2018-0018g | gas | 2023-01-12 | 12.4% | -2.2% | £111.07/MWh | £108.65/MWh | £103.20/MWh |
+| PROS-2022-0011 | electricity | 2023-01-12 | 3.3% | +2.3% | £285.32/MWh | £291.96/MWh | £319.59/MWh |
+| PROS-2022-0011g | gas | 2023-01-12 | 12.8% | -2.4% | £111.06/MWh | £108.40/MWh | £103.20/MWh |
+| PROS-2017-0019 | electricity | 2023-01-13 | 3.5% | +2.2% | £291.24/MWh | £297.75/MWh | £297.75/MWh |
 | PROS-2017-0019g | gas | 2023-01-13 | 14.8% | -3.4% | £111.18/MWh | £107.43/MWh | £103.20/MWh |
-| PROS-2018-0022 | electricity | 2023-01-14 | 4.5% | +1.8% | £293.98/MWh | £299.20/MWh | £299.20/MWh |
+| PROS-2018-0022 | electricity | 2023-01-14 | 4.5% | +1.7% | £293.98/MWh | £299.09/MWh | £299.09/MWh |
 | PROS-2018-0022g | gas | 2023-01-14 | 16.6% | -4.3% | £111.12/MWh | £106.35/MWh | £103.20/MWh |
-| PROS-2018-0024 | electricity | 2023-01-15 | 5.9% | +1.1% | £293.88/MWh | £296.99/MWh | £296.99/MWh |
-| PROS-2019-0012 | electricity | 2023-01-15 | 6.6% | +0.7% | £293.88/MWh | £295.98/MWh | £295.98/MWh |
+| PROS-2018-0024 | electricity | 2023-01-15 | 5.9% | +1.0% | £293.88/MWh | £296.89/MWh | £296.89/MWh |
+| PROS-2019-0012 | electricity | 2023-01-15 | 6.6% | +0.7% | £293.88/MWh | £295.94/MWh | £295.94/MWh |
 | PROS-2019-0012g | gas | 2023-01-15 | 16.4% | -4.2% | £111.46/MWh | £106.81/MWh | £103.20/MWh |
-| PROS-2016-0020 | electricity | 2023-01-17 | 8.7% | -0.3% | £346.60/MWh | £345.46/MWh | £358.12/MWh |
+| PROS-2016-0020 | electricity | 2023-01-17 | 8.6% | -0.3% | £346.60/MWh | £345.48/MWh | £358.04/MWh |
 | PROS-2016-0020g | gas | 2023-01-17 | 17.6% | -4.8% | £111.56/MWh | £106.21/MWh | £103.20/MWh |
-| PROS-2017-0022 | electricity | 2023-01-18 | 11.5% | -1.8% | £309.77/MWh | £304.33/MWh | £304.33/MWh |
+| PROS-2017-0022 | electricity | 2023-01-18 | 11.5% | -1.8% | £309.77/MWh | £304.36/MWh | £304.36/MWh |
 | PROS-2017-0022g | gas | 2023-01-18 | 16.1% | -4.0% | £111.61/MWh | £107.09/MWh | £103.20/MWh |
-| PROS-2019-0015 | electricity | 2023-01-18 | 10.4% | -1.2% | £309.77/MWh | £305.99/MWh | £305.99/MWh |
+| PROS-2019-0015 | electricity | 2023-01-18 | 10.4% | -1.2% | £309.77/MWh | £306.01/MWh | £306.01/MWh |
 | PROS-2019-0015g | gas | 2023-01-18 | 14.6% | -3.3% | £111.68/MWh | £107.96/MWh | £103.20/MWh |
 | PROS-2020-0022 | electricity | 2023-01-18 | 11.1% | -1.6% | £309.77/MWh | £304.96/MWh | £304.96/MWh |
 | PROS-2020-0022g | gas | 2023-01-18 | 14.8% | -3.4% | £111.68/MWh | £107.87/MWh | £103.20/MWh |
 | PROS-2022-0019 | electricity | 2023-01-18 | 10.8% | -1.4% | £309.77/MWh | £305.48/MWh | £305.48/MWh |
-| PROS-2020-0025 | electricity | 2023-01-19 | 10.8% | -1.4% | £311.22/MWh | £306.90/MWh | £306.90/MWh |
+| PROS-2020-0025 | electricity | 2023-01-19 | 10.8% | -1.4% | £311.22/MWh | £306.91/MWh | £306.91/MWh |
 | PROS-2020-0025g | gas | 2023-01-19 | 13.0% | -2.5% | £111.72/MWh | £108.95/MWh | £103.20/MWh |
 | PROS-2020-0032 | electricity | 2023-01-23 | 9.4% | -0.7% | £379.01/MWh | £376.37/MWh | £376.37/MWh |
 | PROS-2020-0032g | gas | 2023-01-23 | 12.8% | -2.4% | £112.25/MWh | £109.57/MWh | £103.20/MWh |
@@ -4864,19 +4864,17 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2019-0027 | electricity | 2023-02-02 | 26.1% | -5.0% | £435.02/MWh | £413.27/MWh | £413.27/MWh |
 | PROS-2019-0027g | gas | 2023-02-02 | 14.3% | -3.2% | £113.11/MWh | £109.54/MWh | £103.20/MWh |
 | PROS-2018-0043 | electricity | 2023-02-04 | 27.1% | -5.0% | £418.73/MWh | £397.79/MWh | £397.79/MWh |
-| PROS-2020-0042 | electricity | 2023-02-07 | 28.1% | -5.0% | £400.82/MWh | £380.78/MWh | £380.78/MWh |
-| PROS-2020-0042g | gas | 2023-02-07 | 15.5% | -3.7% | £113.51/MWh | £109.28/MWh | £103.20/MWh |
-| PROS-2020-0043 | electricity | 2023-02-08 | 27.3% | -5.0% | £392.69/MWh | £373.06/MWh | £373.06/MWh |
-| PROS-2020-0043g | gas | 2023-02-08 | 15.6% | -3.8% | £114.50/MWh | £110.18/MWh | £103.20/MWh |
-| PROS-2020-0048 | electricity | 2023-02-11 | 26.2% | -5.0% | £373.58/MWh | £354.91/MWh | £354.91/MWh |
-| PROS-2020-0048g | gas | 2023-02-11 | 19.6% | -5.0% | £138.64/MWh | £131.71/MWh | £103.20/MWh |
-| PROS-2022-0045 | electricity | 2023-02-11 | 23.2% | -5.0% | £373.58/MWh | £354.91/MWh | £354.91/MWh |
+| PROS-2020-0043 | electricity | 2023-02-08 | 28.1% | -5.0% | £392.69/MWh | £373.06/MWh | £373.06/MWh |
+| PROS-2020-0043g | gas | 2023-02-08 | 15.5% | -3.7% | £114.50/MWh | £110.23/MWh | £103.20/MWh |
+| PROS-2020-0048 | electricity | 2023-02-11 | 26.7% | -5.0% | £373.58/MWh | £354.91/MWh | £354.91/MWh |
+| PROS-2020-0048g | gas | 2023-02-11 | 16.8% | -4.4% | £138.64/MWh | £132.55/MWh | £103.20/MWh |
+| PROS-2022-0045 | electricity | 2023-02-11 | 25.0% | -5.0% | £373.58/MWh | £354.91/MWh | £354.91/MWh |
 | PROS-2021-0045 | electricity | 2023-02-13 | 21.9% | -5.0% | £359.24/MWh | £341.28/MWh | £341.28/MWh |
 | PROS-2018-0053 | electricity | 2023-02-15 | 20.7% | -5.0% | £356.10/MWh | £338.29/MWh | £338.29/MWh |
-| PROS-2018-0053g | gas | 2023-02-15 | 21.6% | -5.0% | £135.30/MWh | £128.54/MWh | £103.20/MWh |
+| PROS-2018-0053g | gas | 2023-02-15 | 21.7% | -5.0% | £135.30/MWh | £128.54/MWh | £103.20/MWh |
 | PROS-2022-0046 | electricity | 2023-02-15 | 20.8% | -5.0% | £356.10/MWh | £338.29/MWh | £338.29/MWh |
 | PROS-2022-0046g | gas | 2023-02-15 | 24.7% | -5.0% | £135.12/MWh | £128.37/MWh | £103.20/MWh |
-| PROS-2021-0051 | electricity | 2023-02-16 | 19.8% | -5.0% | £353.90/MWh | £336.20/MWh | £337.45/MWh |
+| PROS-2021-0051 | electricity | 2023-02-16 | 19.8% | -5.0% | £353.90/MWh | £336.20/MWh | £337.28/MWh |
 | PROS-2021-0051g | gas | 2023-02-16 | 23.0% | -5.0% | £134.04/MWh | £127.34/MWh | £103.20/MWh |
 | PROS-2022-0047 | electricity | 2023-02-16 | 18.2% | -5.0% | £353.90/MWh | £336.20/MWh | £336.20/MWh |
 | PROS-2022-0047g | gas | 2023-02-16 | 24.3% | -5.0% | £134.18/MWh | £127.47/MWh | £103.20/MWh |
@@ -4934,37 +4932,42 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2023-0001 | electricity | 2024-01-02 | 21.9% | -5.0% | £252.38/MWh | £239.76/MWh | £247.49/MWh |
 | PROS-2023-0001g | gas | 2024-01-02 | 21.1% | -5.0% | £69.77/MWh | £66.28/MWh | £66.28/MWh |
 | PROS-2020-0006 | electricity | 2024-01-03 | 22.4% | -5.0% | £251.01/MWh | £238.46/MWh | £238.46/MWh |
-| PROS-2020-0009 | electricity | 2024-01-05 | 22.4% | -5.0% | £249.07/MWh | £236.62/MWh | £236.62/MWh |
-| PROS-2020-0009g | gas | 2024-01-05 | 24.4% | -5.0% | £70.13/MWh | £66.62/MWh | £66.62/MWh |
-| PROS-2018-0009 | electricity | 2024-01-07 | 26.0% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
-| PROS-2020-0012 | electricity | 2024-01-07 | 26.5% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
-| PROS-2020-0012g | gas | 2024-01-07 | 29.7% | -5.0% | £70.35/MWh | £66.84/MWh | £66.84/MWh |
-| PROS-2023-0010 | electricity | 2024-01-07 | 25.8% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
-| PROS-2023-0010g | gas | 2024-01-07 | 30.2% | -5.0% | £70.36/MWh | £66.84/MWh | £66.84/MWh |
+| PROS-2020-0006g | gas | 2024-01-03 | 24.4% | -5.0% | £69.89/MWh | £66.39/MWh | £66.39/MWh |
+| PROS-2020-0009 | electricity | 2024-01-05 | 25.1% | -5.0% | £249.07/MWh | £236.62/MWh | £236.62/MWh |
+| PROS-2020-0009g | gas | 2024-01-05 | 27.5% | -5.0% | £70.13/MWh | £66.62/MWh | £66.62/MWh |
+| PROS-2018-0009 | electricity | 2024-01-07 | 26.5% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
+| PROS-2020-0012 | electricity | 2024-01-07 | 26.6% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
+| PROS-2020-0012g | gas | 2024-01-07 | 29.1% | -5.0% | £70.35/MWh | £66.84/MWh | £66.84/MWh |
+| PROS-2023-0010 | electricity | 2024-01-07 | 26.1% | -5.0% | £248.35/MWh | £235.93/MWh | £235.93/MWh |
+| PROS-2023-0010g | gas | 2024-01-07 | 31.3% | -5.0% | £70.36/MWh | £66.84/MWh | £66.84/MWh |
 | PROS-2023-0013 | electricity | 2024-01-09 | 25.0% | -5.0% | £227.57/MWh | £216.19/MWh | £216.19/MWh |
 | PROS-2023-0013g | gas | 2024-01-09 | 34.2% | -5.0% | £70.59/MWh | £67.06/MWh | £67.06/MWh |
 | PROS-2016-0011 | electricity | 2024-01-10 | 23.1% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
 | PROS-2016-0011g | gas | 2024-01-10 | 35.1% | -5.0% | £70.68/MWh | £67.15/MWh | £67.15/MWh |
-| PROS-2019-0008 | electricity | 2024-01-10 | 22.1% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
-| PROS-2019-0008g | gas | 2024-01-10 | 34.2% | -5.0% | £70.68/MWh | £67.15/MWh | £67.15/MWh |
-| PROS-2022-0009 | electricity | 2024-01-10 | 21.2% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
-| PROS-2022-0009g | gas | 2024-01-10 | 33.1% | -5.0% | £70.68/MWh | £67.15/MWh | £67.15/MWh |
+| PROS-2018-0014 | electricity | 2024-01-10 | 22.1% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
+| PROS-2018-0014g | gas | 2024-01-10 | 34.2% | -5.0% | £70.72/MWh | £67.19/MWh | £67.19/MWh |
+| PROS-2019-0008 | electricity | 2024-01-10 | 20.0% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
+| PROS-2019-0008g | gas | 2024-01-10 | 33.9% | -5.0% | £70.68/MWh | £67.15/MWh | £67.15/MWh |
+| PROS-2022-0009 | electricity | 2024-01-10 | 22.1% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
+| PROS-2022-0009g | gas | 2024-01-10 | 33.7% | -5.0% | £70.68/MWh | £67.15/MWh | £67.15/MWh |
 | PROS-2023-0014 | electricity | 2024-01-10 | 23.2% | -5.0% | £249.18/MWh | £236.72/MWh | £236.72/MWh |
-| PROS-2023-0014g | gas | 2024-01-10 | 32.9% | -5.0% | £70.73/MWh | £67.19/MWh | £67.19/MWh |
-| PROS-2018-0016 | electricity | 2024-01-11 | 24.2% | -5.0% | £244.36/MWh | £232.14/MWh | £233.00/MWh |
-| PROS-2018-0016g | gas | 2024-01-11 | 34.1% | -5.0% | £70.79/MWh | £67.25/MWh | £67.25/MWh |
-| PROS-2019-0009 | electricity | 2024-01-11 | 24.9% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2023-0014g | gas | 2024-01-10 | 32.8% | -5.0% | £70.73/MWh | £67.19/MWh | £67.19/MWh |
+| PROS-2018-0016 | electricity | 2024-01-11 | 23.8% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2018-0016g | gas | 2024-01-11 | 34.8% | -5.0% | £70.79/MWh | £67.25/MWh | £67.25/MWh |
+| PROS-2019-0009 | electricity | 2024-01-11 | 24.8% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
 | PROS-2019-0009g | gas | 2024-01-11 | 34.2% | -5.0% | £70.83/MWh | £67.29/MWh | £67.29/MWh |
-| PROS-2020-0016 | electricity | 2024-01-11 | 24.0% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2020-0016 | electricity | 2024-01-11 | 23.9% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
 | PROS-2020-0016g | gas | 2024-01-11 | 35.7% | -5.0% | £70.83/MWh | £67.29/MWh | £67.29/MWh |
-| PROS-2022-0010 | electricity | 2024-01-11 | 23.5% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
-| PROS-2022-0010g | gas | 2024-01-11 | 37.3% | -5.0% | £70.80/MWh | £67.26/MWh | £67.26/MWh |
-| PROS-2023-0016 | electricity | 2024-01-11 | 22.6% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
-| PROS-2023-0016g | gas | 2024-01-11 | 35.6% | -5.0% | £70.80/MWh | £67.26/MWh | £67.26/MWh |
-| PROS-2018-0018 | electricity | 2024-01-12 | 23.5% | -5.0% | £229.95/MWh | £218.45/MWh | £218.45/MWh |
-| PROS-2018-0018g | gas | 2024-01-12 | 36.9% | -5.0% | £70.87/MWh | £67.33/MWh | £67.33/MWh |
-| PROS-2022-0011 | electricity | 2024-01-12 | 22.5% | -5.0% | £229.95/MWh | £218.45/MWh | £218.45/MWh |
-| PROS-2022-0011g | gas | 2024-01-12 | 36.8% | -5.0% | £70.87/MWh | £67.33/MWh | £67.33/MWh |
+| PROS-2021-0006 | electricity | 2024-01-11 | 23.4% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2021-0006g | gas | 2024-01-11 | 37.3% | -5.0% | £70.83/MWh | £67.29/MWh | £67.29/MWh |
+| PROS-2022-0010 | electricity | 2024-01-11 | 22.6% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2022-0010g | gas | 2024-01-11 | 36.5% | -5.0% | £70.80/MWh | £67.26/MWh | £67.26/MWh |
+| PROS-2023-0016 | electricity | 2024-01-11 | 21.6% | -5.0% | £244.36/MWh | £232.14/MWh | £232.14/MWh |
+| PROS-2023-0016g | gas | 2024-01-11 | 36.7% | -5.0% | £70.80/MWh | £67.26/MWh | £67.26/MWh |
+| PROS-2018-0018 | electricity | 2024-01-12 | 23.4% | -5.0% | £229.95/MWh | £218.45/MWh | £218.45/MWh |
+| PROS-2018-0018g | gas | 2024-01-12 | 36.7% | -5.0% | £70.87/MWh | £67.33/MWh | £67.33/MWh |
+| PROS-2022-0011 | electricity | 2024-01-12 | 22.0% | -5.0% | £229.95/MWh | £218.45/MWh | £218.45/MWh |
+| PROS-2022-0011g | gas | 2024-01-12 | 36.4% | -5.0% | £70.87/MWh | £67.33/MWh | £67.33/MWh |
 | PROS-2017-0019 | electricity | 2024-01-13 | 19.7% | -5.0% | £250.40/MWh | £237.88/MWh | £237.88/MWh |
 | PROS-2017-0019g | gas | 2024-01-13 | 45.4% | -5.0% | £70.63/MWh | £67.10/MWh | £67.10/MWh |
 | PROS-2018-0022 | electricity | 2024-01-14 | 20.9% | -5.0% | £253.20/MWh | £240.54/MWh | £240.54/MWh |
@@ -5003,17 +5006,15 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2019-0027 | electricity | 2024-02-02 | 26.7% | -5.0% | £227.60/MWh | £216.22/MWh | £216.22/MWh |
 | PROS-2019-0027g | gas | 2024-02-02 | 32.1% | -5.0% | £58.23/MWh | £55.32/MWh | £55.32/MWh |
 | PROS-2018-0043 | electricity | 2024-02-04 | 22.9% | -5.0% | £246.31/MWh | £234.00/MWh | £234.00/MWh |
-| PROS-2020-0042 | electricity | 2024-02-07 | 22.8% | -5.0% | £212.20/MWh | £201.59/MWh | £201.59/MWh |
-| PROS-2020-0042g | gas | 2024-02-07 | 29.5% | -5.0% | £57.21/MWh | £54.35/MWh | £54.35/MWh |
-| PROS-2020-0043 | electricity | 2024-02-08 | 20.3% | -5.0% | £232.75/MWh | £221.12/MWh | £221.12/MWh |
-| PROS-2020-0048 | electricity | 2024-02-11 | 20.3% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
-| PROS-2020-0048g | gas | 2024-02-11 | 25.4% | -5.0% | £56.97/MWh | £54.12/MWh | £54.12/MWh |
-| PROS-2022-0045 | electricity | 2024-02-11 | 20.5% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
-| PROS-2023-0039 | electricity | 2024-02-11 | 20.1% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
-| PROS-2023-0039g | gas | 2024-02-11 | 25.4% | -5.0% | £56.97/MWh | £54.12/MWh | £54.12/MWh |
+| PROS-2020-0043 | electricity | 2024-02-08 | 22.8% | -5.0% | £232.75/MWh | £221.12/MWh | £221.12/MWh |
+| PROS-2020-0048 | electricity | 2024-02-11 | 22.8% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
+| PROS-2020-0048g | gas | 2024-02-11 | 29.5% | -5.0% | £56.97/MWh | £54.12/MWh | £54.12/MWh |
+| PROS-2022-0045 | electricity | 2024-02-11 | 22.2% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
+| PROS-2023-0039 | electricity | 2024-02-11 | 23.8% | -5.0% | £235.50/MWh | £223.72/MWh | £223.72/MWh |
+| PROS-2023-0039g | gas | 2024-02-11 | 26.1% | -5.0% | £56.97/MWh | £54.12/MWh | £54.12/MWh |
 | PROS-2021-0045 | electricity | 2024-02-13 | 23.9% | -5.0% | £214.72/MWh | £203.98/MWh | £203.98/MWh |
 | PROS-2018-0053 | electricity | 2024-02-15 | 22.3% | -5.0% | £235.00/MWh | £223.25/MWh | £223.25/MWh |
-| PROS-2018-0053g | gas | 2024-02-15 | 27.7% | -5.0% | £56.42/MWh | £53.60/MWh | £53.60/MWh |
+| PROS-2018-0053g | gas | 2024-02-15 | 29.4% | -5.0% | £56.42/MWh | £53.60/MWh | £53.60/MWh |
 | PROS-2022-0046 | electricity | 2024-02-15 | 22.3% | -5.0% | £235.00/MWh | £223.25/MWh | £223.25/MWh |
 | PROS-2022-0046g | gas | 2024-02-15 | 31.3% | -5.0% | £56.39/MWh | £53.57/MWh | £53.57/MWh |
 | PROS-2021-0051 | electricity | 2024-02-16 | 22.4% | -5.0% | £225.45/MWh | £214.18/MWh | £214.18/MWh |
@@ -5100,40 +5101,43 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2023-0166 | electricity | 2024-06-13 | 9.1% | -0.6% | £184.96/MWh | £183.93/MWh | £183.93/MWh |
 | PROS-2023-0166g | gas | 2024-06-13 | 6.0% | +1.0% | £43.94/MWh | £44.39/MWh | £44.39/MWh |
 | PROS-2023-0172 | electricity | 2024-06-19 | 9.8% | -0.9% | £185.83/MWh | £184.13/MWh | £184.13/MWh |
-| PROS-2023-0172g | gas | 2024-06-19 | 11.0% | -1.5% | £44.54/MWh | £43.86/MWh | £43.86/MWh |
-| PROS-2023-0177 | electricity | 2024-06-24 | 12.2% | -2.1% | £185.47/MWh | £181.54/MWh | £181.54/MWh |
-| PROS-2023-0177g | gas | 2024-06-24 | 17.5% | -4.7% | £44.38/MWh | £42.28/MWh | £42.28/MWh |
+| PROS-2023-0177 | electricity | 2024-06-24 | 12.4% | -2.2% | £185.47/MWh | £181.40/MWh | £181.40/MWh |
+| PROS-2023-0177g | gas | 2024-06-24 | 13.8% | -2.9% | £44.38/MWh | £43.09/MWh | £43.09/MWh |
 | C3 | electricity | 2024-06-29 | 14.6% | -3.3% | £203.92/MWh | £197.16/MWh | £197.16/MWh |
 | C3g | gas | 2024-06-29 | 10.1% | -1.0% | £44.69/MWh | £44.23/MWh | £44.23/MWh |
 | C9 | electricity | 2024-06-29 | 17.1% | -4.6% | £203.92/MWh | £194.62/MWh | £194.62/MWh |
 | SYN-2021-001 | electricity | 2024-12-22 | 17.7% | -4.8% | £240.03/MWh | £228.44/MWh | £228.44/MWh |
 | C7 | electricity | 2024-12-29 | 17.9% | -5.0% | £243.79/MWh | £231.72/MWh | £231.72/MWh |
 | PROS-2018-0003 | electricity | 2024-12-31 | 15.2% | -3.6% | £225.72/MWh | £217.57/MWh | £217.57/MWh |
-| PROS-2020-0002 | electricity | 2024-12-31 | 15.2% | -3.6% | £225.72/MWh | £217.57/MWh | £217.57/MWh |
-| PROS-2020-0002g | gas | 2024-12-31 | 18.6% | -5.0% | £64.91/MWh | £61.67/MWh | £61.67/MWh |
-| PROS-2023-0001 | electricity | 2025-01-01 | 14.1% | -3.1% | £246.52/MWh | £238.98/MWh | £238.98/MWh |
-| PROS-2023-0001g | gas | 2025-01-01 | 19.8% | -5.0% | £65.03/MWh | £61.78/MWh | £61.78/MWh |
-| PROS-2020-0009 | electricity | 2025-01-04 | 13.9% | -3.0% | £247.82/MWh | £240.47/MWh | £240.47/MWh |
-| PROS-2020-0009g | gas | 2025-01-04 | 19.8% | -5.0% | £65.39/MWh | £62.12/MWh | £62.12/MWh |
-| PROS-2018-0009 | electricity | 2025-01-06 | 16.6% | -4.3% | £246.02/MWh | £235.45/MWh | £235.45/MWh |
-| PROS-2020-0012 | electricity | 2025-01-06 | 19.8% | -5.0% | £246.02/MWh | £233.72/MWh | £233.72/MWh |
-| PROS-2020-0012g | gas | 2025-01-06 | 21.8% | -5.0% | £65.61/MWh | £62.33/MWh | £62.33/MWh |
-| PROS-2023-0010 | electricity | 2025-01-06 | 20.4% | -5.0% | £246.02/MWh | £233.72/MWh | £233.72/MWh |
-| PROS-2024-0008 | electricity | 2025-01-07 | 20.4% | -5.0% | £224.28/MWh | £213.07/MWh | £213.07/MWh |
-| PROS-2024-0008g | gas | 2025-01-07 | 20.1% | -5.0% | £65.71/MWh | £62.43/MWh | £62.43/MWh |
-| PROS-2024-0009 | electricity | 2025-01-07 | 18.3% | -5.0% | £224.28/MWh | £213.07/MWh | £213.07/MWh |
-| PROS-2024-0009g | gas | 2025-01-07 | 21.5% | -5.0% | £65.71/MWh | £62.43/MWh | £62.43/MWh |
-| PROS-2023-0013 | electricity | 2025-01-08 | 15.2% | -3.6% | £247.48/MWh | £238.58/MWh | £238.58/MWh |
+| PROS-2018-0003g | gas | 2024-12-31 | 18.6% | -5.0% | £64.92/MWh | £61.68/MWh | £61.68/MWh |
+| PROS-2020-0002 | electricity | 2024-12-31 | 13.4% | -2.7% | £225.72/MWh | £219.64/MWh | £219.64/MWh |
+| PROS-2020-0002g | gas | 2024-12-31 | 20.9% | -5.0% | £64.91/MWh | £61.67/MWh | £61.67/MWh |
+| PROS-2023-0001 | electricity | 2025-01-01 | 12.4% | -2.2% | £246.52/MWh | £241.11/MWh | £241.11/MWh |
+| PROS-2023-0001g | gas | 2025-01-01 | 20.2% | -5.0% | £65.03/MWh | £61.78/MWh | £61.78/MWh |
+| PROS-2020-0006 | electricity | 2025-01-02 | 13.3% | -2.6% | £246.32/MWh | £239.82/MWh | £239.82/MWh |
+| PROS-2020-0006g | gas | 2025-01-02 | 20.3% | -5.0% | £65.15/MWh | £61.89/MWh | £61.89/MWh |
+| PROS-2020-0009 | electricity | 2025-01-04 | 16.8% | -4.4% | £247.82/MWh | £236.91/MWh | £236.91/MWh |
+| PROS-2020-0009g | gas | 2025-01-04 | 18.0% | -5.0% | £65.39/MWh | £62.12/MWh | £62.12/MWh |
+| PROS-2018-0009 | electricity | 2025-01-06 | 20.2% | -5.0% | £246.02/MWh | £233.72/MWh | £233.72/MWh |
+| PROS-2020-0012 | electricity | 2025-01-06 | 21.4% | -5.0% | £246.02/MWh | £233.72/MWh | £233.72/MWh |
+| PROS-2020-0012g | gas | 2025-01-06 | 19.4% | -5.0% | £65.61/MWh | £62.33/MWh | £62.33/MWh |
+| PROS-2023-0010 | electricity | 2025-01-06 | 20.9% | -5.0% | £246.02/MWh | £233.72/MWh | £233.72/MWh |
+| PROS-2024-0008 | electricity | 2025-01-07 | 20.9% | -5.0% | £224.28/MWh | £213.07/MWh | £213.07/MWh |
+| PROS-2024-0008g | gas | 2025-01-07 | 20.8% | -5.0% | £65.71/MWh | £62.43/MWh | £62.43/MWh |
+| PROS-2024-0009 | electricity | 2025-01-07 | 18.0% | -5.0% | £224.28/MWh | £213.09/MWh | £213.09/MWh |
+| PROS-2024-0009g | gas | 2025-01-07 | 21.4% | -5.0% | £65.71/MWh | £62.43/MWh | £62.43/MWh |
+| PROS-2023-0013 | electricity | 2025-01-08 | 15.1% | -3.5% | £247.48/MWh | £238.72/MWh | £238.72/MWh |
 | PROS-2023-0013g | gas | 2025-01-08 | 22.5% | -5.0% | £65.82/MWh | £62.52/MWh | £62.52/MWh |
-| PROS-2024-0010 | electricity | 2025-01-08 | 14.6% | -3.3% | £247.48/MWh | £239.34/MWh | £239.34/MWh |
+| PROS-2024-0010 | electricity | 2025-01-08 | 14.6% | -3.3% | £247.48/MWh | £239.33/MWh | £239.33/MWh |
 | PROS-2024-0010g | gas | 2025-01-08 | 21.2% | -5.0% | £65.81/MWh | £62.52/MWh | £62.52/MWh |
-| PROS-2016-0011 | electricity | 2025-01-09 | 14.9% | -3.5% | £248.51/MWh | £239.93/MWh | £239.93/MWh |
+| PROS-2016-0011 | electricity | 2025-01-09 | 14.9% | -3.5% | £248.51/MWh | £239.92/MWh | £239.92/MWh |
 | PROS-2016-0011g | gas | 2025-01-09 | 21.2% | -5.0% | £65.91/MWh | £62.61/MWh | £62.61/MWh |
-| PROS-2019-0008 | electricity | 2025-01-09 | 15.2% | -3.6% | £248.51/MWh | £239.63/MWh | £239.63/MWh |
+| PROS-2018-0014 | electricity | 2025-01-09 | 15.2% | -3.6% | £248.51/MWh | £239.62/MWh | £239.62/MWh |
+| PROS-2019-0008 | electricity | 2025-01-09 | 15.2% | -3.6% | £248.51/MWh | £239.62/MWh | £239.62/MWh |
 | PROS-2019-0008g | gas | 2025-01-09 | 20.8% | -5.0% | £65.90/MWh | £62.61/MWh | £62.61/MWh |
-| PROS-2022-0009 | electricity | 2025-01-09 | 15.6% | -3.8% | £248.51/MWh | £239.03/MWh | £239.03/MWh |
+| PROS-2022-0009 | electricity | 2025-01-09 | 15.6% | -3.8% | £248.51/MWh | £239.02/MWh | £239.02/MWh |
 | PROS-2022-0009g | gas | 2025-01-09 | 19.1% | -5.0% | £65.91/MWh | £62.61/MWh | £62.61/MWh |
-| PROS-2023-0014 | electricity | 2025-01-09 | 15.0% | -3.5% | £248.51/MWh | £239.82/MWh | £239.82/MWh |
+| PROS-2023-0014 | electricity | 2025-01-09 | 15.0% | -3.5% | £248.51/MWh | £239.83/MWh | £239.83/MWh |
 | PROS-2023-0014g | gas | 2025-01-09 | 18.8% | -5.0% | £65.94/MWh | £62.65/MWh | £62.65/MWh |
 | PROS-2018-0016 | electricity | 2025-01-10 | 15.2% | -3.6% | £248.61/MWh | £239.72/MWh | £239.72/MWh |
 | PROS-2018-0016g | gas | 2025-01-10 | 21.6% | -5.0% | £66.02/MWh | £62.72/MWh | £62.72/MWh |
@@ -5141,23 +5145,25 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2019-0009g | gas | 2025-01-10 | 22.9% | -5.0% | £66.05/MWh | £62.75/MWh | £62.75/MWh |
 | PROS-2020-0016 | electricity | 2025-01-10 | 14.8% | -3.4% | £248.61/MWh | £240.21/MWh | £240.21/MWh |
 | PROS-2020-0016g | gas | 2025-01-10 | 24.3% | -5.0% | £66.05/MWh | £62.75/MWh | £62.75/MWh |
-| PROS-2022-0010 | electricity | 2025-01-10 | 14.8% | -3.4% | £248.61/MWh | £240.16/MWh | £240.16/MWh |
-| PROS-2022-0010g | gas | 2025-01-10 | 23.9% | -5.0% | £66.03/MWh | £62.73/MWh | £62.73/MWh |
-| PROS-2023-0016 | electricity | 2025-01-10 | 14.3% | -3.1% | £248.61/MWh | £240.78/MWh | £240.78/MWh |
-| PROS-2023-0016g | gas | 2025-01-10 | 23.2% | -5.0% | £66.03/MWh | £62.73/MWh | £62.73/MWh |
-| PROS-2018-0018 | electricity | 2025-01-11 | 15.2% | -3.6% | £250.32/MWh | £241.37/MWh | £241.37/MWh |
-| PROS-2018-0018g | gas | 2025-01-11 | 24.6% | -5.0% | £66.16/MWh | £62.86/MWh | £62.86/MWh |
-| PROS-2022-0011 | electricity | 2025-01-11 | 15.3% | -3.6% | £250.32/MWh | £241.21/MWh | £241.21/MWh |
-| PROS-2024-0012 | electricity | 2025-01-11 | 15.3% | -3.6% | £250.32/MWh | £241.21/MWh | £241.21/MWh |
-| PROS-2024-0012g | gas | 2025-01-11 | 24.6% | -5.0% | £66.12/MWh | £62.82/MWh | £62.82/MWh |
-| PROS-2017-0019 | electricity | 2025-01-12 | 15.1% | -3.6% | £250.41/MWh | £241.47/MWh | £241.47/MWh |
+| PROS-2021-0006 | electricity | 2025-01-10 | 14.8% | -3.4% | £248.61/MWh | £240.16/MWh | £240.16/MWh |
+| PROS-2021-0006g | gas | 2025-01-10 | 23.9% | -5.0% | £66.05/MWh | £62.75/MWh | £62.75/MWh |
+| PROS-2022-0010 | electricity | 2025-01-10 | 14.3% | -3.1% | £248.61/MWh | £240.78/MWh | £240.78/MWh |
+| PROS-2022-0010g | gas | 2025-01-10 | 24.2% | -5.0% | £66.03/MWh | £62.73/MWh | £62.73/MWh |
+| PROS-2023-0016 | electricity | 2025-01-10 | 13.4% | -2.7% | £248.61/MWh | £241.91/MWh | £241.91/MWh |
+| PROS-2023-0016g | gas | 2025-01-10 | 24.3% | -5.0% | £66.03/MWh | £62.73/MWh | £62.73/MWh |
+| PROS-2018-0018 | electricity | 2025-01-11 | 15.1% | -3.6% | £250.32/MWh | £241.41/MWh | £241.41/MWh |
+| PROS-2018-0018g | gas | 2025-01-11 | 24.4% | -5.0% | £66.16/MWh | £62.86/MWh | £62.86/MWh |
+| PROS-2022-0011 | electricity | 2025-01-11 | 14.7% | -3.3% | £250.32/MWh | £241.99/MWh | £241.99/MWh |
+| PROS-2024-0012 | electricity | 2025-01-11 | 14.7% | -3.3% | £250.32/MWh | £241.99/MWh | £241.99/MWh |
+| PROS-2024-0012g | gas | 2025-01-11 | 24.0% | -5.0% | £66.12/MWh | £62.82/MWh | £62.82/MWh |
+| PROS-2017-0019 | electricity | 2025-01-12 | 15.3% | -3.7% | £250.41/MWh | £241.25/MWh | £241.25/MWh |
 | PROS-2017-0019g | gas | 2025-01-12 | 30.5% | -5.0% | £66.23/MWh | £62.92/MWh | £62.92/MWh |
-| PROS-2024-0014 | electricity | 2025-01-12 | 16.2% | -4.1% | £250.41/MWh | £240.17/MWh | £240.17/MWh |
+| PROS-2024-0014 | electricity | 2025-01-12 | 16.3% | -4.1% | £250.41/MWh | £240.04/MWh | £240.04/MWh |
 | PROS-2024-0014g | gas | 2025-01-12 | 32.5% | -5.0% | £66.19/MWh | £62.88/MWh | £62.88/MWh |
-| PROS-2018-0022 | electricity | 2025-01-13 | 14.3% | -3.2% | £250.06/MWh | £242.12/MWh | £242.12/MWh |
+| PROS-2018-0022 | electricity | 2025-01-13 | 14.4% | -3.2% | £250.06/MWh | £242.08/MWh | £242.08/MWh |
 | PROS-2018-0022g | gas | 2025-01-13 | 30.5% | -5.0% | £66.26/MWh | £62.95/MWh | £62.95/MWh |
-| PROS-2018-0024 | electricity | 2025-01-14 | 16.3% | -4.2% | £250.61/MWh | £240.17/MWh | £240.17/MWh |
-| PROS-2019-0012 | electricity | 2025-01-14 | 16.4% | -4.2% | £250.61/MWh | £240.04/MWh | £240.04/MWh |
+| PROS-2018-0024 | electricity | 2025-01-14 | 16.4% | -4.2% | £250.61/MWh | £240.14/MWh | £240.14/MWh |
+| PROS-2019-0012 | electricity | 2025-01-14 | 16.4% | -4.2% | £250.61/MWh | £240.08/MWh | £240.08/MWh |
 | PROS-2019-0012g | gas | 2025-01-14 | 29.8% | -5.0% | £66.36/MWh | £63.04/MWh | £63.04/MWh |
 | PROS-2016-0020 | electricity | 2025-01-16 | 17.7% | -4.8% | £252.30/MWh | £240.08/MWh | £240.08/MWh |
 | PROS-2016-0020g | gas | 2025-01-16 | 23.5% | -5.0% | £66.46/MWh | £63.13/MWh | £63.13/MWh |
@@ -5197,29 +5203,27 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 | PROS-2018-0043 | electricity | 2025-02-03 | 16.9% | -4.4% | £229.47/MWh | £219.28/MWh | £219.28/MWh |
 | PROS-2024-0041 | electricity | 2025-02-04 | 15.2% | -3.6% | £229.53/MWh | £221.26/MWh | £221.26/MWh |
 | PROS-2024-0041g | gas | 2025-02-04 | 21.4% | -5.0% | £67.33/MWh | £63.97/MWh | £63.40/MWh |
-| PROS-2020-0042 | electricity | 2025-02-06 | 7.3% | +0.4% | £253.30/MWh | £254.24/MWh | £254.24/MWh |
-| PROS-2020-0042g | gas | 2025-02-06 | 19.7% | -5.0% | £67.40/MWh | £64.03/MWh | £63.40/MWh |
-| PROS-2020-0048 | electricity | 2025-02-10 | 9.8% | -0.9% | £253.30/MWh | £251.05/MWh | £251.05/MWh |
-| PROS-2020-0048g | gas | 2025-02-10 | 19.0% | -5.0% | £67.49/MWh | £64.12/MWh | £63.40/MWh |
-| PROS-2022-0045 | electricity | 2025-02-10 | 13.8% | -2.9% | £253.30/MWh | £245.98/MWh | £245.98/MWh |
-| PROS-2023-0039 | electricity | 2025-02-10 | 15.0% | -3.5% | £253.30/MWh | £244.41/MWh | £244.41/MWh |
-| PROS-2023-0039g | gas | 2025-02-10 | 19.0% | -5.0% | £67.49/MWh | £64.12/MWh | £63.40/MWh |
-| PROS-2024-0048 | electricity | 2025-02-10 | 15.4% | -3.7% | £253.30/MWh | £243.88/MWh | £243.88/MWh |
-| PROS-2024-0048g | gas | 2025-02-10 | 18.1% | -5.0% | £67.53/MWh | £64.15/MWh | £63.40/MWh |
-| PROS-2021-0045 | electricity | 2025-02-12 | 15.2% | -3.6% | £253.30/MWh | £244.14/MWh | £244.14/MWh |
-| PROS-2018-0053 | electricity | 2025-02-14 | 15.9% | -4.0% | £252.85/MWh | £242.85/MWh | £242.85/MWh |
+| PROS-2020-0048 | electricity | 2025-02-10 | 8.7% | -0.3% | £253.30/MWh | £252.44/MWh | £252.44/MWh |
+| PROS-2020-0048g | gas | 2025-02-10 | 19.9% | -5.0% | £67.49/MWh | £64.12/MWh | £63.40/MWh |
+| PROS-2022-0045 | electricity | 2025-02-10 | 9.5% | -0.8% | £253.30/MWh | £251.39/MWh | £251.39/MWh |
+| PROS-2023-0039 | electricity | 2025-02-10 | 14.9% | -3.5% | £253.30/MWh | £244.52/MWh | £244.52/MWh |
+| PROS-2023-0039g | gas | 2025-02-10 | 19.3% | -5.0% | £67.49/MWh | £64.12/MWh | £63.40/MWh |
+| PROS-2024-0048 | electricity | 2025-02-10 | 15.9% | -4.0% | £253.30/MWh | £243.29/MWh | £243.29/MWh |
+| PROS-2024-0048g | gas | 2025-02-10 | 19.6% | -5.0% | £67.53/MWh | £64.15/MWh | £63.40/MWh |
+| PROS-2021-0045 | electricity | 2025-02-12 | 15.7% | -3.8% | £253.30/MWh | £243.60/MWh | £243.60/MWh |
+| PROS-2018-0053 | electricity | 2025-02-14 | 16.2% | -4.1% | £252.85/MWh | £242.45/MWh | £242.45/MWh |
 | PROS-2018-0053g | gas | 2025-02-14 | 21.1% | -5.0% | £67.73/MWh | £64.34/MWh | £63.40/MWh |
-| PROS-2022-0046 | electricity | 2025-02-14 | 15.6% | -3.8% | £252.85/MWh | £243.31/MWh | £243.31/MWh |
+| PROS-2022-0046 | electricity | 2025-02-14 | 15.5% | -3.7% | £252.85/MWh | £243.38/MWh | £243.38/MWh |
 | PROS-2022-0046g | gas | 2025-02-14 | 23.5% | -5.0% | £67.70/MWh | £64.31/MWh | £63.40/MWh |
-| PROS-2021-0051 | electricity | 2025-02-15 | 15.3% | -3.6% | £226.74/MWh | £218.51/MWh | £218.51/MWh |
+| PROS-2021-0051 | electricity | 2025-02-15 | 15.2% | -3.6% | £226.74/MWh | £218.59/MWh | £218.59/MWh |
 | PROS-2021-0051g | gas | 2025-02-15 | 23.6% | -5.0% | £67.80/MWh | £64.41/MWh | £63.40/MWh |
-| PROS-2022-0047 | electricity | 2025-02-15 | 13.4% | -2.7% | £226.74/MWh | £220.62/MWh | £220.62/MWh |
+| PROS-2022-0047 | electricity | 2025-02-15 | 13.4% | -2.7% | £226.74/MWh | £220.64/MWh | £220.64/MWh |
 | PROS-2022-0047g | gas | 2025-02-15 | 22.0% | -5.0% | £67.82/MWh | £64.43/MWh | £63.40/MWh |
-| PROS-2022-0048 | electricity | 2025-02-15 | 10.6% | -1.3% | £226.74/MWh | £223.83/MWh | £223.83/MWh |
+| PROS-2022-0048 | electricity | 2025-02-15 | 10.5% | -1.3% | £226.74/MWh | £223.85/MWh | £223.85/MWh |
 | PROS-2022-0048g | gas | 2025-02-15 | 34.6% | -5.0% | £67.80/MWh | £64.41/MWh | £63.40/MWh |
-| PROS-2022-0049 | electricity | 2025-02-16 | 9.2% | -0.6% | £230.35/MWh | £228.97/MWh | £228.97/MWh |
+| PROS-2022-0049 | electricity | 2025-02-16 | 9.2% | -0.6% | £230.35/MWh | £228.95/MWh | £228.95/MWh |
 | PROS-2022-0049g | gas | 2025-02-16 | 33.3% | -5.0% | £67.87/MWh | £64.48/MWh | £63.40/MWh |
-| PROS-2023-0045 | electricity | 2025-02-18 | 7.3% | +0.4% | £232.67/MWh | £233.50/MWh | £233.50/MWh |
+| PROS-2023-0045 | electricity | 2025-02-18 | 7.3% | +0.3% | £232.67/MWh | £233.49/MWh | £233.49/MWh |
 | PROS-2023-0045g | gas | 2025-02-18 | 32.8% | -5.0% | £68.05/MWh | £64.65/MWh | £63.40/MWh |
 | PROS-2024-0056 | electricity | 2025-02-18 | 7.9% | +0.1% | £232.67/MWh | £232.79/MWh | £232.79/MWh |
 | PROS-2024-0056g | gas | 2025-02-18 | 32.2% | -5.0% | £68.08/MWh | £64.67/MWh | £63.40/MWh |
@@ -5338,51 +5342,50 @@ Company applied portfolio premium adjustments at 851 renewal(s) (373 gas) based 
 
 ## Churn Avoidability Analysis (Phase 17b)
 
-Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (uneconomical): **0**
+Total no-offer churns: **35** | Blind misses: **35** | Deliberate passes (uneconomical): **0**
 
-- Blind misses: company estimated churn < 30% → no offer made. Of these, 4 had SIM p ≥ 30% (detectable with a better model).
+- Blind misses: company estimated churn < 30% → no offer made. Of these, 7 had SIM p ≥ 30% (detectable with a better model).
 - Deliberate passes: company estimated churn ≥ 30% but the retention offer was uneconomical (margin + acq cost < offer cost).
 
-**Estimated margin at stake** — blind: £18,082.48 | deliberate: £0.00 | total: £18,082.48
+**Estimated margin at stake** — blind: £17,566.24 | deliberate: £0.00 | total: £17,566.24
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
 | C6 | 2017-04-01 | Blind miss | 0.15 | 0.02 | No | £1,582.89 |
-| PROS-2016-0003 | 2018-01-05 | Blind miss | 0.13 | 0.05 | No | £437.59 |
-| C4 | 2018-10-01 | Blind miss | 0.13 | 0.09 | No | £195.99 |
-| PROS-2018-0002 | 2019-01-02 | Blind miss | 0.25 | 0.02 | No | £478.81 |
+| PROS-2016-0003 | 2018-01-05 | Blind miss | 0.13 | 0.10 | No | £437.59 |
+| C4 | 2018-10-01 | Blind miss | 0.13 | 0.08 | No | £195.99 |
+| PROS-2018-0002 | 2019-01-02 | Blind miss | 0.25 | 0.03 | No | £478.81 |
 | C1 | 2021-12-30 | Blind miss | 0.05 | 0.08 | No | £-22.85 |
-| PROS-2019-0003 | 2022-01-02 | Blind miss | 0.05 | 0.13 | No | £557.11 |
+| PROS-2019-0003 | 2022-01-02 | Blind miss | 0.05 | 0.20 | No | £557.11 |
 | PROS-2020-0013 | 2022-01-07 | Blind miss | 0.05 | 0.17 | No | £313.61 |
-| PROS-2018-0014 | 2022-01-10 | Blind miss | 0.05 | 0.09 | No | £595.54 |
-| PROS-2021-0006 | 2022-01-11 | Blind miss | 0.05 | 0.10 | No | £543.97 |
-| PROS-2021-0017 | 2022-01-20 | Blind miss | 0.05 | 0.15 | No | £372.78 |
-| PROS-2021-0029 | 2022-01-26 | Blind miss | 0.08 | 0.12 | No | £342.02 |
+| PROS-2021-0017 | 2022-01-20 | Blind miss | 0.05 | 0.15 | No | £372.80 |
+| PROS-2021-0029 | 2022-01-26 | Blind miss | 0.08 | 0.18 | No | £342.02 |
 | PROS-2018-0039 | 2022-01-30 | Blind miss | 0.05 | 0.67 | Yes | £396.73 |
-| PROS-2020-0047 | 2022-02-11 | Blind miss | 0.08 | 0.21 | No | £301.46 |
-| PROS-2020-0050 | 2022-02-12 | Blind miss | 0.05 | 0.54 | Yes | £350.37 |
-| PROS-2021-0044 | 2022-02-12 | Blind miss | 0.05 | 0.15 | No | £280.29 |
-| PROS-2019-0050 | 2022-02-21 | Blind miss | 0.05 | 0.50 | Yes | £400.37 |
-| PROS-2021-0060 | 2022-02-25 | Blind miss | 0.13 | 0.10 | No | £319.83 |
-| PROS-2020-0067 | 2022-02-26 | Blind miss | 0.05 | 0.61 | Yes | £592.22 |
-| PROS-2021-0067 | 2022-03-05 | Blind miss | 0.08 | 0.15 | No | £378.74 |
-| PROS-2021-0100 | 2022-04-02 | Blind miss | 0.05 | 0.04 | No | £555.76 |
+| PROS-2020-0042 | 2022-02-07 | Blind miss | 0.05 | 0.33 | Yes | £446.71 |
+| PROS-2020-0047 | 2022-02-11 | Blind miss | 0.08 | 0.33 | Yes | £312.29 |
+| PROS-2020-0050 | 2022-02-12 | Blind miss | 0.05 | 0.54 | Yes | £339.54 |
+| PROS-2021-0044 | 2022-02-12 | Blind miss | 0.05 | 0.23 | No | £271.63 |
+| PROS-2019-0050 | 2022-02-21 | Blind miss | 0.05 | 0.50 | Yes | £400.27 |
+| PROS-2021-0060 | 2022-02-25 | Blind miss | 0.13 | 0.15 | No | £319.75 |
+| PROS-2020-0067 | 2022-02-26 | Blind miss | 0.05 | 0.93 | Yes | £592.07 |
+| PROS-2021-0067 | 2022-03-05 | Blind miss | 0.08 | 0.15 | No | £378.75 |
+| PROS-2021-0100 | 2022-04-02 | Blind miss | 0.05 | 0.02 | No | £555.76 |
 | PROS-2022-0019 | 2023-01-18 | Blind miss | 0.12 | 0.00 | No | £444.54 |
-| PROS-2020-0006 | 2024-01-03 | Blind miss | 0.08 | 0.06 | No | £471.47 |
-| PROS-2020-0043 | 2024-02-08 | Blind miss | 0.18 | 0.05 | No | £590.74 |
+| PROS-2020-0043 | 2024-02-08 | Blind miss | 0.18 | 0.08 | No | £590.74 |
 | PROS-2022-0063 | 2024-02-27 | Blind miss | 0.05 | 0.03 | No | £603.07 |
-| PROS-2018-0003 | 2024-12-31 | Blind miss | 0.11 | 0.10 | No | £613.93 |
+| PROS-2023-0172 | 2024-06-19 | Blind miss | 0.05 | 0.01 | No | £508.75 |
 | PROS-2023-0010 | 2025-01-06 | Blind miss | 0.12 | 0.10 | No | £597.13 |
-| PROS-2022-0011 | 2025-01-11 | Blind miss | 0.05 | 0.10 | No | £635.78 |
+| PROS-2018-0014 | 2025-01-09 | Blind miss | 0.07 | 0.11 | No | £761.49 |
+| PROS-2022-0011 | 2025-01-11 | Blind miss | 0.05 | 0.10 | No | £639.74 |
 | PROS-2020-0025 | 2025-01-18 | Blind miss | 0.10 | 0.08 | No | £614.76 |
-| PROS-2023-0025 | 2025-01-20 | Blind miss | 0.16 | 0.19 | No | £611.75 |
+| PROS-2023-0025 | 2025-01-20 | Blind miss | 0.16 | 0.21 | No | £611.75 |
 | PROS-2021-0031 | 2025-01-26 | Blind miss | 0.10 | 0.10 | No | £453.67 |
-| PROS-2019-0024 | 2025-01-27 | Blind miss | 0.09 | 0.15 | No | £462.38 |
-| PROS-2021-0045 | 2025-02-12 | Blind miss | 0.07 | 0.11 | No | £758.59 |
-| PROS-2022-0067 | 2025-02-27 | Blind miss | 0.23 | 0.28 | No | £567.86 |
+| PROS-2019-0024 | 2025-01-27 | Blind miss | 0.09 | 0.17 | No | £462.38 |
+| PROS-2021-0045 | 2025-02-12 | Blind miss | 0.07 | 0.11 | No | £755.32 |
+| PROS-2022-0067 | 2025-02-27 | Blind miss | 0.23 | 0.30 | Yes | £567.86 |
 | PROS-2024-0076 | 2025-03-08 | Blind miss | 0.26 | 0.05 | No | £607.91 |
 | PROS-2022-0125 | 2025-04-13 | Blind miss | 0.17 | 0.06 | No | £476.40 |
-| PROS-2023-0116 | 2025-04-25 | Blind miss | 0.27 | 0.12 | No | £599.29 |
+| PROS-2023-0116 | 2025-04-25 | Blind miss | 0.27 | 0.09 | No | £599.29 |
 
 ## Dual-Fuel Account P&L (Phase 17d)
 
@@ -5390,82 +5393,84 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 
 | Account | Elec net | Gas net | Combined net | Gas accretive? |
 |---------|----------|---------|-------------|---------------|
-| PROS-2018-0035+PROS-2018-0035g | £1,679.81 | £635.58 | £2,315.39 | Yes |
-| PROS-2016-0020+PROS-2016-0020g | £1,437.23 | £798.40 | £2,235.63 | Yes |
-| PROS-2018-0053+PROS-2018-0053g | £1,501.52 | £720.13 | £2,221.64 | Yes |
+| PROS-2018-0035+PROS-2018-0035g | £1,679.82 | £635.58 | £2,315.39 | Yes |
+| PROS-2016-0020+PROS-2016-0020g | £1,437.30 | £798.40 | £2,235.70 | Yes |
+| PROS-2018-0053+PROS-2018-0053g | £1,500.16 | £720.13 | £2,220.29 | Yes |
 | PROS-2019-0023+PROS-2019-0023g | £1,720.29 | £479.74 | £2,200.04 | Yes |
-| PROS-2017-0019+PROS-2017-0019g | £1,415.29 | £728.07 | £2,143.36 | Yes |
+| PROS-2017-0019+PROS-2017-0019g | £1,408.11 | £728.07 | £2,136.19 | Yes |
 | PROS-2019-0021+PROS-2019-0021g | £1,495.54 | £555.12 | £2,050.66 | Yes |
-| PROS-2020-0048+PROS-2020-0048g | £1,692.01 | £310.26 | £2,002.27 | Yes |
+| PROS-2020-0048+PROS-2020-0048g | £1,709.95 | £310.26 | £2,020.21 | Yes |
 | PROS-2019-0027+PROS-2019-0027g | £1,567.36 | £410.42 | £1,977.79 | Yes |
-| PROS-2016-0011+PROS-2016-0011g | £1,273.24 | £678.30 | £1,951.55 | Yes |
-| PROS-2017-0022+PROS-2017-0022g | £1,287.49 | £632.69 | £1,920.18 | Yes |
-| PROS-2020-0032+PROS-2020-0032g | £1,558.24 | £347.51 | £1,905.74 | Yes |
-| PROS-2018-0022+PROS-2018-0022g | £1,242.76 | £583.21 | £1,825.97 | Yes |
+| PROS-2016-0011+PROS-2016-0011g | £1,273.21 | £678.30 | £1,951.51 | Yes |
+| PROS-2017-0022+PROS-2017-0022g | £1,287.43 | £632.69 | £1,920.13 | Yes |
+| PROS-2020-0032+PROS-2020-0032g | £1,558.25 | £347.51 | £1,905.76 | Yes |
+| PROS-2018-0022+PROS-2018-0022g | £1,242.81 | £583.21 | £1,826.02 | Yes |
 | C2+C2g | £1,010.67 | £754.09 | £1,764.76 | Yes |
-| PROS-2020-0042+PROS-2020-0042g | £1,735.08 | £24.52 | £1,759.61 | Yes |
-| PROS-2019-0012+PROS-2019-0012g | £1,068.91 | £563.82 | £1,632.73 | Yes |
-| PROS-2023-0039+PROS-2023-0039g | £851.90 | £754.22 | £1,606.12 | Yes |
-| PROS-2021-0062+PROS-2021-0062g | £1,634.88 | £-37.40 | £1,597.48 | No |
-| PROS-2019-0024+PROS-2019-0024g | £1,228.91 | £346.68 | £1,575.59 | Yes |
-| PROS-2018-0016+PROS-2018-0016g | £1,056.45 | £509.85 | £1,566.30 | Yes |
-| PROS-2019-0015+PROS-2019-0015g | £1,091.37 | £452.80 | £1,544.17 | Yes |
-| PROS-2018-0018+PROS-2018-0018g | £907.86 | £615.12 | £1,522.98 | Yes |
-| PROS-2023-0045+PROS-2023-0045g | £739.66 | £738.97 | £1,478.63 | Yes |
-| PROS-2019-0009+PROS-2019-0009g | £975.49 | £487.60 | £1,463.09 | Yes |
+| PROS-2019-0012+PROS-2019-0012g | £1,069.22 | £563.82 | £1,633.04 | Yes |
+| PROS-2023-0039+PROS-2023-0039g | £852.04 | £754.22 | £1,606.26 | Yes |
+| PROS-2021-0062+PROS-2021-0062g | £1,634.71 | £-37.40 | £1,597.31 | No |
+| PROS-2018-0016+PROS-2018-0016g | £1,069.22 | £509.85 | £1,579.08 | Yes |
+| PROS-2019-0024+PROS-2019-0024g | £1,228.92 | £346.68 | £1,575.59 | Yes |
+| PROS-2019-0015+PROS-2019-0015g | £1,091.32 | £452.80 | £1,544.11 | Yes |
+| PROS-2018-0018+PROS-2018-0018g | £910.74 | £615.12 | £1,525.86 | Yes |
+| PROS-2018-0003+PROS-2018-0003g | £1,131.05 | £385.93 | £1,516.98 | Yes |
+| PROS-2023-0045+PROS-2023-0045g | £739.65 | £738.97 | £1,478.61 | Yes |
+| PROS-2019-0009+PROS-2019-0009g | £972.00 | £487.60 | £1,459.60 | Yes |
 | PROS-2023-0067+PROS-2023-0067g | £570.88 | £888.72 | £1,459.60 | Yes |
 | C3+C3g | £1,065.50 | £355.05 | £1,420.55 | Yes |
 | PROS-2023-0089+PROS-2023-0089g | £716.41 | £653.04 | £1,369.45 | Yes |
-| PROS-2022-0047+PROS-2022-0047g | £1,004.36 | £343.17 | £1,347.53 | Yes |
+| PROS-2022-0047+PROS-2022-0047g | £1,004.39 | £343.17 | £1,347.56 | Yes |
 | PROS-2023-0125+PROS-2023-0125g | £811.12 | £522.86 | £1,333.98 | Yes |
 | PROS-2023-0104+PROS-2023-0104g | £800.84 | £518.66 | £1,319.49 | Yes |
 | PROS-2022-0030+PROS-2022-0030g | £1,169.45 | £143.55 | £1,313.00 | Yes |
 | PROS-2023-0113+PROS-2023-0113g | £684.33 | £621.27 | £1,305.60 | Yes |
 | PROS-2023-0026+PROS-2023-0026g | £601.19 | £702.06 | £1,303.26 | Yes |
-| PROS-2020-0022+PROS-2020-0022g | £940.02 | £349.66 | £1,289.68 | Yes |
-| PROS-2019-0008+PROS-2019-0008g | £964.03 | £308.53 | £1,272.56 | Yes |
+| PROS-2020-0022+PROS-2020-0022g | £939.99 | £349.66 | £1,289.64 | Yes |
+| PROS-2019-0008+PROS-2019-0008g | £969.61 | £308.53 | £1,278.14 | Yes |
 | PROS-2023-0127+PROS-2023-0127g | £680.67 | £582.77 | £1,263.44 | Yes |
 | PROS-2023-0096+PROS-2023-0096g | £582.34 | £677.45 | £1,259.79 | Yes |
 | PROS-2023-0065+PROS-2023-0065g | £599.98 | £651.13 | £1,251.10 | Yes |
+| PROS-2021-0051+PROS-2021-0051g | £975.78 | £260.66 | £1,236.44 | Yes |
 | C1+C1g | £502.39 | £733.88 | £1,236.28 | Yes |
-| PROS-2021-0051+PROS-2021-0051g | £975.48 | £260.66 | £1,236.14 | Yes |
-| PROS-2020-0009+PROS-2020-0009g | £914.17 | £309.27 | £1,223.44 | Yes |
+| PROS-2020-0009+PROS-2020-0009g | £909.68 | £309.29 | £1,218.97 | Yes |
 | PROS-2021-0088+PROS-2021-0088g | £937.06 | £281.09 | £1,218.15 | Yes |
-| PROS-2020-0016+PROS-2020-0016g | £824.56 | £390.48 | £1,215.04 | Yes |
-| PROS-2022-0046+PROS-2022-0046g | £1,054.52 | £143.57 | £1,198.09 | Yes |
+| PROS-2020-0016+PROS-2020-0016g | £821.74 | £390.48 | £1,212.22 | Yes |
+| PROS-2022-0046+PROS-2022-0046g | £1,054.61 | £143.57 | £1,198.18 | Yes |
 | PROS-2023-0090+PROS-2023-0090g | £628.67 | £560.46 | £1,189.13 | Yes |
-| PROS-2022-0048+PROS-2022-0048g | £979.71 | £209.28 | £1,188.99 | Yes |
-| PROS-2024-0014+PROS-2024-0014g | £485.61 | £657.11 | £1,142.72 | Yes |
+| PROS-2022-0048+PROS-2022-0048g | £979.73 | £209.28 | £1,189.01 | Yes |
+| PROS-2024-0014+PROS-2024-0014g | £485.34 | £657.11 | £1,142.44 | Yes |
 | PROS-2022-0130+PROS-2022-0130g | £762.70 | £373.68 | £1,136.38 | Yes |
 | PROS-2023-0072+PROS-2023-0072g | £635.56 | £490.81 | £1,126.37 | Yes |
-| PROS-2021-0031+PROS-2021-0031g | £1,128.40 | £-2.55 | £1,125.86 | No |
-| PROS-2023-0001+PROS-2023-0001g | £475.06 | £636.77 | £1,111.82 | Yes |
+| PROS-2021-0031+PROS-2021-0031g | £1,128.40 | £-2.55 | £1,125.85 | No |
+| PROS-2023-0001+PROS-2023-0001g | £479.66 | £636.77 | £1,116.43 | Yes |
 | PROS-2022-0073+PROS-2022-0073g | £795.36 | £278.16 | £1,073.52 | Yes |
 | PROS-2020-0012+PROS-2020-0012g | £887.66 | £183.79 | £1,071.45 | Yes |
 | PROS-2022-0081+PROS-2022-0081g | £749.76 | £316.33 | £1,066.08 | Yes |
+| PROS-2018-0014+PROS-2018-0014g | £584.28 | £464.33 | £1,048.61 | Yes |
 | PROS-2022-0124+PROS-2022-0124g | £638.37 | £404.16 | £1,042.54 | Yes |
-| PROS-2023-0013+PROS-2023-0013g | £412.17 | £622.11 | £1,034.28 | Yes |
+| PROS-2023-0013+PROS-2023-0013g | £412.46 | £622.11 | £1,034.57 | Yes |
+| PROS-2020-0006+PROS-2020-0006g | £1,009.59 | £21.66 | £1,031.25 | Yes |
 | PROS-2022-0071+PROS-2022-0071g | £778.07 | £245.27 | £1,023.34 | Yes |
 | PROS-2023-0116+PROS-2023-0116g | £545.68 | £472.58 | £1,018.26 | Yes |
-| PROS-2022-0049+PROS-2022-0049g | £917.55 | £99.35 | £1,016.90 | Yes |
+| PROS-2022-0049+PROS-2022-0049g | £917.52 | £99.35 | £1,016.88 | Yes |
 | PROS-2022-0128+PROS-2022-0128g | £633.43 | £379.47 | £1,012.89 | Yes |
 | PROS-2022-0127+PROS-2022-0127g | £624.18 | £371.37 | £995.55 | Yes |
 | PROS-2023-0126+PROS-2023-0126g | £736.40 | £257.16 | £993.56 | Yes |
-| PROS-2020-0002+PROS-2020-0002g | £902.19 | £74.80 | £976.98 | Yes |
+| PROS-2020-0002+PROS-2020-0002g | £905.78 | £74.80 | £980.57 | Yes |
 | PROS-2023-0162+PROS-2023-0162g | £605.85 | £369.75 | £975.60 | Yes |
-| PROS-2023-0016+PROS-2023-0016g | £480.03 | £493.55 | £973.58 | Yes |
+| PROS-2023-0016+PROS-2023-0016g | £481.41 | £493.55 | £974.96 | Yes |
 | PROS-2022-0083+PROS-2022-0083g | £758.53 | £197.11 | £955.64 | Yes |
-| PROS-2023-0014+PROS-2023-0014g | £500.58 | £443.66 | £944.25 | Yes |
+| PROS-2023-0014+PROS-2023-0014g | £500.59 | £443.66 | £944.25 | Yes |
 | PROS-2024-0008+PROS-2024-0008g | £484.79 | £455.98 | £940.77 | Yes |
 | PROS-2023-0025+PROS-2023-0025g | £347.07 | £586.10 | £933.16 | Yes |
-| PROS-2024-0010+PROS-2024-0010g | £434.95 | £481.36 | £916.31 | Yes |
+| PROS-2024-0010+PROS-2024-0010g | £434.93 | £481.36 | £916.28 | Yes |
 | PROS-2018-0039+PROS-2018-0039g | £439.55 | £471.61 | £911.17 | Yes |
-| PROS-2018-0003+PROS-2018-0003g | £614.37 | £280.84 | £895.20 | Yes |
 | PROS-2024-0027+PROS-2024-0027g | £523.66 | £359.83 | £883.49 | Yes |
 | PROS-2024-0036+PROS-2024-0036g | £400.11 | £477.37 | £877.47 | Yes |
-| PROS-2024-0009+PROS-2024-0009g | £450.52 | £394.46 | £844.98 | Yes |
+| PROS-2024-0009+PROS-2024-0009g | £450.55 | £394.46 | £845.01 | Yes |
 | PROS-2019-0050+PROS-2019-0050g | £446.54 | £384.20 | £830.74 | Yes |
 | PROS-2022-0082+PROS-2022-0082g | £694.02 | £125.52 | £819.54 | Yes |
+| PROS-2021-0006+PROS-2021-0006g | £613.74 | £204.92 | £818.66 | Yes |
 | PROS-2023-0158+PROS-2023-0158g | £529.91 | £277.17 | £807.08 | Yes |
 | PROS-2022-0067+PROS-2022-0067g | £619.40 | £180.29 | £799.69 | Yes |
 | PROS-2022-0097+PROS-2022-0097g | £797.05 | £-16.20 | £780.85 | No |
@@ -5476,38 +5481,37 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 | PROS-2024-0038+PROS-2024-0038g | £467.65 | £254.24 | £721.89 | Yes |
 | PROS-2022-0092+PROS-2022-0092g | £527.93 | £191.06 | £718.99 | Yes |
 | PROS-2024-0081+PROS-2024-0081g | £364.17 | £354.64 | £718.81 | Yes |
-| PROS-2018-0014+PROS-2018-0014g | £199.29 | £492.57 | £691.86 | Yes |
 | PROS-2023-0010+PROS-2023-0010g | £203.67 | £484.92 | £688.59 | Yes |
 | PROS-2024-0041+PROS-2024-0041g | £332.06 | £353.52 | £685.59 | Yes |
 | PROS-2023-0147+PROS-2023-0147g | £425.13 | £247.07 | £672.20 | Yes |
 | PROS-2023-0152+PROS-2023-0152g | £385.47 | £276.95 | £662.43 | Yes |
 | PROS-2022-0100+PROS-2022-0100g | £690.24 | £-28.47 | £661.78 | No |
-| PROS-2024-0048+PROS-2024-0048g | £414.52 | £239.29 | £653.81 | Yes |
-| PROS-2024-0057+PROS-2024-0057g | £372.74 | £279.98 | £652.73 | Yes |
+| PROS-2024-0048+PROS-2024-0048g | £413.79 | £239.29 | £653.08 | Yes |
+| PROS-2024-0057+PROS-2024-0057g | £372.75 | £279.98 | £652.73 | Yes |
 | PROS-2023-0146+PROS-2023-0146g | £415.25 | £230.63 | £645.87 | Yes |
 | PROS-2025-0085+PROS-2025-0085g | £595.24 | £48.28 | £643.53 | Yes |
-| PROS-2023-0172+PROS-2023-0172g | £393.42 | £247.80 | £641.22 | Yes |
 | PROS-2024-0065+PROS-2024-0065g | £387.57 | £252.38 | £639.94 | Yes |
 | PROS-2024-0069+PROS-2024-0069g | £323.06 | £310.93 | £633.99 | Yes |
-| PROS-2023-0177+PROS-2023-0177g | £372.73 | £249.93 | £622.66 | Yes |
+| PROS-2023-0177+PROS-2023-0177g | £372.23 | £260.97 | £633.20 | Yes |
 | PROS-2024-0087+PROS-2024-0087g | £366.01 | £244.75 | £610.75 | Yes |
 | PROS-2022-0063+PROS-2022-0063g | £778.06 | £-190.65 | £587.41 | No |
-| PROS-2024-0012+PROS-2024-0012g | £377.69 | £205.03 | £582.72 | Yes |
+| PROS-2024-0012+PROS-2024-0012g | £378.94 | £205.03 | £583.97 | Yes |
 | PROS-2024-0085+PROS-2024-0085g | £350.69 | £215.79 | £566.48 | Yes |
-| PROS-2020-0025+PROS-2020-0025g | £486.31 | £74.93 | £561.23 | Yes |
+| PROS-2020-0025+PROS-2020-0025g | £486.35 | £74.93 | £561.28 | Yes |
 | PROS-2024-0131+PROS-2024-0131g | £379.14 | £173.37 | £552.51 | Yes |
-| PROS-2022-0010+PROS-2022-0010g | £554.26 | £-3.05 | £551.21 | No |
 | PROS-2024-0056+PROS-2024-0056g | £312.04 | £238.30 | £550.34 | Yes |
 | PROS-2024-0111+PROS-2024-0111g | £354.92 | £194.27 | £549.19 | Yes |
+| PROS-2022-0010+PROS-2022-0010g | £549.51 | £-3.05 | £546.46 | No |
 | PROS-2024-0116+PROS-2024-0116g | £329.96 | £207.97 | £537.94 | Yes |
 | PROS-2024-0096+PROS-2024-0096g | £284.47 | £231.39 | £515.85 | Yes |
 | PROS-2022-0125+PROS-2022-0125g | £146.14 | £369.65 | £515.79 | Yes |
+| PROS-2020-0042+PROS-2020-0042g | £220.12 | £286.02 | £506.14 | Yes |
 | PROS-2016-0003+PROS-2016-0003g | £276.57 | £227.90 | £504.47 | Yes |
 | PROS-2024-0113+PROS-2024-0113g | £319.80 | £164.37 | £484.18 | Yes |
 | PROS-2024-0122+PROS-2024-0122g | £313.80 | £166.63 | £480.43 | Yes |
 | PROS-2024-0147+PROS-2024-0147g | £344.51 | £133.47 | £477.98 | Yes |
 | PROS-2024-0110+PROS-2024-0110g | £304.33 | £171.81 | £476.14 | Yes |
-| PROS-2022-0009+PROS-2022-0009g | £547.32 | £-72.41 | £474.91 | No |
+| PROS-2022-0009+PROS-2022-0009g | £543.61 | £-72.41 | £471.20 | No |
 | PROS-2024-0098+PROS-2024-0098g | £286.52 | £181.03 | £467.55 | Yes |
 | PROS-2024-0148+PROS-2024-0148g | £335.50 | £125.07 | £460.56 | Yes |
 | PROS-2020-0050+PROS-2020-0050g | £217.53 | £223.79 | £441.32 | Yes |
@@ -5529,6 +5533,7 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 | PROS-2024-0076+PROS-2024-0076g | £57.44 | £205.55 | £262.99 | Yes |
 | PROS-2024-0191+PROS-2024-0191g | £156.14 | £104.04 | £260.19 | Yes |
 | PROS-2021-0067+PROS-2021-0067g | £200.64 | £58.72 | £259.36 | Yes |
+| PROS-2023-0172+PROS-2023-0172g | £113.00 | £144.58 | £257.58 | Yes |
 | PROS-2024-0156+PROS-2024-0156g | £167.76 | £76.82 | £244.58 | Yes |
 | PROS-2024-0157+PROS-2024-0157g | £172.11 | £63.45 | £235.56 | Yes |
 | PROS-2024-0195+PROS-2024-0195g | £121.39 | £98.05 | £219.45 | Yes |
@@ -5536,7 +5541,7 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 | PROS-2025-0022+PROS-2025-0022g | £109.16 | £97.44 | £206.59 | Yes |
 | PROS-2025-0060+PROS-2025-0060g | £158.53 | £46.12 | £204.65 | Yes |
 | PROS-2025-0013+PROS-2025-0013g | £102.59 | £93.33 | £195.91 | Yes |
-| PROS-2022-0011+PROS-2022-0011g | £18.31 | £174.45 | £192.76 | Yes |
+| PROS-2022-0011+PROS-2022-0011g | £20.52 | £174.45 | £194.97 | Yes |
 | PROS-2025-0033+PROS-2025-0033g | £91.68 | £91.84 | £183.51 | Yes |
 | PROS-2025-0083+PROS-2025-0083g | £131.35 | £44.39 | £175.74 | Yes |
 | PROS-2025-0039+PROS-2025-0039g | £88.23 | £85.98 | £174.21 | Yes |
@@ -5555,7 +5560,6 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 | PROS-2025-0055+PROS-2025-0055g | £50.75 | £61.76 | £112.51 | Yes |
 | PROS-2025-0062+PROS-2025-0062g | £65.40 | £44.25 | £109.65 | Yes |
 | PROS-2025-0121+PROS-2025-0121g | £77.80 | £30.64 | £108.44 | Yes |
-| PROS-2020-0006+PROS-2020-0006g | £556.69 | £-450.01 | £106.68 | No |
 | PROS-2025-0087+PROS-2025-0087g | £72.15 | £32.96 | £105.11 | Yes |
 | PROS-2025-0119+PROS-2025-0119g | £46.66 | £52.25 | £98.91 | Yes |
 | PROS-2025-0094+PROS-2025-0094g | £57.16 | £41.36 | £98.52 | Yes |
@@ -5567,236 +5571,235 @@ Total no-offer churns: **36** | Blind misses: **36** | Deliberate passes (unecon
 | PROS-2025-0075+PROS-2025-0075g | £34.10 | £38.59 | £72.69 | Yes |
 | PROS-2025-0136+PROS-2025-0136g | £28.07 | £18.28 | £46.35 | Yes |
 | PROS-2025-0149+PROS-2025-0149g | £24.89 | £14.43 | £39.31 | Yes |
-| PROS-2021-0006+PROS-2021-0006g | £-52.54 | £83.89 | £31.36 | Yes |
 | PROS-2025-0151+PROS-2025-0151g | £20.33 | £9.13 | £29.46 | Yes |
 | PROS-2025-0153+PROS-2025-0153g | £21.88 | £7.32 | £29.20 | Yes |
 | PROS-2025-0156+PROS-2025-0156g | £12.78 | £5.44 | £18.22 | Yes |
 | PROS-2025-0160+PROS-2025-0160g | £10.70 | £3.90 | £14.60 | Yes |
 | PROS-2025-0163+PROS-2025-0163g | £9.65 | £3.85 | £13.50 | Yes |
 | PROS-2025-0170+PROS-2025-0170g | £7.05 | £0.67 | £7.72 | Yes |
-| PROS-2020-0043+PROS-2020-0043g | £-66.94 | £62.94 | £-4.00 | Yes |
+| PROS-2020-0043+PROS-2020-0043g | £-58.65 | £62.94 | £4.29 | Yes |
 | PROS-2021-0029+PROS-2021-0029g | £-77.39 | £52.95 | £-24.44 | Yes |
 | PROS-2022-0019+PROS-2022-0019g | £-22.02 | £-247.95 | £-269.97 | No |
 
-Gas accretive in 178/187 dual-fuel accounts. Total gas net margin: £47,443.79.
+Gas accretive in 179/187 dual-fuel accounts. Total gas net margin: £48,282.66.
 
 ## Customer P&L Ranking (Phase 17c)
 
-Lifetime net margin: £152,114.25 across 397 billing accounts. Revenue: £1,001,486.48.
+Lifetime net margin: £153,201.87 across 397 billing accounts. Revenue: £1,008,572.96.
 
 | # | Customer | Tariff | Revenue | Gross margin | Capital | Net margin | Net margin % |
 |---|----------|--------|---------|-------------|---------|------------|-------------|
 | 1 | PROS-2018-0043 | fixed | £7,576.25 | £4,709.29 | £42.18 | £1,799.91 | 23.8% |
 | 2 | C8 | fixed | £20,987.24 | £11,786.24 | £134.31 | £1,759.12 | 8.4% |
-| 3 | PROS-2020-0042 | fixed | £8,949.14 | £5,273.60 | £61.17 | £1,735.08 | 19.4% |
-| 4 | PROS-2019-0023 | fixed | £8,400.78 | £4,994.02 | £52.08 | £1,720.29 | 20.5% |
-| 5 | PROS-2020-0048 | fixed | £8,849.98 | £5,221.70 | £58.88 | £1,692.01 | 19.1% |
-| 6 | PROS-2018-0035 | fixed | £7,496.24 | £4,602.66 | £45.73 | £1,679.81 | 22.4% |
-| 7 | PROS-2021-0062 | fixed | £10,369.87 | £5,860.89 | £77.08 | £1,634.88 | 15.8% |
-| 8 | PROS-2019-0027 | fixed | £6,864.01 | £4,181.49 | £41.59 | £1,567.36 | 22.8% |
-| 9 | C9 | fixed | £19,442.03 | £11,913.53 | £124.65 | £1,558.78 | 8.0% |
-| 10 | PROS-2020-0032 | fixed | £7,465.29 | £4,431.88 | £49.89 | £1,558.24 | 20.9% |
-| 11 | PROS-2018-0053 | fixed | £7,153.66 | £4,399.45 | £40.56 | £1,501.52 | 21.0% |
-| 12 | PROS-2019-0021 | fixed | £5,514.17 | £3,462.29 | £32.26 | £1,495.54 | 27.1% |
-| 13 | PROS-2016-0020 | fixed | £8,148.24 | £4,887.71 | £50.99 | £1,437.23 | 17.6% |
-| 14 | PROS-2017-0019 | fixed | £7,728.70 | £4,620.37 | £49.69 | £1,415.29 | 18.3% |
-| 15 | PROS-2018-0024 | fixed | £7,113.59 | £4,221.75 | £46.24 | £1,290.34 | 18.1% |
-| 16 | PROS-2017-0022 | fixed | £9,160.98 | £5,286.69 | £60.03 | £1,287.49 | 14.1% |
-| 17 | PROS-2016-0011 | fixed | £8,544.48 | £5,049.35 | £58.16 | £1,273.24 | 14.9% |
-| 18 | PROS-2018-0022 | fixed | £5,611.25 | £3,442.47 | £35.17 | £1,242.76 | 22.1% |
-| 19 | PROS-2019-0024 | fixed | £6,484.18 | £3,918.06 | £35.59 | £1,228.91 | 19.0% |
-| 20 | PROS-2022-0045 | fixed | £4,666.71 | £2,772.41 | £27.06 | £1,193.89 | 25.6% |
-| 21 | PROS-2022-0030 | fixed | £4,784.31 | £2,764.89 | £28.32 | £1,169.45 | 24.4% |
-| 22 | PROS-2021-0045 | fixed | £7,040.11 | £3,894.46 | £44.76 | £1,151.67 | 16.4% |
+| 3 | PROS-2019-0023 | fixed | £8,400.78 | £4,994.02 | £52.08 | £1,720.29 | 20.5% |
+| 4 | PROS-2020-0048 | fixed | £8,868.01 | £5,239.79 | £59.02 | £1,709.95 | 19.3% |
+| 5 | PROS-2018-0035 | fixed | £7,496.24 | £4,602.66 | £45.73 | £1,679.82 | 22.4% |
+| 6 | PROS-2021-0062 | fixed | £10,369.70 | £5,860.71 | £77.08 | £1,634.71 | 15.8% |
+| 7 | PROS-2019-0027 | fixed | £6,864.01 | £4,181.49 | £41.59 | £1,567.36 | 22.8% |
+| 8 | C9 | fixed | £19,442.03 | £11,913.53 | £124.65 | £1,558.78 | 8.0% |
+| 9 | PROS-2020-0032 | fixed | £7,465.31 | £4,431.90 | £49.89 | £1,558.25 | 20.9% |
+| 10 | PROS-2018-0053 | fixed | £7,152.30 | £4,398.08 | £40.55 | £1,500.16 | 21.0% |
+| 11 | PROS-2019-0021 | fixed | £5,514.16 | £3,462.29 | £32.26 | £1,495.54 | 27.1% |
+| 12 | PROS-2016-0020 | fixed | £8,148.31 | £4,887.78 | £50.99 | £1,437.30 | 17.6% |
+| 13 | PROS-2017-0019 | fixed | £7,721.47 | £4,613.14 | £49.63 | £1,408.11 | 18.2% |
+| 14 | PROS-2018-0024 | fixed | £7,113.69 | £4,221.84 | £46.24 | £1,290.43 | 18.1% |
+| 15 | PROS-2017-0022 | fixed | £9,160.93 | £5,286.63 | £60.03 | £1,287.43 | 14.1% |
+| 16 | PROS-2016-0011 | fixed | £8,544.45 | £5,049.32 | £58.16 | £1,273.21 | 14.9% |
+| 17 | PROS-2018-0022 | fixed | £5,611.31 | £3,442.52 | £35.16 | £1,242.81 | 22.1% |
+| 18 | PROS-2019-0024 | fixed | £6,484.18 | £3,918.06 | £35.59 | £1,228.92 | 19.0% |
+| 19 | PROS-2022-0045 | fixed | £4,673.56 | £2,779.38 | £27.20 | £1,200.73 | 25.7% |
+| 20 | PROS-2022-0030 | fixed | £4,784.31 | £2,764.89 | £28.32 | £1,169.45 | 24.4% |
+| 21 | PROS-2021-0045 | fixed | £7,027.09 | £3,881.45 | £44.68 | £1,138.74 | 16.2% |
+| 22 | PROS-2018-0003 | fixed | £8,523.20 | £4,809.94 | £56.70 | £1,131.05 | 13.3% |
 | 23 | PROS-2021-0031 | fixed | £5,117.37 | £2,955.52 | £32.12 | £1,128.40 | 22.1% |
-| 24 | PROS-2019-0015 | fixed | £7,715.14 | £4,378.86 | £53.64 | £1,091.37 | 14.1% |
-| 25 | PROS-2019-0012 | fixed | £5,048.93 | £3,044.37 | £33.04 | £1,068.91 | 21.2% |
-| 26 | C3 | fixed | £4,511.84 | £3,058.45 | £25.67 | £1,065.50 | 23.6% |
-| 27 | PROS-2018-0016 | fixed | £6,908.50 | £3,994.70 | £49.44 | £1,056.45 | 15.3% |
-| 28 | PROS-2022-0046 | fixed | £4,492.42 | £2,631.56 | £30.16 | £1,054.52 | 23.5% |
-| 29 | PROS-2018-0009 | fixed | £6,832.75 | £3,966.02 | £43.68 | £1,029.99 | 15.1% |
+| 24 | PROS-2019-0015 | fixed | £7,715.09 | £4,378.80 | £53.64 | £1,091.32 | 14.1% |
+| 25 | PROS-2018-0016 | fixed | £6,921.25 | £4,007.61 | £49.57 | £1,069.22 | 15.4% |
+| 26 | PROS-2019-0012 | fixed | £5,049.25 | £3,044.69 | £33.04 | £1,069.22 | 21.2% |
+| 27 | C3 | fixed | £4,511.84 | £3,058.45 | £25.67 | £1,065.50 | 23.6% |
+| 28 | PROS-2022-0046 | fixed | £4,492.51 | £2,631.66 | £30.16 | £1,054.61 | 23.5% |
+| 29 | PROS-2018-0009 | fixed | £6,829.80 | £3,963.07 | £43.64 | £1,027.09 | 15.0% |
 | 30 | C2 | fixed | £6,743.91 | £3,987.49 | £40.58 | £1,010.67 | 15.0% |
-| 31 | PROS-2022-0047 | fixed | £5,286.83 | £2,969.31 | £32.71 | £1,004.36 | 19.0% |
-| 32 | PROS-2022-0048 | fixed | £4,409.10 | £2,553.96 | £28.44 | £979.71 | 22.2% |
-| 33 | PROS-2019-0009 | fixed | £7,643.34 | £4,275.85 | £58.03 | £975.49 | 12.8% |
-| 34 | PROS-2021-0051 | fixed | £5,054.45 | £2,907.44 | £35.12 | £975.48 | 19.3% |
-| 35 | PROS-2019-0008 | fixed | £6,299.21 | £3,607.87 | £49.07 | £964.03 | 15.3% |
-| 36 | PROS-2020-0022 | fixed | £5,670.78 | £3,245.53 | £41.29 | £940.02 | 16.6% |
-| 37 | PROS-2021-0088 | fixed | £4,809.58 | £2,825.02 | £30.73 | £937.06 | 19.5% |
-| 38 | PROS-2022-0049 | fixed | £5,195.52 | £2,887.80 | £39.39 | £917.55 | 17.7% |
-| 39 | PROS-2020-0009 | fixed | £4,460.02 | £2,652.94 | £30.52 | £914.17 | 20.5% |
-| 40 | PROS-2018-0018 | fixed | £8,207.50 | £4,578.12 | £60.35 | £907.86 | 11.1% |
-| 41 | PROS-2020-0002 | fixed | £5,729.66 | £3,225.62 | £41.56 | £902.19 | 15.7% |
-| 42 | PROS-2023-0067g | fixed | £2,788.72 | £1,460.11 | £46.54 | £888.72 | 31.9% |
-| 43 | PROS-2020-0012 | fixed | £6,785.49 | £3,781.80 | £49.58 | £887.66 | 13.1% |
-| 44 | PROS-2023-0039 | fixed | £3,104.79 | £2,014.42 | £21.75 | £851.90 | 27.4% |
-| 45 | PROS-2020-0016 | fixed | £5,588.23 | £3,140.94 | £44.84 | £824.56 | 14.8% |
-| 46 | PROS-2023-0125 | fixed | £3,569.38 | £2,444.94 | £21.13 | £811.12 | 22.7% |
-| 47 | PROS-2023-0104 | fixed | £4,151.11 | £2,771.84 | £23.54 | £800.84 | 19.3% |
-| 48 | PROS-2016-0020g | fixed | £4,801.41 | £1,852.26 | £47.96 | £798.40 | 16.6% |
-| 49 | PROS-2022-0097 | fixed | £5,791.13 | £3,165.17 | £39.80 | £797.05 | 13.8% |
-| 50 | PROS-2022-0073 | fixed | £4,157.33 | £2,340.37 | £24.92 | £795.36 | 19.1% |
-| 51 | PROS-2022-0071 | fixed | £4,132.33 | £2,327.54 | £26.08 | £778.07 | 18.8% |
-| 52 | PROS-2022-0063 | fixed | £3,649.38 | £1,918.76 | £21.20 | £778.06 | 21.3% |
-| 53 | PROS-2022-0130 | fixed | £3,801.34 | £2,264.42 | £25.41 | £762.70 | 20.1% |
-| 54 | PROS-2022-0083 | fixed | £3,258.09 | £1,917.89 | £22.70 | £758.53 | 23.3% |
-| 55 | PROS-2023-0039g | fixed | £2,781.45 | £1,312.72 | £46.76 | £754.22 | 27.1% |
-| 56 | C2g | fixed | £7,573.02 | £2,732.94 | £92.13 | £754.09 | 10.0% |
-| 57 | PROS-2022-0081 | fixed | £4,923.20 | £2,681.00 | £33.96 | £749.76 | 15.2% |
-| 58 | PROS-2023-0045 | fixed | £3,497.15 | £2,177.24 | £25.40 | £739.66 | 21.2% |
-| 59 | PROS-2023-0045g | fixed | £2,453.82 | £1,235.23 | £46.66 | £738.97 | 30.1% |
-| 60 | PROS-2023-0126 | fixed | £2,959.11 | £2,053.20 | £17.82 | £736.40 | 24.9% |
-| 61 | C1g | fixed | £2,918.17 | £1,564.89 | £18.80 | £733.88 | 25.1% |
-| 62 | PROS-2017-0019g | fixed | £3,163.67 | £1,341.72 | £28.65 | £728.07 | 23.0% |
-| 63 | PROS-2018-0053g | fixed | £2,889.55 | £1,291.68 | £32.02 | £720.13 | 24.9% |
-| 64 | PROS-2023-0089 | fixed | £2,670.08 | £1,812.16 | £19.74 | £716.41 | 26.8% |
-| 65 | PROS-2023-0026g | fixed | £2,733.82 | £1,216.38 | £44.11 | £702.06 | 25.7% |
-| 66 | PROS-2022-0082 | fixed | £4,858.55 | £2,627.39 | £37.59 | £694.02 | 14.3% |
-| 67 | PROS-2022-0100 | fixed | £5,672.43 | £3,056.86 | £39.73 | £690.24 | 12.2% |
-| 68 | PROS-2023-0113 | fixed | £2,921.15 | £2,011.14 | £21.74 | £684.33 | 23.4% |
-| 69 | PROS-2023-0127 | fixed | £2,882.76 | £1,985.89 | £10.92 | £680.67 | 23.6% |
-| 70 | PROS-2016-0011g | fixed | £6,559.50 | £2,199.79 | £66.02 | £678.30 | 10.3% |
-| 71 | PROS-2023-0096g | fixed | £2,202.10 | £1,197.31 | £42.07 | £677.45 | 30.8% |
-| 72 | PROS-2024-0014g | fixed | £2,080.65 | £1,120.20 | £37.50 | £657.11 | 31.6% |
-| 73 | PROS-2023-0089g | fixed | £2,108.63 | £1,148.54 | £38.97 | £653.04 | 31.0% |
-| 74 | PROS-2023-0065g | fixed | £1,845.13 | £1,010.48 | £29.24 | £651.13 | 35.3% |
-| 75 | PROS-2022-0124 | fixed | £4,549.83 | £2,524.03 | £30.87 | £638.37 | 14.0% |
-| 76 | PROS-2023-0001g | fixed | £3,608.78 | £1,319.24 | £48.28 | £636.77 | 17.6% |
-| 77 | PROS-2018-0035g | fixed | £5,913.44 | £1,947.18 | £71.26 | £635.58 | 10.7% |
-| 78 | PROS-2023-0072 | fixed | £2,704.05 | £1,752.13 | £15.82 | £635.56 | 23.5% |
-| 79 | PROS-2022-0128 | fixed | £4,541.81 | £2,516.08 | £27.86 | £633.43 | 13.9% |
-| 80 | PROS-2017-0022g | fixed | £7,750.71 | £2,442.00 | £87.93 | £632.69 | 8.2% |
-| 81 | PROS-2023-0090 | fixed | £2,570.36 | £1,718.16 | £15.83 | £628.67 | 24.5% |
-| 82 | PROS-2022-0127 | fixed | £3,751.30 | £2,130.58 | £22.57 | £624.18 | 16.6% |
-| 83 | PROS-2023-0013g | fixed | £2,762.53 | £1,133.40 | £39.43 | £622.11 | 22.5% |
-| 84 | PROS-2023-0113g | fixed | £2,430.89 | £1,249.20 | £50.69 | £621.27 | 25.6% |
-| 85 | PROS-2022-0067 | fixed | £4,876.23 | £2,824.68 | £25.58 | £619.40 | 12.7% |
-| 86 | PROS-2018-0018g | fixed | £3,316.11 | £1,266.59 | £32.17 | £615.12 | 18.5% |
-| 87 | PROS-2018-0003 | fixed | £7,942.16 | £4,437.49 | £48.14 | £614.37 | 7.7% |
-| 88 | PROS-2023-0162 | fixed | £4,153.45 | £2,820.28 | £32.28 | £605.85 | 14.6% |
-| 89 | PROS-2023-0026 | fixed | £3,567.60 | £2,089.62 | £26.27 | £601.19 | 16.9% |
-| 90 | PROS-2023-0065 | fixed | £2,706.32 | £1,729.45 | £17.66 | £599.98 | 22.2% |
-| 91 | PROS-2025-0085 | fixed | £878.53 | £754.23 | £3.07 | £595.24 | 67.8% |
-| 92 | PROS-2023-0025g | fixed | £2,196.15 | £982.84 | £32.94 | £586.10 | 26.7% |
-| 93 | PROS-2018-0022g | fixed | £4,389.26 | £1,505.14 | £46.23 | £583.21 | 13.3% |
-| 94 | PROS-2023-0127g | fixed | £2,474.68 | £1,234.48 | £42.90 | £582.77 | 23.5% |
-| 95 | PROS-2023-0096 | fixed | £2,502.28 | £1,669.73 | £19.87 | £582.34 | 23.3% |
-| 96 | PROS-2022-0120 | fixed | £4,518.23 | £2,464.36 | £28.67 | £577.01 | 12.8% |
-| 97 | PROS-2023-0067 | fixed | £2,679.36 | £1,703.25 | £20.59 | £570.88 | 21.3% |
-| 98 | PROS-2019-0012g | fixed | £2,057.39 | £916.47 | £18.74 | £563.82 | 27.4% |
-| 99 | PROS-2023-0090g | fixed | £1,597.01 | £910.64 | £26.62 | £560.46 | 35.1% |
-| 100 | PROS-2020-0006 | fixed | £4,111.09 | £2,141.23 | £30.08 | £556.69 | 13.5% |
-| 101 | PROS-2019-0021g | fixed | £2,964.34 | £1,139.98 | £34.36 | £555.12 | 18.7% |
-| 102 | PROS-2022-0010 | fixed | £5,075.71 | £2,576.65 | £39.76 | £554.26 | 10.9% |
-| 103 | PROS-2022-0009 | fixed | £4,170.59 | £2,168.86 | £34.34 | £547.32 | 13.1% |
+| 31 | PROS-2020-0006 | fixed | £5,770.78 | £3,330.85 | £41.42 | £1,009.59 | 17.5% |
+| 32 | PROS-2022-0047 | fixed | £5,286.86 | £2,969.34 | £32.71 | £1,004.39 | 19.0% |
+| 33 | PROS-2022-0048 | fixed | £4,409.12 | £2,553.99 | £28.44 | £979.73 | 22.2% |
+| 34 | PROS-2021-0051 | fixed | £5,054.77 | £2,907.74 | £35.12 | £975.78 | 19.3% |
+| 35 | PROS-2019-0009 | fixed | £7,639.79 | £4,272.33 | £58.00 | £972.00 | 12.7% |
+| 36 | PROS-2019-0008 | fixed | £6,305.14 | £3,613.45 | £49.06 | £969.61 | 15.4% |
+| 37 | PROS-2020-0022 | fixed | £5,670.75 | £3,245.50 | £41.29 | £939.99 | 16.6% |
+| 38 | PROS-2021-0088 | fixed | £4,809.58 | £2,825.02 | £30.73 | £937.06 | 19.5% |
+| 39 | PROS-2022-0049 | fixed | £5,195.50 | £2,887.78 | £39.39 | £917.52 | 17.7% |
+| 40 | PROS-2018-0018 | fixed | £8,210.35 | £4,581.03 | £60.38 | £910.74 | 11.1% |
+| 41 | PROS-2020-0009 | fixed | £4,455.46 | £2,648.38 | £30.46 | £909.68 | 20.4% |
+| 42 | PROS-2020-0002 | fixed | £5,733.32 | £3,229.28 | £41.62 | £905.78 | 15.8% |
+| 43 | PROS-2023-0067g | fixed | £2,788.72 | £1,460.11 | £46.54 | £888.72 | 31.9% |
+| 44 | PROS-2020-0012 | fixed | £6,785.49 | £3,781.80 | £49.58 | £887.66 | 13.1% |
+| 45 | PROS-2023-0039 | fixed | £3,104.94 | £2,014.57 | £21.75 | £852.04 | 27.4% |
+| 46 | PROS-2020-0016 | fixed | £5,585.39 | £3,138.09 | £44.81 | £821.74 | 14.7% |
+| 47 | PROS-2023-0125 | fixed | £3,569.38 | £2,444.94 | £21.13 | £811.12 | 22.7% |
+| 48 | PROS-2023-0104 | fixed | £4,151.11 | £2,771.84 | £23.54 | £800.84 | 19.3% |
+| 49 | PROS-2016-0020g | fixed | £4,801.41 | £1,852.26 | £47.96 | £798.40 | 16.6% |
+| 50 | PROS-2022-0097 | fixed | £5,791.13 | £3,165.17 | £39.80 | £797.05 | 13.8% |
+| 51 | PROS-2022-0073 | fixed | £4,157.33 | £2,340.37 | £24.92 | £795.36 | 19.1% |
+| 52 | PROS-2022-0071 | fixed | £4,132.33 | £2,327.54 | £26.08 | £778.07 | 18.8% |
+| 53 | PROS-2022-0063 | fixed | £3,649.38 | £1,918.76 | £21.20 | £778.06 | 21.3% |
+| 54 | PROS-2022-0130 | fixed | £3,801.34 | £2,264.42 | £25.41 | £762.70 | 20.1% |
+| 55 | PROS-2022-0083 | fixed | £3,258.09 | £1,917.89 | £22.70 | £758.53 | 23.3% |
+| 56 | PROS-2023-0039g | fixed | £2,781.45 | £1,312.72 | £46.76 | £754.22 | 27.1% |
+| 57 | C2g | fixed | £7,573.02 | £2,732.94 | £92.13 | £754.09 | 10.0% |
+| 58 | PROS-2022-0081 | fixed | £4,923.20 | £2,681.00 | £33.96 | £749.76 | 15.2% |
+| 59 | PROS-2023-0045 | fixed | £3,497.13 | £2,177.23 | £25.40 | £739.65 | 21.2% |
+| 60 | PROS-2023-0045g | fixed | £2,453.82 | £1,235.23 | £46.66 | £738.97 | 30.1% |
+| 61 | PROS-2023-0126 | fixed | £2,959.11 | £2,053.20 | £17.82 | £736.40 | 24.9% |
+| 62 | C1g | fixed | £2,918.17 | £1,564.89 | £18.80 | £733.88 | 25.1% |
+| 63 | PROS-2017-0019g | fixed | £3,163.67 | £1,341.72 | £28.65 | £728.07 | 23.0% |
+| 64 | PROS-2018-0053g | fixed | £2,889.55 | £1,291.68 | £32.02 | £720.13 | 24.9% |
+| 65 | PROS-2023-0089 | fixed | £2,670.08 | £1,812.16 | £19.74 | £716.41 | 26.8% |
+| 66 | PROS-2023-0026g | fixed | £2,733.82 | £1,216.38 | £44.11 | £702.06 | 25.7% |
+| 67 | PROS-2022-0082 | fixed | £4,858.55 | £2,627.39 | £37.59 | £694.02 | 14.3% |
+| 68 | PROS-2022-0100 | fixed | £5,672.43 | £3,056.86 | £39.73 | £690.24 | 12.2% |
+| 69 | PROS-2023-0113 | fixed | £2,921.15 | £2,011.14 | £21.74 | £684.33 | 23.4% |
+| 70 | PROS-2023-0127 | fixed | £2,882.76 | £1,985.89 | £10.92 | £680.67 | 23.6% |
+| 71 | PROS-2016-0011g | fixed | £6,559.50 | £2,199.79 | £66.02 | £678.30 | 10.3% |
+| 72 | PROS-2023-0096g | fixed | £2,202.10 | £1,197.31 | £42.07 | £677.45 | 30.8% |
+| 73 | PROS-2024-0014g | fixed | £2,080.65 | £1,120.20 | £37.50 | £657.11 | 31.6% |
+| 74 | PROS-2023-0089g | fixed | £2,108.63 | £1,148.54 | £38.97 | £653.04 | 31.0% |
+| 75 | PROS-2023-0065g | fixed | £1,845.13 | £1,010.48 | £29.24 | £651.13 | 35.3% |
+| 76 | PROS-2022-0124 | fixed | £4,549.83 | £2,524.03 | £30.87 | £638.37 | 14.0% |
+| 77 | PROS-2023-0001g | fixed | £3,608.78 | £1,319.24 | £48.28 | £636.77 | 17.6% |
+| 78 | PROS-2018-0035g | fixed | £5,913.44 | £1,947.18 | £71.26 | £635.58 | 10.7% |
+| 79 | PROS-2023-0072 | fixed | £2,704.05 | £1,752.13 | £15.82 | £635.56 | 23.5% |
+| 80 | PROS-2022-0128 | fixed | £4,541.81 | £2,516.08 | £27.86 | £633.43 | 13.9% |
+| 81 | PROS-2017-0022g | fixed | £7,750.71 | £2,442.00 | £87.93 | £632.69 | 8.2% |
+| 82 | PROS-2023-0090 | fixed | £2,570.36 | £1,718.16 | £15.83 | £628.67 | 24.5% |
+| 83 | PROS-2022-0127 | fixed | £3,751.30 | £2,130.58 | £22.57 | £624.18 | 16.6% |
+| 84 | PROS-2023-0013g | fixed | £2,762.53 | £1,133.40 | £39.43 | £622.11 | 22.5% |
+| 85 | PROS-2023-0113g | fixed | £2,430.89 | £1,249.20 | £50.69 | £621.27 | 25.6% |
+| 86 | PROS-2022-0067 | fixed | £4,876.23 | £2,824.68 | £25.58 | £619.40 | 12.7% |
+| 87 | PROS-2018-0018g | fixed | £3,316.11 | £1,266.59 | £32.17 | £615.12 | 18.5% |
+| 88 | PROS-2021-0006 | fixed | £5,942.05 | £3,083.43 | £49.08 | £613.74 | 10.3% |
+| 89 | PROS-2023-0162 | fixed | £4,153.45 | £2,820.28 | £32.28 | £605.85 | 14.6% |
+| 90 | PROS-2023-0026 | fixed | £3,567.60 | £2,089.62 | £26.27 | £601.19 | 16.9% |
+| 91 | PROS-2023-0065 | fixed | £2,706.32 | £1,729.45 | £17.66 | £599.98 | 22.2% |
+| 92 | PROS-2025-0085 | fixed | £878.53 | £754.23 | £3.07 | £595.24 | 67.8% |
+| 93 | PROS-2023-0025g | fixed | £2,196.15 | £982.84 | £32.94 | £586.10 | 26.7% |
+| 94 | PROS-2018-0014 | fixed | £9,294.25 | £5,057.32 | £65.13 | £584.28 | 6.3% |
+| 95 | PROS-2018-0022g | fixed | £4,389.26 | £1,505.14 | £46.23 | £583.21 | 13.3% |
+| 96 | PROS-2023-0127g | fixed | £2,474.68 | £1,234.48 | £42.90 | £582.77 | 23.5% |
+| 97 | PROS-2023-0096 | fixed | £2,502.28 | £1,669.73 | £19.87 | £582.34 | 23.3% |
+| 98 | PROS-2022-0120 | fixed | £4,518.23 | £2,464.36 | £28.67 | £577.01 | 12.8% |
+| 99 | PROS-2023-0067 | fixed | £2,679.36 | £1,703.25 | £20.59 | £570.88 | 21.3% |
+| 100 | PROS-2019-0012g | fixed | £2,057.39 | £916.47 | £18.74 | £563.82 | 27.4% |
+| 101 | PROS-2023-0090g | fixed | £1,597.01 | £910.64 | £26.62 | £560.46 | 35.1% |
+| 102 | PROS-2019-0021g | fixed | £2,964.34 | £1,139.98 | £34.36 | £555.12 | 18.7% |
+| 103 | PROS-2022-0010 | fixed | £5,071.02 | £2,571.86 | £39.72 | £549.51 | 10.8% |
 | 104 | PROS-2023-0116 | fixed | £2,795.39 | £1,928.19 | £14.54 | £545.68 | 19.5% |
-| 105 | PROS-2023-0158 | fixed | £2,567.77 | £1,791.09 | £17.21 | £529.91 | 20.6% |
-| 106 | PROS-2022-0092 | fixed | £5,601.29 | £2,909.01 | £40.54 | £527.93 | 9.4% |
-| 107 | PROS-2024-0027 | fixed | £2,009.65 | £1,402.81 | £12.20 | £523.66 | 26.1% |
-| 108 | PROS-2023-0125g | fixed | £1,969.87 | £1,026.14 | £40.64 | £522.86 | 26.5% |
-| 109 | PROS-2023-0104g | fixed | £1,713.50 | £931.12 | £33.25 | £518.66 | 30.3% |
-| 110 | PROS-2018-0016g | fixed | £5,627.44 | £1,737.74 | £60.31 | £509.85 | 9.1% |
-| 111 | C1 | fixed | £1,890.00 | £1,333.44 | £9.04 | £502.39 | 26.6% |
-| 112 | PROS-2023-0014 | fixed | £2,922.00 | £1,702.68 | £17.29 | £500.58 | 17.1% |
-| 113 | PROS-2023-0016g | fixed | £1,777.95 | £803.98 | £24.33 | £493.55 | 27.8% |
-| 114 | PROS-2018-0014g | fixed | £1,581.76 | £879.44 | £8.93 | £492.57 | 31.1% |
+| 105 | PROS-2022-0009 | fixed | £4,166.92 | £2,165.11 | £34.30 | £543.61 | 13.0% |
+| 106 | PROS-2023-0158 | fixed | £2,567.77 | £1,791.09 | £17.21 | £529.91 | 20.6% |
+| 107 | PROS-2022-0092 | fixed | £5,601.29 | £2,909.01 | £40.54 | £527.93 | 9.4% |
+| 108 | PROS-2024-0027 | fixed | £2,009.65 | £1,402.81 | £12.20 | £523.66 | 26.1% |
+| 109 | PROS-2023-0125g | fixed | £1,969.87 | £1,026.14 | £40.64 | £522.86 | 26.5% |
+| 110 | PROS-2023-0104g | fixed | £1,713.50 | £931.12 | £33.25 | £518.66 | 30.3% |
+| 111 | PROS-2018-0016g | fixed | £5,627.44 | £1,737.74 | £60.31 | £509.85 | 9.1% |
+| 112 | C1 | fixed | £1,890.00 | £1,333.44 | £9.04 | £502.39 | 26.6% |
+| 113 | PROS-2023-0014 | fixed | £2,922.00 | £1,702.69 | £17.29 | £500.59 | 17.1% |
+| 114 | PROS-2023-0016g | fixed | £1,777.95 | £803.98 | £24.33 | £493.55 | 27.8% |
 | 115 | PROS-2023-0072g | fixed | £1,260.97 | £734.91 | £22.10 | £490.81 | 38.9% |
 | 116 | PROS-2019-0009g | fixed | £3,215.65 | £1,121.28 | £32.83 | £487.60 | 15.2% |
-| 117 | PROS-2020-0025 | fixed | £6,411.79 | £3,583.72 | £43.87 | £486.31 | 7.6% |
-| 118 | PROS-2024-0014 | fixed | £2,009.32 | £1,388.38 | £15.82 | £485.61 | 24.2% |
+| 117 | PROS-2020-0025 | fixed | £6,411.84 | £3,583.77 | £43.87 | £486.35 | 7.6% |
+| 118 | PROS-2024-0014 | fixed | £2,009.04 | £1,388.09 | £15.81 | £485.34 | 24.2% |
 | 119 | PROS-2023-0010g | fixed | £2,213.44 | £875.42 | £28.72 | £484.92 | 21.9% |
 | 120 | PROS-2024-0008 | fixed | £1,984.66 | £1,393.92 | £12.41 | £484.79 | 24.4% |
-| 121 | PROS-2024-0010g | fixed | £1,435.94 | £790.39 | £24.92 | £481.36 | 33.5% |
-| 122 | PROS-2023-0016 | fixed | £2,294.25 | £1,383.64 | £16.04 | £480.03 | 20.9% |
+| 121 | PROS-2023-0016 | fixed | £2,295.64 | £1,385.04 | £16.07 | £481.41 | 21.0% |
+| 122 | PROS-2024-0010g | fixed | £1,435.94 | £790.39 | £24.92 | £481.36 | 33.5% |
 | 123 | PROS-2019-0023g | fixed | £4,581.01 | £1,478.60 | £60.08 | £479.74 | 10.5% |
-| 124 | PROS-2024-0036g | fixed | £1,676.15 | £875.47 | £33.08 | £477.37 | 28.5% |
-| 125 | PROS-2023-0001 | fixed | £3,573.98 | £2,000.32 | £30.51 | £475.06 | 13.3% |
+| 124 | PROS-2023-0001 | fixed | £3,578.66 | £2,004.98 | £30.57 | £479.66 | 13.4% |
+| 125 | PROS-2024-0036g | fixed | £1,676.15 | £875.47 | £33.08 | £477.37 | 28.5% |
 | 126 | PROS-2023-0116g | fixed | £1,656.84 | £884.24 | £30.87 | £472.58 | 28.5% |
 | 127 | PROS-2018-0039g | fixed | £1,269.90 | £752.80 | £6.54 | £471.61 | 37.1% |
 | 128 | PROS-2024-0038 | fixed | £1,610.57 | £1,156.25 | £9.28 | £467.65 | 29.0% |
 | 129 | PROS-2023-0166 | fixed | £2,081.27 | £1,464.35 | £11.81 | £465.17 | 22.4% |
-| 130 | PROS-2024-0008g | fixed | £1,347.53 | £744.25 | £23.22 | £455.98 | 33.8% |
-| 131 | PROS-2019-0015g | fixed | £4,630.85 | £1,442.35 | £54.25 | £452.80 | 9.8% |
-| 132 | PROS-2024-0009 | fixed | £1,650.79 | £1,178.20 | £10.31 | £450.52 | 27.3% |
-| 133 | PROS-2024-0083 | fixed | £1,662.51 | £1,220.57 | £10.42 | £450.35 | 27.1% |
-| 134 | SYN-2021-001 | fixed | £5,350.69 | £2,493.10 | £34.78 | £448.91 | 8.4% |
-| 135 | PROS-2019-0050 | fixed | £2,538.13 | £1,723.78 | £9.83 | £446.54 | 17.6% |
-| 136 | PROS-2023-0014g | fixed | £1,480.66 | £693.26 | £19.36 | £443.66 | 30.0% |
-| 137 | PROS-2018-0039 | fixed | £3,303.58 | £2,156.10 | £13.79 | £439.55 | 13.3% |
-| 138 | PROS-2024-0010 | fixed | £1,932.86 | £1,342.69 | £12.96 | £434.95 | 22.5% |
-| 139 | PROS-2024-0022 | fixed | £1,630.97 | £1,141.00 | £9.52 | £433.05 | 26.6% |
-| 140 | PROS-2023-0147 | fixed | £2,522.58 | £1,703.66 | £20.52 | £425.13 | 16.9% |
-| 141 | PROS-2023-0146 | fixed | £2,528.28 | £1,696.81 | £19.38 | £415.25 | 16.4% |
-| 142 | PROS-2024-0082 | fixed | £1,384.65 | £1,031.10 | £8.49 | £414.77 | 30.0% |
-| 143 | PROS-2024-0048 | fixed | £1,512.97 | £1,086.49 | £8.51 | £414.52 | 27.4% |
-| 144 | PROS-2023-0013 | fixed | £3,420.43 | £1,919.84 | £24.97 | £412.17 | 12.1% |
-| 145 | PROS-2019-0027g | fixed | £5,342.56 | £1,619.40 | £67.42 | £410.42 | 7.7% |
-| 146 | PROS-2022-0124g | fixed | £2,988.32 | £993.86 | £45.20 | £404.16 | 13.5% |
-| 147 | PROS-2024-0036 | fixed | £1,843.93 | £1,270.03 | £16.88 | £400.11 | 21.7% |
-| 148 | PROS-2024-0040 | fixed | £1,813.22 | £1,252.44 | £12.55 | £394.66 | 21.8% |
-| 149 | PROS-2024-0009g | fixed | £1,100.99 | £622.98 | £18.40 | £394.46 | 35.8% |
-| 150 | PROS-2023-0172 | fixed | £2,009.83 | £1,386.32 | £12.28 | £393.42 | 19.6% |
+| 130 | PROS-2018-0014g | fixed | £3,959.17 | £1,287.22 | £36.95 | £464.33 | 11.7% |
+| 131 | PROS-2024-0008g | fixed | £1,347.53 | £744.25 | £23.22 | £455.98 | 33.8% |
+| 132 | PROS-2019-0015g | fixed | £4,630.85 | £1,442.35 | £54.25 | £452.80 | 9.8% |
+| 133 | PROS-2024-0009 | fixed | £1,650.83 | £1,178.24 | £10.31 | £450.55 | 27.3% |
+| 134 | PROS-2024-0083 | fixed | £1,662.51 | £1,220.57 | £10.42 | £450.35 | 27.1% |
+| 135 | SYN-2021-001 | fixed | £5,350.69 | £2,493.10 | £34.78 | £448.91 | 8.4% |
+| 136 | PROS-2019-0050 | fixed | £2,538.13 | £1,723.78 | £9.83 | £446.54 | 17.6% |
+| 137 | PROS-2023-0014g | fixed | £1,480.66 | £693.26 | £19.36 | £443.66 | 30.0% |
+| 138 | PROS-2018-0039 | fixed | £3,303.58 | £2,156.10 | £13.79 | £439.55 | 13.3% |
+| 139 | PROS-2024-0010 | fixed | £1,932.84 | £1,342.66 | £12.96 | £434.93 | 22.5% |
+| 140 | PROS-2024-0022 | fixed | £1,630.97 | £1,141.00 | £9.52 | £433.05 | 26.6% |
+| 141 | PROS-2023-0147 | fixed | £2,522.58 | £1,703.66 | £20.52 | £425.13 | 16.9% |
+| 142 | PROS-2023-0146 | fixed | £2,528.28 | £1,696.81 | £19.38 | £415.25 | 16.4% |
+| 143 | PROS-2024-0082 | fixed | £1,384.65 | £1,031.10 | £8.49 | £414.77 | 30.0% |
+| 144 | PROS-2024-0048 | fixed | £1,512.24 | £1,085.74 | £8.50 | £413.79 | 27.4% |
+| 145 | PROS-2023-0013 | fixed | £3,420.72 | £1,920.13 | £24.97 | £412.46 | 12.1% |
+| 146 | PROS-2019-0027g | fixed | £5,342.56 | £1,619.40 | £67.42 | £410.42 | 7.7% |
+| 147 | PROS-2022-0124g | fixed | £2,988.32 | £993.86 | £45.20 | £404.16 | 13.5% |
+| 148 | PROS-2024-0036 | fixed | £1,843.93 | £1,270.03 | £16.88 | £400.11 | 21.7% |
+| 149 | PROS-2024-0040 | fixed | £1,813.22 | £1,252.44 | £12.55 | £394.66 | 21.8% |
+| 150 | PROS-2024-0009g | fixed | £1,100.99 | £622.98 | £18.40 | £394.46 | 35.8% |
 | 151 | PROS-2020-0016g | fixed | £2,429.40 | £845.68 | £25.02 | £390.48 | 16.1% |
 | 152 | PROS-2024-0065 | fixed | £1,656.97 | £1,186.74 | £9.56 | £387.57 | 23.4% |
-| 153 | PROS-2023-0152 | fixed | £2,037.45 | £1,403.42 | £18.23 | £385.47 | 18.9% |
-| 154 | PROS-2019-0050g | fixed | £1,406.24 | £758.32 | £7.88 | £384.20 | 27.3% |
-| 155 | PROS-2022-0128g | fixed | £1,972.01 | £743.73 | £27.84 | £379.47 | 19.2% |
-| 156 | PROS-2024-0131 | fixed | £1,420.94 | £1,077.41 | £10.66 | £379.14 | 26.7% |
-| 157 | PROS-2024-0012 | fixed | £1,596.12 | £1,102.32 | £13.52 | £377.69 | 23.7% |
-| 158 | PROS-2022-0130g | fixed | £3,417.47 | £1,074.94 | £54.88 | £373.68 | 10.9% |
-| 159 | PROS-2024-0057 | fixed | £2,021.94 | £1,393.71 | £14.93 | £372.74 | 18.4% |
-| 160 | PROS-2023-0177 | fixed | £2,000.07 | £1,365.42 | £17.59 | £372.73 | 18.6% |
-| 161 | PROS-2022-0127g | fixed | £1,647.53 | £663.71 | £22.30 | £371.37 | 22.5% |
-| 162 | PROS-2023-0162g | fixed | £3,240.99 | £1,407.28 | £72.19 | £369.75 | 11.4% |
-| 163 | PROS-2022-0125g | fixed | £3,330.87 | £1,036.11 | £48.64 | £369.65 | 11.1% |
-| 164 | PROS-2024-0062 | fixed | £1,676.46 | £1,185.33 | £12.21 | £369.61 | 22.0% |
-| 165 | PROS-2024-0087 | fixed | £1,326.77 | £975.25 | £9.36 | £366.01 | 27.6% |
-| 166 | PROS-2024-0081 | fixed | £1,591.81 | £1,143.08 | £15.18 | £364.17 | 22.9% |
-| 167 | PROS-2024-0062g | fixed | £1,269.79 | £677.99 | £24.96 | £363.66 | 28.6% |
-| 168 | PROS-2024-0027g | fixed | £941.01 | £551.45 | £15.70 | £359.83 | 38.2% |
-| 169 | C3g | fixed | £7,404.89 | £2,613.41 | £84.50 | £355.05 | 4.8% |
-| 170 | PROS-2024-0111 | fixed | £1,936.59 | £1,400.18 | £15.56 | £354.92 | 18.3% |
-| 171 | PROS-2024-0081g | fixed | £1,257.96 | £676.36 | £24.44 | £354.64 | 28.2% |
-| 172 | PROS-2024-0041g | fixed | £1,244.49 | £651.65 | £23.36 | £353.52 | 28.4% |
-| 173 | PROS-2024-0085 | fixed | £1,314.99 | £962.69 | £7.44 | £350.69 | 26.7% |
-| 174 | PROS-2020-0022g | fixed | £3,436.80 | £1,052.48 | £41.12 | £349.66 | 10.2% |
-| 175 | PROS-2020-0032g | fixed | £4,000.02 | £1,190.76 | £51.73 | £347.51 | 8.7% |
-| 176 | PROS-2023-0025 | fixed | £3,025.56 | £1,757.30 | £16.83 | £347.07 | 11.5% |
-| 177 | PROS-2019-0024g | fixed | £5,096.68 | £1,486.10 | £63.81 | £346.68 | 6.8% |
-| 178 | PROS-2019-0003g | fixed | £964.84 | £570.22 | £4.99 | £345.02 | 35.8% |
-| 179 | PROS-2024-0147 | fixed | £1,365.93 | £1,021.40 | £9.86 | £344.51 | 25.2% |
-| 180 | PROS-2022-0047g | fixed | £515.12 | £383.46 | £3.10 | £343.17 | 66.6% |
-| 181 | PROS-2024-0040g | fixed | £1,191.22 | £624.76 | £22.19 | £341.62 | 28.7% |
-| 182 | PROS-2024-0148 | fixed | £1,146.09 | £872.56 | £4.61 | £335.50 | 29.3% |
-| 183 | PROS-2024-0041 | fixed | £1,454.58 | £1,018.21 | £13.27 | £332.06 | 22.8% |
-| 184 | PROS-2024-0116 | fixed | £1,177.08 | £902.92 | £8.93 | £329.96 | 28.0% |
-| 185 | PROS-2024-0069 | fixed | £1,589.40 | £1,122.73 | £12.06 | £323.06 | 20.3% |
-| 186 | PROS-2024-0113 | fixed | £1,384.89 | £1,035.09 | £7.17 | £319.80 | 23.1% |
-| 187 | PROS-2024-0083g | fixed | £1,088.94 | £593.43 | £20.98 | £318.19 | 29.2% |
-| 188 | PROS-2022-0081g | fixed | £583.58 | £378.60 | £4.43 | £316.33 | 54.2% |
-| 189 | PROS-2024-0122 | fixed | £1,152.99 | £881.36 | £7.28 | £313.80 | 27.2% |
-| 190 | PROS-2024-0056 | fixed | £1,381.17 | £972.37 | £9.71 | £312.04 | 22.6% |
-| 191 | PROS-2024-0069g | fixed | £998.25 | £551.67 | £17.94 | £310.93 | 31.1% |
-| 192 | PROS-2020-0048g | fixed | £5,218.33 | £1,500.34 | £73.00 | £310.26 | 5.9% |
-| 193 | PROS-2020-0009g | fixed | £2,746.91 | £841.71 | £27.80 | £309.27 | 11.3% |
-| 194 | PROS-2019-0008g | fixed | £5,651.08 | £1,542.47 | £63.59 | £308.53 | 5.5% |
-| 195 | PROS-2024-0110 | fixed | £1,399.63 | £1,023.06 | £4.15 | £304.33 | 21.7% |
-| 196 | PROS-2024-0098 | fixed | £1,434.80 | £1,020.57 | £8.37 | £286.52 | 20.0% |
-| 197 | PROS-2024-0096 | fixed | £1,211.88 | £878.39 | £10.89 | £284.47 | 23.5% |
-| 198 | PROS-2021-0088g | fixed | £1,874.54 | £654.96 | £24.35 | £281.09 | 15.0% |
-| 199 | PROS-2018-0003g | fixed | £4,806.02 | £1,351.60 | £75.54 | £280.84 | 5.8% |
-| 200 | PROS-2024-0057g | fixed | £833.82 | £470.84 | £15.07 | £279.98 | 33.6% |
-| 201 | PROS-2022-0073g | fixed | £1,578.48 | £572.42 | £21.92 | £278.16 | 17.6% |
-| 202 | PROS-2023-0158g | fixed | £1,436.49 | £697.07 | £30.32 | £277.17 | 19.3% |
-| 203 | PROS-2023-0152g | fixed | £1,621.32 | £763.57 | £35.08 | £276.95 | 17.1% |
-| 204 | PROS-2016-0003 | fixed | £1,389.67 | £953.56 | £6.43 | £276.57 | 19.9% |
-| 205 | PROS-2023-0166g | fixed | £817.10 | £462.43 | £13.99 | £261.08 | 32.0% |
-| 206 | PROS-2021-0051g | fixed | £2,857.83 | £860.71 | £43.99 | £260.66 | 9.1% |
-| 207 | PROS-2023-0126g | fixed | £378.22 | £299.77 | £3.38 | £257.16 | 68.0% |
-| 208 | PROS-2024-0038g | fixed | £674.69 | £394.04 | £11.13 | £254.24 | 37.7% |
-| 209 | PROS-2024-0065g | fixed | £698.61 | £408.53 | £11.61 | £252.38 | 36.1% |
-| 210 | PROS-2023-0177g | fixed | £1,537.26 | £715.70 | £32.60 | £249.93 | 16.3% |
-| 211 | PROS-2023-0172g | fixed | £821.43 | £455.57 | £14.48 | £247.80 | 30.2% |
+| 153 | PROS-2018-0003g | fixed | £5,283.26 | £1,566.19 | £85.67 | £385.93 | 7.3% |
+| 154 | PROS-2023-0152 | fixed | £2,037.45 | £1,403.42 | £18.23 | £385.47 | 18.9% |
+| 155 | PROS-2019-0050g | fixed | £1,406.24 | £758.32 | £7.88 | £384.20 | 27.3% |
+| 156 | PROS-2022-0128g | fixed | £1,972.01 | £743.73 | £27.84 | £379.47 | 19.2% |
+| 157 | PROS-2024-0131 | fixed | £1,420.94 | £1,077.41 | £10.66 | £379.14 | 26.7% |
+| 158 | PROS-2024-0012 | fixed | £1,597.38 | £1,103.60 | £13.54 | £378.94 | 23.7% |
+| 159 | PROS-2022-0130g | fixed | £3,417.47 | £1,074.94 | £54.88 | £373.68 | 10.9% |
+| 160 | PROS-2024-0057 | fixed | £2,021.95 | £1,393.71 | £14.93 | £372.75 | 18.4% |
+| 161 | PROS-2023-0177 | fixed | £1,999.55 | £1,364.92 | £17.59 | £372.23 | 18.6% |
+| 162 | PROS-2022-0127g | fixed | £1,647.53 | £663.71 | £22.30 | £371.37 | 22.5% |
+| 163 | PROS-2023-0162g | fixed | £3,240.99 | £1,407.28 | £72.19 | £369.75 | 11.4% |
+| 164 | PROS-2022-0125g | fixed | £3,330.87 | £1,036.11 | £48.64 | £369.65 | 11.1% |
+| 165 | PROS-2024-0062 | fixed | £1,676.46 | £1,185.33 | £12.21 | £369.61 | 22.0% |
+| 166 | PROS-2024-0087 | fixed | £1,326.77 | £975.25 | £9.36 | £366.01 | 27.6% |
+| 167 | PROS-2024-0081 | fixed | £1,591.81 | £1,143.08 | £15.18 | £364.17 | 22.9% |
+| 168 | PROS-2024-0062g | fixed | £1,269.79 | £677.99 | £24.96 | £363.66 | 28.6% |
+| 169 | PROS-2024-0027g | fixed | £941.01 | £551.45 | £15.70 | £359.83 | 38.2% |
+| 170 | C3g | fixed | £7,404.89 | £2,613.41 | £84.50 | £355.05 | 4.8% |
+| 171 | PROS-2024-0111 | fixed | £1,936.59 | £1,400.18 | £15.56 | £354.92 | 18.3% |
+| 172 | PROS-2024-0081g | fixed | £1,257.96 | £676.36 | £24.44 | £354.64 | 28.2% |
+| 173 | PROS-2024-0041g | fixed | £1,244.49 | £651.65 | £23.36 | £353.52 | 28.4% |
+| 174 | PROS-2024-0085 | fixed | £1,314.99 | £962.69 | £7.44 | £350.69 | 26.7% |
+| 175 | PROS-2020-0022g | fixed | £3,436.80 | £1,052.48 | £41.12 | £349.66 | 10.2% |
+| 176 | PROS-2020-0032g | fixed | £4,000.02 | £1,190.76 | £51.73 | £347.51 | 8.7% |
+| 177 | PROS-2023-0025 | fixed | £3,025.56 | £1,757.30 | £16.83 | £347.07 | 11.5% |
+| 178 | PROS-2019-0024g | fixed | £5,096.68 | £1,486.10 | £63.81 | £346.68 | 6.8% |
+| 179 | PROS-2019-0003g | fixed | £964.84 | £570.22 | £4.99 | £345.02 | 35.8% |
+| 180 | PROS-2024-0147 | fixed | £1,365.93 | £1,021.40 | £9.86 | £344.51 | 25.2% |
+| 181 | PROS-2022-0047g | fixed | £515.12 | £383.46 | £3.10 | £343.17 | 66.6% |
+| 182 | PROS-2024-0040g | fixed | £1,191.22 | £624.76 | £22.19 | £341.62 | 28.7% |
+| 183 | PROS-2024-0148 | fixed | £1,146.09 | £872.56 | £4.61 | £335.50 | 29.3% |
+| 184 | PROS-2024-0041 | fixed | £1,454.58 | £1,018.21 | £13.27 | £332.06 | 22.8% |
+| 185 | PROS-2024-0116 | fixed | £1,177.08 | £902.92 | £8.93 | £329.96 | 28.0% |
+| 186 | PROS-2024-0069 | fixed | £1,589.40 | £1,122.73 | £12.06 | £323.06 | 20.3% |
+| 187 | PROS-2024-0113 | fixed | £1,384.89 | £1,035.09 | £7.17 | £319.80 | 23.1% |
+| 188 | PROS-2024-0083g | fixed | £1,088.94 | £593.43 | £20.98 | £318.19 | 29.2% |
+| 189 | PROS-2022-0081g | fixed | £583.58 | £378.60 | £4.43 | £316.33 | 54.2% |
+| 190 | PROS-2024-0122 | fixed | £1,152.99 | £881.36 | £7.28 | £313.80 | 27.2% |
+| 191 | PROS-2024-0056 | fixed | £1,381.17 | £972.36 | £9.71 | £312.04 | 22.6% |
+| 192 | PROS-2024-0069g | fixed | £998.25 | £551.67 | £17.94 | £310.93 | 31.1% |
+| 193 | PROS-2020-0048g | fixed | £5,218.33 | £1,500.34 | £73.00 | £310.26 | 5.9% |
+| 194 | PROS-2020-0009g | fixed | £2,746.93 | £841.73 | £27.80 | £309.29 | 11.3% |
+| 195 | PROS-2019-0008g | fixed | £5,651.08 | £1,542.47 | £63.59 | £308.53 | 5.5% |
+| 196 | PROS-2024-0110 | fixed | £1,399.63 | £1,023.06 | £4.15 | £304.33 | 21.7% |
+| 197 | PROS-2024-0098 | fixed | £1,434.80 | £1,020.57 | £8.37 | £286.52 | 20.0% |
+| 198 | PROS-2020-0042g | fixed | £1,484.89 | £724.16 | £8.68 | £286.02 | 19.3% |
+| 199 | PROS-2024-0096 | fixed | £1,211.88 | £878.39 | £10.89 | £284.47 | 23.5% |
+| 200 | PROS-2021-0088g | fixed | £1,874.54 | £654.96 | £24.35 | £281.09 | 15.0% |
+| 201 | PROS-2024-0057g | fixed | £833.82 | £470.84 | £15.07 | £279.98 | 33.6% |
+| 202 | PROS-2022-0073g | fixed | £1,578.48 | £572.42 | £21.92 | £278.16 | 17.6% |
+| 203 | PROS-2023-0158g | fixed | £1,436.49 | £697.07 | £30.32 | £277.17 | 19.3% |
+| 204 | PROS-2023-0152g | fixed | £1,621.32 | £763.57 | £35.08 | £276.95 | 17.1% |
+| 205 | PROS-2016-0003 | fixed | £1,389.67 | £953.56 | £6.43 | £276.57 | 19.9% |
+| 206 | PROS-2023-0166g | fixed | £817.10 | £462.43 | £13.99 | £261.08 | 32.0% |
+| 207 | PROS-2023-0177g | fixed | £1,548.30 | £726.74 | £32.60 | £260.97 | 16.9% |
+| 208 | PROS-2021-0051g | fixed | £2,857.83 | £860.71 | £43.99 | £260.66 | 9.1% |
+| 209 | PROS-2023-0126g | fixed | £378.22 | £299.77 | £3.38 | £257.16 | 68.0% |
+| 210 | PROS-2024-0038g | fixed | £674.69 | £394.04 | £11.13 | £254.24 | 37.7% |
+| 211 | PROS-2024-0065g | fixed | £698.61 | £408.53 | £11.61 | £252.38 | 36.1% |
 | 212 | PROS-2023-0147g | fixed | £1,122.89 | £563.52 | £23.71 | £247.07 | 22.0% |
 | 213 | PROS-2022-0071g | fixed | £2,334.08 | £717.73 | £35.47 | £245.27 | 10.5% |
 | 214 | PROS-2024-0087g | fixed | £736.83 | £421.62 | £13.61 | £244.75 | 33.2% |
@@ -5809,194 +5812,194 @@ Lifetime net margin: £152,114.25 across 397 billing accounts. Revenue: £1,001,
 | 221 | PROS-2016-0003g | fixed | £932.77 | £522.12 | £5.46 | £227.90 | 24.4% |
 | 222 | PROS-2020-0050g | fixed | £662.05 | £384.57 | £3.14 | £223.79 | 33.8% |
 | 223 | PROS-2020-0047g | fixed | £637.44 | £374.59 | £2.98 | £222.33 | 34.9% |
-| 224 | PROS-2020-0050 | fixed | £1,643.63 | £1,086.58 | £9.23 | £217.53 | 13.2% |
-| 225 | PROS-2024-0213 | fixed | £1,139.00 | £801.35 | £3.76 | £217.13 | 19.1% |
-| 226 | PROS-2024-0085g | fixed | £557.96 | £338.42 | £9.37 | £215.79 | 38.7% |
-| 227 | PROS-2024-0209 | fixed | £957.79 | £688.10 | £4.68 | £215.55 | 22.5% |
-| 228 | PROS-2024-0218 | fixed | £1,130.70 | £793.06 | £5.86 | £214.00 | 18.9% |
-| 229 | PROS-2024-0203 | fixed | £968.59 | £691.01 | £4.95 | £213.62 | 22.1% |
-| 230 | PROS-2024-0205 | fixed | £1,148.83 | £802.51 | £3.72 | £209.66 | 18.2% |
-| 231 | PROS-2022-0048g | fixed | £2,408.50 | £694.01 | £40.33 | £209.28 | 8.7% |
-| 232 | PROS-2024-0116g | fixed | £1,058.03 | £517.98 | £23.42 | £207.97 | 19.7% |
-| 233 | PROS-2024-0197 | fixed | £1,391.60 | £955.48 | £5.73 | £206.70 | 14.9% |
-| 234 | PROS-2024-0076g | fixed | £532.95 | £328.34 | £7.74 | £205.55 | 38.6% |
-| 235 | PROS-2024-0012g | fixed | £338.29 | £248.65 | £3.49 | £205.03 | 60.6% |
-| 236 | PROS-2024-0200 | fixed | £1,161.79 | £812.41 | £10.13 | £204.47 | 17.6% |
-| 237 | PROS-2021-0100 | fixed | £818.39 | £558.45 | £2.76 | £203.90 | 24.9% |
-| 238 | PROS-2023-0010 | fixed | £2,896.53 | £1,579.16 | £17.78 | £203.67 | 7.0% |
-| 239 | PROS-2021-0067 | fixed | £989.02 | £642.57 | £2.72 | £200.64 | 20.3% |
-| 240 | PROS-2024-0199 | fixed | £962.91 | £683.93 | £5.63 | £200.06 | 20.8% |
-| 241 | PROS-2018-0014 | fixed | £3,743.38 | £2,330.25 | £20.29 | £199.29 | 5.3% |
-| 242 | C7 | fixed | £22,378.69 | £11,413.18 | £147.04 | £198.81 | 0.9% |
-| 243 | PROS-2020-0067g | fixed | £1,113.88 | £534.62 | £6.38 | £198.39 | 17.8% |
-| 244 | PROS-2022-0083g | fixed | £2,691.35 | £757.78 | £41.93 | £197.11 | 7.3% |
-| 245 | PROS-2024-0235 | fixed | £910.04 | £641.88 | £3.09 | £196.25 | 21.6% |
-| 246 | PROS-2024-0233 | fixed | £910.04 | £641.88 | £4.85 | £194.48 | 21.4% |
-| 247 | PROS-2024-0111g | fixed | £796.61 | £413.47 | £16.36 | £194.27 | 24.4% |
-| 248 | PROS-2024-0196 | fixed | £1,152.50 | £801.45 | £10.29 | £191.94 | 16.7% |
-| 249 | PROS-2022-0092g | fixed | £2,341.39 | £673.27 | £35.90 | £191.06 | 8.2% |
-| 250 | PROS-2024-0226 | fixed | £911.51 | £640.82 | £5.33 | £189.47 | 20.8% |
-| 251 | PROS-2024-0224 | fixed | £1,089.75 | £751.24 | £6.67 | £184.21 | 16.9% |
-| 252 | PROS-2020-0012g | fixed | £4,103.38 | £1,044.07 | £45.82 | £183.79 | 4.5% |
-| 253 | PROS-2024-0098g | fixed | £543.75 | £312.54 | £9.63 | £181.03 | 33.3% |
-| 254 | PROS-2022-0067g | fixed | £2,582.11 | £722.82 | £49.83 | £180.29 | 7.0% |
-| 255 | PROS-2022-0011g | fixed | £1,231.85 | £369.81 | £12.70 | £174.45 | 14.2% |
-| 256 | PROS-2024-0131g | fixed | £997.37 | £475.33 | £23.42 | £173.37 | 17.4% |
-| 257 | PROS-2024-0157 | fixed | £981.40 | £698.10 | £7.38 | £172.11 | 17.5% |
-| 258 | PROS-2024-0110g | fixed | £547.62 | £308.59 | £10.17 | £171.81 | 31.4% |
-| 259 | PROS-2018-0002 | fixed | £839.96 | £501.21 | £2.01 | £169.09 | 20.1% |
-| 260 | PROS-2024-0156 | fixed | £1,176.64 | £824.19 | £6.76 | £167.76 | 14.3% |
-| 261 | PROS-2024-0122g | fixed | £610.01 | £328.66 | £12.31 | £166.63 | 27.3% |
-| 262 | PROS-2024-0113g | fixed | £515.92 | £292.59 | £9.62 | £164.37 | 31.9% |
-| 263 | PROS-2025-0060 | fixed | £427.87 | £304.48 | £2.25 | £158.53 | 37.1% |
-| 264 | PROS-2024-0191 | fixed | £923.93 | £648.93 | £5.33 | £156.14 | 16.9% |
-| 265 | PROS-2022-0125 | fixed | £3,582.07 | £2,009.42 | £25.13 | £146.14 | 4.1% |
-| 266 | PROS-2022-0046g | fixed | £3,243.52 | £822.54 | £55.65 | £143.57 | 4.4% |
-| 267 | PROS-2022-0030g | fixed | £2,602.83 | £651.62 | £41.36 | £143.55 | 5.5% |
-| 268 | PROS-2020-0047 | fixed | £1,568.00 | £1,058.19 | £9.26 | £140.33 | 8.9% |
-| 269 | PROS-2024-0147g | fixed | £897.17 | £409.48 | £20.79 | £133.47 | 14.9% |
-| 270 | PROS-2025-0083 | fixed | £641.99 | £423.15 | £12.41 | £131.35 | 20.5% |
-| 271 | PROS-2021-0060 | fixed | £827.95 | £555.50 | £4.78 | £129.15 | 15.6% |
-| 272 | PROS-2022-0082g | fixed | £3,903.57 | £974.17 | £63.68 | £125.52 | 3.2% |
-| 273 | PROS-2024-0148g | fixed | £410.30 | £228.19 | £7.78 | £125.07 | 30.5% |
-| 274 | PROS-2024-0195 | fixed | £1,080.35 | £729.83 | £7.80 | £121.39 | 11.2% |
-| 275 | PROS-2020-0067 | fixed | £2,341.48 | £1,567.23 | £11.15 | £120.49 | 5.1% |
-| 276 | PROS-2025-0030g | fixed | £540.00 | £235.10 | £12.08 | £110.89 | 20.5% |
-| 277 | PROS-2025-0022 | fixed | £705.91 | £435.30 | £7.09 | £109.16 | 15.5% |
-| 278 | PROS-2024-0233g | fixed | £541.33 | £255.40 | £10.70 | £108.48 | 20.0% |
-| 279 | PROS-2024-0224g | fixed | £603.99 | £276.60 | £12.20 | £108.42 | 18.0% |
-| 280 | PROS-2024-0226g | fixed | £512.88 | £244.86 | £10.00 | £107.13 | 20.9% |
-| 281 | PROS-2025-0030 | fixed | £570.93 | £359.82 | £8.14 | £104.22 | 18.3% |
-| 282 | PROS-2024-0218g | fixed | £606.93 | £274.79 | £12.27 | £104.19 | 17.2% |
-| 283 | PROS-2024-0191g | fixed | £522.46 | £248.07 | £10.68 | £104.04 | 19.9% |
-| 284 | PROS-2024-0235g | fixed | £345.05 | £185.63 | £5.96 | £103.58 | 30.0% |
-| 285 | PROS-2024-0213g | fixed | £409.47 | £207.07 | £7.45 | £102.99 | 25.2% |
-| 286 | PROS-2025-0013 | fixed | £501.55 | £320.45 | £3.99 | £102.59 | 20.5% |
-| 287 | PROS-2024-0209g | fixed | £534.01 | £249.00 | £10.46 | £102.55 | 19.2% |
-| 288 | PROS-2020-0013 | fixed | £1,261.74 | £852.73 | £5.70 | £101.43 | 8.0% |
-| 289 | PROS-2024-0203g | fixed | £530.41 | £246.28 | £10.39 | £100.28 | 18.9% |
-| 290 | PROS-2024-0199g | fixed | £510.44 | £240.23 | £10.64 | £100.03 | 19.6% |
-| 291 | PROS-2022-0049g | fixed | £4,076.70 | £978.06 | £74.62 | £99.35 | 2.4% |
-| 292 | PROS-2025-0100 | fixed | £430.77 | £291.81 | £6.76 | £98.20 | 22.8% |
-| 293 | PROS-2024-0195g | fixed | £650.99 | £287.21 | £14.28 | £98.05 | 15.1% |
-| 294 | PROS-2025-0022g | fixed | £417.17 | £190.07 | £8.55 | £97.44 | 23.4% |
-| 295 | PROS-2025-0079 | fixed | £339.07 | £233.34 | £2.19 | £95.41 | 28.1% |
-| 296 | PROS-2024-0196g | fixed | £848.56 | £352.09 | £19.52 | £94.40 | 11.1% |
-| 297 | PROS-2025-0084 | fixed | £325.27 | £225.18 | £4.05 | £93.43 | 28.7% |
-| 298 | PROS-2025-0013g | fixed | £365.92 | £172.45 | £6.94 | £93.33 | 25.5% |
-| 299 | PROS-2024-0200g | fixed | £903.24 | £369.80 | £21.01 | £93.32 | 10.3% |
-| 300 | PROS-2025-0033g | fixed | £423.37 | £187.85 | £9.85 | £91.84 | 21.7% |
-| 301 | PROS-2025-0033 | fixed | £452.74 | £287.91 | £6.28 | £91.68 | 20.2% |
-| 302 | PROS-2021-0044g | fixed | £128.60 | £102.72 | £0.27 | £90.72 | 70.5% |
-| 303 | PROS-2025-0039 | fixed | £422.39 | £271.05 | £5.61 | £88.23 | 20.9% |
-| 304 | PROS-2024-0179 | fixed | £1,322.38 | £880.53 | £10.43 | £87.77 | 6.6% |
-| 305 | PROS-2025-0041g | fixed | £420.02 | £181.85 | £9.40 | £86.29 | 20.5% |
-| 306 | PROS-2025-0039g | fixed | £400.77 | £176.16 | £8.57 | £85.98 | 21.5% |
-| 307 | PROS-2025-0073 | fixed | £344.76 | £232.20 | £3.77 | £84.80 | 24.6% |
-| 308 | PROS-2021-0006g | fixed | £335.16 | £165.98 | £1.77 | £83.89 | 25.0% |
-| 309 | PROS-2025-0049 | fixed | £473.02 | £294.66 | £5.28 | £83.82 | 17.7% |
-| 310 | PROS-2025-0051 | fixed | £459.39 | £285.28 | £5.06 | £80.73 | 17.6% |
-| 311 | PROS-2025-0121 | fixed | £360.58 | £248.08 | £5.92 | £77.80 | 21.6% |
-| 312 | PROS-2021-0044 | fixed | £725.82 | £432.86 | £4.23 | £77.65 | 10.7% |
-| 313 | PROS-2024-0156g | fixed | £399.01 | £192.20 | £9.07 | £76.82 | 19.3% |
-| 314 | PROS-2020-0025g | fixed | £5,405.68 | £1,260.23 | £65.03 | £74.93 | 1.4% |
-| 315 | PROS-2020-0002g | fixed | £4,538.89 | £1,077.43 | £84.86 | £74.80 | 1.6% |
-| 316 | PROS-2025-0095 | fixed | £236.39 | £167.07 | £4.67 | £72.98 | 30.9% |
-| 317 | PROS-2025-0106 | fixed | £215.15 | £155.86 | £2.14 | £72.54 | 33.7% |
-| 318 | PROS-2025-0103 | fixed | £215.15 | £155.86 | £2.25 | £72.43 | 33.7% |
-| 319 | PROS-2025-0087 | fixed | £248.44 | £171.90 | £2.33 | £72.15 | 29.0% |
-| 320 | PROS-2024-0179g | fixed | £725.07 | £301.41 | £17.58 | £71.16 | 9.8% |
-| 321 | PROS-2025-0049g | fixed | £319.70 | £142.06 | £7.44 | £70.75 | 22.1% |
-| 322 | C4 | fixed | £660.89 | £452.80 | £4.46 | £69.84 | 10.6% |
-| 323 | PROS-2025-0042g | fixed | £287.05 | £131.87 | £6.13 | £69.58 | 24.2% |
-| 324 | PROS-2025-0051g | fixed | £319.26 | £140.73 | £7.76 | £68.99 | 21.6% |
-| 325 | PROS-2025-0062 | fixed | £325.01 | £208.68 | £2.90 | £65.40 | 20.1% |
-| 326 | PROS-2024-0157g | fixed | £497.83 | £218.82 | £12.26 | £63.45 | 12.7% |
-| 327 | PROS-2020-0043g | fixed | £2,748.58 | £638.44 | £33.30 | £62.94 | 2.3% |
-| 328 | PROS-2025-0055g | fixed | £283.88 | £125.60 | £7.44 | £61.76 | 21.8% |
-| 329 | PROS-2021-0067g | fixed | £328.49 | £140.24 | £1.90 | £58.72 | 17.9% |
-| 330 | PROS-2024-0160g | fixed | £572.69 | £241.99 | £14.60 | £58.31 | 10.2% |
-| 331 | PROS-2025-0042 | fixed | £380.43 | £234.30 | £4.29 | £57.69 | 15.2% |
-| 332 | PROS-2024-0076 | fixed | £1,262.31 | £926.66 | £3.96 | £57.44 | 4.6% |
-| 333 | PROS-2025-0094 | fixed | £263.27 | £174.64 | £3.75 | £57.16 | 21.7% |
-| 334 | PROS-2025-0110 | fixed | £189.92 | £134.48 | £2.14 | £54.99 | 29.0% |
-| 335 | PROS-2021-0029g | fixed | £530.74 | £201.32 | £3.46 | £52.95 | 10.0% |
-| 336 | PROS-2025-0093 | fixed | £219.52 | £148.62 | £4.96 | £52.67 | 24.0% |
-| 337 | PROS-2025-0119g | fixed | £162.40 | £86.87 | £5.14 | £52.25 | 32.2% |
-| 338 | PROS-2025-0055 | fixed | £406.70 | £243.74 | £5.50 | £50.75 | 12.5% |
-| 339 | PROS-2025-0073g | fixed | £217.82 | £99.45 | £6.13 | £50.32 | 23.1% |
-| 340 | PROS-2025-0114 | fixed | £178.85 | £126.16 | £2.28 | £49.17 | 27.5% |
-| 341 | PROS-2025-0085g | fixed | £210.94 | £97.23 | £6.87 | £48.28 | 22.9% |
-| 342 | PROS-2025-0119 | fixed | £172.16 | £122.26 | £3.40 | £46.66 | 27.1% |
-| 343 | PROS-2025-0060g | fixed | £156.93 | £78.07 | £3.92 | £46.12 | 29.4% |
-| 344 | PROS-2025-0084g | fixed | £191.97 | £89.82 | £6.06 | £46.03 | 24.0% |
-| 345 | PROS-2025-0106g | fixed | £130.96 | £71.51 | £3.52 | £45.39 | 34.7% |
-| 346 | PROS-2019-0003 | fixed | £2,352.88 | £1,538.43 | £8.53 | £44.64 | 1.9% |
-| 347 | PROS-2025-0083g | fixed | £179.02 | £84.78 | £5.59 | £44.39 | 24.8% |
-| 348 | PROS-2025-0062g | fixed | £146.54 | £73.80 | £3.72 | £44.25 | 30.2% |
-| 349 | PROS-2025-0095g | fixed | £185.83 | £87.38 | £6.85 | £43.65 | 23.5% |
-| 350 | PROS-2025-0110g | fixed | £119.00 | £66.11 | £3.32 | £42.44 | 35.7% |
-| 351 | PROS-2025-0114g | fixed | £119.42 | £66.37 | £3.46 | £42.34 | 35.5% |
-| 352 | PROS-2025-0094g | fixed | £166.54 | £79.74 | £5.91 | £41.36 | 24.8% |
-| 353 | PROS-2025-0079g | fixed | £142.23 | £70.66 | £3.96 | £40.47 | 28.5% |
-| 354 | PROS-2025-0100g | fixed | £155.06 | £74.99 | £5.95 | £38.89 | 25.1% |
-| 355 | PROS-2025-0075g | fixed | £122.45 | £63.26 | £3.11 | £38.59 | 31.5% |
-| 356 | PROS-2025-0075 | fixed | £356.90 | £217.93 | £4.87 | £34.10 | 9.6% |
-| 357 | PROS-2021-0060g | fixed | £515.75 | £179.84 | £3.46 | £33.94 | 6.6% |
-| 358 | PROS-2025-0087g | fixed | £94.56 | £51.61 | £2.70 | £32.96 | 34.9% |
-| 359 | PROS-2021-0017 | fixed | £707.14 | £420.32 | £6.89 | £31.65 | 4.5% |
-| 360 | PROS-2025-0121g | fixed | £72.19 | £43.81 | £2.02 | £30.64 | 42.4% |
-| 361 | PROS-2025-0136 | fixed | £85.21 | £63.02 | £1.00 | £28.07 | 32.9% |
-| 362 | PROS-2024-0160 | fixed | £1,482.16 | £973.42 | £16.57 | £27.77 | 1.9% |
-| 363 | PROS-2025-0093g | fixed | £42.43 | £30.49 | £0.81 | £25.20 | 59.4% |
-| 364 | PROS-2025-0149 | fixed | £97.87 | £70.23 | £1.55 | £24.89 | 25.4% |
-| 365 | PROS-2020-0042g | fixed | £6,026.03 | £1,446.18 | £86.51 | £24.52 | 0.4% |
-| 366 | PROS-2025-0153 | fixed | £72.35 | £53.35 | £1.27 | £21.88 | 30.2% |
-| 367 | PROS-2025-0151 | fixed | £61.25 | £45.81 | £1.02 | £20.33 | 33.2% |
-| 368 | PROS-2022-0011 | fixed | £4,358.43 | £2,015.51 | £33.33 | £18.31 | 0.4% |
-| 369 | PROS-2025-0136g | fixed | £46.79 | £27.76 | £1.59 | £18.28 | 39.1% |
-| 370 | PROS-2025-0149g | fixed | £49.21 | £26.47 | £2.47 | £14.43 | 29.3% |
-| 371 | PROS-2025-0156 | fixed | £53.73 | £38.57 | £1.33 | £12.78 | 23.8% |
-| 372 | C6 | fixed | £2,702.71 | £1,708.21 | £42.62 | £11.19 | 0.4% |
-| 373 | PROS-2025-0160 | fixed | £49.26 | £34.94 | £0.96 | £10.70 | 21.7% |
-| 374 | PROS-2025-0163 | fixed | £57.38 | £39.65 | £1.12 | £9.65 | 16.8% |
-| 375 | PROS-2025-0151g | fixed | £12.38 | £10.27 | £0.25 | £9.13 | 73.8% |
-| 376 | PROS-2025-0153g | fixed | £30.87 | £15.70 | £1.93 | £7.32 | 23.7% |
-| 377 | PROS-2025-0170 | fixed | £29.17 | £21.52 | £1.38 | £7.05 | 24.2% |
-| 378 | PROS-2025-0156g | fixed | £24.01 | £12.33 | £1.90 | £5.44 | 22.6% |
-| 379 | PROS-2025-0160g | fixed | £14.56 | £8.13 | £1.46 | £3.90 | 26.8% |
-| 380 | PROS-2025-0163g | fixed | £15.02 | £8.28 | £1.53 | £3.85 | 25.6% |
-| 381 | PROS-2025-0077 | fixed | £516.84 | £295.63 | £10.25 | £1.05 | 0.2% |
-| 382 | PROS-2025-0170g | fixed | £9.76 | £5.05 | £2.34 | £0.67 | 6.8% |
-| 383 | PROS-2025-0041 | fixed | £933.05 | £512.17 | £16.98 | £-1.24 | -0.1% |
-| 384 | PROS-2021-0031g | fixed | £3,875.95 | £814.87 | £54.86 | £-2.55 | -0.1% |
-| 385 | PROS-2022-0010g | fixed | £3,344.85 | £643.02 | £44.36 | £-3.05 | -0.1% |
-| 386 | PROS-2022-0097g | fixed | £3,433.87 | £754.13 | £57.76 | £-16.20 | -0.5% |
-| 387 | PROS-2022-0019 | fixed | £1,273.07 | £478.39 | £0.00 | £-22.02 | -1.7% |
-| 388 | PROS-2022-0100g | fixed | £3,398.05 | £736.46 | £57.43 | £-28.47 | -0.8% |
-| 389 | PROS-2021-0062g | fixed | £8,232.03 | £1,935.06 | £164.52 | £-37.40 | -0.5% |
-| 390 | PROS-2021-0006 | fixed | £748.67 | £389.94 | £4.49 | £-52.54 | -7.0% |
-| 391 | PROS-2020-0043 | fixed | £5,620.43 | £3,202.73 | £32.31 | £-66.94 | -1.2% |
-| 392 | PROS-2022-0009g | fixed | £3,780.49 | £667.42 | £50.32 | £-72.41 | -1.9% |
-| 393 | PROS-2021-0029 | fixed | £645.80 | £348.28 | £7.72 | £-77.39 | -12.0% |
-| 394 | PROS-2022-0063g | fixed | £2,798.50 | £368.90 | £59.27 | £-190.65 | -6.8% |
-| 395 | PROS-2022-0019g | fixed | £342.91 | £-179.67 | £2.43 | £-247.95 | -72.3% |
-| 396 | C5 | fixed | £14,940.64 | £9,129.02 | £77.82 | £-422.04 | -2.8% |
-| 397 | PROS-2020-0006g | fixed | £3,333.98 | £244.57 | £24.94 | £-450.01 | -13.5% |
+| 224 | PROS-2020-0042 | fixed | £1,997.84 | £1,299.15 | £13.28 | £220.12 | 11.0% |
+| 225 | PROS-2020-0050 | fixed | £1,643.63 | £1,086.58 | £9.23 | £217.53 | 13.2% |
+| 226 | PROS-2024-0213 | fixed | £1,139.00 | £801.35 | £3.76 | £217.13 | 19.1% |
+| 227 | PROS-2024-0085g | fixed | £557.96 | £338.42 | £9.37 | £215.79 | 38.7% |
+| 228 | PROS-2024-0209 | fixed | £957.79 | £688.10 | £4.68 | £215.55 | 22.5% |
+| 229 | PROS-2024-0218 | fixed | £1,130.70 | £793.06 | £5.86 | £214.00 | 18.9% |
+| 230 | PROS-2024-0203 | fixed | £968.59 | £691.01 | £4.95 | £213.62 | 22.1% |
+| 231 | PROS-2024-0205 | fixed | £1,148.83 | £802.51 | £3.72 | £209.66 | 18.2% |
+| 232 | PROS-2022-0048g | fixed | £2,408.50 | £694.01 | £40.33 | £209.28 | 8.7% |
+| 233 | PROS-2024-0116g | fixed | £1,058.03 | £517.98 | £23.42 | £207.97 | 19.7% |
+| 234 | PROS-2024-0197 | fixed | £1,391.60 | £955.48 | £5.73 | £206.70 | 14.9% |
+| 235 | PROS-2024-0076g | fixed | £532.95 | £328.34 | £7.74 | £205.55 | 38.6% |
+| 236 | PROS-2024-0012g | fixed | £338.29 | £248.65 | £3.49 | £205.03 | 60.6% |
+| 237 | PROS-2021-0006g | fixed | £2,676.03 | £716.38 | £31.17 | £204.92 | 7.7% |
+| 238 | PROS-2024-0200 | fixed | £1,161.79 | £812.41 | £10.13 | £204.47 | 17.6% |
+| 239 | PROS-2021-0100 | fixed | £818.39 | £558.45 | £2.76 | £203.90 | 24.9% |
+| 240 | PROS-2023-0010 | fixed | £2,896.53 | £1,579.16 | £17.78 | £203.67 | 7.0% |
+| 241 | PROS-2021-0067 | fixed | £989.02 | £642.57 | £2.72 | £200.64 | 20.3% |
+| 242 | PROS-2024-0199 | fixed | £962.91 | £683.93 | £5.63 | £200.06 | 20.8% |
+| 243 | C7 | fixed | £22,378.69 | £11,413.18 | £147.04 | £198.81 | 0.9% |
+| 244 | PROS-2020-0067g | fixed | £1,113.88 | £534.62 | £6.38 | £198.39 | 17.8% |
+| 245 | PROS-2022-0083g | fixed | £2,691.35 | £757.78 | £41.93 | £197.11 | 7.3% |
+| 246 | PROS-2024-0235 | fixed | £910.04 | £641.88 | £3.09 | £196.25 | 21.6% |
+| 247 | PROS-2024-0233 | fixed | £910.04 | £641.88 | £4.85 | £194.48 | 21.4% |
+| 248 | PROS-2024-0111g | fixed | £796.61 | £413.47 | £16.36 | £194.27 | 24.4% |
+| 249 | PROS-2024-0196 | fixed | £1,152.50 | £801.45 | £10.29 | £191.94 | 16.7% |
+| 250 | PROS-2022-0092g | fixed | £2,341.39 | £673.27 | £35.90 | £191.06 | 8.2% |
+| 251 | PROS-2024-0226 | fixed | £911.51 | £640.82 | £5.33 | £189.47 | 20.8% |
+| 252 | PROS-2024-0224 | fixed | £1,089.75 | £751.24 | £6.67 | £184.21 | 16.9% |
+| 253 | PROS-2020-0012g | fixed | £4,103.38 | £1,044.07 | £45.82 | £183.79 | 4.5% |
+| 254 | PROS-2024-0098g | fixed | £543.75 | £312.54 | £9.63 | £181.03 | 33.3% |
+| 255 | PROS-2022-0067g | fixed | £2,582.11 | £722.82 | £49.83 | £180.29 | 7.0% |
+| 256 | PROS-2022-0011g | fixed | £1,231.85 | £369.81 | £12.70 | £174.45 | 14.2% |
+| 257 | PROS-2024-0131g | fixed | £997.37 | £475.33 | £23.42 | £173.37 | 17.4% |
+| 258 | PROS-2024-0157 | fixed | £981.40 | £698.10 | £7.38 | £172.11 | 17.5% |
+| 259 | PROS-2024-0110g | fixed | £547.62 | £308.59 | £10.17 | £171.81 | 31.4% |
+| 260 | PROS-2018-0002 | fixed | £839.96 | £501.21 | £2.01 | £169.09 | 20.1% |
+| 261 | PROS-2024-0156 | fixed | £1,176.64 | £824.19 | £6.76 | £167.76 | 14.3% |
+| 262 | PROS-2024-0122g | fixed | £610.01 | £328.66 | £12.31 | £166.63 | 27.3% |
+| 263 | PROS-2024-0113g | fixed | £515.92 | £292.59 | £9.62 | £164.37 | 31.9% |
+| 264 | PROS-2025-0060 | fixed | £427.87 | £304.48 | £2.25 | £158.53 | 37.1% |
+| 265 | PROS-2024-0191 | fixed | £923.93 | £648.93 | £5.33 | £156.14 | 16.9% |
+| 266 | PROS-2022-0125 | fixed | £3,582.07 | £2,009.42 | £25.13 | £146.14 | 4.1% |
+| 267 | PROS-2023-0172g | fixed | £444.31 | £257.89 | £7.51 | £144.58 | 32.5% |
+| 268 | PROS-2022-0046g | fixed | £3,243.52 | £822.54 | £55.65 | £143.57 | 4.4% |
+| 269 | PROS-2022-0030g | fixed | £2,602.83 | £651.62 | £41.36 | £143.55 | 5.5% |
+| 270 | PROS-2020-0047 | fixed | £1,568.00 | £1,058.19 | £9.26 | £140.33 | 8.9% |
+| 271 | PROS-2024-0147g | fixed | £897.17 | £409.48 | £20.79 | £133.47 | 14.9% |
+| 272 | PROS-2025-0083 | fixed | £641.99 | £423.15 | £12.41 | £131.35 | 20.5% |
+| 273 | PROS-2021-0060 | fixed | £827.95 | £555.50 | £4.78 | £129.15 | 15.6% |
+| 274 | PROS-2022-0082g | fixed | £3,903.57 | £974.17 | £63.68 | £125.52 | 3.2% |
+| 275 | PROS-2024-0148g | fixed | £410.30 | £228.19 | £7.78 | £125.07 | 30.5% |
+| 276 | PROS-2024-0195 | fixed | £1,080.35 | £729.83 | £7.80 | £121.39 | 11.2% |
+| 277 | PROS-2020-0067 | fixed | £2,341.48 | £1,567.23 | £11.15 | £120.49 | 5.1% |
+| 278 | PROS-2023-0172 | fixed | £1,098.64 | £749.76 | £3.13 | £113.00 | 10.3% |
+| 279 | PROS-2025-0030g | fixed | £540.00 | £235.10 | £12.08 | £110.89 | 20.5% |
+| 280 | PROS-2025-0022 | fixed | £705.91 | £435.30 | £7.09 | £109.16 | 15.5% |
+| 281 | PROS-2024-0233g | fixed | £541.33 | £255.40 | £10.70 | £108.48 | 20.0% |
+| 282 | PROS-2024-0224g | fixed | £603.99 | £276.60 | £12.20 | £108.42 | 18.0% |
+| 283 | PROS-2024-0226g | fixed | £512.88 | £244.86 | £10.00 | £107.13 | 20.9% |
+| 284 | PROS-2025-0030 | fixed | £570.93 | £359.82 | £8.14 | £104.22 | 18.3% |
+| 285 | PROS-2024-0218g | fixed | £606.93 | £274.79 | £12.27 | £104.19 | 17.2% |
+| 286 | PROS-2024-0191g | fixed | £522.46 | £248.07 | £10.68 | £104.04 | 19.9% |
+| 287 | PROS-2024-0235g | fixed | £345.05 | £185.63 | £5.96 | £103.58 | 30.0% |
+| 288 | PROS-2024-0213g | fixed | £409.47 | £207.07 | £7.45 | £102.99 | 25.2% |
+| 289 | PROS-2025-0013 | fixed | £501.55 | £320.45 | £3.99 | £102.59 | 20.5% |
+| 290 | PROS-2024-0209g | fixed | £534.01 | £249.00 | £10.46 | £102.55 | 19.2% |
+| 291 | PROS-2020-0013 | fixed | £1,261.74 | £852.73 | £5.70 | £101.43 | 8.0% |
+| 292 | PROS-2024-0203g | fixed | £530.41 | £246.28 | £10.39 | £100.28 | 18.9% |
+| 293 | PROS-2024-0199g | fixed | £510.44 | £240.23 | £10.64 | £100.03 | 19.6% |
+| 294 | PROS-2022-0049g | fixed | £4,076.70 | £978.06 | £74.62 | £99.35 | 2.4% |
+| 295 | PROS-2025-0100 | fixed | £430.77 | £291.81 | £6.76 | £98.20 | 22.8% |
+| 296 | PROS-2024-0195g | fixed | £650.99 | £287.21 | £14.28 | £98.05 | 15.1% |
+| 297 | PROS-2025-0022g | fixed | £417.17 | £190.07 | £8.55 | £97.44 | 23.4% |
+| 298 | PROS-2025-0079 | fixed | £339.07 | £233.34 | £2.19 | £95.41 | 28.1% |
+| 299 | PROS-2024-0196g | fixed | £848.56 | £352.09 | £19.52 | £94.40 | 11.1% |
+| 300 | PROS-2025-0084 | fixed | £325.27 | £225.18 | £4.05 | £93.43 | 28.7% |
+| 301 | PROS-2025-0013g | fixed | £365.92 | £172.45 | £6.94 | £93.33 | 25.5% |
+| 302 | PROS-2024-0200g | fixed | £903.24 | £369.80 | £21.01 | £93.32 | 10.3% |
+| 303 | PROS-2025-0033g | fixed | £423.37 | £187.85 | £9.85 | £91.84 | 21.7% |
+| 304 | PROS-2025-0033 | fixed | £452.74 | £287.91 | £6.28 | £91.68 | 20.2% |
+| 305 | PROS-2021-0044g | fixed | £128.60 | £102.72 | £0.27 | £90.72 | 70.5% |
+| 306 | PROS-2025-0039 | fixed | £422.39 | £271.05 | £5.61 | £88.23 | 20.9% |
+| 307 | PROS-2024-0179 | fixed | £1,322.38 | £880.53 | £10.43 | £87.77 | 6.6% |
+| 308 | PROS-2025-0041g | fixed | £420.02 | £181.85 | £9.40 | £86.29 | 20.5% |
+| 309 | PROS-2025-0039g | fixed | £400.77 | £176.16 | £8.57 | £85.98 | 21.5% |
+| 310 | PROS-2025-0073 | fixed | £344.76 | £232.20 | £3.77 | £84.80 | 24.6% |
+| 311 | PROS-2025-0049 | fixed | £473.02 | £294.66 | £5.28 | £83.82 | 17.7% |
+| 312 | PROS-2025-0051 | fixed | £459.39 | £285.28 | £5.06 | £80.73 | 17.6% |
+| 313 | PROS-2025-0121 | fixed | £360.58 | £248.08 | £5.92 | £77.80 | 21.6% |
+| 314 | PROS-2021-0044 | fixed | £725.82 | £432.86 | £4.23 | £77.65 | 10.7% |
+| 315 | PROS-2024-0156g | fixed | £399.01 | £192.20 | £9.07 | £76.82 | 19.3% |
+| 316 | PROS-2020-0025g | fixed | £5,405.68 | £1,260.23 | £65.03 | £74.93 | 1.4% |
+| 317 | PROS-2020-0002g | fixed | £4,538.89 | £1,077.43 | £84.86 | £74.80 | 1.6% |
+| 318 | PROS-2025-0095 | fixed | £236.39 | £167.07 | £4.67 | £72.98 | 30.9% |
+| 319 | PROS-2025-0106 | fixed | £215.15 | £155.86 | £2.14 | £72.54 | 33.7% |
+| 320 | PROS-2025-0103 | fixed | £215.15 | £155.86 | £2.25 | £72.43 | 33.7% |
+| 321 | PROS-2025-0087 | fixed | £248.44 | £171.90 | £2.33 | £72.15 | 29.0% |
+| 322 | PROS-2024-0179g | fixed | £725.07 | £301.41 | £17.58 | £71.16 | 9.8% |
+| 323 | PROS-2025-0049g | fixed | £319.70 | £142.06 | £7.44 | £70.75 | 22.1% |
+| 324 | C4 | fixed | £660.89 | £452.80 | £4.46 | £69.84 | 10.6% |
+| 325 | PROS-2025-0042g | fixed | £287.05 | £131.87 | £6.13 | £69.58 | 24.2% |
+| 326 | PROS-2025-0051g | fixed | £319.26 | £140.73 | £7.76 | £68.99 | 21.6% |
+| 327 | PROS-2025-0062 | fixed | £325.01 | £208.68 | £2.90 | £65.40 | 20.1% |
+| 328 | PROS-2024-0157g | fixed | £497.83 | £218.82 | £12.26 | £63.45 | 12.7% |
+| 329 | PROS-2020-0043g | fixed | £2,748.58 | £638.44 | £33.30 | £62.94 | 2.3% |
+| 330 | PROS-2025-0055g | fixed | £283.88 | £125.60 | £7.44 | £61.76 | 21.8% |
+| 331 | PROS-2021-0067g | fixed | £328.49 | £140.24 | £1.90 | £58.72 | 17.9% |
+| 332 | PROS-2024-0160g | fixed | £572.69 | £241.99 | £14.60 | £58.31 | 10.2% |
+| 333 | PROS-2025-0042 | fixed | £380.43 | £234.30 | £4.29 | £57.69 | 15.2% |
+| 334 | PROS-2024-0076 | fixed | £1,262.31 | £926.66 | £3.96 | £57.44 | 4.6% |
+| 335 | PROS-2025-0094 | fixed | £263.27 | £174.64 | £3.75 | £57.16 | 21.7% |
+| 336 | PROS-2025-0110 | fixed | £189.92 | £134.48 | £2.14 | £54.99 | 29.0% |
+| 337 | PROS-2021-0029g | fixed | £530.74 | £201.32 | £3.46 | £52.95 | 10.0% |
+| 338 | PROS-2025-0093 | fixed | £219.52 | £148.62 | £4.96 | £52.67 | 24.0% |
+| 339 | PROS-2025-0119g | fixed | £162.40 | £86.87 | £5.14 | £52.25 | 32.2% |
+| 340 | PROS-2025-0055 | fixed | £406.70 | £243.74 | £5.50 | £50.75 | 12.5% |
+| 341 | PROS-2025-0073g | fixed | £217.82 | £99.45 | £6.13 | £50.32 | 23.1% |
+| 342 | PROS-2025-0114 | fixed | £178.85 | £126.16 | £2.28 | £49.17 | 27.5% |
+| 343 | PROS-2025-0085g | fixed | £210.94 | £97.23 | £6.87 | £48.28 | 22.9% |
+| 344 | PROS-2025-0119 | fixed | £172.16 | £122.26 | £3.40 | £46.66 | 27.1% |
+| 345 | PROS-2025-0060g | fixed | £156.93 | £78.07 | £3.92 | £46.12 | 29.4% |
+| 346 | PROS-2025-0084g | fixed | £191.97 | £89.82 | £6.06 | £46.03 | 24.0% |
+| 347 | PROS-2025-0106g | fixed | £130.96 | £71.51 | £3.52 | £45.39 | 34.7% |
+| 348 | PROS-2019-0003 | fixed | £2,352.88 | £1,538.43 | £8.53 | £44.64 | 1.9% |
+| 349 | PROS-2025-0083g | fixed | £179.02 | £84.78 | £5.59 | £44.39 | 24.8% |
+| 350 | PROS-2025-0062g | fixed | £146.54 | £73.80 | £3.72 | £44.25 | 30.2% |
+| 351 | PROS-2025-0095g | fixed | £185.83 | £87.38 | £6.85 | £43.65 | 23.5% |
+| 352 | PROS-2025-0110g | fixed | £119.00 | £66.11 | £3.32 | £42.44 | 35.7% |
+| 353 | PROS-2025-0114g | fixed | £119.42 | £66.37 | £3.46 | £42.34 | 35.5% |
+| 354 | PROS-2025-0094g | fixed | £166.54 | £79.74 | £5.91 | £41.36 | 24.8% |
+| 355 | PROS-2025-0079g | fixed | £142.23 | £70.66 | £3.96 | £40.47 | 28.5% |
+| 356 | PROS-2025-0100g | fixed | £155.06 | £74.99 | £5.95 | £38.89 | 25.1% |
+| 357 | PROS-2025-0075g | fixed | £122.45 | £63.26 | £3.11 | £38.59 | 31.5% |
+| 358 | PROS-2025-0075 | fixed | £356.90 | £217.93 | £4.87 | £34.10 | 9.6% |
+| 359 | PROS-2021-0060g | fixed | £515.75 | £179.84 | £3.46 | £33.94 | 6.6% |
+| 360 | PROS-2025-0087g | fixed | £94.56 | £51.61 | £2.70 | £32.96 | 34.9% |
+| 361 | PROS-2021-0017 | fixed | £707.14 | £420.32 | £6.89 | £31.65 | 4.5% |
+| 362 | PROS-2025-0121g | fixed | £72.19 | £43.81 | £2.02 | £30.64 | 42.4% |
+| 363 | PROS-2025-0136 | fixed | £85.21 | £63.02 | £1.00 | £28.07 | 32.9% |
+| 364 | PROS-2024-0160 | fixed | £1,482.16 | £973.42 | £16.57 | £27.77 | 1.9% |
+| 365 | PROS-2025-0093g | fixed | £42.43 | £30.49 | £0.81 | £25.20 | 59.4% |
+| 366 | PROS-2025-0149 | fixed | £97.87 | £70.23 | £1.55 | £24.89 | 25.4% |
+| 367 | PROS-2025-0153 | fixed | £72.35 | £53.35 | £1.27 | £21.88 | 30.2% |
+| 368 | PROS-2020-0006g | fixed | £4,982.92 | £1,094.17 | £55.31 | £21.66 | 0.4% |
+| 369 | PROS-2022-0011 | fixed | £4,360.77 | £2,017.90 | £33.36 | £20.52 | 0.5% |
+| 370 | PROS-2025-0151 | fixed | £61.25 | £45.81 | £1.02 | £20.33 | 33.2% |
+| 371 | PROS-2025-0136g | fixed | £46.79 | £27.76 | £1.59 | £18.28 | 39.1% |
+| 372 | PROS-2025-0149g | fixed | £49.21 | £26.47 | £2.47 | £14.43 | 29.3% |
+| 373 | PROS-2025-0156 | fixed | £53.73 | £38.57 | £1.33 | £12.78 | 23.8% |
+| 374 | C6 | fixed | £2,702.71 | £1,708.21 | £42.62 | £11.19 | 0.4% |
+| 375 | PROS-2025-0160 | fixed | £49.26 | £34.94 | £0.96 | £10.70 | 21.7% |
+| 376 | PROS-2025-0163 | fixed | £57.38 | £39.65 | £1.12 | £9.65 | 16.8% |
+| 377 | PROS-2025-0151g | fixed | £12.38 | £10.27 | £0.25 | £9.13 | 73.8% |
+| 378 | PROS-2025-0153g | fixed | £30.87 | £15.70 | £1.93 | £7.32 | 23.7% |
+| 379 | PROS-2025-0170 | fixed | £29.17 | £21.52 | £1.38 | £7.05 | 24.2% |
+| 380 | PROS-2025-0156g | fixed | £24.01 | £12.33 | £1.90 | £5.44 | 22.6% |
+| 381 | PROS-2025-0160g | fixed | £14.56 | £8.13 | £1.46 | £3.90 | 26.8% |
+| 382 | PROS-2025-0163g | fixed | £15.02 | £8.28 | £1.53 | £3.85 | 25.6% |
+| 383 | PROS-2025-0077 | fixed | £516.84 | £295.63 | £10.25 | £1.05 | 0.2% |
+| 384 | PROS-2025-0170g | fixed | £9.76 | £5.05 | £2.34 | £0.67 | 6.8% |
+| 385 | PROS-2025-0041 | fixed | £933.05 | £512.17 | £16.98 | £-1.24 | -0.1% |
+| 386 | PROS-2021-0031g | fixed | £3,875.95 | £814.87 | £54.86 | £-2.55 | -0.1% |
+| 387 | PROS-2022-0010g | fixed | £3,344.85 | £643.02 | £44.36 | £-3.05 | -0.1% |
+| 388 | PROS-2022-0097g | fixed | £3,433.87 | £754.13 | £57.76 | £-16.20 | -0.5% |
+| 389 | PROS-2022-0019 | fixed | £1,273.07 | £478.39 | £0.00 | £-22.02 | -1.7% |
+| 390 | PROS-2022-0100g | fixed | £3,398.05 | £736.46 | £57.43 | £-28.47 | -0.8% |
+| 391 | PROS-2021-0062g | fixed | £8,232.03 | £1,935.06 | £164.52 | £-37.40 | -0.5% |
+| 392 | PROS-2020-0043 | fixed | £5,631.70 | £3,214.00 | £32.38 | £-58.65 | -1.0% |
+| 393 | PROS-2022-0009g | fixed | £3,780.49 | £667.42 | £50.32 | £-72.41 | -1.9% |
+| 394 | PROS-2021-0029 | fixed | £645.80 | £348.28 | £7.72 | £-77.39 | -12.0% |
+| 395 | PROS-2022-0063g | fixed | £2,798.50 | £368.90 | £59.27 | £-190.65 | -6.8% |
+| 396 | PROS-2022-0019g | fixed | £342.91 | £-179.67 | £2.43 | £-247.95 | -72.3% |
+| 397 | C5 | fixed | £14,940.64 | £9,129.02 | £77.82 | £-422.04 | -2.8% |
 
 ## Revenue & Margin Sanity Check
 
 ### Portfolio P&L Waterfall
 | Line | £ | % Revenue |
 |------|---|-----------|
-| Supply Revenue (ex-VAT, ex-policy passthrough) | £1,001,486 | 100.0% |
-| Wholesale cost | -£477,232 | 47.7% |
-| **Gross supply margin** | **£524,254** | **52.3%** |
-| Policy + Network costs | -£362,782 | 36.2% |
-| Capital cost | -£9,358 | 0.9% |
-| **Net supply margin** | **£152,114** | **15.2%** |
+| Supply Revenue (ex-VAT, ex-policy passthrough) | £1,008,573 | 100.0% |
+| Wholesale cost | -£480,807 | 47.7% |
+| **Gross supply margin** | **£527,766** | **52.3%** |
+| Policy + Network costs | -£365,141 | 36.2% |
+| Capital cost | -£9,423 | 0.9% |
+| **Net supply margin** | **£153,202** | **15.2%** |
 
-> *The ledger's `net_margin_gbp` (£515,870) is gross − capital only, not final net.*
+> *The ledger's `net_margin_gbp` (£519,941) is gross − capital only, not final net.*
 
 ### Segment Net Margin vs Benchmark
 | Segment | Revenue | Gross% | Net% | Benchmark | Status |
@@ -6013,43 +6016,43 @@ No individual customers outside ±40.0/80.0 thresholds.
 - Segment resi/gas net 10.5% (benchmark Ofgem CMA 2-4%)
 ## Transaction Log
 
-Total events: 788,059
+Total events: 794,347
 
 | Event type | Count |
 |------------|-------|
 | acquisition_gate_event | 1 |
-| acquisition_spend_event | 1,102 |
-| back_billing_write_off_event | 91 |
-| bad_debt_event | 12,088 |
-| billing_event | 12,278 |
-| capital_charge_event | 362,230 |
+| acquisition_spend_event | 1,101 |
+| back_billing_write_off_event | 92 |
+| bad_debt_event | 12,185 |
+| billing_event | 12,375 |
+| capital_charge_event | 365,128 |
 | cost_to_serve_event | 114 |
 | fixed_cost_event | 114 |
-| non_commodity_cost_event | 12,278 |
-| payment_received_event | 12,278 |
-| revenue_restatement_event | 977 |
-| settlement_event | 362,230 |
-| vat_remittance_event | 12,278 |
+| non_commodity_cost_event | 12,375 |
+| payment_received_event | 12,375 |
+| revenue_restatement_event | 984 |
+| settlement_event | 365,128 |
+| vat_remittance_event | 12,375 |
 
 **Cash-flow waterfall (from ledger)**
 
 | Flow | Amount |
 |------|--------|
-| Customer bills (all-in) | £1,316,078.49 |
-|   Less: VAT remitted to HMRC | (£66,662.68) |
-| = Revenue (ex-VAT) | £1,249,415.81 |
-| Less: non-commodity pass-through | (£246,955.85) |
-| Wholesale cost (settlement events) | (£477,232.41) |
-| Gross margin | £525,227.54 |
-| Capital charges | (£9,357.51) |
-| Net margin | £515,870.03 |
+| Customer bills (all-in) | £1,325,497.35 |
+|   Less: VAT remitted to HMRC | (£67,031.35) |
+| = Revenue (ex-VAT) | £1,258,466.01 |
+| Less: non-commodity pass-through | (£248,294.57) |
+| Wholesale cost (settlement events) | (£480,806.88) |
+| Gross margin | £529,364.56 |
+| Capital charges | (£9,423.20) |
+| Net margin | £519,941.36 |
 
-_Cash reconciliation: of £1,316,078.49 billed, bad debt of £27,074.27 was written off, leaving £1,289,441.57 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £555,895.79._
+_Cash reconciliation: of £1,325,497.35 billed, bad debt of £27,260.69 was written off, leaving £1,298,672.06 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £560,147.41._
 
-| Acquisition spend | (£134,047.50) |
+| Acquisition spend | (£133,972.50) |
 | Fixed overhead | (£5,700.00) |
-| Cost to serve | (£55,030.58) |
-| Operating net margin | £321,091.95 |
+| Cost to serve | (£55,467.20) |
+| Operating net margin | £324,801.66 |
 
 ## Annual Management Accounts
 
@@ -6063,25 +6066,25 @@ Year-by-year income statement from company accounting records. All figures £.
 | 2019 | £51,975.39 | £15,606.69 | £12,290.87 | £24,077.83 | £1,081.25 | £12,125.99 | £11,805.28 (22.7%) |
 | 2020 | £68,898.99 | £14,445.51 | £18,498.81 | £35,954.67 | £1,465.04 | £15,954.45 | £19,844.27 (28.8%) |
 | 2021 | £91,506.39 | £30,912.04 | £24,389.18 | £36,205.17 | £1,920.21 | £20,557.17 | £15,107.72 (16.5%) |
-| 2022 | £168,351.69 | £112,454.35 | £31,672.08 | £24,225.26 | £3,229.96 | £28,819.67 | £-5,535.13 (-3.3%) |
-| 2023 | £280,596.76 | £129,898.34 | £47,831.45 | £102,866.97 | £5,584.58 | £37,566.40 | £62,887.44 (22.4%) |
-| 2024 | £332,077.68 | £92,179.62 | £64,042.77 | £175,855.28 | £6,909.50 | £50,977.34 | £122,284.15 (36.8%) |
-| 2025 | £179,096.46 | £59,573.10 | £28,183.20 | £91,340.16 | £5,284.29 | £35,559.99 | £53,538.92 (29.9%) |
-| **Total** | **£1,249,415.81** | | | | | | **£294,017.68 (23.5%)** |
+| 2022 | £169,681.47 | £113,449.72 | £31,967.36 | £24,264.40 | £3,253.25 | £28,845.86 | £-5,531.09 (-3.3%) |
+| 2023 | £282,376.47 | £131,017.13 | £48,107.95 | £103,251.39 | £5,619.76 | £37,711.55 | £63,114.35 (22.4%) |
+| 2024 | £336,162.78 | £93,140.76 | £64,630.21 | £178,391.81 | £6,989.15 | £51,105.71 | £124,665.78 (37.1%) |
+| 2025 | £180,952.06 | £60,072.27 | £28,362.70 | £92,517.09 | £5,332.60 | £35,808.31 | £54,449.63 (30.1%) |
+| **Total** | **£1,258,466.01** | | | | | | **£297,540.97 (23.6%)** |
 
-**Best year:** 2024 — net £122,284.15 (36.8% margin)
-**Worst year:** 2022 — net £-5,535.13 (-3.3% margin)
+**Best year:** 2024 — net £124,665.78 (37.1% margin)
+**Worst year:** 2022 — net £-5,531.09 (-3.3% margin)
 
 ### Balance Sheet (Year End 2025)
 
 | Item | Value |
 |------|-------|
-| Cash | £544,455.04 |
+| Cash | £547,976.36 |
 | Trade Receivables | £0.00 |
-| **Total Assets** | **£544,455.04** |
-| Customer Accounts in Credit (liability) | £437.36 |
+| **Total Assets** | **£547,976.36** |
+| Customer Accounts in Credit (liability) | £435.39 |
 | Opening Capital | £250,000.00 |
-| Current Period Profit | £294,017.68 |
+| Current Period Profit | £297,540.97 |
 
 ## Budget vs Actual
 
@@ -6095,10 +6098,10 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | 2019 | £675,851.95 | £51,975.39 | -92.3% | £281,335.50 | £11,805.28 | -95.8% | RED |
 | 2020 | £1,816,630.04 | £68,898.99 | -96.2% | £736,963.94 | £19,844.27 | -97.3% | RED |
 | 2021 | £2,028,952.42 | £91,506.39 | -95.5% | £833,649.22 | £15,107.72 | -98.2% | RED |
-| 2022 | £2,607,611.88 | £168,351.69 | -93.5% | £790,935.58 | £-5,535.13 | -100.7% | RED |
-| 2023 | £4,508,414.67 | £280,596.76 | -93.8% | £1,029,561.00 | £62,887.44 | -93.9% | RED |
-| 2024 | £3,512,844.39 | £332,077.68 | -90.5% | £893,105.75 | £122,284.15 | -86.3% | RED |
-| 2025 | £3,145,356.42 | £179,096.46 | -94.3% | £1,315,150.33 | £53,538.92 | -95.9% | RED |
+| 2022 | £2,607,611.88 | £169,681.47 | -93.5% | £790,935.58 | £-5,531.09 | -100.7% | RED |
+| 2023 | £4,508,414.67 | £282,376.47 | -93.7% | £1,029,561.00 | £63,114.35 | -93.9% | RED |
+| 2024 | £3,512,844.39 | £336,162.78 | -90.4% | £893,105.75 | £124,665.78 | -86.0% | RED |
+| 2025 | £3,145,356.42 | £180,952.06 | -94.2% | £1,315,150.33 | £54,449.63 | -95.9% | RED |
 
 ## Growth & Acquisition
 
@@ -6114,14 +6117,14 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | 2019 | 59 | 10 | 17% | £7,312.50 |
 | 2020 | 76 | 15 | 20% | £9,187.50 |
 | 2021 | 102 | 12 | 12% | £12,232.50 |
-| 2022 | 151 | 28 | 19% | £18,277.50 |
+| 2022 | 150 | 28 | 19% | £18,165.00 |
 | 2023 | 183 | 29 | 16% | £22,042.50 |
-| 2024 | 243 | 54 | 22% | £29,655.00 |
-| 2025 | 187 | 42 | 22% | £22,860.00 |
+| 2024 | 242 | 54 | 22% | £29,542.50 |
+| 2025 | 188 | 43 | 23% | £23,010.00 |
 
-**Total:** 1103 attempts, 208 wins (19% win rate), £134,047.50 total spend
+**Total:** 1102 attempts, 209 wins (19% win rate), £133,972.50 total spend
 
-**Fresh acquisitions won (8):** PROS-2016-0003_3, PROS-2018-0003_3, PROS-2019-0024_3, PROS-2020-0067_3, PROS-2021-0017_3, PROS-2021-0045_3, PROS-2022-0125_3, PROS-2023-0116_3
+**Fresh acquisitions won (9):** PROS-2016-0003_3, PROS-2018-0014_3, PROS-2019-0024_3, PROS-2020-0067_3, PROS-2021-0017_3, PROS-2021-0045_3, PROS-2022-0125_3, PROS-2023-0116_3, PROS-2023-0172_3
 
 _Note: acquired customers are registered but do not yet settle energy in Phase 8a. Settlement revenue deferred to Phase 8b._
 
@@ -6141,7 +6144,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £376,122.53
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £380,268.86
 
 ## 2016
 
@@ -6314,10 +6317,10 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 **Trading & Risk**
 
-- Net margin: £3,335.96 (gross £15,955.28, capital £121.82)
-  - Electricity: gross £11,844.22, capital £72.79, net £1,244.78
+- Net margin: £3,557.71 (gross £15,955.28, capital £121.82)
+  - Electricity: gross £11,844.22, capital £72.79, net £1,466.53
   - Gas: gross £4,111.06, capital £49.03, net £2,091.18
-- Treasury at year end: £258,926.48
+- Treasury at year end: £259,148.23
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.91 (avg 0.91), C3g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.91 (avg 0.91), PROS-2016-0011 0.91 (avg 0.91), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.91 (avg 0.91), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.92 (avg 0.92), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0002 0.89 (avg 0.89), PROS-2018-0003 0.89 (avg 0.89), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.89 (avg 0.89), PROS-2018-0014 0.92 (avg 0.92), PROS-2018-0014g 0.85 (avg 0.85), PROS-2018-0016 0.92 (avg 0.92), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.92 (avg 0.92), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.92 (avg 0.92), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0039 0.92 (avg 0.92), PROS-2018-0039g 0.85 (avg 0.85), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0053g 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
@@ -6360,7 +6363,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2017-0022 (electricity): tariff £133.18-£141.92/MWh, net margin £103.75
 - PROS-2017-0022g (gas): tariff £28.39-£34.10/MWh, net margin £167.46
 - PROS-2018-0002 (electricity): tariff £123.19/MWh, net margin £43.15
-- PROS-2018-0003 (electricity): tariff £123.19/MWh, net margin £-169.35 -- **net-negative**
+- PROS-2018-0003 (electricity): tariff £123.19/MWh, net margin £52.40
 - PROS-2018-0003g (gas): tariff £34.89/MWh, net margin £154.10
 - PROS-2018-0009 (electricity): tariff £123.02/MWh, net margin £59.96
 - PROS-2018-0014 (electricity): tariff £135.35/MWh, net margin £112.84
@@ -6384,8 +6387,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 0.8% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 473, average clarity 0.831, average bill shock 46.0%, bad debt provision £488.88, avg complaint probability 5.6%
-- Solvency signal: £10,357/customer (25 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 473, average clarity 0.831, average bill shock 46.0%, bad debt provision £267.13, avg complaint probability 5.6%
+- Solvency signal: £10,366/customer (25 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
@@ -6430,16 +6433,16 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2018-0053: actual £135.40 vs. naked £414.70 -- hedging cost £279.30
   - PROS-2018-0053g: actual £127.58 vs. naked £180.17 -- hedging cost £52.59
 
-**Year narrative:** 2018 produced a net gain of £3,335.96 across 42 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 214 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2018 produced a net gain of £3,557.71 across 42 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 214 customer(s) experienced a bill shock of >=20%.
 
 ## 2019
 
 **Trading & Risk**
 
-- Net margin: £7,362.29 (gross £24,080.38, capital £146.55)
-  - Electricity: gross £17,673.67, capital £70.42, net £3,783.44
+- Net margin: £7,345.03 (gross £24,080.38, capital £146.55)
+  - Electricity: gross £17,673.67, capital £70.42, net £3,766.18
   - Gas: gross £6,406.71, capital £76.13, net £3,578.85
-- Treasury at year end: £266,239.27
+- Treasury at year end: £266,443.76
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.89 (avg 0.89), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C5 0.89 (avg 0.89), C7 0.89 (avg 0.89), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89), PROS-2016-0011 0.92 (avg 0.92), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.92 (avg 0.92), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0003 0.92 (avg 0.92), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.92 (avg 0.92), PROS-2018-0014 0.92 (avg 0.92), PROS-2018-0014g 0.85 (avg 0.85), PROS-2018-0016 0.93 (avg 0.93), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.92 (avg 0.92), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.93 (avg 0.93), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0039 0.93 (avg 0.93), PROS-2018-0039g 0.85 (avg 0.85), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0003 0.92 (avg 0.92), PROS-2019-0003g 0.85 (avg 0.85), PROS-2019-0008 0.92 (avg 0.92), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.93 (avg 0.93), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.93 (avg 0.93), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.92 (avg 0.92), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.93 (avg 0.93), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.93 (avg 0.93), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0024 0.93 (avg 0.93), PROS-2019-0024g 0.85 (avg 0.85), PROS-2019-0027 0.92 (avg 0.92), PROS-2019-0027g 0.85 (avg 0.85), PROS-2019-0050 0.92 (avg 0.92), PROS-2019-0050g 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
@@ -6452,8 +6455,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - New acquisitions this year: C_IC3, C_IC3g
 - Losses (churn) during year: PROS-2018-0002
   - Renewals (retained): 22 accounts
-- Average CLV (Point-in-Time, year-end 2019): £1,255.22
-  - By billing account: C1 £770.09, C2 £1,471.46, C3 £333.18, C5 £-774.91, C7 £430.39, C8 £1,055.62, C9 £664.02, PROS-2016-0011 £1,513.08, PROS-2016-0020 £1,227.18, PROS-2017-0019 £1,386.24, PROS-2017-0022 £1,923.37, PROS-2018-0003 £179.45, PROS-2018-0009 £459.69, PROS-2018-0014 £2,020.07, PROS-2018-0016 £2,690.69, PROS-2018-0018 £1,784.28, PROS-2018-0022 £1,898.03, PROS-2018-0024 £1,165.49, PROS-2018-0035 £2,330.37, PROS-2018-0039 £2,126.88, PROS-2018-0043 £944.47, PROS-2018-0053 £2,015.63
+- Average CLV (Point-in-Time, year-end 2019): £1,326.86
+  - By billing account: C1 £770.09, C2 £1,471.46, C3 £333.18, C5 £-774.91, C7 £430.39, C8 £1,055.62, C9 £664.02, PROS-2016-0011 £1,513.08, PROS-2016-0020 £1,227.18, PROS-2017-0019 £1,386.24, PROS-2017-0022 £1,923.37, PROS-2018-0003 £1,755.69, PROS-2018-0009 £459.69, PROS-2018-0014 £2,020.07, PROS-2018-0016 £2,690.69, PROS-2018-0018 £1,784.28, PROS-2018-0022 £1,898.03, PROS-2018-0024 £1,165.49, PROS-2018-0035 £2,330.37, PROS-2018-0039 £2,126.88, PROS-2018-0043 £944.47, PROS-2018-0053 £2,015.63
 - Bill shock events (>=20%): 299 -- C1 2019-03-31 (20%); C1g 2019-01-31 (37%); C1g 2019-02-28 (27%); C1g 2019-05-31 (26%); C1g 2019-06-30 (40%); C1g 2019-10-31 (91%); C1g 2019-11-30 (50%); C5 2019-02-28 (32%); C5 2019-04-30 (71%); C5 2019-06-30 (25%); C5 2019-07-31 (70%); C5 2019-08-31 (77%); C5 2019-09-30 (83%); C5 2019-10-31 (66%); C7 2019-01-31 (45%); C7 2019-02-28 (26%); C7 2019-05-31 (24%); C7 2019-06-30 (35%); C7 2019-10-31 (72%); C7 2019-11-30 (46%); PROS-2016-0011 2019-07-31 (34%); PROS-2016-0011g 2019-01-31 (63%); PROS-2016-0011g 2019-02-28 (66%); PROS-2016-0011g 2019-03-31 (59%); PROS-2016-0011g 2019-04-30 (59%); PROS-2016-0011g 2019-05-31 (47%); PROS-2016-0011g 2019-06-30 (31%); PROS-2016-0011g 2019-08-31 (1113%); PROS-2016-0011g 2019-11-30 (52%); PROS-2016-0011g 2019-12-31 (65%); PROS-2016-0020 2019-04-30 (21%); PROS-2016-0020 2019-07-31 (26%); PROS-2016-0020 2019-08-31 (23%); PROS-2016-0020 2019-09-30 (23%); PROS-2016-0020g 2019-03-31 (425%); PROS-2016-0020g 2019-05-31 (58%); PROS-2016-0020g 2019-06-30 (43%); PROS-2016-0020g 2019-07-31 (133%); PROS-2016-0020g 2019-08-31 (168%); PROS-2016-0020g 2019-09-30 (167%); PROS-2016-0020g 2019-10-31 (121%); PROS-2016-0020g 2019-11-30 (306%); C2 2019-02-28 (21%); C2 2019-03-31 (24%); C2 2019-12-31 (33%); C2g 2019-01-31 (27%); C2g 2019-02-28 (27%); C2g 2019-04-30 (28%); C2g 2019-06-30 (36%); C2g 2019-07-31 (31%); C2g 2019-09-30 (41%); C2g 2019-10-31 (78%); C2g 2019-11-30 (32%); C8 2019-01-31 (28%); C8 2019-02-28 (28%); C8 2019-06-30 (40%); C8 2019-07-31 (36%); C8 2019-10-31 (117%); C8 2019-11-30 (38%); C3 2019-09-30 (35%); C3g 2019-01-31 (145%); C3g 2019-02-28 (41%); C3g 2019-04-30 (28%); C3g 2019-07-31 (37%); C3g 2019-08-31 (129%); C3g 2019-09-30 (105%); C3g 2019-10-31 (56%); C3g 2019-11-30 (44%); C9 2019-02-28 (27%); C9 2019-04-30 (23%); C9 2019-06-30 (68%); C9 2019-07-31 (60%); C9 2019-08-31 (139%); C9 2019-09-30 (53%); C9 2019-11-30 (87%); PROS-2017-0019 2019-07-31 (24%); PROS-2017-0019 2019-08-31 (21%); PROS-2017-0019 2019-09-30 (65%); PROS-2017-0019g 2019-01-31 (43%); PROS-2017-0019g 2019-02-28 (47%); PROS-2017-0019g 2019-03-31 (36%); PROS-2017-0019g 2019-04-30 (38%); PROS-2017-0019g 2019-05-31 (21%); PROS-2017-0019g 2019-07-31 (51%); PROS-2017-0019g 2019-08-31 (70%); PROS-2017-0019g 2019-09-30 (68%); PROS-2017-0019g 2019-10-31 (351%); PROS-2017-0019g 2019-12-31 (34%); PROS-2017-0022 2019-02-28 (178%); PROS-2017-0022 2019-05-31 (22%); PROS-2017-0022 2019-06-30 (24%); PROS-2017-0022 2019-07-31 (32%); PROS-2017-0022 2019-08-31 (29%); PROS-2017-0022 2019-09-30 (29%); PROS-2017-0022 2019-10-31 (21%); PROS-2017-0022g 2019-01-31 (60%); PROS-2017-0022g 2019-02-28 (62%); PROS-2017-0022g 2019-03-31 (54%); PROS-2017-0022g 2019-04-30 (54%); PROS-2017-0022g 2019-05-31 (41%); PROS-2017-0022g 2019-06-30 (21%); PROS-2017-0022g 2019-07-31 (798%); PROS-2017-0022g 2019-08-31 (43%); PROS-2017-0022g 2019-09-30 (42%); PROS-2017-0022g 2019-11-30 (38%); PROS-2017-0022g 2019-12-31 (56%); PROS-2018-0002 2019-01-01 (242%); PROS-2018-0003 2019-05-31 (27%); PROS-2018-0003 2019-06-30 (30%); PROS-2018-0003 2019-07-31 (38%); PROS-2018-0003 2019-08-31 (35%); PROS-2018-0003 2019-09-30 (35%); PROS-2018-0003 2019-10-31 (26%); PROS-2018-0003g 2019-05-31 (33%); PROS-2018-0003g 2019-06-30 (74%); PROS-2018-0003g 2019-07-31 (193%); PROS-2018-0003g 2019-08-31 (244%); PROS-2018-0003g 2019-09-30 (243%); PROS-2018-0003g 2019-10-31 (177%); PROS-2018-0003g 2019-11-30 (59%); PROS-2018-0009 2019-05-31 (27%); PROS-2018-0009 2019-06-30 (29%); PROS-2018-0009 2019-07-31 (106%); PROS-2018-0014 2019-04-30 (137%); PROS-2018-0014 2019-07-31 (21%); PROS-2018-0014 2019-09-30 (64%); PROS-2018-0014g 2019-05-31 (40%); PROS-2018-0014g 2019-06-30 (81%); PROS-2018-0014g 2019-07-31 (196%); PROS-2018-0014g 2019-08-31 (748%); PROS-2018-0014g 2019-09-30 (160%); PROS-2018-0014g 2019-10-31 (115%); PROS-2018-0014g 2019-11-30 (26%); PROS-2018-0016 2019-02-28 (78%); PROS-2018-0016 2019-08-31 (28%); PROS-2018-0016g 2019-01-31 (54%); PROS-2018-0016g 2019-02-28 (56%); PROS-2018-0016g 2019-03-31 (47%); PROS-2018-0016g 2019-04-30 (47%); PROS-2018-0016g 2019-05-31 (32%); PROS-2018-0016g 2019-07-31 (52%); PROS-2018-0016g 2019-08-31 (828%); PROS-2018-0016g 2019-11-30 (55%); PROS-2018-0016g 2019-12-31 (67%); PROS-2018-0018 2019-01-31 (23%); PROS-2018-0018 2019-02-28 (25%); PROS-2018-0018 2019-04-30 (25%); PROS-2018-0018 2019-08-31 (162%); PROS-2018-0018 2019-12-31 (23%); PROS-2018-0018g 2019-01-31 (31%); PROS-2018-0018g 2019-02-28 (62%); PROS-2018-0018g 2019-05-31 (21%); PROS-2018-0018g 2019-06-30 (28%); PROS-2018-0018g 2019-07-31 (102%); PROS-2018-0018g 2019-08-31 (129%); PROS-2018-0018g 2019-09-30 (127%); PROS-2018-0018g 2019-10-31 (343%); PROS-2018-0022 2019-02-28 (35%); PROS-2018-0022g 2019-05-31 (52%); PROS-2018-0022g 2019-06-30 (96%); PROS-2018-0022g 2019-07-31 (222%); PROS-2018-0022g 2019-08-31 (273%); PROS-2018-0022g 2019-09-30 (272%); PROS-2018-0022g 2019-10-31 (206%); PROS-2018-0022g 2019-11-30 (80%); PROS-2018-0022g 2019-12-31 (582%); PROS-2018-0024 2019-05-31 (27%); PROS-2018-0024 2019-06-30 (30%); PROS-2018-0024 2019-07-31 (37%); PROS-2018-0024 2019-08-31 (34%); PROS-2018-0024 2019-09-30 (34%); PROS-2018-0024 2019-10-31 (26%); PROS-2018-0035 2019-04-30 (133%); PROS-2018-0035 2019-07-31 (20%); PROS-2018-0035g 2019-05-31 (54%); PROS-2018-0035g 2019-06-30 (103%); PROS-2018-0035g 2019-07-31 (245%); PROS-2018-0035g 2019-08-31 (308%); PROS-2018-0035g 2019-09-30 (307%); PROS-2018-0035g 2019-10-31 (226%); PROS-2018-0035g 2019-11-30 (85%); PROS-2018-0035g 2019-12-31 (33%); PROS-2018-0039 2019-01-31 (23%); PROS-2018-0039 2019-02-28 (21%); PROS-2018-0039 2019-04-30 (24%); PROS-2018-0039 2019-08-31 (143%); PROS-2018-0039 2019-12-31 (23%); PROS-2018-0039g 2019-05-31 (49%); PROS-2018-0039g 2019-06-30 (88%); PROS-2018-0039g 2019-07-31 (196%); PROS-2018-0039g 2019-08-31 (235%); PROS-2018-0039g 2019-09-30 (233%); PROS-2018-0039g 2019-10-31 (182%); PROS-2018-0039g 2019-11-30 (74%); PROS-2018-0039g 2019-12-31 (30%); PROS-2018-0043 2019-02-28 (22%); PROS-2018-0043 2019-04-30 (20%); PROS-2018-0043 2019-05-31 (88%); PROS-2018-0053 2019-07-31 (25%); PROS-2018-0053 2019-08-31 (22%); PROS-2018-0053 2019-09-30 (22%); PROS-2018-0053g 2019-05-31 (47%); PROS-2018-0053g 2019-06-30 (29%); PROS-2018-0053g 2019-07-31 (98%); PROS-2018-0053g 2019-08-31 (123%); PROS-2018-0053g 2019-09-30 (121%); PROS-2018-0053g 2019-10-31 (90%); PROS-2019-0003 2019-04-30 (21%); PROS-2019-0003g 2019-04-30 (21%); PROS-2019-0003g 2019-05-31 (22%); PROS-2019-0003g 2019-06-30 (37%); PROS-2019-0003g 2019-10-31 (65%); PROS-2019-0003g 2019-11-30 (35%); PROS-2019-0003g 2019-12-31 (28%); PROS-2019-0008 2019-02-28 (33%); PROS-2019-0008 2019-04-30 (21%); PROS-2019-0008g 2019-02-28 (23%); PROS-2019-0008g 2019-04-30 (22%); PROS-2019-0008g 2019-05-31 (25%); PROS-2019-0008g 2019-06-30 (42%); PROS-2019-0008g 2019-09-30 (26%); PROS-2019-0008g 2019-10-31 (78%); PROS-2019-0008g 2019-11-30 (40%); PROS-2019-0008g 2019-12-31 (30%); PROS-2019-0009 2019-02-28 (40%); PROS-2019-0009 2019-04-30 (21%); PROS-2019-0009g 2019-02-28 (30%); PROS-2019-0009g 2019-05-31 (50%); PROS-2019-0009g 2019-06-30 (31%); PROS-2019-0009g 2019-07-31 (109%); PROS-2019-0009g 2019-08-31 (139%); PROS-2019-0009g 2019-09-30 (382%); PROS-2019-0009g 2019-10-31 (67%); PROS-2019-0009g 2019-12-31 (25%); PROS-2019-0012 2019-02-28 (74%); PROS-2019-0012 2019-04-30 (21%); PROS-2019-0012 2019-12-31 (21%); PROS-2019-0012g 2019-02-28 (64%); PROS-2019-0012g 2019-06-30 (32%); PROS-2019-0012g 2019-10-31 (51%); PROS-2019-0012g 2019-11-30 (29%); PROS-2019-0012g 2019-12-31 (25%); PROS-2019-0015 2019-02-28 (115%); PROS-2019-0015 2019-04-30 (21%); PROS-2019-0015g 2019-02-28 (99%); PROS-2019-0015g 2019-04-30 (22%); PROS-2019-0015g 2019-05-31 (24%); PROS-2019-0015g 2019-06-30 (40%); PROS-2019-0015g 2019-09-30 (24%); PROS-2019-0015g 2019-10-31 (74%); PROS-2019-0015g 2019-11-30 (39%); PROS-2019-0015g 2019-12-31 (30%); PROS-2019-0021 2019-02-28 (459%); PROS-2019-0021 2019-07-31 (25%); PROS-2019-0021 2019-08-31 (22%); PROS-2019-0021 2019-09-30 (22%); PROS-2019-0021g 2019-02-28 (420%); PROS-2019-0021g 2019-04-30 (21%); PROS-2019-0021g 2019-06-30 (81%); PROS-2019-0021g 2019-07-31 (85%); PROS-2019-0021g 2019-08-31 (111%); PROS-2019-0021g 2019-09-30 (109%); PROS-2019-0021g 2019-10-31 (77%); PROS-2019-0023 2019-02-28 (848%); PROS-2019-0023 2019-04-30 (21%); PROS-2019-0023 2019-12-31 (21%); PROS-2019-0023g 2019-02-28 (763%); PROS-2019-0023g 2019-04-30 (22%); PROS-2019-0023g 2019-05-31 (24%); PROS-2019-0023g 2019-06-30 (40%); PROS-2019-0023g 2019-11-30 (46%); PROS-2019-0023g 2019-12-31 (60%); PROS-2019-0024 2019-02-28 (847%); PROS-2019-0024 2019-04-30 (21%); PROS-2019-0024g 2019-02-28 (761%); PROS-2019-0024g 2019-04-30 (22%); PROS-2019-0024g 2019-05-31 (25%); PROS-2019-0024g 2019-06-30 (42%); PROS-2019-0024g 2019-09-30 (26%); PROS-2019-0024g 2019-10-31 (78%); PROS-2019-0024g 2019-11-30 (40%); PROS-2019-0024g 2019-12-31 (30%); PROS-2019-0027 2019-04-30 (21%); PROS-2019-0027g 2019-04-30 (22%); PROS-2019-0027g 2019-05-31 (24%); PROS-2019-0027g 2019-06-30 (41%); PROS-2019-0027g 2019-09-30 (26%); PROS-2019-0027g 2019-10-31 (77%); PROS-2019-0027g 2019-11-30 (40%); PROS-2019-0027g 2019-12-31 (30%); PROS-2019-0050 2019-03-31 (340%); PROS-2019-0050 2019-04-30 (21%); PROS-2019-0050g 2019-03-31 (301%); PROS-2019-0050g 2019-04-30 (22%); PROS-2019-0050g 2019-05-31 (24%); PROS-2019-0050g 2019-06-30 (40%); PROS-2019-0050g 2019-09-30 (24%); PROS-2019-0050g 2019-11-30 (43%); PROS-2019-0050g 2019-12-31 (58%)
 - Churn risk (accounts renewing in 2019): 5 at risk (≥20% churn prob): C1 23%, C3 20%, C5 35%, C7 29%, C9 23%
 
@@ -6478,7 +6481,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2017-0022 (electricity): tariff £133.18-£141.10/MWh, net margin £82.87
 - PROS-2017-0022g (gas): tariff £34.10-£34.88/MWh, net margin £172.07
 - PROS-2018-0002 (electricity): tariff £123.19/MWh, net margin £125.94
-- PROS-2018-0003 (electricity): tariff £123.19-£145.47/MWh, net margin £117.35
+- PROS-2018-0003 (electricity): tariff £123.19-£145.47/MWh, net margin £100.09
 - PROS-2018-0003g (gas): tariff £34.89-£35.26/MWh, net margin £140.84
 - PROS-2018-0009 (electricity): tariff £123.02-£148.31/MWh, net margin £108.59
 - PROS-2018-0014 (electricity): tariff £135.35-£144.54/MWh, net margin £92.81
@@ -6522,8 +6525,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 0.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 681, average clarity 0.833, average bill shock 46.8%, bad debt provision £35.76, avg complaint probability 6.0%
-- Solvency signal: £8,068/customer (33 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 681, average clarity 0.833, average bill shock 46.8%, bad debt provision £53.02, avg complaint probability 6.0%
+- Solvency signal: £8,074/customer (33 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
@@ -6587,16 +6590,16 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2019-0050: actual £102.38 vs. naked £588.78 -- hedging cost £486.41
   - PROS-2019-0050g: actual £174.42 vs. naked £409.51 -- hedging cost £235.09
 
-**Year narrative:** 2019 produced a net gain of £7,362.29 across 58 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 299 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2019 produced a net gain of £7,345.03 across 58 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 299 customer(s) experienced a bill shock of >=20%.
 
 ## 2020
 
 **Trading & Risk**
 
-- Net margin: £11,668.22 (gross £36,380.63, capital £155.96)
-  - Electricity: gross £26,099.19, capital £88.07, net £5,631.37
+- Net margin: £11,580.49 (gross £36,380.63, capital £155.96)
+  - Electricity: gross £26,099.19, capital £88.07, net £5,543.64
   - Gas: gross £10,281.44, capital £67.88, net £6,036.85
-- Treasury at year end: £277,480.78
+- Treasury at year end: £277,597.54
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.89 (avg 0.89), C1g 0.85 (avg 0.85), C2 0.88 (avg 0.88), C2g 0.85 (avg 0.85), C3 0.85 (avg 0.85), C3g 0.85 (avg 0.85), C5 0.89 (avg 0.89), C7 0.89 (avg 0.89), C8 0.88 (avg 0.88), C9 0.85 (avg 0.85), PROS-2016-0011 0.91 (avg 0.91), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.91 (avg 0.91), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.91 (avg 0.91), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.91 (avg 0.91), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0003 0.90 (avg 0.90), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.91 (avg 0.91), PROS-2018-0014 0.91 (avg 0.91), PROS-2018-0014g 0.85 (avg 0.85), PROS-2018-0016 0.91 (avg 0.91), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.91 (avg 0.91), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.91 (avg 0.91), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.91 (avg 0.91), PROS-2018-0035 0.91 (avg 0.91), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0039 0.91 (avg 0.91), PROS-2018-0039g 0.85 (avg 0.85), PROS-2018-0043 0.91 (avg 0.91), PROS-2018-0053 0.89 (avg 0.89), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0003 0.90 (avg 0.90), PROS-2019-0003g 0.85 (avg 0.85), PROS-2019-0008 0.91 (avg 0.91), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.91 (avg 0.91), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.91 (avg 0.91), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.91 (avg 0.91), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.91 (avg 0.91), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.91 (avg 0.91), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0024 0.91 (avg 0.91), PROS-2019-0024g 0.85 (avg 0.85), PROS-2019-0027 0.91 (avg 0.91), PROS-2019-0027g 0.85 (avg 0.85), PROS-2019-0050 0.89 (avg 0.89), PROS-2019-0050g 0.85 (avg 0.85), PROS-2020-0002 0.90 (avg 0.90), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0006 0.90 (avg 0.90), PROS-2020-0006g 0.85 (avg 0.85), PROS-2020-0009 0.90 (avg 0.90), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.90 (avg 0.90), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0013 0.90 (avg 0.90), PROS-2020-0016 0.90 (avg 0.90), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.91 (avg 0.91), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0025 0.90 (avg 0.90), PROS-2020-0025g 0.85 (avg 0.85), PROS-2020-0032 0.90 (avg 0.90), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0042 0.90 (avg 0.90), PROS-2020-0042g 0.85 (avg 0.85), PROS-2020-0043 0.90 (avg 0.90), PROS-2020-0043g 0.85 (avg 0.85), PROS-2020-0047 0.90 (avg 0.90), PROS-2020-0047g 0.85 (avg 0.85), PROS-2020-0048 0.90 (avg 0.90), PROS-2020-0048g 0.85 (avg 0.85), PROS-2020-0050 0.89 (avg 0.89), PROS-2020-0050g 0.85 (avg 0.85), PROS-2020-0067 0.89 (avg 0.89), PROS-2020-0067g 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
@@ -6609,8 +6612,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - New acquisitions this year: C_IC4
 - Losses (churn) during year: none
   - Renewals (retained): 32 accounts
-- Average CLV (Point-in-Time, year-end 2020): £1,540.49
-  - By billing account: C1 £726.37, C2 £1,420.43, C3 £423.75, C5 £-832.40, C7 £353.06, C8 £1,085.83, C9 £602.33, PROS-2016-0011 £1,489.61, PROS-2016-0020 £1,253.84, PROS-2017-0019 £1,175.78, PROS-2017-0022 £1,852.68, PROS-2018-0003 £1,141.10, PROS-2018-0009 £441.48, PROS-2018-0014 £1,662.97, PROS-2018-0016 £2,053.69, PROS-2018-0018 £1,494.90, PROS-2018-0022 £1,558.34, PROS-2018-0024 £874.19, PROS-2018-0035 £1,886.43, PROS-2018-0039 £1,690.75, PROS-2018-0043 £757.20, PROS-2018-0053 £1,454.58, PROS-2019-0003 £307.35, PROS-2019-0008 £2,671.80, PROS-2019-0009 £2,877.22, PROS-2019-0012 £2,137.81, PROS-2019-0015 £2,681.76, PROS-2019-0021 £2,345.33, PROS-2019-0023 £3,156.99, PROS-2019-0024 £3,276.91, PROS-2019-0027 £2,860.29, PROS-2019-0050 £2,413.37
+- Average CLV (Point-in-Time, year-end 2020): £1,554.78
+  - By billing account: C1 £726.37, C2 £1,420.43, C3 £423.75, C5 £-832.40, C7 £353.06, C8 £1,085.83, C9 £602.33, PROS-2016-0011 £1,489.61, PROS-2016-0020 £1,253.84, PROS-2017-0019 £1,175.78, PROS-2017-0022 £1,852.68, PROS-2018-0003 £1,598.45, PROS-2018-0009 £441.48, PROS-2018-0014 £1,662.97, PROS-2018-0016 £2,053.69, PROS-2018-0018 £1,494.90, PROS-2018-0022 £1,558.34, PROS-2018-0024 £874.19, PROS-2018-0035 £1,886.43, PROS-2018-0039 £1,690.75, PROS-2018-0043 £757.20, PROS-2018-0053 £1,454.58, PROS-2019-0003 £307.35, PROS-2019-0008 £2,671.80, PROS-2019-0009 £2,877.22, PROS-2019-0012 £2,137.81, PROS-2019-0015 £2,681.76, PROS-2019-0021 £2,345.33, PROS-2019-0023 £3,156.99, PROS-2019-0024 £3,276.91, PROS-2019-0027 £2,860.29, PROS-2019-0050 £2,413.37
 - Bill shock events (>=20%): 479 -- C1 2020-11-30 (20%); C1g 2020-01-31 (22%); C1g 2020-04-30 (35%); C1g 2020-05-31 (22%); C1g 2020-06-30 (30%); C1g 2020-08-31 (27%); C1g 2020-10-31 (71%); C1g 2020-11-30 (20%); C1g 2020-12-31 (41%); C5 2020-01-31 (141%); C5 2020-05-31 (36%); C5 2020-06-30 (61%); C5 2020-07-31 (97%); C5 2020-08-31 (106%); C5 2020-09-30 (109%); C5 2020-10-31 (87%); C5 2020-11-30 (34%); C7 2020-05-31 (71%); C7 2020-06-30 (28%); C7 2020-10-31 (75%); C7 2020-11-30 (24%); C7 2020-12-31 (35%); PROS-2016-0011 2020-01-31 (23%); PROS-2016-0011 2020-02-29 (23%); PROS-2016-0011 2020-05-31 (118%); PROS-2016-0011 2020-12-31 (22%); PROS-2016-0011g 2020-01-31 (76%); PROS-2016-0011g 2020-02-29 (75%); PROS-2016-0011g 2020-03-31 (68%); PROS-2016-0011g 2020-04-30 (67%); PROS-2016-0011g 2020-05-31 (58%); PROS-2016-0011g 2020-06-30 (45%); PROS-2016-0011g 2020-09-30 (1576%); PROS-2016-0011g 2020-11-30 (49%); PROS-2016-0011g 2020-12-31 (63%); PROS-2016-0020 2020-05-31 (87%); PROS-2016-0020g 2020-01-31 (33%); PROS-2016-0020g 2020-02-29 (37%); PROS-2016-0020g 2020-06-30 (35%); PROS-2016-0020g 2020-07-31 (115%); PROS-2016-0020g 2020-08-31 (145%); PROS-2016-0020g 2020-09-30 (143%); PROS-2016-0020g 2020-10-31 (105%); PROS-2016-0020g 2020-11-30 (25%); PROS-2016-0020g 2020-12-31 (96%); C2 2020-01-31 (50%); C2g 2020-04-30 (46%); C2g 2020-05-31 (20%); C2g 2020-06-30 (29%); C2g 2020-09-30 (35%); C2g 2020-10-31 (56%); C2g 2020-12-31 (42%); C8 2020-04-30 (43%); C8 2020-05-31 (25%); C8 2020-06-30 (45%); C8 2020-07-31 (124%); C8 2020-09-30 (34%); C8 2020-10-31 (82%); C8 2020-12-31 (43%); C3 2020-10-31 (36%); C3g 2020-06-30 (44%); C3g 2020-07-31 (80%); C3g 2020-08-31 (98%); C3g 2020-09-30 (126%); C3g 2020-10-31 (67%); C9 2020-04-30 (28%); C9 2020-05-31 (26%); C9 2020-06-30 (36%); C9 2020-10-31 (51%); C9 2020-12-31 (37%); PROS-2017-0019 2020-06-30 (67%); PROS-2017-0019 2020-12-31 (22%); PROS-2017-0019g 2020-01-31 (52%); PROS-2017-0019g 2020-02-29 (52%); PROS-2017-0019g 2020-03-31 (39%); PROS-2017-0019g 2020-04-30 (39%); PROS-2017-0019g 2020-05-31 (23%); PROS-2017-0019g 2020-07-31 (41%); PROS-2017-0019g 2020-08-31 (56%); PROS-2017-0019g 2020-09-30 (54%); PROS-2017-0019g 2020-10-31 (36%); PROS-2017-0019g 2020-11-30 (286%); PROS-2017-0019g 2020-12-31 (24%); PROS-2017-0022 2020-03-31 (122%); PROS-2017-0022 2020-05-31 (23%); PROS-2017-0022 2020-06-30 (23%); PROS-2017-0022 2020-07-31 (34%); PROS-2017-0022 2020-08-31 (30%); PROS-2017-0022 2020-09-30 (30%); PROS-2017-0022 2020-10-31 (24%); PROS-2017-0022 2020-11-30 (142%); PROS-2017-0022g 2020-01-31 (68%); PROS-2017-0022g 2020-02-29 (70%); PROS-2017-0022g 2020-03-31 (60%); PROS-2017-0022g 2020-04-30 (59%); PROS-2017-0022g 2020-05-31 (47%); PROS-2017-0022g 2020-06-30 (691%); PROS-2017-0022g 2020-11-30 (52%); PROS-2017-0022g 2020-12-31 (65%); PROS-2018-0003 2020-02-29 (181%); PROS-2018-0003 2020-05-31 (23%); PROS-2018-0003 2020-06-30 (24%); PROS-2018-0003 2020-07-31 (35%); PROS-2018-0003 2020-08-31 (31%); PROS-2018-0003 2020-09-30 (138%); PROS-2018-0003g 2020-01-31 (344%); PROS-2018-0003g 2020-05-31 (42%); PROS-2018-0003g 2020-06-30 (84%); PROS-2018-0003g 2020-07-31 (201%); PROS-2018-0003g 2020-08-31 (248%); PROS-2018-0003g 2020-09-30 (247%); PROS-2018-0003g 2020-10-31 (186%); PROS-2018-0003g 2020-11-30 (69%); PROS-2018-0003g 2020-12-31 (24%); PROS-2018-0009 2020-07-31 (20%); PROS-2018-0014 2020-10-31 (30%); PROS-2018-0014g 2020-01-31 (37%); PROS-2018-0014g 2020-02-29 (34%); PROS-2018-0014g 2020-03-31 (25%); PROS-2018-0014g 2020-04-30 (22%); PROS-2018-0014g 2020-06-30 (26%); PROS-2018-0014g 2020-07-31 (101%); PROS-2018-0014g 2020-08-31 (129%); PROS-2018-0014g 2020-09-30 (128%); PROS-2018-0014g 2020-10-31 (92%); PROS-2018-0016 2020-01-31 (26%); PROS-2018-0016 2020-02-29 (24%); PROS-2018-0016 2020-06-30 (115%); PROS-2018-0016 2020-12-31 (28%); PROS-2018-0016g 2020-01-31 (77%); PROS-2018-0016g 2020-02-29 (76%); PROS-2018-0016g 2020-03-31 (70%); PROS-2018-0016g 2020-04-30 (69%); PROS-2018-0016g 2020-05-31 (60%); PROS-2018-0016g 2020-06-30 (48%); PROS-2018-0016g 2020-09-30 (1638%); PROS-2018-0016g 2020-11-30 (49%); PROS-2018-0016g 2020-12-31 (63%); PROS-2018-0018 2020-01-31 (27%); PROS-2018-0018 2020-02-29 (28%); PROS-2018-0018 2020-03-31 (21%); PROS-2018-0018 2020-04-30 (120%); PROS-2018-0018 2020-12-31 (22%); PROS-2018-0018g 2020-01-31 (40%); PROS-2018-0018g 2020-02-29 (40%); PROS-2018-0018g 2020-03-31 (24%); PROS-2018-0018g 2020-04-30 (23%); PROS-2018-0018g 2020-06-30 (21%); PROS-2018-0018g 2020-07-31 (85%); PROS-2018-0018g 2020-08-31 (106%); PROS-2018-0018g 2020-09-30 (104%); PROS-2018-0018g 2020-10-31 (77%); PROS-2018-0022 2020-07-31 (23%); PROS-2018-0022g 2020-05-31 (48%); PROS-2018-0022g 2020-06-30 (90%); PROS-2018-0022g 2020-07-31 (203%); PROS-2018-0022g 2020-08-31 (246%); PROS-2018-0022g 2020-09-30 (245%); PROS-2018-0022g 2020-10-31 (189%); PROS-2018-0022g 2020-11-30 (74%); PROS-2018-0022g 2020-12-31 (29%); PROS-2018-0024 2020-02-29 (187%); PROS-2018-0024 2020-05-31 (23%); PROS-2018-0024 2020-06-30 (23%); PROS-2018-0024 2020-07-31 (34%); PROS-2018-0024 2020-08-31 (30%); PROS-2018-0024 2020-09-30 (30%); PROS-2018-0024 2020-10-31 (24%); PROS-2018-0024 2020-11-30 (142%); PROS-2018-0035 2020-05-31 (23%); PROS-2018-0035 2020-08-31 (28%); PROS-2018-0035 2020-12-31 (20%); PROS-2018-0035g 2020-02-29 (525%); PROS-2018-0035g 2020-05-31 (43%); PROS-2018-0035g 2020-06-30 (86%); PROS-2018-0035g 2020-07-31 (210%); PROS-2018-0035g 2020-08-31 (263%); PROS-2018-0035g 2020-09-30 (262%); PROS-2018-0035g 2020-10-31 (194%); PROS-2018-0035g 2020-11-30 (70%); PROS-2018-0035g 2020-12-31 (23%); PROS-2018-0039 2020-01-31 (62%); PROS-2018-0039 2020-02-29 (26%); PROS-2018-0039 2020-07-31 (56%); PROS-2018-0039g 2020-02-29 (475%); PROS-2018-0039g 2020-05-31 (71%); PROS-2018-0039g 2020-06-30 (34%); PROS-2018-0039g 2020-07-31 (67%); PROS-2018-0039g 2020-08-31 (86%); PROS-2018-0039g 2020-09-30 (85%); PROS-2018-0039g 2020-10-31 (150%); PROS-2018-0039g 2020-12-31 (36%); PROS-2018-0043 2020-01-31 (21%); PROS-2018-0043 2020-02-29 (25%); PROS-2018-0043 2020-04-30 (21%); PROS-2018-0043 2020-06-30 (107%); PROS-2018-0043 2020-12-31 (21%); PROS-2018-0053 2020-01-31 (72%); PROS-2018-0053 2020-05-31 (21%); PROS-2018-0053 2020-06-30 (21%); PROS-2018-0053 2020-07-31 (31%); PROS-2018-0053 2020-08-31 (27%); PROS-2018-0053 2020-09-30 (27%); PROS-2018-0053 2020-10-31 (22%); PROS-2018-0053g 2020-01-31 (29%); PROS-2018-0053g 2020-02-29 (36%); PROS-2018-0053g 2020-03-31 (25%); PROS-2018-0053g 2020-06-30 (186%); PROS-2018-0053g 2020-07-31 (61%); PROS-2018-0053g 2020-08-31 (78%); PROS-2018-0053g 2020-09-30 (77%); PROS-2018-0053g 2020-10-31 (55%); PROS-2018-0053g 2020-11-30 (92%); PROS-2018-0053g 2020-12-31 (27%); PROS-2019-0003 2020-04-30 (21%); PROS-2019-0003 2020-08-31 (29%); PROS-2019-0003g 2020-01-31 (37%); PROS-2019-0003g 2020-04-30 (20%); PROS-2019-0003g 2020-05-31 (21%); PROS-2019-0003g 2020-06-30 (35%); PROS-2019-0003g 2020-10-31 (58%); PROS-2019-0003g 2020-11-30 (28%); PROS-2019-0003g 2020-12-31 (73%); PROS-2019-0008 2020-04-30 (20%); PROS-2019-0008 2020-06-30 (24%); PROS-2019-0008g 2020-02-29 (21%); PROS-2019-0008g 2020-04-30 (22%); PROS-2019-0008g 2020-05-31 (24%); PROS-2019-0008g 2020-06-30 (40%); PROS-2019-0008g 2020-10-31 (73%); PROS-2019-0008g 2020-11-30 (36%); PROS-2019-0008g 2020-12-31 (83%); PROS-2019-0009 2020-05-31 (27%); PROS-2019-0009 2020-06-30 (28%); PROS-2019-0009 2020-07-31 (39%); PROS-2019-0009 2020-08-31 (139%); PROS-2019-0009g 2020-01-31 (48%); PROS-2019-0009g 2020-02-29 (47%); PROS-2019-0009g 2020-03-31 (32%); PROS-2019-0009g 2020-04-30 (31%); PROS-2019-0009g 2020-05-31 (253%); PROS-2019-0009g 2020-07-31 (38%); PROS-2019-0009g 2020-08-31 (54%); PROS-2019-0009g 2020-09-30 (53%); PROS-2019-0009g 2020-10-31 (32%); PROS-2019-0009g 2020-12-31 (38%); PROS-2019-0012 2020-05-31 (26%); PROS-2019-0012g 2020-02-29 (21%); PROS-2019-0012g 2020-06-30 (69%); PROS-2019-0012g 2020-08-31 (32%); PROS-2019-0012g 2020-10-31 (45%); PROS-2019-0012g 2020-11-30 (24%); PROS-2019-0012g 2020-12-31 (64%); PROS-2019-0015 2020-05-31 (27%); PROS-2019-0015 2020-06-30 (28%); PROS-2019-0015 2020-07-31 (39%); PROS-2019-0015 2020-08-31 (34%); PROS-2019-0015 2020-09-30 (34%); PROS-2019-0015 2020-10-31 (28%); PROS-2019-0015 2020-12-31 (170%); PROS-2019-0015g 2020-02-29 (25%); PROS-2019-0015g 2020-05-31 (32%); PROS-2019-0015g 2020-06-30 (71%); PROS-2019-0015g 2020-07-31 (179%); PROS-2019-0015g 2020-08-31 (223%); PROS-2019-0015g 2020-09-30 (222%); PROS-2019-0015g 2020-10-31 (769%); PROS-2019-0015g 2020-11-30 (37%); PROS-2019-0021 2020-03-31 (68%); PROS-2019-0021 2020-07-31 (29%); PROS-2019-0021 2020-08-31 (25%); PROS-2019-0021 2020-09-30 (25%); PROS-2019-0021 2020-10-31 (21%); PROS-2019-0021g 2020-01-31 (38%); PROS-2019-0021g 2020-02-29 (48%); PROS-2019-0021g 2020-03-31 (27%); PROS-2019-0021g 2020-04-30 (26%); PROS-2019-0021g 2020-08-31 (43%); PROS-2019-0021g 2020-09-30 (41%); PROS-2019-0021g 2020-10-31 (23%); PROS-2019-0021g 2020-11-30 (23%); PROS-2019-0021g 2020-12-31 (41%); PROS-2019-0023 2020-01-31 (24%); PROS-2019-0023 2020-02-29 (32%); PROS-2019-0023 2020-04-30 (22%); PROS-2019-0023 2020-07-31 (176%); PROS-2019-0023g 2020-01-31 (134%); PROS-2019-0023g 2020-02-29 (46%); PROS-2019-0023g 2020-03-31 (24%); PROS-2019-0023g 2020-04-30 (22%); PROS-2019-0023g 2020-06-30 (29%); PROS-2019-0023g 2020-07-31 (111%); PROS-2019-0023g 2020-08-31 (145%); PROS-2019-0023g 2020-09-30 (143%); PROS-2019-0023g 2020-10-31 (101%); PROS-2019-0024 2020-05-31 (27%); PROS-2019-0024 2020-06-30 (27%); PROS-2019-0024 2020-07-31 (102%); PROS-2019-0024g 2020-04-30 (57%); PROS-2019-0024g 2020-05-31 (27%); PROS-2019-0024g 2020-06-30 (66%); PROS-2019-0024g 2020-07-31 (178%); PROS-2019-0024g 2020-08-31 (227%); PROS-2019-0024g 2020-09-30 (226%); PROS-2019-0024g 2020-10-31 (163%); PROS-2019-0024g 2020-11-30 (51%); PROS-2019-0027 2020-07-31 (30%); PROS-2019-0027 2020-08-31 (26%); PROS-2019-0027 2020-09-30 (26%); PROS-2019-0027 2020-10-31 (21%); PROS-2019-0027g 2020-02-29 (29%); PROS-2019-0027g 2020-05-31 (61%); PROS-2019-0027g 2020-06-30 (37%); PROS-2019-0027g 2020-07-31 (143%); PROS-2019-0027g 2020-08-31 (113%); PROS-2019-0027g 2020-09-30 (111%); PROS-2019-0027g 2020-10-31 (72%); PROS-2019-0027g 2020-12-31 (28%); PROS-2019-0050 2020-05-31 (27%); PROS-2019-0050 2020-06-30 (28%); PROS-2019-0050 2020-07-31 (39%); PROS-2019-0050 2020-08-31 (34%); PROS-2019-0050 2020-09-30 (34%); PROS-2019-0050 2020-10-31 (29%); PROS-2019-0050g 2020-01-31 (68%); PROS-2019-0050g 2020-02-29 (70%); PROS-2019-0050g 2020-03-31 (68%); PROS-2019-0050g 2020-04-30 (61%); PROS-2019-0050g 2020-05-31 (50%); PROS-2019-0050g 2020-06-30 (35%); PROS-2019-0050g 2020-08-31 (23%); PROS-2019-0050g 2020-09-30 (22%); PROS-2019-0050g 2020-10-31 (1213%); PROS-2019-0050g 2020-11-30 (21%); PROS-2019-0050g 2020-12-31 (42%); PROS-2020-0002 2020-04-30 (20%); PROS-2020-0002g 2020-04-30 (22%); PROS-2020-0002g 2020-05-31 (23%); PROS-2020-0002g 2020-06-30 (32%); PROS-2020-0002g 2020-07-31 (132%); PROS-2020-0002g 2020-09-30 (23%); PROS-2020-0002g 2020-10-31 (71%); PROS-2020-0002g 2020-11-30 (38%); PROS-2020-0002g 2020-12-31 (29%); PROS-2020-0006 2020-04-30 (20%); PROS-2020-0006g 2020-04-30 (22%); PROS-2020-0006g 2020-05-31 (24%); PROS-2020-0006g 2020-06-30 (40%); PROS-2020-0006g 2020-07-31 (63%); PROS-2020-0006g 2020-08-31 (91%); PROS-2020-0006g 2020-09-30 (24%); PROS-2020-0006g 2020-10-31 (73%); PROS-2020-0006g 2020-11-30 (38%); PROS-2020-0006g 2020-12-31 (30%); PROS-2020-0009 2020-12-31 (21%); PROS-2020-0009g 2020-04-30 (20%); PROS-2020-0009g 2020-05-31 (21%); PROS-2020-0009g 2020-06-30 (35%); PROS-2020-0009g 2020-10-31 (58%); PROS-2020-0009g 2020-11-30 (33%); PROS-2020-0009g 2020-12-31 (27%); PROS-2020-0012 2020-02-29 (21%); PROS-2020-0012 2020-04-30 (20%); PROS-2020-0012 2020-12-31 (23%); PROS-2020-0012g 2020-05-31 (27%); PROS-2020-0012g 2020-06-30 (65%); PROS-2020-0012g 2020-07-31 (169%); PROS-2020-0012g 2020-08-31 (212%); PROS-2020-0012g 2020-09-30 (786%); PROS-2020-0012g 2020-10-31 (79%); PROS-2020-0012g 2020-12-31 (23%); PROS-2020-0013 2020-03-31 (21%); PROS-2020-0013 2020-04-30 (20%); PROS-2020-0016 2020-02-29 (45%); PROS-2020-0016 2020-07-31 (30%); PROS-2020-0016 2020-08-31 (26%); PROS-2020-0016 2020-09-30 (26%); PROS-2020-0016 2020-10-31 (21%); PROS-2020-0016g 2020-02-29 (35%); PROS-2020-0016g 2020-06-30 (33%); PROS-2020-0016g 2020-11-30 (38%); PROS-2020-0016g 2020-12-31 (52%); PROS-2020-0022 2020-02-29 (120%); PROS-2020-0022 2020-04-30 (20%); PROS-2020-0022 2020-12-31 (38%); PROS-2020-0022g 2020-02-29 (107%); PROS-2020-0022g 2020-04-30 (21%); PROS-2020-0022g 2020-05-31 (22%); PROS-2020-0022g 2020-06-30 (37%); PROS-2020-0022g 2020-09-30 (20%); PROS-2020-0022g 2020-10-31 (65%); PROS-2020-0022g 2020-11-30 (30%); PROS-2020-0022g 2020-12-31 (77%); PROS-2020-0025 2020-02-29 (143%); PROS-2020-0025 2020-03-31 (27%); PROS-2020-0025 2020-04-30 (30%); PROS-2020-0025 2020-11-30 (20%); PROS-2020-0025 2020-12-31 (29%); PROS-2020-0025g 2020-02-29 (123%); PROS-2020-0025g 2020-04-30 (22%); PROS-2020-0025g 2020-05-31 (25%); PROS-2020-0025g 2020-06-30 (42%); PROS-2020-0025g 2020-09-30 (26%); PROS-2020-0025g 2020-10-31 (77%); PROS-2020-0025g 2020-11-30 (40%); PROS-2020-0025g 2020-12-31 (30%); PROS-2020-0032 2020-02-29 (259%); PROS-2020-0032 2020-04-30 (21%); PROS-2020-0032g 2020-02-29 (236%); PROS-2020-0032g 2020-04-30 (22%); PROS-2020-0032g 2020-05-31 (23%); PROS-2020-0032g 2020-06-30 (39%); PROS-2020-0032g 2020-09-30 (22%); PROS-2020-0032g 2020-10-31 (69%); PROS-2020-0032g 2020-11-30 (37%); PROS-2020-0032g 2020-12-31 (29%); PROS-2020-0042 2020-03-31 (38%); PROS-2020-0042 2020-04-30 (20%); PROS-2020-0042 2020-10-31 (23%); PROS-2020-0042 2020-12-31 (22%); PROS-2020-0042g 2020-03-31 (27%); PROS-2020-0042g 2020-04-30 (23%); PROS-2020-0042g 2020-05-31 (25%); PROS-2020-0042g 2020-06-30 (43%); PROS-2020-0042g 2020-09-30 (28%); PROS-2020-0042g 2020-10-31 (81%); PROS-2020-0042g 2020-11-30 (41%); PROS-2020-0042g 2020-12-31 (31%); PROS-2020-0043 2020-03-31 (45%); PROS-2020-0043 2020-04-30 (20%); PROS-2020-0043g 2020-04-30 (22%); PROS-2020-0043g 2020-06-30 (39%); PROS-2020-0043g 2020-07-31 (57%); PROS-2020-0043g 2020-08-31 (82%); PROS-2020-0043g 2020-09-30 (80%); PROS-2020-0043g 2020-10-31 (49%); PROS-2020-0043g 2020-12-31 (36%); PROS-2020-0047 2020-03-31 (69%); PROS-2020-0047 2020-04-30 (21%); PROS-2020-0047g 2020-03-31 (57%); PROS-2020-0047g 2020-04-30 (20%); PROS-2020-0047g 2020-05-31 (21%); PROS-2020-0047g 2020-06-30 (35%); PROS-2020-0047g 2020-07-31 (51%); PROS-2020-0047g 2020-08-31 (71%); PROS-2020-0047g 2020-09-30 (28%); PROS-2020-0047g 2020-11-30 (60%); PROS-2020-0047g 2020-12-31 (27%); PROS-2020-0048 2020-03-31 (69%); PROS-2020-0048 2020-04-30 (20%); PROS-2020-0048g 2020-03-31 (56%); PROS-2020-0048g 2020-04-30 (22%); PROS-2020-0048g 2020-05-31 (24%); PROS-2020-0048g 2020-07-31 (85%); PROS-2020-0048g 2020-08-31 (51%); PROS-2020-0048g 2020-09-30 (50%); PROS-2020-0048g 2020-10-31 (20%); PROS-2020-0048g 2020-11-30 (32%); PROS-2020-0048g 2020-12-31 (51%); PROS-2020-0050 2020-03-31 (79%); PROS-2020-0050 2020-05-31 (25%); PROS-2020-0050 2020-07-31 (22%); PROS-2020-0050g 2020-03-31 (66%); PROS-2020-0050g 2020-04-30 (21%); PROS-2020-0050g 2020-05-31 (21%); PROS-2020-0050g 2020-06-30 (36%); PROS-2020-0050g 2020-10-31 (62%); PROS-2020-0050g 2020-11-30 (34%); PROS-2020-0050g 2020-12-31 (28%); PROS-2020-0067 2020-03-31 (929%); PROS-2020-0067 2020-04-30 (21%); PROS-2020-0067g 2020-03-31 (836%); PROS-2020-0067g 2020-04-30 (22%); PROS-2020-0067g 2020-05-31 (24%); PROS-2020-0067g 2020-06-30 (41%); PROS-2020-0067g 2020-09-30 (25%); PROS-2020-0067g 2020-10-31 (75%); PROS-2020-0067g 2020-11-30 (33%); PROS-2020-0067g 2020-12-31 (81%)
 - Churn risk (accounts renewing in 2020): 7 at risk (≥20% churn prob): C1 29%, C5 41%, C7 20%, C8 26%, C9 23%, PROS-2017-0019 38%, PROS-2018-0009 41%
 
@@ -6634,7 +6637,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2017-0019g (gas): tariff £25.98-£35.03/MWh, net margin £122.86
 - PROS-2017-0022 (electricity): tariff £132.86-£141.10/MWh, net margin £132.61
 - PROS-2017-0022g (gas): tariff £26.16-£34.88/MWh, net margin £189.49
-- PROS-2018-0003 (electricity): tariff £137.95-£145.47/MWh, net margin £238.15
+- PROS-2018-0003 (electricity): tariff £137.95-£145.47/MWh, net margin £150.42
 - PROS-2018-0003g (gas): tariff £25.01-£35.26/MWh, net margin £140.19
 - PROS-2018-0009 (electricity): tariff £132.17-£148.31/MWh, net margin £124.02
 - PROS-2018-0014 (electricity): tariff £132.14-£144.54/MWh, net margin £137.43
@@ -6707,8 +6710,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 0.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1020, average clarity 0.837, average bill shock 41.4%, bad debt provision £312.00, avg complaint probability 5.9%
-- Solvency signal: £5,904/customer (47 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 1020, average clarity 0.837, average bill shock 41.4%, bad debt provision £399.73, avg complaint probability 5.9%
+- Solvency signal: £5,906/customer (47 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
@@ -6801,16 +6804,16 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2020-0067: actual £79.68 vs. naked £667.73 -- hedging cost £588.05
   - PROS-2020-0067g: actual £166.06 vs. naked £400.29 -- hedging cost £234.23
 
-**Year narrative:** 2020 produced a net gain of £11,668.22 across 86 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 479 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2020 produced a net gain of £11,580.49 across 86 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 479 customer(s) experienced a bill shock of >=20%.
 
 ## 2021
 
 **Trading & Risk**
 
-- Net margin: £5,902.95 (gross £38,317.11, capital £540.28)
-  - Electricity: gross £29,347.19, capital £416.65, net £2,495.69
+- Net margin: £5,917.86 (gross £38,317.11, capital £540.28)
+  - Electricity: gross £29,347.19, capital £416.65, net £2,510.60
   - Gas: gross £8,969.92, capital £123.64, net £3,407.25
-- Treasury at year end: £282,433.02
+- Treasury at year end: £282,564.78
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.93 (avg 0.93), C2g 0.85 (avg 0.85), C3 0.93 (avg 0.93), C3g 0.85 (avg 0.85), C7 0.97 (avg 0.97), C8 0.93 (avg 0.93), C9 0.93 (avg 0.93), PROS-2016-0011 0.89 (avg 0.89), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.90 (avg 0.90), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.89 (avg 0.89), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.91 (avg 0.91), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0003 0.90 (avg 0.90), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.89 (avg 0.89), PROS-2018-0014 0.89 (avg 0.89), PROS-2018-0014g 0.85 (avg 0.85), PROS-2018-0016 0.89 (avg 0.89), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.89 (avg 0.89), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.90 (avg 0.90), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.89 (avg 0.89), PROS-2018-0035 0.90 (avg 0.90), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0039 0.91 (avg 0.91), PROS-2018-0039g 0.85 (avg 0.85), PROS-2018-0043 0.91 (avg 0.91), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0003 0.89 (avg 0.89), PROS-2019-0003g 0.85 (avg 0.85), PROS-2019-0008 0.89 (avg 0.89), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.89 (avg 0.89), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.89 (avg 0.89), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.91 (avg 0.91), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.90 (avg 0.90), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.91 (avg 0.91), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0024 0.91 (avg 0.91), PROS-2019-0024g 0.85 (avg 0.85), PROS-2019-0027 0.90 (avg 0.90), PROS-2019-0027g 0.85 (avg 0.85), PROS-2019-0050 0.93 (avg 0.93), PROS-2019-0050g 0.85 (avg 0.85), PROS-2020-0002 0.90 (avg 0.90), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0006 0.90 (avg 0.90), PROS-2020-0006g 0.85 (avg 0.85), PROS-2020-0009 0.89 (avg 0.89), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.89 (avg 0.89), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0013 0.89 (avg 0.89), PROS-2020-0016 0.89 (avg 0.89), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.91 (avg 0.91), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0025 0.91 (avg 0.91), PROS-2020-0025g 0.85 (avg 0.85), PROS-2020-0032 0.91 (avg 0.91), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0042 0.91 (avg 0.91), PROS-2020-0042g 0.85 (avg 0.85), PROS-2020-0043 0.91 (avg 0.91), PROS-2020-0043g 0.85 (avg 0.85), PROS-2020-0047 0.92 (avg 0.92), PROS-2020-0047g 0.85 (avg 0.85), PROS-2020-0048 0.92 (avg 0.92), PROS-2020-0048g 0.85 (avg 0.85), PROS-2020-0050 0.92 (avg 0.92), PROS-2020-0050g 0.85 (avg 0.85), PROS-2020-0067 0.93 (avg 0.93), PROS-2020-0067g 0.85 (avg 0.85), PROS-2021-0006 0.90 (avg 0.90), PROS-2021-0006g 0.85 (avg 0.85), PROS-2021-0017 0.92 (avg 0.92), PROS-2021-0029 0.90 (avg 0.90), PROS-2021-0029g 0.85 (avg 0.85), PROS-2021-0031 0.91 (avg 0.91), PROS-2021-0031g 0.85 (avg 0.85), PROS-2021-0044 0.92 (avg 0.92), PROS-2021-0044g 0.85 (avg 0.85), PROS-2021-0045 0.92 (avg 0.92), PROS-2021-0051 0.92 (avg 0.92), PROS-2021-0051g 0.85 (avg 0.85), PROS-2021-0060 0.93 (avg 0.93), PROS-2021-0060g 0.85 (avg 0.85), PROS-2021-0062 0.93 (avg 0.93), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0067 0.93 (avg 0.93), PROS-2021-0067g 0.85 (avg 0.85), PROS-2021-0088 0.93 (avg 0.93), PROS-2021-0088g 0.85 (avg 0.85), PROS-2021-0100 0.93 (avg 0.93), SYN-2021-001 0.95 (avg 0.95)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
@@ -6823,8 +6826,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - New acquisitions this year: none
 - Losses (churn) during year: C1, C5
   - Renewals (retained): 45 accounts
-- Average CLV (Point-in-Time, year-end 2021): £1,059.36
-  - By billing account: C1 £597.36, C2 £1,144.44, C3 £261.77, C5 £-1,125.21, C7 £111.44, C8 £1,031.83, C9 £430.10, PROS-2016-0011 £1,075.77, PROS-2016-0020 £1,014.45, PROS-2017-0019 £832.40, PROS-2017-0022 £1,373.99, PROS-2018-0003 £786.92, PROS-2018-0009 £202.87, PROS-2018-0014 £611.02, PROS-2018-0016 £1,196.83, PROS-2018-0018 £887.66, PROS-2018-0022 £1,127.30, PROS-2018-0024 £448.90, PROS-2018-0035 £1,202.87, PROS-2018-0039 £1,176.47, PROS-2018-0043 £521.82, PROS-2018-0053 £1,146.54, PROS-2019-0003 £233.92, PROS-2019-0008 £1,073.29, PROS-2019-0009 £1,147.95, PROS-2019-0012 £959.64, PROS-2019-0015 £1,347.34, PROS-2019-0021 £1,121.39, PROS-2019-0023 £1,450.36, PROS-2019-0024 £1,486.31, PROS-2019-0027 £1,252.33, PROS-2019-0050 £1,650.18, PROS-2020-0002 £1,624.03, PROS-2020-0006 £1,882.41, PROS-2020-0009 £1,300.09, PROS-2020-0012 £1,341.38, PROS-2020-0013 £400.54, PROS-2020-0016 £1,269.01, PROS-2020-0022 £1,656.52, PROS-2020-0025 £1,085.45, PROS-2020-0032 £1,675.00, PROS-2020-0042 £2,384.08, PROS-2020-0043 £-523.37, PROS-2020-0047 £1,868.61, PROS-2020-0048 £2,392.65, PROS-2020-0050 £1,687.84, PROS-2020-0067 £1,965.48
+- Average CLV (Point-in-Time, year-end 2021): £1,066.63
+  - By billing account: C1 £597.36, C2 £1,144.44, C3 £261.77, C5 £-1,125.21, C7 £111.44, C8 £1,031.83, C9 £430.10, PROS-2016-0011 £1,075.77, PROS-2016-0020 £1,014.45, PROS-2017-0019 £832.40, PROS-2017-0022 £1,373.99, PROS-2018-0003 £1,128.60, PROS-2018-0009 £202.87, PROS-2018-0014 £611.02, PROS-2018-0016 £1,196.83, PROS-2018-0018 £887.66, PROS-2018-0022 £1,127.30, PROS-2018-0024 £448.90, PROS-2018-0035 £1,202.87, PROS-2018-0039 £1,176.47, PROS-2018-0043 £521.82, PROS-2018-0053 £1,146.54, PROS-2019-0003 £233.92, PROS-2019-0008 £1,073.29, PROS-2019-0009 £1,147.95, PROS-2019-0012 £959.64, PROS-2019-0015 £1,347.34, PROS-2019-0021 £1,121.39, PROS-2019-0023 £1,450.36, PROS-2019-0024 £1,486.31, PROS-2019-0027 £1,252.33, PROS-2019-0050 £1,650.18, PROS-2020-0002 £1,624.03, PROS-2020-0006 £1,882.41, PROS-2020-0009 £1,300.09, PROS-2020-0012 £1,341.38, PROS-2020-0013 £400.54, PROS-2020-0016 £1,269.01, PROS-2020-0022 £1,656.52, PROS-2020-0025 £1,085.45, PROS-2020-0032 £1,675.00, PROS-2020-0042 £2,384.08, PROS-2020-0043 £-523.37, PROS-2020-0047 £1,868.61, PROS-2020-0048 £2,392.65, PROS-2020-0050 £1,687.84, PROS-2020-0067 £1,965.48
 - Bill shock events (>=20%): 530 -- C1g 2021-01-31 (26%); C1g 2021-05-31 (42%); C1g 2021-06-30 (32%); C1g 2021-07-31 (182%); C1g 2021-08-31 (117%); C1g 2021-09-30 (109%); C1g 2021-10-31 (73%); C1g 2021-11-30 (65%); C1g 2021-12-29 (35%); C5 2021-02-28 (216%); C5 2021-06-30 (29%); C5 2021-07-31 (92%); C5 2021-08-31 (97%); C5 2021-09-30 (103%); C5 2021-10-31 (89%); C5 2021-11-30 (45%); C5 2021-12-29 (210%); C7 2021-05-31 (30%); C7 2021-06-30 (47%); C7 2021-10-31 (55%); C7 2021-11-30 (65%); PROS-2016-0011 2021-01-31 (21%); PROS-2016-0011 2021-02-28 (25%); PROS-2016-0011 2021-04-30 (23%); PROS-2016-0011 2021-06-30 (137%); PROS-2016-0011 2021-12-31 (22%); PROS-2016-0011g 2021-01-31 (69%); PROS-2016-0011g 2021-02-28 (72%); PROS-2016-0011g 2021-03-31 (67%); PROS-2016-0011g 2021-04-30 (67%); PROS-2016-0011g 2021-05-31 (57%); PROS-2016-0011g 2021-06-30 (45%); PROS-2016-0011g 2021-10-31 (1160%); PROS-2016-0011g 2021-11-30 (38%); PROS-2016-0011g 2021-12-31 (28%); PROS-2016-0020 2021-12-31 (21%); PROS-2016-0020g 2021-02-28 (23%); PROS-2016-0020g 2021-06-30 (45%); PROS-2016-0020g 2021-07-31 (131%); PROS-2016-0020g 2021-08-31 (164%); PROS-2016-0020g 2021-09-30 (425%); PROS-2016-0020g 2021-10-31 (104%); PROS-2016-0020g 2021-11-30 (23%); C2 2021-07-31 (37%); C2 2021-08-31 (35%); C2g 2021-02-28 (20%); C2g 2021-04-30 (36%); C2g 2021-05-31 (37%); C2g 2021-06-30 (57%); C2g 2021-10-31 (66%); C2g 2021-11-30 (65%); C8 2021-05-31 (29%); C8 2021-06-30 (62%); C8 2021-09-30 (25%); C8 2021-10-31 (69%); C8 2021-11-30 (83%); C3 2021-10-31 (42%); C3g 2021-01-31 (126%); C3g 2021-04-30 (21%); C3g 2021-06-30 (52%); C3g 2021-07-31 (379%); C3g 2021-08-31 (424%); C3g 2021-09-30 (1053%); C3g 2021-10-31 (67%); C3g 2021-11-30 (41%); C9 2021-02-28 (22%); C9 2021-05-31 (25%); C9 2021-06-30 (51%); C9 2021-08-31 (22%); C9 2021-09-30 (23%); C9 2021-11-30 (98%); C9 2021-12-31 (24%); PROS-2017-0019 2021-02-28 (24%); PROS-2017-0019 2021-04-30 (23%); PROS-2017-0019 2021-07-31 (151%); PROS-2017-0019 2021-12-31 (20%); PROS-2017-0019g 2021-01-31 (36%); PROS-2017-0019g 2021-02-28 (63%); PROS-2017-0019g 2021-06-30 (34%); PROS-2017-0019g 2021-07-31 (101%); PROS-2017-0019g 2021-08-31 (123%); PROS-2017-0019g 2021-09-30 (121%); PROS-2017-0019g 2021-10-31 (93%); PROS-2017-0019g 2021-11-30 (24%); PROS-2017-0022 2021-05-31 (25%); PROS-2017-0022 2021-06-30 (26%); PROS-2017-0022 2021-07-31 (37%); PROS-2017-0022 2021-08-31 (33%); PROS-2017-0022 2021-09-30 (33%); PROS-2017-0022 2021-10-31 (26%); PROS-2017-0022g 2021-01-31 (72%); PROS-2017-0022g 2021-02-28 (74%); PROS-2017-0022g 2021-03-31 (69%); PROS-2017-0022g 2021-04-30 (69%); PROS-2017-0022g 2021-05-31 (60%); PROS-2017-0022g 2021-06-30 (48%); PROS-2017-0022g 2021-08-31 (1486%); PROS-2017-0022g 2021-11-30 (53%); PROS-2017-0022g 2021-12-31 (66%); PROS-2018-0003 2021-07-31 (26%); PROS-2018-0003 2021-08-31 (22%); PROS-2018-0003 2021-09-30 (22%); PROS-2018-0003 2021-10-31 (72%); PROS-2018-0003g 2021-03-31 (419%); PROS-2018-0003g 2021-05-31 (36%); PROS-2018-0003g 2021-06-30 (76%); PROS-2018-0003g 2021-07-31 (189%); PROS-2018-0003g 2021-08-31 (236%); PROS-2018-0003g 2021-09-30 (235%); PROS-2018-0003g 2021-10-31 (175%); PROS-2018-0003g 2021-11-30 (61%); PROS-2018-0009 2021-04-30 (51%); PROS-2018-0009 2021-12-31 (21%); PROS-2018-0014 2021-11-30 (68%); PROS-2018-0014g 2021-01-31 (27%); PROS-2018-0014g 2021-02-28 (34%); PROS-2018-0014g 2021-03-31 (21%); PROS-2018-0014g 2021-04-30 (64%); PROS-2018-0014g 2021-07-31 (85%); PROS-2018-0014g 2021-08-31 (112%); PROS-2018-0014g 2021-09-30 (110%); PROS-2018-0014g 2021-10-31 (76%); PROS-2018-0014g 2021-12-31 (22%); PROS-2018-0016 2021-09-30 (21%); PROS-2018-0016g 2021-01-31 (69%); PROS-2018-0016g 2021-02-28 (72%); PROS-2018-0016g 2021-03-31 (67%); PROS-2018-0016g 2021-04-30 (67%); PROS-2018-0016g 2021-05-31 (57%); PROS-2018-0016g 2021-06-30 (45%); PROS-2018-0016g 2021-10-31 (1152%); PROS-2018-0016g 2021-11-30 (32%); PROS-2018-0016g 2021-12-31 (50%); PROS-2018-0018 2021-02-28 (24%); PROS-2018-0018 2021-04-30 (22%); PROS-2018-0018 2021-05-31 (133%); PROS-2018-0018g 2021-01-31 (31%); PROS-2018-0018g 2021-02-28 (37%); PROS-2018-0018g 2021-03-31 (25%); PROS-2018-0018g 2021-04-30 (26%); PROS-2018-0018g 2021-07-31 (79%); PROS-2018-0018g 2021-08-31 (101%); PROS-2018-0018g 2021-09-30 (99%); PROS-2018-0018g 2021-10-31 (72%); PROS-2018-0018g 2021-12-31 (27%); PROS-2018-0022 2021-04-30 (56%); PROS-2018-0022 2021-07-31 (23%); PROS-2018-0022g 2021-01-31 (441%); PROS-2018-0022g 2021-05-31 (49%); PROS-2018-0022g 2021-06-30 (91%); PROS-2018-0022g 2021-07-31 (208%); PROS-2018-0022g 2021-08-31 (253%); PROS-2018-0022g 2021-09-30 (251%); PROS-2018-0022g 2021-10-31 (193%); PROS-2018-0022g 2021-11-30 (76%); PROS-2018-0022g 2021-12-31 (30%); PROS-2018-0024 2021-05-31 (23%); PROS-2018-0024 2021-06-30 (24%); PROS-2018-0024 2021-07-31 (81%); PROS-2018-0035 2021-02-28 (21%); PROS-2018-0035 2021-04-30 (21%); PROS-2018-0035 2021-09-30 (124%); PROS-2018-0035 2021-12-31 (20%); PROS-2018-0035g 2021-03-31 (425%); PROS-2018-0035g 2021-05-31 (38%); PROS-2018-0035g 2021-06-30 (81%); PROS-2018-0035g 2021-07-31 (437%); PROS-2018-0035g 2021-08-31 (159%); PROS-2018-0035g 2021-09-30 (158%); PROS-2018-0035g 2021-10-31 (108%); PROS-2018-0039 2021-07-31 (73%); PROS-2018-0039 2021-12-31 (23%); PROS-2018-0039g 2021-01-31 (48%); PROS-2018-0039g 2021-02-28 (49%); PROS-2018-0039g 2021-03-31 (42%); PROS-2018-0039g 2021-04-30 (43%); PROS-2018-0039g 2021-05-31 (286%); PROS-2018-0039g 2021-07-31 (40%); PROS-2018-0039g 2021-08-31 (58%); PROS-2018-0039g 2021-09-30 (56%); PROS-2018-0039g 2021-10-31 (34%); PROS-2018-0039g 2021-12-31 (36%); PROS-2018-0043 2021-01-31 (21%); PROS-2018-0043 2021-03-31 (101%); PROS-2018-0053 2021-01-31 (113%); PROS-2018-0053 2021-05-31 (23%); PROS-2018-0053 2021-06-30 (24%); PROS-2018-0053 2021-07-31 (34%); PROS-2018-0053 2021-08-31 (30%); PROS-2018-0053 2021-09-30 (30%); PROS-2018-0053 2021-10-31 (24%); PROS-2018-0053g 2021-01-31 (40%); PROS-2018-0053g 2021-02-28 (43%); PROS-2018-0053g 2021-03-31 (30%); PROS-2018-0053g 2021-04-30 (34%); PROS-2018-0053g 2021-07-31 (56%); PROS-2018-0053g 2021-08-31 (74%); PROS-2018-0053g 2021-09-30 (72%); PROS-2018-0053g 2021-10-31 (50%); PROS-2018-0053g 2021-12-31 (124%); PROS-2019-0003 2021-04-30 (20%); PROS-2019-0003g 2021-04-30 (20%); PROS-2019-0003g 2021-06-30 (48%); PROS-2019-0003g 2021-07-31 (130%); PROS-2019-0003g 2021-08-31 (159%); PROS-2019-0003g 2021-09-30 (529%); PROS-2019-0003g 2021-10-31 (60%); PROS-2019-0003g 2021-11-30 (33%); PROS-2019-0003g 2021-12-31 (27%); PROS-2019-0008g 2021-04-30 (22%); PROS-2019-0008g 2021-06-30 (56%); PROS-2019-0008g 2021-07-31 (272%); PROS-2019-0008g 2021-08-31 (131%); PROS-2019-0008g 2021-09-30 (107%); PROS-2019-0008g 2021-10-31 (74%); PROS-2019-0008g 2021-11-30 (39%); PROS-2019-0008g 2021-12-31 (30%); PROS-2019-0009g 2021-01-31 (47%); PROS-2019-0009g 2021-02-28 (53%); PROS-2019-0009g 2021-03-31 (43%); PROS-2019-0009g 2021-04-30 (45%); PROS-2019-0009g 2021-05-31 (30%); PROS-2019-0009g 2021-06-30 (277%); PROS-2019-0009g 2021-07-31 (21%); PROS-2019-0009g 2021-08-31 (36%); PROS-2019-0009g 2021-09-30 (28%); PROS-2019-0009g 2021-11-30 (60%); PROS-2019-0009g 2021-12-31 (38%); PROS-2019-0012 2021-06-30 (21%); PROS-2019-0012g 2021-06-30 (29%); PROS-2019-0012g 2021-10-31 (46%); PROS-2019-0012g 2021-11-30 (27%); PROS-2019-0012g 2021-12-31 (24%); PROS-2019-0015 2021-05-31 (27%); PROS-2019-0015 2021-06-30 (28%); PROS-2019-0015 2021-07-31 (39%); PROS-2019-0015 2021-08-31 (35%); PROS-2019-0015 2021-09-30 (175%); PROS-2019-0015g 2021-01-31 (30%); PROS-2019-0015g 2021-05-31 (51%); PROS-2019-0015g 2021-06-30 (35%); PROS-2019-0015g 2021-07-31 (123%); PROS-2019-0015g 2021-08-31 (159%); PROS-2019-0015g 2021-09-30 (158%); PROS-2019-0015g 2021-10-31 (111%); PROS-2019-0015g 2021-11-30 (24%); PROS-2019-0021 2021-04-30 (114%); PROS-2019-0021 2021-07-31 (23%); PROS-2019-0021g 2021-01-31 (52%); PROS-2019-0021g 2021-02-28 (54%); PROS-2019-0021g 2021-03-31 (46%); PROS-2019-0021g 2021-04-30 (48%); PROS-2019-0021g 2021-05-31 (34%); PROS-2019-0021g 2021-07-31 (29%); PROS-2019-0021g 2021-08-31 (618%); PROS-2019-0021g 2021-11-30 (45%); PROS-2019-0021g 2021-12-31 (58%); PROS-2019-0023 2021-05-31 (111%); PROS-2019-0023g 2021-01-31 (30%); PROS-2019-0023g 2021-02-28 (59%); PROS-2019-0023g 2021-05-31 (27%); PROS-2019-0023g 2021-06-30 (65%); PROS-2019-0023g 2021-07-31 (173%); PROS-2019-0023g 2021-08-31 (217%); PROS-2019-0023g 2021-09-30 (216%); PROS-2019-0023g 2021-10-31 (159%); PROS-2019-0023g 2021-11-30 (51%); PROS-2019-0024 2021-07-31 (20%); PROS-2019-0024 2021-08-31 (26%); PROS-2019-0024g 2021-05-31 (397%); PROS-2019-0024g 2021-06-30 (44%); PROS-2019-0024g 2021-07-31 (144%); PROS-2019-0024g 2021-08-31 (188%); PROS-2019-0024g 2021-09-30 (187%); PROS-2019-0024g 2021-10-31 (131%); PROS-2019-0024g 2021-11-30 (32%); PROS-2019-0024g 2021-12-31 (221%); PROS-2019-0027 2021-03-31 (93%); PROS-2019-0027 2021-05-31 (21%); PROS-2019-0027 2021-06-30 (22%); PROS-2019-0027 2021-07-31 (32%); PROS-2019-0027 2021-08-31 (28%); PROS-2019-0027 2021-09-30 (28%); PROS-2019-0027 2021-10-31 (142%); PROS-2019-0027g 2021-01-31 (43%); PROS-2019-0027g 2021-02-28 (43%); PROS-2019-0027g 2021-03-31 (35%); PROS-2019-0027g 2021-04-30 (117%); PROS-2019-0027g 2021-05-31 (28%); PROS-2019-0027g 2021-07-31 (58%); PROS-2019-0027g 2021-08-31 (87%); PROS-2019-0027g 2021-09-30 (86%); PROS-2019-0027g 2021-10-31 (50%); PROS-2019-0027g 2021-12-31 (38%); PROS-2019-0050 2021-01-31 (167%); PROS-2019-0050 2021-03-31 (31%); PROS-2019-0050 2021-05-31 (24%); PROS-2019-0050 2021-06-30 (25%); PROS-2019-0050 2021-07-31 (35%); PROS-2019-0050 2021-08-31 (31%); PROS-2019-0050 2021-09-30 (31%); PROS-2019-0050 2021-10-31 (25%); PROS-2019-0050g 2021-01-31 (53%); PROS-2019-0050g 2021-02-28 (55%); PROS-2019-0050g 2021-03-31 (43%); PROS-2019-0050g 2021-04-30 (48%); PROS-2019-0050g 2021-05-31 (33%); PROS-2019-0050g 2021-07-31 (44%); PROS-2019-0050g 2021-08-31 (67%); PROS-2019-0050g 2021-09-30 (66%); PROS-2019-0050g 2021-10-31 (36%); PROS-2019-0050g 2021-11-30 (339%); PROS-2019-0050g 2021-12-31 (28%); PROS-2020-0002 2021-11-30 (27%); PROS-2020-0002g 2021-04-30 (22%); PROS-2020-0002g 2021-05-31 (23%); PROS-2020-0002g 2021-06-30 (40%); PROS-2020-0002g 2021-09-30 (23%); PROS-2020-0002g 2021-10-31 (72%); PROS-2020-0002g 2021-11-30 (38%); PROS-2020-0002g 2021-12-31 (29%); PROS-2020-0006 2021-04-30 (20%); PROS-2020-0006 2021-12-31 (22%); PROS-2020-0006g 2021-04-30 (22%); PROS-2020-0006g 2021-05-31 (24%); PROS-2020-0006g 2021-06-30 (40%); PROS-2020-0006g 2021-09-30 (24%); PROS-2020-0006g 2021-10-31 (74%); PROS-2020-0006g 2021-11-30 (39%); PROS-2020-0006g 2021-12-31 (30%); PROS-2020-0009g 2021-04-30 (20%); PROS-2020-0009g 2021-05-31 (21%); PROS-2020-0009g 2021-06-30 (28%); PROS-2020-0009g 2021-07-31 (107%); PROS-2020-0009g 2021-10-31 (59%); PROS-2020-0009g 2021-11-30 (33%); PROS-2020-0009g 2021-12-31 (27%); PROS-2020-0012 2021-01-31 (24%); PROS-2020-0012 2021-02-28 (26%); PROS-2020-0012 2021-04-30 (23%); PROS-2020-0012 2021-10-31 (157%); PROS-2020-0012g 2021-01-31 (37%); PROS-2020-0012g 2021-02-28 (42%); PROS-2020-0012g 2021-03-31 (142%); PROS-2020-0012g 2021-04-30 (21%); PROS-2020-0012g 2021-06-30 (31%); PROS-2020-0012g 2021-07-31 (116%); PROS-2020-0012g 2021-08-31 (150%); PROS-2020-0012g 2021-09-30 (149%); PROS-2020-0012g 2021-10-31 (105%); PROS-2020-0012g 2021-11-30 (20%); PROS-2020-0016 2021-03-31 (97%); PROS-2020-0016 2021-05-31 (22%); PROS-2020-0016 2021-07-31 (24%); PROS-2020-0016 2021-08-31 (20%); PROS-2020-0016 2021-09-30 (20%); PROS-2020-0016g 2021-01-31 (60%); PROS-2020-0016g 2021-02-28 (64%); PROS-2020-0016g 2021-03-31 (56%); PROS-2020-0016g 2021-04-30 (295%); PROS-2020-0016g 2021-05-31 (23%); PROS-2020-0016g 2021-07-31 (46%); PROS-2020-0016g 2021-08-31 (62%); PROS-2020-0016g 2021-09-30 (60%); PROS-2020-0016g 2021-10-31 (127%); PROS-2020-0016g 2021-12-31 (29%); PROS-2020-0022 2021-04-30 (20%); PROS-2020-0022 2021-06-30 (20%); PROS-2020-0022g 2021-04-30 (21%); PROS-2020-0022g 2021-06-30 (90%); PROS-2020-0022g 2021-10-31 (66%); PROS-2020-0022g 2021-11-30 (36%); PROS-2020-0022g 2021-12-31 (30%); PROS-2020-0025 2021-01-31 (27%); PROS-2020-0025 2021-02-28 (29%); PROS-2020-0025 2021-03-31 (196%); PROS-2020-0025g 2021-05-31 (129%); PROS-2020-0025g 2021-06-30 (52%); PROS-2020-0025g 2021-07-31 (162%); PROS-2020-0025g 2021-08-31 (212%); PROS-2020-0025g 2021-09-30 (211%); PROS-2020-0025g 2021-10-31 (147%); PROS-2020-0025g 2021-11-30 (38%); PROS-2020-0032 2021-04-30 (20%); PROS-2020-0032g 2021-04-30 (22%); PROS-2020-0032g 2021-05-31 (23%); PROS-2020-0032g 2021-06-30 (39%); PROS-2020-0032g 2021-07-31 (60%); PROS-2020-0032g 2021-08-31 (85%); PROS-2020-0032g 2021-09-30 (22%); PROS-2020-0032g 2021-10-31 (70%); PROS-2020-0032g 2021-11-30 (37%); PROS-2020-0032g 2021-12-31 (29%); PROS-2020-0042 2021-05-31 (26%); PROS-2020-0042 2021-07-31 (29%); PROS-2020-0042 2021-08-31 (25%); PROS-2020-0042 2021-09-30 (73%); PROS-2020-0042g 2021-05-31 (30%); PROS-2020-0042g 2021-06-30 (74%); PROS-2020-0042g 2021-07-31 (421%); PROS-2020-0042g 2021-08-31 (133%); PROS-2020-0042g 2021-09-30 (132%); PROS-2020-0042g 2021-10-31 (82%); PROS-2020-0042g 2021-12-31 (29%); PROS-2020-0043 2021-06-30 (33%); PROS-2020-0043g 2021-01-31 (49%); PROS-2020-0043g 2021-02-28 (51%); PROS-2020-0043g 2021-03-31 (41%); PROS-2020-0043g 2021-04-30 (43%); PROS-2020-0043g 2021-05-31 (26%); PROS-2020-0043g 2021-07-31 (418%); PROS-2020-0043g 2021-08-31 (55%); PROS-2020-0043g 2021-09-30 (54%); PROS-2020-0043g 2021-10-31 (27%); PROS-2020-0043g 2021-11-30 (26%); PROS-2020-0043g 2021-12-31 (46%); PROS-2020-0047 2021-04-30 (21%); PROS-2020-0047g 2021-05-31 (54%); PROS-2020-0047g 2021-06-30 (39%); PROS-2020-0047g 2021-07-31 (128%); PROS-2020-0047g 2021-10-31 (61%); PROS-2020-0047g 2021-11-30 (34%); PROS-2020-0047g 2021-12-31 (26%); PROS-2020-0048 2021-11-30 (33%); PROS-2020-0048g 2021-01-31 (61%); PROS-2020-0048g 2021-02-28 (63%); PROS-2020-0048g 2021-03-31 (55%); PROS-2020-0048g 2021-04-30 (56%); PROS-2020-0048g 2021-05-31 (43%); PROS-2020-0048g 2021-06-30 (26%); PROS-2020-0048g 2021-07-31 (27%); PROS-2020-0048g 2021-08-31 (1010%); PROS-2020-0048g 2021-09-30 (33%); PROS-2020-0048g 2021-11-30 (40%); PROS-2020-0048g 2021-12-31 (57%); PROS-2020-0050 2021-07-31 (59%); PROS-2020-0050g 2021-05-31 (27%); PROS-2020-0050g 2021-06-30 (61%); PROS-2020-0050g 2021-07-31 (153%); PROS-2020-0050g 2021-08-31 (187%); PROS-2020-0050g 2021-09-30 (186%); PROS-2020-0050g 2021-10-31 (142%); PROS-2020-0050g 2021-11-30 (48%); PROS-2020-0050g 2021-12-31 (361%); PROS-2020-0067 2021-03-31 (32%); PROS-2020-0067 2021-04-30 (30%); PROS-2020-0067g 2021-04-30 (22%); PROS-2020-0067g 2021-05-31 (24%); PROS-2020-0067g 2021-06-30 (41%); PROS-2020-0067g 2021-09-30 (26%); PROS-2020-0067g 2021-10-31 (77%); PROS-2020-0067g 2021-11-30 (40%); PROS-2020-0067g 2021-12-31 (30%); PROS-2021-0006 2021-02-28 (33%); PROS-2021-0006 2021-04-30 (20%); PROS-2021-0006 2021-06-30 (21%); PROS-2021-0006g 2021-02-28 (24%); PROS-2021-0006g 2021-04-30 (21%); PROS-2021-0006g 2021-05-31 (21%); PROS-2021-0006g 2021-06-30 (36%); PROS-2021-0006g 2021-10-31 (62%); PROS-2021-0006g 2021-11-30 (34%); PROS-2021-0006g 2021-12-31 (28%); PROS-2021-0017 2021-02-28 (133%); PROS-2021-0029 2021-02-28 (370%); PROS-2021-0029g 2021-02-28 (331%); PROS-2021-0029g 2021-04-30 (22%); PROS-2021-0029g 2021-05-31 (24%); PROS-2021-0029g 2021-06-30 (40%); PROS-2021-0029g 2021-09-30 (24%); PROS-2021-0029g 2021-10-31 (74%); PROS-2021-0029g 2021-11-30 (39%); PROS-2021-0029g 2021-12-31 (29%); PROS-2021-0031 2021-02-28 (457%); PROS-2021-0031g 2021-02-28 (417%); PROS-2021-0031g 2021-04-30 (22%); PROS-2021-0031g 2021-05-31 (24%); PROS-2021-0031g 2021-06-30 (41%); PROS-2021-0031g 2021-09-30 (24%); PROS-2021-0031g 2021-10-31 (74%); PROS-2021-0031g 2021-11-30 (39%); PROS-2021-0031g 2021-12-31 (30%); PROS-2021-0044 2021-11-30 (28%); PROS-2021-0044g 2021-03-31 (74%); PROS-2021-0044g 2021-10-31 (20%); PROS-2021-0045 2021-03-31 (87%); PROS-2021-0045 2021-12-31 (22%); PROS-2021-0051 2021-03-31 (134%); PROS-2021-0051 2021-04-30 (20%); PROS-2021-0051g 2021-03-31 (117%); PROS-2021-0051g 2021-04-30 (21%); PROS-2021-0051g 2021-05-31 (22%); PROS-2021-0051g 2021-06-30 (38%); PROS-2021-0051g 2021-09-30 (20%); PROS-2021-0051g 2021-10-31 (66%); PROS-2021-0051g 2021-11-30 (36%); PROS-2021-0051g 2021-12-31 (28%); PROS-2021-0060 2021-03-31 (646%); PROS-2021-0060g 2021-03-31 (602%); PROS-2021-0060g 2021-04-30 (22%); PROS-2021-0060g 2021-05-31 (24%); PROS-2021-0060g 2021-06-30 (40%); PROS-2021-0060g 2021-09-30 (24%); PROS-2021-0060g 2021-10-31 (73%); PROS-2021-0060g 2021-11-30 (39%); PROS-2021-0060g 2021-12-31 (30%); PROS-2021-0062 2021-03-31 (976%); PROS-2021-0062 2021-04-30 (44%); PROS-2021-0062 2021-05-31 (27%); PROS-2021-0062 2021-11-30 (35%); PROS-2021-0062g 2021-03-31 (831%); PROS-2021-0062g 2021-04-30 (23%); PROS-2021-0062g 2021-05-31 (26%); PROS-2021-0062g 2021-06-30 (44%); PROS-2021-0062g 2021-09-30 (30%); PROS-2021-0062g 2021-10-31 (86%); PROS-2021-0062g 2021-11-30 (43%); PROS-2021-0062g 2021-12-31 (31%); PROS-2021-0067 2021-12-31 (23%); PROS-2021-0067g 2021-05-31 (21%); PROS-2021-0067g 2021-06-30 (36%); PROS-2021-0067g 2021-10-31 (61%); PROS-2021-0067g 2021-11-30 (34%); PROS-2021-0067g 2021-12-31 (28%); PROS-2021-0088 2021-04-30 (239%); PROS-2021-0088g 2021-04-30 (211%); PROS-2021-0088g 2021-05-31 (20%); PROS-2021-0088g 2021-06-30 (34%); PROS-2021-0088g 2021-11-30 (38%); PROS-2021-0088g 2021-12-31 (53%)
 - Churn risk (accounts renewing in 2021): 17 at risk (≥20% churn prob): C1 23%, C2 29%, C3 23%, C5 20%, C7 20%, C8 26%, C9 23%, PROS-2018-0016 32%, PROS-2019-0008 29%, PROS-2019-0009 41%, PROS-2019-0012 29%, PROS-2019-0015 20%, PROS-2019-0021 32%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 20%, PROS-2019-0050 35%
 
@@ -6848,7 +6851,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2017-0019g (gas): tariff £25.98-£28.30/MWh, net margin £81.13
 - PROS-2017-0022 (electricity): tariff £132.86-£154.19/MWh, net margin £54.34
 - PROS-2017-0022g (gas): tariff £26.16-£28.94/MWh, net margin £59.04
-- PROS-2018-0003 (electricity): tariff £143.85/MWh, net margin £48.32
+- PROS-2018-0003 (electricity): tariff £143.85/MWh, net margin £63.23
 - PROS-2018-0003g (gas): tariff £27.65/MWh, net margin £73.59
 - PROS-2018-0009 (electricity): tariff £132.12-£132.17/MWh, net margin £15.90
 - PROS-2018-0014 (electricity): tariff £132.14-£139.43/MWh, net margin £-160.84 -- **net-negative**
@@ -6943,8 +6946,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 1.4% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1265, average clarity 0.844, average bill shock 42.7%, bad debt provision £509.87, avg complaint probability 5.8%
-- Solvency signal: £4,707/customer (60 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 1265, average clarity 0.844, average bill shock 42.7%, bad debt provision £494.96, avg complaint probability 5.8%
+- Solvency signal: £4,709/customer (60 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
@@ -7056,17 +7059,17 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2021-0100: actual £161.48 vs. naked £151.53 -- hedging added £9.95
   - SYN-2021-001: actual £-54.12 vs. naked £486.26 -- hedging cost £540.38
 
-**Year narrative:** 2021 (flagged crisis year) produced a net gain of £5,902.95 across 108 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 530 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2021 (flagged crisis year) produced a net gain of £5,917.86 across 108 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 530 customer(s) experienced a bill shock of >=20%.
 
 ## 2022
 
 **Trading & Risk**
 
-- Net margin: £-17,926.35 (gross £22,928.79, capital £940.72)
-  - Electricity: gross £42,856.66, capital £600.85, net £9,370.16
-  - Gas: gross £-19,927.88, capital £339.88, net £-27,296.50
-- Treasury at year end: £258,768.64
-- Hedge fraction at first renewal this year (avg across year's terms): C2 0.97 (avg 0.97), C2g 0.94 (avg 0.94), C3 0.94 (avg 0.94), C3g 0.85 (avg 0.85), C7 0.93 (avg 0.93), C8 0.97 (avg 0.97), C9 0.94 (avg 0.94), PROS-2016-0011 0.95 (avg 0.95), PROS-2016-0011g 0.96 (avg 0.96), PROS-2016-0020 0.95 (avg 0.95), PROS-2016-0020g 0.96 (avg 0.96), PROS-2017-0019 0.95 (avg 0.95), PROS-2017-0019g 0.96 (avg 0.96), PROS-2017-0022 0.95 (avg 0.95), PROS-2017-0022g 0.96 (avg 0.96), PROS-2018-0003 0.94 (avg 0.94), PROS-2018-0003g 0.93 (avg 0.93), PROS-2018-0009 0.95 (avg 0.95), PROS-2018-0016 0.95 (avg 0.95), PROS-2018-0016g 0.96 (avg 0.96), PROS-2018-0018 0.95 (avg 0.95), PROS-2018-0018g 0.96 (avg 0.96), PROS-2018-0022 0.95 (avg 0.95), PROS-2018-0022g 0.96 (avg 0.96), PROS-2018-0024 0.95 (avg 0.95), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0035g 0.95 (avg 0.95), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0053g 0.91 (avg 0.91), PROS-2019-0008 0.94 (avg 0.94), PROS-2019-0008g 0.96 (avg 0.96), PROS-2019-0009 0.95 (avg 0.95), PROS-2019-0009g 0.96 (avg 0.96), PROS-2019-0012 0.95 (avg 0.95), PROS-2019-0012g 0.96 (avg 0.96), PROS-2019-0015 0.95 (avg 0.95), PROS-2019-0015g 0.96 (avg 0.96), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0021g 0.95 (avg 0.95), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0023g 0.95 (avg 0.95), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0024g 0.95 (avg 0.95), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0027g 0.94 (avg 0.94), PROS-2020-0002 0.94 (avg 0.94), PROS-2020-0002g 0.93 (avg 0.93), PROS-2020-0006 0.94 (avg 0.94), PROS-2020-0006g 0.97 (avg 0.97), PROS-2020-0009 0.95 (avg 0.95), PROS-2020-0009g 0.97 (avg 0.97), PROS-2020-0012 0.95 (avg 0.95), PROS-2020-0012g 0.97 (avg 0.97), PROS-2020-0016 0.95 (avg 0.95), PROS-2020-0016g 0.96 (avg 0.96), PROS-2020-0022 0.95 (avg 0.95), PROS-2020-0022g 0.96 (avg 0.96), PROS-2020-0025 0.95 (avg 0.95), PROS-2020-0025g 0.96 (avg 0.96), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0032g 0.95 (avg 0.95), PROS-2020-0042 0.95 (avg 0.95), PROS-2020-0042g 0.93 (avg 0.93), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0043g 0.93 (avg 0.93), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0048g 0.92 (avg 0.92), PROS-2021-0031 0.95 (avg 0.95), PROS-2021-0031g 0.95 (avg 0.95), PROS-2021-0045 0.95 (avg 0.95), PROS-2021-0051 0.95 (avg 0.95), PROS-2021-0051g 0.91 (avg 0.91), PROS-2021-0062 0.95 (avg 0.95), PROS-2021-0062g 0.87 (avg 0.87), PROS-2021-0088 0.95 (avg 0.95), PROS-2021-0088g 0.95 (avg 0.95), PROS-2022-0009 0.95 (avg 0.95), PROS-2022-0009g 0.96 (avg 0.96), PROS-2022-0010 0.95 (avg 0.95), PROS-2022-0010g 0.96 (avg 0.96), PROS-2022-0011 0.95 (avg 0.95), PROS-2022-0011g 0.96 (avg 0.96), PROS-2022-0019 0.95 (avg 0.95), PROS-2022-0019g 0.96 (avg 0.96), PROS-2022-0030 0.95 (avg 0.95), PROS-2022-0030g 0.95 (avg 0.95), PROS-2022-0045 0.95 (avg 0.95), PROS-2022-0046 0.95 (avg 0.95), PROS-2022-0046g 0.91 (avg 0.91), PROS-2022-0047 0.95 (avg 0.95), PROS-2022-0047g 0.91 (avg 0.91), PROS-2022-0048 0.95 (avg 0.95), PROS-2022-0048g 0.91 (avg 0.91), PROS-2022-0049 0.95 (avg 0.95), PROS-2022-0049g 0.91 (avg 0.91), PROS-2022-0063 0.95 (avg 0.95), PROS-2022-0063g 0.87 (avg 0.87), PROS-2022-0067 0.95 (avg 0.95), PROS-2022-0067g 0.86 (avg 0.86), PROS-2022-0071 0.95 (avg 0.95), PROS-2022-0071g 0.98 (avg 0.98), PROS-2022-0073 0.95 (avg 0.95), PROS-2022-0073g 0.97 (avg 0.97), PROS-2022-0081 0.95 (avg 0.95), PROS-2022-0081g 0.97 (avg 0.97), PROS-2022-0082 0.95 (avg 0.95), PROS-2022-0082g 0.97 (avg 0.97), PROS-2022-0083 0.95 (avg 0.95), PROS-2022-0083g 0.97 (avg 0.97), PROS-2022-0092 0.95 (avg 0.95), PROS-2022-0092g 0.96 (avg 0.96), PROS-2022-0097 0.95 (avg 0.95), PROS-2022-0097g 0.95 (avg 0.95), PROS-2022-0100 0.95 (avg 0.95), PROS-2022-0100g 0.94 (avg 0.94), PROS-2022-0120 0.94 (avg 0.94), PROS-2022-0124 0.94 (avg 0.94), PROS-2022-0124g 0.91 (avg 0.91), PROS-2022-0125 0.94 (avg 0.94), PROS-2022-0125g 0.91 (avg 0.91), PROS-2022-0127 0.94 (avg 0.94), PROS-2022-0127g 0.91 (avg 0.91), PROS-2022-0128 0.94 (avg 0.94), PROS-2022-0128g 0.91 (avg 0.91), PROS-2022-0130 0.94 (avg 0.94), PROS-2022-0130g 0.90 (avg 0.90), SYN-2021-001 0.94 (avg 0.94)
+- Net margin: £-18,014.84 (gross £23,370.92, capital £949.63)
+  - Electricity: gross £43,231.37, capital £614.81, net £9,195.31
+  - Gas: gross £-19,860.45, capital £334.82, net £-27,210.15
+- Treasury at year end: £258,933.60
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.97 (avg 0.97), C2g 0.94 (avg 0.94), C3 0.94 (avg 0.94), C3g 0.85 (avg 0.85), C7 0.93 (avg 0.93), C8 0.97 (avg 0.97), C9 0.94 (avg 0.94), PROS-2016-0011 0.95 (avg 0.95), PROS-2016-0011g 0.96 (avg 0.96), PROS-2016-0020 0.95 (avg 0.95), PROS-2016-0020g 0.96 (avg 0.96), PROS-2017-0019 0.95 (avg 0.95), PROS-2017-0019g 0.96 (avg 0.96), PROS-2017-0022 0.95 (avg 0.95), PROS-2017-0022g 0.96 (avg 0.96), PROS-2018-0003 0.94 (avg 0.94), PROS-2018-0003g 0.93 (avg 0.93), PROS-2018-0009 0.95 (avg 0.95), PROS-2018-0014 0.95 (avg 0.95), PROS-2018-0014g 0.96 (avg 0.96), PROS-2018-0016 0.94 (avg 0.94), PROS-2018-0016g 0.96 (avg 0.96), PROS-2018-0018 0.95 (avg 0.95), PROS-2018-0018g 0.96 (avg 0.96), PROS-2018-0022 0.95 (avg 0.95), PROS-2018-0022g 0.96 (avg 0.96), PROS-2018-0024 0.95 (avg 0.95), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0035g 0.95 (avg 0.95), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0053g 0.91 (avg 0.91), PROS-2019-0008 0.94 (avg 0.94), PROS-2019-0008g 0.96 (avg 0.96), PROS-2019-0009 0.95 (avg 0.95), PROS-2019-0009g 0.96 (avg 0.96), PROS-2019-0012 0.95 (avg 0.95), PROS-2019-0012g 0.96 (avg 0.96), PROS-2019-0015 0.95 (avg 0.95), PROS-2019-0015g 0.96 (avg 0.96), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0021g 0.95 (avg 0.95), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0023g 0.95 (avg 0.95), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0024g 0.95 (avg 0.95), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0027g 0.94 (avg 0.94), PROS-2020-0002 0.94 (avg 0.94), PROS-2020-0002g 0.93 (avg 0.93), PROS-2020-0006 0.94 (avg 0.94), PROS-2020-0006g 0.97 (avg 0.97), PROS-2020-0009 0.95 (avg 0.95), PROS-2020-0009g 0.97 (avg 0.97), PROS-2020-0012 0.95 (avg 0.95), PROS-2020-0012g 0.97 (avg 0.97), PROS-2020-0016 0.95 (avg 0.95), PROS-2020-0016g 0.96 (avg 0.96), PROS-2020-0022 0.95 (avg 0.95), PROS-2020-0022g 0.96 (avg 0.96), PROS-2020-0025 0.95 (avg 0.95), PROS-2020-0025g 0.96 (avg 0.96), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0032g 0.95 (avg 0.95), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0043g 0.93 (avg 0.93), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0048g 0.92 (avg 0.92), PROS-2021-0006 0.94 (avg 0.94), PROS-2021-0006g 0.96 (avg 0.96), PROS-2021-0031 0.95 (avg 0.95), PROS-2021-0031g 0.95 (avg 0.95), PROS-2021-0045 0.95 (avg 0.95), PROS-2021-0051 0.95 (avg 0.95), PROS-2021-0051g 0.91 (avg 0.91), PROS-2021-0062 0.95 (avg 0.95), PROS-2021-0062g 0.87 (avg 0.87), PROS-2021-0088 0.95 (avg 0.95), PROS-2021-0088g 0.95 (avg 0.95), PROS-2022-0009 0.95 (avg 0.95), PROS-2022-0009g 0.96 (avg 0.96), PROS-2022-0010 0.95 (avg 0.95), PROS-2022-0010g 0.96 (avg 0.96), PROS-2022-0011 0.95 (avg 0.95), PROS-2022-0011g 0.96 (avg 0.96), PROS-2022-0019 0.95 (avg 0.95), PROS-2022-0019g 0.96 (avg 0.96), PROS-2022-0030 0.95 (avg 0.95), PROS-2022-0030g 0.95 (avg 0.95), PROS-2022-0045 0.95 (avg 0.95), PROS-2022-0046 0.95 (avg 0.95), PROS-2022-0046g 0.91 (avg 0.91), PROS-2022-0047 0.95 (avg 0.95), PROS-2022-0047g 0.91 (avg 0.91), PROS-2022-0048 0.95 (avg 0.95), PROS-2022-0048g 0.91 (avg 0.91), PROS-2022-0049 0.95 (avg 0.95), PROS-2022-0049g 0.91 (avg 0.91), PROS-2022-0063 0.95 (avg 0.95), PROS-2022-0063g 0.87 (avg 0.87), PROS-2022-0067 0.95 (avg 0.95), PROS-2022-0067g 0.86 (avg 0.86), PROS-2022-0071 0.95 (avg 0.95), PROS-2022-0071g 0.98 (avg 0.98), PROS-2022-0073 0.95 (avg 0.95), PROS-2022-0073g 0.97 (avg 0.97), PROS-2022-0081 0.95 (avg 0.95), PROS-2022-0081g 0.97 (avg 0.97), PROS-2022-0082 0.95 (avg 0.95), PROS-2022-0082g 0.97 (avg 0.97), PROS-2022-0083 0.95 (avg 0.95), PROS-2022-0083g 0.97 (avg 0.97), PROS-2022-0092 0.95 (avg 0.95), PROS-2022-0092g 0.96 (avg 0.96), PROS-2022-0097 0.95 (avg 0.95), PROS-2022-0097g 0.95 (avg 0.95), PROS-2022-0100 0.95 (avg 0.95), PROS-2022-0100g 0.94 (avg 0.94), PROS-2022-0120 0.94 (avg 0.94), PROS-2022-0124 0.94 (avg 0.94), PROS-2022-0124g 0.91 (avg 0.91), PROS-2022-0125 0.94 (avg 0.94), PROS-2022-0125g 0.91 (avg 0.91), PROS-2022-0127 0.94 (avg 0.94), PROS-2022-0127g 0.91 (avg 0.91), PROS-2022-0128 0.94 (avg 0.94), PROS-2022-0128g 0.91 (avg 0.91), PROS-2022-0130 0.94 (avg 0.94), PROS-2022-0130g 0.90 (avg 0.90), SYN-2021-001 0.94 (avg 0.94)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
 - Worst single period: C2g on 2022-12-15 period 1, net margin £-9.97
@@ -7076,11 +7079,11 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Active accounts: 155 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0014, PROS-2018-0014g, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0039, PROS-2018-0039g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0003, PROS-2019-0003g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2019-0050, PROS-2019-0050g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0013, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0042, PROS-2020-0042g, PROS-2020-0043, PROS-2020-0043g, PROS-2020-0047, PROS-2020-0047g, PROS-2020-0048, PROS-2020-0048g, PROS-2020-0050, PROS-2020-0050g, PROS-2020-0067, PROS-2020-0067g, PROS-2021-0006, PROS-2021-0006g, PROS-2021-0017, PROS-2021-0029, PROS-2021-0029g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0044, PROS-2021-0044g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0060, PROS-2021-0060g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0067, PROS-2021-0067g, PROS-2021-0088, PROS-2021-0088g, PROS-2021-0100, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0019, PROS-2022-0019g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0063, PROS-2022-0063g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, SYN-2021-001)
   - Resi electricity: 84, SME electricity: 0, gas (dual-fuel): 71
 - New acquisitions this year: none
-- Losses (churn) during year: PROS-2019-0003, PROS-2020-0013, PROS-2018-0014, PROS-2021-0006, PROS-2021-0017, PROS-2021-0029, PROS-2018-0039, PROS-2020-0047, PROS-2020-0050, PROS-2021-0044, PROS-2019-0050, PROS-2021-0060, PROS-2020-0067, PROS-2021-0067, PROS-2021-0100
-  - Renewals (retained): 43 accounts
-- Average CLV (Point-in-Time, year-end 2022): £-531.73
-  - By billing account: C2 £-177.13, C3 £-25.85, C7 £-981.96, C8 £115.92, C9 £427.80, PROS-2016-0011 £-56.62, PROS-2016-0020 £218.06, PROS-2017-0019 £631.68, PROS-2017-0022 £-339.59, PROS-2018-0003 £-485.39, PROS-2018-0009 £377.84, PROS-2018-0016 £-271.03, PROS-2018-0018 £64.63, PROS-2018-0022 £273.19, PROS-2018-0024 £803.38, PROS-2018-0035 £193.64, PROS-2018-0043 £999.07, PROS-2018-0053 £815.11, PROS-2019-0008 £-1,118.25, PROS-2019-0009 £-11.17, PROS-2019-0012 £602.06, PROS-2019-0015 £-542.72, PROS-2019-0021 £412.97, PROS-2019-0023 £86.84, PROS-2019-0024 £-247.78, PROS-2019-0027 £-201.22, PROS-2020-0002 £-1,668.94, PROS-2020-0006 £-1,695.84, PROS-2020-0009 £-280.60, PROS-2020-0012 £-1,433.29, PROS-2020-0016 £-366.70, PROS-2020-0022 £-884.42, PROS-2020-0025 £-4,215.41, PROS-2020-0032 £-213.19, PROS-2020-0042 £-1,206.59, PROS-2020-0043 £-1,689.09, PROS-2020-0048 £-257.99, PROS-2021-0031 £-4,699.10, PROS-2021-0045 £2,256.70, PROS-2021-0051 £-1,431.01, PROS-2021-0062 £-6,736.60, PROS-2021-0088 £-47.20, SYN-2021-001 £141.59
-- Bill shock events (>=20%): 649 -- C7 2022-05-31 (62%); C7 2022-06-30 (26%); C7 2022-09-30 (32%); C7 2022-11-30 (62%); C7 2022-12-31 (55%); PROS-2016-0011 2022-04-30 (23%); PROS-2016-0011 2022-07-31 (125%); PROS-2016-0011 2022-12-31 (22%); PROS-2016-0011g 2022-01-31 (30%); PROS-2016-0011g 2022-02-28 (44%); PROS-2016-0011g 2022-03-31 (36%); PROS-2016-0011g 2022-04-30 (36%); PROS-2016-0011g 2022-07-31 (85%); PROS-2016-0011g 2022-08-31 (120%); PROS-2016-0011g 2022-09-30 (119%); PROS-2016-0011g 2022-10-31 (75%); PROS-2016-0011g 2022-12-31 (105%); PROS-2016-0020 2022-04-30 (21%); PROS-2016-0020 2022-06-30 (104%); PROS-2016-0020 2022-12-31 (23%); PROS-2016-0020g 2022-02-28 (24%); PROS-2016-0020g 2022-06-30 (36%); PROS-2016-0020g 2022-07-31 (123%); PROS-2016-0020g 2022-08-31 (159%); PROS-2016-0020g 2022-09-30 (158%); PROS-2016-0020g 2022-10-31 (255%); PROS-2016-0020g 2022-12-31 (48%); C2 2022-04-30 (34%); C2 2022-06-30 (23%); C2g 2022-02-28 (22%); C2g 2022-05-31 (36%); C2g 2022-06-30 (30%); C2g 2022-09-30 (57%); C2g 2022-11-30 (20%); C2g 2022-12-31 (109%); C8 2022-05-31 (38%); C8 2022-06-30 (33%); C8 2022-07-31 (20%); C8 2022-09-30 (77%); C8 2022-12-31 (109%); C3 2022-03-31 (21%); C3 2022-07-31 (34%); C3g 2022-02-28 (23%); C3g 2022-03-31 (31%); C3g 2022-04-30 (33%); C3g 2022-05-31 (21%); C3g 2022-07-31 (168%); C3g 2022-08-31 (110%); C3g 2022-09-30 (108%); C3g 2022-10-31 (46%); C9 2022-04-30 (21%); C9 2022-05-31 (29%); C9 2022-06-30 (37%); C9 2022-07-31 (87%); C9 2022-09-30 (48%); C9 2022-10-31 (31%); C9 2022-11-30 (44%); C9 2022-12-31 (52%); PROS-2017-0019 2022-01-31 (27%); PROS-2017-0019 2022-04-30 (21%); PROS-2017-0019 2022-11-30 (103%); PROS-2017-0019g 2022-02-28 (111%); PROS-2017-0019g 2022-05-31 (22%); PROS-2017-0019g 2022-06-30 (54%); PROS-2017-0019g 2022-07-31 (140%); PROS-2017-0019g 2022-08-31 (170%); PROS-2017-0019g 2022-09-30 (168%); PROS-2017-0019g 2022-10-31 (129%); PROS-2017-0019g 2022-11-30 (42%); PROS-2017-0022 2022-01-31 (124%); PROS-2017-0022 2022-02-28 (20%); PROS-2017-0022 2022-05-31 (26%); PROS-2017-0022 2022-06-30 (28%); PROS-2017-0022 2022-07-31 (38%); PROS-2017-0022 2022-08-31 (33%); PROS-2017-0022 2022-09-30 (34%); PROS-2017-0022 2022-10-31 (27%); PROS-2017-0022g 2022-01-31 (69%); PROS-2017-0022g 2022-02-28 (73%); PROS-2017-0022g 2022-03-31 (70%); PROS-2017-0022g 2022-04-30 (71%); PROS-2017-0022g 2022-05-31 (62%); PROS-2017-0022g 2022-06-30 (49%); PROS-2017-0022g 2022-09-30 (1482%); PROS-2017-0022g 2022-11-30 (53%); PROS-2017-0022g 2022-12-31 (66%); PROS-2018-0003 2022-01-31 (123%); PROS-2018-0003 2022-07-31 (21%); PROS-2018-0003g 2022-01-31 (25%); PROS-2018-0003g 2022-04-30 (318%); PROS-2018-0003g 2022-06-30 (56%); PROS-2018-0003g 2022-07-31 (165%); PROS-2018-0003g 2022-08-31 (519%); PROS-2018-0003g 2022-09-30 (132%); PROS-2018-0003g 2022-10-31 (87%); PROS-2018-0003g 2022-12-31 (23%); PROS-2018-0009 2022-01-31 (35%); PROS-2018-0009 2022-04-30 (22%); PROS-2018-0009 2022-05-31 (100%); PROS-2018-0009 2022-12-31 (20%); PROS-2018-0014 2022-01-09 (55%); PROS-2018-0014g 2022-01-09 (44%); PROS-2018-0016 2022-01-31 (31%); PROS-2018-0016g 2022-01-31 (53%); PROS-2018-0016g 2022-02-28 (62%); PROS-2018-0016g 2022-03-31 (56%); PROS-2018-0016g 2022-04-30 (57%); PROS-2018-0016g 2022-05-31 (44%); PROS-2018-0016g 2022-06-30 (26%); PROS-2018-0016g 2022-07-31 (26%); PROS-2018-0016g 2022-08-31 (49%); PROS-2018-0016g 2022-09-30 (48%); PROS-2018-0016g 2022-11-30 (467%); PROS-2018-0016g 2022-12-31 (29%); PROS-2018-0018 2022-01-31 (23%); PROS-2018-0018 2022-11-30 (68%); PROS-2018-0018g 2022-06-30 (47%); PROS-2018-0018g 2022-07-31 (134%); PROS-2018-0018g 2022-08-31 (166%); PROS-2018-0018g 2022-09-30 (164%); PROS-2018-0018g 2022-10-31 (123%); PROS-2018-0018g 2022-11-30 (35%); PROS-2018-0022 2022-01-31 (40%); PROS-2018-0022 2022-05-31 (30%); PROS-2018-0022 2022-12-31 (26%); PROS-2018-0022g 2022-01-31 (25%); PROS-2018-0022g 2022-02-28 (375%); PROS-2018-0022g 2022-05-31 (43%); PROS-2018-0022g 2022-06-30 (86%); PROS-2018-0022g 2022-07-31 (208%); PROS-2018-0022g 2022-08-31 (259%); PROS-2018-0022g 2022-09-30 (258%); PROS-2018-0022g 2022-10-31 (192%); PROS-2018-0022g 2022-11-30 (70%); PROS-2018-0022g 2022-12-31 (24%); PROS-2018-0024 2022-01-31 (50%); PROS-2018-0024 2022-07-31 (26%); PROS-2018-0024 2022-08-31 (22%); PROS-2018-0024 2022-09-30 (22%); PROS-2018-0035 2022-04-30 (21%); PROS-2018-0035 2022-09-30 (94%); PROS-2018-0035 2022-11-30 (24%); PROS-2018-0035g 2022-01-31 (25%); PROS-2018-0035g 2022-02-28 (26%); PROS-2018-0035g 2022-03-31 (21%); PROS-2018-0035g 2022-04-30 (24%); PROS-2018-0035g 2022-06-30 (30%); PROS-2018-0035g 2022-07-31 (123%); PROS-2018-0035g 2022-08-31 (165%); PROS-2018-0035g 2022-09-30 (164%); PROS-2018-0035g 2022-10-31 (110%); PROS-2018-0039 2022-01-29 (63%); PROS-2018-0039g 2022-01-29 (47%); PROS-2018-0043 2022-02-28 (47%); PROS-2018-0053 2022-02-28 (105%); PROS-2018-0053 2022-03-31 (34%); PROS-2018-0053 2022-05-31 (23%); PROS-2018-0053 2022-06-30 (25%); PROS-2018-0053 2022-07-31 (35%); PROS-2018-0053 2022-08-31 (30%); PROS-2018-0053 2022-09-30 (31%); PROS-2018-0053 2022-10-31 (24%); PROS-2018-0053g 2022-01-31 (22%); PROS-2018-0053g 2022-02-28 (24%); PROS-2018-0053g 2022-03-31 (59%); PROS-2018-0053g 2022-05-31 (29%); PROS-2018-0053g 2022-06-30 (63%); PROS-2018-0053g 2022-07-31 (154%); PROS-2018-0053g 2022-08-31 (187%); PROS-2018-0053g 2022-09-30 (185%); PROS-2018-0053g 2022-10-31 (143%); PROS-2018-0053g 2022-11-30 (50%); PROS-2019-0003 2022-01-01 (83%); PROS-2019-0003g 2022-01-01 (96%); PROS-2019-0008 2022-01-31 (60%); PROS-2019-0008 2022-04-30 (20%); PROS-2019-0008g 2022-01-31 (29%); PROS-2019-0008g 2022-04-30 (22%); PROS-2019-0008g 2022-05-31 (25%); PROS-2019-0008g 2022-06-30 (42%); PROS-2019-0008g 2022-09-30 (26%); PROS-2019-0008g 2022-11-30 (92%); PROS-2019-0008g 2022-12-31 (43%); PROS-2019-0009 2022-01-31 (68%); PROS-2019-0009 2022-07-31 (25%); PROS-2019-0009 2022-08-31 (21%); PROS-2019-0009 2022-09-30 (21%); PROS-2019-0009g 2022-01-31 (42%); PROS-2019-0009g 2022-02-28 (52%); PROS-2019-0009g 2022-03-31 (45%); PROS-2019-0009g 2022-04-30 (46%); PROS-2019-0009g 2022-05-31 (31%); PROS-2019-0009g 2022-07-31 (42%); PROS-2019-0009g 2022-08-31 (62%); PROS-2019-0009g 2022-09-30 (61%); PROS-2019-0009g 2022-10-31 (35%); PROS-2019-0009g 2022-12-31 (238%); PROS-2019-0012 2022-01-31 (57%); PROS-2019-0012 2022-05-31 (22%); PROS-2019-0012g 2022-05-31 (48%); PROS-2019-0012g 2022-06-30 (32%); PROS-2019-0012g 2022-10-31 (52%); PROS-2019-0012g 2022-11-30 (30%); PROS-2019-0012g 2022-12-31 (26%); PROS-2019-0015 2022-01-31 (26%); PROS-2019-0015 2022-10-31 (47%); PROS-2019-0015g 2022-02-28 (25%); PROS-2019-0015g 2022-06-30 (165%); PROS-2019-0015g 2022-07-31 (103%); PROS-2019-0015g 2022-08-31 (139%); PROS-2019-0015g 2022-09-30 (138%); PROS-2019-0015g 2022-10-31 (92%); PROS-2019-0015g 2022-12-31 (86%); PROS-2019-0021 2022-02-28 (36%); PROS-2019-0021 2022-05-31 (31%); PROS-2019-0021g 2022-01-31 (64%); PROS-2019-0021g 2022-02-28 (66%); PROS-2019-0021g 2022-03-31 (64%); PROS-2019-0021g 2022-04-30 (64%); PROS-2019-0021g 2022-05-31 (54%); PROS-2019-0021g 2022-06-30 (42%); PROS-2019-0021g 2022-09-30 (1082%); PROS-2019-0021g 2022-11-30 (46%); PROS-2019-0021g 2022-12-31 (122%); PROS-2019-0023 2022-02-28 (21%); PROS-2019-0023 2022-07-31 (74%); PROS-2019-0023 2022-12-31 (21%); PROS-2019-0023g 2022-05-31 (348%); PROS-2019-0023g 2022-06-30 (34%); PROS-2019-0023g 2022-07-31 (126%); PROS-2019-0023g 2022-08-31 (166%); PROS-2019-0023g 2022-09-30 (165%); PROS-2019-0023g 2022-10-31 (114%); PROS-2019-0023g 2022-11-30 (22%); PROS-2019-0024 2022-02-28 (28%); PROS-2019-0024g 2022-05-31 (27%); PROS-2019-0024g 2022-06-30 (68%); PROS-2019-0024g 2022-07-31 (190%); PROS-2019-0024g 2022-08-31 (246%); PROS-2019-0024g 2022-09-30 (245%); PROS-2019-0024g 2022-10-31 (174%); PROS-2019-0024g 2022-11-30 (53%); PROS-2019-0027 2022-01-31 (25%); PROS-2019-0027 2022-02-28 (72%); PROS-2019-0027 2022-12-31 (21%); PROS-2019-0027g 2022-01-31 (49%); PROS-2019-0027g 2022-02-28 (69%); PROS-2019-0027g 2022-03-31 (30%); PROS-2019-0027g 2022-04-30 (31%); PROS-2019-0027g 2022-07-31 (103%); PROS-2019-0027g 2022-08-31 (141%); PROS-2019-0027g 2022-09-30 (141%); PROS-2019-0027g 2022-10-31 (251%); PROS-2019-0027g 2022-11-30 (25%); PROS-2019-0050 2022-02-20 (163%); PROS-2019-0050g 2022-01-31 (40%); PROS-2019-0050g 2022-02-20 (49%); PROS-2020-0002 2022-01-31 (110%); PROS-2020-0002 2022-04-30 (20%); PROS-2020-0002g 2022-01-31 (40%); PROS-2020-0002g 2022-04-30 (22%); PROS-2020-0002g 2022-05-31 (24%); PROS-2020-0002g 2022-06-30 (41%); PROS-2020-0002g 2022-09-30 (25%); PROS-2020-0002g 2022-10-31 (76%); PROS-2020-0002g 2022-11-30 (40%); PROS-2020-0002g 2022-12-31 (30%); PROS-2020-0006 2022-01-31 (85%); PROS-2020-0006 2022-04-30 (20%); PROS-2020-0006 2022-08-31 (29%); PROS-2020-0006 2022-12-31 (22%); PROS-2020-0006g 2022-01-31 (37%); PROS-2020-0006g 2022-04-30 (22%); PROS-2020-0006g 2022-05-31 (25%); PROS-2020-0006g 2022-06-30 (42%); PROS-2020-0006g 2022-09-30 (26%); PROS-2020-0006g 2022-10-31 (78%); PROS-2020-0006g 2022-11-30 (33%); PROS-2020-0006g 2022-12-31 (83%); PROS-2020-0009 2022-01-31 (102%); PROS-2020-0009g 2022-01-31 (32%); PROS-2020-0009g 2022-04-30 (21%); PROS-2020-0009g 2022-05-31 (22%); PROS-2020-0009g 2022-06-30 (37%); PROS-2020-0009g 2022-10-31 (65%); PROS-2020-0009g 2022-11-30 (35%); PROS-2020-0009g 2022-12-31 (28%); PROS-2020-0012 2022-01-31 (38%); PROS-2020-0012 2022-05-31 (91%); PROS-2020-0012g 2022-02-28 (32%); PROS-2020-0012g 2022-03-31 (21%); PROS-2020-0012g 2022-04-30 (64%); PROS-2020-0012g 2022-06-30 (21%); PROS-2020-0012g 2022-07-31 (104%); PROS-2020-0012g 2022-08-31 (140%); PROS-2020-0012g 2022-09-30 (419%); PROS-2020-0012g 2022-10-31 (74%); PROS-2020-0012g 2022-12-31 (63%); PROS-2020-0013 2022-01-06 (79%); PROS-2020-0016 2022-01-31 (40%); PROS-2020-0016 2022-06-30 (49%); PROS-2020-0016 2022-12-31 (22%); PROS-2020-0016g 2022-01-31 (32%); PROS-2020-0016g 2022-02-28 (45%); PROS-2020-0016g 2022-03-31 (36%); PROS-2020-0016g 2022-04-30 (38%); PROS-2020-0016g 2022-05-31 (21%); PROS-2020-0016g 2022-07-31 (56%); PROS-2020-0016g 2022-08-31 (77%); PROS-2020-0016g 2022-09-30 (75%); PROS-2020-0016g 2022-10-31 (49%); PROS-2020-0016g 2022-11-30 (184%); PROS-2020-0022 2022-01-31 (36%); PROS-2020-0022 2022-04-30 (20%); PROS-2020-0022g 2022-01-31 (66%); PROS-2020-0022g 2022-04-30 (22%); PROS-2020-0022g 2022-05-31 (23%); PROS-2020-0022g 2022-06-30 (39%); PROS-2020-0022g 2022-09-30 (23%); PROS-2020-0022g 2022-10-31 (70%); PROS-2020-0022g 2022-11-30 (38%); PROS-2020-0022g 2022-12-31 (29%); PROS-2020-0025 2022-01-31 (23%); PROS-2020-0025 2022-07-31 (28%); PROS-2020-0025 2022-08-31 (24%); PROS-2020-0025 2022-09-30 (24%); PROS-2020-0025g 2022-06-30 (326%); PROS-2020-0025g 2022-08-31 (44%); PROS-2020-0025g 2022-09-30 (43%); PROS-2020-0025g 2022-11-30 (38%); PROS-2020-0025g 2022-12-31 (56%); PROS-2020-0032 2022-01-31 (47%); PROS-2020-0032 2022-02-28 (32%); PROS-2020-0032 2022-05-31 (24%); PROS-2020-0032g 2022-04-30 (22%); PROS-2020-0032g 2022-05-31 (24%); PROS-2020-0032g 2022-06-30 (40%); PROS-2020-0032g 2022-09-30 (24%); PROS-2020-0032g 2022-10-31 (74%); PROS-2020-0032g 2022-11-30 (39%); PROS-2020-0032g 2022-12-31 (30%); PROS-2020-0042 2022-02-28 (40%); PROS-2020-0042g 2022-01-31 (42%); PROS-2020-0042g 2022-02-28 (38%); PROS-2020-0042g 2022-03-31 (100%); PROS-2020-0042g 2022-04-30 (24%); PROS-2020-0042g 2022-06-30 (32%); PROS-2020-0042g 2022-07-31 (134%); PROS-2020-0042g 2022-08-31 (185%); PROS-2020-0042g 2022-09-30 (184%); PROS-2020-0042g 2022-10-31 (120%); PROS-2020-0043 2022-02-28 (29%); PROS-2020-0043 2022-07-31 (35%); PROS-2020-0043g 2022-01-31 (55%); PROS-2020-0043g 2022-02-28 (133%); PROS-2020-0043g 2022-03-31 (42%); PROS-2020-0043g 2022-04-30 (45%); PROS-2020-0043g 2022-05-31 (29%); PROS-2020-0043g 2022-07-31 (57%); PROS-2020-0043g 2022-08-31 (84%); PROS-2020-0043g 2022-09-30 (83%); PROS-2020-0043g 2022-10-31 (48%); PROS-2020-0043g 2022-12-31 (39%); PROS-2020-0047 2022-01-31 (23%); PROS-2020-0047 2022-02-10 (67%); PROS-2020-0047g 2022-01-31 (51%); PROS-2020-0047g 2022-02-10 (70%); PROS-2020-0048 2022-02-28 (56%); PROS-2020-0048 2022-07-31 (24%); PROS-2020-0048 2022-08-31 (61%); PROS-2020-0048g 2022-01-31 (64%); PROS-2020-0048g 2022-02-28 (64%); PROS-2020-0048g 2022-03-31 (59%); PROS-2020-0048g 2022-04-30 (62%); PROS-2020-0048g 2022-05-31 (51%); PROS-2020-0048g 2022-06-30 (35%); PROS-2020-0048g 2022-08-31 (36%); PROS-2020-0048g 2022-09-30 (1146%); PROS-2020-0048g 2022-11-30 (53%); PROS-2020-0048g 2022-12-31 (66%); PROS-2020-0050 2022-02-11 (48%); PROS-2020-0067g 2022-02-25 (26%); PROS-2021-0006 2022-01-10 (65%); PROS-2021-0006g 2022-01-10 (26%); PROS-2021-0017 2022-01-19 (32%); PROS-2021-0029g 2022-01-25 (33%); PROS-2021-0031 2022-02-28 (22%); PROS-2021-0031 2022-05-31 (64%); PROS-2021-0031g 2022-05-31 (54%); PROS-2021-0031g 2022-06-30 (104%); PROS-2021-0031g 2022-07-31 (251%); PROS-2021-0031g 2022-08-31 (318%); PROS-2021-0031g 2022-09-30 (317%); PROS-2021-0031g 2022-10-31 (231%); PROS-2021-0031g 2022-11-30 (86%); PROS-2021-0031g 2022-12-31 (33%); PROS-2021-0044 2022-02-11 (64%); PROS-2021-0044g 2022-02-11 (66%); PROS-2021-0045 2022-04-30 (23%); PROS-2021-0045 2022-06-30 (101%); PROS-2021-0045 2022-12-31 (24%); PROS-2021-0051 2022-03-31 (36%); PROS-2021-0051 2022-04-30 (20%); PROS-2021-0051g 2022-04-30 (22%); PROS-2021-0051g 2022-05-31 (23%); PROS-2021-0051g 2022-06-30 (39%); PROS-2021-0051g 2022-09-30 (22%); PROS-2021-0051g 2022-10-31 (70%); PROS-2021-0051g 2022-11-30 (37%); PROS-2021-0051g 2022-12-31 (29%); PROS-2021-0060 2022-02-24 (30%); PROS-2021-0060g 2022-02-24 (28%); PROS-2021-0062 2022-03-31 (65%); PROS-2021-0062 2022-04-30 (21%); PROS-2021-0062g 2022-05-31 (65%); PROS-2021-0062g 2022-06-30 (45%); PROS-2021-0062g 2022-09-30 (32%); PROS-2021-0062g 2022-10-31 (88%); PROS-2021-0062g 2022-11-30 (43%); PROS-2021-0062g 2022-12-31 (32%); PROS-2021-0067 2022-02-28 (26%); PROS-2021-0067 2022-03-04 (23%); PROS-2021-0067g 2022-03-04 (87%); PROS-2021-0088 2022-04-30 (35%); PROS-2021-0088 2022-05-31 (23%); PROS-2021-0088 2022-06-30 (25%); PROS-2021-0088 2022-07-31 (34%); PROS-2021-0088 2022-08-31 (30%); PROS-2021-0088 2022-09-30 (30%); PROS-2021-0088 2022-10-31 (24%); PROS-2021-0088g 2022-01-31 (60%); PROS-2021-0088g 2022-02-28 (65%); PROS-2021-0088g 2022-03-31 (55%); PROS-2021-0088g 2022-04-30 (54%); PROS-2021-0088g 2022-05-31 (49%); PROS-2021-0088g 2022-06-30 (36%); PROS-2021-0088g 2022-07-31 (739%); PROS-2021-0088g 2022-11-30 (44%); PROS-2021-0088g 2022-12-31 (58%); PROS-2021-0100 2022-04-01 (97%); SYN-2021-001 2022-01-31 (266%); SYN-2021-001 2022-05-31 (28%); SYN-2021-001 2022-06-30 (30%); SYN-2021-001 2022-07-31 (40%); SYN-2021-001 2022-08-31 (35%); SYN-2021-001 2022-09-30 (36%); SYN-2021-001 2022-10-31 (28%); SYN-2021-001 2022-11-30 (20%); PROS-2022-0009 2022-02-28 (27%); PROS-2022-0009 2022-04-30 (20%); PROS-2022-0009 2022-06-30 (21%); PROS-2022-0009 2022-11-30 (27%); PROS-2022-0009g 2022-04-30 (22%); PROS-2022-0009g 2022-05-31 (24%); PROS-2022-0009g 2022-06-30 (34%); PROS-2022-0009g 2022-07-31 (145%); PROS-2022-0009g 2022-09-30 (26%); PROS-2022-0009g 2022-10-31 (77%); PROS-2022-0009g 2022-11-30 (40%); PROS-2022-0009g 2022-12-31 (30%); PROS-2022-0010 2022-02-28 (33%); PROS-2022-0010 2022-04-30 (20%); PROS-2022-0010g 2022-02-28 (23%); PROS-2022-0010g 2022-04-30 (22%); PROS-2022-0010g 2022-05-31 (24%); PROS-2022-0010g 2022-06-30 (41%); PROS-2022-0010g 2022-09-30 (25%); PROS-2022-0010g 2022-10-31 (75%); PROS-2022-0010g 2022-11-30 (39%); PROS-2022-0010g 2022-12-31 (30%); PROS-2022-0011 2022-02-28 (40%); PROS-2022-0011g 2022-02-28 (31%); PROS-2022-0011g 2022-06-30 (32%); PROS-2022-0011g 2022-10-31 (52%); PROS-2022-0011g 2022-11-30 (30%); PROS-2022-0011g 2022-12-31 (24%); PROS-2022-0019 2022-02-28 (100%); PROS-2022-0019 2022-12-31 (25%); PROS-2022-0019g 2022-02-28 (86%); PROS-2022-0019g 2022-04-30 (20%); PROS-2022-0019g 2022-05-31 (21%); PROS-2022-0019g 2022-06-30 (35%); PROS-2022-0019g 2022-11-30 (90%); PROS-2022-0019g 2022-12-31 (30%); PROS-2022-0030 2022-02-28 (56%); PROS-2022-0030 2022-03-31 (86%); PROS-2022-0030 2022-04-30 (20%); PROS-2022-0030 2022-07-31 (28%); PROS-2022-0030g 2022-02-28 (59%); PROS-2022-0030g 2022-03-31 (74%); PROS-2022-0030g 2022-04-30 (128%); PROS-2022-0030g 2022-05-31 (23%); PROS-2022-0030g 2022-07-31 (63%); PROS-2022-0030g 2022-09-30 (22%); PROS-2022-0030g 2022-10-31 (70%); PROS-2022-0030g 2022-11-30 (37%); PROS-2022-0030g 2022-12-31 (29%); PROS-2022-0045 2022-03-31 (66%); PROS-2022-0046 2022-04-30 (28%); PROS-2022-0046g 2022-03-31 (100%); PROS-2022-0046g 2022-04-30 (22%); PROS-2022-0046g 2022-05-31 (24%); PROS-2022-0046g 2022-06-30 (41%); PROS-2022-0046g 2022-09-30 (25%); PROS-2022-0046g 2022-10-31 (76%); PROS-2022-0046g 2022-11-30 (39%); PROS-2022-0046g 2022-12-31 (30%); PROS-2022-0047 2022-03-31 (132%); PROS-2022-0047 2022-04-30 (21%); PROS-2022-0047g 2022-03-31 (129%); PROS-2022-0048 2022-03-31 (130%); PROS-2022-0048 2022-12-31 (20%); PROS-2022-0048g 2022-03-31 (117%); PROS-2022-0048g 2022-04-30 (22%); PROS-2022-0048g 2022-05-31 (23%); PROS-2022-0048g 2022-06-30 (39%); PROS-2022-0048g 2022-11-30 (100%); PROS-2022-0048g 2022-12-31 (32%); PROS-2022-0049 2022-03-31 (153%); PROS-2022-0049 2022-04-30 (21%); PROS-2022-0049 2022-11-30 (28%); PROS-2022-0049g 2022-03-31 (133%); PROS-2022-0049g 2022-04-30 (23%); PROS-2022-0049g 2022-05-31 (25%); PROS-2022-0049g 2022-06-30 (42%); PROS-2022-0049g 2022-09-30 (27%); PROS-2022-0049g 2022-10-31 (80%); PROS-2022-0049g 2022-11-30 (41%); PROS-2022-0049g 2022-12-31 (31%); PROS-2022-0063 2022-03-31 (96%); PROS-2022-0063 2022-04-30 (87%); PROS-2022-0063 2022-05-31 (83%); PROS-2022-0063 2022-06-30 (270%); PROS-2022-0063 2022-08-31 (28%); PROS-2022-0063 2022-09-30 (28%); PROS-2022-0063 2022-10-31 (32%); PROS-2022-0063 2022-11-30 (36%); PROS-2022-0063 2022-12-31 (127%); PROS-2022-0063g 2022-03-31 (1300%); PROS-2022-0063g 2022-04-30 (23%); PROS-2022-0063g 2022-05-31 (25%); PROS-2022-0063g 2022-06-30 (43%); PROS-2022-0063g 2022-09-30 (28%); PROS-2022-0063g 2022-10-31 (81%); PROS-2022-0063g 2022-11-30 (41%); PROS-2022-0063g 2022-12-31 (31%); PROS-2022-0067 2022-03-31 (2757%); PROS-2022-0067 2022-04-30 (21%); PROS-2022-0067g 2022-03-31 (2709%); PROS-2022-0067g 2022-04-30 (22%); PROS-2022-0067g 2022-05-31 (24%); PROS-2022-0067g 2022-06-30 (40%); PROS-2022-0067g 2022-09-30 (24%); PROS-2022-0067g 2022-10-31 (74%); PROS-2022-0067g 2022-11-30 (39%); PROS-2022-0067g 2022-12-31 (30%); PROS-2022-0071g 2022-05-31 (23%); PROS-2022-0071g 2022-06-30 (39%); PROS-2022-0071g 2022-09-30 (22%); PROS-2022-0071g 2022-10-31 (70%); PROS-2022-0071g 2022-11-30 (37%); PROS-2022-0071g 2022-12-31 (29%); PROS-2022-0073 2022-04-30 (22%); PROS-2022-0073g 2022-05-31 (21%); PROS-2022-0073g 2022-07-31 (54%); PROS-2022-0073g 2022-08-31 (73%); PROS-2022-0073g 2022-09-30 (188%); PROS-2022-0073g 2022-10-31 (24%); PROS-2022-0073g 2022-11-30 (23%); PROS-2022-0073g 2022-12-31 (41%); PROS-2022-0081 2022-04-30 (32%); PROS-2022-0081g 2022-04-30 (42%); PROS-2022-0081g 2022-10-31 (25%); PROS-2022-0081g 2022-12-31 (25%); PROS-2022-0082 2022-04-30 (39%); PROS-2022-0082g 2022-04-30 (33%); PROS-2022-0082g 2022-05-31 (25%); PROS-2022-0082g 2022-06-30 (42%); PROS-2022-0082g 2022-09-30 (27%); PROS-2022-0082g 2022-10-31 (80%); PROS-2022-0082g 2022-11-30 (41%); PROS-2022-0082g 2022-12-31 (31%); PROS-2022-0083 2022-04-30 (53%); PROS-2022-0083g 2022-04-30 (42%); PROS-2022-0083g 2022-05-31 (24%); PROS-2022-0083g 2022-06-30 (40%); PROS-2022-0083g 2022-09-30 (24%); PROS-2022-0083g 2022-10-31 (73%); PROS-2022-0083g 2022-11-30 (39%); PROS-2022-0083g 2022-12-31 (30%); PROS-2022-0092 2022-04-30 (127%); PROS-2022-0092g 2022-04-30 (102%); PROS-2022-0092g 2022-05-31 (20%); PROS-2022-0092g 2022-06-30 (39%); PROS-2022-0092g 2022-09-30 (23%); PROS-2022-0092g 2022-11-30 (86%); PROS-2022-0092g 2022-12-31 (29%); PROS-2022-0097 2022-04-30 (493%); PROS-2022-0097g 2022-04-30 (38%); PROS-2022-0097g 2022-05-31 (46%); PROS-2022-0097g 2022-06-30 (42%); PROS-2022-0097g 2022-09-30 (27%); PROS-2022-0097g 2022-10-31 (79%); PROS-2022-0097g 2022-11-30 (40%); PROS-2022-0097g 2022-12-31 (30%); PROS-2022-0100 2022-04-30 (38%); PROS-2022-0100 2022-05-31 (79%); PROS-2022-0100g 2022-04-30 (501%); PROS-2022-0100g 2022-05-31 (25%); PROS-2022-0100g 2022-06-30 (42%); PROS-2022-0100g 2022-09-30 (27%); PROS-2022-0100g 2022-10-31 (79%); PROS-2022-0100g 2022-11-30 (34%); PROS-2022-0100g 2022-12-31 (83%); PROS-2022-0120 2022-05-31 (47%); PROS-2022-0120 2022-11-30 (28%); PROS-2022-0124 2022-05-31 (73%); PROS-2022-0124g 2022-05-31 (32%); PROS-2022-0124g 2022-06-30 (43%); PROS-2022-0124g 2022-09-30 (28%); PROS-2022-0124g 2022-10-31 (82%); PROS-2022-0124g 2022-11-30 (41%); PROS-2022-0124g 2022-12-31 (31%); PROS-2022-0125 2022-05-31 (74%); PROS-2022-0125g 2022-06-30 (24%); PROS-2022-0125g 2022-10-31 (102%); PROS-2022-0125g 2022-11-30 (39%); PROS-2022-0125g 2022-12-31 (88%); PROS-2022-0127 2022-05-31 (74%); PROS-2022-0127g 2022-05-31 (36%); PROS-2022-0127g 2022-06-30 (39%); PROS-2022-0127g 2022-09-30 (22%); PROS-2022-0127g 2022-10-31 (70%); PROS-2022-0127g 2022-11-30 (37%); PROS-2022-0127g 2022-12-31 (29%); PROS-2022-0128 2022-05-31 (73%); PROS-2022-0128g 2022-05-31 (34%); PROS-2022-0128g 2022-06-30 (40%); PROS-2022-0128g 2022-09-30 (24%); PROS-2022-0128g 2022-10-31 (74%); PROS-2022-0128g 2022-11-30 (39%); PROS-2022-0130 2022-05-31 (196%); PROS-2022-0130 2022-12-31 (22%); PROS-2022-0130g 2022-05-31 (123%); PROS-2022-0130g 2022-06-30 (44%); PROS-2022-0130g 2022-09-30 (30%); PROS-2022-0130g 2022-10-31 (84%); PROS-2022-0130g 2022-11-30 (42%); PROS-2022-0130g 2022-12-31 (31%)
+- Losses (churn) during year: PROS-2019-0003, PROS-2020-0013, PROS-2021-0017, PROS-2021-0029, PROS-2018-0039, PROS-2020-0042, PROS-2020-0047, PROS-2020-0050, PROS-2021-0044, PROS-2019-0050, PROS-2021-0060, PROS-2020-0067, PROS-2021-0067, PROS-2021-0100
+  - Renewals (retained): 44 accounts
+- Average CLV (Point-in-Time, year-end 2022): £-568.99
+  - By billing account: C2 £-177.13, C3 £-25.85, C7 £-981.96, C8 £115.92, C9 £427.80, PROS-2016-0011 £-56.62, PROS-2016-0020 £218.54, PROS-2017-0019 £622.44, PROS-2017-0022 £-339.87, PROS-2018-0003 £-222.21, PROS-2018-0009 £377.84, PROS-2018-0014 £-485.79, PROS-2018-0016 £-258.39, PROS-2018-0018 £64.85, PROS-2018-0022 £273.99, PROS-2018-0024 £804.36, PROS-2018-0035 £193.64, PROS-2018-0043 £999.07, PROS-2018-0053 £813.83, PROS-2019-0008 £-1,067.15, PROS-2019-0009 £-21.44, PROS-2019-0012 £602.89, PROS-2019-0015 £-543.01, PROS-2019-0021 £412.96, PROS-2019-0023 £86.83, PROS-2019-0024 £-247.78, PROS-2019-0027 £-201.22, PROS-2020-0002 £-1,668.94, PROS-2020-0006 £-1,695.84, PROS-2020-0009 £-280.60, PROS-2020-0012 £-1,433.29, PROS-2020-0016 £-375.26, PROS-2020-0022 £-884.60, PROS-2020-0025 £-4,215.27, PROS-2020-0032 £-213.12, PROS-2020-0043 £-1,654.30, PROS-2020-0048 £-206.93, PROS-2021-0006 £-3,195.57, PROS-2021-0031 £-4,699.13, PROS-2021-0045 £2,169.23, PROS-2021-0051 £-1,425.30, PROS-2021-0062 £-6,737.72, PROS-2021-0088 £-47.20, SYN-2021-001 £141.59
+- Bill shock events (>=20%): 656 -- C7 2022-05-31 (62%); C7 2022-06-30 (26%); C7 2022-09-30 (32%); C7 2022-11-30 (62%); C7 2022-12-31 (55%); PROS-2016-0011 2022-04-30 (23%); PROS-2016-0011 2022-07-31 (125%); PROS-2016-0011 2022-12-31 (22%); PROS-2016-0011g 2022-01-31 (30%); PROS-2016-0011g 2022-02-28 (44%); PROS-2016-0011g 2022-03-31 (36%); PROS-2016-0011g 2022-04-30 (36%); PROS-2016-0011g 2022-07-31 (85%); PROS-2016-0011g 2022-08-31 (120%); PROS-2016-0011g 2022-09-30 (119%); PROS-2016-0011g 2022-10-31 (75%); PROS-2016-0011g 2022-12-31 (105%); PROS-2016-0020 2022-04-30 (21%); PROS-2016-0020 2022-06-30 (104%); PROS-2016-0020 2022-12-31 (23%); PROS-2016-0020g 2022-02-28 (24%); PROS-2016-0020g 2022-06-30 (36%); PROS-2016-0020g 2022-07-31 (123%); PROS-2016-0020g 2022-08-31 (159%); PROS-2016-0020g 2022-09-30 (158%); PROS-2016-0020g 2022-10-31 (255%); PROS-2016-0020g 2022-12-31 (48%); C2 2022-04-30 (34%); C2 2022-06-30 (23%); C2g 2022-02-28 (22%); C2g 2022-05-31 (36%); C2g 2022-06-30 (30%); C2g 2022-09-30 (57%); C2g 2022-11-30 (20%); C2g 2022-12-31 (109%); C8 2022-05-31 (38%); C8 2022-06-30 (33%); C8 2022-07-31 (20%); C8 2022-09-30 (77%); C8 2022-12-31 (109%); C3 2022-03-31 (21%); C3 2022-07-31 (34%); C3g 2022-02-28 (23%); C3g 2022-03-31 (31%); C3g 2022-04-30 (33%); C3g 2022-05-31 (21%); C3g 2022-07-31 (168%); C3g 2022-08-31 (110%); C3g 2022-09-30 (108%); C3g 2022-10-31 (46%); C9 2022-04-30 (21%); C9 2022-05-31 (29%); C9 2022-06-30 (37%); C9 2022-07-31 (87%); C9 2022-09-30 (48%); C9 2022-10-31 (31%); C9 2022-11-30 (44%); C9 2022-12-31 (52%); PROS-2017-0019 2022-01-31 (27%); PROS-2017-0019 2022-04-30 (21%); PROS-2017-0019 2022-11-30 (103%); PROS-2017-0019g 2022-02-28 (111%); PROS-2017-0019g 2022-05-31 (22%); PROS-2017-0019g 2022-06-30 (54%); PROS-2017-0019g 2022-07-31 (140%); PROS-2017-0019g 2022-08-31 (170%); PROS-2017-0019g 2022-09-30 (168%); PROS-2017-0019g 2022-10-31 (129%); PROS-2017-0019g 2022-11-30 (42%); PROS-2017-0022 2022-01-31 (124%); PROS-2017-0022 2022-02-28 (20%); PROS-2017-0022 2022-05-31 (26%); PROS-2017-0022 2022-06-30 (28%); PROS-2017-0022 2022-07-31 (38%); PROS-2017-0022 2022-08-31 (33%); PROS-2017-0022 2022-09-30 (34%); PROS-2017-0022 2022-10-31 (27%); PROS-2017-0022g 2022-01-31 (69%); PROS-2017-0022g 2022-02-28 (73%); PROS-2017-0022g 2022-03-31 (70%); PROS-2017-0022g 2022-04-30 (71%); PROS-2017-0022g 2022-05-31 (62%); PROS-2017-0022g 2022-06-30 (49%); PROS-2017-0022g 2022-09-30 (1482%); PROS-2017-0022g 2022-11-30 (53%); PROS-2017-0022g 2022-12-31 (66%); PROS-2018-0003 2022-01-31 (123%); PROS-2018-0003 2022-07-31 (21%); PROS-2018-0003g 2022-01-31 (25%); PROS-2018-0003g 2022-04-30 (318%); PROS-2018-0003g 2022-06-30 (56%); PROS-2018-0003g 2022-07-31 (165%); PROS-2018-0003g 2022-08-31 (519%); PROS-2018-0003g 2022-09-30 (132%); PROS-2018-0003g 2022-10-31 (87%); PROS-2018-0003g 2022-12-31 (23%); PROS-2018-0009 2022-01-31 (35%); PROS-2018-0009 2022-04-30 (22%); PROS-2018-0009 2022-05-31 (100%); PROS-2018-0009 2022-12-31 (20%); PROS-2018-0014 2022-01-31 (39%); PROS-2018-0014g 2022-01-31 (46%); PROS-2018-0014g 2022-05-31 (27%); PROS-2018-0014g 2022-06-30 (135%); PROS-2018-0014g 2022-07-31 (114%); PROS-2018-0014g 2022-08-31 (149%); PROS-2018-0014g 2022-09-30 (275%); PROS-2018-0014g 2022-10-31 (69%); PROS-2018-0014g 2022-12-31 (28%); PROS-2018-0016 2022-01-31 (31%); PROS-2018-0016g 2022-01-31 (53%); PROS-2018-0016g 2022-02-28 (62%); PROS-2018-0016g 2022-03-31 (56%); PROS-2018-0016g 2022-04-30 (57%); PROS-2018-0016g 2022-05-31 (44%); PROS-2018-0016g 2022-06-30 (26%); PROS-2018-0016g 2022-07-31 (26%); PROS-2018-0016g 2022-08-31 (49%); PROS-2018-0016g 2022-09-30 (48%); PROS-2018-0016g 2022-11-30 (467%); PROS-2018-0016g 2022-12-31 (29%); PROS-2018-0018 2022-01-31 (23%); PROS-2018-0018 2022-11-30 (68%); PROS-2018-0018g 2022-06-30 (47%); PROS-2018-0018g 2022-07-31 (134%); PROS-2018-0018g 2022-08-31 (166%); PROS-2018-0018g 2022-09-30 (164%); PROS-2018-0018g 2022-10-31 (123%); PROS-2018-0018g 2022-11-30 (35%); PROS-2018-0022 2022-01-31 (40%); PROS-2018-0022 2022-05-31 (30%); PROS-2018-0022 2022-12-31 (26%); PROS-2018-0022g 2022-01-31 (25%); PROS-2018-0022g 2022-02-28 (375%); PROS-2018-0022g 2022-05-31 (43%); PROS-2018-0022g 2022-06-30 (86%); PROS-2018-0022g 2022-07-31 (208%); PROS-2018-0022g 2022-08-31 (259%); PROS-2018-0022g 2022-09-30 (258%); PROS-2018-0022g 2022-10-31 (192%); PROS-2018-0022g 2022-11-30 (70%); PROS-2018-0022g 2022-12-31 (24%); PROS-2018-0024 2022-01-31 (50%); PROS-2018-0024 2022-07-31 (26%); PROS-2018-0024 2022-08-31 (22%); PROS-2018-0024 2022-09-30 (22%); PROS-2018-0035 2022-04-30 (21%); PROS-2018-0035 2022-09-30 (94%); PROS-2018-0035 2022-11-30 (24%); PROS-2018-0035g 2022-01-31 (25%); PROS-2018-0035g 2022-02-28 (26%); PROS-2018-0035g 2022-03-31 (21%); PROS-2018-0035g 2022-04-30 (24%); PROS-2018-0035g 2022-06-30 (30%); PROS-2018-0035g 2022-07-31 (123%); PROS-2018-0035g 2022-08-31 (165%); PROS-2018-0035g 2022-09-30 (164%); PROS-2018-0035g 2022-10-31 (110%); PROS-2018-0039 2022-01-29 (63%); PROS-2018-0039g 2022-01-29 (47%); PROS-2018-0043 2022-02-28 (47%); PROS-2018-0053 2022-02-28 (105%); PROS-2018-0053 2022-03-31 (34%); PROS-2018-0053 2022-05-31 (23%); PROS-2018-0053 2022-06-30 (25%); PROS-2018-0053 2022-07-31 (35%); PROS-2018-0053 2022-08-31 (30%); PROS-2018-0053 2022-09-30 (31%); PROS-2018-0053 2022-10-31 (24%); PROS-2018-0053g 2022-01-31 (22%); PROS-2018-0053g 2022-02-28 (24%); PROS-2018-0053g 2022-03-31 (59%); PROS-2018-0053g 2022-05-31 (29%); PROS-2018-0053g 2022-06-30 (63%); PROS-2018-0053g 2022-07-31 (154%); PROS-2018-0053g 2022-08-31 (187%); PROS-2018-0053g 2022-09-30 (185%); PROS-2018-0053g 2022-10-31 (143%); PROS-2018-0053g 2022-11-30 (50%); PROS-2019-0003 2022-01-01 (83%); PROS-2019-0003g 2022-01-01 (96%); PROS-2019-0008 2022-01-31 (61%); PROS-2019-0008 2022-04-30 (20%); PROS-2019-0008g 2022-01-31 (29%); PROS-2019-0008g 2022-04-30 (22%); PROS-2019-0008g 2022-05-31 (25%); PROS-2019-0008g 2022-06-30 (42%); PROS-2019-0008g 2022-09-30 (26%); PROS-2019-0008g 2022-11-30 (92%); PROS-2019-0008g 2022-12-31 (43%); PROS-2019-0009 2022-01-31 (68%); PROS-2019-0009 2022-07-31 (25%); PROS-2019-0009 2022-08-31 (21%); PROS-2019-0009 2022-09-30 (21%); PROS-2019-0009g 2022-01-31 (42%); PROS-2019-0009g 2022-02-28 (52%); PROS-2019-0009g 2022-03-31 (45%); PROS-2019-0009g 2022-04-30 (46%); PROS-2019-0009g 2022-05-31 (31%); PROS-2019-0009g 2022-07-31 (42%); PROS-2019-0009g 2022-08-31 (62%); PROS-2019-0009g 2022-09-30 (61%); PROS-2019-0009g 2022-10-31 (35%); PROS-2019-0009g 2022-12-31 (238%); PROS-2019-0012 2022-01-31 (57%); PROS-2019-0012 2022-05-31 (22%); PROS-2019-0012g 2022-05-31 (48%); PROS-2019-0012g 2022-06-30 (32%); PROS-2019-0012g 2022-10-31 (52%); PROS-2019-0012g 2022-11-30 (30%); PROS-2019-0012g 2022-12-31 (26%); PROS-2019-0015 2022-01-31 (26%); PROS-2019-0015 2022-10-31 (47%); PROS-2019-0015g 2022-02-28 (25%); PROS-2019-0015g 2022-06-30 (165%); PROS-2019-0015g 2022-07-31 (103%); PROS-2019-0015g 2022-08-31 (139%); PROS-2019-0015g 2022-09-30 (138%); PROS-2019-0015g 2022-10-31 (92%); PROS-2019-0015g 2022-12-31 (86%); PROS-2019-0021 2022-02-28 (36%); PROS-2019-0021 2022-05-31 (31%); PROS-2019-0021g 2022-01-31 (64%); PROS-2019-0021g 2022-02-28 (66%); PROS-2019-0021g 2022-03-31 (64%); PROS-2019-0021g 2022-04-30 (64%); PROS-2019-0021g 2022-05-31 (54%); PROS-2019-0021g 2022-06-30 (42%); PROS-2019-0021g 2022-09-30 (1082%); PROS-2019-0021g 2022-11-30 (46%); PROS-2019-0021g 2022-12-31 (122%); PROS-2019-0023 2022-02-28 (21%); PROS-2019-0023 2022-07-31 (74%); PROS-2019-0023 2022-12-31 (21%); PROS-2019-0023g 2022-05-31 (348%); PROS-2019-0023g 2022-06-30 (34%); PROS-2019-0023g 2022-07-31 (126%); PROS-2019-0023g 2022-08-31 (166%); PROS-2019-0023g 2022-09-30 (165%); PROS-2019-0023g 2022-10-31 (114%); PROS-2019-0023g 2022-11-30 (22%); PROS-2019-0024 2022-02-28 (28%); PROS-2019-0024g 2022-05-31 (27%); PROS-2019-0024g 2022-06-30 (68%); PROS-2019-0024g 2022-07-31 (190%); PROS-2019-0024g 2022-08-31 (246%); PROS-2019-0024g 2022-09-30 (245%); PROS-2019-0024g 2022-10-31 (174%); PROS-2019-0024g 2022-11-30 (53%); PROS-2019-0027 2022-01-31 (25%); PROS-2019-0027 2022-02-28 (72%); PROS-2019-0027 2022-12-31 (21%); PROS-2019-0027g 2022-01-31 (49%); PROS-2019-0027g 2022-02-28 (69%); PROS-2019-0027g 2022-03-31 (30%); PROS-2019-0027g 2022-04-30 (31%); PROS-2019-0027g 2022-07-31 (103%); PROS-2019-0027g 2022-08-31 (141%); PROS-2019-0027g 2022-09-30 (141%); PROS-2019-0027g 2022-10-31 (251%); PROS-2019-0027g 2022-11-30 (25%); PROS-2019-0050 2022-02-20 (163%); PROS-2019-0050g 2022-01-31 (40%); PROS-2019-0050g 2022-02-20 (49%); PROS-2020-0002 2022-01-31 (110%); PROS-2020-0002 2022-04-30 (20%); PROS-2020-0002g 2022-01-31 (40%); PROS-2020-0002g 2022-04-30 (22%); PROS-2020-0002g 2022-05-31 (24%); PROS-2020-0002g 2022-06-30 (41%); PROS-2020-0002g 2022-09-30 (25%); PROS-2020-0002g 2022-10-31 (76%); PROS-2020-0002g 2022-11-30 (40%); PROS-2020-0002g 2022-12-31 (30%); PROS-2020-0006 2022-01-31 (85%); PROS-2020-0006 2022-04-30 (20%); PROS-2020-0006 2022-08-31 (29%); PROS-2020-0006 2022-12-31 (22%); PROS-2020-0006g 2022-01-31 (37%); PROS-2020-0006g 2022-04-30 (22%); PROS-2020-0006g 2022-05-31 (25%); PROS-2020-0006g 2022-06-30 (42%); PROS-2020-0006g 2022-09-30 (26%); PROS-2020-0006g 2022-10-31 (78%); PROS-2020-0006g 2022-11-30 (33%); PROS-2020-0006g 2022-12-31 (83%); PROS-2020-0009 2022-01-31 (102%); PROS-2020-0009g 2022-01-31 (32%); PROS-2020-0009g 2022-04-30 (21%); PROS-2020-0009g 2022-05-31 (22%); PROS-2020-0009g 2022-06-30 (37%); PROS-2020-0009g 2022-10-31 (65%); PROS-2020-0009g 2022-11-30 (35%); PROS-2020-0009g 2022-12-31 (28%); PROS-2020-0012 2022-01-31 (38%); PROS-2020-0012 2022-05-31 (91%); PROS-2020-0012g 2022-02-28 (32%); PROS-2020-0012g 2022-03-31 (21%); PROS-2020-0012g 2022-04-30 (64%); PROS-2020-0012g 2022-06-30 (21%); PROS-2020-0012g 2022-07-31 (104%); PROS-2020-0012g 2022-08-31 (140%); PROS-2020-0012g 2022-09-30 (419%); PROS-2020-0012g 2022-10-31 (74%); PROS-2020-0012g 2022-12-31 (63%); PROS-2020-0013 2022-01-06 (79%); PROS-2020-0016 2022-01-31 (40%); PROS-2020-0016 2022-06-30 (49%); PROS-2020-0016 2022-12-31 (22%); PROS-2020-0016g 2022-01-31 (32%); PROS-2020-0016g 2022-02-28 (45%); PROS-2020-0016g 2022-03-31 (36%); PROS-2020-0016g 2022-04-30 (38%); PROS-2020-0016g 2022-05-31 (21%); PROS-2020-0016g 2022-07-31 (56%); PROS-2020-0016g 2022-08-31 (77%); PROS-2020-0016g 2022-09-30 (75%); PROS-2020-0016g 2022-10-31 (49%); PROS-2020-0016g 2022-11-30 (184%); PROS-2020-0022 2022-01-31 (36%); PROS-2020-0022 2022-04-30 (20%); PROS-2020-0022g 2022-01-31 (66%); PROS-2020-0022g 2022-04-30 (22%); PROS-2020-0022g 2022-05-31 (23%); PROS-2020-0022g 2022-06-30 (39%); PROS-2020-0022g 2022-09-30 (23%); PROS-2020-0022g 2022-10-31 (70%); PROS-2020-0022g 2022-11-30 (38%); PROS-2020-0022g 2022-12-31 (29%); PROS-2020-0025 2022-01-31 (23%); PROS-2020-0025 2022-07-31 (28%); PROS-2020-0025 2022-08-31 (24%); PROS-2020-0025 2022-09-30 (24%); PROS-2020-0025g 2022-06-30 (326%); PROS-2020-0025g 2022-08-31 (44%); PROS-2020-0025g 2022-09-30 (43%); PROS-2020-0025g 2022-11-30 (38%); PROS-2020-0025g 2022-12-31 (56%); PROS-2020-0032 2022-01-31 (47%); PROS-2020-0032 2022-02-28 (32%); PROS-2020-0032 2022-05-31 (24%); PROS-2020-0032g 2022-04-30 (22%); PROS-2020-0032g 2022-05-31 (24%); PROS-2020-0032g 2022-06-30 (40%); PROS-2020-0032g 2022-09-30 (24%); PROS-2020-0032g 2022-10-31 (74%); PROS-2020-0032g 2022-11-30 (39%); PROS-2020-0032g 2022-12-31 (30%); PROS-2020-0042 2022-02-06 (66%); PROS-2020-0042g 2022-01-31 (42%); PROS-2020-0042g 2022-02-06 (25%); PROS-2020-0043 2022-02-28 (30%); PROS-2020-0043 2022-07-31 (35%); PROS-2020-0043g 2022-01-31 (55%); PROS-2020-0043g 2022-02-28 (133%); PROS-2020-0043g 2022-03-31 (42%); PROS-2020-0043g 2022-04-30 (45%); PROS-2020-0043g 2022-05-31 (29%); PROS-2020-0043g 2022-07-31 (57%); PROS-2020-0043g 2022-08-31 (84%); PROS-2020-0043g 2022-09-30 (83%); PROS-2020-0043g 2022-10-31 (48%); PROS-2020-0043g 2022-12-31 (39%); PROS-2020-0047 2022-01-31 (23%); PROS-2020-0047 2022-02-10 (67%); PROS-2020-0047g 2022-01-31 (51%); PROS-2020-0047g 2022-02-10 (70%); PROS-2020-0048 2022-02-28 (57%); PROS-2020-0048 2022-07-31 (24%); PROS-2020-0048 2022-08-31 (62%); PROS-2020-0048g 2022-01-31 (64%); PROS-2020-0048g 2022-02-28 (64%); PROS-2020-0048g 2022-03-31 (59%); PROS-2020-0048g 2022-04-30 (62%); PROS-2020-0048g 2022-05-31 (51%); PROS-2020-0048g 2022-06-30 (35%); PROS-2020-0048g 2022-08-31 (36%); PROS-2020-0048g 2022-09-30 (1146%); PROS-2020-0048g 2022-11-30 (53%); PROS-2020-0048g 2022-12-31 (66%); PROS-2020-0050 2022-02-11 (48%); PROS-2020-0067g 2022-02-25 (26%); PROS-2021-0006 2022-01-31 (65%); PROS-2021-0006 2022-04-30 (21%); PROS-2021-0006g 2022-01-31 (25%); PROS-2021-0006g 2022-04-30 (21%); PROS-2021-0006g 2022-05-31 (22%); PROS-2021-0006g 2022-06-30 (38%); PROS-2021-0006g 2022-09-30 (21%); PROS-2021-0006g 2022-11-30 (83%); PROS-2021-0006g 2022-12-31 (40%); PROS-2021-0017 2022-01-19 (32%); PROS-2021-0029g 2022-01-25 (33%); PROS-2021-0031 2022-02-28 (22%); PROS-2021-0031 2022-05-31 (64%); PROS-2021-0031g 2022-05-31 (54%); PROS-2021-0031g 2022-06-30 (104%); PROS-2021-0031g 2022-07-31 (251%); PROS-2021-0031g 2022-08-31 (318%); PROS-2021-0031g 2022-09-30 (317%); PROS-2021-0031g 2022-10-31 (231%); PROS-2021-0031g 2022-11-30 (86%); PROS-2021-0031g 2022-12-31 (33%); PROS-2021-0044 2022-02-11 (64%); PROS-2021-0044g 2022-02-11 (66%); PROS-2021-0045 2022-04-30 (23%); PROS-2021-0045 2022-06-30 (102%); PROS-2021-0045 2022-12-31 (24%); PROS-2021-0051 2022-03-31 (36%); PROS-2021-0051 2022-04-30 (20%); PROS-2021-0051g 2022-04-30 (22%); PROS-2021-0051g 2022-05-31 (23%); PROS-2021-0051g 2022-06-30 (39%); PROS-2021-0051g 2022-09-30 (22%); PROS-2021-0051g 2022-10-31 (70%); PROS-2021-0051g 2022-11-30 (37%); PROS-2021-0051g 2022-12-31 (29%); PROS-2021-0060 2022-02-24 (30%); PROS-2021-0060g 2022-02-24 (28%); PROS-2021-0062 2022-03-31 (65%); PROS-2021-0062 2022-04-30 (21%); PROS-2021-0062g 2022-05-31 (65%); PROS-2021-0062g 2022-06-30 (45%); PROS-2021-0062g 2022-09-30 (32%); PROS-2021-0062g 2022-10-31 (88%); PROS-2021-0062g 2022-11-30 (43%); PROS-2021-0062g 2022-12-31 (32%); PROS-2021-0067 2022-02-28 (26%); PROS-2021-0067 2022-03-04 (23%); PROS-2021-0067g 2022-03-04 (87%); PROS-2021-0088 2022-04-30 (35%); PROS-2021-0088 2022-05-31 (23%); PROS-2021-0088 2022-06-30 (25%); PROS-2021-0088 2022-07-31 (34%); PROS-2021-0088 2022-08-31 (30%); PROS-2021-0088 2022-09-30 (30%); PROS-2021-0088 2022-10-31 (24%); PROS-2021-0088g 2022-01-31 (60%); PROS-2021-0088g 2022-02-28 (65%); PROS-2021-0088g 2022-03-31 (55%); PROS-2021-0088g 2022-04-30 (54%); PROS-2021-0088g 2022-05-31 (49%); PROS-2021-0088g 2022-06-30 (36%); PROS-2021-0088g 2022-07-31 (739%); PROS-2021-0088g 2022-11-30 (44%); PROS-2021-0088g 2022-12-31 (58%); PROS-2021-0100 2022-04-01 (97%); SYN-2021-001 2022-01-31 (266%); SYN-2021-001 2022-05-31 (28%); SYN-2021-001 2022-06-30 (30%); SYN-2021-001 2022-07-31 (40%); SYN-2021-001 2022-08-31 (35%); SYN-2021-001 2022-09-30 (36%); SYN-2021-001 2022-10-31 (28%); SYN-2021-001 2022-11-30 (20%); PROS-2022-0009 2022-02-28 (27%); PROS-2022-0009 2022-04-30 (20%); PROS-2022-0009 2022-06-30 (21%); PROS-2022-0009 2022-11-30 (27%); PROS-2022-0009g 2022-04-30 (22%); PROS-2022-0009g 2022-05-31 (24%); PROS-2022-0009g 2022-06-30 (34%); PROS-2022-0009g 2022-07-31 (145%); PROS-2022-0009g 2022-09-30 (26%); PROS-2022-0009g 2022-10-31 (77%); PROS-2022-0009g 2022-11-30 (40%); PROS-2022-0009g 2022-12-31 (30%); PROS-2022-0010 2022-02-28 (33%); PROS-2022-0010 2022-04-30 (20%); PROS-2022-0010g 2022-02-28 (23%); PROS-2022-0010g 2022-04-30 (22%); PROS-2022-0010g 2022-05-31 (24%); PROS-2022-0010g 2022-06-30 (41%); PROS-2022-0010g 2022-09-30 (25%); PROS-2022-0010g 2022-10-31 (75%); PROS-2022-0010g 2022-11-30 (39%); PROS-2022-0010g 2022-12-31 (30%); PROS-2022-0011 2022-02-28 (40%); PROS-2022-0011g 2022-02-28 (31%); PROS-2022-0011g 2022-06-30 (32%); PROS-2022-0011g 2022-10-31 (52%); PROS-2022-0011g 2022-11-30 (30%); PROS-2022-0011g 2022-12-31 (24%); PROS-2022-0019 2022-02-28 (100%); PROS-2022-0019 2022-12-31 (25%); PROS-2022-0019g 2022-02-28 (86%); PROS-2022-0019g 2022-04-30 (20%); PROS-2022-0019g 2022-05-31 (21%); PROS-2022-0019g 2022-06-30 (35%); PROS-2022-0019g 2022-11-30 (90%); PROS-2022-0019g 2022-12-31 (30%); PROS-2022-0030 2022-02-28 (56%); PROS-2022-0030 2022-03-31 (86%); PROS-2022-0030 2022-04-30 (20%); PROS-2022-0030 2022-07-31 (28%); PROS-2022-0030g 2022-02-28 (59%); PROS-2022-0030g 2022-03-31 (74%); PROS-2022-0030g 2022-04-30 (128%); PROS-2022-0030g 2022-05-31 (23%); PROS-2022-0030g 2022-07-31 (63%); PROS-2022-0030g 2022-09-30 (22%); PROS-2022-0030g 2022-10-31 (70%); PROS-2022-0030g 2022-11-30 (37%); PROS-2022-0030g 2022-12-31 (29%); PROS-2022-0045 2022-03-31 (66%); PROS-2022-0046 2022-04-30 (28%); PROS-2022-0046g 2022-03-31 (100%); PROS-2022-0046g 2022-04-30 (22%); PROS-2022-0046g 2022-05-31 (24%); PROS-2022-0046g 2022-06-30 (41%); PROS-2022-0046g 2022-09-30 (25%); PROS-2022-0046g 2022-10-31 (76%); PROS-2022-0046g 2022-11-30 (39%); PROS-2022-0046g 2022-12-31 (30%); PROS-2022-0047 2022-03-31 (132%); PROS-2022-0047 2022-04-30 (21%); PROS-2022-0047g 2022-03-31 (129%); PROS-2022-0048 2022-03-31 (130%); PROS-2022-0048 2022-12-31 (20%); PROS-2022-0048g 2022-03-31 (117%); PROS-2022-0048g 2022-04-30 (22%); PROS-2022-0048g 2022-05-31 (23%); PROS-2022-0048g 2022-06-30 (39%); PROS-2022-0048g 2022-11-30 (100%); PROS-2022-0048g 2022-12-31 (32%); PROS-2022-0049 2022-03-31 (153%); PROS-2022-0049 2022-04-30 (21%); PROS-2022-0049 2022-11-30 (28%); PROS-2022-0049g 2022-03-31 (133%); PROS-2022-0049g 2022-04-30 (23%); PROS-2022-0049g 2022-05-31 (25%); PROS-2022-0049g 2022-06-30 (42%); PROS-2022-0049g 2022-09-30 (27%); PROS-2022-0049g 2022-10-31 (80%); PROS-2022-0049g 2022-11-30 (41%); PROS-2022-0049g 2022-12-31 (31%); PROS-2022-0063 2022-03-31 (96%); PROS-2022-0063 2022-04-30 (87%); PROS-2022-0063 2022-05-31 (83%); PROS-2022-0063 2022-06-30 (270%); PROS-2022-0063 2022-08-31 (28%); PROS-2022-0063 2022-09-30 (28%); PROS-2022-0063 2022-10-31 (32%); PROS-2022-0063 2022-11-30 (36%); PROS-2022-0063 2022-12-31 (127%); PROS-2022-0063g 2022-03-31 (1300%); PROS-2022-0063g 2022-04-30 (23%); PROS-2022-0063g 2022-05-31 (25%); PROS-2022-0063g 2022-06-30 (43%); PROS-2022-0063g 2022-09-30 (28%); PROS-2022-0063g 2022-10-31 (81%); PROS-2022-0063g 2022-11-30 (41%); PROS-2022-0063g 2022-12-31 (31%); PROS-2022-0067 2022-03-31 (2757%); PROS-2022-0067 2022-04-30 (21%); PROS-2022-0067g 2022-03-31 (2709%); PROS-2022-0067g 2022-04-30 (22%); PROS-2022-0067g 2022-05-31 (24%); PROS-2022-0067g 2022-06-30 (40%); PROS-2022-0067g 2022-09-30 (24%); PROS-2022-0067g 2022-10-31 (74%); PROS-2022-0067g 2022-11-30 (39%); PROS-2022-0067g 2022-12-31 (30%); PROS-2022-0071g 2022-05-31 (23%); PROS-2022-0071g 2022-06-30 (39%); PROS-2022-0071g 2022-09-30 (22%); PROS-2022-0071g 2022-10-31 (70%); PROS-2022-0071g 2022-11-30 (37%); PROS-2022-0071g 2022-12-31 (29%); PROS-2022-0073 2022-04-30 (22%); PROS-2022-0073g 2022-05-31 (21%); PROS-2022-0073g 2022-07-31 (54%); PROS-2022-0073g 2022-08-31 (73%); PROS-2022-0073g 2022-09-30 (188%); PROS-2022-0073g 2022-10-31 (24%); PROS-2022-0073g 2022-11-30 (23%); PROS-2022-0073g 2022-12-31 (41%); PROS-2022-0081 2022-04-30 (32%); PROS-2022-0081g 2022-04-30 (42%); PROS-2022-0081g 2022-10-31 (25%); PROS-2022-0081g 2022-12-31 (25%); PROS-2022-0082 2022-04-30 (39%); PROS-2022-0082g 2022-04-30 (33%); PROS-2022-0082g 2022-05-31 (25%); PROS-2022-0082g 2022-06-30 (42%); PROS-2022-0082g 2022-09-30 (27%); PROS-2022-0082g 2022-10-31 (80%); PROS-2022-0082g 2022-11-30 (41%); PROS-2022-0082g 2022-12-31 (31%); PROS-2022-0083 2022-04-30 (53%); PROS-2022-0083g 2022-04-30 (42%); PROS-2022-0083g 2022-05-31 (24%); PROS-2022-0083g 2022-06-30 (40%); PROS-2022-0083g 2022-09-30 (24%); PROS-2022-0083g 2022-10-31 (73%); PROS-2022-0083g 2022-11-30 (39%); PROS-2022-0083g 2022-12-31 (30%); PROS-2022-0092 2022-04-30 (127%); PROS-2022-0092g 2022-04-30 (102%); PROS-2022-0092g 2022-05-31 (20%); PROS-2022-0092g 2022-06-30 (39%); PROS-2022-0092g 2022-09-30 (23%); PROS-2022-0092g 2022-11-30 (86%); PROS-2022-0092g 2022-12-31 (29%); PROS-2022-0097 2022-04-30 (493%); PROS-2022-0097g 2022-04-30 (38%); PROS-2022-0097g 2022-05-31 (46%); PROS-2022-0097g 2022-06-30 (42%); PROS-2022-0097g 2022-09-30 (27%); PROS-2022-0097g 2022-10-31 (79%); PROS-2022-0097g 2022-11-30 (40%); PROS-2022-0097g 2022-12-31 (30%); PROS-2022-0100 2022-04-30 (38%); PROS-2022-0100 2022-05-31 (79%); PROS-2022-0100g 2022-04-30 (501%); PROS-2022-0100g 2022-05-31 (25%); PROS-2022-0100g 2022-06-30 (42%); PROS-2022-0100g 2022-09-30 (27%); PROS-2022-0100g 2022-10-31 (79%); PROS-2022-0100g 2022-11-30 (34%); PROS-2022-0100g 2022-12-31 (83%); PROS-2022-0120 2022-05-31 (47%); PROS-2022-0120 2022-11-30 (28%); PROS-2022-0124 2022-05-31 (73%); PROS-2022-0124g 2022-05-31 (32%); PROS-2022-0124g 2022-06-30 (43%); PROS-2022-0124g 2022-09-30 (28%); PROS-2022-0124g 2022-10-31 (82%); PROS-2022-0124g 2022-11-30 (41%); PROS-2022-0124g 2022-12-31 (31%); PROS-2022-0125 2022-05-31 (74%); PROS-2022-0125g 2022-06-30 (24%); PROS-2022-0125g 2022-10-31 (102%); PROS-2022-0125g 2022-11-30 (39%); PROS-2022-0125g 2022-12-31 (88%); PROS-2022-0127 2022-05-31 (74%); PROS-2022-0127g 2022-05-31 (36%); PROS-2022-0127g 2022-06-30 (39%); PROS-2022-0127g 2022-09-30 (22%); PROS-2022-0127g 2022-10-31 (70%); PROS-2022-0127g 2022-11-30 (37%); PROS-2022-0127g 2022-12-31 (29%); PROS-2022-0128 2022-05-31 (73%); PROS-2022-0128g 2022-05-31 (34%); PROS-2022-0128g 2022-06-30 (40%); PROS-2022-0128g 2022-09-30 (24%); PROS-2022-0128g 2022-10-31 (74%); PROS-2022-0128g 2022-11-30 (39%); PROS-2022-0130 2022-05-31 (196%); PROS-2022-0130 2022-12-31 (22%); PROS-2022-0130g 2022-05-31 (123%); PROS-2022-0130g 2022-06-30 (44%); PROS-2022-0130g 2022-09-30 (30%); PROS-2022-0130g 2022-10-31 (84%); PROS-2022-0130g 2022-11-30 (42%); PROS-2022-0130g 2022-12-31 (31%)
 - Churn risk (accounts renewing in 2022): 11 at risk (≥20% churn prob): C2 38%, C3 38%, C7 35%, C8 29%, C9 32%, PROS-2018-0039 32%, PROS-2018-0053 38%, PROS-2019-0023 26%, PROS-2019-0050 38%, PROS-2020-0050 41%, PROS-2020-0067 41%
 
 **Pricing & Margin**
@@ -7094,40 +7097,40 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - C9 (electricity): tariff £130.02-£401.33/MWh, net margin £152.31
 - PROS-2016-0011 (electricity): tariff £138.00-£274.42/MWh, net margin £43.10
 - PROS-2016-0011g (gas): tariff £28.25-£40.70/MWh, net margin £-694.06 -- **net-negative**
-- PROS-2016-0020 (electricity): tariff £149.64-£274.91/MWh, net margin £40.55
+- PROS-2016-0020 (electricity): tariff £149.64-£275.01/MWh, net margin £40.91
 - PROS-2016-0020g (gas): tariff £28.82-£40.70/MWh, net margin £-417.17 -- **net-negative**
-- PROS-2017-0019 (electricity): tariff £142.59-£345.76/MWh, net margin £312.23
+- PROS-2017-0019 (electricity): tariff £142.59-£343.98/MWh, net margin £305.60
 - PROS-2017-0019g (gas): tariff £28.30-£40.70/MWh, net margin £-241.35 -- **net-negative**
-- PROS-2017-0022 (electricity): tariff £154.19-£284.21/MWh, net margin £47.46
+- PROS-2017-0022 (electricity): tariff £154.19-£284.17/MWh, net margin £47.28
 - PROS-2017-0022g (gas): tariff £28.94-£40.70/MWh, net margin £-869.05 -- **net-negative**
 - PROS-2018-0003 (electricity): tariff £336.78/MWh, net margin £259.06
 - PROS-2018-0003g (gas): tariff £40.70/MWh, net margin £-695.17 -- **net-negative**
 - PROS-2018-0009 (electricity): tariff £132.12-£308.61/MWh, net margin £180.75
-- PROS-2018-0014 (electricity): tariff £139.43/MWh, net margin £17.06
-- PROS-2018-0014g (gas): tariff £28.82/MWh, net margin £-0.43 -- **net-negative**
-- PROS-2018-0016 (electricity): tariff £142.83-£294.55/MWh, net margin £116.67
+- PROS-2018-0014 (electricity): tariff £139.43-£292.55/MWh, net margin £99.01
+- PROS-2018-0014g (gas): tariff £28.82-£40.70/MWh, net margin £-472.55 -- **net-negative**
+- PROS-2018-0016 (electricity): tariff £142.83-£296.43/MWh, net margin £123.71
 - PROS-2018-0016g (gas): tariff £29.17-£40.70/MWh, net margin £-673.19 -- **net-negative**
-- PROS-2018-0018 (electricity): tariff £141.54-£293.97/MWh, net margin £102.63
+- PROS-2018-0018 (electricity): tariff £141.54-£294.00/MWh, net margin £102.74
 - PROS-2018-0018g (gas): tariff £28.29-£40.70/MWh, net margin £-305.72 -- **net-negative**
-- PROS-2018-0022 (electricity): tariff £155.31-£343.79/MWh, net margin £274.45
+- PROS-2018-0022 (electricity): tariff £155.31-£343.93/MWh, net margin £274.85
 - PROS-2018-0022g (gas): tariff £28.44-£40.70/MWh, net margin £-465.47 -- **net-negative**
-- PROS-2018-0024 (electricity): tariff £139.65-£340.55/MWh, net margin £288.42
+- PROS-2018-0024 (electricity): tariff £139.65-£340.68/MWh, net margin £288.92
 - PROS-2018-0035 (electricity): tariff £143.61-£370.96/MWh, net margin £380.57
 - PROS-2018-0035g (gas): tariff £30.00-£40.70/MWh, net margin £-641.23 -- **net-negative**
 - PROS-2018-0039 (electricity): tariff £158.40/MWh, net margin £5.59
 - PROS-2018-0039g (gas): tariff £30.00/MWh, net margin £0.98
 - PROS-2018-0043 (electricity): tariff £155.22-£380.52/MWh, net margin £367.17
-- PROS-2018-0053 (electricity): tariff £164.43-£348.81/MWh, net margin £304.95
+- PROS-2018-0053 (electricity): tariff £164.43-£348.59/MWh, net margin £304.22
 - PROS-2018-0053g (gas): tariff £30.00-£40.70/MWh, net margin £-177.29 -- **net-negative**
 - PROS-2019-0003 (electricity): tariff £109.40/MWh, net margin £-0.47 -- **net-negative**
 - PROS-2019-0003g (gas): tariff £28.57/MWh, net margin £-0.06 -- **net-negative**
-- PROS-2019-0008 (electricity): tariff £110.60-£448.28/MWh, net margin £122.01
+- PROS-2019-0008 (electricity): tariff £110.60-£456.81/MWh, net margin £143.12
 - PROS-2019-0008g (gas): tariff £28.54-£40.70/MWh, net margin £-779.26 -- **net-negative**
-- PROS-2019-0009 (electricity): tariff £142.87-£295.30/MWh, net margin £107.39
+- PROS-2019-0009 (electricity): tariff £142.87-£294.35/MWh, net margin £102.94
 - PROS-2019-0009g (gas): tariff £29.53-£40.70/MWh, net margin £-345.77 -- **net-negative**
-- PROS-2019-0012 (electricity): tariff £109.08-£498.78/MWh, net margin £224.23
+- PROS-2019-0012 (electricity): tariff £109.08-£498.97/MWh, net margin £224.57
 - PROS-2019-0012g (gas): tariff £28.57-£40.70/MWh, net margin £-138.65 -- **net-negative**
-- PROS-2019-0015 (electricity): tariff £155.53-£291.64/MWh, net margin £81.73
+- PROS-2019-0015 (electricity): tariff £155.53-£291.61/MWh, net margin £81.61
 - PROS-2019-0015g (gas): tariff £29.34-£40.70/MWh, net margin £-557.70 -- **net-negative**
 - PROS-2019-0021 (electricity): tariff £146.56-£350.79/MWh, net margin £222.88
 - PROS-2019-0021g (gas): tariff £30.00-£40.70/MWh, net margin £-263.41 -- **net-negative**
@@ -7148,41 +7151,41 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2020-0012 (electricity): tariff £133.33-£308.97/MWh, net margin £185.81
 - PROS-2020-0012g (gas): tariff £28.18-£40.70/MWh, net margin £-617.48 -- **net-negative**
 - PROS-2020-0013 (electricity): tariff £105.27-£200.98/MWh, net margin £-59.91 -- **net-negative**
-- PROS-2020-0016 (electricity): tariff £142.96-£294.14/MWh, net margin £115.16
+- PROS-2020-0016 (electricity): tariff £142.96-£293.56/MWh, net margin £112.97
 - PROS-2020-0016g (gas): tariff £29.03-£40.70/MWh, net margin £-264.54 -- **net-negative**
-- PROS-2020-0022 (electricity): tariff £120.91-£443.28/MWh, net margin £99.71
+- PROS-2020-0022 (electricity): tariff £120.91-£443.26/MWh, net margin £99.66
 - PROS-2020-0022g (gas): tariff £29.46-£40.70/MWh, net margin £-432.08 -- **net-negative**
-- PROS-2020-0025 (electricity): tariff £157.65-£298.46/MWh, net margin £-214.28 -- **net-negative**
+- PROS-2020-0025 (electricity): tariff £157.65-£298.46/MWh, net margin £-214.24 -- **net-negative**
 - PROS-2020-0025g (gas): tariff £30.00-£40.70/MWh, net margin £-895.69 -- **net-negative**
-- PROS-2020-0032 (electricity): tariff £121.67-£533.69/MWh, net margin £350.36
+- PROS-2020-0032 (electricity): tariff £121.67-£533.70/MWh, net margin £350.38
 - PROS-2020-0032g (gas): tariff £30.00-£40.70/MWh, net margin £-513.44 -- **net-negative**
-- PROS-2020-0042 (electricity): tariff £156.23-£370.20/MWh, net margin £438.71
-- PROS-2020-0042g (gas): tariff £30.00-£40.70/MWh, net margin £-948.42 -- **net-negative**
-- PROS-2020-0043 (electricity): tariff £157.35-£364.91/MWh, net margin £189.51
+- PROS-2020-0042 (electricity): tariff £156.23/MWh, net margin £3.87
+- PROS-2020-0042g (gas): tariff £30.00/MWh, net margin £-17.60 -- **net-negative**
+- PROS-2020-0043 (electricity): tariff £157.35-£367.22/MWh, net margin £198.41
 - PROS-2020-0043g (gas): tariff £30.00-£40.70/MWh, net margin £-443.34 -- **net-negative**
 - PROS-2020-0047 (electricity): tariff £128.74-£245.78/MWh, net margin £-89.43 -- **net-negative**
 - PROS-2020-0047g (gas): tariff £30.00/MWh, net margin £0.68
-- PROS-2020-0048 (electricity): tariff £162.28-£357.31/MWh, net margin £394.90
+- PROS-2020-0048 (electricity): tariff £162.28-£359.84/MWh, net margin £408.12
 - PROS-2020-0048g (gas): tariff £30.00-£40.70/MWh, net margin £-663.87 -- **net-negative**
 - PROS-2020-0050 (electricity): tariff £163.61/MWh, net margin £13.64
 - PROS-2020-0050g (gas): tariff £30.00/MWh, net margin £0.15
 - PROS-2020-0067 (electricity): tariff £134.51-£256.80/MWh, net margin £-125.90 -- **net-negative**
 - PROS-2020-0067g (gas): tariff £30.00/MWh, net margin £-14.75 -- **net-negative**
-- PROS-2021-0006 (electricity): tariff £104.44-£199.39/MWh, net margin £-1.84 -- **net-negative**
-- PROS-2021-0006g (gas): tariff £29.61/MWh, net margin £0.34
+- PROS-2021-0006 (electricity): tariff £104.44-£462.07/MWh, net margin £149.07
+- PROS-2021-0006g (gas): tariff £29.61-£40.70/MWh, net margin £-372.00 -- **net-negative**
 - PROS-2021-0017 (electricity): tariff £153.21/MWh, net margin £4.67
 - PROS-2021-0029 (electricity): tariff £109.09-£208.26/MWh, net margin £-68.01 -- **net-negative**
 - PROS-2021-0029g (gas): tariff £30.00/MWh, net margin £-4.96 -- **net-negative**
-- PROS-2021-0031 (electricity): tariff £150.05-£346.92/MWh, net margin £242.96
+- PROS-2021-0031 (electricity): tariff £150.05-£346.92/MWh, net margin £242.95
 - PROS-2021-0031g (gas): tariff £30.00-£40.70/MWh, net margin £-646.92 -- **net-negative**
 - PROS-2021-0044 (electricity): tariff £124.79-£238.24/MWh, net margin £12.78
 - PROS-2021-0044g (gas): tariff £30.00/MWh, net margin £9.84
-- PROS-2021-0045 (electricity): tariff £157.85-£343.30/MWh, net margin £337.17
-- PROS-2021-0051 (electricity): tariff £124.98-£496.01/MWh, net margin £227.84
+- PROS-2021-0045 (electricity): tariff £157.85-£341.15/MWh, net margin £326.03
+- PROS-2021-0051 (electricity): tariff £124.98-£496.34/MWh, net margin £228.57
 - PROS-2021-0051g (gas): tariff £30.00-£40.70/MWh, net margin £-327.09 -- **net-negative**
 - PROS-2021-0060 (electricity): tariff £182.59/MWh, net margin £52.43
 - PROS-2021-0060g (gas): tariff £30.00/MWh, net margin £-9.24 -- **net-negative**
-- PROS-2021-0062 (electricity): tariff £137.77-£509.87/MWh, net margin £397.69
+- PROS-2021-0062 (electricity): tariff £137.77-£509.83/MWh, net margin £397.55
 - PROS-2021-0062g (gas): tariff £30.00-£40.70/MWh, net margin £-1,229.44 -- **net-negative**
 - PROS-2021-0067 (electricity): tariff £178.81/MWh, net margin £42.58
 - PROS-2021-0067g (gas): tariff £30.00/MWh, net margin £1.32
@@ -7245,13 +7248,13 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 4.1% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1504, average clarity 0.851, average bill shock 40.1%, bad debt provision £1,015.70, avg complaint probability 5.7%
-- Solvency signal: £3,081/customer (84 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 1528, average clarity 0.852, average bill shock 39.7%, bad debt provision £1,016.64, avg complaint probability 5.6%
+- Solvency signal: £3,083/customer (84 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £-34,221.64 vs. naked (unhedged) net margin: £8,918.22
-- hedging cost £43,139.86 vs. a fully unhedged book (commodity-only: actual net £-34,221.64 vs. naked net £8,918.22)
+- Actual (hedged) net margin: £-34,272.60 vs. naked (unhedged) net margin: £8,968.38
+- hedging cost £43,240.98 vs. a fully unhedged book (commodity-only: actual net £-34,272.60 vs. naked net £8,968.38)
   - C2: actual £-371.94 vs. naked £48.68 -- hedging cost £420.62
   - C2g: actual £-1,174.57 vs. naked £-697.63 -- hedging cost £476.94
   - C3: actual £5.50 vs. naked £319.50 -- hedging cost £314.00
@@ -7261,36 +7264,38 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - C9: actual £80.70 vs. naked £1,110.73 -- hedging cost £1,030.03
   - PROS-2016-0011: actual £-54.84 vs. naked £255.32 -- hedging cost £310.16
   - PROS-2016-0011g: actual £-775.83 vs. naked £-821.34 -- hedging added £45.51
-  - PROS-2016-0020: actual £-107.61 vs. naked £263.62 -- hedging cost £371.23
+  - PROS-2016-0020: actual £-107.27 vs. naked £264.00 -- hedging cost £371.28
   - PROS-2016-0020g: actual £-490.52 vs. naked £-529.47 -- hedging added £38.95
-  - PROS-2017-0019: actual £203.08 vs. naked £537.63 -- hedging cost £334.55
+  - PROS-2017-0019: actual £196.73 vs. naked £530.68 -- hedging cost £333.95
   - PROS-2017-0019g: actual £-285.83 vs. naked £-303.32 -- hedging added £17.49
-  - PROS-2017-0022: actual £-76.58 vs. naked £333.51 -- hedging cost £410.09
+  - PROS-2017-0022: actual £-76.76 vs. naked £333.32 -- hedging cost £410.07
   - PROS-2017-0022g: actual £-1,004.38 vs. naked £-741.02 -- hedging cost £263.36
   - PROS-2018-0003: actual £114.19 vs. naked £569.63 -- hedging cost £455.43
   - PROS-2018-0003g: actual £-743.64 vs. naked £-501.73 -- hedging cost £241.91
   - PROS-2018-0009: actual £73.66 vs. naked £377.60 -- hedging cost £303.93
-  - PROS-2018-0016: actual £14.58 vs. naked £334.74 -- hedging cost £320.15
+  - PROS-2018-0014: actual £-70.38 vs. naked £412.78 -- hedging cost £483.16
+  - PROS-2018-0014g: actual £-534.01 vs. naked £-221.61 -- hedging cost £312.40
+  - PROS-2018-0016: actual £21.28 vs. naked £342.08 -- hedging cost £320.80
   - PROS-2018-0016g: actual £-757.25 vs. naked £-804.24 -- hedging added £46.99
-  - PROS-2018-0018: actual £-21.00 vs. naked £375.07 -- hedging cost £396.07
+  - PROS-2018-0018: actual £-20.91 vs. naked £375.19 -- hedging cost £396.09
   - PROS-2018-0018g: actual £-355.20 vs. naked £-237.44 -- hedging cost £117.76
-  - PROS-2018-0022: actual £188.86 vs. naked £440.40 -- hedging cost £251.54
+  - PROS-2018-0022: actual £189.25 vs. naked £440.82 -- hedging cost £251.58
   - PROS-2018-0022g: actual £-536.65 vs. naked £-902.46 -- hedging added £365.82
-  - PROS-2018-0024: actual £123.63 vs. naked £517.90 -- hedging cost £394.26
+  - PROS-2018-0024: actual £124.10 vs. naked £518.43 -- hedging cost £394.33
   - PROS-2018-0035: actual £30.17 vs. naked £644.59 -- hedging cost £614.42
   - PROS-2018-0035g: actual £-769.74 vs. naked £-846.25 -- hedging added £76.50
   - PROS-2018-0043: actual £274.70 vs. naked £673.45 -- hedging cost £398.75
-  - PROS-2018-0053: actual £217.97 vs. naked £567.15 -- hedging cost £349.18
+  - PROS-2018-0053: actual £217.18 vs. naked £566.29 -- hedging cost £349.11
   - PROS-2018-0053g: actual £-259.82 vs. naked £-296.36 -- hedging added £36.54
-  - PROS-2019-0008: actual £-188.93 vs. naked £346.13 -- hedging cost £535.06
+  - PROS-2019-0008: actual £-172.41 vs. naked £368.07 -- hedging cost £540.48
   - PROS-2019-0008g: actual £-869.15 vs. naked £-920.64 -- hedging added £51.50
-  - PROS-2019-0009: actual £-17.24 vs. naked £379.95 -- hedging cost £397.19
+  - PROS-2019-0009: actual £-21.47 vs. naked £375.31 -- hedging cost £396.77
   - PROS-2019-0009g: actual £-397.76 vs. naked £-268.94 -- hedging cost £128.83
-  - PROS-2019-0012: actual £143.50 vs. naked £401.66 -- hedging cost £258.15
+  - PROS-2019-0012: actual £143.83 vs. naked £402.02 -- hedging cost £258.18
   - PROS-2019-0012g: actual £-185.20 vs. naked £-324.92 -- hedging added £139.72
-  - PROS-2019-0015: actual £-43.50 vs. naked £369.73 -- hedging cost £413.23
+  - PROS-2019-0015: actual £-43.62 vs. naked £369.61 -- hedging cost £413.22
   - PROS-2019-0015g: actual £-652.52 vs. naked £-470.36 -- hedging cost £182.15
-  - PROS-2019-0021: actual £143.61 vs. naked £449.30 -- hedging cost £305.68
+  - PROS-2019-0021: actual £143.61 vs. naked £449.29 -- hedging cost £305.68
   - PROS-2019-0021g: actual £-333.94 vs. naked £-599.75 -- hedging added £265.81
   - PROS-2019-0023: actual £102.06 vs. naked £601.22 -- hedging cost £499.15
   - PROS-2019-0023g: actual £-632.90 vs. naked £-463.78 -- hedging cost £169.12
@@ -7306,26 +7311,26 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2020-0009g: actual £-390.39 vs. naked £-645.63 -- hedging added £255.24
   - PROS-2020-0012: actual £54.97 vs. naked £431.71 -- hedging cost £376.73
   - PROS-2020-0012g: actual £-682.12 vs. naked £-478.51 -- hedging cost £203.61
-  - PROS-2020-0016: actual £-38.89 vs. naked £333.15 -- hedging cost £372.04
+  - PROS-2020-0016: actual £-40.89 vs. naked £330.86 -- hedging cost £371.75
   - PROS-2020-0016g: actual £-322.42 vs. naked £-325.12 -- hedging added £2.70
-  - PROS-2020-0022: actual £-1.51 vs. naked £340.24 -- hedging cost £341.75
+  - PROS-2020-0022: actual £-1.56 vs. naked £340.19 -- hedging cost £341.75
   - PROS-2020-0022g: actual £-529.74 vs. naked £-552.48 -- hedging added £22.74
-  - PROS-2020-0025: actual £-20.76 vs. naked £403.26 -- hedging cost £424.03
+  - PROS-2020-0025: actual £-20.73 vs. naked £403.30 -- hedging cost £424.03
   - PROS-2020-0025g: actual £-1,041.15 vs. naked £-770.88 -- hedging cost £270.28
-  - PROS-2020-0032: actual £151.26 vs. naked £677.41 -- hedging cost £526.15
+  - PROS-2020-0032: actual £151.28 vs. naked £677.43 -- hedging cost £526.15
   - PROS-2020-0032g: actual £-618.13 vs. naked £-448.62 -- hedging cost £169.50
-  - PROS-2020-0042: actual £305.34 vs. naked £896.13 -- hedging cost £590.79
-  - PROS-2020-0042g: actual £-1,237.49 vs. naked £-579.64 -- hedging cost £657.85
-  - PROS-2020-0043: actual £181.09 vs. naked £731.55 -- hedging cost £550.46
+  - PROS-2020-0043: actual £191.01 vs. naked £742.81 -- hedging cost £551.81
   - PROS-2020-0043g: actual £-579.77 vs. naked £-427.53 -- hedging cost £152.24
-  - PROS-2020-0048: actual £261.03 vs. naked £828.32 -- hedging cost £567.29
+  - PROS-2020-0048: actual £275.09 vs. naked £843.63 -- hedging cost £568.54
   - PROS-2020-0048g: actual £-863.73 vs. naked £-652.67 -- hedging cost £211.05
-  - PROS-2021-0031: actual £127.14 vs. naked £528.53 -- hedging cost £401.39
+  - PROS-2021-0006: actual £24.19 vs. naked £435.97 -- hedging cost £411.78
+  - PROS-2021-0006g: actual £-426.62 vs. naked £-290.78 -- hedging cost £135.84
+  - PROS-2021-0031: actual £127.13 vs. naked £528.53 -- hedging cost £401.39
   - PROS-2021-0031g: actual £-814.11 vs. naked £-870.77 -- hedging added £56.66
-  - PROS-2021-0045: actual £206.55 vs. naked £748.57 -- hedging cost £542.02
-  - PROS-2021-0051: actual £-77.68 vs. naked £490.30 -- hedging cost £567.98
+  - PROS-2021-0045: actual £194.60 vs. naked £735.55 -- hedging cost £540.95
+  - PROS-2021-0051: actual £-77.02 vs. naked £491.16 -- hedging cost £568.18
   - PROS-2021-0051g: actual £-452.18 vs. naked £-514.44 -- hedging added £62.26
-  - PROS-2021-0062: actual £206.70 vs. naked £982.56 -- hedging cost £775.86
+  - PROS-2021-0062: actual £206.54 vs. naked £982.38 -- hedging cost £775.84
   - PROS-2021-0062g: actual £-1,713.57 vs. naked £-229.32 -- hedging cost £1,484.25
   - PROS-2021-0088: actual £69.39 vs. naked £509.90 -- hedging cost £440.51
   - PROS-2021-0088g: actual £-343.70 vs. naked £-260.75 -- hedging cost £82.95
@@ -7381,32 +7386,32 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2022-0130g: actual £-485.12 vs. naked £-208.36 -- hedging cost £276.76
   - SYN-2021-001: actual £-198.60 vs. naked £921.73 -- hedging cost £1,120.34
 
-**Year narrative:** 2022 (flagged crisis year) produced a net loss of £-17,926.35 across 155 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 649 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2022 (flagged crisis year) produced a net loss of £-18,014.84 across 155 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 656 customer(s) experienced a bill shock of >=20%.
 
 ## 2023
 
 **Trading & Risk**
 
-- Net margin: £39,030.67 (gross £108,268.10, capital £2,413.13)
-  - Electricity: gross £77,345.41, capital £969.30, net £23,673.58
-  - Gas: gross £30,922.70, capital £1,443.83, net £15,357.09
-- Treasury at year end: £316,357.32
-- Hedge fraction at first renewal this year (avg across year's terms): C2 0.94 (avg 0.94), C2g 0.85 (avg 0.85), C3 0.92 (avg 0.92), C3g 0.85 (avg 0.85), C7 0.92 (avg 0.92), C8 0.94 (avg 0.94), C9 0.92 (avg 0.92), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0011g 0.94 (avg 0.94), PROS-2016-0020 0.94 (avg 0.94), PROS-2016-0020g 0.93 (avg 0.93), PROS-2017-0019 0.94 (avg 0.94), PROS-2017-0019g 0.94 (avg 0.94), PROS-2017-0022 0.94 (avg 0.94), PROS-2017-0022g 0.93 (avg 0.93), PROS-2018-0003 0.93 (avg 0.93), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0016 0.94 (avg 0.94), PROS-2018-0016g 0.94 (avg 0.94), PROS-2018-0018 0.94 (avg 0.94), PROS-2018-0018g 0.94 (avg 0.94), PROS-2018-0022 0.94 (avg 0.94), PROS-2018-0022g 0.94 (avg 0.94), PROS-2018-0024 0.94 (avg 0.94), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0035g 0.91 (avg 0.91), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0053g 0.89 (avg 0.89), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0008g 0.94 (avg 0.94), PROS-2019-0009 0.93 (avg 0.93), PROS-2019-0009g 0.94 (avg 0.94), PROS-2019-0012 0.94 (avg 0.94), PROS-2019-0012g 0.93 (avg 0.93), PROS-2019-0015 0.94 (avg 0.94), PROS-2019-0015g 0.93 (avg 0.93), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0021g 0.91 (avg 0.91), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0023g 0.90 (avg 0.90), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0024g 0.90 (avg 0.90), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0027g 0.91 (avg 0.91), PROS-2020-0002 0.93 (avg 0.93), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0006 0.93 (avg 0.93), PROS-2020-0006g 0.96 (avg 0.96), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0009g 0.95 (avg 0.95), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0012g 0.95 (avg 0.95), PROS-2020-0016 0.94 (avg 0.94), PROS-2020-0016g 0.94 (avg 0.94), PROS-2020-0022 0.94 (avg 0.94), PROS-2020-0022g 0.93 (avg 0.93), PROS-2020-0025 0.94 (avg 0.94), PROS-2020-0025g 0.93 (avg 0.93), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0032g 0.92 (avg 0.92), PROS-2020-0042 0.95 (avg 0.95), PROS-2020-0042g 0.90 (avg 0.90), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0043g 0.89 (avg 0.89), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0048g 0.91 (avg 0.91), PROS-2021-0031 0.95 (avg 0.95), PROS-2021-0031g 0.91 (avg 0.91), PROS-2021-0045 0.95 (avg 0.95), PROS-2021-0051 0.95 (avg 0.95), PROS-2021-0051g 0.89 (avg 0.89), PROS-2021-0062 0.95 (avg 0.95), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.94 (avg 0.94), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.93 (avg 0.93), PROS-2022-0009g 0.94 (avg 0.94), PROS-2022-0010 0.93 (avg 0.93), PROS-2022-0010g 0.94 (avg 0.94), PROS-2022-0011 0.93 (avg 0.93), PROS-2022-0011g 0.94 (avg 0.94), PROS-2022-0030 0.95 (avg 0.95), PROS-2022-0030g 0.90 (avg 0.90), PROS-2022-0045 0.95 (avg 0.95), PROS-2022-0046 0.95 (avg 0.95), PROS-2022-0046g 0.89 (avg 0.89), PROS-2022-0047 0.95 (avg 0.95), PROS-2022-0047g 0.89 (avg 0.89), PROS-2022-0048 0.95 (avg 0.95), PROS-2022-0048g 0.89 (avg 0.89), PROS-2022-0049 0.95 (avg 0.95), PROS-2022-0049g 0.88 (avg 0.88), PROS-2022-0063 0.95 (avg 0.95), PROS-2022-0063g 0.85 (avg 0.85), PROS-2022-0067 0.95 (avg 0.95), PROS-2022-0067g 0.85 (avg 0.85), PROS-2022-0071 0.94 (avg 0.94), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.94 (avg 0.94), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.94 (avg 0.94), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.94 (avg 0.94), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.94 (avg 0.94), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.94 (avg 0.94), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.94 (avg 0.94), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.94 (avg 0.94), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.93 (avg 0.93), PROS-2022-0124 0.94 (avg 0.94), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0125 0.93 (avg 0.93), PROS-2022-0125g 0.85 (avg 0.85), PROS-2022-0127 0.94 (avg 0.94), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.94 (avg 0.94), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.94 (avg 0.94), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.94 (avg 0.94), PROS-2023-0001g 0.96 (avg 0.96), PROS-2023-0010 0.94 (avg 0.94), PROS-2023-0010g 0.95 (avg 0.95), PROS-2023-0013 0.94 (avg 0.94), PROS-2023-0013g 0.95 (avg 0.95), PROS-2023-0014 0.94 (avg 0.94), PROS-2023-0014g 0.94 (avg 0.94), PROS-2023-0016 0.94 (avg 0.94), PROS-2023-0016g 0.94 (avg 0.94), PROS-2023-0025 0.94 (avg 0.94), PROS-2023-0025g 0.92 (avg 0.92), PROS-2023-0026 0.94 (avg 0.94), PROS-2023-0026g 0.92 (avg 0.92), PROS-2023-0039 0.95 (avg 0.95), PROS-2023-0039g 0.91 (avg 0.91), PROS-2023-0045 0.94 (avg 0.94), PROS-2023-0045g 0.87 (avg 0.87), PROS-2023-0065 0.94 (avg 0.94), PROS-2023-0065g 0.89 (avg 0.89), PROS-2023-0067 0.94 (avg 0.94), PROS-2023-0067g 0.89 (avg 0.89), PROS-2023-0072 0.94 (avg 0.94), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.94 (avg 0.94), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.94 (avg 0.94), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.93 (avg 0.93), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.93 (avg 0.93), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.93 (avg 0.93), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0116 0.93 (avg 0.93), PROS-2023-0116g 0.85 (avg 0.85), PROS-2023-0125 0.93 (avg 0.93), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.93 (avg 0.93), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.93 (avg 0.93), PROS-2023-0127g 0.89 (avg 0.89), PROS-2023-0146 0.92 (avg 0.92), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.92 (avg 0.92), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.92 (avg 0.92), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.92 (avg 0.92), PROS-2023-0158g 0.85 (avg 0.85), PROS-2023-0162 0.92 (avg 0.92), PROS-2023-0162g 0.85 (avg 0.85), PROS-2023-0166 0.92 (avg 0.92), PROS-2023-0166g 0.85 (avg 0.85), PROS-2023-0172 0.92 (avg 0.92), PROS-2023-0172g 0.85 (avg 0.85), PROS-2023-0177 0.92 (avg 0.92), PROS-2023-0177g 0.85 (avg 0.85), SYN-2021-001 0.92 (avg 0.92)
+- Net margin: £38,545.74 (gross £108,417.02, capital £2,425.49)
+  - Electricity: gross £77,441.80, capital £990.99, net £23,117.76
+  - Gas: gross £30,975.22, capital £1,434.51, net £15,427.99
+- Treasury at year end: £315,670.90
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.94 (avg 0.94), C2g 0.85 (avg 0.85), C3 0.92 (avg 0.92), C3g 0.85 (avg 0.85), C7 0.92 (avg 0.92), C8 0.94 (avg 0.94), C9 0.92 (avg 0.92), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0011g 0.94 (avg 0.94), PROS-2016-0020 0.94 (avg 0.94), PROS-2016-0020g 0.93 (avg 0.93), PROS-2017-0019 0.94 (avg 0.94), PROS-2017-0019g 0.94 (avg 0.94), PROS-2017-0022 0.94 (avg 0.94), PROS-2017-0022g 0.93 (avg 0.93), PROS-2018-0003 0.93 (avg 0.93), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0014 0.93 (avg 0.93), PROS-2018-0014g 0.94 (avg 0.94), PROS-2018-0016 0.94 (avg 0.94), PROS-2018-0016g 0.94 (avg 0.94), PROS-2018-0018 0.94 (avg 0.94), PROS-2018-0018g 0.94 (avg 0.94), PROS-2018-0022 0.94 (avg 0.94), PROS-2018-0022g 0.94 (avg 0.94), PROS-2018-0024 0.94 (avg 0.94), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0035g 0.91 (avg 0.91), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0053g 0.89 (avg 0.89), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0008g 0.94 (avg 0.94), PROS-2019-0009 0.93 (avg 0.93), PROS-2019-0009g 0.94 (avg 0.94), PROS-2019-0012 0.94 (avg 0.94), PROS-2019-0012g 0.93 (avg 0.93), PROS-2019-0015 0.94 (avg 0.94), PROS-2019-0015g 0.93 (avg 0.93), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0021g 0.91 (avg 0.91), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0023g 0.90 (avg 0.90), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0024g 0.90 (avg 0.90), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0027g 0.91 (avg 0.91), PROS-2020-0002 0.93 (avg 0.93), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0006 0.93 (avg 0.93), PROS-2020-0006g 0.96 (avg 0.96), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0009g 0.95 (avg 0.95), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0012g 0.95 (avg 0.95), PROS-2020-0016 0.94 (avg 0.94), PROS-2020-0016g 0.94 (avg 0.94), PROS-2020-0022 0.94 (avg 0.94), PROS-2020-0022g 0.93 (avg 0.93), PROS-2020-0025 0.94 (avg 0.94), PROS-2020-0025g 0.93 (avg 0.93), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0032g 0.92 (avg 0.92), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0043g 0.89 (avg 0.89), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0048g 0.91 (avg 0.91), PROS-2021-0006 0.94 (avg 0.94), PROS-2021-0006g 0.94 (avg 0.94), PROS-2021-0031 0.95 (avg 0.95), PROS-2021-0031g 0.91 (avg 0.91), PROS-2021-0045 0.95 (avg 0.95), PROS-2021-0051 0.95 (avg 0.95), PROS-2021-0051g 0.89 (avg 0.89), PROS-2021-0062 0.95 (avg 0.95), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.94 (avg 0.94), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.93 (avg 0.93), PROS-2022-0009g 0.94 (avg 0.94), PROS-2022-0010 0.93 (avg 0.93), PROS-2022-0010g 0.94 (avg 0.94), PROS-2022-0011 0.93 (avg 0.93), PROS-2022-0011g 0.94 (avg 0.94), PROS-2022-0030 0.95 (avg 0.95), PROS-2022-0030g 0.90 (avg 0.90), PROS-2022-0045 0.95 (avg 0.95), PROS-2022-0046 0.95 (avg 0.95), PROS-2022-0046g 0.89 (avg 0.89), PROS-2022-0047 0.95 (avg 0.95), PROS-2022-0047g 0.89 (avg 0.89), PROS-2022-0048 0.95 (avg 0.95), PROS-2022-0048g 0.89 (avg 0.89), PROS-2022-0049 0.95 (avg 0.95), PROS-2022-0049g 0.88 (avg 0.88), PROS-2022-0063 0.95 (avg 0.95), PROS-2022-0063g 0.85 (avg 0.85), PROS-2022-0067 0.95 (avg 0.95), PROS-2022-0067g 0.85 (avg 0.85), PROS-2022-0071 0.94 (avg 0.94), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.94 (avg 0.94), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.94 (avg 0.94), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.94 (avg 0.94), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.94 (avg 0.94), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.94 (avg 0.94), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.94 (avg 0.94), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.94 (avg 0.94), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.93 (avg 0.93), PROS-2022-0124 0.94 (avg 0.94), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0125 0.93 (avg 0.93), PROS-2022-0125g 0.85 (avg 0.85), PROS-2022-0127 0.94 (avg 0.94), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.94 (avg 0.94), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.94 (avg 0.94), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.94 (avg 0.94), PROS-2023-0001g 0.96 (avg 0.96), PROS-2023-0010 0.94 (avg 0.94), PROS-2023-0010g 0.95 (avg 0.95), PROS-2023-0013 0.94 (avg 0.94), PROS-2023-0013g 0.95 (avg 0.95), PROS-2023-0014 0.94 (avg 0.94), PROS-2023-0014g 0.94 (avg 0.94), PROS-2023-0016 0.94 (avg 0.94), PROS-2023-0016g 0.94 (avg 0.94), PROS-2023-0025 0.94 (avg 0.94), PROS-2023-0025g 0.92 (avg 0.92), PROS-2023-0026 0.94 (avg 0.94), PROS-2023-0026g 0.92 (avg 0.92), PROS-2023-0039 0.95 (avg 0.95), PROS-2023-0039g 0.91 (avg 0.91), PROS-2023-0045 0.94 (avg 0.94), PROS-2023-0045g 0.87 (avg 0.87), PROS-2023-0065 0.94 (avg 0.94), PROS-2023-0065g 0.89 (avg 0.89), PROS-2023-0067 0.94 (avg 0.94), PROS-2023-0067g 0.89 (avg 0.89), PROS-2023-0072 0.94 (avg 0.94), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.94 (avg 0.94), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.94 (avg 0.94), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.93 (avg 0.93), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.93 (avg 0.93), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.93 (avg 0.93), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0116 0.93 (avg 0.93), PROS-2023-0116g 0.85 (avg 0.85), PROS-2023-0125 0.93 (avg 0.93), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.93 (avg 0.93), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.93 (avg 0.93), PROS-2023-0127g 0.89 (avg 0.89), PROS-2023-0146 0.92 (avg 0.92), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.92 (avg 0.92), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.92 (avg 0.92), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.92 (avg 0.92), PROS-2023-0158g 0.85 (avg 0.85), PROS-2023-0162 0.92 (avg 0.92), PROS-2023-0162g 0.85 (avg 0.85), PROS-2023-0166 0.92 (avg 0.92), PROS-2023-0166g 0.85 (avg 0.85), PROS-2023-0172 0.92 (avg 0.92), PROS-2023-0172g 0.85 (avg 0.85), PROS-2023-0177 0.92 (avg 0.92), PROS-2023-0177g 0.85 (avg 0.85), SYN-2021-001 0.92 (avg 0.92)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
 - Worst single period: C2g on 2023-01-17 period 1, net margin £-8.68
 
 **Customer Book**
 
-- Active accounts: 186 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0042, PROS-2020-0042g, PROS-2020-0043, PROS-2020-0043g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0019, PROS-2022-0019g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0063, PROS-2022-0063g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0172, PROS-2023-0172g, PROS-2023-0177, PROS-2023-0177g, SYN-2021-001)
-  - Resi electricity: 98, SME electricity: 0, gas (dual-fuel): 88
+- Active accounts: 188 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0014, PROS-2018-0014g, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0043, PROS-2020-0043g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0006, PROS-2021-0006g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0019, PROS-2022-0019g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0063, PROS-2022-0063g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0172, PROS-2023-0172g, PROS-2023-0177, PROS-2023-0177g, SYN-2021-001)
+  - Resi electricity: 99, SME electricity: 0, gas (dual-fuel): 89
 - New acquisitions this year: none
 - Losses (churn) during year: PROS-2022-0019
-  - Renewals (retained): 68 accounts
-- Average CLV (Point-in-Time, year-end 2023): £275.85
-  - By billing account: C2 £-3.82, C3 £14.10, C7 £-579.43, C8 £255.05, C9 £473.89, PROS-2016-0011 £123.08, PROS-2016-0020 £601.40, PROS-2017-0019 £627.95, PROS-2017-0022 £96.88, PROS-2018-0003 £-412.97, PROS-2018-0009 £299.79, PROS-2018-0016 £37.57, PROS-2018-0018 £241.19, PROS-2018-0022 £492.50, PROS-2018-0024 £699.00, PROS-2018-0035 £972.23, PROS-2018-0043 £1,337.61, PROS-2018-0053 £1,013.57, PROS-2019-0008 £-283.06, PROS-2019-0009 £209.69, PROS-2019-0012 £638.20, PROS-2019-0015 £93.20, PROS-2019-0021 £1,063.35, PROS-2019-0023 £902.64, PROS-2019-0024 £302.85, PROS-2019-0027 £983.22, PROS-2020-0002 £-648.90, PROS-2020-0006 £-703.42, PROS-2020-0009 £111.89, PROS-2020-0012 £-546.12, PROS-2020-0016 £138.33, PROS-2020-0022 £33.81, PROS-2020-0025 £-1,596.36, PROS-2020-0032 £1,156.40, PROS-2020-0042 £1,030.89, PROS-2020-0043 £-1,386.22, PROS-2020-0048 £1,295.04, PROS-2021-0031 £66.27, PROS-2021-0045 £2,175.86, PROS-2021-0051 £742.44, PROS-2021-0062 £304.68, PROS-2021-0088 £759.00, PROS-2022-0009 £-4,741.48, PROS-2022-0010 £-3,909.57, PROS-2022-0011 £-2,943.41, PROS-2022-0030 £2,002.32, PROS-2022-0045 £4,895.96, PROS-2022-0046 £1,395.00, PROS-2022-0047 £4,547.94, PROS-2022-0048 £2,154.04, PROS-2022-0049 £211.72, PROS-2022-0063 £1,028.02, PROS-2022-0067 £133.75, PROS-2022-0071 £503.62, PROS-2022-0073 £1,479.48, PROS-2022-0081 £2,471.78, PROS-2022-0082 £-1,749.10, PROS-2022-0083 £-55.27, PROS-2022-0092 £-900.35, PROS-2022-0097 £-1,788.93, PROS-2022-0100 £-2,540.54, PROS-2022-0120 £955.09, PROS-2022-0124 £518.81, PROS-2022-0125 £-847.56, PROS-2022-0127 £1,194.82, PROS-2022-0128 £999.18, PROS-2022-0130 £1,139.21, SYN-2021-001 £-530.19
-- Bill shock events (>=20%): 827 -- C7 2023-01-31 (38%); C7 2023-06-30 (100%); C7 2023-07-31 (86%); C7 2023-08-31 (97%); C7 2023-10-31 (55%); C7 2023-11-30 (71%); C7 2023-12-31 (34%); PROS-2016-0011 2023-01-31 (64%); PROS-2016-0011g 2023-01-31 (35%); PROS-2016-0011g 2023-02-28 (22%); PROS-2016-0011g 2023-05-31 (34%); PROS-2016-0011g 2023-06-30 (176%); PROS-2016-0011g 2023-07-31 (164%); PROS-2016-0011g 2023-08-31 (224%); PROS-2016-0011g 2023-09-30 (223%); PROS-2016-0011g 2023-10-31 (148%); PROS-2016-0011g 2023-11-30 (33%); PROS-2016-0020 2023-01-31 (75%); PROS-2016-0020g 2023-03-31 (28%); PROS-2016-0020g 2023-04-30 (28%); PROS-2016-0020g 2023-06-30 (25%); PROS-2016-0020g 2023-07-31 (120%); PROS-2016-0020g 2023-08-31 (165%); PROS-2016-0020g 2023-09-30 (164%); PROS-2016-0020g 2023-10-31 (107%); C2 2023-04-30 (43%); C2g 2023-01-31 (40%); C2g 2023-04-30 (53%); C2g 2023-05-31 (41%); C2g 2023-06-30 (41%); C2g 2023-08-31 (22%); C2g 2023-10-31 (99%); C2g 2023-11-30 (61%); C8 2023-05-31 (40%); C8 2023-06-30 (43%); C8 2023-11-30 (50%); C8 2023-12-31 (105%); C3 2023-10-31 (56%); C3g 2023-01-31 (49%); C3g 2023-02-28 (43%); C3g 2023-03-31 (92%); C3g 2023-06-30 (60%); C3g 2023-07-31 (154%); C3g 2023-08-31 (152%); C3g 2023-09-30 (162%); C3g 2023-10-31 (126%); C3g 2023-11-30 (26%); C9 2023-02-28 (21%); C9 2023-03-31 (24%); C9 2023-04-30 (30%); C9 2023-05-31 (33%); C9 2023-06-30 (45%); C9 2023-09-30 (21%); C9 2023-10-31 (73%); C9 2023-11-30 (53%); PROS-2017-0019 2023-06-30 (20%); PROS-2017-0019 2023-07-31 (29%); PROS-2017-0019 2023-08-31 (25%); PROS-2017-0019 2023-09-30 (25%); PROS-2017-0019g 2023-01-31 (34%); PROS-2017-0019g 2023-03-31 (134%); PROS-2017-0019g 2023-05-31 (29%); PROS-2017-0019g 2023-06-30 (69%); PROS-2017-0019g 2023-07-31 (186%); PROS-2017-0019g 2023-08-31 (238%); PROS-2017-0019g 2023-09-30 (237%); PROS-2017-0019g 2023-10-31 (824%); PROS-2017-0019g 2023-11-30 (36%); PROS-2017-0022 2023-02-28 (166%); PROS-2017-0022 2023-05-31 (23%); PROS-2017-0022 2023-06-30 (26%); PROS-2017-0022 2023-07-31 (85%); PROS-2017-0022g 2023-01-31 (64%); PROS-2017-0022g 2023-02-28 (69%); PROS-2017-0022g 2023-03-31 (72%); PROS-2017-0022g 2023-04-30 (72%); PROS-2017-0022g 2023-05-31 (64%); PROS-2017-0022g 2023-06-30 (51%); PROS-2017-0022g 2023-10-31 (1144%); PROS-2017-0022g 2023-11-30 (36%); PROS-2017-0022g 2023-12-31 (55%); PROS-2018-0003 2023-02-28 (33%); PROS-2018-0003 2023-06-30 (35%); PROS-2018-0003 2023-07-31 (22%); PROS-2018-0003 2023-09-30 (31%); PROS-2018-0003g 2023-02-28 (44%); PROS-2018-0003g 2023-03-31 (32%); PROS-2018-0003g 2023-04-30 (32%); PROS-2018-0003g 2023-06-30 (189%); PROS-2018-0003g 2023-07-31 (41%); PROS-2018-0003g 2023-08-31 (73%); PROS-2018-0003g 2023-11-30 (56%); PROS-2018-0003g 2023-12-31 (69%); PROS-2018-0009 2023-01-31 (23%); PROS-2018-0009 2023-02-28 (24%); PROS-2018-0009 2023-06-30 (114%); PROS-2018-0009 2023-12-31 (21%); PROS-2018-0016 2023-07-31 (20%); PROS-2018-0016g 2023-02-28 (39%); PROS-2018-0016g 2023-03-31 (38%); PROS-2018-0016g 2023-04-30 (38%); PROS-2018-0016g 2023-07-31 (391%); PROS-2018-0016g 2023-08-31 (131%); PROS-2018-0016g 2023-09-30 (130%); PROS-2018-0016g 2023-10-31 (76%); PROS-2018-0016g 2023-11-30 (46%); PROS-2018-0016g 2023-12-31 (24%); PROS-2018-0018 2023-07-31 (48%); PROS-2018-0018g 2023-01-31 (117%); PROS-2018-0018g 2023-05-31 (41%); PROS-2018-0018g 2023-06-30 (86%); PROS-2018-0018g 2023-07-31 (220%); PROS-2018-0018g 2023-08-31 (281%); PROS-2018-0018g 2023-09-30 (280%); PROS-2018-0018g 2023-10-31 (202%); PROS-2018-0018g 2023-11-30 (69%); PROS-2018-0018g 2023-12-31 (493%); PROS-2018-0022g 2023-01-31 (54%); PROS-2018-0022g 2023-03-31 (241%); PROS-2018-0022g 2023-05-31 (39%); PROS-2018-0022g 2023-06-30 (86%); PROS-2018-0022g 2023-07-31 (228%); PROS-2018-0022g 2023-08-31 (866%); PROS-2018-0022g 2023-09-30 (181%); PROS-2018-0022g 2023-10-31 (119%); PROS-2018-0024 2023-02-28 (79%); PROS-2018-0024 2023-07-31 (22%); PROS-2018-0035 2023-06-30 (38%); PROS-2018-0035g 2023-03-31 (25%); PROS-2018-0035g 2023-07-31 (115%); PROS-2018-0035g 2023-08-31 (163%); PROS-2018-0035g 2023-09-30 (478%); PROS-2018-0035g 2023-10-31 (109%); PROS-2018-0035g 2023-11-30 (31%); PROS-2018-0035g 2023-12-31 (26%); PROS-2018-0043 2023-02-28 (20%); PROS-2018-0043 2023-04-30 (77%); PROS-2018-0043 2023-10-31 (25%); PROS-2018-0053 2023-03-31 (149%); PROS-2018-0053 2023-05-31 (21%); PROS-2018-0053 2023-06-30 (24%); PROS-2018-0053 2023-07-31 (32%); PROS-2018-0053 2023-08-31 (28%); PROS-2018-0053 2023-09-30 (29%); PROS-2018-0053 2023-10-31 (143%); PROS-2018-0053g 2023-02-28 (25%); PROS-2018-0053g 2023-03-31 (195%); PROS-2018-0053g 2023-05-31 (36%); PROS-2018-0053g 2023-06-30 (79%); PROS-2018-0053g 2023-07-31 (204%); PROS-2018-0053g 2023-08-31 (259%); PROS-2018-0053g 2023-09-30 (258%); PROS-2018-0053g 2023-10-31 (187%); PROS-2018-0053g 2023-11-30 (590%); PROS-2019-0008g 2023-01-31 (136%); PROS-2019-0008g 2023-04-30 (23%); PROS-2019-0008g 2023-05-31 (26%); PROS-2019-0008g 2023-06-30 (45%); PROS-2019-0008g 2023-09-30 (31%); PROS-2019-0008g 2023-10-31 (87%); PROS-2019-0008g 2023-11-30 (43%); PROS-2019-0008g 2023-12-31 (32%); PROS-2019-0009 2023-02-28 (61%); PROS-2019-0009 2023-06-30 (28%); PROS-2019-0009 2023-07-31 (22%); PROS-2019-0009g 2023-02-28 (23%); PROS-2019-0009g 2023-03-31 (21%); PROS-2019-0009g 2023-04-30 (22%); PROS-2019-0009g 2023-06-30 (35%); PROS-2019-0009g 2023-07-31 (133%); PROS-2019-0009g 2023-08-31 (179%); PROS-2019-0009g 2023-09-30 (178%); PROS-2019-0009g 2023-10-31 (120%); PROS-2019-0009g 2023-11-30 (22%); PROS-2019-0012 2023-12-31 (20%); PROS-2019-0012g 2023-01-31 (54%); PROS-2019-0012g 2023-04-30 (21%); PROS-2019-0012g 2023-05-31 (23%); PROS-2019-0012g 2023-06-30 (38%); PROS-2019-0012g 2023-10-31 (68%); PROS-2019-0012g 2023-11-30 (37%); PROS-2019-0012g 2023-12-31 (29%); PROS-2019-0015 2023-07-31 (105%); PROS-2019-0015g 2023-02-28 (21%); PROS-2019-0015g 2023-03-31 (31%); PROS-2019-0015g 2023-04-30 (31%); PROS-2019-0015g 2023-06-30 (21%); PROS-2019-0015g 2023-07-31 (116%); PROS-2019-0015g 2023-08-31 (164%); PROS-2019-0015g 2023-09-30 (75%); PROS-2019-0015g 2023-10-31 (80%); PROS-2019-0015g 2023-12-31 (65%); PROS-2019-0021 2023-12-31 (21%); PROS-2019-0021g 2023-01-31 (35%); PROS-2019-0021g 2023-03-31 (39%); PROS-2019-0021g 2023-04-30 (39%); PROS-2019-0021g 2023-05-31 (22%); PROS-2019-0021g 2023-07-31 (78%); PROS-2019-0021g 2023-08-31 (112%); PROS-2019-0021g 2023-09-30 (155%); PROS-2019-0021g 2023-10-31 (75%); PROS-2019-0021g 2023-12-31 (61%); PROS-2019-0023 2023-04-30 (78%); PROS-2019-0023g 2023-01-31 (22%); PROS-2019-0023g 2023-03-31 (22%); PROS-2019-0023g 2023-04-30 (30%); PROS-2019-0023g 2023-06-30 (23%); PROS-2019-0023g 2023-07-31 (120%); PROS-2019-0023g 2023-08-31 (169%); PROS-2019-0023g 2023-09-30 (506%); PROS-2019-0023g 2023-10-31 (65%); PROS-2019-0023g 2023-12-31 (38%); PROS-2019-0024 2023-11-30 (96%); PROS-2019-0024g 2023-02-28 (185%); PROS-2019-0024g 2023-05-31 (48%); PROS-2019-0024g 2023-06-30 (232%); PROS-2019-0024g 2023-07-31 (169%); PROS-2019-0024g 2023-08-31 (231%); PROS-2019-0024g 2023-09-30 (231%); PROS-2019-0024g 2023-10-31 (152%); PROS-2019-0024g 2023-11-30 (34%); PROS-2019-0027 2023-01-31 (22%); PROS-2019-0027 2023-04-30 (21%); PROS-2019-0027 2023-07-31 (148%); PROS-2019-0027 2023-12-31 (20%); PROS-2019-0027g 2023-01-31 (30%); PROS-2019-0027g 2023-02-28 (32%); PROS-2019-0027g 2023-04-30 (20%); PROS-2019-0027g 2023-06-30 (41%); PROS-2019-0027g 2023-07-31 (155%); PROS-2019-0027g 2023-08-31 (214%); PROS-2019-0027g 2023-09-30 (214%); PROS-2019-0027g 2023-10-31 (139%); PROS-2019-0027g 2023-11-30 (222%); PROS-2020-0002g 2023-01-31 (57%); PROS-2020-0002g 2023-04-30 (23%); PROS-2020-0002g 2023-05-31 (26%); PROS-2020-0002g 2023-06-30 (44%); PROS-2020-0002g 2023-09-30 (31%); PROS-2020-0002g 2023-10-31 (86%); PROS-2020-0002g 2023-11-30 (43%); PROS-2020-0002g 2023-12-31 (31%); PROS-2020-0006g 2023-01-31 (104%); PROS-2020-0006g 2023-04-30 (23%); PROS-2020-0006g 2023-05-31 (26%); PROS-2020-0006g 2023-06-30 (45%); PROS-2020-0006g 2023-09-30 (31%); PROS-2020-0006g 2023-10-31 (87%); PROS-2020-0006g 2023-11-30 (43%); PROS-2020-0006g 2023-12-31 (32%); PROS-2020-0009 2023-12-31 (20%); PROS-2020-0009g 2023-01-31 (91%); PROS-2020-0009g 2023-04-30 (35%); PROS-2020-0009g 2023-05-31 (25%); PROS-2020-0009g 2023-06-30 (42%); PROS-2020-0009g 2023-09-30 (27%); PROS-2020-0009g 2023-11-30 (92%); PROS-2020-0009g 2023-12-31 (43%); PROS-2020-0012 2023-01-31 (22%); PROS-2020-0012 2023-02-28 (22%); PROS-2020-0012 2023-03-31 (70%); PROS-2020-0012g 2023-02-28 (34%); PROS-2020-0012g 2023-03-31 (28%); PROS-2020-0012g 2023-04-30 (28%); PROS-2020-0012g 2023-06-30 (25%); PROS-2020-0012g 2023-07-31 (124%); PROS-2020-0012g 2023-08-31 (24%); PROS-2020-0012g 2023-09-30 (163%); PROS-2020-0012g 2023-10-31 (103%); PROS-2020-0012g 2023-12-31 (23%); PROS-2020-0016 2023-01-31 (22%); PROS-2020-0016 2023-02-28 (26%); PROS-2020-0016 2023-04-30 (22%); PROS-2020-0016 2023-06-30 (154%); PROS-2020-0016 2023-12-31 (24%); PROS-2020-0016g 2023-02-28 (24%); PROS-2020-0016g 2023-03-31 (22%); PROS-2020-0016g 2023-04-30 (23%); PROS-2020-0016g 2023-05-31 (103%); PROS-2020-0016g 2023-06-30 (21%); PROS-2020-0016g 2023-07-31 (105%); PROS-2020-0016g 2023-08-31 (143%); PROS-2020-0016g 2023-09-30 (142%); PROS-2020-0016g 2023-10-31 (94%); PROS-2020-0016g 2023-12-31 (21%); PROS-2020-0022g 2023-01-31 (51%); PROS-2020-0022g 2023-04-30 (23%); PROS-2020-0022g 2023-05-31 (25%); PROS-2020-0022g 2023-06-30 (36%); PROS-2020-0022g 2023-07-31 (156%); PROS-2020-0022g 2023-09-30 (29%); PROS-2020-0022g 2023-10-31 (83%); PROS-2020-0022g 2023-11-30 (42%); PROS-2020-0022g 2023-12-31 (31%); PROS-2020-0025 2023-01-31 (77%); PROS-2020-0025 2023-06-30 (20%); PROS-2020-0025 2023-07-31 (29%); PROS-2020-0025 2023-08-31 (25%); PROS-2020-0025 2023-09-30 (109%); PROS-2020-0025g 2023-01-31 (53%); PROS-2020-0025g 2023-02-28 (56%); PROS-2020-0025g 2023-03-31 (63%); PROS-2020-0025g 2023-04-30 (63%); PROS-2020-0025g 2023-05-31 (351%); PROS-2020-0025g 2023-06-30 (34%); PROS-2020-0025g 2023-07-31 (21%); PROS-2020-0025g 2023-08-31 (50%); PROS-2020-0025g 2023-09-30 (50%); PROS-2020-0025g 2023-11-30 (40%); PROS-2020-0025g 2023-12-31 (58%); PROS-2020-0032 2023-04-30 (20%); PROS-2020-0032g 2023-01-31 (34%); PROS-2020-0032g 2023-02-28 (29%); PROS-2020-0032g 2023-05-31 (39%); PROS-2020-0032g 2023-06-30 (184%); PROS-2020-0032g 2023-10-31 (103%); PROS-2020-0032g 2023-11-30 (42%); PROS-2020-0032g 2023-12-31 (31%); PROS-2020-0042 2023-06-30 (21%); PROS-2020-0042 2023-07-31 (30%); PROS-2020-0042 2023-08-31 (93%); PROS-2020-0042 2023-09-30 (24%); PROS-2020-0042g 2023-01-31 (35%); PROS-2020-0042g 2023-04-30 (70%); PROS-2020-0042g 2023-06-30 (36%); PROS-2020-0042g 2023-07-31 (233%); PROS-2020-0042g 2023-08-31 (200%); PROS-2020-0042g 2023-09-30 (200%); PROS-2020-0042g 2023-10-31 (127%); PROS-2020-0043 2023-02-28 (21%); PROS-2020-0043 2023-04-30 (70%); PROS-2020-0043 2023-12-31 (22%); PROS-2020-0043g 2023-01-31 (52%); PROS-2020-0043g 2023-02-28 (23%); PROS-2020-0043g 2023-03-31 (137%); PROS-2020-0043g 2023-04-30 (25%); PROS-2020-0043g 2023-06-30 (32%); PROS-2020-0043g 2023-07-31 (136%); PROS-2020-0043g 2023-08-31 (417%); PROS-2020-0043g 2023-09-30 (30%); PROS-2020-0043g 2023-10-31 (57%); PROS-2020-0043g 2023-11-30 (58%); PROS-2020-0043g 2023-12-31 (44%); PROS-2020-0048 2023-07-31 (22%); PROS-2020-0048 2023-09-30 (29%); PROS-2020-0048g 2023-01-31 (73%); PROS-2020-0048g 2023-02-28 (61%); PROS-2020-0048g 2023-03-31 (66%); PROS-2020-0048g 2023-04-30 (72%); PROS-2020-0048g 2023-05-31 (64%); PROS-2020-0048g 2023-06-30 (51%); PROS-2020-0048g 2023-10-31 (1039%); PROS-2020-0048g 2023-11-30 (36%); PROS-2020-0048g 2023-12-31 (55%); PROS-2021-0031 2023-06-30 (27%); PROS-2021-0031g 2023-01-31 (21%); PROS-2021-0031g 2023-02-28 (364%); PROS-2021-0031g 2023-05-31 (44%); PROS-2021-0031g 2023-06-30 (95%); PROS-2021-0031g 2023-07-31 (253%); PROS-2021-0031g 2023-08-31 (333%); PROS-2021-0031g 2023-09-30 (333%); PROS-2021-0031g 2023-10-31 (230%); PROS-2021-0031g 2023-11-30 (710%); PROS-2021-0045 2023-01-31 (24%); PROS-2021-0045 2023-02-28 (27%); PROS-2021-0045 2023-03-31 (121%); PROS-2021-0051 2023-11-30 (26%); PROS-2021-0051g 2023-01-31 (20%); PROS-2021-0051g 2023-02-28 (45%); PROS-2021-0051g 2023-03-31 (36%); PROS-2021-0051g 2023-04-30 (23%); PROS-2021-0051g 2023-05-31 (25%); PROS-2021-0051g 2023-06-30 (43%); PROS-2021-0051g 2023-09-30 (29%); PROS-2021-0051g 2023-10-31 (82%); PROS-2021-0051g 2023-11-30 (42%); PROS-2021-0051g 2023-12-31 (31%); PROS-2021-0062 2023-04-30 (21%); PROS-2021-0062g 2023-03-31 (84%); PROS-2021-0062g 2023-04-30 (24%); PROS-2021-0062g 2023-05-31 (27%); PROS-2021-0062g 2023-06-30 (46%); PROS-2021-0062g 2023-07-31 (20%); PROS-2021-0062g 2023-09-30 (35%); PROS-2021-0062g 2023-11-30 (102%); PROS-2021-0062g 2023-12-31 (32%); PROS-2021-0088 2023-04-30 (164%); PROS-2021-0088 2023-07-31 (21%); PROS-2021-0088g 2023-01-31 (66%); PROS-2021-0088g 2023-02-28 (69%); PROS-2021-0088g 2023-03-31 (55%); PROS-2021-0088g 2023-04-30 (51%); PROS-2021-0088g 2023-05-31 (295%); PROS-2021-0088g 2023-06-30 (31%); PROS-2021-0088g 2023-08-31 (39%); PROS-2021-0088g 2023-09-30 (38%); PROS-2021-0088g 2023-11-30 (37%); PROS-2021-0088g 2023-12-31 (54%); SYN-2021-001 2023-02-28 (197%); SYN-2021-001 2023-05-31 (23%); SYN-2021-001 2023-07-31 (24%); SYN-2021-001 2023-08-31 (20%); SYN-2021-001 2023-09-30 (20%); PROS-2022-0009 2023-01-31 (23%); PROS-2022-0009g 2023-01-31 (80%); PROS-2022-0009g 2023-04-30 (23%); PROS-2022-0009g 2023-05-31 (26%); PROS-2022-0009g 2023-06-30 (45%); PROS-2022-0009g 2023-09-30 (31%); PROS-2022-0009g 2023-10-31 (87%); PROS-2022-0009g 2023-11-30 (43%); PROS-2022-0009g 2023-12-31 (32%); PROS-2022-0010 2023-04-30 (20%); PROS-2022-0010 2023-06-30 (26%); PROS-2022-0010g 2023-01-31 (75%); PROS-2022-0010g 2023-04-30 (23%); PROS-2022-0010g 2023-05-31 (26%); PROS-2022-0010g 2023-06-30 (44%); PROS-2022-0010g 2023-09-30 (30%); PROS-2022-0010g 2023-10-31 (85%); PROS-2022-0010g 2023-11-30 (43%); PROS-2022-0010g 2023-12-31 (31%); PROS-2022-0011g 2023-02-28 (68%); PROS-2022-0011g 2023-04-30 (21%); PROS-2022-0011g 2023-05-31 (23%); PROS-2022-0011g 2023-06-30 (39%); PROS-2022-0011g 2023-09-30 (22%); PROS-2022-0011g 2023-10-31 (69%); PROS-2022-0011g 2023-11-30 (37%); PROS-2022-0011g 2023-12-31 (29%); PROS-2022-0019 2023-01-17 (29%); PROS-2022-0019g 2023-01-17 (51%); PROS-2022-0030 2023-04-30 (20%); PROS-2022-0030g 2023-02-28 (47%); PROS-2022-0030g 2023-04-30 (23%); PROS-2022-0030g 2023-05-31 (25%); PROS-2022-0030g 2023-06-30 (43%); PROS-2022-0030g 2023-09-30 (29%); PROS-2022-0030g 2023-10-31 (82%); PROS-2022-0030g 2023-11-30 (42%); PROS-2022-0030g 2023-12-31 (31%); PROS-2022-0045 2023-11-30 (42%); PROS-2022-0046 2023-11-30 (26%); PROS-2022-0046g 2023-02-28 (26%); PROS-2022-0046g 2023-03-31 (33%); PROS-2022-0046g 2023-04-30 (23%); PROS-2022-0046g 2023-05-31 (26%); PROS-2022-0046g 2023-06-30 (44%); PROS-2022-0046g 2023-10-31 (104%); PROS-2022-0046g 2023-11-30 (43%); PROS-2022-0046g 2023-12-31 (31%); PROS-2022-0047 2023-04-30 (20%); PROS-2022-0047g 2023-03-31 (24%); PROS-2022-0047g 2023-06-30 (21%); PROS-2022-0047g 2023-07-31 (24%); PROS-2022-0047g 2023-08-31 (28%); PROS-2022-0047g 2023-09-30 (51%); PROS-2022-0047g 2023-10-31 (29%); PROS-2022-0048 2023-01-31 (20%); PROS-2022-0048 2023-02-28 (24%); PROS-2022-0048 2023-06-30 (106%); PROS-2022-0048 2023-12-31 (38%); PROS-2022-0048g 2023-01-31 (46%); PROS-2022-0048g 2023-02-28 (28%); PROS-2022-0048g 2023-03-31 (20%); PROS-2022-0048g 2023-04-30 (41%); PROS-2022-0048g 2023-05-31 (24%); PROS-2022-0048g 2023-07-31 (79%); PROS-2022-0048g 2023-08-31 (116%); PROS-2022-0048g 2023-09-30 (239%); PROS-2022-0048g 2023-10-31 (46%); PROS-2022-0048g 2023-11-30 (20%); PROS-2022-0048g 2023-12-31 (43%); PROS-2022-0049 2023-05-31 (22%); PROS-2022-0049g 2023-02-28 (20%); PROS-2022-0049g 2023-03-31 (40%); PROS-2022-0049g 2023-04-30 (23%); PROS-2022-0049g 2023-05-31 (26%); PROS-2022-0049g 2023-06-30 (37%); PROS-2022-0049g 2023-07-31 (169%); PROS-2022-0049g 2023-09-30 (32%); PROS-2022-0049g 2023-10-31 (89%); PROS-2022-0049g 2023-11-30 (44%); PROS-2022-0049g 2023-12-31 (32%); PROS-2022-0063g 2023-03-31 (90%); PROS-2022-0063g 2023-05-31 (59%); PROS-2022-0063g 2023-06-30 (39%); PROS-2022-0063g 2023-07-31 (154%); PROS-2022-0063g 2023-08-31 (215%); PROS-2022-0063g 2023-09-30 (214%); PROS-2022-0063g 2023-10-31 (138%); PROS-2022-0063g 2023-11-30 (26%); PROS-2022-0067 2023-05-31 (22%); PROS-2022-0067g 2023-03-31 (93%); PROS-2022-0067g 2023-04-30 (23%); PROS-2022-0067g 2023-05-31 (26%); PROS-2022-0067g 2023-06-30 (36%); PROS-2022-0067g 2023-07-31 (161%); PROS-2022-0067g 2023-08-31 (103%); PROS-2022-0067g 2023-09-30 (103%); PROS-2022-0067g 2023-10-31 (51%); PROS-2022-0067g 2023-11-30 (42%); PROS-2022-0067g 2023-12-31 (31%); PROS-2022-0071 2023-07-31 (26%); PROS-2022-0071 2023-08-31 (22%); PROS-2022-0071 2023-09-30 (22%); PROS-2022-0071g 2023-03-31 (76%); PROS-2022-0071g 2023-05-31 (30%); PROS-2022-0071g 2023-06-30 (73%); PROS-2022-0071g 2023-07-31 (204%); PROS-2022-0071g 2023-08-31 (268%); PROS-2022-0071g 2023-09-30 (267%); PROS-2022-0071g 2023-10-31 (186%); PROS-2022-0071g 2023-11-30 (57%); PROS-2022-0073 2023-05-31 (21%); PROS-2022-0073 2023-06-30 (24%); PROS-2022-0073 2023-07-31 (32%); PROS-2022-0073 2023-08-31 (28%); PROS-2022-0073 2023-09-30 (29%); PROS-2022-0073 2023-10-31 (22%); PROS-2022-0073g 2023-01-31 (104%); PROS-2022-0073g 2023-02-28 (38%); PROS-2022-0073g 2023-06-30 (21%); PROS-2022-0073g 2023-07-31 (105%); PROS-2022-0073g 2023-08-31 (141%); PROS-2022-0073g 2023-09-30 (140%); PROS-2022-0073g 2023-10-31 (94%); PROS-2022-0073g 2023-12-31 (20%); PROS-2022-0081 2023-04-30 (23%); PROS-2022-0081g 2023-01-31 (62%); PROS-2022-0081g 2023-03-31 (31%); PROS-2022-0081g 2023-06-30 (25%); PROS-2022-0081g 2023-10-31 (37%); PROS-2022-0081g 2023-11-30 (22%); PROS-2022-0081g 2023-12-31 (21%); PROS-2022-0082 2023-04-30 (23%); PROS-2022-0082g 2023-03-31 (59%); PROS-2022-0082g 2023-05-31 (26%); PROS-2022-0082g 2023-06-30 (45%); PROS-2022-0082g 2023-09-30 (32%); PROS-2022-0082g 2023-10-31 (89%); PROS-2022-0082g 2023-11-30 (44%); PROS-2022-0082g 2023-12-31 (31%); PROS-2022-0083 2023-07-31 (25%); PROS-2022-0083 2023-08-31 (21%); PROS-2022-0083 2023-09-30 (22%); PROS-2022-0083g 2023-03-31 (55%); PROS-2022-0083g 2023-06-30 (54%); PROS-2022-0083g 2023-07-31 (175%); PROS-2022-0083g 2023-08-31 (235%); PROS-2022-0083g 2023-09-30 (771%); PROS-2022-0083g 2023-10-31 (106%); PROS-2022-0083g 2023-12-31 (22%); PROS-2022-0092 2023-04-30 (22%); PROS-2022-0092g 2023-03-31 (38%); PROS-2022-0092g 2023-04-30 (53%); PROS-2022-0092g 2023-05-31 (64%); PROS-2022-0092g 2023-06-30 (49%); PROS-2022-0092g 2023-07-31 (163%); PROS-2022-0092g 2023-08-31 (414%); PROS-2022-0092g 2023-09-30 (127%); PROS-2022-0092g 2023-11-30 (42%); PROS-2022-0092g 2023-12-31 (31%); PROS-2022-0097 2023-04-30 (30%); PROS-2022-0097g 2023-04-30 (29%); PROS-2022-0097g 2023-05-31 (26%); PROS-2022-0097g 2023-06-30 (45%); PROS-2022-0097g 2023-09-30 (31%); PROS-2022-0097g 2023-10-31 (87%); PROS-2022-0097g 2023-11-30 (43%); PROS-2022-0097g 2023-12-31 (32%); PROS-2022-0100 2023-04-30 (28%); PROS-2022-0100g 2023-04-30 (32%); PROS-2022-0100g 2023-05-31 (21%); PROS-2022-0100g 2023-06-30 (108%); PROS-2022-0100g 2023-09-30 (31%); PROS-2022-0100g 2023-10-31 (87%); PROS-2022-0100g 2023-11-30 (43%); PROS-2022-0100g 2023-12-31 (31%); PROS-2022-0120 2023-04-30 (21%); PROS-2022-0124 2023-04-30 (20%); PROS-2022-0124g 2023-05-31 (42%); PROS-2022-0124g 2023-06-30 (76%); PROS-2022-0124g 2023-07-31 (213%); PROS-2022-0124g 2023-08-31 (281%); PROS-2022-0124g 2023-09-30 (280%); PROS-2022-0124g 2023-10-31 (194%); PROS-2022-0124g 2023-11-30 (59%); PROS-2022-0124g 2023-12-31 (410%); PROS-2022-0125 2023-04-30 (21%); PROS-2022-0125g 2023-06-30 (44%); PROS-2022-0125g 2023-08-31 (48%); PROS-2022-0125g 2023-11-30 (94%); PROS-2022-0125g 2023-12-31 (44%); PROS-2022-0127 2023-04-30 (20%); PROS-2022-0127g 2023-07-31 (94%); PROS-2022-0127g 2023-08-31 (128%); PROS-2022-0127g 2023-09-30 (127%); PROS-2022-0127g 2023-10-31 (84%); PROS-2022-0127g 2023-12-31 (107%); PROS-2022-0128 2023-06-30 (25%); PROS-2022-0128 2023-07-31 (34%); PROS-2022-0128 2023-08-31 (30%); PROS-2022-0128 2023-09-30 (30%); PROS-2022-0128 2023-10-31 (23%); PROS-2022-0128 2023-12-31 (141%); PROS-2022-0128g 2023-01-31 (33%); PROS-2022-0128g 2023-02-28 (36%); PROS-2022-0128g 2023-03-31 (22%); PROS-2022-0128g 2023-06-30 (32%); PROS-2022-0128g 2023-07-31 (126%); PROS-2022-0128g 2023-08-31 (169%); PROS-2022-0128g 2023-09-30 (168%); PROS-2022-0128g 2023-10-31 (113%); PROS-2022-0128g 2023-12-31 (76%); PROS-2022-0130 2023-04-30 (22%); PROS-2022-0130 2023-06-30 (21%); PROS-2022-0130g 2023-06-30 (44%); PROS-2022-0130g 2023-09-30 (31%); PROS-2022-0130g 2023-10-31 (86%); PROS-2022-0130g 2023-11-30 (43%); PROS-2022-0130g 2023-12-31 (31%); PROS-2023-0001 2023-12-31 (21%); PROS-2023-0001g 2023-05-31 (64%); PROS-2023-0001g 2023-06-30 (45%); PROS-2023-0001g 2023-09-30 (32%); PROS-2023-0001g 2023-10-31 (88%); PROS-2023-0001g 2023-11-30 (43%); PROS-2023-0001g 2023-12-31 (32%); PROS-2023-0010 2023-07-31 (37%); PROS-2023-0010g 2023-05-31 (55%); PROS-2023-0010g 2023-06-30 (50%); PROS-2023-0010g 2023-07-31 (186%); PROS-2023-0010g 2023-09-30 (30%); PROS-2023-0010g 2023-10-31 (85%); PROS-2023-0010g 2023-11-30 (42%); PROS-2023-0010g 2023-12-31 (31%); PROS-2023-0013 2023-02-28 (22%); PROS-2023-0013g 2023-06-30 (59%); PROS-2023-0013g 2023-07-31 (289%); PROS-2023-0013g 2023-08-31 (124%); PROS-2023-0013g 2023-09-30 (123%); PROS-2023-0013g 2023-10-31 (72%); PROS-2023-0013g 2023-12-31 (35%); PROS-2023-0014 2023-02-28 (28%); PROS-2023-0014 2023-05-31 (21%); PROS-2023-0014 2023-06-30 (24%); PROS-2023-0014 2023-07-31 (32%); PROS-2023-0014 2023-08-31 (28%); PROS-2023-0014 2023-09-30 (28%); PROS-2023-0014 2023-10-31 (22%); PROS-2023-0014g 2023-04-30 (22%); PROS-2023-0014g 2023-05-31 (24%); PROS-2023-0014g 2023-06-30 (41%); PROS-2023-0014g 2023-09-30 (25%); PROS-2023-0014g 2023-10-31 (75%); PROS-2023-0014g 2023-11-30 (39%); PROS-2023-0014g 2023-12-31 (30%); PROS-2023-0016 2023-02-28 (34%); PROS-2023-0016 2023-12-31 (21%); PROS-2023-0016g 2023-02-28 (23%); PROS-2023-0016g 2023-06-30 (92%); PROS-2023-0016g 2023-09-30 (27%); PROS-2023-0016g 2023-11-30 (92%); PROS-2023-0016g 2023-12-31 (30%); PROS-2023-0025 2023-02-28 (159%); PROS-2023-0025 2023-04-30 (20%); PROS-2023-0025 2023-06-30 (22%); PROS-2023-0025g 2023-02-28 (134%); PROS-2023-0025g 2023-04-30 (23%); PROS-2023-0025g 2023-05-31 (26%); PROS-2023-0025g 2023-06-30 (44%); PROS-2023-0025g 2023-09-30 (30%); PROS-2023-0025g 2023-10-31 (85%); PROS-2023-0025g 2023-11-30 (35%); PROS-2023-0025g 2023-12-31 (86%); PROS-2023-0026 2023-02-28 (159%); PROS-2023-0026 2023-04-30 (20%); PROS-2023-0026 2023-06-30 (22%); PROS-2023-0026g 2023-02-28 (134%); PROS-2023-0026g 2023-04-30 (23%); PROS-2023-0026g 2023-05-31 (20%); PROS-2023-0026g 2023-06-30 (107%); PROS-2023-0026g 2023-09-30 (30%); PROS-2023-0026g 2023-10-31 (86%); PROS-2023-0026g 2023-11-30 (43%); PROS-2023-0026g 2023-12-31 (31%); PROS-2023-0039 2023-03-31 (67%); PROS-2023-0039 2023-04-30 (20%); PROS-2023-0039g 2023-03-31 (55%); PROS-2023-0039g 2023-04-30 (23%); PROS-2023-0039g 2023-06-30 (87%); PROS-2023-0039g 2023-09-30 (31%); PROS-2023-0039g 2023-10-31 (87%); PROS-2023-0039g 2023-11-30 (43%); PROS-2023-0039g 2023-12-31 (32%); PROS-2023-0045 2023-04-30 (61%); PROS-2023-0045 2023-05-31 (52%); PROS-2023-0045 2023-06-30 (52%); PROS-2023-0045 2023-07-31 (48%); PROS-2023-0045 2023-08-31 (50%); PROS-2023-0045 2023-09-30 (50%); PROS-2023-0045 2023-10-31 (52%); PROS-2023-0045 2023-11-30 (56%); PROS-2023-0045 2023-12-31 (61%); PROS-2023-0045g 2023-03-31 (179%); PROS-2023-0045g 2023-04-30 (23%); PROS-2023-0045g 2023-05-31 (26%); PROS-2023-0045g 2023-07-31 (79%); PROS-2023-0045g 2023-08-31 (119%); PROS-2023-0045g 2023-09-30 (118%); PROS-2023-0045g 2023-10-31 (68%); PROS-2023-0045g 2023-12-31 (37%); PROS-2023-0065 2023-11-30 (21%); PROS-2023-0065g 2023-05-31 (25%); PROS-2023-0065g 2023-06-30 (43%); PROS-2023-0065g 2023-09-30 (28%); PROS-2023-0065g 2023-10-31 (82%); PROS-2023-0065g 2023-11-30 (41%); PROS-2023-0065g 2023-12-31 (31%); PROS-2023-0067 2023-11-30 (26%); PROS-2023-0067g 2023-06-30 (92%); PROS-2023-0067g 2023-09-30 (31%); PROS-2023-0067g 2023-10-31 (87%); PROS-2023-0067g 2023-11-30 (43%); PROS-2023-0067g 2023-12-31 (31%); PROS-2023-0072 2023-04-30 (30%); PROS-2023-0072g 2023-04-30 (21%); PROS-2023-0072g 2023-05-31 (24%); PROS-2023-0072g 2023-06-30 (41%); PROS-2023-0072g 2023-09-30 (25%); PROS-2023-0072g 2023-10-31 (75%); PROS-2023-0072g 2023-11-30 (39%); PROS-2023-0072g 2023-12-31 (30%); PROS-2023-0089 2023-04-30 (2965%); PROS-2023-0089g 2023-04-30 (2285%); PROS-2023-0089g 2023-05-31 (26%); PROS-2023-0089g 2023-06-30 (44%); PROS-2023-0089g 2023-11-30 (54%); PROS-2023-0089g 2023-12-31 (68%); PROS-2023-0090 2023-12-31 (22%); PROS-2023-0090g 2023-05-31 (22%); PROS-2023-0090g 2023-06-30 (42%); PROS-2023-0090g 2023-09-30 (28%); PROS-2023-0090g 2023-10-31 (80%); PROS-2023-0090g 2023-11-30 (41%); PROS-2023-0090g 2023-12-31 (31%); PROS-2023-0096 2023-05-31 (22%); PROS-2023-0096g 2023-06-30 (44%); PROS-2023-0096g 2023-10-31 (23%); PROS-2023-0096g 2023-11-30 (59%); PROS-2023-0096g 2023-12-31 (71%); PROS-2023-0104 2023-05-31 (148%); PROS-2023-0104g 2023-09-30 (28%); PROS-2023-0104g 2023-11-30 (94%); PROS-2023-0104g 2023-12-31 (31%); PROS-2023-0113 2023-05-31 (501%); PROS-2023-0113g 2023-05-31 (344%); PROS-2023-0113g 2023-06-30 (44%); PROS-2023-0113g 2023-09-30 (31%); PROS-2023-0113g 2023-11-30 (98%); PROS-2023-0113g 2023-12-31 (31%); PROS-2023-0116 2023-05-31 (483%); PROS-2023-0116g 2023-05-31 (348%); PROS-2023-0116g 2023-06-30 (43%); PROS-2023-0116g 2023-09-30 (28%); PROS-2023-0116g 2023-10-31 (82%); PROS-2023-0116g 2023-11-30 (42%); PROS-2023-0116g 2023-12-31 (31%); PROS-2023-0125 2023-05-31 (156%); PROS-2023-0125 2023-06-30 (78%); PROS-2023-0125g 2023-05-31 (1016%); PROS-2023-0125g 2023-06-30 (44%); PROS-2023-0125g 2023-10-31 (102%); PROS-2023-0125g 2023-11-30 (42%); PROS-2023-0125g 2023-12-31 (33%); PROS-2023-0126 2023-05-31 (2650%); PROS-2023-0126g 2023-05-31 (2504%); PROS-2023-0126g 2023-06-30 (23%); PROS-2023-0126g 2023-10-31 (33%); PROS-2023-0126g 2023-11-30 (20%); PROS-2023-0127g 2023-06-30 (41%); PROS-2023-0127g 2023-09-30 (31%); PROS-2023-0127g 2023-10-31 (87%); PROS-2023-0127g 2023-11-30 (35%); PROS-2023-0127g 2023-12-31 (55%); PROS-2023-0146 2023-06-30 (328%); PROS-2023-0146g 2023-06-30 (158%); PROS-2023-0146g 2023-09-30 (26%); PROS-2023-0146g 2023-10-31 (78%); PROS-2023-0146g 2023-11-30 (40%); PROS-2023-0146g 2023-12-31 (30%); PROS-2023-0147 2023-06-30 (644%); PROS-2023-0147 2023-11-30 (26%); PROS-2023-0147g 2023-06-30 (362%); PROS-2023-0147g 2023-09-30 (24%); PROS-2023-0147g 2023-11-30 (89%); PROS-2023-0147g 2023-12-31 (30%); PROS-2023-0152g 2023-09-30 (28%); PROS-2023-0152g 2023-10-31 (81%); PROS-2023-0152g 2023-11-30 (41%); PROS-2023-0152g 2023-12-31 (31%); PROS-2023-0158 2023-07-31 (27%); PROS-2023-0158g 2023-09-30 (27%); PROS-2023-0158g 2023-10-31 (79%); PROS-2023-0158g 2023-11-30 (40%); PROS-2023-0158g 2023-12-31 (30%); PROS-2023-0162 2023-07-31 (46%); PROS-2023-0162g 2023-09-30 (32%); PROS-2023-0162g 2023-10-31 (89%); PROS-2023-0162g 2023-11-30 (44%); PROS-2023-0162g 2023-12-31 (32%); PROS-2023-0166 2023-07-31 (83%); PROS-2023-0166g 2023-07-31 (54%); PROS-2023-0166g 2023-10-31 (65%); PROS-2023-0166g 2023-12-31 (26%); PROS-2023-0172 2023-07-31 (176%); PROS-2023-0172g 2023-07-31 (138%); PROS-2023-0172g 2023-10-31 (91%); PROS-2023-0172g 2023-11-30 (35%); PROS-2023-0172g 2023-12-31 (28%); PROS-2023-0177 2023-07-31 (417%); PROS-2023-0177g 2023-07-31 (317%); PROS-2023-0177g 2023-09-30 (27%); PROS-2023-0177g 2023-10-31 (80%); PROS-2023-0177g 2023-12-31 (29%)
-- Churn risk (accounts renewing in 2023): 42 at risk (≥20% churn prob): C2 38%, C3 41%, C7 41%, C8 35%, C9 41%, PROS-2016-0011 41%, PROS-2016-0020 41%, PROS-2017-0019 41%, PROS-2017-0022 41%, PROS-2018-0003 41%, PROS-2018-0009 41%, PROS-2018-0016 41%, PROS-2018-0018 41%, PROS-2018-0022 41%, PROS-2018-0024 41%, PROS-2018-0035 41%, PROS-2018-0043 41%, PROS-2018-0053 41%, PROS-2019-0008 41%, PROS-2019-0009 41%, PROS-2019-0012 41%, PROS-2019-0015 41%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0002 41%, PROS-2020-0006 41%, PROS-2020-0009 41%, PROS-2020-0012 41%, PROS-2020-0016 41%, PROS-2020-0022 41%, PROS-2020-0025 41%, PROS-2020-0032 41%, PROS-2020-0042 41%, PROS-2020-0043 41%, PROS-2020-0048 41%, PROS-2021-0031 41%, PROS-2021-0045 41%, PROS-2021-0051 41%, PROS-2021-0062 41%, PROS-2021-0088 41%
+  - Renewals (retained): 69 accounts
+- Average CLV (Point-in-Time, year-end 2023): £243.10
+  - By billing account: C2 £-3.81, C3 £14.07, C7 £-578.38, C8 £254.58, C9 £472.99, PROS-2016-0011 £122.89, PROS-2016-0020 £600.59, PROS-2017-0019 £620.24, PROS-2017-0022 £96.65, PROS-2018-0003 £-17.68, PROS-2018-0009 £299.17, PROS-2018-0014 £-440.62, PROS-2018-0016 £56.21, PROS-2018-0018 £244.35, PROS-2018-0022 £491.77, PROS-2018-0024 £697.96, PROS-2018-0035 £970.47, PROS-2018-0043 £1,335.08, PROS-2018-0053 £1,010.50, PROS-2019-0008 £-273.53, PROS-2019-0009 £204.31, PROS-2019-0012 £637.22, PROS-2019-0015 £92.93, PROS-2019-0021 £1,061.08, PROS-2019-0023 £900.53, PROS-2019-0024 £302.17, PROS-2019-0027 £981.23, PROS-2020-0002 £-647.40, PROS-2020-0006 £-701.82, PROS-2020-0009 £111.64, PROS-2020-0012 £-544.88, PROS-2020-0016 £132.09, PROS-2020-0022 £33.66, PROS-2020-0025 £-1,592.64, PROS-2020-0032 £1,153.80, PROS-2020-0043 £-1,365.84, PROS-2020-0048 £1,323.79, PROS-2021-0006 £-837.05, PROS-2021-0031 £66.09, PROS-2021-0045 £2,130.15, PROS-2021-0051 £741.56, PROS-2021-0062 £303.38, PROS-2021-0088 £757.11, PROS-2022-0009 £-4,757.81, PROS-2022-0010 £-3,944.29, PROS-2022-0011 £-2,921.28, PROS-2022-0030 £1,997.91, PROS-2022-0045 £4,885.18, PROS-2022-0046 £1,391.92, PROS-2022-0047 £4,537.92, PROS-2022-0048 £2,149.30, PROS-2022-0049 £211.26, PROS-2022-0063 £1,025.75, PROS-2022-0067 £133.45, PROS-2022-0071 £502.51, PROS-2022-0073 £1,476.22, PROS-2022-0081 £2,466.34, PROS-2022-0082 £-1,745.25, PROS-2022-0083 £-55.15, PROS-2022-0092 £-898.37, PROS-2022-0097 £-1,784.99, PROS-2022-0100 £-2,534.94, PROS-2022-0120 £952.98, PROS-2022-0124 £517.66, PROS-2022-0125 £-845.69, PROS-2022-0127 £1,192.19, PROS-2022-0128 £996.98, PROS-2022-0130 £1,136.70, SYN-2021-001 £-529.14
+- Bill shock events (>=20%): 835 -- C7 2023-01-31 (38%); C7 2023-06-30 (100%); C7 2023-07-31 (86%); C7 2023-08-31 (97%); C7 2023-10-31 (55%); C7 2023-11-30 (71%); C7 2023-12-31 (34%); PROS-2016-0011 2023-01-31 (64%); PROS-2016-0011g 2023-01-31 (35%); PROS-2016-0011g 2023-02-28 (22%); PROS-2016-0011g 2023-05-31 (34%); PROS-2016-0011g 2023-06-30 (176%); PROS-2016-0011g 2023-07-31 (164%); PROS-2016-0011g 2023-08-31 (224%); PROS-2016-0011g 2023-09-30 (223%); PROS-2016-0011g 2023-10-31 (148%); PROS-2016-0011g 2023-11-30 (33%); PROS-2016-0020 2023-01-31 (75%); PROS-2016-0020g 2023-03-31 (28%); PROS-2016-0020g 2023-04-30 (28%); PROS-2016-0020g 2023-06-30 (25%); PROS-2016-0020g 2023-07-31 (120%); PROS-2016-0020g 2023-08-31 (165%); PROS-2016-0020g 2023-09-30 (164%); PROS-2016-0020g 2023-10-31 (107%); C2 2023-04-30 (43%); C2g 2023-01-31 (40%); C2g 2023-04-30 (53%); C2g 2023-05-31 (41%); C2g 2023-06-30 (41%); C2g 2023-08-31 (22%); C2g 2023-10-31 (99%); C2g 2023-11-30 (61%); C8 2023-05-31 (40%); C8 2023-06-30 (43%); C8 2023-11-30 (50%); C8 2023-12-31 (105%); C3 2023-10-31 (56%); C3g 2023-01-31 (49%); C3g 2023-02-28 (43%); C3g 2023-03-31 (92%); C3g 2023-06-30 (60%); C3g 2023-07-31 (154%); C3g 2023-08-31 (152%); C3g 2023-09-30 (162%); C3g 2023-10-31 (126%); C3g 2023-11-30 (26%); C9 2023-02-28 (21%); C9 2023-03-31 (24%); C9 2023-04-30 (30%); C9 2023-05-31 (33%); C9 2023-06-30 (45%); C9 2023-09-30 (21%); C9 2023-10-31 (73%); C9 2023-11-30 (53%); PROS-2017-0019 2023-06-30 (20%); PROS-2017-0019 2023-07-31 (29%); PROS-2017-0019 2023-08-31 (25%); PROS-2017-0019 2023-09-30 (25%); PROS-2017-0019g 2023-01-31 (34%); PROS-2017-0019g 2023-03-31 (134%); PROS-2017-0019g 2023-05-31 (29%); PROS-2017-0019g 2023-06-30 (69%); PROS-2017-0019g 2023-07-31 (186%); PROS-2017-0019g 2023-08-31 (238%); PROS-2017-0019g 2023-09-30 (237%); PROS-2017-0019g 2023-10-31 (824%); PROS-2017-0019g 2023-11-30 (36%); PROS-2017-0022 2023-02-28 (166%); PROS-2017-0022 2023-05-31 (23%); PROS-2017-0022 2023-06-30 (26%); PROS-2017-0022 2023-07-31 (85%); PROS-2017-0022g 2023-01-31 (64%); PROS-2017-0022g 2023-02-28 (69%); PROS-2017-0022g 2023-03-31 (72%); PROS-2017-0022g 2023-04-30 (72%); PROS-2017-0022g 2023-05-31 (64%); PROS-2017-0022g 2023-06-30 (51%); PROS-2017-0022g 2023-10-31 (1144%); PROS-2017-0022g 2023-11-30 (36%); PROS-2017-0022g 2023-12-31 (55%); PROS-2018-0003 2023-02-28 (33%); PROS-2018-0003 2023-06-30 (35%); PROS-2018-0003 2023-07-31 (22%); PROS-2018-0003 2023-09-30 (31%); PROS-2018-0003g 2023-02-28 (44%); PROS-2018-0003g 2023-03-31 (32%); PROS-2018-0003g 2023-04-30 (32%); PROS-2018-0003g 2023-06-30 (189%); PROS-2018-0003g 2023-07-31 (41%); PROS-2018-0003g 2023-08-31 (73%); PROS-2018-0003g 2023-11-30 (56%); PROS-2018-0003g 2023-12-31 (69%); PROS-2018-0009 2023-01-31 (23%); PROS-2018-0009 2023-02-28 (24%); PROS-2018-0009 2023-06-30 (114%); PROS-2018-0009 2023-12-31 (21%); PROS-2018-0014g 2023-02-28 (40%); PROS-2018-0014g 2023-03-31 (37%); PROS-2018-0014g 2023-04-30 (140%); PROS-2018-0014g 2023-05-31 (37%); PROS-2018-0014g 2023-07-31 (48%); PROS-2018-0014g 2023-08-31 (79%); PROS-2018-0014g 2023-09-30 (78%); PROS-2018-0014g 2023-10-31 (39%); PROS-2018-0014g 2023-11-30 (24%); PROS-2018-0014g 2023-12-31 (46%); PROS-2018-0016 2023-07-31 (20%); PROS-2018-0016g 2023-02-28 (39%); PROS-2018-0016g 2023-03-31 (38%); PROS-2018-0016g 2023-04-30 (38%); PROS-2018-0016g 2023-07-31 (391%); PROS-2018-0016g 2023-08-31 (131%); PROS-2018-0016g 2023-09-30 (130%); PROS-2018-0016g 2023-10-31 (76%); PROS-2018-0016g 2023-11-30 (46%); PROS-2018-0016g 2023-12-31 (24%); PROS-2018-0018 2023-07-31 (48%); PROS-2018-0018g 2023-01-31 (117%); PROS-2018-0018g 2023-05-31 (41%); PROS-2018-0018g 2023-06-30 (86%); PROS-2018-0018g 2023-07-31 (220%); PROS-2018-0018g 2023-08-31 (281%); PROS-2018-0018g 2023-09-30 (280%); PROS-2018-0018g 2023-10-31 (202%); PROS-2018-0018g 2023-11-30 (69%); PROS-2018-0018g 2023-12-31 (493%); PROS-2018-0022g 2023-01-31 (54%); PROS-2018-0022g 2023-03-31 (241%); PROS-2018-0022g 2023-05-31 (39%); PROS-2018-0022g 2023-06-30 (86%); PROS-2018-0022g 2023-07-31 (228%); PROS-2018-0022g 2023-08-31 (866%); PROS-2018-0022g 2023-09-30 (181%); PROS-2018-0022g 2023-10-31 (119%); PROS-2018-0024 2023-02-28 (79%); PROS-2018-0024 2023-07-31 (22%); PROS-2018-0035 2023-06-30 (38%); PROS-2018-0035g 2023-03-31 (25%); PROS-2018-0035g 2023-07-31 (115%); PROS-2018-0035g 2023-08-31 (163%); PROS-2018-0035g 2023-09-30 (478%); PROS-2018-0035g 2023-10-31 (109%); PROS-2018-0035g 2023-11-30 (31%); PROS-2018-0035g 2023-12-31 (26%); PROS-2018-0043 2023-02-28 (20%); PROS-2018-0043 2023-04-30 (77%); PROS-2018-0043 2023-10-31 (25%); PROS-2018-0053 2023-03-31 (149%); PROS-2018-0053 2023-05-31 (21%); PROS-2018-0053 2023-06-30 (24%); PROS-2018-0053 2023-07-31 (32%); PROS-2018-0053 2023-08-31 (28%); PROS-2018-0053 2023-09-30 (29%); PROS-2018-0053 2023-10-31 (143%); PROS-2018-0053g 2023-02-28 (25%); PROS-2018-0053g 2023-03-31 (195%); PROS-2018-0053g 2023-05-31 (36%); PROS-2018-0053g 2023-06-30 (79%); PROS-2018-0053g 2023-07-31 (204%); PROS-2018-0053g 2023-08-31 (259%); PROS-2018-0053g 2023-09-30 (258%); PROS-2018-0053g 2023-10-31 (187%); PROS-2018-0053g 2023-11-30 (590%); PROS-2019-0008g 2023-01-31 (136%); PROS-2019-0008g 2023-04-30 (23%); PROS-2019-0008g 2023-05-31 (26%); PROS-2019-0008g 2023-06-30 (45%); PROS-2019-0008g 2023-09-30 (31%); PROS-2019-0008g 2023-10-31 (87%); PROS-2019-0008g 2023-11-30 (43%); PROS-2019-0008g 2023-12-31 (32%); PROS-2019-0009 2023-02-28 (61%); PROS-2019-0009 2023-06-30 (28%); PROS-2019-0009 2023-07-31 (22%); PROS-2019-0009g 2023-02-28 (23%); PROS-2019-0009g 2023-03-31 (21%); PROS-2019-0009g 2023-04-30 (22%); PROS-2019-0009g 2023-06-30 (35%); PROS-2019-0009g 2023-07-31 (133%); PROS-2019-0009g 2023-08-31 (179%); PROS-2019-0009g 2023-09-30 (178%); PROS-2019-0009g 2023-10-31 (120%); PROS-2019-0009g 2023-11-30 (22%); PROS-2019-0012 2023-12-31 (20%); PROS-2019-0012g 2023-01-31 (54%); PROS-2019-0012g 2023-04-30 (21%); PROS-2019-0012g 2023-05-31 (23%); PROS-2019-0012g 2023-06-30 (38%); PROS-2019-0012g 2023-10-31 (68%); PROS-2019-0012g 2023-11-30 (37%); PROS-2019-0012g 2023-12-31 (29%); PROS-2019-0015 2023-07-31 (105%); PROS-2019-0015g 2023-02-28 (21%); PROS-2019-0015g 2023-03-31 (31%); PROS-2019-0015g 2023-04-30 (31%); PROS-2019-0015g 2023-06-30 (21%); PROS-2019-0015g 2023-07-31 (116%); PROS-2019-0015g 2023-08-31 (164%); PROS-2019-0015g 2023-09-30 (75%); PROS-2019-0015g 2023-10-31 (80%); PROS-2019-0015g 2023-12-31 (65%); PROS-2019-0021 2023-12-31 (21%); PROS-2019-0021g 2023-01-31 (35%); PROS-2019-0021g 2023-03-31 (39%); PROS-2019-0021g 2023-04-30 (39%); PROS-2019-0021g 2023-05-31 (22%); PROS-2019-0021g 2023-07-31 (78%); PROS-2019-0021g 2023-08-31 (112%); PROS-2019-0021g 2023-09-30 (155%); PROS-2019-0021g 2023-10-31 (75%); PROS-2019-0021g 2023-12-31 (61%); PROS-2019-0023 2023-04-30 (78%); PROS-2019-0023g 2023-01-31 (22%); PROS-2019-0023g 2023-03-31 (22%); PROS-2019-0023g 2023-04-30 (30%); PROS-2019-0023g 2023-06-30 (23%); PROS-2019-0023g 2023-07-31 (120%); PROS-2019-0023g 2023-08-31 (169%); PROS-2019-0023g 2023-09-30 (506%); PROS-2019-0023g 2023-10-31 (65%); PROS-2019-0023g 2023-12-31 (38%); PROS-2019-0024 2023-11-30 (96%); PROS-2019-0024g 2023-02-28 (185%); PROS-2019-0024g 2023-05-31 (48%); PROS-2019-0024g 2023-06-30 (232%); PROS-2019-0024g 2023-07-31 (169%); PROS-2019-0024g 2023-08-31 (231%); PROS-2019-0024g 2023-09-30 (231%); PROS-2019-0024g 2023-10-31 (152%); PROS-2019-0024g 2023-11-30 (34%); PROS-2019-0027 2023-01-31 (22%); PROS-2019-0027 2023-04-30 (21%); PROS-2019-0027 2023-07-31 (148%); PROS-2019-0027 2023-12-31 (20%); PROS-2019-0027g 2023-01-31 (30%); PROS-2019-0027g 2023-02-28 (32%); PROS-2019-0027g 2023-04-30 (20%); PROS-2019-0027g 2023-06-30 (41%); PROS-2019-0027g 2023-07-31 (155%); PROS-2019-0027g 2023-08-31 (214%); PROS-2019-0027g 2023-09-30 (214%); PROS-2019-0027g 2023-10-31 (139%); PROS-2019-0027g 2023-11-30 (222%); PROS-2020-0002g 2023-01-31 (57%); PROS-2020-0002g 2023-04-30 (23%); PROS-2020-0002g 2023-05-31 (26%); PROS-2020-0002g 2023-06-30 (44%); PROS-2020-0002g 2023-09-30 (31%); PROS-2020-0002g 2023-10-31 (86%); PROS-2020-0002g 2023-11-30 (43%); PROS-2020-0002g 2023-12-31 (31%); PROS-2020-0006g 2023-01-31 (104%); PROS-2020-0006g 2023-04-30 (23%); PROS-2020-0006g 2023-05-31 (26%); PROS-2020-0006g 2023-06-30 (45%); PROS-2020-0006g 2023-09-30 (31%); PROS-2020-0006g 2023-10-31 (87%); PROS-2020-0006g 2023-11-30 (43%); PROS-2020-0006g 2023-12-31 (32%); PROS-2020-0009 2023-12-31 (20%); PROS-2020-0009g 2023-01-31 (91%); PROS-2020-0009g 2023-04-30 (35%); PROS-2020-0009g 2023-05-31 (25%); PROS-2020-0009g 2023-06-30 (42%); PROS-2020-0009g 2023-09-30 (27%); PROS-2020-0009g 2023-11-30 (92%); PROS-2020-0009g 2023-12-31 (43%); PROS-2020-0012 2023-01-31 (22%); PROS-2020-0012 2023-02-28 (22%); PROS-2020-0012 2023-03-31 (70%); PROS-2020-0012g 2023-02-28 (34%); PROS-2020-0012g 2023-03-31 (28%); PROS-2020-0012g 2023-04-30 (28%); PROS-2020-0012g 2023-06-30 (25%); PROS-2020-0012g 2023-07-31 (124%); PROS-2020-0012g 2023-08-31 (24%); PROS-2020-0012g 2023-09-30 (163%); PROS-2020-0012g 2023-10-31 (103%); PROS-2020-0012g 2023-12-31 (23%); PROS-2020-0016 2023-01-31 (22%); PROS-2020-0016 2023-02-28 (26%); PROS-2020-0016 2023-04-30 (22%); PROS-2020-0016 2023-06-30 (153%); PROS-2020-0016 2023-12-31 (24%); PROS-2020-0016g 2023-02-28 (24%); PROS-2020-0016g 2023-03-31 (22%); PROS-2020-0016g 2023-04-30 (23%); PROS-2020-0016g 2023-05-31 (103%); PROS-2020-0016g 2023-06-30 (21%); PROS-2020-0016g 2023-07-31 (105%); PROS-2020-0016g 2023-08-31 (143%); PROS-2020-0016g 2023-09-30 (142%); PROS-2020-0016g 2023-10-31 (94%); PROS-2020-0016g 2023-12-31 (21%); PROS-2020-0022g 2023-01-31 (51%); PROS-2020-0022g 2023-04-30 (23%); PROS-2020-0022g 2023-05-31 (25%); PROS-2020-0022g 2023-06-30 (36%); PROS-2020-0022g 2023-07-31 (156%); PROS-2020-0022g 2023-09-30 (29%); PROS-2020-0022g 2023-10-31 (83%); PROS-2020-0022g 2023-11-30 (42%); PROS-2020-0022g 2023-12-31 (31%); PROS-2020-0025 2023-01-31 (77%); PROS-2020-0025 2023-06-30 (20%); PROS-2020-0025 2023-07-31 (29%); PROS-2020-0025 2023-08-31 (25%); PROS-2020-0025 2023-09-30 (109%); PROS-2020-0025g 2023-01-31 (53%); PROS-2020-0025g 2023-02-28 (56%); PROS-2020-0025g 2023-03-31 (63%); PROS-2020-0025g 2023-04-30 (63%); PROS-2020-0025g 2023-05-31 (351%); PROS-2020-0025g 2023-06-30 (34%); PROS-2020-0025g 2023-07-31 (21%); PROS-2020-0025g 2023-08-31 (50%); PROS-2020-0025g 2023-09-30 (50%); PROS-2020-0025g 2023-11-30 (40%); PROS-2020-0025g 2023-12-31 (58%); PROS-2020-0032 2023-04-30 (20%); PROS-2020-0032g 2023-01-31 (34%); PROS-2020-0032g 2023-02-28 (29%); PROS-2020-0032g 2023-05-31 (39%); PROS-2020-0032g 2023-06-30 (184%); PROS-2020-0032g 2023-10-31 (103%); PROS-2020-0032g 2023-11-30 (42%); PROS-2020-0032g 2023-12-31 (31%); PROS-2020-0043 2023-02-28 (21%); PROS-2020-0043 2023-04-30 (71%); PROS-2020-0043 2023-12-31 (22%); PROS-2020-0043g 2023-01-31 (52%); PROS-2020-0043g 2023-02-28 (23%); PROS-2020-0043g 2023-03-31 (137%); PROS-2020-0043g 2023-04-30 (25%); PROS-2020-0043g 2023-06-30 (32%); PROS-2020-0043g 2023-07-31 (136%); PROS-2020-0043g 2023-08-31 (417%); PROS-2020-0043g 2023-09-30 (30%); PROS-2020-0043g 2023-10-31 (57%); PROS-2020-0043g 2023-11-30 (58%); PROS-2020-0043g 2023-12-31 (44%); PROS-2020-0048 2023-07-31 (22%); PROS-2020-0048 2023-09-30 (29%); PROS-2020-0048g 2023-01-31 (73%); PROS-2020-0048g 2023-02-28 (61%); PROS-2020-0048g 2023-03-31 (66%); PROS-2020-0048g 2023-04-30 (72%); PROS-2020-0048g 2023-05-31 (64%); PROS-2020-0048g 2023-06-30 (51%); PROS-2020-0048g 2023-10-31 (1039%); PROS-2020-0048g 2023-11-30 (36%); PROS-2020-0048g 2023-12-31 (55%); PROS-2021-0006 2023-05-31 (22%); PROS-2021-0006g 2023-01-31 (125%); PROS-2021-0006g 2023-04-30 (23%); PROS-2021-0006g 2023-05-31 (25%); PROS-2021-0006g 2023-06-30 (42%); PROS-2021-0006g 2023-09-30 (27%); PROS-2021-0006g 2023-10-31 (80%); PROS-2021-0006g 2023-11-30 (41%); PROS-2021-0006g 2023-12-31 (31%); PROS-2021-0031 2023-06-30 (27%); PROS-2021-0031g 2023-01-31 (21%); PROS-2021-0031g 2023-02-28 (364%); PROS-2021-0031g 2023-05-31 (44%); PROS-2021-0031g 2023-06-30 (95%); PROS-2021-0031g 2023-07-31 (253%); PROS-2021-0031g 2023-08-31 (333%); PROS-2021-0031g 2023-09-30 (333%); PROS-2021-0031g 2023-10-31 (230%); PROS-2021-0031g 2023-11-30 (710%); PROS-2021-0045 2023-01-31 (24%); PROS-2021-0045 2023-02-28 (27%); PROS-2021-0045 2023-03-31 (121%); PROS-2021-0051 2023-11-30 (26%); PROS-2021-0051g 2023-01-31 (20%); PROS-2021-0051g 2023-02-28 (45%); PROS-2021-0051g 2023-03-31 (36%); PROS-2021-0051g 2023-04-30 (23%); PROS-2021-0051g 2023-05-31 (25%); PROS-2021-0051g 2023-06-30 (43%); PROS-2021-0051g 2023-09-30 (29%); PROS-2021-0051g 2023-10-31 (82%); PROS-2021-0051g 2023-11-30 (42%); PROS-2021-0051g 2023-12-31 (31%); PROS-2021-0062 2023-04-30 (21%); PROS-2021-0062g 2023-03-31 (84%); PROS-2021-0062g 2023-04-30 (24%); PROS-2021-0062g 2023-05-31 (27%); PROS-2021-0062g 2023-06-30 (46%); PROS-2021-0062g 2023-07-31 (20%); PROS-2021-0062g 2023-09-30 (35%); PROS-2021-0062g 2023-11-30 (102%); PROS-2021-0062g 2023-12-31 (32%); PROS-2021-0088 2023-04-30 (164%); PROS-2021-0088 2023-07-31 (21%); PROS-2021-0088g 2023-01-31 (66%); PROS-2021-0088g 2023-02-28 (69%); PROS-2021-0088g 2023-03-31 (55%); PROS-2021-0088g 2023-04-30 (51%); PROS-2021-0088g 2023-05-31 (295%); PROS-2021-0088g 2023-06-30 (31%); PROS-2021-0088g 2023-08-31 (39%); PROS-2021-0088g 2023-09-30 (38%); PROS-2021-0088g 2023-11-30 (37%); PROS-2021-0088g 2023-12-31 (54%); SYN-2021-001 2023-02-28 (197%); SYN-2021-001 2023-05-31 (23%); SYN-2021-001 2023-07-31 (24%); SYN-2021-001 2023-08-31 (20%); SYN-2021-001 2023-09-30 (20%); PROS-2022-0009 2023-01-31 (23%); PROS-2022-0009g 2023-01-31 (80%); PROS-2022-0009g 2023-04-30 (23%); PROS-2022-0009g 2023-05-31 (26%); PROS-2022-0009g 2023-06-30 (45%); PROS-2022-0009g 2023-09-30 (31%); PROS-2022-0009g 2023-10-31 (87%); PROS-2022-0009g 2023-11-30 (43%); PROS-2022-0009g 2023-12-31 (32%); PROS-2022-0010 2023-04-30 (20%); PROS-2022-0010 2023-06-30 (26%); PROS-2022-0010g 2023-01-31 (75%); PROS-2022-0010g 2023-04-30 (23%); PROS-2022-0010g 2023-05-31 (26%); PROS-2022-0010g 2023-06-30 (44%); PROS-2022-0010g 2023-09-30 (30%); PROS-2022-0010g 2023-10-31 (85%); PROS-2022-0010g 2023-11-30 (43%); PROS-2022-0010g 2023-12-31 (31%); PROS-2022-0011g 2023-02-28 (68%); PROS-2022-0011g 2023-04-30 (21%); PROS-2022-0011g 2023-05-31 (23%); PROS-2022-0011g 2023-06-30 (39%); PROS-2022-0011g 2023-09-30 (22%); PROS-2022-0011g 2023-10-31 (69%); PROS-2022-0011g 2023-11-30 (37%); PROS-2022-0011g 2023-12-31 (29%); PROS-2022-0019 2023-01-17 (29%); PROS-2022-0019g 2023-01-17 (51%); PROS-2022-0030 2023-04-30 (20%); PROS-2022-0030g 2023-02-28 (47%); PROS-2022-0030g 2023-04-30 (23%); PROS-2022-0030g 2023-05-31 (25%); PROS-2022-0030g 2023-06-30 (43%); PROS-2022-0030g 2023-09-30 (29%); PROS-2022-0030g 2023-10-31 (82%); PROS-2022-0030g 2023-11-30 (42%); PROS-2022-0030g 2023-12-31 (31%); PROS-2022-0045 2023-11-30 (42%); PROS-2022-0046 2023-11-30 (26%); PROS-2022-0046g 2023-02-28 (26%); PROS-2022-0046g 2023-03-31 (33%); PROS-2022-0046g 2023-04-30 (23%); PROS-2022-0046g 2023-05-31 (26%); PROS-2022-0046g 2023-06-30 (44%); PROS-2022-0046g 2023-10-31 (104%); PROS-2022-0046g 2023-11-30 (43%); PROS-2022-0046g 2023-12-31 (31%); PROS-2022-0047 2023-04-30 (20%); PROS-2022-0047g 2023-03-31 (24%); PROS-2022-0047g 2023-06-30 (21%); PROS-2022-0047g 2023-07-31 (24%); PROS-2022-0047g 2023-08-31 (28%); PROS-2022-0047g 2023-09-30 (51%); PROS-2022-0047g 2023-10-31 (29%); PROS-2022-0048 2023-01-31 (20%); PROS-2022-0048 2023-02-28 (24%); PROS-2022-0048 2023-06-30 (106%); PROS-2022-0048 2023-12-31 (38%); PROS-2022-0048g 2023-01-31 (46%); PROS-2022-0048g 2023-02-28 (28%); PROS-2022-0048g 2023-03-31 (20%); PROS-2022-0048g 2023-04-30 (41%); PROS-2022-0048g 2023-05-31 (24%); PROS-2022-0048g 2023-07-31 (79%); PROS-2022-0048g 2023-08-31 (116%); PROS-2022-0048g 2023-09-30 (239%); PROS-2022-0048g 2023-10-31 (46%); PROS-2022-0048g 2023-11-30 (20%); PROS-2022-0048g 2023-12-31 (43%); PROS-2022-0049 2023-05-31 (22%); PROS-2022-0049g 2023-02-28 (20%); PROS-2022-0049g 2023-03-31 (40%); PROS-2022-0049g 2023-04-30 (23%); PROS-2022-0049g 2023-05-31 (26%); PROS-2022-0049g 2023-06-30 (37%); PROS-2022-0049g 2023-07-31 (169%); PROS-2022-0049g 2023-09-30 (32%); PROS-2022-0049g 2023-10-31 (89%); PROS-2022-0049g 2023-11-30 (44%); PROS-2022-0049g 2023-12-31 (32%); PROS-2022-0063g 2023-03-31 (90%); PROS-2022-0063g 2023-05-31 (59%); PROS-2022-0063g 2023-06-30 (39%); PROS-2022-0063g 2023-07-31 (154%); PROS-2022-0063g 2023-08-31 (215%); PROS-2022-0063g 2023-09-30 (214%); PROS-2022-0063g 2023-10-31 (138%); PROS-2022-0063g 2023-11-30 (26%); PROS-2022-0067 2023-05-31 (22%); PROS-2022-0067g 2023-03-31 (93%); PROS-2022-0067g 2023-04-30 (23%); PROS-2022-0067g 2023-05-31 (26%); PROS-2022-0067g 2023-06-30 (36%); PROS-2022-0067g 2023-07-31 (161%); PROS-2022-0067g 2023-08-31 (103%); PROS-2022-0067g 2023-09-30 (103%); PROS-2022-0067g 2023-10-31 (51%); PROS-2022-0067g 2023-11-30 (42%); PROS-2022-0067g 2023-12-31 (31%); PROS-2022-0071 2023-07-31 (26%); PROS-2022-0071 2023-08-31 (22%); PROS-2022-0071 2023-09-30 (22%); PROS-2022-0071g 2023-03-31 (76%); PROS-2022-0071g 2023-05-31 (30%); PROS-2022-0071g 2023-06-30 (73%); PROS-2022-0071g 2023-07-31 (204%); PROS-2022-0071g 2023-08-31 (268%); PROS-2022-0071g 2023-09-30 (267%); PROS-2022-0071g 2023-10-31 (186%); PROS-2022-0071g 2023-11-30 (57%); PROS-2022-0073 2023-05-31 (21%); PROS-2022-0073 2023-06-30 (24%); PROS-2022-0073 2023-07-31 (32%); PROS-2022-0073 2023-08-31 (28%); PROS-2022-0073 2023-09-30 (29%); PROS-2022-0073 2023-10-31 (22%); PROS-2022-0073g 2023-01-31 (104%); PROS-2022-0073g 2023-02-28 (38%); PROS-2022-0073g 2023-06-30 (21%); PROS-2022-0073g 2023-07-31 (105%); PROS-2022-0073g 2023-08-31 (141%); PROS-2022-0073g 2023-09-30 (140%); PROS-2022-0073g 2023-10-31 (94%); PROS-2022-0073g 2023-12-31 (20%); PROS-2022-0081 2023-04-30 (23%); PROS-2022-0081g 2023-01-31 (62%); PROS-2022-0081g 2023-03-31 (31%); PROS-2022-0081g 2023-06-30 (25%); PROS-2022-0081g 2023-10-31 (37%); PROS-2022-0081g 2023-11-30 (22%); PROS-2022-0081g 2023-12-31 (21%); PROS-2022-0082 2023-04-30 (23%); PROS-2022-0082g 2023-03-31 (59%); PROS-2022-0082g 2023-05-31 (26%); PROS-2022-0082g 2023-06-30 (45%); PROS-2022-0082g 2023-09-30 (32%); PROS-2022-0082g 2023-10-31 (89%); PROS-2022-0082g 2023-11-30 (44%); PROS-2022-0082g 2023-12-31 (31%); PROS-2022-0083 2023-07-31 (25%); PROS-2022-0083 2023-08-31 (21%); PROS-2022-0083 2023-09-30 (22%); PROS-2022-0083g 2023-03-31 (55%); PROS-2022-0083g 2023-06-30 (54%); PROS-2022-0083g 2023-07-31 (175%); PROS-2022-0083g 2023-08-31 (235%); PROS-2022-0083g 2023-09-30 (771%); PROS-2022-0083g 2023-10-31 (106%); PROS-2022-0083g 2023-12-31 (22%); PROS-2022-0092 2023-04-30 (22%); PROS-2022-0092g 2023-03-31 (38%); PROS-2022-0092g 2023-04-30 (53%); PROS-2022-0092g 2023-05-31 (64%); PROS-2022-0092g 2023-06-30 (49%); PROS-2022-0092g 2023-07-31 (163%); PROS-2022-0092g 2023-08-31 (414%); PROS-2022-0092g 2023-09-30 (127%); PROS-2022-0092g 2023-11-30 (42%); PROS-2022-0092g 2023-12-31 (31%); PROS-2022-0097 2023-04-30 (30%); PROS-2022-0097g 2023-04-30 (29%); PROS-2022-0097g 2023-05-31 (26%); PROS-2022-0097g 2023-06-30 (45%); PROS-2022-0097g 2023-09-30 (31%); PROS-2022-0097g 2023-10-31 (87%); PROS-2022-0097g 2023-11-30 (43%); PROS-2022-0097g 2023-12-31 (32%); PROS-2022-0100 2023-04-30 (28%); PROS-2022-0100g 2023-04-30 (32%); PROS-2022-0100g 2023-05-31 (21%); PROS-2022-0100g 2023-06-30 (108%); PROS-2022-0100g 2023-09-30 (31%); PROS-2022-0100g 2023-10-31 (87%); PROS-2022-0100g 2023-11-30 (43%); PROS-2022-0100g 2023-12-31 (31%); PROS-2022-0120 2023-04-30 (21%); PROS-2022-0124 2023-04-30 (20%); PROS-2022-0124g 2023-05-31 (42%); PROS-2022-0124g 2023-06-30 (76%); PROS-2022-0124g 2023-07-31 (213%); PROS-2022-0124g 2023-08-31 (281%); PROS-2022-0124g 2023-09-30 (280%); PROS-2022-0124g 2023-10-31 (194%); PROS-2022-0124g 2023-11-30 (59%); PROS-2022-0124g 2023-12-31 (410%); PROS-2022-0125 2023-04-30 (21%); PROS-2022-0125g 2023-06-30 (44%); PROS-2022-0125g 2023-08-31 (48%); PROS-2022-0125g 2023-11-30 (94%); PROS-2022-0125g 2023-12-31 (44%); PROS-2022-0127 2023-04-30 (20%); PROS-2022-0127g 2023-07-31 (94%); PROS-2022-0127g 2023-08-31 (128%); PROS-2022-0127g 2023-09-30 (127%); PROS-2022-0127g 2023-10-31 (84%); PROS-2022-0127g 2023-12-31 (107%); PROS-2022-0128 2023-06-30 (25%); PROS-2022-0128 2023-07-31 (34%); PROS-2022-0128 2023-08-31 (30%); PROS-2022-0128 2023-09-30 (30%); PROS-2022-0128 2023-10-31 (23%); PROS-2022-0128 2023-12-31 (141%); PROS-2022-0128g 2023-01-31 (33%); PROS-2022-0128g 2023-02-28 (36%); PROS-2022-0128g 2023-03-31 (22%); PROS-2022-0128g 2023-06-30 (32%); PROS-2022-0128g 2023-07-31 (126%); PROS-2022-0128g 2023-08-31 (169%); PROS-2022-0128g 2023-09-30 (168%); PROS-2022-0128g 2023-10-31 (113%); PROS-2022-0128g 2023-12-31 (76%); PROS-2022-0130 2023-04-30 (22%); PROS-2022-0130 2023-06-30 (21%); PROS-2022-0130g 2023-06-30 (44%); PROS-2022-0130g 2023-09-30 (31%); PROS-2022-0130g 2023-10-31 (86%); PROS-2022-0130g 2023-11-30 (43%); PROS-2022-0130g 2023-12-31 (31%); PROS-2023-0001 2023-12-31 (21%); PROS-2023-0001g 2023-05-31 (64%); PROS-2023-0001g 2023-06-30 (45%); PROS-2023-0001g 2023-09-30 (32%); PROS-2023-0001g 2023-10-31 (88%); PROS-2023-0001g 2023-11-30 (43%); PROS-2023-0001g 2023-12-31 (32%); PROS-2023-0010 2023-07-31 (37%); PROS-2023-0010g 2023-05-31 (55%); PROS-2023-0010g 2023-06-30 (50%); PROS-2023-0010g 2023-07-31 (186%); PROS-2023-0010g 2023-09-30 (30%); PROS-2023-0010g 2023-10-31 (85%); PROS-2023-0010g 2023-11-30 (42%); PROS-2023-0010g 2023-12-31 (31%); PROS-2023-0013 2023-02-28 (22%); PROS-2023-0013g 2023-06-30 (59%); PROS-2023-0013g 2023-07-31 (289%); PROS-2023-0013g 2023-08-31 (124%); PROS-2023-0013g 2023-09-30 (123%); PROS-2023-0013g 2023-10-31 (72%); PROS-2023-0013g 2023-12-31 (35%); PROS-2023-0014 2023-02-28 (28%); PROS-2023-0014 2023-05-31 (21%); PROS-2023-0014 2023-06-30 (24%); PROS-2023-0014 2023-07-31 (32%); PROS-2023-0014 2023-08-31 (28%); PROS-2023-0014 2023-09-30 (28%); PROS-2023-0014 2023-10-31 (22%); PROS-2023-0014g 2023-04-30 (22%); PROS-2023-0014g 2023-05-31 (24%); PROS-2023-0014g 2023-06-30 (41%); PROS-2023-0014g 2023-09-30 (25%); PROS-2023-0014g 2023-10-31 (75%); PROS-2023-0014g 2023-11-30 (39%); PROS-2023-0014g 2023-12-31 (30%); PROS-2023-0016 2023-02-28 (34%); PROS-2023-0016 2023-12-31 (21%); PROS-2023-0016g 2023-02-28 (23%); PROS-2023-0016g 2023-06-30 (92%); PROS-2023-0016g 2023-09-30 (27%); PROS-2023-0016g 2023-11-30 (92%); PROS-2023-0016g 2023-12-31 (30%); PROS-2023-0025 2023-02-28 (159%); PROS-2023-0025 2023-04-30 (20%); PROS-2023-0025 2023-06-30 (22%); PROS-2023-0025g 2023-02-28 (134%); PROS-2023-0025g 2023-04-30 (23%); PROS-2023-0025g 2023-05-31 (26%); PROS-2023-0025g 2023-06-30 (44%); PROS-2023-0025g 2023-09-30 (30%); PROS-2023-0025g 2023-10-31 (85%); PROS-2023-0025g 2023-11-30 (35%); PROS-2023-0025g 2023-12-31 (86%); PROS-2023-0026 2023-02-28 (159%); PROS-2023-0026 2023-04-30 (20%); PROS-2023-0026 2023-06-30 (22%); PROS-2023-0026g 2023-02-28 (134%); PROS-2023-0026g 2023-04-30 (23%); PROS-2023-0026g 2023-05-31 (20%); PROS-2023-0026g 2023-06-30 (107%); PROS-2023-0026g 2023-09-30 (30%); PROS-2023-0026g 2023-10-31 (86%); PROS-2023-0026g 2023-11-30 (43%); PROS-2023-0026g 2023-12-31 (31%); PROS-2023-0039 2023-03-31 (67%); PROS-2023-0039 2023-04-30 (20%); PROS-2023-0039g 2023-03-31 (55%); PROS-2023-0039g 2023-04-30 (23%); PROS-2023-0039g 2023-06-30 (87%); PROS-2023-0039g 2023-09-30 (31%); PROS-2023-0039g 2023-10-31 (87%); PROS-2023-0039g 2023-11-30 (43%); PROS-2023-0039g 2023-12-31 (32%); PROS-2023-0045 2023-04-30 (61%); PROS-2023-0045 2023-05-31 (52%); PROS-2023-0045 2023-06-30 (52%); PROS-2023-0045 2023-07-31 (48%); PROS-2023-0045 2023-08-31 (50%); PROS-2023-0045 2023-09-30 (50%); PROS-2023-0045 2023-10-31 (52%); PROS-2023-0045 2023-11-30 (56%); PROS-2023-0045 2023-12-31 (61%); PROS-2023-0045g 2023-03-31 (179%); PROS-2023-0045g 2023-04-30 (23%); PROS-2023-0045g 2023-05-31 (26%); PROS-2023-0045g 2023-07-31 (79%); PROS-2023-0045g 2023-08-31 (119%); PROS-2023-0045g 2023-09-30 (118%); PROS-2023-0045g 2023-10-31 (68%); PROS-2023-0045g 2023-12-31 (37%); PROS-2023-0065 2023-11-30 (21%); PROS-2023-0065g 2023-05-31 (25%); PROS-2023-0065g 2023-06-30 (43%); PROS-2023-0065g 2023-09-30 (28%); PROS-2023-0065g 2023-10-31 (82%); PROS-2023-0065g 2023-11-30 (41%); PROS-2023-0065g 2023-12-31 (31%); PROS-2023-0067 2023-11-30 (26%); PROS-2023-0067g 2023-06-30 (92%); PROS-2023-0067g 2023-09-30 (31%); PROS-2023-0067g 2023-10-31 (87%); PROS-2023-0067g 2023-11-30 (43%); PROS-2023-0067g 2023-12-31 (31%); PROS-2023-0072 2023-04-30 (30%); PROS-2023-0072g 2023-04-30 (21%); PROS-2023-0072g 2023-05-31 (24%); PROS-2023-0072g 2023-06-30 (41%); PROS-2023-0072g 2023-09-30 (25%); PROS-2023-0072g 2023-10-31 (75%); PROS-2023-0072g 2023-11-30 (39%); PROS-2023-0072g 2023-12-31 (30%); PROS-2023-0089 2023-04-30 (2965%); PROS-2023-0089g 2023-04-30 (2285%); PROS-2023-0089g 2023-05-31 (26%); PROS-2023-0089g 2023-06-30 (44%); PROS-2023-0089g 2023-11-30 (54%); PROS-2023-0089g 2023-12-31 (68%); PROS-2023-0090 2023-12-31 (22%); PROS-2023-0090g 2023-05-31 (22%); PROS-2023-0090g 2023-06-30 (42%); PROS-2023-0090g 2023-09-30 (28%); PROS-2023-0090g 2023-10-31 (80%); PROS-2023-0090g 2023-11-30 (41%); PROS-2023-0090g 2023-12-31 (31%); PROS-2023-0096 2023-05-31 (22%); PROS-2023-0096g 2023-06-30 (44%); PROS-2023-0096g 2023-10-31 (23%); PROS-2023-0096g 2023-11-30 (59%); PROS-2023-0096g 2023-12-31 (71%); PROS-2023-0104 2023-05-31 (148%); PROS-2023-0104g 2023-09-30 (28%); PROS-2023-0104g 2023-11-30 (94%); PROS-2023-0104g 2023-12-31 (31%); PROS-2023-0113 2023-05-31 (501%); PROS-2023-0113g 2023-05-31 (344%); PROS-2023-0113g 2023-06-30 (44%); PROS-2023-0113g 2023-09-30 (31%); PROS-2023-0113g 2023-11-30 (98%); PROS-2023-0113g 2023-12-31 (31%); PROS-2023-0116 2023-05-31 (483%); PROS-2023-0116g 2023-05-31 (348%); PROS-2023-0116g 2023-06-30 (43%); PROS-2023-0116g 2023-09-30 (28%); PROS-2023-0116g 2023-10-31 (82%); PROS-2023-0116g 2023-11-30 (42%); PROS-2023-0116g 2023-12-31 (31%); PROS-2023-0125 2023-05-31 (156%); PROS-2023-0125 2023-06-30 (78%); PROS-2023-0125g 2023-05-31 (1016%); PROS-2023-0125g 2023-06-30 (44%); PROS-2023-0125g 2023-10-31 (102%); PROS-2023-0125g 2023-11-30 (42%); PROS-2023-0125g 2023-12-31 (33%); PROS-2023-0126 2023-05-31 (2650%); PROS-2023-0126g 2023-05-31 (2504%); PROS-2023-0126g 2023-06-30 (23%); PROS-2023-0126g 2023-10-31 (33%); PROS-2023-0126g 2023-11-30 (20%); PROS-2023-0127g 2023-06-30 (41%); PROS-2023-0127g 2023-09-30 (31%); PROS-2023-0127g 2023-10-31 (87%); PROS-2023-0127g 2023-11-30 (35%); PROS-2023-0127g 2023-12-31 (55%); PROS-2023-0146 2023-06-30 (328%); PROS-2023-0146g 2023-06-30 (158%); PROS-2023-0146g 2023-09-30 (26%); PROS-2023-0146g 2023-10-31 (78%); PROS-2023-0146g 2023-11-30 (40%); PROS-2023-0146g 2023-12-31 (30%); PROS-2023-0147 2023-06-30 (644%); PROS-2023-0147 2023-11-30 (26%); PROS-2023-0147g 2023-06-30 (362%); PROS-2023-0147g 2023-09-30 (24%); PROS-2023-0147g 2023-11-30 (89%); PROS-2023-0147g 2023-12-31 (30%); PROS-2023-0152g 2023-09-30 (28%); PROS-2023-0152g 2023-10-31 (81%); PROS-2023-0152g 2023-11-30 (41%); PROS-2023-0152g 2023-12-31 (31%); PROS-2023-0158 2023-07-31 (27%); PROS-2023-0158g 2023-09-30 (27%); PROS-2023-0158g 2023-10-31 (79%); PROS-2023-0158g 2023-11-30 (40%); PROS-2023-0158g 2023-12-31 (30%); PROS-2023-0162 2023-07-31 (46%); PROS-2023-0162g 2023-09-30 (32%); PROS-2023-0162g 2023-10-31 (89%); PROS-2023-0162g 2023-11-30 (44%); PROS-2023-0162g 2023-12-31 (32%); PROS-2023-0166 2023-07-31 (83%); PROS-2023-0166g 2023-07-31 (54%); PROS-2023-0166g 2023-10-31 (65%); PROS-2023-0166g 2023-12-31 (26%); PROS-2023-0172 2023-07-31 (176%); PROS-2023-0172g 2023-07-31 (138%); PROS-2023-0172g 2023-10-31 (91%); PROS-2023-0172g 2023-11-30 (35%); PROS-2023-0172g 2023-12-31 (28%); PROS-2023-0177 2023-07-31 (417%); PROS-2023-0177g 2023-07-31 (317%); PROS-2023-0177g 2023-09-30 (27%); PROS-2023-0177g 2023-10-31 (80%); PROS-2023-0177g 2023-12-31 (29%)
+- Churn risk (accounts renewing in 2023): 43 at risk (≥20% churn prob): C2 38%, C3 41%, C7 41%, C8 35%, C9 41%, PROS-2016-0011 41%, PROS-2016-0020 41%, PROS-2017-0019 41%, PROS-2017-0022 41%, PROS-2018-0003 41%, PROS-2018-0009 41%, PROS-2018-0014 41%, PROS-2018-0016 41%, PROS-2018-0018 41%, PROS-2018-0022 41%, PROS-2018-0024 41%, PROS-2018-0035 41%, PROS-2018-0043 41%, PROS-2018-0053 41%, PROS-2019-0008 41%, PROS-2019-0009 41%, PROS-2019-0012 41%, PROS-2019-0015 41%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0002 41%, PROS-2020-0006 41%, PROS-2020-0009 41%, PROS-2020-0012 41%, PROS-2020-0016 41%, PROS-2020-0022 41%, PROS-2020-0025 41%, PROS-2020-0032 41%, PROS-2020-0043 41%, PROS-2020-0048 41%, PROS-2021-0006 41%, PROS-2021-0031 41%, PROS-2021-0045 41%, PROS-2021-0051 41%, PROS-2021-0062 41%, PROS-2021-0088 41%
 
 **Pricing & Margin**
 
@@ -7419,34 +7424,36 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - C9 (electricity): tariff £167.53-£401.33/MWh, net margin £310.87
 - PROS-2016-0011 (electricity): tariff £274.42-£291.12/MWh, net margin £120.53
 - PROS-2016-0011g (gas): tariff £40.70-£103.20/MWh, net margin £164.27
-- PROS-2016-0020 (electricity): tariff £274.91-£358.12/MWh, net margin £395.40
+- PROS-2016-0020 (electricity): tariff £275.01-£358.04/MWh, net margin £395.12
 - PROS-2016-0020g (gas): tariff £40.70-£103.20/MWh, net margin £160.93
-- PROS-2017-0019 (electricity): tariff £297.73-£345.76/MWh, net margin £171.54
+- PROS-2017-0019 (electricity): tariff £297.75-£343.98/MWh, net margin £171.34
 - PROS-2017-0019g (gas): tariff £40.70-£103.20/MWh, net margin £135.71
-- PROS-2017-0022 (electricity): tariff £284.21-£304.33/MWh, net margin £198.29
+- PROS-2017-0022 (electricity): tariff £284.17-£304.36/MWh, net margin £198.40
 - PROS-2017-0022g (gas): tariff £40.70-£103.20/MWh, net margin £213.89
-- PROS-2018-0003 (electricity): tariff £296.52/MWh, net margin £-110.87 -- **net-negative**
+- PROS-2018-0003 (electricity): tariff £296.52/MWh, net margin £49.94
 - PROS-2018-0003g (gas): tariff £103.20/MWh, net margin £158.10
 - PROS-2018-0009 (electricity): tariff £289.31-£308.61/MWh, net margin £99.87
-- PROS-2018-0016 (electricity): tariff £290.91-£294.55/MWh, net margin £125.64
+- PROS-2018-0014 (electricity): tariff £290.49-£292.55/MWh, net margin £-123.18 -- **net-negative**
+- PROS-2018-0014g (gas): tariff £40.70-£103.20/MWh, net margin £147.69
+- PROS-2018-0016 (electricity): tariff £293.16-£296.43/MWh, net margin £134.45
 - PROS-2018-0016g (gas): tariff £40.70-£103.20/MWh, net margin £166.98
-- PROS-2018-0018 (electricity): tariff £291.38-£293.97/MWh, net margin £118.64
+- PROS-2018-0018 (electricity): tariff £291.93-£294.00/MWh, net margin £121.23
 - PROS-2018-0018g (gas): tariff £40.70-£103.20/MWh, net margin £139.53
-- PROS-2018-0022 (electricity): tariff £299.20-£343.79/MWh, net margin £182.47
+- PROS-2018-0022 (electricity): tariff £299.09-£343.93/MWh, net margin £182.18
 - PROS-2018-0022g (gas): tariff £40.70-£103.20/MWh, net margin £158.73
-- PROS-2018-0024 (electricity): tariff £296.99-£340.55/MWh, net margin £175.85
+- PROS-2018-0024 (electricity): tariff £296.89-£340.68/MWh, net margin £175.51
 - PROS-2018-0035 (electricity): tariff £370.96-£391.58/MWh, net margin £538.04
 - PROS-2018-0035g (gas): tariff £40.70-£103.20/MWh, net margin £203.08
 - PROS-2018-0043 (electricity): tariff £380.52-£397.79/MWh, net margin £568.66
-- PROS-2018-0053 (electricity): tariff £338.29-£348.81/MWh, net margin £361.70
+- PROS-2018-0053 (electricity): tariff £338.29-£348.59/MWh, net margin £361.57
 - PROS-2018-0053g (gas): tariff £40.70-£103.20/MWh, net margin £163.39
-- PROS-2019-0008 (electricity): tariff £234.81-£476.25/MWh, net margin £209.08
+- PROS-2019-0008 (electricity): tariff £239.28-£470.03/MWh, net margin £194.04
 - PROS-2019-0008g (gas): tariff £40.70-£103.20/MWh, net margin £170.67
-- PROS-2019-0009 (electricity): tariff £294.30-£295.30/MWh, net margin £125.01
+- PROS-2019-0009 (electricity): tariff £294.35-£294.53/MWh, net margin £125.93
 - PROS-2019-0009g (gas): tariff £40.70-£103.20/MWh, net margin £140.64
-- PROS-2019-0012 (electricity): tariff £232.55-£498.78/MWh, net margin £165.71
+- PROS-2019-0012 (electricity): tariff £232.53-£498.97/MWh, net margin £165.64
 - PROS-2019-0012g (gas): tariff £40.70-£103.20/MWh, net margin £128.63
-- PROS-2019-0015 (electricity): tariff £291.64-£305.99/MWh, net margin £207.99
+- PROS-2019-0015 (electricity): tariff £291.61-£306.01/MWh, net margin £208.05
 - PROS-2019-0015g (gas): tariff £40.70-£103.20/MWh, net margin £178.87
 - PROS-2019-0021 (electricity): tariff £350.79-£418.61/MWh, net margin £514.39
 - PROS-2019-0021g (gas): tariff £40.70-£103.20/MWh, net margin £154.81
@@ -7464,34 +7471,34 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2020-0009g (gas): tariff £40.70-£103.20/MWh, net margin £124.93
 - PROS-2020-0012 (electricity): tariff £288.49-£308.97/MWh, net margin £72.58
 - PROS-2020-0012g (gas): tariff £40.70-£103.20/MWh, net margin £145.96
-- PROS-2020-0016 (electricity): tariff £293.39-£294.14/MWh, net margin £135.06
+- PROS-2020-0016 (electricity): tariff £293.25-£293.56/MWh, net margin £134.44
 - PROS-2020-0016g (gas): tariff £40.70-£103.20/MWh, net margin £134.09
-- PROS-2020-0022 (electricity): tariff £232.20-£457.44/MWh, net margin £187.46
+- PROS-2020-0022 (electricity): tariff £232.19-£457.45/MWh, net margin £187.48
 - PROS-2020-0022g (gas): tariff £40.70-£103.20/MWh, net margin £164.73
-- PROS-2020-0025 (electricity): tariff £298.46-£306.90/MWh, net margin £213.07
+- PROS-2020-0025 (electricity): tariff £298.46-£306.91/MWh, net margin £213.08
 - PROS-2020-0025g (gas): tariff £40.70-£103.20/MWh, net margin £220.85
-- PROS-2020-0032 (electricity): tariff £279.55-£564.56/MWh, net margin £526.59
+- PROS-2020-0032 (electricity): tariff £279.56-£564.56/MWh, net margin £526.59
 - PROS-2020-0032g (gas): tariff £40.70-£103.20/MWh, net margin £184.40
-- PROS-2020-0042 (electricity): tariff £370.20-£380.78/MWh, net margin £686.25
-- PROS-2020-0042g (gas): tariff £40.70-£103.20/MWh, net margin £219.55
-- PROS-2020-0043 (electricity): tariff £364.91-£373.06/MWh, net margin £-319.52 -- **net-negative**
+- PROS-2020-0043 (electricity): tariff £367.22-£373.06/MWh, net margin £-320.26 -- **net-negative**
 - PROS-2020-0043g (gas): tariff £40.70-£103.20/MWh, net margin £206.49
-- PROS-2020-0048 (electricity): tariff £354.91-£357.31/MWh, net margin £543.99
+- PROS-2020-0048 (electricity): tariff £354.91-£359.84/MWh, net margin £546.00
 - PROS-2020-0048g (gas): tariff £40.70-£103.20/MWh, net margin £254.41
-- PROS-2021-0031 (electricity): tariff £346.92-£391.24/MWh, net margin £520.46
+- PROS-2021-0006 (electricity): tariff £230.58-£462.07/MWh, net margin £105.50
+- PROS-2021-0006g (gas): tariff £40.70-£103.20/MWh, net margin £142.76
+- PROS-2021-0031 (electricity): tariff £346.92-£391.24/MWh, net margin £520.45
 - PROS-2021-0031g (gas): tariff £40.70-£103.20/MWh, net margin £209.29
-- PROS-2021-0045 (electricity): tariff £341.28-£343.30/MWh, net margin £464.40
-- PROS-2021-0051 (electricity): tariff £259.81-£506.17/MWh, net margin £333.55
+- PROS-2021-0045 (electricity): tariff £341.15-£341.28/MWh, net margin £462.61
+- PROS-2021-0051 (electricity): tariff £259.99-£505.92/MWh, net margin £333.14
 - PROS-2021-0051g (gas): tariff £40.70-£103.20/MWh, net margin £196.48
-- PROS-2021-0062 (electricity): tariff £267.07-£521.97/MWh, net margin £652.41
+- PROS-2021-0062 (electricity): tariff £267.06-£521.97/MWh, net margin £652.38
 - PROS-2021-0062g (gas): tariff £40.70-£103.20/MWh, net margin £413.22
 - PROS-2021-0088 (electricity): tariff £285.34-£322.18/MWh, net margin £252.73
 - PROS-2021-0088g (gas): tariff £40.70-£99.93/MWh, net margin £106.35
-- PROS-2022-0009 (electricity): tariff £215.15-£437.52/MWh, net margin £108.75
+- PROS-2022-0009 (electricity): tariff £215.15-£436.09/MWh, net margin £105.16
 - PROS-2022-0009g (gas): tariff £40.70-£103.20/MWh, net margin £166.54
-- PROS-2022-0010 (electricity): tariff £217.07-£451.26/MWh, net margin £135.61
+- PROS-2022-0010 (electricity): tariff £217.07-£449.41/MWh, net margin £129.79
 - PROS-2022-0010g (gas): tariff £40.70-£103.20/MWh, net margin £162.10
-- PROS-2022-0011 (electricity): tariff £217.88-£478.63/MWh, net margin £-60.75 -- **net-negative**
+- PROS-2022-0011 (electricity): tariff £217.88-£479.39/MWh, net margin £-58.65 -- **net-negative**
 - PROS-2022-0011g (gas): tariff £40.70-£103.20/MWh, net margin £126.09
 - PROS-2022-0019 (electricity): tariff £282.92/MWh, net margin £-92.84 -- **net-negative**
 - PROS-2022-0019g (gas): tariff £40.70/MWh, net margin £-22.70 -- **net-negative**
@@ -7601,13 +7608,13 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 2.2% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 2064, average clarity 0.854, average bill shock 42.8%, bad debt provision £2,079.73, avg complaint probability 5.6%
-- Solvency signal: £3,228/customer (98 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 2088, average clarity 0.854, average bill shock 42.3%, bad debt provision £2,124.27, avg complaint probability 5.6%
+- Solvency signal: £3,189/customer (99 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £45,921.41 vs. naked (unhedged) net margin: £161,642.93
-- hedging cost £115,721.52 vs. a fully unhedged book (commodity-only: actual net £45,921.41 vs. naked net £161,642.93)
+- Actual (hedged) net margin: £45,215.85 vs. naked (unhedged) net margin: £161,938.50
+- hedging cost £116,722.66 vs. a fully unhedged book (commodity-only: actual net £45,215.85 vs. naked net £161,938.50)
   - C2: actual £379.48 vs. naked £967.91 -- hedging cost £588.43
   - C2g: actual £629.26 vs. naked £1,111.17 -- hedging cost £481.91
   - C3: actual £109.92 vs. naked £459.67 -- hedging cost £349.75
@@ -7617,36 +7624,38 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - C9: actual £205.15 vs. naked £1,717.94 -- hedging cost £1,512.80
   - PROS-2016-0011: actual £56.70 vs. naked £736.66 -- hedging cost £679.96
   - PROS-2016-0011g: actual £128.17 vs. naked £754.78 -- hedging cost £626.61
-  - PROS-2016-0020: actual £297.19 vs. naked £1,012.15 -- hedging cost £714.96
+  - PROS-2016-0020: actual £296.90 vs. naked £1,011.84 -- hedging cost £714.94
   - PROS-2016-0020g: actual £157.40 vs. naked £570.17 -- hedging cost £412.77
-  - PROS-2017-0019: actual £98.25 vs. naked £769.14 -- hedging cost £670.89
+  - PROS-2017-0019: actual £98.32 vs. naked £769.21 -- hedging cost £670.90
   - PROS-2017-0019g: actual £123.20 vs. naked £396.67 -- hedging cost £273.47
-  - PROS-2017-0022: actual £124.31 vs. naked £955.50 -- hedging cost £831.19
+  - PROS-2017-0022: actual £124.44 vs. naked £955.64 -- hedging cost £831.20
   - PROS-2017-0022g: actual £217.82 vs. naked £1,102.49 -- hedging cost £884.67
   - PROS-2018-0003: actual £-32.08 vs. naked £888.16 -- hedging cost £920.24
   - PROS-2018-0003g: actual £88.94 vs. naked £778.32 -- hedging cost £689.38
   - PROS-2018-0009: actual £32.24 vs. naked £722.29 -- hedging cost £690.05
-  - PROS-2018-0016: actual £-71.42 vs. naked £737.78 -- hedging cost £809.20
+  - PROS-2018-0014: actual £-17.27 vs. naked £1,031.23 -- hedging cost £1,048.51
+  - PROS-2018-0014g: actual £120.25 vs. naked £689.35 -- hedging cost £569.10
+  - PROS-2018-0016: actual £-63.86 vs. naked £746.57 -- hedging cost £810.42
   - PROS-2018-0016g: actual £135.94 vs. naked £747.00 -- hedging cost £611.06
-  - PROS-2018-0018: actual £38.94 vs. naked £879.04 -- hedging cost £840.10
+  - PROS-2018-0018: actual £41.49 vs. naked £881.69 -- hedging cost £840.21
   - PROS-2018-0018g: actual £123.21 vs. naked £493.48 -- hedging cost £370.27
-  - PROS-2018-0022: actual £125.20 vs. naked £631.02 -- hedging cost £505.83
+  - PROS-2018-0022: actual £124.90 vs. naked £630.71 -- hedging cost £505.82
   - PROS-2018-0022g: actual £144.62 vs. naked £484.13 -- hedging cost £339.51
-  - PROS-2018-0024: actual £69.81 vs. naked £770.29 -- hedging cost £700.49
+  - PROS-2018-0024: actual £69.45 vs. naked £769.91 -- hedging cost £700.46
   - PROS-2018-0035: actual £296.80 vs. naked £1,152.00 -- hedging cost £855.20
   - PROS-2018-0035g: actual £236.80 vs. naked £831.64 -- hedging cost £594.84
   - PROS-2018-0043: actual £504.72 vs. naked £1,194.96 -- hedging cost £690.23
   - PROS-2018-0053: actual £293.95 vs. naked £979.47 -- hedging cost £685.53
   - PROS-2018-0053g: actual £228.42 vs. naked £452.65 -- hedging cost £224.23
-  - PROS-2019-0008: actual £2.06 vs. naked £829.71 -- hedging cost £827.65
+  - PROS-2019-0008: actual £-11.71 vs. naked £813.72 -- hedging cost £825.43
   - PROS-2019-0008g: actual £131.22 vs. naked £824.53 -- hedging cost £693.31
-  - PROS-2019-0009: actual £44.55 vs. naked £890.25 -- hedging cost £845.71
+  - PROS-2019-0009: actual £45.60 vs. naked £891.35 -- hedging cost £845.75
   - PROS-2019-0009g: actual £120.64 vs. naked £526.70 -- hedging cost £406.06
-  - PROS-2019-0012: actual £110.61 vs. naked £615.68 -- hedging cost £505.08
+  - PROS-2019-0012: actual £110.52 vs. naked £615.59 -- hedging cost £505.07
   - PROS-2019-0012g: actual £108.09 vs. naked £268.15 -- hedging cost £160.06
-  - PROS-2019-0015: actual £132.08 vs. naked £963.62 -- hedging cost £831.54
+  - PROS-2019-0015: actual £132.15 vs. naked £963.70 -- hedging cost £831.54
   - PROS-2019-0015g: actual £180.02 vs. naked £782.82 -- hedging cost £602.80
-  - PROS-2019-0021: actual £469.32 vs. naked £993.98 -- hedging cost £524.66
+  - PROS-2019-0021: actual £469.32 vs. naked £993.99 -- hedging cost £524.66
   - PROS-2019-0021g: actual £174.70 vs. naked £394.35 -- hedging cost £219.65
   - PROS-2019-0023: actual £526.73 vs. naked £1,392.08 -- hedging cost £865.35
   - PROS-2019-0023g: actual £238.35 vs. naked £811.59 -- hedging cost £573.24
@@ -7662,34 +7671,34 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2020-0009g: actual £90.82 vs. naked £366.24 -- hedging cost £275.41
   - PROS-2020-0012: actual £-9.58 vs. naked £850.41 -- hedging cost £860.00
   - PROS-2020-0012g: actual £101.65 vs. naked £747.33 -- hedging cost £645.68
-  - PROS-2020-0016: actual £36.08 vs. naked £747.48 -- hedging cost £711.39
+  - PROS-2020-0016: actual £35.56 vs. naked £746.92 -- hedging cost £711.36
   - PROS-2020-0016g: actual £98.37 vs. naked £408.25 -- hedging cost £309.88
-  - PROS-2020-0022: actual £126.11 vs. naked £796.23 -- hedging cost £670.13
+  - PROS-2020-0022: actual £126.12 vs. naked £796.25 -- hedging cost £670.13
   - PROS-2020-0022g: actual £137.92 vs. naked £590.08 -- hedging cost £452.16
   - PROS-2020-0025: actual £136.25 vs. naked £969.48 -- hedging cost £833.23
   - PROS-2020-0025g: actual £231.76 vs. naked £1,143.63 -- hedging cost £911.87
   - PROS-2020-0032: actual £392.93 vs. naked £1,298.86 -- hedging cost £905.93
   - PROS-2020-0032g: actual £206.90 vs. naked £775.19 -- hedging cost £568.29
-  - PROS-2020-0042: actual £592.51 vs. naked £1,649.76 -- hedging cost £1,057.25
-  - PROS-2020-0042g: actual £351.87 vs. naked £1,189.17 -- hedging cost £837.31
   - PROS-2020-0043: actual £428.71 vs. naked £1,331.89 -- hedging cost £903.18
   - PROS-2020-0043g: actual £299.46 vs. naked £809.68 -- hedging cost £510.22
   - PROS-2020-0048: actual £447.68 vs. naked £1,501.57 -- hedging cost £1,053.89
   - PROS-2020-0048g: actual £408.08 vs. naked £1,125.61 -- hedging cost £717.53
+  - PROS-2021-0006: actual £25.42 vs. naked £875.14 -- hedging cost £849.73
+  - PROS-2021-0006g: actual £121.87 vs. naked £551.49 -- hedging cost £429.62
   - PROS-2021-0031: actual £461.59 vs. naked £1,154.83 -- hedging cost £693.24
   - PROS-2021-0031g: actual £222.34 vs. naked £862.52 -- hedging cost £640.18
   - PROS-2021-0045: actual £370.21 vs. naked £1,423.52 -- hedging cost £1,053.32
-  - PROS-2021-0051: actual £278.06 vs. naked £966.28 -- hedging cost £688.23
+  - PROS-2021-0051: actual £277.45 vs. naked £965.65 -- hedging cost £688.20
   - PROS-2021-0051g: actual £303.32 vs. naked £644.59 -- hedging cost £341.27
   - PROS-2021-0062: actual £551.04 vs. naked £2,017.90 -- hedging cost £1,466.86
   - PROS-2021-0062g: actual £826.71 vs. naked £2,454.17 -- hedging cost £1,627.46
   - PROS-2021-0088: actual £219.51 vs. naked £843.96 -- hedging cost £624.46
   - PROS-2021-0088g: actual £289.29 vs. naked £469.76 -- hedging cost £180.47
-  - PROS-2022-0009: actual £46.67 vs. naked £730.10 -- hedging cost £683.43
+  - PROS-2022-0009: actual £43.15 vs. naked £726.44 -- hedging cost £683.28
   - PROS-2022-0009g: actual £129.25 vs. naked £779.45 -- hedging cost £650.20
-  - PROS-2022-0010: actual £59.55 vs. naked £910.71 -- hedging cost £851.16
+  - PROS-2022-0010: actual £53.84 vs. naked £904.76 -- hedging cost £850.92
   - PROS-2022-0010g: actual £133.11 vs. naked £778.23 -- hedging cost £645.12
-  - PROS-2022-0011: actual £36.44 vs. naked £949.35 -- hedging cost £912.91
+  - PROS-2022-0011: actual £38.69 vs. naked £951.69 -- hedging cost £913.00
   - PROS-2022-0011g: actual £114.17 vs. naked £267.47 -- hedging cost £153.30
   - PROS-2022-0030: actual £440.76 vs. naked £1,137.69 -- hedging cost £696.93
   - PROS-2022-0030g: actual £210.18 vs. naked £605.90 -- hedging cost £395.72
@@ -7793,32 +7802,32 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2023-0177g: actual £132.10 vs. naked £352.62 -- hedging cost £220.52
   - SYN-2021-001: actual £332.71 vs. naked £966.29 -- hedging cost £633.58
 
-**Year narrative:** 2023 produced a net gain of £39,030.67 across 186 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 827 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2023 produced a net gain of £38,545.74 across 188 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 835 customer(s) experienced a bill shock of >=20%.
 
 ## 2024
 
 **Trading & Risk**
 
-- Net margin: £69,386.08 (gross £172,310.53, capital £2,593.79)
-  - Electricity: gross £119,782.02, capital £979.85, net £38,921.90
-  - Gas: gross £52,528.51, capital £1,613.93, net £30,464.18
-- Treasury at year end: £383,573.99
-- Hedge fraction at first renewal this year (avg across year's terms): C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.90 (avg 0.90), C3g 0.85 (avg 0.85), C7 0.88 (avg 0.88), C8 0.91 (avg 0.91), C9 0.90 (avg 0.90), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.93 (avg 0.93), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0003 0.92 (avg 0.92), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0016 0.92 (avg 0.92), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.93 (avg 0.93), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.93 (avg 0.93), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.92 (avg 0.92), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.93 (avg 0.93), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.93 (avg 0.93), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.93 (avg 0.93), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.93 (avg 0.93), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0024 0.93 (avg 0.93), PROS-2019-0024g 0.85 (avg 0.85), PROS-2019-0027 0.92 (avg 0.92), PROS-2019-0027g 0.85 (avg 0.85), PROS-2020-0002 0.93 (avg 0.90), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0016 0.92 (avg 0.92), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.93 (avg 0.93), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0025 0.93 (avg 0.93), PROS-2020-0025g 0.85 (avg 0.85), PROS-2020-0032 0.93 (avg 0.93), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0042 0.91 (avg 0.91), PROS-2020-0042g 0.85 (avg 0.85), PROS-2020-0048 0.92 (avg 0.92), PROS-2020-0048g 0.85 (avg 0.85), PROS-2021-0031 0.93 (avg 0.93), PROS-2021-0031g 0.85 (avg 0.85), PROS-2021-0045 0.91 (avg 0.91), PROS-2021-0051 0.92 (avg 0.92), PROS-2021-0051g 0.85 (avg 0.85), PROS-2021-0062 0.91 (avg 0.91), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.91 (avg 0.91), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.93 (avg 0.93), PROS-2022-0009g 0.85 (avg 0.85), PROS-2022-0010 0.92 (avg 0.92), PROS-2022-0010g 0.85 (avg 0.85), PROS-2022-0011 0.92 (avg 0.92), PROS-2022-0011g 0.85 (avg 0.85), PROS-2022-0030 0.93 (avg 0.93), PROS-2022-0030g 0.85 (avg 0.85), PROS-2022-0045 0.92 (avg 0.92), PROS-2022-0046 0.92 (avg 0.92), PROS-2022-0046g 0.85 (avg 0.85), PROS-2022-0047 0.92 (avg 0.92), PROS-2022-0047g 0.85 (avg 0.85), PROS-2022-0048 0.92 (avg 0.92), PROS-2022-0048g 0.85 (avg 0.85), PROS-2022-0049 0.91 (avg 0.91), PROS-2022-0049g 0.85 (avg 0.85), PROS-2022-0067 0.91 (avg 0.91), PROS-2022-0067g 0.85 (avg 0.85), PROS-2022-0071 0.91 (avg 0.91), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.90 (avg 0.90), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.89 (avg 0.89), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.90 (avg 0.90), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.89 (avg 0.89), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.91 (avg 0.91), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.90 (avg 0.90), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.90 (avg 0.90), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.90 (avg 0.90), PROS-2022-0124 0.90 (avg 0.90), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0125 0.90 (avg 0.90), PROS-2022-0125g 0.85 (avg 0.85), PROS-2022-0127 0.90 (avg 0.90), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.90 (avg 0.90), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.90 (avg 0.90), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.92 (avg 0.92), PROS-2023-0001g 0.85 (avg 0.85), PROS-2023-0010 0.93 (avg 0.93), PROS-2023-0010g 0.85 (avg 0.85), PROS-2023-0013 0.92 (avg 0.92), PROS-2023-0013g 0.85 (avg 0.85), PROS-2023-0014 0.93 (avg 0.93), PROS-2023-0014g 0.85 (avg 0.85), PROS-2023-0016 0.92 (avg 0.92), PROS-2023-0016g 0.85 (avg 0.85), PROS-2023-0025 0.92 (avg 0.92), PROS-2023-0025g 0.85 (avg 0.85), PROS-2023-0026 0.92 (avg 0.92), PROS-2023-0026g 0.85 (avg 0.85), PROS-2023-0039 0.92 (avg 0.92), PROS-2023-0039g 0.85 (avg 0.85), PROS-2023-0045 0.91 (avg 0.91), PROS-2023-0045g 0.85 (avg 0.85), PROS-2023-0065 0.91 (avg 0.91), PROS-2023-0065g 0.85 (avg 0.85), PROS-2023-0067 0.91 (avg 0.91), PROS-2023-0067g 0.85 (avg 0.85), PROS-2023-0072 0.89 (avg 0.89), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.91 (avg 0.91), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.90 (avg 0.90), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.90 (avg 0.90), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.90 (avg 0.90), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.90 (avg 0.90), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0116 0.90 (avg 0.90), PROS-2023-0116g 0.85 (avg 0.85), PROS-2023-0125 0.91 (avg 0.91), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.91 (avg 0.91), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.90 (avg 0.90), PROS-2023-0127g 0.85 (avg 0.85), PROS-2023-0146 0.88 (avg 0.88), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.86 (avg 0.86), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.87 (avg 0.87), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.88 (avg 0.88), PROS-2023-0158g 0.85 (avg 0.85), PROS-2023-0162 0.89 (avg 0.89), PROS-2023-0162g 0.85 (avg 0.85), PROS-2023-0166 0.87 (avg 0.87), PROS-2023-0166g 0.85 (avg 0.85), PROS-2023-0172 0.87 (avg 0.87), PROS-2023-0172g 0.85 (avg 0.85), PROS-2023-0177 0.87 (avg 0.87), PROS-2023-0177g 0.85 (avg 0.85), PROS-2024-0008 0.92 (avg 0.92), PROS-2024-0008g 0.85 (avg 0.85), PROS-2024-0009 0.92 (avg 0.92), PROS-2024-0009g 0.85 (avg 0.85), PROS-2024-0010 0.91 (avg 0.91), PROS-2024-0010g 0.85 (avg 0.85), PROS-2024-0012 0.91 (avg 0.91), PROS-2024-0012g 0.85 (avg 0.85), PROS-2024-0014 0.92 (avg 0.92), PROS-2024-0014g 0.85 (avg 0.85), PROS-2024-0022 0.92 (avg 0.92), PROS-2024-0027 0.92 (avg 0.92), PROS-2024-0027g 0.85 (avg 0.85), PROS-2024-0036 0.91 (avg 0.91), PROS-2024-0036g 0.85 (avg 0.85), PROS-2024-0038 0.92 (avg 0.92), PROS-2024-0038g 0.85 (avg 0.85), PROS-2024-0040 0.91 (avg 0.91), PROS-2024-0040g 0.85 (avg 0.85), PROS-2024-0041 0.91 (avg 0.91), PROS-2024-0041g 0.85 (avg 0.85), PROS-2024-0048 0.92 (avg 0.92), PROS-2024-0048g 0.85 (avg 0.85), PROS-2024-0056 0.90 (avg 0.90), PROS-2024-0056g 0.85 (avg 0.85), PROS-2024-0057 0.90 (avg 0.90), PROS-2024-0057g 0.85 (avg 0.85), PROS-2024-0062 0.91 (avg 0.91), PROS-2024-0062g 0.85 (avg 0.85), PROS-2024-0065 0.91 (avg 0.91), PROS-2024-0065g 0.85 (avg 0.85), PROS-2024-0069 0.91 (avg 0.91), PROS-2024-0069g 0.85 (avg 0.85), PROS-2024-0076 0.90 (avg 0.90), PROS-2024-0076g 0.85 (avg 0.85), PROS-2024-0081 0.89 (avg 0.89), PROS-2024-0081g 0.85 (avg 0.85), PROS-2024-0082 0.91 (avg 0.91), PROS-2024-0083 0.91 (avg 0.91), PROS-2024-0083g 0.85 (avg 0.85), PROS-2024-0085 0.90 (avg 0.90), PROS-2024-0085g 0.85 (avg 0.85), PROS-2024-0087 0.91 (avg 0.91), PROS-2024-0087g 0.85 (avg 0.85), PROS-2024-0094 0.90 (avg 0.90), PROS-2024-0096 0.89 (avg 0.89), PROS-2024-0096g 0.85 (avg 0.85), PROS-2024-0098 0.89 (avg 0.89), PROS-2024-0098g 0.85 (avg 0.85), PROS-2024-0110 0.89 (avg 0.89), PROS-2024-0110g 0.85 (avg 0.85), PROS-2024-0111 0.89 (avg 0.89), PROS-2024-0111g 0.85 (avg 0.85), PROS-2024-0113 0.90 (avg 0.90), PROS-2024-0113g 0.85 (avg 0.85), PROS-2024-0116 0.90 (avg 0.90), PROS-2024-0116g 0.85 (avg 0.85), PROS-2024-0122 0.90 (avg 0.90), PROS-2024-0122g 0.85 (avg 0.85), PROS-2024-0131 0.91 (avg 0.91), PROS-2024-0131g 0.85 (avg 0.85), PROS-2024-0147 0.91 (avg 0.91), PROS-2024-0147g 0.85 (avg 0.85), PROS-2024-0148 0.91 (avg 0.91), PROS-2024-0148g 0.85 (avg 0.85), PROS-2024-0156 0.88 (avg 0.88), PROS-2024-0156g 0.85 (avg 0.85), PROS-2024-0157 0.88 (avg 0.88), PROS-2024-0157g 0.85 (avg 0.85), PROS-2024-0160 0.87 (avg 0.87), PROS-2024-0160g 0.85 (avg 0.85), PROS-2024-0179 0.87 (avg 0.87), PROS-2024-0179g 0.85 (avg 0.85), PROS-2024-0191 0.88 (avg 0.88), PROS-2024-0191g 0.85 (avg 0.85), PROS-2024-0195 0.87 (avg 0.87), PROS-2024-0195g 0.85 (avg 0.85), PROS-2024-0196 0.89 (avg 0.89), PROS-2024-0196g 0.85 (avg 0.85), PROS-2024-0197 0.89 (avg 0.89), PROS-2024-0199 0.89 (avg 0.89), PROS-2024-0199g 0.85 (avg 0.85), PROS-2024-0200 0.89 (avg 0.89), PROS-2024-0200g 0.85 (avg 0.85), PROS-2024-0203 0.89 (avg 0.89), PROS-2024-0203g 0.85 (avg 0.85), PROS-2024-0205 0.89 (avg 0.89), PROS-2024-0209 0.90 (avg 0.90), PROS-2024-0209g 0.85 (avg 0.85), PROS-2024-0213 0.90 (avg 0.90), PROS-2024-0213g 0.85 (avg 0.85), PROS-2024-0218 0.89 (avg 0.89), PROS-2024-0218g 0.85 (avg 0.85), PROS-2024-0224 0.89 (avg 0.89), PROS-2024-0224g 0.85 (avg 0.85), PROS-2024-0226 0.89 (avg 0.89), PROS-2024-0226g 0.85 (avg 0.85), PROS-2024-0233 0.89 (avg 0.89), PROS-2024-0233g 0.85 (avg 0.85), PROS-2024-0235 0.89 (avg 0.89), PROS-2024-0235g 0.85 (avg 0.85), SYN-2021-001 0.88 (avg 0.88)
+- Net margin: £70,624.11 (gross £174,593.28, capital £2,620.32)
+  - Electricity: gross £121,327.51, capital £989.57, net £39,630.21
+  - Gas: gross £53,265.77, capital £1,630.74, net £30,993.91
+- Treasury at year end: £384,444.25
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.90 (avg 0.90), C3g 0.85 (avg 0.85), C7 0.88 (avg 0.88), C8 0.91 (avg 0.91), C9 0.90 (avg 0.90), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.93 (avg 0.93), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0003 0.92 (avg 0.90), PROS-2018-0003g 0.85 (avg 0.85), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0014 0.93 (avg 0.93), PROS-2018-0014g 0.85 (avg 0.85), PROS-2018-0016 0.92 (avg 0.92), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.93 (avg 0.93), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.93 (avg 0.93), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.92 (avg 0.92), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.93 (avg 0.93), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.93 (avg 0.93), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.93 (avg 0.93), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.93 (avg 0.93), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0024 0.93 (avg 0.93), PROS-2019-0024g 0.85 (avg 0.85), PROS-2019-0027 0.92 (avg 0.92), PROS-2019-0027g 0.85 (avg 0.85), PROS-2020-0002 0.93 (avg 0.90), PROS-2020-0002g 0.85 (avg 0.85), PROS-2020-0006 0.93 (avg 0.93), PROS-2020-0006g 0.85 (avg 0.85), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0016 0.92 (avg 0.92), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.93 (avg 0.93), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0025 0.93 (avg 0.93), PROS-2020-0025g 0.85 (avg 0.85), PROS-2020-0032 0.93 (avg 0.93), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0048 0.92 (avg 0.92), PROS-2020-0048g 0.85 (avg 0.85), PROS-2021-0006 0.92 (avg 0.92), PROS-2021-0006g 0.85 (avg 0.85), PROS-2021-0031 0.93 (avg 0.93), PROS-2021-0031g 0.85 (avg 0.85), PROS-2021-0045 0.91 (avg 0.91), PROS-2021-0051 0.92 (avg 0.92), PROS-2021-0051g 0.85 (avg 0.85), PROS-2021-0062 0.91 (avg 0.91), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.91 (avg 0.91), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.93 (avg 0.93), PROS-2022-0009g 0.85 (avg 0.85), PROS-2022-0010 0.92 (avg 0.92), PROS-2022-0010g 0.85 (avg 0.85), PROS-2022-0011 0.92 (avg 0.92), PROS-2022-0011g 0.85 (avg 0.85), PROS-2022-0030 0.93 (avg 0.93), PROS-2022-0030g 0.85 (avg 0.85), PROS-2022-0045 0.92 (avg 0.92), PROS-2022-0046 0.92 (avg 0.92), PROS-2022-0046g 0.85 (avg 0.85), PROS-2022-0047 0.92 (avg 0.92), PROS-2022-0047g 0.85 (avg 0.85), PROS-2022-0048 0.92 (avg 0.92), PROS-2022-0048g 0.85 (avg 0.85), PROS-2022-0049 0.91 (avg 0.91), PROS-2022-0049g 0.85 (avg 0.85), PROS-2022-0067 0.91 (avg 0.91), PROS-2022-0067g 0.85 (avg 0.85), PROS-2022-0071 0.91 (avg 0.91), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.90 (avg 0.90), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.89 (avg 0.89), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.90 (avg 0.90), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.89 (avg 0.89), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.91 (avg 0.91), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.90 (avg 0.90), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.90 (avg 0.90), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.90 (avg 0.90), PROS-2022-0124 0.90 (avg 0.90), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0125 0.90 (avg 0.90), PROS-2022-0125g 0.85 (avg 0.85), PROS-2022-0127 0.90 (avg 0.90), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.90 (avg 0.90), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.90 (avg 0.90), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.92 (avg 0.92), PROS-2023-0001g 0.85 (avg 0.85), PROS-2023-0010 0.93 (avg 0.93), PROS-2023-0010g 0.85 (avg 0.85), PROS-2023-0013 0.92 (avg 0.92), PROS-2023-0013g 0.85 (avg 0.85), PROS-2023-0014 0.93 (avg 0.93), PROS-2023-0014g 0.85 (avg 0.85), PROS-2023-0016 0.92 (avg 0.92), PROS-2023-0016g 0.85 (avg 0.85), PROS-2023-0025 0.92 (avg 0.92), PROS-2023-0025g 0.85 (avg 0.85), PROS-2023-0026 0.92 (avg 0.92), PROS-2023-0026g 0.85 (avg 0.85), PROS-2023-0039 0.92 (avg 0.92), PROS-2023-0039g 0.85 (avg 0.85), PROS-2023-0045 0.91 (avg 0.91), PROS-2023-0045g 0.85 (avg 0.85), PROS-2023-0065 0.91 (avg 0.91), PROS-2023-0065g 0.85 (avg 0.85), PROS-2023-0067 0.91 (avg 0.91), PROS-2023-0067g 0.85 (avg 0.85), PROS-2023-0072 0.89 (avg 0.89), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.91 (avg 0.91), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.90 (avg 0.90), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.90 (avg 0.90), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.90 (avg 0.90), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.90 (avg 0.90), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0116 0.90 (avg 0.90), PROS-2023-0116g 0.85 (avg 0.85), PROS-2023-0125 0.91 (avg 0.91), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.91 (avg 0.91), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.90 (avg 0.90), PROS-2023-0127g 0.85 (avg 0.85), PROS-2023-0146 0.88 (avg 0.88), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.86 (avg 0.86), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.87 (avg 0.87), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.88 (avg 0.88), PROS-2023-0158g 0.85 (avg 0.85), PROS-2023-0162 0.89 (avg 0.89), PROS-2023-0162g 0.85 (avg 0.85), PROS-2023-0166 0.87 (avg 0.87), PROS-2023-0166g 0.85 (avg 0.85), PROS-2023-0177 0.87 (avg 0.87), PROS-2023-0177g 0.85 (avg 0.85), PROS-2024-0008 0.92 (avg 0.92), PROS-2024-0008g 0.85 (avg 0.85), PROS-2024-0009 0.92 (avg 0.92), PROS-2024-0009g 0.85 (avg 0.85), PROS-2024-0010 0.91 (avg 0.91), PROS-2024-0010g 0.85 (avg 0.85), PROS-2024-0012 0.91 (avg 0.91), PROS-2024-0012g 0.85 (avg 0.85), PROS-2024-0014 0.92 (avg 0.92), PROS-2024-0014g 0.85 (avg 0.85), PROS-2024-0022 0.92 (avg 0.92), PROS-2024-0027 0.92 (avg 0.92), PROS-2024-0027g 0.85 (avg 0.85), PROS-2024-0036 0.91 (avg 0.91), PROS-2024-0036g 0.85 (avg 0.85), PROS-2024-0038 0.92 (avg 0.92), PROS-2024-0038g 0.85 (avg 0.85), PROS-2024-0040 0.91 (avg 0.91), PROS-2024-0040g 0.85 (avg 0.85), PROS-2024-0041 0.91 (avg 0.91), PROS-2024-0041g 0.85 (avg 0.85), PROS-2024-0048 0.92 (avg 0.92), PROS-2024-0048g 0.85 (avg 0.85), PROS-2024-0056 0.90 (avg 0.90), PROS-2024-0056g 0.85 (avg 0.85), PROS-2024-0057 0.90 (avg 0.90), PROS-2024-0057g 0.85 (avg 0.85), PROS-2024-0062 0.91 (avg 0.91), PROS-2024-0062g 0.85 (avg 0.85), PROS-2024-0065 0.91 (avg 0.91), PROS-2024-0065g 0.85 (avg 0.85), PROS-2024-0069 0.91 (avg 0.91), PROS-2024-0069g 0.85 (avg 0.85), PROS-2024-0076 0.90 (avg 0.90), PROS-2024-0076g 0.85 (avg 0.85), PROS-2024-0081 0.89 (avg 0.89), PROS-2024-0081g 0.85 (avg 0.85), PROS-2024-0082 0.91 (avg 0.91), PROS-2024-0083 0.91 (avg 0.91), PROS-2024-0083g 0.85 (avg 0.85), PROS-2024-0085 0.90 (avg 0.90), PROS-2024-0085g 0.85 (avg 0.85), PROS-2024-0087 0.91 (avg 0.91), PROS-2024-0087g 0.85 (avg 0.85), PROS-2024-0094 0.90 (avg 0.90), PROS-2024-0096 0.89 (avg 0.89), PROS-2024-0096g 0.85 (avg 0.85), PROS-2024-0098 0.89 (avg 0.89), PROS-2024-0098g 0.85 (avg 0.85), PROS-2024-0110 0.89 (avg 0.89), PROS-2024-0110g 0.85 (avg 0.85), PROS-2024-0111 0.89 (avg 0.89), PROS-2024-0111g 0.85 (avg 0.85), PROS-2024-0113 0.90 (avg 0.90), PROS-2024-0113g 0.85 (avg 0.85), PROS-2024-0116 0.90 (avg 0.90), PROS-2024-0116g 0.85 (avg 0.85), PROS-2024-0122 0.90 (avg 0.90), PROS-2024-0122g 0.85 (avg 0.85), PROS-2024-0131 0.91 (avg 0.91), PROS-2024-0131g 0.85 (avg 0.85), PROS-2024-0147 0.91 (avg 0.91), PROS-2024-0147g 0.85 (avg 0.85), PROS-2024-0148 0.91 (avg 0.91), PROS-2024-0148g 0.85 (avg 0.85), PROS-2024-0156 0.88 (avg 0.88), PROS-2024-0156g 0.85 (avg 0.85), PROS-2024-0157 0.88 (avg 0.88), PROS-2024-0157g 0.85 (avg 0.85), PROS-2024-0160 0.87 (avg 0.87), PROS-2024-0160g 0.85 (avg 0.85), PROS-2024-0179 0.87 (avg 0.87), PROS-2024-0179g 0.85 (avg 0.85), PROS-2024-0191 0.88 (avg 0.88), PROS-2024-0191g 0.85 (avg 0.85), PROS-2024-0195 0.87 (avg 0.87), PROS-2024-0195g 0.85 (avg 0.85), PROS-2024-0196 0.89 (avg 0.89), PROS-2024-0196g 0.85 (avg 0.85), PROS-2024-0197 0.89 (avg 0.89), PROS-2024-0199 0.89 (avg 0.89), PROS-2024-0199g 0.85 (avg 0.85), PROS-2024-0200 0.89 (avg 0.89), PROS-2024-0200g 0.85 (avg 0.85), PROS-2024-0203 0.89 (avg 0.89), PROS-2024-0203g 0.85 (avg 0.85), PROS-2024-0205 0.89 (avg 0.89), PROS-2024-0209 0.90 (avg 0.90), PROS-2024-0209g 0.85 (avg 0.85), PROS-2024-0213 0.90 (avg 0.90), PROS-2024-0213g 0.85 (avg 0.85), PROS-2024-0218 0.89 (avg 0.89), PROS-2024-0218g 0.85 (avg 0.85), PROS-2024-0224 0.89 (avg 0.89), PROS-2024-0224g 0.85 (avg 0.85), PROS-2024-0226 0.89 (avg 0.89), PROS-2024-0226g 0.85 (avg 0.85), PROS-2024-0233 0.89 (avg 0.89), PROS-2024-0233g 0.85 (avg 0.85), PROS-2024-0235 0.89 (avg 0.89), PROS-2024-0235g 0.85 (avg 0.85), SYN-2021-001 0.88 (avg 0.88)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
 - Worst single period: PROS-2023-0001g on 2024-01-01 period 1, net margin £-1.13
 
 **Customer Book**
 
-- Active accounts: 285 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0042, PROS-2020-0042g, PROS-2020-0043, PROS-2020-0043g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0063, PROS-2022-0063g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0172, PROS-2023-0172g, PROS-2023-0177, PROS-2023-0177g, PROS-2024-0008, PROS-2024-0008g, PROS-2024-0009, PROS-2024-0009g, PROS-2024-0010, PROS-2024-0010g, PROS-2024-0012, PROS-2024-0012g, PROS-2024-0014, PROS-2024-0014g, PROS-2024-0022, PROS-2024-0027, PROS-2024-0027g, PROS-2024-0036, PROS-2024-0036g, PROS-2024-0038, PROS-2024-0038g, PROS-2024-0040, PROS-2024-0040g, PROS-2024-0041, PROS-2024-0041g, PROS-2024-0048, PROS-2024-0048g, PROS-2024-0056, PROS-2024-0056g, PROS-2024-0057, PROS-2024-0057g, PROS-2024-0062, PROS-2024-0062g, PROS-2024-0065, PROS-2024-0065g, PROS-2024-0069, PROS-2024-0069g, PROS-2024-0076, PROS-2024-0076g, PROS-2024-0081, PROS-2024-0081g, PROS-2024-0082, PROS-2024-0083, PROS-2024-0083g, PROS-2024-0085, PROS-2024-0085g, PROS-2024-0087, PROS-2024-0087g, PROS-2024-0094, PROS-2024-0096, PROS-2024-0096g, PROS-2024-0098, PROS-2024-0098g, PROS-2024-0110, PROS-2024-0110g, PROS-2024-0111, PROS-2024-0111g, PROS-2024-0113, PROS-2024-0113g, PROS-2024-0116, PROS-2024-0116g, PROS-2024-0122, PROS-2024-0122g, PROS-2024-0131, PROS-2024-0131g, PROS-2024-0147, PROS-2024-0147g, PROS-2024-0148, PROS-2024-0148g, PROS-2024-0156, PROS-2024-0156g, PROS-2024-0157, PROS-2024-0157g, PROS-2024-0160, PROS-2024-0160g, PROS-2024-0179, PROS-2024-0179g, PROS-2024-0191, PROS-2024-0191g, PROS-2024-0195, PROS-2024-0195g, PROS-2024-0196, PROS-2024-0196g, PROS-2024-0197, PROS-2024-0199, PROS-2024-0199g, PROS-2024-0200, PROS-2024-0200g, PROS-2024-0203, PROS-2024-0203g, PROS-2024-0205, PROS-2024-0209, PROS-2024-0209g, PROS-2024-0213, PROS-2024-0213g, PROS-2024-0218, PROS-2024-0218g, PROS-2024-0224, PROS-2024-0224g, PROS-2024-0226, PROS-2024-0226g, PROS-2024-0233, PROS-2024-0233g, PROS-2024-0235, PROS-2024-0235g, SYN-2021-001)
-  - Resi electricity: 150, SME electricity: 0, gas (dual-fuel): 135
+- Active accounts: 287 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0014, PROS-2018-0014g, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0043, PROS-2020-0043g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0006, PROS-2021-0006g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0063, PROS-2022-0063g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0172, PROS-2023-0172g, PROS-2023-0177, PROS-2023-0177g, PROS-2024-0008, PROS-2024-0008g, PROS-2024-0009, PROS-2024-0009g, PROS-2024-0010, PROS-2024-0010g, PROS-2024-0012, PROS-2024-0012g, PROS-2024-0014, PROS-2024-0014g, PROS-2024-0022, PROS-2024-0027, PROS-2024-0027g, PROS-2024-0036, PROS-2024-0036g, PROS-2024-0038, PROS-2024-0038g, PROS-2024-0040, PROS-2024-0040g, PROS-2024-0041, PROS-2024-0041g, PROS-2024-0048, PROS-2024-0048g, PROS-2024-0056, PROS-2024-0056g, PROS-2024-0057, PROS-2024-0057g, PROS-2024-0062, PROS-2024-0062g, PROS-2024-0065, PROS-2024-0065g, PROS-2024-0069, PROS-2024-0069g, PROS-2024-0076, PROS-2024-0076g, PROS-2024-0081, PROS-2024-0081g, PROS-2024-0082, PROS-2024-0083, PROS-2024-0083g, PROS-2024-0085, PROS-2024-0085g, PROS-2024-0087, PROS-2024-0087g, PROS-2024-0094, PROS-2024-0096, PROS-2024-0096g, PROS-2024-0098, PROS-2024-0098g, PROS-2024-0110, PROS-2024-0110g, PROS-2024-0111, PROS-2024-0111g, PROS-2024-0113, PROS-2024-0113g, PROS-2024-0116, PROS-2024-0116g, PROS-2024-0122, PROS-2024-0122g, PROS-2024-0131, PROS-2024-0131g, PROS-2024-0147, PROS-2024-0147g, PROS-2024-0148, PROS-2024-0148g, PROS-2024-0156, PROS-2024-0156g, PROS-2024-0157, PROS-2024-0157g, PROS-2024-0160, PROS-2024-0160g, PROS-2024-0179, PROS-2024-0179g, PROS-2024-0191, PROS-2024-0191g, PROS-2024-0195, PROS-2024-0195g, PROS-2024-0196, PROS-2024-0196g, PROS-2024-0197, PROS-2024-0199, PROS-2024-0199g, PROS-2024-0200, PROS-2024-0200g, PROS-2024-0203, PROS-2024-0203g, PROS-2024-0205, PROS-2024-0209, PROS-2024-0209g, PROS-2024-0213, PROS-2024-0213g, PROS-2024-0218, PROS-2024-0218g, PROS-2024-0224, PROS-2024-0224g, PROS-2024-0226, PROS-2024-0226g, PROS-2024-0233, PROS-2024-0233g, PROS-2024-0235, PROS-2024-0235g, SYN-2021-001)
+  - Resi electricity: 151, SME electricity: 0, gas (dual-fuel): 136
 - New acquisitions this year: none
-- Losses (churn) during year: PROS-2020-0006, PROS-2020-0043, PROS-2022-0063, PROS-2018-0003
-  - Renewals (retained): 95 accounts
-- Average CLV (Point-in-Time, year-end 2024): £2,275.44
-  - By billing account: C2 £337.60, C3 £205.51, C7 £-218.08, C8 £603.01, C9 £534.18, PROS-2016-0011 £530.45, PROS-2016-0020 £781.11, PROS-2017-0019 £837.97, PROS-2017-0022 £647.70, PROS-2018-0003 £95.50, PROS-2018-0009 £503.33, PROS-2018-0016 £491.27, PROS-2018-0018 £564.35, PROS-2018-0022 £844.53, PROS-2018-0024 £857.54, PROS-2018-0035 £1,233.21, PROS-2018-0043 £1,424.79, PROS-2018-0053 £1,104.85, PROS-2019-0008 £395.03, PROS-2019-0009 £616.58, PROS-2019-0012 £869.50, PROS-2019-0015 £687.51, PROS-2019-0021 £1,177.32, PROS-2019-0023 £1,144.70, PROS-2019-0024 £800.12, PROS-2019-0027 £1,139.08, PROS-2020-0002 £232.34, PROS-2020-0009 £657.43, PROS-2020-0012 £415.88, PROS-2020-0016 £677.76, PROS-2020-0022 £702.73, PROS-2020-0025 £-43.79, PROS-2020-0032 £1,498.16, PROS-2020-0042 £1,273.60, PROS-2020-0048 £1,566.60, PROS-2021-0031 £1,068.00, PROS-2021-0045 £1,835.39, PROS-2021-0051 £1,101.23, PROS-2021-0062 £1,590.40, PROS-2021-0088 £1,139.43, PROS-2022-0009 £-186.25, PROS-2022-0010 £60.07, PROS-2022-0011 £-321.87, PROS-2022-0030 £2,326.88, PROS-2022-0045 £3,294.17, PROS-2022-0046 £1,988.58, PROS-2022-0047 £3,263.54, PROS-2022-0048 £2,158.47, PROS-2022-0049 £1,508.00, PROS-2022-0067 £1,160.64, PROS-2022-0071 £1,530.73, PROS-2022-0073 £1,805.69, PROS-2022-0081 £2,119.49, PROS-2022-0082 £988.19, PROS-2022-0083 £1,345.14, PROS-2022-0092 £741.63, PROS-2022-0097 £854.01, PROS-2022-0100 £523.58, PROS-2022-0120 £1,179.89, PROS-2022-0124 £1,935.88, PROS-2022-0125 £714.25, PROS-2022-0127 £1,839.17, PROS-2022-0128 £1,873.67, PROS-2022-0130 £2,318.41, PROS-2023-0001 £4,516.32, PROS-2023-0010 £3,246.04, PROS-2023-0013 £4,112.64, PROS-2023-0014 £3,883.96, PROS-2023-0016 £4,048.57, PROS-2023-0025 £4,802.51, PROS-2023-0026 £6,195.82, PROS-2023-0039 £8,349.40, PROS-2023-0045 £7,704.62, PROS-2023-0065 £6,311.81, PROS-2023-0067 £7,615.10, PROS-2023-0072 £5,102.76, PROS-2023-0089 £6,829.99, PROS-2023-0090 £5,685.46, PROS-2023-0096 £6,246.88, PROS-2023-0104 £6,575.59, PROS-2023-0113 £6,601.54, PROS-2023-0116 £4,912.66, PROS-2023-0125 £6,777.17, PROS-2023-0126 £4,542.52, PROS-2023-0127 £6,518.34, PROS-2023-0146 £2,937.91, PROS-2023-0147 £3,017.37, PROS-2023-0152 £2,920.51, PROS-2023-0158 £3,717.36, PROS-2023-0162 £5,017.08, PROS-2023-0166 £3,107.75, PROS-2023-0172 £2,587.80, PROS-2023-0177 £2,634.12, SYN-2021-001 £426.23
-- Bill shock events (>=20%): 1294 -- C7 2024-01-31 (28%); C7 2024-02-29 (27%); C7 2024-05-31 (37%); C7 2024-09-30 (34%); C7 2024-11-30 (84%); PROS-2016-0011 2024-01-31 (24%); PROS-2016-0011 2024-02-29 (20%); PROS-2016-0011 2024-06-30 (30%); PROS-2016-0011 2024-07-31 (26%); PROS-2016-0011 2024-08-31 (28%); PROS-2016-0011 2024-09-30 (176%); PROS-2016-0011 2024-12-31 (21%); PROS-2016-0011g 2024-01-31 (45%); PROS-2016-0011g 2024-02-29 (38%); PROS-2016-0011g 2024-06-30 (45%); PROS-2016-0011g 2024-07-31 (659%); PROS-2016-0011g 2024-08-31 (95%); PROS-2016-0011g 2024-09-30 (94%); PROS-2016-0011g 2024-10-31 (53%); PROS-2016-0011g 2024-12-31 (40%); PROS-2016-0020 2024-01-31 (29%); PROS-2016-0020 2024-02-29 (23%); PROS-2016-0020 2024-07-31 (21%); PROS-2016-0020g 2024-01-31 (38%); PROS-2016-0020g 2024-02-29 (31%); PROS-2016-0020g 2024-05-31 (29%); PROS-2016-0020g 2024-06-30 (69%); PROS-2016-0020g 2024-07-31 (186%); PROS-2016-0020g 2024-08-31 (237%); PROS-2016-0020g 2024-09-30 (236%); PROS-2016-0020g 2024-10-31 (171%); PROS-2016-0020g 2024-11-30 (54%); C2 2024-04-30 (30%); C2 2024-06-30 (25%); C2 2024-07-31 (33%); C2 2024-09-30 (24%); C2 2024-10-31 (35%); C2g 2024-02-29 (24%); C2g 2024-04-30 (51%); C2g 2024-05-31 (47%); C2g 2024-07-31 (25%); C2g 2024-09-30 (53%); C2g 2024-10-31 (34%); C2g 2024-11-30 (52%); C8 2024-02-29 (23%); C8 2024-04-30 (55%); C8 2024-05-31 (27%); C8 2024-06-30 (142%); C8 2024-07-31 (65%); C8 2024-08-31 (138%); C8 2024-09-30 (73%); C8 2024-10-31 (35%); C8 2024-11-30 (61%); C3g 2024-02-29 (27%); C3g 2024-03-31 (224%); C3g 2024-05-31 (22%); C3g 2024-06-30 (138%); C3g 2024-07-31 (70%); C3g 2024-08-31 (590%); C3g 2024-09-30 (120%); C3g 2024-10-31 (52%); C3g 2024-11-30 (23%); C9 2024-05-31 (48%); C9 2024-07-31 (26%); C9 2024-09-30 (54%); C9 2024-10-31 (22%); C9 2024-11-30 (47%); PROS-2017-0019 2024-02-29 (115%); PROS-2017-0019 2024-07-31 (24%); PROS-2017-0019 2024-08-31 (21%); PROS-2017-0019 2024-09-30 (21%); PROS-2017-0019g 2024-01-31 (38%); PROS-2017-0019g 2024-02-29 (35%); PROS-2017-0019g 2024-06-30 (45%); PROS-2017-0019g 2024-07-31 (133%); PROS-2017-0019g 2024-08-31 (167%); PROS-2017-0019g 2024-09-30 (166%); PROS-2017-0019g 2024-10-31 (122%); PROS-2017-0019g 2024-11-30 (216%); PROS-2017-0022 2024-12-31 (44%); PROS-2017-0022g 2024-01-31 (71%); PROS-2017-0022g 2024-02-29 (73%); PROS-2017-0022g 2024-03-31 (60%); PROS-2017-0022g 2024-04-30 (59%); PROS-2017-0022g 2024-05-31 (46%); PROS-2017-0022g 2024-06-30 (28%); PROS-2017-0022g 2024-07-31 (29%); PROS-2017-0022g 2024-08-31 (56%); PROS-2017-0022g 2024-09-30 (56%); PROS-2017-0022g 2024-10-31 (21%); PROS-2017-0022g 2024-11-30 (673%); PROS-2017-0022g 2024-12-31 (30%); PROS-2018-0003 2024-01-31 (30%); PROS-2018-0003 2024-08-31 (99%); PROS-2018-0003 2024-12-30 (37%); PROS-2018-0003g 2024-01-31 (82%); PROS-2018-0003g 2024-02-29 (75%); PROS-2018-0003g 2024-03-31 (71%); PROS-2018-0003g 2024-04-30 (70%); PROS-2018-0003g 2024-05-31 (61%); PROS-2018-0003g 2024-06-30 (49%); PROS-2018-0003g 2024-09-30 (1949%); PROS-2018-0003g 2024-11-30 (49%); PROS-2018-0003g 2024-12-30 (64%); PROS-2018-0009 2024-01-31 (31%); PROS-2018-0009 2024-02-29 (25%); PROS-2018-0009 2024-04-30 (22%); PROS-2018-0009 2024-07-31 (150%); PROS-2018-0009 2024-12-31 (43%); PROS-2018-0016 2024-01-31 (21%); PROS-2018-0016g 2024-01-31 (54%); PROS-2018-0016g 2024-02-29 (49%); PROS-2018-0016g 2024-03-31 (33%); PROS-2018-0016g 2024-04-30 (31%); PROS-2018-0016g 2024-07-31 (109%); PROS-2018-0016g 2024-08-31 (151%); PROS-2018-0016g 2024-09-30 (150%); PROS-2018-0016g 2024-10-31 (96%); PROS-2018-0016g 2024-12-31 (84%); PROS-2018-0018 2024-01-31 (23%); PROS-2018-0018 2024-07-31 (20%); PROS-2018-0018 2024-08-31 (27%); PROS-2018-0018g 2024-05-31 (50%); PROS-2018-0018g 2024-06-30 (94%); PROS-2018-0018g 2024-07-31 (218%); PROS-2018-0018g 2024-08-31 (269%); PROS-2018-0018g 2024-09-30 (1159%); PROS-2018-0018g 2024-10-31 (136%); PROS-2018-0018g 2024-11-30 (38%); PROS-2018-0022 2024-05-31 (22%); PROS-2018-0022 2024-06-30 (24%); PROS-2018-0022 2024-07-31 (31%); PROS-2018-0022 2024-08-31 (28%); PROS-2018-0022 2024-09-30 (28%); PROS-2018-0022 2024-10-31 (21%); PROS-2018-0022g 2024-01-31 (47%); PROS-2018-0022g 2024-02-29 (46%); PROS-2018-0022g 2024-03-31 (26%); PROS-2018-0022g 2024-04-30 (24%); PROS-2018-0022g 2024-06-30 (30%); PROS-2018-0022g 2024-07-31 (122%); PROS-2018-0022g 2024-08-31 (80%); PROS-2018-0022g 2024-09-30 (79%); PROS-2018-0022g 2024-10-31 (44%); PROS-2018-0022g 2024-12-31 (45%); PROS-2018-0024 2024-03-31 (39%); PROS-2018-0024 2024-05-31 (24%); PROS-2018-0035 2024-01-31 (24%); PROS-2018-0035 2024-02-29 (38%); PROS-2018-0035 2024-09-30 (87%); PROS-2018-0035g 2024-01-31 (48%); PROS-2018-0035g 2024-02-29 (58%); PROS-2018-0035g 2024-03-31 (35%); PROS-2018-0035g 2024-04-30 (33%); PROS-2018-0035g 2024-07-31 (105%); PROS-2018-0035g 2024-08-31 (146%); PROS-2018-0035g 2024-09-30 (145%); PROS-2018-0035g 2024-10-31 (92%); PROS-2018-0035g 2024-12-31 (119%); PROS-2018-0043 2024-02-29 (41%); PROS-2018-0043 2024-08-31 (101%); PROS-2018-0053 2024-02-29 (22%); PROS-2018-0053 2024-07-31 (23%); PROS-2018-0053 2024-11-30 (33%); PROS-2018-0053g 2024-03-31 (25%); PROS-2018-0053g 2024-05-31 (24%); PROS-2018-0053g 2024-06-30 (58%); PROS-2018-0053g 2024-07-31 (149%); PROS-2018-0053g 2024-08-31 (183%); PROS-2018-0053g 2024-09-30 (182%); PROS-2018-0053g 2024-10-31 (138%); PROS-2018-0053g 2024-11-30 (45%); PROS-2019-0008 2024-04-30 (20%); PROS-2019-0008 2024-06-30 (24%); PROS-2019-0008g 2024-01-31 (21%); PROS-2019-0008g 2024-02-29 (23%); PROS-2019-0008g 2024-04-30 (23%); PROS-2019-0008g 2024-05-31 (25%); PROS-2019-0008g 2024-06-30 (43%); PROS-2019-0008g 2024-09-30 (29%); PROS-2019-0008g 2024-10-31 (82%); PROS-2019-0008g 2024-11-30 (42%); PROS-2019-0008g 2024-12-31 (31%); PROS-2019-0009 2024-01-31 (21%); PROS-2019-0009g 2024-01-31 (101%); PROS-2019-0009g 2024-02-29 (23%); PROS-2019-0009g 2024-05-31 (45%); PROS-2019-0009g 2024-06-30 (88%); PROS-2019-0009g 2024-07-31 (212%); PROS-2019-0009g 2024-08-31 (264%); PROS-2019-0009g 2024-09-30 (262%); PROS-2019-0009g 2024-10-31 (196%); PROS-2019-0009g 2024-11-30 (72%); PROS-2019-0009g 2024-12-31 (25%); PROS-2019-0012g 2024-02-29 (26%); PROS-2019-0012g 2024-05-31 (54%); PROS-2019-0012g 2024-06-30 (35%); PROS-2019-0012g 2024-10-31 (58%); PROS-2019-0012g 2024-11-30 (33%); PROS-2019-0012g 2024-12-31 (27%); PROS-2019-0015 2024-01-31 (27%); PROS-2019-0015 2024-02-29 (28%); PROS-2019-0015 2024-04-30 (21%); PROS-2019-0015 2024-08-31 (118%); PROS-2019-0015 2024-12-31 (33%); PROS-2019-0015g 2024-01-31 (35%); PROS-2019-0015g 2024-02-29 (40%); PROS-2019-0015g 2024-06-30 (55%); PROS-2019-0015g 2024-07-31 (167%); PROS-2019-0015g 2024-08-31 (219%); PROS-2019-0015g 2024-09-30 (556%); PROS-2019-0015g 2024-10-31 (76%); PROS-2019-0015g 2024-12-31 (30%); PROS-2019-0021 2024-01-31 (27%); PROS-2019-0021 2024-02-29 (43%); PROS-2019-0021 2024-04-30 (22%); PROS-2019-0021 2024-10-31 (167%); PROS-2019-0021g 2024-01-31 (28%); PROS-2019-0021g 2024-02-29 (45%); PROS-2019-0021g 2024-04-30 (40%); PROS-2019-0021g 2024-06-30 (29%); PROS-2019-0021g 2024-07-31 (111%); PROS-2019-0021g 2024-08-31 (325%); PROS-2019-0021g 2024-09-30 (135%); PROS-2019-0021g 2024-10-31 (94%); PROS-2019-0023 2024-01-31 (24%); PROS-2019-0023 2024-02-29 (42%); PROS-2019-0023 2024-04-30 (20%); PROS-2019-0023 2024-05-31 (116%); PROS-2019-0023g 2024-01-31 (83%); PROS-2019-0023g 2024-02-29 (56%); PROS-2019-0023g 2024-03-31 (25%); PROS-2019-0023g 2024-04-30 (22%); PROS-2019-0023g 2024-06-30 (33%); PROS-2019-0023g 2024-07-31 (129%); PROS-2019-0023g 2024-08-31 (173%); PROS-2019-0023g 2024-09-30 (172%); PROS-2019-0023g 2024-10-31 (116%); PROS-2019-0023g 2024-11-30 (21%); PROS-2019-0024 2024-02-29 (36%); PROS-2019-0024g 2024-01-31 (33%); PROS-2019-0024g 2024-02-29 (52%); PROS-2019-0024g 2024-06-30 (352%); PROS-2019-0024g 2024-07-31 (69%); PROS-2019-0024g 2024-08-31 (103%); PROS-2019-0024g 2024-09-30 (102%); PROS-2019-0024g 2024-10-31 (59%); PROS-2019-0024g 2024-12-31 (38%); PROS-2019-0027 2024-01-31 (23%); PROS-2019-0027 2024-02-29 (50%); PROS-2019-0027 2024-03-31 (140%); PROS-2019-0027g 2024-01-31 (29%); PROS-2019-0027g 2024-02-29 (56%); PROS-2019-0027g 2024-06-30 (46%); PROS-2019-0027g 2024-07-31 (176%); PROS-2019-0027g 2024-09-30 (74%); PROS-2019-0027g 2024-10-31 (37%); PROS-2019-0027g 2024-11-30 (24%); PROS-2019-0027g 2024-12-31 (46%); PROS-2020-0002 2024-04-30 (20%); PROS-2020-0002g 2024-01-31 (30%); PROS-2020-0002g 2024-04-30 (23%); PROS-2020-0002g 2024-05-31 (21%); PROS-2020-0002g 2024-06-30 (104%); PROS-2020-0002g 2024-09-30 (28%); PROS-2020-0002g 2024-10-31 (80%); PROS-2020-0002g 2024-11-30 (41%); PROS-2020-0002g 2024-12-31 (30%); PROS-2020-0006 2024-01-02 (93%); PROS-2020-0006g 2024-01-02 (28%); PROS-2020-0009g 2024-01-31 (31%); PROS-2020-0009g 2024-04-30 (22%); PROS-2020-0009g 2024-05-31 (23%); PROS-2020-0009g 2024-06-30 (39%); PROS-2020-0009g 2024-09-30 (22%); PROS-2020-0009g 2024-10-31 (70%); PROS-2020-0009g 2024-11-30 (37%); PROS-2020-0009g 2024-12-31 (28%); PROS-2020-0012 2024-01-31 (24%); PROS-2020-0012 2024-04-30 (20%); PROS-2020-0012g 2024-02-29 (32%); PROS-2020-0012g 2024-06-30 (51%); PROS-2020-0012g 2024-07-31 (162%); PROS-2020-0012g 2024-08-31 (213%); PROS-2020-0012g 2024-09-30 (212%); PROS-2020-0012g 2024-10-31 (147%); PROS-2020-0012g 2024-11-30 (375%); PROS-2020-0016 2024-01-31 (33%); PROS-2020-0016 2024-02-29 (30%); PROS-2020-0016 2024-03-31 (20%); PROS-2020-0016 2024-04-30 (25%); PROS-2020-0016 2024-07-31 (201%); PROS-2020-0016 2024-12-31 (22%); PROS-2020-0016g 2024-01-31 (50%); PROS-2020-0016g 2024-02-29 (84%); PROS-2020-0016g 2024-06-30 (71%); PROS-2020-0016g 2024-07-31 (95%); PROS-2020-0016g 2024-08-31 (124%); PROS-2020-0016g 2024-09-30 (123%); PROS-2020-0016g 2024-10-31 (86%); PROS-2020-0016g 2024-12-31 (88%); PROS-2020-0022 2024-04-30 (20%); PROS-2020-0022g 2024-02-29 (30%); PROS-2020-0022g 2024-04-30 (22%); PROS-2020-0022g 2024-05-31 (24%); PROS-2020-0022g 2024-06-30 (41%); PROS-2020-0022g 2024-09-30 (25%); PROS-2020-0022g 2024-10-31 (75%); PROS-2020-0022g 2024-11-30 (39%); PROS-2020-0022g 2024-12-31 (30%); PROS-2020-0025 2024-06-30 (20%); PROS-2020-0025 2024-07-31 (27%); PROS-2020-0025 2024-08-31 (24%); PROS-2020-0025 2024-09-30 (24%); PROS-2020-0025 2024-10-31 (95%); PROS-2020-0025g 2024-01-31 (72%); PROS-2020-0025g 2024-02-29 (75%); PROS-2020-0025g 2024-03-31 (63%); PROS-2020-0025g 2024-04-30 (388%); PROS-2020-0025g 2024-05-31 (30%); PROS-2020-0025g 2024-07-31 (67%); PROS-2020-0025g 2024-08-31 (103%); PROS-2020-0025g 2024-09-30 (103%); PROS-2020-0025g 2024-10-31 (57%); PROS-2020-0025g 2024-12-31 (40%); PROS-2020-0032 2024-02-29 (26%); PROS-2020-0032 2024-04-30 (21%); PROS-2020-0032 2024-12-31 (21%); PROS-2020-0032g 2024-02-29 (35%); PROS-2020-0032g 2024-04-30 (22%); PROS-2020-0032g 2024-05-31 (25%); PROS-2020-0032g 2024-06-30 (42%); PROS-2020-0032g 2024-08-31 (42%); PROS-2020-0032g 2024-09-30 (41%); PROS-2020-0032g 2024-10-31 (34%); PROS-2020-0032g 2024-11-30 (40%); PROS-2020-0032g 2024-12-31 (30%); PROS-2020-0042 2024-02-29 (36%); PROS-2020-0042 2024-07-31 (26%); PROS-2020-0042 2024-08-31 (22%); PROS-2020-0042 2024-09-30 (76%); PROS-2020-0042g 2024-01-31 (37%); PROS-2020-0042g 2024-02-29 (58%); PROS-2020-0042g 2024-03-31 (36%); PROS-2020-0042g 2024-04-30 (25%); PROS-2020-0042g 2024-06-30 (31%); PROS-2020-0042g 2024-07-31 (131%); PROS-2020-0042g 2024-08-31 (193%); PROS-2020-0042g 2024-09-30 (61%); PROS-2020-0042g 2024-10-31 (26%); PROS-2020-0042g 2024-11-30 (31%); PROS-2020-0042g 2024-12-31 (95%); PROS-2020-0043 2024-01-31 (25%); PROS-2020-0043g 2024-01-31 (58%); PROS-2020-0043g 2024-02-07 (62%); PROS-2020-0048 2024-02-29 (33%); PROS-2020-0048 2024-03-31 (50%); PROS-2020-0048 2024-07-31 (26%); PROS-2020-0048 2024-08-31 (23%); PROS-2020-0048 2024-09-30 (23%); PROS-2020-0048g 2024-01-31 (66%); PROS-2020-0048g 2024-02-29 (75%); PROS-2020-0048g 2024-03-31 (67%); PROS-2020-0048g 2024-04-30 (463%); PROS-2020-0048g 2024-05-31 (25%); PROS-2020-0048g 2024-07-31 (101%); PROS-2020-0048g 2024-08-31 (142%); PROS-2020-0048g 2024-09-30 (141%); PROS-2020-0048g 2024-10-31 (89%); PROS-2020-0048g 2024-12-31 (26%); PROS-2021-0031 2024-02-29 (33%); PROS-2021-0031 2024-07-31 (23%); PROS-2021-0031g 2024-02-29 (40%); PROS-2021-0031g 2024-06-30 (43%); PROS-2021-0031g 2024-07-31 (150%); PROS-2021-0031g 2024-08-31 (201%); PROS-2021-0031g 2024-09-30 (201%); PROS-2021-0031g 2024-10-31 (136%); PROS-2021-0031g 2024-11-30 (30%); PROS-2021-0045 2024-01-31 (21%); PROS-2021-0045 2024-02-29 (34%); PROS-2021-0045 2024-03-31 (27%); PROS-2021-0045 2024-04-30 (58%); PROS-2021-0051 2024-04-30 (20%); PROS-2021-0051g 2024-01-31 (24%); PROS-2021-0051g 2024-03-31 (28%); PROS-2021-0051g 2024-05-31 (60%); PROS-2021-0051g 2024-06-30 (40%); PROS-2021-0051g 2024-09-30 (23%); PROS-2021-0051g 2024-10-31 (72%); PROS-2021-0051g 2024-11-30 (38%); PROS-2021-0051g 2024-12-31 (29%); PROS-2021-0062 2024-03-31 (24%); PROS-2021-0062 2024-05-31 (27%); PROS-2021-0062g 2024-03-31 (47%); PROS-2021-0062g 2024-04-30 (23%); PROS-2021-0062g 2024-05-31 (26%); PROS-2021-0062g 2024-06-30 (45%); PROS-2021-0062g 2024-09-30 (32%); PROS-2021-0062g 2024-10-31 (88%); PROS-2021-0062g 2024-11-30 (43%); PROS-2021-0062g 2024-12-31 (32%); PROS-2021-0088 2024-04-30 (25%); PROS-2021-0088 2024-05-31 (39%); PROS-2021-0088g 2024-01-31 (65%); PROS-2021-0088g 2024-02-29 (65%); PROS-2021-0088g 2024-03-31 (233%); PROS-2021-0088g 2024-04-30 (56%); PROS-2021-0088g 2024-07-31 (64%); PROS-2021-0088g 2024-08-31 (85%); PROS-2021-0088g 2024-09-30 (84%); PROS-2021-0088g 2024-10-31 (57%); PROS-2021-0088g 2024-12-31 (27%); SYN-2021-001 2024-02-29 (46%); SYN-2021-001 2024-07-31 (20%); PROS-2022-0009 2024-05-31 (24%); PROS-2022-0009g 2024-01-31 (20%); PROS-2022-0009g 2024-02-29 (23%); PROS-2022-0009g 2024-04-30 (23%); PROS-2022-0009g 2024-05-31 (25%); PROS-2022-0009g 2024-06-30 (35%); PROS-2022-0009g 2024-07-31 (154%); PROS-2022-0009g 2024-09-30 (28%); PROS-2022-0009g 2024-11-30 (94%); PROS-2022-0009g 2024-12-31 (31%); PROS-2022-0010 2024-04-30 (21%); PROS-2022-0010g 2024-02-29 (20%); PROS-2022-0010g 2024-04-30 (23%); PROS-2022-0010g 2024-05-31 (25%); PROS-2022-0010g 2024-06-30 (42%); PROS-2022-0010g 2024-07-31 (68%); PROS-2022-0010g 2024-08-31 (101%); PROS-2022-0010g 2024-09-30 (27%); PROS-2022-0010g 2024-10-31 (79%); PROS-2022-0010g 2024-11-30 (41%); PROS-2022-0010g 2024-12-31 (31%); PROS-2022-0011g 2024-05-31 (72%); PROS-2022-0011g 2024-06-30 (35%); PROS-2022-0011g 2024-10-31 (59%); PROS-2022-0011g 2024-11-30 (28%); PROS-2022-0011g 2024-12-31 (73%); PROS-2022-0030 2024-02-29 (25%); PROS-2022-0030 2024-04-30 (20%); PROS-2022-0030g 2024-02-29 (40%); PROS-2022-0030g 2024-04-30 (22%); PROS-2022-0030g 2024-05-31 (21%); PROS-2022-0030g 2024-06-30 (99%); PROS-2022-0030g 2024-09-30 (24%); PROS-2022-0030g 2024-10-31 (74%); PROS-2022-0030g 2024-11-30 (39%); PROS-2022-0030g 2024-12-31 (30%); PROS-2022-0045 2024-07-31 (24%); PROS-2022-0045 2024-08-31 (21%); PROS-2022-0045 2024-09-30 (21%); PROS-2022-0046 2024-05-31 (24%); PROS-2022-0046g 2024-02-29 (32%); PROS-2022-0046g 2024-03-31 (27%); PROS-2022-0046g 2024-05-31 (63%); PROS-2022-0046g 2024-06-30 (42%); PROS-2022-0046g 2024-08-31 (41%); PROS-2022-0046g 2024-11-30 (88%); PROS-2022-0046g 2024-12-31 (30%); PROS-2022-0047 2024-04-30 (21%); PROS-2022-0047g 2024-01-31 (32%); PROS-2022-0047g 2024-02-29 (21%); PROS-2022-0048 2024-02-29 (27%); PROS-2022-0048 2024-03-31 (24%); PROS-2022-0048 2024-12-31 (27%); PROS-2022-0048g 2024-01-31 (57%); PROS-2022-0048g 2024-02-29 (65%); PROS-2022-0048g 2024-03-31 (61%); PROS-2022-0048g 2024-04-30 (47%); PROS-2022-0048g 2024-05-31 (32%); PROS-2022-0048g 2024-07-31 (48%); PROS-2022-0048g 2024-08-31 (72%); PROS-2022-0048g 2024-09-30 (71%); PROS-2022-0048g 2024-10-31 (993%); PROS-2022-0048g 2024-12-31 (28%); PROS-2022-0049 2024-04-30 (20%); PROS-2022-0049 2024-06-30 (24%); PROS-2022-0049g 2024-02-29 (30%); PROS-2022-0049g 2024-03-31 (30%); PROS-2022-0049g 2024-05-31 (65%); PROS-2022-0049g 2024-06-30 (43%); PROS-2022-0049g 2024-08-31 (44%); PROS-2022-0049g 2024-10-31 (81%); PROS-2022-0049g 2024-11-30 (41%); PROS-2022-0049g 2024-12-31 (31%); PROS-2022-0063 2024-01-31 (33%); PROS-2022-0063g 2024-01-31 (35%); PROS-2022-0063g 2024-02-26 (35%); PROS-2022-0067 2024-03-31 (26%); PROS-2022-0067 2024-04-30 (20%); PROS-2022-0067 2024-11-30 (23%); PROS-2022-0067g 2024-03-31 (42%); PROS-2022-0067g 2024-04-30 (22%); PROS-2022-0067g 2024-05-31 (24%); PROS-2022-0067g 2024-06-30 (41%); PROS-2022-0067g 2024-09-30 (25%); PROS-2022-0067g 2024-10-31 (75%); PROS-2022-0067g 2024-11-30 (39%); PROS-2022-0067g 2024-12-31 (30%); PROS-2022-0071 2024-03-31 (82%); PROS-2022-0071 2024-06-30 (22%); PROS-2022-0071 2024-07-31 (70%); PROS-2022-0071g 2024-03-31 (36%); PROS-2022-0071g 2024-04-30 (559%); PROS-2022-0071g 2024-06-30 (48%); PROS-2022-0071g 2024-07-31 (145%); PROS-2022-0071g 2024-08-31 (185%); PROS-2022-0071g 2024-09-30 (184%); PROS-2022-0071g 2024-10-31 (132%); PROS-2022-0071g 2024-11-30 (35%); PROS-2022-0073 2024-01-31 (125%); PROS-2022-0073 2024-05-31 (21%); PROS-2022-0073 2024-06-30 (23%); PROS-2022-0073 2024-07-31 (31%); PROS-2022-0073 2024-08-31 (99%); PROS-2022-0073g 2024-01-31 (39%); PROS-2022-0073g 2024-02-29 (32%); PROS-2022-0073g 2024-03-31 (39%); PROS-2022-0073g 2024-04-30 (27%); PROS-2022-0073g 2024-06-30 (40%); PROS-2022-0073g 2024-07-31 (174%); PROS-2022-0073g 2024-08-31 (139%); PROS-2022-0073g 2024-09-30 (137%); PROS-2022-0073g 2024-10-31 (103%); PROS-2022-0073g 2024-11-30 (129%); PROS-2022-0073g 2024-12-31 (27%); PROS-2022-0081 2024-04-30 (28%); PROS-2022-0081 2024-11-30 (32%); PROS-2022-0081g 2024-04-30 (22%); PROS-2022-0081g 2024-10-31 (26%); PROS-2022-0082 2024-04-30 (29%); PROS-2022-0082 2024-06-30 (24%); PROS-2022-0082g 2024-01-31 (48%); PROS-2022-0082g 2024-03-31 (29%); PROS-2022-0082g 2024-04-30 (40%); PROS-2022-0082g 2024-05-31 (25%); PROS-2022-0082g 2024-06-30 (43%); PROS-2022-0082g 2024-07-31 (69%); PROS-2022-0082g 2024-08-31 (104%); PROS-2022-0082g 2024-09-30 (28%); PROS-2022-0082g 2024-10-31 (81%); PROS-2022-0082g 2024-11-30 (41%); PROS-2022-0082g 2024-12-31 (31%); PROS-2022-0083 2024-01-31 (70%); PROS-2022-0083 2024-04-30 (27%); PROS-2022-0083 2024-07-31 (25%); PROS-2022-0083 2024-08-31 (21%); PROS-2022-0083 2024-09-30 (21%); PROS-2022-0083g 2024-01-31 (41%); PROS-2022-0083g 2024-02-29 (42%); PROS-2022-0083g 2024-03-31 (48%); PROS-2022-0083g 2024-04-30 (45%); PROS-2022-0083g 2024-06-30 (21%); PROS-2022-0083g 2024-07-31 (103%); PROS-2022-0083g 2024-08-31 (139%); PROS-2022-0083g 2024-09-30 (138%); PROS-2022-0083g 2024-10-31 (386%); PROS-2022-0083g 2024-12-31 (33%); PROS-2022-0092 2024-04-30 (27%); PROS-2022-0092g 2024-03-31 (21%); PROS-2022-0092g 2024-04-30 (46%); PROS-2022-0092g 2024-05-31 (23%); PROS-2022-0092g 2024-06-30 (39%); PROS-2022-0092g 2024-07-31 (61%); PROS-2022-0092g 2024-08-31 (87%); PROS-2022-0092g 2024-09-30 (23%); PROS-2022-0092g 2024-10-31 (71%); PROS-2022-0092g 2024-11-30 (38%); PROS-2022-0092g 2024-12-31 (28%); PROS-2022-0097 2024-04-30 (36%); PROS-2022-0097 2024-06-30 (25%); PROS-2022-0097g 2024-04-30 (52%); PROS-2022-0097g 2024-05-31 (21%); PROS-2022-0097g 2024-06-30 (103%); PROS-2022-0097g 2024-09-30 (27%); PROS-2022-0097g 2024-10-31 (79%); PROS-2022-0097g 2024-11-30 (40%); PROS-2022-0097g 2024-12-31 (30%); PROS-2022-0100 2024-04-30 (36%); PROS-2022-0100g 2024-01-31 (48%); PROS-2022-0100g 2024-04-30 (57%); PROS-2022-0100g 2024-05-31 (25%); PROS-2022-0100g 2024-06-30 (42%); PROS-2022-0100g 2024-07-31 (68%); PROS-2022-0100g 2024-08-31 (100%); PROS-2022-0100g 2024-09-30 (41%); PROS-2022-0100g 2024-11-30 (38%); PROS-2022-0100g 2024-12-31 (108%); PROS-2022-0120 2024-04-30 (33%); PROS-2022-0120 2024-11-30 (23%); PROS-2022-0124 2024-01-31 (23%); PROS-2022-0124 2024-02-29 (23%); PROS-2022-0124 2024-04-30 (79%); PROS-2022-0124g 2024-04-30 (47%); PROS-2022-0124g 2024-06-30 (65%); PROS-2022-0124g 2024-07-31 (176%); PROS-2022-0124g 2024-08-31 (223%); PROS-2022-0124g 2024-09-30 (222%); PROS-2022-0124g 2024-10-31 (161%); PROS-2022-0124g 2024-11-30 (51%); PROS-2022-0125 2024-05-31 (34%); PROS-2022-0125g 2024-01-31 (58%); PROS-2022-0125g 2024-04-30 (22%); PROS-2022-0125g 2024-05-31 (83%); PROS-2022-0125g 2024-06-30 (41%); PROS-2022-0125g 2024-09-30 (25%); PROS-2022-0125g 2024-11-30 (90%); PROS-2022-0125g 2024-12-31 (30%); PROS-2022-0127 2024-02-29 (21%); PROS-2022-0127 2024-04-30 (29%); PROS-2022-0127 2024-05-31 (90%); PROS-2022-0127g 2024-01-31 (28%); PROS-2022-0127g 2024-04-30 (31%); PROS-2022-0127g 2024-06-30 (47%); PROS-2022-0127g 2024-07-31 (125%); PROS-2022-0127g 2024-08-31 (152%); PROS-2022-0127g 2024-09-30 (150%); PROS-2022-0127g 2024-10-31 (116%); PROS-2022-0127g 2024-11-30 (36%); PROS-2022-0128 2024-06-30 (26%); PROS-2022-0128 2024-07-31 (92%); PROS-2022-0128 2024-08-31 (20%); PROS-2022-0128 2024-09-30 (20%); PROS-2022-0128 2024-11-30 (24%); PROS-2022-0128g 2024-01-31 (23%); PROS-2022-0128g 2024-02-29 (25%); PROS-2022-0128g 2024-04-30 (33%); PROS-2022-0128g 2024-06-30 (47%); PROS-2022-0128g 2024-07-31 (131%); PROS-2022-0128g 2024-08-31 (163%); PROS-2022-0128g 2024-09-30 (161%); PROS-2022-0128g 2024-10-31 (121%); PROS-2022-0128g 2024-11-30 (35%); PROS-2022-0130 2024-05-31 (38%); PROS-2022-0130g 2024-04-30 (36%); PROS-2022-0130g 2024-05-31 (50%); PROS-2022-0130g 2024-06-30 (41%); PROS-2022-0130g 2024-09-30 (25%); PROS-2022-0130g 2024-10-31 (76%); PROS-2022-0130g 2024-11-30 (33%); PROS-2022-0130g 2024-12-31 (82%); PROS-2023-0001 2024-04-30 (21%); PROS-2023-0001g 2024-01-31 (29%); PROS-2023-0001g 2024-04-30 (23%); PROS-2023-0001g 2024-05-31 (22%); PROS-2023-0001g 2024-06-30 (107%); PROS-2023-0001g 2024-09-30 (29%); PROS-2023-0001g 2024-10-31 (83%); PROS-2023-0001g 2024-11-30 (42%); PROS-2023-0001g 2024-12-31 (30%); PROS-2023-0010 2024-04-30 (21%); PROS-2023-0010 2024-12-31 (21%); PROS-2023-0010g 2024-01-31 (23%); PROS-2023-0010g 2024-02-29 (20%); PROS-2023-0010g 2024-04-30 (22%); PROS-2023-0010g 2024-05-31 (25%); PROS-2023-0010g 2024-06-30 (42%); PROS-2023-0010g 2024-09-30 (27%); PROS-2023-0010g 2024-10-31 (79%); PROS-2023-0010g 2024-11-30 (40%); PROS-2023-0010g 2024-12-31 (30%); PROS-2023-0013 2024-05-31 (35%); PROS-2023-0013g 2024-01-31 (61%); PROS-2023-0013g 2024-02-29 (56%); PROS-2023-0013g 2024-03-31 (43%); PROS-2023-0013g 2024-04-30 (41%); PROS-2023-0013g 2024-05-31 (23%); PROS-2023-0013g 2024-07-31 (77%); PROS-2023-0013g 2024-08-31 (550%); PROS-2023-0013g 2024-09-30 (74%); PROS-2023-0013g 2024-10-31 (43%); PROS-2023-0013g 2024-11-30 (38%); PROS-2023-0013g 2024-12-31 (56%); PROS-2023-0014 2024-04-30 (154%); PROS-2023-0014g 2024-04-30 (55%); PROS-2023-0014g 2024-05-31 (22%); PROS-2023-0014g 2024-06-30 (38%); PROS-2023-0014g 2024-07-31 (56%); PROS-2023-0014g 2024-08-31 (79%); PROS-2023-0014g 2024-09-30 (78%); PROS-2023-0014g 2024-10-31 (49%); PROS-2023-0014g 2024-12-31 (34%); PROS-2023-0016 2024-06-30 (23%); PROS-2023-0016g 2024-02-29 (23%); PROS-2023-0016g 2024-04-30 (22%); PROS-2023-0016g 2024-05-31 (23%); PROS-2023-0016g 2024-06-30 (32%); PROS-2023-0016g 2024-07-31 (131%); PROS-2023-0016g 2024-09-30 (23%); PROS-2023-0016g 2024-10-31 (71%); PROS-2023-0016g 2024-11-30 (38%); PROS-2023-0016g 2024-12-31 (28%); PROS-2023-0025 2024-02-29 (21%); PROS-2023-0025 2024-04-30 (21%); PROS-2023-0025g 2024-02-29 (35%); PROS-2023-0025g 2024-04-30 (22%); PROS-2023-0025g 2024-05-31 (28%); PROS-2023-0025g 2024-06-30 (112%); PROS-2023-0025g 2024-09-30 (27%); PROS-2023-0025g 2024-10-31 (78%); PROS-2023-0025g 2024-11-30 (40%); PROS-2023-0025g 2024-12-31 (29%); PROS-2023-0026 2024-02-29 (21%); PROS-2023-0026 2024-04-30 (21%); PROS-2023-0026g 2024-02-29 (33%); PROS-2023-0026g 2024-05-31 (89%); PROS-2023-0026g 2024-06-30 (42%); PROS-2023-0026g 2024-09-30 (27%); PROS-2023-0026g 2024-10-31 (79%); PROS-2023-0026g 2024-11-30 (41%); PROS-2023-0026g 2024-12-31 (31%); PROS-2023-0039 2024-02-29 (25%); PROS-2023-0039 2024-04-30 (20%); PROS-2023-0039g 2024-02-29 (37%); PROS-2023-0039g 2024-03-31 (22%); PROS-2023-0039g 2024-04-30 (22%); PROS-2023-0039g 2024-05-31 (21%); PROS-2023-0039g 2024-06-30 (103%); PROS-2023-0039g 2024-09-30 (27%); PROS-2023-0039g 2024-10-31 (79%); PROS-2023-0039g 2024-11-30 (40%); PROS-2023-0039g 2024-12-31 (29%); PROS-2023-0045 2024-01-31 (62%); PROS-2023-0045 2024-02-29 (66%); PROS-2023-0045 2024-03-31 (613%); PROS-2023-0045 2024-04-30 (30%); PROS-2023-0045 2024-12-31 (28%); PROS-2023-0045g 2024-01-31 (52%); PROS-2023-0045g 2024-03-31 (45%); PROS-2023-0045g 2024-06-30 (38%); PROS-2023-0045g 2024-07-31 (135%); PROS-2023-0045g 2024-08-31 (179%); PROS-2023-0045g 2024-09-30 (178%); PROS-2023-0045g 2024-10-31 (122%); PROS-2023-0045g 2024-11-30 (26%); PROS-2023-0065 2024-03-31 (26%); PROS-2023-0065g 2024-03-31 (41%); PROS-2023-0065g 2024-05-31 (28%); PROS-2023-0065g 2024-06-30 (66%); PROS-2023-0065g 2024-07-31 (174%); PROS-2023-0065g 2024-08-31 (219%); PROS-2023-0065g 2024-09-30 (218%); PROS-2023-0065g 2024-10-31 (160%); PROS-2023-0065g 2024-11-30 (52%); PROS-2023-0067 2024-04-30 (21%); PROS-2023-0067 2024-06-30 (23%); PROS-2023-0067g 2024-01-31 (48%); PROS-2023-0067g 2024-03-31 (42%); PROS-2023-0067g 2024-04-30 (26%); PROS-2023-0067g 2024-05-31 (25%); PROS-2023-0067g 2024-06-30 (42%); PROS-2023-0067g 2024-09-30 (27%); PROS-2023-0067g 2024-10-31 (79%); PROS-2023-0067g 2024-11-30 (40%); PROS-2023-0067g 2024-12-31 (30%); PROS-2023-0072 2024-05-31 (26%); PROS-2023-0072g 2024-04-30 (72%); PROS-2023-0072g 2024-05-31 (25%); PROS-2023-0072g 2024-06-30 (58%); PROS-2023-0072g 2024-07-31 (149%); PROS-2023-0072g 2024-08-31 (182%); PROS-2023-0072g 2024-09-30 (180%); PROS-2023-0072g 2024-10-31 (138%); PROS-2023-0072g 2024-11-30 (46%); PROS-2023-0089 2024-04-30 (23%); PROS-2023-0089 2024-05-31 (25%); PROS-2023-0089 2024-06-30 (27%); PROS-2023-0089 2024-07-31 (35%); PROS-2023-0089 2024-08-31 (31%); PROS-2023-0089 2024-09-30 (31%); PROS-2023-0089 2024-10-31 (24%); PROS-2023-0089g 2024-01-31 (75%); PROS-2023-0089g 2024-02-29 (76%); PROS-2023-0089g 2024-03-31 (72%); PROS-2023-0089g 2024-04-30 (79%); PROS-2023-0089g 2024-05-31 (59%); PROS-2023-0089g 2024-06-30 (46%); PROS-2023-0089g 2024-08-31 (2310%); PROS-2023-0089g 2024-11-30 (53%); PROS-2023-0089g 2024-12-31 (66%); PROS-2023-0090 2024-01-31 (25%); PROS-2023-0090 2024-02-29 (25%); PROS-2023-0090 2024-04-30 (89%); PROS-2023-0090g 2024-04-30 (54%); PROS-2023-0090g 2024-06-30 (30%); PROS-2023-0090g 2024-07-31 (112%); PROS-2023-0090g 2024-08-31 (144%); PROS-2023-0090g 2024-09-30 (143%); PROS-2023-0090g 2024-10-31 (101%); PROS-2023-0096 2024-01-31 (20%); PROS-2023-0096 2024-02-29 (58%); PROS-2023-0096 2024-04-30 (30%); PROS-2023-0096 2024-10-31 (45%); PROS-2023-0096g 2024-01-31 (78%); PROS-2023-0096g 2024-02-29 (78%); PROS-2023-0096g 2024-03-31 (74%); PROS-2023-0096g 2024-04-30 (81%); PROS-2023-0096g 2024-05-31 (66%); PROS-2023-0096g 2024-06-30 (51%); PROS-2023-0096g 2024-08-31 (2671%); PROS-2023-0096g 2024-10-31 (20%); PROS-2023-0096g 2024-11-30 (55%); PROS-2023-0096g 2024-12-31 (67%); PROS-2023-0104 2024-04-30 (30%); PROS-2023-0104g 2024-04-30 (35%); PROS-2023-0104g 2024-05-31 (43%); PROS-2023-0104g 2024-06-30 (40%); PROS-2023-0104g 2024-07-31 (61%); PROS-2023-0104g 2024-08-31 (88%); PROS-2023-0104g 2024-09-30 (23%); PROS-2023-0104g 2024-10-31 (71%); PROS-2023-0104g 2024-11-30 (38%); PROS-2023-0104g 2024-12-31 (29%); PROS-2023-0113 2024-04-30 (25%); PROS-2023-0113 2024-05-31 (22%); PROS-2023-0113g 2024-04-30 (29%); PROS-2023-0113g 2024-05-31 (49%); PROS-2023-0113g 2024-06-30 (42%); PROS-2023-0113g 2024-10-31 (96%); PROS-2023-0113g 2024-11-30 (41%); PROS-2023-0113g 2024-12-31 (30%); PROS-2023-0116 2024-06-30 (28%); PROS-2023-0116 2024-07-31 (36%); PROS-2023-0116 2024-08-31 (33%); PROS-2023-0116 2024-09-30 (33%); PROS-2023-0116 2024-10-31 (25%); PROS-2023-0116g 2024-04-30 (28%); PROS-2023-0116g 2024-05-31 (30%); PROS-2023-0116g 2024-06-30 (31%); PROS-2023-0116g 2024-07-31 (119%); PROS-2023-0116g 2024-08-31 (156%); PROS-2023-0116g 2024-09-30 (155%); PROS-2023-0116g 2024-10-31 (107%); PROS-2023-0116g 2024-11-30 (284%); PROS-2023-0125 2024-06-30 (64%); PROS-2023-0125g 2024-01-31 (49%); PROS-2023-0125g 2024-04-30 (26%); PROS-2023-0125g 2024-05-31 (50%); PROS-2023-0125g 2024-06-30 (41%); PROS-2023-0125g 2024-09-30 (25%); PROS-2023-0125g 2024-10-31 (75%); PROS-2023-0125g 2024-11-30 (39%); PROS-2023-0125g 2024-12-31 (30%); PROS-2023-0126 2024-06-30 (21%); PROS-2023-0126 2024-07-31 (28%); PROS-2023-0126 2024-08-31 (25%); PROS-2023-0126 2024-09-30 (25%); PROS-2023-0126g 2024-01-31 (22%); PROS-2023-0126g 2024-02-29 (26%); PROS-2023-0126g 2024-07-31 (35%); PROS-2023-0126g 2024-08-31 (79%); PROS-2023-0126g 2024-09-30 (22%); PROS-2023-0126g 2024-10-31 (21%); PROS-2023-0127 2024-04-30 (21%); PROS-2023-0127 2024-05-31 (24%); PROS-2023-0127g 2024-01-31 (107%); PROS-2023-0127g 2024-02-29 (40%); PROS-2023-0127g 2024-03-31 (30%); PROS-2023-0127g 2024-04-30 (36%); PROS-2023-0127g 2024-05-31 (51%); PROS-2023-0127g 2024-06-30 (43%); PROS-2023-0127g 2024-09-30 (27%); PROS-2023-0127g 2024-11-30 (93%); PROS-2023-0127g 2024-12-31 (31%); PROS-2023-0146 2024-04-30 (20%); PROS-2023-0146 2024-07-31 (22%); PROS-2023-0146g 2024-05-31 (31%); PROS-2023-0146g 2024-06-30 (44%); PROS-2023-0146g 2024-07-31 (198%); PROS-2023-0146g 2024-08-31 (246%); PROS-2023-0146g 2024-09-30 (245%); PROS-2023-0146g 2024-10-31 (183%); PROS-2023-0146g 2024-11-30 (66%); PROS-2023-0146g 2024-12-31 (21%); PROS-2023-0147 2024-04-30 (21%); PROS-2023-0147 2024-06-30 (21%); PROS-2023-0147 2024-11-30 (22%); PROS-2023-0147g 2024-01-31 (31%); PROS-2023-0147g 2024-04-30 (22%); PROS-2023-0147g 2024-05-31 (26%); PROS-2023-0147g 2024-06-30 (49%); PROS-2023-0147g 2024-10-31 (66%); PROS-2023-0147g 2024-11-30 (36%); PROS-2023-0147g 2024-12-31 (28%); PROS-2023-0152 2024-04-30 (20%); PROS-2023-0152 2024-11-30 (22%); PROS-2023-0152g 2024-04-30 (23%); PROS-2023-0152g 2024-05-31 (25%); PROS-2023-0152g 2024-06-30 (53%); PROS-2023-0152g 2024-11-30 (100%); PROS-2023-0152g 2024-12-31 (30%); PROS-2023-0158 2024-04-30 (21%); PROS-2023-0158g 2024-04-30 (22%); PROS-2023-0158g 2024-05-31 (24%); PROS-2023-0158g 2024-06-30 (50%); PROS-2023-0158g 2024-08-31 (38%); PROS-2023-0158g 2024-10-31 (73%); PROS-2023-0158g 2024-11-30 (38%); PROS-2023-0158g 2024-12-31 (30%); PROS-2023-0162 2024-04-30 (22%); PROS-2023-0162 2024-06-30 (37%); PROS-2023-0162 2024-11-30 (25%); PROS-2023-0162g 2024-04-30 (23%); PROS-2023-0162g 2024-05-31 (22%); PROS-2023-0162g 2024-06-30 (118%); PROS-2023-0162g 2024-07-31 (23%); PROS-2023-0162g 2024-08-31 (74%); PROS-2023-0162g 2024-09-30 (43%); PROS-2023-0162g 2024-11-30 (94%); PROS-2023-0162g 2024-12-31 (31%); PROS-2023-0166 2024-05-31 (22%); PROS-2023-0166 2024-07-31 (22%); PROS-2023-0166 2024-08-31 (27%); PROS-2023-0166 2024-09-30 (27%); PROS-2023-0166 2024-10-31 (20%); PROS-2023-0166 2024-12-31 (131%); PROS-2023-0166g 2024-01-31 (43%); PROS-2023-0166g 2024-02-29 (44%); PROS-2023-0166g 2024-03-31 (34%); PROS-2023-0166g 2024-04-30 (33%); PROS-2023-0166g 2024-07-31 (59%); PROS-2023-0166g 2024-08-31 (86%); PROS-2023-0166g 2024-09-30 (84%); PROS-2023-0166g 2024-10-31 (59%); PROS-2023-0166g 2024-11-30 (189%); PROS-2023-0172 2024-04-30 (20%); PROS-2023-0172g 2024-04-30 (21%); PROS-2023-0172g 2024-05-31 (22%); PROS-2023-0172g 2024-06-30 (39%); PROS-2023-0172g 2024-10-31 (59%); PROS-2023-0172g 2024-11-30 (33%); PROS-2023-0172g 2024-12-31 (27%); PROS-2023-0177 2024-12-31 (22%); PROS-2023-0177g 2024-01-31 (47%); PROS-2023-0177g 2024-02-29 (47%); PROS-2023-0177g 2024-03-31 (38%); PROS-2023-0177g 2024-04-30 (36%); PROS-2023-0177g 2024-07-31 (67%); PROS-2023-0177g 2024-08-31 (119%); PROS-2023-0177g 2024-09-30 (118%); PROS-2023-0177g 2024-10-31 (75%); PROS-2023-0177g 2024-11-30 (220%); PROS-2024-0008 2024-02-29 (21%); PROS-2024-0008 2024-04-30 (21%); PROS-2024-0008 2024-12-31 (23%); PROS-2024-0008g 2024-04-30 (23%); PROS-2024-0008g 2024-05-31 (25%); PROS-2024-0008g 2024-06-30 (42%); PROS-2024-0008g 2024-10-31 (21%); PROS-2024-0008g 2024-11-30 (109%); PROS-2024-0008g 2024-12-31 (30%); PROS-2024-0009 2024-02-29 (21%); PROS-2024-0009 2024-04-30 (20%); PROS-2024-0009g 2024-04-30 (22%); PROS-2024-0009g 2024-05-31 (24%); PROS-2024-0009g 2024-06-30 (41%); PROS-2024-0009g 2024-09-30 (25%); PROS-2024-0009g 2024-10-31 (75%); PROS-2024-0009g 2024-11-30 (39%); PROS-2024-0009g 2024-12-31 (30%); PROS-2024-0010 2024-02-29 (26%); PROS-2024-0010 2024-04-30 (20%); PROS-2024-0010g 2024-04-30 (23%); PROS-2024-0010g 2024-05-31 (25%); PROS-2024-0010g 2024-06-30 (42%); PROS-2024-0010g 2024-10-31 (102%); PROS-2024-0010g 2024-11-30 (29%); PROS-2024-0010g 2024-12-31 (49%); PROS-2024-0012 2024-02-29 (46%); PROS-2024-0012g 2024-02-29 (37%); PROS-2024-0012g 2024-06-30 (26%); PROS-2024-0012g 2024-10-31 (39%); PROS-2024-0012g 2024-11-30 (23%); PROS-2024-0012g 2024-12-31 (22%); PROS-2024-0014 2024-02-29 (54%); PROS-2024-0014 2024-04-30 (21%); PROS-2024-0014 2024-11-30 (23%); PROS-2024-0014g 2024-02-29 (40%); PROS-2024-0014g 2024-04-30 (23%); PROS-2024-0014g 2024-05-31 (26%); PROS-2024-0014g 2024-06-30 (44%); PROS-2024-0014g 2024-09-30 (30%); PROS-2024-0014g 2024-10-31 (86%); PROS-2024-0014g 2024-11-30 (43%); PROS-2024-0014g 2024-12-31 (31%); PROS-2024-0022 2024-02-29 (144%); PROS-2024-0022 2024-04-30 (20%); PROS-2024-0022 2024-11-30 (31%); PROS-2024-0027 2024-02-29 (22%); PROS-2024-0027 2024-03-31 (67%); PROS-2024-0027 2024-04-30 (21%); PROS-2024-0027 2024-11-30 (23%); PROS-2024-0027g 2024-03-31 (57%); PROS-2024-0027g 2024-04-30 (22%); PROS-2024-0027g 2024-05-31 (24%); PROS-2024-0027g 2024-06-30 (40%); PROS-2024-0027g 2024-09-30 (24%); PROS-2024-0027g 2024-10-31 (73%); PROS-2024-0027g 2024-11-30 (38%); PROS-2024-0027g 2024-12-31 (30%); PROS-2024-0036 2024-02-29 (1290%); PROS-2024-0036 2024-04-30 (21%); PROS-2024-0036g 2024-02-29 (65%); PROS-2024-0036g 2024-03-31 (84%); PROS-2024-0036g 2024-04-30 (23%); PROS-2024-0036g 2024-05-31 (25%); PROS-2024-0036g 2024-06-30 (43%); PROS-2024-0036g 2024-09-30 (29%); PROS-2024-0036g 2024-10-31 (83%); PROS-2024-0036g 2024-11-30 (42%); PROS-2024-0036g 2024-12-31 (30%); PROS-2024-0038 2024-04-30 (20%); PROS-2024-0038g 2024-04-30 (21%); PROS-2024-0038g 2024-05-31 (22%); PROS-2024-0038g 2024-07-31 (59%); PROS-2024-0038g 2024-08-31 (81%); PROS-2024-0038g 2024-09-30 (80%); PROS-2024-0038g 2024-10-31 (51%); PROS-2024-0038g 2024-12-31 (32%); PROS-2024-0040 2024-04-30 (21%); PROS-2024-0040g 2024-04-30 (22%); PROS-2024-0040g 2024-05-31 (25%); PROS-2024-0040g 2024-06-30 (42%); PROS-2024-0040g 2024-09-30 (26%); PROS-2024-0040g 2024-10-31 (78%); PROS-2024-0040g 2024-11-30 (40%); PROS-2024-0040g 2024-12-31 (29%); PROS-2024-0041 2024-03-31 (22%); PROS-2024-0041 2024-11-30 (22%); PROS-2024-0041g 2024-04-30 (22%); PROS-2024-0041g 2024-05-31 (25%); PROS-2024-0041g 2024-06-30 (42%); PROS-2024-0041g 2024-08-31 (42%); PROS-2024-0041g 2024-09-30 (41%); PROS-2024-0041g 2024-10-31 (34%); PROS-2024-0041g 2024-11-30 (35%); PROS-2024-0041g 2024-12-31 (84%); PROS-2024-0048 2024-03-31 (60%); PROS-2024-0048 2024-04-30 (20%); PROS-2024-0048g 2024-03-31 (49%); PROS-2024-0048g 2024-04-30 (21%); PROS-2024-0048g 2024-05-31 (22%); PROS-2024-0048g 2024-06-30 (29%); PROS-2024-0048g 2024-07-31 (114%); PROS-2024-0048g 2024-10-31 (63%); PROS-2024-0048g 2024-11-30 (35%); PROS-2024-0048g 2024-12-31 (28%); PROS-2024-0056 2024-03-31 (174%); PROS-2024-0056g 2024-03-31 (157%); PROS-2024-0056g 2024-04-30 (21%); PROS-2024-0056g 2024-05-31 (22%); PROS-2024-0056g 2024-06-30 (37%); PROS-2024-0056g 2024-08-31 (32%); PROS-2024-0056g 2024-10-31 (63%); PROS-2024-0056g 2024-11-30 (35%); PROS-2024-0056g 2024-12-31 (28%); PROS-2024-0057 2024-03-31 (202%); PROS-2024-0057 2024-04-30 (31%); PROS-2024-0057g 2024-03-31 (181%); PROS-2024-0057g 2024-04-30 (22%); PROS-2024-0057g 2024-05-31 (23%); PROS-2024-0057g 2024-06-30 (39%); PROS-2024-0057g 2024-09-30 (23%); PROS-2024-0057g 2024-10-31 (71%); PROS-2024-0057g 2024-11-30 (38%); PROS-2024-0057g 2024-12-31 (29%); PROS-2024-0062 2024-03-31 (414%); PROS-2024-0062 2024-04-30 (21%); PROS-2024-0062 2024-12-31 (34%); PROS-2024-0062g 2024-03-31 (367%); PROS-2024-0062g 2024-04-30 (23%); PROS-2024-0062g 2024-05-31 (25%); PROS-2024-0062g 2024-06-30 (42%); PROS-2024-0062g 2024-09-30 (27%); PROS-2024-0062g 2024-10-31 (80%); PROS-2024-0062g 2024-11-30 (41%); PROS-2024-0062g 2024-12-31 (31%); PROS-2024-0065g 2024-05-31 (23%); PROS-2024-0065g 2024-06-30 (38%); PROS-2024-0065g 2024-09-30 (21%); PROS-2024-0065g 2024-10-31 (68%); PROS-2024-0065g 2024-12-31 (27%); PROS-2024-0069g 2024-05-31 (24%); PROS-2024-0069g 2024-06-30 (41%); PROS-2024-0069g 2024-09-30 (25%); PROS-2024-0069g 2024-10-31 (76%); PROS-2024-0069g 2024-11-30 (40%); PROS-2024-0069g 2024-12-31 (29%); PROS-2024-0076g 2024-05-31 (23%); PROS-2024-0076g 2024-06-30 (38%); PROS-2024-0076g 2024-08-31 (35%); PROS-2024-0076g 2024-10-31 (68%); PROS-2024-0076g 2024-11-30 (31%); PROS-2024-0076g 2024-12-31 (78%); PROS-2024-0081 2024-04-30 (46%); PROS-2024-0081g 2024-04-30 (41%); PROS-2024-0081g 2024-05-31 (25%); PROS-2024-0081g 2024-06-30 (43%); PROS-2024-0081g 2024-09-30 (28%); PROS-2024-0081g 2024-10-31 (81%); PROS-2024-0081g 2024-11-30 (41%); PROS-2024-0081g 2024-12-31 (31%); PROS-2024-0082 2024-04-30 (66%); PROS-2024-0083 2024-04-30 (65%); PROS-2024-0083g 2024-05-31 (32%); PROS-2024-0083g 2024-07-31 (55%); PROS-2024-0083g 2024-08-31 (85%); PROS-2024-0083g 2024-09-30 (84%); PROS-2024-0083g 2024-10-31 (46%); PROS-2024-0083g 2024-11-30 (21%); PROS-2024-0083g 2024-12-31 (21%); PROS-2024-0085 2024-04-30 (93%); PROS-2024-0085g 2024-04-30 (89%); PROS-2024-0085g 2024-05-31 (22%); PROS-2024-0085g 2024-06-30 (36%); PROS-2024-0085g 2024-10-31 (63%); PROS-2024-0085g 2024-11-30 (35%); PROS-2024-0085g 2024-12-31 (28%); PROS-2024-0087 2024-04-30 (151%); PROS-2024-0087g 2024-04-30 (143%); PROS-2024-0087g 2024-05-31 (23%); PROS-2024-0087g 2024-06-30 (39%); PROS-2024-0087g 2024-11-30 (53%); PROS-2024-0087g 2024-12-31 (65%); PROS-2024-0094 2024-04-30 (828%); PROS-2024-0096g 2024-05-31 (22%); PROS-2024-0096g 2024-07-31 (85%); PROS-2024-0096g 2024-09-30 (26%); PROS-2024-0096g 2024-10-31 (77%); PROS-2024-0096g 2024-11-30 (40%); PROS-2024-0096g 2024-12-31 (30%); PROS-2024-0098g 2024-06-30 (37%); PROS-2024-0098g 2024-10-31 (64%); PROS-2024-0098g 2024-11-30 (35%); PROS-2024-0098g 2024-12-31 (28%); PROS-2024-0110 2024-05-31 (48%); PROS-2024-0110g 2024-06-30 (37%); PROS-2024-0110g 2024-10-31 (65%); PROS-2024-0110g 2024-11-30 (35%); PROS-2024-0110g 2024-12-31 (28%); PROS-2024-0111 2024-05-31 (57%); PROS-2024-0111g 2024-07-31 (51%); PROS-2024-0111g 2024-08-31 (77%); PROS-2024-0111g 2024-09-30 (76%); PROS-2024-0111g 2024-10-31 (43%); PROS-2024-0111g 2024-12-31 (41%); PROS-2024-0113 2024-05-31 (84%); PROS-2024-0113g 2024-05-31 (47%); PROS-2024-0113g 2024-06-30 (37%); PROS-2024-0113g 2024-10-31 (63%); PROS-2024-0113g 2024-11-30 (35%); PROS-2024-0113g 2024-12-31 (28%); PROS-2024-0116 2024-05-31 (110%); PROS-2024-0116 2024-12-31 (23%); PROS-2024-0116g 2024-05-31 (61%); PROS-2024-0116g 2024-06-30 (42%); PROS-2024-0116g 2024-09-30 (27%); PROS-2024-0116g 2024-10-31 (80%); PROS-2024-0116g 2024-11-30 (41%); PROS-2024-0116g 2024-12-31 (31%); PROS-2024-0122 2024-05-31 (171%); PROS-2024-0122g 2024-05-31 (110%); PROS-2024-0122g 2024-06-30 (38%); PROS-2024-0122g 2024-09-30 (22%); PROS-2024-0122g 2024-10-31 (69%); PROS-2024-0122g 2024-11-30 (37%); PROS-2024-0122g 2024-12-31 (29%); PROS-2024-0131 2024-05-31 (867%); PROS-2024-0131g 2024-05-31 (651%); PROS-2024-0131g 2024-06-30 (42%); PROS-2024-0131g 2024-09-30 (27%); PROS-2024-0131g 2024-10-31 (80%); PROS-2024-0131g 2024-11-30 (41%); PROS-2024-0131g 2024-12-31 (31%); PROS-2024-0147 2024-06-30 (43%); PROS-2024-0147g 2024-09-30 (27%); PROS-2024-0147g 2024-10-31 (79%); PROS-2024-0147g 2024-11-30 (40%); PROS-2024-0147g 2024-12-31 (30%); PROS-2024-0148 2024-06-30 (50%); PROS-2024-0148g 2024-10-31 (59%); PROS-2024-0148g 2024-12-31 (53%); PROS-2024-0156 2024-06-30 (229%); PROS-2024-0156 2024-07-31 (28%); PROS-2024-0156 2024-08-31 (31%); PROS-2024-0156 2024-09-30 (30%); PROS-2024-0156 2024-10-31 (34%); PROS-2024-0156 2024-11-30 (136%); PROS-2024-0156g 2024-06-30 (123%); PROS-2024-0156g 2024-10-31 (60%); PROS-2024-0156g 2024-11-30 (34%); PROS-2024-0156g 2024-12-31 (27%); PROS-2024-0157 2024-06-30 (271%); PROS-2024-0157g 2024-06-30 (141%); PROS-2024-0157g 2024-09-30 (21%); PROS-2024-0157g 2024-10-31 (67%); PROS-2024-0157g 2024-11-30 (36%); PROS-2024-0157g 2024-12-31 (29%); PROS-2024-0160 2024-06-30 (48%); PROS-2024-0160 2024-07-31 (74%); PROS-2024-0160 2024-08-31 (35%); PROS-2024-0160 2024-09-30 (39%); PROS-2024-0160g 2024-06-30 (214%); PROS-2024-0160g 2024-10-31 (71%); PROS-2024-0160g 2024-11-30 (38%); PROS-2024-0160g 2024-12-31 (29%); PROS-2024-0179g 2024-09-30 (25%); PROS-2024-0179g 2024-10-31 (76%); PROS-2024-0179g 2024-11-30 (33%); PROS-2024-0179g 2024-12-31 (82%); PROS-2024-0191 2024-07-31 (184%); PROS-2024-0191g 2024-07-31 (136%); PROS-2024-0191g 2024-10-31 (97%); PROS-2024-0191g 2024-11-30 (35%); PROS-2024-0191g 2024-12-31 (81%); PROS-2024-0195 2024-07-31 (528%); PROS-2024-0195g 2024-07-31 (410%); PROS-2024-0195g 2024-09-30 (24%); PROS-2024-0195g 2024-10-31 (74%); PROS-2024-0195g 2024-11-30 (39%); PROS-2024-0195g 2024-12-31 (30%); PROS-2024-0196 2024-07-31 (696%); PROS-2024-0196 2024-11-30 (23%); PROS-2024-0196g 2024-07-31 (527%); PROS-2024-0196g 2024-09-30 (27%); PROS-2024-0196g 2024-10-31 (79%); PROS-2024-0196g 2024-11-30 (41%); PROS-2024-0196g 2024-12-31 (31%); PROS-2024-0197 2024-07-31 (663%); PROS-2024-0197 2024-12-31 (23%); PROS-2024-0199 2024-07-31 (982%); PROS-2024-0199g 2024-07-31 (765%); PROS-2024-0199g 2024-09-30 (22%); PROS-2024-0199g 2024-10-31 (69%); PROS-2024-0199g 2024-11-30 (37%); PROS-2024-0199g 2024-12-31 (29%); PROS-2024-0200 2024-07-31 (909%); PROS-2024-0200g 2024-07-31 (732%); PROS-2024-0200g 2024-10-31 (22%); PROS-2024-0200g 2024-11-30 (57%); PROS-2024-0200g 2024-12-31 (69%); PROS-2024-0203g 2024-09-30 (22%); PROS-2024-0203g 2024-10-31 (70%); PROS-2024-0203g 2024-11-30 (37%); PROS-2024-0203g 2024-12-31 (29%); PROS-2024-0205 2024-11-30 (25%); PROS-2024-0209 2024-08-31 (23%); PROS-2024-0209 2024-10-31 (21%); PROS-2024-0209g 2024-08-31 (24%); PROS-2024-0209g 2024-09-30 (22%); PROS-2024-0209g 2024-10-31 (70%); PROS-2024-0209g 2024-11-30 (37%); PROS-2024-0209g 2024-12-31 (29%); PROS-2024-0213 2024-08-31 (40%); PROS-2024-0213g 2024-08-31 (41%); PROS-2024-0213g 2024-10-31 (63%); PROS-2024-0213g 2024-11-30 (35%); PROS-2024-0213g 2024-12-31 (28%); PROS-2024-0218 2024-08-31 (82%); PROS-2024-0218g 2024-08-31 (82%); PROS-2024-0218g 2024-09-30 (24%); PROS-2024-0218g 2024-10-31 (73%); PROS-2024-0218g 2024-11-30 (38%); PROS-2024-0218g 2024-12-31 (30%); PROS-2024-0224 2024-08-31 (285%); PROS-2024-0224 2024-10-31 (23%); PROS-2024-0224 2024-11-30 (41%); PROS-2024-0224g 2024-08-31 (288%); PROS-2024-0224g 2024-09-30 (26%); PROS-2024-0224g 2024-10-31 (113%); PROS-2024-0224g 2024-11-30 (38%); PROS-2024-0224g 2024-12-31 (30%); PROS-2024-0226 2024-08-31 (419%); PROS-2024-0226g 2024-08-31 (417%); PROS-2024-0226g 2024-09-30 (22%); PROS-2024-0226g 2024-10-31 (69%); PROS-2024-0226g 2024-11-30 (37%); PROS-2024-0226g 2024-12-31 (29%); PROS-2024-0233 2024-08-31 (893%); PROS-2024-0233g 2024-08-31 (933%); PROS-2024-0233g 2024-09-30 (23%); PROS-2024-0233g 2024-10-31 (71%); PROS-2024-0233g 2024-11-30 (38%); PROS-2024-0233g 2024-12-31 (29%); PROS-2024-0235 2024-08-31 (893%); PROS-2024-0235 2024-09-30 (37%); PROS-2024-0235 2024-10-31 (48%); PROS-2024-0235g 2024-08-31 (933%); PROS-2024-0235g 2024-10-31 (58%); PROS-2024-0235g 2024-11-30 (33%); PROS-2024-0235g 2024-12-31 (27%)
-- Churn risk (accounts renewing in 2024): 54 at risk (≥20% churn prob): C2 41%, C3 23%, C7 38%, C8 38%, C9 23%, PROS-2016-0011 41%, PROS-2016-0020 41%, PROS-2017-0019 20%, PROS-2017-0022 41%, PROS-2018-0003 41%, PROS-2018-0016 41%, PROS-2018-0018 29%, PROS-2018-0022 29%, PROS-2018-0035 41%, PROS-2018-0053 29%, PROS-2019-0008 41%, PROS-2019-0009 29%, PROS-2019-0012 23%, PROS-2019-0015 41%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0002 41%, PROS-2020-0006 35%, PROS-2020-0009 29%, PROS-2020-0012 29%, PROS-2020-0016 29%, PROS-2020-0022 41%, PROS-2020-0025 41%, PROS-2020-0032 41%, PROS-2020-0042 41%, PROS-2020-0043 41%, PROS-2020-0048 41%, PROS-2021-0031 41%, PROS-2021-0051 41%, PROS-2021-0062 41%, PROS-2021-0088 23%, PROS-2022-0009 41%, PROS-2022-0010 41%, PROS-2022-0011 41%, PROS-2022-0030 41%, PROS-2022-0046 41%, PROS-2022-0048 35%, PROS-2022-0049 41%, PROS-2022-0063 41%, PROS-2022-0067 35%, PROS-2022-0071 29%, PROS-2022-0073 23%, PROS-2022-0082 35%, PROS-2022-0083 35%, PROS-2022-0092 23%, PROS-2022-0097 29%, PROS-2022-0100 29%
+- Losses (churn) during year: PROS-2020-0043, PROS-2022-0063, PROS-2023-0172
+  - Renewals (retained): 97 accounts
+- Average CLV (Point-in-Time, year-end 2024): £2,216.61
+  - By billing account: C2 £337.31, C3 £205.32, C7 £-217.94, C8 £602.49, C9 £533.81, PROS-2016-0011 £529.43, PROS-2016-0020 £779.56, PROS-2017-0019 £831.30, PROS-2017-0022 £646.30, PROS-2018-0003 £427.46, PROS-2018-0009 £502.24, PROS-2018-0014 £260.41, PROS-2018-0016 £501.31, PROS-2018-0018 £565.82, PROS-2018-0022 £842.73, PROS-2018-0024 £855.45, PROS-2018-0035 £1,230.63, PROS-2018-0043 £1,421.06, PROS-2018-0053 £1,102.30, PROS-2019-0008 £399.99, PROS-2019-0009 £612.22, PROS-2019-0012 £868.16, PROS-2019-0015 £686.27, PROS-2019-0021 £1,175.71, PROS-2019-0023 £1,143.88, PROS-2019-0024 £799.21, PROS-2019-0027 £1,137.10, PROS-2020-0002 £232.04, PROS-2020-0006 £325.49, PROS-2020-0009 £655.96, PROS-2020-0012 £414.95, PROS-2020-0016 £672.35, PROS-2020-0022 £701.31, PROS-2020-0025 £-43.65, PROS-2020-0032 £1,495.25, PROS-2020-0048 £1,630.36, PROS-2021-0006 £356.60, PROS-2021-0031 £1,066.06, PROS-2021-0045 £1,804.18, PROS-2021-0051 £1,099.61, PROS-2021-0062 £1,587.23, PROS-2021-0088 £1,136.67, PROS-2022-0009 £-196.57, PROS-2022-0010 £42.26, PROS-2022-0011 £-314.45, PROS-2022-0030 £2,320.16, PROS-2022-0045 £3,281.16, PROS-2022-0046 £1,982.83, PROS-2022-0047 £3,250.65, PROS-2022-0048 £2,151.45, PROS-2022-0049 £1,503.65, PROS-2022-0067 £1,156.87, PROS-2022-0071 £1,525.67, PROS-2022-0073 £1,799.64, PROS-2022-0081 £2,111.11, PROS-2022-0082 £984.98, PROS-2022-0083 £1,340.77, PROS-2022-0092 £739.15, PROS-2022-0097 £851.18, PROS-2022-0100 £521.84, PROS-2022-0120 £1,175.23, PROS-2022-0124 £1,928.23, PROS-2022-0125 £711.57, PROS-2022-0127 £1,831.91, PROS-2022-0128 £1,866.27, PROS-2022-0130 £2,309.25, PROS-2023-0001 £4,497.51, PROS-2023-0010 £3,232.52, PROS-2023-0013 £4,095.51, PROS-2023-0014 £3,867.79, PROS-2023-0016 £4,031.71, PROS-2023-0025 £4,782.51, PROS-2023-0026 £6,170.02, PROS-2023-0039 £8,314.63, PROS-2023-0045 £7,672.54, PROS-2023-0065 £6,285.53, PROS-2023-0067 £7,583.39, PROS-2023-0072 £5,081.51, PROS-2023-0089 £6,801.55, PROS-2023-0090 £5,661.79, PROS-2023-0096 £6,220.86, PROS-2023-0104 £6,548.21, PROS-2023-0113 £6,574.05, PROS-2023-0116 £4,892.21, PROS-2023-0125 £6,748.94, PROS-2023-0126 £4,523.60, PROS-2023-0127 £6,491.20, PROS-2023-0146 £2,925.68, PROS-2023-0147 £3,004.81, PROS-2023-0152 £2,908.35, PROS-2023-0158 £3,701.89, PROS-2023-0162 £4,996.19, PROS-2023-0166 £3,094.81, PROS-2023-0177 £2,654.85, SYN-2021-001 £424.71
+- Bill shock events (>=20%): 1306 -- C7 2024-01-31 (28%); C7 2024-02-29 (27%); C7 2024-05-31 (37%); C7 2024-09-30 (34%); C7 2024-11-30 (84%); PROS-2016-0011 2024-01-31 (24%); PROS-2016-0011 2024-02-29 (20%); PROS-2016-0011 2024-06-30 (30%); PROS-2016-0011 2024-07-31 (26%); PROS-2016-0011 2024-08-31 (28%); PROS-2016-0011 2024-09-30 (176%); PROS-2016-0011 2024-12-31 (21%); PROS-2016-0011g 2024-01-31 (45%); PROS-2016-0011g 2024-02-29 (38%); PROS-2016-0011g 2024-06-30 (45%); PROS-2016-0011g 2024-07-31 (659%); PROS-2016-0011g 2024-08-31 (95%); PROS-2016-0011g 2024-09-30 (94%); PROS-2016-0011g 2024-10-31 (53%); PROS-2016-0011g 2024-12-31 (40%); PROS-2016-0020 2024-01-31 (29%); PROS-2016-0020 2024-02-29 (23%); PROS-2016-0020 2024-07-31 (21%); PROS-2016-0020g 2024-01-31 (38%); PROS-2016-0020g 2024-02-29 (31%); PROS-2016-0020g 2024-05-31 (29%); PROS-2016-0020g 2024-06-30 (69%); PROS-2016-0020g 2024-07-31 (186%); PROS-2016-0020g 2024-08-31 (237%); PROS-2016-0020g 2024-09-30 (236%); PROS-2016-0020g 2024-10-31 (171%); PROS-2016-0020g 2024-11-30 (54%); C2 2024-04-30 (30%); C2 2024-06-30 (25%); C2 2024-07-31 (33%); C2 2024-09-30 (24%); C2 2024-10-31 (35%); C2g 2024-02-29 (24%); C2g 2024-04-30 (51%); C2g 2024-05-31 (47%); C2g 2024-07-31 (25%); C2g 2024-09-30 (53%); C2g 2024-10-31 (34%); C2g 2024-11-30 (52%); C8 2024-02-29 (23%); C8 2024-04-30 (55%); C8 2024-05-31 (27%); C8 2024-06-30 (142%); C8 2024-07-31 (65%); C8 2024-08-31 (138%); C8 2024-09-30 (73%); C8 2024-10-31 (35%); C8 2024-11-30 (61%); C3g 2024-02-29 (27%); C3g 2024-03-31 (224%); C3g 2024-05-31 (22%); C3g 2024-06-30 (138%); C3g 2024-07-31 (70%); C3g 2024-08-31 (590%); C3g 2024-09-30 (120%); C3g 2024-10-31 (52%); C3g 2024-11-30 (23%); C9 2024-05-31 (48%); C9 2024-07-31 (26%); C9 2024-09-30 (54%); C9 2024-10-31 (22%); C9 2024-11-30 (47%); PROS-2017-0019 2024-02-29 (115%); PROS-2017-0019 2024-07-31 (24%); PROS-2017-0019 2024-08-31 (21%); PROS-2017-0019 2024-09-30 (21%); PROS-2017-0019g 2024-01-31 (38%); PROS-2017-0019g 2024-02-29 (35%); PROS-2017-0019g 2024-06-30 (45%); PROS-2017-0019g 2024-07-31 (133%); PROS-2017-0019g 2024-08-31 (167%); PROS-2017-0019g 2024-09-30 (166%); PROS-2017-0019g 2024-10-31 (122%); PROS-2017-0019g 2024-11-30 (216%); PROS-2017-0022 2024-12-31 (44%); PROS-2017-0022g 2024-01-31 (71%); PROS-2017-0022g 2024-02-29 (73%); PROS-2017-0022g 2024-03-31 (60%); PROS-2017-0022g 2024-04-30 (59%); PROS-2017-0022g 2024-05-31 (46%); PROS-2017-0022g 2024-06-30 (28%); PROS-2017-0022g 2024-07-31 (29%); PROS-2017-0022g 2024-08-31 (56%); PROS-2017-0022g 2024-09-30 (56%); PROS-2017-0022g 2024-10-31 (21%); PROS-2017-0022g 2024-11-30 (673%); PROS-2017-0022g 2024-12-31 (30%); PROS-2018-0003 2024-01-31 (30%); PROS-2018-0003 2024-08-31 (99%); PROS-2018-0003 2024-12-31 (22%); PROS-2018-0003g 2024-01-31 (82%); PROS-2018-0003g 2024-02-29 (75%); PROS-2018-0003g 2024-03-31 (71%); PROS-2018-0003g 2024-04-30 (70%); PROS-2018-0003g 2024-05-31 (61%); PROS-2018-0003g 2024-06-30 (49%); PROS-2018-0003g 2024-09-30 (1949%); PROS-2018-0003g 2024-11-30 (49%); PROS-2018-0003g 2024-12-31 (64%); PROS-2018-0009 2024-01-31 (31%); PROS-2018-0009 2024-02-29 (25%); PROS-2018-0009 2024-04-30 (22%); PROS-2018-0009 2024-07-31 (150%); PROS-2018-0009 2024-12-31 (43%); PROS-2018-0014 2024-01-31 (27%); PROS-2018-0014 2024-02-29 (32%); PROS-2018-0014g 2024-01-31 (67%); PROS-2018-0014g 2024-02-29 (63%); PROS-2018-0014g 2024-03-31 (51%); PROS-2018-0014g 2024-04-30 (50%); PROS-2018-0014g 2024-05-31 (329%); PROS-2018-0014g 2024-07-31 (67%); PROS-2018-0014g 2024-08-31 (97%); PROS-2018-0014g 2024-09-30 (96%); PROS-2018-0014g 2024-10-31 (58%); PROS-2018-0014g 2024-12-31 (36%); PROS-2018-0016 2024-01-31 (22%); PROS-2018-0016g 2024-01-31 (54%); PROS-2018-0016g 2024-02-29 (49%); PROS-2018-0016g 2024-03-31 (33%); PROS-2018-0016g 2024-04-30 (31%); PROS-2018-0016g 2024-07-31 (109%); PROS-2018-0016g 2024-08-31 (151%); PROS-2018-0016g 2024-09-30 (150%); PROS-2018-0016g 2024-10-31 (96%); PROS-2018-0016g 2024-12-31 (84%); PROS-2018-0018 2024-01-31 (23%); PROS-2018-0018 2024-07-31 (20%); PROS-2018-0018 2024-08-31 (27%); PROS-2018-0018g 2024-05-31 (50%); PROS-2018-0018g 2024-06-30 (94%); PROS-2018-0018g 2024-07-31 (218%); PROS-2018-0018g 2024-08-31 (269%); PROS-2018-0018g 2024-09-30 (1159%); PROS-2018-0018g 2024-10-31 (136%); PROS-2018-0018g 2024-11-30 (38%); PROS-2018-0022 2024-05-31 (22%); PROS-2018-0022 2024-06-30 (24%); PROS-2018-0022 2024-07-31 (31%); PROS-2018-0022 2024-08-31 (28%); PROS-2018-0022 2024-09-30 (28%); PROS-2018-0022 2024-10-31 (21%); PROS-2018-0022g 2024-01-31 (47%); PROS-2018-0022g 2024-02-29 (46%); PROS-2018-0022g 2024-03-31 (26%); PROS-2018-0022g 2024-04-30 (24%); PROS-2018-0022g 2024-06-30 (30%); PROS-2018-0022g 2024-07-31 (122%); PROS-2018-0022g 2024-08-31 (80%); PROS-2018-0022g 2024-09-30 (79%); PROS-2018-0022g 2024-10-31 (44%); PROS-2018-0022g 2024-12-31 (45%); PROS-2018-0024 2024-03-31 (39%); PROS-2018-0024 2024-05-31 (24%); PROS-2018-0035 2024-01-31 (24%); PROS-2018-0035 2024-02-29 (38%); PROS-2018-0035 2024-09-30 (87%); PROS-2018-0035g 2024-01-31 (48%); PROS-2018-0035g 2024-02-29 (58%); PROS-2018-0035g 2024-03-31 (35%); PROS-2018-0035g 2024-04-30 (33%); PROS-2018-0035g 2024-07-31 (105%); PROS-2018-0035g 2024-08-31 (146%); PROS-2018-0035g 2024-09-30 (145%); PROS-2018-0035g 2024-10-31 (92%); PROS-2018-0035g 2024-12-31 (119%); PROS-2018-0043 2024-02-29 (41%); PROS-2018-0043 2024-08-31 (101%); PROS-2018-0053 2024-02-29 (22%); PROS-2018-0053 2024-07-31 (23%); PROS-2018-0053 2024-11-30 (33%); PROS-2018-0053g 2024-03-31 (25%); PROS-2018-0053g 2024-05-31 (24%); PROS-2018-0053g 2024-06-30 (58%); PROS-2018-0053g 2024-07-31 (149%); PROS-2018-0053g 2024-08-31 (183%); PROS-2018-0053g 2024-09-30 (182%); PROS-2018-0053g 2024-10-31 (138%); PROS-2018-0053g 2024-11-30 (45%); PROS-2019-0008 2024-04-30 (20%); PROS-2019-0008 2024-06-30 (24%); PROS-2019-0008g 2024-01-31 (21%); PROS-2019-0008g 2024-02-29 (23%); PROS-2019-0008g 2024-04-30 (23%); PROS-2019-0008g 2024-05-31 (25%); PROS-2019-0008g 2024-06-30 (43%); PROS-2019-0008g 2024-09-30 (29%); PROS-2019-0008g 2024-10-31 (82%); PROS-2019-0008g 2024-11-30 (42%); PROS-2019-0008g 2024-12-31 (31%); PROS-2019-0009 2024-01-31 (21%); PROS-2019-0009g 2024-01-31 (101%); PROS-2019-0009g 2024-02-29 (23%); PROS-2019-0009g 2024-05-31 (45%); PROS-2019-0009g 2024-06-30 (88%); PROS-2019-0009g 2024-07-31 (212%); PROS-2019-0009g 2024-08-31 (264%); PROS-2019-0009g 2024-09-30 (262%); PROS-2019-0009g 2024-10-31 (196%); PROS-2019-0009g 2024-11-30 (72%); PROS-2019-0009g 2024-12-31 (25%); PROS-2019-0012g 2024-02-29 (26%); PROS-2019-0012g 2024-05-31 (54%); PROS-2019-0012g 2024-06-30 (35%); PROS-2019-0012g 2024-10-31 (58%); PROS-2019-0012g 2024-11-30 (33%); PROS-2019-0012g 2024-12-31 (27%); PROS-2019-0015 2024-01-31 (27%); PROS-2019-0015 2024-02-29 (28%); PROS-2019-0015 2024-04-30 (21%); PROS-2019-0015 2024-08-31 (118%); PROS-2019-0015 2024-12-31 (33%); PROS-2019-0015g 2024-01-31 (35%); PROS-2019-0015g 2024-02-29 (40%); PROS-2019-0015g 2024-06-30 (55%); PROS-2019-0015g 2024-07-31 (167%); PROS-2019-0015g 2024-08-31 (219%); PROS-2019-0015g 2024-09-30 (556%); PROS-2019-0015g 2024-10-31 (76%); PROS-2019-0015g 2024-12-31 (30%); PROS-2019-0021 2024-01-31 (27%); PROS-2019-0021 2024-02-29 (43%); PROS-2019-0021 2024-04-30 (22%); PROS-2019-0021 2024-10-31 (167%); PROS-2019-0021g 2024-01-31 (28%); PROS-2019-0021g 2024-02-29 (45%); PROS-2019-0021g 2024-04-30 (40%); PROS-2019-0021g 2024-06-30 (29%); PROS-2019-0021g 2024-07-31 (111%); PROS-2019-0021g 2024-08-31 (325%); PROS-2019-0021g 2024-09-30 (135%); PROS-2019-0021g 2024-10-31 (94%); PROS-2019-0023 2024-01-31 (24%); PROS-2019-0023 2024-02-29 (42%); PROS-2019-0023 2024-04-30 (20%); PROS-2019-0023 2024-05-31 (116%); PROS-2019-0023g 2024-01-31 (83%); PROS-2019-0023g 2024-02-29 (56%); PROS-2019-0023g 2024-03-31 (25%); PROS-2019-0023g 2024-04-30 (22%); PROS-2019-0023g 2024-06-30 (33%); PROS-2019-0023g 2024-07-31 (129%); PROS-2019-0023g 2024-08-31 (173%); PROS-2019-0023g 2024-09-30 (172%); PROS-2019-0023g 2024-10-31 (116%); PROS-2019-0023g 2024-11-30 (21%); PROS-2019-0024 2024-02-29 (36%); PROS-2019-0024g 2024-01-31 (33%); PROS-2019-0024g 2024-02-29 (52%); PROS-2019-0024g 2024-06-30 (352%); PROS-2019-0024g 2024-07-31 (69%); PROS-2019-0024g 2024-08-31 (103%); PROS-2019-0024g 2024-09-30 (102%); PROS-2019-0024g 2024-10-31 (59%); PROS-2019-0024g 2024-12-31 (38%); PROS-2019-0027 2024-01-31 (23%); PROS-2019-0027 2024-02-29 (50%); PROS-2019-0027 2024-03-31 (140%); PROS-2019-0027g 2024-01-31 (29%); PROS-2019-0027g 2024-02-29 (56%); PROS-2019-0027g 2024-06-30 (46%); PROS-2019-0027g 2024-07-31 (176%); PROS-2019-0027g 2024-09-30 (74%); PROS-2019-0027g 2024-10-31 (37%); PROS-2019-0027g 2024-11-30 (24%); PROS-2019-0027g 2024-12-31 (46%); PROS-2020-0002 2024-04-30 (20%); PROS-2020-0002g 2024-01-31 (30%); PROS-2020-0002g 2024-04-30 (23%); PROS-2020-0002g 2024-05-31 (21%); PROS-2020-0002g 2024-06-30 (104%); PROS-2020-0002g 2024-09-30 (28%); PROS-2020-0002g 2024-10-31 (80%); PROS-2020-0002g 2024-11-30 (41%); PROS-2020-0002g 2024-12-31 (30%); PROS-2020-0006 2024-04-30 (20%); PROS-2020-0006 2024-11-30 (22%); PROS-2020-0006g 2024-01-31 (28%); PROS-2020-0006g 2024-04-30 (23%); PROS-2020-0006g 2024-05-31 (25%); PROS-2020-0006g 2024-06-30 (43%); PROS-2020-0006g 2024-09-30 (28%); PROS-2020-0006g 2024-10-31 (82%); PROS-2020-0006g 2024-11-30 (34%); PROS-2020-0006g 2024-12-31 (84%); PROS-2020-0009g 2024-01-31 (31%); PROS-2020-0009g 2024-04-30 (22%); PROS-2020-0009g 2024-05-31 (23%); PROS-2020-0009g 2024-06-30 (39%); PROS-2020-0009g 2024-09-30 (22%); PROS-2020-0009g 2024-10-31 (70%); PROS-2020-0009g 2024-11-30 (37%); PROS-2020-0009g 2024-12-31 (28%); PROS-2020-0012 2024-01-31 (24%); PROS-2020-0012 2024-04-30 (20%); PROS-2020-0012g 2024-02-29 (32%); PROS-2020-0012g 2024-06-30 (51%); PROS-2020-0012g 2024-07-31 (162%); PROS-2020-0012g 2024-08-31 (213%); PROS-2020-0012g 2024-09-30 (212%); PROS-2020-0012g 2024-10-31 (147%); PROS-2020-0012g 2024-11-30 (375%); PROS-2020-0016 2024-01-31 (33%); PROS-2020-0016 2024-02-29 (30%); PROS-2020-0016 2024-03-31 (20%); PROS-2020-0016 2024-04-30 (25%); PROS-2020-0016 2024-07-31 (201%); PROS-2020-0016 2024-12-31 (22%); PROS-2020-0016g 2024-01-31 (50%); PROS-2020-0016g 2024-02-29 (84%); PROS-2020-0016g 2024-06-30 (71%); PROS-2020-0016g 2024-07-31 (95%); PROS-2020-0016g 2024-08-31 (124%); PROS-2020-0016g 2024-09-30 (123%); PROS-2020-0016g 2024-10-31 (86%); PROS-2020-0016g 2024-12-31 (88%); PROS-2020-0022 2024-04-30 (20%); PROS-2020-0022g 2024-02-29 (30%); PROS-2020-0022g 2024-04-30 (22%); PROS-2020-0022g 2024-05-31 (24%); PROS-2020-0022g 2024-06-30 (41%); PROS-2020-0022g 2024-09-30 (25%); PROS-2020-0022g 2024-10-31 (75%); PROS-2020-0022g 2024-11-30 (39%); PROS-2020-0022g 2024-12-31 (30%); PROS-2020-0025 2024-06-30 (20%); PROS-2020-0025 2024-07-31 (27%); PROS-2020-0025 2024-08-31 (24%); PROS-2020-0025 2024-09-30 (24%); PROS-2020-0025 2024-10-31 (95%); PROS-2020-0025g 2024-01-31 (72%); PROS-2020-0025g 2024-02-29 (75%); PROS-2020-0025g 2024-03-31 (63%); PROS-2020-0025g 2024-04-30 (388%); PROS-2020-0025g 2024-05-31 (30%); PROS-2020-0025g 2024-07-31 (67%); PROS-2020-0025g 2024-08-31 (103%); PROS-2020-0025g 2024-09-30 (103%); PROS-2020-0025g 2024-10-31 (57%); PROS-2020-0025g 2024-12-31 (40%); PROS-2020-0032 2024-02-29 (26%); PROS-2020-0032 2024-04-30 (21%); PROS-2020-0032 2024-12-31 (21%); PROS-2020-0032g 2024-02-29 (35%); PROS-2020-0032g 2024-04-30 (22%); PROS-2020-0032g 2024-05-31 (25%); PROS-2020-0032g 2024-06-30 (42%); PROS-2020-0032g 2024-08-31 (42%); PROS-2020-0032g 2024-09-30 (41%); PROS-2020-0032g 2024-10-31 (34%); PROS-2020-0032g 2024-11-30 (40%); PROS-2020-0032g 2024-12-31 (30%); PROS-2020-0043 2024-01-31 (25%); PROS-2020-0043g 2024-01-31 (58%); PROS-2020-0043g 2024-02-07 (62%); PROS-2020-0048 2024-02-29 (33%); PROS-2020-0048 2024-03-31 (50%); PROS-2020-0048 2024-07-31 (26%); PROS-2020-0048 2024-08-31 (23%); PROS-2020-0048 2024-09-30 (23%); PROS-2020-0048g 2024-01-31 (66%); PROS-2020-0048g 2024-02-29 (75%); PROS-2020-0048g 2024-03-31 (67%); PROS-2020-0048g 2024-04-30 (463%); PROS-2020-0048g 2024-05-31 (25%); PROS-2020-0048g 2024-07-31 (101%); PROS-2020-0048g 2024-08-31 (142%); PROS-2020-0048g 2024-09-30 (141%); PROS-2020-0048g 2024-10-31 (89%); PROS-2020-0048g 2024-12-31 (26%); PROS-2021-0006 2024-04-30 (21%); PROS-2021-0006g 2024-02-29 (23%); PROS-2021-0006g 2024-04-30 (22%); PROS-2021-0006g 2024-05-31 (24%); PROS-2021-0006g 2024-06-30 (40%); PROS-2021-0006g 2024-09-30 (23%); PROS-2021-0006g 2024-10-31 (72%); PROS-2021-0006g 2024-11-30 (38%); PROS-2021-0006g 2024-12-31 (28%); PROS-2021-0031 2024-02-29 (33%); PROS-2021-0031 2024-07-31 (23%); PROS-2021-0031g 2024-02-29 (40%); PROS-2021-0031g 2024-06-30 (43%); PROS-2021-0031g 2024-07-31 (150%); PROS-2021-0031g 2024-08-31 (201%); PROS-2021-0031g 2024-09-30 (201%); PROS-2021-0031g 2024-10-31 (136%); PROS-2021-0031g 2024-11-30 (30%); PROS-2021-0045 2024-01-31 (21%); PROS-2021-0045 2024-02-29 (34%); PROS-2021-0045 2024-03-31 (27%); PROS-2021-0045 2024-04-30 (58%); PROS-2021-0051 2024-04-30 (20%); PROS-2021-0051g 2024-01-31 (24%); PROS-2021-0051g 2024-03-31 (28%); PROS-2021-0051g 2024-05-31 (60%); PROS-2021-0051g 2024-06-30 (40%); PROS-2021-0051g 2024-09-30 (23%); PROS-2021-0051g 2024-10-31 (72%); PROS-2021-0051g 2024-11-30 (38%); PROS-2021-0051g 2024-12-31 (29%); PROS-2021-0062 2024-03-31 (24%); PROS-2021-0062 2024-05-31 (27%); PROS-2021-0062g 2024-03-31 (47%); PROS-2021-0062g 2024-04-30 (23%); PROS-2021-0062g 2024-05-31 (26%); PROS-2021-0062g 2024-06-30 (45%); PROS-2021-0062g 2024-09-30 (32%); PROS-2021-0062g 2024-10-31 (88%); PROS-2021-0062g 2024-11-30 (43%); PROS-2021-0062g 2024-12-31 (32%); PROS-2021-0088 2024-04-30 (25%); PROS-2021-0088 2024-05-31 (39%); PROS-2021-0088g 2024-01-31 (65%); PROS-2021-0088g 2024-02-29 (65%); PROS-2021-0088g 2024-03-31 (233%); PROS-2021-0088g 2024-04-30 (56%); PROS-2021-0088g 2024-07-31 (64%); PROS-2021-0088g 2024-08-31 (85%); PROS-2021-0088g 2024-09-30 (84%); PROS-2021-0088g 2024-10-31 (57%); PROS-2021-0088g 2024-12-31 (27%); SYN-2021-001 2024-02-29 (46%); SYN-2021-001 2024-07-31 (20%); PROS-2022-0009 2024-05-31 (24%); PROS-2022-0009g 2024-01-31 (20%); PROS-2022-0009g 2024-02-29 (23%); PROS-2022-0009g 2024-04-30 (23%); PROS-2022-0009g 2024-05-31 (25%); PROS-2022-0009g 2024-06-30 (35%); PROS-2022-0009g 2024-07-31 (154%); PROS-2022-0009g 2024-09-30 (28%); PROS-2022-0009g 2024-11-30 (94%); PROS-2022-0009g 2024-12-31 (31%); PROS-2022-0010 2024-04-30 (21%); PROS-2022-0010g 2024-02-29 (20%); PROS-2022-0010g 2024-04-30 (23%); PROS-2022-0010g 2024-05-31 (25%); PROS-2022-0010g 2024-06-30 (42%); PROS-2022-0010g 2024-07-31 (68%); PROS-2022-0010g 2024-08-31 (101%); PROS-2022-0010g 2024-09-30 (27%); PROS-2022-0010g 2024-10-31 (79%); PROS-2022-0010g 2024-11-30 (41%); PROS-2022-0010g 2024-12-31 (31%); PROS-2022-0011g 2024-05-31 (72%); PROS-2022-0011g 2024-06-30 (35%); PROS-2022-0011g 2024-10-31 (59%); PROS-2022-0011g 2024-11-30 (28%); PROS-2022-0011g 2024-12-31 (73%); PROS-2022-0030 2024-02-29 (25%); PROS-2022-0030 2024-04-30 (20%); PROS-2022-0030g 2024-02-29 (40%); PROS-2022-0030g 2024-04-30 (22%); PROS-2022-0030g 2024-05-31 (21%); PROS-2022-0030g 2024-06-30 (99%); PROS-2022-0030g 2024-09-30 (24%); PROS-2022-0030g 2024-10-31 (74%); PROS-2022-0030g 2024-11-30 (39%); PROS-2022-0030g 2024-12-31 (30%); PROS-2022-0045 2024-07-31 (24%); PROS-2022-0045 2024-08-31 (21%); PROS-2022-0045 2024-09-30 (21%); PROS-2022-0046 2024-05-31 (24%); PROS-2022-0046g 2024-02-29 (32%); PROS-2022-0046g 2024-03-31 (27%); PROS-2022-0046g 2024-05-31 (63%); PROS-2022-0046g 2024-06-30 (42%); PROS-2022-0046g 2024-08-31 (41%); PROS-2022-0046g 2024-11-30 (88%); PROS-2022-0046g 2024-12-31 (30%); PROS-2022-0047 2024-04-30 (21%); PROS-2022-0047g 2024-01-31 (32%); PROS-2022-0047g 2024-02-29 (21%); PROS-2022-0048 2024-02-29 (27%); PROS-2022-0048 2024-03-31 (24%); PROS-2022-0048 2024-12-31 (27%); PROS-2022-0048g 2024-01-31 (57%); PROS-2022-0048g 2024-02-29 (65%); PROS-2022-0048g 2024-03-31 (61%); PROS-2022-0048g 2024-04-30 (47%); PROS-2022-0048g 2024-05-31 (32%); PROS-2022-0048g 2024-07-31 (48%); PROS-2022-0048g 2024-08-31 (72%); PROS-2022-0048g 2024-09-30 (71%); PROS-2022-0048g 2024-10-31 (993%); PROS-2022-0048g 2024-12-31 (28%); PROS-2022-0049 2024-04-30 (20%); PROS-2022-0049 2024-06-30 (24%); PROS-2022-0049g 2024-02-29 (30%); PROS-2022-0049g 2024-03-31 (30%); PROS-2022-0049g 2024-05-31 (65%); PROS-2022-0049g 2024-06-30 (43%); PROS-2022-0049g 2024-08-31 (44%); PROS-2022-0049g 2024-10-31 (81%); PROS-2022-0049g 2024-11-30 (41%); PROS-2022-0049g 2024-12-31 (31%); PROS-2022-0063 2024-01-31 (33%); PROS-2022-0063g 2024-01-31 (35%); PROS-2022-0063g 2024-02-26 (35%); PROS-2022-0067 2024-03-31 (26%); PROS-2022-0067 2024-04-30 (20%); PROS-2022-0067 2024-11-30 (23%); PROS-2022-0067g 2024-03-31 (42%); PROS-2022-0067g 2024-04-30 (22%); PROS-2022-0067g 2024-05-31 (24%); PROS-2022-0067g 2024-06-30 (41%); PROS-2022-0067g 2024-09-30 (25%); PROS-2022-0067g 2024-10-31 (75%); PROS-2022-0067g 2024-11-30 (39%); PROS-2022-0067g 2024-12-31 (30%); PROS-2022-0071 2024-03-31 (82%); PROS-2022-0071 2024-06-30 (22%); PROS-2022-0071 2024-07-31 (70%); PROS-2022-0071g 2024-03-31 (36%); PROS-2022-0071g 2024-04-30 (559%); PROS-2022-0071g 2024-06-30 (48%); PROS-2022-0071g 2024-07-31 (145%); PROS-2022-0071g 2024-08-31 (185%); PROS-2022-0071g 2024-09-30 (184%); PROS-2022-0071g 2024-10-31 (132%); PROS-2022-0071g 2024-11-30 (35%); PROS-2022-0073 2024-01-31 (125%); PROS-2022-0073 2024-05-31 (21%); PROS-2022-0073 2024-06-30 (23%); PROS-2022-0073 2024-07-31 (31%); PROS-2022-0073 2024-08-31 (99%); PROS-2022-0073g 2024-01-31 (39%); PROS-2022-0073g 2024-02-29 (32%); PROS-2022-0073g 2024-03-31 (39%); PROS-2022-0073g 2024-04-30 (27%); PROS-2022-0073g 2024-06-30 (40%); PROS-2022-0073g 2024-07-31 (174%); PROS-2022-0073g 2024-08-31 (139%); PROS-2022-0073g 2024-09-30 (137%); PROS-2022-0073g 2024-10-31 (103%); PROS-2022-0073g 2024-11-30 (129%); PROS-2022-0073g 2024-12-31 (27%); PROS-2022-0081 2024-04-30 (28%); PROS-2022-0081 2024-11-30 (32%); PROS-2022-0081g 2024-04-30 (22%); PROS-2022-0081g 2024-10-31 (26%); PROS-2022-0082 2024-04-30 (29%); PROS-2022-0082 2024-06-30 (24%); PROS-2022-0082g 2024-01-31 (48%); PROS-2022-0082g 2024-03-31 (29%); PROS-2022-0082g 2024-04-30 (40%); PROS-2022-0082g 2024-05-31 (25%); PROS-2022-0082g 2024-06-30 (43%); PROS-2022-0082g 2024-07-31 (69%); PROS-2022-0082g 2024-08-31 (104%); PROS-2022-0082g 2024-09-30 (28%); PROS-2022-0082g 2024-10-31 (81%); PROS-2022-0082g 2024-11-30 (41%); PROS-2022-0082g 2024-12-31 (31%); PROS-2022-0083 2024-01-31 (70%); PROS-2022-0083 2024-04-30 (27%); PROS-2022-0083 2024-07-31 (25%); PROS-2022-0083 2024-08-31 (21%); PROS-2022-0083 2024-09-30 (21%); PROS-2022-0083g 2024-01-31 (41%); PROS-2022-0083g 2024-02-29 (42%); PROS-2022-0083g 2024-03-31 (48%); PROS-2022-0083g 2024-04-30 (45%); PROS-2022-0083g 2024-06-30 (21%); PROS-2022-0083g 2024-07-31 (103%); PROS-2022-0083g 2024-08-31 (139%); PROS-2022-0083g 2024-09-30 (138%); PROS-2022-0083g 2024-10-31 (386%); PROS-2022-0083g 2024-12-31 (33%); PROS-2022-0092 2024-04-30 (27%); PROS-2022-0092g 2024-03-31 (21%); PROS-2022-0092g 2024-04-30 (46%); PROS-2022-0092g 2024-05-31 (23%); PROS-2022-0092g 2024-06-30 (39%); PROS-2022-0092g 2024-07-31 (61%); PROS-2022-0092g 2024-08-31 (87%); PROS-2022-0092g 2024-09-30 (23%); PROS-2022-0092g 2024-10-31 (71%); PROS-2022-0092g 2024-11-30 (38%); PROS-2022-0092g 2024-12-31 (28%); PROS-2022-0097 2024-04-30 (36%); PROS-2022-0097 2024-06-30 (25%); PROS-2022-0097g 2024-04-30 (52%); PROS-2022-0097g 2024-05-31 (21%); PROS-2022-0097g 2024-06-30 (103%); PROS-2022-0097g 2024-09-30 (27%); PROS-2022-0097g 2024-10-31 (79%); PROS-2022-0097g 2024-11-30 (40%); PROS-2022-0097g 2024-12-31 (30%); PROS-2022-0100 2024-04-30 (36%); PROS-2022-0100g 2024-01-31 (48%); PROS-2022-0100g 2024-04-30 (57%); PROS-2022-0100g 2024-05-31 (25%); PROS-2022-0100g 2024-06-30 (42%); PROS-2022-0100g 2024-07-31 (68%); PROS-2022-0100g 2024-08-31 (100%); PROS-2022-0100g 2024-09-30 (41%); PROS-2022-0100g 2024-11-30 (38%); PROS-2022-0100g 2024-12-31 (108%); PROS-2022-0120 2024-04-30 (33%); PROS-2022-0120 2024-11-30 (23%); PROS-2022-0124 2024-01-31 (23%); PROS-2022-0124 2024-02-29 (23%); PROS-2022-0124 2024-04-30 (79%); PROS-2022-0124g 2024-04-30 (47%); PROS-2022-0124g 2024-06-30 (65%); PROS-2022-0124g 2024-07-31 (176%); PROS-2022-0124g 2024-08-31 (223%); PROS-2022-0124g 2024-09-30 (222%); PROS-2022-0124g 2024-10-31 (161%); PROS-2022-0124g 2024-11-30 (51%); PROS-2022-0125 2024-05-31 (34%); PROS-2022-0125g 2024-01-31 (58%); PROS-2022-0125g 2024-04-30 (22%); PROS-2022-0125g 2024-05-31 (83%); PROS-2022-0125g 2024-06-30 (41%); PROS-2022-0125g 2024-09-30 (25%); PROS-2022-0125g 2024-11-30 (90%); PROS-2022-0125g 2024-12-31 (30%); PROS-2022-0127 2024-02-29 (21%); PROS-2022-0127 2024-04-30 (29%); PROS-2022-0127 2024-05-31 (90%); PROS-2022-0127g 2024-01-31 (28%); PROS-2022-0127g 2024-04-30 (31%); PROS-2022-0127g 2024-06-30 (47%); PROS-2022-0127g 2024-07-31 (125%); PROS-2022-0127g 2024-08-31 (152%); PROS-2022-0127g 2024-09-30 (150%); PROS-2022-0127g 2024-10-31 (116%); PROS-2022-0127g 2024-11-30 (36%); PROS-2022-0128 2024-06-30 (26%); PROS-2022-0128 2024-07-31 (92%); PROS-2022-0128 2024-08-31 (20%); PROS-2022-0128 2024-09-30 (20%); PROS-2022-0128 2024-11-30 (24%); PROS-2022-0128g 2024-01-31 (23%); PROS-2022-0128g 2024-02-29 (25%); PROS-2022-0128g 2024-04-30 (33%); PROS-2022-0128g 2024-06-30 (47%); PROS-2022-0128g 2024-07-31 (131%); PROS-2022-0128g 2024-08-31 (163%); PROS-2022-0128g 2024-09-30 (161%); PROS-2022-0128g 2024-10-31 (121%); PROS-2022-0128g 2024-11-30 (35%); PROS-2022-0130 2024-05-31 (38%); PROS-2022-0130g 2024-04-30 (36%); PROS-2022-0130g 2024-05-31 (50%); PROS-2022-0130g 2024-06-30 (41%); PROS-2022-0130g 2024-09-30 (25%); PROS-2022-0130g 2024-10-31 (76%); PROS-2022-0130g 2024-11-30 (33%); PROS-2022-0130g 2024-12-31 (82%); PROS-2023-0001 2024-04-30 (21%); PROS-2023-0001g 2024-01-31 (29%); PROS-2023-0001g 2024-04-30 (23%); PROS-2023-0001g 2024-05-31 (22%); PROS-2023-0001g 2024-06-30 (107%); PROS-2023-0001g 2024-09-30 (29%); PROS-2023-0001g 2024-10-31 (83%); PROS-2023-0001g 2024-11-30 (42%); PROS-2023-0001g 2024-12-31 (30%); PROS-2023-0010 2024-04-30 (21%); PROS-2023-0010 2024-12-31 (21%); PROS-2023-0010g 2024-01-31 (23%); PROS-2023-0010g 2024-02-29 (20%); PROS-2023-0010g 2024-04-30 (22%); PROS-2023-0010g 2024-05-31 (25%); PROS-2023-0010g 2024-06-30 (42%); PROS-2023-0010g 2024-09-30 (27%); PROS-2023-0010g 2024-10-31 (79%); PROS-2023-0010g 2024-11-30 (40%); PROS-2023-0010g 2024-12-31 (30%); PROS-2023-0013 2024-05-31 (35%); PROS-2023-0013g 2024-01-31 (61%); PROS-2023-0013g 2024-02-29 (56%); PROS-2023-0013g 2024-03-31 (43%); PROS-2023-0013g 2024-04-30 (41%); PROS-2023-0013g 2024-05-31 (23%); PROS-2023-0013g 2024-07-31 (77%); PROS-2023-0013g 2024-08-31 (550%); PROS-2023-0013g 2024-09-30 (74%); PROS-2023-0013g 2024-10-31 (43%); PROS-2023-0013g 2024-11-30 (38%); PROS-2023-0013g 2024-12-31 (56%); PROS-2023-0014 2024-04-30 (154%); PROS-2023-0014g 2024-04-30 (55%); PROS-2023-0014g 2024-05-31 (22%); PROS-2023-0014g 2024-06-30 (38%); PROS-2023-0014g 2024-07-31 (56%); PROS-2023-0014g 2024-08-31 (79%); PROS-2023-0014g 2024-09-30 (78%); PROS-2023-0014g 2024-10-31 (49%); PROS-2023-0014g 2024-12-31 (34%); PROS-2023-0016 2024-06-30 (23%); PROS-2023-0016g 2024-02-29 (23%); PROS-2023-0016g 2024-04-30 (22%); PROS-2023-0016g 2024-05-31 (23%); PROS-2023-0016g 2024-06-30 (32%); PROS-2023-0016g 2024-07-31 (131%); PROS-2023-0016g 2024-09-30 (23%); PROS-2023-0016g 2024-10-31 (71%); PROS-2023-0016g 2024-11-30 (38%); PROS-2023-0016g 2024-12-31 (28%); PROS-2023-0025 2024-02-29 (21%); PROS-2023-0025 2024-04-30 (21%); PROS-2023-0025g 2024-02-29 (35%); PROS-2023-0025g 2024-04-30 (22%); PROS-2023-0025g 2024-05-31 (28%); PROS-2023-0025g 2024-06-30 (112%); PROS-2023-0025g 2024-09-30 (27%); PROS-2023-0025g 2024-10-31 (78%); PROS-2023-0025g 2024-11-30 (40%); PROS-2023-0025g 2024-12-31 (29%); PROS-2023-0026 2024-02-29 (21%); PROS-2023-0026 2024-04-30 (21%); PROS-2023-0026g 2024-02-29 (33%); PROS-2023-0026g 2024-05-31 (89%); PROS-2023-0026g 2024-06-30 (42%); PROS-2023-0026g 2024-09-30 (27%); PROS-2023-0026g 2024-10-31 (79%); PROS-2023-0026g 2024-11-30 (41%); PROS-2023-0026g 2024-12-31 (31%); PROS-2023-0039 2024-02-29 (25%); PROS-2023-0039 2024-04-30 (20%); PROS-2023-0039g 2024-02-29 (37%); PROS-2023-0039g 2024-03-31 (22%); PROS-2023-0039g 2024-04-30 (22%); PROS-2023-0039g 2024-05-31 (21%); PROS-2023-0039g 2024-06-30 (103%); PROS-2023-0039g 2024-09-30 (27%); PROS-2023-0039g 2024-10-31 (79%); PROS-2023-0039g 2024-11-30 (40%); PROS-2023-0039g 2024-12-31 (29%); PROS-2023-0045 2024-01-31 (62%); PROS-2023-0045 2024-02-29 (66%); PROS-2023-0045 2024-03-31 (613%); PROS-2023-0045 2024-04-30 (30%); PROS-2023-0045 2024-12-31 (28%); PROS-2023-0045g 2024-01-31 (52%); PROS-2023-0045g 2024-03-31 (45%); PROS-2023-0045g 2024-06-30 (38%); PROS-2023-0045g 2024-07-31 (135%); PROS-2023-0045g 2024-08-31 (179%); PROS-2023-0045g 2024-09-30 (178%); PROS-2023-0045g 2024-10-31 (122%); PROS-2023-0045g 2024-11-30 (26%); PROS-2023-0065 2024-03-31 (26%); PROS-2023-0065g 2024-03-31 (41%); PROS-2023-0065g 2024-05-31 (28%); PROS-2023-0065g 2024-06-30 (66%); PROS-2023-0065g 2024-07-31 (174%); PROS-2023-0065g 2024-08-31 (219%); PROS-2023-0065g 2024-09-30 (218%); PROS-2023-0065g 2024-10-31 (160%); PROS-2023-0065g 2024-11-30 (52%); PROS-2023-0067 2024-04-30 (21%); PROS-2023-0067 2024-06-30 (23%); PROS-2023-0067g 2024-01-31 (48%); PROS-2023-0067g 2024-03-31 (42%); PROS-2023-0067g 2024-04-30 (26%); PROS-2023-0067g 2024-05-31 (25%); PROS-2023-0067g 2024-06-30 (42%); PROS-2023-0067g 2024-09-30 (27%); PROS-2023-0067g 2024-10-31 (79%); PROS-2023-0067g 2024-11-30 (40%); PROS-2023-0067g 2024-12-31 (30%); PROS-2023-0072 2024-05-31 (26%); PROS-2023-0072g 2024-04-30 (72%); PROS-2023-0072g 2024-05-31 (25%); PROS-2023-0072g 2024-06-30 (58%); PROS-2023-0072g 2024-07-31 (149%); PROS-2023-0072g 2024-08-31 (182%); PROS-2023-0072g 2024-09-30 (180%); PROS-2023-0072g 2024-10-31 (138%); PROS-2023-0072g 2024-11-30 (46%); PROS-2023-0089 2024-04-30 (23%); PROS-2023-0089 2024-05-31 (25%); PROS-2023-0089 2024-06-30 (27%); PROS-2023-0089 2024-07-31 (35%); PROS-2023-0089 2024-08-31 (31%); PROS-2023-0089 2024-09-30 (31%); PROS-2023-0089 2024-10-31 (24%); PROS-2023-0089g 2024-01-31 (75%); PROS-2023-0089g 2024-02-29 (76%); PROS-2023-0089g 2024-03-31 (72%); PROS-2023-0089g 2024-04-30 (79%); PROS-2023-0089g 2024-05-31 (59%); PROS-2023-0089g 2024-06-30 (46%); PROS-2023-0089g 2024-08-31 (2310%); PROS-2023-0089g 2024-11-30 (53%); PROS-2023-0089g 2024-12-31 (66%); PROS-2023-0090 2024-01-31 (25%); PROS-2023-0090 2024-02-29 (25%); PROS-2023-0090 2024-04-30 (89%); PROS-2023-0090g 2024-04-30 (54%); PROS-2023-0090g 2024-06-30 (30%); PROS-2023-0090g 2024-07-31 (112%); PROS-2023-0090g 2024-08-31 (144%); PROS-2023-0090g 2024-09-30 (143%); PROS-2023-0090g 2024-10-31 (101%); PROS-2023-0096 2024-01-31 (20%); PROS-2023-0096 2024-02-29 (58%); PROS-2023-0096 2024-04-30 (30%); PROS-2023-0096 2024-10-31 (45%); PROS-2023-0096g 2024-01-31 (78%); PROS-2023-0096g 2024-02-29 (78%); PROS-2023-0096g 2024-03-31 (74%); PROS-2023-0096g 2024-04-30 (81%); PROS-2023-0096g 2024-05-31 (66%); PROS-2023-0096g 2024-06-30 (51%); PROS-2023-0096g 2024-08-31 (2671%); PROS-2023-0096g 2024-10-31 (20%); PROS-2023-0096g 2024-11-30 (55%); PROS-2023-0096g 2024-12-31 (67%); PROS-2023-0104 2024-04-30 (30%); PROS-2023-0104g 2024-04-30 (35%); PROS-2023-0104g 2024-05-31 (43%); PROS-2023-0104g 2024-06-30 (40%); PROS-2023-0104g 2024-07-31 (61%); PROS-2023-0104g 2024-08-31 (88%); PROS-2023-0104g 2024-09-30 (23%); PROS-2023-0104g 2024-10-31 (71%); PROS-2023-0104g 2024-11-30 (38%); PROS-2023-0104g 2024-12-31 (29%); PROS-2023-0113 2024-04-30 (25%); PROS-2023-0113 2024-05-31 (22%); PROS-2023-0113g 2024-04-30 (29%); PROS-2023-0113g 2024-05-31 (49%); PROS-2023-0113g 2024-06-30 (42%); PROS-2023-0113g 2024-10-31 (96%); PROS-2023-0113g 2024-11-30 (41%); PROS-2023-0113g 2024-12-31 (30%); PROS-2023-0116 2024-06-30 (28%); PROS-2023-0116 2024-07-31 (36%); PROS-2023-0116 2024-08-31 (33%); PROS-2023-0116 2024-09-30 (33%); PROS-2023-0116 2024-10-31 (25%); PROS-2023-0116g 2024-04-30 (28%); PROS-2023-0116g 2024-05-31 (30%); PROS-2023-0116g 2024-06-30 (31%); PROS-2023-0116g 2024-07-31 (119%); PROS-2023-0116g 2024-08-31 (156%); PROS-2023-0116g 2024-09-30 (155%); PROS-2023-0116g 2024-10-31 (107%); PROS-2023-0116g 2024-11-30 (284%); PROS-2023-0125 2024-06-30 (64%); PROS-2023-0125g 2024-01-31 (49%); PROS-2023-0125g 2024-04-30 (26%); PROS-2023-0125g 2024-05-31 (50%); PROS-2023-0125g 2024-06-30 (41%); PROS-2023-0125g 2024-09-30 (25%); PROS-2023-0125g 2024-10-31 (75%); PROS-2023-0125g 2024-11-30 (39%); PROS-2023-0125g 2024-12-31 (30%); PROS-2023-0126 2024-06-30 (21%); PROS-2023-0126 2024-07-31 (28%); PROS-2023-0126 2024-08-31 (25%); PROS-2023-0126 2024-09-30 (25%); PROS-2023-0126g 2024-01-31 (22%); PROS-2023-0126g 2024-02-29 (26%); PROS-2023-0126g 2024-07-31 (35%); PROS-2023-0126g 2024-08-31 (79%); PROS-2023-0126g 2024-09-30 (22%); PROS-2023-0126g 2024-10-31 (21%); PROS-2023-0127 2024-04-30 (21%); PROS-2023-0127 2024-05-31 (24%); PROS-2023-0127g 2024-01-31 (107%); PROS-2023-0127g 2024-02-29 (40%); PROS-2023-0127g 2024-03-31 (30%); PROS-2023-0127g 2024-04-30 (36%); PROS-2023-0127g 2024-05-31 (51%); PROS-2023-0127g 2024-06-30 (43%); PROS-2023-0127g 2024-09-30 (27%); PROS-2023-0127g 2024-11-30 (93%); PROS-2023-0127g 2024-12-31 (31%); PROS-2023-0146 2024-04-30 (20%); PROS-2023-0146 2024-07-31 (22%); PROS-2023-0146g 2024-05-31 (31%); PROS-2023-0146g 2024-06-30 (44%); PROS-2023-0146g 2024-07-31 (198%); PROS-2023-0146g 2024-08-31 (246%); PROS-2023-0146g 2024-09-30 (245%); PROS-2023-0146g 2024-10-31 (183%); PROS-2023-0146g 2024-11-30 (66%); PROS-2023-0146g 2024-12-31 (21%); PROS-2023-0147 2024-04-30 (21%); PROS-2023-0147 2024-06-30 (21%); PROS-2023-0147 2024-11-30 (22%); PROS-2023-0147g 2024-01-31 (31%); PROS-2023-0147g 2024-04-30 (22%); PROS-2023-0147g 2024-05-31 (26%); PROS-2023-0147g 2024-06-30 (49%); PROS-2023-0147g 2024-10-31 (66%); PROS-2023-0147g 2024-11-30 (36%); PROS-2023-0147g 2024-12-31 (28%); PROS-2023-0152 2024-04-30 (20%); PROS-2023-0152 2024-11-30 (22%); PROS-2023-0152g 2024-04-30 (23%); PROS-2023-0152g 2024-05-31 (25%); PROS-2023-0152g 2024-06-30 (53%); PROS-2023-0152g 2024-11-30 (100%); PROS-2023-0152g 2024-12-31 (30%); PROS-2023-0158 2024-04-30 (21%); PROS-2023-0158g 2024-04-30 (22%); PROS-2023-0158g 2024-05-31 (24%); PROS-2023-0158g 2024-06-30 (50%); PROS-2023-0158g 2024-08-31 (38%); PROS-2023-0158g 2024-10-31 (73%); PROS-2023-0158g 2024-11-30 (38%); PROS-2023-0158g 2024-12-31 (30%); PROS-2023-0162 2024-04-30 (22%); PROS-2023-0162 2024-06-30 (37%); PROS-2023-0162 2024-11-30 (25%); PROS-2023-0162g 2024-04-30 (23%); PROS-2023-0162g 2024-05-31 (22%); PROS-2023-0162g 2024-06-30 (118%); PROS-2023-0162g 2024-07-31 (23%); PROS-2023-0162g 2024-08-31 (74%); PROS-2023-0162g 2024-09-30 (43%); PROS-2023-0162g 2024-11-30 (94%); PROS-2023-0162g 2024-12-31 (31%); PROS-2023-0166 2024-05-31 (22%); PROS-2023-0166 2024-07-31 (22%); PROS-2023-0166 2024-08-31 (27%); PROS-2023-0166 2024-09-30 (27%); PROS-2023-0166 2024-10-31 (20%); PROS-2023-0166 2024-12-31 (131%); PROS-2023-0166g 2024-01-31 (43%); PROS-2023-0166g 2024-02-29 (44%); PROS-2023-0166g 2024-03-31 (34%); PROS-2023-0166g 2024-04-30 (33%); PROS-2023-0166g 2024-07-31 (59%); PROS-2023-0166g 2024-08-31 (86%); PROS-2023-0166g 2024-09-30 (84%); PROS-2023-0166g 2024-10-31 (59%); PROS-2023-0166g 2024-11-30 (189%); PROS-2023-0172 2024-04-30 (20%); PROS-2023-0172 2024-06-18 (44%); PROS-2023-0172g 2024-04-30 (21%); PROS-2023-0172g 2024-05-31 (22%); PROS-2023-0172g 2024-06-18 (62%); PROS-2023-0177 2024-12-31 (22%); PROS-2023-0177g 2024-01-31 (47%); PROS-2023-0177g 2024-02-29 (47%); PROS-2023-0177g 2024-03-31 (38%); PROS-2023-0177g 2024-04-30 (36%); PROS-2023-0177g 2024-07-31 (69%); PROS-2023-0177g 2024-08-31 (120%); PROS-2023-0177g 2024-09-30 (119%); PROS-2023-0177g 2024-10-31 (76%); PROS-2023-0177g 2024-11-30 (216%); PROS-2024-0008 2024-02-29 (21%); PROS-2024-0008 2024-04-30 (21%); PROS-2024-0008 2024-12-31 (23%); PROS-2024-0008g 2024-04-30 (23%); PROS-2024-0008g 2024-05-31 (25%); PROS-2024-0008g 2024-06-30 (42%); PROS-2024-0008g 2024-10-31 (21%); PROS-2024-0008g 2024-11-30 (109%); PROS-2024-0008g 2024-12-31 (30%); PROS-2024-0009 2024-02-29 (21%); PROS-2024-0009 2024-04-30 (20%); PROS-2024-0009g 2024-04-30 (22%); PROS-2024-0009g 2024-05-31 (24%); PROS-2024-0009g 2024-06-30 (41%); PROS-2024-0009g 2024-09-30 (25%); PROS-2024-0009g 2024-10-31 (75%); PROS-2024-0009g 2024-11-30 (39%); PROS-2024-0009g 2024-12-31 (30%); PROS-2024-0010 2024-02-29 (26%); PROS-2024-0010 2024-04-30 (20%); PROS-2024-0010g 2024-04-30 (23%); PROS-2024-0010g 2024-05-31 (25%); PROS-2024-0010g 2024-06-30 (42%); PROS-2024-0010g 2024-10-31 (102%); PROS-2024-0010g 2024-11-30 (29%); PROS-2024-0010g 2024-12-31 (49%); PROS-2024-0012 2024-02-29 (46%); PROS-2024-0012g 2024-02-29 (37%); PROS-2024-0012g 2024-06-30 (26%); PROS-2024-0012g 2024-10-31 (39%); PROS-2024-0012g 2024-11-30 (23%); PROS-2024-0012g 2024-12-31 (22%); PROS-2024-0014 2024-02-29 (54%); PROS-2024-0014 2024-04-30 (21%); PROS-2024-0014 2024-11-30 (23%); PROS-2024-0014g 2024-02-29 (40%); PROS-2024-0014g 2024-04-30 (23%); PROS-2024-0014g 2024-05-31 (26%); PROS-2024-0014g 2024-06-30 (44%); PROS-2024-0014g 2024-09-30 (30%); PROS-2024-0014g 2024-10-31 (86%); PROS-2024-0014g 2024-11-30 (43%); PROS-2024-0014g 2024-12-31 (31%); PROS-2024-0022 2024-02-29 (144%); PROS-2024-0022 2024-04-30 (20%); PROS-2024-0022 2024-11-30 (31%); PROS-2024-0027 2024-02-29 (22%); PROS-2024-0027 2024-03-31 (67%); PROS-2024-0027 2024-04-30 (21%); PROS-2024-0027 2024-11-30 (23%); PROS-2024-0027g 2024-03-31 (57%); PROS-2024-0027g 2024-04-30 (22%); PROS-2024-0027g 2024-05-31 (24%); PROS-2024-0027g 2024-06-30 (40%); PROS-2024-0027g 2024-09-30 (24%); PROS-2024-0027g 2024-10-31 (73%); PROS-2024-0027g 2024-11-30 (38%); PROS-2024-0027g 2024-12-31 (30%); PROS-2024-0036 2024-02-29 (1290%); PROS-2024-0036 2024-04-30 (21%); PROS-2024-0036g 2024-02-29 (65%); PROS-2024-0036g 2024-03-31 (84%); PROS-2024-0036g 2024-04-30 (23%); PROS-2024-0036g 2024-05-31 (25%); PROS-2024-0036g 2024-06-30 (43%); PROS-2024-0036g 2024-09-30 (29%); PROS-2024-0036g 2024-10-31 (83%); PROS-2024-0036g 2024-11-30 (42%); PROS-2024-0036g 2024-12-31 (30%); PROS-2024-0038 2024-04-30 (20%); PROS-2024-0038g 2024-04-30 (21%); PROS-2024-0038g 2024-05-31 (22%); PROS-2024-0038g 2024-07-31 (59%); PROS-2024-0038g 2024-08-31 (81%); PROS-2024-0038g 2024-09-30 (80%); PROS-2024-0038g 2024-10-31 (51%); PROS-2024-0038g 2024-12-31 (32%); PROS-2024-0040 2024-04-30 (21%); PROS-2024-0040g 2024-04-30 (22%); PROS-2024-0040g 2024-05-31 (25%); PROS-2024-0040g 2024-06-30 (42%); PROS-2024-0040g 2024-09-30 (26%); PROS-2024-0040g 2024-10-31 (78%); PROS-2024-0040g 2024-11-30 (40%); PROS-2024-0040g 2024-12-31 (29%); PROS-2024-0041 2024-03-31 (22%); PROS-2024-0041 2024-11-30 (22%); PROS-2024-0041g 2024-04-30 (22%); PROS-2024-0041g 2024-05-31 (25%); PROS-2024-0041g 2024-06-30 (42%); PROS-2024-0041g 2024-08-31 (42%); PROS-2024-0041g 2024-09-30 (41%); PROS-2024-0041g 2024-10-31 (34%); PROS-2024-0041g 2024-11-30 (35%); PROS-2024-0041g 2024-12-31 (84%); PROS-2024-0048 2024-03-31 (60%); PROS-2024-0048 2024-04-30 (20%); PROS-2024-0048g 2024-03-31 (49%); PROS-2024-0048g 2024-04-30 (21%); PROS-2024-0048g 2024-05-31 (22%); PROS-2024-0048g 2024-06-30 (29%); PROS-2024-0048g 2024-07-31 (114%); PROS-2024-0048g 2024-10-31 (63%); PROS-2024-0048g 2024-11-30 (35%); PROS-2024-0048g 2024-12-31 (28%); PROS-2024-0056 2024-03-31 (174%); PROS-2024-0056g 2024-03-31 (157%); PROS-2024-0056g 2024-04-30 (21%); PROS-2024-0056g 2024-05-31 (22%); PROS-2024-0056g 2024-06-30 (37%); PROS-2024-0056g 2024-08-31 (32%); PROS-2024-0056g 2024-10-31 (63%); PROS-2024-0056g 2024-11-30 (35%); PROS-2024-0056g 2024-12-31 (28%); PROS-2024-0057 2024-03-31 (202%); PROS-2024-0057 2024-04-30 (31%); PROS-2024-0057g 2024-03-31 (181%); PROS-2024-0057g 2024-04-30 (22%); PROS-2024-0057g 2024-05-31 (23%); PROS-2024-0057g 2024-06-30 (39%); PROS-2024-0057g 2024-09-30 (23%); PROS-2024-0057g 2024-10-31 (71%); PROS-2024-0057g 2024-11-30 (38%); PROS-2024-0057g 2024-12-31 (29%); PROS-2024-0062 2024-03-31 (414%); PROS-2024-0062 2024-04-30 (21%); PROS-2024-0062 2024-12-31 (34%); PROS-2024-0062g 2024-03-31 (367%); PROS-2024-0062g 2024-04-30 (23%); PROS-2024-0062g 2024-05-31 (25%); PROS-2024-0062g 2024-06-30 (42%); PROS-2024-0062g 2024-09-30 (27%); PROS-2024-0062g 2024-10-31 (80%); PROS-2024-0062g 2024-11-30 (41%); PROS-2024-0062g 2024-12-31 (31%); PROS-2024-0065g 2024-05-31 (23%); PROS-2024-0065g 2024-06-30 (38%); PROS-2024-0065g 2024-09-30 (21%); PROS-2024-0065g 2024-10-31 (68%); PROS-2024-0065g 2024-12-31 (27%); PROS-2024-0069g 2024-05-31 (24%); PROS-2024-0069g 2024-06-30 (41%); PROS-2024-0069g 2024-09-30 (25%); PROS-2024-0069g 2024-10-31 (76%); PROS-2024-0069g 2024-11-30 (40%); PROS-2024-0069g 2024-12-31 (29%); PROS-2024-0076g 2024-05-31 (23%); PROS-2024-0076g 2024-06-30 (38%); PROS-2024-0076g 2024-08-31 (35%); PROS-2024-0076g 2024-10-31 (68%); PROS-2024-0076g 2024-11-30 (31%); PROS-2024-0076g 2024-12-31 (78%); PROS-2024-0081 2024-04-30 (46%); PROS-2024-0081g 2024-04-30 (41%); PROS-2024-0081g 2024-05-31 (25%); PROS-2024-0081g 2024-06-30 (43%); PROS-2024-0081g 2024-09-30 (28%); PROS-2024-0081g 2024-10-31 (81%); PROS-2024-0081g 2024-11-30 (41%); PROS-2024-0081g 2024-12-31 (31%); PROS-2024-0082 2024-04-30 (66%); PROS-2024-0083 2024-04-30 (65%); PROS-2024-0083g 2024-05-31 (32%); PROS-2024-0083g 2024-07-31 (55%); PROS-2024-0083g 2024-08-31 (85%); PROS-2024-0083g 2024-09-30 (84%); PROS-2024-0083g 2024-10-31 (46%); PROS-2024-0083g 2024-11-30 (21%); PROS-2024-0083g 2024-12-31 (21%); PROS-2024-0085 2024-04-30 (93%); PROS-2024-0085g 2024-04-30 (89%); PROS-2024-0085g 2024-05-31 (22%); PROS-2024-0085g 2024-06-30 (36%); PROS-2024-0085g 2024-10-31 (63%); PROS-2024-0085g 2024-11-30 (35%); PROS-2024-0085g 2024-12-31 (28%); PROS-2024-0087 2024-04-30 (151%); PROS-2024-0087g 2024-04-30 (143%); PROS-2024-0087g 2024-05-31 (23%); PROS-2024-0087g 2024-06-30 (39%); PROS-2024-0087g 2024-11-30 (53%); PROS-2024-0087g 2024-12-31 (65%); PROS-2024-0094 2024-04-30 (828%); PROS-2024-0096g 2024-05-31 (22%); PROS-2024-0096g 2024-07-31 (85%); PROS-2024-0096g 2024-09-30 (26%); PROS-2024-0096g 2024-10-31 (77%); PROS-2024-0096g 2024-11-30 (40%); PROS-2024-0096g 2024-12-31 (30%); PROS-2024-0098g 2024-06-30 (37%); PROS-2024-0098g 2024-10-31 (64%); PROS-2024-0098g 2024-11-30 (35%); PROS-2024-0098g 2024-12-31 (28%); PROS-2024-0110 2024-05-31 (48%); PROS-2024-0110g 2024-06-30 (37%); PROS-2024-0110g 2024-10-31 (65%); PROS-2024-0110g 2024-11-30 (35%); PROS-2024-0110g 2024-12-31 (28%); PROS-2024-0111 2024-05-31 (57%); PROS-2024-0111g 2024-07-31 (51%); PROS-2024-0111g 2024-08-31 (77%); PROS-2024-0111g 2024-09-30 (76%); PROS-2024-0111g 2024-10-31 (43%); PROS-2024-0111g 2024-12-31 (41%); PROS-2024-0113 2024-05-31 (84%); PROS-2024-0113g 2024-05-31 (47%); PROS-2024-0113g 2024-06-30 (37%); PROS-2024-0113g 2024-10-31 (63%); PROS-2024-0113g 2024-11-30 (35%); PROS-2024-0113g 2024-12-31 (28%); PROS-2024-0116 2024-05-31 (110%); PROS-2024-0116 2024-12-31 (23%); PROS-2024-0116g 2024-05-31 (61%); PROS-2024-0116g 2024-06-30 (42%); PROS-2024-0116g 2024-09-30 (27%); PROS-2024-0116g 2024-10-31 (80%); PROS-2024-0116g 2024-11-30 (41%); PROS-2024-0116g 2024-12-31 (31%); PROS-2024-0122 2024-05-31 (171%); PROS-2024-0122g 2024-05-31 (110%); PROS-2024-0122g 2024-06-30 (38%); PROS-2024-0122g 2024-09-30 (22%); PROS-2024-0122g 2024-10-31 (69%); PROS-2024-0122g 2024-11-30 (37%); PROS-2024-0122g 2024-12-31 (29%); PROS-2024-0131 2024-05-31 (867%); PROS-2024-0131g 2024-05-31 (651%); PROS-2024-0131g 2024-06-30 (42%); PROS-2024-0131g 2024-09-30 (27%); PROS-2024-0131g 2024-10-31 (80%); PROS-2024-0131g 2024-11-30 (41%); PROS-2024-0131g 2024-12-31 (31%); PROS-2024-0147 2024-06-30 (43%); PROS-2024-0147g 2024-09-30 (27%); PROS-2024-0147g 2024-10-31 (79%); PROS-2024-0147g 2024-11-30 (40%); PROS-2024-0147g 2024-12-31 (30%); PROS-2024-0148 2024-06-30 (50%); PROS-2024-0148g 2024-10-31 (59%); PROS-2024-0148g 2024-12-31 (53%); PROS-2024-0156 2024-06-30 (229%); PROS-2024-0156 2024-07-31 (28%); PROS-2024-0156 2024-08-31 (31%); PROS-2024-0156 2024-09-30 (30%); PROS-2024-0156 2024-10-31 (34%); PROS-2024-0156 2024-11-30 (136%); PROS-2024-0156g 2024-06-30 (123%); PROS-2024-0156g 2024-10-31 (60%); PROS-2024-0156g 2024-11-30 (34%); PROS-2024-0156g 2024-12-31 (27%); PROS-2024-0157 2024-06-30 (271%); PROS-2024-0157g 2024-06-30 (141%); PROS-2024-0157g 2024-09-30 (21%); PROS-2024-0157g 2024-10-31 (67%); PROS-2024-0157g 2024-11-30 (36%); PROS-2024-0157g 2024-12-31 (29%); PROS-2024-0160 2024-06-30 (48%); PROS-2024-0160 2024-07-31 (74%); PROS-2024-0160 2024-08-31 (35%); PROS-2024-0160 2024-09-30 (39%); PROS-2024-0160g 2024-06-30 (214%); PROS-2024-0160g 2024-10-31 (71%); PROS-2024-0160g 2024-11-30 (38%); PROS-2024-0160g 2024-12-31 (29%); PROS-2024-0179g 2024-09-30 (25%); PROS-2024-0179g 2024-10-31 (76%); PROS-2024-0179g 2024-11-30 (33%); PROS-2024-0179g 2024-12-31 (82%); PROS-2024-0191 2024-07-31 (184%); PROS-2024-0191g 2024-07-31 (136%); PROS-2024-0191g 2024-10-31 (97%); PROS-2024-0191g 2024-11-30 (35%); PROS-2024-0191g 2024-12-31 (81%); PROS-2024-0195 2024-07-31 (528%); PROS-2024-0195g 2024-07-31 (410%); PROS-2024-0195g 2024-09-30 (24%); PROS-2024-0195g 2024-10-31 (74%); PROS-2024-0195g 2024-11-30 (39%); PROS-2024-0195g 2024-12-31 (30%); PROS-2024-0196 2024-07-31 (696%); PROS-2024-0196 2024-11-30 (23%); PROS-2024-0196g 2024-07-31 (527%); PROS-2024-0196g 2024-09-30 (27%); PROS-2024-0196g 2024-10-31 (79%); PROS-2024-0196g 2024-11-30 (41%); PROS-2024-0196g 2024-12-31 (31%); PROS-2024-0197 2024-07-31 (663%); PROS-2024-0197 2024-12-31 (23%); PROS-2024-0199 2024-07-31 (982%); PROS-2024-0199g 2024-07-31 (765%); PROS-2024-0199g 2024-09-30 (22%); PROS-2024-0199g 2024-10-31 (69%); PROS-2024-0199g 2024-11-30 (37%); PROS-2024-0199g 2024-12-31 (29%); PROS-2024-0200 2024-07-31 (909%); PROS-2024-0200g 2024-07-31 (732%); PROS-2024-0200g 2024-10-31 (22%); PROS-2024-0200g 2024-11-30 (57%); PROS-2024-0200g 2024-12-31 (69%); PROS-2024-0203g 2024-09-30 (22%); PROS-2024-0203g 2024-10-31 (70%); PROS-2024-0203g 2024-11-30 (37%); PROS-2024-0203g 2024-12-31 (29%); PROS-2024-0205 2024-11-30 (25%); PROS-2024-0209 2024-08-31 (23%); PROS-2024-0209 2024-10-31 (21%); PROS-2024-0209g 2024-08-31 (24%); PROS-2024-0209g 2024-09-30 (22%); PROS-2024-0209g 2024-10-31 (70%); PROS-2024-0209g 2024-11-30 (37%); PROS-2024-0209g 2024-12-31 (29%); PROS-2024-0213 2024-08-31 (40%); PROS-2024-0213g 2024-08-31 (41%); PROS-2024-0213g 2024-10-31 (63%); PROS-2024-0213g 2024-11-30 (35%); PROS-2024-0213g 2024-12-31 (28%); PROS-2024-0218 2024-08-31 (82%); PROS-2024-0218g 2024-08-31 (82%); PROS-2024-0218g 2024-09-30 (24%); PROS-2024-0218g 2024-10-31 (73%); PROS-2024-0218g 2024-11-30 (38%); PROS-2024-0218g 2024-12-31 (30%); PROS-2024-0224 2024-08-31 (285%); PROS-2024-0224 2024-10-31 (23%); PROS-2024-0224 2024-11-30 (41%); PROS-2024-0224g 2024-08-31 (288%); PROS-2024-0224g 2024-09-30 (26%); PROS-2024-0224g 2024-10-31 (113%); PROS-2024-0224g 2024-11-30 (38%); PROS-2024-0224g 2024-12-31 (30%); PROS-2024-0226 2024-08-31 (419%); PROS-2024-0226g 2024-08-31 (417%); PROS-2024-0226g 2024-09-30 (22%); PROS-2024-0226g 2024-10-31 (69%); PROS-2024-0226g 2024-11-30 (37%); PROS-2024-0226g 2024-12-31 (29%); PROS-2024-0233 2024-08-31 (893%); PROS-2024-0233g 2024-08-31 (933%); PROS-2024-0233g 2024-09-30 (23%); PROS-2024-0233g 2024-10-31 (71%); PROS-2024-0233g 2024-11-30 (38%); PROS-2024-0233g 2024-12-31 (29%); PROS-2024-0235 2024-08-31 (893%); PROS-2024-0235 2024-09-30 (37%); PROS-2024-0235 2024-10-31 (48%); PROS-2024-0235g 2024-08-31 (933%); PROS-2024-0235g 2024-10-31 (58%); PROS-2024-0235g 2024-11-30 (33%); PROS-2024-0235g 2024-12-31 (27%)
+- Churn risk (accounts renewing in 2024): 55 at risk (≥20% churn prob): C2 41%, C3 23%, C7 38%, C8 38%, C9 23%, PROS-2016-0011 41%, PROS-2016-0020 41%, PROS-2017-0019 20%, PROS-2017-0022 41%, PROS-2018-0003 41%, PROS-2018-0014 29%, PROS-2018-0016 41%, PROS-2018-0018 29%, PROS-2018-0022 29%, PROS-2018-0035 41%, PROS-2018-0053 29%, PROS-2019-0008 41%, PROS-2019-0009 29%, PROS-2019-0012 23%, PROS-2019-0015 41%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0002 41%, PROS-2020-0006 35%, PROS-2020-0009 29%, PROS-2020-0012 29%, PROS-2020-0016 29%, PROS-2020-0022 41%, PROS-2020-0025 41%, PROS-2020-0032 41%, PROS-2020-0043 35%, PROS-2020-0048 35%, PROS-2021-0006 29%, PROS-2021-0031 41%, PROS-2021-0051 41%, PROS-2021-0062 41%, PROS-2021-0088 23%, PROS-2022-0009 41%, PROS-2022-0010 41%, PROS-2022-0011 41%, PROS-2022-0030 41%, PROS-2022-0046 41%, PROS-2022-0048 35%, PROS-2022-0049 41%, PROS-2022-0063 41%, PROS-2022-0067 35%, PROS-2022-0071 29%, PROS-2022-0073 23%, PROS-2022-0082 35%, PROS-2022-0083 35%, PROS-2022-0092 23%, PROS-2022-0097 29%, PROS-2022-0100 29%
 
 **Pricing & Margin**
 
@@ -7831,34 +7840,36 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - C9 (electricity): tariff £152.92-£319.83/MWh, net margin £313.22
 - PROS-2016-0011 (electricity): tariff £236.72-£291.12/MWh, net margin £373.39
 - PROS-2016-0011g (gas): tariff £67.15-£103.20/MWh, net margin £354.50
-- PROS-2016-0020 (electricity): tariff £222.48-£358.12/MWh, net margin £275.77
+- PROS-2016-0020 (electricity): tariff £222.48-£358.04/MWh, net margin £275.75
 - PROS-2016-0020g (gas): tariff £66.15-£103.20/MWh, net margin £279.59
-- PROS-2017-0019 (electricity): tariff £237.88-£297.73/MWh, net margin £325.22
+- PROS-2017-0019 (electricity): tariff £237.88-£297.75/MWh, net margin £325.22
 - PROS-2017-0019g (gas): tariff £67.10-£103.20/MWh, net margin £221.54
-- PROS-2017-0022 (electricity): tariff £247.02-£304.33/MWh, net margin £390.67
+- PROS-2017-0022 (electricity): tariff £247.02-£304.36/MWh, net margin £390.67
 - PROS-2017-0022g (gas): tariff £65.93-£103.20/MWh, net margin £426.47
-- PROS-2018-0003 (electricity): tariff £240.51/MWh, net margin £231.72
-- PROS-2018-0003g (gas): tariff £66.18/MWh, net margin £309.17
+- PROS-2018-0003 (electricity): tariff £217.57-£240.51/MWh, net margin £376.70
+- PROS-2018-0003g (gas): tariff £61.68-£66.18/MWh, net margin £308.58
 - PROS-2018-0009 (electricity): tariff £235.93-£289.31/MWh, net margin £325.99
-- PROS-2018-0016 (electricity): tariff £233.00-£290.91/MWh, net margin £311.40
+- PROS-2018-0014 (electricity): tariff £236.72-£290.49/MWh, net margin £419.05
+- PROS-2018-0014g (gas): tariff £67.19-£103.20/MWh, net margin £287.56
+- PROS-2018-0016 (electricity): tariff £232.14-£293.16/MWh, net margin £308.40
 - PROS-2018-0016g (gas): tariff £67.25-£103.20/MWh, net margin £353.34
-- PROS-2018-0018 (electricity): tariff £218.45-£291.38/MWh, net margin £261.60
+- PROS-2018-0018 (electricity): tariff £218.45-£291.93/MWh, net margin £261.69
 - PROS-2018-0018g (gas): tariff £67.33-£103.20/MWh, net margin £241.54
-- PROS-2018-0022 (electricity): tariff £240.54-£299.20/MWh, net margin £306.39
+- PROS-2018-0022 (electricity): tariff £240.54-£299.09/MWh, net margin £306.38
 - PROS-2018-0022g (gas): tariff £66.84-£103.20/MWh, net margin £293.13
-- PROS-2018-0024 (electricity): tariff £240.66-£296.99/MWh, net margin £333.44
+- PROS-2018-0024 (electricity): tariff £240.66-£296.89/MWh, net margin £333.42
 - PROS-2018-0035 (electricity): tariff £233.29-£391.58/MWh, net margin £334.57
 - PROS-2018-0035g (gas): tariff £64.94-£103.20/MWh, net margin £364.18
 - PROS-2018-0043 (electricity): tariff £234.00-£397.79/MWh, net margin £370.63
 - PROS-2018-0053 (electricity): tariff £223.25-£338.29/MWh, net margin £322.72
 - PROS-2018-0053g (gas): tariff £53.60-£103.20/MWh, net margin £194.93
-- PROS-2019-0008 (electricity): tariff £185.99-£476.25/MWh, net margin £320.64
+- PROS-2019-0008 (electricity): tariff £185.99-£470.03/MWh, net margin £320.17
 - PROS-2019-0008g (gas): tariff £67.15-£103.20/MWh, net margin £380.42
-- PROS-2019-0009 (electricity): tariff £232.14-£294.30/MWh, net margin £329.87
+- PROS-2019-0009 (electricity): tariff £232.14-£294.53/MWh, net margin £329.91
 - PROS-2019-0009g (gas): tariff £67.29-£103.20/MWh, net margin £251.91
-- PROS-2019-0012 (electricity): tariff £189.09-£443.96/MWh, net margin £298.24
+- PROS-2019-0012 (electricity): tariff £189.09-£443.92/MWh, net margin £298.24
 - PROS-2019-0012g (gas): tariff £66.67-£103.20/MWh, net margin £189.57
-- PROS-2019-0015 (electricity): tariff £247.02-£305.99/MWh, net margin £391.11
+- PROS-2019-0015 (electricity): tariff £247.02-£306.01/MWh, net margin £391.11
 - PROS-2019-0015g (gas): tariff £65.94-£103.20/MWh, net margin £326.06
 - PROS-2019-0021 (electricity): tariff £245.32-£418.61/MWh, net margin £350.14
 - PROS-2019-0021g (gas): tariff £63.59-£103.20/MWh, net margin £231.64
@@ -7868,42 +7879,42 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2019-0024g (gas): tariff £61.03-£103.20/MWh, net margin £336.85
 - PROS-2019-0027 (electricity): tariff £216.22-£413.27/MWh, net margin £305.32
 - PROS-2019-0027g (gas): tariff £55.32-£103.20/MWh, net margin £272.37
-- PROS-2020-0002 (electricity): tariff £170.95-£356.90/MWh, net margin £326.08
+- PROS-2020-0002 (electricity): tariff £172.58-£356.90/MWh, net margin £326.10
 - PROS-2020-0002g (gas): tariff £61.67-£66.17/MWh, net margin £323.48
-- PROS-2020-0006 (electricity): tariff £232.02-£442.95/MWh, net margin £0.09
-- PROS-2020-0006g (gas): tariff £103.20/MWh, net margin £-0.33 -- **net-negative**
+- PROS-2020-0006 (electricity): tariff £187.36-£442.95/MWh, net margin £330.80
+- PROS-2020-0006g (gas): tariff £66.39-£103.20/MWh, net margin £354.52
 - PROS-2020-0009 (electricity): tariff £185.92-£437.95/MWh, net margin £296.88
 - PROS-2020-0009g (gas): tariff £66.62-£103.20/MWh, net margin £235.90
 - PROS-2020-0012 (electricity): tariff £235.93-£288.49/MWh, net margin £351.61
 - PROS-2020-0012g (gas): tariff £66.84-£103.20/MWh, net margin £317.47
-- PROS-2020-0016 (electricity): tariff £232.14-£293.39/MWh, net margin £308.43
+- PROS-2020-0016 (electricity): tariff £232.14-£293.25/MWh, net margin £308.41
 - PROS-2020-0016g (gas): tariff £67.29-£103.20/MWh, net margin £226.56
-- PROS-2020-0022 (electricity): tariff £194.09-£457.44/MWh, net margin £347.20
+- PROS-2020-0022 (electricity): tariff £194.09-£457.45/MWh, net margin £347.20
 - PROS-2020-0022g (gas): tariff £65.94-£103.20/MWh, net margin £285.40
-- PROS-2020-0025 (electricity): tariff £247.86-£306.90/MWh, net margin £393.83
+- PROS-2020-0025 (electricity): tariff £247.86-£306.91/MWh, net margin £393.83
 - PROS-2020-0025g (gas): tariff £65.72-£103.20/MWh, net margin £437.31
 - PROS-2020-0032 (electricity): tariff £192.13-£564.56/MWh, net margin £391.62
 - PROS-2020-0032g (gas): tariff £65.15-£103.20/MWh, net margin £319.78
-- PROS-2020-0042 (electricity): tariff £201.59-£380.78/MWh, net margin £279.30
-- PROS-2020-0042g (gas): tariff £54.35-£103.20/MWh, net margin £319.40
-- PROS-2020-0043 (electricity): tariff £373.06/MWh, net margin £166.41
+- PROS-2020-0043 (electricity): tariff £373.06/MWh, net margin £166.54
 - PROS-2020-0043g (gas): tariff £103.20/MWh, net margin £56.19
 - PROS-2020-0048 (electricity): tariff £223.72-£354.91/MWh, net margin £386.53
 - PROS-2020-0048g (gas): tariff £54.12-£103.20/MWh, net margin £319.84
+- PROS-2021-0006 (electricity): tariff £182.40-£440.20/MWh, net margin £317.95
+- PROS-2021-0006g (gas): tariff £67.29-£103.20/MWh, net margin £260.06
 - PROS-2021-0031 (electricity): tariff £242.97-£391.24/MWh, net margin £378.95
 - PROS-2021-0031g (gas): tariff £62.28-£103.20/MWh, net margin £343.91
 - PROS-2021-0045 (electricity): tariff £203.98-£341.28/MWh, net margin £273.01
-- PROS-2021-0051 (electricity): tariff £168.29-£506.17/MWh, net margin £284.60
+- PROS-2021-0051 (electricity): tariff £168.29-£505.92/MWh, net margin £284.51
 - PROS-2021-0051g (gas): tariff £53.42-£103.20/MWh, net margin £241.43
 - PROS-2021-0062 (electricity): tariff £162.87-£521.97/MWh, net margin £361.26
 - PROS-2021-0062g (gas): tariff £52.06-£103.20/MWh, net margin £595.26
 - PROS-2021-0088 (electricity): tariff £202.21-£285.34/MWh, net margin £254.83
 - PROS-2021-0088g (gas): tariff £48.18-£99.93/MWh, net margin £227.23
-- PROS-2022-0009 (electricity): tariff £185.99-£437.52/MWh, net margin £317.72
+- PROS-2022-0009 (electricity): tariff £185.99-£436.09/MWh, net margin £317.61
 - PROS-2022-0009g (gas): tariff £67.15-£103.20/MWh, net margin £363.67
-- PROS-2022-0010 (electricity): tariff £182.40-£451.26/MWh, net margin £319.12
+- PROS-2022-0010 (electricity): tariff £182.40-£449.41/MWh, net margin £318.93
 - PROS-2022-0010g (gas): tariff £67.26-£103.20/MWh, net margin £334.63
-- PROS-2022-0011 (electricity): tariff £171.64-£478.63/MWh, net margin £202.87
+- PROS-2022-0011 (electricity): tariff £171.64-£479.39/MWh, net margin £202.98
 - PROS-2022-0011g (gas): tariff £67.33-£103.20/MWh, net margin £191.89
 - PROS-2022-0030 (electricity): tariff £191.90-£585.41/MWh, net margin £376.69
 - PROS-2022-0030g (gas): tariff £61.04-£103.20/MWh, net margin £256.08
@@ -8001,10 +8012,10 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2023-0162g (gas): tariff £41.89-£56.22/MWh, net margin £223.76
 - PROS-2023-0166 (electricity): tariff £183.93-£240.64/MWh, net margin £236.81
 - PROS-2023-0166g (gas): tariff £44.39-£55.75/MWh, net margin £140.07
-- PROS-2023-0172 (electricity): tariff £144.67-£345.25/MWh, net margin £205.21
-- PROS-2023-0172g (gas): tariff £43.86-£54.10/MWh, net margin £134.66
-- PROS-2023-0177 (electricity): tariff £181.54-£228.34/MWh, net margin £196.60
-- PROS-2023-0177g (gas): tariff £42.28-£53.20/MWh, net margin £146.61
+- PROS-2023-0172 (electricity): tariff £180.85-£345.25/MWh, net margin £-16.09 -- **net-negative**
+- PROS-2023-0172g (gas): tariff £54.10/MWh, net margin £77.12
+- PROS-2023-0177 (electricity): tariff £181.40-£228.34/MWh, net margin £196.33
+- PROS-2023-0177g (gas): tariff £43.09-£53.20/MWh, net margin £151.39
 - PROS-2024-0008 (electricity): tariff £248.60/MWh, net margin £412.75
 - PROS-2024-0008g (gas): tariff £70.46/MWh, net margin £349.51
 - PROS-2024-0009 (electricity): tariff £248.60/MWh, net margin £373.64
@@ -8111,14 +8122,14 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 **Portfolio Health**
 
 - Capital cost ratio: 1.5% of gross
-- Treasury drawdown events (>=10% threshold): 1 -- £278,039.05 -> £241,465.67 (13.2%)
-- Bills issued: 3057, average clarity 0.860, average bill shock 38.5%, bad debt provision £723.93, avg complaint probability 5.5%
-- Solvency signal: £2,557/customer (150 customers) — OK (Ofgem floor £130/customer)
+- Treasury drawdown events (>=10% threshold): 1 -- £278,039.05 -> £241,414.71 (13.2%)
+- Bills issued: 3091, average clarity 0.860, average bill shock 38.3%, bad debt provision £685.29, avg complaint probability 5.5%
+- Solvency signal: £2,546/customer (151 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £58,227.97 vs. naked (unhedged) net margin: £149,903.39
-- hedging cost £91,675.42 vs. a fully unhedged book (commodity-only: actual net £58,227.97 vs. naked net £149,903.39)
+- Actual (hedged) net margin: £59,521.59 vs. naked (unhedged) net margin: £152,614.71
+- hedging cost £93,093.12 vs. a fully unhedged book (commodity-only: actual net £59,521.59 vs. naked net £152,614.71)
   - C2: actual £212.53 vs. naked £562.19 -- hedging cost £349.65
   - C2g: actual £196.10 vs. naked £350.68 -- hedging cost £154.58
   - C3: actual £145.79 vs. naked £396.11 -- hedging cost £250.33
@@ -8134,10 +8145,12 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2017-0019g: actual £209.26 vs. naked £287.63 -- hedging cost £78.38
   - PROS-2017-0022: actual £356.14 vs. naked £936.38 -- hedging cost £580.25
   - PROS-2017-0022g: actual £397.91 vs. naked £713.82 -- hedging cost £315.91
-  - PROS-2018-0003: actual £335.22 vs. naked £933.28 -- hedging cost £598.06
-  - PROS-2018-0003g: actual £281.21 vs. naked £542.40 -- hedging cost £261.19
+  - PROS-2018-0003: actual £402.21 vs. naked £1,232.28 -- hedging cost £830.07
+  - PROS-2018-0003g: actual £376.72 vs. naked £801.10 -- hedging cost £424.38
   - PROS-2018-0009: actual £295.27 vs. naked £765.76 -- hedging cost £470.49
-  - PROS-2018-0016: actual £281.75 vs. naked £742.70 -- hedging cost £460.95
+  - PROS-2018-0014: actual £341.94 vs. naked £1,051.89 -- hedging cost £709.95
+  - PROS-2018-0014g: actual £268.80 vs. naked £499.77 -- hedging cost £230.97
+  - PROS-2018-0016: actual £278.49 vs. naked £739.32 -- hedging cost £460.83
   - PROS-2018-0016g: actual £329.63 vs. naked £503.58 -- hedging cost £173.95
   - PROS-2018-0018: actual £226.33 vs. naked £800.48 -- hedging cost £574.16
   - PROS-2018-0018g: actual £218.87 vs. naked £361.39 -- hedging cost £142.52
@@ -8165,8 +8178,10 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2019-0024g: actual £302.67 vs. naked £462.93 -- hedging cost £160.26
   - PROS-2019-0027: actual £232.32 vs. naked £676.44 -- hedging cost £444.12
   - PROS-2019-0027g: actual £227.31 vs. naked £380.16 -- hedging cost £152.85
-  - PROS-2020-0002: actual £361.36 vs. naked £1,032.04 -- hedging cost £670.68
+  - PROS-2020-0002: actual £364.87 vs. naked £1,035.70 -- hedging cost £670.82
   - PROS-2020-0002g: actual £313.20 vs. naked £732.47 -- hedging cost £419.26
+  - PROS-2020-0006: actual £297.12 vs. naked £771.03 -- hedging cost £473.91
+  - PROS-2020-0006g: actual £305.62 vs. naked £534.35 -- hedging cost £228.73
   - PROS-2020-0009: actual £270.88 vs. naked £627.80 -- hedging cost £356.92
   - PROS-2020-0009g: actual £218.94 vs. naked £252.72 -- hedging cost £33.78
   - PROS-2020-0012: actual £315.09 vs. naked £901.55 -- hedging cost £586.46
@@ -8179,10 +8194,10 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2020-0025g: actual £407.64 vs. naked £732.87 -- hedging cost £325.23
   - PROS-2020-0032: actual £314.29 vs. naked £914.30 -- hedging cost £600.01
   - PROS-2020-0032g: actual £298.68 vs. naked £501.07 -- hedging cost £202.38
-  - PROS-2020-0042: actual £174.87 vs. naked £828.06 -- hedging cost £653.19
-  - PROS-2020-0042g: actual £234.75 vs. naked £518.56 -- hedging cost £283.81
   - PROS-2020-0048: actual £309.92 vs. naked £958.68 -- hedging cost £648.76
   - PROS-2020-0048g: actual £247.29 vs. naked £486.23 -- hedging cost £238.93
+  - PROS-2021-0006: actual £282.29 vs. naked £861.84 -- hedging cost £579.55
+  - PROS-2021-0006g: actual £244.16 vs. naked £399.25 -- hedging cost £155.09
   - PROS-2021-0031: actual £326.01 vs. naked £776.21 -- hedging cost £450.20
   - PROS-2021-0031g: actual £298.29 vs. naked £470.93 -- hedging cost £172.64
   - PROS-2021-0045: actual £193.00 vs. naked £836.55 -- hedging cost £643.55
@@ -8292,10 +8307,8 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2023-0162g: actual £7.00 vs. naked £706.00 -- hedging cost £699.00
   - PROS-2023-0166: actual £132.96 vs. naked £513.68 -- hedging cost £380.72
   - PROS-2023-0166g: actual £101.36 vs. naked £132.92 -- hedging cost £31.56
-  - PROS-2023-0172: actual £115.68 vs. naked £499.73 -- hedging cost £384.05
-  - PROS-2023-0172g: actual £93.91 vs. naked £128.96 -- hedging cost £35.06
-  - PROS-2023-0177: actual £103.53 vs. naked £482.78 -- hedging cost £379.25
-  - PROS-2023-0177g: actual £43.22 vs. naked £130.62 -- hedging cost £87.40
+  - PROS-2023-0177: actual £103.04 vs. naked £482.26 -- hedging cost £379.22
+  - PROS-2023-0177g: actual £53.86 vs. naked £141.66 -- hedging cost £87.80
   - PROS-2024-0008: actual £376.70 vs. naked £1,004.73 -- hedging cost £628.03
   - PROS-2024-0008g: actual £330.07 vs. naked £554.39 -- hedging cost £224.32
   - PROS-2024-0009: actual £344.17 vs. naked £843.45 -- hedging cost £499.28
@@ -8399,32 +8412,32 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2024-0235g: actual £95.17 vs. naked £139.75 -- hedging cost £44.58
   - SYN-2021-001: actual £98.66 vs. naked £348.00 -- hedging cost £249.34
 
-**Year narrative:** 2024 produced a net gain of £69,386.08 across 285 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 1294 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2024 produced a net gain of £70,624.11 across 287 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 1306 customer(s) experienced a bill shock of >=20%.
 
 ## 2025
 
 **Trading & Risk**
 
-- Net margin: £28,620.71 (gross £86,958.82, capital £2,241.25)
-  - Electricity: gross £61,131.86, capital £1,083.21, net £16,519.28
-  - Gas: gross £25,826.96, capital £1,158.05, net £12,101.43
-- Treasury at year end: £402,114.25
-- Hedge fraction at first renewal this year (avg across year's terms): C2 0.86 (avg 0.86), C2g 0.85 (avg 0.85), C8 0.86 (avg 0.86), PROS-2016-0011 0.88 (avg 0.88), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.88 (avg 0.88), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.88 (avg 0.88), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.88 (avg 0.88), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0009 0.88 (avg 0.88), PROS-2018-0016 0.88 (avg 0.88), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.88 (avg 0.88), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.88 (avg 0.88), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.88 (avg 0.88), PROS-2018-0035 0.88 (avg 0.88), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0043 0.86 (avg 0.86), PROS-2018-0053 0.87 (avg 0.87), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0008 0.88 (avg 0.88), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.88 (avg 0.88), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.88 (avg 0.88), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.88 (avg 0.88), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.88 (avg 0.88), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.88 (avg 0.88), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0027 0.87 (avg 0.87), PROS-2019-0027g 0.85 (avg 0.85), PROS-2020-0009 0.88 (avg 0.88), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.88 (avg 0.88), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0016 0.88 (avg 0.88), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.88 (avg 0.88), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0032 0.88 (avg 0.88), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0042 0.87 (avg 0.87), PROS-2020-0042g 0.85 (avg 0.85), PROS-2020-0048 0.87 (avg 0.87), PROS-2020-0048g 0.85 (avg 0.85), PROS-2021-0051 0.85 (avg 0.85), PROS-2021-0051g 0.85 (avg 0.85), PROS-2021-0062 0.85 (avg 0.85), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.86 (avg 0.86), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.88 (avg 0.88), PROS-2022-0009g 0.85 (avg 0.85), PROS-2022-0010 0.88 (avg 0.88), PROS-2022-0010g 0.85 (avg 0.85), PROS-2022-0030 0.88 (avg 0.88), PROS-2022-0030g 0.85 (avg 0.85), PROS-2022-0045 0.87 (avg 0.87), PROS-2022-0046 0.87 (avg 0.87), PROS-2022-0046g 0.85 (avg 0.85), PROS-2022-0047 0.85 (avg 0.85), PROS-2022-0047g 0.85 (avg 0.85), PROS-2022-0048 0.85 (avg 0.85), PROS-2022-0048g 0.85 (avg 0.85), PROS-2022-0049 0.85 (avg 0.85), PROS-2022-0049g 0.85 (avg 0.85), PROS-2022-0071 0.86 (avg 0.86), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.87 (avg 0.87), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.86 (avg 0.86), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.85 (avg 0.85), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.85 (avg 0.85), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.87 (avg 0.87), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.85 (avg 0.85), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.85 (avg 0.85), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.85 (avg 0.85), PROS-2022-0124 0.85 (avg 0.85), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0127 0.85 (avg 0.85), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.85 (avg 0.85), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.85 (avg 0.85), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.88 (avg 0.88), PROS-2023-0001g 0.85 (avg 0.85), PROS-2023-0013 0.88 (avg 0.88), PROS-2023-0013g 0.85 (avg 0.85), PROS-2023-0014 0.88 (avg 0.88), PROS-2023-0014g 0.85 (avg 0.85), PROS-2023-0016 0.88 (avg 0.88), PROS-2023-0016g 0.85 (avg 0.85), PROS-2023-0026 0.88 (avg 0.88), PROS-2023-0026g 0.85 (avg 0.85), PROS-2023-0039 0.87 (avg 0.87), PROS-2023-0039g 0.85 (avg 0.85), PROS-2023-0045 0.85 (avg 0.85), PROS-2023-0045g 0.85 (avg 0.85), PROS-2023-0065 0.85 (avg 0.85), PROS-2023-0065g 0.85 (avg 0.85), PROS-2023-0067 0.85 (avg 0.85), PROS-2023-0067g 0.85 (avg 0.85), PROS-2023-0072 0.87 (avg 0.87), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.85 (avg 0.85), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.85 (avg 0.85), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.85 (avg 0.85), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.85 (avg 0.85), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.85 (avg 0.85), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0125 0.85 (avg 0.85), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.85 (avg 0.85), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.85 (avg 0.85), PROS-2023-0127g 0.85 (avg 0.85), PROS-2023-0146 0.85 (avg 0.85), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.85 (avg 0.85), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.85 (avg 0.85), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.85 (avg 0.85), PROS-2023-0158g 0.85 (avg 0.85), PROS-2024-0008 0.87 (avg 0.87), PROS-2024-0008g 0.85 (avg 0.85), PROS-2024-0009 0.87 (avg 0.87), PROS-2024-0009g 0.85 (avg 0.85), PROS-2024-0010 0.88 (avg 0.88), PROS-2024-0010g 0.85 (avg 0.85), PROS-2024-0012 0.88 (avg 0.88), PROS-2024-0012g 0.85 (avg 0.85), PROS-2024-0014 0.88 (avg 0.88), PROS-2024-0014g 0.85 (avg 0.85), PROS-2024-0022 0.88 (avg 0.88), PROS-2024-0027 0.88 (avg 0.88), PROS-2024-0027g 0.85 (avg 0.85), PROS-2024-0036 0.88 (avg 0.88), PROS-2024-0036g 0.85 (avg 0.85), PROS-2024-0038 0.87 (avg 0.87), PROS-2024-0038g 0.85 (avg 0.85), PROS-2024-0040 0.89 (avg 0.89), PROS-2024-0040g 0.85 (avg 0.85), PROS-2024-0041 0.86 (avg 0.86), PROS-2024-0041g 0.85 (avg 0.85), PROS-2024-0048 0.87 (avg 0.87), PROS-2024-0048g 0.85 (avg 0.85), PROS-2024-0056 0.85 (avg 0.85), PROS-2024-0056g 0.85 (avg 0.85), PROS-2024-0057 0.86 (avg 0.86), PROS-2024-0057g 0.85 (avg 0.85), PROS-2024-0062 0.88 (avg 0.88), PROS-2024-0062g 0.85 (avg 0.85), PROS-2024-0065 0.87 (avg 0.87), PROS-2024-0065g 0.85 (avg 0.85), PROS-2024-0069 0.85 (avg 0.85), PROS-2024-0069g 0.85 (avg 0.85), PROS-2024-0081 0.87 (avg 0.87), PROS-2024-0081g 0.85 (avg 0.85), PROS-2024-0082 0.87 (avg 0.87), PROS-2024-0083 0.87 (avg 0.87), PROS-2024-0083g 0.85 (avg 0.85), PROS-2024-0085 0.87 (avg 0.87), PROS-2024-0085g 0.85 (avg 0.85), PROS-2024-0087 0.85 (avg 0.85), PROS-2024-0087g 0.85 (avg 0.85), PROS-2024-0094 0.85 (avg 0.85), PROS-2024-0096 0.85 (avg 0.85), PROS-2024-0096g 0.85 (avg 0.85), PROS-2024-0098 0.85 (avg 0.85), PROS-2024-0098g 0.85 (avg 0.85), PROS-2024-0110 0.85 (avg 0.85), PROS-2024-0110g 0.85 (avg 0.85), PROS-2024-0111 0.85 (avg 0.85), PROS-2024-0111g 0.85 (avg 0.85), PROS-2024-0113 0.85 (avg 0.85), PROS-2024-0113g 0.85 (avg 0.85), PROS-2024-0116 0.85 (avg 0.85), PROS-2024-0116g 0.85 (avg 0.85), PROS-2024-0122 0.85 (avg 0.85), PROS-2024-0122g 0.85 (avg 0.85), PROS-2024-0131 0.85 (avg 0.85), PROS-2024-0131g 0.85 (avg 0.85), PROS-2024-0147 0.85 (avg 0.85), PROS-2024-0147g 0.85 (avg 0.85), PROS-2024-0148 0.85 (avg 0.85), PROS-2024-0148g 0.85 (avg 0.85), PROS-2024-0156 0.85 (avg 0.85), PROS-2024-0156g 0.85 (avg 0.85), PROS-2024-0157 0.85 (avg 0.85), PROS-2024-0157g 0.85 (avg 0.85), PROS-2024-0160 0.85 (avg 0.85), PROS-2024-0160g 0.85 (avg 0.85), PROS-2024-0179 0.85 (avg 0.85), PROS-2024-0179g 0.85 (avg 0.85), PROS-2025-0013 0.88 (avg 0.88), PROS-2025-0013g 0.85 (avg 0.85), PROS-2025-0022 0.88 (avg 0.88), PROS-2025-0022g 0.85 (avg 0.85), PROS-2025-0030 0.87 (avg 0.87), PROS-2025-0030g 0.85 (avg 0.85), PROS-2025-0033 0.88 (avg 0.88), PROS-2025-0033g 0.85 (avg 0.85), PROS-2025-0039 0.87 (avg 0.87), PROS-2025-0039g 0.85 (avg 0.85), PROS-2025-0041 0.85 (avg 0.85), PROS-2025-0041g 0.85 (avg 0.85), PROS-2025-0042 0.85 (avg 0.85), PROS-2025-0042g 0.85 (avg 0.85), PROS-2025-0049 0.87 (avg 0.87), PROS-2025-0049g 0.85 (avg 0.85), PROS-2025-0051 0.86 (avg 0.86), PROS-2025-0051g 0.85 (avg 0.85), PROS-2025-0055 0.85 (avg 0.85), PROS-2025-0055g 0.85 (avg 0.85), PROS-2025-0060 0.89 (avg 0.89), PROS-2025-0060g 0.85 (avg 0.85), PROS-2025-0062 0.85 (avg 0.85), PROS-2025-0062g 0.85 (avg 0.85), PROS-2025-0073 0.85 (avg 0.85), PROS-2025-0073g 0.85 (avg 0.85), PROS-2025-0075 0.85 (avg 0.85), PROS-2025-0075g 0.85 (avg 0.85), PROS-2025-0077 0.85 (avg 0.85), PROS-2025-0079 0.86 (avg 0.86), PROS-2025-0079g 0.85 (avg 0.85), PROS-2025-0083 0.86 (avg 0.86), PROS-2025-0083g 0.85 (avg 0.85), PROS-2025-0084 0.86 (avg 0.86), PROS-2025-0084g 0.85 (avg 0.85), PROS-2025-0085 0.90 (avg 0.90), PROS-2025-0085g 0.85 (avg 0.85), PROS-2025-0087 0.85 (avg 0.85), PROS-2025-0087g 0.85 (avg 0.85), PROS-2025-0093 0.85 (avg 0.85), PROS-2025-0093g 0.85 (avg 0.85), PROS-2025-0094 0.85 (avg 0.85), PROS-2025-0094g 0.85 (avg 0.85), PROS-2025-0095 0.85 (avg 0.85), PROS-2025-0095g 0.85 (avg 0.85), PROS-2025-0100 0.85 (avg 0.85), PROS-2025-0100g 0.85 (avg 0.85), PROS-2025-0103 0.85 (avg 0.85), PROS-2025-0106 0.85 (avg 0.85), PROS-2025-0106g 0.85 (avg 0.85), PROS-2025-0110 0.85 (avg 0.85), PROS-2025-0110g 0.85 (avg 0.85), PROS-2025-0114 0.85 (avg 0.85), PROS-2025-0114g 0.85 (avg 0.85), PROS-2025-0119 0.85 (avg 0.85), PROS-2025-0119g 0.85 (avg 0.85), PROS-2025-0121 0.85 (avg 0.85), PROS-2025-0121g 0.85 (avg 0.85), PROS-2025-0136 0.85 (avg 0.85), PROS-2025-0136g 0.85 (avg 0.85), PROS-2025-0149 0.85 (avg 0.85), PROS-2025-0149g 0.85 (avg 0.85), PROS-2025-0151 0.85 (avg 0.85), PROS-2025-0151g 0.85 (avg 0.85), PROS-2025-0153 0.85 (avg 0.85), PROS-2025-0153g 0.85 (avg 0.85), PROS-2025-0156 0.85 (avg 0.85), PROS-2025-0156g 0.85 (avg 0.85), PROS-2025-0160 0.85 (avg 0.85), PROS-2025-0160g 0.85 (avg 0.85), PROS-2025-0163 0.85 (avg 0.85), PROS-2025-0163g 0.85 (avg 0.85), PROS-2025-0170 0.85 (avg 0.85), PROS-2025-0170g 0.85 (avg 0.85)
+- Net margin: £28,912.04 (gross £87,597.04, capital £2,259.15)
+  - Electricity: gross £61,513.56, capital £1,090.42, net £16,658.74
+  - Gas: gross £26,083.48, capital £1,168.72, net £12,253.31
+- Treasury at year end: £403,201.87
+- Hedge fraction at first renewal this year (avg across year's terms): C2 0.86 (avg 0.86), C2g 0.85 (avg 0.85), C8 0.86 (avg 0.86), PROS-2016-0011 0.88 (avg 0.88), PROS-2016-0011g 0.85 (avg 0.85), PROS-2016-0020 0.88 (avg 0.88), PROS-2016-0020g 0.85 (avg 0.85), PROS-2017-0019 0.88 (avg 0.88), PROS-2017-0019g 0.85 (avg 0.85), PROS-2017-0022 0.88 (avg 0.88), PROS-2017-0022g 0.85 (avg 0.85), PROS-2018-0009 0.88 (avg 0.88), PROS-2018-0016 0.88 (avg 0.88), PROS-2018-0016g 0.85 (avg 0.85), PROS-2018-0018 0.88 (avg 0.88), PROS-2018-0018g 0.85 (avg 0.85), PROS-2018-0022 0.88 (avg 0.88), PROS-2018-0022g 0.85 (avg 0.85), PROS-2018-0024 0.88 (avg 0.88), PROS-2018-0035 0.88 (avg 0.88), PROS-2018-0035g 0.85 (avg 0.85), PROS-2018-0043 0.86 (avg 0.86), PROS-2018-0053 0.87 (avg 0.87), PROS-2018-0053g 0.85 (avg 0.85), PROS-2019-0008 0.88 (avg 0.88), PROS-2019-0008g 0.85 (avg 0.85), PROS-2019-0009 0.88 (avg 0.88), PROS-2019-0009g 0.85 (avg 0.85), PROS-2019-0012 0.88 (avg 0.88), PROS-2019-0012g 0.85 (avg 0.85), PROS-2019-0015 0.88 (avg 0.88), PROS-2019-0015g 0.85 (avg 0.85), PROS-2019-0021 0.88 (avg 0.88), PROS-2019-0021g 0.85 (avg 0.85), PROS-2019-0023 0.88 (avg 0.88), PROS-2019-0023g 0.85 (avg 0.85), PROS-2019-0027 0.87 (avg 0.87), PROS-2019-0027g 0.85 (avg 0.85), PROS-2020-0006 0.88 (avg 0.88), PROS-2020-0006g 0.85 (avg 0.85), PROS-2020-0009 0.88 (avg 0.88), PROS-2020-0009g 0.85 (avg 0.85), PROS-2020-0012 0.88 (avg 0.88), PROS-2020-0012g 0.85 (avg 0.85), PROS-2020-0016 0.88 (avg 0.88), PROS-2020-0016g 0.85 (avg 0.85), PROS-2020-0022 0.88 (avg 0.88), PROS-2020-0022g 0.85 (avg 0.85), PROS-2020-0032 0.88 (avg 0.88), PROS-2020-0032g 0.85 (avg 0.85), PROS-2020-0048 0.87 (avg 0.87), PROS-2020-0048g 0.85 (avg 0.85), PROS-2021-0006 0.88 (avg 0.88), PROS-2021-0006g 0.85 (avg 0.85), PROS-2021-0051 0.85 (avg 0.85), PROS-2021-0051g 0.85 (avg 0.85), PROS-2021-0062 0.85 (avg 0.85), PROS-2021-0062g 0.85 (avg 0.85), PROS-2021-0088 0.86 (avg 0.86), PROS-2021-0088g 0.85 (avg 0.85), PROS-2022-0009 0.88 (avg 0.88), PROS-2022-0009g 0.85 (avg 0.85), PROS-2022-0010 0.88 (avg 0.88), PROS-2022-0010g 0.85 (avg 0.85), PROS-2022-0030 0.88 (avg 0.88), PROS-2022-0030g 0.85 (avg 0.85), PROS-2022-0045 0.87 (avg 0.87), PROS-2022-0046 0.87 (avg 0.87), PROS-2022-0046g 0.85 (avg 0.85), PROS-2022-0047 0.85 (avg 0.85), PROS-2022-0047g 0.85 (avg 0.85), PROS-2022-0048 0.85 (avg 0.85), PROS-2022-0048g 0.85 (avg 0.85), PROS-2022-0049 0.85 (avg 0.85), PROS-2022-0049g 0.85 (avg 0.85), PROS-2022-0071 0.86 (avg 0.86), PROS-2022-0071g 0.85 (avg 0.85), PROS-2022-0073 0.87 (avg 0.87), PROS-2022-0073g 0.85 (avg 0.85), PROS-2022-0081 0.86 (avg 0.86), PROS-2022-0081g 0.85 (avg 0.85), PROS-2022-0082 0.85 (avg 0.85), PROS-2022-0082g 0.85 (avg 0.85), PROS-2022-0083 0.85 (avg 0.85), PROS-2022-0083g 0.85 (avg 0.85), PROS-2022-0092 0.87 (avg 0.87), PROS-2022-0092g 0.85 (avg 0.85), PROS-2022-0097 0.85 (avg 0.85), PROS-2022-0097g 0.85 (avg 0.85), PROS-2022-0100 0.85 (avg 0.85), PROS-2022-0100g 0.85 (avg 0.85), PROS-2022-0120 0.85 (avg 0.85), PROS-2022-0124 0.85 (avg 0.85), PROS-2022-0124g 0.85 (avg 0.85), PROS-2022-0127 0.85 (avg 0.85), PROS-2022-0127g 0.85 (avg 0.85), PROS-2022-0128 0.85 (avg 0.85), PROS-2022-0128g 0.85 (avg 0.85), PROS-2022-0130 0.85 (avg 0.85), PROS-2022-0130g 0.85 (avg 0.85), PROS-2023-0001 0.88 (avg 0.88), PROS-2023-0001g 0.85 (avg 0.85), PROS-2023-0013 0.88 (avg 0.88), PROS-2023-0013g 0.85 (avg 0.85), PROS-2023-0014 0.88 (avg 0.88), PROS-2023-0014g 0.85 (avg 0.85), PROS-2023-0016 0.88 (avg 0.88), PROS-2023-0016g 0.85 (avg 0.85), PROS-2023-0026 0.88 (avg 0.88), PROS-2023-0026g 0.85 (avg 0.85), PROS-2023-0039 0.87 (avg 0.87), PROS-2023-0039g 0.85 (avg 0.85), PROS-2023-0045 0.85 (avg 0.85), PROS-2023-0045g 0.85 (avg 0.85), PROS-2023-0065 0.85 (avg 0.85), PROS-2023-0065g 0.85 (avg 0.85), PROS-2023-0067 0.85 (avg 0.85), PROS-2023-0067g 0.85 (avg 0.85), PROS-2023-0072 0.87 (avg 0.87), PROS-2023-0072g 0.85 (avg 0.85), PROS-2023-0089 0.85 (avg 0.85), PROS-2023-0089g 0.85 (avg 0.85), PROS-2023-0090 0.85 (avg 0.85), PROS-2023-0090g 0.85 (avg 0.85), PROS-2023-0096 0.85 (avg 0.85), PROS-2023-0096g 0.85 (avg 0.85), PROS-2023-0104 0.85 (avg 0.85), PROS-2023-0104g 0.85 (avg 0.85), PROS-2023-0113 0.85 (avg 0.85), PROS-2023-0113g 0.85 (avg 0.85), PROS-2023-0125 0.85 (avg 0.85), PROS-2023-0125g 0.85 (avg 0.85), PROS-2023-0126 0.85 (avg 0.85), PROS-2023-0126g 0.85 (avg 0.85), PROS-2023-0127 0.85 (avg 0.85), PROS-2023-0127g 0.85 (avg 0.85), PROS-2023-0146 0.85 (avg 0.85), PROS-2023-0146g 0.85 (avg 0.85), PROS-2023-0147 0.85 (avg 0.85), PROS-2023-0147g 0.85 (avg 0.85), PROS-2023-0152 0.85 (avg 0.85), PROS-2023-0152g 0.85 (avg 0.85), PROS-2023-0158 0.85 (avg 0.85), PROS-2023-0158g 0.85 (avg 0.85), PROS-2024-0008 0.87 (avg 0.87), PROS-2024-0008g 0.85 (avg 0.85), PROS-2024-0009 0.87 (avg 0.87), PROS-2024-0009g 0.85 (avg 0.85), PROS-2024-0010 0.88 (avg 0.88), PROS-2024-0010g 0.85 (avg 0.85), PROS-2024-0012 0.88 (avg 0.88), PROS-2024-0012g 0.85 (avg 0.85), PROS-2024-0014 0.88 (avg 0.88), PROS-2024-0014g 0.85 (avg 0.85), PROS-2024-0022 0.88 (avg 0.88), PROS-2024-0027 0.88 (avg 0.88), PROS-2024-0027g 0.85 (avg 0.85), PROS-2024-0036 0.88 (avg 0.88), PROS-2024-0036g 0.85 (avg 0.85), PROS-2024-0038 0.87 (avg 0.87), PROS-2024-0038g 0.85 (avg 0.85), PROS-2024-0040 0.89 (avg 0.89), PROS-2024-0040g 0.85 (avg 0.85), PROS-2024-0041 0.86 (avg 0.86), PROS-2024-0041g 0.85 (avg 0.85), PROS-2024-0048 0.87 (avg 0.87), PROS-2024-0048g 0.85 (avg 0.85), PROS-2024-0056 0.85 (avg 0.85), PROS-2024-0056g 0.85 (avg 0.85), PROS-2024-0057 0.86 (avg 0.86), PROS-2024-0057g 0.85 (avg 0.85), PROS-2024-0062 0.88 (avg 0.88), PROS-2024-0062g 0.85 (avg 0.85), PROS-2024-0065 0.87 (avg 0.87), PROS-2024-0065g 0.85 (avg 0.85), PROS-2024-0069 0.85 (avg 0.85), PROS-2024-0069g 0.85 (avg 0.85), PROS-2024-0081 0.87 (avg 0.87), PROS-2024-0081g 0.85 (avg 0.85), PROS-2024-0082 0.87 (avg 0.87), PROS-2024-0083 0.87 (avg 0.87), PROS-2024-0083g 0.85 (avg 0.85), PROS-2024-0085 0.87 (avg 0.87), PROS-2024-0085g 0.85 (avg 0.85), PROS-2024-0087 0.85 (avg 0.85), PROS-2024-0087g 0.85 (avg 0.85), PROS-2024-0094 0.85 (avg 0.85), PROS-2024-0096 0.85 (avg 0.85), PROS-2024-0096g 0.85 (avg 0.85), PROS-2024-0098 0.85 (avg 0.85), PROS-2024-0098g 0.85 (avg 0.85), PROS-2024-0110 0.85 (avg 0.85), PROS-2024-0110g 0.85 (avg 0.85), PROS-2024-0111 0.85 (avg 0.85), PROS-2024-0111g 0.85 (avg 0.85), PROS-2024-0113 0.85 (avg 0.85), PROS-2024-0113g 0.85 (avg 0.85), PROS-2024-0116 0.85 (avg 0.85), PROS-2024-0116g 0.85 (avg 0.85), PROS-2024-0122 0.85 (avg 0.85), PROS-2024-0122g 0.85 (avg 0.85), PROS-2024-0131 0.85 (avg 0.85), PROS-2024-0131g 0.85 (avg 0.85), PROS-2024-0147 0.85 (avg 0.85), PROS-2024-0147g 0.85 (avg 0.85), PROS-2024-0148 0.85 (avg 0.85), PROS-2024-0148g 0.85 (avg 0.85), PROS-2024-0156 0.85 (avg 0.85), PROS-2024-0156g 0.85 (avg 0.85), PROS-2024-0157 0.85 (avg 0.85), PROS-2024-0157g 0.85 (avg 0.85), PROS-2024-0160 0.85 (avg 0.85), PROS-2024-0160g 0.85 (avg 0.85), PROS-2024-0179 0.85 (avg 0.85), PROS-2024-0179g 0.85 (avg 0.85), PROS-2025-0013 0.88 (avg 0.88), PROS-2025-0013g 0.85 (avg 0.85), PROS-2025-0022 0.88 (avg 0.88), PROS-2025-0022g 0.85 (avg 0.85), PROS-2025-0030 0.87 (avg 0.87), PROS-2025-0030g 0.85 (avg 0.85), PROS-2025-0033 0.88 (avg 0.88), PROS-2025-0033g 0.85 (avg 0.85), PROS-2025-0039 0.87 (avg 0.87), PROS-2025-0039g 0.85 (avg 0.85), PROS-2025-0041 0.85 (avg 0.85), PROS-2025-0041g 0.85 (avg 0.85), PROS-2025-0042 0.85 (avg 0.85), PROS-2025-0042g 0.85 (avg 0.85), PROS-2025-0049 0.87 (avg 0.87), PROS-2025-0049g 0.85 (avg 0.85), PROS-2025-0051 0.86 (avg 0.86), PROS-2025-0051g 0.85 (avg 0.85), PROS-2025-0055 0.85 (avg 0.85), PROS-2025-0055g 0.85 (avg 0.85), PROS-2025-0060 0.89 (avg 0.89), PROS-2025-0060g 0.85 (avg 0.85), PROS-2025-0062 0.85 (avg 0.85), PROS-2025-0062g 0.85 (avg 0.85), PROS-2025-0073 0.85 (avg 0.85), PROS-2025-0073g 0.85 (avg 0.85), PROS-2025-0075 0.85 (avg 0.85), PROS-2025-0075g 0.85 (avg 0.85), PROS-2025-0077 0.85 (avg 0.85), PROS-2025-0079 0.86 (avg 0.86), PROS-2025-0079g 0.85 (avg 0.85), PROS-2025-0083 0.86 (avg 0.86), PROS-2025-0083g 0.85 (avg 0.85), PROS-2025-0084 0.86 (avg 0.86), PROS-2025-0084g 0.85 (avg 0.85), PROS-2025-0085 0.90 (avg 0.90), PROS-2025-0085g 0.85 (avg 0.85), PROS-2025-0087 0.85 (avg 0.85), PROS-2025-0087g 0.85 (avg 0.85), PROS-2025-0093 0.85 (avg 0.85), PROS-2025-0093g 0.85 (avg 0.85), PROS-2025-0094 0.85 (avg 0.85), PROS-2025-0094g 0.85 (avg 0.85), PROS-2025-0095 0.85 (avg 0.85), PROS-2025-0095g 0.85 (avg 0.85), PROS-2025-0100 0.85 (avg 0.85), PROS-2025-0100g 0.85 (avg 0.85), PROS-2025-0103 0.85 (avg 0.85), PROS-2025-0106 0.85 (avg 0.85), PROS-2025-0106g 0.85 (avg 0.85), PROS-2025-0110 0.85 (avg 0.85), PROS-2025-0110g 0.85 (avg 0.85), PROS-2025-0114 0.85 (avg 0.85), PROS-2025-0114g 0.85 (avg 0.85), PROS-2025-0119 0.85 (avg 0.85), PROS-2025-0119g 0.85 (avg 0.85), PROS-2025-0121 0.85 (avg 0.85), PROS-2025-0121g 0.85 (avg 0.85), PROS-2025-0136 0.85 (avg 0.85), PROS-2025-0136g 0.85 (avg 0.85), PROS-2025-0149 0.85 (avg 0.85), PROS-2025-0149g 0.85 (avg 0.85), PROS-2025-0151 0.85 (avg 0.85), PROS-2025-0151g 0.85 (avg 0.85), PROS-2025-0153 0.85 (avg 0.85), PROS-2025-0153g 0.85 (avg 0.85), PROS-2025-0156 0.85 (avg 0.85), PROS-2025-0156g 0.85 (avg 0.85), PROS-2025-0160 0.85 (avg 0.85), PROS-2025-0160g 0.85 (avg 0.85), PROS-2025-0163 0.85 (avg 0.85), PROS-2025-0163g 0.85 (avg 0.85), PROS-2025-0170 0.85 (avg 0.85), PROS-2025-0170g 0.85 (avg 0.85)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
 - Worst single period: PROS-2023-0127g on 2025-05-01 period 1, net margin £-1.10
 
 **Customer Book**
 
-- Active accounts: 351 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0009, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0042, PROS-2020-0042g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0172, PROS-2023-0172g, PROS-2023-0177, PROS-2023-0177g, PROS-2024-0008, PROS-2024-0008g, PROS-2024-0009, PROS-2024-0009g, PROS-2024-0010, PROS-2024-0010g, PROS-2024-0012, PROS-2024-0012g, PROS-2024-0014, PROS-2024-0014g, PROS-2024-0022, PROS-2024-0027, PROS-2024-0027g, PROS-2024-0036, PROS-2024-0036g, PROS-2024-0038, PROS-2024-0038g, PROS-2024-0040, PROS-2024-0040g, PROS-2024-0041, PROS-2024-0041g, PROS-2024-0048, PROS-2024-0048g, PROS-2024-0056, PROS-2024-0056g, PROS-2024-0057, PROS-2024-0057g, PROS-2024-0062, PROS-2024-0062g, PROS-2024-0065, PROS-2024-0065g, PROS-2024-0069, PROS-2024-0069g, PROS-2024-0076, PROS-2024-0076g, PROS-2024-0081, PROS-2024-0081g, PROS-2024-0082, PROS-2024-0083, PROS-2024-0083g, PROS-2024-0085, PROS-2024-0085g, PROS-2024-0087, PROS-2024-0087g, PROS-2024-0094, PROS-2024-0096, PROS-2024-0096g, PROS-2024-0098, PROS-2024-0098g, PROS-2024-0110, PROS-2024-0110g, PROS-2024-0111, PROS-2024-0111g, PROS-2024-0113, PROS-2024-0113g, PROS-2024-0116, PROS-2024-0116g, PROS-2024-0122, PROS-2024-0122g, PROS-2024-0131, PROS-2024-0131g, PROS-2024-0147, PROS-2024-0147g, PROS-2024-0148, PROS-2024-0148g, PROS-2024-0156, PROS-2024-0156g, PROS-2024-0157, PROS-2024-0157g, PROS-2024-0160, PROS-2024-0160g, PROS-2024-0179, PROS-2024-0179g, PROS-2024-0191, PROS-2024-0191g, PROS-2024-0195, PROS-2024-0195g, PROS-2024-0196, PROS-2024-0196g, PROS-2024-0197, PROS-2024-0199, PROS-2024-0199g, PROS-2024-0200, PROS-2024-0200g, PROS-2024-0203, PROS-2024-0203g, PROS-2024-0205, PROS-2024-0209, PROS-2024-0209g, PROS-2024-0213, PROS-2024-0213g, PROS-2024-0218, PROS-2024-0218g, PROS-2024-0224, PROS-2024-0224g, PROS-2024-0226, PROS-2024-0226g, PROS-2024-0233, PROS-2024-0233g, PROS-2024-0235, PROS-2024-0235g, PROS-2025-0013, PROS-2025-0013g, PROS-2025-0022, PROS-2025-0022g, PROS-2025-0030, PROS-2025-0030g, PROS-2025-0033, PROS-2025-0033g, PROS-2025-0039, PROS-2025-0039g, PROS-2025-0041, PROS-2025-0041g, PROS-2025-0042, PROS-2025-0042g, PROS-2025-0049, PROS-2025-0049g, PROS-2025-0051, PROS-2025-0051g, PROS-2025-0055, PROS-2025-0055g, PROS-2025-0060, PROS-2025-0060g, PROS-2025-0062, PROS-2025-0062g, PROS-2025-0073, PROS-2025-0073g, PROS-2025-0075, PROS-2025-0075g, PROS-2025-0077, PROS-2025-0079, PROS-2025-0079g, PROS-2025-0083, PROS-2025-0083g, PROS-2025-0084, PROS-2025-0084g, PROS-2025-0085, PROS-2025-0085g, PROS-2025-0087, PROS-2025-0087g, PROS-2025-0093, PROS-2025-0093g, PROS-2025-0094, PROS-2025-0094g, PROS-2025-0095, PROS-2025-0095g, PROS-2025-0100, PROS-2025-0100g, PROS-2025-0103, PROS-2025-0106, PROS-2025-0106g, PROS-2025-0110, PROS-2025-0110g, PROS-2025-0114, PROS-2025-0114g, PROS-2025-0119, PROS-2025-0119g, PROS-2025-0121, PROS-2025-0121g, PROS-2025-0136, PROS-2025-0136g, PROS-2025-0149, PROS-2025-0149g, PROS-2025-0151, PROS-2025-0151g, PROS-2025-0153, PROS-2025-0153g, PROS-2025-0156, PROS-2025-0156g, PROS-2025-0160, PROS-2025-0160g, PROS-2025-0163, PROS-2025-0163g, PROS-2025-0170, PROS-2025-0170g, SYN-2021-001)
-  - Resi electricity: 184, SME electricity: 0, gas (dual-fuel): 167
+- Active accounts: 355 (C2, C2g, C3, C3g, C7, C8, C9, PROS-2016-0011, PROS-2016-0011g, PROS-2016-0020, PROS-2016-0020g, PROS-2017-0019, PROS-2017-0019g, PROS-2017-0022, PROS-2017-0022g, PROS-2018-0003, PROS-2018-0003g, PROS-2018-0009, PROS-2018-0014, PROS-2018-0014g, PROS-2018-0016, PROS-2018-0016g, PROS-2018-0018, PROS-2018-0018g, PROS-2018-0022, PROS-2018-0022g, PROS-2018-0024, PROS-2018-0035, PROS-2018-0035g, PROS-2018-0043, PROS-2018-0053, PROS-2018-0053g, PROS-2019-0008, PROS-2019-0008g, PROS-2019-0009, PROS-2019-0009g, PROS-2019-0012, PROS-2019-0012g, PROS-2019-0015, PROS-2019-0015g, PROS-2019-0021, PROS-2019-0021g, PROS-2019-0023, PROS-2019-0023g, PROS-2019-0024, PROS-2019-0024g, PROS-2019-0027, PROS-2019-0027g, PROS-2020-0002, PROS-2020-0002g, PROS-2020-0006, PROS-2020-0006g, PROS-2020-0009, PROS-2020-0009g, PROS-2020-0012, PROS-2020-0012g, PROS-2020-0016, PROS-2020-0016g, PROS-2020-0022, PROS-2020-0022g, PROS-2020-0025, PROS-2020-0025g, PROS-2020-0032, PROS-2020-0032g, PROS-2020-0048, PROS-2020-0048g, PROS-2021-0006, PROS-2021-0006g, PROS-2021-0031, PROS-2021-0031g, PROS-2021-0045, PROS-2021-0051, PROS-2021-0051g, PROS-2021-0062, PROS-2021-0062g, PROS-2021-0088, PROS-2021-0088g, PROS-2022-0009, PROS-2022-0009g, PROS-2022-0010, PROS-2022-0010g, PROS-2022-0011, PROS-2022-0011g, PROS-2022-0030, PROS-2022-0030g, PROS-2022-0045, PROS-2022-0046, PROS-2022-0046g, PROS-2022-0047, PROS-2022-0047g, PROS-2022-0048, PROS-2022-0048g, PROS-2022-0049, PROS-2022-0049g, PROS-2022-0067, PROS-2022-0067g, PROS-2022-0071, PROS-2022-0071g, PROS-2022-0073, PROS-2022-0073g, PROS-2022-0081, PROS-2022-0081g, PROS-2022-0082, PROS-2022-0082g, PROS-2022-0083, PROS-2022-0083g, PROS-2022-0092, PROS-2022-0092g, PROS-2022-0097, PROS-2022-0097g, PROS-2022-0100, PROS-2022-0100g, PROS-2022-0120, PROS-2022-0124, PROS-2022-0124g, PROS-2022-0125, PROS-2022-0125g, PROS-2022-0127, PROS-2022-0127g, PROS-2022-0128, PROS-2022-0128g, PROS-2022-0130, PROS-2022-0130g, PROS-2023-0001, PROS-2023-0001g, PROS-2023-0010, PROS-2023-0010g, PROS-2023-0013, PROS-2023-0013g, PROS-2023-0014, PROS-2023-0014g, PROS-2023-0016, PROS-2023-0016g, PROS-2023-0025, PROS-2023-0025g, PROS-2023-0026, PROS-2023-0026g, PROS-2023-0039, PROS-2023-0039g, PROS-2023-0045, PROS-2023-0045g, PROS-2023-0065, PROS-2023-0065g, PROS-2023-0067, PROS-2023-0067g, PROS-2023-0072, PROS-2023-0072g, PROS-2023-0089, PROS-2023-0089g, PROS-2023-0090, PROS-2023-0090g, PROS-2023-0096, PROS-2023-0096g, PROS-2023-0104, PROS-2023-0104g, PROS-2023-0113, PROS-2023-0113g, PROS-2023-0116, PROS-2023-0116g, PROS-2023-0125, PROS-2023-0125g, PROS-2023-0126, PROS-2023-0126g, PROS-2023-0127, PROS-2023-0127g, PROS-2023-0146, PROS-2023-0146g, PROS-2023-0147, PROS-2023-0147g, PROS-2023-0152, PROS-2023-0152g, PROS-2023-0158, PROS-2023-0158g, PROS-2023-0162, PROS-2023-0162g, PROS-2023-0166, PROS-2023-0166g, PROS-2023-0177, PROS-2023-0177g, PROS-2024-0008, PROS-2024-0008g, PROS-2024-0009, PROS-2024-0009g, PROS-2024-0010, PROS-2024-0010g, PROS-2024-0012, PROS-2024-0012g, PROS-2024-0014, PROS-2024-0014g, PROS-2024-0022, PROS-2024-0027, PROS-2024-0027g, PROS-2024-0036, PROS-2024-0036g, PROS-2024-0038, PROS-2024-0038g, PROS-2024-0040, PROS-2024-0040g, PROS-2024-0041, PROS-2024-0041g, PROS-2024-0048, PROS-2024-0048g, PROS-2024-0056, PROS-2024-0056g, PROS-2024-0057, PROS-2024-0057g, PROS-2024-0062, PROS-2024-0062g, PROS-2024-0065, PROS-2024-0065g, PROS-2024-0069, PROS-2024-0069g, PROS-2024-0076, PROS-2024-0076g, PROS-2024-0081, PROS-2024-0081g, PROS-2024-0082, PROS-2024-0083, PROS-2024-0083g, PROS-2024-0085, PROS-2024-0085g, PROS-2024-0087, PROS-2024-0087g, PROS-2024-0094, PROS-2024-0096, PROS-2024-0096g, PROS-2024-0098, PROS-2024-0098g, PROS-2024-0110, PROS-2024-0110g, PROS-2024-0111, PROS-2024-0111g, PROS-2024-0113, PROS-2024-0113g, PROS-2024-0116, PROS-2024-0116g, PROS-2024-0122, PROS-2024-0122g, PROS-2024-0131, PROS-2024-0131g, PROS-2024-0147, PROS-2024-0147g, PROS-2024-0148, PROS-2024-0148g, PROS-2024-0156, PROS-2024-0156g, PROS-2024-0157, PROS-2024-0157g, PROS-2024-0160, PROS-2024-0160g, PROS-2024-0179, PROS-2024-0179g, PROS-2024-0191, PROS-2024-0191g, PROS-2024-0195, PROS-2024-0195g, PROS-2024-0196, PROS-2024-0196g, PROS-2024-0197, PROS-2024-0199, PROS-2024-0199g, PROS-2024-0200, PROS-2024-0200g, PROS-2024-0203, PROS-2024-0203g, PROS-2024-0205, PROS-2024-0209, PROS-2024-0209g, PROS-2024-0213, PROS-2024-0213g, PROS-2024-0218, PROS-2024-0218g, PROS-2024-0224, PROS-2024-0224g, PROS-2024-0226, PROS-2024-0226g, PROS-2024-0233, PROS-2024-0233g, PROS-2024-0235, PROS-2024-0235g, PROS-2025-0013, PROS-2025-0013g, PROS-2025-0022, PROS-2025-0022g, PROS-2025-0030, PROS-2025-0030g, PROS-2025-0033, PROS-2025-0033g, PROS-2025-0039, PROS-2025-0039g, PROS-2025-0041, PROS-2025-0041g, PROS-2025-0042, PROS-2025-0042g, PROS-2025-0049, PROS-2025-0049g, PROS-2025-0051, PROS-2025-0051g, PROS-2025-0055, PROS-2025-0055g, PROS-2025-0060, PROS-2025-0060g, PROS-2025-0062, PROS-2025-0062g, PROS-2025-0073, PROS-2025-0073g, PROS-2025-0075, PROS-2025-0075g, PROS-2025-0077, PROS-2025-0079, PROS-2025-0079g, PROS-2025-0083, PROS-2025-0083g, PROS-2025-0084, PROS-2025-0084g, PROS-2025-0085, PROS-2025-0085g, PROS-2025-0087, PROS-2025-0087g, PROS-2025-0093, PROS-2025-0093g, PROS-2025-0094, PROS-2025-0094g, PROS-2025-0095, PROS-2025-0095g, PROS-2025-0100, PROS-2025-0100g, PROS-2025-0103, PROS-2025-0106, PROS-2025-0106g, PROS-2025-0110, PROS-2025-0110g, PROS-2025-0114, PROS-2025-0114g, PROS-2025-0119, PROS-2025-0119g, PROS-2025-0121, PROS-2025-0121g, PROS-2025-0136, PROS-2025-0136g, PROS-2025-0149, PROS-2025-0149g, PROS-2025-0151, PROS-2025-0151g, PROS-2025-0153, PROS-2025-0153g, PROS-2025-0156, PROS-2025-0156g, PROS-2025-0160, PROS-2025-0160g, PROS-2025-0163, PROS-2025-0163g, PROS-2025-0170, PROS-2025-0170g, SYN-2021-001)
+  - Resi electricity: 186, SME electricity: 0, gas (dual-fuel): 169
 - New acquisitions this year: none
-- Losses (churn) during year: PROS-2023-0010, PROS-2022-0011, PROS-2020-0025, PROS-2023-0025, PROS-2021-0031, PROS-2019-0024, PROS-2021-0045, PROS-2022-0067, PROS-2024-0076, PROS-2022-0125, PROS-2023-0116
-  - Renewals (retained): 111 accounts
-- Average CLV (Point-in-Time, 2025-06-07): £1,778.62
-  - By billing account: C2 £339.56, C3 £207.87, C7 £-148.21, C8 £574.85, C9 £498.24, PROS-2016-0011 £549.30, PROS-2016-0020 £692.19, PROS-2017-0019 £719.47, PROS-2017-0022 £620.07, PROS-2018-0009 £494.22, PROS-2018-0016 £472.71, PROS-2018-0018 £513.64, PROS-2018-0022 £733.73, PROS-2018-0024 £779.65, PROS-2018-0035 £1,032.00, PROS-2018-0043 £1,072.26, PROS-2018-0053 £910.24, PROS-2019-0008 £406.91, PROS-2019-0009 £543.75, PROS-2019-0012 £748.81, PROS-2019-0015 £624.27, PROS-2019-0021 £946.06, PROS-2019-0023 £944.08, PROS-2019-0027 £938.81, PROS-2020-0002 £350.52, PROS-2020-0009 £587.01, PROS-2020-0012 £439.52, PROS-2020-0016 £580.84, PROS-2020-0022 £620.63, PROS-2020-0032 £1,156.50, PROS-2020-0042 £1,031.91, PROS-2020-0048 £1,246.45, PROS-2021-0051 £814.18, PROS-2021-0062 £1,186.84, PROS-2021-0088 £875.42, PROS-2022-0009 £159.69, PROS-2022-0010 £282.30, PROS-2022-0030 £1,485.97, PROS-2022-0045 £1,895.08, PROS-2022-0046 £1,334.66, PROS-2022-0047 £1,873.69, PROS-2022-0048 £1,362.35, PROS-2022-0049 £1,045.60, PROS-2022-0071 £1,115.79, PROS-2022-0073 £1,240.12, PROS-2022-0081 £1,329.93, PROS-2022-0082 £765.20, PROS-2022-0083 £990.44, PROS-2022-0092 £641.51, PROS-2022-0097 £730.11, PROS-2022-0100 £519.57, PROS-2022-0120 £755.60, PROS-2022-0124 £1,303.87, PROS-2022-0127 £1,215.81, PROS-2022-0128 £1,248.32, PROS-2022-0130 £1,508.17, PROS-2023-0001 £2,387.58, PROS-2023-0013 £2,135.81, PROS-2023-0014 £1,989.14, PROS-2023-0016 £2,004.28, PROS-2023-0026 £2,843.01, PROS-2023-0039 £3,687.07, PROS-2023-0045 £3,345.61, PROS-2023-0065 £2,735.17, PROS-2023-0067 £3,304.35, PROS-2023-0072 £2,401.22, PROS-2023-0089 £3,080.43, PROS-2023-0090 £2,589.81, PROS-2023-0096 £2,835.90, PROS-2023-0104 £2,959.68, PROS-2023-0113 £2,927.51, PROS-2023-0125 £3,007.45, PROS-2023-0126 £2,078.95, PROS-2023-0127 £2,818.19, PROS-2023-0146 £1,150.33, PROS-2023-0147 £1,224.66, PROS-2023-0152 £1,246.14, PROS-2023-0158 £1,658.63, PROS-2023-0162 £2,099.98, PROS-2023-0166 £1,462.39, PROS-2023-0172 £1,287.90, PROS-2023-0177 £1,193.63, PROS-2024-0008 £5,112.30, PROS-2024-0009 £4,488.44, PROS-2024-0010 £4,954.99, PROS-2024-0012 £2,788.27, PROS-2024-0014 £6,437.37, PROS-2024-0022 £2,324.84, PROS-2024-0027 £4,768.73, PROS-2024-0036 £4,743.27, PROS-2024-0038 £3,733.93, PROS-2024-0040 £3,831.57, PROS-2024-0041 £3,505.34, PROS-2024-0048 £3,310.17, PROS-2024-0056 £2,652.00, PROS-2024-0057 £3,320.77, PROS-2024-0062 £3,853.17, PROS-2024-0065 £3,259.09, PROS-2024-0069 £3,222.33, PROS-2024-0081 £3,798.25, PROS-2024-0082 £2,261.71, PROS-2024-0083 £4,126.02, PROS-2024-0085 £2,814.02, PROS-2024-0087 £3,108.26, PROS-2024-0094 £1,058.41, PROS-2024-0096 £2,511.74, PROS-2024-0098 £2,201.07, PROS-2024-0110 £2,270.76, PROS-2024-0111 £2,748.50, PROS-2024-0113 £2,330.96, PROS-2024-0116 £2,685.01, PROS-2024-0122 £2,316.39, PROS-2024-0131 £2,801.50, PROS-2024-0147 £2,341.63, PROS-2024-0148 £2,230.16, PROS-2024-0156 £845.14, PROS-2024-0157 £788.34, PROS-2024-0160 £-181.31, PROS-2024-0179 £312.82, PROS-2024-0191 £1,001.71, PROS-2024-0195 £748.16, PROS-2024-0196 £1,185.78, PROS-2024-0197 £1,006.67, PROS-2024-0199 £1,277.29, PROS-2024-0200 £1,262.31, SYN-2021-001 £585.29
-- Bill shock events (>=20%): 737 -- C7 2025-04-30 (37%); C7 2025-05-31 (38%); C7 2025-06-07 (158%); PROS-2016-0011 2025-01-31 (27%); PROS-2016-0011 2025-02-28 (24%); PROS-2016-0011 2025-04-30 (23%); PROS-2016-0011g 2025-01-31 (58%); PROS-2016-0011g 2025-02-28 (56%); PROS-2016-0011g 2025-03-31 (46%); PROS-2016-0011g 2025-04-30 (46%); PROS-2016-0011g 2025-05-31 (30%); PROS-2016-0020 2025-02-28 (46%); PROS-2016-0020g 2025-02-28 (323%); PROS-2016-0020g 2025-05-31 (44%); PROS-2016-0020g 2025-06-07 (75%); C2 2025-04-30 (33%); C2g 2025-01-31 (32%); C2g 2025-02-28 (24%); C2g 2025-05-31 (34%); C2g 2025-06-07 (73%); C8 2025-01-31 (30%); C8 2025-02-28 (24%); C8 2025-04-30 (28%); C8 2025-05-31 (42%); C8 2025-06-07 (198%); C3g 2025-01-31 (24%); C3g 2025-02-28 (35%); C3g 2025-06-07 (54%); C9 2025-04-30 (24%); C9 2025-05-31 (32%); C9 2025-06-07 (72%); PROS-2017-0019 2025-05-31 (81%); PROS-2017-0019g 2025-01-31 (31%); PROS-2017-0019g 2025-02-28 (30%); PROS-2017-0022 2025-01-31 (22%); PROS-2017-0022g 2025-01-31 (50%); PROS-2017-0022g 2025-02-28 (49%); PROS-2017-0022g 2025-03-31 (37%); PROS-2017-0022g 2025-04-30 (37%); PROS-2017-0022g 2025-06-07 (266%); PROS-2018-0009 2025-01-31 (21%); PROS-2018-0016g 2025-01-31 (39%); PROS-2018-0016g 2025-02-28 (36%); PROS-2018-0016g 2025-03-31 (21%); PROS-2018-0016g 2025-04-30 (22%); PROS-2018-0016g 2025-06-07 (25%); PROS-2018-0018 2025-01-31 (20%); PROS-2018-0018 2025-05-31 (107%); PROS-2018-0018g 2025-02-28 (25%); PROS-2018-0022 2025-03-31 (144%); PROS-2018-0022 2025-05-31 (22%); PROS-2018-0022g 2025-01-31 (60%); PROS-2018-0022g 2025-02-28 (60%); PROS-2018-0022g 2025-03-31 (50%); PROS-2018-0022g 2025-04-30 (50%); PROS-2018-0022g 2025-05-31 (326%); PROS-2018-0024 2025-01-31 (20%); PROS-2018-0035 2025-01-31 (25%); PROS-2018-0035 2025-02-28 (21%); PROS-2018-0035 2025-03-31 (102%); PROS-2018-0035g 2025-01-31 (35%); PROS-2018-0035g 2025-02-28 (34%); PROS-2018-0053g 2025-04-30 (295%); PROS-2018-0053g 2025-06-07 (35%); PROS-2019-0008 2025-06-07 (78%); PROS-2019-0008g 2025-05-31 (63%); PROS-2019-0008g 2025-06-07 (87%); PROS-2019-0009 2025-01-31 (22%); PROS-2019-0009 2025-05-31 (63%); PROS-2019-0009g 2025-03-31 (542%); PROS-2019-0009g 2025-05-31 (37%); PROS-2019-0009g 2025-06-07 (62%); PROS-2019-0012 2025-06-07 (78%); PROS-2019-0012g 2025-01-31 (25%); PROS-2019-0012g 2025-05-31 (20%); PROS-2019-0012g 2025-06-07 (85%); PROS-2019-0015 2025-01-31 (21%); PROS-2019-0015g 2025-01-31 (49%); PROS-2019-0015g 2025-02-28 (102%); PROS-2019-0015g 2025-06-07 (34%); PROS-2019-0021 2025-01-31 (23%); PROS-2019-0021 2025-02-28 (21%); PROS-2019-0021g 2025-01-31 (38%); PROS-2019-0021g 2025-02-28 (37%); PROS-2019-0021g 2025-03-31 (23%); PROS-2019-0021g 2025-04-30 (24%); PROS-2019-0023 2025-01-31 (24%); PROS-2019-0023 2025-02-28 (21%); PROS-2019-0023g 2025-01-31 (36%); PROS-2019-0023g 2025-02-28 (83%); PROS-2019-0023g 2025-06-07 (35%); PROS-2019-0024g 2025-01-26 (56%); PROS-2019-0027g 2025-01-31 (61%); PROS-2019-0027g 2025-02-28 (56%); PROS-2019-0027g 2025-03-31 (51%); PROS-2019-0027g 2025-04-30 (52%); PROS-2019-0027g 2025-05-31 (37%); PROS-2019-0027g 2025-06-07 (25%); PROS-2020-0002 2025-06-07 (78%); PROS-2020-0002g 2025-01-31 (30%); PROS-2020-0002g 2025-04-30 (22%); PROS-2020-0002g 2025-05-31 (25%); PROS-2020-0002g 2025-06-07 (25%); PROS-2020-0009 2025-06-07 (78%); PROS-2020-0009g 2025-01-31 (37%); PROS-2020-0009g 2025-04-30 (21%); PROS-2020-0009g 2025-05-31 (23%); PROS-2020-0009g 2025-06-07 (86%); PROS-2020-0012g 2025-01-31 (38%); PROS-2020-0012g 2025-02-28 (35%); PROS-2020-0012g 2025-03-31 (20%); PROS-2020-0012g 2025-04-30 (21%); PROS-2020-0012g 2025-06-07 (25%); PROS-2020-0016 2025-01-31 (28%); PROS-2020-0016 2025-02-28 (81%); PROS-2020-0016g 2025-01-31 (38%); PROS-2020-0022 2025-06-07 (78%); PROS-2020-0022g 2025-05-31 (60%); PROS-2020-0022g 2025-06-07 (86%); PROS-2020-0025 2025-01-17 (27%); PROS-2020-0025g 2025-01-17 (59%); PROS-2020-0032 2025-04-30 (20%); PROS-2020-0032 2025-06-07 (78%); PROS-2020-0032g 2025-05-31 (37%); PROS-2020-0032g 2025-06-07 (217%); PROS-2020-0042 2025-01-31 (20%); PROS-2020-0042 2025-04-30 (39%); PROS-2020-0042g 2025-01-31 (54%); PROS-2020-0042g 2025-02-28 (48%); PROS-2020-0042g 2025-03-31 (42%); PROS-2020-0042g 2025-04-30 (43%); PROS-2020-0042g 2025-05-31 (26%); PROS-2020-0048 2025-04-30 (92%); PROS-2020-0048g 2025-01-31 (47%); PROS-2020-0048g 2025-02-28 (40%); PROS-2020-0048g 2025-03-31 (31%); PROS-2020-0048g 2025-04-30 (34%); PROS-2021-0031 2025-01-25 (76%); PROS-2021-0031g 2025-01-25 (34%); PROS-2021-0045 2025-01-31 (22%); PROS-2021-0045 2025-02-11 (48%); PROS-2021-0051 2025-06-07 (78%); PROS-2021-0051g 2025-04-30 (22%); PROS-2021-0051g 2025-05-31 (24%); PROS-2021-0051g 2025-06-07 (86%); PROS-2021-0062 2025-04-30 (21%); PROS-2021-0062g 2025-04-30 (23%); PROS-2021-0062g 2025-05-31 (26%); PROS-2021-0062g 2025-06-07 (87%); PROS-2021-0088g 2025-01-31 (46%); PROS-2021-0088g 2025-02-28 (45%); PROS-2021-0088g 2025-03-31 (29%); PROS-2021-0088g 2025-04-30 (75%); SYN-2021-001 2025-01-31 (21%); PROS-2022-0009 2025-05-31 (21%); PROS-2022-0009 2025-06-07 (123%); PROS-2022-0009g 2025-04-30 (23%); PROS-2022-0009g 2025-05-31 (25%); PROS-2022-0009g 2025-06-07 (26%); PROS-2022-0010 2025-04-30 (20%); PROS-2022-0010 2025-06-07 (78%); PROS-2022-0010g 2025-04-30 (22%); PROS-2022-0010g 2025-05-31 (25%); PROS-2022-0010g 2025-06-07 (86%); PROS-2022-0011 2025-01-10 (69%); PROS-2022-0011g 2025-01-10 (48%); PROS-2022-0030 2025-05-31 (23%); PROS-2022-0030 2025-06-07 (78%); PROS-2022-0030g 2025-04-30 (22%); PROS-2022-0030g 2025-05-31 (24%); PROS-2022-0030g 2025-06-07 (86%); PROS-2022-0045 2025-03-31 (61%); PROS-2022-0045 2025-05-31 (22%); PROS-2022-0046 2025-06-07 (78%); PROS-2022-0046g 2025-01-31 (34%); PROS-2022-0046g 2025-02-28 (22%); PROS-2022-0046g 2025-04-30 (23%); PROS-2022-0046g 2025-05-31 (25%); PROS-2022-0046g 2025-06-07 (25%); PROS-2022-0047g 2025-06-07 (80%); PROS-2022-0048 2025-03-31 (20%); PROS-2022-0048 2025-06-07 (97%); PROS-2022-0048g 2025-01-31 (47%); PROS-2022-0048g 2025-02-28 (43%); PROS-2022-0048g 2025-03-31 (31%); PROS-2022-0048g 2025-04-30 (36%); PROS-2022-0049 2025-06-07 (78%); PROS-2022-0049g 2025-01-31 (27%); PROS-2022-0049g 2025-04-30 (23%); PROS-2022-0049g 2025-05-31 (25%); PROS-2022-0049g 2025-06-07 (87%); PROS-2022-0067g 2025-02-26 (22%); PROS-2022-0071g 2025-01-31 (28%); PROS-2022-0071g 2025-02-28 (208%); PROS-2022-0071g 2025-06-07 (43%); PROS-2022-0073 2025-06-07 (78%); PROS-2022-0073g 2025-01-31 (33%); PROS-2022-0073g 2025-02-28 (32%); PROS-2022-0073g 2025-04-30 (52%); PROS-2022-0073g 2025-05-31 (21%); PROS-2022-0073g 2025-06-07 (35%); PROS-2022-0081 2025-06-07 (78%); PROS-2022-0081g 2025-06-07 (81%); PROS-2022-0082 2025-06-07 (78%); PROS-2022-0082g 2025-05-31 (25%); PROS-2022-0082g 2025-06-07 (87%); PROS-2022-0083 2025-05-31 (90%); PROS-2022-0083g 2025-01-31 (51%); PROS-2022-0083g 2025-02-28 (50%); PROS-2022-0083g 2025-03-31 (203%); PROS-2022-0083g 2025-04-30 (28%); PROS-2022-0092g 2025-01-31 (47%); PROS-2022-0092g 2025-02-28 (75%); PROS-2022-0092g 2025-05-31 (24%); PROS-2022-0092g 2025-06-07 (86%); PROS-2022-0097 2025-06-07 (78%); PROS-2022-0097g 2025-05-31 (25%); PROS-2022-0097g 2025-06-07 (27%); PROS-2022-0100 2025-06-07 (99%); PROS-2022-0100g 2025-05-31 (25%); PROS-2022-0100g 2025-06-07 (27%); PROS-2022-0120 2025-06-07 (78%); PROS-2022-0124 2025-05-31 (26%); PROS-2022-0124 2025-06-07 (106%); PROS-2022-0124g 2025-01-31 (21%); PROS-2022-0124g 2025-04-30 (26%); PROS-2022-0124g 2025-05-31 (363%); PROS-2022-0124g 2025-06-07 (35%); PROS-2022-0125 2025-04-12 (68%); PROS-2022-0125g 2025-04-12 (81%); PROS-2022-0127 2025-01-31 (27%); PROS-2022-0127 2025-02-28 (23%); PROS-2022-0127g 2025-01-31 (230%); PROS-2022-0127g 2025-04-30 (40%); PROS-2022-0127g 2025-05-31 (61%); PROS-2022-0127g 2025-06-07 (65%); PROS-2022-0128 2025-05-31 (24%); PROS-2022-0128g 2025-01-31 (149%); PROS-2022-0128g 2025-04-30 (36%); PROS-2022-0128g 2025-05-31 (57%); PROS-2022-0128g 2025-06-07 (65%); PROS-2022-0130g 2025-05-31 (61%); PROS-2022-0130g 2025-06-07 (158%); PROS-2023-0001 2025-04-30 (20%); PROS-2023-0001 2025-06-07 (78%); PROS-2023-0001g 2025-01-31 (39%); PROS-2023-0001g 2025-02-28 (25%); PROS-2023-0001g 2025-04-30 (23%); PROS-2023-0001g 2025-05-31 (25%); PROS-2023-0001g 2025-06-07 (87%); PROS-2023-0010 2025-01-05 (85%); PROS-2023-0010g 2025-01-05 (84%); PROS-2023-0013g 2025-01-31 (68%); PROS-2023-0013g 2025-02-28 (67%); PROS-2023-0013g 2025-03-31 (59%); PROS-2023-0013g 2025-04-30 (60%); PROS-2023-0013g 2025-05-31 (48%); PROS-2023-0013g 2025-06-07 (41%); PROS-2023-0014 2025-05-31 (30%); PROS-2023-0014g 2025-01-31 (52%); PROS-2023-0014g 2025-02-28 (51%); PROS-2023-0014g 2025-03-31 (39%); PROS-2023-0014g 2025-04-30 (143%); PROS-2023-0014g 2025-05-31 (24%); PROS-2023-0014g 2025-06-07 (22%); PROS-2023-0016 2025-06-07 (78%); PROS-2023-0016g 2025-01-31 (38%); PROS-2023-0016g 2025-02-28 (25%); PROS-2023-0016g 2025-04-30 (21%); PROS-2023-0016g 2025-05-31 (23%); PROS-2023-0016g 2025-06-07 (86%); PROS-2023-0026 2025-04-30 (20%); PROS-2023-0026g 2025-04-30 (22%); PROS-2023-0026g 2025-05-31 (25%); PROS-2023-0026g 2025-06-07 (86%); PROS-2023-0039 2025-06-07 (78%); PROS-2023-0039g 2025-01-31 (42%); PROS-2023-0039g 2025-04-30 (23%); PROS-2023-0039g 2025-05-31 (25%); PROS-2023-0039g 2025-06-07 (87%); PROS-2023-0045 2025-01-31 (34%); PROS-2023-0045 2025-02-28 (28%); PROS-2023-0045 2025-04-30 (152%); PROS-2023-0045g 2025-01-31 (34%); PROS-2023-0045g 2025-02-28 (29%); PROS-2023-0045g 2025-03-31 (110%); PROS-2023-0045g 2025-06-07 (39%); PROS-2023-0065 2025-01-31 (20%); PROS-2023-0065g 2025-02-28 (311%); PROS-2023-0065g 2025-05-31 (28%); PROS-2023-0065g 2025-06-07 (55%); PROS-2023-0067 2025-06-07 (78%); PROS-2023-0067g 2025-05-31 (38%); PROS-2023-0067g 2025-06-07 (222%); PROS-2023-0072 2025-06-07 (112%); PROS-2023-0072g 2025-05-31 (366%); PROS-2023-0072g 2025-06-07 (22%); PROS-2023-0089 2025-02-28 (177%); PROS-2023-0089 2025-05-31 (20%); PROS-2023-0089g 2025-01-31 (75%); PROS-2023-0089g 2025-02-28 (75%); PROS-2023-0089g 2025-03-31 (69%); PROS-2023-0089g 2025-04-30 (61%); PROS-2023-0089g 2025-05-31 (94%); PROS-2023-0089g 2025-06-07 (84%); PROS-2023-0090 2025-01-31 (26%); PROS-2023-0090 2025-02-28 (23%); PROS-2023-0090 2025-05-31 (93%); PROS-2023-0090g 2025-01-31 (36%); PROS-2023-0090g 2025-02-28 (34%); PROS-2023-0090g 2025-03-31 (20%); PROS-2023-0090g 2025-05-31 (101%); PROS-2023-0090g 2025-06-07 (86%); PROS-2023-0096g 2025-01-31 (76%); PROS-2023-0096g 2025-02-28 (76%); PROS-2023-0096g 2025-03-31 (70%); PROS-2023-0096g 2025-04-30 (62%); PROS-2023-0096g 2025-05-31 (62%); PROS-2023-0096g 2025-06-07 (568%); PROS-2023-0104 2025-06-07 (78%); PROS-2023-0104g 2025-06-07 (86%); PROS-2023-0113 2025-06-07 (78%); PROS-2023-0113g 2025-06-07 (87%); PROS-2023-0116 2025-01-31 (178%); PROS-2023-0116 2025-04-24 (45%); PROS-2023-0116g 2025-01-31 (32%); PROS-2023-0116g 2025-02-28 (30%); PROS-2023-0125 2025-01-31 (35%); PROS-2023-0125 2025-06-07 (78%); PROS-2023-0125g 2025-06-07 (87%); PROS-2023-0126 2025-03-31 (107%); PROS-2023-0126 2025-05-31 (32%); PROS-2023-0126g 2025-01-31 (27%); PROS-2023-0126g 2025-02-28 (30%); PROS-2023-0126g 2025-06-07 (47%); PROS-2023-0127 2025-06-07 (78%); PROS-2023-0127g 2025-01-31 (36%); PROS-2023-0127g 2025-02-28 (33%); PROS-2023-0127g 2025-03-31 (58%); PROS-2023-0127g 2025-05-31 (34%); PROS-2023-0127g 2025-06-07 (87%); PROS-2023-0146 2025-02-28 (57%); PROS-2023-0146g 2025-04-30 (527%); PROS-2023-0146g 2025-05-31 (33%); PROS-2023-0146g 2025-06-07 (71%); PROS-2023-0147 2025-06-07 (76%); PROS-2023-0147g 2025-04-30 (21%); PROS-2023-0147g 2025-05-31 (20%); PROS-2023-0147g 2025-06-07 (84%); PROS-2023-0152 2025-05-31 (22%); PROS-2023-0152 2025-06-07 (76%); PROS-2023-0152g 2025-01-31 (37%); PROS-2023-0152g 2025-04-30 (22%); PROS-2023-0152g 2025-05-31 (24%); PROS-2023-0152g 2025-06-07 (85%); PROS-2023-0158g 2025-04-30 (22%); PROS-2023-0158g 2025-05-31 (23%); PROS-2023-0158g 2025-06-07 (85%); PROS-2023-0162 2025-04-30 (21%); PROS-2023-0162 2025-06-07 (78%); PROS-2023-0162g 2025-04-30 (23%); PROS-2023-0162g 2025-05-31 (26%); PROS-2023-0162g 2025-06-07 (87%); PROS-2023-0166 2025-05-31 (23%); PROS-2023-0166g 2025-01-31 (34%); PROS-2023-0166g 2025-02-28 (48%); PROS-2023-0172 2025-01-31 (23%); PROS-2023-0172 2025-02-28 (45%); PROS-2023-0172 2025-06-07 (78%); PROS-2023-0172g 2025-05-31 (52%); PROS-2023-0172g 2025-06-07 (85%); PROS-2023-0177 2025-01-31 (56%); PROS-2023-0177g 2025-01-31 (38%); PROS-2023-0177g 2025-02-28 (36%); PROS-2023-0177g 2025-03-31 (22%); PROS-2023-0177g 2025-04-30 (23%); PROS-2024-0008 2025-01-31 (35%); PROS-2024-0008 2025-02-28 (27%); PROS-2024-0008 2025-04-30 (24%); PROS-2024-0008g 2025-01-31 (41%); PROS-2024-0008g 2025-02-28 (36%); PROS-2024-0008g 2025-03-31 (21%); PROS-2024-0008g 2025-04-30 (21%); PROS-2024-0008g 2025-06-07 (23%); PROS-2024-0009 2025-05-31 (25%); PROS-2024-0009g 2025-05-31 (53%); PROS-2024-0009g 2025-06-07 (86%); PROS-2024-0010 2025-05-31 (26%); PROS-2024-0010g 2025-01-31 (65%); PROS-2024-0010g 2025-02-28 (63%); PROS-2024-0010g 2025-03-31 (53%); PROS-2024-0010g 2025-04-30 (54%); PROS-2024-0010g 2025-05-31 (40%); PROS-2024-0010g 2025-06-07 (529%); PROS-2024-0012g 2025-06-07 (22%); PROS-2024-0014 2025-05-31 (23%); PROS-2024-0014 2025-06-07 (78%); PROS-2024-0014g 2025-04-30 (23%); PROS-2024-0014g 2025-05-31 (26%); PROS-2024-0014g 2025-06-07 (87%); PROS-2024-0022 2025-06-07 (78%); PROS-2024-0027 2025-05-31 (28%); PROS-2024-0027 2025-06-07 (78%); PROS-2024-0027g 2025-04-30 (22%); PROS-2024-0027g 2025-05-31 (23%); PROS-2024-0027g 2025-06-07 (86%); PROS-2024-0036 2025-04-30 (20%); PROS-2024-0036 2025-06-07 (78%); PROS-2024-0036g 2025-01-31 (44%); PROS-2024-0036g 2025-04-30 (23%); PROS-2024-0036g 2025-05-31 (20%); PROS-2024-0036g 2025-06-07 (148%); PROS-2024-0038 2025-01-31 (24%); PROS-2024-0038 2025-02-28 (22%); PROS-2024-0038g 2025-01-31 (49%); PROS-2024-0038g 2025-02-28 (47%); PROS-2024-0038g 2025-03-31 (38%); PROS-2024-0038g 2025-04-30 (39%); PROS-2024-0038g 2025-05-31 (22%); PROS-2024-0038g 2025-06-07 (138%); PROS-2024-0040 2025-04-30 (20%); PROS-2024-0040 2025-06-07 (78%); PROS-2024-0040g 2025-01-31 (42%); PROS-2024-0040g 2025-04-30 (22%); PROS-2024-0040g 2025-05-31 (25%); PROS-2024-0040g 2025-06-07 (24%); PROS-2024-0041 2025-05-31 (21%); PROS-2024-0041 2025-06-07 (78%); PROS-2024-0041g 2025-04-30 (23%); PROS-2024-0041g 2025-05-31 (25%); PROS-2024-0041g 2025-06-07 (86%); PROS-2024-0048 2025-06-07 (78%); PROS-2024-0048g 2025-04-30 (21%); PROS-2024-0048g 2025-05-31 (22%); PROS-2024-0048g 2025-06-07 (85%); PROS-2024-0056 2025-06-07 (78%); PROS-2024-0056g 2025-01-31 (25%); PROS-2024-0056g 2025-04-30 (21%); PROS-2024-0056g 2025-05-31 (22%); PROS-2024-0056g 2025-06-07 (85%); PROS-2024-0057 2025-04-30 (21%); PROS-2024-0057g 2025-01-31 (26%); PROS-2024-0057g 2025-04-30 (22%); PROS-2024-0057g 2025-05-31 (24%); PROS-2024-0062 2025-03-31 (20%); PROS-2024-0062 2025-04-30 (20%); PROS-2024-0062 2025-06-07 (78%); PROS-2024-0062g 2025-04-30 (23%); PROS-2024-0062g 2025-05-31 (25%); PROS-2024-0062g 2025-06-07 (87%); PROS-2024-0065g 2025-01-31 (46%); PROS-2024-0065g 2025-02-28 (45%); PROS-2024-0065g 2025-03-31 (179%); PROS-2024-0065g 2025-06-07 (130%); PROS-2024-0069 2025-05-31 (21%); PROS-2024-0069 2025-06-07 (124%); PROS-2024-0069g 2025-01-31 (42%); PROS-2024-0069g 2025-02-28 (24%); PROS-2024-0069g 2025-03-31 (22%); PROS-2024-0069g 2025-04-30 (22%); PROS-2024-0069g 2025-05-31 (25%); PROS-2024-0069g 2025-06-07 (86%); PROS-2024-0076 2025-03-07 (75%); PROS-2024-0076g 2025-03-07 (77%); PROS-2024-0081 2025-03-31 (24%); PROS-2024-0081 2025-06-07 (78%); PROS-2024-0081g 2025-05-31 (25%); PROS-2024-0081g 2025-06-07 (87%); PROS-2024-0082 2025-05-31 (24%); PROS-2024-0083 2025-01-31 (24%); PROS-2024-0083 2025-02-28 (21%); PROS-2024-0083g 2025-01-31 (43%); PROS-2024-0083g 2025-02-28 (41%); PROS-2024-0083g 2025-03-31 (23%); PROS-2024-0083g 2025-04-30 (23%); PROS-2024-0085 2025-05-31 (24%); PROS-2024-0085g 2025-05-31 (27%); PROS-2024-0085g 2025-06-07 (45%); PROS-2024-0087 2025-05-31 (24%); PROS-2024-0087g 2025-01-31 (74%); PROS-2024-0087g 2025-02-28 (74%); PROS-2024-0087g 2025-03-31 (67%); PROS-2024-0087g 2025-04-30 (66%); PROS-2024-0087g 2025-05-31 (61%); PROS-2024-0087g 2025-06-07 (62%); PROS-2024-0094 2025-06-07 (78%); PROS-2024-0096 2025-06-07 (78%); PROS-2024-0096g 2025-04-30 (45%); PROS-2024-0096g 2025-05-31 (62%); PROS-2024-0096g 2025-06-07 (87%); PROS-2024-0098 2025-06-07 (78%); PROS-2024-0098g 2025-05-31 (21%); PROS-2024-0098g 2025-06-07 (86%); PROS-2024-0110g 2025-04-30 (33%); PROS-2024-0110g 2025-05-31 (51%); PROS-2024-0110g 2025-06-07 (30%); PROS-2024-0111 2025-01-31 (22%); PROS-2024-0111g 2025-01-31 (57%); PROS-2024-0111g 2025-02-28 (56%); PROS-2024-0111g 2025-03-31 (46%); PROS-2024-0111g 2025-04-30 (34%); PROS-2024-0111g 2025-05-31 (204%); PROS-2024-0113 2025-06-07 (78%); PROS-2024-0113g 2025-06-07 (86%); PROS-2024-0116 2025-01-31 (30%); PROS-2024-0116 2025-02-28 (27%); PROS-2024-0116g 2025-06-07 (28%); PROS-2024-0122 2025-06-07 (78%); PROS-2024-0122g 2025-06-07 (86%); PROS-2024-0131 2025-05-31 (36%); PROS-2024-0131g 2025-05-31 (30%); PROS-2024-0131g 2025-06-07 (27%); PROS-2024-0147g 2025-05-31 (49%); PROS-2024-0147g 2025-06-07 (74%); PROS-2024-0148 2025-05-31 (32%); PROS-2024-0148g 2025-01-31 (25%); PROS-2024-0148g 2025-02-28 (23%); PROS-2024-0148g 2025-05-31 (30%); PROS-2024-0148g 2025-06-07 (35%); PROS-2024-0156 2025-06-07 (77%); PROS-2024-0156g 2025-04-30 (20%); PROS-2024-0156g 2025-05-31 (23%); PROS-2024-0156g 2025-06-07 (132%); PROS-2024-0157 2025-06-07 (77%); PROS-2024-0157g 2025-04-30 (21%); PROS-2024-0157g 2025-06-07 (28%); PROS-2024-0160 2025-06-07 (76%); PROS-2024-0160g 2025-04-30 (22%); PROS-2024-0160g 2025-05-31 (21%); PROS-2024-0160g 2025-06-07 (84%); PROS-2024-0179 2025-04-30 (20%); PROS-2024-0179 2025-06-07 (77%); PROS-2024-0179g 2025-04-30 (35%); PROS-2024-0179g 2025-05-31 (24%); PROS-2024-0179g 2025-06-07 (86%); PROS-2024-0191 2025-06-07 (78%); PROS-2024-0191g 2025-04-30 (21%); PROS-2024-0191g 2025-05-31 (23%); PROS-2024-0191g 2025-06-07 (86%); PROS-2024-0195 2025-06-07 (94%); PROS-2024-0195g 2025-04-30 (22%); PROS-2024-0195g 2025-05-31 (24%); PROS-2024-0195g 2025-06-07 (86%); PROS-2024-0196 2025-06-07 (78%); PROS-2024-0196g 2025-04-30 (35%); PROS-2024-0196g 2025-05-31 (25%); PROS-2024-0196g 2025-06-07 (86%); PROS-2024-0197 2025-01-31 (30%); PROS-2024-0197 2025-02-28 (26%); PROS-2024-0197 2025-04-30 (25%); PROS-2024-0199 2025-06-07 (78%); PROS-2024-0199g 2025-04-30 (21%); PROS-2024-0199g 2025-05-31 (23%); PROS-2024-0199g 2025-06-07 (86%); PROS-2024-0200 2025-06-07 (78%); PROS-2024-0200g 2025-01-31 (78%); PROS-2024-0200g 2025-02-28 (77%); PROS-2024-0200g 2025-03-31 (72%); PROS-2024-0200g 2025-04-30 (72%); PROS-2024-0200g 2025-05-31 (615%); PROS-2024-0200g 2025-06-07 (36%); PROS-2024-0203g 2025-04-30 (21%); PROS-2024-0203g 2025-05-31 (23%); PROS-2024-0203g 2025-06-07 (86%); PROS-2024-0205 2025-06-07 (78%); PROS-2024-0209 2025-06-07 (78%); PROS-2024-0209g 2025-04-30 (21%); PROS-2024-0209g 2025-05-31 (23%); PROS-2024-0209g 2025-06-07 (86%); PROS-2024-0213 2025-05-31 (24%); PROS-2024-0213 2025-06-07 (78%); PROS-2024-0213g 2025-04-30 (21%); PROS-2024-0213g 2025-05-31 (21%); PROS-2024-0218 2025-06-07 (78%); PROS-2024-0218g 2025-05-31 (52%); PROS-2024-0218g 2025-06-07 (85%); PROS-2024-0224 2025-05-31 (24%); PROS-2024-0224 2025-06-07 (78%); PROS-2024-0224g 2025-04-30 (22%); PROS-2024-0224g 2025-05-31 (24%); PROS-2024-0224g 2025-06-07 (86%); PROS-2024-0226 2025-06-07 (78%); PROS-2024-0226g 2025-04-30 (21%); PROS-2024-0226g 2025-05-31 (23%); PROS-2024-0226g 2025-06-07 (86%); PROS-2024-0233 2025-06-07 (97%); PROS-2024-0233g 2025-04-30 (22%); PROS-2024-0233g 2025-05-31 (23%); PROS-2024-0233g 2025-06-07 (86%); PROS-2024-0235 2025-04-30 (27%); PROS-2024-0235 2025-06-07 (78%); PROS-2024-0235g 2025-05-31 (20%); PROS-2025-0013 2025-02-28 (21%); PROS-2025-0013 2025-06-07 (78%); PROS-2025-0013g 2025-05-31 (48%); PROS-2025-0013g 2025-06-07 (86%); PROS-2025-0022 2025-02-28 (54%); PROS-2025-0022 2025-04-30 (21%); PROS-2025-0022 2025-06-07 (95%); PROS-2025-0022g 2025-02-28 (44%); PROS-2025-0022g 2025-05-31 (29%); PROS-2025-0022g 2025-06-07 (196%); PROS-2025-0030 2025-02-28 (115%); PROS-2025-0030 2025-06-07 (78%); PROS-2025-0030g 2025-02-28 (98%); PROS-2025-0030g 2025-04-30 (23%); PROS-2025-0030g 2025-05-31 (25%); PROS-2025-0030g 2025-06-07 (87%); PROS-2025-0033 2025-02-28 (248%); PROS-2025-0033 2025-06-07 (78%); PROS-2025-0033g 2025-02-28 (223%); PROS-2025-0033g 2025-04-30 (23%); PROS-2025-0033g 2025-05-31 (25%); PROS-2025-0033g 2025-06-07 (87%); PROS-2025-0039 2025-06-07 (78%); PROS-2025-0039g 2025-05-31 (54%); PROS-2025-0039g 2025-06-07 (87%); PROS-2025-0041 2025-04-30 (22%); PROS-2025-0041g 2025-04-30 (23%); PROS-2025-0041g 2025-05-31 (25%); PROS-2025-0041g 2025-06-07 (87%); PROS-2025-0042 2025-06-07 (78%); PROS-2025-0042g 2025-05-31 (24%); PROS-2025-0042g 2025-06-07 (86%); PROS-2025-0049 2025-06-07 (78%); PROS-2025-0049g 2025-03-31 (40%); PROS-2025-0049g 2025-04-30 (22%); PROS-2025-0049g 2025-05-31 (25%); PROS-2025-0049g 2025-06-07 (86%); PROS-2025-0051 2025-03-31 (77%); PROS-2025-0051 2025-04-30 (20%); PROS-2025-0051 2025-06-07 (78%); PROS-2025-0051g 2025-04-30 (36%); PROS-2025-0051g 2025-05-31 (39%); PROS-2025-0051g 2025-06-07 (86%); PROS-2025-0055 2025-03-31 (180%); PROS-2025-0055 2025-06-07 (78%); PROS-2025-0055g 2025-03-31 (155%); PROS-2025-0055g 2025-05-31 (29%); PROS-2025-0055g 2025-06-07 (59%); PROS-2025-0060 2025-03-31 (334%); PROS-2025-0060 2025-04-30 (20%); PROS-2025-0060 2025-06-07 (78%); PROS-2025-0060g 2025-03-31 (303%); PROS-2025-0060g 2025-04-30 (21%); PROS-2025-0060g 2025-05-31 (22%); PROS-2025-0060g 2025-06-07 (85%); PROS-2025-0062 2025-03-31 (481%); PROS-2025-0062 2025-06-07 (66%); PROS-2025-0062g 2025-03-31 (465%); PROS-2025-0062g 2025-04-30 (21%); PROS-2025-0062g 2025-05-31 (22%); PROS-2025-0062g 2025-06-07 (85%); PROS-2025-0073 2025-04-30 (25%); PROS-2025-0073 2025-06-07 (78%); PROS-2025-0073g 2025-04-30 (20%); PROS-2025-0073g 2025-05-31 (25%); PROS-2025-0075 2025-04-30 (40%); PROS-2025-0075 2025-06-07 (78%); PROS-2025-0075g 2025-04-30 (29%); PROS-2025-0075g 2025-05-31 (22%); PROS-2025-0075g 2025-06-07 (85%); PROS-2025-0077 2025-04-30 (28%); PROS-2025-0077 2025-06-07 (83%); PROS-2025-0079 2025-04-30 (56%); PROS-2025-0079g 2025-04-30 (52%); PROS-2025-0079g 2025-05-31 (23%); PROS-2025-0083 2025-04-30 (104%); PROS-2025-0083 2025-06-07 (82%); PROS-2025-0083g 2025-04-30 (101%); PROS-2025-0083g 2025-05-31 (24%); PROS-2025-0083g 2025-06-07 (86%); PROS-2025-0084 2025-04-30 (111%); PROS-2025-0084 2025-06-07 (78%); PROS-2025-0084g 2025-04-30 (100%); PROS-2025-0084g 2025-05-31 (25%); PROS-2025-0084g 2025-06-07 (86%); PROS-2025-0085 2025-05-31 (49%); PROS-2025-0085 2025-06-07 (78%); PROS-2025-0085g 2025-04-30 (118%); PROS-2025-0085g 2025-05-31 (25%); PROS-2025-0085g 2025-06-07 (87%); PROS-2025-0087 2025-04-30 (185%); PROS-2025-0087 2025-06-07 (78%); PROS-2025-0087g 2025-04-30 (173%); PROS-2025-0087g 2025-05-31 (22%); PROS-2025-0087g 2025-06-07 (85%); PROS-2025-0093 2025-04-30 (442%); PROS-2025-0093 2025-06-07 (78%); PROS-2025-0093g 2025-04-30 (421%); PROS-2025-0093g 2025-06-07 (82%); PROS-2025-0094 2025-04-30 (440%); PROS-2025-0094 2025-06-07 (78%); PROS-2025-0094g 2025-04-30 (381%); PROS-2025-0094g 2025-05-31 (25%); PROS-2025-0094g 2025-06-07 (20%); PROS-2025-0095 2025-04-30 (577%); PROS-2025-0095 2025-06-07 (78%); PROS-2025-0095g 2025-04-30 (500%); PROS-2025-0095g 2025-05-31 (25%); PROS-2025-0095g 2025-06-07 (87%); PROS-2025-0100 2025-04-30 (2954%); PROS-2025-0100 2025-06-07 (78%); PROS-2025-0100g 2025-04-30 (2305%); PROS-2025-0100g 2025-05-31 (25%); PROS-2025-0100g 2025-06-07 (86%); PROS-2025-0103 2025-06-07 (78%); PROS-2025-0106 2025-06-07 (78%); PROS-2025-0106g 2025-06-07 (86%); PROS-2025-0110 2025-06-07 (78%); PROS-2025-0110g 2025-06-07 (86%); PROS-2025-0114 2025-05-31 (27%); PROS-2025-0114 2025-06-07 (78%); PROS-2025-0114g 2025-06-07 (86%); PROS-2025-0119 2025-05-31 (40%); PROS-2025-0119 2025-06-07 (78%); PROS-2025-0119g 2025-06-07 (87%); PROS-2025-0121 2025-05-31 (32%); PROS-2025-0121 2025-06-07 (83%); PROS-2025-0121g 2025-05-31 (23%); PROS-2025-0121g 2025-06-07 (23%); PROS-2025-0136 2025-06-07 (78%); PROS-2025-0136g 2025-06-07 (86%); PROS-2025-0149 2025-06-07 (70%); PROS-2025-0149g 2025-06-07 (81%); PROS-2025-0151 2025-06-07 (67%); PROS-2025-0151g 2025-06-07 (43%); PROS-2025-0153 2025-06-07 (63%); PROS-2025-0153g 2025-06-07 (77%); PROS-2025-0156 2025-06-07 (50%); PROS-2025-0156g 2025-06-07 (68%); PROS-2025-0160 2025-06-07 (22%); PROS-2025-0160g 2025-06-07 (49%); PROS-2025-0163 2025-06-07 (21%); PROS-2025-0163g 2025-06-07 (49%); PROS-2025-0170 2025-06-07 (251%); PROS-2025-0170g 2025-06-07 (117%)
-- Churn risk (accounts renewing in 2025): 87 at risk (≥20% churn prob): C2 41%, C3 26%, C8 35%, C9 20%, PROS-2016-0020 38%, PROS-2017-0019 38%, PROS-2017-0022 38%, PROS-2018-0016 38%, PROS-2018-0018 38%, PROS-2018-0022 38%, PROS-2018-0035 41%, PROS-2018-0043 41%, PROS-2018-0053 38%, PROS-2019-0008 38%, PROS-2019-0009 38%, PROS-2019-0012 26%, PROS-2019-0015 38%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0009 38%, PROS-2020-0012 41%, PROS-2020-0016 38%, PROS-2020-0022 38%, PROS-2020-0025 38%, PROS-2020-0032 41%, PROS-2020-0042 41%, PROS-2020-0048 38%, PROS-2021-0031 41%, PROS-2021-0045 41%, PROS-2021-0051 38%, PROS-2021-0062 41%, PROS-2021-0088 38%, PROS-2022-0009 38%, PROS-2022-0010 38%, PROS-2022-0011 38%, PROS-2022-0030 41%, PROS-2022-0045 41%, PROS-2022-0046 38%, PROS-2022-0047 38%, PROS-2022-0048 38%, PROS-2022-0049 38%, PROS-2022-0067 41%, PROS-2022-0071 41%, PROS-2022-0073 41%, PROS-2022-0081 41%, PROS-2022-0082 38%, PROS-2022-0083 38%, PROS-2022-0092 38%, PROS-2022-0097 38%, PROS-2022-0100 41%, PROS-2022-0120 41%, PROS-2022-0124 41%, PROS-2022-0125 41%, PROS-2022-0127 41%, PROS-2022-0128 41%, PROS-2022-0130 38%, PROS-2023-0001 35%, PROS-2023-0010 35%, PROS-2023-0013 38%, PROS-2023-0014 29%, PROS-2023-0016 35%, PROS-2023-0025 41%, PROS-2023-0026 41%, PROS-2023-0039 41%, PROS-2023-0045 41%, PROS-2023-0065 41%, PROS-2023-0067 41%, PROS-2023-0072 41%, PROS-2023-0089 41%, PROS-2023-0090 41%, PROS-2023-0096 38%, PROS-2023-0104 41%, PROS-2023-0113 41%, PROS-2023-0116 41%, PROS-2023-0125 41%, PROS-2023-0126 41%, PROS-2023-0127 41%, PROS-2023-0146 41%, PROS-2023-0147 41%, PROS-2023-0152 35%, PROS-2023-0158 35%, PROS-2023-0162 38%, PROS-2023-0166 32%, PROS-2023-0172 23%, PROS-2023-0177 29%
+- Losses (churn) during year: PROS-2023-0010, PROS-2018-0014, PROS-2022-0011, PROS-2020-0025, PROS-2023-0025, PROS-2021-0031, PROS-2019-0024, PROS-2021-0045, PROS-2022-0067, PROS-2024-0076, PROS-2022-0125, PROS-2023-0116
+  - Renewals (retained): 112 accounts
+- Average CLV (Point-in-Time, 2025-06-07): £1,749.69
+  - By billing account: C2 £339.08, C3 £207.53, C7 £-147.98, C8 £573.99, C9 £497.45, PROS-2016-0011 £548.01, PROS-2016-0020 £690.64, PROS-2017-0019 £713.72, PROS-2017-0022 £618.67, PROS-2018-0003 £505.63, PROS-2018-0009 £490.53, PROS-2018-0016 £479.84, PROS-2018-0018 £514.45, PROS-2018-0022 £731.96, PROS-2018-0024 £777.42, PROS-2018-0035 £1,029.56, PROS-2018-0043 £1,069.49, PROS-2018-0053 £907.57, PROS-2019-0008 £410.06, PROS-2019-0009 £540.13, PROS-2019-0012 £747.13, PROS-2019-0015 £622.94, PROS-2019-0021 £944.23, PROS-2019-0023 £942.68, PROS-2019-0027 £936.93, PROS-2020-0002 £352.96, PROS-2020-0006 £390.36, PROS-2020-0009 £581.33, PROS-2020-0012 £438.44, PROS-2020-0016 £576.71, PROS-2020-0022 £619.22, PROS-2020-0032 £1,154.02, PROS-2020-0048 £1,290.43, PROS-2021-0006 £375.55, PROS-2021-0051 £812.57, PROS-2021-0062 £1,183.95, PROS-2021-0088 £873.06, PROS-2022-0009 £153.25, PROS-2022-0010 £273.82, PROS-2022-0030 £1,481.40, PROS-2022-0045 £1,900.59, PROS-2022-0046 £1,330.54, PROS-2022-0047 £1,866.31, PROS-2022-0048 £1,358.12, PROS-2022-0049 £1,042.22, PROS-2022-0071 £1,112.16, PROS-2022-0073 £1,235.76, PROS-2022-0081 £1,324.84, PROS-2022-0082 £762.80, PROS-2022-0083 £987.34, PROS-2022-0092 £639.18, PROS-2022-0097 £727.64, PROS-2022-0100 £517.88, PROS-2022-0120 £752.70, PROS-2022-0124 £1,298.88, PROS-2022-0127 £1,211.15, PROS-2022-0128 £1,243.53, PROS-2022-0130 £1,502.19, PROS-2023-0001 £2,390.45, PROS-2023-0013 £2,127.93, PROS-2023-0014 £1,980.90, PROS-2023-0016 £1,999.70, PROS-2023-0026 £2,831.92, PROS-2023-0039 £3,673.08, PROS-2023-0045 £3,332.51, PROS-2023-0065 £2,724.49, PROS-2023-0067 £3,291.45, PROS-2023-0072 £2,391.85, PROS-2023-0089 £3,068.40, PROS-2023-0090 £2,579.70, PROS-2023-0096 £2,824.38, PROS-2023-0104 £2,948.13, PROS-2023-0113 £2,916.08, PROS-2023-0125 £2,995.71, PROS-2023-0126 £2,070.83, PROS-2023-0127 £2,807.19, PROS-2023-0146 £1,145.84, PROS-2023-0147 £1,219.88, PROS-2023-0152 £1,240.87, PROS-2023-0158 £1,651.63, PROS-2023-0162 £2,091.45, PROS-2023-0166 £1,455.99, PROS-2023-0177 £1,219.41, PROS-2024-0008 £5,087.02, PROS-2024-0009 £4,466.48, PROS-2024-0010 £4,930.30, PROS-2024-0012 £2,782.61, PROS-2024-0014 £6,403.74, PROS-2024-0022 £2,313.34, PROS-2024-0027 £4,745.14, PROS-2024-0036 £4,719.81, PROS-2024-0038 £3,715.47, PROS-2024-0040 £3,812.62, PROS-2024-0041 £3,488.01, PROS-2024-0048 £3,289.04, PROS-2024-0056 £2,638.87, PROS-2024-0057 £3,304.38, PROS-2024-0062 £3,834.12, PROS-2024-0065 £3,242.97, PROS-2024-0069 £3,206.39, PROS-2024-0081 £3,779.47, PROS-2024-0082 £2,250.53, PROS-2024-0083 £4,105.61, PROS-2024-0085 £2,800.10, PROS-2024-0087 £3,092.89, PROS-2024-0094 £1,053.18, PROS-2024-0096 £2,499.32, PROS-2024-0098 £2,190.19, PROS-2024-0110 £2,259.53, PROS-2024-0111 £2,734.91, PROS-2024-0113 £2,319.43, PROS-2024-0116 £2,671.73, PROS-2024-0122 £2,304.93, PROS-2024-0131 £2,787.65, PROS-2024-0147 £2,330.05, PROS-2024-0148 £2,219.13, PROS-2024-0156 £840.96, PROS-2024-0157 £784.44, PROS-2024-0160 £-180.41, PROS-2024-0179 £311.27, PROS-2024-0191 £996.76, PROS-2024-0195 £744.46, PROS-2024-0196 £1,179.91, PROS-2024-0197 £1,001.69, PROS-2024-0199 £1,270.97, PROS-2024-0200 £1,256.07, SYN-2021-001 £582.71
+- Bill shock events (>=20%): 745 -- C7 2025-04-30 (37%); C7 2025-05-31 (38%); C7 2025-06-07 (158%); PROS-2016-0011 2025-01-31 (27%); PROS-2016-0011 2025-02-28 (24%); PROS-2016-0011 2025-04-30 (23%); PROS-2016-0011g 2025-01-31 (58%); PROS-2016-0011g 2025-02-28 (56%); PROS-2016-0011g 2025-03-31 (46%); PROS-2016-0011g 2025-04-30 (46%); PROS-2016-0011g 2025-05-31 (30%); PROS-2016-0020 2025-02-28 (46%); PROS-2016-0020g 2025-02-28 (323%); PROS-2016-0020g 2025-05-31 (44%); PROS-2016-0020g 2025-06-07 (75%); C2 2025-04-30 (33%); C2g 2025-01-31 (32%); C2g 2025-02-28 (24%); C2g 2025-05-31 (34%); C2g 2025-06-07 (73%); C8 2025-01-31 (30%); C8 2025-02-28 (24%); C8 2025-04-30 (28%); C8 2025-05-31 (42%); C8 2025-06-07 (198%); C3g 2025-01-31 (24%); C3g 2025-02-28 (35%); C3g 2025-06-07 (54%); C9 2025-04-30 (24%); C9 2025-05-31 (32%); C9 2025-06-07 (72%); PROS-2017-0019 2025-05-31 (81%); PROS-2017-0019g 2025-01-31 (31%); PROS-2017-0019g 2025-02-28 (30%); PROS-2017-0022 2025-01-31 (22%); PROS-2017-0022g 2025-01-31 (50%); PROS-2017-0022g 2025-02-28 (49%); PROS-2017-0022g 2025-03-31 (37%); PROS-2017-0022g 2025-04-30 (37%); PROS-2017-0022g 2025-06-07 (266%); PROS-2018-0003 2025-01-31 (33%); PROS-2018-0003 2025-02-28 (25%); PROS-2018-0003 2025-03-31 (127%); PROS-2018-0003g 2025-01-31 (74%); PROS-2018-0003g 2025-02-28 (217%); PROS-2018-0003g 2025-03-31 (45%); PROS-2018-0003g 2025-04-30 (45%); PROS-2018-0003g 2025-05-31 (29%); PROS-2018-0009 2025-01-31 (21%); PROS-2018-0014 2025-01-08 (42%); PROS-2018-0014g 2025-01-08 (58%); PROS-2018-0016g 2025-01-31 (39%); PROS-2018-0016g 2025-02-28 (36%); PROS-2018-0016g 2025-03-31 (21%); PROS-2018-0016g 2025-04-30 (22%); PROS-2018-0016g 2025-06-07 (25%); PROS-2018-0018 2025-01-31 (20%); PROS-2018-0018 2025-05-31 (107%); PROS-2018-0018g 2025-02-28 (25%); PROS-2018-0022 2025-03-31 (145%); PROS-2018-0022 2025-05-31 (22%); PROS-2018-0022g 2025-01-31 (60%); PROS-2018-0022g 2025-02-28 (60%); PROS-2018-0022g 2025-03-31 (50%); PROS-2018-0022g 2025-04-30 (50%); PROS-2018-0022g 2025-05-31 (326%); PROS-2018-0024 2025-01-31 (20%); PROS-2018-0035 2025-01-31 (25%); PROS-2018-0035 2025-02-28 (21%); PROS-2018-0035 2025-03-31 (102%); PROS-2018-0035g 2025-01-31 (35%); PROS-2018-0035g 2025-02-28 (34%); PROS-2018-0053g 2025-04-30 (295%); PROS-2018-0053g 2025-06-07 (35%); PROS-2019-0008 2025-06-07 (78%); PROS-2019-0008g 2025-05-31 (63%); PROS-2019-0008g 2025-06-07 (87%); PROS-2019-0009 2025-01-31 (22%); PROS-2019-0009 2025-05-31 (63%); PROS-2019-0009g 2025-03-31 (542%); PROS-2019-0009g 2025-05-31 (37%); PROS-2019-0009g 2025-06-07 (62%); PROS-2019-0012 2025-06-07 (78%); PROS-2019-0012g 2025-01-31 (25%); PROS-2019-0012g 2025-05-31 (20%); PROS-2019-0012g 2025-06-07 (85%); PROS-2019-0015 2025-01-31 (21%); PROS-2019-0015g 2025-01-31 (49%); PROS-2019-0015g 2025-02-28 (102%); PROS-2019-0015g 2025-06-07 (34%); PROS-2019-0021 2025-01-31 (23%); PROS-2019-0021 2025-02-28 (21%); PROS-2019-0021g 2025-01-31 (38%); PROS-2019-0021g 2025-02-28 (37%); PROS-2019-0021g 2025-03-31 (23%); PROS-2019-0021g 2025-04-30 (24%); PROS-2019-0023 2025-01-31 (24%); PROS-2019-0023 2025-02-28 (21%); PROS-2019-0023g 2025-01-31 (36%); PROS-2019-0023g 2025-02-28 (83%); PROS-2019-0023g 2025-06-07 (35%); PROS-2019-0024g 2025-01-26 (56%); PROS-2019-0027g 2025-01-31 (61%); PROS-2019-0027g 2025-02-28 (56%); PROS-2019-0027g 2025-03-31 (51%); PROS-2019-0027g 2025-04-30 (52%); PROS-2019-0027g 2025-05-31 (37%); PROS-2019-0027g 2025-06-07 (25%); PROS-2020-0002 2025-06-07 (78%); PROS-2020-0002g 2025-01-31 (30%); PROS-2020-0002g 2025-04-30 (22%); PROS-2020-0002g 2025-05-31 (25%); PROS-2020-0002g 2025-06-07 (25%); PROS-2020-0006 2025-06-07 (78%); PROS-2020-0006g 2025-04-30 (23%); PROS-2020-0006g 2025-05-31 (25%); PROS-2020-0006g 2025-06-07 (87%); PROS-2020-0009 2025-06-07 (78%); PROS-2020-0009g 2025-01-31 (37%); PROS-2020-0009g 2025-04-30 (21%); PROS-2020-0009g 2025-05-31 (23%); PROS-2020-0009g 2025-06-07 (86%); PROS-2020-0012g 2025-01-31 (38%); PROS-2020-0012g 2025-02-28 (35%); PROS-2020-0012g 2025-03-31 (20%); PROS-2020-0012g 2025-04-30 (21%); PROS-2020-0012g 2025-06-07 (25%); PROS-2020-0016 2025-01-31 (28%); PROS-2020-0016 2025-02-28 (81%); PROS-2020-0016g 2025-01-31 (38%); PROS-2020-0022 2025-06-07 (78%); PROS-2020-0022g 2025-05-31 (60%); PROS-2020-0022g 2025-06-07 (86%); PROS-2020-0025 2025-01-17 (27%); PROS-2020-0025g 2025-01-17 (59%); PROS-2020-0032 2025-04-30 (20%); PROS-2020-0032 2025-06-07 (78%); PROS-2020-0032g 2025-05-31 (37%); PROS-2020-0032g 2025-06-07 (217%); PROS-2020-0048 2025-04-30 (92%); PROS-2020-0048g 2025-01-31 (47%); PROS-2020-0048g 2025-02-28 (40%); PROS-2020-0048g 2025-03-31 (31%); PROS-2020-0048g 2025-04-30 (34%); PROS-2021-0006 2025-04-30 (20%); PROS-2021-0006 2025-06-07 (78%); PROS-2021-0006g 2025-01-31 (49%); PROS-2021-0006g 2025-02-28 (75%); PROS-2021-0006g 2025-05-31 (23%); PROS-2021-0006g 2025-06-07 (86%); PROS-2021-0031 2025-01-25 (76%); PROS-2021-0031g 2025-01-25 (34%); PROS-2021-0045 2025-01-31 (22%); PROS-2021-0045 2025-02-11 (48%); PROS-2021-0051 2025-06-07 (78%); PROS-2021-0051g 2025-04-30 (22%); PROS-2021-0051g 2025-05-31 (24%); PROS-2021-0051g 2025-06-07 (86%); PROS-2021-0062 2025-04-30 (21%); PROS-2021-0062g 2025-04-30 (23%); PROS-2021-0062g 2025-05-31 (26%); PROS-2021-0062g 2025-06-07 (87%); PROS-2021-0088g 2025-01-31 (46%); PROS-2021-0088g 2025-02-28 (45%); PROS-2021-0088g 2025-03-31 (29%); PROS-2021-0088g 2025-04-30 (75%); SYN-2021-001 2025-01-31 (21%); PROS-2022-0009 2025-05-31 (21%); PROS-2022-0009 2025-06-07 (123%); PROS-2022-0009g 2025-04-30 (23%); PROS-2022-0009g 2025-05-31 (25%); PROS-2022-0009g 2025-06-07 (26%); PROS-2022-0010 2025-04-30 (20%); PROS-2022-0010 2025-06-07 (78%); PROS-2022-0010g 2025-04-30 (22%); PROS-2022-0010g 2025-05-31 (25%); PROS-2022-0010g 2025-06-07 (86%); PROS-2022-0011 2025-01-10 (69%); PROS-2022-0011g 2025-01-10 (48%); PROS-2022-0030 2025-05-31 (23%); PROS-2022-0030 2025-06-07 (78%); PROS-2022-0030g 2025-04-30 (22%); PROS-2022-0030g 2025-05-31 (24%); PROS-2022-0030g 2025-06-07 (86%); PROS-2022-0045 2025-03-31 (60%); PROS-2022-0045 2025-05-31 (22%); PROS-2022-0046 2025-06-07 (78%); PROS-2022-0046g 2025-01-31 (34%); PROS-2022-0046g 2025-02-28 (22%); PROS-2022-0046g 2025-04-30 (23%); PROS-2022-0046g 2025-05-31 (25%); PROS-2022-0046g 2025-06-07 (25%); PROS-2022-0047g 2025-06-07 (80%); PROS-2022-0048 2025-03-31 (20%); PROS-2022-0048 2025-06-07 (97%); PROS-2022-0048g 2025-01-31 (47%); PROS-2022-0048g 2025-02-28 (43%); PROS-2022-0048g 2025-03-31 (31%); PROS-2022-0048g 2025-04-30 (36%); PROS-2022-0049 2025-06-07 (78%); PROS-2022-0049g 2025-01-31 (27%); PROS-2022-0049g 2025-04-30 (23%); PROS-2022-0049g 2025-05-31 (25%); PROS-2022-0049g 2025-06-07 (87%); PROS-2022-0067g 2025-02-26 (22%); PROS-2022-0071g 2025-01-31 (28%); PROS-2022-0071g 2025-02-28 (208%); PROS-2022-0071g 2025-06-07 (43%); PROS-2022-0073 2025-06-07 (78%); PROS-2022-0073g 2025-01-31 (33%); PROS-2022-0073g 2025-02-28 (32%); PROS-2022-0073g 2025-04-30 (52%); PROS-2022-0073g 2025-05-31 (21%); PROS-2022-0073g 2025-06-07 (35%); PROS-2022-0081 2025-06-07 (78%); PROS-2022-0081g 2025-06-07 (81%); PROS-2022-0082 2025-06-07 (78%); PROS-2022-0082g 2025-05-31 (25%); PROS-2022-0082g 2025-06-07 (87%); PROS-2022-0083 2025-05-31 (90%); PROS-2022-0083g 2025-01-31 (51%); PROS-2022-0083g 2025-02-28 (50%); PROS-2022-0083g 2025-03-31 (203%); PROS-2022-0083g 2025-04-30 (28%); PROS-2022-0092g 2025-01-31 (47%); PROS-2022-0092g 2025-02-28 (75%); PROS-2022-0092g 2025-05-31 (24%); PROS-2022-0092g 2025-06-07 (86%); PROS-2022-0097 2025-06-07 (78%); PROS-2022-0097g 2025-05-31 (25%); PROS-2022-0097g 2025-06-07 (27%); PROS-2022-0100 2025-06-07 (99%); PROS-2022-0100g 2025-05-31 (25%); PROS-2022-0100g 2025-06-07 (27%); PROS-2022-0120 2025-06-07 (78%); PROS-2022-0124 2025-05-31 (26%); PROS-2022-0124 2025-06-07 (106%); PROS-2022-0124g 2025-01-31 (21%); PROS-2022-0124g 2025-04-30 (26%); PROS-2022-0124g 2025-05-31 (363%); PROS-2022-0124g 2025-06-07 (35%); PROS-2022-0125 2025-04-12 (68%); PROS-2022-0125g 2025-04-12 (81%); PROS-2022-0127 2025-01-31 (27%); PROS-2022-0127 2025-02-28 (23%); PROS-2022-0127g 2025-01-31 (230%); PROS-2022-0127g 2025-04-30 (40%); PROS-2022-0127g 2025-05-31 (61%); PROS-2022-0127g 2025-06-07 (65%); PROS-2022-0128 2025-05-31 (24%); PROS-2022-0128g 2025-01-31 (149%); PROS-2022-0128g 2025-04-30 (36%); PROS-2022-0128g 2025-05-31 (57%); PROS-2022-0128g 2025-06-07 (65%); PROS-2022-0130g 2025-05-31 (61%); PROS-2022-0130g 2025-06-07 (158%); PROS-2023-0001 2025-04-30 (20%); PROS-2023-0001 2025-06-07 (78%); PROS-2023-0001g 2025-01-31 (39%); PROS-2023-0001g 2025-02-28 (25%); PROS-2023-0001g 2025-04-30 (23%); PROS-2023-0001g 2025-05-31 (25%); PROS-2023-0001g 2025-06-07 (87%); PROS-2023-0010 2025-01-05 (85%); PROS-2023-0010g 2025-01-05 (84%); PROS-2023-0013g 2025-01-31 (68%); PROS-2023-0013g 2025-02-28 (67%); PROS-2023-0013g 2025-03-31 (59%); PROS-2023-0013g 2025-04-30 (60%); PROS-2023-0013g 2025-05-31 (48%); PROS-2023-0013g 2025-06-07 (41%); PROS-2023-0014 2025-05-31 (30%); PROS-2023-0014g 2025-01-31 (52%); PROS-2023-0014g 2025-02-28 (51%); PROS-2023-0014g 2025-03-31 (39%); PROS-2023-0014g 2025-04-30 (143%); PROS-2023-0014g 2025-05-31 (24%); PROS-2023-0014g 2025-06-07 (22%); PROS-2023-0016 2025-06-07 (78%); PROS-2023-0016g 2025-01-31 (38%); PROS-2023-0016g 2025-02-28 (25%); PROS-2023-0016g 2025-04-30 (21%); PROS-2023-0016g 2025-05-31 (23%); PROS-2023-0016g 2025-06-07 (86%); PROS-2023-0026 2025-04-30 (20%); PROS-2023-0026g 2025-04-30 (22%); PROS-2023-0026g 2025-05-31 (25%); PROS-2023-0026g 2025-06-07 (86%); PROS-2023-0039 2025-06-07 (78%); PROS-2023-0039g 2025-01-31 (42%); PROS-2023-0039g 2025-04-30 (23%); PROS-2023-0039g 2025-05-31 (25%); PROS-2023-0039g 2025-06-07 (87%); PROS-2023-0045 2025-01-31 (34%); PROS-2023-0045 2025-02-28 (28%); PROS-2023-0045 2025-04-30 (152%); PROS-2023-0045g 2025-01-31 (34%); PROS-2023-0045g 2025-02-28 (29%); PROS-2023-0045g 2025-03-31 (110%); PROS-2023-0045g 2025-06-07 (39%); PROS-2023-0065 2025-01-31 (20%); PROS-2023-0065g 2025-02-28 (311%); PROS-2023-0065g 2025-05-31 (28%); PROS-2023-0065g 2025-06-07 (55%); PROS-2023-0067 2025-06-07 (78%); PROS-2023-0067g 2025-05-31 (38%); PROS-2023-0067g 2025-06-07 (222%); PROS-2023-0072 2025-06-07 (112%); PROS-2023-0072g 2025-05-31 (366%); PROS-2023-0072g 2025-06-07 (22%); PROS-2023-0089 2025-02-28 (177%); PROS-2023-0089 2025-05-31 (20%); PROS-2023-0089g 2025-01-31 (75%); PROS-2023-0089g 2025-02-28 (75%); PROS-2023-0089g 2025-03-31 (69%); PROS-2023-0089g 2025-04-30 (61%); PROS-2023-0089g 2025-05-31 (94%); PROS-2023-0089g 2025-06-07 (84%); PROS-2023-0090 2025-01-31 (26%); PROS-2023-0090 2025-02-28 (23%); PROS-2023-0090 2025-05-31 (93%); PROS-2023-0090g 2025-01-31 (36%); PROS-2023-0090g 2025-02-28 (34%); PROS-2023-0090g 2025-03-31 (20%); PROS-2023-0090g 2025-05-31 (101%); PROS-2023-0090g 2025-06-07 (86%); PROS-2023-0096g 2025-01-31 (76%); PROS-2023-0096g 2025-02-28 (76%); PROS-2023-0096g 2025-03-31 (70%); PROS-2023-0096g 2025-04-30 (62%); PROS-2023-0096g 2025-05-31 (62%); PROS-2023-0096g 2025-06-07 (568%); PROS-2023-0104 2025-06-07 (78%); PROS-2023-0104g 2025-06-07 (86%); PROS-2023-0113 2025-06-07 (78%); PROS-2023-0113g 2025-06-07 (87%); PROS-2023-0116 2025-01-31 (178%); PROS-2023-0116 2025-04-24 (45%); PROS-2023-0116g 2025-01-31 (32%); PROS-2023-0116g 2025-02-28 (30%); PROS-2023-0125 2025-01-31 (35%); PROS-2023-0125 2025-06-07 (78%); PROS-2023-0125g 2025-06-07 (87%); PROS-2023-0126 2025-03-31 (107%); PROS-2023-0126 2025-05-31 (32%); PROS-2023-0126g 2025-01-31 (27%); PROS-2023-0126g 2025-02-28 (30%); PROS-2023-0126g 2025-06-07 (47%); PROS-2023-0127 2025-06-07 (78%); PROS-2023-0127g 2025-01-31 (36%); PROS-2023-0127g 2025-02-28 (33%); PROS-2023-0127g 2025-03-31 (58%); PROS-2023-0127g 2025-05-31 (34%); PROS-2023-0127g 2025-06-07 (87%); PROS-2023-0146 2025-02-28 (57%); PROS-2023-0146g 2025-04-30 (527%); PROS-2023-0146g 2025-05-31 (33%); PROS-2023-0146g 2025-06-07 (71%); PROS-2023-0147 2025-06-07 (76%); PROS-2023-0147g 2025-04-30 (21%); PROS-2023-0147g 2025-05-31 (20%); PROS-2023-0147g 2025-06-07 (84%); PROS-2023-0152 2025-05-31 (22%); PROS-2023-0152 2025-06-07 (76%); PROS-2023-0152g 2025-01-31 (37%); PROS-2023-0152g 2025-04-30 (22%); PROS-2023-0152g 2025-05-31 (24%); PROS-2023-0152g 2025-06-07 (85%); PROS-2023-0158g 2025-04-30 (22%); PROS-2023-0158g 2025-05-31 (23%); PROS-2023-0158g 2025-06-07 (85%); PROS-2023-0162 2025-04-30 (21%); PROS-2023-0162 2025-06-07 (78%); PROS-2023-0162g 2025-04-30 (23%); PROS-2023-0162g 2025-05-31 (26%); PROS-2023-0162g 2025-06-07 (87%); PROS-2023-0166 2025-05-31 (23%); PROS-2023-0166g 2025-01-31 (34%); PROS-2023-0166g 2025-02-28 (48%); PROS-2023-0177 2025-01-31 (56%); PROS-2023-0177g 2025-01-31 (38%); PROS-2023-0177g 2025-02-28 (36%); PROS-2023-0177g 2025-03-31 (22%); PROS-2023-0177g 2025-04-30 (23%); PROS-2024-0008 2025-01-31 (35%); PROS-2024-0008 2025-02-28 (27%); PROS-2024-0008 2025-04-30 (24%); PROS-2024-0008g 2025-01-31 (41%); PROS-2024-0008g 2025-02-28 (36%); PROS-2024-0008g 2025-03-31 (21%); PROS-2024-0008g 2025-04-30 (21%); PROS-2024-0008g 2025-06-07 (23%); PROS-2024-0009 2025-05-31 (25%); PROS-2024-0009g 2025-05-31 (53%); PROS-2024-0009g 2025-06-07 (86%); PROS-2024-0010 2025-05-31 (26%); PROS-2024-0010g 2025-01-31 (65%); PROS-2024-0010g 2025-02-28 (63%); PROS-2024-0010g 2025-03-31 (53%); PROS-2024-0010g 2025-04-30 (54%); PROS-2024-0010g 2025-05-31 (40%); PROS-2024-0010g 2025-06-07 (529%); PROS-2024-0012g 2025-06-07 (22%); PROS-2024-0014 2025-05-31 (23%); PROS-2024-0014 2025-06-07 (78%); PROS-2024-0014g 2025-04-30 (23%); PROS-2024-0014g 2025-05-31 (26%); PROS-2024-0014g 2025-06-07 (87%); PROS-2024-0022 2025-06-07 (78%); PROS-2024-0027 2025-05-31 (28%); PROS-2024-0027 2025-06-07 (78%); PROS-2024-0027g 2025-04-30 (22%); PROS-2024-0027g 2025-05-31 (23%); PROS-2024-0027g 2025-06-07 (86%); PROS-2024-0036 2025-04-30 (20%); PROS-2024-0036 2025-06-07 (78%); PROS-2024-0036g 2025-01-31 (44%); PROS-2024-0036g 2025-04-30 (23%); PROS-2024-0036g 2025-05-31 (20%); PROS-2024-0036g 2025-06-07 (148%); PROS-2024-0038 2025-01-31 (24%); PROS-2024-0038 2025-02-28 (22%); PROS-2024-0038g 2025-01-31 (49%); PROS-2024-0038g 2025-02-28 (47%); PROS-2024-0038g 2025-03-31 (38%); PROS-2024-0038g 2025-04-30 (39%); PROS-2024-0038g 2025-05-31 (22%); PROS-2024-0038g 2025-06-07 (138%); PROS-2024-0040 2025-04-30 (20%); PROS-2024-0040 2025-06-07 (78%); PROS-2024-0040g 2025-01-31 (42%); PROS-2024-0040g 2025-04-30 (22%); PROS-2024-0040g 2025-05-31 (25%); PROS-2024-0040g 2025-06-07 (24%); PROS-2024-0041 2025-05-31 (21%); PROS-2024-0041 2025-06-07 (78%); PROS-2024-0041g 2025-04-30 (23%); PROS-2024-0041g 2025-05-31 (25%); PROS-2024-0041g 2025-06-07 (86%); PROS-2024-0048 2025-06-07 (78%); PROS-2024-0048g 2025-04-30 (21%); PROS-2024-0048g 2025-05-31 (22%); PROS-2024-0048g 2025-06-07 (85%); PROS-2024-0056 2025-06-07 (78%); PROS-2024-0056g 2025-01-31 (25%); PROS-2024-0056g 2025-04-30 (21%); PROS-2024-0056g 2025-05-31 (22%); PROS-2024-0056g 2025-06-07 (85%); PROS-2024-0057 2025-04-30 (21%); PROS-2024-0057g 2025-01-31 (26%); PROS-2024-0057g 2025-04-30 (22%); PROS-2024-0057g 2025-05-31 (24%); PROS-2024-0062 2025-03-31 (20%); PROS-2024-0062 2025-04-30 (20%); PROS-2024-0062 2025-06-07 (78%); PROS-2024-0062g 2025-04-30 (23%); PROS-2024-0062g 2025-05-31 (25%); PROS-2024-0062g 2025-06-07 (87%); PROS-2024-0065g 2025-01-31 (46%); PROS-2024-0065g 2025-02-28 (45%); PROS-2024-0065g 2025-03-31 (179%); PROS-2024-0065g 2025-06-07 (130%); PROS-2024-0069 2025-05-31 (21%); PROS-2024-0069 2025-06-07 (124%); PROS-2024-0069g 2025-01-31 (42%); PROS-2024-0069g 2025-02-28 (24%); PROS-2024-0069g 2025-03-31 (22%); PROS-2024-0069g 2025-04-30 (22%); PROS-2024-0069g 2025-05-31 (25%); PROS-2024-0069g 2025-06-07 (86%); PROS-2024-0076 2025-03-07 (75%); PROS-2024-0076g 2025-03-07 (77%); PROS-2024-0081 2025-03-31 (24%); PROS-2024-0081 2025-06-07 (78%); PROS-2024-0081g 2025-05-31 (25%); PROS-2024-0081g 2025-06-07 (87%); PROS-2024-0082 2025-05-31 (24%); PROS-2024-0083 2025-01-31 (24%); PROS-2024-0083 2025-02-28 (21%); PROS-2024-0083g 2025-01-31 (43%); PROS-2024-0083g 2025-02-28 (41%); PROS-2024-0083g 2025-03-31 (23%); PROS-2024-0083g 2025-04-30 (23%); PROS-2024-0085 2025-05-31 (24%); PROS-2024-0085g 2025-05-31 (27%); PROS-2024-0085g 2025-06-07 (45%); PROS-2024-0087 2025-05-31 (24%); PROS-2024-0087g 2025-01-31 (74%); PROS-2024-0087g 2025-02-28 (74%); PROS-2024-0087g 2025-03-31 (67%); PROS-2024-0087g 2025-04-30 (66%); PROS-2024-0087g 2025-05-31 (61%); PROS-2024-0087g 2025-06-07 (62%); PROS-2024-0094 2025-06-07 (78%); PROS-2024-0096 2025-06-07 (78%); PROS-2024-0096g 2025-04-30 (45%); PROS-2024-0096g 2025-05-31 (62%); PROS-2024-0096g 2025-06-07 (87%); PROS-2024-0098 2025-06-07 (78%); PROS-2024-0098g 2025-05-31 (21%); PROS-2024-0098g 2025-06-07 (86%); PROS-2024-0110g 2025-04-30 (33%); PROS-2024-0110g 2025-05-31 (51%); PROS-2024-0110g 2025-06-07 (30%); PROS-2024-0111 2025-01-31 (22%); PROS-2024-0111g 2025-01-31 (57%); PROS-2024-0111g 2025-02-28 (56%); PROS-2024-0111g 2025-03-31 (46%); PROS-2024-0111g 2025-04-30 (34%); PROS-2024-0111g 2025-05-31 (204%); PROS-2024-0113 2025-06-07 (78%); PROS-2024-0113g 2025-06-07 (86%); PROS-2024-0116 2025-01-31 (30%); PROS-2024-0116 2025-02-28 (27%); PROS-2024-0116g 2025-06-07 (28%); PROS-2024-0122 2025-06-07 (78%); PROS-2024-0122g 2025-06-07 (86%); PROS-2024-0131 2025-05-31 (36%); PROS-2024-0131g 2025-05-31 (30%); PROS-2024-0131g 2025-06-07 (27%); PROS-2024-0147g 2025-05-31 (49%); PROS-2024-0147g 2025-06-07 (74%); PROS-2024-0148 2025-05-31 (32%); PROS-2024-0148g 2025-01-31 (25%); PROS-2024-0148g 2025-02-28 (23%); PROS-2024-0148g 2025-05-31 (30%); PROS-2024-0148g 2025-06-07 (35%); PROS-2024-0156 2025-06-07 (77%); PROS-2024-0156g 2025-04-30 (20%); PROS-2024-0156g 2025-05-31 (23%); PROS-2024-0156g 2025-06-07 (132%); PROS-2024-0157 2025-06-07 (77%); PROS-2024-0157g 2025-04-30 (21%); PROS-2024-0157g 2025-06-07 (28%); PROS-2024-0160 2025-06-07 (76%); PROS-2024-0160g 2025-04-30 (22%); PROS-2024-0160g 2025-05-31 (21%); PROS-2024-0160g 2025-06-07 (84%); PROS-2024-0179 2025-04-30 (20%); PROS-2024-0179 2025-06-07 (77%); PROS-2024-0179g 2025-04-30 (35%); PROS-2024-0179g 2025-05-31 (24%); PROS-2024-0179g 2025-06-07 (86%); PROS-2024-0191 2025-06-07 (78%); PROS-2024-0191g 2025-04-30 (21%); PROS-2024-0191g 2025-05-31 (23%); PROS-2024-0191g 2025-06-07 (86%); PROS-2024-0195 2025-06-07 (94%); PROS-2024-0195g 2025-04-30 (22%); PROS-2024-0195g 2025-05-31 (24%); PROS-2024-0195g 2025-06-07 (86%); PROS-2024-0196 2025-06-07 (78%); PROS-2024-0196g 2025-04-30 (35%); PROS-2024-0196g 2025-05-31 (25%); PROS-2024-0196g 2025-06-07 (86%); PROS-2024-0197 2025-01-31 (30%); PROS-2024-0197 2025-02-28 (26%); PROS-2024-0197 2025-04-30 (25%); PROS-2024-0199 2025-06-07 (78%); PROS-2024-0199g 2025-04-30 (21%); PROS-2024-0199g 2025-05-31 (23%); PROS-2024-0199g 2025-06-07 (86%); PROS-2024-0200 2025-06-07 (78%); PROS-2024-0200g 2025-01-31 (78%); PROS-2024-0200g 2025-02-28 (77%); PROS-2024-0200g 2025-03-31 (72%); PROS-2024-0200g 2025-04-30 (72%); PROS-2024-0200g 2025-05-31 (615%); PROS-2024-0200g 2025-06-07 (36%); PROS-2024-0203g 2025-04-30 (21%); PROS-2024-0203g 2025-05-31 (23%); PROS-2024-0203g 2025-06-07 (86%); PROS-2024-0205 2025-06-07 (78%); PROS-2024-0209 2025-06-07 (78%); PROS-2024-0209g 2025-04-30 (21%); PROS-2024-0209g 2025-05-31 (23%); PROS-2024-0209g 2025-06-07 (86%); PROS-2024-0213 2025-05-31 (24%); PROS-2024-0213 2025-06-07 (78%); PROS-2024-0213g 2025-04-30 (21%); PROS-2024-0213g 2025-05-31 (21%); PROS-2024-0218 2025-06-07 (78%); PROS-2024-0218g 2025-05-31 (52%); PROS-2024-0218g 2025-06-07 (85%); PROS-2024-0224 2025-05-31 (24%); PROS-2024-0224 2025-06-07 (78%); PROS-2024-0224g 2025-04-30 (22%); PROS-2024-0224g 2025-05-31 (24%); PROS-2024-0224g 2025-06-07 (86%); PROS-2024-0226 2025-06-07 (78%); PROS-2024-0226g 2025-04-30 (21%); PROS-2024-0226g 2025-05-31 (23%); PROS-2024-0226g 2025-06-07 (86%); PROS-2024-0233 2025-06-07 (97%); PROS-2024-0233g 2025-04-30 (22%); PROS-2024-0233g 2025-05-31 (23%); PROS-2024-0233g 2025-06-07 (86%); PROS-2024-0235 2025-04-30 (27%); PROS-2024-0235 2025-06-07 (78%); PROS-2024-0235g 2025-05-31 (20%); PROS-2025-0013 2025-02-28 (21%); PROS-2025-0013 2025-06-07 (78%); PROS-2025-0013g 2025-05-31 (48%); PROS-2025-0013g 2025-06-07 (86%); PROS-2025-0022 2025-02-28 (54%); PROS-2025-0022 2025-04-30 (21%); PROS-2025-0022 2025-06-07 (95%); PROS-2025-0022g 2025-02-28 (44%); PROS-2025-0022g 2025-05-31 (29%); PROS-2025-0022g 2025-06-07 (196%); PROS-2025-0030 2025-02-28 (115%); PROS-2025-0030 2025-06-07 (78%); PROS-2025-0030g 2025-02-28 (98%); PROS-2025-0030g 2025-04-30 (23%); PROS-2025-0030g 2025-05-31 (25%); PROS-2025-0030g 2025-06-07 (87%); PROS-2025-0033 2025-02-28 (248%); PROS-2025-0033 2025-06-07 (78%); PROS-2025-0033g 2025-02-28 (223%); PROS-2025-0033g 2025-04-30 (23%); PROS-2025-0033g 2025-05-31 (25%); PROS-2025-0033g 2025-06-07 (87%); PROS-2025-0039 2025-06-07 (78%); PROS-2025-0039g 2025-05-31 (54%); PROS-2025-0039g 2025-06-07 (87%); PROS-2025-0041 2025-04-30 (22%); PROS-2025-0041g 2025-04-30 (23%); PROS-2025-0041g 2025-05-31 (25%); PROS-2025-0041g 2025-06-07 (87%); PROS-2025-0042 2025-06-07 (78%); PROS-2025-0042g 2025-05-31 (24%); PROS-2025-0042g 2025-06-07 (86%); PROS-2025-0049 2025-06-07 (78%); PROS-2025-0049g 2025-03-31 (40%); PROS-2025-0049g 2025-04-30 (22%); PROS-2025-0049g 2025-05-31 (25%); PROS-2025-0049g 2025-06-07 (86%); PROS-2025-0051 2025-03-31 (77%); PROS-2025-0051 2025-04-30 (20%); PROS-2025-0051 2025-06-07 (78%); PROS-2025-0051g 2025-04-30 (36%); PROS-2025-0051g 2025-05-31 (39%); PROS-2025-0051g 2025-06-07 (86%); PROS-2025-0055 2025-03-31 (180%); PROS-2025-0055 2025-06-07 (78%); PROS-2025-0055g 2025-03-31 (155%); PROS-2025-0055g 2025-05-31 (29%); PROS-2025-0055g 2025-06-07 (59%); PROS-2025-0060 2025-03-31 (334%); PROS-2025-0060 2025-04-30 (20%); PROS-2025-0060 2025-06-07 (78%); PROS-2025-0060g 2025-03-31 (303%); PROS-2025-0060g 2025-04-30 (21%); PROS-2025-0060g 2025-05-31 (22%); PROS-2025-0060g 2025-06-07 (85%); PROS-2025-0062 2025-03-31 (481%); PROS-2025-0062 2025-06-07 (66%); PROS-2025-0062g 2025-03-31 (465%); PROS-2025-0062g 2025-04-30 (21%); PROS-2025-0062g 2025-05-31 (22%); PROS-2025-0062g 2025-06-07 (85%); PROS-2025-0073 2025-04-30 (25%); PROS-2025-0073 2025-06-07 (78%); PROS-2025-0073g 2025-04-30 (20%); PROS-2025-0073g 2025-05-31 (25%); PROS-2025-0075 2025-04-30 (40%); PROS-2025-0075 2025-06-07 (78%); PROS-2025-0075g 2025-04-30 (29%); PROS-2025-0075g 2025-05-31 (22%); PROS-2025-0075g 2025-06-07 (85%); PROS-2025-0077 2025-04-30 (28%); PROS-2025-0077 2025-06-07 (83%); PROS-2025-0079 2025-04-30 (56%); PROS-2025-0079g 2025-04-30 (52%); PROS-2025-0079g 2025-05-31 (23%); PROS-2025-0083 2025-04-30 (104%); PROS-2025-0083 2025-06-07 (82%); PROS-2025-0083g 2025-04-30 (101%); PROS-2025-0083g 2025-05-31 (24%); PROS-2025-0083g 2025-06-07 (86%); PROS-2025-0084 2025-04-30 (111%); PROS-2025-0084 2025-06-07 (78%); PROS-2025-0084g 2025-04-30 (100%); PROS-2025-0084g 2025-05-31 (25%); PROS-2025-0084g 2025-06-07 (86%); PROS-2025-0085 2025-05-31 (49%); PROS-2025-0085 2025-06-07 (78%); PROS-2025-0085g 2025-04-30 (118%); PROS-2025-0085g 2025-05-31 (25%); PROS-2025-0085g 2025-06-07 (87%); PROS-2025-0087 2025-04-30 (185%); PROS-2025-0087 2025-06-07 (78%); PROS-2025-0087g 2025-04-30 (173%); PROS-2025-0087g 2025-05-31 (22%); PROS-2025-0087g 2025-06-07 (85%); PROS-2025-0093 2025-04-30 (442%); PROS-2025-0093 2025-06-07 (78%); PROS-2025-0093g 2025-04-30 (421%); PROS-2025-0093g 2025-06-07 (82%); PROS-2025-0094 2025-04-30 (440%); PROS-2025-0094 2025-06-07 (78%); PROS-2025-0094g 2025-04-30 (381%); PROS-2025-0094g 2025-05-31 (25%); PROS-2025-0094g 2025-06-07 (20%); PROS-2025-0095 2025-04-30 (577%); PROS-2025-0095 2025-06-07 (78%); PROS-2025-0095g 2025-04-30 (500%); PROS-2025-0095g 2025-05-31 (25%); PROS-2025-0095g 2025-06-07 (87%); PROS-2025-0100 2025-04-30 (2954%); PROS-2025-0100 2025-06-07 (78%); PROS-2025-0100g 2025-04-30 (2305%); PROS-2025-0100g 2025-05-31 (25%); PROS-2025-0100g 2025-06-07 (86%); PROS-2025-0103 2025-06-07 (78%); PROS-2025-0106 2025-06-07 (78%); PROS-2025-0106g 2025-06-07 (86%); PROS-2025-0110 2025-06-07 (78%); PROS-2025-0110g 2025-06-07 (86%); PROS-2025-0114 2025-05-31 (27%); PROS-2025-0114 2025-06-07 (78%); PROS-2025-0114g 2025-06-07 (86%); PROS-2025-0119 2025-05-31 (40%); PROS-2025-0119 2025-06-07 (78%); PROS-2025-0119g 2025-06-07 (87%); PROS-2025-0121 2025-05-31 (32%); PROS-2025-0121 2025-06-07 (83%); PROS-2025-0121g 2025-05-31 (23%); PROS-2025-0121g 2025-06-07 (23%); PROS-2025-0136 2025-06-07 (78%); PROS-2025-0136g 2025-06-07 (86%); PROS-2025-0149 2025-06-07 (70%); PROS-2025-0149g 2025-06-07 (81%); PROS-2025-0151 2025-06-07 (67%); PROS-2025-0151g 2025-06-07 (43%); PROS-2025-0153 2025-06-07 (63%); PROS-2025-0153g 2025-06-07 (77%); PROS-2025-0156 2025-06-07 (50%); PROS-2025-0156g 2025-06-07 (68%); PROS-2025-0160 2025-06-07 (22%); PROS-2025-0160g 2025-06-07 (49%); PROS-2025-0163 2025-06-07 (21%); PROS-2025-0163g 2025-06-07 (49%); PROS-2025-0170 2025-06-07 (251%); PROS-2025-0170g 2025-06-07 (117%)
+- Churn risk (accounts renewing in 2025): 88 at risk (≥20% churn prob): C2 41%, C3 26%, C8 35%, C9 20%, PROS-2016-0020 38%, PROS-2017-0019 38%, PROS-2017-0022 38%, PROS-2018-0014 38%, PROS-2018-0016 38%, PROS-2018-0018 38%, PROS-2018-0022 38%, PROS-2018-0035 41%, PROS-2018-0043 41%, PROS-2018-0053 38%, PROS-2019-0008 38%, PROS-2019-0009 38%, PROS-2019-0012 26%, PROS-2019-0015 38%, PROS-2019-0021 41%, PROS-2019-0023 41%, PROS-2019-0024 41%, PROS-2019-0027 41%, PROS-2020-0006 41%, PROS-2020-0009 38%, PROS-2020-0012 41%, PROS-2020-0016 38%, PROS-2020-0022 38%, PROS-2020-0025 38%, PROS-2020-0032 41%, PROS-2020-0048 38%, PROS-2021-0006 38%, PROS-2021-0031 41%, PROS-2021-0045 41%, PROS-2021-0051 38%, PROS-2021-0062 41%, PROS-2021-0088 38%, PROS-2022-0009 38%, PROS-2022-0010 38%, PROS-2022-0011 38%, PROS-2022-0030 41%, PROS-2022-0045 41%, PROS-2022-0046 38%, PROS-2022-0047 38%, PROS-2022-0048 38%, PROS-2022-0049 38%, PROS-2022-0067 41%, PROS-2022-0071 41%, PROS-2022-0073 41%, PROS-2022-0081 41%, PROS-2022-0082 38%, PROS-2022-0083 38%, PROS-2022-0092 38%, PROS-2022-0097 38%, PROS-2022-0100 41%, PROS-2022-0120 41%, PROS-2022-0124 41%, PROS-2022-0125 41%, PROS-2022-0127 41%, PROS-2022-0128 41%, PROS-2022-0130 38%, PROS-2023-0001 35%, PROS-2023-0010 35%, PROS-2023-0013 38%, PROS-2023-0014 29%, PROS-2023-0016 35%, PROS-2023-0025 41%, PROS-2023-0026 41%, PROS-2023-0039 41%, PROS-2023-0045 41%, PROS-2023-0065 41%, PROS-2023-0067 41%, PROS-2023-0072 41%, PROS-2023-0089 41%, PROS-2023-0090 41%, PROS-2023-0096 38%, PROS-2023-0104 41%, PROS-2023-0113 41%, PROS-2023-0116 41%, PROS-2023-0125 41%, PROS-2023-0126 41%, PROS-2023-0127 41%, PROS-2023-0146 41%, PROS-2023-0147 41%, PROS-2023-0152 35%, PROS-2023-0158 35%, PROS-2023-0162 38%, PROS-2023-0166 32%, PROS-2023-0177 29%
 
 **Pricing & Margin**
 
@@ -8435,34 +8448,38 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - C7 (electricity): tariff £182.07-£347.58/MWh, net margin £156.19
 - C8 (electricity): tariff £163.42-£372.90/MWh, net margin £216.58
 - C9 (electricity): tariff £152.92-£291.93/MWh, net margin £123.20
-- PROS-2016-0011 (electricity): tariff £236.72-£239.93/MWh, net margin £98.75
+- PROS-2016-0011 (electricity): tariff £236.72-£239.92/MWh, net margin £98.72
 - PROS-2016-0011g (gas): tariff £62.61-£67.15/MWh, net margin £117.04
-- PROS-2016-0020 (electricity): tariff £222.48-£240.08/MWh, net margin £95.47
+- PROS-2016-0020 (electricity): tariff £222.48-£240.08/MWh, net margin £95.48
 - PROS-2016-0020g (gas): tariff £63.13-£66.15/MWh, net margin £99.50
-- PROS-2017-0019 (electricity): tariff £237.88-£241.47/MWh, net margin £99.03
+- PROS-2017-0019 (electricity): tariff £237.88-£241.25/MWh, net margin £98.68
 - PROS-2017-0019g (gas): tariff £62.92-£67.10/MWh, net margin £80.25
 - PROS-2017-0022 (electricity): tariff £242.97-£247.02/MWh, net margin £106.52
 - PROS-2017-0022g (gas): tariff £63.17-£65.93/MWh, net margin £145.13
-- PROS-2018-0009 (electricity): tariff £235.45-£235.93/MWh, net margin £114.91
-- PROS-2018-0016 (electricity): tariff £233.00-£239.72/MWh, net margin £96.01
+- PROS-2018-0003 (electricity): tariff £217.57/MWh, net margin £79.21
+- PROS-2018-0003g (gas): tariff £61.68/MWh, net margin £105.69
+- PROS-2018-0009 (electricity): tariff £233.72-£235.93/MWh, net margin £112.00
+- PROS-2018-0014 (electricity): tariff £236.72/MWh, net margin £7.18
+- PROS-2018-0014g (gas): tariff £67.19/MWh, net margin £8.63
+- PROS-2018-0016 (electricity): tariff £232.14-£239.72/MWh, net margin £95.92
 - PROS-2018-0016g (gas): tariff £62.72-£67.25/MWh, net margin £116.92
-- PROS-2018-0018 (electricity): tariff £218.45-£241.37/MWh, net margin £96.87
+- PROS-2018-0018 (electricity): tariff £218.45-£241.41/MWh, net margin £96.95
 - PROS-2018-0018g (gas): tariff £62.86-£67.33/MWh, net margin £85.53
-- PROS-2018-0022 (electricity): tariff £240.54-£242.12/MWh, net margin £99.60
+- PROS-2018-0022 (electricity): tariff £240.54-£242.08/MWh, net margin £99.55
 - PROS-2018-0022g (gas): tariff £62.95-£66.84/MWh, net margin £101.56
-- PROS-2018-0024 (electricity): tariff £240.17-£240.66/MWh, net margin £98.11
+- PROS-2018-0024 (electricity): tariff £240.14-£240.66/MWh, net margin £98.06
 - PROS-2018-0035 (electricity): tariff £233.29-£246.87/MWh, net margin £105.48
 - PROS-2018-0035g (gas): tariff £63.40-£64.94/MWh, net margin £129.16
 - PROS-2018-0043 (electricity): tariff £219.28-£234.00/MWh, net margin £75.37
-- PROS-2018-0053 (electricity): tariff £223.25-£242.85/MWh, net margin £101.44
+- PROS-2018-0053 (electricity): tariff £223.25-£242.45/MWh, net margin £100.94
 - PROS-2018-0053g (gas): tariff £53.60-£63.40/MWh, net margin £76.85
-- PROS-2019-0008 (electricity): tariff £185.99-£359.45/MWh, net margin £92.00
+- PROS-2019-0008 (electricity): tariff £185.99-£359.43/MWh, net margin £91.98
 - PROS-2019-0008g (gas): tariff £62.61-£67.15/MWh, net margin £124.35
 - PROS-2019-0009 (electricity): tariff £232.14-£239.49/MWh, net margin £95.33
 - PROS-2019-0009g (gas): tariff £62.75-£67.29/MWh, net margin £88.24
-- PROS-2019-0012 (electricity): tariff £188.60-£360.99/MWh, net margin £94.65
+- PROS-2019-0012 (electricity): tariff £188.63-£360.99/MWh, net margin £94.69
 - PROS-2019-0012g (gas): tariff £63.04-£66.67/MWh, net margin £71.55
-- PROS-2019-0015 (electricity): tariff £243.41-£247.02/MWh, net margin £107.39
+- PROS-2019-0015 (electricity): tariff £243.41-£247.02/MWh, net margin £107.38
 - PROS-2019-0015g (gas): tariff £63.19-£65.94/MWh, net margin £114.31
 - PROS-2019-0021 (electricity): tariff £245.32-£246.38/MWh, net margin £106.43
 - PROS-2019-0021g (gas): tariff £63.40-£63.59/MWh, net margin £88.24
@@ -8472,10 +8489,12 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2019-0024g (gas): tariff £61.03/MWh, net margin £35.09
 - PROS-2019-0027 (electricity): tariff £216.22-£245.05/MWh, net margin £102.42
 - PROS-2019-0027g (gas): tariff £55.32-£63.40/MWh, net margin £119.07
-- PROS-2020-0002 (electricity): tariff £170.95-£326.36/MWh, net margin £79.29
+- PROS-2020-0002 (electricity): tariff £172.58-£329.47/MWh, net margin £82.86
 - PROS-2020-0002g (gas): tariff £61.67/MWh, net margin £109.99
-- PROS-2020-0009 (electricity): tariff £185.92-£360.70/MWh, net margin £115.65
-- PROS-2020-0009g (gas): tariff £62.12-£66.62/MWh, net margin £83.40
+- PROS-2020-0006 (electricity): tariff £187.36-£359.73/MWh, net margin £122.19
+- PROS-2020-0006g (gas): tariff £61.89-£66.39/MWh, net margin £116.81
+- PROS-2020-0009 (electricity): tariff £185.92-£355.37/MWh, net margin £111.16
+- PROS-2020-0009g (gas): tariff £62.12-£66.62/MWh, net margin £83.42
 - PROS-2020-0012 (electricity): tariff £233.72-£235.93/MWh, net margin £115.91
 - PROS-2020-0012g (gas): tariff £62.33-£66.84/MWh, net margin £106.40
 - PROS-2020-0016 (electricity): tariff £232.14-£240.21/MWh, net margin £96.72
@@ -8486,35 +8505,35 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2020-0025g (gas): tariff £65.72/MWh, net margin £31.60
 - PROS-2020-0032 (electricity): tariff £191.08-£366.79/MWh, net margin £99.90
 - PROS-2020-0032g (gas): tariff £63.40-£65.15/MWh, net margin £114.65
-- PROS-2020-0042 (electricity): tariff £201.59-£254.24/MWh, net margin £114.58
-- PROS-2020-0042g (gas): tariff £54.35-£63.40/MWh, net margin £130.37
-- PROS-2020-0048 (electricity): tariff £223.72-£251.05/MWh, net margin £122.03
+- PROS-2020-0048 (electricity): tariff £223.72-£252.44/MWh, net margin £124.74
 - PROS-2020-0048g (gas): tariff £54.12-£63.40/MWh, net margin £124.66
+- PROS-2021-0006 (electricity): tariff £182.40-£360.24/MWh, net margin £91.92
+- PROS-2021-0006g (gas): tariff £62.75-£67.29/MWh, net margin £90.54
 - PROS-2021-0031 (electricity): tariff £242.97/MWh, net margin £24.74
 - PROS-2021-0031g (gas): tariff £62.28/MWh, net margin £34.91
 - PROS-2021-0045 (electricity): tariff £203.98/MWh, net margin £23.33
-- PROS-2021-0051 (electricity): tariff £168.29-£327.77/MWh, net margin £64.18
+- PROS-2021-0051 (electricity): tariff £168.29-£327.88/MWh, net margin £64.26
 - PROS-2021-0051g (gas): tariff £53.42-£63.40/MWh, net margin £92.06
 - PROS-2021-0062 (electricity): tariff £162.87-£325.57/MWh, net margin £42.35
 - PROS-2021-0062g (gas): tariff £52.06-£63.40/MWh, net margin £187.95
 - PROS-2021-0088 (electricity): tariff £202.21-£258.13/MWh, net margin £113.71
 - PROS-2021-0088g (gas): tariff £48.18-£63.40/MWh, net margin £74.06
-- PROS-2022-0009 (electricity): tariff £185.99-£358.54/MWh, net margin £91.01
+- PROS-2022-0009 (electricity): tariff £185.99-£358.53/MWh, net margin £90.99
 - PROS-2022-0009g (gas): tariff £62.61-£67.15/MWh, net margin £119.63
-- PROS-2022-0010 (electricity): tariff £182.40-£360.24/MWh, net margin £91.92
+- PROS-2022-0010 (electricity): tariff £182.40-£361.17/MWh, net margin £93.18
 - PROS-2022-0010g (gas): tariff £62.73-£67.26/MWh, net margin £111.65
 - PROS-2022-0011 (electricity): tariff £171.64-£327.67/MWh, net margin £-31.54 -- **net-negative**
 - PROS-2022-0011g (gas): tariff £67.33/MWh, net margin £6.69
 - PROS-2022-0030 (electricity): tariff £189.45-£366.36/MWh, net margin £100.39
 - PROS-2022-0030g (gas): tariff £61.04-£63.40/MWh, net margin £100.14
-- PROS-2022-0045 (electricity): tariff £223.72-£245.98/MWh, net margin £106.50
-- PROS-2022-0046 (electricity): tariff £175.41-£364.96/MWh, net margin £98.09
+- PROS-2022-0045 (electricity): tariff £223.72-£251.39/MWh, net margin £113.34
+- PROS-2022-0046 (electricity): tariff £175.41-£365.07/MWh, net margin £98.18
 - PROS-2022-0046g (gas): tariff £53.57-£63.40/MWh, net margin £107.85
-- PROS-2022-0047 (electricity): tariff £168.29-£330.93/MWh, net margin £59.26
+- PROS-2022-0047 (electricity): tariff £168.29-£330.96/MWh, net margin £59.29
 - PROS-2022-0047g (gas): tariff £53.45-£63.40/MWh, net margin £52.05
-- PROS-2022-0048 (electricity): tariff £214.18-£223.83/MWh, net margin £74.05
+- PROS-2022-0048 (electricity): tariff £214.18-£223.85/MWh, net margin £74.07
 - PROS-2022-0048g (gas): tariff £53.42-£63.40/MWh, net margin £90.75
-- PROS-2022-0049 (electricity): tariff £159.86-£343.45/MWh, net margin £63.89
+- PROS-2022-0049 (electricity): tariff £159.86-£343.42/MWh, net margin £63.86
 - PROS-2022-0049g (gas): tariff £53.25-£63.40/MWh, net margin £124.71
 - PROS-2022-0067 (electricity): tariff £162.91-£311.01/MWh, net margin £60.56
 - PROS-2022-0067g (gas): tariff £51.83/MWh, net margin £45.76
@@ -8545,23 +8564,23 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2022-0128g (gas): tariff £41.89-£68.76/MWh, net margin £65.67
 - PROS-2022-0130 (electricity): tariff £151.55-£382.16/MWh, net margin £111.48
 - PROS-2022-0130g (gas): tariff £41.46-£68.88/MWh, net margin £74.35
-- PROS-2023-0001 (electricity): tariff £187.77-£358.47/MWh, net margin £125.80
+- PROS-2023-0001 (electricity): tariff £189.45-£361.67/MWh, net margin £130.40
 - PROS-2023-0001g (gas): tariff £61.78/MWh, net margin £124.94
 - PROS-2023-0010 (electricity): tariff £185.38-£353.90/MWh, net margin £3.84
 - PROS-2023-0010g (gas): tariff £66.84/MWh, net margin £5.50
-- PROS-2023-0013 (electricity): tariff £216.19-£238.58/MWh, net margin £122.43
+- PROS-2023-0013 (electricity): tariff £216.19-£238.72/MWh, net margin £122.72
 - PROS-2023-0013g (gas): tariff £62.52-£67.06/MWh, net margin £110.17
-- PROS-2023-0014 (electricity): tariff £236.72-£239.82/MWh, net margin £96.13
+- PROS-2023-0014 (electricity): tariff £236.72-£239.83/MWh, net margin £96.14
 - PROS-2023-0014g (gas): tariff £62.65-£67.19/MWh, net margin £79.20
-- PROS-2023-0016 (electricity): tariff £182.40-£361.17/MWh, net margin £94.45
+- PROS-2023-0016 (electricity): tariff £182.40-£362.86/MWh, net margin £95.83
 - PROS-2023-0016g (gas): tariff £62.73-£67.26/MWh, net margin £87.15
 - PROS-2023-0025 (electricity): tariff £174.54-£333.22/MWh, net margin £12.28
 - PROS-2023-0025g (gas): tariff £65.54/MWh, net margin £24.89
 - PROS-2023-0026 (electricity): tariff £174.54-£362.01/MWh, net margin £90.97
 - PROS-2023-0026g (gas): tariff £63.34-£65.54/MWh, net margin £118.51
-- PROS-2023-0039 (electricity): tariff £175.78-£366.61/MWh, net margin £100.68
+- PROS-2023-0039 (electricity): tariff £175.78-£366.79/MWh, net margin £100.83
 - PROS-2023-0039g (gas): tariff £54.12-£63.40/MWh, net margin £112.25
-- PROS-2023-0045 (electricity): tariff £201.61-£233.50/MWh, net margin £75.46
+- PROS-2023-0045 (electricity): tariff £201.61-£233.49/MWh, net margin £75.45
 - PROS-2023-0045g (gas): tariff £52.96-£63.40/MWh, net margin £103.92
 - PROS-2023-0065 (electricity): tariff £201.07-£207.04/MWh, net margin £63.50
 - PROS-2023-0065g (gas): tariff £51.37-£63.40/MWh, net margin £90.00
@@ -8599,19 +8618,17 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2023-0162g (gas): tariff £41.89/MWh, net margin £10.43
 - PROS-2023-0166 (electricity): tariff £183.93/MWh, net margin £65.47
 - PROS-2023-0166g (gas): tariff £44.39/MWh, net margin £48.75
-- PROS-2023-0172 (electricity): tariff £144.67-£276.20/MWh, net margin £59.12
-- PROS-2023-0172g (gas): tariff £43.86/MWh, net margin £45.69
-- PROS-2023-0177 (electricity): tariff £181.54/MWh, net margin £53.78
-- PROS-2023-0177g (gas): tariff £42.28/MWh, net margin £27.39
+- PROS-2023-0177 (electricity): tariff £181.40/MWh, net margin £53.55
+- PROS-2023-0177g (gas): tariff £43.09/MWh, net margin £33.64
 - PROS-2024-0008 (electricity): tariff £213.07-£248.60/MWh, net margin £72.04
 - PROS-2024-0008g (gas): tariff £62.43-£70.46/MWh, net margin £106.47
-- PROS-2024-0009 (electricity): tariff £213.07-£248.60/MWh, net margin £76.88
+- PROS-2024-0009 (electricity): tariff £213.09-£248.60/MWh, net margin £76.91
 - PROS-2024-0009g (gas): tariff £62.43-£70.47/MWh, net margin £94.50
-- PROS-2024-0010 (electricity): tariff £227.57-£239.34/MWh, net margin £125.45
+- PROS-2024-0010 (electricity): tariff £227.57-£239.33/MWh, net margin £125.42
 - PROS-2024-0010g (gas): tariff £62.52-£70.59/MWh, net margin £111.90
-- PROS-2024-0012 (electricity): tariff £180.67-£361.82/MWh, net margin £94.02
+- PROS-2024-0012 (electricity): tariff £180.67-£362.98/MWh, net margin £95.28
 - PROS-2024-0012g (gas): tariff £62.82-£70.82/MWh, net margin £58.20
-- PROS-2024-0014 (electricity): tariff £188.71-£375.60/MWh, net margin £94.41
+- PROS-2024-0014 (electricity): tariff £188.60-£375.60/MWh, net margin £94.13
 - PROS-2024-0014g (gas): tariff £62.88-£70.59/MWh, net margin £150.97
 - PROS-2024-0022 (electricity): tariff £190.78-£368.73/MWh, net margin £100.17
 - PROS-2024-0027 (electricity): tariff £192.42-£386.10/MWh, net margin £107.52
@@ -8624,13 +8641,13 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - PROS-2024-0040g (gas): tariff £57.61-£63.40/MWh, net margin £111.37
 - PROS-2024-0041 (electricity): tariff £173.85-£333.64/MWh, net margin £70.33
 - PROS-2024-0041g (gas): tariff £57.46-£63.40/MWh, net margin £115.29
-- PROS-2024-0048 (electricity): tariff £185.03-£365.82/MWh, net margin £106.29
+- PROS-2024-0048 (electricity): tariff £185.03-£364.94/MWh, net margin £105.55
 - PROS-2024-0048g (gas): tariff £57.01-£63.40/MWh, net margin £78.42
 - PROS-2024-0056 (electricity): tariff £166.74-£349.18/MWh, net margin £82.04
 - PROS-2024-0056g (gas): tariff £55.78-£63.40/MWh, net margin £79.95
 - PROS-2024-0057 (electricity): tariff £168.22-£378.54/MWh, net margin £111.99
 - PROS-2024-0057g (gas): tariff £55.71-£63.40/MWh, net margin £94.37
-- PROS-2024-0062 (electricity): tariff £168.50-£386.57/MWh, net margin £122.62
+- PROS-2024-0062 (electricity): tariff £168.50-£386.57/MWh, net margin £122.61
 - PROS-2024-0062g (gas): tariff £55.09-£63.40/MWh, net margin £124.94
 - PROS-2024-0065 (electricity): tariff £216.61-£245.65/MWh, net margin £121.11
 - PROS-2024-0065g (gas): tariff £54.21-£63.40/MWh, net margin £88.62
@@ -8784,44 +8801,44 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 
 - Capital cost ratio: 2.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1861, average clarity 0.858, average bill shock 35.0%, bad debt provision £184.44, avg complaint probability 5.5%
-- Solvency signal: £2,185/customer (184 customers) — OK (Ofgem floor £130/customer)
+- Bills issued: 1875, average clarity 0.858, average bill shock 35.2%, bad debt provision £184.44, avg complaint probability 5.6%
+- Solvency signal: £2,168/customer (186 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
 
-- Actual (hedged) net margin: £15,526.57 vs. naked (unhedged) net margin: £44,662.97
-- hedging cost £29,136.40 vs. a fully unhedged book (commodity-only: actual net £15,526.57 vs. naked net £44,662.97)
+- Actual (hedged) net margin: £15,732.36 vs. naked (unhedged) net margin: £45,146.45
+- hedging cost £29,414.10 vs. a fully unhedged book (commodity-only: actual net £15,732.36 vs. naked net £45,146.45)
   - C2: actual £40.28 vs. naked £111.92 -- hedging cost £71.63
   - C2g: actual £35.68 vs. naked £23.67 -- hedging added £12.00
   - C8: actual £61.31 vs. naked £212.42 -- hedging cost £151.10
-  - PROS-2016-0011: actual £77.02 vs. naked £405.39 -- hedging cost £328.38
+  - PROS-2016-0011: actual £76.98 vs. naked £405.36 -- hedging cost £328.38
   - PROS-2016-0011g: actual £96.36 vs. naked £227.14 -- hedging cost £130.77
-  - PROS-2016-0020: actual £71.71 vs. naked £270.57 -- hedging cost £198.86
+  - PROS-2016-0020: actual £71.72 vs. naked £270.58 -- hedging cost £198.86
   - PROS-2016-0020g: actual £76.39 vs. naked £158.76 -- hedging cost £82.37
-  - PROS-2017-0019: actual £80.25 vs. naked £281.81 -- hedging cost £201.57
+  - PROS-2017-0019: actual £79.90 vs. naked £281.46 -- hedging cost £201.56
   - PROS-2017-0019g: actual £66.64 vs. naked £122.68 -- hedging cost £56.04
   - PROS-2017-0022: actual £78.21 vs. naked £319.40 -- hedging cost £241.19
   - PROS-2017-0022g: actual £104.68 vs. naked £304.57 -- hedging cost £199.89
-  - PROS-2018-0009: actual £100.78 vs. naked £283.71 -- hedging cost £182.93
-  - PROS-2018-0016: actual £79.43 vs. naked £283.40 -- hedging cost £203.97
+  - PROS-2018-0009: actual £97.93 vs. naked £280.76 -- hedging cost £182.83
+  - PROS-2018-0016: actual £79.43 vs. naked £283.41 -- hedging cost £203.97
   - PROS-2018-0016g: actual £94.94 vs. naked £221.84 -- hedging cost £126.91
-  - PROS-2018-0018: actual £79.50 vs. naked £332.34 -- hedging cost £252.84
+  - PROS-2018-0018: actual £79.58 vs. naked £332.42 -- hedging cost £252.84
   - PROS-2018-0018g: actual £68.46 vs. naked £157.70 -- hedging cost £89.24
-  - PROS-2018-0022: actual £82.28 vs. naked £232.65 -- hedging cost £150.37
+  - PROS-2018-0022: actual £82.24 vs. naked £232.60 -- hedging cost £150.36
   - PROS-2018-0022g: actual £80.61 vs. naked £126.20 -- hedging cost £45.58
-  - PROS-2018-0024: actual £72.48 vs. naked £275.14 -- hedging cost £202.67
+  - PROS-2018-0024: actual £72.43 vs. naked £275.09 -- hedging cost £202.66
   - PROS-2018-0035: actual £78.13 vs. naked £264.90 -- hedging cost £186.77
   - PROS-2018-0035g: actual £86.86 vs. naked £197.90 -- hedging cost £111.04
   - PROS-2018-0043: actual £37.43 vs. naked £211.40 -- hedging cost £173.97
-  - PROS-2018-0053: actual £57.35 vs. naked £218.93 -- hedging cost £161.59
+  - PROS-2018-0053: actual £56.86 vs. naked £218.44 -- hedging cost £161.58
   - PROS-2018-0053g: actual £47.75 vs. naked £83.63 -- hedging cost £35.88
-  - PROS-2019-0008: actual £75.61 vs. naked £282.61 -- hedging cost £207.00
+  - PROS-2019-0008: actual £75.59 vs. naked £282.59 -- hedging cost £207.00
   - PROS-2019-0008g: actual £80.56 vs. naked £246.54 -- hedging cost £165.98
   - PROS-2019-0009: actual £76.55 vs. naked £331.05 -- hedging cost £254.50
   - PROS-2019-0009g: actual £73.98 vs. naked £169.36 -- hedging cost £95.38
-  - PROS-2019-0012: actual £76.82 vs. naked £226.45 -- hedging cost £149.63
+  - PROS-2019-0012: actual £76.86 vs. naked £226.49 -- hedging cost £149.63
   - PROS-2019-0012g: actual £57.55 vs. naked £78.92 -- hedging cost £21.37
-  - PROS-2019-0015: actual £79.06 vs. naked £320.27 -- hedging cost £241.21
+  - PROS-2019-0015: actual £79.05 vs. naked £320.27 -- hedging cost £241.21
   - PROS-2019-0015g: actual £84.97 vs. naked £221.04 -- hedging cost £136.08
   - PROS-2019-0021: actual £77.60 vs. naked £215.26 -- hedging cost £137.66
   - PROS-2019-0021g: actual £62.49 vs. naked £86.57 -- hedging cost £24.08
@@ -8829,8 +8846,10 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2019-0023g: actual £76.07 vs. naked £194.00 -- hedging cost £117.93
   - PROS-2019-0027: actual £68.77 vs. naked £251.20 -- hedging cost £182.44
   - PROS-2019-0027g: actual £80.36 vs. naked £187.03 -- hedging cost £106.67
-  - PROS-2020-0009: actual £104.77 vs. naked £244.94 -- hedging cost £140.17
-  - PROS-2020-0009g: actual £75.46 vs. naked £115.14 -- hedging cost £39.68
+  - PROS-2020-0006: actual £111.15 vs. naked £299.37 -- hedging cost £188.22
+  - PROS-2020-0006g: actual £100.21 vs. naked £261.46 -- hedging cost £161.24
+  - PROS-2020-0009: actual £100.36 vs. naked £240.38 -- hedging cost £140.01
+  - PROS-2020-0009g: actual £75.48 vs. naked £115.16 -- hedging cost £39.68
   - PROS-2020-0012: actual £99.56 vs. naked £327.63 -- hedging cost £228.07
   - PROS-2020-0012g: actual £92.04 vs. naked £246.24 -- hedging cost £154.21
   - PROS-2020-0016: actual £75.32 vs. naked £284.20 -- hedging cost £208.88
@@ -8839,30 +8858,30 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2020-0022g: actual £73.57 vs. naked £161.16 -- hedging cost £87.58
   - PROS-2020-0032: actual £61.75 vs. naked £302.57 -- hedging cost £240.82
   - PROS-2020-0032g: actual £79.71 vs. naked £202.81 -- hedging cost £123.09
-  - PROS-2020-0042: actual £85.24 vs. naked £349.29 -- hedging cost £264.05
-  - PROS-2020-0042g: actual £77.79 vs. naked £242.49 -- hedging cost £164.71
-  - PROS-2020-0048: actual £72.82 vs. naked £329.45 -- hedging cost £256.63
+  - PROS-2020-0048: actual £75.48 vs. naked £332.18 -- hedging cost £256.69
   - PROS-2020-0048g: actual £74.51 vs. naked £213.77 -- hedging cost £139.26
-  - PROS-2021-0051: actual £24.50 vs. naked £183.87 -- hedging cost £159.38
+  - PROS-2021-0006: actual £72.56 vs. naked £328.40 -- hedging cost £255.85
+  - PROS-2021-0006g: actual £75.67 vs. naked £176.61 -- hedging cost £100.94
+  - PROS-2021-0051: actual £24.58 vs. naked £183.96 -- hedging cost £159.38
   - PROS-2021-0051g: actual £54.23 vs. naked £108.21 -- hedging cost £53.99
   - PROS-2021-0062: actual £-9.53 vs. naked £283.85 -- hedging cost £293.38
   - PROS-2021-0062g: actual £76.66 vs. naked £377.48 -- hedging cost £300.81
   - PROS-2021-0088: actual £58.27 vs. naked £152.44 -- hedging cost £94.17
   - PROS-2021-0088g: actual £30.92 vs. naked £41.79 -- hedging cost £10.87
-  - PROS-2022-0009: actual £74.64 vs. naked £281.61 -- hedging cost £206.97
+  - PROS-2022-0009: actual £74.62 vs. naked £281.60 -- hedging cost £206.97
   - PROS-2022-0009g: actual £98.29 vs. naked £234.00 -- hedging cost £135.70
-  - PROS-2022-0010: actual £72.56 vs. naked £328.40 -- hedging cost £255.85
+  - PROS-2022-0010: actual £73.79 vs. naked £329.67 -- hedging cost £255.88
   - PROS-2022-0010g: actual £91.09 vs. naked £242.87 -- hedging cost £151.78
   - PROS-2022-0030: actual £66.05 vs. naked £245.01 -- hedging cost £178.96
   - PROS-2022-0030g: actual £65.65 vs. naked £138.89 -- hedging cost £73.24
-  - PROS-2022-0045: actual £65.72 vs. naked £231.65 -- hedging cost £165.94
-  - PROS-2022-0046: actual £53.78 vs. naked £215.80 -- hedging cost £162.02
+  - PROS-2022-0045: actual £72.42 vs. naked £238.51 -- hedging cost £166.09
+  - PROS-2022-0046: actual £53.87 vs. naked £215.89 -- hedging cost £162.02
   - PROS-2022-0046g: actual £62.38 vs. naked £137.23 -- hedging cost £74.85
-  - PROS-2022-0047: actual £16.80 vs. naked £215.74 -- hedging cost £198.94
+  - PROS-2022-0047: actual £16.83 vs. naked £215.77 -- hedging cost £198.94
   - PROS-2022-0047g: actual £35.75 vs. naked £-13.65 -- hedging added £49.39
-  - PROS-2022-0048: actual £34.68 vs. naked £193.78 -- hedging cost £159.10
+  - PROS-2022-0048: actual £34.70 vs. naked £193.80 -- hedging cost £159.10
   - PROS-2022-0048g: actual £53.62 vs. naked £105.99 -- hedging cost £52.36
-  - PROS-2022-0049: actual £29.21 vs. naked £226.41 -- hedging cost £197.20
+  - PROS-2022-0049: actual £29.18 vs. naked £226.39 -- hedging cost £197.20
   - PROS-2022-0049g: actual £68.34 vs. naked £195.31 -- hedging cost £126.97
   - PROS-2022-0071: actual £88.09 vs. naked £210.69 -- hedging cost £122.60
   - PROS-2022-0071g: actual £43.24 vs. naked £77.70 -- hedging cost £34.46
@@ -8889,19 +8908,19 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2022-0128g: actual £29.82 vs. naked £38.35 -- hedging cost £8.53
   - PROS-2022-0130: actual £38.27 vs. naked £90.08 -- hedging cost £51.81
   - PROS-2022-0130g: actual £36.42 vs. naked £30.44 -- hedging added £5.97
-  - PROS-2023-0001: actual £113.41 vs. naked £351.58 -- hedging cost £238.17
+  - PROS-2023-0001: actual £117.92 vs. naked £356.26 -- hedging cost £238.34
   - PROS-2023-0001g: actual £112.70 vs. naked £336.61 -- hedging cost £223.92
-  - PROS-2023-0013: actual £106.29 vs. naked £332.09 -- hedging cost £225.80
+  - PROS-2023-0013: actual £106.57 vs. naked £332.38 -- hedging cost £225.81
   - PROS-2023-0013g: actual £92.50 vs. naked £248.73 -- hedging cost £156.22
-  - PROS-2023-0014: actual £75.02 vs. naked £285.90 -- hedging cost £210.87
+  - PROS-2023-0014: actual £75.03 vs. naked £285.90 -- hedging cost £210.87
   - PROS-2023-0014g: actual £68.13 vs. naked £126.74 -- hedging cost £58.61
-  - PROS-2023-0016: actual £76.03 vs. naked £234.15 -- hedging cost £158.12
+  - PROS-2023-0016: actual £77.37 vs. naked £235.54 -- hedging cost £158.17
   - PROS-2023-0016g: actual £73.17 vs. naked £109.68 -- hedging cost £36.51
   - PROS-2023-0026: actual £67.84 vs. naked £305.02 -- hedging cost £237.18
   - PROS-2023-0026g: actual £84.18 vs. naked £219.66 -- hedging cost £135.48
-  - PROS-2023-0039: actual £60.67 vs. naked £227.05 -- hedging cost £166.38
+  - PROS-2023-0039: actual £60.81 vs. naked £227.20 -- hedging cost £166.39
   - PROS-2023-0039g: actual £68.17 vs. naked £154.52 -- hedging cost £86.34
-  - PROS-2023-0045: actual £40.41 vs. naked £231.85 -- hedging cost £191.44
+  - PROS-2023-0045: actual £40.40 vs. naked £231.84 -- hedging cost £191.44
   - PROS-2023-0045g: actual £57.31 vs. naked £146.55 -- hedging cost £89.24
   - PROS-2023-0065: actual £14.10 vs. naked £146.58 -- hedging cost £132.48
   - PROS-2023-0065g: actual £44.34 vs. naked £83.65 -- hedging cost £39.31
@@ -8935,13 +8954,13 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2023-0158g: actual £-0.61 vs. naked £-8.10 -- hedging added £7.49
   - PROS-2024-0008: actual £54.26 vs. naked £281.32 -- hedging cost £227.06
   - PROS-2024-0008g: actual £89.99 vs. naked £237.57 -- hedging cost £147.58
-  - PROS-2024-0009: actual £61.58 vs. naked £243.60 -- hedging cost £182.02
+  - PROS-2024-0009: actual £61.61 vs. naked £243.63 -- hedging cost £182.02
   - PROS-2024-0009g: actual £77.39 vs. naked £171.61 -- hedging cost £94.21
-  - PROS-2024-0010: actual £107.85 vs. naked £333.86 -- hedging cost £226.01
+  - PROS-2024-0010: actual £107.82 vs. naked £333.84 -- hedging cost £226.01
   - PROS-2024-0010g: actual £92.71 vs. naked £249.64 -- hedging cost £156.93
-  - PROS-2024-0012: actual £71.68 vs. naked £280.30 -- hedging cost £208.61
+  - PROS-2024-0012: actual £72.90 vs. naked £281.56 -- hedging cost £208.66
   - PROS-2024-0012g: actual £51.34 vs. naked £-111.59 -- hedging added £162.93
-  - PROS-2024-0014: actual £70.92 vs. naked £323.81 -- hedging cost £252.89
+  - PROS-2024-0014: actual £70.65 vs. naked £323.53 -- hedging cost £252.88
   - PROS-2024-0014g: actual £113.92 vs. naked £340.95 -- hedging cost £227.03
   - PROS-2024-0022: actual £73.41 vs. naked £265.14 -- hedging cost £191.73
   - PROS-2024-0027: actual £70.23 vs. naked £305.96 -- hedging cost £235.73
@@ -8954,11 +8973,11 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2024-0040g: actual £69.17 vs. naked £190.81 -- hedging cost £121.65
   - PROS-2024-0041: actual £36.86 vs. naked £209.79 -- hedging cost £172.94
   - PROS-2024-0041g: actual £72.68 vs. naked £163.82 -- hedging cost £91.14
-  - PROS-2024-0048: actual £56.26 vs. naked £226.53 -- hedging cost £170.28
+  - PROS-2024-0048: actual £55.54 vs. naked £225.80 -- hedging cost £170.25
   - PROS-2024-0048g: actual £49.28 vs. naked £85.77 -- hedging cost £36.48
-  - PROS-2024-0056: actual £28.13 vs. naked £195.49 -- hedging cost £167.36
+  - PROS-2024-0056: actual £28.13 vs. naked £195.48 -- hedging cost £167.36
   - PROS-2024-0056g: actual £45.23 vs. naked £77.61 -- hedging cost £32.38
-  - PROS-2024-0057: actual £62.03 vs. naked £297.41 -- hedging cost £235.38
+  - PROS-2024-0057: actual £62.04 vs. naked £297.42 -- hedging cost £235.38
   - PROS-2024-0057g: actual £49.96 vs. naked £126.95 -- hedging cost £76.99
   - PROS-2024-0062: actual £67.85 vs. naked £248.36 -- hedging cost £180.51
   - PROS-2024-0062g: actual £57.58 vs. naked £175.97 -- hedging cost £118.38
@@ -9079,4 +9098,4 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
   - PROS-2025-0170: actual £6.17 vs. naked £13.64 -- hedging cost £7.47
   - PROS-2025-0170g: actual £0.47 vs. naked £-13.21 -- hedging added £13.68
 
-**Year narrative:** 2025 produced a net gain of £28,620.71 across 351 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 737 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2025 produced a net gain of £28,912.04 across 355 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 745 customer(s) experienced a bill shock of >=20%.

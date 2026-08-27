@@ -141,7 +141,7 @@
       "date": "2022-01-13",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 346.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 344.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.83p/kWh -> 3.59p/kWh"
     },
     {
@@ -7109,7 +7109,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 1%.",
       "company_belief": 0.051,
-      "sim_truth": 0.012,
+      "sim_truth": 0.009,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7175,7 +7175,7 @@
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 32% churn risk, decided to offer a 3% discount (cost GBP18.45) against GBP293.31 expected term margin at risk -- expected value of offering GBP274.86. Comms framed as a gain (save with this discount).",
       "company_belief": 0.319,
-      "sim_truth": 0.045,
+      "sim_truth": 0.038,
       "amount_gbp": 274.86,
       "outcome": "retained",
       "framing_type": "gain_framed"
@@ -7186,7 +7186,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 32% churn risk at decision time, SIM realized probability was 4%.",
       "company_belief": 0.319,
-      "sim_truth": 0.045,
+      "sim_truth": 0.038,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7538,7 +7538,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 1%.",
       "company_belief": 0.046,
-      "sim_truth": 0.014,
+      "sim_truth": 0.009,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7602,9 +7602,9 @@
       "customer_id": "PROS-2017-0019",
       "date": "2022-01-13",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 14%.",
+      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 22%.",
       "company_belief": 0.05,
-      "sim_truth": 0.144,
+      "sim_truth": 0.216,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7646,9 +7646,9 @@
       "customer_id": "PROS-2017-0019",
       "date": "2024-01-13",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 4%.",
+      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.11,
-      "sim_truth": 0.041,
+      "sim_truth": 0.031,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7668,9 +7668,9 @@
       "customer_id": "PROS-2017-0019",
       "date": "2025-01-12",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 10% churn risk at decision time, SIM realized probability was 18%.",
+      "description": "Renewal outcome: RENEWED -- company believed 10% churn risk at decision time, SIM realized probability was 16%.",
       "company_belief": 0.103,
-      "sim_truth": 0.175,
+      "sim_truth": 0.161,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

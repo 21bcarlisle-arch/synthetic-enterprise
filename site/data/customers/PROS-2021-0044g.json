@@ -69,7 +69,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2021-0044g-INV6608",
+      "id": "PROS-2021-0044g-INV6729",
       "date": "2021-02-28",
       "period_start": "2021-02-12",
       "period_end": "2021-02-28",
@@ -110,7 +110,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6609",
+      "id": "PROS-2021-0044g-INV6730",
       "date": "2021-03-31",
       "period_start": "2021-03-01",
       "period_end": "2021-03-31",
@@ -151,7 +151,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6610",
+      "id": "PROS-2021-0044g-INV6731",
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
@@ -192,7 +192,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6611",
+      "id": "PROS-2021-0044g-INV6732",
       "date": "2021-11-30",
       "period_start": "2021-11-01",
       "period_end": "2021-11-30",
@@ -233,7 +233,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6612",
+      "id": "PROS-2021-0044g-INV6733",
       "date": "2021-12-31",
       "period_start": "2021-12-01",
       "period_end": "2021-12-31",
@@ -274,7 +274,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6613",
+      "id": "PROS-2021-0044g-INV6734",
       "date": "2022-01-31",
       "period_start": "2022-01-01",
       "period_end": "2022-01-31",
@@ -315,7 +315,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0044g-INV6614",
+      "id": "PROS-2021-0044g-INV6735",
       "date": "2022-02-11",
       "period_start": "2022-02-01",
       "period_end": "2022-02-11",
@@ -362,17 +362,17 @@
       {
         "date": "2021-03-08",
         "type": "invoice_raised",
-        "invoice_number": 6608,
+        "invoice_number": 6729,
         "amount_gbp": 8.21,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6608 raised",
+        "description": "Invoice INV6729 raised",
         "running_balance_gbp": 8.21
       },
       {
         "date": "2021-03-29",
         "type": "notice",
-        "invoice_number": 6608,
+        "invoice_number": 6729,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -382,17 +382,17 @@
       {
         "date": "2021-03-31",
         "type": "invoice_raised",
-        "invoice_number": 6609,
+        "invoice_number": 6730,
         "amount_gbp": 14.3,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6609 raised",
+        "description": "Invoice INV6730 raised",
         "running_balance_gbp": 22.51
       },
       {
         "date": "2021-04-12",
         "type": "notice",
-        "invoice_number": 6608,
+        "invoice_number": 6729,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -402,7 +402,7 @@
       {
         "date": "2021-04-14",
         "type": "payment_received",
-        "invoice_number": 6609,
+        "invoice_number": 6730,
         "amount_gbp": -14.3,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -412,17 +412,17 @@
       {
         "date": "2021-05-02",
         "type": "invoice_raised",
-        "invoice_number": 6610,
+        "invoice_number": 6731,
         "amount_gbp": 12.63,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6610 raised",
+        "description": "Invoice INV6731 raised",
         "running_balance_gbp": 20.84
       },
       {
         "date": "2021-05-06",
         "type": "arrears_resolved",
-        "invoice_number": 6608,
+        "invoice_number": 6729,
         "amount_gbp": -8.21,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -432,7 +432,7 @@
       {
         "date": "2021-05-16",
         "type": "payment_received",
-        "invoice_number": 6610,
+        "invoice_number": 6731,
         "amount_gbp": -12.63,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -442,17 +442,17 @@
       {
         "date": "2021-12-01",
         "type": "invoice_raised",
-        "invoice_number": 6611,
+        "invoice_number": 6732,
         "amount_gbp": 13.42,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6611 raised",
+        "description": "Invoice INV6732 raised",
         "running_balance_gbp": 13.42
       },
       {
         "date": "2021-12-15",
         "type": "payment_received",
-        "invoice_number": 6611,
+        "invoice_number": 6732,
         "amount_gbp": -13.42,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -462,17 +462,17 @@
       {
         "date": "2022-01-07",
         "type": "invoice_raised",
-        "invoice_number": 6612,
+        "invoice_number": 6733,
         "amount_gbp": 15.41,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6612 raised",
+        "description": "Invoice INV6733 raised",
         "running_balance_gbp": 15.41
       },
       {
         "date": "2022-01-28",
         "type": "notice",
-        "invoice_number": 6612,
+        "invoice_number": 6733,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -482,17 +482,17 @@
       {
         "date": "2022-02-08",
         "type": "invoice_raised",
-        "invoice_number": 6613,
+        "invoice_number": 6734,
         "amount_gbp": 16.73,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6613 raised",
+        "description": "Invoice INV6734 raised",
         "running_balance_gbp": 32.14
       },
       {
         "date": "2022-02-11",
         "type": "notice",
-        "invoice_number": 6612,
+        "invoice_number": 6733,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -502,17 +502,17 @@
       {
         "date": "2022-02-12",
         "type": "invoice_raised",
-        "invoice_number": 6614,
+        "invoice_number": 6735,
         "amount_gbp": 5.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV6614 raised",
+        "description": "Invoice INV6735 raised",
         "running_balance_gbp": 37.85
       },
       {
         "date": "2022-02-22",
         "type": "payment_received",
-        "invoice_number": 6613,
+        "invoice_number": 6734,
         "amount_gbp": -16.73,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -522,7 +522,7 @@
       {
         "date": "2022-02-26",
         "type": "payment_received",
-        "invoice_number": 6614,
+        "invoice_number": 6735,
         "amount_gbp": -5.71,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -532,7 +532,7 @@
       {
         "date": "2022-03-07",
         "type": "arrears_resolved",
-        "invoice_number": 6612,
+        "invoice_number": 6733,
         "amount_gbp": -15.41,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -697,9 +697,9 @@
       "customer_id": "PROS-2021-0044",
       "date": "2022-02-12",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 4% churn risk at decision time, SIM realized probability was 15%.",
+      "description": "Renewal outcome: CHURNED -- company believed 4% churn risk at decision time, SIM realized probability was 23%.",
       "company_belief": 0.045,
-      "sim_truth": 0.153,
+      "sim_truth": 0.228,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null
