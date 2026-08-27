@@ -210,6 +210,29 @@ def max_supported_rate_increase_pct() -> float:
     `company/pricing/ofgem_price_cap.py` existing separately at all. A supplier bounds its own
     pricing by its own reading of the law; borrowing the world's would be the company checking
     its homework against the answer sheet.
+
+    THE BOUND IS DOMESTIC AND IT IS APPLIED TO EVERY SEGMENT. Stated here because it was not
+    (2026-08-27). Every sentence above justifies this number from DOMESTIC evidence -- GB
+    domestic switching behaviour, the Ofgem domestic cap's own largest step -- and
+    `decide_margin` applies it to whatever it is given, SME and I&C included. Neither is on the
+    domestic cap, and `churn_model` branches to a different curve for them entirely
+    (`IC_BASE_CHURN_RATE` 0.20 against 0.10, `IC_RATE_SENSITIVITY` 1.5 against 0.8, and no
+    bill-stress term at all). A bound whose whole defence is "domestic customers have never been
+    observed responding to a bigger one-step rise" defends nothing about a business account.
+
+    IT IS LEFT APPLIED ANYWAY, deliberately, and the reason is the measurement. The served book
+    is 417 resi and **2 SME** -- 0.5%, and no I&C at all while the director's suspension stands.
+    The alternatives are worse at that size: refusing non-domestic accounts would raise
+    `MarginDecisionUnavailable` on every SME renewal and take two real accounts out of the arm to
+    fix a category error affecting two real accounts; and inventing a non-domestic frontier with
+    no published series behind it would be the picked number this function exists not to be
+    (there IS no non-domestic Ofgem cap -- the 2022 non-domestic intervention was a subsidy, not
+    a cap, so the commons artefact simply does not carry the step this derivation needs).
+
+    SO IT IS A TRIPWIRE, NOT A SILENCE. `tests/company/pricing/test_the_support_bound_is_domestic.py`
+    fails the moment the non-domestic share of the priceable book grows past a threshold, with
+    the instruction to derive a non-domestic bound rather than to raise the threshold. An
+    accepted limitation that nothing measures is how a 0.5% exposure becomes a 20% one silently.
     """
     from company.pricing.ofgem_price_cap import _CAP_WINDOWS
 
