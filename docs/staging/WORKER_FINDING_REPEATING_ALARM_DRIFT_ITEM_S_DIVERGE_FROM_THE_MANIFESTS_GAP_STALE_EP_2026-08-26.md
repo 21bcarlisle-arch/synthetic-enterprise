@@ -40,3 +40,4 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
+- **2026-08-27** — still live. 13 repeats over 10.8h without the state changing. No second document filed: this condition already has one.

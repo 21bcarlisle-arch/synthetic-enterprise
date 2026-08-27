@@ -1,7 +1,7 @@
 {
   "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
   "entrypoint_count": 49,
-  "module_count": 1013,
+  "module_count": 1015,
   "orphans": [
     "background.autonomous_runner",
     "background.bad_debt_reconciliation_run",
@@ -306,6 +306,7 @@
     "saas.capital",
     "saas.reporting",
     "saas.sme_credit_risk",
+    "sim.neso_embedded_generation",
     "sim.prefetch_demand_generation",
     "sim.scenario",
     "sim.scenario.bimodal_generator",
@@ -339,6 +340,7 @@
     "tools.d6_ageing_metric_oracle",
     "tools.enumerate_publish_gate_reds",
     "tools.ep13_biomass_oracle_bound",
+    "tools.ep13_embedded_generation_bound",
     "tools.ep13_input_ceiling",
     "tools.eval_model_comparison",
     "tools.executor_cli",
