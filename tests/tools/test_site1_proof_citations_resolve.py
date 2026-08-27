@@ -265,3 +265,48 @@ def test_the_wiring_check_is_not_satisfied_by_a_commented_out_call():
     commented = ["# resolve_citations(data)", "  # resolve_citations(data)"]
     assert not [ln for ln in commented if ln.strip().startswith("resolve_citations(")], (
         "the wiring check would accept a commented-out call")
+
+
+# ---------------------------------------------------------------------------
+# THE PROVENANCE-LABEL CARVE-OUT (2026-08-27)
+# ---------------------------------------------------------------------------
+# Implements the recommendation in
+# docs/staging/done/WORKER_FINDING_A_PROVENANCE_LABEL_IS_STAT_ED_AS_A_REPO_PATH_2026-08-18.md,
+# diagnosed nine days before it was built. `source` is an overloaded key: a repo-relative
+# artefact to the Proof door's citations, a derivation METHOD in `couple_w2_11_d5`'s
+# `_measured_on` blocks. The gate was stat-ing the method label and reporting a dead citation on
+# a figure whose provenance is honestly recorded.
+#
+# A control that fires on correct data trains its reader to skip it -- and while it cried wolf,
+# the REAL rot class (an archived citation) would have landed inside the same red and been
+# indistinguishable from the noise. So the narrowing needs its partner more than most.
+
+from tools.generate_proof_data import citation_path  # noqa: E402
+
+
+def test_a_bare_provenance_label_is_not_read_as_a_path():
+    assert citation_path("predicted_from_this_book") == (None, None)
+
+
+@pytest.mark.parametrize("still_a_path", [
+    "docs/staging/GONE.md",   # the rot class: separator AND extension
+    "GONE.md",                # no separator, but an extension -- still nameable
+    "site/data/proof.json",
+    "tools/generate_proof_data.py",
+])
+def test_the_carve_out_does_NOT_swallow_a_real_citation(still_a_path):
+    """THE PARTNER, and the one that matters. The FAIL-OPEN direction is the expensive one: an
+    archived citation waved through as prose is exactly the lie this gate exists to catch."""
+    assert citation_path(still_a_path) == (still_a_path, "")
+
+
+def test_a_dotted_token_with_no_separator_is_still_checked():
+    """A file in the repo root is a real citation and carries no separator at all -- the
+    narrowing keys on "no separator AND no extension", never on the separator alone."""
+    assert citation_path("CLAUDE.md") == ("CLAUDE.md", "")
+
+
+def test_the_other_two_carve_outs_are_untouched():
+    assert citation_path("https://example.com/x") == (None, None)
+    assert citation_path("no hedge-outcome source is built") == (None, None)
+    assert citation_path("docs/retrospectives/") == (None, None)

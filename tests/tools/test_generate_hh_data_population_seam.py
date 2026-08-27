@@ -63,12 +63,33 @@ def _flag_off_by_default(monkeypatch):
     monkeypatch.setenv("SE_GROW_BOOK", "0")
 
 
+
+
+# THE STATIC ROSTER IS NO LONGER THE SERVED BOOK (2026-08-27).
+#
+# These comparisons read `CUSTOMERS` -- the hand-authored roster -- as "what the book is without
+# a draw". That held until the director suspended the I&C segment on 2026-08-24
+# (docs/design/curriculum/served_segments.json): C_IC1..C_IC4 are still IN the roster, because
+# the company must remain ABLE to onboard an industrial account, and are no longer on the book it
+# serves. Every assertion below that said `== list(CUSTOMERS)` or `static_ids <= live_ids` was
+# therefore comparing the served book against a superset of itself.
+#
+# `_served_static()` re-derives the served subset FROM THE CURRICULUM, not from the function under
+# test, so the mutation each of these tests defends still fires: reverting the wire to
+# `list(CUSTOMERS)` puts the four industrial accounts back and the comparison fails.
+def _served_static():
+    """The static roster minus whatever segments the curriculum currently suspends."""
+    from simulation.live_population import _serves, served_segments
+    served = served_segments()
+    return [c for c in CUSTOMERS if _serves(c, served)]
+
+
 def test_flag_off_book_is_byte_identical_to_static_customers():
     result = ghd.main()
-    # The resolved book equals the static literal, same content and order.
-    assert result["book"] == list(CUSTOMERS)
-    # HH selection identical to reading CUSTOMERS directly.
-    assert result["hh_customers"] == [c for c in CUSTOMERS if is_hh_customer(c)]
+    # The resolved book equals the SERVED static roster, same content and order.
+    assert result["book"] == _served_static()
+    # HH selection identical to reading the served roster directly.
+    assert result["hh_customers"] == [c for c in _served_static() if is_hh_customer(c)]
 
 
 def test_flag_on_book_additively_carries_syn_cohort(monkeypatch):
@@ -77,11 +98,11 @@ def test_flag_on_book_additively_carries_syn_cohort(monkeypatch):
     monkeypatch.setenv(_ACTIVATION_ENV, "1")
     result = ghd.main()
 
-    static_ids = {c["customer_id"] for c in CUSTOMERS}
+    static_ids = {c["customer_id"] for c in _served_static()}
     live_ids = {c["customer_id"] for c in result["book"]}
     syn_ids = live_ids - static_ids
 
-    # Additive-not-replacive: every static customer still present, plus SYN-*.
+    # Additive-not-replacive: every SERVED static customer still present, plus SYN-*.
     assert static_ids <= live_ids
     assert syn_ids, "flag-on must additively include the SYN acquisition cohort"
     assert all(cid.startswith("SYN-") for cid in syn_ids)
@@ -114,5 +135,5 @@ def test_flag_on_hh_selection_unchanged_syn_not_metered(monkeypatch):
     result = ghd.main()
 
     hh_ids = {c["customer_id"] for c in result["hh_customers"]}
-    static_hh = {c["customer_id"] for c in CUSTOMERS if is_hh_customer(c)}
+    static_hh = {c["customer_id"] for c in _served_static() if is_hh_customer(c)}
     assert hh_ids == static_hh  # no SYN entered the HH selection

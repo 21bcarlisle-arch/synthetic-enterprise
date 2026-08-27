@@ -116,7 +116,41 @@ def citation_path(value):
         return None, None
     if re.search(r"\s", path):
         return None, None  # prose, not a path
+    if _is_provenance_label(path):
+        return None, None
     return path, annotation
+
+
+# A bare token: no path separator, no file extension. `predicted_from_this_book` is one;
+# `docs/staging/GONE.md` is not, and neither is `GONE.md`.
+_PROVENANCE_LABEL = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _is_provenance_label(path: str) -> bool:
+    """True for a single-token PROVENANCE LABEL that was never a path.
+
+    THE THIRD CARVE-OUT, and the one this function was one class short of
+    (`docs/staging/done/WORKER_FINDING_A_PROVENANCE_LABEL_IS_STAT_ED_AS_A_REPO_PATH_2026-08-18.md`,
+    recommendation implemented 2026-08-27 -- diagnosed nine days before it was built).
+
+    `source` is an OVERLOADED KEY. To the Proof door's citations it means a repo-relative
+    artefact a reader can walk to; inside `tools/couple_w2_11_d5.py`'s `_measured_on` blocks it
+    means a derivation METHOD, in prose -- `predicted_from_this_book`. `CITATION_KEYS` includes
+    `source` and the walker descends the whole published payload, so the coupled instrument's
+    honest metadata was being stat-ed as a filename and reported as a dead citation. The
+    producer was behaving exactly as specified; the reader was one category short.
+
+    WHY THE CLASS AND NOT THE INSTANCE: exempting `couple_w2_11_d5`, or renaming its field,
+    fixes today. The overload recurs at the NEXT producer that writes a `source`, so R10 says
+    fix the reader.
+
+    THE NARROWING IS TIGHT ON PURPOSE, because the FAIL-OPEN direction is the expensive one --
+    the rot class this gate exists for is an archived citation, and those always carry a
+    separator or an extension. `docs/staging/GONE.md` has both. `GONE.md` has an extension. A
+    token with NEITHER cannot name a file anyone could walk to, so treating it as prose loses
+    no coverage. Both directions are pinned in the tests.
+    """
+    return bool(_PROVENANCE_LABEL.match(path)) and "." not in path
 
 
 def _resolve_citation(value):

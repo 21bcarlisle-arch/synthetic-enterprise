@@ -148,10 +148,20 @@ def test_home_type_and_smart_meter_sourced_from_raw_customer_record(tmp_path):
     assert c1["smart_meter"] is True
 
 
-def test_business_customer_home_type_is_the_business_premises_type(tmp_path):
+def test_business_customer_home_type_is_the_business_premises_type(tmp_path, monkeypatch):
     """home_type doubles as the "business type" signal for I&C/SME accounts
     (no separate field exists in saas/customers.py -- same key, segment-aware
-    label on the rendering side)."""
+    label on the rendering side).
+
+    SERVES I&C EXPLICITLY (2026-08-27). This is a CAPABILITY test: it asks whether the renderer
+    can label an industrial account, not whether the company currently has one. The director
+    suspended I&C on 2026-08-24, so `_resolve_book()` -- which the generator reads its roster
+    from -- no longer carries C_IC1, and `home_type` came back None. The curriculum rules this
+    case in as many words: "a supplier that has never onboarded an I&C customer still has to be
+    able to." The override is read at CALL time by `served_segments()`, so setting it here is
+    enough; no module reload is needed, unlike the run_phase2b rosters that bind at import.
+    """
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME,I&C")
     customers = {
         "C_IC1": {"segment": "I&C", "commodity": "electricity", "acquisition_date": "2016-01-01",
                   "revenue_gbp": 100000.0, "gross_gbp": 5000.0, "net_gbp": 2000.0},

@@ -116,6 +116,18 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-27  W605 1 -> 0, ENTRY DELETED  (the tests/tools red sweep)
+#     `saas/reporting/annual_report.py:8398` wrote `churn\_estimate` inside an f-string. The
+#     `\_` is a MARKDOWN escape -- that string is rendered as markdown, where a bare `_` opens
+#     an italic span -- and an INVALID Python escape, so every process that imported this module
+#     printed a SyntaxWarning to stderr. It was not cosmetic: that noise is what
+#     `tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_
+#     not_run` was failing on, and from 3.12 an invalid escape is a SyntaxError outright.
+#     Doubling the backslash keeps the rendered markdown byte-identical.
+#     MEASURED PER-FILE AGAINST `git show HEAD:`, per this log's standing rule and not off the
+#     working tree: HEAD carries 1 W605 in that file, this tree carries 0, and the repository
+#     carries 0 elsewhere -- so the code reaches zero and the entry is DELETED rather than
+#     lowered, which is what this ratchet's own instruction says to do at 0.
 #   2026-08-26  I001 1350 -> 1348, E741 108 -> 107  (the tree-divergence walk)
 #     Three violations fixed as a side effect of touching the files this commit already had
 #     open, per this ratchet's standing per-file remedy — not a tidying pass:
@@ -523,10 +535,9 @@ RUFF_BASELINE: dict[str, int] = {
     "W292": 2,
     "E713": 1,
     "F601": 1,
-    "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2338  # was 2341; -3 (I001 -2, E741 -1; see the tree-divergence walk entry)
+RUFF_BASELINE_TOTAL = 2337  # was 2338; -1 (W605, the invalid f-string escape; see the 2026-08-27 entry)
 
 
 # --------------------------------------------------------------------------

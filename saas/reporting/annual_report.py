@@ -8395,7 +8395,13 @@ def _section_shadow_retention(data: dict) -> str:
         "",
         "Counterfactual: what if the company had offered retention to ALL renewal customers "
         f"(not just those above the {30}% threshold)?",
-        f"Shadow discount: {8}% off next term. Assumes P(accept) = (1 - churn\_estimate) x {0.9:.0%}.",
+        # `\_` is a MARKDOWN escape -- this string is rendered as markdown, where a bare `_`
+        # would open an italic span. In Python it was an INVALID escape sequence, so every
+        # process that imported this module printed a SyntaxWarning to stderr; that noise is
+        # what `test_cli_exit_codes_distinguish_clean_from_could_not_run` was failing on, and
+        # in 3.12+ an invalid escape becomes a SyntaxError outright. Doubling the backslash
+        # keeps the rendered markdown byte-identical and makes the Python legal.
+        f"Shadow discount: {8}% off next term. Assumes P(accept) = (1 - churn\\_estimate) x {0.9:.0%}.",
         "",
         "| Year | No-Offer Churns | Margin Lost | Shadow Retained | Offer Cost | Shadow Net Gain |",
         "|------|----------------|------------|----------------|-----------|----------------|",

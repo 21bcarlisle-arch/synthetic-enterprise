@@ -60,9 +60,30 @@ def _flag_off_by_default(monkeypatch):
     monkeypatch.setenv("SE_GROW_BOOK", "0")
 
 
+
+
+# THE STATIC ROSTER IS NO LONGER THE SERVED BOOK (2026-08-27).
+#
+# These comparisons read `CUSTOMERS` -- the hand-authored roster -- as "what the book is without
+# a draw". That held until the director suspended the I&C segment on 2026-08-24
+# (docs/design/curriculum/served_segments.json): C_IC1..C_IC4 are still IN the roster, because
+# the company must remain ABLE to onboard an industrial account, and are no longer on the book it
+# serves. Every assertion below that said `== list(CUSTOMERS)` or `static_ids <= live_ids` was
+# therefore comparing the served book against a superset of itself.
+#
+# `_served_static()` re-derives the served subset FROM THE CURRICULUM, not from the function under
+# test, so the mutation each of these tests defends still fires: reverting the wire to
+# `list(CUSTOMERS)` puts the four industrial accounts back and the comparison fails.
+def _served_static():
+    """The static roster minus whatever segments the curriculum currently suspends."""
+    from simulation.live_population import _serves, served_segments
+    served = served_segments()
+    return [c for c in CUSTOMERS if _serves(c, served)]
+
+
 def test_resolve_book_flag_off_byte_identical_to_static_customers():
-    """Default-OFF the resolved lookup book equals the static literal exactly."""
-    assert _resolve_book() == list(CUSTOMERS)
+    """Default-OFF the resolved lookup book equals the SERVED static roster exactly."""
+    assert _resolve_book() == _served_static()
 
 
 def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
@@ -71,11 +92,11 @@ def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
     monkeypatch.setenv(_ACTIVATION_ENV, "1")
     book = _resolve_book()
 
-    static_ids = {c["customer_id"] for c in CUSTOMERS}
+    static_ids = {c["customer_id"] for c in _served_static()}
     live_ids = {c["customer_id"] for c in book}
     syn_ids = live_ids - static_ids
 
-    # Additive-not-replacive: every static customer still present, plus SYN-*.
+    # Additive-not-replacive: every SERVED static customer still present, plus SYN-*.
     assert static_ids <= live_ids
     assert syn_ids, "flag-on must additively include the SYN acquisition cohort"
     assert all(cid.startswith("SYN-") for cid in syn_ids)
@@ -89,12 +110,19 @@ def test_flag_on_syn_dict_carries_commodity_but_not_property_fields(monkeypatch)
     effect here is book membership (uniformity), not enriched property columns."""
     monkeypatch.setenv(_ACTIVATION_ENV, "1")
     book = _resolve_book()
-    static_ids = {c["customer_id"] for c in CUSTOMERS}
+    static_ids = {c["customer_id"] for c in _served_static()}
     syn_dicts = [c for c in book if c["customer_id"] not in static_ids]
     assert syn_dicts, "expected at least one SYN dict flag-on"
     d = syn_dicts[0]
     assert "commodity" in d  # observable the lookup CAN resolve
-    assert "home_type" not in d and "smart_meter" not in d  # property-model's job
+    # `home_type` remains the property model's job. `smart_meter` LEFT this list on 2026-08-25:
+    # commit f8dc54ef8 ("every customer the funnel has ever won arrived with no meter, so 249 of
+    # 264 accounts silently read as traditional") gave the drawn shape its own meter, drawn from
+    # DESNZ penetration in `population_draw._draw_smart_meter`. It is now a drawn observable, not
+    # a hand-authored property field, so a SYN dict carrying it is correct. The same correction
+    # was owed in `tests/saas/test_drawn_customer_shape_class.py::STATIC_ONLY_FIELDS`.
+    assert "home_type" not in d
+    assert "smart_meter" in d
 
 
 def _minimal_run(tmp_path, customers):

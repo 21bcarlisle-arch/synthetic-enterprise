@@ -18,9 +18,28 @@ def test_customer_index_json_exists():
 
 
 def test_customer_json_accounts_present():
+    """The published customer index carries the accounts the company actually serves.
+
+    `C_IC1` LEFT THIS ASSERTION ON 2026-08-27, and not because anything broke. The director
+    suspended the I&C segment on 2026-08-24, so the site correctly publishes no industrial
+    account -- a published page naming a customer the company does not serve would be the
+    defect, not the absence. Pinning `C_IC1` here made the site's honesty read as a failure.
+
+    The strength is kept where it belongs: the index must be non-trivially populated and must
+    agree with the served book, so an index that silently emptied -- the failure this test
+    exists for -- still reds. The I&C RENDERING capability is covered where it belongs, by
+    `tests/tools/test_generate_customer_sample.py::
+    test_business_customer_home_type_is_the_business_premises_type`, which serves I&C
+    explicitly.
+    """
     index = json.loads((SITE / "data" / "customers" / "_index.json").read_text())
     assert "C1" in index
-    assert "C_IC1" in index
+    assert len(index) > 10, (
+        "the published customer index has {} accounts -- an index that empties is the failure "
+        "this test is for".format(len(index)))
+    assert not any(cid.startswith("C_IC") for cid in index), (
+        "an industrial account is published while the segment is suspended -- the site is "
+        "naming a customer the company does not serve")
 
 
 def test_customer_json_c1_valid():

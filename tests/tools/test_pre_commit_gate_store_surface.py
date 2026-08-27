@@ -99,7 +99,24 @@ def tree(tmp_path: Path) -> Path:
     (root / "tools").mkdir(parents=True)
     (root / "tests" / "design").mkdir(parents=True)
     (root / "docs" / "design").mkdir(parents=True)
-    shutil.copy(REPO_ROOT / MAP_REL, root / MAP_REL)
+
+    # THE MAP IS TWO FILES SINCE 2026-08-26, and the SET IS DERIVED rather than listed.
+    #
+    # This fixture copied `MAP_REL` alone and hard-coded `tools/simplifications_store.py` as the
+    # only loader. The split (docs/design/MAP_SPLIT_2026-08-26.md) added
+    # `maturity_map_closed.yaml` and `tools/maturity_map_store.py`, and
+    # `tests/design/test_simplifications_store.py` -- the control this fixture exists to drive --
+    # imports that loader. So the stand-in repo could no longer import the control at all, and
+    # all three mutation tests below failed on `ImportError: cannot import name
+    # 'maturity_map_store'` instead of on their own subjects. A mutation test that fails for the
+    # wrong reason proves nothing about the control it was aimed at.
+    #
+    # `MAP_PARTS_REL` is the loader's OWN declaration of which files the map consists of, so a
+    # third half, or a rename, is inherited here rather than needing this list edited again.
+    from tools.maturity_map_store import MAP_PARTS_REL
+    for rel in MAP_PARTS_REL:
+        shutil.copy(REPO_ROOT / rel, root / rel)
+
     shutil.copytree(
         REPO_ROOT / "docs" / "design" / "simplifications",
         root / "docs" / "design" / "simplifications",
@@ -108,7 +125,8 @@ def tree(tmp_path: Path) -> Path:
         src = REPO_ROOT / pkg / "__init__.py"
         if src.is_file():
             shutil.copy(src, root / pkg / "__init__.py")
-    shutil.copy(REPO_ROOT / "tools" / "simplifications_store.py", root / "tools")
+    for module in ("simplifications_store.py", "maturity_map_store.py"):
+        shutil.copy(REPO_ROOT / "tools" / module, root / "tools")
     shutil.copy(REPO_ROOT / STORE_TEST, root / STORE_TEST)
     return root
 

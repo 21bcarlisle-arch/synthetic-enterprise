@@ -202,7 +202,6 @@ company.billing.tariff_variation | unhooked | consumers:company.billing | no doc
 company.billing.theft_indicator | unhooked | consumers:company.billing | Energy theft / loss indicator.; 1 test(s); no importer
 company.billing.theft_risk_scoring_register | unhooked | consumers:company.billing | Energy Theft Risk Scoring Register (Phase GH).; 2 test(s); no importer
 company.billing.whd_register | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
-company.carbon.carbon_ledger | unhooked | none:company.carbon | E5 — the carbon three-ledger: the company's carbon P&L (SAVED / SPENT / NET).; 1 test(s); no importer
 company.compliance.board_meeting_register | unhooked | consumers:company.compliance | Board Meeting Minutes Register (Phase DR).; 2 test(s); no importer
 company.compliance.consumer_duty_board_report | unhooked | consumers:company.compliance | Consumer Duty Annual Board Report Register (Phase FW).; 1 test(s); no importer
 company.compliance.fair_value_assessment_register | unhooked | consumers:company.compliance | Consumer Duty Fair Value Assessment Register (Phase GP).; 3 test(s); no importer
