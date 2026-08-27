@@ -282,3 +282,116 @@ rather than a scalar that improves under it.
   draw; the document (with its discharge record appended) is now in `docs/staging/done/`.
 
 Nothing under `company/`, `simulation/`, `sim/` or `saas/` was touched. No level moved.
+
+---
+
+## 10. 2026-08-27 — the ORACLE BOUND: perfect biomass knowledge is worth −0.005 of correlation
+
+**The named next gap is refuted before it is built.** The map's own record, written 2026-08-26 at
+the end of the must-run pass, said: *"The residual explains only 2.6-33.5% of biomass's variance —
+a CfD plant runs on AVAILABILITY, so its low readings are outages. The next gap is an outage model,
+not a tidier percentile."* That sentence is now wrong, and the arithmetic is below.
+
+**Measurement, not a repair.** No constant changed, no wiring changed, no level moved.
+`BIOMASS_DISPATCH_WIRED` is still `False` and the published feed is byte-for-byte the series it was.
+
+### The method: measure the ceiling before building the approximation
+
+An outage model is an *approximation to knowing what the biomass fleet was able to do in each half
+hour*. So hand the dispatch that knowledge **exactly** — the metered half-hourly outturn, pinned
+with `biomass_floor_mw == biomass_capacity_mw`, leaving the clamp in
+`grid_carbon_intensity.emissions_rate_t_per_mwh` no freedom — and measure how far the gap to NESO's
+published series closes. **Whatever the oracle cannot buy, no approximation to it can buy.**
+
+That treatment may never be published, and that is the reason the bound is worth taking this way:
+NESO prices biomass at 120 gCO2/kWh, so a metered biomass reading is an emissions term, and handing
+it across the wall makes this NESO's arithmetic with a different cache. **An illegal treatment is
+still a legitimate bound**, because a bound is a fact about what is *knowable* and not a route to a
+number. `tools/ep13_biomass_oracle_bound.py::oracle_is_unreachable_from` keeps that structural — an
+AST walk over the publishing module, not a promise — and the run publishes
+`oracle_reaches_the_published_feed: false` beside its own results.
+
+Three treatments, one process, identical caches: **flat** (2,400 MW every half hour — *the published
+series*), **envelope** (the built-but-off annual demonstrated range), **oracle** (the metered outturn).
+
+### Both controls held, and they are opposites
+
+| control | what it refuses | measured |
+|---|---|---|
+| **route agreement** — `flat` must reproduce the shipped `build_shape` on every shape diagnostic | a comparison between two *codepaths* rather than two *treatments* | max abs diff **1.1e-16 to 1.8e-15** in every year |
+| **oracle bite** — the treatment must actually move the rate | "perfect knowledge does not help" that is really "perfect knowledge was never applied" (R15 fail-silent) | **2.8–5.9%** mean rate change, **72–93%** of half hours moved, up to 29% in one |
+
+Both are mutation-proven in `tests/tools/test_ep13_biomass_oracle_bound.py` — including the fixture
+defect this project has been caught by before: a panel built *at* `MUST_RUN_BIOMASS_MW` cannot see
+its own treatment, because at the fallback value the treated and untreated arithmetic are identical.
+
+### The result
+
+| year | corr flat | corr envelope | **corr ORACLE** | mae flat → oracle | within-day overstated flat → oracle | p95/p5 overstated flat → oracle |
+|---|---|---|---|---|---|---|
+| 2019 | 0.8826 | 0.8831 | **0.8740** | 0.1122 → 0.1103 | 1.478 → 1.438 | 1.389 → 1.328 |
+| 2020 | 0.8687 | 0.8713 | **0.8668** | 0.1326 → 0.1321 | 1.457 → 1.470 | 1.158 → 1.221 |
+| 2021 | 0.9088 | 0.9083 | **0.9102** | 0.1046 → 0.1005 | 1.403 → 1.384 | 1.262 → 1.246 |
+| 2022 | 0.8707 | 0.8672 | **0.8778** | 0.1495 → 0.1412 | 1.538 → 1.533 | 1.133 → 1.208 |
+| 2023 | 0.7952 | 0.7971 | **0.7879** | 0.2037 → 0.2069 | 1.469 → 1.468 | 1.571 → 1.848 |
+| 2024 | 0.7456 | 0.7529 | **0.7255** | 0.2675 → 0.2764 | 1.352 → 1.354 | 1.753 → **2.040** |
+| mean | 0.8453 | 0.8466 | **0.8403** | — | 1.4496 → 1.4409 | — |
+
+**Correlation is the axis holding L3, and the oracle moves it the wrong way.** Worse in four years
+of six, mean −0.0050, and **worst of all in 2024 (−0.0201)** — the year the level is held on, where
+perfect knowledge undoes the whole of the must-run pass's 0.726 → 0.746 gain. Within-day
+overstatement — the only axis a household can act on — moves 1.4496 → 1.4409, i.e. **0.6% of a 45%
+error**. p95/p5 overstatement gets *worse* in four years of six and much worse in the two most
+recent (1.753 → 2.040 in 2024). Every honest end is published: mean absolute error does improve, in
+four years of six, and the envelope treatment beats the oracle on correlation in four of six.
+
+### Why — and it is not that biomass is small
+
+**70–86% of the biomass fleet's variation is BETWEEN days, not within them.** Decomposed the same
+way `compare_shapes` decomposes the shape error, the fleet's within-day share of variance runs:
+
+| 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 |
+|---|---|---|---|---|---|---|---|
+| 0.170 | 0.214 | 0.185 | 0.217 | 0.152 | 0.137 | 0.295 | 0.236 |
+
+An outage is a *multi-week* event: the fleet's 14-day rolling demonstrated availability ran
+816 → 3,223 MW inside 2023 alone, and only 74 of 2,982 day-over-day steps exceed 200 MW. So a
+biomass availability series carries almost no *within-day* information — and the within-day axis is
+the one holding the level. That is the structural reason the ceiling is this low, and it applies to
+**any** treatment of biomass, an outage model included.
+
+The second half of the answer is sharper and is the part worth carrying forward: **the oracle makes
+the recent years worse**, and a term that gets *worse* under better information was absorbing an
+error somewhere else. Biomass sits inside the must-run block, so pinning it exactly changes the
+block's size in precisely the half hours where the thermal stack is near zero — 16.1% of 2024's half
+hours and 30.8% of 2025's, by this atom's own earlier measurement. **INFERRED, not observed:** the
+flat 2,400 MW was partly standing in for the clean-end level error, and removing it exposes that
+error rather than creating one. What would check it: re-run the oracle restricted to the half hours
+where the post-import residual exceeds the must-run block, and see whether the correlation loss
+disappears.
+
+### What this does and does not license
+
+* **It does not license wiring the envelope.** The envelope beats flat on correlation in four years
+  of six here, but it lost on four axes of five in the pass that built it and it is off for that
+  reason. Nothing in a bound is an argument for a treatment.
+* **It does not license lowering anything.** R12: these are diagnostics. The published series is
+  unchanged.
+* **It retires the outage model as EP13's next gap.** L3 needs correlation, correlation needs
+  *timing*, and biomass has almost no timing in it. The next gap has to be found on the within-day
+  axis — which, on this atom's record, means the gas stack's own dispatch timing, not a fourth
+  availability series.
+* **The second Expert Hour is still untaken**, and it is now the only *named* thing between this
+  atom and a level move. LAW A: the drawn plan said 2 → 3; the plan is a diagnostic.
+
+Reproduce: `python3 -m tools.ep13_biomass_oracle_bound` →
+`docs/observability/ep13_biomass_oracle_bound.json`.
+
+**OWED, and it will wedge the tree if it is ignored.** This atom's map entry is now **11,954 B
+against the 12,288 B per-atom cap — 334 B of headroom, and it is the fattest entry in the map.**
+That is the EP1 shape exactly: the *next* pass on EP13 cannot write its note, and because the
+pre-commit gate is tree-wide it will refuse **every lane's** commit, not just this one. The
+control's own named remedy applies — rehome the accreted history to
+`docs/design/simplifications/EP13_adapter_carbon_intensity.yaml` and leave one comment — and it is
+a separate job from this measurement, deliberately not done inside it. This pass kept its own
+addition to ~640 B and *corrected* the sentence it replaced rather than accreting beside it.
