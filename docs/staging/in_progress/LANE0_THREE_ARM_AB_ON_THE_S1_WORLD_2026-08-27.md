@@ -87,6 +87,38 @@ systemd-run --user --unit=three-arm-ab --same-dir --collect \
 
 `systemctl --user status three-arm-ab` is the liveness check; the log still carries START/END.
 
+### The live run — launched 2026-08-27T19:45:12Z
+
+```
+unit      land-then-three-arm-ab.service   (systemd --user; MainPID 1402748, ppid 382)
+script    /tmp/land_then_ab.sh
+log       docs/observability/three_arm_composite_run.log
+artefact  docs/observability/value_cycle_ab_s1_three_arm.json
+liveness  systemctl --user is-active land-then-three-arm-ab.service
+```
+
+**`ppid=382` is the whole point** — that is the systemd user manager, not the tick that
+launched it. The 15:08Z run's `ppid` was the tick, which is why walking that tick's descendants
+found it. Verified before launch with a throwaway unit rather than assumed.
+
+It does three things in order, and **the A/B is conditional on the land succeeding**:
+
+1. `surgical_land` the four remaining world paths (the gate takes >10 min — which is why this
+   cannot run in a bounded tick's foreground; the first attempt was SIGTERMed at exit 143 by the
+   10-minute tool timeout, the same class of death as the run it is replacing).
+2. On `rc=0` only: bind the claim via `delivery_lane --landed`, then `git push origin main`.
+3. Then `run_value_cycle_ab --level-arm` at the commit just landed, whose SHA the log records.
+
+`END rc=` carries `PHASE=land` or `PHASE=ab` so a reader can tell WHICH half died. A gate refusal
+stops before the A/B rather than measuring an unlanded world.
+
+**On R18.** The direction asked for a foreground `tools.wait_for --pid` bound to the run. That is
+the right instrument for a job that fits inside a turn and the wrong one for a job designed to
+outlive it — a foreground waiter here would itself be killed at the 10-minute tool timeout and
+would prove nothing. The subject and the deadline still exist, in the unit name and in the
+START/END wrapper. `wait_for` was used twice this turn where it fits: on the control suite
+(165s) and on the single-test re-run (540s).
+
 ## What is already landed and pushed — do NOT redo it
 
 `bafa625d1` (on origin/main):
