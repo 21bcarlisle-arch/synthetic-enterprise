@@ -106,6 +106,32 @@ says of its own engagement multipliers, *"The engagement multipliers ARE new phy
 simulated outcomes."* That module knew to say which of its inputs move outcomes. The attitude axes
 never got that sentence — or that wiring.
 
+### CORRECTION, later the same day: the table above is three of five
+
+*(added 2026-08-27 after the enforcing control landed, and against the control as well as the doc)*
+
+The table enumerates the axes whose curriculum keys end in `_marginals`. That is a naming
+convention, not the subject. `segmentation_curriculum_v1.json` carries `hidden_truth_only` on
+**five** keys, and the two this doc and the first version of
+`tests/simulation/test_discoverability_claims_are_enforced.py` both missed were both claiming
+**discoverable** with no channel demonstrated:
+
+| Axis | Was | Now | Why |
+|---|---|---|---|
+| `tenure_adoption_gating_strength` | **false** — *"the company must DISCOVER that tenure gates adoption from its acquisition/interaction data"* | **true** (hidden) | **NO channel.** The only route from this value to any adoption decision is `generate_life_events(adoption_eligibility_multiplier=…)`; the sole live caller (`household_demand.py`) never passes it, so every live gate runs at 1.0, and `life_events.Household` has no tenure field to reach it by another route. The per-asset mechanism is built and tested; its live-run **activation** is R13 director-reserved curriculum. |
+| `region_marginal_synthetic_acquisitions` | **false** — *"a public prior the company observes at enrolment"* | **false**, now proven | **YES, and it is the one OBSERVED axis here.** `to_customer_dict()` renders it at `location.region` and the live book draws with `draw_region=True`, so it reaches the saas-shaped stream on the shipped path — verified against the observable dict, never the hidden `cohort`. |
+
+The control's own whole-set guard was the sharper half of this. `MIN_AXES_SCANNED = 3` was pinned
+to whatever the suffix filter returned, so the one assertion written to catch a missed axis was
+satisfied by its own blindness — an exclusion scoped by a naming convention hiding everything that
+convention mixes. The scan now enumerates every key carrying the flag whatever it is called, the
+floor is re-based on the widened scan, and the R15 mutation is a sixth flagged key named without
+the suffix: it passes clean against the shipped control (5 passed) and reds against the widened one.
+
+The doctrinal point is the thesis, not tidiness. The claim is that the company's advantage comes
+from **inference** and never **access**; the mirror of that claim is that a declared inference route
+must be real. Two traits were still promising one.
+
 ### NOT MODELLED AT ALL
 Product fit as a *choice*; reputation/brand; green willingness-to-**pay** (and no green product to
 buy); **and any trade-off between axes** — the multiplicative stack means no household can rank
