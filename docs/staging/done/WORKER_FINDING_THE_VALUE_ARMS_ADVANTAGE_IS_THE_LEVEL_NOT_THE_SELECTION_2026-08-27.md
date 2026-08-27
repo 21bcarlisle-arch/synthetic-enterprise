@@ -123,6 +123,40 @@ elastic:
 | evidence 1.26x weights, between-group only | 2 | −£2,565, −£1,389 | 1.23 – 1.38 |
 | **corrected: £-scaled + within-segment variance** | 3 | **−£3,574 … +£5,117** (mean +£1,106) | 0.41 – 1.46 |
 
+### Where those four rows came from — stated because it is NOT the committed mode
+
+The Evidence line at the end of the original finding says `run_value_cycle_ab.py`, and a reader would
+reasonably take the rows above to be output of the committed `--noise-floor-seeds` mode landed in
+`3cefa754b`. **They are not.** Every row above was produced by an uncommitted sweep script under
+`/tmp/…/scratchpad/noise_floor.py`, one process per seed, and **no commit reproduces them.** Rows 2–4
+are seeds `11111/22222/33333(/44444)` of that script at three successive states of the world
+(pre-Ofgem weights; between-group only; post-`9e52d2254` £-scaled).
+
+That script differs from the committed instrument in one way that matters: it **pins the level arm at
+`renewal_margin_flat_level_gbp_per_mwh=44.5`**, the value remembered from the original run, whereas
+the committed mode reads the value arm's own realised median off the same run. The pinned constant
+makes it the noise floor of a *slightly different instrument* — the level arm is held fixed while the
+value arm it is compared against moves with the seed. **This widens the spread by an unmeasured
+amount**, so the ±£4,400 above is an upper bound on the committed instrument's noise floor, not a
+measurement of it. The conclusion is unaffected — the spread would have to shrink by more than 3x to
+make −£1,389 resolvable — but the number itself should not be quoted as the committed mode's output.
+
+**The committed mode has never been run end-to-end.** Its declared artefact,
+`docs/observability/value_cycle_ab_noise_floor.json`, does not exist. It is unit-tested (9 tests,
+including the two R15 mutations) but unexercised against the real world. Reproducing this table
+properly is `python3 -m tools.run_value_cycle_ab --noise-floor-seeds 11111,22222,33333` — roughly
+35 min per seed × 3 arms. Until that has run, this table is evidence, not an instrument reading.
+
+### The direct proof that the old harness measured nothing
+
+Before the patch was re-pointed, two runs of the sweep at seeds `11111` and `22222` returned nets
+that were **identical to the penny** — control £113,282.62, value £120,648.84, level £120,637.48,
+`selection_worth` £11.36 on both. Two different seeds, one byte-identical world. That is the
+FAIL-SILENT signature the committed mode's per-seed fire counter now makes impossible: the old patch
+rebound `price_sensitivity_for_customer`, which the churn decision stopped calling when elasticity
+went continuous, so the seed never reached the decision and the harness would have reported a noise
+floor of approximately zero — the most flattering answer available, produced by varying nothing.
+
 **The sign is not stable across draws.** −£1,389 is one sample from a distribution roughly ±£4,400
 wide. The DIRECTION claimed above ("the level explains all of the advantage") survives in some
 worlds and reverses in others.
