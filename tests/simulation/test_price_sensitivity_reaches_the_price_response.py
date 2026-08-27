@@ -247,6 +247,39 @@ def test_the_response_is_to_POUNDS_and_scales_with_the_households_own_bill():
         "still keyed on percent, and customer value cannot scale with consumption")
 
 
+def test_the_GBP_scale_is_NOT_applied_outside_the_evidences_own_segment():
+    """THE DEFECT THE POUNDS CHANGE SHIPPED WITH, caught by a settlement-records test going red.
+
+    `_savings_to_rate` is calibrated on DOMESTIC switching against annual savings of £0–£400 and
+    extrapolates linearly beyond. Scaling by the customer's OWN bill is right for a household and
+    catastrophic for an industrial site: on `C_IC3`, a 4 GWh chemical plant, a 10% differential on a
+    ~£500,000 bill is £50,000 of "annual saving" — 125x past where the data stops — and the curve
+    returned a churn multiplier of **x599.6**. The plant left immediately.
+
+    Ofgem/BMG's sample is 3,235 GB DOMESTIC bill payers. It says nothing about industrial
+    procurement, which is tendered and broker-mediated rather than chosen off a comparison site."""
+    from simulation.customer_events import _bill_scale_for
+
+    assert _bill_scale_for("resi", 4_000.0) == pytest.approx(4_000.0)
+    assert _bill_scale_for("I&C", 500_000.0) is None
+    assert _bill_scale_for("SME", 40_000.0) is None
+    industrial = churn_position_multiplier(0.10, _bill_scale_for("I&C", 500_000.0))
+    assert industrial < 10.0, (
+        f"an industrial site faces a x{industrial:,.0f} churn multiplier at +10% — the domestic "
+        "curve is being extrapolated far past its evidence and called physics")
+
+
+def test_an_UNKNOWN_segment_falls_back_to_the_market_average_not_to_domestic():
+    """FAIL-SAFE DIRECTION. If the roster lookup fails, the safe answer is the PREVIOUS bounded
+    behaviour, not the new unbounded one. Defaulting an unknown to 'domestic' would apply the
+    extrapolating curve to whatever it could not identify — the same failure, through the error
+    path. This is the half the first version of the gate got wrong."""
+    from simulation.customer_events import _bill_scale_for
+
+    assert _bill_scale_for(None, 500_000.0) is None
+    assert _bill_scale_for("not_a_segment", 500_000.0) is None
+
+
 def test_the_CALIBRATION_bill_reproduces_the_pre_change_world_exactly():
     """The regression anchor. At the market-average bill the new path must be the old path to the
     last bit, so any moved run figure is attributable to households having DIFFERENT bills and not

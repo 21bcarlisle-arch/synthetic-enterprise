@@ -67,6 +67,46 @@ def _price_differential_vs_market(
         return None
     return (float(new_rate_gbp_per_mwh) - float(svt)) / float(svt)
 
+#: Segments the Ofgem/BMG evidence actually covers. Its sample is 3,235 GB **domestic energy bill
+#: payers**; it says nothing whatever about how an industrial site buys power.
+_DOMESTIC_SEGMENTS = {"resi"}
+
+
+def _bill_scale_for(segment: str | None, bill_gbp: float | None) -> float | None:
+    """The bill scale to feel the price differential against — or None for the market average.
+
+    THE DOMESTIC CURVE GOVERNS DOMESTIC HOUSEHOLDS AND NOTHING ELSE, and the first version of the
+    GBP change forgot to say so. `_savings_to_rate` is calibrated on DESNZ/Ofgem **household**
+    switching against annual savings of GBP 0-400, and beyond that ceiling it continues at the last
+    informed slope -- a named simplification that is harmless while the input stays near the
+    calibrated range and absurd when it does not.
+
+    Scaling by the customer's OWN bill is right for a household (GBP 600-5,000, so a 10%
+    differential lands at GBP 60-500, at or near the calibrated range) and catastrophic for an
+    industrial site. Measured on `C_IC3`, a 4 GWh chemical plant: a 10% differential on a
+    ~GBP 500,000 bill is GBP 50,000 of "annual saving", 125x beyond where the data stops, and the
+    linear extrapolation returned a churn multiplier of **x599.6**. The plant left immediately and
+    a settlement-records test went red -- which is how this was found.
+
+    NON-DOMESTIC KEEPS THE MARKET-AVERAGE SCALE, deliberately, and that is an honest placeholder
+    rather than a fix: industrial supply is TENDERED and broker-mediated on contract terms, not
+    chosen off a comparison site, so a domestic switching curve is the wrong model for it at any
+    scale. Modelling I&C churn properly is its own piece of work; what this must not do is let a
+    domestic curve run 125x past its evidence and call the answer physics.
+
+    AN UNKNOWN SEGMENT FALLS BACK TO THE MARKET AVERAGE, not to domestic. If the roster lookup ever
+    fails, the safe answer is the PREVIOUS behaviour -- bounded, and wrong only in the way the world
+    was already wrong -- rather than the new unbounded one. Defaulting an unknown to "domestic"
+    would apply the extrapolating curve to whatever it could not identify, which is precisely the
+    failure above, re-entered through the error path.
+    """
+    if bill_gbp is None:
+        return None
+    if segment not in _DOMESTIC_SEGMENTS:
+        return None
+    return bill_gbp
+
+
 def _annual_bill_gbp(
     billing_account: str, records_so_far: list[dict], term_start_str: str
 ) -> float | None:
@@ -322,8 +362,12 @@ def roll_lifecycle_event(
         # savings in absolute terms rather than in proportion to their bill."* Derived from what we
         # have actually BILLED this household -- a fact a real supplier plainly has, and
         # Point-in-Time safe because `records_so_far` stops before this term by construction.
+        _segment = next(
+            (c.get("segment") for c in customers if c.get("customer_id") == billing_account), None)
         p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(
-            felt, annual_bill_gbp=_annual_bill_gbp(billing_account, records_so_far, term_start_str))
+            felt,
+            annual_bill_gbp=_bill_scale_for(
+                _segment, _annual_bill_gbp(billing_account, records_so_far, term_start_str)))
         effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
