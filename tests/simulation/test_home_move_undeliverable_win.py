@@ -105,17 +105,39 @@ def restore_acquired_book():
 
 def _force_one_churn_with_a_win(monkeypatch, account_id: str) -> None:
     """Turn the FIRST real lifecycle event for `account_id` into a churn that won the
-    home-mover, leaving every other field the real roll produced (and every other
-    account's event untouched)."""
+    home-mover, and hold every OTHER account to a renewal for the window.
+
+    THE SOLE-CHURN PREMISE IS NOW ENFORCED RATHER THAN INHERITED (2026-08-27). This used to
+    leave other accounts' events untouched, and the tests below rely on "the forced churn is the
+    only one in this window, so any market approach is its" — an attribution that was true only
+    because the world happened to produce no other churn in it.
+
+    It stopped being true when the renewal schedule was repaired: `roll_lifecycle_event` was
+    returning None for every account whose anniversary fell on the 1st of a month rather than
+    the 31st, so six of the nine seed accounts could never leave at renewal. With that fixed C6
+    churns naturally in this window, `churned_billing_accounts` became `['C6', 'C7']`, and the
+    attribution silently stopped holding.
+
+    A premise a test depends on should be established by the test, not borrowed from a world
+    that is free to change. Suppressing other churn is not a weakening: the subject here is what
+    happens to ONE won home-mover with no successor, and another account leaving at the same
+    time is noise that makes the market approach unattributable.
+    """
     real_roll = rp.roll_lifecycle_event
     forced = {"done": False}
 
     def wrapper(cid, term_start_str, *args, **kwargs):
         event = real_roll(cid, term_start_str, *args, **kwargs)
-        if event is not None and not forced["done"] and event["customer_id"] == account_id:
+        if event is None:
+            return None
+        if not forced["done"] and event["customer_id"] == account_id:
             event["event_type"] = "churned"
             event["home_move_won"] = True
             forced["done"] = True
+        elif event["customer_id"] != account_id:
+            # Hold everyone else on supply, so the only churn in the window is the forced one.
+            event["event_type"] = "renewed"
+            event["home_move_won"] = False
         return event
 
     monkeypatch.setattr(rp, "roll_lifecycle_event", wrapper)

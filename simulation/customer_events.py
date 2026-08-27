@@ -149,7 +149,12 @@ def roll_lifecycle_event(
     billing_account = household_of(customer_id)
     term_month = term_start_str[:7]
 
-    churn_risk = build_churn_risk(records_so_far, customers)
+    # ASK ABOUT THE RENEWAL WE ARE ACTUALLY PRICING (2026-08-27). `records_so_far` stops before
+    # this term by construction (Point-in-Time), so without `through_period` the churn model's
+    # horizon ends one period short of the very renewal being rolled and returns no entry for it.
+    # See the note in `saas.churn_model.build_churn_risk`: this silenced churn entirely for
+    # every account whose anniversary fell on the 1st of a month rather than the 31st.
+    churn_risk = build_churn_risk(records_so_far, customers, through_period=term_month)
     win_rates = build_home_move_win_rates(churn_risk, customers, price_differential_pct)
 
     renewal_data = next(

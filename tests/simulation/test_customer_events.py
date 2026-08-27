@@ -71,12 +71,62 @@ ACQ_DATE = "2016-01-01"
 FIRST_RENEWAL = _first_renewal_date(ACQ_DATE)  # "2016-12-31"
 
 
-def test_roll_returns_none_when_no_renewal_data_in_window():
-    # Only a few days of records — churn model has no renewal point yet
+def test_roll_returns_none_when_the_account_has_NO_history_at_all():
+    """The genuine "we know nothing about this account" case, and the only one left.
+
+    REWRITTEN 2026-08-27. This asserted that TEN DAYS of records also produced None, which
+    conflated two different things: an account the model has never seen, and an account whose
+    renewal simply lies beyond the settled window. The second is every renewal, by construction
+    -- `roll_lifecycle_event` is handed records that stop before the term it is pricing -- and
+    treating it as "no data" silenced churn entirely for two-thirds of the seed book. See the
+    note in `saas.churn_model.build_churn_risk`.
+
+    An account with no settlement records at all never reaches `score_experience_signals`, so it
+    has no churn-risk entry and no renewal to roll. That is a real absence and still returns
+    None.
+    """
     customers = _make_customers("C5", acquisition_date=ACQ_DATE)
-    records = _make_settlement_records("C5", "2016-01", 10)  # only 10 days
-    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", [], customers)
     assert result is None
+
+
+def test_a_renewal_BEYOND_the_settled_window_still_rolls():
+    """THE DEFECT THIS FILE USED TO ASSERT, inverted.
+
+    Ten days of records and a renewal twelve months later. The renewal is beyond the settled
+    window -- as every renewal is, since the caller withholds the term being priced -- and the
+    twelve-month bill-shock lookback is genuinely thin. Neither is a reason to deny the customer
+    a decision: a clean history means a base-rate churn probability, not immunity.
+
+    Before the fix this returned None, and on the real book that meant C2, C3, C4, C6, C8 and C9
+    were priced at 18 renewals across 2017-2019 and produced not one lifecycle event.
+    """
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    records = _make_settlement_records("C5", "2016-01", 10)
+    result = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", records, customers)
+    assert result is not None, (
+        "a renewal beyond the settled window got no churn decision -- that is the defect, not "
+        "a missing-data case")
+    assert result["event_type"] in ("renewed", "churned")
+
+
+def test_the_roll_reads_no_data_from_beyond_the_term_it_is_pricing():
+    """POINT-IN-TIME, and the property that makes raising the horizon safe rather than a breach.
+
+    Raising the churn model's horizon to the asked-about month admits THAT renewal and no later
+    one. A record dated after the term start must not change the answer -- if it did, the world
+    would be rolling this renewal on information from after it.
+    """
+    customers = _make_customers("C5", acquisition_date=ACQ_DATE)
+    clean = _build_one_year_records("C5", 2016)
+    with_future = clean + _make_settlement_records("C5", "2017-06", 28)
+
+    before = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", clean, customers)
+    after = roll_lifecycle_event("C5", FIRST_RENEWAL, "electricity", with_future, customers)
+
+    assert before is not None and after is not None
+    assert before["event_type"] == after["event_type"]
+    assert before["churn_probability"] == after["churn_probability"]
 
 
 def test_roll_returns_event_dict_when_renewal_data_present():

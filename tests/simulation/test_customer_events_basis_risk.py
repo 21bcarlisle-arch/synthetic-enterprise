@@ -122,16 +122,41 @@ def test_company_estimate_is_rounded_to_4dp():
         assert result["company_churn_estimate"] == round(result["company_churn_estimate"], 4)
 
 
-def test_none_returned_when_no_renewal_data():
-    """No renewal data -> still returns None (rate params have no effect)."""
+def test_none_returned_when_the_account_has_no_history_at_all():
+    """No churn-risk entry -> None, and the rate params have no effect on that.
+
+    REWRITTEN 2026-08-27, same correction as its sibling in
+    `tests/simulation/test_customer_events.py`. The fixture used FIVE settlement records and
+    called that "no renewal data", which conflated two different things: an account the model
+    has never seen, and an account whose renewal simply lies beyond the settled window. The
+    second is EVERY renewal by construction -- `roll_lifecycle_event` is handed records that
+    stop before the term it is pricing -- and treating it as missing data silenced churn for
+    every account whose anniversary fell on the 1st of a month rather than the 31st. Six of the
+    nine seed accounts could never leave at renewal. See `saas.churn_model.build_churn_risk`.
+
+    An account with NO records never reaches `score_experience_signals`, has no churn-risk entry
+    and no renewal to roll. That is a real absence and still returns None.
+    """
     customers = _make_customers()
-    records = _build_one_year_records("C5")[:5]  # too few records
+    result = roll_lifecycle_event(
+        "C5", FIRST_RENEWAL, "electricity", [], customers,
+        old_rate_gbp_per_mwh=100.0,
+        new_rate_gbp_per_mwh=120.0,
+    )
+    assert result is None
+
+
+def test_a_thin_history_still_gets_a_priced_renewal_ROLLED():
+    """The partner: thin history is a base-rate churn probability, not immunity."""
+    customers = _make_customers()
+    records = _build_one_year_records("C5")[:5]
     result = roll_lifecycle_event(
         "C5", FIRST_RENEWAL, "electricity", records, customers,
         old_rate_gbp_per_mwh=100.0,
         new_rate_gbp_per_mwh=120.0,
     )
-    assert result is None
+    assert result is not None
+    assert result["event_type"] in ("renewed", "churned")
 
 
 def test_result_contains_customer_id():

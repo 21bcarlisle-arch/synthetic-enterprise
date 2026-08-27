@@ -73,7 +73,8 @@ def _renewal_periods(acquisition_date: str, last_period: str) -> list[str]:
     return periods
 
 
-def build_churn_risk(settlement_records: list[dict], customers: list[dict], comparison_mode: str = "yoy") -> dict:
+def build_churn_risk(settlement_records: list[dict], customers: list[dict],
+                     comparison_mode: str = "yoy", through_period: str | None = None) -> dict:
     """Estimate churn risk at each annual renewal point for every billing
     account present in `settlement_records`.
 
@@ -100,9 +101,33 @@ def build_churn_risk(settlement_records: list[dict], customers: list[dict], comp
         acquisition_date = acquisition_by_account[account_id]
         shocks_by_period = {p["billing_period"]: p["bill_shock_triggered"] for p in periods}
         last_period = periods[-1]["billing_period"]
+        # THE RENEWAL BEING ASKED ABOUT IS ALWAYS BEYOND THE SETTLED WINDOW (2026-08-27).
+        #
+        # `last_period` is the final period in the records handed in, and the caller that
+        # matters -- `simulation.customer_events.roll_lifecycle_event` -- is handed records up
+        # to but NOT INCLUDING the term it is pricing. So the renewal it is asking about lies
+        # one period past the horizon BY CONSTRUCTION, and excluding it for that is circular.
+        #
+        # MEASURED, and it silenced churn rather than mislabelling it. A term ENDING 2016-12-31
+        # has renewal month 2016-12, which the settled records still cover, so the roll happened.
+        # A term STARTING 2017-04-01 has month 2017-04 while the records stop at 2017-03, so
+        # `roll_lifecycle_event` found no entry and RETURNED NONE -- no churn decision at all.
+        # Six of the nine residential seed accounts (C2, C3, C4, C6, C8, C9) were priced at 18
+        # renewals across 2017-2019 and produced not one lifecycle event, while the three whose
+        # anniversary happened to land on a month END churned normally. Whether a customer could
+        # leave depended on which side of a month boundary their anniversary sat.
+        #
+        # NO FUTURE DATA IS READ, which is what makes this safe rather than a Point-in-Time
+        # breach. The bill-shock window for a renewal is the TWELVE MONTHS BEFORE it
+        # (`_shift_month(renewal_period, -12)` to `-1`), so for a 2017-04 renewal it is
+        # 2016-04..2017-03 -- entirely inside records that stop at 2017-03. The data was always
+        # there; only the horizon check kept it out. And `_renewal_periods` still returns
+        # nothing beyond `horizon`, so raising it to the asked-about month admits that renewal
+        # and no later one.
+        horizon = max(last_period, through_period) if through_period else last_period
 
         account_risk = []
-        for renewal_period in _renewal_periods(acquisition_date, last_period):
+        for renewal_period in _renewal_periods(acquisition_date, horizon):
             window_start = _shift_month(renewal_period, -12)
             window_end = _shift_month(renewal_period, -1)
             bill_shock_count = sum(

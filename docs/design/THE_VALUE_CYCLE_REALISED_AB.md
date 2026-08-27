@@ -1273,3 +1273,171 @@ the company's baseline churn belief is ~6× the world's realised rate at flat pr
 calibration finding about `company/crm/churn_model.py`, it is the company's own affair, and it is
 allowed to be wrong — but it is the largest single belief error this project has measured, and it
 biases every value-arm decision toward under-pricing.
+
+
+## 2026-08-27 — what the full-window instruments COST, measured before either was run
+
+Five stretches named the same two commands and none landed a full-window artefact. The direction
+behind this section refused to restate the command a sixth time and asked a different question:
+**what does it cost.** This is that measurement, taken *before* anything was run, together with the
+verdict it supports. It is recorded here rather than in a finding because a reader arriving at this
+file to re-run these instruments is exactly the reader who needs it.
+
+### The two numbers, both read off disk rather than estimated
+
+**One full-window sim pass.** `background/sim_runner.py` runs `tools.run_annual_report` with no
+window truncation and logs `Run complete — {elapsed}s` to `docs/observability/sim-runner-log.md`.
+That log carries **n = 3,540** completed full-window runs:
+
+| | all 3,540 | most recent 30 |
+|---|---|---|
+| min | 245 s | 567 s |
+| median | 470 s | **632 s** |
+| max | 6,175 s | 781 s |
+
+The recent-30 figures are the ones used below: the book has grown, and the all-time median is a
+smaller company's number. **632 s is also an upper bound on what the instruments pay per pass** —
+`run_annual_report` renders the annual report on top of `run_phase4c_on_phase2b`, and both
+`run_value_cycle_ab` and `run_price_ladder` call `run_phase4c` alone. Erring high is the safe
+direction for a fit question, so the over-estimate is kept rather than corrected.
+
+**What a tick can hold.** `background/worker-tick.service` sets **`TimeoutStartSec=7200`** (120
+min), and the unit is `Type=oneshot` that blocks on its `claude -p` child — so systemd SIGTERMs the
+**whole cgroup**, tick and worker and any Agent fork together, at 120 minutes. That file's own
+comment records what the bound cost when it was 30 min: 10 kills on 2026-08-03 and 2,566 lines
+stranded in dying worktrees. `ExecStopPost=background.fork_salvage` now bounds the fork half of
+that, but **a sim pass killed at 119 minutes leaves no artefact at all** — not a partial result, a
+zero. The gate a landing must pass costs a further **397 s median** (`commit_hook_duration.jsonl`,
+n = 38, recent runs 384-405 s, ceiling 840 s).
+
+### What each instrument costs, at median and at the observed tail
+
+Pass counts are read from the code, not assumed: `run_value_cycle_ab` runs two arms
+(`tools/run_value_cycle_ab.py:1242,1251`); `run_price_ladder` runs **one flat-rules control plus one
+pass per rung** (`run_price_ladder:681,690`), and `DEFAULT_RUNGS` is six.
+
+| | sim passes | + one gate, median | + one gate, tail | share of the 120 min bound, at tail |
+|---|---|---|---|---|
+| `run_value_cycle_ab` (full window) | 2 | **27.7 min** | 40.0 min | 0.33 |
+| `run_price_ladder --rungs 0,0.5,1,2` | 5 | **59.3 min** | 79.0 min | 0.66 |
+| `run_price_ladder` (default 6 rungs) | 7 | **80.3 min** | 105.1 min | 0.88 |
+| **AB then the 4-rung ladder, both landed** | 7 | **87.0 min** | **119.0 min** | **0.99** |
+| **AB then the default ladder, both landed** | 9 | 108.0 min | **145.1 min** | **EXCEEDS** |
+
+### Which case this was: IT FITS — for one instrument per tick, and not for two
+
+The assumption behind five stretches was that a full-window run is too big for a tick. **It is not.**
+A full-window A/B is a 28-minute job against a 120-minute bound, with 3x headroom; there was never a
+mechanical reason it could not run, and this section exists partly to stop that excuse being
+available. The 4-rung ladder fits too.
+
+What does **not** fit is the *sequence* every one of those stretches asked for. AB and ladder and two
+landings in one invocation is 87 minutes at the median and **119 minutes at the tail against a 120
+minute hard kill** — and that arithmetic assumes the worker spends zero time reading its doorbell,
+orienting, or dispositioning staging, which is never true (this invocation had spent ~15 minutes
+before it started anything). With the *default* six-rung ladder the pair exceeds the bound outright.
+So the failures were not a discipline problem and not a capability problem: **the ask was
+over-subscribed, and the tail of it was unsurvivable.** That is the finding.
+
+### R4 — the nearest working analogue, and the diff, both measured
+
+The direction named the analogue: the 2019 ladder that ran to completion at 04:45 and produced 141 KB.
+Its tick is in the journal — `worker-tick.service`, 04:14:26→04:50:49 BST, **36 min 23 s wall clock,
+41 min CPU, 3.5 G memory peak** — and it did the orientation and the landing inside that too. Seven
+passes at the 2016-2019 window in ≤36 minutes is ≈5 min/pass against the full window's 10.5, so
+**the diff is the window and it is worth roughly 2x per pass.** Nothing else differs, which is why
+"the full-window one is different in kind" was never true.
+
+One number from the same journal is worth carrying forward: the 02:14 tick peaked at **15 G**. Against
+a WSL2 guest whose live total reads 24.0 G with 19.3 G available (`background.resource_headroom.sample()`,
+08:56:46Z) and a machine with 94 lifetime OOM kills, a seven-pass full-window ladder is not only the
+longest job in this table, it is the one closest to the memory wall. It should not share a tick with
+a publish.
+
+### The cheapest thing that makes the pair runnable, recorded although the answer was "fits"
+
+1. **Free, and it is the actual fix: one instrument per tick, landed.** Each is inside the bound with
+   room. The direction's own "land after EACH, never batched" was already the right instinct; what was
+   missing is that the *draw* has to be one instrument too, not two.
+2. **Cheap, if a full six-rung ladder is ever wanted: `--resume`.** The ladder's rungs are already
+   independent `run_phase4c` calls whose results are written per-rung, so skipping any rung already
+   present in the output JSON turns a 7-pass job into three ticks of 2-3 passes. No part of the
+   design changes — this is a caching flag, not a checkpointing scheme.
+3. **Not needed: checkpointing the sim, or a longer-lived lane.** Both were on the table in the
+   direction. Neither is warranted: the 7200 s bound is not the binding constraint, the sequencing is,
+   and raising a timeout to fit an over-subscribed ask would hide the over-subscription rather than
+   fix it.
+
+---
+
+## 2026-08-27 — the renewal schedule was repaired, and the belief-quality result did not survive it
+
+`roll_lifecycle_event` was returning `None` for every renewal whose month fell beyond the settled
+window — which is every renewal by construction, since the caller withholds the term it is
+pricing. Whether a customer got a churn decision therefore depended on whether their anniversary
+landed on the **31st of a month or the 1st**: a term ENDING 2016-12-31 has renewal month 2016-12,
+still covered by the records, and rolled; a term STARTING 2017-04-01 has month 2017-04 while the
+records stop at 2017-03, and did not. Six of the nine residential seed accounts were priced at 18
+renewals across 2017-2019 and produced **not one lifecycle event**.
+
+`build_churn_risk` now takes `through_period`, and the caller passes the month it is asking about.
+No future data is read: the bill-shock window for a renewal is the twelve months BEFORE it, which
+is entirely inside the records already supplied. Only the horizon check kept it out.
+
+### The A/B, same book, same tool, before and after
+
+| | broken schedule | repaired |
+|---|---|---|
+| control net | £79,688.17 | £111,269.70 |
+| value net | £96,461.44 | £118,335.56 |
+| **realised delta** | **+£16,773.28** | **+£7,065.86** |
+| `scored_share_of_priced` | 57.1% | **100.0%** |
+| `discrimination_auc` | 0.6944 | **0.4653** |
+| `calibration_error` | +0.0107 | **−0.0774** |
+
+**The advantage survives and more than halves. The belief-quality result does not survive at all.**
+
+### The finding
+
+`belief_vs_outcome`'s own `reading`, written long before this run, states the verdict:
+
+> *"`discrimination_auc` at 0.5 means the belief carries NO information about who stays, and any
+> advantage the arm shows is then a property of its calibration error rather than of inference —
+> which is the thesis failing while the P&L improves."*
+
+0.4653 is that case. And the buckets show it is not uniform noise — the middle of the arm's range
+is **inverted**:
+
+| believed | realised | n |
+|---|---|---|
+| 0.346 | 0.818 | 11 |
+| 0.557 | 0.250 | 4 |
+| 0.616 | **0.000** | 4 |
+| 0.928 | 1.000 | 6 |
+
+It is confidently wrong exactly where it is making decisions. `auc_population` is
+`{retained: 16, left: 9}`, so the statistic is not degenerate, though 9 is small enough that the
+caveat in `reading` applies.
+
+### Why the earlier 0.694 was not a measurement of belief quality
+
+It was computed over the 57% of renewals that could be matched — and that subset was not a sample.
+It was **exactly the accounts whose anniversary happened to fall at a month end**, which is
+uncorrelated with anything about the customer but perfectly correlated with which accounts the
+world allowed to churn at all. The arm was being graded only on customers who could leave.
+
+This is the same shape as the survivorship finding of 2026-08-26 (the CLV gap graded only on
+accounts that died), one layer along, and it was invisible for the same reason: the denominator
+moved without saying so. `scored_share_of_priced` is the field that made it visible, and it was
+already there.
+
+### What this does NOT say
+
+It does not say the arm is worthless. It still beats flat rules by £7,066 on a book of 419. What
+it says is that **the win is not yet attributable to inference** — a −0.077 calibration error with
+no ranking power is an arm that prices systematically rather than selectively, and a systematic
+price change is something flat rules could also make. Distinguishing the two is the next
+measurement, not a conclusion available from this one.
+
+Artefact: `docs/observability/value_cycle_ab_resi_renewal_fixed.json`. Prior:
+`docs/observability/value_cycle_ab_resi.json`.
