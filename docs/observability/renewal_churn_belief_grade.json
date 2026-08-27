@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "source_run_output": "docs/reports/run_output_latest.json",
+  "book": {
+    "renewals_the_world_rolled": 478,
+    "billing_accounts": 157,
+    "first_renewal": "2016-12-31",
+    "last_renewal": "2025-06-06",
+    "churned": 37,
+    "retained": 441
+  },
+  "belief_provenance": {
+    "graded_renewals": 478,
+    "skipped": {},
+    "on_lattice": 478,
+    "on_lattice_share": 1.0,
+    "off_lattice_sample": [],
+    "reading": "`on_lattice_share` below 1.0 means some logged belief did not come out of `saas.churn_model.churn_probability(k)`, so the bill-shock count behind it is not recoverable and the mechanism table below describes only the recoverable part. It is published rather than assumed because the mechanism claim depends on it."
+  },
+  "bill_shock_model": {
+    "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT)",
+    "n": 478,
+    "accounts": 157,
+    "mean_believed_churn": 0.20364016736401674,
+    "realised_churn_rate": 0.07740585774058577,
+    "calibration_error": -0.12623430962343096,
+    "level_ratio_believed_over_realised": 2.6308108108108113,
+    "discrimination_auc": 0.5585585585585585,
+    "auc_population": {
+      "retained": 441,
+      "left": 37
+    },
+    "auc_unavailable_reason": null,
+    "distinct_believed_values": 13,
+    "belief_is_constant": false,
+    "by_believed_bucket": [
+      {
+        "believed_p_retain_from": 0.4,
+        "believed_p_retain_to": 0.6,
+        "n": 119,
+        "accounts": 79,
+        "mean_believed_p_retain": 0.5900000000000017,
+        "realised_retention_rate": 0.8991596638655462,
+        "left": 12
+      },
+      {
+        "believed_p_retain_from": 0.6,
+        "believed_p_retain_to": 0.8,
+        "n": 95,
+        "accounts": 58,
+        "mean_believed_p_retain": 0.6705263157894729,
+        "realised_retention_rate": 0.9157894736842105,
+        "left": 8
+      },
+      {
+        "believed_p_retain_from": 0.8,
+        "believed_p_retain_to": 1.0,
+        "n": 264,
+        "accounts": 157,
+        "mean_believed_p_retain": 0.9346590909090864,
+        "realised_retention_rate": 0.9356060606060606,
+        "left": 17
+      }
+    ]
+  },
+  "company_estimate": {
+    "belief": "company churn estimate logged as `company_churn_estimate`",
+    "n": 478,
+    "accounts": 157,
+    "mean_believed_churn": 0.1028305439330544,
+    "realised_churn_rate": 0.07740585774058577,
+    "calibration_error": -0.025424686192468626,
+    "level_ratio_believed_over_realised": 1.3284594594594596,
+    "discrimination_auc": 0.5274560274560275,
+    "auc_population": {
+      "retained": 441,
+      "left": 37
+    },
+    "auc_unavailable_reason": null,
+    "distinct_believed_values": 154,
+    "belief_is_constant": false,
+    "by_believed_bucket": [
+      {
+        "believed_p_retain_from": 0.2,
+        "believed_p_retain_to": 0.4,
+        "n": 1,
+        "accounts": 1,
+        "mean_believed_p_retain": 0.39049999999999996,
+        "realised_retention_rate": 0.0,
+        "left": 1
+      },
+      {
+        "believed_p_retain_from": 0.4,
+        "believed_p_retain_to": 0.6,
+        "n": 2,
+        "accounts": 2,
+        "mean_believed_p_retain": 0.58885,
+        "realised_retention_rate": 1.0,
+        "left": 0
+      },
+      {
+        "believed_p_retain_from": 0.6,
+        "believed_p_retain_to": 0.8,
+        "n": 48,
+        "accounts": 36,
+        "mean_believed_p_retain": 0.7438125000000002,
+        "realised_retention_rate": 0.9166666666666666,
+        "left": 4
+      },
+      {
+        "believed_p_retain_from": 0.8,
+        "believed_p_retain_to": 1.0,
+        "n": 427,
+        "accounts": 147,
+        "mean_believed_p_retain": 0.9170393442622925,
+        "realised_retention_rate": 0.9250585480093677,
+        "left": 32
+      }
+    ]
+  },
+  "oracle_ceiling": {
+    "discrimination_auc": 0.8109333823619538,
+    "n": 478,
+    "meaning": "the world's OWN fully-adjusted `realized_churn_probability`, graded by the identical statistic. It is the ceiling: no belief can rank this population better than the probability the dice were actually rolled against. A graded belief near 0.5 is only a failure of the belief if this number is well above 0.5 -- otherwise the population itself is unrankable and the low AUC says nothing about the model (R15: a control that cannot fail is worse than none)."
+  },
+  "mechanism": {
+    "available": true,
+    "graded": 478,
+    "by_bill_shock_count": [
+      {
+        "bill_shock_count": 0,
+        "n": 199,
+        "accounts": 157,
+        "believed_churn": 0.05,
+        "world_true_n": 199,
+        "world_true_churn_probability_mean": 0.028047738693467338,
+        "realised_churn_rate": 0.06532663316582915
+      },
+      {
+        "bill_shock_count": 1,
+        "n": 37,
+        "accounts": 36,
+        "believed_churn": 0.08,
+        "world_true_n": 37,
+        "world_true_churn_probability_mean": 0.06148918918918919,
+        "realised_churn_rate": 0.02702702702702703
+      },
+      {
+        "bill_shock_count": 2,
+        "n": 10,
+        "accounts": 9,
+        "believed_churn": 0.11,
+        "world_true_n": 10,
+        "world_true_churn_probability_mean": 0.09981,
+        "realised_churn_rate": 0.1
+      },
+      {
+        "bill_shock_count": 3,
+        "n": 4,
+        "accounts": 4,
+        "believed_churn": 0.14,
+        "world_true_n": 4,
+        "world_true_churn_probability_mean": 0.056625,
+        "realised_churn_rate": 0.25
+      },
+      {
+        "bill_shock_count": 4,
+        "n": 4,
+        "accounts": 4,
+        "believed_churn": 0.17,
+        "world_true_n": 4,
+        "world_true_churn_probability_mean": 0.0495,
+        "realised_churn_rate": 0.0
+      },
+      {
+        "bill_shock_count": 5,
+        "n": 10,
+        "accounts": 7,
+        "believed_churn": 0.2,
+        "world_true_n": 10,
+        "world_true_churn_probability_mean": 0.14114,
+        "realised_churn_rate": 0.1
+      },
+      {
+        "bill_shock_count": 6,
+        "n": 12,
+        "accounts": 7,
+        "believed_churn": 0.23,
+        "world_true_n": 12,
+        "world_true_churn_probability_mean": 0.0365,
+        "realised_churn_rate": 0.08333333333333333
+      },
+      {
+        "bill_shock_count": 7,
+        "n": 4,
+        "accounts": 3,
+        "believed_churn": 0.26,
+        "world_true_n": 4,
+        "world_true_churn_probability_mean": 0.20252499999999998,
+        "realised_churn_rate": 0.0
+      },
+      {
+        "bill_shock_count": 8,
+        "n": 19,
+        "accounts": 19,
+        "believed_churn": 0.29,
+        "world_true_n": 19,
+        "world_true_churn_probability_mean": 0.0402,
+        "realised_churn_rate": 0.0
+      },
+      {
+        "bill_shock_count": 9,
+        "n": 6,
+        "accounts": 6,
+        "believed_churn": 0.32,
+        "world_true_n": 6,
+        "world_true_churn_probability_mean": 0.1453,
+        "realised_churn_rate": 0.3333333333333333
+      },
+      {
+        "bill_shock_count": 10,
+        "n": 15,
+        "accounts": 14,
+        "believed_churn": 0.35,
+        "world_true_n": 15,
+        "world_true_churn_probability_mean": 0.06029333333333333,
+        "realised_churn_rate": 0.13333333333333333
+      },
+      {
+        "bill_shock_count": 11,
+        "n": 39,
+        "accounts": 36,
+        "believed_churn": 0.38,
+        "world_true_n": 39,
+        "world_true_churn_probability_mean": 0.12628461538461538,
+        "realised_churn_rate": 0.07692307692307693
+      },
+      {
+        "bill_shock_count": 12,
+        "n": 119,
+        "accounts": 79,
+        "believed_churn": 0.41,
+        "world_true_n": 119,
+        "world_true_churn_probability_mean": 0.0744563025210084,
+        "realised_churn_rate": 0.10084033613445378
+      }
+    ],
+    "believed_uplift_per_shock": 0.03,
+    "world_true_uplift_per_shock_endpoints": 0.003867380318961755,
+    "realised_uplift_per_shock_endpoints": 0.002959475247385386,
+    "sign_agrees_with_model": true,
+    "attenuation_factor": 7.75718898214124,
+    "reading": "`sign_agrees_with_model` false would mean bill shock predicts the OPPOSITE of what `build_churn_risk` assumes -- the candidate mechanism for an inversion. True with an `attenuation_factor` well above 1 means the model has the direction right and the DOSE wrong by that factor. R12: this is a diagnostic; no constant is moved from here."
+  },
+  "independence": {
+    "belief_and_outcome_share_a_source": true,
+    "reading": "`simulation.customer_events.roll_lifecycle_event` SEEDS the world's `effective_p_retain` from this same `build_churn_risk` number and then multiplies it through the passive cap, the market-year switching multiplier, the price-position multiplier, income stress and satisfaction. So this is not a forecast graded against an unrelated tally: it measures whether the world's own adjustment chain preserves the ordering and the level of the base rate it starts from. The company-side `company_churn_estimate` is graded beside it and does NOT feed the roll, which is the independent leg."
+  },
+  "r12_note": "Every figure here is a diagnostic. No constant in `saas/churn_model.py` is read as a target and none is written from this module."
+}
