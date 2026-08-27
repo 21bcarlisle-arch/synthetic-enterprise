@@ -108,6 +108,11 @@ PRODUCTION_DIRS = ("company", "simulation", "saas", "tools", "background")
 #
 # `probe` (active_scope only) resolves the field the way the world actually
 # reaches it, so the probe fails if the real call path is pinned.
+#: The value arm at rung ZERO -- the witnessing partner for the ladder multiplier below. Built by
+#: `replace` from VALUE_ARM_POLICY so it differs from it in exactly the one field being witnessed.
+_LADDER_NULL_RUNG_POLICY = dataclasses.replace(
+    VALUE_ARM_POLICY, name="value_arm_null_rung", renewal_margin_ladder_multiplier=0.0)
+
 FIELD_CONSUMPTION = {
     "name": {"via": "label"},
     "retention_discount_mode": {"via": "run_argument"},
@@ -149,6 +154,21 @@ FIELD_CONSUMPTION = {
         # VALUE_ARM_POLICY is CURRENT with this one field changed, which is exactly the pair the
         # realised A/B runs.
         "arms": (CURRENT_POLICY, VALUE_ARM_POLICY),
+    },
+    # THE PRICE LADDER'S RUNG (2026-08-27). Resolved from `active_policy()` at the SAME site as
+    # `renewal_margin_arm` above and for the same reason -- the rate chain is a wall door and must
+    # not gain a policy argument -- so it is the third `active_scope` field and needs the same
+    # behavioural probe.
+    #
+    # THE WITNESSING PAIR IS THE ARM AGAINST ITSELF AT RUNG ZERO. CURRENT vs VALUE_ARM cannot
+    # witness this field: the multiplier only reaches a decision on the `value_based` arm, so
+    # under `flat_rules` any two multipliers agree and the probe would hit the vacuity guard. At
+    # `k=0.0` the delivered margin is `flat + 0 x (chosen - flat)` -- the flat rule exactly -- so
+    # the pair produces two genuinely different rates through the one door that resolves it.
+    "renewal_margin_ladder_multiplier": {
+        "via": "active_scope",
+        "probe": lambda: _renewal_rate_under_the_active_arm(),
+        "arms": (VALUE_ARM_POLICY, _LADDER_NULL_RUNG_POLICY),
     },
 }
 

@@ -84,6 +84,26 @@ class DecisionPolicy:
     # ask for the experiment is byte-identical to today's.
     renewal_margin_arm: str = "flat_rules"
 
+    # THE PRICE LADDER'S RUNG (2026-08-27, docs/design/THE_VALUE_CYCLE_REALISED_AB.md, the
+    # 2026-08-27 section's item 2: "measure the slope, not the level").
+    #
+    # How far along its OWN chosen uplift the value arm actually goes, as a multiple. The delivered
+    # margin is `flat_rule + k x (chosen - flat_rule)`, so `k=1.0` is the arm as it stands and
+    # `k=0.0` is the flat rule EXACTLY -- which is what makes rung zero a NULL CONTROL rather than
+    # a nearby one, and `run_price_ladder` asserts rung zero reproduces the flat-rules arm's churn
+    # roster and net margin before reading any slope off the rest of the ladder.
+    #
+    # WHY A COMMERCIAL DIAL AND NOT A HARNESS ONE. A supplier that computes an optimal renewal
+    # price and then offers a fixed fraction of the increase is an ordinary commercial posture, so
+    # this is a company decision a real supplier makes and the field belongs on the company's own
+    # policy. Nothing about the world or the world's switching curve is read to set it. It is
+    # resolved from `active_policy()` at the same site as `renewal_margin_arm` for the same reason
+    # -- the rate chain is a wall door and must not gain a policy argument.
+    #
+    # THE DEFAULT IS 1.0, so every existing run -- including both arms of the standing realised
+    # A/B -- is byte-identical to today's.
+    renewal_margin_ladder_multiplier: float = 1.0
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

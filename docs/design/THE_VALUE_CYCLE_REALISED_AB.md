@@ -1086,3 +1086,190 @@ delta.
 
 **The +£16,773 headline is not refuted and it is not confirmed.** It rests on four differing churn
 outcomes and a belief whose aggregate agreement with the world is arithmetic coincidence.
+
+---
+
+## 2026-08-27 (later) — the ladder: the win is NOT price. The world's curve and the company's agree about how hard price bites, and disagree by 6× about where it starts
+
+**THE HEADLINE, because the direction asked for it in the place a reader hits it.** The fourth way
+for the arm's advantage to be hollow — that it comes from PRICE rather than from prediction — is
+**not supported**. The world punishes price hard and the company's own churn model knows roughly
+how hard: over six rungs the world's churn probability rises **1.16× faster** than the company
+believes it does (median over decisions), not the many-fold gap a "the world doesn't punish price"
+story needs. The arm is not charging into a response it cannot see.
+
+What the ladder *does* find is a **LEVEL error, not a slope error**, and it runs the other way: at
+the flat rule the company believes these customers are **33%** likely to leave and the world says
+**5.5%**. A supplier that thinks its book is six times more flighty than it is prices *below* what
+the world would tolerate. That is money left on the table, not money taken from a forgiving curve.
+
+**THE OUTPUT IS A MEASUREMENT, NOT A REPAIR (R13).** Nothing in the company's belief and nothing in
+the world's switching response is changed by this section.
+
+Instrument: `tools/run_price_ladder.py`. Artefact:
+`docs/observability/value_cycle_price_ladder_2019.json`.
+
+### What was run, and the one control that makes it readable
+
+The value arm, six times over the same book and the same seeds, at fixed multiples of **its own
+chosen uplift over the flat rule** — `flat + k × (chosen − flat)`, for k ∈ {0, 0.25, 0.5, 1, 1.5,
+2} — plus a real flat-rules control run.
+
+That parameterisation is chosen so that **k = 0 is the flat rule exactly**, which makes rung zero a
+NULL CONTROL rather than a nearby price. It is checked, not asserted:
+
+| | rung 0 | flat-rules control |
+|---|---|---|
+| accounts churned | 2 | 2 |
+| roster difference | — | **none** |
+| net margin | £16,354.767758 | £16,354.767758 |
+
+**Identical to the last decimal.** So the multiplier scales the uplift and nothing else, and every
+slope below is a reading of the world's curve rather than of the ladder's own plumbing. The
+mutation that breaks it is named at the assertion
+(`tests/company/pricing/test_price_ladder_rung.py`): parameterise the rung as `k × chosen` and rung
+zero becomes a zero-margin offer the control never made.
+
+**The rung is scored at the price it delivers.** `decide_margin` takes the multiplier and re-scores
+*inside* the decision. Scaling the uplift afterwards would leave `believed_p_retain` describing a
+rate the customer is never offered — the believed leg would be flat across every rung while the
+realised leg moved, and "the company cannot see the response" would be an artefact. That is the
+same defect the 2026-08-26 ceiling repair closed from the other side, and
+`test_the_belief_is_taken_at_the_rung_and_not_at_the_unscaled_choice` fails against it.
+
+**And the scored price is the charged price.** The harness computes each decision's position
+against the published SVT independently and reconciles it against the world's own logged
+`price_differential_vs_svt` at the same renewal: **58 decisions, largest gap 0.005 percentage
+points.** If chain writer 4 had clawed a rung back, the two would diverge.
+
+### The two slopes, side by side
+
+Common population: decisions priced **and** rolled by the world at **every** rung — 6 of them.
+Rungs above 1.0 churn accounts earlier, which deletes their later renewals, so each rung's own
+population is not comparable to the next one's; the attrition is 12 → 12 → 10 → 8 → 8 → 8 rolled.
+
+| k | delivered uplift | vs own prior rate | vs published SVT | realised non-renewals | believed non-renewal rate |
+|---|---|---|---|---|---|
+| 0.00 | £0.00 | +1.0% | −12.9% | 0/6 — 0.000 | 0.206 |
+| 0.25 | £11.15 | +6.1% | −5.8% | 0/6 — 0.000 | 0.254 |
+| 0.50 | £23.94 | +12.5% | +2.8% | 1/6 — 0.167 | 0.337 |
+| 1.00 | £54.21 | +28.0% | +24.4% | 3/6 — 0.500 | 0.521 |
+| 1.50 | £90.38 | +45.2% | +50.3% | 3/6 — 0.500 | 0.697 |
+| 2.00 | £132.33 | +63.7% | +80.2% | 3/6 — 0.500 | 0.840 |
+
+**The two slopes, per £/MWh of delivered uplift: realised +0.004261, believed +0.004955 — a ratio
+of 0.86.** Against the company's own reference the pair is +0.009032 / +0.010388 (0.87); against
+the world's, +0.006006 / +0.007004 (0.86). The answer does not depend on which reference the x-axis
+is drawn in.
+
+**Read the realised leg's saturation before reading its slope.** It stops at 3/6 from k = 1 onward.
+That is not the world refusing to respond: the roll is fixed per (account, term_start), and the
+three that never flip drew low rolls whose flip thresholds their world curves never reach — C1's
+2016-12-31 renewal needs a churn probability above 0.835 and the top rung takes it to 0.271. A flip
+count over six decisions can take seven values, so this leg is *coarse by construction*, and its
+0.86 is the weakest number in this section.
+
+### The same comparison at full power — the world's own curve against the belief
+
+The world writes its own churn probability into the event log at every renewal it rolls. Comparing
+the two probability CURVES is the same question with the sampling noise taken out: **paired per
+decision**, six prices each, no matched pairs to find and no population to balance. n stops being
+the flip count and becomes 6 decisions × 6 rungs = **36 paired observations**.
+
+| account | renewal | price range | world slope /£ | believed slope /£ | world ÷ believed | world p(leave) low→high | believed low→high |
+|---|---|---|---|---|---|---|---|
+| C1 | 2016-12-31 | £49.5 | +0.00467 | +0.00907 | 0.515 | 0.030 → 0.271 | 0.360 → 0.808 |
+| C1 | 2017-12-31 | £153.0 | +0.00707 | +0.00454 | 1.558 | 0.022 → **0.950** | 0.092 → 0.746 |
+| C5 | 2016-12-31 | £79.5 | +0.00849 | +0.00800 | 1.061 | 0.038 → 0.698 | 0.284 → 0.918 |
+| C5 | 2017-12-31 | £215.0 | +0.00470 | +0.00374 | 1.258 | 0.043 → **0.950** | 0.092 → 0.843 |
+| C7 | 2016-12-31 | £77.5 | +0.00576 | +0.00776 | 0.742 | 0.030 → 0.468 | 0.313 → 0.906 |
+| C7 | 2017-12-31 | £219.5 | +0.00460 | +0.00352 | 1.305 | 0.045 → **0.950** | 0.092 → 0.822 |
+
+**Median world ÷ believed = 1.16; mean 1.07.** The company over-predicts the response on 2
+decisions and under-predicts on 4. Three of the six hit `WORLD_MAX_CHURN_PROBABILITY` = 0.95 at the
+top rungs, which **truncates the world's curve and biases its measured slope DOWNWARD** — so 1.16
+is a floor, and the world if anything bites harder than this.
+
+**The pooled figure is 1.98 and it should be distrusted, as the artefact says in its own `caveat`
+field.** Pooling weights by whichever account the arm happened to price over the widest range, and
+it mixes the level differences below into a slope. The median is the answer; the pooled figure is
+published beside it so the disagreement is visible rather than hidden by a choice of estimator.
+
+**The level, which is where the real error is.** Read the last two columns at the LOW rung. The
+world puts these customers at 0.022–0.045 chance of leaving under flat pricing; the company
+believes 0.092–0.360. Pooled intercepts: **world 0.055, company 0.328.** The company's model is
+roughly right about the *derivative* and roughly 6× wrong about the *starting point*.
+
+### The two references, now a count instead of a bucket table
+
+Finding 4 above took an inversion in a four-row table to detect. It is one column now:
+`rate_vs_svt_pct` is published beside `rate_increase_pct` on every decision.
+
+**52 of 166 decisions (31%) disagree in SIGN** — the company reads a price rise where the world
+reads a position below the SVT, or the reverse. Mean company reference +21.9%; mean world reference
++12.8%. **33 decisions** are the named tail: the company sees a rise above +10% while the world
+sees the customer still *below* the standard variable tariff. C4's 2017-10-01 renewal is the
+cleanest instance — the company reads **+63.2%** against that customer's own prior rate and the
+world reads **+9.7%** against the published SVT, and the company's belief that they are 82% likely
+to leave is a belief about a price rise the world barely registers.
+
+Only the company's side is written by the chain. The world's is joined by the harness, deliberately:
+**whether a supplier can see its own position against the published SVT is a question about the
+world's observables and is the director's under R13**, not something this writer settles by handing
+the company the number.
+
+### The 18 unmatched, per account
+
+The direction: *"either close the 18-unmatched hole or state per account why no decision was
+rolled."* Stated. It is **18 decisions on 6 accounts** — C2, C3, C4, C6, C8 and C9, each priced at
+three renewals — and for every one of the six the world rolled **no lifecycle event at any renewal
+inside this window**, so `build_home_move_win_rates` carries no row for them at all and
+`roll_lifecycle_event` returned `None`. Not a schedule mismatch on any of them: zero decisions fall
+in the "the world's roster names other months" class.
+
+**It is a diagnosis and not a repair.** Closing it means reconciling the arm's contract term list
+with `churn_model._renewal_periods`, which changes which renewals the world rolls a churn decision
+at — a baseline-world change, decided under R13 blind to what it does to any company delta, and
+recorded for the curriculum rather than made here. **It does not bound this ladder**: the roll is
+fixed per (account, term_start), so an unrolled decision is absent from every rung equally.
+
+### Which verdict this supports, and what it does not settle
+
+Of the three the 2026-08-27 section left open, plus the fourth the direction named:
+
+| | ladder's answer |
+|---|---|
+| "the world under-punishes price" | **refused.** World slope +0.0056/£ pooled, and three of six decisions saturate the world's own 0.95 ceiling |
+| "the win is price, not prediction" | **refused.** The two slopes agree to within 16%, and the bias is toward the world biting *harder* |
+| "the belief over-predicts" | **supported, on LEVEL not slope.** 0.328 believed vs 0.055 actual at the flat rule |
+| "the sample cannot separate them" | **superseded for the slope question** — 36 paired observations, not n = 4. Still true of the P&L question |
+
+**What this does NOT do is confirm the +£16,773.** It removes price as an explanation for it and
+says nothing about whether the arm ranks customers correctly — that is the discrimination question,
+and the AUC of 0.694 carried entirely by one bucket is still the honest reading there.
+
+**Two limits, stated rather than buried.** (1) This ran on the **2016-2019 window**, not the full
+one the headline rests on. The truncation should be harmless — the roll is seeded on (account,
+term_start) alone and every derivation reads a prefix of the settled book — and that is *checked*
+rather than argued: the full-window artefact reports **18** unmatched decisions across 2017/2018/
+2019 at six per year, and the 2019-window ladder reports the same **18**, on the same six accounts,
+with every row of the full run's published sample present in the ladder's set. What truncation does
+cost is population: the common set is 6 where a full-window ladder should reach roughly 15-20,
+because the arm keeps pricing renewals after 2019. **Re-running at full window is the immediate
+next increment and this section will be re-read against it.** (2) Six decisions is six decisions.
+The paired design earns 36 observations from them; it does not turn 6 accounts into 20.
+
+### For the curriculum, recorded and not acted on (R13)
+
+Unchanged from the section above and reinforced by it: the **reference-frame divergence** is the
+item for the director. The company is structurally unable to see the quantity the world punishes —
+`rate_increase_pct` never contains the SVT level — and 31% of decisions have the two references
+pointing in opposite directions. Whether a real supplier can see its own position against the
+published SVT is a question about the world's observables. It must be decided blind to what it does
+to this delta.
+
+One new item joins it, and it is a *company* question rather than a world one, so it is not R13's:
+the company's baseline churn belief is ~6× the world's realised rate at flat pricing. That is a
+calibration finding about `company/crm/churn_model.py`, it is the company's own affair, and it is
+allowed to be wrong — but it is the largest single belief error this project has measured, and it
+biases every value-arm decision toward under-pricing.

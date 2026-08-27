@@ -304,6 +304,45 @@ class MarginDecision:
     #: value-maximising supplier is still a supplier that obeys the cap, and when the cap is what
     #: chose the price the reader should be told that rather than shown a "decision".
     ceiling_bound: bool = False
+    #: THE RUNG. `margin_gbp_per_mwh` is what this customer is actually offered; when the ladder
+    #: multiplier is not 1.0 that is a fraction (or a multiple) of what the arm's own search chose,
+    #: and this field carries the search's unscaled answer so the two are never confused. `None`
+    #: on an ordinary decision, where they are the same number.
+    unscaled_margin_gbp_per_mwh: float | None = None
+    #: The multiplier applied to the arm's own uplift over the flat rule. 1.0 is the arm as it
+    #: stands; 0.0 is the flat rule exactly.
+    ladder_multiplier: float = 1.0
+    #: TRUE when the RUNG (not the search) had to be cut back to the lawful ceiling. Only a rung
+    #: above 1.0 can trip this, and reading a slope without it would read a saturation the world
+    #: never saw: the price stopped rising because the cap held it, not because the customer did.
+    ladder_ceiling_clamped: bool = False
+    #: TRUE when the rung's offered rate sits beyond `max_supported_rate_increase_pct()` — the
+    #: frontier of what this company's churn model has evidence for. The rung is still PRICED and
+    #: still scored, because the whole point of a ladder is to make the world answer at prices the
+    #: company cannot honestly predict; but the believed side of that rung is an extrapolation and
+    #: any slope read across it must say how many decisions were in this state.
+    ladder_above_support_bound: bool = False
+    #: The rate this account is observed to be on today — the denominator of the company's own
+    #: `rate_increase_pct`, and the reference its belief keys on. Carried out of the decision
+    #: rather than re-derived by a reader, because the world keys on a LEVEL against the published
+    #: SVT and the two references disagree in both directions (the 2026-08-27 section's Finding 4).
+    current_rate_gbp_per_mwh: float | None = None
+    #: The rate actually offered: `base_rate + margin`. The numerator of both references.
+    offered_rate_gbp_per_mwh: float | None = None
+
+    @property
+    def rate_increase_pct(self) -> float | None:
+        """THE COMPANY'S REFERENCE, as a percentage: a delta against this customer's OWN prior
+        rate. This is the quantity `churn_model.estimate_churn_probability` keys on, and it is
+        structurally incapable of containing the published SVT level the WORLD keys on. Published
+        beside the world's `rate_vs_svt_pct` wherever a decision is reported, because Finding 4 of
+        the 2026-08-27 section took an inversion in a four-row bucket table to detect and would
+        have been one column."""
+        if not self.current_rate_gbp_per_mwh or self.offered_rate_gbp_per_mwh is None:
+            return None
+        return 100.0 * (
+            self.offered_rate_gbp_per_mwh - self.current_rate_gbp_per_mwh
+        ) / self.current_rate_gbp_per_mwh
 
     @property
     def differs_from_flat(self) -> bool:
@@ -543,6 +582,7 @@ def decide_margin(
     fixed_revenue_gbp_per_year: float | None = None,
     is_deemed_contract: bool = False,
     book_general_margin_gbp_per_mwh: float | None = None,
+    ladder_multiplier: float = 1.0,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -624,6 +664,9 @@ def decide_margin(
             expected_value_gbp=value, p_retain=p_stay, expected_periods=periods,
             cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
             considered=((TARGET_MARGIN_GBP_PER_MWH, value),),
+            current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
+            offered_rate_gbp_per_mwh=(
+                float(base_rate_gbp_per_mwh) + TARGET_MARGIN_GBP_PER_MWH),
         )
 
     if not candidates:
@@ -727,6 +770,44 @@ def decide_margin(
 
     at_floor = withheld is None and best_margin <= allowed[0] + 1e-9
     at_ceiling = withheld is None and best_margin >= allowed[-1] - 1e-9
+
+    # ── THE LADDER RUNG ────────────────────────────────────────────────────────────────────────
+    #
+    # THE RUNG IS SCORED AT THE PRICE IT DELIVERS, and that is the entire reason this sits inside
+    # `decide_margin` rather than in the chain that calls it. Scaling the uplift after the decision
+    # would leave `p_retain` describing a rate the customer is never offered -- which is precisely
+    # the defect the 2026-08-26 ceiling repair closed ("the two sides of that comparison were
+    # different prices"), and a price ladder whose believed leg is measured at a different price
+    # from its realised leg measures nothing at all.
+    #
+    # THE PARAMETERISATION IS THE UPLIFT OVER THE FLAT RULE, not the margin. `flat + k x (chosen -
+    # flat)` makes k=0 the flat rule EXACTLY, so rung zero is a null control the harness can check
+    # against the flat-rules arm rather than a nearby price it has to argue about.
+    unscaled_margin = best_margin
+    ladder_clamped = False
+    above_support = False
+    if abs(ladder_multiplier - 1.0) > 1e-12:
+        rung = TARGET_MARGIN_GBP_PER_MWH + ladder_multiplier * (
+            best_margin - TARGET_MARGIN_GBP_PER_MWH)
+        # THE LAWFUL CEILING STILL BINDS. It is a wall and not a dial: a rung above the cap is a
+        # price this supplier may not charge, chain writer 4 would claw it back downstream, and the
+        # belief would once again be at a rate nobody was offered. Clamped HERE so the scored
+        # price and the delivered price stay the same number, and flagged so a reader can see a
+        # flat top of the ladder for what it is.
+        if max_offered_rate_gbp_per_mwh is not None:
+            lawful_rung = float(max_offered_rate_gbp_per_mwh) - float(base_rate_gbp_per_mwh)
+            if rung > lawful_rung + 1e-9:
+                rung, ladder_clamped = lawful_rung, True
+        # THE SUPPORT BOUND DOES NOT CLAMP THE RUNG, and the asymmetry is deliberate. That bound
+        # is the frontier of the company's own EVIDENCE, not of the law -- it exists to stop the
+        # arm CHOOSING a price it cannot predict. A ladder does not choose: it asks the world to
+        # answer at a price the experimenter set, which is the only way to find out whether the
+        # company's extrapolation beyond its own frontier is any good. So the rung is priced and
+        # the state is reported, per decision and counted per rung.
+        above_support = base_rate_gbp_per_mwh + rung > ceiling_from_support + 1e-9
+        best_margin = rung
+        best_p, best_value, best_costs = _score(best_margin)
+
     return MarginDecision(
         customer_id=customer_id, arm=VALUE_BASED, margin_gbp_per_mwh=best_margin,
         expected_value_gbp=best_value, p_retain=best_p, expected_periods=periods,
@@ -738,6 +819,12 @@ def decide_margin(
         ceiling_bound=ceiling_bound,
         extrapolation_bound=extrapolation_bound,
         withheld_reason=withheld,
+        unscaled_margin_gbp_per_mwh=unscaled_margin,
+        ladder_multiplier=float(ladder_multiplier),
+        ladder_ceiling_clamped=ladder_clamped,
+        ladder_above_support_bound=above_support,
+        current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
+        offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + best_margin,
     )
 
 
@@ -858,6 +945,7 @@ def renewal_margin_uplift(
     arm: str,
     max_offered_rate_gbp_per_mwh: float | None = None,
     segment: str | None = None,
+    ladder_multiplier: float = 1.0,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -943,6 +1031,9 @@ def renewal_margin_uplift(
             fixed_revenue_gbp_per_year=observed["fixed_revenue_gbp_per_year"],
             expected_periods=observed["expected_periods"],
             max_offered_rate_gbp_per_mwh=max_offered_rate_gbp_per_mwh,
+            # THE RUNG, and it goes into the DECISION rather than onto its answer -- see the
+            # ladder block in `decide_margin`. Default 1.0 leaves every existing caller alone.
+            ladder_multiplier=ladder_multiplier,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).

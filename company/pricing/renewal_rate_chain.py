@@ -326,6 +326,10 @@ def decide_renewal_rate(
         segment=segment,
         arm=active_policy().renewal_margin_arm,
         max_offered_rate_gbp_per_mwh=cap_ceiling,
+        # THE PRICE LADDER'S RUNG, resolved from the SAME active policy and at the same site as
+        # the arm, because it is the same kind of fact and a second resolution path is how one
+        # run comes to be executing two policies. `1.0` on every ordinary run.
+        ladder_multiplier=active_policy().renewal_margin_ladder_multiplier,
     )
     if arm_uplift.declined:
         # A DECLINE IS A DECISION AND IT GOES IN THE LOG. The rate is untouched -- a supplier
@@ -372,6 +376,37 @@ def decide_renewal_rate(
             "unit_rate_original": round(rate_original or 0.0, 4),
             "unit_rate_before": round(rate_before, 4),
             "unit_rate_after": round(unit_rate, 4),
+            # ── THE COMPANY'S OWN PRICE REFERENCE, published per decision ──────────────────
+            # `rate_increase_pct` is the quantity `churn_model.estimate_churn_probability` keys
+            # on: a DELTA against this customer's own prior rate. The WORLD keys on a LEVEL
+            # against the published SVT (`simulation/customer_events._price_differential_vs_
+            # market`), and the 2026-08-27 section of THE_VALUE_CYCLE_REALISED_AB.md established
+            # that those two disagree in BOTH directions -- cheap-supplier-moves-to-average reads
+            # as a large rise here and as parity there; dear-supplier-barely-moves reads as flat
+            # here and as +30% there. That inversion took a four-row bucket table to detect and
+            # is one column once both are logged.
+            #
+            # ONLY THE COMPANY'S SIDE IS WRITTEN HERE, deliberately. `rate_vs_svt_pct` is joined
+            # in by the harness (`tools/run_price_ladder.py`) from the world's own event log, not
+            # computed here: whether a supplier can see its own position against the published
+            # SVT is a question about the world's observables and is recorded for the director
+            # under R13, not answered by this writer giving the company the number.
+            "company_current_rate_gbp_per_mwh": (
+                None if decision.current_rate_gbp_per_mwh is None
+                else round(decision.current_rate_gbp_per_mwh, 4)),
+            "offered_rate_gbp_per_mwh": (
+                None if decision.offered_rate_gbp_per_mwh is None
+                else round(decision.offered_rate_gbp_per_mwh, 4)),
+            "rate_increase_pct": (
+                None if decision.rate_increase_pct is None
+                else round(decision.rate_increase_pct, 4)),
+            # ── THE RUNG ──────────────────────────────────────────────────────────────────
+            "ladder_multiplier": decision.ladder_multiplier,
+            "unscaled_margin_gbp_per_mwh": (
+                None if decision.unscaled_margin_gbp_per_mwh is None
+                else round(decision.unscaled_margin_gbp_per_mwh, 4)),
+            "ladder_ceiling_clamped": decision.ladder_ceiling_clamped,
+            "ladder_above_support_bound": decision.ladder_above_support_bound,
         }
         result.value_arm_entries.append(entry)
         result.chain_entries.append(entry)
