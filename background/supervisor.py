@@ -280,6 +280,30 @@ LAST_TESTED_GREEN_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_
 PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS = 60 * 60   # director ruling: a wedge older than 60 min is rung-1
 PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mirrors the H15 alarm threshold)
 
+# THE FAILURE KINDS THAT MEAN "NO TEST WAS JUDGED" -- the publisher writes these itself, one per
+# rc, and until 2026-08-27 no reader consumed them. Each is set at a site whose own comment says
+# why (`process_run_complete._record_publish_gate_outcome`): rc=77 "NAMED, not left to
+# `_classify_gate_failure`, which would read rc=77 as 'test_regression' and send the RUNG-1 draw
+# hunting a red test that is not the cause"; rc=78 the same sentence again for the inner clock;
+# `deadline_kill` the same again for the two OUTER callers. Three sites, one intent, written down
+# three times -- and the draw that the intent is ABOUT read the `reason` string and ignored the
+# `kind` beside it, so it opened with "DIAGNOSE the failing test ... FIX the red test" every time.
+#
+# OBSERVED (2026-08-27, `.publish_gate_state.json`): four consecutive `commit_did_not_land`
+# failures with `total_red: 0` and `blocking_tests: []` -- an accusation with no accused -- and a
+# RUNG-1 draw sending priority-zero work to run a ~10-minute full suite for a red the record it
+# was built from already said did not exist. The real cause was in the publisher's own log tail
+# both times: `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS` at 05:28/06:39 and
+# `FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED` at 07:13. Neither is a test.
+#
+# This is the LABEL-WITHOUT-A-READER shape, which is the sibling of the class this file already
+# catalogues: a control that cannot fail. Here the control could not even be heard.
+WEDGE_KINDS_NO_TEST_JUDGED = frozenset({
+    "commit_did_not_land",   # rc=77: the scoped suite was GREEN; the pre-commit hook chain refused
+    "gate_timeout",          # rc=78: the publisher's own clock expired before any verdict
+    "deadline_kill",         # the CALLER's deadline killed the publisher mid-gate
+})
+
 # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle
 # RED that PERSISTS past paging is priority-zero DRAWABLE work, not an alarm to admire. The overnight
 # incident: the operational-layer signal was RED for 13 consecutive hourly checks (a retired daemon's
@@ -3545,6 +3569,60 @@ def _wedge_stale_payload_clause(named: int, cited: int) -> str:
     )
 
 
+def _wedge_no_test_judged_clause(failures, payload_citable: bool) -> str:
+    """Countermand "FIX the red test" when the RECORD ITSELF says no test was ever judged.
+
+    The draw's fixed opening is written for the common wedge -- a red in the publish scope -- and
+    for that wedge it is right. It is not conditional, so it is also what a worker reads when the
+    publisher recorded `commit_did_not_land`: scoped suite GREEN, commit refused by a NON-TEST
+    pre-commit gate (orphan-ratchet, the finding-class consolidation gate, the level-promotion
+    gate). Following it costs a full ~10-minute suite run and ends green, which reads as "the
+    wedge cleared itself" rather than "I looked in the wrong place" -- so the actual refusing gate
+    is never named and the next cycle refuses again. Four cycles on 2026-08-27; twelve on 08-25.
+
+    WHY `kind` AND NOT THE PROSE: `reason` is a human sentence assembled per call site and would
+    have to be pattern-matched, which is the mirror class -- a second derivation of a fact that
+    already has a field. `kind` is the field, the publisher's three sites set it deliberately for
+    this exact reader (see WEDGE_KINDS_NO_TEST_JUDGED), and it is a closed set.
+
+    FAIL-SAFE DIRECTION IS TOWARD THE OLD PROSE, deliberately, and this is the whole safety
+    argument. Silence here leaves the draw saying "run the suite": expensive and sometimes
+    misdirected, never unsafe. Printing this clause when a test IS red would tell a worker not to
+    look for it, which is. So every gate is a reason to stay quiet:
+      * a citable blocking payload (`payload_citable`) -- a named red outranks any kind label;
+      * any in-window failure whose kind is NOT in the no-test-judged set, including a missing,
+        empty, non-string or unrecognised one. A state file written before `kind` existed, or by
+        a future writer with a fourth kind, says nothing and is heard as nothing.
+    So the clause needs UNANIMITY among the in-window failures, not a majority and not the last
+    one: a wedge that is half test-regression is a wedge with a red in it.
+
+    Returns "" or a leading-space clause. Never raises -- a malformed `failures` is not-unanimous
+    by construction, because a non-dict entry has no readable kind."""
+    if payload_citable or not failures:
+        return ""
+    kinds = []
+    for f in failures:
+        kind = f.get("kind") if isinstance(f, dict) else None
+        if not isinstance(kind, str) or kind not in WEDGE_KINDS_NO_TEST_JUDGED:
+            return ""
+        kinds.append(kind)
+    named = ", ".join(sorted(set(kinds)))
+    return (
+        " NO TEST WAS EVER JUDGED IN THIS EPISODE -- THE OPENING INSTRUCTION ABOVE DOES NOT APPLY. "
+        f"Every one of the {len(kinds)} in-window failures is recorded by the publisher as "
+        f"`{named}`, which is the publisher stating that its OWN scoped suite did not return a "
+        "red: the commit was refused by a non-test pre-commit gate, or no verdict was reached "
+        "before a clock expired. There is no red test to find, and running the gate's pytest argv "
+        "will cost ~10 minutes and come back green -- which looks like a self-clearing wedge and "
+        "is how this episode repeats. DO THIS INSTEAD: read the refusing gate's own banner in the "
+        "publisher log tail (`docs/observability/sim-runner-log.md`, the lines just above "
+        "`Commit/push failed`) -- the pre-commit chain prints which hook refused and what repairs "
+        "it. Then run THAT gate alone against the working tree to confirm it still refuses at "
+        "HEAD before repairing anything; the hook chain stops at the first refusal, so a second "
+        "gate may be behind it."
+    )
+
+
 def _publish_gate_wedge_active(
     now: float | None = None,
     head: str | None = None,
@@ -3689,6 +3767,21 @@ def _publish_gate_wedge_active(
     # BEFORE `depth_clause` because the in-flight one countermands that clause's own instruction.
     superseded_clause = _wedge_superseded_hash_clause(failures, head)
     in_flight_clause = _wedge_in_flight_clause(_live_publish_gate_runs())
+    # ...and that the reading was never ABOUT a test (2026-08-27). Grouped with the other two
+    # countermands and placed before `depth_clause` for the same reason they are: that clause's
+    # own default ("run the gate's argv without `-x`") is an instruction to go and enumerate reds,
+    # and this one is the statement that there are none to enumerate.
+    no_test_judged_clause = _wedge_no_test_judged_clause(failures, payload_citable)
+    # AND IT REPLACES THAT CLAUSE RATHER THAN ARGUING WITH IT. Two instructions in one payload,
+    # the contradicting one LAST, is how the 2026-08-27 draw read: "there is no red" followed by
+    # "enumerate the reds -- run the gate's argv without `-x`", which is the ~10-minute run this
+    # clause exists to prevent. Safe to drop because it is provably the SAME string every time
+    # this fires: the clause requires `payload_citable` False, which already forces census and
+    # total to None/0 above, so `_wedge_depth_clause` can only be returning its DEPTH UNKNOWN
+    # default. Nothing that could name a red is being suppressed -- pinned by
+    # `test_depth_unknown_is_the_only_clause_the_countermand_can_displace`.
+    if no_test_judged_clause:
+        depth_clause = ""
     return (
         "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
         "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
@@ -3698,7 +3791,8 @@ def _publish_gate_wedge_active(
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
-        f"cause.{superseded_clause}{in_flight_clause}{stale_payload_clause}{depth_clause}"
+        f"cause.{superseded_clause}{in_flight_clause}{no_test_judged_clause}"
+        f"{stale_payload_clause}{depth_clause}"
         f"{episode_clause}{cure_clause}"
         f" Last recorded failure: {last_reason}"
     )

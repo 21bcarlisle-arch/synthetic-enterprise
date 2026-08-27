@@ -932,3 +932,144 @@ def test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder(tmp_pat
     assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "a broken reader must not blind RUNG 1"
     assert "FILED FINDINGS" not in msg
     assert "NOT CITABLE AND HAS BEEN WITHHELD" in msg
+
+
+# ──────────── THE LABEL THE PUBLISHER WRITES AND NO READER CONSUMED (2026-08-27) ─────────────
+# `_wedge_no_test_judged_clause`. The publisher sets `kind` at three sites, each under a comment
+# saying it is there to stop the RUNG-1 draw "hunting a red test that is not the cause"; the draw
+# read `reason` and ignored `kind`, so its fixed opening ("DIAGNOSE the failing test ... FIX the
+# red test ... run the exact gate") stood over four consecutive `commit_did_not_land` failures
+# with `total_red: 0` and `blocking_tests: []`. R15 both ways: it must FIRE on that recorded
+# state, and it must be SILENT on every shape where a test might really be red.
+
+def _no_test_judged_state(now, *, kind="commit_did_not_land", n=4):
+    """The 2026-08-27 state, field for field: rc=77, `total_red` 0, `blocking_tests` empty."""
+    state = _wedged_state(now, n=n)
+    for f in state["failures"]:
+        f["kind"] = kind
+        f["rc"] = 77
+        f["reason"] = ("the publish COMMIT did not land for run_complete_X.md -- the publisher's "
+                       "own scoped suite was GREEN and the commit was refused/timed out/never "
+                       "reached origin")
+    state["blocking_tests"] = []
+    state["total_red"] = 0
+    state["red_census"] = "fail_fast_only"
+    return state
+
+
+def test_a_commit_did_not_land_episode_countermands_the_find_the_red_test_opening(
+        tmp_path, monkeypatch):
+    """MUST FIRE -- the recorded 2026-08-27 state, with no blocking record on disk."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _no_test_judged_state(now))
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "the wedge must still be drawn"
+    assert "NO TEST WAS EVER JUDGED IN THIS EPISODE" in msg
+    assert "commit_did_not_land" in msg, "the draw must name the kind it is reasoning from"
+    # The countermand is worthless if the instruction it countermands is still the last word.
+    assert "run the gate's argv without `-x`" not in msg, (
+        "DEPTH UNKNOWN's enumerate-the-reds instruction must not survive beside the statement "
+        "that there are no reds -- that contradiction IS the ~10-minute wasted run")
+    assert "sim-runner-log.md" in msg, "it must say where the refusing gate actually names itself"
+
+
+@pytest.mark.parametrize("kind", sorted(supervisor.WEDGE_KINDS_NO_TEST_JUDGED))
+def test_every_no_test_judged_kind_countermands(tmp_path, monkeypatch, kind):
+    """All three kinds are written by the publisher for the same reason; all three must be heard."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _no_test_judged_state(now, kind=kind))
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "NO TEST WAS EVER JUDGED IN THIS EPISODE" in msg
+    assert kind in msg
+
+
+# ─────── MUST STAY SILENT: every shape where a red test might really be the cause ────────
+
+def test_mutation_a_test_regression_episode_keeps_the_find_the_red_test_opening(
+        tmp_path, monkeypatch):
+    """The ordinary wedge. If this clause fired here it would tell a worker not to look for a
+    red that IS there -- the one direction in which this control is dangerous."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now))  # kind="test_regression" throughout
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "NO TEST WAS EVER JUDGED" not in msg
+    assert "FIX the red test" in msg
+
+
+def test_mutation_one_test_regression_among_them_is_enough_to_stay_silent(tmp_path, monkeypatch):
+    """UNANIMITY, not majority and not the last entry. A wedge that is part test-regression is a
+    wedge with a red in it, and the draw must keep sending the worker to find it."""
+    now = 1_800_000_000.0
+    state = _no_test_judged_state(now, n=6)
+    state["failures"][2]["kind"] = "test_regression"   # the ONLY difference
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "NO TEST WAS EVER JUDGED" not in msg
+    assert "FIX the red test" in msg
+
+
+@pytest.mark.parametrize("bad_kind", [None, "", 0, [], "some_future_kind"])
+def test_mutation_an_unreadable_or_unrecognised_kind_stays_silent(tmp_path, monkeypatch, bad_kind):
+    """FAIL-SAFE DIRECTION. A state file written before `kind` existed, or by a future writer
+    with a fourth kind, warrants nothing -- and the safe fallback is the OLD prose (a wasted
+    suite run), never a claim that no test is red."""
+    now = 1_800_000_000.0
+    state = _no_test_judged_state(now)
+    for f in state["failures"]:
+        if bad_kind is None:
+            f.pop("kind")
+        else:
+            f["kind"] = bad_kind
+    _write(tmp_path, monkeypatch, state)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "NO TEST WAS EVER JUDGED" not in msg
+    assert "FIX the red test" in msg
+
+
+def test_mutation_a_citable_blocking_payload_outranks_the_kind_label(tmp_path, monkeypatch):
+    """A NAMED red beats a kind label. `commit_did_not_land` with a live record naming a test
+    means the hook chain refused ON a red (the `hook_chain` census path) -- there IS something
+    to go and fix, so the countermand must not print."""
+    now = 1_800_000_000.0
+    state = _no_test_judged_state(now)
+    state["blocking_tests"] = ["tests/x.py::test_x"]
+    state["total_red"] = 1
+    _write(tmp_path, monkeypatch, state)
+    _blocking_record(tmp_path, now)  # the live record WARRANTS the payload
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "NO TEST WAS EVER JUDGED" not in msg
+
+
+def test_depth_unknown_is_the_only_clause_the_countermand_can_displace(tmp_path, monkeypatch):
+    """The suppression above is only safe because DEPTH UNKNOWN is provably the sole depth text
+    reachable when the countermand fires: it requires an UNCITABLE payload, and the draw already
+    forces census/total to None/0 in that case. Proven by construction rather than by reading the
+    call site -- a `complete` census in the state file cannot survive an uncitable record."""
+    now = 1_800_000_000.0
+    state = _no_test_judged_state(now)
+    state["red_census"] = "complete"   # a census claim the live record cannot warrant
+    state["total_red"] = 5
+    _write(tmp_path, monkeypatch, state)  # deliberately NO _blocking_record -> uncitable
+    assert supervisor._live_gate_blocking_record(
+        now=now, record_path=tmp_path / supervisor.GATE_BLOCKING_TESTS_FILENAME) == ([], None)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "NO TEST WAS EVER JUDGED" in msg
+    assert "5 tests are red" not in msg, "an uncitable census must never reach the payload"
+    assert "DEPTH" not in msg
+
+
+def test_the_publishers_kinds_and_the_supervisors_set_have_not_drifted():
+    """ANTI-DRIFT (R10). This clause is a reader of a producer in another module; a fourth
+    no-test-judged kind added there and not here reads as `test_regression` and silently restores
+    the defect. Assert the producer's literals are the ones this set enumerates."""
+    src = (Path(supervisor.__file__).parent / "process_run_complete.py").read_text()
+    for kind in supervisor.WEDGE_KINDS_NO_TEST_JUDGED - {"deadline_kill"}:
+        assert f'kind="{kind}"' in src, (
+            f"`{kind}` is no longer written by the publisher -- this set is describing a "
+            "producer that has moved")
+    worker = (Path(supervisor.__file__).parent / "background_worker.py").read_text()
+    assert 'kind="deadline_kill"' in worker, "the OUTER caller's kind has moved"
