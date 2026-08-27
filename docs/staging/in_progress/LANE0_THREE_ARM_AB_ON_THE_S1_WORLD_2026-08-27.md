@@ -1,18 +1,28 @@
 # Lane 0 — the three-arm A/B and its error bar: in flight since 2026-08-27T21:28:05Z
 
-**STATUS (2026-08-27T21:30Z): IN FLIGHT — `three-arm-and-floor.service`, launched 21:28:05Z,
-`ppid=382`.** Two prior attempts produced no artefact: the 15:08Z run was killed from outside
-(diagnosed below), and the 19:45Z run was stopped by its own bundled commit gate, not by a
-reaper. Neither cause is detachment, and **neither is to be answered by detaching harder.**
+**STATUS (2026-08-27T22:00Z): PHASE=base LANDED, PHASE=floor IN FLIGHT.** Three attempts today
+produced nothing; the fourth produced the reading. `three-arm-and-floor.service` launched
+21:28:05Z and wrote `docs/observability/value_cycle_ab_s1_three_arm.json` at **21:56:34Z with
+`rc=0`** — 28m29s, ~9.5 min per arm. `PHASE=floor` (nine passes, seeds 11111,22222,33333) began
+at 21:56:38Z and is due around **23:20Z**.
 
-**BLOCKING SUB-ITEM:** the second row of the three-arm table, *with its error bar*. It needs
-two artefacts: `docs/observability/value_cycle_ab_s1_three_arm.json` (the reading) and
-`docs/observability/value_cycle_ab_s1_noise_floor.json` (the spread the reading sits inside).
+The two dead attempts died of *different* causes and neither was detachment: the 15:08Z run was
+killed from outside (diagnosed below), the 19:45Z run was stopped by its own bundled commit
+gate. **Neither is to be answered by detaching harder**, and this launch answered the second by
+removing the bundled gate rather than the detachment.
 
-**WHAT UNBLOCKS IT:** the first file existing with `level_vs_selection.available == true`. The
-second is what turns a point estimate into a publishable one; if the floor half dies where the
-base half succeeded, write the row **and say the spread is unmeasured**, rather than publishing
-the point estimate bare.
+**THE READING IS PUBLISHED.** The second row exists in
+`docs/staging/done/WORKER_FINDING_THE_VALUE_ARMS_ADVANTAGE_IS_THE_LEVEL_NOT_THE_SELECTION_2026-08-27.md`:
+world `8d8e9c2c8`, 210 accounts / 187 dual fuel, settled clock; control £113,282.62, value
+£120,648.84, level @£44.50 £120,823.40; **level share 102.4%, selection −£174.57**. Per R12 that
+is a complete answer and finishes the question the run was launched to ask.
+
+**THE ONE REMAINING SUB-ITEM:** the spread cell in that row still reads IN FLIGHT. It needs
+`docs/observability/value_cycle_ab_s1_noise_floor.json`. When it exists, replace the cell with
+`selection_gbp_spread.min … .max` / `.stdev`, state `selection_distinguishable_from_zero`, and
+check `seeds[].elasticity_draws > 0` on every seed. **If the floor half died where the base half
+succeeded, say the spread is unmeasured** — the row already carries the ≈ ±£4,400 scratchpad
+upper bound as the nearest measured band, so it is not bare either way.
 
 **Claim id (bind every commit to it):**
 `measure-the-widened-world-once-and-bring-its-error-bar-with-it`. Two predecessors were

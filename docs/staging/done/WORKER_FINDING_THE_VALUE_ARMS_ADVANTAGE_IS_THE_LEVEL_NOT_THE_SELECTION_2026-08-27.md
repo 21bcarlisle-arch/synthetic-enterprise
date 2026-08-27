@@ -41,6 +41,50 @@ would have compared the arm with itself**. Now passes the arm it was given, pinn
 > (−£991.38 on 2019). Not merely uninformative — mildly value-destructive, in the same direction on
 > both windows.
 
+### The second reading — the SAME instrument on the WIDENED world (2026-08-27T21:56Z)
+
+The rows above were taken before the world was widened. `S1` gave each household its own price
+sensitivity and the domestic switching curve was scoped to the segment its evidence covers, which
+is the change most likely to give per-customer selection something to select *on*. This is that
+comparison re-run once on the widened world, with the seed spread in the same row so the point
+estimate cannot be quoted without its error bar.
+
+| world (commit) | book (`book_identity.control_arm`) | clock (R14) | control | value_based | flat_at_level @£44.50 | level share | **selection, with its spread** |
+|---|---|---|---|---|---|---|---|
+| `8d8e9c2c8` | 210 billing accounts settled, 187 dual fuel (89.0%), segments resi+SME, 127 alive at window end | **settled** net margin — `net_margin_gbp` off the world's own settled records | £113,282.62 | £120,648.84 (+£7,366.22) | £120,823.40 (+£7,540.79) | **102.4%** | **−£174.57**, and the committed-mode spread is **IN FLIGHT** at the time of writing — see the pending cell below. The nearest measured band, the scratchpad upper bound in the CORRECTION section, is **≈ ±£4,400**, i.e. **25× this estimate.** |
+
+Artefact: `docs/observability/value_cycle_ab_s1_three_arm.json`, `generated_at 2026-08-27T21:56:34Z`,
+`level_vs_selection.available: true`. Run: `three-arm-and-floor.service` PHASE=base, `rc=0`, log
+`docs/observability/three_arm_and_floor_run.log`. The one working-tree path not in `8d8e9c2c8` was
+`simulation/run_phase2b.py`, whose whole diff is a `gap_ledger_path=None` parameter on `main()`
+whose default is the live path byte for byte — behaviour-neutral for a real run.
+
+**Three things this row says, and one it does not.**
+
+1. **The level still explains all of the advantage — 102.4%, down from 119.7%.** Widening the world
+   moved the share toward 100% rather than below it.
+2. **The selection leg is still worth less than nothing: −£174.57.** Per R12 that FINISHES the
+   question this run was launched to answer. It is the honest and expected outcome of widening one
+   axis, and it is explicitly not a cue to tune the arm until it wins.
+3. **The level did not move.** `level_gbp_per_mwh` is **44.50** on the widened world, the same value
+   as the original run — and it is read off `decision_shape.median_margin_gbp_per_mwh` in *this* run,
+   not carried over as a constant. That the arm's own realised median landed on the same figure after
+   the world changed is worth noticing, not worth reading as a stability result on this evidence.
+4. **What it does not say is that the selection leg shrank.** −£174.57 against −£1,388.80 is an
+   eight-fold *apparent* improvement, and it must not be reported as one: both numbers sit inside a
+   band an order of magnitude wider than either. On the measured SD the two readings are
+   indistinguishable from each other and from zero. The interesting fact about this row is not its
+   value but its width.
+
+**PENDING (do not close this without it):** `PHASE=floor` of the same unit began at 21:56:38Z —
+`--level-arm --noise-floor-seeds 11111,22222,33333`, nine full passes, writing
+`docs/observability/value_cycle_ab_s1_noise_floor.json`. That is the **first end-to-end execution of
+the committed noise-floor mode**, which the CORRECTION section below records as never having been
+run. When it lands, replace the spread cell above with `selection_gbp_spread.min … .max` and
+`.stdev`, state `selection_distinguishable_from_zero`, and confirm `seeds[].elasticity_draws > 0` on
+every seed — a zero there means the patch reached no call site and the mode RAISES rather than
+reporting a floor of zero.
+
 This is what an AUC of 0.4653 predicts. An estimator that ranks *worse* than chance cannot select
 profitably, and the two measurements corroborate rather than merely coexist.
 
@@ -146,6 +190,13 @@ make −£1,389 resolvable — but the number itself should not be quoted as the
 including the two R15 mutations) but unexercised against the real world. Reproducing this table
 properly is `python3 -m tools.run_value_cycle_ab --noise-floor-seeds 11111,22222,33333` — roughly
 35 min per seed × 3 arms. Until that has run, this table is evidence, not an instrument reading.
+
+> **UPDATE 2026-08-27T21:56Z — that run is now in flight for the first time**, as `PHASE=floor` of
+> `three-arm-and-floor.service`, seeds `11111,22222,33333`, out to
+> `docs/observability/value_cycle_ab_s1_noise_floor.json`. Measured cost on this machine is ~9.5 min
+> per arm, so ~85 min for nine passes, not the ~105 min estimated above. **This paragraph stays
+> true until that artefact exists** — an in-flight run is not a reading, and the table above remains
+> evidence rather than an instrument output until it lands.
 
 ### The direct proof that the old harness measured nothing
 
