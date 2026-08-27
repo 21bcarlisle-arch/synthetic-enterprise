@@ -37,6 +37,21 @@ def test_trading_hedge_annual_has_all_years(dash):
         assert yr in years
 
 
+@pytest.mark.xfail(strict=True, reason=(
+    "MEASURED FALSE, 2026-08-27, and recorded rather than tuned: docs/staging/done/"
+    "WORKER_FINDING_THE_2022_CRISIS_IS_NOT_VISIBLE_IN_DOMESTIC_BILL_SHOCK_2026-08-27.md. "
+    "THREE independent denominators agree that 2022 is not worse than 2020 on shock frequency "
+    "-- per active account 3.57 vs 4.72, per active ELECTRICITY account 6.56 vs 8.57 (ruling "
+    "out the dual-fuel gas legs, which dilute both years alike), and per BILL 0.366 vs 0.398, "
+    "the denominator a shock actually belongs to and the one invariant to book size AND "
+    "tenure. `avg_bill_shock_pct` agrees and drifts DOWN across the decade. "
+    "THE WHOLESALE CRISIS IS REAL AND THE PRICE CAP STANDS BETWEEN IT AND A DOMESTIC BILL -- a "
+    "capped tariff cannot pass a spike through when it happens, so a flat avg_bill_shock_pct "
+    "across 2021-2023 is the cap working, not the world failing. "
+    "R12 is why the metric was not normalised a fourth time until it passed, and R13 is why no "
+    "world parameter was touched to make 2022 harsher. "
+    "STRICT so an XPASS alarms: if 2022 ever does become the worse year, the cap modelling or "
+    "the pass-through has changed and this seat wants telling."))
 def test_crisis_year_2022_worse_than_2020(dash):
     """D3 Expert-Hour finding (2026-07-12): compares ORGANIC (market/
     consumption-driven) shocks, not the raw bill_shock_count -- a real
@@ -113,3 +128,32 @@ def test_operations_monthly_has_is_crisis_key(dash):
 def test_trading_hedge_annual_has_hf_key(dash):
     for row in dash["trading"]["hedge_annual"]:
         assert "avg_hf" in row
+
+
+def test_bill_shock_stays_in_a_plausible_band_across_the_decade(dash):
+    """THE CLAIM THAT REPLACES the 2022-vs-2020 one (2026-08-27).
+
+    `test_crisis_year_2022_worse_than_2020` is xfail-strict against
+    `docs/staging/done/WORKER_FINDING_THE_2022_CRISIS_IS_NOT_VISIBLE_IN_DOMESTIC_BILL_SHOCK_2026-08-27.md`:
+    measured three ways, 2022 is simply not the worse year, and the reason is that a capped
+    domestic tariff cannot pass a wholesale spike through at the moment it happens.
+
+    Retiring a claim must not retire the COVERAGE. What the old assertion really stood guard
+    over was that bill shock is a live, bounded quantity -- so that is asserted directly here,
+    on every year rather than on two. A run where shock vanished (the company stopped billing,
+    or the detector broke) or exploded (pass-through unbounded, the cap ignored) still reds.
+
+    BOUNDS, NOT AN EQUALITY, and deliberately wide: the measured decade runs 0.35 to 0.46, and
+    pinning that would make this a change-detector for the population draw -- the mistake this
+    file already made once with a raw shock COUNT.
+    """
+    annual = {r["year"]: r for r in dash["financial"]["annual"]}
+    measured = {y: r["avg_bill_shock_pct"] for y, r in annual.items()
+                if r.get("avg_bill_shock_pct") is not None}
+    assert len(measured) >= 8, "fewer than eight years carry a shock figure: {}".format(
+        sorted(measured))
+    for year, pct in sorted(measured.items()):
+        assert 0.05 <= pct <= 5.0, (
+            "{} average bill shock is {:.2f}% -- at the floor the detector or the billing has "
+            "stopped, at the ceiling the price cap is no longer bounding pass-through"
+            .format(year, pct))

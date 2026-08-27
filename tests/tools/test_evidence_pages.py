@@ -403,6 +403,31 @@ def sources(tmp_path):
     # bring it along or every atom's citations would read MISSING for a reason that
     # has nothing to do with the evidence.
     shutil.copytree(G.STORE_DIR, tmp_path / "simplifications")
+
+    # AND THE MAP IS TWO FILES SINCE 2026-08-26 (docs/design/MAP_SPLIT_2026-08-26.md).
+    #
+    # The loop above copies `MAP_PATH` -- the DRAWN half, 74 atoms. `map_store.map_text` derives
+    # the closed sibling from whatever path it is handed, so against this fixture it looked for
+    # `maturity_map_closed.yaml` beside the copy, did not find it, and returned the drawn half
+    # alone. That degradation is CORRECT for a non-canonical path (the loader's fail-closed
+    # refusal is reserved for the live path, deliberately, so a caller may hand it a map copy),
+    # which is exactly why nothing raised: the fixture quietly built a page from 74 atoms of
+    # 298, and `test_the_record_store_actually_supplies_the_citations` caught it as 15 citations
+    # against a floor of 50.
+    #
+    # That floor is the only reason this was visible at all. The two raise-tests it exists to
+    # underwrite would both still have passed on a quarter of the map.
+    #
+    # Copied from the loader's OWN declaration of the map's parts, so a third half or a rename
+    # is inherited rather than needing this fixture edited again -- the same repair the
+    # pre-commit store-surface fixture needed the same day.
+    from tools.maturity_map_store import MAP_PARTS_REL
+    from tools.maturity_map_store import PROJECT as MAP_PROJECT
+    for rel in MAP_PARTS_REL:
+        src = MAP_PROJECT / rel
+        dest = tmp_path / Path(rel).name
+        if not dest.exists():
+            shutil.copy2(src, dest)
     return out
 
 
@@ -433,7 +458,18 @@ def test_an_empty_source_raises_rather_than_rendering_a_blank_page(sources, brok
     loud as an absent one."""
     from tools.generate_evidence_data import EvidenceSourceUnavailable, build_payload
 
-    sources[broken].write_text("", encoding="utf-8")
+    # THE MAP IS TWO FILES, SO "EMPTY THE MAP" MEANS BOTH (2026-08-27). Emptying only the drawn
+    # half leaves the closed half's 224 atoms standing, the build succeeds, and this test would
+    # report a fail-open that had not happened -- while a genuine one, both halves empty, went
+    # untested. The UNLINK sibling above needs no such change and is deliberately left alone:
+    # an absent canonical path IS the source being unavailable, and the reader refuses on it
+    # before it ever looks for a sibling.
+    _break = [sources[broken]]
+    if broken == "map_path":
+        _break += [q for q in sources[broken].parent.glob("maturity_map*.yaml")
+                   if q != sources[broken]]
+    for target in _break:
+        target.write_text("", encoding="utf-8")
     with pytest.raises(EvidenceSourceUnavailable):
         build_payload(**sources)
 

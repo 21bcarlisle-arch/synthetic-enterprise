@@ -203,7 +203,21 @@ def atom_records(map_path: Path = MAP_PATH) -> dict[str, dict]:
     dependency at publish scope. Captures the scalar fields this page shows plus the
     multi-line-tolerant `evidence:` list.
     """
-    text = map_store.map_text(map_path) if Path(map_path).exists() else _require(map_path, "maturity map")
+    if not Path(map_path).exists():
+        _require(map_path, "maturity map")
+    try:
+        text = map_store.map_text(map_path)
+    except map_store.MapStoreError as exc:
+        # THE MAP IS TWO FILES, AND ITS LOADER HAS ITS OWN REFUSAL (2026-08-27). `map_text`
+        # raises `MapStoreError` when the closed half is missing, empty, unparseable or the
+        # wrong shape -- deliberately, because "an empty closed half is indistinguishable from
+        # a truncated one". That IS this module's `EvidenceSourceUnavailable` condition: a
+        # source it cannot stand behind. Letting the loader's own type escape broke this
+        # module's single documented contract -- every caller catches
+        # `EvidenceSourceUnavailable` to leave the previous page up, and would instead have
+        # died with an unhandled exception from a module it does not import.
+        raise EvidenceSourceUnavailable(
+            "maturity map unusable: {}".format(exc)) from exc
     records: dict[str, dict] = {}
     current: str | None = None
     ev_buf: list[str] | None = None
