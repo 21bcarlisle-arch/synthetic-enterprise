@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-27T14:15:06Z",
+    "generated_at": "2026-08-27T17:09:18Z",
     "git_commit": "unknown",
     "household_count": 210,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
@@ -21,14 +21,14 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "87.9 percentage points apart at the 2022 renewal (sim 92.9% vs company 5.0%)",
+      "headline": "73.4 percentage points apart at the 2022 renewal (sim 77.9% vs company 4.5%)",
       "wall_side": "sim",
-      "account_id": "PROS-2020-0067",
-      "base_account_id": "PROS-2020-0067",
+      "account_id": "PROS-2019-0023",
+      "base_account_id": "PROS-2019-0023",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2020-0067",
+        "acc": "PROS-2019-0023",
         "tab": "timeline",
         "year": 2022
       }
@@ -37,14 +37,14 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "C5",
-      "base_account_id": "C5",
-      "segment": "SME",
+      "account_id": "PROS-2018-0003",
+      "base_account_id": "PROS-2018-0003",
+      "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C5",
+        "acc": "PROS-2018-0003",
         "tab": "timeline",
-        "year": 2021
+        "year": 2024
       }
     },
     {

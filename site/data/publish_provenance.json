@@ -1,28 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-27T11:08:02Z",
+    "checked_at": "2026-08-27T16:57:09Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_no_committed_discharge_cites_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_shadow_finder_is_derived_and_discriminates"
+      "FAILED tests/company/policy/test_policy_field_consumption.py::test_every_policy_field_declares_how_it_reaches_its_consumer",
+      "FAILED tests/company/policy/test_policy_field_consumption.py::test_mutation_an_undeclared_field_reds_the_completeness_check"
     ],
     "nonblocking_reds_total": 2,
-    "open_findings": 36
+    "open_findings": 38
   },
   "last_verified": {
-    "generated_at": "2026-08-27T14:30:01Z",
-    "git_commit": "733df7aed",
-    "run_id": "run_output_733df7aed_20260827T140344Z.json",
-    "verified_at": "2026-08-27T14:30:01Z"
+    "generated_at": "2026-08-27T17:23:09Z",
+    "git_commit": "b8cd5eae9",
+    "run_id": "run_output_b8cd5eae9_20260827T165810Z.json",
+    "verified_at": "2026-08-27T17:23:09Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-27T14:30:01Z",
-    "git_commit": "733df7aed",
-    "run_id": "run_output_733df7aed_20260827T140344Z.json",
-    "verified_at": "2026-08-27T14:30:01Z"
+    "generated_at": "2026-08-27T17:23:09Z",
+    "git_commit": "b8cd5eae9",
+    "run_id": "run_output_b8cd5eae9_20260827T165810Z.json",
+    "verified_at": "2026-08-27T17:23:09Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-27T14:30:01Z"
+  "written_at": "2026-08-27T17:23:09Z"
 }

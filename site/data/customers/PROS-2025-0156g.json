@@ -47,7 +47,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0156g-INV12319",
+      "id": "PROS-2025-0156g-INV12210",
       "date": "2025-05-31",
       "period_start": "2025-05-18",
       "period_end": "2025-05-31",
@@ -88,7 +88,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0156g-INV12320",
+      "id": "PROS-2025-0156g-INV12211",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -135,27 +135,27 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 12319,
+        "invoice_number": 12210,
         "amount_gbp": 21.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12319 raised",
+        "description": "Invoice INV12210 raised",
         "running_balance_gbp": 21.92
       },
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 12320,
+        "invoice_number": 12211,
         "amount_gbp": 6.95,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV12320 raised",
+        "description": "Invoice INV12211 raised",
         "running_balance_gbp": 28.87
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 12319,
+        "invoice_number": 12210,
         "amount_gbp": -21.92,
         "info_amount_gbp": null,
         "method": "direct_debit",
