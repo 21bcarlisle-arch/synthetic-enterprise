@@ -1550,3 +1550,115 @@ A THIRD ARM: flat rules at the value arm's own realised median margin (£44.50),
 
 It is one run and a constant override. Not built in this session, and named here so it is not
 re-derived: the arm's own `decision_shape.median_margin_gbp_per_mwh` is the number to set.
+
+---
+
+## 2026-08-27 (full window) — the ladder at 2016–2025: the world bites LESS than the company believes, and the 2019 reading said the opposite
+
+`docs/observability/value_cycle_price_ladder.json`, `report_end: null`, generated 2026-08-27T11:56:29Z,
+rungs `0, 0.5, 1.0, 2.0`. Cost, measured on the same run: **50 min 56 s wall clock, 3,051 s CPU,
+10.1 GB peak RSS, exit 0, 122 KB artefact** — five `run_phase4c` passes against a 120-minute tick
+bound, which is the fit the section above predicted at 53.3 min including the gate. The estimate was
+2.4 minutes low.
+
+**This supersedes nothing and replaces nothing.** `value_cycle_price_ladder_2019.json` and the
+reading built on it are kept. What follows is the same instrument over the whole window, and on the
+one statistic the 2019 reading rested on it points the other way.
+
+### The null rung, first, because nothing below is readable without it
+
+| | rung zero | flat-rules control |
+|---|---|---|
+| accounts churned | 37 | 37 |
+| net margin, **settled** (R14) | £152,114.248823 | £152,114.248823 |
+| accounts only in one roster | 0 | 0 |
+
+Exact to the last penny, and the churn rosters are identical account-for-account. The artefact's own
+verdict: *"rung zero reproduces the flat-rules control exactly, so the multiplier scales the uplift
+and nothing else."* Rung zero is the null control the whole reading rests on, and it passes.
+
+### The four rungs, and the world does respond to price
+
+Over the common population — the 22 decisions priced **and** rolled by the world at **every** rung,
+so the same accounts throughout:
+
+| rung | mean uplift £/MWh | rate vs the company's own previous rate | realised non-renewals | **realised rate** | **believed rate** |
+|---|---|---|---|---|---|
+| 0.0 | £0.00 | +7.1% | 2 / 22 | **9.1%** | 21.4% |
+| 0.5 | £22.38 | +14.1% | 4 / 22 | **18.2%** | 30.2% |
+| 1.0 | £48.82 | +24.2% | 7 / 22 | **31.8%** | 42.7% |
+| 2.0 | £103.15 | +48.2% | 8 / 22 | **36.4%** | 64.1% |
+
+Monotone in both columns. Price bites; that is not in question and never was.
+
+### The finding: the company over-predicts the bite by ~1.6×, and it does so on all three references
+
+`realised_over_believed` is the ratio of the two response slopes over that same 22-decision set:
+
+| x-axis | realised slope | believed slope | **realised / believed** | realised R² |
+|---|---|---|---|---|
+| delivered uplift (£/MWh) | 0.00262 | 0.00417 | **0.627** | 0.863 |
+| vs the company's own previous rate (%) | 0.00630 | 0.01028 | **0.612** | 0.817 |
+| vs the world's SVT reference (%) | 0.00398 | 0.00642 | **0.621** | 0.843 |
+
+Three different x-axes, three answers inside 0.612–0.627. **The company's churn model thinks a price
+rise costs it about 1.6 times as many customers as it actually does.** That is a *conservative* error
+— it under-prices relative to what the book would bear — and it is the opposite sign of error to the
+one a value arm would need to flatter itself.
+
+The per-decision statistic agrees: **`median_world_over_believed` = 0.768** over 22 decisions and 88
+observations, with the over/under split almost even (10 decisions where the company over-predicts the
+response, 9 where it under-predicts). The pooled figure in the same block reads 1.705 and **must not
+be quoted** — the artefact's own caveat says it is weighted by whichever account the arm happened to
+price over the widest range, and *"where the two disagree, distrust this one."* They disagree here.
+
+### Against the 2019 ladder — the window was doing more work than anyone had checked
+
+| | 2019 window | **full window** |
+|---|---|---|
+| common population (effective n) | 6 | **22** |
+| `median_world_over_believed` | **1.160** — world bites *harder* | **0.768** — world bites *softer* |
+| unmatched decisions | 18, on 6 accounts | **0** |
+| accounts the world never rolled at all | 6 | **0** |
+| sign disagreements between the two references | 52 / 166 (31.3%) | 45 / 136 (33.1%) |
+
+Two things follow, and only the second is a finding about the company:
+
+1. **The 2019 unmatched set was a truncation artefact, and it is gone.** Those 6 accounts were not
+   "never rolled" — their renewals rolled *after* 2019-12-31, and the artefact said as much in a
+   comment at `run_price_ladder.py:635`. At full window every priced decision is rolled by the world:
+   `unrolled: 0` at all four rungs. **The full window does not merely add data; it removes a known
+   defect from the reading.** That, not the extra years, is the reason to prefer this artefact.
+2. **The headline ratio flips, and the effective n went 6 → 22.** A statistic computed on 6 decisions
+   flipping when computed on 22 is what a statistic on 6 decisions does. The honest statement is not
+   "the 2019 result was wrong" but **"the 2019 result was never powered, and this is the first
+   reading of it that is."** 22 is still small.
+
+### What this does NOT say
+
+* It does not say the arm's decisions are good. Direction of *response* is not quality of
+  *discrimination* — the A/B's AUC of 0.4653 is the statistic for that, and it is unchanged here.
+* It does not settle price-vs-prediction. **6 of 24 decisions at rung 2.0 were ceiling-clamped** and
+  2 sat above the model's support, so the top rung is partly the cap's answer rather than the
+  model's. `above_support_bound` is 0 at every rung at or below 1.0, so the lower three rungs are
+  clean.
+* It does not survive re-running on a different book. Every figure here is resi + SME, the book at
+  `353fe96b8`; the segments are a free variable of the run and the ladder artefact does not yet carry
+  a `book_identity` block the way the A/B now does. **That is the next defect in this file**, and it
+  is the same one `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26` raised
+  against the sibling tool.
+
+### The reference divergence, unchanged in shape and now in a bigger sample
+
+136 decisions carry both references. They disagree in sign on **45 of them (33.1%)**, and in 30 of
+those the company reads its own decision as a *rise* while the world reads the same rate as *below
+SVT*. The SVT reconciliation control passes — largest absolute gap 0.005 percentage points against
+the world's own logged `price_differential_vs_svt`, so the harness is scoring the rate the customer
+was actually charged and the reference comparison is readable at all. The 2019 finding that the two
+sides price against different references therefore holds at full window; only its magnitude moved.
+
+### For the curriculum, recorded and not acted on (R13)
+
+The book's realised elasticity is milder than the company's model of it. That is a fact about this
+baseline world, arrived at blind to company P&L, and it is **not** a reason to retune either side.
+Recorded here so the next reader does not rediscover it as a surprise.
