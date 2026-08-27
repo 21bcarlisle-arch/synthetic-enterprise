@@ -88,3 +88,61 @@ the several hours the tool took to build.
 The instrument's own refusal did fire correctly and is worth keeping in mind for the rebuild: it
 would have caught a silent no-op override, and it was right to demand the control's net actually
 move. It just cannot catch a counterfactual that moves the wrong thing.
+
+---
+
+## The cap-latency question was attempted, and the measurement was the wrong one
+
+This finding closed with: *"whether it can bite at £2.00 needs measuring on real base rates and
+this turn did not do that."* It was attempted immediately afterwards. The attempt is recorded
+because it failed in an instructive way and would otherwise be repeated.
+
+### What was measured
+
+Every domestic electricity **settlement** record of a full-decade control-arm run, compared
+against `get_cap_unit_rate_for_date("electricity", d)`:
+
+```
+checked        178,229 records (2019-2025)
+above the cap   28,093  (15.8%)
+
+tightest headroom by year
+  2019   +£2.29        2021  −£101.40      2023  −£145.11      2025  −£301.78
+  2020  +£15.59        2022  −£172.52      2024  −£132.41
+```
+
+A 15.8% breach rate against a statutory consumer protection is the kind of number that gets
+reported immediately. It should not be, and this one nearly was.
+
+### Why it is not a compliance finding
+
+**The Ofgem default-tariff cap governs default and standard-variable tariffs, and it binds the
+OFFER.** A fixed-term contract agreed before a cap change lawfully runs to its end at the agreed
+rate; the cap does not reach backwards into a live term.
+
+Checked rather than assumed: `PROS-2019-0050` carries **exactly one distinct rate — £188.59 —
+across its entire breach window**. A single constant rate over hundreds of consecutive settlement
+days is a LOCKED term, not a default tariff drifting above a ceiling. The comparison was
+settled-rate-versus-current-cap, and that is a comparison with no rule behind it.
+
+The 2019 and 2020 headrooms being positive and the crisis years being deeply negative is the same
+story from the other side: fixed rates locked before the spike, carried through it. That is the
+world behaving correctly.
+
+### The real question, still open, and narrower than the attempt
+
+Does the flat arm ever **OFFER** above the cap **at a renewal**? That needs the offered rate at
+renewal points — not settled rates — compared against the cap in force on the term-start date, and
+restricted to accounts whose product the cap actually governs. The unguarded ceiling in
+`decide_margin`'s flat branch is real either way; whether it can bite is still unmeasured.
+
+### The pattern, recorded because it is the fourth today
+
+Three measurement designs in this one investigation measured something other than what they were
+built to answer: the constant override (raised the whole book, not the renewals), the 2019 cap
+check (the least informative window), and this one (settled rates against a rule that governs
+offers). Each was caught, and each was caught by the same move — asking what the number would have
+to mean for it to be true, before writing it down anywhere permanent.
+
+None of them was caught by the code being wrong. Every one ran perfectly and answered a question
+nobody had asked.
