@@ -165,6 +165,8 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     served = served_segments()
     static = [c for c in CUSTOMERS if _serves(c, served)]
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
+    global _RUN_BASE_SEED
+    _RUN_BASE_SEED = seed
     book = static
 
     if draw_population_enabled():
@@ -243,6 +245,35 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
 #: truncating, so the cost of it being too small is a loud stop, and the cost of it being
 #: generous is 40 premise draws a year at the 0.04 ms each measured below.
 TRICKLE_STOCK_RESERVE = 40
+
+#: The base seed the CURRENT process's book was actually drawn at, recorded by
+#: `live_population()` as it resolves. Read it through `run_base_seed()`, never directly.
+_RUN_BASE_SEED: Optional[int] = None
+
+
+def run_base_seed() -> int:
+    """The base seed THIS run's book was drawn at — the public answer to "which world is this?".
+
+    WHY THIS EXISTS RATHER THAN A SECOND IMPORT OF `_DEFAULT_BASE_SEED` (2026-08-27, S1).
+    A per-household trait (`price_sensitivity`, region, cohort) is only that household's trait
+    if every consumer resolves it from the SAME seed the book was drawn at. A consumer that
+    reaches for the module DEFAULT instead is correct only for as long as nothing passes
+    `base_seed=`, and it fails silently the day something does: the customer would carry one
+    sensitivity in its cohort and a different one in its behaviour, which is precisely the
+    disagreement `population_draw.draw_region_for_customer` was created to prevent. This is
+    the threaded value, not a re-derivation of the default, so that failure mode is closed by
+    construction rather than by a grep of the current call sites.
+
+    FALLS BACK TO THE DEFAULT, and that is the FAIL-OPEN-shaped branch here, so it is named:
+    when no book has been drawn in this process there is no run to disagree with, and the
+    default is the only seed any consumer could have meant. `live_population()` is called at
+    module import by every live entrypoint (`run_phase2a`, `run_phase2b`,
+    `run_phase4c_on_phase2b`, `tools/run_phase*`), so a live decision point always reads a
+    recorded seed; the fallback is reached only by a unit test that never assembled a book.
+    Proven both ways in `tests/simulation/test_price_sensitivity_reaches_the_price_response.py`.
+    """
+    return _DEFAULT_BASE_SEED if _RUN_BASE_SEED is None else _RUN_BASE_SEED
+
 
 #: The years the campaign runs over. Named once because the stock, the campaign and the
 #: verdict must all mean the same decade; a second literal is how they stop meaning it.

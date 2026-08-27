@@ -74,7 +74,7 @@ import hashlib
 import json
 import math
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -992,6 +992,27 @@ def draw_region_for_customer(
         _cohort_substream(customer_id, base_seed, "region"),
         region_weights_from_curriculum(curriculum),
     )
+
+
+def price_sensitivity_for_customer(
+    customer_id: str, base_seed: int, curriculum: Optional[dict] = None
+) -> str:
+    """Draw `customer_id`'s own price sensitivity — the SAME value `assign_cohort()` carries.
+
+    THE SINGLE MECHANISM, for the same reason `draw_region_for_customer` is: this delegates to
+    `_draw_curriculum_axis`, which is the exact call `assign_cohort` makes, keyed on the same
+    `(customer_id, base_seed, axis)` substream. Re-deriving the axis with a second draw here
+    would give a customer one sensitivity in its cohort and a different one in its behaviour,
+    which is the disagreement `draw_region_for_customer` exists to prevent.
+
+    WHY IT NEEDED A PUBLIC ACCESSOR AT ALL. Until 2026-08-27 this axis was drawn, coverage-tested,
+    walled off from the company and mutation-tested against leaks — and read by no live module.
+    `assign_cohort()` is the only way to reach it and it draws the whole cohort (curriculum load,
+    tenure, accommodation, cars, nssec, heating, region) to answer one question, at every renewal.
+    See `docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md`.
+    """
+    c = curriculum if curriculum is not None else _load_cohort_curriculum()
+    return _draw_curriculum_axis(customer_id, base_seed, "price_sensitivity", c)
 
 
 #: The three low-carbon assets whose adoption is tenure-gated per-asset. Kept in

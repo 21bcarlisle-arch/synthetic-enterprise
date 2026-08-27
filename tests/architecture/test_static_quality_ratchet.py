@@ -516,10 +516,18 @@ BASELINE_DATE = "2026-08-06"
 #     imports and one un-sorted block that were all there before the change went near them. Per
 #     file, set-differenced against `git archive HEAD`: seat_continuity F401 -2,
 #     seat_work_in_hand F401 -1, sim_runner I001 -1. Four removals, no additions.
+#
+#   * 2026-08-27, S1 (price sensitivity reaches the price response): F401 269 -> 268.
+#     `simulation/population_draw.py` imported `field` from `dataclasses` and never used it;
+#     the S1 pass removed it. SHRINK-ONLY, so the floor moves DOWN and the new count is held:
+#     this is not a raised baseline and the ratchet stays exactly as tight. Set-differenced
+#     against `git archive HEAD`: population_draw F401 -1, one removal, no additions. I001 is
+#     UNCHANGED at 1348 -- the one block S1 added was sorted by hand rather than by `--fix`,
+#     which can move a `noqa` off the line it was written for and trade I001 for E402.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
     "I001": 1348,
-    "F401": 269,
+    "F401": 268,
     "E402": 174,
     "F841": 127,
     "E741": 107,
@@ -537,7 +545,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2337  # was 2338; -1 (W605, the invalid f-string escape; see the 2026-08-27 entry)
+RUFF_BASELINE_TOTAL = 2336  # was 2337; -1 (F401, the unused `field` import S1 removed from population_draw)
 
 
 # --------------------------------------------------------------------------

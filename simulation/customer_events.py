@@ -35,6 +35,7 @@ from simulation.market_switching_propensity import (
     churn_position_multiplier,
     market_switching_multiplier,
     offer_position_multiplier,
+    perceived_price_differential,
 )
 from simulation.satisfaction_churn import adjust_churn_for_satisfaction
 from simulation.switching_propensity import adjust_churn_probability
@@ -226,7 +227,48 @@ def roll_lifecycle_event(
         # continues at the last slope the data informs; the win leg keeps the saturation, because
         # you cannot win more customers than the market has to give. See that function for the
         # measurement and for what would discharge the assumption.
-        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(differential)
+        #
+        # AND THE HOUSEHOLD'S OWN SENSITIVITY WEIGHTS IT (2026-08-27). Until this line existed,
+        # every household in the world shared ONE price-response curve: two customers in identical
+        # circumstances responded identically, so there was no household TYPE to infer and the
+        # company could demonstrate no inference advantage however good its model got. The
+        # `price_sensitivity` axis was already drawn per household, coverage-tested, walled off
+        # from the company and mutation-tested against leaks -- and read by nothing. The
+        # curriculum file even states it is "discoverable via rate-change churn response", a
+        # channel that did not exist until this call. See
+        # `docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md`.
+        #
+        # R13 BASELINE, NOT CURRICULUM, on both halves of the test. FIDELITY: real households
+        # differ in how hard they feel a price move, and a world where they cannot is less
+        # faithful, not easier. The MARGINALS (how many households are highly elastic) remain
+        # the director's.
+        #
+        # BLIND TO COMPANY P&L -- BUT NOT AGGREGATE-NEUTRAL, AND THE FIRST DRAFT OF THIS COMMENT
+        # SAID IT WAS. The weights are mean-preserving in the WEIGHT (population mean exactly
+        # 1.000 against the curriculum's own shares, `medium` exactly 1.0) but NOT in the
+        # RESPONSE: `churn_position_multiplier` is CONVEX, so by Jensen a mean-preserving spread
+        # in its ARGUMENT raises the mean response. Measured in that function's own module note,
+        # `E[m(d*w)] / m(d)` = 1.142 at -20% and 1.118 at +20% -- the book churns MORE, by up to
+        # ~14%, purely from households now differing. That is recorded rather than tuned away:
+        # renormalising the weights until aggregate churn held still would be selecting
+        # parameters to hit an output, which R12 forbids. The DIRECTION is why it is safe to make
+        # without the director -- it moves AGAINST the company, never for it -- and it was fixed
+        # before any pricing arm was re-run against it. Pinned by
+        # `test_the_spread_RAISES_average_churn_and_that_is_recorded_not_tuned_away`.
+        #
+        # THE RUN'S SEED, NOT THE MODULE DEFAULT. `run_base_seed()` returns the seed THIS run's
+        # book was drawn at; resolving the trait from the default instead would be correct only
+        # until something passed `base_seed=`, and would then hand this customer a sensitivity
+        # its own cohort does not carry -- the disagreement `price_sensitivity_for_customer`'s
+        # single-mechanism design exists to prevent. The deferred import is this module's
+        # existing pattern for `household_segments` below, and is required here: `population_draw`
+        # cannot import `live_population` (that direction is already taken).
+        from simulation.live_population import run_base_seed
+        from simulation.population_draw import price_sensitivity_for_customer
+
+        sensitivity = price_sensitivity_for_customer(billing_account, run_base_seed())
+        felt = perceived_price_differential(differential, sensitivity)
+        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(felt)
         effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --

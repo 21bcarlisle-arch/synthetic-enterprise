@@ -212,6 +212,82 @@ _CALIBRATED_SAVINGS_CEILING_GBP = 400.0
 _LAST_INFORMED_SLOPE_PER_GBP = (_MAX_RATE - 0.13) / (_CALIBRATED_SAVINGS_CEILING_GBP - 250.0)
 
 
+#: How strongly a household of each drawn `price_sensitivity` FEELS a given price differential.
+#: Applied to the differential, never to the multiplier — see `perceived_price_differential`.
+#:
+#: MEAN-PRESERVING IN THE WEIGHT. Against the curriculum's own shares (high 0.30 / medium 0.45 /
+#: low 0.25) the population mean weight is exactly 1.000, and `medium` is exactly 1.0, so the
+#: median household behaves precisely as EVERY household did before this existed.
+#:
+#: BUT NOT MEAN-PRESERVING IN THE RESPONSE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED IT WAS.
+#: `churn_position_multiplier` is CONVEX, so by Jensen a mean-preserving spread in the argument
+#: RAISES the mean response. Measured across the shares rather than reasoned about:
+#:
+#:      differential   old m(d)   E[m(d*w)]   ratio
+#:            -20%       0.3125      0.3569   1.142
+#:            -10%       0.5102      0.5401   1.059
+#:            +10%       1.9600      1.9900   1.015
+#:            +20%       3.2000      3.5780   1.118
+#:
+#: So the book churns MORE, by up to ~14%, purely from the spread. That is a real consequence and
+#: it is recorded rather than tuned away: renormalising the weights until aggregate churn held
+#: still would be selecting parameters to hit an output, which is exactly what R12 forbids.
+#:
+#: IT REMAINS A FIDELITY CHANGE UNDER R13, and the direction is the reason it is safe to make
+#: without the director: it moves AGAINST the company (a book that churns more, never less), it
+#: follows from the curve's ALREADY-CALIBRATED convexity rather than from any new difficulty knob,
+#: and it was fixed before any pricing arm was re-run against it. What stays the director's is the
+#: MARGINALS — how many households are highly elastic.
+#:
+#: THE SPREAD IS ASSERTED, and is the one invented number here. Ofgem/DESNZ publish engagement
+#: SEGMENT SHARES (which is why the marginals are anchored and these are not) but no per-segment
+#: price elasticity. 0.4 for the disengaged is damped, deliberately not zero — a household that
+#: never responds to any price is not disengaged, it is captive, and the world already has a
+#: `WORLD_MAX_CHURN_PROBABILITY` for that.
+#:
+#: WHAT WOULD DISCHARGE IT: a supplier-level churn series split by customers' own prior switching
+#: history — the same evidence `churn_position_multiplier` names for its extrapolation, cut a
+#: second way. A market-wide switching rate can never settle it: it never observed which
+#: households did the switching.
+PRICE_SENSITIVITY_WEIGHT: dict[str, float] = {
+    "high": 1.5,
+    "medium": 1.0,
+    "low": 0.4,
+}
+
+
+def price_sensitivity_weight(level: str | None) -> float:
+    """This household's own weighting of a price differential. 1.0 when unknown.
+
+    UNKNOWN IS 1.0, NOT AN ERROR, and that is deliberate: the pre-2026-08-27 behaviour is exactly
+    `weight == 1.0` everywhere, so a caller that cannot resolve a sensitivity gets the world as it
+    was rather than a crash or a silent zero. A zero would make the household immune to price,
+    which is the failure this whole change exists to remove.
+    """
+    if level is None:
+        return 1.0
+    return PRICE_SENSITIVITY_WEIGHT.get(level, 1.0)
+
+
+def perceived_price_differential(price_differential_pct: float, sensitivity: str | None) -> float:
+    """The differential as THIS household feels it.
+
+    THE WEIGHT SCALES THE DIFFERENTIAL, NOT THE MULTIPLIER, and the difference is the whole
+    argument for the shape. `churn_position_multiplier` is the reciprocal of the win leg below
+    saturation, which is what makes `m(d) * m(-d) == 1` hold and guarantees there is no
+    differential at which the company gains on BOTH legs. That identity holds *for any argument*,
+    so feeding it `d * w` preserves the guarantee exactly, for every household, at every weight.
+    Scaling the returned multiplier instead would break it: `w * m(d) * w * m(-d) == w**2`, and at
+    `w < 1` that is a household the company profits from on both legs at once — precisely the
+    goal-seeking hole R12 exists to close.
+
+    It is also the semantically right place. A high-sensitivity household is more responsive to
+    price in BOTH directions — it leaves sooner when dear and stays harder when keen — which is
+    what elasticity means. Weighting only the loss side would model spite, not sensitivity.
+    """
+    return float(price_differential_pct) * price_sensitivity_weight(sensitivity)
+
+
 def churn_position_multiplier(price_differential_pct: float) -> float:
     """The world's LOSS-side response to our price against the market. 1.0 at parity.
 
