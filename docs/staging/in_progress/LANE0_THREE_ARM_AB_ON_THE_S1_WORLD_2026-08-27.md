@@ -1,17 +1,25 @@
-# Lane 0 — the three-arm A/B: the 15:08Z run is DEAD, and it died of a known cause
+# Lane 0 — the three-arm A/B and its error bar: in flight since 2026-08-27T21:28:05Z
 
-**STATUS (2026-08-27T19:2xZ): the run is not in flight. It was killed 4m28s in and this file
-said "in flight" for the next 2h12m.** That is now corrected. The blocking sub-item below is
-the artefact, and the route to it has changed — see *How the re-run is launched*.
+**STATUS (2026-08-27T21:30Z): IN FLIGHT — `three-arm-and-floor.service`, launched 21:28:05Z,
+`ppid=382`.** Two prior attempts produced no artefact: the 15:08Z run was killed from outside
+(diagnosed below), and the 19:45Z run was stopped by its own bundled commit gate, not by a
+reaper. Neither cause is detachment, and **neither is to be answered by detaching harder.**
 
-**BLOCKING SUB-ITEM:** the second row of the three-arm table. It needs the artefact
-`docs/observability/value_cycle_ab_s1_three_arm.json`.
+**BLOCKING SUB-ITEM:** the second row of the three-arm table, *with its error bar*. It needs
+two artefacts: `docs/observability/value_cycle_ab_s1_three_arm.json` (the reading) and
+`docs/observability/value_cycle_ab_s1_noise_floor.json` (the spread the reading sits inside).
 
-**WHAT UNBLOCKS IT:** that file existing with `level_vs_selection.available == true`.
+**WHAT UNBLOCKS IT:** the first file existing with `level_vs_selection.available == true`. The
+second is what turns a point estimate into a publishable one; if the floor half dies where the
+base half succeeded, write the row **and say the spread is unmeasured**, rather than publishing
+the point estimate bare.
 
-**Claim id (bind every commit to it):** `land-the-widened-world-then-run-the-three-arm-ab-once`
-(the earlier `re-run-the-three-arm-ab-on-the-s1-world` was auto-released by
-`background/alarm_repetition.py` at 2.2h — correctly, the work had stopped.)
+**Claim id (bind every commit to it):**
+`measure-the-widened-world-once-and-bring-its-error-bar-with-it`. Two predecessors were
+auto-released by `background/alarm_repetition.py` when the work stopped —
+`re-run-the-three-arm-ab-on-the-s1-world` at 2.2h and
+`land-the-widened-world-then-run-the-three-arm-ab-once` after the gate refusal. Both releases
+were correct: nothing was moving.
 
 ---
 
@@ -87,30 +95,58 @@ systemd-run --user --unit=three-arm-ab --same-dir --collect \
 
 `systemctl --user status three-arm-ab` is the liveness check; the log still carries START/END.
 
-### The live run — launched 2026-08-27T19:45:12Z
+### The 19:45Z run — DEAD, and it did not die of detachment
+
+**OBSERVED**, `docs/observability/three_arm_composite_run.log` and
+`journalctl --user -u land-then-three-arm-ab`:
+
+| fact | value |
+|---|---|
+| START | `pid=1402748 ppid=382 pgid=1402748` at `2026-08-27T19:45:12Z` |
+| reparenting | **held** — `ppid=382`, the user manager. Nothing killed it from outside. |
+| END line | `END rc=1 PHASE=land -- gate refused, A/B deliberately NOT run` at 19:55:59Z |
+| cause | `surgical_land` REFUSED: 2 failed, 485 passed in 621.40s |
+| the two reds | `test_phase40a_pass_through::test_pass_through_customer_in_fast_run`, `test_run_phase2b::test_the_run_emits_a_treasury_drawdown_register` |
+| artefact | still absent at that point |
+
+So the escalation worked and the *gate* stopped the run — exactly the discriminating outcome
+the PHASE tag was added to produce. **Detaching harder was correctly not attempted.**
+
+`8d8e9c2c8` then settled both reds by measurement: a throwaway worktree at clean HEAD
+reproduces **both** with no working-tree diff present, so the widened world caused neither, and
+the treasury null control is correct and correctly firing (its 2016–2017 fixture window holds
+zero drawdown events). Both repairs are QUEUED. That commit also records why the composite was
+never one unit: `tests_for()` is per-path, the four paths have disjoint gate sets, and bundling
+turned a 0.57s gate into a 621s one.
+
+### The live run — launched 2026-08-27T21:28:05Z
 
 ```
-unit      land-then-three-arm-ab.service   (systemd --user; MainPID 1402748, ppid 382)
-script    /tmp/land_then_ab.sh
-log       docs/observability/three_arm_composite_run.log
-artefact  docs/observability/value_cycle_ab_s1_three_arm.json
-liveness  systemctl --user is-active land-then-three-arm-ab.service
+unit      three-arm-and-floor.service   (systemd --user; MainPID 1534725, ppid 382)
+script    /tmp/three_arm_and_floor.sh
+log       docs/observability/three_arm_and_floor_run.log
+artefacts docs/observability/value_cycle_ab_s1_three_arm.json      (PHASE=base)
+          docs/observability/value_cycle_ab_s1_noise_floor.json    (PHASE=floor)
+liveness  systemctl --user is-active three-arm-and-floor.service
+world     8d8e9c2c853c6ac2efa1b461a4fbc8698c770084, recorded in the log at launch
 ```
 
-**`ppid=382` is the whole point** — that is the systemd user manager, not the tick that
-launched it. The 15:08Z run's `ppid` was the tick, which is why walking that tick's descendants
-found it. Verified before launch with a throwaway unit rather than assumed.
+**The land is no longer bundled into it.** That is the whole change of shape. The A/B measures
+the tree it runs on; gating an unrelated four-path pathspec in front of it bought nothing and
+cost the reading twice. The one dirty sim path at launch is `simulation/run_phase2b.py`, logged
+by the wrapper, and its diff is a `gap_ledger_path=None` test-injection parameter whose default
+preserves the live path exactly — behaviour-neutral for a real run, so the named commit does
+describe the world that was walked.
 
-It does three things in order, and **the A/B is conditional on the land succeeding**:
+It does two things in order, and **the second is conditional on the first**:
 
-1. `surgical_land` the four remaining world paths (the gate takes >10 min — which is why this
-   cannot run in a bounded tick's foreground; the first attempt was SIGTERMed at exit 143 by the
-   10-minute tool timeout, the same class of death as the run it is replacing).
-2. On `rc=0` only: bind the claim via `delivery_lane --landed`, then `git push origin main`.
-3. Then `run_value_cycle_ab --level-arm` at the commit just landed, whose SHA the log records.
+1. `PHASE=base` — `run_value_cycle_ab --level-arm --out …_s1_three_arm.json`. The base reading.
+2. On `rc=0` only, `PHASE=floor` — `--level-arm --noise-floor-seeds 11111,22222,33333` to a
+   separate `--out`. Three seeds × three arms = nine full passes, so it is much the longer half.
 
-`END rc=` carries `PHASE=land` or `PHASE=ab` so a reader can tell WHICH half died. A gate refusal
-stops before the A/B rather than measuring an unlanded world.
+**The order is the point.** The noise-floor mode had never once been executed end to end; putting
+it second means a defect in it cannot cost the base reading, which is the deliverable. `END rc=`
+carries `PHASE=base` or `PHASE=floor` so a reader can tell which half died.
 
 **On R18.** The direction asked for a foreground `tools.wait_for --pid` bound to the run. That is
 the right instrument for a job that fits inside a turn and the wrong one for a job designed to
@@ -143,6 +179,14 @@ landed by the time the doorbell was read** — in `bca9bb3af`, `898d78239`, `3ce
 `9e52d2254`. Only `simulation/customer_events.py` and `simulation/run_phase2b.py` were still
 dirty, and they are adopted as-is (never rebuilt) in the commit that carries this file.
 
+**UPDATE 21:30Z.** `simulation/customer_events.py` is clean at `8d8e9c2c8` — the widening is on
+`main`. The one remaining dirty sim path is `simulation/run_phase2b.py`, and its whole diff is a
+`gap_ledger_path=None` parameter added to `main()` so a test can redirect the coupled-gap ledger
+the `live_ledger_guard` refuses to let it touch. Default `None` = the live path, byte for byte,
+so the run in flight walks the world `8d8e9c2c8` describes. That path cannot land alone right
+now: its gate includes the 621s `test_run_phase2b` treasury suite, red at clean HEAD for a
+reason `8d8e9c2c8` already diagnosed and queued.
+
 ## What to do when the artefact lands
 
 Add **a second row** to the three-arm table in
@@ -157,6 +201,20 @@ per R14. Read every number off `level_vs_selection`:
 | what the selection was worth | `selection_gbp` (was **−£1,388.80** decade, −£991.38 on 2019) |
 | the level actually used | `level_gbp_per_mwh` — the arm's own median, **expect it to have moved** |
 
+And, in the **same row**, the error bar, read off `value_cycle_ab_s1_noise_floor.json`:
+
+| what to report | key |
+|---|---|
+| the spread on the selection leg | `selection_gbp_spread.min … .max` (and `.stdev`) |
+| the spread on the share | `level_share_spread.min … .max` |
+| whether the leg is readable at all | `selection_distinguishable_from_zero` |
+| that the patch fired | `seeds[].elasticity_draws` — a zero here RAISES rather than reporting a floor of 0 |
+
+A point estimate published without the spread beside it is the defect this half exists to
+prevent: no reader can then take the number without its error bar.
+
 **R12 governs the reading.** A selection leg still worth less than nothing FINISHES this. It is
 the honest and likely outcome of widening one axis, and it is not a cue to tune the arm until it
-wins.
+wins. **A spread wider than the effect ALSO finishes it, and is the more valuable answer** —
+it means every reading built on this instrument needs the caveat, including the 119.7% already
+published above.
