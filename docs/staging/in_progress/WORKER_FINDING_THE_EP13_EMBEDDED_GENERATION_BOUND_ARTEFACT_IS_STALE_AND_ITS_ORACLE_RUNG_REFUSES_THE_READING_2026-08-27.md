@@ -2,19 +2,92 @@
 
 # The EP13 embedded-generation bound's artefact is stale, and its own oracle rung refuses the reading
 
-## PARKED IN-PROGRESS 2026-08-27 11:26 UTC — the one owed item is RUNNING, not waiting
+## THIRD DEATH, 2026-08-27 14:18 UTC — it was neither branch this file predicted, and item 2 is now READ
 
-**Blocking sub-item: item 1 below (regenerate the artefact at the current `(12,4,3)` grid).**
-It was drawn by the scheduled tick that self-refilled `EP13_adapter_carbon_intensity`
-(level 2→3, `loop_stage: build`) and is **in flight now**, not queued:
+The `setsid` relaunch (pid 1027522) was **also** gone by 14:02 UTC with a 0-byte log and the
+artefact still dated 06:30 (`ps -p 1027522` empty, `ls -la` on both paths — `observed-with-evidence`).
+That is the third death, so this file's own instruction was followed rather than re-decided:
+check `dmesg` for OOM, and **run the module in the foreground for one year before re-queueing it.**
+Both were done. Both named branches are refuted, and the foreground run answered item 2 on the way.
+
+**NOT OOM.** `dmesg | grep -i oom-kill` returns kills only inside `ops2-peak-kill-selftest-*`
+cgroup scopes — a deliberate selftest — never a scope holding an EP13 pid. And the real work's
+**peak RSS is 1,217.8 MB, flat for the whole year**, against `resource_headroom.sample()`
+reporting `available_mb` 13,677. This job cannot OOM this box; the sim-runner's kill history is
+not its history.
+
+**NOT "the module raising before its first write".** In the foreground it runs clean end to end.
+
+**THE COST PREMISE WAS WRONG, AND IT IS WHY THE JOB WAS EVER DETACHED.** Measured, not estimated:
 
 ```
-setsid nohup python3 -m tools.ep13_embedded_generation_bound
-  pid 1027522, relaunched 13:33 UTC, log: docs/observability/ep13_regen_20260827.log
+cache load (demand, AGWS, fuel_mix, NESO published, embedded, build_shape, coords)   10.1 s
+measure_year("2019"), all five null seeds, 144-cell grid                            159.0 s
 ```
 
-It loads only on-disk caches (`load_cached()`), so it needs no network and cannot block on one.
-The module prints nothing until it finishes — an empty log is normal, not a stall.
+Six scoreable years is therefore **~16 minutes**, not multi-hour. The multi-hour part is
+`sweep()` — 5 grids × 6 years, and the 24x5x5 rung is 600 cells — which is **item 3**, not item 2.
+**Item 2's reading never needed a detached job at all.** "Multi-hour" was inferred from the shape
+of the work (six years × five rungs × five seeds, plus a five-grid sweep) and was never timed;
+that unmeasured premise is what put a 16-minute job into a launcher that keeps killing it, and
+then made two deaths unreadable because an empty log is what a detached job legitimately looks like.
+
+**A FOURTH DATA POINT ON THE LAUNCH SHAPE.** Running the six-year loop in the *foreground of a
+bounded tool call* died at **exit 143 (SIGTERM)** on the 10-minute tool timeout. So: `nohup &`
+inside a tick dies with the tick's session; a bare foreground run dies at the tick's own timeout;
+`setsid` survives both and died anyway for a reason still unidentified. The one repair that is
+certain is the **log**, and it is made: the relaunch runs under a wrapper that writes `START …
+pid/pgid/sess` on entry and `END … rc=<code>` on exit, so the next reader can tell RUNNING from
+DEAD without `ps` archaeology and without treating an empty file as normal.
+
+```
+setsid /tmp/ep13_regen_wrap.sh   ->  python3 -u -m tools.ep13_embedded_generation_bound
+  pid 1063255 (wrapper) / 1063263 (module), launched 14:18 UTC
+  PPID 382, PGID == SESS == PID 1063255 — verified after launch, not assumed
+  log: docs/observability/ep13_regen_20260827.log
+```
+
+### ITEM 2 IS ANSWERED FOR 2019, AND THE OCCUPANCY HYPOTHESIS IS REFUTED
+
+The foreground year is the same code, the same seeds and the same grid the artefact will carry,
+so it is the item-2 reading a run early (`/tmp/ep13_fg_year.json`, `observed-with-evidence`):
+
+```
+2019  n=8,283 scored half hours          held-out correlation
+  ceiling_2d        +0.8692     48 cells   fallback 0.0013   min cell 55
+  ceiling_3d        +0.8790    144 cells   fallback 0.0580   min cell 32
+  placebo_shuffled  +0.8672    144 cells   fallback 0.0270   min cell 30
+  placebo_day_mean  +0.8815    144 cells   fallback 0.0717   min cell 30
+  oracle_probe      +0.8677    144 cells   fallback 0.0346   min cell 32
+
+  embedded_gain_within_day  -0.0025      oracle_headroom_within_day  -0.0139
+  embedded_gain_over_cells  +0.0118
+  controls: fit_bites=Y  cells_are_populations=Y  null_collapses=Y
+            placebos_are_cell_matched=Y  instrument_can_see_within_day=N
+```
+
+**`cells_are_populations` now PASSES and `instrument_can_see_within_day` is still False.** At 192
+cells 2019 failed occupancy (fallback share 0.085–0.126 against the 0.10 threshold); at 144 it
+passes with 0.058 and a minimum used cell of 32 against `MIN_FIT_OCCUPANCY = 30`. The grid
+reduction did exactly what it was designed to do — and the oracle headroom did not follow it up:
+**−0.0139 at 144 cells against −0.0104 at 192.** So the reading this file was parked to obtain is
+that *the occupancy problem was real, is fixed, and was not what was blinding the instrument.*
+The synthetic-battery analogue (92% fallbacks → 1.1%, headroom +0.049 → +0.159) does **not**
+transfer to the real series, which is precisely the risk that paragraph flagged for itself.
+
+**The next diagnostic, stated as an observation and not yet a mechanism.** `oracle_probe` is
+built from the TARGET's own within-day deviation, so it is the strongest within-day third
+coordinate that can exist — and it scores below `placebo_day_mean`, the rung with that same
+coordinate's within-day structure destroyed, **both held out (+0.8677 vs +0.8815) and in sample
+(+0.8807 vs +0.8912)**. A probe carrying the answer cannot genuinely be beaten by the same probe
+with the answer removed. That is a statement about the instrument's construction, it survives the
+occupancy repair, and *it is not a resolution problem* — which means `sweep()` (item 3) is a
+diagnostic of how the gain moves with cells, not a route to making the oracle rung pass.
+`INFERRED`, and deliberately not repaired here: the drawn work was to read item 2, and it reads.
+
+**What still unblocks this file:** the running job writing
+`docs/observability/ep13_embedded_generation_bound.json` with `cells: 144` **and** the
+`resolution_sweep` block, so items 2 and 3 can be read across all six years rather than 2019 alone.
 
 ### FIRST LAUNCH DIED — relaunched 2026-08-27 13:33 UTC, and the fix is `setsid`, not a retry
 
@@ -49,9 +122,12 @@ shorter than the work it was launched to do looks exactly like a job still runni
 **What unblocks this file:** `docs/observability/ep13_embedded_generation_bound.json` showing
 `cells: 144` instead of `192`. Until then item 1 is neither owed nor re-drawable.
 
-**If the process is gone and the artefact still reads 192**, the run died with the session — just
-relaunch the same command. Nothing is lost and nothing needs re-deciding; per the body below,
-the repair was already diagnosed and made, and only the re-measurement was left undone.
+~~**If the process is gone and the artefact still reads 192**, the run died with the session — just
+relaunch the same command.~~ **SUPERSEDED 14:18 UTC by the third-death section at the top of this
+file: two relaunches have been spent on that reading and neither death was the session.** If the
+process is gone again, read `END … rc=` in the log first; if there is no `END` line the job was
+killed from outside and the launcher is the subject, not the module. Do not spend a fourth
+relaunch on the per-year table — it is a 16-minute foreground run and 2019 is already read above.
 
 **Then read the rungs in the stated order — `instrument_can_see_within_day` FIRST (items 2 and 3),
 and the refusal in "What must not happen" stands until item 1 is read.** `EP13` was verified still
