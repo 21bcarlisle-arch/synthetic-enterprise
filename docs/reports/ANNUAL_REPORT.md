@@ -2690,7 +2690,7 @@ Elexon's Balancing and Settlement Code (BSC) requires suppliers to post credit c
 
 << BSC credit above 0.4% of revenue (elevated operational cash tie-up)
 
-**Peak BSC credit requirement:** 2025 at £401 (portfolio growth and 2021-22 price surge)
+**Peak BSC credit requirement:** 2025 at £401
 ## Operational Unit Economics
 
 Revenue, gross margin, and net margin per active customer account. The dramatic rise in 2022-23 reflects wholesale price crisis inflating all revenue and cost metrics simultaneously.
@@ -3765,7 +3765,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (353 active customers) under 12-month forward scenarios.
-Generated: 2026-08-27T04:23:40Z
+Generated: 2026-08-27T07:13:24Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
