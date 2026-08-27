@@ -395,3 +395,123 @@ control's own named remedy applies — rehome the accreted history to
 `docs/design/simplifications/EP13_adapter_carbon_intensity.yaml` and leave one comment — and it is
 a separate job from this measurement, deliberately not done inside it. This pass kept its own
 addition to ~640 B and *corrected* the sentence it replaced rather than accreting beside it.
+
+## 11. 2026-08-27 — the INPUT CEILING: the dispatch programme is capped at ~+0.01 correlation
+
+**The claim this pass tested was already written down, and had never been measured.**
+`sim/grid_carbon_intensity.py` says it in the docstring:
+
+> "A dispatch model handed demand, wind and solar can only be a function of residual demand;
+> GB's actual intensity increasingly is not."
+
+Six passes have moved this atom's error terms — coal, the cables, the thermal floor, the measured
+must-run fleet, the biomass envelope — and correlation, the axis holding the level, has moved
+**0.726 → 0.746 in total**. Each pass named the next gap and built it. This pass measured the
+ceiling of the whole remaining programme instead, which is the move §10 made one term down and
+which retired an entire outage model for the cost of one measurement.
+
+**METHOD.** Hand the model's own inputs to the *best possible function of them* and see where
+correlation lands. Three rungs and a null, one process, identical caches, all scored by the same
+`neso.compare_shapes` over the same held-out half hours:
+
+| rung | what it bounds |
+|---|---|
+| `baseline` | `build_shape` as shipped — where the atom is |
+| `recalibration_ceiling` | best possible function of the model's **own output** — bounds every post-hoc factor, curve and clamp |
+| `input_ceiling` | best possible function of the model's **own inputs** — bounds every merit order, efficiency curve, coal-availability model and outage model |
+| `null_ceiling` | the input ceiling refitted on a **shuffled** target — must collapse |
+
+The two coordinates are the model's own reduction of its inputs, both intensive: `u` = thermal
+residual / demand, `v` = import carbon / demand. Fitted as cell means on **odd** days of the
+month, scored on **even** days — whole days either side, because the axis under measurement is
+*within-day* ordering and a split that cut days in half would let the fit see the morning of a day
+it is scored on the evening of. Fitting is in **intensity space**, not carbon space: NESO's series
+is loss-corrected to a consumed basis and the reconstruction sits at the transmission boundary, so
+`published × demand` is not GB's burnt carbon and subtracting an import term would mix a basis
+difference into the target.
+
+**THE RESULT — the inputs are exhausted.**
+
+| year | baseline | recalibration | **input ceiling** | held-out gain |
+|---|---|---|---|---|
+| 2019 | 0.8815 | 0.8816 | 0.8757 | −0.0057 |
+| 2020 | 0.8732 | 0.8726 | 0.8726 | −0.0006 |
+| 2021 | 0.9075 | 0.9066 | 0.9087 | +0.0013 |
+| 2022 | 0.8699 | 0.8694 | 0.8931 | +0.0231 |
+| 2023 | 0.7973 | 0.7983 | 0.8071 | +0.0098 |
+| **2024** | **0.7425** | 0.7462 | 0.7268 | **−0.0157** |
+
+**In 2024 — the year that holds the level — the best possible function of the model's inputs
+scores BELOW the shipped model out of sample, at every resolution tested.** No merit order, no
+efficiency curve, no coal-availability model and no outage model can move that year's number,
+because the information is not in the inputs. Recalibration is capped even harder: the best
+possible function of the model's own output buys at most **+0.0037** in any year, so no factor,
+curve or clamp of the kind the last six passes applied is worth building either.
+
+**THE CONTROL THAT MAKES IT A CEILING AND NOT A NUMBER** is the resolution sweep, because a single
+grid cannot distinguish *the inputs are exhausted* from *this binning is too coarse*. They separate
+under refinement: if in-sample gain climbs while held-out gain stays flat, the extra resolution is
+being spent on memorisation and the information limit has been reached.
+
+| grid | cells | mean in-sample gain (upper bound) | mean held-out gain |
+|---|---|---|---|
+| 8×3 | 24 | −0.0023 | −0.0053 |
+| 16×4 | 64 | +0.0081 | +0.0013 |
+| 24×5 | 120 | +0.0109 | +0.0020 |
+| 40×6 | 240 | +0.0120 | +0.0012 |
+| 64×8 | 512 | +0.0067 | +0.0009 |
+
+**In-sample gain plateaus at +0.012 across a 21× refinement and then falls; held-out gain never
+exceeds +0.002.** The in-sample column is the rigorous half: no function of the inputs at a given
+resolution can beat the in-sample cell means on the very half hours they were fitted to, so it is
+an *upper bound* that does not depend on the split, the seed or the null. **The largest in-sample
+gain in any year at any grid is +0.0295** (2022, 40×6).
+
+**WHAT THIS DOES NOT SAY.** A ceiling bounds a model *class*; it is not a prediction that any
+buildable model reaches it. A high ceiling would not have promised a build succeeds — only the low
+direction is load-bearing, and it is the direction the atom needed. It also says nothing about the
+*level* axis, which five earlier passes did move and which is not in dispute.
+
+**WHAT IT MEANS FOR L3.** The remaining gap is not reachable by dispatch work of any kind, so the
+"next gap on the within-day axis" the map has carried since 2026-08-26 is **retired as a build**.
+L3 on this atom requires a **new input carrying within-day timing information the model cannot
+currently see** — not a better model of the inputs it has. The most obvious candidate, named as a
+hypothesis and explicitly *not* measured here, is embedded (distribution-connected) generation:
+Elexon's AGWS meters transmission-connected wind and solar, GB's embedded solar fleet is large and
+its output is strongly within-day, and NESO's published series accounts for it while this
+reconstruction cannot see it at all. That is a DISCOVER question, not a build.
+
+**R15.** 16 tests in `tests/tools/test_ep13_input_ceiling.py`; **9 named mutations run and
+confirmed RED, then restored GREEN.** Two of them matter more than the rest, because this pass's
+finding is a NEGATIVE and an instrument that can only ever report "no headroom" reports a
+*constant* — R15's fourth shape, where mutation testing stays red because it was always red. So
+the load-bearing test builds a world where the inputs *do* carry headroom the shipped model misses
+and requires the instrument to find it.
+
+**ONE MUTATION SURVIVED ON THE FIRST BATTERY AND THE FIXTURE WAS THE FAULT, not the tool.**
+Replacing every cell mean with the grand mean — a fit that never happens — left the headroom test
+green. The cause: that test's "bad" shipped model responded to `u` with inverted curvature, so its
+correlation was about **−1** and the gain to beat was ~2.0; a bar of +0.05 against a baseline of −1
+is cleared by any function with a positive slope. The baseline is now a *competent* model that
+gets `u` right and cannot see `v`, which is the real shape of the thing being bounded, and the test
+additionally asserts the surface **reaches** the target (>0.95) — an assertion a flat surface
+cannot survive. A second mutation forcing every cell through the u-marginal fallback now also
+fires, which is what proves the 2-D fit is genuinely exercised rather than the 1-D marginal.
+
+Two further defects in the same file were found the same way and fixed: a **dead assertion**
+(`... if "controls" in row else True`, where `controls` is never a key of a `measure_year` row),
+and a fixture too small to populate the grid it tested — 28 days left ~5 fit half hours per cell,
+so the null rung scored 0.52 against a signal of 0.999 and read as a leaking fit. **The null is now
+a distribution across five seeds, not a single draw**, and its threshold is *derived* from the
+effective cell count (3/√N) rather than chosen — the surface takes one value per cell, so the
+effective sample behind a null correlation is the cell count, and single draws of ±0.2 are ordinary
+at 120 cells. Observed maximum is 0.2413 (2021) against a 0.2739 threshold.
+
+**A finding about the instrument, kept because it is about the real data's shape.** Quantile edges
+cannot split a tie, and `v` is *exactly zero* for every half hour before the cables existed. Left
+undeduplicated, those edges create empty bins and the grid silently shrinks — the artefact would
+report 120 cells while the fit answered from a handful. Edges are now strictly increasing and the
+artefact publishes `effective_cells`, the resolution the population actually supported, which is
+what every derived threshold reads.
+
+Reproduce: `python3 -m tools.ep13_input_ceiling` → `docs/observability/ep13_input_ceiling.json`.
