@@ -216,22 +216,22 @@ _LAST_INFORMED_SLOPE_PER_GBP = (_MAX_RATE - 0.13) / (_CALIBRATED_SAVINGS_CEILING
 #: Applied to the differential, never to the multiplier — see `perceived_price_differential`.
 #:
 #: MEAN-PRESERVING IN THE WEIGHT. Against the curriculum's own shares (high 0.30 / medium 0.45 /
-#: low 0.25) the population mean weight is exactly 1.000, and `medium` is exactly 1.0, so the
-#: median household behaves precisely as EVERY household did before this existed.
+#: low 0.25) the population mean weight is exactly 1.000 — by construction, since each weight is a
+#: subgroup importance over the share-weighted mean importance. `medium` is 1.0149 rather than
+#: exactly 1.0, because the evidence puts the median household marginally above the book average;
+#: that is the data's answer, not a rounding convenience.
 #:
 #: BUT NOT MEAN-PRESERVING IN THE RESPONSE, AND THE FIRST DRAFT OF THIS NOTE CLAIMED IT WAS.
 #: `churn_position_multiplier` is CONVEX, so by Jensen a mean-preserving spread in the argument
-#: RAISES the mean response. Measured across the shares rather than reasoned about:
+#: RAISES the mean response. The size of that lift scales with the SQUARE of the spread, so
+#: re-deriving the weights from evidence (1.26x, from an invented 3.75x) shrank it by roughly an
+#: order of magnitude — see `test_the_spread_RAISES_average_churn_and_that_is_recorded_not_tuned_away`,
+#: which asserts the DIRECTION and leaves the magnitude to be measured rather than pinned to a
+#: table that goes stale the moment the marginals move.
 #:
-#:      differential   old m(d)   E[m(d*w)]   ratio
-#:            -20%       0.3125      0.3569   1.142
-#:            -10%       0.5102      0.5401   1.059
-#:            +10%       1.9600      1.9900   1.015
-#:            +20%       3.2000      3.5780   1.118
-#:
-#: So the book churns MORE, by up to ~14%, purely from the spread. That is a real consequence and
-#: it is recorded rather than tuned away: renormalising the weights until aggregate churn held
-#: still would be selecting parameters to hit an output, which is exactly what R12 forbids.
+#: The lift is a real consequence and it is recorded rather than tuned away: renormalising the
+#: weights until aggregate churn held still would be selecting parameters to hit an output, which
+#: is exactly what R12 forbids.
 #:
 #: IT REMAINS A FIDELITY CHANGE UNDER R13, and the direction is the reason it is safe to make
 #: without the director: it moves AGAINST the company (a book that churns more, never less), it
@@ -239,20 +239,57 @@ _LAST_INFORMED_SLOPE_PER_GBP = (_MAX_RATE - 0.13) / (_CALIBRATED_SAVINGS_CEILING
 #: and it was fixed before any pricing arm was re-run against it. What stays the director's is the
 #: MARGINALS — how many households are highly elastic.
 #:
-#: THE SPREAD IS ASSERTED, and is the one invented number here. Ofgem/DESNZ publish engagement
-#: SEGMENT SHARES (which is why the marginals are anchored and these are not) but no per-segment
-#: price elasticity. 0.4 for the disengaged is damped, deliberately not zero — a household that
-#: never responds to any price is not disengaged, it is captive, and the world already has a
-#: `WORLD_MAX_CHURN_PROBABILITY` for that.
+#: DERIVED FROM PUBLISHED EVIDENCE, NOT CHOSEN. Director, 2026-08-27: *"derive them from published
+#: evidence, not from what makes the arm look good... If the honest distribution leaves little to
+#: infer, that's the finding."* It does leave little, and that IS the finding — see below.
+#:
+#: SOURCE. Ofgem / BMG Research, *Understanding Consumers' Energy Tariff Choices* (conjoint choice
+#: experiment, n=3,235 GB energy bill payers representative on 2021 census targets; fieldwork
+#: 29 Mar – 9 Apr 2024; published July 2025). Overall feature importance: **annual savings 41%**,
+#: customer service rating 32%, exit fees 22%, tariff type 5%.
+#:
+#: THE SPREAD IS THE REPORT'S OWN SUBGROUP RANGE for the savings attribute. Across EVERY subgroup
+#: it reports, price importance runs **35%–44%**, mean 41%:
+#:
+#:      44%  consumers rating their current supplier 0–2 stars   <- most price-focused reported
+#:      42%  aged 65+;  42%  highly financially vulnerable
+#:      41%  overall;   41%  "doing well financially"
+#:      35%  aged 18–34 (who weight customer service 37% instead) <- least price-focused reported
+#:
+#: Each weight is that subgroup's importance divided by the SHARE-WEIGHTED population importance
+#: (40.4%), which makes the population mean exactly 1.000 by construction rather than by a fudge
+#: factor. high 44/40.4, medium 41/40.4, low 35/40.4.
+#:
+#: WHAT THIS REPLACED, AND BY HOW MUCH IT WAS WRONG. The first version of this table was
+#: 1.5 / 1.0 / 0.4 — a **3.75x** high-to-low ratio, reasoned from intuition about disengaged
+#: households and labelled "asserted". The evidence gives **1.26x**. The invented spread was
+#: roughly three times too wide, in the direction that makes per-customer pricing look more
+#: winnable than it is. That is precisely the failure the director's instruction names.
+#:
+#: THE FINDING, which is a negative one and belongs here rather than in a note nobody reads.
+#: GB households weight price REMARKABLY HOMOGENEOUSLY. The most and least price-focused subgroups
+#: Ofgem could find differ by a quarter, and the report says so directly: *"Choices were similar
+#: across demographics... feature importance scores are generally quite stable across different
+#: groups"*, and on vulnerability, *"highly vulnerable consumers have scores that are close to
+#: identical (42%) for price savings to those doing well financially (41%)"*. Its Table 3 puts the
+#: Spearman correlation between energy SPEND and switching propensity at −0.07 to +0.05.
+#:
+#: So there is very little here for any supplier to infer, and that is a fact about GB households
+#: rather than a gap in this model. The heterogeneity that IS large and published lies elsewhere:
+#: the household's satisfaction with its CURRENT supplier (Table 4 — at a 1-star alternative,
+#: 57% of 1–1.5-star raters would switch against 39% of 5-star raters, a 1.46x spread, larger than
+#: anything price sensitivity shows) and a **17%** minority who "disproportionately prioritise exit
+#: fees over other factors". See `docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md`.
 #:
 #: WHAT WOULD DISCHARGE IT: a supplier-level churn series split by customers' own prior switching
-#: history — the same evidence `churn_position_multiplier` names for its extrapolation, cut a
-#: second way. A market-wide switching rate can never settle it: it never observed which
+#: history. Conjoint importance is a RELATIVE weight among four attributes, not a measured
+#: elasticity, so using its subgroup ratios as elasticity ratios is a proportional proxy and is
+#: named as one. A market-wide switching rate can never settle it: it never observed which
 #: households did the switching.
 PRICE_SENSITIVITY_WEIGHT: dict[str, float] = {
-    "high": 1.5,
-    "medium": 1.0,
-    "low": 0.4,
+    "high": 44 / 40.4,    # 1.0891
+    "medium": 41 / 40.4,  # 1.0149
+    "low": 35 / 40.4,     # 0.8663
 }
 
 

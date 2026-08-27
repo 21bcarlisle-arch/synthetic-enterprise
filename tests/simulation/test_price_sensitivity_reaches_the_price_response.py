@@ -182,14 +182,41 @@ def test_the_spread_RAISES_average_churn_and_that_is_recorded_not_tuned_away():
             "longer mean-preserving or the curve is no longer convex here")
 
 
-def test_the_median_household_behaves_EXACTLY_as_every_household_did_before():
-    """The regression anchor. `medium` is 1.0 by construction, so the pre-change world is still
-    reachable and any moved figure can be attributed to the SPREAD rather than to a re-levelling."""
-    assert PRICE_SENSITIVITY_WEIGHT["medium"] == 1.0
-    for d in (-0.2, -0.05, 0.0, 0.05, 0.2):
-        assert perceived_price_differential(d, "medium") == pytest.approx(d)
-        assert churn_position_multiplier(perceived_price_differential(d, "medium")) == (
-            pytest.approx(churn_position_multiplier(d)))
+def test_the_weights_are_the_PUBLISHED_subgroup_range_and_not_a_chosen_spread():
+    """THE DIRECTOR'S INSTRUCTION AS A CONTROL, 2026-08-27: *"derive them from published evidence,
+    not from what makes the arm look good."*
+
+    Each weight must be a subgroup's price-importance over the share-weighted population
+    importance, from Ofgem/BMG *Understanding Consumers' Energy Tariff Choices* (n=3,235, fieldwork
+    Mar–Apr 2024): savings importance 44% / 41% / 35% for the most price-focused, overall, and
+    least price-focused subgroups reported.
+
+    THE NUMBER THIS REPLACED WAS 3x TOO WIDE. The first table was 1.5 / 1.0 / 0.4 — a 3.75x
+    high-to-low ratio reasoned from intuition. The evidence gives 1.26x. This test pins the ratio
+    so a future "the spread looks too small to matter" cannot quietly widen it back: a wider spread
+    needs a SOURCE, not a preference.
+    """
+    imp = {"high": 44.0, "medium": 41.0, "low": 35.0}
+    shares = _load_cohort_curriculum()["price_sensitivity_marginals"]["value"]
+    den = sum(shares[k] * imp[k] for k in imp)
+    for k, importance in imp.items():
+        assert PRICE_SENSITIVITY_WEIGHT[k] == pytest.approx(importance / den, rel=1e-6), (
+            f"{k} is not the published importance {importance}% over the population's {den:.2f}%")
+    ratio = PRICE_SENSITIVITY_WEIGHT["high"] / PRICE_SENSITIVITY_WEIGHT["low"]
+    assert ratio == pytest.approx(44 / 35, rel=1e-6)
+    assert ratio < 1.5, (
+        f"high:low is {ratio:.2f}. Ofgem's own subgroup range is 35%-44% of decision weight — a "
+        "spread wider than that is not in the published evidence and needs its own citation")
+
+
+def test_the_MEDIAN_household_is_close_to_the_old_universal_behaviour():
+    """The regression anchor, weakened deliberately. `medium` is 1.0149, not 1.0 — the evidence
+    puts the median household marginally above the book average and that is the data's answer, not
+    a number to round for convenience. It stays close enough that a moved figure is attributable to
+    the SPREAD rather than to a re-levelling of the whole book."""
+    assert PRICE_SENSITIVITY_WEIGHT["medium"] == pytest.approx(1.0, abs=0.05)
+    for d in (-0.2, -0.05, 0.05, 0.2):
+        assert perceived_price_differential(d, "medium") == pytest.approx(d, rel=0.02)
 
 
 # ---------------------------------------------------------------------------
@@ -285,11 +312,27 @@ def test_the_NULL_RUNG_two_identical_households_agree(monkeypatch):
     assert _one_renewal(monkeypatch, "medium") == _one_renewal(monkeypatch, "medium")
 
 
-def test_the_MEDIAN_household_is_unchanged_at_the_decision_too(monkeypatch):
-    """The end-to-end regression anchor, and the reason mutation 1 is detectable at all: `medium`
-    is 1.0, so the pre-change world is still reachable THROUGH THE DECISION. Any moved run figure
-    is therefore attributable to the SPREAD and not to a re-levelling of the whole book."""
-    assert _one_renewal(monkeypatch, "medium") == _one_renewal(monkeypatch, None)
+def test_the_MEDIAN_household_is_NEARLY_unchanged_at_the_decision_too(monkeypatch):
+    """The end-to-end regression anchor, LOOSENED WHEN THE WEIGHTS WERE RE-DERIVED FROM EVIDENCE.
+
+    It asserted exact equality while `medium` was a chosen 1.0. Ofgem's subgroup range puts the
+    median household at 41/40.4 = 1.0149 — marginally above the book average, because the
+    share-weighted mean is pulled down by the least price-focused group. That is the data's answer
+    and the test moves to it rather than the constant being rounded back to keep a test green.
+
+    The anchor's PURPOSE survives: the median household is still within ~2% of the old universal
+    behaviour, so a moved run figure is attributable to the SPREAD across households and not to a
+    re-levelling of the whole book. The bound is deliberately tight enough to fail if someone
+    re-levels: an all-1.5 table would move this by 50%, not 1%.
+    """
+    with_median = _one_renewal(monkeypatch, "medium")
+    unweighted = _one_renewal(monkeypatch, None)
+    assert with_median == pytest.approx(unweighted, rel=0.02), (
+        f"the median household ({with_median}) is no longer close to the pre-change world "
+        f"({unweighted}) — the book has been RE-LEVELLED, not merely spread")
+    assert with_median >= unweighted, (
+        "medium is above 1.0 in the published range, so it cannot churn LESS than the unweighted "
+        "world — if it does, the weight is being applied with the wrong sign")
 
 
 # ---------------------------------------------------------------------------
