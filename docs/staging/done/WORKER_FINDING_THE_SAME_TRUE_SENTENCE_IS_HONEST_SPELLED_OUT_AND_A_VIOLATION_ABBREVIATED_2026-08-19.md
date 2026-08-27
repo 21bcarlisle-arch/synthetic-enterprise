@@ -1,6 +1,6 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 **Discharged:** `tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_declared_honest_store_also_claims_the_same_citation`,
-`tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus` — 2026-08-19: the lexicon miss is repaired by NOTATION (a symbol disclaim pattern; claims 231 to 229 against a floor of 90) and the CLASS is held by a control keyed on a register the verdict never consults, proven to fire by re-running the real 354-store corpus under the pre-fix predicate. §6 records the full discharge.
+`tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_MISREADS_the_spelling_this_control_was_built_for` — 2026-08-19: the lexicon miss is repaired by NOTATION (a symbol disclaim pattern; claims 231 to 229 against a floor of 90) and the CLASS is held by a control keyed on a register the verdict never consults, proven to fire by running the two spellings under the pre-fix predicate. §6 records the full discharge; the mutation node was renamed in commit 71cdda78a (2026-08-27) and this citation re-pointed with it.
 
 # A record says the same true thing four times; the lexicon reads it as honest when spelled `UNTRACKED` and as an over-claim when abbreviated to `` `??` `` — and the control has been red at HEAD since 2026-08-18
 
@@ -123,13 +123,26 @@ certification is wrong or the predicate missed a spelling. Its failure message e
 the `_KNOWN_UNLANDED` escape and names the lexicon as the repair — so the §4 pressure now trips a
 loud red instead of finding a quiet paper-over.
 
-**R15, on the real corpus rather than a fixture.** `_read()` takes the disclaim predicate as a
-PARAMETER, so `test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus`
-re-runs the 354 committed stores under the exact pre-fix word-only predicate — the repository's
-state at `b6148d907` — and asserts the class control fires, naming the EP1 clause. Paired with
-`test_MUTATION_the_symbol_lexicon_does_not_silence_a_bare_credit` (three clauses that quote a path
-in backticks and must stay affirmative), the widening is proven to fire in one direction and stay
-quiet in the other.
+**R15, and the proof was RE-BASED 2026-08-27 for the good reason.** As built, `_read()` took the
+disclaim predicate as a PARAMETER so the mutation could re-run the 354 committed stores under the
+exact pre-fix word-only predicate — the repository's state at `b6148d907` — and assert the class
+control fired, naming the EP1 clause. That evidence had an expiry date: EP1's two falsifiers have
+since LANDED, the four declarations naming them are gone, and the live corpus now yields no
+contradiction under EITHER predicate — so the assertion went red **for the repair rather than for a
+defect**, and the control could not be demonstrated at all. A control whose R15 evidence depends on
+a defect staying in the corpus is green only while the repository is broken, which is backwards.
+
+The proof is therefore FROZEN, and renamed with its new subject:
+`test_MUTATION_the_word_only_predicate_MISREADS_the_spelling_this_control_was_built_for`
+(`71cdda78a`) pins the finding's two spellings as fixed strings and asserts the PREDICATE
+DIFFERENCE the widening was made of — verbose silenced and terse judged under the shipped-then
+word lexicon, both silenced under the shipped one. That holds whatever the corpus does next. The
+wiring the frozen proof no longer exercises end to end is covered separately by
+`test_the_contradiction_helper_still_reads_whatever_predicate_it_is_GIVEN`, which asserts against
+the live corpus the one property that cannot be faked: a strictly weaker predicate cannot silence
+MORE than the real one. Paired with `test_MUTATION_the_symbol_lexicon_does_not_silence_a_bare_credit`
+(three clauses that quote a path in backticks and must stay affirmative), the widening is proven to
+fire in one direction and stay quiet in the other.
 
 **§4's population question, answered.** It was declared unmeasured and is now measured: 4 clauses,
 one atom. The corpus does not otherwise spell an absence in porcelain.
