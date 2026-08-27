@@ -767,6 +767,25 @@ def belief_vs_outcome(value: dict) -> dict:
         "scored_share_of_priced": (
             len(scored) / (len(scored) + unmatched) if (len(scored) + unmatched) else None),
         "unmatched_sample": unmatched_rows[:10],
+        # THE OTHER HALF OF THE SAME QUESTION (2026-08-27). The unmatched sample has been here
+        # since this field was written, and on its own it cannot answer WHY a decision missed:
+        # a reader sees six accounts that never match and nothing to compare them against. The
+        # matched sample makes the comparison possible in the artefact instead of requiring
+        # another run -- which is what it cost to get this far, and the run is a decade sim.
+        #
+        # Measured on the residential book: the unmatched are the SAME SIX ACCOUNTS every year
+        # (C2, C6, C8 in April; C3, C9 in July; C4 in October), and those six are exactly the
+        # accounts acquired 2016-04-01 / -07-01 / -10-01 while the matched were acquired
+        # 2016-01-01. Whether the arm's `term_start` or the world's `event_date` is the one
+        # that drifts is what these two samples together are for -- see
+        # docs/staging/done/WORKER_FINDING_THE_RENEWAL_SCHEDULE_WALKS_BACKWARDS_THROUGH_THE_CALENDAR_2026-08-27.md,
+        # which measures a 365-day renewal step walking backwards through the calendar and
+        # deliberately does NOT claim it is the cause.
+        "matched_sample": [
+            {"account": r["account"], "term_start": r["term_start"],
+             "retained": r["retained"]}
+            for r in scored[:10]
+        ],
         "unmatched_by_year": dict(sorted(collections.Counter(
             (r["term_start"] or "")[:4] for r in unmatched_rows).items())),
         "unmatched_meaning": (

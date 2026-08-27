@@ -79,3 +79,80 @@ turned out to be wrong twice over
 Run the value-cycle A/B with the per-row belief log retained, and print, for one unmatched pair
 (`C2`, `2017-04-01`), the arm's `term_start` beside every `customer_events` entry for `C2` in
 2017. That is one measurement and it settles which side drifts. Only then change the step.
+
+---
+
+## RESOLVED, same day: the open question above now has its measurement
+
+The A/B was run on the 2019 window with a `matched_sample` added to the artefact, which is the
+one measurement this finding said would settle it. It did.
+
+```
+MATCHED   C1, C5, C7   term_start 2016-12-31, 2017-12-31
+UNMATCHED C2, C6, C8   term_start 2017-04-01
+          C3, C9       term_start 2017-07-01
+          C4           term_start 2017-10-01
+```
+
+**The arm's `term_start` for a 1-January-2016 account is 2016-12-31** — the 365-day date, drifted
+out of January exactly as measured above. For an April account it is 2017-04-01, a clean calendar
+anniversary.
+
+### The mechanism, and it is the truncation boundary
+
+`roll_lifecycle_event` is called with `records_so_far` = settlement records **up to but not
+including** the term being priced. `build_churn_risk` takes `last_period` from the final record in
+that set, and `_renewal_periods` returns only renewal months `<= last_period`.
+
+* A term ending **2016-12-31** has renewal month `2016-12`. The settled records still cover
+  December, so `last_period` is `2016-12`, the month IS included, `win_rates` has an entry, and
+  the churn decision is rolled. → matched.
+* A term starting **2017-04-01** has renewal month `2017-04`, while the records stop at
+  `2017-03`. The month is excluded, `win_rates` has no entry, and `roll_lifecycle_event`
+  **returns None — no churn decision is rolled at all.** → unmatched.
+
+So the two findings connect, but not the way either would suggest alone: the 365-day drift is
+what pulls some anniversaries back to a month END, and only those land inside the settled window.
+**Whether a customer gets a chance to leave at renewal depends on whether their anniversary falls
+on the last day of a month or the first.**
+
+### What that costs, measured
+
+On the residential seed book, six of the nine accounts — C2, C3, C4, C6, C8, C9 — were priced at
+**18 renewals across 2017-2019 and produced not one lifecycle event.** Not one. At every renewal
+the arm set a price for them, and the world rolled no decision about whether they would accept
+it.
+
+And the accounts that DO churn are exactly the others: `churn_roster_diff.only_in_value_arm` is
+`['C1', 'C1_2', 'C5', 'C7']` — C1, C5 and C7 are the January accounts whose anniversary lands at a
+month end, and C1_2 is C1's successor registration.
+
+(Stated precisely: `churned_under_both` is published as a COUNT, not as ids, so this does not
+claim the six never churn by any path — passive churn and home moves are separate. What is
+measured is that they never get a decision AT RENEWAL, which is the moment a price rise is
+supposed to be able to lose them.)
+
+### Why this matters beyond a coverage number
+
+`belief_vs_outcome` scoring 24 of 42 was the symptom that led here. The disease is that **the
+value arm's advantage has been measured on a book where two-thirds of the seed accounts cannot
+leave at renewal no matter what they are charged.** An arm that raises prices and keeps customers
+looks identical, in the P&L, to an arm pricing into a population that was never given the option.
+
+That is the same class as the concentration finding of 2026-08-26 — exposure proportional to
+renewal count — and it is worse, because this one is a mechanism rather than a property of the
+book's age.
+
+### Still not repaired here, and now for a stronger reason
+
+The fix is no longer a one-line constant. Two things are wrong and they need separating:
+
+1. `CONTRACT_LENGTH_DAYS = 365` should be a calendar anniversary.
+2. `_renewal_periods` truncating at `last_period` silently drops the renewal being priced, which
+   is the one it most needs to include. A renewal the caller is ASKING ABOUT should not be
+   excluded for lying beyond the settled window — it is beyond it by construction.
+
+Either alone changes churn outcomes across the whole simulation; together they change which
+accounts are capable of leaving. That wants its own before/after against the frozen control, and
+the control's bit-identity check (`net £1,145,681.029513` on the mixed book) is the guard that
+will say whether anything else moved with it.
