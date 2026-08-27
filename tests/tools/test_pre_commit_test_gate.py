@@ -1041,3 +1041,84 @@ def test_an_ordinary_data_file_is_STILL_derived_not_curated():
     keeps the derived sweep, which is the behaviour the whole data surface exists for."""
     assert gate.data_surface_tests("background/process_manifest.yaml") != []
     assert "background/process_manifest.yaml" not in gate.CURATED_SURFACE_PATHS
+
+
+# ---------------------------------------------------------------------------
+# A FULL RULEBOOK IS A REFUSAL, NOT A STALL (2026-08-27)
+# ---------------------------------------------------------------------------
+# Director: "a commit refused because the file is full should say so, not look like a stalled
+# session. That single confusion has cost us days of my attention across the last fortnight."
+#
+# The rule was already enforced -- `test_real_claude_md_within_hard_limit` is on
+# CANON_SURFACE_TESTS and reds. But it reds as a pytest assertion inside a gate run of several
+# minutes, so from outside the only symptom is a session that went quiet. A refusal that cannot
+# be told apart from a hang is the same shape as a waiter whose subject has died (R18), and it
+# costs the same thing: somebody's attention, spent working out whether anything is happening.
+
+def test_a_canon_file_over_its_limit_is_refused_and_the_file_is_NAMED(monkeypatch):
+    from background import claude_md_integrity as integrity
+    monkeypatch.setattr(integrity, "MAX_CHARS", 100)
+    ok, detail = gate._canon_size_check(["CLAUDE.md"])
+    assert ok is False
+    assert "CLAUDE.md" in detail
+    assert "over the" in detail, "the refusal must say BY HOW MUCH, not merely that it failed"
+
+
+def test_a_healthy_rulebook_passes():
+    """The partner. A check that refused unconditionally would stop every commit that touches
+    CLAUDE.md, which is every rule change."""
+    assert gate._canon_size_check(["CLAUDE.md"]) == (True, "")
+
+
+def test_a_commit_that_does_not_touch_the_rulebook_is_not_checked(monkeypatch):
+    """Scope. A full rulebook must not refuse a commit that has nothing to do with it -- the
+    gate would then be unbypassable for everyone until somebody made room."""
+    from background import claude_md_integrity as integrity
+    monkeypatch.setattr(integrity, "MAX_CHARS", 100)
+    assert gate._canon_size_check(["tools/wait_for.py"]) == (True, "")
+
+
+def test_an_unreadable_canon_file_FAILS_CLOSED(monkeypatch, tmp_path):
+    """A canon file the gate cannot READ is not thereby within its limit. Same standing rule as
+    the landing checkers, learned the expensive way."""
+    monkeypatch.setattr(gate, "ROOT", tmp_path)  # CLAUDE.md does not exist here
+    ok, detail = gate._canon_size_check(["CLAUDE.md"])
+    assert ok is False
+    assert "could not be read" in detail
+
+
+def test_the_size_is_measured_on_the_TREE_THE_COMMIT_CREATES_not_the_working_one():
+    """`ROOT`, not `claude_md_integrity.PROJECT_DIR`, and the difference is the whole gate.
+
+    `surgical_land` runs this inside a throwaway checkout of the tree the commit WOULD create;
+    `PROJECT_DIR` is pinned to the real working tree. Measuring the second would let a commit
+    that trims CLAUDE.md be refused for the untrimmed copy still on disk -- and, worse, let a
+    commit that BLOATS it pass because the working copy happened to be clean. The first draft of
+    this check used PROJECT_DIR and would have done exactly that, on top of not importing at all
+    inside the checkout.
+    """
+    import inspect
+    src = inspect.getsource(gate._canon_size_check)
+    assert "path = ROOT / rel" in src
+    assert "PROJECT_DIR" not in src
+
+
+def test_the_banner_says_it_is_a_refusal_and_not_a_hang():
+    """THE DIRECTOR'S ACTUAL ASK, asserted rather than assumed. The wording IS the deliverable."""
+    banner = gate.rulebook_full_banner("  - CLAUDE.md is 35,190 chars")
+    assert "REFUSAL, not a hang" in banner
+    assert "no test failed" in banner
+
+
+def test_the_banner_forbids_raising_the_limit_and_names_the_decay_audit():
+    """The remedy has to travel with the refusal, or the next reader reaches for the ceiling --
+    which is the move the director ruled out by name."""
+    banner = gate.rulebook_full_banner("  - CLAUDE.md is 35,190 chars")
+    assert "DO NOT RAISE THE LIMIT" in banner
+    assert "python3 -m background.claude_md_integrity" in banner
+
+
+def test_the_banner_carries_the_measurement_it_was_given():
+    """A banner that dropped its detail would tell a reader the file is full and not which file
+    or by how much."""
+    assert "35,190 chars" in gate.rulebook_full_banner("  - CLAUDE.md is 35,190 chars")

@@ -1269,8 +1269,93 @@ def _record_landing_claim_check(staged: list[str]) -> tuple[bool, str]:
     )
 
 
+#: What a full rulebook prints. A CONSTANT rather than an inline string so its wording is
+#: testable: the wording IS the deliverable here -- the director asked for a refusal that does
+#: not read as a stalled session, and "it says so" is the requirement, not a side effect.
+RULEBOOK_FULL_BANNER = (
+    "\n[test-gate] ❌ THE RULEBOOK IS FULL -- COMMIT REFUSED.\n"
+    "{detail}\n"
+    "\nThis is a REFUSAL, not a hang. Nothing is still running and no test failed;\n"
+    "the gate stopped here, first thing, on purpose.\n"
+    "\nDO NOT RAISE THE LIMIT. A rulebook that has to grow to hold rules nothing\n"
+    "enforces is the problem, not the ceiling (director, 2026-08-27).\n"
+    "\nRun the decay audit and make room:\n"
+    "    python3 -m background.claude_md_integrity\n"
+    "It reports inert rules, rules matching no files, rules pointing at paths that do\n"
+    "not exist, dangling harness pointers and hollow skills. A rule it cannot find a\n"
+    "subject for is a rule to delete or rehome, not one to squeeze in beside.\n"
+)
+
+
+def rulebook_full_banner(detail: str) -> str:
+    return RULEBOOK_FULL_BANNER.format(detail=detail)
+
+
+def _canon_size_check(staged: list[str]) -> tuple[bool, str]:
+    """Is a staged canon file over its hard limit? Refuse IMMEDIATELY and say so.
+
+    THE FAILURE HAD TO BE MADE LEGIBLE (director, 2026-08-27): *"a commit refused because the
+    file is full should say so, not look like a stalled session. That single confusion has cost
+    us days of my attention across the last fortnight."*
+
+    The rule was already enforced -- `tests/tools/test_claude_md_integrity.py::
+    test_real_claude_md_within_hard_limit` is on CANON_SURFACE_TESTS and reds. But it reds as a
+    pytest assertion INSIDE a gate run that takes minutes, so from outside the only visible
+    symptom is a session that has gone quiet. A refusal that is indistinguishable from a hang is
+    the same shape as a waiter whose subject has died (R18), and it costs the same thing:
+    somebody's attention, spent working out whether anything is happening.
+
+    So this runs FIRST, in milliseconds, and prints a banner naming the remedy. The test stays
+    exactly as it is -- this does not replace it, and must not, because a direct `git commit`
+    that somehow skipped this path would still be caught by the test. Two readings of one rule,
+    the fast one for the human and the thorough one for the tree.
+    """
+    # ROOT ON sys.path FIRST -- the same not-boilerplate as `_class_consolidation_check`, and
+    # this check was written without it and duly wedged its own landing: `surgical_land` runs the
+    # gate inside a throwaway checkout at /var/tmp, where `background` is not importable, so the
+    # gate died with ModuleNotFoundError before running a single test. A gate that crashes is not
+    # a gate that refuses; it looks exactly like the stalled session this whole change exists to
+    # stop being ambiguous.
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from background.claude_md_integrity import MAX_CHARS, MAX_LINES
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"  - the size checker is UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "    An unavailable check is a FAILED check (R15 FAIL-SILENT)."
+        )
+    problems = []
+    for rel in CANON_SURFACE_FILES:
+        if rel not in staged:
+            continue
+        path = ROOT / rel
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            # FAIL-CLOSED: a canon file this gate cannot READ is not thereby within its limit.
+            return False, f"  - {rel} could not be read to check its size: {exc}"
+        n_chars, n_lines = len(text), len(text.splitlines())
+        if n_chars > MAX_CHARS:
+            problems.append(
+                f"  - {rel} is {n_chars:,} chars, {n_chars - MAX_CHARS:,} over the "
+                f"{MAX_CHARS:,} hard limit")
+        if n_lines > MAX_LINES:
+            problems.append(
+                f"  - {rel} is {n_lines} lines, {n_lines - MAX_LINES} over the "
+                f"{MAX_LINES} hard limit")
+    return (not problems), "\n".join(problems)
+
+
 def main() -> int:
     staged = staged_files()
+
+    # THE FILE IS FULL, AND THAT IS A REFUSAL RATHER THAN A STALL. First check in the gate, so
+    # the answer arrives in milliseconds instead of minutes -- see `_canon_size_check`.
+    ok, detail = _canon_size_check(staged)
+    if not ok:
+        sys.stderr.write(rulebook_full_banner(detail))
+        return 1
 
     # THE CLASS-DOCUMENT SURFACE. Fourth sibling of LEVEL_SURFACE / MINT_MARKER /
     # CANON_SURFACE, same reason each time: when a data file's CONTENT is a control,
