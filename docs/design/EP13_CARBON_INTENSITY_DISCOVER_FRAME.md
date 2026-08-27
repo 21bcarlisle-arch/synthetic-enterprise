@@ -387,8 +387,8 @@ disappears.
 Reproduce: `python3 -m tools.ep13_biomass_oracle_bound` →
 `docs/observability/ep13_biomass_oracle_bound.json`.
 
-**OWED, and it will wedge the tree if it is ignored.** This atom's map entry is now **11,954 B
-against the 12,288 B per-atom cap — 334 B of headroom, and it is the fattest entry in the map.**
+**OWED — DISCHARGED 2026-08-27, see §12.** This atom's map entry was **11,954 B
+against the 12,288 B per-atom cap — 334 B of headroom, and the fattest entry in the map.**
 That is the EP1 shape exactly: the *next* pass on EP13 cannot write its note, and because the
 pre-commit gate is tree-wide it will refuse **every lane's** commit, not just this one. The
 control's own named remedy applies — rehome the accreted history to
@@ -515,3 +515,56 @@ artefact publishes `effective_cells`, the resolution the population actually sup
 what every derived threshold reads.
 
 Reproduce: `python3 -m tools.ep13_input_ceiling` → `docs/observability/ep13_input_ceiling.json`.
+
+## 12. 2026-08-27 — the OWED map-cap item is discharged: the narrative is rehomed, verbatim
+
+**The wedge §10 named was 348 B away and it would have refused every lane's commit, not this one's.**
+Measured at draw: `EP13_adapter_carbon_intensity` occupied **11,940 B of the 12,288 B per-atom cap**,
+the fattest entry in a 298-atom map whose mean entry is 1,079 B. The control
+(`tests/design/test_simplifications_store.py::test_map_within_per_atom_budget`) is tree-wide and runs
+in the pre-commit gate on any map or store change, so the *next* pass on this atom — §11's own note ran
+to ~1,100 B — would have taken the entry over and stopped publishing for every lane at once.
+
+**The move is the control's own named remedy, and the one H27/H32 already made.** The accreted
+level-hold narrative — 111 comment lines, seven passes of it, from `# STILL L2 as of 2026-08-25` down
+to `Record: §10-11. LAW A.` — is now `level_hold_note` in
+`docs/design/simplifications/EP13_adapter_carbon_intensity.yaml`, declared in the map's
+`notes_rehomed: [name, origin_note, level_hold_note]`. The map keeps an eight-line pointer.
+
+**Nothing was reworded, shortened, dropped or reordered.** Only the `#` comment markers were stripped.
+The round trip was asserted before the map was touched: `notes_for_atom(...)['level_hold_note']` is
+byte-identical to the text removed. **This is the point of doing it as a rehome rather than a
+compaction** — the two moves available at a wedge are to raise the number or to launder the history,
+and this project has refused both. A third exists and it is mechanical.
+
+| | before | after |
+|---|---|---|
+| EP13 map entry | 11,940 B (348 B headroom) | **2,293 B (9,995 B headroom)** |
+| whole map | — | 311,909 B, mean 1,047 B/atom |
+| EP13 note tenant | 727 B | 10,630 B of 32,768 B |
+| EP13 store file | 46,542 B | 56,590 B, under the 65,536 B roll watermark |
+| fattest atom in the map | EP13 | `SITE1_expert_doors`, 10,495 B |
+
+**The narrative is now MORE readable by machine, not less.** A YAML comment is invisible to every
+parser; a `level_hold_note` is what `simplifications_store.notes_for_atom` and `hydrate` already
+serve to the supervisor's draw and the site generators.
+
+**Controls, all eight the gate selects for these two paths, green:**
+`test_simplifications_store.py`, `test_atom_notes_store.py`, `test_atom_records_store.py`,
+`test_maturity_map_facets.py`, `test_map_reconciliation.py`, `test_gate_authorization.py`,
+`test_coupled_triad_gate.py`, `test_generate_proof_coupled_gaps.py`, `test_level_promotion_gate.py`
+— 189 tests. The R15 both-ways pair on the cap itself
+(`test_per_atom_budget_fires_on_accretion_and_on_one_fat_atom`, plus the empty-population vacuity
+guard) is among them and still fires on its own named defects, so the headroom is reported by a
+control that can still fail.
+
+**No level moved, no number changed, no science was done.** §11's finding stands as written: L3 needs
+a new input carrying within-day timing, and embedded generation is DISCOVER work, unmeasured. What
+changed is that the pass which takes that on can now write down what it finds.
+
+**One finding staged, not fixed** (SELF_INTERRUPT — it is in no gate's target set and blocks nothing):
+`WORKER_FINDING_THE_EVIDENCE_PAGE_FIXTURE_COPIES_ONE_OF_THE_MAPS_TWO_HALVES_2026-08-27.md`. The
+evidence page's fail-open floor test is red at HEAD — 15 citations against a >50 bar — because its
+fixture copies `maturity_map.yaml` and not the closed half, so 224 of 298 atoms vanish from the
+fixture's map. The live page builds 214. Attributed to HEAD with both sources restored; unrelated to
+this change.

@@ -937,7 +937,7 @@
 - id: EP13_adapter_carbon_intensity
   title: "Carbon from the actual grid, half-hour by half-hour"
   gain: "The carbon ledger gets ground truth from day one instead of a factor table."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [name, origin_note, level_hold_note]
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 3
@@ -955,117 +955,14 @@
   depends_on: ['EP6_wall_protocol_typing']
   couples_with: []
   records_rehomed: [evidence]
-  # STILL L2 as of 2026-08-25, and one of the three original reasons is now closed. The note as
-  # written was: "the shape dispatches no coal and no interconnector imports, so its clean end is
-  # optimistic against NESO's published series; no Expert Hour has been taken; and the
-  # coupled-triad rung is unmet -- there is no independent truth series to measure the company's
-  # belief against yet."
-  #   CLOSED -- the truth series exists. `sim/neso_carbon_intensity.py` is the adapter this atom
-  #   was actually named for (NESO Carbon Intensity API, key-free, from 2018-05-11), and it is
-  #   independent by construction: it imports nothing from the reconstruction, and a test walks
-  #   its AST to keep it that way rather than asserting it in prose.
-  #   QUANTIFIED, NOT CLOSED -- the clean-end optimism was "direction known, size not" and now
-  #   has a size: over 2019-2024 our floor is ~0.059 against NESO's ~0.189, and our shape swings
-  #   32x where NESO's swings 11.4x. Every abatement figure derived from this shape carries that
-  #   2.8x overstatement of the range. Fixing it means dispatching coal and modelling
-  #   interconnector imports, which is build work this atom has not done.
-  #   ALSO CORRECTED -- the reconstruction's docstring asserted this comparison ("NESO ...
-  #   bottoming out nearer 0.16") before any fetch had ever run. Measured, NESO's floor averages
-  #   0.189 and only 2024 is below 0.16, so the old sentence understated the gap it warned about.
-  #   The SAME sentence was cited as error-bar evidence in this atom's own L0->L2 ledger row.
-  #   That row stands unedited -- it is the record of what was certified and when, which is what
-  #   a ledger is for -- and the corrected figures live here, where the draw and GATE 15 read
-  #   them. A record that can be rewritten when it turns out to be wrong is not a record.
-  #   TAKEN 2026-08-25, AND IT DID NOT PASS -- the Expert Hour that this note called the remaining
-  #   gate on L3 was drawn and run the same day (cold-eyes-walk: blind fork, priors before pixels,
-  #   veteran persona, every finding then verified against the live render and the generating
-  #   modules). 10 findings, 5 MAJOR, in docs/observability/sanity_adjudication_ledger.json;
-  #   1 blind finding adjudicated a FALSE POSITIVE and recorded so it cannot re-raise.
-  #   independence: FALSE -- same model family as the builder, so this bought BLINDNESS, not
-  #   independence, and the verdict is worth exactly that much.
-  #   VERDICT: not "this is real". THREE of the MAJOR findings were wrong on a live customer-
-  #   facing surface and were repaired in the same pass, each with a mutation-proven control:
-  #   the panel's "read the timing figures as an upper bound by about that factor" instruction
-  #   (wrong for every measured household -- 1.09x to 7.0x where it said 3.2x, and on C9's day
-  #   the sign reverses); a p95/p5 spread corrected by a max/min-derived factor (two statistics
-  #   under one word -- 3.16x vs the like-for-like 2.87x); and ERROR_DIRECTION, the sentence that
-  #   REACHES THE PAGE, contradicting this same module's NAMED_GAPS on both limbs.
-  #   THE LEVEL STILL DOES NOT MOVE, and the finding count is not why. L3 means the thing FAILS
-  #   LIKE REALITY. Measured this pass, our p95/p5 spread runs 3.27 (2019) -> 18.42 (2024) where
-  #   NESO's published series runs 2.78 -> 5.06 -- the divergence WIDENS by year and reaches 3.6x.
-  #   That is the coal-and-interconnectors build named above, still not done. L3 needs that build
-  #   and then a SECOND Expert Hour. LAW A: the drawn plan said 2->3 and a plan is a diagnostic,
-  #   never a target.
-  #   THE BUILD IS NOW DONE, 2026-08-25, AND IT DID NOT REACH L3 EITHER. `sim/elexon_fuel_outturn.py`
-  #   ingests Elexon's published half-hourly generation-by-fuel-type outturn (FUELHH, key-free) and
-  #   supplies the two things the dispatch model structurally cannot know: cross-border flow, which
-  #   is set by FOREIGN prices and is therefore an observable, and coal AVAILABILITY, which is a
-  #   fleet fact. The line between them is load-bearing and tested: half-hourly coal outturn is
-  #   NOT handed over, because whether coal ran IS the merit-order question the reconstruction
-  #   exists to answer independently -- a model that reads the metered mix and applies published
-  #   factors is NESO's arithmetic with a different cache, and the coupled-triad gap would then
-  #   measure nothing while still producing a number. Import factors are NESO's OWN published ones
-  #   (methodology Table 1); the two cables that table predates get NO invented factor and their
-  #   share is MEASURED instead (84% of imported MWh priced over the series, 66% in 2024).
-  #   THE ZERO-THERMAL GAP IS CLOSED TOO, 2026-08-25 (third build of the day), AND L3 STILL DOES
-  #   NOT FOLLOW -- but the reason has CHANGED, which is the part to read. The stack is now floored
-  #   at the CCGT+OCGT fleet's DEMONSTRATED ANNUAL MINIMUM from the same FUELHH outturn (1,835 MW
-  #   in 2016 -> 303 MW in 2024), crossing the boundary as one scalar a year exactly as coal does.
-  #   Measured before/after IN ONE PROCESS against identical caches: p95/p5 overstatement 1.90x ->
-  #   1.36x, max/min 2.44x -> 1.04x, mean absolute error down in EVERY year. NOT A CLEAN WIN, and
-  #   both halves are published: the clean end now OVERSHOOTS in 2020 (0.314 vs 0.244) and 2021
-  #   (0.233 vs 0.195), so the "clean end is optimistic" sentence that reaches the page was wrong
-  #   in two years of six and now claims the RANGE instead. WHAT HOLDS L3 NOW is correlation, which
-  #   moved by less than 0.004 in every year and is still 0.726 in 2024: the floor fixed the LEVEL
-  #   of the clean end and left the TIMING untouched, so the shape knows how clean a quiet half
-  #   hour is and not which half hours were quiet. That is a different failure from this morning's
-  #   and a harder one. The second Expert Hour is also still untaken. LAW A.
-  #   MEASURED, AND NOT A CLEAN WIN: clean end 3.2x too clean -> 2.3x, p95/p5 2.88x -> 1.90x, but
-  #   2019 and 2021 got WORSE on spread and 2021 lost correlation (coal widens the dirty end in
-  #   the years it still had a fleet, with no offset). Named, not averaged; detail in §10-11.
-  #   THE MUST-RUN FLEET IS NOW MEASURED, 2026-08-26 (fifth pass), AND THIS IS THE FIRST
-  #   CORRECTION THAT MOVED THE AXIS HOLDING THE LEVEL -- and it still does not reach L3. The
-  #   block had been a FLAT 8,000 MW; Elexon publishes NUCLEAR and NPSHYD half-hourly in the same
-  #   FUELHH dataset coal and the cables come from, and that block actually runs 544-9,831 MW
-  #   (mean 6,013). Every megawatt of that was previously made up by the gas stack on a schedule
-  #   the model invented. WHY IT MAY CROSS when gas and coal may not, both TESTED: NESO's factor
-  #   for both is exactly ZERO so what crosses changes the RESIDUAL not the verdict, and neither
-  #   can go negative -- pumped storage carries a zero factor too and is refused on that alone.
-  #   Measured before/after IN ONE PROCESS on identical caches, the enabling refactor first proven
-  #   to change no number when defaulted (max abs diff 0.0 over 20,000 half hours): correlation
-  #   2024 0.726 -> 0.746, and CORRELATION AND MEAN ABSOLUTE ERROR IMPROVED IN ALL SIX YEARS --
-  #   where the thermal floor moved correlation by less than 0.004 in every year. Within-day
-  #   overstatement, the only axis a household can act on, 1.484x -> 1.450x mean, 1.440x -> 1.352x
-  #   in 2024. NOT A CLEAN WIN: p95/p5 overstatement ROSE 1.362x -> 1.378x (worse in four years of
-  #   six) while max/min FELL 1.044x -> 1.007x -- two statistics under one word, moving opposite
-  #   ways, so neither is quoted alone. R15: 10 mutations run; ONE CONTROL SURVIVED ITS OWN
-  #   MUTATION and was rebuilt (at the 5,600 MW fallback the correct and the mispriced arithmetic
-  #   are identical, so the fixture could not see the defect it named).
-  #   WHAT HOLDS L3 NOW is the same axis, smaller: 0.746 still points a customer at some of the
-  #   wrong half hours, and the second Expert Hour is still untaken. THE BIOMASS STEP WAS TAKEN
-  #   2026-08-26 AND ITS PREMISE WAS REFUTED, so it is no longer the next gap: the fleet's annual
-  #   envelope is measured and published (2024: 73-3,328 MW, mean 2,142 against the assumed
-  #   2,400) and the dispatch is built and R15-proven, but wiring it made the series worse on
-  #   four axes of five and it is OFF behind a tested flag. The residual explains only 2.6-33.5%
-  #   of biomass's variance -- a CfD plant runs on AVAILABILITY, so its low readings are outages.
-  #   THE OUTAGE MODEL IS RETIRED AS THE NEXT GAP, 2026-08-27, by measuring its CEILING before
-  #   building it: biomass pinned to its METERED half-hourly outturn -- an ORACLE, illegal to
-  #   publish, but a BOUND on every approximation to it. Perfect knowledge moves correlation the
-  #   WRONG way in four years of six (mean -0.0050; 2024 0.7456 -> 0.7255, undoing the must-run
-  #   pass's whole gain) because 70-86% of the fleet's variance is BETWEEN days and the axis
-  #   holding L3 is within-day. Both controls mutation-proven; honest ends both published.
-  #   THE WITHIN-DAY AXIS IS RETIRED AS A BUILD, 2026-08-27 (seventh pass), by measuring the
-  #   CEILING of the whole remaining programme instead of its next term. The BEST POSSIBLE
-  #   function of the model's own inputs -- which bounds every merit order, efficiency curve,
-  #   coal-availability and outage model at once -- beats the shipped model by at most +0.0295 in
-  #   sample in ANY year at ANY resolution, and in 2024, the year holding the level, it scores
-  #   BELOW it out of sample at every grid. Recalibrating the model's own output is capped harder
-  #   (+0.0037). A 21x grid refinement plateaus in-sample gain at +0.012 while held-out never
-  #   exceeds +0.002 -- which is what makes this a ceiling and not a coarse binning. L3 therefore
-  #   needs a NEW INPUT carrying within-day timing, not a better model of the inputs it has;
-  #   embedded generation is the hypothesis and is DISCOVER work, unmeasured. R15: 16 tests, 9
-  #   mutations RED then GREEN; one SURVIVED the first battery and the FIXTURE was the fault (a
-  #   baseline at correlation -1 made the bar meaningless). Record: §10-11. LAW A.
+  # LEVEL-HOLD NARRATIVE REHOMED 2026-08-27 -- seven passes of it had reached 11,940 B against
+  # the 12,288 B per-atom cap (348 B of headroom, the fattest entry in the map), so the NEXT
+  # pass on this atom could not write its note and, the cap being tree-wide, would have refused
+  # EVERY lane's commit. Moved verbatim to `level_hold_note` in
+  # docs/design/simplifications/EP13_adapter_carbon_intensity.yaml -- the control's own named
+  # remedy, and the same move H27/H32 made. Nothing was reworded, shortened or dropped; hydrate
+  # with `simplifications_store.notes_for_atom`. Owed item from §10 of
+  # docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md, now discharged.
   file_scope: ['sim/grid_carbon_intensity.py', 'sim/neso_carbon_intensity.py',
     'sim/elexon_fuel_outturn.py',
     'company/carbon/half_hourly_footprint.py',
