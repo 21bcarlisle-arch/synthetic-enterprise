@@ -982,11 +982,62 @@ def test_every_curated_surface_narrowing_has_a_surface_list():
     replaces it, so a path narrowed here whose surface list was later emptied or deleted is an
     uncovered hole wearing an accepted-limitation label. This reds on exactly that."""
     assert gate.CURATED_SURFACE_PATHS, "a narrowing set that is empty narrows nothing"
+    # THERE ARE TWO HAND-KEPT SURFACES NOW, not one (2026-08-27). This read
+    # `path in gate.LEVEL_SURFACE_FILES`, which was exact while the curated set WAS the level
+    # surface. CLAUDE.md joined it carrying the CANON list, which has covered it since the
+    # 2026-08-12 decay audit -- so the assertion is widened to "on a hand-kept surface", which is
+    # what the docstring above always said, rather than to one specific list.
+    #
+    # NOT A LOOSENING: the teeth are the next line, and they are untouched. A path narrowed to
+    # nothing still reds, and every one of the five currently resolves to 6-8 targets.
+    hand_kept = tuple(gate.LEVEL_SURFACE_FILES) + tuple(gate.CANON_SURFACE_FILES)
     for path in gate.CURATED_SURFACE_PATHS:
-        assert path in gate.LEVEL_SURFACE_FILES, (
+        assert path in hand_kept, (
             f"{path} is narrowed but is not on a hand-kept surface -- name the list that covers it"
         )
         assert gate.select_targets([path]), f"{path} is narrowed to NOTHING -- that is a hole"
 
     # And the narrowing is EXACTLY those paths: another data file is still derived.
     assert gate.data_surface_tests("background/process_manifest.yaml") != []
+
+
+# ---------------------------------------------------------------------------
+# THE RULEBOOK IS CURATED, NOT DERIVED (2026-08-27)
+# ---------------------------------------------------------------------------
+# `data_surface_tests` asks "which .py files name this path". That is right for a config a module
+# LOADS and wrong for a document a third of the repository CITES: of 136 .py files containing the
+# text `CLAUDE.md`, 111 carry it only in a docstring or comment. The derived sweep returned 120
+# test files, so adding one line to the rulebook selected 150 files and most of a fifteen-minute
+# commit gate -- on the one file every rule change touches by definition.
+
+def test_a_rulebook_edit_does_not_drag_in_every_module_that_CITES_the_rulebook():
+    """The win, asserted as a bound rather than an exact count so ordinary churn does not trip
+    it. Before: 120 derived targets. The curated list is six."""
+    selected = gate.select_targets(["CLAUDE.md"])
+    assert len(selected) <= 20, (
+        "a CLAUDE.md edit selects {} test files -- the derived sweep is back, and every rule "
+        "change pays for it: {}".format(len(selected), selected[:10]))
+    assert gate.data_surface_tests("CLAUDE.md") == [], (
+        "CLAUDE.md is on CURATED_SURFACE_PATHS, so the derived route must short-circuit")
+
+
+def test_a_rulebook_edit_STILL_runs_the_parser_that_reads_the_rulebook():
+    """THE PARTNER, and the one that matters: narrowing must not become blindness.
+
+    `generate_dashboard_data._derive_build_from_claude_md` parses the build count out of
+    CLAUDE.md, and CLAUDE.md's own line says so -- "This figure is PARSED, not decorative ...
+    never delete it (2026-08-12 audit deleted it as a stale fact and broke the parser)". If that
+    parse can break without the gate noticing, this narrowing traded a slow gate for a blind one.
+    """
+    selected = set(gate.select_targets(["CLAUDE.md"]))
+    for owed in ("tests/tools/test_generate_dashboard_data.py",
+                 "tests/tools/test_generate_project_state.py",
+                 "tests/tools/test_claude_md_integrity.py"):
+        assert owed in selected, "{} is no longer selected by a CLAUDE.md edit".format(owed)
+
+
+def test_an_ordinary_data_file_is_STILL_derived_not_curated():
+    """The narrowing must reach the rulebook and stop there. A config a module actually loads
+    keeps the derived sweep, which is the behaviour the whole data surface exists for."""
+    assert gate.data_surface_tests("background/process_manifest.yaml") != []
+    assert "background/process_manifest.yaml" not in gate.CURATED_SURFACE_PATHS

@@ -367,7 +367,7 @@ PUBLISHED_OUTPUT_ROOTS = ("site/", "docs/reports/", "docs/status/")
 # tail: the tests of the ~37 modules that merely READ the map. `test_a_curated_surface_path_
 # keeps_its_curated_tests` and `test_every_curated_surface_narrowing_has_a_surface_list` pin both
 # halves, so narrowing a path whose curated list was later deleted reds instead of going silent.
-CURATED_SURFACE_PATHS = LEVEL_SURFACE_FILES
+CURATED_SURFACE_PATHS: tuple = ()  # assigned below, once CANON_SURFACE_FILES exists
 
 
 def staged_files() -> list[str]:
@@ -438,7 +438,45 @@ CANON_SURFACE_TESTS = [
     # limit for four days, red at HEAD, found only by the publish suite. Rationale and the mutation
     # proving this selection BITES: tests/tools/test_pre_commit_gate_canon_surface.py. ~0.4s.
     "tests/tools/test_claude_md_integrity.py",
+    # THE REAL READERS, named because the derived sweep no longer names them (2026-08-27).
+    # Adding CLAUDE.md to CURATED_SURFACE_PATHS below short-circuits `data_surface_tests`, which
+    # is the point -- 111 of its 136 mentions are prose. But five of them were NOT prose, and
+    # dropping those would trade a slow gate for a blind one. Measured, not guessed: these are
+    # every test whose module names CLAUDE.md in a string literal that executes.
+    #
+    # `_derive_build_from_claude_md` PARSES THE BUILD COUNT out of this file, and CLAUDE.md's own
+    # line says so -- "This figure is PARSED, not decorative ... correct it at each phase close,
+    # never delete it (2026-08-12 audit deleted it as a stale fact and broke the parser)". An
+    # edit that breaks that parse must still red at commit time. ~6s for the four.
+    "tests/tools/test_generate_dashboard_data.py",
+    "tests/tools/test_generate_dashboard_data_basis_subject_set.py",
+    "tests/tools/test_generate_dashboard_data_population_seam.py",
+    "tests/tools/test_generate_project_state.py",
 ]
+
+# THE CANON FILES JOIN THE CURATED SET (2026-08-27). `data_surface_tests` short-circuits on a
+# path that is "already covered by its own surface list", and CLAUDE.md has had one --
+# CANON_SURFACE_TESTS -- since the 2026-08-12 decay audit. It was never added here, so a rulebook
+# edit paid BOTH the curated list AND the derived sweep.
+#
+# THE DERIVED SWEEP IS THE WRONG INSTRUMENT FOR A RULEBOOK, and only for a rulebook. It asks
+# "which .py files name this path", which is right for a config a module loads and wrong for a
+# document a THIRD OF THE REPOSITORY CITES IN ITS DOCSTRINGS. Measured 2026-08-27: 136 `.py`
+# files contain the text `CLAUDE.md` and **111 carry it only in prose** -- "a rule lives in
+# CLAUDE.md AND as enforced code" and its like. `data_surface_tests("CLAUDE.md")` returned 120
+# test files, so adding ONE LINE to the rulebook selected 150 files and most of a fifteen-minute
+# commit gate, on the one file every rule change by definition touches.
+#
+# WHAT WAS TRIED FIRST AND REJECTED, because the alternative is the tempting one: filtering
+# `_py_files_naming` to matches outside docstrings, i.e. "a mention is not a use". It took
+# CLAUDE.md from 120 to 27 with every real reader intact -- and it broke
+# `test_a_non_store_design_doc_is_still_pure_data`, because
+# `tests/design/test_simplifications_store.py` names its README **in its module docstring** as
+# the source of the invariants it enforces. There the docstring mention IS the guard
+# relationship, and no AST rule distinguishes that from `test_axis_prescore` citing the rulebook
+# in a comment. Weakening a general control to fix one file is the wrong trade; the general
+# rule's fail-toward-running direction stays exactly as it was.
+CURATED_SURFACE_PATHS = LEVEL_SURFACE_FILES + CANON_SURFACE_FILES
 
 
 def _py_files_naming(needle: str) -> set[str]:
