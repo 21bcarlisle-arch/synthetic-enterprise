@@ -109,4 +109,32 @@ printing bad news.
 2. **The class deserves a control, not just three tests.** A sentence assembled from a constant
    prefix and a derived suffix is a shape, and it is greppable.
 
+## The sweep item 1 asked for, and what it found
+
+Swept every `tools/generate_*_data.py` for the shape — a directional or judgement word inside a
+published string that is not built from the figure's own value. 36 candidates, almost all
+docstrings. **One real second instance:**
+
+`tools/generate_fidelity_data.py::_mae_reading_block` published
+
+> "structural model beats best-of-naive-family in **only** {N}/{M} years"
+
+with the count derived and **`only` constant**. True at the 4/10 it was written against, and it
+would have published *"beats best-of-naive-family in only 9/10 years"* without anything failing —
+the same defect pointed the other way, publishing a good result as a poor one.
+
+Repaired the same way: `_beat_qualifier(beaten, total)` derives `"only "` below half, `"a clear "`
+at 80% or above, and **the empty string in the middle band**, because a qualifier is a claim and
+the honest thing at a near-tie is to make none. Nine tests, mutation-proven — restoring the
+constant `only` reds three of them.
+
+**`generate_fidelity_data.py` had no tests at all** before this. The new file covers the one
+function this change touched and says so in its own docstring; the wider gap is recorded here
+rather than left implied by an empty directory.
+
+**Checked and cleared:** `generate_proof_data.py`'s "Timing beats messaging by enough to matter
+commercially" is inside the `_not_proven()` list, explicitly labelled *"hypothesis — the
+least-anchored, most likely wrong"*. A directional claim that declares itself unproven is the
+opposite of this defect.
+
 ## Still live

@@ -149,14 +149,38 @@ def _per_cell_lift_rows(record: dict) -> List[Dict[str, Any]]:
     return rows
 
 
+def _beat_qualifier(beaten: int, total: int) -> str:
+    """"only ", "" or "a clear ", chosen from the ratio the sentence is about.
+
+    Empty in the middle band on purpose: a qualifier is a claim, and the honest thing at 5/10 is
+    to make none. `total == 0` also yields no qualifier rather than a division.
+    """
+    if not total:
+        return ""
+    share = beaten / total
+    if share < 0.5:
+        return "only "
+    if share >= 0.8:
+        return "a clear "
+    return ""
+
+
 def _mae_reading_block(record: dict, per_cell_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     strength = record.get("relationship", {}).get("strength", {})
     years_total = len(per_cell_rows)
     years_beating_naive = sum(1 for r in per_cell_rows if r["beats_naive"])
     return dict(
         subordinate=True,
+        # THE QUALIFIER IS DERIVED, NOT WRITTEN DOWN (2026-08-28). This read "in ONLY N/M years"
+        # with `only` as a constant beside a computed count -- true at 4/10, and it would have
+        # published "beats best-of-naive-family in only 9/10 years" without anything failing. A
+        # judgement word that cannot change when its evidence changes is the same defect as a
+        # directional clause that cannot: see
+        # WORKER_FINDING_THE_PUBLISHED_HEADLINE_SAID_THE_ARM_EARNED_MORE_WHILE_IT_EARNED_LESS_2026-08-28,
+        # which is where this instance was found by sweeping for the class.
         headline=(
-            f"structural model beats best-of-naive-family in only "
+            "structural model beats best-of-naive-family in "
+            f"{_beat_qualifier(years_beating_naive, years_total)}"
             f"{years_beating_naive}/{years_total} years"
         ),
         note=(
