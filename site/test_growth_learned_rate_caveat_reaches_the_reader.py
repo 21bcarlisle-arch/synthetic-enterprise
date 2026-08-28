@@ -47,6 +47,7 @@ HARNESS = SITE / "_live_harness.mjs"
 DOOR = SITE / "capabilities" / "index.html"
 FEED = SITE / "data" / "book_growth.json"
 CAPS = SITE / "data" / "capabilities_door.json"
+ARMS = SITE / "data" / "value_arms.json"
 
 #: The page renders this next to a figure our own engine helped produce.
 MARK = "&#9888;"
@@ -64,6 +65,11 @@ def _render(growth: dict) -> dict:
     payload = {
         "../data/book_growth.json": growth,
         "../data/capabilities_door.json": json.loads(CAPS.read_text(encoding="utf-8")),
+        # The door gained a third feed on 2026-08-28 (the flat-rules baseline comparison). The
+        # harness REJECTS a url the caller did not supply -- deliberately, so a page driven with
+        # a feed missing runs its real error path rather than a vacuous one -- so every feed the
+        # door fetches has to be supplied here or this control reds on a page that is fine.
+        "../data/value_arms.json": json.loads(ARMS.read_text(encoding="utf-8")),
     }
     proc = subprocess.run(
         ["node", str(HARNESS), str(DOOR)],

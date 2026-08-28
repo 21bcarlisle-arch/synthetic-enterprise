@@ -349,6 +349,184 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     });
 })();
 </script>
+<!-- THE BASELINE THE PUBLISHED SUPPLIER HAS TO BEAT.
+     The director's thesis states the requirement in terms: "there has to be a BASELINE to beat --
+     the same book run by a supplier applying flat rules with no per-customer view -- or 'it
+     performed well' means nothing." We built it, we ran it, and it is currently matching the
+     per-customer arm. Until 2026-08-28 no published surface said so: the site carried a
+     profitable supplier and not the comparison that qualifies it, which is the closest thing to a
+     misleading claim on this project. The reading is PROVISIONAL and therefore retractable.
+     Every figure is fetched from ../data/value_arms.json; none is authored here. -->
+<section id="value-arms" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
+  <h2 class="sec">Does deciding customer-by-customer actually earn more?</h2>
+  <p class="sec-lede">The whole thesis is that a supplier which decides household by household
+  beats one applying flat rules. That sentence only means something against a baseline, so the
+  same book is run through the same world three times &mdash; once on flat rules, once on the
+  per-customer decision engine, and once on a single flat margin set at the level the per-customer
+  arm actually charged. The third run is what separates <em>choosing better</em> from
+  <em>charging more</em>. Every figure below is what the world did, not what the company
+  believed.</p>
+  <p id="arms-headline" style="margin:0 0 10px;font-weight:600;"></p>
+  <p id="arms-published" style="margin:0 0 16px;"></p>
+  <div id="arms-realised"></div>
+  <div id="arms-split"></div>
+  <p id="arms-errorbar" style="margin:14px 0 0;"></p>
+  <div id="arms-decisions"></div>
+  <p id="arms-note" class="stamp" style="margin-top:12px;"></p>
+</section>
+<script>
+/* Its own fetch and its own IIFE, same discipline as the growth block above: a failure here must
+   not take the capability columns down with it, and on any failure the figures are ABSENT rather
+   than zero. A rendered £0 selection leg and an unreadable feed are the two readings this whole
+   section exists to keep apart. */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  };
+  /* The feed is written in the repository's plain-text house style, where an em dash is typed
+     "--". On a page that is a typo, so it is set properly here. Escape FIRST, then typeset: the
+     other order would let a feed string introduce markup. */
+  var prose = function (s) { return esc(s).replace(/ -- /g, " &mdash; "); };
+  /* Whole pounds, with a real minus sign in front of the £ rather than inside it: a negative
+     leg is the finding here, and "£-175" reads as a typo where "-£175" reads as a result. */
+  var gbp = function (v) {
+    if (v === null || v === undefined || isNaN(v)) return null;
+    var n = Math.round(Number(v));
+    return (n < 0 ? "−£" : "£") + Math.abs(n).toLocaleString("en-GB");
+  };
+  var signed = function (v) {
+    var s = gbp(v);
+    return s === null ? null : (Number(v) > 0 ? "+" + s : s);
+  };
+  /* A unit rate is quoted to the penny, never rounded: £44.50/MWh against £2.00/MWh is the
+     whole point of the level arm, and "£45 against £2" quietly restates the number the arm
+     actually charged. */
+  var rate = function (v) {
+    return (v === null || v === undefined || isNaN(v)) ? null : "£" + Number(v).toFixed(2);
+  };
+
+  function armRows(arms) {
+    return arms.map(function (a) {
+      var net = gbp(a.net_gbp);
+      var adv = signed(a.advantage_gbp);
+      return "<tr>"
+        + '<td><strong>' + esc(a.name) + "</strong><br><span style=\"font-size:11.5px;color:var(--muted);\">"
+        + prose(a.what) + "</span></td>"
+        + '<td style="text-align:right;white-space:nowrap;">'
+        + (net === null
+            ? '<span style="color:var(--muted);" title="' + esc(a.absent_reason || "") + '">not on this clock</span>'
+            : net)
+        + "</td>"
+        + '<td style="text-align:right;white-space:nowrap;">' + (adv === null ? "&mdash;" : adv) + "</td>"
+        + "</tr>";
+    }).join("");
+  }
+
+  function table(block, caption) {
+    return '<p style="font-size:12px;color:var(--muted);margin:14px 0 6px;"><strong>'
+      + esc(caption) + "</strong> &middot; " + esc(block.clock) + " clock &mdash; "
+      + prose(block.clock_means) + "</p>"
+      + '<div class="table-scroll"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
+      + '<thead><tr><th style="text-align:left;">Arm</th>'
+      + '<th style="text-align:right;">Net margin</th>'
+      + '<th style="text-align:right;">vs baseline</th></tr></thead><tbody>'
+      + armRows(block.arms) + "</tbody></table></div>";
+  }
+
+  fetch("../data/value_arms.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.available) {
+        $("arms-note").textContent =
+          "The arm comparison is not available, so it is absent rather than empty. "
+          + (d.reason || "");
+        return;
+      }
+      $("arms-headline").innerHTML = prose(d.headline)
+        + (d.provisional ? ' <span class="pill pill-building">Provisional</span>' : "");
+
+      /* THE CHECKED CLAIM. "The supplier on this site IS the baseline arm" is recomputed from the
+         published run every publish, and renders as its own negative if the two stop matching. */
+      var pub = (d.realised || {}).is_the_published_supplier || {};
+      $("arms-published").innerHTML = prose(pub.statement || "");
+
+      var html = "";
+      if (d.realised && d.realised.available) {
+        html += table(d.realised, "What each arm actually earned");
+      }
+      $("arms-realised").innerHTML = html;
+
+      var sp = d.provisioned || {};
+      if (sp.available) {
+        var lvl = rate(sp.level_gbp_per_mwh), ctl = rate(sp.control_gbp_per_mwh);
+        $("arms-split").innerHTML = table(sp, "Where the advantage came from")
+          + '<p style="margin:10px 0 0;font-size:13px;">The per-customer arm charged a median '
+          + "margin of " + esc(lvl) + "/MWh against the baseline's " + esc(ctl) + "/MWh. Giving "
+          + "<em>every</em> household that same single margin earned "
+          + esc(signed(sp.arms[2].advantage_gbp)) + ", against the per-customer arm's "
+          + esc(signed(sp.arms[1].advantage_gbp)) + ". <strong>The choosing is therefore worth "
+          + esc(signed(sp.selection_gbp)) + "</strong>"
+          + (sp.level_share_of_advantage === null || sp.level_share_of_advantage === undefined
+              ? ""
+              : " &mdash; the price level explains "
+                + (sp.level_share_of_advantage * 100).toFixed(1) + "% of the advantage")
+          + ".</p>"
+          + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--muted);">'
+          + prose(sp.superseded_note) + "</p>";
+      }
+
+      var eb = d.error_bar || {};
+      $("arms-errorbar").innerHTML = eb.available
+        ? '<span style="color:var(--amber);font-weight:600;">Read the error bar before the number.</span> '
+          + "Re-running the whole comparison on " + esc(eb.seeds)
+          + " further seeds put the value of the choosing anywhere between "
+          + esc(gbp(eb.min_gbp)) + " and " + esc(gbp(eb.max_gbp))
+          + " (standard deviation " + esc(gbp(eb.stdev_gbp))
+          + (eb.spread_to_point_estimate_ratio
+              ? ", about " + Math.round(eb.spread_to_point_estimate_ratio)
+                + "× the estimate itself"
+              : "")
+          + "). " + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
+        : "No spread has been measured for this reading yet, so the figure above is a point "
+          + "estimate with no error bar. " + prose(eb.reason || "");
+
+      var dec = d.decisions || {};
+      if (dec.available) {
+        var accts = dec.accounts_named_in_the_decision_sample || [];
+        $("arms-decisions").innerHTML =
+          '<p style="margin:14px 0 6px;font-size:13px;"><strong>How many decisions this rests on.</strong> '
+          + "The per-customer arm priced <strong>" + esc(dec.value_arm_priced)
+          + "</strong> renewals and the flat-at-level arm <strong>" + esc(dec.level_arm_priced)
+          + "</strong>, out of a book of " + esc(dec.book_accounts_settled)
+          + " settled accounts. Every account named among the scored decisions is one of "
+          + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
+          + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+          + prose(dec.concentration_note) + "</p>"
+          + (dec.discrimination_auc === null || dec.discrimination_auc === undefined ? ""
+              : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The company’s '
+                + "own belief about who will leave scored <strong>"
+                + dec.discrimination_auc.toFixed(3) + "</strong> on the usual rank measure. "
+                + prose(dec.auc_reading) + "</p>")
+          + (dec.control_credibility_note
+              ? '<p style="margin:0;font-size:11.5px;color:var(--muted);">'
+                + prose(dec.control_credibility_note) + "</p>"
+              : "");
+      }
+
+      $("arms-note").textContent =
+        "From the A/B run generated " + esc(d.run_generated_at || "at an unknown time")
+        + ", on " + esc((d.book || {}).billing_accounts_settled_in_window)
+        + " settled billing accounts. " + esc(d.provisional_note) + " " + esc(d.not_a_target);
+    })
+    .catch(function (err) {
+      $("arms-note").textContent =
+        "The arm comparison could not be loaded (" + err + "). The figures are absent, not zero.";
+    });
+})();
+</script>
 <section style="max-width:760px;margin:0 auto;padding:0 24px 48px;">
   <h2 style="font-size:15px;margin:32px 0 10px;">The supplier's own operating detail</h2>
   <p style="margin-bottom:14px;">

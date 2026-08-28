@@ -1,5 +1,16 @@
 # Lane 0 — the three-arm A/B and its error bar: in flight since 2026-08-27T21:28:05Z
 
+**CLOSED 2026-08-28. The block this file was parked on is dead.** `PHASE=floor` finished and wrote
+`docs/observability/value_cycle_ab_s1_noise_floor.json` at 2026-08-27T23:32:17Z, discharging the
+one remaining sub-item below: the spread cell is measured (min −£3,705.27, max +£5,075.85, SD
+£4,401.74, `selection_distinguishable_from_zero: false`, `elasticity_draws` 1,425/1,409/1,413 —
+non-zero on every seed, so the patch reached its call site). The row in
+`docs/staging/done/WORKER_FINDING_THE_VALUE_ARMS_ADVANTAGE_IS_THE_LEVEL_NOT_THE_SELECTION_2026-08-27.md`
+has been updated to match, and the whole reading is now **published to a reader** on
+`/capabilities/` (`site/data/value_arms.json`, `tools/generate_value_arms_data.py`). Nothing here
+is open; archived to `done/`. Everything below is kept as written — the diagnosis of the two dead
+launches is the durable part of this file.
+
 **STATUS (2026-08-27T22:00Z): PHASE=base LANDED, PHASE=floor IN FLIGHT.** Three attempts today
 produced nothing; the fourth produced the reading. `three-arm-and-floor.service` launched
 21:28:05Z and wrote `docs/observability/value_cycle_ab_s1_three_arm.json` at **21:56:34Z with

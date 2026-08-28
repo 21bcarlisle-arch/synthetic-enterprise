@@ -51,7 +51,7 @@ estimate cannot be quoted without its error bar.
 
 | world (commit) | book (`book_identity.control_arm`) | clock (R14) | control | value_based | flat_at_level @£44.50 | level share | **selection, with its spread** |
 |---|---|---|---|---|---|---|---|
-| `8d8e9c2c8` | 210 billing accounts settled, 187 dual fuel (89.0%), segments resi+SME, 127 alive at window end | **settled** net margin — `net_margin_gbp` off the world's own settled records | £113,282.62 | £120,648.84 (+£7,366.22) | £120,823.40 (+£7,540.79) | **102.4%** | **−£174.57**, and the committed-mode spread is **IN FLIGHT** at the time of writing — see the pending cell below. The nearest measured band, the scratchpad upper bound in the CORRECTION section, is **≈ ±£4,400**, i.e. **25× this estimate.** |
+| `8d8e9c2c8` | 210 billing accounts settled, 187 dual fuel (89.0%), segments resi+SME, 127 alive at window end | **settled-provisioned** net margin — see the clock note below | £113,282.62 | £120,648.84 (+£7,366.22) | £120,823.40 (+£7,540.79) | **102.4%** | **−£174.57**, spread **MEASURED** 2026-08-27T23:32:17Z: min **−£3,705.27**, max **+£5,075.85**, **SD £4,401.74**, SEM £2,541.35, mean +£504.30 over three seeds × three arms. `selection_distinguishable_from_zero: false`. **The spread is 25.2× the point estimate.** |
 
 Artefact: `docs/observability/value_cycle_ab_s1_three_arm.json`, `generated_at 2026-08-27T21:56:34Z`,
 `level_vs_selection.available: true`. Run: `three-arm-and-floor.service` PHASE=base, `rc=0`, log
@@ -76,17 +76,69 @@ whose default is the live path byte for byte — behaviour-neutral for a real ru
    indistinguishable from each other and from zero. The interesting fact about this row is not its
    value but its width.
 
-**PENDING (do not close this without it):** `PHASE=floor` of the same unit began at 21:56:38Z —
-`--level-arm --noise-floor-seeds 11111,22222,33333`, nine full passes, writing
-`docs/observability/value_cycle_ab_s1_noise_floor.json`. That is the **first end-to-end execution of
-the committed noise-floor mode**, which the CORRECTION section below records as never having been
-run. When it lands, replace the spread cell above with `selection_gbp_spread.min … .max` and
-`.stdev`, state `selection_distinguishable_from_zero`, and confirm `seeds[].elasticity_draws > 0` on
-every seed — a zero there means the patch reached no call site and the mode RAISES rather than
-reporting a floor of zero.
+**DISCHARGED 2026-08-28.** `PHASE=floor` completed and wrote
+`docs/observability/value_cycle_ab_s1_noise_floor.json` at 2026-08-27T23:32:17Z — the **first
+end-to-end execution of the committed noise-floor mode**, which the CORRECTION section below
+records as never having been run. All three checks the pending block named are answered:
+
+| check | result |
+|---|---|
+| `selection_gbp_spread.min … .max` | −£3,705.27 … +£5,075.85 (range £8,781.13) |
+| `.stdev` / SEM / mean | £4,401.74 / £2,541.35 / +£504.30 |
+| `selection_distinguishable_from_zero` | **false** |
+| `seeds[].elasticity_draws > 0` on every seed | **yes** — 1,425 / 1,409 / 1,413. The patch reached the call site on all three, so the spread is a measurement and not a floor of zero |
+| `level_share_of_advantage` per seed | 0.984 / 0.416 / 1.479 — SD **0.53** on a statistic published as 102.4% |
+
+The seed mean (**+£504.30**) has the OPPOSITE SIGN to the point estimate (**−£174.57**), and that
+is not a contradiction to be resolved: the floor seeds re-draw the per-household elasticity, so
+they are three further draws from the same distribution, not a re-measurement of the same one.
+Both sit deep inside a band ±£4,400 wide. **The instrument cannot resolve a selection effect of
+this size in either direction**, and per the artefact's own `how_to_read_this` that is a finding
+about the INSTRUMENT, not about the pricing arm, and not a cue to re-run until a seed agrees.
+
+**CLOCK NOTE (R14), added 2026-08-28.** The row's four £ figures are on the **settled-provisioned**
+clock — the frozen scalars, before `run_phase4c_on_phase2b` writes the arrears model's realised
+write-offs back into the rows. On the **settled-realised** clock the same run gives control
+**£153,244.79** and value **£157,913.20**, an advantage of **+£4,668.41**, and the level arm has no
+realised figure at all because the artefact's gross-to-net bridge never walked it. So the 102.4%
+share does not survive restatement unchanged and cannot be restated from this run. Both clocks are
+now published side by side rather than one being chosen (see below).
 
 This is what an AUC of 0.4653 predicts. An estimator that ranks *worse* than chance cannot select
 profitably, and the two measurements corroborate rather than merely coexist.
+
+### It is now PUBLISHED, on a business surface (2026-08-28)
+
+Until this date the whole reading reached no reader. A grep for `level_share_of_advantage`,
+`value_cycle_ab` and `selection_gbp` across `site/`, `tools/generate_dashboard_data.py`,
+`saas/reporting/` and `docs/reports/` returned one file — `site/data/delivery.json` — carrying a
+lane claim and not a figure. The site published a profitable supplier at £153,245 net and said
+nothing about the flat-rules run that matches it. **Publishing the profitable-looking half while
+withholding the comparison that qualifies it is the closest thing to a misleading claim on this
+project**, and the remedy did not need anyone's permission: the reading is labelled PROVISIONAL,
+which keeps it retractable and therefore outside the four reserved classes.
+
+It is on **`/capabilities/`**, under *"Does deciding customer-by-customer actually earn more?"*,
+fed by `site/data/value_arms.json` (`tools/generate_value_arms_data.py`, wired into
+`background/process_run_complete.py` so it rides the publish cycle). It renders: the three arms
+with their net margins on **both** clocks, the selection leg with its sign, the seed spread beside
+it, the number of decisions it rests on and how few accounts they sit on, the AUC, the bound share,
+and the control's weakness against the regulated allowance.
+
+**One thing the surface says that this document did not, and it is the sharpest sentence in it:**
+the flat-rules control arm's realised net (**£153,244.79**) is, to the penny, the net margin the
+rest of the site publishes as the company's own. **The profitable supplier on this site IS the
+baseline.** That is checked and recomputed every publish rather than asserted — the site
+republishes on every run, so the day the published run stops being the control arm's run the
+sentence inverts itself and names both figures and the gap
+(`_is_the_published_supplier`, R15-proven both ways).
+
+R15 on the publication itself: six mutations run and reverted — deleting the error-bar render,
+rendering the level arm's absent realised net as £0, dropping the PROVISIONAL label, `_f` failing
+open to 0.0, widening the same-supplier tolerance to 1e9, and the noise floor failing open to a
+spread of zero. Each reds; the null rungs stay green. The subject is the **rendered DOM** via
+`site/_live_harness.mjs`, not the feed — a feed carrying `selection_gbp` proves nothing about
+whether a reader meets it.
 
 ## The enterprise-value reading disagrees, and must be DISCARDED rather than reported
 

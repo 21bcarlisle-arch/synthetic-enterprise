@@ -3687,6 +3687,24 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("book_growth.json generation failed: {}".format(exc))
     try:
+        # THE BASELINE THE PUBLISHED SUPPLIER HAS TO BEAT (site/data/value_arms.json). The
+        # director's thesis: "there has to be a BASELINE to beat -- the same book run by a
+        # supplier applying flat rules with no per-customer view -- or 'it performed well' means
+        # nothing." The three-arm A/B measured it and reached no reader: publishing the
+        # profitable half while withholding the comparison that qualifies it is the closest
+        # thing to a misleading claim this project has. Wired HERE for two reasons: the R11
+        # no-orphan-transition reason its neighbours carry, AND because the feed re-checks every
+        # publish whether the run being published is still the same supplier as the A/B's
+        # control arm -- a check that only means something if it runs on the publish path.
+        from tools.generate_value_arms_data import generate as gen_value_arms
+        arms = gen_value_arms()
+        log("Generated site/data/value_arms.json (available={}, same supplier as the published "
+            "run={})".format(arms.get("available"),
+                             ((arms.get("realised") or {}).get("is_the_published_supplier")
+                              or {}).get("same_supplier")))
+    except Exception as exc:
+        log("value_arms.json generation failed: {}".format(exc))
+    try:
         # Explore stage 3's SECOND CLOCK (site/data/explore_hh_days.json). The stage is titled
         # "electricity across a day" and rendered it by YEAR, in the same table as gas, which
         # made the two clocks one clock and lost the thing that stage exists to teach. Wired
