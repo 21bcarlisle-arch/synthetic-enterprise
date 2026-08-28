@@ -140,6 +140,54 @@ spread of zero. Each reds; the null rungs stay green. The subject is the **rende
 `site/_live_harness.mjs`, not the feed — a feed carrying `selection_gbp` proves nothing about
 whether a reader meets it.
 
+### R11 — verified against the LIVE surface, and the figures quoted (2026-08-28 02:0x UTC)
+
+The control above drives the door **in the tree** with the feed **in the tree**. That is the right
+subject for a test, and it is not R11: "done" for a user-visible change is the value rendered on the
+*deployed* surface. So the deployed bytes were fetched and driven, and this is what came back.
+
+Both halves fetched from `poesys.net`, cache-busted: `GET /capabilities/` → **HTTP 200, 29,776
+bytes**, containing `<section id="value-arms">`; `GET /data/value_arms.json` → **HTTP 200, 8,992
+bytes**, `generated_at` **2026-08-28T01:47:23.596277Z**, `run_generated_at`
+**2026-08-27T21:56:34Z**, `available: true`. Flattening both the deployed feed and the tree's copy
+to leaves and diffing them, **exactly one field differs — `generated_at`** (tree 02:01:14.317183Z,
+deployed 01:47:23.596277Z). Every published figure is byte-identical, so the deploy is not lagging
+the reading; only the publish clock has moved on.
+
+The deployed HTML was then driven through `site/_live_harness.mjs` with the deployed feed —
+`_meta.unresolved: []`, `_meta.scriptError: null`, all seven panels rendered. The rendered text a
+reader meets, quoted:
+
+- **`#arms-realised`** (settled-realised) — "Flat rules … **£153,245** — · Per-customer …
+  **£157,913** **+£4,668** · Flat at the same level … **not on this clock** —".
+- **`#arms-split`** (settled-provisioned, declared superseded) — "£113,283 — · £120,649 +£7,366 ·
+  £120,823 +£7,541 … The choosing is therefore worth **−£175** — the price level explains
+  **102.4%** of the advantage."
+- **`#arms-errorbar`**, rendered *above* the split for a reader — "Re-running the whole comparison
+  on **3 further seeds** put the value of the choosing anywhere between **−£3,705 and £5,076**
+  (standard deviation **£4,402, about 25× the estimate itself**) … this instrument cannot yet
+  resolve a selection effect of the size it is measuring — in either direction."
+- **`#arms-decisions`** — "priced **25** renewals and the flat-at-level arm **34**, out of a book of
+  **210** settled accounts … one of **9** (C1…C9) … scored **0.465** on the usual rank measure."
+- **`#arms-published`** — "The net margin this site publishes for the company is the same figure, to
+  the penny, as the flat-rules baseline arm below. **The supplier on the front of this site IS the
+  baseline.**"
+- **`#arms-headline`** carries the **Provisional** pill; **`#arms-note`** carries "From the A/B run
+  generated **2026-08-27T21:56:34Z**, on 210 settled billing accounts. PROVISIONAL."
+
+Both halves of R11 therefore assert: the **data stamp** on screen (2026-08-27T21:56:34Z) is the
+deployed feed's own `run_generated_at`, and the **visible number** (£153,245 for the flat-rules
+arm) is to the pound the net margin the rest of the site publishes for the company — which is the
+claim the section exists to make.
+
+**The residual, named rather than left implicit.** This live pass was run by hand at the timestamp
+above; what runs on every publish is `site/live_pixel_verify.py --door /capabilities/`, which drives
+the live door with the live feeds and reds on an unrendered panel or an error token (checked here:
+`ok: true`, 19 rendered elements, `../data/value_arms.json` → 200, no failures) — but it asserts
+that the section *rendered*, not what it *says*. A live check that asserts these figures is not
+built. That is a gap in the standing control, not in the reading, and it is recorded here rather
+than described as covered.
+
 ## The enterprise-value reading disagrees, and must be DISCARDED rather than reported
 
 EV tells the opposite story — level +£5,145.68 against the arm's +£7,149.28, i.e. the level gets only
