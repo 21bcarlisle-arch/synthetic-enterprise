@@ -1,312 +1,358 @@
 version: 1
-oriented_at: "2026-08-28T02:21:47.515581+00:00"
+oriented_at: "2026-08-28T11:25:29.347732+00:00"
 thesis_read: >-
-  Three of my four items landed inside three hours and the fourth did not, and the split between
-  them is the most useful thing this stretch taught me about my own lever. `4d935cb39` settled the
-  clock question and proved the two net margins were NOT a settled-versus-banked pair -- both are
-  settled, and the arrears model mutates `all_records` in place while three frozen scalars are
-  never refreshed. `4be65df49` built the renewal funnel and answered the denominator question
-  outright. `30a64e688` put the baseline in front of a reader. All three were kebab-slug Lane 0
-  items. The one that did not land, EP1, is the one I wrote as a maturity-map atom id: it was
-  drawn again, `tools/couple_clv.py:606` still defines `_earliest_belief` and line 714 still calls
-  it, and the atom has now been named on five consecutive lists and repaired on none. The atom-id
-  form biases a draw; the Lane 0 form lands work. I am changing EP1 to a Lane 0 slug below and
-  recording that as a decision about the instrument rather than a scheduling note. Against the
-  thesis, the stretch moved forward and the answer got harder, in the way a real answer does. The
-  clock repair means the headline the project has been reading itself by does not survive
-  restatement: on the realised clock the per-customer arm's advantage falls from GBP 7,366.22 to
-  GBP 4,668.41, the level arm's realised net was never summed and is NOT recoverable from the
-  artefact, so `selection_gbp = -174.57` and `level_share_of_advantage = 1.024` are figures on a
-  superseded clock and the restated ones do not exist yet. `site/data/value_arms.json` publishes
-  that honestly -- the level arm renders with `absent_reason` -- which is the right thing to have
-  shipped and is also a hole in the middle of the only comparison the thesis has. The funnel is
-  the better news and the bigger finding: 1,251 terms reach `decide_renewal_rate`, 478 are
-  electricity renewals, and 213 of 222 electricity accounts are refused by `UPLIFTABLE_TARIFF_TYPES`
-  because `SyntheticCustomer.tariff_type` defaults to None and `_draw_one` never sets it. The
-  decision surface is 25 wide by PLUMBING, not by construction. My predecessor and I both wrote
-  that if it turned out to be small by construction we should say so and stop; it is not, and the
-  honest consequence is that the experiment which could never resolve a GBP 1,400 effect across 25
-  decisions could plausibly resolve one across several hundred. That is the first route to a
-  resolvable answer this project has had, and it is a baseline-world change that has to be argued
-  on fidelity alone. So: nothing went backwards, one published headline is now known to be on the
-  wrong clock and is labelled as such, and the path to a number a reader can rely on is visible
-  for the first time.
+  The stretch was spent absorbing the director's 09:49 mission rewrite, and that was the right
+  call — his words outrank my focus, and the machine did it well. Three substantive commits:
+  CLAUDE.md rebuilt around value CREATED and then SHARED, in three currencies, through three
+  channels of which one reaches a household; `A45_the_canon_is_a_standing_subject` taken 0→2 with
+  `tools/canon_drift_check.py` binding nine canon claims to code predicates and wired into
+  `background/daily_self_note.py`, so something other than the director now asks every morning
+  what the page claims that the code no longer supports — that closes the top `wrong` from my
+  predecessor's record, and it is the only item on this board that went from prose to mechanism;
+  `A47_the_score_has_no_household_side` taken to 2, with `company/analytics/household_value_share.py`
+  computing, for the first time in this project, what a household KEPT against the published
+  default tariff; and A48, C30, C31 minted so the absent method-measure, the two absent channels
+  and the wholly absent currency sit on the map rather than in prose. THE FRAME MOVED AND THE
+  MEASUREMENT DID NOT, and not one figure reached a reader. I fetched the live surface rather than
+  reading the file: `https://poesys.net/data/publish_provenance.json` returns
+  `verification_state: paused`, `showing_run` git 28eaca4c9 generated 2026-08-28T07:04:10Z,
+  `paused_since` 07:51:08Z. Four and a half hours on the same register reds the last direction
+  named FIRST and did not repair, while the queue behind it grew from two unprocessed run markers
+  to ELEVEN. Meanwhile 739 lines across nine files — `simulation/settlement_clocks.py`, its
+  340-line test, and the `tools/run_annual_report.py` and `simulation/run_phase4c_on_phase2b.py`
+  consumers that import it — sit STAGED IN THE INDEX and in no commit, for a third consecutive
+  stretch, so the one control written to stop the published-arithmetic defect recurring is still
+  invisible to every clone and every gate. The honest reading is that diagnosis outran delivery
+  again and by a WIDER margin than last stretch: four new atoms minted and three frames written
+  while the road carrying the company's results to a reader was shut and the machine's own finished
+  work could not land. The thesis is not served by a better-stated mission; it is served by a
+  figure a reader can check, and today produced none. TWO THINGS I FOUND WHILE ORIENTING CHANGE
+  WHAT TO DO, and both falsify something a previous record asserted. First, the publisher's wedge
+  is NOT what my predecessor named. He named `background.pull_forward_proposal`; I ran it and it
+  exits RC=0. The actual stale artefact is `docs/design/BLOCKED_ATOM_VISIBILITY.md`, and its
+  rendered content is a stream of wall-clock-stamped supervisor events — four identical
+  "[2026-08-28 11:31 UTC] COUPLED_TRIAD gate: excluding B10..." lines — so it goes stale faster
+  than any commit can land it and its freshness check has no reachable PASS. Second, and this is
+  the one that matters against the thesis: THOSE EXCLUSION LINES SAY B10 IS BEING REFUSED BY THE
+  BUILD DRAW. `B10_competitor_switching_response` targets L3 with no coupled company twin
+  registered, so the coupled-triad gate excludes it on every tick. I was about to park B10 on the
+  grounds that the ordinary draw owns it and is already moving. That was false, and I caught it
+  only because a test I ran for another reason printed the exclusion. The single thesis atom on
+  this board is structurally unreachable by any draw, which means the last two stretches of "B10 is
+  in flight" were describing something that could not happen. What is drifting, finally, is the
+  shape of my own instrument: the two focus items that went untouched were the two longest, written
+  as diagnoses for a reader rather than instructions a tick can finish. Every item below is cut to
+  a discriminator and a decision, and I did the first hour of diagnosis myself so the worker starts
+  from a fact.
 stretch_reviewed:
-  since: "2026-08-27T23:24:58.117890+00:00"
-  commits: 9
-  substantive: 4
+  since: "2026-08-28T08:21:08.855140+00:00"
+  commits: 4
+  substantive: 3
 focus:
-  - id: rerun-the-three-arm-ab-on-the-repaired-clock-and-restate-the-headline
+  - id: unwedge-the-publisher-the-stale-artefact-is-a-LIVE-EVENT-LOG
     what: >-
-      `tools/run_value_cycle_ab.py` was repaired this stretch but has not been RUN since, so
-      `docs/observability/value_cycle_ab_s1_three_arm.json` is entirely pre-repair: its keys are
-      `control_arm`/`value_arm`/`level_arm`/`level_vs_selection` with no `clocks`, no
-      `clock_audit`, no `renewal_funnel`, no `decision_population`, and a
-      `superseded_by_repair` block that correctly says the level arm's realised net is not
-      recoverable from it. Re-run the three arms on the repaired code and republish. Do it in this
-      order. FIRST clear the blocker: `simulation/run_phase2b.py` is MODIFIED AND UNCOMMITTED in
-      the working tree -- it carries the collection of `arm_funnel_entries` that the funnel block
-      reads -- and `4be65df49`'s own commit message says it could not land because
-      `tests/simulation/test_run_phase2b.py:293::test_the_run_emits_a_treasury_drawdown_register`
-      is red at clean HEAD. Confirm that red is still present at clean HEAD before touching it (my
-      predecessor's lesson: a pre-existing red at clean HEAD wedges every commit touching its file,
-      and the fix is to repair it as its own work, never to exclude it and never to fix it merely
-      to unblock yourself). Repair it, land `run_phase2b.py`, and only then run, so the funnel
-      reports `available: true` rather than the `available: false` it is designed to report when
-      the log is absent. SECOND run all three arms and check `clock_audit` passes on the fresh
-      artefact rather than assuming it. THIRD restate `level_vs_selection` on the settled-realised
-      clock now that the level arm's realised net exists, and say in the artefact what
-      `selection_gbp` and the level share actually became -- do not carry the superseded -174.57
-      and 1.024 forward, and do not quietly delete them either; the superseded pair and the
-      restated pair belong side by side with their clocks. FOURTH regenerate
-      `site/data/value_arms.json` and verify to the rendered value per R11: fetch the LIVE surface
-      and quote the rendered level-arm figure where `absent_reason` currently renders, plus the
-      data stamp. Keep the PROVISIONAL label and the seed spread beside it.
+      Do NOT start from the subject my predecessor named — it is wrong and it will cost you an hour.
+      Observed-with-evidence, by me, just now: `python3 -m background.pull_forward_proposal --check`
+      exits RC=0 in the working tree (prints three pending atoms, "0 violations"), so it is NOT the
+      wedge. `python3 -m pytest tests/background/test_derived_artefact_register.py` fails on
+      `TestStaleness::test_every_registered_artefact_is_currently_fresh` with
+      `stale derived artefact(s): ['docs/design/BLOCKED_ATOM_VISIBILITY.md']`, and
+      `python3 -m background.blocked_atom_visibility --check` prints "DOC DRIFT ... disagrees with
+      the derivation". Now the part that explains the non-convergence: the rendered content of that
+      artefact is a WALL-CLOCK-STAMPED LIVE EVENT STREAM — its body carries four identical lines
+      reading "[2026-08-28 11:31 UTC] COUPLED_TRIAD gate: excluding B10_competitor_switching_response
+      from BUILD draw". INFERRED, and confirm it before acting: the derivation reads an append-only
+      supervisor log, so every tick that logs an exclusion invalidates the committed rendering, the
+      register's repair loop re-renders into a moving target, `MAX_REPAIR_PASSES` is exhausted, and
+      the gate reds forever. That makes this a control whose PASS branch is unreachable — R15's
+      fourth shape, already a registered class in this repo — and it has been holding the road to
+      the reader shut for four and a half hours. The decision to make is what a derived DESIGN
+      DOCUMENT is allowed to contain: either the derivation stops embedding timestamped live events
+      and renders only the STATE (which atoms are excluded and why, with no clock), or the artefact
+      leaves `REGISTER` because it is a log and not a derived document. Take one, in one commit, and
+      mutation-prove it: a genuinely drifted artefact must still red. Then decide separately whether
+      a stale design doc should be able to stop the company's FIGURES publishing at all — say so in
+      `background/process_run_complete.py` where the blocking scope is chosen. Finally process the
+      eleven queued `run_complete_*.md` markers and verify per R11 by fetching
+      `https://poesys.net/data/publish_provenance.json` and quoting a `showing_run` newer than
+      28eaca4c9 with no `paused_reason`.
     why: >-
-      This is the project's central claim and it currently has a hole in the middle of it on a
-      live page. We published "the advantage is the level, not the selection" as the honest reading
-      of our own arm, then discovered the numbers it was computed from were on a clock the run
-      superseded inside itself -- and the restated version cannot be computed from anything we
-      hold. Until this runs, the site tells a reader the baseline exists and beats us, and cannot
-      tell them by how much. It goes first because it needs no new thinking, only a red cleared, a
-      commit landed and three runs, and because every other reading of the arms is downstream of
-      it. Finished when the fresh artefact carries all three arms on the declared realised clock,
-      `clock_audit` passes on it, `renewal_funnel` reports `available: true`, and the live page
-      renders a level-arm number with the fetched evidence quoted. R12 in full force: whichever way
-      the restated selection leg moves -- and it may well move against the per-customer arm harder
-      than -174.57 did -- that is the result, not a cue to touch the arm. If the restated figure is
-      worse for us, say so in the same voice the artefact already uses.
-  - id: repair-the-published-treasury-clock-and-register-the-class
+      Everything below reaches a reader through this road and the road has been shut for four and a
+      half hours, serving a 07:04 run behind a banner that works exactly as designed — which is
+      precisely why nobody is woken and why the arrears quintupled from two markers to eleven while
+      the machine wrote frames. It was named first last stretch and not touched, so it is cut to a
+      reproduction and a decision. The second half is the point: my predecessor recorded that this
+      is the third publish stoppage in three days with three different causes and that a fourth
+      means redesigning the road under R3. This is the same instance unrepaired, so I am not calling
+      strike four — I am spending the strike differently. Repairing the fifth instance of "a
+      document went stale so no figure shipped" is not the work; severing that coupling is, and a
+      freshness control that can never pass is the strongest possible argument for severing it.
+      Finished when the register tests are green at HEAD for a reason you can state in one sentence,
+      the blocking scope is either narrowed with a mutation proof or deliberately left wide with the
+      reason written down, all eleven markers are processed, and the fetched live provenance shows
+      an unpaused publisher on a newer run with the value quoted.
+  - id: land-the-staged-settlement-clocks-payload-as-ONE-commit
     what: >-
-      The same defect that was just repaired inside the A/B is live on the site.
-      `docs/staging/WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28.md`
-      has it traced: `docs/reports/run_output_latest.json` publishes `starting_treasury_gbp` =
-      250,000.0, `total_net_gbp` = 153,244.792035 re-summed from the post-arrears rows, and
-      `final_treasury_gbp` = 363,282.6171350135 read from the frozen pre-arrears scalar, so the
-      file's own arithmetic is out by GBP 39,962.17 -- the identical figure. `site/data/supplier.json:9`
-      and `site/data/agent_status.json:146` carry it onto the live surface.
-      `saas/reporting/annual_report.py:915-921` mixes the two sources in adjacent lines;
-      `simulation/run_phase4c_on_phase2b.py:290-306` mutates the rows and
-      `simulation/arrears_engine.py:604-608` carries the correction through each later row's
-      `treasury_cash_balance_gbp` while nothing refreshes the scalars. Repair it at the source --
-      re-derive the published treasury from the same rows the net margin is summed from, or publish
-      the frozen scalar under its own explicit provisioned clock beside a realised one; decide which
-      and write the reason in the module, do not just make the numbers agree. Then do the R10 half,
-      which is the part that matters: this is the SECOND instance of the shape, so register the
-      class the finding itself names -- `figures_on_a_superseded_clock`, a figure re-summed from
-      mutated rows published beside a sibling read off the frozen summary -- consolidate the A/B
-      instance and this one into it, and add an invariant that fails on the whole class rather than
-      on these two files. R15-prove it by mutating a published figure back onto the frozen scalar
-      and watching it red. Follow this repo's own archiving discipline: a new instance in a
-      registered class is born archived -- severity header in the first 40 lines, root then
-      `--render` then `git mv` to `done/`, and assert the instance count incremented rather than
-      trusting `--check` to say PASS.
+      `git diff --cached --stat` shows nine files and 739 insertions sitting in the index and in no
+      commit: `simulation/settlement_clocks.py` (285 lines, `A`),
+      `tests/simulation/test_settlement_clocks.py` (340 lines, `AM`), the consumers that import it —
+      `tools/run_annual_report.py:69`, `simulation/run_phase4c_on_phase2b.py:95` — plus
+      `saas/reporting/annual_report.py`, `tools/run_frozen_baseline.py`,
+      `docs/design/maturity_map_closed.yaml`, and `docs/design/BLOCKED_ATOM_VISIBILITY.md`. `git log
+      --all -- simulation/settlement_clocks.py` still returns NOTHING. This is now a hazard and not
+      just a debt: HEAD is currently consistent (`git grep settlement_clocks HEAD` finds only a
+      comment at `tools/run_value_cycle_ab.py:228`), but the index is not, so any lane that commits
+      `tools/run_annual_report.py` by pathspec WITHOUT `simulation/settlement_clocks.py` lands an
+      ImportError in the annual report for every clone, and three writers share this index. Land the
+      whole payload in ONE commit by explicit pathspec — consumer and supplier together, because the
+      write-time gate reads the commit message and a new module also trips the orphan ratchet.
+      Before you do, confirm the test actually reds when the class invariant is broken, since its
+      value is the parametrisation over every scalar in `ROW_DERIVED_SCALARS` rather than the two
+      figures that were caught, and fix the stale comment at `run_value_cycle_ab.py:228`. Note the
+      overlap with item one: the staged `BLOCKED_ATOM_VISIBILITY.md` re-render is in this payload,
+      so coordinate — do not let the two items fight over that path. If a gate refuses, split by
+      pathspec and say in the commit which path is held and why; do not leave the payload staged a
+      fourth time.
     why: >-
-      R14 is a wall -- every published financial figure carries its clock -- and this is a
-      published financial figure on the wrong one, on a page a reader can check with a calculator:
-      250,000 plus 153,245 is not 363,283. It is second and not first only because item one is a
-      larger hole in a more important claim; it is above the level move because it is a live
-      arithmetic error under the company's own name and the repair is small and fully diagnosed.
-      Finished when the live surface renders a treasury consistent with its own published net
-      margin on a declared clock, the class is registered with both instances consolidated into
-      it, and the invariant reds on a mutation that reintroduces the shape anywhere. Closing this
-      with an instance fix and no class is explicitly not finishing it -- R10 exists for exactly
-      this, and we have now watched the identical defect appear twice in two files in two days.
-  - id: decide-whether-the-drawn-book-should-carry-a-tariff-type-on-fidelity-grounds
+      Third consecutive stretch. The instance defect was repaired and published in one stretch and
+      the class control that generalises it has not landed in three, which is exactly the split R10
+      forbids, and it is the repo's own registered uncommitted-and-orphaned-work class offending
+      against itself while that class is open. It has changed character since my predecessor wrote
+      it: it was two untracked files and a comment, it is now nine files, 739 lines, and a
+      partial-commit hazard. A worker was live in the file at 12:02Z, so this may finish itself —
+      good, and its disappearance from this list is how I will know. It is second rather than first
+      only because it does not block a reader. Finished when `git log --all --
+      simulation/settlement_clocks.py` returns a commit and the index no longer carries the payload.
+  - id: B10_competitor_switching_response
     what: >-
-      `4be65df49` established that `SyntheticCustomer.tariff_type` defaults to None and `_draw_one`
-      never sets it, so 213 of 222 electricity accounts are refused by `UPLIFTABLE_TARIFF_TYPES`
-      and the A/B's decision surface is 25 wide by plumbing. The commit correctly recorded setting
-      it as a baseline-world change owed under R13 rather than making it. Make the decision, and
-      make it the way R13 requires: blind to what it does to company P&L or to the A/B's outcome.
-      Produce a short written determination in `docs/design/` that (a) states what these drawn
-      accounts ARE in the world today -- the commit describes them as terms the world settles as
-      ordinary annual fixed contracts with locked rates whose product was simply never labelled;
-      verify that from the settlement path rather than repeating it; (b) cites an external anchor
-      for what the real distribution of domestic and SME contract types looks like over the run
-      window -- Ofgem's published fixed-versus-variable split is the obvious source and the
-      discovery lane exists for exactly this; (c) rules on whether leaving 96% of drawn accounts
-      with an unlabelled product is a fidelity defect in the world, which is the only question that
-      may decide this. If it IS a defect, set the field from the external distribution, version the
-      change as a named baseline-world correction with its fidelity citation, and note that a
-      larger decision surface is a CONSEQUENCE and not the reason. If it is not a defect -- if the
-      world genuinely intends these as a product with no renewal decision -- write that down in
-      those words and the A/B's 25 decisions become a permanent finding about how little of a real
-      domestic book per-customer pricing can touch. Either answer closes it. What is not allowed is
-      setting the field because it makes n bigger.
+      B10 is being REFUSED BY THE DRAW and nobody noticed. `python3 -m background.blocked_atom_visibility
+      --check` prints, four times over: "COUPLED_TRIAD gate: excluding B10_competitor_switching_response
+      from BUILD draw -- B10 targets L3 but has no coupled company twin registered in the map --
+      binding rule 1 ... (registration defect if level_target>=3 with no twin)". The gate names its
+      own remedy in its own message: this is a REGISTRATION defect, not a capability gap. B10's map
+      entry has an empty `depends_on` and no `couples_with`, while SITE13 declares B10 in ITS
+      `couples_with` — so the coupling exists in the tree and is declared from one side only. Fix the
+      registration first: name B10's company twin in the map (the company capability that has been
+      tested against a defending rival — the churn-decision path in `tools/run_price_ladder.py` and
+      `simulation/customer_events.py` is the candidate, verify it before writing it), re-run the
+      exclusion check, and confirm B10 is drawable. THEN do the measurement the preregistration
+      already commits you to: `WORKER_PREREGISTRATION_WHAT_THE_CHASE_OFF_RUN_MUST_SHOW_2026-08-28.md`
+      is filed, so honour it — score the ladder on modelled churn PROBABILITY as well as the realised
+      binary roll, so a world change has a continuous surface to move rather than having to clear a
+      one-account quantum of 5.9 percentage points on seventeen decisions. Two acceptable endings and
+      you must take one explicitly: either the coupled gap is measured on a readout whose resolution
+      you STATE and the level move is self-certified with that evidence, or the artefact records —
+      with the numbers — that the defence leg's cost is not resolvable on a book of this depth. Do
+      not tune `COMPETITOR_AGGRESSION.yaml` to make the effect visible; that is the curriculum wall
+      and the chase rate was set from a fidelity argument.
     why: >-
-      Every previous stretch has run into the same wall -- a selection leg of a few hundred pounds
-      against a seed spread of GBP 3,121 across 25 decisions cannot be resolved by re-running, and
-      I rejected the S3 world-widening on exactly those power grounds. This is the first route past
-      it that does not involve inventing anything: the decisions may already exist in the world and
-      be refused by an unset field. It is third because items one and two are live published
-      defects and this is a world change that deserves to be made slowly and on evidence. Finished
-      when there is a written, externally-anchored determination either way, and -- if the answer
-      is to set it -- a versioned baseline-world change whose stated reason is fidelity and whose
-      effect on the experiment is recorded as a consequence. R13 is the wall here and it cuts
-      against us: the agent controls both sides, so a world change that happens to make our own
-      experiment easier is precisely the change that must be argued hardest. If the fidelity case
-      is thin, the honest outcome is to leave the world alone and accept the small surface.
-  - id: grade-EP1-on-a-belief-the-company-could-have-held
+      I had this in `not_now` on the grounds that the ordinary draw owns it and is already moving,
+      and that was FALSE — the draw has been actively excluding it on every tick, and I found out
+      only because a test I ran for a different reason printed the exclusion. That correction is why
+      it now holds a slot: a structurally unreachable atom cannot be left to the draw, and Lane 0 is
+      the only path to it. It matters because it is the only item on this board that moves toward the
+      claim rather than cleaning up after it. The director's C2 says the market not competing is the
+      most consequential of the three corrections and invalidates everything measured before it; B10
+      is the repair, it is half-built at level 2 against a declared 3, and the gap is unmeasured. It
+      sits third only because a shut road and a partial-commit hazard affect a reader and this does
+      not yet. The honest expectation is that it may not resolve on seventeen decisions — that is
+      why the instruction has two endings, and a recorded "not resolvable at this depth, here are
+      the numbers" is itself a publishable result and the strongest support for the book-depth
+      question already with the director.
+  - id: SITE13_the_baseline_comparison_carries_its_bound
     what: >-
-      EP1_clv_three_horizon, carried for the fifth consecutive stretch and written as a Lane 0
-      instruction this time rather than as an atom id, because as an atom id it has been drawn
-      twice and repaired zero times. Do the smallest landable thing and land it before doing
-      anything else on the atom. `tools/couple_clv.py:606` defines `_earliest_belief` and line 714
-      calls it; the earliest year-end snapshot is exactly where `churn_probability = BASE + 0 x
-      UPLIFT` (`saas/churn_model.py:39`, `company/analytics/clv_three_horizon.py:580`) because no
-      bill-shock history has accrued, so the hazard is 0.05 for the entire graded population by
-      construction and `distinct_hazards: 1` measures the rule and not the company. The stated
-      justification -- that a ceased account has no other snapshot -- is false for 14 of the 20
-      graded accounts still present. Replace the selection rule with one that grades a belief the
-      company actually held while the account was live, keep the existing single-snapshot fallback,
-      and write the new rule AND its reason into the docstring beside the one it replaces. Land
-      that commit on its own. THEN run `python3 -m tools.couple_clv` and land the refreshed
-      `docs/observability/coupled_gap_ledger.json` row, which must state how many distinct hazards
-      the graded population contains. R15 both ways: reverting to the earliest snapshot must red a
-      test asserting `distinct_hazards` stays above one, and the new rule must not pass by reading
-      a field the belief producer also writes -- trace the FIELD, since a cross-layer import is not
-      automatically a tautology. The ledger already reports `belief_provenance.grades_atom_estimator:
-      true` and `ep1_chain.reached_through_the_door: true`, so the wiring half is done and this is
-      genuinely the last owed piece.
+      The live `/capabilities/` comparison must state, in its RENDERED text, that it compares two
+      internal policies in a market that could not react to either. The evidence is settled — C2 is
+      confirmed in full with citations in
+      `WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28.md` — so do no
+      further investigation, just write the sentence. Carry the finding's refinement rather than
+      overstating it: the company's own pricing DOES reach the churn decision through the
+      per-customer differential; what does not exist is anything that REACTS. And B10's defence leg
+      landed today, so the honest sentence is that the world could not react WHEN THIS WAS MEASURED
+      and a rival that defends now exists but is not in this comparison — do not write a flat "there
+      is no competitor" that the tree contradicts. Use the page's own established
+      `"moneyness trigger absent -- known"` voice, beside the headline and not in a footnote. Keep
+      the PROVISIONAL label and the error bar. R11 governs done: fetch the live page and quote the
+      rendered sentence, not the JSON and not the commit.
     why: >-
-      This is the company half of the thesis -- whether the supplier's per-customer lifetime-value
-      belief is worth anything -- and `tools/couple_clv.py` is the only instrument that grades it.
-      It is also the only level move currently available on evidence, at `level_current: 2` against
-      a filed intent of 3, with the map entry stating in terms that EP1 has not been graded once.
-      It is last because the three above are live published defects or a decision that unblocks
-      every future reading, and because this one has proven it can wait; it is still named because
-      dropping it would make five stretches of naming it worth nothing. Finished when the ledger
-      row is measured under the new rule and reports more than one distinct hazard, or reports that
-      it does not and why. If the coupled rung is then met, self-certify with
-      `record_level_up_self_certified` and never `--no-verify` a `level_current` change. R12: the
-      gap of 2.529 is a diagnostic. A belief that turns out badly calibrated once it can vary is a
-      finding worth having, not a defect in the fix.
+      This is the closest thing on the board to a claim under the company's name that means more
+      than its evidence carries. A reader today takes "the choosing is worth less than nothing" as a
+      finding about a supplier; it is a finding about two internal policies facing an opponent that
+      could not move, and the director himself named this as the cul-de-sac that invalidates
+      measurements taken before P1. It stayed at level 0 through a stretch in which the machine
+      minted four NEW atoms, which is the priority inversion I most want corrected — four new
+      descriptions of unbuilt things written while a published claim overstated its evidence. It is
+      fourth because the sentence cannot reach the page until item one opens the road, and because a
+      PROVISIONAL caveat is retractable by construction, so sequencing it is mine and not his.
+      Finished when the live page renders the bound on a fetch with the fetched text quoted, and
+      SITE13 moves off 0 with the move recorded in `gate_authorizations.jsonl`.
+  - id: publish-the-household-side-beside-the-company-side
+    what: >-
+      `company/analytics/household_value_share.py` landed this stretch and computes, per
+      customer-year, what a household paid against the published default tariff at its own
+      consumption. It reaches NO published surface: the only consumer in the tree is
+      `tools/run_price_ladder.py:333`, and no `tools/generate_*.py` reads it, so every figure on the
+      live site is still one-sided. Carry it to the reader. Emit the household-side figure into the
+      data behind `/capabilities/` alongside the company-side arms, on its own clock and with its
+      own basis label per R14, and render it BESIDE the company figure rather than on a separate
+      page — the mission's claim is that every decision has two sides, and two sides on two pages is
+      not that claim. Label it PROVISIONAL like its neighbour. Two things to hold: keep
+      `tests/company/test_household_share_is_not_yet_a_target.py` green — this figure is a
+      diagnostic under R12 and publishing it must not turn it into something to steer toward — and
+      state on the page what the household-side number does NOT cover, since money is the only one
+      of the three currencies it reaches, carbon is designed and uninstrumented (E5), and time is
+      absent entirely (C31).
+    why: >-
+      This is the first consequence of the director's own mission sentence and the cheapest one on
+      the board, because the hard half is already built and tested. "Value is created and THEN
+      shared, so every decision has two sides" is a claim the site cannot currently support in
+      either direction: a reader sees only what the company earned. Publishing the household side is
+      also the sharpest available answer to the maximiser problem he named — charging the cap looks
+      like a win on a one-sided page and reads as an obvious transfer the moment both columns are
+      visible, which is a stronger correction than any ceiling repair to the churn model. It is last
+      because the four above are a shut road, a partial-commit hazard, a thesis atom the draw cannot
+      reach, and a live claim that overstates itself, and this one adds a claim rather than fixing a
+      wrong one. Finished when the live `/capabilities/` surface renders both sides of one
+      comparison on a fetch, with the fetched text quoted and the household side's basis and
+      exclusions stated on the page.
 not_now:
   - what: >-
-      S3 -- the weighted trade-off across price, service, product, carbon and reputation that
-      would give per-customer selection something real to select on.
+      Re-raising P9 (book depth, and my predecessor's recommendation of 80 founding accounts) to the
+      director, on the grounds that it is unanswered and is the binding constraint on three separate
+      measurements at once.
     why: >-
-      Rejected a ninth time, and for the second stretch running on power rather than appetite. The
-      measured seed spread on the selection leg is GBP 3,121 about a mean of GBP 166 across 25
-      decisions; S3 would plausibly move selection by a thousand or two, landing inside that band,
-      so we would spend our best remaining world idea to read another unresolvable number. What is
-      new tonight is that the gate has MOVED and I am naming it precisely: it is no longer "once
-      the decision surface is characterised" -- item two characterised it -- it is now item three's
-      determination. If the drawn book should carry a tariff type on fidelity grounds, the surface
-      goes from 25 towards several hundred and the experiment can resolve an effect of the size S3
-      produces, at which point S3 is the obvious next world move and I expect to name it first. If
-      item three rules the other way, S3 is a bad investment for the foreseeable future and that
-      should be said plainly rather than deferred a tenth time.
-      `docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md` holds the design either way.
-  - what: Wiring the value arm to the live renewal desk.
-    why: >-
-      Rejected an eleventh time, and tonight the evidence for the arm is weaker than when I
-      rejected it last. The advantage that survived the clock repair is GBP 4,668.41 rather than
-      GBP 7,366.22, the selection leg on the realised clock is not computable at all yet, and the
-      leg we do have is statistically indistinguishable from zero with 87% of the money sitting on
-      five differentially-churned accounts and six of 25 decisions set by the lawful ceiling.
-      Wiring a live desk to a chooser on that basis would be committing to a mechanism on evidence
-      that does not exist, and would also destroy the baseline that makes any of this readable.
-      `renewal_margin_arm` stays "flat_rules".
+      Deliberately NOT re-raised, and the reasoning belongs on the record because leaving a binding
+      constraint unasked can look like neglect. It went up at 08:21 with full pricing in
+      `SEAT_TO_DIRECTOR_P9_BOOK_DEPTH_PRICED_2026-08-28.md` — four options, a recommendation, and a
+      stated default if nothing comes back. He has had it three hours and has spoken twice since on
+      other subjects. Sending the same ask again is not diligence, it is the interruption failure
+      the charter names: spending his attention on something he already holds. The ask is open, the
+      default is stated, and nothing below it is blocked — item three can run its preregistered
+      comparison on the book we have and REPORT the bound, which is itself the strongest evidence
+      for whichever way he decides. If it is still unanswered at my next orientation I will leave it
+      unanswered again and publish the depth bound as a stated limit on every comparison.
   - what: >-
-      Repairing this seat's steer-effectiveness control, which again reported `drawn: [EP1]` -- the
-      one item that did not land -- while the three kebab-slug items that DID land were invisible
-      to it.
+      C30_advice_reaches_a_household and C31_time_is_the_currency_that_does_not_exist — building the
+      two channels that do not exist and the currency that has never appeared in this project.
     why: >-
-      Seventh consecutive stretch, and my predecessor's commitment that a sixth misreport would
-      take a slot has now been broken twice, by them and by me. I am recording that rather than
-      re-promising. The reason I am still declining is that the signal is degraded rather than
-      false -- it reports `steered: true`, it named an atom, and this stretch its blindness was
-      itself informative, because the gap between "the atom-id item was drawn and did not land"
-      and "the three Lane 0 items landed unseen" is exactly the pattern that made me rewrite EP1
-      as a slug. The finding is filed and drawable
-      (`WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27.md`).
-      It loses to a live arithmetic error on the site, to a published headline with a hole in it,
-      and to the only available level move. It stays a debt this seat owes the director, and the
-      thing it degrades is his view of whether my direction reaches the work, which is why I keep
-      writing it down instead of letting it fade.
+      The director's instruction was explicit and it is the whole reason these are parked:
+      "Modelling, tariffs and advice are the channels. Two of the three don't exist yet. NOTE that
+      rather than fixing it now." The machine did exactly the right thing — minted both with the
+      evidence for their absence recorded (no time-, effort- or hassle-as-value symbol anywhere in
+      `company/`, `simulation/`, `saas/` or `tools/`), left them at `idle`, and moved on. Taking
+      either now would substitute my judgement for his on a sequencing question he has just
+      answered. They are also genuinely downstream: time cannot be SAVED before there is a household
+      model of what things COST in attention, and that model sits behind A47 and PB4. DISCOVER and
+      FRAME on both are drawable now under the epoch-gating rule, and that is the right amount of
+      movement for tonight.
   - what: >-
-      Re-running the A/B across many seeds to try to resolve the selection leg statistically.
+      A48_enterprise_value_is_the_method_not_the_book — building an instrument that measures how
+      reliably the machine finds individual customers it can create value for, and at what cost per
+      customer found.
     why: >-
-      The arithmetic refuses it and it is worth stating once so no future seat reaches for it. At
-      the observed spread it would take on the order of forty full decade runs to resolve an effect
-      the size of the one we are chasing, and every one of those runs would be measuring a
-      25-decision surface that item three may show is 25 only because a field is unset. Changing
-      the experiment is cheaper than repeating it, and repeating it first would spend days to learn
-      that the answer was in the plumbing.
+      The most important unbuilt thing on the map, and it loses on sequence rather than merit. The
+      director's sentence is unambiguous — the enterprise value is the METHOD, the book is only the
+      evidence the method works — and `saas/enterprise_value.py` still carries the superseded
+      definition in its own docstring, reached through `customer_value_view.py` into the live
+      phase-4c run. But the frame landed six hours ago
+      (`docs/design/A48_MEASURING_THE_METHOD_FRAME.md`), the atom is at level 0, and a measure of the
+      method is not a small build: it needs a definition of "found", a cost per customer found, and
+      a way to separate improvement from noise on a book where 85% of the customer-year spend cannot
+      compound. Built against a book that cannot resolve it, it would produce a number nobody could
+      act on — the same trap item three is currently in. It also cannot reach a reader while the
+      publisher is down. The atom is at `build` and, unlike B10, is not excluded from the draw, so
+      early framing is drawable now; I will name it as a candidate for first slot next orientation
+      if the road is open by then.
   - what: >-
-      The concentration in the A/B's bounds -- six of 25 priced decisions set by the lawful price
-      cap, on one billing account carrying 43% of the realised margin movement.
+      Repairing the steer-effectiveness control, which has now put "the previous direction named
+      work and NONE of it was drawn" into this seat's brief for a third consecutive stretch.
     why: >-
-      Already measured and already written into the artefact's `bound_attribution` block, so it is
-      on the record and not lost. It stays downstream of item three: if the decision surface widens
-      on fidelity grounds the concentration dilutes on its own, and if it does not, this becomes a
-      central finding about how little room a domestic supplier has to price per customer under the
-      cap and deserves a slot then. Raising it now would be interpreting a bound on a population we
-      are about to re-derive.
+      Tenth rejection, and for a genuinely new reason: THIS STRETCH THE INSTRUMENT WAS SUBSTANTIALLY
+      RIGHT. Two of four items were untouched, two moved no level, and only one moved at all and
+      only into the index. My two predecessors each opened their orientation by refuting it and both
+      refutations were correct; mine confirms it. That changes the diagnosis from "the control lies"
+      to "the control cannot see Lane 0, so it cannot distinguish a real miss from an invisible hit"
+      — which is what the filed finding
+      (`WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27.md`)
+      already says, and a control that is right by accident is still not evidence. The standing
+      instruction for the ordinary draw is unchanged: REPAIR IT OR DELETE IT. It loses tonight to a
+      shut road, a partial-commit hazard, an unreachable thesis atom, a live overstated claim and an
+      unpublished household side — five things a reader or the thesis is affected by.
   - what: >-
-      The ~46 findings in the staging root and the 122 files parked in `docs/staging/in_progress/`,
-      including the repeating uncommitted-work alarms.
+      Re-measuring the noise floor on the corrected settled-realised clock, so the error bar beside
+      the live headline sits on the same clock as the figure it qualifies.
     why: >-
-      Left queued under SELF_INTERRUPT_DISCIPLINE: 45 LATENT, 2 RECORDED, none BLOCKING. The
-      backlog is dominated by auto-filed notices about docs that mid-work sessions left
-      uncommitted, and this stretch is itself evidence that the durable answer is landing work
-      promptly rather than triaging the alarms -- `simulation/run_phase2b.py` sat modified and
-      uncommitted tonight and is named inside item one as the blocker it actually is, rather than
-      triaged as one of forty-six notices.
+      Owed and still not urgent, and I re-checked rather than inheriting the verdict: the surface
+      discloses its own defect in its own words. `error_bar.clock_caveat` on the live JSON states
+      that the nine passes predate the clock repair, that it is paired with the superseded panel,
+      and that it should be read as seed sensitivity rather than as an error bar on the restated
+      figure. A disclosed limitation is not a false claim, so no reader is misled and no lane needs
+      to stop. Whoever takes it should re-measure and not rescale — the spread-to-point-estimate
+      ratio of 25.2 is a provisioned-clock spread sitting over a realised-clock estimate, so the two
+      are not on the same clock and dividing them means nothing.
 wrong:
   - what: >-
-      The headline this project has read itself by is on a superseded clock and its restatement
-      does not exist. Observed in `docs/observability/value_cycle_ab_s1_three_arm.json`:
-      `level_vs_selection` publishes `selection_gbp` = -174.568 and `level_share_of_advantage` =
-      1.0237 with `basis` reading "settled net margin (R14)", computed from the frozen provisioned
-      scalars; on the realised clock the value arm's advantage is GBP 4,668.41 rather than GBP
-      7,366.22, so the denominator falls and the share cannot survive unchanged. The level arm's
-      realised net is not recoverable from the artefact because `gross_to_net_bridge` walks the
-      control and value arms only. My previous direction guessed this was likeliest to be a
-      legitimate settled-versus-banked pair; it was not -- both figures are settled, and
-      `superseded_by_repair` in the artefact traces the mutation that separates them. The tool is
-      repaired and has not been re-run. Item one is the repair.
-    corrected: false
-  - what: >-
-      A published financial figure on the live site fails its own arithmetic by GBP 39,962.17.
-      `docs/reports/run_output_latest.json` carries `starting_treasury_gbp` 250,000.0 plus
-      `total_net_gbp` 153,244.792035 against `final_treasury_gbp` 363,282.617135, and
-      `site/data/supplier.json:9` renders it. Same shape and same amount as the A/B defect,
-      in a second file. Filed as `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK...`
-      this stretch and uncorrected. Item two is the repair, and the second instance is why the
-      class must be registered rather than the file patched.
-    corrected: false
-  - what: >-
-      EP1 was drawn and not repaired for the fourth consecutive stretch in which it was named.
-      `tools/couple_clv.py:606` still defines `_earliest_belief` and line 714 still calls it; the
-      most recent commit touching that file predates this stretch. The diagnosis has been complete
-      and landed for two days. My own contribution to the error is diagnosable now: I wrote it as
-      a maturity-map atom id four times, which biases a draw, while every kebab-slug item I wrote
-      was handed to a worker as Lane 0 and landed. Item four is rewritten as a slug for that
-      reason.
-    corrected: false
-  - what: >-
-      My previous direction asserted that the decision surface might be "small by construction"
-      and instructed that if so we should say so and stop. It is not small by construction. 1,251
-      terms reach `decide_renewal_rate` and 213 of 222 electricity accounts are refused because
-      `SyntheticCustomer.tariff_type` is never set by `_draw_one`. The instruction was right to
-      demand the funnel and right to forbid relaxing the world to raise n, but the framing put its
-      weight on the wrong branch, and a seat reading it could have concluded the small surface was
-      a finding rather than a defect. `4be65df49` found and published the real cause, and correctly
-      declined to change the world on the spot.
+      The publisher's wedge was misdiagnosed in the last direction and the wrong subject was handed
+      to a worker. It named `background.pull_forward_proposal` as the non-convergent artefact; I ran
+      `--check` and it exits RC=0. The actual stale artefact is
+      `docs/design/BLOCKED_ATOM_VISIBILITY.md`, and its rendered body is a stream of
+      wall-clock-stamped supervisor events, so its freshness check has no reachable PASS branch —
+      R15's fourth shape, already a registered class in this repo, sitting inside the publish gate's
+      blocking set. Four and a half hours of shut road and a marker queue that grew from two to
+      eleven were spent behind a diagnosis that pointed at the wrong file. Corrected in item one
+      with the reproduction commands.
     corrected: true
   - what: >-
-      The two irreconcilable net margins, the uncounted denominator, and the unpublished baseline
-      -- all three named in my previous direction -- were found, diagnosed to the line and repaired
-      this stretch, with controls that fire. `4d935cb39` added a `clock_audit` that refuses an
-      artefact publishing two net margins for one arm without a declared clock on each, R15-proven
-      by four mutations plus a null rung; `4be65df49` added the funnel with sixteen tests and three
-      mutations run and reverted; `30a64e688` put the three arms on a business surface with the
-      PROVISIONAL label and its error bar intact, and published the level arm's absence rather than
-      filling it from the superseded figure. That last choice was the right one and I want it on
-      the record as such: publishing a visible hole beat publishing a number we knew was on the
-      wrong clock.
+      `B10_competitor_switching_response` — the only atom on the board that moves toward the thesis
+      claim — has been structurally EXCLUDED from the BUILD draw by the coupled-triad gate on every
+      tick, for a missing coupled twin registration, and no record noticed. Two consecutive
+      directions described it as in flight and owned by the ordinary draw. It is not; it cannot be
+      drawn at all. I very nearly repeated that error tonight — B10 was in my `not_now` on exactly
+      that reasoning until a test I ran for an unrelated purpose printed the exclusion message.
+      Corrected: B10 now holds a focus slot and the registration fix is the first thing in it.
+    corrected: true
+  - what: >-
+      The publisher has been paused since 07:51:08Z after being named the FIRST item of the last
+      direction and never touched. Confirmed by fetching the live surface, not the file:
+      `verification_state: paused`, `showing_run` git 28eaca4c9 from 07:04:10Z. The unprocessed
+      run-marker queue grew from two to ELEVEN and `episode_failures` from 7 to 13. Nothing false is
+      on the site and the banner works as designed — which is exactly why this is silent and why it
+      ran four and a half hours while the machine wrote three design frames and minted four atoms
+      whose results no reader could see.
+    corrected: false
+  - what: >-
+      The class control for the published-arithmetic defect is in no commit for a THIRD stretch and
+      has gone from a debt to a hazard. `git diff --cached --stat` shows nine files and 739
+      insertions staged, including `simulation/settlement_clocks.py` and its
+      `tools/run_annual_report.py:69` and `simulation/run_phase4c_on_phase2b.py:95` importers. HEAD
+      is consistent today; the index is not. A pathspec commit of the consumer without the supplier
+      lands an ImportError in the annual report for every clone, on a tree three writers share.
+    corrected: false
+  - what: >-
+      The live `/capabilities/` baseline comparison — the artefact the director called the close of
+      Epoch 1 — still publishes without the bound C2 puts on it, for a second stretch after being
+      named, and SITE13 is still at level 0. During the same stretch the machine minted A48, C29,
+      C30 and C31. Four new descriptions of unbuilt things were written while a published claim that
+      overstates its own evidence went uncorrected. The ordering is the defect, not the minting.
+    corrected: false
+  - what: >-
+      My own instrument is the wrong shape and I own that. The two items in the last direction that
+      were never touched were the two longest — roughly four hundred words each, written as a
+      diagnosis for a reader rather than an instruction a tick can finish. The Lane 0 mechanism
+      hands a focus item to a worker that then does the work and lands it; an item that reads like a
+      report gives that worker no single decision to make. Corrected here: every item is cut to a
+      discriminator and a decision, and I ran the first hour of item one's diagnosis myself so the
+      worker starts from reproduction commands and a named file instead of a hypothesis.
+    corrected: true
+  - what: >-
+      Nothing in this machine checked its own mission page against its own code — the top `wrong` on
+      the last two records, where C1 and C2 were both true for weeks and were found only because the
+      director and the advisor happened to read the page, and where the check was performed by hand
+      each orientation, which under MAKE_IT_STICK meant it would evaporate. Now mechanised:
+      `A45_the_canon_is_a_standing_subject` moved 0→2 in commit 01ac4b751,
+      `tools/canon_drift_check.py` binds nine claims in `docs/design/canon_claims.yaml` to code
+      predicates, it runs from `background/daily_self_note.py` every morning, and it is R15-proven
+      both ways in `tests/tools/test_canon_drift_check.py` — a channel that disappears reports
+      over-claim, and a claim the code still supports does not.
     corrected: true
 for_the_director: []
