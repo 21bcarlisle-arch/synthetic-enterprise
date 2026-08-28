@@ -11,10 +11,9 @@ from unittest.mock import patch
 
 import pytest
 
-from company.analytics.counterfactual_retention import (
-    RESI_OFFER_COST_GBP, IC_OFFER_COST_GBP, _RETENTION_EFFECTIVENESS,
-)
+from company.analytics.counterfactual_retention import _RETENTION_EFFECTIVENESS
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
+from company.policy.decision_policy import CURRENT_POLICY
 
 PROJECT = Path(__file__).resolve().parents[2]
 
@@ -96,12 +95,29 @@ class TestTwoClockDecoupling:
 # Retention EV field -- epistemic care
 # ---------------------------------------------------------------------------
 
+def _reconstruct_offer_cost(flag, churn, eac):
+    """The R3 offer cost, rebuilt from the flag: discount x term revenue, weighted by the
+    probability the term happens at all. Deliberately re-derived here rather than imported,
+    so a change to the producer's arithmetic has to be re-justified against this statement
+    of what the cost IS.
+    """
+    term_revenue = flag["proposed_rate_gbp_per_mwh"] * eac / 1000.0
+    discount_pct = CURRENT_POLICY.retention_discount_for_risk(churn)
+    p_retain_with_offer = 1.0 - churn * (1.0 - _RETENTION_EFFECTIVENESS)
+    return discount_pct, p_retain_with_offer * discount_pct * term_revenue
+
+
 class TestRetentionEV:
     def test_retention_ev_matches_manual_computation_resi(self, tmp_path):
         from tools.run_live_decisions import run_decisions
         clock = dt.datetime(2025, 6, 20, tzinfo=dt.timezone.utc)
+        # current_rate 80.0, not 200.0: at 200 the proposed rate is a large DECREASE, churn
+        # lands at 0.05, and 0.05 sits below every tier in CURRENT_POLICY, so the discount --
+        # and therefore the whole cost term this test exists to check -- is structurally 0.0.
+        # A fixture parked on the no-offer branch cannot see a mispricing. The discount
+        # assertion below is what stops it drifting back there.
         customers = [{"cid": "TCV1", "commodity": "electricity", "segment": "resi",
-                      "current_rate_gbp_per_mwh": 200.0, "hedge_fraction": 0.3,
+                      "current_rate_gbp_per_mwh": 80.0, "hedge_fraction": 0.3,
                       "next_renewal_estimate": "2025-07-01", "eac_kwh_per_year": 12000.0,
                       "last_renewal_date": "2024-06-20", "net_gbp_2025": 100.0}]
         pf = _write_portfolio(tmp_path, customers)
@@ -112,23 +128,35 @@ class TestRetentionEV:
 
         tenure_years = (dt.date(2025, 6, 20) - dt.date(2024, 6, 20)).days / 365.25
         expected_churn = enriched_churn_estimate(
-            200.0, flag["proposed_rate_gbp_per_mwh"], tenure_years, 12000.0,
+            80.0, flag["proposed_rate_gbp_per_mwh"], tenure_years, 12000.0,
             fuel="electricity", hedge_fraction=0.3, segment="resi",
         )
         assert flag["company_churn_estimate"] == round(expected_churn, 4)
 
+        discount_pct, offer_cost = _reconstruct_offer_cost(flag, expected_churn, 12000.0)
+        assert discount_pct > 0.0, "fixture fell back to the no-offer branch; the cost term is dead"
         expected_ev = round(
             expected_churn * _RETENTION_EFFECTIVENESS * flag["expected_gross_margin_gbp_pa"]
-            - RESI_OFFER_COST_GBP, 2,
+            - offer_cost, 2,
         )
         assert flag["retention_ev_gbp"] == expected_ev
         assert flag["retention_ev_note"] is None
 
-    def test_retention_ev_uses_ic_offer_cost_for_ic_segment(self, tmp_path):
+    def test_offer_cost_scales_with_the_customers_own_revenue_not_a_flat_segment_sum(
+            self, tmp_path):
+        """DEFECT: pricing an I&C retention offer at a flat per-segment cash sum.
+
+        Until R3 (2026-08-28) this test asserted the EV used IC_OFFER_COST_GBP = 200.0 rather
+        than RESI_OFFER_COST_GBP = 50.0 -- two invented constants, and the whole of the
+        segment's influence on the price. A retention offer is a discount on the customer's
+        next term, so its cost is a share of THAT customer's revenue. On this fixture the
+        4 GWh customer's offer costs about GBP 9.9k, not GBP 200: the segment does not price
+        the offer, the customer's own consumption and rate do.
+        """
         from tools.run_live_decisions import run_decisions
         clock = dt.datetime(2025, 6, 20, tzinfo=dt.timezone.utc)
         customers = [{"cid": "TIC1", "commodity": "electricity", "segment": "I&C",
-                      "current_rate_gbp_per_mwh": 150.0, "hedge_fraction": 0.0,
+                      "current_rate_gbp_per_mwh": 80.0, "hedge_fraction": 0.0,
                       "next_renewal_estimate": "2025-07-01", "eac_kwh_per_year": 4_000_000.0,
                       "last_renewal_date": "2020-06-20", "net_gbp_2025": 5000.0}]
         pf = _write_portfolio(tmp_path, customers)
@@ -136,22 +164,23 @@ class TestRetentionEV:
              patch("tools.run_live_decisions._utc_now", return_value=clock):
             d = run_decisions(str(pf), out_dir=str(tmp_path))
         flag = d["renewal_flags"][0]
-        # Reconstruct with IC_OFFER_COST_GBP and confirm the EV used the I&C cost, not resi's.
         tenure_years = (dt.date(2025, 6, 20) - dt.date(2020, 6, 20)).days / 365.25
         expected_churn = enriched_churn_estimate(
-            150.0, flag["proposed_rate_gbp_per_mwh"], tenure_years, 4_000_000.0,
+            80.0, flag["proposed_rate_gbp_per_mwh"], tenure_years, 4_000_000.0,
             fuel="electricity", hedge_fraction=0.0, segment="I&C",
         )
-        expected_ev_ic_cost = round(
+        discount_pct, offer_cost = _reconstruct_offer_cost(flag, expected_churn, 4_000_000.0)
+        assert discount_pct > 0.0, "fixture fell back to the no-offer branch; the cost term is dead"
+        expected_ev = round(
             expected_churn * _RETENTION_EFFECTIVENESS * flag["expected_gross_margin_gbp_pa"]
-            - IC_OFFER_COST_GBP, 2,
+            - offer_cost, 2,
         )
-        expected_ev_resi_cost = round(
-            expected_churn * _RETENTION_EFFECTIVENESS * flag["expected_gross_margin_gbp_pa"]
-            - RESI_OFFER_COST_GBP, 2,
+        assert flag["retention_ev_gbp"] == expected_ev
+        # The two deleted flat constants, restated as the numbers this must NOT be. Both are
+        # orders of magnitude below the real cost, so either would flatter the offer wildly.
+        assert offer_cost > 40 * 200.0, (
+            f"offer cost {offer_cost:,.2f} is within reach of the deleted flat I&C sum"
         )
-        assert flag["retention_ev_gbp"] == expected_ev_ic_cost
-        assert flag["retention_ev_gbp"] != expected_ev_resi_cost
 
     def test_retention_ev_none_when_current_rate_missing(self, tmp_path):
         from tools.run_live_decisions import run_decisions
@@ -190,11 +219,37 @@ class TestRetentionEV:
         assert _tenure_years(None, "2025-06-20") == 0.0
         assert _tenure_years("not-a-date", "2025-06-20") == 0.0
 
-    def test_offer_cost_gbp_reuses_counterfactual_retention_constants(self):
+    def test_offer_cost_is_a_discount_weighted_by_the_chance_the_term_happens(self):
+        """DEFECT: charging the offer's full face value regardless of whether it works.
+
+        Three properties, each with its own way of failing (R3, 2026-08-28):
+
+        1. No revenue on record means the offer cannot be PRICED -- `None`, not 0.0. A free
+           offer is the most attractive thing on the page, so a fail-open zero here would
+           make every unpriceable customer look worth offering to.
+        2. Below every tier the discount is 0.0 and so is the cost, because no offer was made.
+        3. Above a tier the cost is `p_retain x discount x revenue`. Dropping the probability
+           weight -- the shape the flat GBP 50 had -- overstates the cost by 1/p_retain, and
+           that is what the strict inequality below catches.
+        """
         from tools.run_live_decisions import _offer_cost_gbp
-        assert _offer_cost_gbp("I&C") == IC_OFFER_COST_GBP
-        assert _offer_cost_gbp("resi") == RESI_OFFER_COST_GBP
-        assert _offer_cost_gbp("unknown") == RESI_OFFER_COST_GBP
+
+        assert _offer_cost_gbp(None, 0.60, 0.88) is None
+
+        assert _offer_cost_gbp(2400.0, 0.10, 0.98) == 0.0
+
+        churn, revenue = 0.80, 2400.0
+        p_retain = 1.0 - churn * (1.0 - _RETENTION_EFFECTIVENESS)
+        discount = CURRENT_POLICY.retention_discount_for_risk(churn)
+        assert discount > 0.0
+        cost = _offer_cost_gbp(revenue, churn, p_retain)
+        assert cost == pytest.approx(p_retain * discount * revenue)
+        # An offer that fails costs nothing, so the cost is strictly below the face value of
+        # the discount. p_retain here is 0.36, so the gap is a factor of ~2.8, not a rounding.
+        assert cost < 0.5 * discount * revenue
+
+        # Cost tracks the customer's own revenue, linearly, at a fixed risk.
+        assert _offer_cost_gbp(2 * revenue, churn, p_retain) == pytest.approx(2 * cost)
 
 
 class TestEpistemicWallDiscipline:
