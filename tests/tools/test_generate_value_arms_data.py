@@ -51,6 +51,25 @@ NOISE_FLOOR = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floo
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
 
+
+@pytest.fixture
+def dashboard_agreeing_with(monkeypatch, tmp_path):
+    """Point the generator's dashboard at a figure of the test's choosing.
+
+    WHY THIS EXISTS. `_is_the_published_supplier` now REFUSES when the run artefact it reads is not
+    the figure the site publishes -- added 2026-08-28 after the check was shown to compare an A/B
+    pass against its own output. Every test below that drives the match/divergence branches has to
+    say which figure the site publishes, or it is exercising the refusal instead of the branch it
+    names.
+    """
+    def _set(net):
+        path = tmp_path / "dashboard.json"
+        path.write_text(json.dumps({"portfolio": {"net_margin_gbp": net}}), encoding="utf-8")
+        monkeypatch.setattr(gva, "DASHBOARD_PATH", path)
+        return path
+    return _set
+
+
 def _load(path: Path) -> dict:
     if not path.is_file():
         pytest.fail("{} is missing -- this control's subject is UNAVAILABLE, and an unavailable "
@@ -218,20 +237,31 @@ def test_a_one_seed_noise_floor_is_not_a_spread():
 
 # ── THE CLAIM THAT COULD ROT: is the published supplier the baseline arm? ────────────────────
 
-def test_the_published_supplier_claim_is_true_today_and_checked(real):
+def test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in(real):
+    """The claim is checked and states what it can support — never an unstated pass.
+
+    THIS USED TO PIN `same_supplier is True` as LIVE STATE, and that is the shape the day's other
+    controls kept being caught by: it passes on whatever the working tree happens to hold and goes
+    red when the tree becomes MORE honest. On 2026-08-28 the check gained a refusal for the case
+    where the run artefact is not the figure the site publishes, and this test reddened on it.
+    What it checks now is that the feed says the matching thing in each of the three cases.
+    """
     pub = real["realised"]["is_the_published_supplier"]
-    assert pub["checked"] is True
-    assert pub["same_supplier"] is True, (
-        "the published run and the A/B's control arm have diverged -- which is a real finding, "
-        "not a test to relax: the surface's claim that they are the same supplier must be "
-        "re-read before this assertion is changed")
-    assert "IS the baseline" in pub["statement"]
+    if pub["checked"] and pub["same_supplier"]:
+        assert "IS the baseline" in pub["statement"]
+    elif pub["checked"]:
+        assert "is NOT the baseline arm's" in pub["statement"]
+    else:
+        assert "IS the baseline" not in pub["statement"], (
+            "an unverifiable relationship was rendered as agreement -- fail-open on the check")
+        assert pub["statement"].strip(), "the check withheld the claim and said nothing about why"
 
 
-def test_a_divergent_published_run_is_reported_as_a_divergence(real):
+def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_agreeing_with):
     """THE LOAD-BEARING NULL. The day the site publishes a different run, the claim must invert
     itself and name both figures -- not quietly go on asserting an identity that has lapsed."""
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    dashboard_agreeing_with(control + 40_000.0)
     out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
                     {"total_net_gbp": control + 40_000.0})
     pub = out["realised"]["is_the_published_supplier"]
@@ -242,7 +272,9 @@ def test_a_divergent_published_run_is_reported_as_a_divergence(real):
     assert "IS the baseline" not in pub["statement"]
     assert not out["headline"].startswith("The comparison below is against"), (
         "the headline went on claiming the published supplier is the baseline after they diverged")
-    assert gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))["headline"].startswith(
+    dashboard_agreeing_with(control)
+    assert gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                     {"total_net_gbp": control})["headline"].startswith(
         "The comparison below is against"), (
         "the null rung: while the two DO match, the headline must make the claim -- otherwise the "
         "assertion above passes on a headline that never carries it")
@@ -256,11 +288,46 @@ def test_an_unreadable_published_run_claims_nothing_either_way(real):
         "an unread run was treated as agreement -- fail-open on the check itself")
 
 
-def test_a_penny_of_divergence_is_still_the_same_supplier(real):
+def test_a_penny_of_divergence_is_still_the_same_supplier(real, dashboard_agreeing_with):
     """The null on the OTHER side: both figures are pounds summed from settlement records, so
     sub-penny float noise must not be reported as two different suppliers."""
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    dashboard_agreeing_with(control + 0.004)
     out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control + 0.004})
+    assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
+
+
+def test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim(
+        real, dashboard_agreeing_with):
+    """THE INDEPENDENCE REPAIR (2026-08-28). `run_output_latest.json` is written by the same entry
+    point the A/B calls once per arm, so an A/B pass can make this check compare its own output
+    against itself. And on that day the figure the SITE published was 153,244.79 while the run
+    artefact read 159,423.50 -- different runs, so the check's subject was not the published
+    figure at all.
+
+    Fires on: answering the claim from whichever file is nearer, in either direction.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    dashboard_agreeing_with(control - 6_178.71)      # what the site publishes
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
+    pub = out["realised"]["is_the_published_supplier"]
+    assert pub["checked"] is False and pub["same_supplier"] is None
+    assert "cannot say whether the baseline arm is the supplier the site publishes" in pub["statement"]
+    assert "6,178.71" in pub["statement"], "the mismatch is reported without its size"
+    assert "IS the baseline" not in pub["statement"]
+    assert not out["headline"].startswith("The comparison below is against"), (
+        "the headline claims the published supplier is the baseline while the check withheld it")
+
+
+def test_an_unreadable_dashboard_leaves_the_original_comparison_alone(
+        real, monkeypatch, tmp_path):
+    """The refusal must only fire on a mismatch it can PROVE. A missing dashboard is not evidence
+    of one, and inventing a mismatch from an unreadable file would be the opposite failure —
+    withholding a true claim.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    monkeypatch.setattr(gva, "DASHBOARD_PATH", tmp_path / "nope.json")
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
     assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
 
 
@@ -341,3 +408,111 @@ def test_a_run_with_no_funnel_gets_no_coverage_clause_rather_than_a_guessed_one(
     out = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
     assert "renewals the world offered" not in out["headline"]
     assert "Read all of it against its size" not in out["headline"]
+
+
+# ── the household side: the other column of the same comparison ──────────────────────────────
+#
+# THE DEFECT THESE SERVE. `company/analytics/household_value_share.py` computed what a household
+# kept from the day it landed and reached NO published surface: the only consumer in the tree was
+# `tools/run_price_ladder.py`, so every figure a reader met was one-sided. The mission's own
+# sentence -- value is created and THEN shared, so every decision has two sides -- is a claim the
+# site could not support in either direction while only our column existed. Charging a household
+# the cap looks like a win on a one-sided page and reads as an obvious transfer the moment both
+# columns are visible.
+
+def _with_household(**per_arm) -> dict:
+    """A three-arm artefact carrying exactly the household blocks named."""
+    art = _load(THREE_ARM)
+    art["household_side"] = dict(per_arm)
+    return gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+
+def _side(saving=1234.5, **over):
+    block = {"available": True, "basis": "settled clock; counterfactual = the published cap",
+             "household_saving_gbp": saving,
+             "household_saving_pct_of_counterfactual": 3.5,
+             "paid_gbp": 40000.0, "counterfactual_gbp": 41234.5,
+             "household_share_of_the_split_pct": 40.0, "coverage_pct": 88.0,
+             "customer_years": 210}
+    block.update(over)
+    return block
+
+
+def test_the_household_side_is_published_beside_the_arms_it_belongs_to():
+    """Both sides of one comparison, keyed so they can only land on the SAME row.
+
+    Fires on: dropping the block, or keying it in a way the surface cannot join to the arms.
+    """
+    out = _with_household(control_arm=_side(1000.0), value_arm=_side(500.0),
+                          level_arm=_side(250.0))
+    hh = out["household"]
+    assert hh["available"], hh.get("reason")
+    assert [a["key"] for a in hh["arms"]] == [a["key"] for a in out["realised"]["arms"]], (
+        "the household arms are not keyed like the company arms, so no surface can put the two "
+        "sides of one arm on one row -- which is the entire claim being made")
+    assert [a["household_saving_gbp"] for a in hh["arms"]] == [1000.0, 500.0, 250.0]
+    assert hh["clock"] and hh["basis"], "a published financial figure with no clock or basis (R14)"
+
+
+def test_a_run_without_a_household_side_publishes_an_absence_and_never_a_zero():
+    """FAIL-OPEN killer, and the direction matters more than usual here.
+
+    A household saving of £0 is EXACTLY what "we charged them the default tariff and shared
+    nothing" produces -- the worst answer this figure can return. A generator that filled a
+    missing block with zero would publish that answer as though it had been measured. The absence
+    must be an absence, and it must name the run that fixes it.
+    """
+    art = _load(THREE_ARM)
+    art.pop("household_side", None)
+    out = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    hh = out["household"]
+    assert hh["available"] is False
+    assert "run_value_cycle_ab" in hh["reason"], (
+        "the absence does not name the run that would fill it, so it reads as a permanent gap")
+    # `isinstance(False, int)` is True in Python and `available: False` is the very flag that
+    # says the figure is absent -- so bools are excluded here, or this assertion fires on its own
+    # subject working correctly.
+    numbers = [v for v in hh.values()
+               if isinstance(v, (int, float)) and not isinstance(v, bool)]
+    assert not any(v == 0 for v in numbers), "an unmeasured household side published a zero"
+    assert "arms" not in hh, (
+        "an absent household side published an arm list, which a surface would render as a "
+        "column of blanks rather than as the absence it is")
+
+
+def test_an_arm_the_run_did_not_score_is_absent_rather_than_borrowed_from_another():
+    """No arm may be filled from another arm's figure. Fires on: falling back to the portfolio,
+    to the control, or to the first available block."""
+    out = _with_household(control_arm=_side(1000.0), value_arm=_side(500.0),
+                          level_arm={"available": False, "reason": "this arm did not run"})
+    arms = {a["key"]: a for a in out["household"]["arms"]}
+    assert arms["level"]["household_saving_gbp"] is None
+    assert arms["level"]["absent_reason"] == "this arm did not run"
+    assert arms["control"]["household_saving_gbp"] == 1000.0
+
+
+def test_a_household_side_present_but_empty_is_withheld_rather_than_part_published():
+    out = _with_household(control_arm={"available": False, "reason": "no records"},
+                          value_arm={"available": False, "reason": "no records"})
+    assert out["household"]["available"] is False
+    assert "partial column" in out["household"]["reason"]
+
+
+def test_the_household_figure_states_the_two_currencies_it_does_not_reach():
+    """The mission names three currencies and this figure reaches one. Carbon is designed and
+    never instrumented; time does not exist anywhere in the project. A number published without
+    that is a number a reader will take for the whole of "value shared".
+
+    Asserted on the ABSENT branch too: the exclusions are true whether or not the run scored.
+    """
+    for out in (_with_household(control_arm=_side()), gva.build(
+            {k: v for k, v in _load(THREE_ARM).items() if k != "household_side"},
+            _load(NOISE_FLOOR), _load(RUN_OUTPUT))):
+        states = {e["currency"]: e["state"] for e in out["household"]["excludes"]}
+        assert states["money"] == "measured"
+        assert states["carbon"] == "designed, never measured"
+        assert states["time"] == "absent"
+        assert "not value CREATED" in out["household"]["what_this_is_not"]
+        assert "not a target" in out["household"]["not_a_target"].lower(), (
+            "the household figure is published with no R12 statement on the surface that "
+            "publishes it -- which is where it becomes temptingly steerable")

@@ -179,6 +179,30 @@ def _arm(key: str, net_gbp, advantage_gbp=None, absent_reason: str | None = None
 SAME_SUPPLIER_TOLERANCE_GBP = 0.01
 
 
+#: The figure the SITE publishes for the company. Not `run_output_latest.json` -- that is a run
+#: artefact any pass can overwrite, including an A/B arm. This is the file the dashboard renders
+#: from, so it is what a reader actually meets.
+DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
+
+
+def _published_dashboard_net():
+    """`portfolio.net_margin_gbp` from the site's own dashboard feed, or None if unreadable.
+
+    None is not a pass: the caller only uses this to REFUSE, so an unreadable dashboard leaves the
+    original comparison in place rather than silently clearing it. That is deliberate -- this
+    check's job is to catch a subject mismatch it can PROVE, and inventing one from a missing file
+    would be the opposite failure.
+    """
+    try:
+        loaded = json.loads(DASHBOARD_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(loaded, dict):
+        return None
+    return _f(((loaded.get("portfolio") or {}) if isinstance(loaded.get("portfolio"), dict)
+               else {}).get("net_margin_gbp"))
+
+
 def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
     """Is the A/B's flat-rules control arm the same supplier the rest of this site publishes?
 
@@ -196,6 +220,36 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
         return {"checked": False, "same_supplier": None, "published_run_net_gbp": published,
                 "statement": ("The published run's own net margin could not be read, so this feed "
                               "does not claim any relationship between it and the baseline arm.")}
+
+    # IS THE SUBJECT EVEN THE FIGURE THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
+    # raised the independence failure and the evidence corrected its premise. Two facts, both
+    # verified: `run_output_latest.json` is written by `simulation.run_phase4c_on_phase2b`, which is
+    # the same entry point the A/B calls once per arm -- so an A/B pass can make this check compare
+    # its own output against itself. And the figure the SITE actually publishes for the company is
+    # `site/data/dashboard.json`'s `portfolio.net_margin_gbp`, fetched live at 153,244.79 while
+    # `run_output_latest.json` at HEAD read 1,529,288.58.
+    #
+    # So when the two disagree, the file this check reads is NOT the figure the site publishes, and
+    # the sentence below cannot be made either way. It is WITHHELD with both numbers rather than
+    # answered from the wrong one -- which is the fail-closed form of "I do not know which run is
+    # published". Deciding which one SHOULD be published is the publish lane's, not this
+    # generator's, and this refusal does not decide it.
+    dashboard_net = _published_dashboard_net()
+    if dashboard_net is not None and abs(dashboard_net - published) > SAME_SUPPLIER_TOLERANCE_GBP:
+        return {
+            "checked": False,
+            "same_supplier": None,
+            "published_run_net_gbp": published,
+            "dashboard_net_gbp": dashboard_net,
+            "statement": (
+                "This feed cannot say whether the baseline arm is the supplier the site publishes. "
+                "The run artefact it reads reports £{p:,.2f} and the figure the site actually "
+                "publishes for the company reports £{d:,.2f} -- a gap of £{g:,.2f} -- so the two "
+                "are not the same run and the claim is withheld rather than answered from "
+                "whichever one is nearer."
+            ).format(p=published, d=dashboard_net, g=abs(dashboard_net - published)),
+        }
+
     gap = published - control_net
     same = abs(gap) <= SAME_SUPPLIER_TOLERANCE_GBP
     return {
@@ -618,6 +672,138 @@ def _method_skill(three_arm: dict) -> dict:
     }
 
 
+#: WHAT THE HOUSEHOLD-SIDE FIGURE DOES NOT COVER, stated on the page beside the number rather
+#: than owed to a design document. The mission names three currencies -- money, time and carbon --
+#: and this figure reaches exactly one of them. Written out per currency because "money only" is
+#: the kind of caveat a reader skims; "carbon is designed and never measured, time does not exist
+#: anywhere in this project" is not.
+HOUSEHOLD_EXCLUSIONS = [
+    {"currency": "money", "state": "measured",
+     "what": "What each household paid us over the settled periods that had a published default "
+             "tariff to compare against, at its own metered volumes."},
+    {"currency": "carbon", "state": "designed, never measured",
+     "what": "A three-ledger carbon design exists (customer, portfolio, grid) and nothing "
+             "instruments what a household's carbon actually did. No tonne below is counted "
+             "because none is computed."},
+    {"currency": "time", "state": "absent",
+     "what": "No measure of a household's time, effort or hassle exists anywhere in this "
+             "project -- not thinly built, absent. It is on the record as the one thing the "
+             "mission asks for that has never been started."},
+]
+
+#: The one thing this figure is most likely to be read as, and is not. Same sentence the module
+#: that computes it leads with, kept in the reader's words here.
+HOUSEHOLD_IS_NOT = (
+    "This is not value CREATED. Creation is a comparison of COSTS -- a supplier whose costs match "
+    "the incumbent's and prices below it has moved margin to the household rather than made "
+    "anything -- and a rival's costs are not observable to us. What is measured is how a surplus "
+    "was SPLIT; the size of that surplus is not measured at all."
+)
+
+#: R12 again, on the household leg specifically. Publishing a figure is the moment it becomes
+#: temptingly steerable, so the guard is named on the surface that publishes it.
+HOUSEHOLD_NOT_A_TARGET = (
+    "A diagnostic, not a target. Nothing in the company reads this figure and no decision is "
+    "steered by it: a test bars every company organ, world module and pricing draw from importing "
+    "it, and names what would release that -- a director decision on the two-sided objective."
+)
+
+#: Artefact arm key -> the key the arms panels already use. The two panels above key their arms
+#: `control`/`value`/`level`; the run artefact keys them `*_arm`. Mapped in one place so the
+#: renderer can put a household figure on the SAME ROW as the net margin it belongs beside, which
+#: is the whole point of publishing it here rather than on a page of its own.
+_HOUSEHOLD_ARM_KEYS = {"control_arm": "control", "value_arm": "value", "level_arm": "level"}
+
+
+def _household(three_arm: dict) -> dict:
+    """The household's side of each arm, in pounds -- the other column of the same comparison.
+
+    WHY IT IS HERE AND NOT ON A PAGE OF ITS OWN. The mission's claim is that value is created and
+    THEN shared, so every decision has two sides. Two sides on two pages is not that claim: a
+    reader who meets our net margin on one surface and a household saving on another cannot tell
+    whether an arm earned more BY creating more or BY keeping more of the same surplus. Same row,
+    or the claim is not made.
+
+    FAIL-CLOSED, and the absence names the run that fixes it (R15). A run whose artefact predates
+    `household_side` reports the absence rather than a zero. That direction matters: a household
+    saving of GBP 0 is the exact reading "we charged them the default tariff and shared nothing"
+    produces, so a fail-open zero here would publish the worst possible answer as though it had
+    been measured. `available: false` with a reason cannot be mistaken for it.
+
+    NO ARM IS FILLED FROM ANOTHER. Each arm reads its own block; an arm the run did not execute is
+    absent on this side too, exactly as it is on the company side.
+    """
+    blocks = (three_arm or {}).get("household_side")
+    if not isinstance(blocks, dict) or not blocks:
+        return {
+            "available": False,
+            "reason": (
+                "the run that produced this artefact predates the household side, so no figure "
+                "for what customers kept exists for these arms. It is published as soon as a run "
+                "carries `household_side`: re-run `python3 -m tools.run_value_cycle_ab "
+                "--level-arm`."),
+            "excludes": HOUSEHOLD_EXCLUSIONS,
+            "what_this_is_not": HOUSEHOLD_IS_NOT,
+            "not_a_target": HOUSEHOLD_NOT_A_TARGET,
+        }
+    arms, basis = [], None
+    for artefact_key, arm_key in _HOUSEHOLD_ARM_KEYS.items():
+        side = blocks.get(artefact_key)
+        if not isinstance(side, dict):
+            continue
+        meaning = ARM_MEANING[arm_key]
+        if not side.get("available"):
+            arms.append({"key": arm_key, "name": meaning["name"], "role": meaning["role"],
+                         "household_saving_gbp": None,
+                         "absent_reason": side.get("reason") or "this arm reported no household "
+                                                                "side and gave no reason"})
+            continue
+        basis = basis or side.get("basis")
+        arms.append({
+            "key": arm_key,
+            "name": meaning["name"],
+            "role": meaning["role"],
+            "household_saving_gbp": _f(side.get("household_saving_gbp")),
+            "household_saving_pct_of_counterfactual": _f(
+                side.get("household_saving_pct_of_counterfactual")),
+            "paid_gbp": _f(side.get("paid_gbp")),
+            "counterfactual_gbp": _f(side.get("counterfactual_gbp")),
+            "household_share_of_the_split_pct": _f(
+                side.get("household_share_of_the_split_pct")),
+            # HOW MUCH OF THE BOOK THE COMPARISON REACHES. Gas before 2019 has no published
+            # default tariff, so the early years are partly uncovered and the pounds above are
+            # over the covered part only. Published rather than divided out.
+            "coverage_pct": _f(side.get("coverage_pct")),
+            "customer_years": side.get("customer_years"),
+            "absent_reason": None,
+        })
+    if not any(a["household_saving_gbp"] is not None for a in arms):
+        return {
+            "available": False,
+            "reason": ("the run carries a household side but no arm produced a figure, so nothing "
+                       "is shown rather than a partial column"),
+            "arms": arms,
+            "excludes": HOUSEHOLD_EXCLUSIONS,
+            "what_this_is_not": HOUSEHOLD_IS_NOT,
+            "not_a_target": HOUSEHOLD_NOT_A_TARGET,
+        }
+    return {
+        "available": True,
+        "clock": "settled-realised",
+        "basis": basis,
+        "arms": arms,
+        "what_it_is": (
+            "What the households on each arm's book kept: what they would have paid on the "
+            "published default tariff at their own metered volumes, less what they actually paid "
+            "us. Charging a household the default tariff shows exactly nothing kept -- not a "
+            "small number, zero -- which is what makes this column able to say that a price rise "
+            "moved value rather than made it."),
+        "excludes": HOUSEHOLD_EXCLUSIONS,
+        "what_this_is_not": HOUSEHOLD_IS_NOT,
+        "not_a_target": HOUSEHOLD_NOT_A_TARGET,
+    }
+
+
 def _decisions(three_arm: dict) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
@@ -723,6 +909,10 @@ def build(three_arm: dict | None, floor: dict | None,
         provisioned=provisioned,
         error_bar=_error_bar(floor, point, three_arm),
         method_skill=_method_skill(three_arm),
+        # THE OTHER SIDE OF THE ARMS ABOVE. Published in the same payload as the net margins,
+        # keyed by the same arm keys, so the surface can render one row per arm with both
+        # columns on it -- see `_household`.
+        household=_household(three_arm),
         decisions=_decisions(three_arm),
         headline=(
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check

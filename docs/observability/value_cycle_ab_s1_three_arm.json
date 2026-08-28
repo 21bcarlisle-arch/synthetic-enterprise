@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T12:37:02Z",
+  "generated_at": "2026-08-28T14:08:48Z",
   "report_end": null,
   "clock_definitions": {
     "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
@@ -569,9 +569,9 @@
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 1,
       "net_delta_gbp_on_those_accounts": 5211.274370999999,
-      "net_delta_gbp_elsewhere": -9935.283091000008,
+      "net_delta_gbp_elsewhere": -9935.283091000007,
       "absolute_movement_gbp_on_those_accounts": 5211.274370999999,
-      "absolute_movement_gbp_elsewhere": 15118.499963000013,
+      "absolute_movement_gbp_elsewhere": 15118.499963000007,
       "share_of_absolute_movement_on_those_accounts": 0.2563
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
@@ -726,6 +726,22 @@
     "reason": null,
     "concordance": 0.6136363636363636,
     "null_constant_signal_concordance": 0.5,
+    "null_spread": {
+      "available": true,
+      "null_mean": 0.5003537878787879,
+      "null_sd": 0.10985261724463313,
+      "null_95_interval": [
+        0.2803030303030303,
+        0.7196969696969697
+      ],
+      "p_two_sided": 0.3412,
+      "observed_inside_the_null_interval": true,
+      "draws": 20000,
+      "seed": 20260828,
+      "signal_ties_in_the_observed_data": 1,
+      "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+      "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+    },
     "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
     "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
     "basis": "settled clock both sides; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, falling back to the pre-2019 SVT series for electricity, at this account's own metered volumes (R14)",
@@ -799,6 +815,53 @@
     ],
     "bound": "READ THIS BEFORE THE NUMBER. A rank statistic over this few decisions, clustered on this few accounts, has a wide confidence interval and every account is potentially influential. This is the same resolution wall that made the 2026-08-28 chase-on/chase-off comparison unreadable, arriving on a different question. Two things make it less bad here: the outcome is continuous, so pounds have no 1/17 quantum and a small effect is small rather than invisible; and every priced decision with settled pounds behind it contributes, not only the ones the world rolled an event for. It is still a handful of accounts, and `A46` (book depth) is upstream of this being worth much -- which remains the director's decision.",
     "reading": "0.5 means the arm's own price carries NO information about whether value was jointly created -- the method has no skill, whatever the book did. Above 0.5 means the decisions it priced highest are the ones where household and company came out ahead together. BELOW 0.5 is the director's own case and the one worth being able to see: the arm ranks confidently and uses the ranking to EXTRACT, so its most expensive decisions destroy the relationship. Read it beside `belief_vs_outcome.discrimination_auc` -- a high churn AUC with a flat curve here is a maximiser working correctly on a one-sided objective. R12: a DIAGNOSTIC, never a target; nothing optimises this figure."
+  },
+  "household_side": {
+    "control_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1359,
+      "customer_years_without_any_counterfactual": 33,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 94.90596053062983,
+      "paid_gbp": 1049544.062009909,
+      "counterfactual_gbp": 995784.2373444432,
+      "household_saving_gbp": -53759.82466546575,
+      "household_saving_pct_of_counterfactual": -5.39874228264874,
+      "our_gross_margin_gbp": 545794.3152565076,
+      "household_share_of_the_split_pct": -10.926027685760067,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    },
+    "value_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1275,
+      "customer_years_without_any_counterfactual": 32,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 94.68653282332492,
+      "paid_gbp": 934275.9709855682,
+      "counterfactual_gbp": 876836.8525545816,
+      "household_saving_gbp": -57439.11843098665,
+      "household_saving_pct_of_counterfactual": -6.55071901501895,
+      "our_gross_margin_gbp": 493789.97433189413,
+      "household_share_of_the_split_pct": -13.16351684755964,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    },
+    "level_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1340,
+      "customer_years_without_any_counterfactual": 33,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 94.74324158744909,
+      "paid_gbp": 1007271.0119905164,
+      "counterfactual_gbp": 942698.6233315711,
+      "household_saving_gbp": -64572.3886589453,
+      "household_saving_pct_of_counterfactual": -6.849738300321411,
+      "our_gross_margin_gbp": 525898.0543014728,
+      "household_share_of_the_split_pct": -13.997137698595164,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    }
   },
   "churn_roster_diff": {
     "available": true,

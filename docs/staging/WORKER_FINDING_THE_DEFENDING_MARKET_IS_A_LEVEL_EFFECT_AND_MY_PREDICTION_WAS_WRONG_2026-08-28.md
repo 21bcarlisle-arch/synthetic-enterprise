@@ -169,4 +169,23 @@ The `assert` is the point: a comparison whose only differing parameter silently 
 would report the chase as costing nothing, which is the fail-silent shape that would have made this
 whole run a confident null.
 
+## CORRECTION 2026-08-28 — "the baseline arm now reproduces the published run" was circular
+
+This document and the seat note say the 10:47 re-run resolved a divergence because its control arm
+reproduced the published run to 6.75×10⁻⁹. **A concurrent lane showed the check is not independent,
+and they are right: `docs/reports/run_output_latest.json` is written by
+`simulation.run_phase4c_on_phase2b`, the same entry point the A/B calls once per arm.** The file my
+run "reproduced" is the file my run had just written. I withdraw the inference; it appears here, in
+a commit message and in two NTFY messages, and this is the correction of record.
+
+**Their premise needed correcting in turn, and it changes the picture.** They report £1,529,289 as
+"the figure the front door carries". Fetched live: `https://poesys.net/data/dashboard.json` publishes
+**£153,244.79**. So the site never carried £1.53M, and what I called a "divergence resolved" this
+morning was a gap between the A/B artefact and a *third* file that the site does not render.
+
+**What survives untouched:** everything in the chase-on/chase-off comparison above. That comparison
+is internal to two runs on one tree, differing in one declared parameter, and it never appealed to
+the published run at all. The −£3.0k per arm, the 6–7 accounts, and the £3-out-of-£9,627 selection
+move stand exactly as measured.
+
 ## Still live

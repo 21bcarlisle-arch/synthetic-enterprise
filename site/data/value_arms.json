@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T12:58:09.110965Z",
+  "generated_at": "2026-08-28T14:14:05.044975Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -9,7 +9,7 @@
     "docs/observability/value_cycle_ab_s1_noise_floor.json"
   ],
   "available": true,
-  "run_generated_at": "2026-08-28T12:37:02Z",
+  "run_generated_at": "2026-08-28T14:08:48Z",
   "book": {
     "served_segments": [
       "resi",
@@ -69,11 +69,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": true,
+      "checked": false,
+      "same_supplier": null,
       "published_run_net_gbp": 159423.497394,
-      "gap_gbp": 6.752088665962219e-09,
-      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
+      "dashboard_net_gbp": 153244.79,
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3159,423.50 and the figure the site actually publishes for the company reports \u00a3153,244.79 -- a gap of \u00a36,178.71 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
     }
   },
   "provisioned": {
@@ -130,16 +130,90 @@
     "spread_to_point_estimate_ratio": 0.8426700963415223,
     "clock": null,
     "clock_caveat": "This noise floor carries no clock label of its own, so it is paired with the panel it was measured beside rather than with the restated figure.",
-    "staleness_caveat": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-08-27T23:32:17Z and the point estimate on the run of 2026-08-28T12:37:02Z. Anything that changed the world between those two runs is inside the point estimate and outside the spread -- and something did, on 2026-08-28: the market gained the ability to DEFEND against a company that undercuts it. A spread measured where nothing could react is not a confidence interval on a figure measured where it can. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the current world is owed work.",
+    "staleness_caveat": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-08-27T23:32:17Z and the point estimate on the run of 2026-08-28T14:08:48Z. Anything that changed the world between those two runs is inside the point estimate and outside the spread -- and something did, on 2026-08-28: the market gained the ability to DEFEND against a company that undercuts it. A spread measured where nothing could react is not a confidence interval on a figure measured where it can. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the current world is owed work.",
     "elasticity_draws_min": 1409,
     "point_estimate_inside_the_measured_band": false,
     "reading": "The point estimate now sits OUTSIDE the band this spread was measured over, so the spread is not a bound on it and nothing here resolves the selection effect either way. An estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it -- which is the direction the reading would drift if this sentence were fixed rather than derived."
   },
   "method_skill": {
-    "available": false,
-    "withheld": true,
-    "concordance_withheld": 0.6136363636363636,
-    "reason": "the run that produced this artefact predates the null spread, so the figure would go out with a point null of 0.5 and no interval. It is withheld until a run carries `method_skill.null_spread`: the spread is absent"
+    "available": true,
+    "concordance": 0.6136363636363636,
+    "null_point": 0.5,
+    "null_95_low": 0.2803030303030303,
+    "null_95_high": 0.7196969696969697,
+    "p_two_sided": 0.3412,
+    "inside_the_null": true,
+    "decisions_scored": 12,
+    "accounts": 5,
+    "churn_auc_for_contrast": 0.4652777777777778,
+    "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
+    "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+  },
+  "household": {
+    "available": true,
+    "clock": "settled-realised",
+    "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+    "arms": [
+      {
+        "key": "control",
+        "name": "Flat rules",
+        "role": "the baseline",
+        "household_saving_gbp": -53759.82466546575,
+        "household_saving_pct_of_counterfactual": -5.39874228264874,
+        "paid_gbp": 1049544.062009909,
+        "counterfactual_gbp": 995784.2373444432,
+        "household_share_of_the_split_pct": -10.926027685760067,
+        "coverage_pct": 94.90596053062983,
+        "customer_years": 1359,
+        "absent_reason": null
+      },
+      {
+        "key": "value",
+        "name": "Per-customer",
+        "role": "the arm under test",
+        "household_saving_gbp": -57439.11843098665,
+        "household_saving_pct_of_counterfactual": -6.55071901501895,
+        "paid_gbp": 934275.9709855682,
+        "counterfactual_gbp": 876836.8525545816,
+        "household_share_of_the_split_pct": -13.16351684755964,
+        "coverage_pct": 94.68653282332492,
+        "customer_years": 1275,
+        "absent_reason": null
+      },
+      {
+        "key": "level",
+        "name": "Flat at the same level",
+        "role": "the control that splits the answer",
+        "household_saving_gbp": -64572.3886589453,
+        "household_saving_pct_of_counterfactual": -6.849738300321411,
+        "paid_gbp": 1007271.0119905164,
+        "counterfactual_gbp": 942698.6233315711,
+        "household_share_of_the_split_pct": -13.997137698595164,
+        "coverage_pct": 94.74324158744909,
+        "customer_years": 1340,
+        "absent_reason": null
+      }
+    ],
+    "what_it_is": "What the households on each arm's book kept: what they would have paid on the published default tariff at their own metered volumes, less what they actually paid us. Charging a household the default tariff shows exactly nothing kept -- not a small number, zero -- which is what makes this column able to say that a price rise moved value rather than made it.",
+    "excludes": [
+      {
+        "currency": "money",
+        "state": "measured",
+        "what": "What each household paid us over the settled periods that had a published default tariff to compare against, at its own metered volumes."
+      },
+      {
+        "currency": "carbon",
+        "state": "designed, never measured",
+        "what": "A three-ledger carbon design exists (customer, portfolio, grid) and nothing instruments what a household's carbon actually did. No tonne below is counted because none is computed."
+      },
+      {
+        "currency": "time",
+        "state": "absent",
+        "what": "No measure of a household's time, effort or hassle exists anywhere in this project -- not thinly built, absent. It is on the record as the one thing the mission asks for that has never been started."
+      }
+    ],
+    "what_this_is_not": "This is not value CREATED. Creation is a comparison of COSTS -- a supplier whose costs match the incumbent's and prices below it has moved margin to the household rather than made anything -- and a rival's costs are not observable to us. What is measured is how a surplus was SPLIT; the size of that surplus is not measured at all.",
+    "not_a_target": "A diagnostic, not a target. Nothing in the company reads this figure and no decision is steered by it: a test bars every company organ, world module and pricing draw from importing it, and names what would release that -- a director decision on the two-sided objective."
   },
   "decisions": {
     "available": true,
@@ -193,5 +267,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned \u00a34,724 LESS than flat rules. Running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more than the per-customer engine did. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 25 of the 1,209 renewals the world offered, 2.07% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine earned \u00a34,724 LESS than flat rules. Running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more than the per-customer engine did. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 25 of the 1,209 renewals the world offered, 2.07% of them, so every figure here is those decisions and what they cascade into."
 }

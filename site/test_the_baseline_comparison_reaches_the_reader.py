@@ -402,14 +402,31 @@ def test_the_decision_count_and_its_concentration_reach_the_reader(live):
 # ── the claim that could rot ─────────────────────────────────────────────────────────────────
 
 def test_the_published_supplier_claim_reaches_the_reader(live):
+    """WHATEVER the check concluded, the reader is told — and told the matching thing.
+
+    THIS USED TO PIN `same_supplier is True` and call any other state "a real finding, not a test
+    to relax". That was right about the divergence case and wrong as a control: on 2026-08-28 the
+    check gained a third state — WITHHELD, for when the run artefact it reads is not the figure
+    the site publishes — and this test reddened on a feed that had become more honest, not less.
+    A control keyed to one of three answers cannot tell an improvement from a regression.
+
+    What must hold is that the sentence the check produced is the sentence the reader meets.
+    """
     feed = _live_feed()
     pub = feed["realised"]["is_the_published_supplier"]
-    assert pub["same_supplier"] is True, (
-        "the published run and the baseline arm have diverged -- a real finding, not a test to "
-        "relax")
-    assert pub["statement"] in live["arms-published"], (
+    rendered = live["arms-published"]
+    assert pub["statement"].strip(), "the check produced no sentence at all"
+    # The door's `prose()` turns `--` into an em dash on the way to the screen, so the comparison
+    # is on the normalised text. Matching raw would fail on a page that renders correctly.
+    def _dashes(s):
+        return s.replace("--", "\u2014").replace(" \u2014 ", " \u2014 ")
+    assert _dashes(pub["statement"]) in _dashes(rendered), (
         "the sentence that connects this comparison to the figures the rest of the site "
         "publishes never reaches the page")
+    if pub["same_supplier"] is not True:
+        assert "IS the baseline" not in rendered, (
+            "the page still tells the reader the published supplier IS the baseline arm while "
+            "the check says otherwise")
 
 
 def test_a_divergent_published_run_renders_as_a_divergence():

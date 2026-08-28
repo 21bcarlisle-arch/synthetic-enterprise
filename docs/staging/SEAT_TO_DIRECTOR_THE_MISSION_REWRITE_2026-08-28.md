@@ -221,4 +221,21 @@ that could not react, published beside a 2026-08-28 estimate in one that can. Th
 a sentence derived from the two runs' own timestamps rather than written down, so it will keep
 saying it for the next world change too.
 
+## One correction I owe you, on evidence I gave you twice
+
+I told you the re-run "resolved" the divergence because the baseline arm reproduced the published
+run to 6.75×10⁻⁹ of a pound. **It reproduced a file my own run had just written.**
+`run_output_latest.json` is written by the same entry point the A/B calls once per arm, so the
+check compared my run against itself. A concurrent lane found it; I verified it; the inference was
+circular and I withdraw it.
+
+Correcting their premise in turn: they report £1,529,289 as the figure the front door carries. The
+live site publishes **£153,244.79**. So the site never carried £1.53M — and the check has been
+reading a file that is not the published figure at all.
+
+The check now **withholds** the claim when the run artefact disagrees with the figure the site
+publishes, naming both numbers. Which run *should* be published is the publish lane's and is
+untouched. Nothing in the chase-on/chase-off result depends on any of this: that comparison is two
+runs on one tree differing in one declared parameter and never appealed to the published run.
+
 ## Still live
