@@ -50,7 +50,7 @@ rather than merely unreachable.
 
 | | household side (value CREATED) | our side (value SHARED) |
 |---|---|---|
-| **money** | **instrumented 2026-08-28** — `company/analytics/household_value_share.py` computes what a household kept against the published SVT at its own metered volumes, per customer-year; read by the price ladder, read by no decision surface (`A47` at L2) | **EARN** — instrumented; the only leg of the *scored* objective |
+| **money** | **instrumented 2026-08-28** — `company/analytics/household_value_share.py` computes what a household kept against the published SVT at its own metered volumes, per customer-year; read by the price ladder, carried per ARM by the value-cycle A/B, and **published beside the company's own net margin on `/capabilities/` since 2026-08-28** — the first surface on which a reader meets both sides of one decision; read by no decision surface (`A47` at L2) | **EARN** — instrumented; the only leg of the *scored* objective |
 | **time** | **does not exist** | **does not exist** |
 | **carbon** | **ABATE** — designed, not instrumented (`E5`) | £/tCO₂e — designed, downstream of the cell to its left |
 

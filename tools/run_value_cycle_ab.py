@@ -99,7 +99,7 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 # SVT series before it) is argued at length where it is defined; a second copy here would be a
 # second thing to keep in step, and the household leg and the ladder's must be one reference or
 # their figures cannot be read against each other.
-from tools.run_price_ladder import published_default_tariff
+from tools.run_price_ladder import household_side, published_default_tariff
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
@@ -1277,6 +1277,32 @@ def method_skill(value: dict) -> dict:
     }
 
 
+def household_sides(**arms) -> dict:
+    """THE HOUSEHOLD'S SIDE OF EACH ARM (atom `A47`; director, 2026-08-28).
+
+    Every other figure in this artefact is OURS -- what each arm earned, what it churned, what it
+    priced. This is what the households on that arm's book KEPT: what they would have paid on the
+    published default tariff at their own metered volumes, less what they actually paid us. Until
+    it landed here the comparison had one column, and the mission's sentence -- value is created
+    and THEN shared, so every decision has two sides -- could not be checked in either direction.
+
+    IT IS THE LADDER'S FUNCTION, NOT A SECOND ONE. `tools/run_price_ladder.household_side` already
+    computes exactly this from a run result, argues its counterfactual at length and is tested; a
+    second implementation here would be a second thing to keep in step, and the two figures would
+    drift the first time either was touched. Same reason `published_default_tariff` is imported
+    from there rather than restated.
+
+    AN ARM THAT DID NOT RUN IS ABSENT, NEVER A ZERO, and the direction is why this is a function
+    rather than a dict comprehension inline. A household saving of GBP 0 is exactly what "we
+    charged them the default tariff and shared nothing" produces -- the worst answer this figure
+    can return -- so a zero-filled arm would publish that answer as though a pass had measured it.
+    The key is simply absent, and every reader of this artefact has to decide what to say about
+    that rather than being handed a number.
+    """
+    return {name: household_side(result)
+            for name, result in arms.items() if result is not None}
+
+
 def arm_decision_shape(result: dict) -> dict:
     """How the arm's own answers were distributed, and how much of that was the BOUND's.
 
@@ -2208,6 +2234,9 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         if res is not None
     }
 
+    household = household_sides(
+        control_arm=control, value_arm=value, level_arm=level_result)
+
     artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "report_end": report_end,
@@ -2285,6 +2314,12 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # `belief_vs_outcome` because the pair is the reading: a high churn AUC beside a flat
         # curve here is a maximiser working correctly on a one-sided objective.
         "method_skill": method_skill(value),
+        # WHAT THE HOUSEHOLDS ON EACH ARM'S BOOK KEPT, in pounds, against the published default
+        # tariff -- the other side of every net margin above. See `household` where it is built.
+        # It is a DIAGNOSTIC (R12) and nothing in the company reads it: the guard is
+        # `tests/company/test_household_share_is_not_yet_a_target.py`, which names what releases
+        # it (a director decision on the two-sided objective).
+        "household_side": household,
         # Names the accounts behind `realised_delta.churned_accounts`. Published
         # beside the delta, never instead of it -- see `churn_roster_diff`.
         "churn_roster_diff": churn_roster_diff(control, value),

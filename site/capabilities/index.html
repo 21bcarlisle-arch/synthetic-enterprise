@@ -369,6 +369,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <p id="arms-headline" style="margin:0 0 10px;font-weight:600;"></p>
   <p id="arms-published" style="margin:0 0 16px;"></p>
   <div id="arms-realised"></div>
+  <!-- THE HOUSEHOLD'S SIDE OF THE SAME THREE ARMS. The mission says value is created and THEN
+       shared, so every decision has two sides; a page that shows only what the company earned
+       cannot make that claim in either direction. The figure is rendered as a COLUMN of the
+       realised table above rather than as a section of its own, because two sides on two pages
+       is not the claim. This paragraph carries what it does NOT cover -- money only, of three
+       currencies -- since the number is easiest to over-read on the surface that publishes it. -->
+  <div id="arms-household"></div>
   <div id="arms-split"></div>
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
   <div id="arms-decisions"></div>
@@ -413,7 +420,31 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return (v === null || v === undefined || isNaN(v)) ? null : "£" + Number(v).toFixed(2);
   };
 
-  function armRows(arms) {
+  /* THE HOUSEHOLD CELL, and it is a cell rather than a section on purpose. An arm that earned
+     more while its households kept less has moved value rather than made it, and a reader can
+     only see that with both figures on ONE ROW. An arm with no household figure renders the
+     reason it has none -- never a blank, and never a £0, which is the exact reading "we charged
+     them the default tariff and shared nothing" would produce. */
+  function householdCell(row) {
+    if (!row) {
+      return '<td style="text-align:right;white-space:nowrap;color:var(--muted);"'
+        + ' title="this run reported no household side for this arm">&mdash;</td>';
+    }
+    var kept = gbp(row.household_saving_gbp);
+    if (kept === null) {
+      return '<td style="text-align:right;white-space:nowrap;">'
+        + '<span style="color:var(--muted);" title="' + esc(row.absent_reason || "") + '">'
+        + "not measured</span></td>";
+    }
+    var pct = row.household_saving_pct_of_counterfactual;
+    return '<td style="text-align:right;white-space:nowrap;">' + kept
+      + (pct === null || pct === undefined ? ""
+          : '<br><span style="font-size:11.5px;color:var(--muted);">'
+            + Number(pct).toFixed(1) + "% of the default-tariff bill</span>")
+      + "</td>";
+  }
+
+  function armRows(arms, household) {
     return arms.map(function (a) {
       var net = gbp(a.net_gbp);
       var adv = signed(a.advantage_gbp);
@@ -426,19 +457,22 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             : net)
         + "</td>"
         + '<td style="text-align:right;white-space:nowrap;">' + (adv === null ? "&mdash;" : adv) + "</td>"
+        + (household ? householdCell(household[a.key]) : "")
         + "</tr>";
     }).join("");
   }
 
-  function table(block, caption) {
+  function table(block, caption, household) {
     return '<p style="font-size:12px;color:var(--muted);margin:14px 0 6px;"><strong>'
       + esc(caption) + "</strong> &middot; " + esc(block.clock) + " clock &mdash; "
       + prose(block.clock_means) + "</p>"
       + '<div class="table-scroll"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
       + '<thead><tr><th style="text-align:left;">Arm</th>'
-      + '<th style="text-align:right;">Net margin</th>'
-      + '<th style="text-align:right;">vs baseline</th></tr></thead><tbody>'
-      + armRows(block.arms) + "</tbody></table></div>";
+      + '<th style="text-align:right;">What we kept</th>'
+      + '<th style="text-align:right;">vs baseline</th>'
+      + (household ? '<th style="text-align:right;">What households kept</th>' : "")
+      + "</tr></thead><tbody>"
+      + armRows(block.arms, household) + "</tbody></table></div>";
   }
 
   fetch("../data/value_arms.json?t=" + Date.now())
@@ -458,11 +492,44 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       var pub = (d.realised || {}).is_the_published_supplier || {};
       $("arms-published").innerHTML = prose(pub.statement || "");
 
+      /* BOTH SIDES OF ONE COMPARISON, ON ONE ROW. Keyed by arm so a household figure can only
+         ever land beside the net margin from the SAME arm of the SAME run. An unavailable
+         household side leaves the column off entirely rather than rendering an empty one. */
+      var hh = d.household || {};
+      var hhByArm = null;
+      if (hh.available && hh.arms && hh.arms.length) {
+        hhByArm = {};
+        hh.arms.forEach(function (a) { hhByArm[a.key] = a; });
+      }
+
       var html = "";
       if (d.realised && d.realised.available) {
-        html += table(d.realised, "What each arm actually earned");
+        html += table(d.realised, "What each arm actually earned", hhByArm);
       }
       $("arms-realised").innerHTML = html;
+
+      /* WHAT THE HOUSEHOLD COLUMN MEANS, AND THE THREE CURRENCIES IT DOES NOT REACH. Rendered
+         whether or not the figure is available: when it is absent, the reason and the run that
+         would fix it are the thing worth saying, and the exclusions are true either way. */
+      var exRows = (hh.excludes || []).map(function (e) {
+        return "<li><strong>" + esc(e.currency) + "</strong> &mdash; " + esc(e.state) + ". "
+          + prose(e.what) + "</li>";
+      }).join("");
+      $("arms-household").innerHTML =
+        '<p style="margin:10px 0 0;font-size:13px;">'
+        + (hh.available
+            ? "<strong>The household column.</strong> " + prose(hh.what_it_is)
+              + (hh.basis ? ' <span style="color:var(--muted);">Basis: ' + prose(hh.basis)
+                            + "</span>" : "")
+            : "<strong>The household column is not shown.</strong> " + prose(hh.reason || ""))
+        + "</p>"
+        + '<p style="margin:8px 0 0;font-size:12px;color:var(--muted);">'
+        + prose(hh.what_this_is_not || "") + " " + prose(hh.not_a_target || "") + "</p>"
+        + (exRows
+            ? '<p style="margin:8px 0 4px;font-size:12px;"><strong>Three currencies were '
+              + "promised &mdash; money, time and carbon. This figure reaches one:</strong></p>"
+              + '<ul style="margin:0;font-size:12px;color:var(--muted);">' + exRows + "</ul>"
+            : "");
 
       var sp = d.provisioned || {};
       if (sp.available) {

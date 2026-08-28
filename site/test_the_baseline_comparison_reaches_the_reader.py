@@ -49,7 +49,7 @@ CAPS = SITE / "data" / "capabilities_door.json"
 
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
-PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-split",
+PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-note")
 
 
@@ -445,7 +445,8 @@ def test_an_unavailable_feed_renders_an_absence_and_never_a_zero():
 
     note = rendered["arms-note"]
     assert "could not be read" in note, "an unavailable comparison rendered no reason"
-    for panel in ("arms-realised", "arms-split", "arms-decisions", "arms-headline"):
+    for panel in ("arms-realised", "arms-household", "arms-split", "arms-decisions",
+                  "arms-headline"):
         assert not rendered[panel].strip(), (
             "{} rendered content from a feed that carries no comparison".format(panel))
         assert "£0" not in rendered[panel]
@@ -462,3 +463,115 @@ def test_the_reading_is_labelled_provisional_where_a_reader_sees_it(live):
     assert "not a cue to tune" in live["arms-note"], (
         "the page publishes a losing arm without the R12 sentence that says losing is a "
         "permitted answer")
+
+
+# ── both sides of one comparison, on one row ─────────────────────────────────────────────────
+#
+# THE DEFECT THESE SERVE. Until 2026-08-28 every figure on this surface was OURS. The mission's
+# own sentence -- "value is created and THEN shared, so every decision has two sides" -- is a
+# claim the page could not support in either direction, because a reader met only what the
+# company earned. Charging a household the cap looks like a win in a single column and reads as
+# an obvious transfer the moment the second one is beside it. The subject here is the RENDERED
+# DOM for the same reason the rest of this file's is: a household figure sitting in the feed and
+# not on the page proves nothing about what a reader meets.
+
+
+def _feed_with_household(saving=(1000.0, 500.0, 250.0)) -> dict:
+    """The live feed with a household side that scored all three arms."""
+    feed = copy.deepcopy(_live_feed())
+    feed["household"] = {
+        "available": True,
+        "clock": "settled-realised",
+        "basis": "settled clock; counterfactual = the published default tariff",
+        "what_it_is": "What the households on each arm's book kept.",
+        "what_this_is_not": "This is not value CREATED.",
+        "not_a_target": "A diagnostic, not a target.",
+        "excludes": [
+            {"currency": "money", "state": "measured", "what": "What each household paid us."},
+            {"currency": "carbon", "state": "designed, never measured",
+             "what": "Nothing instruments what a household's carbon did."},
+            {"currency": "time", "state": "absent",
+             "what": "No measure of a household's time exists anywhere in this project."},
+        ],
+        "arms": [
+            {"key": key, "name": name, "role": "r", "household_saving_gbp": value,
+             "household_saving_pct_of_counterfactual": 3.5, "coverage_pct": 88.0,
+             "absent_reason": None}
+            for key, name, value in zip(("control", "value", "level"),
+                                        ("Flat rules", "Per-customer", "Flat at the same level"),
+                                        saving)
+        ],
+    }
+    return feed
+
+
+def test_the_household_side_reaches_the_reader_in_the_same_table_as_the_company_side():
+    """ONE ROW, not one page each. Two sides on two surfaces is not the claim being made: a
+    reader who meets our net margin here and a household saving elsewhere cannot tell whether an
+    arm earned more by CREATING more or by keeping more of the same surplus.
+
+    Fires on: dropping the column, or rendering the household figure into its own section.
+    """
+    feed = _feed_with_household()
+    rendered = _render(feed)
+    table = rendered["arms-realised"]
+
+    assert "What households kept" in table, (
+        "the realised table renders no household column, so the page still has one side")
+    for arm, household in zip(feed["realised"]["arms"], feed["household"]["arms"]):
+        assert _gbp(household["household_saving_gbp"]) in table, (
+            "the {} arm's household figure is not in the table a reader reads".format(arm["key"]))
+        if arm["net_gbp"] is not None:
+            assert _gbp(arm["net_gbp"]) in table, (
+                "the {} arm's own net margin left the table when the household column "
+                "arrived".format(arm["key"]))
+
+
+def test_an_unscored_household_side_renders_its_reason_and_never_a_zero():
+    """£0 saved is EXACTLY what "we charged them the default tariff and shared nothing" produces
+    -- the worst answer this figure can return. Rendering an unmeasured side as zero would
+    publish that answer as though it had been measured."""
+    feed = copy.deepcopy(_live_feed())
+    feed["household"] = {
+        "available": False,
+        "reason": "the run that produced this artefact predates the household side",
+        "excludes": _feed_with_household()["household"]["excludes"],
+        "what_this_is_not": "This is not value CREATED.",
+        "not_a_target": "A diagnostic, not a target.",
+    }
+    rendered = _render(feed)
+
+    assert "not shown" in rendered["arms-household"], (
+        "an unmeasured household side rendered no statement that it is unmeasured")
+    assert "predates the household side" in rendered["arms-household"], (
+        "the absence reached the reader without its reason")
+    assert "What households kept" not in rendered["arms-realised"], (
+        "an empty household column was rendered, which reads as a measured blank")
+    assert "£0" not in rendered["arms-household"]
+
+
+def test_the_two_currencies_this_figure_does_not_reach_are_on_the_page():
+    """The mission promises money, TIME and CARBON. This figure reaches one of the three, and a
+    number published without that is a number a reader takes for the whole of "value shared"."""
+    rendered = _render(_feed_with_household())["arms-household"]
+    assert "carbon" in rendered and "designed, never measured" in rendered
+    assert "time" in rendered and "absent" in rendered
+    assert "not value CREATED" in rendered, (
+        "the page publishes a share of a surplus as though it were value created")
+    assert "not a target" in rendered.lower(), (
+        "the household figure reaches the reader with no R12 statement beside it")
+
+
+def test_an_arm_with_no_household_figure_renders_an_absence_beside_its_own_net_margin():
+    """A per-arm absence must not become a blank cell that reads as zero, and must not borrow
+    another arm's figure."""
+    feed = _feed_with_household()
+    feed["household"]["arms"][2] = {
+        "key": "level", "name": "Flat at the same level", "role": "r",
+        "household_saving_gbp": None, "absent_reason": "this arm did not run",
+    }
+    rendered = _render(feed)["arms-realised"]
+    assert "not measured" in rendered, (
+        "an arm the run never scored rendered as a blank rather than as an absence")
+    assert rendered.count(_gbp(1000.0)) == 1, (
+        "an arm with no household figure was filled from another arm's")

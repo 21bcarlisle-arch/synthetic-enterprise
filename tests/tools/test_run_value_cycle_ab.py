@@ -1627,3 +1627,69 @@ def test_the_null_narrows_as_decisions_accumulate():
     """The bound is a statement about sample size, so it must respond to sample size."""
     sds = [concordance_null_spread(n, 0.6, 0, 0)["null_sd"] for n in (12, 40, 200)]
     assert sds[0] > sds[1] > sds[2]
+
+
+# ---------------------------------------------------------------------------
+# household_sides — the other side of every arm above
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT IT SERVES. Every figure this artefact published was OURS. The director's 2026-08-28
+# mission says value is created and THEN shared, so every decision has two sides -- and a run
+# that reports only what the company earned cannot tell an arm that CREATED more from an arm that
+# simply kept more of the same surplus. `company/analytics/household_value_share.py` had computed
+# the household side since the day it landed and reached no artefact and no page.
+
+def _settled(customer_id, dates, kwh=1.0, revenue=100.0, margin=10.0, commodity="electricity"):
+    return [{"customer_id": customer_id, "settlement_date": d, "consumption_kwh": kwh,
+             "revenue_gbp": revenue, "margin_gbp": margin, "net_margin_gbp": margin,
+             "commodity": commodity} for d in dates]
+
+
+def test_every_arm_that_ran_gets_its_own_household_side():
+    rows = _settled("C1", ["2020-01-01", "2020-01-02"])
+    sides = rvca.household_sides(
+        control_arm={"phase2b": {"all_records": rows}},
+        value_arm={"phase2b": {"all_records": rows}},
+        level_arm={"phase2b": {"all_records": rows}})
+
+    assert sorted(sides) == ["control_arm", "level_arm", "value_arm"]
+    for name, side in sides.items():
+        assert side["available"], "{}: {}".format(name, side.get("reason"))
+        assert side["household_saving_gbp"] is not None
+        assert side["basis"], "a household figure published with no basis (R14)"
+
+
+def test_an_arm_that_did_not_run_is_absent_rather_than_a_household_saving_of_zero():
+    """FAIL-OPEN killer, and the flattering direction is the dangerous one here.
+
+    £0 saved is EXACTLY what "we charged them the default tariff and shared nothing" produces --
+    the worst answer this figure can return. An arm zero-filled by a pass that never happened
+    would publish that answer as though it had been measured.
+
+    Fires on: `household_side(result or {})`, or a `.get(name, 0.0)` anywhere downstream.
+    """
+    sides = rvca.household_sides(
+        control_arm={"phase2b": {"all_records": _settled("C1", ["2020-01-01"])}},
+        value_arm={"phase2b": {"all_records": _settled("C1", ["2020-01-01"])}},
+        level_arm=None)
+
+    assert "level_arm" not in sides, "an arm that never ran was given a household figure"
+    assert all(s["household_saving_gbp"] != 0 for s in sides.values()), (
+        "an arm that DID run reported exactly zero saved -- check the counterfactual resolved "
+        "before reading this as a result")
+
+
+def test_an_arm_whose_run_carried_no_records_reports_the_absence_with_its_reason():
+    sides = rvca.household_sides(control_arm={"phase2b": {"all_records": []}})
+    assert sides["control_arm"]["available"] is False
+    assert sides["control_arm"]["reason"], "an absent household side gave no reason"
+
+
+def test_the_household_side_is_wired_into_the_artefact_under_its_own_key():
+    """R11 no-orphan-transition: a figure computed and not published is the state this whole
+    piece of work existed to end. Fires on: dropping the key from the artefact dict."""
+    source = rvca.__file__.replace(".pyc", ".py")
+    with open(source, encoding="utf-8") as handle:
+        text = handle.read()
+    assert '"household_side": household,' in text, (
+        "the household side is computed and never reaches the artefact")
