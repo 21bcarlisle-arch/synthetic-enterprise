@@ -1,48 +1,11 @@
 {
-  "generated_at": "2026-08-27T21:56:34Z",
+  "generated_at": "2026-08-28T05:48:11Z",
   "report_end": null,
-  "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
-  "superseded_by_repair": {
-    "status": "THIS FILE WAS WRITTEN BEFORE THE 2026-08-28 CLOCK REPAIR AND CARRIES THE DEFECT. Nothing below has been recomputed -- the numbers in this file are exactly what the run produced. This block names which clock each of them is on, because two of them were published as if they were on the same one.",
-    "the_defect": "`control_arm.total_net_gbp` = GBP 113,282.62 and `gross_to_net_bridge.control_arm.net_margin_gbp` = GBP 153,244.79 are two net margins for the SAME arm on the SAME run, GBP 39,962.17 apart, and `level_vs_selection.basis` claimed the verdict was read off `net_margin_gbp` from the settled records while it in fact summed the first. The difference equals the bad-debt difference (46,428.5849 provisioned against 6,466.41 realised) to the penny.",
-    "it_was_not_a_settled_versus_banked_pair": "Both figures are SETTLED. `simulation/run_phase2b.py:2499-2503` freezes total_net, total_bad_debt and final_treasury at the end of the settlement loop; `simulation/run_phase4c_on_phase2b.py` then mutates `phase2b.all_records` IN PLACE (`apply_emergent_bad_debt` replaces the flat-rate provision with the arrears model's realised write-offs, `apply_debt_recovery` credits back the DCA proceeds, both carrying the delta through `treasury_cash_balance_gbp`) and nothing refreshes those three scalars. The arm blocks read the frozen scalars; the bridge walks the mutated rows. There is no BANKED clock in this world to appeal to: treasury is a running total of settled net margin, which is why `final_treasury_gbp` here is exactly 250,000 + the frozen net.",
-    "clock_of_each_figure_in_this_file": {
-      "settled-provisioned (flat-rate bad-debt provision, superseded within the run)": [
-        "control_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
-        "value_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
-        "level_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
-        "realised_delta.net_margin_gbp, realised_delta.bad_debt_gbp",
-        "level_vs_selection.* (every net and advantage figure in that block)"
-      ],
-      "settled-realised (arrears model's realised write-offs and recoveries)": [
-        "gross_to_net_bridge.control_arm.* and .value_arm.*",
-        "gross_to_net_bridge.net_delta_contribution_gbp.*"
-      ]
-    },
-    "gross_and_capital_are_unaffected": "The arrears engine touches `bad_debt_gbp`, `net_margin_gbp` and `treasury_cash_balance_gbp` only, so `total_gross_margin_gbp` and `total_capital_cost_gbp` agree between the arm block and the bridge to 1e-9 and are on one clock.",
-    "the_basis_the_arms_are_now_scored_on": "SETTLED-REALISED, for three reasons stated in `tools/run_value_cycle_ab.py::level_vs_selection` and not for its size: the provisioned bad-debt line is a calibrated company assumption and this artefact scores nothing the company believed; the realised sum is the figure `run_output_latest.json` and the site publish; and it is the LESS flattering of the two, which is recorded here rather than quietly banked (R12).",
-    "what_moves_when_the_two_arms_here_are_restated": {
-      "control_arm_net_gbp": {
-        "settled-provisioned": 113282.617135,
-        "settled-realised": 153244.79203499746
-      },
-      "value_arm_net_gbp": {
-        "settled-provisioned": 120648.836081,
-        "settled-realised": 157913.20076099221
-      },
-      "value_advantage_gbp": {
-        "settled-provisioned": 7366.218946,
-        "settled-realised": 4668.4087259947555
-      },
-      "bad_debts_contribution_to_the_value_arms_advantage_gbp": {
-        "settled-provisioned": 2481.39022,
-        "settled-realised": -216.42
-      },
-      "the_sign_question_settled": "The two bases disagree on the SIGN, and the realised one stands: bad debt COSTS the value arm GBP 216.42 of its advantage. The provisioned GBP 2,481.39 'saving' is the flat rate tracking a smaller billed volume, not a single customer paying who otherwise would not have."
-    },
-    "level_vs_selection_cannot_be_restated_from_this_file": "The level arm's realised net cannot be derived here. Its provisioned net (120,823.404062) and provisioned bad debt (44,129.542497) are in this file, but its REALISED bad debt is not -- `gross_to_net_bridge` walks the control and value arms only, so the level arm's mutated rows were never summed and are not recoverable from the artefact. So: whether `selection_gbp` = MINUS GBP 174.57 moved is NOT answered here and must not be inferred. It is answered by re-running the three arms on the repaired code, which now sums every arm from the rows and audits the labels before it publishes. What IS known: the denominator of `level_share_of_advantage` falls from 7,366.22 to 4,668.41, so an unchanged numerator would move the share, and the published 102.4% does not survive the restatement unchanged whatever the level arm's realised net turns out to be.",
-    "the_repair": "`tools/run_value_cycle_ab.py::realised_metrics` now sums net, bad debt and treasury from `all_records` and keeps the frozen scalars as `provisioned_*` under their own declared clock; `clock_definitions` and a per-figure `clocks` map are published; and `clock_audit` refuses an artefact that publishes two net margins for one arm without a declared clock on each, or two figures sharing a clock that disagree. R15-proven by four mutations in `tests/tools/test_run_value_cycle_ab.py`, each of which reds it, plus a null rung showing the repaired artefact passing."
+  "clock_definitions": {
+    "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
+    "settled-provisioned": "SETTLED, on the flat-rate bad-debt PROVISION, and superseded within the same run. `simulation/run_phase2b.py:2499-2503` sums the same rows at the end of the settlement loop, before the arrears engine has touched them, so its `bad_debt_gbp` is still `get_bad_debt_rate()` x billed amount -- a calibrated company assumption, not an outcome. Published here NAMED rather than dropped, because the run's own summary dict still carries these scalars and a reader who meets one elsewhere (e.g. `run_output_latest.json:final_treasury_gbp`) needs to know which figure it is."
   },
+  "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
   "book_identity": {
     "control_arm": {
       "served_segments": [
@@ -79,37 +42,70 @@
     "why_it_matters": "`name` and `renewal_margin_arm` are the only two, and `name` does not reach a decision. Any third field here means the delta below carries an uncontrolled variable, which is the defect WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 recorded on the sibling comparison."
   },
   "control_arm": {
-    "total_net_gbp": 113282.617135,
+    "total_net_gbp": 153244.792035,
     "total_gross_margin_gbp": 526774.9945333437,
     "total_capital_cost_gbp": 9362.673856646477,
-    "total_bad_debt_gbp": 46428.5849,
-    "final_treasury_gbp": 363282.6171350135,
+    "total_bad_debt_gbp": 6466.41,
+    "final_treasury_gbp": 403244.79,
+    "provisioned_net_gbp": 113282.617135,
+    "provisioned_bad_debt_gbp": 46428.5849,
+    "provisioned_final_treasury_gbp": 363282.6171350135,
     "enterprise_value_gbp": 304028.306425202,
     "account_count": 127,
     "churned_accounts": 36,
-    "renewals_priced_by_the_arm": 0
+    "renewals_priced_by_the_arm": 0,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
   },
   "value_arm": {
-    "total_net_gbp": 120648.836081,
+    "total_net_gbp": 157913.200761,
     "total_gross_margin_gbp": 505034.2229825668,
     "total_capital_cost_gbp": 9002.024780165155,
-    "total_bad_debt_gbp": 43947.19468,
-    "final_treasury_gbp": 370648.8360809403,
+    "total_bad_debt_gbp": 6682.83,
+    "final_treasury_gbp": 407913.2,
+    "provisioned_net_gbp": 120648.836081,
+    "provisioned_bad_debt_gbp": 43947.19468,
+    "provisioned_final_treasury_gbp": 370648.8360809403,
     "enterprise_value_gbp": 311055.9501960328,
     "account_count": 125,
     "churned_accounts": 39,
-    "renewals_priced_by_the_arm": 25
+    "renewals_priced_by_the_arm": 25,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
   },
   "level_arm": {
-    "total_net_gbp": 120823.404062,
+    "total_net_gbp": 158484.576559,
     "total_gross_margin_gbp": 507548.94424794737,
     "total_capital_cost_gbp": 9104.120847831127,
-    "total_bad_debt_gbp": 44129.542497,
-    "final_treasury_gbp": 370823.4040619189,
+    "total_bad_debt_gbp": 6468.37,
+    "final_treasury_gbp": 408484.58,
+    "provisioned_net_gbp": 120823.404062,
+    "provisioned_bad_debt_gbp": 44129.542497,
+    "provisioned_final_treasury_gbp": 370823.4040619189,
     "enterprise_value_gbp": 308845.1387228028,
     "account_count": 125,
     "churned_accounts": 38,
-    "renewals_priced_by_the_arm": 34
+    "renewals_priced_by_the_arm": 34,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
   },
   "level_arm_decision_shape": {
     "priced": 34,
@@ -131,28 +127,31 @@
     "available": true,
     "level_gbp_per_mwh": 44.5,
     "level_source": "the value arm's own realised median margin in THIS run (`decision_shape.median_margin_gbp_per_mwh`), not a constant",
-    "control_net_gbp": 113282.617135,
-    "value_arm_net_gbp": 120648.836081,
-    "level_arm_net_gbp": 120823.404062,
-    "value_advantage_gbp": 7366.218946000008,
-    "level_advantage_gbp": 7540.786927000008,
-    "selection_gbp": -174.56798100000015,
-    "level_share_of_advantage": 1.0236984513058485,
+    "control_net_gbp": 153244.792035,
+    "value_arm_net_gbp": 157913.200761,
+    "level_arm_net_gbp": 158484.576559,
+    "value_advantage_gbp": 4668.408725999994,
+    "level_advantage_gbp": 5239.784524000017,
+    "selection_gbp": -571.3757980000228,
+    "level_share_of_advantage": 1.1223919822653556,
     "share_undefined_reason": null,
-    "basis": "settled net margin (R14) -- `net_margin_gbp` from the world's own settled records",
+    "clock": "settled-realised",
+    "basis": "settled net margin (R14) on the SETTLED-REALISED clock -- `net_margin_gbp` summed from the world's own settled records after the arrears engine has replaced the flat-rate provision with realised write-offs and DCA recoveries.",
+    "why_this_clock": "The provisioned clock's bad-debt line is a calibrated company assumption, and this artefact scores nothing the company believed; the realised clock is also the one the site publishes. It is the LESS flattering choice -- the value arm's advantage falls from GBP 7,366.22 to GBP 4,668.41 and bad debt turns from a GBP 2,481.39 saving into a GBP 216.42 cost -- and it is taken for the two reasons above and not for its size (R12).",
     "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
   },
   "realised_delta": {
-    "net_margin_gbp": 7366.218946000008,
+    "net_margin_gbp": 4668.408725999994,
     "enterprise_value_gbp": 7027.643770830822,
     "accounts_at_end": -2,
     "churned_accounts": 3,
     "gross_margin_gbp": -21740.771550776903,
-    "bad_debt_gbp": -2481.390220000001
+    "bad_debt_gbp": 216.42000000000007
   },
   "gross_to_net_bridge": {
     "what_this_is": "The arithmetic between gross and net, per arm, summed from the world's own settled records. Answers `gross fell and net rose` with named lines and figures instead of a candidate list.",
-    "basis": "R14 -- SETTLED. Every figure is summed from phase2b.all_records, the same rows run_phase2b sums for total_gross/total_net. Not billed, not banked.",
+    "clock": "settled-realised",
+    "basis": "R14 -- SETTLED-REALISED. Every figure is summed from phase2b.all_records AS THEY STAND AFTER the arrears engine, which is the same read the arm blocks now use and the same sum the site publishes. Not billed. Not banked -- this world has no banked clock; see `clock_definitions`. Until 2026-08-28 the arm blocks read run_phase2b's frozen pre-arrears scalars instead, so this bridge and the arm block published two different net margins for the same arm, GBP 39,962.17 apart.",
     "line_definitions": {
       "policy_and_levies_gbp": {
         "summed_from": [
@@ -282,6 +281,261 @@
     "extrapolation_bound": 1,
     "clamped_by_the_price_cap": 0
   },
+  "renewal_funnel": {
+    "control_arm": {
+      "available": true,
+      "arm": "control_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 1251,
+      "reached_the_arm_with_an_arm_set": 0,
+      "priced": 0,
+      "declined": 0,
+      "priced_share_of_renewals_offered": 0.0,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 1251,
+          "share_of_renewals_offered": 1.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs are calibrated on the electricity book and the supplier has never fitted them to gas."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {},
+      "accounts_the_arm_priced": [],
+      "accounts_the_world_offered_a_renewal": 210,
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    },
+    "value_arm": {
+      "available": true,
+      "arm": "value_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 1216,
+      "reached_the_arm_with_an_arm_set": 1216,
+      "priced": 25,
+      "declined": 0,
+      "priced_share_of_renewals_offered": 0.0206,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 398,
+          "share_of_renewals_offered": 0.3273,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 364,
+          "share_of_renewals_offered": 0.2993,
+          "means": "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs are calibrated on the electricity book and the supplier has never fitted them to gas."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 429,
+          "share_of_renewals_offered": 0.3528,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 25,
+          "share_of_renewals_offered": 0.0206,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {
+        "None": 429
+      },
+      "accounts_the_arm_priced": [
+        "C1",
+        "C1_2",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9"
+      ],
+      "accounts_the_world_offered_a_renewal": 211,
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    },
+    "level_arm": {
+      "available": true,
+      "arm": "level_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 1233,
+      "reached_the_arm_with_an_arm_set": 1233,
+      "priced": 34,
+      "declined": 0,
+      "priced_share_of_renewals_offered": 0.0276,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 397,
+          "share_of_renewals_offered": 0.322,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 376,
+          "share_of_renewals_offered": 0.3049,
+          "means": "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs are calibrated on the electricity book and the supplier has never fitted them to gas."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 426,
+          "share_of_renewals_offered": 0.3455,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 34,
+          "share_of_renewals_offered": 0.0276,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {
+        "None": 426
+      },
+      "accounts_the_arm_priced": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9"
+      ],
+      "accounts_the_world_offered_a_renewal": 210,
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    }
+  },
+  "decision_population": {
+    "available": true,
+    "per_arm": {
+      "control_arm": {
+        "renewals_the_world_offered": 1251,
+        "priced": 0,
+        "declined": 0,
+        "accounts_priced": 0
+      },
+      "value_arm": {
+        "renewals_the_world_offered": 1216,
+        "priced": 25,
+        "declined": 0,
+        "accounts_priced": 10
+      },
+      "level_arm": {
+        "renewals_the_world_offered": 1233,
+        "priced": 34,
+        "declined": 0,
+        "accounts_priced": 9
+      }
+    },
+    "priced_by_arm": {
+      "control_arm": 0,
+      "value_arm": 25,
+      "level_arm": 34
+    },
+    "largest_denominator_difference": 9,
+    "difference_as_share_of_the_smaller": 0.36,
+    "the_mechanism": "Sequential A/B roster divergence. The arms are identical in eligibility -- `renewal_margin_uplift` passes `flat_at_level` through every guard the value arm passes, so neither arm can see a renewal the other cannot. They differ in WHICH renewals still exist: a different price changes who churns, `run_phase2b` skips every remaining term of a churned billing account before the rate chain is called, and an account that leaves early therefore removes all of its later renewals from that arm's denominator. `churn_roster_diff` names the accounts.",
+    "what_a_reader_must_not_do": "Do not take a per-decision figure from one arm and compare it with a per-decision figure from another: the denominators above are different books, not the same book measured twice. Arm-level totals (net margin, treasury, enterprise value) ARE comparable -- they are sums over the whole run and carry the roster difference inside them, which is the effect being measured.",
+    "why_this_is_not_a_defect": "Equalising the denominators would mean pricing renewals for customers who had already left, which is not a world any supplier operates in. The difference is the measurement, not noise in it. R12: diagnostic, never a target."
+  },
   "bound_attribution": {
     "available": true,
     "headline": "6 of 25 priced renewals (24%) had their margin set by a bound rather than by anything about the customer -- 6 by the lawful price cap and 0 by the frontier of what the churn model has evidence for. Those decisions sit on 1 billing account(s) carrying 43% of the realised margin movement between the arms. On this run the arm's answers were decided by mixed.",
@@ -304,9 +558,9 @@
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 1,
       "net_delta_gbp_on_those_accounts": 5211.274370999999,
-      "net_delta_gbp_elsewhere": -542.8656449999957,
+      "net_delta_gbp_elsewhere": -542.8656449999961,
       "absolute_movement_gbp_on_those_accounts": 5211.274370999999,
-      "absolute_movement_gbp_elsewhere": 6787.77429700003,
+      "absolute_movement_gbp_elsewhere": 6787.774297000033,
       "share_of_absolute_movement_on_those_accounts": 0.4343
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
@@ -638,5 +892,20 @@
     ],
     "what_it_means": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "how_to_read_this": "A positive net-margin delta does NOT establish the thesis on its own. READ `bound_attribution.headline` FIRST -- it says in one sentence whether the customer or a bound chose these prices, and an advantage that came from a bound is no more the company's inference than one that came from access. Then check three things, all carried above: how many of the arm's answers an endpoint or the support bound decided rather than the customer (`decision_shape`), how weak the control is against the regulated allowance (`control_credibility`), and how many renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta from an arm that priced almost nothing says nothing about pricing on value. A NEGATIVE delta is a result and not a defect: the arm maximises the company's own beliefs, so it loses exactly to the degree those beliefs are wrong, and finding that out is what this experiment is for."
+  "how_to_read_this": "A positive net-margin delta does NOT establish the thesis on its own. READ `bound_attribution.headline` FIRST -- it says in one sentence whether the customer or a bound chose these prices, and an advantage that came from a bound is no more the company's inference than one that came from access. Then check three things, all carried above: how many of the arm's answers an endpoint or the support bound decided rather than the customer (`decision_shape`), how weak the control is against the regulated allowance (`control_credibility`), and how many renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta from an arm that priced almost nothing says nothing about pricing on value. `renewal_funnel` says WHY that number is what it is, stage by stage, and `decision_population` says why the arms' denominators differ -- read both before taking any per-decision figure from this file, and never take one from two arms at once. A NEGATIVE delta is a result and not a defect: the arm maximises the company's own beliefs, so it loses exactly to the degree those beliefs are wrong, and finding that out is what this experiment is for.",
+  "clock_audit": {
+    "what_this_refuses": "two net margins published for one arm without a declared clock on each, and two figures sharing a clock that do not agree. See `clock_audit`'s docstring for the defect it was built from.",
+    "figures_checked": 11,
+    "arms_checked": [
+      "control_arm",
+      "level_arm",
+      "value_arm"
+    ],
+    "clocks_in_use": [
+      "settled-provisioned",
+      "settled-realised"
+    ],
+    "passes": true,
+    "failures": []
+  }
 }

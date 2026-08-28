@@ -222,9 +222,19 @@ def realised_metrics(result: dict) -> dict:
         "total_bad_debt_gbp": realised_bad_debt,
         "final_treasury_gbp": realised_treasury,
         # THE SUPERSEDED READ, KEPT AND NAMED rather than dropped. See this function's docstring.
-        "provisioned_net_gbp": figure("total_net"),
-        "provisioned_bad_debt_gbp": figure("total_bad_debt"),
-        "provisioned_final_treasury_gbp": figure("final_treasury"),
+        #
+        # READ FROM THE `provisioned_` NAMES, not from the bare ones (2026-08-28, second pass).
+        # When this block was first written the bare scalars WERE the provisioned reading,
+        # because nothing refreshed them. `simulation/settlement_clocks.refresh_settlement_
+        # scalars` now re-derives the bare names from the mutated rows and preserves the
+        # settlement loop's fold under `provisioned_*`, which is what stops every other consumer
+        # reading a stale figure -- and would have silently turned these three labels into a
+        # NEW instance of the very class they document, publishing realised figures under a
+        # provisioned name. `figure()` still raises on a missing key, so a run that predates the
+        # refresh is refused here rather than mislabelled.
+        "provisioned_net_gbp": figure("provisioned_total_net"),
+        "provisioned_bad_debt_gbp": figure("provisioned_total_bad_debt"),
+        "provisioned_final_treasury_gbp": figure("provisioned_final_treasury"),
         "enterprise_value_gbp": ev["enterprise_value_gbp"],
         "account_count": ev["account_count"],
         "churned_accounts": len(phase2b.get("churned_billing_accounts", [])),
@@ -1013,8 +1023,13 @@ FUNNEL_STAGE_MEANINGS: dict[str, str] = {
     "product_not_upliftable": (
         "the term's `tariff_type` is not one this writer prices "
         "(`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE "
-        "THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a "
-        "term whose product was never labelled, and the two are opposite findings."),
+        "THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because "
+        "the world has no standard-variable product to set it to -- `build_renewal_schedule` "
+        "settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a "
+        "comparison benchmark. It is an honest silence about a product the world lacks, NOT a "
+        "label someone forgot to write, and the repair is an SVT product in the world rather "
+        "than an assignment to this field "
+        "(`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."),
     "no_observed_history": (
         "nothing settled for this account inside the one-year observation window before the "
         "term start, so the arm has no EAC, tenure or current rate to price from."),
@@ -1106,10 +1121,20 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         "reading": (
             "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. "
             "The stages are the arm's OWN eligibility rule, so a large drop is not automatically "
-            "a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is "
-            "`None` IS one, because a `None` product is an unlabelled term rather than a "
-            "customer on a product this arm does not price. R12: diagnostic, never a target, and "
-            "specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+            "a defect. The drop at `product_not_upliftable` on terms whose tariff_type is `None` "
+            "was read as a defect until 2026-08-28 and is NOT one: the field is unset because the "
+            "world has no standard-variable product, and setting it to `fixed` was REFUSED -- it "
+            "would assert a 100%-fixed domestic book against a published share of roughly one "
+            "third, and the only thing it would improve is this experiment's `n` (R13; "
+            "`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`). "
+            "SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING: roughly a third of a "
+            "domestic book is on a fixed deal at any time and only that third has a renewal rate "
+            "that can be moved. Nor is the current count the right one -- when an honest SVT "
+            "product lands, the in-scope surface is on the order of a third of 222 electricity "
+            "renewals, and it gets SMALLER as a share of the book, not bigger. This instrument's "
+            "power ceiling is a fact about how much of a domestic book per-customer pricing can "
+            "legitimately reach. R12: diagnostic, never a target, and specifically NOT a cue to "
+            "relax a guard so the experiment gets a bigger n."
         ),
     }
 

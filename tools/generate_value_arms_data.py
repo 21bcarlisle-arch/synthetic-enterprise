@@ -42,17 +42,34 @@ realised write-offs, which `run_phase4c_on_phase2b` writes back into the rows af
 
   settled-realised     summed from the world's own mutated settlement records. This is the clock
                        `run_output_latest.json` publishes, so the control arm's realised net IS
-                       the headline the rest of the site carries. Only two arms are on it: the
-                       artefact's gross-to-net bridge walks control and value, never the level
-                       arm, so the level arm's realised net is NOT RECOVERABLE from this run and
-                       is published as absent with its reason -- never inferred, never omitted.
+                       the headline the rest of the site carries. ALL THREE arms are on it, and
+                       so is the level-vs-selection split.
 
-  settled-provisioned  the frozen scalars. The level-vs-selection split is computed on these, so
-                       it is published on these, labelled superseded, with the artefact's own
-                       statement that the split does not survive restatement unchanged.
+  settled-provisioned  the frozen pre-arrears scalars, kept per arm as `provisioned_net_gbp`. The
+                       SAME run, read the superseded way, so the difference between the two
+                       panels is the clock and nothing else.
 
 A reader who meets one number without the other cannot tell which supplier the site is
 publishing. Both, or neither.
+
+BOTH PANELS ARE ONE RUN, AND THE ROUTING IS BY DECLARED LABEL (2026-08-28)
+--------------------------------------------------------------------------
+Until the A/B tool was repaired, `level_vs_selection` was computed on the provisioned clock and
+the level arm's realised net could not be recovered at all, so this file published the level arm
+as permanently absent and stamped `settled-provisioned` on the split. The repair moved that block
+to the realised clock WITHOUT changing its key or its shape -- so both of those readings silently
+became wrong, one publishing an absence that was no longer true and one publishing a clock label
+that was no longer true. Neither would have failed; they would just have lied.
+
+So no panel here infers a clock from WHICH block it read. Every clock is taken from the label the
+artefact puts on the figure, and a block whose label is not the one the panel is for is withheld
+with its reason rather than re-stamped. The two arms the split and the bridge share are required
+to agree to the penny before the third is shown, because a disagreement of that kind is a clock
+difference and not a rounding one.
+
+The headline sentence is derived from the restated figures' own SIGNS for the same reason: it was
+a hardcoded claim that the advantage is the level and not the choosing, which would have survived
+any run that said otherwise (R12).
 
 DERIVED, NEVER TYPED (SITE_CONSTITUTION rule 3: the site is a RENDERING, never an author)
 ------------------------------------------------------------------------------------------
@@ -199,12 +216,29 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
 
 
 def _realised(three_arm: dict, published_run: dict | None) -> dict:
-    """The two arms the artefact's gross-to-net bridge actually walked, on the site's own clock.
+    """The three arms on the site's own clock -- the level arm included, when the run supports it.
 
-    The level arm is absent here and that absence is PUBLISHED. `gross_to_net_bridge` sums the
-    control and value arms from the mutated rows and never the level arm, so its realised net
-    cannot be recovered from this file. Deriving it from the frozen scalar would silently mix the
-    two clocks -- the exact defect the artefact was repaired for on 2026-08-28.
+    WHERE THE LEVEL ARM'S REALISED NET COMES FROM, AND WHY NOT THE BRIDGE (2026-08-28).
+    `gross_to_net_bridge` walks the control and value arms only, and that is by design: its job
+    is to decompose ONE contrast into named cost lines. So this used to publish the level arm as
+    permanently absent. That absence was correct against the pre-repair artefact and is now
+    STALE: `run_value_cycle_ab._arm_block` sums `total_net_gbp` from `phase2b.all_records` for
+    EVERY arm, after the arrears engine has mutated them, and `level_vs_selection` carries that
+    sum for all three arms under an explicit `clock` of its own. The level arm's realised net is
+    recoverable; it simply lives in a different block from the one this function first looked in.
+
+    ROUTED BY THE ARTEFACT'S DECLARED CLOCK, NEVER BY POSITION. The same block was on
+    `settled-provisioned` before the repair and is on `settled-realised` after it, with no change
+    of key or shape -- so a generator that assumed a clock by which block it read would publish
+    provisioned figures under a realised heading the day the tool changed. It reads the label.
+
+    WHAT THE CROSS-CHECK PROVES AND WHAT IT DOES NOT. `level_vs_selection` and the bridge reach
+    the two arms they SHARE by different code paths, so requiring them to agree to the penny
+    catches the failure that actually matters here -- one of them being on the other clock, which
+    would show up as the GBP 39,962.17 bad-debt gap, not as a rounding difference. It does not
+    prove either is correct: both sum the same `net_margin_gbp` field, so a defect in that field
+    is invisible to it. Stated rather than implied, because a check that is quoted as more than
+    it is becomes the tautology it was written to avoid (R15).
     """
     bridge = three_arm.get("gross_to_net_bridge") or {}
     control = _f((bridge.get("control_arm") or {}).get("net_margin_gbp"))
@@ -214,6 +248,9 @@ def _realised(three_arm: dict, published_run: dict | None) -> dict:
         return {"available": False,
                 "reason": "the artefact carries no gross-to-net bridge, so no arm can be put on "
                           "the realised clock"}
+
+    level_net, level_adv, level_absent = _level_on_the_realised_clock(
+        three_arm, control, value)
     return {
         "available": True,
         "clock": "settled-realised",
@@ -221,33 +258,120 @@ def _realised(three_arm: dict, published_run: dict | None) -> dict:
         "arms": [
             _arm("control", control),
             _arm("value", value, advantage_gbp=delta),
-            _arm("level", None, absent_reason=(
-                "Not recoverable on this clock. The run's gross-to-net bridge walks the control "
-                "and per-customer arms only, so the level arm's realised bad debt was never "
-                "summed. It is left blank rather than filled from the superseded figure.")),
+            _arm("level", level_net, advantage_gbp=level_adv, absent_reason=level_absent),
         ],
+        "split": _split_on_the_realised_clock(three_arm),
         "is_the_published_supplier": _is_the_published_supplier(control, published_run),
     }
 
 
-def _provisioned(three_arm: dict) -> dict:
-    """The three-arm split, on the clock it was computed on, carrying its own supersession."""
+def _level_on_the_realised_clock(three_arm: dict, bridge_control, bridge_value):
+    """`(net_gbp, advantage_gbp, absent_reason)` for the level arm. Absence always carries why."""
     lvs = three_arm.get("level_vs_selection") or {}
     if not lvs.get("available"):
-        return {"available": False,
-                "reason": "the run did not produce a level-vs-selection split ({})".format(
-                    lvs.get("share_undefined_reason") or "no reason given")}
-    control = _f(lvs.get("control_net_gbp"))
-    value = _f(lvs.get("value_arm_net_gbp"))
+        return None, None, (
+            "This run produced no level-vs-selection split, so there is no third arm to show. "
+            "Re-run the A/B with --level-arm.")
+    clock = lvs.get("clock")
+    if clock != "settled-realised":
+        return None, None, (
+            "Not on this clock. The run's level-vs-selection split declares itself as {!r}, so "
+            "its level-arm figure belongs beside the superseded pair below and is not shown "
+            "here. It is left blank rather than re-labelled.".format(clock or "unlabelled"))
     level = _f(lvs.get("level_arm_net_gbp"))
-    value_adv = _f(lvs.get("value_advantage_gbp"))
-    level_adv = _f(lvs.get("level_advantage_gbp"))
-    selection = _f(lvs.get("selection_gbp"))
-    share = _f(lvs.get("level_share_of_advantage"))
-    if None in (control, value, level, value_adv, level_adv, selection):
+    split_control = _f(lvs.get("control_net_gbp"))
+    split_value = _f(lvs.get("value_arm_net_gbp"))
+    if level is None or split_control is None or split_value is None:
+        return None, None, (
+            "The split declares the realised clock but does not carry all three arms' net "
+            "margins, so the level arm is withheld rather than part-published.")
+    for name, from_split, from_bridge in (("control", split_control, bridge_control),
+                                          ("per-customer", split_value, bridge_value)):
+        if abs(from_split - from_bridge) > SAME_SUPPLIER_TOLERANCE_GBP:
+            return None, None, (
+                "Withheld: the run's two realised reads of the {} arm disagree by £{:,.2f} "
+                "(£{:,.2f} in the level-vs-selection split against £{:,.2f} in the gross-to-net "
+                "bridge). A gap of that size is a clock difference, not rounding, and the level "
+                "arm is not shown while the two arms it is measured against do not "
+                "agree.".format(name, abs(from_split - from_bridge), from_split, from_bridge))
+    return level, _f(lvs.get("level_advantage_gbp")), None
+
+
+def _split_on_the_realised_clock(three_arm: dict) -> dict:
+    """The restated level-vs-selection reading: what the choosing was worth, on the site's clock."""
+    lvs = three_arm.get("level_vs_selection") or {}
+    if not lvs.get("available") or lvs.get("clock") != "settled-realised":
         return {"available": False,
-                "reason": "the level-vs-selection block is incomplete, so the split is withheld "
-                          "rather than part-published"}
+                "reason": "the run's level-vs-selection split is not on the realised clock, so "
+                          "the restated reading is published under the superseded pair instead"}
+    selection = _f(lvs.get("selection_gbp"))
+    if selection is None:
+        return {"available": False,
+                "reason": "the split carries no selection figure"}
+    return {
+        "available": True,
+        "clock": "settled-realised",
+        "selection_gbp": selection,
+        "level_share_of_advantage": _f(lvs.get("level_share_of_advantage")),
+        "share_undefined_reason": lvs.get("share_undefined_reason"),
+        "level_gbp_per_mwh": _f(lvs.get("level_gbp_per_mwh")),
+        "why_this_clock": lvs.get("why_this_clock"),
+        "how_to_read_this": lvs.get("how_to_read_this"),
+    }
+
+
+#: Where each arm's SUPERSEDED net margin lives in the artefact, per arm block. `_arm_block`
+#: keeps the frozen pre-arrears scalar under its own name rather than deleting it, precisely so
+#: this panel can be built from the SAME RUN as the realised one.
+_PROVISIONED_NET_KEY = "provisioned_net_gbp"
+
+
+def _provisioned(three_arm: dict) -> dict:
+    """The same three arms, same run, on the clock the run superseded inside itself.
+
+    WHY THIS IS BUILT FROM THE ARM BLOCKS AND NOT FROM `level_vs_selection` (2026-08-28).
+    It used to read the split and stamp `settled-provisioned` on it. That was true of the
+    pre-repair artefact and became a LIE at the moment the tool was repaired: the split is now
+    computed on the realised clock and carries `clock: settled-realised`, so this panel would
+    have relabelled realised figures as provisioned and published the relabelling on a live page
+    -- the same clock-mixing defect the repair existed to remove, reintroduced one layer further
+    out. Nothing about the block's key or shape changes when its clock does, so position cannot
+    be the routing rule; the declared label is.
+
+    Both panels are therefore the SAME RUN read two ways. That matters more than it looks: it
+    means the difference between them is the CLOCK and nothing else. A reader comparing the
+    restated figure against a number from a previous run would be reading the clock change and
+    run-to-run drift added together, with no way to tell which is which -- and on this
+    instrument the drift is not small next to the effect.
+    """
+    blocks = {key: three_arm.get("{}_arm".format(key)) or {}
+              for key in ("control", "value", "level")}
+    nets = {key: _f(block.get(_PROVISIONED_NET_KEY)) for key, block in blocks.items()}
+    missing = sorted(key for key, net in nets.items() if net is None)
+    if missing:
+        return {"available": False,
+                "reason": ("the run's {} arm block carries no `{}`, so the superseded clock "
+                           "cannot be shown for all three arms and is withheld rather than "
+                           "part-published".format("/".join(missing), _PROVISIONED_NET_KEY))}
+    # The block's own label for the figure being read, checked rather than assumed -- the same
+    # rule this function exists to enforce, applied to itself.
+    mislabelled = sorted(
+        key for key, block in blocks.items()
+        if (block.get("clocks") or {}).get(_PROVISIONED_NET_KEY) not in (None,
+                                                                         "settled-provisioned"))
+    if mislabelled:
+        return {"available": False,
+                "reason": ("the {} arm block labels `{}` with a clock other than "
+                           "settled-provisioned, so this panel would misname it".format(
+                               "/".join(mislabelled), _PROVISIONED_NET_KEY))}
+
+    control, value, level = nets["control"], nets["value"], nets["level"]
+    value_adv = value - control
+    level_adv = level - control
+    selection = value_adv - level_adv
+    # Undefined rather than infinite, on the same rule and threshold `level_vs_selection` uses:
+    # a share of an advantage near zero is a divide by a rounding error dressed as a percentage.
+    share = level_adv / value_adv if abs(value_adv) > 1.0 else None
     shape = three_arm.get("level_arm_decision_shape") or {}
     return {
         "available": True,
@@ -260,15 +384,20 @@ def _provisioned(three_arm: dict) -> dict:
         ],
         "selection_gbp": selection,
         "level_share_of_advantage": share,
-        "level_gbp_per_mwh": _f(lvs.get("level_gbp_per_mwh")),
+        "share_undefined_reason": (
+            None if share is not None else
+            "the per-customer arm's advantage is under £1 on this clock -- a share of it "
+            "would be noise"),
+        "level_gbp_per_mwh": _f((three_arm.get("level_vs_selection") or {}).get(
+            "level_gbp_per_mwh")),
         "control_gbp_per_mwh": _f(shape.get("control_margin_gbp_per_mwh")),
         "superseded_note": (
-            "This split is on the clock the run superseded inside itself. Restating it on the "
-            "realised clock drops the per-customer arm's advantage from £{va:,.0f} to the "
-            "realised figure above, so the level share does not survive the restatement "
-            "unchanged -- and the level arm's realised net is not recoverable from this run, so "
-            "the restated share cannot be computed from it either. It is published as it was "
-            "measured, labelled, rather than quietly re-based.".format(va=value_adv)),
+            "This is the clock the run superseded inside itself: the company's flat-rate "
+            "bad-debt assumption, frozen at the end of the settlement loop, before the arrears "
+            "model wrote back what customers actually failed to pay. It is shown because "
+            "deleting it would leave a reader unable to tell how much of the headline moved "
+            "when the clock was corrected -- and because it is the more flattering of the two, "
+            "which is the reason to publish it beside the other rather than instead of it."),
     }
 
 
@@ -304,6 +433,17 @@ def _error_bar(floor: dict, point_estimate) -> dict:
         "sem_gbp": _f(floor.get("selection_sem_gbp")),
         "distinguishable_from_zero": bool(floor.get("selection_distinguishable_from_zero")),
         "spread_to_point_estimate_ratio": ratio,
+        # WHICH READING THIS BOUNDS. The noise floor is its own set of runs, and if it does not
+        # declare a clock this feed will not choose one for it: it is paired with the panel whose
+        # figure it was computed alongside, and said to be a scale statement about the instrument
+        # rather than a confidence interval on the restated headline.
+        "clock": floor.get("clock"),
+        "clock_caveat": (
+            None if floor.get("clock") else
+            "This noise floor carries no clock label of its own and its runs predate the "
+            "2026-08-28 clock repair, so it is paired with the superseded panel it was measured "
+            "beside. Read it as the size of this instrument's seed sensitivity, not as an error "
+            "bar on the restated figure -- re-running it on the corrected clock is owed work."),
         "elasticity_draws_min": min(draws) if draws and all(
             isinstance(d, int) for d in draws) else None,
         # No range restated here: the surface renders the min and max in its own sentence, and a
@@ -410,11 +550,54 @@ def build(three_arm: dict | None, floor: dict | None,
             # so it may only be made while the published run and the baseline arm are the same run.
             ("The comparison below is against the very supplier this site publishes. " if
              (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
-            + "Running the same book through the per-customer decision engine earned more -- and "
-            "running it through one flat margin at the same LEVEL earned as much or more again, "
-            "so on this evidence the advantage is the price level and not the per-customer "
-            "choosing."),
+            + _headline_reading(realised, provisioned)),
     )
+
+
+def _headline_reading(realised: dict, provisioned: dict) -> str:
+    """The sentence the page leads with, DERIVED from the restated figures' own signs.
+
+    THIS SENTENCE USED TO BE A CONSTANT (2026-08-28). It asserted that the level arm "earned as
+    much or more again, so on this evidence the advantage is the price level and not the
+    per-customer choosing" -- which was the honest reading of the run it was written against, and
+    would have gone on being published word-for-word whatever the next run returned. A conclusion
+    that cannot change when its evidence changes is not a reading of the evidence, and this is
+    the one page on the site whose whole purpose is to be able to return an unflattering answer
+    (R12). So the direction of the claim is now computed, and the losing case has a sentence.
+    """
+    split = (realised.get("split") or {}) if realised.get("available") else {}
+    if not split.get("available"):
+        fallback = provisioned if provisioned.get("available") else {}
+        selection = _f(fallback.get("selection_gbp"))
+        if selection is None:
+            return ("The arms ran, but this run did not produce a level-versus-selection "
+                    "reading, so no claim is made about where any advantage came from.")
+        clock_note = (" This is on the superseded clock -- see the panels below.")
+        return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage"))) + \
+            clock_note
+    return _selection_sentence(split.get("selection_gbp"),
+                               split.get("level_share_of_advantage"))
+
+
+def _selection_sentence(selection, share) -> str:
+    """One sentence for what the per-customer CHOOSING was worth, in the direction it came out."""
+    selection = _f(selection)
+    if selection is None:
+        return ("The arms ran, but the value of the per-customer choosing could not be read, so "
+                "no claim is made about it.")
+    share_clause = ("" if _f(share) is None else
+                    " The price level accounts for {:.0%} of the per-customer arm's "
+                    "advantage.".format(_f(share)))
+    if selection < 0:
+        return ("Running the same book through the per-customer decision engine earned more than "
+                "flat rules -- but running it through ONE flat margin at the same price LEVEL "
+                "earned £{:,.0f} more still. On this evidence the advantage is the price level, "
+                "and the per-customer choosing is worth less than nothing.{}".format(
+                    abs(selection), share_clause))
+    return ("Running the same book through the per-customer decision engine earned more than "
+            "flat rules, and £{:,.0f} of that is left once one flat margin at the same price "
+            "LEVEL is given credit for the rest. On this evidence the choosing itself carried "
+            "part of the advantage.{}".format(selection, share_clause))
 
 
 def _read(path: Path):
