@@ -788,3 +788,73 @@ def test_the_emergency_check_asks_the_RUNGS_OWN_predicates_not_the_message(monke
                       "_operational_red_persistent_draw"):
         assert predicate in source, f"{predicate} is not consulted, so its rung can be diluted"
     assert "startswith" not in source and "in ladder" not in source
+
+
+def test_the_REFUSAL_NAMES_WHICH_of_its_causes_fired(repo):
+    """A refusal reciting all four of its causes names none of them. Two of these mean STOP AND
+    LOOK -- an unreadable commit, an id whose claim was swept out from under a working tick --
+    and one is the ordinary reading after a --release. The caller cannot act on a disjunction,
+    and on the run that motivated this, telling `wire-the-sourced-acquisition-and-retention-costs`
+    apart from a stale-commit refusal took opening the claims store by hand.
+
+    Keyed to the PROPERTY (the causes are mutually distinguishable), not to today's wording, so
+    it stays green when the prose is improved and red when the cases collapse into each other.
+
+    MUTATION (must fire): return one constant string for every cause -- i.e. the shipped
+    disjunction -- and the three reasons stop being distinct.
+    """
+    landed_at = _land(repo, "background/thing.py")
+
+    unclaimed = dl.refusal_reason("never-claimed", path=repo["claims"])
+
+    _claim_and_draw(repo, "f", landed_at + 60)
+    stale = dl.refusal_reason("f", path=repo["claims"])
+    unreadable = dl.refusal_reason("f", commit="nope-not-a-ref", path=repo["claims"])
+
+    assert len({unclaimed, stale, unreadable}) == 3, (
+        f"the refusal cannot separate its causes: {unclaimed!r} / {stale!r} / {unreadable!r} -- "
+        "a caller reading one of these still has to open the store to learn which happened"
+    )
+
+    # Each reason must be ABOUT its own cause, or three distinct strings is just three spellings
+    # of the same non-answer.
+    assert "NOT CLAIMED" in unclaimed
+    assert "OLDER" in stale and "nope-not-a-ref" not in stale
+    assert "UNREADABLE" in unreadable and "nope-not-a-ref" in unreadable
+
+    # And the reason is only ever consulted where the bind genuinely refused.
+    assert dl.record_landing("f", path=repo["claims"]) == []
+
+
+def test_the_reason_NEVER_OUTRANKS_the_refusal_it_explains(repo, monkeypatch):
+    """`record_landing` declines to raise because it is called from a tick that has just
+    committed. A reason that blew up would lose that refusal at exactly the moment the caller
+    needs it, so a store that cannot be read must still yield a string.
+
+    THE FIRST VERSION OF THIS TEST COULD NOT FAIL, and the mutation is what said so. It fed
+    `refusal_reason` a corrupt JSON file and asserted a string came back -- but
+    `seat_work_in_hand._load` already swallows `ValueError` and returns `{}`, so the fixture
+    landed in the NOT-CLAIMED branch and never reached the guard it named. Letting the `except`
+    propagate changed nothing and 37 tests stayed green. A control whose subject is unreachable
+    reports a constant verdict (R15's fourth shape), so the fixture has to MAKE something raise
+    rather than hope the store does.
+
+    MUTATION (must fire): let `refusal_reason` propagate instead of naming the failure.
+    """
+    _land(repo, "background/thing.py")
+    claims_mod.claim("f", "", paths=[], path=repo["claims"], now=0.0)
+
+    def _explode(*a, **kw):
+        raise RuntimeError("git went away mid-refusal")
+
+    monkeypatch.setattr(dl, "_commit_facts", _explode)
+
+    reason = dl.refusal_reason("f", path=repo["claims"])
+
+    assert isinstance(reason, str) and reason, "the refusal lost its explanation"
+    assert "RuntimeError" in reason, (
+        "the reason must NAME what went wrong -- 'could not be derived' with no cause is the "
+        "same non-answer this whole function exists to replace"
+    )
+    # And the thing it explains still refuses rather than raising into the tick.
+    assert dl.record_landing("f", path=repo["claims"]) == []

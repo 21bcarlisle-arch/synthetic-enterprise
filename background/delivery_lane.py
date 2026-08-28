@@ -287,6 +287,44 @@ def _binding_instant(focus_id: str, rec: dict, store: Path) -> float:
     return first if 0.0 < first < claimed_at else claimed_at
 
 
+def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None) -> str:
+    """WHICH of `record_landing`'s four refusals fired. Called only after one did.
+
+    The refusal used to recite all four causes at once, which is the same as naming none: the
+    caller reads "not claimed, or unreadable, or empty, or older than the first draw" and still
+    has to open the store to find out which. Two of those mean STOP AND LOOK (an unreadable
+    commit, an unclaimed id) and one is ordinary (an id already released after finishing). A
+    refusal that cannot separate them cannot be acted on -- and on the run that motivated this,
+    disambiguating `wire-the-sourced-acquisition-and-retention-costs` by hand is what it cost.
+
+    Never raises: it runs on the failure path of something that already declines to raise, and a
+    reason that blew up would lose the refusal it exists to explain.
+    """
+    try:
+        store = path or CLAIMS_FILE
+        rec = claims_mod._load(store).get(focus_id)
+        if not isinstance(rec, dict):
+            return ("it is NOT CLAIMED -- nothing holds a deadline for it, so there is nothing "
+                    "to inform. If you just finished it, this is the expected reading after a "
+                    "--release; if you did not, the claim was swept and you are working "
+                    "unclaimed")
+        when, paths = _commit_facts(commit)
+        if not paths:
+            return f"{commit} is UNREADABLE or touched no files -- there are no paths to bind"
+        since = _binding_instant(focus_id, rec, store)
+        if when <= since:
+            return (f"{commit} is OLDER than this id was FIRST drawn ({when:.0f} <= {since:.0f}) "
+                    f"-- not merely older than the current claim, which a re-draw no longer "
+                    f"puts out of reach. An older commit here is genuinely somebody else's work")
+        return "the claims store refused the write"
+    except Exception as exc:
+        # NAMES the class rather than saying "could not be derived": an unnamed failure here is
+        # the same non-answer this function replaced. Covered -- the control monkeypatches a
+        # raise, because nothing in the read path raises on its own (`_load` swallows corrupt
+        # JSON), and a guard whose subject is unreachable reports a constant verdict.
+        return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
+
+
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    claimed_at: float | None = None) -> list[str]:
     """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
@@ -421,10 +459,8 @@ def main(argv=None) -> int:
         if not scope:
             # Non-zero: the caller believes it landed something and the lane disagrees, which it
             # needs to hear NOW rather than as a false alarm in 100 minutes.
-            print(f"bound NOTHING to {args.landed}: it is not claimed, or {args.commit} is "
-                  f"unreadable, empty, or older than this id was FIRST drawn "
-                  f"(not merely older than the current claim -- a re-draw no longer puts "
-                  f"earlier work out of reach)")
+            print(f"bound NOTHING to {args.landed}: "
+                  f"{refusal_reason(args.landed, commit=args.commit)}")
             return 1
         print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
         return 0
