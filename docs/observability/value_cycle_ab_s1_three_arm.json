@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T05:48:11Z",
+  "generated_at": "2026-08-28T07:36:02Z",
   "report_end": null,
   "clock_definitions": {
     "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
@@ -320,7 +320,7 @@
           "stage": "product_not_upliftable",
           "count": 0,
           "share_of_renewals_offered": 0.0,
-          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
         },
         {
           "stage": "no_observed_history",
@@ -345,7 +345,7 @@
       "accounts_the_arm_priced": [],
       "accounts_the_world_offered_a_renewal": 210,
       "unrecognised_stages": [],
-      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. The drop at `product_not_upliftable` on terms whose tariff_type is `None` was read as a defect until 2026-08-28 and is NOT one: the field is unset because the world has no standard-variable product, and setting it to `fixed` was REFUSED -- it would assert a 100%-fixed domestic book against a published share of roughly one third, and the only thing it would improve is this experiment's `n` (R13; `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`). SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING: roughly a third of a domestic book is on a fixed deal at any time and only that third has a renewal rate that can be moved. Nor is the current count the right one -- when an honest SVT product lands, the in-scope surface is on the order of a third of 222 electricity renewals, and it gets SMALLER as a share of the book, not bigger. This instrument's power ceiling is a fact about how much of a domestic book per-customer pricing can legitimately reach. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
     },
     "value_arm": {
       "available": true,
@@ -385,7 +385,7 @@
           "stage": "product_not_upliftable",
           "count": 429,
           "share_of_renewals_offered": 0.3528,
-          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
         },
         {
           "stage": "no_observed_history",
@@ -423,7 +423,7 @@
       ],
       "accounts_the_world_offered_a_renewal": 211,
       "unrecognised_stages": [],
-      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. The drop at `product_not_upliftable` on terms whose tariff_type is `None` was read as a defect until 2026-08-28 and is NOT one: the field is unset because the world has no standard-variable product, and setting it to `fixed` was REFUSED -- it would assert a 100%-fixed domestic book against a published share of roughly one third, and the only thing it would improve is this experiment's `n` (R13; `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`). SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING: roughly a third of a domestic book is on a fixed deal at any time and only that third has a renewal rate that can be moved. Nor is the current count the right one -- when an honest SVT product lands, the in-scope surface is on the order of a third of 222 electricity renewals, and it gets SMALLER as a share of the book, not bigger. This instrument's power ceiling is a fact about how much of a domestic book per-customer pricing can legitimately reach. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
     },
     "level_arm": {
       "available": true,
@@ -463,7 +463,7 @@
           "stage": "product_not_upliftable",
           "count": 426,
           "share_of_renewals_offered": 0.3455,
-          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a term whose product was never labelled, and the two are opposite findings."
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
         },
         {
           "stage": "no_observed_history",
@@ -500,7 +500,7 @@
       ],
       "accounts_the_world_offered_a_renewal": 210,
       "unrecognised_stages": [],
-      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is `None` IS one, because a `None` product is an unlabelled term rather than a customer on a product this arm does not price. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. The drop at `product_not_upliftable` on terms whose tariff_type is `None` was read as a defect until 2026-08-28 and is NOT one: the field is unset because the world has no standard-variable product, and setting it to `fixed` was REFUSED -- it would assert a 100%-fixed domestic book against a published share of roughly one third, and the only thing it would improve is this experiment's `n` (R13; `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`). SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING: roughly a third of a domestic book is on a fixed deal at any time and only that third has a renewal rate that can be moved. Nor is the current count the right one -- when an honest SVT product lands, the in-scope surface is on the order of a third of 222 electricity renewals, and it gets SMALLER as a share of the book, not bigger. This instrument's power ceiling is a fact about how much of a domestic book per-customer pricing can legitimately reach. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
     }
   },
   "decision_population": {
@@ -560,7 +560,7 @@
       "net_delta_gbp_on_those_accounts": 5211.274370999999,
       "net_delta_gbp_elsewhere": -542.8656449999961,
       "absolute_movement_gbp_on_those_accounts": 5211.274370999999,
-      "absolute_movement_gbp_elsewhere": 6787.774297000033,
+      "absolute_movement_gbp_elsewhere": 6787.77429700003,
       "share_of_absolute_movement_on_those_accounts": 0.4343
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
