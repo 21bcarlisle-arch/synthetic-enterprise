@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T10:54:06.029027Z",
+  "generated_at": "2026-08-28T12:00:43.250865Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -138,6 +138,31 @@
     "value_arm_priced": 25,
     "level_arm_priced": 34,
     "book_accounts_settled": 210,
+    "renewals_the_world_offered": 1209,
+    "priced_share_of_renewals_offered": 0.0207,
+    "why_the_rest_were_not_priced": [
+      {
+        "stage": "product_not_upliftable",
+        "count": 429,
+        "share_of_renewals_offered": 0.3548,
+        "by_design": false,
+        "why": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
+      },
+      {
+        "stage": "acquisition_term",
+        "count": 398,
+        "share_of_renewals_offered": 0.3292,
+        "by_design": true,
+        "why": "term 0 has no prior term to price against"
+      },
+      {
+        "stage": "not_the_arms_commodity",
+        "count": 357,
+        "share_of_renewals_offered": 0.2953,
+        "by_design": true,
+        "why": "the arm is fitted to electricity and has never been fitted to gas"
+      }
+    ],
     "accounts_named_in_the_decision_sample": [
       "C1",
       "C2",
@@ -149,7 +174,7 @@
       "C8",
       "C9"
     ],
-    "concentration_note": "Every account the artefact names among its own scored decisions is one of the nine hand-seeded customers. The drawn population is refused by one eligibility guard: it carries no product label, and the arm correctly declines to re-price a product it cannot name. So the surface is small by PLUMBING, not by design -- and giving the drawn population a product is a change to the baseline world, which R13 says is decided on fidelity evidence and never because it would make this experiment bigger.",
+    "concentration_note": "Every account the artefact names among its own scored decisions is one of the nine hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note used to name ONE eligibility guard -- the drawn population carrying no product label -- and conclude the surface was small by PLUMBING and not by design. The funnel says otherwise. Of the 1,184 renewals the arm did not price, 755 are DELIBERATE SCOPE (64%) -- term 0 has no prior term to price against; the arm is fitted to electricity and has never been fitted to gas -- and 429 (36%) are the product-label gap in the drawn book. So the surface is small by design AND by plumbing, and design is the larger half. Giving the drawn population a product is a change to the baseline world, which R13 says is decided on fidelity evidence and never because it would make this experiment bigger.",
     "discrimination_auc": 0.4652777777777778,
     "auc_reading": "Below 0.50 means the company's own belief about who will leave ranks customers worse than a coin flip. An estimator that cannot rank cannot select profitably, so the selection result and the belief result corroborate each other rather than merely coexisting.",
     "decided_by_a_bound": 6,

@@ -504,8 +504,18 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           '<p style="margin:14px 0 6px;font-size:13px;"><strong>How many decisions this rests on.</strong> '
           + "The per-customer arm priced <strong>" + esc(dec.value_arm_priced)
           + "</strong> renewals and the flat-at-level arm <strong>" + esc(dec.level_arm_priced)
-          + "</strong>, out of a book of " + esc(dec.book_accounts_settled)
-          + " settled accounts. Every account named among the scored decisions is one of "
+          + "</strong>"
+          // THE DENOMINATOR IS RENEWALS, NOT ACCOUNTS. Until 2026-08-28 this read "out of a book
+          // of N settled accounts" -- a renewal numerator over an account denominator, which
+          // makes 2.07% of the renewals the world offered look like ~12% of the book.
+          + (dec.renewals_the_world_offered
+              ? ", out of the <strong>" + esc(dec.renewals_the_world_offered)
+                + "</strong> renewals the world offered &mdash; <strong>"
+                + (dec.priced_share_of_renewals_offered * 100).toFixed(2)
+                + "%</strong> of them. The book is "
+                + esc(dec.book_accounts_settled) + " settled accounts"
+              : ", out of a book of " + esc(dec.book_accounts_settled) + " settled accounts")
+          + ". Every account named among the scored decisions is one of "
           + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(dec.concentration_note) + "</p>"

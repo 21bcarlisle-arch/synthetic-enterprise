@@ -269,6 +269,54 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
         "the page says the error bar is old without naming what changed between the two runs")
 
 
+def test_the_coverage_denominator_is_renewals_and_not_accounts(live):
+    """THE DENOMINATOR IS THE CLAIM. Until 2026-08-28 this panel read "25 renewals ... out of a
+    book of 210 settled accounts" -- a renewal numerator over an account denominator. It reads as
+    roughly a tenth of the book; the arm in fact priced 2.07% of the renewals the world offered.
+    The artefact had carried `renewal_funnel.value_arm.renewals_the_world_offered` all along and
+    nothing read it.
+
+    Fires on: publishing the account count as the coverage denominator again, or dropping the
+    renewal count and the percentage from the rendered sentence.
+    """
+    dec = _live_feed()["decisions"]
+    offered = dec.get("renewals_the_world_offered")
+    assert isinstance(offered, int) and offered > dec["value_arm_priced"], (
+        "the feed carries no renewals-offered denominator, so the coverage claim cannot be made "
+        "honestly: {!r}".format(offered))
+    rendered = live["arms-decisions"]
+    assert str(offered) in rendered, (
+        "the page does not say how many renewals the world offered, so a reader cannot see what "
+        "share of them the arm priced")
+    share = dec["priced_share_of_renewals_offered"]
+    assert "{:.2f}%".format(share * 100) in rendered, (
+        "the coverage percentage does not reach the reader")
+    # Teeth: the account count is still published (concentration is a real and separate fact),
+    # but it must not be the thing the priced count is divided by.
+    assert dec["book_accounts_settled"] != offered
+
+
+def test_the_page_says_the_small_surface_is_design_as_well_as_plumbing(live):
+    """The note used to attribute the whole small surface to ONE eligibility guard and conclude
+    it was "small by PLUMBING, not by design". The funnel says 755 of the 1,184 unpriced renewals
+    are deliberate scope -- term 0 and gas -- and 429 are the product-label gap.
+
+    Fires on: reverting to a single-cause attribution, which understates the arm's designed scope
+    by roughly two to one.
+    """
+    dec = _live_feed()["decisions"]
+    exclusions = dec.get("why_the_rest_were_not_priced") or []
+    assert len(exclusions) >= 3, (
+        "fewer than three exclusion stages reached the feed, so the attribution below is being "
+        "made on a population that has emptied: {}".format(exclusions))
+    assert any(e["by_design"] for e in exclusions) and any(not e["by_design"] for e in exclusions), (
+        "every exclusion is classified the same way -- the split this note exists to state has "
+        "collapsed")
+    rendered = live["arms-decisions"]
+    assert "small by design AND by plumbing" in rendered, (
+        "the page attributes the small decision surface to one cause again")
+
+
 # ── how few decisions it rests on ────────────────────────────────────────────────────────────
 
 def test_the_decision_count_and_its_concentration_reach_the_reader(live):

@@ -510,6 +510,55 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> di
     }
 
 
+
+#: The funnel stages that are DELIBERATE SCOPE rather than a gap in the world. Named here, not
+#: inferred from the stage name, because "is this exclusion by design" is a judgement and a
+#: judgement that lives in a regex drifts silently.
+_SCOPE_BY_DESIGN = {
+    "acquisition_term": "term 0 has no prior term to price against",
+    "not_the_arms_commodity": "the arm is fitted to electricity and has never been fitted to gas",
+}
+
+
+def _exclusions(funnel: dict) -> list[dict]:
+    """Every non-zero funnel stage that is not `priced`, with whether it is scope or a gap."""
+    out = []
+    for stage in (funnel.get("stages") or []):
+        if not isinstance(stage, dict) or stage.get("stage") == "priced":
+            continue
+        count = stage.get("count") or 0
+        if not count:
+            continue
+        out.append({
+            "stage": stage.get("stage"),
+            "count": count,
+            "share_of_renewals_offered": stage.get("share_of_renewals_offered"),
+            "by_design": stage.get("stage") in _SCOPE_BY_DESIGN,
+            "why": _SCOPE_BY_DESIGN.get(stage.get("stage")) or stage.get("means"),
+        })
+    return sorted(out, key=lambda s: -s["count"])
+
+
+def _attribution_sentence(exclusions: list[dict], offered) -> str:
+    """One sentence saying how the unpriced renewals split between scope and gap. Derived."""
+    if not exclusions:
+        return "The funnel reports no exclusions, so nothing can be attributed."
+    design = sum(e["count"] for e in exclusions if e["by_design"])
+    gap = sum(e["count"] for e in exclusions if not e["by_design"])
+    total = design + gap
+    if not total:
+        return "The funnel reports no exclusions, so nothing can be attributed."
+    return (
+        "Of the {total:,} renewals the arm did not price, {design:,} are DELIBERATE SCOPE "
+        "({design_pct:.0f}%) -- {reasons} -- and {gap:,} ({gap_pct:.0f}%) are the product-label "
+        "gap in the drawn book. So the surface is small by design AND by plumbing, and design is "
+        "the larger half."
+    ).format(
+        total=total, design=design, gap=gap,
+        design_pct=100.0 * design / total, gap_pct=100.0 * gap / total,
+        reasons="; ".join(sorted(_SCOPE_BY_DESIGN.values())))
+
+
 def _decisions(three_arm: dict) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
@@ -530,18 +579,35 @@ def _decisions(three_arm: dict) -> dict:
                        if row.get("account")})
 
     priced = shape.get("priced")
+    funnel = ((three_arm.get("renewal_funnel") or {}).get("value_arm") or {})
+    offered = funnel.get("renewals_the_world_offered")
+    exclusions = _exclusions(funnel)
     return {
         "available": isinstance(priced, int),
         "value_arm_priced": priced,
         "level_arm_priced": level_shape.get("priced"),
         "book_accounts_settled": book.get("billing_accounts_settled_in_window"),
+        # THE DENOMINATOR IS RENEWALS, NOT ACCOUNTS, AND THE DIFFERENCE IS SIXFOLD.
+        # This surface published "25 renewals ... out of a book of 210 settled accounts" until
+        # 2026-08-28: a renewal numerator over an account denominator, which reads as ~12% of the
+        # book when the arm in fact priced 2.07% of the renewals the world offered. The artefact
+        # has carried `renewal_funnel.value_arm.renewals_the_world_offered` all along; nothing
+        # read it. The account count stays, because how CONCENTRATED the decisions are is a
+        # separate and also-true fact -- it just is not the coverage.
+        "renewals_the_world_offered": offered,
+        "priced_share_of_renewals_offered": funnel.get("priced_share_of_renewals_offered"),
+        "why_the_rest_were_not_priced": exclusions,
+        # HOW CONCENTRATED, which is a different fact from how much is COVERED and is why both
+        # are published. Dropped by the 2026-08-28 denominator edit and caught by rendering the
+        # panel rather than by reading the diff -- the page said "one of 0 ()".
         "accounts_named_in_the_decision_sample": accounts,
         "concentration_note": (
             "Every account the artefact names among its own scored decisions is one of the nine "
-            "hand-seeded customers. The drawn population is refused by one eligibility guard: it "
-            "carries no product label, and the arm correctly declines to re-price a product it "
-            "cannot name. So the surface is small by PLUMBING, not by design -- and giving the "
-            "drawn population a product is a change to the baseline world, which R13 says is "
+            "hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note "
+            "used to name ONE eligibility guard -- the drawn population carrying no product "
+            "label -- and conclude the surface was small by PLUMBING and not by design. The "
+            "funnel says otherwise. " + _attribution_sentence(exclusions, offered) + " Giving "
+            "the drawn population a product is a change to the baseline world, which R13 says is "
             "decided on fidelity evidence and never because it would make this experiment "
             "bigger."),
         "discrimination_auc": _f(belief.get("discrimination_auc")),
