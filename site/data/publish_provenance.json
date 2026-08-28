@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-28T19:31:06Z",
+    "checked_at": "2026-08-28T20:01:50Z",
     "nonblocking_reds": [
       "ERROR tests/tools/test_phase_rx_track_record.py"
     ],
@@ -13,8 +13,8 @@
     "run_id": "run_output_66e8ad2ed_20260828T193206Z.json",
     "verified_at": "2026-08-28T19:55:01Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=bfce5ff50; blocking tests: FAILED tests/saas/reporting/test_counterfactual_lift_section.py::test_section_includes_lift_by_class_table_when_misses_present",
+  "paused_since": "2026-08-28T20:32:49Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-28T19:55:01Z",
@@ -22,6 +22,6 @@
     "run_id": "run_output_66e8ad2ed_20260828T193206Z.json",
     "verified_at": "2026-08-28T19:55:01Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-28T19:55:01Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-28T22:42:38Z"
 }
