@@ -73,6 +73,7 @@ from tools.run_value_cycle_ab import (
     clock_audit,
     gross_to_net_bridge,
     margin_movers,
+    method_skill,
     realised_metrics,
 )
 
@@ -445,18 +446,32 @@ def test_movers_stays_quiet_when_the_two_arms_produced_the_same_book():
 # ---------------------------------------------------------------------------
 
 def _full_arm(**overrides):
-    """THE ROWS DELIBERATELY DISAGREE WITH THE SUMMARY SCALARS, and that is the whole point.
+    """THREE DISTINCT VALUES PER FIGURE, and that is the whole point.
 
     A fixture whose `all_records` summed to the same `total_net` the run's summary carries could
     not see which of the two `realised_metrics` reports — the balanced-fixture pattern, and the
     exact blindness that let the live artefact publish GBP 113,282.62 and GBP 153,244.79 for one
-    arm for two days. Here the rows say 1,200 / 3.00 / 1,450 and the frozen scalars say
-    1,000 / 10.00 / 1,250, so every assertion below is away from the value both would agree on.
+    arm for two days.
+
+    Since 2026-08-28 there are THREE places a net margin can be read from, not two, because
+    `simulation/settlement_clocks.refresh_settlement_scalars` now re-derives the bare scalars
+    from the mutated rows and preserves the settlement loop's fold under `provisioned_*`. So
+    the fixture carries three distinct values for each figure — rows 1,200 / 3.00 / 1,450, bare
+    scalars 1,000 / 10.00 / 1,250, provisioned 900 / 12.00 / 1,150 — and every assertion below
+    lands away from all the others. In a REAL refreshed run the bare scalars equal the rows;
+    holding them apart here is what gives the test the power to say which one was read, which
+    a faithful-but-balanced fixture would not have.
     """
     phase2b = {
         "total_net": 1_000.0, "total_gross": 5_000.0, "total_bad_debt": 10.0,
         "total_capital": 40.0,
         "final_treasury": 1_250.0, "churned_billing_accounts": ["A"],
+        # What the settlement loop froze, preserved by the refresh. Distinct from BOTH the rows
+        # and the bare scalars, so a block that reported either under a `provisioned_` label
+        # would fail rather than coincide.
+        "provisioned_total_net": 900.0,
+        "provisioned_total_bad_debt": 12.0,
+        "provisioned_final_treasury": 1_150.0,
         "value_arm_log": [{}, {}],
         "all_records": [
             {"net_margin_gbp": 700.0, "bad_debt_gbp": 2.0,
@@ -494,9 +509,15 @@ def test_the_net_margin_is_summed_from_the_rows_not_read_off_the_frozen_summary(
     assert metrics["total_net_gbp"] == 1_200.0
     assert metrics["total_bad_debt_gbp"] == 3.0
     assert metrics["final_treasury_gbp"] == 1_450.0
-    assert metrics["provisioned_net_gbp"] == 1_000.0
-    assert metrics["provisioned_bad_debt_gbp"] == 10.0
-    assert metrics["provisioned_final_treasury_gbp"] == 1_250.0
+    # THE PROVISIONED FIGURES COME FROM THE `provisioned_` NAMES, not from the bare scalars
+    # (2026-08-28, second pass). The bare names are re-derived from the mutated rows by
+    # `refresh_settlement_scalars`, so reading them under a provisioned label would publish a
+    # realised figure on a provisioned clock — a new instance of the class this block documents.
+    # The fixture's 900 / 12.00 / 1,150 are away from both the rows and the bare scalars, so
+    # only the right read passes.
+    assert metrics["provisioned_net_gbp"] == 900.0
+    assert metrics["provisioned_bad_debt_gbp"] == 12.0
+    assert metrics["provisioned_final_treasury_gbp"] == 1_150.0
     # Every published figure carries its clock, in the block, where the JSON reader is (R14).
     assert metrics["clocks"]["total_net_gbp"] == "settled-realised"
     assert metrics["clocks"]["provisioned_net_gbp"] == "settled-provisioned"
@@ -512,8 +533,9 @@ def test_an_arm_with_no_rows_refuses_rather_than_falling_back_to_the_frozen_scal
         realised_metrics(arm)
 
 
-@pytest.mark.parametrize("missing", ["total_net", "total_gross", "total_bad_debt",
-                                     "total_capital", "final_treasury"])
+@pytest.mark.parametrize("missing", ["total_gross", "total_capital",
+                                     "provisioned_total_net", "provisioned_total_bad_debt",
+                                     "provisioned_final_treasury"])
 def test_a_missing_figure_raises_rather_than_reporting_zero(missing):
     """R15 FAIL-SILENT, and it has already happened once: `.get(key, 0.0)` reported £0
     revenue for BOTH arms, identically, so the delta was a clean zero and nothing looked
@@ -805,6 +827,195 @@ def test_an_unmatched_decision_is_excluded_rather_than_counted_as_retained():
     result = belief_vs_outcome(_arm_with(log, [_event("A", "churned")]))
     assert result["priced_and_scored"] == 1
     assert result["realised_retention_rate"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# method_skill — A48, does the arm's own price rank JOINT value created?
+# ---------------------------------------------------------------------------
+#
+# The mission (director, 2026-08-28): "the enterprise value is the automated method for finding
+# those customers, not the book itself." Every headline the project publishes is about the BOOK,
+# and until this landed nothing measured the METHOD. Frame:
+# `docs/design/A48_MEASURING_THE_METHOD_FRAME.md`.
+#
+# THE KILLER PATTERNS THIS SECTION IS AIMED AT, named before the tests:
+#
+#   FAIL-OPEN   — a statistic that returns the null (0.5) when it has no population would report
+#                 "no skill" for "nothing measured", and a reader cannot tell those apart. It
+#                 must return None.
+#   FAIL-OPEN   — a decision whose net margin never resolved, scored at zero, puts a coverage
+#                 gap into the outcome and the rank statistic reads it as a real ranking.
+#   TAUTOLOGY   — the constant-signal null must run through the SAME code path as the estimate.
+#                 A null asserted as 0.5 by a separate branch proves nothing about the estimator.
+#
+# THE TERM BOUNDARY IS THE OTHER SUBJECT HERE. `A47`'s view groups by calendar YEAR; a priced
+# term is 365 days from an arbitrary start, so a customer-year mixes two decisions. The test
+# below mutates a settled row across the term boundary and requires the answer to MOVE — under
+# a year grouping it would not, which is exactly the defect the FRAME named rather than deferred.
+
+_CAP_2022 = 283.4          # published Ofgem electricity cap unit rate, £/MWh, 2022
+_GAS_CAP_2022 = 73.7       # ...and the GAS one. Not the same number, and that is the point.
+_TERM = "2022-01-01"
+_IN_TERM = "2022-06-01"
+
+
+def _a48_settled(account, *, paid_gbp, net_gbp, mwh=10.0, on=_IN_TERM, commodity="electricity"):
+    """One settled row, shaped as `simulation/settlement_daily.fold_to_days` leaves them."""
+    return {"customer_id": account, "settlement_date": on, "commodity": commodity,
+            "consumption_kwh": mwh * 1000.0, "revenue_gbp": paid_gbp,
+            "margin_gbp": net_gbp, "net_margin_gbp": net_gbp}
+
+
+def _a48_priced(account, margin, term=_TERM):
+    return {"customer_id": account, "term_start": term,
+            "chosen_margin_gbp_per_mwh": margin, "believed_p_retain": 0.9}
+
+
+def _a48_run(log, records):
+    return {"phase2b": {"value_arm_log": log, "all_records": records}}
+
+
+def _a48_rising():
+    """Four accounts whose joint value rises with the margin the arm chose for them.
+
+    Paid is held constant so the household's saving is identical across accounts; the net
+    margin rises with the chosen margin, which is the relationship a working method would
+    produce. Concordance must be 1.0.
+    """
+    log = [_a48_priced(f"A{i}", 1.0 + i) for i in range(4)]
+    records = [_a48_settled(f"A{i}", paid_gbp=2000.0, net_gbp=100.0 * (i + 1)) for i in range(4)]
+    return log, records
+
+
+def test_a_signal_that_ranks_joint_value_perfectly_scores_one():
+    """The upper end. If this did not reach 1.0 the statistic could not report skill at all."""
+    result = method_skill(_a48_run(*_a48_rising()))
+    assert result["available"] is True
+    assert result["concordance"] == pytest.approx(1.0)
+    assert result["decisions_scored"] == 4
+    assert result["accounts"] == 4
+
+
+def test_a_method_that_prices_highest_where_it_destroys_the_relationship_scores_below_a_half():
+    """THE DIRECTOR'S OWN CASE, and the one worth being able to see: the arm ranks
+    confidently and uses the ranking to EXTRACT. Its most expensive decisions are the ones
+    where the household kept least, so joint value falls as the price rises. A book-only
+    headline cannot distinguish this from skill; this figure can."""
+    log = [_a48_priced(f"A{i}", 1.0 + i) for i in range(4)]
+    # Paid RISES with the chosen margin, so the household's saving — and the joint value —
+    # falls exactly where the arm was most confident.
+    records = [_a48_settled(f"A{i}", paid_gbp=1000.0 + 400.0 * i, net_gbp=100.0) for i in range(4)]
+    result = method_skill(_a48_run(log, records))
+    assert result["concordance"] == pytest.approx(0.0)
+
+
+def test_a_constant_signal_scores_exactly_a_half():
+    """THE RESULT THAT SAYS THE METHOD HAS NO SKILL, so it must be unmistakable rather than
+    approximately a half. Signal ties count a half each, so a constant price cannot score 1.0
+    or 0.0 by an accident of sort order."""
+    log = [_a48_priced(f"A{i}", 2.0) for i in range(4)]
+    records = [_a48_settled(f"A{i}", paid_gbp=2000.0, net_gbp=100.0 * (i + 1)) for i in range(4)]
+    assert method_skill(_a48_run(log, records))["concordance"] == pytest.approx(0.5)
+
+
+def test_the_published_null_runs_through_the_same_path_and_is_exactly_a_half():
+    """ANTI-TAUTOLOGY. The flat-rules arm's `value_arm_log` is empty by construction, so the
+    null cannot be read off a control run — it is constructed by replacing the signal with the
+    flat rule's constant and running the SAME estimator over the SAME outcomes. Asserting it
+    from a separate branch would prove nothing about the estimator, so this pins that the
+    published null sits beside a NON-null estimate rather than replacing it."""
+    result = method_skill(_a48_run(*_a48_rising()))
+    assert result["null_constant_signal_concordance"] == pytest.approx(0.5)
+    assert result["concordance"] != pytest.approx(0.5)
+
+
+def test_nothing_to_rank_reports_none_rather_than_the_null():
+    """FAIL-OPEN, the killer for this control. "The method has no skill" and "there was nothing
+    to measure" must never read the same. One identical outcome across every decision leaves no
+    comparable pair, and 0.5 there would be the most reassuring wrong answer available."""
+    log = [_a48_priced(f"A{i}", 1.0 + i) for i in range(3)]
+    records = [_a48_settled(f"A{i}", paid_gbp=2000.0, net_gbp=100.0) for i in range(3)]
+    result = method_skill(_a48_run(log, records))
+    assert result["concordance"] is None
+    assert result["available"] is False
+    assert "ranked" in result["reason"]
+    assert result["pairs_tied_on_outcome"] == 3
+
+
+def test_a_decision_with_no_net_margin_is_excluded_and_counted_never_valued_at_zero():
+    """The gross line must never silently stand in for the net (R14, and the defect recorded
+    against `saas/cost_to_serve.py` where a contribution margin wearing a net margin's name
+    valued the entire book). A decision the outcome cannot reach leaves the population and
+    says so."""
+    log, records = _a48_rising()
+    records[0] = dict(records[0], net_margin_gbp=None)
+    result = method_skill(_a48_run(log, records))
+    assert result["decisions_scored"] == 3
+    assert result["decisions_the_outcome_could_not_reach"] == 1
+
+
+def test_settled_pounds_outside_the_priced_term_never_reach_the_decision():
+    """THE TERM BOUNDARY, and the reason `A47`'s year grouping could not be reused.
+
+    MUTATION: move one account's settled row 400 days past its term start — still the same
+    CALENDAR grouping would place it against a customer-year, but it belongs to no priced term.
+    It must be excluded and counted, and the decision must drop out of the population. If the
+    grouping had stayed calendar-year this row would still be scored and the assertion below
+    would fail.
+    """
+    log, records = _a48_rising()
+    records[0] = dict(records[0], settlement_date="2023-02-05")
+    result = method_skill(_a48_run(log, records))
+    assert result["decisions_scored"] == 3
+    assert result["settled_rows_outside_every_priced_term"] == 1
+
+
+def test_both_fuel_legs_fold_onto_the_billing_account_the_decision_priced():
+    """The arm prices one renewal for account `C1`; the settled book carries `C1` and `C1g` as
+    two fuel legs. Scoring them as two customers would put half an account's pounds against a
+    whole account's price.
+
+    EACH LEG IS VALUED AT ITS OWN FUEL'S PUBLISHED RATE, and the arithmetic below is written
+    out with both rates rather than one, because valuing gas volumes at the electricity tariff
+    overstates the counterfactual roughly four-fold in our favour — the defect
+    `tests/company/analytics/test_household_value_share.py::test_gas_volumes_are_never_valued_
+    at_the_electricity_tariff` exists to make impossible, arriving here through the fold.
+    """
+    log = [_a48_priced("C1", 1.0), _a48_priced("D1", 4.0)]
+    records = [
+        _a48_settled("C1", paid_gbp=2000.0, net_gbp=50.0),
+        _a48_settled("C1g", paid_gbp=2000.0, net_gbp=50.0, commodity="gas"),
+        _a48_settled("D1", paid_gbp=2000.0, net_gbp=400.0),
+    ]
+    result = method_skill(_a48_run(log, records))
+    assert result["decisions_scored"] == 2
+    assert result["accounts"] == 2
+    scored = {row["account"]: row for row in result["scored_sample"]}
+    # C1's two legs summed: one decision, both legs' pounds behind it, each at its own rate.
+    counterfactual = (_CAP_2022 + _GAS_CAP_2022) * 10.0
+    assert scored["C1"]["joint_value_ratio"] == pytest.approx(
+        (counterfactual - 4000.0 + 100.0) / counterfactual)
+
+
+def test_method_skill_is_unavailable_with_a_named_reason_rather_than_a_number():
+    """Three ways this figure cannot exist, each named. An artefact carrying a bare null here
+    would be read as a measurement that came out empty."""
+    assert method_skill({"phase2b": {}})["reason"] == (
+        "the value arm priced nothing in this run")
+    assert "no settlement records" in method_skill(
+        _a48_run([_a48_priced("A", 1.0)], []))["reason"]
+    assert "declined every renewal" in method_skill(
+        {"phase2b": {"value_arm_log": [{"customer_id": "A", "declined": True}],
+                     "all_records": [_a48_settled("A", paid_gbp=1.0, net_gbp=1.0)]}})["reason"]
+
+
+def test_the_bound_and_the_basis_travel_with_the_number():
+    """R14 and the FRAME's section 5: the resolution wall is stated BEFORE the figure, not
+    discovered by a reader afterwards, and the clock is on the artefact."""
+    result = method_skill(_a48_run(*_a48_rising()))
+    assert "settled clock" in result["basis"]
+    assert "confidence interval" in result["bound"]
+    assert "A46" in result["bound"]
 
 
 # ---------------------------------------------------------------------------

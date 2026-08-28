@@ -124,6 +124,40 @@ recalibration nobody wants to pay for twice.
 
 ---
 
+## ADDENDUM (2026-08-28, added when `A48` reached L2) — the ground this is argued on has changed
+
+This does not change the menu, the costs, or my recommendation, and it does not settle the
+question. It changes what the question is *about*, and leaving that unsaid would have let you
+decide on a framing the mission had already superseded.
+
+**Under the old mission, width was the growth story and depth was the science.** A wider book
+was more customers and a bigger number; depth was what you bought to make a comparison
+readable. That is the trade the four options above are priced against.
+
+**Under the mission of 2026-08-28 they are two halves of one asset.** The enterprise value is
+the automated *method* of finding customers we can create value for. Width is the **finding**
+half — how reliably the machine locates a customer worth having. Depth is the
+**creating-and-sharing** half — whether the relationship it opened actually compounds value for
+both sides. So Option 1's "cost in width: 264 → ~180 accounts" is no longer a growth cost paid
+for a science benefit; it is **buying resolution on one half of the asset by giving up
+resolution on the other.**
+
+That reframing is not rhetorical, because the instrument now exists to feel it. `A48` landed
+`tools/run_value_cycle_ab.method_skill()` — a rank statistic asking whether the arm's own
+per-customer price ranks the *joint* value created, household plus company, per priced term.
+It is the first figure in this project that measures the method rather than the book. And it is
+bounded by exactly the number this document is about: it scores priced decisions, clustered on
+the handful of accounts with renewals, so its confidence interval is wide for the same reason
+every other compounding comparison's is. **`A46` is upstream of `A48` being worth much**, and
+the A48 FRAME says so in its own section 5 rather than discovering it later.
+
+**What this does NOT do is decide it.** Both halves are real, the trade between them is genuine,
+and which resolution is worth more is a curriculum judgement under R13 — yours, named and
+versioned, never mine. I am recording that the ground moved, as the finding that raised it
+asked me to.
+
+---
+
 ## What I need from you
 
 One word on which option, or a different one. If nothing comes back, **I take Option 1 at 80

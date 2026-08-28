@@ -140,12 +140,12 @@ def test_a_wholly_uncovered_customer_year_is_None_and_never_zero():
     """
     view = build_household_value_share(
         _records(our_rate=250.0), svt_rate_for=lambda _d, _c: None)
-    row = view.by_customer_year[("C1", 2022)]
+    row = view.by_customer_period[("C1", 2022)]
     assert row.household_saving_gbp is None
     assert row.household_saving_pct_of_counterfactual is None
     assert row.household_share_of_the_split_pct is None
     assert row.coverage_pct == pytest.approx(0.0)
-    assert view.customer_years_without_any_counterfactual == [("C1", 2022)]
+    assert view.groups_without_any_counterfactual == [("C1", 2022)]
 
 
 def test_the_portfolio_is_None_when_nothing_was_comparable():
@@ -157,7 +157,7 @@ def test_the_portfolio_is_None_when_nothing_was_comparable():
     view = build_household_value_share(
         _records(our_rate=250.0), svt_rate_for=lambda _d, _c: None)
     assert view.portfolio.household_saving_gbp is None
-    assert view.customer_years == 1  # the row EXISTS; only its saving is unknown
+    assert view.groups == 1  # the row EXISTS; only its saving is unknown
 
 
 def test_a_partly_blind_book_still_reports_the_customers_it_could_see():
@@ -170,8 +170,8 @@ def test_a_partly_blind_book_still_reports_the_customers_it_could_see():
 
     view = build_household_value_share(covered + blind, svt_rate_for=cap_from_2019)
     assert view.portfolio.household_saving_gbp > 0.0
-    assert view.by_customer_year[("BLIND", 2016)].household_saving_gbp is None
-    assert view.customer_years_without_any_counterfactual == [("BLIND", 2016)]
+    assert view.by_customer_period[("BLIND", 2016)].household_saving_gbp is None
+    assert view.groups_without_any_counterfactual == [("BLIND", 2016)]
 
 
 # ── basis discipline (R14) ──────────────────────────────────────────────────
@@ -208,7 +208,7 @@ def test_a_single_row_without_a_net_margin_makes_the_whole_year_None():
     for r in records[:-1]:
         r["net_margin_gbp"] = 0.5
     view = build_household_value_share(records, svt_rate_for=_fixed_rate(CAP_2022))
-    assert view.by_customer_year[("C1", 2022)].our_net_margin_gbp is None
+    assert view.by_customer_period[("C1", 2022)].our_net_margin_gbp is None
     assert view.portfolio.our_net_margin_gbp is None
 
 
@@ -247,7 +247,7 @@ def test_a_commodity_with_no_published_reference_is_excluded_not_guessed():
     for r in gas:
         r["commodity"] = "gas"
     view = build_household_value_share(gas, svt_rate_for=elec_only)
-    row = view.by_customer_year[("GASONLY", 2022)]
+    row = view.by_customer_period[("GASONLY", 2022)]
     assert row.household_saving_gbp is None
     assert row.settled_rows_without_a_counterfactual == 10
 
@@ -256,7 +256,7 @@ def test_the_share_is_undefined_rather_than_zero_when_there_is_nothing_to_split(
     """Fires on: a divide-by-zero guard that returns 0.0, which reads as "the
     household got none of it" when the truth is that there was no surplus."""
     row = HouseholdValueShare(
-        customer_id="C", year=2022, consumption_mwh=1.0, paid_gbp=100.0,
+        customer_id="C", period=2022, consumption_mwh=1.0, paid_gbp=100.0,
         counterfactual_gbp=0.0, household_saving_gbp=-100.0,
         our_gross_margin_gbp=0.0, our_net_margin_gbp=None)
     assert row.household_share_of_the_split_pct is None
@@ -269,8 +269,8 @@ def test_the_portfolio_row_cannot_be_mistaken_for_a_customer():
     view = build_household_value_share(
         _records(our_rate=CAP_2022 * 0.9), svt_rate_for=_fixed_rate(CAP_2022))
     assert view.portfolio.customer_id == "__portfolio__"
-    assert view.portfolio.year == 0
-    assert view.portfolio.customer_id not in {k[0] for k in view.by_customer_year}
+    assert view.portfolio.period == 0
+    assert view.portfolio.customer_id not in {k[0] for k in view.by_customer_period}
 
 
 # ── the wall ────────────────────────────────────────────────────────────────
@@ -329,7 +329,7 @@ def test_a_row_this_view_cannot_value_is_skipped_and_COUNTED():
     assert view.records_this_view_could_not_value == len(junk)
     # The valuable rows are still valued -- the skip must not take the book with it.
     assert view.portfolio.household_saving_gbp > 0.0
-    assert view.customer_years == 1
+    assert view.groups == 1
 
 
 def test_an_all_junk_book_reports_no_customer_years_rather_than_zero_pounds():
@@ -337,6 +337,6 @@ def test_an_all_junk_book_reports_no_customer_years_rather_than_zero_pounds():
     not look like a book that saved nothing."""
     view = build_household_value_share(
         [{"note": "unshaped"}] * 5, svt_rate_for=_fixed_rate(CAP_2022))
-    assert view.customer_years == 0
+    assert view.groups == 0
     assert view.portfolio.household_saving_gbp is None
     assert view.records_this_view_could_not_value == 5

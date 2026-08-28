@@ -262,7 +262,7 @@ def rung_reading(multiplier: float, result: dict) -> dict:
     }
 
 
-def _published_default_tariff(on_date, commodity: str) -> float | None:
+def published_default_tariff(on_date, commodity: str) -> float | None:
     """The published default tariff for a fuel on a date, in GBP/MWh — one concept, two sources.
 
     THE BOOK IS DUAL FUEL and the two sources cover different things, so both are needed and
@@ -330,16 +330,21 @@ def household_side(result: dict) -> dict:
     # (`price_differential_vs_svt` on every lifecycle event), so the household leg and the churn
     # leg are answers about ONE reference rather than two. Where the cap exists the two agree by
     # construction -- the cap IS the SVT from 2019 (185.6 in 2019, 283.4 in 2022, both series).
-    view = build_household_value_share(records, svt_rate_for=_published_default_tariff)
+    view = build_household_value_share(records, svt_rate_for=published_default_tariff)
     p = view.portfolio
     return {
         "available": True,
         "basis": ("settled clock; counterfactual = the published Ofgem default tariff cap "
                   "unit rate for each settlement date, at this customer's own metered volume; "
                   "pounds cover the COMPARABLE periods only (see `coverage_pct`)"),
-        "customer_years": view.customer_years,
+        # THE PUBLISHED KEYS STILL SAY `customer_years` AND THEY ARE STILL ACCURATE.
+        # `A48` generalised the view's grouping to any caller-supplied period; this
+        # caller supplies none, so it gets the calendar-year default and its groups
+        # ARE customer-years. Renaming the artefact key would have changed a
+        # published schema to describe a change this reader did not make.
+        "customer_years": view.groups,
         "customer_years_without_any_counterfactual":
-            len(view.customer_years_without_any_counterfactual),
+            len(view.groups_without_any_counterfactual),
         # Published rather than divided out: a settled book legitimately carries rows this
         # view cannot value, and a reader who cannot see how many is reading a subset.
         "records_this_view_could_not_value": view.records_this_view_could_not_value,

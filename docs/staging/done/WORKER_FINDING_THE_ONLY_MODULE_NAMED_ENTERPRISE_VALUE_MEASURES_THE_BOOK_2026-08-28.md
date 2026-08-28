@@ -72,4 +72,43 @@ the director has now made — so this is work created, not a defect in flight.
    it, and it is still the director's, but the ground it is argued on has changed and the P9 note
    should say so.
 
+## DISPOSITION (2026-08-28) — all three items discharged, and one thing deliberately not claimed
+
+**1. `A48` — define one measurable method figure and instrument it. DONE, L0→L2.**
+`tools/run_value_cycle_ab.method_skill()`, wired into the artefact next to `belief_vs_outcome`
+because the pair is the reading. It asks whether the arm's own per-customer signal
+(`chosen_margin_gbp_per_mwh`) ranks the JOINT value created —
+`(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp`, per **priced term** — better
+than chance. Legs are independent (R15): the signal is the company's own logged decision, the
+outcome is built from the world's settled records against the published default tariff. A price
+and a consequence, not two readings of one number.
+
+The recommendation in item 1 above was **argued down, as it invited**. "Cost per
+customer-found-and-kept" needs a cost-to-acquire ledger that does not exist; the FRAME split
+the mission's three method questions and instrumented only the first (*how reliably does it
+find one*), naming cost-to-find and run-over-run improvement as explicitly out of scope at L2
+rather than half-building them.
+
+**2. `A47` — the household side.** Already landed at `039f202ce`, which is what made item 1
+computable at all. `A48`'s build generalised its grouping: `build_household_value_share` now
+takes `period_of`, defaulting to the calendar year so every pre-`A48` caller is unchanged. That
+was the FRAME's §4 problem — a term straddles two calendar years, so a customer-year mixes two
+priced decisions — resolved by its recommended option (a).
+
+**3. The P9 ordering consequence. DONE**, as an addendum on
+`SEAT_TO_DIRECTOR_P9_BOOK_DEPTH_PRICED_2026-08-28.md`: width is the *finding* half of the
+method and depth the *creating-and-sharing* half, so Option 1's width cost is no longer growth
+paid for science but resolution on one half of the asset bought with resolution on the other.
+Recorded as a reframing, **not** as a decision — it stays the director's under R13.
+
+**WHAT IS STILL TRUE AND UNFIXED.** The finding's central observation stands: `saas/enterprise_
+value.py` still computes the discounted book and still carries the mission's noun. That was
+never what this asked for — the docstring is honest about what it computes and a rename would
+have satisfied a word and changed nothing measurable. What has changed is that the book is no
+longer the *only* thing measured.
+
+**AND THE FIGURE IS BOUNDED, STATED BEFORE ANYONE READS IT.** A rank statistic over a handful
+of decisions on a handful of accounts has a wide confidence interval. `A46` (book depth) is
+upstream of it being worth much, and that remains the director's decision — see the addendum.
+
 ## Still live

@@ -137,7 +137,10 @@ _SHARE_UNDEFINED = None
 
 @dataclass(frozen=True)
 class HouseholdValueShare:
-    """One customer-year of the two-sided ledger, in pounds.
+    """One customer-PERIOD of the two-sided ledger, in pounds.
+
+    The period is whatever the caller grouped by — a calendar year by default, a
+    priced term where the caller supplied `period_of`. See the `period` field.
 
     EVERY POUND FIGURE HERE IS OVER THE COMPARABLE ROWS ONLY — the settled rows
     whose date and fuel had a published counterfactual rate. Rows, not settlement
@@ -154,7 +157,15 @@ class HouseholdValueShare:
     """
 
     customer_id: str
-    year: int
+    #: THE GROUPING LABEL, NOT NECESSARILY A YEAR (generalised 2026-08-28, atom
+    #: `A48`). The default grouping is still the calendar year and every caller
+    #: that predates `A48` gets an `int` here unchanged. But a PRICING DECISION
+    #: covers a TERM -- 365 days from an arbitrary start -- so for most accounts a
+    #: term straddles two calendar years and a customer-year mixes the tail of one
+    #: priced decision with the head of the next. Attributing a year's joint value
+    #: to one decision would be wrong in a way invisible in the output, which is
+    #: why the caller supplies the key rather than this module assuming one.
+    period: object
     consumption_mwh: float
     paid_gbp: float
     counterfactual_gbp: float
@@ -202,14 +213,14 @@ class HouseholdValueShare:
 
 @dataclass(frozen=True)
 class HouseholdValueShareView:
-    """The book's two-sided ledger, per customer-year and in total."""
+    """The book's two-sided ledger, per customer-period and in total."""
 
-    by_customer_year: dict[tuple[str, int], HouseholdValueShare]
+    by_customer_period: dict[tuple[str, object], HouseholdValueShare]
     portfolio: HouseholdValueShare
-    #: Customer-years the caller's records covered but no counterfactual rate
+    #: Customer-periods the caller's records covered but no counterfactual rate
     #: reached at all. A population floor for this control: an empty book and a
     #: book whose rates all went missing produce the same zeros otherwise.
-    customer_years_without_any_counterfactual: list[tuple[str, int]] = field(
+    groups_without_any_counterfactual: list[tuple[str, object]] = field(
         default_factory=list)
     #: Rows the caller supplied that carry no settlement date, customer, volume or
     #: revenue -- skipped rather than reached into, counted rather than dropped.
@@ -218,8 +229,10 @@ class HouseholdValueShareView:
     records_this_view_could_not_value: int = 0
 
     @property
-    def customer_years(self) -> int:
-        return len(self.by_customer_year)
+    def groups(self) -> int:
+        """How many customer-periods this view holds — customer-YEARS under the
+        default grouping, customer-TERMS where the caller supplied one."""
+        return len(self.by_customer_period)
 
 
 #: The fields a record must carry to be valued at all. Named as a constant so the
@@ -233,14 +246,22 @@ def _valuable(record) -> bool:
     return all(record.get(f) is not None for f in _REQUIRED_FIELDS)
 
 
-def _year_of(settlement_date: str) -> int:
-    return int(settlement_date[:4])
+def _calendar_year(record: Mapping) -> int:
+    """The DEFAULT grouping: the calendar year of the settlement date.
+
+    A record-level callable rather than a date-level one so a caller's own
+    grouping (a priced term, say) can key on the customer as well as the date —
+    terms start on different days for different accounts, so a date alone cannot
+    name one.
+    """
+    return int(record["settlement_date"][:4])
 
 
 def build_household_value_share(
     settlement_records: Iterable[Mapping],
     *,
     svt_rate_for: Callable[[date, str], float | None],
+    period_of: Callable[[Mapping], object] = _calendar_year,
 ) -> HouseholdValueShareView:
     """The household's side of the score, from settled records and published rates.
 
@@ -255,8 +276,17 @@ def build_household_value_share(
     rate are COUNTED and EXCLUDED, never valued at zero: a missing counterfactual
     makes the saving look larger, which is the direction a fail-open would
     flatter us in.
+
+    `period_of(record)` names the group a record belongs to, and defaults to its
+    calendar year — which is what every caller before `A48` got and still gets.
+    A caller scoring PRICING DECISIONS supplies the priced term instead, because
+    a term straddles two calendar years for most accounts and a customer-year
+    therefore mixes two decisions. A record the caller's own key function cannot
+    place returns None from it and is EXCLUDED and COUNTED, on the same reasoning
+    as a missing rate: silently folding an unplaceable row into some default group
+    would put one decision's pounds against another decision's signal.
     """
-    rows: dict[tuple[str, int], dict] = {}
+    rows: dict[tuple[str, object], dict] = {}
     rate_cache: dict[tuple[str, str], float | None] = {}
     unshaped = 0
 
@@ -274,7 +304,15 @@ def build_household_value_share(
             continue
         customer_id = record["customer_id"]
         settlement_date = record["settlement_date"]
-        key = (customer_id, _year_of(settlement_date))
+        period = period_of(record)
+        if period is None:
+            # THE CALLER COULD NOT PLACE THIS ROW IN A GROUP. Counted with the
+            # rows this view could not value rather than dropped, because a
+            # decision-scored caller's coverage is exactly the question its
+            # reader has to be able to ask.
+            unshaped += 1
+            continue
+        key = (customer_id, period)
         row = rows.setdefault(key, {
             "consumption_mwh": 0.0,
             "paid_gbp": 0.0,
@@ -318,14 +356,14 @@ def build_household_value_share(
         else:
             row["net_margin_gbp"] += float(net)
 
-    by_customer_year: dict[tuple[str, int], HouseholdValueShare] = {}
-    blind: list[tuple[str, int]] = []
-    for (customer_id, year), row in rows.items():
+    by_customer_period: dict[tuple[str, object], HouseholdValueShare] = {}
+    blind: list[tuple[str, object]] = []
+    for (customer_id, period), row in rows.items():
         if not row["comparable"]:
-            blind.append((customer_id, year))
-        by_customer_year[(customer_id, year)] = HouseholdValueShare(
+            blind.append((customer_id, period))
+        by_customer_period[(customer_id, period)] = HouseholdValueShare(
             customer_id=customer_id,
-            year=year,
+            period=period,
             consumption_mwh=row["consumption_mwh"],
             paid_gbp=row["paid_gbp"],
             counterfactual_gbp=row["counterfactual_gbp"],
@@ -343,18 +381,21 @@ def build_household_value_share(
         )
 
     return HouseholdValueShareView(
-        by_customer_year=by_customer_year,
-        portfolio=_portfolio(by_customer_year),
-        customer_years_without_any_counterfactual=sorted(blind),
+        by_customer_period=by_customer_period,
+        portfolio=_portfolio(by_customer_period),
+        # `sorted` on a MIXED key set raises, and a caller's period labels are
+        # its own -- so sort by the printable form rather than assuming the
+        # labels are mutually comparable. Deterministic order, no type contract.
+        groups_without_any_counterfactual=sorted(blind, key=repr),
         records_this_view_could_not_value=unshaped,
     )
 
 
 def _portfolio(
-    rows: Mapping[tuple[str, int], HouseholdValueShare],
+    rows: Mapping[tuple[str, object], HouseholdValueShare],
 ) -> HouseholdValueShare:
-    """The book total. `customer_id` is the sentinel `__portfolio__` and `year`
-    is 0 — deliberately not a real id and not a real year, so a portfolio row
+    """The book total. `customer_id` is the sentinel `__portfolio__` and `period`
+    is 0 — deliberately not a real id and not a real period, so a portfolio row
     that leaks into a per-customer table is obvious rather than plausible."""
     # None if ANY customer-year could not supply one -- the book's net margin is
     # not the sum of the rows that happened to carry the field.
@@ -364,11 +405,11 @@ def _portfolio(
                if r.household_saving_gbp is not None]
     return HouseholdValueShare(
         customer_id="__portfolio__",
-        year=0,
+        period=0,
         consumption_mwh=sum(r.consumption_mwh for r in rows.values()),
         paid_gbp=sum(r.paid_gbp for r in rows.values()),
         counterfactual_gbp=sum(r.counterfactual_gbp for r in rows.values()),
-        # None when NO customer-year was comparable — an empty book and a book
+        # None when NO customer-period was comparable — an empty book and a book
         # whose counterfactual never resolved must not both report £0 saved.
         household_saving_gbp=sum(savings) if savings else None,
         our_gross_margin_gbp=sum(r.our_gross_margin_gbp for r in rows.values()),

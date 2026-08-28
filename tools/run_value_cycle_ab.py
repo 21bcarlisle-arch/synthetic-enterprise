@@ -64,6 +64,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import bisect
 import collections
 import importlib
 import importlib.util
@@ -71,9 +72,14 @@ import json
 import math
 import statistics
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
+# THE HOUSEHOLD SIDE (atom `A47`), read here in the HARNESS -- the reporting use R12 protects.
+# No company organ, world module or draw may import it, and
+# `tests/company/test_household_share_is_not_yet_a_target.py` holds that and names what
+# releases it.
+from company.analytics.household_value_share import build_household_value_share
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     VALUE_ARM_POLICY,
@@ -88,6 +94,12 @@ from company.pricing.value_based_renewal import (
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
+
+# ONE COUNTERFACTUAL, NOT TWO. The choice of reference (Ofgem cap where published, the pre-2019
+# SVT series before it) is argued at length where it is defined; a second copy here would be a
+# second thing to keep in step, and the household leg and the ladder's must be one reference or
+# their figures cannot be read against each other.
+from tools.run_price_ladder import published_default_tariff
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
@@ -937,6 +949,260 @@ def belief_vs_outcome(value: dict) -> dict:
             "noise when one side is small. READ `scored_share_of_priced` FIRST: these "
             "statistics describe only the decisions that could be matched to an outcome, "
             "and on the first live run that was 28 of 58. R12: diagnostic, never a target."
+        ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# A48 -- DOES THE METHOD HAVE SKILL? (the mission's own noun, instrumented)
+# ---------------------------------------------------------------------------
+#
+# Director, 2026-08-28: "the enterprise value is the automated method for finding those
+# customers, not the book itself." `saas/enterprise_value.py` computes the discounted net
+# margin of the BOOK -- correctly, and that is the superseded definition. Nothing in the
+# repository measured the METHOD. Frame: `docs/design/A48_MEASURING_THE_METHOD_FRAME.md`.
+#
+# WHY THIS IS NOT THE AUC ALREADY ABOVE. `belief_vs_outcome.discrimination_auc` asks whether
+# the company's belief about CHURN ranks who leaves; it scored 0.4653, below a coin flip. The
+# method question is different and can come out either way:
+#
+#   * rank churn badly and still create value, if the accounts it over-prices are ones where
+#     the household keeps enough that the relationship survives anyway;
+#   * rank churn WELL and create nothing, if the ranking is used purely to extract -- which is
+#     the maximiser behaviour the director's sentence names, and would show as a HIGH churn AUC
+#     beside a FLAT joint-value curve.
+#
+# The second case is the one worth being able to see and no instrument here could.
+
+#: A priced term is 365 days from its start -- `simulation/churn_model._renewal_periods` steps
+#: `acquisition_date + 365n`. Named rather than inlined because a settled row falling OUTSIDE
+#: every priced term must be excluded, and the boundary is the whole reason it can be.
+_TERM_DAYS = 365
+
+
+def _priced_terms_by_account(log: list) -> dict[str, list[str]]:
+    """Billing account -> the term starts the arm actually PRICED, ascending.
+
+    Declines are excluded: a decline leaves the rate untouched, so there is no per-customer
+    signal to rank anything by, and scoring one would put the flat rule's constant into a
+    population whose whole subject is the arm's own variation.
+    """
+    terms: dict[str, set] = collections.defaultdict(set)
+    for entry in log:
+        if not isinstance(entry, dict) or entry.get("declined"):
+            continue
+        account, term = entry.get("customer_id"), entry.get("term_start")
+        if isinstance(account, str) and isinstance(term, str):
+            terms[account].add(term)
+    return {account: sorted(t) for account, t in terms.items()}
+
+
+def _term_period_of(terms_by_account: dict[str, list[str]]):
+    """A `period_of` key for `build_household_value_share`, grouping by PRICED TERM.
+
+    THE PROBLEM THIS SOLVES, named in the FRAME rather than discovered later. `A47`'s view
+    aggregates by customer-YEAR. Decisions are per TERM -- 365 days from an arbitrary start --
+    so a term straddles two calendar years for most accounts and a customer-year mixes the tail
+    of one priced decision with the head of the next. Attributing a year's joint value to one
+    decision would be wrong in a way that is invisible in the output.
+
+    The arm's log is keyed by BILLING ACCOUNT and settled records by CUSTOMER (`C1`, `C1g` are
+    two fuel legs of account `C1`), so the record is folded to its account with the same helper
+    `saas.clv_model.build_clv` and `_lifetime_by_billing_account` use -- the two must not drift
+    into different ideas of one account.
+
+    A row outside every priced term returns None and is EXCLUDED AND COUNTED by the view. That
+    is the point of the boundary: settled pounds from a term the arm never priced carry no
+    signal, and folding them into the nearest one would put one decision's money against
+    another decision's price.
+    """
+    def period_of(record):
+        account = _billing_account_id(record["customer_id"])
+        terms = terms_by_account.get(account)
+        if not terms:
+            return None
+        settled = record["settlement_date"]
+        index = bisect.bisect_right(terms, settled) - 1
+        if index < 0:
+            return None
+        term = terms[index]
+        if (date.fromisoformat(settled) - date.fromisoformat(term)).days >= _TERM_DAYS:
+            return None
+        return term
+    return period_of
+
+
+def _concordance(points: list[tuple[float, float]]) -> tuple[float | None, int, int]:
+    """Does the SIGNAL rank the OUTCOME better than chance? Returns (c, pairs, outcome_ties).
+
+    The rank statistic over all pairs: a pair is CONCORDANT when the higher signal goes with
+    the higher outcome. Signal ties count a half, exactly as `discrimination_auc` above handles
+    them, which is what makes a CONSTANT signal score exactly 0.5 rather than 1.0 or 0.0 by an
+    accident of sort order -- and that is the null this whole figure is read against.
+
+    Pairs tied on the OUTCOME are excluded and counted, never scored: with a continuous
+    pounds outcome they should be rare, and if they are common that is a finding about the
+    outcome being degenerate rather than a number to divide past.
+
+    Zero comparable pairs returns None, NEVER 0.5. "No information" and "nothing to measure"
+    are different statements, and a statistic that reported the null when it had no population
+    would be the FAIL-OPEN killer wearing this control's name (R15).
+    """
+    concordant = signal_ties = comparable = outcome_ties = 0
+    for i in range(len(points)):
+        signal_i, outcome_i = points[i]
+        for j in range(i + 1, len(points)):
+            signal_j, outcome_j = points[j]
+            if outcome_i == outcome_j:
+                outcome_ties += 1
+                continue
+            comparable += 1
+            if signal_i == signal_j:
+                signal_ties += 1
+            elif (signal_i > signal_j) == (outcome_i > outcome_j):
+                concordant += 1
+    if not comparable:
+        return None, 0, outcome_ties
+    return (concordant + 0.5 * signal_ties) / comparable, comparable, outcome_ties
+
+
+def method_skill(value: dict) -> dict:
+    """A48 L2: does the arm's own per-customer signal rank JOINT value created?
+
+    SIGNAL -- `chosen_margin_gbp_per_mwh`, the margin the arm chose for this customer at this
+    renewal. Genuinely per-customer: 24 distinct margins across 25 priced renewals on the
+    2026-08-28 run, against the flat rule's single GBP 2.00.
+
+    OUTCOME -- two-sided, and computable only since `A47`:
+
+        joint_value = household_saving_gbp + our_net_margin_gbp
+        joint_value_ratio = joint_value / counterfactual_gbp
+
+    Normalised by the counterfactual so a large account does not outrank a small one for being
+    large. NET margin, never gross: a contribution margin wearing a net margin's name is the
+    defect recorded against `saas/cost_to_serve.py` on 2026-08-17, and it valued the whole book.
+    Where the net is unavailable this returns unavailable rather than substituting the gross.
+
+    WHAT IT IS NOT. Not a claim about the COST of finding a customer, and not a claim about
+    improvement run over run -- both are named in the FRAME's section 1 and neither is in scope
+    at L2. And joint value is a SPLIT of a surplus whose size is not observable to us, not
+    value created: `company/analytics/household_value_share.py` says why at length.
+
+    BOTH SIDES ARE INDEPENDENT (R15). The signal is the company's own logged decision; the
+    outcome is built from the world's settled records against the published default tariff.
+    A price and a consequence, not two readings of one number.
+    """
+    phase2b = value.get("phase2b") or {}
+    log = phase2b.get("value_arm_log")
+    records = phase2b.get("all_records")
+    if not isinstance(log, list) or not log:
+        return {"available": False, "reason": "the value arm priced nothing in this run"}
+    if not isinstance(records, list) or not records:
+        return {"available": False,
+                "reason": "the run carried no settlement records, so no outcome exists"}
+
+    terms_by_account = _priced_terms_by_account(log)
+    if not terms_by_account:
+        return {"available": False,
+                "reason": "the arm declined every renewal, so it emitted no per-customer signal"}
+
+    view = build_household_value_share(
+        records,
+        svt_rate_for=published_default_tariff,
+        period_of=_term_period_of(terms_by_account),
+    )
+
+    # FOLD THE FUEL LEGS ONTO THE ACCOUNT THE DECISION WAS MADE FOR. The view keys by the
+    # record's own customer (`C1`, `C1g`); the decision is one price for account `C1`. Net
+    # margin keeps the view's own rule -- None if ANY leg could not supply one, never a partial
+    # sum wearing the whole account-term's name.
+    folded: dict[tuple[str, str], dict] = {}
+    for (customer_id, term), row in view.by_customer_period.items():
+        key = (_billing_account_id(customer_id), term)
+        acc = folded.setdefault(key, {"saving": 0.0, "net": 0.0, "counterfactual": 0.0,
+                                      "blind": False})
+        if row.household_saving_gbp is None or row.our_net_margin_gbp is None:
+            acc["blind"] = True
+            continue
+        acc["saving"] += row.household_saving_gbp
+        acc["net"] += row.our_net_margin_gbp
+        acc["counterfactual"] += row.counterfactual_gbp
+
+    points, scored_rows, unscorable = [], [], 0
+    for entry in log:
+        if not isinstance(entry, dict) or entry.get("declined"):
+            continue
+        signal = entry.get("chosen_margin_gbp_per_mwh")
+        if not isinstance(signal, (int, float)) or isinstance(signal, bool):
+            unscorable += 1
+            continue
+        acc = folded.get((entry.get("customer_id"), entry.get("term_start")))
+        # A decision with no settled pounds behind it, or whose net margin or counterfactual
+        # never resolved, is EXCLUDED AND COUNTED. Scoring it at zero would put a coverage gap
+        # into the outcome and the statistic would read it as a real ranking.
+        if acc is None or acc["blind"] or acc["counterfactual"] <= 0:
+            unscorable += 1
+            continue
+        ratio = (acc["saving"] + acc["net"]) / acc["counterfactual"]
+        points.append((float(signal), ratio))
+        scored_rows.append({"account": entry.get("customer_id"),
+                            "term_start": entry.get("term_start"),
+                            "chosen_margin_gbp_per_mwh": float(signal),
+                            "joint_value_ratio": ratio})
+
+    concordance, pairs, outcome_ties = _concordance(points)
+    # THE NULL THAT MAKES THE FIGURE READABLE. The flat-rules arm's signal is a CONSTANT -- and
+    # its `value_arm_log` is empty by construction, so the null cannot be read off a control
+    # run and has to be constructed here: the same code path, the same outcomes, the signal
+    # replaced by the flat rule's single margin. Every pair ties on the signal, so it MUST
+    # return exactly 0.5. Anything else means the estimator is broken, not that the arm has
+    # skill -- which is the only way a reader can tell those two apart.
+    null_concordance, _, _ = _concordance(
+        [(TARGET_MARGIN_GBP_PER_MWH, outcome) for _, outcome in points])
+
+    accounts = sorted({row["account"] for row in scored_rows})
+    return {
+        "available": concordance is not None,
+        "reason": (None if concordance is not None else
+                   "no two scored decisions differed in joint value, so nothing could be ranked"),
+        "concordance": concordance,
+        # NOT decoration. A constant signal must score exactly 0.5 through this same code, and
+        # publishing it beside the estimate is what makes the estimate falsifiable in the file
+        # rather than only in the test suite.
+        "null_constant_signal_concordance": null_concordance,
+        "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
+        "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
+        "basis": ("settled clock both sides; counterfactual = the published Ofgem default tariff "
+                  "cap unit rate for each settlement date, falling back to the pre-2019 SVT "
+                  "series for electricity, at this account's own metered volumes (R14)"),
+        "decisions_scored": len(points),
+        "accounts": len(accounts),
+        "decisions_the_outcome_could_not_reach": unscorable,
+        "comparable_pairs": pairs,
+        "pairs_tied_on_outcome": outcome_ties,
+        "settled_rows_outside_every_priced_term": view.records_this_view_could_not_value,
+        "scored_sample": scored_rows[:10],
+        "bound": (
+            "READ THIS BEFORE THE NUMBER. A rank statistic over this few decisions, clustered on "
+            "this few accounts, has a wide confidence interval and every account is potentially "
+            "influential. This is the same resolution wall that made the 2026-08-28 "
+            "chase-on/chase-off comparison unreadable, arriving on a different question. Two "
+            "things make it less bad here: the outcome is continuous, so pounds have no 1/17 "
+            "quantum and a small effect is small rather than invisible; and every priced "
+            "decision with settled pounds behind it contributes, not only the ones the world "
+            "rolled an event for. It is still a handful of accounts, and `A46` (book depth) is "
+            "upstream of this being worth much -- which remains the director's decision."
+        ),
+        "reading": (
+            "0.5 means the arm's own price carries NO information about whether value was "
+            "jointly created -- the method has no skill, whatever the book did. Above 0.5 means "
+            "the decisions it priced highest are the ones where household and company came out "
+            "ahead together. BELOW 0.5 is the director's own case and the one worth being able "
+            "to see: the arm ranks confidently and uses the ranking to EXTRACT, so its most "
+            "expensive decisions destroy the relationship. Read it beside "
+            "`belief_vs_outcome.discrimination_auc` -- a high churn AUC with a flat curve here "
+            "is a maximiser working correctly on a one-sided objective. R12: a DIAGNOSTIC, "
+            "never a target; nothing optimises this figure."
         ),
     }
 
@@ -1944,6 +2210,11 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # Was the advantage INFERENCE, or a profitable miscalibration? The two produce the
         # same P&L and completely different conclusions -- see `belief_vs_outcome`.
         "belief_vs_outcome": belief_vs_outcome(value),
+        # Does the METHOD have skill -- does the arm's own price rank JOINT value created?
+        # The mission's noun, instrumented (atom `A48`). Published directly after
+        # `belief_vs_outcome` because the pair is the reading: a high churn AUC beside a flat
+        # curve here is a maximiser working correctly on a one-sided objective.
+        "method_skill": method_skill(value),
         # Names the accounts behind `realised_delta.churned_accounts`. Published
         # beside the delta, never instead of it -- see `churn_roster_diff`.
         "churn_roster_diff": churn_roster_diff(control, value),
