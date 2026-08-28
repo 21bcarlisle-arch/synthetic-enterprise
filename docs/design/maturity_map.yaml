@@ -568,12 +568,12 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [sim/competitor_field.py, tests/sim/test_competitor_switching.py]
+  file_scope: [simulation/competitor_reference.py, tests/simulation/test_competitor_reference.py, simulation/customer_events.py, simulation/run_phase2b.py]   # 2026-08-28: `sim/` is not a package in this repo and never was -- the SIM lives under `simulation/`. The FRAME's own §1.1 flagged the path as intended-not-actual and asked BUILD to correct it.
   depends_on: []
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}

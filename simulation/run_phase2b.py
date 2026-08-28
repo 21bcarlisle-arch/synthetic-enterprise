@@ -105,6 +105,7 @@ from simulation.acquisition_funnel import run_acquisition_funnel
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.churn_journey import ChurnJourneyRegister
+from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
     HOME_MOVE_ACTIVATE_SUCCESSOR,
     home_move_disposition,
@@ -1261,6 +1262,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     _bill_shock_dates: dict[str, list] = {}
     committee_wake_ups: list[dict] = []
     customer_events_log: list[dict] = []
+    # THE RIVAL'S VIEW OF THIS COMPANY (2026-08-28, atom B10, director's C2). Run-scoped and
+    # explicit: a module global would leak between runs and make the reference depend on
+    # execution order, which is the non-determinism the seeded-run discipline forbids. It is
+    # fed from the term loop AFTER each offer is struck and read a quarter later, so the world's
+    # opponent moves on its own cycle rather than inside the term the company is pricing.
+    _competitor_position_ledger = CompanyPositionLedger()
     churned_billing_accounts: set[str] = set()
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
@@ -1700,7 +1707,19 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 income_stress=_churn_income_stress,
                 satisfaction_score=_nf_satisfaction,
                 market_year=int(term_start_str[:4]),
+                position_ledger=_competitor_position_ledger,
+                # THE SIM'S OWN forward price, never the company's estimate. A rival buys in the
+                # same market this world clears, so its cost floor is built from what wholesale
+                # ACTUALLY cost -- `company_fwd` is the company's belief about that number and
+                # would make the rival's costs a function of the company's forecasting skill.
+                wholesale_gbp_per_mwh=forward_price,
             )
+            # THE RIVAL SEES THIS OFFER ONLY AFTER THE TERM IT WAS STRUCK IN (2026-08-28, C2).
+            # Recorded AFTER the roll, and read back by `position_for()` a quarter later, so no
+            # offer can ever reach the reference it is itself being measured against. Recording
+            # it before the roll would make the differential partly a function of itself, which
+            # is the tautology R15 names first.
+            _competitor_position_ledger.observe(term_start_str, unit_rate)
             if event is not None:
                 _journey.record_decision(
                     date.fromisoformat(term_start_str), switched=(event["event_type"] == "churned"),

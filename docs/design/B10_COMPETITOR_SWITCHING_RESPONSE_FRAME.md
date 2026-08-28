@@ -335,3 +335,30 @@ Mapped directly onto this FRAME:
 
 None of (a)–(e) are opened by this document — BUILD-open remains DIRECTOR_TWIN's call per
 `EPOCH_GATING_AND_ATOM_AUTHORSHIP.md` §3a, within epoch 3 once sequencing allows it.
+
+---
+
+## AMENDMENT, 2026-08-28 — the gap §1.2 names was closed on 2026-08-27
+
+**Read this before building from Part 2.** This FRAME is dated 2026-07-29. On 2026-08-27 the
+churn decision gained a per-customer relative-price term
+(`simulation/customer_events.py::_price_differential_vs_market` +
+`price_elasticity_for_customer`), which is §2.1's stated purpose — *"a switching probability that
+responds to the live gap between the company's own price and that tariff"* — and which makes
+§1.2's "single clearest confirmation of the gap" no longer true.
+
+**The half that remains is the half the director's C2 is about**, and it is a different
+deliverable: *nothing in the world responds to what the company does.* The reference the
+differential is measured against (`simulation/svt_rates.py`, and this FRAME's own proposed
+`MARKET_SAVINGS_BY_YEAR`) is a table keyed on the calendar. It cannot move.
+
+**B10's amended deliverable: a competitor reference price that is a function of the company's own
+observed position, with a lag, bounded below by a cost floor built from the same wholesale stack
+the company faces.** Control B's killer mutation becomes *"freeze the reference at its calendar
+value and the responsiveness test must go red"* — a strictly better mutation than the original,
+because that mutation reproduces the world as it stands today.
+
+Full evidence and reasoning:
+`docs/staging/WORKER_FINDING_B10S_FRAME_TARGETS_THE_HALF_THAT_ALREADY_LANDED_2026-08-28.md`.
+Part 1's DISCOVER survey and Part 2's wall statement (§2.3), controls (§2.4) and portability
+constraints are otherwise unaffected and stand.

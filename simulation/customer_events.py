@@ -44,7 +44,11 @@ PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
 
 def _price_differential_vs_market(
-    new_rate_gbp_per_mwh: float | None, term_start_str: str
+    new_rate_gbp_per_mwh: float | None,
+    term_start_str: str,
+    *,
+    position_ledger=None,
+    wholesale_gbp_per_mwh: float | None = None,
 ) -> float | None:
     """Where THIS customer's offered rate sits against the published market reference.
 
@@ -62,10 +66,32 @@ def _price_differential_vs_market(
         return None
     from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
-    svt = get_svt_elec_rate_gbp_per_mwh(term_start_str)
-    if not svt or svt <= 0:
+    reference = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+
+    # THE REFERENCE DEFENDS (2026-08-28, director's C2: "nothing in the world responds to what
+    # the company does. Nobody undercuts it, nobody defends, nobody targets its book"). With no
+    # ledger this is byte-identically the published cap, which is what every measurement before
+    # today was taken against; with one, a rival that has seen the company undercut it follows
+    # that price down over quarters, so a price advantage DECAYS instead of persisting.
+    #
+    # THE LAG IS WHY IT IS SAFE TO READ THE COMPANY'S OWN RATE HERE. The ledger reports the
+    # PREVIOUS quarter's mean, never this term's rate, so nothing about the offer being priced
+    # right now can reach the reference it is being measured against -- which would be a rival
+    # with foresight, and a tautology besides.
+    if position_ledger is not None:
+        from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
+
+        moved = competitor_reference_rate_gbp_per_mwh(
+            term_start_str,
+            company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
+            wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
+        )
+        if moved is not None:
+            reference = moved
+
+    if not reference or reference <= 0:
         return None
-    return (float(new_rate_gbp_per_mwh) - float(svt)) / float(svt)
+    return (float(new_rate_gbp_per_mwh) - float(reference)) / float(reference)
 
 #: Segments the Ofgem/BMG evidence actually covers. Its sample is 3,235 GB **domestic energy bill
 #: payers**; it says nothing whatever about how an industrial site buys power.
@@ -195,6 +221,8 @@ def roll_lifecycle_event(
     income_stress: IncomeStress | None = None,
     satisfaction_score: float | None = None,
     market_year: int | None = None,
+    position_ledger=None,
+    wholesale_gbp_per_mwh: float | None = None,
 ) -> dict | None:
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
@@ -296,7 +324,10 @@ def roll_lifecycle_event(
     # market reference `renewal_desk._apply_competitive_ceiling` already prices against and the
     # one `_build_churn_basis_risk` already reports as `rate_vs_svt_pct`. The run-level parameter
     # remains as the fallback for a caller that has no rate to hand.
-    differential = _price_differential_vs_market(new_rate_gbp_per_mwh, term_start_str)
+    differential = _price_differential_vs_market(
+        new_rate_gbp_per_mwh, term_start_str,
+        position_ledger=position_ledger, wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
+    )
     if differential is None:
         differential = price_differential_pct
     if differential:
