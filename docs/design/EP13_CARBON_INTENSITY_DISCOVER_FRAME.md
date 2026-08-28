@@ -568,3 +568,115 @@ evidence page's fail-open floor test is red at HEAD — 15 citations against a >
 fixture copies `maturity_map.yaml` and not the closed half, so 224 of 298 atoms vanish from the
 fixture's map. The live page builds 214. Attributed to HEAD with both sources restored; unrelated to
 this change.
+
+## 13. 2026-08-28 — the PEER BOUND: the target is reproducible at 0.97, so the axis is not exhausted
+
+**Four candidates have now been retired by measuring their ceiling first, and every one of those
+measurements came back negative.** The biomass outage model (§10), the merit-order programme
+(§11), post-hoc recalibration (§11) and embedded generation (the eighth pass) all reported no
+headroom. A programme that has heard "no headroom" four times running has to ask a question it had
+never asked, because §11's instrument cannot answer it:
+
+> **Is the target reproducible at all?**
+
+`ep13_input_ceiling` bounds the best function of **the model's own inputs**. It cannot distinguish
+*the information is not in these inputs* from *the information is not anywhere*, and those two have
+opposite consequences. The first says find a new input. The second says the axis is measuring the
+counterparty's own noise and no build of any kind can move it — which, after four negatives, was
+becoming the comfortable reading.
+
+**The discriminator was free and had been in the cache the whole time.** NESO publishes a
+`forecast` on every one of the 104,454 half hours it publishes an `actual` for, and nothing had
+ever scored one against the other on this axis. Score the publisher's own forecast against the
+publisher's own outturn, on the same held-out even days, through the same `neso.compare_shapes`,
+and the answer is a fact about the **target** rather than about us. It fits nothing, so it costs
+seconds where §11 cost 85 minutes.
+
+**THE RESULT — the target is reproducible, and the reconstruction is nowhere near it.**
+
+| year | baseline (shipped) | **peer forecast** | peer − baseline | peer's own day mean |
+|---|---|---|---|---|
+| 2019 | 0.8814 | **0.9649** | +0.084 | 0.8312 |
+| 2020 | 0.8732 | **0.9679** | +0.095 | 0.8422 |
+| 2021 | 0.9075 | **0.9790** | +0.072 | 0.8457 |
+| 2022 | 0.8699 | **0.9779** | +0.108 | 0.8863 |
+| 2023 | 0.7973 | **0.9749** | +0.178 | 0.8881 |
+| **2024** | **0.7425** | **0.9711** | **+0.229** | 0.8544 |
+
+**In 2024 — the year that has held the level for eight passes — the publisher's own ex-ante
+forecast scores 0.229 of correlation above the shipped reconstruction.** The within-day axis is
+not noise. §11's ceiling was a fact about the reconstruction's *inputs*, exactly as it said, and
+the diagnosis it wrote down — *L3 needs a new input carrying within-day timing* — is **confirmed
+rather than retired**. This is the first positive result the atom has had in five measurements.
+
+**THE PERSISTENCE LADDER, which is what makes 0.97 readable and cuts the claim down.** Carbon
+intensity is heavily autocorrelated, so a correlation of 0.97 means nothing until you know what a
+copy of the recent past scores. Every rung below is the outturn itself, lagged, scored by the same
+function on the same keys — a model any reader can rebuild in three lines:
+
+| year | lag 1 (30 min) | lag 2 (1 h) | lag 4 (2 h) | lag 48 (1 day) | **peer sits at** |
+|---|---|---|---|---|---|
+| 2019 | 0.9922 | 0.9731 | 0.9160 | 0.5340 | **2.29 half hours** |
+| 2021 | 0.9937 | 0.9789 | 0.9321 | 0.6017 | **1.99** |
+| 2024 | 0.9930 | 0.9776 | 0.9306 | 0.6328 | **2.28** |
+
+**NESO's published forecast is worth about a one-hour persistence model, and a one-day persistence
+model collapses to 0.60.** That is the honest size of the peer's achievement, and it makes the
+finding *stronger*, not weaker: the information the reconstruction is missing is not exotic. A
+copy of the grid an hour ago beats it by 0.24 in 2024.
+
+**WHAT THIS BOUND IS NOT, stated because the high number invites over-reading.** It is **not an
+oracle** — it holds no truth and can be beaten. It is **not independent**: NESO's `actual` is
+itself a model, built from the same factor table, the same embedded-generation estimate and the
+same loss correction as its forecast, so the common-mode part cancels and this **overstates** what
+an outside reconstruction could reach. The optimism runs in the safe direction and that is the
+whole reason it was worth measuring — a *low* peer would have closed the atom's remaining
+programme outright; a high one promises nothing about any build. And the ladder bounds the peer's
+*skill*, not its *horizon*: it says 0.97 is attainable by a model that knows the outturn an hour
+ago, not that NESO's forecast only looks an hour ahead.
+
+**CONTROLS — five, all green in all six years, and the tautology guard is the one to read first.**
+If the `forecast` field were back-filled from the outturn for settled half hours this would be a
+series compared with itself and would report ~1.0 by construction, which is R15's first killer
+exactly. Measured: the two are bit-identical on **4.1%** of half hours and differ by a mean of
+**9.8 g**; a copy scores 100% and 0 g. The null rung (the forecast dealt to other half hours)
+collapses to −0.023…+0.020 against a derived 3/√n bar. The peer beats its own day mean by
+0.09–0.15, so its advantage is genuinely within-day. The ladder **brackets** the peer in every
+year — a ladder entirely below it would bound it on one side only, and a one-sided containment
+check passes by being wide. Both sides are refused together at NESO's own published coal factor
+(937 g/kWh, the dirtiest grid GB could physically be), because a filter on one side of a
+comparison measures the filter; 6 half hours refused.
+
+**R15 — EIGHT NAMED MUTATIONS, and one survived and the CONTROL was the fault.**
+`peer_beats_its_own_day_mean`, written as the obvious `peer > peer_day_mean`, **passed** under its
+own defect: when the mutation replaces the forecast with its own day mean the two sides are equal
+*by construction*, and they differed by 1.1e-16 of floating point, which a strict inequality reads
+as an advantage. **A control comparing two quantities that its own named defect makes identical is
+fail-open without a materiality margin** — it reports rounding noise as a finding. Fixed with
+`MIN_WITHIN_DAY_ADVANTAGE = 0.01`, more than ten times below the measured gap so the bar is
+visibly not carrying the result, and the test now asserts both that the mutation makes the sides
+equal (or it is testing something else) and that the margin binds.
+
+**A FINDING ABOUT THE ATOM'S OWN EXIT AXIS, recorded and DELIBERATELY NOT ACTED ON.** A statistic
+that a lag-1 copy wins at 0.993 is a weak discriminator for a *structural* reconstruction, and this
+atom's level has been decided on it for eight passes. That observation arrives from an agent whose
+own score on that axis is the thing being held — which is precisely the shape R12 and R13 exist to
+refuse, and the shape of taking the robust statistic *because* it is the flattering one. So it is
+written down here and **nothing follows from it in this pass**: the exit axis is unchanged,
+`level_target` is unchanged, the level stays at **2**, and the recommendation — that a
+reconstruction be scored on a statistic autocorrelation does not dominate, alongside correlation
+rather than instead of it — is the director's to take or leave. Exit-test integrity is a WALL.
+
+**WHAT THIS POINTS AT, named as a hypothesis and explicitly NOT built.** NESO's forecast is built
+from a forecast **per fuel**; the reconstruction reduces everything to a residual and a merit
+order, which §11 proved is exhausted. Elexon's half-hourly FUELHH per-fuel outturn is already in
+`sim/cache` and already read for coal, biomass and the must-run block. An oracle rung handing the
+fit per-fuel outturn would bound that input — and would be **not publishable**, of the same class
+as §11's input ceiling, because it is NESO's arithmetic. Its value would be as a bound: if it comes
+in near 1.0 the missing information is squarely the fuel mix, and the buildable question becomes
+how much of the fuel mix is forecastable from published day-ahead data. That is the next
+measurement, and it is a measurement before it is a build.
+
+**No level move. LAW A.** Reproduce: `python3 -m tools.ep13_peer_bound` →
+`docs/observability/ep13_peer_bound.json`. Controls: `tests/tools/test_ep13_peer_bound.py`, 16
+tests.
