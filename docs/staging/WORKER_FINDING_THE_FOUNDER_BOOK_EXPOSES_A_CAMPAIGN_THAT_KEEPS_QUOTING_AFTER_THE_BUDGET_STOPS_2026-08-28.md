@@ -103,4 +103,54 @@ file and the tests, with the restore commands and what blocks them. **It is out 
 on purpose** — the gates read the whole tree, so leaving it in place would have made every lane's
 commit red rather than only mine.
 
+## SEAT NOTE 2026-08-28 — the 2.6% is a MIXED statistic, and a machine limit is inside the company's own belief
+
+Added by the delivery seat after reading the module. Every claim below is
+**observed-with-evidence in the code**, not re-measured from a run (R9) — no run was executed for
+this note, and the 1,707/45 pair is taken from the finding above as reported.
+
+1. **The refusal is not commercial.** `simulation/net_new_acquisition.py:603-606` refuses the win at
+   `committed_cy + cost_cy > customer_year_budget` and sets `binding = "settlement_engine"`. The
+   module's own note at `:641` says `1200.0` (`SETTLEMENT_CUSTOMER_YEAR_BUDGET`, `:429`) is
+   *"THIS MACHINE's budget (60% of the 465 measured in AO12's scale probe), not a commercial
+   limit."* So an unknown share of the wins that vanished between 211 and 45 were **won in the
+   funnel and then refused a place on the book by the harness's own capacity** — they were not lost
+   in the market.
+
+2. **So "conversion fell to 2.6%" is a mixed statistic.** It divides quotes by BOOKED wins, and
+   bookings are truncated by an engineering cap. It has to be split per class before anything is
+   ruled: funnel wins, and funnel wins refused by the settlement budget. Only the first is about a
+   supplier; reported together, the unobservable class reads as commercial behaviour.
+
+3. **`by_year` cannot currently be split.** Its `wins` field is `won_this_year`, which counts BOOKED
+   wins only (`:622`). The funnel's own verdict does survive in `spend[]["won"]`, so the split is
+   recoverable from the returned dict — but it is on no row a reader sees, and `cy_exhausted_at`
+   names only the FIRST refused prospect, never how many followed it. That, and not the quoting,
+   is the thing that is genuinely unreported.
+
+4. **The machine limit is inside the company's belief.** `wins_to_date += won_this_year` (`:617`)
+   is what feeds `quote_budget_fn`, and `saas/growth_mandate.py:312-313` computes
+   `expected_quotes_per_win` and `realised_win_rate` from exactly that pair. The company therefore
+   plans next year's quote budget on a conversion rate that a harness capacity limit helped set.
+   This is not the company being allowed to be wrong about the world — it is the harness reaching
+   into the company's own books, and it is a wall question rather than a tuning one.
+
+### What this changes about WORK item 1
+
+The ruling asked for is *"either the campaign stops quoting when the budget can no longer convert,
+or it does not and the artefact says so with the number."* On the evidence above that question is
+malformed as posed: **the budget that stopped converting is not the company's**, so
+*"a supplier that goes on paying for leads after it has run out of the capacity to serve them"* is
+not yet shown to be what the run does.
+
+**Recommendation, and the next thing I would do in this lane:** report the split FIRST — carry
+`funnel_wins` and `wins_refused_by_settlement_budget` on every `by_year` row plus a campaign total —
+then re-read the 1,707/45 pair against it, and only then rule. If most of the 166 missing wins are
+engine-refused there is no commercial behaviour to rule on, and the founder book is being held
+behind a measurement nobody has taken. Whether `realised_win_rate` should be computed on funnel wins
+rather than booked wins is the separate wall question, and it outranks the quoting one.
+
+**Not fixed here on purpose** (SELF_INTERRUPT_DISCIPLINE — queue, don't fix on sight): this note is a
+disposition, not a change. The finding stays BLOCKING and stays in the staging root.
+
 ## Still live
