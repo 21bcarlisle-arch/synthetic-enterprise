@@ -438,13 +438,23 @@ CAC_ONE_OFF_GBP_PER_DUAL_FUEL_CUSTOMER: dict[str, float] = {
     # Appendix 8.3).
     "pcs_aggregator": 55.0,
 }
+# Midpoint of the £25-£30 single-fuel PCS commission -- the same source states both bands
+# ("~£50-£60 for a dual-fuel switch, ~£25-£30 for single-fuel", CMA Energy market
+# investigation Appendix 8.3 via docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md line 10).
+# Carries its own citation rather than leaning on the block above it: since 2026-08-28 this,
+# not the dual-fuel rate, is what the live campaign spends per billing account (see
+# `saas.growth_mandate.cost_per_acquisition_gbp` for why the per-account unit is single-fuel),
+# and the figure the company actually spends is the one that must be traceable on its own.
 CAC_ONE_OFF_GBP_PER_SINGLE_FUEL_CUSTOMER: dict[str, float] = {
     "pcs_aggregator": 27.5,
 }
 
 # Ongoing broker commission, GBP per kWh billed (NOT one-off) -- real,
 # UK-specific, sourced (Connection Technologies, "Business Energy Broker Fees
-# 2026"). Midpoints of the cited bands.
+# 2026"), recorded at docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md.
+# Midpoints of the cited bands. Live since 2026-08-28: this is what business
+# acquisition costs the book, charged per kWh at billing time by
+# build_broker_commission_ledger_events() below.
 BROKER_COMMISSION_GBP_PER_KWH: dict[str, float] = {
     "sme": 0.0125,             # midpoint 0.5-2.0p/kWh, small business band
     "ic_mid_market": 0.0075,   # midpoint 0.3-1.2p/kWh
@@ -473,6 +483,70 @@ def broker_commission_gbp(kwh: float, segment: str) -> float:
     if rate is None:
         return 0.0
     return round(kwh * rate, 2)
+
+
+# Which company segment pays which of the research's broker bands. The bands are the
+# research's own (small business / mid-market I&C / half-hourly I&C); this map is the only
+# thing added here, and it says which of them a segment in THIS book falls in.
+#
+# `ic_half_hourly` is deliberately unreachable: no customer record in this model carries a
+# half-hourly flag, so choosing that band for I&C would be asserting a fact we do not hold.
+# I&C therefore takes the mid-market band, which is the more expensive of the two remaining
+# and so is not the flattering choice. When a HH flag exists, this map is where it lands.
+BROKER_BAND_BY_SEGMENT: dict[str, str] = {
+    "SME": "sme",
+    "sme": "sme",
+    "I&C": "ic_mid_market",
+    "ic": "ic_mid_market",
+}
+
+
+def build_broker_commission_ledger_events(
+    settlement_records: list[dict[str, Any]], customers: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """The ONGOING half of business acquisition cost, charged at billing time.
+
+    WHY THIS EXISTS (2026-08-28, WORKER_FINDING_THE_SOURCED_ACQUISITION_MODEL_IS_UNWIRED_AND_
+    THE_INVENTED_ONE_IS_LIVE.md, roadmap R2). `broker_commission_gbp()` has been the correct,
+    sourced model of business acquisition cost since 2026-07-10 and had no caller outside its
+    own tests, while `saas.growth_mandate.COST_PER_ACQUISITION["SME"] = 400.0` — an invented
+    one-off, and the shape the research explicitly says not to use — was what the live
+    campaign spent. That one-off is now a structural 0.0 and this is what replaces it.
+
+    A broker trail is a real, ongoing per-kWh commission embedded in the unit rate for the
+    life of the contract, so it accrues on CONSUMPTION as it is billed, not on a signup event.
+    Aggregated per calendar month (the same bucketing
+    `saas.cost_to_serve.build_cost_to_serve_ledger_events` uses) so the ledger gets a real
+    non-zero line without a per-settlement-period explosion of entries.
+
+    It books to account 6300 "Customer Acquisition and Retention", the same account the
+    one-off it replaces booked to — the cost is still acquisition cost; only its shape and
+    its timing changed. That is the whole point of R2: it moves the P&L, not just its level.
+
+    Returns: [{"month": "YYYY-MM", "amount_gbp": float}, ...] sorted by month. Residential
+    accounts contribute nothing (their channel cost is the one-off PCS commission, already
+    charged at acquisition), so a book with no business accounts returns [].
+    """
+    band_by_customer = {
+        c["customer_id"]: BROKER_BAND_BY_SEGMENT.get(c.get("segment", "resi"))
+        for c in customers
+    }
+    by_month: dict[str, float] = {}
+    for record in settlement_records:
+        band = band_by_customer.get(record["customer_id"])
+        if band is None:
+            continue
+        kwh = record.get("consumption_kwh") or 0.0
+        if not kwh:
+            continue
+        month = record["settlement_date"][:7]
+        by_month[month] = by_month.get(month, 0.0) + broker_commission_gbp(kwh, band)
+
+    return [
+        {"month": month, "amount_gbp": round(by_month[month], 2)}
+        for month in sorted(by_month)
+        if by_month[month]
+    ]
 
 
 def cost_lines_by_classification() -> dict[str, list[str]]:

@@ -294,9 +294,11 @@ class TestStageCalendarSpacing:
 
     # 150.0 is passed explicitly in the three tests below because the argument is now
     # REQUIRED (KNIFE pass 3, B6): the funnel no longer defaults to the company's own
-    # COST_PER_ACQUISITION["resi"]. That figure IS 150.0, so these three keep the exact
-    # values they asserted before the cut -- the point of the cut is that the world is
-    # told the amount, not that the amount changed.
+    # cost table. It once matched `COST_PER_ACQUISITION["resi"]`, which was 150.0; that
+    # table was deleted on 2026-08-28 as unsourced and the live figure is now £27.50.
+    # These three keep 150.0 anyway, deliberately: what they assert is that the funnel's
+    # stage dates and determinism do not depend on the amount, so an arbitrary amount is
+    # the right fixture and tying it to the live constant would only couple them to it.
     def test_stage_date_deterministic_for_same_seed(self):
         r1 = run_acquisition_funnel("resi", "seedD", date(2021, 6, 1), _FakeBureau(passed=True),
                                     total_amount_gbp=150.0)

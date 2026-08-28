@@ -179,6 +179,13 @@ def _entry_in_the_normal_direction(event: dict[str, Any]) -> dict[str, Any] | No
         return _entry(eid, ts, "6300", "1001", amount,
                       f"Acquisition/retention spend: {cid}", et)
 
+    # The ONGOING half of acquisition cost (business broker trail, per kWh billed). Same
+    # account as the one-off above because it is the same kind of cost; separate event type
+    # because its shape and timing differ and a reader is entitled to tell them apart.
+    if et == "broker_commission_event":
+        return _entry(eid, ts, "6300", "1001", amount,
+                      f"Broker trail commission: {event.get('month', ts)}", et)
+
     if et == "fixed_cost_event":
         return _entry(eid, ts, "6200", "1001", amount,
                       f"Fixed overheads: {event.get('month', ts)}", et)

@@ -72,6 +72,7 @@ from saas.ledger import (
     build_ledger,
     derive_pnl,
     ledger_summary,
+    make_broker_commission_event,
     make_cost_to_serve_event,
 )
 
@@ -105,6 +106,7 @@ def close_the_books(
     acquisition_spend_events: list[dict[str, Any]] | None = None,
     fixed_cost_events: list[dict[str, Any]] | None = None,
     cost_to_serve_ledger_events: list[dict[str, Any]] | None = None,
+    broker_commission_events: list[dict[str, Any]] | None = None,
     payment_model: Any = None,
 ) -> AccountingClose:
     """Close this run's books over the settled records and assembled bills.
@@ -120,6 +122,10 @@ def close_the_books(
     `cost_to_serve_ledger_events` — the customer-value layer's monthly
         per-account cost-to-serve schedule (`{month, amount_gbp}`), shaped into
         account-6100 events here so account 6100 stops netting to zero.
+    `broker_commission_events` — the ONGOING half of business acquisition cost, a monthly
+        `{month, amount_gbp}` schedule of broker trail commission accrued on billed volume
+        (`saas.opex_ledger.build_broker_commission_ledger_events`). Shaped into account-6300
+        events here, the same account the one-off acquisition spend it replaced booked to.
     `payment_model` — the supplier's credit-risk/bad-debt model; defaults to
         `saas.payment_behaviour`.
     """
@@ -133,6 +139,10 @@ def close_the_books(
         + [
             make_cost_to_serve_event(event["month"], event["amount_gbp"])
             for event in (cost_to_serve_ledger_events or [])
+        ]
+        + [
+            make_broker_commission_event(event["month"], event["amount_gbp"])
+            for event in (broker_commission_events or [])
         ]
     )
 

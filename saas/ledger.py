@@ -181,6 +181,25 @@ def make_retention_cost_event(
         'amount_gbp': -cost_gbp,
     }
 
+def make_broker_commission_event(month: str, amount_gbp: float) -> dict[str, Any]:
+    """Cash out: the month's accrued broker trail commission on business volume.
+
+    Books to account 6300 alongside `acquisition_spend_event` — it IS acquisition cost, and
+    the only difference is that it is ongoing and per-kWh rather than one-off at signup
+    (`saas.opex_ledger.build_broker_commission_ledger_events`, sourced to
+    `docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md`). Keyed by month, not by billing
+    account, for the same reason `fixed_cost_event` is: the schedule it comes from is
+    already aggregated.
+    """
+    return {
+        "transaction_id": _tid("broker_commission", month),
+        "event_type": "broker_commission_event",
+        "timestamp": month + "-01",
+        "month": month,
+        "amount_gbp": -amount_gbp,
+    }
+
+
 def make_fixed_cost_event(month: str, amount_gbp: float) -> dict[str, Any]:
     """Cash out: monthly operating overhead (metering admin, licensing, ops)."""
     return {

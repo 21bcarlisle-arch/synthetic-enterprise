@@ -657,6 +657,17 @@ def _pre_growth_book(seed: int) -> List[dict]:
     ]
 
 
+# The run's last reported day, as the campaign's quote cutoff.
+#
+# STATED HERE RATHER THAN IMPORTED, and that is the whole of the compromise. The canonical
+# value is `simulation.run_phase2b.REPORT_END`, but run_phase2b imports THIS module, so any
+# import of it from here -- module-scope or lazy -- closes a cycle that is live during
+# run_phase2b's own initialisation. A copied constant would then be free to drift, so it is
+# not left to care: `test_the_campaign_quote_cutoff_is_the_reported_period_end` asserts the
+# two are equal, and reds if either moves without the other.
+CAMPAIGN_QUOTE_CUTOFF = "2025-06-07"
+
+
 def _resolve_campaign(book: List[dict], seed: int) -> dict:
     """Run the campaign. Callers want `_campaign`; this is the uncached body."""
     import datetime as _dt
@@ -702,6 +713,13 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
         ),
         accounts_held_at_start=len(book),
         horizon_end=horizon,
+        # The run's last reported day, so the campaign cannot quote a prospect who has not
+        # come to market yet in the world the accounts describe. Distinct from `horizon_end`
+        # above on purpose: that is how long a won account settles for (2026-01-01), this is
+        # how far the reported world has got (REPORT_END). They were always different; it
+        # only became material when the sourced acquisition costs made quotes cheap enough
+        # for the campaign to reach deep into the unreported tail of 2025.
+        quote_cutoff=CAMPAIGN_QUOTE_CUTOFF,
         credit_bureau=get_credit_bureau_adapter(),
         cost_per_quote_gbp={
             seg: quote_cost_gbp(segment=seg) for seg in ("resi", "SME")

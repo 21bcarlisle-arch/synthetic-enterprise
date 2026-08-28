@@ -426,6 +426,34 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: can. This is an ENGINEERING ceiling — what this machine can settle in a cycle — and not an
 #: R13 curriculum value: it does not decide how hard the world is, only how much of the world
 #: this box can afford to settle.
+#:
+#: THE RULING OF 2026-08-28, on "does the campaign keep paying for quotes after the budget can
+#: no longer convert them -- company defect, or fidelity?" (BLOCKING finding
+#: WORKER_FINDING_THE_FOUNDER_BOOK_EXPOSES_A_CAMPAIGN_THAT_KEEPS_QUOTING_AFTER_THE_BUDGET_STOPS).
+#: **NEITHER. The question was malformed and the run could not answer it as posed.** Measured
+#: at the director's 80-founder book against the 13-founder one, one variable at a time:
+#:
+#:                          founders 13    founders 80
+#:     quotes paid for            1,066          2,089
+#:     wins the FUNNEL gave         200            380
+#:     wins BOOKED                  200             45
+#:     wins refused by THIS BUDGET    0            335
+#:     funnel conversion           18.8%          18.2%
+#:
+#: The company's commercial behaviour is unchanged: it converts at the same rate on a book six
+#: times deeper. 335 of the 380 wins (88%) were not lost in the market -- they were won and then
+#: refused a place on the book by the line below, which is an engineering ceiling and does not
+#: exist in the modelled world. There was never a supplier marketing past its capacity to rule
+#: on. Dividing quotes by BOOKED wins mixes a commercial class with a harness one and reports
+#: the machine's limit as the company's judgement.
+#:
+#: WHAT WAS A DEFECT is a WALL breach, not a commercial one, and it is fixed at
+#: `wins_to_date` below: this ceiling was being fed back into the company's own planner, which
+#: drove its `realised_win_rate` to 1.7% and its quote budget to 2,000, so it bought 2,826
+#: quotes (£62,812) to book 45 accounts. On the funnel's own record it buys 2,089 (£46,408) --
+#: so £16,404 of the campaign's spend was this constant reaching into the company's books. At
+#: 13 founders the fix changes NOTHING (1,066/200/200, byte-identical), because nothing is
+#: refused there; that null result is what shows it is aimed at the artefact and not the answer.
 SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0
 
 
@@ -452,6 +480,7 @@ def plan_growth_campaign(
     commodity_weights: Optional[Mapping[str, float]] = None,
     segment_weights: Optional[Mapping[str, float]] = None,
     premise_stock_fn=None,
+    quote_cutoff: str | None = None,
 ) -> dict:
     """Resolve a multi-year acquisition campaign into won accounts and booked spend.
 
@@ -550,6 +579,14 @@ def plan_growth_campaign(
 
         binding = plan["binding"]
         won_this_year = 0
+        # THE FUNNEL'S OWN VERDICT, kept apart from the book's. `won_this_year` counts wins
+        # that got a PLACE ON THE BOOK; this counts wins the market gave us, and the
+        # difference is the engineering cap refusing to settle them. Split because the ratio
+        # of quotes to BOOKED wins mixes two classes -- a supplier losing in the market, and
+        # this machine running out of customer-years -- and only the first is commercial.
+        # Reported unsplit, an unobservable harness limit reads as company behaviour.
+        funnel_wins_this_year = 0
+        refused_this_year = 0
         spent_this_year = 0.0
         cy_exhausted_at = None
 
@@ -572,6 +609,27 @@ def plan_growth_campaign(
             for i, prospect in enumerate(pool):
                 if i >= quotes:
                     break
+                # THE COMPANY CANNOT QUOTE INTO A WEEK THE REPORTED WORLD HAS NOT REACHED
+                # (2026-08-28). `horizon_end` is the settlement horizon (2026-01-01) and is
+                # deliberately NOT this: it prices how long a won account settles for. This
+                # is the Point-in-Time Blindfold on the QUOTE — a prospect whose in-market
+                # date falls after the run's last reported day has not come to market yet,
+                # so the supplier has not met them and cannot have paid to quote them.
+                #
+                # This was latent until the acquisition costs were sourced. At the invented
+                # £112.50 a quote the campaign could only afford to reach 49 such prospects
+                # (4.4% of it) and the tail read as a rounding edge; at the sourced £20.63 it
+                # reached 143 (11.8%), and `test_c_the_window_filter_excludes_nothing_at_the_
+                # shipped_configuration`'s non-vacuity bound fired exactly as written. The
+                # bound was right and the behaviour was wrong: the fix is to stop planning
+                # the quotes, not to widen the bound to admit more of them.
+                #
+                # `continue`, not `break`: the budget is a quote COUNT, and a prospect the
+                # company never met should not consume one. The pool is date-ordered in
+                # practice, so this is usually a tail — but a `break` would make the outcome
+                # depend on that ordering holding, which nothing guarantees.
+                if quote_cutoff is not None and prospect.acquisition_date > quote_cutoff:
+                    continue
                 segment = prospect.segment
                 cost = cost_per_quote_gbp.get(segment, cost_per_quote_gbp["resi"])
                 in_market = dt.date.fromisoformat(prospect.acquisition_date)
@@ -593,6 +651,7 @@ def plan_growth_campaign(
                 })
                 if not result.won:
                     continue
+                funnel_wins_this_year += 1
                 # THE ENGINEERING CAP BITES ON THE WIN, not on the quote. A quote the
                 # company paid for is spent money whatever we can settle, and suppressing
                 # it would silently understate acquisition cost -- the one number a reader
@@ -601,6 +660,7 @@ def plan_growth_campaign(
                 # on the book, loudly.
                 cost_cy = _customer_years(in_market, horizon_end)
                 if committed_cy + cost_cy > customer_year_budget:
+                    refused_this_year += 1
                     if cy_exhausted_at is None:
                         cy_exhausted_at = prospect.customer_id
                         binding = "settlement_engine"
@@ -614,12 +674,30 @@ def plan_growth_campaign(
         # Booked BEFORE the record below, so `planning_on` in each year's row is the basis this
         # year was planned on -- not one retro-fitted from a total that already includes it.
         quotes_issued_to_date += quotes
-        wins_to_date += won_this_year
+        # THE FUNNEL'S WINS, NOT THE BOOK'S, and this line is a WALL fix rather than a tuning
+        # one (ruled 2026-08-28, see the module note at `SETTLEMENT_CUSTOMER_YEAR_BUDGET`).
+        # `won_this_year` is truncated by THIS MACHINE's settlement budget, which is an
+        # engineering ceiling and not a thing that exists in the modelled world. Feeding it
+        # back to `quote_budget_fn` put that ceiling inside the company's own commercial
+        # belief: at the 80-founder book it drove the company's `realised_win_rate` from
+        # 17.8% to 1.7% and its quote budget from 135 to 2,000, so the company bought 2,826
+        # quotes to book 45 accounts -- a supplier responding rationally to a number the
+        # harness made up. What a supplier actually knows is what its own funnel converted:
+        # it quoted, the prospect accepted. That is `funnel_wins_this_year`, and the
+        # settlement refusal is invisible to it because in the modelled world it did not
+        # happen. The refusal stays visible to the READER on every `by_year` row.
+        wins_to_date += funnel_wins_this_year
         by_year.append({
             "year": year,
             "quotes_issued": quotes,
             "quotes_affordable": plan["quotes"],
             "wins": won_this_year,
+            # THE SPLIT, on the row a reader actually sees. `wins` is booked wins and always
+            # was; these two say what it is made of. `funnel_wins` is what the market gave
+            # the company, `wins_refused_by_settlement_budget` is what THIS MACHINE would
+            # not settle, and the identity funnel_wins == wins + refused holds on every row.
+            "funnel_wins": funnel_wins_this_year,
+            "wins_refused_by_settlement_budget": refused_this_year,
             "believed_win_rate": plan.get("believed_win_rate"),
             "realised_win_rate_used": plan.get("realised_win_rate"),
             "planning_on": plan.get("planning_on", "belief"),
@@ -636,7 +714,8 @@ def plan_growth_campaign(
         })
         if cy_exhausted_at is not None:
             notes.append(
-                f"{year}: SETTLEMENT-BOUND at {cy_exhausted_at}. The company won accounts "
+                f"{year}: SETTLEMENT-BOUND at {cy_exhausted_at}, and {refused_this_year} "
+                f"win(s) refused after it. The company won accounts "
                 f"this run refused to settle -- {customer_year_budget} customer-years is "
                 f"THIS MACHINE's budget (60% of the 465 measured in AO12's scale probe), "
                 f"not a commercial limit. The book below is smaller than the supplier's "
@@ -650,4 +729,11 @@ def plan_growth_campaign(
         "notes": notes,
         "customer_years_committed": round(committed_cy, 1),
         "customer_year_budget": customer_year_budget,
+        # CAMPAIGN TOTALS OF THE SPLIT. Derived from the rows rather than counted again, so
+        # the two can never disagree; here because the question a reader asks of a campaign
+        # ("did we lose these in the market, or did the machine refuse them?") is asked of
+        # the whole run and not of one year.
+        "funnel_wins": sum(r["funnel_wins"] for r in by_year),
+        "wins_refused_by_settlement_budget": sum(
+            r["wins_refused_by_settlement_budget"] for r in by_year),
     }

@@ -57,7 +57,12 @@ class TestBehaviour:
 
     @pytest.mark.parametrize(
         "segment,expected_budget",
-        [("resi", 150.0), ("SME", 400.0), ("micro", 150.0)],
+        # SOURCED SINCE 2026-08-28: resi is the £25-£30 single-fuel PCS commission midpoint
+        # (per billing account, so a dual-fuel household costs the sourced £55); SME is a
+        # STRUCTURAL zero because business acquisition is a per-kWh broker trail charged at
+        # billing time, not a one-off. "micro" is the unknown-segment default and still falls
+        # back to resi. Was ("resi", 150.0), ("SME", 400.0) -- both invented.
+        [("resi", 27.5), ("SME", 0.0), ("micro", 27.5)],
     )
     def test_the_budget_per_segment_including_the_unknown_default(
         self, segment, expected_budget
@@ -123,9 +128,14 @@ class TestBehaviour:
         assert decision.gate_reason is None
 
     def test_the_retention_guard_credit_is_the_segments_replacement_cost(self):
-        assert replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True) == 150.0
-        assert replacement_cost_avoided_gbp(segment="SME", counted_in_guard=True) == 400.0
-        assert replacement_cost_avoided_gbp(segment="micro", counted_in_guard=True) == 150.0
+        assert replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True) == 27.5
+        assert replacement_cost_avoided_gbp(segment="micro", counted_in_guard=True) == 27.5
+        # A BROKER-ACQUIRED SEGMENT CREDITS NOTHING, and that is correct rather than a gap:
+        # the guard credits the REPLACEMENT SPEND retention avoids, and replacing an SME
+        # costs no one-off spend to avoid. What retaining it avoids is a future trail on
+        # volume the company would have had to win back -- a different quantity, not yet
+        # modelled, and crediting the deleted £400 here would be crediting an invented one.
+        assert replacement_cost_avoided_gbp(segment="SME", counted_in_guard=True) == 0.0
 
     def test_the_frozen_naive_policy_zeroes_that_credit_rather_than_scaling_it(self):
         # The whole effect of `policy.include_acq_cost_saved_in_guard=False`.
@@ -223,7 +233,8 @@ class TestTheDoorIsADoor:
         [
             (
                 "company.interfaces.growth_desk",
-                ("COST_PER_ACQUISITION", "FIXED_COST_MONTHLY", "MANDATE",
+                ("cost_per_acquisition_gbp", "COST_PER_ACQUISITION",
+                 "FIXED_COST_MONTHLY", "MANDATE",
                  "ACQUISITION_WIN_RATE", "should_attempt_acquisition",
                  "make_acquisition_spend_event", "make_retention_cost_event",
                  "make_fixed_cost_event"),
@@ -306,7 +317,11 @@ class TestTheWorldNoLongerHoldsIt:
         "identifier,what",
         [
             ("FIXED_COST_MONTHLY", "the supplier's monthly overhead figure"),
-            ("COST_PER_ACQUISITION", "the supplier's per-segment replacement cost table"),
+            # `COST_PER_ACQUISITION` was deleted 2026-08-28 (unsourced). Both names are kept
+            # under guard: the new one because it is the live route to the figure, the old one
+            # so a revival would be caught rather than quietly readmitted.
+            ("cost_per_acquisition_gbp", "the supplier's per-segment acquisition cost rule"),
+            ("COST_PER_ACQUISITION", "the deleted per-segment replacement cost table"),
         ],
     )
     def test_the_suppliers_own_cost_constants_are_unreadable_under_simulation(

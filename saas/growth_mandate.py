@@ -11,11 +11,52 @@ import random
 # "shrink": no acquisition attempts (wind down portfolio).
 MANDATE: str = "flat"
 
-# Cost to attempt a fresh market acquisition (spent whether won or not).
-COST_PER_ACQUISITION: dict[str, float] = {
-    "resi": 150.0,
-    "SME": 400.0,
-}
+# WHAT REPLACED `COST_PER_ACQUISITION` (2026-08-28, WORKER_FINDING_THE_SOURCED_ACQUISITION_
+# MODEL_IS_UNWIRED_AND_THE_INVENTED_ONE_IS_LIVE.md, roadmap R1/R2).
+#
+# This module used to hold `COST_PER_ACQUISITION = {"resi": 150.0, "SME": 400.0}` — two
+# invented numbers with no source behind them, and they were what the live campaign spent.
+# The researched model already existed, in `saas/opex_ledger.py`, cited to
+# `docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md` (CMA Energy market investigation
+# Appendix 8.3 and broker rate cards), and reached no code. The table is DELETED rather than
+# re-pointed, so a caller cannot reach an unsourced figure through this namespace at all.
+#
+# TWO CHOICES ARE MADE HERE AND BOTH ARE VISIBLE ON PURPOSE.
+#
+# 1. THE RESIDENTIAL RATE IS THE SINGLE-FUEL ONE, £27.50, NOT THE DUAL-FUEL £55. The
+#    acquisition event in this model fires per BILLING ACCOUNT (one fuel — 'C1' and 'C1g' are
+#    two accounts of one household), so charging the dual-fuel commission per account would
+#    bill £110 for a household the source prices at £55. Charging the single-fuel rate per
+#    account sums to exactly the sourced £55 for a dual-fuel household and to the sourced
+#    £27.50 for a single-fuel one. The sourced figure is the household's; the per-account rate
+#    is the arithmetic that lands it, not a second assumption.
+#
+# 2. BUSINESS ACQUISITION HAS NO ONE-OFF COST AT ALL — it returns 0.0 here because the cost
+#    is real but a different SHAPE: an ongoing broker trail commission embedded in the unit
+#    rate for the life of the contract, charged per kWh at billing time via
+#    `saas.opex_ledger.build_broker_commission_ledger_events()`. The research says this in
+#    terms ("recommend modelling as an ongoing per-kWh cost line (not a one-off acquisition
+#    cost) ... rather than forcing it into the same 'one-off CAC per new customer' shape").
+#    The 0.0 is therefore a STRUCTURAL zero, not a missing number, and it is not a discount to
+#    the book: the trail is charged, to the same ledger account 6300, over the whole term.
+def cost_per_acquisition_gbp(segment: str) -> float:
+    """One-off acquisition cost for one billing account in `segment`, sourced.
+
+    Unknown segments fall back to the residential rate, matching the old table's
+    `.get(segment, COST_PER_ACQUISITION["resi"])` behaviour at every call site.
+    """
+    from saas.opex_ledger import acquisition_cost_gbp
+
+    if segment in _BROKER_ACQUIRED_SEGMENTS:
+        return 0.0
+    return acquisition_cost_gbp("pcs_aggregator", is_dual_fuel=False)
+
+
+# Segments whose acquisition cost is a broker trail, not a one-off. Named here (and read by
+# `saas.opex_ledger`) so the two halves of the same decision cannot drift apart: a segment
+# that stops paying a one-off here must start paying a trail there, and the control
+# `tests/saas/test_sourced_acquisition_costs.py` asserts exactly that pairing.
+_BROKER_ACQUIRED_SEGMENTS: frozenset[str] = frozenset({"SME", "sme", "I&C", "ic"})
 
 # Fixed operating overhead deducted monthly regardless of portfolio size.
 # Covers: metering admin, licensing fees, basic IT/ops.
@@ -74,8 +115,7 @@ def acquisition_budget_gbp(
     total = 0.0
     for cid, prob in churn_forecast.items():
         segment = segment_by_account.get(cid, "resi")
-        cost = COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
-        total += prob * cost
+        total += prob * cost_per_acquisition_gbp(segment)
     return total
 
 
@@ -308,7 +348,7 @@ def growth_quote_budget(
 
     headroom = capital_headroom_gbp(net_assets_gbp, accounts_held, mcr_per_account_gbp)
     committed = headroom * capital_share
-    cost_per_quote = COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
+    cost_per_quote = cost_per_acquisition_gbp(segment)
     quotes_per_win = expected_quotes_per_win(segment, quotes_issued_to_date, wins_to_date)
     own_rate = realised_win_rate(quotes_issued_to_date, wins_to_date)
     cost_per_win = cost_per_quote * quotes_per_win

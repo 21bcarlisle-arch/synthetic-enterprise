@@ -527,7 +527,10 @@ BASELINE_DATE = "2026-08-06"
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
     "I001": 1348,
-    "F401": 268,
+    # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
+    #             header and its `from typing import Any` had no user, so the ratchet holds the
+    #             lower floor. A ratchet that is only ever raised is a licence to accrete.
+    "F401": 267,
     "E402": 174,
     "F841": 127,
     "E741": 107,
@@ -545,7 +548,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2336  # was 2337; -1 (F401, the unused `field` import S1 removed from population_draw)
+RUFF_BASELINE_TOTAL = 2335  # was 2336; -1 (F401, the unused `typing.Any` R3 removed from counterfactual_retention)
 
 
 # --------------------------------------------------------------------------

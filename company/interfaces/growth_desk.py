@@ -54,6 +54,7 @@ __all__ = [
     "book_acquisition_gate",
     "book_acquisition_spend",
     "book_retention_cost",
+    "broker_commission_schedule",
     "decide_acquisition",
     "growth_mandate_label",
     "mandate_permits_replacement",
@@ -125,9 +126,9 @@ def decide_acquisition(
     parameter through which a caller could supply, or reach, the per-segment
     cost table or the cap lookup behind the gate.
     """
-    from saas.growth_mandate import COST_PER_ACQUISITION, should_attempt_acquisition
+    from saas.growth_mandate import cost_per_acquisition_gbp, should_attempt_acquisition
 
-    budget_gbp = COST_PER_ACQUISITION.get(segment, 150.0)
+    budget_gbp = cost_per_acquisition_gbp(segment)
     attempt, gate_reason = should_attempt_acquisition(
         segment, commodity, company_fwd_gbp_per_mwh, term_start
     )
@@ -136,6 +137,25 @@ def decide_acquisition(
         gate_reason=gate_reason,
         budget_gbp=budget_gbp,
     )
+
+
+def broker_commission_schedule(
+    *, settled_records: list[dict[str, Any]], customers: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """The ONGOING half of business acquisition cost, as a monthly schedule.
+
+    R2 of WORKER_FINDING_THE_SOURCED_ACQUISITION_MODEL_IS_UNWIRED_AND_THE_INVENTED_ONE_IS_LIVE
+    (2026-08-28). Business acquisition used to cost the world a flat, invented £400 at signup;
+    it now costs a sourced broker trail per kWh billed, over the life of the contract. That
+    accrual is the supplier's own cost model over its own billed volume, so it comes through
+    this door for the same reason the one-off did — the world hands over the settled records
+    and the segment list, and takes back a decided schedule, never the rate table.
+
+    Returns `[{month, amount_gbp}, ...]` for `close_the_books(broker_commission_events=...)`.
+    """
+    from saas.opex_ledger import build_broker_commission_ledger_events
+
+    return build_broker_commission_ledger_events(settled_records, customers)
 
 
 def replacement_cost_avoided_gbp(*, segment: str, counted_in_guard: bool) -> float:
@@ -147,13 +167,27 @@ def replacement_cost_avoided_gbp(*, segment: str, counted_in_guard: bool) -> flo
     NAIVE baseline sets it False — the pre-Phase-15b margin-only guard — and
     this function then returns 0.0 rather than the segment's cost, which is the
     whole of that policy's effect.
+
+    KNOWN UNDERSTATEMENT FOR BROKER-ACQUIRED SEGMENTS (2026-08-28, roadmap R1/R2). Since
+    business acquisition became a per-kWh trail rather than a one-off, this returns 0.0 for
+    SME and I&C — and that is too little rather than merely different. Losing a business
+    customer really does avoid a replacement cost: the trail a broker would earn on whoever
+    replaces them, over that contract's life. So the guard now credits a business retention
+    with nothing, and business offers are harder to justify than they should be.
+
+    NOT PAPERED OVER WITH A GUESS. Pricing it properly needs the replacement's volume, which
+    this signature does not carry — `broker_commission_gbp(kwh, band)` would answer it exactly
+    if the caller passed the EAC it already holds (`run_phase2b`'s `eac_for_ret`). That is a
+    seam change and is filed rather than smuggled in here. Until then the number is
+    conservative in the direction that costs us offers, which is the safe direction for a
+    figure that authorises spending.
     """
     if not counted_in_guard:
         return 0.0
 
-    from saas.growth_mandate import COST_PER_ACQUISITION
+    from saas.growth_mandate import cost_per_acquisition_gbp
 
-    return COST_PER_ACQUISITION.get(segment, 150.0)
+    return cost_per_acquisition_gbp(segment)
 
 
 def book_acquisition_spend(
@@ -307,10 +341,15 @@ def quote_cost_gbp(*, segment: str) -> float:
 
     `plan_growth_campaign_year` returns a whole-campaign budget; the campaign also has to
     bill each quote as it is issued, won or lost. Handing back one number per segment keeps
-    `COST_PER_ACQUISITION` itself on the company side, which is the same trade
+    the cost model itself on the company side, which is the same trade
     `run_acquisition_funnel` made when it stopped importing that table and took the cost as
     an argument instead (KNIFE pass 3, `B6_cpa_is_company_accounting`).
-    """
-    from saas.growth_mandate import COST_PER_ACQUISITION
 
-    return COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
+    Since 2026-08-28 the number is the SOURCED PCS commission rather than the invented
+    £150/£400 table, and it is 0.0 for a broker-acquired segment — that segment's cost is a
+    per-kWh trail accrued at billing time, not a per-quote spend
+    (`saas.growth_mandate.cost_per_acquisition_gbp`).
+    """
+    from saas.growth_mandate import cost_per_acquisition_gbp
+
+    return cost_per_acquisition_gbp(segment)

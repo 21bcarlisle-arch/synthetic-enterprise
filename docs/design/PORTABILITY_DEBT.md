@@ -126,6 +126,15 @@ make the test green.
 # currency out is a Money type carried by the adapter, not a rename, and doing it here would
 # put a cross-cutting type change inside a wall pass. The debt is real: a second market
 # reading this seam gets a budget denominated in a currency it does not use.
+# growth_desk 22 -> 25, amended 2026-08-28 under the same-change rule (roadmap R2 of
+# WORKER_FINDING_THE_SOURCED_ACQUISITION_MODEL_IS_UNWIRED_AND_THE_INVENTED_ONE_IS_LIVE). Business
+# acquisition stopped being a one-off spend and became an ongoing broker trail charged per kWh at
+# billing time, so the world needs a monthly accrual schedule back across this seam:
+# `broker_commission_schedule()` returns `{month, amount_gbp}` rows. Three more sites, all row
+# #1's shape -- a currency spelled into a field name -- and the same disposition applies. Note the
+# SECOND market quantity hiding in that door and not counted by this register: the trail is a rate
+# per kWh, and kWh is as market-varying as GBP. It stays inside `saas/opex_ledger.py` and does not
+# cross, which is why the door hands over a settled amount rather than a rate.
 # Machine-read by
 # tests/architecture/test_market_at_the_seams.py. Exact in both directions.
 counterparty      company/interfaces/recorded_sim_interface.py         mpan         2
@@ -133,7 +142,7 @@ counterparty      company/interfaces/sim_interface.py                  mpan     
 counterparty      company/interfaces/sim_interface.py                  nbp          1
 market_quantity   company/interfaces/credit_refund_requests.py         gbp          5
 market_quantity   company/interfaces/dd_review_outcome.py              gbp          2
-market_quantity   company/interfaces/growth_desk.py                    gbp         22
+market_quantity   company/interfaces/growth_desk.py                    gbp         25
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5

@@ -15,13 +15,17 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **82** |
+| Test files importing the report | **84** |
 | ...of which reach into private `_section_*` functions | **78** |
 | `saas/reporting/annual_report.py` | **10028 lines** |
 
-Re-measured 2026-08-24 (was 81 / 78 / 9,948). The debt grew by one test file, a control on a
-published figure the report computes — which is the shape this record exists to make visible:
-a figure with nowhere else to live gets its control pointed at the renderer.
+Re-measured 2026-08-28 (was 82 / 78 at the 2026-08-24 measure, itself 81 / 78 / 9,948 before).
+The debt grew again and the newest entry is the same shape: R5's
+`tests/company/analytics/test_acquisition_cost_amortisation.py` asserts that the amortised view
+REACHES the report, because an analytics module nobody calls is the exact defect that roadmap
+exists to close — so the control has to import the renderer to prove the wiring. A figure with
+nowhere else to live gets its control pointed at the renderer, which is the shape this record
+exists to make visible.
 
 **Counted against the tree the commit CREATES, not the working tree.** The shared worktree
 carries other lanes' untracked test files; one of them (`test_policy_cost_coverage.py`) imports

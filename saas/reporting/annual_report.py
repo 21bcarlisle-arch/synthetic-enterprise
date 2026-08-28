@@ -913,12 +913,62 @@ def extract_report_data(run_output: dict) -> dict:
 
     return {
         "starting_treasury_gbp": phase2b["starting_treasury"],
-        "final_treasury_gbp": phase2b["final_treasury"],
+        # THE TREASURY IS READ FROM THE ROWS THE NET MARGIN IS SUMMED FROM, and that is the
+        # repair of a defect this file published (2026-08-28, class
+        # `figures_on_a_superseded_clock`). It used to be `phase2b["final_treasury"]`, a scalar
+        # frozen at `simulation/run_phase2b.py:2506-2510` BEFORE
+        # `simulation/run_phase4c_on_phase2b.py` mutated `all_records` in place -- so this dict
+        # published a net margin on the arrears model's realised write-offs beside a treasury on
+        # the flat-rate provision, and `starting_treasury_gbp + total_net_gbp` came out
+        # GBP 39,962.17 above `final_treasury_gbp` on a page a reader can check with a
+        # calculator (`site/data/supplier.json`). `refresh_settlement_scalars` now re-derives
+        # those scalars at the source, so `phase2b["final_treasury"]` is no longer stale either;
+        # this reads the rows anyway, because a figure published beside a sum should come from
+        # the same book as the sum and not depend on an upstream stage having remembered.
+        #
+        # NO as_of BOUND IS OWED ON THIS READ and none is missing, for the reason this
+        # function's own docstring already records for the treasury path it walks a few lines
+        # above: `extract_report_data` is ex-post reporting on a FINISHED run, and the last row
+        # of the settled book is a balance that run already produced and stamped. The blindfold
+        # binds the company DECIDING from history, never the annual report describing it.
+        "final_treasury_gbp": (
+            all_records[-1]["treasury_cash_balance_gbp"]
+            if all_records
+            else phase2b["starting_treasury"]
+        ),
         "total_revenue_gbp": sum(r["revenue_gbp"] for r in all_records),
         "total_gross_gbp": phase2b["total_gross"],
         "total_capital_gbp": phase2b["total_capital"],
         "total_bad_debt_gbp": sum(r.get("bad_debt_gbp", 0.0) for r in all_records),
         "total_net_gbp": sum(r["net_margin_gbp"] for r in all_records),
+        # THE CLOCK TRAVELS WITH THE FIGURES, into the JSON, where the reader is (R14). Written
+        # as literals rather than imported from `simulation/settlement_clocks.py` for two
+        # reasons: `saas/` never imports `simulation/`, and a control that read the labels back
+        # out of the module that produced the figures would be grading a figure against the
+        # constant that wrote it (R15 tautology). There are exactly TWO clocks here and
+        # deliberately no `banked` one -- `treasury_cash_balance_gbp` is a running total of
+        # settled net margin, so `final_treasury - starting_treasury` reproduces settled net
+        # exactly and measures nothing about when cash arrived. Naming it "banked" would have
+        # been a label invented for a clock this world does not have.
+        "figure_clocks": {
+            "final_treasury_gbp": "settled-realised",
+            "total_revenue_gbp": "settled-realised",
+            "total_bad_debt_gbp": "settled-realised",
+            "total_net_gbp": "settled-realised",
+            "total_gross_gbp": "settled-realised",
+            "total_capital_gbp": "settled-realised",
+            "provisioned_bad_debt_gbp": "settled-provisioned",
+            "provisioned_net_gbp": "settled-provisioned",
+            "provisioned_final_treasury_gbp": "settled-provisioned",
+        },
+        # THE SUPERSEDED READS, KEPT AND NAMED rather than dropped: they are what the company
+        # PROVISIONED at flat rate, and a reader comparing provision against outcome needs
+        # both. `.get` because a run dict produced before `refresh_settlement_scalars` existed
+        # (and every hand-built one in the tests) carries no provisioned reading, and `None`
+        # says "this run did not record one" where 0.0 would be a fabricated provision.
+        "provisioned_bad_debt_gbp": phase2b.get("provisioned_total_bad_debt"),
+        "provisioned_net_gbp": phase2b.get("provisioned_total_net"),
+        "provisioned_final_treasury_gbp": phase2b.get("provisioned_final_treasury"),
         "administration_event": phase2b["administration_event"],
         "committee_wake_ups_total": len(committee_wake_ups),
         "years": yearly,
@@ -3314,7 +3364,8 @@ def _growth_acquisition_section(data: dict) -> str:
     total_spend = data.get("total_acquisition_spend_gbp", 0.0)
     total_fixed = data.get("total_fixed_cost_gbp", 0.0)
     acquired = data.get("acquired_customers", [])
-    from saas.growth_mandate import COST_PER_ACQUISITION, FIXED_COST_MONTHLY
+    from saas.growth_mandate import FIXED_COST_MONTHLY, cost_per_acquisition_gbp
+    from saas.opex_ledger import BROKER_COMMISSION_GBP_PER_KWH
 
     if not total_attempts and not total_fixed:
         return ""
@@ -3322,7 +3373,13 @@ def _growth_acquisition_section(data: dict) -> str:
     lines = [
         "## Growth & Acquisition\n",
         f"**Mandate:** `{mandate}`  "
-        f"**Acquisition cost:** resi £{COST_PER_ACQUISITION['resi']:.0f} / SME £{COST_PER_ACQUISITION['SME']:.0f}  "
+        # The two segments now cost DIFFERENT SHAPES, not different amounts, so the line
+        # states both shapes rather than two numbers (2026-08-28, R1/R2): residential is a
+        # one-off PCS commission per billing account, business is an ongoing broker trail per
+        # kWh billed. Printing "SME £0" alone would read as free.
+        f"**Acquisition cost:** resi £{cost_per_acquisition_gbp('resi'):.2f}/account one-off "
+        f"(PCS commission) / SME {BROKER_COMMISSION_GBP_PER_KWH['sme'] * 100:.2f}p per kWh "
+        f"ongoing (broker trail, no one-off)  "
         f"**Fixed overhead:** £{FIXED_COST_MONTHLY:.0f}/month\n",
     ]
 
@@ -3386,7 +3443,84 @@ def _growth_acquisition_section(data: dict) -> str:
             )
         lines.append("")
 
+    lines += _acquisition_amortisation_lines(data)
+
     return "\n".join(lines)
+
+
+def _acquisition_amortisation_lines(data: dict) -> list:
+    """Acquisition cost the CMA's way, beside the P&L's way (roadmap R5, 2026-08-28).
+
+    The table above is the EXPENSED view and it is the correct one for the accounts. It is also
+    the one that makes a growing supplier look like a failing one, because it charges the whole
+    cost of winning a customer to the year it won them and none of the margin that customer will
+    earn. The CMA's retail-profitability analysis amortises the same spend across the customer
+    lifespan it bought; both are printed here so neither can be read as the answer on its own.
+
+    Returns [] when the run booked no acquisition spend -- a section that renders an empty table
+    reads as a supplier that spent nothing, which is a different claim.
+    """
+    from company.analytics.acquisition_cost_amortisation import (
+        CMA_BASE_CASE_CUSTOMER_LIFETIME_YEARS,
+        amortisation_schedule,
+        growth_year_distortion_gbp,
+    )
+
+    # BUILT FROM THE ANNUAL TOTALS THE TABLE ABOVE ALREADY PRINTS, not from a per-event log. The
+    # run artefact carries `years[y]["acquisition_spend_gbp"]` and no per-quote spend list, and
+    # the schedule is annual anyway -- dating every year's spend to 1 January is exact at this
+    # granularity rather than an approximation of something finer.
+    events = [
+        {"event_date": f"{year}-01-01", "amount_gbp": yd.get("acquisition_spend_gbp", 0.0)}
+        for year, yd in sorted((data.get("years") or {}).items())
+        if yd.get("acquisition_spend_gbp")
+    ]
+    if not events:
+        return []
+
+    schedule = amortisation_schedule(events)
+    if not schedule["by_year"]:
+        return []
+    distortion = {d["year"]: d["expensed_minus_amortised_gbp"]
+                  for d in growth_year_distortion_gbp(schedule)}
+
+    out = [
+        "**Acquisition cost, expensed and amortised**\n",
+        f"The accounts expense acquisition cost as incurred, which is what GAAP and IFRS "
+        f"require and what the table above shows. The CMA's own retail-profitability analysis "
+        f"amortises it over the customer lifespan it buys -- base case "
+        f"{CMA_BASE_CASE_CUSTOMER_LIFETIME_YEARS} years, from supplier-reported lifespans of "
+        f"four to ten. Neither column is the truth on its own: the first is where the cash "
+        f"went, the second is what the spend was for.\n",
+        "| Year | Expensed | Amortised | Difference |",
+        "|------|----------|-----------|------------|",
+    ]
+    for row in schedule["by_year"]:
+        out.append(
+            f"| {row['year']} | {_fmt_gbp(row['expensed_gbp'])} | "
+            f"{_fmt_gbp(row['amortised_gbp'])} | "
+            f"{_fmt_gbp(distortion.get(row['year'], 0.0))} |"
+        )
+    out += [
+        "",
+        f"**Total acquisition spend:** {_fmt_gbp(schedule['total_spend_gbp'])} · "
+        f"**amortised inside the reported window:** "
+        f"{_fmt_gbp(schedule['amortised_within_window_gbp'])} · "
+        f"**carried beyond it:** "
+        f"{_fmt_gbp(schedule['unamortised_carried_beyond_window_gbp'])}",
+        "",
+        "_The carried figure is cost this book has already paid whose matching benefit falls "
+        "outside the reported period. It is stated rather than folded into the final year, "
+        "which would make that year look worse for a reason that is arithmetic._",
+        "",
+    ]
+    if schedule["events_that_could_not_be_read"]:
+        out += [
+            f"_{schedule['events_that_could_not_be_read']} acquisition spend event(s) could not "
+            "be read and are in NEITHER column, so both are over a subset._",
+            "",
+        ]
+    return out
 
 
 def _section_company_crm(data: dict) -> str:

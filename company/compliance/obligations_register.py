@@ -342,6 +342,37 @@ REGISTER: list[Obligation] = [
         testing_frequency=ValidationFrequency.PER_BILL_RUN,
     ),
     Obligation(
+        id="slc_22b_ban_on_acquisition_only_tariffs",
+        name="No fixed-term tariff offered to new customers alone",
+        source=(
+            "Ofgem SLC 22B, Ban on Acquisition-only Tariffs, in force 2022-04-01; "
+            "retention-only deals at end of fixed term permitted by the BAT Market-wide "
+            "Derogation"
+        ),
+        regime="Ofgem",
+        impact=ImpactTier.CUSTOMER_FINANCIAL,
+        likelihood=Likelihood.HIGH,
+        rationale=(
+            "HIGH, and MEASURED rather than assumed (2026-08-28, roadmap R4). Swept over the "
+            "run's own 973 contracted terms: 12 of the 155 domestic acquisition offers struck "
+            "after 2022-04-01 were priced BELOW the best rate any existing customer could have "
+            "obtained that month. The same shape appears 5 times before commencement, when it "
+            "was lawful and was what the whole GB market did -- so this is a live exposure the "
+            "company grew into on a fixed date, not a latent bug. The mechanism is that pricing "
+            "here is per-customer (dynamic pricing, portfolio premium, margin feedback) rather "
+            "than a published tariff table, and a supplier with genuinely per-customer prices "
+            "has no table to demonstrate 22B compliance against."
+        ),
+        existing_tracker=(
+            "company/compliance/domain_invariants.py "
+            "(check_no_acquisition_only_tariff / acquisition_only_tariff_breaches)"
+        ),
+        tracker_paths=("company/compliance/domain_invariants.py",),
+        enforcing_invariant_key="no_acquisition_only_tariff",
+        effective_from=date(2022, 4, 1),
+        testing_frequency=ValidationFrequency.PER_BILL_RUN,
+    ),
+    Obligation(
         id="slc_14_credit_refunds",
         name="Credit refunds within 10 working days of account closure",
         source="Ofgem SLC 14",

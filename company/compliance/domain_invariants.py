@@ -787,7 +787,132 @@ PAYMENT_CHANNEL_DD_CONSISTENCY = StructuralInvariant(
 )
 
 
+# --- The Ban on Acquisition-only Tariffs (roadmap R4, 2026-08-28) ---
+#
+# WHY THIS IS BASELINE AND NOT CURRICULUM, stated because R13 turns on it. This registers a
+# published licence condition with its real commencement date, decided from Ofgem's own text and
+# blind to what it does to our P&L -- which is the fidelity half of the split, not the difficulty
+# half. Nothing here is named, versioned or chosen: the law applied to every GB domestic supplier
+# from 2022-04-01 whether or not it suited them, and a world in which it does not apply is a less
+# accurate world rather than an easier one. The director's read, 2026-08-28, and mine.
+#
+# WHAT THE LAW SAYS. SLC 22B, in force 2022-04-01, prohibits a domestic supplier from offering a
+# fixed-term tariff to prospective customers that is not also available to its existing ones. The
+# escape is narrow and named: the BAT's Market-wide Derogation, which in Ofgem's words "enables
+# suppliers to offer bespoke, retention-only deals to their existing customers when they are
+# coming to the end of a fixed-term deal". So the asymmetry is ONE-DIRECTIONAL -- a deal only
+# existing customers can have is lawful; a deal only new customers can have is not.
+#
+# WHY IT MATTERS HERE RATHER THAN BEING ONE MORE REGISTERED CLAUSE. Before April 2022 the cheapest
+# prices in the GB market were acquisition-only, and that asymmetry is a large part of what drove
+# the switching volumes this world's churn model is calibrated on. Our world applies ONE set of
+# retention and acquisition physics across 2016-2025 and spans the discontinuity without noticing
+# it. Registering the condition is the first step; the check below is what makes our own book
+# answerable to it.
+#
+# The Market-wide Derogation was extended and the ban is proposed to run to 2027-03-31, so there
+# is deliberately no `effective_to`: an end date nobody has legislated would be a fabricated one.
+NO_ACQUISITION_ONLY_TARIFF = StructuralInvariant(
+    id="no_acquisition_only_tariff",
+    description=(
+        "From 2022-04-01 a domestic fixed-term tariff offered to a NEW customer must also be "
+        "available to existing customers. The reverse is lawful: a retention-only deal at the "
+        "end of an existing customer's fixed term is expressly permitted by the BAT's "
+        "Market-wide Derogation. One-directional by design -- this never asserts that existing "
+        "and new customers must pay the SAME, only that nothing is offered to new customers "
+        "alone. Domestic only; the condition does not reach non-domestic supply."
+    ),
+    source=(
+        "Ofgem Standard Licence Condition 22B, Ban on Acquisition-only Tariffs, in force "
+        "2022-04-01; retention deals permitted under the BAT Market-wide Derogation"
+    ),
+    effective_from=date(2022, 4, 1),
+)
+
+
+def acquisition_only_tariff_breaches(offers: list, as_of) -> dict:
+    """Which of `offers` breach SLC 22B on `as_of`, and how many could not be read.
+
+    An offer is `{"customer_class": "new"|"existing", "unit_rate_gbp_per_mwh": float,
+    "segment": str, "commodity": str}`. Offers are compared within their own
+    (segment, commodity) group, because a domestic electricity price says nothing about
+    whether a gas price was acquisition-only.
+
+    TWO FAILURE MODES ARE KEPT APART ON PURPOSE, and the distinction is the point of returning a
+    dict rather than a bool. A BREACH is a claim about our conduct. An offer this function could
+    not READ is a claim about the artefact. Collapsing them -- refusing on anything unreadable --
+    is a control with a blast radius far wider than the defect it names, and this project found
+    three of those in one day on 2026-08-27. So unreadable offers are counted and returned; they
+    never become breaches, and they never silently vanish either.
+
+    Returns `{"breaches": [...], "offers_that_could_not_be_read": int, "in_scope": int}`.
+    """
+    if as_of is None or as_of < NO_ACQUISITION_ONLY_TARIFF.effective_from:
+        # Lawful before commencement, and this is the whole reason the invariant is time-indexed.
+        # An acquisition-only tariff in 2019 is not a breach; it is what the market was.
+        return {"breaches": [], "offers_that_could_not_be_read": 0, "in_scope": 0}
+
+    unreadable = 0
+    groups: dict = {}
+    for offer in offers or []:
+        try:
+            klass = offer["customer_class"]
+            rate = float(offer["unit_rate_gbp_per_mwh"])
+            segment = offer.get("segment", "resi")
+            commodity = offer.get("commodity", "electricity")
+        except (KeyError, TypeError, ValueError):
+            unreadable += 1
+            continue
+        if klass not in ("new", "existing") or rate <= 0:
+            unreadable += 1
+            continue
+        if segment != "resi":
+            continue  # the condition is domestic-only; out of scope is not a pass
+        groups.setdefault((segment, commodity), []).append((klass, rate, offer))
+
+    breaches = []
+    in_scope = 0
+    for (_segment, _commodity), rows in groups.items():
+        existing = [r for k, r, _ in rows if k == "existing"]
+        best_existing = min(existing) if existing else None
+        for klass, rate, offer in rows:
+            if klass != "new":
+                continue
+            in_scope += 1
+            # A new-customer price no existing customer could have obtained that day. With no
+            # existing-customer offer on record at all there is nothing the new price could have
+            # matched, so it is acquisition-only by construction.
+            if best_existing is None or rate < best_existing - 1e-9:
+                breaches.append({
+                    "offer": offer,
+                    "new_customer_rate_gbp_per_mwh": rate,
+                    "best_rate_available_to_existing": best_existing,
+                })
+
+    return {
+        "breaches": breaches,
+        "offers_that_could_not_be_read": unreadable,
+        "in_scope": in_scope,
+    }
+
+
+def check_no_acquisition_only_tariff(offers: list, as_of) -> bool:
+    """Tier-1 control for SLC 22B: False (FIRES) when a new-customer-only price was offered.
+
+    Two ways to fire, and the second is the anti-fail-open leg: a real breach, or a population
+    that was handed offers and could read NONE of them. The second is not a compliance claim --
+    it is this control saying it has no evidence, which is a failed check rather than a pass
+    (R15 FAIL-SILENT). A mixed population where SOME offers read is judged on those, with the
+    unreadable count available from `acquisition_only_tariff_breaches`.
+    """
+    result = acquisition_only_tariff_breaches(offers, as_of)
+    if offers and result["in_scope"] == 0 and result["offers_that_could_not_be_read"] == len(offers):
+        return False
+    return not result["breaches"]
+
+
 ALL_INVARIANTS: list = [
+    NO_ACQUISITION_ONLY_TARIFF,
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
     STANDING_CHARGE_GAS_RESI, STANDING_CHARGE_GAS_SME,

@@ -20,14 +20,25 @@ import datetime as dt
 import pytest
 
 from saas.growth_mandate import (
-    COST_PER_ACQUISITION,
     capital_headroom_gbp,
+    cost_per_acquisition_gbp,
     growth_quote_budget,
 )
 from simulation import net_new_acquisition as nna
 
 HORIZON = dt.date(2026, 1, 1)
 SEED = 20260824
+
+# `plan_growth_campaign` takes the per-segment quote cost as DATA (KNIFE B6 -- the SIM is told
+# the cost and cannot consult company accounting). This used to be `COST_PER_ACQUISITION`
+# imported wholesale; that table was deleted on 2026-08-28 as unsourced, so the fixture builds
+# the same shape from the sourced model instead. Residential is non-zero here on purpose: these
+# tests assert that a campaign COSTS money, and the broker-acquired segments now cost 0.0
+# per quote (their cost is a billing-time trail), which would make several of them vacuous.
+_COST_PER_QUOTE = {
+    "resi": cost_per_acquisition_gbp("resi"),
+    "SME": cost_per_acquisition_gbp("SME"),
+}
 
 
 class _Result:
@@ -68,7 +79,7 @@ def _campaign(**kw):
         accounts_held_at_start=14,
         horizon_end=HORIZON,
         credit_bureau=None,
-        cost_per_quote_gbp=COST_PER_ACQUISITION,
+        cost_per_quote_gbp=_COST_PER_QUOTE,
         run_funnel=_always(True),
         quote_budget_fn=_budget(20),
     )
@@ -291,6 +302,87 @@ def test_a_win_refused_by_the_engineering_cap_is_STILL_BILLED():
     assert all(r["amount_gbp"] > 0 for r in won_rows)
 
 
+def test_the_refused_wins_are_COUNTED_and_not_just_the_first_one_named():
+    """THE RULING OF 2026-08-28, first clause: the split is on the row a reader sees.
+
+    A campaign that reports BOOKED wins alone cannot be read. 45 wins on 2,089 quotes is a
+    supplier losing in the market if the 2.2% is commercial, and is this machine refusing to
+    settle accounts the supplier won if it is not -- and until this split existed those two
+    were the same number. `cy_exhausted_at` named the FIRST refused prospect and never how
+    many followed it, so the campaign that exposed this reported a note and no quantity.
+    """
+    out = _campaign(quote_budget_fn=_budget(200), customer_year_budget=10.0)
+    row = out["by_year"][0]
+
+    assert row["wins_refused_by_settlement_budget"] > 0, (
+        "vacuous: this fixture must actually refuse wins"
+    )
+    # THE IDENTITY, on every row and on the campaign. What the funnel won is what got booked
+    # plus what this machine would not settle -- there is no third destination, and a win that
+    # went missing between them would fail here rather than reading as a commercial loss.
+    for r in out["by_year"]:
+        assert r["funnel_wins"] == r["wins"] + r["wins_refused_by_settlement_budget"]
+    assert out["funnel_wins"] == len(out["winners"]) + out["wins_refused_by_settlement_budget"]
+
+    # The funnel's own verdict, independently: the split must agree with the spend ledger,
+    # which is the only other place a win is recorded.
+    assert out["funnel_wins"] == len([r for r in out["spend"] if r["won"]])
+    assert any(
+        f"{row['wins_refused_by_settlement_budget']} win(s) refused" in n for n in out["notes"]
+    ), "the settlement note must carry the COUNT, not only the first prospect's id"
+
+
+def test_MUTATION_a_campaign_the_machine_never_refuses_reports_a_split_of_ZERO():
+    """The null control for the test above, and without it that identity is not attributable.
+
+    `funnel_wins == wins + refused` is satisfied by a `refused` hard-wired to 0 whenever the
+    cap does not bite -- and if it were hard-wired to 0 ALWAYS, the test above would still
+    pass everywhere except its own fixture. So the property is two-sided: the counter must be
+    zero exactly when nothing is refused, and the run must be identical to the pre-split one.
+    """
+    out = _campaign(quote_budget_fn=_budget(20))
+    assert out["wins_refused_by_settlement_budget"] == 0
+    assert all(r["wins_refused_by_settlement_budget"] == 0 for r in out["by_year"])
+    assert out["funnel_wins"] == len(out["winners"]) > 0, "vacuous: nothing was won"
+    assert not any("SETTLEMENT-BOUND" in n for n in out["notes"])
+
+
+def test_the_company_plans_on_its_FUNNELS_wins_not_on_what_the_machine_would_settle():
+    """THE RULING OF 2026-08-28, second clause, and it is a WALL test.
+
+    `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is THIS MACHINE's ceiling -- the module's own note says
+    so -- and it does not exist in the modelled world. Feeding the wins it truncated back into
+    `quote_budget_fn` put it inside the company's own commercial belief: at the 80-founder book
+    the company's realised win rate read 1.7% instead of 17.9%, so it bought 2,826 quotes to
+    book 45 accounts. That is not a supplier being allowed to be wrong about its market; it is
+    the harness reaching into its books.
+
+    The fixture is the shape that makes the two answers differ: a budget so small that almost
+    every win is refused. A campaign passing BOOKED wins hands the planner ~0; the ruled one
+    hands it what the funnel actually converted.
+    """
+    seen = []
+
+    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
+        seen.append(wins_to_date)
+        return {"quotes": 40, "budget_gbp": 40 * 150.0, "wins_capital_allows": 8,
+                "binding": "capital", "headroom_gbp": net_assets_gbp}
+
+    out = _campaign(years=[2018, 2019], quote_budget_fn=_recording_budget,
+                    customer_year_budget=10.0)
+
+    first_year = out["by_year"][0]
+    assert first_year["wins_refused_by_settlement_budget"] > 0, (
+        "vacuous: with nothing refused, booked wins and funnel wins are the same number and "
+        "this fixture cannot see the defect it is written for"
+    )
+    # What year two is handed is year one's FUNNEL verdict...
+    assert seen[1] == first_year["funnel_wins"]
+    # ...and it is strictly more than the book got, which is what makes the two readings
+    # distinguishable rather than merely differently named.
+    assert seen[1] > first_year["wins"]
+
+
 def test_a_market_bound_year_says_so_too():
     quotes, note = nna.quote_capacity(5_000, pool_size=400)
     assert quotes == 400
@@ -327,9 +419,14 @@ def test_the_campaign_feeds_the_company_its_own_quote_book():
 
     by_year = out["by_year"]
     # Each year is handed the running totals of the years STRICTLY before it.
+    #
+    # `funnel_wins`, NOT `wins` (2026-08-28 ruling). The two are equal in this fixture because
+    # nothing is refused here, so this line alone cannot tell them apart -- that is what
+    # `test_the_company_plans_on_its_FUNNELS_wins_not_on_what_the_machine_would_settle` below
+    # is for, and it is separate for exactly the reason `_budget`'s docstring gives.
     for i in range(1, 3):
         expected_quotes = sum(y["quotes_issued"] for y in by_year[:i])
-        expected_wins = sum(y["wins"] for y in by_year[:i])
+        expected_wins = sum(y["funnel_wins"] for y in by_year[:i])
         assert seen[i] == (expected_quotes, expected_wins), f"year index {i} saw the wrong book"
 
     # Non-vacuity: the campaign must actually have issued quotes, or the equality above is
@@ -857,17 +954,62 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 #                prospects the campaign draws, and how far into 2025 its schedule runs.
 # This file went red at fb8a8fda5 and stayed red across three further commits, because the
 # gate selects tests by filename stem and no commit since touched a stem that reaches here.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1115
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 135285.0
+#   * 2026-08-28  the acquisition costs were sourced (COST_PER_ACQUISITION's invented
+#                £150/£400 deleted for saas/opex_ledger.py's PCS commission), AND the
+#                campaign stopped quoting prospects dated after the reported period.
+#                TWO THINGS CHANGED AT ONCE, so the split is stated rather than asserted --
+#                and it is recoverable here because the pre-change file already carried both
+#                legs. £135,285 was the whole campaign at the invented prices; £129,285 was
+#                the same campaign with the 49 post-period quotes removed and the prices
+#                still invented (the old CAMPAIGN_SPEND_INSIDE_WINDOW, directly below); and
+#                £23,709 is that same 1,066-quote population at the sourced prices. So:
+#                    the quote cutoff  -£6,000    (4.4% of the fall)
+#                    sourcing the cost -£105,576  (78.0%)
+#                The population is identical across the second step, which is what makes it a
+#                price effect and not a mix effect.
+#
+# THESE FOUR CONSTANTS ARE THE 13-FOUNDER RUN, WHICH IS THE BOOK THIS COMMIT CREATES.
+#
+# A previous working-tree draft carried 2,089 quotes / £46,408.25 here. Those are the figures of
+# the 80-FOUNDER book (`docs/design/FOUNDER_BOOK.yaml`, a director curriculum act), and that book
+# is a SEPARATE LANE that is not in this commit -- its YAML and its `founder_book()` in
+# simulation/live_population.py are still uncommitted. Landing its numbers here would have
+# published a figure this tree cannot produce, and the commit gate caught exactly that: the tree
+# this commit creates yields 1,066, and the assertion demanding 2,089 went red.
+#
+# The founder lane's own measurement is kept, because it is right and it is theirs to land:
+#
+#     1,066  founders 13, this tree                       <- SHIPPED HERE
+#     2,826  founders 80, before the wall fix -- the settlement ceiling inside the planner
+#     2,089  founders 80, on the funnel's own record      <- the founder lane re-baselines to this
+#
+#   the founder book   +1,023  (a deeper opening book is more opening capital, so more quotes
+#                               the company can afford: an ordinary commercial consequence)
+#   the wall fix         -737  (£16,404 the company spent because THIS MACHINE's settlement
+#                               budget had been fed back into its own realised win rate --
+#                               see net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET)
+#
+# The 13-founder run is BYTE-IDENTICAL across the wall fix (1,066 quotes, 200 funnel wins, 200
+# booked, 0 refused), which is what says the fix is aimed at the artefact and not at the answer.
+#
+# SO WHEN THE FOUNDER LANE LANDS IT MUST BUMP THESE FOUR, and until it does its own working tree
+# will show this file red. That redness is the coupling being visible, which is the point: the
+# campaign's size depends on the opening book, so two lanes cannot both own this number silently.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1066
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 23708.90
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
-#: The campaign's schedule now runs to 2025-07-20 while the run reports to 2025-06-07, so 49
-#: quotes are dated after the last day the accounts cover. Those are not dropped spend -- in
-#: the reported world they have not happened yet, and booking them would put £6,000 of cost
-#: in a period the ledger does not report. What the exit clause claims, and what is asserted
-#: below, is that nothing INSIDE the window goes unbooked.
+#:
+#: EQUAL TO THE WHOLE CAMPAIGN SINCE 2026-08-28, and that is the point of the quote cutoff
+#: rather than a coincidence: the campaign no longer plans quotes dated after the last day
+#: the accounts cover, so there is nothing left for the window filter to drop. The POPULATION
+#: is unchanged from before that commit -- the same 1066 prospects were always the in-window
+#: ones -- so what moved is the price of each quote and not who was quoted.
+#:
+#: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
+#: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
 CAMPAIGN_QUOTES_INSIDE_WINDOW = 1066
-CAMPAIGN_SPEND_INSIDE_WINDOW = 129285.0
+CAMPAIGN_SPEND_INSIDE_WINDOW = 23708.90
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
@@ -996,6 +1138,52 @@ def test_c_the_window_filter_excludes_nothing_at_the_shipped_configuration():
         "reported period -- that is no longer a schedule tail, it is unbooked spend"
     )
     assert len(campaign_acquisition_spend_events()) == CAMPAIGN_QUOTES_INSIDE_WINDOW
+
+
+def test_the_campaign_quote_cutoff_is_the_reported_period_end():
+    """`live_population.CAMPAIGN_QUOTE_CUTOFF` restates `run_phase2b.REPORT_END` because it
+    cannot import it (run_phase2b imports live_population). A restated constant is free to
+    drift, so this is the thing that stops it: move either and this reds."""
+    from simulation.live_population import CAMPAIGN_QUOTE_CUTOFF
+    from simulation.run_phase2b import REPORT_END
+
+    assert CAMPAIGN_QUOTE_CUTOFF == REPORT_END
+
+
+def test_the_campaign_never_quotes_a_prospect_the_reported_world_has_not_met():
+    """The Point-in-Time Blindfold on the quote itself (2026-08-28).
+
+    Not merely "the tail is small" — the tail must be EMPTY. A prospect dated after the last
+    reported day has not come to market, so the supplier cannot have paid to quote them.
+    """
+    from simulation.live_population import campaign_quotes_paid_for
+    from simulation.run_phase2b import REPORT_END
+
+    late = [q["prospect_id"] for q in campaign_quotes_paid_for() if q["event_date"] > REPORT_END]
+    assert not late, f"{len(late)} quotes are dated after the reported period ends"
+
+
+def test_MUTATION_without_the_cutoff_the_campaign_DOES_quote_past_the_period():
+    """R15 for the test above: with the cutoff removed the tail comes back, so the assertion
+    is about the cutoff working and not about the campaign happening to end early."""
+    from simulation.acquisition_funnel import run_acquisition_funnel
+    from tools.credit_adapters import get_credit_bureau_adapter
+
+    kw = dict(
+        years=[2025], base_seed=SEED, opening_net_assets_gbp=2_000_000.0,
+        accounts_held_at_start=14, horizon_end=HORIZON,
+        credit_bureau=get_credit_bureau_adapter(), cost_per_quote_gbp=_COST_PER_QUOTE,
+        run_funnel=run_acquisition_funnel, quote_budget_fn=_budget(400),
+    )
+    uncapped = nna.plan_growth_campaign(**kw)
+    capped = nna.plan_growth_campaign(**kw, quote_cutoff="2025-06-07")
+
+    late_uncapped = [r for r in uncapped["spend"] if r["event_date"] > "2025-06-07"]
+    late_capped = [r for r in capped["spend"] if r["event_date"] > "2025-06-07"]
+
+    assert late_uncapped, "without the cutoff there must BE a post-period tail to remove"
+    assert not late_capped
+    assert len(capped["spend"]) < len(uncapped["spend"])
 
 
 def test_c_MUTATION_the_window_filter_can_actually_EXCLUDE():

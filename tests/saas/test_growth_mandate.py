@@ -5,8 +5,8 @@ import pytest
 from saas.growth_mandate import (
     acquisition_budget_gbp,
     ACQUISITION_WIN_RATE,
-    COST_PER_ACQUISITION,
     FIXED_COST_MONTHLY,
+    cost_per_acquisition_gbp,
     MANDATE,
     acquisition_budget_gbp,
     forecast_churns_next_year,
@@ -16,8 +16,11 @@ from saas.growth_mandate import (
 
 def test_mandate_constants_exist_with_correct_types():
     assert MANDATE in ("flat", "grow", "shrink")
-    assert isinstance(COST_PER_ACQUISITION, dict)
-    assert "resi" in COST_PER_ACQUISITION and "SME" in COST_PER_ACQUISITION
+    # `COST_PER_ACQUISITION` (invented £150/£400) was deleted 2026-08-28 and replaced by a
+    # function reading the sourced model in saas/opex_ledger.py -- see
+    # tests/saas/test_sourced_acquisition_costs.py for why and for the control.
+    assert cost_per_acquisition_gbp("resi") > 0
+    assert cost_per_acquisition_gbp("SME") == 0.0  # structural: business pays a trail instead
     assert isinstance(FIXED_COST_MONTHLY, float)
     assert FIXED_COST_MONTHLY > 0
 
@@ -63,7 +66,9 @@ def test_acquisition_budget_sums_probabilities():
     churn_forecast = {"C3": 0.50, "C5": 0.30}
     segment_by_account = {"C3": "resi", "C5": "SME"}
     budget = acquisition_budget_gbp(churn_forecast, segment_by_account)
-    expected = 0.50 * COST_PER_ACQUISITION["resi"] + 0.30 * COST_PER_ACQUISITION["SME"]
+    expected = (
+        0.50 * cost_per_acquisition_gbp("resi") + 0.30 * cost_per_acquisition_gbp("SME")
+    )
     assert abs(budget - expected) < 0.01
 
 
@@ -71,14 +76,14 @@ def test_acquisition_budget_defaults_unknown_segment_to_resi():
     churn_forecast = {"C99": 1.0}
     segment_by_account = {}
     budget = acquisition_budget_gbp(churn_forecast, segment_by_account)
-    assert abs(budget - COST_PER_ACQUISITION["resi"]) < 0.01
+    assert abs(budget - cost_per_acquisition_gbp("resi")) < 0.01
 
 
 from saas.growth_mandate import (
     MANDATE,
-    COST_PER_ACQUISITION,
     ACQUISITION_WIN_RATE,
     FIXED_COST_MONTHLY,
+    cost_per_acquisition_gbp,
     should_attempt_acquisition,
 )
 
@@ -87,12 +92,18 @@ def test_mandate_is_flat():
     assert MANDATE == "flat"
 
 
-def test_resi_acquisition_cost():
-    assert COST_PER_ACQUISITION["resi"] == pytest.approx(150.0)
+def test_resi_acquisition_cost_is_the_sourced_pcs_commission():
+    """Was 150.0, an invented number. Now the £25-£30 single-fuel PCS commission midpoint --
+    per BILLING ACCOUNT, so a dual-fuel household costs the sourced £55."""
+    assert cost_per_acquisition_gbp("resi") == pytest.approx(27.5)
 
 
-def test_sme_acquisition_cost():
-    assert COST_PER_ACQUISITION["SME"] == pytest.approx(400.0)
+def test_sme_acquisition_has_no_one_off_cost():
+    """Was 400.0, the exact shape the research says not to use. Business acquisition costs a
+    broker trail per kWh at billing time instead (saas/opex_ledger.py), so the one-off is a
+    structural zero -- and the pairing is asserted in tests/saas/test_sourced_acquisition_costs.py
+    so it cannot become a free book."""
+    assert cost_per_acquisition_gbp("SME") == 0.0
 
 
 def test_resi_win_rate():
@@ -125,7 +136,7 @@ def test_acquisition_budget_empty():
 
 def test_acquisition_budget_single_resi():
     budget = acquisition_budget_gbp({"C1": 0.5}, {"C1": "resi"})
-    assert budget == pytest.approx(0.5 * 150.0)
+    assert budget == pytest.approx(0.5 * cost_per_acquisition_gbp("resi"))
 
 
 # ---------------------------------------------------------------------------
