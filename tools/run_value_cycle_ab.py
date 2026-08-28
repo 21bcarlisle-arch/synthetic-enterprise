@@ -79,7 +79,12 @@ from company.policy.decision_policy import (
     VALUE_ARM_POLICY,
     policy_scope,
 )
-from company.pricing.value_based_renewal import FLAT_AT_LEVEL
+from company.pricing.value_based_renewal import (
+    FLAT_AT_LEVEL,
+    FUNNEL_STAGES,
+    STAGE_DECLINED,
+    STAGE_PRICED,
+)
 from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
@@ -987,6 +992,198 @@ def arm_decision_shape(result: dict) -> dict:
     }
 
 
+#: What each funnel stage means to a reader who has not read the guards, in the order they fire.
+#: Prose lives HERE and the counting lives in `renewal_funnel`, so a stage cannot be described in
+#: the artefact without being counted or counted without being described.
+FUNNEL_STAGE_MEANINGS: dict[str, str] = {
+    "control_arm_no_writer": (
+        "the control arm: `renewal_margin_uplift` returns before computing anything under "
+        "`flat_rules`, so every renewal the world offered lands here. On the control this is the "
+        "WHOLE funnel and that is correct -- it is what makes the world's own renewal count "
+        "readable from a run in which the arm priced nothing."),
+    "no_locked_rate": (
+        "a term with no locked unit rate to move -- a deemed or flex period, priced at "
+        "settlement rather than struck. There is no margin here for any arm to choose."),
+    "acquisition_term": (
+        "term 0. The account had no prior term when this one was struck, so there is nothing "
+        "observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."),
+    "not_the_arms_commodity": (
+        "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs "
+        "are calibrated on the electricity book and the supplier has never fitted them to gas."),
+    "product_not_upliftable": (
+        "the term's `tariff_type` is not one this writer prices "
+        "(`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE "
+        "THIS COUNT: a term carrying `None` is not a customer on a variable product, it is a "
+        "term whose product was never labelled, and the two are opposite findings."),
+    "no_observed_history": (
+        "nothing settled for this account inside the one-year observation window before the "
+        "term start, so the arm has no EAC, tenure or current rate to price from."),
+    "declined": (
+        "the arm RAN and found no margin that survives both the price cap and the churn model's "
+        "support bound. A decision, not an omission."),
+    "priced": "the arm chose a margin for this renewal. This is `decision_shape.priced`.",
+}
+
+
+def renewal_funnel(result: dict, arm_label: str) -> dict:
+    """Every renewal the world offered this arm, and the stage each one stopped at.
+
+    THE DENOMINATOR OF THE HEADLINE, and until 2026-08-28 no artefact carried one. The A/B
+    published `decision_shape.priced` = 25 against a book of 210 billing accounts settled in the
+    window, and nothing in the file could distinguish "the world offered 25 renewals" from "the
+    world offered 1,251 and 1,226 of them were refused by a guard" -- the arm's eligibility guards
+    return a 0.0 uplift and the chain logged nothing at all for a renewal it did not price, so a
+    missing log line meant three different things at once. R15's fail-silent pattern applied to a
+    POPULATION: the reader cannot tell a small experiment from a large one.
+
+    Read off `phase2b.value_arm_funnel_log`, which the rate chain writes ONE row into per call of
+    `decide_renewal_rate` -- unconditionally, before the priced/declined branch, so no renewal can
+    reach the funnel by one path and miss it by another. The stage keys come from the arm adapter
+    (`FUNNEL_STAGES`), never re-derived here: a counter carrying its own copy of the eligibility
+    rule is how a funnel comes to report a population its subject does not have.
+
+    `available: False` for a run predating the log rather than a reconstructed count. A funnel
+    rebuilt from `basis_risk_terms` plus a guess at each term's product would pass silently on a
+    run whose guards had moved, which is precisely the failure this block exists to make loud.
+
+    R12: a diagnostic. Nothing here is a target and no stage count is a thing to improve.
+    """
+    log = (result.get("phase2b") or {}).get("value_arm_funnel_log")
+    if not isinstance(log, list) or not log:
+        return {
+            "available": False,
+            "reason": (
+                "this run carries no `value_arm_funnel_log`. The chain has written one since "
+                "2026-08-28; a run without it predates the instrumentation and its denominator "
+                "is NOT reconstructed here -- see this function's docstring."),
+        }
+    counts = collections.Counter(row.get("stage") for row in log)
+    unknown = sorted(str(s) for s in counts if s not in FUNNEL_STAGES)
+    # The one stage whose count is a finding rather than a fact, so it is broken out by the value
+    # that caused it. "Six accounts on a variable tariff" and "213 accounts whose product was
+    # never labelled" are the same integer and opposite conclusions.
+    product_values = collections.Counter(
+        repr(row.get("tariff_type")) for row in log
+        if row.get("stage") == "product_not_upliftable")
+    reached = len(log)
+    priced = counts.get(STAGE_PRICED, 0)
+    return {
+        "available": True,
+        "arm": arm_label,
+        "what_this_is": (
+            "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped "
+            "at. `renewals_the_world_offered` is every call of `decide_renewal_rate` "
+            "(simulation/run_phase2b.py, inside the chronological term loop) and is therefore "
+            "already NET of two world-side exclusions the chain never sees: a term belonging to "
+            "an account that had already churned, and a successor term not yet activated by a "
+            "home-move win. Both are `continue`s above the call."),
+        "renewals_the_world_offered": reached,
+        "reached_the_arm_with_an_arm_set": reached - counts.get("control_arm_no_writer", 0),
+        "priced": priced,
+        "declined": counts.get(STAGE_DECLINED, 0),
+        "priced_share_of_renewals_offered": round(priced / reached, 4) if reached else None,
+        # THE DROP AT EACH STAGE, in the order the guards fire, each with the count that stopped
+        # there and what stopping there means.
+        "stages": [
+            {
+                "stage": stage,
+                "count": counts.get(stage, 0),
+                "share_of_renewals_offered": (
+                    round(counts.get(stage, 0) / reached, 4) if reached else None),
+                "means": FUNNEL_STAGE_MEANINGS[stage],
+            }
+            for stage in FUNNEL_STAGES
+        ],
+        # Broken out because this stage's count is the artefact's biggest single drop and its
+        # MEANING depends entirely on which products are behind it.
+        "product_not_upliftable_by_tariff_type": dict(sorted(product_values.items())),
+        "accounts_the_arm_priced": sorted({
+            row.get("customer_id") for row in log if row.get("stage") == STAGE_PRICED}),
+        "accounts_the_world_offered_a_renewal": len({row.get("customer_id") for row in log}),
+        # A stage this module does not know about means the adapter grew a guard and this block
+        # did not follow it. Named rather than folded into an "other" bucket.
+        "unrecognised_stages": unknown,
+        "reading": (
+            "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. "
+            "The stages are the arm's OWN eligibility rule, so a large drop is not automatically "
+            "a defect -- but a drop at `product_not_upliftable` on terms whose tariff_type is "
+            "`None` IS one, because a `None` product is an unlabelled term rather than a "
+            "customer on a product this arm does not price. R12: diagnostic, never a target, and "
+            "specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+        ),
+    }
+
+
+def decision_population(funnels: dict[str, dict]) -> dict:
+    """The arms' denominators, side by side, with the mechanism that makes them differ.
+
+    WHY THIS SITS BESIDE THE ADVANTAGE. `arm_identity` guards the POLICY fields -- it fails if the
+    two arms differ in anything but `renewal_margin_arm` -- and nothing guarded the decision
+    POPULATION. On the 2026-08-27 three-arm run the value arm priced 25 renewals and the level arm
+    priced 34, a 36% larger denominator for an arm whose whole design is to price EXACTLY the
+    renewals the value arm prices (`renewal_margin_uplift` deliberately does not return early for
+    `FLAT_AT_LEVEL`, so it passes every guard the value arm passes). A reader taking a per-decision
+    figure from one arm and comparing it with the other is then dividing two different books.
+
+    THE MECHANISM IS SEQUENTIAL-A/B ROSTER DIVERGENCE, and it is legitimate: different prices cause
+    different churn, a churned account's remaining terms are skipped by the world before the chain
+    is ever called, and so an account that leaves in year two removes every renewal it would have
+    presented in years three onward. The eligible pool is small enough that one early departure
+    moves the denominator by several decisions. That is not a defect to fix -- suppressing it would
+    mean pricing renewals for customers who left -- but it MUST be stated, because it is the reason
+    two arms can differ in n without differing in eligibility.
+
+    R12: a diagnostic. The denominators are not to be equalised.
+    """
+    available = {k: f for k, f in funnels.items() if f.get("available")}
+    if len(available) < 2:
+        return {
+            "available": False,
+            "reason": (
+                "fewer than two arms carry a funnel, so there are no denominators to compare. "
+                "A single arm's count is published in its own `renewal_funnel` block."),
+        }
+    per_arm = {
+        arm: {
+            "renewals_the_world_offered": f["renewals_the_world_offered"],
+            "priced": f["priced"],
+            "declined": f["declined"],
+            "accounts_priced": len(f["accounts_the_arm_priced"]),
+        }
+        for arm, f in available.items()
+    }
+    priced = {arm: v["priced"] for arm, v in per_arm.items()}
+    deciding = {arm: v for arm, v in priced.items() if v}
+    spread = (max(deciding.values()) - min(deciding.values())) if len(deciding) > 1 else 0
+    smallest = min(deciding.values()) if deciding else 0
+    return {
+        "available": True,
+        "per_arm": per_arm,
+        "priced_by_arm": priced,
+        "largest_denominator_difference": spread,
+        "difference_as_share_of_the_smaller": (
+            round(spread / smallest, 4) if smallest else None),
+        "the_mechanism": (
+            "Sequential A/B roster divergence. The arms are identical in eligibility -- "
+            "`renewal_margin_uplift` passes `flat_at_level` through every guard the value arm "
+            "passes, so neither arm can see a renewal the other cannot. They differ in WHICH "
+            "renewals still exist: a different price changes who churns, `run_phase2b` skips "
+            "every remaining term of a churned billing account before the rate chain is called, "
+            "and an account that leaves early therefore removes all of its later renewals from "
+            "that arm's denominator. `churn_roster_diff` names the accounts."),
+        "what_a_reader_must_not_do": (
+            "Do not take a per-decision figure from one arm and compare it with a per-decision "
+            "figure from another: the denominators above are different books, not the same book "
+            "measured twice. Arm-level totals (net margin, treasury, enterprise value) ARE "
+            "comparable -- they are sums over the whole run and carry the roster difference "
+            "inside them, which is the effect being measured."),
+        "why_this_is_not_a_defect": (
+            "Equalising the denominators would mean pricing renewals for customers who had "
+            "already left, which is not a world any supplier operates in. The difference is the "
+            "measurement, not noise in it. R12: diagnostic, never a target."),
+    }
+
+
 def bound_attribution(control: dict, value: dict) -> dict:
     """WHO CHOSE the arm's prices -- the customer, or a bound -- and where the money sits.
 
@@ -1639,6 +1836,17 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # retention (see the finding's own caveat) and suppressing the result would hide it.
         level_shape = arm_decision_shape(level_result)
 
+    # ONE FUNNEL PER ARM THAT ACTUALLY RAN, computed once and used twice below -- as the per-arm
+    # block and as the input to the cross-arm denominator comparison. An arm that did not run is
+    # ABSENT rather than zero-filled, for the reason `level_arm` above is: a denominator of 0
+    # published by a run that never executed the arm is R15's fail-open shape.
+    funnels = {
+        arm: renewal_funnel(res, arm)
+        for arm, res in (
+            ("control_arm", control), ("value_arm", value), ("level_arm", level_result))
+        if res is not None
+    }
+
     artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "report_end": report_end,
@@ -1692,6 +1900,15 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         "gross_to_net_bridge": gross_to_net_bridge(control, value),
         "churn_volume_attribution": churn_volume_attribution(control, value),
         "decision_shape": shape,
+        # THE DENOMINATOR OF `decision_shape`, and it belongs immediately beside it. Every stage
+        # between "the world offered a renewal" and "the arm priced it", per arm, with the drop
+        # named -- see `renewal_funnel`. Published for the CONTROL too: the control's funnel is
+        # the world's own renewal count, which is the only way to read how much of the book this
+        # writer can touch at all.
+        "renewal_funnel": funnels,
+        # The arms' differing denominators, side by side with the mechanism -- `arm_identity`
+        # guards the policy fields and this guards the decision population.
+        "decision_population": decision_population(funnels),
         # WHO CHOSE the prices -- the customer or a bound -- as one sentence, above the
         # calibration work, because how well a belief was calibrated is a secondary question
         # on a decision the belief did not make. See `bound_attribution`.
@@ -1718,7 +1935,11 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "support bound decided rather than the customer (`decision_shape`), how weak the "
             "control is against the regulated allowance (`control_credibility`), and how many "
             "renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta "
-            "from an arm that priced almost nothing says nothing about pricing on value. A "
+            "from an arm that priced almost nothing says nothing about pricing on value. "
+            "`renewal_funnel` says WHY that number is what it is, stage by stage, and "
+            "`decision_population` says why the arms' denominators differ -- read both before "
+            "taking any per-decision figure from this file, and never take one from two arms at "
+            "once. A "
             "NEGATIVE delta is a result and not a defect: the arm maximises the company's own "
             "beliefs, so it loses exactly to the degree those beliefs are wrong, and finding "
             "that out is what this experiment is for."

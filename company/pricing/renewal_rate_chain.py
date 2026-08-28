@@ -90,6 +90,9 @@ from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
 )
+from company.pricing.value_based_renewal import (
+    STAGE_PRICED as VALUE_ARM_STAGE_PRICED,
+)
 from company.pricing.value_based_renewal import renewal_margin_uplift
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -130,6 +133,16 @@ class RenewalRateChain:
     #: difference to ONE of them. Empty on the control arm, which is how a reader tells a run
     #: that priced flat from one that priced per customer and happened to land near flat.
     value_arm_entries: list[dict] = field(default_factory=list)
+    #: ONE ROW PER RENEWAL THIS CHAIN SAW, whatever the arm did with it -- including the renewals
+    #: the arm was never eligible to price, and including every renewal on the CONTROL arm.
+    #:
+    #: `value_arm_entries` above is the arm's DECISIONS; this is its DENOMINATOR, and until
+    #: 2026-08-28 nothing carried one. `decision_shape.priced` read 25 on a book of 210 billing
+    #: accounts, and the artefact had no way to say whether the other renewals were never offered
+    #: by the world, refused by a guard, or priced flat -- three different facts that all present
+    #: as an absent log line. A per-decision claim whose denominator cannot be counted is not a
+    #: measurement, so the denominator is now written down at the same site as the decision.
+    arm_funnel_entries: list[dict] = field(default_factory=list)
     decomposition: dict | None = None
 
 
@@ -336,6 +349,24 @@ def decide_renewal_rate(
         # comes to be executing two policies. `None` on every ordinary run.
         flat_level_gbp_per_mwh=active_policy().renewal_margin_flat_level_gbp_per_mwh,
     )
+    # THE DENOMINATOR, WRITTEN AT THE SAME SITE AS THE DECISION. Unconditional and before the two
+    # branches below, so a renewal cannot reach the funnel through one path and miss it through
+    # another: every renewal this chain saw appears here exactly once, on every arm including the
+    # control. `stage` is the arm's own machine-readable guard key (`FUNNEL_STAGES`), taken from
+    # the adapter rather than re-derived here -- a second copy of the eligibility rule in the
+    # counter is how a funnel comes to report a population its subject does not have.
+    result.arm_funnel_entries.append({
+        "customer_id": billing_account,
+        "commodity": commodity,
+        "term_start": term_start,
+        "term_index": term_index,
+        "tariff_type": tariff_type,
+        "arm": active_policy().renewal_margin_arm,
+        "stage": (
+            VALUE_ARM_STAGE_PRICED if arm_uplift.decision is not None
+            else arm_uplift.not_run_stage),
+        "reason": arm_uplift.not_run_reason,
+    })
     if arm_uplift.declined:
         # A DECLINE IS A DECISION AND IT GOES IN THE LOG. The rate is untouched -- a supplier
         # that cannot form a defensible view charges what it already charges -- but "the arm

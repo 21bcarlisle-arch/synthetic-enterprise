@@ -1689,3 +1689,125 @@ sides price against different references therefore holds at full window; only it
 The book's realised elasticity is milder than the company's model of it. That is a fact about this
 baseline world, arrived at blind to company P&L, and it is **not** a reason to retune either side.
 Recorded here so the next reader does not rediscover it as a surprise.
+
+---
+
+## 2026-08-28 — The decision surface the A/B actually has
+
+`decision_shape.priced` = 25. `level_arm_decision_shape.priced` = 34. A book of 210 billing
+accounts settled in the window, 127 alive at its end, renewals annual. Nothing in the artefact
+could say where the rest went, and that is the reason the headline cannot be resolved: **a
+per-decision claim whose denominator cannot be counted is not a measurement.**
+
+The absence was structural, not an oversight in the reading. `renewal_margin_uplift` returns a 0.0
+uplift for every renewal it is not eligible to price, and the rate chain wrote *nothing at all* for
+such a renewal — so "the world never offered this renewal", "a guard refused it" and "the arm
+priced it flat" were one indistinguishable absent log line. R15's FAIL-SILENT pattern applied to a
+population rather than to a verdict.
+
+### What was built
+
+`company/pricing/renewal_rate_chain.py` now appends one row per call of `decide_renewal_rate` to
+`RenewalRateChain.arm_funnel_entries` — **unconditionally, above the priced/declined branch**, so a
+renewal cannot reach the funnel by one path and miss it by another. `run_phase2b` collects them
+into `value_arm_funnel_log`; `tools/run_value_cycle_ab.renewal_funnel` publishes them as the
+artefact's `renewal_funnel` block, per arm, with the drop named at each stage, and
+`decision_population` publishes the arms' denominators beside the advantage. The stage keys are the
+arm adapter's own (`FUNNEL_STAGES`), read from it rather than restated — a counter carrying its own
+copy of the eligibility rule is how a funnel comes to report a population its subject does not
+have. A run predating the log reports `available: false`, never a denominator of 0.
+
+The funnel is written for the **control arm too**. That is deliberate: `run_value_cycle_ab` asserts
+`value_arm_log` is empty on the control, so the world's own renewal count cannot live there, and
+without it a reader can never see how much of the book this writer can touch at all.
+
+R15: sixteen tests in `tests/tools/test_the_renewal_funnel.py`, three mutations run and reverted —
+dropping a stage from `FUNNEL_STAGES` reds two, making the append conditional reds four, and making
+an unavailable funnel fail open to `priced: 0` reds two. The null rungs (an arm that priced
+everything; the difference symmetric in which arm is larger) stay green through all three.
+
+### (a) Is the decision surface small by construction, or by plumbing?
+
+**By plumbing, and the mechanism is one unset field.** *Observed, with evidence:*
+
+Measured on the control run `docs/reports/run_output_1fb8d894b_20260827T235333Z.json`
+(`basis_risk_terms` is appended immediately after the chain call, so its length is exactly the
+number of terms that reached `decide_renewal_rate`):
+
+| stage | count |
+| --- | --- |
+| terms reaching `decide_renewal_rate` | 1,251 |
+| — acquisition terms (`term_index` 0, both fuels) | 397 |
+| — gas terms | 563 (187 acquisition + 376 renewals) |
+| **electricity renewals (`term_index` ≥ 1)** | **478** |
+| — on the nine seed accounts C1–C9 | 52 |
+| — on drawn `SYN-`/`PROS-` accounts | **426** |
+
+Those 426 are refused by one guard: `tariff_type not in UPLIFTABLE_TARIFF_TYPES`
+(`{"fixed", "pass_through"}`). **They are not customers on evergreen or variable products.**
+`simulation.population_draw.SyntheticCustomer` declares `tariff_type: Optional[str] = None` and
+`_draw_one` never sets it, so all 213 drawn electricity accounts carry `"tariff_type": None`. The
+nine hand-authored seed customers C1–C9 have no such key at all, so `c.get("tariff_type", "fixed")`
+returns `"fixed"` for them and `None` for everyone else. Directly checked at the adapter:
+`decide_renewal_rate(tariff_type=None, …)` under `VALUE_ARM_POLICY` returns stage
+`product_not_upliftable`; the same call with `"fixed"` passes that guard.
+
+The world nevertheless settles those 426 terms as ordinary annual fixed contracts —
+`build_renewal_schedule` treats `None` as neither `flex` nor `deemed`, strikes a locked unit rate
+and carries it into `prev_fixed_unit_rate`. So the term has every property of a fixed product
+except the label, and the company's eligibility rule — correctly, on its own terms — refuses to
+price a renewal whose product it cannot name.
+
+Corroborated in the published artefact rather than only in the code: `belief_vs_outcome.
+matched_sample` in `value_cycle_ab_s1_three_arm.json` names C1, C2, C3, C4, C5, C6, C7, C8, C9 and
+nothing else, and every account in `churn_roster_diff.only_in_value_arm` is a seat customer
+(C1_2, C2, C7, C8). **The experiment that grades per-customer pricing runs on nine accounts.**
+
+*Inferred, and flagged rather than asserted:* the same unset field also decides whether the
+supplier's own cap clamp fires. `renewal_rate_chain` reads `cap_ceiling` only when
+`is_domestic and tariff_type in CAPPED_TARIFF_TYPES` (`("fixed",)`), and the world's independent
+enforcement (`simulation/price_cap_enforcement` via `hedged_settlement`) is applied inside
+`run_deemed_term` only. On that reading no Ofgem ceiling reaches a fixed-shaped term labelled
+`None`, which would put 213 of 222 domestic electricity accounts outside the price cap in this
+world. **This has not been measured against the struck rates** — whether any of those 426 renewals
+actually struck above the cap is unknown, and that measurement is owed. It is a larger question
+than the A/B's denominator and does not belong in this file's conclusion.
+
+**What is NOT being done about it, and why.** Giving the drawn population a `tariff_type` is a
+change to the BASELINE WORLD, and R13 governs it: the baseline may only change for
+fidelity-to-reality reasons decided blind to company P&L. A real supplier's book carries a product
+per account, so drawing one is defensible on fidelity grounds — but it would move every published
+figure in this project, it would change which accounts the price cap binds, and **it must not be
+taken because it makes n bigger.** Doing it as a way to rescue this experiment is R13 straight
+through the wall. It is recorded here as owed, to be decided on its own evidence, in its own pass.
+
+### (b) Why two arms differing only in `renewal_margin_arm` see different numbers of renewals
+
+**Sequential-A/B roster divergence, and it is legitimate.** *Observed:* the arms are identical in
+eligibility — `renewal_margin_uplift` deliberately does not return early for `FLAT_AT_LEVEL`, so it
+passes every guard the value arm passes, and neither arm can see a renewal the other cannot. They
+differ in which renewals still exist. A different price changes who churns; `run_phase2b` skips
+every remaining term of a churned billing account with a `continue` *above* the chain call; so an
+account that leaves in year two removes all of its later renewals from that arm's denominator.
+
+The eligible pool is small enough and concentrated enough for that to be worth nine decisions. On
+the control roster the 52 eligible renewals sit in six accounts — C2 (9), C7 (9), C8 (9), C9 (8),
+C1 (6), C5 (6), with C3, C4 and C6 contributing 5 between them. `churn_roster_diff.only_in_value_arm`
+names C1_2, C2, C7 and C8: the value arm loses three of the four largest contributors to the pool,
+earlier than the control does. (The control's 52 is a bound on the pool and a statement of its
+concentration, not the value arm's own count — the rosters differ, which is the point.)
+
+This is not a defect to fix. Equalising the denominators would mean pricing renewals for customers
+who had already left. The difference *is* the measurement. What was wrong is that it was unstated:
+`arm_identity` guards the POLICY fields and nothing guarded the decision POPULATION, so a reader
+could take a per-decision figure from one arm and compare it with one from another and be dividing
+two different books. `decision_population` now publishes both denominators, their difference, the
+mechanism, and the instruction not to do that.
+
+### What this settles about the headline
+
+The five decisions carrying 87% of the money and the six priced by the price cap are five and six
+of **twenty-five decisions on nine accounts**. No amount of re-running changes that, because the
+population is not a sampling choice — it is 4.2% of the terms the world offers, fixed by a field
+the draw never sets. The honest conclusion stands: **change the experiment, do not repeat it.**
+R12 throughout — the funnel is a diagnostic, and no stage count is a thing to improve.

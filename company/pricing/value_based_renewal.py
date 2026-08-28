@@ -956,6 +956,40 @@ from saas.non_commodity import standing_charge_rate  # noqa: E402
 #: product would make the arm's own objective internally inconsistent and nothing would say so.
 OBSERVATION_WINDOW_YEARS = 1
 
+# ── THE FUNNEL'S STAGE NAMES ──────────────────────────────────────────────────────────────────
+# One machine-readable key per guard below, published beside the prose reason rather than instead
+# of it. The prose says WHY to a human; the key is what a funnel can COUNT, and the two are set at
+# the same statement so they cannot drift apart.
+#
+# WHY THIS EXISTS (2026-08-28). `decision_shape.priced` reported 25 decisions on a book of 210
+# billing accounts and nothing in the artefact could say where the other renewals went -- the
+# guards below return a 0.0 uplift and the chain logs NOTHING for a renewal the arm was not
+# eligible for, so "the world never offered this renewal", "the arm was not allowed to price it"
+# and "the arm priced it flat" were one indistinguishable absence. That is R15's fail-silent shape
+# applied to a POPULATION rather than to a verdict.
+STAGE_CONTROL_ARM = "control_arm_no_writer"
+STAGE_NO_LOCKED_RATE = "no_locked_rate"
+STAGE_ACQUISITION_TERM = "acquisition_term"
+STAGE_NOT_THE_ARMS_COMMODITY = "not_the_arms_commodity"
+STAGE_PRODUCT_NOT_UPLIFTABLE = "product_not_upliftable"
+STAGE_NO_OBSERVED_HISTORY = "no_observed_history"
+STAGE_DECLINED = "declined"
+STAGE_PRICED = "priced"
+
+#: Every terminal state of one renewal passing this adapter, in the order the guards fire. A
+#: funnel that reports a stage outside this tuple, or omits one of them, is reporting a shape
+#: this module does not have.
+FUNNEL_STAGES: tuple[str, ...] = (
+    STAGE_CONTROL_ARM,
+    STAGE_NO_LOCKED_RATE,
+    STAGE_ACQUISITION_TERM,
+    STAGE_NOT_THE_ARMS_COMMODITY,
+    STAGE_PRODUCT_NOT_UPLIFTABLE,
+    STAGE_NO_OBSERVED_HISTORY,
+    STAGE_DECLINED,
+    STAGE_PRICED,
+)
+
 
 @dataclass(frozen=True)
 class MarginArmUplift:
@@ -980,6 +1014,12 @@ class MarginArmUplift:
     #: chose the flat margin and an arm that never ran are the same number and opposite facts --
     #: R15's fail-silent pattern, and the one this adapter is most exposed to.
     not_run_reason: str | None = None
+    #: WHICH GUARD, as a countable key rather than a sentence. `not_run_reason` interpolates the
+    #: offending value into its prose ("tariff type None has no locked margin to move"), so a
+    #: funnel grouping on it would report one bucket per distinct tariff type and could never
+    #: report a stage total. One of `FUNNEL_STAGES`, and set at the same statement as the prose.
+    #: `None` only on the priced path, where `stage` reads it off `decision is not None`.
+    not_run_stage: str | None = None
 
 
 
@@ -1071,7 +1111,7 @@ def renewal_margin_uplift(
     or non-capped product genuinely has none, and the caller that knows which is the chain.
     """
     if arm == FLAT_RULES:
-        return MarginArmUplift(0.0)
+        return MarginArmUplift(0.0, not_run_stage=STAGE_CONTROL_ARM)
     # `FLAT_AT_LEVEL` deliberately does NOT return here. It must pass through every guard below --
     # locked rate, term index, commodity, tariff type, observed state -- so it prices EXACTLY the
     # renewals the value arm prices. An arm that priced a different population would compare the
@@ -1080,22 +1120,28 @@ def renewal_margin_uplift(
     if arm not in ARMS:
         raise MarginDecisionUnavailable(f"{arm!r} is not an arm; expected one of {ARMS}")
     if locked_unit_rate is None:
-        return MarginArmUplift(0.0, not_run_reason="no locked rate to move")
+        return MarginArmUplift(
+            0.0, not_run_reason="no locked rate to move", not_run_stage=STAGE_NO_LOCKED_RATE)
     if term_index < MIN_TERM_INDEX_FOR_UPLIFT:
-        return MarginArmUplift(0.0, not_run_reason="acquisition term: nothing observed yet")
+        return MarginArmUplift(
+            0.0, not_run_reason="acquisition term: nothing observed yet",
+            not_run_stage=STAGE_ACQUISITION_TERM)
     if commodity != UPLIFTABLE_COMMODITY:
         return MarginArmUplift(
-            0.0, not_run_reason=f"commodity {commodity!r} is not priced by this arm")
+            0.0, not_run_reason=f"commodity {commodity!r} is not priced by this arm",
+            not_run_stage=STAGE_NOT_THE_ARMS_COMMODITY)
     if tariff_type not in UPLIFTABLE_TARIFF_TYPES:
         return MarginArmUplift(
-            0.0, not_run_reason=f"tariff type {tariff_type!r} has no locked margin to move")
+            0.0, not_run_reason=f"tariff type {tariff_type!r} has no locked margin to move",
+            not_run_stage=STAGE_PRODUCT_NOT_UPLIFTABLE)
 
     # Two vocabularies, mapped rather than shared -- see `segments_for`.
     churn_segment, cost_segment = segments_for(segment, is_domestic)
     observed = observed_account_state(account_id, term_start, settled_records, cost_segment)
     if observed is None:
         return MarginArmUplift(
-            0.0, not_run_reason="nothing settled for this account inside the observation window")
+            0.0, not_run_reason="nothing settled for this account inside the observation window",
+            not_run_stage=STAGE_NO_OBSERVED_HISTORY)
 
     try:
         decision = decide_margin(
@@ -1152,7 +1198,8 @@ def renewal_margin_uplift(
         # is carried in full rather than collapsed to a 0.0 -- R15's fail-silent pattern, in the
         # one place on this path where the arm has the most to say.
         return MarginArmUplift(
-            0.0, not_run_reason="no lawful, predictable offer: {}".format(exc), declined=True)
+            0.0, not_run_reason="no lawful, predictable offer: {}".format(exc), declined=True,
+            not_run_stage=STAGE_DECLINED)
     return MarginArmUplift(
         uplift_gbp_per_mwh=decision.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH,
         decision=decision,
