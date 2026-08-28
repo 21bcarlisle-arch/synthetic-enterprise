@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T16:29:13Z",
+  "generated_at": "2026-08-28T18:11:29Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -19,9 +19,21 @@
     "due": 0,
     "unchecked": 0,
     "stub": 0,
-    "fresh": 10
+    "fresh": 11
   },
   "topics": [
+    {
+      "id": "acquisition-and-retention-economics",
+      "title": "Winning a customer, and keeping one",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-28",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-28",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74."
+    },
     {
       "id": "carbon-price",
       "title": "The UK carbon price (UK ETS + CPS)",
