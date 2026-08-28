@@ -173,6 +173,19 @@ def head_checkout_running_tree_code(head_checkout):
     ever mattered to the neighbouring tests that check a COMMITTED rendering against COMMITTED
     sources, and those keep the plain `head_checkout`.
 
+    EXTENDED TO `TestRepair` ON 2026-08-28, which reverses the last clause's reading of that
+    class. The clause is right about the PRINCIPLE and wrong about which tests it covers:
+    `TestRepair` never checks a committed rendering against committed sources -- it CORRUPTS a
+    rendering and asserts the repair re-renders and CONVERGES. Convergence is a property of the
+    oracles and sources under review, so the tree under review is its subject too. On plain
+    `head_checkout` the three of them red whenever HEAD carries a source violation `--write`
+    cannot fix, which is exactly the state a repair commit exists to leave -- so the repair sat
+    downstream of its own gate and could not land (the wedge filed as
+    `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10`, re-found here
+    on the map's `block_reason_history` violation after 7.5h of stopped publishing). The
+    mutation is untouched: each test still writes a corrupt rendering and still fails if the
+    repair does not restore it, so the control keeps its teeth and only its subject moves.
+
     THE COST, STATED: in a dirty shared working tree this also picks up other lanes' in-flight
     work. That is deliberate rather than tolerated -- it is precisely the tree the pre-commit
     gate is about to judge, and a control that gates commits should fail on the tree that is
@@ -284,9 +297,11 @@ class TestStaleness:
 
 
 class TestRepair:
-    def test_repair_restores_a_corrupted_rendering_and_reports_convergence(self, head_checkout):
+    def test_repair_restores_a_corrupted_rendering_and_reports_convergence(
+            self, head_checkout_running_tree_code):
         """The repair must actually WRITE, and must say so — a no-op that returns success is
         the fail-open shape this whole register exists to prevent."""
+        head_checkout = head_checkout_running_tree_code
         art = dar.REGISTER[0]
         dar.repair_from(head_checkout, head_checkout)  # baseline; HEAD itself may be stale
         doc = head_checkout / art.rendered
@@ -300,8 +315,10 @@ class TestRepair:
         assert doc.read_text(encoding="utf-8") == fresh, (
             "the repair wrote something other than the derivation of committed truth")
 
-    def test_repair_copies_the_rendering_out_to_the_write_root(self, head_checkout, tmp_path):
+    def test_repair_copies_the_rendering_out_to_the_write_root(
+            self, head_checkout_running_tree_code, tmp_path):
         """Production shape: render in the HEAD checkout, land the file in the real tree."""
+        head_checkout = head_checkout_running_tree_code
         art = dar.REGISTER[0]
         (head_checkout / art.rendered).write_text("wrong\n", encoding="utf-8")
         write_root = tmp_path / "write"
@@ -315,7 +332,7 @@ class TestRepair:
         assert landed.read_text(encoding="utf-8") == (head_checkout / art.rendered).read_text(
             encoding="utf-8")
 
-    def test_repair_is_idempotent(self, head_checkout):
+    def test_repair_is_idempotent(self, head_checkout_running_tree_code):
         """A second repair must find nothing to do.
 
         Asserted as idempotence rather than as "a fresh checkout is never stale": HEAD may
@@ -323,6 +340,7 @@ class TestRepair:
         condition the repair exists for -- so a test demanding a clean HEAD would red on the
         bug instead of on the control.
         """
+        head_checkout = head_checkout_running_tree_code
         first = dar.repair_from(head_checkout, head_checkout)
         assert first["converged"], first
 

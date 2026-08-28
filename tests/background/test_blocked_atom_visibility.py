@@ -362,3 +362,106 @@ def test_json_payload_carries_the_findings_and_the_baseline(capsys, monkeypatch)
     assert payload["mint_baseline"]["harness"] == 82
     assert payload["total_atoms"] >= bav.ATOM_FLOOR
     assert any("CLOCK PROBE NOT RUN" in f for f in payload["integrity_findings"])
+
+
+# ---------------------------------------------------------------------------
+# Determinism -- the 2026-08-28 repair, and the reason it is a test and not a comment
+# ---------------------------------------------------------------------------
+
+class TestDeterminism:
+    """The rendering must be a PURE FUNCTION OF THE MAP.
+
+    The defect these hold shut wedged the publisher for 4.5h on 2026-08-28. This document is a
+    registered derived artefact, so `--check` disagreeing with the committed file reds the
+    publish gate; the derivation read the pass-ceiling store (a note per pass the loop takes) and
+    rolled `random.choices` over a probe set that could contain a drawable dependency, so it
+    moved with the map untouched, the register re-rendered into a moving target, and the
+    freshness control's PASS branch became unreachable -- R15's fourth shape.
+
+    Both signs are held. A rendering that stopped moving when the MAP moves would be a frozen
+    document, which is the same defect with the sign reversed, so `test_the_rendering_still_moves
+    _when_the_map_moves` is as load-bearing as the invariance tests -- without it every assertion
+    in this class is satisfied by `render = lambda r: ""`.
+    """
+
+    def _report(self):
+        return bav.build_report(_map(_atom("PARKED", loop_stage="idle"),
+                                     _atom("BUILDABLE")),
+                                probe_clocks=False)
+
+    def test_the_draw_probe_ignores_the_pass_ceiling_store(self, monkeypatch):
+        """MUTATION. Saturate every atom -- the live store does exactly this, one pass at a time.
+        Before the repair this emptied the candidate set and the parked atom's verdict fell to
+        EXCLUDED_OTHERWISE, changing a published number with no atom edited."""
+        atoms = _map(_atom("PARKED", loop_stage="idle"))
+        baseline = bav.park_exclusion_status(atoms)
+        assert baseline == {"PARKED": bav.EXCLUDED_BY_PARK}, "fixture must be green before mutating"
+
+        monkeypatch.setattr(supervisor, "_exclude_saturated_from_core_draw",
+                            lambda candidates: [])
+        assert bav.park_exclusion_status(atoms) == baseline
+
+    def test_the_draw_probe_ignores_the_coupled_gap_ledger(self, monkeypatch):
+        """MUTATION on the one coupled-triad input that is not on the map."""
+        atoms = _map(_atom("PARKED", loop_stage="idle"))
+        baseline = bav.park_exclusion_status(atoms)
+        monkeypatch.setattr(supervisor, "_coupled_load_gap_ledger",
+                            lambda: {"anything": ["moved"]})
+        assert bav.park_exclusion_status(atoms) == baseline
+
+    def test_the_draw_probe_ignores_the_direction_record(self, monkeypatch):
+        """MUTATION. `focus_weights` carries an expiry, so a record ageing out re-weights the
+        draw with nothing else changed."""
+        atoms = _map(_atom("PARKED", loop_stage="idle"))
+        baseline = bav.park_exclusion_status(atoms)
+
+        class _Steered:
+            @staticmethod
+            def focus_weights(candidates, weights):
+                return [w * 1000 for w in weights]
+
+        monkeypatch.setattr(supervisor, "_direction", _Steered)
+        assert bav.park_exclusion_status(atoms) == baseline
+
+    def test_a_drawable_dependency_cannot_flip_the_verdict_by_winning_the_coin(self):
+        """The rng half. DEP is below target and shares CHILD's file_scope, so before the repair
+        the draw picked one of the two at random and CHILD was excluded for scope overlap on the
+        rolls DEP won -- EXCLUDED_BY_PARK or EXCLUDED_OTHERWISE by coin flip. Repeated because a
+        single call cannot distinguish a fixed answer from a lucky one."""
+        dep = _atom("DEP", level_current=0, level_target=2, file_scope=["shared/thing.py"])
+        child = _atom("CHILD", loop_stage="idle", depends_on=["DEP"],
+                      file_scope=["shared/thing.py"])
+        atoms = _map(child, dep)
+        verdicts = {bav.park_exclusion_status(atoms)["CHILD"] for _ in range(12)}
+        assert verdicts == {bav.EXCLUDED_BY_PARK}, (
+            "the probed atom's verdict must not depend on the draw's rng: saw %s" % verdicts)
+
+    def test_the_rendering_is_byte_identical_across_repeated_derivations(self):
+        """The property the derived-artefact register actually needs. Renders the LIVE map twice
+        in one process; the register renders in two processes minutes apart, which is strictly
+        harder, so a failure here is a failure there."""
+        first = bav.render(bav.build_report(probe_clocks=False))
+        second = bav.render(bav.build_report(probe_clocks=False))
+        assert first == second
+
+    def test_the_rendering_still_moves_when_the_map_moves(self):
+        """THE ANTI-FREEZE HALF. Without this, every test above passes on a render that returns a
+        constant, and the freshness control would be a control that can never FIRE -- which is
+        the same R15 defect as one that can never pass."""
+        one = bav.render(bav.build_report(_map(_atom("PARKED", loop_stage="idle")),
+                                          probe_clocks=False))
+        two = bav.render(bav.build_report(_map(_atom("PARKED", loop_stage="idle"),
+                                               _atom("PARKED_TOO", loop_stage="idle")),
+                                          probe_clocks=False))
+        assert one != two
+
+    def test_a_hand_edited_document_still_reds_the_check(self, tmp_path, monkeypatch):
+        """The control kept its teeth. Determinism must not have been bought by making `--check`
+        agree with whatever is on disk."""
+        doc = tmp_path / "BLOCKED_ATOM_VISIBILITY.md"
+        monkeypatch.setattr(bav, "DOC_PATH", doc)
+        monkeypatch.setattr(bav, "MAP_PATH", REPO / "docs" / "design" / "maturity_map.yaml")
+        assert bav.main(["--write", "--no-clock-probe"]) == 0
+        doc.write_text(doc.read_text(encoding="utf-8").replace("Harness share", "Harnass share"),
+                       encoding="utf-8")
+        assert bav.main(["--check", "--no-clock-probe"]) == 2

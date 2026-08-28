@@ -1370,7 +1370,7 @@
   loop_stage: harden
   blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
   block_reason: "Authored DISCOVER atom."
-  block_reason_history: "REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: 'awaits director ratification' and 'BUILD stays EPOCH-gated' both name acts abolished 2026-07-29 -- R16 requires a level move to be RECORDED, never AUTHORISED (background.gate_authorization.record_level_up_self_certified), and an atom whose loop_stage is `build` is drawn, full stop."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: 'awaits director ratification' and 'BUILD stays EPOCH-gated' both name acts abolished 2026-07-29 -- R16 requires a level move to be RECORDED, never AUTHORISED (background.gate_authorization.record_level_up_self_certified), and an atom whose loop_stage is `build` is drawn, full stop.
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
@@ -2483,7 +2483,7 @@
   loop_stage: build
   blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
   block_reason: null   # closed atom; the prior text was the permission regime of its day and is preserved below (2026-08-28)
-  block_reason_history: "H_harness lane is off the open product fronts (SIM_ACTORS/SUPPLIER); the BUILD needs a director FRONT_OPEN/BUILD_OPEN; DISCOVER and exit-criteria are discharged; then director_level_up on the level move (R16)."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- H_harness lane is off the open product fronts (SIM_ACTORS/SUPPLIER); the BUILD needs a director FRONT_OPEN/BUILD_OPEN; DISCOVER and exit-criteria are discharged; then director_level_up on the level move (R16).
   dial_inherited: 2
   records_rehomed: [evidence]
   file_scope: [site, tools, tests/tools]
@@ -2501,7 +2501,7 @@
   level_target: 1
   loop_stage: build
   block_reason: null   # closed atom; the prior text was the permission regime of its day and is preserved below (2026-08-28)
-  block_reason_history: "Cohort-activation atom built; the level move awaits director ratification (R16, no self-bump)."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- Cohort-activation atom built; the level move awaits director ratification (R16, no self-bump).
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: [docs/design, docs/market_research]
@@ -2519,7 +2519,7 @@
   level_target: 3
   loop_stage: build
   block_reason: null   # closed atom; the prior text was the permission regime of its day and is preserved below (2026-08-28)
-  block_reason_history: "Cohort-assignment seam built; the level move awaits director ratification (R16, no self-bump)."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- Cohort-assignment seam built; the level move awaits director ratification (R16, no self-bump).
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: [simulation/population_draw.py, simulation/live_population.py, tests/simulation/test_population_draw.py, tests/simulation/test_live_population_seam.py]
@@ -2537,7 +2537,7 @@
   level_target: 3
   loop_stage: build
   block_reason: null   # closed atom; the prior text was the permission regime of its day and is preserved below (2026-08-28)
-  block_reason_history: "Realised-cohort coverage report built; the level move awaits director ratification (R16, no self-bump)."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- Realised-cohort coverage report built; the level move awaits director ratification (R16, no self-bump).
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: [simulation/population_coverage.py, tests/simulation/test_population_coverage.py, tools/generate_cohort_coverage.py, docs/observability/cohort_coverage_realised.json, docs/market_research/population_coverage]
@@ -2555,7 +2555,7 @@
   level_target: 3
   loop_stage: build
   block_reason: null   # closed atom; the prior text was the permission regime of its day and is preserved below (2026-08-28)
-  block_reason_history: "Fidelity-ledger marking built; the level move awaits director ratification (R16, no self-bump)."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- Fidelity-ledger marking built; the level move awaits director ratification (R16, no self-bump).
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: [background/segmentation_testability_ledger.py, docs/observability/segmentation_testability_ledger.json, tests/background/test_segmentation_testability_ledger.py]

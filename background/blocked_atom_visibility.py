@@ -66,9 +66,30 @@ forecast-feed"). It is therefore a FLOOR: an atom that is genuinely about CLV bu
 not say so is not counted. Stated rather than hidden -- the alternative, matching prose, would
 count every atom whose notes mention the word.
 
+THE RENDERING IS A PURE FUNCTION OF THE COMMITTED MAP (2026-08-28 repair)
+--------------------------------------------------------------------------
+It was not, and that wedged the publisher for four and a half hours. `docs/design/BLOCKED_ATOM_
+VISIBILITY.md` is a REGISTERED DERIVED ARTEFACT (`background/derived_artefact_register.py`), so
+`--check` disagreeing with the file on disk reds the publish gate. Two draw inputs made the
+derivation move with the map untouched: the pass ceiling, whose store gains a note on every pass
+the loop makes and reads `gate_authorizations.jsonl` for level moves, and the draw's own
+`random.choices` over a probe set that could contain a drawable dependency. So the committed
+split moved 40/38 -> 41/37 with no atom edited, the register's repair loop re-rendered into a
+moving target, `MAX_REPAIR_PASSES` was exhausted, and the freshness control's PASS branch became
+unreachable -- R15's fourth shape, on a control whose subject was a design document.
+
+The rule this establishes, and the thing to check before adding any input here: **a derived
+design document may report only STATE the committed sources determine.** A number this file
+prints must not be able to change because the loop took a pass, a ledger gained a line, or a
+draw rolled a die. `_draw_reading` neutralises every non-map draw input and `_probe_set` parks
+the dependencies so the probed atom is the sole candidate; both carry the reasoning inline.
+`tests/background/test_blocked_atom_visibility.py::TestDeterminism` holds it, and holds the other
+half too -- a rendering that stopped moving when the MAP moves would be a frozen document, which
+is the same defect wearing the opposite sign.
+
 NOT SAFE TO RUN INSIDE A LIVE SUPERVISOR PROCESS
 -------------------------------------------------
-The draw probe repoints `supervisor.MATURITY_MAP_PATH` and stubs two of that module's live-state
+The draw probe repoints `supervisor.MATURITY_MAP_PATH` and stubs five of that module's live-state
 readers for the duration of each measurement (restored in a `finally`, with two tests holding it).
 Using the real draw is the whole point -- a re-implementation would be the tautology -- but it
 means a concurrent draw in the SAME process would briefly see the synthetic map. This is a CLI and
@@ -197,15 +218,49 @@ def subject_coverage(atoms: list[dict]) -> dict[str, list[str]]:
 # Property 1 -- the DRAW, measured with the real draw
 # ---------------------------------------------------------------------------
 
+class _FixedDirection:
+    """`supervisor._direction` with the live direction record removed. `focus_weights` is a
+    WEIGHT and can never change who is a candidate, so this shim only removes a needless read."""
+
+    @staticmethod
+    def focus_weights(candidates, weights):
+        return weights
+
+
 @contextmanager
 def _draw_reading(atoms: list[dict]):
     """Point the real supervisor draw at a synthetic map for the duration of the block.
 
-    Two live-state readers are neutralised while it runs, because both would confound the
-    measurement in BOTH directions and neither has anything to do with the park:
-    `_build_in_progress_ids` drops atoms a live fork happens to own, and `_prefer_unmerged_free`
-    deprioritises atoms whose file_scope collides with an unmerged branch. A parked atom that a
-    fork happened to own would otherwise read as "correctly excluded" for the wrong reason.
+    EVERY DRAW INPUT THAT IS NOT THE MAP IS NEUTRALISED HERE, and that is the whole of the
+    2026-08-28 repair. See `park_exclusion_status` for the defect; the rule it establishes is
+    that this module's rendering must be a PURE FUNCTION OF THE COMMITTED MAP. A draw input read
+    from a live store makes the rendering a moving target, and a derived-artefact freshness check
+    over a moving target has an unreachable PASS branch (R15's fourth shape).
+
+    Each of the five reads below confounds the measurement in BOTH directions and none of them
+    has anything to do with the park:
+
+      `_build_in_progress_ids`             drops atoms a live fork happens to own.
+      `_prefer_unmerged_free`              deprioritises atoms colliding with an unmerged branch.
+      `_exclude_saturated_from_core_draw`  drops atoms over the pass ceiling. Its inputs are the
+                                           simplifications store (one note appended per pass the
+                                           loop makes) and `gate_authorizations.jsonl` (appended
+                                           per level move) -- so it changes between two runs
+                                           minutes apart with the map untouched. THIS is what
+                                           moved the committed split from 40/38 to 41/37 on an
+                                           unchanged map, and it is self-referential: the commit
+                                           that lands a re-rendered document can itself change
+                                           the next rendering.
+      `_direction.focus_weights`           multiplies dials from a record carrying an expiry.
+      `_coupled_load_gap_ledger`           the coupled-triad L3 gate's third input. The other two
+                                           (the atom's own level_target, whether a twin is
+                                           registered) are on the map; the ledger is not. Fixed
+                                           to empty, which is the gate's own FAIL-CLOSED reading
+                                           -- an unmeasured gap blocks -- so the rendered verdict
+                                           is the conservative one and is stable.
+
+    A parked atom that a fork happened to own, or that crossed the pass ceiling this morning,
+    would otherwise read as "correctly excluded" for a reason that is not the park.
     """
     try:
         import yaml
@@ -216,18 +271,27 @@ def _draw_reading(atoms: list[dict]):
     original_path = supervisor.MATURITY_MAP_PATH
     original_bip = supervisor._build_in_progress_ids
     original_unmerged = supervisor._prefer_unmerged_free
+    original_saturated = supervisor._exclude_saturated_from_core_draw
+    original_direction = supervisor._direction
+    original_gap_ledger = supervisor._coupled_load_gap_ledger
     with tempfile.TemporaryDirectory() as tmp:
         probe_map = Path(tmp) / "probe_map.yaml"
         probe_map.write_text(yaml.safe_dump(atoms, sort_keys=False), encoding="utf-8")
         supervisor.MATURITY_MAP_PATH = probe_map
         supervisor._build_in_progress_ids = lambda: set()
         supervisor._prefer_unmerged_free = lambda candidates, lane="BUILD": candidates
+        supervisor._exclude_saturated_from_core_draw = lambda candidates: candidates
+        supervisor._direction = _FixedDirection
+        supervisor._coupled_load_gap_ledger = lambda: {}
         try:
             yield supervisor
         finally:
             supervisor.MATURITY_MAP_PATH = original_path
             supervisor._build_in_progress_ids = original_bip
             supervisor._prefer_unmerged_free = original_unmerged
+            supervisor._exclude_saturated_from_core_draw = original_saturated
+            supervisor._direction = original_direction
+            supervisor._coupled_load_gap_ledger = original_gap_ledger
 
 
 def draw_offers(atoms: list[dict]) -> set[str]:
@@ -240,14 +304,25 @@ def draw_offers(atoms: list[dict]) -> set[str]:
 
 
 def _probe_set(atom: dict, by_id: dict[str, dict]) -> list[dict]:
-    """The atom plus its declared dependencies, verbatim -- the draw's dependency gate returns
-    False for a dependency it cannot find, so a lone atom with `depends_on` would be excluded by
-    the fixture rather than by the park."""
+    """The atom plus its declared dependencies -- the draw's dependency gate returns False for a
+    dependency it cannot find, so a lone atom with `depends_on` would be excluded by the fixture
+    rather than by the park.
+
+    THE DEPENDENCIES TRAVEL PARKED (2026-08-28, the second half of the determinism repair). They
+    are here to SATISFY the dependency gate, which reads only their levels, and parking them
+    keeps that intact. What it removes is their candidacy: `_is_valid_candidate` drops
+    `loop_stage: idle`, so the probed atom is the draw's ONLY candidate and
+    `random.choices(candidates, ...)` has one thing to choose. Left drawable, a dependency could
+    win the primary pick and then exclude the probed atom for file-scope overlap -- a COIN FLIP
+    reported as EXCLUDED_OTHERWISE, i.e. a rendered number that changes with nothing but the
+    draw's own rng. Passing a seeded rng would have frozen the coin rather than removed it, and
+    would have made the reported verdict an artefact of the seed.
+    """
     probe = [atom]
     for dep_id in atom.get("depends_on") or []:
         dep = by_id.get(dep_id)
         if dep is not None:
-            probe.append(dep)
+            probe.append(dict(dep, loop_stage="idle"))
     return probe
 
 

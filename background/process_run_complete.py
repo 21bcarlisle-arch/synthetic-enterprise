@@ -1355,6 +1355,40 @@ def run_fast_tests(git_hash: str):
 # FAIL-OPEN BY DESIGN, DELIBERATELY: a repair that cannot run logs and returns, and the gate then
 # reds on the true unrepaired state. That is the honest outcome -- this helper must never be able
 # to turn a red gate green by crashing.
+#
+# ── THE BLOCKING SCOPE, DECIDED RATHER THAN INHERITED (2026-08-28, delivery seat) ──────────────
+#
+# THE QUESTION, put by the seat that drew the fifth publish stoppage of this shape: should a stale
+# DESIGN DOCUMENT be able to stop the company's FIGURES publishing at all? A reader wanting the
+# margin does not care whether `docs/design/BLOCKED_ATOM_VISIBILITY.md` carries this morning's
+# parked-atom count, and on 2026-08-28 that document held the road shut for 4.5 hours while the
+# arrears went from two run markers to eleven.
+#
+# THE DECISION: THE SCOPE STAYS WIDE. Written down here, deliberately, rather than narrowed --
+# and the reason is that the narrowing is a cure for the wrong disease. Every one of the five
+# stoppages was a projection that could not converge, never a projection that was merely stale;
+# staleness alone is REPAIRED above and lands pre-gate, which is exactly the design working. The
+# 2026-08-28 instance was a document whose derivation read the pass-ceiling store and rolled the
+# draw's own rng, so it re-rendered into a moving target and `MAX_REPAIR_PASSES` was exhausted --
+# the artefact's own defect, repaired at source in `background/blocked_atom_visibility.py`.
+# Carving design docs out of the gate would have published figures on 2026-08-28 and left that
+# defect in place, to be re-found by the next artefact that acquires a live input.
+#
+# WHAT THE NARROW SCOPE WOULD ACTUALLY COST, which is why this is not the cheap win it looks:
+# the register cannot tell a "design document" from a projection whose staleness means a
+# PUBLISHED FIGURE IS WRONG -- `forward_attachment_register` exits non-zero on a content
+# violation, not a rendering lag, and `tools/generate_projections_page.py` renders a reader-facing
+# surface. A split on the `docs/design/` prefix would therefore be an exclusion scoped by
+# DIRECTORY over a set that mixes both kinds, which is the shape that hides what it mixes. Doing
+# it properly means each REGISTER entry declaring whether its staleness impugns a figure, and
+# that declaration is the atom, not a comment.
+#
+# THE REAL RESIDUE, named so the next seat does not re-derive it: non-convergence is LOUD IN THE
+# LOG AND SILENT EVERYWHERE ELSE. Nobody was woken for 4.5h because the site kept serving the
+# last VERIFIED run behind a banner that works exactly as designed. That is a defect in the
+# ALARM, not in the coupling, and it is where the next cut belongs -- an R5 state-transition NTFY
+# on `converged == False`. Not built here: this turn's mandate was the wedge, and a new alarm
+# added to patch a symptom is the accretion OPERATIONAL_LAYER_DESIGN forbids.
 def _repair_derived_artefacts_in(head_dir):
     """Re-render stale derived artefacts from committed truth, into the checkout AND the tree."""
     try:
@@ -1368,9 +1402,14 @@ def _repair_derived_artefacts_in(head_dir):
             len(res["repaired"]), ", ".join(res["repaired"])))
         _land_repaired_artefacts(res["repaired"])
     if not res["converged"]:
-        log("Derived-artefact repair did NOT converge after {} pass(es): {} still stale. Two "
-            "projections may be invalidating each other -- this is a real defect, not slow "
-            "convergence.".format(res["passes"], ", ".join(res["still_stale"])))
+        log("Derived-artefact repair did NOT converge after {} pass(es): {} still stale. This is "
+            "a real defect, not slow convergence, and it is a WEDGE: the gate reds until it is "
+            "repaired AT SOURCE. Two shapes seen -- two projections invalidating each other, or "
+            "(2026-08-28) ONE projection invalidating itself because its derivation reads live "
+            "state. Diagnose by rendering the named artefact twice in two processes with the map "
+            "untouched: if the two renderings differ, a draw/ledger/rng input is leaking in and "
+            "no number of repair passes can converge.".format(
+                res["passes"], ", ".join(res["still_stale"])))
 
 
 # THE REPAIR LANDS BEFORE THE GATE, NOT AFTER IT (2026-08-12, closing the last BLOCKING member of

@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 77/77 parked atoms not offered — 43 proven excluded BY THE PARK (lifting the park alone makes them drawable), 34 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 77/77 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 298 atoms | 77 parked (18 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 78/78 parked atoms not offered — 44 proven excluded BY THE PARK (lifting the park alone makes them drawable), 34 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 78/78 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 310 atoms | 78 parked (21 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -18,21 +18,21 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 
 | Lane | All atoms | Excluding parked | Hidden by a park-filtering reader |
 |---|---:|---:|---:|
-| `H_harness` | 117 | 97 | 20 |
+| `H_harness` | 120 | 100 | 20 |
 | `D_billing_metering` | 46 | 36 | 10 |
-| `W2_customer_generator` | 31 | 28 | 3 |
-| `W1_market_weather` | 20 | 12 | 8 |
-| `C_customer_ops` | 17 | 13 | 4 |
+| `W2_customer_generator` | 33 | 31 | 2 |
+| `C_customer_ops` | 20 | 13 | 7 |
+| `W1_market_weather` | 20 | 13 | 7 |
 | `G_data_learning` | 14 | 10 | 4 |
+| `A_strategy_governance` | 13 | 6 | 7 |
 | `W4_the_wall` | 13 | 4 | 9 |
 | `F_risk_compliance` | 11 | 6 | 5 |
 | `B_commercial` | 9 | 5 | 4 |
-| `A_strategy_governance` | 9 | 2 | 7 |
 | `E_finance_treasury` | 7 | 5 | 2 |
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **39.3%** (117 of 298).
+Harness share of the whole map: **38.7%** (120 of 310).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 
