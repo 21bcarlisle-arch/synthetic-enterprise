@@ -438,6 +438,17 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated headroom
         lines.append(f"- {_red(f'suite headroom unavailable: {e}')}")
 
+    # A45 (director, 2026-08-28): "Every orientation should ask not only what is drifting in the
+    # work, but what the page claims that the code no longer supports... it is the machine's job
+    # rather than the director's." The three corrections that prompted this were found because a
+    # human happened to read the page. Read-only, §2-severed, fail-closed on import/read.
+    lines += ["", "**Canon drift** _(A45 — what the page claims that the code no longer supports, and where the code has moved past the page)_"]
+    try:
+        from tools.canon_drift_check import note_line as _canon_drift_line
+        lines.append(f"- {_canon_drift_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a silent "no drift"
+        lines.append(f"- {_red(f'canon drift check unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 

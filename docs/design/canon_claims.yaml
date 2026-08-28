@@ -1,0 +1,195 @@
+# THE CLAIM REGISTER — each canon claim bound to a predicate over the code.
+#
+# Read by `tools/canon_drift_check.py`. Atom A45_the_canon_is_a_standing_subject, from the
+# director's 2026-08-28 guidance: "Every orientation should ask not only what is drifting in the
+# work, but what the page claims that the code no longer supports."
+#
+# HOW TO ADD A CLAIM. Four fields carry the weight:
+#   anchor   a VERBATIM sentence from the page (whitespace-normalised before matching). If the
+#            page is edited and the sentence goes, the claim reports UNBOUND — the register
+#            going stale is itself drift, not a silent skip.
+#   claim    what that sentence asserts, in one line, in the register's own words.
+#   expects  what the CODE must show for the page to be telling the truth: present | absent.
+#   probe    the predicate. Deliberately small and greppable — all three of the 2026-08-28
+#            corrections were findable this way; none of them needed judgement.
+#
+# THE EXPECTED STATE IS THE WHOLE POINT. A check that only asks "is the page over-claiming?"
+# would have got C1 wrong: `price_sensitivity` gained a channel on 2026-08-27, the day before the
+# guidance said it had none. `expects` lets the report say SUPERSEDED — the code moved, not the
+# page — which is a different repair from an over-claim and must not be reported as the same
+# thing.
+#
+# WHAT DOES NOT BELONG HERE: a claim whose truth needs a judgement call. If the predicate cannot
+# be written down, the claim is not registerable and pretending otherwise builds a control that
+# cannot fail on anything specific.
+
+claims:
+
+  # ---------------------------------------------------------------- C1: the drawn traits
+  - id: C1_price_sensitivity_reaches_the_churn_decision
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "`price_sensitivity` reaches the world through the churn decision (landed 2026-08-27)"
+    claim: "one drawn trait expresses — price_sensitivity is read by the world's churn decision"
+    expects: present
+    probe:
+      kind: token_live
+      token: price_elasticity_for_customer
+      roots: [simulation]
+      exclude: [simulation/population_draw.py]   # the definer; a channel needs a CALLER elsewhere
+    note: >-
+      Excluding the defining module is what makes this a channel test rather than an existence
+      test. C2's lesson in miniature: a thing can exist and be wired to nothing.
+
+  - id: C1_green_stance_carries_no_channel
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "`green_stance` and `channel_pref` are drawn, coverage-tested and read by no response function at all"
+    claim: "green_stance is read by no response function in the world"
+    expects: absent
+    probe:
+      kind: token_live
+      token: green_stance
+      roots: [simulation]
+      exclude: [simulation/population_draw.py, simulation/population_coverage.py]
+    note: >-
+      The two exclusions are the DRAW and the COVERAGE TEST — the trait must exist somewhere to be
+      drawn at all. Everything else under simulation/ reading it would mean a channel appeared.
+
+  - id: C1_channel_pref_carries_no_channel
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "`green_stance` and `channel_pref` are drawn, coverage-tested and read by no response function at all"
+    claim: "channel_pref is read by no response function in the world"
+    expects: absent
+    probe:
+      kind: token_live
+      token: channel_pref
+      roots: [simulation]
+      exclude: [simulation/population_draw.py, simulation/population_coverage.py]
+
+  # ---------------------------------------------------------------- C2: the market
+  - id: C2_a_rival_supplier_is_modelled
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "a rival that moves: `simulation/competitor_reference.py`"
+    claim: "a module models a rival supplier AND the world's churn decision reads it"
+    expects: present
+    probe:
+      kind: token_live
+      token: competitor_reference_rate_gbp_per_mwh
+      roots: [simulation]
+      exclude: [simulation/competitor_reference.py]
+    note: >-
+      Registered on 2026-08-28 as the CORRECTION to a claim this check itself caught: the page
+      still said "no module models a rival supplier" hours after `simulation/competitor_reference.py`
+      landed and was wired into `customer_events`. The probe deliberately asks for the CALLER, not
+      the file — eleven design documents named "competitor" were what the original C2 was about.
+
+  - id: C2_market_position_is_a_run_level_constant
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "market position is a run-level constant"
+    claim: "the run's own market position is a single module-level constant, not a per-customer state"
+    expects: present
+    probe:
+      kind: literal_assign
+      file: simulation/customer_events.py
+      name: PRICE_DIFFERENTIAL_PCT
+      value: 0.0
+
+  # ---------------------------------------------------------------- C3: survival
+  - id: C3_collateral_is_a_cost_line_never_a_call
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "collateral is a cost line sized once at term start and fixed for the term — never a CALL"
+    claim: "nothing in the world demands collateral cash at a moment the company does not control"
+    expects: absent
+    probe:
+      kind: token_live
+      token: collateral_call
+      roots: [simulation]
+    note: >-
+      The named mechanism, not a proxy for survival generally: C3's verdict was that the collateral
+      figure is subtracted from margin and never CALLED. When the world gains the call, this claim
+      reports SUPERSEDED and the page's "none of them presses yet" is what has to change.
+
+  - id: C3_the_world_cannot_reach_the_liquidity_organs
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "there is no mechanism converting a bad quarter into a liquidity constraint"
+    claim: "no module in the world imports the company's risk organs, so it cannot apply a squeeze"
+    expects: absent
+    probe:
+      kind: import_edge
+      roots: [simulation]
+      target: company.risk
+
+  # ---------------------------------------------------------------- the RENDERED surface
+  # The two below are the same predicates as C1/C3 above, pointed at the published schematic
+  # rather than the design page. They are separate claims on purpose: correcting the canon file
+  # does not correct what a reader sees, and R11 says the rendered value is what "done" means.
+  - id: SITE_the_schematic_still_says_the_traits_are_coupled
+    page: site/index.html
+    anchor: "drawn fresh every run with coupled hidden traits"
+    claim: "the front-door schematic tells the reader the drawn traits are coupled"
+    expects: present
+    probe:
+      kind: token_live
+      token: green_stance
+      roots: [simulation]
+      exclude: [simulation/population_draw.py, simulation/population_coverage.py]
+    note: >-
+      Expected to report OVER_CLAIM until the schematic is regenerated: THE_MODEL_ON_A_PAGE was
+      corrected on 2026-08-28 and the alt-text of the schematic it describes was not.
+
+  - id: SITE_the_schematic_still_says_the_company_can_die
+    page: site/index.html
+    anchor: "it can be wrong, and it can die"
+    claim: "the front-door schematic tells the reader the company can die"
+    expects: present
+    probe:
+      kind: token_live
+      token: collateral_call
+      roots: [simulation]
+    note: >-
+      C3's director correction — "the company does not have to die; it has to not be guaranteed to
+      live" — reached the canon page and not the rendered schematic. Bound to the collateral CALL
+      because that is the mechanism C3 names as the one that could kill it.
+
+  # ---------------------------------------------------------------- the MISSION's three channels
+  # Registered 2026-08-28 with the director's mission rewrite (THE MODEL ON A PAGE §The mission).
+  # The page now says advice is "built everywhere except at the point where it would matter". That
+  # is a CHANNEL claim of exactly C1's shape -- the module exists, and the question is whether
+  # anything in the world calls it -- so it is registerable, and it must report SUPERSEDED the day
+  # advice reaches a household rather than waiting for someone to re-read the page.
+  #
+  # NOT REGISTERED, AND WHY (this register's own rule: a claim needing a judgement call does not
+  # belong here). Two of the mission's claims cannot be bound to a predicate today:
+  #   * "time has never appeared in this project at all" -- absence of a FAMILY of names, not a
+  #     token. Any single token would pass trivially and prove nothing (a tautology probe).
+  #   * "the score has no household side" -- the token that would falsify it does not exist yet,
+  #     so binding to a name I invent would go FAIL-SILENT if the build chose another name.
+  # Both are stated on the page with their evidence and carry atoms (C31, A47) instead. When A47
+  # lands its household-side figure, the name it introduces becomes registerable and belongs here.
+  - id: MISSION_switching_advice_has_no_recipient
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "nothing in `simulation/` consumes a recommendation"
+    claim: "the world never reads the company's switching recommendation, so no household acts on it"
+    expects: absent
+    probe:
+      kind: token_live
+      token: switching_recommendation
+      roots: [simulation]
+    note: >-
+      The company-side module and its portal render are deliberately NOT excluded here, because
+      they are not under `simulation/` at all -- the probe asks only whether the WORLD reads it.
+      That is the difference between a channel and a feature, and it is the same test C1 applies
+      to `green_stance`.
+
+  - id: MISSION_decarb_advice_has_no_recipient
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "`company/crm/decarb_recommender.py` exists and is discovery-wired"
+    claim: "the world never reads the company's decarbonisation recommender either"
+    expects: absent
+    probe:
+      kind: token_live
+      token: decarb_recommender
+      roots: [simulation]
+    note: >-
+      Registered as a SECOND claim rather than folded into the one above: the two recommenders
+      could gain a recipient independently, and a single probe going green on one of them would
+      hide the other -- the population-floor lesson applied to a two-member population.

@@ -459,7 +459,7 @@
   depends_on: [SPINE_1_scenario_world_state]
   blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731) -- same reason as SPINE_1: a blocked atom is invisible to the idle DISCOVER/FRAME draw. BUILD stays gated by loop_stage: idle + stage_advance + depends_on SPINE_1; the shock magnitude and target 2021/22 inversion shape stay R13 director curriculum. Prior block_reason kept below for the record.
   block_reason: "depends_on SPINE_1 landing -- the spine is the registry this scenario is selected within, so there is nothing to select until it exists. That is the WHOLE of the block as of 2026-08-28. The shock magnitude and which 2021/22 shape is the calibration target remain R13 director-authored curriculum, which constrains the VALUES and not the build."
-  block_reason_history: "REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of a W1/wholesale front' and cited 'no self-bump' -- both acts were abolished 2026-07-29 and swept 2026-08-03, so this atom, and B6 behind it, were parked on machinery that no longer exists. Found by extending tools/abolished_block_classes.py to read block_reason and to match PROSE spellings; it had been reporting zero violations while matching only the symbol form in blocked_on."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of a W1/wholesale front' and cited 'no self-bump' -- both acts were abolished 2026-07-29 and swept 2026-08-03, so this atom, and B6 behind it, were parked on machinery that no longer exists. Found by extending tools/abolished_block_classes.py to read block_reason and to match PROSE spellings; it had been reporting zero violations while matching only the symbol form in blocked_on.
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a gas trading desk's fundamentals model: European storage fill/draw as a physical stock whose seasonal trajectory and shock response drive the seasonal spread -- a low-storage cold winter endogenously inverts summer-winter, exactly the 2021/22 mechanism, rather than the crisis being hand-scripted into the curve"
@@ -478,7 +478,7 @@
   depends_on: [SPINE_3_gas_storage_crisis_regime]
   blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731) -- same reason as SPINE_1/SPINE_3: a blocked atom is invisible to the idle DISCOVER/FRAME draw, so the whole Wave-B pair read as "no work". BUILD stays gated by loop_stage: idle + stage_advance + depends_on SPINE_3 (coupled-triad ordering). Prior block_reason kept below for the record.
   block_reason: "COUPLED-TRIAD: the death loop needs a world that can defeat it (SPINE_3's inversion) -- neither reaches L3 without the other, so depends_on SPINE_3 and cannot BUILD before it. That is the WHOLE of the block as of 2026-08-28."
-  block_reason_history: "REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of an E/treasury front' and cited 'no self-bump' -- both abolished 2026-07-29, swept 2026-08-03. THIS ATOM IS THE DIRECTOR'S P7 and his C3: the world imposes no collateral CALL, only a cost line sized once at term start and fixed for the term (simulation/hedged_settlement.py). It has been parked behind a dead act while SURVIVE could not be pressed on."
+  # block_reason_history (a comment, NOT a field: the door DELETES block_reason, it does not rename it) -- REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of an E/treasury front' and cited 'no self-bump' -- both abolished 2026-07-29, swept 2026-08-03. THIS ATOM IS THE DIRECTOR'S P7 and his C3: the world imposes no collateral CALL, only a cost line sized once at term start and fixed for the term (simulation/hedged_settlement.py). It has been parked behind a dead act while SURVIVE could not be pressed on.
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier treasury in winter 2021/22: hedges are in the money on paper but exchange/counterparty variation-margin calls demand cash today against a forward that has moved -- the accounting P&L is positive while the liquidity runs out, the mechanism that actually killed several real GB suppliers (the mark-to-market P&L survived; the cash did not)"
@@ -1403,14 +1403,14 @@
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 1
   provenance: director_ruling
   depends_on: []
   couples_with: [H45_the_queue_is_chained_to_the_map]
-  file_scope: ['docs/design/DIRECTOR_CANON.md', 'tools/canon_drift_check.py', 'tests/tools/test_canon_drift_check.py']
+  file_scope: ['tools/canon_drift_check.py', 'docs/design/canon_claims.yaml', 'tests/tools/test_canon_drift_check.py', 'background/daily_self_note.py', 'docs/design/THE_MODEL_ON_A_PAGE.md']   # the SUBJECT is THE_MODEL_ON_A_PAGE (and site/index.html, via the register) rather than DIRECTOR_CANON: the corrections the director found were all on the model page. The daily self-note is the TRIGGER half -- an instrument nothing runs is an arm, not a check.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulated firm's control-attestation cycle: the statement of what the firm does is re-tested against what the systems do on a schedule, by someone whose job it is, rather than at the moment a board member happens to read it"
 - id: PB4_engagement_separated_from_elasticity
@@ -1481,6 +1481,22 @@
   file_scope: ['company/customer_ops/', 'company/pricing/', 'tests/company/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
+- id: SITE14_the_front_door_schematic_carries_the_corrected_model
+  title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
+  gain: "THE FIRST LIVE FINDING OF THE CANON DRIFT CHECK ITSELF (A45, tools/canon_drift_check.py, 2026-08-28), which is the argument for the instrument as much as the work: THE_MODEL_ON_A_PAGE.md carried C1's and C3's corrections within hours, and site/index.html -- the rendered schematic a visitor actually reads, and the only version of the model most readers will ever see -- still describes a population 'drawn fresh every run with coupled hidden traits' and a company that 'can be wrong, and it can die'. Two claims, both OVER_CLAIM against the code: green_stance and channel_pref are read by no response function (so 'coupled' overstates two of three traits), and no collateral CALL exists anywhere in simulation/ (so nothing in the world can kill the company -- C3's director correction is 'it does not have to die; it has to not be guaranteed to live'). R11 is the whole atom: correcting a canon file does not correct what a reader sees, so done means the fetched live surface says something true. The two claims are already registered in docs/design/canon_claims.yaml against site/index.html, so the check goes green on this atom's completion and red again if the schematic drifts back."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: worker_finding
+  depends_on: []
+  couples_with: [A45_the_canon_is_a_standing_subject, SITE13_the_baseline_comparison_carries_its_bound]
+  file_scope: ['site/index.html', 'docs/design/canon_claims.yaml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a prospectus whose summary page is corrected while the infographic in the front of the same document keeps the withdrawn claim -- the correction is real, the reader never sees it, and which one is 'the document' is not a question the reader asks"
 - id: SITE13_the_baseline_comparison_carries_its_bound
   title: "The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react"
   gain: "C2 (DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28, confirmed in full by WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28): 'Every measurement of the company's decisions is currently taken against an opponent that cannot move... Beating the flat baseline compares two internal policies in a market that could not react to either. That is a valid internal comparison and it is not evidence about a supplier's performance.' /capabilities/ currently publishes flat rules £153,245 against per-customer £157,913, the level explaining 102.4%, and the choosing worth -£175 with an error bar 25x the estimate -- correctly, and without that bound beside it. Publishing the comparison was right; publishing it unbounded is a claim the evidence does not carry. R11 binds hardest here: done means fetching the LIVE deployed surface and asserting the sentence renders, never that the generator emits it. The bound is RETRACTABLE by construction (a caveat can be strengthened or removed) so this is not a reserved-class public claim -- it is the correction of one."
@@ -1497,3 +1513,75 @@
   file_scope: ['site/capabilities/', 'tools/generate_capabilities_door.py', 'tests/tools/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a backtest published with its own assumption stated on the same page -- 'this result assumes the market does not react to our trades' -- rather than in a methodology appendix nobody opens, because the assumption is the difference between a result and an artefact"
+- id: A47_the_score_has_no_household_side
+  title: "The objective is scored on the company in all three legs, so a maximiser can win it by transferring value rather than creating any"
+  gain: "Director, 2026-08-28, mission (verbatim): 'We are creating enterprise value by automating ways to find individual customers we can create value for, and SHARING in that value... Value is created and then shared, so every decision has two sides: good for the household and good for us. Charging someone the cap transfers value, it doesn't create it, which is why the maximiser kept finding it.' Observed: SURVIVE and EARN are the company's by construction, and ABATE -- though it counts a household's tonnes -- is instrumented as our GBP/tCO2e and is not yet instrumented at all. There is no household-side term in ANY currency. This re-reads a finding already on file: WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED_2026-08-25 diagnosed a missing CEILING in the churn model, and that repair is real; but a ceiling repair cannot fix a score with a side missing, because the maximiser was optimising a one-sided objective CORRECTLY. A two-sided score makes cap-pricing unattractive on the merits rather than merely unreachable. Level 2 is the objective STATED and instrumented on one household currency (money saved vs counterfactual), not the whole six-cell table."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [B10_competitor_switching_response, A48_enterprise_value_is_the_method_not_the_book]
+  file_scope: ['docs/design/THE_MODEL_ON_A_PAGE.md', 'saas/', 'tools/', 'tests/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulated firm whose customer-outcomes duty is measured on the customer, not inferred from the firm's own margin -- the distinction Consumer Duty exists to force, and the one that separates a supplier creating value from one extracting it"
+- id: A48_enterprise_value_is_the_method_not_the_book
+  title: "The only module in the repo named enterprise_value measures the book, which is precisely the definition the mission supersedes"
+  gain: "Director, 2026-08-28, mission: 'the enterprise value is the automated method for finding those customers, not the book itself.' Observed-with-evidence the same day: saas/enterprise_value.py's own docstring says 'The portfolio-wide sum of the resulting per-account CLVs is the enterprise value: the total discounted future net margin of the customer book.' That is the superseded definition, written into the one place carrying the mission's own noun, and reached through company/analytics/customer_value_view.py into the live phase-4c run. This atom is NOT a rename: the CLV roll-up is a correct and useful figure and keeps its name in its own domain. What is missing is any measure of the METHOD -- how reliably the machine finds individual customers it can create value for, at what cost per customer found, and whether that improves. Until one exists, the project's headline number is the thing the director says is the evidence, presented as the thing being built. Filed: WORKER_FINDING_THE_ONLY_MODULE_NAMED_ENTERPRISE_VALUE_MEASURES_THE_BOOK_2026-08-28."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [A47_the_score_has_no_household_side, A46_book_depth_is_a_curriculum_question]
+  file_scope: ['saas/enterprise_value.py', 'docs/design/', 'tools/', 'tests/']
+  real_world_twin: "an asset manager whose value is the strategy and the pipeline that finds trades, not the current positions -- the positions are how you prove the strategy works, and a firm that confuses the two optimises the wrong asset"
+  expert_hour: {status: not_attempted, last: null, findings: []}
+- id: C30_advice_reaches_a_household
+  title: "Advice is the third channel in the mission and has modules on disk, no recipient, and no household whose behaviour it has ever changed"
+  gain: "Director, 2026-08-28, mission: value reaches the customer 'through personalised modelling, tariffs and advice', with the instruction to NOTE that two of the three do not exist rather than fix it now. Observed: company/pricing/switching_recommendation.py renders inside company/portal/app.py and company/crm/decarb_recommender.py is discovery-wired, but NOTHING in simulation/ consumes a recommendation and no simulated customer visits the portal. The channel is built everywhere except the point where it would matter. TARIFFS is the only channel of the three that reaches a household today -- the renewal rate reaches the churn decision in simulation/customer_events.py and changes an outcome."
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "Sequencing, and the director's own instruction to note rather than fix. An advice channel delivered into a world where nothing responds (C2), scored by an objective with no household-side term (A47), produces a capability that cannot be measured -- the same argument that parks C29. DISCOVER and FRAME on this atom are drawable NOW."
+  depends_on: [A47_the_score_has_no_household_side, B10_competitor_switching_response]
+  couples_with: [C29_decisions_stop_being_lookup_tables]
+  file_scope: ['company/crm/', 'company/pricing/switching_recommendation.py', 'simulation/', 'tests/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose smart-meter insights and tariff-switch prompts actually land in front of a household and change what it does -- as opposed to a recommendations engine that renders on a portal page almost nobody opens, which is the industry's usual outcome and exactly what is on disk here"
+- id: C31_time_is_the_currency_that_does_not_exist
+  title: "Money, time and carbon are the three currencies the household is saved in, and time has never appeared in this project at all"
+  gain: "Director, 2026-08-28, mission: 'There are three currencies, not one -- money, time and carbon -- and we have only ever optimised money; time has never appeared in this project at all.' Verified the same day, observed-with-evidence: no time-, hours-, effort- or hassle-as-value symbol exists anywhere in company/, simulation/, saas/ or tools/, and no design document names time as a currency. Of the six cells in the mission's two-sides-by-three-currencies table, time is the only one that is ABSENT rather than merely uninstrumented -- carbon is designed and unwired (E5), household money is unmeasured but computable from figures the run already has. Time needs a household model of effort before it can be saved: what a switch, a query, a bill dispute or a meter read COSTS a household in attention. That model does not exist on either side of the wall."
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "Sequencing, and the director's own instruction to note rather than fix. Time cannot be SAVED before there is a household model of what things COST in attention, and that model belongs behind the wall with the other hidden traits -- so it sits behind the household atoms (PB4/PB5) and the two-sided objective (A47). DISCOVER and FRAME on this atom are drawable NOW."
+  depends_on: [A47_the_score_has_no_household_side, PB4_engagement_separated_from_elasticity]
+  couples_with: [C30_advice_reaches_a_household]
+  file_scope: ['simulation/', 'company/crm/', 'docs/design/', 'tests/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the reason a household stays on a bad tariff for years while a better one is one form away -- the switch costs attention it will not spend, which is a real cost to a real person and appears in no supplier's P&L"

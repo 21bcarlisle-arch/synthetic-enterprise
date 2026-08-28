@@ -1,10 +1,15 @@
 # THE MODEL ON A PAGE
 
-**Status:** CANON (Tier-2). **Adopted:** 2026-07-23.
+**Status:** CANON (Tier-2). **Adopted:** 2026-07-23. **Mission superseded 2026-08-28** (§The mission).
 **Provenance:** [DIRECTOR-RULING → canon] via advisor bridge —
 `docs/staging/DIRECTOR_CANON_MODEL_ON_A_PAGE_2026-07-23.md` (staged commit be3da591a).
 The director asked for the whole design on one page, split into exactly two timeframes: what
 the machine runs on NOW (core), and what it EVOLVES INTO (later).
+**2026-08-28, director direct, verbatim and binding:** the mission sentence below replaces the former
+"one-sentence company" here AND the fidelity line in `CLAUDE.md`. It is a change of PURPOSE, not a
+correction of fact — unlike C1/C2/C3 (2026-08-28), which corrected claims this page made about the
+code. Nothing in the spine, the wall, the timeframes or the reading rule is withdrawn by it; what
+changes is what all of that is FOR.
 
 **Reading rule (director's, binding):** anything in **Timeframe 1** claimed as working must carry
 its proof (level, test, or gap named). Anything in **Timeframe 2** stated as present tense anywhere
@@ -13,10 +18,86 @@ disagreement as a finding (see §Open findings).
 
 ---
 
-## The one-sentence company
-**Poesys is an autonomous UK energy supplier being run inside a faithful simulation of the real
-market, whose mission is cutting carbon through personalisation — measured in £ per tonne of CO₂e
-saved — and whose test on every line is: could a real supplier know this?**
+## The mission
+
+> **We are creating enterprise value by automating ways to find individual customers we can create
+> value for, and sharing in that value — by saving them money, time and carbon, through personalised
+> modelling, tariffs and advice.**
+
+*Director, 2026-08-28, verbatim. Supersedes "cutting carbon through personalisation, measured in £ per
+tonne of CO₂e saved" here and "Goal: detailed enough to say 'that is how a real UK energy supplier
+works'" in `CLAUDE.md`.*
+
+**Carbon is not demoted — it is one of three.** The old sentence made carbon the mission and £/tCO₂e
+the score. The new one makes carbon one of three currencies the household is saved in, and makes the
+*method of finding and serving that household* the thing being built. Every carbon commitment on this
+page (`E5`, the SAVED/SPENT/NET ledger, the £/tCO₂e front-page target) survives intact and keeps its
+level; what it loses is the claim to be the whole purpose.
+
+### What follows from it, that no document said before
+
+**1. Every decision has two sides, and transfer is not creation.** Value is created and *then* shared,
+so a decision is scored on the household as well as on us. **Charging someone the cap transfers value
+rather than creating any** — which is exactly why the profit maximiser kept finding it
+(`docs/staging/WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED_2026-08-25.md`).
+That finding read the cap as a defect in the churn model's ceiling. Under this mission it is better
+read as a **defect in the objective**: the maximiser was optimising a one-sided score correctly, and no
+ceiling repair fixes a score with a side missing. The two readings are compatible and both fixes are
+real; the ordering changes, because a two-sided score makes cap-pricing unattractive *on the merits*
+rather than merely unreachable.
+
+**2. There are three currencies — money, time and carbon — and only money has been optimised.**
+
+| | household side (value CREATED) | our side (value SHARED) |
+|---|---|---|
+| **money** | not measured — nothing computes what a household saved by being with us | **EARN** — instrumented; the only live leg of the score |
+| **time** | **does not exist** | **does not exist** |
+| **carbon** | **ABATE** — designed, not instrumented (`E5`) | £/tCO₂e — designed, downstream of the cell to its left |
+
+*Time, observed-with-evidence 2026-08-28:* no time-, hours-, effort- or hassle-as-value symbol exists
+anywhere in `company/`, `simulation/`, `saas/` or `tools/`, and no design document names time as a
+currency. This is not "thinly built" — it is **absent**, and it is the only cell in the table that is.
+
+**3. The enterprise value is the automated method, not the book** — the book is the evidence the
+method works. *Observed, and it bites immediately:* `saas/enterprise_value.py`, the only module in the
+repo carrying the mission's own noun, defines it as *"the portfolio-wide sum of the resulting
+per-account CLVs … the total discounted future net margin of the customer book."* That is precisely
+the definition this mission supersedes. Filed as
+`docs/staging/WORKER_FINDING_THE_ONLY_MODULE_NAMED_ENTERPRISE_VALUE_MEASURES_THE_BOOK_2026-08-28.md`.
+
+### Fidelity keeps its place, and gains its reason
+
+The old sentence made faithfulness the goal. It is now the **precondition**: a world that cannot press
+back cannot tell value CREATED from value TRANSFERRED, because in a market that never responds,
+extracting and earning look identical on every instrument we have. That is the director's C2
+correction (no competitor module) reaching the same conclusion from the other side, and it is why
+`docs/design/THE_WORLD_MUST_PRESS_SEQUENCE.md` outranks new capability. Unchanged and still binding:
+the two-way wall, the Point-in-Time Blindfold, and the test on every line — **could a real UK energy
+supplier know this?**
+
+### The three channels, and which of them reaches a household
+
+Personalised **modelling**, **tariffs** and **advice** are how the mission says value gets to a
+customer. Status as at 2026-08-28, observed-with-evidence — **noted, not being fixed here**, on the
+director's instruction:
+
+- **Tariffs — LIVE, and the only channel that reaches a household.** The renewal pricing engine sets a
+  unit rate, the rate reaches the customer's churn decision (`simulation/customer_events.py`), and the
+  household's outcome changes. This is the whole of the company's current contact with the value it
+  claims to create.
+- **Personalised modelling — EXISTS, but pointed at us.** The discovery loop clusters the book and
+  `company/analytics/customer_value_view.py` builds a per-account view — explicitly *"the supplier's
+  OPINION about value and retention"*, feeding cost-to-serve, churn risk and CLV. It is modelling **of**
+  customers for our decisions, not modelling **for** a customer producing a household outcome. Nothing
+  it computes is ever offered to the household it is about.
+- **Advice — MODULES ON DISK, NO RECIPIENT.** `company/pricing/switching_recommendation.py` renders
+  inside `company/portal/app.py`, and `company/crm/decarb_recommender.py` exists and is discovery-wired.
+  But **nothing in `simulation/` consumes a recommendation** and no simulated customer visits the
+  portal, so no advice has ever reached a household or changed one's behaviour. The channel is built
+  everywhere except at the point where it would matter.
+
+Two of the three channels therefore cannot yet create the value the mission is about, which bounds
+every household-side measurement before it is taken.
 
 ## The spine (true in both timeframes)
 
@@ -52,7 +133,13 @@ is why EARN has been the only leg the world can press on. Atoms `B6_collateral_c
 `B7_customer_state_layer_moves_and_shocks`, `SPINE_1_scenario_world_state`.
 
 **THE SCORE:** Survive (hard constraint, judged worst-case). Earn (EV, probability-weighted). Abate
-(tCO₂e per customer from grid-intensity × half-hourly use, priced in £/tonne).
+(tCO₂e per customer from grid-intensity × half-hourly use, priced in £/tonne). *Corrected 2026-08-28
+by the mission above: all three legs are scored on the COMPANY. Survive and Earn are ours by
+construction, and Abate — though it counts a household's tonnes — is instrumented as our £/tCO₂e and
+is not yet instrumented at all. **The score has no household-side term in any currency**, which is the
+structural reason a maximiser can win it by transferring value rather than creating any. Making it
+two-sided is a mission-level change to the objective, not a tuning of it; the six cells and what fills
+them are in §The mission.*
 
 ---
 
@@ -65,14 +152,22 @@ at 2025-06).
 off-gas, prepay, vulnerable) · engagement mix 0.45/0.35/0.20 (ratified) · tenure×adoption gating live
 · assets (EV/HP/PV) on anchored S-curves.
 **Company organs:** acquisition & churn (market-coupled swell proven; moneyness trigger absent —
-known; **the market does not COMPETE — known, corrected 2026-08-28 (C2)**: reading the real switching
-record is genuine coupling to history, but no module models a rival supplier, the comparison price is
-the published Ofgem SVT series read by date from a quarterly table, and market position is a run-level
-constant. Nothing in the world responds to what the company does — nobody undercuts it, nobody defends,
-nobody targets its book. **Consequence, stated where the capability is:** every measurement of the
-company's pricing decisions is taken against an opponent that cannot move, so over-pricing carries no
-competitive consequence and "beats the flat baseline" compares two internal policies, not two
-suppliers. Atom `B10_competitor_switching_response`.) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
+known; **the market DEFENDS but does not yet CONTEST — corrected 2026-08-28 (C2), and corrected again
+the same day by `tools/canon_drift_check.py`, which caught this page still carrying the morning's
+verdict hours after the code had moved**: reading the real switching record is genuine coupling to
+history, and there is now **a rival that moves: `simulation/competitor_reference.py`** — it matches a
+company that undercuts it, over quarters, on a lag the company does not control, and never below its
+own cost stack, so a price advantage now DECAYS instead of persisting (measured: −10.0% position at
+CHASE=0, −5.0% one quarter later at CHASE=0.5). What has NOT changed: market position is a run-level
+constant where no offered rate is to hand, and the company still cannot price above the cap at all
+(`renewal_desk._apply_competitive_ceiling` clamps it), so **over-pricing still carries no competitive
+consequence** — the maximiser's discovery that charging the cap is close to free is the discovery that
+the cap is a hard ceiling with nothing above it. Nobody yet targets the company's book. **Consequence,
+stated where the capability is:** every measurement of the company's pricing decisions taken BEFORE
+2026-08-28 was taken against an opponent that could not move, so "beats the flat baseline" compares two
+internal policies, not two suppliers, and stays that way until it is re-measured against the defending
+rival. Atoms `B10_competitor_switching_response` (defence leg landed), the contested ceiling
+next.) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
 · collections · Tier-1 bill-accuracy compliance · conversations v1 (the F1 triad: company writes,
 customers respond, harness scores the gap).
 **Discovery loop:** company clusters its book from observables only, scored on worst-cell

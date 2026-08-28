@@ -138,3 +138,34 @@ a change to a live published surface and R11 says done means the rendered value 
    rendered page, that it compares two internal policies in a market that could not react.
 
 ## Still live
+
+---
+
+## DISPOSITION — 2026-08-28, scheduled tick (all three WORK THIS CREATES items closed or minted)
+
+1. **`A45_the_canon_is_a_standing_subject` — BUILT, level 0→2.** `tools/canon_drift_check.py` +
+   the claim register `docs/design/canon_claims.yaml` + 32 tests
+   (`tests/tools/test_canon_drift_check.py`), wired into the daily self-note so something other
+   than the director asks the question each morning. Nine claims registered: C1's three, C2's two,
+   C3's two, and two against the RENDERED schematic. R15 both ways —
+   `test_a_channel_that_disappears_reports_over_claim` and
+   `test_a_channel_that_appears_reports_superseded`; the second is the mutation a one-directional
+   check cannot pass, and it is C1's own shape.
+2. **The page edit — LANDED** (and then immediately corrected again, see below).
+3. **`SITE13_the_baseline_comparison_carries_its_bound` — minted**, unchanged, still open.
+
+**The check's first live run found this finding's own C2 verdict already stale.**
+`simulation/competitor_reference.py` landed the same day and is wired into
+`customer_events` — a rival that follows a company down over quarters, floored at its own cost
+stack, on a lag the company does not control. So "no module models a rival supplier" was
+SUPERSEDED within hours of being confirmed in full, exactly the direction this finding warned a
+one-directional drift check would miss. THE_MODEL_ON_A_PAGE.md now reads "the market DEFENDS but
+does not yet CONTEST", and keeps the part that did not change: the company still cannot price
+above the cap, so over-pricing still carries no competitive consequence, and every pricing
+measurement taken before 2026-08-28 was taken against an opponent that could not move.
+
+**Second live finding, minted as `SITE14_the_front_door_schematic_carries_the_corrected_model`:**
+the canon page carries C1 and C3; `site/index.html` — what a reader actually sees — still says
+"coupled hidden traits" and "it can be wrong, and it can die". Both OVER_CLAIM. The check stays
+RED on those two until the schematic is regenerated, deliberately and not wired to any gate: a
+red pre-commit control here would wedge the tree, and this one is an orientation instrument.

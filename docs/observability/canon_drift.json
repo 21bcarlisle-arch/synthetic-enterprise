@@ -1,0 +1,135 @@
+{
+  "register": "/home/rich/synthetic-enterprise/docs/design/canon_claims.yaml",
+  "claims_checked": 11,
+  "counts": {
+    "HOLDS": 9,
+    "OVER_CLAIM": 2
+  },
+  "drift": [
+    {
+      "id": "SITE_the_schematic_still_says_the_traits_are_coupled",
+      "page": "site/index.html",
+      "claim": "the front-door schematic tells the reader the drawn traits are coupled",
+      "expects": "present",
+      "verdict": "OVER_CLAIM",
+      "evidence": [],
+      "detail": "the page claims this and the code does not show it"
+    },
+    {
+      "id": "SITE_the_schematic_still_says_the_company_can_die",
+      "page": "site/index.html",
+      "claim": "the front-door schematic tells the reader the company can die",
+      "expects": "present",
+      "verdict": "OVER_CLAIM",
+      "evidence": [],
+      "detail": "the page claims this and the code does not show it"
+    }
+  ],
+  "verdicts": [
+    {
+      "id": "C1_price_sensitivity_reaches_the_churn_decision",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "one drawn trait expresses \u2014 price_sensitivity is read by the world's churn decision",
+      "expects": "present",
+      "verdict": "HOLDS",
+      "evidence": [
+        "simulation/customer_events.py"
+      ],
+      "detail": ""
+    },
+    {
+      "id": "C1_green_stance_carries_no_channel",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "green_stance is read by no response function in the world",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    },
+    {
+      "id": "C1_channel_pref_carries_no_channel",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "channel_pref is read by no response function in the world",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    },
+    {
+      "id": "C2_a_rival_supplier_is_modelled",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "a module models a rival supplier AND the world's churn decision reads it",
+      "expects": "present",
+      "verdict": "HOLDS",
+      "evidence": [
+        "simulation/customer_events.py"
+      ],
+      "detail": ""
+    },
+    {
+      "id": "C2_market_position_is_a_run_level_constant",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "the run's own market position is a single module-level constant, not a per-customer state",
+      "expects": "present",
+      "verdict": "HOLDS",
+      "evidence": [
+        "simulation/customer_events.py:43 PRICE_DIFFERENTIAL_PCT = 0.0"
+      ],
+      "detail": ""
+    },
+    {
+      "id": "C3_collateral_is_a_cost_line_never_a_call",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "nothing in the world demands collateral cash at a moment the company does not control",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    },
+    {
+      "id": "C3_the_world_cannot_reach_the_liquidity_organs",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "no module in the world imports the company's risk organs, so it cannot apply a squeeze",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    },
+    {
+      "id": "SITE_the_schematic_still_says_the_traits_are_coupled",
+      "page": "site/index.html",
+      "claim": "the front-door schematic tells the reader the drawn traits are coupled",
+      "expects": "present",
+      "verdict": "OVER_CLAIM",
+      "evidence": [],
+      "detail": "the page claims this and the code does not show it"
+    },
+    {
+      "id": "SITE_the_schematic_still_says_the_company_can_die",
+      "page": "site/index.html",
+      "claim": "the front-door schematic tells the reader the company can die",
+      "expects": "present",
+      "verdict": "OVER_CLAIM",
+      "evidence": [],
+      "detail": "the page claims this and the code does not show it"
+    },
+    {
+      "id": "MISSION_switching_advice_has_no_recipient",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "the world never reads the company's switching recommendation, so no household acts on it",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    },
+    {
+      "id": "MISSION_decarb_advice_has_no_recipient",
+      "page": "docs/design/THE_MODEL_ON_A_PAGE.md",
+      "claim": "the world never reads the company's decarbonisation recommender either",
+      "expects": "absent",
+      "verdict": "HOLDS",
+      "evidence": [],
+      "detail": ""
+    }
+  ]
+}
