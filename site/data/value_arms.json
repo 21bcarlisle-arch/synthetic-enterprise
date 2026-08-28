@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T14:14:05.044975Z",
+  "generated_at": "2026-08-28T15:03:28.093253Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -69,11 +69,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
+      "checked": true,
+      "same_supplier": true,
       "published_run_net_gbp": 159423.497394,
-      "dashboard_net_gbp": 153244.79,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3159,423.50 and the figure the site actually publishes for the company reports \u00a3153,244.79 -- a gap of \u00a36,178.71 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "gap_gbp": 6.752088665962219e-09,
+      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
     }
   },
   "provisioned": {
@@ -267,5 +267,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine earned \u00a34,724 LESS than flat rules. Running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more than the per-customer engine did. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 25 of the 1,209 renewals the world offered, 2.07% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned \u00a34,724 LESS than flat rules. Running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more than the per-customer engine did. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 25 of the 1,209 renewals the world offered, 2.07% of them, so every figure here is those decisions and what they cascade into."
 }

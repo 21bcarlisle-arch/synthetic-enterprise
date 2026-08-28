@@ -22,9 +22,9 @@
     "recommended_uplift_pct": 1.1
   },
   "avg_hedge_fraction": 0.9144,
-  "clv_gbp": -194.38,
+  "clv_gbp": -192.09,
   "churn_probability": 0.38,
-  "expected_lifetime_periods": 13.29,
+  "expected_lifetime_periods": 12.97,
   "forecast_annual_profit_gbp": -27.08,
   "forecast_cashflow": [
     {
@@ -11796,9 +11796,9 @@
       "customer_id": "C7",
       "date": "2017-12-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 9% churn risk at decision time, SIM realized probability was 8%.",
+      "description": "Renewal outcome: RENEWED -- company believed 9% churn risk at decision time, SIM realized probability was 10%.",
       "company_belief": 0.092,
-      "sim_truth": 0.083,
+      "sim_truth": 0.098,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -11818,9 +11818,9 @@
       "customer_id": "C7",
       "date": "2018-12-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 30% churn risk at decision time, SIM realized probability was 15%.",
+      "description": "Renewal outcome: RENEWED -- company believed 30% churn risk at decision time, SIM realized probability was 19%.",
       "company_belief": 0.298,
-      "sim_truth": 0.15,
+      "sim_truth": 0.186,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -11884,9 +11884,9 @@
       "customer_id": "C7",
       "date": "2019-12-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 7%.",
+      "description": "Renewal outcome: RENEWED -- company believed 11% churn risk at decision time, SIM realized probability was 10%.",
       "company_belief": 0.112,
-      "sim_truth": 0.068,
+      "sim_truth": 0.102,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
