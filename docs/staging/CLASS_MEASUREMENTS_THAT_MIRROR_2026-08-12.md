@@ -2,22 +2,23 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 6 · **Class:** `measurements_that_mirror` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
+**Instances:** 7 · **Class:** `measurements_that_mirror` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 6 instances
+## The 7 instances
 
 - `WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_FIDELITY_GATE_WAS_DENOMINATED_IN_THE_WRONG_UNIT_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md` — RECORDED
 - `WORKER_FINDING_THE_NAMER_READS_A_CLAUSE_BOUNDARY_AND_A_QUOTATION_AS_A_CLAIM_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_OOM_VICTIM_COUNTER_IS_THE_HARNESS_READING_ITS_OWN_SELFTEST_BACK_2026-08-27.md` — LATENT
 - `WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md` — RECORDED
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 6 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 7 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
 ---
 

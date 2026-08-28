@@ -6,11 +6,18 @@ cumulative cost line, superseding the individuals (archived, not deleted). A cla
 live instance list is the artefact that can win a draw; twenty siblings filed separately
 cannot."
 
-The five families are the DIRECTOR'S measurement, named in the ruling and not re-derived
-here: publish-gate/wedge (~18), controls that cannot fail (~9), measurements that mirror
-the thing they measure (~7), uncommitted/orphaned work (~7), no-caller/never-runs (~5).
+The first five families are the DIRECTOR'S measurement, named in the ruling and not
+re-derived here: publish-gate/wedge (~18), controls that cannot fail (~9), measurements that
+mirror the thing they measure (~7), uncommitted/orphaned work (~7), no-caller/never-runs (~5).
 `ruling_count` on each class records what he measured so that this module's own count can
 be COMPARED with it rather than quietly replacing it.
+
+A SIXTH CLASS WAS REGISTERED 2026-08-28 — `figures_on_a_superseded_clock` — and it is NOT
+his. R10 requires that the second instance of a shape register the class rather than fix the
+second file, so a class registered later is a normal outcome of that rule and not an
+irregularity. It is kept honest by `provenance`: the ruling's five cite the ruling, and this
+one cites the finding that named it, so a self-registered class cannot borrow the ruling's
+authority merely by sharing the renderer.
 
 WHY MEMBERSHIP IS DERIVED, never a hand-kept list (exit criterion 3): a list written once
 stops being true the moment a sixteenth sibling is filed, and stops SILENTLY — the class
@@ -129,7 +136,15 @@ _COST_CONTEXT_WINDOW = 70
 
 @dataclass(frozen=True)
 class FindingClass:
-    """One of the ruling's five families."""
+    """One family: the ruling's five, plus any registered later under R10.
+
+    `provenance` is WHO COUNTED, and it is a field rather than a constant because the five
+    original classes were the DIRECTOR'S measurement and a class registered later is not. The
+    renderer prints it verbatim beside the count, so a class the ruling never named cannot
+    borrow the ruling's authority by sharing its template. `ruling_count` is what that source
+    measured — for a self-registered class, the number of instances that had been observed when
+    it was registered, which R10 requires to be at least two: one instance is not a class.
+    """
 
     id: str
     title: str
@@ -137,10 +152,25 @@ class FindingClass:
     ruling_count: int
     lane: str
     patterns: tuple[re.Pattern[str], ...]
+    #: The date in the class document's filename. The five original classes were all registered
+    #: on the day of the ruling; a later class carries its own date, because a document named
+    #: for a day it was not written on is a small lie that a reader has no way to check.
+    registered: str = "2026-08-12"
+    #: Empty means the ruling. Anything else is printed instead of the ruling citation.
+    provenance: str = ""
 
     @property
     def document_name(self) -> str:
-        return f"{CLASS_DOC_PREFIX}{self.id.upper()}_2026-08-12.md"
+        return f"{CLASS_DOC_PREFIX}{self.id.upper()}_{self.registered}.md"
+
+    @property
+    def provenance_citation(self) -> str:
+        if self.provenance:
+            return self.provenance
+        return (
+            f"`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "
+            f'"{self.ruling_name}"'
+        )
 
 
 def _p(*alternatives: str) -> tuple[re.Pattern[str], ...]:
@@ -231,6 +261,46 @@ CLASSES: tuple[FindingClass, ...] = (
             r"tests[_ ]the[_ ]gate[_ ]never[_ ]ran",
             r"\bunimportable\b|\bdead[_ ](code|lane)\b",
             r"\binert\b",
+        ),
+    ),
+    #: REGISTERED 2026-08-28 UNDER R10, and the first class here the director's ruling did not
+    #: name. R10: "an absurdity-class defect may NOT be closed with an instance fix — closure
+    #: requires extending the invariant library so the entire class fails automatically." The
+    #: same shape published the same GBP 39,962.17 discrepancy twice in two days, in two
+    #: artefacts, from one cause, so the second repair had to register the family rather than
+    #: fix the second file.
+    #:
+    #: LAST IN THE PRECEDENCE, deliberately, and against this tuple's own most-specific-first
+    #: ordering. Both founding members DECLARE themselves under `## Class registration`, and a
+    #: declaration beats the title regex, so precedence decides nothing for them. What it would
+    #: decide is what happens to a FUTURE document that says both "superseded clock" and
+    #: "wedged": placed first, this class would quietly start taking documents away from
+    #: `publish_gate_and_wedge`, whose members have never been reclassified and should not be.
+    #: The patterns below are a backstop for a document that forgets to declare, not the
+    #: primary route in.
+    FindingClass(
+        id="figures_on_a_superseded_clock",
+        title=(
+            "Figures on a superseded clock: a summary frozen before the rows it summarises "
+            "were mutated, published beside a figure re-summed from them"
+        ),
+        ruling_name="figures on a superseded clock",
+        ruling_count=2,
+        lane="H_harness",
+        registered="2026-08-28",
+        provenance=(
+            "registered under R10 by `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_"
+            "SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28`, which is the SECOND "
+            "instance and names the class; not one of the director's five, and the count is "
+            "this module's own"
+        ),
+        patterns=_p(
+            r"superseded[_ ]clock|superseded[_ ]read|superseded[_ ]scalar",
+            r"frozen[_ ](scalar|summary|read)",
+            r"stale[_ ]scalar",
+            r"\btwo[_ ]clocks\b|\bone[_ ]clock[_ ]and[_ ]one[_ ]stale\b",
+            r"does[_ ]not[_ ]add[_ ]up|do[_ ]not[_ ]reconcile",
+            r"without[_ ]its[_ ]clock|no[_ ]financial[_ ]figure[_ ]without",
         ),
     ),
 )
@@ -622,9 +692,8 @@ def render_class_document(
     lines.append("")
     lines.append(
         f"**Instances:** {membership.count} · **Class:** `{finding_class.id}` · "
-        f"**Ruling's own count:** ~{finding_class.ruling_count} "
-        f"(`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "
-        f'"{finding_class.ruling_name}")'
+        f"**Source's own count:** ~{finding_class.ruling_count} "
+        f"({finding_class.provenance_citation})"
     )
     lines.append("")
     lines.append(
@@ -929,7 +998,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(DEFAULT_STAGING_ROOT))
     parser.add_argument("--list", action="store_true", help="print every document's class")
-    parser.add_argument("--render", action="store_true", help="(re)write the five class docs")
+    parser.add_argument("--render", action="store_true", help="(re)write every class doc")
     parser.add_argument("--check", action="store_true", help="verify the consolidation holds")
     args = parser.parse_args(argv)
 

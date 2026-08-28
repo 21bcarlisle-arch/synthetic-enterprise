@@ -13,13 +13,21 @@ renders — and the gap is the same GBP 39,962.17 the A/B artefact was just repa
 
 ## Class registration
 
-This finding does not belong to any of the five consolidated classes
-(`publish_gate_and_wedge`, `controls_that_cannot_fail`, `measurements_that_mirror`,
-`uncommitted_and_orphaned_work`, `no_caller_and_never_runs`). It is a **published figure on the
-wrong clock (R14)**, and it is filed live rather than archived because there is no class for it
-yet and one instance is not a class. If a second instance of the same shape appears — a figure
-re-summed from mutated rows published beside a sibling read off the frozen summary — that is the
-point to register `figures_on_a_superseded_clock` and consolidate both.
+Belongs to `figures_on_a_superseded_clock`.
+
+**Registered 2026-08-28, by this document, under R10 — and the paragraph this replaces is the
+reason.** It read: *"This finding does not belong to any of the five consolidated classes… it is
+filed live rather than archived because there is no class for it yet and one instance is not a
+class. If a second instance of the same shape appears — a figure re-summed from mutated rows
+published beside a sibling read off the frozen summary — that is the point to register
+`figures_on_a_superseded_clock` and consolidate both."*
+
+That condition was already met when the sentence was written, and the document did not notice:
+the A/B artefact repaired hours earlier the same day was the FIRST instance, and this is the
+second. Both are now consolidated into `CLASS_FIGURES_ON_A_SUPERSEDED_CLOCK_2026-08-28.md`, and
+the first has been written up as a document of its own
+(`WORKER_FINDING_THE_AB_PUBLISHED_TWO_NET_MARGINS_FOR_ONE_ARM_ONE_CLOCK_AND_ONE_STALE_READ_2026-08-28`)
+because it existed only as a commit message and a class cannot count what is not filed.
 
 ## Observed, with evidence
 

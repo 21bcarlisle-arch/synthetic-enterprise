@@ -442,17 +442,67 @@ def test_MUTATION_the_archived_room_lookup_is_load_bearing(tmp_path):
     )
 
 
-def test_the_five_classes_are_the_five_the_ruling_named():
-    """The families are the DIRECTOR'S measurement, not re-derived here. A sixth class
-    appearing in this module means someone re-clustered the pile without a ruling."""
-    assert [c.id for c in fc.CLASSES] == [
-        "publish_gate_and_wedge",
-        "controls_that_cannot_fail",
-        "measurements_that_mirror",
-        "uncommitted_and_orphaned_work",
-        "no_caller_and_never_runs",
+#: The director's five, in his order, with the counts he measured. PINNED, and the pin is the
+#: point: these five may not be renamed, reordered, recounted or dropped here, because they are
+#: HIS measurement and re-deriving them would be re-clustering the pile without a ruling.
+RULING_FIVE = (
+    ("publish_gate_and_wedge", 18),
+    ("controls_that_cannot_fail", 9),
+    ("measurements_that_mirror", 7),
+    ("uncommitted_and_orphaned_work", 7),
+    ("no_caller_and_never_runs", 5),
+)
+
+
+def test_the_rulings_five_classes_are_unchanged_and_come_first():
+    """The families the ruling named are the DIRECTOR'S measurement, not re-derived here.
+
+    This used to assert that the module holds EXACTLY five classes, which was the right guard
+    with the wrong boundary: R10 requires that the second instance of a shape register its class
+    rather than fix the second file, so a sixth class arriving later is the rules working, not
+    someone re-clustering the pile. What must not happen is his five being quietly restated —
+    so they stay pinned by id, by count AND by position, and a later class may only be appended
+    after them.
+    """
+    assert [c.id for c in fc.CLASSES][: len(RULING_FIVE)] == [i for i, _ in RULING_FIVE]
+    assert [c.ruling_count for c in fc.CLASSES][: len(RULING_FIVE)] == [
+        n for _, n in RULING_FIVE
     ]
-    assert [c.ruling_count for c in fc.CLASSES] == [18, 9, 7, 7, 5]
+
+
+def test_every_class_the_ruling_did_not_name_says_so_in_its_own_provenance():
+    """A self-registered class MAY NOT BORROW THE RULING'S AUTHORITY by sharing the renderer.
+
+    The count line in a class document is the one place a reader learns who measured the family.
+    If a class registered under R10 printed the ruling's citation, the document would claim the
+    director counted something he never saw — which is exactly the "figure published under a
+    label that is not its own" shape this project keeps filing findings about.
+    """
+    ruling_ids = {i for i, _ in RULING_FIVE}
+    for finding_class in fc.CLASSES:
+        if finding_class.id in ruling_ids:
+            assert finding_class.provenance == "", (
+                f"{finding_class.id} is one of the ruling's five and must cite the ruling"
+            )
+            assert "DIRECTOR_RULING" in finding_class.provenance_citation
+        else:
+            assert finding_class.provenance, (
+                f"{finding_class.id} is not one of the ruling's five, so it must state who "
+                "registered it and on what evidence"
+            )
+            assert "DIRECTOR_RULING_FINDING_SEVERITY" not in finding_class.provenance_citation
+            # R10: one instance is not a class. A family registered on a single sighting is a
+            # coincidence with a document.
+            assert finding_class.ruling_count >= 2
+
+
+def test_a_class_document_is_named_for_the_day_its_class_was_registered():
+    """`document_name` used to hardcode the ruling's date, so a class registered later would
+    have been filed under a day it was not written on — a small lie a reader cannot check, and
+    one that would put two different registrations in one apparent batch."""
+    for finding_class in fc.CLASSES:
+        assert finding_class.document_name.endswith(f"_{finding_class.registered}.md")
+        assert finding_class.id.upper() in finding_class.document_name
 
 
 def test_the_live_staging_root_consolidation_holds():
