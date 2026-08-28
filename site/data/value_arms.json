@@ -1,0 +1,149 @@
+{
+  "generated_at": "2026-08-28T01:36:08.543172Z",
+  "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
+  "provisional": true,
+  "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
+  "not_a_target": "A selection leg worth nothing is a complete answer, not a cue to tune the arm until it wins. The margin is a diagnostic here and never a target: an arm that loses to its own baseline is the result this comparison was built to be able to return.",
+  "sources": [
+    "docs/observability/value_cycle_ab_s1_three_arm.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor.json"
+  ],
+  "available": true,
+  "run_generated_at": "2026-08-27T21:56:34Z",
+  "book": {
+    "served_segments": [
+      "resi",
+      "SME"
+    ],
+    "billing_accounts_settled_in_window": 210,
+    "with_an_electricity_leg": 210,
+    "with_a_gas_leg": 187,
+    "dual_fuel": 187,
+    "dual_fuel_share_of_accounts": 0.8904761904761904,
+    "accounts_at_end_of_window": 127,
+    "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+  },
+  "realised": {
+    "available": true,
+    "clock": "settled-realised",
+    "clock_means": "Summed from the world's own settlement records after the arrears model wrote back what customers actually failed to pay. This is the clock the rest of this site publishes.",
+    "arms": [
+      {
+        "key": "control",
+        "name": "Flat rules",
+        "role": "the baseline",
+        "what": "One margin for every household, \u00a32.00/MWh, set without looking at the customer. This is the supplier whose figures the rest of this site publishes.",
+        "net_gbp": 153244.79203499746,
+        "advantage_gbp": null,
+        "absent_reason": null
+      },
+      {
+        "key": "value",
+        "name": "Per-customer",
+        "role": "the arm under test",
+        "what": "A margin chosen household by household from what the company can infer about each one -- the decision engine the whole thesis rests on.",
+        "net_gbp": 157913.20076099221,
+        "advantage_gbp": 4668.4087259947555,
+        "absent_reason": null
+      },
+      {
+        "key": "level",
+        "name": "Flat at the same level",
+        "role": "the control that splits the answer",
+        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "net_gbp": null,
+        "advantage_gbp": null,
+        "absent_reason": "Not recoverable on this clock. The run's gross-to-net bridge walks the control and per-customer arms only, so the level arm's realised bad debt was never summed. It is left blank rather than filled from the superseded figure."
+      }
+    ],
+    "is_the_published_supplier": {
+      "checked": true,
+      "same_supplier": true,
+      "published_run_net_gbp": 153244.792035,
+      "gap_gbp": 2.5320332497358322e-09,
+      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
+    }
+  },
+  "provisioned": {
+    "available": true,
+    "clock": "settled-provisioned",
+    "clock_means": "The same run, before that write-back, using the company's flat-rate bad-debt assumption. Superseded within the run itself.",
+    "arms": [
+      {
+        "key": "control",
+        "name": "Flat rules",
+        "role": "the baseline",
+        "what": "One margin for every household, \u00a32.00/MWh, set without looking at the customer. This is the supplier whose figures the rest of this site publishes.",
+        "net_gbp": 113282.617135,
+        "advantage_gbp": null,
+        "absent_reason": null
+      },
+      {
+        "key": "value",
+        "name": "Per-customer",
+        "role": "the arm under test",
+        "what": "A margin chosen household by household from what the company can infer about each one -- the decision engine the whole thesis rests on.",
+        "net_gbp": 120648.836081,
+        "advantage_gbp": 7366.218946000008,
+        "absent_reason": null
+      },
+      {
+        "key": "level",
+        "name": "Flat at the same level",
+        "role": "the control that splits the answer",
+        "what": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+        "net_gbp": 120823.404062,
+        "advantage_gbp": 7540.786927000008,
+        "absent_reason": null
+      }
+    ],
+    "selection_gbp": -174.56798100000015,
+    "level_share_of_advantage": 1.0236984513058485,
+    "level_gbp_per_mwh": 44.5,
+    "control_gbp_per_mwh": 2.0,
+    "superseded_note": "This split is on the clock the run superseded inside itself. Restating it on the realised clock drops the per-customer arm's advantage from \u00a37,366 to the realised figure above, so the level share does not survive the restatement unchanged -- and the level arm's realised net is not recoverable from this run, so the restated share cannot be computed from it either. It is published as it was measured, labelled, rather than quietly re-based."
+  },
+  "error_bar": {
+    "available": true,
+    "seeds": 3,
+    "passes": 9,
+    "what_was_re_drawn": "The same three arms re-run on the same world once per seed, with only the per-household price-sensitivity draw changed. Nothing about the company moved.",
+    "mean_gbp": 504.2956353333332,
+    "stdev_gbp": 4401.741354401497,
+    "min_gbp": -3705.272761,
+    "max_gbp": 5075.854527000003,
+    "sem_gbp": 2541.346555866812,
+    "distinguishable_from_zero": false,
+    "spread_to_point_estimate_ratio": 25.21505564300187,
+    "elasticity_draws_min": 1409,
+    "reading": "The point estimate sits inside that band and so does zero, so this instrument cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees."
+  },
+  "decisions": {
+    "available": true,
+    "value_arm_priced": 25,
+    "level_arm_priced": 34,
+    "book_accounts_settled": 210,
+    "accounts_named_in_the_decision_sample": [
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "concentration_note": "Every account the artefact names among its own scored decisions is one of the nine hand-seeded customers. The drawn population is refused by one eligibility guard: it carries no product label, and the arm correctly declines to re-price a product it cannot name. So the surface is small by PLUMBING, not by design -- and giving the drawn population a product is a change to the baseline world, which R13 says is decided on fidelity evidence and never because it would make this experiment bigger.",
+    "discrimination_auc": 0.4652777777777778,
+    "auc_reading": "Below 0.50 means the company's own belief about who will leave ranks customers worse than a coin flip. An estimator that cannot rank cannot select profitably, so the selection result and the belief result corroborate each other rather than merely coexisting.",
+    "decided_by_a_bound": 6,
+    "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
+    "control_as_share_of_regulated_allowance": [
+      0.264,
+      0.813
+    ],
+    "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
+  },
+  "headline": "The supplier this site publishes is the flat-rules baseline. Running the same book through the per-customer decision engine earned more -- and running it through one flat margin at the same LEVEL earned as much or more again, so on this evidence the advantage is the price level and not the per-customer choosing."
+}
