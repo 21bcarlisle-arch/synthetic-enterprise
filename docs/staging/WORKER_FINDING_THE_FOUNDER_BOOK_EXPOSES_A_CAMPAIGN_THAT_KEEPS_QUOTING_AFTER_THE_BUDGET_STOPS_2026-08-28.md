@@ -1,4 +1,5 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `A46_book_depth_is_a_curriculum_question`
+**Severity:** RECORDED (was BLOCKING; ruled and discharged) · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:**
+`A46_book_depth_is_a_curriculum_question` · **Ruled and landed 2026-08-28**
 
 # The 80-founder book is built and NOT landed: it exposes a campaign that pays for quotes the budget can no longer convert
 
@@ -152,5 +153,64 @@ rather than booked wins is the separate wall question, and it outranks the quoti
 
 **Not fixed here on purpose** (SELF_INTERRUPT_DISCIPLINE — queue, don't fix on sight): this note is a
 disposition, not a change. The finding stays BLOCKING and stays in the staging root.
+
+## RULING 2026-08-28 (delivery seat) — the campaign is RIGHT to keep quoting; the founder book LANDS
+
+The seat note above said the question as posed was malformed and recommended reporting the split
+before ruling. The split is now built (`funnel_wins` / `wins_refused_by_settlement_budget` on every
+`by_year` row and in the campaign total), and `wins_to_date` now accumulates FUNNEL wins, so the
+harness's capacity limit no longer reaches into the company's own believed conversion. Measured on
+the live campaign with the 80-founder book and the sourced acquisition costs:
+
+| year | quotes | funnel wins | booked | refused by the engine |
+|---|---|---|---|---|
+| 2016 | 135 | 24 | 24 | 0 |
+| 2017 | 191 | 32 | 21 | 11 |
+| 2018 | 239 | 43 | **0** | 43 |
+| 2019 | 234 | 42 | **0** | 42 |
+| 2020 | 232 | 44 | **0** | 44 |
+| 2021 | 228 | 33 | **0** | 33 |
+| 2022 | 178 | 30 | **0** | 30 |
+| 2023 | 238 | 41 | **0** | 41 |
+| 2024 | 238 | 53 | **0** | 53 |
+| 2025 | 229 | 38 | **0** | 38 |
+| **total** | **2,142** | **380** | **45** | **335** |
+
+**Funnel conversion is 17.74%. Booked conversion is 2.10%.** The company converts at very nearly the
+20% it believes; 335 of the 380 customers it won — 88% — were refused a place on the book by
+`SETTLEMENT_CUSTOMER_YEAR_BUDGET`, which the module's own note calls *"THIS MACHINE's budget ... not
+a commercial limit"*.
+
+**So the ruling.** There is no commercial defect to rule on. The premise of the original finding —
+*"a supplier that goes on paying for leads after it has run out of the capacity to serve them"* —
+is **refuted**: the capacity that ran out is the harness's, the supplier never saw it, and a
+supplier would not stop marketing because of a limit it cannot observe. The campaign keeps quoting
+and that is correct. What was indefensible was that nothing reported it, and that is now fixed —
+which is why the ruling could wait for the measurement instead of being guessed.
+
+**My pre-registered inference was wrong and is kept here beside the result.** I wrote that the 2.6%
+conversion showed a campaign paying for leads it could not convert. It showed a settlement engine
+refusing wins the campaign had already made. Same number, different mechanism, opposite conclusion.
+
+**The four red tests were red for a different reason again.** They pinned spend at invented prices.
+R1 sourced the costs and they were re-baselined against the ruled behaviour, in that order, not to
+make them green — `CAMPAIGN_SPEND_AT_SHIPPED_CONFIG` moved £135,285 -> £23,709 with the cause split
+between the price change (78.0%) and the quote cutoff (4.4%).
+
+### THE BIGGER FINDING THIS EXPOSES, and it outranks the one this document was opened for
+
+**From 2018 onward the published book is not a commercial outcome at all.** The engine booked zero
+of every year's wins. Every growth figure published for 2018-2025 is the settlement ceiling
+expressed in customer-years, not the funnel's verdict, and no reader could tell — the ceiling is a
+number in `net_new_acquisition.py`, and the book it produces looks exactly like a supplier that
+stopped winning.
+
+This is a blocker for R6. Acquisition spend cannot drive collateral demands through a book the
+engine refuses to settle: the campaign spends £46,408 and books 45 accounts, so the mechanism the
+CMA describes — growth weakening the balance sheet — has nothing to act through after 2017. **R6
+needs this resolved first**, and the resolution is not a bigger budget for its own sake: it is that
+the ceiling must stop being invisible in the published figures.
+
+Recorded as its own item rather than fixed here (SELF_INTERRUPT_DISCIPLINE).
 
 ## Still live

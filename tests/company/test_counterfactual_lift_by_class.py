@@ -24,13 +24,21 @@ def _make_event(cid, date, churn_prob=0.5, roll=0.9, eff_retain=0.5):
     }
 
 
-def _make_miss(cid, date, expected_margin=500.0, no_offer_reason=None, would_be_discount_pct=None):
+def _make_miss(cid, date, expected_margin=500.0, no_offer_reason=None, would_be_discount_pct=None,
+               term_revenue=4000.0):
+    """`term_revenue` is what a retention discount is a share of (R3, 2026-08-28).
+
+    Defaulted so the tests below stay about lift-per-class; pass `term_revenue=None` for the
+    unpriceable branch, which is asserted in its own test rather than reached by accident.
+    """
     m = {
         "customer_id": cid,
         "event_date": date,
         "company_churn_estimate": 0.5,
         "expected_term_margin_gbp": expected_margin,
     }
+    if term_revenue is not None:
+        m["expected_term_revenue_gbp"] = term_revenue
     if no_offer_reason is not None:
         m["no_offer_reason"] = no_offer_reason
     if would_be_discount_pct is not None:
@@ -171,3 +179,41 @@ class TestBackwardCompatibility:
         result = compute_counterfactual_retention([miss], [evt])
         assert result.misses[0].counterfactual_retained is True
         assert result.misses[0].intervention_class == "uneconomical_high"
+
+
+class TestUnpriceableMissesAreNotFree:
+    """R3, 2026-08-28: a class row must not report a cost of zero for offers it could not price.
+
+    Summing `None` as 0.0 is the fail-open shape the price model replaced a flat £50 with. A
+    class whose misses carry no term revenue would report `total_offer_cost_gbp = 0` and an
+    infinite-looking lift, which is the most attractive row on the page.
+    """
+
+    def test_the_unpriceable_count_travels_on_the_row(self):
+        misses = [
+            _make_miss("C1", "2020-01-01", no_offer_reason="below_threshold"),
+            _make_miss("C2", "2020-01-01", no_offer_reason="below_threshold",
+                       term_revenue=None),
+        ]
+        events = [_make_event("C1", "2020-01-01", roll=0.05, eff_retain=0.05),
+                  _make_event("C2", "2020-01-01", roll=0.05, eff_retain=0.05)]
+        cls = compute_counterfactual_lift_by_class(misses, events).by_class[0]
+        assert cls.miss_count == 2
+        assert cls.misses_that_could_not_be_priced == 1
+
+    def test_the_cost_total_excludes_what_it_could_not_price(self):
+        """MUTATION: were `None` summed as zero, these two rows would report the same cost."""
+        events = [_make_event("C1", "2020-01-01", roll=0.05, eff_retain=0.05)]
+        priced = compute_counterfactual_lift_by_class(
+            [_make_miss("C1", "2020-01-01", no_offer_reason="below_threshold")], events,
+        ).by_class[0]
+        unpriceable = compute_counterfactual_lift_by_class(
+            [_make_miss("C1", "2020-01-01", no_offer_reason="below_threshold",
+                        term_revenue=None)], events,
+        ).by_class[0]
+        assert priced.total_offer_cost_gbp > 0
+        assert unpriceable.total_offer_cost_gbp == 0
+        assert unpriceable.lift_per_pound is None, (
+            "a class nobody could price must not report a lift per pound"
+        )
+        assert unpriceable.misses_that_could_not_be_priced == 1

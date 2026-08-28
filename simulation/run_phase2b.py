@@ -1760,6 +1760,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             "event_date": term_start_str,
                             "company_churn_estimate": company_est_pre,
                             "expected_term_margin_gbp": (unit_rate - company_fwd) * eac_missed / 1000.0,
+                            # THE DENOMINATOR OF A DISCOUNT (2026-08-28, roadmap R3). A retention
+                            # offer is a price cut, so its cost is a share of REVENUE -- not of
+                            # margin, which is a few per cent of it, and not a flat sum. Without
+                            # this field `counterfactual_retention` cannot price the offer it is
+                            # counterfactualising, and it refuses rather than assuming.
+                            "expected_term_revenue_gbp": unit_rate * eac_missed / 1000.0,
                             "no_offer_reason": _no_offer_reason,
                             "would_be_discount_pct": _would_be_discount_pct,
                         })

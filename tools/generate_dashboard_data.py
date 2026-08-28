@@ -130,10 +130,16 @@ def _derive_build_from_claude_md():
         text = claude_md.read_text()
     except OSError:
         return None, None
+    # KEYED TO THE FIGURE, NOT TO A HEADING (2026-08-28). This used to anchor on the literal
+    # "## Current state" and return (None, None) if that heading was absent -- so the director's
+    # CLAUDE.md rewrite, which keeps the build figure but drops that section name, silently
+    # unstamped the live site. The heading is a structure that can move; "N tests collected" is
+    # the property actually being read, and it is unique in this file by the phase-close
+    # convention. `test_derive_build_from_claude_md_parses_current_state` runs against the REAL
+    # CLAUDE.md and does fire on the regression -- the repair here is so that a future rewrite
+    # cannot break the stamp merely by renaming a section.
     idx = text.find("## Current state")
-    if idx < 0:
-        return None, None
-    section = text[idx:]
+    section = text if idx < 0 else text[idx:]
     # Phase code is a best-effort label only -- not required (see docstring).
     m = re.search(r"Phase ([A-Z]{1,3})\b", section)
     phase = m.group(1) if m else None

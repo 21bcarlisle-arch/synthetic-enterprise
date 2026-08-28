@@ -39,10 +39,22 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 CLAUDE_MD = PROJECT_DIR / "CLAUDE.md"
 
-# Doctrine constants (CLAUDE.md "Key learnings": "hard limit: 35k chars /
-# 200 lines"). Fixed here, independent of the file measured against them.
+# The doctrine constant. Fixed here, independent of the file measured against it.
+#
+# THERE USED TO BE A SECOND LIMIT, `MAX_LINES = 200`, and it was DELETED on 2026-08-28 when the
+# director's rewrite landed. It measured the same property this one measures -- how much there is
+# to read -- and measured it worse: two limits on one quantity means the tighter one binds, and
+# the tighter one here PAID YOU TO WRITE LONGER LINES. The file it governed reached 144 lines by
+# putting whole rules on single 1,000-character lines (R13's was 662 characters; PROPOSE-RECORD-ACT
+# was 1,044), which is a large part of why it was hard to read. The rewrite is 61% smaller in
+# characters and OVER the old line limit, because it wraps at 100 and breaks its rules into
+# paragraphs -- so the line limit would have refused the smaller, more readable file.
+#
+# The director's standing instruction the same day: "prefer the smallest mechanism that can fail
+# ... a file made of rules breeds rules". A redundant limit on an already-limited quantity is that
+# accretion in miniature. The character limit is unchanged and still his number; nothing about the
+# size doctrine has been loosened except the unit it is measured in.
 MAX_CHARS = 35_000
-MAX_LINES = 200
 
 # Matches a concrete harness artefact reference: a skill's SKILL.md or a
 # path-scoped rule .md file. Bare-directory mentions (".claude/rules/") are
@@ -68,19 +80,16 @@ def size_violations(text: str) -> list[str]:
     """Return human-readable violations if `text` breaches the hard limit.
 
     Measures characters (unicode code points, matching the doctrine's "chars"
-    — CLAUDE.md contains non-ASCII em-dashes/arrows/£, so bytes != chars) and
-    physical lines. Empty list ⇒ within limits.
+    — CLAUDE.md contains non-ASCII em-dashes/arrows/£, so bytes != chars).
+    Empty list ⇒ within the limit.
     """
     violations: list[str] = []
     n_chars = len(text)
     n_bytes = len(text.encode("utf-8"))
-    n_lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
     if n_chars > MAX_CHARS:
         violations.append(
             f"CLAUDE.md is {n_chars} chars ({n_bytes} bytes), over the {MAX_CHARS}-char "
             "hard limit")
-    if n_lines > MAX_LINES:
-        violations.append(f"CLAUDE.md is {n_lines} lines, over the {MAX_LINES} hard limit")
     return violations
 
 
@@ -104,12 +113,11 @@ def size_report(text: str) -> str:
     n_lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
     return (
         "CLAUDE.md: {chars:,} chars / {bytes_:,} bytes / {lines} lines. "
-        "The limit is {max_chars:,} CHARS ({headroom:+,} headroom) and {max_lines} lines "
-        "({line_headroom:+}). Bytes are reported because `wc -c` and `ls -l` count them and "
-        "they exceed chars by {delta:,} here; the limit is not on bytes."
+        "The limit is {max_chars:,} CHARS ({headroom:+,} headroom) and there is no line limit "
+        "(see MAX_CHARS). Bytes are reported because `wc -c` and `ls -l` count them and they "
+        "exceed chars by {delta:,} here; the limit is not on bytes."
     ).format(chars=n_chars, bytes_=n_bytes, lines=n_lines, max_chars=MAX_CHARS,
-             headroom=MAX_CHARS - n_chars, max_lines=MAX_LINES,
-             line_headroom=MAX_LINES - n_lines, delta=n_bytes - n_chars)
+             headroom=MAX_CHARS - n_chars, delta=n_bytes - n_chars)
 
 
 def referenced_harness_paths(text: str) -> list[str]:

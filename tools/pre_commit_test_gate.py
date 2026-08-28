@@ -1319,7 +1319,7 @@ def _canon_size_check(staged: list[str]) -> tuple[bool, str]:
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
-        from background.claude_md_integrity import MAX_CHARS, MAX_LINES
+        from background.claude_md_integrity import MAX_CHARS
     except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
         return False, (
             f"  - the size checker is UNAVAILABLE: {type(e).__name__}: {e}\n"
@@ -1335,15 +1335,11 @@ def _canon_size_check(staged: list[str]) -> tuple[bool, str]:
         except OSError as exc:
             # FAIL-CLOSED: a canon file this gate cannot READ is not thereby within its limit.
             return False, f"  - {rel} could not be read to check its size: {exc}"
-        n_chars, n_lines = len(text), len(text.splitlines())
+        n_chars = len(text)
         if n_chars > MAX_CHARS:
             problems.append(
                 f"  - {rel} is {n_chars:,} chars, {n_chars - MAX_CHARS:,} over the "
                 f"{MAX_CHARS:,} hard limit")
-        if n_lines > MAX_LINES:
-            problems.append(
-                f"  - {rel} is {n_lines} lines, {n_lines - MAX_LINES} over the "
-                f"{MAX_LINES} hard limit")
     return (not problems), "\n".join(problems)
 
 

@@ -177,33 +177,75 @@ def test_compute_company_divergence_empty_inputs():
 
 # ── Acquisition-aware retention guard tests (Phase 15b) ──────────────────────
 
+# The Phase-15b guard, restated against the SOURCED acquisition model (2026-08-28, roadmap R1/R2
+# of WORKER_FINDING_THE_SOURCED_ACQUISITION_MODEL_IS_UNWIRED_AND_THE_INVENTED_ONE_IS_LIVE).
+# These three used to read `COST_PER_ACQUISITION` directly. That table is deleted, so they are
+# rewritten rather than re-pointed -- and the third is replaced outright, because the fact it
+# asserted no longer exists rather than having a new value.
+
+
 def test_retention_offer_made_when_margin_plus_acq_exceeds_ret_cost():
-    """Offer made when margin < ret_cost but margin + acq_cost > ret_cost."""
-    from saas.growth_mandate import COST_PER_ACQUISITION
-    # Scenario: crisis year, margin £122, ret_cost £160 (8% on large SME contract)
-    # Old guard: blocked. New guard with acq_cost=£400: £122+£400=£522 > £160 → offered.
-    margin = 122.0
+    """The guard's PROPERTY: avoided replacement cost can carry an offer margin alone cannot.
+
+    Numbers chosen against the sourced £27.50 rather than the invented £150, and the gap is
+    deliberately narrow -- at £150 almost anything cleared this guard, which is exactly how an
+    unsourced number came to authorise spending.
+    """
+    from company.interfaces.growth_desk import replacement_cost_avoided_gbp
+
+    margin = 150.0
     ret_cost = 160.0
-    acq_cost = COST_PER_ACQUISITION.get("SME", 400.0)
-    assert margin < ret_cost   # old guard would have blocked
-    assert margin + acq_cost > ret_cost   # new guard allows
+    acq_cost = replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True)
+    assert margin < ret_cost, "margin alone must not clear it, or this proves nothing"
+    assert margin + acq_cost > ret_cost
 
 
 def test_retention_blocked_when_even_acq_savings_dont_justify():
     """Offer still blocked when margin + acq_cost < ret_cost (truly uneconomical)."""
-    from saas.growth_mandate import COST_PER_ACQUISITION
-    # Scenario: very expensive retention offer vs tiny margin and resi acq cost
+    from company.interfaces.growth_desk import replacement_cost_avoided_gbp
+
     margin = 5.0
-    # 8% discount on very large contract = ret_cost = 400 * 0.08 * 20000/1000 = £640
-    ret_cost = 640.0
-    acq_cost = COST_PER_ACQUISITION.get("resi", 150.0)
-    assert margin + acq_cost < ret_cost   # new guard also blocks
+    ret_cost = 640.0  # 8% on a large contract
+    acq_cost = replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True)
+    assert margin + acq_cost < ret_cost
 
 
-def test_acq_cost_resi_lower_than_sme():
-    """Resi acquisition cost is lower than SME (harder SME market justifies more retention spend)."""
-    from saas.growth_mandate import COST_PER_ACQUISITION
-    assert COST_PER_ACQUISITION["resi"] < COST_PER_ACQUISITION["SME"]
+def test_a_broker_acquired_segment_credits_the_guard_with_NOTHING_and_that_is_recorded():
+    """REPLACES `test_acq_cost_resi_lower_than_sme`, whose premise no longer exists.
+
+    That test asserted resi CAC < SME CAC, on the reading that "a harder SME market justifies
+    more retention spend". Both halves are now wrong: SME has no one-off acquisition cost at
+    all (its cost is a per-kWh broker trail charged over the contract, R2), so the comparison
+    is not between two numbers of the same kind.
+
+    What IS true, and worth pinning because it is a live understatement rather than a design:
+    the guard credits a business retention with zero avoided replacement cost, while losing that
+    customer really does avoid a broker trail on their replacement. `replacement_cost_avoided_gbp`
+    says so in terms; this test fails if that gap is ever silently closed with a number instead
+    of the volume-based figure the docstring names.
+    """
+    from company.interfaces.growth_desk import replacement_cost_avoided_gbp
+
+    resi = replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True)
+    sme = replacement_cost_avoided_gbp(segment="SME", counted_in_guard=True)
+    assert resi > 0.0, "domestic acquisition is a real one-off PCS commission"
+    assert sme == 0.0, (
+        "business acquisition has no one-off cost; if this became non-zero it must be the "
+        "broker trail on the replacement's own volume, not a constant"
+    )
+
+    doc = replacement_cost_avoided_gbp.__doc__ or ""
+    assert "UNDERSTATEMENT" in doc, (
+        "the zero above is a known understatement and the door must keep saying so -- a "
+        "conservative number with no note reads as a measured one"
+    )
+
+
+def test_the_policy_switch_still_zeroes_the_whole_credit():
+    """The NAIVE baseline's margin-only guard is untouched by the sourcing change."""
+    from company.interfaces.growth_desk import replacement_cost_avoided_gbp
+
+    assert replacement_cost_avoided_gbp(segment="resi", counted_in_guard=False) == 0.0
 
 
 # Test throughput fix (TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md root cause #1):

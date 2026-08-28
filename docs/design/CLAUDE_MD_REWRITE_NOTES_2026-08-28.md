@@ -1,20 +1,46 @@
-# The CLAUDE.md draft — what I kept, dropped and added
+# The CLAUDE.md rewrite — what I kept, dropped and added
 
-Companion to `docs/design/CLAUDE_MD_DRAFT_2026-08-28.md`. **Nothing is swapped in.**
+**LANDED 2026-08-28.** `CLAUDE.md` is now this document's subject; the draft copy under
+`docs/design/` has been deleted rather than left to rot beside the live file. The version it
+replaced is in git history.
 
-**Size:** 34,988 → **11,204 characters** (68% smaller), 144 → 220 lines.
+**Size:** 34,988 → **14,292 characters** (59% smaller), 144 → 260 lines.
 
 ---
 
-## The line limit is now the binding one, and it rewards unreadability
+## The four additions the director asked for before it landed
 
-The draft is a third of the size in characters and **over the 200-line limit**, because the current
-file reaches 144 lines by putting entire rules on single 1,000-character lines. R13's line is 662
-characters; PROPOSE-RECORD-ACT is 1,044. A limit that counts lines and not characters pays you to
-write one paragraph per rule with no breaks, which is exactly why the current file is hard to read.
+1. **Continuity, under "What you are" rather than among the habits.** Finishing a piece of work is
+   not the end of the turn, it is where the next one starts. And **a recommendation is not a
+   request** — *"say go and I start at R1"* is the shape I actually used that day, and it stops the
+   machine. State what you are doing and do it.
+2. **Knowledge, in both senses.** As a habit: knowledge first from published evidence, then
+   discovery against what we have built, then a roadmap — never a constant chosen because a number
+   was needed. As a place: the file had **no pointer to the knowledge layer at all**, which is
+   exactly how `opex_ledger` sat unused while £150 was invented. `knowledge_map.md`,
+   `docs/market_research/`, the regulation commons and the Knowledge pages are now named in
+   "Orient first", with the instruction to check what we already know before making a number up,
+   and to follow the thread when something does not add up.
+3. **Restraint about our own machinery.** A file made of rules breeds rules; 117 harness atoms and
+   34 alarm documents are the evidence. Prefer the smallest mechanism that can fail. A control that
+   only guards our own controls is usually not worth having. *This one changed what I built the
+   same hour* — see the last section.
+4. **One fact corrected:** he steers from the console. NTFY is how I reach him, not how he reaches
+   me. The old file had it the other way round and so did my draft.
 
-**My recommendation: drop the line limit and keep the character limit.** It is your number, so it is
-your call; the draft cannot land until one of them moves.
+## The line limit is gone, and that is what let this land
+
+The rewrite is 59% smaller in characters and **would have breached the 200-line limit**, because
+the old file reached 144 lines by putting entire rules on single 1,000-character lines — R13's line
+is 662 characters, PROPOSE-RECORD-ACT is 1,044. A limit that counts lines and not characters pays
+you to write one paragraph per rule with no breaks, which is most of why the old file was hard to
+read. It would have refused the smaller, more readable file.
+
+So `MAX_LINES` is **deleted** (`background/claude_md_integrity.py`, and its two consumers in
+`tools/pre_commit_test_gate.py` and the test suite). Two limits on one quantity means the tighter
+one binds, and here the tighter one was the worse measure. **`MAX_CHARS = 35,000` is unchanged and
+still the director's number** — nothing about the size doctrine loosened except the unit. The live
+file sits at 14,292 chars, 20,708 of headroom.
 
 Related, and the answer to your question: **the gate did fire and the limit never moved.**
 `MAX_CHARS` has one commit in its entire history — the one that created it. The file was 34,988
@@ -126,6 +152,35 @@ is an Epoch-5 NFR that does not exist. The draft keeps only the part that binds:
 widen your own.
 
 ---
+
+## What the restraint instruction changed, within the hour
+
+The director's third addition — *"prefer the smallest mechanism that can fail ... a control that
+only guards your own controls is usually not worth having ... when in doubt, do the work rather
+than build the thing that watches the work"* — arrived while I was building the answer to his other
+question, *what would have caught the unwired acquisition model?*
+
+**What I was building:** a register of priced quantities. A YAML file with one entry per commercial
+quantity — its published source, its implementing symbol, its call sites — plus an AST census
+requiring all 176 money constants in `saas/`, `company/` and `simulation/` to be registered or
+declared a dial with a reason, plus a duplicate-quantity leg to catch two symbols claiming the same
+thing, plus a ratchet on the unregistered count. Five legs and 176 hand-authored rows.
+
+**What shipped:** `tests/architecture/test_a_cited_constant_has_a_caller.py`. One leg. *A money
+constant whose comment cites a file under `docs/` must be reachable from outside its own module by
+non-test code.* No YAML, no register, nothing to maintain by hand.
+
+The one leg is also the one that would actually have fired. The register's catching leg needed
+somebody to try to register `COST_PER_ACQUISITION` and hit the collision; this fires with no human
+input at all, and it is proven to: `test_it_fires_on_the_real_pre_r1_tree` materialises commit
+`a1aefccaf` and asserts the walker names `CAC_ONE_OFF_GBP_PER_DUAL_FUEL_CUSTOMER` — the £55 figure
+— as sourced and unreached. On today's tree it names nothing, because R1 gave it a caller.
+
+**And the register would have shipped four wrong repairs.** My first draft carried a debt list of
+four constants a probe called unwired. All four were reached; the probe attributed reachability by
+direct reference to the constant's own name, and these are read by accessors in their own modules
+that do have external callers. Transitive reachability is the difference between a control keyed to
+the property and one keyed to today's spelling.
 
 ## What I am least sure about
 

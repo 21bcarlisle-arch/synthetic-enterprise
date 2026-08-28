@@ -63,10 +63,20 @@ def test_size_check_fires_on_oversize_chars():
     assert any("char" in v for v in violations), "char-limit check failed to fire"
 
 
-def test_size_check_fires_on_too_many_lines():
-    many_lines = "\n".join(["line"] * (integ.MAX_LINES + 1))
-    violations = integ.size_violations(many_lines)
-    assert any("line" in v for v in violations), "line-limit check failed to fire"
+def test_a_long_thin_file_is_within_the_limit():
+    """The line limit is GONE (2026-08-28) and this pins that it stays gone.
+
+    `MAX_LINES = 200` was deleted with the director's rewrite. It measured the same quantity
+    `MAX_CHARS` measures -- how much there is to read -- and it made the file WORSE, because the
+    cheapest way to satisfy it is one 1,000-character line per rule. The rewrite is 61% smaller
+    in characters and would have BREACHED the old line limit, which is the whole argument.
+
+    So a file with far more lines than the old limit, and far fewer characters than the real one,
+    is legal. If someone reintroduces a line limit this test names what it would refuse.
+    """
+    long_and_thin = "\n".join(["line"] * 400)
+    assert len(long_and_thin) < integ.MAX_CHARS
+    assert integ.size_violations(long_and_thin) == []
 
 
 def test_size_check_passes_at_exactly_the_limit():

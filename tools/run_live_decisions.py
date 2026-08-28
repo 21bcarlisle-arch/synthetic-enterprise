@@ -18,9 +18,7 @@ import json, datetime as dt
 from pathlib import Path
 
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
-from company.analytics.counterfactual_retention import (
-    RESI_OFFER_COST_GBP, IC_OFFER_COST_GBP, _RETENTION_EFFECTIVENESS,
-)
+from company.analytics.counterfactual_retention import _RETENTION_EFFECTIVENESS
 
 PROJECT = Path(__file__).resolve().parent.parent
 PORTFOLIO_PATH = PROJECT / "site" / "state" / "live_portfolio.json"
@@ -63,10 +61,25 @@ def _hedge_recommendation(customers):
     if above: return "REDUCE", above
     return "HOLD", []
 
-def _offer_cost_gbp(segment):
-    """Retention-offer cost assumption -- reused unchanged from Phase QQ's
-    counterfactual_retention.py rather than inventing a new figure here."""
-    return IC_OFFER_COST_GBP if segment == "I&C" else RESI_OFFER_COST_GBP
+def _offer_cost_gbp(term_revenue_gbp, churn_est, p_retain_with_offer):
+    """What the offer costs: the revenue given up, weighted by the chance it is given up at all.
+
+    R3, 2026-08-28. This used to return a flat £50 (£200 for I&C) from
+    `counterfactual_retention`, charged whether or not the customer stayed. A retention offer is
+    a DISCOUNT on the next term, so it costs nothing if the customer leaves anyway and its size
+    is a share of that customer's own revenue -- both of which this function has to hand.
+
+    The discount comes from the company's own policy (`CURRENT_POLICY.retention_discount_for_risk`)
+    rather than a constant here, so the live decision surface and the run use one tier table. If
+    the customer's risk sits below every tier the discount is 0.0 and so is the cost, which is
+    correct: no offer was made.
+    """
+    from company.policy.decision_policy import CURRENT_POLICY
+
+    if term_revenue_gbp is None:
+        return None
+    discount_pct = CURRENT_POLICY.retention_discount_for_risk(churn_est)
+    return p_retain_with_offer * discount_pct * term_revenue_gbp
 
 def _tenure_years(last_renewal_date, clock_date_str):
     """Company-observable tenure proxy: years elapsed since the customer's last known
@@ -116,9 +129,24 @@ def _retention_ev(old_rate, proposed_rate, customer, segment, fuel, expected_mar
         hedge_fraction=customer.get("hedge_fraction") or 0.0,
         segment=segment,
     )
-    offer_cost = _offer_cost_gbp(segment)
+    # THE OFFER'S VALUE, both legs probability-weighted (R3, 2026-08-28).
+    #
+    #   EV = (P_retain WITH offer - P_retain WITHOUT) x margin        <- what the offer buys
+    #        - P_retain WITH offer x discount x revenue               <- what it costs, IF it works
+    #
+    # The second term used to be a flat £50 charged unconditionally, which is what a cash payment
+    # would cost. A discount is only ever paid by a customer who stays, so it carries the same
+    # probability as the margin it protects -- and an offer that fails is free.
     retention_lift = churn_est * _RETENTION_EFFECTIVENESS
     value_recovered = retention_lift * expected_margin
+    eac = customer.get("eac_kwh_per_year") or 0.0
+    term_revenue = (proposed_rate * eac / 1000.0) if eac else None
+    p_retain_with_offer = 1.0 - churn_est * (1.0 - _RETENTION_EFFECTIVENESS)
+    offer_cost = _offer_cost_gbp(term_revenue, churn_est, p_retain_with_offer)
+    if offer_cost is None:
+        # No consumption on record means no revenue to discount, so the offer cannot be priced.
+        # `None` rather than a zero cost: a free offer is the most attractive thing on the page.
+        return round(churn_est, 4), None
     ev_gbp = round(value_recovered - offer_cost, 2)
     return round(churn_est, 4), ev_gbp
 
