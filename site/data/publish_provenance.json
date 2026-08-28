@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-28T06:47:11Z",
+    "checked_at": "2026-08-28T07:10:54Z",
     "nonblocking_reds": [
       "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
       "FAILED tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded",
@@ -12,7 +12,7 @@
       "FAILED tests/tools/test_knife_hotspot_measure.py::test_the_live_plan_reconciles_with_the_tree"
     ],
     "nonblocking_reds_total": 17,
-    "open_findings": 40
+    "open_findings": 16
   },
   "last_verified": {
     "generated_at": "2026-08-28T07:04:10Z",
@@ -20,8 +20,8 @@
     "run_id": "run_output_28eaca4c9_20260828T064812Z.json",
     "verified_at": "2026-08-28T07:04:10Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=7c67fabd0; blocking tests: FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_staleness_fires_for_EVERY_registered_artefact, FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh, FAILED tests/background/test_derived_artefact_register.py::TestRepair::test_repair_re",
+  "paused_since": "2026-08-28T07:51:08Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-28T07:04:10Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_28eaca4c9_20260828T064812Z.json",
     "verified_at": "2026-08-28T07:04:10Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-28T07:04:10Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-28T07:51:08Z"
 }
