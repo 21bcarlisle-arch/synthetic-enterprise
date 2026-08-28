@@ -1,0 +1,7 @@
+# CHASE OFF -- the world as it stood before 5f50408c6 (2026-08-28 08:25), byte-for-byte in
+# behaviour: `chase = 0` makes competitor_reference return the SVT unchanged at every position,
+# which is the pre-chase reference. Used only by the counterfactual arm of the A/B comparison;
+# the committed docs/design/COMPETITOR_AGGRESSION.yaml is untouched.
+version: 1
+chase_per_quarter: 0.0
+min_retail_margin_pct: 0.03

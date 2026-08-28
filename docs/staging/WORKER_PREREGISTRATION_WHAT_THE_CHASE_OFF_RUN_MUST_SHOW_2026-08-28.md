@@ -77,4 +77,23 @@ anything at all: **the churn roster is a set of accounts, not a rate on 17 binar
 the P&L is continuous. That is the whole reason this reading exists where the 2026-08-28 ladder
 comparison returned nothing.
 
+## OUTCOME (appended after the run, 2026-08-28)
+
+**Prediction 1 held exactly. Predictions 2 and 4 failed, and their failure is the result.**
+
+The chase costs **every** arm 6–7 accounts and ~£3.0–3.2k: control −£3,024, value −£3,214, level
+−£3,217. It is a LEVEL effect, not a selection effect — selection moved by £3 out of £9,627. My
+reading above, that the chase explained the value arm specifically, was **wrong**, and it was wrong
+because it inferred from two runs on different trees with two variables changed at once.
+
+The headline reversal is **not** the chase: with the chase off, the value arm still loses £4,535 to
+flat rules on the current tree.
+
+Full result, and what B10 still needs for L3:
+`WORKER_FINDING_THE_DEFENDING_MARKET_IS_A_LEVEL_EFFECT_AND_MY_PREDICTION_WAS_WRONG_2026-08-28.md`.
+
+This document stays in the record as filed. A prediction that turned out wrong, kept beside the
+result, is worth more than one quietly revised — it is the only evidence that the controlled run
+was designed before its answer was known.
+
 ## Still live

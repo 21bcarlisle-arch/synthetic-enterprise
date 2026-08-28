@@ -14,7 +14,7 @@ Your sentence, 2026-08-28, taken verbatim and treated as binding:
 |---|---|---|
 | `CLAUDE.md` §What this project is | the fidelity line replaced by the mission + the three consequences | landed |
 | `docs/design/THE_MODEL_ON_A_PAGE.md` | "The one-sentence company" → §The mission; THE SCORE annotated as one-sided | landed |
-| `site/index.html` — front door, `<meta>` + pitch + mission block | superseded sentence gone; three currencies and three channels named, with the honest state of both | landed, R11 pending deploy |
+| `site/index.html` — front door, `<meta>` + pitch + mission block | superseded sentence gone; three currencies and three channels named, with the honest state of both | **live** — R11 verified by fetching https://poesys.net/ after the push |
 | `tools/generate_company_data.py` — segment panel `mission_note` | rewritten; the mission-vs-book escalation to you is KEPT and sharpened | landed |
 | `docs/design/PITCH_V7.md` | supersession banner; **body unedited** per its own do-not-self-edit rule | landed |
 | map | 4 atoms minted: `A47`, `A48`, `C30`, `C31` | landed |

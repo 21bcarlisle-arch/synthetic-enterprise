@@ -1,6 +1,6 @@
 # WORKER FINDING — the error bar beside the live headline is measured on the clock the run superseded
 
-**Severity:** LATENT · **Lane:** G_data_learning
+**Severity:** LATENT · **Lane:** G_data_learning · **Epoch:** 3 · **Atom:** `SITE13_the_baseline_comparison_carries_its_bound`
 
 LATENT and not BLOCKING on purpose: the surface already discloses the mismatch in its own
 `clock_caveat`, so no false claim reaches a reader and no lane needs to stop. What is owed is the
@@ -81,3 +81,42 @@ the error bar.
 - Live fetch `https://poesys.net/data/value_arms.json` → HTTP 200,
   `realised.split.selection_gbp = -571.3757980000228`, `error_bar.clock = null`,
   `error_bar.spread_to_point_estimate_ratio = 25.21505564300187`.
+
+---
+
+## UPDATE 2026-08-28 (delivery seat) — it is worse than a clock, and item 3 no longer applies
+
+Three things changed after this was filed, and the finding is stronger, not weaker.
+
+**1. The mismatch is now a different WORLD, not only a different clock.** The three-arm run was
+re-taken at 2026-08-28T10:47:24Z against a market that can DEFEND (`5f50408c6`, 08:25). The noise
+floor is still 2026-08-27T23:32:17Z, from a market that could not react. A seed spread measured
+where nothing responds is not a confidence interval on a figure measured where it does — and unlike
+the clock, that is not a labelling problem that a basis note can settle.
+
+**2. The point estimate has left the band.** `selection_gbp` moved to **−5,223.56** against a
+measured band of **−3,705.27 to +5,075.85**. The sentence the surface rendered — *"the point
+estimate sits inside that band and so does zero"* — became **false**. It was a fixed string
+asserting a relationship the generator never checked, and
+`tests/tools/test_generate_value_arms_data.py` caught it by reddening on its own `stdev >
+|selection|` assertion, whose message said the rendered sentence must be re-read rather than kept.
+
+**3. Both are now DERIVED rather than written down** (`039f202ce`). `error_bar.staleness_caveat`
+is computed by comparing the two artefacts' own `generated_at` stamps, so it will keep firing for
+the next world change instead of naming this one; `error_bar.point_estimate_inside_the_measured_band`
+drives which reading renders. Both are on `/capabilities/` and mutation-proven — delete the render
+and `site/test_the_baseline_comparison_reaches_the_reader.py::test_an_error_bar_older_than_its_figure_says_so_on_the_page`
+reds.
+
+**Item 3 of "what done looks like" is superseded.** It said the caveat should be *removed rather
+than re-worded* once the noise floor is re-run. That is right for the CLOCK caveat and wrong as a
+general rule: the staleness caveat must not be removable by hand at all, because it is derived —
+it disappears by itself when the two runs are contemporaneous, and re-appears without anyone
+noticing when they are not. A caveat that a person can delete is the defect this finding is about.
+
+**Items 1, 2, 4 and 5 stand and are still owed.** The re-run now costs more than when this was
+filed: 3 seeds × 3 arms on the full window, and a full three-arm pass is ~35 minutes as measured
+today, so ~105 minutes of wall clock. It is the next long-running job after the chase-off
+counterfactual (`WORKER_PREREGISTRATION_WHAT_THE_CHASE_OFF_RUN_MUST_SHOW_2026-08-28`), and it must
+run AFTER it — re-measuring the noise floor before knowing whether the chase moves the book would
+spend 105 minutes on a spread for a world that is about to be explained.
