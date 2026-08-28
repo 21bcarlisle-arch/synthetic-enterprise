@@ -1,9 +1,69 @@
 {
- "generated_at": "2026-08-28T14:32:55.515846+00:00",
+ "generated_at": "2026-08-28T17:23:51.417775+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "68dea8cda",
+    "at": "2026-08-28T18:11:40+01:00",
+    "subject": "knowledge first: what winning and keeping a GB customer actually costs, and the sourced model we already had and never wired",
+    "substantive": true
+   },
+   {
+    "sha": "dfab009d2",
+    "at": "2026-08-28T17:57:16+01:00",
+    "subject": "the household column was already live; the claim was re-drawn because landed work was never bound",
+    "substantive": false
+   },
+   {
+    "sha": "f9612ba68",
+    "at": "2026-08-28T17:38:29+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=d2224824d, net=\u00a3159,423)",
+    "substantive": false
+   },
+   {
+    "sha": "f83aa88c0",
+    "at": "2026-08-28T17:30:34+01:00",
+    "subject": "the campaign's 2.6% conversion is a mixed statistic: the budget that stopped converting is the harness's, not the company's",
+    "substantive": false
+   },
+   {
+    "sha": "d2224824d",
+    "at": "2026-08-28T17:12:39+01:00",
+    "subject": "the CLAUDE.md limit is in characters and `wc -c` is not; the 80-founder book is built and held",
+    "substantive": true
+   },
+   {
+    "sha": "454525b84",
+    "at": "2026-08-28T16:31:28+01:00",
+    "subject": "the blocking test that kept re-wedging the publisher is not order-dependent: there is no ordering plugin, and its fixture copies a 107MB log a daemon is appending to",
+    "substantive": false
+   },
+   {
+    "sha": "9489acd90",
+    "at": "2026-08-28T16:12:33+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=e3ee53cc5, net=\u00a3159,423)",
+    "substantive": false
+   },
+   {
+    "sha": "2ed9ee07c",
+    "at": "2026-08-28T15:58:28+01:00",
+    "subject": "chore(provenance): verification paused banner (git=e3ee53cc5) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "0c3bfada6",
+    "at": "2026-08-28T15:52:02+01:00",
+    "subject": "the freshness control could not pass because the document moved on its own, and the second artefact was refusing on a field the map should never have carried",
+    "substantive": true
+   },
+   {
+    "sha": "2207212b8",
+    "at": "2026-08-28T15:32:56+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "bbdc11063",
     "at": "2026-08-28T15:27:52+01:00",
@@ -183,130 +243,66 @@
     "at": "2026-08-28T04:37:44+01:00",
     "subject": "the drawn book should NOT carry a tariff_type, because the anchor says fixed is a minority",
     "substantive": true
-   },
-   {
-    "sha": "5db344a98",
-    "at": "2026-08-28T04:17:25+01:00",
-    "subject": "the same figure on two clocks happened twice in two days, so it is a class now and not a second fix",
-    "substantive": true
-   },
-   {
-    "sha": "7ad24b4f3",
-    "at": "2026-08-28T03:38:48+01:00",
-    "subject": "the drawdown null control was right, so it moved to a book that can fire it",
-    "substantive": true
-   },
-   {
-    "sha": "d40e203b9",
-    "at": "2026-08-28T03:25:50+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "3b273b783",
-    "at": "2026-08-28T03:10:42+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=6d126616a, net=\u00a3153,245)",
-    "substantive": false
-   },
-   {
-    "sha": "6d7904cb2",
-    "at": "2026-08-28T03:04:12+01:00",
-    "subject": "the baseline comparison is verified on the deployed surface, not the tree copy",
-    "substantive": false
-   },
-   {
-    "sha": "30a64e688",
-    "at": "2026-08-28T02:55:00+01:00",
-    "subject": "the baseline the published supplier has to beat now reaches a reader",
-    "substantive": true
-   },
-   {
-    "sha": "6d126616a",
-    "at": "2026-08-28T02:38:46+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=4be65df49, net=\u00a3153,245)",
-    "substantive": false
-   },
-   {
-    "sha": "4be65df49",
-    "at": "2026-08-28T02:12:54+01:00",
-    "subject": "the A/B could not count its own denominator, and the decision surface is nine accounts wide",
-    "substantive": true
-   },
-   {
-    "sha": "9cccf3696",
-    "at": "2026-08-28T01:39:56+01:00",
-    "subject": "the site publishes a final treasury on a superseded clock beside a realised net margin",
-    "substantive": false
-   },
-   {
-    "sha": "4d935cb39",
-    "at": "2026-08-28T01:37:55+01:00",
-    "subject": "the two net margins the A/B published for one arm are one clock and one stale read, and a control now refuses the pair",
-    "substantive": true
    }
   ],
-  "substantive": 24,
-  "mechanical": 16,
+  "substantive": 22,
+  "mechanical": 18,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-28T14:21:42.855746+00:00",
-  "age_hours": 0.2,
+  "oriented_at": "2026-08-28T17:20:29.342691+00:00",
+  "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "This was the strongest stretch this project has had against the thesis, and NOT ONE OF ITS RESULTS HAS REACHED A READER, because almost all of it is finished in the working tree and in no commit. Take the good first, because it is real. `A48_enterprise_value_is_the_method_not_the_book` went 0->2 and produced the first number this project has ever had for the actual claim: does the arm's own per-customer price rank the value JOINTLY created \u2014 what the household kept plus what we kept \u2014 better than chance? Concordance 0.6136, against a null whose 95% interval is 0.283 to 0.717 (analytic sd 0.1105, cross-checked against a 200,000-draw permutation at 0.1103), p two-sided 0.34. Twelve decisions clustered on five accounts, so the true interval is WIDER than the one published. The honest statement is that this run does not distinguish the method from chance in either direction, and the machine published exactly that sentence rather than the flattering one. Beside it: the arm's belief about who leaves ranks WORSE than a coin flip (churn AUC 0.465) while its price ranks created value better than chance \u2014 two questions, opposite sides of 0.5, and that is a genuine finding. The baseline the thesis demands exists and is winning: on the realised settled clock the per-customer engine earned GBP 4,724 LESS than flat rules, and one flat margin at the same price LEVEL earned GBP 9,627 more than the per-customer engine did, so the price level accounts for -104% of the arm's advantage and the choosing is currently worth less than nothing. Three published-headline defects were caught and fixed by the machine's own sweep in the same hours: a headline that said the arm earned MORE on a run where it earned less, a page dividing a renewal count by an account count, and a judgement word that could not change when its count did. That is the discipline the thesis needs \u2014 advantage from inference, and an instrument allowed to return \"no\". THEN THE OTHER SIDE. The publisher has been paused since 07:51:08Z \u2014 six and a half hours \u2014 and I fetched it rather than reading a file: `verification_state: paused`, `showing_run` git 28eaca4c9 generated 07:04:10Z, `episode_failures` 17. The unprocessed `run_complete_*.md` queue grew from eleven to TWENTY-ONE. And most of the repair is written and uncommitted: `python3 -m background.blocked_atom_visibility --check` now exits RC=0 with no drift output, `docs/design/BLOCKED_ATOM_VISIBILITY.md` in the tree no longer carries the wall-clock-stamped supervisor lines that made its freshness check unpassable, and the freshness test that the publisher names as blocking now passes against the tree. Somebody did that work this stretch and left it in the index. It is not finished, and the unfinished part is worth more than the finished one: I ran the file and a randomised full-file pass still fails `TestRepair::test_repair_restores_a_corrupted_rendering_and_reports_convergence`, while that same test alone in deterministic order passes in 33 seconds \u2014 so one of the publisher's five blocking tests is ORDER-DEPENDENT on shared fixture state, which is very likely why this wedge has been diagnosed three times with three different causes and keeps returning. The same commit-boundary story holds for the household side: I fetched the live `/capabilities/` page and it ALREADY renders a household cell per arm \u2014 the `householdCell(row)` renderer and the `\"no household side for this arm\">&mdash;` fallback are deployed \u2014 while the live `value_arms.json` has no `household` key at all, so every one of those cells is an em-dash. Cause, observed: `tools/generate_value_arms_data.py` in the working tree emits the block and `git show HEAD:tools/generate_value_arms_data.py` contains none of it. The index is now fourteen files and 1,415 insertions, up from nine and 739, and `git log --all -- simulation/settlement_clocks.py` STILL returns nothing for a fourth consecutive stretch. HEAD is fully pushed to origin, so nothing is wrong with the road out \u2014 the failure is entirely at the commit. My predecessor diagnosed that the focus items were the wrong SHAPE and cut them to instructions; that correction worked, because the work in them got DONE \u2014 the publisher fix, the household producer, B10's defence leg all happened this stretch. What no item said was \"and land it by pathspec,\" and so the machine has spent a stretch building a reader-facing result that no reader can see. One thing I checked and must report: `B10_competitor_switching_response` is STILL being excluded from the BUILD draw on every tick \u2014 the supervisor log at 14:22 UTC, twice \u2014 for `couples_with: None`, a one-line registration defect that the last direction named as focus item three and nobody fixed, even though B10's defence leg landed and was measured in the same stretch. This direction is therefore almost entirely about landing what already exists. That is not tidying. Every single thing a reader could learn from today's work is on the wrong side of a commit boundary.",
+  "thesis_read": "The thesis has a baseline, the baseline is winning, and the machine is now honest about why \u2014 but two things this stretch made it clear the comparison is being run on sand. First, the live acquisition and retention costs are invented. `saas/growth_mandate.py` spends \u00a3150 resi / \u00a3400 SME and \u00a3112.50 a quote with no source behind any of it, while the researched model (`saas/opex_ledger.py`: \u00a355 dual-fuel, \u00a327.50 single, and a per-kWh broker trail for I&C, cited to CMA App. 8.3) has existed since 2026-07-10, is called by its own tests and by nothing else. The knowledge map records \u00a330\u201360/dual-fuel at confidence H and simultaneously lists CAC-by-channel as a top-three gap. Every P&L both arms are graded on therefore includes a cost line with no provenance, and the retention model is wrong in kind \u2014 a \u00a350 cash offer cost booked beside a 3/5/8% discount books the same intervention twice, against a licence condition (SLC 22B) that exists on exactly this point. That is a step backwards in what the published comparison MEANS, and it is P8 arriving on the live path rather than in a design document. Second, the constraint the director already ruled on is sitting built and held out of the tree: the 80-founder book is written, tested and in `docs/design/held/`, because applying it turns four campaign tests red and the reason is a question rather than a stale fixture. Depth is the bound on everything \u2014 A48's method skill is 0.6136 concordance against a null interval of 0.283\u20130.717 on twelve decisions clustered on five accounts, the price ladder resolves nothing finer than 5.9 percentage points on seventeen binary rolls, and B10's chase is real but unmeasurable for the same reason. The world does now press a little, which is genuine progress: the one-sided chase landed at L2 and the SVT reconciliation is back to agreeing at 0.005pp. On the direction mechanism itself: the previous five focus items bound as drawn ZERO times, and one of them \u2014 the household column \u2014 was already live when it was named, so a lane-0 tick spent itself re-delivering finished work before releasing it. The steer is reaching a worker; what is broken is the binding, since `--landed` is not retroactive and work that lands before its claim is bound is invisible and gets swept back into the pool. Every atom-id focus item last stretch went undrawn while the instruction-shaped ones were worked, so this direction names no atom ids and gives instructions instead.",
   "focus": [
    {
-    "id": "land-the-publisher-unwedge-and-fix-its-order-dependent-blocking-test",
-    "what": "Most of the fix is DONE and uncommitted, and the part that is NOT done is the part that matters, so read this before you commit anything. What I verified: `python3 -m background.blocked_atom_visibility --check` exits RC=0 with no output, the rendered `docs/design/BLOCKED_ATOM_VISIBILITY.md` in the tree no longer contains the wall-clock-stamped \"[UTC] COUPLED_TRIAD gate: excluding ...\" event lines that gave its freshness check no reachable PASS branch, and `tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh` \u2014 one of the five tests named in the publisher's own `paused_reason` \u2014 now PASSES against the working tree. But the suite is not green, and it is not deterministically red either, which is the actual finding: a full-file run under the default random ordering failed `TestRepair::test_repair_restores_a_corrupted_rendering_and_reports_convergence` (1 failed, 8 passed, 302s), and that exact test run ALONE with `-p no:randomly` PASSES in 33s. So one of the publisher's five blocking tests is ORDER-DEPENDENT \u2014 it shares state across the `head_checkout` / `head_checkout_running_tree_code` fixtures \u2014 and an intermittently red gate is why this wedge keeps getting rediagnosed and keeps coming back. Resolve that before you declare the road open: run the whole file the way the gate runs it, find what the earlier test leaves behind in the shared checkout, and either isolate the fixture per test or make the repair converge from a dirtied baseline. A single green test is NOT evidence the gate will pass, and committing on that basis is how the last three wedges were \"fixed\". Budget for it: a deterministic full-file run of this one test file exceeded 400 seconds in my hands and was killed, so run it in the background behind `python3 -m tools.wait_for --pid` rather than in a foreground call that dies at the ceiling with nothing landed. Then land the payload. `git diff --cached --name-status` shows it: `background/blocked_atom_visibility.py` (+95), `background/process_run_complete.py` (+45), `docs/design/BLOCKED_ATOM_VISIBILITY.md`, `tests/background/test_blocked_atom_visibility.py` (+103). Commit EXACTLY those four paths as one commit by explicit pathspec and nothing else \u2014 the same index holds three other lanes' payloads and a bundled pathspec fuses their separate gates into one slow one that gets killed at the ceiling with nothing landed. Two things to do before you commit. First, mutation-prove the freshness control still fires: corrupt the rendering by hand, confirm `--check` reds, restore \u2014 a control that now passes because its subject stopped moving must still fail on a genuinely drifted artefact, and the whole point of this repair was that its PASS branch was unreachable. Second, read the diff to `background/process_run_complete.py` and say in the commit message whether the blocking scope was NARROWED \u2014 whether a stale design document can still stop the company's FIGURES publishing at all \u2014 because if it was not, this exact wedge returns on the next derived doc. Then drain the twenty-one queued `run_complete_*.md` markers in `docs/staging/`. R11 governs done: fetch `https://poesys.net/data/publish_provenance.json` and quote a `verification_state` that is not `paused`, on a `showing_run` newer than 28eaca4c9, with no `paused_reason`.",
-    "why": "Six and a half hours of shut road, `episode_failures` at 17, the marker queue nearly doubled from eleven to twenty-one, and most of the repair that opens it is already written and sitting in the index unlanded. Everything else on this board reaches a reader through this road. Two things make it first rather than merely urgent: a substantially finished fix that is not in a commit is the most expensive object in this repository right now, and the intermittent blocking test is a plausible explanation for why this wedge has been declared fixed three times and has come back three times \u2014 which is the R3 two-strike condition arriving as a diagnosis instead of a redesign. Finished when the fetched live provenance shows `verification_state` not paused on a run newer than 28eaca4c9, the twenty-one markers are gone from the staging root, the order-dependence is either fixed or written up as its own finding with the shared state named, and the commit message states whether the blocking scope was narrowed or deliberately left wide and why."
+    "id": "wire-the-sourced-acquisition-and-retention-costs",
+    "what": "Make the live path spend the researched costs. Replace `COST_PER_ACQUISITION` and the quote cost in `saas/growth_mandate.py` (reached via `company/interfaces/growth_desk.py`) with `saas/opex_ledger.py`'s sourced figures, and carry the I&C trail as an ongoing per-kWh cost at billing time via `broker_commission_gbp()` rather than forcing it into a one-off shape the research explicitly says not to use. In `company/analytics/counterfactual_retention.py` remove `RESI_OFFER_COST_GBP = 50.0` where a `_TIER_CLASS_BY_DISCOUNT` discount is already being booked as foregone margin \u2014 pick one representation and say which. Leave a control that fails if a constant with no cited source re-enters either path.",
+    "why": "This is a BLOCKING finding and it is under everything else: both arms of the published baseline comparison, the campaign's \u00a3112.50-per-quote spend, and the four red tests that are holding the founder book are all denominated in numbers with no provenance. Done means the live campaign and the retention path read the sourced model, the invented constants are gone rather than shadowed, and a re-run states what moved in the arm figures \u2014 because if the published \u00a3153,245 / \u00a3157,913 change, the reader is owed that. Fix this first and the next item's red tests can be read on real costs instead of invented ones."
    },
    {
-    "id": "land-the-household-half-so-the-live-column-stops-rendering-em-dashes",
-    "what": "The live page already has the column and no data to put in it, and that is worse than not having shipped it. Observed by fetching, not by reading the file: `https://poesys.net/capabilities/` serves the household cell renderer (`householdCell(row)`, the copy \"HOUSEHOLD CELL, and it is a cell rather than a section on purpose\", and the fallback `\"no household side for this arm\">&mdash;`), while `https://poesys.net/data/value_arms.json` has NO `household` key, so every cell is a dash. The cause is a commit boundary, not a defect: `tools/generate_value_arms_data.py` in the working tree emits the full block and `git show HEAD:tools/generate_value_arms_data.py` emits none of it; the file is dirty-unstaged and its test `tests/tools/test_generate_value_arms_data.py` (+195) is staged. Land those two paths together in ONE commit \u2014 consumer and supplier in one commit, because the write-time gate reads the commit message and a split lands a test with no subject. Hold two things while you do it. Keep `tests/company/test_household_share_is_not_yet_a_target.py` green: under R12 this figure is a diagnostic and publishing it must not convert it into something to steer toward. And state ON THE PAGE what the household number does not cover \u2014 it is money only, carbon is designed and uninstrumented (`E5`), and time has never appeared in this project at all (`C31`) \u2014 because the mission names three currencies and this column answers one. R11 governs done: fetch the live page and quote the rendered household figure for the control arm.",
-    "why": "This is the director's own mission sentence made checkable \u2014 value is created and THEN shared, so every decision has two sides \u2014 and the second side is currently a row of dashes on a live page, which announces the claim and fails to support it. It is also the sharpest available answer to the profit-maximiser problem he named, and the numbers are already computed and unflattering: on the settled-realised clock, households on the flat-rules arm kept GBP 53,760 LESS than they would have paid on the published default tariff at their own metered volumes, the per-customer arm GBP 57,439 less, and the flat-at-the-same-level arm GBP 64,572 less, over 1,275 to 1,359 customer-years at about 95% period coverage. Every arm is negative. On a one-sided page that reads as margin; with both columns visible it reads as transfer, which is exactly the distinction the mission turns on and the strongest correction this project can put in front of a reader today. Finished when the live column shows numbers with its basis label and its exclusions rendered beside them."
+    "id": "land-the-80-founder-book-the-director-already-ruled",
+    "what": "Apply `docs/design/held/founder_book_live_population.patch` plus the two held files per `docs/design/held/README.md` and get it committed. The four red tests in `tests/simulation/test_net_new_acquisition.py` are not to be re-baselined: rule on whether a campaign that keeps issuing paid quotes after `SETTLEMENT_CUSTOMER_YEAR_BUDGET` can no longer convert them is a company defect or fidelity, state the ruling in the commit, and rewrite the tests to assert the ruled behaviour. My reading, to act on unless the evidence says otherwise: it is a company defect \u2014 the growth desk should stop paying for leads it has no capacity to serve \u2014 but the behaviour must remain OBSERVABLE (quotes paid vs wins booked, reported) rather than silently prevented, because a supplier marketing past its capacity is an ordinary commercial failure and the world should be able to produce it.",
+    "why": "The curriculum decision is already made \u2014 \"take the 80 founders, that's my answer on P9\" \u2014 so this is executing a ruling, not taking one, and built work sitting in a held directory is the drift. Roughly 80 accounts at nine or ten renewals apiece is the first book any per-customer policy can compound on; until it lands, the method skill test, the price ladder and B10's coupled gap are all bounded by a population too thin to resolve them, and no subsequent world change is falsifiable. Done means the patch is in HEAD, the campaign question has a written ruling with tests asserting it, and the end-book figure published is the measured 127 rather than the ~180 I priced."
    },
    {
-    "id": "B10_competitor_switching_response",
-    "what": "B10 is STILL refused by the BUILD draw and the fix is one line. `docs/observability/supervisor-log.md` at 2026-08-28 14:22 UTC, twice: \"COUPLED_TRIAD gate: excluding B10_competitor_switching_response from BUILD draw -- targets L3 but has no coupled company twin registered in the map ... (registration defect if level_target>=3 with no twin)\". Its map entry has `couples_with: None` while `SITE13_the_baseline_comparison_carries_its_bound` declares B10 in ITS `couples_with`, so the coupling exists in the tree and is declared from one side only. Name B10's company twin in `docs/design/maturity_map.yaml` \u2014 the churn-decision path exercised by `tools/run_price_ladder.py` and `simulation/customer_events.py` is the candidate; verify it before writing it \u2014 re-run the exclusion check and confirm B10 is drawable. Then DISPOSITION the level, because the measurement is already done and filed and only the decision is missing: the defence leg landed in `5f50408c6` and `WORKER_FINDING_THE_DEFENDING_MARKET_IS_UNMEASURABLE_ON_SEVENTEEN_DECISIONS_2026-08-28.md` reports two full chase-on/chase-off ladder passes with `SVT recon agrees=True`, 17 common decisions, a binary outcome, and therefore a smallest expressible change of one account or 5.9 percentage points; one rung moved by exactly one quantum and the three rungs that were PREDICTED to be identical were identical. Take one of two endings explicitly and record it in `gate_authorizations.jsonl`: either self-certify the coupled gap with the readout's resolution STATED alongside it, or record that the defence leg's cost is not resolvable on a book of this depth, with those numbers. Do not touch `docs/design/COMPETITOR_AGGRESSION.yaml` to make the effect visible \u2014 that is the R13 curriculum wall and the chase rate was set from a fidelity argument.",
-    "why": "Named as focus item three in the last direction and still excluded on every tick, for a one-line registration defect that the gate's own message diagnoses in its own words. This is the only atom on the board that is about the world PRESSING BACK, which the director's C2 calls the most consequential of the three corrections and the one that invalidates measurements taken before it. The substantive half is done; what is missing is a line in a YAML file and a decision nobody has written down, and while that stays missing the draw cannot reach the atom and the next seat will read \"B10 in flight\" for a fourth time. A recorded \"not resolvable at this book depth, here are the numbers\" is a publishable result and the strongest evidence for the depth question already with the director. Finished when the exclusion stops appearing in the supervisor log and the ledger carries one of the two endings."
+    "id": "put-the-bound-on-the-rendered-capabilities-page",
+    "what": "The /capabilities/ baseline comparison must state, in the rendered HTML a reader actually receives, that it compares two internal policies in a market that could not react to either. Verify to R11 \u2014 fetch the live page and quote the rendered sentence, never the generator output \u2014 and make the control assert against the fetched surface.",
+    "why": "The director corrected this claim himself and the page still publishes the comparison unbounded. It is retractable by construction, so it is mine to fix rather than his to approve, and it is the honesty half of publishing the comparison at all \u2014 which was right to do. It has been named in two directions and never landed. Done means the sentence renders live and the control fails if it stops rendering."
    },
    {
-    "id": "land-the-settlement-clocks-payload-before-a-pathspec-commit-breaks-every-clone",
-    "what": "Fourth consecutive stretch, and `git log --all -- simulation/settlement_clocks.py` still returns NOTHING. Staged and in no commit: `simulation/settlement_clocks.py` (+285), `tests/simulation/test_settlement_clocks.py` (+340), and the consumers that import it \u2014 `tools/run_annual_report.py`, `simulation/run_phase4c_on_phase2b.py`, `saas/reporting/annual_report.py`, `tools/run_frozen_baseline.py`. HEAD is currently consistent; the INDEX is not, and three writers share it, so any lane that commits `tools/run_annual_report.py` by pathspec without the module lands an ImportError in the annual report for every clone. Land supplier and consumers in ONE commit by explicit pathspec, AFTER item one has taken its two `background/` paths out of the same index \u2014 do not let the two fight over `docs/design/BLOCKED_ATOM_VISIBILITY.md`. Before you land it, confirm the test actually reds when the class invariant is broken: its value is the parametrisation over every scalar in `ROW_DERIVED_SCALARS`, not the two figures that were originally caught, so a test that only re-asserts those two is not the class control this is supposed to be. While you are in this index, dispose of `tests/sim/test_scenario_spine_consumption.py` (+261), a new orphan test staged in no commit: land it with its subject or delete it, and say which in the message. If a gate refuses, split by pathspec and name in the commit which path is held and why. Do not leave the payload staged a fifth time.",
-    "why": "R10 forbids exactly this split: the instance defect was repaired and published in one stretch and the class control that generalises it has not landed in four, so the arithmetic defect it exists to prevent can recur with no control in any clone. It has changed character from debt to hazard \u2014 nine files and 739 lines when my predecessor wrote it, fourteen files and 1,415 lines now \u2014 and it is the repo's own registered uncommitted-and-orphaned-work class offending against itself while that class is open. It sits fourth only because, unlike the three above it, no reader is currently looking at a dash or a stale figure because of it. Finished when `git log --all -- simulation/settlement_clocks.py` returns a commit and `git diff --cached` no longer carries the payload."
+    "id": "give-the-price-ladder-a-continuous-surface-and-take-b10-to-l3-or-record-why-not",
+    "what": "Carry `realized_churn_probability` \u2014 already on the event emitted by `simulation/customer_events.py::roll_lifecycle_event` \u2014 through `tools/run_price_ladder.py` into `per_rung` and the slopes, so each decision contributes a continuous quantity instead of a binary roll. Then re-run the chase-on / chase-off pair with seed replication and either record B10's level move with the measured belief-vs-truth gap, or record, with the numbers, why the gap still cannot be measured.",
+    "why": "B10 sits at 2 with a target of 3 and the coupled triad will not let a world atom go to L3 on an unmeasured gap. Seventeen binary rolls cannot express anything smaller than 5.9 percentage points, so the one-account move seen at rung 0.5 is uninterpretable \u2014 the roll is what destroys the signal, not the effect size. This is the cheapest route to the thesis claim that advantage comes from inference: the world has to be able to press measurably before better inference can be shown to pay. Worth more once the founder book has landed, which is why it sits here and not higher. Done means a recorded level move or a written refusal carrying its numbers."
    },
    {
-    "id": "SITE13_the_baseline_comparison_carries_its_bound",
-    "what": "Third naming, still level 0, and I checked rather than inheriting the claim: I grepped both the LIVE `/capabilities/` page and the local `site/capabilities/index.html` for \"could not react\" and for \"rival\" and got zero hits in both, so the bound is not written anywhere and no investigation is owed. The evidence is settled with citations in `WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28.md`; just write the sentence, beside the headline and not in a footnote, in the page's own established \"moneyness trigger absent -- known\" voice. Carry the refinement rather than overstating it, because the tree has moved twice under this item: the company's own pricing DOES reach the churn decision through the per-customer differential, and a rival that DEFENDS now exists (`5f50408c6`) but was not in this comparison \u2014 and when it was measured separately the instrument could not resolve its cost at seventeen decisions. So the honest sentence is that this comparison was measured in a world whose rival did not react, that such a rival now exists and is not in these figures, and that its effect has not been shown to be measurable on a book this size. Do not write a flat \"there is no competitor\"; the tree contradicts it. Keep the PROVISIONAL label and the error bar. R11 governs done: fetch the live page and quote the rendered sentence, not the JSON and not the commit.",
-    "why": "This is the closest thing on the board to a claim under the company's name that means more than its evidence carries \u2014 a reader today takes \"the per-customer choosing is worth less than nothing\" as a finding about a supplier, when it is a finding about two internal policies facing an opponent that could not move, and the director himself named this as the cul-de-sac that invalidates measurements taken before it. It has been named in two consecutive directions and has not moved off level 0 while the machine minted new atoms around it. It is fifth because the sentence cannot reach a reader until item one opens the road, and because a PROVISIONAL caveat is retractable by construction, which makes the sequencing mine rather than his. Finished when the live page renders the bound on a fetch with the fetched text quoted and SITE13 moves off 0 with the move recorded in `gate_authorizations.jsonl`."
+    "id": "dispose-of-the-settlement-clocks-payload-staged-in-the-index",
+    "what": "`simulation/settlement_clocks.py` and `tests/simulation/test_settlement_clocks.py` are staged in the shared index alongside modifications to `saas/reporting/annual_report.py`, `tools/run_annual_report.py`, `tools/run_frozen_baseline.py` and `simulation/run_phase4c_on_phase2b.py`. Either land the whole set as one commit with supplier and consumers together, or unstage and delete it. Do not leave it a fourth time.",
+    "why": "A consumer landing by pathspec without its supplier module breaks every clone, and this has been named in three consecutive directions without moving, which means nobody has actually decided it. It is small, and it is a decision rather than a build. Done means the index no longer holds it in either direction."
    }
   ],
   "not_now": [
    {
-    "what": "Re-raising P9 \u2014 book depth, and my predecessor's recommendation of 80 founding accounts \u2014 to the director, even though this stretch produced the strongest evidence yet that it is the binding constraint on everything the thesis wants to measure.",
-    "why": "Deliberately not re-raised for a second orientation, and the reasoning belongs on the record because the case for raising it got STRONGER today and I still am not going to. Two independent instruments returned \"cannot resolve at this depth\" in the same stretch: the method-skill estimator at p 0.34 on twelve decisions clustered on five accounts, and the chase-on/chase-off ladder at seventeen decisions with a one-account quantum of 5.9 percentage points. The arm priced 25 of the 1,209 renewals the world offered, 2.07% of them. That is the same answer arriving from two directions and it is exactly what `SEAT_TO_DIRECTOR_P9_BOOK_DEPTH_PRICED_2026-08-28.md` predicted when it went up at 08:21 with four options, a recommendation and a stated default. He has held it six hours and has spoken since on other subjects. Sending the same ask again with better evidence is still the interruption failure the charter names \u2014 spending his attention on something he already holds \u2014 and the new evidence changes nothing he needs to decide differently. What I am doing instead is items two and five, which publish the depth bound as a stated limit beside every comparison, so whichever way he decides the record already says what the current book can and cannot show."
+    "what": "P8 proper \u2014 building the systematic knowledge to discovery to atom to epoch chain (H45), which the director calls the velocity multiplier.",
+    "why": "Both BLOCKING findings this stretch ARE P8 firing on the live path: sourced knowledge that exists and reaches no code. Repairing the two live instances first gives the chain a concrete pair of cases to be built against and pays back immediately in the numbers the comparison is denominated in; building the general mechanism first risks a well-designed chain whose first real use is still ahead of it. H45 was drawn this stretch anyway, so the lane is not idle."
    },
    {
-    "what": "Building the second half of `A48_enterprise_value_is_the_method_not_the_book` \u2014 a cost per customer found, and a way to separate improvement from noise \u2014 now that the frame has landed and the atom has reached level 2 with a real live reading.",
-    "why": "The most important unbuilt thing on the map and the strongest candidate for first slot next orientation, and it loses this time on the evidence it just produced. Its own first live number says the instrument cannot distinguish the method from chance in either direction at twelve decisions on five accounts, and the interval it published is optimistic because those decisions are clustered. Building a second, more elaborate measure on top of a book that cannot resolve the first one produces another number nobody can act on \u2014 the exact trap items three and five now exist to document. It also cannot reach a reader while the publisher is down. The atom is at `build` and not excluded from the draw, so early framing is drawable now without a focus slot, and `saas/enterprise_value.py` still carrying the superseded book-is-the-value definition in its own docstring is a real defect I am consciously leaving to the ordinary draw for one more stretch."
+    "what": "P2 / P3 / P4 / PB4 / PB5 \u2014 household trait variation, within-household elasticity, and separating engagement from elasticity.",
+    "why": "These are the right problems and they are unreadable now. Twelve gradable decisions on five accounts, and seventeen binary rolls, cannot distinguish a heterogeneity model from noise; any variation built this stretch would be graded against a population too thin to reject it, which is the worst possible outcome \u2014 an unfalsifiable improvement. Depth first, then variation."
    },
    {
-    "what": "`C30_advice_reaches_a_household` and `C31_time_is_the_currency_that_does_not_exist` \u2014 the two channels of the three that do not exist, and the currency that has never appeared anywhere in this project.",
-    "why": "The director's instruction was explicit and is the whole reason these are parked: modelling, tariffs and advice are the channels, two of the three do not exist yet, and he said to NOTE that rather than fix it now. Both are minted at level 0, `loop_stage: idle`, with the evidence for their absence recorded, and both declare `depends_on: A47_the_score_has_no_household_side` \u2014 which is precisely what item two is finally carrying to a reader, so the dependency is being served by the item I did choose. Taking either now would substitute my sequencing for his on a question he answered this morning. DISCOVER and FRAME on both are drawable now under the epoch-gating rule and that is the right amount of movement."
+    "what": "P7 / SPINE_1 \u2014 giving survival an actual cash mechanism so hedging, competition and debt can threaten liquidity.",
+    "why": "Loses to the same argument. It is substantial world work whose effect on company behaviour cannot be read until the book can resolve an effect, and it competes directly with the founder book for the same stretch. It should be first in line once depth has landed."
    },
    {
-    "what": "Repairing the steer-effectiveness control, which has now put \"the previous direction named work and NONE of it was drawn\" into this seat's brief for a fourth consecutive stretch.",
-    "why": "Eleventh rejection, and this time the control is demonstrably WRONG again after being accidentally right last stretch. The brief reports `drawn: []`, and yet the last direction's fifth item produced `company/analytics/household_value_share.py` reaching a producer and a rendered column on the live page in `49f77f98b`, its third item produced B10's defence leg and a full two-pass chase-off measurement in `5f50408c6`, and its first item's publisher repair is passing in the working tree right now. Three of five items were substantively WORKED and the control saw none of it, because it cannot see Lane 0 at all \u2014 which is exactly what `WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27.md` already says. A control that alternates between right-by-accident and wrong is not evidence either way. The standing instruction for the ordinary draw is unchanged \u2014 REPAIR IT OR DELETE IT \u2014 and it loses a focus slot tonight to a shut road, a column of dashes on a live page, an atom the draw cannot reach, a partial-commit hazard and an overstated published claim."
+    "what": "C31 \u2014 instrumenting time as the third currency, which the mission names and which has never appeared anywhere in this project.",
+    "why": "Genuinely mission-level and the most tempting thing I rejected. It loses because the money currency is not yet measurable above its own noise floor and the household side of it only became visible hours ago; adding a third unmeasured dimension before the first one can be read makes the value claim harder to test, not easier. It is the item I would take next after depth and cost provenance, ahead of more world physics."
    },
    {
-    "what": "Re-measuring the noise floor so the error bar beside the live headline sits on the same clock, and the same run, as the figure it qualifies.",
-    "why": "Owed, and now disclosing TWO defects in its own published words rather than one, which is why it still is not urgent: `error_bar.clock_caveat` states the spread carries no clock label of its own and is paired with the panel it was measured beside rather than the restated figure, and `error_bar.staleness_caveat` states outright that the error bar is OLDER than the figure it bounds \u2014 spread measured on the 2026-08-27T23:32:17Z run, point estimate on the 2026-08-28T14:08:48Z run. A limitation the artefact discloses in the reader's own view is not a false claim, so no reader is misled and no lane needs to stop. Whoever takes it must re-measure and not rescale: the spread-to-point-estimate ratio is a provisioned-clock spread over a realised-clock estimate, so dividing the two means nothing."
-   },
-   {
-    "what": "Clearing the twenty-nine unprocessed `WORKER_FINDING_*` documents in the staging root that keep `tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents` red, and the sixteen other non-blocking reds the publish annotation lists.",
-    "why": "All seventeen are explicitly NON-BLOCKING in the publisher's own annotation, so none of them is why a reader sees a stale figure, and several of the twenty-nine documents are this stretch's own findings \u2014 they are the record of good work, not a mess. Under SELF_INTERRUPT_DISCIPLINE the supply of these is infinite and clearing them is the treadmill. They lose to five items that each change what a reader can see or what the draw can reach."
+    "what": "The harness backlog \u2014 the repeating-alarm pruning, the roughly 117 harness atoms never read for whether they should exist, and the two tests failing at HEAD against a ten-day-old baseline (P10).",
+    "why": "Tidying. None of it moves a level or closes a blocking finding, and the staging redesign already took the queue from 49 items to 15 and stopped the alarm files multiplying, which was the part that was actually costing draws. The rest can wait for a stretch with no blocking finding open."
    }
   ],
   "for_the_director": [],
@@ -316,6 +312,22 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-28T17:20:29.342691+00:00",
+    "what": "The previous direction named five focus items and not one bound as drawn. One of them \u2014 the household column \u2014 was already live in HEAD when it was named, so a lane-0 tick spent itself re-verifying finished work before releasing it. `--landed` is not retroactive, so work landing before its claim is bound is invisible to the lane and gets swept back into the pool."
+   },
+   {
+    "at": "2026-08-28T17:20:29.342691+00:00",
+    "what": "The P9 costing I gave the director was wrong twice: it said 80 founders would leave roughly 180 end accounts when the measured figure is 127, and it described `accounts_held_at_start` as a parameter that already existed and was already threaded through, when it is a derived `len(book)` and building the knob was the actual work."
+   },
+   {
+    "at": "2026-08-28T17:20:29.342691+00:00",
+    "what": "The published-supplier check passed only against a file the A/B run itself had written, which made my \"divergence resolved\" conclusion circular \u2014 a tautology in the R15 sense, caught by the machine's own sweep."
+   },
+   {
+    "at": "2026-08-28T17:20:29.342691+00:00",
+    "what": "The CLAUDE.md integrity control measured the limit with `wc -c`, which counts bytes, against a limit stated in characters."
+   },
    {
     "at": "2026-08-28T14:21:42.855746+00:00",
     "what": "Everything this stretch built that a reader could see is finished in the working tree and in no commit, and that single fact explains most of what a reader cannot see. The publisher's staleness repair passes against the tree (`background.blocked_atom_visibility --check` RC=0, and the freshness test the publisher names as blocking is green) while the road has been shut six and a half hours. The household emitter is in `tools/generate_value_arms_data.py` in the tree and absent from `git show HEAD:tools/generate_value_arms_data.py`, so a live page that already renders a household cell per arm renders three em-dashes. `simulation/settlement_clocks.py` has never been in any commit for a fourth stretch. The index has grown from nine files and 739 lines to fourteen and 1,415. HEAD is fully pushed to origin, so nothing is wrong with the road out of this machine \u2014 the loss is entirely at the commit boundary, and no mechanism in this repo notices it."
@@ -834,13 +846,25 @@
  },
  "what_next": {
   "focus": [
-   "land-the-publisher-unwedge-and-fix-its-order-dependent-blocking-test",
-   "land-the-household-half-so-the-live-column-stops-rendering-em-dashes",
-   "B10_competitor_switching_response",
-   "land-the-settlement-clocks-payload-before-a-pathspec-commit-breaks-every-clone",
-   "SITE13_the_baseline_comparison_carries_its_bound"
+   "wire-the-sourced-acquisition-and-retention-costs",
+   "land-the-80-founder-book-the-director-already-ruled",
+   "put-the-bound-on-the-rendered-capabilities-page",
+   "give-the-price-ladder-a-continuous-surface-and-take-b10-to-l3-or-record-why-not",
+   "dispose-of-the-settlement-clocks-payload-staged-in-the-index"
   ],
   "steer_checks": [
+   {
+    "drawn": [],
+    "focus": [
+     "land-the-publisher-unwedge-and-fix-its-order-dependent-blocking-test",
+     "land-the-household-half-so-the-live-column-stops-rendering-em-dashes",
+     "B10_competitor_switching_response",
+     "land-the-settlement-clocks-payload-before-a-pathspec-commit-breaks-every-clone",
+     "SITE13_the_baseline_comparison_carries_its_bound"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
    {
     "drawn": [],
     "focus": [
@@ -884,19 +908,6 @@
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
     "steered": false
-   },
-   {
-    "drawn": [
-     "EP1_clv_three_horizon"
-    ],
-    "focus": [
-     "reconcile-the-two-net-margins-the-ab-publishes-for-the-same-arm",
-     "measure-the-decision-surface-the-ab-actually-has",
-     "EP1_clv_three_horizon",
-     "publish-the-baseline-comparison-to-a-reader"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
    }
   ],
   "steered_recently": true,
