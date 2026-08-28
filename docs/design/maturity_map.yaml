@@ -1519,7 +1519,7 @@
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 1
@@ -1528,7 +1528,16 @@
   block_reason: null
   depends_on: []
   couples_with: [B10_competitor_switching_response, A48_enterprise_value_is_the_method_not_the_book]
-  file_scope: ['docs/design/THE_MODEL_ON_A_PAGE.md', 'saas/', 'tools/', 'tests/']
+  # NAMED FILES, NOT TREE GLOBS. `saas/`, `tools/`, `site/` and `tests/` swept in every other
+  # lane's in-flight work, so the level gate correctly refused a level declared over source
+  # this commit does not contain. A scope is the evidence the claim rests on, not the
+  # neighbourhood it lives in.
+  file_scope: ['company/analytics/household_value_share.py',
+               'tests/company/analytics/test_household_value_share.py',
+               'tests/company/test_household_share_is_not_yet_a_target.py',
+               'tools/run_price_ladder.py',
+               'tests/tools/test_run_price_ladder.py',
+               'docs/design/THE_MODEL_ON_A_PAGE.md']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulated firm whose customer-outcomes duty is measured on the customer, not inferred from the firm's own margin -- the distinction Consumer Duty exists to force, and the one that separates a supplier creating value from one extracting it"
 - id: A48_enterprise_value_is_the_method_not_the_book

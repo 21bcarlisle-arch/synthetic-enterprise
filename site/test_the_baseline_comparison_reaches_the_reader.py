@@ -127,12 +127,48 @@ def test_the_baseline_and_the_arm_reach_the_rendered_page(live):
     assert feed["realised"]["clock"] in rendered, "the table renders money without its clock (R14)"
 
 
-def test_a_figure_the_run_never_computed_renders_as_an_absence_not_a_zero(live):
-    """The level arm has no realised net -- the run's bridge never summed it. A rendered £0 there
-    would read as "the level arm earned nothing", which is the opposite of what it did."""
-    assert "not on this clock" in live["arms-realised"]
-    assert "£0" not in live["arms-realised"], (
+def test_a_figure_the_run_never_computed_renders_as_an_absence_not_a_zero():
+    """A net margin the run never computed must render as an absence. A £0 there would read as
+    "this arm earned nothing", which is the opposite of "we could not put it on this clock".
+
+    ITS SUBJECT IS A CONSTRUCTED FEED, NOT THE LIVE ONE (2026-08-28). This used to assert the
+    absence against the live page, which was sound only while the level arm's realised net was
+    genuinely unrecoverable. On 2026-08-28 the A/B tool was repaired to put all three arms on the
+    realised clock, the figure arrived, and this control's own subject stopped existing -- the
+    shape where a page consolidation deletes the only instance a control was watching and the
+    control is quietly dropped with it. Re-aimed rather than deleted: it now drives the door with
+    the level arm's figure REMOVED, so it tests the door's absence path directly and keeps
+    testing it however the live run comes out. The live page's positive case is asserted in
+    `test_every_arm_that_has_a_figure_renders_it`.
+    """
+    feed = copy.deepcopy(_live_feed())
+    level = [a for a in feed["realised"]["arms"] if a["key"] == "level"][0]
+    level["net_gbp"] = None
+    level["advantage_gbp"] = None
+    level["absent_reason"] = "the run never summed it"
+    rendered = _render(feed)
+
+    assert "not on this clock" in rendered["arms-realised"], (
+        "a net margin the run never computed did not render as an absence")
+    assert "£0" not in rendered["arms-realised"], (
         "a figure the run never computed rendered as zero pounds")
+
+
+def test_every_arm_that_has_a_figure_renders_it(live):
+    """The positive half: an arm the run DID score reaches the reader as its own number.
+
+    Written when the level arm's realised net became recoverable (2026-08-28). Until then the
+    page told a reader the baseline existed and beat us, and could not tell them by how much --
+    the hole this whole comparison exists to fill, sitting in the middle of it.
+    """
+    feed = _live_feed()
+    rendered = live["arms-realised"]
+    scored = [a for a in feed["realised"]["arms"] if a["net_gbp"] is not None]
+    assert scored, "no arm on the realised clock carries a figure at all"
+    for arm in scored:
+        assert _gbp(arm["net_gbp"]) in rendered, (
+            "the {} arm has a realised net margin of {} in the feed and it is not on the page a "
+            "reader opens".format(arm["key"], _gbp(arm["net_gbp"])))
 
 
 def test_the_selection_leg_reaches_the_reader_as_a_negative(live):
@@ -183,11 +219,54 @@ def test_the_error_bar_reaches_the_reader_before_the_number(live):
 
 
 def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
+    """The PROPERTY, not the sentence: whichever case the reading is in, the page must tell the
+    reader that nothing here resolves the selection effect.
+
+    This control used to pin the literal string "cannot yet resolve", which was the wording of
+    ONE of the two cases. On 2026-08-28 the point estimate moved outside the band its spread was
+    measured over, the generator's reading correctly changed to say so, and this test reddened on
+    a page that had become MORE honest, not less. A control keyed to a sentence goes red when the
+    sentence improves and stays green when the claim rots -- exactly backwards.
+    """
     feed = _live_feed()
-    assert feed["error_bar"]["distinguishable_from_zero"] is False
-    assert "cannot yet resolve" in live["arms-errorbar"], (
-        "the page reports a spread wider than the effect without telling the reader what that "
-        "means for the number above it")
+    eb = feed["error_bar"]
+    assert eb["distinguishable_from_zero"] is False
+    rendered = live["arms-errorbar"]
+    inside = eb["point_estimate_inside_the_measured_band"]
+    if inside:
+        assert "cannot yet resolve" in rendered, (
+            "the page reports a spread wider than the effect without telling the reader what "
+            "that means for the number above it")
+    else:
+        assert "nothing here resolves the selection effect" in rendered, (
+            "the estimate has left the range its spread was measured over and the page does not "
+            "tell the reader that this resolves nothing")
+
+
+def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
+    """R11 on a caveat rather than a number, and the caveat is DERIVED.
+
+    The noise floor was measured on 2026-08-27; the point estimate was re-taken on 2026-08-28
+    after `simulation/competitor_reference.py` gave the market the ability to DEFEND. A spread
+    measured where nothing could react is not a confidence interval on a figure measured where
+    it can, and a reader shown the two side by side without that sentence is being told the
+    number is bounded when it is not.
+
+    The feed derives the caveat by comparing the two artefacts' own `generated_at` stamps, so
+    this control keeps working for the NEXT world change rather than pinning this one.
+
+    MUTATION: drop the `staleness_caveat` render from `site/capabilities/index.html` and this
+    reds; make the two artefacts contemporaneous and the caveat correctly disappears, which is
+    why the assertion is conditional on the feed rather than unconditional on the page.
+    """
+    caveat = _live_feed()["error_bar"].get("staleness_caveat")
+    if not caveat:
+        pytest.skip("the error bar and the point estimate come from the same run -- nothing to say")
+    rendered = live["arms-errorbar"]
+    assert "OLDER THAN THE FIGURE IT BOUNDS" in rendered, (
+        "the published error bar predates the figure it bounds and the page does not say so")
+    assert "DEFEND" in rendered, (
+        "the page says the error bar is old without naming what changed between the two runs")
 
 
 # ── how few decisions it rests on ────────────────────────────────────────────────────────────

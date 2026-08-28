@@ -769,9 +769,18 @@ def _book_mix(dashboard, sample):
         dominance_threshold_pct=mix["dominance_threshold_pct"],
         unclassified_revenue_gbp=mix["unclassified_revenue_gbp"],
         total_revenue_gbp=mix["total_revenue_gbp"],
+        # MISSION REWRITE 2026-08-28 (director, direct; CLAUDE.md + THE MODEL ON A PAGE §The
+        # mission). The old note named "household carbon abatement through personalisation",
+        # which has been superseded. The note's JOB is unchanged and is why it exists: state the
+        # composition before any claim, and hold the mission-vs-book question open as the
+        # director's. What the new mission changes is that the question got SHARPER rather than
+        # softer -- a mission about finding individual customers makes the book a direct
+        # statement about which customers the method has actually found.
         mission_note=(
-            "The front door's mission is household carbon abatement through personalisation. "
-            "This book is not that book. Whether the mission and the book should agree is a "
+            "The front door's mission is finding individual customers we can create value for and "
+            "sharing in that value -- saving them money, time and carbon. This book is what that "
+            "method has found so far, and the composition below is therefore evidence about the "
+            "method, not incidental to it. Whether the mission and the book should agree is a "
             "DIRECTOR question (values, one-way door 6) and is escalated, not decided here; "
             "what this panel owes the reader is the composition, stated before any claim."
         ),

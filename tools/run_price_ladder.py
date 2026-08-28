@@ -77,12 +77,19 @@ from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
+# THE HOUSEHOLD SIDE (atom `A47`). Read here in the HARNESS, which is the
+# reporting use R12 protects -- no company organ, world module or draw may
+# import it, and `tests/company/test_household_share_is_not_yet_a_target.py`
+# holds that and names what releases it.
+from company.analytics.household_value_share import build_household_value_share
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     VALUE_ARM_POLICY,
     policy_scope,
 )
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
+from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_price_ladder.json"
@@ -250,7 +257,103 @@ def rung_reading(multiplier: float, result: dict) -> dict:
         "unrolled": len(rows) - len(rolled),
         "ceiling_clamped": sum(1 for r in rows if r["ladder_ceiling_clamped"]),
         "above_support_bound": sum(1 for r in rows if r["ladder_above_support_bound"]),
+        "household_side": household_side(result),
         "decisions": rows,
+    }
+
+
+def _published_default_tariff(on_date, commodity: str) -> float | None:
+    """The published default tariff for a fuel on a date, in GBP/MWh — one concept, two sources.
+
+    THE BOOK IS DUAL FUEL and the two sources cover different things, so both are needed and
+    neither is a substitute for the other:
+
+      * `company/pricing/ofgem_price_cap.py` carries BOTH fuels and begins in 2019, when the
+        Default Tariff Cap's published windows begin.
+      * `simulation/svt_rates.py` carries ELECTRICITY ONLY and begins in 2016 — the standard
+        variable tariff of the pre-cap era, which is what a household's default actually WAS
+        before the cap existed.
+
+    Gas before 2019 therefore has no published reference here and returns None, which excludes
+    those rows from both sides of the comparison and counts them. That is a real bound on the
+    early years and it is reported (`coverage_pct`), not papered over with the electricity rate:
+    valuing gas volumes at the electricity tariff overstates the counterfactual roughly
+    four-fold, in our favour, which is the defect
+    `tests/company/analytics/test_household_value_share.py::test_gas_volumes_are_never_valued_at_the_electricity_tariff`
+    exists to make impossible.
+
+    Where both sources cover the same date the two agree by construction -- the cap IS the
+    published SVT from 2019 (185.6 in 2019, 283.4 in 2022, both series).
+    """
+    capped = get_cap_unit_rate_for_date(commodity, on_date)
+    if capped is not None:
+        return capped
+    if commodity == "electricity":
+        return get_svt_elec_rate_gbp_per_mwh(on_date.isoformat())
+    return None
+
+
+def household_side(result: dict) -> dict:
+    """THE OTHER SIDE OF THE SCORE, per rung, in pounds (atom `A47`).
+
+    Every other reading in this file is about US -- what the arm priced, what it
+    believed, what the world did to our book. The director's 2026-08-28 mission
+    says value is created and THEN SHARED, so a rung has a household side too,
+    and until this landed nothing anywhere computed it.
+
+    WHY IT BELONGS ON THE LADDER SPECIFICALLY. The realised roll is binary and
+    quantised at 1/17 on the common population, which is why the chase-on/chase-off
+    comparison of 2026-08-28 could not resolve a world change
+    (`WORKER_FINDING_THE_DEFENDING_MARKET_IS_UNMEASURABLE_ON_SEVENTEEN_DECISIONS`).
+    Pounds saved has no quantum: it moves continuously with the rate at every
+    rung, for every customer, whether or not anyone rolled. That does not rescue
+    the churn comparison -- it is a different question with a different surface,
+    and it is stated here as a second reading rather than a substitute.
+
+    IT IS A DIAGNOSTIC AND NOTHING OPTIMISES IT. `tools/` reading this figure is
+    the reporting use R12 protects; `tests/company/test_household_share_is_not_yet_a_target.py`
+    bars every company organ, world module and draw from importing it, and names
+    what releases that.
+    """
+    records = (result.get("phase2b") or {}).get("all_records") or []
+    if not records:
+        return {"available": False,
+                "reason": "the run carried no settlement records, so no household side exists"}
+
+    # THE COUNTERFACTUAL IS THE PUBLISHED SVT SERIES, NOT THE OFGEM CAP, AND THE CHOICE MATTERS
+    # TWICE. (1) COVERAGE: `company/pricing/ofgem_price_cap.py`'s published windows begin in 2019,
+    # so a cap counterfactual is blind for the first three years of a 2016-2025 record -- and
+    # `--end-year 2019`, the fast iteration mode this ladder is usually run in, would have had
+    # almost no comparable periods at all. Caught before running, by asking what the lookup
+    # returns at 2016 rather than by reading an empty result afterwards. (2) COMMENSURABILITY:
+    # the SVT series is the same reference the world's own churn decision uses
+    # (`price_differential_vs_svt` on every lifecycle event), so the household leg and the churn
+    # leg are answers about ONE reference rather than two. Where the cap exists the two agree by
+    # construction -- the cap IS the SVT from 2019 (185.6 in 2019, 283.4 in 2022, both series).
+    view = build_household_value_share(records, svt_rate_for=_published_default_tariff)
+    p = view.portfolio
+    return {
+        "available": True,
+        "basis": ("settled clock; counterfactual = the published Ofgem default tariff cap "
+                  "unit rate for each settlement date, at this customer's own metered volume; "
+                  "pounds cover the COMPARABLE periods only (see `coverage_pct`)"),
+        "customer_years": view.customer_years,
+        "customer_years_without_any_counterfactual":
+            len(view.customer_years_without_any_counterfactual),
+        # Published rather than divided out: a settled book legitimately carries rows this
+        # view cannot value, and a reader who cannot see how many is reading a subset.
+        "records_this_view_could_not_value": view.records_this_view_could_not_value,
+        "coverage_pct": p.coverage_pct,
+        "paid_gbp": p.paid_gbp,
+        "counterfactual_gbp": p.counterfactual_gbp,
+        "household_saving_gbp": p.household_saving_gbp,
+        "household_saving_pct_of_counterfactual": p.household_saving_pct_of_counterfactual,
+        "our_gross_margin_gbp": p.our_gross_margin_gbp,
+        "household_share_of_the_split_pct": p.household_share_of_the_split_pct,
+        "what_this_is_not": (
+            "NOT value created. Creation is a comparison of COSTS and the counterfactual "
+            "supplier's cost is not observable to us; this is how a surplus whose size we "
+            "cannot yet measure was SPLIT. Atom A48."),
     }
 
 
@@ -400,6 +503,65 @@ def slopes(rungs: list[dict]) -> dict:
             "charging into a response it cannot see, and the headline is a fact about the "
             "switching curve rather than about inference. R12: a diagnostic, never a target."
         ),
+    }
+
+
+def household_saving_curve(rungs: list[dict]) -> dict:
+    """What the ladder costs the households on it — the second, continuous surface.
+
+    THE ARGUMENT FOR THIS EXISTING (atom `A47`, and the negative result of
+    2026-08-28 that motivated it). The realised churn leg is 17 binary decisions
+    on the common population, so its smallest expressible move is 5.9 percentage
+    points; a chase-on/chase-off comparison could not resolve a world change that
+    the unit tests prove is there. Pounds kept by households has no such quantum.
+    Every customer contributes at every rung whether or not anyone rolled, so
+    this leg answers "what does the ladder do to the people on it" with a
+    resolution the churn leg cannot reach.
+
+    WHAT IT IS NOT. It is not a better measure of the same thing. Churn asks who
+    left; this asks what those who stayed kept. A ladder can be invisible on the
+    first and enormous on the second, and that combination is not a contradiction
+    — it is the exact shape of a supplier raising prices on a book that has
+    nowhere to go, which is the case a one-sided score cannot see at all.
+    """
+    xs, ys, out = [], [], []
+    for rung in rungs:
+        side = rung.get("household_side") or {}
+        if not side.get("available") or side.get("household_saving_gbp") is None:
+            continue
+        priced = [d for d in rung.get("decisions", [])
+                  if isinstance(d.get("uplift_gbp_per_mwh"), (int, float))]
+        if not priced:
+            continue
+        mean_uplift = statistics.fmean(float(d["uplift_gbp_per_mwh"]) for d in priced)
+        xs.append(mean_uplift)
+        ys.append(float(side["household_saving_gbp"]))
+        out.append({
+            "multiplier": rung["multiplier"],
+            "mean_uplift_gbp_per_mwh": mean_uplift,
+            "household_saving_gbp": side["household_saving_gbp"],
+            "household_saving_pct_of_counterfactual":
+                side.get("household_saving_pct_of_counterfactual"),
+            "our_gross_margin_gbp": side.get("our_gross_margin_gbp"),
+            "household_share_of_the_split_pct":
+                side.get("household_share_of_the_split_pct"),
+        })
+
+    if len(out) < 2:
+        return {"available": False,
+                "reason": ("fewer than two rungs carry a household side, so no curve exists -- "
+                           "stated rather than returned as a flat line"),
+                "rungs_with_a_household_side": len(out)}
+
+    return {
+        "available": True,
+        "rungs": out,
+        "gbp_saved_per_gbp_per_mwh_of_uplift": _ols_slope(xs, ys),
+        "how_to_read_this": (
+            "The slope is pounds of household saving gained (positive) or lost (negative) per "
+            "£1/MWh of margin uplift, across the ladder. It is a DIAGNOSTIC: nothing optimises "
+            "it, and half of the two-sided objective is not the objective until the director "
+            "decides it is (R13)."),
     }
 
 
@@ -731,6 +893,7 @@ def run_price_ladder(rungs: tuple[float, ...], report_end: str | None = None) ->
         # The same comparison with the sampling noise taken out -- read AFTER `slopes`, never
         # instead of it: a non-renewal is a thing that happened and a probability is not.
         "world_curve_vs_belief": world_curve_vs_belief(readings),
+        "household_saving_curve": household_saving_curve(readings),
         "reference_divergence": reference_divergence(readings),
         "unmatched_diagnosis": unmatched_diagnosis(base, base_raw),
         "belief_source": (
@@ -800,6 +963,30 @@ def main(argv: list[str] | None = None) -> int:
                 else f"{pair['realised_over_believed']:+.3f}"))
     else:
         print("  slopes unavailable: {}".format(s.get("why_not")))
+
+    # THE HOUSEHOLD SIDE, PRINTED. A figure that only reaches a JSON file is half-delivered:
+    # every reading above is about what the ladder did to US, and the mission says a decision
+    # has two sides, so the other one belongs in the same summary rather than a level down.
+    h = result.get("household_saving_curve") or {}
+    print("\nHOUSEHOLD SIDE (diagnostic; nothing optimises it -- see A47)")
+    if not h.get("available"):
+        print("  unavailable: {}".format(h.get("reason")))
+    else:
+        print("  {:>6} {:>10} {:>14} {:>12} {:>14} {:>12}".format(
+            "k", "uplift", "household kept", "of cfact", "we kept gross", "hh share"))
+        for row in h["rungs"]:
+            pct = row.get("household_saving_pct_of_counterfactual")
+            share = row.get("household_share_of_the_split_pct")
+            print("  {:>6} {:>10} {:>14} {:>12} {:>14} {:>12}".format(
+                row["multiplier"],
+                f"{row['mean_uplift_gbp_per_mwh']:.2f}",
+                f"GBP {row['household_saving_gbp']:,.0f}",
+                "n/a" if pct is None else f"{pct:+.2f}%",
+                f"GBP {row['our_gross_margin_gbp']:,.0f}",
+                "n/a" if share is None else f"{share:+.1f}%"))
+        slope = h["gbp_saved_per_gbp_per_mwh_of_uplift"]
+        print("  slope {:<32} {} GBP of household saving per GBP/MWh of uplift".format(
+            "", f"{slope['slope']:+.2f}" if slope.get("available") else "n/a"))
     wc = result["world_curve_vs_belief"]
     if wc.get("available"):
         print("  world curve vs belief: {} decision(s) x {} rung(s) = {} paired observation(s)"

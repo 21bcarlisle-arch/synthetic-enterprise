@@ -2,7 +2,12 @@
 
 THE DEFECT THIS GUARDS. The feed exists to publish a comparison whose honest answer is currently
 NEGATIVE -- the per-customer arm's advantage is the price level, and the choosing is worth
--£174.57. Two failure modes would each destroy that reading while leaving a green, plausible,
+-£571.38 on the SETTLED-REALISED clock (restated 2026-08-28; the superseded settled-provisioned
+reading of the same run was -£174.57, and both are published side by side because deleting the
+flattering one would leave a reader unable to size what the clock repair moved). Note the
+restatement went AGAINST the arm, which is the result and not a cue to touch it (R12).
+
+Two failure modes would each destroy that reading while leaving a green, plausible,
 fully-populated file behind:
 
   FAIL-OPEN ON THE POPULATION -- an unreadable or half-written artefact rendering as £0 rather
@@ -20,8 +25,11 @@ R15 -- the mutations, each run and reverted:
   * default `_f` to 0.0 instead of None -> `test_a_missing_figure_is_absent_not_zero` reds.
   * widen SAME_SUPPLIER_TOLERANCE_GBP to 1e9 -> `test_a_divergent_published_run_is_reported_as_a
     _divergence` reds.
-  * fill the level arm's realised net from the provisioned scalar ->
-    `test_the_level_arms_realised_net_is_absent_with_its_reason` reds.
+  * route the level arm by WHICH BLOCK it was found in rather than by the clock the block declares
+    -> `test_a_split_on_the_superseded_clock_withholds_the_level_arm` reds (this is the mutation
+    that would re-publish superseded figures under the realised heading the day the tool changed).
+  * widen the split-vs-bridge agreement check to accept a clock-sized gap ->
+    `test_a_split_that_disagrees_with_the_bridge_withholds_the_level_arm` reds.
   * report `stdev: 0.0` when no noise floor exists -> `test_a_missing_noise_floor_is_an_absent
     _error_bar_not_a_spread_of_zero` reds.
 The null rungs -- the real artefacts, which must stay fully available with every figure present --
@@ -76,29 +84,91 @@ def test_every_published_block_carries_its_clock(real):
             "{} names a clock a reader cannot interpret".format(block))
 
 
-def test_the_level_arms_realised_net_is_absent_with_its_reason(real):
-    """The artefact's gross-to-net bridge never walked the level arm, so its realised net is not
-    recoverable. Filling it from the superseded scalar would mix the two clocks silently -- the
-    exact defect the A/B was repaired for on 2026-08-28."""
+def test_the_level_arms_realised_net_is_published_on_the_clock_it_declares(real):
+    """THE NULL RUNG THIS TEST USED TO BE THE OPPOSITE OF.
+
+    Until the A/B was re-run on the repaired code (2026-08-28) the level arm's realised net was
+    not recoverable, and this asserted its ABSENCE. The repaired run sums `total_net_gbp` from the
+    mutated rows for every arm, so the figure now exists and the old assertion would have kept a
+    number the site can publish off the page forever -- an absence that had quietly stopped being
+    true. It is restated to the contract that actually holds, not deleted.
+
+    The absence path is still what the two tests below exercise, so the routing rule keeps a way
+    to fail: the figure is shown BECAUSE the split declares `settled-realised`, never because of
+    which block it was found in.
+    """
     level = [a for a in real["realised"]["arms"] if a["key"] == "level"][0]
-    assert level["net_gbp"] is None, (
-        "the level arm was given a realised net margin the run never computed")
-    assert level["absent_reason"], "the absence is published without its reason"
+    assert level["absent_reason"] is None, level["absent_reason"]
+    assert level["net_gbp"] is not None, (
+        "the level arm's realised net is recoverable from the repaired run and must be published")
+    assert level["advantage_gbp"] is not None, (
+        "a level arm with a net but no advantage cannot answer the question the panel is for")
 
     provisioned_level = [a for a in real["provisioned"]["arms"] if a["key"] == "level"][0]
     assert provisioned_level["net_gbp"] is not None, (
         "the level arm IS available on the provisioned clock -- absent there too would mean the "
         "split has no third arm at all")
+    assert provisioned_level["net_gbp"] != level["net_gbp"], (
+        "the two panels reported the SAME figure for the level arm, so one of them is not on the "
+        "clock it names -- the whole defect this pair of panels exists to keep visible")
+
+
+def test_a_split_on_the_superseded_clock_withholds_the_level_arm(real):
+    """R15: the routing rule must be able to refuse. A split still on `settled-provisioned` is
+    exactly the artefact this generator met before the repair, and re-stamping it as realised is
+    the defect -- so it is withheld with its reason rather than shown."""
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"], clock="settled-provisioned")
+    out = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    level = [a for a in out["realised"]["arms"] if a["key"] == "level"][0]
+    assert level["net_gbp"] is None, (
+        "a split declaring the SUPERSEDED clock was published under the realised heading")
+    assert "settled-provisioned" in level["absent_reason"], level["absent_reason"]
+    assert out["realised"]["split"]["available"] is False
+
+
+def test_a_split_that_disagrees_with_the_bridge_withholds_the_level_arm(real):
+    """The two realised reads of the arms they SHARE reach them by different code paths. A gap of
+    clock size between them means one is on the other clock, and the third arm is not shown while
+    the two it is measured against do not agree."""
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"],
+                                     control_net_gbp=art["level_vs_selection"]["control_net_gbp"]
+                                     + 39_962.17)
+    out = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    level = [a for a in out["realised"]["arms"] if a["key"] == "level"][0]
+    assert level["net_gbp"] is None, "the level arm was shown against two arms that disagree"
+    assert "39,962.17" in level["absent_reason"], (
+        "the disagreement is reported without its size: {}".format(level["absent_reason"]))
 
 
 def test_the_selection_leg_and_its_error_bar_are_published_together(real):
+    """The point estimate is never published without its measured spread.
+
+    THE RELATIONSHIP BETWEEN THEM IS NO LONGER PINNED, AND THAT IS THE REPAIR. This test used to
+    assert `stdev > |selection|` -- the state on the day it was written -- and the rendered
+    sentence ("the point estimate sits inside that band") was a fixed string that assumed it. On
+    2026-08-28 the estimate moved to -GBP 5,224 against a band of -3,705 to +5,076 and the
+    assertion fired, which is the control doing its job. Pinning the new state instead would just
+    re-arm the same trap, so what is checked now is that the feed KNOWS which case it is in and
+    says the matching thing.
+    """
     sp, eb = real["provisioned"], real["error_bar"]
     assert sp["selection_gbp"] is not None
     assert eb["available"], "the point estimate is published with no measured spread"
-    assert eb["stdev_gbp"] > abs(sp["selection_gbp"]), (
-        "on this reading the spread is WIDER than the estimate; if that stops being true the "
-        "sentence the surface renders about it must be re-read, not silently kept")
-    assert eb["distinguishable_from_zero"] is False
+    inside = eb["point_estimate_inside_the_measured_band"]
+    assert inside is not None, (
+        "the feed cannot say whether the estimate is inside the band its own spread was measured "
+        "over -- an unknown relationship must not be published as a comfortable one")
+    if inside:
+        assert "sits inside that band" in eb["reading"]
+    else:
+        assert "OUTSIDE the band" in eb["reading"], (
+            "the estimate has left the range its spread was measured over and the reading does "
+            "not say so: {}".format(eb["reading"]))
+        assert "not a bound on it" in eb["reading"]
 
 
 def test_the_decision_count_reaches_the_feed(real):

@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>poesys. -- the energy supplier that hides nothing</title>
-<meta name="description" content="An enterprise simulator for a UK energy supplier, built and run by AI. Mission: carbon abatement through personalisation, measured in £ per tonne of CO2 saved. Autonomy is the method, not the headline.">
+<meta name="description" content="An enterprise simulator for a UK energy supplier, built and run by AI. Mission: automating ways to find individual customers we can create value for, and sharing in that value -- saving them money, time and carbon. Autonomy is the method, not the headline.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://poesys.net/">
 <meta property="og:title" content="poesys. -- the energy supplier that hides nothing">
 <meta property="og:url" content="https://poesys.net">
-<meta property="og:description" content="An enterprise simulator for a UK energy supplier, built and run by AI -- carbon abatement through personalisation, measured in £ per tonne of CO2 saved.">
+<meta property="og:description" content="An enterprise simulator for a UK energy supplier, built and run by AI -- finding individual customers it can create value for, and sharing in that value: money, time and carbon.">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="stylesheet" href="./brand/brand.css">
@@ -186,9 +186,10 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   <p class="pitch">Not a model of a company; a running one. It settles half-hourly against real
     Elexon and NESO market data since 2016, takes only proven answers toward the real world, and
     discovers its world the way a real supplier would -- meter reads, market feeds, customer
-    contacts, bills, regulatory publications -- never the simulation's own internals. The mission
-    is <strong>carbon abatement through personalisation</strong>, measured in £ per tonne of
-    CO&#8322; saved.</p>
+    contacts, bills, regulatory publications -- never the simulation's own internals. The mission is
+    <strong>automating ways to find individual customers we can create value for, and sharing in that
+    value</strong> &mdash; saving them <strong>money, time and carbon</strong>, through personalised
+    modelling, tariffs and advice.</p>
 </section>
 
 <!-- WHOSE BOOK THIS IS (SITE_EH1_segment_disclosure 2026-07-30, scope item 2: "The revenue mix
@@ -259,14 +260,32 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
      styling; carries NO cohort-derived £ (£273 is a government appraisal value, not a run figure). -->
 <section class="thesis">
   <h2>The score: &pound; per tonne of CO&#8322;e abated <span class="tag tag-prov">NOT YET MEASURED</span></h2>
-  <p class="hypo"><strong>The claim, falsifiable:</strong> that you cut carbon fastest by knowing each
+  <p class="hypo"><strong>The claim, falsifiable:</strong> that you create value fastest by knowing each
     household well &mdash; shifting when it draws power, fitting the right assets, pricing the right tariff,
-    having the right conversation &mdash; run as a real autonomous supplier inside a faithful simulation of
-    the actual UK market. Every line of company code has to answer one question: <em>could a real supplier
-    know this?</em></p>
-  <p class="thesis-sentence">The score is <strong>&pound; per tonne of CO&#8322;e saved</strong>, measured
-    against the yardstick it has to beat &mdash; the UK government's carbon appraisal value,
+    having the right conversation &mdash; and that the value is real only if the household keeps a share of
+    it. Run as a real autonomous supplier inside a faithful simulation of the actual UK market. Every line
+    of company code has to answer one question: <em>could a real supplier know this?</em></p>
+  <p class="thesis-sentence">A household is saved <strong>money, time and carbon</strong>. Carbon is the
+    currency with a yardstick already named: the score is <strong>&pound; per tonne of CO&#8322;e
+    saved</strong>, against the UK government's carbon appraisal value,
     <strong>&pound;273/tCO&#8322;e (2025)</strong>.</p>
+  <!-- MISSION REWRITE 2026-08-28 (director, direct; supersedes DIRECTOR_RULING_FRONT_MISSION_BLOCK's
+       "carbon abatement through personalisation" sentence, not its STRUCTURE -- claim, score,
+       yardstick, number honestly absent, all kept). The paragraph below is the honest state of the
+       other two currencies and of the three channels; it is hand-authored PROSE about what exists in
+       the repository, carries no run figure, and is checked by docs/design/THE_MODEL_ON_A_PAGE.md
+       (atoms A47, C30, C31). -->
+  <p class="thesis-caveat"><strong>Two of the three currencies, and two of the three channels, are not
+    built.</strong> Only money has ever been <em>optimised</em> here, and only our side of it. What a
+    household <em>saved</em> by being with us is now measured &mdash; against the published default
+    tariff, at that household's own metered volumes &mdash; but it is a diagnostic and nothing yet
+    decides anything by it. <strong>Time does not appear in this project at all.</strong> And of the
+    three ways value is meant to reach a household &mdash;
+    personalised modelling, tariffs, advice &mdash; only <strong>tariffs</strong> reaches one today: the
+    modelling that exists is the supplier's opinion about its customers rather than a model offered to
+    them, and the advice code has no recipient. Said here rather than in a footnote, because a mission
+    with two thirds of its channels unbuilt is the kind of thing a company usually declines to
+    mention.</p>
   <!-- EVERY NUMBER IN THE NEXT TWO PARAGRAPHS IS FILLED FROM site/data/explore_carbon.json, never
        typed here. A hand-authored figure beside a generated one is the defect this project files
        against itself most often, and the worst place to make it is the paragraph explaining why a

@@ -67,6 +67,23 @@ REVIEWED_CLOSE_TO_LEARN = {
     # earns no revenue; it makes an existing result honest about what it is evidence of, which is
     # the same knowledge class as its SITE siblings and as A45 above.
     "SITE13_the_baseline_comparison_carries_its_bound",
+    # 2026-08-28 reviewed (delivery seat, the director's mission rewrite). Both are OBJECTIVE
+    # atoms: they change what the machine is scored on, not what it sells.
+    # A47 adds a household side to a score that has none. It moves no money by itself -- what it
+    # produces is the ability to tell value CREATED from value TRANSFERRED, which is knowledge
+    # about every pricing result already taken. Same class as A6_coupled_triad_gap_metric, which
+    # is also a measure-the-measurement atom rather than a revenue flow.
+    "A47_the_score_has_no_household_side",
+    # A48 asks what measures the METHOD, given that the module named enterprise_value measures
+    # the book. Its deliverable is a figure about how well the machine finds customers worth
+    # having -- knowledge about the asset, not the asset. Same class as A1/A2 governance siblings.
+    "A48_enterprise_value_is_the_method_not_the_book",
+    # SITE14 was minted by the canon drift check's first live run (A45) while the mission rewrite
+    # was in flight, and is reviewed here on its merits rather than waved through to clear a gate:
+    # it removes two claims from a published schematic that the code does not support. It changes
+    # no figure, sells nothing and earns nothing -- it makes an existing published claim true,
+    # which is the identical class as SITE13 four entries above and as A45 that produced it.
+    "SITE14_the_front_door_schematic_carries_the_corrected_model",
     # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
     # not"). Both classified on their merits, not to clear the gate.
     # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction

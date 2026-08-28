@@ -401,7 +401,41 @@ def _provisioned(three_arm: dict) -> dict:
     }
 
 
-def _error_bar(floor: dict, point_estimate) -> dict:
+def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
+    """Say, from the two artefacts' own stamps, whether the error bar predates the point estimate.
+
+    DERIVED, NOT WRITTEN DOWN, and that is the whole repair. The caveat that stood here was a
+    hand-authored sentence naming the 2026-08-28 clock repair -- true when it was typed and
+    unable to notice anything that happened afterwards. On 2026-08-28 something did: the world
+    gained a competitor that DEFENDS (`simulation/competitor_reference.py`, 08:25), and the
+    three-arm run was re-taken against it while the noise floor was not. A seed spread measured
+    in a market that could not react is not an error bar on a point estimate measured in one that
+    can, and no amount of clock-labelling says so.
+
+    The test is a comparison of timestamps, so it stays true whatever the next world change is.
+    """
+    floor_at = (floor or {}).get("generated_at")
+    point_at = (three_arm or {}).get("generated_at")
+    if not floor_at or not point_at:
+        # An artefact with no stamp cannot be shown to be current, and unknown provenance on a
+        # published error bar reads as fine unless someone says otherwise (FAIL-SILENT).
+        return ("One of these two runs carries no timestamp, so this feed cannot show that the "
+                "error bar and the point estimate describe the same world. Read the spread as a "
+                "scale statement about the instrument, not as a confidence interval.")
+    if floor_at >= point_at:
+        return None
+    return (
+        "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run "
+        "of {floor_at} and the point estimate on the run of {point_at}. Anything that changed the "
+        "world between those two runs is inside the point estimate and outside the spread -- and "
+        "something did, on 2026-08-28: the market gained the ability to DEFEND against a company "
+        "that undercuts it. A spread measured where nothing could react is not a confidence "
+        "interval on a figure measured where it can. Read it as the size of this instrument's seed "
+        "sensitivity; re-running the noise floor on the current world is owed work."
+    ).format(floor_at=floor_at, point_at=point_at)
+
+
+def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
 
     NEVER fails open to a spread of zero: a spread of zero is the one value that would make an
@@ -419,6 +453,11 @@ def _error_bar(floor: dict, point_estimate) -> dict:
     draws = [s.get("elasticity_draws") for s in seeds]
     ratio = (abs(stdev / point_estimate)
              if point_estimate not in (None, 0) else None)
+    # Whether the figure this spread is published beside is even inside the range the spread was
+    # measured over. `None` when either end is missing -- an unknown relationship must not read
+    # as a comfortable one.
+    inside = (None if lo is None or hi is None or point_estimate is None
+              else bool(lo <= point_estimate <= hi))
     return {
         "available": True,
         "seeds": n,
@@ -440,19 +479,34 @@ def _error_bar(floor: dict, point_estimate) -> dict:
         "clock": floor.get("clock"),
         "clock_caveat": (
             None if floor.get("clock") else
-            "This noise floor carries no clock label of its own and its runs predate the "
-            "2026-08-28 clock repair, so it is paired with the superseded panel it was measured "
-            "beside. Read it as the size of this instrument's seed sensitivity, not as an error "
-            "bar on the restated figure -- re-running it on the corrected clock is owed work."),
+            "This noise floor carries no clock label of its own, so it is paired with the panel "
+            "it was measured beside rather than with the restated figure."),
+        # DERIVED from the two runs' own stamps -- see `_staleness_caveat`. Separate from the
+        # clock caveat because they are different failures: one is a basis label, the other is a
+        # different WORLD, and a reader shown only the first would take the spread for current.
+        "staleness_caveat": _staleness_caveat(floor, three_arm or {}),
         "elasticity_draws_min": min(draws) if draws and all(
             isinstance(d, int) for d in draws) else None,
         # No range restated here: the surface renders the min and max in its own sentence, and a
         # second copy of the same two figures is where a rounding convention drifts between them.
+        # DERIVED, because the sentence that stood here asserted "the point estimate sits inside
+        # that band" as a fact about a reading it could not see. On 2026-08-28 it stopped being
+        # true -- the selection leg moved to -GBP 5,224 against a measured band of -3,705 to
+        # +5,076 -- and the surface would have gone on saying it. The generator's own live-state
+        # test caught it (`test_the_selection_leg_and_its_error_bar_are_published_together`),
+        # which is the control working; keeping the sentence would have been the defect.
+        "point_estimate_inside_the_measured_band": inside,
         "reading": (
             "The point estimate sits inside that band and so does zero, so this instrument cannot "
             "yet resolve a selection effect of the size it is measuring -- in either direction. "
             "That is a finding about the INSTRUMENT and not about the pricing arm, and it is not "
-            "a cue to re-run until a seed agrees."),
+            "a cue to re-run until a seed agrees."
+            if inside else
+            "The point estimate now sits OUTSIDE the band this spread was measured over, so the "
+            "spread is not a bound on it and nothing here resolves the selection effect either "
+            "way. An estimate that has left its own error bar's range needs the error bar "
+            "re-measured, not read as having escaped it -- which is the direction the reading "
+            "would drift if this sentence were fixed rather than derived."),
     }
 
 
@@ -542,7 +596,7 @@ def build(three_arm: dict | None, floor: dict | None,
         book=(three_arm.get("book_identity") or {}).get("control_arm") or {},
         realised=realised,
         provisioned=provisioned,
-        error_bar=_error_bar(floor, point),
+        error_bar=_error_bar(floor, point, three_arm),
         decisions=_decisions(three_arm),
         headline=(
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check

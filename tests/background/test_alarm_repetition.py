@@ -578,8 +578,19 @@ def test_SIXTEEN_stale_claims_file_ONE_document(tmp_path):
 
 
 def test_the_collapse_KEEPS_every_work_id(tmp_path):
-    """A collapse that loses the sixteen work-ids is not a fix, it is a deletion with a
-    rationale. Each instance must be nameable from the one surviving document."""
+    """A collapse that loses the work-ids is not a fix, it is a deletion with a rationale.
+    Each instance must be nameable from the one surviving document."""
+    # POPULATION FLOOR, before the loop. Every assertion below is INSIDE a loop over
+    # `SEAT_CLAIMS`, so an empty or shrunken fixture would pass this test while proving
+    # nothing -- the exact shape `tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py`
+    # exists to catch, and it caught this one. The count is the sixteen work-ids the
+    # 2026-08-28 collapse had to keep; if the fixture legitimately changes, change the
+    # number deliberately rather than letting the guard empty.
+    assert len(SEAT_CLAIMS) >= 3, (
+        "the seat-claim fixture is {} row(s). Three distinct work-ids is the minimum that can "
+        "show a collapse KEEPING them all -- one proves nothing about collapsing and two cannot "
+        "distinguish 'kept both' from 'kept the last'. An empty or thinned fixture passes every "
+        "assertion below without checking anything".format(len(SEAT_CLAIMS)))
     for message, key in SEAT_CLAIMS:
         ar.escalate(message, key=key, repeats=1, first_ts=_DAY1, staging_dir=tmp_path,
                     now=_DAY1 + 60)

@@ -1,3 +1,13 @@
+> **MISSION SUPERSEDED (2026-08-28, director, direct).** The standing mission sentence is now in
+> `CLAUDE.md` and `THE_MODEL_ON_A_PAGE.md` §The mission: *"We are creating enterprise value by
+> automating ways to find individual customers we can create value for, and sharing in that value —
+> by saving them money, time and carbon, through personalised modelling, tariffs and advice."*
+> It replaces this pitch's "carbon abatement through personalisation, measured in £ per tonne of
+> CO₂e saved" as the statement of PURPOSE. **The v7 body below is unedited and stays canon for its
+> ARGUMENT** — the market read, the wedge, the honesty register and the £/tCO₂e formula all survive;
+> carbon becomes one of three currencies rather than the whole mission. *(Pointer only, per this
+> file's own do-not-self-edit rule: the supersession is recorded here and decided there.)*
+
 # DIRECTOR-CANON — Poesys PITCH v7 (adopted verbatim, 2026-07-28)
 
 **Status: DIRECTOR-AUTHORED CANON for PURPOSE and ARGUMENT.** Adopted verbatim from

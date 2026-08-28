@@ -24,6 +24,8 @@ import pytest
 
 from tools.run_price_ladder import (
     _ols_slope,
+    household_saving_curve,
+    household_side,
     null_control_check,
     reference_divergence,
     slopes,
@@ -335,3 +337,103 @@ def test_the_unmatched_count_separates_decisions_from_accounts():
     assert out["unmatched_decisions"] == 3
     assert out["unmatched_accounts"] == 1
     assert out["accounts_the_world_never_rolled_at_all_in_window"] == 1
+
+
+# ── the household side (atom A47) ─────────────────────────────────────────────────────────────
+
+def test_the_household_side_is_absent_rather_than_zero_when_a_run_carried_no_records():
+    """FAIL-OPEN killer. A run with no settlement records must not report £0 saved -- that
+    is the shape that makes an empty book look like a fair one.
+
+    MUTATION: return the portfolio of an empty view and this reds on `available`.
+    """
+    out = household_side({"phase2b": {"all_records": []}})
+    assert out["available"] is False
+    assert "no settlement records" in out["reason"]
+
+
+def test_a_rung_priced_at_the_cap_shows_the_household_keeping_nothing():
+    """The director's 2026-08-28 sentence, on the ladder: charging the cap transfers value
+    rather than creating it, so the household side of that rung is exactly zero."""
+    import datetime as dt
+
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+
+    # Priced at THAT DAY'S cap, not at one day's cap held flat: the real cap moved
+    # quarterly through 2022 (+54% on 1 April alone), so a flat rate across the window
+    # is a price ABOVE the cap in the early quarter and below it later -- which the first
+    # draft of this test discovered as a -£50 "saving" that was really a window mismatch.
+    daily_kwh = 2700.0 / 365.0
+    records = []
+    for i in range(180):
+        d = dt.date(2022, 1, 1) + dt.timedelta(days=i)
+        cap = get_cap_unit_rate_for_date("electricity", d)
+        records.append({
+            "customer_id": "C1", "settlement_date": d.isoformat(),
+            "consumption_kwh": daily_kwh,
+            "revenue_gbp": daily_kwh / 1000.0 * cap,
+            "wholesale_cost_gbp": daily_kwh / 1000.0 * 180.0,
+            "margin_gbp": daily_kwh / 1000.0 * (cap - 180.0),
+        })
+    out = household_side({"phase2b": {"all_records": records}})
+    assert out["available"] is True
+    assert out["household_saving_gbp"] == pytest.approx(0.0, abs=1e-6)
+    assert out["household_share_of_the_split_pct"] == pytest.approx(0.0, abs=1e-6)
+    # The surplus is not zero -- it all went to us. Without this the test would pass on a
+    # module that returned zeros for everything.
+    assert out["our_gross_margin_gbp"] > 0.0
+
+
+def test_the_household_curve_needs_two_rungs_and_says_so_rather_than_drawing_a_line():
+    """POPULATION FLOOR. One point is not a curve, and a one-point OLS through the origin
+    is a slope with no evidence behind it."""
+    out = household_saving_curve([
+        {"multiplier": 0.0,
+         "household_side": {"available": True, "household_saving_gbp": 10.0},
+         "decisions": [{"uplift_gbp_per_mwh": 1.0}]},
+    ])
+    assert out["available"] is False
+    assert out["rungs_with_a_household_side"] == 1
+
+
+def test_the_household_curve_falls_as_the_ladder_rises():
+    """THE CONTINUOUS SURFACE the 17-decision churn leg could not supply. A higher rung takes
+    more from the household, so the slope of saving against uplift is negative.
+
+    MUTATION: sign-flip the saving and this reds -- a ladder that made households better off
+    as it charged them more would be the arithmetic saying so, not a subtlety.
+    """
+    rungs = [
+        {"multiplier": 0.0,
+         "household_side": {"available": True, "household_saving_gbp": 300.0},
+         "decisions": [{"uplift_gbp_per_mwh": 0.0}]},
+        {"multiplier": 1.0,
+         "household_side": {"available": True, "household_saving_gbp": 100.0},
+         "decisions": [{"uplift_gbp_per_mwh": 10.0}]},
+        {"multiplier": 2.0,
+         "household_side": {"available": True, "household_saving_gbp": -100.0},
+         "decisions": [{"uplift_gbp_per_mwh": 20.0}]},
+    ]
+    out = household_saving_curve(rungs)
+    assert out["available"] is True
+    assert len(out["rungs"]) == 3
+    assert out["gbp_saved_per_gbp_per_mwh_of_uplift"]["slope"] == pytest.approx(-20.0, rel=1e-6)
+
+
+def test_a_rung_whose_household_side_is_unknown_is_dropped_not_zeroed():
+    """"We cannot say" must not enter the regression as £0 saved -- the fail-open that would
+    drag the curve toward a flattering slope."""
+    rungs = [
+        {"multiplier": 0.0,
+         "household_side": {"available": True, "household_saving_gbp": 300.0},
+         "decisions": [{"uplift_gbp_per_mwh": 0.0}]},
+        {"multiplier": 0.5,
+         "household_side": {"available": True, "household_saving_gbp": None},
+         "decisions": [{"uplift_gbp_per_mwh": 5.0}]},
+        {"multiplier": 1.0,
+         "household_side": {"available": True, "household_saving_gbp": 100.0},
+         "decisions": [{"uplift_gbp_per_mwh": 10.0}]},
+    ]
+    out = household_saving_curve(rungs)
+    assert [r["multiplier"] for r in out["rungs"]] == [0.0, 1.0]
+    assert out["gbp_saved_per_gbp_per_mwh_of_uplift"]["slope"] == pytest.approx(-20.0, rel=1e-6)

@@ -67,10 +67,53 @@ def test_no_cohort_financials_lead_the_front_door():
 # ---------------------------------------------------------------------------
 def test_mission_block_leads_with_score_and_yardstick():
     text = INDEX.read_text()
-    # The score and the external yardstick lead the front door, in the v4 register.
-    assert "carbon abatement through personalisation" in text
-    assert "273/tCO&#8322;e (2025)" in text, "the £273/tCO2e (2025) government yardstick is not on the front door"
-    assert "per tonne of CO&#8322;e saved" in text
+    _flat = text.replace("\n    ", " ")
+    # SCAN WHAT A READER SEES, NOT THE SOURCE. An HTML comment recording WHICH sentence was
+    # superseded necessarily quotes that sentence, so a raw-source scan for it fires on the
+    # provenance note that exists to explain the change -- the same defect shape found in
+    # tools/abolished_block_classes.py on 2026-08-28, where a repair note naming dead acts
+    # tripped the guard against dead acts. A claim is what renders; a comment renders nothing.
+    #
+    # AND SCAN THE BODY, NOT THE HEAD. Caught by mutation on 2026-08-28: the first version of
+    # this control asserted "money, time and carbon" against the whole file, and DELETING "time"
+    # from the visible mission sentence still passed -- because <meta name="description"> carries
+    # the same words and a reader never sees it. A control satisfied by a string in the document
+    # head is FAIL-SILENT about the claim on the page (R15). Both scans below are body-only.
+    rendered = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    body = rendered.split("</head>", 1)[-1].replace("\n    ", " ")
+    rendered = rendered.replace("\n    ", " ")
+    assert "<meta name=\"description\"" in text and "money, time and carbon" not in body.split("<body")[0], (
+        "the head/body split this control depends on has moved"
+    )
+    # THE MISSION SENTENCE CHANGED ON 2026-08-28 (director, direct; CLAUDE.md + THE MODEL ON A
+    # PAGE §The mission). This control's SUBJECT moved with it rather than the control being
+    # relaxed -- it used to pin "carbon abatement through personalisation", which the director
+    # has superseded, and pinning a superseded sentence is worse than pinning none.
+    #
+    # What the 2026-07-24 ruling required STRUCTURALLY is unchanged and still pinned below: the
+    # claim, its score, its yardstick, and its number honestly absent.
+    assert "carbon abatement through personalisation" not in rendered, (
+        "the front door still publishes the mission sentence the director superseded on 2026-08-28"
+    )
+    assert "find individual customers we can create value for" in body, (
+        "the front door does not carry the mission's finding-and-creating clause"
+    )
+    assert "money, time and carbon" in body, (
+        "the front door names fewer than the mission's three currencies"
+    )
+    # Carbon is now ONE currency of three rather than the whole mission, and it keeps its score
+    # and its externally-set yardstick -- that is the part of the old ruling that survives intact.
+    assert "273/tCO&#8322;e (2025)" in body, "the £273/tCO2e (2025) government yardstick is not on the front door"
+    assert "per tonne of CO&#8322;e saved" in body
+    # The honest state of what the mission promises and has not built. A mission published with
+    # two of three channels unbuilt, and no note saying so, is the claim-status defect THE MODEL
+    # ON A PAGE's own reading rule names.
+    assert "Time does not appear in this" in body, (
+        "the front door claims to save time without saying time does not exist here"
+    )
+    assert "only <strong>tariffs</strong> reaches one today" in body, (
+        "the front door names three channels without saying only one reaches a household"
+    )
     # THE HONEST STATE, AND IT CHANGED ON 2026-08-25 -- so this control's SUBJECT changed with
     # it rather than the control being relaxed. It used to pin the literal "designed, not yet
     # instrumented", which was true while nothing multiplied a meter read by a grid intensity.

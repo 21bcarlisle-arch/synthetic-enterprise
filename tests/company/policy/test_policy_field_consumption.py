@@ -113,6 +113,17 @@ PRODUCTION_DIRS = ("company", "simulation", "saas", "tools", "background")
 _LADDER_NULL_RUNG_POLICY = dataclasses.replace(
     VALUE_ARM_POLICY, name="value_arm_null_rung", renewal_margin_ladder_multiplier=0.0)
 
+#: The flat-at-level arm and its witnessing partner. The pair must differ in the LEVEL only,
+#: so BOTH select the arm (`renewal_margin_arm="flat_at_level"`) -- `CURRENT_POLICY` cannot
+#: witness this field, because under `flat_rules` the level is never read and any two values
+#: agree, which is the vacuity the probe guard exists to refuse.
+_FLAT_AT_LEVEL_LOW = dataclasses.replace(
+    CURRENT_POLICY, name="flat_at_level_low",
+    renewal_margin_arm="flat_at_level", renewal_margin_flat_level_gbp_per_mwh=5.0)
+_FLAT_AT_LEVEL_HIGH = dataclasses.replace(
+    CURRENT_POLICY, name="flat_at_level_high",
+    renewal_margin_arm="flat_at_level", renewal_margin_flat_level_gbp_per_mwh=60.0)
+
 FIELD_CONSUMPTION = {
     "name": {"via": "label"},
     "retention_discount_mode": {"via": "run_argument"},
@@ -169,6 +180,16 @@ FIELD_CONSUMPTION = {
         "via": "active_scope",
         "probe": lambda: _renewal_rate_under_the_active_arm(),
         "arms": (VALUE_ARM_POLICY, _LADDER_NULL_RUNG_POLICY),
+    },
+    # THE FLAT-AT-LEVEL ARM'S LEVEL. Reached exactly like the two fields above -- resolved from
+    # `active_policy()` inside `company/pricing/renewal_rate_chain.py`, because the rate chain is
+    # a wall door and must not gain a policy argument -- so it is the fourth `active_scope` field
+    # and takes the same behavioural probe. Declared 2026-08-28: the field landed with its arm and
+    # its tests and WITHOUT a row here, so this completeness control was the thing that noticed.
+    "renewal_margin_flat_level_gbp_per_mwh": {
+        "via": "active_scope",
+        "probe": lambda: _renewal_rate_under_the_active_arm(),
+        "arms": (_FLAT_AT_LEVEL_LOW, _FLAT_AT_LEVEL_HIGH),
     },
 }
 

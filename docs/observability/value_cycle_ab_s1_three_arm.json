@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T07:36:02Z",
+  "generated_at": "2026-08-28T10:47:24Z",
   "report_end": null,
   "clock_definitions": {
     "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
@@ -17,7 +17,7 @@
       "with_a_gas_leg": 187,
       "dual_fuel": 187,
       "dual_fuel_share_of_accounts": 0.8904761904761904,
-      "accounts_at_end_of_window": 127,
+      "accounts_at_end_of_window": 128,
       "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
     },
     "value_arm": {
@@ -30,7 +30,7 @@
       "with_a_gas_leg": 187,
       "dual_fuel": 187,
       "dual_fuel_share_of_accounts": 0.8862559241706162,
-      "accounts_at_end_of_window": 125,
+      "accounts_at_end_of_window": 118,
       "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
     }
   },
@@ -42,17 +42,17 @@
     "why_it_matters": "`name` and `renewal_margin_arm` are the only two, and `name` does not reach a decision. Any third field here means the delta below carries an uncontrolled variable, which is the defect WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 recorded on the sibling comparison."
   },
   "control_arm": {
-    "total_net_gbp": 153244.792035,
-    "total_gross_margin_gbp": 526774.9945333437,
-    "total_capital_cost_gbp": 9362.673856646477,
-    "total_bad_debt_gbp": 6466.41,
-    "final_treasury_gbp": 403244.79,
-    "provisioned_net_gbp": 113282.617135,
-    "provisioned_bad_debt_gbp": 46428.5849,
-    "provisioned_final_treasury_gbp": 363282.6171350135,
-    "enterprise_value_gbp": 304028.306425202,
-    "account_count": 127,
-    "churned_accounts": 36,
+    "total_net_gbp": 159423.497394,
+    "total_gross_margin_gbp": 553849.6576075075,
+    "total_capital_cost_gbp": 9885.211460101544,
+    "total_bad_debt_gbp": 8420.15,
+    "final_treasury_gbp": 409423.5,
+    "provisioned_net_gbp": 117480.619403,
+    "provisioned_bad_debt_gbp": 50363.027991,
+    "provisioned_final_treasury_gbp": 367480.6194030164,
+    "enterprise_value_gbp": 299647.83575123805,
+    "account_count": 128,
+    "churned_accounts": 35,
     "renewals_priced_by_the_arm": 0,
     "clocks": {
       "total_net_gbp": "settled-realised",
@@ -64,17 +64,17 @@
     }
   },
   "value_arm": {
-    "total_net_gbp": 157913.200761,
-    "total_gross_margin_gbp": 505034.2229825668,
-    "total_capital_cost_gbp": 9002.024780165155,
-    "total_bad_debt_gbp": 6682.83,
-    "final_treasury_gbp": 407913.2,
-    "provisioned_net_gbp": 120648.836081,
-    "provisioned_bad_debt_gbp": 43947.19468,
-    "provisioned_final_treasury_gbp": 370648.8360809403,
-    "enterprise_value_gbp": 311055.9501960328,
-    "account_count": 125,
-    "churned_accounts": 39,
+    "total_net_gbp": 154699.488674,
+    "total_gross_margin_gbp": 501341.3251138941,
+    "total_capital_cost_gbp": 8892.2995766546,
+    "total_bad_debt_gbp": 8597.92,
+    "final_treasury_gbp": 404699.49,
+    "provisioned_net_gbp": 119495.716504,
+    "provisioned_bad_debt_gbp": 43801.69217,
+    "provisioned_final_treasury_gbp": 369495.7165039389,
+    "enterprise_value_gbp": 302159.0732043019,
+    "account_count": 118,
+    "churned_accounts": 46,
     "renewals_priced_by_the_arm": 25,
     "clocks": {
       "total_net_gbp": "settled-realised",
@@ -86,15 +86,15 @@
     }
   },
   "level_arm": {
-    "total_net_gbp": 158484.576559,
-    "total_gross_margin_gbp": 507548.94424794737,
-    "total_capital_cost_gbp": 9104.120847831127,
-    "total_bad_debt_gbp": 6468.37,
-    "final_treasury_gbp": 408484.58,
-    "provisioned_net_gbp": 120823.404062,
-    "provisioned_bad_debt_gbp": 44129.542497,
-    "provisioned_final_treasury_gbp": 370823.4040619189,
-    "enterprise_value_gbp": 308845.1387228028,
+    "total_net_gbp": 164326.411407,
+    "total_gross_margin_gbp": 533953.3966524729,
+    "total_capital_cost_gbp": 9608.988721161932,
+    "total_bad_debt_gbp": 8424.28,
+    "final_treasury_gbp": 414326.41,
+    "provisioned_net_gbp": 124719.280712,
+    "provisioned_bad_debt_gbp": 48031.410695,
+    "provisioned_final_treasury_gbp": 374719.2807119764,
+    "enterprise_value_gbp": 303614.35254016984,
     "account_count": 125,
     "churned_accounts": 38,
     "renewals_priced_by_the_arm": 34,
@@ -127,13 +127,13 @@
     "available": true,
     "level_gbp_per_mwh": 44.5,
     "level_source": "the value arm's own realised median margin in THIS run (`decision_shape.median_margin_gbp_per_mwh`), not a constant",
-    "control_net_gbp": 153244.792035,
-    "value_arm_net_gbp": 157913.200761,
-    "level_arm_net_gbp": 158484.576559,
-    "value_advantage_gbp": 4668.408725999994,
-    "level_advantage_gbp": 5239.784524000017,
-    "selection_gbp": -571.3757980000228,
-    "level_share_of_advantage": 1.1223919822653556,
+    "control_net_gbp": 159423.497394,
+    "value_arm_net_gbp": 154699.488674,
+    "level_arm_net_gbp": 164326.411407,
+    "value_advantage_gbp": -4724.0087200000125,
+    "level_advantage_gbp": 4902.914013000001,
+    "selection_gbp": -9626.922733000014,
+    "level_share_of_advantage": -1.0378714993142495,
     "share_undefined_reason": null,
     "clock": "settled-realised",
     "basis": "settled net margin (R14) on the SETTLED-REALISED clock -- `net_margin_gbp` summed from the world's own settled records after the arrears engine has replaced the flat-rate provision with realised write-offs and DCA recoveries.",
@@ -141,12 +141,12 @@
     "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
   },
   "realised_delta": {
-    "net_margin_gbp": 4668.408725999994,
-    "enterprise_value_gbp": 7027.643770830822,
-    "accounts_at_end": -2,
-    "churned_accounts": 3,
-    "gross_margin_gbp": -21740.771550776903,
-    "bad_debt_gbp": 216.42000000000007
+    "net_margin_gbp": -4724.0087200000125,
+    "enterprise_value_gbp": 2511.2374530638335,
+    "accounts_at_end": -10,
+    "churned_accounts": 11,
+    "gross_margin_gbp": -52508.332493613416,
+    "bad_debt_gbp": 177.77000000000044
   },
   "gross_to_net_bridge": {
     "what_this_is": "The arithmetic between gross and net, per arm, summed from the world's own settled records. Answers `gross fell and net rose` with named lines and figures instead of a candidate list.",
@@ -181,46 +181,46 @@
       }
     },
     "control_arm": {
-      "records": 362502,
-      "gross_margin_gbp": 526774.9945333017,
-      "policy_and_levies_gbp": 125775.47124122613,
-      "network_gbp": 231925.64655790938,
-      "capital_cost_gbp": 9362.673856645113,
-      "bad_debt_gbp": 6466.409999999568,
-      "total_deductions_gbp": 373530.2016557802,
-      "net_margin_gbp": 153244.79203499746,
-      "unexplained_residual_gbp": -0.0008425240230280906,
-      "revenue_gbp": 1003550.8695816797,
-      "wholesale_cost_gbp": 476775.87405438855,
-      "volume_kwh": 8054069.868444438
+      "records": 379864,
+      "gross_margin_gbp": 553849.6576074818,
+      "policy_and_levies_gbp": 132384.246392187,
+      "network_gbp": 243736.55173949644,
+      "capital_cost_gbp": 9885.211460102308,
+      "bad_debt_gbp": 8420.149999998363,
+      "total_deductions_gbp": 394426.1595917841,
+      "net_margin_gbp": 159423.49739399325,
+      "unexplained_residual_gbp": -0.0006217044428922236,
+      "revenue_gbp": 1064394.3254878176,
+      "wholesale_cost_gbp": 510544.6665684245,
+      "volume_kwh": 8374986.363283529
     },
     "value_arm": {
-      "records": 349424,
-      "gross_margin_gbp": 505034.2229825474,
-      "policy_and_levies_gbp": 114698.39657551884,
-      "network_gbp": 216737.77084705982,
-      "capital_cost_gbp": 9002.024780163454,
-      "bad_debt_gbp": 6682.830000000599,
-      "total_deductions_gbp": 347121.0222027427,
-      "net_margin_gbp": 157913.20076099221,
-      "unexplained_residual_gbp": -1.881251228041947e-05,
-      "revenue_gbp": 954670.3988936598,
-      "wholesale_cost_gbp": 449636.17468620907,
-      "volume_kwh": 7620467.901522109
+      "records": 347026,
+      "gross_margin_gbp": 501341.3251138714,
+      "policy_and_levies_gbp": 113920.69278208929,
+      "network_gbp": 215230.92430299125,
+      "capital_cost_gbp": 8892.299576652696,
+      "bad_debt_gbp": 8597.919999998954,
+      "total_deductions_gbp": 346641.8366617322,
+      "net_margin_gbp": 154699.4886739951,
+      "unexplained_residual_gbp": 0.00022185585112310946,
+      "revenue_gbp": 948110.1927454985,
+      "wholesale_cost_gbp": 446768.86645068805,
+      "volume_kwh": 7565298.693565721
     },
     "net_delta_contribution_gbp": {
-      "gross_margin_gbp": -21740.77155075426,
-      "network_gbp": 15187.875710849563,
-      "policy_and_levies_gbp": 11077.074665707289,
-      "capital_cost_gbp": 360.649076481659,
-      "bad_debt_gbp": -216.42000000103144
+      "gross_margin_gbp": -52508.33249361039,
+      "network_gbp": 28505.627436505194,
+      "policy_and_levies_gbp": 18463.553610097704,
+      "capital_cost_gbp": 992.9118834496112,
+      "bad_debt_gbp": -177.7700000005916
     },
     "largest_contribution": "gross_margin_gbp",
-    "net_delta_gbp": 4668.4087259947555,
-    "net_delta_reconstructed_gbp": 4668.407902283219,
-    "reconstruction_error_gbp": -0.0008237115362135228,
+    "net_delta_gbp": -4724.00871999815,
+    "net_delta_reconstructed_gbp": -4724.009563558471,
+    "reconstruction_error_gbp": -0.0008435603213001741,
     "reconstruction_closes": true,
-    "unexplained_residual_delta_gbp": 0.0008237115107476711
+    "unexplained_residual_delta_gbp": 0.0008435602940153331
   },
   "churn_volume_attribution": {
     "what_this_is": "Whether the accounts that churned under ONE arm and not the other carry the gross-margin fall. Measured, so it can rule the candidate out.",
@@ -229,41 +229,52 @@
       "C2",
       "C7",
       "C8",
-      "PROS-2021-0100"
+      "PROS-2018-0039",
+      "PROS-2019-0003",
+      "PROS-2019-0023",
+      "PROS-2019-0050",
+      "PROS-2020-0013",
+      "PROS-2021-0006",
+      "PROS-2022-0009"
     ],
-    "control_only": [
-      "PROS-2021-0100"
-    ],
+    "control_only": [],
     "value_only": [
       "C1_2",
       "C2",
       "C7",
-      "C8"
+      "C8",
+      "PROS-2018-0039",
+      "PROS-2019-0003",
+      "PROS-2019-0023",
+      "PROS-2019-0050",
+      "PROS-2020-0013",
+      "PROS-2021-0006",
+      "PROS-2022-0009"
     ],
     "control_arm": {
       "differentially_churned": {
-        "gross_gbp": 30555.26849237209,
-        "volume_kwh": 429896.4364777368
+        "gross_gbp": 64995.13370496455,
+        "volume_kwh": 956792.1112231484
       },
       "everyone_else": {
-        "gross_gbp": 496219.72604094195,
-        "volume_kwh": 7624173.43196704
+        "gross_gbp": 488854.52390250756,
+        "volume_kwh": 7418194.252060274
       }
     },
     "value_arm": {
       "differentially_churned": {
-        "gross_gbp": 11565.877895561505,
-        "volume_kwh": 131689.03972651326
+        "gross_gbp": 22332.132847241734,
+        "volume_kwh": 378449.20139211614
       },
       "everyone_else": {
-        "gross_gbp": 493468.3450869826,
-        "volume_kwh": 7488778.861795433
+        "gross_gbp": 479009.19226662215,
+        "volume_kwh": 7186849.492173479
       }
     },
-    "gross_delta_gbp": -21740.771550769918,
-    "gross_delta_from_differentially_churned_gbp": -18989.390596810586,
-    "share_of_gross_delta": 0.8734460298460799,
-    "volume_delta_kwh": -433601.96692282986
+    "gross_delta_gbp": -52508.33249360829,
+    "gross_delta_from_differentially_churned_gbp": -42663.000857722815,
+    "share_of_gross_delta": 0.8124996325662422,
+    "volume_delta_kwh": -809687.6697178269
   },
   "decision_shape": {
     "priced": 25,
@@ -286,7 +297,7 @@
       "available": true,
       "arm": "control_arm",
       "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
-      "renewals_the_world_offered": 1251,
+      "renewals_the_world_offered": 1299,
       "reached_the_arm_with_an_arm_set": 0,
       "priced": 0,
       "declined": 0,
@@ -294,7 +305,7 @@
       "stages": [
         {
           "stage": "control_arm_no_writer",
-          "count": 1251,
+          "count": 1299,
           "share_of_renewals_offered": 1.0,
           "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
         },
@@ -351,11 +362,11 @@
       "available": true,
       "arm": "value_arm",
       "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
-      "renewals_the_world_offered": 1216,
-      "reached_the_arm_with_an_arm_set": 1216,
+      "renewals_the_world_offered": 1209,
+      "reached_the_arm_with_an_arm_set": 1209,
       "priced": 25,
       "declined": 0,
-      "priced_share_of_renewals_offered": 0.0206,
+      "priced_share_of_renewals_offered": 0.0207,
       "stages": [
         {
           "stage": "control_arm_no_writer",
@@ -372,19 +383,19 @@
         {
           "stage": "acquisition_term",
           "count": 398,
-          "share_of_renewals_offered": 0.3273,
+          "share_of_renewals_offered": 0.3292,
           "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
         },
         {
           "stage": "not_the_arms_commodity",
-          "count": 364,
-          "share_of_renewals_offered": 0.2993,
+          "count": 357,
+          "share_of_renewals_offered": 0.2953,
           "means": "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs are calibrated on the electricity book and the supplier has never fitted them to gas."
         },
         {
           "stage": "product_not_upliftable",
           "count": 429,
-          "share_of_renewals_offered": 0.3528,
+          "share_of_renewals_offered": 0.3548,
           "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
         },
         {
@@ -402,7 +413,7 @@
         {
           "stage": "priced",
           "count": 25,
-          "share_of_renewals_offered": 0.0206,
+          "share_of_renewals_offered": 0.0207,
           "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
         }
       ],
@@ -429,11 +440,11 @@
       "available": true,
       "arm": "level_arm",
       "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
-      "renewals_the_world_offered": 1233,
-      "reached_the_arm_with_an_arm_set": 1233,
+      "renewals_the_world_offered": 1280,
+      "reached_the_arm_with_an_arm_set": 1280,
       "priced": 34,
       "declined": 0,
-      "priced_share_of_renewals_offered": 0.0276,
+      "priced_share_of_renewals_offered": 0.0266,
       "stages": [
         {
           "stage": "control_arm_no_writer",
@@ -450,19 +461,19 @@
         {
           "stage": "acquisition_term",
           "count": 397,
-          "share_of_renewals_offered": 0.322,
+          "share_of_renewals_offered": 0.3102,
           "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
         },
         {
           "stage": "not_the_arms_commodity",
-          "count": 376,
-          "share_of_renewals_offered": 0.3049,
+          "count": 394,
+          "share_of_renewals_offered": 0.3078,
           "means": "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs are calibrated on the electricity book and the supplier has never fitted them to gas."
         },
         {
           "stage": "product_not_upliftable",
-          "count": 426,
-          "share_of_renewals_offered": 0.3455,
+          "count": 455,
+          "share_of_renewals_offered": 0.3555,
           "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
         },
         {
@@ -480,12 +491,12 @@
         {
           "stage": "priced",
           "count": 34,
-          "share_of_renewals_offered": 0.0276,
+          "share_of_renewals_offered": 0.0266,
           "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
         }
       ],
       "product_not_upliftable_by_tariff_type": {
-        "None": 426
+        "None": 455
       },
       "accounts_the_arm_priced": [
         "C1",
@@ -507,19 +518,19 @@
     "available": true,
     "per_arm": {
       "control_arm": {
-        "renewals_the_world_offered": 1251,
+        "renewals_the_world_offered": 1299,
         "priced": 0,
         "declined": 0,
         "accounts_priced": 0
       },
       "value_arm": {
-        "renewals_the_world_offered": 1216,
+        "renewals_the_world_offered": 1209,
         "priced": 25,
         "declined": 0,
         "accounts_priced": 10
       },
       "level_arm": {
-        "renewals_the_world_offered": 1233,
+        "renewals_the_world_offered": 1280,
         "priced": 34,
         "declined": 0,
         "accounts_priced": 9
@@ -538,7 +549,7 @@
   },
   "bound_attribution": {
     "available": true,
-    "headline": "6 of 25 priced renewals (24%) had their margin set by a bound rather than by anything about the customer -- 6 by the lawful price cap and 0 by the frontier of what the churn model has evidence for. Those decisions sit on 1 billing account(s) carrying 43% of the realised margin movement between the arms. On this run the arm's answers were decided by mixed.",
+    "headline": "6 of 25 priced renewals (24%) had their margin set by a bound rather than by anything about the customer -- 6 by the lawful price cap and 0 by the frontier of what the churn model has evidence for. Those decisions sit on 1 billing account(s) carrying 26% of the realised margin movement between the arms. On this run the arm's answers were decided by mixed.",
     "decided_by": "mixed",
     "headline_share_threshold": 0.5,
     "priced": 25,
@@ -558,10 +569,10 @@
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 1,
       "net_delta_gbp_on_those_accounts": 5211.274370999999,
-      "net_delta_gbp_elsewhere": -542.8656449999961,
+      "net_delta_gbp_elsewhere": -9935.283091000007,
       "absolute_movement_gbp_on_those_accounts": 5211.274370999999,
-      "absolute_movement_gbp_elsewhere": 6787.77429700003,
-      "share_of_absolute_movement_on_those_accounts": 0.4343
+      "absolute_movement_gbp_elsewhere": 15118.499963000015,
+      "share_of_absolute_movement_on_those_accounts": 0.2563
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
     "reading": "`decided_by` is a description of THIS run and never a target (R12). \"the customer\" means no priced answer was bound-decided; \"a bound\" means a bound decided at least half of the answers or at least half of the money; \"mixed\" is everything between, and it means the headline must not be attributed to either without naming which half. A positive delta under \"a bound\" is not a refutation of value-based pricing -- it is a statement that this run did not test it."
@@ -577,10 +588,10 @@
       "distinct_accounts": 397,
       "lawful_ceiling_passed": false,
       "priced_under_a_lawful_ceiling": 0,
-      "endpoint_bound": 18,
-      "endpoint_at_ceiling": 1,
+      "endpoint_bound": 22,
+      "endpoint_at_ceiling": 5,
       "endpoint_at_floor": 17,
-      "extrapolation_bound": 0,
+      "extrapolation_bound": 1,
       "what_endpoint_at_ceiling_means": "the top of the candidate grid under the churn model's own support bound, and NOT the Ofgem price cap: this call site passes no `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` is structurally False for every account here and its count is not a measurement of anything. A run that DOES price under the cap will report a far larger ceiling count on the same book and the same module, and that is not a contradiction."
     },
     "this_run": {
@@ -734,26 +745,55 @@
         "account": "C8",
         "segment": null,
         "realised_lifetime_margin_gbp": 696.9366489999998
-      }
-    ],
-    "only_in_control_arm": [
+      },
       {
-        "account": "PROS-2021-0100",
+        "account": "PROS-2018-0039",
         "segment": null,
-        "realised_lifetime_margin_gbp": 203.8988950000001
+        "realised_lifetime_margin_gbp": 911.1667320000047
+      },
+      {
+        "account": "PROS-2019-0003",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 312.9673810000017
+      },
+      {
+        "account": "PROS-2019-0023",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 757.2188899999942
+      },
+      {
+        "account": "PROS-2019-0050",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 830.7406370000023
+      },
+      {
+        "account": "PROS-2020-0013",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 100.97216099999997
+      },
+      {
+        "account": "PROS-2021-0006",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 31.35711400000008
+      },
+      {
+        "account": "PROS-2022-0009",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 282.16460599999374
       }
     ],
-    "only_in_value_arm_realised_gbp": 2496.8432470000007,
-    "only_in_control_arm_realised_gbp": 203.8988950000001,
-    "largest_single_difference_gbp": 887.9003260000005,
+    "only_in_control_arm": [],
+    "only_in_value_arm_realised_gbp": 5723.430767999997,
+    "only_in_control_arm_realised_gbp": 0.0,
+    "largest_single_difference_gbp": 911.1667320000047,
     "realised_coverage": {
       "only_in_value_arm": {
-        "accounts": 4,
-        "valued": 4
+        "accounts": 11,
+        "valued": 11
       },
       "only_in_control_arm": {
-        "accounts": 1,
-        "valued": 1
+        "accounts": 0,
+        "valued": 0
       }
     },
     "reading": "If `largest_single_difference_gbp` is a large share of `realised_delta.gross_margin_gbp`, the headline is a statement about ONE decision and n=1 is not a thesis -- read it as a case study and say so. The realised figures are whole-life and come from the arm's own run, so an account present in both rosters is not compared here at all: only the accounts the two arms treated DIFFERENTLY appear. A total of null means accounts differed but NONE could be valued -- that is an unavailable measurement, and it must never be read as zero concentration; check `realised_coverage`, and where `valued` is short of `accounts` the totals are a FLOOR. Only an empty roster side legitimately totals 0.0. R12: diagnostic, never a target."
@@ -762,11 +802,11 @@
     "available": true,
     "accounts_compared": 211,
     "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
-    "accounts_that_moved": 69,
-    "net_delta_gbp": 4668.408726000003,
-    "total_absolute_movement_gbp": 11999.04866800003,
+    "accounts_that_moved": 114,
+    "net_delta_gbp": -4724.008720000013,
+    "total_absolute_movement_gbp": 20329.774334000012,
     "top_n": 15,
-    "concentration_top_n_share_of_absolute_movement": 0.9902861208229895,
+    "concentration_top_n_share_of_absolute_movement": 0.9215725973242375,
     "biggest_movers": [
       {
         "account": "C9",
@@ -776,11 +816,39 @@
         "delta_gbp": 5211.274370999999
       },
       {
+        "account": "PROS-2018-0039",
+        "segment": null,
+        "control_gbp": 2640.480283000006,
+        "value_arm_gbp": 911.1667320000047,
+        "delta_gbp": -1729.313551000001
+      },
+      {
+        "account": "PROS-2019-0023",
+        "segment": null,
+        "control_gbp": 2207.889990999998,
+        "value_arm_gbp": 757.2188899999942,
+        "delta_gbp": -1450.671101000004
+      },
+      {
         "account": "C5",
         "segment": null,
         "control_gbp": -360.96398300000067,
         "value_arm_gbp": 1070.703022999999,
         "delta_gbp": 1431.6670059999997
+      },
+      {
+        "account": "PROS-2019-0050",
+        "segment": null,
+        "control_gbp": 2136.392427000003,
+        "value_arm_gbp": 830.7406370000023,
+        "delta_gbp": -1305.6517900000008
+      },
+      {
+        "account": "PROS-2019-0003",
+        "segment": null,
+        "control_gbp": 1455.905739000003,
+        "value_arm_gbp": 312.9673810000017,
+        "delta_gbp": -1142.9383580000012
       },
       {
         "account": "C2",
@@ -797,6 +865,13 @@
         "delta_gbp": -1062.1846580000022
       },
       {
+        "account": "PROS-2021-0006",
+        "segment": null,
+        "control_gbp": 818.8224879999996,
+        "value_arm_gbp": 31.35711400000008,
+        "delta_gbp": -787.4653739999994
+      },
+      {
         "account": "C1",
         "segment": null,
         "control_gbp": 1240.524156999997,
@@ -804,11 +879,18 @@
         "delta_gbp": -774.3706749999985
       },
       {
-        "account": "PROS-2021-0100",
+        "account": "PROS-2020-0013",
         "segment": null,
-        "control_gbp": 203.8988950000001,
-        "value_arm_gbp": 886.1016749999999,
-        "delta_gbp": 682.2027799999998
+        "control_gbp": 841.7914040000003,
+        "value_arm_gbp": 100.97216099999997,
+        "delta_gbp": -740.8192430000004
+      },
+      {
+        "account": "PROS-2021-0017",
+        "segment": null,
+        "control_gbp": 740.9363240000005,
+        "value_arm_gbp": 31.652718999999966,
+        "delta_gbp": -709.2836050000005
       },
       {
         "account": "C7",
@@ -818,60 +900,18 @@
         "delta_gbp": 612.4484590000031
       },
       {
-        "account": "PROS-2018-0003",
+        "account": "PROS-2018-0014",
         "segment": null,
-        "control_gbp": 868.2867000000005,
-        "value_arm_gbp": 565.8556960000028,
-        "delta_gbp": -302.43100399999764
+        "control_gbp": 1055.4948770000003,
+        "value_arm_gbp": 700.7242260000055,
+        "delta_gbp": -354.7706509999948
       },
       {
-        "account": "C1_2",
+        "account": "PROS-2021-0029",
         "segment": null,
-        "control_gbp": null,
-        "value_arm_gbp": 223.9619130000001,
-        "delta_gbp": 223.9619130000001
-      },
-      {
-        "account": "PROS-2020-0002",
-        "segment": null,
-        "control_gbp": 975.2642650000053,
-        "value_arm_gbp": 788.0064800000046,
-        "delta_gbp": -187.2577850000007
-      },
-      {
-        "account": "PROS-2020-0006",
-        "segment": null,
-        "control_gbp": 1030.810213999996,
-        "value_arm_gbp": 928.4217669999941,
-        "delta_gbp": -102.38844700000186
-      },
-      {
-        "account": "PROS-2019-0003",
-        "segment": null,
-        "control_gbp": 384.550864000001,
-        "value_arm_gbp": 312.9673810000017,
-        "delta_gbp": -71.58348299999932
-      },
-      {
-        "account": "C3",
-        "segment": null,
-        "control_gbp": 301.27989000000116,
-        "value_arm_gbp": 354.50989200000123,
-        "delta_gbp": 53.23000200000007
-      },
-      {
-        "account": "C4",
-        "segment": null,
-        "control_gbp": 307.3844429999994,
-        "value_arm_gbp": 358.0254449999996,
-        "delta_gbp": 50.641002000000185
-      },
-      {
-        "account": "PROS-2020-0009",
-        "segment": null,
-        "control_gbp": 1222.6193730000095,
-        "value_arm_gbp": 1182.4893500000105,
-        "delta_gbp": -40.13002299999903
+        "control_gbp": 321.3427429999981,
+        "value_arm_gbp": -24.441600000000093,
+        "delta_gbp": -345.7843429999982
       }
     ],
     "reading": "`concentration_top_n_share_of_absolute_movement` near 1.0 means a handful of accounts ARE the headline and it should be read as a case study, not a portfolio result. Spread thin, the portfolio claim stands. Note that `net_delta_gbp` is the NET-of-all-costs line and will not equal `realised_delta.gross_margin_gbp`, which is a different basis (R14) -- they are here to be compared in SHAPE, not summed. R12: diagnostic, never a target."

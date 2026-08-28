@@ -65,6 +65,13 @@ EXPECTED_CLAIM_IDS = frozenset({
     # Two claims rather than one on purpose: the recommenders can gain a recipient independently.
     "MISSION_switching_advice_has_no_recipient",
     "MISSION_decarb_advice_has_no_recipient",
+    # 2026-08-28, atom A47, registered the day the figure landed. The page now claims the
+    # household side of MONEY is instrumented; the probe asks for a READER outside the
+    # defining module, because a module wired to nothing is the C2 defect in miniature.
+    "MISSION_the_household_side_of_money_is_instrumented",
+    # The same predicate on the RENDERED front door -- a claim-status defect there is the one a
+    # visitor actually meets (R11).
+    "SITE_the_front_door_says_the_household_saving_is_measured",
 })
 
 PAGE_TEXT = """# A PAGE

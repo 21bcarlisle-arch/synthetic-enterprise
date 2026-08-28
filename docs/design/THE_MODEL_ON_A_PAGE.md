@@ -50,9 +50,17 @@ rather than merely unreachable.
 
 | | household side (value CREATED) | our side (value SHARED) |
 |---|---|---|
-| **money** | not measured — nothing computes what a household saved by being with us | **EARN** — instrumented; the only live leg of the score |
+| **money** | **instrumented 2026-08-28** — `company/analytics/household_value_share.py` computes what a household kept against the published SVT at its own metered volumes, per customer-year; read by the price ladder, read by no decision surface (`A47` at L2) | **EARN** — instrumented; the only leg of the *scored* objective |
 | **time** | **does not exist** | **does not exist** |
 | **carbon** | **ABATE** — designed, not instrumented (`E5`) | £/tCO₂e — designed, downstream of the cell to its left |
+
+*The money row moved on the day the mission landed and the distinction it forced is the useful part:
+what is instrumented is the household's **SHARE**, not the value **CREATED**. Creation is a comparison
+of costs — a supplier whose cost stack equals the incumbent's and prices below it has transferred
+margin, not made any — and the counterfactual supplier's cost is not observable to us. So the split of
+a surplus is measured and the surplus's size is not (`A48`). Nothing optimises the household figure:
+half of a two-sided objective is not the objective until the director decides it is, which is R13, and
+`tests/company/test_household_share_is_not_yet_a_target.py` holds that and names its own release.*
 
 *Time, observed-with-evidence 2026-08-28:* no time-, hours-, effort- or hassle-as-value symbol exists
 anywhere in `company/`, `simulation/`, `saas/` or `tools/`, and no design document names time as a

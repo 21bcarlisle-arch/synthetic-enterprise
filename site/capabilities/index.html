@@ -490,6 +490,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + "× the estimate itself"
               : "")
           + "). " + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
+          + (eb.staleness_caveat
+              ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
+                + prose(eb.staleness_caveat) + "</span>"
+              : "")
         : "No spread has been measured for this reading yet, so the figure above is a point "
           + "estimate with no error bar. " + prose(eb.reason || "");
 

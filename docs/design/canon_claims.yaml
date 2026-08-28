@@ -193,3 +193,39 @@ claims:
       Registered as a SECOND claim rather than folded into the one above: the two recommenders
       could gain a recipient independently, and a single probe going green on one of them would
       hide the other -- the population-floor lesson applied to a two-member population.
+
+  # ---------------------------------------------------------------- A47: the household side
+  # Registered the same day the figure landed, which is the point of the register: the canon
+  # page now says money is instrumented on the household side, and that claim must be re-tested
+  # by something other than a person re-reading the page.
+  - id: MISSION_the_household_side_of_money_is_instrumented
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "computes what a household kept against the published SVT at its own metered volumes"
+    claim: "a module computes the household's money share AND something outside it reads the figure"
+    expects: present
+    probe:
+      kind: token_live
+      token: build_household_value_share
+      roots: [tools, company]
+      exclude: [company/analytics/household_value_share.py]   # the definer; a figure needs a READER
+    note: >-
+      The probe asks for the CALLER, not the file, for the reason C2 was about: a module can exist
+      and be wired to nothing. It deliberately does NOT accept `simulation/` as a reader -- a world
+      module reading this figure would be the epistemic defect, not the evidence.
+
+  - id: SITE_the_front_door_says_the_household_saving_is_measured
+    page: site/index.html
+    anchor: "at that household's own metered volumes"
+    claim: "the published front door tells a reader the household's saving is measured, and it is"
+    expects: present
+    probe:
+      kind: token_live
+      token: build_household_value_share
+      roots: [tools, company]
+      exclude: [company/analytics/household_value_share.py]
+    note: >-
+      The same predicate as MISSION_the_household_side_of_money_is_instrumented, pointed at the
+      RENDERED surface rather than the design page. Separate on purpose and for the reason SITE13
+      and the two schematic claims exist: correcting a canon file does not correct what a reader
+      sees, and R11 says the rendered value is what "done" means. If the figure is ever removed,
+      this reports OVER_CLAIM against the front door specifically -- the sentence a visitor reads.
