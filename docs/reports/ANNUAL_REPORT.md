@@ -7,8 +7,8 @@ This report covers 2016–2025 (10 calendar years,
 the last partial). The business survived the full window.
 
 - Starting treasury: £250,000.00
-- Final treasury: £363,282.62
-  (£113,282.62 net change)
+- Final treasury: £403,244.79
+  (£153,244.79 net change)
 - Solvency signal (final year): £2,180/customer (185 customers, OK; Ofgem floor £130/customer)
 - Customer bills (all-in): £1,317,374.49
   VAT remitted to HMRC: (£66,688.63) | Revenue (ex-VAT): £1,250,685.86
@@ -3776,7 +3776,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (354 active customers) under 12-month forward scenarios.
-Generated: 2026-08-28T01:29:21Z
+Generated: 2026-08-28T06:46:47Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T01:56:53.208118+00:00",
+  "generated_at": "2026-08-28T06:59:33.493082+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -69,7 +69,7 @@
   },
   "critical_path_by_epoch": {
     "3": {
-      "open_atoms": 39,
+      "open_atoms": 43,
       "critical_chain": [
         "SITE4_ia_register_and_nav",
         "SITE6_knowledge_in_nav_glossary_dissolved",
@@ -80,7 +80,7 @@
       "critical_chain_length": 5
     },
     "4": {
-      "open_atoms": 8,
+      "open_atoms": 9,
       "critical_chain": [
         "A4_sim_approver",
         "A5_tournament_fitness_mortality",
@@ -97,7 +97,7 @@
       "critical_chain_length": 2
     },
     "2": {
-      "open_atoms": 22,
+      "open_atoms": 24,
       "critical_chain": [
         "W2_payment_channel_dd_consistency_invariant",
         "W2_non_dd_miss_vocabulary"
@@ -118,26 +118,26 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 74,
+    "total_open_atoms": 81,
     "code_free_discover_frame_atoms": 25,
-    "atoms_with_real_file_scope": 49,
-    "max_concurrent_width_overall": 55,
+    "atoms_with_real_file_scope": 56,
+    "max_concurrent_width_overall": 59,
     "per_epoch": {
       "3": {
-        "open_atoms": 39,
-        "max_concurrent_width": 29
+        "open_atoms": 43,
+        "max_concurrent_width": 30
       },
       "4": {
-        "open_atoms": 8,
-        "max_concurrent_width": 8
+        "open_atoms": 9,
+        "max_concurrent_width": 9
       },
       "5": {
         "open_atoms": 4,
         "max_concurrent_width": 4
       },
       "2": {
-        "open_atoms": 22,
-        "max_concurrent_width": 16
+        "open_atoms": 24,
+        "max_concurrent_width": 18
       },
       "None": {
         "open_atoms": 1,
@@ -148,11 +148,11 @@
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 85,
-    "substantive_staged_doc_touches": 740,
-    "routine_daemon_markers_excluded": 3813,
+    "from_rich_touches": 70,
+    "substantive_staged_doc_touches": 779,
+    "routine_daemon_markers_excluded": 3789,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 106.56,
+    "estimated_director_hours_per_day": 111.31,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },

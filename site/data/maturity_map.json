@@ -350,7 +350,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1859,
+      "stall_consecutive_unchanged": 1973,
       "forward_attachments": []
     },
     {
@@ -499,15 +499,15 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     },
     {
@@ -665,15 +665,15 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     },
     {
@@ -881,7 +881,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1859,
+      "stall_consecutive_unchanged": 1973,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -930,7 +930,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -979,7 +979,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1047,7 +1047,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1069,7 +1069,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1115,7 +1115,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1159,7 +1159,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 182,
+      "stall_consecutive_unchanged": 200,
       "forward_attachments": []
     },
     {
@@ -1181,7 +1181,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1223,7 +1223,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1264,7 +1264,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1320,7 +1320,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1342,7 +1342,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1477,7 +1477,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6391,
+      "stall_consecutive_unchanged": 6653,
       "forward_attachments": []
     },
     {
@@ -1543,7 +1543,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1565,7 +1565,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1587,7 +1587,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 509,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1609,7 +1609,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
       "forward_attachments": []
     },
     {
@@ -1653,7 +1653,170 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 508,
+      "stall_consecutive_unchanged": 525,
+      "forward_attachments": []
+    },
+    {
+      "id": "H45_the_queue_is_chained_to_the_map",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H41_the_map_ratchet_has_no_ongoing_drain",
+        "A45_the_canon_is_a_standing_subject"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
+      "forward_attachments": []
+    },
+    {
+      "id": "A45_the_canon_is_a_standing_subject",
+      "name": "",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H45_the_queue_is_chained_to_the_map"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB4_engagement_separated_from_elasticity",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B10_competitor_switching_response",
+        "B8_discovered_price_sensitivity_holdout",
+        "PB5_pounds_or_percent_resolved"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB5_pounds_or_percent_resolved",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "PB4_engagement_separated_from_elasticity",
+        "B10_competitor_switching_response"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
+      "forward_attachments": []
+    },
+    {
+      "id": "A46_book_depth_is_a_curriculum_question",
+      "name": "",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B10_competitor_switching_response"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "C29_decisions_stop_being_lookup_tables",
+      "name": "",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "B10_competitor_switching_response",
+        "PB4_engagement_separated_from_elasticity",
+        "PB5_pounds_or_percent_resolved"
+      ],
+      "couples_with": [
+        "B8_discovered_price_sensitivity_holdout"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16,
+      "forward_attachments": []
+    },
+    {
+      "id": "SITE13_the_baseline_comparison_carries_its_bound",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B10_competitor_switching_response",
+        "A45_the_canon_is_a_standing_subject"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6745,7 +6908,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 298,
+  "total_atoms": 305,
   "epoch2_movements": [
     {
       "id": "M1",

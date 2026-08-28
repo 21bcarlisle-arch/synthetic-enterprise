@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T02:01:14.317183Z",
+  "generated_at": "2026-08-28T07:03:58.114241Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -9,7 +9,7 @@
     "docs/observability/value_cycle_ab_s1_noise_floor.json"
   ],
   "available": true,
-  "run_generated_at": "2026-08-27T21:56:34Z",
+  "run_generated_at": "2026-08-28T05:48:11Z",
   "book": {
     "served_segments": [
       "resi",
@@ -51,11 +51,21 @@
         "name": "Flat at the same level",
         "role": "the control that splits the answer",
         "what": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
-        "net_gbp": null,
-        "advantage_gbp": null,
-        "absent_reason": "Not recoverable on this clock. The run's gross-to-net bridge walks the control and per-customer arms only, so the level arm's realised bad debt was never summed. It is left blank rather than filled from the superseded figure."
+        "net_gbp": 158484.576559,
+        "advantage_gbp": 5239.784524000017,
+        "absent_reason": null
       }
     ],
+    "split": {
+      "available": true,
+      "clock": "settled-realised",
+      "selection_gbp": -571.3757980000228,
+      "level_share_of_advantage": 1.1223919822653556,
+      "share_undefined_reason": null,
+      "level_gbp_per_mwh": 44.5,
+      "why_this_clock": "The provisioned clock's bad-debt line is a calibrated company assumption, and this artefact scores nothing the company believed; the realised clock is also the one the site publishes. It is the LESS flattering choice -- the value arm's advantage falls from GBP 7,366.22 to GBP 4,668.41 and bad debt turns from a GBP 2,481.39 saving into a GBP 216.42 cost -- and it is taken for the two reasons above and not for its size (R12).",
+      "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
+    },
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": true,
@@ -99,9 +109,10 @@
     ],
     "selection_gbp": -174.56798100000015,
     "level_share_of_advantage": 1.0236984513058485,
+    "share_undefined_reason": null,
     "level_gbp_per_mwh": 44.5,
     "control_gbp_per_mwh": 2.0,
-    "superseded_note": "This split is on the clock the run superseded inside itself. Restating it on the realised clock drops the per-customer arm's advantage from \u00a37,366 to the realised figure above, so the level share does not survive the restatement unchanged -- and the level arm's realised net is not recoverable from this run, so the restated share cannot be computed from it either. It is published as it was measured, labelled, rather than quietly re-based."
+    "superseded_note": "This is the clock the run superseded inside itself: the company's flat-rate bad-debt assumption, frozen at the end of the settlement loop, before the arrears model wrote back what customers actually failed to pay. It is shown because deleting it would leave a reader unable to tell how much of the headline moved when the clock was corrected -- and because it is the more flattering of the two, which is the reason to publish it beside the other rather than instead of it."
   },
   "error_bar": {
     "available": true,
@@ -115,6 +126,8 @@
     "sem_gbp": 2541.346555866812,
     "distinguishable_from_zero": false,
     "spread_to_point_estimate_ratio": 25.21505564300187,
+    "clock": null,
+    "clock_caveat": "This noise floor carries no clock label of its own and its runs predate the 2026-08-28 clock repair, so it is paired with the superseded panel it was measured beside. Read it as the size of this instrument's seed sensitivity, not as an error bar on the restated figure -- re-running it on the corrected clock is owed work.",
     "elasticity_draws_min": 1409,
     "reading": "The point estimate sits inside that band and so does zero, so this instrument cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees."
   },
@@ -145,5 +158,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned more -- and running it through one flat margin at the same LEVEL earned as much or more again, so on this evidence the advantage is the price level and not the per-customer choosing."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned more than flat rules -- but running it through ONE flat margin at the same price LEVEL earned \u00a3571 more still. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for 112% of the per-customer arm's advantage."
 }
