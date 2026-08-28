@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T12:00:43.250865Z",
+  "generated_at": "2026-08-28T12:42:36.132235Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -9,7 +9,7 @@
     "docs/observability/value_cycle_ab_s1_noise_floor.json"
   ],
   "available": true,
-  "run_generated_at": "2026-08-28T10:47:24Z",
+  "run_generated_at": "2026-08-28T12:37:02Z",
   "book": {
     "served_segments": [
       "resi",
@@ -128,7 +128,7 @@
     "spread_to_point_estimate_ratio": 0.8426700963415223,
     "clock": null,
     "clock_caveat": "This noise floor carries no clock label of its own, so it is paired with the panel it was measured beside rather than with the restated figure.",
-    "staleness_caveat": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-08-27T23:32:17Z and the point estimate on the run of 2026-08-28T10:47:24Z. Anything that changed the world between those two runs is inside the point estimate and outside the spread -- and something did, on 2026-08-28: the market gained the ability to DEFEND against a company that undercuts it. A spread measured where nothing could react is not a confidence interval on a figure measured where it can. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the current world is owed work.",
+    "staleness_caveat": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-08-27T23:32:17Z and the point estimate on the run of 2026-08-28T12:37:02Z. Anything that changed the world between those two runs is inside the point estimate and outside the spread -- and something did, on 2026-08-28: the market gained the ability to DEFEND against a company that undercuts it. A spread measured where nothing could react is not a confidence interval on a figure measured where it can. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the current world is owed work.",
     "elasticity_draws_min": 1409,
     "point_estimate_inside_the_measured_band": false,
     "reading": "The point estimate now sits OUTSIDE the band this spread was measured over, so the spread is not a bound on it and nothing here resolves the selection effect either way. An estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it -- which is the direction the reading would drift if this sentence were fixed rather than derived."
@@ -180,8 +180,8 @@
     "decided_by_a_bound": 6,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [
-      0.264,
-      0.813
+      0.261,
+      0.719
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },

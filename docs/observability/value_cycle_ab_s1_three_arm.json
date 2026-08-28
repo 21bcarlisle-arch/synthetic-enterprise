@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T10:47:24Z",
+  "generated_at": "2026-08-28T12:37:02Z",
   "report_end": null,
   "clock_definitions": {
     "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
@@ -569,9 +569,9 @@
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 1,
       "net_delta_gbp_on_those_accounts": 5211.274370999999,
-      "net_delta_gbp_elsewhere": -9935.283091000007,
+      "net_delta_gbp_elsewhere": -9935.283091000008,
       "absolute_movement_gbp_on_those_accounts": 5211.274370999999,
-      "absolute_movement_gbp_elsewhere": 15118.499963000015,
+      "absolute_movement_gbp_elsewhere": 15118.499963000013,
       "share_of_absolute_movement_on_those_accounts": 0.2563
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
@@ -588,10 +588,10 @@
       "distinct_accounts": 397,
       "lawful_ceiling_passed": false,
       "priced_under_a_lawful_ceiling": 0,
-      "endpoint_bound": 22,
-      "endpoint_at_ceiling": 5,
+      "endpoint_bound": 18,
+      "endpoint_at_ceiling": 1,
       "endpoint_at_floor": 17,
-      "extrapolation_bound": 1,
+      "extrapolation_bound": 0,
       "what_endpoint_at_ceiling_means": "the top of the candidate grid under the churn model's own support bound, and NOT the Ofgem price cap: this call site passes no `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` is structurally False for every account here and its count is not a measurement of anything. A run that DOES price under the cap will report a far larger ceiling count on the same book and the same module, and that is not a contradiction."
     },
     "this_run": {
@@ -720,6 +720,85 @@
       }
     ],
     "reading": "`discrimination_auc` at 0.5 means the belief carries NO information about who stays, and any advantage the arm shows is then a property of its calibration error rather than of inference -- which is the thesis failing while the P&L improves. Above 0.5 with a large `calibration_error` means the arm ranks customers correctly and misjudges the level, which is a different and more repairable finding. `auc_population` is published because this statistic is noise when one side is small. READ `scored_share_of_priced` FIRST: these statistics describe only the decisions that could be matched to an outcome, and on the first live run that was 28 of 58. R12: diagnostic, never a target."
+  },
+  "method_skill": {
+    "available": true,
+    "reason": null,
+    "concordance": 0.6136363636363636,
+    "null_constant_signal_concordance": 0.5,
+    "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
+    "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
+    "basis": "settled clock both sides; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, falling back to the pre-2019 SVT series for electricity, at this account's own metered volumes (R14)",
+    "decisions_scored": 12,
+    "accounts": 5,
+    "decisions_the_outcome_could_not_reach": 13,
+    "comparable_pairs": 66,
+    "pairs_tied_on_outcome": 0,
+    "settled_rows_outside_every_priced_term": 339747,
+    "scored_sample": [
+      {
+        "account": "C5",
+        "term_start": "2016-12-31",
+        "chosen_margin_gbp_per_mwh": 41.75,
+        "joint_value_ratio": 0.09475347561031323
+      },
+      {
+        "account": "C7",
+        "term_start": "2016-12-31",
+        "chosen_margin_gbp_per_mwh": 40.75,
+        "joint_value_ratio": 0.1465856764548878
+      },
+      {
+        "account": "C8",
+        "term_start": "2017-04-01",
+        "chosen_margin_gbp_per_mwh": 44.5,
+        "joint_value_ratio": 0.005692460895337185
+      },
+      {
+        "account": "C9",
+        "term_start": "2017-07-01",
+        "chosen_margin_gbp_per_mwh": 38.25,
+        "joint_value_ratio": 0.2038045788935577
+      },
+      {
+        "account": "C9",
+        "term_start": "2018-07-01",
+        "chosen_margin_gbp_per_mwh": 84.75,
+        "joint_value_ratio": 0.17923780764467157
+      },
+      {
+        "account": "C1_2",
+        "term_start": "2018-12-31",
+        "chosen_margin_gbp_per_mwh": 42.5,
+        "joint_value_ratio": 0.06036817955902052
+      },
+      {
+        "account": "C9",
+        "term_start": "2019-07-01",
+        "chosen_margin_gbp_per_mwh": 60.0,
+        "joint_value_ratio": 0.29496782156371026
+      },
+      {
+        "account": "C9",
+        "term_start": "2020-06-30",
+        "chosen_margin_gbp_per_mwh": 60.0,
+        "joint_value_ratio": 0.3036875372605163
+      },
+      {
+        "account": "C9",
+        "term_start": "2021-06-30",
+        "chosen_margin_gbp_per_mwh": 20.0,
+        "joint_value_ratio": 0.14131006373630078
+      },
+      {
+        "account": "C9",
+        "term_start": "2022-06-30",
+        "chosen_margin_gbp_per_mwh": 12.0,
+        "joint_value_ratio": 0.1724391740796709
+      }
+    ],
+    "bound": "READ THIS BEFORE THE NUMBER. A rank statistic over this few decisions, clustered on this few accounts, has a wide confidence interval and every account is potentially influential. This is the same resolution wall that made the 2026-08-28 chase-on/chase-off comparison unreadable, arriving on a different question. Two things make it less bad here: the outcome is continuous, so pounds have no 1/17 quantum and a small effect is small rather than invisible; and every priced decision with settled pounds behind it contributes, not only the ones the world rolled an event for. It is still a handful of accounts, and `A46` (book depth) is upstream of this being worth much -- which remains the director's decision.",
+    "reading": "0.5 means the arm's own price carries NO information about whether value was jointly created -- the method has no skill, whatever the book did. Above 0.5 means the decisions it priced highest are the ones where household and company came out ahead together. BELOW 0.5 is the director's own case and the one worth being able to see: the arm ranks confidently and uses the ranking to EXTRACT, so its most expensive decisions destroy the relationship. Read it beside `belief_vs_outcome.discrimination_auc` -- a high churn AUC with a flat curve here is a maximiser working correctly on a one-sided objective. R12: a DIAGNOSTIC, never a target; nothing optimises this figure."
   },
   "churn_roster_diff": {
     "available": true,
@@ -922,13 +1001,13 @@
     "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period 11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
     "accounts_scored": 397,
     "regulated_allowance_median_gbp_per_mwh": [
-      2.46,
-      7.58
+      2.78,
+      7.66
     ],
     "control_gbp_per_mwh": 2.0,
     "control_as_share_of_allowance": [
-      0.264,
-      0.813
+      0.261,
+      0.719
     ],
     "what_it_means": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },

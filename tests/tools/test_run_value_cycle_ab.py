@@ -71,6 +71,7 @@ from tools.run_value_cycle_ab import (
     churn_roster_diff,
     churn_volume_attribution,
     clock_audit,
+    concordance_null_spread,
     gross_to_net_bridge,
     margin_movers,
     method_skill,
@@ -1532,3 +1533,97 @@ def test_the_reconciliation_does_not_claim_to_settle_the_customer_level_question
 
     assert "open either way" in out["what_this_does_NOT_reconcile"]
     assert "bound_attribution.what_would_change_this" in out["what_this_does_NOT_reconcile"]
+
+
+# ── A48: how wide is the null? ────────────────────────────────────────────────────────────────
+#
+# The point null (a constant signal scores exactly 0.5) proves the estimator is not broken. It
+# says NOTHING about whether an observed value is distinguishable from a random signal at the
+# sample size actually available. The first live reading was 0.6136 on 12 decisions -- a value a
+# random signal reaches about one time in six.
+
+def test_the_first_live_reading_is_inside_its_own_null():
+    """THE READING THAT MOTIVATED THIS. 0.6136 on 12 untied decisions sits inside the interval a
+    random signal produces, so the run does not distinguish the method from chance either way.
+
+    Fires on: publishing a spread that would call this result significant.
+    """
+    out = concordance_null_spread(12, 0.6136363636363636, 0, 0)
+    assert out["available"] is True
+    assert out["observed_inside_the_null_interval"] is True
+    assert out["p_two_sided"] == pytest.approx(0.3037, abs=1e-3)
+    assert "does not distinguish the method from chance" in out["reading"]
+
+
+def test_the_analytic_null_matches_a_permutation_of_the_same_pairs():
+    """INDEPENDENCE (R15). The published spread comes from Kendall's closed form; this checks it
+    against a completely different method — shuffling the signal against the outcome and counting
+    concordant pairs — so the two legs cannot be one reading twice.
+
+    Fires on: a wrong variance formula, a wrong n, or the tau→concordance rescale being dropped
+    (any of which moves the analytic sd away from the permuted one).
+    """
+    import itertools
+    import math
+    import random
+
+    n = 12
+    random.seed(20260828)
+    base = list(range(n))
+    pairs = list(itertools.combinations(range(n), 2))
+    draws = []
+    for _ in range(4000):
+        sig = base[:]
+        random.shuffle(sig)
+        c = sum(1 for i, j in pairs if (sig[i] - sig[j]) * (base[i] - base[j]) > 0)
+        draws.append(c / len(pairs))
+    mean = sum(draws) / len(draws)
+    sd = math.sqrt(sum((x - mean) ** 2 for x in draws) / len(draws))
+
+    analytic = concordance_null_spread(n, 0.6, 0, 0)
+    assert mean == pytest.approx(0.5, abs=0.01), "the permuted null is not centred on 0.5"
+    assert analytic["null_sd"] == pytest.approx(sd, abs=0.01), (
+        "the analytic null sd {:.4f} disagrees with the permuted {:.4f}".format(
+            analytic["null_sd"], sd))
+
+
+def test_ties_refuse_rather_than_switching_estimator():
+    """FAIL-SILENT killer. The untied Kendall variance OVERSTATES the spread when ties are
+    present — conservative, and wrong in a direction no reader could see.
+
+    Fires on: computing a spread anyway when either side carries ties.
+    """
+    out = concordance_null_spread(12, 0.61, 3, 0)
+    assert out["available"] is False
+    assert "ties present (3 on the signal, 0 on the outcome)" in out["reason"]
+    assert "null_sd" not in out
+    # And the untied case still works, so this is a refusal and not a disabled control.
+    assert concordance_null_spread(12, 0.61, 0, 0)["available"] is True
+
+
+def test_too_few_decisions_refuse_rather_than_returning_a_wide_interval():
+    """Fires on: returning an interval for two points, which has no sampling distribution and
+    would render as a very tolerant result rather than as no result."""
+    for n in (0, 1, 2):
+        out = concordance_null_spread(n, 0.9, 0, 0)
+        assert out["available"] is False
+        assert "no sampling distribution" in out["reason"]
+
+
+def test_the_spread_can_also_say_DISTINGUISHABLE():
+    """The control must be able to fire in BOTH directions, or it is a machine for calling every
+    result null. At n=40 a concordance of 0.75 is far outside the null.
+
+    Fires on: an interval so wide nothing escapes it.
+    """
+    out = concordance_null_spread(40, 0.75, 0, 0)
+    assert out["available"] is True
+    assert out["observed_inside_the_null_interval"] is False
+    assert out["z"] > 3
+    assert "OUTSIDE the interval" in out["reading"]
+
+
+def test_the_null_narrows_as_decisions_accumulate():
+    """The bound is a statement about sample size, so it must respond to sample size."""
+    sds = [concordance_null_spread(n, 0.6, 0, 0)["null_sd"] for n in (12, 40, 200)]
+    assert sds[0] > sds[1] > sds[2]
