@@ -338,6 +338,27 @@ def atoms_drawn_since(since: datetime) -> list[str]:
                   if isinstance(row, dict) and float(row.get("last_drawn_at") or 0.0) >= cutoff)
 
 
+def focus_drawn_since(since: datetime) -> list[str]:
+    """Everything the draw took in the stretch, ACROSS BOTH KEY SPACES.
+
+    `atoms_drawn_since` reads `.atom_stall_tracker.json`, which is keyed by maturity-map atom id.
+    A Lane 0 focus id is by construction NOT an atom -- that is `delivery_lane`'s founding premise
+    -- so it could never appear there, and `focus_was_drawn`, which calls itself THE CONTROL ON
+    THIS WHOLE MECHANISM, was asking whether a slug was in a dictionary that cannot hold slugs.
+
+    Measured over 11 recorded orientations carrying 2-4 Lane 0 ids each: `drawn` contained a Lane
+    0 slug ZERO times, and every `steered: True` was the same two perennial atoms the weighted
+    draw was picking anyway. R15's fourth shape (a PASS branch that cannot be reached) made WORSE
+    by a mixed subject, because the disjunction masked it as a pass instead of showing a constant
+    False. `WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27`
+    names it and its fix 2 is this: give the slugs a channel, from the ledger of what the lane has
+    actually handed out.
+    """
+    from background import delivery_lane
+    return sorted(set(atoms_drawn_since(since))
+                  | set(delivery_lane.drawn_since(since.timestamp())))
+
+
 def build_brief(now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     since = stretch_since(now)
@@ -363,7 +384,7 @@ def build_brief(now: datetime | None = None) -> dict:
         "previous_focus": list(prev_focus),
         "atoms_drawn": atoms_drawn_since(since),
         "previous_focus_drawn": direction_mod.focus_was_drawn(
-            prev_focus, atoms_drawn_since(since)),
+            prev_focus, focus_drawn_since(since), atom_ids=set(levels)),
         "live_direction_age_hours": round(live.age_hours(now), 1) if live else None,
     }
 

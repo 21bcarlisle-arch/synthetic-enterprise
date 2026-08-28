@@ -110,6 +110,74 @@ def test_focus_that_was_never_DRAWN_is_reported_rather_than_assumed():
     assert hit["steered"] is True and hit["drawn"] == ["A"]
 
 
+def test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all(tmp_path, monkeypatch):
+    """THE NULL CONTROL THAT DID NOT EXIST, and it reds against the shipped code. Both existing
+    cases above use ids that CAN be in `drawn_ids`' key space, so they prove the set arithmetic
+    and never the subject.
+
+    `atoms_drawn_since` reads the atom stall tracker, keyed by maturity-map atom id; a Lane 0
+    focus id is by construction not an atom. So for the half of focus the delivery lane exists to
+    serve, `steered` could only ever be False -- and it read True anyway, every cycle, carried by
+    the two perennial atoms beside it.
+
+    MUTATION (must fire): make `focus_drawn_since` return `atoms_drawn_since` alone, or go back
+    to `atoms_drawn_since(since)` at the `build_brief` call site -- the second is pinned below,
+    because a channel that exists and is not the one the control reads is the same blindness.
+    """
+    import inspect
+
+    from background import delivery_lane
+    from background import seat_work_in_hand as claims_mod
+
+    claims = tmp_path / "claims.json"
+    since = datetime(2026, 8, 28, 17, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(claims_mod, "guard_live_ledger_write", lambda *a, **k: None)
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+
+    delivery_lane.record_draw("a-lane-0-slug", (since + timedelta(minutes=28)).timestamp())
+
+    drawn = seat.focus_drawn_since(since)
+
+    assert "a-lane-0-slug" in drawn, (
+        "a Lane 0 slug still cannot appear in the drawn set, so the steer-effectiveness control "
+        "reports on the atoms in focus and is structurally blind to everything else in it"
+    )
+    assert delivery_lane.drawn_since((since + timedelta(hours=1)).timestamp()) == [], (
+        "the channel answers regardless of the window, which would make it a constant PASS "
+        "instead of a measurement"
+    )
+    call = " ".join(inspect.getsource(seat.build_brief).split())
+    assert "focus_was_drawn( prev_focus, focus_drawn_since(since)" in call, (
+        "the union exists but the steer-effectiveness verdict is still computed from the atom "
+        "tracker alone"
+    )
+
+
+def test_the_verdict_is_SPLIT_so_one_dead_channel_cannot_hide_behind_the_other():
+    """A disjunction over a mixed subject reports the OR, and the OR is exactly what hid this for
+    11 cycles. With one atom drawn and three Lane 0 slugs not, the top-line `steered` is True --
+    correctly, something was steered -- and the per-class row has to say the other half was not.
+
+    MUTATION (must fire): compute `by_class` from `drawn` alone, or fold it back into `steered`.
+    """
+    verdict = d.focus_was_drawn(
+        ("EP1_clv_three_horizon", "slug-one", "slug-two"),
+        ["EP1_clv_three_horizon"],
+        atom_ids={"EP1_clv_three_horizon", "B10_competitor_switching_response"},
+    )
+
+    assert verdict["steered"] is True
+    assert verdict["by_class"]["atom"]["steered"] is True
+    assert verdict["by_class"]["lane_0"] == {
+        "focus": ["slug-one", "slug-two"], "drawn": [], "steered": False}, (
+        "the Lane 0 class reads as steered because an ATOM was drawn -- the mask that made this "
+        "control report PASS every cycle while its Lane 0 half was unreachable"
+    )
+    assert "by_class" not in d.focus_was_drawn(("A",), ["A"]), (
+        "the split is reported without the map's id set, so the classification is a guess"
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Fail-soft: advice that goes missing must not touch the draw                  #
 # --------------------------------------------------------------------------- #

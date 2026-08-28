@@ -81,6 +81,39 @@ COMMIT actually touched, read out of git. The claimant chooses when to call it a
 -- it cannot name a path (the commit names them), it cannot bind a commit older than its own
 claim, and it cannot bind at all without a commit that passed the gate to exist. `claimed_at` is
 left alone on purpose, so the deadline is restarted by the commit clock rather than by the call.
+
+A RE-ISSUED CLAIM COULD NEVER BE CREDITED WITH THE WORK THAT ALREADY SATISFIED IT (fixed
+2026-08-28)
+---------------------------------------------------------------------------------------------
+`record_landing` compared the commit against `claimed_at`, and `claimed_at` is rewritten by every
+draw. Nothing in this lane marks an item complete -- that is the design above, done is derived --
+so a released item is re-offered from the same live focus list until the seat next re-orients,
+THREE HOURS later. The moment it is re-drawn, the commit that satisfied it is older than the new
+`claimed_at` and is unbindable by anyone, forever.
+
+Measured, twice in one stretch. `wire-the-sourced-acquisition-and-retention-costs` was satisfied
+by `0850eadcd` at 19:46:18 UTC on 2026-08-28, control included, and re-drawn 8m39s later; the
+household column the same afternoon. `WORKER_FINDING_..._STEER_EFFECTIVENESS_..._2026-08-27`
+records the same trap sprung on `the-world-answered-a-28x-price-rise-with-two-churns`, whose
+commit subject IS its claim slug and which still had to be `--release`d because `--landed` refused
+a commit 8,729s older than the re-draw. The claim then reads `paths: []`, the sweep says NO PATHS
+WERE EVER BOUND, and the next tick obeying the brief literally re-implements finished work on top
+of itself. The progress reading was zero because the evidence was out of reach of the check --
+fail-open pointing the wrong way, and permanent once sprung.
+
+So the comparison instant is now the id's FIRST draw, not this draw. `DRAW_LEDGER_FILE` remembers
+it across releases (fix 2 of that finding, which also gives Lane 0 slugs the drawn channel
+`focus_was_drawn` never had). Three properties, and the middle one is what keeps this from being
+the heartbeat again:
+
+  * a re-drawn id can be credited with the commit that satisfied it -- `record_landing` reaches
+    back to the first draw, which is as far as this id has ever been anyone's work;
+  * a FIRST draw still refuses everything older than itself, unchanged, because there the older
+    commit genuinely is somebody else's;
+  * binding an old commit buys the re-issued claim NO time. `last_progress` is
+    `max(claimed_at, moved)`, so a commit predating the re-draw hands the deadline a SUBJECT
+    without restarting it: the claim is still swept on schedule if this tick lands nothing. What
+    changes is that the record can agree with git, not that a stall can hide behind history.
 """
 from __future__ import annotations
 
@@ -100,6 +133,27 @@ MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 #: different subjects with different deadlines, and one file holding both would make a sweep of
 #: either read as a sweep of the other.
 CLAIMS_FILE = PROJECT_DIR / "docs" / "observability" / ".delivery_lane_claims.json"
+
+#: EVERY draw of a Lane 0 id, first and latest, and it OUTLIVES the claim on purpose.
+#:
+#: `CLAIMS_FILE` is what is in hand; this is what has ever been handed out. Two facts per id, each
+#: with exactly one reader:
+#:   * `first_drawn_at` -- the instant `record_landing` compares a commit against, so a re-draw
+#:     cannot put earlier work out of reach (see the module docstring);
+#:   * `last_drawn_at` -- the drawn channel a Lane 0 slug has never had. `focus_was_drawn` reads
+#:     `.atom_stall_tracker.json`, which is keyed by MATURITY-MAP ATOM ID, and a Lane 0 id is by
+#:     construction not an atom, so it could never appear there and the steer-effectiveness
+#:     verdict was carried entirely by the two atoms in every focus list.
+#: Same shape and same field name as the atom tracker deliberately: one convention for "when was
+#: this last drawn", two key spaces.
+DRAW_LEDGER_FILE = CLAIMS_FILE.with_suffix(".draws.json")
+
+#: How many drawn ids the ledger remembers. It is the only store here that is never emptied by a
+#: release, so it needs a bound or it grows for the life of the project. ~5 focus items per
+#: 3-hourly orientation puts 400 at several weeks, and an id evicted before it is re-drawn simply
+#: falls back to the pre-2026-08-28 behaviour -- the first-draw guard, refusing older work -- which
+#: is the fail-safe direction: the cost is one wasted verification, not a credited stall.
+MAX_REMEMBERED_DRAWS = 400
 
 #: A delivery-lane claim that has landed NOTHING in this long goes back in the pool. Longer than
 #: the interactive seat's 45 minutes because this is the class of work that takes hours — the
@@ -162,6 +216,77 @@ def _commit_facts(commit: str) -> tuple[float, list[str]]:
     return when, sorted({ln for ln in lines[1:] if ln})
 
 
+def _ledger_path(store: Path) -> Path:
+    """The draw ledger beside a given claims store, so a test store carries its own.
+
+    DERIVED, never a module constant read directly by the functions below: every test in this
+    lane passes `path=tmp/claims.json`, and a ledger that ignored that would have the tests
+    writing -- and reading -- the live record of what the real seat has drawn.
+    """
+    return store.with_suffix(".draws.json")
+
+
+def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None:
+    """Remember that `focus_id` was handed out at `when`. Idempotent on the FIRST draw.
+
+    `first_drawn_at` is written once and never moved -- it is the whole mechanism, and a version
+    that refreshed it on every draw would restore the trap exactly. `last_drawn_at` is the one
+    that moves.
+
+    Never raises: this is called from inside `draw()`, which must never take the ladder down.
+    """
+    try:
+        store = _ledger_path(path or CLAIMS_FILE)
+        ledger = claims_mod._load(store)
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            row = {"first_drawn_at": float(when)}
+        row["last_drawn_at"] = float(when)
+        ledger[focus_id] = row
+        if len(ledger) > MAX_REMEMBERED_DRAWS:
+            keep = sorted(ledger.items(),
+                          key=lambda kv: float((kv[1] or {}).get("last_drawn_at") or 0.0),
+                          reverse=True)[:MAX_REMEMBERED_DRAWS]
+            ledger = dict(keep)
+        claims_mod._save(ledger, store)
+    except Exception:
+        return
+
+
+def drawn_since(cutoff: float, *, path: Path | None = None) -> list[str]:
+    """Lane 0 ids drawn at or after `cutoff`. The drawn channel for non-atom focus ids.
+
+    Read by `delivery_seat.build_brief` so `direction.focus_was_drawn` has a key space that can
+    contain a Lane 0 slug at all. Before this it read only the atom stall tracker, and across 11
+    recorded orientations carrying 2-4 Lane 0 ids each, `drawn` contained a Lane 0 slug exactly
+    zero times -- every `steered: True` was two perennial atoms the weighted draw was taking
+    anyway.
+    """
+    try:
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+    except Exception:
+        return []
+    return sorted(fid for fid, row in ledger.items()
+                  if isinstance(row, dict)
+                  and float(row.get("last_drawn_at") or 0.0) >= float(cutoff))
+
+
+def _binding_instant(focus_id: str, rec: dict, store: Path) -> float:
+    """The instant `record_landing` compares a commit against: this id's FIRST draw.
+
+    Falls back to `claimed_at` when the ledger has never heard of the id -- an unreadable or
+    evicted ledger leaves the original guard in force rather than opening it, which is the
+    direction an unavailable check has to fail in (R15).
+    """
+    claimed_at = float(rec.get("claimed_at", 0))
+    try:
+        row = claims_mod._load(_ledger_path(store)).get(focus_id)
+    except Exception:
+        return claimed_at
+    first = float(row.get("first_drawn_at") or 0.0) if isinstance(row, dict) else 0.0
+    return first if 0.0 < first < claimed_at else claimed_at
+
+
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    claimed_at: float | None = None) -> list[str]:
     """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
@@ -179,10 +304,13 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
     REFUSES, returning `[]` and writing nothing, when:
       * `focus_id` is not claimed — there is no deadline to inform;
       * the commit is unreadable or touched no files;
-      * the commit is NOT NEWER than the claim. A commit that predates the claim is somebody
-        else's work, or this tick's own earlier work, and crediting the claim with it would
-        restart a deadline on something that had already happened. This is the check that keeps
-        the call from being a heartbeat with extra steps.
+      * the commit is NOT NEWER than the id's FIRST DRAW. On a first draw that is `claimed_at`
+        and the rule is unchanged: an older commit is somebody else's work. On a RE-ISSUED claim
+        it reaches back to when this id first became somebody's work, because the commit that
+        satisfied it landed under the previous claim and is otherwise unbindable forever. It is
+        still not a heartbeat: binding a commit older than `claimed_at` gives the deadline a
+        subject without restarting it (`seat_work_in_hand.last_progress` takes the max), so the
+        claim is swept on schedule anyway if this tick lands nothing of its own.
 
     Never raises: it is called from a tick that has just committed, and losing the binding is a
     false alarm 100 minutes later, while raising would lose the tick.
@@ -195,7 +323,14 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         when, paths = _commit_facts(commit)
         if not paths:
             return []
-        since = float(rec.get("claimed_at", 0)) if claimed_at is None else float(claimed_at)
+        if claimed_at is None:
+            # Pin a claim the ledger predates (it was drawn before this ledger existed, or by a
+            # path other than `draw`) at its own `claimed_at`, so it is treated as a first draw
+            # now and can be credited normally when it is re-issued.
+            record_draw(focus_id, float(rec.get("claimed_at", 0)), path=store)
+            since = _binding_instant(focus_id, rec, store)
+        else:
+            since = float(claimed_at)
         if when <= since:
             return []
         return claims_mod.bind_paths(focus_id, paths, path=store)
@@ -253,8 +388,13 @@ def draw(now: float | None = None, path: Path | None = None) -> str | None:
         item = next_item(now=now, path=path)
         if item is None:
             return None
+        store = path or CLAIMS_FILE
         claims_mod.claim(item["id"], note=str(item.get("what") or "")[:200], paths=[],
-                         path=path or CLAIMS_FILE, now=now)
+                         path=store, now=now)
+        # AFTER the claim and with the claim's own instant: the ledger records what was handed
+        # out, so a draw that failed to claim must not appear in it.
+        rec = claims_mod._load(store).get(item["id"]) or {}
+        record_draw(item["id"], float(rec.get("claimed_at") or 0.0), path=store)
         return doorbell(item)
     except Exception:
         return None
@@ -282,7 +422,9 @@ def main(argv=None) -> int:
             # Non-zero: the caller believes it landed something and the lane disagrees, which it
             # needs to hear NOW rather than as a false alarm in 100 minutes.
             print(f"bound NOTHING to {args.landed}: it is not claimed, or {args.commit} is "
-                  f"unreadable, empty, or not newer than the claim")
+                  f"unreadable, empty, or older than this id was FIRST drawn "
+                  f"(not merely older than the current claim -- a re-draw no longer puts "
+                  f"earlier work out of reach)")
             return 1
         print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
         return 0

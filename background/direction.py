@@ -286,7 +286,7 @@ def focus_weights(candidates, weights, path: Path | None = None,
         return original
 
 
-def focus_was_drawn(focus: tuple[str, ...], drawn_ids) -> dict:
+def focus_was_drawn(focus: tuple[str, ...], drawn_ids, *, atom_ids=None) -> dict:
     """Did the PREVIOUS orientation's focus actually reach the draw?
 
     THE CONTROL ON THIS WHOLE MECHANISM, and the reason it is recorded every cycle rather than
@@ -295,10 +295,22 @@ def focus_was_drawn(focus: tuple[str, ...], drawn_ids) -> dict:
     a steer that was taken. So every orientation writes down whether the last one moved anything,
     and a run of `drawn: []` against a non-empty focus is a defect in the steer rather than a
     quiet fact about the week.
+
+    AND FOR A YEAR OF CYCLES IT ASKED ONLY HALF THE QUESTION. Focus is two classes reached by two
+    different mechanisms -- an ATOM by the dial-weight bias, a LANE 0 slug by `delivery_lane` --
+    and the caller passed only the atom tracker, whose key space cannot contain a slug. The
+    verdict was a disjunction over a mixed subject, so the class with no channel folded silently
+    into the other class's pass: 11 orientations, 2-4 slugs each, `steered: True` every time, a
+    slug in `drawn` never. `by_class` is the repair, and it is reported SEPARATELY because that is
+    the only shape in which one channel dying is visible while the other still works.
+
+    `atom_ids` is the map's id set. Without it the split cannot be made and `by_class` is absent
+    rather than guessed -- an unavailable check reports itself unavailable (R15), it does not
+    report a pass.
     """
     drawn = {str(d) for d in (drawn_ids or [])}
     hit = [f for f in focus if f in drawn]
-    return {
+    out = {
         "focus": list(focus),
         "drawn": hit,
         "steered": bool(hit),
@@ -309,6 +321,16 @@ def focus_was_drawn(focus: tuple[str, ...], drawn_ids) -> dict:
             "steer is a no-op and the weight is not biting"
         ) if focus else "no previous focus to check",
     }
+    if atom_ids is not None:
+        known = {str(a) for a in atom_ids}
+        out["by_class"] = {
+            cls: {"focus": members, "drawn": [f for f in members if f in drawn],
+                  "steered": any(f in drawn for f in members)}
+            for cls, members in (("atom", [f for f in focus if f in known]),
+                                 ("lane_0", [f for f in focus if f not in known]))
+            if members
+        }
+    return out
 
 
 def append_decision(row: dict, path: Path | None = None) -> None:

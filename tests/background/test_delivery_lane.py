@@ -621,6 +621,160 @@ def test_the_TICK_IS_TOLD_to_bind_its_landings(tree):
     assert "AFTER EACH COMMIT" in bell
 
 
+# --------------------------------------------------------------------------- #
+# 6. A RE-ISSUED claim, and the evidence that is out of reach of the check      #
+# --------------------------------------------------------------------------- #
+# THE DEFECT, 2026-08-28. Nothing in this lane marks an item complete -- done is
+# derived, and the seat only re-derives it every three hours -- so a released item
+# is re-offered from the same live focus list in the meantime. `record_landing`
+# compared against `claimed_at`, which the re-draw rewrites, so from that instant
+# the commit that SATISFIED the item was unbindable by anyone, forever. The claim
+# then reads `paths: []`, the sweep reports NO PATHS WERE EVER BOUND, and the next
+# tick re-implements finished work on top of itself. Sprung twice this stretch
+# (`0850eadcd`, re-drawn 8m39s after it landed; the household column at 16:56) and
+# once on 2026-08-27, on a claim whose commit subject IS its own slug.
+#
+# The progress reading was zero because the EVIDENCE WAS OUT OF REACH OF THE CHECK.
+# The three tests below are one control in three parts, and the middle and last are
+# what stop the repair from becoming the fail-open it replaced.
+
+
+def _claim_and_draw(repo, focus_id, when, note=""):
+    """Claim exactly as `draw()` does -- claim, then ledger the draw at the claim's instant."""
+    claims_mod.claim(focus_id, note, paths=[], path=repo["claims"], now=when)
+    dl.record_draw(focus_id, when, path=repo["claims"])
+
+
+def test_a_RE_ISSUED_claim_CAN_BE_CREDITED_with_the_commit_that_already_satisfied_it(repo):
+    """THE FIX. Draw an id, land its work, release it, and let the same id come round again --
+    which is what the seat does for three hours after the work is done. The commit that satisfied
+    it must still bind.
+
+    MUTATION (must fire): compare against `rec["claimed_at"]` instead of the first draw -- that is
+    the shipped code, and it returns `[]` here.
+    """
+    first_drawn = float(repo["git"]("log", "-1", "--format=%ct")) - 600
+    _claim_and_draw(repo, "focus-item", first_drawn, "do the thing")
+
+    satisfied_at = _land(repo, "background/thing.py")          # the work lands under claim #1
+    assert satisfied_at > first_drawn
+
+    claims_mod.release("focus-item", path=repo["claims"])
+    _claim_and_draw(repo, "focus-item", satisfied_at + 519, "do the thing")   # re-issued
+
+    bound = dl.record_landing("focus-item", path=repo["claims"])
+
+    assert bound == ["background/thing.py"], (
+        "a re-drawn id cannot be credited with the commit that satisfied it, so its progress "
+        "reads zero for want of evidence the check can reach -- and permanently, because every "
+        "re-draw moves the comparison instant forward again"
+    )
+
+
+def test_a_FIRST_draw_still_REFUSES_a_commit_older_than_ITSELF(repo):
+    """THE OTHER SIDE, and the reason the test above cannot be satisfied by deleting the guard.
+    On a first draw an older commit genuinely is somebody else's work, or this tick's own earlier
+    work, and crediting it would make `--landed` a heartbeat with extra steps.
+
+    The ledger is populated here, exactly as `draw()` populates it, so this is not passing merely
+    because the new lookup found nothing.
+
+    MUTATION (must fire): drop the `when <= since` check, or seed `first_drawn_at` from anything
+    earlier than the first claim.
+    """
+    landed_at = _land(repo, "background/thing.py")
+    _claim_and_draw(repo, "f", landed_at + 60)
+
+    assert dl.record_landing("f", path=repo["claims"]) == []
+    assert claims_mod._load(repo["claims"])["f"]["paths"] == []
+
+    ledger = claims_mod._load(dl._ledger_path(repo["claims"]))
+    assert ledger["f"]["first_drawn_at"] == landed_at + 60, (
+        "the first draw was not recorded, so the test above would pass against an empty ledger "
+        "rather than against the mechanism"
+    )
+
+
+def test_reaching_back_gives_the_deadline_a_SUBJECT_and_does_NOT_restart_it(repo):
+    """THE BOUND ON THE FIX. Reaching back is how the record is made to agree with git; it must
+    not become a way for a stalled re-issue to buy time it did not earn. `last_progress` is
+    `max(claimed_at, moved)`, so a commit predating the re-draw scopes the claim without moving
+    its clock, and the claim is still swept on its own schedule.
+
+    MUTATION (must fire): make `last_progress` return `moved` when paths are bound.
+    """
+    first_drawn = float(repo["git"]("log", "-1", "--format=%ct")) - 600
+    _claim_and_draw(repo, "focus-item", first_drawn)
+    _land(repo, "background/thing.py")
+    claims_mod.release("focus-item", path=repo["claims"])
+
+    reissued_at = first_drawn + 4000
+    _claim_and_draw(repo, "focus-item", reissued_at)
+    assert dl.record_landing("focus-item", path=repo["claims"]) == ["background/thing.py"]
+
+    just_inside = reissued_at + dl.CLAIM_STALE_SECONDS - 1
+    just_outside = reissued_at + dl.CLAIM_STALE_SECONDS + 1
+
+    assert claims_mod.stale_claims(path=repo["claims"], now=just_inside,
+                                   stale_after=dl.CLAIM_STALE_SECONDS) == []
+    assert [w for w, _, _ in claims_mod.stale_claims(path=repo["claims"], now=just_outside,
+                                                     stale_after=dl.CLAIM_STALE_SECONDS)
+            ] == ["focus-item"], (
+        "binding a commit older than the re-draw bought the claim immunity from its own "
+        "deadline -- history is now a receipt a stall can hide behind"
+    )
+
+
+def test_the_first_draw_instant_SURVIVES_the_release_that_ends_the_claim(repo):
+    """The claims store is what is IN HAND and is emptied by `--release`; the ledger is what has
+    ever been HANDED OUT and must not be. If release cleared it, the re-issue would look like a
+    first draw and the trap would spring exactly as before.
+
+    MUTATION (must fire): clear the ledger entry in `release`.
+    """
+    _claim_and_draw(repo, "focus-item", 1000.0)
+    dl.record_draw("focus-item", 5000.0, path=repo["claims"])     # re-drawn later
+    claims_mod.release("focus-item", path=repo["claims"])
+
+    row = claims_mod._load(dl._ledger_path(repo["claims"]))["focus-item"]
+
+    assert row["first_drawn_at"] == 1000.0, "a re-draw moved the first-draw instant forward"
+    assert row["last_drawn_at"] == 5000.0
+    assert dl.drawn_since(4000.0, path=repo["claims"]) == ["focus-item"]
+    assert dl.drawn_since(6000.0, path=repo["claims"]) == []
+
+
+def test_the_ledger_is_DERIVED_from_the_claims_store_so_a_test_never_writes_the_live_one(repo):
+    """Every test in this module passes its own claims path. A ledger read from a module constant
+    would have them all reading -- and writing -- the real seat's record of what it has drawn.
+
+    MUTATION (must fire): make the ledger functions read `DRAW_LEDGER_FILE` directly.
+    """
+    assert dl._ledger_path(repo["claims"]).parent == repo["claims"].parent
+    assert dl._ledger_path(dl.CLAIMS_FILE) == dl.DRAW_LEDGER_FILE
+
+    dl.record_draw("focus-item", 1000.0, path=repo["claims"])
+
+    assert claims_mod._load(dl._ledger_path(repo["claims"])) != {}
+    assert "focus-item" not in claims_mod._load(dl.DRAW_LEDGER_FILE)
+
+
+def test_an_UNREADABLE_ledger_leaves_the_ORIGINAL_guard_in_force(repo):
+    """R15: an unavailable check is a FAILED check. With no ledger the comparison falls back to
+    `claimed_at`, which refuses -- the cost is one wasted re-verification, not a credited stall.
+
+    MUTATION (must fire): return `first` unconditionally from `_binding_instant` -- an absent
+    entry is `0.0`, which accepts any commit in the repo's history.
+    """
+    landed_at = _land(repo, "background/thing.py")
+    claims_mod.claim("f", "", paths=[], path=repo["claims"], now=landed_at + 60)
+    dl._ledger_path(repo["claims"]).write_text("{ not json", encoding="utf-8")
+
+    assert dl._binding_instant("f", {"claimed_at": landed_at + 60}, repo["claims"]) \
+        == landed_at + 60
+    assert dl.record_landing("f", path=repo["claims"]) == []
+
+
 def test_the_emergency_check_asks_the_RUNGS_OWN_predicates_not_the_message(monkeypatch):
     """A string test would break the first time a rung reworded itself, and would break SILENTLY,
     in the direction of diluting an emergency."""
