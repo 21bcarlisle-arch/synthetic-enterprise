@@ -121,3 +121,44 @@ could read a release would not have re-issued work whose commit subject is its o
 Whether the seat *should* re-issue an item it cannot observe is a design question for the seat's
 owner. This finding asserts only what is measured above: the control's PASS branch is unreachable
 for Lane 0 ids, and its reported PASS comes entirely from atom ids.
+
+---
+
+## DISCHARGED 2026-08-28, `df4d83ec5`
+
+All three named fixes landed, in the commit that repaired the sibling defect on the claim side —
+`record_landing` comparing against a `claimed_at` that every re-draw rewrites. That was the right
+place for it: **the ledger the claim-side fix needs is the drawn channel this finding asked for.**
+
+**Fix 2 — a real drawn channel.** `delivery_lane.DRAW_LEDGER_FILE` records `first_drawn_at` and
+`last_drawn_at` per Lane 0 id and outlives the release that ends the claim. `drawn_since()` reads
+it. `delivery_seat.focus_drawn_since` unions that with `atoms_drawn_since`, and `build_brief` now
+passes the union. Same field name as `.atom_stall_tracker.json` deliberately: one convention for
+"when was this last drawn", two key spaces.
+
+**Fix 1 — the verdict is split.** `direction.focus_was_drawn` takes the map's id set and reports
+`by_class` with `atom` and `lane_0` graded separately. The top-line `steered` keeps its shape, so
+`tools/generate_delivery_page.py` is untouched. Without the id set `by_class` is ABSENT rather
+than guessed — an unavailable check reports itself unavailable, it does not report a pass.
+
+**Fix 3 — the R15 null control.** `test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all` is the case
+that did not exist: both prior cases used ids that *can* be in the drawn key space, so they proved
+the set arithmetic and never the subject. It reds against the shipped code. Its sibling
+`test_the_verdict_is_SPLIT_so_one_dead_channel_cannot_hide_behind_the_other` pins the mask itself
+— one atom drawn, two slugs not, and the `lane_0` row must still read `steered: False`.
+
+Four mutations, all fire: drop the union in `focus_drawn_since`; revert the `build_brief` call
+site to `atoms_drawn_since`; fold `by_class`'s per-class verdict into the top-line OR; emit
+`by_class` without the id set. Full mutation table in `df4d83ec5`'s message.
+
+**What this finding said would follow, and did.** *"Fix 2 alone would have prevented this tick: the
+claim was released, and a re-orientation that could read a release would not have re-issued work
+whose commit subject is its own slug."* Correct about the channel and about the cost — it was
+re-measured twice more the next day (`0850eadcd`, re-drawn 8m39s after it landed; the household
+column at 16:56) before it was drawn. The claim-side half of that cost is closed by the same
+commit: a re-drawn id can now be credited with the commit that satisfied it.
+
+**Left open, and NOT claimed here.** The finding's own closing paragraph — whether the seat
+*should* re-issue an item it cannot observe — is a design question for the seat's owner and is
+untouched. What changed is only that the re-issue is now creditable and the steer is now
+measurable per class.
