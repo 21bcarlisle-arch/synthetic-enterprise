@@ -1,269 +1,313 @@
 {
- "_note": "Written Knowledge pages, one entry per topic, rendered by the shared template at site/knowledge/_page/index.html keyed on the directory name. Consolidated here rather than growing one file per page, as the price-cap page's own record said a third page should trigger. site/data/knowledge_price_cap.json and site/data/knowledge_wholesale.json remain separate: the first predates this file and the second also carries the topic graph.",
- "pages": {
-  "gb-electricity-market": {
-   "meta": {
-    "topic_id": "gb-electricity-market",
-    "title": "How Great Britain's electricity market is arranged",
-    "subtitle": "Who generates, who supplies, who owns the wires, and why the company that sends your bill owns none of it.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of the GB market. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "Ofgem regulatory framework material and the CMA Energy Market Investigation appendix on the legal and regulatory framework; DNO licence structure",
-     "note": "Checked against published sources. The separation holds as described: GB runs separate LICENSED roles for generation, supply, bulk transmission, the balancing system and regional distribution, with generation and supply competitive and the networks regulated natural monopolies whose charges the regulator caps. ONE CAVEAT ADDED, because the page's phrasing invites a common misreading: the separation is at the LICENSEE level, not the corporate group. A parent may own both a supply business and a generation or network business; what regulation requires is that they operate separately. 'Your supplier generates nothing' is true of the entity holding the supply licence and is not a claim about its owners."
+  "_note": "Written Knowledge pages, one entry per topic, rendered by the shared template at site/knowledge/_page/index.html keyed on the directory name. Consolidated here rather than growing one file per page, as the price-cap page's own record said a third page should trigger. site/data/knowledge_price_cap.json and site/data/knowledge_wholesale.json remain separate: the first predates this file and the second also carries the topic graph.",
+  "pages": {
+    "gb-electricity-market": {
+      "meta": {
+        "topic_id": "gb-electricity-market",
+        "title": "How Great Britain's electricity market is arranged",
+        "subtitle": "Who generates, who supplies, who owns the wires, and why the company that sends your bill owns none of it.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of the GB market. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "Ofgem regulatory framework material and the CMA Energy Market Investigation appendix on the legal and regulatory framework; DNO licence structure",
+          "note": "Checked against published sources. The separation holds as described: GB runs separate LICENSED roles for generation, supply, bulk transmission, the balancing system and regional distribution, with generation and supply competitive and the networks regulated natural monopolies whose charges the regulator caps. ONE CAVEAT ADDED, because the page's phrasing invites a common misreading: the separation is at the LICENSEE level, not the corporate group. A parent may own both a supply business and a generation or network business; what regulation requires is that they operate separately. 'Your supplier generates nothing' is true of the entity holding the supply licence and is not a claim about its owners."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Great Britain separated the electricity industry into competing generators, competing suppliers, and regulated monopoly networks — and the supplier whose name is on your bill generates nothing, owns no wires, and is essentially a buyer, a biller and a credit risk. That separation is a matter of LICENCE rather than of ownership: a parent company may sit above both a supplier and a generator, and regulation requires the two to be run as separate businesses rather than forbidding the common owner."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Four different kinds of company touch the electricity you use, and most people meet only one of them.\n\nGENERATORS build and run power stations, wind farms and solar farms, and sell what they produce. They compete, and they can and do go out of business.\n\nNETWORKS own the wires. The high-voltage transmission network moves power long distances; regional distribution networks take it the last miles to your street. These are regulated monopolies — nobody builds a second set of cables to compete — so a regulator sets what they may charge instead of a market doing it.\n\nSUPPLIERS buy electricity wholesale and sell it to you retail. This is the competitive part you experience: switching supplier changes who bills you, not who generates your power or whose wires deliver it. The electrons do not change.\n\nAnd a SYSTEM OPERATOR keeps supply and demand matched second by second, buying and selling in a balancing market to do it.\n\nThe consequence worth understanding: a supplier is a trading and billing business wearing a utility's clothes. Its costs are mostly wholesale energy and regulated charges it cannot negotiate, and its margin is the thin difference between what it bought at and what it may charge."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "The arrangement follows from privatisation in 1990 and the reforms after it. The design principle was to introduce competition wherever competition is possible and to regulate what is naturally monopoly.\n\nGeneration and supply are contestable, so they were opened to competition. Wires are not — duplicating a distribution network would be absurd — so they are regulated: a price control sets allowed revenue over a period, and the network recovers it through charges that reach you inside your unit rate and standing charge.\n\nBecause the physical system must balance continuously and the commercial system settles after the fact, the two are bridged by a settlement process: everyone declares what they expect to produce or consume, the system operator resolves the difference in real time, and money moves later according to who was out.\n\nA supplier therefore faces three cost families it does not control: wholesale energy, regulated network charges, and policy costs recovered through bills. It controls its own operating costs, its hedging strategy, and how well it manages credit — and very little else."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "If this structure is real, three things follow.\n\nSuppliers' margins should be thin and should compress when wholesale prices rise sharply, because the cost they cannot control moves faster than the price they may charge. Supplier failures should therefore cluster after price spikes rather than during calm periods.\n\nNetwork charges should be stable and regionally different — set by a slow regulatory process, not by a market — so they should show up as steps rather than as volatility.\n\nAnd wholesale prices should be volatile in a way retail prices are not. The retail price is a smoothed, lagged, regulated version of a wholesale price that moves half-hourly."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page. This site does carry nearly ten years of real half-hourly settlement data, and the wholesale price page shows what that volatility looks like — but the structural claims above are argued from how the market is arranged rather than demonstrated from data here."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "This page describes the arrangement, not its performance. Whether competition in supply has delivered what it was meant to is a live and contested question that this page does not enter.\n\nIt also does not cover the interconnectors that link Great Britain to other markets, which increasingly set the price at the margin, nor the capacity market that pays for availability rather than energy."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source. It does not name the current market participants, deliberately: those change, and a page listing them would be wrong quietly. And it does not explain how the price itself is set — that is the wholesale price page's subject, linked from here."
+        }
+      }
+    },
+    "merit-order-residual-demand": {
+      "meta": {
+        "topic_id": "merit-order-residual-demand",
+        "title": "Merit order and residual demand",
+        "subtitle": "Why the cheapest generation in the country does not set the price, and the most expensive one running does.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of how the market clears. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "Ofgem/Elexon on NETA and BETTA (self-dispatch, bilateral trading, ESO as residual balancer); Elexon BSC history; DESNZ Review of Electricity Market Arrangements",
+          "note": "Checked against published sources, and this check CORRECTED THE PAGE. The marginal-pricing economics hold and are unchanged. What did not hold was the mechanism: the page said generators 'are dispatched cheapest-first', which describes the Electricity Pool that GB ABOLISHED IN 2001. Under NETA and then BETTA, participants trade bilaterally and SELF-DISPATCH; the system operator is the residual balancer via the Balancing Mechanism, not a scheduler. The cheapest-first order is emergent, not administered. Corrected in the headline and explained in the theory rung, and the correction matters beyond wording -- it is what makes the imbalance page's 'a supplier buys what it EXPECTS to be used' the same story rather than a different one."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Generation stacks up cheapest-first and the price settles at the running cost of the last unit needed to meet demand — an outcome competing generators produce for themselves rather than an order anyone issues — so the price is set by the most expensive plant running, not by the average of what is running."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Stack every available generator in order of what it costs to run for one more hour. Wind and solar sit at the bottom: their fuel is free, so their running cost is near zero. Nuclear is low and inflexible. Gas is higher, and how much higher depends on the gas price and the carbon price. The most expensive plant sits at the top.\n\nNow draw a line across that stack at the level of demand. Everything to the left runs; everything to the right does not. The plant the line lands on is the MARGINAL plant, and its running cost is the price.\n\nThis is why a windy day is cheap and a still, cold evening is expensive: not because wind is being sold cheaply, but because on a windy day the line falls further down the stack, and on a still evening it climbs to something expensive.\n\nIt is also why 'we generate a lot of renewables, so why are bills high?' has an answer that sounds unfair but is not mysterious. Renewables push the line down; they do not remove the plant at the top. As long as gas is sometimes needed to meet the last slice of demand, gas sometimes sets the price for everyone."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "RESIDUAL DEMAND is the quantity that makes this concrete: total demand minus everything generating at near-zero running cost. It is the amount that has to be met by plant with a fuel bill, and it is the number that determines where on the stack the line falls.\n\nResidual demand is what makes prices weather-driven. Demand itself moves with temperature and time of day; the zero-cost supply moves with wind and sun. Subtracting one from the other produces something more volatile than either, because a still cold evening is a high-demand and low-renewable event at the same time.\n\nThe pricing rule itself — everyone receiving the marginal price rather than their own cost — is deliberate. It gives every generator an incentive to bid its true running cost: bid above it and you do not run when you could have profited; bid below it and you may be dispatched at a loss. The rule that looks like a windfall for cheap plant is what makes the stack honest.\n\nNOBODY DISPATCHES THIS STACK. Great Britain has had no central pool since 2001: under NETA, and from 2005 BETTA, participants trade bilaterally and SELF-DISPATCH, with the system operator acting as residual balancer through the Balancing Mechanism rather than as a scheduler. The cheapest-first ordering is therefore emergent, not administered — a generator whose running cost sits above the price simply chooses not to sell, and the stack arranges itself. This matters when reading the picture: the merit order is a description of what competition produces, and the plant actually running in any half hour can depart from it, because contracts were struck in advance against forecasts that were wrong."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Price should correlate far better with residual demand than with demand alone. Two half-hours with identical demand should show very different prices if one is windy and the other is not.\n\nThe relationship should be convex: as residual demand rises into the scarce, expensive end of the stack, price should rise faster than linearly, because the stack itself steepens at the top.\n\nAnd as installed renewables grow over years, the same demand should map to lower prices on average, with the extremes unchanged — because the bottom of the stack has grown while the top has not moved."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page, but the closest thing to it on this site is the wholesale price page, which reconstructs the GB price from weather and demand and shows where that reconstruction fails. The convexity claim above is exactly what such a reconstruction stands or falls on."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "The simple stack story omits constraints: a plant may be cheap and still not run because the network cannot move its output to where demand is. Resolving those constraints costs money that appears elsewhere on the bill, and it is a growing share.\n\nIt also omits storage and interconnection, both of which behave unlike generators — they can be either side of the line depending on price expectations rather than on running cost."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source. It does not quantify the stack for any particular period, and it does not address whether marginal pricing should be reformed — an active policy debate that this page deliberately stays out of."
+        }
+      }
+    },
+    "gas-wholesale": {
+      "meta": {
+        "topic_id": "gas-wholesale",
+        "title": "The gas market, and why it prices electricity too",
+        "subtitle": "Britain heats with gas and often generates with it, so the gas price reaches a household twice.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of the GB gas market. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "National Gas Transmission (NBP definition, NTS linepack, End-to-End Balancing Guide); DESNZ 'The role of gas storage and other forms of flexibility' (Dec 2023); House of Commons Library on GB storage capacity",
+          "note": "Checked against published sources. The structural claims hold: the NBP is a VIRTUAL location for sale, purchase and exchange of gas; the system is balanced end-of-day rather than instantaneously, with linepack -- gas held in the pipes -- as the buffer. The storage claim holds and has been SHARPENED rather than left vague: GB holds about a fifth of European storage capacity, and Rough alone is roughly 70% of what remains. One IMPORTANT MISSING CONTEXT added on this check: low storage is not simply a shortfall, it is paired with diversified supply. STILL UNCHECKED: how often gas is the marginal generator -- the number the whole indirect-link argument turns on, and the page's own scope_delta already says so."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Gas is traded as a commodity delivered to a national virtual point, and because gas-fired plant is frequently the marginal generator, the gas price sets both the gas half of a dual-fuel bill and much of the electricity half."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Gas arrives in Britain from domestic production, from pipelines, and as liquefied gas by ship. Once it is in the system it is fungible — traders buy and sell it at a notional national point rather than at a particular terminal, which is what makes a single national price possible.\n\nThat price matters to a household twice over. Directly: it is the commodity behind the gas half of the bill. And indirectly: when gas plant is the marginal generator, the gas price plus the carbon cost of burning it sets the electricity price for that half-hour.\n\nThis is the single most important thing to understand about why the 2021-22 crisis hit British bills so hard. A gas price shock is not one shock to a dual-fuel household; it is two, arriving through different parts of the bill, one of them disguised as an electricity cost."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "The gas system is physically balanced over a GAS DAY rather than instantaneously, which makes it more forgiving than electricity: gas can be packed into the pipe network and drawn down, so the system tolerates short mismatches in a way the electricity system cannot.\n\nBecause storage exists and demand is strongly seasonal, gas trades along a forward curve with a pronounced winter shape. Britain has relatively little storage compared with some European neighbours, which makes it more dependent on flowing supply and therefore more exposed to interruptions when demand peaks — around a fifth of European storage capacity, and a single facility, Rough, accounts for roughly 70% of what Britain does have. That is a strategic choice as much as a shortfall: continental systems lean on stored gas as a winter baseload, whereas Britain leans on diversity of supply — domestic production, Norwegian pipeline gas and LNG — to do the same job. The consequence for prices is that Britain's winter depends more on flows arriving and less on gas already in the ground, which is why the forward curve reacts to cargo economics rather than only to stock levels.\n\nThe link into electricity runs through the running cost of a gas turbine: fuel cost divided by efficiency, plus the carbon cost of the emissions. That number is what a gas plant bids, and when it is the marginal plant, that number is the electricity price."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Gas and electricity prices should be strongly correlated, with the correlation strengthening in periods when gas is marginal more often and weakening as low-cost generation displaces it.\n\nGas demand should be far more seasonal than electricity demand, because it is dominated by heating. Its daily shape should track temperature closely.\n\nAnd the forward curve should show a persistent winter premium — the market pricing the certainty that demand rises when it is cold."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page. This site models gas and electricity together for the same households and settles both against real market history, so the two-shocks-in-one claim is something the simulation experiences rather than asserts — but that evidence lives on the pages about the simulation, not here."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "This page does not cover the gas industry's own systems for registration, metering and reconciliation, which differ substantially from electricity's and are a real source of operational complexity for a supplier.\n\nIt also treats liquefied gas as simply another source, which understates how much its arrival patterns and global competition for cargoes now drive the European price."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source. It carries no prices and no storage figures, and it does not quantify how often gas is the marginal generator — which is the number the whole indirect-link argument turns on."
+        }
+      }
+    },
+    "carbon-price": {
+      "meta": {
+        "topic_id": "carbon-price",
+        "title": "The UK carbon price",
+        "subtitle": "Two separate charges on emitting a tonne of carbon dioxide, both of which end up inside an electricity price.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of UK carbon pricing. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "GOV.UK, UK ETS policy overview + participating guidance; House of Commons Library briefing SN05927 (Carbon Price Floor); HMRC Excise Notice CCL1/6",
+          "note": "Checked against published UK government sources. The two-mechanism structure holds: a capped traded scheme (UK ETS) and a fixed support rate (Carbon Price Support). Power generation is in UK ETS scope, one allowance must be surrendered per tonne of CO2e, and the cap declines -- GOV.UK's wording is 'The cap decreases over time'. The coal-to-gas switching claim is directly supported. ONE SIMPLIFICATION CORRECTED on this check: CPS is levied on FUEL, not on tonnes -- see the plain-terms rung."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Emitting carbon in UK power generation costs money through two mechanisms — a traded allowance price set by a capped market, and a fixed tax per tonne — and because both are running costs of a fossil generator, both are passed into the price that generator bids."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "If you burn gas to make electricity in Britain, you pay for the carbon twice, in two different ways.\n\nThe first is an EMISSIONS TRADING SCHEME. The government caps the total tonnes that may be emitted and issues allowances up to that cap. Emitters must hold an allowance for every tonne. Allowances are traded, so their price is set by a market — and because the cap tightens over time, the mechanism is designed to make emitting progressively more expensive.\n\nThe second is a FIXED SUPPORT PRICE — Carbon Price Support, introduced because the traded price alone was considered too low and too uncertain to drive investment away from coal. Strictly it is charged on the FUEL rather than on the tonne: the rates sit inside the Climate Change Levy and fuel duty and are set per unit of gas or coal, calibrated so that they amount to a target price per tonne of carbon dioxide. The distinction matters if you ever go looking for the rate, because you will find it quoted per unit of fuel.\n\nTogether they form the carbon cost a generator faces. It is a running cost like fuel, so it enters the merit order the same way: it raises what a fossil plant must bid, which changes where in the stack it sits, and when that plant is marginal it raises the price everyone receives.\n\nThe effect that surprises people is that carbon pricing raises the price of electricity generated with no carbon at all. Wind is paid the marginal price; if carbon costs push the marginal gas plant's bid up, wind receives more. That is the mechanism working as designed — it is what makes low-carbon generation more profitable and therefore more attractive to build — but it does mean the cost lands on every unit consumed."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "The two instruments do different jobs. A cap-and-trade scheme fixes the QUANTITY of emissions and lets the price find its level; a fixed tax fixes the PRICE and lets the quantity respond. Running both means the total carbon cost has a floor set by policy and a variable component set by a market.\n\nA generator's carbon cost per unit of electricity depends on the carbon intensity of its fuel and its efficiency: a modern gas turbine emits substantially less per unit than an old coal plant, so the same carbon price penalises coal far more. That differential is the mechanism by which carbon pricing changed the British generation mix — it did not ban coal, it made coal the more expensive way to make the same electricity, and the merit order did the rest.\n\nBecause the carbon cost is per tonne rather than per unit of electricity, it is also a lever on the ORDER of the stack, not just its height: it can move gas below coal, which is precisely what it was intended to do."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Coal generation should decline as the combined carbon cost rises past the point where gas becomes cheaper to run than coal, and that switch should be visible as a fairly sharp transition rather than a gradual drift.\n\nThe implied cost of carbon in electricity prices should move with the traded allowance price, so that periods of high allowance prices show up as higher prices at times when fossil plant is marginal — and not at times when it is not.\n\nAnd the carbon intensity of the grid should fall over years in a way that tracks the changing mix rather than changing demand."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page. The grid's actual half-hourly carbon intensity is published openly and is one of the connections this project has identified but not yet built, so no measured carbon series is presented here."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "This is the fastest-moving subject in this section and the one most exposed to policy change: scheme design, cap trajectories, free allocation rules and the linkage between the UK and EU schemes have all been under active review, and any of them can change the mechanism this page describes rather than merely the number.\n\nThe page also does not cover how carbon costs reach industrial consumers, where compensation schemes materially change the picture."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source, which matters more here than on any other page in this section — carbon policy changes faster than the mechanisms described elsewhere. It carries no allowance price and no tax rate deliberately, and it does not address whether the current combination is set at the right level."
+        }
+      }
+    },
+    "imbalance-cashout-settlement": {
+      "meta": {
+        "topic_id": "imbalance-cashout-settlement",
+        "title": "Imbalance, cash-out and settlement",
+        "subtitle": "Everyone contracts for what they expect to use; the system operator fixes the difference in real time; and the money moves months later.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of GB settlement. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "Elexon BSC Imbalance Pricing Guidance and BSC glossary (settlement runs); Ofgem Electricity Balancing SCR analysis",
+          "note": "Checked against Elexon/Ofgem. All three structural claims hold, and two were made MORE precise on this check. (1) Half-hourly settlement periods: confirmed. (2) Cash-out derived from the system operator's actual balancing actions: confirmed, and the direction rule is explicit -- when the system is SHORT the price is built from actions to increase generation or reduce demand, and vice versa. (3) Iterative reconciliation: confirmed, and the page now names the runs. ONE THING THE PAGE GOT RIGHT BUT UNDER-EXPLAINED, now added: there are formally TWO prices (System Buy and System Sell) with a SINGLE calculation, so SBP equals SSP in every period -- which is why 'the cash-out price', singular, is correct today and was not always. CAVEAT ON VINTAGE: the run timings are quoted from Elexon's current glossary, but the settlement timetable has been reformed more than once and the corroborating Ofgem material is from 2014; treat the months as the shape of the cycle, not a guarantee of today's calendar. Re-check on the fast cadence."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "The commercial market settles in half-hour blocks against contracted positions, the physical system is balanced continuously by the system operator, and the gap between the two is priced at a cash-out rate and reconciled repeatedly over the following months as real meter data replaces estimates."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "A supplier does not buy the electricity its customers actually use. It buys what it expects them to use, in advance, in half-hourly blocks. Its customers then use whatever they use.\n\nThe difference is IMBALANCE, and it is not free. The system operator has to make up any shortfall in real time by paying someone to generate more or consume less, and it charges that cost back to whoever was out of balance, at a price called the CASH-OUT price. Being short when the system is short is expensive; being long when the system is long is unrewarding.\n\nThis is why forecasting is a commercial function for a supplier and not an administrative one. A supplier that predicts its customers' consumption badly pays for the privilege, every half hour, forever.\n\nAnd then the numbers change. The initial settlement uses estimates — many meters are not read every half hour, or not read at all for months. As real data arrives, the industry re-runs the calculation, and money moves again. A trading day is not finally settled for a long time after it is over."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "Three ideas do most of the work.\n\nSETTLEMENT PERIODS: the market is divided into half-hour blocks, and every position, price and volume is defined per block. This is why half-hourly data is the natural grain of everything in this industry.\n\nCASH-OUT PRICING: there are formally two prices, System Buy and System Sell, but a single calculation produces both, so they are equal in every settlement period — which is why the industry says 'the cash-out price' in the singular, and why a supplier is not penalised twice for being on the wrong side. The price applied to imbalance is derived from what the system operator actually paid to resolve it, so that being out of balance in the direction that hurt the system is expensive and being out in the helpful direction is not. The design intent is to make accurate contracting worth doing without turning imbalance into a punishment.\n\nRECONCILIATION RUNS: settlement is deliberately iterative — six runs per settlement day (II, SF, R1, R2, R3, RF), with the Initial Settlement Run about a month after the day and the reconciliation runs following at roughly two, five and seven months as estimated data is replaced by real meter reads. An initial run uses whatever data exists; subsequent runs, at defined intervals over the following months, replace estimates with actuals. Each run can move money in either direction.\n\nThe consequence for a supplier's accounts is that a period's true cost is not known when the period ends, is not known when the customer is billed, and may still move after the accounts for that year are closed."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "Cash-out prices should be far more volatile than wholesale prices, with occasional extreme values in tight periods — they are a scarcity signal, and scarcity is rare and sharp.\n\nThe correction between initial and final settlement should be systematically larger for suppliers with more estimated meter reads, and should shrink over time as half-hourly metering spreads.\n\nAnd the direction of the corrections should not be consistently favourable to anyone. A supplier whose reconciliation always moves in its favour has a forecasting bias, not good luck."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page. This site's simulation settles against real half-hourly market data and models the reconciliation timetable as a real mechanism rather than assuming settlement is final on the day — but that account belongs to the pages about the simulation."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "This page describes the shape of settlement rather than its rules, which are long, precise, and revised through a formal modification process. Anyone reasoning about a specific charge needs the code itself.\n\nIt also does not cover the arrangements for gas, which reconcile on a different basis and a different timetable, nor the changes underway to move the industry to market-wide half-hourly settlement."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source. It names no cash-out prices and no reconciliation intervals, and it does not explain how a supplier hedges against imbalance risk — which is the hedging page's subject."
+        }
+      }
+    },
+    "hedging-forward-market": {
+      "meta": {
+        "topic_id": "hedging-forward-market",
+        "title": "Hedging and the forward market",
+        "subtitle": "Why a supplier buys energy years before it is used, and what it is really buying.",
+        "wall_placement": "Public-reality commons only. Everything here is a published feature of how energy is traded forward. No figure produced by this project's simulation appears on this page.",
+        "claim_freshness": {
+          "last_verified": "2026-08-19",
+          "written": "2026-08-18",
+          "source": "Ofgem 'Price cap - Decision on changes to the wholesale methodology' (Aug 2022); Ofgem call for input 'Adapting the price cap methodology for resilience in volatile markets' (Dec 2021); Ofgem backwardation allowance decision (Nov 2025)",
+          "note": "Checked, WITH AN HONEST LIMIT ON WHAT CHECKING MEANS HERE. Most of this page is reasoning about why a supplier hedges, and reasoning is not the kind of claim a source settles -- saying otherwise would dress an argument up as a citation. What IS externally checkable are the page's two hooks into the real regime, and both hold. (1) The cap does embed an assumed hedging approach and therefore does shape strategy for anyone pricing at it: Ofgem changed the wholesale methodology after 2021-22 to quarterly updates and later added an ex-ante backwardation allowance, explicitly so suppliers recover a hedging cost when they incur it. (2) The 2021-22 failures were real and large -- Ofgem had consented to supplier-of-last-resort levy claims totalling GBP 1.83 billion by December 2021 -- and the resilience measures the page alludes to followed from them. STILL OPEN, and the scope_delta keeps saying so: no typical hedge ratios, and no account of the financial-resilience rules themselves."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "A supplier that has sold a fixed-price tariff has promised a price for energy it has not bought, so it buys forward to lock that cost in — and what it is buying is not cheapness but certainty, which is why hedging looks like a mistake roughly half the time."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Sell a customer a fixed price for a year and you have taken a position: you owe them energy at a known price and you do not yet own it. If wholesale prices rise before you buy, you lose the difference on every unit. That is not a risk a supplier can carry at retail margins — the margin is thin enough that a modest adverse move wipes out the whole year.\n\nSo suppliers buy ahead, in the forward market, in tranches over time, building up cover for a period before it arrives.\n\nThe part that is widely misunderstood is what this achieves. Hedging does not make energy cheaper. It fixes the price, which means that whenever the market moves, the hedge is worse than not hedging — either you locked in above the market and look foolish, or you locked in below it and look clever. Over a long run those cancel; what remains is that you knew your cost. A supplier that hedges is buying predictability with an expected cost of roughly zero and an occasional embarrassing headline.\n\nThe suppliers that failed in 2021-22 largely failed because they had sold fixed prices without buying the corresponding cover, and the market moved."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "The forward curve is a set of prices for delivery in future periods — next month, next quarter, next winter. It is not a forecast in the ordinary sense: it is the price at which someone will commit today, which embeds both expectations and the cost of bearing risk.\n\nA hedging strategy is a schedule: what fraction of expected demand to have bought by what point before delivery. Buying everything early maximises certainty and forgoes any chance of a better price; buying late does the opposite. Most real strategies ramp up cover as delivery approaches.\n\nTwo things make it harder than it sounds. First, the quantity is uncertain — a supplier hedges expected demand, and demand depends on weather and on how many customers it still has. Over-hedge and you own energy you must sell back, possibly at a loss. Second, the SHAPE is uncertain: demand is not flat, so buying a flat block leaves the peaks and troughs to be squared up closer to the day.\n\nAnd hedging costs cash before it saves money. Forward positions require collateral, and a sharp market move against a position triggers demands for more of it — which is how a supplier that is solvent on paper can fail on liquidity."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A hedged supplier's realised cost should be smoother than the spot price and should lag it, resembling a moving average of the forward curve at the times it bought.\n\nThe gap between hedged cost and spot should swing through zero across a long enough period. A hedge book that is consistently better than spot is not a good hedging strategy; it is a sign that the comparison is wrong.\n\nAnd collateral requirements should spike when prices move sharply in either direction, because both directions can be adverse depending on which side of the trade you are on."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "Not shown on this page. This site's simulated supplier hedges its book against real historical prices and reports the resulting cost, which is where the smoothing and lag claims above could be seen — but that is the simulation's evidence, not this page's."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "This page describes hedging as a supplier does it. It does not cover the instruments in detail, nor the credit arrangements that determine how much collateral a given counterparty demands — which in practice decides which strategies a small supplier can afford at all.\n\nIt also does not address the interaction with the price cap, where the cap's own assumed hedging profile effectively prescribes a strategy for anyone pricing at the cap."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It has not been checked against a published source. It carries no prices, no typical hedge ratios, and no account of how hedging is actually regulated — which matters, because a supplier's hedging is subject to requirements intended to stop the 2021-22 failures recurring."
+        }
+      }
+    },
+    "acquisition-and-retention-economics": {
+      "meta": {
+        "topic_id": "acquisition-and-retention-economics",
+        "title": "What it costs a GB supplier to win a customer, and to keep one",
+        "subtitle": "Acquisition is a commission you pay someone else. Retention is margin you give up yourself. They are different kinds of thing, and since 2022 the law says so.",
+        "wall_placement": "Public-reality commons only. Every figure here is from a published source — Ofgem licence conditions, the CMA Energy Market Investigation, or a cited industry rate. No figure produced by this project's simulation appears on this page, and no number on this page was chosen because a number was needed.",
+        "claim_freshness": {
+          "last_verified": "2026-08-28",
+          "written": "2026-08-28",
+          "source": "Ofgem SLC 22B (Ban on Acquisition-only Tariffs) and its Market-wide Derogation, consultation of 27 August 2025; CMA Energy Market Investigation 2016, Appendix 9.10 paragraphs 64 and 74; Ofgem price cap EBIT methodology consultation May 2023, paragraphs 4.24-4.25; PCW commission rates as cited in docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md",
+          "note": "Written because the simulation carried four invented acquisition and retention constants with no source, while sourced research answering the same questions already existed in the repository and reached no code. The page exists so that the next invented number has something to contradict it."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "Winning a domestic customer costs a GB supplier a commission paid to whoever introduced them — around £25 to £30 per fuel through a comparison site — while keeping one costs margin the supplier gives up in the price it charges, not cash it pays out; and since April 2022 a licence condition has made the second the only lawful way to offer a better deal to someone who is already yours."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "There are two quite different money flows and it is easy to model them as one. ACQUISITION is money leaving the business: a comparison site or a broker introduces a customer and invoices for it. You can point at the payment. RETENTION is money never arriving: you offer the customer a lower price than they would otherwise have paid, they stay, and the gap shows up as revenue you did not earn. Nobody sends an invoice for a retention offer.\n\nThe distinction is not bookkeeping pedantry. A cash cost and a foregone margin behave differently in every direction that matters: one hits the P&L at signup and the other bleeds across the whole term; one is the same whatever the customer consumes and the other scales with their volume; one weakens the balance sheet immediately and the other never appears on it at all. A model that charges a flat cash sum for a retention offer will get the timing, the size and the balance-sheet consequence all wrong at once, and each error will look small on its own."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "ACQUISITION. The CMA set out what the cost is made of: 'Customer acquisition costs comprise doorstep/energy advisers' costs, telesales, commissions payable to brokers or PCWs, sales support, proposition development and other similar costs' (Energy Market Investigation 2016, Appendix 9.10 paragraph 64). The same paragraph records that both UK GAAP and IFRS require firms to expense those costs as incurred, so a customer relationship a supplier built itself never appears on its balance sheet — only one it bought from someone else does.\n\nThat accounting treatment is not how the economics work, and the CMA said so. For its return-on-capital analysis it amortised acquisition costs over the average customer lifespan reported by the six large suppliers: those 'varied significantly (from around four to ten years), but with a concentration of values around six years', and the CMA used six years as its base case and eight as a sensitivity (paragraph 74). Ofgem later adopted the same six-year figure in the price cap's EBIT methodology, describing it as 'in line with the CMA's approach to amortising customer acquisition costs'.\n\nRETENTION. Since April 2022 this has been a matter of licence law rather than commercial preference. Standard Licence Condition 22B, the Ban on Acquisition-only Tariffs, stops a supplier offering a fixed-term deal to new customers that it does not also offer its existing ones. Introduced alongside the Market Stabilisation Charge as a temporary response to wholesale volatility, the MSC ended on 31 March 2024 and the BAT was kept, extended annually; Ofgem's consultation of 27 August 2025 proposes extending it to 31 March 2027.\n\nWhat makes retention possible under that ban is a specific carve-out. In Ofgem's own words, 'The BAT's Market-wide Derogation, which was introduced at the same time as the BAT, enables suppliers to offer bespoke, retention-only deals to their existing customers when they are coming to the end of a fixed-term deal.' A retention offer is therefore a TARIFF — a price, offered at a defined moment in the customer's contract — and the derogation exists precisely because it is a price rather than a payment.\n\nCHANNELS. Comparison sites are the largest single route to a domestic customer and they are paid per switch, at a rate independent of what the customer goes on to consume. Business customers mostly arrive through brokers, and brokers are not paid that way at all: the commission is an ongoing per-unit adder embedded in the customer's own unit rate for the life of the contract, typically 0.5 to 2.0 pence per kWh for a small business and less for larger sites. A broker-introduced customer therefore costs more the more they use, and costs nothing at signup."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A supplier's acquisition spend should be lumpy and front-loaded against a customer book that pays back slowly: cash out at signup, margin in over something like six years. Growth should therefore look expensive in the year it happens and cheap in retrospect, which is exactly why the CMA amortised it.\n\nThe cost per domestic customer acquired through a comparison site should sit in tens of pounds, not hundreds — around £25 to £30 per fuel, so roughly £50 to £60 for a dual-fuel household. A figure in the low hundreds would imply a channel other than a comparison site, most likely direct brand marketing, for which no GB-energy-specific published benchmark appears to exist.\n\nBusiness acquisition should not appear as a one-off cost line at all. It should appear as a per-kWh deduction running the length of the contract, which means a large business customer costs far more to have acquired than a small one, and the cost keeps arriving after the sale.\n\nA retention offer should appear as reduced revenue on the retained account, concentrated at the renewal point and persisting for the term — never as a cost line. Two suppliers charging the same headline rate, one of which retained half its book with 5% discounts, should differ in revenue and not in operating costs.\n\nAnd acquisition spend should show up in the balance sheet, not just the P&L. The CMA recorded the mechanism plainly: 'by growing rapidly a firm incurred significant customer acquisition costs up-front, which it expected to recover over the lifetime of the customers. However, such costs weakened a firm's balance sheet ... increasing the perceived riskiness of the supplier and, therefore, the quantity of collateral that trading counterparties required from the firm.'"
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "The published anchors this page rests on, with what each one does and does not support.\n\nWHAT IS SOURCED. The composition of acquisition cost and its accounting treatment (CMA Appendix 9.10 §64). The six-year amortisation base case, drawn from a reported spread of four to ten years (§74), and Ofgem's later adoption of the same figure. The existence, start date and current extent of SLC 22B, and the Market-wide Derogation that permits retention-only deals at end of fixed term. Comparison-site commission of roughly £25 to £30 per fuel switched. Broker commission bands of 0.2 to 2.0 pence per kWh by size band.\n\nWHAT IS NOT KNOWABLE FROM THE PUBLIC RECORD. The actual per-customer acquisition costs the six large suppliers reported to the CMA are redacted in the published appendix. Every per-customer figure in that section that would settle the question is shown as an empty bracket. A supplier-specific GB acquisition cost is therefore not available at all, and any single number presented as one is an estimate wearing a citation.\n\nONE NEAR MISS, RECORDED BECAUSE IT IS THE FAILURE THIS PAGE EXISTS TO PREVENT. A search summary offered '£90 per customer' as an Ofgem acquisition-cost benchmark. Reading the source shows paragraph 4.24 is calculating depreciation and amortisation of FIXED ASSETS, and the £90 is that; what paragraph 4.25 shares with the CMA is only the six-year lifetime. Publishing £90 as an acquisition benchmark would have produced an invented number with a real citation attached, which is worse than an invented number, because the citation stops anyone checking."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "No GB-energy-specific figure for direct or brand-marketing acquisition could be found in any public source searched. A cross-industry cost-per-lead multiplied by an assumed conversion rate gives something in the low hundreds of pounds per customer, but that is two estimates stacked on each other and should not be treated as an anchor.\n\nNo published source breaks acquisition cost out at the residential/SME boundary. Small businesses plausibly arrive through both comparison-style and broker channels, and the split between them is not published.\n\nThe comparison-site rate is cited from secondary commentary on a CMA-era figure rather than from a rate card, and no supplier publishes what it actually pays. Commission rates are commercially negotiated and are very unlikely to be uniform.\n\nThe practical effect of the BAT on what suppliers actually offer at renewal is not quantified here. The derogation permits retention deals; how deep they are, and whether they cluster at particular discount levels, is not something the licence condition tells us."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not establish a single number to use for acquisition cost, and that is deliberate. The honest output of this research is a SHAPE — a per-switch commission for domestic, a per-kWh trail for business, a foregone margin for retention, and a six-year horizon over which any of it pays back — together with an explicit statement that the per-customer magnitude the six large suppliers actually reported is redacted from the public record.\n\nIt does not establish what our own supplier should spend. That is a company decision the simulation should be free to get wrong, not a constant to be calibrated until the answer looks right.\n\nIt does not cover customer-service cost to serve, bad debt, or the cost of losing a customer, all of which sit in the same P&L neighbourhood and none of which this page researched.\n\nAnd it does not, by itself, change any code. What it does is make a specific class of future mistake visible: any acquisition or retention figure that appears in this repository without a source can now be held against a page that says what the published evidence actually supports, and what it does not."
+        }
+      }
     }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "Great Britain separated the electricity industry into competing generators, competing suppliers, and regulated monopoly networks — and the supplier whose name is on your bill generates nothing, owns no wires, and is essentially a buyer, a biller and a credit risk. That separation is a matter of LICENCE rather than of ownership: a parent company may sit above both a supplier and a generator, and regulation requires the two to be run as separate businesses rather than forbidding the common owner."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "Four different kinds of company touch the electricity you use, and most people meet only one of them.\n\nGENERATORS build and run power stations, wind farms and solar farms, and sell what they produce. They compete, and they can and do go out of business.\n\nNETWORKS own the wires. The high-voltage transmission network moves power long distances; regional distribution networks take it the last miles to your street. These are regulated monopolies — nobody builds a second set of cables to compete — so a regulator sets what they may charge instead of a market doing it.\n\nSUPPLIERS buy electricity wholesale and sell it to you retail. This is the competitive part you experience: switching supplier changes who bills you, not who generates your power or whose wires deliver it. The electrons do not change.\n\nAnd a SYSTEM OPERATOR keeps supply and demand matched second by second, buying and selling in a balancing market to do it.\n\nThe consequence worth understanding: a supplier is a trading and billing business wearing a utility's clothes. Its costs are mostly wholesale energy and regulated charges it cannot negotiate, and its margin is the thin difference between what it bought at and what it may charge."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "The arrangement follows from privatisation in 1990 and the reforms after it. The design principle was to introduce competition wherever competition is possible and to regulate what is naturally monopoly.\n\nGeneration and supply are contestable, so they were opened to competition. Wires are not — duplicating a distribution network would be absurd — so they are regulated: a price control sets allowed revenue over a period, and the network recovers it through charges that reach you inside your unit rate and standing charge.\n\nBecause the physical system must balance continuously and the commercial system settles after the fact, the two are bridged by a settlement process: everyone declares what they expect to produce or consume, the system operator resolves the difference in real time, and money moves later according to who was out.\n\nA supplier therefore faces three cost families it does not control: wholesale energy, regulated network charges, and policy costs recovered through bills. It controls its own operating costs, its hedging strategy, and how well it manages credit — and very little else."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "If this structure is real, three things follow.\n\nSuppliers' margins should be thin and should compress when wholesale prices rise sharply, because the cost they cannot control moves faster than the price they may charge. Supplier failures should therefore cluster after price spikes rather than during calm periods.\n\nNetwork charges should be stable and regionally different — set by a slow regulatory process, not by a market — so they should show up as steps rather than as volatility.\n\nAnd wholesale prices should be volatile in a way retail prices are not. The retail price is a smoothed, lagged, regulated version of a wholesale price that moves half-hourly."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page. This site does carry nearly ten years of real half-hourly settlement data, and the wholesale price page shows what that volatility looks like — but the structural claims above are argued from how the market is arranged rather than demonstrated from data here."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "This page describes the arrangement, not its performance. Whether competition in supply has delivered what it was meant to is a live and contested question that this page does not enter.\n\nIt also does not cover the interconnectors that link Great Britain to other markets, which increasingly set the price at the margin, nor the capacity market that pays for availability rather than energy."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source. It does not name the current market participants, deliberately: those change, and a page listing them would be wrong quietly. And it does not explain how the price itself is set — that is the wholesale price page's subject, linked from here."
-    }
-   }
-  },
-  "merit-order-residual-demand": {
-   "meta": {
-    "topic_id": "merit-order-residual-demand",
-    "title": "Merit order and residual demand",
-    "subtitle": "Why the cheapest generation in the country does not set the price, and the most expensive one running does.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of how the market clears. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "Ofgem/Elexon on NETA and BETTA (self-dispatch, bilateral trading, ESO as residual balancer); Elexon BSC history; DESNZ Review of Electricity Market Arrangements",
-     "note": "Checked against published sources, and this check CORRECTED THE PAGE. The marginal-pricing economics hold and are unchanged. What did not hold was the mechanism: the page said generators 'are dispatched cheapest-first', which describes the Electricity Pool that GB ABOLISHED IN 2001. Under NETA and then BETTA, participants trade bilaterally and SELF-DISPATCH; the system operator is the residual balancer via the Balancing Mechanism, not a scheduler. The cheapest-first order is emergent, not administered. Corrected in the headline and explained in the theory rung, and the correction matters beyond wording -- it is what makes the imbalance page's 'a supplier buys what it EXPECTS to be used' the same story rather than a different one."
-    }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "Generation stacks up cheapest-first and the price settles at the running cost of the last unit needed to meet demand — an outcome competing generators produce for themselves rather than an order anyone issues — so the price is set by the most expensive plant running, not by the average of what is running."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "Stack every available generator in order of what it costs to run for one more hour. Wind and solar sit at the bottom: their fuel is free, so their running cost is near zero. Nuclear is low and inflexible. Gas is higher, and how much higher depends on the gas price and the carbon price. The most expensive plant sits at the top.\n\nNow draw a line across that stack at the level of demand. Everything to the left runs; everything to the right does not. The plant the line lands on is the MARGINAL plant, and its running cost is the price.\n\nThis is why a windy day is cheap and a still, cold evening is expensive: not because wind is being sold cheaply, but because on a windy day the line falls further down the stack, and on a still evening it climbs to something expensive.\n\nIt is also why 'we generate a lot of renewables, so why are bills high?' has an answer that sounds unfair but is not mysterious. Renewables push the line down; they do not remove the plant at the top. As long as gas is sometimes needed to meet the last slice of demand, gas sometimes sets the price for everyone."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "RESIDUAL DEMAND is the quantity that makes this concrete: total demand minus everything generating at near-zero running cost. It is the amount that has to be met by plant with a fuel bill, and it is the number that determines where on the stack the line falls.\n\nResidual demand is what makes prices weather-driven. Demand itself moves with temperature and time of day; the zero-cost supply moves with wind and sun. Subtracting one from the other produces something more volatile than either, because a still cold evening is a high-demand and low-renewable event at the same time.\n\nThe pricing rule itself — everyone receiving the marginal price rather than their own cost — is deliberate. It gives every generator an incentive to bid its true running cost: bid above it and you do not run when you could have profited; bid below it and you may be dispatched at a loss. The rule that looks like a windfall for cheap plant is what makes the stack honest.\n\nNOBODY DISPATCHES THIS STACK. Great Britain has had no central pool since 2001: under NETA, and from 2005 BETTA, participants trade bilaterally and SELF-DISPATCH, with the system operator acting as residual balancer through the Balancing Mechanism rather than as a scheduler. The cheapest-first ordering is therefore emergent, not administered — a generator whose running cost sits above the price simply chooses not to sell, and the stack arranges itself. This matters when reading the picture: the merit order is a description of what competition produces, and the plant actually running in any half hour can depart from it, because contracts were struck in advance against forecasts that were wrong."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "Price should correlate far better with residual demand than with demand alone. Two half-hours with identical demand should show very different prices if one is windy and the other is not.\n\nThe relationship should be convex: as residual demand rises into the scarce, expensive end of the stack, price should rise faster than linearly, because the stack itself steepens at the top.\n\nAnd as installed renewables grow over years, the same demand should map to lower prices on average, with the extremes unchanged — because the bottom of the stack has grown while the top has not moved."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page, but the closest thing to it on this site is the wholesale price page, which reconstructs the GB price from weather and demand and shows where that reconstruction fails. The convexity claim above is exactly what such a reconstruction stands or falls on."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "The simple stack story omits constraints: a plant may be cheap and still not run because the network cannot move its output to where demand is. Resolving those constraints costs money that appears elsewhere on the bill, and it is a growing share.\n\nIt also omits storage and interconnection, both of which behave unlike generators — they can be either side of the line depending on price expectations rather than on running cost."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source. It does not quantify the stack for any particular period, and it does not address whether marginal pricing should be reformed — an active policy debate that this page deliberately stays out of."
-    }
-   }
-  },
-  "gas-wholesale": {
-   "meta": {
-    "topic_id": "gas-wholesale",
-    "title": "The gas market, and why it prices electricity too",
-    "subtitle": "Britain heats with gas and often generates with it, so the gas price reaches a household twice.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of the GB gas market. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "National Gas Transmission (NBP definition, NTS linepack, End-to-End Balancing Guide); DESNZ 'The role of gas storage and other forms of flexibility' (Dec 2023); House of Commons Library on GB storage capacity",
-     "note": "Checked against published sources. The structural claims hold: the NBP is a VIRTUAL location for sale, purchase and exchange of gas; the system is balanced end-of-day rather than instantaneously, with linepack -- gas held in the pipes -- as the buffer. The storage claim holds and has been SHARPENED rather than left vague: GB holds about a fifth of European storage capacity, and Rough alone is roughly 70% of what remains. One IMPORTANT MISSING CONTEXT added on this check: low storage is not simply a shortfall, it is paired with diversified supply. STILL UNCHECKED: how often gas is the marginal generator -- the number the whole indirect-link argument turns on, and the page's own scope_delta already says so."
-    }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "Gas is traded as a commodity delivered to a national virtual point, and because gas-fired plant is frequently the marginal generator, the gas price sets both the gas half of a dual-fuel bill and much of the electricity half."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "Gas arrives in Britain from domestic production, from pipelines, and as liquefied gas by ship. Once it is in the system it is fungible — traders buy and sell it at a notional national point rather than at a particular terminal, which is what makes a single national price possible.\n\nThat price matters to a household twice over. Directly: it is the commodity behind the gas half of the bill. And indirectly: when gas plant is the marginal generator, the gas price plus the carbon cost of burning it sets the electricity price for that half-hour.\n\nThis is the single most important thing to understand about why the 2021-22 crisis hit British bills so hard. A gas price shock is not one shock to a dual-fuel household; it is two, arriving through different parts of the bill, one of them disguised as an electricity cost."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "The gas system is physically balanced over a GAS DAY rather than instantaneously, which makes it more forgiving than electricity: gas can be packed into the pipe network and drawn down, so the system tolerates short mismatches in a way the electricity system cannot.\n\nBecause storage exists and demand is strongly seasonal, gas trades along a forward curve with a pronounced winter shape. Britain has relatively little storage compared with some European neighbours, which makes it more dependent on flowing supply and therefore more exposed to interruptions when demand peaks — around a fifth of European storage capacity, and a single facility, Rough, accounts for roughly 70% of what Britain does have. That is a strategic choice as much as a shortfall: continental systems lean on stored gas as a winter baseload, whereas Britain leans on diversity of supply — domestic production, Norwegian pipeline gas and LNG — to do the same job. The consequence for prices is that Britain's winter depends more on flows arriving and less on gas already in the ground, which is why the forward curve reacts to cargo economics rather than only to stock levels.\n\nThe link into electricity runs through the running cost of a gas turbine: fuel cost divided by efficiency, plus the carbon cost of the emissions. That number is what a gas plant bids, and when it is the marginal plant, that number is the electricity price."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "Gas and electricity prices should be strongly correlated, with the correlation strengthening in periods when gas is marginal more often and weakening as low-cost generation displaces it.\n\nGas demand should be far more seasonal than electricity demand, because it is dominated by heating. Its daily shape should track temperature closely.\n\nAnd the forward curve should show a persistent winter premium — the market pricing the certainty that demand rises when it is cold."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page. This site models gas and electricity together for the same households and settles both against real market history, so the two-shocks-in-one claim is something the simulation experiences rather than asserts — but that evidence lives on the pages about the simulation, not here."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "This page does not cover the gas industry's own systems for registration, metering and reconciliation, which differ substantially from electricity's and are a real source of operational complexity for a supplier.\n\nIt also treats liquefied gas as simply another source, which understates how much its arrival patterns and global competition for cargoes now drive the European price."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source. It carries no prices and no storage figures, and it does not quantify how often gas is the marginal generator — which is the number the whole indirect-link argument turns on."
-    }
-   }
-  },
-  "carbon-price": {
-   "meta": {
-    "topic_id": "carbon-price",
-    "title": "The UK carbon price",
-    "subtitle": "Two separate charges on emitting a tonne of carbon dioxide, both of which end up inside an electricity price.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of UK carbon pricing. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "GOV.UK, UK ETS policy overview + participating guidance; House of Commons Library briefing SN05927 (Carbon Price Floor); HMRC Excise Notice CCL1/6",
-     "note": "Checked against published UK government sources. The two-mechanism structure holds: a capped traded scheme (UK ETS) and a fixed support rate (Carbon Price Support). Power generation is in UK ETS scope, one allowance must be surrendered per tonne of CO2e, and the cap declines -- GOV.UK's wording is 'The cap decreases over time'. The coal-to-gas switching claim is directly supported. ONE SIMPLIFICATION CORRECTED on this check: CPS is levied on FUEL, not on tonnes -- see the plain-terms rung."
-    }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "Emitting carbon in UK power generation costs money through two mechanisms — a traded allowance price set by a capped market, and a fixed tax per tonne — and because both are running costs of a fossil generator, both are passed into the price that generator bids."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "If you burn gas to make electricity in Britain, you pay for the carbon twice, in two different ways.\n\nThe first is an EMISSIONS TRADING SCHEME. The government caps the total tonnes that may be emitted and issues allowances up to that cap. Emitters must hold an allowance for every tonne. Allowances are traded, so their price is set by a market — and because the cap tightens over time, the mechanism is designed to make emitting progressively more expensive.\n\nThe second is a FIXED SUPPORT PRICE — Carbon Price Support, introduced because the traded price alone was considered too low and too uncertain to drive investment away from coal. Strictly it is charged on the FUEL rather than on the tonne: the rates sit inside the Climate Change Levy and fuel duty and are set per unit of gas or coal, calibrated so that they amount to a target price per tonne of carbon dioxide. The distinction matters if you ever go looking for the rate, because you will find it quoted per unit of fuel.\n\nTogether they form the carbon cost a generator faces. It is a running cost like fuel, so it enters the merit order the same way: it raises what a fossil plant must bid, which changes where in the stack it sits, and when that plant is marginal it raises the price everyone receives.\n\nThe effect that surprises people is that carbon pricing raises the price of electricity generated with no carbon at all. Wind is paid the marginal price; if carbon costs push the marginal gas plant's bid up, wind receives more. That is the mechanism working as designed — it is what makes low-carbon generation more profitable and therefore more attractive to build — but it does mean the cost lands on every unit consumed."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "The two instruments do different jobs. A cap-and-trade scheme fixes the QUANTITY of emissions and lets the price find its level; a fixed tax fixes the PRICE and lets the quantity respond. Running both means the total carbon cost has a floor set by policy and a variable component set by a market.\n\nA generator's carbon cost per unit of electricity depends on the carbon intensity of its fuel and its efficiency: a modern gas turbine emits substantially less per unit than an old coal plant, so the same carbon price penalises coal far more. That differential is the mechanism by which carbon pricing changed the British generation mix — it did not ban coal, it made coal the more expensive way to make the same electricity, and the merit order did the rest.\n\nBecause the carbon cost is per tonne rather than per unit of electricity, it is also a lever on the ORDER of the stack, not just its height: it can move gas below coal, which is precisely what it was intended to do."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "Coal generation should decline as the combined carbon cost rises past the point where gas becomes cheaper to run than coal, and that switch should be visible as a fairly sharp transition rather than a gradual drift.\n\nThe implied cost of carbon in electricity prices should move with the traded allowance price, so that periods of high allowance prices show up as higher prices at times when fossil plant is marginal — and not at times when it is not.\n\nAnd the carbon intensity of the grid should fall over years in a way that tracks the changing mix rather than changing demand."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page. The grid's actual half-hourly carbon intensity is published openly and is one of the connections this project has identified but not yet built, so no measured carbon series is presented here."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "This is the fastest-moving subject in this section and the one most exposed to policy change: scheme design, cap trajectories, free allocation rules and the linkage between the UK and EU schemes have all been under active review, and any of them can change the mechanism this page describes rather than merely the number.\n\nThe page also does not cover how carbon costs reach industrial consumers, where compensation schemes materially change the picture."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source, which matters more here than on any other page in this section — carbon policy changes faster than the mechanisms described elsewhere. It carries no allowance price and no tax rate deliberately, and it does not address whether the current combination is set at the right level."
-    }
-   }
-  },
-  "imbalance-cashout-settlement": {
-   "meta": {
-    "topic_id": "imbalance-cashout-settlement",
-    "title": "Imbalance, cash-out and settlement",
-    "subtitle": "Everyone contracts for what they expect to use; the system operator fixes the difference in real time; and the money moves months later.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of GB settlement. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "Elexon BSC Imbalance Pricing Guidance and BSC glossary (settlement runs); Ofgem Electricity Balancing SCR analysis",
-     "note": "Checked against Elexon/Ofgem. All three structural claims hold, and two were made MORE precise on this check. (1) Half-hourly settlement periods: confirmed. (2) Cash-out derived from the system operator's actual balancing actions: confirmed, and the direction rule is explicit -- when the system is SHORT the price is built from actions to increase generation or reduce demand, and vice versa. (3) Iterative reconciliation: confirmed, and the page now names the runs. ONE THING THE PAGE GOT RIGHT BUT UNDER-EXPLAINED, now added: there are formally TWO prices (System Buy and System Sell) with a SINGLE calculation, so SBP equals SSP in every period -- which is why 'the cash-out price', singular, is correct today and was not always. CAVEAT ON VINTAGE: the run timings are quoted from Elexon's current glossary, but the settlement timetable has been reformed more than once and the corroborating Ofgem material is from 2014; treat the months as the shape of the cycle, not a guarantee of today's calendar. Re-check on the fast cadence."
-    }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "The commercial market settles in half-hour blocks against contracted positions, the physical system is balanced continuously by the system operator, and the gap between the two is priced at a cash-out rate and reconciled repeatedly over the following months as real meter data replaces estimates."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "A supplier does not buy the electricity its customers actually use. It buys what it expects them to use, in advance, in half-hourly blocks. Its customers then use whatever they use.\n\nThe difference is IMBALANCE, and it is not free. The system operator has to make up any shortfall in real time by paying someone to generate more or consume less, and it charges that cost back to whoever was out of balance, at a price called the CASH-OUT price. Being short when the system is short is expensive; being long when the system is long is unrewarding.\n\nThis is why forecasting is a commercial function for a supplier and not an administrative one. A supplier that predicts its customers' consumption badly pays for the privilege, every half hour, forever.\n\nAnd then the numbers change. The initial settlement uses estimates — many meters are not read every half hour, or not read at all for months. As real data arrives, the industry re-runs the calculation, and money moves again. A trading day is not finally settled for a long time after it is over."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "Three ideas do most of the work.\n\nSETTLEMENT PERIODS: the market is divided into half-hour blocks, and every position, price and volume is defined per block. This is why half-hourly data is the natural grain of everything in this industry.\n\nCASH-OUT PRICING: there are formally two prices, System Buy and System Sell, but a single calculation produces both, so they are equal in every settlement period — which is why the industry says 'the cash-out price' in the singular, and why a supplier is not penalised twice for being on the wrong side. The price applied to imbalance is derived from what the system operator actually paid to resolve it, so that being out of balance in the direction that hurt the system is expensive and being out in the helpful direction is not. The design intent is to make accurate contracting worth doing without turning imbalance into a punishment.\n\nRECONCILIATION RUNS: settlement is deliberately iterative — six runs per settlement day (II, SF, R1, R2, R3, RF), with the Initial Settlement Run about a month after the day and the reconciliation runs following at roughly two, five and seven months as estimated data is replaced by real meter reads. An initial run uses whatever data exists; subsequent runs, at defined intervals over the following months, replace estimates with actuals. Each run can move money in either direction.\n\nThe consequence for a supplier's accounts is that a period's true cost is not known when the period ends, is not known when the customer is billed, and may still move after the accounts for that year are closed."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "Cash-out prices should be far more volatile than wholesale prices, with occasional extreme values in tight periods — they are a scarcity signal, and scarcity is rare and sharp.\n\nThe correction between initial and final settlement should be systematically larger for suppliers with more estimated meter reads, and should shrink over time as half-hourly metering spreads.\n\nAnd the direction of the corrections should not be consistently favourable to anyone. A supplier whose reconciliation always moves in its favour has a forecasting bias, not good luck."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page. This site's simulation settles against real half-hourly market data and models the reconciliation timetable as a real mechanism rather than assuming settlement is final on the day — but that account belongs to the pages about the simulation."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "This page describes the shape of settlement rather than its rules, which are long, precise, and revised through a formal modification process. Anyone reasoning about a specific charge needs the code itself.\n\nIt also does not cover the arrangements for gas, which reconcile on a different basis and a different timetable, nor the changes underway to move the industry to market-wide half-hourly settlement."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source. It names no cash-out prices and no reconciliation intervals, and it does not explain how a supplier hedges against imbalance risk — which is the hedging page's subject."
-    }
-   }
-  },
-  "hedging-forward-market": {
-   "meta": {
-    "topic_id": "hedging-forward-market",
-    "title": "Hedging and the forward market",
-    "subtitle": "Why a supplier buys energy years before it is used, and what it is really buying.",
-    "wall_placement": "Public-reality commons only. Everything here is a published feature of how energy is traded forward. No figure produced by this project's simulation appears on this page.",
-    "claim_freshness": {
-     "last_verified": "2026-08-19",
-     "written": "2026-08-18",
-     "source": "Ofgem 'Price cap - Decision on changes to the wholesale methodology' (Aug 2022); Ofgem call for input 'Adapting the price cap methodology for resilience in volatile markets' (Dec 2021); Ofgem backwardation allowance decision (Nov 2025)",
-     "note": "Checked, WITH AN HONEST LIMIT ON WHAT CHECKING MEANS HERE. Most of this page is reasoning about why a supplier hedges, and reasoning is not the kind of claim a source settles -- saying otherwise would dress an argument up as a citation. What IS externally checkable are the page's two hooks into the real regime, and both hold. (1) The cap does embed an assumed hedging approach and therefore does shape strategy for anyone pricing at it: Ofgem changed the wholesale methodology after 2021-22 to quarterly updates and later added an ex-ante backwardation allowance, explicitly so suppliers recover a hedging cost when they incur it. (2) The 2021-22 failures were real and large -- Ofgem had consented to supplier-of-last-resort levy claims totalling GBP 1.83 billion by December 2021 -- and the resilience measures the page alludes to followed from them. STILL OPEN, and the scope_delta keeps saying so: no typical hedge ratios, and no account of the financial-resilience rules themselves."
-    }
-   },
-   "rungs": {
-    "headline": {
-     "heading": "The claim, in one sentence",
-     "body": "A supplier that has sold a fixed-price tariff has promised a price for energy it has not bought, so it buys forward to lock that cost in — and what it is buying is not cheapness but certainty, which is why hedging looks like a mistake roughly half the time."
-    },
-    "plain": {
-     "heading": "In plain terms",
-     "body": "Sell a customer a fixed price for a year and you have taken a position: you owe them energy at a known price and you do not yet own it. If wholesale prices rise before you buy, you lose the difference on every unit. That is not a risk a supplier can carry at retail margins — the margin is thin enough that a modest adverse move wipes out the whole year.\n\nSo suppliers buy ahead, in the forward market, in tranches over time, building up cover for a period before it arrives.\n\nThe part that is widely misunderstood is what this achieves. Hedging does not make energy cheaper. It fixes the price, which means that whenever the market moves, the hedge is worse than not hedging — either you locked in above the market and look foolish, or you locked in below it and look clever. Over a long run those cancel; what remains is that you knew your cost. A supplier that hedges is buying predictability with an expected cost of roughly zero and an occasional embarrassing headline.\n\nThe suppliers that failed in 2021-22 largely failed because they had sold fixed prices without buying the corresponding cover, and the market moved."
-    },
-    "theory": {
-     "heading": "How it works",
-     "body": "The forward curve is a set of prices for delivery in future periods — next month, next quarter, next winter. It is not a forecast in the ordinary sense: it is the price at which someone will commit today, which embeds both expectations and the cost of bearing risk.\n\nA hedging strategy is a schedule: what fraction of expected demand to have bought by what point before delivery. Buying everything early maximises certainty and forgoes any chance of a better price; buying late does the opposite. Most real strategies ramp up cover as delivery approaches.\n\nTwo things make it harder than it sounds. First, the quantity is uncertain — a supplier hedges expected demand, and demand depends on weather and on how many customers it still has. Over-hedge and you own energy you must sell back, possibly at a loss. Second, the SHAPE is uncertain: demand is not flat, so buying a flat block leaves the peaks and troughs to be squared up closer to the day.\n\nAnd hedging costs cash before it saves money. Forward positions require collateral, and a sharp market move against a position triggers demands for more of it — which is how a supplier that is solvent on paper can fail on liquidity."
-    },
-    "expected_shape": {
-     "heading": "What the data should look like",
-     "body": "A hedged supplier's realised cost should be smoother than the spot price and should lag it, resembling a moving average of the forward curve at the times it bought.\n\nThe gap between hedged cost and spot should swing through zero across a long enough period. A hedge book that is consistently better than spot is not a good hedging strategy; it is a sign that the comparison is wrong.\n\nAnd collateral requirements should spike when prices move sharply in either direction, because both directions can be adverse depending on which side of the trade you are on."
-    },
-    "live_evidence": {
-     "heading": "Live evidence",
-     "body": "Not shown on this page. This site's simulated supplier hedges its book against real historical prices and reports the resulting cost, which is where the smoothing and lag claims above could be seen — but that is the simulation's evidence, not this page's."
-    },
-    "residuals": {
-     "heading": "Where our picture is still weak",
-     "body": "This page describes hedging as a supplier does it. It does not cover the instruments in detail, nor the credit arrangements that determine how much collateral a given counterparty demands — which in practice decides which strategies a small supplier can afford at all.\n\nIt also does not address the interaction with the price cap, where the cap's own assumed hedging profile effectively prescribes a strategy for anyone pricing at the cap."
-    },
-    "scope_delta": {
-     "heading": "What this page does not yet establish",
-     "body": "It has not been checked against a published source. It carries no prices, no typical hedge ratios, and no account of how hedging is actually regulated — which matters, because a supplier's hedging is subject to requirements intended to stop the 2021-22 failures recurring."
-    }
-   }
   }
- }
 }

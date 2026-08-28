@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys &mdash; What it costs to win a customer, and to keep one</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="stylesheet" href="../../brand/brand.css">
+<!-- Freshness banner (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10, property 3): this page
+     renders live figures, so it must state how current they are. One line, one asset,
+     no page-authored freshness sentence -- see site/assets/freshness-banner.js. -->
+<script src="../../assets/freshness-banner.js" data-figures="none" defer></script>
+<style>
+/* Brand palette consumed from ../../brand/brand.css (BRAG tokens, no raw hex). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+
+
+
+
+
+.wrap { max-width: 1060px; margin: 0 auto; padding: 40px 20px; display: grid; grid-template-columns: 1fr 260px; gap: 32px; }
+@media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+h1.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 14px; }
+.reviewline { font-size: 12px; margin-bottom: 16px; }
+.badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 2px 6px; vertical-align: middle; }
+.badge.rev-fresh { color: var(--green); border: 1px solid var(--green); }
+.badge.rev-due { color: var(--amber); border: 1px solid var(--amber); }
+.badge.rev-stub { color: var(--muted); border: 1px solid var(--border); }
+.badge.rev-unchecked { color: var(--amber); border: 1px solid var(--amber); }
+.reviewline .rd { color: var(--muted); margin-left: 6px; }
+.claim { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--teal);
+  border-radius: 10px; padding: 18px 20px; font-size: 15px; line-height: 1.65; margin-bottom: 18px; }
+.nolevel { background: var(--surface); border: 1px solid var(--amber); border-radius: 10px;
+  padding: 14px 16px; font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.nolevel b { color: var(--amber); }
+h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin-bottom: 10px; margin-top: 34px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.card p { margin-bottom: 12px; }
+.card p:last-child { margin-bottom: 0; }
+.card p.bullet { padding-left: 14px; }
+.muted { color: var(--muted); font-size: 12px; }
+.side .card { padding: 14px 16px; }
+.side h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
+.topiclink { display: block; padding: 8px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text); }
+.topiclink:last-child { border-bottom: none; }
+.topiclink .t { display: block; font-size: 13px; font-weight: 600; }
+.topiclink .e { display: block; font-size: 11px; color: var(--muted); }
+.edgetype { font-size: 10px; color: var(--teal); font-family: ui-monospace, monospace; }
+.fic { font-size: 11px; color: var(--muted); margin-top: 28px; border-top: 1px solid var(--border); padding-top: 12px; }
+.weak { border-left: 3px solid var(--amber); }
+
+/* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
+   requires one only ever looked at nine top-level doors, none of them Knowledge. */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../../" class="nav-logo wordmark">poesys.</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="../../" class="nav-link">Home</a>
+  <a href="../" class="nav-link active">Knowledge</a>
+  <a href="../../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../../explore/" class="nav-link">Explore</a>
+  <a href="../../harness/" class="nav-link">Harness</a>
+  </span>
+  <!-- IA-NAV:END -->
+</nav>
+<div class="wrap">
+  <main>
+    <h1 id="hero-h" class="hero-h">How the GB electricity market fits together</h1>
+    <p id="hero-sub" class="hero-sub"></p>
+    <div id="review-state" class="reviewline"></div>
+
+    <div id="r-headline" class="claim"></div>
+    <div id="r-nolevel" class="nolevel"></div>
+
+    <h2 class="sec" id="h-plain"></h2>
+    <div id="r-plain" class="card"></div>
+
+    <h2 class="sec" id="h-theory"></h2>
+    <div id="r-theory" class="card"></div>
+
+    <h2 class="sec" id="h-shape"></h2>
+    <div id="r-shape" class="card"></div>
+
+    <h2 class="sec" id="h-evidence"></h2>
+    <div id="r-evidence" class="card weak"></div>
+
+    <h2 class="sec" id="h-residuals"></h2>
+    <div id="r-residuals" class="card weak"></div>
+
+    <h2 class="sec" id="h-scope"></h2>
+    <div id="r-scope" class="card weak"></div>
+
+    <div id="wall-note" class="fic"></div>
+  </main>
+  <aside class="side">
+    <div class="card">
+      <h3>Related topics</h3>
+      <div id="sidebar"></div>
+    </div>
+    <div class="card">
+      <h3>This page</h3>
+      <div class="muted" id="page-note"></div>
+    </div>
+  </aside>
+</div>
+<script>
+function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function set(id,html){ var e=document.getElementById(id); if(e) e.innerHTML=html; }
+// Paragraphs come from the record as newline-separated prose. A line opening with a bullet
+// keeps its indent; nothing else is interpreted, so the record cannot smuggle markup onto
+// the page.
+function paras(text){
+  return String(text || "").split("\n").filter(function(p){ return p.trim(); })
+    .map(function(p){
+      var b = /^[•]/.test(p.trim());
+      return '<p class="' + (b ? "bullet" : "") + '">' + esc(p.trim()) + "</p>";
+    }).join("");
+}
+
+// THE REVIEW RULE, mirrored from site/knowledge/review_state.py -- identical to the stub
+// template's copy, and held to it by site/knowledge/test_review_state.py, which drives every
+// implementation and requires the same verdict. FAIL-CLOSED: no recorded check reads NEVER.
+function reviewState(topic, policy, today){
+  var days = (policy && policy.threshold_days && policy.threshold_days[topic && topic.rate_of_change]) || 92;
+  var rec = (topic && topic.reviewed) || {};
+  var raw = rec.last_verified;
+  var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
+  if (!when || isNaN(when.getTime())) {
+    // FOUR states. A STUB declares itself unwritten and makes no claim to distrust; an
+    // UNCHECKED page makes a full argument nobody has verified. Only a CHECK moves either.
+    if (!topic || topic.kind !== "page") {
+      return { state:"stub", label:"Not written yet", days_allowed:days, written:null,
+               detail:"This page names its topic and says it is not written. It makes no claim to check." };
+    }
+    return { state:"unchecked", label:"Written, awaiting check", days_allowed:days,
+             written: rec.written || null,
+             detail:(rec.written ? "Written " + rec.written + ". " : "") +
+                    "The explanation below has not been checked against the published source." };
+  }
+  var age = Math.floor((today - when) / 86400000);
+  if (age - days > 0) {
+    return { state:"due", label:"Review due", days_allowed:days, age_days:age,
+             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
+  }
+  return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
+           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
+                  (rec.source ? " Source: " + rec.source + "." : "") };
+}
+
+function neighboursFromEdges(d, topic){
+  var byId={}; d.topics.forEach(function(t){ byId[t.id]=t; });
+  var seen={}, out=[];
+  d.edges.forEach(function(e){
+    var other=null, rel=null;
+    if(e.from===topic){ other=e.to; rel=e.type; }
+    else if(e.to===topic){ other=e.from; rel=e.type; }
+    if(other && !seen[other]){ seen[other]=1; out.push({id:other, rel:rel, topic:byId[other]}); }
+  });
+  return out;
+}
+
+function render(page, graph){
+  var m = page.meta, r = page.rungs;
+  set("hero-sub", esc(m.subtitle));
+  set("r-headline", "<b>" + esc(r.headline.heading) + ".</b> " + esc(r.headline.body));
+  set("r-nolevel", m.no_current_level
+    ? "<b>No current figure on this page.</b> " + esc(m.no_current_level)
+    : "<b>No current figure on this page.</b> Every number here is a published anchor, not a "
+      + "reading from this project's simulation.");
+
+  var pairs = [["plain","h-plain","r-plain"],["theory","h-theory","r-theory"],
+               ["expected_shape","h-shape","r-shape"],["live_evidence","h-evidence","r-evidence"],
+               ["residuals","h-residuals","r-residuals"],["scope_delta","h-scope","r-scope"]];
+  pairs.forEach(function(p){
+    set(p[1], esc(r[p[0]].heading));
+    set(p[2], paras(r[p[0]].body));
+  });
+
+  set("wall-note", esc(m.wall_placement));
+  set("page-note", "A written page, not a stub. It explains the mechanism and deliberately "
+    + "carries no current cap level, because that changes every quarter and the mechanism does not.");
+
+  var me = null;
+  graph.topics.forEach(function(t){ if(t.id === m.topic_id) me = t; });
+  if (me) {
+    var rv = reviewState(me, graph.review_policy, new Date());
+    set("review-state", '<span class="badge rev-' + esc(rv.state) + '">' + esc(rv.label) +
+      '</span><span class="rd">' + esc(rv.detail) + "</span>");
+  }
+  var ns = neighboursFromEdges(graph, m.topic_id);
+  set("sidebar", ns.length ? ns.map(function(n){
+    var t = n.topic || {title:n.id, blurb:""};
+    return '<a class="topiclink" href="../' + esc(n.id) + '/"><span class="edgetype">' + esc(n.rel) +
+      '</span><span class="t">' + esc(t.title) + '</span><span class="e">' + esc(t.blurb || "") + "</span></a>";
+  }).join("") : '<div class="muted">No linked topics.</div>');
+}
+
+if (typeof window !== "undefined" && window.document && document.getElementById("r-headline")) {
+  Promise.all([
+    // THE CONSOLIDATED FILE, keyed on this page's slug. `knowledge_topics.json`'s own note
+    // records the decision to stop growing one data file per page; until 2026-08-28 nothing
+    // read it, so the consolidation existed and rendered nowhere. This page is the first to
+    // implement it. The older pages keep their per-page files until someone migrates them --
+    // deliberately not migrated here, because a page whose data moves is a page that has to be
+    // re-checked, and that is its own piece of work.
+    fetch("../../data/knowledge_topics.json?t=" + Date.now()).then(function(r){ return r.json(); }),
+    fetch("../../data/knowledge_wholesale.json?t=" + Date.now()).then(function(r){ return r.json(); })
+  ]).then(function(both){
+     var page = (both[0].pages || {})["acquisition-and-retention-economics"];
+     if (!page) {
+       // FAIL CLOSED. A missing slug renders the absence, never a blank page that looks written.
+       set("r-headline", "This page's entry is not in the consolidated Knowledge file, so nothing "
+         + "is shown. The page exists; its content does not.");
+       return;
+     }
+     render(page, both[1]);
+   })
+   .catch(function(e){
+     set("r-headline", "This page could not load its content (" + esc(e) + "). Nothing is shown rather than a partial explanation.");
+   });
+}
+</script>
+</body>
+</html>

@@ -985,6 +985,17 @@
         "last_verified": "2026-08-24",
         "source": "HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes"
       }
+    },
+    {
+      "id": "acquisition-and-retention-economics",
+      "title": "Winning a customer, and keeping one",
+      "kind": "page",
+      "blurb": "Acquisition is a commission you pay someone else; retention is margin you give up yourself. Since 2022 a licence condition says so.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-08-28",
+        "source": "Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74"
+      }
     }
   ],
   "edges": [
@@ -1047,6 +1058,16 @@
       "from": "carbon-price",
       "type": "part-of",
       "to": "non-commodity-costs"
+    },
+    {
+      "from": "acquisition-and-retention-economics",
+      "type": "part-of",
+      "to": "gb-electricity-market"
+    },
+    {
+      "from": "acquisition-and-retention-economics",
+      "type": "bounded-by",
+      "to": "price-cap"
     }
   ],
   "review_policy": {
