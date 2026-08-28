@@ -20,7 +20,7 @@
     "run_id": "run_output_28eaca4c9_20260828T064812Z.json",
     "verified_at": "2026-08-28T07:04:10Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=01ac4b751; blocking tests: FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_staleness_fires_for_EVERY_registered_artefact, FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh, FAILED tests/background/test_derived_artefact_register.py::TestRepair::test_repair_re",
+  "paused_reason": "scoped publish-path suite red at git=e3ee53cc5; blocking tests: FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_staleness_fires_for_EVERY_registered_artefact, FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh, FAILED tests/background/test_derived_artefact_register.py::TestRepair::test_repair_re",
   "paused_since": "2026-08-28T07:51:08Z",
   "schema": 1,
   "showing_run": {
@@ -30,5 +30,5 @@
     "verified_at": "2026-08-28T07:04:10Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-28T13:17:25Z"
+  "written_at": "2026-08-28T13:52:28Z"
 }
