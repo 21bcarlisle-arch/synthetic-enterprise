@@ -874,7 +874,8 @@ def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict
     ]
 
 
-def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None):
+def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None,
+         gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
@@ -885,6 +886,18 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         option B). Defaults to CURRENT_POLICY -- every existing caller sees zero
         behaviour change. tools/run_frozen_baseline.py passes NAIVE_POLICY for the
         superseded pre-14a/15b/43b comparison run.
+    gap_ledger_path: where the live payment triad publishes its coupled-gap entry.
+        Defaults to None, i.e. the LIVE observability ledger -- correct for a real run
+        and refused outright inside a test process by `live_ledger_guard`.
+
+        THE INJECTION POINT EXISTED AND STOPPED ONE LEVEL SHORT (2026-08-27).
+        `LivePaymentTriad.measure_and_write` already took `ledger_path=`, and the guard's
+        own refusal message tells the caller to "pass an explicit ledger_path=tmp_path"
+        -- but `main()` had no way to express it, so EVERY test running the full pipeline
+        hit the guard and there was no legal way past. That is a control correctly
+        refusing an action nobody could avoid: the fix is a route, never a weakening of
+        the guard, which exists because a test's 276-invoice fixture book once overwrote
+        the real ledger and republished the public Proof door 2.68x too low.
     """
     effective_end = report_end or REPORT_END
     policy = policy or CURRENT_POLICY
@@ -1168,6 +1181,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # is the point: an empty list here and a list of flat-margin choices are different facts, and
     # only one of them means "this run priced per customer".
     value_arm_log: list[dict] = []
+    # THE DENOMINATOR OF `value_arm_log` (2026-08-28). One row per renewal the rate chain saw,
+    # on EVERY arm including the control, carrying the guard that stopped it. Non-empty on the
+    # control arm by design -- that is what makes "the world offered N renewals" readable from a
+    # run in which the arm priced none, and it is why this is a separate list rather than more
+    # rows in `value_arm_log` (whose emptiness under `flat_rules` the A/B asserts).
+    value_arm_funnel_log: list[dict] = []
     # EP2 sub-atom 3 (2026-08-13, WORKER_FINDING_TWO_PRICING_LOOPS_...): four writers move one
     # `unit_rate` at renewal — the portfolio premium, the margin surcharge, the profitability
     # uplift and the domestic price cap. Each of their own logs used to record a before/after
@@ -1355,6 +1374,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         margin_feedback_log.extend(_chain.margin_feedback_entries)
         profitability_uplift_log.extend(_chain.profitability_uplift_entries)
         value_arm_log.extend(_chain.value_arm_entries)
+        value_arm_funnel_log.extend(_chain.arm_funnel_entries)
         if _chain.decomposition is not None:
             rate_decomposition_log.append(_chain.decomposition)
 
@@ -2607,7 +2627,8 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             ).strip()
         except Exception:
             _triad_head = None
-        _triad_result = _payment_triad.measure_and_write(run_git_commit=_triad_head)
+        _triad_result = _payment_triad.measure_and_write(
+            run_git_commit=_triad_head, ledger_path=gap_ledger_path)
         if _triad_result is not None:
             _det = _triad_result["detection"]
             print(
@@ -2834,6 +2855,8 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "margin_feedback_log": margin_feedback_log,
         "profitability_uplift_log": profitability_uplift_log,
         "value_arm_log": value_arm_log,   # the value cycle's per-renewal decisions
+        # ...and the population those decisions were drawn FROM. See the list's own note.
+        "value_arm_funnel_log": value_arm_funnel_log,
         "demand_response_log": demand_response_log,   # Phase 52
         "hedge_var_log": hedge_var_log,
         "dynamic_pricing_log": dynamic_pricing_log,

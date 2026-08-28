@@ -300,9 +300,31 @@ def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
     emitting half of the seam; `tests/saas/reporting/test_annual_report.py` holds the reading
     half. Both are needed: a rename on either side is silent, because the report's read is a
     `.get` that would quietly fall back to the book.
+
+    WHAT THIS TEST ASSERTS AND WHAT IT NO LONGER TRIES TO (2026-08-28, repairing the red
+    diagnosed in `docs/observability/RED_DISPOSITION_TWO_REDS_THAT_REFUSED_THE_COMPOSITE_LAND_2026-08-27.md`).
+    This test used to end in a null control asserting that at least one year in the window
+    distinguishes accumulation order from date order. That control was RIGHT and it was firing:
+    measured on this fixture, the treasury runs 250,000 -> 254,242 and there is no peak-to-trough
+    fall of `DRAWDOWN_THRESHOLD_PCT` (10%) anywhere in it, so the book has ZERO drawdown events
+    under either ordering and the containment loop below iterates over nothing. The window was
+    truncated from the full decade to 2016-2017 as a throughput fix, and that truncation removed
+    every year in which the treasury actually draws down -- converting a real control into a
+    vacuous one, which is exactly what the null control existed to announce.
+
+    The legal repairs were: widen this window until it contains a drawdown (paying a multi-minute
+    run in the hot path, and requiring a search over windows to find one), or move the
+    ordering-discrimination property onto a book CONSTRUCTED to contain the drawdowns, driven
+    through the same production seam. The second was taken:
+    `test_the_register_sees_a_drawdown_the_daily_book_cannot` below holds the containment
+    property, the strictly-more property and the null control, on a book where all three can
+    fire, in milliseconds. What stays here is what this expensive fixture can still genuinely
+    witness: that a REAL run emits the register at all, that it is strictly richer than a walk of
+    its own retained book, and that the fold is wired. Lowering the 10% threshold, deleting the
+    null control or excluding this file would each have weakened a control that was telling the
+    truth.
     """
     from saas.reporting.annual_report import (
-        _drawdown_events,
         _drawdown_events_by_year,
         _treasury_path_from_book,
     )
@@ -326,9 +348,14 @@ def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
     book_path = _treasury_path_from_book(all_records)
     reg_events = _drawdown_events_by_year(register)
     book_events = _drawdown_events_by_year(book_path)
+    # Vacuous on THIS window by measurement (see the docstring), and kept anyway: it costs
+    # nothing and becomes live the moment anyone widens the fixture. The discriminating version
+    # is the constructed-book test below, which is where a reader should look for the proof.
     for year, events in book_events.items():
         for event in events:
-            assert event in reg_events.get(year, []), (
+            assert _drawdown_identity(event) in [
+                _drawdown_identity(e) for e in reg_events.get(year, [])
+            ], (
                 "the daily book finds a {} drawdown the per-period register missed -- the "
                 "register is being fed somewhere other than the single point `all_records` is "
                 "extended, or it is dropping turning points".format(year))
@@ -341,21 +368,122 @@ def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
         "no record in the retained book is a fold of several periods -- the fold is not wired, "
         "and this test is no longer testing what it says it is")
 
-    demonstrated = False
-    for year in sorted({r["settlement_date"][:4] for r in all_records}):
-        yr = [r for r in all_records if r["settlement_date"][:4] == year]
-        accumulation = [r["treasury_cash_balance_gbp"] for r in yr]
-        re_sorted = _drawdown_events([
-            r["treasury_cash_balance_gbp"]
-            for r in sorted(yr, key=lambda r: (r["settlement_date"],
-                                               r.get("settlement_period") or 0))
-        ])
-        if re_sorted != _drawdown_events(accumulation):
-            demonstrated = True
+
+def _drawdown_identity(event: dict) -> tuple:
+    """A drawdown event's IDENTITY, which is not the whole dict.
+
+    `_drawdown_events_by_year` stamps each event with `sequence`, its position in the ONE walk
+    that produced it. That is a property of the walk, not of the swing: the register and the
+    daily book are two different walks, and the containment property asserted above --
+    "the register may see more than the book, never less" -- entails that the register's
+    sequences shift whenever it sees an extra event the book cannot. Comparing whole dicts
+    therefore contradicts the property it is written to check, and would red on a register that
+    is behaving exactly as designed. The swing itself is (peak, trough, depth).
+    """
+    return (event["peak_gbp"], event["trough_gbp"], event["drawdown_pct"])
+
+
+#: One term of a constructed portfolio: `(day, period, balance)` triples, half-hourly, in the
+#: order the term loop produces them. Kept as data so a mutation can be aimed at one number.
+_TERM_A = [
+    ("2020-01-01", 1, 100_000.0), ("2020-01-01", 2, 100_000.0),
+    ("2020-01-01", 3, 100_000.0), ("2020-01-01", 4, 100_000.0),
+    # A 15% dip that opens AND closes inside 2020-01-02: the day's close is 100,500, so a reader
+    # of daily rows cannot see it at all. This is the drawdown the register exists for.
+    ("2020-01-02", 1, 100_000.0), ("2020-01-02", 2, 85_000.0),
+    ("2020-01-02", 3, 88_000.0), ("2020-01-02", 4, 100_500.0),
+    ("2020-01-03", 1, 100_500.0), ("2020-01-03", 2, 101_000.0),
+    ("2020-01-03", 3, 101_500.0), ("2020-01-03", 4, 102_000.0),
+]
+
+#: The SECOND term, settled after the whole of the first, over the SAME three days -- which is
+#: what makes date-order re-sorting interleave two customers' balances and is the defect the
+#: register was built against. Carries a 16.7% drawdown that spans days, so the daily book can
+#: see this one.
+_TERM_B = [
+    ("2020-01-01", 1, 102_000.0), ("2020-01-01", 2, 101_000.0),
+    ("2020-01-01", 3, 95_000.0), ("2020-01-01", 4, 90_000.0),
+    ("2020-01-02", 1, 88_000.0), ("2020-01-02", 2, 87_000.0),
+    ("2020-01-02", 3, 86_000.0), ("2020-01-02", 4, 85_000.0),
+    ("2020-01-03", 1, 90_000.0), ("2020-01-03", 2, 95_000.0),
+    ("2020-01-03", 3, 105_000.0), ("2020-01-03", 4, 110_000.0),
+]
+
+
+def _constructed_term(customer_id: str, rows) -> list[dict]:
+    return [
+        {
+            "customer_id": customer_id,
+            "commodity": "electricity",
+            "settlement_date": day,
+            "settlement_period": period,
+            "treasury_cash_balance_gbp": balance,
+        }
+        for day, period, balance in rows
+    ]
+
+
+def test_the_register_sees_a_drawdown_the_daily_book_cannot():
+    """The discriminating half of the register's contract, on a book built to contain drawdowns.
+
+    Driven through the PRODUCTION seam, not a re-implementation of it: `run_phase2b.main` feeds
+    `treasury_drawdown.add(settled_this_term)` and `all_records.extend(fold_to_days(...))` from
+    the same per-period list, once per term, and that is exactly what this does. What it does not
+    pay for is a simulated year -- which is the whole reason the expensive fixture above could
+    not host these assertions once its window was truncated past the last real drawdown.
+    """
+    from saas.reporting.annual_report import (
+        _drawdown_events,
+        _drawdown_events_by_year,
+        _treasury_path_from_book,
+    )
+    from simulation.settlement_daily import TreasuryDrawdown, fold_to_days
+
+    treasury_drawdown = TreasuryDrawdown()
+    all_records: list[dict] = []
+    for customer_id, rows in (("C_A", _TERM_A), ("C_B", _TERM_B)):
+        term = _constructed_term(customer_id, rows)
+        treasury_drawdown.add(term)
+        all_records.extend(fold_to_days(term))
+
+    register = treasury_drawdown.points()
+    book_path = _treasury_path_from_book(all_records)
+    reg_events = _drawdown_events_by_year(register)
+    book_events = _drawdown_events_by_year(book_path)
+
+    # The population is non-empty on BOTH sides, so every assertion below has something to bite
+    # on. Asserted, not assumed: this is the exact condition the truncated fixture window failed.
+    assert book_events.get("2020"), "the constructed book contains no drawdown to contain"
+    assert reg_events.get("2020"), "the constructed register contains no drawdown at all"
+
+    # THE REGISTER MAY SEE MORE THAN THE BOOK, NEVER LESS -- the containment half.
+    reg_identities = [_drawdown_identity(e) for e in reg_events["2020"]]
+    for event in book_events["2020"]:
+        assert _drawdown_identity(event) in reg_identities, (
+            "the daily book finds a drawdown the per-period register missed: {}".format(event))
+
+    # ...and the MORE half, which containment alone cannot express: the 2020-01-02 dip opens and
+    # closes inside one day, so it is present in the register and absent from the daily closes.
+    intraday = (100_000.0, 85_000.0, 0.15)
+    assert intraday in reg_identities, (
+        "the register lost the intraday drawdown, which is the only thing it exists to carry")
+    assert intraday not in [_drawdown_identity(e) for e in book_events["2020"]], (
+        "the daily book can see the intraday dip, so this fixture is not testing the gap "
+        "between the two and the assertion above proves nothing")
+    assert len(register) > len(book_path)
+
+    # The fold really happened, or the two paths are the same object under two names.
+    assert any(r.get("settlement_periods_folded", 1) > 1 for r in all_records)
 
     # NULL CONTROL: on a book settled term-by-term the two orderings genuinely disagree, so the
-    # equality asserted above is a fact about the register rather than about a book whose order
-    # happens not to matter.
-    assert demonstrated, (
-        "no year in this window distinguishes accumulation order from date order, so this test "
-        "would pass against the defect it exists to catch")
+    # containment above is a fact about the register rather than about a book whose order happens
+    # not to matter. This is the assertion the 2016-2017 fixture could no longer make.
+    accumulation = _drawdown_events([r["treasury_cash_balance_gbp"] for r in all_records])
+    re_sorted = _drawdown_events([
+        r["treasury_cash_balance_gbp"]
+        for r in sorted(all_records, key=lambda r: (r["settlement_date"],
+                                                    r.get("settlement_period") or 0))
+    ])
+    assert re_sorted != accumulation, (
+        "accumulation order and date order agree on this book, so it cannot distinguish the "
+        "register from the re-sorting defect it was built against")
