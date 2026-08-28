@@ -1555,7 +1555,12 @@
   block_reason: null
   depends_on: []
   couples_with: [A47_the_score_has_no_household_side, A46_book_depth_is_a_curriculum_question]
-  file_scope: ['saas/enterprise_value.py', 'docs/design/', 'tools/', 'tests/']
+  # NAMED FILES. Tree globs sweep other lanes' in-flight work and the level gate refuses a
+  # level declared over source the commit does not contain -- learned on A47 the same day.
+  file_scope: ['docs/design/A48_MEASURING_THE_METHOD_FRAME.md',
+               'company/analytics/household_value_share.py',
+               'tools/run_value_cycle_ab.py',
+               'tests/tools/test_run_value_cycle_ab.py']
   real_world_twin: "an asset manager whose value is the strategy and the pipeline that finds trades, not the current positions -- the positions are how you prove the strategy works, and a firm that confuses the two optimises the wrong asset"
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: C30_advice_reaches_a_household

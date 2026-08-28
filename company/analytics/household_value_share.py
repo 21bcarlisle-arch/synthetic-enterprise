@@ -30,9 +30,9 @@ The mission: "creating enterprise value by automating ways to find individual
 customers we can create value for, and SHARING in that value — by saving them
 money, time and carbon". Value is created and then shared, so every decision has
 two sides. The score had one: SURVIVE and EARN are the company's by
-construction, and ABATE — though it counts a household's tonnes — is
-instrumented as our £/tCO₂e and is not instrumented at all yet. Nothing anywhere
-computed what a household kept.
+construction, and ABATE — though it counts a household's tonnes — is SCORED as
+our £/tCO₂e, and is not instrumented at all yet. Nothing anywhere computed what a
+household kept.
 
 That absence is not cosmetic. It is the structural reason the profit maximiser
 kept finding the price cap
@@ -47,7 +47,7 @@ the mission asks, because the two are not the same and conflating them would be
 the whole error over again.
 
     counterfactual_gbp   what this household would have paid on the published
-                         default tariff over the same periods, at its own
+                         default tariff over the same settled rows, at its own
                          metered volumes
     paid_gbp             what it actually paid us (settled revenue)
     household_saving_gbp counterfactual - paid   <- the HOUSEHOLD's share
