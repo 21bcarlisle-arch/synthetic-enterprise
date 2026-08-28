@@ -1,233 +1,276 @@
 version: 1
-oriented_at: "2026-08-28T20:24:51.890173+00:00"
+oriented_at: "2026-08-28T23:22:14.091405+00:00"
 thesis_read: >-
-  The world can now press and the company cannot feel it, and that sentence is the whole state of
-  the thesis this stretch. `b44c55fa1` gave the price ladder a continuous surface and the defending
-  market resolved at every rung — the chase costs +0.0068 at rung 0 rising monotonically to +0.0451
-  at rung 2, 34 of 68 paired observations moved and every one of them upward — while the company's
-  `believed_p_leave` is bit-identical between the chase-on and chase-off worlds to one part in
-  10^12. So the morning's null was the instrument, not the effect, and that is real progress; but
-  what the repaired instrument reveals is that on the one dimension the world has just gained, the
-  company's only competitor signal is `company/crm/market_conditions.market_conditions_multiplier`,
-  a ten-entry hardcoded year lookup. The thesis says the advantage must come from INFERENCE and
-  never from ACCESS. There is presently nothing to infer from: the channel is a constant, so a
-  supplier that understood the market perfectly and one that understood it not at all would hold
-  the identical belief. That is the gap that matters and it is company-side. Second, `0850eadcd`
-  landed the sourced acquisition and retention costs — campaign spend fell £135,285 to £23,708.90
-  and the invented constants are gone rather than shadowed — but the published arms artefact was
-  generated at 14:08:48Z, five hours before that commit, so the £153,245 / £157,913 on
-  `/capabilities/` is still denominated in constants the tree has deleted, and the pre-registered
-  prediction about what the re-run will show is filed with no answer beside it. Third, and this is
-  the correction the brief itself needs: it reports `drawn: []` for all five previous focus items,
-  and that is false in effect. A lane-0 tick is at this moment running `git commit` with
-  `tests/simulation/test_founder_book.py` in its gate selection, carrying my second focus item
-  verbatim; the sourced-cost item was drawn and delivered and then re-drawn 8m39s after the commit
-  that satisfied it. The steer IS biting. What is broken is that a re-issued claim can never be
-  credited with work that already landed (`73759660f`), so the seat's only instrument for reading
-  its own direction reports a no-op over work in flight — and a seat that believes its steer is
-  dead will do the one thing that actually kills it, which is stop steering and start re-issuing.
-  Nothing went backwards this stretch; but two of roughly eight ticks were spent re-doing finished
-  work, which is a quarter of the delivery capacity paid to a bookkeeping defect.
+  The company can now infer competitive pressure instead of looking it up, and at HEAD it still
+  cannot. That sentence is the whole state of the thesis tonight, and both halves are real.
+  `401a51eba` replaced the ten-entry year lookup with `company/crm/competitive_pressure.py` — the
+  published series as prior, the company's own realised losses against what it predicted as
+  likelihood, combined by precision weighting, over renewal years strictly earlier than the one
+  being priced. Seventeen mutation-proven controls, verifier PASS, nothing about the rival crossing
+  the wall in either direction. On a fresh paired run it moves: `max |ON − OFF|` was 0.0 at every
+  rung this morning and is 0.0132 at rung 0.5 now, in the right direction, tracking 68.1% of the
+  world's own move at that rung. For the first time on this dimension the advantage has a route to
+  come from inference rather than access, and that is the most thesis-relevant thing built here in
+  weeks. **But the two hunks in `simulation/run_phase2b.py` that open the run scope and arm the
+  loss numerator are not committed.** Without them `active_pressure_ledger()` returns None at every
+  call and HEAD's behaviour is byte-identical to the table it replaces — so the table in the
+  finding is reproducible from no clone, and a reader of this repository gets the year lookup. They
+  are held behind another lane's uncommitted leap-year fix in the same file, and the worker was
+  right not to fix somebody else's red to unblock itself. Two things I got wrong sit behind that.
+  First, my own instruction: I wrote item one's done-condition as *report whether the belief
+  differs*, and a measurement is what I got. Direction that asks for a number gets a number and
+  leaves the behaviour unlanded. Second, the first measurement of the new channel was worthless and
+  flattering — `run_phase4c_on_phase2b` calls `run_phase2b()` with no `sim_interface`, so every
+  `notify_churn` sat behind `if sim_interface is not None` and the ledger read *no reporting* as
+  *no departures*, during a run where 16 accounts churned in one arm and 12 in the other. It
+  narrowed the published gap from 20.7–28.7pp to 1.1–14.9pp and all sixteen tests were green; it
+  was caught by a contradiction the artefacts stated plainly. That guard is a pattern, not an
+  instance. Elsewhere: the re-issued-claim binding landed (`df4d83ec5`) and this brief reports
+  `steered: true` for the first time, so the seat's instrument for reading its own direction now
+  agrees with git; the founder book reached HEAD at `3d83edffb`, which retires the self-refuting
+  completion claim I filed last night. Nothing went backwards. What is drifting is the tail of this
+  list: `/capabilities/` still publishes an arms comparison denominated in constants `0850eadcd`
+  deleted, and its error bar divides a provisioned-clock spread by a realised-clock estimate; the
+  bound sentence has been named five times and rendered zero; the settlement-clocks pair has been
+  named six times and is now UNTRACKED with two modified consumers importing it. Naming a
+  ten-minute job last, six times, is how you decide never to do it. Two of them move up tonight.
 stretch_reviewed:
-  since: "2026-08-28T17:20:29.342691+00:00"
+  since: "2026-08-28T20:24:51.890173+00:00"
   commits: 8
-  substantive: 2
+  substantive: 3
 focus:
-  - id: give-the-company-an-observable-channel-for-competitive-pressure
+  - id: land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head
     what: >-
-      `company/crm/market_conditions.market_conditions_multiplier(renewal_year)` is a ten-entry
-      hardcoded table (2016: 2.17 … 2025: 0.93) and is the ONLY competitor signal reaching
-      `company/crm/enriched_churn_estimate.py` (lines 104, 139) and `company/crm/churn_model.py:217`.
-      Give the company a competitive-pressure belief it DERIVES from observables it actually
-      receives at `company/interfaces/sim_interface.py` — its own realised renewal losses, its quote
-      win rate, gross adds against losses per period — and let that derived quantity move the
-      estimate, keeping the published year series as the prior it updates from rather than the
-      answer. `simulation/competitor_reference.py`, `chase_per_quarter` and
-      `docs/design/COMPETITOR_AGGRESSION.yaml` must not cross the wall, directly or transitively;
-      the epistemic verifier is the check. Then re-run the chase-on / chase-off pair exactly as
-      `docs/staging/WORKER_FINDING_THE_LADDER_RESOLVES_THE_DEFENDING_MARKET_AND_THE_COMPANY_CANNOT_SEE_IT_2026-08-28.md`
-      documents it (one tree, identical book and seeds, `docs/observability/aggression_chase_off.yaml`,
-      asserting `aggression()["chase_per_quarter"] == 0.0` before the run) and report whether
-      `believed_p_leave` now differs between the two worlds and by how much against the gap it is
-      trying to close.
+      `simulation/run_phase2b.py` is `MM` and its working diff carries TWO lanes: the leap-year call
+      site at `@@ -767` (`from simulation.customer_events import twelve_month_window_open`, feeding
+      `_company_eac_estimate`) belongs to the customer-events lane, and the import at `@@ -28`, the
+      `arm_loss_reporting()` call at `@@ -1798` and the churn-branch booking at `@@ -2819` are the
+      competitive-pressure channel. Land them as TWO commits in that order, each attributable.
+      First: `simulation/customer_events.py`'s `twelve_month_window_open` plus that one call-site
+      hunk, with a control that fails on a 29 February term start — that fix, uncommitted since
+      19:02 tonight and in nobody's clone, is what makes
+      `tests/simulation/test_run_phase2b_event_log.py::test_sim_interface_none_still_works` pass, and
+      it is presently blocking every commit that touches `run_phase2b.py`. Second: the three pressure
+      hunks. Use `python3 -m tools.surgical_land` for both — it gates the tree the commit would
+      create, which is the only tree that matters here. Then re-run
+      `tools._ladder_chase_arm on|off` and `tools.compare_chase_belief` FROM THE LANDED TREE and
+      confirm the finding's table reproduces; if it does not, the finding's numbers are corrected
+      beside themselves, not over them. Then sweep the pattern: grep every call site of
+      `if sim_interface is not None` — `notify_acquisition` and `notify_retention_attempt` sit
+      behind the same guard — and for each say whether the observable is silently absent in every
+      `run_phase4c` run, in a finding.
     why: >-
-      This is the thesis itself, and it is now measurable for the first time. The world presses at
-      every rung and the belief does not move at all, so "the advantage comes from inference" has no
-      subject on this dimension — the company holds the same view of competition whether or not a
-      rival is chasing its book. It is also B10's remaining L3 leg and the finding names it as
-      company-side, so this is the one item here that can record a level move rather than tidy
-      something. Done means: the belief demonstrably moves between the two worlds, a control fails if
-      the channel goes back to being a constant, the verifier passes on the wall, and B10's level move
-      is RECORDED with the measured belief-vs-truth gap — or the refusal is recorded carrying its
-      numbers. A belief that still does not move is a publishable result, not a failure, provided it
-      says why.
-  - id: bind-a-reissued-claim-to-the-work-that-already-landed
+      The channel is the thesis and it is inert. `company/crm/competitive_pressure.py` is at HEAD,
+      its consumers read it, and it returns the prior unchanged at every call because the site that
+      fills its numerator is not committed — so a clone of this repository contains a company whose
+      competitive belief is a hardcoded year table, exactly as it was this morning, while the record
+      says otherwise. That is the record outrunning the code on the single most thesis-relevant
+      capability here, and it stays that way until somebody lands another lane's four-hour-old fix as
+      its own attributable commit, which is a decision and not a build. The guard sweep is second
+      because the dead wire proved that an unplumbed seam reads as a quiet market: absence of an
+      observation channel read as observation of absence, in the flattering direction, past sixteen
+      green tests. Done means `git show HEAD:simulation/run_phase2b.py` contains `arm_loss_reporting`,
+      the paired run reproduces from a clean export of HEAD, and every other observable behind that
+      guard has been checked and its state written down.
+  - id: re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers
     what: >-
-      In `background/delivery_lane.py`, `record_landing`'s `if when <= since: return []` is correct
-      for a CONTINUING claim and wrong for a RE-ISSUED one. When a focus id is re-drawn, seed the new
-      claim's comparison instant from the prior claim's rather than from the moment of the re-draw,
-      so a commit that landed before the re-draw is still bindable; leave the guard intact for a
-      first draw, where an older commit genuinely is somebody else's work. Leave a control, mutation-
-      proven, that fails if a re-drawn id can never bind any commit — the FAIL-OPEN shape pointing
-      the wrong way, where the progress reading is zero because the evidence is out of reach of the
-      check. Then run `python3 -m background.delivery_lane --landed
-      wire-the-sourced-acquisition-and-retention-costs --commit 0850eadcd` and confirm it binds, and
-      do the same for `land-the-80-founder-book-the-director-already-ruled` against whatever commit
-      the tick in flight produces.
+      The derived channel responded at one rung in four, and the finding states the mechanism rather
+      than inferring it: the ledger reads years strictly earlier than the renewal being priced, the
+      extra departures in three of four rungs fell in 2019 — the last year of the window — and a
+      departure only becomes evidence if something is priced after it. The founder book is now at
+      HEAD (`3d83edffb`, `docs/design/FOUNDER_BOOK.yaml`, 80 accounts seeded into 2016). Re-run the
+      same controlled pair on that deeper book and on a window whose final year is not the only place
+      the count can cross — same tree, identical seeds, one declared parameter differing,
+      `chase_per_quarter` asserted before each arm as `tools/_ladder_chase_arm.py` already does — and
+      report `max |ON − OFF|` per rung against the world's own move, with the realised loss counts per
+      arm per year printed beside it so the reader can see where evidence was available and where it
+      was wasted. Then either RECORD B10's level move with the measured belief-vs-truth gap, or file
+      the fourth refusal carrying its numbers and naming what is still missing.
     why: >-
-      Two ticks this stretch were spent on work that was already at HEAD — the household column on
-      2026-08-28 16:56, and the sourced costs, re-drawn 8m39s after `0850eadcd` landed them
-      including their control. The trap is permanent once sprung: the re-draw writes a fresh
-      `claimed_at`, and from that instant the satisfying commit is unbindable by anyone, forever, so
-      the brief keeps returning the same finished item and a tick obeying it literally re-implements
-      the work on top of itself. This is second and not first because the lane still DELIVERS while
-      miscrediting — the founder book is landing right now — but it is what makes every other item on
-      this list creditable, and it is what makes the record the director reviews agree with git. Done
-      means a re-drawn id can be credited with the commit that satisfied it, and this file's own
-      `previous_focus_drawn` stops reporting a no-op over work that landed.
-  - id: re-run-the-arms-on-the-sourced-cost-basis-and-answer-the-filed-prediction
-    what: >-
-      `docs/observability/value_cycle_ab_s1_three_arm.json` carries `generated_at`
-      2026-08-28T14:08:48Z; `0850eadcd` deleted `saas/growth_mandate.COST_PER_ACQUISITION` at 20:46.
-      Run `python3 -m tools.run_value_cycle_ab --level-arm` to a NEW path
-      (`docs/observability/value_cycle_ab_s1_three_arm_sourced.json`, never over the published
-      artefact — a publish runs concurrently in this tree), diff it against the published one, and
-      then do one of two things. If the arms moved, promote the new artefact, restate `/capabilities/`
-      and re-derive `0850eadcd`'s attribution split, which was measured under conditions that would
-      not then hold. If they did not move, say so on the page in terms: the sourcing repaired the
-      company's P&L and moved the comparison by nothing, because acquisition cost was never one of
-      `GROSS_TO_NET_LINES`. Either way write the outcome BESIDE the prediction in
-      `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`,
-      not over it, and read no delta smaller than the 2026-08-27 noise floor's £4,402 sd as an
-      effect.
-    why: >-
-      The site currently publishes a baseline comparison denominated in constants the tree has
-      deleted, and the thesis says the comparison is the whole point of the exercise — "or 'it
-      performed well' means nothing". A pre-registration with no answer beside it is the one artefact
-      this project cannot leave lying around, because its entire value is that it was written before
-      the result was known and that value decays the moment somebody could have seen the answer. Done
-      means the artefact exists, the prediction is graded in its own file, and a reader of
-      `/capabilities/` is told which cost basis the figures stand on.
-  - id: put-the-bound-on-the-rendered-capabilities-page
-    what: >-
-      `site/capabilities/index.html` renders `arms-split`, `arms-errorbar` and the Provisional pill
-      and contains no sentence bounding the comparison. Add to the door's render, and to the live
-      surface, that this compares two internal policies in a market that could not react to either.
-      Assert it the way `site/test_the_baseline_comparison_reaches_the_reader.py` already does —
-      drive the real door through `site/_live_harness.mjs` and read the rendered DOM, never the
-      generator output or the feed — and carry a mutation that deletes the sentence and reds the
-      test, with the existing unavailable-feed null rung staying green through it. This is
-      `SITE13_the_baseline_comparison_carries_its_bound`, level 0, file scope `site/capabilities/`.
-    why: >-
-      Fifth consecutive direction naming it. The director corrected this claim himself in
-      `DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS`; a caveat is retractable by construction, so it is
-      mine to land and not his to approve, and it is the honesty half of publishing the comparison at
-      all — which was right to do. It sits fourth because the three above change what is true and
-      this one changes what is said about it, but it does not get to keep sliding: it is small, the
-      test shape already exists in the same directory, and item one will only make the omission worse
-      by giving the page a competitor story to tell. Done means the sentence renders on the fetched
-      live page and a control fails if it stops.
+      This is the level move and it is now ten minutes of run plus a judgement. The structural half
+      of B10's L3 leg is discharged — `COMPETITOR_FIELD_FRAME` §5 component 2 returns a number for
+      the first time instead of "no response exists" — and the third refusal was right, because one
+      crossing of an integer count on a 16-decision intersection is an observation and not a curve.
+      The finding says plainly what would settle it and says there is no design question left, only
+      an `n` question, and the founder book landing is exactly the thing that changes `n`. This is
+      also the answer to the shape the last prediction got wrong: the effect is not
+      small-and-everywhere but absent-or-substantial, so the fix is more chances for the count to
+      cross, not more signal. Done means B10 moves and the move is RECORDED with the gap, or the
+      refusal names a specific missing thing that is not "more data".
   - id: land-or-delete-the-untracked-settlement-clocks-pair
     what: >-
-      `simulation/settlement_clocks.py` and `tests/simulation/test_settlement_clocks.py` are now
-      UNTRACKED, while `tools/run_annual_report.py:69` and `simulation/run_phase4c_on_phase2b.py:96`
-      sit modified-unstaged in this tree carrying `from simulation.settlement_clocks import …`.
-      Decide it: either commit supplier, test and both consumers as one pathspec, or revert the two
-      import hunks and delete the pair. Do not leave it a sixth time.
+      `simulation/settlement_clocks.py` and `tests/simulation/test_settlement_clocks.py` are
+      UNTRACKED as of 12:02 today, while `tools/run_annual_report.py:69` and
+      `simulation/run_phase4c_on_phase2b.py:96` sit modified-unstaged carrying
+      `from simulation.settlement_clocks import …`. Decide it in one move: either commit supplier,
+      test and both consumers as a single pathspec, or revert the two import hunks and delete the
+      untracked pair. `git status` showing neither the pair nor the orphaned imports is the whole
+      exit condition.
     why: >-
-      The danger changed shape and got worse rather than better. While it was staged, supplier and
-      consumers moved together; untracked, any lane that commits those two consumers by pathspec —
-      which is the normal, correct way to commit here — ships an import of a module that exists in
-      nobody's clone. It has been named in six consecutive directions, which means nobody has
-      decided it rather than that it is hard; it is a decision, not a build, and it is last because
-      it is minutes of work. Done means `git status` shows neither the untracked pair nor the
-      orphaned import lines.
+      Third from the bottom for six consecutive directions and never done, which is evidence about
+      my ordering rather than about the work — it is minutes, and naming it last again is deciding
+      it never happens. The hazard also got worse rather than better: while the pair was staged,
+      supplier and consumers moved together; untracked, any lane committing those two consumers by
+      pathspec — the normal and correct way to commit in this tree — ships an import of a module that
+      exists in nobody's clone, and takes the annual report down for everyone. It sits above the
+      publishing work because it can break another lane's commit at any moment and because it costs
+      almost nothing to remove.
+  - id: put-the-bound-on-the-rendered-capabilities-page
+    what: >-
+      Before starting this, launch item five's runs in the background so the two proceed together.
+      Then: `site/capabilities/index.html` renders `arms-split`, `arms-errorbar` and the Provisional
+      pill and contains no sentence bounding the comparison. Add to the door's render and to the live
+      surface that this compares two internal policies in a market that could not react to either.
+      Assert it the way `site/test_the_baseline_comparison_reaches_the_reader.py` already does —
+      drive the real door through `site/_live_harness.mjs` and read the rendered DOM, never the
+      generator output and never the feed — and carry a mutation that deletes the sentence and reds
+      the test, with the existing unavailable-feed null rung staying green through it. This is
+      `SITE13_the_baseline_comparison_carries_its_bound`, file scope `site/capabilities/`.
+    why: >-
+      Sixth consecutive direction naming it and it has never been rendered. The director corrected
+      this claim himself in `DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS`; a caveat is retractable by
+      construction, so it is mine to land and not his to approve, and it is the honesty half of
+      publishing the comparison at all — which was right to do. Item two makes the omission worse by
+      giving the page a competitor story to tell, so this is the last orientation where it can
+      reasonably slide. It is placed here because it is minutes of work that fits inside the wait for
+      item five's run, not because it ranks below it. Done means the sentence renders on the fetched
+      live page and a control fails if it stops.
+  - id: re-run-the-arms-and-the-noise-floor-on-the-current-basis-and-grade-the-prediction
+    what: >-
+      `docs/observability/value_cycle_ab_s1_three_arm.json` still carries `generated_at`
+      2026-08-28T14:08:48Z and `value_cycle_ab_s1_three_arm_sourced.json` does not exist — the run
+      the preregistration says is running produced no artefact. Re-launch
+      `python3 -m tools.run_value_cycle_ab --level-arm` to the new path, never over the published
+      artefact, and in the same session re-run the noise floor
+      (`value_cycle_ab_s1_noise_floor.json`, `generated_at` 2026-08-27T23:32:17Z, nine passes
+      measured beside the superseded `settled-provisioned` panel) so both legs of what the page
+      publishes stand on one clock. Then: diff, and if the arms moved, promote, restate
+      `/capabilities/` and re-derive `0850eadcd`'s 4.4%/78.0% attribution split; if they did not,
+      say on the page in terms that sourcing repaired the company's P&L by £111,576 and moved the
+      comparison by nothing, because acquisition cost was never one of `GROSS_TO_NET_LINES`. Write
+      the outcome BESIDE the prediction in
+      `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`,
+      never over it. Read no delta smaller than the old floor's £4,402 sd as an effect, and once the
+      floor is re-measured, use the new one.
+    why: >-
+      The thesis says the baseline comparison is the whole point — "or 'it performed well' means
+      nothing" — and the page currently publishes that comparison denominated in constants the tree
+      deleted, beside an error bar whose 25.2 spread-to-estimate ratio is a provisioned-clock spread
+      divided by a realised-clock estimate. Two figures, each correct in its own world, whose ratio
+      is not a quantity. The `clock_caveat` discloses it, which is why this is fifth and not first,
+      but a disclosed hole is still a hole and the re-measurement is the repair. The two runs are
+      folded into one item because they are the same instrument and running them separately pays the
+      wall-clock twice. A preregistration with no answer beside it is the one artefact this project
+      cannot leave lying around: its entire value is that it was written before the result was known,
+      and that value decays the moment somebody could have looked. Done means both artefacts carry
+      tonight's clock, the prediction is graded in its own file with the correction beside it, and a
+      reader of `/capabilities/` is told which cost basis the figures stand on.
 not_now:
   - what: >-
-      Re-naming `land-the-80-founder-book-the-director-already-ruled`, which is not in HEAD:
-      `docs/design/FOUNDER_BOOK.yaml`, `simulation/live_population.py` and
-      `tests/simulation/test_founder_book.py` are staged in the index and not committed.
+      Tuning anything so that R6 fires — acquisition spend now reaches the collateral desk and the
+      company sits £316,009 from the trigger without crossing it.
     why: >-
-      A lane-0 tick has it in hand right now — `git commit -F …` and `tools/pre_commit_test_gate.py`
-      are running with `tests/simulation/test_founder_book.py` in the selection as I write this — and
-      re-naming an item that is mid-commit is precisely the re-draw trap focus item two exists to
-      close. Its disappearance from this list is the acceptance test. If the gate refuses it, it
-      returns to the pool by the ordinary route and I will name it next orientation with the refusal
-      in hand, which is better direction than naming it blind now.
+      This is the most tempting item on the board and the most dangerous. The director called R6 the
+      prize and it is now reached; the mechanism is wired, the CMA's sentence is modelled, and it
+      does not fire. Moving any number to make it fire is precisely the failure CLAUDE.md names — a
+      constant chosen because a number was needed — and it would be load-bearing within a week. If
+      R6 should fire, that has to come out of knowledge about what real suppliers' collateral
+      actually did, not out of the gap between £316,009 and zero. The finding is RECORDED and the
+      right next move on it is discovery, not a dial.
   - what: >-
-      P8 proper — the systematic knowledge-to-discovery-to-atom-to-epoch chain (H45), which the
-      director calls the velocity multiplier.
-    why: >-
-      Still the right general mechanism and still losing to its own instances. This stretch produced
-      two more concrete cases (the sourced cost that reached no code for seven weeks, and the
-      `price_sensitivity` channel that declares itself discoverable while carrying exactly zero
-      information about the trait), and H45 was drawn by the ordinary lane anyway, so the lane is not
-      idle. Building the general chain before the third instance is repaired risks a well-designed
-      mechanism whose first real use is still ahead of it.
-  - what: >-
-      PB4 / PB5 / P2–P4 — household trait variation, within-household elasticity, and separating
-      engagement from elasticity, both of which were drawn this stretch.
-    why: >-
-      Unchanged from last direction and now better evidenced: seventeen decisions over four rungs is
-      the whole gradable population, and the ladder's own summary prints the binary leg's quantum
-      (1/17) beside the slopes it bounds. A heterogeneity model built against that population cannot
-      be rejected by it, which is the worst outcome available — an unfalsifiable improvement. Depth
-      first. The founder book landing tonight is what changes this, and it changes it for the next
-      orientation, not this one.
-  - what: >-
-      The `price_sensitivity` observable-channel repair filed as
-      `WORKER_MINTED_price_sensitivity_observable_channel_2026-08-27.md`, and re-aiming
+      The `price_sensitivity` observable-channel repair
+      (`WORKER_MINTED_price_sensitivity_observable_channel_2026-08-27.md`) and re-aiming
       `tools/couple_cohort.py`, which fabricates the observable it grades.
     why: >-
-      It is the same defect class as focus item one — a declared discovery channel that carries no
-      information — and it is genuinely owed. It loses on ordering only: the competitive-pressure
-      channel has a controlled two-world experiment sitting ready to read it, and this one does not
-      yet. Whoever repairs the first should read this file before starting, because the null-battery
-      technique in its §4 is the control the first item will need.
+      Same defect class as focus item one — a declared discovery channel carrying no information —
+      and genuinely owed for a second stretch. It loses on ordering again, but the argument has
+      improved: `company/crm/competitive_pressure.py` is now a worked example of the repair, prior
+      and likelihood and all, and whoever takes this should copy its shape rather than design a new
+      one. Its §4 null-battery technique is also what item one's guard sweep needs, so the two want
+      the same reader.
   - what: >-
-      Seed replication on the book-level P&L comparison, and the harness backlog — the repeating
-      alarms, the roughly 117 harness atoms never read for whether they should exist, and the two
-      tests failing at HEAD against a ten-day-old baseline.
+      PB4 / PB5 / P2–P4 — household trait variation, within-household elasticity, and separating
+      engagement from elasticity, all drawn by the ordinary lane this stretch.
     why: >-
-      The replication is owed and is a measurement about an effect nobody is currently quoting; the
-      harness backlog is tidying that moves no level and closes no finding. Both wait for a stretch
-      with nothing on the published surface in a state the reader would object to. Note that the
-      ladder finding already showed my last direction's replication ask was malformed for the
-      per-decision comparison, so this is the narrower survivor of it, not the same request re-filed.
+      Held for the same reason as last direction, but the reason has an expiry date now. Sixteen
+      decisions over four rungs is still the gradable population, and a heterogeneity model built
+      against it cannot be rejected by it — an unfalsifiable improvement, the worst outcome
+      available. What changes it is focus item two, which measures what the founder book actually
+      buys in gradable decisions. If that comes back with a population that can reject a model, this
+      moves to the top of the next direction on its own evidence.
+  - what: >-
+      P8 proper — the systematic knowledge-to-discovery-to-atom-to-epoch chain (H45), the velocity
+      multiplier.
+    why: >-
+      Still the right general mechanism, still losing to its own instances, and H45 was drawn by the
+      ordinary lane anyway so it is not idle. This stretch produced yet another instance rather than
+      an argument for the general form: the derived-pressure channel exists because one specific
+      lookup was chased to its source. Building the chain before its third instance is repaired
+      risks a well-designed mechanism whose first real use is still ahead of it.
+  - what: >-
+      The harness backlog — ten repeating-alarm findings sitting in the staging root, the ~117
+      harness atoms never read for whether they should exist, and the reuse convention that
+      manufactures false callers.
+    why: >-
+      Tidying that moves no level and closes no finding, and the staging root is a work queue rather
+      than a filing cabinet, so their sitting there is itself the signal. They wait for a stretch
+      with nothing on the published surface in a state the reader would object to — which this is
+      not, since `/capabilities/` is currently publishing a comparison on a deleted cost basis.
+  - what: >-
+      B10's §5 ceiling gap — giving the company an observation of the cheapest rival price rather
+      than only of its own losses.
+    why: >-
+      A real design question and the honest remaining half of B10, but it cannot be reasoned about
+      until the loss-based channel is live in HEAD and measured on a population that can grade it.
+      Deciding what a second competitor observable should be, while the first one returns its prior
+      at every call, is designing against a channel nobody has seen work.
 wrong:
   - what: >-
-      `docs/design/held/README.md` states the founder book "Landed in HEAD" and ends "Nothing is
-      currently held", while `docs/design/FOUNDER_BOOK.yaml` and
-      `tests/simulation/test_founder_book.py` do not exist in HEAD and are sitting staged in the
-      shared index. A completion claim written in the working tree about the working tree is
-      self-refuting, and this one deleted the held artefacts on the strength of it — so if the gate
-      refuses the commit, the patch that was the fallback is gone.
+      My own instruction. I wrote focus item one's done-condition as "report whether
+      `believed_p_leave` now differs between the two worlds and by how much", and that is exactly
+      what came back: a measurement, a finding, and a channel that is inert at HEAD because the two
+      hunks that fill its numerator are uncommitted. Direction that asks for a number gets a number.
+      A focus item whose subject is a behaviour must define done as the behaviour being reachable
+      from a clean export of HEAD, not as a table in a document.
     corrected: false
   - what: >-
-      My previous direction asked for seed replication on the price-ladder pair. That was the wrong
-      instrument: `realized_churn_probability` is computed before the roll and the roll never enters
-      it, so replicating seeds would have published an error bar on a quantity whose variance from
-      that source is structurally zero — a misleading bar, not a conservative one. The worker refused
-      the ask and said why, which is the behaviour the refusal rule exists to produce.
+      The first measurement of the competitive-pressure channel was an artefact and moved in the
+      flattering direction. `run_phase4c_on_phase2b.main` calls `run_phase2b()` with no
+      `sim_interface`, so every `notify_churn` sat behind `if sim_interface is not None`, the ledger
+      filled its denominator and left its numerator at zero, and read no-reporting as no-departures
+      during a run that churned 16 accounts in one arm and 12 in the other. It appeared to collapse
+      the published over-prediction gap from 20.7–28.7pp to 1.1–14.9pp. All sixteen tests were
+      green; it was caught by a contradiction the artefacts stated plainly.
     corrected: true
   - what: >-
-      An intermediate reading of the morning's ladder artefacts had the chase effect DECAYING with
-      price and a one-sided-mechanism story assembled to explain it. The fresh controlled pair shows
-      it growing monotonically with the rung. The two pairs ran on different trees, so the difference
-      is unattributable and was not attributed; the discarded story is recorded beside the result so
-      it is not re-derived from the stale artefacts.
+      The channel's first weight formula was not monotone in the thing it observes. Using the Wald
+      variance evaluated at the realised proportion, 200 decisions predicting 0.30 gave 0.542 on 30
+      observed losses and 0.594 on zero — a belief reading MORE competitive pressure from FEWER
+      departures. Caught by printing the table across real sample sizes before shipping the formula,
+      not by thinking about it; evaluating under the null fixes it.
     corrected: true
   - what: >-
-      The direction mechanism handed a lane-0 tick a brief to do work that had been at HEAD for
-      fourteen minutes, and will keep doing so: `record_landing` refuses a commit older than the
-      claim, and a re-draw makes that commit permanently unbindable. Diagnosed and filed at
-      `73759660f`; the repair is not built.
+      A control written for the no-departures window could not fail: it asserted finite-and-below-
+      prior, and deleting the continuity correction it was written to catch yields exactly 0.0,
+      which is both. Zero means no customer can ever leave at any price — the captive floor
+      `_apply_market_conditions` was rewritten in survival space to remove, arrived at from the
+      other side.
+    corrected: true
+  - what: >-
+      One test module that could not be imported blinded the entire operational layer, and R3's
+      earlier pass left it behind. The commit gate selects tests, so a collection error costs the
+      whole suite rather than one file.
+    corrected: true
+  - what: >-
+      Last direction I recorded that `docs/design/held/README.md` claimed the founder book had
+      landed while it was only staged — a completion claim written in the working tree about the
+      working tree. It landed at `3d83edffb`, so the record and the code now agree; the claim was
+      premature rather than false, which is the distinction worth keeping.
+    corrected: true
+  - what: >-
+      Six consecutive directions have named the settlement-clocks pair in last or near-last place
+      and it has never been done, while the hazard grew from staged to untracked. That is a defect
+      in my ordering, not in the lane: a ten-minute decision placed below two multi-hour builds is a
+      decision I have declined to make six times. It moves to third tonight.
     corrected: false
-  - what: >-
-      I read the brief's `previous_focus_drawn: {drawn: [], steered: false}` as evidence the steer
-      was not biting, and last direction I wrote that four of five items were unreachable. The
-      binding half of that diagnosis was right; the reachability half was not — items ARE reaching
-      lane-0 ticks and being worked. The lane cannot see the landings, which is a different and
-      smaller problem than the one I described.
-    corrected: true
 for_the_director: []
