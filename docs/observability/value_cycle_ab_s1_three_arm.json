@@ -2,6 +2,47 @@
   "generated_at": "2026-08-27T21:56:34Z",
   "report_end": null,
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
+  "superseded_by_repair": {
+    "status": "THIS FILE WAS WRITTEN BEFORE THE 2026-08-28 CLOCK REPAIR AND CARRIES THE DEFECT. Nothing below has been recomputed -- the numbers in this file are exactly what the run produced. This block names which clock each of them is on, because two of them were published as if they were on the same one.",
+    "the_defect": "`control_arm.total_net_gbp` = GBP 113,282.62 and `gross_to_net_bridge.control_arm.net_margin_gbp` = GBP 153,244.79 are two net margins for the SAME arm on the SAME run, GBP 39,962.17 apart, and `level_vs_selection.basis` claimed the verdict was read off `net_margin_gbp` from the settled records while it in fact summed the first. The difference equals the bad-debt difference (46,428.5849 provisioned against 6,466.41 realised) to the penny.",
+    "it_was_not_a_settled_versus_banked_pair": "Both figures are SETTLED. `simulation/run_phase2b.py:2499-2503` freezes total_net, total_bad_debt and final_treasury at the end of the settlement loop; `simulation/run_phase4c_on_phase2b.py` then mutates `phase2b.all_records` IN PLACE (`apply_emergent_bad_debt` replaces the flat-rate provision with the arrears model's realised write-offs, `apply_debt_recovery` credits back the DCA proceeds, both carrying the delta through `treasury_cash_balance_gbp`) and nothing refreshes those three scalars. The arm blocks read the frozen scalars; the bridge walks the mutated rows. There is no BANKED clock in this world to appeal to: treasury is a running total of settled net margin, which is why `final_treasury_gbp` here is exactly 250,000 + the frozen net.",
+    "clock_of_each_figure_in_this_file": {
+      "settled-provisioned (flat-rate bad-debt provision, superseded within the run)": [
+        "control_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
+        "value_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
+        "level_arm.total_net_gbp / total_bad_debt_gbp / final_treasury_gbp",
+        "realised_delta.net_margin_gbp, realised_delta.bad_debt_gbp",
+        "level_vs_selection.* (every net and advantage figure in that block)"
+      ],
+      "settled-realised (arrears model's realised write-offs and recoveries)": [
+        "gross_to_net_bridge.control_arm.* and .value_arm.*",
+        "gross_to_net_bridge.net_delta_contribution_gbp.*"
+      ]
+    },
+    "gross_and_capital_are_unaffected": "The arrears engine touches `bad_debt_gbp`, `net_margin_gbp` and `treasury_cash_balance_gbp` only, so `total_gross_margin_gbp` and `total_capital_cost_gbp` agree between the arm block and the bridge to 1e-9 and are on one clock.",
+    "the_basis_the_arms_are_now_scored_on": "SETTLED-REALISED, for three reasons stated in `tools/run_value_cycle_ab.py::level_vs_selection` and not for its size: the provisioned bad-debt line is a calibrated company assumption and this artefact scores nothing the company believed; the realised sum is the figure `run_output_latest.json` and the site publish; and it is the LESS flattering of the two, which is recorded here rather than quietly banked (R12).",
+    "what_moves_when_the_two_arms_here_are_restated": {
+      "control_arm_net_gbp": {
+        "settled-provisioned": 113282.617135,
+        "settled-realised": 153244.79203499746
+      },
+      "value_arm_net_gbp": {
+        "settled-provisioned": 120648.836081,
+        "settled-realised": 157913.20076099221
+      },
+      "value_advantage_gbp": {
+        "settled-provisioned": 7366.218946,
+        "settled-realised": 4668.4087259947555
+      },
+      "bad_debts_contribution_to_the_value_arms_advantage_gbp": {
+        "settled-provisioned": 2481.39022,
+        "settled-realised": -216.42
+      },
+      "the_sign_question_settled": "The two bases disagree on the SIGN, and the realised one stands: bad debt COSTS the value arm GBP 216.42 of its advantage. The provisioned GBP 2,481.39 'saving' is the flat rate tracking a smaller billed volume, not a single customer paying who otherwise would not have."
+    },
+    "level_vs_selection_cannot_be_restated_from_this_file": "The level arm's realised net cannot be derived here. Its provisioned net (120,823.404062) and provisioned bad debt (44,129.542497) are in this file, but its REALISED bad debt is not -- `gross_to_net_bridge` walks the control and value arms only, so the level arm's mutated rows were never summed and are not recoverable from the artefact. So: whether `selection_gbp` = MINUS GBP 174.57 moved is NOT answered here and must not be inferred. It is answered by re-running the three arms on the repaired code, which now sums every arm from the rows and audits the labels before it publishes. What IS known: the denominator of `level_share_of_advantage` falls from 7,366.22 to 4,668.41, so an unchanged numerator would move the share, and the published 102.4% does not survive the restatement unchanged whatever the level arm's realised net turns out to be.",
+    "the_repair": "`tools/run_value_cycle_ab.py::realised_metrics` now sums net, bad debt and treasury from `all_records` and keeps the frozen scalars as `provisioned_*` under their own declared clock; `clock_definitions` and a per-figure `clocks` map are published; and `clock_audit` refuses an artefact that publishes two net margins for one arm without a declared clock on each, or two figures sharing a clock that disagree. R15-proven by four mutations in `tests/tools/test_run_value_cycle_ab.py`, each of which reds it, plus a null rung showing the repaired artefact passing."
+  },
   "book_identity": {
     "control_arm": {
       "served_segments": [

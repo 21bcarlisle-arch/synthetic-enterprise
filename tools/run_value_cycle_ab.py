@@ -103,6 +103,48 @@ ARMS_ARTEFACT = PROJECT_DIR / "docs" / "observability" / "value_based_pricing_ar
 BOUND_DECIDED_HEADLINE_SHARE = 0.5
 
 
+#: EVERY CLOCK ANY FIGURE IN THIS ARTEFACT IS STATED ON, each traced to the code that produces
+#: it (R14: no financial figure without its clock). Two clocks and no more -- and in particular
+#: NOT `banked`, which this world does not have as a distinct reading: `treasury_cash_balance_gbp`
+#: is a running total of settled net margin, so `final_treasury - starting_treasury` reproduces
+#: the settled net exactly rather than measuring cash arriving on some other date. Publishing a
+#: "banked" label here would have been a name for a clock that does not exist.
+CLOCK_DEFINITIONS = {
+    "settled-realised": (
+        "SETTLED, on the world's realised payment behaviour. Summed over "
+        "`phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after "
+        "`simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and "
+        "`apply_debt_recovery`, which replace the flat-rate provision in each row with the "
+        "write-offs and DCA recoveries the arrears model actually produced, and carry the "
+        "difference through `treasury_cash_balance_gbp`. This is the SAME sum "
+        "`saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in "
+        "`docs/reports/run_output_latest.json`, which is the figure the site shows."
+    ),
+    "settled-provisioned": (
+        "SETTLED, on the flat-rate bad-debt PROVISION, and superseded within the same run. "
+        "`simulation/run_phase2b.py:2499-2503` sums the same rows at the end of the settlement "
+        "loop, before the arrears engine has touched them, so its `bad_debt_gbp` is still "
+        "`get_bad_debt_rate()` x billed amount -- a calibrated company assumption, not an "
+        "outcome. Published here NAMED rather than dropped, because the run's own summary dict "
+        "still carries these scalars and a reader who meets one elsewhere (e.g. "
+        "`run_output_latest.json:final_treasury_gbp`) needs to know which figure it is."
+    ),
+}
+
+#: Which clock each figure a `realised_metrics` block publishes is stated on. Written INTO the
+#: block, so it travels with the numbers into the JSON where the reader is, and so `clock_audit`
+#: has something in the artefact to read rather than re-deriving from this module -- a check that
+#: consulted the code that produced the figure would be R15's tautology pattern.
+ARM_FIGURE_CLOCKS = {
+    "total_net_gbp": "settled-realised",
+    "total_bad_debt_gbp": "settled-realised",
+    "final_treasury_gbp": "settled-realised",
+    "provisioned_net_gbp": "settled-provisioned",
+    "provisioned_bad_debt_gbp": "settled-provisioned",
+    "provisioned_final_treasury_gbp": "settled-provisioned",
+}
+
+
 def realised_metrics(result: dict) -> dict:
     """What the WORLD did to one arm's book. Nothing the company believed appears here.
 
@@ -110,6 +152,26 @@ def realised_metrics(result: dict) -> dict:
     settled margin, the accounts that actually left, the money that actually failed to arrive.
     `expected_value_gbp` -- the quantity the arm maximises -- is deliberately absent, because a
     comparison that included it would be scoring the arm on its own objective.
+
+    THE NET MARGIN IS SUMMED FROM THE ROWS, NOT READ OFF THE RUN'S SUMMARY, and that is the
+    repair of a defect this artefact published (2026-08-28). `phase2b["total_net"]`,
+    `["total_bad_debt"]` and `["final_treasury"]` are scalars frozen at
+    `simulation/run_phase2b.py:2499-2503`. `simulation/run_phase4c_on_phase2b.py` then mutates
+    `phase2b["all_records"]` IN PLACE -- `apply_emergent_bad_debt` replaces the flat-rate
+    provision with the arrears model's realised write-offs, `apply_debt_recovery` credits back
+    the DCA proceeds, and both carry the delta through the treasury column -- and nothing
+    refreshes those three scalars. So the arm block published GBP 113,282.62 of control-arm net
+    while `gross_to_net_bridge`, walking the very same list, published GBP 153,244.79: the
+    entire GBP 39,962.17 difference is the bad-debt line moving between the two reads, to the
+    penny (46,428.5849 provisioned against 6,466.41 realised).
+
+    IT WAS NEVER A SETTLED-VERSUS-BANKED PAIR. Both figures are SETTLED; one is stale. The
+    superseded read is kept as `provisioned_*` under its own declared clock rather than deleted,
+    because deleting it leaves the next reader who meets `total_net` in a run dict with no way
+    to tell which of the two they are holding -- and one of those readers,
+    `saas/reporting/annual_report.py:916`, is still publishing it as the site's final treasury
+    beside a realised net margin (`WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_
+    CLOCK_2026-08-28`).
     """
     phase2b = result["phase2b"]
     ev = result["enterprise_value"]["portfolio"]
@@ -128,8 +190,21 @@ def realised_metrics(result: dict) -> dict:
                 "A zero here would be indistinguishable from a real zero.")
         return phase2b[key]
 
+    # The same refusal as `figure()`, one level down: an arm with no rows cannot be scored on
+    # the realised clock, and a zero-filled block would be indistinguishable from an arm whose
+    # world happened to settle to nothing. `_bridge_one_arm` refuses on identical grounds.
+    records = phase2b.get("all_records")
+    if not isinstance(records, list) or not records:
+        raise ValueError(
+            "this arm's run carries no `phase2b.all_records`, so its realised net margin "
+            "cannot be summed and only the superseded provisioned scalars would remain. "
+            "Refusing to report a figure on a clock this run cannot support.")
+    realised_net = sum(float(r.get("net_margin_gbp", 0.0) or 0.0) for r in records)
+    realised_bad_debt = sum(float(r.get("bad_debt_gbp", 0.0) or 0.0) for r in records)
+    realised_treasury = float(records[-1].get("treasury_cash_balance_gbp", 0.0) or 0.0)
+
     return {
-        "total_net_gbp": figure("total_net"),
+        "total_net_gbp": realised_net,
         # GROSS, and named for it (R14: no financial figure without its basis). This is revenue
         # minus wholesale, before levies, network, capital and bad debt -- the same basis
         # `simulation/portfolio_pnl.py` uses, and NOT the net line above.
@@ -139,14 +214,22 @@ def realised_metrics(result: dict) -> dict:
         # deductions between them left a GBP 30,924 gap that had to be recorded as
         # `observed and unexplained` -- see `gross_to_net_bridge` for the full walk.
         "total_capital_cost_gbp": figure("total_capital"),
-        "total_bad_debt_gbp": figure("total_bad_debt"),
-        "final_treasury_gbp": figure("final_treasury"),
+        "total_bad_debt_gbp": realised_bad_debt,
+        "final_treasury_gbp": realised_treasury,
+        # THE SUPERSEDED READ, KEPT AND NAMED rather than dropped. See this function's docstring.
+        "provisioned_net_gbp": figure("total_net"),
+        "provisioned_bad_debt_gbp": figure("total_bad_debt"),
+        "provisioned_final_treasury_gbp": figure("final_treasury"),
         "enterprise_value_gbp": ev["enterprise_value_gbp"],
         "account_count": ev["account_count"],
         "churned_accounts": len(phase2b.get("churned_billing_accounts", [])),
         # NOT a realised figure and labelled so: how many renewals the arm priced at all. It is
         # here because a delta of zero has two causes and only this number separates them.
         "renewals_priced_by_the_arm": len(phase2b.get("value_arm_log", [])),
+        # THE CLOCK TRAVELS WITH THE FIGURE, in the block, not in a module constant the reader
+        # of the JSON never sees. `clock_audit` reads these labels back out of the artefact, so
+        # mislabelling one is a detectable act rather than a silent one.
+        "clocks": dict(ARM_FIGURE_CLOCKS),
     }
 
 
@@ -268,9 +351,14 @@ def gross_to_net_bridge(control: dict, value: dict) -> dict:
             "settled records. Answers `gross fell and net rose` with named lines and "
             "figures instead of a candidate list."
         ),
+        "clock": "settled-realised",
         "basis": (
-            "R14 -- SETTLED. Every figure is summed from phase2b.all_records, the same rows "
-            "run_phase2b sums for total_gross/total_net. Not billed, not banked."
+            "R14 -- SETTLED-REALISED. Every figure is summed from phase2b.all_records AS THEY "
+            "STAND AFTER the arrears engine, which is the same read the arm blocks now use and "
+            "the same sum the site publishes. Not billed. Not banked -- this world has no "
+            "banked clock; see `clock_definitions`. Until 2026-08-28 the arm blocks read "
+            "run_phase2b's frozen pre-arrears scalars instead, so this bridge and the arm block "
+            "published two different net margins for the same arm, GBP 39,962.17 apart."
         ),
         "line_definitions": {
             name: {"summed_from": list(fields), "is": why}
@@ -1302,7 +1390,38 @@ def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
         "share_undefined_reason": (
             None if share is not None else
             "the value arm's advantage is under GBP 1 -- a share of it would be noise"),
-        "basis": "settled net margin (R14) -- `net_margin_gbp` from the world's own settled records",
+        "clock": "settled-realised",
+        "basis": (
+            "settled net margin (R14) on the SETTLED-REALISED clock -- `net_margin_gbp` summed "
+            "from the world's own settled records after the arrears engine has replaced the "
+            "flat-rate provision with realised write-offs and DCA recoveries."
+        ),
+        # WHY THIS CLOCK AND NOT THE PROVISIONED ONE, stated because the choice moves the answer
+        # and must not be made by which one flatters the arm (R12). Three reasons, none of them
+        # the size of the result:
+        #   1. THE PROVISIONED FIGURE IS A COMPANY BELIEF. Its bad-debt line is
+        #      `get_bad_debt_rate()` x billed amount -- a calibrated assumption. This artefact's
+        #      own contract is that no figure in it is anything the company believed, so a
+        #      provision cannot be the basis a verdict is read off.
+        #   2. IT IS THE FIGURE THE COMPANY PUBLISHES. `run_output_latest.json:total_net_gbp`,
+        #      the site's headline and every auto-process commit message, is this sum. Scoring
+        #      the arms on a basis the business does not report would make the experiment
+        #      unreconcilable with the accounts it is supposed to be about.
+        #   3. IT IS THE LESS FLATTERING ONE, AND THAT IS RECORDED RATHER THAN QUIETLY BANKED.
+        #      On the 2026-08-27 three-arm run the value arm's advantage is GBP 7,366.22 on the
+        #      provisioned basis and GBP 4,668.41 on this one -- 37% smaller. Bad debt's own
+        #      contribution changes SIGN with the basis: provisioned, the value arm avoids
+        #      GBP 2,481.39 of it; realised, it incurs GBP 216.42 MORE. The realised sign is the
+        #      one that stands, because the provisioned "saving" is only the flat rate tracking
+        #      a smaller billed volume, not a single customer paying who otherwise would not.
+        "why_this_clock": (
+            "The provisioned clock's bad-debt line is a calibrated company assumption, and this "
+            "artefact scores nothing the company believed; the realised clock is also the one "
+            "the site publishes. It is the LESS flattering choice -- the value arm's advantage "
+            "falls from GBP 7,366.22 to GBP 4,668.41 and bad debt turns from a GBP 2,481.39 "
+            "saving into a GBP 216.42 cost -- and it is taken for the two reasons above and not "
+            "for its size (R12)."
+        ),
         "how_to_read_this": (
             "A share at or above 1.0 means the LEVEL explains all of the advantage and the "
             "SELECTION is worth nothing or less. This is the natural measure of whether widening "
@@ -1312,6 +1431,151 @@ def level_vs_selection(control_m: dict, value_m: dict, level_m: dict | None,
             "complete answer and NOT a cue to tune the arm until it wins (R12). The "
             "enterprise-value reading is withheld on purpose -- see this function's docstring."
         ),
+    }
+
+
+#: The figures `clock_audit` treats as a net-margin reading of an arm, and where it finds them.
+#: Each entry is (block key, {figure key: arm name}, key holding that block's clock). The arm
+#: blocks are not listed here because they carry a per-figure `clocks` map of their own; these
+#: are the blocks that publish ONE clock for several figures.
+SHARED_CLOCK_NET_FIGURES = (
+    ("gross_to_net_bridge",
+     {("control_arm", "net_margin_gbp"): "control_arm",
+      ("value_arm", "net_margin_gbp"): "value_arm"},
+     "clock"),
+)
+#: The same, for blocks whose net figures sit flat rather than one level down per arm.
+FLAT_CLOCK_NET_FIGURES = (
+    ("level_vs_selection",
+     {"control_net_gbp": "control_arm",
+      "value_arm_net_gbp": "value_arm",
+      "level_arm_net_gbp": "level_arm"},
+     "clock"),
+)
+
+
+def clock_audit(artefact: dict) -> dict:
+    """R15 CONTROL: refuse an artefact that publishes two net margins for one arm unlabelled.
+
+    THE DEFECT IT EXISTS FOR, and it is this file's own (2026-08-28). The artefact published
+    `control_arm.total_net_gbp` = GBP 113,282.62 and
+    `gross_to_net_bridge.control_arm.net_margin_gbp` = GBP 153,244.79 for the SAME arm on the
+    SAME run, GBP 39,962.17 apart, with `level_vs_selection.basis` asserting that the arms were
+    scored on `net_margin_gbp` from the settled records -- which described the second figure
+    while the verdict summed the first. Nothing anywhere fired. A reader who saw GBP 153,245 on
+    the site and GBP 113,283 in the experiment had no way to know both described one run.
+
+    WHAT IT ACTUALLY CHECKS, and it is deliberately not "are the numbers equal": two figures MAY
+    disagree, if and only if they are declared to be on different clocks. So the control is
+    (a) every net figure carries a clock, (b) every clock used is one the artefact defines, and
+    (c) any two figures for one arm sharing a clock agree to the penny. Mislabelling
+    `provisioned_net_gbp` as `settled-realised` -- the cheapest way to make this go quiet --
+    puts two disagreeing figures on one clock and fails (c). Deleting the label fails (a).
+    Inventing a clock name fails (b).
+
+    IT READS THE ARTEFACT AND NOTHING ELSE. It does not import `ARM_FIGURE_CLOCKS` or
+    `CLOCK_DEFINITIONS` to decide what a figure's clock is, because a check that consults the
+    same constant the publisher wrote from is R15's TAUTOLOGY pattern and would pass a run whose
+    labels were wrong in exactly the way the module was wrong.
+
+    IT FAILS CLOSED. No `clock_definitions`, no arms, or an arm carrying fewer than two net
+    figures all mean the audit had nothing to compare, and an audit with nothing to compare
+    reports FAIL, not PASS -- R15's FAIL-OPEN pattern is the one a control like this dies of.
+    """
+    failures: list[str] = []
+    definitions = artefact.get("clock_definitions")
+    if not isinstance(definitions, dict) or not definitions:
+        failures.append(
+            "the artefact declares no `clock_definitions`, so no figure's clock can be "
+            "resolved and every label below would be an unchecked string")
+        definitions = {}
+
+    # (arm, clock) -> list of (where, value)
+    seen: dict[tuple[str, str], list[tuple[str, float]]] = {}
+    checked = 0
+
+    def record(arm: str, clock, where: str, value) -> None:
+        nonlocal checked
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            failures.append(f"{where} is not a number ({value!r}), so it cannot be reconciled")
+            return
+        checked += 1
+        if not clock:
+            failures.append(
+                f"{where} publishes a net margin for {arm} with NO declared clock -- the exact "
+                "shape this control exists to refuse")
+            return
+        if clock not in definitions:
+            failures.append(
+                f"{where} declares clock {clock!r}, which the artefact does not define")
+            return
+        seen.setdefault((arm, clock), []).append((where, float(value)))
+
+    for arm_key in ("control_arm", "value_arm", "level_arm"):
+        block = artefact.get(arm_key)
+        if not isinstance(block, dict):
+            continue
+        clocks = block.get("clocks")
+        clocks = clocks if isinstance(clocks, dict) else {}
+        for figure_key, value in block.items():
+            if not figure_key.endswith("net_gbp"):
+                continue
+            record(arm_key, clocks.get(figure_key), f"{arm_key}.{figure_key}", value)
+
+    for block_key, figure_map, clock_key in SHARED_CLOCK_NET_FIGURES:
+        block = artefact.get(block_key)
+        if not isinstance(block, dict):
+            continue
+        clock = block.get(clock_key)
+        for (sub_key, figure_key), arm in figure_map.items():
+            sub = block.get(sub_key)
+            if isinstance(sub, dict) and figure_key in sub:
+                record(arm, clock, f"{block_key}.{sub_key}.{figure_key}", sub[figure_key])
+
+    for block_key, figure_map, clock_key in FLAT_CLOCK_NET_FIGURES:
+        block = artefact.get(block_key)
+        if not isinstance(block, dict):
+            continue
+        clock = block.get(clock_key)
+        for figure_key, arm in figure_map.items():
+            if figure_key in block:
+                record(arm, clock, f"{block_key}.{figure_key}", block[figure_key])
+
+    for (arm, clock), entries in sorted(seen.items()):
+        values = {round(v, 2) for _where, v in entries}
+        if len(values) > 1:
+            failures.append(
+                "{} publishes {} different net margins on ONE clock ({}): {} -- figures on the "
+                "same clock must agree, or one of the labels is false".format(
+                    arm, len(values), clock,
+                    "; ".join(f"{w} = {v:,.2f}" for w, v in entries)))
+
+    arms_seen = sorted({arm for arm, _clock in seen})
+    # ANTI-FAIL-OPEN. An audit that found one figure for an arm compared nothing, and an audit
+    # that found no arms at all is not a passing audit -- it is an audit that did not run.
+    if not arms_seen:
+        failures.append(
+            "the audit found no net-margin figure it could place on a defined clock, so it "
+            "compared nothing. An audit with nothing to compare is a FAILED audit, not a "
+            "passing one")
+    for arm in arms_seen:
+        count = sum(len(e) for (a, _c), e in seen.items() if a == arm)
+        if count < 2:
+            failures.append(
+                f"{arm} publishes only {count} clocked net-margin figure, so the reconciliation "
+                "this control performs did not happen for it")
+
+    return {
+        "what_this_refuses": (
+            "two net margins published for one arm without a declared clock on each, and two "
+            "figures sharing a clock that do not agree. See `clock_audit`'s docstring for the "
+            "defect it was built from."
+        ),
+        "figures_checked": checked,
+        "arms_checked": arms_seen,
+        "clocks_in_use": sorted({clock for _arm, clock in seen}),
+        "passes": not failures,
+        "failures": failures,
     }
 
 
@@ -1375,9 +1639,12 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # retention (see the finding's own caveat) and suppressing the result would hide it.
         level_shape = arm_decision_shape(level_result)
 
-    return {
+    artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "report_end": report_end,
+        # EVERY CLOCK USED IN THIS FILE, defined once and above every figure. `clock_audit`
+        # resolves each figure's label against this and refuses a label that is not in it.
+        "clock_definitions": dict(CLOCK_DEFINITIONS),
         "what_this_is": (
             "The same book and the same world, run once per pricing arm, scored on what "
             "ACTUALLY happened. No figure here is anything the company believed."
@@ -1457,6 +1724,11 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             "that out is what this experiment is for."
         ),
     }
+    # LAST, because it audits the assembled artefact rather than the parts. Published INTO the
+    # file so a reader holds the verdict beside the figures it is about; `main` exits non-zero
+    # on a failure, so a mislabelled run is loud at the terminal as well as in the JSON.
+    artefact["clock_audit"] = clock_audit(artefact)
+    return artefact
 
 
 # ---------------------------------------------------------------------------
@@ -1721,6 +1993,18 @@ def main(argv: list[str] | None = None) -> int:
                   lvs["value_advantage_gbp"], lvs["selection_gbp"],
                   "{:.1%}".format(share) if share is not None else "undefined"))
     print("  wrote {}".format(args.out))
+    # THE CONTROL IS LOUD AND IT DECIDES THE EXIT CODE. The file is written first on purpose: a
+    # three-arm run costs three full passes, and throwing the evidence away over a label would
+    # make the honest response to this control "stop running it".
+    audit = result["clock_audit"]
+    if not audit["passes"]:
+        print("  CLOCK AUDIT  FAILED -- this artefact publishes net margins it cannot reconcile:")
+        for failure in audit["failures"]:
+            print("    - {}".format(failure))
+        return 1
+    print("  clock audit     PASS ({} figures, {} arms, clocks {})".format(
+        audit["figures_checked"], len(audit["arms_checked"]),
+        ", ".join(audit["clocks_in_use"])))
     return 0
 
 

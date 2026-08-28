@@ -53,6 +53,7 @@ test, and `margin_basis` is published beside the figures so the two bases cannot
 (R14).
 """
 
+import copy
 import json
 
 import pytest
@@ -61,6 +62,7 @@ from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.live_population import served_segments
 from tools import run_value_cycle_ab as rvca
 from tools.run_value_cycle_ab import (
+    CLOCK_DEFINITIONS,
     REPORTED_BASIS,
     SETTLED_BASIS,
     belief_vs_outcome,
@@ -68,6 +70,7 @@ from tools.run_value_cycle_ab import (
     bound_attribution,
     churn_roster_diff,
     churn_volume_attribution,
+    clock_audit,
     gross_to_net_bridge,
     margin_movers,
     realised_metrics,
@@ -442,11 +445,25 @@ def test_movers_stays_quiet_when_the_two_arms_produced_the_same_book():
 # ---------------------------------------------------------------------------
 
 def _full_arm(**overrides):
+    """THE ROWS DELIBERATELY DISAGREE WITH THE SUMMARY SCALARS, and that is the whole point.
+
+    A fixture whose `all_records` summed to the same `total_net` the run's summary carries could
+    not see which of the two `realised_metrics` reports — the balanced-fixture pattern, and the
+    exact blindness that let the live artefact publish GBP 113,282.62 and GBP 153,244.79 for one
+    arm for two days. Here the rows say 1,200 / 3.00 / 1,450 and the frozen scalars say
+    1,000 / 10.00 / 1,250, so every assertion below is away from the value both would agree on.
+    """
     phase2b = {
         "total_net": 1_000.0, "total_gross": 5_000.0, "total_bad_debt": 10.0,
         "total_capital": 40.0,
         "final_treasury": 1_250.0, "churned_billing_accounts": ["A"],
         "value_arm_log": [{}, {}],
+        "all_records": [
+            {"net_margin_gbp": 700.0, "bad_debt_gbp": 2.0,
+             "treasury_cash_balance_gbp": 1_400.0},
+            {"net_margin_gbp": 500.0, "bad_debt_gbp": 1.0,
+             "treasury_cash_balance_gbp": 1_450.0},
+        ],
     }
     phase2b.update(overrides)
     return {"phase2b": phase2b,
@@ -456,10 +473,43 @@ def _full_arm(**overrides):
 
 def test_realised_metrics_reports_what_the_world_did():
     metrics = realised_metrics(_full_arm())
-    assert metrics["total_net_gbp"] == 1_000.0
+    assert metrics["total_net_gbp"] == 1_200.0
     assert metrics["total_gross_margin_gbp"] == 5_000.0
     assert metrics["churned_accounts"] == 1
     assert metrics["renewals_priced_by_the_arm"] == 2
+
+
+def test_the_net_margin_is_summed_from_the_rows_not_read_off_the_frozen_summary():
+    """THE DEFECT, 2026-08-28. `run_phase4c_on_phase2b` mutates `all_records` in place —
+    `apply_emergent_bad_debt` replaces the flat-rate provision with the arrears model's realised
+    write-offs and `apply_debt_recovery` credits back the DCA proceeds — while
+    `run_phase2b`'s `total_net`/`total_bad_debt`/`final_treasury` stay frozen at the values they
+    had before. Reading those scalars published a superseded net margin beside the bridge's
+    live one, GBP 39,962.17 apart, under a label claiming both came from the settled records.
+
+    This asserts the FIGURES, not the wiring: the rows win, and the superseded read survives
+    under its own name so the next reader can tell the two apart."""
+    metrics = realised_metrics(_full_arm())
+
+    assert metrics["total_net_gbp"] == 1_200.0
+    assert metrics["total_bad_debt_gbp"] == 3.0
+    assert metrics["final_treasury_gbp"] == 1_450.0
+    assert metrics["provisioned_net_gbp"] == 1_000.0
+    assert metrics["provisioned_bad_debt_gbp"] == 10.0
+    assert metrics["provisioned_final_treasury_gbp"] == 1_250.0
+    # Every published figure carries its clock, in the block, where the JSON reader is (R14).
+    assert metrics["clocks"]["total_net_gbp"] == "settled-realised"
+    assert metrics["clocks"]["provisioned_net_gbp"] == "settled-provisioned"
+
+
+def test_an_arm_with_no_rows_refuses_rather_than_falling_back_to_the_frozen_scalars():
+    """R15 FAIL-OPEN. The scalars are still there when the rows are not, so the cheap failure
+    mode is to quietly report the superseded figure under the realised label — which is the
+    original defect wearing the repair's clothes."""
+    arm = _full_arm()
+    del arm["phase2b"]["all_records"]
+    with pytest.raises(ValueError, match="all_records"):
+        realised_metrics(arm)
 
 
 @pytest.mark.parametrize("missing", ["total_net", "total_gross", "total_bad_debt",
@@ -472,6 +522,115 @@ def test_a_missing_figure_raises_rather_than_reporting_zero(missing):
     del arm["phase2b"][missing]
     with pytest.raises(KeyError, match=missing):
         realised_metrics(arm)
+
+
+# ---------------------------------------------------------------------------
+# clock_audit — the control, and the four mutations that must red it (R15)
+# ---------------------------------------------------------------------------
+
+def _clocked_artefact():
+    """A three-arm artefact shaped like the live one, on the repaired labels.
+
+    The arm blocks come from `realised_metrics` itself rather than being hand-written, so the
+    numbers the control reconciles are the ones the publisher really emits; the bridge and the
+    verdict are given the ROWS figure (1,200) because that is what the repaired chain puts
+    there. The level arm is present so the audit has three arms to place, as the published
+    three-arm run does."""
+    arm = realised_metrics(_full_arm())
+    return {
+        "clock_definitions": dict(CLOCK_DEFINITIONS),
+        "control_arm": copy.deepcopy(arm),
+        "value_arm": copy.deepcopy(arm),
+        "level_arm": copy.deepcopy(arm),
+        "gross_to_net_bridge": {
+            "clock": "settled-realised",
+            "control_arm": {"net_margin_gbp": 1_200.0},
+            "value_arm": {"net_margin_gbp": 1_200.0},
+        },
+        "level_vs_selection": {
+            "clock": "settled-realised",
+            "control_net_gbp": 1_200.0,
+            "value_arm_net_gbp": 1_200.0,
+            "level_arm_net_gbp": 1_200.0,
+        },
+    }
+
+
+def test_the_clock_audit_passes_the_repaired_artefact():
+    """THE NULL RUNG. A control whose PASS branch is unreachable reports a constant verdict, so
+    the honest artefact has to be shown passing before any mutation below means anything."""
+    audit = clock_audit(_clocked_artefact())
+
+    assert audit["passes"] is True, audit["failures"]
+    assert audit["arms_checked"] == ["control_arm", "level_arm", "value_arm"]
+    assert audit["clocks_in_use"] == ["settled-provisioned", "settled-realised"]
+    # Two per arm block, plus the bridge's two, plus the verdict's three.
+    assert audit["figures_checked"] == 11
+
+
+def test_relabelling_the_superseded_figure_as_realised_fires_the_control():
+    """THE MUTATION THE DOORBELL NAMES, and the cheapest way to make this control go quiet:
+    leave both figures published and call them the same clock. Two disagreeing net margins then
+    sit on one clock for one arm, which is the defect verbatim."""
+    artefact = _clocked_artefact()
+    artefact["control_arm"]["clocks"]["provisioned_net_gbp"] = "settled-realised"
+
+    audit = clock_audit(artefact)
+
+    assert audit["passes"] is False
+    assert any("ONE clock" in f and "control_arm" in f for f in audit["failures"])
+
+
+def test_a_net_margin_published_with_no_clock_at_all_fires_the_control():
+    """The pre-repair state of the file: figures published, nothing saying which clock."""
+    artefact = _clocked_artefact()
+    del artefact["value_arm"]["clocks"]["total_net_gbp"]
+
+    audit = clock_audit(artefact)
+
+    assert audit["passes"] is False
+    assert any("NO declared clock" in f for f in audit["failures"])
+
+
+def test_a_clock_the_artefact_never_defines_fires_the_control():
+    """A label is not a clock. `banked` is the specific invented name this world does not have,
+    and inventing it was the likeliest wrong answer to the defect this control closes."""
+    artefact = _clocked_artefact()
+    artefact["gross_to_net_bridge"]["clock"] = "banked"
+
+    audit = clock_audit(artefact)
+
+    assert audit["passes"] is False
+    assert any("does not define" in f for f in audit["failures"])
+
+
+def test_two_blocks_on_one_clock_that_disagree_fire_the_control():
+    """The original defect's arithmetic, on the labels the repair leaves behind: the bridge and
+    the arm block both claim `settled-realised`, so they must agree to the penny."""
+    artefact = _clocked_artefact()
+    artefact["gross_to_net_bridge"]["control_arm"]["net_margin_gbp"] = 113_282.62
+
+    audit = clock_audit(artefact)
+
+    assert audit["passes"] is False
+    assert any("113,282.62" in f for f in audit["failures"])
+
+
+@pytest.mark.parametrize("strip", ["clock_definitions", "arms"])
+def test_the_audit_fails_closed_when_it_has_nothing_to_compare(strip):
+    """R15 FAIL-OPEN, the pattern that kills a control like this: an artefact it cannot read at
+    all must not report PASS. An audit with nothing to compare is a failed audit."""
+    artefact = _clocked_artefact()
+    if strip == "clock_definitions":
+        del artefact["clock_definitions"]
+    else:
+        for key in ("control_arm", "value_arm", "level_arm",
+                    "gross_to_net_bridge", "level_vs_selection"):
+            del artefact[key]
+
+    audit = clock_audit(artefact)
+
+    assert audit["passes"] is False
 
 
 def test_the_expected_value_the_arm_maximises_is_not_among_the_metrics():
