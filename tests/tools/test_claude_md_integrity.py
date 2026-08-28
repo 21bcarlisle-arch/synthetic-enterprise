@@ -481,3 +481,48 @@ def test_full_check_fires_on_hollow_skill(tmp_path):
     assert any("EMPTY body" in p for p in problems)
     assert not any("INERT" in p for p in problems)        # not double-reported as inert
     assert not any("do not exist" in p for p in problems)  # not a dangling report
+
+
+# ── the unit is the claim ────────────────────────────────────────────────────────────────────
+#
+# DIRECTOR, 2026-08-28: "CLAUDE.md is 35,235 bytes against its own 35,000 hard limit. Either the
+# gate didn't fire or the limit moved without me." Neither: the gate fired green, MAX_CHARS has one
+# commit in its whole history, and the file was 34,988 CHARACTERS. `wc -c` counts bytes, the
+# doctrine says chars, and the two differ by every non-ASCII character in the file.
+
+def test_the_violation_message_names_both_units():
+    """A breach message that says only "chars" sends a reader to `wc -c`, which disagrees.
+
+    Fires on: dropping the byte count, or dropping the word CHARS from the limit.
+    """
+    over = "x" * (integ.MAX_CHARS + 1)
+    message = integ.size_violations(over)[0]
+    assert "chars" in message and "bytes" in message
+    assert "{}-char hard limit".format(integ.MAX_CHARS) in message
+
+
+def test_the_report_states_the_unit_and_both_counts():
+    """Fires on: a report that gives one number, which is how the ambiguity got here."""
+    text = "a" * 100 + "£—×" + "\n" * 3
+    report = integ.size_report(text)
+    assert "chars" in report and "bytes" in report and "lines" in report
+    assert "CHARS" in report, "the report does not say which unit the limit is on"
+    assert "the limit is not on bytes" in report
+
+
+def test_bytes_exceed_chars_on_the_real_file_and_the_limit_is_still_chars():
+    """THE LIVE STATE that raised the question, pinned so the answer is reproducible.
+
+    Not pinning the exact counts: they move with every edit. Pinning the RELATIONSHIP -- the real
+    file contains non-ASCII, so bytes strictly exceed chars, so a byte-based hand-check will keep
+    reading high. Fires on: a claim that the two are interchangeable.
+    """
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    n_chars = len(text)
+    n_bytes = len(text.encode("utf-8"))
+    assert n_bytes > n_chars, (
+        "CLAUDE.md is pure ASCII, so this test's subject is gone -- if that is deliberate, the "
+        "byte/char ambiguity is gone with it and this test should be deleted rather than relaxed")
+    assert integ.size_violations(text) == [], integ.size_report(text)
+    assert n_chars <= integ.MAX_CHARS < n_bytes or n_bytes <= integ.MAX_CHARS, (
+        "the file is over the limit in chars, which is a real breach and not a unit confusion")

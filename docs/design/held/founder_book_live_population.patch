@@ -1,0 +1,153 @@
+diff --git a/simulation/live_population.py b/simulation/live_population.py
+index df5fa9e9a..819bb1d6a 100644
+--- a/simulation/live_population.py
++++ b/simulation/live_population.py
+@@ -405,7 +405,14 @@ def book_subset_verdict(seed: Optional[int] = None) -> dict:
+     book = [sc for sc in _drawn_trickle(seed) if _serves(sc.to_customer_dict(), served)]
+     book += [p for p, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]]
+     verdict = dict(subset_verdict(world_premise_stock(seed), book))
+-    verdict["n_founders"] = len([c for c in _STATIC_ROSTER if _serves(c, served)])
++    # THE WHOLE FOUNDER BOOK, not just the hand-authored part of it. This counted
++    # `_STATIC_ROSTER` alone until 2026-08-28, which was the same number while the roster WAS the
++    # opening book. The director's founder-book act made them differ (13 hand-authored, 80 held),
++    # and an exclusion that reports 13 while excluding 80 is exactly the thing this line's own
++    # docstring refuses: "an exclusion nobody can count is an exclusion nobody can check."
++    verdict["n_founders"] = len(founder_book(seed))
++    verdict["n_founders_hand_authored"] = len(
++        [c for c in _STATIC_ROSTER if _serves(c, served)])
+     return verdict
+ 
+ 
+@@ -639,6 +646,123 @@ def _campaign(book: List[dict], seed: int) -> dict:
+     return _CAMPAIGN_MEMO[seed]
+ 
+ 
++#: The founder-book curriculum file. R13: the number lives in a director-authored artefact, not
++#: in this module, so a curriculum act is a versioned commit to a readable file rather than a
++#: constant somebody changed.
++FOUNDER_BOOK_PATH = Path(__file__).resolve().parent.parent / "docs" / "design" / "FOUNDER_BOOK.yaml"
++
++#: The year the supplier launches. The drawn trickle starts in 2021 (`DEFAULT_START_YEAR`);
++#: founders are the book it opened WITH, so they are dated at the settlement window's own start
++#: and carry the full run of renewals. That is the whole point of the parameter -- an account
++#: acquired in 2024 cannot compound however many of them there are.
++FOUNDER_ACQUISITION_YEAR = 2016
++
++
++def founder_accounts() -> int:
++    """How many accounts the supplier launches holding. Director's number, or the roster's size.
++
++    FAILS TOWARD THE ROSTER, NEVER TOWARD ZERO. An unreadable, malformed or out-of-range file
++    leaves the opening book exactly as it was before the curriculum act -- the hand-authored
++    roster alone. A YAML typo must not silently empty the book a supplier launched with, which is
++    the same fail-silent shape `simulation/competitor_reference.aggression()` is written against.
++    """
++    served = served_segments()
++    roster = len([c for c in _STATIC_ROSTER if _serves(c, served)])
++    try:
++        import yaml
++
++        loaded = yaml.safe_load(FOUNDER_BOOK_PATH.read_text(encoding="utf-8"))
++    except Exception:
++        return roster
++    if not isinstance(loaded, dict):
++        return roster
++    wanted = loaded.get("founder_accounts")
++    lo = loaded.get("min_founder_accounts", roster)
++    hi = loaded.get("max_founder_accounts", 120)
++    if not isinstance(wanted, int) or isinstance(wanted, bool):
++        return roster
++    if not (isinstance(lo, int) and isinstance(hi, int)) or not (lo <= wanted <= hi):
++        return roster
++    # The roster cannot be SHRUNK by this file: it is hand-authored history, and a number below
++    # it is a request this parameter has no authority to honour.
++    return max(roster, wanted)
++
++
++def _drawn_founders(seed: int, wanted: int) -> List[dict]:
++    """`wanted` accounts dated at the window's start, drawn -- not hand-authored.
++
++    THEY TAKE THE EXISTING FOUNDERS' ROLE, which is what makes this safe. The 13 hand-authored
++    founders "predate the stock, carry no premise, and are not `SyntheticCustomer`s at all, so
++    they are not candidates for membership in the first place" (`book_subset_verdict`). Drawn
++    founders are the same kind of thing: a portfolio the supplier acquired before the modelled
++    stock-based acquisition begins. So they never claim a premise slot, never collide with the
++    campaign's `[0, PROSPECTS_PER_YEAR)` or the trickle's reserved tail, and never enter PB2's
++    subset verdict -- whose stated reason for excluding founders continues to hold word for word.
++
++    ISOLATED FROM THE TRICKLE, by SEPARATE CALLS and DISJOINT YEARS rather than by the seed
++    offset. `iter_acquisition_events` builds a fresh generator per call, so neither draw consumes
++    the other's stream; and founders sit at 2016 while the trickle runs 2021-2025, so their
++    account ids cannot collide. Both properties are tested
++    (`test_the_founder_draw_does_not_perturb_the_trickle`,
++    `test_founder_ids_never_collide_with_the_rest_of_the_book`) because the second is the one
++    that would corrupt a book rather than merely change it.
++
++    TRUNCATED, NOT RE-DRAWN. A Poisson count would give 67 plus or minus eight and the director
++    set a number. The draw asks for more than it needs and takes the first `wanted` in date
++    order, which is deterministic; if the stream is short the shortfall is RETURNED short rather
++    than topped up from a second draw, and the caller reports it.
++    """
++    if wanted <= 0:
++        return []
++    from simulation.population_draw import iter_acquisition_events
++
++    served = served_segments()
++    out: List[dict] = []
++    for customer in iter_acquisition_events(
++        seed + _FOUNDER_SEED_OFFSET,
++        start_year=FOUNDER_ACQUISITION_YEAR,
++        end_year=FOUNDER_ACQUISITION_YEAR,
++        acquisitions_per_year_lambda=float(wanted) * _FOUNDER_DRAW_HEADROOM,
++        draw_region=True,
++        assign_cohorts=True,
++    ):
++        record = customer.to_customer_dict()
++        if not _serves(record, served):
++            continue
++        out.append(record)
++        if len(out) >= wanted:
++            break
++    return out
++
++
++#: A named offset for the founder draw's seed. DEFENSIVE, NOT LOAD-BEARING, and the difference was
++#: established by mutation rather than assumed: removing it changes WHICH founders are drawn and
++#: nothing else. `iter_acquisition_events` is a fresh generator per call, so one draw cannot
++#: consume another's stream, and founders (2016) and the trickle (2021-2025) occupy disjoint year
++#: ranges so their ids cannot collide either. The offset is kept because a future widening of
++#: either range would make the overlap real, and a named constant is where that gets noticed.
++_FOUNDER_SEED_OFFSET = 811_000
++
++#: Ask for more than we need so the Poisson count is very unlikely to fall short of the
++#: director's number; the surplus is discarded by the truncation above.
++_FOUNDER_DRAW_HEADROOM = 1.6
++
++
++def founder_book(seed: int) -> List[dict]:
++    """The opening book: the hand-authored roster, topped up to the director's number.
++
++    R13 curriculum (`docs/design/FOUNDER_BOOK.yaml`, director 2026-08-28: "take the 80
++    founders"). At the roster's own size this returns the roster and nothing else, so the
++    pre-decision run is reachable by setting the number back rather than by reverting code.
++    """
++    served = served_segments()
++    static = [c for c in _STATIC_ROSTER if _serves(c, served)]
++    wanted = founder_accounts()
++    if wanted <= len(static):
++        return static
++    return static + _drawn_founders(seed, wanted - len(static))
++
++
+ def _pre_growth_book(seed: int) -> List[dict]:
+     """The roster the campaign runs AGAINST: static plus the trickle, and nothing it won.
+ 
+@@ -647,7 +771,7 @@ def _pre_growth_book(seed: int) -> List[dict]:
+     account count a growth plan is built on are the ones BEFORE it grows.
+     """
+     served = served_segments()
+-    static = [c for c in _STATIC_ROSTER if _serves(c, served)]
++    static = founder_book(seed)
+     if not draw_population_enabled():
+         return static
+     return static + [

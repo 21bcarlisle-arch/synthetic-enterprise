@@ -73,12 +73,43 @@ def size_violations(text: str) -> list[str]:
     """
     violations: list[str] = []
     n_chars = len(text)
+    n_bytes = len(text.encode("utf-8"))
     n_lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
     if n_chars > MAX_CHARS:
-        violations.append(f"CLAUDE.md is {n_chars} chars, over the {MAX_CHARS} hard limit")
+        violations.append(
+            f"CLAUDE.md is {n_chars} chars ({n_bytes} bytes), over the {MAX_CHARS}-char "
+            "hard limit")
     if n_lines > MAX_LINES:
         violations.append(f"CLAUDE.md is {n_lines} lines, over the {MAX_LINES} hard limit")
     return violations
+
+
+def size_report(text: str) -> str:
+    """Both units, always, so a hand-check cannot disagree with the gate.
+
+    THE DEFECT THIS CLOSES (director, 2026-08-28): "CLAUDE.md is 35,235 bytes against its own
+    35,000 hard limit. Either the gate didn't fire or the limit moved without me."
+
+    Neither. The gate fired and was green; `MAX_CHARS` has one commit in its entire history, the
+    one that created it. The file was 34,988 CHARACTERS and 35,235 BYTES -- 247 multi-byte UTF-8
+    characters (em dashes, GBP, subscript two, times, arrows) make the gap. The doctrine says
+    "35k chars", the control counts code points, and `wc -c` counts bytes, so the obvious way to
+    check by hand disagrees with the gate BY CONSTRUCTION and looks exactly like a breach.
+
+    An ambiguous unit on a hard limit is a control that reads as broken while working. Reporting
+    both is cheaper than expecting everyone to remember which one is meant.
+    """
+    n_chars = len(text)
+    n_bytes = len(text.encode("utf-8"))
+    n_lines = text.count("\n") + (1 if text and not text.endswith("\n") else 0)
+    return (
+        "CLAUDE.md: {chars:,} chars / {bytes_:,} bytes / {lines} lines. "
+        "The limit is {max_chars:,} CHARS ({headroom:+,} headroom) and {max_lines} lines "
+        "({line_headroom:+}). Bytes are reported because `wc -c` and `ls -l` count them and "
+        "they exceed chars by {delta:,} here; the limit is not on bytes."
+    ).format(chars=n_chars, bytes_=n_bytes, lines=n_lines, max_chars=MAX_CHARS,
+             headroom=MAX_CHARS - n_chars, max_lines=MAX_LINES,
+             line_headroom=MAX_LINES - n_lines, delta=n_bytes - n_chars)
 
 
 def referenced_harness_paths(text: str) -> list[str]:
