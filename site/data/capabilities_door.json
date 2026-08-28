@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-28T18:43:06Z",
- "git_commit": "2b34410d9536956f96f35bfdb6a1bc514d349018",
+ "generated_at": "2026-08-28T19:14:37Z",
+ "git_commit": "ba15c0224b71b2acbc8883e4b0ccfc1132a8fa3e",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -597,10 +597,10 @@
  "scale": {
   "figures": [
    {
-    "value": 210,
+    "value": 55,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-28T18:11:33Z"
+    "as_of": "2026-08-28T18:43:12Z"
    },
    {
     "value": 97,
@@ -610,8 +610,8 @@
    }
   ],
   "agree": false,
-  "low": 97,
-  "high": 210,
+  "low": 55,
+  "high": 97,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -624,8 +624,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 97\u2013210 customers",
-   "what": "Everything on this page is true of a supplier with 97\u2013210 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 210 (accounts in the live customer feed), 97 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 55\u201397 customers",
+   "what": "Everything on this page is true of a supplier with 55\u201397 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 55 (accounts in the live customer feed), 97 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
