@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T12:42:36.132235Z",
+  "generated_at": "2026-08-28T12:50:29.973660Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -132,6 +132,12 @@
     "elasticity_draws_min": 1409,
     "point_estimate_inside_the_measured_band": false,
     "reading": "The point estimate now sits OUTSIDE the band this spread was measured over, so the spread is not a bound on it and nothing here resolves the selection effect either way. An estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it -- which is the direction the reading would drift if this sentence were fixed rather than derived."
+  },
+  "method_skill": {
+    "available": false,
+    "withheld": true,
+    "concordance_withheld": 0.6136363636363636,
+    "reason": "the run that produced this artefact predates the null spread, so the figure would go out with a point null of 0.5 and no interval. It is withheld until a run carries `method_skill.null_spread`: the spread is absent"
   },
   "decisions": {
     "available": true,

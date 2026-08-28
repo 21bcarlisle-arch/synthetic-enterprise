@@ -559,6 +559,59 @@ def _attribution_sentence(exclusions: list[dict], offered) -> str:
         reasons="; ".join(sorted(_SCOPE_BY_DESIGN.values())))
 
 
+def _method_skill(three_arm: dict) -> dict:
+    """A48's figure, and NEVER without the interval a random signal produces.
+
+    FAIL-CLOSED ON A MISSING BOUND, which is the whole design. The first live reading was
+    concordance 0.6136 on twelve decisions against a published null of exactly 0.5 -- a value a
+    random signal reaches about one run in six. Publishing the point estimate without its spread
+    would be the fourth time on 2026-08-28 that two correct figures went out with a relationship
+    that is not a quantity, and this surface has already carried three of them.
+
+    So: no `null_spread`, no number. An artefact produced before the spread existed reports the
+    ABSENCE and says which run would fix it, rather than showing a bare 0.614 that reads as a
+    result. The alternative -- recomputing the spread here from the artefact's own n and tie
+    counts -- was rejected: it is arithmetically identical and creates a SECOND source for one
+    figure, which is the shape this file's own clock and denominator defects both had.
+    """
+    ms = (three_arm or {}).get("method_skill") or {}
+    if not ms.get("available"):
+        return {"available": False,
+                "reason": (ms.get("reason")
+                           or "this run carried no method-skill reading")}
+    spread = ms.get("null_spread") or {}
+    if not spread.get("available"):
+        return {
+            "available": False,
+            "withheld": True,
+            "concordance_withheld": _f(ms.get("concordance")),
+            "reason": (
+                "the run that produced this artefact predates the null spread, so the figure "
+                "would go out with a point null of 0.5 and no interval. It is withheld until a "
+                "run carries `method_skill.null_spread`: " + str(
+                    spread.get("reason") or "the spread is absent")),
+        }
+    return {
+        "available": True,
+        "concordance": _f(ms.get("concordance")),
+        "null_point": _f(ms.get("null_constant_signal_concordance")),
+        "null_95_low": _f((spread.get("null_95_interval") or [None, None])[0]),
+        "null_95_high": _f((spread.get("null_95_interval") or [None, None])[1]),
+        "p_two_sided": _f(spread.get("p_two_sided")),
+        "inside_the_null": spread.get("observed_inside_the_null_interval"),
+        "decisions_scored": ms.get("decisions_scored"),
+        "accounts": ms.get("accounts"),
+        "churn_auc_for_contrast": _f(
+            ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
+        "what_it_is": (
+            "Does the arm's own per-customer price rank the value JOINTLY created -- what the "
+            "household kept plus what we kept, over what the household would have paid on the "
+            "published default tariff? 0.5 is no information. Below 0.5 is a company ranking "
+            "confidently and using the ranking to extract."),
+        "reading": spread.get("reading"),
+    }
+
+
 def _decisions(three_arm: dict) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
@@ -663,6 +716,7 @@ def build(three_arm: dict | None, floor: dict | None,
         realised=realised,
         provisioned=provisioned,
         error_bar=_error_bar(floor, point, three_arm),
+        method_skill=_method_skill(three_arm),
         decisions=_decisions(three_arm),
         headline=(
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check

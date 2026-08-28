@@ -50,7 +50,7 @@ CAPS = SITE / "data" / "capabilities_door.json"
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-split",
-          "arms-errorbar", "arms-decisions", "arms-note")
+          "arms-errorbar", "arms-decisions", "arms-method", "arms-note")
 
 
 def _text(fragment: str) -> str:
@@ -315,6 +315,73 @@ def test_the_page_says_the_small_surface_is_design_as_well_as_plumbing(live):
     rendered = live["arms-decisions"]
     assert "small by design AND by plumbing" in rendered, (
         "the page attributes the small decision surface to one cause again")
+
+
+def test_the_method_number_never_appears_without_its_interval(live):
+    """A48 ON THE PAGE, FAIL-CLOSED. The director's mission says the enterprise value is the
+    METHOD; the figures above it are the evidence. But the first live reading was 0.6136 on twelve
+    decisions, a value a random signal reaches about one run in six, and this surface had already
+    carried three other pairs of correct numbers whose relationship was not a quantity.
+
+    So the rule is: no interval, no number. Whichever branch the feed is in, the page must never
+    show the concordance without the range a random signal produces.
+
+    Fires on: rendering the point estimate in the withheld branch, or dropping the interval from
+    the available one.
+    """
+    msk = _live_feed().get("method_skill") or {}
+    rendered = live["arms-method"]
+    assert rendered.strip(), "the method block rendered nothing at all"
+
+    if msk.get("available"):
+        assert "{:.3f}".format(msk["concordance"]) in rendered
+        assert "{:.3f}".format(msk["null_95_low"]) in rendered, (
+            "the method number is on the page without the range a random signal produces")
+        assert "{:.3f}".format(msk["null_95_high"]) in rendered
+        assert str(msk["decisions_scored"]) in rendered, (
+            "the figure is published without saying how few decisions it rests on")
+    else:
+        assert "withheld" in rendered.lower(), (
+            "the method figure is unavailable and the page does not say so")
+        # THE TEETH. The withheld branch knows the number and must not print it.
+        withheld = msk.get("concordance_withheld")
+        if withheld is not None:
+            assert "{:.3f}".format(withheld) not in rendered, (
+                "the withheld branch printed the very number it exists to withhold")
+            assert "{:.4f}".format(withheld) not in rendered
+
+
+def test_the_available_branch_renders_the_number_WITH_its_interval():
+    """The other half of the fail-closed rule, and it cannot wait for a run to exercise it.
+
+    No artefact carries `method_skill.null_spread` yet, so the live feed is in the WITHHELD branch
+    and the AVAILABLE branch would ship untested — a render nobody has seen, waiting for the first
+    run that carries the field. Driven here against a synthetic feed with the real 2026-08-28
+    values, through the door's own JavaScript.
+
+    Fires on: rendering the concordance without the interval, or without how few decisions it
+    rests on.
+    """
+    feed = dict(_live_feed())
+    feed["method_skill"] = {
+        "available": True, "concordance": 0.6136363636, "null_point": 0.5,
+        "null_95_low": 0.2835, "null_95_high": 0.7165, "p_two_sided": 0.3037,
+        "inside_the_null": True, "decisions_scored": 12, "accounts": 5,
+        "churn_auc_for_contrast": 0.4652777,
+        "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created?",
+        "reading": "The observed value sits INSIDE the interval a random signal produces.",
+    }
+    rendered = _render(feed)["arms-method"]
+    assert "0.614" in rendered, "the method number does not reach the reader"
+    assert "0.283" in rendered and "0.717" in rendered, (
+        "the number is on the page without the range a random signal produces")
+    assert "12 decisions on 5 accounts" in rendered, (
+        "the figure is published without saying how few decisions it rests on")
+    assert "INSIDE the interval" in rendered, (
+        "the page shows the number and the interval without telling the reader what their "
+        "relationship means")
+    # The contrast that makes the pair a reading rather than two figures.
+    assert "0.465" in rendered
 
 
 # ── how few decisions it rests on ────────────────────────────────────────────────────────────

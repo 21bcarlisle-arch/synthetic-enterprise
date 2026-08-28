@@ -372,6 +372,11 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div id="arms-split"></div>
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
   <div id="arms-decisions"></div>
+  <!-- A48, the METHOD's own number. The director's 2026-08-28 mission says the enterprise value
+       is the automated METHOD of finding customers, not the book -- so the book's figures above
+       are the EVIDENCE and this is the thing they are evidence for. It renders only when the
+       artefact carries the interval a random signal produces; see `_method_skill`. -->
+  <div id="arms-method"></div>
   <p id="arms-note" class="stamp" style="margin-top:12px;"></p>
 </section>
 <script>
@@ -440,7 +445,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (!d.available) {
-        $("arms-note").textContent =
+      $("arms-note").textContent =
           "The arm comparison is not available, so it is absent rather than empty. "
           + (d.reason || "");
         return;
@@ -528,6 +533,34 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               ? '<p style="margin:0;font-size:11.5px;color:var(--muted);">'
                 + prose(dec.control_credibility_note) + "</p>"
               : "");
+      }
+
+      var msk = d.method_skill || {};
+      if (msk.available) {
+        $("arms-method").innerHTML =
+          '<p style="margin:16px 0 6px;font-size:13px;"><strong>Does the method work?</strong> '
+          + prose(msk.what_it_is) + "</p>"
+          + '<p style="margin:0 0 6px;font-size:13px;">The arm\u2019s own price ranks jointly '
+          + "created value at <strong>" + msk.concordance.toFixed(3)
+          + "</strong>, against <strong>0.5</strong> for a signal carrying no information. "
+          + '<span style="color:var(--amber);font-weight:600;">A random signal lands between '
+          + msk.null_95_low.toFixed(3) + " and " + msk.null_95_high.toFixed(3)
+          + " on this many decisions</span> (" + esc(msk.decisions_scored)
+          + " decisions on " + esc(msk.accounts) + " accounts, two-sided p "
+          + msk.p_two_sided.toFixed(2) + ").</p>"
+          + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+          + prose(msk.reading) + "</p>"
+          + (msk.churn_auc_for_contrast === null || msk.churn_auc_for_contrast === undefined ? ""
+              : '<p style="margin:0;font-size:11.5px;color:var(--muted);">For contrast, the same '
+                + "company\u2019s belief about who will <em>leave</em> ranks at <strong>"
+                + msk.churn_auc_for_contrast.toFixed(3) + "</strong>. Two different questions.</p>");
+      } else if (msk.withheld) {
+        // THE POINT ESTIMATE IS NOT SHOWN. Naming it here would publish the number this branch
+        // exists to withhold.
+        $("arms-method").innerHTML =
+          '<p style="margin:16px 0 6px;font-size:13px;"><strong>Does the method work?</strong> '
+          + '<span style="color:var(--amber);font-weight:600;">Measured, and withheld.</span> '
+          + prose(msk.reason) + "</p>";
       }
 
       $("arms-note").textContent =
