@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import math
 
-from company.crm.market_conditions import market_conditions_multiplier
+from company.crm.competitive_pressure import derived_market_pressure_multiplier
 
 BASE_CHURN_RATE = 0.10
 RATE_SENSITIVITY = 0.8
@@ -214,7 +214,7 @@ def estimate_passive_churn_probability(
     tenure_discount = TENURE_DISCOUNT_PER_YEAR * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
     p = PASSIVE_BASE_CHURN_RATE + PASSIVE_RATE_SENSITIVITY * rate_increase_pct - tenure_discount
     p = max(PASSIVE_BASE_CHURN_RATE, min(PASSIVE_CHURN_CAP, p))
-    p *= market_conditions_multiplier(renewal_year)
+    p *= derived_market_pressure_multiplier(renewal_year)
     return max(0.0, min(MAX_CHURN_PROBABILITY, p))
 
 

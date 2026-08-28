@@ -47,6 +47,7 @@ from company.crm.churn_model import (
     CRISIS_HANGOVER_WINDOW_PERIODS,
     estimate_churn_probability,
 )
+from company.crm.competitive_pressure import active_pressure_ledger, pressure_ledger_scope
 from company.crm.enriched_churn_estimate import (
     INDUSTRY_BASE_CHURN_RATE,
     enriched_churn_estimate,
@@ -90,6 +91,26 @@ def estimate_renewal_churn(observation: RenewalObservation) -> float:
     accounts (whose brokers shop every renewal, so there is no passive roll) get
     the full enriched model. Which of the two applies is the company's own
     segmentation judgement and is not visible to the caller.
+    """
+    estimate = _estimate_renewal_churn(observation)
+    # THE DESK IS THE COMPANY'S ONCE-PER-RENEWAL BELIEF SITE, so it is where the belief is
+    # BOOKED for later comparison against what actually happened. Recorded here rather than
+    # inside `enriched_churn_estimate` because the value arm's margin search calls that dozens
+    # of times per renewal while scoring candidate prices -- a counter there would measure the
+    # search, not the book. Recorded AFTER rounding, so the ledger holds the same number the
+    # renewal log, the calibration report and the churn-basis surface all read.
+    ledger = active_pressure_ledger()
+    if ledger is not None:
+        ledger.observe_renewal_decision(observation.renewal_year, estimate)
+    return estimate
+
+
+def _estimate_renewal_churn(observation: RenewalObservation) -> float:
+    """The estimate itself, split out so the booking above wraps exactly one return value.
+
+    Two returns in one function is how a belief comes to be booked on one branch and not the
+    other -- and the passive branch is 65% of resi renewals in most years and 100% of them in
+    crisis years, so that is the branch whose absence would be least visible.
     """
     if not observation.active_renewal and observation.segment != "I&C":
         return round(
@@ -185,6 +206,14 @@ def score_churn_estimates(
 
 __all__ = [
     "RenewalObservation",
+    # THE DESK OWNS THE LEDGER'S NAMES, and re-exports them so the door can stay a mirror of
+    # exactly one module (`test_the_door_exports_exactly_the_desk`). That control is right and it
+    # caught this: the first draft had `company.interfaces.churn_estimation` importing these two
+    # from `competitive_pressure` directly, which made the door a mirror of two modules and its
+    # own test unable to say what it mirrors. The ledger belongs to the desk on the merits too --
+    # it holds what the desk believed and what became of it, which is the desk's own score.
+    "active_pressure_ledger",
+    "pressure_ledger_scope",
     "crisis_hangover_periods",
     "estimate_churn_without_rate_history",
     "estimate_renewal_churn",

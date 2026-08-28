@@ -116,6 +116,16 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-28  I001 1348 -> 1347  (the competitive-pressure observation channel)
+#     `company/crm/enriched_churn_estimate.py` carried an unsorted import block at HEAD. This
+#     commit had that file open anyway — it swaps `market_conditions_multiplier` for the derived
+#     `derived_market_pressure_multiplier` — so the block was repaired at source with
+#     `ruff check --select I001 --fix` on that ONE file, per this ratchet's standing per-file
+#     remedy. Not a tidying pass: no file this commit did not otherwise touch was reformatted.
+#     MEASURED PER-FILE AGAINST `git show HEAD:`, per this log's standing rule and not off the
+#     working tree (which carries several other lanes' uncommitted work): HEAD carries 1 I001 in
+#     that file, this tree carries 0, and the five other files this commit touches carry 0 on
+#     both sides.
 #   2026-08-27  W605 1 -> 0, ENTRY DELETED  (the tests/tools red sweep)
 #     `saas/reporting/annual_report.py:8398` wrote `churn\_estimate` inside an f-string. The
 #     `\_` is a MARKDOWN escape -- that string is rendered as markdown, where a bare `_` opens
@@ -526,7 +536,7 @@ BASELINE_DATE = "2026-08-06"
 #     which can move a `noqa` off the line it was written for and trade I001 for E402.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1348,
+    "I001": 1347,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -548,7 +558,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2335  # was 2336; -1 (F401, the unused `typing.Any` R3 removed from counterfactual_retention)
+RUFF_BASELINE_TOTAL = 2334  # was 2335; -1 (I001, enriched_churn_estimate's import block — the competitive-pressure channel)
 
 
 # --------------------------------------------------------------------------

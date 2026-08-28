@@ -19,8 +19,13 @@ from __future__ import annotations
 
 from typing import Optional
 
-from company.crm.churn_model import MAX_CHURN_PROBABILITY, estimate_churn_probability, estimate_passive_churn_probability
-from company.crm.market_conditions import market_conditions_multiplier, market_rate_move_pct
+from company.crm.churn_model import (
+    MAX_CHURN_PROBABILITY,
+    estimate_churn_probability,
+    estimate_passive_churn_probability,
+)
+from company.crm.competitive_pressure import derived_market_pressure_multiplier
+from company.crm.market_conditions import market_rate_move_pct
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
 from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY
@@ -70,7 +75,7 @@ def enriched_churn_estimate(
 
     rate_estimate  = estimate_churn_probability(old_rate, new_rate, tenure, ...)
     payment_estimate = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_estimate, payment_estimate) x market_conditions_multiplier(renewal_year),
+    result = max(rate_estimate, payment_estimate) x derived_market_pressure_multiplier(renewal_year),
     capped at MAX_CHURN_PROBABILITY.
     No base-rate floor applied -- company estimates may be low when there is no evidence of
     churn risk. Use PASSIVE_BASE_CHURN_RATE from churn_model.py for passive renewers specifically.
@@ -79,11 +84,16 @@ def enriched_churn_estimate(
     payment_estimate = BASE_ANNUAL_CHURN_PROBABILITY (same as combined_churn_probability baseline),
     so the enriched estimate equals the rate model for backward compatibility.
 
-    renewal_year: if given, scales the combined estimate by the published market
-        switching multiplier (`company.crm.market_conditions`) -- even a customer
-        with rate-driven or stress-driven churn risk is less likely to actually
-        leave in a year with no cheaper competitor deal to switch to. Defaults to
-        None (multiplier 1.0, unchanged behaviour) for backward compatibility.
+    renewal_year: if given, scales the combined estimate by the company's competitive-pressure
+        belief (`company.crm.competitive_pressure`) -- even a customer with rate-driven or
+        stress-driven churn risk is less likely to actually leave in a year with no cheaper
+        competitor deal to switch to. Defaults to None (multiplier 1.0, unchanged behaviour).
+
+        THAT BELIEF IS NO LONGER THE PUBLISHED YEAR TABLE (2026-08-28). It is the table used as
+        a PRIOR and updated by the company's own realised losses against what it predicted.
+        Outside a run scope the update has no evidence and the value IS the table, so nothing
+        that does not opt in sees a difference; inside a run the company can, for the first
+        time, notice that a rival is competing harder than the national series says.
     """
     rate_est = estimate_churn_probability(
         old_rate_gbp_per_mwh,
@@ -101,7 +111,7 @@ def enriched_churn_estimate(
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = _apply_market_conditions(max(rate_est, payment_est),
-                                      market_conditions_multiplier(renewal_year))
+                                      derived_market_pressure_multiplier(renewal_year))
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 
@@ -128,7 +138,7 @@ def enriched_passive_churn_estimate(
     estimate movement (Phase QK: root cause of recall=0%/precision=0% in the
     live company-vs-SIM churn classifier — see churn_accuracy_report.py).
 
-    result = max(passive_rate_estimate, payment_estimate) x market_conditions_multiplier,
+    result = max(passive_rate_estimate, payment_estimate) x derived_market_pressure_multiplier,
     same combination rule as enriched_churn_estimate(), capped at MAX_CHURN_PROBABILITY.
     """
     rate_est = estimate_passive_churn_probability(
@@ -136,5 +146,5 @@ def enriched_passive_churn_estimate(
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = _apply_market_conditions(max(rate_est, payment_est),
-                                      market_conditions_multiplier(renewal_year))
+                                      derived_market_pressure_multiplier(renewal_year))
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))

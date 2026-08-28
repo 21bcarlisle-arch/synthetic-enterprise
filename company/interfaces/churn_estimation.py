@@ -41,18 +41,34 @@ from __future__ import annotations
 
 from company.crm.churn_desk import (
     RenewalObservation,
+    active_pressure_ledger,
     crisis_hangover_periods,
     estimate_churn_without_rate_history,
     estimate_renewal_churn,
     estimate_secondary_fuel_churn,
+    pressure_ledger_scope,
     score_churn_estimates,
 )
 
 __all__ = [
     "RenewalObservation",
+    "active_pressure_ledger",
+    "pressure_ledger_scope",
     "crisis_hangover_periods",
     "estimate_churn_without_rate_history",
     "estimate_renewal_churn",
     "estimate_secondary_fuel_churn",
     "score_churn_estimates",
 ]
+
+# THE SECOND HALF OF THE SAME DOOR, ADDED 2026-08-28. `estimate_renewal_churn` hands the company
+# a belief; `active_pressure_ledger` is how the world hands back the one OUTCOME that belief is
+# later graded and updated against -- that an account did not renew. Nothing about the rival
+# crosses here, in either direction: what the world reports is a departure from THIS supplier's
+# own book, which is the single competitive fact a real supplier observes without knowing any
+# rival's price. The ledger it returns is company-owned state; the world may append a departure
+# to it and can read nothing back out of it.
+#
+# It is exported through this seam rather than imported from `company.crm.competitive_pressure`
+# directly, for the reason the door exists at all: `run_phase2b` should not grow a fourth
+# crossing into the CRM package to book a fact it already holds.
