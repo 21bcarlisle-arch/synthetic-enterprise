@@ -312,6 +312,12 @@ def _split_on_the_realised_clock(three_arm: dict) -> dict:
         "available": True,
         "clock": "settled-realised",
         "selection_gbp": selection,
+        # WHAT THE PER-CUSTOMER ARM ITSELF EARNED AGAINST FLAT RULES. Surfaced 2026-08-28: the
+        # headline opened with "earned more than flat rules" as a CONSTANT, which was false on the
+        # run of that afternoon (the arm earned GBP 4,724 LESS). The figure was in the artefact and
+        # this block did not carry it, so the sentence had nothing to be derived from.
+        "value_advantage_gbp": _f(lvs.get("value_advantage_gbp")),
+        "level_advantage_gbp": _f(lvs.get("level_advantage_gbp")),
         "level_share_of_advantage": _f(lvs.get("level_share_of_advantage")),
         "share_undefined_reason": lvs.get("share_undefined_reason"),
         "level_gbp_per_mwh": _f(lvs.get("level_gbp_per_mwh")),
@@ -724,8 +730,34 @@ def build(three_arm: dict | None, floor: dict | None,
             # so it may only be made while the published run and the baseline arm are the same run.
             ("The comparison below is against the very supplier this site publishes. " if
              (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
-            + _headline_reading(realised, provisioned)),
+            + _headline_reading(realised, provisioned)
+            + _coverage_clause(three_arm)),
     )
+
+
+def _coverage_clause(three_arm: dict) -> str:
+    """The bound, IN the headline rather than three paragraphs below it.
+
+    A reader who meets "GBP 159,423 against GBP 154,699" first and the coverage later has already
+    formed the impression. The funnel says the per-customer arm priced 25 of the 1,209 renewals
+    the world offered -- 2.07% -- so the whole comparison is those decisions and what they cascade
+    into, and that belongs in the same breath as the numbers.
+
+    DERIVED, and SILENT when it cannot be derived: a run whose artefact carries no funnel gets no
+    clause rather than a guessed one. An invented coverage sentence would be worse than none,
+    because it is the sentence a reader would trust most.
+    """
+    funnel = ((three_arm or {}).get("renewal_funnel") or {}).get("value_arm") or {}
+    priced = funnel.get("priced")
+    offered = funnel.get("renewals_the_world_offered")
+    share = funnel.get("priced_share_of_renewals_offered")
+    if not isinstance(priced, int) or not isinstance(offered, int) or offered <= 0:
+        return ""
+    pct = (share * 100.0) if isinstance(share, (int, float)) else (100.0 * priced / offered)
+    return (" Read all of it against its size: the per-customer arm priced {priced} of the "
+            "{offered:,} renewals the world offered, {pct:.2f}% of them, so every figure here is "
+            "those decisions and what they cascade into."
+            ).format(priced=priced, offered=offered, pct=pct)
 
 
 def _headline_reading(realised: dict, provisioned: dict) -> str:
@@ -747,13 +779,14 @@ def _headline_reading(realised: dict, provisioned: dict) -> str:
             return ("The arms ran, but this run did not produce a level-versus-selection "
                     "reading, so no claim is made about where any advantage came from.")
         clock_note = (" This is on the superseded clock -- see the panels below.")
-        return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage"))) + \
-            clock_note
+        return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage")),
+                                   _f(fallback.get("value_advantage_gbp"))) + clock_note
     return _selection_sentence(split.get("selection_gbp"),
-                               split.get("level_share_of_advantage"))
+                               split.get("level_share_of_advantage"),
+                               split.get("value_advantage_gbp"))
 
 
-def _selection_sentence(selection, share) -> str:
+def _selection_sentence(selection, share, advantage=None) -> str:
     """One sentence for what the per-customer CHOOSING was worth, in the direction it came out."""
     selection = _f(selection)
     if selection is None:
@@ -762,16 +795,42 @@ def _selection_sentence(selection, share) -> str:
     share_clause = ("" if _f(share) is None else
                     " The price level accounts for {:.0%} of the per-customer arm's "
                     "advantage.".format(_f(share)))
+    # THE FIRST CLAUSE IS DERIVED TOO, AND IT WAS NOT (2026-08-28). Both branches used to open
+    # "earned more than flat rules" as a CONSTANT -- true of the run they were written against,
+    # and FALSE on the run of 2026-08-28T12:37Z, where the per-customer arm earned GBP 4,724 LESS
+    # than flat rules while the published headline said it earned more. The selection direction
+    # had been made derived for exactly this reason and the arm-vs-control direction was left
+    # behind, which is a half-finished repair rather than an oversight of a different kind.
+    opening = _arm_vs_control_clause(advantage)
     if selection < 0:
-        return ("Running the same book through the per-customer decision engine earned more than "
-                "flat rules -- but running it through ONE flat margin at the same price LEVEL "
-                "earned £{:,.0f} more still. On this evidence the advantage is the price level, "
-                "and the per-customer choosing is worth less than nothing.{}".format(
-                    abs(selection), share_clause))
-    return ("Running the same book through the per-customer decision engine earned more than "
-            "flat rules, and £{:,.0f} of that is left once one flat margin at the same price "
-            "LEVEL is given credit for the rest. On this evidence the choosing itself carried "
-            "part of the advantage.{}".format(selection, share_clause))
+        return ("{} Running it through ONE flat margin at the same price LEVEL earned "
+                "£{:,.0f} more than the per-customer engine did. On this evidence the advantage "
+                "is the price level, and the per-customer choosing is worth less than "
+                "nothing.{}".format(opening, abs(selection), share_clause))
+    return ("{} Once one flat margin at the same price LEVEL is given credit for what a level "
+            "alone would have earned, £{:,.0f} is left. On this evidence the choosing itself "
+            "carried part of it.{}".format(opening, selection, share_clause))
+
+
+def _arm_vs_control_clause(advantage) -> str:
+    """Did the per-customer arm beat flat rules, or not? Stated in the direction it came out.
+
+    UNKNOWN IS ITS OWN CASE. A run that cannot supply the arm's own advantage gets a sentence
+    saying so, never the winning one by default -- defaulting to "earned more" is precisely the
+    defect this function exists to close.
+    """
+    advantage = _f(advantage)
+    if advantage is None:
+        return ("This run did not report what the per-customer decision engine earned against "
+                "flat rules, so no claim is made about it.")
+    if advantage > 0:
+        return ("Running the same book through the per-customer decision engine earned "
+                "£{:,.0f} MORE than flat rules.".format(advantage))
+    if advantage < 0:
+        return ("Running the same book through the per-customer decision engine earned "
+                "£{:,.0f} LESS than flat rules.".format(abs(advantage)))
+    return ("Running the same book through the per-customer decision engine earned exactly what "
+            "flat rules did.")
 
 
 def _read(path: Path):

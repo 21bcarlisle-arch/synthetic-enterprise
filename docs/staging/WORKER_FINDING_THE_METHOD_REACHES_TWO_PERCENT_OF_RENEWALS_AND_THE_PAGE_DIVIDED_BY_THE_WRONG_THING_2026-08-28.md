@@ -112,4 +112,20 @@ Both repairs are mutation-proven in `site/test_the_baseline_comparison_reaches_t
    change, not a world change, so unlike the other two it is not R13-reserved. It is the largest
    single widening available without touching the baseline world, and nothing has costed it.
 
+## R11 — verified on the live surface, not on the generator
+
+Fetched `https://poesys.net/data/value_arms.json` after the push (feed `generated_at`
+2026-08-28T12:42:36Z):
+
+```
+decisions.renewals_the_world_offered        1209
+decisions.value_arm_priced                  25
+decisions.priced_share_of_renewals_offered  0.0207
+decisions.book_accounts_settled             210
+```
+
+Both denominators are live and neither divides the other. The rendered sentence is asserted through
+the door's own JavaScript in `site/test_the_baseline_comparison_reaches_the_reader.py` — a plain
+text fetch of the page cannot see it, because the panel is filled from this feed at load.
+
 ## Still live

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T12:50:29.973660Z",
+  "generated_at": "2026-08-28T12:58:09.110965Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -60,6 +60,8 @@
       "available": true,
       "clock": "settled-realised",
       "selection_gbp": -9626.922733000014,
+      "value_advantage_gbp": -4724.0087200000125,
+      "level_advantage_gbp": 4902.914013000001,
       "level_share_of_advantage": -1.0378714993142495,
       "share_undefined_reason": null,
       "level_gbp_per_mwh": 44.5,
@@ -191,5 +193,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned more than flat rules -- but running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more still. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned \u00a34,724 LESS than flat rules. Running it through ONE flat margin at the same price LEVEL earned \u00a39,627 more than the per-customer engine did. On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing. The price level accounts for -104% of the per-customer arm's advantage. Read all of it against its size: the per-customer arm priced 25 of the 1,209 renewals the world offered, 2.07% of them, so every figure here is those decisions and what they cascade into."
 }
