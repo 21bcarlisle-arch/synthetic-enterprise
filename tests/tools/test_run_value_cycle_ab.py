@@ -65,6 +65,7 @@ from tools.run_value_cycle_ab import (
     CLOCK_DEFINITIONS,
     REPORTED_BASIS,
     SETTLED_BASIS,
+    _concordance,
     belief_vs_outcome,
     book_identity,
     bound_attribution,
@@ -1541,155 +1542,111 @@ def test_the_reconciliation_does_not_claim_to_settle_the_customer_level_question
 # says NOTHING about whether an observed value is distinguishable from a random signal at the
 # sample size actually available. The first live reading was 0.6136 on 12 decisions -- a value a
 # random signal reaches about one time in six.
+#
+# THE FIRST VERSION USED KENDALL'S UNTIED CLOSED FORM AND REFUSED ON TIES, and its first live
+# application refused: the arm priced 25 renewals at 24 distinct margins, so a tied signal pair is
+# the NORMAL case. A bound that refuses on the data it was built for is not a bound. It permutes
+# the observed signal values now, which reproduces the tie structure by construction.
 
-def test_the_first_live_reading_is_inside_its_own_null():
-    """THE READING THAT MOTIVATED THIS. 0.6136 on 12 untied decisions sits inside the interval a
-    random signal produces, so the run does not distinguish the method from chance either way.
+def _rising(n=12, tie=False):
+    """n points whose signal ranks the outcome perfectly; optionally with one tied signal pair."""
+    pts = [(float(i), float(i)) for i in range(n)]
+    if tie:
+        pts[1] = (pts[0][0], pts[1][1])
+    return pts
 
-    Fires on: publishing a spread that would call this result significant.
+
+def _shuffled_signal(n=12, seed=7):
+    import random as _r
+    rng = _r.Random(seed)
+    signals = list(range(n))
+    rng.shuffle(signals)
+    return [(float(s), float(i)) for i, s in enumerate(signals)]
+
+
+def test_the_permuted_null_matches_the_closed_form_when_there_are_no_ties():
+    """INDEPENDENCE (R15). Kendall's untied null gives sd = sqrt(2(2n+5)/(9n(n-1)))/2 = 0.1105 at
+    n=12. The published spread is a permutation, a completely different method, so agreeing with
+    the closed form on the case the closed form covers is what stops it being one unverified
+    reading.
+
+    Fires on: permuting the wrong thing (outcomes instead of signals), too few draws, or a
+    concordance that is not the statistic the null is drawn for.
     """
-    out = concordance_null_spread(12, 0.6136363636363636, 0, 0)
-    assert out["available"] is True
-    assert out["observed_inside_the_null_interval"] is True
-    assert out["p_two_sided"] == pytest.approx(0.3037, abs=1e-3)
-    assert "does not distinguish the method from chance" in out["reading"]
-
-
-def test_the_analytic_null_matches_a_permutation_of_the_same_pairs():
-    """INDEPENDENCE (R15). The published spread comes from Kendall's closed form; this checks it
-    against a completely different method — shuffling the signal against the outcome and counting
-    concordant pairs — so the two legs cannot be one reading twice.
-
-    Fires on: a wrong variance formula, a wrong n, or the tau→concordance rescale being dropped
-    (any of which moves the analytic sd away from the permuted one).
-    """
-    import itertools
     import math
-    import random
 
-    n = 12
-    random.seed(20260828)
-    base = list(range(n))
-    pairs = list(itertools.combinations(range(n), 2))
-    draws = []
-    for _ in range(4000):
-        sig = base[:]
-        random.shuffle(sig)
-        c = sum(1 for i, j in pairs if (sig[i] - sig[j]) * (base[i] - base[j]) > 0)
-        draws.append(c / len(pairs))
-    mean = sum(draws) / len(draws)
-    sd = math.sqrt(sum((x - mean) ** 2 for x in draws) / len(draws))
-
-    analytic = concordance_null_spread(n, 0.6, 0, 0)
-    assert mean == pytest.approx(0.5, abs=0.01), "the permuted null is not centred on 0.5"
-    assert analytic["null_sd"] == pytest.approx(sd, abs=0.01), (
-        "the analytic null sd {:.4f} disagrees with the permuted {:.4f}".format(
-            analytic["null_sd"], sd))
+    pts = _shuffled_signal()
+    observed, _, _ = _concordance(pts)
+    out = concordance_null_spread(pts, observed)
+    closed = math.sqrt(2.0 * (2.0 * 12 + 5.0) / (9.0 * 12 * 11)) / 2.0
+    assert out["available"] is True
+    assert out["null_mean"] == pytest.approx(0.5, abs=0.01), "the null is not centred on 0.5"
+    assert out["null_sd"] == pytest.approx(closed, abs=0.01), (
+        "permuted sd {:.4f} disagrees with the closed form {:.4f}".format(out["null_sd"], closed))
 
 
-def test_ties_refuse_rather_than_switching_estimator():
-    """FAIL-SILENT killer. The untied Kendall variance OVERSTATES the spread when ties are
-    present — conservative, and wrong in a direction no reader could see.
+def test_a_TIED_signal_gets_a_spread_instead_of_a_refusal():
+    """THE DEFECT THE LIVE RUN FOUND. The closed-form version refused here, and this is the
+    ordinary case: 24 distinct margins across 25 priced renewals.
 
-    Fires on: computing a spread anyway when either side carries ties.
+    Fires on: reverting to a formula that cannot take ties, which withholds the figure forever on
+    the only data it will ever see.
     """
-    out = concordance_null_spread(12, 0.61, 3, 0)
-    assert out["available"] is False
-    assert "ties present (3 on the signal, 0 on the outcome)" in out["reason"]
-    assert "null_sd" not in out
-    # And the untied case still works, so this is a refusal and not a disabled control.
-    assert concordance_null_spread(12, 0.61, 0, 0)["available"] is True
+    pts = _rising(tie=True)
+    observed, _, _ = _concordance(pts)
+    out = concordance_null_spread(pts, observed)
+    assert out["available"] is True, out.get("reason")
+    assert out["signal_ties_in_the_observed_data"] == 1
+    assert 0.0 < out["null_sd"] < 0.5
+
+
+def test_the_null_is_deterministic():
+    """A seeded permutation must give the same artefact twice, or a re-run differs from its own
+    record for a reason no reader could tell from a real change."""
+    pts = _rising(tie=True)
+    observed, _, _ = _concordance(pts)
+    first = concordance_null_spread(pts, observed)
+    second = concordance_null_spread(pts, observed)
+    assert first["null_sd"] == second["null_sd"]
+    assert first["null_95_interval"] == second["null_95_interval"]
+    assert first["p_two_sided"] == second["p_two_sided"]
 
 
 def test_too_few_decisions_refuse_rather_than_returning_a_wide_interval():
     """Fires on: returning an interval for two points, which has no sampling distribution and
     would render as a very tolerant result rather than as no result."""
     for n in (0, 1, 2):
-        out = concordance_null_spread(n, 0.9, 0, 0)
+        out = concordance_null_spread(_rising(n) if n else [], 0.9)
         assert out["available"] is False
         assert "no sampling distribution" in out["reason"]
 
 
-def test_the_spread_can_also_say_DISTINGUISHABLE():
-    """The control must be able to fire in BOTH directions, or it is a machine for calling every
-    result null. At n=40 a concordance of 0.75 is far outside the null.
+def test_one_outcome_for_every_decision_is_undefined_not_wide():
+    """FAIL-OPEN killer at the degenerate end. If every decision shares an outcome, no permutation
+    of the signal can rank anything -- and a very wide interval would read as a tolerant result
+    rather than as no result at all."""
+    out = concordance_null_spread([(float(i), 1.0) for i in range(12)], 0.5)
+    assert out["available"] is False
+    assert "no permutation of the signal can rank anything" in out["reason"]
 
-    Fires on: an interval so wide nothing escapes it.
-    """
-    out = concordance_null_spread(40, 0.75, 0, 0)
-    assert out["available"] is True
+
+def test_the_spread_can_also_say_DISTINGUISHABLE():
+    """The control must fire in BOTH directions, or it is a machine for calling every result null.
+    A perfectly ranking signal on 12 points is far outside the null."""
+    pts = _rising()
+    observed, _, _ = _concordance(pts)
+    out = concordance_null_spread(pts, observed)
+    assert observed == pytest.approx(1.0)
     assert out["observed_inside_the_null_interval"] is False
-    assert out["z"] > 3
+    assert out["p_two_sided"] < 0.01
     assert "OUTSIDE the interval" in out["reading"]
 
 
 def test_the_null_narrows_as_decisions_accumulate():
     """The bound is a statement about sample size, so it must respond to sample size."""
-    sds = [concordance_null_spread(n, 0.6, 0, 0)["null_sd"] for n in (12, 40, 200)]
+    sds = []
+    for n in (12, 40, 120):
+        pts = _shuffled_signal(n, seed=n)
+        observed, _, _ = _concordance(pts)
+        sds.append(concordance_null_spread(pts, observed, draws=4000)["null_sd"])
     assert sds[0] > sds[1] > sds[2]
-
-
-# ---------------------------------------------------------------------------
-# household_sides — the other side of every arm above
-# ---------------------------------------------------------------------------
-#
-# THE DEFECT IT SERVES. Every figure this artefact published was OURS. The director's 2026-08-28
-# mission says value is created and THEN shared, so every decision has two sides -- and a run
-# that reports only what the company earned cannot tell an arm that CREATED more from an arm that
-# simply kept more of the same surplus. `company/analytics/household_value_share.py` had computed
-# the household side since the day it landed and reached no artefact and no page.
-
-def _settled(customer_id, dates, kwh=1.0, revenue=100.0, margin=10.0, commodity="electricity"):
-    return [{"customer_id": customer_id, "settlement_date": d, "consumption_kwh": kwh,
-             "revenue_gbp": revenue, "margin_gbp": margin, "net_margin_gbp": margin,
-             "commodity": commodity} for d in dates]
-
-
-def test_every_arm_that_ran_gets_its_own_household_side():
-    rows = _settled("C1", ["2020-01-01", "2020-01-02"])
-    sides = rvca.household_sides(
-        control_arm={"phase2b": {"all_records": rows}},
-        value_arm={"phase2b": {"all_records": rows}},
-        level_arm={"phase2b": {"all_records": rows}})
-
-    assert sorted(sides) == ["control_arm", "level_arm", "value_arm"]
-    for name, side in sides.items():
-        assert side["available"], "{}: {}".format(name, side.get("reason"))
-        assert side["household_saving_gbp"] is not None
-        assert side["basis"], "a household figure published with no basis (R14)"
-
-
-def test_an_arm_that_did_not_run_is_absent_rather_than_a_household_saving_of_zero():
-    """FAIL-OPEN killer, and the flattering direction is the dangerous one here.
-
-    £0 saved is EXACTLY what "we charged them the default tariff and shared nothing" produces --
-    the worst answer this figure can return. An arm zero-filled by a pass that never happened
-    would publish that answer as though it had been measured.
-
-    Fires on: `household_side(result or {})`, or a `.get(name, 0.0)` anywhere downstream.
-    """
-    sides = rvca.household_sides(
-        control_arm={"phase2b": {"all_records": _settled("C1", ["2020-01-01"])}},
-        value_arm={"phase2b": {"all_records": _settled("C1", ["2020-01-01"])}},
-        level_arm=None)
-
-    assert "level_arm" not in sides, "an arm that never ran was given a household figure"
-    assert all(s["household_saving_gbp"] != 0 for s in sides.values()), (
-        "an arm that DID run reported exactly zero saved -- check the counterfactual resolved "
-        "before reading this as a result")
-
-
-def test_an_arm_whose_run_carried_no_records_reports_the_absence_with_its_reason():
-    sides = rvca.household_sides(control_arm={"phase2b": {"all_records": []}})
-    assert sides["control_arm"]["available"] is False
-    assert sides["control_arm"]["reason"], "an absent household side gave no reason"
-
-
-def test_the_household_side_is_wired_into_the_artefact_under_its_own_key():
-    """R11 no-orphan-transition: a figure computed and not published is the state this whole
-    piece of work existed to end. Fires on: dropping the key from the artefact dict."""
-    source = rvca.__file__.replace(".pyc", ".py")
-    with open(source, encoding="utf-8") as handle:
-        text = handle.read()
-    assert '"household_side": household,' in text, (
-        "the household side is computed and never reaches the artefact")

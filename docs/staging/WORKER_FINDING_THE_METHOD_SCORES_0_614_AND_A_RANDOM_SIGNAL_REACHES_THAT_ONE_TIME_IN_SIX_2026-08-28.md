@@ -104,4 +104,35 @@ All four are two correct numbers whose relationship was not a quantity. None was
    change; the figures above are computed from that artefact's own published fields (n, concordance,
    tie counts), which is the whole input the function takes.
 
+## UPDATE — the closed form refused on its own first live application
+
+The bound shipped as Kendall's **untied** null variance, refusing when either side carried ties
+because that formula overstates the spread when they do. Its first live run refused:
+
+> "ties present (1 on the signal, 0 on the outcome), and the untied Kendall variance would
+> overstate the spread — refusing rather than substituting an estimator the reader cannot see"
+
+**The refusal was correct and the design was wrong.** The arm priced 25 renewals at **24 distinct
+margins**, so a tied signal pair is the ordinary case here, not the exception. A bound that refuses
+on the data it was built for is not a bound — it is a permanent withholding wearing a refusal's
+name. The honest refusal is what surfaced it, which is the argument for writing refusals that name
+their reason.
+
+**Replaced with a permutation of the observed signal values against the fixed outcomes**, 20,000
+draws at a fixed seed. It reproduces the tie structure by construction — same multiset of signals,
+same ties, random order — and needs no formula for it. Deterministic, and the seed is published
+with the result.
+
+**The closed form is kept as an independent cross-check in the tests**, which is what stops the
+permutation being one unverified reading: at n=12 untied it gives 0.1105 and the permutation gives
+0.1099.
+
+**One mutation did not fire, and it is an equivalence rather than a gap.** Permuting the OUTCOMES
+instead of the signals passes every test. Checked numerically on a fixture with six tied signal
+pairs rather than argued: signal-permuted sd 0.1084, outcome-permuted 0.1085, 95% intervals
+identical to three decimals. The count of half-credit tied pairs is invariant under either shuffle
+and the rest are randomly oriented either way, so the two nulls coincide. Recorded because a
+mutation that does not fire is either a missing test or an equivalence, and which one it is should
+never be left to the reader.
+
 ## Still live

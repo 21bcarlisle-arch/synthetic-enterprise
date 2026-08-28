@@ -70,6 +70,7 @@ import importlib
 import importlib.util
 import json
 import math
+import random
 import statistics
 from dataclasses import replace
 from datetime import date, datetime, timezone
@@ -1066,65 +1067,92 @@ def _concordance(points: list[tuple[float, float]]) -> tuple[float | None, int, 
     return (concordant + 0.5 * signal_ties) / comparable, comparable, outcome_ties
 
 
-def concordance_null_spread(n_decisions: int, observed, signal_ties: int, outcome_ties: int) -> dict:
+#: Draws in the permutation null. 20,000 puts the Monte-Carlo error on the reported p-value at
+#: well under a percentage point, and the whole null costs a fraction of a second at these sizes.
+NULL_DRAWS = 20_000
+#: FIXED, and published with the result. A seeded permutation is reproducible; an unseeded one
+#: would make a published artefact differ from its own re-run for no reason a reader could tell
+#: from a real change.
+NULL_SEED = 20260828
+
+
+def concordance_null_spread(points: list[tuple[float, float]], observed,
+                            draws: int = NULL_DRAWS, seed: int = NULL_SEED) -> dict:
     """How wide is the null? The point null 0.5 says nothing about SAMPLING.
 
     WHY THIS EXISTS. The first live reading of `method_skill` was 0.6136 on 12 decisions, published
-    beside a null of exactly 0.5 -- which invites "the method has skill" from a figure that a
-    RANDOM signal reaches 16% of the time. Concordance is Kendall's tau rescaled
-    (`concordance = (tau + 1) / 2`), and tau has a known null variance for n untied items:
+    beside a null of exactly 0.5 -- which invites "the method has skill" from a figure a RANDOM
+    signal reaches about one run in six.
 
-        Var(tau) = 2(2n + 5) / (9 n (n - 1))
+    A PERMUTATION, NOT A CLOSED FORM, AND THE REAL DATA IS WHY. The first version used Kendall's
+    untied null variance, `Var(tau) = 2(2n + 5) / (9 n (n - 1))`, and REFUSED when either side
+    carried ties because that formula overstates the spread when they do. Its first live
+    application refused: the arm priced 25 renewals at 24 distinct margins, so a tied signal pair
+    is the NORMAL case here, not the exception. A bound that refuses on the data it was built for
+    is not a bound.
 
-    so the null standard deviation of concordance is `sqrt(Var(tau)) / 2`. At n = 12 that is
-    0.1105, cross-checked against a 200,000-draw permutation of the actual pair set on
-    2026-08-28: permutation sd 0.1103, permutation two-sided p 0.311 against the normal
-    approximation's 0.304.
+    Permuting the observed signal values against the fixed outcomes reproduces the tie structure
+    exactly -- the same multiset of signals, so the same ties, in a random order -- and needs no
+    formula for it. The untied closed form is kept as an independent CROSS-CHECK in the tests
+    (`test_the_permuted_null_matches_the_closed_form_when_there_are_no_ties`), which is what
+    stops the permutation being one unverified reading.
 
-    TIES MAKE THE FORMULA WRONG AND IT REFUSES RATHER THAN ADJUSTING. The untied variance
-    OVERSTATES the spread when ties are present, which would make a real effect look less
-    significant -- conservative, but wrong in a direction nobody could see. When either side
-    carries ties this returns `available: False` with the reason, because a null that quietly
-    switches estimator is the fail-silent shape.
-
-    THE NORMAL APPROXIMATION IS NAMED AS ONE. At n = 12 it is close (0.304 vs 0.311) and it is not
-    exact; the exact alternative is a permutation of the observed pairs, which needs an RNG and a
-    seed and is deliberately not done in a published artefact.
+    Deterministic by construction: fixed seed, published with the result.
     """
-    if observed is None or n_decisions < 3:
+    if observed is None or len(points) < 3:
         return {"available": False,
                 "reason": "fewer than three ranked decisions -- there is no sampling distribution"}
-    if signal_ties or outcome_ties:
+    signals = [signal for signal, _ in points]
+    outcomes = [outcome for _, outcome in points]
+    if len({round(o, 12) for o in outcomes}) < 2:
         return {"available": False,
-                "reason": ("ties present ({} on the signal, {} on the outcome), and the untied "
-                           "Kendall variance would overstate the spread -- refusing rather than "
-                           "substituting an estimator the reader cannot see"
-                           .format(signal_ties, outcome_ties))}
-    n = float(n_decisions)
-    tau_sd = math.sqrt(2.0 * (2.0 * n + 5.0) / (9.0 * n * (n - 1.0)))
-    sd = tau_sd / 2.0
-    z = (observed - 0.5) / sd
-    p_two = math.erfc(abs(z) / math.sqrt(2.0))
-    lo, hi = 0.5 - 1.96 * sd, 0.5 + 1.96 * sd
+                "reason": ("every decision shares one outcome, so no permutation of the signal "
+                           "can rank anything -- the null is undefined rather than wide")}
+
+    rng = random.Random(seed)
+    shuffled = list(signals)
+    null = []
+    for _ in range(draws):
+        rng.shuffle(shuffled)
+        value, _pairs, _ties = _concordance(list(zip(shuffled, outcomes)))
+        if value is not None:
+            null.append(value)
+    if len(null) < draws // 2:
+        return {"available": False,
+                "reason": "more than half the permutations produced no comparable pair"}
+
+    null.sort()
+    mean = sum(null) / len(null)
+    sd = math.sqrt(sum((x - mean) ** 2 for x in null) / len(null))
+    lo = null[int(0.025 * len(null))]
+    hi = null[min(len(null) - 1, int(0.975 * len(null)))]
+    # Two-sided: how often does a random signal land AT LEAST as far from the null centre?
+    reach = sum(1 for x in null if abs(x - mean) >= abs(observed - mean))
+    p_two = reach / len(null)
     inside = lo <= observed <= hi
     return {
         "available": True,
+        "null_mean": mean,
         "null_sd": sd,
         "null_95_interval": [lo, hi],
-        "z": z,
         "p_two_sided": p_two,
         "observed_inside_the_null_interval": inside,
-        "method": ("Kendall null variance for untied ranks, normal approximation; "
-                   "cross-checked against a 200,000-draw permutation at n=12 on 2026-08-28 "
-                   "(sd 0.1105 analytic vs 0.1103 permuted)"),
+        "draws": len(null),
+        "seed": seed,
+        "signal_ties_in_the_observed_data": sum(
+            1 for i in range(len(signals)) for j in range(i + 1, len(signals))
+            if signals[i] == signals[j]),
+        "method": ("permutation of the observed signal values against the fixed outcomes, {:,} "
+                   "draws at seed {} -- reproduces the tie structure exactly, where the untied "
+                   "Kendall closed form would overstate the spread".format(len(null), seed)),
         "reading": (
             ("The observed value sits INSIDE the interval a random signal produces, so this run "
              "does not distinguish the method from chance in either direction. That is a "
              "statement about how few decisions there are, not about the method.")
             if inside else
             ("The observed value sits OUTSIDE the interval a random signal produces at this "
-             "sample size. Read it with the clustering bound above: the interval assumes "
-             "independent decisions and these are clustered on a handful of accounts, so the "
+             "sample size. Read it with the clustering bound above: the permutation assumes "
+             "exchangeable decisions and these are clustered on a handful of accounts, so the "
              "true interval is wider than this one.")),
     }
 
@@ -1214,8 +1242,6 @@ def method_skill(value: dict) -> dict:
                             "joint_value_ratio": ratio})
 
     concordance, pairs, outcome_ties = _concordance(points)
-    signal_ties = sum(1 for i in range(len(points)) for j in range(i + 1, len(points))
-                      if points[i][0] == points[j][0])
     # THE NULL THAT MAKES THE FIGURE READABLE. The flat-rules arm's signal is a CONSTANT -- and
     # its `value_arm_log` is empty by construction, so the null cannot be read off a control
     # run and has to be constructed here: the same code path, the same outcomes, the signal
@@ -1239,7 +1265,7 @@ def method_skill(value: dict) -> dict:
         # says nothing about whether THIS number is distinguishable from a random signal at THIS
         # sample size. Published together because the first live reading (0.6136 on 12 decisions)
         # is a value a random signal reaches 16% of the time.
-        "null_spread": concordance_null_spread(len(points), concordance, signal_ties, outcome_ties),
+        "null_spread": concordance_null_spread(points, concordance),
         "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
         "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
         "basis": ("settled clock both sides; counterfactual = the published Ofgem default tariff "
