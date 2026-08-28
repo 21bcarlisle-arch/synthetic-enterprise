@@ -1,28 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-28T01:13:53Z",
+    "checked_at": "2026-08-28T01:45:27Z",
     "nonblocking_reds": [
       "FAILED tests/company/policy/test_policy_field_consumption.py::test_every_policy_field_declares_how_it_reaches_its_consumer",
       "FAILED tests/company/policy/test_policy_field_consumption.py::test_mutation_an_undeclared_field_reds_the_completeness_check"
     ],
     "nonblocking_reds_total": 2,
-    "open_findings": 37
+    "open_findings": 40
   },
   "last_verified": {
-    "generated_at": "2026-08-28T01:38:45Z",
-    "git_commit": "4be65df49",
-    "run_id": "run_output_4be65df49_20260828T011454Z.json",
-    "verified_at": "2026-08-28T01:38:45Z"
+    "generated_at": "2026-08-28T02:10:40Z",
+    "git_commit": "6d126616a",
+    "run_id": "run_output_6d126616a_20260828T014628Z.json",
+    "verified_at": "2026-08-28T02:10:40Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-28T01:38:45Z",
-    "git_commit": "4be65df49",
-    "run_id": "run_output_4be65df49_20260828T011454Z.json",
-    "verified_at": "2026-08-28T01:38:45Z"
+    "generated_at": "2026-08-28T02:10:40Z",
+    "git_commit": "6d126616a",
+    "run_id": "run_output_6d126616a_20260828T014628Z.json",
+    "verified_at": "2026-08-28T02:10:40Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-28T01:38:45Z"
+  "written_at": "2026-08-28T02:10:40Z"
 }
