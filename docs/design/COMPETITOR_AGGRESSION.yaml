@@ -1,0 +1,38 @@
+# HOW HARD THE MARKET COMPETES — R13 CURRICULUM, the director's values.
+#
+# Read at call time by `simulation/competitor_reference.py::aggression()`. Absent, unreadable or
+# malformed = the module's own defaults, never zero: a world that quietly stopped defending
+# because of a YAML typo is the fail-silent shape R15 names third.
+#
+# WHAT IS AND IS NOT ON THIS PAGE. That rivals defend AT ALL is BASELINE and is not a value here
+# — it is a fidelity claim about what a switching market is, decided blind to company P&L, and it
+# moves against the company on every leg. What lives here is only HOW HARD, which is a difficulty
+# setting and therefore the director's (R13: the agent controls both sides of that wall, so the
+# curriculum must face him).
+#
+# Version this file rather than editing in place when the answer changes — a named, dated
+# scenario is what R13 asks for, not a parameter that drifts.
+
+version: 1
+set_by: "delivery seat, 2026-08-28, as the DEFAULT pending the director's own value"
+atom: B10_competitor_switching_response
+
+# How much of the way a rival re-references onto THIS company's price within one quarter.
+#   0.0  = the world exactly as it stood on 2026-08-27. Nobody defends. This is the killer
+#          mutation for every control in tests/simulation/test_competitor_reference.py, and it
+#          is a legitimate setting if the director wants the prior world back.
+#   0.5  = one quarter's half-life. Chosen against the real re-pricing rhythm rather than
+#          picked: GB acquisition tariffs move on the cap's own quarterly cycle, so a rival that
+#          has seen a quarter of this company's prices has re-priced once against them.
+#   1.0  = the rival re-references fully within one quarter. Aggressive; a price advantage
+#          survives exactly one term.
+chase_per_quarter: 0.5
+
+# The thinnest gross margin over its own wholesale+policy+network stack a rival will accept to
+# win a customer. It is a floor on the RIVAL and never on the company: below it the rival stops
+# following and a company pricing under it KEEPS its advantage, because no real rival could match
+# it and live.
+#   0.03 is deliberately thin. Challenger suppliers priced at or through this before 2021 and a
+#   great many of them then failed — which is precisely the behaviour SURVIVE is supposed to be
+#   able to produce, and is why a thinner value here is a HARDER world and not a kinder one.
+min_retail_margin_pct: 0.03

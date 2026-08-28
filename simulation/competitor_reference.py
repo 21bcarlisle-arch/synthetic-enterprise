@@ -171,6 +171,43 @@ CHASE_PER_QUARTER = 0.5
 MIN_RETAIL_MARGIN_PCT = 0.03
 
 
+#: Where the director's values live. DATA, never a constant -- the same shape
+#: `docs/observability/model_tier_pilot.yaml` uses for the model-tier pilot, and for the same
+#: reason: a difficulty value baked into code is a curriculum change that needs a commit, and
+#: R13 says curriculum is named, versioned and the director's.
+AGGRESSION_PATH = (
+    __import__("pathlib").Path(__file__).resolve().parent.parent
+    / "docs" / "design" / "COMPETITOR_AGGRESSION.yaml"
+)
+
+
+def aggression() -> dict:
+    """The director's aggressiveness values, or the defaults.
+
+    FAILS TOWARD THE DEFAULTS, never toward zero. An unreadable or malformed file must not
+    silently switch the rival off -- that would be a world quietly reverting to "nobody defends"
+    because of a YAML typo, which is exactly the fail-silent shape R15 names third. Every value
+    is bounds-checked and a value outside its range is IGNORED with the default kept.
+    """
+    values = {"chase_per_quarter": CHASE_PER_QUARTER,
+              "min_retail_margin_pct": MIN_RETAIL_MARGIN_PCT}
+    try:
+        import yaml
+
+        loaded = yaml.safe_load(AGGRESSION_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return values
+    if not isinstance(loaded, dict):
+        return values
+    chase = loaded.get("chase_per_quarter")
+    if isinstance(chase, (int, float)) and 0.0 <= float(chase) <= 1.0:
+        values["chase_per_quarter"] = float(chase)
+    margin = loaded.get("min_retail_margin_pct")
+    if isinstance(margin, (int, float)) and 0.0 <= float(margin) <= 0.5:
+        values["min_retail_margin_pct"] = float(margin)
+    return values
+
+
 def historical_discount_pct(year: int) -> float | None:
     """The fraction below the cap the market actually offered in `year`, or None if unknown.
 
@@ -224,7 +261,7 @@ def cost_floor_gbp_per_mwh(date_str: str, wholesale_gbp_per_mwh: float,
         + get_electricity_policy_cost_per_mwh(date_str)
         + get_electricity_network_cost_per_mwh(date_str, segment=segment)
     )
-    return stack * (1.0 + MIN_RETAIL_MARGIN_PCT)
+    return stack * (1.0 + aggression()["min_retail_margin_pct"])
 
 
 def competitor_reference_rate_gbp_per_mwh(
@@ -256,7 +293,7 @@ def competitor_reference_rate_gbp_per_mwh(
         # published default -- the same reference every measurement before this module used.
         return svt
 
-    k = CHASE_PER_QUARTER if chase is None else float(chase)
+    k = aggression()["chase_per_quarter"] if chase is None else float(chase)
     # ONE-SIDED and anchored on the CAP. See WHY THE CAP IS THE NO-OP POINT: a two-sided chase
     # made over-pricing buy relief, and anchoring on the era's discount would have charged the
     # same savings series twice, once here and once in `market_switching_multiplier`.

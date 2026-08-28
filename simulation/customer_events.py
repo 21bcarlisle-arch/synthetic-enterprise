@@ -93,6 +93,47 @@ def _price_differential_vs_market(
         return None
     return (float(new_rate_gbp_per_mwh) - float(reference)) / float(reference)
 
+
+def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float | None:
+    """This customer's position against the PUBLISHED CAP, whatever the competitor is doing.
+
+    Deliberately re-derived rather than reusing `differential`: the whole point is that it stays
+    the SVT position after the reference moves, so it may never be the same call.
+    """
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    if rate_gbp_per_mwh is None:
+        return None
+    svt = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    if not svt or svt <= 0:
+        return None
+    return round((float(rate_gbp_per_mwh) - float(svt)) / float(svt), 4)
+
+
+def _market_reference_gbp_per_mwh(
+    term_start_str: str, *, position_ledger=None, wholesale_gbp_per_mwh: float | None = None
+) -> float | None:
+    """The LEVEL the differential above was taken against, for anything that has to reconcile.
+
+    ONE NAME, ONE NUMBER (2026-08-28). The competitor reference caught this the day it landed:
+    `tools/run_price_ladder`'s own SVT reconciliation went from `agrees=True` to `agrees=False`
+    with a 21.3 percentage-point gap, because the world's logged `price_differential_vs_svt` had
+    quietly stopped being against the SVT while keeping the name. The control was right and the
+    field was lying. Publishing the LEVEL as well as the ratio means a consumer reconciles
+    against the number that was actually used rather than re-deriving one that used to match.
+    """
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    if position_ledger is None:
+        return get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
+
+    return competitor_reference_rate_gbp_per_mwh(
+        term_start_str,
+        company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
+        wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
+    ) or get_svt_elec_rate_gbp_per_mwh(term_start_str)
+
 #: Segments the Ofgem/BMG evidence actually covers. Its sample is 3,235 GB **domestic energy bill
 #: payers**; it says nothing whatever about how an industrial site buys power.
 _DOMESTIC_SEGMENTS = {"resi"}
@@ -474,7 +515,18 @@ def roll_lifecycle_event(
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
         "retention_offered": retention_modifier is not None,
-        "price_differential_vs_svt": round(differential, 4) if differential else None,
+        # TWO GENUINELY DIFFERENT QUANTITIES, TWO NAMES (2026-08-28). `..._vs_svt` is this
+        # customer's position against the PUBLISHED CAP and is what it has always been -- every
+        # consumer that reconciles against `svt_rates` keeps working and stays comparable across
+        # this change. `..._vs_market_reference` is the number the churn decision ACTUALLY used,
+        # which is the same thing until a competitor reference moves and is the only one that
+        # explains the roll after it does. Keeping one name for both is what made
+        # `run_price_ladder`'s reconciliation go red at 21.3pp on the day this landed.
+        "price_differential_vs_svt": _svt_position(new_rate_gbp_per_mwh, term_start_str),
+        "price_differential_vs_market_reference": round(differential, 4) if differential else None,
+        "market_reference_gbp_per_mwh": _market_reference_gbp_per_mwh(
+            term_start_str, position_ledger=position_ledger,
+            wholesale_gbp_per_mwh=wholesale_gbp_per_mwh),
         "offer_position_multiplier": (
             round(offer_position_multiplier(differential), 4) if differential else None
         ),

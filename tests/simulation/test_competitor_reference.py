@@ -303,3 +303,98 @@ def test_the_curriculum_dials_are_NAMED_and_the_baseline_is_recoverable_from_the
     assert isinstance(cr.MIN_RETAIL_MARGIN_PCT, float) and cr.MIN_RETAIL_MARGIN_PCT > 0
     assert cr.competitor_reference_rate_gbp_per_mwh(
         DATE, company_rate_gbp_per_mwh=CAP * 0.5, chase=0.0) == pytest.approx(CAP)
+
+
+# ---------------------------------------------------------------------------
+# ONE NAME, ONE NUMBER
+# ---------------------------------------------------------------------------
+
+def test_MUTATION_the_SVT_position_stays_the_SVT_position_after_the_reference_moves():
+    """CAUGHT BY A CONTROL ON THE DAY THIS LANDED, which is why it is pinned rather than
+    described. `tools/run_price_ladder`'s SVT reconciliation went from `agrees=True` to
+    `agrees=False` with a 21.3 percentage-point gap: the world's logged
+    `price_differential_vs_svt` had quietly stopped being against the SVT while keeping the name.
+
+    They are two genuinely different quantities and now carry two names. `..._vs_svt` is the
+    position against the published cap and must be UNMOVED by any competitor;
+    `..._vs_market_reference` is the number the churn decision actually used."""
+    from simulation.customer_events import _price_differential_vs_market, _svt_position
+
+    cheap = CAP * 0.9
+    led = cr.CompanyPositionLedger()
+    for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
+        led.observe(day, cheap)
+
+    against_market = _price_differential_vs_market(cheap, DATE, position_ledger=led)
+    against_cap = _svt_position(cheap, DATE)
+    assert against_cap == pytest.approx(-0.10), "the SVT position moved when the rival did"
+    assert against_market != pytest.approx(against_cap), (
+        "the two references produced the same number, so one of them is not being used"
+    )
+
+
+def test_the_LEVEL_the_differential_was_taken_against_is_PUBLISHED():
+    """A consumer must be able to reconcile against the number that was used, not re-derive one
+    that used to match. Re-deriving is exactly how a control goes quiet after a reference moves."""
+    from simulation.customer_events import _market_reference_gbp_per_mwh
+
+    assert _market_reference_gbp_per_mwh(DATE) == pytest.approx(CAP)
+    led = cr.CompanyPositionLedger()
+    for day in ("2019-01-15", "2019-02-15", "2019-03-15"):
+        led.observe(day, CAP * 0.9)
+    moved = _market_reference_gbp_per_mwh(DATE, position_ledger=led)
+    assert moved < CAP, "the published level did not move with the rival"
+    assert moved == pytest.approx(
+        cr.competitor_reference_rate_gbp_per_mwh(
+            DATE, company_rate_gbp_per_mwh=CAP * 0.9))
+
+
+# ---------------------------------------------------------------------------
+# THE CURRICULUM SURFACE — a dial the director can actually reach
+# ---------------------------------------------------------------------------
+
+def test_the_aggression_file_EXISTS_and_the_defaults_are_reachable_through_it():
+    """A docstring that promises a config file the code does not read is a claim the code does
+    not support -- the exact class the canon drift check was minted for. This asserts the file is
+    real and that reading it is the live path."""
+    assert cr.AGGRESSION_PATH.is_file(), "the curriculum file this module documents does not exist"
+    a = cr.aggression()
+    assert set(a) == {"chase_per_quarter", "min_retail_margin_pct"}
+    assert 0.0 <= a["chase_per_quarter"] <= 1.0
+
+
+def test_MUTATION_a_MALFORMED_file_falls_back_to_the_DEFAULTS_and_never_to_zero(tmp_path, monkeypatch):
+    """FAIL-SILENT, the third pattern R15 names. A world that quietly stopped defending because of
+    a YAML typo would look exactly like a world with no rival in it, and nothing would say so."""
+    bad = tmp_path / "COMPETITOR_AGGRESSION.yaml"
+    for content in ("{{{ not yaml", "", "- a list, not a mapping", "chase_per_quarter: banana"):
+        bad.write_text(content, encoding="utf-8")
+        monkeypatch.setattr(cr, "AGGRESSION_PATH", bad)
+        assert cr.aggression()["chase_per_quarter"] == cr.CHASE_PER_QUARTER, (
+            f"a malformed file ({content!r}) changed the chase"
+        )
+    monkeypatch.setattr(cr, "AGGRESSION_PATH", tmp_path / "absent.yaml")
+    assert cr.aggression()["chase_per_quarter"] == cr.CHASE_PER_QUARTER
+
+
+def test_MUTATION_an_OUT_OF_RANGE_value_is_IGNORED_rather_than_applied(tmp_path, monkeypatch):
+    """A chase of 5.0 would send the reference through the company and out the other side; a
+    negative one would make the rival RAISE its price when undercut. Both are rejected with the
+    default kept, rather than clamped -- a clamped value silently becomes a different curriculum
+    from the one that was written down."""
+    f = tmp_path / "a.yaml"
+    monkeypatch.setattr(cr, "AGGRESSION_PATH", f)
+    for value in (5.0, -0.5, 1.0001):
+        f.write_text(f"chase_per_quarter: {value}\n", encoding="utf-8")
+        assert cr.aggression()["chase_per_quarter"] == cr.CHASE_PER_QUARTER
+
+
+def test_the_director_CAN_turn_the_rival_off_and_get_the_prior_world_back(tmp_path, monkeypatch):
+    """R13's own test: 'the director can turn it down' has to be true, not merely stated. Zero is
+    a LEGITIMATE setting and must reproduce 2026-08-27 exactly."""
+    f = tmp_path / "a.yaml"
+    f.write_text("chase_per_quarter: 0.0\n", encoding="utf-8")
+    monkeypatch.setattr(cr, "AGGRESSION_PATH", f)
+    assert cr.aggression()["chase_per_quarter"] == 0.0
+    assert cr.competitor_reference_rate_gbp_per_mwh(
+        DATE, company_rate_gbp_per_mwh=CAP * 0.5) == pytest.approx(CAP)
