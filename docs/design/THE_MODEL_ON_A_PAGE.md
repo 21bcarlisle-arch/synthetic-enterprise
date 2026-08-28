@@ -178,6 +178,16 @@ rival. Atoms `B10_competitor_switching_response` (defence leg landed), the conte
 next.) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
 · collections · Tier-1 bill-accuracy compliance · conversations v1 (the F1 triad: company writes,
 customers respond, harness scores the gap).
+
+**THE PER-CUSTOMER PRICING ARM REACHES 2.07% OF THE RENEWALS THE WORLD OFFERS — measured
+2026-08-28, and it bounds every A/B figure this project publishes.** Of 1,209 renewals: 398 are
+acquisition terms with no prior term to price against, 357 are **gas** (the arm is
+electricity-only), 429 carry no product label the arm prices, and **25 are priced**. Two of those
+three exclusions are deliberate scope; the third is a gap in the drawn book. The consequence worth
+carrying: the world's own switching response is calibrated **dual-fuel**
+(`MARKET_SAVINGS_BY_YEAR`), so **the arm is narrower than the world it is scored against** —
+an electricity-only policy judged by a dual-fuel switching curve. Finding:
+`WORKER_FINDING_THE_ARM_IS_NARROWER_THAN_THE_WORLD_IT_IS_SCORED_AGAINST_2026-08-28`.
 **Discovery loop:** company clusters its book from observables only, scored on worst-cell
 belief-vs-truth; first refuted assumption already recoupled (renters/heat-pumps).
 **Carbon:** designed ledger (SAVED/SPENT/NET), honestly *not yet instrumented* — the site says so

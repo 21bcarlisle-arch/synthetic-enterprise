@@ -72,6 +72,10 @@ EXPECTED_CLAIM_IDS = frozenset({
     # The same predicate on the RENDERED front door -- a claim-status defect there is the one a
     # visitor actually meets (R11).
     "SITE_the_front_door_says_the_household_saving_is_measured",
+    # 2026-08-28. The canon page now states the arm's REACH (2.07% of renewals, electricity only),
+    # which is a claim about a constant and therefore registerable. It reports SUPERSEDED the day
+    # the arm widens -- the moment the coverage figures beside it stop being true.
+    "MISSION_the_pricing_arm_is_electricity_only",
 })
 
 PAGE_TEXT = """# A PAGE

@@ -229,3 +229,22 @@ claims:
       and the two schematic claims exist: correcting a canon file does not correct what a reader
       sees, and R11 says the rendered value is what "done" means. If the figure is ever removed,
       this reports OVER_CLAIM against the front door specifically -- the sentence a visitor reads.
+
+  # ---------------------------------------------------------------- the arm's reach
+  - id: MISSION_the_pricing_arm_is_electricity_only
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "357 are **gas** (the arm is"
+    claim: "the per-customer pricing arm is fitted to electricity only"
+    expects: present
+    probe:
+      kind: literal_assign
+      file: company/crm/customer_profitability.py
+      name: UPLIFTABLE_COMMODITY
+      value: electricity
+    note: >-
+      Registered 2026-08-28 because the guard's own stated reason -- "gas is priced off a book this
+      policy has never been calibrated against" -- had DRIFTED: cost_to_serve_for_period takes a
+      commodity, gas standing charges exist for every segment, and the world's switching response is
+      calibrated dual-fuel. The reason was true when written and nothing checked it since. This
+      claim reports SUPERSEDED the day the constant widens, which is exactly when the canon
+      sentence above and every published A/B coverage figure have to be restated.
