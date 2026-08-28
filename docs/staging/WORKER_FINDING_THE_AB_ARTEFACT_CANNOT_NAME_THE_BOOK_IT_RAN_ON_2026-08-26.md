@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Rank:** after the current delivery-lane item
+**Severity:** LATENT · **Lane:** H_harness · **Rank:** after the current delivery-lane item · **Epoch:** 3 · **Atom:** `D9_worse_than_blind_chip_is_metric_blind`
 
 # The value-cycle A/B artefact cannot name the book it ran on
 

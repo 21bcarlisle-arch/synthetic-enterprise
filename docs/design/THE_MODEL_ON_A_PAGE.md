@@ -22,8 +22,13 @@ saved — and whose test on every line is: could a real supplier know this?**
 
 **THE WORLD (SIM truth, behind the wall):** Real weather → real half-hourly wholesale prices and
 demand (2016–2025, 168k settlement periods, the actual record including the 2021–22 crisis). A drawn
-population of synthetic households — different mix every run — each with coupled hidden traits and a
-metered life.
+population of synthetic households — different mix every run — each with drawn hidden traits and a
+metered life. *Traits express through ONE channel and two carry none — corrected 2026-08-28 (C1):*
+`price_sensitivity` reaches the world through the churn decision (landed 2026-08-27) and carries a
+published between-group spread of only **1.26×**, which this seat has measured as structurally
+unlearnable on the current book; `green_stance` and `channel_pref` are drawn, coverage-tested and read
+by no response function at all. The world therefore still **records** more heterogeneity than it
+**expresses**.
 
 **THE WALL (two-way — F-MOAP-2, 2026-07-23):** Ground truth never crosses; everything else is an
 interface flow in one of two directions. *Inbound* (what the company sees): market feeds and forward
@@ -36,8 +41,15 @@ wall on the customer.
 
 **THE COMPANY:** Acquires customers → forecasts its book's shaped demand → prices tariffs from the
 cost stack → hedges forward to delivery → bills on three clocks (billed/settled/banked) → collects →
-serves and converses → settles months later and learns from the true-up. It can be wrong, and it can
-die.
+serves and converses → settles months later and learns from the true-up. It can be wrong, and it must **not be
+guaranteed to live** — *corrected 2026-08-28 (C3, director): the company does not have to die; survival
+has to be genuinely at risk on a path the world can actually produce.* Three mechanisms carry that risk
+in reality and **none of them presses yet**: **hedging** (collateral is a cost line sized once at term
+start and fixed for the term — never a CALL), **competition** (blocked entirely by C2), and **debt**
+(arrears do not yet arrive coupled to wholesale peaks). All three are cash-and-timing problems, not
+profit problems, and there is no mechanism converting a bad quarter into a liquidity constraint — which
+is why EARN has been the only leg the world can press on. Atoms `B6_collateral_cash_death_loop`,
+`B7_customer_state_layer_moves_and_shocks`, `SPINE_1_scenario_world_state`.
 
 **THE SCORE:** Survive (hard constraint, judged worst-case). Earn (EV, probability-weighted). Abate
 (tCO₂e per customer from grid-intensity × half-hourly use, priced in £/tonne).
@@ -53,7 +65,14 @@ at 2025-06).
 off-gas, prepay, vulnerable) · engagement mix 0.45/0.35/0.20 (ratified) · tenure×adoption gating live
 · assets (EV/HP/PV) on anchored S-curves.
 **Company organs:** acquisition & churn (market-coupled swell proven; moneyness trigger absent —
-known) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
+known; **the market does not COMPETE — known, corrected 2026-08-28 (C2)**: reading the real switching
+record is genuine coupling to history, but no module models a rival supplier, the comparison price is
+the published Ofgem SVT series read by date from a quarterly table, and market position is a run-level
+constant. Nothing in the world responds to what the company does — nobody undercuts it, nobody defends,
+nobody targets its book. **Consequence, stated where the capability is:** every measurement of the
+company's pricing decisions is taken against an opponent that cannot move, so over-pricing carries no
+competitive consequence and "beats the flat baseline" compares two internal policies, not two
+suppliers. Atom `B10_competitor_switching_response`.) · naive forward belief (120-day trailing) it must outgrow · UK-compliant billing, three clocks
 · collections · Tier-1 bill-accuracy compliance · conversations v1 (the F1 triad: company writes,
 customers respond, harness scores the gap).
 **Discovery loop:** company clusters its book from observables only, scored on worst-cell

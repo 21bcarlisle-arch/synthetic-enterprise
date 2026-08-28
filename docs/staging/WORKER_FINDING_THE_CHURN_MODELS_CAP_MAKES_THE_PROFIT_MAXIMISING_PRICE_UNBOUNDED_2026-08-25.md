@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** C_customer_ops
+**Severity:** LATENT · **Lane:** C_customer_ops · **Epoch:** 3 · **Atom:** `B10_competitor_switching_response`
 
 **Severity moved BLOCKING → LATENT on 2026-08-25, and the reason is at the foot of this
 document, not here.** BLOCKING was right while the instrument was untrustworthy: the churn

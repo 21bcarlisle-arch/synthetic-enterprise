@@ -407,13 +407,23 @@ def test_the_continuing_condition_is_RECORDED_on_the_one_document(tmp_path):
 
 
 def test_MANY_calls_on_ONE_day_add_ONE_line(tmp_path):
-    """The same defect at a finer grain: a tick that runs 48 times must not write 48 lines."""
+    """The same defect at a finer grain: a tick that runs 48 times must not write 48 lines.
+
+    COUNTS THE LINES, NOT THE DATE (2026-08-28). The assertion was `count("2026-08-23") == 1`,
+    which was a proxy for "one still-live line" that held only while the document had one
+    dated line-shape in it. It now has two -- the still-live note and the instance list the
+    family collapse added, both of which carry the day they were first written -- so the
+    proxy went red while the property it stood for was untouched. Counting each line-shape
+    directly says what is meant and cannot be broken by a third dated line arriving later.
+    """
     p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
                     now=_DAY1 + 60)
     for i in range(20):
         ar.escalate(FAIL_252, key="k", repeats=10 + i, first_ts=_DAY1,
                     staging_dir=tmp_path, now=_DAY2 + i * 60)
-    assert p.read_text(encoding="utf-8").count("2026-08-23") == 1
+    text = p.read_text(encoding="utf-8")
+    assert text.count("— still live.") == 1
+    assert text.count("(first seen ") == 1
 
 
 def test_a_document_parked_in_IN_PROGRESS_still_suppresses_a_refile(tmp_path):
@@ -513,3 +523,126 @@ def test_TWO_DIFFERENT_alarms_that_merely_both_quote_a_uuid_stay_apart():
     b = "[FORK] worker c7e894aa-3221-45f7-8713 never merged home"
 
     assert ar.alarm_signature(a) != ar.alarm_signature(b)
+
+
+# ---------------------------------------------------------------------------
+# THE FAMILY RULE (director, 2026-08-28: "twelve of them 'claimed and hasn't moved'")
+# ---------------------------------------------------------------------------
+#
+# The real strings again, verbatim from docs/staging/ on the morning of 2026-08-28. Every one
+# of these filed its OWN document under the pre-family rule, because what varies between them
+# is PROSE -- a work-id, a directory list -- and `normalise()` only removes numbers. Sixteen
+# documents for one condition and nine for another, all of them ahead of the director's own
+# guidance in an alphabetically-ordered draw.
+
+SEAT_CLAIMS = [
+    ("[SEAT] land-the-ceiling-priced-half-the-book was claimed and has not moved for 1.7h",
+     "seat-claim:the-ceiling-priced-half-the-book"),
+    ("[SEAT] run-both-instruments-at-full-window was claimed and has not moved for 3.1h",
+     "seat-claim:run-both-instruments-at-full-window"),
+    ("[SEAT] reconcile-the-directors-red-census was claimed and has not moved for 2.4h",
+     "seat-claim:reconcile-the-directors-red-census"),
+]
+
+UNCOMMITTED = [
+    "[SEAT] docs, tests, the tree root, tools left uncommitted by a session that stopped "
+    "mid-work holding 0 claim(s)",
+    "[SEAT] company, docs, simulation, tests and elsewhere left uncommitted by a session that "
+    "stopped mid-work holding 2 claim(s)",
+    "[SEAT] docs, saas, simulation, tests and elsewhere left uncommitted by a session that "
+    "stopped mid-work holding 1 claim(s)",
+]
+
+
+def test_the_family_is_the_declared_key_not_the_message():
+    assert ar.family("seat-claim:land-the-widened-world") == "seat-claim"
+    assert ar.family("seat-continuity") == "seat-continuity"
+    assert ar.family("deadman_commit") == "deadman_commit"
+
+
+def test_an_auto_key_is_its_own_whole_family():
+    """An `auto:` key is the sha of the normalised message: it has no instance half, and
+    splitting it would make every auto-keyed alarm in the machine one family called `auto`."""
+    sig = ar.alarm_signature(FAIL_252)
+    assert ar.family(sig) == sig
+    assert ar.family(sig) != "auto"
+
+
+def test_SIXTEEN_stale_claims_file_ONE_document(tmp_path):
+    """The director's twelve, driven with the real strings."""
+    for message, key in SEAT_CLAIMS:
+        ar.escalate(message, key=key, repeats=1, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    filed = sorted(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))
+    assert len(filed) == 1, [p.name for p in filed]
+
+
+def test_the_collapse_KEEPS_every_work_id(tmp_path):
+    """A collapse that loses the sixteen work-ids is not a fix, it is a deletion with a
+    rationale. Each instance must be nameable from the one surviving document."""
+    for message, key in SEAT_CLAIMS:
+        ar.escalate(message, key=key, repeats=1, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    text = sorted(tmp_path.glob("*.md"))[0].read_text(encoding="utf-8")
+    for _, key in SEAT_CLAIMS:
+        assert f"- `{key.split(':', 1)[1]}` (" in text
+
+
+def test_an_instance_is_listed_ONCE_however_often_it_fires(tmp_path):
+    """The pile rebuilt inside one file is the same defect at a finer grain."""
+    message, key = SEAT_CLAIMS[0]
+    for i in range(12):
+        ar.escalate(message, key=key, repeats=1 + i, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60 + i * 3600)
+    text = sorted(tmp_path.glob("*.md"))[0].read_text(encoding="utf-8")
+    assert text.count("- `the-ceiling-priced-half-the-book` (") == 1
+
+
+def test_NINE_uncommitted_seats_file_ONE_document(tmp_path):
+    """`seat_continuity` always passed a stable key; the varying DIRECTORY LIST in its message
+    is what produced nine documents, and the key is what fixes it."""
+    for message in UNCOMMITTED:
+        ar.escalate(message, key="seat-continuity", repeats=1, first_ts=_DAY1,
+                    staging_dir=tmp_path, now=_DAY1 + 60)
+    filed = sorted(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))
+    assert len(filed) == 1, [p.name for p in filed]
+
+
+def test_TWO_FAMILIES_STAY_TWO_DOCUMENTS(tmp_path):
+    """THE MUTATION THAT MATTERS. Every test above rewards collapsing harder, and the failure
+    this module exists to prevent is over-collapsing -- two different conditions folded into
+    one, the second silently absorbed by the first's document and never converged on. Stale
+    claims and a dead session are two conditions; they must stay two."""
+    ar.escalate(SEAT_CLAIMS[0][0], key=SEAT_CLAIMS[0][1], repeats=1, first_ts=_DAY1,
+                staging_dir=tmp_path, now=_DAY1 + 60)
+    ar.escalate(UNCOMMITTED[0], key="seat-continuity", repeats=1, first_ts=_DAY1,
+                staging_dir=tmp_path, now=_DAY1 + 60)
+    assert len(sorted(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))) == 2
+
+
+def test_a_document_named_the_OLD_way_is_still_found(tmp_path):
+    """Twenty-eight documents already carried slug names when the family rule landed. A lookup
+    that only knew the new stem would have filed a twenty-ninth beside them on the first
+    firing -- the defect reintroduced by its own fix."""
+    message, key = SEAT_CLAIMS[0]
+    old = tmp_path / f"WORKER_FINDING_REPEATING_ALARM_{ar._slug(message)}_2026-08-22.md"
+    old.write_text("**Severity:** LATENT · **Lane:** H_harness\n\n# old shape\n",
+                   encoding="utf-8")
+    assert ar.escalate(message, key=key, repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                       now=_DAY1 + 60) is None
+    assert len(sorted(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))) == 1
+
+
+def test_still_live_and_instance_lines_land_under_their_OWN_headings(tmp_path):
+    """Both note-writers appended to end-of-file, which was correct while there was one
+    section. With two, end-of-file filing puts every still-live line under `Instances seen`."""
+    message, key = SEAT_CLAIMS[0]
+    ar.escalate(message, key=key, repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                now=_DAY1 + 60)
+    ar.escalate(SEAT_CLAIMS[1][0], key=SEAT_CLAIMS[1][1], repeats=9, first_ts=_DAY1,
+                staging_dir=tmp_path, now=_DAY2)
+    text = sorted(tmp_path.glob("*.md"))[0].read_text(encoding="utf-8")
+    live_at = text.index("## Still live")
+    inst_at = text.index(ar.INSTANCES_HEADING)
+    assert live_at < inst_at
+    assert text.index("— still live.") < inst_at, "a still-live line filed under Instances"

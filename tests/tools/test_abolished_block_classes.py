@@ -325,3 +325,86 @@ def test_real_register_exposure_is_measured_and_fully_marked():
     assert data["total_notes_superseded"] == (
         exposure["notes_referring_to_an_abolished_class"]
     )
+
+
+# ---------------------------------------------------------------------------
+# THE PROSE HALF (2026-08-28) -- the guard reported ZERO while three atoms were parked
+# ---------------------------------------------------------------------------
+#
+# MEASURED. `B6_collateral_cash_death_loop` -- the atom that builds the whole of the director's
+# P7 -- carried this, verbatim, in `block_reason`:
+#
+#   "BUILD is EPOCH-gated: opens only on a director/twin BUILD-open of an E/treasury front.
+#    No agent BUILD or level move until then (R16, no self-bump)."
+#
+# Every act named there was abolished 2026-07-29 and swept 2026-08-03. Its dependency SPINE_3
+# carried the same sentence and SPINE_1 behind that. Three atoms deep, and this module said
+# zero violations, for two reasons that are one failure at two addresses: it read `blocked_on`
+# and not `block_reason`, and it matched the SYMBOL spelling where a block reason is PROSE.
+
+B6_REAL = ("Candidate atom just authored (provenance: proposal) from BACKLOG B6. COUPLED-TRIAD: "
+           "the death loop needs a world that can defeat it (SPINE_3s inversion) -- neither "
+           "reaches L3 without the other, so depends_on SPINE_3 and cannot BUILD before it. "
+           "BUILD is EPOCH-gated: opens only on a director/twin BUILD-open of an E/treasury "
+           "front. No agent BUILD or level move until then (R16, no self-bump).")
+
+
+def test_MUTATION_the_real_B6_block_reason_is_caught():
+    """The string that parked P7, used verbatim."""
+    assert abc.find_abolished_prose(B6_REAL), (
+        "the sentence that parked the P7 atom for twenty-five days reads as clean"
+    )
+    assert "director_build_open" in abc.find_abolished_prose(B6_REAL)
+
+
+def test_MUTATION_the_symbol_matcher_alone_would_have_missed_it():
+    """Why the prose table exists at all: `BUILD-open` is a hyphen, not an underscore, so a
+    matcher built to find `director_build_open` walks straight past it."""
+    assert abc.find_abolished_references(B6_REAL) == []
+
+
+def test_block_reason_is_a_claim_about_NOW_and_is_scanned(tmp_path):
+    """`blocked_on` was the only field read. A `block_reason` is exactly as load-bearing: it is
+    the sentence a reader uses to decide not to draw."""
+    m = tmp_path / "m.yaml"
+    m.write_text(
+        "- id: X\n  lane: E_finance_treasury\n  loop_stage: idle\n"
+        "  blocked_on: null\n"
+        f"  block_reason: \"{B6_REAL}\"\n",
+        encoding="utf-8")
+    v = abc.live_blocked_on_violations(m)
+    assert v and v[0]["atom_id"] == "X" and v[0]["field"] == "block_reason"
+
+
+def test_MUTATION_a_LIVE_block_that_merely_names_a_director_is_untouched(tmp_path):
+    """The direction that costs most if wrong. A false positive here unparks an atom that is
+    GENUINELY blocked, which is worse than the defect being fixed -- so the patterns are
+    anchored to the ACT. `director_systemd_deploy` is a live block and must survive, and so
+    must a real reserved-class block on the director's own curriculum decision."""
+    m = tmp_path / "m.yaml"
+    m.write_text(
+        "- id: LIVE1\n  blocked_on: director_systemd_deploy\n"
+        "- id: LIVE2\n  blocked_on: director_curriculum_decision\n"
+        "  block_reason: \"R13 BASELINE/CURRICULUM SPLIT: which worlds the company lives "
+        "through is the director's, named and versioned, never agent-set.\"\n",
+        encoding="utf-8")
+    assert abc.live_blocked_on_violations(m) == []
+
+
+def test_MUTATION_the_repair_note_must_not_trip_the_guard_it_repairs(tmp_path):
+    """The defect this project already has a name for -- the divergence alarm counting its own
+    output. A repair note has to SAY which dead act it removed, and while that sentence lived in
+    `block_reason` the guard fired on its own repair. The history moved to its own field; a
+    field that records what CHANGED is not a claim about now."""
+    m = tmp_path / "m.yaml"
+    m.write_text(
+        "- id: X\n  block_reason: \"depends_on SPINE_1 landing. That is the whole of it.\"\n"
+        "  block_reason_history: \"REWRITTEN 2026-08-28. The previous text required a "
+        "director/twin BUILD-open of a W1 front and cited no self-bump; both abc.\"\n",
+        encoding="utf-8")
+    assert abc.live_blocked_on_violations(m) == []
+
+
+def test_the_LIVE_map_carries_no_stale_block_claim():
+    """R11 in miniature: the repair is done when the real map says so."""
+    assert abc.live_blocked_on_violations() == []

@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [ACT] 2 minted work item(s) BLOCKED and un-worked for 2.2h (no forward-work commit) -- the machine is resting beside open mints, not working them. Escalate each (unblock / re-scope
 
@@ -38,3 +38,4 @@ that returns next week is not silently absorbed into today's record.
 - **2026-08-25** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
 - **2026-08-26** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
 - **2026-08-27** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-08-28** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.

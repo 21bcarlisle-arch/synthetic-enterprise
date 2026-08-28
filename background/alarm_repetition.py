@@ -161,6 +161,10 @@ def _slug(message: str) -> str:
     -- three different filenames, so the idempotence-by-path in escalate() would have filed a
     fresh document per repetition. That is the "process re-creating a finding hourly" defect
     that cost four manual clears, rebuilt inside its own remedy.
+
+    STILL NOT AN IDENTITY, and that is what `family()` below exists to fix -- see its docstring.
+    This remains the document's SUBJECT (its title and its filename tail for auto-keyed
+    alarms), because a document called `SEAT_CLAIM` and nothing else tells a reader nothing.
     """
     head = re.sub(r"^\[[^\]]+\]\s*", "", normalise(message)).strip()
     head = re.sub(r"[^A-Za-z0-9 ]+", " ", head)
@@ -168,8 +172,65 @@ def _slug(message: str) -> str:
     return "_".join(words).upper()[:110] or "AN_UNNAMED_ALARM"
 
 
-def finding_path(message: str, *, today: str, staging_dir: Path | None = None) -> Path:
-    return (staging_dir or STAGING_DIR) / f"WORKER_FINDING_REPEATING_ALARM_{_slug(message)}_{today}.md"
+def family(key: str) -> str:
+    """THE CONDITION'S IDENTITY, taken from the key the CALLER DECLARED.
+
+    MEASURED, 2026-08-28 (director, having read all 49 documents in the staging root): of 37
+    auto-filed alarm documents, 16 said `[SEAT] <work-id> was claimed and has not moved` and 8
+    said `<directory-list> left uncommitted by a session that stopped mid-work`. Two
+    conditions, twenty-four documents. His words: "one document per firing, ten of them the
+    identical finding and twelve of them 'claimed and hasn't moved'."
+
+    WHY THE EXISTING GUARDS ALL PASSED IT. `normalise()` removes what varies NUMERICALLY --
+    elapsed times, counters, hashes, timestamps, UUIDs -- because every repetition this module
+    had ever been shown varied that way. These two vary in PROSE: a work-id in one, an
+    enumerated path list in the other. No number is involved, so the normaliser had nothing to
+    remove, `_slug` produced a different filename per firing, and `escalate`'s
+    idempotence-by-path filed a fresh document each time. Adding a seventeenth regex for
+    work-ids would have fixed these two and waited for the eighteenth shape.
+
+    THE KEY WAS ALREADY RIGHT AND WAS BEING THROWN AWAY. `seat_continuity` passes
+    `key="seat-continuity"` -- one stable string for all eight of its documents.
+    `seat_work_in_hand` passes `key=f"seat-claim:{work_id}"` -- a family and an instance,
+    correctly separated by a colon. Both callers had already declared the identity this module
+    needed, and `finding_path()` ignored `key` entirely and re-derived identity from the
+    message. So this is not a new contract; it is reading the one that existed.
+
+    An `auto:` key is the sha of the normalised message and is ALREADY the whole family -- it
+    has no instance half and must not be split (a hex digest can contain no colon, but saying
+    so in code is cheaper than relying on it).
+    """
+    if key.startswith("auto:"):
+        return key
+    return key.split(":", 1)[0]
+
+
+def instance(key: str, message: str) -> str:
+    """WHICH member of the family fired -- the thing a single document must LIST rather than
+    lose.
+
+    Collapsing sixteen documents into one is only an improvement if the sixteen work-ids
+    survive the collapse. They do: the instance is the key's own tail where the caller
+    provided one (`seat-claim:land-the-ceiling-priced-half-the-book`), and the normalised
+    subject otherwise, so a family whose members differ only in prose still enumerates them.
+    """
+    if not key.startswith("auto:") and ":" in key:
+        return key.split(":", 1)[1]
+    return re.sub(r"^\[[^\]]+\]\s*", "", normalise(message)).strip()[:120]
+
+
+def _family_slug(key: str, message: str) -> str:
+    """The filename tail: the declared family for a keyed alarm, the subject for an auto one."""
+    if key.startswith("auto:"):
+        return _slug(message)
+    return re.sub(r"[^A-Za-z0-9]+", "_", family(key)).strip("_").upper()[:110] or "AN_UNNAMED_ALARM"
+
+
+def finding_path(message: str, *, today: str, key: str = "auto:",
+                 staging_dir: Path | None = None) -> Path:
+    return (staging_dir or STAGING_DIR) / (
+        f"WORKER_FINDING_REPEATING_ALARM_{_family_slug(key, message)}_{today}.md"
+    )
 
 
 def escalate(message: str, *, key: str, repeats: int, first_ts: float,
@@ -205,8 +266,9 @@ def escalate(message: str, *, key: str, repeats: int, first_ts: float,
 
     now = time.time() if now is None else now
     today = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d")
-    path = finding_path(message, today=today, staging_dir=target)
+    path = finding_path(message, today=today, key=key, staging_dir=target)
     if path.exists():
+        _note_instance(path, instance(key, message), today=today)
         return None
 
     # ONE DOCUMENT PER SIGNATURE, NOT ONE PER SIGNATURE PER DAY (2026-08-24, director
@@ -228,13 +290,24 @@ def escalate(message: str, *, key: str, repeats: int, first_ts: float,
     # longer", which is one line, not a second copy of the first document. `done/` is
     # deliberately NOT searched: a condition that returns after being archived is a NEW
     # episode and an R3 two-strike signal, and it must be able to file again.
-    live = _live_finding_for(message, staging_dir=target)
+    live = _live_finding_for(message, key=key, staging_dir=target)
     if live is not None:
         _note_still_live(live, today=today, repeats=repeats, window_h=(now - first_ts) / 3600.0)
+        _note_instance(live, instance(key, message), today=today)
         return None
 
     window_h = max(0.0, (now - first_ts)) / 3600.0
-    body = f"""**Severity:** LATENT · **Lane:** H_harness
+    # THE CHAIN, FROM BIRTH (2026-08-28, the director's P8: "not one file carries a lane, an
+    # epoch or an atom id, so the queue is disconnected from the map entirely"). Stamping it
+    # HERE rather than asking a later turn to add it is the difference between a field that is
+    # filled in and one that is exhorted: an auto-filed document nobody stamps is exactly the
+    # document that ends up unchained, and thirty-seven of them were.
+    #
+    # `unassigned`/`unminted` are DECLARED, not blank. An alarm has not been triaged against
+    # the map at the moment it is filed, and saying so is the honest value; what would be
+    # dishonest is guessing an epoch, and what would be useless is leaving the field out and
+    # letting "nobody looked" and "looked, nothing yet" render identically.
+    body = f"""**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # {message.strip().splitlines()[0][:180]}
 
@@ -270,31 +343,106 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
+
+## Instances seen
 """
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(body, encoding="utf-8")
     except OSError as exc:
         raise EscalationUnavailable(f"could not file {path}: {exc}") from exc
+    # THE FIRST FIRING IS AN INSTANCE TOO. Listing only the members that arrive AFTER the
+    # document exists loses the one that caused it -- a sixteen-claim family would enumerate
+    # fifteen, and the missing one would be the earliest, which is the one whose age the
+    # document's own header is about.
+    _note_instance(path, instance(key, message), today=today)
     return path
 
 
-def _live_finding_for(message: str, *, staging_dir: Path) -> Path | None:
-    """An UNACTIONED document already covering this alarm signature, or None.
+def _live_finding_for(message: str, *, key: str, staging_dir: Path) -> Path | None:
+    """An UNACTIONED document already covering this alarm's FAMILY, or None.
 
     Searches the staging root and `in_progress/` and not `done/` -- see the reasoning at the
-    call site. Matching is by the same slug `finding_path` builds, so it keys on the
-    normalised CONDITION and not on the alarm's varying elapsed-time text.
+    call site. Matching is by the same stem `finding_path` builds, which since 2026-08-28 is
+    the caller's declared FAMILY rather than the message's slug: that is the change that makes
+    sixteen documents about sixteen stale claims into one document listing sixteen claims.
+
+    THE SLUG STEM IS STILL SEARCHED, second, and only for keyed alarms. Twenty-four documents
+    already existed under slug names when the family rule went in, and a lookup that only knew
+    the new shape would have filed a twenty-fifth beside them on the first firing -- the exact
+    "process re-creating a finding" defect, reintroduced by its own fix. The migration renames
+    them; this makes the window between the code landing and the migration running safe, and
+    it stays because a document a human renamed by hand must not spawn a sibling either.
     """
-    stem = f"WORKER_FINDING_REPEATING_ALARM_{_slug(message)}_"
-    for room in (staging_dir, staging_dir / "in_progress"):
-        try:
-            matches = sorted(room.glob(f"{stem}*.md"))
-        except OSError:
-            continue  # an unreadable room is not evidence that nothing is filed
-        if matches:
-            return matches[0]
+    stems = [f"WORKER_FINDING_REPEATING_ALARM_{_family_slug(key, message)}_"]
+    slug_stem = f"WORKER_FINDING_REPEATING_ALARM_{_slug(message)}_"
+    if slug_stem not in stems:
+        stems.append(slug_stem)
+    for stem in stems:
+        for room in (staging_dir, staging_dir / "in_progress"):
+            try:
+                matches = sorted(room.glob(f"{stem}*.md"))
+            except OSError:
+                continue  # an unreadable room is not evidence that nothing is filed
+            if matches:
+                return matches[0]
     return None
+
+
+#: The heading under which a family document enumerates which of its members have fired.
+INSTANCES_HEADING = "## Instances seen"
+
+
+def _note_instance(path: Path, name: str, *, today: str) -> None:
+    """Record that this member of the family has fired, once, ever.
+
+    IDEMPOTENT PER INSTANCE rather than per day, which is the opposite of `_note_still_live`
+    below and deliberately so. "This condition is still happening" is news once a day; "the
+    claim on `land-the-ceiling-priced-half-the-book` went stale" is news once, and a document
+    that re-listed it every day would be the collapsed pile rebuilt inside one file.
+
+    The list is what makes the collapse lossless. Without it, folding sixteen documents into
+    one would discard the sixteen work-ids, and a fix that loses the finding is not a fix.
+    """
+    if not name:
+        return
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return
+    if f"- `{name}` (" in text:
+        return
+    updated = _append_under(text, INSTANCES_HEADING, f"- `{name}` (first seen {today})")
+    try:
+        path.write_text(updated, encoding="utf-8")
+    except OSError:
+        return
+
+
+def _append_under(text: str, heading: str, line: str) -> str:
+    """Return `text` with `line` added at the END OF `heading`'s SECTION, creating the heading
+    at the bottom if it is absent.
+
+    Appending to the end of the FILE was the shape both note-writers used, and it worked only
+    while there was exactly one section to append to. A document now carries two -- "Still
+    live" and "Instances seen" -- and end-of-file appending would file every still-live line
+    under whichever heading happened to be last. Section-aware placement is the difference
+    between a document that stays readable after forty firings and one that does not.
+    """
+    lines = text.rstrip().splitlines()
+    try:
+        start = lines.index(heading)
+    except ValueError:
+        return "\n".join(lines) + f"\n\n{heading}\n{line}\n"
+    end = len(lines)
+    for i in range(start + 1, len(lines)):
+        if lines[i].startswith("## "):
+            end = i
+            break
+    body = lines[:end]
+    while body and not body[-1].strip():
+        body.pop()
+    return "\n".join(body + [line] + lines[end:]) + "\n"
 
 
 def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -> None:
@@ -312,10 +460,8 @@ def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -
     if marker in text:
         return
     line = (f"{marker} — still live. {repeats} repeats over {window_h:.1f}h without the "
-            f"state changing. No second document filed: this condition already has one.\n")
-    if "## Still live" not in text:
-        text = text.rstrip() + "\n\n## Still live\n"
+            f"state changing. No second document filed: this condition already has one.")
     try:
-        path.write_text(text.rstrip() + "\n" + line, encoding="utf-8")
+        path.write_text(_append_under(text, "## Still live", line), encoding="utf-8")
     except OSError:
         return

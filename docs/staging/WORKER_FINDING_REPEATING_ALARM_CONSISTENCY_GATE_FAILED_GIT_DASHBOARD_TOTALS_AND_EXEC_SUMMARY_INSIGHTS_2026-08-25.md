@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [SIM] CONSISTENCY GATE FAILED (git=4c42f31ec) — dashboard totals and exec-summary insights disagree on a headline number. Site figures may be untrustworthy until this is fixed. See
 

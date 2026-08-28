@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl` · 6 turn(s).
+Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl` · 8 turn(s).
 
 ### 2026-08-27T05:26:13.608Z
 
@@ -420,3 +420,51 @@ Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl` · 6 turn(s).
 >
 > If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/rich/.claude/projects/-/16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl
 > Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
+### 2026-08-27T16:03:09.924Z
+
+> On the marginals: derive them from published evidence, not from
+> what makes the arm look good. Ofgem's consumer surveys, switching
+> rates by segment, engagement data — take the distribution from
+> what's published and cite it. If the honest distribution leaves
+> little to infer, that's the finding.
+
+### 2026-08-27T16:36:15.111Z
+
+> Two things on price sensitivity, and the second matters more.
+>
+> First, variance within segments. The Ofgem subgroup range is a
+> between-group statistic — it says nothing about spread between
+> individuals, and elasticity is typically close to orthogonal to
+> observables. That's why couponing, time-limited offers and price
+> walks work at all: you can't tell in advance who responds. So the
+> 1.26x is right in direction and the wrong quantity, and it
+> understates the per-household randomness there should be. Draw
+> genuine within-segment variance, not just a subgroup mean shift.
+>
+> Second, and establish this rather than assume it: does the
+> switching decision key on £ saved or % saved? It changes the
+> economics completely. If %, every household is equally worth
+> chasing per point of margin. If £, a large home is far cheaper to
+> win because the same percentage buys more visible saving, so
+> customer value scales with consumption in a way a percentage world
+> would miss. GB comparison sites and the cap headline both present
+> annual £, which suggests £ is closer to reality. Find what our
+> world uses, find what the evidence says, and if they differ, fix
+> the world and say what moved.
+>
+> Neither of these is a decision for me. The marginals I already
+> answered: take them from published evidence and cite them. If the
+> honest read of the evidence is ambiguous, choose the option that
+> makes per-customer pricing harder to win, record why, and move on
+> — erring against our own thesis is the safe direction.
+>
+> Same for the curriculum flag on discoverability: if a trait has no
+> channel the company can observe, either give it one or mark it
+> hidden. Don't leave it claiming discoverable and don't wait for me
+> to say so.
+>
+> Crack on with all of it, and with everything else on your list.
+> Finishing a piece of work is where the next one starts. I'll read
+> what you chose and what you rejected, and correct you afterwards
+> if I disagree — that never requires you to stop.

@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
-# [WORKTREE UNDECLARED] 3 UNDECLARED worktree(s) (accretion, report-only): agent-a7e53b3f1c77109b1(ORPHAN), gatecheck(detached), wedge-check-head(detached). Worktrees that are neithe
+# [PUBLISHING DOWN] The published figures have not reached origin for 1.5h (state=stale). The tick may look healthy and the heartbeat may still be landing on origin: those are the LI
 
 **Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
 fired **3 times without its state changing**, over **0.2h**. Under the
@@ -10,14 +10,14 @@ than being sent again, so this document exists and a 3th page does not.
 ## The alarm, verbatim
 
 ```
-[WORKTREE UNDECLARED] 3 UNDECLARED worktree(s) (accretion, report-only): agent-a7e53b3f1c77109b1(ORPHAN), gatecheck(detached), wedge-check-head(detached). Worktrees that are neither main nor a live fork -- accretion the reconcile discipline covered for processes but not worktrees. REPORT-ONLY (never pruned by inference). Declare it or clean it up through the reconciler.
+[PUBLISHING DOWN] The published figures have not reached origin for 1.5h (state=stale). The tick may look healthy and the heartbeat may still be landing on origin: those are the LIVENESS surface and they do not move with the figures. Check sim-runner-log.md for the publish outcome -- a commit killed by the pre-commit hook deadline is the 2026-08-13 shape.
 ```
 
 ## What is known without diagnosing anything
 
-- Signature: `deadman_worktree_undeclared` — the alarm text with elapsed times, counters, hashes and timestamps
+- Signature: `content_publishing_state` — the alarm text with elapsed times, counters, hashes and timestamps
   normalised away, so this is the same CONDITION recurring, not the same string.
-- First seen in this episode: 2026-08-26T06:15:28+00:00
+- First seen in this episode: 2026-08-28T05:11:41+00:00
 - Repeats before escalation: 3 (threshold `ESCALATE_AFTER_REPEATS`)
 - Paging for this signature is now SUPPRESSED. It resumes automatically the moment the
   underlying state changes — including when it clears.
@@ -34,5 +34,3 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
-- **2026-08-27** — still live. 32 repeats over 2.7h without the state changing. No second document filed: this condition already has one.
-- **2026-08-28** — still live. 32 repeats over 2.8h without the state changing. No second document filed: this condition already has one.

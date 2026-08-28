@@ -483,6 +483,28 @@ def classify_file(path: Path) -> Classification:
     return Classification(path, declared, f"Belongs to `{declared}`", contested, declared)
 
 
+
+#: THE REFERENCE ROOM (2026-08-28, director: "Six are the CLASS registers, which are reference
+#: and should never drain ... Four different kinds of thing share one folder and only one is
+#: work"). A class register is a STANDING document — it is re-rendered in place and is never
+#: actioned and archived — so while it sat in the staging root the root could never reach zero,
+#: and a queue that cannot signal "drained" is how that folder reached 49 items.
+#:
+#: THE LOOKUP SPANS BOTH ROOMS, and that is the load-bearing part rather than a courtesy.
+#: Moving a file is precisely how a control goes QUIET instead of loud: it keeps reading the
+#: old path, finds nothing, and reports nothing wrong. (This project found six readers still
+#: reading one half of a map that had split in two, all of them passing.) `class_document_path`
+#: in `background/staging_rooms.py` is the ONE place that knows where a register may be, so a
+#: register in either room is found by every reader here, and a half-finished move cannot
+#: produce a silent pass. Falls back to the root if that module is unavailable — an import
+#: failure must not turn every register into MISSING and wedge the publish gate.
+def _class_doc_path(root: Path, name: str) -> Path:
+    try:
+        from background.staging_rooms import class_document_path
+        return class_document_path(name, root)
+    except Exception:
+        return Path(root) / name
+
 def classifiable_documents(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Path]:
     """Every `*.md` in the staging root that is neither a machine doorbell nor a class
     document. Counted FROM THE FILESYSTEM — the population is the glob, never a list."""
@@ -652,7 +674,7 @@ def archived_instances(root: Path, finding_class: FindingClass) -> list[str]:
     the root, which `check()` reports separately) does not silently keep counting as a
     consolidated instance just because a document still lists it.
     """
-    doc = root / finding_class.document_name
+    doc = _class_doc_path(root, finding_class.document_name)
     if not doc.exists():
         return []
     listed = _INSTANCE_LINE_RE.findall(doc.read_text(encoding="utf-8", errors="replace"))
@@ -903,7 +925,7 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
             )
 
     for finding_class in CLASSES:
-        doc = root / finding_class.document_name
+        doc = _class_doc_path(root, finding_class.document_name)
         if not doc.exists():
             # A CLASS DOCUMENT THAT WENT MISSING WAS USUALLY ARCHIVED, NOT LOST, and the
             # two states want opposite repairs. `--render` is right when the document was
@@ -988,7 +1010,8 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
 def _write_class_documents(root: Path) -> list[Path]:
     written: list[Path] = []
     for membership in derive_memberships(root).values():
-        doc = root / membership.finding_class.document_name
+        doc = _class_doc_path(root, membership.finding_class.document_name)
+        doc.parent.mkdir(parents=True, exist_ok=True)
         doc.write_text(render_class_document(membership, root), encoding="utf-8")
         written.append(doc)
     return written

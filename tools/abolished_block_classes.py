@@ -222,10 +222,61 @@ def _load_atoms(path: Path | None = None):
     return data if isinstance(data, list) else None
 
 
-def live_blocked_on_violations(path: Path | None = None) -> list[dict] | None:
-    """Atoms whose LIVE `blocked_on` names an abolished class.
+#: THE PROSE SPELLINGS OF AN ABOLISHED ACT (2026-08-28).
+#:
+#: MEASURED. `live_blocked_on_violations()` reported ZERO while three live atoms sat parked --
+#: `B6_collateral_cash_death_loop`, the atom that would build the whole of the director's P7,
+#: its dependency `SPINE_3_gas_storage_crisis_regime`, and `W1_8_zonal_locational_pricing`.
+#: B6's `block_reason` reads: *"BUILD is EPOCH-gated: opens only on a director/twin BUILD-open
+#: of an E/treasury front. No agent BUILD or level move until then (R16, no self-bump)."*
+#: Every act it names was abolished on 2026-07-29 and swept on 2026-08-03.
+#:
+#: TWO REASONS THE GUARD MISSED IT, and both are the same failure at different addresses.
+#:  1. WRONG FIELD. It read `blocked_on` only. B6's `blocked_on` is null and its `block_reason`
+#:     carries the whole sentence — and a `block_reason` is exactly as much a claim about NOW
+#:     as a `blocked_on` is, because it is the sentence a reader uses to decide not to draw.
+#:  2. WRONG SPELLING. `_pattern_for` matches the SYMBOL (`director_build_open`, `build_open`)
+#:     and a `block_reason` is written in PROSE. "BUILD-open" is a hyphen, not an underscore,
+#:     so it walked straight through a matcher built to find it.
+#:
+#: This is the class fix (R10), not the three instance edits: the next block_reason written in
+#: prose about a dead act is caught by the same registry, with no atom-by-atom pass.
+#:
+#: STILL DELIBERATELY NOT A SUBSTRING SWEEP. Each pattern is anchored to the ACT, so a live
+#: block that merely mentions a director (`director_systemd_deploy`) is untouched. A false
+#: positive here unparks an atom that is genuinely blocked, which is worse than the defect.
+ABOLISHED_ACT_PROSE = (
+    (re.compile(r"\bbuild[-\s]open\b", re.I), "director_build_open"),
+    (re.compile(r"\bfront[-\s]open\b", re.I), "front_open"),
+    (re.compile(r"\bgate[-\s]clear(ed|ance)?\b", re.I), "gate_clear"),
+    (re.compile(r"\bno self-bump\b", re.I), "director_level_up"),
+    (re.compile(r"\bdirector/twin\b", re.I), "director_authority_channels"),
+    (re.compile(r"\bepoch-gated\b", re.I), "director_build_open"),
+    (re.compile(r"\b(director|twin)\s+(must\s+)?(open|ratif\w+)\b", re.I), "director_build_open"),
+)
 
-    A note is history and may mention a dead act. A `blocked_on` is a claim
+
+def find_abolished_prose(text: str) -> list[str]:
+    """Abolished class NAMES this prose refers to, deduped, in registry order."""
+    if not text:
+        return []
+    found: list[str] = []
+    for pattern, name in ABOLISHED_ACT_PROSE:
+        if name not in found and pattern.search(str(text)):
+            found.append(name)
+    return found
+
+
+#: Fields on an atom that are CLAIMS ABOUT NOW. A note is history and may mention a dead act;
+#: any of these may not. `block_reason` is here because it is the sentence a reader uses to
+#: decide not to draw the atom — which makes it load-bearing in exactly the way `blocked_on` is.
+LIVE_CLAIM_FIELDS = ("blocked_on", "block_reason")
+
+
+def live_blocked_on_violations(path: Path | None = None) -> list[dict] | None:
+    """Atoms whose LIVE block claim names an abolished class, by symbol OR in prose.
+
+    A note is history and may mention a dead act. A block claim is a claim
     about NOW, so it may never name one. Returns None when the map cannot be
     read at all -- an unavailable check is a FAILED check, not an empty pass.
     """
@@ -236,17 +287,20 @@ def live_blocked_on_violations(path: Path | None = None) -> list[dict] | None:
     for atom in atoms:
         if not isinstance(atom, dict):
             continue
-        blocked = atom.get("blocked_on")
-        if not blocked:
-            continue
-        refs = find_abolished_references(str(blocked))
-        if refs:
-            violations.append({
-                "atom_id": atom.get("id"),
-                "blocked_on": blocked,
-                "abolished": [c.name for c in refs],
-                "replaced_by": [c.replaced_by for c in refs],
-            })
+        for field in LIVE_CLAIM_FIELDS:
+            claim = atom.get(field)
+            if not claim:
+                continue
+            names = [c.name for c in find_abolished_references(str(claim))]
+            names += [n for n in find_abolished_prose(str(claim)) if n not in names]
+            if names:
+                violations.append({
+                    "atom_id": atom.get("id"),
+                    "field": field,
+                    "blocked_on": claim,
+                    "abolished": names,
+                    "replaced_by": [ABOLISHED_BLOCK_CLASSES[n].replaced_by for n in names],
+                })
     return violations
 
 

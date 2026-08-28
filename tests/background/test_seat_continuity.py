@@ -300,9 +300,16 @@ def test_a_SECOND_interruption_files_its_OWN_handoff(beat, no_seat, tmp_path, mo
 
     THE SUBJECT USED TO VARY BY SESSION ID FOR THIS REASON AND THAT WAS THE WRONG DISCRIMINATOR
     (2026-08-25) -- it made every interruption distinct, including eighteen consecutive ones
-    over the same unadopted work. The subject now varies by the AREAS of the held work, which
-    is why this test still passes unchanged: `first/edit.py` and `second/quite/different.py`
-    are genuinely different work and still get two documents. Its sibling
+    over the same unadopted work. It then varied by the AREAS of the held work, which was the
+    wrong discriminator too: a tree whose dirty set moved by one directory filed another
+    document, and the director found NINE of them in the staging root on 2026-08-28, all
+    saying the same thing and all ahead of his own guidance in an alphabetical draw.
+
+    NEITHER ARGUMENT LOSES, AND THIS TEST IS NOW ABOUT THE SECOND ONE ONLY (2026-08-28). The
+    identity is the CONDITION -- one document, keyed `seat-continuity` -- and the payload is
+    the EPISODE, appended as its own section. So the property this test has always been
+    about, that the second death's held state is not silently discarded, is asserted on the
+    CONTENT rather than on the file count. Its sibling
     `test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document` is the other half, and
     the two together are the actual contract.
     """
@@ -322,9 +329,16 @@ def test_a_SECOND_interruption_files_its_OWN_handoff(beat, no_seat, tmp_path, mo
     assert sc.sweep(path=p, now=NOW + 86_400, staging_dir=staging) is not None
 
     docs = sorted(staging.glob("*.md"))
-    assert len(docs) == 2, f"each interruption needs its own handoff, got {docs}"
-    bodies = "\n".join(d.read_text(encoding="utf-8") for d in docs)
-    assert "first/edit.py" in bodies and "second/quite/different.py" in bodies
+    assert len(docs) == 1, "one condition, one queue item"
+    text = docs[0].read_text(encoding="utf-8")
+    assert "first/edit.py" in text, "the FIRST death's held state was overwritten"
+    assert "second/quite/different.py" in text, (
+        "the SECOND death's held state was discarded -- exactly the loss the 2026-08-25 "
+        "argument warned about, and the reason the episodes are appended rather than folded"
+    )
+    assert text.count(sc.EPISODES_HEADING) == 1, "one heading, however many episodes"
+    assert text.count("#### What it left in the tree") == 2, "two deaths, two episodes"
+
 
 
 def test_the_heartbeat_hook_is_WIRED_into_settings_json():
@@ -409,13 +423,15 @@ def test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document(
     )
 
 
-def test_the_document_is_NAMED_for_the_work_it_is_about(beat, no_seat, tmp_path, monkeypatch):
-    """The filename is what a reader sees in the queue, and it is the only discriminator that
-    survives: `alarm_repetition._slug` keeps the first TEN words of the NORMALISED subject, and
-    normalise() turns every number into `#`. So a count cannot name the work and neither can
-    anything past the tenth word -- the first attempt at this fix put the areas at the END of
-    the sentence and produced one identical filename for every death, which is the original bug
-    wearing the fix's clothes."""
+def test_the_document_SAYS_what_work_it_is_about(beat, no_seat, tmp_path, monkeypatch):
+    """A reader must be able to see what is held, and the session id must never be the subject.
+
+    THIS USED TO ASSERT ON THE FILENAME (2026-08-25: "the handoff is not named for what it
+    holds, so the queue cannot be read"). The concern was right and the remedy put a VARYING
+    payload into the IDENTITY, which is what filed nine documents about one condition. The
+    filename now names the condition; the document says what is held, which is where a reader
+    was going to look anyway once the queue is one item instead of nine.
+    """
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
     monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
@@ -427,11 +443,13 @@ def test_the_document_is_NAMED_for_the_work_it_is_about(beat, no_seat, tmp_path,
     write(sc.SILENT_AFTER_SECONDS + 1, session_id="c7e894aa-3221-45f7-8713-b1a18a6232a9")
     sc.sweep(path=p, now=NOW, staging_dir=staging)
 
-    name = next(staging.glob("*.md")).name
-    assert "SIMULATION" in name and "TESTS" in name, (
-        f"the handoff is not named for what it holds, so the queue cannot be read: {name}"
+    doc = next(staging.glob("*.md"))
+    text = doc.read_text(encoding="utf-8")
+    assert "simulation/hedged_settlement.py" in text and "tests/simulation/t.py" in text, (
+        "the handoff does not say what it holds, so the queue cannot be read"
     )
-    assert "C7E894AA" not in name.upper(), "the session id is back in the subject"
+    assert "C7E894AA" not in doc.name.upper(), "the session id is back in the subject"
+    assert "C7E894AA" not in text.upper(), "the session id is back in the body"
 
 
 # ---------------------------------------------------------------------------

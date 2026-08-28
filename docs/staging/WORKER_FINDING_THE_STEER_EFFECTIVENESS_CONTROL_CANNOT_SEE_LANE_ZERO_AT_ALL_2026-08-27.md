@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Rank:** backlog, after the current delivery-lane item
+**Severity:** LATENT · **Lane:** H_harness · **Rank:** backlog, after the current delivery-lane item · **Epoch:** 3 · **Atom:** `H41_the_map_ratchet_has_no_ongoing_drain`
 
 # The seat's steer-effectiveness control cannot see Lane 0 at all, and two perennial atoms make it report PASS every cycle
 

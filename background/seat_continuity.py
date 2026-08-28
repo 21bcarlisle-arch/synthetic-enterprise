@@ -85,8 +85,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from background.live_ledger_guard import guard_live_ledger_write
@@ -442,21 +444,73 @@ def _handoff_for(rec: dict, *, now: float, staging_dir: Path | None = None) -> s
     #
     # (The session id also could not de-duplicate even when it was wanted to. A UUID survived
     # `alarm_repetition.normalise` in fragments -- see the UUID rule added there the same day.)
-    filed = alarm_repetition.escalate(
+    message = (
         f"[SEAT] {_held_areas(uncommitted)} left uncommitted by a session that stopped "
-        f"mid-work holding {len(claims)} claim(s)",
+        f"mid-work holding {len(claims)} claim(s)"
+    )
+    filed = alarm_repetition.escalate(
+        message,
         key="seat-continuity",
         repeats=1,
         first_ts=float(rec.get("ts", now)),
         staging_dir=staging_dir,
         now=now,
     )
-    if filed is not None:
-        try:
-            filed.write_text(handoff_document(rec, claims, uncommitted, now), encoding="utf-8")
-        except OSError:
-            pass
-    return str(filed) if filed is not None else None
+    # ONE DOCUMENT, EVERY EPISODE'S PAYLOAD IN IT (2026-08-28, director: "ten of them the
+    # identical finding").
+    #
+    # The two arguments above are BOTH right and the old code could only honour one at a time.
+    # "Two deaths over the same unadopted work are one condition" is right, and so is "the
+    # second death may be holding something else entirely, and folding it into the first would
+    # discard exactly the state this module exists to preserve." The 2026-08-25 fix chose the
+    # first by making the FILENAME carry the held areas — which meant a tree whose dirty set
+    # moved by one directory filed another document, and nine of them were in the root on
+    # 2026-08-28, all saying the same thing.
+    #
+    # Neither argument needs to lose. The identity is the CONDITION (one document, keyed on
+    # `seat-continuity`), and the payload is the EPISODE (one section inside it, appended, never
+    # overwritten). A reader gets one queue item and every dead seat's held state under it.
+    #
+    # Appending rather than overwriting is the half that makes the preservation real: the old
+    # code wrote the handoff over `escalate()`'s body on the FIRST firing only, so every
+    # subsequent death's tree state was lost even before the family rule.
+    target = filed or alarm_repetition._live_finding_for(
+        message, key="seat-continuity", staging_dir=staging_dir or alarm_repetition.STAGING_DIR)
+    if target is None:
+        return None
+    try:
+        _append_episode(target, handoff_document(rec, claims, uncommitted, now), now=now)
+    except OSError:
+        pass
+    return str(target)
+
+
+#: The heading under which each dead seat's held state is recorded, one section per episode.
+EPISODES_HEADING = "## Episodes — what each dead seat was holding"
+
+
+def _append_episode(path: Path, handoff: str, *, now: float) -> None:
+    """Add one episode's handoff to the family document, keeping every earlier one.
+
+    The handoff's own `**Severity:**` header and `# ` title are stripped: they belong to the
+    document, and repeating them per episode would give one file four severity headers, which
+    `finding_severity.parse_severity_file` reads the FIRST of. A document whose severity
+    depends on which episode was appended last is a control keyed on an accident.
+    """
+    stamp = datetime.fromtimestamp(now, timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    body = "\n".join(
+        line for line in handoff.splitlines()
+        if not line.startswith("**Severity:**") and not line.startswith("# ")
+    ).strip()
+    # Each episode's own sections demote by one level so they nest under the episode heading
+    # rather than closing it — otherwise `## What it left in the tree` would end the Episodes
+    # section and the next append would land outside it.
+    body = re.sub(r"(?m)^## ", "#### ", body)
+    section = f"### {stamp}\n\n{body}\n"
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if EPISODES_HEADING not in text:
+        text = text.rstrip() + f"\n\n{EPISODES_HEADING}\n"
+    path.write_text(text.rstrip() + "\n\n" + section, encoding="utf-8")
 
 
 def _clear(path: Path) -> None:

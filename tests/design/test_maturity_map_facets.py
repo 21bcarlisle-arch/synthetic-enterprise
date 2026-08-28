@@ -47,6 +47,26 @@ VALID_STREAMS = {"meter_to_cash", "price_to_bill", "wholesale_to_price", "close_
 # A `close_to_learn` atom absent from this set = the unreviewed default = a
 # violation (this is the mechanism that forces every new atom to be classified).
 REVIEWED_CLOSE_TO_LEARN = {
+    # 2026-08-28 reviewed (delivery seat, sequencing DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS).
+    # Classified on their merits, and the classification is the reason they belong here rather
+    # than the reason they were put here: all three produce KNOWLEDGE and move no money.
+    # H45 makes a staging work item carry its lane, epoch and atom, so "what is in flight for
+    # this subsystem" becomes a query instead of a conversation. It changes no price, no bill and
+    # no customer -- what it changes is whether the machine can find its own work, the same class
+    # as its H_harness siblings H30 and H42.
+    "H45_the_queue_is_chained_to_the_map",
+    # A45 re-tests what THE MODEL ON A PAGE claims against what the code does. It writes no
+    # capability; it measures whether a claim already made is still true, which is exactly the
+    # class A9_market_at_the_seams_design_law was reviewed into two weeks earlier.
+    "A45_the_canon_is_a_standing_subject",
+    # A46 prices the book-depth options and hands them to the director; the DECISION is R13
+    # curriculum and is his. The deliverable is a costed menu -- knowledge for a decision, not the
+    # decision and not a revenue flow. Same class as its A-lane governance siblings A1/A2/A6.
+    "A46_book_depth_is_a_curriculum_question",
+    # SITE13 adds one sentence of BOUND to an already-published figure. It changes no figure and
+    # earns no revenue; it makes an existing result honest about what it is evidence of, which is
+    # the same knowledge class as its SITE siblings and as A45 above.
+    "SITE13_the_baseline_comparison_carries_its_bound",
     # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
     # not"). Both classified on their merits, not to clear the gate.
     # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction

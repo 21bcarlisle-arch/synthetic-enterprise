@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [RECONCILE] DRIFT — 8 item(s) diverge from the manifests:
 
@@ -41,3 +41,7 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 
 ## Still live
 - **2026-08-27** — still live. 13 repeats over 10.8h without the state changing. No second document filed: this condition already has one.
+- **2026-08-28** — still live. 41 repeats over 35.1h without the state changing. No second document filed: this condition already has one.
+
+## Instances seen
+- `drift — # item(s) diverge from the manifests: ✗ [gap:stale] ep#_clv_three_horizon ✗ [gap:stale] pb#_book_growth_as_earne` (first seen 2026-08-28)

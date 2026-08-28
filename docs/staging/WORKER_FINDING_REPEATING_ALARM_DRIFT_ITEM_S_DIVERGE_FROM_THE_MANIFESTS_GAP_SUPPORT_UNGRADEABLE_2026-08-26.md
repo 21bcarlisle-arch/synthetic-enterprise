@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [RECONCILE] DRIFT — 8 item(s) diverge from the manifests:
 

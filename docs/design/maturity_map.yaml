@@ -434,13 +434,13 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle   # DISCOVER/FRAME-complete (FRAME below), BUILD director-gated: the world-selection MECHANISM is the agent's, but the named worlds + their probabilities are R13 CURRICULUM (director-authored values, SPINE_2). BUILD-open needs a director front (blocked_on).
+  loop_stage: build   # 2026-08-28: the second half of that sentence cited BUILD-open and fronts.yaml, both abolished 2026-07-29 and swept 2026-08-03, so this atom was parked on an act that no longer exists. The FIRST half stands and is why this is a BUILD and not a wait: the world-selection MECHANISM is the agent's; only the named worlds + their probabilities are R13 CURRICULUM. DECOMPOSE (CLAUDE.md): build the mechanism, leave the values as a declared director input. Head of the P7 chain -- SPINE_1 -> SPINE_3 -> B6_collateral_cash_death_loop.
   frame_saturated: true   # 2026-07-23 DISCOVER->FRAME complete in SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md (section A: object, internal representation, wall, consumption seam, byte-identical baseline, launch-world proposal, tail-heavy sampling). Spine BUILD deliberately deferred.
   dial_inherited: 4
   provenance: proposal
   file_scope: [sim/scenario, tests/sim/test_scenario_spine.py]
   depends_on: []
-  blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731): blocked_on drops an atom from EVERY lane incl. the idle DISCOVER/FRAME draw, so this read as "no work" -- the exact defect he named. BUILD stays gated by loop_stage: idle + the fronts.yaml stage_advance gate; SPINE_2's named-world VALUES stay R13 director-authored.
+  blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731): blocked_on drops an atom from EVERY lane incl. the idle DISCOVER/FRAME draw, so this read as "no work" -- the exact defect he named. 2026-08-28: the trailing clause named `fronts.yaml stage_advance`, abolished with the rest of the permission machinery; deleted rather than reworded. SPINE_2's named-world VALUES stay R13 director-authored and that is a real, live constraint.
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a risk desk's scenario library: a small set of named, human-curated pathway worlds (the NESO Future Energy Scenarios pattern) sampled tail-heavy against their true probabilities, that the trading book is stress-run through -- the desk knows which world it is stress-testing; the front office does not get to see the future it is being tested against"
@@ -458,7 +458,8 @@
   file_scope: [sim/market/gas_storage.py, sim/scenario, tests/sim/test_gas_storage_regime.py]
   depends_on: [SPINE_1_scenario_world_state]
   blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731) -- same reason as SPINE_1: a blocked atom is invisible to the idle DISCOVER/FRAME draw. BUILD stays gated by loop_stage: idle + stage_advance + depends_on SPINE_1; the shock magnitude and target 2021/22 inversion shape stay R13 director curriculum. Prior block_reason kept below for the record.
-  block_reason: "Candidate atom just authored (provenance: proposal) from BACKLOG B2 + FRAME section C sibling SPINE_3_gas_storage_crisis_regime. BUILD is EPOCH-gated and also depends_on SPINE_1 landing (the spine is the registry this scenario is selected within) -- it opens only on a director/twin BUILD-open of a W1/wholesale front AFTER SPINE_1 builds. The shock magnitude and which 2021/22 shape is the calibration target are R13 director-authored curriculum, not agent-set. No agent BUILD or level move until then (R16, no self-bump)."
+  block_reason: "depends_on SPINE_1 landing -- the spine is the registry this scenario is selected within, so there is nothing to select until it exists. That is the WHOLE of the block as of 2026-08-28. The shock magnitude and which 2021/22 shape is the calibration target remain R13 director-authored curriculum, which constrains the VALUES and not the build."
+  block_reason_history: "REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of a W1/wholesale front' and cited 'no self-bump' -- both acts were abolished 2026-07-29 and swept 2026-08-03, so this atom, and B6 behind it, were parked on machinery that no longer exists. Found by extending tools/abolished_block_classes.py to read block_reason and to match PROSE spellings; it had been reporting zero violations while matching only the symbol form in blocked_on."
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a gas trading desk's fundamentals model: European storage fill/draw as a physical stock whose seasonal trajectory and shock response drive the seasonal spread -- a low-storage cold winter endogenously inverts summer-winter, exactly the 2021/22 mechanism, rather than the crisis being hand-scripted into the curve"
@@ -476,7 +477,8 @@
   file_scope: [saas/treasury, tests/saas/test_collateral_death_loop.py]
   depends_on: [SPINE_3_gas_storage_crisis_regime]
   blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731) -- same reason as SPINE_1/SPINE_3: a blocked atom is invisible to the idle DISCOVER/FRAME draw, so the whole Wave-B pair read as "no work". BUILD stays gated by loop_stage: idle + stage_advance + depends_on SPINE_3 (coupled-triad ordering). Prior block_reason kept below for the record.
-  block_reason: "Candidate atom just authored (provenance: proposal) from BACKLOG B6. COUPLED-TRIAD: the death loop needs a world that can defeat it (SPINE_3s inversion) -- neither reaches L3 without the other, so depends_on SPINE_3 and cannot BUILD before it. BUILD is EPOCH-gated: opens only on a director/twin BUILD-open of an E/treasury front. No agent BUILD or level move until then (R16, no self-bump)."
+  block_reason: "COUPLED-TRIAD: the death loop needs a world that can defeat it (SPINE_3's inversion) -- neither reaches L3 without the other, so depends_on SPINE_3 and cannot BUILD before it. That is the WHOLE of the block as of 2026-08-28."
+  block_reason_history: "REWRITTEN 2026-08-28. REWRITTEN 2026-08-28: the previous text also required 'a director/twin BUILD-open of an E/treasury front' and cited 'no self-bump' -- both abolished 2026-07-29, swept 2026-08-03. THIS ATOM IS THE DIRECTOR'S P7 and his C3: the world imposes no collateral CALL, only a cost line sized once at term start and fixed for the term (simulation/hedged_settlement.py). It has been parked behind a dead act while SURVIVE could not be pressed on."
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier treasury in winter 2021/22: hedges are in the money on paper but exchange/counterparty variation-margin calls demand cash today against a forward that has moved -- the accounting P&L is positive while the liquidity runs out, the mechanism that actually killed several real GB suppliers (the mark-to-market P&L survived; the cash did not)"
@@ -568,7 +570,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   file_scope: [sim/competitor_field.py, tests/sim/test_competitor_switching.py]
@@ -1379,3 +1381,119 @@
   file_scope: ['docs/design/maturity_map.yaml', 'tools/simplifications_store.py', 'background/naive_organ.py', 'tests/design/test_maturity_map_schema.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulator's data-quality rulebook -- every register declares who reads it, who may write it, how it is bounded, and how a check on it was proven to catch a planted error, rather than trusting each new register to reinvent the same disciplines"
+- id: H45_the_queue_is_chained_to_the_map
+  title: "P8: every staging work item carries a lane, an epoch and an atom, and the machine can say how many do not"
+  gain: "Director, 2026-08-28, having read all 49 files in docs/staging/: 'not one file carries a lane, an epoch or an atom id, so the queue is disconnected from the map entirely -- the same missing chain the guidance calls P8'. P8 in full: 'no systematic link from knowledge to discovery to atoms to epochs. Published evidence we already held sat unused while a 3.75x spread was invented. A July design document sat unread until a director question surfaced it. Discovery ran eight passes deep on atoms that could never build. Knowledge pages describe mechanisms with no link to the atoms implementing them, so page and code can disagree indefinitely and nothing notices.' PART LANDED 2026-08-28: background/staging_rooms.py parses the chain off the header finding_severity already owns, counts the items carrying none, and separates 'nobody looked' (absent) from 'looked, nothing yet' (an explicit `unminted`); alarm_repetition stamps the chain on every document it files. REMAINING: the other three joints -- a knowledge page (docs/design/knowledge/, not yet created) that names the atoms implementing it and fails when they move; a discovery pass that cannot run deeper than the atom it is about can build; and the epoch attachment, so work accretes rather than scatters."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [H41_the_map_ratchet_has_no_ongoing_drain, A45_the_canon_is_a_standing_subject]
+  file_scope: ['background/staging_rooms.py', 'tests/background/test_staging_rooms.py', 'tools/staging_migrate_rooms.py', 'background/staging_watcher.py']   # docs/design/knowledge/ is where the REMAINING joint (a knowledge page that names its atoms) will live and does not exist yet; a file_scope is EVIDENCE for the level claimed, not a plan, so an unbuilt path may not sit in it (scope-evidence gate, 2026-08-28).
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an engineering organisation where every ticket carries its component and its release train, so 'what is in flight for this subsystem' is a query rather than a conversation -- and where a design document that no longer matches any live component is flagged by the tooling rather than by whoever happens to reread it"
+- id: A45_the_canon_is_a_standing_subject
+  title: "Something other than the director must ask what the page claims that the code no longer supports"
+  gain: "Director, 2026-08-28: 'Today's three corrections were found because the director and advisor happened to read the page -- no mechanism ever checks it, so the mission sits structurally outside the machine's field of view. That check would have caught C1 and C2 weeks ago, and it is the machine's job rather than the director's.' The three corrections cost nothing to find once someone looked: C1's traits were unread by any response function, C2's competitor was eleven design documents and no module, C3's collateral was a fixed cost line and never a call. All three were greppable. The atom is the standing check, not the three answers -- those are filed in WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28. Note the direction runs both ways: C1 was found to be PARTLY SUPERSEDED, because a channel for price_sensitivity landed on 2026-08-27, the day before the guidance was drafted. A drift check that can only report the page over-claiming would have missed that."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [H45_the_queue_is_chained_to_the_map]
+  file_scope: ['docs/design/DIRECTOR_CANON.md', 'tools/canon_drift_check.py', 'tests/tools/test_canon_drift_check.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulated firm's control-attestation cycle: the statement of what the firm does is re-tested against what the systems do on a schedule, by someone whose job it is, rather than at the moment a board member happens to read it"
+- id: PB4_engagement_separated_from_elasticity
+  title: "P4: whether a household enters a choice process at all is not how far price moves it once it does"
+  gain: "Director, 2026-08-28 (P4): 'A large share of GB households have never switched at any price -- an engagement fact, not an elasticity one -- and a disengaged household can be highly price-sensitive once a bill shock makes it look, which is exactly why bill shocks are predictive. Modelling one on the other's shape builds a world where never-switchers are also price-insensitive, and the company will learn a relationship that does not exist.' The current world has ONE axis: simulation/customer_events.py weights a single price differential by a single per-household elasticity drawn from price_sensitivity, so a household that never switches is expressed as one with a low elasticity, and the two facts are inseparable by construction. Two gates, not one weight: an ENGAGEMENT gate (does this household look at all this period, and what makes it look -- a bill shock, a renewal letter, a price rise past a threshold) and, conditional on looking, an ELASTICITY (how far the gap moves it). BUILD SO THAT P1 CHANGES ITS ANSWERS, NOT ITS STRUCTURE (the guidance's one genuine cul-de-sac): the gate takes a comparison offer as an argument, so a competitor that responds changes what is on offer without changing the shape of the decision."
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B10_competitor_switching_response, B8_discovered_price_sensitivity_holdout, PB5_pounds_or_percent_resolved]
+  file_scope: ['simulation/population_draw.py', 'simulation/customer_events.py', 'tests/simulation/test_engagement_and_elasticity_are_separate.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
+- id: PB5_pounds_or_percent_resolved
+  title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
+  gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [PB4_engagement_separated_from_elasticity, B10_competitor_switching_response]
+  file_scope: ['simulation/customer_events.py', 'company/pricing/', 'docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md', 'tests/simulation/test_the_decision_scale_is_pounds_on_both_sides.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "every GB price comparison site and the Ofgem cap headline itself, all of which present an annual GBP figure -- a household is told 'save £312 a year', never 'save 11%', so a supplier modelling the decision in percent is modelling a number the customer is never shown"
+- id: A46_book_depth_is_a_curriculum_question
+  title: "P9: only 37 accounts carry five or more renewals, so nothing can compound -- and book age moves the P&L, which makes it the director's"
+  gain: "Director, 2026-08-28 (P9): 'Book depth bounds every comparison. Only 37 accounts carry five or more renewals, so nothing can compound. Book age moves the P&L, which makes it curriculum and therefore the director's -- flagged, not delegated.' RETURNED, NOT DECIDED, as WORK THIS CREATES item 4 requires. This atom exists to carry the COST of each option to him and to hold the decision, not to take it: R13 is explicit that difficulty changes are named, versioned, director-authored artefacts and never adjusted by the agent in response to company outcomes, and the agent controls both sides of that wall. What the seat owes him is the priced menu -- how many renewals each option buys, what it costs in wall-clock against the 30-minute publish cadence that binds SETTLEMENT_CUSTOMER_YEAR_BUDGET, and which comparisons stay bounded until it lands."
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null   # NOT blocked. The DECISION is R13 curriculum and is the director's; the PRICED MENU he needs to take it is this atom's own deliverable and is drawable now. Parking the atom on his answer would make the thing he is waiting for unbuildable -- which is how a real reserved-class item and a permission ceremony end up looking the same.
+  depends_on: []
+  couples_with: [B10_competitor_switching_response]
+  file_scope: ['docs/design/', 'tools/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
+- id: C29_decisions_stop_being_lookup_tables
+  title: "P6: acquisition budget takes no customer id, dunning keys on segment and days overdue, retention is a fixed offer and fixed tiers"
+  gain: "Director, 2026-08-28 (P6): 'Acquisition budget takes no customer id; dunning keys on segment and days overdue while capacity_to_pay and the breathing-space register go unread; retention is a fixed offer and fixed tiers. A rich, competitive world cannot be exploited through a segment table.' DELIBERATELY IDLE AND NOT BUILD, which is the sequencing judgement rather than a shortage of will. A richer decision surface against a world that cannot react learns nothing: this seat has already measured that the decision surface the A/B actually has is NINE ACCOUNTS WIDE, and that the choosing is worth -£175 with an error bar 25x the estimate. Widening the surface before the world can reward the width would buy a better-instrumented null. depends_on the P1 atom and the two household atoms; it becomes the obvious next BUILD the moment they land, and everything before then is DISCOVER/FRAME work on it, which is available now (EPOCH_GATING_AND_ATOM_AUTHORSHIP: a parked atom is parked for BUILD only)."
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: director_ruling
+  block_reason: "Sequencing, not permission. depends_on B10 (a world that can react) and the two household atoms (variation with a channel and a scale). A decision surface widened against a flat world produces a better-instrumented null -- measured, not assumed: the current surface is nine accounts wide and the choosing is worth -£175 against an error bar 25x that. DISCOVER and FRAME on this atom are drawable NOW."
+  blocked_on: null
+  depends_on: [B10_competitor_switching_response, PB4_engagement_separated_from_elasticity, PB5_pounds_or_percent_resolved]
+  couples_with: [B8_discovered_price_sensitivity_holdout]
+  file_scope: ['company/customer_ops/', 'company/pricing/', 'tests/company/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
+- id: SITE13_the_baseline_comparison_carries_its_bound
+  title: "The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react"
+  gain: "C2 (DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28, confirmed in full by WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28): 'Every measurement of the company's decisions is currently taken against an opponent that cannot move... Beating the flat baseline compares two internal policies in a market that could not react to either. That is a valid internal comparison and it is not evidence about a supplier's performance.' /capabilities/ currently publishes flat rules £153,245 against per-customer £157,913, the level explaining 102.4%, and the choosing worth -£175 with an error bar 25x the estimate -- correctly, and without that bound beside it. Publishing the comparison was right; publishing it unbounded is a claim the evidence does not carry. R11 binds hardest here: done means fetching the LIVE deployed surface and asserting the sentence renders, never that the generator emits it. The bound is RETRACTABLE by construction (a caveat can be strengthened or removed) so this is not a reserved-class public claim -- it is the correction of one."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [B10_competitor_switching_response, A45_the_canon_is_a_standing_subject]
+  file_scope: ['site/capabilities/', 'tools/generate_capabilities_door.py', 'tests/tools/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a backtest published with its own assumption stated on the same page -- 'this result assumes the market does not react to our trades' -- rather than in a methodology appendix nobody opens, because the assumption is the difference between a result and an artefact"

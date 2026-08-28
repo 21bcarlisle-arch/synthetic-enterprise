@@ -393,16 +393,38 @@ def ntfy(msg: str) -> None:
 
 
 def _unprocessed_staging_files() -> list[str]:
-    """Top-level files directly in docs/staging/ -- excludes done/, fyi/,
-    responses/, drafts/ and any other subdirectory automatically (iterdir +
-    is_file), and .gitkeep. Covers both staged instruction docs and
-    from_rich_*.md files left in place by dispatcher.py (URGENT/NORMAL)."""
+    """Top-level files directly in docs/staging/, IN DRAW ORDER -- excludes done/, fyi/,
+    responses/, drafts/, reference/, console/ and any other subdirectory automatically
+    (iterdir + is_file), and .gitkeep. Covers both staged instruction docs and
+    from_rich_*.md files left in place by dispatcher.py (URGENT/NORMAL).
+
+    ORDER, NOT ALPHABET (2026-08-28, director, having read all 49 files himself: "the draw
+    takes files in alphabetical filename order, and that is the least of it"). This returned
+    `sorted(names)` and `find_work()` renders the whole list into one comma-joined reason, so
+    the ORDER of this list is the order of the queue a drawn turn reads. Alphabetical is not a
+    queue discipline -- it is an accident of naming, and here the accident was systematic:
+    `CLASS_` < `DIRECTOR_` < `WORKER_`, so the six standing registers that can NEVER be
+    actioned sorted ahead of the director's guidance written that morning, and the guidance
+    sorted ahead of every finding.
+
+    `background/staging_rooms.py` owns the rank and the tie-break (age, not name) and is the
+    single place either changes. The fallback keeps the old behaviour if that import ever
+    fails: a draw that cannot rank its work must still SEE it, because an unranked queue is a
+    nuisance and an invisible one is a stall.
+    """
     if not STAGING_DIR.is_dir():
         return []
-    return sorted(
-        p.name for p in STAGING_DIR.iterdir()
-        if p.is_file() and p.name not in _IGNORED_STAGING_NAMES
-    )
+    try:
+        from background import staging_rooms
+        return [
+            item.name for item in staging_rooms.work_queue(STAGING_DIR)
+            if item.name not in _IGNORED_STAGING_NAMES
+        ]
+    except Exception:
+        return sorted(
+            p.name for p in STAGING_DIR.iterdir()
+            if p.is_file() and p.name not in _IGNORED_STAGING_NAMES
+        )
 
 
 def _is_daemon_marker(name: str) -> bool:

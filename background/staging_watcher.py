@@ -492,6 +492,40 @@ def sweep_stale_instruction_docs(now: datetime | None = None) -> list[str]:
     return archived
 
 
+
+def _route_arrivals_to_rooms() -> list[str]:
+    """Move any REFERENCE or CONSOLE document that has landed in the root into its room.
+
+    Returns the names moved, for the log. Never raises: the queue scan below is the thing
+    that must not stop.
+    """
+    moved: list[str] = []
+    try:
+        from background import staging_rooms
+    except Exception:
+        return moved
+    try:
+        entries = list(STAGING_DIR.iterdir())
+    except OSError:
+        return moved
+    for src in entries:
+        try:
+            if not src.is_file() or src.suffix != ".md":
+                continue
+            room = staging_rooms.room_for(staging_rooms.kind_of(src.name))
+            if room is None:
+                continue
+            dest = STAGING_DIR / room / src.name
+            if dest.exists():
+                continue  # never overwrite; a collision is reported by finding_classes, not resolved here
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            src.rename(dest)
+            moved.append(src.name)
+            log(f"routed {src.name} -> {room}/ (not work: it can never be actioned and archived)")
+        except OSError:
+            continue
+    return moved
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, queues any genuinely new actionable
@@ -507,6 +541,18 @@ def check_once(seen: set[str]) -> set[str]:
     bars NTFY on these, and waking every ~10min sim_runner cycle would
     violate "zero turns when nothing happens").
     """
+    # ROUTE BY KIND BEFORE COUNTING (2026-08-28, director: "Four different kinds of thing
+    # share one folder and only one is work"). A CLASS register and a console transcript are
+    # not work and can never be actioned and archived, so while they sit in the root the root
+    # cannot reach zero and cannot signal "drained" -- which is how it reached 49 items.
+    #
+    # HERE rather than in `staging_rooms` itself, because that module is a READER: every draw
+    # calls it, and a reader that relocates files as a side effect would move a file out from
+    # under a concurrent writer. This daemon already owns the root's arrivals, runs on its own
+    # cadence, and is the one place a move is safe. Guarded whole: a routing failure must never
+    # take down the scan that finds real staged work.
+    _route_arrivals_to_rooms()
+
     files = current_files()
     new_files = sorted(files - seen)
     actionable = []
