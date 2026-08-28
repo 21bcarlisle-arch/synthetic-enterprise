@@ -174,6 +174,74 @@ def test_a_single_rung_yields_no_slope_rather_than_a_zero():
     assert pair["realised_over_believed"] is None
 
 
+def test_the_continuous_leg_SEES_a_move_the_binary_leg_CANNOT():
+    """THE DEFECT THIS EXISTS FOR: a world change smaller than one account reads as zero.
+
+    The realised leg is a count of flips over n, so it moves in steps of 1/n and nothing
+    smaller than that quantum can appear in it at all. This is the shape that made the
+    2026-08-28 chase-on/chase-off ladder unreadable: three of four rungs reported an
+    identical 0.0000 delta, which was taken for "no effect" when it was "below resolution".
+
+    Two worlds, ten decisions, IDENTICAL ROLLS -- so the binary leg is bit-identical by
+    construction -- and a world probability 3 points higher in the second. The continuous leg
+    must report that; if it is deleted, or wired to the flips, or averaged off the same
+    counter, this test reds.
+    """
+    def world(p_leave):
+        return [
+            _rung(0.0, [_decision(f"A{i}", "2017-04-01", uplift=0.0, believed_leave=0.2,
+                                  left=(i < 2), world_leave=p_leave) for i in range(10)]),
+            _rung(1.0, [_decision(f"A{i}", "2017-04-01", uplift=10.0, believed_leave=0.4,
+                                  left=(i < 5), world_leave=p_leave + 0.1) for i in range(10)]),
+        ]
+    soft, hard = slopes(world(0.10)), slopes(world(0.13))
+
+    # The binary leg cannot tell these two worlds apart. That is the premise, not a bug.
+    assert [p["realised_non_renewal_rate"] for p in soft["points"]] == \
+           [p["realised_non_renewal_rate"] for p in hard["points"]] == [0.2, 0.5]
+
+    # The continuous leg can, and by exactly the amount the world moved.
+    assert [p["world_p_leave_mean"] for p in soft["points"]] == pytest.approx([0.10, 0.20])
+    assert [p["world_p_leave_mean"] for p in hard["points"]] == pytest.approx([0.13, 0.23])
+
+    # A level shift leaves the slope alone -- which is the reading that separated the defending
+    # market's LEVEL effect from a SELECTION effect on the real book.
+    for fit in (soft, hard):
+        pair = fit["against_delivered_uplift"]
+        assert pair["world_p_leave"]["slope"] == pytest.approx(0.01)
+        # ...and it is reported against the belief, on the axis the headline is read off.
+        assert pair["world_p_leave_over_believed"] == pytest.approx(0.5)
+
+
+def test_a_rung_missing_the_world_probability_REFUSES_a_mean_rather_than_averaging_the_rest():
+    """FAIL-OPEN, and the arithmetic version of "say what each number counts".
+
+    If one decision in the common population carries no world probability, averaging the other
+    nine publishes a mean over nine decisions beside a realised rate over ten. The difference
+    between those two populations would then read as a price effect. The mutation this fails
+    against is `statistics.fmean(world_p)` with the completeness guard removed: that returns a
+    plausible 0.10 here instead of refusing.
+    """
+    rows = [_decision(f"A{i}", "2017-04-01", uplift=0.0, believed_leave=0.2, left=False,
+                      world_leave=0.10) for i in range(10)]
+    rows[3]["world_realized_p_leave"] = None      # rolled, but the world logged no probability
+    rungs = [_rung(0.0, rows),
+             _rung(1.0, [_decision(f"A{i}", "2017-04-01", uplift=10.0, believed_leave=0.4,
+                                   left=(i < 5), world_leave=0.20) for i in range(10)])]
+    fit = slopes(rungs)
+    bad, good = fit["points"][0], fit["points"][1]
+
+    assert bad["world_p_leave_mean"] is None
+    assert bad["world_p_leave_carried"] == 9
+    assert "9 of 10" in bad["world_p_leave_why_not"]
+    # The rung that IS complete still reports, and the population is still all ten.
+    assert good["world_p_leave_mean"] == pytest.approx(0.20)
+    assert bad["n"] == good["n"] == 10
+    # One readable rung is one point, and a slope through one point is absent, not zero.
+    assert fit["against_delivered_uplift"]["world_p_leave"]["available"] is False
+    assert fit["against_delivered_uplift"]["world_p_leave_over_believed"] is None
+
+
 def test_ols_refuses_a_degenerate_x_axis():
     assert _ols_slope([1.0, 1.0, 1.0], [0.1, 0.2, 0.3])["available"] is False
     fit = _ols_slope([0.0, 1.0, 2.0], [0.0, 1.0, 2.0])

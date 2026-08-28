@@ -446,6 +446,19 @@ def slopes(rungs: list[dict]) -> dict:
         inc = [r["rate_increase_pct"] for r in rows if r["rate_increase_pct"] is not None]
         svt = [r["rate_vs_svt_pct"] for r in rows if r["rate_vs_svt_pct"] is not None]
         uplift = [r["uplift_gbp_per_mwh"] for r in rows if r["uplift_gbp_per_mwh"] is not None]
+        # THE CONTINUOUS TWIN OF THE BINARY LEG ABOVE. `realised_non_renewal_rate` is a count of
+        # flips over `n`, so on this book it can only take the values k/17 and the smallest
+        # change it can express is 5.9 percentage points. The world writes its OWN churn
+        # probability at the same renewal, before the roll, and that quantity has no quantum.
+        # Both are published because they answer different questions -- a non-renewal is a thing
+        # that happened and a probability is not -- and the binary one stays the headline.
+        world_p = [r["world_realized_p_leave"] for r in rows
+                   if r["world_realized_p_leave"] is not None]
+        # FAIL CLOSED ON A PARTIAL POPULATION. Averaging whichever rows happen to carry the
+        # probability would publish a mean over one population beside a rate over another, and
+        # their difference would read as a price effect. Either every row in the common set
+        # carries it or the continuous leg says it cannot be read.
+        world_p_complete = len(world_p) == len(rows) and bool(rows)
         points.append({
             "multiplier": rung["multiplier"],
             "n": len(rows),
@@ -454,6 +467,13 @@ def slopes(rungs: list[dict]) -> dict:
             "mean_rate_vs_svt_pct": statistics.fmean(svt) if svt else None,
             "realised_non_renewals": len(left),
             "realised_non_renewal_rate": len(left) / len(rows) if rows else None,
+            "world_p_leave_mean": statistics.fmean(world_p) if world_p_complete else None,
+            "world_p_leave_carried": len(world_p),
+            "world_p_leave_why_not": (
+                None if world_p_complete else
+                f"{len(world_p)} of {len(rows)} decisions in the common population carry the "
+                "world's own churn probability, so a mean over them would not be the population "
+                "the realised rate beside it counts"),
             "believed_non_renewal_rate": statistics.fmean(believed) if believed else None,
             "believed_non_renewals_expected": (
                 statistics.fmean(believed) * len(rows) if believed else None),
@@ -463,7 +483,15 @@ def slopes(rungs: list[dict]) -> dict:
 
     def _pair(x_key: str) -> dict:
         xs, yr, yb = [], [], []
+        xw, yw = [], []
         for p in points:
+            # The continuous leg is gathered on its OWN axis, not skipped in step with the
+            # binary one: a rung whose believed leg is missing still carries a readable world
+            # probability, and dropping it would shorten a slope for a reason that has nothing
+            # to do with the world.
+            if p[x_key] is not None and p["world_p_leave_mean"] is not None:
+                xw.append(p[x_key])
+                yw.append(p["world_p_leave_mean"])
             if p[x_key] is None or p["realised_non_renewal_rate"] is None:
                 continue
             if p["believed_non_renewal_rate"] is None:
@@ -473,15 +501,25 @@ def slopes(rungs: list[dict]) -> dict:
             yb.append(p["believed_non_renewal_rate"])
         realised = _ols_slope(xs, yr)
         believed = _ols_slope(xs, yb)
+        world_p = _ols_slope(xw, yw)
         ratio = None
         if realised.get("available") and believed.get("available"):
             if abs(believed["slope"]) > 1e-12:
                 ratio = realised["slope"] / believed["slope"]
+        # The same ratio the binary leg reports, on the quantity that can actually move. Read
+        # this one when the two disagree: the binary numerator is a count of flips and the
+        # continuous one is not, so a divergence between them is resolution, not physics.
+        world_ratio = None
+        if world_p.get("available") and believed.get("available"):
+            if abs(believed["slope"]) > 1e-12:
+                world_ratio = world_p["slope"] / believed["slope"]
         return {
             "x": x_key,
             "realised": realised,
             "believed": believed,
             "realised_over_believed": ratio,
+            "world_p_leave": world_p,
+            "world_p_leave_over_believed": world_ratio,
         }
 
     return {
@@ -941,10 +979,10 @@ def main(argv: list[str] | None = None) -> int:
     if s.get("available"):
         print("  common population {} decision(s) priced and rolled at every rung".format(
             s["common_population"]))
-        print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10}".format(
-            "k", "uplift", "vs own rate", "vs SVT", "realised", "believed"))
+        print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10}".format(
+            "k", "uplift", "vs own rate", "vs SVT", "realised", "world p", "believed"))
         for p in s["points"]:
-            print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10}".format(
+            print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10}".format(
                 p["multiplier"],
                 "n/a" if p["mean_uplift_gbp_per_mwh"] is None
                 else f"{p['mean_uplift_gbp_per_mwh']:.2f}",
@@ -954,18 +992,29 @@ def main(argv: list[str] | None = None) -> int:
                 else f"{p['mean_rate_vs_svt_pct']:+.1f}%",
                 "{}/{} {:.3f}".format(p["realised_non_renewals"], p["n"],
                                       p["realised_non_renewal_rate"] or 0.0),
+                "n/a" if p["world_p_leave_mean"] is None
+                else f"{p['world_p_leave_mean']:.4f}",
                 "n/a" if p["believed_non_renewal_rate"] is None
                 else f"{p['believed_non_renewal_rate']:.3f}"))
+        # The binary leg's own quantum, printed beside the slopes it bounds, so a reader cannot
+        # take a movement smaller than one account for a measurement.
+        n_common = s["common_population"]
+        print("  the realised leg moves in steps of 1/{} = {:.4f}; the world-p leg has no "
+              "quantum".format(n_common, 1.0 / n_common if n_common else float("nan")))
         for axis in ("against_delivered_uplift", "against_company_reference",
                      "against_world_reference"):
             pair = s[axis]
-            r, b = pair["realised"], pair["believed"]
-            print("  slope on {:<26} realised {:>12}  believed {:>12}  ratio {}".format(
-                axis,
-                f"{r['slope']:+.6f}" if r.get("available") else "n/a",
-                f"{b['slope']:+.6f}" if b.get("available") else "n/a",
-                "n/a" if pair["realised_over_believed"] is None
-                else f"{pair['realised_over_believed']:+.3f}"))
+            r, b, w = pair["realised"], pair["believed"], pair["world_p_leave"]
+            print("  slope on {:<26} realised {:>12}  world p {:>12}  believed {:>12}  "
+                  "ratio r/b {:>7}  w/b {}".format(
+                      axis,
+                      f"{r['slope']:+.6f}" if r.get("available") else "n/a",
+                      f"{w['slope']:+.6f}" if w.get("available") else "n/a",
+                      f"{b['slope']:+.6f}" if b.get("available") else "n/a",
+                      "n/a" if pair["realised_over_believed"] is None
+                      else f"{pair['realised_over_believed']:+.3f}",
+                      "n/a" if pair["world_p_leave_over_believed"] is None
+                      else f"{pair['world_p_leave_over_believed']:+.3f}"))
     else:
         print("  slopes unavailable: {}".format(s.get("why_not")))
 
