@@ -1,28 +1,56 @@
 {
   "meta": {
-    "generated_at": "2026-08-28T18:07:07Z",
+    "generated_at": "2026-08-28T18:38:57Z",
     "git_commit": "unknown",
-    "household_count": 210,
+    "household_count": 55,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "136 timeline + reaction-chain entries on record",
+      "headline": "224 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0035",
-      "base_account_id": "PROS-2018-0035",
+      "account_id": "PROS-2016-0098",
+      "base_account_id": "PROS-2016-0098",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0035",
+        "acc": "PROS-2016-0098",
         "tab": "timeline"
       }
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "38.3 percentage points apart at the 2017 renewal (sim 3.5% vs company 41.8%)",
+      "headline": "77.5 percentage points apart at the 2018 renewal (sim 18.8% vs company 96.3%)",
       "wall_side": "sim",
+      "account_id": "PROS-2017-0144",
+      "base_account_id": "PROS-2017-0144",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "PROS-2017-0144",
+        "tab": "timeline",
+        "year": 2018
+      }
+    },
+    {
+      "category": "Retention save, then churned anyway",
+      "headline": "The company offered retention and won, then lost the account regardless",
+      "wall_side": "company",
+      "account_id": "PROS-2016-0067",
+      "base_account_id": "PROS-2016-0067",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "PROS-2016-0067",
+        "tab": "timeline",
+        "year": 2025
+      }
+    },
+    {
+      "category": "Heaviest arrears cascade",
+      "headline": "15 debt write-off event(s) in the arrears cascade",
+      "wall_side": "company",
       "account_id": "PROS-2016-0020",
       "base_account_id": "PROS-2016-0020",
       "segment": "resi",
@@ -30,61 +58,33 @@
       "link": {
         "acc": "PROS-2016-0020",
         "tab": "timeline",
-        "year": 2017
+        "year": 2016
       }
     },
     {
-      "category": "Retention save, then churned anyway",
-      "headline": "The company offered retention and won, then lost the account regardless",
-      "wall_side": "company",
-      "account_id": "PROS-2018-0003",
-      "base_account_id": "PROS-2018-0003",
+      "category": "Notable life event",
+      "headline": "Income recovery (2020) -- Real downstream drift: income stress high -> low; late-payment rate 8% -> 0%",
+      "wall_side": "sim",
+      "account_id": "PROS-2016-0104",
+      "base_account_id": "PROS-2016-0104",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0003",
-        "tab": "timeline",
-        "year": 2024
-      }
-    },
-    {
-      "category": "Heaviest arrears cascade",
-      "headline": "9 debt write-off event(s) in the arrears cascade",
-      "wall_side": "company",
-      "account_id": "PROS-2020-0043",
-      "base_account_id": "PROS-2020-0043",
-      "segment": "resi",
-      "commodity": "electricity",
-      "link": {
-        "acc": "PROS-2020-0043",
+        "acc": "PROS-2016-0104",
         "tab": "timeline",
         "year": 2020
       }
     },
     {
-      "category": "Notable life event",
-      "headline": "Income recovery (2023) -- Real downstream drift: income stress high -> low",
-      "wall_side": "sim",
-      "account_id": "PROS-2024-0022",
-      "base_account_id": "PROS-2024-0022",
-      "segment": "resi",
-      "commodity": "electricity",
-      "link": {
-        "acc": "PROS-2024-0022",
-        "tab": "timeline",
-        "year": 2023
-      }
-    },
-    {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 12.0 percentage points (69.9% in 2019 to 57.9% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 47.0 percentage points (73.0% in 2018 to 26.0% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0053",
-      "base_account_id": "PROS-2018-0053",
+      "account_id": "PROS-2017-0084",
+      "base_account_id": "PROS-2017-0084",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0053",
+        "acc": "PROS-2017-0084",
         "tab": "timeline",
         "year": 2025
       }

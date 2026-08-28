@@ -65,7 +65,7 @@
       "date": "2017-10-01",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 108.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 106.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.44p/kWh -> 2.61p/kWh"
     },
     {
@@ -1062,7 +1062,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-23",
+    "as_of_date": "2025-06-19",
     "entries": [
       {
         "date": "2016-11-05",
@@ -1651,7 +1651,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 9% churn risk at decision time, SIM realized probability was 2%.",
       "company_belief": 0.092,
-      "sim_truth": 0.022,
+      "sim_truth": 0.021,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -1671,9 +1671,9 @@
       "customer_id": "C4",
       "date": "2018-10-01",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 13% churn risk at decision time, SIM realized probability was 13%.",
+      "description": "Renewal outcome: CHURNED -- company believed 13% churn risk at decision time, SIM realized probability was 12%.",
       "company_belief": 0.134,
-      "sim_truth": 0.134,
+      "sim_truth": 0.115,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

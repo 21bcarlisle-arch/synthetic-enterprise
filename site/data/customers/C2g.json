@@ -121,35 +121,35 @@
       "date": "2017-04-01",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 122.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 123.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.69p/kWh -> 3.28p/kWh"
     },
     {
       "date": "2018-04-01",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 128.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 135.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.28p/kWh -> 3.63p/kWh"
     },
     {
       "date": "2019-04-01",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 145.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 142.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.63p/kWh -> 3.13p/kWh"
     },
     {
       "date": "2020-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 122.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 120.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.13p/kWh -> 3.10p/kWh"
     },
     {
       "date": "2021-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 169.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 171.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.17p/kWh -> 2.18p/kWh"
     },
     {
@@ -170,7 +170,7 @@
       "date": "2024-03-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 209.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 203.0 \u00a3/MWh",
       "effect": "Unit rate stepped 9.54p/kWh -> 9.26p/kWh"
     },
     {
@@ -4735,7 +4735,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-23",
+    "as_of_date": "2025-06-19",
     "entries": [
       {
         "date": "2016-05-01",
@@ -6996,21 +6996,11 @@
         "method": "direct_debit",
         "description": "Payment received",
         "running_balance_gbp": 3.67
-      },
-      {
-        "date": "2025-06-22",
-        "type": "payment_received",
-        "invoice_number": 366,
-        "amount_gbp": -19.5,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": -15.83
       }
     ],
-    "current_balance_gbp": -15.83,
+    "current_balance_gbp": 3.67,
     "total_billed_gbp": 10037.17,
-    "total_collected_gbp": 10053.0,
+    "total_collected_gbp": 10033.5,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -7480,9 +7470,9 @@
       "customer_id": "C2",
       "date": "2017-04-01",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 2%.",
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.145,
-      "sim_truth": 0.024,
+      "sim_truth": 0.026,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7502,9 +7492,9 @@
       "customer_id": "C2",
       "date": "2018-04-01",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 8%.",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 9%.",
       "company_belief": 0.084,
-      "sim_truth": 0.083,
+      "sim_truth": 0.089,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7524,9 +7514,9 @@
       "customer_id": "C2",
       "date": "2019-04-01",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 7% churn risk at decision time, SIM realized probability was 5%.",
+      "description": "Renewal outcome: RENEWED -- company believed 7% churn risk at decision time, SIM realized probability was 6%.",
       "company_belief": 0.071,
-      "sim_truth": 0.046,
+      "sim_truth": 0.056,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7590,9 +7580,9 @@
       "customer_id": "C2",
       "date": "2020-03-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 3%.",
+      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 2%.",
       "company_belief": 0.048,
-      "sim_truth": 0.031,
+      "sim_truth": 0.021,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7656,9 +7646,9 @@
       "customer_id": "C2",
       "date": "2021-03-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 7%.",
+      "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 8%.",
       "company_belief": 0.046,
-      "sim_truth": 0.074,
+      "sim_truth": 0.075,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7722,9 +7712,9 @@
       "customer_id": "C2",
       "date": "2024-03-30",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 4%.",
+      "description": "Renewal outcome: RENEWED -- company believed 14% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.14,
-      "sim_truth": 0.036,
+      "sim_truth": 0.033,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7733,9 +7723,9 @@
       "customer_id": "C2",
       "date": "2025-03-30",
       "event_type": "journey_state",
-      "description": "Hidden churn-journey state advances to CONTENT (resentment score 0.0)",
+      "description": "Hidden churn-journey state advances to CONTENT (resentment score 13.0)",
       "company_belief": null,
-      "sim_truth": 0.0,
+      "sim_truth": 13.0,
       "amount_gbp": null,
       "outcome": null,
       "framing_type": null
@@ -7744,9 +7734,9 @@
       "customer_id": "C2",
       "date": "2025-03-30",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 13% churn risk at decision time, SIM realized probability was 14%.",
-      "company_belief": 0.131,
-      "sim_truth": 0.143,
+      "description": "Renewal outcome: RENEWED -- company believed 16% churn risk at decision time, SIM realized probability was 13%.",
+      "company_belief": 0.159,
+      "sim_truth": 0.134,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

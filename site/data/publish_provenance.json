@@ -1,34 +1,27 @@
 {
   "annotation": {
-    "checked_at": "2026-08-28T07:10:54Z",
+    "checked_at": "2026-08-28T18:28:23Z",
     "nonblocking_reds": [
-      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
-      "FAILED tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded",
-      "FAILED tests/company/policy/test_policy_field_consumption.py::test_every_policy_field_declares_how_it_reaches_its_consumer",
-      "FAILED tests/company/policy/test_policy_field_consumption.py::test_mutation_an_undeclared_field_reds_the_completeness_check",
-      "FAILED tests/tools/test_capability_index.py::test_live_repo_index_is_healthy_and_substantial",
-      "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run",
-      "FAILED tests/tools/test_generate_value_arms_data.py::test_the_level_arms_realised_net_is_absent_with_its_reason",
-      "FAILED tests/tools/test_knife_hotspot_measure.py::test_the_live_plan_reconciles_with_the_tree"
+      "ERROR tests/tools/test_phase_rx_track_record.py"
     ],
-    "nonblocking_reds_total": 17,
-    "open_findings": 16
+    "nonblocking_reds_total": 1,
+    "open_findings": 25
   },
   "last_verified": {
-    "generated_at": "2026-08-28T18:21:17Z",
-    "git_commit": "a1aefccaf",
-    "run_id": "run_output_a1aefccaf_20260828T175500Z.json",
-    "verified_at": "2026-08-28T18:21:17Z"
+    "generated_at": "2026-08-28T18:52:38Z",
+    "git_commit": "2b34410d9",
+    "run_id": "run_output_2b34410d9_20260828T182923Z.json",
+    "verified_at": "2026-08-28T18:52:38Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-28T18:21:17Z",
-    "git_commit": "a1aefccaf",
-    "run_id": "run_output_a1aefccaf_20260828T175500Z.json",
-    "verified_at": "2026-08-28T18:21:17Z"
+    "generated_at": "2026-08-28T18:52:38Z",
+    "git_commit": "2b34410d9",
+    "run_id": "run_output_2b34410d9_20260828T182923Z.json",
+    "verified_at": "2026-08-28T18:52:38Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-28T18:21:17Z"
+  "written_at": "2026-08-28T18:52:38Z"
 }
