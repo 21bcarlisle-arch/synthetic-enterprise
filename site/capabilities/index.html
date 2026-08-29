@@ -406,6 +406,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div id="arms-split"></div>
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
   <div id="arms-decisions"></div>
+  <!-- WHAT THE ACCOUNT COUNT DIRECTLY ABOVE IS A COUNT OF. The decisions block says "the book is
+       N settled accounts", and a reader takes N for the business. It is not: our settlement
+       engine takes a uniform sample of what the company won, so N is a sample size and every
+       per-account figure on this page is a sample statistic. The number is NOT authored here --
+       it is read from `book_growth.json`, whose producer computes it from the campaign's own
+       record, so this page and the growth curve above can never disagree about it. -->
+  <p id="arms-sample" style="margin:6px 0 0;font-size:12px;color:var(--muted);"></p>
   <!-- A48, the METHOD's own number. The director's 2026-08-28 mission says the enterprise value
        is the automated METHOD of finding customers, not the book -- so the book's figures above
        are the EVIDENCE and this is the thing they are evidence for. It renders only when the
@@ -502,9 +509,64 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + armRows(block.arms, household) + "</tbody></table></div>";
   }
 
+  /* THE SECOND FEED, AND IT IS FETCHED SEPARATELY ON PURPOSE. The sample rate belongs to the
+     campaign record and is authored by `generate_book_growth_data`; copying it into the arms feed
+     would give this project two producers for one number, which is how two artefacts start
+     disagreeing about the same field. It is caught to `null` rather than chained, so a
+     book_growth outage takes the sample SENTENCE down to its stated-absence branch and never the
+     arm comparison with it. */
+  var growthFeed = fetch("../data/book_growth.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .catch(function () { return null; });
+
+  /* HOW MUCH OF THE BUSINESS THIS BOOK IS, rendered on EVERY branch including the two failure
+     ones. Silence here is the dangerous reading: a page that says "the book is 172 settled
+     accounts" and nothing else has told the reader that 172 is the supplier, when it is 17.9% of
+     it. Keyed to the rate rather than to today's answer -- when the settlement engine can take
+     the whole campaign the rate reaches 1 and the sentence says the book IS the business, with
+     nobody editing a string. */
+  function renderSample(d, g) {
+    var booked = ((d || {}).decisions || {}).book_accounts_settled;
+    if (booked === null || booked === undefined) {
+      booked = ((d || {}).book || {}).billing_accounts_settled_in_window;
+    }
+    var lead = '<strong>How much of the business this book is.</strong> ';
+    var r = g && g.available ? g.settlement_sample_rate : null;
+    var won = g && g.available ? g.settlement_funnel_wins : null;
+    if (r === null || r === undefined || isNaN(r) || !(r > 0) || won === null
+        || won === undefined) {
+      $("arms-sample").innerHTML = lead
+        + "What share of the accounts the company won reached this book could not be read for "
+        + "this publish, so the count above is an unknown fraction of the business rather than a "
+        + "measure of it. Every per-account figure on this page should be read that way.";
+      return;
+    }
+    if (r >= 1) {
+      $("arms-sample").innerHTML = lead
+        + "Our settlement engine settled every one of the " + esc(won)
+        + " accounts the company won, so the book above is the business and not a sample of it.";
+      return;
+    }
+    $("arms-sample").innerHTML = lead
+      + (booked === null || booked === undefined
+          ? "The settled book above is a uniform "
+          : "The " + esc(booked) + " settled accounts above are a uniform ")
+      + (r * 100).toFixed(1) + "% sample of the " + esc(won)
+      + " accounts the company won &mdash; the sample is our settlement engine’s doing, not "
+      + "the market’s, and it is uniform, so the SHAPE of these figures is commercial and "
+      + "their HEIGHT is ours. Dividing by that count divides by a sample and not by the "
+      + "business; divide it by " + r.toFixed(3) + " to read the supplier instead.";
+  }
+
+  /* Rendered ONCE without the arm feed and again with it. The first call is what makes this
+     fail closed against an arms feed that never arrives at all: the reader still meets the bound,
+     just without the account count in it. The second upgrades the same sentence in place. */
+  growthFeed.then(function (g) { renderSample(null, g); });
+
   fetch("../data/value_arms.json?t=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (d) {
+      growthFeed.then(function (g) { renderSample(d, g); });
       if (!d.available) {
       $("arms-note").textContent =
           "The arm comparison is not available, so it is absent rather than empty. "

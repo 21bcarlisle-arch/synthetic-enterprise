@@ -50,7 +50,8 @@ CAPS = SITE / "data" / "capabilities_door.json"
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
-          "arms-errorbar", "arms-decisions", "arms-method", "arms-note", "arms-market")
+          "arms-errorbar", "arms-decisions", "arms-method", "arms-note", "arms-market",
+          "arms-sample")
 
 
 def _text(fragment: str) -> str:
@@ -63,14 +64,21 @@ def _text(fragment: str) -> str:
     return re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", " ", fragment))).strip()
 
 
-def _render(feed: dict) -> dict:
-    """Drive the real door with the given feed and return {id: rendered text a reader sees}."""
+def _render(feed: dict, growth: dict | None = None) -> dict:
+    """Drive the real door with the given feed and return {id: rendered text a reader sees}.
+
+    `growth` overrides the book-growth feed. It is a parameter rather than a constant because the
+    sample bound below is authored by THAT producer and read by this page, so the only way to
+    prove the page reads it -- rather than printing a number that happens to match -- is to drive
+    the door with a different one.
+    """
     if not HARNESS.is_file():
         pytest.fail("site/_live_harness.mjs is missing -- the render check is UNAVAILABLE, and an "
                     "unavailable check is a FAILED check (R15)")
     payload = {
         "../data/value_arms.json": feed,
-        "../data/book_growth.json": json.loads(GROWTH.read_text(encoding="utf-8")),
+        "../data/book_growth.json": (
+            json.loads(GROWTH.read_text(encoding="utf-8")) if growth is None else growth),
         "../data/capabilities_door.json": json.loads(CAPS.read_text(encoding="utf-8")),
     }
     proc = subprocess.run(
@@ -410,6 +418,108 @@ def test_MUTATION_a_missing_reaction_block_still_bounds_the_comparison():
     assert "internal" in rendered.lower(), (
         "a missing bound fell through to a comparison with no qualification on it: {}".format(
             rendered))
+
+
+# ── the account count above is a sample size, not the business ───────────────────────────────
+#
+# THE DEFECT THESE SERVE. `#arms-decisions` renders "the book is N settled accounts" and every
+# per-account figure on this page is computed over that N. N is not the business: the settlement
+# engine takes a uniform sample of what the campaign won -- 90 of 505 on the 2026-08-29 record, a
+# rate of 0.1789 -- so a reader dividing by it has divided by a sample. The growth curve higher up
+# the same page already says so about ITSELF; nothing said it about the arms.
+
+
+def _growth_feed() -> dict:
+    if not GROWTH.is_file():
+        pytest.fail("site/data/book_growth.json is missing -- the sample bound has no source, "
+                    "reported as a failure and never skipped (R15)")
+    return json.loads(GROWTH.read_text(encoding="utf-8"))
+
+
+def test_the_book_on_this_page_is_named_as_a_sample_of_the_business(live):
+    """THE PROPERTY: a reader who meets the account count also meets what it is a count OF.
+
+    Fires on: deleting the `#arms-sample` render, or letting it fall through to empty.
+    """
+    growth = _growth_feed()
+    rate = growth.get("settlement_sample_rate")
+    if rate is None:
+        pytest.fail("the campaign record carries no settlement_sample_rate, so this control's "
+                    "subject is UNAVAILABLE and that is a failure, not a skip (R15)")
+    rendered = live["arms-sample"]
+
+    assert rendered.strip(), (
+        "the page publishes a settled-account count and says nothing about what fraction of the "
+        "business it is -- silence there reads as 'this book is the supplier'")
+    if rate < 1:
+        assert "sample" in rendered.lower(), (
+            "the book is {:.1%} of what the company won and the page does not use the word: "
+            "{}".format(rate, rendered))
+
+
+def test_the_sample_bound_carries_the_producers_own_numbers_and_not_its_own(live):
+    """The page must RENDER the campaign's rate, never author one beside it.
+
+    Two producers for one number is how `book_growth.json` and this section would start
+    disagreeing about the same field while both looked right. So the assertion is on the
+    published values, to one decimal on the percentage and to the whole count.
+
+    Fires on: hard-coding the percentage, or reading a different field for the win count.
+    """
+    growth = _growth_feed()
+    rate, won = growth.get("settlement_sample_rate"), growth.get("settlement_funnel_wins")
+    if rate is None or won is None or not 0 < rate < 1:
+        pytest.fail("the campaign record cannot express a sample below 1 (rate={}, won={}), so "
+                    "this control cannot run and reports that as a failure".format(rate, won))
+    rendered = live["arms-sample"]
+
+    assert "{:.1f}%".format(rate * 100) in rendered, (
+        "the rendered share is not the producer's {:.1f}%: {}".format(rate * 100, rendered))
+    assert "{:,}".format(int(won)).replace(",", "") in rendered.replace(",", ""), (
+        "the rendered win count is not the producer's {}: {}".format(won, rendered))
+    assert "{:.3f}".format(rate) in rendered, (
+        "the page tells a reader the count is a sample without giving them the divisor that "
+        "turns it back into the supplier: {}".format(rendered))
+
+
+def test_MUTATION_a_book_that_is_the_whole_business_says_so_instead():
+    """The killer mutation, at the point where the defect disappears rather than at a wrong value.
+
+    If the settlement engine could settle every win, this sentence must change, not merely
+    re-state a smaller percentage. A page that renders the same words for a 17.9% sample and a
+    100% book is printing a constant, and the two controls above are tautologies (R15's
+    unreachable-PASS-branch shape).
+    """
+    growth = copy.deepcopy(_growth_feed())
+    growth["settlement_sample_rate"] = 1.0
+    growth["settlement_funnel_wins"] = growth.get("settlement_funnel_wins") or 505
+    whole = _render(_live_feed(), growth=growth)["arms-sample"]
+    live_text = _render(_live_feed())["arms-sample"]
+
+    assert "not a sample" in whole.lower(), (
+        "a book that IS the business rendered something else: {}".format(whole))
+    assert whole != live_text, (
+        "the page renders the SAME sample bound for a 17.9% book and a complete one, so it is "
+        "printing a constant and reads nothing from the campaign record")
+    assert "17.9%" not in whole, (
+        "the complete-book branch still carries today's sample percentage, so the figure is "
+        "authored on the page rather than read from the feed")
+
+
+def test_MUTATION_an_unreadable_campaign_record_still_bounds_the_account_count():
+    """FAIL-OPEN, the shape R15 names first. A growth feed with no rate in it must leave the
+    reader told the count is an unknown fraction of the business -- never silent, which reads
+    exactly like a book that needed no qualification."""
+    growth = copy.deepcopy(_growth_feed())
+    growth.pop("settlement_sample_rate", None)
+    rendered = _render(_live_feed(), growth=growth)["arms-sample"]
+
+    assert rendered.strip(), "a record with no sample rate rendered nothing at all"
+    assert "could not be read" in rendered, (
+        "an unreadable sample rate fell through to a count with no qualification on it: "
+        "{}".format(rendered))
+    assert "unknown fraction" in rendered, (
+        "the absence branch does not tell the reader what it costs them: {}".format(rendered))
 
 
 def test_the_method_number_never_appears_without_its_interval(live):

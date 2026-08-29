@@ -69,3 +69,46 @@ canonical path and restating the site is the next tick's work.
 floor put `selection_gbp` at mean +£504 with sd £4,402 and range £8,781 across three seeds — wider
 than most effects in the table. A delta smaller than that is not distinguishable from the seed
 draw, and I will not read one as if it were.
+
+---
+
+## STATUS 2026-08-29 12:05Z — the run this file preregistered never produced its artefact
+
+**Written beside the prediction, not over it.** `docs/observability/value_cycle_ab_s1_three_arm_sourced.json`
+does not exist, in the working tree or in any commit. Whatever happened to the 2026-08-28 21:00 BST
+run, it did not reach the path this file names, so **the prediction above has been ungradeable
+since it was written** and the arms on the live page are still the 2026-08-28T14:08:48Z ones
+denominated in the invented costs. That is a fact about this record, not about the prediction: the
+prediction stands exactly as filed and is graded below when there is something to grade it with.
+
+**The replacement run is executing now** and it is strictly wider than the one preregistered here,
+because it also repairs the superseded-clock defect this file's last paragraph names as its own
+bound. Both legs, ONE session, off today's book, to new paths:
+
+```
+docs/observability/value_cycle_ab_s1_three_arm_20260829.json    (--level-arm, 3 passes)
+docs/observability/value_cycle_ab_s1_noise_floor_20260829.json  (seeds 11111,22222,33333, 9 passes)
+log: docs/observability/arms_rerun_20260829.log
+```
+
+The seeds are the SAME three the 2026-08-27 floor used. A floor re-drawn on different seeds would
+not be comparable with the one it replaces, and the whole point of re-running the floor is to stop
+quoting an error bar measured on a different book from the figure it bounds.
+
+**What does NOT change about the prediction.** It was filed before any of this and is graded on its
+own terms: all three arms materially unchanged, with the £111,576 acquisition saving showing up in
+opex (account 6300) and not in the arm comparison. The reading rule stated above still binds and
+now binds harder — **no delta smaller than the NEW floor's own spread may be read as an effect.**
+The old floor's £4,402 sd against a £504 mean is why that bar is expected to swallow most of what
+the table shows, and the new floor is being measured precisely so the bar quoted is the one that
+belongs to this book.
+
+**One thing the prediction did not anticipate and should be graded against too.** It reasoned from
+a fixed 1,066-quote population. Today's campaign record is 505 wins with 415 refused by the
+settlement budget — a uniform 17.89% sample — so the *book* the arms score is now a sample of the
+company's wins rather than all of them. If the arms have moved, that mechanism is a candidate
+alongside the two the prediction names, and it was not on the list.
+
+**Estimated completion.** ~12 passes at roughly 10 min each on this machine, so ~2 hours from
+2026-08-29T11:53:54Z. This tick is bounded and will end first; the grading is the next tick's
+first job, and this section is what makes it findable.
