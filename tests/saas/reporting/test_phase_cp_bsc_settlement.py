@@ -1,5 +1,7 @@
 """Phase CP: BSC Settlement Exposure report section tests."""
 import json
+import re
+
 import pytest
 
 
@@ -131,11 +133,29 @@ def test_peak_daily_less_than_credit():
             assert peak < bsc
 
 
-# 12. 2017 credit appears (~£559-560)
+# 12. Every year of the window renders a BSC credit row
 def test_2017_credit_appears():
+    """RE-KEYED 2026-08-29 from a magnitude pin to the property it was for.
+
+    This asserted `"£5" in result` because 2017 rendered ~£559. It does not any more --
+    it renders £112 -- and nothing is wrong: the settlement ceiling used to spend the
+    whole campaign budget first-come on 2016-17, so 2017 carried 21 of the book's 45
+    campaign accounts. It now carries about 6 of 90 spread across ten years
+    (`docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`), so 2017's revenue --
+    and the credit cover computed from it -- fell with the concentration.
+
+    A `"£5" in result` substring test could not tell that apart from the row vanishing,
+    and it would have passed on ANY year rendering any £5xx figure. What the control is
+    for is that the year appears with a credit figure, so that is what it now asserts.
+    """
     result = _render()
-    # Small float variations mean value is ~559-560; check 2017 row exists with £5xx
-    assert "2017" in result and "£5" in result
+    row = next((ln for ln in result.splitlines() if ln.startswith("| 2017 |")), None)
+    assert row is not None, "the 2017 BSC credit row is missing from the rendered table"
+    amounts = re.findall(r"£([\d,]+)", row)
+    assert amounts, f"the 2017 row carries no £ figure at all: {row!r}"
+    assert int(amounts[0].replace(",", "")) > 0, (
+        f"2017 rendered a zero BSC credit requirement, which is a claim and not an absence: {row!r}"
+    )
 
 
 # 13. Peak BSC year noted

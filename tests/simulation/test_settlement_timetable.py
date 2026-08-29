@@ -7,6 +7,7 @@ that date in real life, and the RF run resolves exactly to the true value.
 import datetime as dt
 
 import pytest
+from dateutil.relativedelta import relativedelta
 
 from company.interfaces.bitemporal_event_log import BitemporalEventLog
 import company.regulatory.settlement_reconciliation as recon
@@ -65,30 +66,51 @@ class TestEmitSettlementTimetable:
         assert [e.run for e in events] == ["initial", "R1", "R2", "R3", "RF"]
 
     def test_publication_dates_are_real_month_offsets(self):
+        """DERIVED FROM THE CONSTANTS, not from four literal months.
+
+        These read `(2020, 7) / (2020, 9) / (2020, 11) / (2022, 10)` until 2026-08-29 -- the
+        offsets 1/3/5/28, every one of them wrong, and RF's naming DF's 28-month dispute lag.
+        Correcting the constants against Elexon's own timetable turned this control red for
+        being RIGHT, which is the signature of a test pinned to today's answer. It now asserts
+        that each run lands `<RUN>_MONTHS` after delivery, which is the property, and it stays
+        true through the next correction (MHHS takes the process to four months as meters
+        migrate from September 2025).
+        """
         _, delivery_date, events = self._emit()
         by_run = {e.run: e.publication_date for e in events}
         assert by_run["initial"] == delivery_date
-        assert (by_run["R1"].year, by_run["R1"].month) == (2020, 7)
-        assert (by_run["R2"].year, by_run["R2"].month) == (2020, 9)
-        assert (by_run["R3"].year, by_run["R3"].month) == (2020, 11)
-        assert (by_run["RF"].year, by_run["RF"].month) == (2022, 10)
+        for run, months in (("R1", st.R1_MONTHS), ("R2", st.R2_MONTHS),
+                            ("R3", st.R3_MONTHS), ("RF", st.RF_MONTHS)):
+            expected = delivery_date + relativedelta(months=months)
+            assert (by_run[run].year, by_run[run].month) == (expected.year, expected.month), (
+                f"{run} is published {months} months after the Settlement Date"
+            )
+        # NON-VACUITY: the four must be DISTINCT and ordered, or a constants file of zeroes
+        # would satisfy every assertion above.
+        dates = [by_run[r] for r in ("initial", "R1", "R2", "R3", "RF")]
+        assert dates == sorted(dates) and len(set(dates)) == 5
 
     def test_rf_equals_true_final_value_exactly(self):
         _, _, events = self._emit(initial=1000.0, true_final=1004.0)
         rf = next(e for e in events if e.run == "RF")
         assert rf.value == pytest.approx(1004.0)
 
-    def test_r1_resolves_60_percent_of_gap(self):
+    def test_r1_resolves_its_declared_share_of_the_gap(self):
+        """The share is READ, not restated. This was `test_r1_resolves_60_percent_of_gap` and
+        asserted 1002.4, both of which encoded a 0.60 that Elexon's own curve puts at 0.31."""
         _, _, events = self._emit(initial=1000.0, true_final=1004.0)
         r1 = next(e for e in events if e.run == "R1")
-        # gap = 4.0, 60% resolved = 2.4 -> value = 1002.4
-        assert r1.value == pytest.approx(1002.4)
+        assert r1.value == pytest.approx(1000.0 + 4.0 * st.R1_SHARE)
+        assert 0.0 < st.R1_SHARE < 1.0, "vacuous: a share of 0 or 1 makes the line above trivial"
 
-    def test_r2_resolves_cumulative_85_percent(self):
+    def test_r2_resolves_the_CUMULATIVE_share_and_not_its_own(self):
+        """The property that distinguishes a cumulative curve from a per-run one: R2's value
+        carries R1's share as well as its own. Named for that rather than for the number."""
         _, _, events = self._emit(initial=1000.0, true_final=1004.0)
         r2 = next(e for e in events if e.run == "R2")
-        # cumulative share 0.85, gap 4.0 -> value = 1000 + 3.4 = 1003.4
-        assert r2.value == pytest.approx(1003.4)
+        cumulative = st.R1_SHARE + st.R2_SHARE
+        assert r2.value == pytest.approx(1000.0 + 4.0 * cumulative)
+        assert cumulative > st.R2_SHARE, "vacuous: R1 must contribute, or this is not cumulative"
 
     def test_out_of_band_gap_raises_by_default(self):
         # HH variance is +-0.5%; a 10% gap is wildly out of band for HH.

@@ -25,17 +25,73 @@ _HH_RECON_VARIANCE = 0.005     # ±0.5% for HH-metered I&C customers
 _NON_HH_RECON_VARIANCE = 0.040  # ±4.0% for profile-class non-HH meters
 
 # Settlement run timeline (months after delivery date)
-_R1_MONTHS = 1
-_R2_MONTHS = 3
-_R3_MONTHS = 5   # ~17 weeks
-_RF_MONTHS = 28  # Final Reconciliation
+#
+# VERIFIED 2026-08-29 against an Elexon-authored primary document read directly -- slide 2 of
+# "Settlement Timetable, Electricity settlement expert group", Jonathan Priestley, Elexon,
+# 16 June 2014, hosted at ofgem.gov.uk. Write-up and the full table:
+# `docs/market_research/elexon_settlement_run_timetable_verified.md`.
+#
+# WHAT WAS WRONG, AND IT WAS THE SAME MISTAKE FOUR TIMES PLUS ONE WORSE ONE. Every scheduled
+# timing was too early (1/3/5 against 2/4/7), and `_RF_MONTHS = 28  # Final Reconciliation`
+# named the wrong run entirely: 28 months is **DF**, the dispute rectification run that only a
+# disputed Settlement Date ever reaches (the same deck, slide 7: "90 Disputes were closed in
+# 2013. 58 were upheld, and 56 used the DF run"). RF -- the LAST SCHEDULED run, the one that
+# closes the normal correction window for every day -- is 14 months. So this model had every
+# ordinary settlement day carrying a dispute-length tail.
+#
+# PROVENANCE OF THE OLD NUMBERS, because the lesson is in how they got here. This file's
+# source line is a general attribution ("Elexon Settlement Performance Reports; Ofgem supplier
+# review data"), not a citation for any of these values.
+# `docs/market_research/settlement_rebilling_best_practice.md` (2026-07-12) had ALREADY said RF
+# was "roughly 12-14 months", tagged [M], and asked explicitly that its offsets "be verified
+# directly against Elexon's BSC Section T / published Settlement Calendar ... rather than
+# hard-coded from this recall". Code had hard-coded a different figure than the note it was
+# meant to defer to, and then `f4_international_expansion_probe.md` read 28 back OUT of here as
+# the sourced GB fact and built a GB-vs-SEMO comparison on it. A constant read back out of code
+# acquires a provenance it never had.
+#
+# VINTAGE, bounded rather than assumed: the deck is 2014 and argues the case for reform, so the
+# fair question is whether it still describes 2016-2025. It does. Elexon's own MHHS material
+# says "the current Settlement process takes 14 months", falling to four only under Market-wide
+# Half-Hourly Settlement, whose central systems went live 24 September 2025 --  AFTER
+# `run_phase2b.REPORT_END` (2025-06-07). So 14 applies to the whole modelled window with no
+# time-variation to model.
+_R1_MONTHS = 2
+_R2_MONTHS = 4
+_R3_MONTHS = 7
+_RF_MONTHS = 14  # Final Reconciliation -- the LAST SCHEDULED run. DF (disputes only) is 28.
 
-# Share of total reconciliation volume resolved at each run
-# (80% of errors found in R1/R2; long tail into RF is small but persistent)
-_R1_SHARE = 0.60
-_R2_SHARE = 0.25
-_R3_SHARE = 0.12
-_RF_SHARE = 0.03
+# Share of total reconciliation volume resolved at each run.
+#
+# FROM ELEXON'S OWN CURVE, same slide, rather than from the shape of an argument. The deck plots
+# NHH energy settled on ACTUAL data cumulatively: 30% at R1, 60% at R2, 80% at R3, 97% at RF.
+# The increments are 30/30/20/17 of 97, which normalise to the four values below.
+#
+# The old 0.60/0.25/0.12/0.03 was commented "80% of errors found in R1/R2; long tail into RF is
+# small but persistent". Elexon's curve puts 62% in R1/R2, not 80%, and 17% at RF against the 3%
+# claimed here.
+#
+# WHAT IT DOES TO THE PUBLISHED NUMBER, PRINTED BEFORE BEING ASSERTED -- and the first draft of
+# this comment asserted the opposite direction from a plausible argument without computing it,
+# which is the exact move CLAUDE.md's "print the numbers at real inputs" rule exists to stop.
+# Weighted months outstanding at year end:
+#
+#     old (1/3/5/28, .60/.25/.12/.03)   4.4600 months   pool fraction 0.3717
+#     new (2/4/7/14, per Elexon)        2.9899 months   pool fraction 0.2492
+#
+# and the two corrections pull in OPPOSITE directions, with the timings winning eight to one:
+#
+#     timings alone, old shares   4.4600 -> 2.7900   (-1.67)
+#     shares  alone, new timings  2.7900 -> 2.9899   (+0.20)
+#
+# So the dominant effect is RF 28 -> 14 collapsing the R3-to-RF tail from 23 months to 7, and the
+# later-weighted shares claw back only an eighth of it. The corrected model reports a THIRD LESS
+# outstanding exposure than the old one -- the old figure was inflated by carrying a dispute-run
+# tail on every ordinary settlement day, not by anything about the share table.
+_R1_SHARE = 0.3093
+_R2_SHARE = 0.3093
+_R3_SHARE = 0.2062
+_RF_SHARE = 0.1752  # the remainder, so the four sum to exactly 1.0
 
 # RAG thresholds: max adverse adjustment as % of monthly revenue
 _GREEN_THRESHOLD = 5.0   # < 5% of monthly revenue
@@ -63,17 +119,20 @@ def _blended_variance(hh_fraction: float) -> float:
 def _outstanding_months_at_year_end() -> float:
     """Weighted-average months of outstanding reconciliation tail at any year-end.
 
-    At year-end, the most recent 28 months of deliveries are still partially open:
-    - Current year (12 months): in R1/R2 tail — high volume, quickly resolved
-    - Prior year (12 months): in R3 tail
-    - Year before (4 months): in RF tail
+    At year-end, the most recent 14 months of deliveries are still partially open —
+    RF is the last scheduled run and closes the window (28 was DF, the dispute run;
+    corrected 2026-08-29, see the constants above):
+    - Current year (12 months): in the R1/R2/R3 tail — high volume, resolving
+    - Prior year (2 months): still in the R3-to-RF tail
 
     Returns a consumption-weighted average months outstanding.
     """
-    # Weight by share outstanding × remaining months
-    r1_remaining = _R2_MONTHS - _R1_MONTHS   # 2 months cleared at R1
-    r2_remaining = _R3_MONTHS - _R2_MONTHS   # 2 months cleared at R2
-    r3_remaining = _RF_MONTHS - _R3_MONTHS   # 23 months cleared at R3
+    # Weight by share outstanding × remaining months. The comments name what each run
+    # LEAVES OPEN until the next one, so they are derived from the constants above and
+    # move with them rather than restating a frozen arithmetic.
+    r1_remaining = _R2_MONTHS - _R1_MONTHS   # open from R1 until R2
+    r2_remaining = _R3_MONTHS - _R2_MONTHS   # open from R2 until R3
+    r3_remaining = _RF_MONTHS - _R3_MONTHS   # open from R3 until RF
     rf_remaining = 0                          # RF is final
 
     weighted = (

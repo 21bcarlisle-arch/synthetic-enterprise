@@ -15,6 +15,13 @@ import pytest
 
 from company.regulatory.settlement_reconciliation import (
     _HH_RECON_VARIANCE,
+    _R1_MONTHS,
+    _R1_SHARE,
+    _R2_MONTHS,
+    _R2_SHARE,
+    _R3_MONTHS,
+    _R3_SHARE,
+    _RF_MONTHS,
     _NON_HH_RECON_VARIANCE,
     ReconciliationExposure,
     _blended_variance,
@@ -53,16 +60,29 @@ def test_blended_variance_does_not_bound_its_input():
 
 
 def test_outstanding_months_is_a_fixed_constant_of_the_run_share_table():
-    # 0.60x2 + 0.25x2 + 0.12x23 + 0.03x0 = 4.46 months.
-    assert _outstanding_months_at_year_end() == pytest.approx(4.46)
+    # RE-BASELINED 2026-08-29 when the run timings were corrected against Elexon's own
+    # timetable (docs/market_research/elexon_settlement_run_timetable_verified.md):
+    # 0.3093x2 + 0.3093x3 + 0.2062x7 + 0.1752x0 = 2.9899 months, from 4.46.
+    # DERIVED, not restated -- a literal here goes stale the next time the timetable
+    # moves, and MHHS takes the process to four months as meters migrate.
+    expected = (
+        _R1_SHARE * (_R2_MONTHS - _R1_MONTHS)
+        + _R2_SHARE * (_R3_MONTHS - _R2_MONTHS)
+        + _R3_SHARE * (_RF_MONTHS - _R3_MONTHS)
+    )
+    assert _outstanding_months_at_year_end() == pytest.approx(expected)
+    assert _outstanding_months_at_year_end() == pytest.approx(2.9899)
 
 
 def test_the_pool_fraction_comment_understates_the_value_it_documents():
-    # SURPRISE: `build_reconciliation_series` computes pool_fraction as
-    # outstanding_months / 12 and its inline comment says "e.g. 2 months / 12 =
-    # 0.17". The actual constant is 4.46 months → 0.372, more than double the
-    # documented example. The comment appears to predate the R3 tail weighting.
-    assert _outstanding_months_at_year_end() / 12.0 == pytest.approx(0.3717, abs=1e-4)
+    # STILL TRUE AFTER THE CORRECTION, which is why the test survives it.
+    # `build_reconciliation_series` computes pool_fraction as outstanding_months / 12
+    # and its inline comment says "e.g. 2 months / 12 = 0.17". The constant was 4.46
+    # months -> 0.372; corrected it is 2.9899 -> 0.249. Closer to the documented
+    # example and still half again above it, so the comment still understates the value
+    # it documents -- the finding was never about the size of the gap.
+    assert _outstanding_months_at_year_end() / 12.0 == pytest.approx(0.2492, abs=1e-4)
+    assert _outstanding_months_at_year_end() / 12.0 > 0.17
 
 
 # ---------------------------------------------------------------------------
@@ -119,23 +139,25 @@ def test_a_single_year_series_is_fully_determined_by_revenue_and_hh_fraction():
     assert e.year == 2023
     assert e.annual_revenue_gbp == 12_000_000.0
     assert e.hh_fraction == 0.90
-    assert e.outstanding_pool_gbp == 4_460_000.0        # 12m x 4.46/12
-    assert e.max_adverse_gbp == 37_910.0                # pool x 0.0085
-    assert e.expected_adjustment_gbp == 18_955.0        # half the max band
-    assert e.months_outstanding == 4.5                  # 4.46 rounded to 1dp
+    assert e.outstanding_pool_gbp == 2_989_900.0        # 12m x 2.9899/12
+    assert e.max_adverse_gbp == 25_414.15               # pool x 0.0085
+    assert e.expected_adjustment_gbp == 12_707.08       # half the max band
+    assert e.months_outstanding == 3.0                  # 2.9899 rounded to 1dp
     assert e.rag == "GREEN"
     assert e.is_crisis_year is False
 
 
 def test_max_adverse_never_reaches_amber_at_the_default_hh_fraction():
-    # The exposure is a fixed 0.372 x 0.0085 = 0.316% of ANNUAL revenue, i.e.
-    # 3.79% of MONTHLY revenue — a constant, whatever the revenue. SURPRISE: at
+    # The exposure is a fixed 0.249 x 0.0085 = 0.212% of ANNUAL revenue, i.e.
+    # 2.54% of MONTHLY revenue — a constant, whatever the revenue. SURPRISE: at
     # the default hh_fraction the RAG rating can therefore never be anything but
-    # GREEN. The control has one reachable output for every real portfolio.
+    # GREEN. The control has one reachable output for every real portfolio, and the
+    # 2026-08-29 timetable correction moved the number without touching that: it fell
+    # from 3.79% to 2.54% of monthly revenue and stayed a constant, and stayed GREEN.
     for revenue in (1_000.0, 1_000_000.0, 5_000_000_000.0):
         (e,) = build_reconciliation_series(accounts(**{"2023": revenue}))
         assert e.rag == "GREEN"
-        assert e.max_adverse_gbp / (revenue / 12.0) == pytest.approx(0.0379, abs=1e-4)
+        assert e.max_adverse_gbp / (revenue / 12.0) == pytest.approx(0.0254, abs=1e-4)
 
 
 def test_a_small_books_published_exposure_rounds_away_to_zero_pounds():
@@ -146,18 +168,40 @@ def test_a_small_books_published_exposure_rounds_away_to_zero_pounds():
     (e,) = build_reconciliation_series(accounts(**{"2023": 1.0}))
     assert e.max_adverse_gbp == 0.0
     assert e.expected_adjustment_gbp == 0.0
-    assert e.outstanding_pool_gbp == 0.37
+    assert e.outstanding_pool_gbp == 0.25
 
 
-def test_amber_is_reachable_only_by_moving_the_hh_fraction_toward_non_hh():
-    # A wholly non-HH (domestic profile-class) book: variance 4%, exposure
-    # 1.487% of annual = 17.8% of monthly revenue → RED.
-    (e,) = build_reconciliation_series(accounts(**{"2023": 12_000_000.0}), hh_revenue_fraction=0.0)
-    assert e.rag == "RED"
-    (amber,) = build_reconciliation_series(
+def test_RED_IS_NOW_UNREACHABLE_at_every_book_composition():
+    """CHARACTERIZED AND FLAGGED, 2026-08-29. This is the RAG control losing a band.
+
+    A wholly non-HH (domestic profile-class) book used to reach 17.8% of monthly revenue
+    and rate RED. Correcting the run timetable against Elexon's own document
+    (`docs/market_research/elexon_settlement_run_timetable_verified.md`) cut the
+    outstanding tail from 4.46 months to 2.99, and the same book now reaches 11.96% --
+    below the 15% RED threshold. Swept across the whole range:
+
+        hh=0.0  11.96%  AMBER      hh=0.7   4.63%  GREEN
+        hh=0.3   8.82%  AMBER      hh=0.9   2.54%  GREEN
+        hh=0.5   6.73%  AMBER
+
+    So RED is unreachable for ANY composition, which makes a third of this control's
+    output space dead. That is not a reason to put the wrong constants back: the
+    thresholds (_GREEN_THRESHOLD=5, _AMBER_THRESHOLD=15) were calibrated against an
+    exposure inflated by carrying DF's 28-month dispute tail on every ordinary
+    settlement day, so it is the THRESHOLDS that were fitted to a wrong scale. Re-deriving
+    them belongs with whoever owns this control's calibration and needs its own evidence
+    -- it must not be done by picking numbers that make three bands light up again.
+    """
+    for fraction in (0.0, 0.3, 0.5):
+        (e,) = build_reconciliation_series(
+            accounts(**{"2023": 12_000_000.0}), hh_revenue_fraction=fraction
+        )
+        assert e.rag == "AMBER"
+        assert e.max_adverse_gbp / 1_000_000.0 < 0.15, "RED would be reachable after all"
+    (green,) = build_reconciliation_series(
         accounts(**{"2023": 12_000_000.0}), hh_revenue_fraction=0.70
     )
-    assert amber.rag == "AMBER"
+    assert green.rag == "GREEN", "the AMBER/GREEN boundary must still be crossable"
 
 
 def test_a_corrupt_hh_fraction_produces_a_negative_exposure_rated_green():
@@ -170,8 +214,8 @@ def test_a_corrupt_hh_fraction_produces_a_negative_exposure_rated_green():
     (e,) = build_reconciliation_series(
         accounts(**{"2023": 12_000_000.0}), hh_revenue_fraction=2.0
     )
-    assert e.max_adverse_gbp == -133_800.0
-    assert e.expected_adjustment_gbp == -66_900.0
+    assert e.max_adverse_gbp == -89_697.0
+    assert e.expected_adjustment_gbp == -44_848.5
     assert e.rag == "RED"                        # was GREEN — the control fires
     assert e.hh_fraction == 2.0  # echoed back verbatim into the published record
 

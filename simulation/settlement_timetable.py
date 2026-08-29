@@ -63,15 +63,21 @@ from company.interfaces.bitemporal_event_log import BitemporalEventLog, Bitempor
 # _R1_SHARE/_R2_SHARE/_R3_SHARE/_RF_SHARE/_HH_RECON_VARIANCE/
 # _NON_HH_RECON_VARIANCE constants at any future touch.
 # ---------------------------------------------------------------------------
-R1_MONTHS = 1
-R2_MONTHS = 3
-R3_MONTHS = 5     # ~17 weeks
-RF_MONTHS = 28    # Final Reconciliation
+# CORRECTED 2026-08-29 from an Elexon primary document. The full reasoning lives once, beside
+# the company-side pair these must equal -- `company/regulatory/settlement_reconciliation.py` --
+# rather than being copied here to go stale at a different rate, which is the failure that put
+# a dispute-run lag (28 months, DF) on every ordinary settlement day under the name of the last
+# scheduled run (14 months, RF). Evidence:
+# `docs/market_research/elexon_settlement_run_timetable_verified.md`.
+R1_MONTHS = 2
+R2_MONTHS = 4
+R3_MONTHS = 7
+RF_MONTHS = 14    # Final Reconciliation -- the LAST SCHEDULED run. DF (disputes only) is 28.
 
-R1_SHARE = 0.60
-R2_SHARE = 0.25
-R3_SHARE = 0.12
-RF_SHARE = 0.03
+R1_SHARE = 0.3093
+R2_SHARE = 0.3093
+R3_SHARE = 0.2062
+RF_SHARE = 0.1752
 assert abs((R1_SHARE + R2_SHARE + R3_SHARE + RF_SHARE) - 1.0) < 1e-9, (
     "settlement run shares must sum to exactly 1.0 -- RF must fully resolve the gap"
 )
