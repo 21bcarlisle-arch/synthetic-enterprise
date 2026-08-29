@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T19:54:37.610964Z",
+  "generated_at": "2026-08-29T20:13:00.215013Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -167,13 +167,15 @@
     "max_gbp": 872.9624789999798,
     "sem_gbp": 1488.2907494849874,
     "distinguishable_from_zero": false,
-    "spread_to_point_estimate_ratio": 5.685147783181799,
+    "spread_to_point_estimate_ratio": 1.4196583930092344,
+    "bounds_figure_gbp": 1815.785549000022,
+    "bounds_figure_clock": "settled-realised",
     "clock": null,
     "clock_caveat": "This noise floor carries no clock label of its own, so it is paired with the panel it was measured beside rather than with the restated figure. Its producer has labelled the floor since this one was taken; the next noise-floor run empties this.",
     "staleness_caveat": null,
     "elasticity_draws_min": 2020,
-    "point_estimate_inside_the_measured_band": true,
-    "reading": "The point estimate sits inside that band and so does zero, so this instrument cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees."
+    "point_estimate_inside_the_measured_band": false,
+    "reading": "The point estimate now sits OUTSIDE the band this spread was measured over, so the spread is not a bound on it and nothing here resolves the selection effect either way. An estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it -- which is the direction the reading would drift if this sentence were fixed rather than derived."
   },
   "market_reaction": {
     "available": true,

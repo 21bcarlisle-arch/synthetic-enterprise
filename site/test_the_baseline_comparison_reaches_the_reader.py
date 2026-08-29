@@ -263,6 +263,37 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
             "tell the reader that this resolves nothing")
 
 
+def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
+    """A band and a headline figure on one page, and nothing saying they are the same quantity.
+
+    THE DEFECT, at the door. The generator bounded the SUPERSEDED clock's selection leg while the
+    headline three paragraphs up stated the REALISED one -- £453 against £1,816, £1,362 apart --
+    and the page rendered "about 6× the estimate itself" over a band a reader could only assume
+    belonged to the number they had just read. Fixed in the generator; this is the leg that keeps
+    the fix visible to the person the page is for, because a correct feed rendered without its
+    subject is the same page to them.
+
+    KEYED TO THE PROPERTY. It reconciles what the page says the bar bounds against the split the
+    headline states, at whatever values the run produces. Fires on: dropping the
+    `bounds_figure_clock` render, or the two drifting back onto different clocks.
+    """
+    feed = _live_feed()
+    eb, split = feed["error_bar"], feed["realised"]["split"]
+    if not eb.get("bounds_figure_clock"):
+        pytest.skip("this run's split is not on the spread's clock -- the bar bounds nothing, and "
+                    "`test_a_split_on_another_clock_leaves_the_bar_with_NOTHING_TO_PLACE` owns it")
+    rendered = live["arms-errorbar"]
+
+    assert eb["bounds_figure_gbp"] == split["selection_gbp"], (
+        "the feed's error bar bounds £{!r} and the headline states £{!r}".format(
+            eb["bounds_figure_gbp"], split["selection_gbp"]))
+    assert _gbp(eb["bounds_figure_gbp"]) in rendered, (
+        "the page publishes a band without the figure it is a band ON, so a reader cannot tell "
+        "which of the two selection legs on this page it belongs to")
+    assert eb["bounds_figure_clock"] in rendered, (
+        "the bounded figure is rendered without its clock, on a page that carries two")
+
+
 def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     """R11 on a caveat rather than a number, and the caveat is DERIVED.
 

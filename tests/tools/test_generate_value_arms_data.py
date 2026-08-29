@@ -173,8 +173,12 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(real):
     assertion fired, which is the control doing its job. Pinning the new state instead would just
     re-arm the same trap, so what is checked now is that the feed KNOWS which case it is in and
     says the matching thing.
+
+    THE SUBJECT WAS RESTATED ON 2026-08-29, NOT THE ASSERTION. It read `real["provisioned"]`,
+    which is how the cross-clock pairing survived review twice: the test asked about the same
+    wrong figure the generator did, so both agreed and neither was right.
     """
-    sp, eb = real["provisioned"], real["error_bar"]
+    sp, eb = real["realised"]["split"], real["error_bar"]
     assert sp["selection_gbp"] is not None
     assert eb["available"], "the point estimate is published with no measured spread"
     inside = eb["point_estimate_inside_the_measured_band"]
@@ -188,6 +192,78 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(real):
             "the estimate has left the range its spread was measured over and the reading does "
             "not say so: {}".format(eb["reading"]))
         assert "not a bound on it" in eb["reading"]
+
+
+def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
+    """THE ERROR BAR AND THE FIGURE IT BOUNDS MUST BE ONE QUANTITY ON ONE CLOCK.
+
+    THE DEFECT. Until 2026-08-29 `build` handed `_error_bar` the PROVISIONED selection leg while
+    every row the spread is computed from is read out of `level_vs_selection`, which declares
+    `settled-realised`. So the page divided a realised spread by a provisioned estimate and
+    published the quotient as "about 6x the estimate itself", and answered "the point estimate
+    sits inside that band" about a figure the headline does not state. The realised leg the
+    headline DOES state was outside the same band. Two correct figures whose ratio is not a
+    quantity, on the reassuring side.
+
+    KEYED TO THE PROPERTY. This asserts a RECONCILIATION between two published fields -- the bar's
+    declared subject against the split it must be the subject of -- and never that the subject is
+    any particular number. It stays true at every future run, and it goes red for the defect
+    rather than for a result.
+
+    Fires on: restoring the provisioned point, dropping either provenance field, or pairing the
+    bar with a figure from any block whose clock is not the spread's.
+    """
+    eb, split = real["error_bar"], real["realised"]["split"]
+    assert eb["available"] and split["available"]
+
+    assert eb["bounds_figure_gbp"] == split["selection_gbp"], (
+        "the error bar is a bar on £{!r} while the headline states £{!r} -- a spread over a "
+        "figure it was not measured on".format(eb["bounds_figure_gbp"], split["selection_gbp"]))
+    assert eb["bounds_figure_clock"] == split["clock"] == "settled-realised", (
+        "the bar declares clock {!r} against a split on {!r}".format(
+            eb["bounds_figure_clock"], split["clock"]))
+    # THE ONE FIGURE IT MUST NOT BE. Named explicitly because it is the figure the defect used,
+    # it sits in the same payload under a near-identical key, and on this run the two differ by
+    # £1,362 -- so an assertion that only checked "is a float" would have passed throughout.
+    prov = real["provisioned"]["selection_gbp"]
+    if abs(prov - split["selection_gbp"]) > gva.SAME_SUPPLIER_TOLERANCE_GBP:
+        assert eb["bounds_figure_gbp"] != prov, (
+            "the error bar is bounding the SUPERSEDED clock's selection leg (£{:,.2f}) -- the "
+            "exact cross-clock pairing this control exists for".format(prov))
+    # ...and the derived readings are the ones that pairing corrupts, so they are checked against
+    # the subject rather than taken on trust.
+    assert eb["point_estimate_inside_the_measured_band"] is (
+        eb["min_gbp"] <= eb["bounds_figure_gbp"] <= eb["max_gbp"])
+    assert eb["spread_to_point_estimate_ratio"] == pytest.approx(
+        abs(eb["stdev_gbp"] / eb["bounds_figure_gbp"]))
+
+
+def test_a_split_on_another_clock_leaves_the_bar_with_NOTHING_TO_PLACE(real):
+    """The tri-state's third branch, which used to fall through the falsy edge.
+
+    `point_estimate_inside_the_measured_band` is True/False/None, and None means "no figure on
+    this spread's clock exists to place". The reading was a two-branch ternary, so None rendered
+    as "the point estimate now sits OUTSIDE the band" -- an unknown published as a measurement,
+    and in the fail-open direction. It must not reach for the provisioned figure either: a spread
+    on one clock is not a bound on a figure from another, which is the whole subject here.
+
+    Fires on: collapsing the three branches back to two, or filling the point from any other block.
+    """
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"], clock="settled-provisioned")
+    eb = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))["error_bar"]
+
+    assert eb["available"], "the spread itself is still measured and must still be published"
+    assert eb["bounds_figure_gbp"] is None and eb["bounds_figure_clock"] is None
+    assert eb["point_estimate_inside_the_measured_band"] is None
+    assert eb["spread_to_point_estimate_ratio"] is None, (
+        "a ratio was published against a point estimate that does not exist on this clock")
+    assert "no figure on this spread's own clock" in eb["reading"], eb["reading"]
+    assert "OUTSIDE the band" not in eb["reading"], (
+        "an UNKNOWN was published as the measured statement that the estimate left its band")
+    assert eb["stdev_gbp"] is not None, (
+        "the null rung: the spread must still be published as a size, or the assertions above "
+        "would pass against a block that had simply gone unavailable")
 
 
 def test_the_decision_count_reaches_the_feed(real):

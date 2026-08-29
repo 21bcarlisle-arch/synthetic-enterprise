@@ -2,18 +2,19 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 2 · **Class:** `figures_on_a_superseded_clock` · **Source's own count:** ~2 (registered under R10 by `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28`, which is the SECOND instance and names the class; not one of the director's five, and the count is this module's own)
+**Instances:** 3 · **Class:** `figures_on_a_superseded_clock` · **Source's own count:** ~2 (registered under R10 by `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28`, which is the SECOND instance and names the class; not one of the director's five, and the count is this module's own)
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 2 instances
+## The 3 instances
 
 - `WORKER_FINDING_THE_AB_PUBLISHED_TWO_NET_MARGINS_FOR_ONE_ARM_ONE_CLOCK_AND_ONE_STALE_READ_2026-08-28.md` — LATENT
+- `WORKER_FINDING_THE_ARMS_ERROR_BAR_BOUNDED_THE_SUPERSEDED_LEG_WHILE_THE_HEADLINE_STATED_THE_REALISED_ONE_2026-08-29.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISHED_TREASURY_IS_ON_A_SUPERSEDED_CLOCK_BESIDE_A_REALISED_NET_MARGIN_2026-08-28.md` — LATENT
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 2 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 3 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
 ## Refused consolidation — out of lane, still live
 

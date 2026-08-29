@@ -528,11 +528,32 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     ).format(floor_at=floor_at, point_at=point_at)
 
 
-def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> dict:
+def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
+               point_clock: str | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
 
     NEVER fails open to a spread of zero: a spread of zero is the one value that would make an
     indistinguishable result read as a decisive one.
+
+    THE POINT IT BOUNDS IS THE REALISED ONE, AND IT USED NOT TO BE (2026-08-29, second pass).
+    `build` handed this function the PROVISIONED selection leg while every row the spread is
+    computed from is read out of `level_vs_selection`, which declares `settled-realised`. Two
+    correct figures whose ratio is not a quantity -- the shape this project publishes wrong most
+    often -- and the file already said so three functions up: `_provisioned.no_spread_on_this_clock`
+    states in terms that no spread has ever been measured on the superseded clock. One file, two
+    functions, opposite answers.
+
+    It was not academic. On the 2026-08-29 run the page published `ratio` 5.69 and
+    `point_estimate_inside_the_measured_band: True` -- "the point estimate sits inside that band"
+    -- off the provisioned +£453. The realised +£1,815.79 that the headline actually states is
+    OUTSIDE the same band (-£4,273.97 to +£872.96) at a ratio of 1.42. The flattering answer, on
+    the reassuring side, under the sentence a reader trusts most.
+
+    So the caller passes the figure the HEADLINE states together with the clock it declares, and
+    both are republished here as `bounds_figure_gbp`/`bounds_figure_clock`. That pair is what makes
+    the pairing checkable from the artefact instead of from this docstring: a reader, and
+    `test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES`, can reconcile it against
+    `realised.split.selection_gbp` without knowing anything about which function passed what.
     """
     spread = (floor or {}).get("selection_gbp_spread") or {}
     stdev = _f(spread.get("stdev"))
@@ -565,6 +586,12 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> di
         "sem_gbp": _f(floor.get("selection_sem_gbp")),
         "distinguishable_from_zero": bool(floor.get("selection_distinguishable_from_zero")),
         "spread_to_point_estimate_ratio": ratio,
+        # WHICH FIGURE THIS IS A BAR ON, published rather than left to the reader to infer from
+        # position. Republished as a pair so the pairing is RECONCILABLE against
+        # `realised.split.selection_gbp` on the surface -- the check that would have caught this
+        # block bounding the provisioned leg while the headline stated the realised one.
+        "bounds_figure_gbp": point_estimate,
+        "bounds_figure_clock": point_clock,
         # WHICH READING THIS BOUNDS. The noise floor is its own set of runs, and if it does not
         # declare a clock this feed will not choose one for it: it is paired with the panel whose
         # figure it was computed alongside, and said to be a scale statement about the instrument
@@ -596,17 +623,30 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> di
         # test caught it (`test_the_selection_leg_and_its_error_bar_are_published_together`),
         # which is the control working; keeping the sentence would have been the defect.
         "point_estimate_inside_the_measured_band": inside,
+        # THREE BRANCHES, BECAUSE THERE ARE THREE STATES. `inside` is a tri-state -- True, False,
+        # and None for "no figure on this spread's clock to place" -- and until 2026-08-29 this
+        # was a two-branch ternary, so None fell through the falsy edge and published "the point
+        # estimate now sits OUTSIDE the band" about a point estimate that did not exist. An
+        # unknown rendered as a measured fact, in the fail-open direction, on the one sentence
+        # this block exists to get right (R15: unknown must never read as an answer).
         "reading": (
             "The point estimate sits inside that band and so does zero, so this instrument cannot "
             "yet resolve a selection effect of the size it is measuring -- in either direction. "
             "That is a finding about the INSTRUMENT and not about the pricing arm, and it is not "
             "a cue to re-run until a seed agrees."
-            if inside else
+            if inside is True else
             "The point estimate now sits OUTSIDE the band this spread was measured over, so the "
             "spread is not a bound on it and nothing here resolves the selection effect either "
             "way. An estimate that has left its own error bar's range needs the error bar "
             "re-measured, not read as having escaped it -- which is the direction the reading "
-            "would drift if this sentence were fixed rather than derived."),
+            "would drift if this sentence were fixed rather than derived."
+            if inside is False else
+            "There is no figure on this spread's own clock to place inside or outside it, so "
+            "nothing here resolves the selection effect either way. What is published below is "
+            "the size of this instrument's seed sensitivity and NOT a bound on any number on this "
+            "page -- the spread is measured on the settled-realised clock, and this run's "
+            "level-vs-selection split does not declare that clock, so pairing the two would be "
+            "the clock mix this feed refuses everywhere else."),
     }
 
 
@@ -1208,7 +1248,21 @@ def build(three_arm: dict | None, floor: dict | None,
             "The A/B artefact carries neither a realised bridge nor a level-vs-selection split, "
             "so there is nothing to compare: " + realised.get("reason", "")))
 
-    point = provisioned.get("selection_gbp") if provisioned["available"] else None
+    # THE FIGURE THE ERROR BAR IS A BAR ON, and it is the REALISED one. This line read
+    # `provisioned.get("selection_gbp")` until 2026-08-29 while every row the floor's spread is
+    # computed from comes out of `level_vs_selection`, which declares `settled-realised` -- so the
+    # published ratio divided a realised spread by a provisioned estimate, and the "sits inside
+    # that band" sentence answered about a figure the headline does not state. The two clocks are
+    # £39,962.17 apart on this run, which is larger than every contrast on the page.
+    #
+    # `_split_on_the_realised_clock` returns available ONLY when the split declares
+    # settled-realised, so taking the point from there makes the clock match a property of where
+    # the figure came from rather than a claim made here. A run whose split is on another clock
+    # yields None and the block says it has nothing to place -- it does not reach for the
+    # provisioned figure, because a spread on one clock is not a bound on a figure from another.
+    split = realised.get("split") or {}
+    point = split.get("selection_gbp") if split.get("available") else None
+    point_clock = split.get("clock") if split.get("available") else None
     # THE BOUND EVERY DIRECTIONAL CLAUSE OF THE HEADLINE IS GATED ON. Published in the same
     # payload as the sentence it gates so a reader can check the gate rather than take it, and so
     # the surface can never render a direction whose bound is not on the page with it.
@@ -1222,7 +1276,7 @@ def build(three_arm: dict | None, floor: dict | None,
         book=(three_arm.get("book_identity") or {}).get("control_arm") or {},
         realised=realised,
         provisioned=provisioned,
-        error_bar=_error_bar(floor, point, three_arm),
+        error_bar=_error_bar(floor, point, three_arm, point_clock),
         # THE BOUND ON THE WHOLE COMPARISON, and it is published in the same payload as the
         # figures it bounds so the two can never be deployed apart. Probed from the world's own
         # reference function rather than written down -- see `_market_reaction`.

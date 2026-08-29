@@ -667,11 +667,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + " further seeds put the value of the choosing anywhere between "
           + esc(gbp(eb.min_gbp)) + " and " + esc(gbp(eb.max_gbp))
           + " (standard deviation " + esc(gbp(eb.stdev_gbp))
+          /* ONE DECIMAL, NOT A ROUND NUMBER. `Math.round` printed the corrected 1.42 as
+             "about 1× the estimate itself", which reads as a spread and an estimate of the same
+             size when the spread is half again as big. It was only ever rounded because the
+             figure it divided by was the wrong one and came out near 6. */
           + (eb.spread_to_point_estimate_ratio
-              ? ", about " + Math.round(eb.spread_to_point_estimate_ratio)
+              ? ", about " + eb.spread_to_point_estimate_ratio.toFixed(1)
                 + "× the estimate itself"
               : "")
-          + "). " + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
+          + "). "
+          /* WHICH FIGURE THE BAR IS A BAR ON, on the page rather than inferred from position.
+             Until 2026-08-29 this block bounded the SUPERSEDED clock's selection leg while the
+             headline above it stated the realised one -- two different figures, £1,362 apart,
+             and nothing on the page said which of them the band belonged to. */
+          + (eb.bounds_figure_clock
+              ? "The figure it bounds is the " + esc(eb.bounds_figure_clock)
+                + " value of the choosing, " + esc(gbp(eb.bounds_figure_gbp))
+                + " &mdash; the same figure the headline states. "
+              : "")
+          + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
           + (eb.staleness_caveat
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
                 + prose(eb.staleness_caveat) + "</span>"
