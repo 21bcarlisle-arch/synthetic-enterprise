@@ -890,8 +890,25 @@ def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live)
         assert not any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
             "the page named a winner on a contrast INSIDE its own error bar: {}".format(headline))
         assert "CANNOT RESOLVE" in headline, headline
-        assert "larger SETTLED BOOK" in headline, (
-            "the page says it cannot resolve the sign and never says what would")
+        # THE REMEDY MUST REACH THE READER, AND IT MUST BE THE MEASURED ONE. This pinned the words
+        # "larger SETTLED BOOK" until 2026-08-29 -- a control keyed to today's answer, which would
+        # have gone red the moment the page stopped asserting an unmeasured remedy and stayed green
+        # while the claim rotted. What the page owes a reader is the remedy its own
+        # `floor_decomposition` supports, so that is what is checked, branch by branch.
+        decomposition = feed.get("floor_decomposition") or {}
+        if not decomposition.get("available"):
+            expected = "has not been established"
+        elif not decomposition.get("share_is_decisive"):
+            expected = "too close to the"
+        elif decomposition.get("larger_settled_book_would_resolve_it"):
+            expected = "larger SETTLED BOOK"
+        else:
+            expected = "cannot be resolved at any book"
+        assert expected in headline, (
+            "the page's remedy does not match the split it published: `floor_decomposition` says "
+            "{!r} and the headline does not carry it: {}".format(expected, headline))
+        assert "More seeds would not resolve it" in headline, (
+            "the page dropped the half of the remedy that is arithmetic and always true")
 
 
 def test_the_withdrawn_sentence_reaches_the_reader_beside_the_one_that_replaced_it(live):

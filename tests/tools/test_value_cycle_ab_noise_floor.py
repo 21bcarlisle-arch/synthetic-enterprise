@@ -236,3 +236,192 @@ def test_seeds_on_DIFFERENT_clocks_are_refused_rather_than_averaged():
 
     with pytest.raises(AssertionError, match="different clocks"):
         noise_floor([11111, 22222], runner=_alternating)
+
+
+# ---------------------------------------------------------------------------
+# 5. THE FLOOR CUT IN TWO -- and the same fail-silent shape one level down
+# ---------------------------------------------------------------------------
+#
+# The undecomposed floor re-draws ~2,050 households while the arm prices 20 renewals, so its
+# spread has two sources with OPPOSITE remedies. `site/data/value_arms.json` published one of them
+# as the remedy before anybody separated them. The `only`/`except` legs are the separation, and
+# every way they can lie is the way the original defect lied: a leg that reaches nothing returns a
+# spread of zero, and the decomposition then hands the WHOLE variance to the other half -- which
+# is a conclusion, not a measurement.
+
+_PRICED = _ACCOUNTS[:4]
+
+
+def test_the_two_legs_partition_the_call_stream():
+    """`redrawn + held == draws` on every row, and the two legs' rosters are complementary.
+    Without this the halves could overlap or leave a gap and still look like a decomposition."""
+    only = noise_floor([11111, 22222], runner=_fake_runner,
+                       redraw_accounts=_PRICED, redraw_mode="only")
+    rest = noise_floor([11111, 22222], runner=_fake_runner,
+                       redraw_accounts=_PRICED, redraw_mode="except")
+    for leg in (only, rest):
+        for row in leg["seeds"]:
+            assert row["elasticity_redrawn"] + row["elasticity_held_fixed"] == \
+                row["elasticity_draws"], row
+    for a, b in zip(only["seeds"], rest["seeds"]):
+        assert a["elasticity_redrawn"] == b["elasticity_held_fixed"], (
+            "the two legs do not cut the same population along the same line")
+        assert a["accounts_redrawn"] == len(_PRICED)
+
+
+def test_a_leg_whose_roster_matches_NOBODY_raises_rather_than_reporting_a_floor_of_zero():
+    """THE MUTATION, one level down from the retired-symbol one. An `only` leg naming accounts the
+    world never prices re-draws nothing, runs the base world every seed, and reports a spread of
+    zero -- from which the decomposition concludes the priced households contribute NOTHING and a
+    larger book is useless. The most consequential answer available, from measuring nothing."""
+    with pytest.raises(AssertionError, match="re-drew NO household"):
+        noise_floor([11111, 22222], runner=_fake_runner,
+                    redraw_accounts=["NOT-AN-ACCOUNT"], redraw_mode="only")
+
+
+def test_a_leg_that_holds_NOBODY_fixed_is_the_undecomposed_floor_wearing_a_label():
+    """The mirror: an `except` leg whose roster misses everybody re-draws the whole book and would
+    be published as the rest-of-book half, handing it the entire variance."""
+    with pytest.raises(AssertionError, match="held NO household fixed"):
+        noise_floor([11111, 22222], runner=_fake_runner,
+                    redraw_accounts=["NOT-AN-ACCOUNT"], redraw_mode="except")
+
+
+def test_a_decomposed_mode_without_a_roster_is_refused():
+    with pytest.raises(AssertionError, match="needs the roster"):
+        noise_floor([11111, 22222], runner=_fake_runner, redraw_mode="only")
+
+
+def test_the_held_half_keeps_the_runs_own_seed_and_not_a_third_world():
+    """The `only` leg must leave every unpriced household on exactly the elasticity the base run
+    gave it. A leg that substituted a constant would move the held half onto a third world and
+    call the difference the priced half's."""
+    from simulation.population_draw import price_elasticity_for_customer as real
+
+    seen = {}
+
+    def _recording_runner():
+        from simulation.population_draw import price_elasticity_for_customer
+        for account in _ACCOUNTS:
+            seen[account] = price_elasticity_for_customer(account, _RUN_SEED)
+        return _fake_runner()
+
+    noise_floor([11111, 22222], runner=_recording_runner,
+                redraw_accounts=_PRICED, redraw_mode="only")
+    for account in _ACCOUNTS:
+        if account in _PRICED:
+            continue
+        assert seen[account] == real(account, _RUN_SEED), (
+            "an unpriced household was moved off the run's own seed, so the `only` leg is not "
+            "measuring the priced households' contribution: {}".format(account))
+
+
+# ---------------------------------------------------------------------------
+# 6. THE VERDICT THE PAGE'S REMEDY SENTENCE TURNS ON
+# ---------------------------------------------------------------------------
+
+def _leg(mode, values, seeds=(11111, 22222, 33333)):
+    """A floor artefact carrying exactly `values` as its per-seed selection figures."""
+    return {"redraw_scope": {"mode": mode},
+            "seeds": [{"seed": s, "selection_gbp": v} for s, v in zip(seeds, values)]}
+
+
+def _three_arm(contrast, priced=20, accounts=("C1", "C2")):
+    return {"level_vs_selection": {"selection_gbp": contrast},
+            "renewal_funnel": {"value_arm": {
+                "priced": priced, "renewals_the_world_offered": 1369,
+                "priced_share_of_renewals_offered": 0.0146,
+                "accounts_the_arm_priced": list(accounts)}}}
+
+
+def test_the_verdict_is_the_REST_OF_BOOK_leg_against_the_contrast():
+    """The remedy is true only when the half no book size shrinks is ALREADY under the contrast.
+
+    Both cases here hold the priced half identical and move only the rest-of-book half, so a
+    verdict that read the wrong leg -- or read the undecomposed total -- flips.
+    """
+    from tools.run_value_cycle_ab import decompose_floor
+
+    # PRINTED BEFORE IT WAS ASSERTED. sd(n)^2 = V_except + V_only*(20/n): at V_only = 1,300^2 and
+    # V_except = 500^2 the bar reaches GBP 1,000 at n = 46, and the first draft of this fixture
+    # (900/400) landed on exactly n = 20 -- a "remedy" already paid for by today's book, which
+    # would have passed a `> 0` assertion and asserted nothing.
+    tight = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                            _leg("only", (-1300.0, 0.0, 1300.0)),
+                            _leg("except", (-500.0, 0.0, 500.0)), _three_arm(1000.0))
+    assert tight["larger_settled_book_would_resolve_it"] is True
+    assert tight["priced_decisions_needed"] == 46, (
+        "a remedy priced at or below today's book is not a remedy")
+
+    wide = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                           _leg("only", (-1300.0, 0.0, 1300.0)),
+                           _leg("except", (-1400.0, 0.0, 1400.0)), _three_arm(1000.0))
+    assert wide["larger_settled_book_would_resolve_it"] is False
+    assert wide["priced_decisions_needed"] is None, (
+        "an unreachable remedy was still given a price, which reads as reachable")
+
+
+def test_legs_that_do_not_name_their_own_half_are_refused():
+    """A leg read as the other one hands the whole variance to the wrong side. Never inferred."""
+    from tools.run_value_cycle_ab import decompose_floor
+
+    swapped = decompose_floor(_leg("all", (-1000.0, 0.0, 1000.0)),
+                              _leg("except", (-900.0, 0.0, 900.0)),
+                              _leg("except", (-400.0, 0.0, 400.0)), _three_arm(1000.0))
+    assert swapped["available"] is False and "only" in swapped["why_not"]
+
+
+def test_legs_run_on_DIFFERENT_seeds_are_not_a_decomposition():
+    from tools.run_value_cycle_ab import decompose_floor
+
+    out = decompose_floor(_leg("all", (-1000.0, 0.0, 1000.0)),
+                          _leg("only", (-900.0, 0.0, 900.0)),
+                          _leg("except", (-400.0, 0.0, 400.0), seeds=(7, 8, 9)),
+                          _three_arm(1000.0))
+    assert out["available"] is False and "different seeds" in out["why_not"]
+
+
+def test_the_reconciliation_is_published_even_when_it_disagrees():
+    """The two halves against the whole is the ONLY thing saying the split is real rather than
+    two unrelated runs. A tool that reported it only when it was flattering would be no control."""
+    from tools.run_value_cycle_ab import decompose_floor
+
+    out = decompose_floor(_leg("all", (-1000.0, 0.0, 1000.0)),
+                          _leg("only", (-3000.0, 0.0, 3000.0)),
+                          _leg("except", (-3000.0, 0.0, 3000.0)), _three_arm(1000.0))
+    assert out["available"] is True, "a bad reconciliation must be PUBLISHED, not withheld"
+    assert out["reconciliation_ratio"] > 3, out["reconciliation_ratio"]
+
+
+def test_a_priced_roster_with_no_drawn_household_says_the_lever_is_a_product():
+    """`more renewals actually priced` reads as a book-SIZE lever. When every priced decision is a
+    static-roster account it is not one, and growing the drawn book makes the floor worse."""
+    from tools.run_value_cycle_ab import where_the_priced_decisions_come_from
+
+    static = where_the_priced_decisions_come_from(_three_arm(1.0, accounts=("C1", "C2")))
+    assert static["of_those_drawn"] == 0
+    assert "PRODUCT, not a size" in static["reading"]
+
+    mixed = where_the_priced_decisions_come_from(
+        _three_arm(1.0, accounts=("C1", "SYN-2021-001")))
+    assert mixed["of_those_drawn"] == 1
+    assert "PRODUCT, not a size" not in mixed["reading"], (
+        "the reading is a constant, so it would say the lever is a product on a book where "
+        "drawn households ARE priced")
+
+
+def test_the_price_table_says_UNREACHABLE_rather_than_quoting_a_huge_book():
+    """Below the threshold there is no book that resolves it. A table that answered with a very
+    large number instead would read as expensive-but-possible, which is the opposite finding."""
+    from tools.run_value_cycle_ab import remedy_price_table
+
+    rows = remedy_price_table(2577.80 ** 2, 1815.79, 20, 0.0146)
+    below = [r for r in rows if r["priced_share_of_variance"] <= 0.5]
+    assert below and all(r["priced_decisions_needed"] is None for r in below), (
+        "a share under the 50.4% threshold was given a finite price")
+    above = [r for r in rows if r["priced_share_of_variance"] >= 0.6]
+    assert all(r["priced_decisions_needed"] for r in above)
+    assert [r["priced_decisions_needed"] for r in above] == \
+        sorted((r["priced_decisions_needed"] for r in above), reverse=True), (
+            "the price must FALL as the priced half grows -- a table that did not is not this "
+            "arithmetic")

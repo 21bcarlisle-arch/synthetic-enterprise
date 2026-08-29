@@ -119,6 +119,11 @@ from pathlib import Path
 PROJECT = Path(__file__).resolve().parent.parent
 THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.json"
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
+#: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
+#: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so
+#: rather than defaulting to the encouraging branch.
+DECOMPOSITION_PATH = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
 #: The run whose figures the rest of the site publishes -- read ONLY to check whether the
 #: baseline arm and the published supplier are the same run, never to fill an arm.
 RUN_OUTPUT_PATH = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -658,17 +663,104 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
 #: seeds), so borrowing would have licensed a direction the borrowed-from figure never earned.
 _BOUNDED_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_gbp")
 
-#: What WOULD resolve a contrast this instrument cannot. Named on the surface beside the refusal,
-#: because "we cannot tell" without it reads as a dead end when it is a sample-size statement with
-#: a known remedy -- and because the remedy is the one a reader would get wrong.
-WHAT_WOULD_RESOLVE_IT = (
-    "What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- "
-    "and not more seeds: re-drawing the dice measures this spread again, it does not shrink it.")
+#: The half of the remedy that is ARITHMETIC and needs no evidence: more seeds estimate this
+#: spread again, they do not shrink it. True of any error bar, so it is stated unconditionally.
+MORE_SEEDS_WOULD_NOT = (
+    "More seeds would not resolve it: re-drawing the dice measures this spread again, it does not "
+    "shrink it.")
 
-#: THE SENTENCE THIS PUBLISH WITHDRAWS, in the words it was published in, kept beside the reading
-#: that replaced it. Not deleted: a correction a reader cannot see is one they cannot check, and
-#: this page's whole claim on anyone's trust is that it publishes the unflattering direction.
-WITHDRAWN_CLAIM = {
+#: The half that is a CLAIM ABOUT WHERE THE SPREAD COMES FROM, and was published as fact for a day
+#: before anyone measured it. The floor re-draws elasticity for ~2,050 households and the arm
+#: priced 20 renewals, so the spread has two sources with OPPOSITE remedies: the priced
+#: households' own draw (shrinks as ~1/sqrt(n), so a larger settled book buys it down) and the
+#: rest of the book's churn cascade landing in the same net (does not shrink with the priced count
+#: at all, so a larger book buys nothing). `run_value_cycle_ab.decompose_floor` measures which,
+#: from two extra floor legs that partition one call stream. Until it has, this page says what has
+#: NOT been established rather than picking the encouraging branch -- a remedy is a claim, and an
+#: unmeasured one beside a refusal is the second wrong sentence in the same paragraph.
+WHAT_WOULD_RESOLVE_IT_UNKNOWN = (
+    "What WOULD resolve it has not been established: this spread has not been separated into the "
+    "priced households' own draw, which a larger settled book shrinks, and the rest of the book's "
+    "churn cascade, which no book size touches.")
+
+
+def _what_would_resolve_it(decomposition: dict | None) -> str:
+    """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
+
+    THE PROPERTY, NOT TODAY'S WORDING. The clause claiming a larger settled book is the remedy
+    appears when, and only when, the decomposition says the priced households' half is the one
+    that dominates -- specifically when the rest-of-book half ALONE comes in under the contrast,
+    which is the page's own resolution rule applied to the floor that survives an infinite book.
+    Feed this a split where the priced side dominates and the clause must appear; feed it one
+    where it does not and the clause must be absent. That is what
+    `test_the_remedy_clause_follows_the_decomposition_not_the_wording` mutates, and it is keyed
+    that way because a control pinned to the sentence goes red when the page becomes more honest.
+
+    THREE BRANCHES AND NOT TWO. "Not measured" is not "measured and negative": the first says
+    nothing about the remedy, the second says the remedy is false. Collapsing them would let a
+    missing artefact publish a finding.
+    """
+    if not (decomposition or {}).get("available"):
+        return WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
+    # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
+    # two degrees of freedom, and the producer says whether the split cleared that.
+    if not decomposition.get("share_is_decisive"):
+        return ("The spread HAS now been split -- {:.0%} of it is the priced households' own draw "
+                "and the rest is the wider book's churn cascade -- but at {} seeds that split is "
+                "too close to the {:.0%} it would have to clear to say whether a larger settled "
+                "book would resolve this at all. ".format(
+                    decomposition.get("priced_share_of_variance") or 0.0,
+                    decomposition.get("seeds"),
+                    decomposition.get("share_at_which_a_bigger_book_could_resolve_it") or 0.0)
+                + MORE_SEEDS_WOULD_NOT)
+    if decomposition.get("larger_settled_book_would_resolve_it"):
+        needed = decomposition.get("priced_decisions_needed")
+        priced = decomposition.get("priced_decisions")
+        return ("What would resolve it is a larger SETTLED BOOK -- more renewals actually priced "
+                "by the arm -- and the price is now measured: {:.0%} of this spread is the priced "
+                "households' own draw, so it takes about {:,} priced renewals against this book's "
+                "{} to bring the bar under the gap. ".format(
+                    decomposition.get("priced_share_of_variance") or 0.0, needed, priced)
+                + MORE_SEEDS_WOULD_NOT)
+    return ("A larger settled book would not resolve it either, and that is the finding: only "
+            "{:.0%} of this spread is the priced households' own draw. The rest is the wider "
+            "book's churn cascade landing in the same net, which does not shrink however many "
+            "renewals the arm prices -- on its own it is £{:,.0f} against a £{:,.0f} gap. This "
+            "comparison cannot be resolved at any book this world can legitimately produce, so "
+            "what is needed is a different instrument and not a bigger sample. ".format(
+                decomposition.get("priced_share_of_variance") or 0.0,
+                decomposition.get("irreducible_sd_gbp") or 0.0,
+                abs(decomposition.get("contrast_gbp") or 0.0))
+            + MORE_SEEDS_WOULD_NOT)
+
+#: EVERY SENTENCE THIS PAGE HAS WITHDRAWN, newest first, in the words it was published in and kept
+#: beside the reading that replaced it. Not deleted: a correction a reader cannot see is one they
+#: cannot check, and this page's whole claim on anyone's trust is that it publishes the
+#: unflattering direction -- which is worth nothing if it can also un-publish one silently.
+#:
+#: A LIST, AND IT BECAME ONE THE SECOND TIME (2026-08-29). It was a single dict, which is the shape
+#: that quietly overwrites the first correction with the second and leaves a page claiming to keep
+#: its record while keeping one entry of it.
+WITHDRAWN_CLAIMS = [{
+    "withdrawn_on": "2026-08-29",
+    "the_words": ("What would resolve it is a larger SETTLED BOOK -- more renewals actually "
+                  "priced by the arm -- and not more seeds: re-drawing the dice measures this "
+                  "spread again, it does not shrink it."),
+    "why": ("The second half is arithmetic and stands. The FIRST half named a remedy nobody had "
+            "measured. The floor it qualifies re-draws price sensitivity for about 2,050 "
+            "households while the arm priced 20 renewals, so the spread has two possible sources "
+            "with OPPOSITE remedies -- the priced households' own draw, which a larger settled "
+            "book shrinks, and the rest of the book's churn cascade, which no book size touches. "
+            "The page asserted the first without separating them, one day after withdrawing a "
+            "different sentence for asserting a direction its evidence could not carry. What "
+            "replaces it is derived from a measured split of the floor, and says so when there "
+            "is no split to derive it from."),
+    "note": ("WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison "
+             "was “a larger SETTLED BOOK”. That named a remedy nobody had measured — the spread "
+             "it qualifies has two sources with opposite remedies, and they had not been "
+             "separated. What stands in its place is derived from the split, or says plainly "
+             "that no split has been run."),
+}, {
     "withdrawn_on": "2026-08-29",
     "the_words": ("On this evidence the advantage is the price level, and the per-customer "
                   "choosing is worth less than nothing."),
@@ -682,7 +774,23 @@ WITHDRAWN_CLAIM = {
              "is the price level, and the per-customer choosing is worth less than nothing”. "
              "That sentence stated a direction smaller than its own error bar. It is withdrawn, "
              "not reversed: the reading above is what the evidence supports."),
-}
+}]
+
+
+def _withdrawn() -> dict:
+    """The withdrawal block the page renders: the newest correction, with every earlier one kept.
+
+    THE RENDERED `note` IS THE WHOLE RECORD, joined, and that is the point. The surface prints one
+    string; if only the newest note reached it, the second correction would erase the first from
+    the page while the feed still carried it, and a reader would see a page that had corrected
+    itself once. `also_withdrawn` carries the earlier entries structurally for anything that wants
+    to render them apart.
+    """
+    newest, *older = WITHDRAWN_CLAIMS
+    return dict(newest,
+                note=" ".join(claim["note"] for claim in WITHDRAWN_CLAIMS),
+                also_withdrawn=older,
+                withdrawals=len(WITHDRAWN_CLAIMS))
 
 
 def _seed_spreads(floor: dict | None) -> dict:
@@ -1221,7 +1329,7 @@ def _reaction_sentence(defends: bool, contests: bool, decay) -> str:
 
 
 def build(three_arm: dict | None, floor: dict | None,
-          published_run: dict | None = None) -> dict:
+          published_run: dict | None = None, decomposition: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -1234,6 +1342,7 @@ def build(three_arm: dict | None, floor: dict | None,
         "sources": [
             "docs/observability/value_cycle_ab_s1_three_arm.json",
             "docs/observability/value_cycle_ab_s1_noise_floor.json",
+            "docs/observability/value_cycle_ab_floor_decomposition.json",
         ],
     }
     if not isinstance(three_arm, dict) or not three_arm:
@@ -1271,7 +1380,16 @@ def build(three_arm: dict | None, floor: dict | None,
         base,
         available=True,
         contrast_bounds=spreads,
-        withdrawn_claim=WITHDRAWN_CLAIM,
+        # THE EVIDENCE UNDER THE REMEDY SENTENCE, in the same payload as the sentence, for the
+        # reason `contrast_bounds` is: the page names a remedy beside its refusal, and a remedy is
+        # a claim. A reader who wants to disagree with it needs the split it was derived from, not
+        # a paraphrase of it. `available: false` is published too -- "not measured" is a state a
+        # reader is entitled to see, and it is the state the page was in when it asserted one.
+        floor_decomposition=(decomposition if isinstance(decomposition, dict)
+                             else {"available": False,
+                                   "why_not": ("no floor decomposition artefact was readable, so "
+                                               "this page states no remedy")}),
+        withdrawn_claim=_withdrawn(),
         run_generated_at=three_arm.get("generated_at"),
         book=(three_arm.get("book_identity") or {}).get("control_arm") or {},
         realised=realised,
@@ -1293,7 +1411,7 @@ def build(three_arm: dict | None, floor: dict | None,
             # so it may only be made while the published run and the baseline arm are the same run.
             ("The comparison below is against the very supplier this site publishes. " if
              (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
-            + _headline_reading(realised, provisioned, spreads)
+            + _headline_reading(realised, provisioned, spreads, decomposition)
             + _coverage_clause(three_arm)),
     )
 
@@ -1323,7 +1441,8 @@ def _coverage_clause(three_arm: dict) -> str:
             ).format(priced=priced, offered=offered, pct=pct)
 
 
-def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = None) -> str:
+def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = None,
+                      decomposition: dict | None = None) -> str:
     """The sentence the page leads with, DERIVED from the restated figures' own signs.
 
     THIS SENTENCE USED TO BE A CONSTANT (2026-08-28). It asserted that the level arm "earned as
@@ -1349,14 +1468,16 @@ def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = 
                     "reading, so no claim is made about where any advantage came from.")
         clock_note = (" This is on the superseded clock -- see the panels below.")
         return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage")),
-                                   _f(fallback.get("value_advantage_gbp")), None) + clock_note
+                                   _f(fallback.get("value_advantage_gbp")), None,
+                                   decomposition) + clock_note
     return _selection_sentence(split.get("selection_gbp"),
                                split.get("level_share_of_advantage"),
                                split.get("value_advantage_gbp"),
-                               spreads)
+                               spreads, decomposition)
 
 
-def _selection_sentence(selection, share, advantage=None, spreads=None) -> str:
+def _selection_sentence(selection, share, advantage=None, spreads=None,
+                        decomposition=None) -> str:
     """What the per-customer CHOOSING was worth -- with a DIRECTION only when the figure is bigger
     than the spread the same figure shows across seeds, and its SIZE and BOUND when it is not."""
     selection = _f(selection)
@@ -1409,8 +1530,9 @@ def _selection_sentence(selection, share, advantage=None, spreads=None) -> str:
     withheld = any(_f(value) is not None and _resolvable(value, spread) is not True
                    for value, spread in ((advantage, advantage_spread),
                                          (selection, selection_spread)))
-    return "{} {}{}{}".format(opening, body, share_clause,
-                              " " + WHAT_WOULD_RESOLVE_IT if withheld else "")
+    return "{} {}{}{}".format(
+        opening, body, share_clause,
+        " " + _what_would_resolve_it(decomposition).strip() if withheld else "")
 
 
 def _cannot_resolve(value, spread, size_clause: str, what: str) -> str:
@@ -1490,10 +1612,13 @@ def _read(path: Path):
 
 def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              noise_floor_path: Path | None = None,
-             published_run_path: Path | None = None) -> dict:
+             published_run_path: Path | None = None,
+             decomposition_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
-                 _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path))
+                 _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path),
+                 _read(DECOMPOSITION_PATH if decomposition_path is None
+                       else decomposition_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

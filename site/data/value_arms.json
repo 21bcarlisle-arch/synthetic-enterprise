@@ -1,12 +1,13 @@
 {
-  "generated_at": "2026-08-29T20:13:00.215013Z",
+  "generated_at": "2026-08-29T20:50:52.147926Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
   "not_a_target": "A selection leg worth nothing is a complete answer, not a cue to tune the arm until it wins. The margin is a diagnostic here and never a target: an arm that loses to its own baseline is the result this comparison was built to be able to return.",
   "sources": [
     "docs/observability/value_cycle_ab_s1_three_arm.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor.json"
+    "docs/observability/value_cycle_ab_s1_noise_floor.json",
+    "docs/observability/value_cycle_ab_floor_decomposition.json"
   ],
   "available": true,
   "contrast_bounds": {
@@ -38,11 +39,24 @@
       }
     }
   },
+  "floor_decomposition": {
+    "available": false,
+    "why_not": "no floor decomposition artefact was readable, so this page states no remedy"
+  },
   "withdrawn_claim": {
     "withdrawn_on": "2026-08-29",
-    "the_words": "On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing.",
-    "why": "It stated a sign the evidence could not carry. That run's selection leg was -\u00a39,627 and the same figure moved across a range of \u00a38,781 when three re-runs changed nothing but the per-household price-sensitivity draw -- so 'worth less than nothing' was a seed result reported as a finding. The claim is not reversed here and nothing replaces it with the opposite: it is withdrawn, and what stands in its place is the size, the bound, and the fact that a book this small cannot resolve the sign.",
-    "note": "WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports."
+    "the_words": "What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and not more seeds: re-drawing the dice measures this spread again, it does not shrink it.",
+    "why": "The second half is arithmetic and stands. The FIRST half named a remedy nobody had measured. The floor it qualifies re-draws price sensitivity for about 2,050 households while the arm priced 20 renewals, so the spread has two possible sources with OPPOSITE remedies -- the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. The page asserted the first without separating them, one day after withdrawing a different sentence for asserting a direction its evidence could not carry. What replaces it is derived from a measured split of the floor, and says so when there is no split to derive it from.",
+    "note": "WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
+    "also_withdrawn": [
+      {
+        "withdrawn_on": "2026-08-29",
+        "the_words": "On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing.",
+        "why": "It stated a sign the evidence could not carry. That run's selection leg was -\u00a39,627 and the same figure moved across a range of \u00a38,781 when three re-runs changed nothing but the per-household price-sensitivity draw -- so 'worth less than nothing' was a seed result reported as a finding. The claim is not reversed here and nothing replaces it with the opposite: it is withdrawn, and what stands in its place is the size, the bound, and the fact that a book this small cannot resolve the sign.",
+        "note": "WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports."
+      }
+    ],
+    "withdrawals": 2
   },
   "run_generated_at": "2026-08-29T14:40:24Z",
   "book": {
@@ -349,5 +363,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and not more seeds: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
 }

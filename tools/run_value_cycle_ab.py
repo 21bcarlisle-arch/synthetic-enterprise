@@ -109,6 +109,11 @@ OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
 #: split with no reading beside it.
 NOISE_FLOOR_OUTPUT_PATH = (
     PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_noise_floor.json")
+#: The floor cut in two. A THIRD file, again on purpose: it is the answer to "what would resolve
+#: this", it is composed from three floors rather than measured by one, and the site feed reads it
+#: to decide whether the remedy sentence beside its refusal is true.
+DECOMPOSITION_OUTPUT_PATH = (
+    PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
 #: The coupler's own artefact, and the ONE place the regulated-allowance comparison is
 #: computed. Read here, never recomputed -- see `control_credibility`.
 ARMS_ARTEFACT = PROJECT_DIR / "docs" / "observability" / "value_based_pricing_arms.json"
@@ -2479,14 +2484,66 @@ def _spread(values: list) -> dict:
     }
 
 
+#: The two halves the floor can be cut into, and the one word each cut is named by in the artefact.
+#: `only` re-draws the households the arm actually PRICED and holds every other household at the
+#: run's own base seed; `except` is its exact mirror. `all` is the undecomposed floor -- the mode
+#: every floor before 2026-08-29 ran in, kept as the default so an unqualified call is unchanged.
+REDRAW_MODES = ("all", "only", "except")
+
+
+def priced_accounts_from(artefact: Path) -> list[str]:
+    """The households the value arm priced, read off a three-arm artefact's own funnel.
+
+    READ, NEVER WRITTEN DOWN, for the reason `resolve_elasticity_symbol` is: a hand-copied roster
+    would go on naming `C1..C9` after the book stopped containing them, and the leg would then
+    hold the whole population fixed while reporting a spread of zero for the priced side -- the
+    flattering answer, from a measurement of nothing.
+
+    ONE SET FOR BOTH LEGS, TAKEN FROM ONE REFERENCE RUN. The priced roster moves a little with the
+    seed (an account that churns earlier stops being offered a renewal), so resolving it per seed
+    would make the two legs cut the population along a line that moves between them -- and then
+    their variances would not be a decomposition of anything, because the pieces would neither
+    partition nor cover. The reference run's roster is used for every seed and every leg, and it
+    is written into the artefact so a reader can see WHICH line was cut along.
+    """
+    data = json.loads(Path(artefact).read_text(encoding="utf-8"))
+    funnel = ((data.get("renewal_funnel") or {}).get("value_arm") or {})
+    accounts = [a for a in (funnel.get("accounts_the_arm_priced") or []) if isinstance(a, str)]
+    if not accounts:
+        raise AssertionError(
+            "`{}` carries no `renewal_funnel.value_arm.accounts_the_arm_priced`, so there is no "
+            "priced roster to cut the floor along. Refusing to fall back to 'everybody' -- that "
+            "would silently make the `only` leg the undecomposed floor and the `except` leg a "
+            "spread of zero.".format(artefact))
+    return sorted(set(accounts))
+
+
 def noise_floor(seeds: list[int], report_end: str | None = None,
-                runner=None, symbol: str | None = None) -> dict:
+                runner=None, symbol: str | None = None,
+                redraw_accounts: list[str] | None = None,
+                redraw_mode: str = "all") -> dict:
     """Re-run the whole three-arm A/B once per seed, moving ONLY the elasticity assignment.
 
     WHAT IS VARIED, AND ONLY THIS. The resolved elasticity symbol is rebound on the draw module so
     every household's elasticity is drawn at `seed` instead of the run's own base seed. The book,
     the weather, the settlement data and the population draw are untouched, so the spread this
     produces is attributable to the assignment and to nothing else.
+
+    AND, SINCE 2026-08-29, TO WHICH HALF OF THE BOOK. `redraw_mode="only"` re-draws just the
+    households in `redraw_accounts` -- the ones the arm actually priced -- and passes every other
+    household through at the run's own base seed; `"except"` is the mirror. This exists because the
+    undecomposed spread has two sources with OPPOSITE remedies, and the page had already published
+    one of them as fact. Either the 20 priced households' own elasticity moves the selection figure
+    (that shrinks as ~1/sqrt(n) priced, so a larger settled book resolves it) or the other ~2,000
+    households' churn cascade lands in the same net (that does not shrink with the priced count at
+    all, so a larger book buys nothing). The two legs are a partition of the same call stream, so
+    their variances must roughly SUM to the undecomposed one -- and that reconciliation, not the
+    two numbers on their own, is what says the split is real rather than two unrelated runs.
+
+    THE HELD-FIXED HALF IS HELD AT `_base_seed`, THE ARGUMENT THE CALLER PASSED -- not at a seed
+    written down here. The call site is `customer_events.roll_lifecycle_event`, which passes
+    `run_base_seed()`, so passing it straight back through is exactly "this household was not
+    re-drawn". Substituting a constant would silently re-draw the held half onto a third world.
 
     THE LEVEL ARM IS THE RUNNER'S OWN, at the value arm's realised median FOR THAT SEED. This is
     not a detail: the scratchpad version pinned the level at a remembered 44.5 GBP/MWh, which is a
@@ -2512,13 +2569,34 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         raise AssertionError(
             f"`{ELASTICITY_DRAW_MODULE}` has no attribute `{name}` to re-draw. Refusing to run.")
 
+    if redraw_mode not in REDRAW_MODES:
+        raise AssertionError(
+            "`redraw_mode` must be one of {}; got {!r}.".format(REDRAW_MODES, redraw_mode))
+    if redraw_mode != "all" and not redraw_accounts:
+        raise AssertionError(
+            "`redraw_mode={}` needs the roster it cuts along. Without one, `only` would re-draw "
+            "nobody and `except` would re-draw everybody, and BOTH would be published under a "
+            "label saying they had been decomposed.".format(redraw_mode))
+    scope = frozenset(redraw_accounts or ())
+
+    def _in_redraw_scope(customer_id: str) -> bool:
+        """Is THIS household on the side of the cut that gets a new elasticity?"""
+        if redraw_mode == "all":
+            return True
+        return (customer_id in scope) if redraw_mode == "only" else (customer_id not in scope)
+
     run = runner or (lambda: run_value_cycle_ab(report_end=report_end, level_arm=True))
     rows = []
     for seed in seeds:
-        calls = {"n": 0}
+        calls = {"n": 0, "redrawn": 0, "held": 0, "ids": set()}
 
         def patched(customer_id, _base_seed, curriculum=None, _s=int(seed), _r=real, _c=calls):
             _c["n"] += 1
+            if not _in_redraw_scope(customer_id):
+                _c["held"] += 1
+                return _r(customer_id, _base_seed, curriculum)
+            _c["redrawn"] += 1
+            _c["ids"].add(customer_id)
             return _r(customer_id, _s, curriculum)
 
         setattr(draw, name, patched)
@@ -2532,6 +2610,23 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 "NOTHING and its 'noise floor' would be an artefact reading zero. The churn "
                 "decision no longer reaches that symbol -- re-resolve it before trusting any "
                 "number here.".format(seed, ELASTICITY_DRAW_MODULE, name))
+        # THE SAME FAIL-SILENT GUARD, ONE CUT DOWN. A leg whose scope matches no call site is the
+        # identical defect at the level of the roster rather than the symbol: it runs the base
+        # world, returns a spread of zero for its half, and the reconciliation then hands the
+        # WHOLE variance to the other half -- which is a conclusion, not a measurement. The most
+        # likely cause is an id convention mismatch (the funnel names supply points, the draw is
+        # called with `household_of(...)`), and that must be loud.
+        if calls["redrawn"] == 0:
+            raise AssertionError(
+                "seed {}: the `{}` leg re-drew NO household -- its {} roster entries matched none "
+                "of the {} elasticity calls this run made, so its 'spread' would be zero by "
+                "construction. Check the id convention before trusting any decomposition: the "
+                "draw is called with `household_of(customer_id)`.".format(
+                    seed, redraw_mode, len(scope), calls["n"]))
+        if redraw_mode != "all" and calls["held"] == 0:
+            raise AssertionError(
+                "seed {}: the `{}` leg held NO household fixed, so it is the undecomposed floor "
+                "wearing a decomposed label.".format(seed, redraw_mode))
         lvs = result["level_vs_selection"]
         if not lvs.get("available"):
             raise AssertionError(
@@ -2540,6 +2635,12 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         rows.append({
             "seed": int(seed),
             "elasticity_draws": calls["n"],
+            # THE CUT, MEASURED PER SEED RATHER THAN ASSERTED ONCE. `redrawn + held == draws` is
+            # what makes the two legs a partition of one call stream; a reader can check it on
+            # every row, and `accounts_redrawn` says how much of the roster the run actually met.
+            "elasticity_redrawn": calls["redrawn"],
+            "elasticity_held_fixed": calls["held"],
+            "accounts_redrawn": len(calls["ids"]),
             # THE CLOCK EVERY FIGURE ON THIS ROW IS ON, carried per seed and reconciled below.
             # Added 2026-08-29: this artefact published four contrasts and no clock, so the page
             # that bounds its headline with them could only say "this floor declares no clock of
@@ -2590,6 +2691,27 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         #: 2026-08-29 there was nothing here to read -- so `site/data/value_arms.json` carried a
         #: standing caveat saying so. Never inferred from which block the rows came out of.
         "clock": clock,
+        #: WHICH HALF OF THE BOOK THIS FLOOR MOVED. Carried on every floor, `all` included, so a
+        #: consumer never has to infer the mode from the presence of a key -- an absent block would
+        #: read as "undecomposed" on an old artefact and as "priced-only" on a new one that failed
+        #: to write it, and those are opposite readings of the same silence.
+        "redraw_scope": {
+            "mode": redraw_mode,
+            "accounts": sorted(scope),
+            "accounts_in_roster": len(scope),
+            "means": {
+                "all": ("every household re-drawn -- the undecomposed floor, and the only mode "
+                        "whose spread bounds the published figure directly"),
+                "only": ("ONLY the households the value arm priced were re-drawn; every other "
+                         "household kept the run's own base-seed elasticity. This half SHRINKS as "
+                         "~1/sqrt(n) with the number of priced decisions, so it is the half a "
+                         "larger settled book buys down"),
+                "except": ("every household EXCEPT the ones the arm priced was re-drawn. This "
+                           "half is the rest of the book's churn cascade landing in the same net "
+                           "and it does NOT shrink with the priced count, so it is the floor a "
+                           "larger settled book cannot get under"),
+            }[redraw_mode],
+        },
         "symbol_patched": f"{ELASTICITY_DRAW_MODULE}.{name}",
         "symbol_resolution": (
             "read from `{}`'s own import statement, not written down here, so a rename "
@@ -2608,6 +2730,257 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     }
 
 
+# ---------------------------------------------------------------------------
+# WHAT WOULD ACTUALLY RESOLVE IT -- the floor cut in two, and the price of each remedy
+# ---------------------------------------------------------------------------
+#
+# `site/data/value_arms.json` publishes a REMEDY beside its refusal: *"What would resolve it is a
+# larger SETTLED BOOK -- more renewals actually priced by the arm -- and not more seeds."* The
+# second half is arithmetic and safe: re-drawing the dice estimates this spread again, it does not
+# shrink it. The FIRST half is a claim about where the spread comes from, and it was published
+# before anybody had looked. The undecomposed floor re-draws elasticity for ~2,050 households and
+# the arm priced 20 renewals, so the spread has two possible sources with OPPOSITE remedies, and
+# the evidence separating them was inside the artefact the same commit tracked.
+#
+# THE THRESHOLD IS NOT A JUDGEMENT CALL, WHICH IS WHY THIS IS ARITHMETIC AND NOT AN OPINION. Only
+# the priced side shrinks with the priced count; the rest of the book's churn cascade is there at
+# any book size. So the irreducible floor is the `except` leg's own spread, and a larger book can
+# only resolve the contrast if that leg ALONE is smaller than the contrast. Below that share, no
+# book this or any world could produce resolves it, and the remedy sentence is false.
+
+#: The rule the page itself applies -- a contrast is resolved when it EXCEEDS the spread of the
+#: same contrast (`generate_value_arms_data._resolvable`). Re-stated here rather than imported,
+#: because this module may not import the site feed (the dependency runs the other way), and
+#: `test_the_decomposition_uses_the_pages_own_resolution_rule` pins the two together.
+def _resolves(contrast: float, stdev: float) -> bool:
+    return abs(contrast) > stdev
+
+
+def _num(value):
+    """A finite float, or None. `None` is never coerced to zero -- a missing leg is not a leg
+    with no spread, and the two readings would license opposite remedies."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if math.isfinite(value) else None
+
+
+#: What a DRAWN household's id starts with (`population_draw` mints `SYN-{year}-{i:03d}`). Used
+#: only to tell a drawn account from the hand-authored static roster, which is the difference
+#: between "grow the book" being a lever and being a way of making the floor worse.
+DRAWN_ACCOUNT_PREFIX = "SYN-"
+
+#: The candidate priced-side shares the price table is printed at. A LADDER RATHER THAN A POINT,
+#: because at three seeds the measured share is imprecise enough that a reader needs to see how
+#: sharply the answer turns on it -- and because the table was printed at these inputs BEFORE the
+#: legs that measure the share had finished, which is the only order in which a prediction is one.
+_PRICE_TABLE_SHARES = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99)
+
+
+def remedy_price_table(total_variance: float, contrast: float, priced: int,
+                       priced_share_of_renewals: float | None,
+                       shares=_PRICE_TABLE_SHARES) -> list[dict]:
+    """What a larger settled book would COST, at each candidate split of the floor.
+
+    sd(n)^2 = (1-share)*V + share*V*(priced/n). The first term is the rest of the book's cascade
+    and is constant in n; the second is the priced households' own draw and falls as 1/n. Solving
+    sd(n) = |contrast| gives the priced decisions needed, and the row is UNREACHABLE where the
+    constant term alone already exceeds the contrast -- which is not an edge case but the answer
+    over most of this table's range.
+
+    `renewals_the_world_must_offer` scales by the funnel's OWN priced share and is the loosest
+    figure here: it assumes the funnel's composition holds as the book grows, and
+    `where_the_priced_decisions_come_from` is why that assumption needs reading before the column
+    is used. It is published anyway, because a remedy priced only in decisions is one a reader
+    cannot convert into a decision about this world.
+    """
+    rows = []
+    for share in shares:
+        irreducible = (1.0 - share) * total_variance
+        headroom = contrast * contrast - irreducible
+        row = {
+            "priced_share_of_variance": share,
+            "irreducible_sd_gbp": math.sqrt(irreducible),
+            "priced_decisions_needed": None,
+            "times_this_book": None,
+            "renewals_the_world_must_offer": None,
+        }
+        if headroom > 0:
+            needed = math.ceil(priced * share * total_variance / headroom)
+            row["priced_decisions_needed"] = needed
+            row["times_this_book"] = needed / priced if priced else None
+            if priced_share_of_renewals:
+                row["renewals_the_world_must_offer"] = math.ceil(needed / priced_share_of_renewals)
+        rows.append(row)
+    return rows
+
+
+def where_the_priced_decisions_come_from(three_arm: dict) -> dict:
+    """WHICH accounts the arm priced, and therefore what "a larger settled book" would have to mean.
+
+    THE COLUMN THIS EXISTS TO STOP BEING MISREAD. "More renewals actually priced by the arm" reads
+    as a book-SIZE lever, and the funnel says it may not be one. If every priced decision belongs
+    to the hand-authored static roster and none to a drawn household, then growing the drawn book
+    adds renewals to `product_not_upliftable` and households to the churn cascade -- it enlarges
+    the half of the floor that does not shrink while adding nothing to the half that does, which
+    makes the comparison WORSE and not better. Derived from the roster's own ids, never asserted.
+    """
+    funnel = ((three_arm.get("renewal_funnel") or {}).get("value_arm") or {})
+    priced_accounts = [a for a in (funnel.get("accounts_the_arm_priced") or [])
+                       if isinstance(a, str)]
+    drawn = [a for a in priced_accounts if a.startswith(DRAWN_ACCOUNT_PREFIX)]
+    return {
+        "accounts_the_arm_priced": priced_accounts,
+        "of_those_drawn": len(drawn),
+        "of_those_static_roster": len(priced_accounts) - len(drawn),
+        "reading": (
+            "Every priced decision on this run belongs to the hand-authored static roster; not one "
+            "belongs to a drawn household. So 'a larger settled book' cannot mean a larger DRAWN "
+            "book: the drawn households' renewals all stop at `product_not_upliftable` because "
+            "the world has no standard-variable product for them to be on, and adding more of "
+            "them enlarges the churn cascade -- the half of the floor no book size shrinks -- "
+            "while adding no priced decisions at all. The lever is a PRODUCT, not a size."
+            if priced_accounts and not drawn else
+            "{} of the {} accounts the arm priced are drawn households, so a larger drawn book "
+            "does reach this arm.".format(len(drawn), len(priced_accounts))),
+    }
+
+
+def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
+                    three_arm: dict) -> dict:
+    """Split the selection floor into the priced households' half and the rest of the book's.
+
+    THE RECONCILIATION IS THE CONTROL, not the two numbers. Two legs run separately could differ
+    for any reason -- a different roster, a different window, a runner that drifted between them.
+    What says they are a decomposition of ONE quantity is that their variances roughly SUM to the
+    undecomposed one, because they partition the same call stream. That ratio is published whether
+    it is flattering or not, and a reader who does not like it can stop reading here.
+
+    AND ITS PRECISION IS PUBLISHED WITH IT. Every leg here is three seeds, so each variance carries
+    two degrees of freedom and a 90% interval spanning roughly a sixth to nine times the truth.
+    That is wide enough that this decomposition can say which half DOMINATES only when the split is
+    lopsided, and `share_is_decisive` says whether it was. A borderline split is reported as
+    borderline; it is not rounded into a verdict.
+    """
+    def _variance(floor: dict):
+        vals = [_num(row.get("selection_gbp")) for row in (floor.get("seeds") or [])]
+        vals = [v for v in vals if v is not None]
+        return (statistics.variance(vals) if len(vals) > 1 else None), len(vals)
+
+    def _mode(floor: dict):
+        return ((floor or {}).get("redraw_scope") or {}).get("mode")
+
+    # THE TWO HALVES MUST NAME THEMSELVES. `only` and `except` are never inferred from a filename
+    # or from an absent key: a leg run in the wrong mode and read as the other one hands the whole
+    # variance to the wrong side, which is a conclusion rather than a measurement.
+    for expected, floor in (("only", priced_only), ("except", priced_except)):
+        if _mode(floor) != expected:
+            return {"available": False,
+                    "why_not": ("expected a floor with `redraw_scope.mode == {!r}` and got {!r}; "
+                                "refusing to decompose legs that do not name their own half"
+                                .format(expected, _mode(floor)))}
+    # THE UNDECOMPOSED LEG MAY PREDATE THE KEY, AND ONLY THAT LEG. Every floor run before
+    # 2026-08-29 re-drew the whole book because no other mode existed, so a missing `redraw_scope`
+    # on this slot is provably `all` rather than ambiguous -- and this slot is used for ONE thing,
+    # the reconciliation check, never for the split itself. A leg that names a different mode is
+    # still refused.
+    if _mode(undecomposed) not in (None, "all"):
+        return {"available": False,
+                "why_not": ("the undecomposed slot carries a floor in `{}` mode, which is one of "
+                            "the halves and not the whole".format(_mode(undecomposed)))}
+    seed_sets = [tuple(sorted(int(r["seed"]) for r in (f.get("seeds") or [])))
+                 for f in (undecomposed, priced_only, priced_except)]
+    if len(set(seed_sets)) != 1:
+        return {"available": False,
+                "why_not": ("the three legs ran on different seeds ({}), so their variances are "
+                            "not three readings of one quantity and their difference is not a "
+                            "decomposition".format(seed_sets))}
+
+    v_all, n_seeds = _variance(undecomposed)
+    v_only, _ = _variance(priced_only)
+    v_except, _ = _variance(priced_except)
+    if None in (v_all, v_only, v_except) or v_only + v_except <= 0:
+        return {"available": False,
+                "why_not": "a leg produced no selection spread, so there is nothing to split"}
+
+    split = (three_arm.get("level_vs_selection") or {})
+    contrast = _num(split.get("selection_gbp"))
+    funnel = ((three_arm.get("renewal_funnel") or {}).get("value_arm") or {})
+    priced = funnel.get("priced")
+    offered = funnel.get("renewals_the_world_offered")
+    if contrast is None or not isinstance(priced, int) or priced <= 0:
+        return {"available": False,
+                "why_not": ("the three-arm run carries no selection contrast or no priced count, "
+                            "so there is no figure to price a remedy against")}
+
+    # THE IRREDUCIBLE FLOOR IS MEASURED, NOT SCALED. It is the `except` leg's own spread and
+    # nothing else: the rest of the book's churn cascade landing in the same net, present at any
+    # priced count because none of it is priced. Rescaling it onto `v_all`'s total was the first
+    # draft here and it is worse -- it borrows a third leg's sampling error into the one figure the
+    # verdict turns on, to buy nothing. `v_all` is used for the reconciliation check and for that
+    # alone, which is what makes the check a check.
+    total = v_only + v_except
+    priced_share = v_only / total
+    reconciliation = total / v_all
+    irreducible_sd = math.sqrt(v_except)
+    resolvable_at_any_book = _resolves(contrast, irreducible_sd)
+
+    decisions_needed = None
+    if resolvable_at_any_book:
+        # sd(n)^2 = V_except + V_only * (priced / n)  ->  solve sd(n) = |contrast|.
+        # The priced half shrinks as 1/n because it is a mean over n independent draws; the other
+        # half is a constant in n. Both halves are held at the values THIS book measured, so this
+        # is a first-order price and not a forecast -- the contrast itself would move too.
+        decisions_needed = math.ceil(
+            priced * v_only / (contrast * contrast - v_except))
+
+    return {
+        "available": True,
+        "what_this_is": (
+            "The selection-figure noise floor cut into the half that a larger settled book buys "
+            "down and the half it cannot touch, from two extra floor legs that partition one "
+            "call stream, plus what each remedy would cost."),
+        "seeds": n_seeds,
+        "contrast_gbp": contrast,
+        "priced_decisions": priced,
+        "renewals_offered": offered,
+        "undecomposed_sd_gbp": math.sqrt(v_all),
+        "priced_side_sd_gbp": math.sqrt(v_only),
+        "rest_of_book_sd_gbp": math.sqrt(v_except),
+        "priced_share_of_variance": priced_share,
+        "reconciliation_ratio": reconciliation,
+        "reconciliation_reading": (
+            "The two legs' variances sum to {:.2f}x the undecomposed one. They partition the same "
+            "call stream, so the honest expectation is 1.0; at {} seeds each variance carries "
+            "{} degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that "
+            "sample size alone produces. A ratio outside that is evidence the legs are not two "
+            "halves of one thing.".format(reconciliation, n_seeds, n_seeds - 1)),
+        #: THE SHARE ABOVE WHICH THE PAGE'S REMEDY IS TRUE, derived from the page's own rule and
+        #: nothing else: the rest-of-book half alone must come in under the contrast.
+        "share_at_which_a_bigger_book_could_resolve_it": (
+            1.0 - (contrast * contrast) / total if total > 0 else None),
+        #: AT THREE SEEDS THIS CAN ONLY CALL A LOPSIDED SPLIT. A share whose own interval straddles
+        #: the threshold above is reported as undecided, and the consumer states no remedy at all.
+        "share_is_decisive": (
+            abs(priced_share - (1.0 - (contrast * contrast) / total)) > 0.15
+            if total > 0 else False),
+        "irreducible_sd_gbp": irreducible_sd,
+        "larger_settled_book_would_resolve_it": resolvable_at_any_book,
+        "priced_decisions_needed": decisions_needed,
+        #: THE SAME ARITHMETIC ACROSS EVERY CANDIDATE SPLIT, so a reader can see how sharply the
+        #: verdict turns on a share measured at three seeds -- and check the one row the legs
+        #: landed on against the nine they did not.
+        "remedy_price_table": remedy_price_table(
+            total, contrast, priced, funnel.get("priced_share_of_renewals_offered")),
+        "where_the_priced_decisions_come_from": where_the_priced_decisions_come_from(three_arm),
+        "how_to_read_this": (
+            "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. "
+            "False means the rest of the book's churn cascade alone is wider than the contrast, so "
+            "NO book resolves this comparison and the remedy is not a smaller version of the same "
+            "thing -- it is a different instrument. That is a finding about the instrument and it "
+            "belongs on the surface (R12), not in a footnote."),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--end-year", help="truncate the window, e.g. 2019 (faster iteration)")
@@ -2622,12 +2995,66 @@ def main(argv: list[str] | None = None) -> int:
               "three-arm A/B once per seed with ONLY the per-household elasticity assignment "
               "re-drawn, and reports the spread in `selection_gbp` and `level_share_of_advantage` "
               "-- the error bar on the level-vs-selection split. Costs 3 full passes PER SEED."))
+    ap.add_argument(
+        "--redraw-mode", choices=REDRAW_MODES, default="all",
+        help=("which half of the book the noise floor re-draws. `only` = just the households the "
+              "arm priced; `except` = everybody else; `all` (default) = the undecomposed floor. "
+              "The two halves partition one call stream, so their variances should sum to the "
+              "`all` variance -- run all three and check, or the split is two unrelated runs."))
+    ap.add_argument(
+        "--decompose", nargs=4, metavar=("ALL_FLOOR", "ONLY_FLOOR", "EXCEPT_FLOOR", "THREE_ARM"),
+        type=Path,
+        help=("DECOMPOSE mode: read three floors already run (`all`, `only`, `except`) and the "
+              "three-arm run they bound, and write the split of the selection floor into the half "
+              "a larger settled book buys down and the half it cannot. Runs nothing."))
+    ap.add_argument(
+        "--redraw-accounts-from", type=Path, default=ARMS_ARTEFACT.parent / "value_cycle_ab.json",
+        help=("the three-arm artefact whose `renewal_funnel.value_arm.accounts_the_arm_priced` "
+              "names the priced roster the cut is made along. Read, never hand-written."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
 
+    if args.decompose:
+        legs = [json.loads(p.read_text(encoding="utf-8")) for p in args.decompose]
+        split = decompose_floor(*legs)
+        out = args.out if args.out != OUTPUT_PATH else DECOMPOSITION_OUTPUT_PATH
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(split, indent=2), encoding="utf-8")
+        if not split["available"]:
+            print("floor decomposition UNAVAILABLE: {}".format(split["why_not"]))
+            print("  wrote {}".format(out))
+            return 1
+        print("value cycle A/B -- SELECTION FLOOR DECOMPOSITION over {} seeds".format(
+            split["seeds"]))
+        print("  contrast                    {:+,.2f} GBP over {} priced decisions".format(
+            split["contrast_gbp"], split["priced_decisions"]))
+        print("  undecomposed floor (sd)     {:,.2f} GBP".format(split["undecomposed_sd_gbp"]))
+        print("  priced households' half     {:,.2f} GBP".format(split["priced_side_sd_gbp"]))
+        print("  rest of the book's half     {:,.2f} GBP".format(split["rest_of_book_sd_gbp"]))
+        print("  RECONCILIATION              {:.2f}x (the two halves against the whole; 1.0 is "
+              "the honest expectation)".format(split["reconciliation_ratio"]))
+        print("  priced share of variance    {:.1%}  (decisive at this n? {})".format(
+            split["priced_share_of_variance"], "yes" if split["share_is_decisive"] else "NO"))
+        print("  a bigger book resolves it above a priced share of {:.1%}".format(
+            split["share_at_which_a_bigger_book_could_resolve_it"]))
+        print("  irreducible floor           {:,.2f} GBP -- what no book gets under".format(
+            split["irreducible_sd_gbp"]))
+        print("  WOULD A LARGER SETTLED BOOK RESOLVE IT?  {}".format(
+            "yes -- at {:,} priced decisions ({:.1f}x this book's {})".format(
+                split["priced_decisions_needed"],
+                split["priced_decisions_needed"] / split["priced_decisions"],
+                split["priced_decisions"])
+            if split["larger_settled_book_would_resolve_it"] else
+            "NO -- the rest of the book's cascade alone is wider than the contrast"))
+        print("  wrote {}".format(out))
+        return 0
+
     if args.noise_floor_seeds:
         seeds = [int(s) for s in args.noise_floor_seeds.split(",") if s.strip()]
-        floor = noise_floor(seeds, report_end=report_end)
+        accounts = (None if args.redraw_mode == "all"
+                    else priced_accounts_from(args.redraw_accounts_from))
+        floor = noise_floor(seeds, report_end=report_end,
+                            redraw_accounts=accounts, redraw_mode=args.redraw_mode)
         out = args.out if args.out != OUTPUT_PATH else NOISE_FLOOR_OUTPUT_PATH
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(floor, indent=2), encoding="utf-8")
@@ -2636,12 +3063,16 @@ def main(argv: list[str] | None = None) -> int:
         print("value cycle A/B -- NOISE FLOOR over {} seed(s), {} window".format(
             sel["n"], report_end or "full"))
         print("  patched         {}".format(floor["symbol_patched"]))
+        print("  redraw mode     {}  ({} account(s) in the roster)".format(
+            floor["redraw_scope"]["mode"], floor["redraw_scope"]["accounts_in_roster"]))
         for row in floor["seeds"]:
-            print("    seed {:<8} selection {:+,.2f} GBP   level share {}   ({} draws)".format(
-                row["seed"], row["selection_gbp"],
-                "{:.1%}".format(row["level_share_of_advantage"])
-                if row["level_share_of_advantage"] is not None else "undefined",
-                row["elasticity_draws"]))
+            print("    seed {:<8} selection {:+,.2f} GBP   level share {}   "
+                  "({} draws: {} re-drawn / {} held)".format(
+                      row["seed"], row["selection_gbp"],
+                      "{:.1%}".format(row["level_share_of_advantage"])
+                      if row["level_share_of_advantage"] is not None else "undefined",
+                      row["elasticity_draws"], row["elasticity_redrawn"],
+                      row["elasticity_held_fixed"]))
         print("  selection_gbp   mean {:+,.2f}  sd {}  range {:,.2f} ({:+,.2f} .. {:+,.2f})".format(
             sel["mean"], "{:,.2f}".format(sel["stdev"]) if sel["stdev"] is not None else "n/a",
             sel["range"], sel["min"], sel["max"]))

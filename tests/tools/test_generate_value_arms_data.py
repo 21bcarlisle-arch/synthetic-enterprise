@@ -663,8 +663,14 @@ def test_a_contrast_inside_its_seed_spread_carries_no_direction():
     assert "£600" in headline and "£1,800" in headline, (
         "the refusal withheld the SIZES too -- 'we cannot tell' with no figure is less than the "
         "page had before")
-    assert "larger SETTLED BOOK" in headline, (
-        "the page says it cannot resolve the sign and does not say what would")
+    # A REFUSAL MUST SAY SOMETHING ABOUT THE REMEDY -- but WHICH remedy is evidence, not wording.
+    # This pinned the words "larger SETTLED BOOK" until 2026-08-29, which made a page that had
+    # measured the remedy to be FALSE unable to say so without going red: a control keyed to
+    # today's answer, red exactly when the page became more honest. `_headline_with` reads no
+    # decomposition, so what it must carry is the unmeasured branch.
+    assert "has not been established" in headline and "More seeds would not" in headline, (
+        "the page says it cannot resolve the sign and says nothing at all about what would -- "
+        "'we cannot tell' with no remedy reads as a dead end: {}".format(headline))
 
 
 def test_a_contrast_outside_its_seed_spread_gets_its_direction_back():
@@ -744,11 +750,130 @@ def test_the_superseded_clock_never_borrows_the_realised_floor():
 def test_the_withdrawn_sentence_is_kept_beside_the_reading_that_replaced_it(real):
     """A correction a reader cannot see is one they cannot check. The page's claim on anyone's
     trust is that it publishes the unflattering direction, and that is worth nothing if it can
-    also un-publish one silently."""
+    also un-publish one silently.
+
+    OVER THE WHOLE RECORD, NOT THE NEWEST ENTRY (2026-08-29). This read a single dict until the
+    page withdrew a SECOND sentence, and a single dict is the shape in which the second correction
+    silently overwrites the first -- leaving a page that claims to keep its record while keeping
+    one entry of it. Asserting the property over every entry is what makes a third withdrawal
+    unable to erase these two.
+    """
     withdrawn = real["withdrawn_claim"]
-    assert "worth less than nothing" in withdrawn["the_words"], (
-        "the withdrawn claim is recorded without the words that were published")
-    assert withdrawn["the_words"] not in real["headline"], (
-        "the sentence recorded as withdrawn is still the sentence being published")
+    every = [withdrawn] + list(withdrawn.get("also_withdrawn") or [])
+    assert len(every) == withdrawn["withdrawals"] >= 2, (
+        "the block does not carry every withdrawal it counts")
+    assert any("worth less than nothing" in claim["the_words"] for claim in every), (
+        "the withdrawn direction is recorded without the words that were published")
+    assert any("larger SETTLED BOOK" in claim["the_words"] for claim in every), (
+        "the withdrawn REMEDY is not on the record -- the page dropped a sentence rather than "
+        "withdrawing it, which is the un-publishing this test exists to stop")
+    for claim in every:
+        assert claim["the_words"] not in real["headline"], (
+            "a sentence recorded as withdrawn is still the sentence being published: {}"
+            .format(claim["the_words"]))
+        assert "WITHDRAWN" in claim["note"] and claim["note"] in withdrawn["note"], (
+            "an earlier withdrawal is in the feed but not in the note the page renders, so a "
+            "reader sees a page that corrected itself once: {}".format(claim["withdrawn_on"]))
     assert "withdrawn, not reversed" in withdrawn["note"], (
         "the note lets a reader take the withdrawal for the opposite claim")
+
+
+# ── the remedy sentence: keyed to the decomposition, never to today's wording ────────────────
+
+def _decomposition(priced_share: float, resolvable: bool, decisive: bool = True) -> dict:
+    """A floor decomposition saying which half of the spread the priced households own.
+
+    The fields are the ones `run_value_cycle_ab.decompose_floor` publishes, and the two the remedy
+    turns on are set INDEPENDENTLY here on purpose: a composer that derived one from the other
+    would pass a fixture that varied them together and fail on the real artefact.
+    """
+    return {
+        "available": True, "seeds": 3,
+        "priced_share_of_variance": priced_share,
+        "share_at_which_a_bigger_book_could_resolve_it": 0.504,
+        "share_is_decisive": decisive,
+        "larger_settled_book_would_resolve_it": resolvable,
+        "priced_decisions_needed": 54 if resolvable else None,
+        "priced_decisions": 20,
+        "irreducible_sd_gbp": 1153.0 if resolvable else 2306.0,
+        "contrast_gbp": 1815.79,
+        "undecomposed_sd_gbp": 2577.80,
+    }
+
+
+def _withheld_headline(decomposition):
+    """A headline whose contrast is INSIDE its own floor -- the only state that names a remedy."""
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"], selection_gbp=1815.79)
+    return gva.build(art, _floor_with_spread(2577.80), _load(RUN_OUTPUT), decomposition)["headline"]
+
+
+def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
+    """THE DEFECT: the page named a remedy -- "a larger SETTLED BOOK" -- beside its refusal to
+    state a direction, one day after withdrawing a different sentence for asserting more than its
+    evidence carried. The remedy was the same defect one clause over: the floor it qualifies
+    re-draws price sensitivity for ~2,050 households while the arm priced 20 renewals, so the
+    spread has two sources with OPPOSITE remedies and nobody had separated them.
+
+    KEYED TO THE PROPERTY. This does not pin the sentence -- a control pinned to today's wording
+    goes red when the page becomes more honest, which is this project's most repeated failure. It
+    pins that the book-size clause appears when, and only when, a MEASURED split says the priced
+    households' half is the one that dominates.
+
+    R15 -- the mutations, each run and reverted:
+      * restore `WHAT_WOULD_RESOLVE_IT` as an unconditional constant -> the `cannot` and the
+        `unmeasured` legs red (this is the defect as it shipped).
+      * treat a missing decomposition as the resolvable branch -> the `unmeasured` leg reds.
+      * key the clause on `priced_share_of_variance` alone, ignoring `share_is_decisive` -> the
+        `undecided` leg reds.
+    The null rung is `dominates`, which must keep the clause: a control that only ever demands
+    the clause be ABSENT is satisfied by deleting it.
+    """
+    dominates = _withheld_headline(_decomposition(0.85, resolvable=True))
+    assert "larger SETTLED BOOK" in dominates, (
+        "the null rung: with the priced households' own draw measured as the dominant half, the "
+        "book-size remedy is TRUE and withholding it would leave the refusal a dead end: {}"
+        .format(dominates))
+    assert "54 priced renewals" in dominates, (
+        "the remedy was named without its price, which is the half a reader needs to act on it")
+
+    cannot = _withheld_headline(_decomposition(0.20, resolvable=False))
+    assert "larger SETTLED BOOK" not in cannot, (
+        "the page named a book-size remedy against a split saying the rest of the book's cascade "
+        "alone is wider than the contrast: {}".format(cannot))
+    assert "cannot be resolved at any book" in cannot, (
+        "a finding about the INSTRUMENT was measured and left off the surface (R12)")
+
+    unmeasured = _withheld_headline(None)
+    assert "larger SETTLED BOOK" not in unmeasured, (
+        "with no decomposition read at all the page asserted the remedy anyway -- the exact "
+        "sentence withdrawn on 2026-08-29: {}".format(unmeasured))
+    assert "has not been established" in unmeasured, (
+        "an unmeasured remedy must be published as unmeasured, not silently dropped: a reader "
+        "who sees neither cannot tell the question was asked")
+
+    undecided = _withheld_headline(_decomposition(0.85, resolvable=True, decisive=False))
+    assert "larger SETTLED BOOK" not in undecided, (
+        "a split too close to its own threshold to call was rounded into a remedy: {}"
+        .format(undecided))
+
+    # AND THE ARITHMETIC HALF IS UNCONDITIONAL, because it needs no evidence: more seeds estimate
+    # this spread again whatever the split is. A repair that made the whole remedy conditional
+    # would drop the one clause that was always true.
+    for name, headline in (("dominates", dominates), ("cannot", cannot),
+                           ("unmeasured", unmeasured), ("undecided", undecided)):
+        assert "More seeds would not resolve it" in headline, (
+            "the {} branch dropped the half of the remedy that is arithmetic".format(name))
+
+
+def test_a_resolved_contrast_names_no_remedy_at_all():
+    """The remedy is printed only beside something WITHHELD. Against a contrast that cleared its
+    floor it would read as an apology for a figure that earned its sign -- and it would make the
+    control above satisfiable by a composer that prints the clause unconditionally."""
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"],
+                                     value_advantage_gbp=50_000.0, selection_gbp=50_000.0)
+    headline = gva.build(art, _floor_with_spread(100.0), _load(RUN_OUTPUT),
+                         _decomposition(0.85, resolvable=True))["headline"]
+    assert "larger SETTLED BOOK" not in headline, headline
+    assert "More seeds would not resolve it" not in headline, headline
