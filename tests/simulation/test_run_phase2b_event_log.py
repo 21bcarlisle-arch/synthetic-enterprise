@@ -6,25 +6,26 @@ Calls main() once via a session fixture to avoid 5 separate sim runs.
 
 import pytest
 
-from company.interfaces.sim_interface import StubSimInterface
 from simulation.run_phase2b import main as run_phase2b
 
 
 @pytest.fixture(scope="module")
 def sim_result_2017():
-    stub = StubSimInterface()
-    result = run_phase2b(report_end="2017-12-31", sim_interface=stub)
-    return result, stub
+    # No stub interface: run_phase2b's `sim_interface` parameter was deleted 2026-08-29.
+    # It was never passed on any production path, so the four tests that injected a stub
+    # were the only thing keeping five `notify_*` call sites alive -- a seam only tests
+    # satisfied. This fixture now runs the same shape every published figure runs.
+    return run_phase2b(report_end="2017-12-31")
 
 
 def test_company_event_log_key_present(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     assert "company_event_log" in result
     assert isinstance(result["company_event_log"], list)
 
 
 def test_company_event_log_entries_have_required_fields(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["company_event_log"]:
         assert "event_type" in entry
         assert "customer_id" in entry
@@ -32,44 +33,48 @@ def test_company_event_log_entries_have_required_fields(sim_result_2017):
         assert entry["event_type"] in ("churn", "acquisition")
 
 
-def test_sim_interface_churn_notifications_match_churned_accounts(sim_result_2017):
-    result, stub = sim_result_2017
-    churned = result.get("churned_billing_accounts", [])
-    if churned:
-        assert len(stub.churn_notifications) > 0
-        notified_ids = {n["account_id"] for n in stub.churn_notifications}
-        for cba in churned:
-            assert cba in notified_ids
+def test_every_churned_account_appears_in_the_event_log(sim_result_2017):
+    """Set equality BOTH WAYS between the run's two projections of one departure.
 
+    This replaces `test_sim_interface_churn_notifications_match_churned_accounts`,
+    which asserted the same property across a seam that no production run plumbed.
+    Both sides here share a writer (`run_phase2b` books `churned_billing_accounts` and
+    the `"churned"` event eight lines apart), so this is an INTERNAL CONSISTENCY check
+    between two SIM projections and is NOT a company-vs-world reconciliation -- the
+    annual report published one of those for two months and it could not fail
+    (see `tests/saas/reporting/test_crm_section_cannot_mirror_itself.py`).
 
-def test_stub_churn_notifications_have_extended_fields(sim_result_2017):
-    _, stub = sim_result_2017
-    for notif in stub.churn_notifications:
-        assert "reason" in notif
-        assert "sim_churn_probability" in notif
-        assert "company_churn_estimate" in notif
-
-
-def test_sim_interface_none_still_works():
-    """run_phase2b works fine when sim_interface is None (default)."""
-    result = run_phase2b(report_end="2017-12-31", sim_interface=None)
-    assert "company_event_log" in result
+    Symmetric on purpose: the old one-sided `for cba in churned: assert cba in notified`
+    could not see an event log carrying a departure the run never booked.
+    """
+    result = sim_result_2017
+    churned = set(result.get("churned_billing_accounts", []))
+    logged = {
+        e["customer_id"] for e in result["company_event_log"]
+        if e["event_type"] == "churn"
+    }
+    # Fail-open guard: an empty window would make the equality vacuous.
+    assert churned, "truncated window produced no churn -- this test would pass vacuously"
+    assert churned == logged, (
+        f"only in churned_billing_accounts: {sorted(churned - logged)}; "
+        f"only in company_event_log: {sorted(logged - churned)}"
+    )
 
 
 def test_retention_log_key_present(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     assert "retention_log" in result
     assert isinstance(result["retention_log"], list)
 
 
 def test_retention_cost_events_key_present(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     assert "retention_cost_events" in result
     assert isinstance(result["retention_cost_events"], list)
 
 
 def test_retention_log_entries_have_required_fields(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["retention_log"]:
         assert "customer_id" in entry
         assert "event_date" in entry
@@ -80,38 +85,33 @@ def test_retention_log_entries_have_required_fields(sim_result_2017):
 
 
 def test_retention_cost_events_are_negative_amounts(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for ev in result["retention_cost_events"]:
         assert ev["amount_gbp"] < 0
 
 
 def test_retention_log_entries_above_threshold(sim_result_2017):
     from simulation.run_phase2b import RETENTION_THRESHOLD
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["retention_log"]:
         assert entry["company_churn_estimate"] > RETENTION_THRESHOLD
 
 
-def test_stub_retention_notifications_count_matches_log(sim_result_2017):
-    result, stub = sim_result_2017
-    assert len(stub.retention_notifications) == len(result["retention_log"])
-
-
 def test_retention_log_entries_have_expected_margin(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["retention_log"]:
         assert "expected_term_margin_gbp" in entry
         assert isinstance(entry["expected_term_margin_gbp"], float)
 
 
 def test_no_offer_churn_log_key_present(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     assert "no_offer_churn_log" in result
     assert isinstance(result["no_offer_churn_log"], list)
 
 
 def test_no_offer_churn_log_entries_have_required_fields(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["no_offer_churn_log"]:
         assert "customer_id" in entry
         assert "event_date" in entry
@@ -119,7 +119,7 @@ def test_no_offer_churn_log_entries_have_required_fields(sim_result_2017):
 
 
 def test_no_offer_churn_log_customers_are_churned(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     churned = set(result.get("churned_billing_accounts", []))
     for entry in result["no_offer_churn_log"]:
         cid = entry["customer_id"]
@@ -129,7 +129,7 @@ def test_no_offer_churn_log_customers_are_churned(sim_result_2017):
 # ── Phase 12d: margin-aware retention guard ───────────────────────────────────
 
 def test_no_offer_churn_log_entries_have_reason(sim_result_2017):
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["no_offer_churn_log"]:
         assert "no_offer_reason" in entry, f"no_offer_reason missing from {entry}"
         assert entry["no_offer_reason"] in ("below_threshold", "uneconomical")
@@ -137,7 +137,7 @@ def test_no_offer_churn_log_entries_have_reason(sim_result_2017):
 
 def test_retention_log_offers_are_economically_rational(sim_result_2017):
     """Every offer in the retention_log must have expected_margin > retention_cost."""
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["retention_log"]:
         exp_m = entry.get("expected_term_margin_gbp", 0.0)
         cost = entry.get("retention_cost_gbp", 0.0)
@@ -150,7 +150,7 @@ def test_retention_log_offers_are_economically_rational(sim_result_2017):
 def test_uneconomical_no_offer_entries_had_high_churn_estimate(sim_result_2017):
     """Entries blocked as uneconomical must have had churn estimate above the threshold."""
     from simulation.run_phase2b import RETENTION_THRESHOLD
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["no_offer_churn_log"]:
         if entry.get("no_offer_reason") == "uneconomical":
             est = entry.get("company_churn_estimate")
@@ -184,7 +184,7 @@ def test_retention_log_discount_pct_is_in_valid_tier(sim_result_2017):
     """discount_pct in each retention log entry must correspond to a valid tier value."""
     from simulation.run_phase2b import RETENTION_TIERS
     valid_discounts = {d for _, d in RETENTION_TIERS}
-    result, _ = sim_result_2017
+    result = sim_result_2017
     for entry in result["retention_log"]:
         assert entry["discount_pct"] in valid_discounts, (
             f"{entry['customer_id']}: unexpected discount_pct {entry['discount_pct']}"

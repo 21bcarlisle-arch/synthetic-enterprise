@@ -3524,23 +3524,50 @@ def _acquisition_amortisation_lines(data: dict) -> list:
 
 
 def _section_company_crm(data: dict) -> str:
-    """Company CRM vs SIM Ground Truth — Phase 12a.
+    """Customer lifecycle events as the SIM recorded them — Phase 12a.
 
-    Shows dated churn and acquisition events as the company CRM knows them,
-    and reconciles company CRM active accounts against SIM churned accounts
-    at each year-end.
+    NOT the company's CRM, and no longer titled as one. ``data["company_event_log"]``
+    is written by ``simulation/run_phase2b.py::_build_company_event_log`` — a SIM-side
+    projection of the world's own ``customer_events_log``. The company's ledger
+    (``company.crm.event_log.CompanyEventLog``) has no production writer, so there is
+    nothing of the company's to publish here and the section says so on its face.
+
+    WHAT WAS DELETED AND WHY IT IS NOT COMING BACK IN THIS SHAPE. Under this table sat
+    a "SIM ground truth vs company CRM reconciliation" with a Match column. Both of its
+    sides were projections of one write: the "CRM" side replayed ``cel`` into a fresh
+    ``CompanyEventLog``, and the "SIM" side was ``crm_churned ∩ churned_billing_accounts``.
+    A one-sided containment check can only read "mismatch" when the CRM has INVENTED a
+    churn — the one direction a replay of the world's own list cannot produce. The
+    failure it existed to catch, an account the world churned that the company's record
+    missed, dropped out of both sides and read "yes". An entirely empty company CRM —
+    exactly what the (now deleted) ``if sim_interface is not None`` guards produced on
+    every production path — reconciled as "yes" against a world that churned every
+    account. Deleted rather than repaired: two sides cannot be made independent while
+    one writer fills both, and a published control that cannot fail is worse than none.
+    A reconciliation may return here only when its company side has its own writer;
+    ``tests/saas/reporting/test_crm_section_cannot_mirror_itself.py`` holds that property.
     """
     cel = data.get("company_event_log", [])
-    churned_ba = set(data.get("churned_billing_accounts", []))
     years = sorted(data.get("years", {}).keys())
 
     if not cel:
-        return "## Company CRM — Event Log\n\nNo events recorded in current run.\n"
+        return (
+            "## Customer Lifecycle Events — SIM Record\n\n"
+            "No events recorded in current run.\n"
+        )
 
     lines = [
-        "## Company CRM — Event Log",
+        "## Customer Lifecycle Events — SIM Record",
         "",
-        "Dated artefacts of customer lifecycle events as seen by the company layer.",
+        "Dated churn and acquisition events **as the SIM recorded them**. Source: "
+        "`simulation/run_phase2b.py::_build_company_event_log`, a projection of the "
+        "world's own event stream — not the company's CRM.",
+        "",
+        "**Not reconciled against the company's record, because there is no company "
+        "record to reconcile against.** `company.crm.event_log.CompanyEventLog` has no "
+        "writer on any production path, so the company's view of its own book is "
+        "unpublishable here. We cannot tell whether the company saw what happened.",
+        "",
         f"Total events: **{len(cel)}** "
         f"({sum(1 for e in cel if e['event_type'] == 'churn')} churn, "
         f"{sum(1 for e in cel if e['event_type'] == 'acquisition')} acquisition)",
@@ -3566,50 +3593,21 @@ def _section_company_crm(data: dict) -> str:
     if years:
         lines += [
             "",
-            "**SIM ground truth vs company CRM reconciliation (year-end snapshots):**",
+            "**Year-end position in this event stream (one source, no cross-check):**",
             "",
-            "| Year-end | SIM churned (cumulative) | CRM active | Match |",
-            "|----------|--------------------------|------------|-------|",
+            "Counts below are cumulative over the events above. They are not a book "
+            "position: accounts that were already on supply when the run opened never "
+            "generated an acquisition event, so they are absent from both columns.",
+            "",
+            "| Year-end | Churn events (cumulative) | Acquisition events (cumulative) |",
+            "|----------|---------------------------|---------------------------------|",
         ]
-        from company.crm.event_log import AcquisitionEvent, ChurnEvent, CompanyEventLog
-        log = CompanyEventLog()
-        for ev in sorted(cel, key=lambda e: e["event_date"]):
-            if ev["event_type"] == "churn":
-                log.record_churn(ChurnEvent(
-                    customer_id=ev["customer_id"],
-                    event_date=ev["event_date"],
-                    reason=ev.get("reason", "non-renewal"),
-                    sim_churn_probability=ev.get("sim_churn_probability"),
-                    company_churn_estimate=ev.get("company_churn_estimate"),
-                ))
-            else:
-                log.record_acquisition(AcquisitionEvent(
-                    customer_id=ev["customer_id"],
-                    event_date=ev["event_date"],
-                    channel=ev.get("channel", "market-acquisition"),
-                    predecessor_id=ev.get("predecessor_id"),
-                ))
-
         for year in years:
             year_end = f"{year}-12-31"
-            crm_active = log.active_accounts(year_end)
-            crm_churned = {
-                e["customer_id"] for e in cel
-                if e["event_type"] == "churn" and e["event_date"] <= year_end
-            }
-            sim_churned_by_year = {
-                ba for ba in churned_ba
-                if any(
-                    e["event_type"] == "churn" and e["customer_id"] == ba
-                    and e["event_date"] <= year_end
-                    for e in cel
-                )
-            }
-            match = "yes" if crm_churned == sim_churned_by_year else "mismatch"
-            lines.append(
-                f"| {year_end} | {len(crm_churned)} accounts | "
-                f"{len(crm_active)} active | {match} |"
-            )
+            to_date = [e for e in cel if e["event_date"] <= year_end]
+            n_churn = sum(1 for e in to_date if e["event_type"] == "churn")
+            n_acq = sum(1 for e in to_date if e["event_type"] == "acquisition")
+            lines.append(f"| {year_end} | {n_churn} | {n_acq} |")
 
     lines.append("")
     return "\n".join(lines)

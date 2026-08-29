@@ -15,11 +15,26 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **84** |
-| ...of which reach into private `_section_*` functions | **78** |
-| `saas/reporting/annual_report.py` | **10028 lines** |
+| Test files importing the report | **85** |
+| ...of which reach into private `_section_*` functions | **81** |
+| `saas/reporting/annual_report.py` | **10321 lines** |
 
-Re-measured 2026-08-28 (was 82 / 78 at the 2026-08-24 measure, itself 81 / 78 / 9,948 before).
+Re-measured 2026-08-29. The importer count moved 84 → 85 for one file, and it is the shape this
+record exists to name: `tests/saas/reporting/test_crm_section_cannot_mirror_itself.py` asserts
+that `_section_company_crm` publishes no agreement verdict between two projections of one write,
+which it can only do by rendering the section — so a control about a published claim has to
+import the renderer to reach its subject. Every entry in this table is that same trade made
+again.
+
+**The other two rows were already stale at `29723c931`, before this commit.** The private-reacher
+count read 78 against a true 81 and the line count read 10,028 against a true 10,323 — three
+lanes' growth that no landing re-measured, because only the importer count is pinned by a test
+(`test_the_debt_record_states_its_own_size`). An unpinned figure in a debt record decays exactly
+as fast as nobody checks it. Corrected by hand rather than by `--write`, which renders the table
+and DROPS every paragraph below it, including the counting rule two paragraphs down: the
+regeneration path silently deletes the reasoning it was written to preserve.
+
+Prior measures: 84 / 78 / 10,028 on 2026-08-28; 82 / 78 at 2026-08-24; 81 / 78 / 9,948 before.
 The debt grew again and the newest entry is the same shape: R5's
 `tests/company/analytics/test_acquisition_cost_amortisation.py` asserts that the amortised view
 REACHES the report, because an analytics module nobody calls is the exact defect that roadmap

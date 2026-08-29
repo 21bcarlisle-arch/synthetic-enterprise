@@ -883,27 +883,44 @@ def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict
     ]
 
 
-def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None,
+def main(report_end: str | None = None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
     """Run one simulation under its own fresh competitive-pressure ledger.
+
+    NO `sim_interface` PARAMETER, DELIBERATELY (2026-08-29). This function used to accept
+    one and route five `notify_*` calls through `if sim_interface is not None`. No
+    production entry point ever passed an interface — `run_phase4c_on_phase2b`,
+    `run_phase4b_on_phase2b`, `run_phase3a` and `run_scenario` all left it None — so the
+    company's `CompanyEventLog` was constructed and never written on any path behind a
+    published figure, and the only callers that filled it were four tests with a stub.
+    That is the same shape that made the competitive-pressure ledger's first live
+    measurement worthless (see the comment at the churn booking below), and an
+    accepted-but-ignored parameter is worse than none: a caller can pass one and silently
+    get nothing back. The `SimInterface.notify_*` methods stay — they are the COMPANY's
+    API for recording what the company itself observed, which is what a real supplier's
+    CRM is. What was wrong was the WORLD calling them: an event stream the sim hands over
+    is not the company's record of what it saw, and reconciling the two was a mirror
+    (`saas/reporting/annual_report.py::_section_company_crm`). When the company gets its
+    own writer, it books from the company side.
+
+    The ledger is COMPANY STATE and stays on the company side of the wall: this function opens
+    the scope, and nothing in `simulation/` reads it. What accumulates into it is booked by
+    `company/crm/churn_desk` (what the company believed) and by the unconditional
+    `observe_competitive_loss` call at every departure below, and only
+    `company/crm/competitive_pressure` reads it back.
 
     ONE LEDGER PER RUN, OPENED HERE rather than by each caller, because the callers that most
     need it are the two arms of an A/B: a ledger shared between them would let the control arm's
     realised losses inform the treatment arm's beliefs, and on a comparison whose entire subject
     is the difference between the arms that is not a leak, it is a fabricated result. Opening it
     at the single entry point every run passes through means no caller can forget.
-
-    The ledger is COMPANY STATE and stays on the company side of the wall: this function opens
-    the scope, and nothing in `simulation/` reads it. What accumulates into it is booked by
-    `company/crm/churn_desk` (what the company believed) and `company/interfaces/sim_interface`
-    (that an account left), and only `company/crm/competitive_pressure` reads it back.
     """
     with pressure_ledger_scope():
-        return _main(report_end=report_end, sim_interface=sim_interface, policy=policy,
+        return _main(report_end=report_end, policy=policy,
                      gap_ledger_path=gap_ledger_path)
 
 
-def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None,
+def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
           gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
@@ -1774,11 +1791,6 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                         ) if RETENTION_EFFECTIVENESS else None,
                         "outcome": outcome_str,
                     })
-                    if sim_interface is not None:
-                        sim_interface.notify_retention_attempt(
-                            billing_account, term_start_str, company_est_pre,
-                            discount_pct, outcome=outcome_str
-                        )
                 if event["event_type"] == "churned":
                     if retention_modifier_val is None:
                         # No offer was made — record as missed retention opportunity
@@ -1799,12 +1811,14 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                         })
                     churned_billing_accounts.add(billing_account)
                     # THE COMPANY'S COMPETITIVE OBSERVABLE, BOOKED WHERE EVERY DEPARTURE PASSES
-                    # -- unconditionally, and NOT behind the `sim_interface is not None` guard
-                    # eight lines below. That guard is why the first live measurement of this
-                    # channel was worthless: `run_phase4c_on_phase2b` calls this function with
-                    # no interface, so the numerator never filled while the denominator did, and
-                    # the belief collapsed on evidence that did not exist. A supplier knows who
-                    # left it whether or not a notification seam happens to be plumbed in.
+                    # -- unconditionally. A `notify_churn` call sat eight lines below behind
+                    # `if sim_interface is not None`, and that guard is why the first live
+                    # measurement of this channel was worthless: `run_phase4c_on_phase2b` calls
+                    # this function with no interface, so the numerator never filled while the
+                    # denominator did, and the belief collapsed on evidence that did not exist.
+                    # A supplier knows who left it whether or not a notification seam happens to
+                    # be plumbed in. The guard and its four siblings are now deleted outright
+                    # (see `main`'s docstring); this booking is what replaced them.
                     #
                     # ARMED ADJACENT TO THE BOOKING and never anywhere else: if this call is
                     # deleted the arming goes with it, and an unarmed ledger declines to update
@@ -1818,14 +1832,6 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                         f"p_retain={event['effective_retention_probability']:.4f}  "
                         f"roll={event['random_roll']:.4f}"
                     )
-                    if sim_interface is not None:
-                        sim_interface.notify_churn(
-                            billing_account,
-                            term_start_str,
-                            reason="non-renewal",
-                            sim_churn_probability=event.get("realized_churn_probability", event.get("churn_probability")),
-                            company_churn_estimate=event.get("company_churn_estimate"),
-                        )
                     # The win roll and the DELIVERY of that win are two facts. Ask
                     # the disposition helper, never `if won: ... elif replace:` —
                     # that chain swallowed an undeliverable win and suppressed the
@@ -1850,13 +1856,6 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                     if _home_move == HOME_MOVE_ACTIVATE_SUCCESSOR:
                         won_successor_activations[successor_id] = term_start_str
                         print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
-                        if sim_interface is not None:
-                            sim_interface.notify_acquisition(
-                                successor_id,
-                                term_start_str,
-                                channel="home-move-win",
-                                predecessor_id=billing_account,
-                            )
                     elif mandate_permits_replacement():
                         customer_data = get_customer(billing_account)
                         segment = customer_data["segment"] if customer_data else "resi"
@@ -1950,13 +1949,6 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                                 "event_date": term_start_str,
                                 "predecessor_id": billing_account,
                             })
-                            if sim_interface is not None:
-                                sim_interface.notify_acquisition(
-                                    new_cid,
-                                    term_start_str,
-                                    channel="market-acquisition",
-                                    predecessor_id=billing_account,
-                                )
                             print(
                                 f"  [ACQUIRE] Fresh acquisition won: {new_cid} at {term_start_str} "
                                 f"(£{acq_cost:.0f}, {segment})"
@@ -1980,11 +1972,6 @@ def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPol
                     ) if RETENTION_EFFECTIVENESS else None,
                     "outcome": "retained",
                 })
-                if sim_interface is not None:
-                    sim_interface.notify_retention_attempt(
-                        billing_account, term_start_str, company_est_pre,
-                        retention_log[-1]["discount_pct"], outcome="retained"
-                    )
 
         # Phase 14b: compute gas company churn estimate for dual-fuel monitoring.
         # Gas legs don't drive churn decisions (those live at electricity billing-account

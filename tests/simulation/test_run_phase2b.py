@@ -3,7 +3,6 @@ from datetime import date, datetime, time, timedelta
 import pytest
 
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
-from company.interfaces.sim_interface import StubSimInterface
 from sim.weather_price_sensitivity import COLD_SPELL_PRICE_MULTIPLIER
 from simulation.renewals import NOTICE_DAYS
 from simulation.run_phase2b import (
@@ -258,7 +257,7 @@ def test_the_policy_switch_still_zeroes_the_whole_credit():
 # first including acq_cost_saved_gbp), so the assertion's exposure is unchanged.
 @pytest.fixture(scope="module")
 def _phase2b_result_2017():
-    return _run_phase2b_main(report_end="2017-12-31", sim_interface=StubSimInterface())
+    return _run_phase2b_main(report_end="2017-12-31")
 
 
 def test_retention_log_includes_acq_cost_saved(_phase2b_result_2017):

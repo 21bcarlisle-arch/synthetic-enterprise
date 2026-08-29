@@ -138,8 +138,10 @@ class CompetitivePressureLedger:
 
         THE DIFFERENCE BETWEEN "NOBODY LEFT" AND "NOBODY TOLD US", and this ledger got it wrong
         on its first live measurement (2026-08-28). `run_phase4c_on_phase2b.main` calls
-        `run_phase2b()` without a `sim_interface`, so every `notify_churn` in the run loop is
-        behind `if sim_interface is not None` and none of them fired. The ledger therefore
+        `run_phase2b()` without a `sim_interface`, so every `notify_churn` in the run loop sat
+        behind `if sim_interface is not None` and none of them fired. (Those five guards, and
+        the parameter itself, were deleted on 2026-08-29 — no caller ever passed one. The
+        history stays here because it is why this method exists.) The ledger therefore
         accumulated a full denominator and an empty numerator, read `observed = 0` as evidence
         that the market had gone quiet, and COLLAPSED the company's churn belief across a run in
         which a sixth of the book actually left.

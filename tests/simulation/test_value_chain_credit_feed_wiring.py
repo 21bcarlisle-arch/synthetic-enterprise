@@ -11,14 +11,15 @@ from __future__ import annotations
 
 import pytest
 
-from company.interfaces.sim_interface import StubSimInterface
 from simulation.run_phase2b import main as run_phase2b
 
 
 @pytest.fixture(scope="module")
 def _fed_result():
     # SIM_FAST_MODE=1 set by the session autouse fixture; truncated window keeps it quick.
-    return run_phase2b(report_end="2017-12-31", sim_interface=StubSimInterface())
+    # No sim_interface: the parameter was deleted 2026-08-29 (it was never passed on any
+    # production path, so a stub here made this fixture unlike every real run).
+    return run_phase2b(report_end="2017-12-31")
 
 
 def test_wholesale_credit_block_present_and_populated(_fed_result):

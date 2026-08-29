@@ -146,3 +146,101 @@ shows `run_phase2b.py` clean. The instruction's "done means `git show HEAD:simul
 contains `arm_loss_reporting`" is satisfied — by another lane, in one commit rather than two, so
 the two-lane attribution the instruction wanted is not recoverable. Nothing was re-landed; only
 this sweep, which was the half that had not been done.
+
+---
+
+## Repair, and the prediction graded beside itself (2026-08-29)
+
+All four owed items landed in one commit. What was done:
+
+1. **Renamed.** `## Company CRM — Event Log` → `## Customer Lifecycle Events — SIM Record`,
+   on both surfaces (the populated section and the empty-run early return, which carried the
+   old title too). The section now names `_build_company_event_log` as its source in its own
+   body, and states on its face — not in a footnote — that there is no company record to
+   reconcile against because `CompanyEventLog` has no production writer. Rewiring was rejected:
+   the report reads a JSON artefact, and the only thing available to fill a `CompanyEventLog`
+   with is the SIM's stream, so "rewiring" would have rebuilt the mirror one layer down.
+
+2. **Deleted, not repaired.** The Match column, the "CRM active" column and the
+   reconciliation heading are gone. What replaced them is a cumulative churn/acquisition
+   count per year-end, labelled *one source, no cross-check*, with the note that accounts
+   already on supply at run open emit no event and are in neither column — which the old
+   "CRM active" figure silently omitted while being read as a book position.
+
+3. **All five guards deleted, and the parameter with them.** No production entry point passed
+   an interface, and none of the three observables had a consumer outside tests
+   (`LiveSimInterface.event_log` and `StubSimInterface.*_notifications` are read only by
+   `tests/company/interfaces/` and the four fixtures that injected the stub). None qualified
+   for the 1802 treatment, because the pressure ledger's repair worked by booking an
+   observable the COMPANY has — and an event stream the world hands over is not that. The
+   `SimInterface.notify_*` methods stay: they are the company's API for recording what the
+   company itself observed. What was wrong was the *world* calling them. `sim_interface` is
+   also removed from `run_phase2b.main`/`_main` and `run_scenario.run_forward_scenario`,
+   because an accepted-and-ignored parameter is fail-silent — a caller can pass one and get
+   nothing booked.
+
+4. **Control keyed to the property**, at `tests/saas/reporting/test_crm_section_cannot_mirror_itself.py`:
+   no agreement verdict in the rendered section; `annual_report` does not *import*
+   `company.crm.event_log` (parsed via AST, not grepped — the module's own prose names it while
+   explaining why it doesn't use it, and a substring check would go red for the comment that
+   records the repair); and `run_phase2b` gates no `notify_*` call behind any `is not None`
+   test, keyed to the shape rather than to the parameter's name.
+
+**Mutation proof — every leg red at HEAD (`29723c931`), measured, not argued.** Running the new
+control's assertions against `git show HEAD:` versions:
+
+| assertion | at HEAD |
+|---|---|
+| section publishes no agreement verdict | **red** — render contains `\| Match`, `reconciliation`, `crm active` |
+| report does not import `company.crm.event_log` | **red** — imported at line 3574 |
+| heading names the SIM as source | **red** — `## Company CRM — Event Log`, both surfaces |
+| no `notify_*` behind an is-not-None guard | **red** — 5 sites: 1778, 1822, 1854, 1954, 1984 |
+
+And the old renderer's own output on the fixture, which is the finding restated as data:
+
+```
+| 2020-12-31 | 1 accounts | 1 active | yes |
+| 2021-12-31 | 2 accounts | 0 active | yes |
+```
+
+Two accounts churned, zero active, **Match: yes**.
+
+### The prediction, graded
+
+> *If item 3 is done for `notify_churn` … the Match column will still read "yes" for every
+> year, because the defect is item 2, not item 3. If it reads "mismatch" anywhere, my account
+> of the containment algebra above is wrong.*
+
+**Not observable as stated, and confirmed by the route that was available.** Items 2 and 3
+landed together, so the "3 without 2" world was never rendered — the prediction as written
+cannot be graded by observation, and that is a defect in how it was framed, not a result. It
+asked about a state the repair had no reason to pass through.
+
+What *can* be graded is the algebra it rested on, and that is now pinned in code rather than
+argued. `test_the_containment_check_could_not_fail` runs the deleted function verbatim:
+
+- **Case C** (world churned A and B, CRM holds nothing — the state a plumbed-but-starved
+  `notify_churn` would still have produced, since the guard was the only writer): `yes`.
+- **Case A** (world churned A and B, CRM holds A — the company missed a departure): `yes`.
+- **Case B** (CRM invented a churn): `mismatch` — the only direction it could see, and the one
+  a replay of the world's list cannot produce.
+
+So the claim underneath the prediction holds: the Match column could not have read "mismatch"
+for a starved CRM under any completion of item 3. The lesson for next time is about the
+prediction's *frame*, not its content — a prediction conditioned on a repair sequence nobody
+would choose is unfalsifiable by construction. The one to have written was the case-C
+assertion, which is what the control now holds.
+
+### Coverage removed, and what replaced it
+
+Four tests went with the seam: `test_sim_interface_churn_notifications_match_churned_accounts`,
+`test_stub_churn_notifications_have_extended_fields`,
+`test_stub_retention_notifications_count_matches_log`, `test_sim_interface_none_still_works`.
+The first asserted a real property across a seam no production run plumbed, so
+`test_every_churned_account_appears_in_the_event_log` now asserts the same property on the
+projection that actually exists — **symmetric**, where the old one was a one-sided
+`for cba in churned: assert cba in notified` that could not see an event log carrying a
+departure the run never booked, plus a non-empty guard so a truncated window cannot pass it
+vacuously. That check is named in the test as internal consistency between two SIM
+projections, explicitly *not* a company-vs-world reconciliation — the distinction this whole
+finding is about.

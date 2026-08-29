@@ -261,7 +261,6 @@ def run_forward_scenario(
     year_from: int = 2026,
     year_to: int = 2029,
     seed: str | None = None,
-    sim_interface=None,
 ) -> dict:
     """Run a full 2016-year_to simulation with historical + forward scenario prices.
 
@@ -269,7 +268,6 @@ def run_forward_scenario(
     year_from: first year of synthetic data (default 2026, just after historical window ends).
     year_to: last year of synthetic data (inclusive).
     seed: deterministic seed for scenario generators. Defaults to "{scenario}_{year_from}_{year_to}".
-    sim_interface: passed through to run_phase2b.main() for risk committee / fast-mode.
 
     Returns the standard run_phase2b result dict, augmented with:
         "scenario_name": str
@@ -278,7 +276,12 @@ def run_forward_scenario(
     from datetime import date as _date
     import sim.cache_store as _cache
     from sim.gas_prices_history import load_nbp_history as _load_nbp
-    from sim.system_prices import get_system_prices_range
+    # NOT `sim.system_prices` -- that module defines only `_fetch_system_prices` and
+    # `get_latest_system_prices`. This import named a symbol that does not exist there, so
+    # `run_forward_scenario` raised ImportError on EVERY call; nothing noticed because its
+    # only callers are `scenario_comparison` and this module's `__main__`, neither of which
+    # is on the published path. Found by the symbol-landing gate, 2026-08-29.
+    from sim.system_prices_history import get_system_prices_range
     from sim.cache_store import get_cached_prices, log_cache_access
     from simulation.run_phase2b import (
         ELEC_CUSTOMERS, GAS_CUSTOMERS, EARLIEST_SSP_DATE, REPORT_START,
@@ -330,7 +333,7 @@ def run_forward_scenario(
         _cache.get_cached_prices = lambda *a, **kw: extended_elec
         _gas_mod.load_nbp_history = lambda: extended_gas
 
-        result = _runner.main(report_end=report_end, sim_interface=sim_interface)
+        result = _runner.main(report_end=report_end)
     finally:
         _cache.get_cached_prices = _orig_get_cached
         if _orig_load_nbp is not None:
