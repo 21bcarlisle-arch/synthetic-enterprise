@@ -85,3 +85,44 @@ in `WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`.
 **before** `claimed_at`. Check the claim's subject against HEAD directly. On this tick the brief's
 own words — `COST_PER_ACQUISITION`, `RESI_OFFER_COST_GBP` — were both already absent from the
 files it named, which took one grep and settled it.
+
+---
+
+## DISCHARGED 2026-08-30 (worker tick) — built by a later tick, and this is its first live firing
+
+**The repair the section above declines to build was built the same day**, in
+`background/delivery_lane.py` at `3f33d92fa`: `DRAW_LEDGER_FILE` remembers `first_drawn_at` per
+focus id across releases, and `record_landing` compares a commit against the id's FIRST draw rather
+than against the `claimed_at` a re-draw rewrote. The module docstring carries the reasoning under
+*"A RE-ISSUED CLAIM COULD NEVER BE CREDITED…"*.
+
+**This tick is the first time it has been exercised on a real orphaned commit, rather than on a
+fixture.** The trap sprang in full and the fix caught it:
+
+| | |
+|---|---|
+| focus id | `land-the-founder-book-controls-that-are-in-no-commit` |
+| `first_drawn_at` | 1788039503 — 2026-08-29T21:38:23Z |
+| commit that satisfied it | `cea3ff2d7`, 1788039888 — 2026-08-29T21:44:48Z, **385s after the first draw** |
+| that tick called `--landed` | **no** — step 1 of the sequence above, verbatim |
+| swept, re-drawn (`claimed_at`) | 1788044916 — 2026-08-29T23:08:35Z, **5,028s after the commit** |
+| brief handed to this tick | "still uncommitted", naming three `.held` artefacts already deleted in HEAD |
+
+Under the pre-`3f33d92fa` rule this tick would have got `bound NOTHING` and the commit would have
+been out of reach by 5,028s, permanently. It got `bound 8 path(s)` — the three test files, the three
+`.held` deletions, `docs/design/held/README.md` and `docs/design/FOUNDER_BOOK.yaml` — and the claim
+was released rather than re-implemented.
+
+**What the fix does not cover, stated so the next reader does not mistake this for closed.** The
+lane still cannot tell "not done" from "done but unbound" *at draw time*: the brief this tick was
+handed asserted uncommitted work about a tree where all of it was in HEAD and green, and only the
+reader's own check found that. The fix makes the record recoverable AFTER the fact; it does not stop
+a stale brief being issued. That residue is deliberately left un-mechanised — a draw-time verifier
+of the lane's own briefs is a control over the controls, and CLAUDE.md's rule is to prefer doing the
+work. **The cheap reader-side check is the section above and it cost this tick ninety seconds:**
+`git cat-file -e HEAD:<each path the brief names>` before believing a word of it.
+
+Verification run for the discharged work itself, against the tree HEAD would create
+(`git archive HEAD | tar -x` — never the shared tree, which measures three other lanes):
+`tests/simulation/test_founder_book.py`, `test_live_population_seam.py`, `test_customer_events.py`
+→ **80 passed**.
