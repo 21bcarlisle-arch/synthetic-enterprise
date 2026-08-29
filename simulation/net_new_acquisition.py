@@ -79,9 +79,9 @@ from simulation.population_draw import (
     DEFAULT_SEGMENT_WEIGHTS,
     SyntheticCustomer,
     _draw_one,
+    _load_cohort_curriculum,
     _substream,
     draw_region_for_customer,
-    _load_cohort_curriculum,
 )
 
 #: Named substream. Isolated from `W2_2_population_draw` so that adding, removing or
@@ -551,6 +551,66 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: 3. THE SECOND POINT WAS CONTAMINATED AND THE PROBE NOW SAYS SO. A slope needs two clean
 #:    points and there is one, so this number stays where it is until the run specified in §6 of
 #:    that document is taken with the producer stood down. "I cannot yet say" is the result.
+#:
+#: ── WHAT THIS IS A BUDGET OF, 2026-08-29 ────────────────────────────────────────────────────
+#:
+#: The director's ask was for one sentence a reader can check, and this is it:
+#:
+#:   SETTLEMENT_CUSTOMER_YEAR_BUDGET is how many customer-years of settlement this box folds
+#:   inside one publish cycle — bounded above by the guest's memory, and by the run's wall
+#:   clock against a publish interval WE CHOOSE.
+#:
+#: Every clause is checkable. The unit is customer-years (`_customer_years` below). The memory
+#: bound is `background.resource_headroom.sample()["total_mb"]` against the probe's measured
+#: peak RSS. The time bound is the run's wall clock against an interval — and the last three
+#: words are the whole repair, because the interval used to be measured.
+#:
+#: THE CIRCULARITY IS BROKEN, AND THIS IS WHAT BROKE IT. The old bound was
+#: `suite_duration_watch.PUBLISH_CADENCE_SECONDS`, which its own comment defines as "a
+#: measurement of how often runs actually arrive". Run duration sets marker inter-arrival, so
+#: raising this ceiling raised the bound it was checked against, in the flattering direction.
+#: Breaking that needs a requirement fixed INDEPENDENTLY of the arrival rate. §7 of
+#: `SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` named the candidate — how often the inputs this
+#: site reports actually change, a fact about Elexon and NESO rather than about our own run —
+#: and it was then taken up rather than left as a plan:
+#:
+#:   `run_phase2b.REPORT_END` is 2025-06-07. `settlement_timetable.RF_MONTHS` is 14, verified
+#:   against an Elexon-authored primary document. 2025-06-07 + 14 months = 2026-08-07, so the
+#:   reported window reached Final Reconciliation three weeks ago and NO new settlement data
+#:   can revise a figure inside it.
+#:   (`docs/market_research/elexon_settlement_run_timetable_verified.md`, committed 703e4dbb7.)
+#:
+#: **The external data-freshness requirement is ZERO, and a requirement of zero is exactly what
+#: a non-circular bound looks like: it does not move when this ceiling moves.** That is the
+#: break, and it is a stronger answer than the one the direction anticipated.
+#:
+#: WHAT IT LEAVES, SAID RATHER THAN DRESSED. With the external requirement at zero, the publish
+#: interval is not derivable from evidence AT ALL. It is a preference about how quickly our own
+#: changes become visible — the director's to name, a decision and not a measurement. Locating
+#: it correctly is the result; inventing an interval and calling it a basis is the move this
+#: file's own rules forbid, and it would be harder to undo than the circular argument was,
+#: because it would arrive with a justification attached.
+#:
+#: THE ASYMMETRY THAT FALLS OUT OF IT, and it is the uncomfortable half. Memory is now the only
+#: leg with evidence behind it, and memory is SLACK BY 4.5x (4,193 MB peak against a 24,032 MB
+#: guest). So on today's evidence nothing bounds this constant at 1,200 except an interval
+#: preference nobody has stated. 1,200 remains a historical number, and this note still says so.
+#:
+#: WHAT IS BEING MEASURED, AND WHY IT IS A CURVE AND NOT A NUMBER. A chosen interval only
+#: becomes a ceiling through a cost curve — seconds and MB per marginal customer-year — so the
+#: curve is the deliverable and the number is its consequence. `tools/settlement_ceiling_probe.py`
+#: takes it; the clean-slope run is `docs/observability/settlement_ceiling_slope_20260829.json`,
+#: deliberately NOT `settlement_ceiling_probe.json`, whose 2,000 row is the contaminated one.
+#:
+#: THE PAGE SAYS ALL OF THIS NOW, which is where it belongs: `engine_bound_basis` in
+#: `tools/generate_book_growth_data.py`, rendered at `site/capabilities/`. A reader meets the
+#: fact that the height of the growth curve is our compute budget rather than the supplier's
+#: commerce, and that what ceiling the basis supports is not yet known. The zero-requirement
+#: claim has a control that can fail —
+#: `site/test_the_book_is_bounded_by_compute_reaches_the_reader.py::
+#: test_the_published_no_freshness_requirement_claim_is_STILL_TRUE` reds if `REPORT_END` is ever
+#: extended back inside the reconciliation window, which is the one change that makes the
+#: published sentence false and which nothing else in the tree would notice.
 SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0
 
 

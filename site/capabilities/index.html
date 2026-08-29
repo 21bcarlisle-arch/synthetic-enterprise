@@ -270,6 +270,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   facts about the supplier. The last is a limit of this simulation, and it is marked as one rather
   than left to look like a commercial result.</p>
   <p id="growth-headline" style="margin:0 0 8px;font-weight:600;"></p>
+  <p id="growth-basis" style="margin:0 0 8px;"></p>
   <p id="growth-winrate" style="margin:0 0 14px;"></p>
   <div id="growth"></div>
   <p id="growth-note" class="stamp" style="margin-top:10px;"></p>
@@ -296,6 +297,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         return;
       }
       $("growth-headline").textContent = d.engine_bound_statement || "";
+      // WHAT KIND OF LIMIT THE HEADLINE IS TALKING ABOUT. The headline says the height of this
+      // curve is "our machine"; this says our machine is a COMPUTE budget and not a commercial
+      // one, which is the difference between a result and a harness limit. Its own paragraph
+      // rather than appended to the headline: the headline carries counts a reader checks
+      // against the table, and the basis carries a claim they check against the constant.
+      $("growth-basis").textContent = d.engine_bound_basis || "";
       // THE LEARNED RATE IS THE SECOND ARTEFACT, and it is the one a reader would otherwise
       // read as a supplier losing its touch. Rendered as its own sentence above the table so it
       // is met before the column that carries it, not discovered after.

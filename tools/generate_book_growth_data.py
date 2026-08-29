@@ -362,6 +362,59 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
             "the company's wins reached the book CANNOT BE READ FROM IT. Treat the book below "
             "as a lower bound on what this supplier won, not as what it won."
         ),
+        # WHAT KIND OF LIMIT IT IS, which `engine_bound_statement` above does not say.
+        #
+        # That sentence tells a reader the height of the curve is "our machine". A reader
+        # cannot check "our machine". They can check "a compute budget", and the difference
+        # matters because the two readings carry opposite instructions: a supplier that ran
+        # out of money is a RESULT and a box that ran out of wall clock is a HARNESS LIMIT to
+        # be lifted. The director's own words, 2026-08-29: *"it needs a non-circular basis,
+        # not a bigger number"* -- so the basis is what goes on the page, not the number.
+        #
+        # THE THREE CLAUSES ARE EACH CHECKABLE AND THAT IS THE POINT:
+        #   * what it is a budget OF -- customer-years of settlement per publish cycle, bounded
+        #     by this box's memory and by a publish interval;
+        #   * that the interval is CHOSEN and not measured -- because measuring it is circular
+        #     (`suite_duration_watch.PUBLISH_CADENCE_SECONDS` is the rate runs actually arrive,
+        #     and run duration is what sets arrival, so raising this ceiling raises the bound
+        #     it is checked against, in the flattering direction);
+        #   * that the choice has no external anchor left -- the window this site reports
+        #     reached Elexon Final Reconciliation on 2026-08-07 (2025-06-07 + RF 14 months,
+        #     `docs/market_research/elexon_settlement_run_timetable_verified.md`), so no new
+        #     settlement data can revise a figure inside it and there is no data-freshness
+        #     requirement to derive an interval from.
+        #
+        # AND IT FAILS CLOSED ON THE NUMBER. What ceiling this basis supports needs a cost
+        # curve, which needs two clean probe points, and there is one
+        # (`docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` §6). "We cannot yet say"
+        # is the result and it belongs on the page rather than in a footnote -- publishing
+        # "1,200 is right" off a basis that does not yet reach a number would be exactly the
+        # invented constant this project keeps paying for.
+        "engine_bound_basis": (
+            "That limit is a COMPUTE budget, not a commercial one. "
+            "`SETTLEMENT_CUSTOMER_YEAR_BUDGET` is how many customer-years of settlement this "
+            "machine folds inside one publish cycle{budget}, bounded by the memory of the box "
+            "this simulation runs on and by how long a cycle we allow. No supplier in the "
+            "modelled world faces it. The memory leg is measured and slack; the time leg is a "
+            "publish interval we CHOOSE, because the reported window reached Elexon Final "
+            "Reconciliation on 2026-08-07 and none of its figures can change again, so there "
+            "is no data-freshness requirement to set one from. What ceiling that choice "
+            "supports is being measured and is NOT YET KNOWN — so read the height of this "
+            "curve as our budget, and do not read this budget as evidence of what the machine "
+            "can afford."
+        ).format(
+            budget=(
+                " (today {:,.0f})".format(campaign.get("customer_year_budget"))
+                if isinstance(campaign.get("customer_year_budget"), (int, float)) else ""
+            )
+        ) if sample_rate is not None and sample_rate < 1.0 else (
+            "No compute budget bound this book: our settlement engine settled every account "
+            "the company won, so nothing on this page is our machine's limit rather than the "
+            "supplier's. The height of this curve is commercial."
+        ) if sample_rate is not None else (
+            "This campaign record does not say what share of the company's wins reached the "
+            "book, so whether a compute budget bound it CANNOT BE READ FROM IT."
+        ),
         # THE SECOND HALF OF THE SAME INSTRUCTION. The curve is not the only thing our engine
         # shaped: the company LEARNS its conversion rate from these years and plans the next
         # campaign on it, so an engine-bound year does not just flatten one bar -- it lowers

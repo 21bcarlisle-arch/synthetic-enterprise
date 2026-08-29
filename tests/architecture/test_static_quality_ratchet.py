@@ -541,7 +541,14 @@ RUFF_BASELINE: dict[str, int] = {
     #             from-import in that file (the names inside the parentheses, not the block).
     #             SHRINK-ONLY: the floor moves DOWN and the new count is held. Sorted by hand,
     #             not by `--fix`, which can move a `noqa` off the line it was written for.
-    "I001": 1346,
+    # 2026-08-29  I001 1346 -> 1345. `simulation/net_new_acquisition.py` had
+    #             `_load_cohort_curriculum` out of order inside its `population_draw` from-import
+    #             AT CLEAN HEAD, so the pre-existing red would have wedged any commit touching
+    #             the file -- which the settlement-ceiling basis work had to. SHRINK-ONLY: the
+    #             floor moves DOWN and the new count is held. `--fix` was used here and its diff
+    #             READ BEFORE ACCEPTING (two lines, imports only, no `noqa` anywhere in the
+    #             block) -- the reason the note above says not to trust it blind still stands.
+    "I001": 1345,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -563,7 +570,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2333  # was 2334; -1 (I001, the R3 consumer repair in test_phase_rx_track_record)
+RUFF_BASELINE_TOTAL = 2332  # was 2333; -1 (I001, net_new_acquisition's pre-existing unsorted import)
 
 
 # --------------------------------------------------------------------------
