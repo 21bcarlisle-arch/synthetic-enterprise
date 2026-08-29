@@ -340,6 +340,59 @@ def test_the_refused_wins_are_COUNTED_and_not_just_the_first_one_named():
     assert total_refused == out["funnel_wins"] - len(out["winners"])
 
 
+def test_a_year_capped_by_OUR_prospect_pool_says_so_instead_of_blaming_the_mandate():
+    """THE MISATTRIBUTION FIXED ON 2026-08-29, and it is the director's 2026-08-24 rule applied
+    to the second engineering ceiling in this file.
+
+    `quote_capacity` has split its warning in two since PB3 -- MARKET-THIN (the real switching
+    rate bound the year, commercial) against MARKET-BOUND (`PROSPECTS_PER_YEAR` bound it, ours)
+    -- and both went into `notes` while `binding`, which is what the published table renders,
+    kept reporting the company's own growth mandate. So the page attributed OUR cap to the
+    supplier's choice, which is exactly the reading the split exists to prevent.
+    """
+    out = _campaign(quote_budget_fn=_budget(500), prospects_per_year=50)
+    row = out["by_year"][0]
+
+    assert row["quotes_affordable"] > row["quotes_issued"], (
+        "vacuous: the fixture must actually be capped for this to be testing anything"
+    )
+    assert row["binding"] == "prospect_ceiling"
+    assert any("MARKET-BOUND" in n for n in out["notes"])
+
+
+def test_a_year_capped_by_the_REAL_SWITCHING_MARKET_is_NOT_called_our_artefact():
+    """THE DISCRIMINATION, and the reason the two are worded apart rather than sharing a label.
+
+    2022 is the crisis year in which switching very nearly stopped, and a year the real market
+    closed is a COMMERCIAL result: raising anything to "fix" it would falsify the record. A
+    single "capped" label would tell a reader to raise the pool on a year where that is the
+    wrong instruction, so the fix is only worth having if this stays distinct.
+    """
+    out = _campaign(quote_budget_fn=_budget(500), prospects_per_year=50,
+                    switching_multiplier_fn=lambda year: 0.2)
+    row = out["by_year"][0]
+
+    assert row["quotes_issued"] < 50, "vacuous: the market must be THIN, not merely capped"
+    assert row["binding"] == "market"
+    assert any("MARKET-THIN" in n for n in out["notes"])
+    assert not any("MARKET-BOUND" in n for n in out["notes"])
+
+
+def test_MUTATION_a_year_the_market_never_capped_keeps_the_COMPANYS_own_binding():
+    """R15 null control. If `binding` were overwritten whenever a note existed -- or always --
+    the two tests above would pass on a file that had simply stopped reporting the company's
+    own constraint, and every commercial year would read as an artefact of ours."""
+    out = _campaign(quote_budget_fn=_budget(20), prospects_per_year=400)
+    row = out["by_year"][0]
+
+    assert row["quotes_affordable"] == row["quotes_issued"], "vacuous: nothing may be capped"
+    assert row["binding"] not in ("market", "prospect_ceiling")
+    assert row["binding"] == "capital", (
+        "the company's own plan must still be what the row reports when the market did not bind"
+    )
+    assert not any("MARKET-" in n for n in out["notes"])
+
+
 def test_a_budget_the_OPENING_BOOK_has_already_spent_books_nothing_and_says_so():
     """THE FAR EDGE OF THE SAMPLE, which is a real operating state and not a hypothetical.
 

@@ -56,6 +56,20 @@ BINDING_MEANING = {
         "meaning": "Too few households were switching supplier that year for the campaign to "
                    "spend its budget. A real feature of the GB market, not a company failure.",
     },
+    # THE OTHER HALF OF THE SAME CAP, and the two carry opposite instructions to a reader.
+    # `market` above is the REAL switching rate binding a year -- a commercial result, and
+    # raising anything would falsify it. This is our own `PROSPECTS_PER_YEAR` binding it, which
+    # is an artefact and should be raised. `quote_capacity` has worded them apart since PB3;
+    # until 2026-08-29 neither reached `binding`, so both years rendered as `growth_rate` and
+    # our ceiling was published as the supplier's own mandate.
+    "prospect_ceiling": {
+        "label": "Our prospect pool",
+        "artefact": True,
+        "meaning": "The company could afford more quotes than there were prospects for it to "
+                   "quote. The cap is net_new_acquisition.PROSPECTS_PER_YEAR -- a constant of "
+                   "ours, NOT the GB switching market -- so this year understates what this "
+                   "supplier would have done.",
+    },
     "settlement_engine": {
         "label": "Our settlement engine",
         "artefact": True,
@@ -203,7 +217,16 @@ def build(campaign: dict | None) -> dict:
             "planning_on": row.get("planning_on"),
         })
 
+    # TWO LISTS, BECAUSE THERE ARE NOW TWO ARTEFACTS AND ONE NAME CANNOT BE TRUE OF BOTH.
+    # `engine_bound_years` means what it says -- years the SETTLEMENT engine stopped -- and is
+    # empty since the ceiling became a sample. `artefact_bound_years` is the wider set: any
+    # year bound by a constant of ours rather than by the market or the company's own
+    # balance sheet, which since 2026-08-29 also includes `PROSPECTS_PER_YEAR`. Letting the
+    # prospect-pool years quietly join a list called "engine bound" is how a name stops being
+    # checkable, which is the failure this whole file spent the day repairing.
     artefact_years = [y["year"] for y in years if y["binding_is_our_artefact"]]
+    engine_years = [y["year"] for y in years if y["binding"] == "settlement_engine"]
+    prospect_years = [y["year"] for y in years if y["binding"] == "prospect_ceiling"]
     _mark_learned_rate_provenance(years)
     contaminated = [y["year"] for y in years if y["learned_win_rate_is_contaminated"]]
 
@@ -246,7 +269,22 @@ def build(campaign: dict | None) -> dict:
         # four wins in five. A control keyed to yesterday's answer goes quiet exactly when the
         # mechanism it watches changes shape. This one is keyed to the property: how much of
         # what the company won reached the book.
-        "engine_bound_years": artefact_years,
+        "engine_bound_years": engine_years,
+        "artefact_bound_years": artefact_years,
+        "prospect_ceiling_years": prospect_years,
+        # THE SECOND ARTEFACT GETS ITS OWN SENTENCE, because it carries the opposite
+        # instruction from the thin-market years it used to be lumped with: this one should be
+        # RAISED, and 2022's real switching collapse must never be.
+        "prospect_ceiling_statement": (
+            "In {n} year(s) ({yrs}) the company could afford more quotes than there were "
+            "prospects to quote. That cap is OURS (net_new_acquisition.PROSPECTS_PER_YEAR = "
+            "400, sized when the company could afford tens), not the GB switching market — "
+            "those years understate what this supplier would have done.".format(
+                n=len(prospect_years), yrs=", ".join(str(y) for y in prospect_years))
+        ) if prospect_years else (
+            "No year was capped by our prospect pool: where the campaign was short of quotes "
+            "it was the company's own capital or the real switching market that decided."
+        ),
         "settlement_sample_rate": sample_rate,
         "settlement_wins_refused": refused,
         "settlement_funnel_wins": funnel_wins,

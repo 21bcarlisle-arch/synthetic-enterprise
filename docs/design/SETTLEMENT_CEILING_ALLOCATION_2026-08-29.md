@@ -221,9 +221,20 @@ an invented one.
 
 1. **A director decision, priced:** the publish interval. Memory would support roughly 4× today's
    ceiling; wall clock is what stops it, and there is no named interval to check wall clock against.
-2. **The next engineering ceiling in the same chain.** Three of the ten years are now MARKET-BOUND at
-   `PROSPECTS_PER_YEAR = 400` — in 2024 the company could afford 861 quotes and only 400 prospects
-   exist. Our number, not the GB switching market's.
+2. **The next engineering ceiling in the same chain — now SURFACED (done), not yet fixed.** Three
+   of the ten years (2020, 2024, 2025) are capped at `PROSPECTS_PER_YEAR = 400`; in 2024 the company
+   could afford 861 quotes and only 400 prospects exist. The constant's own design condition —
+   *"400 leaves the market non-binding by an order of magnitude"* — is now false, and it said so
+   itself: `quote_capacity` reported it the moment it failed, which is one control that worked.
+   Those years used to render as `growth_rate`, so **our cap was published as the supplier's own
+   mandate**. They now report `binding = prospect_ceiling`, labelled "Our prospect pool" with a
+   warning, kept distinct from `market` — the real switching rate binding 2021–2023, which is a
+   commercial result that raising anything would falsify. `market` had been a fully-worded entry in
+   `BINDING_MEANING` that nothing in the codebase ever emitted; it has a producer now.
+   **Not re-set**, because "raise it until it stops binding" picks a number to preserve a design
+   property rather than from evidence. The honest repair is to source the pool from published GB
+   domestic switching volumes, which this repo already calibrates `market_switching_propensity`
+   against.
 3. **Two controls that went quiet, both repaired, both re-keyed to properties.** The growth page's
    headline (`binding == settlement_engine` → the sample rate) and its learned-rate caveat
    (positional latch → does the planned-on rate equal the funnel's own history). That flag had

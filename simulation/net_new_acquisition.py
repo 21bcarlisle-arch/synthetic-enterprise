@@ -97,6 +97,30 @@ STREAM_NAME = "PB3_net_new_prospects"
 #: 2016 opening treasury the affordable quote count is in the tens, so 400 leaves the
 #: market non-binding by an order of magnitude and `quote_capacity` reports it if that
 #: ever stops being true.
+#:
+#: THAT CONDITION IS NOW FALSE, 2026-08-29, AND THE SENTENCE ABOVE IS KEPT SO THE FAILURE IS
+#: READABLE RATHER THAN TIDIED AWAY. On the same day `accounts` moved onto FUNNEL wins — the
+#: second leg of the 2026-08-28 wall fix, see `SETTLEMENT_CUSTOMER_YEAR_BUDGET` — the
+#: company's account count stopped being frozen by our settlement ceiling and its quote budget
+#: grew with it. It can now afford 861 quotes in 2024 against this pool of 400. Three of the
+#: ten shipped years (2020, 2024, 2025) are capped here, so the market is binding rather than
+#: non-binding, and by roughly a factor of two rather than an order of magnitude the other way.
+#:
+#: WHAT WORKED, and it is worth naming on a day spent repairing controls that did not: this
+#: constant stated the condition under which it would stop being right, and `quote_capacity`
+#: reported the moment it did. Nothing had to be noticed.
+#:
+#: WHAT IS NOT DONE, said plainly rather than left as an implication. The number has NOT been
+#: re-set, because "raise it until the market stops binding" picks a number to preserve a
+#: design property rather than from evidence, and this file has paid for that move before. The
+#: honest repair is to source the pool from the real thing — the published GB domestic
+#: switching volumes this repo already calibrates `market_switching_propensity` against — so
+#: that "how many homes are in the market for this supplier" is a fraction of a measured
+#: market rather than a constant chosen to stay out of the way. Until then the three capped
+#: years are SURFACED, not silently absorbed: `binding` reports `prospect_ceiling` (distinct
+#: from `market`, which is the real switching rate binding a year and must never be raised),
+#: the published page labels it "Our prospect pool" with a warning, and
+#: `prospect_ceiling_statement` names the years.
 PROSPECTS_PER_YEAR = 400
 
 #: ELECTRICITY ONLY, and this is a limitation rather than a modelling choice. The shipped
@@ -641,7 +665,31 @@ def plan_growth_campaign(
         # year dead. A uniform sample does not stop any year; it scales the whole book. So the
         # artefact is reported as `settlement_sample_rate` on every row, which is a number
         # rather than a label, and `binding` goes back to saying what limited the COMPANY.
+        # WHAT ACTUALLY LIMITED THE YEAR, which is the TIGHTER of the company's own plan and
+        # the pool it had to quote into -- and until 2026-08-29 this line only ever reported
+        # the first. `quote_capacity` has split its warning in two since PB3 (MARKET-THIN: the
+        # real switching rate bound it, a commercial result; MARKET-BOUND: OUR
+        # `PROSPECTS_PER_YEAR` bound it, an artefact), and both went into `notes` while the row
+        # a reader actually sees kept saying `growth_rate`. So the published page attributed
+        # our own prospect ceiling to the supplier's growth mandate, which is the exact
+        # misreading the director asked to be prevented on 2026-08-24.
+        #
+        # `market` was in `generate_book_growth_data.BINDING_MEANING` the whole time, fully
+        # worded, for a value NOTHING IN THIS FILE EVER EMITTED -- a documented branch with no
+        # producer. It has one now.
+        #
+        # WHY THIS ONLY BIT NOW: `PROSPECTS_PER_YEAR = 400` carries its own design condition --
+        # "sized so the company's capital is the binding constraint in every year ... 400
+        # leaves the market non-binding by an order of magnitude". Moving `accounts` onto
+        # funnel wins the same day let the company afford 861 quotes in 2024, so that
+        # condition is now FALSE in three of ten years. The constant stated the condition
+        # under which it would stop being right, and `quote_capacity` reported it the moment
+        # it did. That one worked.
         binding = plan["binding"]
+        if market_note:
+            binding = (
+                "prospect_ceiling" if market_note.startswith("MARKET-BOUND") else "market"
+            )
         # THE FUNNEL'S OWN VERDICT, kept apart from the book's: wins the market gave us,
         # before this machine decides how many of them it can settle. Split because the ratio
         # of quotes to BOOKED wins mixes two classes -- a supplier losing in the market, and

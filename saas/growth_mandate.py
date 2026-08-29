@@ -231,10 +231,14 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #: docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md.
 #:
 #: WHAT BINDS NOW IS A DIFFERENT ENGINEERING CEILING, and it is stated here so the next reader
-#: does not have to rediscover it: three of the ten years are MARKET-BOUND at
+#: does not have to rediscover it: three of the ten years (2020, 2024, 2025) are capped at
 #: `net_new_acquisition.PROSPECTS_PER_YEAR` (400) — in 2024 the company could afford 861 quotes
-#: and only 400 prospects exist to quote. That is our number, not the GB switching market's, and
-#: it is the next artefact in this chain.
+#: and only 400 prospects exist to quote. That is our number, not the GB switching market's.
+#: SURFACED rather than fixed: those years report `binding = prospect_ceiling` and the page
+#: labels them "Our prospect pool" with a warning, kept distinct from `market` — which is the
+#: REAL switching rate binding a year (2021–2023, the crisis) and is a commercial result that
+#: raising anything would falsify. The repair is to source the pool from published GB switching
+#: volumes, not to raise it until it stops complaining.
 #:
 #: THE FINDING UNDERNEATH, which belongs to PB2: a supplier holding this much capital against a
 #: book this small is over-capitalised, and the published company is small because it is a

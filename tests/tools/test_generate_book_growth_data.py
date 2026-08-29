@@ -131,6 +131,56 @@ def test_the_headline_counts_the_wins_the_MACHINE_refused_not_the_ones_the_marke
     assert "settle 6 of them" in out["engine_bound_statement"]
 
 
+def test_our_prospect_pool_and_the_REAL_market_are_told_apart_on_the_page():
+    """THE SECOND ARTEFACT, added 2026-08-29, and the pair is only worth having if it splits.
+
+    A year capped because the company could afford more quotes than we minted prospects for is
+    OURS and should be raised. A year capped because 2022 was a crisis in which almost nobody
+    switched supplier is the GB market, and raising anything would falsify it. One shared
+    "capped" label would hand a reader the wrong instruction on whichever year it got wrong.
+    """
+    out = gb.build(_campaign("prospect_ceiling", "market", "capital"))
+    ours, theirs, commercial = out["years"]
+
+    assert ours["binding_is_our_artefact"] is True
+    assert ours["binding_label"] == "Our prospect pool"
+    assert "NOT the GB switching market" in ours["binding_meaning"]
+
+    assert theirs["binding_is_our_artefact"] is False, (
+        "the real switching market rendered as a defect in us -- a reader told to raise the "
+        "pool on a crisis year would be falsifying the record"
+    )
+    assert commercial["binding_is_our_artefact"] is False
+
+    assert out["prospect_ceiling_years"] == [2016]
+    assert out["artefact_bound_years"] == [2016]
+    assert "PROSPECTS_PER_YEAR" in out["prospect_ceiling_statement"]
+
+
+def test_the_ENGINE_bound_list_does_not_quietly_absorb_the_other_artefact():
+    """Two artefacts, two names, and neither may answer for the other.
+
+    `engine_bound_years` means years the SETTLEMENT engine stopped. When the prospect pool
+    became a second artefact it would have joined that list for free, and a name that no
+    longer means what it says is unfalsifiable -- the failure this file spent 2026-08-29
+    repairing three times over.
+    """
+    out = gb.build(_campaign("prospect_ceiling", "settlement_engine"))
+
+    assert out["engine_bound_years"] == [2017], "the prospect pool is not the settlement engine"
+    assert out["prospect_ceiling_years"] == [2016]
+    assert out["artefact_bound_years"] == [2016, 2017], "the wider list must hold both"
+
+
+def test_MUTATION_a_run_our_prospect_pool_never_capped_claims_no_such_year():
+    """R15 null control. A statement rendered whatever the data would carry no information."""
+    out = gb.build(_campaign("capital", "market", "growth_rate"))
+
+    assert out["prospect_ceiling_years"] == []
+    assert "No year was capped by our prospect pool" in out["prospect_ceiling_statement"]
+    assert out["artefact_bound_years"] == []
+
+
 def test_an_unrecognised_binding_is_shown_VERBATIM_and_never_guessed():
     """A binding reason this file has not been taught is a gap in this file, not a licence to
     classify. It must not silently become 'not our artefact' with a confident label."""
