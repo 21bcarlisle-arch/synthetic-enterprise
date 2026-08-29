@@ -136,8 +136,16 @@ def test_activation_adds_synthetic_acquisitions(monkeypatch):
     extra = book[len(CUSTOMERS):]
     assert len(extra) >= 1, "activation must add at least one drawn acquisition"
     assert all(c["customer_id"].startswith("SYN-") for c in extra)
+    # THE POST-2020 GAP IS THE TRICKLE'S PROPERTY, not the whole drawn cohort's. The
+    # director's founder book (2026-08-28) is drawn too and is dated at the window's START by
+    # design, so it is excluded here rather than the assertion being weakened -- a founder
+    # dated 2016 is the point of founders, and letting 2016 through for everyone would give
+    # up the gap-filling claim this test exists to make.
+    founder_ids = {c["customer_id"] for c in lp.founder_book(lp._DEFAULT_BASE_SEED)}
+    trickle = [c for c in extra if c["customer_id"] not in founder_ids]
+    assert trickle, "activation must add at least one drawn TRICKLE acquisition"
     # Fills the post-2020 acquisition gap the FRAME found.
-    assert all(int(c["acquisition_date"][:4]) >= 2021 for c in extra)
+    assert all(int(c["acquisition_date"][:4]) >= 2021 for c in trickle)
 
 
 def test_mutation_flag_off_reverts_exactly(monkeypatch):
@@ -230,8 +238,22 @@ def test_wall_re_proven_post_cohort_activation(monkeypatch):
     #     hidden fields). The company sees only saas-shaped observables.
     book = lp.live_population()
     syn = [c for c in book if c["customer_id"].startswith("SYN-")]
-    assert len(syn) == len(sim_truth), (
-        "the observable SYN-* stream must be 1:1 with the cohort-bearing draw"
+    # TWO DRAWS SHARE THE `SYN-` PREFIX since the founder book landed (2026-08-28): the
+    # arrival trickle, which `sim_truth` above is the ground truth for, and the director's
+    # drawn founders. The 1:1 count is what proves the draw is LIVE, so it has to be taken
+    # against its own draw and not against a subject that mixes the two -- otherwise this
+    # assertion measures the founder count and stops being about activation at all.
+    founder_ids = {c["customer_id"] for c in lp.founder_book(lp._DEFAULT_BASE_SEED)}
+    trickle_syn = [c for c in syn if c["customer_id"] not in founder_ids]
+    assert len(trickle_syn) == len(sim_truth), (
+        "the observable SYN-* trickle must be 1:1 with the cohort-bearing draw"
+    )
+    # THE WALL HALF STAYS OVER THE WHOLE `syn` SET, deliberately wider than the count above:
+    # drawn founders come from the same cohort-assigning generator, so they are exactly as
+    # capable of leaking a cohort, and a wall checked only on the trickle would not see it.
+    assert len(syn) > len(trickle_syn), (
+        "no drawn founders in the book, so this test cannot tell whether the wall holds "
+        "for the founder draw"
     )
     hidden_fields = _hidden_cohort_field_names()
     for c in syn:
@@ -468,10 +490,22 @@ def test_the_book_stays_earned_never_granted(monkeypatch):
     """
     monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
     drawn = [c for c in lp.live_population() if c["customer_id"].startswith("SYN-")]
-    assert 0 < len(drawn) <= 15, (
-        f"activated book drew {len(drawn)} customers -- a trickle is single digits; "
-        "anything near 200 means the coverage POOL has been appended as a BOOK"
+    # THE TRICKLE IS THE SUBJECT, and it has to be separated from the director's founder book
+    # (2026-08-28) because both draws are `SYN-`. Split rather than widened: raising this
+    # bound to swallow the founders would key the control to today's founder count and it
+    # would stop being able to see the pool -- 200 is under 15 + 80 + slack.
+    founder_ids = {c["customer_id"] for c in lp.founder_book(lp._DEFAULT_BASE_SEED)}
+    trickle = [c for c in drawn if c["customer_id"] not in founder_ids]
+    assert 0 < len(trickle) <= 15, (
+        f"activated book drew {len(trickle)} trickle customers -- a trickle is single "
+        "digits; anything near 200 means the coverage POOL has been appended as a BOOK"
     )
+    # The founder book is EARNED-BY-DECISION rather than won, so it gets the same treatment:
+    # it must be the number the curriculum file names and not whatever the draw happened to
+    # yield, or the pool could arrive through this door instead.
+    assert len(drawn) - len(trickle) == len(founder_ids) - len(
+        [c for c in lp._STATIC_ROSTER if lp._serves(c, lp.served_segments())]
+    ), "the drawn founders in the book are not the ones the curriculum file asked for"
     assert all(c["acquisition_type"] == "synthetic_draw" for c in drawn), (
         "drawn points must stay distinguishable from fresh_market wins, or "
         "acquisition-cost accounting will charge CPA for a customer nobody won"

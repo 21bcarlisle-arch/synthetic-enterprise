@@ -169,6 +169,45 @@ def test_the_opening_book_reaches_the_growth_plan():
     assert len(lp._pre_growth_book(SEED)) >= len(lp.founder_book(SEED))
 
 
+def test_every_founder_REACHES_THE_SERVED_BOOK_and_not_only_the_growth_plan(monkeypatch,
+                                                                            tmp_path):
+    """The defect this file shipped with, and the reason the test above was not enough.
+
+    THE TWO SIDES ARE DIFFERENT FUNCTIONS. `_pre_growth_book` is what the campaign PLANS
+    against; `live_population` is what the company SERVES, bills and publishes. The test above
+    pins the first and passed the whole time the second was wrong: `live_population` rebuilt its
+    opening book from the 13-account `CUSTOMERS` literal, so the campaign committed 800 of its
+    1,200 customer-years to 80 founders — refusing 335 of its own funnel wins to pay for them —
+    and 67 of those founders then reached no served book at all. Measured at the shipped seed:
+    the run published 100 accounts while paying the settlement cost of 82 opening ones, and the
+    curriculum act bought to make the book DEEPER made it four times SHALLOWER (398 -> 100) for
+    six extra accounts at 5+ renewals. Charged for and never delivered.
+
+    A COUNT WOULD NOT CATCH IT. This asserts the founders are in the book BY ID, because the
+    published book is the right size for the wrong reason as soon as the campaign's wins make up
+    the difference — which is exactly what hid this: 13 + 2 + 85 = 100 looks like a book.
+    """
+    monkeypatch.setattr(lp, "_CAMPAIGN_RECORD", tmp_path / "campaign.json")
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        served_ids = {c["customer_id"] for c in lp.live_population(SEED)}
+    finally:
+        lp._CAMPAIGN_MEMO.clear()
+
+    founder_ids = {c["customer_id"] for c in lp.founder_book(SEED)}
+    missing = founder_ids - served_ids
+    assert not missing, (
+        f"{len(missing)} of {len(founder_ids)} founders are in the plan the campaign was "
+        f"charged for but not in the book the company serves"
+    )
+    assert len(founder_ids) > len([c for c in lp._STATIC_ROSTER
+                                   if lp._serves(c, lp.served_segments())]), (
+        "the founder book is only the hand-authored roster here, so this test cannot tell "
+        "whether the DRAWN founders reach the served book"
+    )
+
+
 # ── the reversal named in the curriculum file ────────────────────────────────────────────────
 
 def test_setting_the_number_back_to_the_roster_restores_the_pre_decision_book(

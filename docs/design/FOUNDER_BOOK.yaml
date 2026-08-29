@@ -19,16 +19,47 @@
 # instruments hit that same wall on 2026-08-28 -- the price ladder's 17 binary decisions, the
 # chase-on/chase-off comparison, and A48's method skill on 12 decisions across 5 accounts.
 #
-# WHAT IT COSTS, recorded because a curriculum act should carry its price:
-#   * WIDTH. The customer-year budget is fixed, so founders are paid for out of growth. The
-#     book falls from ~264 accounts to ~180, and the acquisition funnel's ~241 wins to ~100.
-#     The growth story gets quieter; that trade is the reason the decision was the director's.
+# WHAT IT COSTS, MEASURED at the run's own seed (20260724) on the tree that landed this file.
+# These are not the figures the menu was priced on and the difference is not rounding — see
+# "THE PRICED MENU WAS WRONG" below, which is kept rather than tidied away.
+#   * WIDTH, and it is the real cost. The customer-year budget is fixed, so founders are paid
+#     for out of growth: the published book falls from 398 accounts to 167, and the campaign
+#     books 45 of the 380 wins its funnel actually made — the other 335 are refused a place by
+#     `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET`, which the founders consume 800 of
+#     1,200 of. The growth story gets much quieter; that trade is why the decision was his.
+#   * WHAT IT BUYS, measured the same way: accounts carrying five or more renewals go from 92
+#     to 165. That is the depth the act was bought for and it is delivered.
 #   * WALL CLOCK. None. Same budget, same settle time, same publish cadence.
 #   * EVERY PUBLISHED FIGURE MOVES. A different book is a different supplier. Comparisons
 #     across this boundary are comparisons of two books and must say so.
 #
+# THE PRICED MENU WAS WRONG ON BOTH COLUMNS, and it is corrected here beside the act rather
+# than only in the staging note, because this file is what the next reader will find.
+# `docs/staging/SEAT_TO_DIRECTOR_P9_BOOK_DEPTH_PRICED_2026-08-28.md` said "264 -> ~180 accounts"
+# and "37 -> ~95 at 5+ renewals". Measured: 398 -> 167 and 92 -> 165. Three errors compounded:
+#
+#   1. THE PREMISE HAD ALREADY EXPIRED. P9 said "only 37 accounts carry five or more renewals,
+#      so nothing can compound". That was true when it was written and was NOT true when the
+#      decision was executed: R1's sourced acquisition costs made quotes roughly a third of the
+#      invented price, so the campaign already won its way to 92 deep accounts on its own. The
+#      act is still worth doing -- 92 -> 165 -- but it is an improvement on a working book, not
+#      the rescue of a broken one, and it was sold as the second.
+#   2. AN INTERIM 127 IS SUPERSEDED. A first correction to the menu reported the end book as
+#      "the measured 127, not the ~180 I priced". 127 was measured honestly against a tree in
+#      which `live_population` never actually held the drawn founders (see the comment at
+#      `simulation.live_population.live_population`), so it is the size of a book missing 67 of
+#      them. With the founders in the served book the figure is 167. Kept, not deleted: 127 was
+#      a real measurement of a real defect, and the defect is the interesting part.
+#   3. THE MECHANISM LINE WAS WRONG. The menu said "raise `accounts_held_at_start`, the
+#      parameter already exists and is threaded through". It is a derived argument
+#      (`len(book)`), not a knob. Building the parameter WAS the work; the costing assumed it
+#      away, which is why none of the numbers above could have been trusted as priced.
+#
 # REVERTING: set `founder_accounts` back to `13` (the hand-authored roster alone) or delete this
 # file -- `founder_book()` falls back to the static roster and the run is the pre-decision one.
+# The reversal is tested rather than asserted, and the 13-account run is byte-identical across
+# the wiring fix above (398 accounts, 92 deep, both before and after), which is what says that
+# fix is aimed at the artefact and not at the answer.
 # A malformed or out-of-range value is IGNORED with the fallback kept, never read as zero: a
 # YAML typo must not silently empty the opening book.
 

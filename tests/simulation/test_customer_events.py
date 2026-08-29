@@ -439,3 +439,58 @@ def test_realized_churn_probability_excludes_retention_offer_effect():
     assert result_with_offer["realized_churn_probability"] == pytest.approx(
         result_no_offer["realized_churn_probability"]
     )
+
+
+# ---------------------------------------------------------------------------
+# The 29 February class (2026-08-28)
+# ---------------------------------------------------------------------------
+
+def test_a_term_starting_on_29_FEBRUARY_opens_a_window_instead_of_CRASHING():
+    """The defect: `d.replace(year=d.year - 1)` raises on a leap day and kills the run.
+
+    Not a wrong number -- a `ValueError: day 29 must be in range 1..28`, and it took the whole
+    2016-25 settlement run down the first time the book held such an account (the director's
+    80-founder curriculum act put 80 accounts into 2016 and one landed on the 29th). Latent
+    for as long as no account happened to start on that date, which is the shape of every
+    calendar defect this repository has met.
+    """
+    import datetime as dt
+
+    from simulation.customer_events import twelve_month_window_open
+
+    assert twelve_month_window_open(dt.date(2016, 2, 29)) == dt.date(2015, 3, 1)
+
+
+def test_the_lookback_window_is_ALWAYS_about_a_year_and_never_the_zero_a_crash_would_be_read_as():
+    """The property, swept, rather than the leap day's answer alone.
+
+    Two failure shapes this is aimed at, and the second is the one worth the sweep. The first
+    is the crash. The second is the repair a future reader reaches for when they hit it again:
+    catching the `ValueError` and returning `anniversary` itself, or `date.min`, or None. Each
+    of those "does not crash" and silently makes the company's twelve-month lookback see zero
+    days of history or all of them -- a fail-open window that reports as a working one. So the
+    assertion is the SPAN, on every date in a leap cycle.
+
+    366 is the ceiling and not 365 on purpose: an ordinary anniversary whose intervening year
+    contains a leap day IS 366 days, and asserting 365 would red on a correct answer. That was
+    this test's own first draft, and the sweep is what caught it.
+    """
+    import datetime as dt
+
+    from simulation.customer_events import twelve_month_window_open
+
+    saw_leap_day = False
+    day = dt.date(2015, 1, 1)
+    while day < dt.date(2019, 1, 1):
+        window = twelve_month_window_open(day)
+        span = (day - window).days
+        assert 364 <= span <= 366, f"{day} opened a {span}-day window"
+        if (day.month, day.day) == (2, 29):
+            saw_leap_day = True
+            # The convention, pinned so it cannot be changed silently: 1 March, matching
+            # `company/billing/fit_legacy_register`. 28 February would give 365 and is a
+            # defensible answer -- it is just not the one this repository chose, and two
+            # conventions for one edge is how a calendar defect comes back.
+            assert window == dt.date(day.year - 1, 3, 1)
+        day += dt.timedelta(days=1)
+    assert saw_leap_day, "vacuous: the sweep never crossed a 29 February"
