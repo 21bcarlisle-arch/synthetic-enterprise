@@ -1,4 +1,46 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `A46_book_depth_is_a_curriculum_question`
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `A46_book_depth_is_a_curriculum_question`
+
+> ## CORRECTION, 2026-08-29, written beside the claim it refutes
+>
+> **The central claim below is WRONG and the run that refuted it is mine.** I filed "172 and
+> 0.1789 do not reproduce" *before* the reproduction run finished, on a re-render rather than a
+> run. The run then finished. From a clean detached worktree at `ddeb36b2b`,
+> `python3 -m tools.run_annual_report` reproduces **all four figures exactly**:
+>
+> | figure | published | clean-HEAD run | |
+> |---|---|---|---|
+> | booked | 90 | **90** | reproduces |
+> | on the book | 172 | **172** | reproduces |
+> | `settlement_sample_rate` | 0.1789 | **0.1789** | reproduces |
+> | `total_net_gbp` | £154,164.43 | **£154,164.43** | reproduces |
+>
+> `starting + net − final = £0.0047`, inside the £0.05 tolerance. **HEAD reproduces the published
+> book.** That is the answer to the direction's question and it is a pass.
+>
+> **Two errors, both mine, both this project's own named traps:**
+>
+> 1. **I re-rendered a downstream page instead of running the producer, and called the difference
+>    irreproducibility.** The full run *regenerates* `book_growth_campaign.json`; re-rendering the
+>    page alone reads whatever the last concurrent producer left at that absolute path. The 505/510
+>    and 0.1789/0.1771 gaps I measured were a producer overwriting the file mid-flight — the exact
+>    mechanism I cited two paragraphs later from the ceiling-probe finding, and then walked into.
+>    *A green/red result in the shared worktree measures several lanes, not your change.*
+> 2. **I divided two numbers without saying what each one counts.** `sample_rate =
+>    headroom_cy / campaign_cy` (`net_new_acquisition.py:879`) is a ratio of **customer-years**;
+>    90 and 505 are **win counts**. They are not the same quantity and were never meant to be
+>    equal, so "the page carries two answers under one label" was not a finding. The code says so
+>    plainly: *"the selection is by count and the budget is in customer-years… the guard is the
+>    invariant and the rate is the estimate."* `90 / 0.1789 = 503` against 505 funnel wins is the
+>    estimator working, not a discrepancy.
+>
+> **What survives, at lower severity** (LATENT → RECORDED): `docs/observability/book_growth_campaign.json`
+> is untracked and not gitignored, so *page-only* regeneration from a clean checkout — without
+> re-running the simulation — yields `available: false` with the reason *"no run has assembled a
+> book since this generator was wired"*, which is false. That fail-silent and its misdirecting
+> reason are real. They do not make the published figures unreproducible, because the producer
+> rebuilds the record. Everything below this box is the original filing, kept unedited.
+
+---
 
 # The published growth headline has no source in any commit, and re-rendering it on this box does not reproduce it either
 
