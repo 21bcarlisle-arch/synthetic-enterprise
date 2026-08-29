@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "C4g",
-    "gas_lifetime_net_gbp": 258.2,
-    "gas_lifetime_revenue_gbp": 1995.5,
-    "combined_net_gbp": 335.19,
-    "combined_revenue_gbp": 2663.68
+    "gas_lifetime_net_gbp": 257.25,
+    "gas_lifetime_revenue_gbp": 1994.56,
+    "combined_net_gbp": 334.24,
+    "combined_revenue_gbp": 2662.74
   },
   "annual_pnl": [
     {
@@ -1796,9 +1796,9 @@
       "customer_id": "C4",
       "date": "2018-10-01",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 2% churn risk at decision time, SIM realized probability was 12%.",
-      "company_belief": 0.022,
-      "sim_truth": 0.119,
+      "description": "Renewal outcome: CHURNED -- company believed 3% churn risk at decision time, SIM realized probability was 12%.",
+      "company_belief": 0.031,
+      "sim_truth": 0.117,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

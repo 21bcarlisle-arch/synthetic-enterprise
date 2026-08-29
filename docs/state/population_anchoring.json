@@ -9,20 +9,20 @@
   },
   "overall_rag": "AMBER",
   "long_run_comparison": {
-    "sim_avg_pct": 5.2,
+    "sim_avg_pct": 5.5,
     "ofgem_avg_pct": 13.6,
-    "ratio": 0.38,
+    "ratio": 0.4,
     "years_compared": 10,
-    "total_renewals": 742,
+    "total_renewals": 708,
     "rag": "GREEN",
     "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
   },
   "crisis_churn_direction": {
-    "pre_crisis_avg_pct": 4.9,
-    "crisis_avg_pct": 4.9,
-    "2022_sim_rate_pct": 3.7,
+    "pre_crisis_avg_pct": 4.5,
+    "crisis_avg_pct": 4.1,
+    "2022_sim_rate_pct": 4.4,
     "2022_ofgem_rate_pct": 4.0,
-    "2022_ratio_vs_ofgem": 0.9,
+    "2022_ratio_vs_ofgem": 1.1,
     "rolling_divergence_flag": false,
     "absolute_divergence_flag": false,
     "crisis_divergence_flag": false,
@@ -32,80 +32,80 @@
   "bad_debt_vs_benchmark": [
     {
       "year": 2016,
-      "bad_debt_gbp": 745.0,
-      "bad_debt_rate": 1.46,
+      "bad_debt_gbp": 600.0,
+      "bad_debt_rate": 1.65,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2017,
-      "bad_debt_gbp": 849.0,
-      "bad_debt_rate": 0.91,
+      "bad_debt_gbp": 500.0,
+      "bad_debt_rate": 0.85,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2018,
-      "bad_debt_gbp": 1619.0,
-      "bad_debt_rate": 1.64,
+      "bad_debt_gbp": 983.0,
+      "bad_debt_rate": 1.48,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2019,
-      "bad_debt_gbp": 2137.0,
-      "bad_debt_rate": 2.18,
+      "bad_debt_gbp": 579.0,
+      "bad_debt_rate": 0.76,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2020,
-      "bad_debt_gbp": 1814.0,
-      "bad_debt_rate": 2.16,
+      "bad_debt_gbp": 1245.0,
+      "bad_debt_rate": 1.58,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2021,
-      "bad_debt_gbp": 2400.0,
-      "bad_debt_rate": 2.59,
+      "bad_debt_gbp": 1746.0,
+      "bad_debt_rate": 1.71,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2022,
-      "bad_debt_gbp": 2641.0,
-      "bad_debt_rate": 1.66,
+      "bad_debt_gbp": 1759.0,
+      "bad_debt_rate": 0.93,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 2420.0,
-      "bad_debt_rate": 1.31,
+      "bad_debt_gbp": 1640.0,
+      "bad_debt_rate": 0.7,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2024,
-      "bad_debt_gbp": 789.0,
-      "bad_debt_rate": 0.58,
+      "bad_debt_gbp": 1769.0,
+      "bad_debt_rate": 0.87,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2025,
-      "bad_debt_gbp": 148.0,
-      "bad_debt_rate": 0.26,
+      "bad_debt_gbp": 220.0,
+      "bad_debt_rate": 0.23,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "AMBER"
@@ -119,7 +119,7 @@
       "ofgem_rate_prev": 0.2,
       "ofgem_rate_curr": 0.19,
       "sim_rate_prev": 0.0,
-      "sim_rate_curr": 0.0122,
+      "sim_rate_curr": 0.0161,
       "rag": "AMBER"
     },
     {
@@ -128,8 +128,8 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.19,
       "ofgem_rate_curr": 0.18,
-      "sim_rate_prev": 0.0122,
-      "sim_rate_curr": 0.0882,
+      "sim_rate_prev": 0.0161,
+      "sim_rate_curr": 0.1045,
       "rag": "AMBER"
     },
     {
@@ -138,8 +138,8 @@
       "sim_direction": "down",
       "ofgem_rate_prev": 0.18,
       "ofgem_rate_curr": 0.17,
-      "sim_rate_prev": 0.0882,
-      "sim_rate_curr": 0.0645,
+      "sim_rate_prev": 0.1045,
+      "sim_rate_curr": 0.0735,
       "rag": "GREEN"
     },
     {
@@ -148,8 +148,8 @@
       "sim_direction": "down",
       "ofgem_rate_prev": 0.17,
       "ofgem_rate_curr": 0.14,
-      "sim_rate_prev": 0.0645,
-      "sim_rate_curr": 0.0227,
+      "sim_rate_prev": 0.0735,
+      "sim_rate_curr": 0.0263,
       "rag": "GREEN"
     },
     {
@@ -158,28 +158,28 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.14,
       "ofgem_rate_curr": 0.09,
-      "sim_rate_prev": 0.0227,
-      "sim_rate_curr": 0.0588,
+      "sim_rate_prev": 0.0263,
+      "sim_rate_curr": 0.0349,
       "rag": "AMBER"
     },
     {
       "year_transition": "2021->2022",
       "ofgem_direction": "down",
-      "sim_direction": "down",
+      "sim_direction": "up",
       "ofgem_rate_prev": 0.09,
       "ofgem_rate_curr": 0.04,
-      "sim_rate_prev": 0.0588,
-      "sim_rate_curr": 0.037,
-      "rag": "GREEN"
+      "sim_rate_prev": 0.0349,
+      "sim_rate_curr": 0.044,
+      "rag": "AMBER"
     },
     {
       "year_transition": "2022->2023",
       "ofgem_direction": "up",
-      "sim_direction": "up",
+      "sim_direction": "down",
       "ofgem_rate_prev": 0.04,
       "ofgem_rate_curr": 0.08,
-      "sim_rate_prev": 0.037,
-      "sim_rate_curr": 0.0513,
+      "sim_rate_prev": 0.044,
+      "sim_rate_curr": 0.043,
       "rag": "GREEN"
     },
     {
@@ -188,8 +188,8 @@
       "sim_direction": "down",
       "ofgem_rate_prev": 0.08,
       "ofgem_rate_curr": 0.13,
-      "sim_rate_prev": 0.0513,
-      "sim_rate_curr": 0.027,
+      "sim_rate_prev": 0.043,
+      "sim_rate_curr": 0.0396,
       "rag": "GREEN"
     },
     {
@@ -198,8 +198,8 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.13,
       "ofgem_rate_curr": 0.14,
-      "sim_rate_prev": 0.027,
-      "sim_rate_curr": 0.1607,
+      "sim_rate_prev": 0.0396,
+      "sim_rate_curr": 0.1639,
       "rag": "GREEN"
     }
   ],
@@ -212,65 +212,65 @@
       "calibrated_multiplier": 2.17
     },
     "2017": {
-      "renewals": 81,
+      "renewals": 61,
       "churns": 1,
-      "sim_churn_rate": 0.0122,
+      "sim_churn_rate": 0.0161,
       "ofgem_benchmark": 0.19,
       "calibrated_multiplier": 1.88
     },
     "2018": {
-      "renewals": 93,
-      "churns": 9,
-      "sim_churn_rate": 0.0882,
+      "renewals": 60,
+      "churns": 7,
+      "sim_churn_rate": 0.1045,
       "ofgem_benchmark": 0.18,
       "calibrated_multiplier": 1.72
     },
     "2019": {
-      "renewals": 87,
-      "churns": 6,
-      "sim_churn_rate": 0.0645,
+      "renewals": 63,
+      "churns": 5,
+      "sim_churn_rate": 0.0735,
       "ofgem_benchmark": 0.17,
       "calibrated_multiplier": 1.43
     },
     "2020": {
-      "renewals": 86,
+      "renewals": 74,
       "churns": 2,
-      "sim_churn_rate": 0.0227,
+      "sim_churn_rate": 0.0263,
       "ofgem_benchmark": 0.14,
       "calibrated_multiplier": 0.95
     },
     "2021": {
-      "renewals": 80,
-      "churns": 5,
-      "sim_churn_rate": 0.0588,
+      "renewals": 83,
+      "churns": 3,
+      "sim_churn_rate": 0.0349,
       "ofgem_benchmark": 0.09,
       "calibrated_multiplier": 0.57
     },
     "2022": {
-      "renewals": 78,
-      "churns": 3,
-      "sim_churn_rate": 0.037,
+      "renewals": 87,
+      "churns": 4,
+      "sim_churn_rate": 0.044,
       "ofgem_benchmark": 0.04,
       "calibrated_multiplier": 0.44
     },
     "2023": {
-      "renewals": 74,
+      "renewals": 89,
       "churns": 4,
-      "sim_churn_rate": 0.0513,
+      "sim_churn_rate": 0.043,
       "ofgem_benchmark": 0.08,
       "calibrated_multiplier": 0.79
     },
     "2024": {
-      "renewals": 72,
-      "churns": 2,
-      "sim_churn_rate": 0.027,
+      "renewals": 97,
+      "churns": 4,
+      "sim_churn_rate": 0.0396,
       "ofgem_benchmark": 0.13,
       "calibrated_multiplier": 1.0
     },
     "2025": {
-      "renewals": 47,
-      "churns": 9,
-      "sim_churn_rate": 0.1607,
+      "renewals": 51,
+      "churns": 10,
+      "sim_churn_rate": 0.1639,
       "ofgem_benchmark": 0.14,
       "calibrated_multiplier": 0.93
     }
@@ -278,7 +278,7 @@
   "complaints_vs_benchmark": [
     {
       "year": 2016,
-      "complaint_rate_pct": 4.99,
+      "complaint_rate_pct": 4.81,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -286,7 +286,7 @@
     },
     {
       "year": 2017,
-      "complaint_rate_pct": 5.38,
+      "complaint_rate_pct": 5.21,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -294,7 +294,7 @@
     },
     {
       "year": 2018,
-      "complaint_rate_pct": 5.9,
+      "complaint_rate_pct": 5.57,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -302,15 +302,15 @@
     },
     {
       "year": 2019,
-      "complaint_rate_pct": 6.01,
+      "complaint_rate_pct": 5.75,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2020,
-      "complaint_rate_pct": 5.83,
+      "complaint_rate_pct": 5.59,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -318,7 +318,7 @@
     },
     {
       "year": 2021,
-      "complaint_rate_pct": 5.83,
+      "complaint_rate_pct": 5.89,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -326,7 +326,7 @@
     },
     {
       "year": 2022,
-      "complaint_rate_pct": 6.08,
+      "complaint_rate_pct": 6.07,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -334,7 +334,7 @@
     },
     {
       "year": 2023,
-      "complaint_rate_pct": 6.13,
+      "complaint_rate_pct": 5.96,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -342,15 +342,15 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 6.25,
+      "complaint_rate_pct": 5.82,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2025,
-      "complaint_rate_pct": 5.41,
+      "complaint_rate_pct": 5.54,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -360,15 +360,15 @@
   "arrears_vs_benchmark": [
     {
       "year": 2016,
-      "new_arrears_count": 24,
-      "active_customers": 124,
-      "new_arrears_rate_pct": 19.4,
+      "new_arrears_count": 16,
+      "active_customers": 87,
+      "new_arrears_rate_pct": 18.4,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 19.4,
+      "rag_basis_pct": 18.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -377,15 +377,15 @@
     },
     {
       "year": 2017,
-      "new_arrears_count": 63,
-      "active_customers": 165,
-      "new_arrears_rate_pct": 38.2,
+      "new_arrears_count": 32,
+      "active_customers": 98,
+      "new_arrears_rate_pct": 32.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 38.2,
+      "rag_basis_pct": 32.7,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -394,15 +394,15 @@
     },
     {
       "year": 2018,
-      "new_arrears_count": 58,
-      "active_customers": 164,
-      "new_arrears_rate_pct": 35.4,
+      "new_arrears_count": 37,
+      "active_customers": 112,
+      "new_arrears_rate_pct": 33.0,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 35.4,
+      "rag_basis_pct": 33.0,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -411,15 +411,15 @@
     },
     {
       "year": 2019,
-      "new_arrears_count": 50,
-      "active_customers": 150,
-      "new_arrears_rate_pct": 33.3,
+      "new_arrears_count": 36,
+      "active_customers": 126,
+      "new_arrears_rate_pct": 28.6,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 33.3,
+      "rag_basis_pct": 28.6,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -428,15 +428,15 @@
     },
     {
       "year": 2020,
-      "new_arrears_count": 53,
-      "active_customers": 143,
-      "new_arrears_rate_pct": 37.1,
+      "new_arrears_count": 51,
+      "active_customers": 147,
+      "new_arrears_rate_pct": 34.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 37.1,
+      "rag_basis_pct": 34.7,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -445,15 +445,15 @@
     },
     {
       "year": 2021,
-      "new_arrears_count": 45,
-      "active_customers": 141,
-      "new_arrears_rate_pct": 31.9,
+      "new_arrears_count": 52,
+      "active_customers": 160,
+      "new_arrears_rate_pct": 32.5,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 31.9,
+      "rag_basis_pct": 32.5,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -462,15 +462,15 @@
     },
     {
       "year": 2022,
-      "new_arrears_count": 53,
-      "active_customers": 134,
-      "new_arrears_rate_pct": 39.6,
+      "new_arrears_count": 62,
+      "active_customers": 167,
+      "new_arrears_rate_pct": 37.1,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 39.6,
+      "rag_basis_pct": 37.1,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -479,15 +479,15 @@
     },
     {
       "year": 2023,
-      "new_arrears_count": 45,
-      "active_customers": 129,
-      "new_arrears_rate_pct": 34.9,
+      "new_arrears_count": 62,
+      "active_customers": 184,
+      "new_arrears_rate_pct": 33.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 34.9,
+      "rag_basis_pct": 33.7,
       "benchmark_green_hi": 12.0,
       "is_crisis_year": true,
       "rag": "RED",
@@ -496,15 +496,15 @@
     },
     {
       "year": 2024,
-      "new_arrears_count": 52,
-      "active_customers": 123,
-      "new_arrears_rate_pct": 42.3,
+      "new_arrears_count": 76,
+      "active_customers": 209,
+      "new_arrears_rate_pct": 36.4,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 42.3,
+      "rag_basis_pct": 36.4,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -513,15 +513,15 @@
     },
     {
       "year": 2025,
-      "new_arrears_count": 33,
-      "active_customers": 119,
-      "new_arrears_rate_pct": 27.7,
+      "new_arrears_count": 73,
+      "active_customers": 215,
+      "new_arrears_rate_pct": 34.0,
       "ic_arrears_count": 0,
       "ic_active_customers": 0,
       "ic_arrears_rate_pct": 0.0,
       "ic_aggregate_rate_pct": 0.0,
       "rag_basis_label": "per-year overall rate",
-      "rag_basis_pct": 27.7,
+      "rag_basis_pct": 34.0,
       "benchmark_green_hi": 8.0,
       "is_crisis_year": false,
       "rag": "RED",
@@ -557,9 +557,33 @@
     {
       "segment": "resi",
       "year": 2018,
-      "attempts": 8,
+      "attempts": 6,
+      "wins": 0,
+      "win_rate_pct": 0.0,
+      "benchmark_green_range_pct": [
+        15.0,
+        20.0
+      ],
+      "rag": "RED"
+    },
+    {
+      "segment": "SME",
+      "year": 2019,
+      "attempts": 1,
+      "wins": 0,
+      "win_rate_pct": 0.0,
+      "benchmark_green_range_pct": [
+        15.0,
+        21.0
+      ],
+      "rag": "RED"
+    },
+    {
+      "segment": "resi",
+      "year": 2019,
+      "attempts": 4,
       "wins": 1,
-      "win_rate_pct": 12.5,
+      "win_rate_pct": 25.0,
       "benchmark_green_range_pct": [
         15.0,
         20.0
@@ -568,49 +592,13 @@
     },
     {
       "segment": "SME",
-      "year": 2019,
-      "attempts": 1,
+      "year": 2020,
+      "attempts": 2,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
         15.0,
         21.0
-      ],
-      "rag": "RED"
-    },
-    {
-      "segment": "resi",
-      "year": 2019,
-      "attempts": 5,
-      "wins": 1,
-      "win_rate_pct": 20.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
-      ],
-      "rag": "GREEN"
-    },
-    {
-      "segment": "SME",
-      "year": 2020,
-      "attempts": 1,
-      "wins": 0,
-      "win_rate_pct": 0.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        21.0
-      ],
-      "rag": "RED"
-    },
-    {
-      "segment": "resi",
-      "year": 2020,
-      "attempts": 1,
-      "wins": 0,
-      "win_rate_pct": 0.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
       ],
       "rag": "RED"
     },
@@ -629,7 +617,7 @@
     {
       "segment": "resi",
       "year": 2021,
-      "attempts": 4,
+      "attempts": 2,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
@@ -641,14 +629,14 @@
     {
       "segment": "resi",
       "year": 2022,
-      "attempts": 3,
+      "attempts": 4,
       "wins": 1,
-      "win_rate_pct": 33.3,
+      "win_rate_pct": 25.0,
       "benchmark_green_range_pct": [
         15.0,
         20.0
       ],
-      "rag": "RED"
+      "rag": "AMBER"
     },
     {
       "segment": "resi",
@@ -665,7 +653,7 @@
     {
       "segment": "resi",
       "year": 2024,
-      "attempts": 2,
+      "attempts": 4,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
@@ -677,14 +665,14 @@
     {
       "segment": "resi",
       "year": 2025,
-      "attempts": 7,
-      "wins": 0,
-      "win_rate_pct": 0.0,
+      "attempts": 9,
+      "wins": 1,
+      "win_rate_pct": 11.1,
       "benchmark_green_range_pct": [
         15.0,
         20.0
       ],
-      "rag": "RED"
+      "rag": "AMBER"
     }
   ]
 }

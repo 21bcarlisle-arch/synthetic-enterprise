@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-29T06:14:06Z",
- "git_commit": "d5d58da623a1cd89256892d428299921dabe5444",
+ "generated_at": "2026-08-29T07:47:11Z",
+ "git_commit": "6b958b8a82fc5017d189200d065d77a9727c18ff",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -600,10 +600,10 @@
     "value": 122,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-29T04:40:07Z"
+    "as_of": "2026-08-29T06:14:12Z"
    },
    {
-    "value": 166,
+    "value": 257,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
@@ -611,7 +611,7 @@
   ],
   "agree": false,
   "low": 122,
-  "high": 166,
+  "high": 257,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -624,8 +624,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 122\u2013166 customers",
-   "what": "Everything on this page is true of a supplier with 122\u2013166 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 122 (accounts in the live customer feed), 166 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 122\u2013257 customers",
+   "what": "Everything on this page is true of a supplier with 122\u2013257 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 122 (accounts in the live customer feed), 257 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
