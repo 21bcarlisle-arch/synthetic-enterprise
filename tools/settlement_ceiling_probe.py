@@ -13,10 +13,10 @@ nine of the ten published growth years". Both clauses were true when written and
 false, so they are struck rather than left for a reader to trust. The ceiling was spent FIRST-COME
 on a cohort whose settlement tails cost 9.83 customer-years each, so it emptied inside 2017 and
 booked zero in every year after; it now sets a uniform SAMPLE RATE over the campaign's own wins and
-`binding` reports what limited the COMPANY. On the record of that day: 505 funnel wins, 92 settled,
-a rate of 0.1834, and ten of ten years commercial-bound. Two runs of the same code at the same seed
-produced 90/0.1789 and 92/0.1834 -- an OPENING-book difference, not a campaign one, filed open in
-the design doc. Read the rate from the record, never from this sentence.
+`binding` reports what limited the COMPANY. On the record of that day: 505 funnel wins, 90 settled,
+a rate of 0.1789, and ten of ten years commercial-bound. Read the rate from the record rather than
+from this sentence -- and read it from a record written while the tree was NOT being edited, which
+is how an intermediate 92/0.1834 was briefly mistaken for a determinism defect.
 `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`.
 
 WHAT THAT MEANS FOR THIS PROBE, which still measures the right thing but answers a different

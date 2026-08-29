@@ -136,8 +136,8 @@ rather than the 127 our wall clock let it settle.
 
 **Change 2 — uniform sampling. Direction and magnitude held; the level did not, and the reason is
 mine.** Filed prediction: ≈85 booked, 416.2 customer-years, ≈41 accounts at five-plus years, PB3
-scored on ten. Measured in-process: **90 booked, 1,195.4 of 1,200 committed, 43 deep, PB3 on ten**;
-the producer's own record says 92 and 1,195.1 (see the range note below). The
+scored on ten. Measured: **90 booked, 1,195.4 of 1,200 committed, 43 deep, PB3 on ten**, and the
+producer's own record agrees once the tree stops moving under it (see below). The
 prediction was written against HEAD's 380 funnel wins and change 1 landed first, so the realised
 sample is 0.1789 of 505 rather than 0.224 of 380. **The prediction should have been stated for the
 composite, because that is the order I had already chosen to run them in.** Kept as filed rather
@@ -146,54 +146,41 @@ than revised.
 | | HEAD | after both changes |
 |---|---|---|
 | funnel wins | 380 | 505 |
-| booked | 45 | **90 – 92** *(see below)* |
+| booked | 45 | **90** |
 | years booking > 0 | 2 | **10** |
 | accounts ≥ 5 customer-years | 45 | 43 |
-| customer-years committed | 1,199.9 | 1,195.1 – 1,195.4 |
+| customer-years committed | 1,199.9 | 1,195.4 |
 | PB3 years scored | 1 | **10** |
 | PB3 gap | 1.0 *(an identity)* | **0.830** |
 
-**A RANGE, NOT A NUMBER, AND I CANNOT YET SAY WHY.** Two runs of the same code at the same seed
-disagree, and the disagreement is not in the campaign:
+**A RANGE THAT RESOLVED TO A NUMBER, AND THE WRONG READING IS KEPT BESIDE IT.** For about ninety
+minutes I could not reconcile two runs of the same code at the same seed: my in-process
+`_resolve_campaign` gave rate 0.1789 / 90 booked, and the producer's record of 06:32Z gave
+0.1834 / 92. The campaign was byte-identical on every leg — 505 funnel wins, 2,358.4 customer-years
+to settle them all, 587 accounts held — so the whole difference was in the OPENING book: 778.2
+customer-years against a derived 767.5, propagating through `rate = (budget − opening) / campaign
+cost`.
 
-| | in-process (`_resolve_campaign`, this session) | live producer's record, 06:32Z |
-|---|---|---|
-| opening accounts | 82 | 82 *(587 − 505)* |
-| **opening customer-years** | **778.2** | **767.5** *(derived: 1,200 − rate × 2,358.4)* |
-| funnel wins | 505 | 505 |
-| campaign cost, all wins | 2,358.4 | 2,358.4 |
-| sample rate | 0.1789 | 0.1834 |
-| booked | 90 | 92 |
+I wrote that up as possible **curriculum non-determinism** — two processes building the published
+book from different versions of a director-authored artefact — and flagged it as the worse of the
+two possibilities.
 
-The campaign is byte-identical on every leg. The difference is **entirely in the OPENING book** —
-the same 82 accounts carrying 10.7 fewer customer-years, i.e. dated later — and it propagates
-because `rate = (budget − opening book) / campaign cost`. Nothing I changed touches
-`_pre_growth_book`, `founder_book` or `existing_cy`, and `docs/design/FOUNDER_BOOK.yaml` has not
-been written since 21:32 the previous evening.
+**It was neither. It was me.** The producer's next cycle (07:50 local) reads **0.1789 / 90**, exactly
+matching three separate in-process runs whose sorted acquisition dates hash identically. The 0.1834
+has not recurred. The producer executes the WORKING TREE, and at 06:32 that tree was being edited —
+by this session and by at least one other lane at the same time. **A figure read off the producer's
+artefact while the tree is under edit is not a measurement of anything.**
 
-**So the sample rate is only as reproducible as the opening book is, and the opening book appears
-not to be.** That is a pre-existing property my change did not create but did make consequential in
-a new way: it used to move where the cliff fell, and it now scales every published booked count.
-**Filed as open, not resolved, and the published figure is the producer's** — 92 booked, rate
-0.1834, book 174 — because that is what a reader sees. The prediction to test on the next producer
-cycle: if 0.1834 recurs exactly, this is an environment difference between my process and the
-producer's; if it drifts again, the opening book is non-deterministic and that is a separate and
-worse finding.
+That is the mirror finding of 2026-08-29 §1 one level out. There, a probe adopted the producer's
+book because both wrote the same path; here, the producer adopted a half-written tree because I was
+the one writing it. Same question, asked of the other direction: *who else is touching the thing you
+are measuring* — and "me, right now" is an answer that has to be checked too.
 
-**The PB3 gap was not a measurement and now is.** With the partition collapsed to {2016} — the one
-year that plans on the founding belief — `abs_error == abs_error_no_skill` and the ratio is 1.0 by
-construction. Over ten years with nine planning on a learned rate it is 0.830: learning from its own
-quote book beat never updating. Two repairs, both keyed to properties rather than to years:
-`_realised_rate` now scores against `funnel_wins` (the belief has been built from the funnel since
-2026-08-28, so scoring it against booked wins compared two populations), and `measure` refuses the
-normalised headline when no scored year planned on a learned rate.
-
-**Proportionality, checked rather than assumed.** Booked/funnel by year: .167 .188 .174 .171 .181
-.171 .200 .174 .181 .184 against a rate of .179 — every year within ±0.021.
+**The shipped figures are 90 booked, rate 0.1789, book 172, and every table above uses them.**
 
 ## 6a. What it costs to run, which is the one thing a ceiling change must not get wrong
 
-The book doubled in ACCOUNTS (45 → 90-92 campaign wins, 127 → 174 on the book) at essentially
+The book doubled in ACCOUNTS (45 → 90 campaign wins, 127 → 172 on the book) at essentially
 unchanged CUSTOMER-YEARS (1,199.9 → 1,195.4). Those two scale different costs, so the question is
 which dominates.
 

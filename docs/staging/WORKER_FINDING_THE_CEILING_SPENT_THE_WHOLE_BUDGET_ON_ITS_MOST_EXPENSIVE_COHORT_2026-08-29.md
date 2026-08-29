@@ -28,35 +28,32 @@ had exactly zero variance, so every downstream comparison keyed on year was dead
 fraction, `f = headroom / (customer-years all funnel wins would cost)`, taken systematically over
 the campaign's win sequence so each year's booked wins are proportional to its funnel wins. `f ≥ 1`
 is a no-op and the run is byte-identical, which is the null result showing it is aimed at the
-artefact. Booked 45 → **92**, all ten years, on **fewer** settled customer-years than before.
+artefact. Booked 45 → **90**, all ten years, on **fewer** settled customer-years than before.
 
-**One loose end, filed open rather than tidied.** Two runs of the same code at the same seed give
-90/0.1789 and 92/0.1834. The campaign is identical on every leg — 505 funnel wins, 2,358.4
-customer-years to settle them all, 587 accounts held — and the whole difference is in the OPENING
-book: the same 82 accounts carrying 767.5 customer-years in the producer's run against 778.2 in
-mine. `rate = (budget − opening book) / campaign cost`, so it propagates straight through. Nothing
-in this change touches the opening book. **The sample rate is only as reproducible as the opening
-book is.** The published figure is the producer's, because that is what a reader sees.
+**A LOOSE END I FILED AS A CURRICULUM-INTEGRITY RISK, AND IT WAS ME.** Kept here rather than
+deleted, because the wrong reading is the evidence that the right one was checked.
 
-What I established before stopping, so the next reader does not re-run it:
+For about ninety minutes two runs of the same code at the same seed disagreed: my in-process
+`_resolve_campaign` gave rate 0.1789 / 90 booked, the producer's record of 06:32Z gave 0.1834 / 92.
+The campaign was identical on every leg — 505 funnel wins, 2,358.4 customer-years to settle them
+all, 587 accounts held — so the entire difference sat in the OPENING book (778.2 customer-years
+against a derived 767.5), propagating through `rate = (budget − opening) / campaign cost`. I
+established that it is deterministic in-process (three processes: `n=82`, `cy=778.2`, identical SHA
+over the sorted acquisition dates), that no environment I could set reproduced 767.5
+(`SIM_FAST_MODE`, `SE_FAST`, `SE_GROW_BOOK`+`SE_DRAW_POPULATION`, bare), and that it was neither the
+horizon nor the seed. I wrote it up as possible non-determinism in a director-authored curriculum
+artefact — explicitly the worse of the two possibilities, and explicitly not proved.
 
-- **In-process it IS deterministic.** Three separate processes: `n=82`, `cy=778.2`, and an identical
-  SHA over the sorted acquisition dates. So this is not an RNG drift.
-- **No environment I can set reproduces 767.5.** `SIM_FAST_MODE=1`, `SE_FAST=1`,
-  `SE_GROW_BOOK=1 SE_DRAW_POPULATION=1`, and the bare environment all give 778.2.
-- **It is not the horizon and not the seed.** A different horizon would move `campaign_cy` too and
-  it is 2,358.4 on both sides; a different seed would move the funnel and it is 505 on both.
-- **`founder_book` is not memoised**, but it reads `founder_accounts()` out of
-  `docs/design/FOUNDER_BOOK.yaml` — which is uncommitted-modified in this tree by another lane —
-  and `draw_population_enabled()`. A curriculum artefact being read at different moments by
-  different processes is the shape that fits; **I have not proved it** and am not asserting it.
+**It was neither possibility.** The producer's next cycle reads **0.1789 / 90**, matching the
+in-process runs exactly; 0.1834 has not recurred. The producer executes the WORKING TREE, and at
+06:32 that tree was being edited — by this session and by at least one other lane concurrently.
 
-The derivation, so it can be checked rather than trusted: `rate = (1200 − opening) / 2358.4`, so
-`0.1834 → opening = 767.5 ± 0.3` from 4-dp rounding, against a measured 778.2.
-
-**Why it matters beyond this run:** the opening book is R13 CURRICULUM, director-authored. If two
-processes on this box can build the published book from different versions of it, that is a
-curriculum-integrity question and not a rounding one.
+**A figure read off the producer's artefact while the tree is under edit is not a measurement.**
+That is the mirror finding of the same morning turned around: there, a probe adopted the producer's
+book because both wrote the same path; here the producer adopted a half-written tree because I was
+the one writing it. *Ask who else is touching the thing you are measuring* — and check "me, right
+now" before reaching for a structural explanation. I reached for the structural one first, and it
+would have cost the next reader a curriculum audit that had nothing to audit.
 
 ## 2. The same wall breach, second leg, left behind nine lines from the first
 
@@ -114,7 +111,7 @@ rather than its coverage, and it can wait for a real answer instead of forcing a
    `PROSPECTS_PER_YEAR = 400` — in 2024 the company could afford 861 quotes and only 400 prospects
    exist. Our number, not the GB switching market's.
 3. **The director's target is met and the book is a sample of it.** The supplier holds 587 accounts
-   ("grow residential toward 200" was passed in 2018); 174 reach the published book. Every binding
+   ("grow residential toward 200" was passed in 2018); 172 reach the published book. Every binding
    reason is commercial in all ten years.
 4. **Unchanged and stated as such:** R6 headroom £316,009 and the ladder's gradable population were
    not re-measured against this run and must not be quoted from the old ones — the book they were
