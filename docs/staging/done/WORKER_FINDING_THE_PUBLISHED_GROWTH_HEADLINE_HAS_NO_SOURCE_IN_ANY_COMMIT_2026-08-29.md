@@ -1,5 +1,21 @@
 **Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `A46_book_depth_is_a_curriculum_question`
 
+> ## DISCHARGED, 2026-08-29 — nothing is owed against this document
+>
+> Both halves are closed and this file is archived to `done/` on that basis, not on age:
+>
+> * **The central claim** — "172 and 0.1789 do not reproduce from HEAD" — was refuted by the
+>   author's own run and corrected in the box below, at `64eaa102f`. All four figures reproduce.
+> * **What survived it** — the growth page's `available: false` naming a cause the generator
+>   cannot observe — was repaired at `e4f588aa4`: `generate()` splits the read into `missing` /
+>   `unreadable` / `empty` and passes the class it actually observed, an untaught class claims
+>   NO cause, and four mutations are red on exactly one control each.
+>
+> The run path this document was filed against is itself in a commit — `ddeb36b2b`, the four
+> files of the 2026-08-29 lane 0 direction landed as one. The direction's three conditions are
+> met: the tree is clean of the pair, `ddeb36b2b` says which way it went, and the reproduction
+> result is stated in `64eaa102f`. Nothing here is waiting on anyone.
+
 > ## CORRECTION, 2026-08-29, written beside the claim it refutes
 >
 > **The central claim below is WRONG and the run that refuted it is mine.** I filed "172 and
