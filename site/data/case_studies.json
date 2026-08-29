@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-28T23:59:19Z",
+    "generated_at": "2026-08-29T01:28:03Z",
     "git_commit": "unknown",
     "household_count": 122,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
@@ -8,7 +8,7 @@
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "224 timeline + reaction-chain entries on record",
+      "headline": "222 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "PROS-2016-0098",
       "base_account_id": "PROS-2016-0098",
@@ -21,7 +21,7 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "79.1 percentage points apart at the 2025 renewal (sim 95.0% vs company 15.9%)",
+      "headline": "84.5 percentage points apart at the 2025 renewal (sim 95.0% vs company 10.5%)",
       "wall_side": "sim",
       "account_id": "SYN-2016-025",
       "base_account_id": "SYN-2016-025",
@@ -37,20 +37,6 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "PROS-2016-0067",
-      "base_account_id": "PROS-2016-0067",
-      "segment": "resi",
-      "commodity": "electricity",
-      "link": {
-        "acc": "PROS-2016-0067",
-        "tab": "timeline",
-        "year": 2025
-      }
-    },
-    {
-      "category": "Heaviest arrears cascade",
-      "headline": "15 debt write-off event(s) in the arrears cascade",
-      "wall_side": "company",
       "account_id": "PROS-2016-0020",
       "base_account_id": "PROS-2016-0020",
       "segment": "resi",
@@ -58,7 +44,21 @@
       "link": {
         "acc": "PROS-2016-0020",
         "tab": "timeline",
-        "year": 2016
+        "year": 2025
+      }
+    },
+    {
+      "category": "Heaviest arrears cascade",
+      "headline": "30 debt write-off event(s) in the arrears cascade",
+      "wall_side": "company",
+      "account_id": "PROS-2016-0067",
+      "base_account_id": "PROS-2016-0067",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "PROS-2016-0067",
+        "tab": "timeline",
+        "year": 2018
       }
     },
     {

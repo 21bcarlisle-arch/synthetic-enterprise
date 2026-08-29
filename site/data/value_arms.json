@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T00:03:53.684054Z",
+  "generated_at": "2026-08-29T01:32:23.684403Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -69,11 +69,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
+      "checked": true,
+      "same_supplier": false,
       "published_run_net_gbp": 164541.78099,
-      "dashboard_net_gbp": 165000.99,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3164,541.78 and the figure the site actually publishes for the company reports \u00a3165,000.99 -- a gap of \u00a3459.21 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "gap_gbp": 5118.283596006746,
+      "statement": "The published run's net margin (\u00a3164,541.78) is NOT the baseline arm's (\u00a3159,423.50) -- they differ by \u00a35,118.28. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {

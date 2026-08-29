@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-08-28T23:37:25.304850+00:00",
+  "generated_at": "2026-08-29T01:27:44.640787+00:00",
   "open_count": 1,
   "items": [
     {
-      "item_id": "publish_gate_wedged",
-      "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=bfce5ff50). EPISODE: wedged since 2026-08-28T20:32 UTC -- 3h04m and 6 consecutive failures in THIS episode (not a fresh hour). Markers pending: 7.",
-      "how": "BLOCKING TEST (gate subject bfce5ff50): FAILED tests/saas/reporting/test_counterfactual_lift_section.py::test_section_includes_lift_by_class_table_when_misses_present. Run exactly that node id against a clean checkout of HEAD. THAT IS THE WHOLE RED SET: 1 test(s) red at this HEAD, enumerated by a report-only re-run without fail-fast. Fix them TOGETHER -- fixing one and re-running is how this wedge lasted 252 cycles. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. The alarm clears automatically on the next clean publish. SUSPECTS (re-derived from the blocking test above -- NOT what was filed most recently): first-party modules that test imports: saas/reporting/annual_report.py. Commits touching those paths in the last 7 days: 0850eadcd the live campaign spends the sourced cost, and the retention offer becomes a price instead of a payment; 3e3105468 fifteen of the twenty-eight tests/tools reds, and four of them were one control keyed to a structure that moved; 71cdda78a the waiter was pgrep-ing its own command line, and inbound director text reached the tree by four routes rather than one; 985afb3be the oldest divergence on the tree was finished work: a coverage note, its renderer and ten passing tests, uncommitted for seven days; cbb2fd2d8 EP1: 915 lines of finished, green CLV work died with the session that wrote it and has been refusing every lane's map commit since -- adopted and landed; 5301ac7c9 A year's records are a subsequence of the portfolio balance, not a series: one treasury swing was published as a 2022 event and a 2023 event with peaks four pence apart. Filed findings whose text NAMES one of those paths (draw these first): WORKER_FINDING_REPEATING_ALARM_SEAT_CONTINUITY_2026-08-26.md. SUSPECT HIT RATE: not yet measured (20 closed episode(s) emitted no suspect list because the blocking test was unrecorded).",
-      "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).",
-      "first_asked_at": "2026-07-18T15:21:58.968619+00:00"
+      "item_id": "executor-wall_escalated-f13e76f1",
+      "what": "Headless executor hit a one-way door (WALL) \u2014 NTFY'd, loop CONTINUING other atoms.",
+      "how": "Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT blocked \u2014 it is drawing other work meanwhile and will act on your answer at the next boundary. Details: the escalated item + docs/observability/build-executor-log.md. ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane.\nReply to CLOSE: start your NTFY with PIN 8883 (e.g. 'PIN 8883 PROCEED').",
+      "why": "Unattended loop self-stopped and is awaiting a director decision. Draw: DOOR A: spend real money on X",
+      "first_asked_at": "2026-08-29T01:27:44.640032+00:00"
     }
   ]
 }

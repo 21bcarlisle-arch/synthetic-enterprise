@@ -9,9 +9,9 @@
   },
   "overall_rag": "AMBER",
   "long_run_comparison": {
-    "sim_avg_pct": 5.0,
+    "sim_avg_pct": 5.2,
     "ofgem_avg_pct": 13.6,
-    "ratio": 0.37,
+    "ratio": 0.38,
     "years_compared": 10,
     "total_renewals": 742,
     "rag": "GREEN",
@@ -72,35 +72,35 @@
     },
     {
       "year": 2021,
-      "bad_debt_gbp": 2332.0,
-      "bad_debt_rate": 2.52,
+      "bad_debt_gbp": 2400.0,
+      "bad_debt_rate": 2.59,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2022,
-      "bad_debt_gbp": 2471.0,
-      "bad_debt_rate": 1.56,
+      "bad_debt_gbp": 2641.0,
+      "bad_debt_rate": 1.66,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 2449.0,
-      "bad_debt_rate": 1.33,
+      "bad_debt_gbp": 2420.0,
+      "bad_debt_rate": 1.31,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
     },
     {
       "year": 2024,
-      "bad_debt_gbp": 645.0,
-      "bad_debt_rate": 0.47,
+      "bad_debt_gbp": 789.0,
+      "bad_debt_rate": 0.58,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year": 2025,
@@ -199,7 +199,7 @@
       "ofgem_rate_prev": 0.13,
       "ofgem_rate_curr": 0.14,
       "sim_rate_prev": 0.027,
-      "sim_rate_curr": 0.1429,
+      "sim_rate_curr": 0.1607,
       "rag": "GREEN"
     }
   ],
@@ -268,9 +268,9 @@
       "calibrated_multiplier": 1.0
     },
     "2025": {
-      "renewals": 48,
-      "churns": 8,
-      "sim_churn_rate": 0.1429,
+      "renewals": 47,
+      "churns": 9,
+      "sim_churn_rate": 0.1607,
       "ofgem_benchmark": 0.14,
       "calibrated_multiplier": 0.93
     }
@@ -677,7 +677,7 @@
     {
       "segment": "resi",
       "year": 2025,
-      "attempts": 6,
+      "attempts": 7,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
