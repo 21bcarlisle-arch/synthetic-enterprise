@@ -36,6 +36,40 @@ then `--decompose` over those two, the published `..._noise_floor_20260829.json`
 If (1) is wrong the page gets its remedy back with the price stated, and the prediction stays in the
 record beside the result saying I called it the other way.
 
+## STATE AS OF 2026-08-29 23:55Z — read this first
+
+The `only` leg landed at 23:07Z; the `except` leg is still running and is expected around 00:28Z.
+Two commits are in against this (`fcc6a90f9`, `c02c8c86c`) and **the only thing outstanding is the
+reconciliation and the publish**. What is already settled, so it is not re-done or re-argued:
+
+* **Prediction (1) is REFUTED and marked as such** beside its own number in
+  `docs/observability/value_arm_floor_decomposition_prediction_20260829.md`. The priced side is the
+  **LARGE** half: sd 2,092.29 against 2,577.80 undecomposed = **65.9%** against a 50.4% threshold.
+  The prose that read as agnostic is marked too. **Do not re-open this; do not soften it.**
+* **The reconciliation target is filed in advance**: the `except` leg's `selection_gbp` stdev must
+  come out near **£1,505.78**, pass band roughly **£930–£2,190** (the prereg's 0.3–3.0× on the
+  ratio). Written before the leg landed, so it is a prediction. Record the result beside it either
+  way.
+* **The denominator is named.** 10 accounts = the independent draws and the only sample size;
+  20 = decisions (2.00/account, sharing one draw); 90–103 = call sites, because
+  `price_elasticity_for_customer` is a pure function of `(customer_id, seed)`. The multiplier is
+  invariant (**4.25×**); the counts are not. `remedy_price_table` now derives both counts from the
+  multiplier and every row names its `independence_unit`. The table is reprinted in the
+  observability note.
+* **The n=3 caveat is wired into the consumer.** The split will clear `share_is_decisive` by
+  **0.005** (0.1550 vs a 0.150 bar), so the page's price now carries the seed count and that
+  distance automatically. Nothing further is needed to satisfy "with its n=3 caveat".
+
+**What is left, in order.** (1) `python3 -m tools.run_value_cycle_ab --decompose <all> <only>
+<except> <three_arm>` per the step below. (2) Check sd(except) against £1,505.78 and the band —
+**if it falls outside, publish NOTHING from the legs and the finding is about the legs.** (3)
+`python3 -m tools.generate_value_arms_data`; the remedy branch flips on its own. (4) Commit the
+except leg artefact, the decomposition artefact and `site/data/value_arms.json` by pathspec.
+
+**Launch long jobs with `systemd-run --user --unit=`.** A `nohup`'d `surgical_land` was killed with
+this tick's cgroup and reported exit 0 while landing nothing; HEAD was unchanged. That cost one
+cycle here.
+
 ## What to do when the unit exits
 
 1. `systemctl --user is-active vcab-floor-legs` → inactive, then read the tail of
