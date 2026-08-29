@@ -454,6 +454,30 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: so £16,404 of the campaign's spend was this constant reaching into the company's books. At
 #: 13 founders the fix changes NOTHING (1,066/200/200, byte-identical), because nothing is
 #: refused there; that null result is what shows it is aimed at the artefact and not the answer.
+#: RE-MEASURED 2026-08-29 AND DELIBERATELY NOT MOVED — `docs/design/SETTLEMENT_CEILING_REMEASURED_
+#: _2026-08-29.md`, artefact `docs/observability/settlement_ceiling_probe.json`, instrument
+#: `tools/settlement_ceiling_probe.py`. Three things came back and none of them is a new value.
+#:
+#: 1. THE COST ABOVE IS 36% LOW AND 35% LIGHT. At this same 1,200, measured on the live path's
+#:    own compute this week: 1,018.7s and 4,193 MB, against the 746.8s and 3,117 MB recorded
+#:    above. Nothing regressed. The August figure was taken while this ceiling was SLACK — the
+#:    campaign committed 796.1 of its 1,200 — and the founder book made it TAUT, so the same
+#:    constant now buys 1,199.9 customer-years and costs what 1,200 always would have. A cost
+#:    note taken at a budget the run never reached is a note about a different run.
+#:
+#: 2. THE TIME ARGUMENT ABOVE IS CIRCULAR AND SHOULD NOT BE REPEATED. "12.4 minutes leaves
+#:    seventeen for the publisher's gate inside the half-hour cycle" reasons against
+#:    `suite_duration_watch.PUBLISH_CADENCE_SECONDS`, which is 1,500s and not 1,800s, and which
+#:    that module's own comment defines as "a measurement of how often runs actually arrive".
+#:    Run duration sets marker inter-arrival, so raising this ceiling raises the cadence that is
+#:    supposed to bound it — and lengthening the run also widens the interval `absolute_band()`
+#:    checks the gate's speed against, so it buys silence from that alarm too. MEMORY against
+#:    the guest is the only bound here that is evidence; a time bound has to be a publish
+#:    interval somebody CHOSE and named.
+#:
+#: 3. THE SECOND POINT WAS CONTAMINATED AND THE PROBE NOW SAYS SO. A slope needs two clean
+#:    points and there is one, so this number stays where it is until the run specified in §6 of
+#:    that document is taken with the producer stood down. "I cannot yet say" is the result.
 SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0
 
 
@@ -713,13 +737,22 @@ def plan_growth_campaign(
             "customer_years_committed": round(committed_cy, 1),
         })
         if cy_exhausted_at is not None:
+            # THE PROVENANCE IN THIS STRING IS THE ONE A READER SEES, and it went stale on
+            # 2026-08-24 without anyone noticing for five days. The constant's own note was
+            # corrected that day -- "not from the scale probe any more" -- but this note kept
+            # telling every reader of the published book-growth page that 1,200 was "60% of the
+            # 465 measured in AO12's scale probe", a derivation the module had already
+            # abandoned AND which never parsed anyway (1,200 is not 60% of 465). The lesson is
+            # narrower than "keep docs in sync": a citation duplicated between a comment and a
+            # RENDERED string has two half-lives, and only one of them has a reader who would
+            # notice. Cite the artefact path, so the next correction lands where it is read.
             notes.append(
                 f"{year}: SETTLEMENT-BOUND at {cy_exhausted_at}, and {refused_this_year} "
                 f"win(s) refused after it. The company won accounts "
                 f"this run refused to settle -- {customer_year_budget} customer-years is "
-                f"THIS MACHINE's budget (60% of the 465 measured in AO12's scale probe), "
-                f"not a commercial limit. The book below is smaller than the supplier's "
-                f"balance sheet supports."
+                f"THIS MACHINE's budget, measured against the publish cadence and this guest's "
+                f"memory (docs/observability/settlement_ceiling_probe.json), not a commercial "
+                f"limit. The book below is smaller than the supplier's balance sheet supports."
             )
 
     return {

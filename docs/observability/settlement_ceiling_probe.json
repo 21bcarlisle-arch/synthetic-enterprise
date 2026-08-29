@@ -1,0 +1,131 @@
+{
+  "artefact": "settlement_ceiling_probe",
+  "generated_at_utc": "2026-08-29T04:24:44.885426+00:00",
+  "subject": "simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET, measured on the live path's own compute (tools.run_annual_report._run_and_extract, full window, not --fast) -- the same call background/sim_runner.py makes",
+  "git_head": "1974f47a5",
+  "headroom_before": {
+    "timestamp": "2026-08-29T03:30:42.500179+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 13625.2,
+    "shmem_mb": 5615.1,
+    "swap_free_mb": 3570.7,
+    "psi_some_avg60": 0.0,
+    "oom_kills_total": 157
+  },
+  "headroom_after": {
+    "timestamp": "2026-08-29T04:24:44.885361+00:00",
+    "total_mb": 24032.1,
+    "available_mb": 15431.1,
+    "shmem_mb": 3265.2,
+    "swap_free_mb": 3571.5,
+    "psi_some_avg60": 0.0,
+    "oom_kills_total": 158
+  },
+  "points": [
+    {
+      "budget": 1200.0,
+      "wall_s": 1018.7,
+      "peak_rss_mb": 4193.4,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 1014.9705752590089,
+      "customer_years_committed": 1200.0,
+      "customer_year_budget_seen": 1200.0,
+      "wins": 46,
+      "quotes": 2122,
+      "spend_gbp": 47130.32,
+      "funnel_wins": 386,
+      "wins_refused_by_settlement_budget": 340,
+      "accounts_after_final_year": 131,
+      "settlement_bound_years": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": null,
+      "campaign_record_agrees": true,
+      "annotation_provenance": "ADDED BY INVESTIGATION after the run, not recorded by the point -- the contamination fields did not exist when it was measured. Established from docs/observability/sim-runner-log.md and the producer PIDs seen live: no producer overlapped 03:29-03:46, and this point's committed customer-years (1200.0/46/340) DIFFER from the live record's (1199.9/45/335), which is the positive evidence that it read its own campaign and not the shared file.",
+      "clean": true,
+      "unclean_reasons": []
+    },
+    {
+      "budget": 2000.0,
+      "wall_s": 2223.6,
+      "peak_rss_mb": 7322.7,
+      "exit_status": 0,
+      "ok": true,
+      "child_wall_s": 2219.550360796973,
+      "customer_years_committed": 1199.9,
+      "customer_year_budget_seen": 1200.0,
+      "wins": 45,
+      "quotes": 2089,
+      "spend_gbp": 46408.25,
+      "funnel_wins": 380,
+      "wins_refused_by_settlement_budget": 335,
+      "accounts_after_final_year": 127,
+      "settlement_bound_years": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "years_reported": 10,
+      "producer_in_flight_at_start": null,
+      "producer_in_flight_at_end": "3859950",
+      "campaign_record_agrees": false,
+      "campaign_record_on_disk_said": 1199.9,
+      "annotation_provenance": "ADDED BY INVESTIGATION after the run. A live producer (pid 3859950, started 04:18) overlapped this point, and this point reported committed customer-years of 1199.9/45/335 -- byte-identical to the LIVE 1,200-budget record, at a budget of 2,000, while its own wall clock and RSS more than doubled. A 2,000 ceiling cannot book fewer accounts than a 1,200 one; the campaign figures are the producer's, read back off the shared file. Wall clock and peak RSS are parent-side measurements and are NOT from that file -- but they timed a box running two full settlements at once, so they are not comparable either.",
+      "clean": false,
+      "unclean_reasons": [
+        "producer_in_flight_at_end: pid 3859950 -- competed for the memory being measured",
+        "campaign_record_agrees: False -- another process wrote book_growth_campaign.json during this run (it said 1199.9), so this point's committed customer-years are not its own"
+      ]
+    },
+    {
+      "budget": 2800.0,
+      "ok": false,
+      "skipped": "producer run in flight (pid 3859950)",
+      "clean": false,
+      "unclean_reasons": [
+        "the point did not complete"
+      ]
+    }
+  ],
+  "marginal": [],
+  "publisher": {
+    "available": true,
+    "rows_read": 20,
+    "cadence_seconds": 1500,
+    "cycle_duration_worst_s": 546.79,
+    "cycle_duration_median_s": 474.57,
+    "ceiling_seconds_watched": 3800,
+    "note": "`duration_seconds` here is the PUBLISH CYCLE the watcher timed, which is not the same subject as this probe's run-only wall clock. It is reported as context for how much of the cadence is already spoken for, and the recommendation below charges the difference between the two as overhead rather than assuming it is zero."
+  },
+  "recommendation": {
+    "decidable": false,
+    "reason": "1 CLEAN point(s); a slope needs at least two. A contaminated point is still a valid single observation and is reported above -- it is only barred from the slope.",
+    "unclean_points": [
+      {
+        "budget": 2000.0,
+        "why": [
+          "producer_in_flight_at_end: pid 3859950 -- competed for the memory being measured",
+          "campaign_record_agrees: False -- another process wrote book_growth_campaign.json during this run (it said 1199.9), so this point's committed customer-years are not its own"
+        ]
+      }
+    ]
+  },
+  "reanalysed_at_utc": "2026-08-29T04:27:09.067707+00:00"
+}
