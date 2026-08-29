@@ -26,6 +26,8 @@ costs three full passes per seed and would put this suite out of reach of every 
 """
 from __future__ import annotations
 
+import math
+
 import pytest
 
 from tools.run_value_cycle_ab import (
@@ -425,3 +427,110 @@ def test_the_price_table_says_UNREACHABLE_rather_than_quoting_a_huge_book():
         sorted((r["priced_decisions_needed"] for r in above), reverse=True), (
             "the price must FALL as the priced half grows -- a table that did not is not this "
             "arithmetic")
+
+
+# ---------------------------------------------------------------------------
+# 7. WHICH COUNT THE 1/n ARGUMENT INDEXES ON
+#
+# One leg produces three counts an order of magnitude apart -- 10 accounts re-drawn, 20 decisions
+# priced, ~97 elasticity calls -- and the price table ran a 1/sqrt(n) argument through them and
+# then divided again into "renewals the world must offer". Only the account count is a sample
+# size: `price_elasticity_for_customer` is a pure function of (customer_id, seed), so the ~97
+# calls are re-reads of the same 10 numbers and the two decisions on one account share one draw.
+# ---------------------------------------------------------------------------
+
+def test_the_elasticity_draw_is_a_pure_function_so_CALLS_are_not_draws():
+    """The premise the whole denominator argument rests on, asserted rather than assumed.
+
+    If the draw ever became per-call random, `elasticity_redrawn` WOULD be a sample size and the
+    table should index on it. This test is what would notice.
+    """
+    from simulation.population_draw import price_elasticity_for_customer
+
+    for account in ("C1", "C2", "C9"):
+        repeats = {price_elasticity_for_customer(account, 11111) for _ in range(5)}
+        assert len(repeats) == 1, (
+            "{} returned {} distinct elasticities across five calls at one seed, so a call count "
+            "IS a draw count and `remedy_price_table` is indexing on the wrong number".format(
+                account, len(repeats)))
+
+
+def test_the_growth_MULTIPLIER_is_invariant_to_the_unit_and_the_COUNTS_are_not():
+    """`needed/n0` cancels n0, so all three candidate denominators agree this book must grow by the
+    same factor and disagree wildly on the absolute count. A table that published a count without
+    naming its unit let a reader compare 413 against a funnel measured in decisions."""
+    from tools.run_value_cycle_ab import remedy_price_table
+
+    common = (2577.80 ** 2, 1815.79, 20, 0.0146)
+    on_accounts = remedy_price_table(*common, priced_accounts=10)
+    on_decisions = remedy_price_table(*common, priced_accounts=None)
+
+    priced_rows = [(a, d) for a, d in zip(on_accounts, on_decisions)
+                   if a["times_this_book"] is not None]
+    assert priced_rows, "no row was priced, so this test asserts nothing"
+    for account_row, decision_row in priced_rows:
+        assert account_row["times_this_book"] == pytest.approx(
+            decision_row["times_this_book"]), (
+                "the growth multiplier moved when only the UNIT changed, so it is not the "
+                "scale-free quantity it is published as")
+        # The counts must NOT agree: 10 independent draws is half of 20 decisions.
+        assert account_row["priced_accounts_needed"] < account_row["priced_decisions_needed"], (
+            "`priced_accounts_needed` equals the decision count, so it was indexed on `priced` "
+            "and the accounts column is the decisions column wearing another name")
+        assert account_row["priced_decisions_needed"] == decision_row["priced_decisions_needed"], (
+            "the decisions column moved when the independence unit changed; it is the same "
+            "measurement in the same unit and must not")
+
+
+def test_renewals_the_world_must_offer_is_reached_from_the_DECISION_count():
+    """`priced_share_of_renewals_offered` is 20/1369 -- decisions over decisions. Dividing an
+    ACCOUNT count by it is a ratio of two different things, and it would halve the answer."""
+    from tools.run_value_cycle_ab import remedy_price_table
+
+    rows = [r for r in remedy_price_table(2577.80 ** 2, 1815.79, 20, 0.0146, priced_accounts=10)
+            if r["renewals_the_world_must_offer"] is not None]
+    assert rows, "no row carried the column this test exists to check"
+    for row in rows:
+        assert row["renewals_the_world_must_offer"] == math.ceil(
+            row["priced_decisions_needed"] / 0.0146), (
+                "the offered-renewals column was not reached from the decision count; at share "
+                "{} it reads {} against {} decisions".format(
+                    row["priced_share_of_variance"], row["renewals_the_world_must_offer"],
+                    row["priced_decisions_needed"]))
+
+
+def test_every_row_NAMES_the_unit_it_was_computed_on():
+    """A count whose unit is inferred from whether a caller passed an argument is a count a reader
+    can misread in exactly the way that produced this test."""
+    from tools.run_value_cycle_ab import remedy_price_table
+
+    assert {r["independence_unit"] for r in
+            remedy_price_table(2577.80 ** 2, 1815.79, 20, 0.0146, priced_accounts=10)} == \
+        {"priced_accounts"}
+    assert {r["independence_unit"] for r in
+            remedy_price_table(2577.80 ** 2, 1815.79, 20, 0.0146)} == {"priced_decisions"}
+
+
+def test_the_decomposition_reads_its_sample_size_off_the_LEG_not_the_funnel():
+    """The funnel counts decisions; the leg counts what it re-rolled. Seeds that disagree about
+    their own sample size are withheld rather than averaged into one."""
+    from tools.run_value_cycle_ab import decompose_floor
+
+    def _legs(accounts_redrawn):
+        only = _leg("only", [1947.6, -2167.5, -767.4])
+        for row, count in zip(only["seeds"], accounts_redrawn):
+            row["accounts_redrawn"] = count
+            row["elasticity_redrawn"] = 97
+        return only
+
+    agreed = decompose_floor(_leg("all", [1500.0, -2000.0, 900.0]), _legs((10, 10, 10)),
+                             _leg("except", [400.0, -300.0, 250.0]), _three_arm(1815.79))
+    assert agreed["independent_draws_this_book"] == 10, (
+        "the sample size was not read off the leg that re-rolled it")
+    assert agreed["priced_decisions_this_book"] == 20
+    assert agreed["elasticity_calls_per_seed"] == [97]
+
+    disagreed = decompose_floor(_leg("all", [1500.0, -2000.0, 900.0]), _legs((10, 9, 10)),
+                                _leg("except", [400.0, -300.0, 250.0]), _three_arm(1815.79))
+    assert disagreed["independent_draws_this_book"] is None, (
+        "seeds that re-rolled DIFFERENT numbers of households were averaged into one sample size")

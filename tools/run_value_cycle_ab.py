@@ -2778,21 +2778,48 @@ _PRICE_TABLE_SHARES = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99)
 
 def remedy_price_table(total_variance: float, contrast: float, priced: int,
                        priced_share_of_renewals: float | None,
+                       priced_accounts: int | None = None,
                        shares=_PRICE_TABLE_SHARES) -> list[dict]:
     """What a larger settled book would COST, at each candidate split of the floor.
 
-    sd(n)^2 = (1-share)*V + share*V*(priced/n). The first term is the rest of the book's cascade
-    and is constant in n; the second is the priced households' own draw and falls as 1/n. Solving
-    sd(n) = |contrast| gives the priced decisions needed, and the row is UNREACHABLE where the
+    sd(n)^2 = (1-share)*V + share*V*(n0/n). The first term is the rest of the book's cascade and is
+    constant in n; the second is the priced households' own draw and falls as 1/n. Solving
+    sd(n) = |contrast| gives the growth this book needs, and the row is UNREACHABLE where the
     constant term alone already exceeds the contrast -- which is not an edge case but the answer
     over most of this table's range.
 
-    `renewals_the_world_must_offer` scales by the funnel's OWN priced share and is the loosest
-    figure here: it assumes the funnel's composition holds as the book grows, and
-    `where_the_priced_decisions_come_from` is why that assumption needs reading before the column
-    is used. It is published anyway, because a remedy priced only in decisions is one a reader
-    cannot convert into a decision about this world.
+    WHICH n0, AND IT IS NOT THE ONE THIS FUNCTION USED TO TAKE. One leg produces THREE counts and
+    they differ by an order of magnitude: 10 accounts re-drawn, 20 renewal decisions priced, and
+    90-103 elasticity CALLS. Only one of them is a sample size.
+
+      * `elasticity_redrawn` (~97/seed) counts CALL SITES, never draws.
+        `population_draw.price_elasticity_for_customer` is a pure function of
+        (customer_id, seed) -- five calls return one value -- so those ~97 calls are ~9.7 re-reads
+        of the same 10 numbers. Indexing 1/n on it claims a sample nearly ten times the real one.
+      * `priced` (20) counts renewal DECISIONS. The two decisions on one account share ONE
+        elasticity draw, so they are not independent and 20 is not the count of anything that was
+        rolled.
+      * `accounts_redrawn` (10) counts the INDEPENDENT random variables the leg actually re-rolled.
+        That is the sample size, and the 1/n law indexes on it.
+
+    THE MULTIPLIER IS INVARIANT TO THAT CHOICE AND THE ABSOLUTE COLUMNS ARE NOT -- which is why
+    `times_this_book` is computed first and both counts are derived from it. `needed/n0` cancels
+    n0 exactly, so all three indices agree this book must grow 4.30x; they disagree wildly on
+    whether that is "43", "86" or "413", and a reader comparing the wrong one against the funnel's
+    1,369 offered renewals draws the wrong conclusion about the same measurement.
+
+    `renewals_the_world_must_offer` is therefore derived from the DECISIONS figure and only from
+    it, because `priced_share_of_renewals` is a decisions-over-decisions ratio (20/1369) and
+    dividing an ACCOUNT count by it would be a ratio of two different things. Reaching decisions
+    from accounts uses this book's own decisions-per-account, which assumes the funnel's
+    composition holds as the book grows -- the loosest assumption here, and
+    `where_the_priced_decisions_come_from` is why it needs reading before the column is used.
     """
+    #: The independence unit, falling back to the decision count only when a caller cannot supply
+    #: it. The fallback is the OLD behaviour and it is not silent: `independence_unit` says which
+    #: one every row was computed on, so an artefact can never be read as accounts-indexed when it
+    #: was decisions-indexed.
+    n0 = priced_accounts if isinstance(priced_accounts, int) and priced_accounts > 0 else priced
     rows = []
     for share in shares:
         irreducible = (1.0 - share) * total_variance
@@ -2800,16 +2827,22 @@ def remedy_price_table(total_variance: float, contrast: float, priced: int,
         row = {
             "priced_share_of_variance": share,
             "irreducible_sd_gbp": math.sqrt(irreducible),
+            "independence_unit": ("priced_accounts" if n0 != priced else "priced_decisions"),
+            "priced_accounts_needed": None,
             "priced_decisions_needed": None,
             "times_this_book": None,
             "renewals_the_world_must_offer": None,
         }
         if headroom > 0:
-            needed = math.ceil(priced * share * total_variance / headroom)
-            row["priced_decisions_needed"] = needed
-            row["times_this_book"] = needed / priced if priced else None
+            # THE SCALE-FREE QUANTITY FIRST. Everything below is this number wearing a unit.
+            growth = share * total_variance / headroom
+            row["times_this_book"] = growth
+            row["priced_accounts_needed"] = math.ceil(n0 * growth)
+            decisions = math.ceil(priced * growth)
+            row["priced_decisions_needed"] = decisions
             if priced_share_of_renewals:
-                row["renewals_the_world_must_offer"] = math.ceil(needed / priced_share_of_renewals)
+                row["renewals_the_world_must_offer"] = math.ceil(
+                    decisions / priced_share_of_renewals)
         rows.append(row)
     return rows
 
@@ -2924,14 +2957,30 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     irreducible_sd = math.sqrt(v_except)
     resolvable_at_any_book = _resolves(contrast, irreducible_sd)
 
+    # THE SAMPLE SIZE IS READ OFF THE LEG THAT MEASURED IT, not off the funnel. `accounts_redrawn`
+    # is how many independent elasticity draws the `only` leg actually re-rolled; the funnel's
+    # `priced` counts DECISIONS, and two decisions on one account share one draw. Seeds that
+    # disagree about it are not three readings of one sample size, so the unit is withheld rather
+    # than averaged -- and the table then falls back to the decision index, saying so in its rows.
+    redrawn_counts = {r.get("accounts_redrawn") for r in (priced_only.get("seeds") or [])}
+    priced_accounts = (redrawn_counts.pop() if len(redrawn_counts) == 1 else None)
+    if not isinstance(priced_accounts, int) or priced_accounts <= 0:
+        priced_accounts = None
+
+    growth = None
     decisions_needed = None
+    accounts_needed = None
     if resolvable_at_any_book:
-        # sd(n)^2 = V_except + V_only * (priced / n)  ->  solve sd(n) = |contrast|.
-        # The priced half shrinks as 1/n because it is a mean over n independent draws; the other
-        # half is a constant in n. Both halves are held at the values THIS book measured, so this
-        # is a first-order price and not a forecast -- the contrast itself would move too.
-        decisions_needed = math.ceil(
-            priced * v_only / (contrast * contrast - v_except))
+        # sd(n)^2 = V_except + V_only * (n0 / n)  ->  solve sd(n) = |contrast|.
+        # The priced half shrinks as 1/n because it is a mean over n INDEPENDENT draws -- the
+        # accounts, not the decisions and not the calls (see `remedy_price_table`); the other half
+        # is a constant in n. n0 cancels, so the multiplier below is the measurement and the two
+        # counts are it wearing a unit. Both halves are held at the values THIS book measured, so
+        # this is a first-order price and not a forecast -- the contrast itself would move too.
+        growth = v_only / (contrast * contrast - v_except)
+        decisions_needed = math.ceil(priced * growth)
+        if priced_accounts:
+            accounts_needed = math.ceil(priced_accounts * growth)
 
     return {
         "available": True,
@@ -2965,12 +3014,34 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
             if total > 0 else False),
         "irreducible_sd_gbp": irreducible_sd,
         "larger_settled_book_would_resolve_it": resolvable_at_any_book,
+        #: THE THREE COUNTS ONE LEG PRODUCES, published together so no reader has to guess which
+        #: one a 1/n argument ran through. They differ by an order of magnitude and only the first
+        #: is a sample size.
+        "independent_draws_this_book": priced_accounts,
+        "priced_decisions_this_book": priced,
+        "elasticity_calls_per_seed": sorted(
+            c for c in {r.get("elasticity_redrawn") for r in (priced_only.get("seeds") or [])}
+            if isinstance(c, int)),
+        "what_each_count_counts": (
+            "`independent_draws_this_book` is the number of households whose elasticity the priced "
+            "leg re-rolled, and it is the ONLY sample size here: the draw is a pure function of "
+            "(customer_id, seed), so it is what 1/n indexes. `priced_decisions_this_book` counts "
+            "renewal decisions, and the decisions on one account share one draw. "
+            "`elasticity_calls_per_seed` counts CALL SITES -- re-reads of the same draws -- and is "
+            "a sample size for nothing at all. `times_this_book` is invariant across all three; "
+            "the absolute counts are not."),
+        #: THE SCALE-FREE ANSWER. The two counts below are this multiplier in decisions and in
+        #: independent draws respectively, and they are published together because quoting either
+        #: one alone against the funnel invites the comparison the units do not license.
+        "times_this_book": growth,
         "priced_decisions_needed": decisions_needed,
+        "independent_draws_needed": accounts_needed,
         #: THE SAME ARITHMETIC ACROSS EVERY CANDIDATE SPLIT, so a reader can see how sharply the
         #: verdict turns on a share measured at three seeds -- and check the one row the legs
         #: landed on against the nine they did not.
         "remedy_price_table": remedy_price_table(
-            total, contrast, priced, funnel.get("priced_share_of_renewals_offered")),
+            total, contrast, priced, funnel.get("priced_share_of_renewals_offered"),
+            priced_accounts=priced_accounts),
         "where_the_priced_decisions_come_from": where_the_priced_decisions_come_from(three_arm),
         "how_to_read_this": (
             "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. "
