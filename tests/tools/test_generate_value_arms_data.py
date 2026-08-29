@@ -877,3 +877,55 @@ def test_a_resolved_contrast_names_no_remedy_at_all():
                          _decomposition(0.85, resolvable=True))["headline"]
     assert "larger SETTLED BOOK" not in headline, headline
     assert "More seeds would not resolve it" not in headline, headline
+
+
+def test_a_stated_PRICE_carries_the_distance_the_split_cleared_its_bar_by():
+    """THE DEFECT: `share_is_decisive` is a threshold crossing, and the first split to reach the
+    remedy branch cleared its bar by 0.005 -- 0.1550 against 0.150, on three seeds. The page would
+    have published "it takes about N priced renewals" from that with nothing beside it, which
+    states a resolution the instrument did not buy.
+
+    KEYED TO THE PROPERTY, not to today's margin: whenever the clause names a price it must also
+    name the sample size and the distance. R15 -- mutation: drop
+    `_how_narrowly_the_split_cleared(...)` from the resolvable branch and this reds while every
+    other leg of the remedy test stays green.
+    """
+    from tools.run_value_cycle_ab import SHARE_DECISIVE_BAR
+
+    thin = _decomposition(0.6588, resolvable=True)
+    thin["share_margin_over_threshold"] = 0.1550
+    thin["share_decisive_bar"] = SHARE_DECISIVE_BAR
+    headline = _withheld_headline(thin)
+
+    assert "54 priced renewals" in headline, (
+        "the null rung: a decisive split must still state its price, or this control is satisfied "
+        "by deleting the remedy altogether")
+    assert "0.155" in headline, (
+        "the page stated a price without the distance the split cleared its own bar by, so a "
+        "photo finish reads exactly like a rout: {}".format(headline))
+    assert "3 seeds" in headline, (
+        "the price was published without the sample size behind it: {}".format(headline))
+
+
+def test_a_price_from_an_artefact_with_NO_margin_says_so_rather_than_reading_confident():
+    """An artefact written before the producer carried the margin must not buy a confident sentence
+    by omission. Fail closed, on the surface."""
+    older = _decomposition(0.85, resolvable=True)
+    older.pop("share_margin_over_threshold", None)
+    older.pop("share_decisive_bar", None)
+    headline = _withheld_headline(older)
+
+    assert "was not recorded" in headline, (
+        "a decomposition carrying no margin published its price as though the split had been "
+        "measured against its bar: {}".format(headline))
+    assert "direction and not a settled figure" in headline
+
+
+def test_the_undecided_and_cannot_branches_do_NOT_gain_a_price_caveat():
+    """The caveat belongs to the branch that states a price. A branch that states none and carries
+    the sentence anyway is telling a reader to discount a number that is not there."""
+    undecided = _withheld_headline(_decomposition(0.51, resolvable=True, decisive=False))
+    assert "direction and not a settled figure" not in undecided, (
+        "the too-close-to-call branch, which states no price, was given the price caveat anyway")
+    cannot = _withheld_headline(_decomposition(0.20, resolvable=False))
+    assert "direction and not a settled figure" not in cannot

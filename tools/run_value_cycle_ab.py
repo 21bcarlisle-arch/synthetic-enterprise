@@ -2769,6 +2769,13 @@ def _num(value):
 #: between "grow the book" being a lever and being a way of making the floor worse.
 DRAWN_ACCOUNT_PREFIX = "SYN-"
 
+#: HOW FAR THE MEASURED SHARE MUST SIT FROM ITS OWN THRESHOLD before the split is allowed to call
+#: the verdict. At three seeds each variance carries two degrees of freedom, so a share that lands
+#: near the threshold is not evidence about which side of it the truth is on. Named here rather
+#: than written into the comparison because the CONSUMER has to publish the margin beside the
+#: price -- a boolean alone reads as a resolution, and on 2026-08-29 this bar was cleared by 0.005.
+SHARE_DECISIVE_BAR = 0.15
+
 #: The candidate priced-side shares the price table is printed at. A LADDER RATHER THAN A POINT,
 #: because at three seeds the measured share is imprecise enough that a reader needs to see how
 #: sharply the answer turns on it -- and because the table was printed at these inputs BEFORE the
@@ -3010,8 +3017,15 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         #: AT THREE SEEDS THIS CAN ONLY CALL A LOPSIDED SPLIT. A share whose own interval straddles
         #: the threshold above is reported as undecided, and the consumer states no remedy at all.
         "share_is_decisive": (
-            abs(priced_share - (1.0 - (contrast * contrast) / total)) > 0.15
+            abs(priced_share - (1.0 - (contrast * contrast) / total)) > SHARE_DECISIVE_BAR
             if total > 0 else False),
+        #: THE MARGIN AND THE BAR, NOT JUST THE BOOLEAN. `share_is_decisive` is a threshold crossing
+        #: and a reader cannot tell a rout from a photo finish by looking at `true`. These two are
+        #: published so the consumer can put the distance beside the price it states -- this split
+        #: cleared by 0.005, which is a direction and not a resolution.
+        "share_margin_over_threshold": (
+            abs(priced_share - (1.0 - (contrast * contrast) / total)) if total > 0 else None),
+        "share_decisive_bar": SHARE_DECISIVE_BAR,
         "irreducible_sd_gbp": irreducible_sd,
         "larger_settled_book_would_resolve_it": resolvable_at_any_book,
         #: THE THREE COUNTS ONE LEG PRODUCES, published together so no reader has to guess which

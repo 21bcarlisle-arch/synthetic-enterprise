@@ -534,3 +534,24 @@ def test_the_decomposition_reads_its_sample_size_off_the_LEG_not_the_funnel():
                                 _leg("except", [400.0, -300.0, 250.0]), _three_arm(1815.79))
     assert disagreed["independent_draws_this_book"] is None, (
         "seeds that re-rolled DIFFERENT numbers of households were averaged into one sample size")
+
+
+def test_the_split_publishes_the_MARGIN_and_the_BAR_not_only_the_boolean():
+    """`share_is_decisive` cannot distinguish a rout from a photo finish, and the consumer has to
+    print the distance beside any price it states. A producer that published only the boolean
+    forced the consumer to hardcode the bar, which is the same constant in two places drifting."""
+    from tools.run_value_cycle_ab import SHARE_DECISIVE_BAR, decompose_floor
+
+    split = decompose_floor(_leg("all", [1500.0, -2000.0, 900.0]),
+                            _leg("only", [1400.0, -1800.0, 800.0]),
+                            _leg("except", [400.0, -300.0, 250.0]), _three_arm(1815.79))
+    margin = split["share_margin_over_threshold"]
+    assert margin is not None and margin >= 0.0
+    assert split["share_decisive_bar"] == SHARE_DECISIVE_BAR
+    # THE TWO MUST AGREE. A boolean that is not the margin against the bar is a second opinion.
+    assert split["share_is_decisive"] == (margin > split["share_decisive_bar"]), (
+        "`share_is_decisive` disagrees with its own published margin and bar, so a reader "
+        "recomputing the verdict from the numbers beside it gets a different answer")
+    assert margin == pytest.approx(abs(
+        split["priced_share_of_variance"]
+        - split["share_at_which_a_bigger_book_could_resolve_it"]))

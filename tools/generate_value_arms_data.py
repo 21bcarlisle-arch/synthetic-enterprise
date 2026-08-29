@@ -684,6 +684,32 @@ WHAT_WOULD_RESOLVE_IT_UNKNOWN = (
     "churn cascade, which no book size touches.")
 
 
+def _how_narrowly_the_split_cleared(decomposition: dict) -> str:
+    """The sample size and the DISTANCE, printed beside any price the page states.
+
+    THE DEFECT THIS EXISTS FOR. `share_is_decisive` is a threshold crossing, and a reader shown
+    only the price cannot tell a rout from a photo finish. The split that first reached this branch
+    cleared its own bar by 0.005 -- 0.1550 against 0.150 -- on three seeds, two degrees of freedom
+    a side. Publishing "it takes about 86 priced renewals" from that, with no distance beside it,
+    states a resolution the instrument did not buy.
+
+    FAIL CLOSED ON A MISSING MARGIN. An artefact written before the producer carried
+    `share_margin_over_threshold` gets the seed count and an explicit silence about the distance --
+    never a confident sentence by omission, which is how the absent key would otherwise read.
+    """
+    seeds = decomposition.get("seeds")
+    margin = decomposition.get("share_margin_over_threshold")
+    bar = decomposition.get("share_decisive_bar")
+    if not isinstance(margin, (int, float)) or not isinstance(bar, (int, float)):
+        return ("Read that price as a direction and not a settled figure: it rests on a split "
+                "measured on {} seeds, and how far that split cleared its own threshold was not "
+                "recorded.".format(seeds if seeds is not None else "too few"))
+    return ("Read that price as a direction and not a settled figure: the split behind it is {} "
+            "seeds, and it clears the margin it has to beat by {:.3f} against a bar of {:.2f} -- "
+            "wide enough to name a direction, not wide enough to call the number settled."
+            .format(seeds, margin, bar))
+
+
 def _what_would_resolve_it(decomposition: dict | None) -> str:
     """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
 
@@ -721,7 +747,7 @@ def _what_would_resolve_it(decomposition: dict | None) -> str:
                 "households' own draw, so it takes about {:,} priced renewals against this book's "
                 "{} to bring the bar under the gap. ".format(
                     decomposition.get("priced_share_of_variance") or 0.0, needed, priced)
-                + MORE_SEEDS_WOULD_NOT)
+                + _how_narrowly_the_split_cleared(decomposition) + " " + MORE_SEEDS_WOULD_NOT)
     return ("A larger settled book would not resolve it either, and that is the finding: only "
             "{:.0%} of this spread is the priced households' own draw. The rest is the wider "
             "book's churn cascade landing in the same net, which does not shrink however many "
