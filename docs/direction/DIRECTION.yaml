@@ -27,6 +27,24 @@ thesis_read: >-
   the index. Against the thesis this is the worst possible failure mode, because it is invisible — a
   green tree, a good document, a real measurement, and a published number that is still wrong. Every
   item below therefore names LANDING as the deliverable, not the analysis.
+
+
+  **DISCHARGED 2026-08-29 by `4d0ed7b7d`, and the paragraph above is left standing because a
+  diagnosis is worth more next to its outcome than quietly revised.** The account-population repair
+  is in the index: the selector, the twelve controls, the census, the producer labels, and — the one
+  path the item's own pathspec omitted — `simulation/run_phase2b.py`, which is the only caller of
+  `build_counterparty_collateral` and therefore the difference between a landed selector and dead
+  code. Verified receipt-consistent, gate-rc 0, and landed while the arms re-run was still executing,
+  so that artefact's `book.what_each_count_selects` is now produced by code that IS in a commit.
+  **The sentence "free equity is overstated by £12,480 on a page right now" is no longer true.**
+  `run_output_latest.json` publishes `accounts_held: 120` with `accounts_population` and
+  `accounts_selection` beside it. Two things the stretch did NOT establish and which are not to be
+  read as fixed: the live run's free equity is £346,961.47 rather than the £315,761.47 quoted above,
+  because its net assets are £362,561.47 rather than £331,361.47 — that £31,200 is the run moving,
+  NOT this repair, and attributing it here would be the same error the attribution document exists
+  to refuse. The only figure attributable to this repair remains −£12,480. And the diagnosis itself
+  — "finished work stops at the edge of the index" — is supported by one landing, which is one
+  instance, not a trend.
 stretch_reviewed:
   since: "2026-08-29T11:21:20.345001+00:00"
   commits: 7
@@ -168,6 +186,17 @@ not_now:
       document refused to do on the page. This reaches him after item one lands and item three
       answers, at which point it is one paragraph with one basis and one clock. That is a judgement
       about what reaches him, and it is mine, so it is recorded here rather than sent.
+
+
+      **UPDATE 2026-08-29: half this hold is discharged, and it stays held on the other half.** The
+      basis question is settled — `4d0ed7b7d` landed the selector, so there is now ONE basis (120
+      domestic accounts on supply, named in the artefact) and the repository produces the number it
+      would publish. What still blocks is item three: the R6 headroom co-movement is a co-movement
+      until the one-variable run separates it, and the live free equity of £346,961.47 sits on net
+      assets that moved £31,200 for reasons this stretch has not attributed. Sending him a headroom
+      figure whose denominator just moved, without saying which part is the repair and which is the
+      run, would be the co-movement-as-attribution defect wearing the corrected basis as cover.
+      Still mine, still recorded rather than sent.
   - what: >-
       `capabilities-one-clock-one-basis-one-bound`. Named in five consecutive directions, drawn zero
       times, and I am not listing it a sixth.
