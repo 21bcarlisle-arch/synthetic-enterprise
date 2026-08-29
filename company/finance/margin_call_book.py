@@ -154,6 +154,7 @@ def build_margin_calls_from_mtm(
     settlement_deadline: str,
     credit_facility_gbp: "float | None" = None,
     book: "MarginCallBook | None" = None,
+    balance_sheet: "dict | None" = None,
 ) -> "MarginCallBook":
     """Derive the variation-margin calls the company must POST from ISDA-netted MtM.
 
@@ -174,9 +175,45 @@ def build_margin_calls_from_mtm(
 
     NAMED SIMPLIFICATION (R10): variation margin at a single mark = the amount by which the
     company is out-of-the-money, ``max(0, -netted_mtm)`` (the CSA collateral the OTM party must
-    post). Initial margin is modelled by the credit/observation step, so it is 0 here. The
-    ``UNATTRIBUTED`` bucket and rows with no counterparty identity form no call.
+    post). The ``UNATTRIBUTED`` bucket and rows with no counterparty identity form no call.
+
+    INITIAL MARGIN IS NO LONGER IDENTICALLY ZERO (2026-08-28, roadmap R6). ``balance_sheet``, when
+    supplied, is ``{"net_assets_gbp": float, "accounts_held": int,
+    "close_out_move_fraction": float}`` -- the company's own equity, its own account count, and the
+    stressed close-out move measured from observable price history. It is passed to
+    ``company.risk.independent_amount`` to derive the INDEPENDENT AMOUNT the counterparty demands
+    over and above the mark once the company's free equity stops covering the exposure it is
+    running. That is the CMA's mechanism made arithmetic: acquisition spend leaves the balance
+    sheet, free equity falls, and the quantity of collateral trading counterparties require goes
+    up on a book that has not moved.
+
+    TWO BEHAVIOURS CHANGE WHEN IT IS SUPPLIED, and both are the point rather than side effects:
+
+      * A call now forms for a counterparty the company is IN-the-money with, if an independent
+        amount is demanded. Before, ``variation_margin <= 0`` skipped the name entirely, so a long
+        hedge book posted nothing on a price spike and could only ever die on a price FALL
+        (B6 FRAME §1.9). An independent amount does not care which way the price went.
+      * ``total_outstanding_gbp`` rises, because it sums ``total_margin_required_gbp`` which is
+        IM + VM. The facility is unchanged, so headroom falls and the stress flag can trip on a
+        balance sheet rather than only on a mark.
+
+    ``balance_sheet=None`` leaves initial margin at 0.0 and reproduces the pre-R6 behaviour
+    exactly, which is what every unit test that pins the old shape relies on. The LIVE path passes
+    it -- ``tests/company/risk/test_independent_amount.py`` asserts that, because an unwired credit
+    model is the defect the whole roadmap this belongs to exists to close.
     """
+    independent_by_gross = None
+    if balance_sheet is not None:
+        from company.risk.independent_amount import independent_amount_gbp
+
+        def independent_by_gross(gross: float) -> dict:  # noqa: F811 - deliberate local binding
+            return independent_amount_gbp(
+                gross,
+                balance_sheet.get("net_assets_gbp", float("nan")),
+                balance_sheet.get("accounts_held", 0),
+                balance_sheet.get("close_out_move_fraction", float("nan")),
+            )
+
     if book is None:
         # MC-2 §3: the committed facility is book-derived by default (the fixed-£5m defect is gone).
         # An explicit credit_facility_gbp is honoured only where a caller sets one deliberately
@@ -192,8 +229,16 @@ def build_margin_calls_from_mtm(
         entry = exposure_by_counterparty[cp_id]
         netted = float(entry.get("netted_mtm_gbp", 0.0))
         variation_margin = round(max(0.0, -netted), 2)
-        if variation_margin <= 0.0:
-            continue  # company is in-the-money (or flat) with this name -> it owes no margin
+        # R6: the independent amount is assessed on the GROSS position with this name -- the size
+        # of what would have to be closed out -- not on the signed mark, because a counterparty
+        # worried about the company's credit is worried about the whole position either way.
+        initial_margin = 0.0
+        if independent_by_gross is not None:
+            initial_margin = independent_by_gross(abs(netted))["independent_amount_gbp"]
+        if variation_margin <= 0.0 and initial_margin <= 0.0:
+            # In-the-money (or flat) AND the counterparty is content with the balance sheet ->
+            # nothing owed. Before R6 the second half of that sentence did not exist.
+            continue
         call_id = f"VM-{cp_id}-{as_of_date}"
         if call_id in existing:
             continue  # C-S1 idempotency: this name's call for this snapshot already recorded
@@ -203,7 +248,7 @@ def build_margin_calls_from_mtm(
                 call_date=as_of_date,
                 counterparty=cp_id,
                 contract_id=f"NETTED-{cp_id}",  # netted position, not a single contract
-                initial_margin_gbp=0.0,
+                initial_margin_gbp=initial_margin,
                 variation_margin_gbp=variation_margin,
                 settlement_deadline=settlement_deadline,
             )

@@ -446,7 +446,26 @@ def test_credit_and_margin_are_identical_to_the_pre_cut_inlined_sequence():
     )
     built = _build()
     assert built.credit_summary == credit
-    assert built.margin_call_summary == margin
+
+    # R6 (2026-08-28): the door now reports the counterparty's CREDIT verdict alongside the
+    # margin figures -- whether an independent amount was demanded, and on what basis. The
+    # pre-cut inline sequence has no such concept, so an exact dict equality would now be
+    # asserting that the door never grew, which is a different and wrong claim.
+    #
+    # The conformance that matters is unchanged and is asserted on every key the pre-cut code
+    # produced: not one of them moved. The addition is named explicitly rather than absorbed by
+    # a subset comparison, so a future key cannot slip in unlisted.
+    added = set(built.margin_call_summary) - set(margin)
+    assert added == {"independent_amount_basis", "total_independent_amount_gbp"}, (
+        f"the door grew keys nobody declared: {sorted(added)}"
+    )
+    assert {k: built.margin_call_summary[k] for k in margin} == margin, (
+        "every figure the pre-cut sequence produced must be bit-identical through the door"
+    )
+    # And with no balance sheet supplied it must SAY so, never report a waived demand.
+    assert built.margin_call_summary["independent_amount_basis"] == (
+        "not_assessed_no_balance_sheet"
+    )
 
 
 def test_mutation_a_dropped_sample_date_breaks_the_identity():

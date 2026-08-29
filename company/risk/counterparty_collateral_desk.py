@@ -207,6 +207,7 @@ def _credit_and_margin(
     elec_spot_records: Sequence[dict],
     gas_spot_records: Sequence[dict],
     mark_date: str,
+    balance_sheet: "dict | None" = None,
 ) -> "tuple[dict | None, dict | None]":
     """The credit register, its multi-period peak, and the margin book at one mark.
 
@@ -303,10 +304,66 @@ def _credit_and_margin(
     _settlement_deadline = (
         date.fromisoformat(mark_date) + timedelta(days=1)
     ).isoformat()
+    # R6 (2026-08-28): the balance sheet reaches the margin builder, so the independent amount a
+    # counterparty demands over the mark stops being identically zero. `balance_sheet=None`
+    # reproduces the pre-R6 shape exactly, which is what the desk's own unit tests pin.
+    #
+    # THE CLOSE-OUT MOVE IS MEASURED HERE rather than handed in, and that is a wall decision as
+    # much as a tidiness one. The world hands over what it holds -- what the supplier is worth and
+    # how many accounts it holds it against -- and this desk, which is already marking the book
+    # against `elec_spot_records`, measures the stressed move in that same series. Measuring it on
+    # the world side would have been a live `simulation -> company.risk` crossing, which the
+    # register refused, and would have read the price history twice for one quantity.
+    if balance_sheet is not None and "close_out_move_fraction" not in balance_sheet:
+        from company.risk.independent_amount import close_out_move_fraction_from_history
+
+        _move = close_out_move_fraction_from_history(elec_spot_records, mark_date)
+        balance_sheet = dict(balance_sheet)
+        # `None` (too little history to contain one close-out window) travels as NaN, never as a
+        # zero: an unmeasurable move must TRIGGER the demand, not waive it.
+        balance_sheet["close_out_move_fraction"] = (
+            float("nan") if _move is None else _move
+        )
     _margin_book = build_margin_calls_from_mtm(
-        _exposure, as_of_date=mark_date, settlement_deadline=_settlement_deadline
+        _exposure, as_of_date=mark_date, settlement_deadline=_settlement_deadline,
+        balance_sheet=balance_sheet,
     )
-    return credit_summary, _margin_book.margin_call_summary()
+    _summary = _margin_book.margin_call_summary()
+    # THE CREDIT VERDICT, ON THE SURFACE RATHER THAN INFERRED FROM A ZERO. An independent amount of
+    # £0 has three different meanings -- a strong balance sheet, a flat book, or an input nobody
+    # could read -- and a reader of the published margin figures is entitled to know which. Carried
+    # even when no balance sheet was supplied, where it says so.
+    if balance_sheet is None:
+        _summary["independent_amount_basis"] = "not_assessed_no_balance_sheet"
+        _summary["total_independent_amount_gbp"] = 0.0
+    else:
+        from company.risk.independent_amount import independent_amount_gbp
+
+        _gross = sum(
+            abs(float(e.get("netted_mtm_gbp", 0.0)))
+            for cp, e in _exposure.items() if cp != "UNATTRIBUTED"
+        )
+        _verdict = independent_amount_gbp(
+            _gross,
+            balance_sheet.get("net_assets_gbp", float("nan")),
+            balance_sheet.get("accounts_held", 0),
+            balance_sheet.get("close_out_move_fraction", float("nan")),
+        )
+        _summary["independent_amount_basis"] = _verdict["reason"]
+        _summary["free_equity_gbp"] = _verdict["free_equity_gbp"]
+        _summary["gross_marked_exposure_gbp"] = _verdict["gross_exposure_gbp"]
+        _summary["total_independent_amount_gbp"] = sum(
+            c.initial_margin_gbp for c in _margin_book.outstanding_calls()
+        )
+        # HOW FAR THE COMPANY IS FROM THE TRIGGER, in pounds, whichever side of it it sits. This is
+        # the number that makes SURVIVE mean something: it is what the balance sheet would have to
+        # lose -- to acquisition spend or anything else -- before counterparties start asking for
+        # collateral above the mark.
+        _free = _verdict["free_equity_gbp"]
+        if _free is not None:
+            _summary["free_equity_headroom_to_independent_amount_gbp"] = round(
+                _free - _verdict["gross_exposure_gbp"], 2)
+    return credit_summary, _summary
 
 
 def build_counterparty_collateral(
@@ -317,6 +374,7 @@ def build_counterparty_collateral(
     gas_spot_records: Sequence[dict],
     mark_date: str,
     available_cash_gbp: float = 0.0,
+    balance_sheet: "dict | None" = None,
 ) -> CounterpartyCollateral:
     """Mark the book once and return the whole credit/collateral position.
 
@@ -342,6 +400,7 @@ def build_counterparty_collateral(
             elec_spot_records,
             gas_spot_records,
             mark_date,
+            balance_sheet,
         )
     except Exception as exc:  # pragma: no cover - defensive, the run must not die
         credit_feed_error = exc

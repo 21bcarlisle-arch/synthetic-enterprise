@@ -28,10 +28,12 @@ from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from background.live_payment_triad import LivePaymentTriad
 from company.interfaces.churn_estimation import (
     RenewalObservation,
+    active_pressure_ledger,
     crisis_hangover_periods,
     estimate_churn_without_rate_history,
     estimate_renewal_churn,
     estimate_secondary_fuel_churn,
+    pressure_ledger_scope,
     score_churn_estimates,
 )
 from company.interfaces.counterparty_collateral import build_counterparty_collateral
@@ -767,8 +769,14 @@ def _company_eac_estimate(
     term_start)` -- because it is the point-in-time blindfold, not an implementation detail.
     """
     from datetime import date as _date
+
+    from simulation.customer_events import twelve_month_window_open
+
     term_start = _date.fromisoformat(term_start_str)
-    year_ago = term_start.replace(year=term_start.year - 1)
+    # NOT `term_start.replace(year=...)`: that raises on a term starting 29 February and took
+    # the whole run down the first time the book held one. See the helper for the convention
+    # and for why it opens on 1 March rather than 28 February.
+    year_ago = twelve_month_window_open(term_start)
     estimated = _as_fold(settled).consumption_kwh_between(
         cid, year_ago.isoformat(), term_start.isoformat())
     base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
@@ -877,6 +885,26 @@ def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict
 
 def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None,
          gap_ledger_path=None):
+    """Run one simulation under its own fresh competitive-pressure ledger.
+
+    ONE LEDGER PER RUN, OPENED HERE rather than by each caller, because the callers that most
+    need it are the two arms of an A/B: a ledger shared between them would let the control arm's
+    realised losses inform the treatment arm's beliefs, and on a comparison whose entire subject
+    is the difference between the arms that is not a leak, it is a fabricated result. Opening it
+    at the single entry point every run passes through means no caller can forget.
+
+    The ledger is COMPANY STATE and stays on the company side of the wall: this function opens
+    the scope, and nothing in `simulation/` reads it. What accumulates into it is booked by
+    `company/crm/churn_desk` (what the company believed) and `company/interfaces/sim_interface`
+    (that an account left), and only `company/crm/competitive_pressure` reads it back.
+    """
+    with pressure_ledger_scope():
+        return _main(report_end=report_end, sim_interface=sim_interface, policy=policy,
+                     gap_ledger_path=gap_ledger_path)
+
+
+def _main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None,
+          gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
@@ -1770,6 +1798,21 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             "would_be_discount_pct": _would_be_discount_pct,
                         })
                     churned_billing_accounts.add(billing_account)
+                    # THE COMPANY'S COMPETITIVE OBSERVABLE, BOOKED WHERE EVERY DEPARTURE PASSES
+                    # -- unconditionally, and NOT behind the `sim_interface is not None` guard
+                    # eight lines below. That guard is why the first live measurement of this
+                    # channel was worthless: `run_phase4c_on_phase2b` calls this function with
+                    # no interface, so the numerator never filled while the denominator did, and
+                    # the belief collapsed on evidence that did not exist. A supplier knows who
+                    # left it whether or not a notification seam happens to be plumbed in.
+                    #
+                    # ARMED ADJACENT TO THE BOOKING and never anywhere else: if this call is
+                    # deleted the arming goes with it, and an unarmed ledger declines to update
+                    # rather than reading the resulting silence as a quiet market.
+                    _pressure_ledger = active_pressure_ledger()
+                    if _pressure_ledger is not None:
+                        _pressure_ledger.arm_loss_reporting()
+                        _pressure_ledger.observe_competitive_loss(int(term_start_str[:4]))
                     print(
                         f"  [CHURN] {billing_account} at {term_start_str} — "
                         f"p_retain={event['effective_retention_probability']:.4f}  "
@@ -2776,12 +2819,33 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # a position. The credit block's peak_sample_date no longer passes through this file on
     # its way to the death test: that thread is now internal to the desk that owns both.
     # Both failure domains stay independent -- reported on the result, not raised (§3n).
+    # R6 (2026-08-28): the supplier's OWN balance sheet crosses to its credit desk, so the
+    # independent amount a counterparty demands above the mark can move. Three plain scalars, the
+    # same shape `plan_growth_campaign_year` already uses -- what it holds, how many accounts it
+    # holds it against, and the stressed close-out move MEASURED from the public spot history it
+    # already marks with. No rate table, no counterparty internal, and nothing about the future.
+    #
+    # THIS IS WHAT JOINS ACQUISITION SPEND TO COLLATERAL. Campaign spend leaves `final_treasury`;
+    # free equity falls; below the point where it covers the position, counterparties start asking
+    # for collateral over the mark on a book that has not moved. That is the CMA's mechanism, and
+    # until now this repository had both ends of it and no wire.
+    #
+    # THE CLOSE-OUT MOVE IS MEASURED INSIDE THE DESK, NOT HERE, and the first draft got that wrong:
+    # it imported `company.risk.independent_amount` directly and the wall-crossing register refused
+    # the commit -- a live SIM->company crossing with no disposition. It was right to. The desk
+    # already holds these same spot records to mark the book with, so measuring the close-out there
+    # means one reading of one series rather than two, and the world hands over only what it holds:
+    # what the supplier is worth and how many accounts it holds it against.
     _collateral = build_counterparty_collateral(
         hedge_desk.book,
         commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS},
         elec_spot_records=elec_records,
         gas_spot_records=gas_records,
         mark_date=effective_end,
+        balance_sheet={
+            "net_assets_gbp": final_treasury,
+            "accounts_held": len(_ALL_KNOWN_CUSTOMERS),
+        },
     )
     _wholesale_credit_summary = _collateral.credit_summary
     _margin_call_summary = _collateral.margin_call_summary

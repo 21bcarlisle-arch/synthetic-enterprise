@@ -43,6 +43,30 @@ from simulation.switching_propensity import adjust_churn_probability
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
 
+def twelve_month_window_open(anniversary: date) -> date:
+    """The day a 12-month lookback opens for a term starting on `anniversary`.
+
+    THE 29 FEBRUARY CLASS, and it is a crash rather than a wrong number. `d.replace(year=...)`
+    raises `ValueError: day 29 must be in range 1..28` on a leap day, so any account whose term
+    starts 29 February takes the whole run down. It was latent for as long as no such account
+    existed; the director's founder book put 80 accounts into 2016 and one of them landed on
+    2016-02-29, which is how it surfaced (`run_phase2b._company_eac_estimate`).
+
+    1 MARCH, NOT 28 FEBRUARY, for two reasons and NOT for a third that looks obvious and is
+    wrong. The wrong one first, because it was the draft: "28 February would let the company
+    see more than a year". It would not -- it gives a 365-day window against 1 March's 364, and
+    an ordinary anniversary across a leap year is 366 days anyway. Neither candidate breaches
+    the blindfold. The actual reasons are that 1 March errs SHORTER, which is the safe side of
+    a point-in-time window; and that it is the convention this repository already chose the one
+    other time it met this edge (`company/billing/fit_legacy_register`, "Feb 29 edge case: use
+    March 1"), now stated in one place instead of inlined at each.
+    """
+    try:
+        return anniversary.replace(year=anniversary.year - 1)
+    except ValueError:
+        return date(anniversary.year - 1, 3, 1)
+
+
 def _price_differential_vs_market(
     new_rate_gbp_per_mwh: float | None,
     term_start_str: str,
@@ -199,7 +223,7 @@ def _annual_bill_gbp(
     this can only ever see settled history.
     """
     start = date.fromisoformat(term_start_str)
-    window_start = start.replace(year=start.year - 1)
+    window_start = twelve_month_window_open(start)
     total = 0.0
     seen = False
     for rec in records_so_far:
