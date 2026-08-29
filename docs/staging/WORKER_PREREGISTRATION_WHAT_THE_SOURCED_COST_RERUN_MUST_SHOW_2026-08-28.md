@@ -156,3 +156,104 @@ bar is expected to swallow most of the table.
 describes: the two `_20260829` artefacts exist by ~2026-08-29T16:00Z. If a later reader finds this
 paragraph with those paths still absent, the cgroup diagnosis was *also* incomplete and the next
 move is to catch the killer in the act rather than infer it a second time.
+
+---
+
+## STATUS 2026-08-29 16:05Z — GRADED on leg 1. The prediction is REFUTED, and not by either mechanism it offered
+
+**Written beside the prediction and all three prior status sections, over none of them.** There is
+finally an artefact: `docs/observability/value_cycle_ab_s1_three_arm_20260829.json`,
+`generated_at` **2026-08-29T14:40:24Z**. Leg 2 (the floor) is still running — see the last section
+below for what that bounds.
+
+### The falsifiable claim from the 14:05Z section: half met, and the diagnosis it tested is CONFIRMED
+
+It said *"the two `_20260829` artefacts exist by ~2026-08-29T16:00Z"*. At 16:01Z the three-arm
+artefact exists and the floor does not, so **the claim as literally written is not met — its
+deadline was wrong.** But the thing it was testing is not the deadline, it is the cgroup diagnosis,
+and that is confirmed by a wide margin: `arms-rerun-20260829.service` (MainPID 438742) has now run
+**2h 06m** and produced a completed leg, against **3 minutes** and **8 minutes** for the two
+`setsid` launches that died. `systemd-run --user --unit=` escapes `worker-tick.service`'s
+`KillMode=control-group`; `setsid` did not. The next move is therefore **not** journald capture on
+a fresh unit — that branch is closed.
+
+### The prediction, graded on its own terms
+
+> *"I predict the control, value and level arms come back materially unchanged — within run-to-run
+> noise, most likely bit-identical."*
+
+**Refuted.** Nothing is bit-identical and nothing is unchanged:
+
+| | OLD `2026-08-28T14:08:48Z` | NEW `2026-08-29T14:40:24Z` | delta |
+|---|---:|---:|---:|
+| control net | £159,423.50 | £154,164.43 | −£5,259.06 |
+| value net | £154,699.49 | £154,771.85 | +£72.36 |
+| level net | £164,326.41 | £152,956.06 | −£11,370.35 |
+| control gross margin | £553,849.66 | £614,439.82 | +£60,590.16 |
+| control enterprise value | £299,647.84 | £118,513.68 | −£181,134.15 |
+| value enterprise value | £302,159.07 | £116,064.98 | −£186,094.10 |
+| level enterprise value | £303,614.35 | £115,810.70 | −£187,803.65 |
+| accounts settled in window | 210 | 167 | −43 |
+
+### But the refutation does NOT license the conclusion the prediction attached to it
+
+The prediction named exactly two outcomes. **Neither happened.** It said that if the arms moved,
+*"the campaign IS affordability-capped, the book grew"*. **The book did not grow — it shrank**,
+210 → 167 settled accounts, 128 → 113 at the end of the window. A 5.4× acquisition price CUT that
+leaves a SMALLER book cannot be affordability-capping; the direction is backwards. So the arms
+moved AND the affordability mechanism is refuted, which is the one combination the prediction did
+not have a slot for. **`0850eadcd`'s attribution split (4.4% cutoff / 78.0% sourcing) does not need
+re-deriving for the reason the prediction gave.**
+
+### The unanticipated mechanism, graded as the 12:05Z section asked
+
+The 12:05Z status flagged, before this result existed, that the book is now *"a uniform 17.89%
+sample of the company's wins rather than all of them"* and that this was **not** on the
+prediction's list. It is the only one of the three candidate mechanisms whose direction matches:
+a sampled book is a smaller book. That earns it a place, and no more than that —
+
+**I cannot attribute this move, and I am not going to pretend otherwise.** At least THREE things
+differ between the two runs: the sourced acquisition cost (`0850eadcd`), the settlement-budget
+sampling of wins, and the market's new ability to defend against an undercut (the change the live
+`staleness_caveat` already names as landing on 2026-08-28). Per the standing rule — when a result
+moves and more than one thing changed, you cannot attribute it — the honest answer is **"I cannot
+yet say"**. The one-variable run that would settle it is the three-arm pass with the settlement
+budget lifted so the win population is complete, everything else held; that is the next piece of
+work this record owes, and it is filed here rather than left to the reader.
+
+### The reading rule, applied — and it bites the PUBLISHED headline hardest
+
+The rule this file set for itself is that **no delta smaller than the floor's own spread may be
+read as an effect.** The arm *contrasts* — which is what the page actually publishes, not the arm
+levels above — are:
+
+| | value − control | level − control |
+|---|---:|---:|
+| OLD (published, live now) | **−£4,724.01** | **+£4,902.91** |
+| NEW (today's book) | **+£607.41** | **−£1,208.37** |
+
+**Both contrasts flipped sign, and every one of the four numbers is inside the floor's spread**
+(sd £4,402, range £8,781, mean £504, `selection_distinguishable_from_zero: false`). The new pair
+(£607, £1,208) is comfortably swallowed, exactly as the 12:05Z section predicted the bar would do.
+The old pair sits AT the old standard deviation — meaning **the headline currently on the live
+site was already inside its own error bar when it was published.** That headline reads *"earned
+£4,724 LESS than flat rules … the per-customer choosing is worth less than nothing"*; on today's
+book the same quantity is **+£607, the other way round**. This is a direct, independent
+corroboration of `WORKER_FINDING_THE_PUBLISHED_HEADLINE_SAID_THE_ARM_EARNED_MORE_WHILE_IT_EARNED_LESS_2026-08-28.md`,
+arrived at from the opposite direction.
+
+The result that survives all of this is not a number about the arms. It is: **on a book this size
+the arm comparison cannot resolve its own question**, and the sign of the published headline is a
+seed draw.
+
+### What is NOT done, and why it is not being forced
+
+Deliverable (3) — regenerating `site/data/value_arms.json` onto one clock — **is deliberately not
+done in this tick, and the site is untouched.** Leg 2 is mid-flight: the floor's progress counter
+reset from 13,003,400 periods / 2025-05 at 15:20Z to 1,191,500 / 2017-06 at 16:01Z, i.e. it has
+finished its first seed of three and is into the second, with roughly 1.5h left on that rate.
+`tools/generate_value_arms_data.py:464` derives `staleness_caveat` from the two runs' own stamps,
+so regenerating now would pair a **2026-08-29** three-arm figure with the **2026-08-27** floor and
+re-create, in the very act of repairing it, the defect this work exists to remove. The caveat
+strings stay non-empty because they are still TRUE. They are emptied by the run, not by the
+generator.
