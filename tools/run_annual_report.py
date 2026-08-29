@@ -66,6 +66,7 @@ from saas.reporting.annual_report import (
     generate_annual_report,
 )
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
+from simulation.settlement_clocks import reconcile_published_run_output
 
 # Where a run persists its reduced report data. Moved here from
 # `simulation/run_phase4c_on_phase2b.py` with `save_run_output_json()`.
@@ -102,6 +103,27 @@ def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
     Returns (latest_path, versioned_path).
     """
     data = extract_report_data(run_output)
+
+    # THE PAGE MUST ADD UP BEFORE IT IS WRITTEN (2026-08-28, class
+    # `figures_on_a_superseded_clock`, R14). `run_output_latest.json` is what
+    # `site/data/supplier.json` and `site/data/agent_status.json` are built from, so a figure on
+    # a superseded clock leaving this function reaches a reader who can check it with a
+    # calculator -- which is exactly what happened: the file published
+    # `starting_treasury_gbp + total_net_gbp` GBP 39,962.17 above its own `final_treasury_gbp`
+    # for two days. The check lives HERE and not in `saas/reporting/annual_report.py` because
+    # `saas/` never imports `simulation/`, and it reads the artefact's own published figures --
+    # never the phase2b scalars that produced them, which would be R15's tautology.
+    #
+    # It RAISES rather than warning. A run that cannot state a consistent treasury has nothing
+    # publishable to say about its own solvency, and the failure mode this replaces was two
+    # silent days.
+    unreconciled = reconcile_published_run_output(data)
+    if unreconciled:
+        raise ValueError(
+            "refusing to publish a run output whose own figures do not reconcile:\n  - "
+            + "\n  - ".join(unreconciled)
+        )
+
     commit_hash = _git_commit_hash()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     data["_cache_meta"] = {

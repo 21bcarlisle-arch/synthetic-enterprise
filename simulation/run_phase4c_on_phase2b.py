@@ -68,6 +68,7 @@ from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.dd_review import annual_dd_review_view
 from company.interfaces.bill_assembly import assemble_monthly_bills
+from company.interfaces.growth_desk import broker_commission_schedule
 from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import (
     build_customer_value_view,
@@ -92,6 +93,7 @@ from simulation.meter_reads import (
 from simulation.live_population import live_population
 from simulation import policy_costs as _policy_costs
 from simulation.run_phase2b import main as run_phase2b
+from simulation.settlement_clocks import refresh_settlement_scalars
 from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
 
@@ -306,6 +308,21 @@ def main(report_end: str | None = None, policy=None):
     )
     apply_debt_recovery(all_records, debt_recovery)
 
+    # THE LAST STAGE THAT MUTATES `all_records` HAS NOW RUN, so the scalars the settlement loop
+    # froze at `run_phase2b.py:2506-2510` are stale from here on. Re-derive them from the rows
+    # as the rows now stand, and keep the pre-mutation reads under `provisioned_*` names.
+    #
+    # 2026-08-28, class `figures_on_a_superseded_clock`. Until this line existed, one run dict
+    # carried two clocks under one set of names, and which one a reader got depended on whether
+    # the code they were reading walked the rows or read the summary. That published the same
+    # GBP 39,962.17 discrepancy twice in two days -- inside the value-cycle A/B artefact, and on
+    # the live site, where `starting_treasury_gbp + total_net_gbp` did not equal
+    # `final_treasury_gbp`. It is repaired HERE and not at either consumer, because
+    # `saas/reporting/annual_report.py`, `saas/reporting/segment_report.py` and
+    # `tools/run_frozen_baseline.py` all read those names and the next consumer to be written
+    # would have been free to reintroduce it. See `simulation/settlement_clocks.py`.
+    refresh_settlement_scalars(phase2b_result)
+
     # KNIFE pass 3 (`A_composition_lift` step 16, 2026-08-11, register §3k): the
     # supplier's billing-experience layer moved to
     # `company/analytics/billing_experience_view.py`, reached through
@@ -465,6 +482,12 @@ def main(report_end: str | None = None, policy=None):
         acquisition_spend_events=phase2b_result.get("acquisition_spend_events", []),
         fixed_cost_events=phase2b_result.get("fixed_cost_events", []),
         cost_to_serve_ledger_events=cost_to_serve_ledger_events,
+        # R2 (2026-08-28): business acquisition's cost is a broker trail per kWh billed, not
+        # a one-off at signup, so it is accrued HERE, over this run's settled volume, rather
+        # than emitted by run_phase2b's churn branch with the rest of the spend schedule.
+        broker_commission_events=broker_commission_schedule(
+            settled_records=all_records, customers=all_customers,
+        ),
     )
     ledger_events = books.events
     ledger_pnl = books.pnl
