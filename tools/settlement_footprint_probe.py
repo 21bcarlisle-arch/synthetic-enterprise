@@ -70,17 +70,72 @@ _MAXRSS_RE = re.compile(r"Maximum resident set size \(kbytes\):\s*(\d+)")
 _LIVE_RUN_PATTERN = "tools.run_annual_report"
 
 
+def _argv_of(pid: str) -> list[str] | None:
+    """This pid's argv as a list, or None when it cannot be read.
+
+    None is deliberately AMBIGUOUS to the caller and is treated as "still a run" there: a
+    process that exists but whose `/proc` entry we cannot read is not evidence of an idle box.
+    """
+    try:
+        raw = Path("/proc") / pid / "cmdline"
+        parts = raw.read_bytes().decode("utf-8", "replace").split("\0")
+    except (OSError, ValueError):
+        return None
+    argv = [p for p in parts if p]
+    return argv or None
+
+
+def _argv_is_a_producer_run(argv: list[str]) -> bool:
+    """True only when argv INVOKES the run, rather than merely mentioning it.
+
+    `pgrep -f` matches the whole command line, so anything carrying the module's name as DATA
+    matches too. On this box that is not hypothetical: the autonomous worker is launched as
+    `claude -p <prompt>`, and a prompt that instructs the seat to run this probe quotes
+    `tools.run_annual_report` inside its own argv. The guard then reports the agent that is
+    trying to take the measurement as the producer it must stand down for -- forever, because
+    the agent cannot outlive its own prompt. The only escape was `--force`, which turns a
+    fail-closed guard into a bypass and would have measured the box while competing after all.
+
+    So the shape is checked, not the substring. `background/sim_runner.py:240` launches
+    `[sys.executable, "-m", "tools.run_annual_report", ...]`, and `measure()` below launches the
+    same argv under `/usr/bin/time`; both put the module in its OWN argv element, immediately
+    after `-m`. A script path is accepted too. A mention anywhere else is data.
+    """
+    if not argv or "python" not in Path(argv[0]).name:
+        return False
+    # The interpreter's own options come first; the module or script is the first argument that
+    # is not one. Anything AFTER that belongs to the program and is its data, not its identity.
+    i = 1
+    while i < len(argv) and argv[i].startswith("-"):
+        if argv[i] == "-m" and i + 1 < len(argv):
+            module = argv[i + 1]
+            return module == _LIVE_RUN_PATTERN or module.startswith(_LIVE_RUN_PATTERN + ".")
+        i += 1
+    if i < len(argv):
+        return argv[i].endswith(_LIVE_RUN_PATTERN.replace(".", "/") + ".py")
+    return False
+
+
 def a_run_is_in_flight() -> str | None:
     """The PID of a live producer run, or None. Fails CLOSED -- if `pgrep` cannot be run we
     report a run in flight rather than assume the box is idle, because the harmful direction is
-    launching a second 14GB job, not skipping a measurement."""
+    launching a second 14GB job, not skipping a measurement.
+
+    A matched pid is discarded ONLY when its argv can be read and does not invoke the run
+    (`_argv_is_a_producer_run`). An unreadable argv keeps the pid, so every way of not knowing
+    still refuses.
+    """
     try:
         r = subprocess.run(["pgrep", "-f", _LIVE_RUN_PATTERN],
                            capture_output=True, text=True, timeout=10)
     except Exception:
         return "unknown (pgrep unavailable -- refusing rather than assuming an idle box)"
     pids = [p for p in r.stdout.split() if p.strip()]
-    return pids[0] if pids else None
+    for pid in pids:
+        argv = _argv_of(pid)
+        if argv is None or _argv_is_a_producer_run(argv):
+            return pid
+    return None
 
 
 def measure(end_year: int, fast: bool = True, timeout_s: int = 3600) -> dict:

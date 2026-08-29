@@ -19,10 +19,13 @@ partitions must fail the control" -- is
 
 from __future__ import annotations
 
+import hashlib
 import json
+import pathlib
 
 import pytest
 
+from tools import couple_pb3_book_growth as pb3
 from tools.couple_pb3_book_growth import (
     CAMPAIGN_RECORD,
     MACHINE_BINDINGS,
@@ -314,3 +317,115 @@ def test_the_ledger_entry_is_well_formed_and_self_consistent():
     assert entry["metric"] == "belief"
     assert entry["gap"] == pytest.approx(entry["raw_gap"] / entry["g0"])
     assert entry["components"]["belief_organ_atom"] is None
+
+
+# ---------------------------------------------------------------------------
+# WHOSE BOOK DID THIS MEASURE? `CAMPAIGN_RECORD` is an absolute path that every
+# process assembling a book rewrites, so a reader that names no subject adopts
+# whatever the producer wrote last. Same class as the settlement-ceiling probe's
+# contaminated 2,000-budget point (2026-08-29).
+# ---------------------------------------------------------------------------
+
+
+def _minimal_record():
+    return {
+        "generated_by": "simulation.live_population._resolve_campaign",
+        "customer_year_budget": 1200.0,
+        "customer_years_committed": 1195.4,
+        "by_year": [
+            {"year": 2017, "binding": "capital", "planned_on_rate": 0.5,
+             "quotes": 100, "wins": 50},
+        ],
+    }
+
+
+def _write(tmp_path, obj):
+    p = tmp_path / "book_growth_campaign.json"
+    p.write_text(json.dumps(obj), encoding="utf-8")
+    return p
+
+
+def test_the_read_NAMES_the_bytes_it_measured(tmp_path, monkeypatch):
+    """THE DEFECT. Two runs of this tool against a path the producer rewrites could report
+    different numbers with nothing in either output to show they read different books."""
+    monkeypatch.setattr(pb3, "_producer_in_flight", lambda: None)
+    p = _write(tmp_path, _minimal_record())
+
+    prov = pb3.load_campaign_record(p)[pb3.READ_PROVENANCE_KEY]
+
+    assert prov["sha256"] == hashlib.sha256(p.read_bytes()).hexdigest()
+    assert prov["path"] == str(p)
+    assert prov["mtime_utc"].endswith("+00:00")
+
+
+def test_a_DIFFERENT_book_gets_a_different_fingerprint(tmp_path, monkeypatch):
+    """The point of a fingerprint is that it CHANGES. One that did not would name every book
+    identically and report agreement between two measurements that shared nothing."""
+    monkeypatch.setattr(pb3, "_producer_in_flight", lambda: None)
+    first = pb3.load_campaign_record(_write(tmp_path, _minimal_record()))
+
+    other = _minimal_record()
+    other["customer_years_committed"] = 2358.4
+    second = pb3.load_campaign_record(_write(tmp_path, other))
+
+    assert (first[pb3.READ_PROVENANCE_KEY]["sha256"]
+            != second[pb3.READ_PROVENANCE_KEY]["sha256"])
+
+
+def test_a_producer_in_flight_is_RECORDED_not_refused(tmp_path, monkeypatch):
+    """NOT a refusal, and the test pins that on purpose. The producer runs for roughly
+    two-thirds of every cadence, so refusing on its presence would refuse most of the time --
+    and a control that cannot clear gets bypassed rather than obeyed. The measurement proceeds
+    carrying the caveat."""
+    monkeypatch.setattr(pb3, "_producer_in_flight", lambda: "3859950")
+
+    prov = pb3.load_campaign_record(_write(tmp_path, _minimal_record()))[
+        pb3.READ_PROVENANCE_KEY]
+
+    assert prov["producer_in_flight_at_start"] == "3859950"
+    assert prov["producer_in_flight_at_end"] == "3859950"
+
+
+def test_a_record_REWRITTEN_MID_READ_is_refused(tmp_path, monkeypatch):
+    """The one state that IS refused: if the file changed while being read there is no single
+    record to name, so a fingerprint would be a fingerprint of nothing."""
+    monkeypatch.setattr(pb3, "_producer_in_flight", lambda: None)
+    p = _write(tmp_path, _minimal_record())
+
+    seen = {"n": 0}
+    real_stat = pathlib.Path.stat
+
+    def _moving_stat(self, *a, **k):
+        st = real_stat(self, *a, **k)
+        if self == p:
+            seen["n"] += 1
+            if seen["n"] > 1:  # the SECOND stat, i.e. after the bytes were read
+                class _S:
+                    st_mtime_ns = st.st_mtime_ns + 1
+                return _S()
+        return st
+
+    monkeypatch.setattr(pathlib.Path, "stat", _moving_stat)
+
+    with pytest.raises(pb3.CampaignRecordUnusable) as exc:
+        pb3.load_campaign_record(p)
+    assert "rewritten" in str(exc.value).lower()
+
+
+def test_an_UNAVAILABLE_producer_check_is_not_recorded_as_a_producer(monkeypatch):
+    """Direction matters and it is the OPPOSITE of the probe's. There, not knowing must refuse,
+    because the harm is launching a second heavy job. Here the answer is an annotation on a
+    measurement that runs regardless, so not knowing must not be written down as an observation
+    that a producer was present -- that would manufacture a caveat nobody measured."""
+    import tools.settlement_footprint_probe as fp
+
+    def _boom():
+        raise OSError("pgrep missing")
+
+    monkeypatch.setattr(fp, "a_run_is_in_flight", _boom)
+    assert pb3._producer_in_flight() is None
+
+    monkeypatch.setattr(
+        fp, "a_run_is_in_flight",
+        lambda: "unknown (pgrep unavailable -- refusing rather than assuming an idle box)")
+    assert pb3._producer_in_flight() is None, "the refusal SENTINEL is not a pid"

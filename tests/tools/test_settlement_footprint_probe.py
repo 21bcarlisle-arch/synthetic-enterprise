@@ -98,3 +98,128 @@ def test_one_horizon_cannot_produce_a_scaling_law():
     out = probe.summarise([{"end_year": 2017, "peak_rss_mb": 2000.0}])
     assert out["slope_mb_per_year"] is None
     assert "at least two" in out["note"]
+
+
+# ---------------------------------------------------------------------------
+# The guard's SUBJECT: a matched command line is not the same thing as a run.
+# Class `a_pgrep_waiter_matches_the_agent_whose_prompt_quotes_the_subject`,
+# observed live 2026-08-29 while taking the settlement-ceiling measurement.
+# ---------------------------------------------------------------------------
+
+
+def _pgrep_returning(*pids):
+    return lambda *a, **k: _Proc(stdout="".join(f"{p}\n" for p in pids))
+
+
+def test_the_AGENT_whose_PROMPT_quotes_the_module_is_not_a_producer_run(monkeypatch):
+    """THE DEFECT. `pgrep -f` matches the whole command line, so the autonomous worker launched
+    as `claude -p "<prompt mentioning tools.run_annual_report>"` was reported as the producer the
+    probe had to stand down for. It cannot ever clear: the agent's prompt is its own argv, so the
+    guard refused every point of the measurement it had been told to take, and `--force` -- which
+    disables the guard entirely -- was the only way past it."""
+    monkeypatch.setattr(probe.subprocess, "run", _pgrep_returning("4050583"))
+    monkeypatch.setattr(probe, "_argv_of", lambda pid: [
+        "/home/rich/.nvm/versions/node/v24.16.0/bin/claude", "-p",
+        "--dangerously-skip-permissions", "--model", "claude-opus-5",
+        "You are the autonomous worker ... `tools/settlement_ceiling_probe.py` calls "
+        "`tools.run_annual_report._run_and_extract` ... stand the live producer down",
+    ])
+
+    assert probe.a_run_is_in_flight() is None, (
+        "a process that MENTIONS the module in an argument is not running it"
+    )
+
+
+def test_a_real_producer_launch_IS_still_detected(monkeypatch):
+    """The other half, or the fix above is just a disabled guard. `background/sim_runner.py:240`
+    launches exactly this argv, and it must still stop the probe."""
+    monkeypatch.setattr(probe.subprocess, "run", _pgrep_returning("4021373"))
+    monkeypatch.setattr(probe, "_argv_of", lambda pid: [
+        "/usr/bin/python3", "-m", "tools.run_annual_report", "--out", "/tmp/report.md",
+    ])
+
+    assert probe.a_run_is_in_flight() == "4021373"
+
+
+def test_the_producer_is_found_BEHIND_a_mentioner(monkeypatch):
+    """Order is not a filter. The agent's pid sorts first here, and returning `pids[0]` after
+    discarding nothing -- or discarding and then giving up -- would both miss the real run."""
+    monkeypatch.setattr(probe.subprocess, "run", _pgrep_returning("100", "200"))
+    argvs = {
+        "100": ["bash", "-c", "grep -n tools.run_annual_report background/sim_runner.py"],
+        "200": ["/usr/bin/python3", "-m", "tools.run_annual_report"],
+    }
+    monkeypatch.setattr(probe, "_argv_of", lambda pid: argvs[pid])
+
+    assert probe.a_run_is_in_flight() == "200"
+
+
+def test_an_UNREADABLE_argv_still_refuses(monkeypatch):
+    """FAIL-CLOSED, preserved. `/proc/<pid>/cmdline` is unreadable for a process owned by another
+    user, and for one that exited between `pgrep` and the read. Neither is evidence of an idle
+    box, so neither may clear the guard -- the shape check narrows the guard's subject, and must
+    not turn a second way of not knowing into a pass."""
+    monkeypatch.setattr(probe.subprocess, "run", _pgrep_returning("2795477"))
+    monkeypatch.setattr(probe, "_argv_of", lambda pid: None)
+
+    assert probe.a_run_is_in_flight() == "2795477"
+
+
+def test_a_script_path_launch_counts_as_a_run():
+    """`python3 tools/run_annual_report.py` puts no `-m` in argv and is the same job."""
+    assert probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "/home/rich/synthetic-enterprise/tools/run_annual_report.py"]
+    )
+    assert not probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "/home/rich/synthetic-enterprise/tools/run_annual_report_test.py"]
+    )
+
+
+def test_argv_of_reads_this_process(tmp_path):
+    """The reader is not mocked anywhere real, so it is exercised once against a live `/proc`.
+    A `_argv_of` that always returned None would leave every test above passing while the guard
+    silently reverted to matching substrings."""
+    import os
+
+    argv = probe._argv_of(str(os.getpid()))
+    assert argv and any("pytest" in a or "python" in a for a in argv)
+
+
+def test_a_process_that_merely_NAMES_the_file_as_an_argument_is_not_a_run():
+    """CAUGHT BY PRINTING AT REAL INPUTS, not by thinking. The first repair above narrowed the
+    `-m` branch and left the script-path branch matching ANY argv element ending in
+    `tools/run_annual_report.py`. Within the hour, `python3 -m tools.surgical_land <paths...>`
+    -- landing that very repair, with the file listed as a path to commit -- was reported as a
+    live producer run.
+
+    An argument is not an invocation. The module or script is the FIRST argv element after the
+    interpreter's own options; everything after it is the program's data."""
+    assert not probe._argv_is_a_producer_run(
+        ["timeout", "2400", "python3", "-m", "tools.surgical_land",
+         "tools/run_annual_report.py", "simulation/settlement_clocks.py"]
+    )
+    assert not probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "-m", "tools.surgical_land", "tools/run_annual_report.py"]
+    )
+    assert not probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "-m", "pytest", "tests/", "-k", "run_annual_report"]
+    )
+
+
+def test_a_NON_python_process_is_never_a_run():
+    """`git`, `grep`, an editor -- none of them run the report however their argv reads. Pinning
+    this is what stops the next widening of the script-path branch reaching them."""
+    assert not probe._argv_is_a_producer_run(["git", "add", "tools/run_annual_report.py"])
+    assert not probe._argv_is_a_producer_run(["vim", "tools/run_annual_report.py"])
+    assert not probe._argv_is_a_producer_run([])
+
+
+def test_interpreter_OPTIONS_do_not_hide_the_module():
+    """`python3 -u -m tools.run_annual_report` is the same job. Scanning must skip the
+    interpreter's own flags rather than give up at the first one."""
+    assert probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "-u", "-m", "tools.run_annual_report"]
+    )
+    assert probe._argv_is_a_producer_run(
+        ["/usr/bin/python3", "-m", "tools.run_annual_report.cli"]
+    )

@@ -90,6 +90,7 @@ DETERMINISM (C-S2). No RNG, no wall clock in the measurement. `measured_at` /
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 from datetime import datetime, timezone
@@ -142,12 +143,37 @@ class CampaignRecordUnusable(RuntimeError):
     """
 
 
+#: The key the read's own provenance is filed under. Underscore-prefixed to say it was added by
+#: the READER and is not part of what `_resolve_campaign` wrote.
+READ_PROVENANCE_KEY = "_read_provenance"
+
+
 def load_campaign_record(path=None) -> dict:
-    """Read the campaign record, refusing anything unusable.
+    """Read the campaign record, refusing anything unusable, and NAME the bytes it read.
 
     FAIL-CLOSED ON ALL FOUR (R15): absent file, unreadable bytes, non-object JSON,
     and an object whose `by_year` is missing/not-a-list/empty. Each is a state in
     which no measurement exists, and each one is a `CampaignRecordUnusable`.
+
+    WHOSE BOOK IS THIS? (2026-08-29.) `CAMPAIGN_RECORD` is an absolute path that
+    `simulation.live_population._resolve_campaign` rewrites from EVERY process that
+    assembles a book, and the live producer assembles one about every 1,500s. This
+    reader therefore measures whatever the last writer left, and until now recorded
+    nothing about which run that was. `tools/settlement_ceiling_probe.py` had the
+    identical shape and it was not hypothetical: producer pid 3859950 rewrote the file
+    mid-probe and the probe published the producer's campaign as its own 2,000-budget
+    result, with a coherent and false verdict attached.
+
+    THE FIX IS NOT A REFUSAL, DELIBERATELY. Refusing while a producer is in flight
+    would refuse most of the time -- the producer is running for roughly two-thirds of
+    every cadence -- and a control that cannot clear gets bypassed rather than obeyed.
+    Instead the read NAMES ITS SUBJECT: the bytes' sha256, the file's mtime, and
+    whether a producer was in flight at the start and end of the read. A divergence is
+    then REPORTED rather than silently adopted, and two measurements can be compared to
+    see whether they read the same book at all.
+
+    The one thing that IS refused is the file changing DURING the read, because then
+    there is no single record to name.
     """
     p = Path(path) if path is not None else CAMPAIGN_RECORD
     if not p.is_file():
@@ -156,9 +182,22 @@ def load_campaign_record(path=None) -> dict:
             "`simulation.live_population._resolve_campaign` on a real run; there "
             "is nothing to measure until a run has produced one."
         )
+    producer_at_start = _producer_in_flight()
     try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        mtime_before = p.stat().st_mtime_ns
+        raw = p.read_bytes()
+        mtime_after = p.stat().st_mtime_ns
+    except OSError as exc:
+        raise CampaignRecordUnusable(f"campaign record at {p} is unreadable: {exc}")
+    if mtime_before != mtime_after:
+        raise CampaignRecordUnusable(
+            f"campaign record at {p} was rewritten WHILE being read "
+            f"(mtime {mtime_before} -> {mtime_after}). A producer assembling a book "
+            "shares this path; there is no single record here to measure."
+        )
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
         raise CampaignRecordUnusable(f"campaign record at {p} is unreadable: {exc}")
     if not isinstance(data, dict):
         raise CampaignRecordUnusable(
@@ -170,7 +209,33 @@ def load_campaign_record(path=None) -> dict:
             f"campaign record at {p} carries no `by_year` rows. A campaign with no "
             "years is not a campaign whose forecast was perfect."
         )
+    data[READ_PROVENANCE_KEY] = {
+        "path": str(p),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "mtime_utc": datetime.fromtimestamp(
+            mtime_before / 1e9, tz=timezone.utc).isoformat(),
+        "producer_in_flight_at_start": producer_at_start,
+        "producer_in_flight_at_end": _producer_in_flight(),
+    }
     return data
+
+
+def _producer_in_flight() -> Optional[str]:
+    """The pid of a live producer run, or None -- and None on ANY failure to tell.
+
+    The opposite default to `settlement_footprint_probe.a_run_is_in_flight`, which it
+    delegates to, and the difference is deliberate: there the answer gates whether to
+    launch a second heavy job, so not knowing must refuse. Here it is a provenance
+    ANNOTATION on a measurement that goes ahead either way, so an unavailable check
+    must not be recorded as a producer that was never observed.
+    """
+    try:
+        from tools.settlement_footprint_probe import a_run_is_in_flight
+
+        pid = a_run_is_in_flight()
+    except Exception:
+        return None
+    return pid if pid and pid.isdigit() else None
 
 
 def _planned_on_rate(row: dict) -> Optional[float]:
@@ -414,6 +479,17 @@ def main() -> None:
     result, stats = measure(record)
 
     print("PB3 -- book growth as an earned outcome: belief vs truth")
+    prov = record.get(READ_PROVENANCE_KEY) or {}
+    if prov:
+        # WHICH BOOK. Printed first because every figure below is a property of these
+        # bytes and of no others, and the path is shared with the live producer.
+        print(f"  record read              : {prov['path']}")
+        print(f"    sha256                 : {prov['sha256'][:16]}  mtime {prov['mtime_utc']}")
+        if prov["producer_in_flight_at_start"] or prov["producer_in_flight_at_end"]:
+            print("    NOTE: a producer run was in flight during this read "
+                  f"(start={prov['producer_in_flight_at_start']}, "
+                  f"end={prov['producer_in_flight_at_end']}). The record may be a "
+                  "different run's book than the one this measurement is attributed to.")
     print(f"  years in record          : {stats['n_years_in_record']}")
     print(f"  scored (market-decided)  : {stats['n_scored']}")
     print(f"  EXCLUDED (machine-bound) : {stats['n_excluded_machine_bound']}"
