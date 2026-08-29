@@ -1,276 +1,283 @@
 version: 1
-oriented_at: "2026-08-28T23:22:14.091405+00:00"
+oriented_at: "2026-08-29T02:22:47.338789+00:00"
 thesis_read: >-
-  The company can now infer competitive pressure instead of looking it up, and at HEAD it still
-  cannot. That sentence is the whole state of the thesis tonight, and both halves are real.
-  `401a51eba` replaced the ten-entry year lookup with `company/crm/competitive_pressure.py` — the
-  published series as prior, the company's own realised losses against what it predicted as
-  likelihood, combined by precision weighting, over renewal years strictly earlier than the one
-  being priced. Seventeen mutation-proven controls, verifier PASS, nothing about the rival crossing
-  the wall in either direction. On a fresh paired run it moves: `max |ON − OFF|` was 0.0 at every
-  rung this morning and is 0.0132 at rung 0.5 now, in the right direction, tracking 68.1% of the
-  world's own move at that rung. For the first time on this dimension the advantage has a route to
-  come from inference rather than access, and that is the most thesis-relevant thing built here in
-  weeks. **But the two hunks in `simulation/run_phase2b.py` that open the run scope and arm the
-  loss numerator are not committed.** Without them `active_pressure_ledger()` returns None at every
-  call and HEAD's behaviour is byte-identical to the table it replaces — so the table in the
-  finding is reproducible from no clone, and a reader of this repository gets the year lookup. They
-  are held behind another lane's uncommitted leap-year fix in the same file, and the worker was
-  right not to fix somebody else's red to unblock itself. Two things I got wrong sit behind that.
-  First, my own instruction: I wrote item one's done-condition as *report whether the belief
-  differs*, and a measurement is what I got. Direction that asks for a number gets a number and
-  leaves the behaviour unlanded. Second, the first measurement of the new channel was worthless and
-  flattering — `run_phase4c_on_phase2b` calls `run_phase2b()` with no `sim_interface`, so every
-  `notify_churn` sat behind `if sim_interface is not None` and the ledger read *no reporting* as
-  *no departures*, during a run where 16 accounts churned in one arm and 12 in the other. It
-  narrowed the published gap from 20.7–28.7pp to 1.1–14.9pp and all sixteen tests were green; it
-  was caught by a contradiction the artefacts stated plainly. That guard is a pattern, not an
-  instance. Elsewhere: the re-issued-claim binding landed (`df4d83ec5`) and this brief reports
-  `steered: true` for the first time, so the seat's instrument for reading its own direction now
-  agrees with git; the founder book reached HEAD at `3d83edffb`, which retires the self-refuting
-  completion claim I filed last night. Nothing went backwards. What is drifting is the tail of this
-  list: `/capabilities/` still publishes an arms comparison denominated in constants `0850eadcd`
-  deleted, and its error bar divides a provisioned-clock spread by a realised-clock estimate; the
-  bound sentence has been named five times and rendered zero; the settlement-clocks pair has been
-  named six times and is now UNTRACKED with two modified consumers importing it. Naming a
-  ten-minute job last, six times, is how you decide never to do it. Two of them move up tonight.
+  The inference channel is live in HEAD and the population it exists to be graded on is capped by
+  our own machine, and those two sentences are the whole state of the thesis tonight. The first is
+  good: `c5641b12f` carries the import at `run_phase2b.py:31`, `arm_loss_reporting()` and the churn
+  booking at `:1812-1815`, so a clone of this repository now contains a company that infers
+  competitive pressure from its own realised losses rather than reading a year table. Advantage
+  from inference rather than access has a route in code for the first time. The second is the
+  finding of the stretch and it was already written down twice before I put it anywhere:
+  **from 2018 the published book is not a commercial outcome at all.** On the live campaign the
+  funnel won 380 accounts across the decade and the settlement engine booked 45; 335 were refused
+  by `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0`, which the module's own note calls "THIS MACHINE's
+  budget ... not a commercial limit", and `site/data/book_growth.json` records the engine as the
+  binding constraint in nine of ten years. The account count is 127 from 2017 to 2025. Follow that
+  through the thesis and it reaches everything: the ladder's paired population is sixteen decisions
+  and the worker measuring it tonight found all sixteen have term starts in 2016-2018, because the
+  top rung has no book left after 2019 and the common population is the intersection across rungs.
+  The founder book was supposed to be what changed `n`; it deepened the ledger to 453 renewal
+  decisions and moved the gradable table by nothing. So "there has to be a baseline to beat, or 'it
+  performed well' means nothing" is currently unanswerable — not because the company is weak, but
+  because the world we let it run in stops growing in 2017, and every experiment downstream is
+  being run on a book an engineering constant froze. R6 hits the same wall from the other side:
+  acquisition spend now reaches the collateral desk and the company sits £316,009 from its first
+  demand, on a mechanism that works through growth, through a book nothing reaches. Nothing went
+  backwards, and the honesty here has been good — the feed publishes the ceiling, `/capabilities/`
+  renders `engine_bound_statement` verbatim, and a door test drives the real page. One exception,
+  found tonight and not yet repaired: the annual report publishes a section headed "Company CRM —
+  Event Log" that is the SIM's own log relabelled, under a reconciliation whose Match column is a
+  containment check between two projections of one write. A completely empty company CRM — which is
+  what the five surviving `if sim_interface is not None` guards actually produce on every production
+  path — reconciles as "yes" against a world that churned every account. That is a published claim
+  the code cannot falsify. What is drifting is my own ordering, again and measurably: the
+  settlement-clocks pair has now been named in seven consecutive directions and is still untracked
+  with two modified consumers importing it, and last night I wrote "it moves to third tonight" and
+  third was never reached. It is first tonight, because a ten-minute decision I have declined seven
+  times is not a priority problem, it is a placement problem.
 stretch_reviewed:
-  since: "2026-08-28T20:24:51.890173+00:00"
-  commits: 8
+  since: "2026-08-28T23:22:14.091405+00:00"
+  commits: 9
   substantive: 3
 focus:
-  - id: land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head
-    what: >-
-      `simulation/run_phase2b.py` is `MM` and its working diff carries TWO lanes: the leap-year call
-      site at `@@ -767` (`from simulation.customer_events import twelve_month_window_open`, feeding
-      `_company_eac_estimate`) belongs to the customer-events lane, and the import at `@@ -28`, the
-      `arm_loss_reporting()` call at `@@ -1798` and the churn-branch booking at `@@ -2819` are the
-      competitive-pressure channel. Land them as TWO commits in that order, each attributable.
-      First: `simulation/customer_events.py`'s `twelve_month_window_open` plus that one call-site
-      hunk, with a control that fails on a 29 February term start — that fix, uncommitted since
-      19:02 tonight and in nobody's clone, is what makes
-      `tests/simulation/test_run_phase2b_event_log.py::test_sim_interface_none_still_works` pass, and
-      it is presently blocking every commit that touches `run_phase2b.py`. Second: the three pressure
-      hunks. Use `python3 -m tools.surgical_land` for both — it gates the tree the commit would
-      create, which is the only tree that matters here. Then re-run
-      `tools._ladder_chase_arm on|off` and `tools.compare_chase_belief` FROM THE LANDED TREE and
-      confirm the finding's table reproduces; if it does not, the finding's numbers are corrected
-      beside themselves, not over them. Then sweep the pattern: grep every call site of
-      `if sim_interface is not None` — `notify_acquisition` and `notify_retention_attempt` sit
-      behind the same guard — and for each say whether the observable is silently absent in every
-      `run_phase4c` run, in a finding.
-    why: >-
-      The channel is the thesis and it is inert. `company/crm/competitive_pressure.py` is at HEAD,
-      its consumers read it, and it returns the prior unchanged at every call because the site that
-      fills its numerator is not committed — so a clone of this repository contains a company whose
-      competitive belief is a hardcoded year table, exactly as it was this morning, while the record
-      says otherwise. That is the record outrunning the code on the single most thesis-relevant
-      capability here, and it stays that way until somebody lands another lane's four-hour-old fix as
-      its own attributable commit, which is a decision and not a build. The guard sweep is second
-      because the dead wire proved that an unplumbed seam reads as a quiet market: absence of an
-      observation channel read as observation of absence, in the flattering direction, past sixteen
-      green tests. Done means `git show HEAD:simulation/run_phase2b.py` contains `arm_loss_reporting`,
-      the paired run reproduces from a clean export of HEAD, and every other observable behind that
-      guard has been checked and its state written down.
-  - id: re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers
-    what: >-
-      The derived channel responded at one rung in four, and the finding states the mechanism rather
-      than inferring it: the ledger reads years strictly earlier than the renewal being priced, the
-      extra departures in three of four rungs fell in 2019 — the last year of the window — and a
-      departure only becomes evidence if something is priced after it. The founder book is now at
-      HEAD (`3d83edffb`, `docs/design/FOUNDER_BOOK.yaml`, 80 accounts seeded into 2016). Re-run the
-      same controlled pair on that deeper book and on a window whose final year is not the only place
-      the count can cross — same tree, identical seeds, one declared parameter differing,
-      `chase_per_quarter` asserted before each arm as `tools/_ladder_chase_arm.py` already does — and
-      report `max |ON − OFF|` per rung against the world's own move, with the realised loss counts per
-      arm per year printed beside it so the reader can see where evidence was available and where it
-      was wasted. Then either RECORD B10's level move with the measured belief-vs-truth gap, or file
-      the fourth refusal carrying its numbers and naming what is still missing.
-    why: >-
-      This is the level move and it is now ten minutes of run plus a judgement. The structural half
-      of B10's L3 leg is discharged — `COMPETITOR_FIELD_FRAME` §5 component 2 returns a number for
-      the first time instead of "no response exists" — and the third refusal was right, because one
-      crossing of an integer count on a 16-decision intersection is an observation and not a curve.
-      The finding says plainly what would settle it and says there is no design question left, only
-      an `n` question, and the founder book landing is exactly the thing that changes `n`. This is
-      also the answer to the shape the last prediction got wrong: the effect is not
-      small-and-everywhere but absent-or-substantial, so the fix is more chances for the count to
-      cross, not more signal. Done means B10 moves and the move is RECORDED with the gap, or the
-      refusal names a specific missing thing that is not "more data".
   - id: land-or-delete-the-untracked-settlement-clocks-pair
     what: >-
-      `simulation/settlement_clocks.py` and `tests/simulation/test_settlement_clocks.py` are
-      UNTRACKED as of 12:02 today, while `tools/run_annual_report.py:69` and
-      `simulation/run_phase4c_on_phase2b.py:96` sit modified-unstaged carrying
-      `from simulation.settlement_clocks import …`. Decide it in one move: either commit supplier,
-      test and both consumers as a single pathspec, or revert the two import hunks and delete the
-      untracked pair. `git status` showing neither the pair nor the orphaned imports is the whole
-      exit condition.
+      `simulation/settlement_clocks.py` and `tests/simulation/test_settlement_clocks.py` are still
+      UNTRACKED, and `tools/run_annual_report.py:69` and `simulation/run_phase4c_on_phase2b.py:96`
+      are still modified-unstaged carrying `from simulation.settlement_clocks import …`. Do this
+      first and do not start anything else until `git status` shows neither the pair nor the orphaned
+      imports. Two legal moves and either is acceptable: commit supplier, test and both consumers as
+      one pathspec through `python3 -m tools.surgical_land`, or revert the two import hunks and
+      delete the untracked pair. If you commit it, the commit message needs the REUSE block — run
+      `tools/write_time_gate.py --explain simulation/settlement_clocks.py` before you write it. If
+      you cannot tell which move is right in ten minutes, take the delete: the module is in nobody's
+      clone, so nothing is lost that cannot be rewritten, and the hazard is removed either way.
     why: >-
-      Third from the bottom for six consecutive directions and never done, which is evidence about
-      my ordering rather than about the work — it is minutes, and naming it last again is deciding
-      it never happens. The hazard also got worse rather than better: while the pair was staged,
-      supplier and consumers moved together; untracked, any lane committing those two consumers by
-      pathspec — the normal and correct way to commit in this tree — ships an import of a module that
-      exists in nobody's clone, and takes the annual report down for everyone. It sits above the
-      publishing work because it can break another lane's commit at any moment and because it costs
-      almost nothing to remove.
-  - id: put-the-bound-on-the-rendered-capabilities-page
+      Seventh consecutive direction naming it, and the hazard is no longer theoretical. Any lane
+      committing either of those two consumers by pathspec — the normal and correct way to commit in
+      this tree — ships an import of a module that exists in no other clone, and takes the annual
+      report down for everybody. That exact failure mode materialised tonight from a different cause:
+      `8452695d1` records the annual report crashing on the first miss it could not price and wedging
+      publishing for over three hours. It is first not because it is important but because placing it
+      below important work is a decision I have now made six times and it has produced nothing each
+      time. Done means `git status` is clean of all four paths.
+  - id: settlement-ceiling
     what: >-
-      Before starting this, launch item five's runs in the background so the two proceed together.
-      Then: `site/capabilities/index.html` renders `arms-split`, `arms-errorbar` and the Provisional
-      pill and contains no sentence bounding the comparison. Add to the door's render and to the live
-      surface that this compares two internal policies in a market that could not react to either.
-      Assert it the way `site/test_the_baseline_comparison_reaches_the_reader.py` already does —
-      drive the real door through `site/_live_harness.mjs` and read the rendered DOM, never the
-      generator output and never the feed — and carry a mutation that deletes the sentence and reds
-      the test, with the existing unavailable-feed null rung staying green through it. This is
-      `SITE13_the_baseline_comparison_carries_its_bound`, file scope `site/capabilities/`.
+      `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0` in `simulation/net_new_acquisition.py:457` refuses
+      335 of 380 funnel wins and binds the book in nine of ten years. Its own note says it is 60% of
+      the 465 measured in AO12's scale probe — so the ceiling has provenance, and the question is
+      whether that provenance is still true. Re-run AO12's probe on this machine, at the run shape
+      the live path actually uses, and measure two things directly: wall-clock and peak RSS per
+      settled customer-year, and what
+      `background.resource_headroom.sample()["total_mb"]` says is available now. Then set the ceiling
+      from what the probe supports and record the probe artefact as its evidence beside the constant,
+      the way the existing note does. Do not pick a round number, and do not pick one that makes the
+      book look a particular way — if the probe says 1200 is right, say so and the finding is that
+      the ceiling is real, which is a different and equally useful answer. Then re-run the live
+      campaign and report three things: how many wins book, what the gradable ladder population
+      becomes (the worker on the item below has the current figure — sixteen decisions, term starts
+      all 2016-2018, and the per-rung by-year census that explains it), and what happens to R6's
+      £316,009 headroom. The re-run will move the published net figure; whatever it does, the report
+      must say in terms that the change is the ceiling lifting and not the method working, because
+      those are the two things a reader will otherwise confuse.
     why: >-
-      Sixth consecutive direction naming it and it has never been rendered. The director corrected
-      this claim himself in `DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS`; a caveat is retractable by
-      construction, so it is mine to land and not his to approve, and it is the honesty half of
-      publishing the comparison at all — which was right to do. Item two makes the omission worse by
-      giving the page a competitor story to tell, so this is the last orientation where it can
-      reasonably slide. It is placed here because it is minutes of work that fits inside the wait for
-      item five's run, not because it ranks below it. Done means the sentence renders on the fetched
-      live page and a control fails if it stops.
-  - id: re-run-the-arms-and-the-noise-floor-on-the-current-basis-and-grade-the-prediction
+      This is the binding constraint on everything else on this board and two separate findings named
+      it as their top item last night before any direction did — the founder-book ruling
+      ("**the bigger finding this exposes, and it outranks the one this document was opened for**")
+      and R6's WORK THIS CREATES item 1 ("**this is the top item**"). I read both and put it nowhere,
+      which is the miss of the stretch. Follow the thread: B10 cannot be graded on sixteen decisions;
+      PB4 and PB5 build heterogeneity models against a population that cannot reject them; R6's
+      mechanism works through growth and has no growth to work through; and nine of ten published
+      growth years are a constant in one file expressed in customer-years. The founder book was the
+      bet that deepening the book would fix `n` and tonight's measurement says it did not, because
+      the ceiling and not the window is the bottleneck. Note what this is and is not: this is an
+      engineering ceiling with no counterpart in the world, so lifting it removes an artefact rather
+      than changing the curriculum, and it moves the experiment toward being MORE falsifiable, not
+      less — more gradable decisions is more chances to be refuted. If the probe comes back saying
+      the machine cannot support more, that is a real answer and it changes what the next direction
+      is about. Done means the constant carries a measurement taken this week, a live re-run reports
+      what booked, and the gradable population is stated as a number beside the old sixteen.
+  - id: B10_competitor_switching_response
     what: >-
-      `docs/observability/value_cycle_ab_s1_three_arm.json` still carries `generated_at`
-      2026-08-28T14:08:48Z and `value_cycle_ab_s1_three_arm_sourced.json` does not exist — the run
-      the preregistration says is running produced no artefact. Re-launch
-      `python3 -m tools.run_value_cycle_ab --level-arm` to the new path, never over the published
-      artefact, and in the same session re-run the noise floor
-      (`value_cycle_ab_s1_noise_floor.json`, `generated_at` 2026-08-27T23:32:17Z, nine passes
-      measured beside the superseded `settled-provisioned` panel) so both legs of what the page
-      publishes stand on one clock. Then: diff, and if the arms moved, promote, restate
-      `/capabilities/` and re-derive `0850eadcd`'s 4.4%/78.0% attribution split; if they did not,
-      say on the page in terms that sourcing repaired the company's P&L by £111,576 and moved the
-      comparison by nothing, because acquisition cost was never one of `GROSS_TO_NET_LINES`. Write
-      the outcome BESIDE the prediction in
+      A worker had the ON arm on disk at 02:57 (`docs/observability/ladder_chase_on_founder_2021.json`
+      plus its `ledger_census.json`) and filed the prediction before the OFF arm finished
+      (`docs/observability/ladder_2021_prediction_before_the_off_arm.md`, 03:03). Pick it up from
+      there: confirm the OFF arm completed, run the comparison, and write the outcome BESIDE that
+      prediction in its own file, never over it — it predicts one moved rung, at most two, and names
+      exactly what would refute it. Then close the item one way or the other. Either RECORD B10's
+      move from level 2 with the measured belief-versus-truth gap, or file the fourth refusal, and if
+      it is a refusal it must name the ceiling above as the specific missing thing rather than "more
+      data" — which, on tonight's census, is what the numbers actually say.
+    why: >-
+      The level move is the thesis made checkable, and this is the run that decides it. The third
+      refusal was right and said there was no design question left, only an `n` question; the founder
+      book was the answer to the `n` question and the ON arm's own census says it did not reach the
+      measured population. That makes this item's real output a diagnosis with numbers attached, and
+      it is what turns the item above from my judgement into the run's. A preregistration with no
+      answer beside it is the one artefact this project cannot leave lying around — its whole value
+      is that it was written before the result was known, and that value decays from the moment
+      somebody could have looked. Done means B10 moves and is RECORDED, or the refusal is filed with
+      the per-rung by-year table in it, and the prediction is graded in its own file either way.
+  - id: crm-reconciliation-that-cannot-fail
+    what: >-
+      `saas/reporting/annual_report.py:3566-3612` publishes a "SIM ground truth vs company CRM
+      reconciliation" whose CRM side is built by replaying the SIM's own event list
+      (`run_phase2b.py:2934` ← `_build_company_event_log`, a SIM-side function), under a section
+      headed "Company CRM — Event Log" that never reads
+      `LiveSimInterface.event_log`. Three moves, in this order. (1) Rename the section to what it is,
+      or rewire it to the company's log — it cannot be titled as the company's and sourced from the
+      world's. (2) The Match column is a one-sided containment check between two projections of one
+      write and cannot read "mismatch" for the failure it exists to catch; delete it or make its two
+      sides independent, and a published control that cannot fail is worse than no control. (3)
+      Dispose of the five surviving `if sim_interface is not None` guards at `run_phase2b.py:1777,
+      1821, 1853, 1953, 1983` — no production entry point passes an interface, so each observable is
+      present only in tests. Whichever has a real consumer moves out from behind the guard the way
+      the pressure ledger's did; the rest get deleted, because a seam only tests satisfy documents an
+      intention nobody implemented. Whatever you land, key the control to the property — assert the
+      reconciliation's two sides do not share a writer — because a control pinned to today's "yes"
+      goes red exactly when the report becomes more honest. The finding carries a prediction about
+      what happens if you do (3) without (2); grade it beside itself.
+    why: >-
+      A published artefact carries a "Match: yes" column over a ledger with nothing in it, and the
+      two defects are one defect seen twice: the guard starves the real CRM, and because the report
+      reconstructs the CRM from the world the starvation never surfaces. This is also the cleanest
+      available statement of the epistemic wall — the company's record of what it saw versus what
+      actually happened is exactly the comparison this project exists to make honestly, and right now
+      it is a mirror. It sits fourth rather than higher because it is a claim inside a report rather
+      than a headline figure and because the finding is filed and legible in the meantime; it sits
+      this high because it is a false statement we are publishing today. Done means the section's
+      title matches its source, the Match column is either falsifiable or gone, and each of the five
+      guards is either plumbed or deleted with the reason written down.
+  - id: capabilities-one-clock-one-basis-one-bound
+    what: >-
+      One pass over `site/capabilities/`, doing three things that are the same visit to the same
+      page. (1) `value_cycle_ab_s1_three_arm.json` still carries `generated_at`
+      2026-08-28T14:08:48Z — before `0850eadcd` landed the sourced acquisition costs at 20:46 — and
+      `value_cycle_ab_s1_noise_floor.json` still carries 2026-08-27T23:32:17Z. Re-launch
+      `python3 -m tools.run_value_cycle_ab --level-arm` to a new path, never over the published
+      artefact, and re-run the noise floor in the same session so both legs stand on one clock. (2)
+      Write the outcome beside the prediction in
       `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`,
-      never over it. Read no delta smaller than the old floor's £4,402 sd as an effect, and once the
-      floor is re-measured, use the new one.
+      never over it; read no delta smaller than the old floor's £4,402 sd as an effect, and once the
+      floor is re-measured use the new one. (3) In the same edit, add to the page's render and to the
+      live surface the sentence that the arms comparison is between two internal policies in a market
+      that could not react to either — asserted the way
+      `site/test_the_baseline_comparison_reaches_the_reader.py` already does it, driving the real door
+      through `site/_live_harness.mjs` and reading the rendered DOM, with a mutation that deletes the
+      sentence and reds the test while the unavailable-feed null rung stays green.
     why: >-
-      The thesis says the baseline comparison is the whole point — "or 'it performed well' means
-      nothing" — and the page currently publishes that comparison denominated in constants the tree
-      deleted, beside an error bar whose 25.2 spread-to-estimate ratio is a provisioned-clock spread
-      divided by a realised-clock estimate. Two figures, each correct in its own world, whose ratio
-      is not a quantity. The `clock_caveat` discloses it, which is why this is fifth and not first,
-      but a disclosed hole is still a hole and the re-measurement is the repair. The two runs are
-      folded into one item because they are the same instrument and running them separately pays the
-      wall-clock twice. A preregistration with no answer beside it is the one artefact this project
-      cannot leave lying around: its entire value is that it was written before the result was known,
-      and that value decays the moment somebody could have looked. Done means both artefacts carry
-      tonight's clock, the prediction is graded in its own file with the correction beside it, and a
-      reader of `/capabilities/` is told which cost basis the figures stand on.
+      The bound sentence has been named in seven directions at the tail and rendered zero times,
+      which is my ordering defect and not the lane's; it is folded into the re-run because they are
+      one file and one visit, and because separating them is what has let it slide seven times. The
+      substance still holds: the page publishes a comparison denominated in constants the tree
+      deleted, beside an error bar whose 25.2 spread-to-estimate ratio divides a provisioned-clock
+      spread by a realised-clock estimate — two figures each correct in its own world, whose ratio is
+      not a quantity. The `clock_caveat` discloses it, which is why this is fifth; a disclosed hole is
+      still a hole. Done means both artefacts carry this week's clock, the prediction is graded in its
+      own file with the correction beside it, and the fetched live page contains the bound sentence
+      with a control that fails if it stops.
 not_now:
   - what: >-
-      Tuning anything so that R6 fires — acquisition spend now reaches the collateral desk and the
-      company sits £316,009 from the trigger without crossing it.
+      Raising `SETTLEMENT_CUSTOMER_YEAR_BUDGET` to whatever number makes the book grow, or widening
+      the ladder's rungs / dropping the intersection requirement to get more gradable decisions.
     why: >-
-      This is the most tempting item on the board and the most dangerous. The director called R6 the
-      prize and it is now reached; the mechanism is wired, the CMA's sentence is modelled, and it
-      does not fire. Moving any number to make it fire is precisely the failure CLAUDE.md names — a
-      constant chosen because a number was needed — and it would be load-bearing within a week. If
-      R6 should fire, that has to come out of knowledge about what real suppliers' collateral
-      actually did, not out of the gap between £316,009 and zero. The finding is RECORDED and the
-      right next move on it is discovery, not a dial.
+      These are the cheap versions of focus items two and three and both are the R12 failure wearing
+      new clothes — a constant chosen because a number was needed, load-bearing within a week and
+      unattributable within a month. The ceiling is allowed to move only on a measurement of what
+      this machine supports, and the gradable population is allowed to grow only because the book
+      did. Dropping the intersection requirement in particular would manufacture `n` by comparing
+      decisions the rungs never both priced, which is the same object as the mirror in focus item
+      four: a comparison whose two sides are not independent.
+  - what: >-
+      Tuning anything so that R6 fires. Acquisition spend now reaches the collateral desk and the
+      company sits £316,009 from its first independent-amount demand without crossing it.
+    why: >-
+      Held for the second direction running, and the argument is stronger now rather than weaker: the
+      headroom is 6.8x the entire decade's campaign spend on a book whose peak position is 17x
+      smaller than its free equity, and the reason is the book, not the model. Focus item two is the
+      legitimate route to whatever R6 does next — if the mechanism is going to bind, it binds because
+      growth reached it, which is exactly the CMA's channel. Moving a number to make it fire would be
+      inventing the answer to the one question R6 was built to ask.
+  - what: >-
+      Putting the £337k capitalisation of a 13-account supplier (PB2, now priced by R6's headroom) to
+      the director as a curriculum question.
+    why: >-
+      It is genuinely his — which world the company lives through is named and versioned in a file he
+      reads — and it is now askable with a number attached, which is why it is tempting tonight. But
+      it cannot bind while the book is frozen at 127 accounts by our own engine: capitalisation only
+      matters against a balance sheet that growth is pressing on. Asking him now spends his attention
+      on a question whose answer changes the moment focus item two lands. It goes to him when the
+      ceiling is measured and the re-run shows what the book actually does.
   - what: >-
       The `price_sensitivity` observable-channel repair
       (`WORKER_MINTED_price_sensitivity_observable_channel_2026-08-27.md`) and re-aiming
       `tools/couple_cohort.py`, which fabricates the observable it grades.
     why: >-
-      Same defect class as focus item one — a declared discovery channel carrying no information —
-      and genuinely owed for a second stretch. It loses on ordering again, but the argument has
-      improved: `company/crm/competitive_pressure.py` is now a worked example of the repair, prior
-      and likelihood and all, and whoever takes this should copy its shape rather than design a new
-      one. Its §4 null-battery technique is also what item one's guard sweep needs, so the two want
-      the same reader.
+      Third stretch owed, and it loses on ordering rather than on merit again. It is the same defect
+      class as focus item four and the guard sweep has now given it two worked examples to copy —
+      `company/crm/competitive_pressure.py` for the repair shape and tonight's five-guard census for
+      the disposal shape — so whoever takes it should copy, not design. Its §4 null-battery technique
+      is what focus item four's rewired reconciliation will need, so if item four gets there first
+      this may come along with it.
   - what: >-
-      PB4 / PB5 / P2–P4 — household trait variation, within-household elasticity, and separating
-      engagement from elasticity, all drawn by the ordinary lane this stretch.
+      PB4 / PB5 / P2-P4 — household trait variation, within-household elasticity, and separating
+      engagement from elasticity, all drawn by the ordinary lane again this stretch.
     why: >-
-      Held for the same reason as last direction, but the reason has an expiry date now. Sixteen
-      decisions over four rungs is still the gradable population, and a heterogeneity model built
-      against it cannot be rejected by it — an unfalsifiable improvement, the worst outcome
-      available. What changes it is focus item two, which measures what the founder book actually
-      buys in gradable decisions. If that comes back with a population that can reject a model, this
-      moves to the top of the next direction on its own evidence.
+      Last direction I held these pending focus item two's measurement of what the founder book buys
+      in gradable decisions. That measurement came back tonight and the answer is: nothing — sixteen
+      decisions, all term-started 2016-2018, because the top rung has no book after 2019. So the hold
+      stands and its reason has changed from "we do not know" to "we know, and the cause is the
+      settlement ceiling". A heterogeneity model built against a population that cannot reject it is
+      an unfalsifiable improvement, the worst outcome on the board. These move the moment focus item
+      two reports a bigger gradable population, and they move on that evidence rather than on my
+      judgement.
   - what: >-
-      P8 proper — the systematic knowledge-to-discovery-to-atom-to-epoch chain (H45), the velocity
-      multiplier.
+      P8 proper — the systematic knowledge-to-discovery-to-atom-to-epoch chain (H45), and the harness
+      backlog: ten repeating-alarm findings in the staging root and ~117 harness atoms never read for
+      whether they should exist.
     why: >-
-      Still the right general mechanism, still losing to its own instances, and H45 was drawn by the
-      ordinary lane anyway so it is not idle. This stretch produced yet another instance rather than
-      an argument for the general form: the derived-pressure channel exists because one specific
-      lookup was chased to its source. Building the chain before its third instance is repaired
-      risks a well-designed mechanism whose first real use is still ahead of it.
-  - what: >-
-      The harness backlog — ten repeating-alarm findings sitting in the staging root, the ~117
-      harness atoms never read for whether they should exist, and the reuse convention that
-      manufactures false callers.
-    why: >-
-      Tidying that moves no level and closes no finding, and the staging root is a work queue rather
-      than a filing cabinet, so their sitting there is itself the signal. They wait for a stretch
-      with nothing on the published surface in a state the reader would object to — which this is
-      not, since `/capabilities/` is currently publishing a comparison on a deleted cost basis.
-  - what: >-
-      B10's §5 ceiling gap — giving the company an observation of the cheapest rival price rather
-      than only of its own losses.
-    why: >-
-      A real design question and the honest remaining half of B10, but it cannot be reasoned about
-      until the loss-based channel is live in HEAD and measured on a population that can grade it.
-      Deciding what a second competitor observable should be, while the first one returns its prior
-      at every call, is designing against a channel nobody has seen work.
+      H45 keeps losing to its own instances and this stretch produced two more rather than an
+      argument for the general form — the ceiling was found by chasing one constant to its note, and
+      the mirror was found by sweeping one guard. Build the chain after its instances, not before.
+      The harness backlog moves no level and closes no finding, and the staging root is a work queue,
+      so those files sitting there is the signal working as designed. Both wait for a stretch with
+      nothing on the published surface a reader would object to, and tonight the annual report is
+      publishing a reconciliation that cannot fail.
 wrong:
   - what: >-
-      My own instruction. I wrote focus item one's done-condition as "report whether
-      `believed_p_leave` now differs between the two worlds and by how much", and that is exactly
-      what came back: a measurement, a finding, and a channel that is inert at HEAD because the two
-      hunks that fill its numerator are uncommitted. Direction that asks for a number gets a number.
-      A focus item whose subject is a behaviour must define done as the behaviour being reachable
-      from a clean export of HEAD, not as a table in a document.
+      I read the founder-book finding's own headline — "**the bigger finding this exposes, and it
+      outranks the one this document was opened for**: from 2018 onward the published book is not a
+      commercial outcome at all" — and put it in no focus item. R6 then filed the same thing
+      independently as "**this is the top item**". Two lanes named the binding constraint on the
+      entire board before any direction did, and the measurement (380 funnel wins, 45 booked, 335
+      refused by a constant) was on disk the whole time. That is the miss of the stretch: not a wrong
+      call between options, but a first-rank item I never put on the list.
     corrected: false
   - what: >-
-      The first measurement of the competitive-pressure channel was an artefact and moved in the
-      flattering direction. `run_phase4c_on_phase2b.main` calls `run_phase2b()` with no
-      `sim_interface`, so every `notify_churn` sat behind `if sim_interface is not None`, the ledger
-      filled its denominator and left its numerator at zero, and read no-reporting as no-departures
-      during a run that churned 16 accounts in one arm and 12 in the other. It appeared to collapse
-      the published over-prediction gap from 20.7–28.7pp to 1.1–14.9pp. All sixteen tests were
-      green; it was caught by a contradiction the artefacts stated plainly.
-    corrected: true
+      Seven consecutive directions have named the settlement-clocks pair and it has never been done.
+      Last night I wrote in this file that it "moves to third tonight" as if identifying the ordering
+      defect repaired it; third was never reached, the pair is still untracked, and the same two
+      consumers are still modified-unstaged importing it. A ten-minute item that loses seven times is
+      not losing on priority.
+    corrected: false
   - what: >-
-      The channel's first weight formula was not monotone in the thing it observes. Using the Wald
-      variance evaluated at the realised proportion, 200 decisions predicting 0.30 gave 0.542 on 30
-      observed losses and 0.594 on zero — a belief reading MORE competitive pressure from FEWER
-      departures. Caught by printing the table across real sample sizes before shipping the formula,
-      not by thinking about it; evaluating under the null fixes it.
-    corrected: true
+      My instruction asked for the competitive-pressure hunks and the leap-year fix to land as two
+      attributable commits, in that order. They landed inside `c5641b12f`, a commit about the
+      collateral desk, carried along by its pathspec. The channel is live in HEAD, which was the
+      point, but the two-lane attribution is not recoverable and a reader looking for when the
+      company started inferring competitive pressure will find it in a commit about margin calls.
+    corrected: false
   - what: >-
-      A control written for the no-departures window could not fail: it asserted finite-and-below-
-      prior, and deleting the continuity correction it was written to catch yields exactly 0.0,
-      which is both. Zero means no customer can ever leave at any price — the captive floor
-      `_apply_market_conditions` was rewritten in survival space to remove, arrived at from the
-      other side.
-    corrected: true
+      The annual report has been publishing a "SIM ground truth vs company CRM" reconciliation whose
+      Match column is structurally incapable of reading mismatch — an empty company CRM reconciles as
+      "yes" against a world that churned every account — under a section headed as the company's
+      record and sourced from the world's. Found by the guard sweep this stretch, filed and not
+      fixed. The published claim is false today.
+    corrected: false
   - what: >-
-      One test module that could not be imported blinded the entire operational layer, and R3's
-      earlier pass left it behind. The commit gate selects tests, so a collection error costs the
-      whole suite rather than one file.
-    corrected: true
-  - what: >-
-      Last direction I recorded that `docs/design/held/README.md` claimed the founder book had
-      landed while it was only staged — a completion claim written in the working tree about the
-      working tree. It landed at `3d83edffb`, so the record and the code now agree; the claim was
-      premature rather than false, which is the distinction worth keeping.
-    corrected: true
-  - what: >-
-      Six consecutive directions have named the settlement-clocks pair in last or near-last place
-      and it has never been done, while the hazard grew from staged to untracked. That is a defect
-      in my ordering, not in the lane: a ten-minute decision placed below two multi-hour builds is a
-      decision I have declined to make six times. It moves to third tonight.
+      The bound sentence on `/capabilities/` has now been named in seven directions at position four
+      or five and rendered zero times. Naming a piece of work last, repeatedly, is deciding it never
+      happens; I have stopped listing it separately and folded it into the page's own re-run pass,
+      which is the only version of it that has a chance of being done.
     corrected: false
 for_the_director: []
