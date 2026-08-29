@@ -79,3 +79,31 @@ whose name-stems reach it — this tick's own founder-book pathspec (8 paths acr
 `docs/design/` and `tests/simulation/`) selects only its own three test files and landed
 unaffected. The wedge falls on any pathspec that DOES pull `tests/design/` in, which is how the
 2026-08-14 instance was found: a commit of two unrelated orphaned files was refused by it.
+
+## DISCHARGED 3ef0f6ecc (2026-08-29) — by the third repair, the one this finding named
+
+`tests/design/` in a clean extract of HEAD: **1 failed, 113 passed → 114 passed.** The prediction
+above was made before the answer and held: the repair was the spine lane's one commit — generator,
+its tests, and the record, landed together — and neither rejected repair was used. The map was not
+edited at all; `simplifications_count=3` was already in HEAD and became TRUE rather than being
+trimmed to match a smaller store.
+
+**What made it landable was the expiry of this finding's own premise, not a change of mind about
+its reasoning.** Repair 2 was rejected because trimming "turns the SHARED TREE red for the seat
+actively working that lane". The store file's mtime was 2026-08-28 14:47 — thirty-two hours before
+the discharge. There was no seat actively working that lane, so holding the repair for its owner
+was holding it for nobody, and a wedge with no owner is just a wedge. **The check worth repeating
+is the mtime, not the argument:** "this belongs to another lane" has a shelf life, and this one had
+expired without anything announcing it.
+
+One thing this finding got right by luck rather than method, worth naming so the next pass does it
+deliberately: it asserted the record's wiring claim was false at HEAD. It is — but a first grep for
+`world_id` in `sim/scenario/run_scenario.py` returned nothing *because the module is
+`simulation/run_scenario.py`*, a different package. Had that grep been the evidence, the conclusion
+would have been right for the wrong reason and repair 1 would have looked correct (a record making
+a claim no tree satisfied). The claim is satisfied in the working tree. **Two packages named
+`sim/scenario/` and `simulation/` sit one letter apart here; a negative grep across them is not
+evidence until the symbol is located positively somewhere.**
+
+`tools/run_frozen_baseline.py` was left uncommitted on purpose — a different lane's
+`figures_on_a_superseded_clock` repair, claimed by no line of the spine record.
