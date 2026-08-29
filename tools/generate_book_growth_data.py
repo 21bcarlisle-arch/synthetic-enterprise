@@ -165,17 +165,55 @@ def _mark_learned_rate_provenance(years: list[dict]) -> None:
         cum_funnel += y.get("funnel_wins") or 0
 
 
-def build(campaign: dict | None) -> dict:
-    """The published shape. `campaign` is the record, or None when there is no run to describe."""
+#: WHY THE RECORD IS ABSENT, and the three answers carry three different instructions to a reader.
+#: They were one string until 2026-08-29, and that string -- "no run has assembled a book since this
+#: generator was wired" -- asserted a fact about HISTORY that this generator cannot observe and that
+#: is false in the commonest case: `book_growth_campaign.json` is a RUN OUTPUT, untracked and not
+#: gitignored, so every fresh checkout has none however many books have been assembled. A reader
+#: sent to check whether the generator got wired up is being sent to the wrong place. `generate()`
+#: knows which of the three it hit and now says so; a reason that names its cause is how the refusal
+#: itself becomes checkable.
+ABSENCE_REASON = {
+    "missing": "no campaign record at {path} on this tree. That file is a RUN OUTPUT, not a "
+               "committed artefact, so a checkout that has not run the simulation has none -- "
+               "run the simulation to produce one. It does NOT mean no book was ever assembled.",
+    "unreadable": "no campaign record could be read: {path} is present on this tree but did not "
+                  "parse. What the company won CANNOT BE READ from it. That is a defect in "
+                  "whatever wrote the file, not a supplier that won nothing.",
+    "empty": "no campaign record with any years in it: {path} parsed but carries no campaign. A "
+             "run wrote the record and put no years in it, which is a producer defect, not a "
+             "supplier that won nothing.",
+}
+
+#: What we say when nobody told us which of the three it was -- a direct `build(None)` call. It
+#: claims no cause, because asserting one we did not observe is the defect above.
+UNKNOWN_ABSENCE_REASON = (
+    "no campaign record was given to this generator, and it was not told why. What the company "
+    "won CANNOT BE READ from it -- this is an absent record, not a supplier that won nothing."
+)
+
+
+def build(campaign: dict | None, absence: str | None = None) -> dict:
+    """The published shape. `campaign` is the record, or None when there is no run to describe.
+
+    `absence` is why there is no record -- a key of `ABSENCE_REASON`, or None when the caller does
+    not know. It only ever reaches the unavailable branch, so a caller that has a record can ignore
+    it and the old one-argument signature still means what it did.
+    """
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     if not campaign or not campaign.get("by_year"):
         # FAIL LOUD AND EMPTY, never zero. A curve of zeroes would read as a supplier that won
-        # nothing, which is a claim; "we have no record" is the truth.
+        # nothing, which is a claim; "we have no record" is the truth. The reason must be the
+        # truth too: this branch is reached by three different failures and they are not
+        # interchangeable, so an unrecognised `absence` falls back to claiming no cause at all
+        # rather than to the first plausible one.
+        rel = CAMPAIGN_PATH.relative_to(PROJECT).as_posix()
+        template = ABSENCE_REASON.get(absence or "")
         return {
             "generated_at": stamp,
             "available": False,
-            "reason": "no campaign record on disk -- no run has assembled a book since this "
-                      "generator was wired, so there is no growth curve to render.",
+            "absence": absence if template else None,
+            "reason": template.format(path=rel) if template else UNKNOWN_ABSENCE_REASON,
             "years": [],
         }
 
@@ -329,11 +367,20 @@ def build(campaign: dict | None) -> dict:
 
 def generate(out_path: Path | None = None, campaign_path: Path | None = None) -> dict:
     src = CAMPAIGN_PATH if campaign_path is None else campaign_path
+    # THE READ IS THE ONLY PLACE THAT CAN TELL THESE APART. `OSError` and `ValueError` were caught
+    # together and both became "no record on disk", which is a false sentence about a file that is
+    # on disk and corrupt. Split at the only site that has the evidence.
+    campaign, absence = None, None
     try:
         campaign = json.loads(src.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        campaign = None
-    data = build(campaign)
+    except OSError:
+        absence = "missing"
+    except ValueError:
+        absence = "unreadable"
+    else:
+        if not campaign or not campaign.get("by_year"):
+            absence = "empty"
+    data = build(campaign, absence)
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

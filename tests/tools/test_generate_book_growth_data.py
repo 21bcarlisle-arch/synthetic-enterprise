@@ -395,3 +395,95 @@ def test_the_generator_is_WIRED_into_the_publish_cycle():
     text = src.read_text(encoding="utf-8")
     assert "from tools.generate_book_growth_data import generate" in text
     assert "gen_growth()" in text
+
+
+# ── the REFUSAL must name its own cause ──────────────────────────────────────────────────────────
+#
+# The unavailable branch is reached three ways and they carry three different instructions: the
+# record is a RUN OUTPUT that a fresh checkout simply does not have (run the simulation); or it is
+# on disk and will not parse (a defect in the writer); or a run wrote it with no years (a defect in
+# the run). Until 2026-08-29 all three published ONE sentence -- "no run has assembled a book since
+# this generator was wired" -- and `generate()` caught OSError and ValueError together, so the
+# distinction was destroyed at the only site that could see it. That sentence asserts a fact about
+# HISTORY this generator cannot observe, and it is false in the commonest of the three: the page
+# reader is sent to check the wiring when what they need to do is run the simulation.
+
+
+def test_the_three_absence_causes_do_not_publish_one_reason(tmp_path):
+    """R15 MIXED SUBJECT: a refusal spanning three causes that prints one string reports the OR, so
+    the two causes it does not describe read to the reader as the one it does.
+
+    MUTATION: give any two keys of `gb.ABSENCE_REASON` the same text, or drop the second argument
+    at the `build(campaign, absence)` call site in `generate()` so every cause falls back to the
+    unknown reason. Either collapses the distinct-reason count below and reds this test.
+    """
+    out_path = tmp_path / "book_growth.json"
+    src = tmp_path / "campaign.json"
+    seen = {}
+
+    # MISSING -- the file is not there at all. This is exactly what a fresh checkout of main is.
+    assert not src.exists()
+    seen["missing"] = gb.generate(out_path=out_path, campaign_path=src)
+
+    # UNREADABLE -- on disk, does not parse.
+    src.write_text("{not json", encoding="utf-8")
+    seen["unreadable"] = gb.generate(out_path=out_path, campaign_path=src)
+
+    # EMPTY -- parses, carries no campaign.
+    src.write_text(json.dumps({"by_year": []}), encoding="utf-8")
+    seen["empty"] = gb.generate(out_path=out_path, campaign_path=src)
+
+    for cause, data in seen.items():
+        assert data["available"] is False, cause
+        assert data["absence"] == cause, (
+            "the {} case was classified as {!r}".format(cause, data["absence"]))
+
+    texts = {cause: data["reason"] for cause, data in seen.items()}
+    assert len(set(texts.values())) == 3, (
+        "three causes published {} distinct reason(s): {}".format(len(set(texts.values())), texts))
+
+
+def test_every_absence_reason_names_what_a_reader_can_check_and_refuses_the_zero_reading():
+    """Keyed to the PROPERTY, not to today's wording. A refusal that names a cause the generator
+    did not observe is worse than one that names none, so the three CLASSIFIED reasons must point
+    at the record a reader can go and look at, and every reason -- including the unclassified
+    fallback -- must say out loud that this is an absent record rather than a supplier that won
+    nothing. That second half is the fail-open guard: `available: false` on a growth page is one
+    click from being read as a flat curve.
+
+    MUTATION: drop `{path}` from any entry of `gb.ABSENCE_REASON`, or delete the CANNOT/NOT
+    disclaimer from any reason, and this reds.
+    """
+    rel = gb.CAMPAIGN_PATH.relative_to(gb.PROJECT).as_posix()
+
+    for cause, template in gb.ABSENCE_REASON.items():
+        assert "{path}" in template, (
+            "the {} reason does not tell the reader which file to look at".format(cause))
+        assert rel in template.format(path=rel)
+
+    for label, text in list(gb.ABSENCE_REASON.items()) + [("unknown", gb.UNKNOWN_ABSENCE_REASON)]:
+        low = text.lower()
+        assert ("won nothing" in low) or ("never assembled" in low) or ("does not mean" in low), (
+            "the {} reason lets `available: false` be read as a supplier that won nothing".format(
+                label))
+        # The observability limit that produced the original false sentence: this generator sees
+        # one file at one instant. It can never speak about whether a run happened.
+        assert "no run has" not in low, (
+            "the {} reason asserts a fact about run history the generator cannot observe".format(
+                label))
+
+
+def test_an_unrecognised_absence_class_claims_no_cause_at_all(tmp_path):
+    """FAIL-CLOSED on the lookup itself. If a caller passes a class this file has not been taught,
+    the safe answer is 'we were not told why', never the first plausible cause -- silently
+    reporting the wrong one is the defect this whole block repairs.
+
+    MUTATION: make the fallback in `build` pick any entry of `ABSENCE_REASON` instead of
+    `UNKNOWN_ABSENCE_REASON` and this reds.
+    """
+    out = gb.build(None, "some_cause_this_file_has_never_heard_of")
+
+    assert out["available"] is False
+    assert out["absence"] is None, "an untaught class must not be published as if it were read"
+    assert out["reason"] == gb.UNKNOWN_ABSENCE_REASON
+    assert out["years"] == []
