@@ -1048,6 +1048,18 @@ def extract_report_data(run_output: dict) -> dict:
         "fabric_eligibility": phase2b.get("fabric_eligibility", []),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
+        # WHAT THAT COUNT COUNTS, beside it rather than in a note (2026-08-29,
+        # `WORKER_FINDING_...WHAT_DOES_EACH_PUBLISHED_ACCOUNT_COUNT_ACTUALLY_COUNT`;
+        # `docs/design/ACCOUNT_POPULATION_CENSUS_2026-08-29.md`). This file published
+        # `enterprise_value_account_count` and `by_billing_account` side by side, from one run,
+        # counting 113 and 13, and said what neither of them selected. They are not two readings
+        # of one book: one is the VALUED subset of the settled book, the other is the static
+        # founder roster. Named here because a reader holds the artefact, not the code.
+        "enterprise_value_account_population": (
+            "billing accounts with a renewal point, still on supply at the run's last settled "
+            "day, and with an observed margin — the subset of the settled book that can be "
+            "VALUED, so smaller than the book and smaller again than the accounts the funnel won"
+        ),
         # THE COST BASIS TRAVELS WITH THE FIGURE (2026-08-17,
         # `WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_THREE_
         # QUARTERS_OF_THE_COST_STACK`). Not a caption written here: it is
@@ -1061,6 +1073,18 @@ def extract_report_data(run_output: dict) -> dict:
         # ("Derived from the settled-clock net margin above") stayed false.
         "enterprise_value_margin_basis": enterprise_value.get("portfolio", {}).get("margin_basis"),
         "by_billing_account": by_billing_account,
+        # THE NARROWEST POPULATION THIS RUN PUBLISHES, AND THE ONE MOST OFTEN MISREAD AS "THE
+        # BOOK" (2026-08-29). It is keyed off `CUSTOMERS` — the STATIC FOUNDER ROSTER, resolved
+        # at import — so it holds 13 accounts and can never hold an account the acquisition
+        # funnel won, however large the book gets. `WORKER_FINDING_R6_...` §4 read this as the
+        # supplier's account count and formed an Ofgem MCR claim of £1,690 from it; the desk that
+        # actually needs that number now counts it from the settled record instead
+        # (`saas.capital.solvency.mcr_accounts_on_supply`), and this field is what it is: a
+        # per-account detail view of the founders, not a census of anything.
+        "by_billing_account_population": (
+            "the static founder roster (saas.customers.CUSTOMERS), dual-fuel legs collapsed, "
+            "settled or not and on supply or not — NOT the book, and not a count of it"
+        ),
         "highest_clv": (
             {"customer_id": highest_clv[0], "clv_gbp": highest_clv[1]["clv_gbp"]} if highest_clv else None
         ),

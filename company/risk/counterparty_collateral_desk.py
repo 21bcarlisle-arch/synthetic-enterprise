@@ -201,6 +201,25 @@ def collateral_death_test_summary(
     }
 
 
+def _mcr_accounts_held(
+    settled_records: Sequence[dict],
+    segment_by_cid: Mapping[str, str],
+    mark_date: str,
+) -> dict:
+    """How many accounts the £130 MCR is levied on at the mark, and what that count SELECTS.
+
+    A thin adapter onto `saas.capital.solvency.mcr_accounts_on_supply`, which owns the selection
+    because it owns the £130. It is a function rather than an inline call so the one place the
+    credit desk decides "which supplier's book?" is greppable, and so a caller reading this file
+    is not sent to another package to find out.
+    """
+    from saas.capital.solvency import mcr_accounts_on_supply
+
+    return mcr_accounts_on_supply(
+        list(settled_records), dict(segment_by_cid), as_of=mark_date
+    )
+
+
 def _credit_and_margin(
     trading_book,
     commodity_by_cid: Mapping[str, str],
@@ -208,11 +227,16 @@ def _credit_and_margin(
     gas_spot_records: Sequence[dict],
     mark_date: str,
     balance_sheet: "dict | None" = None,
+    settled_records: "Sequence[dict] | None" = None,
+    segment_by_cid: "Mapping[str, str] | None" = None,
 ) -> "tuple[dict | None, dict | None]":
     """The credit register, its multi-period peak, and the margin book at one mark.
 
     Transcribed from the pre-cut `run_phase2b.main()` block. Returns
     ``(credit_summary, margin_call_summary)``; the caller isolates the failure.
+
+    `settled_records`/`segment_by_cid`, when both supplied, make this desk COUNT the accounts
+    the MCR is levied on rather than being told a number — see `_mcr_accounts_held` below.
     """
     _mark_engine = CompanyTariffEngine()
     _current_fwd_by_commodity: dict[str, float] = {}
@@ -314,6 +338,24 @@ def _credit_and_margin(
     # against `elec_spot_records`, measures the stressed move in that same series. Measuring it on
     # the world side would have been a live `simulation -> company.risk` crossing, which the
     # register refused, and would have read the price history twice for one quantity.
+    # THE ACCOUNT COUNT IS DERIVED HERE FOR THE SAME REASON THE CLOSE-OUT MOVE IS (2026-08-29).
+    # The world hands over what it HOLDS -- its settled records and its own customer register --
+    # and this desk derives the quantity it needs from them. Counting on the world side would have
+    # been a live `simulation -> saas.capital.solvency` crossing, which the wall ratchet refuses,
+    # and it would have put a company-side selection rule in a world-side file.
+    #
+    # WHAT IT REPLACED. `run_phase2b` used to pass `len(_ALL_KNOWN_CUSTOMERS)` = 24: the static
+    # founder roster's per-COMMODITY legs. That is not the number of accounts a £130-per-account
+    # obligation is levied on and never was -- it double-counts every dual-fuel household, cannot
+    # see an account the funnel won (the list is bound at import), counts accounts that have
+    # ceased, and makes no domestic/non-domestic split. The published MCR claim was £3,120 against
+    # a book obliging £15,600.
+    if balance_sheet is not None and settled_records is not None and segment_by_cid is not None:
+        balance_sheet = dict(balance_sheet)
+        _population = _mcr_accounts_held(settled_records, segment_by_cid, mark_date)
+        balance_sheet["accounts_held"] = _population["count"]
+        balance_sheet["accounts_population"] = _population["population"]
+        balance_sheet["accounts_selection"] = _population["selection"]
     if balance_sheet is not None and "close_out_move_fraction" not in balance_sheet:
         from company.risk.independent_amount import close_out_move_fraction_from_history
 
@@ -352,6 +394,19 @@ def _credit_and_margin(
         _summary["independent_amount_basis"] = _verdict["reason"]
         _summary["free_equity_gbp"] = _verdict["free_equity_gbp"]
         _summary["gross_marked_exposure_gbp"] = _verdict["gross_exposure_gbp"]
+        # WHAT THE MCR WAS NETTED AGAINST, ON THE SURFACE (2026-08-29). Free equity is
+        # `net_assets - accounts x £130`, and until this date the published figure said the
+        # subtrahend's SIZE and never what it counted -- while five different account populations
+        # were live in the run's own artefacts and this desk was multiplying by a sixth. The caller
+        # names its population; the name is copied here so the figure and its basis cannot be read
+        # apart. A caller that supplies a balance sheet without naming its population says so
+        # explicitly rather than defaulting to a plausible label, because a wrong name is worse
+        # than no name: it sends the next reader to the wrong roster.
+        _summary["accounts_held"] = balance_sheet.get("accounts_held", 0)
+        _summary["accounts_population"] = balance_sheet.get(
+            "accounts_population", "unnamed -- the caller did not say what it counted"
+        )
+        _summary["accounts_selection"] = balance_sheet.get("accounts_selection")
         _summary["total_independent_amount_gbp"] = sum(
             c.initial_margin_gbp for c in _margin_book.outstanding_calls()
         )
@@ -375,6 +430,8 @@ def build_counterparty_collateral(
     mark_date: str,
     available_cash_gbp: float = 0.0,
     balance_sheet: "dict | None" = None,
+    settled_records: "Sequence[dict] | None" = None,
+    segment_by_customer_id: "Mapping[str, str] | None" = None,
 ) -> CounterpartyCollateral:
     """Mark the book once and return the whole credit/collateral position.
 
@@ -388,6 +445,15 @@ def build_counterparty_collateral(
     result, exactly as the two `try/except` blocks in the pre-cut `main()` did.
     A partially-built credit summary is NOT discarded when the margin half
     fails, because it was not discarded before.
+
+    `settled_records` and `segment_by_customer_id` are the supplier's own settlement record and
+    its own customer register. Supplied together, they make the desk COUNT the accounts the MCR
+    is levied on instead of accepting a number it cannot check — the balance sheet's
+    `accounts_held` is then overwritten, and the population's NAME travels onto the published
+    margin summary beside it. Omitted, the caller's `accounts_held` stands unchanged, which is
+    what every existing unit test pins. Both or neither: a segment map with no records cannot
+    count anything, and records with no segment map would silently read every non-domestic
+    account as domestic.
     """
     credit_summary: dict | None = None
     margin_call_summary: dict | None = None
@@ -401,6 +467,8 @@ def build_counterparty_collateral(
             gas_spot_records,
             mark_date,
             balance_sheet,
+            settled_records,
+            segment_by_customer_id,
         )
     except Exception as exc:  # pragma: no cover - defensive, the run must not die
         credit_feed_error = exc

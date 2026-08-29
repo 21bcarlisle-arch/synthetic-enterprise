@@ -2823,15 +2823,56 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # already holds these same spot records to mark the book with, so measuring the close-out there
     # means one reading of one series rather than two, and the world hands over only what it holds:
     # what the supplier is worth and how many accounts it holds it against.
+    #
+    # WHAT `accounts_held` COUNTS, AND WHY IT IS NOT `len(_ALL_KNOWN_CUSTOMERS)` (2026-08-29). It
+    # was, and that was 24 -- a number that is none of the five populations this run publishes and
+    # is wrong in three separate ways at once. `_ALL_KNOWN_CUSTOMERS` is bound at IMPORT, so it is
+    # the static founder roster and cannot see one of the accounts the funnel won; it is keyed by
+    # per-COMMODITY customer_id, so every dual-fuel household counted twice against a £130 that is
+    # levied once per account; and it makes no domestic/non-domestic distinction, though SLC 27's
+    # capital regime is a domestic obligation. Net of the three the MCR claim came out at £3,120
+    # against a book that in fact obliges £15,600, and free equity was overstated by £12,480.
+    #
+    # THE POPULATION IS NOW THE SAME SUPPLIER `final_treasury` DESCRIBES, and that is the whole
+    # point of the change rather than a detail of it. `free_equity = net_assets - accounts x £130`
+    # is a SUBTRACTION, so both sides must count one supplier. `final_treasury` is read off
+    # `all_records` -- the SETTLED book -- so the account count is read off `all_records` too.
+    # Note what this deliberately does NOT use: the commercial book the campaign won (587 accounts
+    # by 2025). That is a real and larger supplier, and the growth desk is right to plan against
+    # it, because it nets 587 against the FOUNDING CAPITAL, which is that same supplier's balance
+    # sheet. Netting 587 accounts of MCR against a treasury earned on the ~17.9% of them our
+    # settlement engine can process would mix two suppliers, and the only way to repair it in that
+    # direction is to scale the treasury up by the sample rate -- inventing a number, which is the
+    # defect R1 exists to remove. The settled-book answer has no invented number in it.
+    #
+    # THE WALL QUESTION, asked out loud because this is a company-side figure: could a real
+    # supplier's finance function put this number in front of a counterparty? Yes, and it is close
+    # to the only number it could -- how many domestic accounts it bills, on supply today, dual
+    # fuel counted once. Every leg of the selection is a read of the supplier's own settlement
+    # record and its own customer register. Nothing here consults `churned_billing_accounts`, which
+    # is the WORLD's truth about who left; the supplier reads cessation off its own 35-day
+    # continuity rule and is allowed to be wrong about it.
+    #
+    # SO THE COUNTING HAPPENS IN THE DESK, not here, exactly as the close-out move already does.
+    # The world hands over the two things it holds -- the settled record and the customer register
+    # -- and the desk applies the selection. Counting here would have meant `simulation` importing
+    # `saas.capital.solvency`, a new SIM->company crossing the wall ratchet refuses and should:
+    # the rule for who owes £130 is the company's, and belongs on the company's side of the seam.
+    #
+    # THE REGISTER IS THE LIVE ROSTER, not the import-time snapshot: `ACQUIRED_CUSTOMERS` is the
+    # object the supply book appends funnel wins to (supply_book.py, IDENTITY), so the accounts
+    # this campaign won carry their own segment here instead of falling through a default.
     _collateral = build_counterparty_collateral(
         hedge_desk.book,
         commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS},
         elec_spot_records=elec_records,
         gas_spot_records=gas_records,
         mark_date=effective_end,
-        balance_sheet={
-            "net_assets_gbp": final_treasury,
-            "accounts_held": len(_ALL_KNOWN_CUSTOMERS),
+        balance_sheet={"net_assets_gbp": final_treasury},
+        settled_records=all_records,
+        segment_by_customer_id={
+            c["customer_id"]: c.get("segment", "resi")
+            for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
         },
     )
     _wholesale_credit_summary = _collateral.credit_summary

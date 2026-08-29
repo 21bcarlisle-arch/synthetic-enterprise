@@ -509,6 +509,30 @@ def book_identity(result: dict) -> dict:
         "dual_fuel_share_of_accounts": (dual / len(accounts)) if accounts else None,
         "accounts_at_end_of_window": (
             (result.get("enterprise_value") or {}).get("portfolio", {}).get("account_count")),
+        # WHAT EACH OF THE TWO COUNTS ABOVE SELECTS (2026-08-29,
+        # `docs/design/ACCOUNT_POPULATION_CENSUS_2026-08-29.md`). Naming the RUN was only half
+        # the provenance this block was created for: a reader could tell which book a figure
+        # described and still not what the number counted, and six different account populations
+        # were live across this repository's artefacts at once.
+        #
+        # AND ONE OF THESE TWO LABELS WAS WRONG. `accounts_at_end_of_window` reads as "the book
+        # at the end", which is what a reader would take it for and what its own key says. It is
+        # not: it is `enterprise_value.portfolio.account_count`, the VALUED subset — accounts
+        # with a renewal point, still on supply, AND with an observed margin. It is smaller than
+        # the book at the end by however many accounts could not be valued. The key is left
+        # alone because renaming it would void every artefact that already cites it; what it
+        # counts is stated here instead.
+        "what_each_count_selects": {
+            "billing_accounts_settled_in_window": (
+                "every billing account with at least one settlement record anywhere in the "
+                "window, dual-fuel legs collapsed, ceased or not"
+            ),
+            "accounts_at_end_of_window": (
+                "MISLEADING KEY: not the book at the end. The VALUED subset — accounts with a "
+                "renewal point, still on supply at the window's edge, and with an observed "
+                "margin. Smaller than the book by the accounts that could not be valued."
+            ),
+        },
         "why_this_is_here": (
             "So a reader can tell WHICH book a figure describes without diffing a commit "
             "date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_"

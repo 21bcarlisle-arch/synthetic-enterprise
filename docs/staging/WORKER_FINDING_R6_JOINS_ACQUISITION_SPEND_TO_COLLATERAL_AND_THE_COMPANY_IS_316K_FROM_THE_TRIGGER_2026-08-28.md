@@ -86,6 +86,43 @@ is a fixture rather than because it is poor."* R6 is the first thing to put a nu
 **This is what SURVIVE now means**: not a binary, but £316,009 of distance to the first collateral
 demand, on a book whose peak position is £19,607.
 
+### 4a. CORRECTION 2026-08-29: the "accounts" row above was the wrong population
+
+Left standing rather than edited, per the convention that a figure quoted and then corrected must
+stay findable beside its correction.
+
+**`accounts = 13` is the STATIC FOUNDER ROSTER**, read off `run_output.by_billing_account` — a
+per-account detail view keyed off `saas.customers.CUSTOMERS`, resolved at import, which can never
+hold an account the acquisition funnel won. It is not a census of anything and I read it as one.
+
+Worse, the **code** was not using 13 either. `run_phase2b` passed
+`accounts_held = len(_ALL_KNOWN_CUSTOMERS)` = **24**: the per-COMMODITY legs of that same static
+roster. Wrong in three separate ways at once — every dual-fuel household counted twice against a
+charge levied per *account*; not one funnel win visible; and no domestic/non-domestic or cessation
+split, though SLC 27's capital regime is a domestic obligation on accounts actually supplied.
+
+The population the collateral desk is entitled to see is **domestic billing accounts on supply at
+the mark**, counted from the supplier's own settled record — 120, not 13 and not 24. The full
+census of the six populations this repository publishes, the epistemic-wall question answered, and
+why the commercial book (587) is the *growth* desk's correct answer and not this one:
+`docs/design/ACCOUNT_POPULATION_CENSUS_2026-08-29.md`. Enforced by
+`saas.capital.solvency.mcr_accounts_on_supply` and twelve mutation-proven controls in
+`tests/company/risk/test_mcr_account_population.py`.
+
+At the run current on 2026-08-29 (net assets £331,361.47, gross marked exposure £66,963.44):
+
+| basis | n | MCR claim | free equity | headroom |
+|---|---:|---:|---:|---:|
+| what the code used | 24 | £3,120 | £328,241.47 | £261,278.03 |
+| **correct** | **120** | **£15,600** | **£315,761.47** | **£248,798.03** |
+
+**§4's conclusion is unchanged and I am not softening it: the mechanism is reached and does not
+fire.** Free equity covers the exposure by 3.7× even on the corrected basis — it would still not
+fire at the commercial book's 587 accounts (£188,088 of headroom). What changes is that the
+distance is now denominated on a population with a name, and the repair moves the number in the
+direction that costs the company, which is the direction a repair should be able to move. Free
+equity was overstated by £12,480.
+
 ## 5. Two defects of my own, both found by printing the numbers at real inputs
 
 Neither would have been found by reading, and both were in the same function.

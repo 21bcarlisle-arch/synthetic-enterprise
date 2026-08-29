@@ -326,6 +326,26 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
         "settlement_sample_rate": sample_rate,
         "settlement_wins_refused": refused,
         "settlement_funnel_wins": funnel_wins,
+        # WHAT EACH PER-YEAR COUNT SELECTS (2026-08-29,
+        # `docs/design/ACCOUNT_POPULATION_CENSUS_2026-08-29.md`). This page carries the two
+        # numbers whose divergence makes "which supplier?" a live question rather than a
+        # pedantic one, and it named neither. Six populations were live across the repository's
+        # artefacts at once and the collateral desk was netting Ofgem capital against a seventh.
+        "what_each_count_selects": {
+            "accounts_after": (
+                "THE COMMERCIAL BOOK: founders plus every account the funnel won, settled or "
+                "not. This is the supplier a real Ofgem return would describe, and it is what "
+                "the growth desk sizes its capital headroom against — correctly, because it "
+                "nets it against the FOUNDING CAPITAL, the same supplier's balance sheet."
+            ),
+            "book_after": (
+                "THE SETTLED BOOK: the sample of those accounts our settlement engine could "
+                "process. Its difference from `accounts_after` is entirely an engineering "
+                "artefact of ours. Every figure derived from the run's own settled records — "
+                "treasury, margin, the collateral desk's MCR — describes THIS supplier, so a "
+                "capital figure netted against `accounts_after` would be mixing the two."
+            ),
+        },
         "engine_bound_statement": (
             "The company won {fw:,} accounts and OUR settlement engine could settle {bw:,} of "
             "them — a uniform {pct:.1f}% sample, {refused:,} wins refused. Every year is "
