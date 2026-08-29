@@ -110,17 +110,35 @@ STREAM_NAME = "PB3_net_new_prospects"
 #: constant stated the condition under which it would stop being right, and `quote_capacity`
 #: reported the moment it did. Nothing had to be noticed.
 #:
-#: WHAT IS NOT DONE, said plainly rather than left as an implication. The number has NOT been
-#: re-set, because "raise it until the market stops binding" picks a number to preserve a
-#: design property rather than from evidence, and this file has paid for that move before. The
-#: honest repair is to source the pool from the real thing — the published GB domestic
-#: switching volumes this repo already calibrates `market_switching_propensity` against — so
-#: that "how many homes are in the market for this supplier" is a fraction of a measured
-#: market rather than a constant chosen to stay out of the way. Until then the three capped
-#: years are SURFACED, not silently absorbed: `binding` reports `prospect_ceiling` (distinct
-#: from `market`, which is the real switching rate binding a year and must never be raised),
-#: the published page labels it "Our prospect pool" with a warning, and
-#: `prospect_ceiling_statement` names the years.
+#: WHY IT IS NOT SIMPLY RAISED, and the first draft of this note gave the weaker of the two
+#: reasons. The weak one: "raise it until the market stops binding" picks a number to preserve
+#: a design property rather than from evidence. True, and not the binding objection.
+#:
+#: THE BINDING ONE IS R13, AND IT MAKES THIS THE DIRECTOR'S. This constant is how many homes
+#: are in the market — a property of the WORLD, and raising it makes the world easier to grow
+#: in. That is a difficulty change, and R13 is explicit that difficulty changes are named,
+#: versioned, director-authored artefacts. **And the trigger here is a COMPANY OUTCOME** — the
+#: pool started binding because the supplier got richer and could afford more quotes — which is
+#: precisely the case R13 names: "never adjusted by the agent in response to company outcomes".
+#: An agent that widens the market whenever its company outgrows it is marking its own homework
+#: on both sides of the wall. So this stays where it is until he moves it.
+#:
+#: WHAT HE WOULD NEED, priced, because a reserved decision is owed a menu rather than a flag.
+#: The mechanism is one constant: `live_population._year_stock` draws
+#: `PROSPECTS_PER_YEAR + TRICKLE_STOCK_RESERVE` and hands the campaign the head, so raising
+#: this grows the draw and does NOT take homes off the trickle — the two streams are additive,
+#: not zero-sum, and the cost is linear in `draw_premise` calls per year.
+#: The EVIDENCE for a level already exists in this repo and is sourced, so this is not a
+#: research problem: `docs/market_research/churn_price_elasticity.md` §1 carries the real GB
+#: domestic switching VOLUMES year by year, from DESNZ Quarterly Energy Prices Table 2.1 /
+#: Energy UK / Ofgem SotM — 4.82m switches in 2016, 6.39m at the 2020 peak, 0.8–1.2m in the
+#: 2022 crisis. 400 against ~5m is a 1-in-12,500 sample of the real market, and the honest
+#: form of this constant is that ratio stated out loud rather than a bare 400.
+#:
+#: Until he moves it the three capped years are SURFACED, not silently absorbed: `binding`
+#: reports `prospect_ceiling` (distinct from `market`, which is the real switching rate binding
+#: a year and must NEVER be raised), the published page labels it "Our prospect pool" with a
+#: warning, and `prospect_ceiling_statement` names the years.
 PROSPECTS_PER_YEAR = 400
 
 #: ELECTRICITY ONLY, and this is a limitation rather than a modelling choice. The shipped

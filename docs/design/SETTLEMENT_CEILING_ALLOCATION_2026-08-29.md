@@ -231,10 +231,24 @@ an invented one.
    warning, kept distinct from `market` — the real switching rate binding 2021–2023, which is a
    commercial result that raising anything would falsify. `market` had been a fully-worded entry in
    `BINDING_MEANING` that nothing in the codebase ever emitted; it has a producer now.
-   **Not re-set**, because "raise it until it stops binding" picks a number to preserve a design
-   property rather than from evidence. The honest repair is to source the pool from published GB
-   domestic switching volumes, which this repo already calibrates `market_switching_propensity`
-   against.
+   **Not re-set, and on reflection not mine to re-set.** The weak reason is that "raise it until
+   it stops binding" picks a number to preserve a design property rather than from evidence. The
+   binding reason is **R13**: this is how many homes are in the market, so raising it makes the
+   world easier to grow in — a difficulty change, which R13 reserves to named, versioned,
+   director-authored artefacts. And the trigger was a *company outcome* (the supplier got richer
+   and outgrew the pool), which is the exact case R13 names as never the agent's. An agent that
+   widens the market whenever its company outgrows it is marking its own homework on both sides
+   of the wall.
+
+   **Priced for him, because a reserved decision is owed a menu.** Mechanically it is one
+   constant — `_year_stock` draws `PROSPECTS_PER_YEAR + TRICKLE_STOCK_RESERVE` and gives the
+   campaign the head, so raising it grows the draw and takes nothing off the trickle; cost is
+   linear in `draw_premise` calls. And the evidence for a level is already in the repo and
+   sourced, so this is not a research problem: `docs/market_research/churn_price_elasticity.md`
+   §1 has the real GB switching volumes from DESNZ Quarterly Energy Prices Table 2.1 — 4.82m
+   switches in 2016, 6.39m at the 2020 peak, 0.8–1.2m in the 2022 crisis. **400 against ~5m is a
+   1-in-12,500 sample of the real market**, and the honest form of the constant is that ratio
+   stated rather than a bare 400.
 3. **Two controls that went quiet, both repaired, both re-keyed to properties.** The growth page's
    headline (`binding == settlement_engine` → the sample rate) and its learned-rate caveat
    (positional latch → does the planned-on rate equal the funnel's own history). That flag had
