@@ -319,8 +319,18 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         return "<tr>"
           + "<td>" + esc(y.year) + "</td>"
           + '<td style="text-align:right;">' + esc(y.quotes_issued) + "</td>"
-          + '<td style="text-align:right;">' + esc(y.wins) + "</td>"
-          + '<td style="text-align:right;">' + esc(y.accounts_after) + "</td>"
+          // WON, THEN SETTLED, and the two being different is the point of the pair. `wins` is
+          // what reached the book; `funnel_wins` is what the market gave the company. A row
+          // rendering only one of them reports our own ceiling as the company's result.
+          // `funnel_wins` is absent from records written before 2026-08-28, so the cell falls
+          // back to the booked count rather than rendering "undefined".
+          + '<td style="text-align:right;">'
+            + esc(y.funnel_wins == null ? y.wins : y.funnel_wins) + "</td>"
+          + '<td style="text-align:right;'
+            + (y.funnel_wins != null && y.funnel_wins !== y.wins ? "color:#b45309;font-weight:600;" : "")
+            + '">' + esc(y.wins) + "</td>"
+          + '<td style="text-align:right;">'
+            + esc(y.book_after == null ? y.accounts_after : y.book_after) + "</td>"
           + '<td style="text-align:right;">' + esc(y.homes_in_market) + "</td>"
           + '<td style="text-align:right;">' + rate + "</td>"
           + "<td>" + flag + "</td>"
@@ -331,17 +341,27 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + "<thead><tr>"
         + '<th style="text-align:left;">Year</th>'
         + '<th style="text-align:right;">Quotes</th>'
-        + '<th style="text-align:right;">Won</th>'
+        + '<th style="text-align:right;" title="Accounts the company WON in the market this year: it quoted, the prospect accepted, the credit check passed. A commercial outcome.">Won</th>'
+        + '<th style="text-align:right;" title="How many of those wins THIS MACHINE could settle. The gap to Won is our engineering ceiling, not a commercial event.">Settled</th>'
         + '<th style="text-align:right;">Book</th>'
         + '<th style="text-align:right;" title="Households actually switching supplier that year, from the published DESNZ switching series">In market</th>'
         + '<th style="text-align:right;" title="The conversion rate the company planned the next campaign on, computed from its own books. A marked figure was computed over a history our settlement engine had already bound.">Planned on</th>'
         + '<th style="text-align:left;">What limited it</th>'
         + "</tr></thead><tbody>" + rows + "</tbody></table></div>";
       var s = d.settlement || {};
+      // THE RATE BELONGS BESIDE THE CUSTOMER-YEARS, because "committed 1,195 of 1,200" reads as
+      // a machine comfortably inside its budget until you know that budget bought one win in
+      // every five and a half. The two sentences are the same fact from either end.
+      var rate = d.settlement_sample_rate;
       $("growth-note").textContent =
         "Spend and book figures are on the settled clock. Settlement committed "
         + esc(s.customer_years_committed) + " of " + esc(s.customer_year_budget)
-        + " customer-years available to this machine.";
+        + " customer-years available to this machine"
+        + (rate != null && rate < 1
+            ? ", which bought one win in every " + (1 / rate).toFixed(1)
+              + " the company made. Every year is sampled at the same rate, so the shape of the "
+              + "curve is the company's and its height is ours."
+            : ".");
     })
     .catch(function (err) {
       $("growth-note").textContent =
@@ -368,6 +388,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   believed.</p>
   <p id="arms-headline" style="margin:0 0 10px;font-weight:600;"></p>
   <p id="arms-published" style="margin:0 0 16px;"></p>
+  <!-- WHAT THE WORLD COULD DO ABOUT EITHER ARM. Above the tables on purpose, for the same reason
+       the coverage clause sits inside the headline: a reader who meets "£159,423 against £154,699"
+       first has already formed the impression, and a bound met afterwards does not undo it. The
+       sentence is PROBED from the world's own reference function at publish time, never typed --
+       see `_market_reaction` in tools/generate_value_arms_data.py for why that distinction is the
+       whole point here. -->
+  <p id="arms-market" style="margin:0 0 16px;font-size:13px;"></p>
   <div id="arms-realised"></div>
   <!-- THE HOUSEHOLD'S SIDE OF THE SAME THREE ARMS. The mission says value is created and THEN
        shared, so every decision has two sides; a page that shows only what the company earned
@@ -491,6 +518,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          published run every publish, and renders as its own negative if the two stop matching. */
       var pub = (d.realised || {}).is_the_published_supplier || {};
       $("arms-published").innerHTML = prose(pub.statement || "");
+
+      /* THE BOUND, and it renders on BOTH branches. An absent `market_reaction` block must not
+         leave the comparison unqualified -- a missing bound reads exactly like a comparison that
+         never needed one, which is the fail-open shape this whole section exists to avoid. So the
+         feed's own statement renders when it is there, and a stated absence renders when it is
+         not. There is no path through here that prints nothing. */
+      var mr = d.market_reaction || {};
+      $("arms-market").innerHTML =
+        '<strong>What the world could do about either arm.</strong> '
+        + (mr.statement
+            ? prose(mr.statement)
+            : "This publish carries no reading of whether anything in the world could react to "
+              + "either arm, so read the comparison as an internal one between two of our own "
+              + "pricing policies.");
 
       /* BOTH SIDES OF ONE COMPARISON, ON ONE ROW. Keyed by arm so a household figure can only
          ever land beside the net margin from the SAME arm of the SAME run. An unavailable

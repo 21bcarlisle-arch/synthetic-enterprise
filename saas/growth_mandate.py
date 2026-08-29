@@ -215,12 +215,26 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 #: the compounding curve a growing supplier actually has and leaves every year's outcome
 #: contingent on that year's funnel: a bad year still wins less, and 2017 won nothing.
 #:
-#: IT IS NOT WHAT WILL BIND. At this rate the book reaches the settlement engine's ceiling
-#: before it reaches 200 — see `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` and
-#: docs/design/SETTLEMENT_CEILING_2026-08-24.md. That is deliberate and it is reported per year
-#: rather than hidden: the director asked for the engine constraint SURFACED, so the honest
-#: arrangement is a commercial dial set to his target and a machine limit that visibly stops it
-#: short, not a commercial dial quietly tuned down until the machine never complains.
+#: IT IS NOT WHAT WILL BIND, and until 2026-08-29 what did was our own settlement ceiling:
+#: exhausted inside 2017, it booked ZERO in each of the eight years after, so the target was
+#: unreachable for a reason that has nothing to do with this rate.
+#:
+#: THE TARGET IS NOW MET, AND THE PUBLISHED BOOK IS A SAMPLE OF IT. On the record of
+#: 2026-08-29 the supplier holds 587 accounts — 82 founders and 505 the funnel won — so
+#: "toward 200" was passed in 2018 and the binding reasons are commercial in all ten years
+#: (growth_rate in nine, capital in 2025). What this machine can SETTLE is a uniform ~18%
+#: SAMPLE of them -- read the rate off the run's own record rather than from this comment,
+#: which is the mistake this module's neighbour made and paid for -- reported per year as
+#: `wins`/`funnel_wins` and per campaign as `settlement_sample_rate`. The director asked for
+#: the engine constraint SURFACED: it is a rate on every row rather than a cliff in the middle
+#: of the decade. See `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` and
+#: docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md.
+#:
+#: WHAT BINDS NOW IS A DIFFERENT ENGINEERING CEILING, and it is stated here so the next reader
+#: does not have to rediscover it: three of the ten years are MARKET-BOUND at
+#: `net_new_acquisition.PROSPECTS_PER_YEAR` (400) — in 2024 the company could afford 861 quotes
+#: and only 400 prospects exist to quote. That is our number, not the GB switching market's, and
+#: it is the next artefact in this chain.
 #:
 #: THE FINDING UNDERNEATH, which belongs to PB2: a supplier holding this much capital against a
 #: book this small is over-capitalised, and the published company is small because it is a

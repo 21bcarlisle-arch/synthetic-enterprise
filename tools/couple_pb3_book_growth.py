@@ -62,11 +62,26 @@ refused to fix this company-side and was right to: a company that could see whic
 its own losses were artefacts would be reading the simulation. That refusal binds
 the COMPANY. It does not bind the HARNESS, and this is the harness.
 
-Measured on the shipped record at `SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0`, the
-excluded partition is EMPTY — no year of the shipped run is settlement-bound (the
-finding's table was measured at 600.0, before commit `6474e3cc1` raised it). The
-partition is kept and tested anyway: it is load-bearing the moment the budget binds
-again, and a control that only exists once it is needed does not exist.
+THAT SENTENCE USED TO SAY THE PARTITION WAS EMPTY, AND IT WAS FALSE FOR A DAY.
+Written when the ceiling was slack, it read "no year of the shipped run is
+settlement-bound". The founder book then made the ceiling taut, nine of the ten
+years became machine-bound, the scored partition collapsed to {2016}, and this
+ledger published `gap = 1.0` — which is what a single belief-planned year yields by
+identity — under a docstring asserting there was nothing to exclude. Nothing
+reported the change, because the partition was written as a control and had quietly
+become the population. A note about today's answer decays; that is why the two
+things guarding this measurement are now properties rather than states: the floor at
+`n_scored_planning_on_learned_rate` in `measure`, and the fix below.
+
+WHY THE PARTITION IS NOW EMPTY FOR A REASON INSTEAD OF BY LUCK (2026-08-29). The
+year's truth is `funnel_wins / quotes_issued` — what the MARKET gave the company —
+not `wins / quotes_issued`, which is what this machine could afford to settle. The
+funnel's count is untouched by the ceiling, so there is no longer a population for
+the exclusion to remove; and the belief it is scored against is built from the same
+funnel count, so the two legs of the ratio finally count the same thing. The
+partition is kept and tested anyway: it is load-bearing the moment a future ceiling
+truncates something the funnel can see, and a control that only exists once it is
+needed does not exist.
 
 DETERMINISM (C-S2). No RNG, no wall clock in the measurement. `measured_at` /
 `run_git_commit` are gathered in `main()` and passed in, never called by `measure()`.
@@ -189,12 +204,32 @@ def _founding_belief(row: dict) -> Optional[float]:
 def _realised_rate(row: dict) -> Optional[float]:
     """The year's OUTCOME: wins per quote issued, as the world decided it.
 
+    THE FUNNEL'S WINS, NOT THE BOOK'S (2026-08-29). `wins` is what this machine
+    settled; `funnel_wins` is what the market gave the company. The belief this
+    number is scored against is built from the funnel — `plan_growth_campaign`
+    carries `wins_to_date += funnel_wins_this_year` and has since the wall fix of
+    2026-08-28 — so scoring it against BOOKED wins compares a belief formed on one
+    population with a truth measured on another. It is the ratio-of-two-populations
+    defect, and it was invisible only because the settlement ceiling had reduced the
+    scored partition to 2016, the single year in which the two counts are equal.
+
+    Under the uniform sample the two differ in EVERY year and by a factor of five
+    and a half, so a booked-win rate would have read as a supplier converting 3%
+    when its funnel converted 18%.
+
+    Falls back to `wins` when `funnel_wins` is absent, which is what a record
+    written before 2026-08-28 looks like. That fallback is not silent: those
+    records are also the ones with no `settlement_sample_rate`, and `measure`
+    reports the count it scored either way.
+
     A year that issued no quotes has an UNDEFINED win rate, not a zero one — a
     supplier that never quoted did not lose every quote. Returns None and the
     caller counts the year out.
     """
     quotes = row.get("quotes_issued")
-    wins = row.get("wins")
+    wins = row.get("funnel_wins")
+    if isinstance(wins, bool) or not isinstance(wins, (int, float)):
+        wins = row.get("wins")
     if isinstance(quotes, bool) or not isinstance(quotes, (int, float)):
         return None
     if isinstance(wins, bool) or not isinstance(wins, (int, float)):
@@ -256,24 +291,49 @@ def measure(record: dict) -> Tuple[GapResult, dict]:
             scored.append(entry)
 
     n_scored = len(scored)
+    # THE POPULATION FLOOR, and it is keyed to the question rather than to a count.
+    #
+    # This gap asks ONE thing: did learning from its own quote book buy this supplier a
+    # better forecast than never updating would have? In a year the company planned on its
+    # founding BELIEF, the learned arm and the no-skill arm are the same number, so that
+    # year contributes `abs_error == abs_error_no_skill` and pulls the ratio toward exactly
+    # 1.0 for a reason that has nothing to do with learning. A partition containing ONLY
+    # such years yields gap = 1.0 by identity.
+    #
+    # That is not hypothetical. On the record shipped 2026-08-29 the settlement ceiling had
+    # made nine of ten years machine-bound, the scored partition was {2016} alone, 2016 plans
+    # on belief, and this ledger published `gap = 1.0` — a tautology wearing a measurement's
+    # clothes, under a module docstring asserting the excluded partition was empty. No count
+    # threshold would have caught it honestly; this one does, and it is a floor on the
+    # PROPERTY the number needs rather than on how many rows happen to be present.
+    # IT GATES THE RATIO, NOT THE COMPONENTS. `raw_gap` and `g0` are the mean absolute
+    # errors of the two arms and they are honest numbers whatever the partition contains --
+    # a reviewer re-adding the arithmetic is entitled to them. What the floor refuses is the
+    # normalised HEADLINE, because that is the number read as a verdict on learning.
+    n_learned = sum(1 for e in scored if e["planned_on"] == "realised")
     if n_scored:
         raw_gap = sum(e["abs_error"] for e in scored) / n_scored
         g0 = sum(e["abs_error_no_skill"] for e in scored) / n_scored
         # g0 == 0 is the degenerate branch `gap_metric._normalise` documents: a
         # no-skill arm that was exactly right leaves nothing to divide by, and the
         # honest headline is UNDEFINED rather than an infinity or a zero.
-        gap = (raw_gap / g0) if g0 else None
+        gap = (raw_gap / g0) if (g0 and n_learned) else None
     else:
-        # EVERY year excluded or undefined. There is no measurement, and None is
+        # EVERY year excluded or undefined, OR no scored year in which the company
+        # actually planned on a learned rate. There is no measurement, and None is
         # the ledger's designed representation of that -- `gap_measured()` reads
         # it as unmeasured and the L3 draw stays blocked, which is correct: a
         # campaign the box decided every year of has not been scored against a
-        # market.
+        # market, and a partition of belief-only years has not scored learning.
         raw_gap, g0, gap = 0.0, 0.0, None
 
     stats = {
         "n_years_in_record": len(rows),
         "n_scored": n_scored,
+        # WHY THE HEADLINE IS OR IS NOT A MEASUREMENT, as a number a reader can check.
+        # `n_scored` alone cannot say it: ten belief-only years score exactly as
+        # vacuously as one does.
+        "n_scored_planning_on_learned_rate": n_learned,
         "n_excluded_machine_bound": len(excluded_machine),
         "n_dropped_undefined": len(dropped_undefined),
         "scored_years": scored,
@@ -286,6 +346,7 @@ def measure(record: dict) -> Tuple[GapResult, dict]:
     components = {
         "n_years_in_record": len(rows),
         "n_scored_market_decided": n_scored,
+        "n_scored_planning_on_learned_rate": n_learned,
         "n_excluded_machine_bound": len(excluded_machine),
         "excluded_machine_bound_years": [e["year"] for e in excluded_machine],
         "n_dropped_undefined": len(dropped_undefined),

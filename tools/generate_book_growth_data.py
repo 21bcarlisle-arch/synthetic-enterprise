@@ -76,55 +76,79 @@ def _binding_of(row: dict) -> str:
 
 #: What a reader is told about a learned conversion rate our own engine helped produce.
 CONTAMINATED_CAVEAT = (
-    "The company computed this from its own books, and its books say it quoted and did not win. "
-    "But an earlier year's wins were refused by OUR settlement engine, so some of the losses in "
-    "that denominator were never a commercial event. The company's inference is sound; the world "
-    "it inferred from was not."
+    "The company computed this from its own books, but it does not match what its FUNNEL won "
+    "over the same years -- so some of the losses in that denominator were our settlement "
+    "engine refusing a win rather than a prospect saying no. The company's inference is sound; "
+    "the world it inferred from was not."
 )
 CLEAN_CAVEAT = (
-    "Computed over years the market and the company's own balance sheet decided, with no year "
-    "our settlement engine bound. This conversion rate is a commercial result."
+    "Checked against what the company's own funnel converted over the same years, and equal to "
+    "it: this conversion rate counts commercial outcomes only, with no settlement refusal in "
+    "the denominator."
+)
+#: The third state, and it exists because the other two are a claim either way. A record with
+#: no `funnel_wins` cannot be checked, and an unchecked rate must never render as a checked one.
+UNCHECKABLE_CAVEAT = (
+    "This campaign record does not carry the funnel's own win count, so whether our settlement "
+    "engine is inside this rate CANNOT BE CHECKED. Read it as unverified, not as clean."
 )
 
 
 def _mark_learned_rate_provenance(years: list[dict]) -> None:
-    """Say which learned win rates were computed over a history OUR engine had already touched.
+    """Say whether the rate the company planned on has our settlement engine inside it.
 
-    WHY THIS IS NOT THE SAME FLAG AS `binding_is_our_artefact`, and why getting it wrong would be
-    worse than omitting it. That flag answers "did our engine stop the book THIS year". This
-    answers a different question -- "was the number the company PLANNED on computed over a history
-    that includes such a year" -- and the two diverge in both directions:
+    KEYED TO THE PROPERTY, NOT TO A YEAR LABEL, and the rewrite of 2026-08-29 is why this
+    docstring is worth reading. The old rule was positional: find the years where
+    `binding == settlement_engine`, then latch every later learned rate as contaminated. It
+    was correct for the mechanism it was written against and it decayed twice in four days.
 
-      * 2020 was engine-bound AND still won 22 accounts. Its learned rate came from 2016-2019,
-        all commercial. Flagging it because it is itself engine-bound would caveat a clean number.
-      * 2021 was engine-bound too, but the thing that matters about its learned rate is that the
-        rate was computed over a history INCLUDING 2020 -- and from there the contamination is
-        permanent, because the company's history only grows.
+      * 2026-08-28 moved the company's own `wins_to_date` onto FUNNEL wins, so the rate
+        stopped being contaminated at source -- but this flag kept caveating it, and the
+        published `win_rate_statement` still told readers the series "decays 0.169 -> 0.051"
+        when the shipped record had been flat at ~0.175 for a day.
+      * 2026-08-29 replaced the stop-the-year ceiling with a uniform sample, so NO year is
+        engine-bound and the same flag would have flipped to silence -- publishing "none of
+        them is an artefact of our engine" while four wins in five were refused.
 
-    So the rule is STRICTLY EARLIER, and it latches: once an engine-bound year enters the history,
-    every later learned rate carries it. That is why the published series decays 0.169 -> 0.051
-    while nothing commercial suppressed the conversion
-    (WORKER_FINDING_THE_COMPANY_NOW_LEARNS_A_WIN_RATE_FROM_YEARS_AN_ENGINEERING_CAP_DECIDED).
+    One flag, two opposite failures, both from asking WHICH YEAR instead of asking the
+    question the reader has. The question is: is the number the company planned on equal to
+    what its own funnel converted over the earlier years? That is checkable against the
+    record on every row, it is true or false for a reason, and it goes red if anyone re-wires
+    the planner onto booked wins -- which is the defect it exists to catch.
 
-    NOT A WALL VIOLATION, and the distinction is the whole design. The COMPANY still learns the
-    contaminated rate and still plans on it -- nothing here changes a single company-side number,
-    because a supplier that could tell which of its own losses were artefacts would be reading
-    simulation internals. What changes is what the SITE tells its reader, which is the harness's
-    own job and the one place the fact is legitimately known.
+    NOT A WALL VIOLATION, and the distinction is the whole design. The COMPANY still learns
+    whatever its books say and still plans on it -- nothing here changes a single company-side
+    number, because a supplier that could tell which of its own losses were artefacts would be
+    reading simulation internals. What changes is what the SITE tells its reader, which is the
+    harness's own job and the one place the fact is legitimately known.
     """
-    seen_engine_bound = False
+    cum_quotes = 0
+    cum_funnel = 0
     for y in years:
         # `planning_on` "belief"/"mandate" means no learned rate was used at all, so there is
         # nothing to caveat -- and saying otherwise would attach a warning to a number the
         # company never computed.
-        learned = y.get("realised_win_rate_used") is not None and y.get("planning_on") == "realised"
-        y["learned_win_rate_is_contaminated"] = bool(learned and seen_engine_bound)
-        y["learned_win_rate_caveat"] = (
-            CONTAMINATED_CAVEAT if y["learned_win_rate_is_contaminated"]
-            else (CLEAN_CAVEAT if learned else "")
-        )
-        if y["binding_is_our_artefact"]:
-            seen_engine_bound = True
+        used = y.get("realised_win_rate_used")
+        learned = used is not None and y.get("planning_on") == "realised"
+        expected = (cum_funnel / cum_quotes) if cum_quotes else None
+        checkable = learned and expected is not None and y.get("funnel_wins") is not None
+
+        if not learned:
+            contaminated, caveat = False, ""
+        elif not checkable:
+            # FAIL CLOSED. A record that does not carry `funnel_wins` cannot be checked, and
+            # "unchecked" must not render as "clean" -- that is the shape that publishes a
+            # reassurance nobody verified.
+            contaminated, caveat = True, UNCHECKABLE_CAVEAT
+        elif abs(used - expected) <= 1e-6 * max(1.0, abs(expected)):
+            contaminated, caveat = False, CLEAN_CAVEAT
+        else:
+            contaminated, caveat = True, CONTAMINATED_CAVEAT
+
+        y["learned_win_rate_is_contaminated"] = contaminated
+        y["learned_win_rate_caveat"] = caveat
+        cum_quotes += y.get("quotes_issued") or 0
+        cum_funnel += y.get("funnel_wins") or 0
 
 
 def build(campaign: dict | None) -> dict:
@@ -152,7 +176,18 @@ def build(campaign: dict | None) -> dict:
             "year": row.get("year"),
             "quotes_issued": row.get("quotes_issued"),
             "wins": row.get("wins"),
+            # THE THREE NUMBERS THAT MAKE UP A YEAR'S GROWTH, on the row rather than only in
+            # the campaign total, because "the market gave us this many and we settled this
+            # many" is a per-year fact and the identity funnel_wins == wins + refused is only
+            # checkable if all three are here.
+            "funnel_wins": row.get("funnel_wins"),
+            "wins_refused_by_settlement_budget": row.get(
+                "wins_refused_by_settlement_budget"),
+            # THE SUPPLIER'S ACCOUNT COUNT AND THE BOOK'S, which stopped being the same number
+            # on 2026-08-29. `accounts_after` is what the company holds and sizes its capital
+            # against; `book_after` is what this machine settled.
             "accounts_after": row.get("accounts_after"),
+            "book_after": row.get("book_after"),
             "spend_gbp": row.get("spend_gbp"),
             "clock": "settled",
             "homes_in_market": row.get("homes_in_market"),
@@ -171,6 +206,20 @@ def build(campaign: dict | None) -> dict:
     artefact_years = [y["year"] for y in years if y["binding_is_our_artefact"]]
     _mark_learned_rate_provenance(years)
     contaminated = [y["year"] for y in years if y["learned_win_rate_is_contaminated"]]
+
+    # HOW MUCH OF WHAT THE COMPANY WON REACHED THE BOOK. Read from the campaign's own record,
+    # never recomputed here (SITE_CONSTITUTION rule 3: this file renders, it does not author).
+    # `None` when the record does not carry it, which is a state the statement below must say
+    # out loud rather than default to the flattering branch -- a record with no rate is a
+    # record we cannot read, not a run in which nothing was refused.
+    raw_rate = campaign.get("settlement_sample_rate")
+    sample_rate = (
+        float(raw_rate)
+        if isinstance(raw_rate, (int, float)) and not isinstance(raw_rate, bool)
+        else None
+    )
+    funnel_wins = sum(y["funnel_wins"] or 0 for y in years)
+    refused = sum(y["wins_refused_by_settlement_budget"] or 0 for y in years)
     return {
         "generated_at": stamp,
         "available": True,
@@ -186,17 +235,36 @@ def build(campaign: dict | None) -> dict:
             "customer_year_budget": campaign.get("customer_year_budget"),
         },
         # THE HEADLINE THE DIRECTOR ASKED FOR, stated rather than left to be read off a chart.
+        #
+        # IT IS KEYED TO THE SAMPLE RATE, NOT TO `binding`, and that is a 2026-08-29 repair
+        # rather than a preference. Until then our engine STOPPED a year dead when it ran out
+        # of customer-years, so "which years were engine-bound" was the right question and
+        # `binding == settlement_engine` was the right way to ask it. It now takes a uniform
+        # sample of the whole campaign instead, so NO year is stopped and that question's
+        # answer is honestly "none" -- at which point this statement would have told the
+        # reader "no year was bound by our settlement engine" while the engine was refusing
+        # four wins in five. A control keyed to yesterday's answer goes quiet exactly when the
+        # mechanism it watches changes shape. This one is keyed to the property: how much of
+        # what the company won reached the book.
         "engine_bound_years": artefact_years,
+        "settlement_sample_rate": sample_rate,
+        "settlement_wins_refused": refused,
+        "settlement_funnel_wins": funnel_wins,
         "engine_bound_statement": (
-            "In {n} of {t} years the book was stopped by OUR settlement engine and not by the "
-            "market or the company's balance sheet ({yrs}). Those years understate what this "
-            "supplier would have won, and the flat curve there is an artefact of the "
-            "simulation rather than a commercial result.".format(
-                n=len(artefact_years), t=len(years),
-                yrs=", ".join(str(y) for y in artefact_years))
-        ) if artefact_years else (
-            "No year was bound by our settlement engine: every year's growth was decided by the "
-            "market, the company's capital, or its own growth mandate."
+            "The company won {fw:,} accounts and OUR settlement engine could settle {bw:,} of "
+            "them — a uniform {pct:.1f}% sample, {refused:,} wins refused. Every year is "
+            "represented in proportion to what it won, so the SHAPE of this curve is "
+            "commercial; its HEIGHT is our machine. Divide a booked count by {rate:.3f} to "
+            "read the supplier rather than the sample.".format(
+                fw=funnel_wins, bw=funnel_wins - refused, refused=refused,
+                pct=sample_rate * 100.0, rate=sample_rate)
+        ) if sample_rate is not None and sample_rate < 1.0 else (
+            "Our settlement engine settled every account the company won: the book below is "
+            "the supplier, not a sample of it. No year's growth was limited by this machine."
+        ) if sample_rate is not None else (
+            "This campaign record does not carry a settlement sample rate, so what share of "
+            "the company's wins reached the book CANNOT BE READ FROM IT. Treat the book below "
+            "as a lower bound on what this supplier won, not as what it won."
         ),
         # THE SECOND HALF OF THE SAME INSTRUCTION. The curve is not the only thing our engine
         # shaped: the company LEARNS its conversion rate from these years and plans the next
@@ -205,15 +273,17 @@ def build(campaign: dict | None) -> dict:
         # would use to judge whether growth was worth it) is computed from that.
         "learned_win_rate_contaminated_years": contaminated,
         "win_rate_statement": (
-            "From {first} onward the conversion rate the company planned on was computed over a "
-            "history our own settlement engine had already bound, so it falls without any "
-            "commercial mechanism suppressing it. Read the decline as an artefact of this "
-            "simulation, not as a supplier losing its touch -- and note the quote budget, and "
-            "therefore the acquisition spend, is derived from that same rate.".format(
+            "From {first} onward the conversion rate the company planned on does not match what "
+            "its own funnel converted over the same years, so our settlement engine is inside "
+            "the number it planned the next campaign on. Read any decline as an artefact of "
+            "this simulation, not as a supplier losing its touch -- and note the quote budget, "
+            "and therefore the acquisition spend, is derived from that same rate.".format(
                 first=contaminated[0])
         ) if contaminated else (
-            "Every conversion rate the company planned on was computed over years the market and "
-            "its own balance sheet decided. None of them is an artefact of our engine."
+            "Every conversion rate the company planned on was CHECKED against what its own "
+            "funnel converted over the earlier years, and equals it. Our settlement engine "
+            "decides how much of the book we settle; it is not inside the rate the company "
+            "plans on."
         ),
         "notes": campaign.get("notes") or [],
     }

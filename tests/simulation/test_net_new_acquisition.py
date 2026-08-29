@@ -283,8 +283,14 @@ def test_a_settlement_bound_year_SAYS_SO_instead_of_publishing_a_smaller_book():
     """
     out = _campaign(quote_budget_fn=_budget(200), customer_year_budget=10.0)
     assert out["notes"], "a settlement-bound campaign must leave a note"
-    assert any("SETTLEMENT-BOUND" in n for n in out["notes"])
-    assert out["by_year"][0]["binding"] == "settlement_engine"
+    assert any("SETTLEMENT-SAMPLED" in n for n in out["notes"])
+    # THE RATE IS THE STATEMENT, and it replaced `binding == "settlement_engine"` on
+    # 2026-08-29. The ceiling no longer stops a year -- it takes a uniform sample of the whole
+    # campaign -- so `binding` reports what limited the COMPANY and the machine's share is a
+    # number on every row. Asserting the old label here would pin this test to a mechanism the
+    # module no longer has, and asserting nothing would let a silent cap through.
+    assert out["settlement_sample_rate"] < 1.0
+    assert all(r["settlement_sample_rate"] < 1.0 for r in out["by_year"])
     assert out["customer_years_committed"] <= 10.0
 
 
@@ -327,9 +333,72 @@ def test_the_refused_wins_are_COUNTED_and_not_just_the_first_one_named():
     # The funnel's own verdict, independently: the split must agree with the spend ledger,
     # which is the only other place a win is recorded.
     assert out["funnel_wins"] == len([r for r in out["spend"] if r["won"]])
+    total_refused = out["wins_refused_by_settlement_budget"]
     assert any(
-        f"{row['wins_refused_by_settlement_budget']} win(s) refused" in n for n in out["notes"]
+        f"settled {len(out['winners'])} of them" in n for n in out["notes"]
     ), "the settlement note must carry the COUNT, not only the first prospect's id"
+    assert total_refused == out["funnel_wins"] - len(out["winners"])
+
+
+def test_a_budget_the_OPENING_BOOK_has_already_spent_books_nothing_and_says_so():
+    """THE FAR EDGE OF THE SAMPLE, which is a real operating state and not a hypothetical.
+
+    82 founders already commit 778 of the 1,200 (`docs/design/FOUNDER_BOOK.yaml`), so one more
+    curriculum act deepening the opening book takes the campaign's headroom to zero. The sample
+    rate is then 0.0 and the honest outcome is an EMPTY campaign book with a note saying the
+    machine refused all of it -- never a silent empty list, which is indistinguishable on a chart
+    from a supplier that won nothing. It must also not divide by zero on the way there.
+    """
+    out = _campaign(quote_budget_fn=_budget(20), customer_year_budget=1.0,
+                    customer_years_already_committed=1.0)
+
+    assert out["funnel_wins"] > 0, "vacuous: the funnel must have won something to refuse"
+    assert out["winners"] == []
+    assert out["settlement_sample_rate"] == 0.0
+    assert out["wins_refused_by_settlement_budget"] == out["funnel_wins"]
+    assert any("SETTLEMENT-SAMPLED" in n for n in out["notes"]), (
+        "an empty book the machine caused must SAY it caused it"
+    )
+
+
+def test_a_campaign_that_won_NOTHING_does_not_divide_by_zero_sampling_it():
+    """The other degenerate end: no candidates at all. There is nothing to sample, the rate is
+    1.0 because nothing was refused, and no note claims a machine limit that never bit."""
+    out = _campaign(run_funnel=_always(False), quote_budget_fn=_budget(20))
+
+    assert out["winners"] == []
+    assert out["funnel_wins"] == 0
+    assert out["settlement_sample_rate"] == 1.0
+    assert out["customer_years_all_wins_would_cost"] == 0.0
+    assert not any("SETTLEMENT-SAMPLED" in n for n in out["notes"])
+
+
+def test_the_sample_is_PROPORTIONAL_in_every_year_and_not_merely_non_empty():
+    """THE PROPERTY THAT MAKES THIS A SAMPLE RATHER THAN A SMALLER CLIFF.
+
+    Booking something in every year is not enough -- first-come with a per-year sub-budget does
+    that too, and loads the book into whichever years are cheapest. What the fix claims is that
+    each year's booked wins are proportional to that year's FUNNEL wins, so `booked / rate`
+    estimates what the company won without bias anywhere and the curve's shape stays commercial.
+
+    A win's settlement cost falls with its date, so a rule that is not proportional shows it
+    here: the ten-year fixture spans a 10x spread in cost per win.
+    """
+    out = _campaign(years=list(range(2016, 2026)), quote_budget_fn=_budget(40),
+                    customer_year_budget=200.0)
+    rate = out["settlement_sample_rate"]
+
+    assert 0.0 < rate < 1.0, "vacuous: the ceiling must actually bite in this fixture"
+    booked = [r for r in out["by_year"] if r["funnel_wins"]]
+    assert len(booked) == 10, "every year must have funnel wins for this to test proportionality"
+    for r in booked:
+        realised = r["wins"] / r["funnel_wins"]
+        assert abs(realised - rate) <= 0.5 * rate + (1.0 / r["funnel_wins"]), (
+            f"{r['year']}: booked {r['wins']} of {r['funnel_wins']} funnel wins "
+            f"({realised:.3f}) against a campaign rate of {rate:.3f} -- the sample is not "
+            "proportional, so this year is over- or under-represented in the book"
+        )
+    assert out["customer_years_committed"] <= 200.0
 
 
 def test_MUTATION_a_campaign_the_machine_never_refuses_reports_a_split_of_ZERO():
@@ -344,7 +413,13 @@ def test_MUTATION_a_campaign_the_machine_never_refuses_reports_a_split_of_ZERO()
     assert out["wins_refused_by_settlement_budget"] == 0
     assert all(r["wins_refused_by_settlement_budget"] == 0 for r in out["by_year"])
     assert out["funnel_wins"] == len(out["winners"]) > 0, "vacuous: nothing was won"
-    assert not any("SETTLEMENT-BOUND" in n for n in out["notes"])
+    assert not any("SETTLEMENT-SAMPLED" in n for n in out["notes"])
+    # THE NULL RESULT THAT SHOWS THE SAMPLING IS AIMED AT THE ARTEFACT. A ceiling the campaign
+    # never reaches must leave a run byte-identical to one with no ceiling at all: rate exactly
+    # 1.0, nothing refused, no note. If the sample fired here it would be shrinking a book that
+    # fits.
+    assert out["settlement_sample_rate"] == 1.0
+    assert all(r["settlement_sample_rate"] == 1.0 for r in out["by_year"])
 
 
 def test_the_company_plans_on_its_FUNNELS_wins_not_on_what_the_machine_would_settle():
@@ -968,20 +1043,16 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 #                The population is identical across the second step, which is what makes it a
 #                price effect and not a mix effect.
 #
-# THESE FOUR CONSTANTS ARE THE 13-FOUNDER RUN, WHICH IS THE BOOK THIS COMMIT CREATES.
+# RE-MEASURED 2026-08-28 (1,066 -> 2,089 quotes, £23,709 -> £46,408), and this one is NOT the
+# usual "re-measure before trusting the header". These four constants went red on a DIRECTOR'S
+# CURRICULUM ACT -- the 80-founder book (`docs/design/FOUNDER_BOOK.yaml`, "take the 80
+# founders") -- and they are being re-baselined only because the run behind them has been
+# understood first. R12: the number is attributed, not fitted. Two things moved it and the
+# split is MEASURED rather than stated, one variable at a time, at the same seed:
 #
-# A previous working-tree draft carried 2,089 quotes / £46,408.25 here. Those are the figures of
-# the 80-FOUNDER book (`docs/design/FOUNDER_BOOK.yaml`, a director curriculum act), and that book
-# is a SEPARATE LANE that is not in this commit -- its YAML and its `founder_book()` in
-# simulation/live_population.py are still uncommitted. Landing its numbers here would have
-# published a figure this tree cannot produce, and the commit gate caught exactly that: the tree
-# this commit creates yields 1,066, and the assertion demanding 2,089 went red.
-#
-# The founder lane's own measurement is kept, because it is right and it is theirs to land:
-#
-#     1,066  founders 13, this tree                       <- SHIPPED HERE
+#     1,066  founders 13, the pre-decision run (reachable today: set `founder_accounts: 13`)
 #     2,826  founders 80, before the wall fix -- the settlement ceiling inside the planner
-#     2,089  founders 80, on the funnel's own record      <- the founder lane re-baselines to this
+#     2,089  founders 80, on the funnel's own record  <- SHIPPED
 #
 #   the founder book   +1,023  (a deeper opening book is more opening capital, so more quotes
 #                               the company can afford: an ordinary commercial consequence)
@@ -992,11 +1063,31 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # The 13-founder run is BYTE-IDENTICAL across the wall fix (1,066 quotes, 200 funnel wins, 200
 # booked, 0 refused), which is what says the fix is aimed at the artefact and not at the answer.
 #
-# SO WHEN THE FOUNDER LANE LANDS IT MUST BUMP THESE FOUR, and until it does its own working tree
-# will show this file red. That redness is the coupling being visible, which is the point: the
-# campaign's size depends on the opening book, so two lanes cannot both own this number silently.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1066
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 23708.90
+# RE-MEASURED 2026-08-29 (2,089 -> 2,737 quotes, £46,408 -> £60,839), and again the split is
+# measured one variable at a time rather than stated. Two changes landed, in this order:
+#
+#     2,089  the record above                                              <- was SHIPPED
+#     2,737  `accounts` counts FUNNEL wins, not booked ones (the second leg of the 2026-08-28
+#            wall fix, left behind when the first leg landed)              <- SHIPPED
+#     2,737  the settlement ceiling samples instead of stopping -- IDENTICAL, because the
+#            sampling pass runs after every quote is issued and paid for
+#
+#   the accounts leg   +648 quotes, +£14,431  (`accounts_held` sizes the Ofgem capital headroom
+#                               and the 33% growth-rate cap. Incrementing it only on a SETTLED
+#                               win froze the company's account count from 2018 at this
+#                               machine's ceiling, so it planned eight years against a balance
+#                               sheet our wall clock had written. In the modelled world it won
+#                               those accounts and holds capital against them.)
+#   the sampling leg   0                      (the ceiling decides which wins reach the BOOK; it
+#                               has never decided which prospects were quoted, and this null is
+#                               what says so)
+#
+# PREDICTED BEFORE EITHER RAN, in `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md` §3:
+# "booked wins stay at exactly 45 and every published book figure is unchanged" across the
+# accounts leg. They did, and 2016 and 2017 came back byte-identical -- the budget is exhausted
+# inside 2017 under either rule, so the two only diverge from 2018.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2737
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60838.81
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1008,8 +1099,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 23708.90
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 1066
-CAMPAIGN_SPEND_INSIDE_WINDOW = 23708.90
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 2737
+CAMPAIGN_SPEND_INSIDE_WINDOW = 60838.81
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

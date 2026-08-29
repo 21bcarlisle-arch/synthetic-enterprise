@@ -1,5 +1,13 @@
 # The settlement ceiling, re-measured: its evidence has drifted, its time bound is circular, and I do not yet have the number
 
+> **SUPERSEDED IN PART, later the same day, by
+> `SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`.** Everything below stands as written — the mirror,
+> the 36%-stale cost note, and the circular time bound are all still the findings. What it did not
+> ask is why a budget that can settle 22% of the campaign's wins books 100% of two years and 0% of
+> eight. That is the ALLOCATION, not the size, and fixing it took the book from 45 accounts across
+> two years to 90 across ten on *fewer* settled customer-years. The ceiling still does not move, and
+> the reason it does not have to is in that document. §6's re-run specification is still open.
+
 **Direction, 2026-08-29 (LANE 0 DELIVERY):** *"Re-run AO12's probe on this machine, at the run
 shape the live path actually uses… Then set the ceiling from what the probe supports… if the probe
 says 1200 is right, say so and the finding is that the ceiling is real, which is a different and

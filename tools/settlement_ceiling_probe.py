@@ -4,10 +4,27 @@
 WHY THIS EXISTS
 ---------------
 `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET` is the single constant that
-decides how big the published book is allowed to get. It currently refuses 335 of the campaign's
-380 funnel wins and is the `binding` reason in nine of the ten published growth years. Everything
-downstream that needs decisions to grade -- B10's ladder, PB4/PB5's heterogeneity models, R6's
-growth mechanism -- is bounded by it.
+decides how big the published book is allowed to get. Everything downstream that needs decisions to
+grade -- B10's ladder, PB4/PB5's heterogeneity models, R6's growth mechanism -- is bounded by it.
+
+WHAT THIS CONSTANT DOES CHANGED ON 2026-08-29 AND THE PARAGRAPH ABOVE USED TO SAY OTHERWISE. It
+read: "it currently refuses 335 of the campaign's 380 funnel wins and is the `binding` reason in
+nine of the ten published growth years". Both clauses were true when written and both are now
+false, so they are struck rather than left for a reader to trust. The ceiling was spent FIRST-COME
+on a cohort whose settlement tails cost 9.83 customer-years each, so it emptied inside 2017 and
+booked zero in every year after; it now sets a uniform SAMPLE RATE over the campaign's own wins and
+`binding` reports what limited the COMPANY. On the record of that day: 505 funnel wins, 92 settled,
+a rate of 0.1834, and ten of ten years commercial-bound. Two runs of the same code at the same seed
+produced 90/0.1789 and 92/0.1834 -- an OPENING-book difference, not a campaign one, filed open in
+the design doc. Read the rate from the record, never from this sentence.
+`docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`.
+
+WHAT THAT MEANS FOR THIS PROBE, which still measures the right thing but answers a different
+question. Cost still rises with SETTLED CUSTOMER-YEARS and that is still this instrument's x-axis.
+What changed is the consequence of getting the ceiling wrong: it used to decide WHICH YEARS EXISTED,
+so the number was decisive and a bad one was unrecoverable; it now scales the whole book uniformly,
+so a bad one costs precision. Measure it as carefully -- but the urgency this file was written with
+is gone, and saying so is more useful than leaving the alarm ringing.
 
 It is an ENGINEERING ceiling: what this box can settle inside a publish cycle. It has no
 counterpart in the modelled world, so moving it removes an artefact rather than changing the

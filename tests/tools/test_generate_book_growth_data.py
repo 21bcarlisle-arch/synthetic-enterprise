@@ -26,7 +26,9 @@ def _campaign(*bindings, **kw):
     """A campaign record whose years carry the given binding reasons, in order."""
     return {
         "by_year": [
-            {"year": 2016 + i, "quotes_issued": 10 * (i + 1), "wins": 3, "accounts_after": 20 + i,
+            {"year": 2016 + i, "quotes_issued": 10 * (i + 1), "wins": 3, "funnel_wins": 3,
+             "wins_refused_by_settlement_budget": 0, "accounts_after": 20 + i,
+             "book_after": 20 + i,
              "spend_gbp": 100.0, "binding": b, "homes_in_market": 400,
              "switching_multiplier": 1.0, "believed_win_rate": 0.2,
              "realised_win_rate_used": None, "planning_on": "belief"}
@@ -35,19 +37,25 @@ def _campaign(*bindings, **kw):
         "notes": kw.get("notes", []),
         "quotes": 100, "wins": 9, "spend_gbp": 1000.0,
         "customer_years_committed": 590.0, "customer_year_budget": 600.0,
+        "settlement_sample_rate": kw.get("sample_rate", 1.0),
     }
 
 
 def test_a_year_our_engine_stopped_is_flagged_as_OUR_artefact():
     """THE ASSERTION THAT CARRIES THE FILE. settlement_engine is the one binding reason that is a
-    fact about us rather than about the company."""
+    fact about us rather than about the company.
+
+    STILL TESTED THOUGH THE SHIPPED CAMPAIGN NO LONGER PRODUCES IT (2026-08-29): the ceiling now
+    samples the campaign instead of stopping a year, so `binding` stays commercial. The label and
+    the flag are kept because a future ceiling that DOES stop a year must not render as
+    'unrecognised', and a classifier deleted the day its input went quiet is a classifier that
+    has to be rediscovered the day it comes back."""
     out = gb.build(_campaign("settlement_engine"))
     year = out["years"][0]
 
     assert year["binding_is_our_artefact"] is True
     assert year["binding_label"] == "Our settlement engine"
     assert out["engine_bound_years"] == [2016]
-    assert "artefact of the simulation" in out["engine_bound_statement"]
 
 
 @pytest.mark.parametrize("binding", ["capital", "growth_rate", "market", "mandate"])
@@ -59,16 +67,68 @@ def test_MUTATION_every_COMMERCIAL_reason_is_NOT_flagged_as_our_artefact(binding
 
     assert out["years"][0]["binding_is_our_artefact"] is False
     assert out["engine_bound_years"] == []
-    assert "No year was bound by our settlement engine" in out["engine_bound_statement"]
 
 
-def test_the_statement_counts_only_the_engine_bound_years():
-    """Mixed run: the headline must name the artefact years and only those."""
-    out = gb.build(_campaign("capital", "settlement_engine", "market", "settlement_engine"))
+# ── the HEADLINE, which is keyed to the sample rate and not to a binding label ───────────────
+#
+# THE FAILURE THIS REPLACES, because it is the reason the tests below look the way they do.
+# Until 2026-08-29 the headline was built from `engine_bound_years`, which is the set of years
+# carrying `binding == settlement_engine`. That was right while the ceiling STOPPED a year dead.
+# The ceiling now takes a uniform sample of the whole campaign instead, so no year is stopped,
+# `engine_bound_years` is honestly empty -- and the old headline would have published "no year
+# was bound by our settlement engine" on a run where four wins in five were refused. The control
+# did not go red. It went QUIET, which is the direction that gets published.
+#
+# So the headline is keyed to how much of what the company won reached the book, which is the
+# question a reader actually has and which has an answer under either mechanism.
 
-    assert out["engine_bound_years"] == [2017, 2019]
-    assert "2 of 4 years" in out["engine_bound_statement"]
-    assert "2017, 2019" in out["engine_bound_statement"]
+def test_the_headline_states_the_share_of_its_own_wins_the_machine_could_settle():
+    """THE ASSERTION THAT CARRIES THE FILE now. A book that is a sample must say the rate, and
+    say it in a form the reader can undo."""
+    out = gb.build(_campaign("growth_rate", "capital", sample_rate=0.2))
+    # 3 booked and 3 funnel wins per year in the fixture; the rate is what the record declares.
+    assert out["settlement_sample_rate"] == 0.2
+    assert "20.0% sample" in out["engine_bound_statement"]
+    assert "Divide a booked count by 0.200" in out["engine_bound_statement"]
+
+
+def test_MUTATION_a_run_that_settled_EVERY_win_does_not_claim_a_sample():
+    """R15 null control. If the sampled headline rendered whatever the rate, it would tell a
+    reader to divide by 1.0 and would carry no information."""
+    out = gb.build(_campaign("growth_rate", sample_rate=1.0))
+
+    assert "sample" in out["engine_bound_statement"]
+    assert "settled every account the company won" in out["engine_bound_statement"]
+    assert "Divide" not in out["engine_bound_statement"]
+
+
+def test_a_record_with_NO_sample_rate_says_it_cannot_tell_and_never_the_clean_branch():
+    """FAIL CLOSED (R15). A record written before the rate existed carries no evidence that
+    nothing was refused, and the flattering branch is a claim. 'We cannot tell' is the result and
+    it belongs on the page."""
+    record = _campaign("growth_rate")
+    del record["settlement_sample_rate"]
+    out = gb.build(record)
+
+    assert out["settlement_sample_rate"] is None
+    assert "CANNOT BE READ FROM IT" in out["engine_bound_statement"]
+    assert "settled every account" not in out["engine_bound_statement"]
+
+
+def test_the_headline_counts_the_wins_the_MACHINE_refused_not_the_ones_the_market_did():
+    """The two are different populations and the page publishes one of them. A year that quoted
+    and lost is commercial; a year that won and could not be settled is ours."""
+    record = _campaign("growth_rate", "capital", sample_rate=0.5)
+    for row in record["by_year"]:
+        row["funnel_wins"] = 6
+        row["wins"] = 3
+        row["wins_refused_by_settlement_budget"] = 3
+    out = gb.build(record)
+
+    assert out["settlement_funnel_wins"] == 12
+    assert out["settlement_wins_refused"] == 6
+    assert "won 12 accounts" in out["engine_bound_statement"]
+    assert "settle 6 of them" in out["engine_bound_statement"]
 
 
 def test_an_unrecognised_binding_is_shown_VERBATIM_and_never_guessed():
@@ -96,89 +156,133 @@ def test_a_missing_record_publishes_UNAVAILABLE_and_never_a_curve_of_zeroes():
         )
 
 
-# ── the SECOND artefact: the conversion rate the company learned from those years ────────────
+# ── the SECOND artefact: the conversion rate the company plans the next campaign on ──────────
 #
-# The curve is not the only thing our engine shaped. `dcba2f2e2` gave the company a win-rate
-# learning loop, so from the first engine-bound year onward it plans every campaign on a
-# conversion rate computed over losses our machine produced -- and the published series really
-# does decay 0.169 -> 0.051 while nothing commercial suppressed it
-# (WORKER_FINDING_THE_COMPANY_NOW_LEARNS_A_WIN_RATE_FROM_YEARS_AN_ENGINEERING_CAP_DECIDED).
+# The curve is not the only thing our engine can shape. `dcba2f2e2` gave the company a win-rate
+# learning loop, and if the number it learns from is the count of wins THIS MACHINE settled
+# rather than the count its funnel converted, then our ceiling is inside its commercial belief:
+# the rate falls with no commercial mechanism suppressing it, the quote budget is derived from
+# that rate, and the acquisition spend a reader judges growth by is derived from the budget.
+# That really happened (WORKER_FINDING_THE_COMPANY_NOW_LEARNS_A_WIN_RATE_FROM_YEARS_AN_
+# ENGINEERING_CAP_DECIDED) and was fixed company-side on 2026-08-28.
 #
-# THE COMPANY IS NOT CHANGED, and that is the design rather than a limitation: a supplier able to
-# tell which of its own losses were artefacts would be reading simulation internals. What is
-# added is what the SITE says about the number.
+# WHAT IS TESTED HERE IS THE PROPERTY, NOT A LIST OF YEARS, and the rewrite of 2026-08-29 is
+# the reason. The old flag was positional -- find the years binding on `settlement_engine`, latch
+# every later rate -- and it broke twice in four days without going red once:
+#
+#   * the 2026-08-28 company-side fix made the rate clean at source, and this flag went on
+#     caveating it; the published statement still said the series "decays 0.169 -> 0.051" when
+#     the record had been flat at ~0.175 for a day.
+#   * the 2026-08-29 sampling change removed `settlement_engine` from `binding` entirely, and
+#     the same flag would have flipped to "none of them is an artefact of our engine".
+#
+# One flag, two opposite failures, both from asking WHICH YEAR. The question the reader has is
+# whether the number the company planned on equals what its own funnel converted over the
+# earlier years -- checkable on every row, true or false for a reason, and red the moment
+# anyone re-wires the planner back onto booked wins.
 #
 # MUTATION SENSITIVITY (R15):
-#   * flag on `binding_is_our_artefact` instead of on the strictly-earlier history ->
-#     `test_the_first_engine_bound_years_own_learned_rate_is_still_CLEAN` red.
-#   * make the flag non-latching (only the immediately preceding year) ->
-#     `test_contamination_LATCHES_because_a_companys_history_only_grows` red.
-#   * flag every year ->
-#     `test_MUTATION_a_run_our_engine_never_bound_contaminates_no_learned_rate` red.
+#   * plan on BOOKED wins -> `test_MUTATION_a_rate_computed_from_the_BOOKED_wins_is_flagged` red.
+#   * treat an uncheckable record as clean ->
+#     `test_a_record_without_the_funnels_own_win_count_is_UNCHECKED_never_clean` red.
+#   * flag every year -> `test_MUTATION_a_rate_that_matches_the_funnel_is_NOT_flagged` red.
 #   * caveat a year that planned on belief ->
 #     `test_a_year_that_planned_on_BELIEF_has_no_learned_rate_to_caveat` red.
 
-def _learning_campaign(*specs):
-    """Years of (binding, planning_on, realised_win_rate_used)."""
-    return {
-        "by_year": [
-            {"year": 2016 + i, "quotes_issued": 10 * (i + 1), "wins": 3, "accounts_after": 20 + i,
+def _learning_campaign(*specs, funnel=None):
+    """Years of (binding, planning_on, realised_win_rate_used).
+
+    `quotes_issued` is 10, 20, 30... and `funnel_wins` defaults to 2 per year, so the rate a
+    year should have planned on is the cumulative funnel wins over the cumulative quotes of
+    every STRICTLY EARLIER year. `funnel` overrides the per-year funnel win counts.
+    """
+    rows = []
+    for i, (b, plan, rate) in enumerate(specs):
+        rows.append(
+            {"year": 2016 + i, "quotes_issued": 10 * (i + 1), "wins": 3,
+             "funnel_wins": 2 if funnel is None else funnel[i],
+             "wins_refused_by_settlement_budget": 0, "accounts_after": 20 + i,
+             "book_after": 20 + i,
              "spend_gbp": 100.0, "binding": b, "homes_in_market": 400,
              "switching_multiplier": 1.0, "believed_win_rate": 0.2,
-             "realised_win_rate_used": rate, "planning_on": plan}
-            for i, (b, plan, rate) in enumerate(specs)
-        ],
+             "realised_win_rate_used": rate, "planning_on": plan})
+    return {
+        "by_year": rows,
         "notes": [], "quotes": 100, "wins": 9, "spend_gbp": 1000.0,
         "customer_years_committed": 590.0, "customer_year_budget": 600.0,
+        "settlement_sample_rate": 1.0,
     }
 
 
-def test_the_first_engine_bound_years_own_learned_rate_is_still_CLEAN():
-    """THE DISCRIMINATION THAT MAKES THE FLAG WORTH HAVING, taken from the real 2020 row: that
-    year WAS engine-bound and still won 22 accounts, and the rate it planned on came from
-    2016-2019, every one of them commercial. A flag keyed on the year's own binding would caveat
-    a number nothing is wrong with, and a caveat a reader learns to ignore is worse than none."""
-    out = gb.build(_learning_campaign(
-        ("growth_rate", "realised", 0.164),
-        ("settlement_engine", "realised", 0.169),
-        ("settlement_engine", "realised", 0.178),
-    ))
-
-    assert out["years"][1]["binding_is_our_artefact"] is True
-    assert out["years"][1]["learned_win_rate_is_contaminated"] is False
-    assert out["years"][2]["learned_win_rate_is_contaminated"] is True
-    assert out["learned_win_rate_contaminated_years"] == [2018]
-    assert "From 2018 onward" in out["win_rate_statement"]
+def _funnel_rate(rows, upto):
+    """What year index `upto` should have planned on: the funnel's cumulative rate before it."""
+    q = sum(r["quotes_issued"] for r in rows[:upto])
+    w = sum(r["funnel_wins"] for r in rows[:upto])
+    return w / q
 
 
-def test_contamination_LATCHES_because_a_companys_history_only_grows():
-    """One engine-bound year in the middle contaminates EVERY later rate, not just the next one.
-    The company never forgets a year, so neither can the caveat."""
-    out = gb.build(_learning_campaign(
-        ("growth_rate", "realised", 0.16),
-        ("settlement_engine", "realised", 0.17),
-        ("market", "realised", 0.12),
-        ("capital", "realised", 0.09),
-    ))
-
-    assert out["learned_win_rate_contaminated_years"] == [2018, 2019]
-    assert out["years"][2]["binding_is_our_artefact"] is False, (
-        "fixture is not testing latching -- these later years must be bound by something "
-        "commercial, or the test would pass on a flag keyed on the year's own binding"
-    )
-
-
-def test_MUTATION_a_run_our_engine_never_bound_contaminates_no_learned_rate():
-    """R15 null control. If everything were flagged the flag would carry no information, and the
-    section would tell a reader to discount a conversion rate that is a real commercial result."""
-    out = gb.build(_learning_campaign(
-        ("market", "realised", 0.16), ("capital", "realised", 0.15),
-    ))
+def test_MUTATION_a_rate_that_matches_the_funnel_is_NOT_flagged():
+    """R15 null control, and the branch the shipped run takes. If every rate were flagged the
+    caveat would carry no information and a reader would learn to ignore it."""
+    rows = _learning_campaign(
+        ("growth_rate", "belief", None),
+        ("growth_rate", "realised", None),
+        ("capital", "realised", None),
+    )["by_year"]
+    for i in (1, 2):
+        rows[i]["realised_win_rate_used"] = _funnel_rate(rows, i)
+    out = gb.build({"by_year": rows, "notes": [], "quotes": 100, "wins": 9,
+                    "spend_gbp": 1000.0, "customer_years_committed": 590.0,
+                    "customer_year_budget": 600.0, "settlement_sample_rate": 1.0})
 
     assert out["learned_win_rate_contaminated_years"] == []
-    assert all(not y["learned_win_rate_is_contaminated"] for y in out["years"])
-    assert "None of them is an artefact of our engine" in out["win_rate_statement"]
-    assert "commercial result" in out["years"][0]["learned_win_rate_caveat"]
+    assert "CHECKED against what its own funnel converted" in out["win_rate_statement"]
+    assert "commercial outcomes only" in out["years"][1]["learned_win_rate_caveat"]
+
+
+def test_MUTATION_a_rate_computed_from_the_BOOKED_wins_is_flagged():
+    """THE DEFECT THIS EXISTS TO CATCH, injected. A planner wired to the wins our machine
+    SETTLED rather than to the wins its funnel converted plans on our ceiling. With a sample rate
+    near a fifth the two numbers differ by a factor of five, so a supplier converting 18% reads
+    as converting 3% and buys quotes accordingly."""
+    rows = _learning_campaign(
+        ("growth_rate", "belief", None),
+        ("growth_rate", "realised", None),
+        ("capital", "realised", None),
+        funnel=[10, 10, 10],
+    )["by_year"]
+    for r in rows:
+        r["wins"] = 2  # the machine settled 2 of the 10 the funnel won
+    for i in (1, 2):
+        q = sum(x["quotes_issued"] for x in rows[:i])
+        rows[i]["realised_win_rate_used"] = sum(x["wins"] for x in rows[:i]) / q
+    out = gb.build({"by_year": rows, "notes": [], "quotes": 100, "wins": 9,
+                    "spend_gbp": 1000.0, "customer_years_committed": 590.0,
+                    "customer_year_budget": 600.0, "settlement_sample_rate": 0.2})
+
+    assert out["learned_win_rate_contaminated_years"] == [2017, 2018]
+    assert "From 2017 onward" in out["win_rate_statement"]
+    assert "does not match what its own funnel converted" in out["win_rate_statement"]
+    assert out["years"][1]["learned_win_rate_is_contaminated"] is True
+
+
+def test_a_record_without_the_funnels_own_win_count_is_UNCHECKED_never_clean():
+    """FAIL CLOSED (R15). A record written before `funnel_wins` existed cannot be checked, and
+    'unchecked' rendering as 'checked and clean' is a reassurance nobody verified. The published
+    caveat has to be able to say the third thing."""
+    rows = _learning_campaign(
+        ("growth_rate", "belief", None),
+        ("growth_rate", "realised", 0.2),
+    )["by_year"]
+    for r in rows:
+        del r["funnel_wins"]
+    out = gb.build({"by_year": rows, "notes": [], "quotes": 100, "wins": 9,
+                    "spend_gbp": 1000.0, "customer_years_committed": 590.0,
+                    "customer_year_budget": 600.0})
+
+    assert out["years"][1]["learned_win_rate_is_contaminated"] is True
+    assert "CANNOT BE CHECKED" in out["years"][1]["learned_win_rate_caveat"]
+    assert "Read it as unverified, not as clean" in out["years"][1]["learned_win_rate_caveat"]
 
 
 def test_a_year_that_planned_on_BELIEF_has_no_learned_rate_to_caveat():

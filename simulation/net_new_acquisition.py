@@ -475,6 +475,37 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #:    the guest is the only bound here that is evidence; a time bound has to be a publish
 #:    interval somebody CHOSE and named.
 #:
+#:    WHAT THAT LEAVES, TAKEN TO ITS CONCLUSION 2026-08-29 (director: "it needs a non-circular
+#:    basis, not a bigger number"). Both legs were then looked at, and NEITHER of them sets
+#:    1,200:
+#:
+#:      MEMORY — measured, non-circular, and SLACK BY 4.5x. The clean 1,200 point peaks at
+#:        4,193 MB against a guest holding 24,032 MB with 19,009 MB available
+#:        (`background.resource_headroom.sample()`, 2026-08-29T06:16Z — read it, never quote
+#:        it). This bound is real evidence precisely because it cannot be gamed by the run:
+#:        a slower run does not make the box bigger. It is also nowhere near binding, so it
+#:        is not what this number came from.
+#:      TIME — the binding leg, and it has NO VALID BASIS TODAY. It needs a publish interval
+#:        somebody chose and named in a file a reader can disagree with. There is no such
+#:        artefact, and inventing one to fill the slot is the exact move this file's own rules
+#:        forbid. The non-circular candidate, when it is taken up, is an EXTERNAL anchor —
+#:        how often the inputs this site reports actually change — because that is a fact
+#:        about Elexon and NESO rather than about how long our own run takes.
+#:
+#:    SO 1,200 STANDS ON NO CURRENT EVIDENCE, and this comment says so rather than dressing it.
+#:    It is a historical number that survived because nothing forced the question.
+#:
+#:    WHAT MAKES THAT SURVIVABLE IS THE ALLOCATION FIX OF THE SAME DAY, and this is the reason
+#:    the ceiling was not moved instead. Until 2026-08-29 this constant decided WHICH YEARS
+#:    EXISTED: spent first-come on a cohort whose settlement tails cost 9.83 customer-years
+#:    each, it was exhausted inside 2017 and booked zero in all eight later years, so its exact
+#:    value was decisive and every downstream comparison inherited the cliff. It now sets a
+#:    uniform SAMPLE RATE over the campaign's own wins, so every year is represented in
+#:    proportion to what it won and getting this number wrong costs the book's precision rather
+#:    than its coverage. A constant with no basis is a defect either way — but it is a defect
+#:    that can now wait for a real answer instead of forcing an invented one.
+#:    `docs/design/SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`.
+#:
 #: 3. THE SECOND POINT WAS CONTAMINATED AND THE PROBE NOW SAYS SO. A slope needs two clean
 #:    points and there is one, so this number stays where it is until the run specified in §6 of
 #:    that document is taken with the producer stood down. "I cannot yet say" is the result.
@@ -577,6 +608,9 @@ def plan_growth_campaign(
     net_assets = float(opening_net_assets_gbp)
     accounts = int(accounts_held_at_start)
     committed_cy = float(customer_years_already_committed)
+    # EVERY FUNNEL WIN, WITH WHAT IT WOULD COST TO SETTLE. The sampling pass after the year
+    # loop turns this into the book. `(year, prospect, in_market_date, customer_years)`.
+    candidates: list[tuple[int, SyntheticCustomer, dt.date, float]] = []
 
     # The company's own running quote book, carried year to year. This is what makes the
     # campaign a LEARNING one rather than a plan repeated: year one is issued on the founding
@@ -601,18 +635,20 @@ def plan_growth_campaign(
         if market_note:
             notes.append(f"{year}: {market_note}")
 
+        # THE COMMERCIAL BINDING REASON, and after 2026-08-29 it stays commercial. It used to
+        # be overwritten with "settlement_engine" in any year the ceiling ran out, which was
+        # nine of the shipped ten -- and that reading was right while the ceiling STOPPED a
+        # year dead. A uniform sample does not stop any year; it scales the whole book. So the
+        # artefact is reported as `settlement_sample_rate` on every row, which is a number
+        # rather than a label, and `binding` goes back to saying what limited the COMPANY.
         binding = plan["binding"]
-        won_this_year = 0
-        # THE FUNNEL'S OWN VERDICT, kept apart from the book's. `won_this_year` counts wins
-        # that got a PLACE ON THE BOOK; this counts wins the market gave us, and the
-        # difference is the engineering cap refusing to settle them. Split because the ratio
+        # THE FUNNEL'S OWN VERDICT, kept apart from the book's: wins the market gave us,
+        # before this machine decides how many of them it can settle. Split because the ratio
         # of quotes to BOOKED wins mixes two classes -- a supplier losing in the market, and
         # this machine running out of customer-years -- and only the first is commercial.
         # Reported unsplit, an unobservable harness limit reads as company behaviour.
         funnel_wins_this_year = 0
-        refused_this_year = 0
         spent_this_year = 0.0
-        cy_exhausted_at = None
 
         if quotes:
             # THE STOCK IS DRAWN WHOLE, not up to the quote count, and that is the
@@ -676,23 +712,36 @@ def plan_growth_campaign(
                 if not result.won:
                     continue
                 funnel_wins_this_year += 1
+                # THE SUPPLIER'S ACCOUNT COUNT, NOT THE BOOK'S, and this is the same wall fix
+                # as `wins_to_date` below rather than a new one -- it was left behind when that
+                # one landed on 2026-08-28, nine lines from here, because the leak has two legs
+                # and only one of them was named. `accounts` is what `quote_budget_fn` sizes the
+                # Ofgem capital headroom AND the 33% growth-rate cap from, so incrementing it
+                # only on a SETTLED win puts this machine's ceiling inside the company's own
+                # balance sheet: from 2018 the budget is spent, nothing more is booked, and the
+                # supplier plans every remaining year against an account count frozen by our
+                # wall clock. In the modelled world it won those accounts and holds capital
+                # against them. The settlement refusal is invisible to it because it did not
+                # happen there.
+                accounts += 1
                 # THE ENGINEERING CAP BITES ON THE WIN, not on the quote. A quote the
                 # company paid for is spent money whatever we can settle, and suppressing
                 # it would silently understate acquisition cost -- the one number a reader
                 # would use to judge whether growth was worth it. What we cannot afford is
                 # SETTLING the account, so the win is recorded as spend and refused a place
                 # on the book, loudly.
-                cost_cy = _customer_years(in_market, horizon_end)
-                if committed_cy + cost_cy > customer_year_budget:
-                    refused_this_year += 1
-                    if cy_exhausted_at is None:
-                        cy_exhausted_at = prospect.customer_id
-                        binding = "settlement_engine"
-                    continue
-                committed_cy += cost_cy
-                winners.append((prospect, in_market))
-                accounts += 1
-                won_this_year += 1
+                #
+                # WHICH wins get that place is decided AFTER this loop, not here, and the
+                # move out is the 2026-08-29 fix (design doc
+                # `SETTLEMENT_CEILING_ALLOCATION_2026-08-29.md`). Deciding it here means
+                # deciding it first-come, and a win's settlement cost is its tail to the
+                # horizon -- 9.83 customer-years for a 2016 win against 0.78 for a 2025 one.
+                # First-come therefore spends the whole budget on the most expensive cohort
+                # and books ZERO in every year after it runs out: eight of ten years of the
+                # shipped campaign, and no budget avoids that shape because a bigger one only
+                # moves the cliff. Collect the candidates, then sample them uniformly.
+                candidates.append(
+                    (year, prospect, in_market, _customer_years(in_market, horizon_end)))
 
         net_assets -= spent_this_year
         # Booked BEFORE the record below, so `planning_on` in each year's row is the basis this
@@ -700,7 +749,7 @@ def plan_growth_campaign(
         quotes_issued_to_date += quotes
         # THE FUNNEL'S WINS, NOT THE BOOK'S, and this line is a WALL fix rather than a tuning
         # one (ruled 2026-08-28, see the module note at `SETTLEMENT_CUSTOMER_YEAR_BUDGET`).
-        # `won_this_year` is truncated by THIS MACHINE's settlement budget, which is an
+        # The row's `wins` is truncated by THIS MACHINE's settlement budget, which is an
         # engineering ceiling and not a thing that exists in the modelled world. Feeding it
         # back to `quote_budget_fn` put that ceiling inside the company's own commercial
         # belief: at the 80-founder book it drove the company's `realised_win_rate` from
@@ -715,13 +764,16 @@ def plan_growth_campaign(
             "year": year,
             "quotes_issued": quotes,
             "quotes_affordable": plan["quotes"],
-            "wins": won_this_year,
+            # FILLED BY THE SAMPLING PASS BELOW, which cannot run until the campaign's whole
+            # candidate list exists. Written here as zero rather than left absent so the row's
+            # key set does not depend on how far the run got.
+            "wins": 0,
             # THE SPLIT, on the row a reader actually sees. `wins` is booked wins and always
             # was; these two say what it is made of. `funnel_wins` is what the market gave
             # the company, `wins_refused_by_settlement_budget` is what THIS MACHINE would
             # not settle, and the identity funnel_wins == wins + refused holds on every row.
             "funnel_wins": funnel_wins_this_year,
-            "wins_refused_by_settlement_budget": refused_this_year,
+            "wins_refused_by_settlement_budget": 0,
             "believed_win_rate": plan.get("believed_win_rate"),
             "realised_win_rate_used": plan.get("realised_win_rate"),
             "planning_on": plan.get("planning_on", "belief"),
@@ -731,29 +783,109 @@ def plan_growth_campaign(
             "homes_in_market": homes_in_play,
             "switching_multiplier": round(switching_multiplier, 3),
             "spend_gbp": round(spent_this_year, 2),
+            # THE SUPPLIER'S, AND THIS MACHINE'S. `accounts_after` is what the company holds and
+            # sizes its capital against; `book_after` is what we settled. Equal whenever the
+            # ceiling is slack, and their difference is the whole of the engineering artefact.
             "accounts_after": accounts,
+            "book_after": 0,
             "capital_headroom_gbp": plan["headroom_gbp"],
             "binding": binding,
-            "customer_years_committed": round(committed_cy, 1),
+            "customer_years_committed": 0.0,
         })
-        if cy_exhausted_at is not None:
-            # THE PROVENANCE IN THIS STRING IS THE ONE A READER SEES, and it went stale on
-            # 2026-08-24 without anyone noticing for five days. The constant's own note was
-            # corrected that day -- "not from the scale probe any more" -- but this note kept
-            # telling every reader of the published book-growth page that 1,200 was "60% of the
-            # 465 measured in AO12's scale probe", a derivation the module had already
-            # abandoned AND which never parsed anyway (1,200 is not 60% of 465). The lesson is
-            # narrower than "keep docs in sync": a citation duplicated between a comment and a
-            # RENDERED string has two half-lives, and only one of them has a reader who would
-            # notice. Cite the artefact path, so the next correction lands where it is read.
-            notes.append(
-                f"{year}: SETTLEMENT-BOUND at {cy_exhausted_at}, and {refused_this_year} "
-                f"win(s) refused after it. The company won accounts "
-                f"this run refused to settle -- {customer_year_budget} customer-years is "
-                f"THIS MACHINE's budget, measured against the publish cadence and this guest's "
-                f"memory (docs/observability/settlement_ceiling_probe.json), not a commercial "
-                f"limit. The book below is smaller than the supplier's balance sheet supports."
+
+    # ── THE SAMPLING PASS ─────────────────────────────────────────────────────────────────
+    # WHAT THE CEILING DECIDES IS THE BOOK'S SCALE, NOT WHICH YEARS EXIST. Everything above
+    # is the campaign as the world resolved it and is untouched by this: the quotes, the
+    # spend, the funnel's verdict on each prospect, and the company's own plan. This pass
+    # only chooses which of the wins THIS MACHINE can afford to settle.
+    #
+    # IT IS NOT A WALL CROSSING and the two-pass shape is why the question comes up. Nothing
+    # the company decided above can see this pass -- it has already decided everything -- so
+    # no information travels backwards. A sampling frame that needs its own population is
+    # ordinary; what would be a crossing is the company's PLAN depending on the sample, and
+    # `accounts` and `wins_to_date` were both moved off the book precisely so it cannot.
+    campaign_cy = sum(cy for _y, _p, _d, cy in candidates)
+    headroom_cy = max(0.0, customer_year_budget - committed_cy)
+    # f >= 1 IS THE NULL CASE and it must stay byte-identical to a run with no ceiling at
+    # all: nothing refused, no sample, no note. That is the result which shows this change is
+    # aimed at the artefact rather than at the answer -- at 13 founders the campaign fits
+    # inside the budget and this whole pass is a no-op.
+    sample_rate = 1.0 if campaign_cy <= headroom_cy else headroom_cy / campaign_cy
+
+    booked_by_year: dict = {}
+    refused_by_year: dict = {}
+    booked_cy_by_year: dict = {}
+    for i, (year, prospect, in_market, cost_cy) in enumerate(candidates):
+        # SYSTEMATIC, not random and not first-come. `int((i+1)*r) > int(i*r)` takes every
+        # 1-in-1/r of the sequence, spread evenly through it, so each year's booked wins are
+        # proportional to that year's funnel wins and `booked / sample_rate` estimates what
+        # the company won without bias in ANY year. Deterministic, so a re-run books the same
+        # accounts; no RNG stream to seed and none to drift.
+        wanted = int((i + 1) * sample_rate) > int(i * sample_rate)
+        # THE HARD GUARD, kept even though `sample_rate` was derived from the budget. The
+        # selection is by count and the budget is in customer-years, so a sample whose members
+        # happen to be dearer than the population's mean could cross the ceiling by one
+        # account. Never exceeding it is what the ceiling IS, so the guard is the invariant
+        # and the rate is the estimate.
+        if wanted and committed_cy + cost_cy <= customer_year_budget:
+            committed_cy += cost_cy
+            winners.append((prospect, in_market))
+            booked_by_year[year] = booked_by_year.get(year, 0) + 1
+            booked_cy_by_year[year] = booked_cy_by_year.get(year, 0.0) + cost_cy
+        else:
+            refused_by_year[year] = refused_by_year.get(year, 0) + 1
+
+    # THE ROWS ARE FILLED IN YEAR ORDER, so `book_after` and `customer_years_committed` still
+    # read as running totals at the end of that year -- the same thing they meant when the
+    # booking decision was taken inside the year loop. The candidate list is built in year
+    # order and `by_year` is appended in year order, so no sort is needed and adding one would
+    # hide it if that ever stopped being true.
+    running_book = int(accounts_held_at_start)
+    running_cy = float(customer_years_already_committed)
+    for row in by_year:
+        year = row["year"]
+        row["wins"] = booked_by_year.get(year, 0)
+        row["wins_refused_by_settlement_budget"] = refused_by_year.get(year, 0)
+        running_book += row["wins"]
+        running_cy += booked_cy_by_year.get(year, 0.0)
+        row["book_after"] = running_book
+        row["customer_years_committed"] = round(running_cy, 1)
+        # THE RATE IS ON EVERY ROW because it is what refused this year's wins, and a reader
+        # who sees `funnel_wins` and `wins` disagree is owed the reason on the same line.
+        row["settlement_sample_rate"] = round(sample_rate, 4)
+
+    if sample_rate < 1.0:
+        # `1 / sample_rate` IS NOT SAFE HERE and a rate of exactly zero is a real operating
+        # state, not a hypothetical: the opening book is charged against the same budget, so a
+        # curriculum act that deepens it far enough leaves the campaign no headroom at all. 82
+        # founders already take 778 of the 1,200. Caught by
+        # `test_a_budget_the_OPENING_BOOK_has_already_spent_books_nothing_and_says_so`, which was
+        # written for the empty-book-must-say-so property and found this on its first run.
+        # THE WHOLE SENTENCE IS CONDITIONAL, not just the division. At a rate of zero "every
+        # year is represented in proportion to what it won" is false -- no year is represented
+        # at all -- and a note that keeps its reassuring clause through the degenerate case is
+        # the shape that publishes a claim nobody checked.
+        how = (
+            f"one in every {1 / sample_rate:.1f}, spread evenly across the campaign so every "
+            f"year is represented in proportion to what it won"
+            if sample_rate else
+            "which is NONE of them: the opening book had already committed the whole budget "
+            "before the campaign won anything, so this book carries no campaign accounts at all"
+        )
+        notes.append(
+            f"SETTLEMENT-SAMPLED at {sample_rate:.4f}: the company won "
+            f"{len(candidates)} accounts and this machine settled {len(winners)} of them, "
+            f"{how}. "
+            f"{customer_year_budget} customer-years is THIS MACHINE's budget "
+            f"(basis: `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET`, "
+            f"artefact `docs/observability/settlement_ceiling_probe.json`), not a commercial "
+            f"limit. " + (
+                "The book below is a uniform SAMPLE of the book this supplier's balance sheet "
+                "supports -- divide by the rate to read the company, not the sample."
+                if sample_rate else
+                "The book below is the opening book alone. It is not what this supplier won."
             )
+        )
 
     return {
         "winners": winners,
@@ -762,6 +894,10 @@ def plan_growth_campaign(
         "notes": notes,
         "customer_years_committed": round(committed_cy, 1),
         "customer_year_budget": customer_year_budget,
+        # WHAT THE CEILING COST, as one number. `1 - rate` is the share of the company's own
+        # wins this machine could not settle, and it is the honest headline for the artefact.
+        "settlement_sample_rate": round(sample_rate, 4),
+        "customer_years_all_wins_would_cost": round(campaign_cy, 1),
         # CAMPAIGN TOTALS OF THE SPLIT. Derived from the rows rather than counted again, so
         # the two can never disagree; here because the question a reader asks of a campaign
         # ("did we lose these in the market, or did the machine refuse them?") is asked of

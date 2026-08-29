@@ -163,10 +163,29 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # and before the campaign, so nothing downstream ever sees a suspended account and the
     # opening capital those two are sized from is the served book's, not the whole roster's.
     served = served_segments()
-    static = [c for c in CUSTOMERS if _serves(c, served)]
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
     global _RUN_BASE_SEED
     _RUN_BASE_SEED = seed
+    # THE OPENING BOOK IS `founder_book`, NOT `CUSTOMERS`, and getting this wrong published a
+    # book the campaign had already been charged for (2026-08-28). `_pre_growth_book` -- what
+    # the campaign plans against -- has read `founder_book(seed)` since the director's curriculum
+    # act, so the campaign committed 800 of its 1,200 customer-years to 80 founders and refused
+    # 335 of its own funnel wins to pay for them. This line rebuilt the book from the 13-account
+    # `CUSTOMERS` literal instead, so 67 of those founders reached no served book at all: the run
+    # published 100 accounts, paid the settlement cost of 82, and the curriculum act that was
+    # bought to make the book DEEPER made it four times SHALLOWER (398 -> 100) while adding six
+    # accounts at 5+ renewals. The founders were charged for and never delivered.
+    #
+    # Founders are NOT gated on `draw_population_enabled()`, matching `_pre_growth_book`: the
+    # opening book is its own curriculum artefact (`docs/design/FOUNDER_BOOK.yaml`) and answers
+    # to its own number. At `founder_accounts: 13` this returns the served roster and nothing
+    # else, so the pre-decision run stays byte-identical and reachable by the file.
+    static = founder_book(seed)
+    # The DRAWN founders only, for the same reason the trickle is registered below: they are
+    # synthetic points and `run_phase2b` resolves an account by id through `registered_point()`.
+    # The hand-authored roster is not a drawn point and is not registered here.
+    _roster_ids = {c["customer_id"] for c in _STATIC_ROSTER}
+    register_drawn_points([c for c in static if c["customer_id"] not in _roster_ids])
     book = static
 
     if draw_population_enabled():
@@ -688,8 +707,16 @@ def founder_accounts() -> int:
     return max(roster, wanted)
 
 
-def _drawn_founders(seed: int, wanted: int) -> List[dict]:
-    """`wanted` accounts dated at the window's start, drawn -- not hand-authored.
+def _drawn_founder_pairs(seed: int) -> "List[tuple]":
+    """`(record, premise)` for each DRAWN founder -- the top-up above the hand-authored roster.
+
+    RETURNS THE PREMISE ALONGSIDE THE RECORD, from ONE draw, because the book and the premise
+    register must not be able to disagree about which founders exist. `live_premises` needs the
+    dwelling (B12: `dwelling_records.build_properties` raises `DwellingNotDrawn` for any
+    supplied customer the world drew no dwelling for) and `founder_book` needs the record. Two
+    functions re-running the same draw is precisely the drift `_drawn_trickle`'s own docstring
+    records paying for once -- and the gas fail-closed skip below means a second walk could
+    legitimately produce a DIFFERENT set, so it would not even be a stable bug.
 
     THEY TAKE THE EXISTING FOUNDERS' ROLE, which is what makes this safe. The 13 hand-authored
     founders "predate the stock, carry no premise, and are not `SyntheticCustomer`s at all, so
@@ -712,12 +739,13 @@ def _drawn_founders(seed: int, wanted: int) -> List[dict]:
     order, which is deterministic; if the stream is short the shortfall is RETURNED short rather
     than topped up from a second draw, and the caller reports it.
     """
+    wanted = founder_accounts() - _founder_roster_size()
     if wanted <= 0:
         return []
     from simulation.population_draw import iter_acquisition_events
 
     served = served_segments()
-    out: List[dict] = []
+    out: List[tuple] = []
     for customer in iter_acquisition_events(
         seed + _FOUNDER_SEED_OFFSET,
         start_year=FOUNDER_ACQUISITION_YEAR,
@@ -729,7 +757,24 @@ def _drawn_founders(seed: int, wanted: int) -> List[dict]:
         record = customer.to_customer_dict()
         if not _serves(record, served):
             continue
-        out.append(record)
+        # A DRAWN FOUNDER CAN BE A GAS ACCOUNT IN ITS OWN RIGHT, unlike a campaign win, which
+        # is always won on electricity and picks up gas as a second leg. `draw_population`
+        # gives the account the fuel its dwelling is heated on, and five of the hand-authored
+        # thirteen are gas accounts too -- so this is an ordinary shape, not a new one. What it
+        # needs is the AQ that `to_customer_dict()` does not carry: without it the first drawn
+        # gas founder takes `run_phase2b.TOTAL_GAS_AQ` down with a `KeyError`, which is how
+        # this was found.
+        if record.get("commodity") == "gas":
+            aq = _gas_aq_kwh(record["customer_id"], record.get("consumption_band"))
+            if aq is None:
+                # FAIL-CLOSED, and it costs nothing: the draw asks for more founders than it
+                # needs, so a band the published table cannot price is SKIPPED and the next
+                # candidate takes the slot. The director's number is still met and no AQ is
+                # invented to meet it.
+                continue
+            record = {**record, "aq_kwh": aq,
+                      "cv_factor": GAS_CV_FACTOR, "cf": GAS_CORRECTION_FACTOR}
+        out.append((record, getattr(customer, "premise", None)))
         if len(out) >= wanted:
             break
     return out
@@ -757,10 +802,28 @@ def founder_book(seed: int) -> List[dict]:
     """
     served = served_segments()
     static = [c for c in _STATIC_ROSTER if _serves(c, served)]
-    wanted = founder_accounts()
-    if wanted <= len(static):
+    if founder_accounts() <= len(static):
         return static
-    return static + _drawn_founders(seed, wanted - len(static))
+    # GATED ON THE DRAW, and here rather than at each call site so the two sides of the book
+    # cannot disagree again. Drawn founders come out of `population_draw.iter_acquisition_events`
+    # -- they ARE the draw -- so a run with `SE_DRAW_POPULATION=0` cannot hold them, and the
+    # flag-off book stays byte-identical to the static roster it has always been
+    # (`test_live_population_seam.test_flag_off_is_static_book_byte_identical`). The number in
+    # the curriculum file still governs; the flag governs whether there is a draw to take it
+    # from. Both are the director's and neither is inferred from the other.
+    if not draw_population_enabled():
+        return static
+    return static + [rec for rec, _premise in _drawn_founder_pairs(seed)]
+
+
+def _founder_roster_size() -> int:
+    """How many of the director's number the hand-authored roster already supplies.
+
+    The top-up `_drawn_founder_pairs` has to draw is the director's number MINUS this, and it
+    is a function rather than a value passed in so that the draw and the book cannot be asked
+    for different sizes -- which is the shape of the defect this whole change repairs.
+    """
+    return len([c for c in _STATIC_ROSTER if _serves(c, served_segments())])
 
 
 def _pre_growth_book(seed: int) -> List[dict]:
@@ -887,6 +950,14 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
             "notes": outcome["notes"],
             "customer_years_committed": outcome["customer_years_committed"],
             "customer_year_budget": outcome["customer_year_budget"],
+            # THE SHARE OF ITS OWN WINS THIS RUN COULD SETTLE, and it is persisted for the same
+            # reason `by_year` is: the site generator runs in a later process, and without this
+            # it can see the book is small but not that the book is a SAMPLE. Omitting it makes
+            # `generate_book_growth_data` fail closed and publish "cannot be read from it",
+            # which is right but is not the answer.
+            "settlement_sample_rate": outcome["settlement_sample_rate"],
+            "customer_years_all_wins_would_cost": outcome[
+                "customer_years_all_wins_would_cost"],
             "wins": len(outcome["winners"]),
             "quotes": len(outcome["spend"]),
             "spend_gbp": round(sum(r["amount_gbp"] for r in outcome["spend"]), 2),
@@ -946,8 +1017,6 @@ def _gas_leg_for(prospect, elec: dict) -> dict | None:
     A dual-fuel household is ONE billing account with two supply points, which is what makes
     this change reach cost-to-serve, churn and lifetime value rather than just adding rows.
     """
-    from simulation.population_draw import TDCV_BANDS_KWH, _substream
-
     premise = getattr(prospect, "premise", None)
     if premise is None or getattr(premise, "commodity", None) != "gas":
         # NO PREMISE OR NO GAS METER, NO GAS LEG. `DrawnPremise.commodity` is "the fuel
@@ -957,24 +1026,42 @@ def _gas_leg_for(prospect, elec: dict) -> dict | None:
         # pre-PB2 path, `premise_joint=None`) gets none because nothing has said what kind
         # of home it is. Neither is a share anybody tuned.
         return None
-    band = elec.get("consumption_band")
-    bands = TDCV_BANDS_KWH.get("gas") or {}
-    if band not in bands:
-        # NAMED FAIL-CLOSED: a band the published table has no row for gets NO gas leg,
-        # rather than a defaulted quantity. An invented AQ feeding the run's total gas
-        # position is the exact outcome `ELECTRICITY_ONLY` refused, and it would be worse
-        # arriving silently from a fallback than it was arriving not at all.
+    aq = _gas_aq_kwh(elec["customer_id"], elec.get("consumption_band"))
+    if aq is None:
         return None
-    low, high = bands[band]
-    rng = _substream(_DEFAULT_BASE_SEED, f"gas_leg_aq:{elec['customer_id']}")
     return {
         **{k: v for k, v in elec.items() if k not in ("eac_kwh", "tariff_type")},
         "customer_id": f"{elec['customer_id']}g",
         "commodity": "gas",
-        "aq_kwh": round(rng.uniform(low, high), 1),
+        "aq_kwh": aq,
         "cv_factor": GAS_CV_FACTOR,
         "cf": GAS_CORRECTION_FACTOR,
     }
+
+
+def _gas_aq_kwh(customer_id: str, band) -> float | None:
+    """Annual quantity for a gas supply point, from Ofgem's published TDCV for its band.
+
+    EXTRACTED so the two places a gas account can enter the book cannot disagree about where
+    its AQ comes from: the dual-fuel leg of a won home (`_gas_leg_for`) and a drawn founder
+    that IS a gas account (`_drawn_founders`). The second arrived with the director's founder
+    book and went straight into `run_phase2b.TOTAL_GAS_AQ` as a `KeyError` -- the identical
+    failure `net_new_acquisition.ELECTRICITY_ONLY` had already named and declined to guess
+    past. One accessor rather than two call sites is what stops the next one guessing.
+
+    NAMED FAIL-CLOSED, and it is the whole point: a band the published table has no row for
+    gets None, never a defaulted quantity. An invented AQ feeding the run's total gas position
+    is exactly what `ELECTRICITY_ONLY` refused, and it would be worse arriving silently from a
+    fallback than it was arriving not at all.
+    """
+    from simulation.population_draw import TDCV_BANDS_KWH, _substream
+
+    bands = TDCV_BANDS_KWH.get("gas") or {}
+    if band not in bands:
+        return None
+    low, high = bands[band]
+    rng = _substream(_DEFAULT_BASE_SEED, f"gas_leg_aq:{customer_id}")
+    return round(rng.uniform(low, high), 1)
 
 
 def _won_customer_dicts(outcome: dict) -> List[dict]:
@@ -1070,6 +1157,16 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
         for sc in _drawn_trickle(seed)
         if sc.premise is not None
     }
+    # A FOUNDER IS STILL A HOME, for the identical reason the won homes below are: the
+    # director's founder book puts drawn accounts on the supplied book, and a supplied
+    # customer the world drew no dwelling for makes `build_properties` raise
+    # `DwellingNotDrawn` -- correctly, since the alternative is `saas.property_model`
+    # approximating the world's ground truth from the supplier's own modal band. Found by
+    # running the sim, which stopped on `SYN-2016-001`. Same draw as the book itself, so the
+    # register cannot hold a founder the book does not have or miss one it does.
+    for record, premise in _drawn_founder_pairs(seed):
+        if premise is not None:
+            premises[record["customer_id"]] = premise
     # A WON HOME IS STILL A HOME (B12). `dwelling_records.build_properties` raises
     # `DwellingNotDrawn` for any supplied customer the world drew no dwelling for, and it is
     # right to: the alternative is `saas.property_model` approximating the world's ground

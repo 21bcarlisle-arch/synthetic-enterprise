@@ -6,6 +6,14 @@ it's cheap. A growth curve that's an artefact of our engine is an inconsistency,
 
 It does bind, it is not cheap, and this is what was measured rather than assumed.
 
+> **READ WITH TWO LATER DOCUMENTS, 2026-08-29.** `SETTLEMENT_CEILING_REMEASURED_2026-08-29.md`
+> found this file's cost note 36% low and its time argument circular. `SETTLEMENT_CEILING_
+> ALLOCATION_2026-08-29.md` found that the ceiling's *shape* rather than its size is what emptied
+> 2018–2025, and changed it. **The specific claim below that no longer holds** is the framing that
+> the engine "binds growth": it does not stop a year any more, it takes a uniform sample of the
+> campaign, so the growth curve's shape is commercial and only its height is ours. The
+> director's instruction quoted above is unchanged and is still what the surfacing serves.
+
 ## What was measured
 
 | book | segments | settlement periods | wall clock | net margin |
