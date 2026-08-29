@@ -13,8 +13,8 @@
     "run_id": "run_output_9c626f05d_20260829T120547Z.json",
     "verified_at": "2026-08-29T12:34:02Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=81e25d88b; blocking tests: FAILED tests/tools/test_canon_drift_check.py::test_every_live_claim_is_bound_to_a_sentence_still_on_its_page",
+  "paused_since": "2026-08-29T14:12:59Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-29T12:34:02Z",
@@ -22,6 +22,6 @@
     "run_id": "run_output_9c626f05d_20260829T120547Z.json",
     "verified_at": "2026-08-29T12:34:02Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-29T12:34:02Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-29T14:12:59Z"
 }
