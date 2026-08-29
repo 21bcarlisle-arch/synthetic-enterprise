@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T12:25:22Z",
+  "generated_at": "2026-08-29T15:33:05Z",
   "available": true,
   "years": [
     {
@@ -248,6 +248,10 @@
   "settlement_sample_rate": 0.1789,
   "settlement_wins_refused": 415,
   "settlement_funnel_wins": 505,
+  "what_each_count_selects": {
+    "accounts_after": "THE COMMERCIAL BOOK: founders plus every account the funnel won, settled or not. This is the supplier a real Ofgem return would describe, and it is what the growth desk sizes its capital headroom against \u2014 correctly, because it nets it against the FOUNDING CAPITAL, the same supplier's balance sheet.",
+    "book_after": "THE SETTLED BOOK: the sample of those accounts our settlement engine could process. Its difference from `accounts_after` is entirely an engineering artefact of ours. Every figure derived from the run's own settled records \u2014 treasury, margin, the collateral desk's MCR \u2014 describes THIS supplier, so a capital figure netted against `accounts_after` would be mixing the two."
+  },
   "engine_bound_statement": "The company won 505 accounts and OUR settlement engine could settle 90 of them \u2014 a uniform 17.9% sample, 415 wins refused. Every year is represented in proportion to what it won, so the SHAPE of this curve is commercial; its HEIGHT is our machine. Divide a booked count by 0.179 to read the supplier rather than the sample.",
   "learned_win_rate_contaminated_years": [],
   "win_rate_statement": "Every conversion rate the company planned on was CHECKED against what its own funnel converted over the earlier years, and equals it. Our settlement engine decides how much of the book we settle; it is not inside the rate the company plans on.",
