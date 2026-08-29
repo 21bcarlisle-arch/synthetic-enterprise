@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-08-27T23:32:17Z",
+  "report_end": null,
+  "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
+  "symbol_patched": "simulation.population_draw.price_elasticity_for_customer",
+  "symbol_resolution": "read from `simulation.customer_events`'s own import statement, not written down here, so a rename disconnects this tool LOUDLY instead of silently returning a spread of zero",
+  "seeds": [
+    {
+      "seed": 11111,
+      "elasticity_draws": 1425,
+      "level_gbp_per_mwh": 45.0,
+      "value_advantage_gbp": 8934.263271999997,
+      "level_advantage_gbp": 8791.958132,
+      "selection_gbp": 142.30513999999675,
+      "level_share_of_advantage": 0.9840719782182845
+    },
+    {
+      "seed": 22222,
+      "elasticity_draws": 1409,
+      "level_gbp_per_mwh": 45.0,
+      "value_advantage_gbp": 8694.336186,
+      "level_advantage_gbp": 3618.4816589999973,
+      "selection_gbp": 5075.854527000003,
+      "level_share_of_advantage": 0.41618837615534515
+    },
+    {
+      "seed": 33333,
+      "elasticity_draws": 1413,
+      "level_gbp_per_mwh": 45.0,
+      "value_advantage_gbp": 7736.239744999999,
+      "level_advantage_gbp": 11441.512506,
+      "selection_gbp": -3705.272761,
+      "level_share_of_advantage": 1.4789500950244918
+    }
+  ],
+  "selection_gbp_spread": {
+    "n": 3,
+    "mean": 504.2956353333332,
+    "stdev": 4401.741354401497,
+    "min": -3705.272761,
+    "max": 5075.854527000003,
+    "range": 8781.127288000003
+  },
+  "level_share_spread": {
+    "n": 3,
+    "mean": 0.9597368164660405,
+    "stdev": 0.5317986158749914,
+    "min": 0.41618837615534515,
+    "max": 1.4789500950244918,
+    "range": 1.0627617188691467
+  },
+  "selection_sem_gbp": 2541.346555866812,
+  "selection_distinguishable_from_zero": false,
+  "how_to_read_this": "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection instrument cannot yet resolve the question being asked of it, and every reading built on it carries that caveat. That is a finding about the INSTRUMENT and not about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."
+}

@@ -871,6 +871,158 @@ def _decisions(three_arm: dict) -> dict:
     }
 
 
+#: Real dates the reaction probe is driven at, one per era of the record the arms run on: a
+#: pre-crisis year, the 2022 spike, and the current cap regime. Three, not one, because a world
+#: that reacts in a normal year and not in a crisis is a different claim from one that always
+#: reacts, and a single date could not tell them apart.
+_REACTION_PROBE_DATES = ("2019-04-01", "2022-04-01", "2024-04-01")
+
+#: How far the reference must move before the move counts as a reaction, as a fraction of the cap.
+#: NOT `!= 0`: a strict inequality between two floats is satisfied by 1e-16, so a world whose
+#: rival is switched off but whose arithmetic rounds differently would read as a world that
+#: competes (R15 -- the strict-inequality shape). Half a percent of the cap is roughly GBP 1/MWh,
+#: which is a price move a household could actually be offered.
+_REACTION_MATERIAL_PCT = 0.005
+
+
+def _market_reaction(dates=_REACTION_PROBE_DATES) -> dict:
+    """Whether the world these arms ran in could react to either of them -- PROBED, not asserted.
+
+    THE DEFECT IT SERVES. The page compares two internal pricing policies and, until now, said
+    nothing about whether anything in the world could answer either of them. The director wrote
+    the bound himself in correction C2 (2026-08-28): *"'Beating the flat baseline' compares two
+    internal policies in a market that could not react to either. That is a valid internal
+    comparison and it is not evidence about a supplier's performance."* A comparison published
+    without it invites exactly the reading it cannot support.
+
+    WHY THIS IS PROBED AND NOT TYPED, which is the whole design. C2's sentence was true when it
+    was written at 08:00 and was HALF FALSE by 08:25, when `simulation/competitor_reference.py`
+    landed and gave the market the ability to defend. A hand-authored bound would now be
+    publishing a correction to a defect that had already been half fixed -- understating the world
+    on a page whose entire job is not to overstate it. So the two legs are established by driving
+    the world's own reference function at real dates and reading what comes back:
+
+      * DEFENDS -- undercut the market and does the reference follow the company down?
+      * CONTESTS THE CEILING -- price above the cap and does the reference move at all?
+
+    Measured 2026-08-28 at all three dates: undercutting by 10% leaves the company at -5.3%
+    against the reference one quarter later (it defends), and pricing 20% above the cap returns
+    the cap byte-identically (nothing contests it). That is the world `competitor_reference`'s own
+    docstring describes: "This module is the defence leg. The ceiling leg is next."
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. When the ceiling leg lands, this probe returns
+    `contests_the_ceiling=True` and the published sentence changes with it, in the same publish,
+    with nobody editing a string. A bound pinned to today's answer would go stale in the
+    flattering direction -- the page would keep apologising for a world that had stopped needing
+    it -- and that is the failure this project has had repeatedly.
+
+    FAILS CLOSED. If the probe cannot be run at all, the block says the world's reaction could not
+    be established and the page still bounds the comparison. "We cannot tell" is a result; what it
+    may never do is fall through to silence, which reads as a comparison that needs no bound.
+    """
+    try:
+        from simulation.competitor_reference import (
+            competitor_reference_rate_gbp_per_mwh as reference,
+        )
+        from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh as cap_rate
+
+        legs = []
+        for date_str in dates:
+            cap = cap_rate(date_str)
+            if not cap or cap <= 0:
+                raise ValueError("no published cap for {}".format(date_str))
+            # The unobserved reference: what the rival charges before it has seen this company at
+            # all. Every measurement taken before the competitor landed was against this number,
+            # so it is the right null to read both legs against.
+            unobserved = reference(date_str, company_rate_gbp_per_mwh=None)
+            undercut = reference(date_str, company_rate_gbp_per_mwh=cap * 0.9)
+            over = reference(date_str, company_rate_gbp_per_mwh=cap * 1.2)
+            if None in (unobserved, undercut, over) or unobserved <= 0:
+                raise ValueError("the reference is unavailable at {}".format(date_str))
+            legs.append({
+                "date": date_str,
+                "cap_gbp_per_mwh": round(float(cap), 2),
+                "followed_a_10pct_undercut_to": round(float(undercut), 2),
+                "answered_a_20pct_overcharge_with": round(float(over), 2),
+                # What the company's -10% advantage has DECAYED to by the time the rival has
+                # re-priced once. This is the number the defence leg is worth.
+                "residual_advantage_pct": round(
+                    (cap * 0.9 - undercut) / undercut * 100.0, 1),
+                "defends": (unobserved - undercut) / unobserved > _REACTION_MATERIAL_PCT,
+                "contests_the_ceiling":
+                    abs(over - unobserved) / unobserved > _REACTION_MATERIAL_PCT,
+            })
+    except Exception as exc:  # noqa: BLE001 -- any failure here is "cannot establish", not "fine"
+        return {
+            "available": False,
+            "reason": "the world's competitive reference could not be driven ({})".format(exc),
+            "statement": (
+                "WHETHER THE WORLD COULD ANSWER EITHER ARM COULD NOT BE ESTABLISHED for this "
+                "publish, so read the comparison as an internal one. It says which of two "
+                "in-house pricing policies earned more on this book; on its own it is not "
+                "evidence about how this supplier would fare against real competitors."),
+        }
+
+    # ALL, not ANY, on both legs. A world that defends in a normal year and not in a crisis has
+    # not got a competitor in it, it has got one sometimes -- and reporting that as "the market
+    # defends" is the more flattering reading of the two.
+    defends = bool(legs) and all(leg["defends"] for leg in legs)
+    contests = bool(legs) and all(leg["contests_the_ceiling"] for leg in legs)
+    decay = min((leg["residual_advantage_pct"] for leg in legs), default=None)
+
+    return {
+        "available": True,
+        "defends": defends,
+        "contests_the_ceiling": contests,
+        "probed_at_dates": list(dates),
+        "legs": legs,
+        "statement": _reaction_sentence(defends, contests, decay),
+    }
+
+
+def _reaction_sentence(defends: bool, contests: bool, decay) -> str:
+    """The bound a reader meets, COMPOSED from the probe's two legs and never from a date.
+
+    Each clause is emitted only on the branch that earned it, so the page cannot say the market
+    could not react while the probe says it defends -- which is precisely the sentence that would
+    have shipped had this been typed out of C2 this morning.
+    """
+    opening = ("These are two of our own pricing policies, run through the same world. "
+               "What that world could do about either of them is the bound on the comparison")
+    if not defends and not contests:
+        return (opening + ": nothing. No rival undercuts this company, none defends against it "
+                "and none targets its book, so both arms were scored against an opponent that "
+                "could not move. That is a valid comparison BETWEEN THE TWO POLICIES and it is "
+                "not evidence about how this supplier would fare against real competitors.")
+    # "half of one" is only true when exactly one leg holds. Printing all four branches at real
+    # inputs before shipping is what caught this: the both-legs-true sentence read "it is
+    # currently half of one" and then described a world that reacts on both.
+    parts = [opening + (", and it is currently half of one." if defends != contests
+                        else ", and the world can answer both.")]
+    if defends:
+        parts.append(
+            "The market DOES defend: undercut it and the rival follows the price down within a "
+            "quarter"
+            + ("" if decay is None else
+               ", so a 10% price advantage is worth {:+.1f}% by the time it has re-priced once"
+               .format(decay))
+            + ". A price advantage decays here instead of persisting.")
+    else:
+        parts.append("Nothing in the world defends: undercut the market and the rival does not "
+                     "follow, so a price advantage persists for free.")
+    if contests:
+        parts.append("The ceiling is contested too: pricing above the cap moves the reference, "
+                     "so charging more costs something.")
+    else:
+        parts.append(
+            "Nothing contests the ceiling: at or above the published cap the reference does not "
+            "move at all, so over-pricing still carries no competitive consequence in this world "
+            "and no rival targets this book. An arm that earns by charging more is reading that "
+            "absence correctly, which is a fact about the world and not a result about the arm.")
+    parts.append("Read the comparison as an internal one.")
+    return " ".join(parts)
+
+
 def build(three_arm: dict | None, floor: dict | None,
           published_run: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -908,6 +1060,10 @@ def build(three_arm: dict | None, floor: dict | None,
         realised=realised,
         provisioned=provisioned,
         error_bar=_error_bar(floor, point, three_arm),
+        # THE BOUND ON THE WHOLE COMPARISON, and it is published in the same payload as the
+        # figures it bounds so the two can never be deployed apart. Probed from the world's own
+        # reference function rather than written down -- see `_market_reaction`.
+        market_reaction=_market_reaction(),
         method_skill=_method_skill(three_arm),
         # THE OTHER SIDE OF THE ARMS ABOVE. Published in the same payload as the net margins,
         # keyed by the same arm keys, so the surface can render one row per arm with both

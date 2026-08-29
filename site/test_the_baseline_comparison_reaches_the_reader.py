@@ -50,7 +50,7 @@ CAPS = SITE / "data" / "capabilities_door.json"
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
-          "arms-errorbar", "arms-decisions", "arms-method", "arms-note")
+          "arms-errorbar", "arms-decisions", "arms-method", "arms-note", "arms-market")
 
 
 def _text(fragment: str) -> str:
@@ -315,6 +315,101 @@ def test_the_page_says_the_small_surface_is_design_as_well_as_plumbing(live):
     rendered = live["arms-decisions"]
     assert "small by design AND by plumbing" in rendered, (
         "the page attributes the small decision surface to one cause again")
+
+
+# ── the bound: what the world could do about either arm ──────────────────────────────────────
+
+def test_the_comparison_never_reaches_the_reader_unbounded(live):
+    """THE PROPERTY: whatever the world can do, a reader meets it, and meets it as a bound.
+
+    Deliberately NOT keyed to today's sentence. The director's C2 correction reads "a market that
+    could not react to either" and was HALF FALSE within half an hour of being written, when the
+    competitor's defence leg landed. A control pinned to that wording would now be defending a
+    stale claim; a control pinned to "the comparison carries the bound the world's own probe
+    reports" survives the ceiling leg landing too.
+
+    Fires on: deleting the `#arms-market` render, or letting it fall through to empty when the
+    feed carries no `market_reaction` block.
+    """
+    rendered = live["arms-market"]
+    assert rendered.strip(), (
+        "the comparison rendered with no statement of what the world could do about either arm -- "
+        "an unbounded internal comparison is the reading this block exists to prevent")
+    assert "internal" in rendered.lower(), (
+        "the rendered bound never tells the reader the comparison is an internal one between two "
+        "of our own policies: {}".format(rendered))
+
+
+def test_the_rendered_bound_matches_the_world_the_probe_actually_found(live):
+    """The bound must agree with the probe, leg by leg, on the surface a reader receives.
+
+    This is what stops the sentence drifting off the world in EITHER direction: apologising for a
+    world that has stopped needing it, or claiming a competitive pressure that does not exist.
+
+    Fires on: hard-coding either clause on the page, or the feed and the page disagreeing.
+    """
+    reaction = _live_feed().get("market_reaction") or {}
+    if not reaction.get("available"):
+        pytest.fail("the world's competitive reference could not be probed for this publish ({}) "
+                    "-- reported as a failure, never skipped, because an unavailable probe is an "
+                    "unavailable control (R15)".format(reaction.get("reason")))
+    rendered = live["arms-market"].lower()
+
+    if reaction["defends"]:
+        assert "does defend" in rendered, (
+            "the probe found a market that defends and the page does not say so -- the bound is "
+            "now overstating the gap: {}".format(rendered))
+    else:
+        assert "nothing" in rendered and "defend" in rendered, (
+            "the probe found nothing defending and the page does not say so: {}".format(rendered))
+
+    if reaction["contests_the_ceiling"]:
+        assert "ceiling is contested" in rendered, (
+            "the probe found a contested ceiling and the page still says over-pricing is free")
+    else:
+        assert "no competitive consequence" in rendered, (
+            "the probe found nothing contesting the ceiling, so the page must say over-pricing "
+            "carries no competitive consequence: {}".format(rendered))
+
+
+def test_MUTATION_a_world_that_cannot_react_renders_the_directors_own_bound():
+    """The killer mutation, and it is the world's own no-op point.
+
+    `competitor_reference` documents CHASE=0 as the setting that reproduces the world exactly as it
+    stood before the module -- so a feed built from a market that cannot react must render C2's
+    sentence, not today's half-of-one. If this renders the same text as the live feed, the page is
+    printing a constant and the control above is a tautology (R15's PASS-branch shape).
+    """
+    from tools.generate_value_arms_data import _reaction_sentence
+
+    dead = _reaction_sentence(defends=False, contests=False, decay=None)
+    feed = copy.deepcopy(_live_feed())
+    feed["market_reaction"] = {"available": True, "defends": False,
+                               "contests_the_ceiling": False, "statement": dead}
+    rendered = _render(feed)["arms-market"]
+
+    assert "could not move" in rendered, (
+        "a world that cannot react rendered something else entirely: {}".format(rendered))
+    assert "does defend" not in rendered, (
+        "the page rendered the defence clause for a world with no defence in it -- the sentence "
+        "is not coming from the feed")
+    assert rendered != _render(_live_feed())["arms-market"], (
+        "the page renders the SAME bound for a reacting and a non-reacting world, so it is "
+        "printing a constant and reads nothing from the probe")
+
+
+def test_MUTATION_a_missing_reaction_block_still_bounds_the_comparison():
+    """FAIL-OPEN, the shape R15 names first. A feed with no `market_reaction` at all must still
+    leave the reader told the comparison is internal -- silence there reads exactly like a
+    comparison that never needed a bound."""
+    feed = copy.deepcopy(_live_feed())
+    feed.pop("market_reaction", None)
+    rendered = _render(feed)["arms-market"]
+
+    assert rendered.strip(), "a feed with no reaction block rendered nothing at all"
+    assert "internal" in rendered.lower(), (
+        "a missing bound fell through to a comparison with no qualification on it: {}".format(
+            rendered))
 
 
 def test_the_method_number_never_appears_without_its_interval(live):
