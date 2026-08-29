@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-08-29T17:27:16.844495+00:00",
+ "generated_at": "2026-08-29T20:30:00.205253+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "d3225dd5b",
+    "at": "2026-08-29T21:16:59+01:00",
+    "subject": "the arms error bar was a bar on a figure the page does not state, and now says which one it bounds",
+    "substantive": true
+   },
+   {
+    "sha": "aa651824b",
+    "at": "2026-08-29T21:03:29+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=c9de6aca4, net=\u00a3154,164)",
+    "substantive": false
+   },
+   {
+    "sha": "c9de6aca4",
+    "at": "2026-08-29T19:31:03+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=3f6c29525, net=\u00a3154,164)",
+    "substantive": false
+   },
+   {
+    "sha": "3f6c29525",
+    "at": "2026-08-29T18:49:11+01:00",
+    "subject": "the arms page will not name a winner inside its own error bar, and both its inputs are now one book on one day",
+    "substantive": true
+   },
+   {
+    "sha": "e341607f9",
+    "at": "2026-08-29T18:27:17+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "b693bd220",
     "at": "2026-08-29T17:58:46+01:00",
@@ -213,91 +243,61 @@
     "at": "2026-08-29T07:52:43+01:00",
     "subject": "the sample rate I could not reproduce was my own uncommitted tree being read mid-edit",
     "substantive": true
-   },
-   {
-    "sha": "248a6368e",
-    "at": "2026-08-29T07:49:05+01:00",
-    "subject": "the ceiling spent the whole budget on its most expensive cohort, and three controls went quiet when it did",
-    "substantive": true
-   },
-   {
-    "sha": "9563c1b81",
-    "at": "2026-08-29T07:23:19+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=d5d58da62, net=\u00a3164,542)",
-    "substantive": true
-   },
-   {
-    "sha": "d5d58da62",
-    "at": "2026-08-29T06:47:27+01:00",
-    "subject": "the slope's population was a selection effect in every reader that borrowed it",
-    "substantive": true
-   },
-   {
-    "sha": "befae6e2c",
-    "at": "2026-08-29T06:29:17+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "1a1ec813d",
-    "at": "2026-08-29T05:59:29+01:00",
-    "subject": "the published CRM reconciliation was a mirror, and the seam that starved the CRM is deleted",
-    "substantive": true
    }
   ],
-  "substantive": 21,
-  "mechanical": 19,
+  "substantive": 19,
+  "mechanical": 21,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-29T17:22:29.350199+00:00",
+  "oriented_at": "2026-08-29T20:24:55.569128+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The stretch put the account-population repair in a commit and graded the arms pre-registration, and both were done well \u2014 but the thing they uncovered between them is the most serious result this project has produced against the director's own thesis condition, and it is not yet on the page. His condition is that there has to be a BASELINE to beat or \"it performed well\" means nothing. We have that baseline. `9b1ceda50` graded leg 1 and found that **the published headline was already inside its own error bar when it was published, and on today's book the same quantity has the opposite sign**: value\u2212control was \u2212\u00a34,724 on the live page and is +\u00a3607 on the 14:40Z re-run; level\u2212control was +\u00a34,903 and is \u2212\u00a31,208. The new noise floor, which finished at 17:04Z after the grading was written, bounds all four at mean \u2212\u00a31,614 with a spread of \u00a32,578 and `selection_distinguishable_from_zero: false`. So the live site says *\"the per-customer choosing is worth less than nothing\"* \u2014 a direct answer to the director's question \u2014 and that sentence's sign is a seed draw. The comparison cannot resolve its own question on a book of 167 settled accounts, and the honest publication is that we cannot tell. That is not a step backwards: the instrument now has an error bar big enough to catch its own headline, which is exactly what an instrument is for, and refusing the sign is the result. What went backwards is the route from that instrument to the reader. `tools/generate_value_arms_data.py:98-99` reads two UNDATED constants \u2014 `docs/observability/value_cycle_ab_s1_three_arm.json` (generated 2026-08-28T14:08:48Z) and `..._noise_floor.json` (2026-08-27T23:32:17Z) \u2014 and those two are the tracked files. The fresh pair from `arms-rerun-20260829.service` sits UNTRACKED at `..._20260829.json`. Three consecutive directions have asked for \"one clock\" on this page and none of them read those two path constants, so a re-run that costs three hours of machine cannot reach the page at all. That is the recurring class in mirror image \u2014 not a published figure whose producer is uncommitted, but a published figure whose fresh input is untracked while a stale tracked one feeds the reader \u2014 and it is this project's own rule about reading the enforcement rather than the paraphrase, broken by the seat that writes the rule down. Separately, the growth loop's picture got sharper and nobody has joined it up: `WORKER_FINDING_THE_CEILING_SPENT_THE_WHOLE_BUDGET_ON_ITS_MOST_EXPENSIVE_COHORT` shows a 2016 win costs 9.83 customer-years against 0.78 for a 2025 one and the old budget was spent first-come, so the allocation change at `248a6368e` necessarily buys FEWER early-year accounts \u2014 which is a named candidate mechanism for the \u00a322,788 pre-2021 loss and the 37 missing 2016 accounts that `NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 has owed a run for since 12:00Z. Two of four previous items were drawn and worked; items three and four were not drawn at all, and item four is unchanged and uncommitted for a third direction running.",
+  "thesis_read": "The stretch did one thing and did it properly: the arms page no longer states a direction it cannot carry. `3f6c29525` and `d3225dd5b` put both inputs on one book on one day, tracked the two dated artefacts, gated every directional clause on the contrast's own measured seed spread, and kept the withdrawn sentence \u2014 *\"the per-customer choosing is worth less than nothing\"* \u2014 on the page beside the reading that replaced it. The control is keyed to the property, not to today's answer: `test_a_contrast_outside_its_seed_spread_gets_its_direction_back` is the leg that proves the gate is not a machine for printing \"we cannot tell\". That is the first time the recurring class \u2014 a published figure separated from its real input by the index \u2014 has actually closed rather than been renamed. Against the director's thesis condition, this is where we stand: the baseline exists and is provably the same supplier this site publishes (\u00a3154,164.43 to the penny, gap 6.5e-09), the comparison is honest, and the comparison **cannot answer his question**. Both contrasts are inside their floor. And the page's own escape clause is now the weakest sentence on it. It tells the reader *\"what would resolve it is a larger SETTLED BOOK \u2014 more renewals actually priced by the arm\"*, and nothing has tested that. The floor artefact argues the other way: each seed re-draws elasticity for **2,020\u20132,074 households** while the arm prices **20**, so the \u00a32,578 spread on `selection_gbp` is plausibly the whole book's cascade re-rolling and not the 20 decisions' sampling noise \u2014 and if it is, a larger book does not shrink it and we have swapped a directional claim beyond its evidence for a remedy claim beyond its evidence. That is the same defect one level up and it is in front of a reader now. Underneath both sits the thing that has drifted worst. The director named his top item in his own words at 05:55Z today \u2014 *\"fix the settlement ceiling so the campaign's wins actually reach the book\"*, with the explicit rider that its time argument is circular and *\"needs a non-circular basis, not a bigger number\"*. Three directions have gone by. `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is still 1,200, still refuses **340 of 386** funnel wins, and my own last direction wrote \"nothing here supplies that basis\" and then did not make supplying it a focus item. The allocation repair at `248a6368e` was real \u2014 45 accounts across two years became 90 across ten on fewer settled customer-years \u2014 but it improved the distribution of a book that is still 88% refused, and that refusal is a compute budget on this box, not a fact about commerce. The arm prices 20 renewals because the book is 167 accounts because a wall-clock budget refuses the rest. Not a step backwards, but three stretches of correct, careful work on the instrument while the thing throttling it sat unnamed.",
   "focus": [
    {
-    "id": "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
-    "what": "Both legs of `arms-rerun-20260829.service` are FINISHED and on disk: `docs/observability/value_cycle_ab_s1_three_arm_20260829.json` (`generated_at` 2026-08-29T14:40:24Z) and `docs/observability/value_cycle_ab_s1_noise_floor_20260829.json` (2026-08-29T17:04:23Z, three seeds, `selection_gbp` mean \u2212\u00a31,614.30, stdev \u00a32,577.80). Both were produced by ONE process from ONE snapshot of the tree, and `git diff HEAD -- tools/run_value_cycle_ab.py` is empty, so the producer is in a commit \u2014 confirm both of those yourself before you publish anything. **Read `tools/generate_value_arms_data.py:98-99` before you plan the work:** `THREE_ARM_PATH` and `NOISE_FLOOR_PATH` are undated constants pointing at the TRACKED 2026-08-27/28 pair, which is why a dated re-run artefact reaches no reader. Promote the new pair onto those two paths (or make the paths an argument and pass them \u2014 your call, but say which you did and why), so the page's two inputs are the same book on the same day. Then regenerate `site/data/value_arms.json` and land the artefacts, the generator change and the regenerated feed in ONE commit by pathspec, verified through `python3 -m tools.surgical_land`, never against this shared tree. **The substantive change, and it is not the regeneration:** the headline composer currently asserts a direction unconditionally. It must not. When a contrast's magnitude is inside the floor's own spread, the composed headline may state the size and the bound and must state that the comparison cannot resolve its sign on a book this size, and must name what would resolve it (a larger settled book \u2014 focus item three). All four current contrasts are inside it, so the page will say \"we cannot tell\", and that sentence goes on the surface, not in a footnote. Write the old headline's exact words into the record beside the new one, not over them \u2014 *\"the per-customer choosing is worth less than nothing\"* is the sentence being withdrawn and it should be readable next to why. `staleness_caveat` and `clock_caveat` are emptied by the run, not by the generator: if either is still non-empty after regeneration, that is a finding about the caveat's own derivation, not a licence to blank it.",
-    "why": "This is the director's own condition \u2014 \"there has to be a BASELINE to beat, or 'it performed well' means nothing\" \u2014 and the live page currently answers it with a sign that flips with a seed draw. It is first because it is the only item where a wrong claim is in front of a reader right now, both measurements it needs already exist, and the fix is under two hours. **Done means:** the fetched live page states the contrast with its bound and makes no directional claim about per-customer choosing; the arms feed's two inputs carry the same date; the two new artefacts are tracked; and there is ONE mutation-proven control keyed to the property, not to today's answer \u2014 feed the composer a contrast INSIDE the spread and the directional sentence must be absent, feed it one OUTSIDE and the directional sentence must come back. A control that merely pins today's \"we cannot tell\" string goes red when the book grows enough to earn a sign, which is exactly backwards and is the failure this project keeps repeating."
+    "id": "grade-the-pages-own-escape-clause-before-spending-two-hours-on-it",
+    "what": "The live arms headline names a remedy \u2014 *\"What would resolve it is a larger SETTLED BOOK \u2014 more renewals actually priced by the arm \u2014 and not more seeds\"* (`site/data/value_arms.json`, composed at `tools/generate_value_arms_data.py:1316-1321`). Establish whether that sentence is true, by arithmetic and a cheap decomposition, BEFORE anyone launches a lifted-budget re-run for it. **Read `docs/observability/value_cycle_ab_s1_noise_floor_20260829.json` first:** each of the three seeds re-draws `simulation.population_draw.price_elasticity_for_customer` for 2,020\u20132,074 households, and `decisions.value_arm_priced` is 20. So the \u00a32,577.80 stdev on `selection_gbp` has two possible sources and they imply opposite remedies \u2014 the 20 priced households' own elasticity (shrinks as ~1/sqrt(n), so a bigger book resolves it) or the other ~2,000 households' churn cascade landing in the same net (does not shrink with the priced count at all, so a bigger book buys nothing and the page is wrong). Separate them with two extra floor legs off `tools/run_value_cycle_ab.py`, one process, `systemd-run --user --unit=`: re-draw elasticity for the PRICED households only, holding the rest fixed; then the mirror, re-drawing everyone EXCEPT the priced. The two variances should roughly sum to the \u00a32,578 you already have, and that reconciliation is the control that the split is real rather than two unrelated runs. Then do the arithmetic out loud: at the share of variance that is priced-side, how many priced decisions would put the observed \u00a31,816 selection contrast outside its floor, and \u2014 using the funnel at `decisions.why_the_rest_were_not_priced` (662 product-not-upliftable, 429 gas, 258 term-0, from 1,369 offered) \u2014 what settled book that implies. Print that table before you write a test. If the priced side is the small half, the headline's remedy sentence is wrong and must be replaced by what the decomposition actually supports, in the same publish, with the old sentence kept in `withdrawn_claim` exactly as the last one was.",
+    "why": "The last stretch stopped the page asserting a direction it could not carry, and then let it assert a REMEDY it cannot carry either \u2014 and the evidence against that remedy was already inside the artefact the same commit tracked. This is first because it is the only live wrong sentence, because it costs one process rather than the two-hour lifted-budget run that three directions have queued behind it, and because its answer decides whether that run is worth launching at all. **Done means:** two floor legs whose variances reconcile against the published \u00a32,577.80; a printed table of decisions-needed against book-implied; the headline's remedy clause either confirmed with its price stated or withdrawn onto the record beside its replacement; and ONE mutation-proven control keyed to the property \u2014 feed the composer a decomposition where the priced side dominates and the \"larger settled book\" clause must appear, feed it one where it does not and the clause must be absent. A control pinning today's wording is the failure this project keeps repeating. **A permitted result is \"the arm comparison cannot resolve at any book this world can legitimately produce\"** \u2014 that is a finding about the instrument and it goes on the surface, not in a footnote."
    },
    {
-    "id": "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
-    "what": "Carried from the last direction, where it was named and never drawn. Run the one-variable run at `248a6368e^` that `docs/design/NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 owes and \u00a73.3 depends on. Launch it with `systemd-run --user --unit=<name>` \u2014 a ~2h job, and `worker-tick.service` is `KillMode=control-group`, so `setsid` cannot save it and has already failed three times; the 2026-08-29 arms re-run proves the `systemd-run` form survives. Do NOT start it while another long run is in flight \u2014 the ceiling probe peaked at 7,323 MB and this box OOMs; wait on the other process with `tools/wait_for.py --pid`. Write the prediction down before the run, and **there is now a named candidate mechanism to predict against, which there was not last time**: `WORKER_FINDING_THE_CEILING_SPENT_THE_WHOLE_BUDGET_ON_ITS_MOST_EXPENSIVE_COHORT_2026-08-29` establishes that a 2016 win costs 9.83 customer-years and a 2025 win 0.78, and that the old first-come spend bought 2016's accounts before anything else. A uniform-share allocation therefore buys fewer early-year accounts BY CONSTRUCTION, which would make the 37 missing 2016 accounts and the \u00a322,788 a designed consequence rather than a regression. Predict it, then let the run refute it. Two questions, one measurement: is the pre-2021 loss a fidelity repair or a regression; and does the R6 co-movement \u2014 headroom \u2212\u00a334,385 against realised acquisition spend +\u00a314,396, a fall 2.4\u00d7 the spend rise \u2014 survive as an attributed mechanism, or is it the book changing and the balance sheet following? Also read `WORKER_FINDING_THE_CEILING_PROBE_READ_THE_PRODUCERS_BOOK_BACK_AS_ITS_OWN_RESULT_2026-08-29` first: the probe path mirrored the live producer's book back as its own result, so this run must write its own artefact and must not be graded off `settlement_ceiling_probe.json`.",
-    "why": "A \u00a322,788 loss in years the campaign cannot touch has been sitting under every published net figure since 07:26Z and nobody has said whether it is the world getting more honest or the company getting quietly worse \u2014 that is the difference between value created and value lost, which is the mission's first sentence. And until this runs, the project's only evidence that growth has a balance-sheet cost is a co-movement with the right sign wearing a mechanism's clothes. It is second rather than first only because item one has a wrong sentence in front of a reader and this one does not. **Done means:** the word \"repair\" or the word \"regression\", with the run at `248a6368e^` printed beside the prediction that preceded it, and either an attributed R6 mechanism or an explicit statement that these two channels cannot be separated by this run plus what would separate them. A refusal that names what could not be isolated is a permitted result; a plug is not, and nothing may be tuned to make the collateral mechanism fire."
+    "id": "the-settlement-ceilings-basis-stops-being-circular",
+    "what": "The director's own top item, in his words at 2026-08-29T05:55:53Z, unnamed by three directions since: *\"from 2018 the settlement engine books zero of every year's wins\u2026 Fix the settlement ceiling so the campaign's wins actually reach the book\"*, with *\"it needs a non-circular basis, not a bigger number.\"* Read `docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` \u00a76 \u2014 it specifies the run and says plainly that a slope needs two clean points and only one was clean, the second contaminated by a defect in the probe itself. Get the second clean point. `tools/settlement_ceiling_probe.py` is the instrument; run it via `systemd-run --user --unit=` because `worker-tick.service` is `KillMode=control-group` and `setsid` has failed three times; do not overlap it with another long run \u2014 1,200 customer-years already costs 17.0 min and 4,193 MB peak on a box that OOMs, and read `background.resource_headroom.sample()[\"total_mb\"]` rather than quoting a memory figure. Read `WORKER_FINDING_THE_CEILING_PROBE_READ_THE_PRODUCERS_BOOK_BACK_AS_ITS_OWN_RESULT_2026-08-29` before you grade anything: the probe path mirrored the live producer's book back as its own result, so this must write its own artefact and must not be graded off `settlement_ceiling_probe.json`. **The deliverable is the basis, not the number.** With a cost curve in hand, state what `SETTLEMENT_CUSTOMER_YEAR_BUDGET` is a budget OF, in one sentence a reader can check \u2014 it is this machine's wall clock and memory against what the publish cadence actually requires, and the circularity is that the cadence is currently measured as how often runs arrive. Break that by fixing the requirement independently of the arrival rate, or, if it cannot be broken, say so and say why in the constant's own note. Then say on the published book-growth page, on the surface, that the book is bounded by a compute budget and not by commerce, and that 340 of 386 funnel wins are refused by it. **This is explicitly NOT `PROSPECTS_PER_YEAR`**, which is a property of the world, is R13-reserved, and stays where it is until he moves it.",
+    "why": "He asked for this fifteen hours ago and named it his top item; nothing since has named it back, which makes it the clearest thing drifting in the tree, and a steer that goes three directions without appearing in focus is a failure of this seat rather than of the draw. It is also the root under item one: the arm prices 20 of 1,369 renewals because the book is 167 accounts because a wall-clock budget refuses 88% of the wins the funnel produced, so \"the advantage must come from INFERENCE\" is being tested on a book a harness limit chose. It is second only because item one is an hour and tells us how much of this item's payoff reaches the arms. **Done means:** two clean probe points and a stated cost curve; the constant's note saying what it is a budget of, with the circularity either broken or named as unbroken and why; the refusal count on the published page rather than in an artefact; and the ceiling moved or held with the reason written down \u2014 *\"the probe says 1,200 is right and the ceiling is real\"* is a complete and useful answer, and a number picked to make the book bigger is not."
    },
    {
-    "id": "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
-    "what": "The one-variable run that the last section of `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md` files as the work it owes: the three-arm pass plus its noise floor, in one process, with `SETTLEMENT_CUSTOMER_YEAR_BUDGET` in `simulation/net_new_acquisition.py` lifted far enough that the win population is COMPLETE \u2014 everything else held, same seeds, same world. Launch via `systemd-run --user --unit=`, after item two's run has exited, and write the prediction first. **This is an experiment on the measuring instrument, not a change to the published ceiling.** The lift lives in the run's own configuration and does not land as a new constant: the director's standing note is that the ceiling's time argument is circular \u2014 the publish cadence is defined as a measurement of how often runs arrive \u2014 and that it needs a non-circular basis rather than a bigger number. Nothing here supplies that basis and nothing here may be read as supplying it. What this run answers is narrower and is the question item one's page will be pointing at: does the value\u2212control contrast come out of the noise floor when the arms score the whole win population instead of a uniform 17.89% sample of it, or is it inside the spread at any book this machine can produce?",
-    "why": "Item one will publish \"we cannot tell\" and name a bigger book as what would resolve it; this is the run that tests whether that is true, and if it is not, the honest reading is that the arm comparison is not the right instrument for the director's question and we need a different one. It also touches his own named top item \u2014 the settlement engine booking zero of every year's wins \u2014 from the measurement side rather than the constant side, which is the side that is allowed to move without a fidelity argument. It is third because it is gated on item two's process exiting and because item one's page is honest either way. **Done means:** an artefact whose `book` block shows the complete win population, a prediction graded beside it rather than over it, and a plain statement of whether the contrast is resolvable at that book size \u2014 with the published page updated if and only if the answer changes what the page can honestly say."
+    "id": "land-the-founder-book-controls-that-are-in-no-commit",
+    "what": "Fourth direction, unchanged, still uncommitted \u2014 and hoisted above the long runs this time because putting it fourth is why it has never been drawn, not evidence about the tree. `docs/design/held/README.md` in the working tree asserts \"DISCHARGED 2026-08-28 \u2014 Landed in HEAD\" while the three `.held` artefacts it describes are deleted-but-uncommitted (`FOUNDER_BOOK.yaml.held`, `founder_book_live_population.patch`, `test_founder_book.py.held`), `docs/design/FOUNDER_BOOK.yaml` is modified, and `tests/simulation/test_founder_book.py`, `tests/simulation/test_live_population_seam.py` and `tests/simulation/test_customer_events.py` are all uncommitted while `simulation/live_population.py` IS in HEAD at `3d83edffb`. Verify each of the three test files green against the tree the commit WOULD create \u2014 through `python3 -m tools.surgical_land`, never against this shared tree, which measures three other lanes \u2014 then land the set as one commit by pathspec including the three deletions. If a file does not belong to the landed code, name which and hold exactly that file rather than the set. Thirty minutes; the natural thing for a tick to do while a detached run from another item is in flight.",
+    "why": "Landed code whose controls are in no commit has no control at all from any other checkout, and a working-tree file asserting the work is committed is self-refuting. **The trip-wire, re-keyed because the last one was keyed to the wrong thing:** it now fires on the property, not the calendar \u2014 if this item is DRAWN and the landing fails, that is evidence about the tree and it becomes a finding with a gate against the class \"code is in HEAD and its controls are not\". If it is simply not drawn again from position three, that is evidence about my ordering and the correction is mine, not the tree's."
    },
    {
-    "id": "land-the-founder-book-discharge-that-says-it-already-landed",
-    "what": "Third direction, unchanged, still uncommitted, still not drawn. `docs/design/held/README.md` in the working tree asserts \"DISCHARGED 2026-08-28 \u2014 Landed in HEAD\" while the three `.held` artefacts it describes are deleted-but-uncommitted (`FOUNDER_BOOK.yaml.held`, `founder_book_live_population.patch`, `test_founder_book.py.held`); `docs/design/FOUNDER_BOOK.yaml` is modified; and `tests/simulation/test_founder_book.py`, `tests/simulation/test_live_population_seam.py` and `tests/simulation/test_customer_events.py` are all uncommitted while `simulation/live_population.py` IS in HEAD at `3d83edffb`. Verify each of the three test files green against the tree the commit WOULD create \u2014 not against this shared tree, which measures three other lanes \u2014 land the set as one commit by pathspec including the three deletions, and if any file does not belong to the landed code say which and hold exactly that file rather than the set.",
-    "why": "Landed code whose controls are in no commit has no control at all from any other checkout, and a working-tree file asserting the work is committed is self-refuting. Thirty minutes, mechanical, and the item a tick picks up when something above it finishes early. **The trip-wire, because listing the same instruction a third time and expecting a different draw is itself a defect:** if this is still here at the next orientation it stops being a focus item and becomes a finding about uncommitted controls for code that is in HEAD, filed as a class with a gate against the property, because at that point three directions of correct prose have failed and the prose is not the thing that is broken."
+    "id": "adjudicate-the-22788-pre-2021-loss-against-a-baseline-that-cannot-move",
+    "what": "Carried a third time, and re-specified because the last specification had a defect. Run the one-variable comparison that `docs/design/NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 owes and \u00a73.3 depends on \u2014 but run it as `248a6368e^` against `248a6368e`, both historical, NOT against HEAD. Focus item two may move the settlement ceiling, and a comparison anchored on HEAD would then be confounded by two changes at once with no way to attribute the result. Launch with `systemd-run --user --unit=`, after any other long run has exited (`tools/wait_for.py --pid`), and write the prediction down first \u2014 there is now a named mechanism to predict against: `WORKER_FINDING_THE_CEILING_SPENT_THE_WHOLE_BUDGET_ON_ITS_MOST_EXPENSIVE_COHORT_2026-08-29` establishes a 2016 win costs 9.83 customer-years against 0.78 for a 2025 one and that the old first-come spend bought 2016's accounts first, so a uniform-share allocation buys fewer early-year accounts BY CONSTRUCTION and the 37 missing 2016 accounts would be a designed consequence rather than a regression. Predict it, then let the run refute it. Two questions, one measurement: is the pre-2021 loss a fidelity repair or a regression; and does the R6 co-movement \u2014 headroom \u2212\u00a334,385 against realised acquisition spend +\u00a314,396, a fall 2.4\u00d7 the spend rise \u2014 survive as an attributed mechanism, or is it the book changing and the balance sheet following?",
+    "why": "A \u00a322,788 loss in years the campaign cannot touch sits under every published net figure and nobody has said whether it is the world getting more honest or the company getting quietly worse \u2014 that is exactly the difference between value created and value transferred, which is the mission's first sentence. It is fourth because items one and two both bear on live published sentences and this one does not, and because the re-specification above means it no longer decays if item two lands first. **Done means:** the word \"repair\" or the word \"regression\", with the run printed beside the prediction that preceded it, and either an attributed R6 mechanism or an explicit statement that these two channels cannot be separated by this run plus what would separate them. A refusal that names what could not be isolated is a permitted result; a plug is not, and nothing may be tuned to make the collateral mechanism fire."
    }
   ],
   "not_now": [
    {
+    "what": "Launching the lifted-`SETTLEMENT_CUSTOMER_YEAR_BUDGET` arms re-run \u2014 the last direction's item three \u2014 as a focus item in its own right.",
+    "why": "Demoted into item one's conditional rather than dropped, and this is a genuine change of mind caused by reading the artefact. I specified that run twice as \"re-run the arms on a complete win population so the comparison can resolve its own question\", and the noise floor's own seed block says the question may already be answerable for free: 2,020\u20132,074 elasticity draws per seed against 20 priced decisions. If the spread is the cascade rather than the priced sample, that run costs two hours of a box that OOMs to reproduce a result the arithmetic gives in an hour. Print the numbers at real inputs before you ship the formula \u2014 this is that rule applied to a run instead of a function, and it is the cheapest thing in this direction."
+   },
+   {
+    "what": "Giving the drawn book a standard-variable product so the arm's priced surface grows past 20 decisions.",
+    "why": "Refused, and named here because item one makes the temptation live for the first time. 662 of the 1,369 renewals \u2014 48% \u2014 drop out at `product_not_upliftable` because the world has no SVT product, and that is the single largest lever on this experiment's `n`. It is also a change to the baseline world, decided under R13 on fidelity evidence and blind to company results, and the only thing it would improve is our own experiment's sample size. `docs/design/ DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` settled this on 2026-08-28 and the artefact's own reading points out the in-scope surface would get SMALLER as a share of the book, not bigger. Internal consistency is not a fidelity argument for a world change that enlarges the experiment doing the arguing."
+   },
+   {
     "what": "Building `tools/detached_launch.py`, the shared detached-launch helper lifting `_systemd_run_argv` out of `measure_publish_gate_subject_cost.py`.",
-    "why": "Deferred for a second direction, and this time with evidence rather than a hunch. The last direction set an explicit trip-wire \u2014 if a lane reached for `setsid` again or lost a long job at a tick boundary, the helper became position one. It did not trip: `arms-rerun-20260829.service` was launched with `systemd-run --user --unit=`, survived every tick boundary and delivered both legs, and the launch line has been written into items two and three as an instruction rather than a module. CLAUDE.md's rule is to prefer doing the work to building the thing that watches the work. The trip-wire stands unchanged for a third stretch."
+    "why": "Third deferral, and for the second time with evidence rather than a hunch. The trip-wire was: if a lane reaches for `setsid` again or loses a long job at a tick boundary, the helper becomes position one. It did not trip this stretch either. The launch line is written as an instruction into items one, two and four rather than as a module, and CLAUDE.md's rule is to prefer doing the work to building the thing that watches the work. Trip-wire stands unchanged for a fourth stretch."
    },
    {
     "what": "Putting the free-equity figure and the R6 headroom result to the director now.",
-    "why": "Held for a second direction, on the half that is still genuinely blocked. The basis half is discharged \u2014 `4d0ed7b7d` landed the selector, so there is one named basis (120 domestic accounts on supply) and the repository produces the number it would publish. What still blocks is item two: the headroom co-movement is a co-movement until the one-variable run separates it, and live free equity sits on net assets that moved \u00a331,200 for reasons nothing has attributed. Sending him a headroom figure whose denominator just moved would be co-movement-as-attribution wearing the corrected basis as cover. There is now a second thing worth sending with it \u2014 that the baseline comparison cannot resolve its own sign \u2014 and both are one paragraph once items one and two answer. Still mine, still recorded rather than sent."
-   },
-   {
-    "what": "Re-running the B10 ladder chase pair on the new ten-cohort book, and H45's knowledge-to-discovery-to-atom chain.",
-    "why": "The ladder builds its own founder book and asks its question at a fixed rung, so its insensitivity to the campaign book is the established fact and re-running it would spend forty minutes of sequential arms to reproduce it \u2014 and this stretch has two long runs already contending for a box that OOMs. H45 keeps losing to its own instances and produced two more this stretch: the ceiling probe's mirror and the ceiling's first-come allocation were both found by taking one artefact and asking where its words came from. Build the chain after its instances, not instead of them."
+    "why": "Held a third time, on the same half that is still blocked. The basis half is discharged \u2014 `4d0ed7b7d` landed the selector and there is one named basis, 120 domestic accounts on supply. What still blocks is item four: the headroom co-movement is a co-movement until the one-variable run separates it, and sending him a headroom figure whose denominator moved \u00a331,200 for unattributed reasons would be co-movement-as-attribution wearing a corrected basis as cover. There are now two things worth sending together \u2014 that, and that the baseline comparison cannot resolve its own sign \u2014 and both are one paragraph once items one and four answer. Still mine, still recorded rather than sent."
    },
    {
     "what": "The affordability xfail in `WORKER_FINDING_TWO_RED_CONTROLS_THAT_PREDATE_TODAY_AND_ONE_IS_A_STALE_XFAIL_2026-08-29.md` \u2014 `test_live_run_output_shows_crisis_step_up_headline`, strict-xfail until W2_4 builds affordability physics, and passing.",
-    "why": "Deferred a third time and nothing moved on it, which is what a correct deferral looks like. The substantive question \u2014 what produces a \u00d71.28 crisis step-up in a model that should not be able to \u2014 belongs to W2_4 with the affordability evidence in front of it, not to a lane-0 slot, and the finding says so itself. Its trap remains live and is worth more than its subject: three readings of that control in one hour gave \u00d70.05, \u00d71.08 and \u00d71.28 because each read `docs/reports/run_output_latest.json`, a tracked file every run rewrites in place. It is modified in the tree again as I write this."
-   },
-   {
-    "what": "Writing a gate for the class \"code is in HEAD and its controls are not\", instead of doing focus item four by hand.",
-    "why": "It is the right control eventually and it is the wrong move this stretch: a file made of rules breeds rules, and the instance in front of us is thirty minutes of landing. The gate earns its place when item four's own trip-wire fires \u2014 a third failure to draw a mechanical landing is evidence about the tree, a first or second is evidence about priority."
+    "why": "Fourth deferral and nothing moved on it, which is what a correct deferral looks like. The substantive question \u2014 what produces a \u00d71.28 crisis step-up in a model that should not be able to \u2014 belongs to W2_4 with the affordability evidence in front of it, not to a lane-0 slot, and the finding says so itself. Its trap remains worth more than its subject: three readings of that control in one hour gave \u00d70.05, \u00d71.08 and \u00d71.28 because each read `docs/reports/run_output_latest.json`, a tracked file every run rewrites in place."
    }
   ],
   "for_the_director": [],
@@ -307,6 +307,22 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-29T20:24:55.569128+00:00",
+    "what": "Three directions have not named the director's own stated top item. He typed it at 2026-08-29T05:55:53Z \u2014 fix the settlement ceiling so the campaign's wins reach the book, with a non-circular basis rather than a bigger number \u2014 and my last direction went as far as writing \"nothing here supplies that basis and nothing here may be read as supplying it\" into an item about something else, and then did not make supplying it a focus item at all. Correctly refusing to smuggle his decision into an unrelated run, and then leaving his instruction unworked, is deciding by omission something that was his. 340 of 386 funnel wins are still refused by a wall-clock budget while the page publishes the book that survived."
+   },
+   {
+    "at": "2026-08-29T20:24:55.569128+00:00",
+    "what": "The founder-book trip-wire I set last stretch was keyed to the calendar, not to the property. It said \"if this is still here at the next orientation it becomes a finding about uncommitted controls\" \u2014 which fires identically whether the item was drawn and failed (evidence about the tree) or never drawn at all (evidence about my ordering). It was never drawn: lane 0 works focus in my order and a three-hour stretch reached item one only. This is the project's own R15 rule \u2014 key a control to the property, not to today's answer \u2014 broken by the seat that writes it down, for the second stretch running in a different disguise."
+   },
+   {
+    "at": "2026-08-29T20:24:55.569128+00:00",
+    "what": "The new arms headline replaced a directional claim beyond its evidence with a REMEDY claim beyond its evidence: it tells the reader a larger settled book would resolve the contrast, when the noise floor artefact tracked in the same commit shows each seed re-drawing elasticity for 2,020\u20132,074 households while the arm prices 20 \u2014 so the spread may be the cascade, which a bigger book does not shrink. The gate that was built is correct and the sentence it composes when it fires was not checked to the same standard. This is the more interesting failure of the two: the control fires exactly when it should and then hands the reader an unbounded claim in the branch nobody thought of as a claim."
+   },
+   {
+    "at": "2026-08-29T20:24:55.569128+00:00",
+    "what": "The recurring class \u2014 a published figure separated from its real input by the index \u2014 is recorded here as CLOSED for the first time rather than renamed again. `3f6c29525` tracked both dated artefacts, `d3225dd5b` made the generator's error bar name which figure it bounds, and the page's two inputs are one book on one day. It is listed under `wrong` because it took three directions asking for \"one clock\" before anyone opened `tools/generate_value_arms_data.py`'s two path constants, and the cost of that was a three-hour run that could not have reached a reader however it went."
+   },
    {
     "at": "2026-08-29T17:22:29.350199+00:00",
     "what": "Three consecutive directions asked for the arms page to be put \"on one clock\" without anyone reading `tools/generate_value_arms_data.py:98-99`. Its two input paths are undated constants pointing at the tracked 2026-08-27/28 pair, so the dated 2026-08-29 artefacts a three-hour run produced reach no reader at all and could not have, however the run went. The project's own rule is to read the enforcement rather than a paraphrase of it, and the seat that writes that rule down asked for the same outcome three times without opening the file that decides it."
@@ -989,12 +1005,39 @@
  },
  "what_next": {
   "focus": [
-   "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
-   "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
-   "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
-   "land-the-founder-book-discharge-that-says-it-already-landed"
+   "grade-the-pages-own-escape-clause-before-spending-two-hours-on-it",
+   "the-settlement-ceilings-basis-stops-being-circular",
+   "land-the-founder-book-controls-that-are-in-no-commit",
+   "adjudicate-the-22788-pre-2021-loss-against-a-baseline-that-cannot-move"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor"
+      ],
+      "focus": [
+       "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
+       "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
+       "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
+       "land-the-founder-book-discharge-that-says-it-already-landed"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor"
+    ],
+    "focus": [
+     "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
+     "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
+     "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
+     "land-the-founder-book-discharge-that-says-it-already-landed"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1104,45 +1147,6 @@
     "focus": [
      "settlement-ceiling",
      "the-slope-population-is-a-selection-effect-everywhere-it-is-reused",
-     "capabilities-one-clock-one-basis-one-bound"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "B10_competitor_switching_response"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "land-or-delete-the-untracked-settlement-clocks-pair",
-       "settlement-ceiling",
-       "crm-reconciliation-that-cannot-fail"
-      ],
-      "focus": [
-       "land-or-delete-the-untracked-settlement-clocks-pair",
-       "settlement-ceiling",
-       "crm-reconciliation-that-cannot-fail",
-       "capabilities-one-clock-one-basis-one-bound"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "land-or-delete-the-untracked-settlement-clocks-pair",
-     "settlement-ceiling",
-     "crm-reconciliation-that-cannot-fail"
-    ],
-    "focus": [
-     "land-or-delete-the-untracked-settlement-clocks-pair",
-     "settlement-ceiling",
-     "B10_competitor_switching_response",
-     "crm-reconciliation-that-cannot-fail",
      "capabilities-one-clock-one-basis-one-bound"
     ],
     "note": "the previous direction named work the draw then took",
