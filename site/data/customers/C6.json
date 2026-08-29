@@ -65,7 +65,7 @@
   ],
   "invoices": [
     {
-      "id": "C6-INV535",
+      "id": "C6-INV607",
       "date": "2016-04-30",
       "period_start": "2016-04-01",
       "period_end": "2016-04-30",
@@ -106,7 +106,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV536",
+      "id": "C6-INV608",
       "date": "2016-05-31",
       "period_start": "2016-05-01",
       "period_end": "2016-05-31",
@@ -147,7 +147,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV537",
+      "id": "C6-INV609",
       "date": "2016-06-30",
       "period_start": "2016-06-01",
       "period_end": "2016-06-30",
@@ -188,7 +188,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV538",
+      "id": "C6-INV610",
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
@@ -229,7 +229,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV539",
+      "id": "C6-INV611",
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
@@ -270,7 +270,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV540",
+      "id": "C6-INV612",
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
@@ -311,7 +311,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV541",
+      "id": "C6-INV613",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -352,7 +352,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV542",
+      "id": "C6-INV614",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -393,7 +393,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV543",
+      "id": "C6-INV615",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -434,7 +434,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV544",
+      "id": "C6-INV616",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -475,7 +475,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV545",
+      "id": "C6-INV617",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -516,7 +516,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "C6-INV546",
+      "id": "C6-INV618",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -558,22 +558,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-19",
+    "as_of_date": "2025-06-26",
     "entries": [
       {
         "date": "2016-05-04",
         "type": "invoice_raised",
-        "invoice_number": 535,
+        "invoice_number": 607,
         "amount_gbp": 425.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV535 raised",
+        "description": "Invoice INV607 raised",
         "running_balance_gbp": 425.27
       },
       {
         "date": "2016-05-18",
         "type": "payment_received",
-        "invoice_number": 535,
+        "invoice_number": 607,
         "amount_gbp": -425.27,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -583,17 +583,17 @@
       {
         "date": "2016-06-01",
         "type": "invoice_raised",
-        "invoice_number": 536,
+        "invoice_number": 608,
         "amount_gbp": 425.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV536 raised",
+        "description": "Invoice INV608 raised",
         "running_balance_gbp": 425.7
       },
       {
         "date": "2016-06-15",
         "type": "payment_received",
-        "invoice_number": 536,
+        "invoice_number": 608,
         "amount_gbp": -425.7,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -603,17 +603,17 @@
       {
         "date": "2016-07-05",
         "type": "invoice_raised",
-        "invoice_number": 537,
+        "invoice_number": 609,
         "amount_gbp": 425.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV537 raised",
+        "description": "Invoice INV609 raised",
         "running_balance_gbp": 425.27
       },
       {
         "date": "2016-07-19",
         "type": "payment_received",
-        "invoice_number": 537,
+        "invoice_number": 609,
         "amount_gbp": -425.27,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -623,17 +623,17 @@
       {
         "date": "2016-07-31",
         "type": "invoice_raised",
-        "invoice_number": 538,
+        "invoice_number": 610,
         "amount_gbp": 425.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV538 raised",
+        "description": "Invoice INV610 raised",
         "running_balance_gbp": 425.7
       },
       {
         "date": "2016-08-14",
         "type": "payment_received",
-        "invoice_number": 538,
+        "invoice_number": 610,
         "amount_gbp": -425.7,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -643,17 +643,17 @@
       {
         "date": "2016-09-07",
         "type": "invoice_raised",
-        "invoice_number": 539,
+        "invoice_number": 611,
         "amount_gbp": 425.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV539 raised",
+        "description": "Invoice INV611 raised",
         "running_balance_gbp": 425.7
       },
       {
         "date": "2016-09-21",
         "type": "payment_received",
-        "invoice_number": 539,
+        "invoice_number": 611,
         "amount_gbp": -425.7,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -663,17 +663,17 @@
       {
         "date": "2016-10-01",
         "type": "invoice_raised",
-        "invoice_number": 540,
+        "invoice_number": 612,
         "amount_gbp": 425.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV540 raised",
+        "description": "Invoice INV612 raised",
         "running_balance_gbp": 425.27
       },
       {
         "date": "2016-10-15",
         "type": "payment_received",
-        "invoice_number": 540,
+        "invoice_number": 612,
         "amount_gbp": -425.27,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -683,17 +683,17 @@
       {
         "date": "2016-11-01",
         "type": "invoice_raised",
-        "invoice_number": 541,
+        "invoice_number": 613,
         "amount_gbp": 425.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV541 raised",
+        "description": "Invoice INV613 raised",
         "running_balance_gbp": 425.7
       },
       {
         "date": "2016-11-15",
         "type": "payment_received",
-        "invoice_number": 541,
+        "invoice_number": 613,
         "amount_gbp": -425.7,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -703,17 +703,17 @@
       {
         "date": "2016-12-03",
         "type": "invoice_raised",
-        "invoice_number": 542,
+        "invoice_number": 614,
         "amount_gbp": 425.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV542 raised",
+        "description": "Invoice INV614 raised",
         "running_balance_gbp": 425.27
       },
       {
         "date": "2016-12-17",
         "type": "payment_received",
-        "invoice_number": 542,
+        "invoice_number": 614,
         "amount_gbp": -425.27,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -723,17 +723,17 @@
       {
         "date": "2017-01-04",
         "type": "invoice_raised",
-        "invoice_number": 543,
+        "invoice_number": 615,
         "amount_gbp": 425.7,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV543 raised",
+        "description": "Invoice INV615 raised",
         "running_balance_gbp": 425.7
       },
       {
         "date": "2017-01-18",
         "type": "payment_received",
-        "invoice_number": 543,
+        "invoice_number": 615,
         "amount_gbp": -425.7,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -743,17 +743,17 @@
       {
         "date": "2017-02-02",
         "type": "invoice_raised",
-        "invoice_number": 544,
+        "invoice_number": 616,
         "amount_gbp": 430.56,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV544 raised",
+        "description": "Invoice INV616 raised",
         "running_balance_gbp": 430.56
       },
       {
         "date": "2017-02-16",
         "type": "payment_received",
-        "invoice_number": 544,
+        "invoice_number": 616,
         "amount_gbp": -430.56,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -763,17 +763,17 @@
       {
         "date": "2017-03-02",
         "type": "invoice_raised",
-        "invoice_number": 545,
+        "invoice_number": 617,
         "amount_gbp": 429.2,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV545 raised",
+        "description": "Invoice INV617 raised",
         "running_balance_gbp": 429.2
       },
       {
         "date": "2017-03-16",
         "type": "payment_received",
-        "invoice_number": 545,
+        "invoice_number": 617,
         "amount_gbp": -429.2,
         "info_amount_gbp": null,
         "method": "bacs",
@@ -783,11 +783,11 @@
       {
         "date": "2017-04-05",
         "type": "invoice_raised",
-        "invoice_number": 546,
+        "invoice_number": 618,
         "amount_gbp": -284.34,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV546 raised",
+        "description": "Invoice INV618 raised",
         "running_balance_gbp": -284.34
       }
     ],

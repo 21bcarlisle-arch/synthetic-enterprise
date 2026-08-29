@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generated_at": "2026-08-28T19:41:11Z",
+    "generated_at": "2026-08-28T23:59:19Z",
     "git_commit": "unknown",
-    "household_count": 55,
+    "household_count": 122,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
@@ -21,16 +21,16 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "77.5 percentage points apart at the 2018 renewal (sim 18.8% vs company 96.3%)",
+      "headline": "79.1 percentage points apart at the 2025 renewal (sim 95.0% vs company 15.9%)",
       "wall_side": "sim",
-      "account_id": "PROS-2017-0144",
-      "base_account_id": "PROS-2017-0144",
+      "account_id": "SYN-2016-025",
+      "base_account_id": "SYN-2016-025",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2017-0144",
+        "acc": "SYN-2016-025",
         "tab": "timeline",
-        "year": 2018
+        "year": 2025
       }
     },
     {
@@ -63,21 +63,21 @@
     },
     {
       "category": "Notable life event",
-      "headline": "Income recovery (2020) -- Real downstream drift: income stress high -> low; late-payment rate 8% -> 0%",
+      "headline": "Income recovery (2022) -- Real downstream drift: income stress high -> low; late-payment rate 8% -> 17%",
       "wall_side": "sim",
-      "account_id": "PROS-2016-0104",
-      "base_account_id": "PROS-2016-0104",
+      "account_id": "SYN-2016-037",
+      "base_account_id": "SYN-2016-037",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2016-0104",
+        "acc": "SYN-2016-037",
         "tab": "timeline",
-        "year": 2020
+        "year": 2022
       }
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 47.0 percentage points (73.0% in 2018 to 26.0% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 37.0 percentage points (73.0% in 2018 to 36.0% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
       "account_id": "PROS-2017-0084",
       "base_account_id": "PROS-2017-0084",
