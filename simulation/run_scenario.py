@@ -24,6 +24,7 @@ from pathlib import Path
 
 from sim.scenario.bimodal_generator import SCENARIOS as ELEC_SCENARIOS, generate_scenario_prices
 from sim.scenario.gas_scenario_generator import GAS_SCENARIOS, generate_gas_scenario_prices
+from sim.scenario.spine import HISTORY_REPLAY, load_world
 from sim.scenario.intraday_shape import shape_day
 
 # Real 2016-2025 daily-mean SSP reference, extracted once from the 128MB half-hourly cache
@@ -136,6 +137,7 @@ def build_extended_price_feeds(
     year_from: int = 2026,
     year_to: int = 2029,
     seed: str | None = None,
+    world_id: str = HISTORY_REPLAY,
 ) -> tuple[list[dict], list[dict]]:
     """Append synthetic scenario prices to historical records.
 
@@ -145,8 +147,16 @@ def build_extended_price_feeds(
     extended_gas_records:  daily format (settlementDate, systemSellPrice)
 
     Both are sorted by settlementDate ascending, with historical data first.
+
+    world_id: the SPINE_1 curriculum world this run lives through. Defaults to the baseline
+    ``history_replay``, which selects no overrides -- so every existing caller keeps its
+    byte-identical output and the spine stays dormant until a world is actually chosen.
+    Loaded via ``load_world`` (not ``select_for_rotation``): naming a world explicitly is a
+    deliberate single run, whereas ROTATION -- being sampled against a true-probability
+    weight -- is the R13-reserved act and keeps its ratification guard.
     """
     _seed = seed or f"{scenario}_{year_from}_{year_to}"
+    spine = load_world(world_id)
 
     # Find the latest historical date to avoid overlapping with scenario data
     if historical_elec:
@@ -176,7 +186,9 @@ def build_extended_price_feeds(
         _r["data_regime"] = "synthetic"
     extended_elec = historical_elec + elec_hh
 
-    gas_daily = generate_gas_scenario_prices(scenario_actual_from, year_to, scenario, seed=_seed)
+    gas_daily = generate_gas_scenario_prices(
+        scenario_actual_from, year_to, scenario, seed=_seed, spine=spine
+    )
     if historical_gas:
         latest_gas_str = max(r["settlementDate"] for r in historical_gas)
         gas_daily = [r for r in gas_daily if r["settlementDate"] > latest_gas_str]
@@ -261,6 +273,7 @@ def run_forward_scenario(
     year_from: int = 2026,
     year_to: int = 2029,
     seed: str | None = None,
+    world_id: str = HISTORY_REPLAY,
 ) -> dict:
     """Run a full 2016-year_to simulation with historical + forward scenario prices.
 
@@ -268,10 +281,17 @@ def run_forward_scenario(
     year_from: first year of synthetic data (default 2026, just after historical window ends).
     year_to: last year of synthetic data (inclusive).
     seed: deterministic seed for scenario generators. Defaults to "{scenario}_{year_from}_{year_to}".
+    world_id: the SPINE_1 curriculum world (default: the baseline, no overrides).
 
     Returns the standard run_phase2b result dict, augmented with:
         "scenario_name": str
         "scenario_year_range": [year_from, year_to]
+        "world_id": str          -- which curriculum world this run actually lived through
+        "world_version": str     -- the artefact version pin, so a re-run against an edited
+                                    world is distinguishable from a re-run against the same one
+
+    The world stamp is written from the LOADED artefact, never from the ``world_id`` argument:
+    a run that claims a world must be answered for by the artefact it actually resolved to.
     """
     from datetime import date as _date
     import sim.cache_store as _cache
@@ -312,10 +332,13 @@ def run_forward_scenario(
     # Extend with scenario prices
     extended_elec, extended_gas = build_extended_price_feeds(
         hist_elec, hist_gas, scenario=scenario,
-        year_from=year_from, year_to=year_to, seed=_seed,
+        year_from=year_from, year_to=year_to, seed=_seed, world_id=world_id,
     )
 
+    _world = load_world(world_id)
     print(f"[Scenario: {scenario!r}, {year_from}-{year_to}]")
+    print(f"  World: {_world.world_id!r} v{_world.version or '?'} "
+          f"({'baseline, no overrides' if _world.selects_no_overrides else 'exogenous overrides ACTIVE'})")
     print(f"  Electricity: {len(hist_elec):,} historical + {len(extended_elec) - len(hist_elec):,} scenario = {len(extended_elec):,} total")
     print(f"  Gas: {len(hist_gas):,} historical + {len(extended_gas) - len(hist_gas):,} scenario = {len(extended_gas):,} total")
 
@@ -340,6 +363,8 @@ def run_forward_scenario(
             _gas_mod.load_nbp_history = _orig_load_nbp
 
     if isinstance(result, dict):
+        result["world_id"] = _world.world_id
+        result["world_version"] = _world.version
         result["scenario_name"] = scenario
         result["scenario_year_range"] = [year_from, year_to]
 
