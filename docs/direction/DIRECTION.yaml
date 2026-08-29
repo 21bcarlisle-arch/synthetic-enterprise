@@ -1,257 +1,230 @@
 version: 1
-oriented_at: "2026-08-29T05:24:29.342620+00:00"
+oriented_at: "2026-08-29T08:22:27.668996+00:00"
 thesis_read: >-
-  This is the best evidence for the thesis the project has ever produced, and it arrived by
-  refuting the direction I wrote three hours ago. B10 is at L3 and the measurement is the thing:
-  on 99 paired renewal decisions — 35, 23, 20 and 21 at rungs 0, 0.5, 1 and 2 — the company's
-  believed loss probability moves in the correct direction at every rung when the rival presses,
-  30 of the 31 moved decisions move upward, and the belief-versus-truth gap NARROWS at all four
-  rungs (−0.015, −0.040, −0.078, −0.041). A company that reads only its own realised losses got
-  closer to a world that moved away from it. That is inference and not access, measured, with the
-  one downward move named and explained rather than buried. And the reason it unblocked is the
-  correction I have to make in the same breath: **the population was never sixteen.** Sixteen was
-  `slopes.common_population`, the set priced and rolled at EVERY rung, which is the right
-  denominator for a slope and the wrong one for a between-arm question at a fixed rung — and
-  because the top rung prices its book away by 2019, that set is structurally confined to
-  2016–2018 however long the window is. The company's own ledger reads strictly earlier years, so
-  the measurement was being taken exactly where the channel under test had nothing to read. Last
-  night I built the entire board on that sixteen: I called the book "frozen", said the founder
-  book "bought nothing", and held PB4, PB5 and P2–P4 on the grounds that no population could
-  refute them. All of that was an artefact of a join, and the fix cost no data. What survives
-  intact is the ceiling itself, on its own evidence rather than on n: `SETTLEMENT_CUSTOMER_YEAR_BUDGET`
-  refused 340 of 386 funnel wins in this week's measurement, binds the book in nine years of ten,
-  and its recorded cost note was 36% low because it was taken while the ceiling was slack and the
-  founder book made it taut with nothing watching. So the published book is still a number our own
-  machine chose rather than a commercial outcome, and that is now the single biggest gap between
-  what this company is and what the thesis says it should be. Nothing went backwards. The honesty
-  this stretch was excellent in both lanes: the ceiling probe caught its own false finding because
-  two of its fields disagreed, refused to name a number it had not earned, and said so in its
-  title; the ladder lane recorded a level move while writing down that its own third refusal had
-  asked for the wrong thing. What is drifting is still my ordering and it is now measured rather
-  than felt: two consecutive stretches named four lane-0 items and drew three, so the fourth and
-  fifth positions are not a priority statement, they are a decision that the work never happens.
-  `/capabilities/` has sat in position four or five for eight directions and been drawn zero
-  times, and its artefacts still carry 2026-08-27 and 2026-08-28 clocks tonight. Three items this
-  time, so the tail is reachable.
+  The director's top item is done, and it was done by refusing the instruction I wrote for it. I
+  said the settlement ceiling was too small and told the lane to re-measure the constant against a
+  memory bound. The lane printed the numbers at real inputs instead and found the ceiling was never
+  what emptied 2018–2025: a win is charged for its settlement tail, so 2016's wins cost 9.83
+  customer-years each and 2025's cost 0.78, and a FIRST-COME rule spends the whole 421.8-customer-year
+  campaign budget on the two most expensive cohorts and has nothing left the moment 2018 opens. The
+  tell it named is the one that matters — raising the budget does not change the shape, it only moves
+  where the cliff falls. One uniform sampling fraction later, on 0.4% FEWER settled customer-years:
+  45 booked wins across two years became 90 across ten, the book went 127 to 172, the company now
+  plans against the 587 accounts it holds rather than the 127 our wall clock let it settle, and
+  PB3's coupled-triad gap stopped being an identity computed on n=1 year (1.0 by construction,
+  because 2016 plans on the founding belief) and became a measurement on ten (0.830). Every
+  comparison keyed on year now has a population. **And the growth loop bit for the first time in the
+  same run**: campaign spend £46,408 → £60,839, published net £164,542 → £154,164. That is the shape
+  the director asked for — acquisition spend reaching a book, and the book reaching the P&L — but two
+  things moved at once and I cannot yet attribute it, which is why it is focus item three and not a
+  claim. What has NOT changed is the honesty condition underneath it: the published book is a 17.89%
+  uniform sample of what the company won, `settlement_sample_rate` is in the artefact, and the page
+  must divide by it in the render rather than disclose it. And the whole of it — the doubled book,
+  the £154,164, the reconciliation that stopped the £39,962.17 treasury discrepancy — was produced by
+  a working tree carrying `simulation/settlement_clocks.py` UNTRACKED and its two consumers modified
+  and unstaged, for the ninth consecutive direction. HEAD does not contain the repair, so HEAD would
+  republish the defect, and nobody can reproduce this morning's headline from any commit. On the
+  ordering I have to correct myself rather than restate: last night I diagnosed that positions four
+  and five are decisions that the work never happens, "fixed" it by naming three items, and
+  `capabilities-one-clock-one-basis-one-bound` was not drawn — from position THREE of three. Shortening
+  the list was the wrong fix. Positions one and two are drawn and nothing else has been, across four
+  directions, so that page moves to position two and the settlement-clocks pair stops being folded
+  into a bigger item as a dependency, which is just listing it last with extra words.
 stretch_reviewed:
-  since: "2026-08-29T02:22:47.338789+00:00"
-  commits: 6
-  substantive: 3
+  since: "2026-08-29T05:24:29.342620+00:00"
+  commits: 13
+  substantive: 10
 focus:
-  - id: settlement-ceiling
+  - id: land-the-run-path-that-produced-this-mornings-figures
     what: >-
-      Run the measurement specified in §6 of `docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md`
-      and set the constant from it. Three things, in order. (1) FIRST resolve the untracked
-      settlement-clocks pair, because your own probe depends on it: `tools/settlement_ceiling_probe.py`
-      calls `tools.run_annual_report._run_and_extract`, and the working tree's
-      `tools/run_annual_report.py:69` imports `simulation.settlement_clocks`, which is untracked and
-      in no clone — so both recorded probe points were taken through a reconciliation check that
-      exists on this box only. Check HEAD first, since a lane claimed this at 05:03 and may have
-      landed it. If it is still untracked, either land `simulation/settlement_clocks.py`,
-      `tests/simulation/test_settlement_clocks.py` and both modified consumers
-      (`tools/run_annual_report.py`, `simulation/run_phase4c_on_phase2b.py`) as one pathspec through
-      `python3 -m tools.surgical_land` with the REUSE block from
-      `tools/write_time_gate.py --explain`, or revert the two import hunks and delete the pair. Ten
-      minutes, then move on. (2) Stand the live producer down for the duration — it assembles a book
-      every ~1,500s and that is what collided with the last attempt — then run
-      `python3 -m tools.settlement_ceiling_probe --budgets 1200 2000 2800 --publish-interval 3600
-      --time-share 0.9`, and restore the producer afterwards. Write down before you start what you
-      expect the slope to say, and grade it beside the result. Every point must report `clean: true`
-      or the tool refuses a slope, which is the correct outcome and not a failure to work around.
-      (3) Set the ceiling from the MEMORY bound against the guest read live from
-      `background.resource_headroom.sample()`, never from the measured publish cadence — §3 shows
-      that cadence is set by run duration, so a ceiling argued against it raises its own allowance
-      and silences the gate-speed alarm at the same time. Then re-run the live campaign and report
-      what booked, what the ladder's per-rung paired populations become when re-run (do not project
-      them from win counts — rung 2.0 has no book after 2019 and two mechanisms compose), and what
-      happens to R6's £316,009 headroom. While the runs are in flight, fix the class the probe's own
-      finding named: `tools/couple_pb3_book_growth.py` reads
-      `docs/observability/book_growth_campaign.json` by absolute path, exactly as the probe did, and
-      will adopt whatever the producer wrote last.
+      Land or revert the uncommitted run-path work, and then prove the published book reproduces from
+      the resulting HEAD. Check HEAD first — nine directions have named this and a lane may have
+      landed it. If `simulation/settlement_clocks.py` is still untracked, the pathspec is that file,
+      `tests/simulation/test_settlement_clocks.py`, `tools/run_annual_report.py` and
+      `simulation/run_phase4c_on_phase2b.py`, landed as ONE commit through `python3 -m
+      tools.surgical_land` with the REUSE block from `tools/write_time_gate.py --explain`. Read the
+      diff before you decide: it is not a chore. `run_annual_report.save_run_output_json` now RAISES
+      rather than publishing a run whose `starting_treasury_gbp + total_net_gbp` disagrees with its own
+      `final_treasury_gbp` — the £39,962.17 discrepancy that reached the live site for two days — and
+      `run_phase4c_on_phase2b` calls `refresh_settlement_scalars` after the last stage that mutates
+      `all_records`, which is what stops one run dict carrying two clocks under one set of names. The
+      same hunk also adds the R2 broker-commission accrual. If any of it cannot be landed, revert
+      exactly that part, and the finding is which repair the published figures depend on that HEAD
+      does not contain. Then, from a clean checkout of the new HEAD in a detached worktree, run the
+      annual report and report whether 90 booked / 172 on the book / rate 0.1789 / net £154,164
+      reproduce. A figure that does not reproduce from HEAD is the finding and is worth more than the
+      landing.
     why: >-
-      This is the last standing claim from last night's board that the correction did not take away,
-      and it is the largest gap between this company and the thesis. The measurement of 2026-08-29 is
-      386 funnel wins, 46 booked, 340 refused by a constant whose own header calls it "THIS MACHINE's
-      budget… not a commercial limit", with the settlement engine binding in nine years of ten. A
-      supplier whose enterprise value is the automated method of finding customers is publishing a
-      book that its engine, not its method, sized — and every pound of the published net figure
-      inherits that. The provenance question is already answered and the answer is that it went stale:
-      1,200 cost 746.8s and 3,117 MB when it was slack and costs 1,018.7s and 4,193 MB now that the
-      founder book made it taut, and nothing reported the drift. Note what this is: an engineering
-      artefact with no counterpart in the world, so lifting it removes an artefact rather than
-      changing the curriculum, and it moves the experiment toward being MORE refutable. Done means
-      three clean points or a stated refusal with the reason, the constant carrying a measurement
-      taken this week beside its artefact, a live re-run reporting what booked, and the report saying
-      in terms that the published figure moved because the ceiling lifted and not because the method
-      worked — those are the two things a reader will otherwise confuse. If the probe says 1,200 is
-      right, say so; "the ceiling is real" is a different and equally useful answer.
-  - id: the-slope-population-is-a-selection-effect-everywhere-it-is-reused
-    what: >-
-      Discharge item 1 of WORK THIS CREATES in
-      `docs/staging/WORKER_FINDING_THE_CHASE_COMPARISON_WAS_ASKING_ITS_QUESTION_ON_THE_SLOPES_POPULATION_2026-08-29.md`.
-      `slopes.common_population` is the set of decisions priced and rolled at EVERY rung; it is
-      correct for a slope and wrong for any question asked at a fixed rung, and it silently confines
-      that question to 2016–2018 because rung 2.0 prices its book away by 2019. Two moves. (1) Audit
-      every reader of `common_population` and of `run_price_ladder`'s
-      `world_curve_vs_belief.per_decision` block — the finding says the latter is built on the same
-      set and carries only each decision's lowest and highest rung, so anything reading it inherits
-      the blindness. For each reader, state whether its question is cross-rung (keep) or fixed-rung
-      (must pair on that rung's own priced-and-rolled set, the way `compare_chase_belief` now does),
-      and repair the fixed-rung ones. (2) Land a control keyed to the PROPERTY, not to today's
-      answer: a fixed-rung comparison must not draw its population from a cross-rung intersection.
-      Mutate it by re-imposing the wrong join and show it goes red — that mutation is available and
-      cheap, because it is exactly the code that was just removed. Record the per-rung n beside every
-      figure the ladder publishes, so a population of 16 can never again be read as a fact about the
-      book. If while auditing you find a reader whose n collapses under the correct join, that is a
-      finding and it is more valuable than the repair.
-    why: >-
-      This defect cost two days of direction and three held atoms. It produced a result that did not
-      move when the window grew by two years and the ledger deepened to 453 renewal decisions — a
-      number identical to eight decimal places across that much added evidence — and both the lane and
-      I read that as "the book is too small" instead of "the join is wrong". A result that does not
-      respond to added evidence is the tell, and the general shape is that a population selected for
-      one question is a selection effect in every other question asked of it. It sits second because
-      it is the only work on this board that protects future measurements rather than producing one,
-      and every remaining thesis question — PB4, PB5, B8, the calibration gap — is a fixed-rung or
-      between-arm question that will draw from this same machinery. Fixing it after the next
-      measurement is built on it costs that measurement. Done means every reader of the intersection
-      is classified as cross-rung or fixed-rung with the fixed-rung ones repaired, a mutation-proven
-      control refuses the wrong join, and the per-rung n is published beside the figures rather than
-      recoverable only from an artefact.
+      This is first because everything else on this board is a measurement, and every measurement
+      taken on this box this week ran through code that is in no commit. The producer executes the
+      working tree, so the live site's figures were produced by it too. That inverts the rule this
+      project already learned in the other direction: the record can outrun the code, and here the
+      code has outrun the record, which is worse, because the repair that stops a two-day published
+      treasury discrepancy would be undone by anyone who checked out main. It has now failed at
+      first, third, fourth and fifth position across nine directions, and last night I moved it INTO
+      focus item one as a dependency and told myself that was different from listing it last. It was
+      not. It is its own item this time with its own subject — the reproducibility of this morning's
+      headline — because it has never been anybody's actual subject and that is the whole diagnosis.
+      Done means the tree is clean of that pair one way or the other, the commit says which, and there
+      is a stated result for whether HEAD reproduces the published book. Fifteen minutes if it goes
+      well; if it does not, what it uncovers outranks the rest of this list.
   - id: capabilities-one-clock-one-basis-one-bound
     what: >-
-      One pass over `site/capabilities/` doing three things that are one visit to one page.
-      (1) `docs/observability/value_cycle_ab_s1_three_arm.json` still carries `generated_at`
-      2026-08-28T14:08:48Z — before `0850eadcd` landed the sourced acquisition costs at 20:46 — and
-      `value_cycle_ab_s1_noise_floor.json` still carries 2026-08-27T23:32:17Z. Re-launch
-      `python3 -m tools.run_value_cycle_ab --level-arm` to a NEW path, never over the published
-      artefact, and re-run the noise floor in the same session so both legs stand on one clock.
-      (2) Write the outcome BESIDE the prediction in
-      `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`,
-      never over it; read no delta smaller than the old floor's £4,402 sd as an effect, and once the
-      floor is re-measured use the new one. (3) In the same edit, put on the page's render and on the
-      live surface the sentence that the arms comparison is between two internal policies in a market
-      that could not react to either — asserted the way
-      `site/test_the_baseline_comparison_reaches_the_reader.py` already does it, driving the real door
-      through `site/_live_harness.mjs` and reading the rendered DOM, with a mutation that deletes the
-      sentence and reds the test while the unavailable-feed null rung stays green.
+      One pass over `site/capabilities/`, three things, one visit to one page. (1) Re-run both legs of
+      the arms comparison in one session to NEW paths, never over the published artefacts:
+      `docs/observability/value_cycle_ab_s1_three_arm.json` still carries `generated_at`
+      2026-08-28T14:08:48Z and `value_cycle_ab_s1_noise_floor.json` 2026-08-27T23:32:17Z — both
+      measured on the 45-win, two-cohort book that stopped existing at 07:47Z this morning, and the
+      three-arm leg also predates the sourced acquisition costs landing at 20:46. `python3 -m
+      tools.run_value_cycle_ab --level-arm` for the arms, the noise floor immediately after, one
+      clock. (2) Write the outcome BESIDE the prediction in
+      `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md`, never
+      over it; read no delta smaller than the old floor's £4,402 sd as an effect, and use the new
+      floor once it exists. (3) In the same edit put TWO sentences on the render and on the live
+      surface: that the arms comparison is between two internal policies in a market that could not
+      react to either, and that the published book is a 17.89% uniform sample of what the company
+      won, so a reader dividing by 172 accounts is dividing by a sample and not by the business.
+      Assert them the way `site/test_the_baseline_comparison_reaches_the_reader.py` already does —
+      through `site/_live_harness.mjs`, reading the rendered DOM, with a mutation that deletes each
+      sentence and reds its own test while the unavailable-feed null rung stays green.
     why: >-
-      This is third and not fifth for a reason I can now measure rather than assert: two consecutive
-      stretches named four lane-0 items and drew three, so position four has been a decision that the
-      work does not happen, taken eight times while I told myself it was a priority call. The
-      substance has not improved with the delay — the page publishes a comparison denominated in
-      constants the tree has since deleted, beside an error bar whose 25.2 spread-to-estimate ratio
-      divides a spread from the provisioned clock by an estimate from the realised one, which is two
-      correct figures whose ratio is not a quantity. The `clock_caveat` discloses it, and a disclosed
-      hole is still a hole. The bound sentence is the thesis's own honesty condition on this page: the
-      director's standard is that there has to be a baseline to beat or "it performed well" means
-      nothing, and a reader looking at two internal policies in a market that could not react to
-      either is owed that in the render and not in a footnote. Done means both artefacts carry this
-      week's clock, the prediction is graded in its own file with the correction beside it, and the
-      fetched live page contains the bound sentence under a control that fails if it stops.
+      It moves from position three to position two because that is the only thing I have not tried and
+      the only thing the record supports: named in four consecutive directions at positions three,
+      four and five, drawn zero times, while positions one and two were drawn every time. If it is not
+      drawn from here, the fault is not the ordering and I will stop writing it as an ordering problem.
+      The substance also got worse rather than staler overnight: the page publishes a comparison
+      denominated in constants the tree has since deleted, beside a 25.2 spread-to-estimate ratio that
+      divides a spread taken on the provisioned clock by an estimate taken on the realised one — two
+      correct figures whose ratio is not a quantity, disclosed by `clock_caveat`, and a disclosed hole
+      is still a hole — and its arms now describe a book with half the accounts and two of the ten
+      cohorts the company actually holds. The sample sentence is new and is the reason this cannot wait
+      another stretch: this morning's change made the published book honestly uniform, which is a real
+      improvement, and it also made it a sample that a reader will otherwise read as the company.
+      Done means both artefacts carry one clock from today, the prediction is graded in its own file
+      with the correction beside it, and the fetched live page carries both sentences under controls
+      that fail if either stops.
+  - id: does-growth-now-press-the-balance-sheet
+    what: >-
+      Answer the question the ceiling work was for, on the book it now produces, and say first what
+      each account count counts. Three parts. (1) R6's measurement reads `accounts` = 13 for the
+      Ofgem MCR claim of £1,690 against £337,305.65 of net assets. The tree now holds at least four
+      account populations — 587 held in the company's plan, 172 on the book, 90 campaign wins, 13 in
+      R6 — and £130 × 13 against £130 × 587 is a £76,000 swing in the capital requirement. Name which
+      population the collateral desk is entitled to see (it is a company-side figure, so ask the
+      epistemic-wall question of it explicitly), and if it is the wrong one, that is the finding and
+      the repair. (2) Re-measure the headroom on the post-allocation run rather than projecting it:
+      the £316,008.84 was taken on the pre-change book. Report free equity, peak net exposure and the
+      distance to the first collateral demand, and say plainly if the mechanism still does not fire —
+      "the distance IS the answer" is a result and nothing may be tuned to make it fire. (3) Attribute
+      the £10,378 fall in published net (£164,542 → £154,164) across the same commits that raised
+      campaign spend £46,408 → £60,839. More than one thing changed, so run the one-variable version:
+      the spend rise alone should account for most of it, and whatever it does not account for is
+      either the 45 new accounts' cost to serve or something nobody has named. Write the prediction
+      down before you run it.
+    why: >-
+      The director's sentence was *"acquisition spend cannot weaken a balance sheet through a book
+      nothing reaches"* — the ceiling was the obstacle, not the point. The book now reaches, and in
+      the very first run afterwards the company earned £10,378 less while spending £14,431 more to
+      grow. That is either the growth loop working exactly as the thesis says it should, or it is a
+      cost the machine imposed and nobody has separated the two. This is third rather than first only
+      because both of the other items are preconditions for believing its output: item one decides
+      whether the numbers it would quote exist in any commit, and a headroom re-measured through an
+      unlanded reconciliation check is a number I would have to withdraw. The account-denominator half
+      is the more valuable half regardless of what the headroom does — a capital requirement
+      denominated on 13 accounts while the company holds 587 is the "say out loud what each number
+      counts" defect sitting under a published solvency claim. Done means one named account
+      population with the wall question answered, a headroom figure measured on this morning's book
+      beside the £316,009 it replaces, and an attribution of the net fall that either closes or
+      explicitly refuses to close.
 not_now:
   - what: >-
-      Continuing to hold PB4, PB5 and P2–P4 on the grounds that the gradable population cannot refute
-      them — and equally, promoting them into a lane-0 slot now that it can.
+      Running §6 of `SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` — the three-point probe at budgets
+      1200/2000/2800 — and setting `SETTLEMENT_CUSTOMER_YEAR_BUDGET` from its slope. This was focus
+      item one three hours ago and I am taking it off the board rather than demoting it.
     why: >-
-      The hold's stated reason is dead and I am recording that rather than quietly restating it: I
-      held these because the paired population was sixteen and "a heterogeneity model built against a
-      population that cannot reject it is an unfalsifiable improvement". The population at a fixed
-      rung is 99 and always was. The hold does not survive its reason, so it is lifted. But they do
-      not take a lane-0 slot either, because the ordinary draw took PB4 and PB5 this stretch without
-      being steered and lane-0 slots are the scarce resource — three per stretch, measured. The right
-      place for them is the dial-weighted lane they are already in, and the second focus item is what
-      makes their eventual measurement trustworthy.
+      Its premise was refuted by the work it commissioned. I ordered that probe because I believed the
+      ceiling's size was what booked zero from 2018; it was the first-come allocation rule, and the fix
+      doubled the book on FEWER customer-years, which no larger ceiling could have done. The ceiling
+      is still a real resource limit — 22.4% of what the company wins is all the machine can settle,
+      and that is now published as a uniform sample rather than as a censoring rule — so the probe
+      would still tell us something true. It would just cost forty minutes of a contended box to
+      resize a constant whose shape no longer distorts anything, and §5's own finding is that the
+      time argument for raising it is circular. The right moment for it is when the sample rate is
+      what a reader objects to, not while the page does not yet say there is one.
   - what: >-
-      Raising `SETTLEMENT_CUSTOMER_YEAR_BUDGET` to whatever number makes the book grow, or dropping
-      the cross-rung intersection from the SLOPE the way it was correctly dropped from the fixed-rung
-      comparison.
+      Putting the PB2 capitalisation question — a £337,305 balance sheet against a book with a peak
+      position of £19,607 — to the director as a curriculum decision. Fourth direction running that I
+      have considered and rejected this.
     why: >-
-      Both are the cheap versions of focus items one and two and the second is newly tempting because
-      the first version of it was right. The distinction is the whole point: a between-arm question at
-      a fixed rung needs only that both arms priced and rolled the same decision at that rung, so the
-      intersection was pure loss there; a slope has to run along one x-axis over one population, so
-      the intersection is what makes it a slope at all. Dropping it there would compare decisions the
-      rungs never both priced, which manufactures n by exactly the mechanism that just cost us two
-      days. And the ceiling may move only on a memory measurement against the guest — a constant
-      chosen because a number was needed is load-bearing within a week and unattributable within a
-      month.
+      The reason changed this stretch, which is why it is worth writing down rather than repeating.
+      Last night it lost because the book was sized by our own engine and capitalisation only matters
+      against a balance sheet growth is pressing on. Growth now presses it. What stops it today is that
+      I do not yet know what the number denominates: R6's own measurement reads 13 accounts where the
+      company holds 587, so the free-equity figure I would put to him is a ratio whose two sides count
+      different things. Asking him to rule on a world parameter using a number I cannot define would
+      be the exact failure the "say what each number counts" rule exists to prevent. Focus item three
+      resolves it, and then it is genuinely his and goes to him with a number attached.
   - what: >-
-      Working the calibration gap now — the company tracks 0.2% to 25.7% of the world's move and
-      over-predicts churn by 0.9 to 26.3 percentage points at every rung — or building §5 component 1,
-      the observation of the cheapest rival price the company does not have at all.
+      Re-running the B10 ladder chase pair, PB4 and PB5 on the new ten-cohort book, on the argument
+      that every measurement taken before 07:47Z was taken on a book that no longer exists.
     why: >-
-      These are the two most interesting numbers on the board and both lose on sequence rather than
-      merit. B10 moved on direction and sign one hour ago; tuning the belief toward the world now
-      would be fitting to a measurement whose ink is wet, and the two aggressive rungs where the
-      company is nearly blind have thin early populations for a reason focus item one may change. The
-      ceiling gap is a `B4_competitor_field` capability and not a B10 world-side one, and it is the
-      right next capability — it goes on the board when the re-run says what book it would be built
-      against. Held on evidence that is one stretch away, not on judgement.
+      Tempting and mostly wrong, and the distinction is worth stating because the tempting half is
+      real. The ladder builds its OWN founder book and asks a between-arm question at a fixed rung, so
+      it is not denominated on the campaign book at all; the finding this stretch was that its result
+      is a measurement of the join and not of the book, and the join is now repaired with per-rung
+      populations printed at the source. Re-running it would cost forty minutes of sequential arms —
+      they cannot run in parallel, one peaks near 11 GB — to reproduce a result whose insensitivity to
+      the book is the established finding. PB4 and PB5 were drawn by the ordinary dial-weighted lane
+      this stretch without being steered, and lane-0 slots are the scarce resource: two or three per
+      stretch, measured over four directions. The capabilities artefacts are the exception and they are
+      focus item two, because those ARE denominated on the campaign book and they are published.
   - what: >-
-      Putting the £337k capitalisation of a small supplier (PB2, priced by R6's headroom) to the
-      director as a curriculum question, and tuning anything so that R6's first collateral demand
-      fires.
+        Item 2 of the chase-population finding — `run_price_ladder` retaining every rung's settlement
+        records, which is what forces sequential arms and the 11 GB peak — and the ten repeating-alarm
+        findings sitting in the staging root, and H45.
     why: >-
-      The capitalisation question is genuinely his — which world the company lives through is named
-      and versioned in a file he reads — and it is askable with a number attached, which is why it is
-      tempting for the third direction running. It still cannot bind while the book is sized by our
-      own engine: capitalisation only matters against a balance sheet that growth is pressing on, and
-      the £316,009 headroom is many times the entire decade's campaign spend for the same reason.
-      Focus item one is the legitimate route; if the mechanism binds, it binds because growth reached
-      it, which is the real channel. Moving a number to make it fire would be inventing the answer to
-      the question R6 exists to ask. It goes to him when the ceiling is measured and the re-run says
-      what the book does.
-  - what: >-
-      H45 — the systematic knowledge-to-discovery-to-atom chain — and the harness backlog: ten
-      repeating-alarm findings in the staging root and ~117 harness atoms never read for whether they
-      should exist.
-    why: >-
-      H45 keeps losing to its own instances and this stretch produced two more good ones rather than
-      an argument for the general form: the ceiling's stale note was found by chasing one constant to
-      its rendered string, and the join defect was found by noticing one number that would not move.
-      Build the chain after its instances. The harness backlog moves no level and closes no finding,
-      and the staging root is a work queue by design, so those files sitting in it is the signal
-      working. Both wait for a stretch with nothing on the published surface a reader could object
-      to, and tonight the book-growth page still publishes a book an engineering constant sized.
+      The ladder retention is the best of the three and it is still a speed fix for an instrument
+      nothing is currently blocked on; it becomes worth a slot the moment a lane needs a chase pair
+      inside one tick, and not before. The repeating alarms move no level and close no finding, and
+      the staging root is a work queue by design, so files sitting in it is the mechanism working
+      rather than a backlog. H45 — the systematic knowledge-to-discovery-to-atom chain — keeps losing
+      to its own instances and this stretch produced two more good ones than an argument for the
+      general form: the allocation defect was found by pricing one win by the year it was won in, and
+      the mislabelled population was found by grepping a number through prose rather than through
+      imports. Build the chain after its instances, and while the live page still describes a book
+      that changed under it this morning, none of these outrank that.
 wrong:
   - what: >-
-      I built the whole of last night's board on a population of sixteen. I wrote that the book was
-      "frozen at 127 accounts", that the founder book "bought nothing", that "B10 cannot be graded on
-      sixteen decisions", and I held PB4, PB5 and P2–P4 on the grounds that no population could reject
-      them — saying explicitly that the hold's reason had changed from "we do not know" to "we know,
-      and the cause is the settlement ceiling". None of that was true. Sixteen was
-      `slopes.common_population`, a cross-rung intersection structurally confined to 2016–2018 because
-      rung 2.0 prices its book away by 2019; the correct population at a fixed rung is 99, and the fix
-      cost no data at all. The tell was in front of me in the same document I quoted: a figure that
-      did not move by one digit when the window grew two years and the ledger deepened to 453
-      decisions. I read that as a small book. It was a wrong join, and a result that does not respond
-      to added evidence is the signature of one.
+      I told the lane the ceiling constant was too small and specified the probe run that would resize
+      it. The defect was in the rule that SPENDS the budget, not in its size: because a win is charged
+      for its settlement tail, first-come allocation buys 2016's most expensive cohort and nothing
+      after 2017, and no budget escapes that shape — it only moves the cliff. The lane refused my
+      instruction, printed the per-year cost of a win at real inputs, and doubled the book on 0.4%
+      fewer settled customer-years. My instruction would have spent forty minutes and produced a bigger
+      number that fixed nothing. The tell was in the table I had already read: 100% of two years and 0%
+      of eight is a censoring rule, not a resource limit, and I read it as scale.
     corrected: true
   - what: >-
-      I quoted the settlement ceiling's provenance — "its own note says it is 60% of the 465 measured
-      in AO12's scale probe, so the ceiling has provenance" — as a live fact to be checked. The
-      module's own header had retired that derivation five days earlier, and the string I was quoting
-      was arithmetically false about its own subject: 60% of 465 is 279, the constant's value when the
-      string was written, and it survived 279 → 600 → 1200 untouched. I read the project's published
-      note instead of the code it claimed to describe, which is the failure the rule about reading
-      enforcement rather than paraphrase exists to prevent.
+      Last night I diagnosed that focus positions four and five are decisions that the work does not
+      happen, and fixed it by naming three items instead of five. `capabilities-one-clock-one-basis-one-bound`
+      was not drawn — from position three of three. Shortening the list is not the fix; only positions
+      one and two have ever been drawn, across four directions. I described a mechanism correctly and
+      then applied it to the wrong variable.
     corrected: true
   - what: >-
-      Eight consecutive directions have named the settlement-clocks pair and it is still untracked
-      tonight, with both consumers modified-unstaged. Last night I diagnosed the ordering defect,
-      moved it to first, and it was drawn and claimed at 05:03 with no paths landed. So placing it
-      first was necessary and not sufficient: the item has now failed at every position on the list,
-      which says the fault is that it has never been anybody's actual subject — it is always the
-      chore in front of the work. It is folded into focus item one this time, as a dependency of that
-      item's own instrument rather than as a chore, because the probe genuinely cannot run in a clone
-      without it.
-    corrected: false
+      In the same direction I folded the settlement-clocks pair into focus item one "as a dependency of
+      that item's own instrument rather than as a chore", having just written that the fault was that
+      it had never been anybody's subject. Folding it into a larger item is listing it last with extra
+      words, and it is still untracked nine directions later, with the working tree's repair for a
+      published £39,962.17 treasury discrepancy sitting in no commit.
+    corrected: true
   - what: >-
-      I have named five focus items in each of the last two directions and the draw took three lane-0
-      items each time. Position four and position five are not priority statements, they are decisions
-      that the work does not happen, and I have taken that decision about `/capabilities/` eight times
-      while describing it as a judgement about importance. The evidence was in my own record and I
-      wrote "it is fifth because a disclosed hole is still a hole" rather than counting the draws.
+      A discharge in the chase-population finding claimed "nothing outside those two files reads either
+      block, so the blast radius was bounded" — verified against the import graph, and false of the
+      record. A sixth reader was already in the tree, `SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` §5,
+      labelling the cross-rung intersection the "gradable ladder population", which is the precise
+      misreading the finding exists to stop, laundered into a second document where no grep of `*.py`
+      could reach it. Caught and corrected beside the claim within the stretch, with both populations
+      now printed at the source rather than a doc-linting register minted to watch prose.
     corrected: true
 for_the_director: []
