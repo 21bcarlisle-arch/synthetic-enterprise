@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-08-29T16:42:41.628214+00:00",
+ "generated_at": "2026-08-29T17:27:16.844495+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "b693bd220",
+    "at": "2026-08-29T17:58:46+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=9b1ceda50, net=\u00a3154,164)",
+    "substantive": false
+   },
+   {
+    "sha": "1e98a20db",
+    "at": "2026-08-29T17:47:10+01:00",
+    "subject": "republish on the named basis: the \u00a312,480 overstatement is off the page, and the run's own \u00a331,200 is not claimed as the repair",
+    "substantive": true
+   },
    {
     "sha": "4d0ed7b7d",
     "at": "2026-08-29T17:39:33+01:00",
@@ -231,18 +243,6 @@
     "at": "2026-08-29T05:59:29+01:00",
     "subject": "the published CRM reconciliation was a mirror, and the seam that starved the CRM is deleted",
     "substantive": true
-   },
-   {
-    "sha": "edabeeb5d",
-    "at": "2026-08-29T05:49:22+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=1974f47a5, net=\u00a3164,542)",
-    "substantive": false
-   },
-   {
-    "sha": "29723c931",
-    "at": "2026-08-29T05:30:55+01:00",
-    "subject": "the settlement ceiling's cost note is 36% stale, and the probe that would replace it read the producer's book back as its own result",
-    "substantive": true
    }
   ],
   "substantive": 21,
@@ -251,53 +251,53 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-29T14:21:44.690714+00:00",
-  "age_hours": 2.3,
+  "oriented_at": "2026-08-29T17:22:29.350199+00:00",
+  "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three of the four named items were drawn and genuinely worked inside three hours, and the work is good \u2014 which means my predecessor's diagnosis was wrong and the real constraint is somewhere else. `docs/design/NET_FALL_ATTRIBUTION_2026-08-29.md` landed an attribution that closes to \u00a30.0005 with no plug, refuted the direction's own hypothesis structurally (acquisition spend is not a line in the published net identity, so a rise in it cannot account for any part of a fall in the headline), and then found the thing nobody was looking at: the \u00a310,377 fall is a **\u00a322,788 loss in the pre-2021 book** \u2014 37 fewer active accounts in 2016 on acquisition wins that are identical in both runs \u2014 while the growth half *earned* \u00a312,411 at 44.5% incremental gross margin against 37.7% incremental pass-through. And R6's headroom moved for the first time, with the right sign. That is the closest this project has come to the director's own sentence about acquisition spend and the balance sheet. **But almost none of the stretch's work is in a commit.** The entire account-population repair \u2014 `mcr_accounts_on_supply` in `saas/capital/solvency.py` (+93), `accounts_population`/`accounts_selection` on the collateral desk (+68), producer labels in `annual_report.py`, `run_value_cycle_ab.py` and `generate_book_growth_data.py`, twelve mutation-proven controls in an **untracked** `tests/company/risk/test_mcr_account_population.py`, and an **untracked** census that finds six populations where the direction alleged five \u2014 exists only in the working tree. Its consequence is live: the site publishes free equity of \u00a3328,241.47 on 24 per-commodity legs of a static import-time roster, when the named population is 120 domestic accounts on supply and the honest figure is \u00a3315,761.47. **Free equity is overstated by \u00a312,480 on a page right now, and the code that would correct it is in no commit.** The founder-book discharge is unlanded for a second direction running, its README still asserting in the working tree that it landed. So the disease has moved: it is no longer that lane 0 cannot be reached, and no longer that the wrong things are chosen. It is that finished, correct, high-quality work stops at the edge of the index. Against the thesis this is the worst possible failure mode, because it is invisible \u2014 a green tree, a good document, a real measurement, and a published number that is still wrong. Every item below therefore names LANDING as the deliverable, not the analysis.\n\n**DISCHARGED 2026-08-29 by `4d0ed7b7d`, and the paragraph above is left standing because a diagnosis is worth more next to its outcome than quietly revised.** The account-population repair is in the index: the selector, the twelve controls, the census, the producer labels, and \u2014 the one path the item's own pathspec omitted \u2014 `simulation/run_phase2b.py`, which is the only caller of `build_counterparty_collateral` and therefore the difference between a landed selector and dead code. Verified receipt-consistent, gate-rc 0, and landed while the arms re-run was still executing, so that artefact's `book.what_each_count_selects` is now produced by code that IS in a commit. **The sentence \"free equity is overstated by \u00a312,480 on a page right now\" is no longer true.** `run_output_latest.json` publishes `accounts_held: 120` with `accounts_population` and `accounts_selection` beside it. Two things the stretch did NOT establish and which are not to be read as fixed: the live run's free equity is \u00a3346,961.47 rather than the \u00a3315,761.47 quoted above, because its net assets are \u00a3362,561.47 rather than \u00a3331,361.47 \u2014 that \u00a331,200 is the run moving, NOT this repair, and attributing it here would be the same error the attribution document exists to refuse. The only figure attributable to this repair remains \u2212\u00a312,480. And the diagnosis itself \u2014 \"finished work stops at the edge of the index\" \u2014 is supported by one landing, which is one instance, not a trend.",
+  "thesis_read": "The stretch put the account-population repair in a commit and graded the arms pre-registration, and both were done well \u2014 but the thing they uncovered between them is the most serious result this project has produced against the director's own thesis condition, and it is not yet on the page. His condition is that there has to be a BASELINE to beat or \"it performed well\" means nothing. We have that baseline. `9b1ceda50` graded leg 1 and found that **the published headline was already inside its own error bar when it was published, and on today's book the same quantity has the opposite sign**: value\u2212control was \u2212\u00a34,724 on the live page and is +\u00a3607 on the 14:40Z re-run; level\u2212control was +\u00a34,903 and is \u2212\u00a31,208. The new noise floor, which finished at 17:04Z after the grading was written, bounds all four at mean \u2212\u00a31,614 with a spread of \u00a32,578 and `selection_distinguishable_from_zero: false`. So the live site says *\"the per-customer choosing is worth less than nothing\"* \u2014 a direct answer to the director's question \u2014 and that sentence's sign is a seed draw. The comparison cannot resolve its own question on a book of 167 settled accounts, and the honest publication is that we cannot tell. That is not a step backwards: the instrument now has an error bar big enough to catch its own headline, which is exactly what an instrument is for, and refusing the sign is the result. What went backwards is the route from that instrument to the reader. `tools/generate_value_arms_data.py:98-99` reads two UNDATED constants \u2014 `docs/observability/value_cycle_ab_s1_three_arm.json` (generated 2026-08-28T14:08:48Z) and `..._noise_floor.json` (2026-08-27T23:32:17Z) \u2014 and those two are the tracked files. The fresh pair from `arms-rerun-20260829.service` sits UNTRACKED at `..._20260829.json`. Three consecutive directions have asked for \"one clock\" on this page and none of them read those two path constants, so a re-run that costs three hours of machine cannot reach the page at all. That is the recurring class in mirror image \u2014 not a published figure whose producer is uncommitted, but a published figure whose fresh input is untracked while a stale tracked one feeds the reader \u2014 and it is this project's own rule about reading the enforcement rather than the paraphrase, broken by the seat that writes the rule down. Separately, the growth loop's picture got sharper and nobody has joined it up: `WORKER_FINDING_THE_CEILING_SPENT_THE_WHOLE_BUDGET_ON_ITS_MOST_EXPENSIVE_COHORT` shows a 2016 win costs 9.83 customer-years against 0.78 for a 2025 one and the old budget was spent first-come, so the allocation change at `248a6368e` necessarily buys FEWER early-year accounts \u2014 which is a named candidate mechanism for the \u00a322,788 pre-2021 loss and the 37 missing 2016 accounts that `NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 has owed a run for since 12:00Z. Two of four previous items were drawn and worked; items three and four were not drawn at all, and item four is unchanged and uncommitted for a third direction running.",
   "focus": [
    {
-    "id": "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
-    "what": "Land the finished account-population work as ONE commit by pathspec, then republish. The set is `saas/capital/solvency.py`, `company/risk/counterparty_collateral_desk.py`, `saas/reporting/annual_report.py`, `tools/run_value_cycle_ab.py`, `tools/generate_book_growth_data.py`, the untracked `tests/company/risk/test_mcr_account_population.py` and the untracked `docs/design/ACCOUNT_POPULATION_CENSUS_2026-08-29.md`, plus the \u00a74a correction already written into `docs/staging/WORKER_FINDING_R6_JOINS_ACQUISITION_SPEND_TO_COLLATERAL_...2026-08-28.md`. **Diff every hunk before you add its path** \u2014 this tree carries 242 changed paths and several lanes; anything in those files that is not the census work is held back and named in the message, not swept in. The new test module needs a REUSE block from `tools/write_time_gate.py --explain`. Verify against the tree the commit would create, through `python3 -m tools.surgical_land`, never against the shared working tree. **Then republish**, so the site's free equity reads on the 120-account domestic-on-supply basis with its population named beside it, and `docs/design/NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a73.4 \u2014 which correctly refuses to quote \u00a3315,761.47 while its selector is uncommitted \u2014 can be updated to say the selector landed. **One ordering constraint that is not optional:** the arms re-run is executing the working-tree copy of `tools/run_value_cycle_ab.py` right now, so its artefact will carry `book.what_each_count_selects` from a file HEAD does not contain. Land before that artefact is published, or this is the third time in a week that a published figure is generated by code in no commit.",
-    "why": "It is a published solvency number that is wrong by \u00a312,480 and the repair is already written, already controlled and already argued \u2014 the only thing between the live page and a correct figure is a commit. It is first over everything else because it is the one item where the analysis is finished and the value is entirely in the landing, which is exactly the failure this stretch exposed. The census also settles the question the last direction asked: six populations, each with a named selection, and the wall question answered out loud \u2014 a real supplier's finance function can count its own domestic accounts on supply off its own settlement record, and it consults nothing the world knows. **Done means:** the selector, the twelve controls and the census document are in one commit or the exclusions are named with reasons; the published free-equity figure and `accounts_held` are on the named basis with the population beside them; and the reconciliation control \u2014 published `free_equity_gbp` against published `accounts_held` satisfying the identity that produced them \u2014 is in that commit, because that is the one control keyed to the property rather than to today's answer, and it is what makes this repair survive the next restatement of either side."
-   },
-   {
-    "id": "grade-the-arms-preregistration-and-put-both-legs-on-one-clock",
-    "what": "`arms-rerun-20260829.service` is ALIVE (MainPID 438742, `ActiveState=active`, past 13,003,400 settlement periods and into 2025-05 as at 15:20Z), running both legs in one process to `value_cycle_ab_s1_three_arm_20260829.json` and the matching noise floor. When the artefacts exist: (1) grade `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md` BESIDE the prediction and the three STATUS sections, never over them, and read **no delta smaller than the new floor's own spread** as an effect \u2014 the old floor's \u00a34,402 sd against a \u00a3504 mean is why that bar is expected to swallow most of the table; (2) grade the thing the prediction did not anticipate and says so \u2014 that the book the arms score is now a uniform 17.89% sample of the company's wins rather than all of them; (3) regenerate `site/data/value_arms.json` so `run_generated_at` and the floor carry ONE clock from today's book, and `staleness_caveat` and `clock_caveat` have nothing left to say. **If the artefacts are still absent, that refutes the finding's own falsifiable claim** \u2014 the cgroup diagnosis was incomplete, and the next move is to catch the killer in the act with journald capture on a fresh `systemd-run --user --unit=`, not to infer a cause for the third time.",
-    "why": "\"There has to be a BASELINE to beat, or it performed well means nothing\" is the director's own condition, the arms comparison IS that instrument, and it is publishing `run_generated_at: 2026-08-28T14:08:48Z` on 210 settled accounts \u2014 a company that stopped existing yesterday \u2014 bounded by a floor from 2026-08-27T23:32:17Z whose own caveat admits it is older than the figure it bounds. The pre-registration has been ungradeable three times for a reason that is now established and fixed. It is second rather than first only because it is gated on a run I do not control the finish time of; the moment those two files exist this is the most valuable thing on the board. **Done means:** two artefacts on one clock from today's book, a graded prediction with any correction written next to it rather than over it, and both caveat strings empty on the fetched live page."
+    "id": "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
+    "what": "Both legs of `arms-rerun-20260829.service` are FINISHED and on disk: `docs/observability/value_cycle_ab_s1_three_arm_20260829.json` (`generated_at` 2026-08-29T14:40:24Z) and `docs/observability/value_cycle_ab_s1_noise_floor_20260829.json` (2026-08-29T17:04:23Z, three seeds, `selection_gbp` mean \u2212\u00a31,614.30, stdev \u00a32,577.80). Both were produced by ONE process from ONE snapshot of the tree, and `git diff HEAD -- tools/run_value_cycle_ab.py` is empty, so the producer is in a commit \u2014 confirm both of those yourself before you publish anything. **Read `tools/generate_value_arms_data.py:98-99` before you plan the work:** `THREE_ARM_PATH` and `NOISE_FLOOR_PATH` are undated constants pointing at the TRACKED 2026-08-27/28 pair, which is why a dated re-run artefact reaches no reader. Promote the new pair onto those two paths (or make the paths an argument and pass them \u2014 your call, but say which you did and why), so the page's two inputs are the same book on the same day. Then regenerate `site/data/value_arms.json` and land the artefacts, the generator change and the regenerated feed in ONE commit by pathspec, verified through `python3 -m tools.surgical_land`, never against this shared tree. **The substantive change, and it is not the regeneration:** the headline composer currently asserts a direction unconditionally. It must not. When a contrast's magnitude is inside the floor's own spread, the composed headline may state the size and the bound and must state that the comparison cannot resolve its sign on a book this size, and must name what would resolve it (a larger settled book \u2014 focus item three). All four current contrasts are inside it, so the page will say \"we cannot tell\", and that sentence goes on the surface, not in a footnote. Write the old headline's exact words into the record beside the new one, not over them \u2014 *\"the per-customer choosing is worth less than nothing\"* is the sentence being withdrawn and it should be readable next to why. `staleness_caveat` and `clock_caveat` are emptied by the run, not by the generator: if either is still non-empty after regeneration, that is a finding about the caveat's own derivation, not a licence to blank it.",
+    "why": "This is the director's own condition \u2014 \"there has to be a BASELINE to beat, or 'it performed well' means nothing\" \u2014 and the live page currently answers it with a sign that flips with a seed draw. It is first because it is the only item where a wrong claim is in front of a reader right now, both measurements it needs already exist, and the fix is under two hours. **Done means:** the fetched live page states the contrast with its bound and makes no directional claim about per-customer choosing; the arms feed's two inputs carry the same date; the two new artefacts are tracked; and there is ONE mutation-proven control keyed to the property, not to today's answer \u2014 feed the composer a contrast INSIDE the spread and the directional sentence must be absent, feed it one OUTSIDE and the directional sentence must come back. A control that merely pins today's \"we cannot tell\" string goes red when the book grows enough to earn a sign, which is exactly backwards and is the failure this project keeps repeating."
    },
    {
     "id": "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
-    "what": "Run the one-variable run at `248a6368e^` that `NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 explicitly owes and \u00a73.3 depends on. Launch it with `systemd-run --user --unit=<name>` \u2014 it is a ~2-hour job and `worker-tick.service` is `KillMode=control-group`, so `setsid` will not save it and has already failed three times. Write the prediction down before the run. Two questions, one measurement: is the pre-2021 book losing \u00a322,788 of net and 37 active 2016 accounts, on acquisition wins that are **identical** in both runs, a fidelity repair or a regression in the budget-allocation change? And does the R6 co-movement \u2014 distance to the first collateral demand \u2212\u00a334,385 against realised acquisition spend +\u00a314,396, a fall 2.4\u00d7 the spend rise \u2014 survive as an attributed mechanism, or is it the book changing and the balance sheet following? A refusal that names what could not be isolated is a permitted result; a plug is not, and nothing may be tuned to make the collateral mechanism fire.",
-    "why": "The static-closure argument already did the cheap half and did it well \u2014 `248a6368e` is the only commit in the range that touches run-reached code \u2014 but reachability is not attribution, and the document says so itself. Until this runs, the project's first evidence that growth has a balance-sheet cost is a co-movement with the right sign wearing a mechanism's clothes, and the director's sentence was about spend weakening the balance sheet through a book that reaches. Equally, a \u00a322,788 loss in years the campaign cannot touch is sitting under every net figure published since 07:26Z and nobody has said whether it is the world getting more honest or the company getting quietly worse. **Done means:** the word \"repair\" or the word \"regression\", with the run at `248a6368e^` printed beside it, and either an attributed R6 mechanism or an explicit statement that the two channels cannot be separated by this run and what would separate them."
+    "what": "Carried from the last direction, where it was named and never drawn. Run the one-variable run at `248a6368e^` that `docs/design/NET_FALL_ATTRIBUTION_2026-08-29.md` \u00a72.6 owes and \u00a73.3 depends on. Launch it with `systemd-run --user --unit=<name>` \u2014 a ~2h job, and `worker-tick.service` is `KillMode=control-group`, so `setsid` cannot save it and has already failed three times; the 2026-08-29 arms re-run proves the `systemd-run` form survives. Do NOT start it while another long run is in flight \u2014 the ceiling probe peaked at 7,323 MB and this box OOMs; wait on the other process with `tools/wait_for.py --pid`. Write the prediction down before the run, and **there is now a named candidate mechanism to predict against, which there was not last time**: `WORKER_FINDING_THE_CEILING_SPENT_THE_WHOLE_BUDGET_ON_ITS_MOST_EXPENSIVE_COHORT_2026-08-29` establishes that a 2016 win costs 9.83 customer-years and a 2025 win 0.78, and that the old first-come spend bought 2016's accounts before anything else. A uniform-share allocation therefore buys fewer early-year accounts BY CONSTRUCTION, which would make the 37 missing 2016 accounts and the \u00a322,788 a designed consequence rather than a regression. Predict it, then let the run refute it. Two questions, one measurement: is the pre-2021 loss a fidelity repair or a regression; and does the R6 co-movement \u2014 headroom \u2212\u00a334,385 against realised acquisition spend +\u00a314,396, a fall 2.4\u00d7 the spend rise \u2014 survive as an attributed mechanism, or is it the book changing and the balance sheet following? Also read `WORKER_FINDING_THE_CEILING_PROBE_READ_THE_PRODUCERS_BOOK_BACK_AS_ITS_OWN_RESULT_2026-08-29` first: the probe path mirrored the live producer's book back as its own result, so this run must write its own artefact and must not be graded off `settlement_ceiling_probe.json`.",
+    "why": "A \u00a322,788 loss in years the campaign cannot touch has been sitting under every published net figure since 07:26Z and nobody has said whether it is the world getting more honest or the company getting quietly worse \u2014 that is the difference between value created and value lost, which is the mission's first sentence. And until this runs, the project's only evidence that growth has a balance-sheet cost is a co-movement with the right sign wearing a mechanism's clothes. It is second rather than first only because item one has a wrong sentence in front of a reader and this one does not. **Done means:** the word \"repair\" or the word \"regression\", with the run at `248a6368e^` printed beside the prediction that preceded it, and either an attributed R6 mechanism or an explicit statement that these two channels cannot be separated by this run plus what would separate them. A refusal that names what could not be isolated is a permitted result; a plug is not, and nothing may be tuned to make the collateral mechanism fire."
+   },
+   {
+    "id": "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
+    "what": "The one-variable run that the last section of `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SOURCED_COST_RERUN_MUST_SHOW_2026-08-28.md` files as the work it owes: the three-arm pass plus its noise floor, in one process, with `SETTLEMENT_CUSTOMER_YEAR_BUDGET` in `simulation/net_new_acquisition.py` lifted far enough that the win population is COMPLETE \u2014 everything else held, same seeds, same world. Launch via `systemd-run --user --unit=`, after item two's run has exited, and write the prediction first. **This is an experiment on the measuring instrument, not a change to the published ceiling.** The lift lives in the run's own configuration and does not land as a new constant: the director's standing note is that the ceiling's time argument is circular \u2014 the publish cadence is defined as a measurement of how often runs arrive \u2014 and that it needs a non-circular basis rather than a bigger number. Nothing here supplies that basis and nothing here may be read as supplying it. What this run answers is narrower and is the question item one's page will be pointing at: does the value\u2212control contrast come out of the noise floor when the arms score the whole win population instead of a uniform 17.89% sample of it, or is it inside the spread at any book this machine can produce?",
+    "why": "Item one will publish \"we cannot tell\" and name a bigger book as what would resolve it; this is the run that tests whether that is true, and if it is not, the honest reading is that the arm comparison is not the right instrument for the director's question and we need a different one. It also touches his own named top item \u2014 the settlement engine booking zero of every year's wins \u2014 from the measurement side rather than the constant side, which is the side that is allowed to move without a fidelity argument. It is third because it is gated on item two's process exiting and because item one's page is honest either way. **Done means:** an artefact whose `book` block shows the complete win population, a prediction graded beside it rather than over it, and a plain statement of whether the contrast is resolvable at that book size \u2014 with the published page updated if and only if the answer changes what the page can honestly say."
    },
    {
     "id": "land-the-founder-book-discharge-that-says-it-already-landed",
-    "what": "Unchanged from the last direction, named there, drawn there, and still entirely uncommitted two days on. `docs/design/held/README.md` in the working tree says \"DISCHARGED 2026-08-28 \u2014 Landed in HEAD\" while the three `.held` artefacts it describes are deleted and none of it is committed; `docs/design/FOUNDER_BOOK.yaml` is modified and `tests/simulation/test_founder_book.py`, `tests/simulation/test_live_population_seam.py` and `tests/simulation/test_customer_events.py` are all uncommitted, while `simulation/live_population.py` IS in HEAD at `3d83edffb`. Verify each of the three test files green against the tree the commit would create, land the set as one commit by pathspec, and if any file does not belong to the landed code say which and hold exactly that file rather than the set.",
-    "why": "Landed code whose controls are in no commit has no control at all from any other checkout, and a working-tree file asserting that the work is committed is self-refuting. It is fourth because it is thirty minutes and mechanical \u2014 the item a tick picks up when something above it lands early \u2014 but the fact that it is here for a second direction running is itself the measurement this orientation is about. **Done means it disappears from this file**, and if it is still here next time the thing to fix is not the item."
+    "what": "Third direction, unchanged, still uncommitted, still not drawn. `docs/design/held/README.md` in the working tree asserts \"DISCHARGED 2026-08-28 \u2014 Landed in HEAD\" while the three `.held` artefacts it describes are deleted-but-uncommitted (`FOUNDER_BOOK.yaml.held`, `founder_book_live_population.patch`, `test_founder_book.py.held`); `docs/design/FOUNDER_BOOK.yaml` is modified; and `tests/simulation/test_founder_book.py`, `tests/simulation/test_live_population_seam.py` and `tests/simulation/test_customer_events.py` are all uncommitted while `simulation/live_population.py` IS in HEAD at `3d83edffb`. Verify each of the three test files green against the tree the commit WOULD create \u2014 not against this shared tree, which measures three other lanes \u2014 land the set as one commit by pathspec including the three deletions, and if any file does not belong to the landed code say which and hold exactly that file rather than the set.",
+    "why": "Landed code whose controls are in no commit has no control at all from any other checkout, and a working-tree file asserting the work is committed is self-refuting. Thirty minutes, mechanical, and the item a tick picks up when something above it finishes early. **The trip-wire, because listing the same instruction a third time and expecting a different draw is itself a defect:** if this is still here at the next orientation it stops being a focus item and becomes a finding about uncommitted controls for code that is in HEAD, filed as a class with a gate against the property, because at that point three directions of correct prose have failed and the prose is not the thing that is broken."
    }
   ],
   "not_now": [
    {
-    "what": "Building `tools/detached_launch.py` \u2014 the shared detached-launch helper that `WORKER_FINDING_THE_ONLY_SURVIVING_LAUNCH_IS_BANKED_IN_ONE_TOOL...` recommends, lifting `_systemd_run_argv` out of `measure_publish_gate_subject_cost.py` so every long job can reach it, with the control keyed to surviving a cgroup stop rather than a `killpg`.",
-    "why": "The finding is right about the class and right about the control shape, and I am still not building it this stretch. The mechanism is now written down in three places and it is one line; CLAUDE.md's own rule is to prefer doing the work to building the thing that watches the work, and I have put the launch line into focus item three's instruction rather than into a module precisely so that item is the test. **The trip-wire is explicit:** if item three's runner reaches for `setsid` anyway, or a second lane loses a long job at a tick boundary, the helper stops being optional and becomes position one \u2014 because at that point the class has recurred twice after being named, and that is the pattern the 2026-08-10 finding was closed on an instance for."
+    "what": "Building `tools/detached_launch.py`, the shared detached-launch helper lifting `_systemd_run_argv` out of `measure_publish_gate_subject_cost.py`.",
+    "why": "Deferred for a second direction, and this time with evidence rather than a hunch. The last direction set an explicit trip-wire \u2014 if a lane reached for `setsid` again or lost a long job at a tick boundary, the helper became position one. It did not trip: `arms-rerun-20260829.service` was launched with `systemd-run --user --unit=`, survived every tick boundary and delivered both legs, and the launch line has been written into items two and three as an instruction rather than a module. CLAUDE.md's rule is to prefer doing the work to building the thing that watches the work. The trip-wire stands unchanged for a third stretch."
    },
    {
-    "what": "Putting a free-equity figure and the R6 headroom result to the director now, which the last direction said item two was blocking and which item two has now unblocked.",
-    "why": "It is unblocked in the working tree and not in HEAD, and the two candidate bases differ by \u00a312,480 on a \u00a3328,241 figure. Handing him a number the repository does not produce is the same defect one layer up, and handing him the R6 co-movement as a mechanism before focus item three runs would be presenting a co-movement as an attribution \u2014 the exact thing the attribution document refused to do on the page. This reaches him after item one lands and item three answers, at which point it is one paragraph with one basis and one clock. That is a judgement about what reaches him, and it is mine, so it is recorded here rather than sent.\n\n**UPDATE 2026-08-29: half this hold is discharged, and it stays held on the other half.** The basis question is settled \u2014 `4d0ed7b7d` landed the selector, so there is now ONE basis (120 domestic accounts on supply, named in the artefact) and the repository produces the number it would publish. What still blocks is item three: the R6 headroom co-movement is a co-movement until the one-variable run separates it, and the live free equity of \u00a3346,961.47 sits on net assets that moved \u00a331,200 for reasons this stretch has not attributed. Sending him a headroom figure whose denominator just moved, without saying which part is the repair and which is the run, would be the co-movement-as-attribution defect wearing the corrected basis as cover. Still mine, still recorded rather than sent."
+    "what": "Putting the free-equity figure and the R6 headroom result to the director now.",
+    "why": "Held for a second direction, on the half that is still genuinely blocked. The basis half is discharged \u2014 `4d0ed7b7d` landed the selector, so there is one named basis (120 domestic accounts on supply) and the repository produces the number it would publish. What still blocks is item two: the headroom co-movement is a co-movement until the one-variable run separates it, and live free equity sits on net assets that moved \u00a331,200 for reasons nothing has attributed. Sending him a headroom figure whose denominator just moved would be co-movement-as-attribution wearing the corrected basis as cover. There is now a second thing worth sending with it \u2014 that the baseline comparison cannot resolve its own sign \u2014 and both are one paragraph once items one and two answer. Still mine, still recorded rather than sent."
    },
    {
-    "what": "`capabilities-one-clock-one-basis-one-bound`. Named in five consecutive directions, drawn zero times, and I am not listing it a sixth.",
-    "why": "My predecessor diagnosed it as a throughput problem and this stretch refutes that \u2014 three of four items were drawn and worked in three hours, so the item was reachable and the honest reading is that no seat has actually wanted it enough to put it first, including me. Dropping it is better than re-listing it, because a name that has survived five directions unworked is furniture. What it was really asking for \u2014 one clock, one basis, one bound on a published comparison \u2014 is focus item two, on the arms page, where the figure is live and the director's own thesis condition bites. If the capabilities page still needs it after that lands, it comes back as an instruction naming the file and the sentence, not as a page name."
+    "what": "Re-running the B10 ladder chase pair on the new ten-cohort book, and H45's knowledge-to-discovery-to-atom chain.",
+    "why": "The ladder builds its own founder book and asks its question at a fixed rung, so its insensitivity to the campaign book is the established fact and re-running it would spend forty minutes of sequential arms to reproduce it \u2014 and this stretch has two long runs already contending for a box that OOMs. H45 keeps losing to its own instances and produced two more this stretch: the ceiling probe's mirror and the ceiling's first-come allocation were both found by taking one artefact and asking where its words came from. Build the chain after its instances, not instead of them."
    },
    {
-    "what": "The affordability xfail in `WORKER_FINDING_TWO_RED_CONTROLS_THAT_PREDATE_TODAY_AND_ONE_IS_A_STALE_XFAIL_2026-08-29.md`: `test_live_run_output_shows_crisis_step_up_headline` is strict-xfail until W2_4 builds affordability physics, and it passes, so a control designed to stay red until a mechanism exists is green while the mechanism does not exist.",
-    "why": "Deferred again, and nothing moved on it this stretch, which is what a correct deferral looks like. The substantive question \u2014 what produces a \u00d71.28 crisis step-up in a model that should not be able to \u2014 belongs to W2_4 with the affordability evidence in front of it, not to a lane-0 slot, and the finding says so itself. The part I did **not** defer last time was its trap, and that stayed correct: three readings of one control in one hour gave \u00d70.05, \u00d71.08 and \u00d71.28 because each read `docs/reports/run_output_latest.json`, a tracked file every run rewrites in place. That file is modified in the tree again as I write this."
+    "what": "The affordability xfail in `WORKER_FINDING_TWO_RED_CONTROLS_THAT_PREDATE_TODAY_AND_ONE_IS_A_STALE_XFAIL_2026-08-29.md` \u2014 `test_live_run_output_shows_crisis_step_up_headline`, strict-xfail until W2_4 builds affordability physics, and passing.",
+    "why": "Deferred a third time and nothing moved on it, which is what a correct deferral looks like. The substantive question \u2014 what produces a \u00d71.28 crisis step-up in a model that should not be able to \u2014 belongs to W2_4 with the affordability evidence in front of it, not to a lane-0 slot, and the finding says so itself. Its trap remains live and is worth more than its subject: three readings of that control in one hour gave \u00d70.05, \u00d71.08 and \u00d71.28 because each read `docs/reports/run_output_latest.json`, a tracked file every run rewrites in place. It is modified in the tree again as I write this."
    },
    {
-    "what": "The ten repeating-alarm findings in the staging root, H45's knowledge-to-discovery-to-atom chain, and re-running the B10 ladder chase pair on the new ten-cohort book.",
-    "why": "The alarms move no level and close no finding, and the staging root is a work queue by design. The ladder builds its own founder book and asks its question at a fixed rung, so its insensitivity to the campaign book is the established fact and re-running it would spend forty minutes of sequential arms to reproduce it. H45 keeps losing to its own instances and this stretch produced two more: the cgroup finding and the six-population census were both found by taking one artefact and asking where its words came from. Build the chain after its instances, not instead of them."
+    "what": "Writing a gate for the class \"code is in HEAD and its controls are not\", instead of doing focus item four by hand.",
+    "why": "It is the right control eventually and it is the wrong move this stretch: a file made of rules breeds rules, and the instance in front of us is thirty minutes of landing. The gate earns its place when item four's own trip-wire fires \u2014 a third failure to draw a mechanical landing is evidence about the tree, a first or second is evidence about priority."
    }
   ],
   "for_the_director": [],
@@ -307,6 +307,22 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-29T17:22:29.350199+00:00",
+    "what": "Three consecutive directions asked for the arms page to be put \"on one clock\" without anyone reading `tools/generate_value_arms_data.py:98-99`. Its two input paths are undated constants pointing at the tracked 2026-08-27/28 pair, so the dated 2026-08-29 artefacts a three-hour run produced reach no reader at all and could not have, however the run went. The project's own rule is to read the enforcement rather than a paraphrase of it, and the seat that writes that rule down asked for the same outcome three times without opening the file that decides it."
+   },
+   {
+    "at": "2026-08-29T17:22:29.350199+00:00",
+    "what": "The last direction's item two bundled a grading with a publication, on a run whose second leg had roughly 1.5 hours left when the item was written. The worker graded leg 1 correctly and refused the publication for exactly the right reason \u2014 regenerating then would have paired a 2026-08-29 figure with a 2026-08-27 floor and re-created, in the act of repairing it, the defect the item existed to remove. The refusal was good work; the instruction that forced it was mine. An item that cannot finish in one tick reads as half-done and its unfinished half becomes the next direction's position one, which is what has happened here."
+   },
+   {
+    "at": "2026-08-29T17:22:29.350199+00:00",
+    "what": "The recurring class \u2014 a published figure separated from its real producer by the index \u2014 was marked uncorrected last time and is uncorrected again, in mirror image: the live arms page is fed by two TRACKED artefacts from 2026-08-27 and 2026-08-28 while the fresh pair from today's run sits untracked at dated paths. Last time the diagnosis was that the item must make the commit the deliverable rather than the afterthought, and item one does that. But the class has now appeared in three distinct shapes \u2014 untracked producer, untracked input, stale tracked input outranking a fresh untracked one \u2014 and naming shapes one at a time has not closed it."
+   },
+   {
+    "at": "2026-08-29T17:22:29.350199+00:00",
+    "what": "The live site has been publishing *\"the per-customer choosing is worth less than nothing\"* as the answer to the director's central question, on a contrast of \u2212\u00a34,724 that sat AT the standard deviation of its own noise floor at the moment it was published. The error bar was on the page and was not allowed to govern the sentence next to it. This is the same defect as publishing a figure without the bound its sample size earns, one step worse: the bound was measured, published, and then talked over."
+   },
    {
     "at": "2026-08-29T14:21:44.690714+00:00",
     "what": "The last direction's central diagnosis \u2014 \"lane 0 was drawn once in three hours, so anything below position one is standby, not sequence\" \u2014 is refuted by this stretch. Three of the four items were drawn and worked: the census document was written at 13:37Z, the net-fall attribution was measured and committed, and the arms item's own finding opens by naming itself as the lane-0 delivery item it was working at 13:52\u201314:05Z. Neither list length nor ordering was ever the constraint. The constraint is that three of those four produced finished work that never reached the index, and a whole direction was spent theorising about draw arithmetic instead of looking at what the draws produced."
@@ -973,12 +989,41 @@
  },
  "what_next": {
   "focus": [
-   "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
-   "grade-the-arms-preregistration-and-put-both-legs-on-one-clock",
+   "put-the-arms-baseline-on-one-clock-and-refuse-a-headline-inside-its-own-floor",
    "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
+   "rerun-the-arms-on-a-complete-win-population-so-the-comparison-can-resolve-its-own-question",
    "land-the-founder-book-discharge-that-says-it-already-landed"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
+       "grade-the-arms-preregistration-and-put-both-legs-on-one-clock"
+      ],
+      "focus": [
+       "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
+       "grade-the-arms-preregistration-and-put-both-legs-on-one-clock",
+       "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
+       "land-the-founder-book-discharge-that-says-it-already-landed"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
+     "grade-the-arms-preregistration-and-put-both-legs-on-one-clock"
+    ],
+    "focus": [
+     "land-the-account-population-repair-so-the-published-solvency-figure-is-on-a-named-basis",
+     "grade-the-arms-preregistration-and-put-both-legs-on-one-clock",
+     "adjudicate-the-22788-pre-2021-loss-and-separate-it-from-r6s-first-signal",
+     "land-the-founder-book-discharge-that-says-it-already-landed"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1099,37 +1144,6 @@
      "B10_competitor_switching_response",
      "crm-reconciliation-that-cannot-fail",
      "capabilities-one-clock-one-basis-one-bound"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head",
-       "re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers"
-      ],
-      "focus": [
-       "land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head",
-       "re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers",
-       "land-or-delete-the-untracked-settlement-clocks-pair",
-       "put-the-bound-on-the-rendered-capabilities-page",
-       "re-run-the-arms-and-the-noise-floor-on-the-current-basis-and-grade-the-prediction"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head",
-     "re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers"
-    ],
-    "focus": [
-     "land-the-competitive-pressure-hunks-so-the-channel-is-live-in-head",
-     "re-run-the-chase-pair-on-the-founder-book-and-record-b10-or-refuse-it-with-numbers",
-     "land-or-delete-the-untracked-settlement-clocks-pair",
-     "put-the-bound-on-the-rendered-capabilities-page",
-     "re-run-the-arms-and-the-noise-floor-on-the-current-basis-and-grade-the-prediction"
     ],
     "note": "the previous direction named work the draw then took",
     "steered": true
