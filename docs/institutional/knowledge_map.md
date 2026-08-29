@@ -38,10 +38,13 @@ Confidence key: **H** = primary source data, quantified | **M** = secondary sour
 | Gas CCL | Non-domestic only (resi exempt). £1.95/MWh (2016) → £7.75/MWh (2024). Large step in 2019 (Budget 2016 rebalancing policy). Parity with electricity CCL achieved April 2024. HMRC Table 1 source. | H | None — full 2016-2024 series known | — |
 | Gas network charges | GDN + NTS combined unit rate. All segments (no exemptions). £9.0–17.6/MWh (2016–2024). 2023 peak = RIIO-GD2 + SOLR cost socialisation. | M | Exact Ofgem Annex 9 figures (gas network annex is Excel-only); current figures derived from cap unit rates × network % share | Obtain gas network annex from Ofgem for authoritative year-by-year figures |
 | Green Gas Levy (GGL) | Per-meter (MPRN) per day. Started 30 Nov 2021. All segments. 2022: £2.10/yr/meter; 2023: £0.45; 2024: £0.38. Normalised to £/MWh via customer AQ. DESNZ GOV.UK source. | H | Post-2025 levy rates not yet published | — |
+| Settlement run timetable | II 1wk, SF 1mo, R1 2mo, R2 4mo, R3 7mo, **RF 14mo** (last scheduled run). **DF 28mo is the DISPUTE run, not RF** — code called 28 "Final Reconciliation" until 2026-08-29 and gave every ordinary settlement day a dispute-length tail. NHH energy on actual data: 30/60/80/97% at R1/R2/R3/RF. MHHS cuts the process to 4 months, central systems live 24 Sep 2025 — AFTER our REPORT_END, so 14mo covers the whole modelled window. | H | HH ±0.5% / non-HH ±4% reconciliation variance bands are still uncited | Verify the variance bands — they are the last unsourced numbers in `settlement_reconciliation.py` |
 | 2021-22 failure wave | 28 suppliers failed; driven by hedge ratio + cap lag; £2.6bn SOLR cost | H | Individual supplier hedge ratios at failure | Could we simulate each failure trigger? |
 
 **Sources:** Ofgem website, Elexon BSC docs, Watt-Logic, HoC BEIS Committee  
-**Files:** `docs/market_research/ofgem_regulation.md`
+**Files:** `docs/market_research/ofgem_regulation.md`, `docs/market_research/elexon_settlement_run_timetable_verified.md`
+
+**Note on how the settlement-timetable row was got, because it generalises.** elexon.co.uk is bot-walled (403, recorded twice — 2026-07-12 and 2026-08-29). The primary document was reached anyway: Elexon's own slide deck hosted on **ofgem.gov.uk**. When a source is walled, look for it republished by its regulator or counterparty before falling back on recall — and note that the wrong figure had already been laundered into a second document by being read back out of code.
 
 ---
 

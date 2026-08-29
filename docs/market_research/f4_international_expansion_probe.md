@@ -61,7 +61,7 @@ algorithm *means*).
 |---|---|---|---|
 | Wholesale market structure | Decentralised bilateral trading + Elexon imbalance settlement | **SEM/I-SEM gross mandatory pool** (ex-ante DAM/IDM + single imbalance price; EU Target Model) | **BRAIN** — changes what "buy forward + hedge" resolves to |
 | Settlement granularity | 48 half-hourly periods | HH heritage; EU Imbalance Settlement Period moving toward **15-min** | STRUCTURE (mild for IE, hard for ERCOT/NEM) |
-| Settlement reconciliation cadence | Elexon BSC R1/R2/R3/RF (to ~28 months) | SEMO reconciliation timetable (different runs/lags) | STRUCTURE |
+| Settlement reconciliation cadence | Elexon BSC R1/R2/R3/RF (**to 14 months** — corrected 2026-08-29; "~28" here was DF, the dispute run, read out of a wrong constant) | SEMO reconciliation timetable (different runs/lags) | STRUCTURE |
 | Regulator | Ofgem | **CRU** (Commission for Regulation of Utilities) | DATA (regime key) |
 | Retail price regulation | Ofgem default-tariff **price cap** | **No domestic price cap** | STRUCTURE — the *class* of invariant has no analogue |
 | Currency | £ / GBP | **€ / EUR** | STRUCTURE (deepest) |
@@ -338,9 +338,18 @@ deeper than §4.6's "editing both copies" framing implied:
   `RunName` Literal type and the four-tuple `_RUNS` list are a **GB-shaped enum**, not a value — a second
   market needs a *different-length* run structure, which the Literal + the shares-sum-to-1.0 assert
   structurally forbid without a code change.
-- **Terminal lag is less than half (28 mo → 13 mo):** GB's RF tail runs to 28 months; SEMO's final
-  scheduled resettlement closes at M+13. The reconciliation-exposure model's whole time-shape (how long
-  cash stays uncertain) is GB-calibrated.
+- ~~**Terminal lag is less than half (28 mo → 13 mo)**~~ — **WITHDRAWN 2026-08-29. This comparison was
+  wrong and it inverts to near-parity: 14 mo → 13 mo.** GB's RF is the *last scheduled run* at **14
+  months**; 28 months is **DF**, the dispute-rectification run that only a disputed Settlement Date
+  reaches. Verified against Elexon's own timetable
+  (`docs/market_research/elexon_settlement_run_timetable_verified.md`); the constants have been fixed.
+  **How the error got here is the part worth keeping:** this document read `_RF_MONTHS=28` back OUT of
+  the repo's code and cited it as the sourced GB fact, while
+  `settlement_rebilling_best_practice.md` had already said RF was "roughly 12–14 months" and asked
+  that its offsets not be hard-coded before verification. A constant read back out of code acquires a
+  provenance it never had, and it then produced a headline structural difference between two markets
+  that do not differ on this axis at all. The clause that SURVIVES is the one under it: the
+  reconciliation-exposure model's time-shape is GB-calibrated either way.
 - **The initial-run offset unit differs (months → working days):** SEMO's Initial is a *5-working-day*
   offset; the code's entire timetable is keyed in **months post-delivery**, so SEMO's Initial isn't even
   expressible in the existing schema without a unit change.

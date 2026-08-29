@@ -1,5 +1,24 @@
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `W3_2_settlement_timetable`
 
+> ## RESOLVED THE SAME DAY — and the answer is that BOTH were partly right
+>
+> **RF is 14 months. 28 months is DF, the dispute run.** Verified against Elexon's own slide deck
+> (16 June 2014, hosted on ofgem.gov.uk, read directly), write-up in
+> `docs/market_research/elexon_settlement_run_timetable_verified.md`, code corrected. The research
+> note's 12–14 months was right about RF; the code's 28 was a real Elexon number attached to the
+> wrong run, so every ordinary settlement day carried a dispute-length tail. All three other
+> timings were wrong too (1/3/5 against 2/4/7), and so were the shares.
+>
+> **The blocker below is therefore lifted:** at RF = 14, `REPORT_END` (2025-06-07) reached Final
+> Reconciliation on **2026-08-07**, three weeks ago. No new Elexon data can revise any published
+> figure, so the publish interval has no external constraint and is the director's to name.
+>
+> **The route round the 403 is the transferable part:** the walled source was reached through its
+> own regulator's website. Look for a republication before falling back on recall.
+>
+> Everything below stands as written — it is the state of the evidence before the check, and the
+> reason the check was worth doing rather than picking the convenient number.
+
 # The repo holds two different answers for when a settlement day is final, and the one in code was never the one that was researched
 
 Found while establishing a NON-CIRCULAR basis for the publish interval that

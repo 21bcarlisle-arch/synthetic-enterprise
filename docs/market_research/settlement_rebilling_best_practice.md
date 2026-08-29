@@ -27,6 +27,15 @@ before M2 encodes exact day-offsets or licence-condition numbers.
 
 ## (a) Elexon BSC settlement run timetable
 
+> **VERIFIED 2026-08-29 — this section was RIGHT and the code was not.** The "roughly 12–14 months"
+> for RF below is confirmed: RF is **14 months**, and the 28 months that
+> `company/regulatory/settlement_reconciliation.py` had enforced as "Final Reconciliation" is **DF**,
+> the dispute run. The request in the access note above — *verify against Elexon rather than
+> hard-coding from this recall* — was the correct instruction and was not followed. Full table and
+> the primary source: `docs/market_research/elexon_settlement_run_timetable_verified.md`. The exact
+> offsets this section flagged [L] are now [H]: II 1wk, SF 1mo, R1 2mo, R2 4mo, R3 7mo, RF 14mo,
+> DF 28mo.
+
 **domain**: other (industry_systems / settlement)
 **assumption_tested**: whether the simulation's planned "real settlement timetable (D+1/D+... true-up)" (W3_2_settlement_timetable) reflects the real BSC settlement-run cascade shape.
 **benchmark_value**: [M] The BSC (Balancing and Settlement Code) does not settle a trading day once — it runs the SAME Supplier Volume Allocation / imbalance calculation for each Settlement Date MULTIPLE times over an extended window, each run using progressively better data (estimated/default profile data → actual metering data → agreed dispute resolutions). The historical (pre-reform) run sequence, commonly cited as **II → SF → R1 → R2 → R3 → (DF) → RF**, spans from a few working days after the trading day (Initial Settlement) out to roughly **12–14 months** later for Final Reconciliation (RF) under the old Standard Settlement Timetable. [L] I do not have high confidence in the exact day-offsets for each individual run code (II/SF/R1/R2/R3) this session — these should be verified directly against Elexon's BSC Section T / published Settlement Calendar once the site is reachable, rather than hard-coded from this recall.
