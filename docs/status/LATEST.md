@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-08-29T03:14:55Z
+Last updated: 2026-08-29T04:49:22Z
 
 **H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
 PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
@@ -2474,7 +2474,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (990s / 16 min):
+**Latest simulation results (2016–2025)** — auto-processed (1001s / 17 min):
 - Net margin: £164,541.78 | Gross: £600,377.73 | Capital: £7,418
 - Treasury: £250,000 → £414,542 | 0 committee interventions | 15168 bills issued
 - Enterprise value: £70,547.29 | Net after CTS: £89,991
