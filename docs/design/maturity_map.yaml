@@ -568,7 +568,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 2
+  level_current: 3   # 2026-08-29: coupled-triad gap MEASURED on a chase-on/chase-off pair, one tree (subject 23f45e73e252), founder book, 2021 window. The company's belief moves between the two worlds at ALL FOUR rungs in the correct direction on 31/99 paired decisions, and the belief-vs-truth gap NARROWS at every rung when the rival presses -- COMPETITOR_FIELD_FRAME.md §5's own criterion. Recorded in docs/observability/gate_authorizations.jsonl; evidence docs/staging/WORKER_FINDING_THE_CHASE_COMPARISON_WAS_ASKING_ITS_QUESTION_ON_THE_SLOPES_POPULATION_2026-08-29.md. NOT covered: §5 component 1 (the ceiling gap) is unbuilt -- the company still has no observation of the cheapest rival price.
   level_target: 3
   loop_stage: build
   dial_inherited: 3

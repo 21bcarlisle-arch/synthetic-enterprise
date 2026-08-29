@@ -1,0 +1,184 @@
+{
+  "arm": "off",
+  "chase_per_quarter": 0.0,
+  "end_year": "2021",
+  "rungs": [
+    0.0,
+    0.5,
+    1.0,
+    2.0
+  ],
+  "tree_before": {
+    "head": "b6e2ade7e36a16d328c2d6e21e1369368e5b7bd0",
+    "subject_sha256": "23f45e73e2520f8f7114a6c242d8e4c95bd94255e64958b50fa54f887b307425",
+    "missing": [],
+    "files": [
+      "simulation/run_phase2b.py",
+      "simulation/customer_events.py",
+      "simulation/competitor_reference.py",
+      "simulation/live_population.py",
+      "simulation/net_new_acquisition.py",
+      "company/crm/competitive_pressure.py",
+      "company/crm/churn_model.py",
+      "company/crm/market_conditions.py",
+      "company/pricing/value_based_renewal.py",
+      "tools/run_price_ladder.py",
+      "docs/design/FOUNDER_BOOK.yaml",
+      "docs/design/COMPETITOR_AGGRESSION.yaml"
+    ]
+  },
+  "tree_after": {
+    "head": "c8ff9cae9e9f699e8b99d0814000965d90f24a09",
+    "subject_sha256": "23f45e73e2520f8f7114a6c242d8e4c95bd94255e64958b50fa54f887b307425",
+    "missing": [],
+    "files": [
+      "simulation/run_phase2b.py",
+      "simulation/customer_events.py",
+      "simulation/competitor_reference.py",
+      "simulation/live_population.py",
+      "simulation/net_new_acquisition.py",
+      "company/crm/competitive_pressure.py",
+      "company/crm/churn_model.py",
+      "company/crm/market_conditions.py",
+      "company/pricing/value_based_renewal.py",
+      "tools/run_price_ladder.py",
+      "docs/design/FOUNDER_BOOK.yaml",
+      "docs/design/COMPETITOR_AGGRESSION.yaml"
+    ]
+  },
+  "run_order": "flat-rules control, then rungs 0.0, 0.5, 1.0, 2.0",
+  "why_the_last_year_is_dead": "the ledger reads years strictly earlier than the renewal being priced, so a departure in the final year of the window is never evidence for anything",
+  "runs": [
+    {
+      "armed": true,
+      "decisions_by_year": {
+        "2016": 3,
+        "2017": 82,
+        "2018": 102,
+        "2019": 96,
+        "2020": 92,
+        "2021": 89
+      },
+      "predicted_losses_by_year": {
+        "2016": 0.3761,
+        "2017": 14.2174,
+        "2018": 3.1939,
+        "2019": 6.2888,
+        "2020": 3.9928,
+        "2021": 4.492
+      },
+      "realised_losses_by_year": {
+        "2017": 1,
+        "2018": 6,
+        "2019": 5,
+        "2020": 2,
+        "2021": 4
+      }
+    },
+    {
+      "armed": true,
+      "decisions_by_year": {
+        "2016": 3,
+        "2017": 82,
+        "2018": 102,
+        "2019": 96,
+        "2020": 92,
+        "2021": 89
+      },
+      "predicted_losses_by_year": {
+        "2016": 0.3761,
+        "2017": 14.2174,
+        "2018": 3.1939,
+        "2019": 6.2888,
+        "2020": 3.9928,
+        "2021": 4.492
+      },
+      "realised_losses_by_year": {
+        "2017": 1,
+        "2018": 6,
+        "2019": 5,
+        "2020": 2,
+        "2021": 4
+      }
+    },
+    {
+      "armed": true,
+      "decisions_by_year": {
+        "2016": 3,
+        "2017": 82,
+        "2018": 101,
+        "2019": 92,
+        "2020": 88,
+        "2021": 85
+      },
+      "predicted_losses_by_year": {
+        "2016": 0.479,
+        "2017": 14.2934,
+        "2018": 4.7545,
+        "2019": 7.8569,
+        "2020": 4.2533,
+        "2021": 4.2371
+      },
+      "realised_losses_by_year": {
+        "2017": 2,
+        "2018": 9,
+        "2019": 5,
+        "2020": 2,
+        "2021": 3
+      }
+    },
+    {
+      "armed": true,
+      "decisions_by_year": {
+        "2016": 3,
+        "2017": 82,
+        "2018": 100,
+        "2019": 92,
+        "2020": 87,
+        "2021": 84
+      },
+      "predicted_losses_by_year": {
+        "2016": 0.5333,
+        "2017": 14.5541,
+        "2018": 7.3839,
+        "2019": 7.4276,
+        "2020": 4.2554,
+        "2021": 4.2161
+      },
+      "realised_losses_by_year": {
+        "2017": 4,
+        "2018": 8,
+        "2019": 6,
+        "2020": 2,
+        "2021": 3
+      }
+    },
+    {
+      "armed": true,
+      "decisions_by_year": {
+        "2016": 3,
+        "2017": 82,
+        "2018": 101,
+        "2019": 92,
+        "2020": 87,
+        "2021": 84
+      },
+      "predicted_losses_by_year": {
+        "2016": 0.6151,
+        "2017": 16.9895,
+        "2018": 7.3509,
+        "2019": 7.2574,
+        "2020": 4.1967,
+        "2021": 4.145
+      },
+      "realised_losses_by_year": {
+        "2016": 1,
+        "2017": 3,
+        "2018": 9,
+        "2019": 6,
+        "2020": 2,
+        "2021": 3
+      }
+    }
+  ]
+}
