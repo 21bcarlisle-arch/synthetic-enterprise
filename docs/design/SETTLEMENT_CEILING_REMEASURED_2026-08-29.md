@@ -143,16 +143,28 @@ be reporting the noise of a re-run:
 
 | | before | after this commit |
 |---|---|---|
-| gradable ladder population (`slopes.common_population`) | **16** | **16, unchanged** |
+| ladder **cross-rung intersection** (`slopes.common_population`) | **16** | **16, unchanged** |
+| ladder population **at each rung's own join** (0.0 / 0.5 / 1.0 / 2.0) | **35 / 23 / 20 / 21** | **unchanged** |
 | R6 headroom to the first collateral demand | **£316,009** | **£316,009, unchanged** |
 | published net figure | £164,542 | unchanged |
 
+**The first row was labelled "gradable ladder population" until 2026-08-29, and that label was the
+defect.** 16 is the set priced *and* rolled at **every** rung, which is the population a slope needs
+and the wrong one for any question asked at a fixed rung. Nothing here is graded across rungs, so no
+figure in this document is bounded by 16; the binding n for a fixed-rung reading is the second row,
+and on the founder 2021 pair it is more than twice as large at the null rung
+(`WORKER_FINDING_THE_CHASE_COMPARISON_WAS_ASKING_ITS_QUESTION_ON_THE_SLOPES_POPULATION_2026-08-29.md`).
+Both rows are carried because the ratio between them *is* the confinement, and one number alone
+cannot show it.
+
 One thing worth recording ahead of the re-run, because it is a bound the ceiling lift will *not*
-lift: the ladder's 16 is confined to term starts 2016–2018 not only by book size but because **rung
-2.0 prices its customers away and has no book left after 2019** (`B10`, 2026-08-29). Lifting the
-ceiling adds accounts across 2017–2025; only the 2017–2018 slice reaches the intersection. **The
-ladder must be re-run to state the new number and it must not be projected from the win counts** —
-the two mechanisms compose, and I do not know in which proportion.
+lift: the intersection's 16 is confined to term starts 2016–2018 not only by book size but because
+**rung 2.0 prices its customers away and has no book left after 2019** (`B10`, 2026-08-29). Lifting
+the ceiling adds accounts across 2017–2025; only the 2017–2018 slice reaches the intersection — but
+it reaches each rung's own join across the whole window, which is why a fixed-rung question must not
+be bounded by the first row. **The ladder must be re-run to state the new numbers and they must not
+be projected from the win counts** — the two mechanisms compose, and I do not know in which
+proportion.
 
 ## 6. The run that settles this, specified so it is not re-derived
 

@@ -185,6 +185,19 @@ measured. It has, and it is.
    CLI table, repaired by publishing each rung's own n and term-start span in the same row; and
    `compare_chase_belief._decisions`, **deleted** rather than repaired, because `per_decision`
    carries no interior rung and the question it asked is only answerable from the per-rung join.
+
+   **CORRECTION 2026-08-29, beside the claim it corrects: "nothing outside those two files reads
+   either block" was true of CODE and false of the RECORD, and I checked only the code.** A sixth
+   reader was already in the tree —
+   `docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` §5, whose invariance table labelled
+   `slopes.common_population` **"gradable ladder population"**. That is a fixed-rung label on the
+   cross-rung set: the exact misreading this finding exists to stop, laundered into a second
+   document before the repair landed, where no grep of `.py` and no control over either tool
+   could reach it. Repaired by carrying **both** populations in the table (16 beside 35/23/20/21)
+   and naming which question each one bounds. The general shape, which is why this is recorded
+   rather than quietly fixed: **a blast radius measured in importers is smaller than the one
+   measured in readers, because a number is copied by prose faster than it is imported by code.**
+   An audit of a published quantity is not finished at the import graph.
    The intersection table is kept as the exhibit and now prints, per row, the population it is
    *not* taken over — on the real founder pair that reads `n=16` beside `own n=35, 2016–2021`,
    which is the whole finding visible in one line without re-running anything. Controls:
