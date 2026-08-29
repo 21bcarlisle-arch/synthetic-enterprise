@@ -13,10 +13,14 @@ where nothing could read it" different facts, so it is the thing pinned here.
 """
 from __future__ import annotations
 
+import json
+import sys
+
 from tools.compare_chase_belief import (
     _by_year,
     _points,
     _wasted,
+    main,
     per_rung_paired,
     tree_identity_verdict,
 )
@@ -211,3 +215,90 @@ def test_the_census_years_are_read_as_INTEGERS_so_the_ordering_is_numeric():
     # the strictly-earlier comparison nonsense the moment a year ran to four digits differently.
     # Pinning the coercion is cheaper than discovering it through a wrong table.
     assert _by_year(_run({2019: 1, 2020: 2}, {}), "decisions_by_year") == {2019: 1, 2020: 2}
+
+
+# ── the published surface: no verdict may be taken from the cross-rung intersection ───────────
+
+def _write_pair(tmp_path, on: dict, off: dict) -> tuple[str, str]:
+    """The two artefacts on disk, the way `main` meets them."""
+    p_on, p_off = tmp_path / "on.json", tmp_path / "off.json"
+    p_on.write_text(json.dumps(on))
+    p_off.write_text(json.dumps(off))
+    return str(p_on), str(p_off)
+
+
+def _run_main(tmp_path, monkeypatch, capsys, on: dict, off: dict) -> str:
+    a, b = _write_pair(tmp_path, on, off)
+    monkeypatch.setattr(sys, "argv", ["compare_chase_belief", a, b])
+    main()
+    return capsys.readouterr().out
+
+
+def test_the_published_VERDICT_counts_a_late_move_the_cross_rung_intersection_cannot_see(
+        tmp_path, monkeypatch, capsys):
+    """THE PROPERTY, ASSERTED ON THE SURFACE A READER ACTUALLY MEETS.
+
+    The per-rung join is tested directly above; this pins the thing that was published. Account B
+    renews in 2021 and its belief differs between the arms, but B is absent from rung 2.0, so any
+    verdict drawn from the cross-rung intersection reports the two worlds identical -- which is
+    what two consecutive findings printed.
+
+    MUTATION: re-impose the wrong join in `per_rung_paired` (intersect `common` with the keys
+    shared by every rung -- the code that was removed on 2026-08-29). `decisions_moved` falls to
+    zero everywhere, the verdict flips to the bit-identical branch, and this reds. The mutation
+    is cheap because it is exactly the deleted line.
+    """
+    on, off = _late_book(0.44)
+    out = _run_main(tmp_path, monkeypatch, capsys, on, off)
+    assert "1/3 paired decisions" in out
+    assert "at 1 of 2 rungs" in out
+    assert "bit-identical" not in out
+
+
+def test_no_between_arm_FIGURE_is_reported_from_the_per_decision_ENDPOINTS(
+        tmp_path, monkeypatch, capsys):
+    """A SUMMARY THAT CONTRADICTS THE TABLE ABOVE IT IS WORSE THAN NO SUMMARY.
+
+    `world_curve_vs_belief.per_decision` carries only each decision's LOWEST and HIGHEST rung, on
+    the cross-rung intersection. Here it is identical between the arms while rung 0.0 moved -- the
+    live shape, where the move sat at an interior rung -- so a reading taken off it prints
+    `max |ON - OFF| = 0.0` directly beneath a table reporting a move.
+
+    MUTATION: restore the endpoints block. The zero-difference line reappears beside a verdict
+    saying a decision moved, and this reds.
+    """
+    on, off = _late_book(0.44)
+    endpoints = [{"account": "A", "term_start": "2016-01-01",
+                  "believed_p_leave_at_lowest_rung": 0.20,
+                  "believed_p_leave_at_highest_rung": 0.55}]
+    on["world_curve_vs_belief"]["per_decision"] = endpoints
+    off["world_curve_vs_belief"]["per_decision"] = [dict(endpoints[0])]
+    out = _run_main(tmp_path, monkeypatch, capsys, on, off)
+    assert "max |ON - OFF|" not in out
+    assert "withdrawn" in out
+    # ...and the move it would have contradicted is still reported.
+    assert "1/3 paired decisions" in out
+
+
+def test_each_rung_of_the_intersection_TABLE_carries_the_population_it_is_NOT_taken_over(
+        tmp_path, monkeypatch, capsys):
+    """The intersection table is kept as the exhibit, so it has to print its own confinement.
+
+    `n` on that row is the intersection at every rung; `own n` is what the arm actually priced
+    and rolled there. Rung 0.0 priced two decisions and the intersection holds one, and a reader
+    who cannot see that difference is the reader who published "one rung in four".
+
+    MUTATION: take `own n` from `slopes.points` (which is the intersection) instead of from
+    `decisions`, and both columns read 1. This reds.
+    """
+    on, off = _late_book(0.44)
+    for art in (on, off):
+        art["slopes"]["points"] = [
+            {"multiplier": 0.0, "n": 1, "believed_non_renewal_rate": 0.2,
+             "world_p_leave_mean": 0.3},
+        ]
+    out = _run_main(tmp_path, monkeypatch, capsys, on, off)
+    header = [ln for ln in out.splitlines() if "own years" in ln]
+    assert header, "the intersection table must name the rung's own population"
+    row = [ln for ln in out.splitlines() if ln.strip().startswith("0.0")][0]
+    assert row.rstrip().endswith("2 2016-2021"), row

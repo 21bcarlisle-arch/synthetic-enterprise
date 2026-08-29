@@ -407,6 +407,31 @@ def null_control_check(rung_zero: dict, control: dict) -> dict:
     }
 
 
+def _term_start_span(keys) -> list[str] | None:
+    """[first year, last year] of a population's term starts, or None if it is empty.
+
+    Published beside every population this file prints. The number that misled two consecutive
+    findings was not wrong, it was CONFINED: 16 decisions whose term starts were all 2016-2018,
+    read as a fact about a book that ran to 2021. A count cannot show that and a span can.
+    """
+    years = sorted({str(k[1])[:4] for k in keys})
+    return [years[0], years[-1]] if years else None
+
+
+# The one sentence every reader of a cross-rung intersection has to be handed, published INTO the
+# artefact rather than left in this file, because the readers that got it wrong were reading the
+# artefact (2026-08-29 finding: the chase comparison asked a fixed-rung question on this set).
+_FIXED_RUNG_WARNING = (
+    "THIS SET IS FOR THE SLOPE. A slope needs one population along one x-axis, so this is the "
+    "decisions priced AND rolled at EVERY rung. It is the WRONG population for any question "
+    "asked at a FIXED rung -- a between-arm comparison, a level, a rate at one multiplier -- "
+    "because rungs above 1.0 price the book away and the intersection is therefore confined to "
+    "the START of the window however long the window is. A fixed-rung question must draw on that "
+    "rung's own priced-and-rolled set, published beside each point as "
+    "`n_priced_and_rolled_at_this_rung`."
+)
+
+
 def slopes(rungs: list[dict]) -> dict:
     """THE TWO SLOPES, over one population, against one x-axis.
 
@@ -415,6 +440,22 @@ def slopes(rungs: list[dict]) -> dict:
     book; taking each rung's slope over its own survivors would compare a rung's price effect
     against a different rung's population, and the attrition itself is caused by the treatment.
     So: decisions PRICED and ROLLED at EVERY rung, and the count of what that discarded.
+
+    AND THAT MAKES IT A SELECTION EFFECT IN EVERY OTHER QUESTION ASKED OF IT. The census of
+    readers, as of 2026-08-29, with each one's question classified:
+
+    * this function's own slopes and ratios -- CROSS-RUNG, keep: the intersection is what makes
+      the x-axis one axis.
+    * `world_curve_vs_belief` -- CROSS-RUNG, keep: a per-decision slope over the rungs.
+    * this file's CLI table (`main`) -- reads `points` per rung, which is a FIXED-RUNG reading of
+      a cross-rung set. Repaired by publishing each rung's own n and term-start span in the same
+      row, so the shared `n` can no longer be read as this rung's book.
+    * `tools/compare_chase_belief._points` -- FIXED-RUNG (belief ON vs OFF at one multiplier).
+      Superseded as the verdict by `per_rung_paired`, which pairs on each rung's own set; the
+      intersection table is retained as the exhibit and prints its own confinement.
+    * `tools/compare_chase_belief._decisions` -- was FIXED-RUNG (endpoint rungs) on this set AND
+      endpoints-only. DELETED 2026-08-29 rather than repaired: `per_decision` cannot carry an
+      interior rung, so the question it asked is only answerable from the per-rung join.
 
     THE X-AXIS IS THE DELIVERED UPLIFT in GBP/MWh -- the actual money added to the customer's
     unit rate at that rung, averaged over the common population. It is used rather than the
@@ -438,8 +479,9 @@ def slopes(rungs: list[dict]) -> dict:
             f"only {len(common)} decision(s) were priced and rolled at every rung, which is not a "
             "population")}
 
+    common_span = _term_start_span(common)
     points = []
-    for rung in rungs:
+    for index, rung in enumerate(rungs):
         rows = [d for d in rung["decisions"] if (d["account"], d["term_start"]) in common]
         left = [r for r in rows if r["left"]]
         believed = [r["believed_p_leave"] for r in rows if r["believed_p_leave"] is not None]
@@ -462,6 +504,15 @@ def slopes(rungs: list[dict]) -> dict:
         points.append({
             "multiplier": rung["multiplier"],
             "n": len(rows),
+            # THE RUNG'S OWN POPULATION, BESIDE THE SHARED ONE. `n` above is the cross-rung
+            # intersection, so it is the same number at every rung; a reader meeting it in a
+            # per-rung row reads it as this rung's book, and on the 2021-window founder pair that
+            # meant reading 16 decisions confined to 2016-2018 as a fact about 99 spanning
+            # 2016-2021. The span is carried too, because the count alone cannot show WHICH years
+            # the intersection kept -- and the confinement, not the size, was the defect.
+            "n_priced_and_rolled_at_this_rung": len(per_rung_keys[index]),
+            "term_starts_at_this_rung": _term_start_span(per_rung_keys[index]),
+            "term_starts_in_common": common_span,
             "mean_uplift_gbp_per_mwh": statistics.fmean(uplift) if uplift else None,
             "mean_rate_increase_pct": statistics.fmean(inc) if inc else None,
             "mean_rate_vs_svt_pct": statistics.fmean(svt) if svt else None,
@@ -525,12 +576,22 @@ def slopes(rungs: list[dict]) -> dict:
     return {
         "available": True,
         "common_population": len(common),
+        "common_population_term_starts": common_span,
         "common_population_note": (
             "decisions priced AND rolled by the world at EVERY rung. Rungs above 1.0 churn "
             "accounts earlier, which removes their later renewals from the book, so this set is "
             "smaller than any single rung's -- `per_rung.rolled_by_the_world` shows the "
             "attrition. Every slope here is taken over this one set."
         ),
+        "a_fixed_rung_question_may_not_use_this_set": _FIXED_RUNG_WARNING,
+        # Every rung's own paired population, published so no figure in this artefact can be read
+        # without the n it was taken over standing next to it.
+        "per_rung_population": [
+            {"multiplier": rung["multiplier"],
+             "n_priced_and_rolled": len(keys),
+             "n_in_common": len(common),
+             "term_starts": _term_start_span(keys)}
+            for rung, keys in zip(rungs, per_rung_keys)],
         "points": points,
         "against_delivered_uplift": _pair("mean_uplift_gbp_per_mwh"),
         "against_company_reference": _pair("mean_rate_increase_pct"),
@@ -689,7 +750,20 @@ def world_curve_vs_belief(rungs: list[dict]) -> dict:
     return {
         "available": True,
         "decisions": len(common),
+        "term_starts_in_common": _term_start_span(common),
         "observations": len(common) * len(per_rung),
+        # THE SAME CONFINEMENT, IN THE SAME PLACE. The per-decision slopes below are a cross-rung
+        # question and the intersection is right for them. `per_decision`'s ROWS are not: they
+        # carry each decision's lowest and highest rung, so a reader taking a between-arm
+        # difference off `..._at_lowest_rung` is asking a fixed-rung question on this set, and
+        # `tools/compare_chase_belief` did exactly that until 2026-08-29.
+        "a_fixed_rung_question_may_not_use_this_set": _FIXED_RUNG_WARNING,
+        "per_rung_population": [
+            {"multiplier": rung["multiplier"],
+             "n_priced_rolled_and_believed": len(keys),
+             "n_in_common": len(common),
+             "term_starts": _term_start_span(keys)}
+            for rung, keys in zip(rungs, per_rung)],
         "median_world_over_believed": statistics.median(ratios) if ratios else None,
         "mean_world_over_believed": statistics.fmean(ratios) if ratios else None,
         "decisions_where_the_company_over_predicts_the_response": over,
@@ -977,12 +1051,20 @@ def main(argv: list[str] | None = None) -> int:
     print("  NULL RUNG   {}".format(null.get("verdict") or null.get("why_not")))
     s = result["slopes"]
     if s.get("available"):
-        print("  common population {} decision(s) priced and rolled at every rung".format(
-            s["common_population"]))
-        print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10}".format(
-            "k", "uplift", "vs own rate", "vs SVT", "realised", "world p", "believed"))
+        span = s.get("common_population_term_starts")
+        print("  common population {} decision(s) priced and rolled at every rung{}".format(
+            s["common_population"],
+            "" if not span else f", term starts {span[0]}-{span[1]}"))
+        # THE TWO POPULATIONS, IN EVERY ROW. `n` is the same at every rung by construction, and
+        # printing only it is how a set confined to the first years of the window gets read as
+        # the book. `own n` is the rung's own priced-and-rolled count and `own years` its span;
+        # where they diverge, no figure in this row may be quoted as a fact about the book.
+        print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10} | {:>6} {:>9}".format(
+            "k", "uplift", "vs own rate", "vs SVT", "realised", "world p", "believed",
+            "own n", "own years"))
         for p in s["points"]:
-            print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10}".format(
+            own_span = p.get("term_starts_at_this_rung")
+            print("  {:>6} {:>10} {:>12} {:>12} {:>10} {:>10} {:>10} | {:>6} {:>9}".format(
                 p["multiplier"],
                 "n/a" if p["mean_uplift_gbp_per_mwh"] is None
                 else f"{p['mean_uplift_gbp_per_mwh']:.2f}",
@@ -995,12 +1077,18 @@ def main(argv: list[str] | None = None) -> int:
                 "n/a" if p["world_p_leave_mean"] is None
                 else f"{p['world_p_leave_mean']:.4f}",
                 "n/a" if p["believed_non_renewal_rate"] is None
-                else f"{p['believed_non_renewal_rate']:.3f}"))
+                else f"{p['believed_non_renewal_rate']:.3f}",
+                p.get("n_priced_and_rolled_at_this_rung", "n/a"),
+                "n/a" if not own_span else f"{own_span[0]}-{own_span[1]}"))
         # The binary leg's own quantum, printed beside the slopes it bounds, so a reader cannot
         # take a movement smaller than one account for a measurement.
         n_common = s["common_population"]
         print("  the realised leg moves in steps of 1/{} = {:.4f}; the world-p leg has no "
               "quantum".format(n_common, 1.0 / n_common if n_common else float("nan")))
+        # Printed, not only written to JSON: the two readers that took a fixed-rung question off
+        # this table were reading the output, not the artefact (2026-08-29).
+        print("  every figure in the table above is over the COMMON population. A question asked "
+              "at ONE rung must use that rung's own n and years, on the right.")
         for axis in ("against_delivered_uplift", "against_company_reference",
                      "against_world_reference"):
             pair = s[axis]

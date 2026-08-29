@@ -177,6 +177,28 @@ measured. It has, and it is.
    carries only each decision's lowest and highest rung. Any future between-arm comparison reading
    either will inherit this blindness. The general shape: *a population selected for one question
    is a selection effect in every other question asked of it.*
+
+   **DISCHARGED 2026-08-29.** Every reader is enumerated and classified in `slopes`'s own
+   docstring — five of them, all inside `tools/run_price_ladder.py` and
+   `tools/compare_chase_belief.py`; nothing outside those two files reads either block, so the
+   blast radius was bounded. Three were cross-rung and kept. Two were fixed-rung: the ladder's
+   CLI table, repaired by publishing each rung's own n and term-start span in the same row; and
+   `compare_chase_belief._decisions`, **deleted** rather than repaired, because `per_decision`
+   carries no interior rung and the question it asked is only answerable from the per-rung join.
+   The intersection table is kept as the exhibit and now prints, per row, the population it is
+   *not* taken over — on the real founder pair that reads `n=16` beside `own n=35, 2016–2021`,
+   which is the whole finding visible in one line without re-running anything. Controls:
+   `test_every_point_publishes_its_OWN_population_beside_the_shared_one`,
+   `test_the_intersections_TERM_SPAN_is_published_...`,
+   `test_the_world_curve_publishes_the_same_two_populations`,
+   `test_the_published_VERDICT_counts_a_late_move_the_cross_rung_intersection_cannot_see`,
+   `test_no_between_arm_FIGURE_is_reported_from_the_per_decision_ENDPOINTS`,
+   `test_each_rung_of_the_intersection_TABLE_carries_the_population_it_is_NOT_taken_over`. Five
+   mutations run, all five red: publishing the common n as the rung's own; taking the rung's span
+   off the common set; re-imposing the cross-rung join inside `per_rung_paired`; taking the
+   table's `own n` from `slopes.points`; and restoring the endpoints block. **No reader's n
+   collapsed under the correct join** — the correct join is a superset at every rung, which is
+   the direction the defect ran in. Items 2 and 3 below are untouched.
 2. **`run_price_ladder` retains every rung's settlement records**, which is what forces sequential
    arms and a ~40-minute pair. Nothing needs `all_records` after `household_side` has read it.
 3. The `sim_interface is not None` fail-open pattern (item 2 of the 2026-08-28 finding) is still

@@ -135,6 +135,90 @@ def test_the_slope_population_is_the_INTERSECTION_across_rungs():
     assert out["points"][0]["realised_non_renewals"] == 0
 
 
+def test_every_point_publishes_its_OWN_population_beside_the_shared_one():
+    """THE SELECTION EFFECT, MADE VISIBLE IN THE ROW IT MISLEADS (2026-08-29).
+
+    `n` is the cross-rung intersection, so it is the SAME number at every rung by construction.
+    A reader meeting it in a per-rung row reads it as that rung's book, and on the live
+    2021-window pair that meant reading 16 decisions confined to 2016-2018 as a fact about 99
+    spanning 2016-2021. The rung's own priced-and-rolled count and its own term-start span are
+    published in the same row so the two can never again be the same figure by default.
+
+    MUTATION: publish `len(common)` as `n_priced_and_rolled_at_this_rung` -- exactly the join
+    that was just removed -- and rung zero reports 2 instead of 3. This reds.
+    """
+    early = [_decision(a, "2016-04-01", uplift=0.0, believed_leave=0.10, left=False)
+             for a in ("A1", "A2")]
+    rungs = [
+        _rung(0.0, early + [
+            _decision("B", "2021-04-01", uplift=0.0, believed_leave=0.10, left=False)]),
+        # The top rung priced B away at an earlier renewal, so it has nothing after 2016 -- the
+        # real shape, not a contrived one.
+        _rung(2.0, [_decision(a, "2016-04-01", uplift=100.0, believed_leave=0.60, left=True)
+                    for a in ("A1", "A2")]),
+    ]
+    out = slopes(rungs)
+    assert out["common_population"] == 2
+    assert [p["n"] for p in out["points"]] == [2, 2]
+    assert [p["n_priced_and_rolled_at_this_rung"] for p in out["points"]] == [3, 2]
+    assert out["per_rung_population"] == [
+        {"multiplier": 0.0, "n_priced_and_rolled": 3, "n_in_common": 2,
+         "term_starts": ["2016", "2021"]},
+        {"multiplier": 2.0, "n_priced_and_rolled": 2, "n_in_common": 2,
+         "term_starts": ["2016", "2016"]},
+    ]
+
+
+def test_the_intersections_TERM_SPAN_is_published_so_its_confinement_cannot_be_read_as_the_book():
+    """A COUNT CANNOT SHOW WHICH YEARS A SET KEPT, AND THE CONFINEMENT WAS THE DEFECT.
+
+    The intersection can never hold a decision the top rung never priced, so it is structurally
+    confined to the start of the window however long the window is -- and the company's
+    competitive-pressure ledger accumulates FORWARD, so its evidence is thinnest exactly there.
+    Two published findings read "one rung in four" off that set without either number showing it.
+
+    MUTATION: compute `term_starts_at_this_rung` off `common` rather than off the rung's own
+    keys. Rung zero's span collapses from 2016-2021 to 2016-2016 and this reds.
+    """
+    rungs = [
+        _rung(0.0, [_decision("A1", "2016-04-01", uplift=0.0, believed_leave=0.1, left=False),
+                    _decision("A2", "2016-04-01", uplift=0.0, believed_leave=0.1, left=False),
+                    _decision("B", "2021-04-01", uplift=0.0, believed_leave=0.1, left=False)]),
+        _rung(2.0, [_decision("A1", "2016-04-01", uplift=90.0, believed_leave=0.5, left=True),
+                    _decision("A2", "2016-04-01", uplift=90.0, believed_leave=0.5, left=False)]),
+    ]
+    out = slopes(rungs)
+    assert out["common_population_term_starts"] == ["2016", "2016"]
+    assert out["points"][0]["term_starts_at_this_rung"] == ["2016", "2021"]
+    assert out["points"][0]["term_starts_in_common"] == ["2016", "2016"]
+    # And the rule the spans exist to enforce travels with the artefact, not only with this file.
+    assert "FIXED rung" in out["a_fixed_rung_question_may_not_use_this_set"]
+
+
+def test_the_world_curve_publishes_the_same_two_populations():
+    """The per-decision slopes are a cross-rung question and the intersection is RIGHT for them.
+    Its `per_decision` rows are not: they carry each decision's lowest and highest rung, so a
+    reader taking a between-arm difference off them is asking a fixed-rung question on this set.
+    That reader existed. It is now told, in the artefact, what it is standing on.
+
+    MUTATION: drop `per_rung_population` and a reader has no way to see that rung 2.0 carried one
+    decision while rung 0.0 carried two.
+    """
+    out = world_curve_vs_belief([
+        _rung(0.0, [_decision("A", "2016-04-01", uplift=0.0, believed_leave=0.2, left=False,
+                              world_leave=0.1),
+                    _decision("B", "2021-04-01", uplift=0.0, believed_leave=0.2, left=False,
+                              world_leave=0.1)]),
+        _rung(1.0, [_decision("A", "2016-04-01", uplift=10.0, believed_leave=0.4, left=False,
+                              world_leave=0.2)]),
+    ])
+    assert out["decisions"] == 1
+    assert out["term_starts_in_common"] == ["2016", "2016"]
+    assert [p["n_priced_rolled_and_believed"] for p in out["per_rung_population"]] == [2, 1]
+    assert out["per_rung_population"][0]["term_starts"] == ["2016", "2021"]
+    assert "FIXED rung" in out["a_fixed_rung_question_may_not_use_this_set"]
+
+
 def test_an_unrolled_decision_is_excluded_from_the_population_at_every_rung():
     """"The world rolled no decision" is not "they stayed". Counting it as a retention would
     flatter the arm at every rung equally, which reads as a well-calibrated flat belief."""

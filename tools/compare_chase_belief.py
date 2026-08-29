@@ -37,9 +37,20 @@ def _points(payload: dict) -> dict[str, dict]:
             for p in payload.get("slopes", {}).get("points", [])}
 
 
-def _decisions(payload: dict) -> dict[tuple, dict]:
-    return {(d["account"], d["term_start"]): d
-            for d in payload.get("world_curve_vs_belief", {}).get("per_decision", [])}
+def _own_population(payload: dict, rung: str) -> tuple[int | None, list[str] | None]:
+    """(n, [first year, last year]) for one rung's OWN priced-and-rolled set in one arm.
+
+    Read from `decisions` rather than from `slopes.points`, because `points` is taken over the
+    cross-rung intersection and every one of its rows carries the SAME n. Printing that n beside
+    a per-rung line is how a set confined to the first three years of the window gets read as the
+    book -- twice, in two published findings.
+    """
+    rows = payload.get("decisions", {}).get(rung)
+    if rows is None:
+        return None, None
+    keys = {(d["account"], d["term_start"]) for d in rows if d["world_rolled"]}
+    years = sorted({str(k[1])[:4] for k in keys})
+    return len(keys), ([years[0], years[-1]] if years else None)
 
 
 def per_rung_paired(on: dict, off: dict) -> list[dict]:
@@ -243,8 +254,8 @@ def main() -> int:
           "top rung's own attrition, which is where the company's ledger has least to read.")
     print(f"{'rung':>5} {'n':>3} | {'belief ON':>9} {'belief OFF':>10} {'BELIEF MOVE':>12}"
           f" | {'world ON':>8} {'world OFF':>9} {'WORLD MOVE':>10}"
-          f" | {'gap ON':>7} {'tracked':>8}")
-    print("-" * 100)
+          f" | {'gap ON':>7} {'tracked':>8} | {'own n':>6} {'own years':>9}")
+    print("-" * 120)
     rung_moves: list[float] = []
     for rung in sorted(set(p_on) & set(p_off), key=float):
         a, b = p_on[rung], p_off[rung]
@@ -258,9 +269,16 @@ def main() -> int:
         # How much of the world's own move the company tracked. NOT a score out of 100: over 100
         # is an over-reaction and a negative value is a belief moving the wrong way.
         tracked = f"{bmove / wmove * 100:>7.1f}%" if abs(wmove) > 1e-12 else "    n/a"
+        # THE POPULATION THIS ROW IS *NOT* TAKEN OVER, printed in the same row. `n` on the left is
+        # the intersection; `own n` is what the ON arm actually priced and rolled at this rung.
+        # Where the two differ, every figure between them is a fact about the intersection, and
+        # the gap between the two columns is the size of the mistake this table invited.
+        own_n, own_years = _own_population(on, rung)
         print(f"{rung:>5} {a['n']:>3} | {bon:>9.4f} {boff:>10.4f} {bmove:>+12.6f}"
               f" | {won:>8.4f} {woff:>9.4f} {wmove:>+10.4f}"
-              f" | {bon - won:>+7.4f} {tracked:>8}")
+              f" | {bon - won:>+7.4f} {tracked:>8}"
+              f" | {'n/a' if own_n is None else own_n:>6}"
+              f" {('n/a' if not own_years else own_years[0] + '-' + own_years[-1]):>9}")
 
     rung_rows = per_rung_paired(on, off)
     _print_per_rung(rung_rows)
@@ -283,27 +301,18 @@ def main() -> int:
               "`tools._ladder_chase_arm`, which writes one. Without it a silent rung cannot be "
               "told apart from a rung whose evidence landed in a year nothing is priced after.")
 
-    d_on, d_off = _decisions(on), _decisions(off)
-    shared = sorted(set(d_on) & set(d_off))
-    diffs = []
-    for k in shared:
-        for field in ("believed_p_leave_at_lowest_rung", "believed_p_leave_at_highest_rung"):
-            if d_on[k].get(field) is not None and d_off[k].get(field) is not None:
-                diffs.append(abs(d_on[k][field] - d_off[k][field]))
-
+    # THE `world_curve_vs_belief.per_decision` READING IS GONE, AND ITS ABSENCE IS THE REPAIR
+    # (2026-08-29). It printed `max |ON - OFF|` over each decision's LOWEST and HIGHEST rung on
+    # the cross-rung intersection -- a fixed-rung between-arm question, asked twice over, on the
+    # one population that cannot answer it. It could not be repaired in place: `per_decision`
+    # carries no interior rung, and on the first live pair the interior rung is where the move
+    # was, so it printed "bit-identical" directly beneath a table showing the opposite. Every
+    # question it asked is answered by the per-rung table above, on each rung's own paired set.
     print()
-    print(f"paired decisions carried by BOTH artefacts: {len(shared)}")
-    if diffs:
-        moved = sum(1 for d in diffs if d > 0.0)
-        print(f"per-decision belief observations at the ENDPOINT rungs only: {len(diffs)}, "
-              f"{moved} of which differ; max |ON - OFF| = {max(diffs):.10f}")
+    print("per-decision ENDPOINT reading: withdrawn. It asked a fixed-rung question on the "
+          "cross-rung intersection and could see no interior rung; the per-rung table above "
+          "replaces it.")
 
-    # THE VERDICT IS TAKEN OVER THE PER-RUNG TABLE, NOT THE PER-DECISION ENDPOINTS. The
-    # artefact's `per_decision` block carries only each decision's LOWEST and HIGHEST rung, so a
-    # move confined to an interior rung is invisible to it -- and on the first live pair that is
-    # exactly where the move was: rung 0.5 moved +0.0132 while rungs 0.0, 1.0 and 2.0 did not,
-    # so an endpoints-only reading printed "bit-identical" directly beneath a table showing the
-    # opposite. A summary that contradicts the table above it is worse than no summary.
     rungs_moved = [m for m in rung_moves if m != 0.0]
     print(f"on the CROSS-RUNG INTERSECTION, rungs whose mean belief differs: "
           f"{len(rungs_moved)}/{len(rung_moves)}; largest move "
