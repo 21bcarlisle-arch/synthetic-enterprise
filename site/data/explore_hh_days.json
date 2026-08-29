@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T04:40:14Z",
+  "generated_at": "2026-08-29T06:14:20Z",
   "available": true,
   "source": "sim/hh_data/<account>.csv -- the world's half-hourly record, one dated day per panel, no averaging",
   "accounts": {
@@ -482,7 +482,7 @@
     {
       "customer_group": "PROS-2016-0067",
       "account_id": "PROS-2016-0067",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -500,7 +500,7 @@
     {
       "customer_group": "PROS-2016-0090",
       "account_id": "PROS-2016-0090",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -578,7 +578,7 @@
     {
       "customer_group": "PROS-2017-0036",
       "account_id": "PROS-2017-0036",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -590,7 +590,7 @@
     {
       "customer_group": "PROS-2017-0045",
       "account_id": "PROS-2017-0045",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -644,7 +644,7 @@
     {
       "customer_group": "PROS-2017-0081",
       "account_id": "PROS-2017-0081",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -680,7 +680,7 @@
     {
       "customer_group": "PROS-2017-0130",
       "account_id": "PROS-2017-0130",
-      "meter_type": "Smart",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -1010,50 +1010,14 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2016-0067",
-      "account_id": "PROS-2016-0067",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2016-0090",
-      "account_id": "PROS-2016-0090",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2017-0036",
-      "account_id": "PROS-2017-0036",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
       "customer_group": "PROS-2017-0038",
       "account_id": "PROS-2017-0038",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
     {
-      "customer_group": "PROS-2017-0045",
-      "account_id": "PROS-2017-0045",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
       "customer_group": "PROS-2017-0067",
       "account_id": "PROS-2017-0067",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2017-0081",
-      "account_id": "PROS-2017-0081",
-      "meter_type": "Smart",
-      "why": "no_hh_record"
-    },
-    {
-      "customer_group": "PROS-2017-0130",
-      "account_id": "PROS-2017-0130",
       "meter_type": "Smart",
       "why": "no_hh_record"
     },
@@ -1108,13 +1072,13 @@
   ],
   "counts": {
     "with_hh_reads": 3,
-    "smart_without_hh_reads": 19,
-    "without_smart_meter": 82,
+    "smart_without_hh_reads": 13,
+    "without_smart_meter": 88,
     "households": 104
   },
   "meter_types_seen": [
     "Smart",
     "Traditional"
   ],
-  "coverage_statement": "3 of 104 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 19 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, but read frequency is the customer's consent to give, and without it the supplier holds monthly figures from a meter capable of 17,520 a year."
+  "coverage_statement": "3 of 104 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 13 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, but read frequency is the customer's consent to give, and without it the supplier holds monthly figures from a meter capable of 17,520 a year."
 }

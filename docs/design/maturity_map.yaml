@@ -441,7 +441,7 @@
   file_scope: [sim/scenario, tests/sim/test_scenario_spine.py]
   depends_on: []
   blocked_on: null   # 2026-07-29 CLEARED (director from_rich_20260729_173731): blocked_on drops an atom from EVERY lane incl. the idle DISCOVER/FRAME draw, so this read as "no work" -- the exact defect he named. 2026-08-28: the trailing clause named `fronts.yaml stage_advance`, abolished with the rest of the permission machinery; deleted rather than reworded. SPINE_2's named-world VALUES stay R13 director-authored and that is a real, live constraint.
-  simplifications_count: 2
+  simplifications_count: 3   # 2026-08-29: the store file carried a third note ("CONSUMED -- the spine is now READ by a generator on a live run path") and this count was left at 2, so `test_counts_match_file_contents` was red for every lane in the tree. Bumped to match the register rather than the register trimmed to match it: the note is real work another lane landed.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a risk desk's scenario library: a small set of named, human-curated pathway worlds (the NESO Future Energy Scenarios pattern) sampled tail-heavy against their true probabilities, that the trading book is stress-run through -- the desk knows which world it is stress-testing; the front office does not get to see the future it is being tested against"
   records_rehomed: [evidence]

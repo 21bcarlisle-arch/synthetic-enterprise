@@ -1151,9 +1151,12 @@ Drift > +15%: EV/ASHP acquisition. Drift < −15%: solar installation or efficie
 
 **Portfolio demand trend:** 82 customers increasing / 15 decreasing (mean drift: +1.4%)
 
-## Company CRM — Event Log
+## Customer Lifecycle Events — SIM Record
 
-Dated artefacts of customer lifecycle events as seen by the company layer.
+Dated churn and acquisition events **as the SIM recorded them**. Source: `simulation/run_phase2b.py::_build_company_event_log`, a projection of the world's own event stream — not the company's CRM.
+
+**Not reconciled against the company's record, because there is no company record to reconcile against.** `company.crm.event_log.CompanyEventLog` has no writer on any production path, so the company's view of its own book is unpublishable here. We cannot tell whether the company saw what happened.
+
 Total events: **44** (41 churn, 3 acquisition)
 
 | Date | Event | Customer | Detail |
@@ -1203,20 +1206,22 @@ Total events: **44** (41 churn, 3 acquisition)
 | 2025-03-21 | CHURN | SYN-2016-025 | SIM p=0.95, company est=0.11 |
 | 2025-03-28 | CHURN | SYN-2016-028 | SIM p=0.34, company est=0.17 |
 
-**SIM ground truth vs company CRM reconciliation (year-end snapshots):**
+**Year-end position in this event stream (one source, no cross-check):**
 
-| Year-end | SIM churned (cumulative) | CRM active | Match |
-|----------|--------------------------|------------|-------|
-| 2016-12-31 | 0 accounts | 0 active | yes |
-| 2017-12-31 | 1 accounts | 0 active | yes |
-| 2018-12-31 | 10 accounts | 1 active | yes |
-| 2019-12-31 | 16 accounts | 2 active | yes |
-| 2020-12-31 | 18 accounts | 2 active | yes |
-| 2021-12-31 | 23 accounts | 2 active | yes |
-| 2022-12-31 | 26 accounts | 3 active | yes |
-| 2023-12-31 | 30 accounts | 3 active | yes |
-| 2024-12-31 | 32 accounts | 3 active | yes |
-| 2025-12-31 | 41 accounts | 3 active | yes |
+Counts below are cumulative over the events above. They are not a book position: accounts that were already on supply when the run opened never generated an acquisition event, so they are absent from both columns.
+
+| Year-end | Churn events (cumulative) | Acquisition events (cumulative) |
+|----------|---------------------------|---------------------------------|
+| 2016-12-31 | 0 | 0 |
+| 2017-12-31 | 1 | 0 |
+| 2018-12-31 | 10 | 1 |
+| 2019-12-31 | 16 | 2 |
+| 2020-12-31 | 18 | 2 |
+| 2021-12-31 | 23 | 2 |
+| 2022-12-31 | 26 | 3 |
+| 2023-12-31 | 30 | 3 |
+| 2024-12-31 | 32 | 3 |
+| 2025-12-31 | 41 | 3 |
 
 ## Policy Costs — RO + CfD + CCL + CM + FiT + Mutualization (Phase 21a/27b/30a/31a/54)
 
@@ -3314,7 +3319,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (119 active customers) under 12-month forward scenarios.
-Generated: 2026-08-29T03:05:58Z
+Generated: 2026-08-29T04:40:10Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
