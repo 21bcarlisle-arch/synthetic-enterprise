@@ -56,8 +56,10 @@ EXPECTED_CLAIM_IDS = frozenset({
     "C2_market_position_is_a_run_level_constant",
     "C3_collateral_is_a_cost_line_never_a_call",
     "C3_the_world_cannot_reach_the_liquidity_organs",
-    "SITE_the_schematic_still_says_the_traits_are_coupled",
-    "SITE_the_schematic_still_says_the_company_can_die",
+    # Renamed 2026-08-29 when the correction they were waiting for landed on both rendered
+    # surfaces. The old ids named today's verdict ("still says"); these name the property.
+    "SITE_the_schematic_says_only_one_trait_expresses",
+    "SITE_the_schematic_says_survival_is_not_yet_at_risk",
     # 2026-08-28, the director's mission rewrite. The mission names three channels through which
     # value reaches a household -- modelling, tariffs, advice -- and THE MODEL ON A PAGE now states
     # that advice has modules on disk and no recipient. That is a CHANNEL claim of C1's exact shape

@@ -122,33 +122,42 @@ claims:
   # The two below are the same predicates as C1/C3 above, pointed at the published schematic
   # rather than the design page. They are separate claims on purpose: correcting the canon file
   # does not correct what a reader sees, and R11 says the rendered value is what "done" means.
-  - id: SITE_the_schematic_still_says_the_traits_are_coupled
+  - id: SITE_the_schematic_says_only_one_trait_expresses
     page: site/index.html
-    anchor: "drawn fresh every run with coupled hidden traits"
-    claim: "the front-door schematic tells the reader the drawn traits are coupled"
-    expects: present
+    anchor: "three hidden traits of which only one expresses"
+    claim: "the front-door schematic tells the reader two of the three drawn traits carry no channel"
+    expects: absent
     probe:
       kind: token_live
       token: green_stance
       roots: [simulation]
       exclude: [simulation/population_draw.py, simulation/population_coverage.py]
     note: >-
-      Expected to report OVER_CLAIM until the schematic is regenerated: THE_MODEL_ON_A_PAGE was
-      corrected on 2026-08-28 and the alt-text of the schematic it describes was not.
+      Was SITE_the_schematic_still_says_the_traits_are_coupled, which reported OVER_CLAIM from
+      2026-08-28 to 2026-08-29: C1 reached THE_MODEL_ON_A_PAGE and neither the SVG nor the alt-text
+      that renders it. Repaired 2026-08-29 on BOTH rendered surfaces (a sighted reader meets the
+      SVG, a screen-reader user meets the alt-text; correcting one and not the other is half a fix).
+      The predicate is deliberately unchanged and only `expects` flipped: the page now asserts the
+      ABSENCE the code shows, so the claim HOLDS and still fails the day someone wires green_stance
+      into a response function without saying so on the front door — it is keyed to the channel, not
+      to today's verdict.
 
-  - id: SITE_the_schematic_still_says_the_company_can_die
+  - id: SITE_the_schematic_says_survival_is_not_yet_at_risk
     page: site/index.html
-    anchor: "it can be wrong, and it can die"
-    claim: "the front-door schematic tells the reader the company can die"
-    expects: present
+    anchor: "it must not be guaranteed to live -- though no mechanism presses yet"
+    claim: "the front-door schematic tells the reader no mechanism yet puts the company's survival at risk"
+    expects: absent
     probe:
       kind: token_live
       token: collateral_call
       roots: [simulation]
     note: >-
-      C3's director correction — "the company does not have to die; it has to not be guaranteed to
-      live" — reached the canon page and not the rendered schematic. Bound to the collateral CALL
-      because that is the mechanism C3 names as the one that could kill it.
+      Was SITE_the_schematic_still_says_the_company_can_die. C3's director correction — "the company
+      does not have to die; it has to not be guaranteed to live" — reached the canon page on
+      2026-08-28 and neither rendered surface; repaired 2026-08-29 on both. Still bound to the
+      collateral CALL because that is the mechanism C3 names as the one that could kill it, so the
+      day `B6_collateral_cash_death_loop` lands and the world can issue a call, this claim goes
+      UNDER_CLAIM and the front door is told to stop saying survival is safe.
 
   # ---------------------------------------------------------------- the MISSION's three channels
   # Registered 2026-08-28 with the director's mission rewrite (THE MODEL ON A PAGE §The mission).
