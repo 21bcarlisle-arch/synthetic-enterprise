@@ -87,6 +87,28 @@ yields a zero, an empty arm list or a spread of 0.0 -- "the selection leg is wor
 default would render them identically. The error bar is the same: a noise floor that did not run
 is `error_bar.available: false`, never `stdev: 0`, because a spread of zero is the one value that
 would make an indistinguishable result look decisive.
+
+A DIRECTION IS A CLAIM, AND IT IS EARNED AGAINST THE FLOOR (2026-08-29)
+-----------------------------------------------------------------------
+The headline composed a DIRECTION unconditionally. Given a contrast it would say which way it
+went -- and the error bar three paragraphs below said, correctly, that the same figure moves
+further than that across three re-runs which changed nothing but a dice roll. Two true blocks
+making one false page: the sign of every contrast on this run flips with a seed draw, and the
+sentence a reader met stated it as a finding.
+
+So `_resolvable` now gates every directional clause on the contrast's OWN measured seed spread,
+and a contrast inside its floor gets its SIZE, its BOUND, and the sentence that this book cannot
+resolve the sign -- plus what would (a larger settled book; not more seeds, which re-measure the
+spread rather than shrink it). The withdrawn sentence is kept in `withdrawn_claim` and rendered
+beside the new reading rather than deleted, because a correction a reader cannot see is one they
+cannot check.
+
+KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Every contrast this run produced is inside its
+floor, so today the page says "we cannot tell". The day the book is large enough for a contrast to
+clear its spread, the direction comes back in the same publish with nobody editing a string --
+and `test_a_contrast_outside_its_seed_spread_gets_its_direction_back` is the leg that proves the
+gate is not just a machine for printing "we cannot tell". A control pinned to today's answer
+would go red exactly when the instrument got good enough to earn a sign, which is backwards.
 """
 from __future__ import annotations
 
@@ -451,6 +473,17 @@ def _provisioned(three_arm: dict) -> dict:
         "level_gbp_per_mwh": _f((three_arm.get("level_vs_selection") or {}).get(
             "level_gbp_per_mwh")),
         "control_gbp_per_mwh": _f(shape.get("control_margin_gbp_per_mwh")),
+        # NO SPREAD HAS EVER BEEN MEASURED ON THIS CLOCK, so the figure beside it is a size and
+        # never a direction. A CONSTANT, and said to be one: `run_value_cycle_ab` builds its noise
+        # floor by re-reading `level_vs_selection` per seed (tools/run_value_cycle_ab.py:2535),
+        # which declares `settled-realised`, so there is no artefact anywhere in this repo that
+        # could bound a provisioned contrast. Deriving it would be a branch nothing can reach --
+        # a constant verdict wearing a computation's clothes (R15). What makes this conditional is
+        # a floor run on the superseded clock; until one exists, the honest form is to say so.
+        "no_spread_on_this_clock": (
+            "No seed spread has ever been measured on this superseded clock, so the figure above "
+            "is a SIZE and not a direction: nothing here says the choosing was worth more or less "
+            "than nothing. The bounded reading is the realised one, in the headline."),
         "superseded_note": (
             "This is the clock the run superseded inside itself: the company's flat-rate "
             "bad-debt assumption, frozen at the end of the settlement loop, before the arrears "
@@ -537,10 +570,17 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> di
         # figure it was computed alongside, and said to be a scale statement about the instrument
         # rather than a confidence interval on the restated headline.
         "clock": floor.get("clock"),
+        # NAMES WHAT WOULD EMPTY IT (2026-08-29). The floor's producer was withholding the label,
+        # not this feed -- `run_value_cycle_ab.noise_floor` now carries the clock its own split
+        # declares, per seed and reconciled across them. The artefact on disk predates that, so
+        # this caveat stands until the next `--noise-floor` run and then clears itself. Left
+        # standing rather than blanked: a caveat removed before the run that answers it is the
+        # feed asserting a fact about an artefact it has not seen.
         "clock_caveat": (
             None if floor.get("clock") else
             "This noise floor carries no clock label of its own, so it is paired with the panel "
-            "it was measured beside rather than with the restated figure."),
+            "it was measured beside rather than with the restated figure. Its producer has "
+            "labelled the floor since this one was taken; the next noise-floor run empties this."),
         # DERIVED from the two runs' own stamps -- see `_staleness_caveat`. Separate from the
         # clock caveat because they are different failures: one is a basis label, the other is a
         # different WORLD, and a reader shown only the first would take the spread for current.
@@ -569,6 +609,123 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None) -> di
             "would drift if this sentence were fixed rather than derived."),
     }
 
+
+
+#: The contrasts the noise floor re-measures once per seed, and therefore the only ones this feed
+#: can bound. A contrast the floor does not carry gets NO bound and therefore NO direction -- never
+#: a neighbour's, because a spread measured on one quantity is not a bound on another. On the
+#: 2026-08-29 floor these three differ by more than 2.5x (+-990, +-2,511, +-2,578 on the same three
+#: seeds), so borrowing would have licensed a direction the borrowed-from figure never earned.
+_BOUNDED_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_gbp")
+
+#: What WOULD resolve a contrast this instrument cannot. Named on the surface beside the refusal,
+#: because "we cannot tell" without it reads as a dead end when it is a sample-size statement with
+#: a known remedy -- and because the remedy is the one a reader would get wrong.
+WHAT_WOULD_RESOLVE_IT = (
+    "What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- "
+    "and not more seeds: re-drawing the dice measures this spread again, it does not shrink it.")
+
+#: THE SENTENCE THIS PUBLISH WITHDRAWS, in the words it was published in, kept beside the reading
+#: that replaced it. Not deleted: a correction a reader cannot see is one they cannot check, and
+#: this page's whole claim on anyone's trust is that it publishes the unflattering direction.
+WITHDRAWN_CLAIM = {
+    "withdrawn_on": "2026-08-29",
+    "the_words": ("On this evidence the advantage is the price level, and the per-customer "
+                  "choosing is worth less than nothing."),
+    "why": ("It stated a sign the evidence could not carry. That run's selection leg was "
+            "-£9,627 and the same figure moved across a range of £8,781 when three re-runs "
+            "changed nothing but the per-household price-sensitivity draw -- so 'worth less than "
+            "nothing' was a seed result reported as a finding. The claim is not reversed here and "
+            "nothing replaces it with the opposite: it is withdrawn, and what stands in its place "
+            "is the size, the bound, and the fact that a book this small cannot resolve the sign."),
+    "note": ("WITHDRAWN 2026-08-29: this page previously said “on this evidence the advantage "
+             "is the price level, and the per-customer choosing is worth less than nothing”. "
+             "That sentence stated a direction smaller than its own error bar. It is withdrawn, "
+             "not reversed: the reading above is what the evidence supports."),
+}
+
+
+def _seed_spreads(floor: dict | None) -> dict:
+    """Per-contrast seed spread, DERIVED from the noise floor's own per-seed rows.
+
+    WHY DERIVED HERE AND NOT READ. The producer publishes a spread block for exactly one of the
+    three contrasts (`selection_gbp_spread`). The other two are in the seed rows and nowhere else,
+    and the headline makes a directional claim about both -- so either this file computes them or
+    two of the three claims go out unbounded. It computes them, on the same footing as
+    `_provisioned`, which already derives every contrast in its panel from the artefact's own
+    scalars.
+
+    RECONCILED, NEVER TRUSTED. The one contrast the producer DOES publish a spread for is
+    recomputed here and required to match it. A derivation that cannot reproduce the single figure
+    it can be checked against has no business bounding the other two, so a disagreement withholds
+    ALL THREE rather than the one that failed -- the same shape as the split-versus-bridge check
+    above, and for the same reason: the failure it is looking for (reading the wrong rows, or a
+    seeds list that is not the one the spread was computed over) would not confine itself to one
+    key. A floor carrying no published spread at all is the same refusal: nothing to check against.
+    """
+    seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    if len(seeds) < 2:
+        return {"available": False,
+                "reason": ("no noise floor with two or more seeds has been run for this reading, "
+                           "so no contrast on this page carries a measured spread")}
+    contrasts = {}
+    for key in _BOUNDED_CONTRASTS:
+        values = [_f(seed.get(key)) for seed in seeds]
+        if any(value is None for value in values):
+            continue
+        mean = sum(values) / len(values)
+        variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
+        contrasts[key] = {"n": len(values), "stdev_gbp": variance ** 0.5, "mean_gbp": mean,
+                          "min_gbp": min(values), "max_gbp": max(values)}
+
+    published = _f(((floor or {}).get("selection_gbp_spread") or {}).get("stdev"))
+    derived = (contrasts.get("selection_gbp") or {}).get("stdev_gbp")
+    if published is None or derived is None:
+        return {"available": False,
+                "reason": ("the noise floor publishes no `selection_gbp_spread` to check this "
+                           "feed's own reading of its seed rows against, so no contrast is "
+                           "bounded from them")}
+    if abs(published - derived) > SAME_SUPPLIER_TOLERANCE_GBP:
+        return {"available": False,
+                "reason": ("this feed's reading of the floor's seed rows gives a selection spread "
+                           "of £{:,.2f} where the floor itself publishes £{:,.2f}, so it is not "
+                           "reading the rows that spread was measured over and no contrast is "
+                           "bounded from them".format(derived, published))}
+    return {
+        "available": True,
+        "seeds": len(seeds),
+        "what_was_re_drawn": (
+            "The same three arms re-run on the same world once per seed, with only the "
+            "per-household price-sensitivity draw changed. Nothing about the company moved."),
+        "rule": ("A contrast smaller than the spread the SAME contrast shows across those seeds "
+                 "cannot have its DIRECTION stated on this page. The rule is the floor "
+                 "artefact's own: if the spread is wider than the figure, the instrument cannot "
+                 "resolve the question being asked of it."),
+        "contrasts": contrasts,
+    }
+
+
+def _spread_for(spreads: dict | None, key: str):
+    """The measured spread for one contrast, or None. None is never a licence to state a sign."""
+    if not (spreads or {}).get("available"):
+        return None
+    return ((spreads or {}).get("contrasts") or {}).get(key)
+
+
+def _resolvable(value, spread) -> bool | None:
+    """Is this contrast bigger than the spread the SAME contrast shows across re-draws?
+
+    `None` means UNKNOWN -- no measured spread -- and every caller treats unknown exactly as it
+    treats "no", because the one thing this gate exists to stop is a direction stated by default.
+
+    The comparison is `>` and not `>=` on purpose: a contrast exactly equal to its own spread
+    fails it. That is the fail-CLOSED direction of the strict inequality, checked because the
+    opposite one is a shape this project has shipped before (R15).
+    """
+    value, stdev = _f(value), _f((spread or {}).get("stdev_gbp"))
+    if value is None or stdev is None:
+        return None
+    return abs(value) > stdev
 
 
 #: The funnel stages that are DELIBERATE SCOPE rather than a gap in the world. Named here, not
@@ -1052,9 +1209,15 @@ def build(three_arm: dict | None, floor: dict | None,
             "so there is nothing to compare: " + realised.get("reason", "")))
 
     point = provisioned.get("selection_gbp") if provisioned["available"] else None
+    # THE BOUND EVERY DIRECTIONAL CLAUSE OF THE HEADLINE IS GATED ON. Published in the same
+    # payload as the sentence it gates so a reader can check the gate rather than take it, and so
+    # the surface can never render a direction whose bound is not on the page with it.
+    spreads = _seed_spreads(floor)
     return dict(
         base,
         available=True,
+        contrast_bounds=spreads,
+        withdrawn_claim=WITHDRAWN_CLAIM,
         run_generated_at=three_arm.get("generated_at"),
         book=(three_arm.get("book_identity") or {}).get("control_arm") or {},
         realised=realised,
@@ -1076,7 +1239,7 @@ def build(three_arm: dict | None, floor: dict | None,
             # so it may only be made while the published run and the baseline arm are the same run.
             ("The comparison below is against the very supplier this site publishes. " if
              (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
-            + _headline_reading(realised, provisioned)
+            + _headline_reading(realised, provisioned, spreads)
             + _coverage_clause(three_arm)),
     )
 
@@ -1106,7 +1269,7 @@ def _coverage_clause(three_arm: dict) -> str:
             ).format(priced=priced, offered=offered, pct=pct)
 
 
-def _headline_reading(realised: dict, provisioned: dict) -> str:
+def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = None) -> str:
     """The sentence the page leads with, DERIVED from the restated figures' own signs.
 
     THIS SENTENCE USED TO BE A CONSTANT (2026-08-28). It asserted that the level arm "earned as
@@ -1116,6 +1279,12 @@ def _headline_reading(realised: dict, provisioned: dict) -> str:
     that cannot change when its evidence changes is not a reading of the evidence, and this is
     the one page on the site whose whole purpose is to be able to return an unflattering answer
     (R12). So the direction of the claim is now computed, and the losing case has a sentence.
+
+    THE FLOOR IS ONLY HANDED TO THE READING IT WAS MEASURED ON (2026-08-29). Every seed contrast
+    the noise floor carries is on the settled-realised clock, so the superseded fallback below
+    gets NO bound -- and no bound means no direction, never a free one. Handing the realised
+    spread to a provisioned figure would be the clock-mixing defect this file's two panels exist
+    to keep apart, committed in the one place it would be hardest to see.
     """
     split = (realised.get("split") or {}) if realised.get("available") else {}
     if not split.get("available"):
@@ -1126,19 +1295,30 @@ def _headline_reading(realised: dict, provisioned: dict) -> str:
                     "reading, so no claim is made about where any advantage came from.")
         clock_note = (" This is on the superseded clock -- see the panels below.")
         return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage")),
-                                   _f(fallback.get("value_advantage_gbp"))) + clock_note
+                                   _f(fallback.get("value_advantage_gbp")), None) + clock_note
     return _selection_sentence(split.get("selection_gbp"),
                                split.get("level_share_of_advantage"),
-                               split.get("value_advantage_gbp"))
+                               split.get("value_advantage_gbp"),
+                               spreads)
 
 
-def _selection_sentence(selection, share, advantage=None) -> str:
-    """One sentence for what the per-customer CHOOSING was worth, in the direction it came out."""
+def _selection_sentence(selection, share, advantage=None, spreads=None) -> str:
+    """What the per-customer CHOOSING was worth -- with a DIRECTION only when the figure is bigger
+    than the spread the same figure shows across seeds, and its SIZE and BOUND when it is not."""
     selection = _f(selection)
     if selection is None:
         return ("The arms ran, but the value of the per-customer choosing could not be read, so "
                 "no claim is made about it.")
-    share_clause = ("" if _f(share) is None else
+    advantage_spread = _spread_for(spreads, "value_advantage_gbp")
+    selection_spread = _spread_for(spreads, "selection_gbp")
+
+    # THE SHARE IS A RATIO OF TWO CONTRASTS, AND ITS DENOMINATOR IS THE ARM'S OWN ADVANTAGE. When
+    # that advantage is inside its own noise the share is a rounding error dressed as a
+    # percentage -- on the 2026-08-29 run, -199% off a GBP 607 denominator whose seed spread is
+    # +-GBP 990. The split already withholds it below GBP 1; this withholds it below the spread
+    # actually measured for it, which is the bound that applies. Said out loud before dividing.
+    share_clause = ("" if _f(share) is None
+                    or _resolvable(advantage, advantage_spread) is not True else
                     " The price level accounts for {:.0%} of the per-customer arm's "
                     "advantage.".format(_f(share)))
     # THE FIRST CLAUSE IS DERIVED TOO, AND IT WAS NOT (2026-08-28). Both branches used to open
@@ -1147,36 +1327,103 @@ def _selection_sentence(selection, share, advantage=None) -> str:
     # than flat rules while the published headline said it earned more. The selection direction
     # had been made derived for exactly this reason and the arm-vs-control direction was left
     # behind, which is a half-finished repair rather than an oversight of a different kind.
-    opening = _arm_vs_control_clause(advantage)
-    if selection < 0:
-        return ("{} Running it through ONE flat margin at the same price LEVEL earned "
-                "£{:,.0f} more than the per-customer engine did. On this evidence the advantage "
+    opening = _arm_vs_control_clause(advantage, advantage_spread)
+
+    # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as inside: a
+    # missing spread is not evidence that the sign is safe to state.
+    if _resolvable(selection, selection_spread) is not True:
+        body = _cannot_resolve(
+            selection, selection_spread,
+            ("Once one flat margin at the same price LEVEL is given credit for what a level "
+             "alone would have earned, £{:,.0f} separates the two").format(abs(selection)),
+            "whether the per-customer choosing is worth anything at all, in either direction")
+    elif selection < 0:
+        body = ("Running it through ONE flat margin at the same price LEVEL earned "
+                "£{:,.0f} more than the per-customer engine did{}. On this evidence the advantage "
                 "is the price level, and the per-customer choosing is worth less than "
-                "nothing.{}".format(opening, abs(selection), share_clause))
-    return ("{} Once one flat margin at the same price LEVEL is given credit for what a level "
-            "alone would have earned, £{:,.0f} is left. On this evidence the choosing itself "
-            "carried part of it.{}".format(opening, selection, share_clause))
+                "nothing.".format(abs(selection), _clears_its_floor(selection_spread)))
+    else:
+        body = ("Once one flat margin at the same price LEVEL is given credit for what a level "
+                "alone would have earned, £{:,.0f} is left{}. On this evidence the choosing "
+                "itself carried part of it.".format(selection,
+                                                    _clears_its_floor(selection_spread)))
+
+    # ONCE, AND ONLY WHEN SOMETHING WAS WITHHELD. A remedy printed beside a claim that WAS
+    # resolved would read as an apology for a figure that earned its sign.
+    # A contrast the run never reported is not a book-size problem, so it does not summon the
+    # book-size remedy -- only a figure that EXISTS and did not clear its floor does.
+    withheld = any(_f(value) is not None and _resolvable(value, spread) is not True
+                   for value, spread in ((advantage, advantage_spread),
+                                         (selection, selection_spread)))
+    return "{} {}{}{}".format(opening, body, share_clause,
+                              " " + WHAT_WOULD_RESOLVE_IT if withheld else "")
 
 
-def _arm_vs_control_clause(advantage) -> str:
-    """Did the per-customer arm beat flat rules, or not? Stated in the direction it came out.
+def _cannot_resolve(value, spread, size_clause: str, what: str) -> str:
+    """The sentence a contrast inside its own floor gets: the SIZE, the BOUND, and the refusal to
+    state a sign. On the surface, never in a footnote.
+
+    The REMEDY is not appended here. Both clauses of the headline can be withheld on the same run
+    -- both were on 2026-08-29 -- and a remedy stapled to each printed the same forty words twice
+    in one paragraph, which is how a sentence a reader needs becomes one they skip. The caller
+    states it once, and only when something was actually withheld.
+
+    THE REFUSAL NAMES ITS REASON, and the two reasons are different repairs. A contrast measured
+    against a spread it does not clear is a book too small to answer the question; a contrast with
+    no spread beside it at all is a floor nobody has run. Collapsing them would send the next
+    reader to re-run seeds when what is owed is a bigger book, or the reverse.
+    """
+    if _f((spread or {}).get("stdev_gbp")) is None:
+        return ("{size}. No seed spread has been measured for that contrast on this clock, so its "
+                "DIRECTION is not stated here: on a comparison this size an unbounded sign is a "
+                "coin toss reported as a finding.".format(size=size_clause))
+    return ("{size} -- INSIDE the ±£{stdev:,.0f} that the same figure moves across {n} re-runs "
+            "which changed nothing about the company but the per-household price-sensitivity "
+            "draw. So this book CANNOT RESOLVE {what}.").format(
+        size=size_clause, stdev=_f(spread.get("stdev_gbp")), n=spread.get("n"), what=what)
+
+
+def _clears_its_floor(spread) -> str:
+    """The bound, stated on the branch that DID earn its direction too -- a sign published without
+    the spread it beat is the same unbounded figure, just one that happened to be large."""
+    stdev = _f((spread or {}).get("stdev_gbp"))
+    if stdev is None:
+        return ""
+    return ", clearing the ±£{:,.0f} this figure moves across {} seed re-draws".format(
+        stdev, (spread or {}).get("n"))
+
+
+def _arm_vs_control_clause(advantage, spread=None) -> str:
+    """Did the per-customer arm beat flat rules, or not? Stated in the direction it came out --
+    and ONLY when the gap is bigger than the gap seeds alone produce.
 
     UNKNOWN IS ITS OWN CASE. A run that cannot supply the arm's own advantage gets a sentence
     saying so, never the winning one by default -- defaulting to "earned more" is precisely the
-    defect this function exists to close.
+    defect this function exists to close. A run that supplies it inside its own noise now gets a
+    third: the size, the bound, and no sign. On 2026-08-29 that is £607 against a ±£990 seed
+    spread, and "the per-customer engine earned £607 MORE" would have been a dice roll on the page.
     """
     advantage = _f(advantage)
     if advantage is None:
         return ("This run did not report what the per-customer decision engine earned against "
                 "flat rules, so no claim is made about it.")
+    # An exact tie is stated before the gate, because it is the one reading that names no
+    # direction at all -- gating it would leave this branch unreachable, which is how a composer
+    # grows a case nothing can ever print.
+    if advantage == 0:
+        return ("Running the same book through the per-customer decision engine earned exactly "
+                "what flat rules did.")
+    if _resolvable(advantage, spread) is not True:
+        return _cannot_resolve(
+            advantage, spread,
+            ("Running the same book through the per-customer decision engine came out £{:,.0f} "
+             "from flat rules").format(abs(advantage)),
+            "which of the two earned more")
     if advantage > 0:
         return ("Running the same book through the per-customer decision engine earned "
-                "£{:,.0f} MORE than flat rules.".format(advantage))
-    if advantage < 0:
-        return ("Running the same book through the per-customer decision engine earned "
-                "£{:,.0f} LESS than flat rules.".format(abs(advantage)))
-    return ("Running the same book through the per-customer decision engine earned exactly what "
-            "flat rules did.")
+                "£{:,.0f} MORE than flat rules{}.".format(advantage, _clears_its_floor(spread)))
+    return ("Running the same book through the per-customer decision engine earned "
+            "£{:,.0f} LESS than flat rules{}.".format(abs(advantage), _clears_its_floor(spread)))
 
 
 def _read(path: Path):

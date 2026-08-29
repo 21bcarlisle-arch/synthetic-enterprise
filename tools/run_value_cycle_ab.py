@@ -2540,6 +2540,14 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         rows.append({
             "seed": int(seed),
             "elasticity_draws": calls["n"],
+            # THE CLOCK EVERY FIGURE ON THIS ROW IS ON, carried per seed and reconciled below.
+            # Added 2026-08-29: this artefact published four contrasts and no clock, so the page
+            # that bounds its headline with them could only say "this floor declares no clock of
+            # its own" -- a caveat that could never empty, on a spread that has been on the
+            # realised clock since the split was repaired. Taken from the split's own label rather
+            # than written down here, for the reason the whole tool exists: the same block was on
+            # `settled-provisioned` before that repair, with no change of key or shape.
+            "clock": lvs.get("clock"),
             "level_gbp_per_mwh": lvs.get("level_gbp_per_mwh"),
             "value_advantage_gbp": lvs["value_advantage_gbp"],
             "level_advantage_gbp": lvs["level_advantage_gbp"],
@@ -2557,6 +2565,19 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     if selection["stdev"] is not None and selection["n"] > 1:
         sem = selection["stdev"] / math.sqrt(selection["n"])
         distinguishable = abs(selection["mean"]) > 2 * sem
+    # ONE CLOCK, OR NO CLOCK -- never the first seed's. A spread taken across rows on different
+    # clocks is not a spread of one quantity, and the GBP 39,962.17 bad-debt gap between this
+    # run's two clocks is larger than every contrast the spread bounds, so a mixed floor would
+    # publish that gap as seed noise. Seeds that declare nothing yield None and the consumer's
+    # own "this floor carries no clock" caveat stands; seeds that DISAGREE are refused outright.
+    declared = {row.get("clock") for row in rows}
+    if len(declared) > 1:
+        raise AssertionError(
+            "the seeds report {} different clocks ({}), so their spread is not the spread of one "
+            "quantity and no error bar can be taken from it".format(
+                len(declared), sorted(str(clock) for clock in declared)))
+    clock = declared.pop() if declared else None
+
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "report_end": report_end,
@@ -2564,6 +2585,11 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
             "assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the "
             "figure the level-vs-selection split publishes."),
+        #: DERIVED FROM THE SPLIT'S OWN LABEL, agreed across every seed. A consumer that bounds a
+        #: published figure with this spread has to know which clock it is on, and until
+        #: 2026-08-29 there was nothing here to read -- so `site/data/value_arms.json` carried a
+        #: standing caveat saying so. Never inferred from which block the rows came out of.
+        "clock": clock,
         "symbol_patched": f"{ELASTICITY_DRAW_MODULE}.{name}",
         "symbol_resolution": (
             "read from `{}`'s own import statement, not written down here, so a rename "

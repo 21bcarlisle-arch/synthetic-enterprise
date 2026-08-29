@@ -648,7 +648,14 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               ? ""
               : " &mdash; the price level explains "
                 + (sp.level_share_of_advantage * 100).toFixed(1) + "% of the advantage")
-          + ".</p>"
+          + "."
+          /* AND WHAT THAT SIZE IS NOT. This panel is on the clock the run superseded, and no seed
+             spread has ever been measured on it -- so the figure above is a magnitude and the page
+             must not let it read as a direction. It closes the sentence rather than interrupting
+             it: printed mid-clause it orphaned the share that follows, which is the kind of thing
+             only rendering the page catches. The headline carries the bounded reading. */
+          + (sp.no_spread_on_this_clock ? " " + prose(sp.no_spread_on_this_clock) : "")
+          + "</p>"
           + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--muted);">'
           + prose(sp.superseded_note) + "</p>";
       }
@@ -733,10 +740,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + prose(msk.reason) + "</p>";
       }
 
+      /* THE SENTENCE THIS PAGE WITHDREW, beside the reading that replaced it. A correction a
+         reader cannot see is one they cannot check, and the page's whole claim on anyone's trust
+         is that it publishes the unflattering direction -- which is worth nothing if it can also
+         un-publish one silently. Read from the feed, not typed here. */
+      var wd = d.withdrawn_claim || {};
       $("arms-note").textContent =
         "From the A/B run generated " + esc(d.run_generated_at || "at an unknown time")
         + ", on " + esc((d.book || {}).billing_accounts_settled_in_window)
-        + " settled billing accounts. " + esc(d.provisional_note) + " " + esc(d.not_a_target);
+        + " settled billing accounts. " + esc(d.provisional_note) + " " + esc(d.not_a_target)
+        + (wd.note ? " " + esc(wd.note) : "");
     })
     .catch(function (err) {
       $("arms-note").textContent =

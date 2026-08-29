@@ -181,3 +181,58 @@ def test_a_single_seed_is_refused():
 
 def test_the_decision_module_constant_points_at_the_real_decision():
     assert ELASTICITY_DECISION_MODULE == "simulation.customer_events"
+
+
+# ---------------------------------------------------------------------------
+# 6. THE FLOOR SAYS WHICH CLOCK ITS SPREAD IS ON
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT. This artefact published four contrasts and no clock. `site/data/value_arms.json`
+# bounds its headline's directional claims with them, and could only say "this floor declares no
+# clock of its own" -- a caveat with no way to empty, on a spread that has been on the realised
+# clock since the split was repaired. The consumer was right to fail closed; the producer was the
+# one withholding the fact.
+#
+# READ, NEVER WRITTEN DOWN. The same block was on `settled-provisioned` before that repair, with
+# no change of key or shape, so a floor that named its own clock would have gone on naming the
+# wrong one. It is taken from `level_vs_selection`'s own label, per seed.
+
+
+def _runner_declaring(clock):
+    """A three-arm result whose split declares `clock`, and which still moves with the draw."""
+    def _run() -> dict:
+        result = _fake_runner()
+        result["level_vs_selection"] = dict(result["level_vs_selection"], clock=clock)
+        return result
+    return _run
+
+
+def test_the_floor_carries_the_clock_ITS_OWN_SPLIT_declares():
+    """Fires on: hard-coding the label, or dropping it back to unlabelled."""
+    for clock in ("settled-realised", "settled-provisioned"):
+        result = noise_floor([11111, 22222], runner=_runner_declaring(clock))
+        assert result["clock"] == clock, (
+            "the floor published {!r} where its own split declared {!r}".format(
+                result.get("clock"), clock))
+        assert all(row["clock"] == clock for row in result["seeds"])
+
+
+def test_a_split_that_declares_no_clock_leaves_the_floor_unlabelled_not_guessed():
+    """An unlabelled split must not be promoted to the flattering label. The consumer's own "this
+    floor carries no clock" caveat is the correct outcome, and it can only fire on a None."""
+    assert noise_floor([11111, 22222], runner=_fake_runner)["clock"] is None
+
+
+def test_seeds_on_DIFFERENT_clocks_are_refused_rather_than_averaged():
+    """A spread across rows on two clocks is not the spread of one quantity. This run's two clocks
+    are £39,962.17 apart -- larger than every contrast the spread bounds -- so a mixed floor would
+    publish that gap as seed noise, which is the most decisive-looking error bar available."""
+    seen = {"n": 0}
+
+    def _alternating():
+        seen["n"] += 1
+        clock = "settled-realised" if seen["n"] == 1 else "settled-provisioned"
+        return _runner_declaring(clock)()
+
+    with pytest.raises(AssertionError, match="different clocks"):
+        noise_floor([11111, 22222], runner=_alternating)

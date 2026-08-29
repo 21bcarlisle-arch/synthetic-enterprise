@@ -516,3 +516,163 @@ def test_the_household_figure_states_the_two_currencies_it_does_not_reach():
         assert "not a target" in out["household"]["not_a_target"].lower(), (
             "the household figure is published with no R12 statement on the surface that "
             "publishes it -- which is where it becomes temptingly steerable")
+
+
+# ── A DIRECTION IS EARNED AGAINST THE FLOOR, NEVER STATED BY DEFAULT ─────────────────────────
+#
+# THE DEFECT. The headline composed a direction unconditionally. Given any contrast it said which
+# way it went, while the error bar three paragraphs below said -- correctly -- that the same figure
+# moves further than that across three re-runs which changed nothing but a dice roll. Two true
+# blocks making one false page. On 2026-08-29 all three of the run's contrasts were inside their
+# own seed spread and the page still named a winner.
+#
+# WHAT THESE TWO TESTS PIN, AND WHAT THEY DELIBERATELY DO NOT. They pin the PROPERTY -- direction
+# iff the contrast clears the spread the same contrast shows across seeds -- by driving the SAME
+# two figures through two different floors. A control pinned to today's "we cannot tell" would go
+# red the day the book grew enough to earn a sign, which is exactly backwards and is the failure
+# this project keeps repeating.
+
+#: Every sentence on this page that names a WINNER. If a clause is added that states a direction,
+#: it belongs here, or the inside-the-floor test stops covering it.
+_DIRECTIONAL_CLAIMS = (
+    "MORE than flat rules",
+    "LESS than flat rules",
+    "the per-customer choosing is worth less than nothing",
+    "the choosing itself carried part of it",
+)
+
+
+def _floor_with_spread(stdev: float) -> dict:
+    """A noise floor whose three seeds give EXACTLY `stdev` on all three contrasts.
+
+    The values -s, 0, +s have a sample standard deviation of exactly s, so the bound under test is
+    the number written at the call site and not one arrived at by arithmetic the reader of this
+    test cannot see. The published spread block agrees with the rows by construction -- disagreeing
+    with them is its own test below.
+    """
+    values = (-stdev, 0.0, stdev)
+    return {
+        # Later than any real three-arm run, so these tests exercise the direction gate and never
+        # trip the separate staleness caveat.
+        "generated_at": "2999-01-01T00:00:00Z",
+        "seeds": [{"seed": 11111 + i, "value_advantage_gbp": v, "level_advantage_gbp": v,
+                   "selection_gbp": v} for i, v in enumerate(values)],
+        "selection_gbp_spread": {"n": 3, "stdev": stdev, "mean": 0.0,
+                                 "min": -stdev, "max": stdev},
+    }
+
+
+def _headline_with(advantage, selection, stdev):
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"],
+                                     value_advantage_gbp=advantage, selection_gbp=selection)
+    return gva.build(art, _floor_with_spread(stdev), _load(RUN_OUTPUT))["headline"]
+
+
+def test_a_contrast_inside_its_seed_spread_carries_no_direction():
+    """£600 and £1,800 against a ±£5,000 floor: the page states both SIZES and the BOUND, and
+    names no winner in either comparison.
+
+    Fires on: restoring an unconditional direction, dropping the bound from the sentence, or
+    reporting the refusal without the size a reader needs to judge it.
+    """
+    headline = _headline_with(advantage=600.0, selection=1800.0, stdev=5000.0)
+
+    for claim in _DIRECTIONAL_CLAIMS:
+        assert claim not in headline, (
+            "the page named a winner on a contrast inside its own error bar ({!r}): {}".format(
+                claim, headline))
+    assert "CANNOT RESOLVE" in headline, headline
+    assert "±£5,000" in headline, "the refusal was published without the bound that earned it"
+    assert "£600" in headline and "£1,800" in headline, (
+        "the refusal withheld the SIZES too -- 'we cannot tell' with no figure is less than the "
+        "page had before")
+    assert "larger SETTLED BOOK" in headline, (
+        "the page says it cannot resolve the sign and does not say what would")
+
+
+def test_a_contrast_outside_its_seed_spread_gets_its_direction_back():
+    """THE LEG THAT STOPS THIS BEING A MACHINE FOR PRINTING "we cannot tell".
+
+    The SAME two figures as the test above, against a floor ten times smaller. Nothing else
+    differs, so a gate that has quietly become unconditional fails here and only here.
+    """
+    headline = _headline_with(advantage=600.0, selection=1800.0, stdev=100.0)
+
+    assert "£600 MORE than flat rules" in headline, headline
+    assert "the choosing itself carried part of it" in headline, headline
+    assert "CANNOT RESOLVE" not in headline, (
+        "a contrast six times its own seed spread was still refused a direction")
+    assert "larger SETTLED BOOK" not in headline, (
+        "a resolved contrast was published with the apology owed to an unresolved one")
+
+
+def test_a_contrast_exactly_equal_to_its_spread_is_not_resolved():
+    """The fail-CLOSED direction of the strict inequality. A mutation that made this `>=` would
+    licence a direction on a contrast the floor exactly covers, and 1e-16 of daylight is not
+    evidence (R15 -- the strict-inequality shape)."""
+    headline = _headline_with(advantage=1000.0, selection=1000.0, stdev=1000.0)
+    for claim in _DIRECTIONAL_CLAIMS:
+        assert claim not in headline, headline
+
+
+def test_a_floor_that_cannot_reproduce_its_own_published_spread_bounds_nothing():
+    """RECONCILIATION, and it withholds ALL THREE bounds rather than the one that failed.
+
+    This feed derives two of the three spreads from seed rows nobody else reads. The only check
+    available on that derivation is the one contrast the producer publishes a spread for -- so if
+    the rows and that figure disagree, this file is not reading the rows the spread was measured
+    over and none of its three readings can be trusted. Fires on: trusting the rows, or narrowing
+    the refusal to the selection leg.
+    """
+    floor = _floor_with_spread(1000.0)
+    floor["selection_gbp_spread"] = dict(floor["selection_gbp_spread"], stdev=9999.0)
+    out = gva.build(_load(THREE_ARM), floor, _load(RUN_OUTPUT))
+
+    bounds = out["contrast_bounds"]
+    assert bounds["available"] is False
+    assert "contrasts" not in bounds, "a withheld bound still published the figures it withheld"
+    assert "9,999" in bounds["reason"] and "1,000" in bounds["reason"], (
+        "the refusal names neither figure it refused over: {}".format(bounds["reason"]))
+    for claim in _DIRECTIONAL_CLAIMS:
+        assert claim not in out["headline"], (
+            "an unbounded contrast was published with a direction anyway: {}".format(
+                out["headline"]))
+
+
+def test_a_share_of_an_advantage_inside_its_own_noise_is_not_published():
+    """Before dividing two numbers, say what each counts. `level_share_of_advantage` divides by
+    the arm's own advantage, so a denominator inside its seed spread makes the share a rounding
+    error dressed as a percentage -- -199% off a £607 denominator on the live run."""
+    assert "accounts for" not in _headline_with(advantage=600.0, selection=1800.0, stdev=5000.0)
+    assert "accounts for" in _headline_with(advantage=600.0, selection=1800.0, stdev=100.0), (
+        "the null rung: while the denominator DOES clear its floor the share must be published, "
+        "otherwise the assertion above passes against a headline that never carries it")
+
+
+def test_the_superseded_clock_never_borrows_the_realised_floor():
+    """The floor's seed contrasts are all on the settled-realised clock. A run whose split is not
+    on that clock falls back to the provisioned panel, and it must get NO bound rather than one
+    measured somewhere else -- the clock-mixing defect, committed where it is hardest to see."""
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"], clock="settled-provisioned")
+    headline = gva.build(art, _floor_with_spread(100.0), _load(RUN_OUTPUT))["headline"]
+
+    assert "superseded clock" in headline, headline
+    assert "±£100" not in headline, "a provisioned figure was bounded by a realised spread"
+    for claim in _DIRECTIONAL_CLAIMS:
+        assert claim not in headline, (
+            "an unbounded superseded figure was published with a direction: {}".format(headline))
+
+
+def test_the_withdrawn_sentence_is_kept_beside_the_reading_that_replaced_it(real):
+    """A correction a reader cannot see is one they cannot check. The page's claim on anyone's
+    trust is that it publishes the unflattering direction, and that is worth nothing if it can
+    also un-publish one silently."""
+    withdrawn = real["withdrawn_claim"]
+    assert "worth less than nothing" in withdrawn["the_words"], (
+        "the withdrawn claim is recorded without the words that were published")
+    assert withdrawn["the_words"] not in real["headline"], (
+        "the sentence recorded as withdrawn is still the sentence being published")
+    assert "withdrawn, not reversed" in withdrawn["note"], (
+        "the note lets a reader take the withdrawal for the opposite claim")

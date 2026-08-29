@@ -179,17 +179,29 @@ def test_every_arm_that_has_a_figure_renders_it(live):
             "reader opens".format(arm["key"], _gbp(arm["net_gbp"])))
 
 
-def test_the_selection_leg_reaches_the_reader_as_a_negative(live):
+def test_the_selection_leg_reaches_the_reader_with_its_own_sign(live):
+    """WHICHEVER SIGN IT IS, and that restatement is the repair (2026-08-29).
+
+    This pinned `selection < 0` -- the state on the day it was written -- and its own failure
+    message said the page's sentence should be re-read rather than the assertion flipped. On
+    2026-08-29 the run came back at +£453 and it fired, which is the control working. Pinning the
+    new sign would just re-arm the same trap: what is checked now is that the figure reaches a
+    reader carrying whatever sign it has, and that the panel says why that size is not a
+    direction. A control keyed to the property survives the result moving; this one did not.
+    """
     feed = _live_feed()
     selection = feed["provisioned"]["selection_gbp"]
-    assert selection < 0, (
-        "the selection leg is no longer negative -- a real change in the result, and the sentence "
-        "the page renders about it must be re-read rather than this assertion flipped")
-
     rendered = live["arms-split"]
-    assert "−£{:,}".format(abs(round(selection))) in rendered, (
-        "the value of the per-customer choosing does not reach the reader with its sign")
+
+    signed = ("−£{:,}".format(abs(round(selection))) if selection < 0
+              else "+£{:,}".format(round(selection)))
+    assert signed in rendered, (
+        "the value of the per-customer choosing ({}) does not reach the reader with its "
+        "sign".format(signed))
     assert "the choosing is therefore worth" in rendered.lower()
+    assert "not a direction" in rendered, (
+        "the superseded panel publishes a signed selection figure with no seed spread behind it "
+        "and does not say so, so the size reads as a finding about which way it went")
     # The level arm is what makes the split readable at all: without its figure on the page the
     # negative is an unexplained assertion.
     level = [a for a in feed["provisioned"]["arms"] if a["key"] == "level"][0]
@@ -797,3 +809,73 @@ def test_an_arm_with_no_household_figure_renders_an_absence_beside_its_own_net_m
         "an arm the run never scored rendered as a blank rather than as an absence")
     assert rendered.count(_gbp(1000.0)) == 1, (
         "an arm with no household figure was filled from another arm's")
+
+
+# ── the page may name a winner only where the contrast cleared its own floor ─────────────────
+#
+# THE DEFECT, AT THE DOM. Until 2026-08-29 the headline named a winner on every run, while the
+# error bar three paragraphs below it said the same figure moves further than that across three
+# re-runs that changed nothing but a dice roll. A reader met the winner first. Both blocks were
+# true; the page was not.
+#
+# KEYED TO THE PROPERTY. This does not pin "we cannot tell" -- it recomputes, from the feed's own
+# published bounds, which case the run is in, and requires the RENDERED sentence to match. The day
+# the book is big enough for a contrast to clear its spread, the direction comes back and this
+# stays green; a page that goes on refusing, or goes back to asserting, reds either way.
+
+#: Every rendered sentence on this surface that names a winner.
+_DIRECTIONAL_CLAIMS = (
+    "MORE than flat rules",
+    "LESS than flat rules",
+    "the per-customer choosing is worth less than nothing",
+    "the choosing itself carried part of it",
+)
+
+
+def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live):
+    feed = _live_feed()
+    split = (feed.get("realised") or {}).get("split") or {}
+    bounds = (feed.get("contrast_bounds") or {})
+    spread = ((bounds.get("contrasts") or {}).get("selection_gbp") or {}) \
+        if bounds.get("available") else {}
+    selection, stdev = split.get("selection_gbp"), spread.get("stdev_gbp")
+    headline = live["arms-headline"]
+
+    if selection is None:
+        pytest.fail("the live feed carries no selection leg, so this control's subject is absent")
+    if stdev is None:
+        assert not any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
+            "the page named a winner on a contrast with no measured spread behind it: {}".format(
+                headline))
+        return
+    if abs(selection) > stdev:
+        assert any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
+            "the contrast cleared its own seed spread and the page still refused to say which "
+            "way it went -- a refusal that cannot be withdrawn is not a reading: {}".format(
+                headline))
+        assert _gbp(stdev).lstrip("-") in headline or "clearing the" in headline, (
+            "a direction was published without the spread it beat")
+    else:
+        assert not any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
+            "the page named a winner on a contrast INSIDE its own error bar: {}".format(headline))
+        assert "CANNOT RESOLVE" in headline, headline
+        assert "larger SETTLED BOOK" in headline, (
+            "the page says it cannot resolve the sign and never says what would")
+
+
+def test_the_withdrawn_sentence_reaches_the_reader_beside_the_one_that_replaced_it(live):
+    """A correction a reader cannot see is one they cannot check. This page's whole claim on
+    anyone's trust is that it publishes the unflattering direction -- worth nothing if it can also
+    un-publish one silently."""
+    feed = _live_feed()
+    withdrawn = feed.get("withdrawn_claim") or {}
+    assert withdrawn.get("note"), "the feed carries no withdrawal for the page to render"
+
+    note = live["arms-note"]
+    assert "WITHDRAWN" in note, (
+        "the withdrawal is in the feed and not on the page: {}".format(note))
+    assert "worth less than nothing" in note, (
+        "the page announces a withdrawal without the words it withdrew, so a reader cannot tell "
+        "what stopped being claimed")
+    assert "withdrawn, not reversed" in note, (
+        "the page lets a reader take the withdrawal for the opposite claim")
