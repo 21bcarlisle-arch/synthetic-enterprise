@@ -112,3 +112,47 @@ alongside the two the prediction names, and it was not on the list.
 **Estimated completion.** ~12 passes at roughly 10 min each on this machine, so ~2 hours from
 2026-08-29T11:53:54Z. This tick is bounded and will end first; the grading is the next tick's
 first job, and this section is what makes it findable.
+
+---
+
+## STATUS 2026-08-29 14:05Z — the replacement run died too, at 8 minutes, and now I know why
+
+**Written beside both the prediction and the 12:05Z status, over neither.** The prediction is
+**still ungradeable**, for the third time, and this section exists to record that the *reason* is
+now established rather than to grade anything.
+
+The run the 12:05Z section launched at 11:53:54Z stopped writing at **12:01:43Z — eight minutes in**,
+mid-progress, on a truncated line, with no traceback and no artefact. Same signature as the
+2026-08-28 20:01:29Z run, which stopped three minutes in. Neither
+`value_cycle_ab_s1_three_arm_20260829.json` nor `..._sourced.json` has ever existed.
+
+**The cause, established this tick and filed as
+`WORKER_FINDING_THE_ONLY_SURVIVING_LAUNCH_IS_BANKED_IN_ONE_TOOL_SO_EVERY_OTHER_LONG_JOB_DIES_2026-08-29.md`:**
+the tick runs inside `worker-tick.service`, whose `KillMode=control-group`. When a bounded tick
+ends, systemd SIGTERMs every process in its cgroup, and **`setsid` does not escape a cgroup**. The
+2026-08-28 run logged `pid==pgid==sess` — a correct POSIX detach — and was killed regardless. Both
+runs were killed by the tick that launched them, at its own edge.
+
+**What this costs the prediction, stated plainly:** nothing about its content, and two days of its
+life. It was filed 2026-08-28 ~21:00 BST before any answer existed, and it is graded when there is
+an artefact. Three launches have now failed to produce one, and *that* is the finding the two
+failures bought — not evidence about the arms either way.
+
+**The relaunch, through the mechanism that actually survives:**
+
+```
+systemd-run --user --unit=arms-rerun-20260829 tools/run_arms_rerun_detached.sh
+   -> ActiveState=active, MainPID=438742
+   -> CGroup: /user.slice/.../app.slice/arms-rerun-20260829.service   (NOT worker-tick.service)
+```
+
+Both legs run **in one process inside that script**, same seeds (11111,22222,33333), to the same
+two `_20260829` paths, so the one-clock property is structural rather than a thing a future tick
+has to remember. The reading rule is unchanged and still binds: **no delta smaller than the new
+floor's own spread is an effect**, and the old floor's £4,402 sd against a £504 mean is why that
+bar is expected to swallow most of the table.
+
+**The falsifiable claim in this section**, since the tick that writes it cannot outlive the run it
+describes: the two `_20260829` artefacts exist by ~2026-08-29T16:00Z. If a later reader finds this
+paragraph with those paths still absent, the cgroup diagnosis was *also* incomplete and the next
+move is to catch the killer in the act rather than infer it a second time.
