@@ -9781,6 +9781,15 @@ def _section_threshold_optimisation(data: dict) -> str:
     lines.append(f"  Value at stake: £{cf.total_value_at_stake_gbp:,.0f}")
     lines.append(f"  Counterfactually recoverable (with offer): {cf.would_have_been_retained_count}/{len(misses)}")
     lines.append(f"  Net value recoverable (after offer cost): £{cf.total_net_value_gbp:,.0f}")
+    if cf.misses_that_could_not_be_priced:
+        # The producer takes every total above over the complement of this count. A reader who
+        # cannot see it reads the totals as covering all the misses.
+        lines.append(
+            f"  Could not be priced (no term revenue on the record):"
+            f" {cf.misses_that_could_not_be_priced}/{len(misses)}"
+            f" — the totals above are over the other"
+            f" {len(misses) - cf.misses_that_could_not_be_priced}."
+        )
     lines.append("")
 
     if per_year:
@@ -9791,10 +9800,19 @@ def _section_threshold_optimisation(data: dict) -> str:
         for yr, yr_misses in sorted(per_year.items()):
             for m in yr_misses:
                 rec = "Yes" if m.counterfactual_retained else "No"
+                # A miss with no term revenue cannot be priced, and the producer says so with
+                # None rather than 0.0 (counterfactual_retention: "0.0 reads as the most
+                # attractive intervention on the page"). Formatting it would raise; printing it
+                # as £0 would resurrect the fail-open the producer removed.
+                net = (
+                    f"£{m.net_value_of_offer_gbp:,.0f}"
+                    if m.net_value_of_offer_gbp is not None
+                    else "not priceable"
+                )
                 lines.append(
                     f"| {yr} | {m.customer_id} | {m.company_churn_estimate:.0%}"
                     f" | {m.sim_churn_probability:.0%} | {rec}"
-                    f" | £{m.expected_term_margin_gbp:,.0f} | £{m.net_value_of_offer_gbp:,.0f} |"
+                    f" | £{m.expected_term_margin_gbp:,.0f} | {net} |"
                 )
         lines.append("")
 
