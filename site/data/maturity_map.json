@@ -507,7 +507,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 240,
+      "stall_consecutive_unchanged": 263,
       "forward_attachments": []
     },
     {
@@ -663,7 +663,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -671,7 +671,7 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 6,
       "forward_attachments": []
@@ -1159,7 +1159,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 218,
+      "stall_consecutive_unchanged": 225,
       "forward_attachments": []
     },
     {
@@ -1477,7 +1477,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7672,
+      "stall_consecutive_unchanged": 7771,
       "forward_attachments": []
     },
     {
@@ -1676,7 +1676,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 239,
+      "stall_consecutive_unchanged": 263,
       "forward_attachments": []
     },
     {
@@ -1722,7 +1722,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 240,
+      "stall_consecutive_unchanged": 263,
       "forward_attachments": []
     },
     {
@@ -1745,7 +1745,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 239,
+      "stall_consecutive_unchanged": 263,
       "forward_attachments": []
     },
     {
@@ -1793,7 +1793,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 345,
+      "stall_consecutive_unchanged": 378,
       "forward_attachments": []
     },
     {
@@ -1910,7 +1910,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 345,
+      "stall_consecutive_unchanged": 378,
       "forward_attachments": []
     },
     {
@@ -1935,7 +1935,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 345,
+      "stall_consecutive_unchanged": 378,
       "forward_attachments": []
     },
     {

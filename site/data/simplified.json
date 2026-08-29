@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T01:32:14Z",
+  "generated_at": "2026-08-29T03:05:54Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -3103,7 +3103,7 @@
         {
           "atom_id": "B10_competitor_switching_response",
           "atom_name": "Competitor pricing the population can actually switch to, with switching responding to RELATIVE price and the company''s win/loss observable only through its own acquisition and churn -- so pricing meets opposition instead of pricing into a void. BACKLOG.md B10 (Wave C).",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-29 REGISTERED into the map (worker tick) from docs/design/BACKLOG.md item B10 on the director's from_rich_20260729_173731 instruction (full quote + no-blocked_on rationale in B3's note). RECONCILED AGAINST TWO EXISTING COMPETITOR ATOMS BEFORE MINTING, because a duplicate here was the obvious risk: W2_3_competitor_field (world-side competitor supplier field, loop_stage: harden, L1/1 -- at its target, so it is DONE at the level it claims) and B4_competitor_field (company-side price ceiling / undercut pressure, idle, L0/1, epoch 4). NEITHER reaches BACKLOG B10's DoD: what is missing is the SWITCHING RESPONSE -- a population that actually moves on relative price to a competitor tariff, and the company learning its win/loss only through acquisition/churn. This atom is that remainder; the two existing atoms stay as they are (no level or target edited -- levels are proposals and not mine to move, R16). DoD (BACKLOG B10): >=1 competitor prices tariffs the population can switch to; switching responds to relative price; the company's win/loss is observable only through acquisition/churn (wall held); a test asserts a competitor price change moves the book. WALL: no competitor pricing internal or intent crosses sim_interface.py -- the company sees a published tariff and its own churn, exactly as it would in reality. R13: competitor aggressiveness is curriculum-adjacent (a price war is a named director scenario, MARGIN_REALISM.md's own example), so the DEFAULT field is calibrated to observed GB market structure and any war is a named, versioned scenario, never agent-set drift. No BUILD code, level_current 0.",
