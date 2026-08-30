@@ -226,3 +226,41 @@ Proceeds under standing PRODUCT-FIRST reversible-build authority. If a genuine w
 
 **D. Governance decomposition (ESCALATION_IS_NTFY) — the irreducible core:**
 The *mechanical* wiring can be built + tested behind the existing default-OFF flag (reversible, byte-identical when off). But per W2_2's own recorded ruling ("the agent may STAGE the integration but must not flip it on") and R13/§5, **flipping it on so live runs actually draw the synthetic population is a CURRICULUM act (which world the company faces every run) reserved to the director** — and the 2026-07-24 waiver explicitly preserved "curriculum values remain director-reserved". This tick therefore FRAMEs and escalates rather than activating. Next: (a) director word on activation authority; (b) if the answer is "STAGED-only for now", a build fork wires `draw_population` behind a default-OFF run flag with R15 both-ways (present→population carries SYN-* acquisitions; removed→reverts to static 24) + epistemic-verifier on the diff — activation held for the director.
+
+---
+
+## ARCHIVED 2026-08-30 by the delivery seat — finished on 2026-08-13 and never filed
+
+**Discharged:** `tests/simulation/test_svt_product.py::test_no_account_is_on_the_svt_product_yet`
+(the population floor in that test is the live-roster assertion this closure rests on).
+
+This mint's own header already recorded that REMAINING #3 was done and the block gone. What it
+did not do was leave `in_progress/`, and for seventeen days it has been one third of the
+`[ACT] 3 SELF-DRAWABLE mint(s) have sat UNDRAWN` alarm — an alarm asking why nobody was working
+on a piece of work that was finished.
+
+**Measured on the live roster today, not read off this document's own header:**
+
+```
+electricity legs by acquisition_type: {founder: 9, synthetic_draw: 51, net_new_won: 90}  total 150
+docs/design/curriculum/population_draw_activation.json:
+  activated.value = true, status "ACTIVE — director-authorised 2026-08-13",
+  profile B_trickle_lambda_1.0
+```
+
+51 drawn legs are live and earned at the director's Profile B trickle, and the activation lives in
+a committed versioned artefact rather than an environment variable, so the activated world is
+reconstructible from the repository alone. The *"re-baseline honestly"* the director attached to
+his authorisation has been happening in the ordinary publish cycle ever since.
+
+**One thing this closure had to correct elsewhere.**
+`docs/design/WHAT_A_HOUSEHOLD_DECIDES_ON.md` asserted, in three separate places and as a thing
+"the roadmap must not re-litigate", that `SE_DRAW_POPULATION` is default-OFF and that no published
+run consumes it. Written 2026-08-27 — fourteen days after activation, and false when written. All
+three are corrected beside the claim rather than over it, because each was load-bearing in a
+different argument with a different consequence: one premise wrong with its conclusion surviving,
+one consequence mis-tensed, and one projection ("roughly 60x the current renewal count") whose
+input has changed underneath it. A global find-and-replace would have hidden all three differences.
+
+Full disposition of this mint and its two siblings:
+`docs/staging/SEAT_DISPOSITION_THE_THREE_JULY_MINTS_2026-08-30.md`.

@@ -139,8 +139,16 @@ service above price.
 
 ## 3. Two things already decided, which the roadmap must not re-litigate
 
-- **`SE_DRAW_POPULATION` is default-OFF and director-reserved**; the varied pool is armed but no
-  published run consumes it (`CA4_COHORT_ACTIVATION_SEQUENCING_VERDICT.md`, honest caveat).
+- ~~**`SE_DRAW_POPULATION` is default-OFF and director-reserved**; the varied pool is armed but no
+  published run consumes it (`CA4_COHORT_ACTIVATION_SEQUENCING_VERDICT.md`, honest caveat).~~
+  **FALSE WHEN WRITTEN — corrected 2026-08-30, beside the claim rather than over it.** The draw was
+  activated by the director on **2026-08-13**, fourteen days before this line was typed, and the
+  activation is a committed versioned artefact:
+  `docs/design/curriculum/population_draw_activation.json` carries `activated.value = true`,
+  profile `B_trickle_lambda_1.0`. Measured on the live roster 2026-08-30: of 150 electricity legs,
+  **51 carry `acquisition_type: "synthetic_draw"`** (90 `net_new_won`, 9 founder). Published runs
+  consume it and have done for seventeen days. The error is recorded because the paragraph below
+  ARGUES FROM IT.
 - **The segmentation programme is behaviourally inert BY DESIGN** —
   `SEGMENTATION_WIRING_PLAN.md` Step 3 requires the cohort layer be *"pure additive... identity when
   the clustering is trivial, so the existing archetype ground truth is byte-identical"*. Correct for
@@ -150,6 +158,16 @@ service above price.
 is varied in *composition* and identical in *behaviour*, because the attitude axes weight nothing.
 That would look like richness and be theatre. **Wiring the axes to responses is worth more than
 flipping the population, and should precede it.**
+
+> **The conclusion survives the false premise, and the tense is wrong rather than the argument
+> (2026-08-30).** This was written as a warning about a future flip; the flip had already happened
+> two weeks earlier. So it is not a consequence nobody has recorded — it is a consequence nobody
+> has *measured*, on a book that has been carrying 51 drawn accounts since 2026-08-13. The
+> reasoning holds because it rests on the attitude axes being unwired, which is independently true
+> and unchanged: `price_sensitivity`, `green_stance` and `channel_pref` are drawn, coverage-tested,
+> wall-guarded and read by no live module. **The recommendation is unchanged and the urgency is
+> higher**: the varied book is already live, so whatever composition-without-behaviour costs us,
+> we are already paying it and have been for seventeen days.
 
 ## 4. Why this caps demonstrable skill — and what it says about today's A/B
 
@@ -282,3 +300,21 @@ because a decade run prices only ~30 renewals. **No roadmap item below should be
 single-run A/B figure.** The unlock is book VOLUME — `SE_DRAW_POPULATION`, default-off and
 director-reserved — which CA3 had already registered as the condition for segmentation being
 testable at all. This quantifies it at roughly **60x** the current renewal count.
+
+> **Third correction of the same stale fact, 2026-08-30.** "default-off and director-reserved" was
+> false here too: activated 2026-08-13. **This one changes something the two above do not.** The
+> unlock this paragraph is waiting for has already been pulled, and the book has grown from 18 to
+> 150 electricity legs — so the power problem should have moved, and *"60x the current renewal
+> count"* is a projection whose input has changed underneath it. Nobody has re-measured the
+> level-vs-selection instrument's seed requirement on the activated book.
+>
+> **That re-measurement is now the cheapest thing standing between this roadmap and a judgeable
+> A/B**, and it is a measurement rather than a build. It is not done here because it needs its own
+> pre-registration: state what the seed requirement should fall to and why BEFORE running it, or
+> the result is unattributable — the book grew and the arms changed in the same fortnight, which is
+> two variables.
+>
+> Recorded three times in one document because the fact was load-bearing in three separate
+> arguments and each one has a different consequence: §3's premise was wrong and its conclusion
+> survived; §3's consequence was mis-tensed; and this one's arithmetic is stale. A single global
+> find-and-replace would have hidden all three differences.
