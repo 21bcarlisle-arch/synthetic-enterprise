@@ -71,12 +71,18 @@ from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 CAUSE_BILL_SHOCK = "bill_shock"
 CAUSE_PRICE_POSITION = "price_position"
 CAUSE_DISSATISFACTION = "dissatisfaction"
+#: C1b. The drift off a standard variable tariff, which has no term and therefore no renewal
+#: decision to leave AT. It is a fourth REASON and not a fourth modulator: "I was on the default
+#: tariff and eventually got round to it" is something a household did, and it is the single
+#: largest departure route in a real domestic book, because two thirds of one sits on SVT.
+CAUSE_SVT_INERTIA = "svt_inertia"
 
 #: Declared order is presentational only. The cause SHARES below are computed from the hazards'
 #: cumulative-hazard weights, which are order-free -- the sequential decomposition
 #: (h1, then (1-h1)h2, then ...) is exact in TOTAL but gives earlier risks a systematically larger
 #: share, which would bias P2's reason mix by the order of a tuple literal.
-ORDERED_CAUSES = (CAUSE_BILL_SHOCK, CAUSE_PRICE_POSITION, CAUSE_DISSATISFACTION)
+ORDERED_CAUSES = (CAUSE_BILL_SHOCK, CAUSE_PRICE_POSITION, CAUSE_DISSATISFACTION,
+                  CAUSE_SVT_INERTIA)
 
 # Ofgem/BMG consumer research 2024, n=3,235: the importance households place on each factor in a
 # switching decision. Price 40% (35-44% across every reported subgroup), customer service 32%.
@@ -90,6 +96,27 @@ SERVICE_IMPORTANCE = 0.32
 # statement is that this world models a switching decision missing its third-largest published
 # factor, and the roadmap carries exit fees as a named item ahead of S3.
 UNMODELLED_EXIT_FEE_IMPORTANCE = 0.22
+
+#: SVT INERTIA, BY TENURE ON THE DEFAULT TARIFF. Annual rates, M confidence.
+#:
+#: `docs/market_research/svt_rates_active_passive_2016_2025.md` §4, which is explicit that these
+#: are STRUCTURAL INFERENCES rather than a published series -- "Direct published SVT vs fixed churn
+#: rates by tariff type are not available". Confidence M on every row, and that is carried here
+#: rather than left in the source file, because a number whose confidence lives somewhere else gets
+#: quoted as though it were H.
+#:
+#:     SVT long-stayer (3+ years)   ~5-10%   Ofgem engagement surveys: the most inert segment
+#:     SVT recent (under 3 years)   ~15-20%  switched once before; some re-engagement
+#:
+#: THE TOP OF EACH BAND IS TAKEN, and the direction is recorded because the brief requires it.
+#: Under the director's §7 tie-break -- where the evidence is ambiguous, choose the option that
+#: makes the company's advantage harder to demonstrate -- the higher rate is the harder world: the
+#: company loses accounts it has NO renewal lever on, since an SVT account has no renewal to price.
+#: It is pure loss with no instrument against it, and it shrinks the book the A/B is measured on.
+SVT_INERTIA_ANNUAL_RECENT = 0.20
+SVT_INERTIA_ANNUAL_LONG_STAYER = 0.10
+#: The published boundary between the two bands, in years on SVT.
+SVT_LONG_STAYER_YEARS = 3.0
 
 #: THERE IS NO CALIBRATED DEFAULT, AND THE ABSENCE IS THE POINT (2026-08-30).
 #:
@@ -145,6 +172,40 @@ def _clip_hazard(h: float) -> float:
     return min(h, WORLD_MAX_CHURN_PROBABILITY)
 
 
+def svt_inertia_hazard(*, years_on_svt: float, segment_days: float) -> float:
+    """The drift off a standard variable tariff, over ONE cap period of `segment_days`.
+
+    C1b. Returns 0.0 for an account that is not on SVT -- the caller signals that by passing
+    `segment_days <= 0`, which is what a fixed-term account's renewal point has: no cap period
+    elapsed under a variable tariff.
+
+    WHY THE CONVERSION IS CONSTANT-HAZARD AND NOT A FLAT QUARTERLY RATE. The published anchor is
+    ANNUAL and the world's SVT segments are cap periods, which are neither equal nor quarters: the
+    first one runs from the day a household arrives to the next cap boundary, so it can be 47 days.
+    A flat per-quarter rate would charge a 47-day segment the same as a 92-day one. Driven at the
+    real segment lengths the cap calendar emits, before this function was written:
+
+        days     recent (.20)   long-stayer (.10)
+          47        0.02831          0.01347
+          90        0.05350          0.02563
+          92        0.05466          0.02619
+
+    and the four real cap quarters of a year recompose to 0.19988 / 0.09994 against targets of
+    0.20 / 0.10 -- the shortfall is the 365 vs 365.25 day-count and is not worth a correction it
+    would take a sentence to explain.
+
+    WHAT WOULD HAVE BEEN WRONG, AND BY HOW MUCH. Using the annual figure as a per-quarter rate
+    gives 1-(1-0.20)**4 = 0.5904 a year against 0.20: nearly three times the anchor, in the
+    direction that flatters nothing and is simply wrong. Pinned by
+    `test_the_annual_anchor_recomposes_from_the_segment_hazard`.
+    """
+    if segment_days <= 0:
+        return 0.0
+    annual = (SVT_INERTIA_ANNUAL_LONG_STAYER if years_on_svt >= SVT_LONG_STAYER_YEARS
+              else SVT_INERTIA_ANNUAL_RECENT)
+    return _clip_hazard(1.0 - (1.0 - annual) ** (segment_days / 365.25))
+
+
 def build_departure_risks(
     *,
     bill_shock_base: float,
@@ -156,6 +217,7 @@ def build_departure_risks(
     sensitivity_scale: float | None = None,
     shock_weight: float = 1.0,
     level_anchor: float = 1.0,
+    svt_inertia: float = 0.0,
 ) -> dict[str, float]:
     """Return `{cause: hazard}` for one household at one renewal point.
 
@@ -206,6 +268,27 @@ def build_departure_risks(
             level_anchor * scale * SERVICE_IMPORTANCE
             * dissatisfaction_response * action_propensity
         ),
+        # C1b. DAMPED BY ACTION PROPENSITY like every other risk, and the first draft of this
+        # line was not -- the argument being that the published 10-20% band is measured across a
+        # real SVT population and so already contains its engagement mix, making a second
+        # multiplication a double-count.
+        #
+        # `test_action_propensity_damps_every_risk_because_it_is_not_a_reason_anyone_left` reds on
+        # that exception, and it is the better rule: the general property ("engagement is not a
+        # reason anyone left, it gates whether they act at all") holds for drifting off SVT
+        # exactly as it holds for responding to a price. A carve-out justified by one anchor's
+        # provenance would make this the one risk a disengaged household runs at full rate.
+        #
+        # THE CONSEQUENCE IS REAL AND IS PREDICTED HERE RATHER THAN DISCOVERED LATER. Measured on
+        # the live book across its own tenure mix and every income-stress level:
+        # `action_propensity` has mean 0.8635 (min 0.488, max 1.100), materially below 1.0 -- so
+        # damping SHIFTS the SVT sub-population's realised rate down by roughly 14%, it does not
+        # merely add spread around the anchor. **Prediction, filed before the assignment run: the
+        # realised SVT departure rate will land near the BOTTOM of the published band, or just
+        # under it, and if it does, the repair is to divide the anchor by the book's own mean
+        # propensity -- never to widen the band.** Same discipline as the year-level anchor's own
+        # note: a reading out of band means the anchor has gone stale, not that the record has.
+        CAUSE_SVT_INERTIA: _clip_hazard(level_anchor * svt_inertia * action_propensity),
     }
 
 

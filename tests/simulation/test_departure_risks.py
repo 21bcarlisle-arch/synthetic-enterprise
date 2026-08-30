@@ -19,11 +19,15 @@ from simulation.departure_risks import (
     ORDERED_CAUSES,
     PRICE_IMPORTANCE,
     SERVICE_IMPORTANCE,
+    SVT_INERTIA_ANNUAL_LONG_STAYER,
+    SVT_INERTIA_ANNUAL_RECENT,
+    SVT_LONG_STAYER_YEARS,
     build_departure_risks,
     cause_shares,
     price_move_symmetry,
     resolve_departure,
     survival,
+    svt_inertia_hazard,
     total_departure_probability,
 )
 from simulation.market_switching_propensity import churn_position_multiplier
@@ -37,6 +41,14 @@ def _risks(**over):
         price_response=1.0,
         dissatisfaction_response=1.0,
         sensitivity_scale=SCALE,
+        # C1b (2026-08-30). NON-ZERO by default, because the fourth cause defaults to 0.0 in
+        # production -- nothing is on SVT yet -- and a helper that inherited that default would
+        # hand every test below a hazard of zero for it. `test_action_propensity_damps_every_
+        # risk...` iterates ORDERED_CAUSES and would then assert `0.0 < 0.0` and red, which is
+        # how it was found; the quieter failure is the other tests passing VACUOUSLY on the new
+        # cause forever. A fixture whose default silences the subject is the shape this file
+        # exists to refuse.
+        svt_inertia=0.05,
     )
     kw.update(over)
     return build_departure_risks(**kw)
@@ -248,6 +260,11 @@ def test_action_propensity_damps_every_risk_because_it_is_not_a_reason_anyone_le
     mis_scoped = build_departure_risks(
         bill_shock_base=0.06 * 0.65 * 0.75, price_response=1.0,
         dissatisfaction_response=1.3, sensitivity_scale=SCALE,
+        # C1b: the mis-scoping under test damps the SHOCK term only, so the SVT hazard is passed
+        # UNDAMPED here on purpose -- that is what "scoped to a subset" means for four causes.
+        # It must still be non-zero: `cause_shares` omits a zero hazard entirely, and the drift
+        # comparison below iterates ORDERED_CAUSES, so a zero would KeyError rather than measure.
+        svt_inertia=0.05,
     )
     subset_drift = max(
         abs(cause_shares(mis_scoped)[c] - cause_shares(neutral)[c]) for c in ORDERED_CAUSES
@@ -317,8 +334,82 @@ def test_a_household_with_no_hazard_at_all_never_departs_and_is_not_given_a_caus
     cannot depart. A `1/n` fallback here would put causes into the mix for households that could
     not have left.
     """
-    r = _risks(bill_shock_base=0.0, price_response=0.0, dissatisfaction_response=0.0)
+    r = _risks(bill_shock_base=0.0, price_response=0.0, dissatisfaction_response=0.0,
+               # C1b: and the fourth. "No hazard at all" has to mean all four, or this test
+               # measures a household that could still drift off SVT.
+               svt_inertia=0.0)
     assert total_departure_probability(r) == 0.0
     assert cause_shares(r) == {}
     for roll in (0.0, 0.5, 0.999999):
         assert resolve_departure(r, roll) == (False, None)
+
+
+# ── C1b: THE DRIFT OFF A STANDARD VARIABLE TARIFF ───────────────────────────────────────────
+# A fourth REASON, not a fourth modulator. Two thirds of a real domestic book sits on SVT and
+# leaves it without any renewal to leave AT, so this is the largest single departure route the
+# world has been unable to express.
+
+def test_the_annual_anchor_recomposes_from_the_segment_hazard():
+    """DEFECT: using the ANNUAL rate as a per-segment rate.
+
+    The anchor is annual; the world's SVT segments are cap periods. Charging each quarter the
+    annual figure gives `1-(1-0.20)**4 = 0.5904` a year against 0.20 -- nearly three times the
+    published band, and in the one direction no evidence supports. The conversion is
+    constant-hazard so that four real cap quarters return the annual number.
+    """
+    year = [90, 91, 92, 92]
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+        survival_ = 1.0
+        for days in year:
+            survival_ *= 1.0 - svt_inertia_hazard(years_on_svt=years_on, segment_days=days)
+        assert abs((1.0 - survival_) - annual) < 5e-4, (
+            f"four cap quarters recompose to {1 - survival_:.5f}, not the published {annual}")
+        # And the naive substitution is the large, obvious error this guards.
+        naive = 1.0 - (1.0 - annual) ** 4
+        assert naive > 2.5 * annual
+
+
+def test_a_partial_opening_segment_is_charged_for_its_own_length():
+    """DEFECT: a flat per-quarter rate. A household arriving mid-quarter gets a 47-day segment;
+    charging it a full quarter's hazard over-bills the one segment every SVT account has."""
+    short = svt_inertia_hazard(years_on_svt=0.0, segment_days=47)
+    full = svt_inertia_hazard(years_on_svt=0.0, segment_days=92)
+    assert short < full
+    assert abs(short / full - 47 / 92) < 0.02, "not proportional to elapsed time at these rates"
+
+
+def test_a_long_stayer_drifts_less_than_a_recent_arrival():
+    """The published split (5-10% at 3+ years, 15-20% under 3) is the one piece of genuine
+    per-household structure this anchor carries. Collapsing it to one rate loses it."""
+    recent = svt_inertia_hazard(years_on_svt=1.0, segment_days=91)
+    settled = svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS, segment_days=91)
+    assert settled < recent
+    assert svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS - 0.01, segment_days=91) == recent
+
+
+def test_an_account_not_on_svt_carries_no_inertia_hazard():
+    """FAIL-CLOSED. A fixed-term account has no cap period elapsed under a variable tariff, so it
+    signals that with `segment_days <= 0` and must get exactly zero -- never a small default that
+    would put an SVT cause on a household that has never been on SVT."""
+    for days in (0, -1, -91):
+        assert svt_inertia_hazard(years_on_svt=0.0, segment_days=days) == 0.0
+
+
+def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
+    """THE INTERLOCK, and the reason this can land before the assignment does.
+
+    `build_departure_risks` defaults `svt_inertia` to 0.0, so every renewal in the world today
+    gets a hazard of exactly zero for this cause and the composed probability is unchanged to the
+    last bit. The mechanism exists; nothing is assigned to it. When C1b's assignment lands, THAT
+    is the commit where the churn series moves, and it moves for one reason.
+    """
+    without = build_departure_risks(
+        bill_shock_base=0.06, price_response=1.0, dissatisfaction_response=1.0,
+        sensitivity_scale=SCALE)
+    assert without["svt_inertia"] == 0.0
+    explicit_zero = build_departure_risks(
+        bill_shock_base=0.06, price_response=1.0, dissatisfaction_response=1.0,
+        sensitivity_scale=SCALE, svt_inertia=0.0)
+    assert without == explicit_zero
+    assert total_departure_probability(without) == total_departure_probability(explicit_zero)
