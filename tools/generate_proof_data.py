@@ -662,6 +662,27 @@ def _coupled_gaps(atoms):
     coupling = build_coupling(atoms)
     by_id = {a.get("id"): a for a in atoms if isinstance(a, dict) and a.get("id")}
 
+    def _sample_size(components):
+        """How many cases the gap rests on, or None — and None is the common answer.
+
+        Only 4 of the 16 live ledger rows carry a count at all, under four different key names,
+        because each metric's producer names its own population. This reads the names that exist
+        and returns None for anything else: an UNBOUNDED crossing must be visible as unbounded,
+        not quietly rendered as though the sample were small-but-known.
+
+        The key list is knowingly incomplete and fails toward None. A producer that starts
+        publishing a differently-named count will read as unbounded here until it is added, which
+        is the direction that under-claims rather than over-claims.
+        """
+        if not isinstance(components, dict):
+            return None
+        for key in ("n_cells_eligible", "available_accounts", "n_accounts", "n_cases",
+                    "accounts_scored", "decisions_scored"):
+            value = components.get(key)
+            if isinstance(value, int) and not isinstance(value, bool):
+                return value
+        return None
+
     def _row(world_id, twin_id):
         entry = ledger.get(world_id) if isinstance(ledger, dict) else None
         entry = entry if isinstance(entry, dict) else {}
@@ -753,6 +774,31 @@ def _coupled_gaps(atoms):
         blocks_l3_count=sum(1 for r in rows if r["blocks_l3"]),
         wall_leak_count=sum(1 for r in rows if r["chip"] == "leak"),
         worse_than_blind_count=sum(1 for r in rows if r["chip"] == "worse_than_blind"),
+        # HOW FAR PAST THE LINE EACH OF THEM IS, AND ON WHAT (2026-08-30).
+        #
+        # The count above is a count of THRESHOLD CROSSINGS: `value > 1`, a bare point estimate
+        # against exactly 1.0, with no interval. The page calls it "the one that matters most" and
+        # says the build queue is ordered by it. Measured this evening, the three live members are
+        # 1.034, 1.039 and 2.529 -- so TWO of the three are decided three to four percent the wrong
+        # side of a line, one of them on twenty cells. A twenty-cell verdict landing 3.4% past its
+        # threshold is a coin flip wearing a finding's clothes.
+        #
+        # NO "TOO CLOSE TO CALL" CLASSIFIER, DELIBERATELY. Choosing a percentage at which a
+        # crossing stops counting would be an invented constant, load-bearing within a week and
+        # unattributable within a month. This publishes the MARGINS THEMSELVES and lets a reader
+        # weigh them, which needs no threshold and cannot go stale.
+        #
+        # This is the interim. The real repair is per-metric and cannot be done here: the ledger
+        # stores summary components and not the per-case errors, so the sampling distribution of a
+        # ratio of mean absolute errors has to be bootstrapped inside each producer in
+        # `background/gap_metric.py`. Recorded in
+        # `docs/staging/WORKER_FINDING_THE_WORSE_THAN_GUESSING_COUNT_IS_THREE_THRESHOLD_CROSSINGS_WITH_NO_BOUND_2026-08-30.md`.
+        worse_than_blind_margins=[
+            {"world_atom": r["world_atom"], "value": r["value"],
+             "percent_past_the_line": round((r["value"] - 1.0) * 100.0, 1),
+             "sample_size": _sample_size(r.get("components"))}
+            for r in rows if r["chip"] == "worse_than_blind"
+        ],
         unmeasured_ge_l2=unmeasured_ge_l2,
         # THE BASIS AUDIT'S VERDICT, on the door rather than in a function
         # nothing called. `basis_audit_ran=False` is NOT "clean": the door

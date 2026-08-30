@@ -236,3 +236,94 @@ def test_the_text_extractor_reads_the_same_string_the_reader_does():
 
     # Real tags are still removed, and whitespace still collapses.
     assert _text('<div class="card">  one   <span>two</span>  </div>') == "one two"
+
+
+# ── the margins behind "worse than guessing" ─────────────────────────────────────────────────
+#
+# The count under "Where belief and truth diverge" is a count of THRESHOLD CROSSINGS: `value > 1`,
+# a bare point estimate against exactly 1.0 with no interval. The page calls it "the one that
+# matters most" and says the build queue is ordered by it. Measured 2026-08-30, the three live
+# members are 1.034, 1.039 and 2.529 — so two of the three are decided three to four percent the
+# wrong side of the line, one of them on twenty cells. A reader who meets "3" and nothing else has
+# been told the confident half.
+#
+# The pair below is a PAIR on purpose: one asserts the margins reach the reader when the feed has
+# them, the other that an artefact without them renders nothing rather than an empty list, because
+# an empty list reads as "none of these are close to the line" — the opposite of what an absent
+# field means.
+
+
+def test_the_margins_behind_WORSE_THAN_GUESSING_reach_the_reader(rendered):
+    """Each crossing's distance from the line, and its sample size or the absence of one.
+
+    Fires on: dropping the `marginsNote` call, or rendering the count without the margins.
+    """
+    proof = json.loads((DATA / "proof.json").read_text(encoding="utf-8"))
+    gaps = _find_gap_block(proof)
+    margins = (gaps or {}).get("worse_than_blind_margins")
+    if not margins:
+        pytest.skip("this artefact carries no margins; the absence branch is the other half")
+
+    body = _text(rendered["gap-note"]["innerHTML"])
+    for m in margins:
+        assert str(m["percent_past_the_line"]) in body, (
+            f"{m['world_atom']} is counted as worse than guessing and the page does not say it is "
+            f"only {m['percent_past_the_line']}% past the line")
+        if m["sample_size"] is None:
+            assert "how many cases it rests on" in body, (
+                "a crossing with no sample size anywhere in the record renders as though it were "
+                "bounded")
+        else:
+            # THE PHRASE, NOT THE BARE NUMBER. Asserting `str(n) in body` passes on any body
+            # containing that digit anywhere -- "20" is inside "152.9%" -- so it survived the
+            # mutation that reports an unknown sample as 0 and renders "on 0 cases".
+            assert f"on {m['sample_size']} cases" in body
+
+    # AND AN UNKNOWN SAMPLE IS NONE, NEVER ZERO. "We do not know how many cases this rests on" and
+    # "it rests on no cases" are different sentences, and a producer returning 0 for the first
+    # would put the second on the page -- the fail-open direction, because a reader who meets
+    # "0 cases" concludes the crossing is meaningless rather than unbounded.
+    for m in margins:
+        assert m["sample_size"] is None or m["sample_size"] > 0, (
+            f"{m['world_atom']} reports a sample size of {m['sample_size']!r}; an unknown "
+            "population must be None so the page can say it is unknown")
+
+
+def test_an_artefact_with_NO_margins_says_nothing_rather_than_an_empty_list():
+    """THE OTHER HALF. Every artefact produced before 2026-08-30 carries no margins at all. An
+    empty list rendered as a list reads as "none of them are close to the line", which is a claim,
+    and the absence of the field is not that claim.
+
+    Fires on: rendering the margins block unconditionally.
+    """
+    proof = json.loads((DATA / "proof.json").read_text(encoding="utf-8"))
+    stripped = json.loads(json.dumps(proof))
+    gaps = _find_gap_block(stripped)
+    if gaps is None:
+        pytest.skip("this artefact carries no gap block to strip")
+    gaps.pop("worse_than_blind_margins", None)
+
+    body = _text(_render({"../data/proof.json": stripped})["gap-note"]["innerHTML"])
+
+    assert "past the line" not in body, (
+        "the page discusses margins for an artefact that carries none")
+    # And the block it belongs to still renders, so this is an absence and not a blank panel.
+    assert "worse than guessing" in body
+
+
+def _find_gap_block(obj):
+    """The gap block, wherever `generate_proof_data` nests it — found by its own key rather than
+    by a path, so a re-nesting moves it without silently emptying this control."""
+    if isinstance(obj, dict):
+        if "worse_than_blind_count" in obj:
+            return obj
+        for value in obj.values():
+            found = _find_gap_block(value)
+            if found is not None:
+                return found
+    if isinstance(obj, list):
+        for value in obj:
+            found = _find_gap_block(value)
+            if found is not None:
+                return found
+    return None

@@ -353,6 +353,26 @@ function renderNotProven(d) {
   }).join("") : "<p>Nothing is currently listed, which would itself be suspicious — the record could not be read.</p>";
 }
 
+/* The margins behind the "worse than guessing" count, from the feed and never re-derived here.
+   Returns "" when the feed carries no margins — an artefact produced before 2026-08-30 has none,
+   and printing an empty list would read as "none of them are close to the line", which is the
+   opposite of what an absent field means. */
+function marginsNote(margins) {
+  if (!margins || !margins.length) return "";
+  var items = margins.map(function (m) {
+    return "<li><b>" + esc(m.world_atom) + "</b> is <b>" + esc(m.percent_past_the_line)
+      + "%</b> past the line"
+      + (m.sample_size === null || m.sample_size === undefined
+          ? ", and nothing in the record says how many cases it rests on"
+          : ", on " + n(m.sample_size) + " cases")
+      + ".</li>";
+  }).join("");
+  return "<p>How far past the line each of them is, because the count above is a count of "
+    + "crossings and not of magnitudes. The comparison is against exactly 1.0 with no interval "
+    + "around it, so a pair sitting a few percent over on a small sample could be the wrong side "
+    + "of the line by chance:</p><ul>" + items + "</ul>";
+}
+
 function renderGaps(d) {
   var g = d.coupled_gaps || {};
   if (!g.available) {
@@ -372,6 +392,13 @@ function renderGaps(d) {
     "<p>The last figure is the one that matters most: a company doing <em>worse than guessing</em> " +
     "has a model that is actively misleading it, which is more dangerous than having no model. " +
     "Those are the ones the build queue is ordered by.</p>" +
+    /* HOW FAR PAST THE LINE EACH OF THEM ACTUALLY IS. The count above is a count of THRESHOLD
+       CROSSINGS — a point estimate against exactly 1.0, with no interval — and two of the three
+       live members clear it by three to four percent, one on twenty cells. Published as raw
+       margins rather than reclassified by some "too close to call" percentage, because choosing
+       that percentage would be an invented constant. A reader who can see 3.4% on n=20 does not
+       need us to decide for them. */
+    marginsNote(g.worse_than_blind_margins) +
     (g.unmeasured ? "<p>" + n(g.unmeasured) + " pairs are not measured yet. They are listed as " +
       "unmeasured rather than assumed fine.</p>" : "");
 }
