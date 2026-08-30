@@ -51,7 +51,7 @@ CAPS = SITE / "data" / "capabilities_door.json"
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-note", "arms-market",
-          "arms-sample")
+          "arms-sample", "arms-departure")
 
 
 def _text(fragment: str) -> str:
@@ -1462,6 +1462,160 @@ def test_a_run_that_CAN_name_its_code_puts_the_count_back_with_the_commit(live):
         counts["billing_accounts_settled_in_window"]) in _text(rendered["arms-decisions"])
 
 
+# ── the world every figure on this page was measured in ──────────────────────────────────────
+#
+# THE DEFECT THESE SERVE (2026-08-30). This page publishes an advantage over a baseline, and the
+# rest of the site publishes the churn, retention and lifetime figures that come out of the same
+# world. The single quantity that decides what any of them is worth is how readily a customer
+# leaves in that world -- and the repository has been able to print that comparison, against the
+# published GB switching record, since `tools/measure_departure_level.py` landed. No reader could
+# see it. On the day it was drawn the world sat 3.15x below the record; by the time this shipped
+# the level anchor had landed and every comparable year was inside the band. That is exactly why
+# what goes on the page is the PROPERTY -- the world's level, the published band, and whether the
+# one is inside the other -- and not a caveat about the miss, which would already be a stale
+# apology somebody had to remember to delete.
+#
+# R15 -- the mutations, each run and each firing exactly the assertion named:
+#   * delete the `#arms-departure` render -> all four checks below red.
+#   * drop the published-band column from the row -> the band assertion reds and only that one.
+#   * drop the world's own level column -> the level assertion reds and only that one.
+#   * render a constant instead of `dl.statement` -> the verdict assertion reds.
+# Run against a COPY of the door driven through the same harness, not by editing the shared tree:
+# another lane's publish suite was mid-flight, and mutating a door it reads manufactures a red in
+# somebody else's hook chain.
+
+
+def _band(year: dict) -> str:
+    """The published band as a reader reads it, with the en dash the door renders."""
+    return "{:.1f}–{:.1f}%".format(year["band_lo_pct"], year["band_hi_pct"])
+
+
+def test_the_worlds_departure_level_and_the_published_band_both_reach_the_reader(live):
+    """BOTH FIGURES, YEAR BY YEAR, and the verdict between them.
+
+    Fires on: dropping the `#arms-departure` render; dropping either column from the table;
+    rendering the sentence without the years it was read from.
+    """
+    dl = _live_feed().get("departure_level") or {}
+    assert dl.get("available") is True, (
+        "the live feed carries no measured departure level ({}), so the page cannot state the "
+        "world its figures were measured in -- fix the producer, not this test".format(
+            dl.get("reason")))
+    rendered = live["arms-departure"]
+    assert rendered.strip(), (
+        "the page renders an advantage over a baseline and says nothing about how readily a "
+        "customer leaves the world it was measured in")
+    assert dl["statement"].replace(" -- ", " — ") in rendered, (
+        "the verdict reached the feed and not the reader")
+    for year in dl["years"]:
+        assert "{:.2f}%".format(year["world_pct"]) in rendered, (
+            "{}'s realised departure level is not on the page a reader opens".format(
+                year["year"]))
+        assert _band(year) in rendered, (
+            "{}'s published band is not on the page, so the level beside it is a number with "
+            "nothing to be judged against".format(year["year"]))
+        assert ("inside" if year["inside_band"] else "OUTSIDE") in rendered
+
+
+def test_the_level_on_the_page_is_the_one_the_measuring_tool_REPORTS(live):
+    """TWO PRODUCERS FOR ONE NUMBER is how the page and the tool would start disagreeing about the
+    same quantity while both looked right. So the rendered figures are reconciled against a live
+    call to the module that owns the denominators, not against the feed that rendered them.
+
+    Fires on: the feed drifting off the tool; a page that authors its own level.
+    """
+    from tools.measure_departure_level import (
+        inside_band,
+        published_bands,
+        world_realised_rate_pct,
+    )
+
+    bands, world = published_bands(), world_realised_rate_pct()
+    assert world, "the captured run carries no comparable departure years"
+    rendered = live["arms-departure"]
+    for year, level in sorted(world.items()):
+        lo, hi = bands[year]
+        assert "{:.2f}%".format(round(level, 2)) in rendered, (
+            "the tool measures {} at {:.2f}% and the page does not carry it".format(year, level))
+        assert "{:.1f}–{:.1f}%".format(lo, hi) in rendered
+        assert ("inside" if inside_band(level, lo, hi) else "OUTSIDE") in rendered
+
+
+def test_MUTATION_a_world_OUTSIDE_the_published_band_says_so_and_says_which_way():
+    """THE NULL RUNG, and it is the state the world was in when this was written.
+
+    A page that renders the same paragraph for a world inside the record's band and one running at
+    a third of it is printing a constant, and the two controls above are tautologies (R15's
+    unreachable-branch shape). The mutated feed is the PRE-ANCHOR world -- 4.93% against a 15.50%
+    midpoint -- and the sentence is composed by the PRODUCER's own function, so this proves the
+    door renders a reading and not a string this test handed it.
+
+    Fires on: hard-coding either branch on the page; dropping the direction, which is the half a
+    reader needs to know which way to discount everything below it.
+    """
+    from tools.generate_value_arms_data import _departure_statement
+
+    feed = copy.deepcopy(_live_feed())
+    dl = feed["departure_level"]
+    for year in dl["years"]:
+        year["world_pct"] = 4.93
+        year["inside_band"] = False
+    dl["all_inside_the_band"] = False
+    dl["years_inside_the_band"] = 0
+    dl["world_mean_pct"] = 4.93
+    dl["statement"] = _departure_statement(4.93, 15.50, 0, len(dl["years"]), None)
+    rendered = _render(feed)["arms-departure"]
+
+    assert "OUTSIDE" in rendered, (
+        "every year of this world sits outside the published band and the page does not say so")
+    assert "reads HIGH" in rendered, (
+        "the page states the size of the miss without its direction, so a reader cannot tell "
+        "which way to discount the figures below: {}".format(rendered))
+    assert "4.93%" in rendered
+    assert rendered != _render(_live_feed())["arms-departure"], (
+        "the page renders the SAME statement for a world inside the record's band and one at a "
+        "third of it, so it is printing a constant and reads nothing from the measurement")
+
+
+def test_MUTATION_a_level_that_could_not_be_MEASURED_still_bounds_the_page():
+    """FAIL-OPEN, the shape R15 names first. A publish that cannot measure the world's departure
+    level must leave a reader told the figures are unbounded on that dimension. Silence there
+    reads exactly like a page whose figures needed no such qualification -- which is the state
+    this page was in for its whole life before today.
+
+    Fires on: rendering nothing when the block says `available: false`.
+    """
+    from tools.generate_value_arms_data import _DEPARTURE_UNAVAILABLE
+
+    feed = copy.deepcopy(_live_feed())
+    feed["departure_level"] = {
+        "available": False,
+        "reason": "the captured run could not be read",
+        "statement": _DEPARTURE_UNAVAILABLE,
+    }
+    rendered = _render(feed)["arms-departure"]
+
+    assert rendered.strip(), "a feed that could not measure the world rendered nothing at all"
+    assert "COULD NOT BE ESTABLISHED" in rendered
+    assert "unbounded" in rendered, (
+        "the absence reached the reader without what it costs them: {}".format(rendered))
+    assert "inside" not in rendered.lower(), (
+        "an unmeasured world still rendered a verdict about the band")
+
+
+def test_MUTATION_a_feed_with_NO_departure_block_at_all_still_bounds_the_page():
+    """The other route into the same absence, and the one a stale producer takes. A feed written
+    before this block existed carries no key at all, and the door must not fall through to silence
+    on it."""
+    feed = copy.deepcopy(_live_feed())
+    feed.pop("departure_level", None)
+    rendered = _render(feed)["arms-departure"]
+
+    assert rendered.strip(), "a feed with no departure block rendered nothing at all"
+    assert "COULD NOT BE ESTABLISHED" in rendered
+    assert "unbounded" in rendered
+
+
 def test_a_count_drawn_by_code_the_page_no_longer_runs_names_BOTH_trees(live):
     """THE MIDDLE STATE, and the normal one for any run longer than the landing cadence.
 
@@ -1485,3 +1639,71 @@ def test_a_count_drawn_by_code_the_page_no_longer_runs_names_BOTH_trees(live):
         counts["billing_accounts_settled_in_window"]) in note
     assert "code this page no longer runs" in note
     assert "bbbbbbbbb" in note and "ccccccccc" in note
+
+
+# ── the standing rule: independence is not inference ─────────────────────────────────────────
+#
+# Director, 2026-08-30: "the belief-versus-truth gap may be published as a measurement, never as
+# evidence of skill, and the two must not appear in one sentence without the null interval beside
+# them. If the concordance sits inside its null, the page says WE CANNOT TELL, in those words."
+#
+# The interval half was already enforced above. These two are the words half, and they are a PAIR:
+# one asserts the phrase appears when the reading is inside its null, the other that it disappears
+# when the reading clears it. Either alone is satisfiable by a constant.
+
+
+def test_a_reading_INSIDE_its_null_says_WE_CANNOT_TELL_where_a_reader_sees_it(live):
+    """The phrase the director specified, in the rendered DOM, not in the feed.
+
+    The page already printed the interval and the artefact's own reading -- "does not distinguish
+    the method from chance in either direction" -- which is the same fact in language a reader
+    carries away as a near-miss. A softer synonym is the defect: it moves the reader while every
+    flag beside it says the figure is unusable.
+
+    Fires on: dropping the `cannot_tell` render, or softening the phrase in
+    `tools/inference_claim.CANNOT_TELL`.
+    """
+    msk = _live_feed().get("method_skill") or {}
+    if not msk.get("cannot_tell"):
+        pytest.skip("the live concordance clears its null; the other half of this pair covers it")
+
+    rendered = live["arms-method"]
+    assert "we cannot tell" in rendered.lower(), (
+        "the concordance sits inside the interval a random signal produces and the page does not "
+        "say we cannot tell, in those words")
+    # And the numbers are in the same breath as the phrase, never the phrase alone.
+    assert "{:.3f}".format(msk["concordance"]) in rendered
+    assert "{:.3f}".format(msk["null_95_low"]) in rendered
+
+
+def test_a_reading_that_CLEARS_its_null_does_not_say_it():
+    """THE OTHER HALF OF THE NULL. A caveat that renders unconditionally is a constant, and a
+    constant caveat teaches a reader to skip the one that matters.
+
+    Driven through the door with a concordance well outside its own interval, because the live
+    run is in the other branch and a test that can only see one branch is a test of today's run.
+
+    AND `inside_the_null` IS LEFT STALE AT TRUE ON PURPOSE. The sentence is computed by
+    `tools/inference_claim.cannot_tell_sentence` from the three numbers; the flag beside it is one
+    more thing that can rot, and a page that re-derives the verdict from the flag would print the
+    caveat over a reading that clears its own null. Setting the two to disagree is the only way to
+    tell which one the page is actually reading.
+
+    Fires on: rendering `cannot_tell` from `msk.inside_the_null` rather than from the computed
+    sentence. Rendering it UNCONDITIONALLY does NOT fire and that is an equivalence, not a gap:
+    `prose(null)` is the empty string, so an always-true branch emits an empty paragraph and no
+    phrase. Established rather than assumed.
+    """
+    feed = copy.deepcopy(_live_feed())
+    msk = feed.get("method_skill") or {}
+    if not msk.get("available"):
+        pytest.skip("the live feed carries no method-skill reading to drive")
+    msk.update({"concordance": 0.94, "null_95_low": 0.133, "null_95_high": 0.867,
+                "inside_the_null": True, "cannot_tell": None})
+
+    rendered = _render(feed)["arms-method"]
+
+    assert "0.940" in rendered, "the driven reading did not reach the page at all"
+    assert "we cannot tell" not in rendered.lower(), (
+        "the page says we cannot tell about a reading that clears its own null, which makes the "
+        "phrase a constant rather than a verdict")

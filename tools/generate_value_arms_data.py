@@ -114,6 +114,7 @@ from __future__ import annotations
 
 import json
 import math
+import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -121,6 +122,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
+from tools.inference_claim import cannot_tell_sentence
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -1205,6 +1207,20 @@ def _method_skill(three_arm: dict) -> dict:
         "null_95_high": _f((spread.get("null_95_interval") or [None, None])[1]),
         "p_two_sided": _f(spread.get("p_two_sided")),
         "inside_the_null": spread.get("observed_inside_the_null_interval"),
+        # THE WORDS, WHEN THE READING CANNOT BE TOLD FROM CHANCE (2026-08-30). Director: "If the
+        # concordance sits inside its null, the page says we cannot tell, in those words." The
+        # page already carried the interval and the artefact's own reading -- "does not
+        # distinguish the method from chance in either direction" -- which is the same fact in
+        # softer language, and softer language is what a reader carries away. Computed from the
+        # three numbers by `tools.inference_claim` rather than from the `inside_the_null` flag
+        # beside it, so a stale flag cannot silence it. None when the figure clears its null,
+        # so the render has nothing to decide.
+        "cannot_tell": cannot_tell_sentence(
+            subject="whether this method carries any information",
+            observed=_f(ms.get("concordance")),
+            null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
+            null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
+            n=ms.get("decisions_scored")),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
         # THE FUNNEL BETWEEN THE TWO COUNTS THIS PAGE SHOWS. `decisions.value_arm_priced` says 20
@@ -1897,6 +1913,15 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
         "available": bound.get("available", False),
         "verdict": "the population, and the population is endogenous to the arm's own price",
         "null_bound": bound,
+        # THE SAME WORDS AS THE CONCORDANCE BESIDE IT (2026-08-30). This figure is the same class
+        # -- a rank statistic on a handful of departures, printed next to a claim about what the
+        # company knows -- so the standing rule reaches it too, and applying it here rather than
+        # waiting for the director to name this instance is the point of the rule being standing.
+        "cannot_tell": cannot_tell_sentence(
+            subject="whether this belief ranks anyone",
+            observed=belief.get("discrimination_auc"),
+            null_low=bound.get("null_95_low"), null_high=bound.get("null_95_high"),
+            n=population.get("left"), unit="departures"),
         # THE MECHANISM, NAMED IN ACCOUNTS THIS RUN CAN BE CHECKED AGAINST. Not "the sample is
         # small" -- that is true of every figure on this page and explains nothing about the
         # DIRECTION. These are the priced accounts whose departure the arm itself produced.
@@ -2345,6 +2370,176 @@ def _reaction_sentence(defends: bool, contests: bool, decay) -> str:
     return " ".join(parts)
 
 
+#: The absence sentence, authored once so the two routes into it -- an unreadable measurement and
+#: a feed that carries no block at all -- cannot drift apart and read as two different states.
+_DEPARTURE_UNAVAILABLE = (
+    "HOW READILY CUSTOMERS LEAVE IN THIS WORLD COULD NOT BE ESTABLISHED for this publish, so "
+    "every retention, churn and lifetime-value figure below is unbounded against the published "
+    "GB switching record. A world that loses customers more slowly than the real one makes all "
+    "of them read high, and nothing here says whether this one does."
+)
+
+
+def _departure_statement(world_mean: float, published_mean: float, inside: int, total: int,
+                         placement: float | None) -> str:
+    """The bound a reader meets, COMPOSED from the measurement and never from today's answer.
+
+    THE TRAP THIS IS WRITTEN AGAINST. The obvious version of this sentence is an apology -- "these
+    figures come from a world that loses a third of the real one's customers" -- and it was true
+    when this was drawn. It is not true now: the level anchor landed and the run's eight comparison
+    years are all inside the published band. A caveat pinned to the miss would have gone stale in
+    the flattering direction within a day and would then have had to be REMEMBERED and deleted,
+    which is how this project has published stale apologies before.
+
+    So the statement is a reading of the same three quantities in every case: what the world did,
+    what the record bears, and whether the one is inside the other. It stays correct when the
+    world drifts back out, and it stays useful while it is in.
+
+    The DIRECTION of a miss is composed too, and it is the half that matters to a reader: a world
+    below the record makes every retention and lifetime figure read HIGH, and a world above it
+    makes them read LOW. Naming the size without the direction would leave a reader unable to tell
+    which way to discount what they had just read.
+    """
+    measured = ("Over the {} years this run can be compared on, the world's own departures "
+                "averaged {:.2f}% of electricity accounts a year against a published GB record "
+                "averaging {:.2f}%. Each year is judged against its OWN published band, never "
+                "against that average".format(total, world_mean, published_mean))
+    if inside == total:
+        # WHERE inside the band, not just whether. A level sitting on the LOW edge of every band
+        # is inside it and is still the flattering choice available -- so the reader gets the
+        # placement rather than a bare pass. Composed from the measurement; a world that drifts
+        # down the bands changes this clause without anyone editing it.
+        if placement is None:
+            where = (" The figures below are therefore not measured in a world that is easier to "
+                     "hold a customer in than the record allows.")
+        elif placement >= 0.5:
+            where = (" They sit on average {:.0f}% of the way UP their own bands, which is the "
+                     "anti-flattering end -- the record's own tie-break is to take the level that "
+                     "makes this company's advantage harder to demonstrate. The figures below are "
+                     "therefore not flattered by a world that is easier to hold a customer in "
+                     "than the real one.".format(placement * 100.0))
+        else:
+            where = (" But they sit on average only {:.0f}% of the way up their own bands, which "
+                     "is the FLATTERING end of what the record permits: customers leave this "
+                     "world about as slowly as the published range allows, so read every "
+                     "retention, churn and lifetime-value figure below as the kindest reading "
+                     "the record bears rather than a central one.".format(placement * 100.0))
+        return (measured + ", and all {} sit INSIDE it.{} This is a property of this run, checked "
+                "at publish time, and not a promise about the next.".format(total, where))
+    outside = total - inside
+    if world_mean < published_mean:
+        direction = (
+            "{:.2f}x BELOW the record's own midpoint of {:.2f}%. Customers leave this world more "
+            "slowly than they left the real one, so every retention, churn and lifetime-value "
+            "figure below reads HIGH by roughly that factor and none of them is evidence about a "
+            "supplier operating in the real market.".format(
+                published_mean / world_mean if world_mean else float("inf"), published_mean))
+    else:
+        direction = (
+            "{:.2f}x ABOVE the record's own midpoint of {:.2f}%. Customers leave this world faster "
+            "than they left the real one, so every retention, churn and lifetime-value figure "
+            "below reads LOW by roughly that factor.".format(
+                world_mean / published_mean if published_mean else float("inf"), published_mean))
+    return (measured + ", and {} of {} sit OUTSIDE it -- {}".format(outside, total, direction))
+
+
+def _world_departure_level() -> dict:
+    """What the world's own departure LEVEL was, beside the published record it is judged against.
+
+    THE DEFECT IT SERVES. Every value-arm, churn, retention and lifetime figure this page carries
+    is measured in a simulated world, and the single quantity that decides what any of them is
+    worth is how readily a customer leaves in it. The repository has known the answer since
+    2026-08-30 -- `tools/measure_departure_level.py` prints it against the commons artefact -- and
+    no reader of this page could see it. A published advantage over a baseline, both measured in a
+    world that loses customers at a third of the real rate, is a figure whose bound is known to the
+    repository and hidden from the page. This project's own rule is that "we cannot tell" belongs
+    on the surface and not in a footnote; so does "we CAN tell, and here it is".
+
+    NOTHING IS MEASURED HERE. The level, the band and the in/out verdict all come from
+    `tools.measure_departure_level`, which owns the denominators -- and the denominator is the
+    whole trap in this area. A second implementation on this page would be a second answer to the
+    same question within a week. The band comes from the regulation commons through that module's
+    own reader, so a refined record tightens this page with nobody editing it.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. See `_departure_statement`.
+
+    FAILS CLOSED. If the level cannot be measured -- no captured run, a commons the module cannot
+    read, a year the record does not cover -- the block says so and the page still tells the reader
+    the figures are unbounded on this dimension. Silence would read exactly like a page whose
+    figures needed no such bound, which is the state it was in.
+    """
+    try:
+        from tools.measure_departure_level import (
+            COMMONS,
+            DEFAULT_TABLE,
+            inside_band,
+            published_bands,
+            world_outcome,
+            world_realised_rate_pct,
+        )
+
+        bands = published_bands()
+        world = world_realised_rate_pct()
+        if not world:
+            raise ValueError("the captured run carries no comparable departure years")
+        counts = world_outcome(json.loads(DEFAULT_TABLE.read_text(encoding="utf-8")))
+        years = []
+        for year in sorted(world):
+            if year not in bands:
+                # FAIL CLOSED on a year the record does not cover. A missing band must never read
+                # as an unbounded one -- that is the shape that lets any level through.
+                raise ValueError(
+                    "the commons carries no published band for {}".format(year))
+            lo, hi = bands[year]
+            years.append({
+                "year": year,
+                "world_pct": round(world[year], 2),
+                "band_lo_pct": lo,
+                "band_hi_pct": hi,
+                "inside_band": inside_band(world[year], lo, hi),
+                # WHERE in the band, as a fraction of its width: 0 is the low edge, 1 the high
+                # one. "Inside" at the bottom of every band is the flattering way to be inside,
+                # and a verdict that cannot tell the two apart is half a reading.
+                "share_of_the_band": (None if hi <= lo else
+                                      round((world[year] - lo) / (hi - lo), 3)),
+                "renewals": counts.get(year, (0, 0, 0.0))[0],
+            })
+    except Exception as exc:  # noqa: BLE001 -- any failure here is "cannot establish", not "fine"
+        return {
+            "available": False,
+            "reason": "the world's departure level could not be measured ({})".format(exc),
+            "statement": _DEPARTURE_UNAVAILABLE,
+        }
+
+    world_mean = statistics.fmean(y["world_pct"] for y in years)
+    published_mean = statistics.fmean(
+        (y["band_lo_pct"] + y["band_hi_pct"]) / 2.0 for y in years)
+    inside = sum(1 for y in years if y["inside_band"])
+    placements = [y["share_of_the_band"] for y in years if y["share_of_the_band"] is not None]
+    placement = statistics.fmean(placements) if placements else None
+    return {
+        "available": True,
+        "what_it_is": ("How readily customers left the world every figure on this page was "
+                       "measured in, against the published GB record for the same quantity."),
+        "years": years,
+        "years_inside_the_band": inside,
+        "years_compared": len(years),
+        "all_inside_the_band": inside == len(years),
+        "world_mean_pct": round(world_mean, 2),
+        "published_midpoint_mean_pct": round(published_mean, 2),
+        "mean_share_of_the_band": None if placement is None else round(placement, 3),
+        "denominator": ("EXTERNAL changes of supplier on a GB domestic electricity meter point, "
+                        "over all GB domestic electricity accounts. Both sides count the same "
+                        "pair; a per-renewal denominator is a different quantity and reads about "
+                        "a third high."),
+        "measured_by": "tools/measure_departure_level.py",
+        "published_record": str(COMMONS.relative_to(PROJECT))
+        if str(COMMONS).startswith(str(PROJECT)) else str(COMMONS),
+        "statement": _departure_statement(
+            world_mean, published_mean, inside, len(years), placement),
+    }
+
+
 def build(three_arm: dict | None, floor: dict | None,
           published_run: dict | None = None, decomposition: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -2420,6 +2615,12 @@ def build(three_arm: dict | None, floor: dict | None,
         # figures it bounds so the two can never be deployed apart. Probed from the world's own
         # reference function rather than written down -- see `_market_reaction`.
         market_reaction=_market_reaction(),
+        # THE OTHER HALF OF THE BOUND, and the one that qualifies every figure below rather than
+        # only the arm comparison. `market_reaction` says what the world could do ABOUT these two
+        # policies; this says how readily a customer left that world at all, against the published
+        # record for the same pair. Measured at publish time from the world's own captured run --
+        # see `_world_departure_level`.
+        departure_level=_world_departure_level(),
         method_skill=_method_skill(three_arm),
         # THE OTHER SIDE OF THE ARMS ABOVE. Published in the same payload as the net margins,
         # keyed by the same arm keys, so the surface can render one row per arm with both

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T14:16:44.648222Z",
+  "generated_at": "2026-08-30T21:58:14.536010Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -207,7 +207,7 @@
   "run_generated_at": "2026-08-30T10:37:06Z",
   "producing_commit": {
     "stated": false,
-    "publishing_tree_commit": "3e90ae5e10fe1a3f5f060b74495fe3863e3419f6",
+    "publishing_tree_commit": "2d8807fe1be1b0fd489901baf6091eda46f276d3",
     "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
     "counts_are_labelled_by_the_code_that_made_them": false
   },
@@ -215,7 +215,7 @@
     "available": false,
     "produced_by": {
       "stated": false,
-      "publishing_tree_commit": "3e90ae5e10fe1a3f5f060b74495fe3863e3419f6",
+      "publishing_tree_commit": "2d8807fe1be1b0fd489901baf6091eda46f276d3",
       "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
       "counts_are_labelled_by_the_code_that_made_them": false
     },
@@ -289,9 +289,9 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "published_run_net_gbp": 148719.64515,
-      "gap_gbp": -5444.789577993506,
-      "statement": "The published run's net margin (\u00a3148,719.65) is NOT the baseline arm's (\u00a3154,164.43) -- they differ by \u00a35,444.79. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "published_run_net_gbp": 144234.558137,
+      "gap_gbp": -9929.876590993488,
+      "statement": "The published run's net margin (\u00a3144,234.56) is NOT the baseline arm's (\u00a3154,164.43) -- they differ by \u00a39,929.88. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -396,6 +396,94 @@
     ],
     "statement": "These are two of our own pricing policies, run through the same world. What that world could do about either of them is the bound on the comparison, and it is currently half of one. The market DOES defend: undercut it and the rival follows the price down within a quarter, so a 10% price advantage is worth -5.3% by the time it has re-priced once. A price advantage decays here instead of persisting. Nothing contests the ceiling: at or above the published cap the reference does not move at all, so over-pricing still carries no competitive consequence in this world and no rival targets this book. An arm that earns by charging more is reading that absence correctly, which is a fact about the world and not a result about the arm. Read the comparison as an internal one."
   },
+  "departure_level": {
+    "available": true,
+    "what_it_is": "How readily customers left the world every figure on this page was measured in, against the published GB record for the same quantity.",
+    "years": [
+      {
+        "year": 2017,
+        "world_pct": 14.0,
+        "band_lo_pct": 13.5,
+        "band_hi_pct": 14.0,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 57
+      },
+      {
+        "year": 2018,
+        "world_pct": 20.0,
+        "band_lo_pct": 19.5,
+        "band_hi_pct": 20.0,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 52
+      },
+      {
+        "year": 2019,
+        "world_pct": 21.3,
+        "band_lo_pct": 20.7,
+        "band_hi_pct": 21.3,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 50
+      },
+      {
+        "year": 2020,
+        "world_pct": 23.0,
+        "band_lo_pct": 22.5,
+        "band_hi_pct": 23.0,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 51
+      },
+      {
+        "year": 2021,
+        "world_pct": 18.4,
+        "band_lo_pct": 17.9,
+        "band_hi_pct": 18.4,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 50
+      },
+      {
+        "year": 2022,
+        "world_pct": 4.3,
+        "band_lo_pct": 2.9,
+        "band_hi_pct": 4.3,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 54
+      },
+      {
+        "year": 2023,
+        "world_pct": 12.5,
+        "band_lo_pct": 8.9,
+        "band_hi_pct": 12.5,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 54
+      },
+      {
+        "year": 2024,
+        "world_pct": 16.1,
+        "band_lo_pct": 12.5,
+        "band_hi_pct": 16.1,
+        "inside_band": true,
+        "share_of_the_band": 1.0,
+        "renewals": 59
+      }
+    ],
+    "years_inside_the_band": 8,
+    "years_compared": 8,
+    "all_inside_the_band": true,
+    "world_mean_pct": 16.2,
+    "published_midpoint_mean_pct": 15.5,
+    "mean_share_of_the_band": 1.0,
+    "denominator": "EXTERNAL changes of supplier on a GB domestic electricity meter point, over all GB domestic electricity accounts. Both sides count the same pair; a per-renewal denominator is a different quantity and reads about a third high.",
+    "measured_by": "tools/measure_departure_level.py",
+    "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
+    "statement": "Over the 8 years this run can be compared on, the world's own departures averaged 16.20% of electricity accounts a year against a published GB record averaging 15.50%. Each year is judged against its OWN published band, never against that average, and all 8 sit INSIDE it. They sit on average 100% of the way UP their own bands, which is the anti-flattering end -- the record's own tie-break is to take the level that makes this company's advantage harder to demonstrate. The figures below are therefore not flattered by a world that is easier to hold a customer in than the real one. This is a property of this run, checked at publish time, and not a promise about the next."
+  },
   "method_skill": {
     "available": true,
     "concordance": 0.3333333333333333,
@@ -404,6 +492,7 @@
     "null_95_high": 0.8666666666666667,
     "p_two_sided": 0.47085,
     "inside_the_null": true,
+    "cannot_tell": "On whether this method carries any information, we cannot tell: 0.333 sits inside the 0.133\u20130.867 a signal carrying no information reaches on 6 decisions.",
     "decisions_scored": 6,
     "accounts": 5,
     "drop_out": {
@@ -609,6 +698,7 @@
         "inside_the_null": false,
         "basis": "exact Mann-Whitney null over all 184756 arrangements of 10 retained and 10 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
       },
+      "cannot_tell": null,
       "priced_accounts_the_arm_itself_drove_out": [
         "C1_2",
         "C2",

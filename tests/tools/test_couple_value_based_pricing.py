@@ -316,6 +316,22 @@ def _co_calibrated_stub(co_calibrated=True):
             "why_it_disqualifies_the_gap": "stub", "what_would_discharge_it": "stub"}
 
 
+def _claim(*, independent, clears):
+    """An inference-claim verdict, injected so a test of the refusal drives BOTH legs.
+
+    Added 2026-08-30 with `tools/inference_claim`. Without it every test here would again be a
+    test of today's tree: the skill leg reads a run artefact, so a control asserting the refusal
+    would go green or red on whichever run last landed rather than on the property it names. The
+    rule's own controls live in `tests/tools/test_inference_claim.py`; these assert that this
+    module CONSULTS it and carries its verdict into the summary, the clause and the ledger row.
+    """
+    from tools.inference_claim import inference_claim
+    skill = {"available": True, "concordance": 0.6136, "null_95_low": 0.2833,
+             "null_95_high": 0.7167, "null_point": 0.5, "p_two_sided": 0.47,
+             "decisions_scored": 12, "clears_the_null": clears, "why": None}
+    return inference_claim(_co_calibrated_stub(co_calibrated=not independent), skill)
+
+
 def _bands_fixture():
     return {2016: (17.0, 17.6), 2017: (13.5, 14.0), 2018: (19.5, 20.0)}
 
@@ -561,7 +577,8 @@ def test_the_gap_REFUSES_to_be_published_as_inference_while_the_sides_share_a_so
     # PROVENANCE INJECTED (2026-08-30). This asserted the refusal while reading the LIVE verdict,
     # so it was really a test of today's tree and went red the day that verdict flipped -- having
     # never been able to exercise the other branch at all. Now it tests what it says it tests.
-    summary = cvp._belief_summary(rows, provenance=_co_calibrated_stub())
+    summary = cvp._belief_summary(rows, provenance=_co_calibrated_stub(),
+                                  claim=_claim(independent=False, clears=True))
 
     assert summary["publishable_as_evidence_of_inference"] is False
     assert summary["scored_beyond_the_world_calibration"] == 2
@@ -569,24 +586,51 @@ def test_the_gap_REFUSES_to_be_published_as_inference_while_the_sides_share_a_so
     assert "NOT EVIDENCE" in summary["refusal"]
     assert summary["shared_calibration"]["what_would_discharge_it"]
     # The verdict paragraph is what gets pasted into a digest, so the refusal has to travel in it.
-    assert "NOT evidence of the company's inference" in cvp._co_calibration_clause(summary)
+    assert "not evidence of skill" in cvp._co_calibration_clause(summary)
 
 
-def test_the_refusal_LIFTS_when_the_sides_stop_sharing_a_source(monkeypatch):
-    """THE OTHER HALF OF THE NULL. A refusal that cannot be discharged is a constant, and a
-    constant caveat teaches a reader to skip it. Once the two sides are independent the same rows
-    must become publishable and the clause must say so."""
+def test_INDEPENDENCE_ALONE_DOES_NOT_LIFT_THE_REFUSAL(monkeypatch):
+    """RE-KEYED 2026-08-30, AND IT WAS ASSERTING THE DEFECT.
+
+    It read `test_the_refusal_LIFTS_when_the_sides_stop_sharing_a_source` and asserted that
+    independent sides make the gap `publishable_as_evidence_of_inference`. That is the identity
+    the standing rule corrects -- *"Independence is not inference. The verdict removes the
+    objection that we were measuring our own reflection; it does not establish the company knows
+    anything."* The old form would have held the codebase to the wrong answer, which is worse
+    than no control: a test that pins a defect makes fixing it look like a regression.
+
+    Re-keyed to the property. Independent sides plus a method that cannot be told from chance --
+    which is the live reading, 0.333 against 0.133-0.867 on six decisions -- is still not
+    evidence, and the clause must say so in the director's own words.
+    """
     monkeypatch.setattr(cvp, "shared_calibration_holds", lambda: {
         "co_calibrated": False, "series": "two independent series", "sides": {},
         "unreadable": [], "why_it_disqualifies_the_gap": "", "what_would_discharge_it": ""})
     rows = [{"belief_vs_truth": {"belief_error_pp": 2.0, "price_differential_vs_svt": 0.1,
                                  "world_curve_beyond_calibration": False}}]
 
-    summary = cvp._belief_summary(rows)
+    summary = cvp._belief_summary(rows, claim=_claim(independent=True, clears=False))
+
+    assert summary["sides_are_independent"] is True
+    assert summary["publishable_as_evidence_of_inference"] is False
+    assert "we cannot tell" in cvp._co_calibration_clause(summary)
+
+
+def test_the_refusal_LIFTS_when_BOTH_legs_are_satisfied(monkeypatch):
+    """THE OTHER HALF OF THE NULL. A refusal that cannot be discharged is a constant, and a
+    constant caveat teaches a reader to skip it. Independent sides AND a method outside its own
+    null is the case the claim is for, and the same rows must become publishable."""
+    monkeypatch.setattr(cvp, "shared_calibration_holds", lambda: {
+        "co_calibrated": False, "series": "two independent series", "sides": {},
+        "unreadable": [], "why_it_disqualifies_the_gap": "", "what_would_discharge_it": ""})
+    rows = [{"belief_vs_truth": {"belief_error_pp": 2.0, "price_differential_vs_svt": 0.1,
+                                 "world_curve_beyond_calibration": False}}]
+
+    summary = cvp._belief_summary(rows, claim=_claim(independent=True, clears=True))
 
     assert summary["publishable_as_evidence_of_inference"] is True
     assert summary["refusal"] == ""
-    assert "no longer share a calibration source" in cvp._co_calibration_clause(summary)
+    assert "quotable as evidence" in cvp._co_calibration_clause(summary)
 
 
 def test_the_LEDGER_write_refuses_a_CO_CALIBRATED_pair():
@@ -608,9 +652,15 @@ def test_the_price_belief_gap_CARRIES_the_refusal_into_its_own_components():
                                  "world_curve_beyond_calibration": True}}
             for w in (0.05, 0.10, 0.30, 0.40)]
 
-    gap = cvp.price_belief_gap(rows, provenance=_co_calibrated_stub())
+    # BOTH LEGS INJECTED. Passing only the provenance would leave the skill leg reading the last
+    # run artefact on disk, so this control would pass or fail on which run landed most recently
+    # rather than on the property it names.
+    gap = cvp.price_belief_gap(rows, provenance=_co_calibrated_stub(),
+                               claim=_claim(independent=False, clears=True))
 
     assert gap.components["publishable_as_evidence_of_inference"] is False
+    assert gap.components["sides_are_independent"] is False
+    assert gap.components["the_method_clears_its_null"] is True
     assert gap.components["accounts_beyond_the_world_calibration"] == 4
     assert cvp.SHARED_CALIBRATION_SERIES == gap.components["co_calibrated_from"]
     assert "NOT PUBLISHABLE AS EVIDENCE" in gap.note

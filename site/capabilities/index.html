@@ -408,6 +408,15 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        see `_market_reaction` in tools/generate_value_arms_data.py for why that distinction is the
        whole point here. -->
   <p id="arms-market" style="margin:0 0 16px;font-size:13px;"></p>
+  <!-- HOW READILY A CUSTOMER LEFT THE WORLD ALL OF THIS WAS MEASURED IN. The block above says what
+       the world could do ABOUT these two policies; this says whether the world lets customers go
+       at the rate the real one did. It qualifies every figure below, not just the arm comparison:
+       a retention, churn or lifetime-value figure taken in a world that loses customers more
+       slowly than the published record reads high, and no reader of this page could tell. The
+       level and the published band are MEASURED at publish time by
+       tools/measure_departure_level.py against the regulation commons -- neither is authored here
+       and neither is a caveat someone has to remember to delete when the world moves. -->
+  <div id="arms-departure" style="margin:0 0 16px;font-size:13px;"></div>
   <div id="arms-realised"></div>
   <!-- THE HOUSEHOLD'S SIDE OF THE SAME THREE ARMS. The mission says value is created and THEN
        shared, so every decision has two sides; a page that shows only what the company earned
@@ -669,6 +678,54 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + "either arm, so read the comparison as an internal one between two of our own "
               + "pricing policies.");
 
+      /* THE WORLD'S OWN DEPARTURE LEVEL, AGAINST THE PUBLISHED RECORD, and it renders on every
+         branch for the same reason the bound above does. A page that says nothing here reads
+         exactly like a page whose figures needed no such qualification -- which is the state this
+         one was in while the repository could print the comparison on demand.
+
+         NOTHING IS AUTHORED HERE. The verdict sentence, the level, the band and the in/out flags
+         all come from the feed, which measures them at publish time. The table is rendered beside
+         the sentence rather than instead of it so a reader can check the verdict against the
+         years it was read from. */
+      var dl = d.departure_level || {};
+      var dlLead = '<strong>The world these figures were measured in.</strong> ';
+      var dlBody = dl.statement
+        ? prose(dl.statement)
+        : "HOW READILY CUSTOMERS LEAVE IN THIS WORLD COULD NOT BE ESTABLISHED for this publish, "
+          + "so every retention, churn and lifetime-value figure below is unbounded against the "
+          + "published GB switching record.";
+      var dlRows = (dl.available && dl.years ? dl.years : []).map(function (y) {
+        return "<tr><td style=\"padding:1px 10px 1px 0;\">" + esc(y.year)
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + Number(y.world_pct).toFixed(2) + "%"
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + Number(y.band_lo_pct).toFixed(1) + "&ndash;" + Number(y.band_hi_pct).toFixed(1) + "%"
+          + "</td><td style=\"padding:1px 0;white-space:nowrap;\">"
+          /* THE VERDICT PER ROW, and it is the column the whole block exists for: two correct
+             percentages side by side with nothing saying whether one is inside the other is a
+             table, not a bound. */
+          + (y.inside_band
+              ? '<span style="color:var(--green);">inside</span>'
+              : '<span style="color:var(--amber);font-weight:600;">OUTSIDE</span>')
+          + "</td></tr>";
+      }).join("");
+      $("arms-departure").innerHTML =
+        '<p style="margin:0 0 6px;">' + dlLead + dlBody + "</p>"
+        + (dlRows
+            ? '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Year</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">This "
+              + "world left at</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">The "
+              + "record says</th>"
+              + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Verdict</th></tr>"
+              + dlRows + "</table></div>"
+              + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(dl.denominator || "") + " Measured by " + esc(dl.measured_by || "")
+              + " against " + esc(dl.published_record || "") + ".</p>"
+            : "");
+
       /* BOTH SIDES OF ONE COMPARISON, ON ONE ROW. Keyed by arm so a household figure can only
          ever land beside the net margin from the SAME arm of the SAME run. An unavailable
          household side leaves the column off entirely rather than rendering an empty one. */
@@ -918,6 +975,15 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + "score is a statement about a belief and not about an unrankable population."
                 + "</p>"
               : "")
+          /* THE SAME WORDS THE CONCORDANCE BLOCK USES, and for the same reason: this is a rank
+             statistic on a handful of departures published beside a claim about what the company
+             knows. It sits ABOVE "so what is it?", because the attribution explains a reading the
+             reader should not be weighing at all until they have been told it cannot be told
+             from chance. */
+          + ((dec.auc_attribution && dec.auc_attribution.cannot_tell)
+              ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--amber);">'
+                + prose(dec.auc_attribution.cannot_tell) + "</p>"
+              : "")
           + ((dec.auc_attribution && dec.auc_attribution.verdict)
               ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
                 + "<strong>So what is it?</strong> "
@@ -942,6 +1008,17 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + " on this many decisions</span> (" + esc(msk.decisions_scored)
           + " decisions on " + esc(msk.accounts) + " accounts, two-sided p "
           + msk.p_two_sided.toFixed(2) + ").</p>"
+          /* THE WORDS, WHEN THE READING CANNOT BE TOLD FROM CHANCE. Director, 2026-08-30: "If
+             the concordance sits inside its null, the page says we cannot tell, in those words."
+             The interval was already here and so was the artefact's own reading — "does not
+             distinguish the method from chance in either direction" — which is the same fact in
+             language a reader carries away as a near-miss. The feed computes the sentence from
+             the three numbers and sends null when the figure clears its null, so there is
+             nothing to decide here and no second place the phrase can drift. */
+          + (msk.cannot_tell
+              ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+                + 'color:var(--amber);">' + prose(msk.cannot_tell) + "</p>"
+              : "")
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
           /* WHY THE FIGURE RESTS ON FEWER DECISIONS THAN THE ARM PRICED. This page shows

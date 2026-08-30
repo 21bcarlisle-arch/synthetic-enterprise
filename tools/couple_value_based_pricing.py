@@ -86,6 +86,7 @@ from simulation.market_switching_propensity import (
     churn_position_multiplier,
 )
 from tools import maturity_map_store as map_store
+from tools.inference_claim import inference_claim
 
 PROJECT = Path(__file__).resolve().parent.parent
 BOOK_PATH = PROJECT / "site" / "data" / "customers.json"
@@ -685,7 +686,8 @@ def _population(rows: list[dict], as_of_year: int) -> dict:
     }
 
 
-def _belief_summary(rows: list[dict], provenance: dict | None = None) -> dict:
+def _belief_summary(rows: list[dict], provenance: dict | None = None,
+                    claim: dict | None = None) -> dict:
     """How wrong the company would be, at the price its own arm chooses.
 
     UNDER-ESTIMATES ARE COUNTED SEPARATELY because the sign is the whole story: a company that
@@ -706,6 +708,13 @@ def _belief_summary(rows: list[dict], provenance: dict | None = None) -> dict:
     # with synthetic rows and went red the day the live verdict flipped, having never been able
     # to test the other branch at all.
     provenance = shared_calibration_holds() if provenance is None else provenance
+    # THE STANDING RULE, APPLIED FROM ONE PLACE (2026-08-30). This used to be
+    # `not provenance["co_calibrated"]` -- i.e. the codebase encoded "independent therefore
+    # inferring" as an identity, which is precisely the thing `tools/inference_claim` corrects.
+    # Independence is the FIRST of two necessary legs; the second is the method's own ranking
+    # clearing the interval a random signal produces. Injectable for the same reason
+    # `provenance` is.
+    claim = inference_claim(provenance) if claim is None else claim
     return {
         "available": True,
         "accounts_scored": n,
@@ -721,20 +730,25 @@ def _belief_summary(rows: list[dict], provenance: dict | None = None) -> dict:
         # inferred anything. Published without this, a median of a couple of percentage points
         # reads as "the company nearly knows the world" -- which is exactly what two calibrations
         # of one series look like, and exactly what a reader will quote it as.
-        "publishable_as_evidence_of_inference": not provenance["co_calibrated"],
+        "publishable_as_evidence_of_inference": claim["publishable_as_evidence_of_skill"],
+        # THE TWO LEGS, REPORTED APART, because they fail for different reasons and are fixed by
+        # different work: the first by re-fitting one side off a series the other cannot read,
+        # the second only by scoring more decisions. A single flag hid which one was binding.
+        "sides_are_independent": claim["sides_are_independent"],
+        "the_method_clears_its_null": claim["the_method_clears_its_null"],
+        "inference_claim": claim,
         "shared_calibration": provenance,
-        "refusal": (
-            "NOT EVIDENCE OF THE COMPANY'S INFERENCE. The two sides share a calibration source "
-            "({}), and {} of {} scored accounts were compared at a differential where the world "
-            "EXTRAPOLATES rather than observes. Quote this as a measured disagreement between two "
-            "fits of one series; do not quote it as the company predicting the world. See "
-            "`shared_calibration.what_would_discharge_it`."
-        ).format(provenance["series"], beyond, n) if provenance["co_calibrated"] else "",
+        "refusal": "" if claim["publishable_as_evidence_of_skill"] else (
+            "NOT EVIDENCE OF THE COMPANY'S INFERENCE. {} And {} of {} scored accounts were "
+            "compared at a differential where the world EXTRAPOLATES rather than observes. Quote "
+            "this as a measured disagreement; do not quote it as the company predicting the "
+            "world. See `shared_calibration.what_would_discharge_it`."
+        ).format(claim["sentence"], beyond, n),
         "what_it_means": (
             "Positive means the company expects MORE departures than the world would deliver; "
             "negative means it expects FEWER -- it will over-price and be punished. This is the "
-            "shape the thesis says the advantage must come from -- but only once the two sides "
-            "stop sharing a source; until then see `refusal`."
+            "shape the thesis says the advantage must come from -- but the shape is not the "
+            "evidence: see `refusal` and `inference_claim.rule`."
         ),
     }
 
@@ -771,21 +785,23 @@ def _co_calibration_clause(belief: dict) -> str:
     gets pasted into a digest, so the refusal has to travel with the number rather than beside it.
     Derived from the same record the refusal is derived from, so it cannot say "co-calibrated"
     while the record says otherwise.
+
+    REWRITTEN 2026-08-30. This clause used to read, on the independent branch: *"The two sides no
+    longer share a calibration source, so that gap now speaks to the company's own inference."*
+    That sentence is the standing rule's own worked example of what may not be said -- it takes
+    independence for inference, and it quotes the gap with no interval anywhere near it. The
+    sentence now comes from `tools.inference_claim`, which derives it from the flags rather than
+    writing it beside them, so this clause cannot say something the verdict does not support.
     """
     if not belief.get("available"):
         return ""
-    if belief.get("publishable_as_evidence_of_inference"):
-        return ("The two sides no longer share a calibration source, so that gap now speaks to "
-                "the company's own inference.")
+    claim = belief.get("inference_claim") or {}
     beyond = belief.get("scored_beyond_the_world_calibration") or 0
     scored = belief.get("accounts_scored") or 0
-    return ("Either way it is NOT evidence of the company's inference: the company's estimator "
-            "and the world's price response descend from the same {}, and {} of {} accounts were "
-            "scored where the world extrapolates the last informed slope rather than observing "
-            "anything. A figure that cannot distinguish inference from shared arithmetic is not "
-            "quotable as either -- what would discharge it is recorded beside it.").format(
-        belief.get("shared_calibration", {}).get("series", "public switching series"),
-        beyond, scored)
+    extrapolation = (
+        " Separately, {} of {} accounts were scored where the world extrapolates the last "
+        "informed slope rather than observing anything.".format(beyond, scored) if beyond else "")
+    return (claim.get("sentence") or "") + extrapolation
 
 
 def _control_clause(average: dict, rows: list[dict]) -> str:
@@ -923,7 +939,8 @@ def _git_head() -> str | None:
         return None
 
 
-def price_belief_gap(rows: list[dict], provenance: dict | None = None):
+def price_belief_gap(rows: list[dict], provenance: dict | None = None,
+                     claim: dict | None = None):
     """The company's price-response belief against the world's, normalised by NO SKILL.
 
     THE GAP IS THE SCORE (COUPLED_TRIAD_DESIGN). The belief-vs-truth summary beside this reports
@@ -949,6 +966,7 @@ def price_belief_gap(rows: list[dict], provenance: dict | None = None):
     # reaches the ledger ROW, and it could only ever exercise whichever branch today's tree
     # happened to be in.
     provenance = shared_calibration_holds() if provenance is None else provenance
+    claim = inference_claim(provenance) if claim is None else claim
     beyond = sum(1 for s in scored if s.get("world_curve_beyond_calibration"))
     return _normalise(
         raw, g0,
@@ -961,16 +979,18 @@ def price_belief_gap(rows: list[dict], provenance: dict | None = None):
          "world_mean_p_leave": round(mean_actual, 4),
          # CARRIED INTO THE COMPONENTS, not only into the prose, because the ledger row is what
          # a later reader consults and a note is the first thing an aggregator drops.
-         "publishable_as_evidence_of_inference": not provenance["co_calibrated"],
+         "publishable_as_evidence_of_inference": claim["publishable_as_evidence_of_skill"],
+         "sides_are_independent": claim["sides_are_independent"],
+         "the_method_clears_its_null": claim["the_method_clears_its_null"],
          "co_calibrated_from": provenance["series"],
          "accounts_beyond_the_world_calibration": beyond},
         note=("Measured at the price the company's OWN value arm chooses, which is where it "
               "would actually be wrong. Below 1.0 the per-customer belief beats the flat rule; "
               "above 1.0 it is worse than predicting the mean."
-              + ("" if not provenance["co_calibrated"] else
-                 " NOT PUBLISHABLE AS EVIDENCE OF THE COMPANY'S INFERENCE: both sides descend "
-                 "from {}, and {} of {} accounts were scored where the world extrapolates rather "
-                 "than observes.".format(provenance["series"], beyond, len(scored)))),
+              + ("" if claim["publishable_as_evidence_of_skill"] else
+                 " NOT PUBLISHABLE AS EVIDENCE OF THE COMPANY'S INFERENCE: {} {} of {} accounts "
+                 "were scored where the world extrapolates rather than observes.".format(
+                     claim["sentence"], beyond, len(scored)))),
     )
 
 
