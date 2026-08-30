@@ -1451,7 +1451,19 @@
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  # L1, NOT L2, and the gap is the point. The priced menu EXISTS and is in front of the director
+  # (docs/design/A46_THE_PRICED_MENU_2026-08-30.md, letter at docs/staging/SEAT_TO_DIRECTOR_A46_*):
+  # what a ceiling buys is measured and reconciled against the campaign record (90 projected == 90
+  # booked at 1,200), the funnel-supply top of range is arithmetic (3,136.5 cy, above which a
+  # bigger budget buys nothing), and the column that decides it -- how many of those accounts the
+  # method could price -- is measured at ZERO for a structural reason no ceiling reaches. That is
+  # BUILT, so it is off L0. It is not L2, because one of the three things this atom's own `gain`
+  # says the seat owes -- what each option costs in wall clock against the publish cadence -- came
+  # back `decidable: false` at all five intervals: the 2,000-cy probe point carries
+  # `campaign_record_agrees: false` and is barred from the slope, so there is ONE clean point and
+  # no cost per customer-year. The menu says so at every row rather than interpolating, which is
+  # honest but is not a happy path. L2 waits on a second clean point.
+  level_current: 1
   level_target: 2
   loop_stage: build
   dial_inherited: 1

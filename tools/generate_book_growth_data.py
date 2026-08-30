@@ -385,11 +385,18 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
         #     requirement to derive an interval from.
         #
         # AND IT FAILS CLOSED ON THE NUMBER. What ceiling this basis supports needs a cost
-        # curve, which needs two clean probe points, and there is one
-        # (`docs/design/SETTLEMENT_CEILING_REMEASURED_2026-08-29.md` §6). "We cannot yet say"
-        # is the result and it belongs on the page rather than in a footnote -- publishing
-        # "1,200 is right" off a basis that does not yet reach a number would be exactly the
-        # invented constant this project keeps paying for.
+        # curve, which needs two clean probe points, and there is one. That is no longer a gap
+        # waiting on a run -- the run HAPPENED (2026-08-30,
+        # `docs/observability/settlement_ceiling_slope_20260829.json`) and came back
+        # `decidable: false`, because its 2,000 point carries `campaign_record_agrees: false`
+        # and is barred from the slope. Priced up in `docs/design/A46_THE_PRICED_MENU_
+        # 2026-08-30.md`, whose marginal-cost column reads "one clean point; no slope".
+        # "We cannot yet say" is the result and it belongs on the page rather than in a
+        # footnote -- publishing "1,200 is right" off a basis that does not reach a number
+        # would be exactly the invented constant this project keeps paying for. The one number
+        # this basis DOES reach needs no probe at all: 3,136.5 customer-years is where the
+        # sample rate hits 1.0 (opening book 778.1 + campaign demand 2,358.4, read live from
+        # `book_growth_campaign.json`), above which a bigger budget buys no accounts.
         "engine_bound_basis": (
             "That limit is a COMPUTE budget, not a commercial one. "
             "`SETTLEMENT_CUSTOMER_YEAR_BUDGET` is how many customer-years of settlement this "
@@ -398,8 +405,14 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
             "modelled world faces it. The memory leg is measured and slack; the time leg is a "
             "publish interval we CHOOSE, because the reported window reached Elexon Final "
             "Reconciliation on 2026-08-07 and none of its figures can change again, so there "
-            "is no data-freshness requirement to set one from. What ceiling that choice "
-            "supports is being measured and is NOT YET KNOWN — so read the height of this "
+            "is no data-freshness requirement to set one from. So 1,200 is not an engineering "
+            "limit: it is a choice, and the memory leg was slack at the point we measured "
+            "(3,952.4 MB peak against a 24,032 MB guest). What ceiling that choice supports "
+            "was measured on 2026-08-30 and is STILL NOT YET KNOWN, which is now a result "
+            "rather than a gap: the run returned ONE clean point and one contaminated by "
+            "another writer, and a cost per customer-year needs two clean points, so no slope "
+            "exists. One ceiling IS known and needs no run — above 3,136.5 customer-years the "
+            "whole funnel is settled and a higher budget buys nothing. Read the height of this "
             "curve as our budget, and do not read this budget as evidence of what the machine "
             "can afford."
         ).format(
