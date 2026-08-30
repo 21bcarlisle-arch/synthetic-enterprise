@@ -24,7 +24,11 @@ WHY THIS EXISTS
 Four separately published numbers all rest on one belief, and every one of them was measured on a
 population small enough to be an artefact:
 
-  * the A/B's `discrimination_auc` 0.4653 -- 25 priced renewals, 9 of them departures
+  * the A/B's `discrimination_auc` 0.4653 -- 25 priced renewals, 9 of them departures. BOUNDED
+    2026-08-30: the exact null on 16-vs-9 runs 0.264..0.736, so that figure is two-sided p 0.80 --
+    the population was small enough to be an artefact and now says so on the page. The same
+    estimator on the 2026-08-29 run scored 0.13 on 20 decisions, which IS outside its null, and
+    five of the ten accounts behind it were driven out by the arm's own price rise.
   * its bucket table's INVERSION at believed p_retain 0.346/0.557/0.616 -- n=11, n=4, n=4
   * the ladder's level error, believed 33% against a realised 5.5%
   * the arm's calibration error -0.0774

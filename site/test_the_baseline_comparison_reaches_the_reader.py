@@ -979,3 +979,117 @@ def test_MUTATION_a_feed_with_no_verdict_renders_no_claim_about_it():
     assert "never priced a customer" not in rendered.lower()
     # The panel still renders its other content, so this is an absence and not a blank page.
     assert "renewals" in rendered
+
+
+def test_the_gate_claim_carries_the_strength_of_its_own_premise(live):
+    """Fires on: dropping `premise_basis` from the door, or from the feed that fills it.
+
+    "There is no book size at which the first one is priced" asks for a curriculum change. Whether
+    its premise was MEASURED on the run's own roster or argued from the code path is the reader's
+    to weigh -- and today's artefact predates the measurement, so the page must say so rather
+    than let the strongest wording ride on the weakest evidence.
+    """
+    who = (_live_feed()["decisions"] or {}).get("who_the_method_has_priced") or {}
+    assert who.get("premise_basis"), (
+        "the live feed states the gate claim with no basis beside it: {}".format(who))
+    rendered = _text(live["arms-decisions"]).replace(" — ", " -- ")
+    assert who["premise_basis"] in rendered, "the basis reached the feed and not the reader"
+
+
+def test_MUTATION_a_page_whose_feed_states_no_basis_prints_no_basis_clause():
+    """FAIL-CLOSED. A door that prints "Basis:" whatever the feed says would attach the last
+    run's strength to this run's claim -- and this panel's whole purpose is to be readable about
+    how much it knows."""
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["who_the_method_has_priced"].pop("premise_basis", None)
+    rendered = _text(_render(feed)["arms-decisions"])
+    assert "Basis:" not in rendered
+    # The verdict itself still renders, so this is an absence and not a blanked panel.
+    assert "GATE, not a book size" in rendered
+
+
+# ── the belief AUC, and the interval it went out without ─────────────────────────────────────
+#
+# THE DEFECT THESE SERVE. For four days `#arms-decisions` rendered "The company's own belief about
+# who will leave scored 0.130 on the usual rank measure" followed by a CONSTANT sentence reading
+# any value below 0.50 as worse than a coin flip. Three things were wrong on the screen, not in
+# the feed: no interval (a random signal scores 0.24 to 0.76 on ten departures, so the same page
+# had called 0.4653 — two-sided p 0.80 — the same finding); the wrong subject (`believed_p_retain`
+# is the retention the arm expected AT THE PRICE IT CHOSE, not a forecast of who would leave); and
+# a corroboration claim between two results that share a cause.
+
+def test_the_belief_figure_never_reaches_the_reader_without_its_interval(live):
+    """FAIL-CLOSED ON THE BOUND. An AUC on ten departures with no null beside it is the figure
+    this whole repair is about; if the number renders and the interval does not, the page is back
+    where it started.
+
+    Fires on: dropping `auc_reading` from the render, or composing a reading that omits the null.
+    """
+    feed = _live_feed()
+    auc = feed["decisions"].get("discrimination_auc")
+    if auc is None:
+        pytest.skip("this run published no belief AUC")
+    rendered = live["arms-decisions"]
+    assert "{:.3f}".format(auc) in rendered, "the belief figure does not reach the reader"
+    bound = feed["decisions"]["auc_attribution"]["null_bound"]
+    assert bound["available"], "the live feed carries no null for the figure it publishes"
+    for edge in ("null_95_low", "null_95_high"):
+        assert "{:.2f}".format(bound[edge]) in rendered, (
+            "the belief figure is on the page without the range a signal carrying no information "
+            "reaches on {} departures".format(bound["left"]))
+    assert "{} departures".format(bound["left"]) in rendered, (
+        "the page states a rank statistic without the sample it is computed over")
+
+
+def test_the_page_says_WHAT_THE_BELIEF_IS_A_BELIEF_ABOUT(live):
+    """The subject, corrected on the screen and not only in the feed.
+
+    Fires on: restoring "the company's own belief about who will leave" — which is a different and
+    much larger claim, and is contradicted by the same company's estimate scoring 0.534 over 708
+    renewals on 2026-08-30.
+    """
+    rendered = live["arms-decisions"]
+    assert "survive the price it chose" in rendered
+    assert "own belief about who will leave" not in rendered
+
+
+def test_the_reader_is_told_the_arm_produced_the_departures_it_is_graded_on(live):
+    """THE FINDING, on the page. Five of the ten accounts the arm priced left under the value arm
+    and did not leave under the control, so half the positive class is the arm's own doing.
+
+    Fires on: publishing the AUC with its interval and without its endogeneity — which would be an
+    honest-looking number answering a question nobody asked.
+    """
+    rendered = live["arms-decisions"]
+    caused = _live_feed()["decisions"]["auc_attribution"][
+        "priced_accounts_the_arm_itself_drove_out"]
+    assert caused, "the live feed names no account the arm drove out -- nothing to render"
+    assert "did NOT leave under the control" in rendered
+    for account in caused:
+        assert account in rendered, "{} is missing from the rendered cause".format(account)
+
+
+def test_a_figure_INSIDE_its_null_renders_as_UNRESOLVED_on_the_page():
+    """THE PASS BRANCH, driven through the door because the live run is in the other one.
+
+    A page that can only ever print "backwards" is a constant verdict wearing a gate's clothes.
+    This drives the door with the 2026-08-27 run's own figure — 0.4653 on 16 retained and 9
+    departed, two-sided p 0.80 — which the superseded reading called worse than a coin flip.
+
+    Fires on: re-pinning the rendered reading to `auc < 0.5`.
+    """
+    feed = copy.deepcopy(_live_feed())
+    dec = feed["decisions"]
+    dec["discrimination_auc"] = 0.4652777777777778
+    dec["auc_attribution"]["null_bound"].update(
+        {"available": True, "retained": 16, "left": 9, "null_95_low": 0.264,
+         "null_95_high": 0.736, "p_two_sided": 0.80283, "inside_the_null": True})
+    dec["auc_reading"] = (
+        "Measured on 9 departures and 16 retentions. A signal carrying no information at all "
+        "scores between 0.26 and 0.74 on a population this size. The observed value is INSIDE "
+        "that interval, so this run does not distinguish the belief from a coin flip in either "
+        "direction.")
+    rendered = _render(feed)["arms-decisions"]
+    assert "0.465" in rendered
+    assert "INSIDE that interval" in rendered
+    assert "worse than a coin flip" not in rendered

@@ -1,8 +1,15 @@
 """R15 proofs for the level-without-selection arm.
 
 WHY IT EXISTS. The value arm beat flat rules by £7,066 with `belief_vs_outcome.discrimination_auc`
-at **0.4653** — below a coin flip. The advantage cannot be attributed to inference. What the arm
-demonstrably did was price HIGH: a median £44.50/MWh against the flat rule's £2.00.
+at **0.4653**. The advantage cannot be attributed to inference. What the arm demonstrably did was
+price HIGH: a median £44.50/MWh against the flat rule's £2.00.
+
+RESTATED 2026-08-30, CONCLUSION UNCHANGED. This said 0.4653 was "below a coin flip". It is not: on
+that run's 16 retentions and 9 departures the exact Mann-Whitney null runs 0.264..0.736, so 0.4653
+is two-sided p 0.80 — indistinguishable from a coin flip rather than worse than one. The reason
+this arm exists is stronger for it, not weaker: an advantage cannot be attributed to a ranking the
+run could not show exists. The bound now ships beside the figure
+(`tools/generate_value_arms_data._auc_null`).
 
 `flat_at_level` applies ONE uplift to every renewal it prices — the SAME renewals `value_based`
 prices, through the same guards, under the same lawful ceiling. So the two arms differ by the

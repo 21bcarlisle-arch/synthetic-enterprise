@@ -1179,3 +1179,170 @@ def test_a_census_present_but_unavailable_is_not_read_as_agreement():
     who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
         "decisions"]["who_the_method_has_priced"]
     assert who["premise_basis"].startswith("argued from the code path")
+
+
+# ── the AUC's own bound: the figure that went out for four days with no interval ─────────────
+
+
+def _belief(auc, retained, left):
+    """A `belief_vs_outcome` block at a chosen AUC and population, everything else held."""
+    art = _load(THREE_ARM)
+    art["belief_vs_outcome"] = dict(
+        art["belief_vs_outcome"],
+        discrimination_auc=auc,
+        auc_population={"retained": retained, "left": left},
+        priced_and_scored=retained + left,
+    )
+    return art
+
+
+def test_the_exact_null_enumerates_the_population_it_claims():
+    """THE DEFECT I SHIPPED INTO THIS FILE AND CAUGHT BY PRINTING IT AT THE REAL INPUTS.
+
+    The first draft of `_auc_null` gave every retained renewal an independent win count, which
+    enumerates (left+1)**retained arrangements rather than C(retained+left, retained): at 10-vs-10
+    that is 25,937,424,601 instead of 184,756, and it published a null interval of 0.30..0.70 and
+    p = 0.000088 where the truth is 0.24..0.76 and p = 0.0039. Every figure in it was plausible,
+    finite, and the right shape. Nothing but the arithmetic could tell.
+
+    So the total is asserted against the binomial coefficient, and the 10-vs-10 tail is pinned to
+    its published value -- P(U <= 13) = 0.0019431 one-sided -- from a source outside this module.
+    """
+    bound = gva._auc_null(10, 10, 0.13)
+    assert bound["available"]
+    assert "184756" in bound["basis"], bound["basis"]
+    assert bound["p_two_sided"] == pytest.approx(2 * 0.0019431033, rel=1e-6)
+    assert (bound["null_95_low"], bound["null_95_high"]) == (0.24, 0.76)
+
+
+def test_a_null_that_does_not_sum_to_its_population_is_WITHHELD_not_published():
+    """R15 FAIL-OPEN. A miscounted null still returns a number, and a bound nobody can check is
+    worse than no bound -- it makes an unearned direction look earned. The guard must refuse."""
+    bound = gva._auc_null(10, 10, 0.13)
+    assert bound["available"]
+    original = gva.math.comb
+    try:
+        gva.math.comb = lambda n, k: original(n, k) + 1   # the enumeration is now "wrong"
+        broken = gva._auc_null(10, 10, 0.13)
+    finally:
+        gva.math.comb = original
+    assert broken["available"] is False
+    assert "does not sum" in broken["reason"]
+
+
+def test_a_figure_INSIDE_its_null_is_not_read_as_a_direction():
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER -- and this is the mutation that matters.
+
+    The reading this replaced was a constant string saying "below 0.50 ... worse than a coin
+    flip", so the page read 0.4653 on 25 decisions and 0.13 on 20 as the SAME finding. They are
+    not: 0.4653 on 16-vs-9 is two-sided p 0.80, squarely inside the interval a random signal
+    reaches. Re-pin the reading to `auc < 0.5` and this test reds while the real-artefact one
+    stays green -- which is exactly the pair the old string could not tell apart.
+    """
+    dec = gva.build(_belief(0.4652777777777778, 16, 9), _load(NOISE_FLOOR),
+                    _load(RUN_OUTPUT))["decisions"]
+    assert dec["auc_attribution"]["null_bound"]["inside_the_null"] is True
+    assert "INSIDE" in dec["auc_reading"]
+    assert "BACKWARDS" not in dec["auc_reading"], (
+        "a figure inside its own null was given a direction -- the defect the constant reading had")
+
+
+def test_a_figure_OUTSIDE_its_null_ABOVE_the_point_is_not_reported_as_a_failure(real):
+    """THE PASS BRANCH MUST BE REACHABLE (R15). A reading that can only ever say "backwards" or
+    "cannot tell" is a constant verdict wearing a gate's clothes: the day the belief ranks well on
+    a book big enough to prove it, the page must say so with nobody editing a string."""
+    dec = gva.build(_belief(0.95, 10, 10), _load(NOISE_FLOOR), _load(RUN_OUTPUT))["decisions"]
+    assert dec["auc_attribution"]["null_bound"]["inside_the_null"] is False
+    assert "carried real information" in dec["auc_reading"]
+    assert "BACKWARDS" not in dec["auc_reading"]
+    # and the live run is the other branch, so neither is unreachable
+    assert "BACKWARDS" in real["decisions"]["auc_reading"]
+
+
+def test_the_endogeneity_clause_is_NOT_gated_on_the_sample_size():
+    """The clause that survives a bigger book, because it is not about the book's size.
+
+    Five of the ten accounts the arm priced left under the value arm and did NOT leave under the
+    control. That makes half the positive class a product of the arm's own price rise, and a
+    LARGER book makes it a larger problem rather than a smaller one. Gating it behind the null --
+    the natural way to write this function -- would delete the finding on exactly the run that
+    finally has the decisions to state it.
+    """
+    for auc, retained, left in ((0.4652777777777778, 16, 9), (0.95, 10, 10), (0.13, 10, 10)):
+        reading = gva.build(_belief(auc, retained, left), _load(NOISE_FLOOR),
+                            _load(RUN_OUTPUT))["decisions"]["auc_reading"]
+        assert "NOT INDEPENDENT OF THE THING BEING GRADED" in reading, (auc, retained, left)
+        assert "C2" in reading and "C9" in reading
+
+
+def test_an_unrankable_population_gets_NO_bound_rather_than_a_default_one():
+    """R15 FAIL-OPEN, the empty-class shape. With one outcome class empty there is no rank
+    statistic; publishing 0.5 or a full-width interval would render "we could not compute this"
+    identically to "we computed it and it says nothing"."""
+    dec = gva.build(_belief(None, 20, 0), _load(NOISE_FLOOR), _load(RUN_OUTPUT))["decisions"]
+    assert dec["auc_attribution"]["null_bound"]["available"] is False
+    assert "no direction is read from it here" in dec["auc_reading"]
+
+
+def test_the_auc_history_matches_the_artefacts_it_cites():
+    """A HISTORY IS EVIDENCE ONLY IF IT IS STILL TRUE OF ITS SOURCES.
+
+    `AUC_RUN_HISTORY` is the page's whole claim that this estimator swung 0.13..0.672 in four days
+    on an unchanged code path. Each entry names the artefact it was read out of; any that still
+    exists is re-read here. An entry whose artefact has been archived stands as a dated record --
+    but it must never be silently repaired to whatever the newest run says, so a drift between a
+    LIVE artefact and the record is a failure and not an update.
+    """
+    checked = 0
+    for entry in gva.AUC_RUN_HISTORY:
+        path = PROJECT / entry["artefact"]
+        if not path.is_file():
+            continue
+        belief = json.loads(path.read_text(encoding="utf-8")).get("belief_vs_outcome") or {}
+        assert belief.get("discrimination_auc") == pytest.approx(entry["auc"]), entry["artefact"]
+        assert (belief.get("auc_population") or {}).get("left") == entry["left"], entry["artefact"]
+        checked += 1
+    assert checked >= 2, (
+        "fewer than two of the cited artefacts survive, so this control checked almost nothing "
+        "-- an unavailable check is a failed check (R15)")
+
+
+def test_the_withdrawn_corroboration_sentence_is_gone_from_the_LIVE_reading(real):
+    """The claim this work withdrew, and the one place it is still allowed to appear.
+
+    The page said the selection result and the belief result "corroborate each other rather than
+    merely coexisting". They share a cause -- the arm's price rise drove out five of the ten
+    accounts it priced -- so it was never corroboration. It stays in `withdrawn_claim`, because a
+    correction a reader cannot see is one they cannot check, and it must be nowhere else.
+    """
+    assert "corroborate each other" in json.dumps(real["withdrawn_claim"])
+    assert "corroborate each other" not in json.dumps(real["decisions"])
+    assert "corroborate each other" not in json.dumps(real["method_skill"])
+
+
+def test_the_independent_grade_matches_the_artefact_the_grader_wrote():
+    """The figures that CLOSE two of the three branches must not rot into folklore.
+
+    `_auc_attribution.independent_grade` is what refutes the polarity and instrument-defect
+    readings of 0.13: an oracle ceiling of 0.762 says the book ranks, and two beliefs at 0.660 and
+    0.534 on the same rank statistic say it is not a sign error. They are recorded as literals
+    because the page must state them whether or not the grader has been re-run — and a literal
+    nobody re-reads is exactly how a measured number becomes an asserted one. So they are checked
+    against the artefact `tools/grade_renewal_churn_belief.py` actually wrote.
+
+    Fires on: a re-graded run moving any of the three while the page keeps quoting the old ones.
+    """
+    path = PROJECT / "docs" / "observability" / "renewal_churn_belief_grade.json"
+    grade = _load(path)
+    recorded = gva._auc_attribution(_load(THREE_ARM), {}, [])["independent_grade"]
+    assert grade["book"]["renewals_the_world_rolled"] == recorded["renewals"]
+    assert grade["book"]["billing_accounts"] == recorded["accounts"]
+    for key, block in (("bill_shock_model_auc", "bill_shock_model"),
+                       ("company_churn_estimate_auc", "company_estimate"),
+                       ("oracle_ceiling_auc", "oracle_ceiling")):
+        assert grade[block]["discrimination_auc"] == pytest.approx(recorded[key], abs=5e-5), (
+            "{} has moved to {} since the page recorded {}".format(
+                block, grade[block]["discrimination_auc"], recorded[key]))
+    assert grade["oracle_ceiling"]["discrimination_auc"] > 0.5, (
+        "the oracle ceiling no longer clears the null, so the instrument-defect branch this "
+        "figure closes is REOPENED and the page's attribution is stale")

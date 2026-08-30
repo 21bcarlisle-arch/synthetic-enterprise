@@ -111,10 +111,17 @@ class DecisionPolicy:
     # same lawful ceiling.
     #
     # WHY THE ARM EXISTS. The value arm beat flat rules by GBP 7,066 with `discrimination_auc`
-    # 0.4653 -- below a coin flip -- so the advantage cannot be attributed to inference. What it
-    # demonstrably did was price HIGH: a median 44.50 GBP/MWh against the flat rule's 2.00. This
-    # arm holds the LEVEL and removes the SELECTION, which is the only way to tell "chose well"
-    # from "charged more".
+    # 0.4653, so the advantage cannot be attributed to inference. What it demonstrably did was
+    # price HIGH: a median 44.50 GBP/MWh against the flat rule's 2.00. This arm holds the LEVEL and
+    # removes the SELECTION, which is the only way to tell "chose well" from "charged more".
+    #
+    # THE REASON WAS RESTATED 2026-08-30 AND THE CONCLUSION STANDS. This comment said 0.4653 was
+    # "below a coin flip". It is not: on that run's 16 retentions and 9 departures the exact
+    # Mann-Whitney null runs 0.264 to 0.736, so 0.4653 is two-sided p 0.80 -- INDISTINGUISHABLE
+    # from a coin flip, not worse than one. That is a stronger reason for this arm and not a
+    # weaker one: an advantage cannot be attributed to a ranking the run could not show exists.
+    # The bound is computed at `tools/generate_value_arms_data._auc_null` and published beside the
+    # figure on `site/capabilities/`.
     #
     # NOT THE LADDER. `renewal_margin_ladder_multiplier` delivers `flat + k x (chosen - flat)`, a
     # fraction of the arm's OWN per-customer answer, so it varies the SLOPE and never removes the

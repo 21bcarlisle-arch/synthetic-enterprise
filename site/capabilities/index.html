@@ -731,13 +731,32 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + (who.available
               ? '<p style="margin:0 0 6px;font-size:11.5px;color:'
                 + (who.verdict === "reached" ? "var(--muted)" : "var(--amber)") + ';">'
-                + prose(who.sentence) + " " + prose(who.what_is_owed) + "</p>"
+                + prose(who.sentence) + " " + prose(who.what_is_owed)
+                // HOW STRONG THE EVIDENCE IS, beside the claim rather than under it. "No book
+                // size opens this gate" is an expensive sentence -- it asks for a curriculum
+                // change -- and whether its premise was measured on the run's own roster or
+                // argued from the code path is the reader's to weigh, not ours to hide.
+                + (who.premise_basis
+                    ? ' <span style="opacity:.75;">Basis: ' + prose(who.premise_basis)
+                      + ".</span>"
+                    : "")
+                + "</p>"
               : "")
+          // THE BELIEF FIGURE, AND WHAT IT IS A BELIEF ABOUT. Until 2026-08-30 this line called
+          // it "the company's own belief about who will leave" and printed it with no interval.
+          // It is neither: `believed_p_retain` is the retention the arm expected AT THE PRICE IT
+          // CHOSE, and on ten departures a signal carrying no information scores 0.24 to 0.76.
+          // Amber only when the figure actually clears its own null -- a page that prints the
+          // alarm colour whatever the number says is not reporting, it is decorating.
           + (dec.discrimination_auc === null || dec.discrimination_auc === undefined ? ""
-              : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The company’s '
-                + "own belief about who will leave scored <strong>"
-                + dec.discrimination_auc.toFixed(3) + "</strong> on the usual rank measure. "
-                + prose(dec.auc_reading) + "</p>")
+              : '<p style="margin:0 0 6px;font-size:11.5px;color:'
+                + ((dec.auc_attribution && dec.auc_attribution.null_bound
+                    && dec.auc_attribution.null_bound.available
+                    && dec.auc_attribution.null_bound.inside_the_null === false)
+                     ? "var(--amber)" : "var(--muted)") + ';">'
+                + "The arm’s own belief that a renewal would survive the price it chose scored "
+                + "<strong>" + dec.discrimination_auc.toFixed(3)
+                + "</strong> on the usual rank measure. " + prose(dec.auc_reading) + "</p>")
           + (dec.control_credibility_note
               ? '<p style="margin:0;font-size:11.5px;color:var(--muted);">'
                 + prose(dec.control_credibility_note) + "</p>"
@@ -759,10 +778,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + msk.p_two_sided.toFixed(2) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
+          // THE CONTRAST FIGURE CARRIES ITS OWN NULL TOO. This line put a bounded 0.333 beside a
+          // bare 0.130 and invited the reader to compare them; one of the two was a number they
+          // could weigh and the other was not.
           + (msk.churn_auc_for_contrast === null || msk.churn_auc_for_contrast === undefined ? ""
-              : '<p style="margin:0;font-size:11.5px;color:var(--muted);">For contrast, the same '
-                + "company\u2019s belief about who will <em>leave</em> ranks at <strong>"
-                + msk.churn_auc_for_contrast.toFixed(3) + "</strong>. Two different questions.</p>");
+              : '<p style="margin:0;font-size:11.5px;color:var(--muted);">For contrast, the arm'
+                + "\u2019s belief that a renewal would <em>survive the price it chose</em> ranks "
+                + "at <strong>" + msk.churn_auc_for_contrast.toFixed(3) + "</strong>"
+                + (msk.churn_auc_null && msk.churn_auc_null.available
+                    ? ", against " + msk.churn_auc_null.null_95_low.toFixed(2) + "\u2013"
+                      + msk.churn_auc_null.null_95_high.toFixed(2)
+                      + " for a random signal on that population ("
+                      + esc(msk.churn_auc_null.left) + " departures)"
+                    : "")
+                + ". Two different questions.</p>");
       } else if (msk.withheld) {
         // THE POINT ESTIMATE IS NOT SHOWN. Naming it here would publish the number this branch
         // exists to withhold.

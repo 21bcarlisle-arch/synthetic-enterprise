@@ -109,8 +109,12 @@ VALUE_BASED = "value_based"
 #: renewal it prices -- the same renewals `value_based` prices, through the same guards and under
 #: the same lawful ceiling -- so the two arms differ by the CHOOSING and by nothing else.
 #:
-#: It exists because the value arm's £7,066 advantage came with `discrimination_auc` 0.4653, below
-#: a coin flip, so it cannot be attributed to inference. What the arm demonstrably did was price
+#: It exists because the value arm's £7,066 advantage came with `discrimination_auc` 0.4653, which
+#: cannot be attributed to inference. (RESTATED 2026-08-30: this said "below a coin flip". It is
+#: not below one -- on that run's 16 retentions and 9 departures the exact null runs 0.264..0.736,
+#: making 0.4653 two-sided p 0.80, INDISTINGUISHABLE from a coin flip. The conclusion is unchanged
+#: and better founded: an advantage cannot be attributed to a ranking the run could not show
+#: exists.) What the arm demonstrably did was price
 #: high (median £44.50/MWh against the flat rule's £2.00). Without this arm there is no way to
 #: separate "chose well" from "charged more", and the A/B's own `bound_attribution.reading`
 #: already says a delta it cannot attribute "is a statement that this run did not test it".

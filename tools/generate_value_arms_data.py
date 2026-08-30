@@ -113,6 +113,7 @@ would go red exactly when the instrument got good enough to earn a sign, which i
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -837,6 +838,33 @@ def _what_would_resolve_it(decomposition: dict | None) -> str:
 #: that quietly overwrites the first correction with the second and leaves a page claiming to keep
 #: its record while keeping one entry of it.
 WITHDRAWN_CLAIMS = [{
+    "withdrawn_on": "2026-08-30",
+    "the_words": ("Below 0.50 means the company's own belief about who will leave ranks customers "
+                  "worse than a coin flip. An estimator that cannot rank cannot select "
+                  "profitably, so the selection result and the belief result corroborate each "
+                  "other rather than merely coexisting."),
+    "why": ("It made a corroboration argument out of an unbounded figure, and it was a CONSTANT "
+            "string, so the page read 0.4653 and 0.13 as the same finding when one sits a third "
+            "of a null standard deviation from 0.5 and the other 2.8 of them. Three things are "
+            "wrong with it. (1) No bound: on 10 departures a signal carrying no information at "
+            "all scores anywhere from 0.20 to 0.80, and the same estimator has scored 0.646, "
+            "0.672, 0.465, 0.465 and 0.130 across five runs in four days. (2) The subject is "
+            "misnamed: `believed_p_retain` is the retention the arm expected AT THE PRICE IT "
+            "CHOSE -- a median £60/MWh against the control's £2 -- not the company's belief about "
+            "who will leave. Graded independently over 708 renewals on 2026-08-30, the "
+            "company-side estimate scores 0.534 and the world's own churn model 0.660, against an "
+            "oracle ceiling of 0.762. (3) The two results are not independent: five of the ten "
+            "accounts the arm priced left under the value arm and did NOT leave under the "
+            "control, so the selection result and the belief result share a cause rather than "
+            "corroborating each other. What replaces it is composed from the figure's own exact "
+            "null interval and states the endogeneity at any sample size."),
+    "note": ("WITHDRAWN 2026-08-30: this page previously said the belief result and the selection "
+             "result “corroborate each other rather than merely coexisting”. They are not "
+             "independent — five of the ten accounts the arm priced were driven out by the arm's "
+             "own price rise, so both results have one cause — and the figure was published with "
+             "no interval on a population of ten departures. What stands in its place carries the "
+             "sample, the exact null, and what the figure is actually a belief about."),
+}, {
     "withdrawn_on": "2026-08-29",
     "the_words": ("What would resolve it is a larger SETTLED BOOK -- more renewals actually "
                   "priced by the arm -- and not more seeds: re-drawing the dice measures this "
@@ -1062,6 +1090,15 @@ def _method_skill(three_arm: dict) -> dict:
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
         "churn_auc_for_contrast": _f(
+            ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
+        # THE CONTRAST FIGURE CARRIES ITS OWN NULL, for the same reason the concordance beside it
+        # does. This line published a bare 0.130 against a bounded 0.333 -- one number a reader
+        # could weigh and one they could not, side by side, in a sentence inviting the comparison.
+        "churn_auc_null": _auc_null(
+            (((three_arm or {}).get("belief_vs_outcome") or {}).get("auc_population") or {})
+            .get("retained"),
+            (((three_arm or {}).get("belief_vs_outcome") or {}).get("auc_population") or {})
+            .get("left"),
             ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
         "what_it_is": (
             "Does the arm's own per-customer price rank the value JOINTLY created -- what the "
@@ -1353,6 +1390,265 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
     }
 
 
+#: EVERY RUN THAT HAS MEASURED THE BELIEF'S RANK STATISTIC, newest first, each naming the artefact
+#: it is read out of. Recorded here because the page published 0.13 as a fact about the company and
+#: the SAME estimator, unchanged, has scored 0.646, 0.672, 0.465 and 0.465 in the four days before
+#: it -- and no artefact on disk says so, because each run only ever publishes its own figure.
+#:
+#: `tests/tools/test_generate_value_arms_data.py::test_the_auc_history_matches_the_artefacts_it_cites`
+#: re-reads each `artefact` that still exists and refuses if the figure recorded here has drifted
+#: from it. An entry whose artefact has been archived stands as a dated record with its provenance
+#: named; it is never silently repaired to whatever the newest run happens to say.
+AUC_RUN_HISTORY = [
+    {"artefact": "docs/observability/value_cycle_ab_s1_three_arm.json", "on": "2026-08-29",
+     "auc": 0.13, "scored": 20, "retained": 10, "left": 10, "median_margin": 60.0},
+    {"artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json", "on": "2026-08-28",
+     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5},
+    {"artefact": "docs/observability/value_cycle_ab_resi_renewal_fixed.json", "on": "2026-08-27",
+     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5},
+    {"artefact": "docs/observability/value_cycle_ab_resi_only.json", "on": "2026-08-26",
+     "auc": 0.671875, "scored": 20, "retained": 16, "left": 4, "median_margin": 57.75},
+    {"artefact": "docs/observability/value_cycle_ab.json", "on": "2026-08-26",
+     "auc": 0.6462585034013606, "scored": 28, "retained": 21, "left": 7, "median_margin": 60.0},
+]
+
+#: Above this many ordered pairs the exact null is not enumerated and the normal approximation is
+#: used instead. The AUC populations this page has ever carried are 28 pairs at the largest, so the
+#: exact branch is the live one; the cap exists so a bigger book cannot wedge a page render.
+_EXACT_NULL_PAIR_CAP = 4000
+
+
+def _auc_null(retained: int, left: int, observed: float | None) -> dict:
+    """What a signal carrying NO information scores on a population this size, and where 0.13 sits.
+
+    THE FIGURE WENT OUT UNBOUNDED. `discrimination_auc` was published with a reading that called
+    it "worse than a coin flip" and nothing beside it said what a coin flip's own spread is on ten
+    departures. The null sd of an AUC at 10-vs-10 is 0.132 -- so "0.13 against 0.50" is a distance
+    of 2.8 null standard deviations, and "0.4653 against 0.50" is a distance of one THIRD of one.
+    The page was reading the same distance from the same null in two directions.
+
+    EXACT, NOT NORMAL, WHERE IT CAN BE. The Mann-Whitney null is enumerated by the usual recurrence
+    over rank sums, because at n=10 the normal approximation's tail is exactly where the claim
+    lives. Ties are not modelled: they can only move a count toward 0.5, so an interval computed
+    without them is the WIDER one and the p-value the LARGER one -- the conservative direction, and
+    it is stated rather than left for a reader to assume it went the other way.
+
+    Returns `available: False` rather than a default when either outcome class is empty: a bound
+    that could not be computed and a bound that came out wide must not render identically.
+    """
+    obs = _f(observed)
+    if not isinstance(retained, int) or not isinstance(left, int) or retained < 1 or left < 1:
+        return {"available": False,
+                "reason": "one outcome class is empty, so no rank statistic and no null exist"}
+    pairs = retained * left
+    if obs is None:
+        return {"available": False,
+                "reason": "this run published no `discrimination_auc` to bound"}
+    if pairs > _EXACT_NULL_PAIR_CAP:
+        return {"available": False,
+                "reason": ("the population is larger than the exact null this page enumerates "
+                           "({} ordered pairs); no bound is published rather than a "
+                           "normal-approximation one wearing an exact one's clothes".format(pairs))}
+
+    # P(U = u) under the null, by the standard Mann-Whitney recurrence
+    # `c(u; m, n) = c(u - n; m-1, n) + c(u; m, n-1)`, built iteratively so recursion depth cannot
+    # be the limit. THE FIRST DRAFT OF THIS LOOP WAS WRONG and printing it at the real population
+    # is what caught it: it gave every stayer an independent win count, which enumerates
+    # (left+1)**retained arrangements and not C(retained+left, retained) -- 25,937,424,601 instead
+    # of 184,756 at 10-vs-10, and a null interval of 0.30..0.70 instead of 0.24..0.76. The total is
+    # asserted against the binomial coefficient below for exactly that reason: a null distribution
+    # that is merely plausible is the shape that makes a bound look earned when it is not.
+    table = [[[1] for _ in range(left + 1)] for _ in range(retained + 1)]
+    for i in range(1, retained + 1):
+        for j in range(1, left + 1):
+            shifted, same = table[i - 1][j], table[i][j - 1]
+            out = [0] * (i * j + 1)
+            for u, c in enumerate(same):
+                out[u] += c
+            for u, c in enumerate(shifted):
+                out[u + j] += c
+            table[i][j] = out
+    counts = table[retained][left]
+    total = sum(counts)
+    if total != math.comb(retained + left, retained):
+        return {"available": False,
+                "reason": ("the exact null enumerated {} arrangements where there are {}; the "
+                           "bound is withheld rather than published from a distribution that "
+                           "does not sum to the population it claims"
+                           .format(total, math.comb(retained + left, retained)))}
+    cumulative, running = [], 0
+    for c in counts:
+        running += c
+        cumulative.append(running / total)
+
+    u_obs = obs * pairs
+    below = cumulative[min(int(u_obs), pairs)]
+    at_or_above = 1.0 - (cumulative[max(int(u_obs) - 1, 0)] if u_obs >= 1 else 0.0)
+    p_two_sided = min(1.0, 2.0 * min(below, at_or_above))
+    lo = next(u for u in range(pairs + 1) if cumulative[u] > 0.025)
+    hi = next(u for u in range(pairs, -1, -1) if 1.0 - cumulative[u - 1] > 0.025) if pairs else 0
+    return {
+        "available": True,
+        "retained": retained,
+        "left": left,
+        "ordered_pairs": pairs,
+        "null_point": 0.5,
+        "null_95_low": lo / pairs,
+        "null_95_high": hi / pairs,
+        "p_two_sided": p_two_sided,
+        "inside_the_null": lo / pairs <= obs <= hi / pairs,
+        "basis": ("exact Mann-Whitney null over all {} arrangements of {} retained and {} departed "
+                  "renewals; ties are not modelled, which widens the interval and enlarges the "
+                  "p-value rather than shrinking either".format(total, retained, left)),
+    }
+
+
+def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> dict:
+    """WHAT 0.13 IS. Attributed from the artefact and the grader, not argued.
+
+    The figure moved from 0.4653 to 0.13 with nothing on the page attributing the move, and it was
+    framed as corroborating the selection result. Three candidates were put to it, and the answer
+    is the third with a mechanism the artefact itself carries:
+
+      * A POLARITY OR LABEL DEFECT -- 0.13 is 0.87 inverted, and a strongly wrong estimator is the
+        classic signature of a comparison taken against the wrong side of the outcome label.
+        REFUTED THREE WAYS. (a) The chain reads right: `value_based_renewal._score` sets
+        `p_stay = max(0.0, 1.0 - p_leave)`, `renewal_rate_chain` logs it as `believed_p_retain`,
+        and `run_value_cycle_ab.belief_vs_outcome` ranks the STAYERS' scores above the LEAVERS',
+        so a higher believed retention among the customers who stayed scores above 0.5. (b) The
+        LEVEL would not survive an inversion: across the five runs in `AUC_RUN_HISTORY` the mean
+        believed p_retain tracks the realised retention rate to within 0.08 (0.704 vs 0.75; 0.788
+        vs 0.80; 0.563 vs 0.64; 0.479 vs 0.50), and under a flipped label those same pairs would
+        be 0.20 to 0.45 apart. (c) The identical rank statistic, run on 2026-08-30 by
+        `tools/grade_renewal_churn_belief.py` over the live run's 708 renewals, returns 0.6596 for
+        `saas.churn_model.build_churn_risk` and 0.534 for the company-side `company_churn_estimate`
+        -- a sign error would put both below 0.5.
+      * AN INSTRUMENT DEFECT -- the population is simply unrankable, in which case a low AUC says
+        nothing. REFUTED by the same grader run: the ORACLE CEILING, the world's own fully-adjusted
+        `realized_churn_probability` graded by the same statistic, is 0.7618. The book ranks.
+      * THE POPULATION. This is the answer, and it is not "small sample" on its own. 20 decisions
+        sit on 10 accounts, all of them founding accounts, and FIVE of those ten appear in this
+        run's own `churn_roster_diff.only_in_value_arm` -- accounts that left under the value arm
+        and did NOT leave under the control. Half the positive class the belief is being graded
+        against was manufactured by the arm's own price rise, at a median margin of 60.00 GBP/MWh
+        against the control's 2.00. `believed_p_retain` is not a free-standing forecast of who
+        will leave: it is the retention the arm expected AT THE PRICE IT CHOSE, scored against
+        departures that price caused, on a book that same price thinned.
+
+    R12: this block is a diagnostic about a diagnostic. Nothing here is a target and no constant
+    moves from it.
+    """
+    belief = belief or {}
+    population = belief.get("auc_population") or {}
+    bound = _auc_null(population.get("retained"), population.get("left"),
+                      belief.get("discrimination_auc"))
+    roster = ((three_arm or {}).get("churn_roster_diff") or {}).get("only_in_value_arm") or []
+    only_value = sorted({str(row.get("account")) for row in roster
+                         if isinstance(row, dict) and row.get("account")})
+    priced = sorted({str(a) for a in (priced_accounts or [])})
+    caused = sorted(set(only_value) & set(priced))
+    shape = (three_arm or {}).get("decision_shape") or {}
+    return {
+        "available": bound.get("available", False),
+        "verdict": "the population, and the population is endogenous to the arm's own price",
+        "null_bound": bound,
+        # THE MECHANISM, NAMED IN ACCOUNTS THIS RUN CAN BE CHECKED AGAINST. Not "the sample is
+        # small" -- that is true of every figure on this page and explains nothing about the
+        # DIRECTION. These are the priced accounts whose departure the arm itself produced.
+        "priced_accounts_the_arm_itself_drove_out": caused,
+        "priced_accounts": len(priced),
+        "value_arm_only_churners": only_value,
+        "median_margin_gbp_per_mwh": _f(shape.get("median_margin_gbp_per_mwh")),
+        "control_margin_gbp_per_mwh": _f(shape.get("control_margin_gbp_per_mwh")),
+        "history": AUC_RUN_HISTORY,
+        "independent_grade": {
+            "graded_on": "2026-08-30",
+            "tool": "tools/grade_renewal_churn_belief.py",
+            "run_output": "docs/reports/run_output_latest.json",
+            "renewals": 708,
+            "accounts": 134,
+            "bill_shock_model_auc": 0.6596,
+            "company_churn_estimate_auc": 0.534,
+            "oracle_ceiling_auc": 0.7618,
+            "what_it_settles": (
+                "The oracle ceiling at 0.7618 says this book IS rankable, so a low AUC is a "
+                "statement about a belief and not about an unrankable population -- that is the "
+                "instrument-defect branch closed. The two graded beliefs at 0.6596 and 0.534 sit "
+                "ABOVE a coin flip on the same rank statistic, which is the polarity branch "
+                "closed. Both are measured on a different run from the 0.13 -- 708 renewals over "
+                "134 accounts against 20 over 10 -- so neither is a replacement figure for it, "
+                "and neither is quoted here as one."),
+        },
+        "reading": (
+            "0.13 is not a sign error and not a broken instrument. It is what the arm's own "
+            "retention belief scores on 20 decisions across 10 founding accounts, five of which "
+            "the arm's price rise itself drove out. The quantity is not 'does this company know "
+            "who will leave' -- it is 'did the arm predict who would survive the price it chose', "
+            "graded on departures that choice caused."),
+    }
+
+
+def _auc_reading(belief: dict, attribution: dict) -> str:
+    """The sentence a reader meets beside the figure, GATED ON THE FIGURE'S OWN BOUND.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. The reading this replaces was a constant string
+    -- "Below 0.50 means the company's own belief ... ranks customers worse than a coin flip" --
+    which meant the page read 0.4653 and 0.13 as the same finding when one sits a third of a null
+    standard deviation from 0.5 and the other 2.8 of them, and would have read 0.49 the same way
+    too. It composes from the interval instead, so a run whose book is finally large enough to
+    earn a direction gets one with nobody editing a string, and a run that is not does not.
+
+    AND THE ENDOGENEITY CLAUSE IS NOT GATED, because it is not a fact about the sample size. Half
+    this population's departures were produced by the arm's own price rise; that stays true at any
+    n, and a bigger book makes it a bigger problem rather than a smaller one.
+    """
+    bound = (attribution or {}).get("null_bound") or {}
+    caused = (attribution or {}).get("priced_accounts_the_arm_itself_drove_out") or []
+    priced = (attribution or {}).get("priced_accounts")
+    observed = _f((belief or {}).get("discrimination_auc"))
+    population = (belief or {}).get("auc_population") or {}
+
+    endogeneity = ""
+    if caused and priced:
+        endogeneity = (
+            " AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: {n} of the {p} "
+            "accounts this arm priced ({who}) left under the value arm and did NOT leave under "
+            "the control, so the arm's own price rise -- a median {m} GBP/MWh against the "
+            "control's {c} -- manufactured part of the very outcome the belief is scored against. "
+            "`believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a "
+            "free-standing forecast of who would leave.".format(
+                n=len(caused), p=priced, who=", ".join(caused),
+                m=attribution.get("median_margin_gbp_per_mwh"),
+                c=attribution.get("control_margin_gbp_per_mwh")))
+
+    if not bound.get("available"):
+        return ("This figure is published WITHOUT a bound on this run ({}), so no direction is "
+                "read from it here.{}".format(bound.get("reason", "reason not recorded"),
+                                              endogeneity))
+
+    head = ("Measured on {left} departures and {ret} retentions -- {n} decisions on {a} accounts. "
+            "A signal carrying no information at all scores between {lo:.2f} and {hi:.2f} on a "
+            "population this size (exact null, two-sided 95%).".format(
+                left=bound["left"], ret=bound["retained"],
+                n=(population.get("retained") or 0) + (population.get("left") or 0),
+                a=priced if isinstance(priced, int) else "an unrecorded number of",
+                lo=bound["null_95_low"], hi=bound["null_95_high"]))
+
+    if bound.get("inside_the_null"):
+        body = (" The observed value is INSIDE that interval, so this run does not distinguish "
+                "the belief from a coin flip in either direction. That is a statement about how "
+                "few decisions there are, not about the belief.")
+    elif observed is not None and observed < 0.5:
+        body = (" The observed value is OUTSIDE it and below the null (two-sided p {p:.3f}), so on "
+                "this population the belief ranked customers BACKWARDS -- the renewals it was most "
+                "confident of keeping are the ones that left.".format(p=bound["p_two_sided"]))
+    else:
+        body = (" The observed value is OUTSIDE it and above the null (two-sided p {p:.3f}), so on "
+                "this population the belief carried real information about who "
+                "stays.".format(p=bound["p_two_sided"]))
+    return head + body + endogeneity
+
+
 def _decisions(three_arm: dict) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
@@ -1376,6 +1672,8 @@ def _decisions(three_arm: dict) -> dict:
     funnel = ((three_arm.get("renewal_funnel") or {}).get("value_arm") or {})
     offered = funnel.get("renewals_the_world_offered")
     exclusions = _exclusions(funnel)
+    who = _who_the_method_has_priced(funnel)
+    attribution = _auc_attribution(three_arm, belief, who.get("priced_accounts"))
     return {
         "available": isinstance(priced, int),
         "value_arm_priced": priced,
@@ -1397,7 +1695,7 @@ def _decisions(three_arm: dict) -> dict:
         "accounts_named_in_the_decision_sample": accounts,
         # WHOSE customers those decisions are, which is a different question from how many there
         # are and is the one the enterprise-value claim turns on.
-        "who_the_method_has_priced": _who_the_method_has_priced(funnel),
+        "who_the_method_has_priced": who,
         "concentration_note": (
             "Every account the artefact names among its own scored decisions is one of the nine "
             "hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note "
@@ -1408,11 +1706,18 @@ def _decisions(three_arm: dict) -> dict:
             "decided on fidelity evidence and never because it would make this experiment "
             "bigger."),
         "discrimination_auc": _f(belief.get("discrimination_auc")),
-        "auc_reading": (
-            "Below 0.50 means the company's own belief about who will leave ranks customers worse "
-            "than a coin flip. An estimator that cannot rank cannot select profitably, so the "
-            "selection result and the belief result corroborate each other rather than merely "
-            "coexisting."),
+        # THE SAMPLE THE RANK STATISTIC IS COMPUTED OVER, published beside it. An AUC on
+        # single-digit departures is a number with no bound, and this figure went out for four
+        # days with a reading that called it "worse than a coin flip" and no interval to say what
+        # a coin flip's own spread is on ten of them.
+        "auc_population": {
+            "retained": (belief.get("auc_population") or {}).get("retained"),
+            "left": (belief.get("auc_population") or {}).get("left"),
+            "scored_decisions": belief.get("priced_and_scored"),
+            "accounts": len(accounts),
+        },
+        "auc_attribution": attribution,
+        "auc_reading": _auc_reading(belief, attribution),
         "decided_by_a_bound": bound.get("decided_by_the_lawful_ceiling"),
         "bound_note": (
             "Some of the arm's prices were set by the lawful price cap rather than by anything "
