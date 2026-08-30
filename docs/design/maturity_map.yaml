@@ -803,6 +803,20 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
+  # BACKED OUT FROM 2 TO 0 ON 2026-08-31, AND THE LEVEL IS NOT THE THING THAT WAS WRONG. The `2`
+  # sat STAGED in the shared index for 17.9 hours and refused seventeen consecutive publish
+  # commits under §0's recorded-but-unbuilt predicate. The refusal is correct and must stay: this
+  # atom's `file_scope` names `simulation/run_phase2b.py`, which another lane holds 160
+  # uncommitted lines of (the C1b SVT-departure branch), so the level declared a program no
+  # commit contained. What makes it a WEDGE rather than one bad commit is that the publisher is
+  # the process that carries this file, and the publisher can never carry source -- so no draw
+  # priority, however high, could ever clear it. Landing that source instead was measured and
+  # refused: `run_phase2b.py` imports `DEPARTURE_OCCASION_SVT_SEGMENT` and
+  # `inertia_hazard_for_term`, which exist at HEAD in neither `customer_events.py` nor
+  # `svt_product.py` (both dirty, both OUTSIDE this file_scope), so landing it alone is an
+  # ImportError at HEAD in a module 200+ files import -- the whole suite, not a selection.
+  # RE-DECLARE THIS AS 2 IN THE SAME SEAT COMMIT THAT CARRIES ITS SOURCE. The L2 work itself was
+  # never in question and nothing about it is retracted here.
   level_current: 0
   level_target: 3
   loop_stage: build
@@ -810,6 +824,14 @@
   provenance: director_ruling
   depends_on: ['PB2_opening_book_won_not_assigned']
   couples_with: ['W2_3_competitor_field']
+  # L3 RESIDUE, named rather than left for the next reader to rediscover (2026-08-30): the
+  # competitor is wired on the LOSS side only. `simulation/customer_events.py` reads
+  # `competitor_reference_rate_gbp_per_mwh` and B10_competitor_switching_response is at L3, but
+  # neither `simulation/net_new_acquisition.py` (see its line 66) nor
+  # `simulation/acquisition_funnel.py` imports it, so the win side is still the funnel's own
+  # leakage. A book whose down is a rival supplier and whose up is nobody is not yet won and lost
+  # against the SAME market. That import, and the re-run of every published book figure behind it,
+  # is what carries this atom to L3.
   simplifications_count: 3
   file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py,
     simulation/market_switching_propensity.py, simulation/acquisition_funnel.py, simulation/live_population.py]
