@@ -461,6 +461,58 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return (v === null || v === undefined || isNaN(v)) ? null : "£" + Number(v).toFixed(2);
   };
 
+  /* THE FUNNEL FROM WHAT THE ARM PRICED TO WHAT THE CONCORDANCE SCORES.
+
+     WHY IT IS ON THE PAGE AND NOT IN THE JSON ONLY. This surface carried "20 decisions priced"
+     and a concordance "on 6 decisions" in two different blocks with nothing between them. Both
+     figures were correct and their relationship was not stated, which is the exact shape that
+     has published something misleading here before — and the missing sentence was load-bearing,
+     because whether those fourteen are a join WE failed to make or an outcome the world never
+     settled is the difference between an interval we can narrow this afternoon and one only a
+     bigger book moves.
+
+     ABSENT, NEVER EMPTY. A run predating the funnel renders the reason it has none. A funnel
+     that does not add up renders that it does not, and no verdict — the producer withholds the
+     reading in that case and this must not invent one. */
+  function skillFunnel(fn) {
+    if (!fn.available) {
+      return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+        + "<strong>How many of the priced decisions is that?</strong> "
+        + '<span style="color:var(--amber);font-weight:600;">Not shown.</span> '
+        + prose(fn.reason) + "</p>";
+    }
+    var rows = fn.by_reason || [];
+    return '<p style="margin:10px 0 4px;font-size:11.5px;color:var(--muted);">'
+      + "<strong>The arm priced " + esc(fn.priced_decisions) + " decisions and this figure "
+      + "rests on " + esc(fn.decisions_scored) + ".</strong> Where the other "
+      + esc(fn.priced_decisions - fn.decisions_scored) + " went, and whether any of it is "
+      + "ours to recover:</p>"
+      /* WRAPPED, because the middle column is a whole sentence and this page is read on a
+         phone. An unwrapped table forces the BODY to scroll horizontally, which moves the
+         headline figure off the screen to read a footnote about it. */
+      + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+      + 'margin:0 0 6px;border-collapse:collapse;"><tr>'
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
+      + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Why it dropped"
+      + "</th>"
+      + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Ours to widen?</th></tr>"
+      + rows.map(function (r) {
+          return "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+            + esc(r.count) + "</td><td style=\"padding:1px 10px 1px 0;\">"
+            + prose(r.means) + "</td><td style=\"padding:1px 0;white-space:nowrap;\">"
+            /* THE VERDICT PER ROW, and "no" is the answer that costs us the larger sample —
+               so it is printed as plainly as "yes" rather than softened into a dash. */
+            + (r["class"] === "eligibility"
+                ? "no &mdash; no outcome exists"
+                : (r["class"] === "join" ? "<strong>yes &mdash; a failed join</strong>"
+                                         : "<strong>yes &mdash; an input we owe</strong>"))
+            + "</td></tr>";
+        }).join("")
+      + "</table></div>"
+      + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+      + prose(fn.reading) + "</p>";
+  }
+
   /* THE HOUSEHOLD CELL, and it is a cell rather than a section on purpose. An arm that earned
      more while its households kept less has moved value rather than made it, and a reader can
      only see that with both figures on ONE ROW. An arm with no household figure renders the
@@ -826,6 +878,14 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + msk.p_two_sided.toFixed(2) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
+          /* WHY THE FIGURE RESTS ON FEWER DECISIONS THAN THE ARM PRICED. This page shows
+             "20 decisions priced" a few hundred pixels above a concordance scored on 6, and
+             said nothing between them — so a reader had every reason to believe the interval
+             was earned on the 20. The funnel is the difference, broken out by the reason each
+             decision dropped, and it is read from the feed rather than subtracted here: the
+             counts are what say whether the sample can be widened, and a subtraction can only
+             give the total. */
+          + skillFunnel(msk.drop_out || {})
           // THE CONTRAST FIGURE CARRIES ITS OWN NULL TOO. This line put a bounded 0.333 beside a
           // bare 0.130 and invited the reader to compare them; one of the two was a number they
           // could weigh and the other was not.

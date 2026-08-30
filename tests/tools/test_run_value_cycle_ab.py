@@ -1021,6 +1021,179 @@ def test_the_bound_and_the_basis_travel_with_the_number():
 
 
 # ---------------------------------------------------------------------------
+# method_skill.drop_out — the funnel from what the arm PRICED to what is SCORED
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THESE EXIST FOR (2026-08-30). The live artefact published
+# `method_skill.decisions_scored: 6` and `decision_shape.priced: 20` — two counts of one
+# subject, on one page, with a single lumped `decisions_the_outcome_could_not_reach: 14`
+# between them and no statement of what the 14 were. A reader could not tell whether the
+# sample was small because a join failed (ours to widen, today, for free) or because the
+# world settled no outcome behind those prices (not widenable at any effort). That
+# distinction is the ONLY currently available lever on the 0.133–0.867 null interval, and it
+# was unreadable.
+
+
+def test_the_funnel_from_priced_to_scored_reconciles_or_refuses_to_read_itself():
+    """THE CONTROL THAT CAN FAIL, and the reason the class table is a table.
+
+    MUTATION: hand `_skill_drop_out` a drop-out that does not account for every logged
+    decision — exactly what a new `continue` added to the scoring loop without a matching
+    reason key would produce. The block must say so and WITHHOLD its verdict, because a
+    funnel that reads as an account of the gap while being one is worse than no funnel.
+    """
+    good = rvca._skill_drop_out(4, 3, {"the_priced_term_carried_no_settled_row": 1})
+    assert good["reconciles"] is True
+    assert "priced decisions" in good["reading"]
+
+    short = rvca._skill_drop_out(4, 3, {})
+    assert short["reconciles"] is False
+    assert "DOES NOT ADD UP" in short["reading"]
+    # AND THE VERDICT IS GONE, not merely accompanied by a warning.
+    assert "eligibility the concordance genuinely needs" not in short["reading"]
+
+
+def test_every_drop_reason_is_reachable_from_the_scoring_loop_and_carries_a_class():
+    """R15's parametrised-registry trap, avoided: the membership is pinned LITERALLY here, so
+    deleting a reason from `SKILL_DROP_REASONS` leaves this test rather than both sides of it.
+    A key with no branch is a reason that can never be reported; a branch with no key is a
+    silent drop — and `_skill_drop_out` counts only the keys, so the second one is what would
+    break the reconciliation above.
+    """
+    assert set(rvca.SKILL_DROP_REASONS) == {
+        "declined",
+        "signal_not_a_number",
+        "account_has_no_settled_row_anywhere",
+        "the_priced_term_carried_no_settled_row",
+        "no_published_counterfactual_rate_for_the_term",
+        "a_settled_row_carried_no_net_margin",
+        "counterfactual_not_positive",
+    }
+    for reason, (klass, means) in rvca.SKILL_DROP_REASONS.items():
+        assert klass in rvca.SKILL_DROP_CLASSES, reason
+        assert len(means) > 40, reason
+
+
+def test_a_priced_account_the_settled_book_never_carries_is_a_join_not_an_eligibility_rule():
+    """THE DISTINCTION THE WHOLE BLOCK EXISTS TO PUBLISH, in the direction that indicts us.
+
+    The arm prices an account the settled records have no row for under any key. That is the
+    arm and the world failing to MEET — a defect we can fix — and it must never be reported
+    as the concordance declining to score a decision.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run(log + [_a48_priced("GHOST", 9.0)], records))
+    drop = result["drop_out"]
+    assert drop["dropped_by_reason"]["account_has_no_settled_row_anywhere"] == 1
+    assert drop["dropped_by_class"]["join"] == 1
+    assert drop["dropped_by_class"]["eligibility"] == 0
+    assert "could be widened here with no world change" in drop["reading"]
+
+
+def test_an_accounts_only_priced_term_going_empty_is_the_term_boundary_not_a_failed_join():
+    """THE MISCLASSIFICATION THIS TEST WAS WRITTEN AFTER MAKING (2026-08-30, in the draft).
+
+    The first cut split "a failed join" from "the term boundary" by asking whether the account
+    appeared anywhere in the VALUED VIEW. But the valued view is keyed by account-TERM, so an
+    account whose only priced term happens to carry no settled row disappears from it entirely
+    and read as a failed join. Every single-term account in the book would have been counted
+    as a defect of ours, inflating exactly the number that argues the sample can be widened.
+
+    MUTATION: move the account's only settled row 400 days past its term, so the account still
+    settles but no priced term of its own contains anything. The verdict must be eligibility.
+    """
+    log, records = _a48_rising()
+    records[0] = dict(records[0], settlement_date="2023-02-05")
+    drop = method_skill(_a48_run(log, records))["drop_out"]
+    assert drop["dropped_by_reason"]["the_priced_term_carried_no_settled_row"] == 1
+    assert drop["dropped_by_reason"]["account_has_no_settled_row_anywhere"] == 0
+    assert drop["dropped_by_class"]["join"] == 0
+    assert drop["dropped_by_class"]["eligibility"] == 1
+
+
+def test_a_missing_net_margin_and_a_missing_counterfactual_are_not_the_same_finding():
+    """These were one `blind` flag, so the drop-out could only ever say "the outcome could not
+    reach it". They are different things and only one of them is ours: a term with no published
+    default-tariff rate is a gap in the series WE sourced (coverage), a term whose settled row
+    supplies no net margin is the view refusing to let the gross stand in (eligibility, R14).
+
+    MUTATION: the same account-term, broken each way in turn. The two must not land in one bin.
+    """
+    log, records = _a48_rising()
+    no_net = method_skill(_a48_run(log, [dict(records[0], net_margin_gbp=None)] + records[1:]))
+    assert no_net["drop_out"]["dropped_by_reason"]["a_settled_row_carried_no_net_margin"] == 1
+    assert no_net["drop_out"]["dropped_by_class"]["coverage"] == 0
+
+    # No published rate reaches this row's own date and fuel, and this is the REAL gap rather
+    # than an invented one: the counterfactual falls back to a pre-2019 SVT series that exists
+    # for electricity and not for gas, so a gas-only account settling in 2016 has no published
+    # default tariff to be measured against. `published_default_tariff(date(2016, 6, 1), "gas")`
+    # is None at HEAD. (An unrecognised FUEL would not do: `ofgem_price_cap` raises on one
+    # rather than returning None, which is the fail-closed behaviour and not this branch.)
+    no_rate = method_skill(_a48_run(
+        [_a48_priced("A0", 1.0, term="2016-01-01")] + log[1:],
+        [_a48_settled("A0", paid_gbp=2000.0, net_gbp=100.0,
+                      on="2016-06-01", commodity="gas")] + records[1:]))
+    assert (no_rate["drop_out"]["dropped_by_reason"]
+            ["no_published_counterfactual_rate_for_the_term"]) == 1
+    assert no_rate["drop_out"]["dropped_by_class"]["coverage"] == 1
+    assert no_rate["drop_out"]["dropped_by_class"]["eligibility"] == 0
+
+
+def test_a_decline_never_enters_the_priced_population_it_is_reported_against():
+    """A decline is a decision and is counted, but the funnel's subject is why the PRICED
+    population shrank. Counting declines as drop-outs from it would overstate the shrinkage
+    and put a decision the arm never priced into the denominator of a coverage claim.
+    """
+    log, records = _a48_rising()
+    drop = method_skill(_a48_run(
+        log + [{"customer_id": "Z9", "term_start": _TERM, "declined": True}],
+        records))["drop_out"]
+    assert drop["decisions_the_arm_logged"] == 5
+    assert drop["priced_decisions"] == 4
+    assert drop["decisions_scored"] == 4
+    assert drop["dropped_by_reason"]["declined"] == 1
+    assert sum(drop["dropped_by_class"].values()) == 0
+    assert "no join to widen" in drop["reading"]
+
+
+def test_the_verdict_moves_with_the_counts_rather_than_being_a_constant():
+    """R15: a reading that says the same thing whatever the funnel holds is not a reading.
+
+    The same book, one decision broken two different ways, must produce two different
+    verdicts — and the all-eligibility one must say the sample CANNOT be widened from this
+    book, which is the answer that costs us the argument for a bigger n.
+    """
+    log, records = _a48_rising()
+    records[0] = dict(records[0], settlement_date="2023-02-05")
+    eligibility_only = method_skill(_a48_run(log, records))["drop_out"]["reading"]
+    joined = method_skill(_a48_run(
+        log + [_a48_priced("GHOST", 9.0)], records))["drop_out"]["reading"]
+    assert "CANNOT BE WIDENED FROM THIS BOOK" in eligibility_only
+    assert "CANNOT BE WIDENED FROM THIS BOOK" not in joined
+    assert eligibility_only != joined
+
+
+def test_the_lumped_count_the_funnel_replaces_still_agrees_with_it():
+    """RECONCILIATION BETWEEN THE TWO PUBLISHED FIELDS, not "the answer is N".
+
+    `decisions_the_outcome_could_not_reach` is the figure this artefact carried before the
+    funnel existed and consumers still read it. It must equal the funnel's own drop-out less
+    declines, forever — if the two ever disagree, one of them is counting a different subject
+    and the page would carry both.
+    """
+    log, records = _a48_rising()
+    records[0] = dict(records[0], net_margin_gbp=None)
+    records[1] = dict(records[1], settlement_date="2023-02-05")
+    result = method_skill(_a48_run(
+        log + [{"customer_id": "Z9", "term_start": _TERM, "declined": True}], records))
+    drop = result["drop_out"]
+    assert result["decisions_the_outcome_could_not_reach"] == (
+        drop["decisions_dropped"] - drop["dropped_by_reason"]["declined"])
+    assert result["decisions_the_outcome_could_not_reach"] == 2
+
+
+# ---------------------------------------------------------------------------
 # gross_to_net_bridge — the £30,924 that was "observed and unexplained"
 # ---------------------------------------------------------------------------
 #

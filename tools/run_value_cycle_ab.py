@@ -1205,6 +1205,142 @@ def concordance_null_spread(points: list[tuple[float, float]], observed,
     }
 
 
+#: WHAT A DROP-OUT REASON IS, as opposed to what it is called. The three classes are the whole
+#: point of the funnel: only one of them can be widened by us, at this book, with no world change
+#: and no ruling from the director, and a reader who cannot tell them apart cannot tell whether
+#: `decisions_scored: 6` is a bound we chose or a bound the world imposed.
+JOIN = "join"
+COVERAGE = "coverage"
+ELIGIBILITY = "eligibility"
+SKILL_DROP_CLASSES = {
+    JOIN: ("the arm's key and the settled book's key never met. Widenable by us, here, with no "
+           "world change and no ruling -- and a non-zero count is a DEFECT, not a bound."),
+    COVERAGE: ("the join succeeded and the outcome exists, but an input this repository is "
+               "supposed to supply was missing for it. Widenable, but the work is outside this "
+               "measurement -- it is a gap in what we have sourced, not in what the world did."),
+    ELIGIBILITY: ("the concordance genuinely needs it. There is no settled outcome behind the "
+                  "price, so scoring the decision would rank a coverage gap. Widening this is not "
+                  "available at any book size; only a LARGER settled book adds decisions here."),
+}
+
+#: WHY A PRICED DECISION NEVER REACHED THE CONCORDANCE, one key per `continue` in the scoring loop
+#: below, each carrying its class and its meaning. Written as a table rather than as strings at the
+#: branch because the whole point of the block is that a reader can check the funnel adds up:
+#: `logged` = `scored` + one count per key here, and a key with no branch (or a branch with no key)
+#: is a reconciliation failure the test can see.
+SKILL_DROP_REASONS = {
+    "declined": (ELIGIBILITY, (
+        "the arm declined the renewal, so it emitted no per-customer price to rank anything by. "
+        "A decline is a decision but not a SIGNAL, and it never entered the priced population.")),
+    "signal_not_a_number": (JOIN, (
+        "the log entry carried no numeric `chosen_margin_gbp_per_mwh` -- a malformed row. A "
+        "non-zero count here is a defect in the writer, not a bound on the measurement.")),
+    "account_has_no_settled_row_anywhere": (JOIN, (
+        "the arm priced this billing account and the settled book carries no row for it under "
+        "that key, in any term. Either the account id does not join or the household never "
+        "billed -- both are the arm and the world failing to meet, not a household we declined "
+        "to score.")),
+    "the_priced_term_carried_no_settled_row": (ELIGIBILITY, (
+        "the account DOES settle, but this priced term has no settled record inside its own 365 "
+        "days. Nothing was billed under the price that was chosen, so there is no outcome to "
+        "rank it against -- the boundary `_term_period_of` exists to impose.")),
+    "no_published_counterfactual_rate_for_the_term": (COVERAGE, (
+        "settled rows exist inside the term and not one of them found a published default-tariff "
+        "rate for its own date and fuel. Without the counterfactual there is no denominator and "
+        "no saving -- a gap in the sourced tariff series, not in the world's record.")),
+    "a_settled_row_carried_no_net_margin": (ELIGIBILITY, (
+        "at least one settled row in the term supplied no NET margin, so the account-term is "
+        "blind. Summing the rows that DID resolve would publish a partial account wearing a "
+        "whole one's name -- the `saas/cost_to_serve.py` defect of 2026-08-17, arriving here.")),
+    "counterfactual_not_positive": (ELIGIBILITY, (
+        "the counterfactual summed to zero or below, so the ratio has no denominator. Scoring it "
+        "would divide by a coverage gap.")),
+}
+
+
+def _skill_drop_out(logged: int, scored: int, dropped: dict) -> dict:
+    """The funnel from every decision the arm logged down to the ones the concordance ranks.
+
+    WHY THIS EXISTS. This block published `decisions_scored: 6` beside `decision_shape.priced: 20`
+    on one page, with a single lumped `decisions_the_outcome_could_not_reach: 14` between them and
+    no statement of what the 14 were. Two counts of one subject with nothing between them is the
+    shape that has published something misleading on this surface more than once -- and worse, it
+    left the only lever currently available on the null interval (score more of the decisions we
+    ALREADY have, rather than wait for a bigger book) unreadable. A reader could not tell a failed
+    join, which we can widen this afternoon, from an eligibility rule, which no amount of work on
+    our side moves.
+
+    IT RECONCILES OR IT REFUSES. `logged` must equal `scored` plus the drop-out, exactly, and when
+    it does not this returns the failure instead of a reading. A funnel that does not add up is
+    worse than no funnel, because it reads as an account of the gap while being one.
+    """
+    counts = {reason: int(dropped.get(reason, 0)) for reason in SKILL_DROP_REASONS}
+    total_dropped = sum(counts.values())
+    reconciles = (scored + total_dropped) == logged
+    # A DECLINE IS NOT A DROP-OUT FROM THE PRICED POPULATION -- it never entered it. It is carried
+    # in the same table because the funnel has to start somewhere the log itself can be counted
+    # from, and `logged` is the only count no branch can silently shrink.
+    priced = logged - counts["declined"]
+    by_class = {
+        name: sum(n for reason, n in counts.items()
+                  if reason != "declined" and SKILL_DROP_REASONS[reason][0] == name)
+        for name in SKILL_DROP_CLASSES
+    }
+    return {
+        "available": True,
+        "decisions_the_arm_logged": logged,
+        "priced_decisions": priced,
+        "decisions_scored": scored,
+        "decisions_dropped": total_dropped,
+        "dropped_by_reason": counts,
+        "what_each_reason_means": {
+            reason: {"class": klass, "means": means}
+            for reason, (klass, means) in SKILL_DROP_REASONS.items()
+        },
+        # THE QUESTION THE FUNNEL WAS BUILT TO ANSWER, answered by the counts rather than by a
+        # sentence somebody typed beside them. Declines are excluded from every class: the
+        # subject here is why the PRICED population shrank, and a decline was never in it.
+        "dropped_by_class": by_class,
+        "what_each_class_means": dict(SKILL_DROP_CLASSES),
+        "reconciles": reconciles,
+        "reconciliation": (
+            "{scored} scored + {dropped} dropped = {sum} against {logged} logged".format(
+                scored=scored, dropped=total_dropped, sum=scored + total_dropped, logged=logged)),
+        "reading": (_skill_drop_out_reading(priced, scored, counts, by_class) if reconciles else
+                    ("THE FUNNEL DOES NOT ADD UP ({}), so no reading is offered from it. That is "
+                     "a defect in this drop-out accounting, not a finding about the book.".format(
+                         "{} scored + {} dropped against {} logged".format(
+                             scored, total_dropped, logged)))),
+    }
+
+
+def _skill_drop_out_reading(priced, scored, counts, by_class) -> str:
+    """The verdict, built FROM the counts. Never a sentence typed beside them."""
+    if scored == priced:
+        return ("Every priced decision reached the concordance. There is no funnel to explain and "
+                "no join to widen -- the sample IS the book the arm priced.")
+    # THE LARGEST REASON THE PRICED POPULATION SHRANK, so declines are not eligible to be it: a
+    # decline never entered the population this sentence explains the shrinkage of.
+    biggest = max((r for r in counts if r != "declined"), key=lambda reason: counts[reason])
+    head = ("{priced} priced decisions, {scored} scored. The largest single reason is "
+            "`{biggest}` at {n} -- {means}").format(
+                priced=priced, scored=scored, biggest=biggest, n=counts[biggest],
+                means=SKILL_DROP_REASONS[biggest][1])
+    if by_class[JOIN] == 0 and by_class[COVERAGE] == 0:
+        return (head + " NOT ONE of the {dropped} dropped decisions is a failed join or a missing "
+                "input of ours. Every one of them was dropped because the world settled no "
+                "outcome the concordance could rank the price against, which is the eligibility "
+                "the statistic needs rather than a plumbing gap. THE SAMPLE CANNOT BE WIDENED "
+                "FROM THIS BOOK: {scored} is what the method has earned, and only a larger "
+                "settled book adds to it.".format(
+                    dropped=priced - scored, scored=scored))
+    return (head + " Of the {dropped} priced decisions that dropped out, {join} are a join that "
+            "could be widened here with no world change, {cov} are an input this repository could "
+            "supply, and {elig} are the eligibility the concordance genuinely needs.".format(
+                dropped=priced - scored, join=by_class[JOIN], cov=by_class[COVERAGE],
+                elig=by_class[ELIGIBILITY]))
+
+
 def method_skill(value: dict) -> dict:
     """A48 L2: does the arm's own per-customer signal rank JOINT value created?
 
@@ -1259,35 +1395,84 @@ def method_skill(value: dict) -> dict:
     for (customer_id, term), row in view.by_customer_period.items():
         key = (_billing_account_id(customer_id), term)
         acc = folded.setdefault(key, {"saving": 0.0, "net": 0.0, "counterfactual": 0.0,
-                                      "blind": False})
-        if row.household_saving_gbp is None or row.our_net_margin_gbp is None:
-            acc["blind"] = True
+                                      "no_counterfactual": False, "no_net": False})
+        # BLIND, AND WHICH KIND. Both of these were one `blind` flag and the drop-out could
+        # therefore only say "the outcome could not reach it". They are different findings: a leg
+        # with no counterfactual is a gap in OUR sourced tariff series, a leg with no net margin
+        # is the view refusing to let the gross stand in for the net. `household_saving_gbp` is
+        # None exactly when no comparable row survived the rate lookup, which is what makes these
+        # two conditions separable here rather than only inside the view.
+        if row.household_saving_gbp is None:
+            acc["no_counterfactual"] = True
+            continue
+        if row.our_net_margin_gbp is None:
+            acc["no_net"] = True
             continue
         acc["saving"] += row.household_saving_gbp
         acc["net"] += row.our_net_margin_gbp
         acc["counterfactual"] += row.counterfactual_gbp
 
-    points, scored_rows, unscorable = [], [], 0
+    # WHICH ACCOUNTS THE SETTLED BOOK CARRIES AT ALL, which is a different question from which
+    # account-TERMS the view valued, and the difference is what separates a failed join from the
+    # term boundary. IT IS TAKEN FROM THE RECORDS, NOT FROM `folded`: an account whose only
+    # priced term happens to carry no settled row would read as a failed join off `folded`, and
+    # every single-term account in the book would then be miscounted as a defect of ours.
+    accounts_in_the_settled_book = {
+        _billing_account_id(record["customer_id"]) for record in records
+        if isinstance(record, dict) and isinstance(record.get("customer_id"), str)}
+
+    points, scored_rows = [], []
+    dropped: dict[str, int] = collections.Counter()
+    dropped_rows: list[dict] = []
+
+    def drop(entry, reason):
+        dropped[reason] += 1
+        dropped_rows.append({"account": entry.get("customer_id"),
+                             "term_start": entry.get("term_start"),
+                             "reason": reason})
+
     for entry in log:
-        if not isinstance(entry, dict) or entry.get("declined"):
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("declined"):
+            drop(entry, "declined")
             continue
         signal = entry.get("chosen_margin_gbp_per_mwh")
         if not isinstance(signal, (int, float)) or isinstance(signal, bool):
-            unscorable += 1
+            drop(entry, "signal_not_a_number")
             continue
-        acc = folded.get((entry.get("customer_id"), entry.get("term_start")))
+        account, term = entry.get("customer_id"), entry.get("term_start")
+        acc = folded.get((account, term))
         # A decision with no settled pounds behind it, or whose net margin or counterfactual
-        # never resolved, is EXCLUDED AND COUNTED. Scoring it at zero would put a coverage gap
-        # into the outcome and the statistic would read it as a real ranking.
-        if acc is None or acc["blind"] or acc["counterfactual"] <= 0:
-            unscorable += 1
+        # never resolved, is EXCLUDED AND COUNTED BY REASON. Scoring it at zero would put a
+        # coverage gap into the outcome and the statistic would read it as a real ranking;
+        # counting the exclusions as one lump leaves a reader unable to tell which of them a
+        # better join would recover for free. See `_skill_drop_out`.
+        if acc is None:
+            drop(entry, "the_priced_term_carried_no_settled_row"
+                 if account in accounts_in_the_settled_book else
+                 "account_has_no_settled_row_anywhere")
+            continue
+        # ORDER IS THE FINDING'S OWN PRIORITY, not an accident: a term with no counterfactual at
+        # all is a different (and ours to fix) problem from one whose net margin is short, and an
+        # account-term carrying both is reported as the former because that is the one that
+        # blocks the other from being knowable.
+        if acc["no_counterfactual"]:
+            drop(entry, "no_published_counterfactual_rate_for_the_term")
+            continue
+        if acc["no_net"]:
+            drop(entry, "a_settled_row_carried_no_net_margin")
+            continue
+        if acc["counterfactual"] <= 0:
+            drop(entry, "counterfactual_not_positive")
             continue
         ratio = (acc["saving"] + acc["net"]) / acc["counterfactual"]
         points.append((float(signal), ratio))
-        scored_rows.append({"account": entry.get("customer_id"),
-                            "term_start": entry.get("term_start"),
+        scored_rows.append({"account": account,
+                            "term_start": term,
                             "chosen_margin_gbp_per_mwh": float(signal),
                             "joint_value_ratio": ratio})
+    unscorable = sum(dropped.values()) - dropped["declined"]
 
     concordance, pairs, outcome_ties = _concordance(points)
     # THE NULL THAT MAKES THE FIGURE READABLE. The flat-rules arm's signal is a CONSTANT -- and
@@ -1322,6 +1507,13 @@ def method_skill(value: dict) -> dict:
         "decisions_scored": len(points),
         "accounts": len(accounts),
         "decisions_the_outcome_could_not_reach": unscorable,
+        # THE FUNNEL FROM WHAT THE ARM PRICED DOWN TO WHAT THIS FIGURE RESTS ON. `decisions_scored`
+        # and `decision_shape.priced` are two counts of one subject and were published on one page
+        # with nothing between them; this is what is between them, broken out so a reader can tell
+        # a failed join from an eligibility rule without reading this file.
+        "drop_out": _skill_drop_out(
+            len([e for e in log if isinstance(e, dict)]), len(points), dropped),
+        "dropped_sample": dropped_rows[:20],
         "comparable_pairs": pairs,
         "pairs_tied_on_outcome": outcome_ties,
         "settled_rows_outside_every_priced_term": view.records_this_view_could_not_value,

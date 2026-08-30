@@ -1047,6 +1047,71 @@ def _attribution_sentence(exclusions: list[dict], offered) -> str:
         reasons="; ".join(sorted(_SCOPE_BY_DESIGN.values())))
 
 
+def _skill_drop_out(method_skill: dict) -> dict:
+    """The 20 → 6 funnel, read off the run and NEVER recomputed here.
+
+    WHY IT FAILS CLOSED RATHER THAN INFERRING THE GAP. `decision_shape.priced` minus
+    `decisions_scored` is available on every artefact ever produced, and subtracting them here
+    would give a number that looks exactly like this block with none of its content: it would say
+    fourteen decisions dropped and could not say ONE of them was a failed join rather than an
+    eligibility rule. That distinction is the whole reason the block exists, it can only be made
+    where the log and the settled records are both in hand, and a second arithmetic source for one
+    figure is the shape this file's own clock and denominator defects both had.
+
+    So an artefact produced before `method_skill.drop_out` existed reports the ABSENCE and names
+    the run that would fix it. It does NOT publish a bare 14.
+
+    AND IT REFUSES A FUNNEL THAT DOES NOT ADD UP, rather than passing the producer's own failure
+    through as a reading: `reconciles: false` upstream means the accounting is broken, and a
+    broken account of the gap is worse on this page than an admitted absence.
+    """
+    drop = (method_skill or {}).get("drop_out") or {}
+    if not drop.get("available"):
+        return {
+            "available": False,
+            "reason": (
+                "the run that produced this artefact predates the drop-out funnel, so the page "
+                "can say how many decisions were scored but not why the rest were not. It is "
+                "withheld until a run carries `method_skill.drop_out`."),
+        }
+    if not drop.get("reconciles"):
+        return {
+            "available": False,
+            "reason": (
+                "the run's own drop-out does not reconcile against the decisions it logged ("
+                + str(drop.get("reconciliation") or "no reconciliation was reported")
+                + "), so the funnel is withheld. An account of the gap that does not add up is "
+                  "not evidence about the gap."),
+        }
+    by_class = drop.get("dropped_by_class") or {}
+    reasons = drop.get("dropped_by_reason") or {}
+    meanings = drop.get("what_each_reason_means") or {}
+    return {
+        "available": True,
+        "priced_decisions": drop.get("priced_decisions"),
+        "decisions_scored": drop.get("decisions_scored"),
+        # ONE ROW PER REASON THAT ACTUALLY FIRED, largest first, each carrying the class that says
+        # whether it is ours to widen. Reasons at zero are dropped from the page and kept in the
+        # artefact: a reader wants the funnel, a reviewer wants the whole table.
+        "by_reason": [
+            {"reason": reason, "count": count,
+             "class": (meanings.get(reason) or {}).get("class"),
+             "means": (meanings.get(reason) or {}).get("means")}
+            for reason, count in sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0]))
+            if count and reason != "declined"
+        ],
+        "declined": reasons.get("declined"),
+        "by_class": by_class,
+        "what_each_class_means": drop.get("what_each_class_means"),
+        # THE ANSWER, as a boolean a reader can check against the counts beside it rather than as
+        # a sentence they have to take on trust.
+        "the_sample_can_be_widened_from_this_book": bool(
+            by_class.get("join") or by_class.get("coverage")),
+        "reconciliation": drop.get("reconciliation"),
+        "reading": drop.get("reading"),
+    }
+
+
 def _method_skill(three_arm: dict) -> dict:
     """A48's figure, and NEVER without the interval a random signal produces.
 
@@ -1089,6 +1154,10 @@ def _method_skill(three_arm: dict) -> dict:
         "inside_the_null": spread.get("observed_inside_the_null_interval"),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
+        # THE FUNNEL BETWEEN THE TWO COUNTS THIS PAGE SHOWS. `decisions.value_arm_priced` says 20
+        # and `decisions_scored` says 6, a few hundred pixels apart, and until 2026-08-30 nothing
+        # on the surface said why -- so the page implied the concordance rested on the 20.
+        "drop_out": _skill_drop_out(ms),
         "churn_auc_for_contrast": _f(
             ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
         # THE CONTRAST FIGURE CARRIES ITS OWN NULL, for the same reason the concordance beside it
@@ -1616,6 +1685,75 @@ def _polarity_check(history: list) -> dict:
     }
 
 
+def _belief_buckets(belief: dict) -> dict:
+    """The believed-versus-realised table 0.13 is made of, at the granularity this run CAN carry.
+
+    WHY THIS EXISTS. The page tells the reader the belief "ranked customers BACKWARDS" and then
+    hands them a scalar. `_departures` is the check they should have -- which renewals -- and it
+    is UNAVAILABLE on every artefact written before 2026-08-30, so on today's run the sentence is
+    an assertion with nothing under it. `belief_vs_outcome.by_believed_bucket` has been in the
+    artefact all along: four bands of believed retention with the realised rate in each. It is not
+    the same evidence as the named departures and does not replace them, but it is the mechanism
+    -- a reader can see the reversal instead of taking it on trust.
+
+    IT DOES NOT SETTLE POLARITY, AND SAYS SO. Under a flipped outcome label this table reads
+    monotone the RIGHT way and would look better than any belief on this page, so a reader who met
+    it alone could reasonably conclude the labels are inverted. That is exactly the alternative
+    `_polarity_check` closes on the LEVEL. Publishing the flipped column beside the real one is
+    what stops this block quietly arguing the opposite of the one beside it.
+
+    RECONCILED, NOT RESTATED (R15 contradiction check). The buckets' counts and `auc_population`
+    tally the same 20 decisions by different routes. A run whose buckets do not sum to
+    `retained + left` is describing a population the rank statistic was not computed over, and the
+    table is withheld whole rather than published as a partial one -- the same refusal
+    `_departures` makes against `matched_sample`, and for the same reason: a subset that renders
+    is worse than an absence that explains itself.
+    """
+    rows = (belief or {}).get("by_believed_bucket")
+    population = (belief or {}).get("auc_population") or {}
+    scored = sum(v for v in (population.get("retained"), population.get("left"))
+                 if isinstance(v, int))
+    if not isinstance(rows, list) or not rows:
+        return {"available": False,
+                "reason": ("this artefact publishes no `belief_vs_outcome.by_believed_bucket`, so "
+                           "the believed-versus-realised table behind this figure cannot be shown")}
+    buckets = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        realised = _f(row.get("realised_retention_rate"))
+        buckets.append({
+            "believed_from": _f(row.get("believed_from")),
+            "believed_to": _f(row.get("believed_to")),
+            "n": row.get("n"),
+            "mean_believed_p_retain": _f(row.get("mean_believed_p_retain")),
+            "realised_retention_rate": realised,
+            "realised_retention_rate_under_a_flipped_label":
+                (None if realised is None else 1.0 - realised),
+        })
+    counted = sum(b["n"] for b in buckets if isinstance(b["n"], int))
+    if not scored or counted != scored:
+        return {"available": False,
+                "reason": ("the believed-retention buckets count {} decisions and the rank "
+                           "statistic's own population counts {}, so the two are not describing "
+                           "one book and the table is withheld rather than published as a "
+                           "slice".format(counted, scored or "none"))}
+    return {
+        "available": True,
+        "scored": counted,
+        "agrees_with_auc_population": True,
+        "buckets": buckets,
+        "reading": (
+            "Read down the two rate columns. The band the arm was LEAST confident of keeping is "
+            "the band that mostly stayed, and the renewals it was most confident of kept none of "
+            "them -- that reversal IS the score, and it is what the figure above asserts. This "
+            "table cannot tell you the labels are the right way round: flip them and it reads "
+            "monotone the right way and looks better than any belief on this page, which is why "
+            "the sign question is settled on the LEVEL beside it and not here. Every band is "
+            "single-digit; nothing in this table carries a bound of its own."),
+    }
+
+
 def _departures(belief: dict) -> dict:
     """The renewals the AUC's positive class is made of, named -- or a stated absence.
 
@@ -1718,6 +1856,12 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
         # `run_value_cycle_ab.belief_vs_outcome.scored_decisions` makes the next A/B run carry the
         # whole list.
         "the_departures": _departures(belief),
+        # THE MECHANISM AT THE GRANULARITY THIS RUN HAS. `the_departures` is unavailable on every
+        # artefact before 2026-08-30, which leaves "it ranked customers backwards" as a scalar the
+        # reader must take on trust. The bucket table has always been in the artefact and shows
+        # the reversal directly -- with the flipped column beside it, so it cannot be read as
+        # settling the sign question that `polarity_check` settles on the level.
+        "by_believed_bucket": _belief_buckets(belief),
         "priced_accounts": len(priced),
         "value_arm_only_churners": only_value,
         "median_margin_gbp_per_mwh": _f(shape.get("median_margin_gbp_per_mwh")),

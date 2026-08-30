@@ -632,6 +632,97 @@ def test_the_available_branch_renders_the_number_WITH_its_interval():
     assert "0.465" in rendered
 
 
+# ── the funnel between the two decision counts this page shows ───────────────────────────────
+#
+# THE DEFECT (2026-08-30). The page rendered "20 decisions priced" in the decisions block and a
+# concordance "on 6 decisions" in the method block, with nothing between them. A reader taking
+# the interval as earned on the twenty would be reading the page exactly as written.
+
+
+def _skill_feed(drop_out):
+    """The live feed with a known-good method block and a drop-out under test."""
+    feed = dict(_live_feed())
+    feed["method_skill"] = {
+        "available": True, "concordance": 0.3333, "null_point": 0.5,
+        "null_95_low": 0.1333, "null_95_high": 0.8667, "p_two_sided": 0.47,
+        "inside_the_null": True, "decisions_scored": 6, "accounts": 5,
+        "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created?",
+        "reading": "The observed value sits INSIDE the interval a random signal produces.",
+        "drop_out": drop_out,
+    }
+    return feed
+
+
+_ELIGIBILITY_ONLY = {
+    "available": True, "priced_decisions": 20, "decisions_scored": 6, "declined": 0,
+    "by_reason": [
+        {"reason": "the_priced_term_carried_no_settled_row", "count": 14,
+         "class": "eligibility",
+         "means": "the account DOES settle, but this priced term has no settled record inside "
+                  "its own 365 days."},
+    ],
+    "by_class": {"join": 0, "coverage": 0, "eligibility": 14},
+    "the_sample_can_be_widened_from_this_book": False,
+    "reading": "20 priced decisions, 6 scored. THE SAMPLE CANNOT BE WIDENED FROM THIS BOOK.",
+}
+
+
+def test_the_page_says_how_many_of_the_priced_decisions_the_figure_actually_rests_on():
+    """Both counts, and the drop between them, in the block that carries the interval.
+
+    Fires on: the funnel being dropped from the render, or the page showing the scored count
+    without the priced one it has to be read against.
+    """
+    rendered = _render(_skill_feed(_ELIGIBILITY_ONLY))["arms-method"]
+    assert "priced 20 decisions" in rendered, (
+        "the method block does not say how many decisions the arm priced: {}".format(rendered))
+    assert "rests on 6" in rendered, "the block does not say what the figure rests on"
+    # THE ROW ITSELF, as a reader sees it: the count against the reason, not a total. The
+    # harness returns rendered TEXT, so this is the string on the page and not the markup
+    # behind it — a checker reading the markup would pass on a table nobody can see.
+    assert re.search(r"14\s+the account DOES settle", rendered), (
+        "the 14 dropped decisions are not broken out against a reason: {}".format(rendered))
+    assert "Ours to widen?" in rendered, (
+        "the funnel is a table of counts with no answer to the reader's question")
+
+
+def test_a_drop_the_world_caused_and_a_drop_we_caused_do_not_read_the_same(dummy=None):
+    """THE WHOLE POINT OF THE BLOCK, and the reading that can fail.
+
+    MUTATION: reclassify the same fourteen decisions from `eligibility` to `join`. The page must
+    change its answer to the reader's actual question — can this sample be widened? A render
+    that shows the counts but says the same thing either way is a table, not a finding.
+    """
+    eligibility = _render(_skill_feed(_ELIGIBILITY_ONLY))["arms-method"]
+    joined = copy.deepcopy(_ELIGIBILITY_ONLY)
+    joined["by_reason"][0]["class"] = "join"
+    joined["by_class"] = {"join": 14, "coverage": 0, "eligibility": 0}
+    joined["the_sample_can_be_widened_from_this_book"] = True
+    widenable = _render(_skill_feed(joined))["arms-method"]
+
+    assert "no &mdash; no outcome exists" in eligibility or "no — no outcome exists" in eligibility
+    assert "failed join" in widenable, (
+        "a decision we failed to join does not read as ours on the page")
+    assert "failed join" not in eligibility, (
+        "an eligibility rule the concordance needs reads as a defect of ours")
+
+
+def test_a_run_predating_the_funnel_says_so_rather_than_showing_nothing():
+    """FAIL-CLOSED, and visibly. The published artefact predates this block, so the absence
+    branch is the one a reader sees first — and a silent absence beside two counts that do not
+    match is the defect this whole section exists to close.
+
+    Fires on: rendering an empty string when the feed carries no funnel.
+    """
+    rendered = _render(_skill_feed({
+        "available": False,
+        "reason": "the run that produced this artefact predates the drop-out funnel.",
+    }))["arms-method"]
+    assert "Not shown" in rendered, (
+        "a feed with no funnel rendered no statement that it has none: {}".format(rendered))
+    assert "predates the drop-out funnel" in rendered
+
+
 # ── how few decisions it rests on ────────────────────────────────────────────────────────────
 
 def test_the_decision_count_and_its_concentration_reach_the_reader(live):

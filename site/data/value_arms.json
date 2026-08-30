@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T03:44:37.902935Z",
+  "generated_at": "2026-08-30T04:51:42.109777Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -387,6 +387,10 @@
     "inside_the_null": true,
     "decisions_scored": 6,
     "accounts": 5,
+    "drop_out": {
+      "available": false,
+      "reason": "the run that produced this artefact predates the drop-out funnel, so the page can say how many decisions were scored but not why the rest were not. It is withheld until a run carries `method_skill.drop_out`."
+    },
     "churn_auc_for_contrast": 0.13,
     "churn_auc_null": {
       "available": true,
@@ -566,6 +570,46 @@
       "the_departures": {
         "available": false,
         "reason": "this run predates `belief_vs_outcome.scored_decisions` (added 2026-08-30), so the artefact carries only the first ten scored rows and the departures behind this figure cannot be listed from it. The accounts the arm's own price drove out ARE named above; the per-renewal list ships with the next A/B run."
+      },
+      "by_believed_bucket": {
+        "available": true,
+        "scored": 20,
+        "agrees_with_auc_population": true,
+        "buckets": [
+          {
+            "believed_from": 0.2,
+            "believed_to": 0.4,
+            "n": 9,
+            "mean_believed_p_retain": 0.33933333333333326,
+            "realised_retention_rate": 0.8888888888888888,
+            "realised_retention_rate_under_a_flipped_label": 0.11111111111111116
+          },
+          {
+            "believed_from": 0.4,
+            "believed_to": 0.6,
+            "n": 8,
+            "mean_believed_p_retain": 0.5403625,
+            "realised_retention_rate": 0.25,
+            "realised_retention_rate_under_a_flipped_label": 0.75
+          },
+          {
+            "believed_from": 0.6,
+            "believed_to": 0.8,
+            "n": 2,
+            "mean_believed_p_retain": 0.62385,
+            "realised_retention_rate": 0.0,
+            "realised_retention_rate_under_a_flipped_label": 1.0
+          },
+          {
+            "believed_from": 0.8,
+            "believed_to": 1.0,
+            "n": 1,
+            "mean_believed_p_retain": 0.9506,
+            "realised_retention_rate": 0.0,
+            "realised_retention_rate_under_a_flipped_label": 1.0
+          }
+        ],
+        "reading": "Read down the two rate columns. The band the arm was LEAST confident of keeping is the band that mostly stayed, and the renewals it was most confident of kept none of them -- that reversal IS the score, and it is what the figure above asserts. This table cannot tell you the labels are the right way round: flip them and it reads monotone the right way and looks better than any belief on this page, which is why the sign question is settled on the LEVEL beside it and not here. Every band is single-digit; nothing in this table carries a bound of its own."
       },
       "priced_accounts": 10,
       "value_arm_only_churners": [
