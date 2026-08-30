@@ -154,18 +154,57 @@ makes the `except` leg's `selection_gbp` stdev a **prediction, not an observatio
 them, and the finding is about the legs. This number is written down now so it cannot be re-read
 after the fact, whichever way it goes.
 
+> ### ❌ THE POINT PREDICTION IS REFUTED, 2026-08-30 02:30Z. ✅ The pass band holds.
+>
+> **sd(except) came out at £0.21.** Not £1,506, not the £930–£2,190 band — three seeds of
+> £741.12, £741.47, £741.09, a range of 38 pence. The point prediction is wrong by four orders of
+> magnitude and I am not going to dress that up as a near miss.
+>
+> **The gate it was written as still opens, and that is the uncomfortable part.** The prereg's
+> actual pass/fail criterion is the ratio, and `(V_only + V_except)/V_all` = **0.66×**, inside
+> 0.3–3.0. So the legs are certified as two halves of one thing and the publish proceeds. But
+> **the band could not have failed downwards.** V_only alone is 0.659 × V_all, so from the moment
+> the `only` leg landed at £2,092.29 the ratio was already inside the band, and *every* value of
+> sd(except) from £0 to about £3,944 passed. The sentence "£930–£2,190" was me converting a
+> two-sided ratio band into a two-sided figure band that the arithmetic never supported. **The
+> reconciliation control is one-sided in practice, and it cannot tell a rest-of-book channel that
+> is genuinely tiny from one that is dead** — R15's fail-open shape, in a control I filed as the
+> gate two hours earlier.
+>
+> **So I checked the channel from the leg rather than from the ratio, and it is alive.** Across
+> the three `except` seeds `value_advantage_gbp` moves £2,617 → £1,681 → £1,635 and
+> `level_advantage_gbp` moves £1,876 → £940 → £894 — nearly a thousand pounds of movement each,
+> and `level_share_of_advantage` swings 54.7%–71.7%. Re-drawing the other 126 accounts bites
+> hard. `selection_gbp` is their residual, and it cancels to 38 pence. **The wider book's churn
+> cascade moves both arms by the same amount, so it leaves the contrast untouched.**
+>
+> **Which means the 100% priced share is close to structural, and it should be read that way.**
+> `selection_gbp` can only move when a priced decision's elasticity moves, and the `except` leg
+> holds exactly those 93 draws fixed. The decomposition did not discover that the priced half
+> dominates; it confirmed an identity that the definition of the contrast largely forces. That is
+> still worth having — it was not obvious in advance that the cancellation would be this clean —
+> but it is not the empirical surprise the 65.9% reading implied.
+
 ## (b) The measured share, and why it is not yet a verdict
 
 | quantity | value |
 |---|---|
 | undecomposed sd (`all` leg) | £2,577.80 |
 | priced-side sd (`only` leg) | £2,092.29 |
-| rest-of-book sd (`except` leg) | *pending* — expected £1,505.78 |
+| rest-of-book sd (`except` leg) | ~~*pending* — expected £1,505.78~~ → **MEASURED £0.21** |
 | contrast (`selection_gbp`) | £1,815.79 |
-| **priced share of variance** | **65.9%** |
-| threshold above which a bigger book resolves it | 50.4% |
-| **margin over the threshold** | **0.1550** |
+| **priced share of variance** | ~~65.9%~~ → **MEASURED 100.0%** |
+| threshold above which a bigger book resolves it | ~~50.4%~~ → **24.7%** (it is `1 − contrast²/total`, and `total` is the legs' sum, which the measurement changed) |
+| **margin over the threshold** | ~~0.1550~~ → **0.7532** |
 | `share_is_decisive` bar | 0.15 |
+
+**The 65.9% row and everything computed from it were provisional on a leg that had not landed, and
+the leg landed somewhere else.** Both figures above the rule are struck rather than deleted: the
+paragraph below them was written when 0.1550 was the live number and it reasoned correctly about
+*that* number. What it concluded — that a thin `true` must carry its margin wherever it is
+published — is unchanged and the consumer does it automatically. What is no longer true is that
+this particular `true` is thin: at 0.753 against a bar of 0.15 it is a rout. **The caveat survives
+the number that motivated it, which is the point of keying a control to the property.**
 
 **The decisiveness flag clears by 0.005.** Each stdev is three seeds — two degrees of freedom a
 side, a 90% interval spanning roughly a sixth to nine times the truth — and on that instrument a
@@ -219,20 +258,35 @@ count by it would be a ratio of two different things.
     80%    £   1,153        2.70x          28            55           3,768
     90%    £     815        2.27x          23            46           3,151
     99%    £     258        2.04x          21            41           2,809
-  ------  MEASURED (pending the except leg's reconciliation)  ------
-  65.9%   £   1,506*       4.25x          43            86           5,891
+  ------  MEASURED, 2026-08-30 (the except leg landed)  ------
+ 100.0%   £    0.21        2.02x          21            41           2,809
 ```
+
+**The measured row moved from the prediction, and so did the base the table is printed on.** The
+ladder above is computed against the **undecomposed** floor (£2,577.80) — the ± figure the page
+publishes. `decompose_floor` prices its own headline against the two legs' **summed** variance
+(£2,092.29 equivalent), and on a reconciliation of 0.66× those are not the same base: the same
+arithmetic gives **1.33× / 27 decisions** against the legs and **2.02× / 41 decisions** against the
+published bound. Inside the 0.3–3.0 tolerance and a factor of 1.5 in the price. **The artefact now
+carries both** (`times_this_book_on_the_published_floor`), and the page quotes the dearer one,
+because the bound a reader is shown is the one the remedy has to bring under the contrast. Quoting
+only the cheaper let a spread the artefact itself prints as noise arrive at the reader as a
+cheaper remedy.
 
 The `times this book` column is the exact multiplier; the two count columns are it rounded UP into
 their own units, so `43 draws` and `86 decisions` are both 4.25× and neither is 43/10 or 86/20 to
 two places. Read the multiplier, not the ratio of the roundings.
 
-`*` the irreducible floor at the measured share is the £1,505.78 the `except` leg must confirm.
+`*` this footnote read "the irreducible floor at the measured share is the £1,505.78 the `except`
+leg must confirm". It did not confirm it: the measured irreducible floor is **£0.21**, which is why
+the measured row now sits at the bottom of the ladder rather than in the middle of it.
 
 ## What this does and does not settle for the queue behind it
 
-Prediction (1) failing means the arithmetic remedy is **real**: at 65.9% the rest-of-book half
-(£1,506) is under the contrast (£1,816), so a book 4.25× this one would resolve the comparison.
+Prediction (1) failing means the arithmetic remedy is **real**: the rest-of-book half is under the
+contrast (£1,816), so a bigger priced book would resolve the comparison. Written as "at 65.9% the
+rest-of-book half (£1,506) … a book 4.25× this one"; the measured figures are **100.0%, £0.21 and
+2.02×** against the published bound. The direction survived; every number in it did not.
 
 **It does not revive the lifted-budget re-run, and the reason is a different measurement.** All ten
 priced accounts are the hand-authored static roster; not one is a drawn `SYN-*` household, because

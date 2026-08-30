@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-08-30T01:30:05Z",
+  "report_end": null,
+  "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
+  "clock": "settled-realised",
+  "redraw_scope": {
+    "mode": "except",
+    "accounts": [
+      "C1",
+      "C1_2",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9"
+    ],
+    "accounts_in_roster": 10,
+    "means": "every household EXCEPT the ones the arm priced was re-drawn. This half is the rest of the book's churn cascade landing in the same net and it does NOT shrink with the priced count, so it is the floor a larger settled book cannot get under"
+  },
+  "symbol_patched": "simulation.population_draw.price_elasticity_for_customer",
+  "symbol_resolution": "read from `simulation.customer_events`'s own import statement, not written down here, so a rename disconnects this tool LOUDLY instead of silently returning a spread of zero",
+  "seeds": [
+    {
+      "seed": 11111,
+      "elasticity_draws": 2025,
+      "elasticity_redrawn": 1932,
+      "elasticity_held_fixed": 93,
+      "accounts_redrawn": 126,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 60.0,
+      "value_advantage_gbp": 2617.0088359999936,
+      "level_advantage_gbp": 1875.8878900000127,
+      "selection_gbp": 741.1209459999809,
+      "level_share_of_advantage": 0.7168060971728478
+    },
+    {
+      "seed": 22222,
+      "elasticity_draws": 2059,
+      "elasticity_redrawn": 1966,
+      "elasticity_held_fixed": 93,
+      "accounts_redrawn": 126,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 60.0,
+      "value_advantage_gbp": 1681.2568739999842,
+      "level_advantage_gbp": 939.7859279999975,
+      "selection_gbp": 741.4709459999867,
+      "level_share_of_advantage": 0.5589781921688703
+    },
+    {
+      "seed": 33333,
+      "elasticity_draws": 2062,
+      "elasticity_redrawn": 1969,
+      "elasticity_held_fixed": 93,
+      "accounts_redrawn": 126,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 60.0,
+      "value_advantage_gbp": 1634.6114799999923,
+      "level_advantage_gbp": 893.5205340000102,
+      "selection_gbp": 741.0909459999821,
+      "level_share_of_advantage": 0.5466256324102253
+    }
+  ],
+  "selection_gbp_spread": {
+    "n": 3,
+    "mean": 741.2276126666499,
+    "stdev": 0.21126602503618658,
+    "min": 741.0909459999821,
+    "max": 741.4709459999867,
+    "range": 0.3800000000046566
+  },
+  "level_share_spread": {
+    "n": 3,
+    "mean": 0.6074699739173145,
+    "stdev": 0.09488907903209728,
+    "min": 0.5466256324102253,
+    "max": 0.7168060971728478,
+    "range": 0.1701804647626225
+  },
+  "selection_sem_gbp": 0.12197449642526455,
+  "selection_distinguishable_from_zero": true,
+  "how_to_read_this": "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection instrument cannot yet resolve the question being asked of it, and every reading built on it carries that caveat. That is a finding about the INSTRUMENT and not about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."
+}

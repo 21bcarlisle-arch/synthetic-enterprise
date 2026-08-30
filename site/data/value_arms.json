@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T00:31:05.955493Z",
+  "generated_at": "2026-08-30T02:16:06.514202Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -40,8 +40,148 @@
     }
   },
   "floor_decomposition": {
-    "available": false,
-    "why_not": "no floor decomposition artefact was readable, so this page states no remedy"
+    "available": true,
+    "what_this_is": "The selection-figure noise floor cut into the half that a larger settled book buys down and the half it cannot touch, from two extra floor legs that partition one call stream, plus what each remedy would cost.",
+    "seeds": 3,
+    "contrast_gbp": 1815.785549000022,
+    "priced_decisions": 20,
+    "renewals_offered": 1369,
+    "undecomposed_sd_gbp": 2577.7951945427617,
+    "priced_side_sd_gbp": 2092.2881458508746,
+    "rest_of_book_sd_gbp": 0.21126602503618658,
+    "priced_share_of_variance": 0.9999999898043168,
+    "reconciliation_ratio": 0.6587887495846588,
+    "reconciliation_reading": "The two legs' variances sum to 0.66x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing.",
+    "share_at_which_a_bigger_book_could_resolve_it": 0.24684195853405466,
+    "share_is_decisive": true,
+    "share_margin_over_threshold": 0.7531580312702622,
+    "share_decisive_bar": 0.15,
+    "irreducible_sd_gbp": 0.21126602503618658,
+    "larger_settled_book_would_resolve_it": true,
+    "independent_draws_this_book": 10,
+    "priced_decisions_this_book": 20,
+    "elasticity_calls_per_seed": [
+      90,
+      97,
+      103
+    ],
+    "what_each_count_counts": "`independent_draws_this_book` is the number of households whose elasticity the priced leg re-rolled, and it is the ONLY sample size here: the draw is a pure function of (customer_id, seed), so it is what 1/n indexes. `priced_decisions_this_book` counts renewal decisions, and the decisions on one account share one draw. `elasticity_calls_per_seed` counts CALL SITES -- re-reads of the same draws -- and is a sample size for nothing at all. `times_this_book` is invariant across all three; the absolute counts are not.",
+    "times_this_book": 1.3277425829446914,
+    "priced_decisions_needed": 27,
+    "independent_draws_needed": 14,
+    "times_this_book_on_the_published_floor": 2.015429973707313,
+    "priced_decisions_needed_on_the_published_floor": 41,
+    "which_floor_the_price_is_against": "`times_this_book` prices the remedy against the two legs' summed variance; `times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, which is the +- figure the page states. They differ by exactly the reconciliation ratio's distance from 1.0, so the second is the larger whenever the legs undershoot the whole -- and it is the one to quote, because the bound a reader is shown is the one the remedy has to bring under the contrast.",
+    "remedy_price_table": [
+      {
+        "priced_share_of_variance": 0.1,
+        "irreducible_sd_gbp": 1984.918828796604,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": null,
+        "priced_decisions_needed": null,
+        "times_this_book": null,
+        "renewals_the_world_must_offer": null
+      },
+      {
+        "priced_share_of_variance": 0.2,
+        "irreducible_sd_gbp": 1871.399418595918,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": null,
+        "priced_decisions_needed": null,
+        "times_this_book": null,
+        "renewals_the_world_must_offer": null
+      },
+      {
+        "priced_share_of_variance": 0.3,
+        "irreducible_sd_gbp": 1750.533864548469,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 57,
+        "priced_decisions_needed": 113,
+        "times_this_book": 5.64354877882754,
+        "renewals_the_world_must_offer": 7740
+      },
+      {
+        "priced_share_of_variance": 0.4,
+        "irreducible_sd_gbp": 1620.6794371314934,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 27,
+        "priced_decisions_needed": 53,
+        "times_this_book": 2.611681346741037,
+        "renewals_the_world_must_offer": 3631
+      },
+      {
+        "priced_share_of_variance": 0.5,
+        "irreducible_sd_gbp": 1479.4711436694913,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 20,
+        "priced_decisions_needed": 40,
+        "times_this_book": 1.9750508303219734,
+        "renewals_the_world_must_offer": 2740
+      },
+      {
+        "priced_share_of_variance": 0.6,
+        "irreducible_sd_gbp": 1323.279219197736,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 17,
+        "priced_decisions_needed": 34,
+        "times_this_book": 1.6989560750462402,
+        "renewals_the_world_must_offer": 2329
+      },
+      {
+        "priced_share_of_variance": 0.7,
+        "irreducible_sd_gbp": 1145.993420125276,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 16,
+        "priced_decisions_needed": 31,
+        "times_this_book": 1.5447149469874402,
+        "renewals_the_world_must_offer": 2124
+      },
+      {
+        "priced_share_of_variance": 0.8,
+        "irreducible_sd_gbp": 935.6997092979589,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 15,
+        "priced_decisions_needed": 29,
+        "times_this_book": 1.4462412909697366,
+        "renewals_the_world_must_offer": 1987
+      },
+      {
+        "priced_share_of_variance": 0.9,
+        "irreducible_sd_gbp": 661.6396095988679,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 14,
+        "priced_decisions_needed": 28,
+        "times_this_book": 1.3779207218823233,
+        "renewals_the_world_must_offer": 1918
+      },
+      {
+        "priced_share_of_variance": 0.99,
+        "irreducible_sd_gbp": 209.22881565170292,
+        "independence_unit": "priced_accounts",
+        "priced_accounts_needed": 14,
+        "priced_decisions_needed": 27,
+        "times_this_book": 1.3321527114840028,
+        "renewals_the_world_must_offer": 1850
+      }
+    ],
+    "where_the_priced_decisions_come_from": {
+      "accounts_the_arm_priced": [
+        "C1",
+        "C1_2",
+        "C2",
+        "C3",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9"
+      ],
+      "of_those_drawn": 0,
+      "of_those_static_roster": 10,
+      "reading": "Every priced decision on this run belongs to the hand-authored static roster; not one belongs to a drawn household. So 'a larger settled book' cannot mean a larger DRAWN book: the drawn households' renewals all stop at `product_not_upliftable` because the world has no standard-variable product for them to be on, and adding more of them enlarges the churn cascade -- the half of the floor no book size shrinks -- while adding no priced decisions at all. The lever is a PRODUCT, not a size."
+    },
+    "how_to_read_this": "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. False means the rest of the book's churn cascade alone is wider than the contrast, so NO book resolves this comparison and the remedy is not a smaller version of the same thing -- it is a different instrument. That is a finding about the instrument and it belongs on the surface (R12), not in a footnote."
   },
   "withdrawn_claim": {
     "withdrawn_on": "2026-08-29",
@@ -371,6 +511,7 @@
       "accounts_never_reached_by_the_arm": 158,
       "won_or_drawn_accounts_priced": 0,
       "classification_basis": "the account id scheme (`PROS-*` won, `SYN-*` drawn), because this artefact predates `by_account_class`",
+      "premise_basis": "argued from the code path, not measured -- this artefact predates `renewal_funnel.product_label_by_account_class`",
       "sentence": "THE METHOD HAS NEVER PRICED A CUSTOMER THE COMPANY WON. Every renewal it priced belongs to one of 10 accounts the company was founded with; the other 158 accounts the world offered a renewal to have never had one reach the arm. That is a GATE, not a book size: all 662 renewals refused at the product gate carry `tariff_type = None`, which is what the world renders for every account it won or drew, while the founding accounts omit the field and take the `\"fixed\"` default -- and the arm admits only `fixed` and `pass_through` (`UPLIFTABLE_TARIFF_TYPES`, company/crm/customer_profitability.py, applied at company/pricing/value_based_renewal.py). No number of won households changes what that guard reads, so there is no book size at which the first one is priced.",
       "what_is_owed": "Not a relaxed guard. The world has no standard-variable product, so a won household's product was never decided rather than forgotten; the repair is that product, drawn from the published domestic fixed/SVT split, and it makes the in-scope surface SMALLER as a share of the book, not bigger (docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md, settled 2026-08-28)."
     },
@@ -385,5 +526,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and the price is now measured: 100% of this spread is the priced households' own draw, so it takes about 27 priced renewals against this book's 20 to bring the bar under the gap. That price is against the two legs' own total, which came to 0.66x the +-figure this page states -- within what three seeds alone produce, and still a real difference to anyone acting on it. Against the published bound the same arithmetic asks for about 41 priced renewals, and that is the number to plan on. But that growth is NOT reachable by acquiring customers: all 10 accounts the arm priced are the founding roster and not one is a household this world drew, because drawn households' renewals stop for want of a standard-variable product to be moved off. Buying more of them adds churn cascade -- the half of the floor no book size shrinks -- and no priced decisions at all. The lever is a PRODUCT, not a size. Read that price as a direction and not a settled figure: the split behind it is 3 seeds, and it clears the margin it has to beat by 0.753 against a bar of 0.15 -- wide enough to name a direction, not wide enough to call the number settled. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
 }

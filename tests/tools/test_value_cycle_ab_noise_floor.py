@@ -363,6 +363,50 @@ def test_the_verdict_is_the_REST_OF_BOOK_leg_against_the_contrast():
         "an unreachable remedy was still given a price, which reads as reachable")
 
 
+def test_the_remedy_carries_a_price_against_the_PUBLISHED_floor_too():
+    """THE DEFECT: `times_this_book` is priced on `v_only + v_except` -- the two legs' own sum --
+    while the page prints `undecomposed_sd_gbp` as its +- figure. The reconciliation tolerance is
+    0.3-3.0, so those two can differ by a factor of three in the variance and nobody would see it
+    in the price. A remedy has to bring the bound a reader is SHOWN under the contrast.
+
+    PRINTED AT REAL INPUTS FIRST. On the 2026-08-30 legs: v_only = 2092.29^2, v_except = 0.21^2,
+    v_all = 2577.80^2, contrast 1815.79 -> 1.328x against the legs and 2.015x against the
+    published floor. The fixture below is the same shape with round numbers.
+
+    R15 -- the mutations, each run and reverted:
+      * price the published-floor figure on `total` instead of `v_all` -> the two assertions
+        collapse to one number and `undershot` reds.
+      * emit it only when the legs OVERSHOOT -> `undershot` reds.
+    The null rung is `reconciled`, where the legs sum to the whole and the two prices must AGREE:
+    without it this test is satisfied by any formula that returns a bigger number.
+    """
+    from tools.run_value_cycle_ab import decompose_floor
+
+    # The legs undershoot the whole: 900^2 + 300^2 = 0.72 * (1000^2 + 61^2)... printed, not argued.
+    undershot = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                                _leg("only", (-1000.0, 0.0, 1000.0)),
+                                _leg("except", (-100.0, 0.0, 100.0)), _three_arm(1000.0))
+    assert undershot["reconciliation_ratio"] < 1.0, undershot["reconciliation_ratio"]
+    assert undershot["times_this_book_on_the_published_floor"] > undershot["times_this_book"], (
+        "the legs summed to less than the published floor, so the remedy priced against that "
+        "floor must be DEARER -- pricing it on the legs alone is fail-open in the flattering "
+        "direction: {} vs {}".format(undershot["times_this_book_on_the_published_floor"],
+                                     undershot["times_this_book"]))
+    assert (undershot["priced_decisions_needed_on_the_published_floor"]
+            > undershot["priced_decisions_needed"]), "the multiplier moved and the count did not"
+
+    # THE NULL RUNG. Legs that sum to the whole must give ONE price, or the field above is just a
+    # bigger number rather than the same arithmetic against a different bound.
+    reconciled = decompose_floor(_leg("all", (-1000.0, 0.0, 1000.0)),
+                                 _leg("only", (-1000.0, 0.0, 1000.0)),
+                                 _leg("except", (0.0, 0.0, 0.0)), _three_arm(1000.0))
+    assert reconciled["reconciliation_ratio"] == pytest.approx(1.0)
+    assert reconciled["times_this_book_on_the_published_floor"] == pytest.approx(
+        reconciled["times_this_book"]), (
+        "at a reconciliation of 1.0 the two prices are the same quantity against the same "
+        "variance, and a difference means the second is not the same arithmetic")
+
+
 def test_legs_that_do_not_name_their_own_half_are_refused():
     """A leg read as the other one hands the whole variance to the wrong side. Never inferred."""
     from tools.run_value_cycle_ab import decompose_floor

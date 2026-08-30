@@ -866,6 +866,103 @@ def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
             "the {} branch dropped the half of the remedy that is arithmetic".format(name))
 
 
+def _priced_by(*accounts, **extra):
+    """A decomposition that DOES name the book-size remedy, plus the provenance of its price."""
+    art = _decomposition(0.85, resolvable=True)
+    art["where_the_priced_decisions_come_from"] = {
+        "accounts_the_arm_priced": list(accounts),
+        "of_those_drawn": len([a for a in accounts if a.startswith("SYN-")]),
+        "of_those_static_roster": len([a for a in accounts if not a.startswith("SYN-")]),
+    }
+    art.update(extra)
+    return art
+
+
+def test_the_book_size_remedy_says_whether_the_book_can_be_grown_into_it():
+    """THE DEFECT: the page priced "a larger SETTLED BOOK" at N priced renewals while the producer
+    had already measured that every one of the accounts the arm priced was the founding roster and
+    none was a household this world draws -- so acquisition buys zero priced decisions and only
+    enlarges the half of the floor that never shrinks. The price was right and the lever named
+    beside it did not exist. The measurement sat unread in the artefact the sentence was built
+    from, which is the whole failure: a remedy is a claim, and one a reader cannot pull is worse
+    than none because it retires the question.
+
+    KEYED TO THE PROVENANCE, NOT TO TODAY'S ROSTER -- the caveat must DISAPPEAR the day the arm
+    prices a drawn household, or it is a control asserting the world stays broken.
+
+    R15 -- the mutations, each run and reverted:
+      * drop the reachability clause from the resolvable branch -> `unreachable` reds.
+      * print the caveat unconditionally -> `reachable` reds (this is the control asserting the
+        world stays broken, and it is the failure mode this shape exists to refuse).
+      * treat a missing `where_the_priced_decisions_come_from` as reachable -> `silent` reds.
+    The null rung is `reachable`, which must carry the price and NO caveat: a control that only
+    ever demands the caveat be present is satisfied by printing it always.
+    """
+    unreachable = _withheld_headline(_priced_by("C1", "C2", "C3"))
+    assert "larger SETTLED BOOK" in unreachable and "54 priced renewals" in unreachable, (
+        "the null rung of the parent control: the price must still be stated: {}".format(
+            unreachable))
+    assert "PRODUCT, not a size" in unreachable, (
+        "every priced account was the founding roster and the page still offered book growth as "
+        "the lever, which is a remedy nobody can pull: {}".format(unreachable))
+
+    reachable = _withheld_headline(_priced_by("C1", "SYN-2021-001"))
+    assert "PRODUCT, not a size" not in reachable, (
+        "the arm priced a DRAWN household, so acquisition does reach it -- printing the caveat "
+        "anyway is a control asserting the world stays broken: {}".format(reachable))
+    assert "54 priced renewals" in reachable, reachable
+
+    silent = _withheld_headline(_decomposition(0.85, resolvable=True))
+    assert "PRODUCT, not a size" not in silent, silent
+    assert "not established here" in silent, (
+        "an artefact carrying no provenance read as REACHABLE by omission, which is the "
+        "flattering branch chosen by silence: {}".format(silent))
+
+
+def test_the_remedy_is_priced_against_the_bound_the_page_actually_shows():
+    """THE DEFECT: `decompose_floor` prices the remedy on the two legs' SUMMED variance, and the
+    reconciliation ratio says how far that sits from the undecomposed floor the page prints as its
+    +- figure. On 2026-08-30 the legs summed to 0.66x -- inside the artefact's own 0.3-3.0
+    tolerance, and a factor of 1.5 in the price (1.33x this book against the legs, 2.02x against
+    the published bound). Quoting only the smaller lets a spread the artefact itself calls noise
+    reach the reader as a cheaper remedy. A remedy has to bring the bound a reader is SHOWN under
+    the contrast, not a smaller one they are not.
+
+    KEYED TO THE DISCREPANCY. At a reconciliation of 1.0 the two prices are one number and the
+    sentence would be noise, so it fires on the GAP -- and a repair that makes the legs sum
+    properly deletes it without anyone editing this test.
+
+    R15 -- the mutations, each run and reverted:
+      * print the published-floor price unconditionally -> `reconciled` reds.
+      * drop the clause entirely -> `undershot` reds (the defect as it shipped).
+      * fall back to the legs' price when the producer carries no published-floor figure ->
+        `old_artefact` reds.
+    The null rung is `reconciled`: a control that only ever demands the sentence be present is
+    satisfied by printing it always.
+    """
+    undershot = _withheld_headline(_priced_by(
+        "C1", reconciliation_ratio=0.66,
+        times_this_book_on_the_published_floor=2.02,
+        priced_decisions_needed_on_the_published_floor=41))
+    assert "41 priced renewals" in undershot and "number to plan on" in undershot, (
+        "the page quoted a remedy priced on the legs' own total while its stated +-figure was "
+        "half again as wide, which under-prices the remedy in the flattering direction: {}"
+        .format(undershot))
+
+    reconciled = _withheld_headline(_priced_by(
+        "C1", reconciliation_ratio=1.0,
+        times_this_book_on_the_published_floor=2.7,
+        priced_decisions_needed_on_the_published_floor=54))
+    assert "number to plan on" not in reconciled, (
+        "the legs reconciled, so the two prices are one number and the page printed a "
+        "distinction that does not exist: {}".format(reconciled))
+
+    old_artefact = _withheld_headline(_priced_by("C1", reconciliation_ratio=0.66))
+    assert "number to plan on" not in old_artefact, (
+        "an artefact predating the published-floor price had a figure invented for it: {}"
+        .format(old_artefact))
+
+
 def test_a_resolved_contrast_names_no_remedy_at_all():
     """The remedy is printed only beside something WITHHELD. Against a contrast that cleared its
     floor it would read as an apology for a figure that earned its sign -- and it would make the
@@ -1006,3 +1103,79 @@ def test_the_class_split_prefers_the_worlds_own_label_over_the_id_prefix():
         "decisions"]["who_the_method_has_priced"]
     assert who["won_or_drawn_accounts_priced"] == 1
     assert "acquisition_type" in who["classification_basis"]
+
+
+# ── the structural premise is measured, and can be refuted ────────────────────────────────────
+#
+# THE DEFECT (2026-08-30). The live sentence says "there is no book size at which the first one
+# is priced", and its premise -- that the world renders `tariff_type = None` for EVERY account it
+# won or drew -- was a hardcoded clause with nothing behind it. The run's stage totals cannot
+# establish it: `product_not_upliftable = 662` is equally consistent with "this book happens to
+# be unlabelled" and with "no book can be labelled", which are the two readings the whole
+# sentence exists to separate, and the second is the one that costs a curriculum change.
+
+def _with_census(art, **census):
+    art["renewal_funnel"]["value_arm"]["product_label_by_account_class"] = {
+        "available": True, **census}
+    return gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+
+
+def test_a_roster_census_agreeing_with_the_gate_says_the_premise_was_measured():
+    """MUTATION: drop `premise_basis`, or hardcode it to the measured string.
+
+    "Measured on this run's roster" and "argued from the code path" are different strengths of
+    the same claim, and a reader deciding whether to spend a curriculum change on it needs to
+    know which one they have. Without this field the page reads at the higher strength always.
+    """
+    who = _with_census(_load(THREE_ARM),
+                       a_found_account_can_reach_the_product_gate=False,
+                       found_accounts_the_guard_would_admit=[])
+    assert who["verdict"] == "structural"
+    assert who["premise_basis"].startswith("measured on the roster")
+
+
+def test_MUTATION_a_census_that_finds_a_labelled_won_account_withdraws_the_gate_claim():
+    """NULL RUNG, and the one that stops this being a conclusion that cannot change.
+
+    The stage totals are IDENTICAL in both halves of this test -- same 662 renewals, same single
+    `None` label -- so a page that read only them would print "a GATE, not a book size" over a
+    roster that directly refutes it. The census is the only field that moves, and the verdict
+    must move with it. R15: a control whose PASS branch is unreachable reports a constant.
+    """
+    who = _with_census(_load(THREE_ARM),
+                       a_found_account_can_reach_the_product_gate=True,
+                       found_accounts_the_guard_would_admit=["PROS-2019-0015"])
+    assert who["verdict"] == "unresolved"
+    assert "GATE, not a book size" not in who["sentence"]
+    assert "PROS-2019-0015" in who["sentence"]
+
+
+def test_an_artefact_with_no_census_keeps_the_older_reading_rather_than_upgrading_it():
+    """FAIL-CLOSED, in the direction that does NOT flatter the page.
+
+    Every artefact produced before 2026-08-30 carries no census. Treating an absent census as
+    agreement would let the strongest wording ride on the weakest evidence -- the fail-open shape
+    a missing field takes when it is read as a zero. The verdict is unchanged; only its stated
+    basis is.
+    """
+    who = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "structural"
+    assert who["premise_basis"].startswith("argued from the code path")
+
+
+def test_a_census_present_but_unavailable_is_not_read_as_agreement():
+    """MUTATION: test `census.get("a_found_account_can_reach_the_product_gate")` alone.
+
+    A census block that failed to build renders `available: False` and carries no verdict field;
+    reading the absent flag as `False` would report the roster as having AGREED with the gate
+    claim when it never ran. Both halves of the guard are needed and this is the half a naive
+    read drops.
+    """
+    art = _load(THREE_ARM)
+    art["renewal_funnel"]["value_arm"]["product_label_by_account_class"] = {
+        "available": False, "reason": "the roster would not import"}
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["premise_basis"].startswith("argued from the code path")

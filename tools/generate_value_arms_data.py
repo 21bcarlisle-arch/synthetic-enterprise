@@ -710,6 +710,72 @@ def _how_narrowly_the_split_cleared(decomposition: dict) -> str:
             .format(seeds, margin, bar))
 
 
+def _is_the_lever_reachable(decomposition: dict) -> str:
+    """Whether "a larger settled book" is a lever this world can actually pull.
+
+    THE DEFECT THIS EXISTS FOR. "More renewals actually priced by the arm" reads as a book-SIZE
+    remedy, and on 2026-08-30 the producer measured that all ten priced accounts were the
+    hand-authored static roster and not one was a drawn household -- so acquisition adds renewals
+    that stop at `product_not_upliftable` and households to the churn cascade, buying zero priced
+    decisions and enlarging the half of the floor no book size shrinks. The price was true and the
+    lever named beside it was not. `where_the_priced_decisions_come_from` had measured this and
+    sat unread in the artefact while the page composed the sentence it refutes.
+
+    KEYED TO THE PROVENANCE, NOT TO TODAY'S ROSTER. Feed it a book where the arm priced a drawn
+    household and the caveat must go -- otherwise it would still be printed the day the product
+    ships and the remedy becomes reachable, which is a control asserting the world stays broken.
+    FAIL CLOSED on a missing count: an artefact written before the producer carried the provenance
+    gets an explicit silence, never a reachable-by-omission reading.
+    """
+    provenance = decomposition.get("where_the_priced_decisions_come_from")
+    if not isinstance(provenance, dict):
+        return ("Which accounts that growth would have to come from was not recorded, so whether "
+                "it is reachable by growing the book is not established here.")
+    drawn = provenance.get("of_those_drawn")
+    priced_accounts = provenance.get("accounts_the_arm_priced")
+    if not isinstance(drawn, int) or not priced_accounts:
+        return ("Which accounts that growth would have to come from was not recorded, so whether "
+                "it is reachable by growing the book is not established here.")
+    if drawn:
+        return ("{} of the {} accounts the arm priced are drawn households, so acquisition does "
+                "reach this arm and the growth above is a book-size lever."
+                .format(drawn, len(priced_accounts)))
+    return ("But that growth is NOT reachable by acquiring customers: all {} accounts the arm "
+            "priced are the founding roster and not one is a household this world drew, because "
+            "drawn households' renewals stop for want of a standard-variable product to be moved "
+            "off. Buying more of them adds churn cascade -- the half of the floor no book size "
+            "shrinks -- and no priced decisions at all. The lever is a PRODUCT, not a size."
+            .format(len(priced_accounts)))
+
+
+def _priced_against_which_floor(decomposition: dict) -> str:
+    """The price restated against the bound the page actually shows, when the legs undershot it.
+
+    THE DEFECT THIS EXISTS FOR. The producer prices the remedy on the two legs' summed variance,
+    and the reconciliation ratio says how far that is from the undecomposed floor the page prints
+    as its +- figure. On 2026-08-30 that was 0.66x -- inside the published 0.3-3.0 tolerance, and
+    a factor of 1.5 in the price: 1.33x this book against the legs' total, 2.02x against the bound
+    a reader is shown. Quoting the smaller alone lets a tolerance the artefact prints as noise
+    arrive at the reader as a cheaper remedy, which is fail-open in the flattering direction.
+
+    SILENT WHEN THE LEGS RECONCILE. At a ratio of 1.0 the two prices are the same number and a
+    sentence explaining that they differ would be noise -- so this fires on the DISCREPANCY, not
+    unconditionally, and a repair that made the legs sum properly removes it on its own.
+    """
+    on_published = decomposition.get("times_this_book_on_the_published_floor")
+    decisions = decomposition.get("priced_decisions_needed_on_the_published_floor")
+    ratio = decomposition.get("reconciliation_ratio")
+    if not isinstance(on_published, (int, float)) or not isinstance(decisions, int):
+        return ""
+    if not isinstance(ratio, (int, float)) or abs(ratio - 1.0) < 0.1:
+        return ""
+    return ("That price is against the two legs' own total, which came to {:.2f}x the +-figure "
+            "this page states -- within what three seeds alone produce, and still a real "
+            "difference to anyone acting on it. Against the published bound the same arithmetic "
+            "asks for about {:,} priced renewals, and that is the number to plan on."
+            .format(ratio, decisions))
+
+
 def _what_would_resolve_it(decomposition: dict | None) -> str:
     """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
 
@@ -747,7 +813,10 @@ def _what_would_resolve_it(decomposition: dict | None) -> str:
                 "households' own draw, so it takes about {:,} priced renewals against this book's "
                 "{} to bring the bar under the gap. ".format(
                     decomposition.get("priced_share_of_variance") or 0.0, needed, priced)
-                + _how_narrowly_the_split_cleared(decomposition) + " " + MORE_SEEDS_WOULD_NOT)
+                + " ".join(p for p in (_priced_against_which_floor(decomposition),
+                                       _is_the_lever_reachable(decomposition),
+                                       _how_narrowly_the_split_cleared(decomposition),
+                                       MORE_SEEDS_WOULD_NOT) if p))
     return ("A larger settled book would not resolve it either, and that is the finding: only "
             "{:.0%} of this spread is the priced households' own draw. The rest is the wider "
             "book's churn cascade landing in the same net, which does not shrink however many "
@@ -1184,6 +1253,47 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
     unlabelled = labels.get("None") if isinstance(labels, dict) else None
     never_reached = offered - len(priced_accounts)
 
+    # THE PREMISE, MEASURED RATHER THAN ASSERTED. The structural sentence turns on a claim about
+    # the WORLD'S RECORDS -- that it renders `tariff_type = None` for every account it won or
+    # drew -- and until 2026-08-30 that clause was a hardcoded string with nothing behind it. A
+    # run's stage totals cannot establish it: `product_not_upliftable = 662` is consistent with
+    # "this book happens to be unlabelled" and with "no book can be labelled", which are the two
+    # readings the sentence exists to separate. `renewal_funnel.product_label_by_account_class`
+    # counts the guard's own input off the roster the run bound.
+    #
+    # FAIL-CLOSED AND IN THE UNFLATTERING DIRECTION: a census that says a found account CAN reach
+    # the gate demotes the verdict to `unresolved`, because at that point "structural" is refuted
+    # by the roster whatever the stage totals still look like. An ABSENT census leaves the older
+    # reading alone rather than silently upgrading it -- it is the state of every artefact
+    # produced before this block existed.
+    census = funnel.get("product_label_by_account_class") or {}
+    gate_reachable = census.get("a_found_account_can_reach_the_product_gate")
+    measured = census.get("available") is True and isinstance(gate_reachable, bool)
+
+    if measured and gate_reachable and not won_priced:
+        return {
+            "available": True,
+            "verdict": "unresolved",
+            "priced_accounts": priced_accounts,
+            "accounts_the_world_offered_a_renewal": offered,
+            "accounts_never_reached_by_the_arm": never_reached,
+            "won_or_drawn_accounts_priced": 0,
+            "classification_basis": basis,
+            "premise_basis": "measured on the roster this run bound",
+            "sentence": (
+                "The method has priced none of the {rest} accounts the company won or drew, and "
+                "this run cannot call that a gate: the world DOES label some of the products it "
+                "found ({names}), so a household the arm could price exists and none was. What "
+                "limits this reading is the book, or something upstream of the product gate, and "
+                "this surface will not name which without measuring it."
+            ).format(rest=never_reached,
+                     names=", ".join(census.get("found_accounts_the_guard_would_admit") or [])
+                     or "count not published"),
+            "what_is_owed": (
+                "A funnel decomposition on the accounts the guard WOULD admit, to find which "
+                "later stage refuses them. The structural reading is withdrawn, not weakened."),
+        }
+
     if won_priced:
         verdict = "reached"
         sentence = (
@@ -1222,6 +1332,17 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
         "accounts_never_reached_by_the_arm": never_reached,
         "won_or_drawn_accounts_priced": len(won_priced),
         "classification_basis": basis,
+        # WHERE THE "no book size opens it" CLAUSE GETS ITS AUTHORITY. Published beside the
+        # sentence rather than folded into it, because "measured on this run's roster" and
+        # "argued from the code path" are different strengths of the same claim and a reader
+        # deciding whether to spend a curriculum change on it needs to know which one they have.
+        "premise_basis": (
+            "measured on the roster this run bound: {n} of the accounts it won or drew carry an "
+            "electricity product the guard would admit"
+            .format(n=len(census.get("found_accounts_the_guard_would_admit") or []))
+            if measured else
+            "argued from the code path, not measured -- this artefact predates "
+            "`renewal_funnel.product_label_by_account_class`"),
         "sentence": sentence,
         "what_is_owed": (
             "Not a relaxed guard. The world has no standard-variable product, so a won "

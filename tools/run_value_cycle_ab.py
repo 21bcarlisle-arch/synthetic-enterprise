@@ -81,6 +81,10 @@ from pathlib import Path
 # `tests/company/test_household_share_is_not_yet_a_target.py` holds that and names what
 # releases it.
 from company.analytics.household_value_share import build_household_value_share
+from company.crm.customer_profitability import (
+    UPLIFTABLE_COMMODITY,
+    UPLIFTABLE_TARIFF_TYPES,
+)
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     VALUE_ARM_POLICY,
@@ -1473,6 +1477,13 @@ FOUNDER_ACCOUNT_CLASS = "founder_hand_authored"
 #: are the same absence and opposite facts, which is the fail-silent shape this whole block
 #: exists to close.
 UNCLASSIFIED_ACCOUNT_CLASS = "unclassified_no_roster_row"
+#: The classes that mean the company FOUND this account rather than started with it -- the
+#: populations the enterprise-value claim is about. Named once because two blocks below turn on
+#: it and a second literal tuple is a second thing to keep in step.
+_FOUND_ACCOUNT_CLASSES: tuple[str, ...] = (
+    ACCOUNT_CLASS_BY_ACQUISITION_TYPE["net_new_won"],
+    ACCOUNT_CLASS_BY_ACQUISITION_TYPE["synthetic_draw"],
+)
 
 
 def account_class_map() -> dict[str, str]:
@@ -1499,6 +1510,87 @@ def account_class_map() -> dict[str, str]:
     # picking one. There is no such account today and if one appears it is a finding.
     return {account: (classes.pop() if len(classes) == 1 else "legs_disagree_{}".format(
         "_and_".join(sorted(classes)))) for account, classes in legs.items()}
+
+
+def product_label_by_account_class() -> dict:
+    """What the arm's product gate READS off each class's records, measured on the roster.
+
+    `funnel_by_account_class` says whose renewals stopped where. It cannot say whether that is a
+    fact about THIS RUN or about the world's record shapes, and the difference is the whole
+    question: "no won household has been priced yet" and "no won household can ever be priced"
+    license opposite decisions -- grow the book, versus fix the world.
+
+    So this counts the guard's own INPUT, off the roster the run bound, rather than its output.
+    `resolved` is `record.get("tariff_type", "fixed")` spelled exactly as `run_phase2b` spells it
+    at its two schedule-building call sites, because the defect being measured is precisely that
+    the default is DEFEATED: `population_draw.to_customer_dict` renders the key unconditionally,
+    so a drawn or won record carries it PRESENT and `None` and the `"fixed"` fallback never fires
+    (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28). A census
+    keyed on "is the key missing" and one keyed on "what does the read return" are different
+    censuses and only the second is what the guard sees.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the found book is
+    unlabelled. `a_found_account_can_reach_the_product_gate` is DERIVED, and it turns True the
+    moment one won or drawn electricity record resolves to an upliftable type -- which is the
+    only shape in which this block can report that the world got better rather than going red
+    for it.
+
+    R12: diagnostic. The counts are not a target and this is not a cue to relax
+    `UPLIFTABLE_TARIFF_TYPES` so the found book gets counted.
+    """
+    from simulation.run_phase2b import CUSTOMERS, SUCCESSOR_CUSTOMERS
+
+    classes = account_class_map()
+    census: dict[tuple[str, str, bool, str], int] = collections.Counter()
+    # Whether each billing account's legs agree that a product was DECIDED for them. Two legs of
+    # one account minted by two paths can disagree, and the disagreement is invisible to the arm
+    # today only because the gas leg is refused one gate earlier, at the commodity.
+    key_present_by_account: dict[str, set[bool]] = collections.defaultdict(set)
+    reachable: set[str] = set()
+    for record in list(CUSTOMERS) + list(SUCCESSOR_CUSTOMERS):
+        account = _billing_account_id(record["customer_id"])
+        name = classes.get(account, UNCLASSIFIED_ACCOUNT_CLASS)
+        present = "tariff_type" in record
+        resolved = record.get("tariff_type", "fixed")
+        census[(name, record["commodity"], present, resolved)] += 1
+        key_present_by_account[account].add(present)
+        if (record["commodity"] == UPLIFTABLE_COMMODITY
+                and resolved in UPLIFTABLE_TARIFF_TYPES
+                and name in _FOUND_ACCOUNT_CLASSES):
+            reachable.add(account)
+    disagreeing = sorted(a for a, seen in key_present_by_account.items() if len(seen) > 1)
+    return {
+        "available": True,
+        "what_this_is": (
+            "What `run_phase2b`'s `record.get(\"tariff_type\", \"fixed\")` returns for every leg "
+            "on the roster this run bound, split by how the account joined the book. This is the "
+            "INPUT to the arm's product guard, read off the world's records rather than inferred "
+            "from which renewals the run happened to price."),
+        "the_guard_this_feeds": (
+            "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = {}, applied at "
+            "company/pricing/value_based_renewal.renewal_margin_uplift on commodity {!r}."
+        ).format(sorted(UPLIFTABLE_TARIFF_TYPES), UPLIFTABLE_COMMODITY),
+        "legs": [
+            {"account_class": name, "commodity": commodity, "tariff_type_key_present": present,
+             "resolved_tariff_type": resolved, "legs": count,
+             "the_guard_admits_it": (commodity == UPLIFTABLE_COMMODITY
+                                     and resolved in UPLIFTABLE_TARIFF_TYPES)}
+            for (name, commodity, present, resolved), count in sorted(
+                census.items(), key=lambda item: str(item[0]))
+        ],
+        # THE DERIVED VERDICT, and the reason this block is not a control that asserts the model
+        # stays bad: it is a reading of the roster that can come back either way.
+        "a_found_account_can_reach_the_product_gate": bool(reachable),
+        "found_accounts_the_guard_would_admit": sorted(reachable),
+        "billing_accounts_whose_legs_disagree_about_labelling": disagreeing,
+        "reading": (
+            "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a "
+            "found household: every renewal it offers is refused on the record's shape, which no "
+            "number of further households changes. The accounts whose legs DISAGREE are a "
+            "separate fact and a latent one -- a gas leg that omits the key takes the `\"fixed\"` "
+            "default and would be priced as a product the world never decided for it, invisible "
+            "today only because the commodity guard refuses gas one step earlier."),
+    }
 
 
 def funnel_by_account_class(log: list[dict]) -> dict:
@@ -1556,7 +1648,7 @@ def funnel_by_account_class(log: list[dict]) -> dict:
         # does not have to sum a dict to find out that it is zero.
         "accounts_the_company_won_or_drew_that_the_arm_priced": sum(
             len(accounts) for name, accounts in priced_by_class.items()
-            if name in ("won_by_the_funnel", "drawn_by_the_curriculum")),
+            if name in _FOUND_ACCOUNT_CLASSES),
         "reading": (
             "The mission says the value comes from inference over the individual customers the "
             "method FINDS. A run in which every priced renewal belongs to a founder account has "
@@ -1643,6 +1735,9 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         # distinguish "the method reaches a small share of every customer" from "the method
         # reaches the founding customers and none of the ones the company won".
         "by_account_class": funnel_by_account_class(log),
+        # WHY, and it is the roster rather than the run. `by_account_class` above can only say
+        # that no found account was priced in THIS run; this says whether one could have been.
+        "product_label_by_account_class": product_label_by_account_class(),
         # A stage this module does not know about means the adapter grew a guard and this block
         # did not follow it. Named rather than folded into an "other" bucket.
         "unrecognised_stages": unknown,
@@ -3100,6 +3195,22 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         if priced_accounts:
             accounts_needed = math.ceil(priced_accounts * growth)
 
+    # THE SAME ARITHMETIC AGAINST THE FLOOR THE PAGE ACTUALLY PUBLISHES AS ITS BOUND, because
+    # `growth` above is priced on `total` -- the two legs' OWN sum -- and the reconciliation ratio
+    # says how far that sits from `v_all`. On 2026-08-30 it was 0.66x: inside the 0.3-3.0 tolerance
+    # and still a factor of 1.5 in the price, because a book that brings the LEGS' total under the
+    # contrast can leave the published +-figure above it. Neither number is the authority and the
+    # gap between them is this instrument's precision at three seeds, so BOTH are published and
+    # the consumer states the larger. Silently pricing on whichever is smaller is fail-open under
+    # the very tolerance this artefact prints two fields above.
+    growth_on_published = None
+    decisions_needed_on_published = None
+    if v_all > 0:
+        headroom_all = contrast * contrast - (1.0 - priced_share) * v_all
+        if headroom_all > 0:
+            growth_on_published = priced_share * v_all / headroom_all
+            decisions_needed_on_published = math.ceil(priced * growth_on_published)
+
     return {
         "available": True,
         "what_this_is": (
@@ -3161,6 +3272,18 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         "times_this_book": growth,
         "priced_decisions_needed": decisions_needed,
         "independent_draws_needed": accounts_needed,
+        #: THE PRICE AGAINST THE PUBLISHED BOUND rather than against the legs' own total. Equal to
+        #: the pair above exactly when the reconciliation is 1.0, and further from it the further
+        #: that ratio is from 1.0 -- which is the only honest way to carry a 0.66x into a price.
+        "times_this_book_on_the_published_floor": growth_on_published,
+        "priced_decisions_needed_on_the_published_floor": decisions_needed_on_published,
+        "which_floor_the_price_is_against": (
+            "`times_this_book` prices the remedy against the two legs' summed variance; "
+            "`times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, "
+            "which is the +- figure the page states. They differ by exactly the reconciliation "
+            "ratio's distance from 1.0, so the second is the larger whenever the legs undershoot "
+            "the whole -- and it is the one to quote, because the bound a reader is shown is the "
+            "one the remedy has to bring under the contrast."),
         #: THE SAME ARITHMETIC ACROSS EVERY CANDIDATE SPLIT, so a reader can see how sharply the
         #: verdict turns on a share measured at three seeds -- and check the one row the legs
         #: landed on against the nine they did not.
