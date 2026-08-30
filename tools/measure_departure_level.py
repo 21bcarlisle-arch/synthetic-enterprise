@@ -38,6 +38,7 @@ from simulation.market_switching_propensity import (
     _POST_BAN_STRUCTURAL_FACTOR,
     MARKET_SAVINGS_BY_YEAR,
     _savings_to_rate,
+    market_departure_rate_pct,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -92,6 +93,28 @@ def world_outcome(rows: list[dict]) -> dict[int, tuple[int, int, float]]:
     return {y: (n, d, 100.0 * statistics.fmean(ps)) for y, (n, d, ps) in by.items()}
 
 
+def world_realised_rate_pct(table_path: Path | None = None) -> dict[int, float]:
+    """`{year: mean realised departure probability %}` from a captured run.
+
+    THE PRINCIPAL SUBJECT OF THE WHOLE COMPARISON, exposed as a table so
+    `tests/architecture/test_switching_rate_commons.py` can hold it to the published band the
+    same way it holds a module's year-keyed constant. It was not in that register when the
+    register was written, which is why the control was green while the world sat 3.15x outside
+    the band -- a control whose subject list omits its own principal subject is a control that
+    stays green through exactly the defect it exists for.
+
+    Restricted to `COMPARISON_YEARS` for the reason stated on that constant: 2016 has three
+    renewals and 2025 is a partial year, and a three-account year must not carry the same weight
+    as a 131-account one.
+    """
+    rows = json.loads((table_path or DEFAULT_TABLE).read_text())
+    return {
+        y: mean_p
+        for y, (_n, _d, mean_p) in world_outcome(rows).items()
+        if y in COMPARISON_YEARS
+    }
+
+
 def main(argv: list[str]) -> int:
     table_path = Path(argv[1]) if len(argv) > 1 else DEFAULT_TABLE
     rows = json.loads(table_path.read_text())
@@ -100,35 +123,47 @@ def main(argv: list[str]) -> int:
 
     print(f"factor table: {table_path}   ({len(rows)} renewals)")
     print()
-    print("                published        world curve      world E[depart]   departures /")
-    print("  year          band %           %                per renewal %     active elec %")
-    print("  " + "-" * 74)
-    mids, curves, expected = [], [], []
+    print("                published        savings curve    world rate       world E[depart]   departures /")
+    print("  year          band %           %                (absolute) %     per renewal %     active elec %")
+    print("  " + "-" * 96)
+    mids, curves, rates, expected = [], [], [], []
     for year in sorted(bands):
         lo, hi = bands[year]
         curve = world_curve_pct(year)
+        rate = market_departure_rate_pct(year)
         n, d, mean_p = outcome.get(year, (0, 0, float("nan")))
         per_account = (
             f"{100.0 * d / ACTIVE_ELEC_ACCOUNTS[year]:.1f}" if year in ACTIVE_ELEC_ACCOUNTS else "—"
         )
         flag = "" if lo <= mean_p <= hi else "   OUT OF BAND"
-        print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           "
+        print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
               f"{mean_p:6.2f}            {per_account:>5}{flag}")
         if year in COMPARISON_YEARS:
             mids.append((lo + hi) / 2.0)
             curves.append(curve)
+            rates.append(rate)
             expected.append(mean_p)
     print()
-    pub_mean, curve_mean, world_mean = (
-        statistics.fmean(mids), statistics.fmean(curves), statistics.fmean(expected))
+    pub_mean, curve_mean, rate_mean, world_mean = (
+        statistics.fmean(mids), statistics.fmean(curves),
+        statistics.fmean(rates), statistics.fmean(expected))
     print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean published midpoint : {pub_mean:5.2f}%")
-    print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean world curve        : {curve_mean:5.2f}%"
+    print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean savings curve      : {curve_mean:5.2f}%"
           f"   ({pub_mean / curve_mean:.2f}x short of the record)")
+    print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean world rate         : {rate_mean:5.2f}%"
+          f"   ({pub_mean / rate_mean:.2f}x short of the record)")
     print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean world E[depart]    : {world_mean:5.2f}%"
           f"   ({pub_mean / world_mean:.2f}x short of the record)")
     print()
-    print("  The curve column is an ABSOLUTE rate the world computes and then divides away:")
-    print("  `market_switching_multiplier` normalises it to 1.0 at 2024, so no level reaches the run.")
+    print("  THE THREE COLUMNS ARE THREE DIFFERENT THINGS AND ONLY THE LAST ONE IS AN OUTCOME.")
+    print("  `savings curve` is what `_savings_to_rate` computes at each year's own savings; since")
+    print("  2026-08-30 it no longer sets the market level for a year the record covers, because a")
+    print("  function of savings alone cannot reproduce the series (2017 and 2018 share a saving and")
+    print("  differ by 6pp in the record). `world rate` is `market_departure_rate` -- the record")
+    print("  itself inside the window -- and it is the quantity `market_switching_multiplier` now")
+    print("  normalises. `world E[depart]` is what the RUN did, and it is still short of the record:")
+    print("  the market term reaches the churn chain as a RATIO, so correcting the ratio moved the")
+    print("  shape and not the level. See §8 of docs/market_research/gb_switching_rate_denominators.md.")
     return 0
 
 

@@ -189,3 +189,127 @@ Written before the change that will test it, so it can refute me.
 4. C2's P0 is restated by this: it is no longer "hold the level constant" — which would have
    preserved the bill-shock discount the composed form applies to cheaper-than-market households —
    but "the level MOVES, and lands inside the published band".
+
+## 9. The predictions marked beside themselves, 2026-08-30
+
+The change §8 was written against landed today: `market_departure_rate` in
+`simulation/market_switching_propensity.py`, the record read from the commons, and
+`market_switching_multiplier` rebuilt as a ratio **of the record** rather than of the savings
+curve. §8 is left exactly as written; each prediction is marked here, right or wrong.
+
+**1 — NOT MET, and it moved the wrong way.** Predicted: 4.93% → inside 12.5–16.1% at 2024 and a
+2017–24 mean inside 13–18%. Measured, on a re-captured run (`docs/reports/c2_departure_factors.json`,
+681 renewals): **2017–24 mean 4.50%**, 2024 **5.14%**. The level did not move, and the mean went
+slightly *down* — 3.15× short of the record before, **3.45× short after**.
+
+The shape did move, and where it moved it moved onto the record. Two years came **into** band that
+were outside it: 2022 (6.09% → **3.19%**, band 2.9–4.3%) and 2025 (18.78% → **17.31%**, band
+14.3–17.9%). 2021 rose 4.32% → 7.01% and 2016 fell 3.50% → 1.73%, both in the record's direction.
+
+The reason the level did not follow is a thing §8 did not think about and should have: the market
+term reaches the churn chain in
+`simulation/customer_events.py` as a **dimensionless ratio**, `p_churn *= market_switching_multiplier(y)`,
+normalised to 1.0 at 2024. Correcting *what the ratio is a ratio of* moves the **shape** across
+years and cannot move the **level** at all, by construction — the reference year is 1.0 whatever the
+record says. §8 assumed "raise the curve to the band" and "raise the world to the band" were one
+change. They are two, and only the first of them landed.
+
+**2 — CONFIRMED, and by more than it claimed.** The discriminating prediction was that a pure
+multiplicative level scale pushes 2022 above its published 2.9–4.3% and fails. The scale, derived
+rather than chosen (`_curve_level_scale()`, the ratio of the two means over the overlap), is
+**1.99×**. At that scale:
+
+| year | savings curve | ×1.99 | published band | |
+|---|---|---|---|---|
+| 2016 | 14.7% | **29.2%** | 17.0–17.6% | far above |
+| 2020 |  8.0% | **15.9%** | 22.5–23.0% | still below |
+| 2021 |  5.0% | **10.0%** | 17.9–18.4% | below |
+| 2022 |  3.0% |  **6.0%** |  2.9–4.3%  | above — the year the curve had right |
+
+So the scale fails in **both** directions, which is stronger than "2022 goes high".
+
+And the pass found the reason, which §8 did not predict because it did not occur to me: **a function
+of savings alone cannot reproduce the series under any recalibration.** `MARKET_SAVINGS_BY_YEAR`
+gives 2017 and 2018 the *same* £200 saving, and the record puts them 6pp apart (13.5–14.0% against
+19.5–20.0%). No function returns two values for one argument, so at least one of those years is out
+of band for every possible curve. The record is not even monotone in savings: 2021 offered £0 and
+switched more (17.9–18.4%) than 2016 at £300 (17.0–17.6%). That is why the level for a year the
+record covers is now **taken from the record** rather than modelled, and the curve keeps the job it
+is actually good for — the price-position response, and generating a level where the record is
+silent.
+
+**3 — FIRED. The trap-detector caught this change, and I am recording it rather than explaining it
+away.** Mean realised departure probability per renewal fell **4.93% → 4.50%**: a book 0.43pp easier
+to hold, which is a headline result moving in the company's favour, which §8 says is a defect in the
+change.
+
+It is a small effect and I can say exactly where it comes from, which is the part worth keeping.
+The mean multiplier across 2017–24 fell 1.124 → 1.006, because normalising at 2024 divides by a year
+the record puts *high* relative to its neighbours (16.1%) where the curve had it *low* relative to
+its own (6.75%). **Nothing about the world changed to make the book easier — only which year the
+ratio is divided by.** That is the diagnosis of prediction 4 arriving from the other side: a term
+carrying only a ratio can move the company's fortunes by the choice of denominator alone, and a
+quantity that behaves that way is not a fact about the world.
+
+Two things stop this being a reason to revert. The direction of every *individual* year's correction
+is the record's, not a choice — 2016's flattering 2.17 comes down to 1.09 and 2021's suppressed 0.74
+goes up to 1.14, so the desk now sees undercut pressure in 2018–2021 that the curve hid. And the
+band position was taken at the **high** end under §6's tie-break, which is the anti-flattering choice
+at every single year. The aggregate still came out 0.43pp the company's way, and that is the finding:
+it is the normalisation, and it goes when the level anchor lands.
+
+Realised departures per active electricity account went **up** in 2022 (3.6% → 5.5%) and 2024
+(3.1% → 6.9%) and **down** in 2018, 2019 and 2023. I am not attributing that: the run's renewal count
+itself changed (708 → 681) because the trajectory differs, so those counts are not a clean
+before/after and the mean probability is the only column that is.
+
+**4 — RESTATED AGAIN, and now with the blocker measured instead of assumed.** "The level MOVES and
+lands inside the published band" is still the target and is still open. What this pass establishes is
+that **no single scale on the market term can reach it**, so it is not a constant anybody has yet to
+pick. Decomposing the captured run into the market factor and everything else, the non-market
+product (bill shock × felt price position × action propensity × dissatisfaction) is:
+
+    2017 0.0198   2018 0.0530   2019 0.0405   2020 0.0233
+    2021 0.0613   2022 0.1193   2023 0.0466   2024 0.0514
+
+— a **6× spread** whose shape is unrelated to the record's (2022, the record's trough, carries the
+*largest* value). Solving for the single divisor that would put each year inside its own band gives
+disjoint intervals — 2017 needs 0.0198–0.0205, 2022 needs 0.1193–0.1770, and the intersection across
+all eight is **empty**. One scale cannot do it, and fitting one would be choosing which years to be
+wrong about.
+
+That makes the level move **C2's per-year level anchor**, not a constant: the market rate has to set
+the year's level with the household factors distributing it *within* the year, which is exactly the
+competing-risks form `simulation/departure_risks.py` was opened for. Held open and visible rather
+than filed: `tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band`
+is a **strict** xfail carrying this reason, so it must break loudly the day the level lands rather
+than sit green forever.
+
+## 10. A second reading, found by following the thread
+
+Widening the register turned one up. `company/crm/market_conditions.py` carries
+`MARKET_SWITCHING_MULTIPLIER_BY_YEAR`, a ten-entry company-side table whose docstring says it is
+"derived from the same public switching-rate series, normalised to 2024 = 1.0". It was invisible to
+the control because it is shaped as a **ratio**, and the register only held tables shaped as rates.
+
+A multiplier normalised to a reference year is a switching-rate reading — it states every year as a
+fraction of the reference year's rate — so multiplying it back by the record recovers what it
+asserts:
+
+| year | table | implied rate | published band |
+|---|---|---|---|
+| 2016 | 2.17 | **34.9%** | 17.0–17.6% |
+| 2020 | 0.95 | **15.3%** | 22.5–23.0% |
+| 2021 | 0.57 |  **9.2%** | 17.9–18.4% |
+
+This is not a spare constant. `company/crm/competitive_pressure.py` scales every enriched churn
+estimate by it and derives its own log-spread from the table's values, so correcting it changes
+company behaviour and needs its own before/after — it is not a number to overwrite in passing while
+landing something else. Registered in `_MULTIPLIER_READINGS` and held by a **strict** xfail so it
+cannot go quiet again, and left open for its own pass.
+
+Note what the shape difference did: the register was written *specifically* so a second lane reading
+could not arrive unheld, and a second lane reading was sitting in the tree the whole time, four weeks
+older than the register. It was not hidden — it was the wrong shape to be seen. That is the same
+lesson as the denominator: **what a control can see is set by the shape of its subject, not by the
+diligence of the person who wrote it.**

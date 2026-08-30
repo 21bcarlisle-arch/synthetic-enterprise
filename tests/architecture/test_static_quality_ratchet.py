@@ -548,7 +548,12 @@ RUFF_BASELINE: dict[str, int] = {
     #             floor moves DOWN and the new count is held. `--fix` was used here and its diff
     #             READ BEFORE ACCEPTING (two lines, imports only, no `noqa` anywhere in the
     #             block) -- the reason the note above says not to trust it blind still stands.
-    "I001": 1344,
+    # 2026-08-30  I001 1344 -> 1343. `tests/simulation/test_market_switching_propensity.py`
+    #             gained `market_departure_rate_pct` in its from-import when the level and the
+    #             ratio were separated, and sorting the new name into place fixed a block that
+    #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
+    #             new count is held. Sorted by hand, not by `--fix`.
+    "I001": 1343,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -570,7 +575,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2331  # was 2332; -1 (I001, market_report's pre-existing unsorted import block)
+RUFF_BASELINE_TOTAL = 2330  # was 2331; -1 (I001, the switching-propensity test's import block)
 
 
 # --------------------------------------------------------------------------

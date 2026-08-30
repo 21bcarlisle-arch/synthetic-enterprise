@@ -576,16 +576,24 @@ def test_each_year_records_the_basis_it_was_planned_on():
 
 def test_the_in_play_market_follows_the_real_switching_series():
     """Until PB3 the pool was PROSPECTS_PER_YEAR flat, so the market was equally open every
-    year from 2016 to 2025. It was not. These are the DESNZ-calibrated years the LOSS side has
-    used since it was built: 2016 peak competition, 2022 the crisis when switching stopped."""
-    peak, peak_mult = nna.homes_in_market(2016)
+    year from 2016 to 2025. It was not.
+
+    THE PEAK YEAR IS 2020, NOT 2016, AND THIS TEST SAID 2016 UNTIL 2026-08-30. It asserted
+    `peak_mult > 2.0` at 2016, which was the savings curve's own value (2.17) read back as a
+    requirement -- the published record
+    (`docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`) puts 2016 at
+    17.0-17.6% against 2020's 22.5-23.0%, so the challenger era was not the high-water mark and
+    the multiplier's 2016 is now 1.09. Keyed to the property instead: the series must open the
+    market above the 2024 reference in the record's own peak year and shut it in the crisis.
+    """
+    peak, peak_mult = nna.homes_in_market(2020)
     normal, normal_mult = nna.homes_in_market(2024)
     crisis, crisis_mult = nna.homes_in_market(2022)
 
     assert peak >= normal > crisis, (peak, normal, crisis)
     assert normal > 2 * crisis, "the series must bite, not merely tilt"
     assert normal_mult == pytest.approx(1.0, abs=0.05), "2024 is the normalisation year"
-    assert peak_mult > 2.0 and crisis_mult < 0.5, "the real series, not a flattened stand-in"
+    assert peak_mult > 1.0 and crisis_mult < 0.5, "the real series, not a flattened stand-in"
 
 
 def test_the_market_can_only_be_THINNED_never_widened_past_the_stock_partition():
@@ -1139,8 +1147,14 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # "booked wins stay at exactly 45 and every published book figure is unchanged" across the
 # accounts leg. They did, and 2016 and 2017 came back byte-identical -- the budget is exhausted
 # inside 2017 under either rule, so the two only diverge from 2018.
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2737
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60838.81
+# RE-MEASURED 2026-08-30, and the cause is a world change rather than a campaign change: the
+# in-play market is `min(pool, pool * market_switching_multiplier(year))`, and that multiplier is
+# now a ratio of the PUBLISHED switching record instead of a ratio of the savings curve. The
+# record thins 2017 (0.870, was 1.630), 2022 (0.267, was 0.444) and 2023 (0.776, was 0.881), so
+# nine fewer quotes were affordable. Nobody re-priced anything: 2737 -> 2728 quotes,
+# £60,838.81 -> £60,622.86, at the unchanged £20.63 unit price with 2728 * 20.63 + rounding.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 2728
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60622.86
 
 #: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
 #:
@@ -1152,8 +1166,8 @@ CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 60838.81
 #:
 #: The filter is still real and still tested: `test_c_MUTATION_the_window_filter_can_actually_
 #: EXCLUDE` hands it a mid-decade `report_end` and requires it to drop the rest.
-CAMPAIGN_QUOTES_INSIDE_WINDOW = 2737
-CAMPAIGN_SPEND_INSIDE_WINDOW = 60838.81
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 2728
+CAMPAIGN_SPEND_INSIDE_WINDOW = 60622.86
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():

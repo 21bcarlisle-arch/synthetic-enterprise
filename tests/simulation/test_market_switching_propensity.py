@@ -4,9 +4,11 @@ Validates the savings-elasticity churn multiplier calibrated from
 DESNZ/Ofgem data (see docs/market_research/churn_price_elasticity.md).
 """
 import pytest
+
 from simulation.market_switching_propensity import (
     MARKET_SAVINGS_BY_YEAR,
     _savings_to_rate,
+    market_departure_rate_pct,
     market_switching_multiplier,
 )
 
@@ -54,18 +56,37 @@ class TestMarketSwitchingMultiplier:
         assert m > 0.0
 
     def test_high_competition_2016_above_one(self):
-        # 2016: savings = 300 GBP; multiplier should be substantially above 1.0
-        m = market_switching_multiplier(2016)
-        assert m > 1.5, f"Peak competition multiplier {m:.3f} should be > 1.5"
+        """2016 is the peak challenger era and must sit above the 2024 reference.
 
-    def test_monotone_savings_relationship(self):
-        # Higher savings years should produce higher multipliers
-        # (years without post-ban factor to keep comparison clean)
-        m_2016 = market_switching_multiplier(2016)   # 300 GBP
-        m_2017 = market_switching_multiplier(2017)   # 200 GBP
-        m_2021 = market_switching_multiplier(2021)   # 0 GBP
-        m_2022 = market_switching_multiplier(2022)   # -200 GBP
-        assert m_2016 > m_2017 > m_2021 > m_2022
+        KEYED TO THE RECORD, NOT TO THE OLD CURVE'S ANSWER. This asserted `> 1.5` until
+        2026-08-30, which was the savings curve's own value (2.17) and nothing else -- the
+        published record puts 2016 at 17.0-17.6% against 2024's 12.5-16.1%, i.e. a ratio near
+        1.21, so the old bar was a pin on a number that turned out to be 1.8x the record's. The
+        property is the direction: more switching in 2016 than in the post-ban new normal.
+        """
+        m = market_switching_multiplier(2016)
+        assert m > 1.0, f"Peak competition multiplier {m:.3f} should exceed the 2024 reference"
+
+    def test_the_multiplier_follows_the_record_and_NOT_the_savings_ordering(self):
+        """MUTATION: rebuild the multiplier off `_savings_to_rate` and this fires at 2021.
+
+        THE FINDING THIS REPLACES A PIN WITH. The old test asserted the multiplier was monotone
+        in `MARKET_SAVINGS_BY_YEAR`, which it was -- being a function of savings alone. The
+        published record is NOT monotone in those savings, and that is precisely why a
+        savings-only curve can never reproduce it:
+
+            2021 carries 0 GBP of savings and a published 17.9-18.4%.
+            2017 carries 200 GBP and a published 13.5-14.0%.
+
+        So 2021 must come out ABOVE 2017 despite offering nothing to switch for -- the H2-2021
+        collapse was suppliers withdrawing products, and the households who moved that year mostly
+        did so through SoLR rather than by shopping. A multiplier that still ranked these two by
+        savings would be reporting the curve, not the world.
+        """
+        assert market_switching_multiplier(2021) > market_switching_multiplier(2017)
+        assert market_switching_multiplier(2020) > market_switching_multiplier(2016)
+        # The crisis trough is still the bottom, and by more than the curve knew.
+        assert market_switching_multiplier(2022) < market_switching_multiplier(2023) < 1.0
 
     def test_post_ban_suppression_2023_vs_pre_ban(self):
         # 2023 savings == 100 GBP but post-ban factor 0.85 suppresses vs
@@ -107,10 +128,69 @@ class TestMultiplierAppliedToChurn:
         )
 
     def test_high_competition_amplifies_low_churn(self):
+        """A high-switching year must amplify, and 2020 -- not 2016 -- is the record's peak.
+
+        The old bar (`effective > 0.08` from a 0.05 base, i.e. a multiplier above 1.6) was the
+        savings curve's 2016 value read back as a requirement. The record's high-water mark is
+        2020 at 22.5-23.0%, a year the curve had at 8.0% because savings were low; the amplifying
+        property survives, the year it belongs to does not.
+        """
         base_churn = 0.05  # 5% base, no bill shocks
-        mult_2016 = market_switching_multiplier(2016)
-        effective = base_churn * mult_2016
-        assert effective > 0.08, (
-            f"High-competition effective churn {effective:.3f} should exceed 8% "
-            f"(multiplier {mult_2016:.3f})"
+        peak = market_switching_multiplier(2020)
+        assert base_churn * peak > base_churn, (
+            f"the record's peak switching year must amplify churn (multiplier {peak:.3f})"
+        )
+        assert peak > market_switching_multiplier(2024) > market_switching_multiplier(2022)
+
+
+class TestTheTwoQuantitiesStaySeparate:
+    """The level and the ratio are different quantities and each has one job (2026-08-30).
+
+    `market_switching_multiplier` divided an absolute rate by its own 2024 value, so the level
+    existed for one statement and was then cancelled -- nothing downstream could read it and no
+    control could compare it with a publication. Splitting them is the correction; the trap is
+    that the cheapest reading of "un-normalise it" pushes the ABSOLUTE rate through a company-side
+    expression written for a ratio, and silently kills a signal that crosses the wall.
+    """
+
+    def test_the_level_carries_units_the_published_record_can_be_compared_against(self):
+        """MUTATION: return the multiplier from `market_departure_rate_pct` and this fires.
+
+        A per-cent-of-accounts-per-year rate is comparable with the commons; a ratio is not.
+        Every year the record covers must come back as a percentage in the record's own range,
+        not as a number near 1.
+        """
+        for year in range(2016, 2026):
+            rate = market_departure_rate_pct(year)
+            assert 2.0 < rate < 30.0, (
+                f"{year}: {rate} is not a percentage of domestic electricity accounts per year "
+                f"-- the level has been replaced by a ratio again"
+            )
+
+    def test_the_company_facing_observable_is_still_a_ratio_and_still_carries_pressure(self):
+        """THE DEAD-WIRE LEG. MUTATION: make `market_switching_multiplier` return the absolute
+        rate (0.036-0.228) and this fires.
+
+        `company/pricing/renewal_desk.py:149` reads `pressure = max(0.0, multiplier - 1.0)` off
+        this value and tightens its SVT-anchored ceiling by it. Pushed an absolute rate, that
+        expression is identically zero for every year in the record -- the desk's competitive
+        ceiling goes quiet forever and NOTHING SAYS SO, which is this project's most-repeated
+        failure shape. So: the reference year is exactly 1.0, and the record's high-switching
+        years must produce strictly positive pressure.
+        """
+        from company.pricing.renewal_desk import _competitive_ceiling_gbp_per_mwh
+
+        assert market_switching_multiplier(2024) == pytest.approx(1.0, abs=1e-9)
+        pressured = [y for y in range(2016, 2026) if market_switching_multiplier(y) > 1.0]
+        assert len(pressured) >= 4, (
+            f"only {len(pressured)} years produce any undercut pressure at the desk; a signal "
+            f"that is zero almost everywhere is a dead wire that never complains"
+        )
+        # And it must reach the ceiling, not merely exist: the record's peak year has to buy a
+        # strictly lower ceiling than the reference year does.
+        baseline = _competitive_ceiling_gbp_per_mwh(200.0, market_switching_multiplier(2024))
+        peak = _competitive_ceiling_gbp_per_mwh(200.0, market_switching_multiplier(2020))
+        assert peak < baseline, (
+            f"the record's peak switching year buys no undercut at the desk "
+            f"({peak} vs {baseline}) -- the observable crosses the wall and does nothing"
         )

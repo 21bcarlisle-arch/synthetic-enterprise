@@ -174,3 +174,45 @@ no domestic instrument splits "my own bill rose" from "someone else is cheaper",
 is published as an interval over the feasible set (99.9%→56.6% bill-shock) and never as a point.
 
 This finding therefore stays STAGED. Its measurement half is discharged; its correction half is not.
+
+---
+
+## 2026-08-30, later the same day: half the correction landed, and the other half is now measured
+
+**Landed.** The two stacked causes above are separated. `market_departure_rate` is the world's
+ABSOLUTE annual domestic departure rate, in per cent of domestic electricity accounts per year — the
+units a publication can be compared against — and it is no longer cancelled a statement later.
+`market_switching_multiplier` stays DIMENSIONLESS and 1.0 at 2024 on purpose, because
+`company/pricing/renewal_desk.py:149` reads `pressure = max(0.0, multiplier - 1.0)` off it across
+the wall; pushed an absolute rate, that expression is identically zero for every year in the record
+and the desk's competitive ceiling goes quiet forever without complaining. The multiplier is now a
+ratio **of the record** rather than of the curve, and
+`test_the_company_facing_observable_is_still_a_ratio_and_still_carries_pressure` fires if either
+half of that is undone.
+
+**The finding's own claim, corrected beside itself.** It said the curve "is wrong in shape, not just
+level". True, and understated: a function of savings alone **cannot be calibrated to the series at
+all**. `MARKET_SAVINGS_BY_YEAR` gives 2017 and 2018 the same £200 and the record puts them 6pp
+apart, so at least one is out of band under every possible recalibration. The level for a year the
+record covers is therefore taken from the record — 2016–2025 domestic switching is historical ground
+truth in the same sense as 2022 prices — and the curve keeps the job it is good for.
+
+**Still NOT landed, and now with the blocker measured rather than assumed.** The world's realised
+departure level has not moved. Correcting the ratio moves the SHAPE across years and cannot move the
+LEVEL, because the reference year is 1.0 whatever the record says. And no single scale on that ratio
+can reach the band: the non-market factor product varies 7× across years (0.0196 at 2017 to 0.1372
+at 2022) with a shape unrelated to the record's, and the per-year divisors that would put each year
+in band are disjoint (2017 needs 0.0193–0.0200, 2022 needs 0.115–0.170). That makes the level move
+**C2's per-year level anchor**, not a constant anybody has yet to pick.
+
+Held open where it can be seen rather than in this file:
+`tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band`,
+a **strict** xfail, so it breaks loudly the day the level lands.
+
+**A second reading, found by following the thread.** `company/crm/market_conditions.py` carries a
+second company-side reading of the same series shaped as a 2024-normalised multiplier — invisible to
+a register that only held rate tables. Read back against the record it asserts 34.9% for 2016 and
+15.3% for 2020. It is a live prior behind every enriched churn estimate, so it is registered and
+xfailed, not overwritten in passing. See `gb_switching_rate_denominators.md` §10.
+
+**Disposition unchanged: STAGED.** Measurement half discharged; correction half half-discharged.

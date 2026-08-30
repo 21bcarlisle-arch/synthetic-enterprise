@@ -45,12 +45,62 @@ import tools.measure_departure_level as instrument
 #: this file exercise the same `published_bands()` the 3.15x gap was measured with.
 COMMONS = instrument.COMMONS
 
-#: `{dotted module path: attribute}` -- every lane reading of the GB domestic switching rate.
-#: One entry today. The register exists so the second one cannot arrive unheld, which is exactly
+#: `{dotted module path: attribute}` -- every MODULE-CONSTANT lane reading of the GB domestic
+#: switching rate. The register exists so the second one cannot arrive unheld, which is exactly
 #: how the first one got nine years wrong.
 _LANE_READINGS: dict[str, str] = {
     "company.market.market_report": "_UK_SWITCHING_RATE_PCT",
 }
+
+#: THE PRINCIPAL SUBJECT, and it was not in the register when the register was written
+#: (2026-08-30). `_LANE_READINGS` held exactly one entry: a company-side table with zero callers.
+#: The thing this whole anchor was built to judge -- the rate at which households actually leave
+#: in the world the company lives in -- was not a subject of the control at all. So the control
+#: was GREEN on the day the instrument measured the world 3.15x outside the band, and leg (c)
+#: below could only see the register being EMPTIED, never the register never having held the one
+#: reading that mattered. A control whose scope omits its own principal subject is a control that
+#: stays green through exactly the defect it exists for.
+#:
+#: It is not a module constant, so it cannot be a `_LANE_READINGS` entry: it is what the RUN did,
+#: read from the captured factor table through the same instrument the gap was measured with.
+_PRINCIPAL_SUBJECT = "the world's own realised departure rate (tools.measure_departure_level)"
+
+#: `{name: (dotted, attribute, reference_year)}` -- readings held as a MULTIPLIER TABLE rather
+#: than as a rate. A multiplier normalised to a reference year IS a switching-rate reading: it
+#: states every year's rate as a fraction of the reference year's, so multiplying it back by the
+#: record's rate for that year recovers the rate the table asserts. Holding only the rate-shaped
+#: tables is how a reading hides in plain sight -- which is where this one was found, on
+#: 2026-08-30, by following the thread from the world's own multiplier.
+_MULTIPLIER_READINGS: dict[str, tuple[str, str, int]] = {
+    "company.crm.market_conditions:MARKET_SWITCHING_MULTIPLIER_BY_YEAR": (
+        "company.crm.market_conditions", "MARKET_SWITCHING_MULTIPLIER_BY_YEAR", 2024,
+    ),
+}
+
+
+def _implied_rate_table(dotted: str, attr: str, reference_year: int) -> dict[int, float]:
+    """A normalised multiplier table read back as the rate table it asserts."""
+    reference_rate = _bands()[reference_year][1]
+    return {y: m * reference_rate for y, m in _lane_table(dotted, attr).items()}
+
+
+def _world_realised_reading() -> dict[int, float]:
+    """The world's realised per-renewal departure probability by year, as a percentage."""
+    return instrument.world_realised_rate_pct()
+
+
+def _all_readings() -> dict[str, dict[int, float]]:
+    """Every reading the control holds, module constants and the world's outcome alike.
+
+    NAME-KEYED rather than module-keyed, because the principal subject has no module attribute to
+    point at and forcing it into that shape is how it got left out the first time.
+    """
+    readings = {
+        f"{dotted}.{attr}": _lane_table(dotted, attr)
+        for dotted, attr in _LANE_READINGS.items()
+    }
+    readings[_PRINCIPAL_SUBJECT] = _world_realised_reading()
+    return readings
 
 #: The window the published record covers. A lane year outside it is a hole, not a pass.
 _RECORD_YEARS = range(2016, 2026)
@@ -158,6 +208,103 @@ def test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band()
     )
 
 
+def test_the_register_names_the_worlds_own_realised_departure_rate():
+    """MUTATION: remove `_PRINCIPAL_SUBJECT` from `_all_readings()` and this fires.
+
+    THE LEG THE FIRST VERSION OF THIS FILE DID NOT HAVE. Leg (c) fires when the register is
+    EMPTIED, which is the shrink-to-zero failure. It cannot see a register that was never widened
+    to its principal subject -- and that, not emptying, is what actually happened here: the
+    control shipped holding one company-side table with zero callers while the world's own
+    departure rate, the quantity the anchor was written to judge, was outside the band and
+    outside the register.
+
+    So this asserts PRESENCE and NON-EMPTINESS of the principal subject by name. A future pass
+    that finds the world's rate inconvenient has to delete a named assertion rather than quietly
+    fail to add one.
+    """
+    readings = _all_readings()
+    assert _PRINCIPAL_SUBJECT in readings, (
+        "the switching-rate register no longer names the world's own realised departure rate; "
+        "that omission is the defect this file was written for, not a tidy-up"
+    )
+    world = readings[_PRINCIPAL_SUBJECT]
+    assert len(world) >= 5, (
+        f"the world's realised rate covers only {len(world)} years; a principal subject narrowed "
+        f"to a handful of years is the scope-shrink fail-open leg (c) guards against"
+    )
+    for year, value in world.items():
+        assert 0.0 <= value < 100.0, f"{year}: realised departure rate {value} is not a rate"
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "OPEN, and declared rather than hidden. The world's realised departure rate is 4.93% "
+        "against a 2017-2024 published mean of 15.50% -- 3.15x short. The 2026-08-30 correction "
+        "moved the market term's SHAPE onto the record (`market_departure_rate`) but the term "
+        "reaches the churn chain as a dimensionless RATIO, so no level reaches the run. Measured: "
+        "no single scale on that ratio can put all eight years in band, because the non-market "
+        "factor product varies ~7x across years (0.0196 at 2017 to 0.137 at 2022) with a shape "
+        "unrelated to the record. Closing it is C2's per-year level anchor, not a constant. "
+        "See docs/market_research/gb_switching_rate_denominators.md section 8."
+    ),
+)
+def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
+    """THE ONE THE ANCHOR EXISTS FOR. Strict xfail: it must FAIL while the world is short of the
+    record, and it must FAIL TO XFAIL -- i.e. break loudly -- the moment the level lands.
+
+    That is the property a stale marker cannot have. `strict=True` makes an XPASS an error, so
+    whoever moves the level is forced to remove this marker in the same commit; the alternative,
+    a plain xfail, would sit here green forever and be the stale-xfail shape this repo has
+    already been caught by.
+    """
+    bands = _bands()
+    world = _world_realised_reading()
+    assert world, "no realised rate to judge -- an empty subject is not a pass"
+    for year, value in sorted(world.items()):
+        lo, hi = bands[year]
+        assert lo <= value <= hi, (
+            f"the world's realised departure rate at {year} is {value:.2f}% against a published "
+            f"{lo}-{hi}%"
+        )
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "OPEN, found 2026-08-30 by following the thread from the world's own multiplier and "
+        "declared here rather than left in prose. `company/crm/market_conditions.py` carries a "
+        "SECOND company-side reading of the same published series, shaped as a 2024-normalised "
+        "multiplier and therefore invisible to a register that only held rate tables. Its "
+        "docstring says it is 'derived from the same public switching-rate series'; read back "
+        "against the record it asserts 34.9% for 2016 (published 17.0-17.6%) and 15.3% for 2020 "
+        "(published 22.5-23.0%). It is a LIVE prior -- `company/crm/competitive_pressure.py` "
+        "scales every enriched churn estimate by it and derives its own log-spread from the "
+        "table's values -- so correcting it is a company-behaviour change with its own blast "
+        "radius, not a number to overwrite in passing. It is registered and xfailed so it cannot "
+        "go quiet again."
+    ),
+)
+def test_every_multiplier_shaped_reading_implies_a_rate_inside_the_published_band():
+    """MUTATION: point the reference year at a band the record does not carry and this errors;
+    move a multiplier back onto the record and this XPASSes, which `strict` makes a failure.
+
+    THE CLASS THIS FILE WAS WRITTEN FOR, ONE SHAPE ALONG. The opening defect was a rate table
+    nobody compared with the record. This is the same defect wearing a ratio: a table whose
+    numbers look like 0.95 and 2.17 rather than 14.2 and 17.0, and which therefore passed every
+    eye that knew to check percentages against a published band.
+    """
+    bands = _bands()
+    for name, (dotted, attr, reference_year) in _MULTIPLIER_READINGS.items():
+        for year, value in sorted(_implied_rate_table(dotted, attr, reference_year).items()):
+            if year not in bands:
+                continue
+            lo, hi = bands[year]
+            assert lo <= value <= hi, (
+                f"{name}[{year}] implies {value:.1f}% against a published {lo}-{hi}%"
+            )
+
+
 def test_a_lane_reading_covers_the_whole_published_window():
     """MUTATION: delete 2020 and 2021 from `_UK_SWITCHING_RATE_PCT` -- the two years the old table
     was most wrong about -- and this fires.
@@ -220,3 +367,25 @@ def test_mutation_c_an_emptied_lane_register_cannot_read_green(monkeypatch):
     )
     with pytest.raises(AssertionError, match="only 0"):
         test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band()
+
+
+def test_mutation_d_dropping_the_principal_subject_from_the_register_is_caught(monkeypatch):
+    """MUTATION: return a register WITHOUT the world's own rate -- the state this file actually
+    shipped in -- and the presence leg must fire.
+
+    Distinct from leg (c) and that distinction is the point. (c) mutates the register to EMPTY,
+    which a non-vacuity floor catches. This mutates it to a register that is full, plausible, and
+    silent about the one subject the anchor was built for. The first version of this file passed
+    that mutation, which is why it was green on the day the world was measured 3.15x out.
+    """
+    monkeypatch.setattr(
+        instrument, "world_realised_rate_pct", lambda *a, **k: {},
+    )
+    monkeypatch.setattr(
+        "tests.architecture.test_switching_rate_commons._all_readings",
+        lambda: {
+            f"{d}.{a}": _lane_table(d, a) for d, a in _LANE_READINGS.items()
+        },
+    )
+    with pytest.raises(AssertionError, match="no longer names the world's own"):
+        test_the_register_names_the_worlds_own_realised_departure_rate()
