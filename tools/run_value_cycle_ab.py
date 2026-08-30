@@ -958,6 +958,21 @@ def belief_vs_outcome(value: dict) -> dict:
             "churn decision, not renewals whose outcome is unknown. They are excluded "
             "rather than counted as retained: scoring a belief about retention against a "
             "renewal where leaving was impossible would flatter the arm."),
+        # WHICH RENEWALS THE RANK STATISTIC IS COMPUTED OVER -- ALL of them, not a sample.
+        # `matched_sample` above is `scored[:10]`, which is enough to diagnose the matching and
+        # NOT enough to name the departures. On 2026-08-30 the AUC below was attributed to its
+        # population -- half the departures on the 2026-08-29 run were accounts the arm's own
+        # price rise drove out -- and the artefact could not name them, so the page had to state
+        # the accounts and not the decisions. An AUC on single-digit departures whose departures
+        # are not listed is a number a reader cannot check. Whole rows, because the believed value
+        # and the outcome together are what any re-derivation needs; this is 20-58 rows on every
+        # run this arm has produced.
+        "scored_decisions": [
+            {"account": r["account"], "term_start": r["term_start"],
+             "believed_p_retain": r["believed_p_retain"], "retained": r["retained"],
+             "chosen_margin_gbp_per_mwh": r["chosen_margin_gbp_per_mwh"]}
+            for r in scored
+        ],
         "mean_believed_p_retain": believed_mean,
         "realised_retention_rate": realised_rate,
         "calibration_error": believed_mean - realised_rate,

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T02:47:16.077564Z",
+  "generated_at": "2026-08-30T03:03:00.496388Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -563,6 +563,10 @@
         "C8",
         "C9"
       ],
+      "the_departures": {
+        "available": false,
+        "reason": "this run predates `belief_vs_outcome.scored_decisions` (added 2026-08-30), so the artefact carries only the first ten scored rows and the departures behind this figure cannot be listed from it. The accounts the arm's own price drove out ARE named above; the per-renewal list ships with the next A/B run."
+      },
       "priced_accounts": 10,
       "value_arm_only_churners": [
         "C1_2",

@@ -1346,3 +1346,67 @@ def test_the_independent_grade_matches_the_artefact_the_grader_wrote():
     assert grade["oracle_ceiling"]["discrimination_auc"] > 0.5, (
         "the oracle ceiling no longer clears the null, so the instrument-defect branch this "
         "figure closes is REOPENED and the page's attribution is stale")
+
+
+def _scored(retained_flags, left_in_population=None):
+    """A `belief_vs_outcome` carrying whole scored rows, at a chosen outcome pattern."""
+    art = _load(THREE_ARM)
+    rows = [{"account": "C{}".format(i), "term_start": "2018-04-01", "believed_p_retain": 0.6,
+             "retained": flag, "chosen_margin_gbp_per_mwh": 60.0}
+            for i, flag in enumerate(retained_flags, start=1)]
+    art["belief_vs_outcome"] = dict(art["belief_vs_outcome"], scored_decisions=rows,
+                                    auc_population={
+                                        "retained": sum(retained_flags),
+                                        "left": (left_in_population if left_in_population
+                                                 is not None else
+                                                 len(retained_flags) - sum(retained_flags))})
+    return art
+
+
+def test_a_run_that_cannot_name_its_departures_says_so_rather_than_naming_TEN_OF_THEM(real):
+    """R15 FAIL-OPEN, the half-population shape -- and the version of it that LOOKS answered.
+
+    `matched_sample` is `scored[:10]` and has been in this artefact since the statistic existed.
+    Filtering it for departures would let the page print "the departures it is computed over"
+    over a SLICE, and a reader would take it for the population. The absence is published
+    instead, with the reason and what fixes it.
+
+    Fires on: sourcing `the_departures` from `matched_sample`.
+    """
+    departures = real["decisions"]["auc_attribution"]["the_departures"]
+    assert departures["available"] is False
+    assert "predates" in departures["reason"]
+    assert "departures" not in departures, (
+        "an unavailable list published a list -- the fail-open shape this guard exists for")
+
+
+def test_a_run_carrying_its_scored_rows_names_every_departure():
+    """THE PASS BRANCH, driven here because no run has produced the field yet.
+
+    `run_value_cycle_ab.belief_vs_outcome.scored_decisions` was added 2026-08-30 and needs a
+    decade run to appear. Shipping the consumer untested until then is how a render nobody has
+    seen goes out on the first run that carries the field.
+    """
+    dep = gva.build(_scored([True, False, True, False, False]), _load(NOISE_FLOOR),
+                    _load(RUN_OUTPUT))["decisions"]["auc_attribution"]["the_departures"]
+    assert dep["available"] is True
+    assert dep["count"] == 3
+    assert [r["account"] for r in dep["departures"]] == ["C2", "C4", "C5"]
+    assert dep["agrees_with_auc_population"] is True
+
+
+def test_a_row_list_that_disagrees_with_the_rank_statistics_own_population_says_so():
+    """DETECTION BY CONTRADICTION, which is the only kind available here.
+
+    Two fields count the departures by different routes: the AUC's own tally and the row list. If
+    the rows were ever a subset -- the exact defect the absent branch above guards against -- the
+    counts diverge, and a page that published the list without checking would name six departures
+    under a statistic computed over ten.
+
+    Fires on: dropping `agrees_with_auc_population`, or computing it from the row list twice.
+    """
+    dep = gva.build(_scored([True, False, True], left_in_population=9), _load(NOISE_FLOOR),
+                    _load(RUN_OUTPUT))["decisions"]["auc_attribution"]["the_departures"]
+    assert dep["available"] is True
+    assert dep["count"] == 1
+    assert dep["agrees_with_auc_population"] is False

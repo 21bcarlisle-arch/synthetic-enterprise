@@ -1503,6 +1503,43 @@ def _auc_null(retained: int, left: int, observed: float | None) -> dict:
     }
 
 
+def _departures(belief: dict) -> dict:
+    """The renewals the AUC's positive class is made of, named -- or a stated absence.
+
+    R15 FAIL-OPEN, the half-population shape. `matched_sample` is the first ten scored rows and
+    has been in this artefact since the statistic was written; reading it as the population would
+    let the page list "the departures" and name a slice, which is the version of this defect that
+    LOOKS answered. `scored_decisions` is the whole list or it is not there.
+    """
+    rows = (belief or {}).get("scored_decisions")
+    population = (belief or {}).get("auc_population") or {}
+    left = population.get("left")
+    if not isinstance(rows, list) or not rows:
+        return {
+            "available": False,
+            "reason": ("this run predates `belief_vs_outcome.scored_decisions` (added 2026-08-30), "
+                       "so the artefact carries only the first ten scored rows and the departures "
+                       "behind this figure cannot be listed from it. The accounts the arm's own "
+                       "price drove out ARE named above; the per-renewal list ships with the next "
+                       "A/B run."),
+        }
+    departed = [r for r in rows if isinstance(r, dict) and r.get("retained") is False]
+    return {
+        "available": True,
+        "count": len(departed),
+        # THE CONTRADICTION CHECK, not a restatement. Two fields count this population by
+        # different routes -- the rank statistic's own tally and the row list -- and a disagreement
+        # means one of them is describing a book the other is not.
+        "agrees_with_auc_population": (None if left is None else len(departed) == left),
+        "departures": sorted(
+            ({"account": r.get("account"), "term_start": r.get("term_start"),
+              "believed_p_retain": _f(r.get("believed_p_retain")),
+              "chosen_margin_gbp_per_mwh": _f(r.get("chosen_margin_gbp_per_mwh"))}
+             for r in departed),
+            key=lambda r: (str(r["account"]), str(r["term_start"]))),
+    }
+
+
 def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> dict:
     """WHAT 0.13 IS. Attributed from the artefact and the grader, not argued.
 
@@ -1556,6 +1593,14 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
         # small" -- that is true of every figure on this page and explains nothing about the
         # DIRECTION. These are the priced accounts whose departure the arm itself produced.
         "priced_accounts_the_arm_itself_drove_out": caused,
+        # WHICH DEPARTURES, by name, when the run carries them. Every artefact produced before
+        # 2026-08-30 publishes `matched_sample` -- the FIRST TEN scored rows -- and nothing else,
+        # so the departures behind this AUC cannot be listed from it. Publishing the ten rows it
+        # does have would be worse than publishing none: a reader would take a slice of the
+        # population for the population. So this is an ABSENCE with the reason on it, and
+        # `run_value_cycle_ab.belief_vs_outcome.scored_decisions` makes the next A/B run carry the
+        # whole list.
+        "the_departures": _departures(belief),
         "priced_accounts": len(priced),
         "value_arm_only_churners": only_value,
         "median_margin_gbp_per_mwh": _f(shape.get("median_margin_gbp_per_mwh")),

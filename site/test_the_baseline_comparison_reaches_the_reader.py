@@ -1093,3 +1093,39 @@ def test_a_figure_INSIDE_its_null_renders_as_UNRESOLVED_on_the_page():
     assert "0.465" in rendered
     assert "INSIDE that interval" in rendered
     assert "worse than a coin flip" not in rendered
+
+
+def test_the_reader_is_told_WHICH_departures_or_why_they_are_not_named(live):
+    """A rank statistic on ten departures that does not say which ten is a number nobody can
+    check. The live run's artefact predates the field that carries them, so the page must print
+    the ABSENCE -- not a blank, and not ten of them out of twenty.
+
+    Fires on: rendering nothing when `the_departures.available` is false.
+    """
+    rendered = live["arms-decisions"]
+    departures = _live_feed()["decisions"]["auc_attribution"]["the_departures"]
+    if departures["available"]:
+        assert "{} departures it is computed over".format(departures["count"]) in rendered
+        for row in departures["departures"]:
+            assert row["account"] in rendered
+    else:
+        assert "Which departures: not listed" in rendered
+        assert "ships with the next A/B run" in rendered
+
+
+def test_the_departures_reach_the_reader_by_name_once_a_run_carries_them():
+    """THE PASS BRANCH, through the door's own JavaScript. The absent branch is what the live feed
+    exercises, so without this the render that finally names them would ship unseen."""
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["auc_attribution"]["the_departures"] = {
+        "available": True, "count": 2, "agrees_with_auc_population": True,
+        "departures": [
+            {"account": "C6", "term_start": "2017-04-01", "believed_p_retain": 0.62,
+             "chosen_margin_gbp_per_mwh": 60.0},
+            {"account": "C9", "term_start": "2019-07-01", "believed_p_retain": 0.95,
+             "chosen_margin_gbp_per_mwh": 60.0},
+        ]}
+    rendered = _render(feed)["arms-decisions"]
+    assert "2 departures it is computed over" in rendered
+    assert "C6 (2017-04-01)" in rendered and "C9 (2019-07-01)" in rendered
+    assert "not listed" not in rendered

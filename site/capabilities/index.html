@@ -757,6 +757,22 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + "The arm’s own belief that a renewal would survive the price it chose scored "
                 + "<strong>" + dec.discrimination_auc.toFixed(3)
                 + "</strong> on the usual rank measure. " + prose(dec.auc_reading) + "</p>")
+          // WHICH DEPARTURES, named where the reader meets the figure — or why they are not
+          // named. A rank statistic on ten departures that does not say which ten is a number
+          // nobody can check, and the artefact this run was built from predates the field that
+          // carries them. The absence is printed; it is not left as a blank.
+          + ((dec.auc_attribution && dec.auc_attribution.the_departures)
+              ? (dec.auc_attribution.the_departures.available
+                  ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The '
+                    + esc(dec.auc_attribution.the_departures.count) + " departures it is "
+                    + "computed over: "
+                    + dec.auc_attribution.the_departures.departures.map(function (r) {
+                        return esc(r.account) + " (" + esc(r.term_start) + ")";
+                      }).join(", ") + ".</p>"
+                  : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                    + "Which departures: not listed. "
+                    + prose(dec.auc_attribution.the_departures.reason) + "</p>")
+              : "")
           + (dec.control_credibility_note
               ? '<p style="margin:0;font-size:11.5px;color:var(--muted);">'
                 + prose(dec.control_credibility_note) + "</p>"
