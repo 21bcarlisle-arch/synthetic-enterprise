@@ -48,6 +48,21 @@ fails and is recorded as bounding publication rather than construction.
 > themselves and their segments inferred from the run that produced them. The filename was never the
 > control: `value_cycle_ab_resi.json` in fact served resi **and** SME.
 >
+> **The block was half the repair, and the other half landed 2026-08-30.** Naming the book at
+> ARTEFACT-ASSEMBLY time is a different measurement from naming the book each arm RAN on:
+> `served_segments()` resolves from the curriculum file on every call, an arm is a full phase-4c
+> pass, and a curriculum edit between the control arm and the value arm therefore put the two arms
+> on two books while the artefact reported the second one for both. It also made a cross-arm check
+> impossible — comparing one function's value against itself has no failing branch. The run now
+> snapshots the book beside each arm (`book_at_run`), records whether it came from the curriculum
+> or from an `SE_SERVED_SEGMENTS` override, and **refuses** to report a delta whose arms served
+> different segments (`same_book_across_arms`, published inside `book_identity` so the verdict
+> cannot be deployed apart from the books it grades). `arm_identity` refuses a third differing
+> policy field; this refuses a second population, which is the same class of uncontrolled
+> variable. An arm whose book was never recorded reports `served_segments: null` and says why,
+> rather than borrowing today's curriculum. Rows 1–3 are unaffected and are not backfilled: their
+> books cannot be established honestly after the fact, which is what this paragraph is for.
+>
 > The last row is the only one that answers the question this project exists to ask.
 
 ## The thesis, stated as a measurable claim

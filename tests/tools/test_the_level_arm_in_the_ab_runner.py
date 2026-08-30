@@ -28,6 +28,8 @@ negative selection. That is the one assertion here that ties this code to the ar
 to reproduce, rather than to its own arithmetic.
 """
 
+import os
+
 import pytest
 
 from company.pricing.value_based_renewal import FLAT_AT_LEVEL
@@ -192,4 +194,44 @@ def test_a_value_arm_that_published_NO_median_refuses_rather_than_assuming_a_lev
         rvca.run_value_cycle_ab(level_arm=True)
 
     # And it refused BEFORE spending the pass, which is the point of raising here.
+    assert [p.name for p in wired] == ["current", "value_arm"]
+
+
+# ---- the population axis of the same wiring --------------------------------------------
+#
+# `arm_identity` refuses a third differing POLICY field (above). Nothing refused a second
+# BOOK until `same_book_across_arms` landed, and the two are the same class of defect:
+# a delta across two populations is a delta with an uncontrolled variable in it. The finding
+# is WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26.
+
+
+def test_the_run_publishes_a_same_book_verdict_a_reader_can_check(wired):
+    """The check is IN the artefact, not only in the run. A reader of a downloaded file has
+    no way to know a refusal path existed unless its verdict is on the page with the books."""
+    result = rvca.run_value_cycle_ab(level_arm=True)
+
+    agreement = result["book_identity"]["same_book_across_arms"]
+    assert agreement["same_book"] is True
+    assert agreement["arms_compared"] == ["control_arm", "level_arm", "value_arm"]
+    assert len(agreement["distinct_books"]) == 1
+
+
+def test_two_arms_on_two_books_are_REFUSED_rather_than_reported(wired, monkeypatch):
+    """The reachable failure, end to end. An arm is a full phase-4c pass — minutes — and the
+    served segments resolve from a file on EVERY call, so a curriculum edit or an override
+    change between the control arm and the value arm genuinely puts the two arms on two
+    books. Reading the resolver once at the end reports the second book for both of them and
+    the delta reads clean; this is the mutation that proves it no longer can."""
+    def flip_the_book_after_the_first_arm(report_end=None, policy=None):
+        wired.append(policy)
+        os.environ["SE_SERVED_SEGMENTS"] = "resi" if len(wired) == 1 else "resi,SME"
+        return {"phase2b": {}, "_name": policy.name}
+
+    monkeypatch.setattr(rvca, "run_phase4c", flip_the_book_after_the_first_arm)
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+
+    with pytest.raises(AssertionError, match="did not serve one book"):
+        rvca.run_value_cycle_ab()
+
+    # Both arms ran — the refusal is on the comparison, not on the second pass.
     assert [p.name for p in wired] == ["current", "value_arm"]

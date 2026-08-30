@@ -70,6 +70,7 @@ import importlib
 import importlib.util
 import json
 import math
+import os
 import random
 import statistics
 from dataclasses import replace
@@ -479,7 +480,84 @@ def churn_volume_attribution(control: dict, value: dict) -> dict:
     }
 
 
-def book_identity(result: dict) -> dict:
+def book_at_run() -> dict:
+    """The segments being served AT THE MOMENT AN ARM RAN, snapshotted by the caller.
+
+    Reading this once, at the end, when the artefact is assembled is not the same measurement
+    and it was the half of
+    `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26` that stayed
+    open. `served_segments()` resolves from the curriculum file (or the env override) on EVERY
+    call, and an arm here is a full phase-4c pass -- minutes, not milliseconds. A curriculum
+    edit or an override change between the control arm and the value arm therefore puts two
+    arms on two books, and an artefact that asks the resolver once afterwards reports the
+    SECOND book for both of them. Worse, it makes the cross-arm control below unable to fail:
+    comparing one function's value against itself is a tautology whose FAIL branch does not
+    exist. Snapshotting per arm is what gives that control a reachable failure.
+
+    The override is recorded SEPARATELY from the resolved list because an env-overridden run
+    and a curriculum run are different claims even when they resolve to the same segments --
+    one is a measurement someone asked for, the other is what the company actually serves.
+    """
+    from simulation.live_population import served_segments
+
+    override = os.environ.get("SE_SERVED_SEGMENTS", "").strip()
+    return {
+        "served_segments": list(served_segments()),
+        "resolved_from": "SE_SERVED_SEGMENTS" if override else "curriculum",
+        # The raw string, not a re-parse of it: a second parser here would be a second answer
+        # to the same question and the two would drift.
+        "override_env": override or None,
+    }
+
+
+def same_book_across_arms(books: dict) -> dict:
+    """Did every arm that ran serve the SAME segments? The population axis of `arm_identity`.
+
+    `arm_identity` guards the POLICY fields, so that a delta between two arms carries exactly
+    one changed variable. It has never guarded the population, and the population is a free
+    variable of exactly the same kind: two arms on two books produce a clean delta that means
+    nothing. The finding this closes recorded three readings from this tool on one day whose
+    books differed and whose artefacts could not say so.
+
+    Compared on the RESOLVED segments, not on the whole snapshot: an arm run under an env
+    override and an arm run from a curriculum that resolves to the same list served the same
+    book, and `resolved_from_by_arm` is published beside the verdict so a reader sees the
+    difference the verdict deliberately ignores.
+
+    NOT compared on account counts. Different prices cause different churn, so the arms'
+    realised books diverge when the arm is working -- a control keyed to that would go red
+    precisely when the experiment succeeded, which is the "keyed to today's answer" shape.
+
+    `same_book` is TRI-STATE. `None` is "cannot tell", and it is the verdict whenever fewer
+    than two arms recorded a book: one arm agrees with itself, and reporting that as `True`
+    would be a pass branch reached by having nothing to compare.
+    """
+    lists = {arm: (b or {}).get("served_segments") for arm, b in books.items()}
+    recorded = {arm: v for arm, v in lists.items() if isinstance(v, list)}
+    missing = sorted(arm for arm in lists if arm not in recorded)
+    distinct = sorted({tuple(v) for v in recorded.values()})
+    if missing or len(recorded) < 2:
+        verdict = None
+    else:
+        verdict = len(distinct) == 1
+    return {
+        "same_book": verdict,
+        "arms_compared": sorted(recorded),
+        "arms_with_no_recorded_book": missing,
+        "served_segments_by_arm": dict(lists),
+        "resolved_from_by_arm": {
+            arm: (b or {}).get("resolved_from") for arm, b in books.items()},
+        "distinct_books": [list(t) for t in distinct],
+        "why_this_is_here": (
+            "`arm_identity` guards the policy fields; this guards the population. A delta "
+            "between two arms that served different segments carries an uncontrolled "
+            "variable of the same class -- "
+            "WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26."
+        ),
+    }
+
+
+def book_identity(result: dict, at_run: dict | None = None) -> dict:
     """WHICH BOOK this ran on, in the artefact, so the next reader does not infer it from a date.
 
     `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26` is the finding
@@ -499,18 +577,30 @@ def book_identity(result: dict) -> dict:
         commodity = record.get("commodity") or "electricity"
         accounts[_billing_account_id(customer_id)].add(commodity)
 
-    # THE POPULATION IS A FREE VARIABLE OF THE RUN, and until now the record of the run did
-    # not capture it: the book is resolved at import time from the curriculum file, so a run
-    # on the wrong segments produced a clean, complete, entirely plausible artefact -- R15
-    # FAIL-OPEN one level up from R14's clock rule. Read from the resolver, never restated
-    # here, so this cannot drift from the list the population was actually built with.
-    from simulation.live_population import served_segments
-
+    # THE POPULATION IS A FREE VARIABLE OF THE RUN, and until this landed the record of the run
+    # did not capture it: the book is resolved from the curriculum file, so a run on the wrong
+    # segments produced a clean, complete, entirely plausible artefact -- R15 FAIL-OPEN one
+    # level up from R14's clock rule.
+    #
+    # It is the CALLER'S snapshot, taken when this arm ran (`book_at_run`), and never a fresh
+    # resolve here. Resolving here would report the book at the moment the artefact was
+    # assembled, which is a different measurement and is the same one for every arm -- see
+    # `book_at_run` for why that difference is the whole control. FAIL CLOSED when the caller
+    # recorded nothing: a `None` a reader can see beats the current answer silently standing in
+    # for a book nobody observed.
     elec = sum(1 for c in accounts.values() if "electricity" in c)
     gas = sum(1 for c in accounts.values() if "gas" in c)
     dual = sum(1 for c in accounts.values() if {"electricity", "gas"} <= c)
+    snapshot = at_run if isinstance(at_run, dict) else {}
     return {
-        "served_segments": list(served_segments()),
+        "served_segments": snapshot.get("served_segments"),
+        "served_segments_resolved_from": snapshot.get("resolved_from"),
+        "served_segments_override_env": snapshot.get("override_env"),
+        "served_segments_unavailable_because": (
+            None if snapshot else
+            "the caller recorded no book at this arm's run, so which segments it served is "
+            "not known -- stated rather than filled in from the current curriculum, which "
+            "would report a book this arm may never have been run on"),
         "billing_accounts_settled_in_window": len(accounts),
         "with_an_electricity_leg": elec,
         "with_a_gas_leg": gas,
@@ -2645,8 +2735,13 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
     rather than one, and every number below is uninterpretable -- so it raises rather than
     reporting a delta it cannot attribute.
     """
+    # ONE SNAPSHOT PER ARM, taken beside the run rather than once at the end -- `book_at_run`
+    # carries the reason. These feed both the per-arm `book_identity` blocks and the cross-arm
+    # same-book control, and taking them here is what lets that control fail.
+    books: dict[str, dict] = {}
     with policy_scope(CURRENT_POLICY):
         control = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
+    books["control_arm"] = book_at_run()
     if control["phase2b"].get("value_arm_log"):
         raise AssertionError(
             "the CONTROL arm priced {} renewal(s) with the value arm -- the writer is not a "
@@ -2656,6 +2751,7 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
 
     with policy_scope(VALUE_ARM_POLICY):
         value = run_phase4c(report_end=report_end, policy=VALUE_ARM_POLICY)
+    books["value_arm"] = book_at_run()
 
     control_m = realised_metrics(control)
     value_m = realised_metrics(value)
@@ -2682,6 +2778,7 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
             renewal_margin_flat_level_gbp_per_mwh=float(level))
         with policy_scope(level_policy):
             level_result = run_phase4c(report_end=report_end, policy=level_policy)
+        books["level_arm"] = book_at_run()
         level_m = realised_metrics(level_result)
         # THE POPULATIONS MUST BE THE SAME ONES, and this checks rather than assumes it. The arm
         # exists to price EXACTLY the renewals the value arm priced -- if it priced a different
@@ -2690,6 +2787,20 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # a small divergence is inherent to any arm comparison in a world where price affects
         # retention (see the finding's own caveat) and suppressing the result would hide it.
         level_shape = arm_decision_shape(level_result)
+
+    # THE ARMS MUST HAVE SERVED THE SAME BOOK, and this raises rather than reporting a delta it
+    # cannot attribute -- the same treatment, and for the same reason, as the control-arm
+    # emptiness check above. `arm_identity` refuses a third differing POLICY field; this refuses
+    # a second book. A tri-state `None` ("fewer than two arms recorded one") is refused too: an
+    # unmeasured population is not a passed check.
+    agreement = same_book_across_arms(books)
+    if agreement["same_book"] is not True:
+        raise AssertionError(
+            "the arms did not serve one book: {} (compared {}, unrecorded {}). A delta across "
+            "two populations carries an uncontrolled variable of the same class `arm_identity` "
+            "exists to catch. Refusing to report it.".format(
+                agreement["distinct_books"], agreement["arms_compared"],
+                agreement["arms_with_no_recorded_book"]))
 
     # ONE FUNNEL PER ARM THAT ACTUALLY RAN, computed once and used twice below -- as the per-arm
     # block and as the input to the cross-arm denominator comparison. An arm that did not run is
@@ -2718,8 +2829,16 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # WHICH BOOK. First, because two prior readings of this artefact were correct about a
         # book the company no longer had and neither could say so in its own words.
         "book_identity": {
-            "control_arm": book_identity(control),
-            "value_arm": book_identity(value),
+            "control_arm": book_identity(control, books.get("control_arm")),
+            "value_arm": book_identity(value, books.get("value_arm")),
+            # Present only when the third arm ran, for the same reason `level_arm` below is
+            # absent rather than zero-filled.
+            **({"level_arm": book_identity(level_result, books.get("level_arm"))}
+               if level_result is not None else {}),
+            # THE CROSS-ARM CONTROL, in the same block as the per-arm books so the two cannot
+            # be deployed apart. The run already refused above if this is not `true`; it is
+            # published so a reader of the file sees the check rather than trusting it ran.
+            "same_book_across_arms": agreement,
         },
         "arm_identity": {
             "differing_fields": sorted(

@@ -67,6 +67,7 @@ from tools.run_value_cycle_ab import (
     SETTLED_BASIS,
     _concordance,
     belief_vs_outcome,
+    book_at_run,
     book_identity,
     bound_attribution,
     churn_roster_diff,
@@ -1374,7 +1375,7 @@ def test_the_artefact_can_name_its_own_book():
     hand. The run now says which book it ran on, in its own output."""
     identity = book_identity(_ledger(
         [_elec("C1", gross=1.0), _gas("C1g", gross=1.0), _elec("C2", gross=1.0)],
-        account_count=2))
+        account_count=2), book_at_run())
 
     assert identity["billing_accounts_settled_in_window"] == 2
     assert identity["served_segments"] == list(served_segments())
@@ -1401,20 +1402,135 @@ def test_an_empty_book_reports_an_unavailable_share_rather_than_a_flattering_zer
 
 
 def test_the_book_names_the_segments_it_was_allowed_to_serve(monkeypatch):
-    """The population is a FREE VARIABLE of the run — resolved from the curriculum file at
-    import time — and until this landed the record of the run did not capture it. A run on
-    the wrong segments produced a clean, complete, plausible artefact and no control could
-    fire, which is R15 FAIL-OPEN one level above R14's clock rule.
+    """The population is a FREE VARIABLE of the run — resolved from the curriculum file — and
+    until this landed the record of the run did not capture it. A run on the wrong segments
+    produced a clean, complete, plausible artefact and no control could fire, which is R15
+    FAIL-OPEN one level above R14's clock rule.
 
     Read from `served_segments()` rather than restated, so the artefact cannot claim a book
     the population was not built from. Monkeypatching the env override is the cheapest proof
     that it is genuinely read per call and not frozen at import."""
     monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
-    identity = book_identity(_ledger([_elec("C1", gross=1.0)]))
+    identity = book_identity(_ledger([_elec("C1", gross=1.0)]), book_at_run())
     assert identity["served_segments"] == ["resi"]
 
     monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME")
-    assert book_identity(_ledger([_elec("C1", gross=1.0)]))["served_segments"] == ["resi", "SME"]
+    assert book_identity(
+        _ledger([_elec("C1", gross=1.0)]), book_at_run())["served_segments"] == ["resi", "SME"]
+
+
+def test_an_overridden_book_and_a_curriculum_book_are_DIFFERENT_CLAIMS(monkeypatch):
+    """A measurement someone asked for and what the company actually serves are not the same
+    statement even when they resolve to the same segments — the finding asked for the override
+    recorded separately for that reason. Recording only the resolved list loses which of the
+    two a reader is looking at."""
+    monkeypatch.delenv("SE_SERVED_SEGMENTS", raising=False)
+    from_curriculum = book_at_run()
+    assert from_curriculum["resolved_from"] == "curriculum"
+    assert from_curriculum["override_env"] is None
+
+    # The override deliberately set to the SAME list the curriculum resolves to. A control that
+    # inferred the source from the segments could not tell these two apart — which is the whole
+    # point of carrying the raw string.
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", ",".join(from_curriculum["served_segments"]))
+    overridden = book_at_run()
+    assert overridden["served_segments"] == from_curriculum["served_segments"]
+    assert overridden["resolved_from"] == "SE_SERVED_SEGMENTS"
+    assert overridden["override_env"] == ",".join(from_curriculum["served_segments"])
+
+
+def test_a_book_the_caller_never_recorded_is_UNAVAILABLE_not_todays_curriculum(monkeypatch):
+    """FAIL CLOSED. The tempting repair is to resolve the segments here when the caller passed
+    none — and that reports the book at the moment the artefact was assembled, for an arm that
+    may have run on a different one. It is also what makes the cross-arm control a tautology:
+    every arm gets the same answer from the same call."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    identity = book_identity(_ledger([_elec("C1", gross=1.0)]))
+
+    assert identity["served_segments"] is None
+    assert identity["served_segments_resolved_from"] is None
+    assert "not known" in identity["served_segments_unavailable_because"]
+    # The rest of the block still measures — an unknown population does not void the counts.
+    assert identity["billing_accounts_settled_in_window"] == 1
+
+
+def test_the_arm_reports_the_book_IT_ran_on_and_not_the_one_live_at_assembly(monkeypatch):
+    """TAUTOLOGY guard, and the reason the snapshot is taken per arm. The env here says one
+    thing and the arm's own record says another; the arm's record must win, or an artefact
+    assembled after a curriculum edit relabels every arm with the second book."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME,I&C")
+    at_run = {"served_segments": ["resi"], "resolved_from": "curriculum", "override_env": None}
+
+    identity = book_identity(_ledger([_elec("C1", gross=1.0)]), at_run)
+
+    assert identity["served_segments"] == ["resi"]
+    assert identity["served_segments_unavailable_because"] is None
+
+
+# ---------------------------------------------------------------------------
+# same_book_across_arms — the population axis of `arm_identity`
+# ---------------------------------------------------------------------------
+
+def _book(segments):
+    return {"served_segments": list(segments), "resolved_from": "curriculum",
+            "override_env": None}
+
+
+def test_two_arms_on_ONE_book_pass_and_the_verdict_names_the_book():
+    out = rvca.same_book_across_arms(
+        {"control_arm": _book(["resi", "SME"]), "value_arm": _book(["resi", "SME"])})
+
+    assert out["same_book"] is True
+    assert out["arms_compared"] == ["control_arm", "value_arm"]
+    assert out["distinct_books"] == [["resi", "SME"]]
+    assert out["arms_with_no_recorded_book"] == []
+
+
+def test_two_arms_on_TWO_books_fail_and_both_books_are_on_the_surface():
+    """The defect itself: three readings from this tool on one day, on three books, each
+    artefact clean and none of them able to say which. A verdict with no per-arm list would
+    tell a reader something is wrong without telling them what."""
+    out = rvca.same_book_across_arms(
+        {"control_arm": _book(["resi", "SME"]), "value_arm": _book(["resi"])})
+
+    assert out["same_book"] is False
+    assert out["distinct_books"] == [["resi"], ["resi", "SME"]]
+    assert out["served_segments_by_arm"]["value_arm"] == ["resi"]
+
+
+def test_a_book_the_same_arms_reached_two_WAYS_is_still_one_book():
+    """The other half of the mutation. Compared on the RESOLVED segments, so an env-overridden
+    arm and a curriculum arm that serve the same list agree — and the difference the verdict
+    ignores is published beside it rather than dropped."""
+    overridden = {"served_segments": ["resi", "SME"], "resolved_from": "SE_SERVED_SEGMENTS",
+                  "override_env": "resi,SME"}
+    out = rvca.same_book_across_arms(
+        {"control_arm": _book(["resi", "SME"]), "value_arm": overridden})
+
+    assert out["same_book"] is True
+    assert out["resolved_from_by_arm"] == {
+        "control_arm": "curriculum", "value_arm": "SE_SERVED_SEGMENTS"}
+
+
+def test_ONE_arm_cannot_agree_with_itself_so_the_verdict_is_CANNOT_TELL():
+    """A pass branch reached by having nothing to compare is not a pass. `True` here would be
+    the whole control's fail-open shape: a run that recorded one arm reads as checked."""
+    out = rvca.same_book_across_arms({"control_arm": _book(["resi", "SME"])})
+
+    assert out["same_book"] is None
+    assert out["arms_compared"] == ["control_arm"]
+
+
+def test_an_arm_that_recorded_NO_book_makes_the_verdict_CANNOT_TELL_not_TRUE():
+    """An unmeasured population is not a matching one — the two recorded arms agreeing must
+    not vote down an arm nobody observed."""
+    out = rvca.same_book_across_arms(
+        {"control_arm": _book(["resi", "SME"]), "value_arm": _book(["resi", "SME"]),
+         "level_arm": {}})
+
+    assert out["same_book"] is None
+    assert out["arms_with_no_recorded_book"] == ["level_arm"]
+    assert out["arms_compared"] == ["control_arm", "value_arm"]
 
 
 # ---------------------------------------------------------------------------
