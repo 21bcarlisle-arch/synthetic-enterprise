@@ -14,6 +14,27 @@ test therefore asserts the SHAPE of the defect -- a material, multi-year, undisc
 CREDIT that the control fires on -- never a pinned generated figure. The control's
 fires/does-not-fire proof rests on the synthetic fixtures below, which are fixed by
 construction and are the real R15 evidence.
+
+AND THE ACCOUNT LABEL IS A GENERATED FIGURE TOO (2026-08-30). The 2026-08-08 repair took
+the pence off the pin and left `C7` on it, which is the same mistake one level up: the
+book is re-drawn, so `C7` names a different household from one run to the next. It now
+holds 24 invoices, none of them negative, and its book ends 2017-12-30 -- it never
+reaches the 2018-08-01 catch-up credit this file was written about. That wedged the
+publish gate for a second time, and it wedged it by asserting a REGENERATED IDENTITY.
+
+So the live-data arm is now keyed to the PROPERTY: it searches the whole book for the
+class of defect and takes the worst instance, whatever it is called this run. Measured
+at the time of writing, 27 of 251 accounts carry one (worst: SYN-2016-016, 2807 days,
+-£1508.66) -- the class is abundant, it was only C7 that moved.
+
+WHY A SKIP AND NOT A FAILURE WHEN THE BOOK IS CLEAN. A book with no undischarged credit
+in it is the billing model being RIGHT. A test that went red on that would be asserting
+the model stays bad -- keyed to today's answer, green while the claim rots, exactly
+backwards. The detection power of the control is proven by the synthetic fixtures below,
+which are fixed by construction; this arm's job is narrower and is about two controls,
+not about the book: that on a REAL instance the new control fires where the old footing
+control is blind. With no real instance there is nothing to say, and saying so out loud
+is the honest result.
 """
 from __future__ import annotations
 
@@ -32,26 +53,59 @@ from company.compliance.domain_invariants import check_billed_clock_reconciles
 LEDGER = pathlib.Path(__file__).resolve().parents[3] / "docs" / "state" / "billing_ledger.json"
 
 
-def _c7():
+#: What makes a real credit worth a control's attention: held over a year, and material
+#: rather than a rounding artefact. These are the SHAPE thresholds the 2026-08-08 repair
+#: introduced -- they are properties of the defect class, not measurements of this book.
+_MULTI_YEAR_DAYS = 365
+_MATERIAL_FLOOR_GBP = -50
+
+
+def _worst_real_undischarged_credit():
+    """(account_id, account, worst) for the book's worst undischarged credit, or None.
+
+    Deterministic across runs that re-draw the book: ordered by the floor (most negative
+    first) and tie-broken on the account id, so two tests selecting independently are
+    guaranteed to be talking about the SAME account. That mattered here -- the pair below
+    only says anything if both controls are asked about one subject.
+    """
     d = json.loads(LEDGER.read_text())
-    return d["customers"]["C7"]
+    found = []
+    for account_id, account in d["customers"].items():
+        worst = longest_undischarged_credit(account.get("invoices"), account.get("payments"))
+        if (worst is not None
+                and worst["days"] > _MULTI_YEAR_DAYS
+                and worst["floor_gbp"] < _MATERIAL_FLOOR_GBP):
+            found.append((worst["floor_gbp"], account_id, account, worst))
+    if not found:
+        return None
+    floor_gbp, account_id, account, worst = min(found)
+    return account_id, account, worst
 
 
-# ── the control FIRES on the real, named defect ─────────────────────────────────────
+def _require_a_real_instance():
+    selected = _worst_real_undischarged_credit()
+    if selected is None:
+        pytest.skip(
+            "the regenerated book currently holds no material multi-year undischarged "
+            "credit, so there is no real instance for this arm to be about. This is a "
+            "PASS for the billing model, not a gap in the control: its fires/does-not-"
+            "fire proof is the synthetic fixtures below, which are fixed by construction."
+        )
+    return selected
+
+
+# ── the control FIRES on the real defect, wherever the book put it this run ──────────
 @pytest.mark.skipif(not LEDGER.is_file(), reason="billing ledger snapshot not present")
-def test_fires_on_the_real_C7_undischarged_credit():
-    c7 = _c7()
-    worst = longest_undischarged_credit(c7["invoices"], c7["payments"])
-    assert worst is not None, "control did not see the C7 credit at all"
-    assert worst["days"] > 365, f"expected a multi-year hold, got {worst['days']} days"
-    # A CREDIT (negative floor), and material rather than a rounding artefact. The exact
-    # pence is regenerated every run -- see the module docstring; do not pin it.
-    assert worst["floor_gbp"] < -50, (
-        f"expected a material credit floor, got {worst['floor_gbp']}"
+def test_fires_on_the_real_undischarged_credit_in_the_book():
+    account_id, account, worst = _require_a_real_instance()
+    # The selector already applied the shape thresholds, so re-asserting them here would
+    # be a tautology. What is NOT guaranteed by selection is that the control's own
+    # verdict agrees with its own detector -- that is the assertion worth making.
+    assert check_credit_balance_discharged(
+        account["invoices"], account["payments"], discharge_events=None) is False, (
+        f"{account_id} holds a {worst['floor_gbp']} credit for {worst['days']} days with "
+        "no refund recorded, and the control did not fire on it"
     )
-    # and the control itself fires, with no refund recorded against the account
-    assert check_credit_balance_discharged(c7["invoices"], c7["payments"],
-                                           discharge_events=None) is False
 
 
 @pytest.mark.skipif(not LEDGER.is_file(), reason="billing ledger snapshot not present")
@@ -59,9 +113,12 @@ def test_the_old_footing_control_passes_on_the_same_data():
     """The point of the new control: the existing one is BLIND here, because the credit
     note nets into both sides of the footing identically. This is not a criticism of
     that control -- it is why a second, lifecycle-shaped control was needed."""
-    c7 = _c7()
-    total_billed = round(sum(i["total_amount_gbp"] for i in c7["invoices"]), 2)
-    assert check_billed_clock_reconciles(total_billed, c7["invoices"]) is True
+    account_id, account, worst = _require_a_real_instance()
+    total_billed = round(sum(i["total_amount_gbp"] for i in account["invoices"]), 2)
+    assert check_billed_clock_reconciles(total_billed, account["invoices"]) is True, (
+        f"the footing control fired on {account_id} too, so this pair no longer "
+        "demonstrates the blindness it exists to demonstrate"
+    )
 
 
 # ── it must NOT fire on the healthy cases (or it becomes noise and gets muted) ───────
