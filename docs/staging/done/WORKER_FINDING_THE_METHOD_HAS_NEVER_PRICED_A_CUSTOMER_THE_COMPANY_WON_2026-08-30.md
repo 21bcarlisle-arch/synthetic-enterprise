@@ -112,3 +112,33 @@ rather than testing for a `PROS-`/`SYN-` prefix. A prefix rule is a control pinn
 naming: rename the ids and every won account reads as a founder account, in the flattering
 direction, silently. The page keeps a prefix fallback for artefacts predating the block and says
 in `classification_basis` which of the two it used.
+
+## The escalation, sent 2026-08-30 (closing this finding)
+
+The paragraph above said the SVT product "goes to the director as one rather than being executed
+here". When this finding was drawn again on the next tick it had not: `cdbb1a772` landed at
+00:22Z and no notification carried the curriculum question. The finding described its own
+escalation in the past tense while the escalation did not exist — the shape this project files
+under a claim outrunning the code, one channel over.
+
+Sent at 2026-08-30T00:4xZ, ntfy id `PqJjeQp6wEB2`, `kind=real_alarm`,
+`topic_class=decision_waiting`, delivery confirmed against `ntfy_utils.delivery_state()` rather
+than inferred from a returned id — a send that returns an id and is dropped is recorded as sent.
+It states the gate, states that no book size opens it, refuses the relabel on the 2026-08-28
+fidelity ruling, and RECOMMENDS the standard-variable product built into the curriculum blind to
+company results, noting the direction: it makes the arm's in-scope surface SMALLER as a share of
+the book, so the advantage gets harder to show, not easier. That direction check is the reason to
+believe the change is honest and it is stated in the escalation itself.
+
+Three facts re-verified from source this tick before the director's name went near them, rather
+than read out of the commit message: `simulation/population_draw.py:280` renders `tariff_type`
+unconditionally from a field defaulting to `None` (`:222`); `simulation/run_phase2b.py:1170` reads
+`c.get("tariff_type", "fixed")`, so the default is unreachable whenever the key is present; and
+`company/crm/customer_profitability.py:249` admits only `UPLIFTABLE_TARIFF_TYPES`. `None` is in
+neither set and nothing between them puts it there.
+
+The claim `establish-why-no-drawn-household-has-ever-been-priced` was drawn AFTER its own work
+landed, so its `paths` were empty and the lane could not see the commit that answered it; bound
+with `--landed --commit cdbb1a772`, which is what stops a landed answer being swept and redrawn.
+
+**Status: actioned and archived.** What remains is the director's, not the seat's.
