@@ -102,9 +102,34 @@ def test_elec_rate_2022_peak_of_series():
     assert get_market_elec_rate(2022) == max(rates)
 
 
-def test_switching_rate_2021_very_low():
-    # Crisis onset: suppliers exiting, fewer good deals available
-    assert get_switching_rate(2021) < 10.0
+def test_the_switching_trough_is_2022_and_it_is_the_minimum_of_the_series():
+    """THE TROUGH IS 2022, AND THIS TEST USED TO SAY 2021 (repaired 2026-08-30).
+
+    It asserted `get_switching_rate(2021) < 10.0` and passed against a table that read 6.1% for
+    that year. The published record is 5.06m switches in 2021 -- 17.9-18.4% of domestic electricity
+    accounts, live-corroborated by Energy UK ("5.1m, 14% lower than 2020"). So the test was pinned
+    to today's answer, the answer was wrong by 3x, and the pin is what made it invisible: correcting
+    the table toward the record turned this control RED, which is precisely backwards.
+
+    The property is that the CRISIS TROUGH is 2022, not 2021. The 2021 collapse was an H2 event and
+    the calendar year still carried most of a normal year's switching; 2022 is the year nothing was
+    cheaper than a capped SVT, so there was nowhere to go. Keyed to the shape of the record, this
+    passes at any level inside the published band and fails if the trough moves year or stops being
+    a trough.
+
+    MUTATION: set 2022 to 12.0 in `_UK_SWITCHING_RATE_PCT` and the minimum moves to 2017; set 2021
+    back to 6.1 and the second leg fires.
+    """
+    series = {y: get_switching_rate(y) for y in range(2016, 2026)}
+    assert min(series, key=series.get) == 2022, (
+        f"the published trough is 2022; this series troughs at {min(series, key=series.get)}"
+    )
+    # 2021 is NOT part of the trough: it sits with the pre-crisis years, not with 2022.
+    assert series[2021] > 3 * series[2022], (
+        f"2021 at {series[2021]}% is being modelled as part of the crisis floor "
+        f"({series[2022]}%). The published record puts 2021 at 17.9-18.4% -- an H2 collapse "
+        f"inside a year that still switched 5.06m times."
+    )
 
 
 def test_compare_just_above_three_pct_threshold():

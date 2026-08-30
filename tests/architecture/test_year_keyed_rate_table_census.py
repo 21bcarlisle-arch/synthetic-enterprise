@@ -275,8 +275,14 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
         "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
         "market total in millions and is a straightforward pin once the series is fetched.",
     "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
-        "Ofgem Retail Market Indicators publish domestic switching volumes monthly; the table "
-        "is an annual rate, so the pin is the monthly series plus the annualisation.",
+        "BAND-PINNED, NOT SCALAR-PINNED (2026-08-30), so it stays here rather than moving to "
+        "_PINNED: the record states switch COUNTS, and a count over an account total is a range "
+        "once the account total's own drift is admitted, so leg (a)'s equality machinery has no "
+        "published scalar to assert against and forcing one would mean choosing a point inside "
+        "the band. gb_domestic_switching_rate.json holds the band and "
+        "tests/architecture/test_switching_rate_commons.py holds this table inside it, year by "
+        "year, with three mutation legs. Nine of its ten values were outside the published band "
+        "before that control existed.",
     "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
         "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
         "states the aggregate; the pin is each component, which is most of this register.",

@@ -1,0 +1,35 @@
+{
+  "artefact": "gb_domestic_switching_rate",
+  "version": 1,
+  "published_by": "DESNZ (Quarterly Domestic Energy Switching Statistics) and Energy UK, with Ofgem Retail Market Indicators as the live monthly series",
+  "what_this_is": "THE PUBLISHED RECORD, NOT A READING OF IT. How many GB domestic electricity accounts changed supplier in each year, and how many accounts there were to change. Nothing here converts that into a supplier's book loss rate, a hazard, a per-renewal probability or a multiplier -- those are READINGS and each lane owns its own. The whole reason this artefact exists is that the world's departure LEVEL had never been compared with it: see docs/market_research/gb_switching_rate_denominators.md.",
+  "basis": {
+    "numerator": "EXTERNAL changes of supplier on a GB domestic ELECTRICITY meter point (MPAN), counted once per transfer. NOT tariff switches within the same supplier, which Ofgem's survey instruments do count and which are a different quantity.",
+    "denominator": "ALL GB domestic electricity accounts, whether or not the account was at a decision point that year. A household mid-way through a fixed term is in the denominator and cannot be in the numerator. Any comparison that narrows the denominator to accounts AT a renewal point is measuring something else and will read high.",
+    "units": "per cent of domestic electricity accounts per calendar year",
+    "denominator_count_millions": 28.0,
+    "denominator_count_note": "GB domestic electricity accounts sat between 27.5m and 28.3m across 2016-2025 (company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M, from Ofgem Retail Market Indicators). The band widths below are dominated by numerator uncertainty, not by this; a 28.0m flat denominator moves any year by less than 0.4pp against its own year's count.",
+    "what_this_is_NOT": "A supplier's churn rate is not read off this for free ONLY in the cross-sectional sense: switching is concentrated in engaged households, so individual suppliers vary. In AGGREGATE the identity is exact -- total switches equals the sum of suppliers' external losses, and total accounts equals the sum of their books, so the account-weighted mean supplier loss rate IS this rate. An average-engagement book loses at this rate; it is not an upper bound on one."
+  },
+  "series_source": "docs/market_research/churn_price_elasticity.md section 1 (DESNZ Quarterly Energy Prices Table 2.1; Energy UK switching statistics; Ofgem State of the Market). That series was live-adjudicated against Energy UK and GOV.UK in docs/market_research/f5_simulated_competitor_field.md section 9, which confirmed 2020 ~5.9m and 2021 5.1m switches and DISCONFIRMED the competing in-repo series by ~3x at 2021.",
+  "band_meaning": "lo and hi are the range the published record bears for that year, not a confidence interval. Where the source states a switch COUNT the band is that count over the denominator with a rounding allowance; where it states a range of counts the band is that range. A reading inside the band is consistent with the published record; a reading outside it is not.",
+  "rates": [
+    {"year": 2016, "switches_millions_lo": 4.76, "switches_millions_hi": 4.93, "rate_pct_lo": 17.0, "rate_pct_hi": 17.6, "provenance": "primary", "note": "4.82m stated; peak challenger era."},
+    {"year": 2017, "switches_millions_lo": 3.78, "switches_millions_hi": 3.92, "rate_pct_lo": 13.5, "rate_pct_hi": 14.0, "provenance": "primary", "note": "3.84m stated; market consolidation."},
+    {"year": 2018, "switches_millions_lo": 5.46, "switches_millions_hi": 5.60, "rate_pct_lo": 19.5, "rate_pct_hi": 20.0, "provenance": "primary", "note": "5.54m stated; pre-cap surge."},
+    {"year": 2019, "switches_millions_lo": 5.80, "switches_millions_hi": 5.96, "rate_pct_lo": 20.7, "rate_pct_hi": 21.3, "provenance": "primary", "note": "5.88m stated, corroborated live by Energy UK. Default Tariff Cap live from January."},
+    {"year": 2020, "switches_millions_lo": 6.30, "switches_millions_hi": 6.44, "rate_pct_lo": 22.5, "rate_pct_hi": 23.0, "provenance": "primary", "note": "6.39m stated, corroborated live (~5.9m on the Energy UK count). The record's high-water mark."},
+    {"year": 2021, "switches_millions_lo": 5.01, "switches_millions_hi": 5.15, "rate_pct_lo": 17.9, "rate_pct_hi": 18.4, "provenance": "primary", "note": "5.06m stated; Energy UK 5.1m, '14% lower than 2020'. H2 near zero as suppliers withdrew products."},
+    {"year": 2022, "switches_millions_lo": 0.80, "switches_millions_hi": 1.20, "rate_pct_lo": 2.9, "rate_pct_hi": 4.3, "provenance": "primary", "note": "The crisis trough. Nothing was cheaper than a capped SVT, so there was nowhere to go."},
+    {"year": 2023, "switches_millions_lo": 2.50, "switches_millions_hi": 3.50, "rate_pct_lo": 8.9, "rate_pct_hi": 12.5, "provenance": "primary", "note": "Recovery begins; fairer-pricing rule in force."},
+    {"year": 2024, "switches_millions_lo": 3.50, "switches_millions_hi": 4.50, "rate_pct_lo": 12.5, "rate_pct_hi": 16.1, "provenance": "primary", "note": "Post-ban equilibrium. Ofgem describes switching as still below pre-crisis levels, and it is -- against a 2020 of 23%."},
+    {"year": 2025, "switches_millions_lo": 4.00, "switches_millions_hi": 5.00, "rate_pct_lo": 14.3, "rate_pct_hi": 17.9, "provenance": "primary", "note": "Continued normalisation."}
+  ],
+  "unreconciled_cross_check": {
+    "source": "ElectraLink Energy Market Insight, January 2025 and January 2024",
+    "figures": "3.21m changes of supplier in 2024 (+38% on 2023, so 2023 ~2.33m), against a stated peak of 6.34m in 2019.",
+    "why_it_is_not_in_the_band": "ElectraLink's headline CoS count could not be resolved this pass to a single fuel. Its domestic segmentation is by MPAN, which is electricity; but its Data Transfer Network carries both fuels and the headline describes 'households and businesses'. Read as electricity, 2024 is 11.5% and sits just below the band's low end. Read as both fuels, the electricity share is roughly 1.8m and 2024 is ~6.5%, which is half the band. The two readings differ by a factor of 1.8 and picking one to widen the band with would be choosing a number because a number was needed. The band therefore stays on the one series whose numerator definition is settled, and this sits beside it as the open question.",
+    "what_would_settle_it": "The ElectraLink DTS annual report, or Ofgem's Retail Market Indicators switching series downloaded per fuel rather than read off the chart. Ofgem's portal states April 2026 at 243,754 electricity and 183,180 gas domestic switches -- a per-fuel split that, annualised, would settle both the definition and the recent level."
+  },
+  "reserved": "The band is evidence and is not the director's. WHERE INSIDE THE BAND the world is aimed is a curriculum value under the mission brief of 2026-08-30 section 7, whose tie-break is 'choose the option that makes the company's advantage harder to demonstrate' -- the high end. Recorded in docs/market_research/gb_switching_rate_denominators.md, not decided in code."
+}

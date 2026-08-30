@@ -548,7 +548,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             floor moves DOWN and the new count is held. `--fix` was used here and its diff
     #             READ BEFORE ACCEPTING (two lines, imports only, no `noqa` anywhere in the
     #             block) -- the reason the note above says not to trust it blind still stands.
-    "I001": 1345,
+    "I001": 1344,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -570,7 +570,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2332  # was 2333; -1 (I001, net_new_acquisition's pre-existing unsorted import)
+RUFF_BASELINE_TOTAL = 2331  # was 2332; -1 (I001, market_report's pre-existing unsorted import block)
 
 
 # --------------------------------------------------------------------------

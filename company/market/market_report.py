@@ -16,7 +16,6 @@ Data: Ofgem Domestic Market Report, Energy Trends (BEIS/DESNZ),
 
 from __future__ import annotations
 
-
 # UK average domestic electricity unit rate (p/kWh, incl. VAT) by year
 # Source: Ofgem domestic market reports, BEIS Energy Trends
 _UK_AVG_ELEC_UNIT_RATE_P_KWH: dict[int, float] = {
@@ -36,10 +35,30 @@ _UK_DOMESTIC_ACCOUNTS_M: dict[int, float] = {
     2021: 27.5, 2022: 26.8, 2023: 27.2, 2024: 27.5, 2025: 27.8,
 }
 
-# Annual switching rate (% of domestic customers that switch per year)
+# Annual switching rate: EXTERNAL changes of supplier on a domestic ELECTRICITY meter point, over
+# ALL domestic electricity accounts, whether or not the account was at a decision point that year.
+# The numerator and the denominator are both stated because neither is recoverable from the number
+# (R14): a both-fuel numerator over this denominator double-counts every dual-fuel household and
+# reads roughly 1.8x high, which is the standing trap in this area.
+#
+# EACH VALUE IS THE MIDPOINT OF THE PUBLISHED BAND, and that is a reading rather than a publication
+# -- the record states switch COUNTS, and a count over an account total is a band once the account
+# total's own drift is admitted. The band itself lives in the regulation commons at
+# `docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`, and
+# `tests/architecture/test_switching_rate_commons.py` holds every lane's reading inside it. B3's
+# rule applies here as it does to the cap: the commons holds the record, each lane holds its own
+# reading, and no test pins two readings to each other.
+#
+# WHAT WAS HERE BEFORE, AND WHY IT WENT (2026-08-30). The previous table was per-line unsourced and
+# sat OUTSIDE the published band in NINE of ten years -- 2021 at 6.1% against a published 17.9-18.4%,
+# 2020 at 14.2% against 22.5-23.0%. `docs/market_research/f5_simulated_competitor_field.md` §9 caught
+# the 2021 value against live Energy UK data in July and recorded that this table must be reconciled
+# or retired before anything calibrated against it; nothing had. It reached no caller, so no shipped
+# figure moves -- but it is exactly the clean importable accessor a future build would have reached
+# for as a calibration target, which is what §9 predicted and why it is corrected rather than left.
 _UK_SWITCHING_RATE_PCT: dict[int, float] = {
-    2016: 17.0, 2017: 18.5, 2018: 20.1, 2019: 18.9, 2020: 14.2,
-    2021: 6.1,  2022: 2.8,  2023: 8.4,  2024: 11.2, 2025: 13.0,
+    2016: 17.3, 2017: 13.8, 2018: 19.8, 2019: 21.0, 2020: 22.8,
+    2021: 18.2, 2022: 3.6,  2023: 10.7, 2024: 14.3, 2025: 16.1,
 }
 
 
@@ -54,7 +73,18 @@ def get_market_gas_rate(year: int) -> float:
 
 
 def get_switching_rate(year: int) -> float:
-    """Return UK domestic switching rate (% of accounts per year)."""
+    """Return the GB domestic switching rate for `year`, as a percentage.
+
+    THE BASIS TRAVELS WITH THE FIGURE (R14), because neither half is recoverable from it:
+    external changes of supplier on a domestic ELECTRICITY meter point, over ALL domestic
+    electricity accounts including those mid-fixed-term. It is NOT a supplier's book churn rate
+    and it is NOT comparable with a rate measured over renewals only, which narrows the
+    denominator to accounts at a decision point and reads about a third high.
+
+    A year outside the published window falls back to 2025 rather than refusing. That is a
+    fail-open shape and it is left alone deliberately: this accessor has no caller, and changing
+    its contract belongs with the caller that first needs it, not with the table correction.
+    """
     return _UK_SWITCHING_RATE_PCT.get(year, _UK_SWITCHING_RATE_PCT[2025])
 
 

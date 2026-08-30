@@ -118,3 +118,59 @@ answer and go red when the world became more honest — the exact shape repaired
 `test_as_of_r1_sees_r1_estimate_not_final`. The control worth writing is that **the world's
 departure rate sits inside the published range on a declared denominator**, and it cannot be
 written until the range and the denominator are settled, which is the work above.
+
+---
+
+## DISPOSITION 2026-08-30, delivery seat — the anchor landed; the level move has not
+
+**Landed.** The comparison is settled and the instrument is permanent.
+
+* `docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json` — the published band
+  per year, on ONE declared pair: external changes of supplier on a domestic **electricity** meter
+  point, over **all** domestic electricity accounts including mid-fixed-term ones. 2017–2024 mean
+  midpoint **15.5%**.
+* `docs/market_research/gb_switching_rate_denominators.md` — every numerator and every denominator
+  written beside each other, the sources, and what is refused.
+* `tools/measure_departure_level.py` — the three-level table, reproducible.
+* `tests/architecture/test_switching_rate_commons.py` — the control, keyed to the PROPERTY (inside
+  the published band on a declared denominator), with three mutation legs. It is not pinned at
+  today's answer and it passes when a reading is corrected toward the record.
+
+**Corrections to this document, kept beside it rather than editing the claim above.**
+
+1. **The "~21.4% DESNZ 2019–20" row was almost certainly a mismatched pair.** A both-fuel numerator
+   over an electricity account base double-counts every dual-fuel household. The settled 2019 band
+   is 20.7–21.3% on a matched electricity pair, which lands in the same place by a different route
+   — so the conclusion survives and the arithmetic behind that row does not.
+2. **"The market rate is an upper bound on a book of average engagement" is wrong, and the
+   direction matters.** Total switches equal the sum of suppliers' external losses and total
+   accounts the sum of their books, so the account-weighted mean supplier loss rate IS the market
+   rate exactly. Concentration makes suppliers differ from each other; it does not lower the mean.
+   Read as a ceiling it would license aiming low. It is an expectation, not a ceiling.
+3. **The 3 tables here disagreed because two of them were unreconciled series, and the reconciled
+   one was already in the repo.** `churn_price_elasticity.md` §1 held it, and
+   `f5_simulated_competitor_field.md` §9 live-adjudicated it in July.
+
+**The mechanism, which this finding did not have and which is the larger half of its own claim.**
+The world is 3.15× short per renewal and ~4.3× short per account, and there are **two stacked
+causes**:
+
+* `market_switching_propensity._savings_to_rate` states in its own docstring that it is "calibrated
+  from the DESNZ switching series 2015-2025". It runs at **half** that series (2.04× on the 2017–24
+  mean) and is wrong in **shape**, not just level: 2020 reads 8.0% against a published 22.5–23.0%,
+  while 2022 is right.
+* `market_switching_multiplier` then **divides that absolute rate by its own 2024 value**. Whatever
+  level the curve carries is cancelled one statement later, and the world's departure level is
+  whatever `saas.churn_model`'s bill-shock base happens to produce. **The world took the SHAPE of
+  the published switching series and normalised its LEVEL away** — which is why no control ever
+  read the level: the only module that computed one destroyed it.
+
+**NOT landed, and named rather than implied.** The world's departure rate has **not** been moved.
+It is still 3.15× short. The move is a separate change with a blast radius of 27 files and a
+pre-registered prediction filed before it (`gb_switching_rate_denominators.md` §8), including the
+discriminating one: a pure level scale will push 2022 above its 2.9–4.3% band and must fail, because
+the curve's error is not a flat scale. The `a_shock` discovery ran and **refuses to identify it** —
+no domestic instrument splits "my own bill rose" from "someone else is cheaper", so the reason mix
+is published as an interval over the feasible set (99.9%→56.6% bill-shock) and never as a point.
+
+This finding therefore stays STAGED. Its measurement half is discharged; its correction half is not.
