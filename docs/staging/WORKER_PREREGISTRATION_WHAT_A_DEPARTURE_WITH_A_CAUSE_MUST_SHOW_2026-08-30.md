@@ -102,6 +102,21 @@ double-digit percentage share of departures — not a rounding error.*
 Refuted if price comes out above 90%, or if service comes out below 5%. Either would mean the
 hazards are mis-specified rather than merely uncalibrated.
 
+**P2b — a KNOWN BIAS in the mix, measured before the run rather than discovered in it.**
+Filed 2026-08-30 after measuring each factor's realised variation, which is why C2's design work
+started with measurement rather than with code
+(`WORKER_FINDING_THE_WORLD_CAN_PUNISH_BAD_SERVICE_BUT_BARELY_REWARD_GOOD_AND_A_HASH_DECIDES_WHO`).
+
+Satisfaction is effectively a TWO-state variable in this world, not three: across 19,200 swept
+combinations on the live book the protective band (x0.85) is reached in **1.60%**, and only 77 of
+150 accounts can ever reach it at all — the gate being the sign of a hash of the customer id.
+
+*Consequence, predicted now:* the decomposition will attribute service-driven DEPARTURES fairly
+and will show service almost never PREVENTING one. The reason mix will be right about who left and
+silent about who stayed. **If the service share of departures comes out plausible, that is not
+evidence the service channel is modelled well** — half of it is missing, and the half that is
+missing is the half a supplier can act on.
+
 **P3 — the company gets WORSE at predicting churn, at first.**
 `realized_churn_probability` acquires structure the company's features do not carry, and the
 company cannot see a cause it was never given an observable for.
@@ -130,6 +145,28 @@ This one is NOT testable until C1b assigns accounts to SVT, and is filed now so 
 retro-fitted later as though it had been expected all along. It is also the prediction most likely
 to be defeated by n: 40 departures spread over a decade is roughly four a year, and a histogram of
 four events a year has no shape to be bimodal about.
+
+**P6 — retention offers get LESS effective, and that is the change most likely to be resisted.**
+
+Today `retention_modifier` scales the whole composed probability, so a price cut is exactly as
+effective against a household leaving because the call centre failed it as against one leaving
+over money. Under competing risks a retention offer is a PRICE cut and should reduce the
+price-driven risks only. Nothing about a discount addresses dissatisfaction.
+
+*Prediction: measured retention effectiveness falls, and the fall is concentrated in the
+service-driven segment.* This makes the world harder for the company — its main retention lever
+stops working on part of the book — and it is the correct direction under R13 rather than a cost
+to be minimised.
+
+**And it is the first thing in this programme that is genuinely ACTIONABLE by the company**: if a
+discount cannot retain a service-driven churner, the right response is a service intervention, and
+the company can observe its own service failures. That is inference advantage with a lever
+attached, which is more than any of the hidden attitude axes can offer. Recorded here so that when
+retention effectiveness drops it is read as the mechanism working rather than as a regression.
+
+*Caveat, from P2b:* with satisfaction effectively one-sided in this world, the service-driven
+segment can be identified but barely PROTECTED. So P6's actionability is real in principle and
+capped in practice until the satisfaction ceiling is repaired.
 
 ## What would make me abandon the approach rather than fix it
 

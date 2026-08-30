@@ -39,6 +39,35 @@ somewhere to show a price and there is nothing to show one on until it exists.
 The compounding item is C2. Everything before it makes the reason distribution possible and
 everything after it makes it richer.
 
+### AMENDMENT, same day: the C1/C2 order was half wrong, and building C1b is what found it
+
+Filed four hours after the above, on starting C1b (assigning accounts to the SVT product and
+giving them an inertia hazard). **C1a — the product — was correctly first and is landed. C1b is
+not independent of C2, and this document said it was.**
+
+The reason is the event log. An SVT departure has to be BOOKED, and `run_phase2b` books a
+departure by appending to `customer_events_log` a record shaped by `roll_lifecycle_event`: a
+renewal event, carrying `churn_probability`, `win_probability`, `company_churn_estimate`,
+`churn_estimate_error_pct`, `retention_offered` and the rest. **An SVT account has no renewal, so
+every one of those fields is meaningless for it**, and there are twelve live readers branching on
+`event_type == "churned"`.
+
+So C1b has exactly two ways to go. It can emit a renewal-shaped event with most fields null and
+hope nothing downstream divides by one of them — which is how a plumbing artefact becomes a
+published figure. Or it can wait for the departure record to carry a REASON, which is C2's whole
+subject, and be the second reason rather than a special case bolted beside the first.
+
+**Corrected order: C1a → C2 → C1b → C3 → C4 → C5 → C6.**
+
+The original argument for C1-before-C2 was *"a departure from a variable tariff is a different
+event from a departure at a term end, and a world with only the second can only ever have one
+cause."* That is still true and is exactly why C1b must follow C2 rather than precede it: it is
+the first departure the new schema has to carry that ISN'T a renewal, so it is the test of whether
+the schema generalises. Building it first would have made the schema a description of one case.
+
+Recorded rather than silently reordered, because a roadmap that quietly rearranges itself is a
+roadmap nobody can be wrong about — and the sequencing claim above was a claim, not a note.
+
 ---
 
 ## C1 — A standard variable product, generated from behaviour
