@@ -1410,3 +1410,85 @@ def test_a_row_list_that_disagrees_with_the_rank_statistics_own_population_says_
     assert dep["available"] is True
     assert dep["count"] == 1
     assert dep["agrees_with_auc_population"] is False
+
+
+def test_the_polarity_leg_is_computed_from_the_runs_and_not_asserted():
+    """WHAT 0.13 IS NOT, on arithmetic a reader can redo.
+
+    A flipped outcome label sends a run's realised retention rate `r` to `1 - r` and leaves the
+    believed rate alone, so on any run whose outcomes are not an even split the published level
+    gap and the flipped one differ -- and which is smaller says which way round the labels are.
+    Every run that can discriminate must favour the published label for the branch to close.
+
+    Fires on: returning `refuted: True` from a default rather than from the runs.
+    """
+    check = gva._polarity_check(gva.AUC_RUN_HISTORY)
+    assert check["available"] is True
+    assert check["refuted"] is True
+    assert check["runs_that_can_discriminate"] == 4
+    for row in check["by_run"]:
+        if row["can_discriminate"]:
+            assert row["level_gap_under_a_flipped_label"] > row["level_gap_as_published"], (
+                "{} sits closer to the flipped label than the published one".format(row["on"]))
+
+
+def test_the_run_the_figure_comes_from_cannot_vote_on_its_own_polarity():
+    """THE CAVEAT THE PROSE VERSION GOT WRONG, and the reason this is computed at all.
+
+    The 2026-08-29 run scored exactly 10 retentions against 10 departures. At `r = 0.5` the flip
+    sends the realised rate to itself, so that run's level gap is IDENTICAL under the
+    transformation being tested and it carries no evidence either way. A check that let it vote
+    would be counting an invariant as a confirmation -- the R15 shape where the PASS branch is
+    unreachable because both sides of the comparison collapse.
+
+    Fires on: dropping `can_discriminate` and voting every run in the history.
+    """
+    subject = [r for r in gva._polarity_check(gva.AUC_RUN_HISTORY)["by_run"]
+               if r["auc"] == pytest.approx(0.13)]
+    assert len(subject) == 1
+    row = subject[0]
+    assert row["can_discriminate"] is False
+    assert row["the_flip_moves_this_run_by"] == pytest.approx(0.0)
+    assert row["level_gap_as_published"] == pytest.approx(
+        row["level_gap_under_a_flipped_label"]), (
+        "the subject run is not invariant under the flip, so the caveat is wrong")
+    assert "invariant under the flip" in gva._polarity_check(gva.AUC_RUN_HISTORY)["reason"]
+
+
+def test_a_history_that_favours_the_flipped_label_refuses_to_close_the_branch():
+    """THE FAIL BRANCH, DRIVEN. `refuted` must be a measurement and not a constant: a history whose
+    discriminating runs sit closer to the flipped label has to come out False and say so, or the
+    field is a control whose only verdict is PASS.
+
+    Fires on: returning `refuted: True` unconditionally.
+    """
+    flipped = [dict(run, believed=1.0 - run["believed"]) for run in gva.AUC_RUN_HISTORY]
+    check = gva._polarity_check(flipped)
+    assert check["refuted"] is False
+    assert "NOT closed" in check["reason"]
+
+
+def test_a_history_of_even_splits_alone_cannot_close_the_polarity_branch():
+    """THE NULL RUNG. If every run were a 50/50 split, no level evidence exists and the honest
+    answer is that the branch is open -- never a quiet True.
+
+    Fires on: treating an empty voting set as unanimous (`all([])` is True, and that is exactly
+    the fail-open this rung exists to catch).
+    """
+    check = gva._polarity_check([dict(run, realised=0.5) for run in gva.AUC_RUN_HISTORY])
+    assert check["refuted"] is False
+    assert "carries no evidence either way" in check["reason"]
+
+
+def test_the_history_believed_and_realised_pairs_match_the_artefacts_they_cite():
+    """The level comparison is only as good as the two columns it runs on, and those are literals.
+
+    Fires on: a run's believed/realised pair drifting from the artefact that produced it.
+    """
+    for run in gva.AUC_RUN_HISTORY:
+        path = PROJECT / run["artefact"]
+        if not path.exists():
+            continue
+        belief = _load(path)["belief_vs_outcome"]
+        assert belief["mean_believed_p_retain"] == pytest.approx(run["believed"], abs=5e-5)
+        assert belief["realised_retention_rate"] == pytest.approx(run["realised"], abs=5e-5)

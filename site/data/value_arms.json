@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T03:03:00.496388Z",
+  "generated_at": "2026-08-30T03:44:37.902935Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -586,7 +586,9 @@
           "scored": 20,
           "retained": 10,
           "left": 10,
-          "median_margin": 60.0
+          "median_margin": 60.0,
+          "believed": 0.47876,
+          "realised": 0.5
         },
         {
           "artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json",
@@ -595,7 +597,9 @@
           "scored": 25,
           "retained": 16,
           "left": 9,
-          "median_margin": 44.5
+          "median_margin": 44.5,
+          "believed": 0.562632,
+          "realised": 0.64
         },
         {
           "artefact": "docs/observability/value_cycle_ab_resi_renewal_fixed.json",
@@ -604,7 +608,9 @@
           "scored": 25,
           "retained": 16,
           "left": 9,
-          "median_margin": 44.5
+          "median_margin": 44.5,
+          "believed": 0.562632,
+          "realised": 0.64
         },
         {
           "artefact": "docs/observability/value_cycle_ab_resi_only.json",
@@ -613,7 +619,9 @@
           "scored": 20,
           "retained": 16,
           "left": 4,
-          "median_margin": 57.75
+          "median_margin": 57.75,
+          "believed": 0.78823,
+          "realised": 0.8
         },
         {
           "artefact": "docs/observability/value_cycle_ab.json",
@@ -622,9 +630,82 @@
           "scored": 28,
           "retained": 21,
           "left": 7,
-          "median_margin": 60.0
+          "median_margin": 60.0,
+          "believed": 0.7041607142857143,
+          "realised": 0.75
         }
       ],
+      "polarity_check": {
+        "available": true,
+        "refuted": true,
+        "question": "would an inverted outcome label in `belief_vs_outcome` produce this figure? The rank statistic cannot say -- 0.13 is 0.87 flipped and both are self-consistent -- but the LEVEL can, on any run whose outcomes are not an even split.",
+        "runs_that_can_discriminate": 4,
+        "runs_that_cannot": 1,
+        "shift_margin": 0.1,
+        "reason": "on all 4 runs whose outcome split is far enough from 50/50 for a flip to move anything, the believed retention sits within 0.077 of the realised rate and would sit 0.203 from it under a flipped label -- so the estimator's labels are the right way round. The 2026-08-29 run that scored 0.13 is NOT one of the 4: its outcome split is exactly even, which makes it invariant under the flip, so this leg reaches it through the shared code path rather than through its own numbers.",
+        "by_run": [
+          {
+            "on": "2026-08-29",
+            "artefact": "docs/observability/value_cycle_ab_s1_three_arm.json",
+            "auc": 0.13,
+            "mean_believed_p_retain": 0.47876,
+            "realised_retention_rate": 0.5,
+            "level_gap_as_published": 0.02123999999999998,
+            "level_gap_under_a_flipped_label": 0.02123999999999998,
+            "the_flip_moves_this_run_by": 0.0,
+            "can_discriminate": false,
+            "favours_the_published_label": false
+          },
+          {
+            "on": "2026-08-28",
+            "artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json",
+            "auc": 0.4652777777777778,
+            "mean_believed_p_retain": 0.562632,
+            "realised_retention_rate": 0.64,
+            "level_gap_as_published": 0.07736799999999999,
+            "level_gap_under_a_flipped_label": 0.20263200000000003,
+            "the_flip_moves_this_run_by": 0.28,
+            "can_discriminate": true,
+            "favours_the_published_label": true
+          },
+          {
+            "on": "2026-08-27",
+            "artefact": "docs/observability/value_cycle_ab_resi_renewal_fixed.json",
+            "auc": 0.4652777777777778,
+            "mean_believed_p_retain": 0.562632,
+            "realised_retention_rate": 0.64,
+            "level_gap_as_published": 0.07736799999999999,
+            "level_gap_under_a_flipped_label": 0.20263200000000003,
+            "the_flip_moves_this_run_by": 0.28,
+            "can_discriminate": true,
+            "favours_the_published_label": true
+          },
+          {
+            "on": "2026-08-26",
+            "artefact": "docs/observability/value_cycle_ab_resi_only.json",
+            "auc": 0.671875,
+            "mean_believed_p_retain": 0.78823,
+            "realised_retention_rate": 0.8,
+            "level_gap_as_published": 0.011770000000000058,
+            "level_gap_under_a_flipped_label": 0.58823,
+            "the_flip_moves_this_run_by": 0.6000000000000001,
+            "can_discriminate": true,
+            "favours_the_published_label": true
+          },
+          {
+            "on": "2026-08-26",
+            "artefact": "docs/observability/value_cycle_ab.json",
+            "auc": 0.6462585034013606,
+            "mean_believed_p_retain": 0.7041607142857143,
+            "realised_retention_rate": 0.75,
+            "level_gap_as_published": 0.04583928571428575,
+            "level_gap_under_a_flipped_label": 0.45416071428571425,
+            "the_flip_moves_this_run_by": 0.5,
+            "can_discriminate": true,
+            "favours_the_published_label": true
+          }
+        ]
+      },
       "independent_grade": {
         "graded_on": "2026-08-30",
         "tool": "tools/grade_renewal_churn_belief.py",
@@ -634,7 +715,7 @@
         "bill_shock_model_auc": 0.6596,
         "company_churn_estimate_auc": 0.534,
         "oracle_ceiling_auc": 0.7618,
-        "what_it_settles": "The oracle ceiling at 0.7618 says this book IS rankable, so a low AUC is a statement about a belief and not about an unrankable population -- that is the instrument-defect branch closed. The two graded beliefs at 0.6596 and 0.534 sit ABOVE a coin flip on the same rank statistic, which is the polarity branch closed. Both are measured on a different run from the 0.13 -- 708 renewals over 134 accounts against 20 over 10 -- so neither is a replacement figure for it, and neither is quoted here as one."
+        "what_it_settles": "The oracle ceiling at 0.7618 says this book IS rankable, so a low AUC is a statement about a belief and not about an unrankable population -- that is the instrument-defect branch closed, and this grader run is what closes it. The two graded beliefs at 0.6596 and 0.534 sit ABOVE a coin flip, which is CORROBORATING and not decisive on polarity: `tools/grade_renewal_churn_belief.py::rank_auc` is a separate implementation grading a different belief, so a sign error inside `run_value_cycle_ab.belief_vs_outcome` would leave these two figures untouched. The polarity branch is closed by `polarity_check` beside this block, which compares the level across the runs that share that estimator's code path. All three figures here are measured on a different run from the 0.13 -- 708 renewals over 134 accounts against 20 over 10 -- so none is a replacement figure for it, and none is quoted here as one."
       },
       "reading": "0.13 is not a sign error and not a broken instrument. It is what the arm's own retention belief scores on 20 decisions across 10 founding accounts, five of which the arm's price rise itself drove out. The quantity is not 'does this company know who will leave' -- it is 'did the arm predict who would survive the price it chose', graded on departures that choice caused."
     },

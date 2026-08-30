@@ -1129,3 +1129,54 @@ def test_the_departures_reach_the_reader_by_name_once_a_run_carries_them():
     assert "2 departures it is computed over" in rendered
     assert "C6 (2017-04-01)" in rendered and "C9 (2019-07-01)" in rendered
     assert "not listed" not in rendered
+
+
+def test_the_reader_is_told_the_backwards_figure_is_not_a_sign_error(live):
+    """THE FIRST THING A COMPETENT READER SUSPECTS, answered where they meet the figure.
+
+    The page tells a reader this belief ranked customers BACKWARDS. An estimator strongly wrong in
+    a consistent direction is the classic signature of a comparison taken against the wrong side
+    of the outcome label, and until 2026-08-30 the page gave a reader no way at all to tell the
+    finding apart from a bug in our own code -- the answer existed, in the feed, and stopped at
+    the JSON.
+
+    Fires on: rendering the AUC and its reading without the attribution paragraphs.
+    """
+    rendered = live["arms-decisions"]
+    check = _live_feed()["decisions"]["auc_attribution"]["polarity_check"]
+    if not check["available"]:
+        pytest.skip("this run's history carries no believed/realised pair to check")
+    assert "Is it a sign error?" in _text(rendered)
+    assert ("No." if check["refuted"] else "NOT ESTABLISHED.") in _text(rendered)
+    assert "invariant under the flip" in _text(rendered), (
+        "the caveat that the subject run cannot vote on its own polarity is not on the page")
+
+
+def test_an_unrefuted_polarity_branch_never_renders_as_settled():
+    """THE OTHER BRANCH, THROUGH THE DOOR'S OWN JAVASCRIPT. `refuted: False` is the verdict this
+    page would need to print if a future run's history stopped closing the branch, and the live
+    feed will never exercise it. A page that says "No." whatever the field holds is decorating.
+
+    Fires on: hard-coding the "No." answer instead of composing it from `refuted`.
+    """
+    feed = copy.deepcopy(_live_feed())
+    check = feed["decisions"]["auc_attribution"]["polarity_check"]
+    check["refuted"] = False
+    check["reason"] = "2 of 4 runs that can discriminate sit CLOSER to the flipped label."
+    rendered = _text(_render(feed)["arms-decisions"])
+    assert "NOT ESTABLISHED." in rendered
+    assert "sit CLOSER to the flipped label" in rendered
+
+
+def test_the_oracle_ceiling_reaches_the_reader_as_a_number_not_a_verdict(live):
+    """"The population is not unrankable" is an assertion; 0.762 against a 0.5 null is evidence.
+    The branch-closing FIGURE must be on the page, not just the conclusion it licenses.
+
+    Fires on: rendering the "this book ranks" sentence without the ceiling it rests on.
+    """
+    rendered = _text(live["arms-decisions"])
+    grade = _live_feed()["decisions"]["auc_attribution"]["independent_grade"]
+    assert "Is the population simply unrankable?" in rendered
+    assert "{:.3f}".format(grade["oracle_ceiling_auc"]) in rendered, (
+        "the oracle ceiling that closes the instrument-defect branch is not on the page")
+    assert str(grade["renewals"]) in rendered

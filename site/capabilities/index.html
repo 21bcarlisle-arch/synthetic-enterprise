@@ -773,6 +773,38 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + "Which departures: not listed. "
                     + prose(dec.auc_attribution.the_departures.reason) + "</p>")
               : "")
+          // WHAT 0.13 IS NOT, AND ON WHAT NUMBER. The page told the reader this figure ranks
+          // BACKWARDS and then left them no way to tell that claim apart from a sign error in our
+          // own code — which is the first thing a competent reader suspects of an estimator that
+          // is strongly wrong in a consistent direction. Both alternatives were tested and both
+          // were refused; the answer was sitting in the feed and stopping at the JSON. Each
+          // branch prints the figure that closes it, never the verdict alone.
+          + ((dec.auc_attribution && dec.auc_attribution.polarity_check
+              && dec.auc_attribution.polarity_check.available)
+              ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>Is it a sign error?</strong> "
+                + (dec.auc_attribution.polarity_check.refuted
+                    ? "No. " : "NOT ESTABLISHED. ")
+                + prose(dec.auc_attribution.polarity_check.reason) + "</p>"
+              : "")
+          + ((dec.auc_attribution && dec.auc_attribution.independent_grade
+              && dec.auc_attribution.independent_grade.oracle_ceiling_auc)
+              ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>Is the population simply unrankable?</strong> No. The world’s own "
+                + "fully-adjusted churn probability — the best any belief could possibly do "
+                + "here — scores <strong>"
+                + dec.auc_attribution.independent_grade.oracle_ceiling_auc.toFixed(3)
+                + "</strong> on the same measure over "
+                + esc(dec.auc_attribution.independent_grade.renewals) + " renewals ("
+                + esc(dec.auc_attribution.independent_grade.tool) + "). This book ranks, so a low "
+                + "score is a statement about a belief and not about an unrankable population."
+                + "</p>"
+              : "")
+          + ((dec.auc_attribution && dec.auc_attribution.verdict)
+              ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>So what is it?</strong> "
+                + prose(dec.auc_attribution.reading) + "</p>"
+              : "")
           + (dec.control_credibility_note
               ? '<p style="margin:0;font-size:11.5px;color:var(--muted);">'
                 + prose(dec.control_credibility_note) + "</p>"

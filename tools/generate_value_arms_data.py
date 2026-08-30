@@ -1399,18 +1399,36 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
 #: re-reads each `artefact` that still exists and refuses if the figure recorded here has drifted
 #: from it. An entry whose artefact has been archived stands as a dated record with its provenance
 #: named; it is never silently repaired to whatever the newest run happens to say.
+#:
+#: `believed` and `realised` are `belief_vs_outcome.mean_believed_p_retain` and
+#: `.realised_retention_rate` from the same artefact. They are carried because the LEVEL is what
+#: refutes a label flip and the AUC is not: an inverted outcome label leaves the rank statistic's
+#: DIRECTION wrong but moves the realised retention rate to its complement, so the two columns
+#: together can be asked a question the AUC column alone cannot answer (`_polarity_check`).
 AUC_RUN_HISTORY = [
     {"artefact": "docs/observability/value_cycle_ab_s1_three_arm.json", "on": "2026-08-29",
-     "auc": 0.13, "scored": 20, "retained": 10, "left": 10, "median_margin": 60.0},
+     "auc": 0.13, "scored": 20, "retained": 10, "left": 10, "median_margin": 60.0,
+     "believed": 0.47876, "realised": 0.5},
     {"artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json", "on": "2026-08-28",
-     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5},
+     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5,
+     "believed": 0.562632, "realised": 0.64},
     {"artefact": "docs/observability/value_cycle_ab_resi_renewal_fixed.json", "on": "2026-08-27",
-     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5},
+     "auc": 0.4652777777777778, "scored": 25, "retained": 16, "left": 9, "median_margin": 44.5,
+     "believed": 0.562632, "realised": 0.64},
     {"artefact": "docs/observability/value_cycle_ab_resi_only.json", "on": "2026-08-26",
-     "auc": 0.671875, "scored": 20, "retained": 16, "left": 4, "median_margin": 57.75},
+     "auc": 0.671875, "scored": 20, "retained": 16, "left": 4, "median_margin": 57.75,
+     "believed": 0.78823, "realised": 0.8},
     {"artefact": "docs/observability/value_cycle_ab.json", "on": "2026-08-26",
-     "auc": 0.6462585034013606, "scored": 28, "retained": 21, "left": 7, "median_margin": 60.0},
+     "auc": 0.6462585034013606, "scored": 28, "retained": 21, "left": 7, "median_margin": 60.0,
+     "believed": 0.7041607142857143, "realised": 0.75},
 ]
+
+#: How far a label flip must move a run's realised retention rate before that run is allowed to
+#: speak to the polarity question. The flip sends a realised rate `r` to `1 - r`, a shift of
+#: `|1 - 2r|`; at `r = 0.5` the shift is ZERO and the run is level-invariant under the very
+#: transformation being tested. A margin rather than a strict `> 0` because the defect this guards
+#: against makes the two sides EQUAL, and a strict inequality passes on 1e-16 of floating noise.
+_POLARITY_SHIFT_MARGIN = 0.10
 
 #: Above this many ordered pairs the exact null is not enumerated and the normal approximation is
 #: used instead. The AUC populations this page has ever carried are 28 pairs at the largest, so the
@@ -1503,6 +1521,101 @@ def _auc_null(retained: int, left: int, observed: float | None) -> dict:
     }
 
 
+def _polarity_check(history: list) -> dict:
+    """Is 0.13 a flipped outcome label? ANSWERED FROM THE RUNS, not asserted in a docstring.
+
+    WHY THIS IS COMPUTED AND NOT WRITTEN DOWN. The polarity branch was closed in prose by three
+    legs, and only one of them reached the artefact: the grader's 0.6596 and 0.534 coming out
+    ABOVE 0.5. That leg is the WEAKEST of the three for this figure, because
+    `tools/grade_renewal_churn_belief.py::rank_auc` is a SEPARATE implementation grading a
+    DIFFERENT belief on a DIFFERENT population -- a sign error living in
+    `run_value_cycle_ab.belief_vs_outcome` would leave the grader entirely unaffected. A reader
+    given only that leg is being asked to accept a conclusion whose reasons are not on the page.
+
+    THE LEG THAT ACTUALLY BEARS ON THIS ESTIMATOR IS THE LEVEL, and the five runs in
+    `AUC_RUN_HISTORY` all come out of the one code path. Flipping the outcome label sends a run's
+    realised retention rate `r` to `1 - r` while leaving `mean_believed_p_retain` alone, so for
+    each run there are two distances to compare: the one the artefact reports, and the one it
+    would report under the flip. A flipped estimator would show the SECOND small and the first
+    large. Every run where the flip moves anything shows the opposite.
+
+    AND THE SUBJECT RUN CANNOT VOTE, which is the part the prose version got wrong. The
+    2026-08-29 run scored exactly 10 retentions against 10 departures, so `r = 0.5`, `1 - r = 0.5`
+    and its level gap is IDENTICAL under the flip -- it is invariant under the transformation
+    being tested and carries no evidence about it either way. The refutation is carried by the
+    runs that CAN discriminate and reaches 0.13 only because they share its code path. That is a
+    weaker claim than "this run's labels are right" and it is the one the evidence supports, so it
+    is what the field says (R15: a refusal must name a cause the checker actually observed).
+
+    Fails CLOSED. A history that cannot discriminate returns `refuted: False` with the reason,
+    never a default that reads like a pass.
+    """
+    rows = []
+    for run in history or []:
+        believed, realised = _f(run.get("believed")), _f(run.get("realised"))
+        if believed is None or realised is None:
+            continue
+        shift = abs(1.0 - 2.0 * realised)
+        level_gap = abs(believed - realised)
+        flipped_gap = abs(believed - (1.0 - realised))
+        rows.append({
+            "on": run.get("on"),
+            "artefact": run.get("artefact"),
+            "auc": _f(run.get("auc")),
+            "mean_believed_p_retain": believed,
+            "realised_retention_rate": realised,
+            "level_gap_as_published": level_gap,
+            "level_gap_under_a_flipped_label": flipped_gap,
+            "the_flip_moves_this_run_by": shift,
+            "can_discriminate": shift >= _POLARITY_SHIFT_MARGIN,
+            "favours_the_published_label": flipped_gap > level_gap,
+        })
+
+    voting = [r for r in rows if r["can_discriminate"]]
+    silent = [r for r in rows if not r["can_discriminate"]]
+    against = [r for r in voting if not r["favours_the_published_label"]]
+    refuted = bool(voting) and not against
+
+    if not rows:
+        reason = "no run in the history carries the believed/realised pair this check needs"
+    elif not voting:
+        reason = ("every run in the history sits within {:.2f} of a 50/50 outcome split, so a "
+                  "flipped label would move none of them and the level carries no evidence "
+                  "either way".format(_POLARITY_SHIFT_MARGIN / 2))
+    elif against:
+        reason = ("{} of {} runs that can discriminate sit CLOSER to the flipped label than to "
+                  "the published one. The polarity branch is NOT closed and the reading beside "
+                  "this figure must not say it is.".format(len(against), len(voting)))
+    else:
+        reason = (
+            "on all {v} runs whose outcome split is far enough from 50/50 for a flip to move "
+            "anything, the believed retention sits within {near:.3f} of the realised rate and "
+            "would sit {far:.3f} from it under a flipped label -- so the estimator's labels are "
+            "the right way round. The 2026-08-29 run that scored {auc} is NOT one of the {v}: "
+            "its outcome split is exactly even, which makes it invariant under the flip, so this "
+            "leg reaches it through the shared code path rather than through its own "
+            "numbers.".format(
+                v=len(voting),
+                near=max(r["level_gap_as_published"] for r in voting),
+                far=min(r["level_gap_under_a_flipped_label"] for r in voting),
+                auc=", ".join("{:.2f}".format(r["auc"]) for r in silent if r["auc"] is not None)
+                    or "below the null"))
+
+    return {
+        "available": bool(rows),
+        "refuted": refuted,
+        "question": ("would an inverted outcome label in `belief_vs_outcome` produce this "
+                     "figure? The rank statistic cannot say -- 0.13 is 0.87 flipped and both are "
+                     "self-consistent -- but the LEVEL can, on any run whose outcomes are not an "
+                     "even split."),
+        "runs_that_can_discriminate": len(voting),
+        "runs_that_cannot": len(silent),
+        "shift_margin": _POLARITY_SHIFT_MARGIN,
+        "reason": reason,
+        "by_run": rows,
+    }
+
+
 def _departures(belief: dict) -> dict:
     """The renewals the AUC's positive class is made of, named -- or a stated absence.
 
@@ -1553,13 +1666,17 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
         `p_stay = max(0.0, 1.0 - p_leave)`, `renewal_rate_chain` logs it as `believed_p_retain`,
         and `run_value_cycle_ab.belief_vs_outcome` ranks the STAYERS' scores above the LEAVERS',
         so a higher believed retention among the customers who stayed scores above 0.5. (b) The
-        LEVEL would not survive an inversion: across the five runs in `AUC_RUN_HISTORY` the mean
-        believed p_retain tracks the realised retention rate to within 0.08 (0.704 vs 0.75; 0.788
-        vs 0.80; 0.563 vs 0.64; 0.479 vs 0.50), and under a flipped label those same pairs would
-        be 0.20 to 0.45 apart. (c) The identical rank statistic, run on 2026-08-30 by
-        `tools/grade_renewal_churn_belief.py` over the live run's 708 renewals, returns 0.6596 for
-        `saas.churn_model.build_churn_risk` and 0.534 for the company-side `company_churn_estimate`
-        -- a sign error would put both below 0.5.
+        LEVEL would not survive an inversion, and this leg is now COMPUTED rather than asserted --
+        see `_polarity_check`, published beside this block. It is the leg that bears on this
+        estimator, because all five runs come out of this one code path. It also carries the
+        caveat the prose version of it got wrong: the 2026-08-29 run's outcomes are an exactly
+        even 10/10 split, so its own level is INVARIANT under the flip and it cannot vote on the
+        question -- the three runs that can, do, unanimously. (c) The same rank statistic, run on
+        2026-08-30 by `tools/grade_renewal_churn_belief.py` over the live run's 708 renewals,
+        returns 0.6596 for `saas.churn_model.build_churn_risk` and 0.534 for the company-side
+        `company_churn_estimate`. This leg CORROBORATES and does not decide: it is a separate
+        implementation on a separate population, which a sign error in `belief_vs_outcome` would
+        not touch.
       * AN INSTRUMENT DEFECT -- the population is simply unrankable, in which case a low AUC says
         nothing. REFUTED by the same grader run: the ORACLE CEILING, the world's own fully-adjusted
         `realized_churn_probability` graded by the same statistic, is 0.7618. The book ranks.
@@ -1606,6 +1723,12 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
         "median_margin_gbp_per_mwh": _f(shape.get("median_margin_gbp_per_mwh")),
         "control_margin_gbp_per_mwh": _f(shape.get("control_margin_gbp_per_mwh")),
         "history": AUC_RUN_HISTORY,
+        # THE POLARITY LEG THAT BEARS ON THIS ESTIMATOR, COMPUTED. Until 2026-08-30 the polarity
+        # branch was closed in the artefact by the grader alone -- a different implementation on a
+        # different population, which a sign error in THIS estimator would not touch. The level
+        # comparison across the runs that share this code path is the leg that does, and it now
+        # ships as arithmetic a reader can check rather than as a sentence in a docstring.
+        "polarity_check": _polarity_check(AUC_RUN_HISTORY),
         "independent_grade": {
             "graded_on": "2026-08-30",
             "tool": "tools/grade_renewal_churn_belief.py",
@@ -1618,11 +1741,16 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
             "what_it_settles": (
                 "The oracle ceiling at 0.7618 says this book IS rankable, so a low AUC is a "
                 "statement about a belief and not about an unrankable population -- that is the "
-                "instrument-defect branch closed. The two graded beliefs at 0.6596 and 0.534 sit "
-                "ABOVE a coin flip on the same rank statistic, which is the polarity branch "
-                "closed. Both are measured on a different run from the 0.13 -- 708 renewals over "
-                "134 accounts against 20 over 10 -- so neither is a replacement figure for it, "
-                "and neither is quoted here as one."),
+                "instrument-defect branch closed, and this grader run is what closes it. The two "
+                "graded beliefs at 0.6596 and 0.534 sit ABOVE a coin flip, which is CORROBORATING "
+                "and not decisive on polarity: `tools/grade_renewal_churn_belief.py::rank_auc` is "
+                "a separate implementation grading a different belief, so a sign error inside "
+                "`run_value_cycle_ab.belief_vs_outcome` would leave these two figures untouched. "
+                "The polarity branch is closed by `polarity_check` beside this block, which "
+                "compares the level across the runs that share that estimator's code path. All "
+                "three figures here are measured on a different run from the 0.13 -- 708 renewals "
+                "over 134 accounts against 20 over 10 -- so none is a replacement figure for it, "
+                "and none is quoted here as one."),
         },
         "reading": (
             "0.13 is not a sign error and not a broken instrument. It is what the arm's own "
