@@ -61,6 +61,13 @@ def publish(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "docs" / "staging" / "done")
     monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "docs" / "status" / "LATEST.md")
     monkeypatch.setattr(prc, "LAST_PUSH_FILE", tmp_path / ".last_push_time.json")
+    # THE LIVE RECORD IS NOT A TEST FIXTURE (2026-08-30). `PUBLISH_CAUSE_FILE` is computed
+    # at module import from the real PROJECT_DIR, so patching PROJECT_DIR afterwards does
+    # not move it -- the same trap `LAST_PUSH_FILE` above is patched to avoid. Without this
+    # line these tests drive the publisher into `publish_cause.record_cause` against the
+    # repository's own `.last_publish_cause.json`, and `live_ledger_guard` refuses (it had
+    # already let a fixture's git_hash "abc1234" reach that record before the guard landed).
+    monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / ".last_publish_cause.json")
     monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_MARKERS_ARCHIVED_BY_THIS_RUN", [])
 

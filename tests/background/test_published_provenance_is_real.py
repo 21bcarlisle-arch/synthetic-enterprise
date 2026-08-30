@@ -289,6 +289,13 @@ def test_the_green_cycle_publish_refuses_a_false_provenance(tmp_path, monkeypatc
     monkeypatch.setattr(prc, "PROJECT_DIR", root)
     monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
     monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    # THE LIVE RECORD IS NOT A TEST FIXTURE (2026-08-30). `PUBLISH_CAUSE_FILE` is computed
+    # at module import from the real PROJECT_DIR, so patching PROJECT_DIR afterwards does
+    # not move it -- the same trap `LAST_PUSH_FILE` above is patched to avoid. Without this
+    # line these tests drive the publisher into `publish_cause.record_cause` against the
+    # repository's own `.last_publish_cause.json`, and `live_ledger_guard` refuses (it had
+    # already let a fixture's git_hash "abc1234" reach that record before the guard landed).
+    monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", root / ".last_publish_cause.json")
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
     said = []
@@ -319,6 +326,13 @@ def test_the_green_cycle_publish_commits_a_genuine_stamp(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", root)
     monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
     monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    # THE LIVE RECORD IS NOT A TEST FIXTURE (2026-08-30). `PUBLISH_CAUSE_FILE` is computed
+    # at module import from the real PROJECT_DIR, so patching PROJECT_DIR afterwards does
+    # not move it -- the same trap `LAST_PUSH_FILE` above is patched to avoid. Without this
+    # line these tests drive the publisher into `publish_cause.record_cause` against the
+    # repository's own `.last_publish_cause.json`, and `live_ledger_guard` refuses (it had
+    # already let a fixture's git_hash "abc1234" reach that record before the guard landed).
+    monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", root / ".last_publish_cause.json")
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
 
@@ -335,6 +349,13 @@ def test_the_green_cycle_refusal_is_the_guards_doing(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", root)
     monkeypatch.setattr(prc, "LATEST_MD", root / "docs" / "status" / "LATEST.md")
     monkeypatch.setattr(prc, "LAST_PUSH_FILE", root / ".last_push_time.json")
+    # THE LIVE RECORD IS NOT A TEST FIXTURE (2026-08-30). `PUBLISH_CAUSE_FILE` is computed
+    # at module import from the real PROJECT_DIR, so patching PROJECT_DIR afterwards does
+    # not move it -- the same trap `LAST_PUSH_FILE` above is patched to avoid. Without this
+    # line these tests drive the publisher into `publish_cause.record_cause` against the
+    # repository's own `.last_publish_cause.json`, and `live_ledger_guard` refuses (it had
+    # already let a fixture's git_hash "abc1234" reach that record before the guard landed).
+    monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", root / ".last_publish_cause.json")
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
