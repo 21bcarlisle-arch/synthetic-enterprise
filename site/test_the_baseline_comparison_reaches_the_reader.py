@@ -1222,6 +1222,74 @@ def test_the_departures_reach_the_reader_by_name_once_a_run_carries_them():
     assert "not listed" not in rendered
 
 
+def _row(bucket: dict) -> str:
+    """One believed-retention band as a reader reads across it, in `_text`'s collapsed form."""
+    return "{:.1f}–{:.1f} {} {}% {}%".format(
+        bucket["believed_from"], bucket["believed_to"], bucket["n"],
+        round(bucket["realised_retention_rate"] * 100),
+        round(bucket["realised_retention_rate_under_a_flipped_label"] * 100))
+
+
+def test_the_reversal_reaches_the_reader_as_a_TABLE_and_not_an_adjective(live):
+    """The page calls this belief BACKWARDS. Until 2026-08-30 the reader's only evidence for that
+    was the scalar it describes, because the departures cannot be named on this run's artefact.
+    The believed-versus-realised bands were in the artefact all along.
+
+    Fires on: rendering the reading without the bucket rows, or rendering rows without their
+    realised rates.
+    """
+    table = _live_feed()["decisions"]["auc_attribution"]["by_believed_bucket"]
+    if not table["available"]:
+        assert "What the reversal looks like: not shown" in _text(live["arms-decisions"])
+        return
+    rendered = _text(live["arms-decisions"])
+    assert "What the reversal looks like." in rendered
+    for bucket in table["buckets"]:
+        # THE WHOLE ROW, not its cells. Two of these bands realise 0% and two flip to 100%, so a
+        # per-cell substring assertion passes on "0%" the moment "100%" is anywhere on the page --
+        # it would go green against a table with every row in the wrong place.
+        assert _row(bucket) in rendered, (
+            "the band {:.1f}-{:.1f} is not rendered as a row a reader can read across".format(
+                bucket["believed_from"], bucket["believed_to"]))
+
+
+def test_the_flipped_column_is_on_the_page_beside_the_real_one(live):
+    """WITHOUT IT THIS TABLE ARGUES FOR THE SIGN ERROR THE PARAGRAPH BELOW REFUTES.
+
+    Flipped, these bands read monotone the right way and look better than any belief on this page.
+    A reader shown only the real column has been handed the case FOR an inverted label, three
+    inches above the paragraph that refutes it.
+
+    Fires on: rendering the table without the flipped rates, or without saying which leg settles
+    the sign.
+    """
+    table = _live_feed()["decisions"]["auc_attribution"]["by_believed_bucket"]
+    if not table["available"]:
+        pytest.skip("this run publishes no bucket table")
+    rendered = _text(live["arms-decisions"])
+    assert "If the labels were flipped" in rendered
+    for bucket in table["buckets"]:
+        assert _row(bucket) in rendered, (
+            "a band is on the page without the flipped rate beside it")
+    assert "settled on the LEVEL beside it and not here" in rendered
+
+
+def test_a_withheld_bucket_table_prints_its_absence_rather_than_nothing():
+    """THE OTHER BRANCH, THROUGH THE DOOR'S OWN JAVASCRIPT. The live feed publishes the table, so
+    the refusal path -- a run whose bands do not reconcile with the rank statistic's population --
+    would otherwise ship unrendered and unseen.
+
+    Fires on: rendering "" when `available` is false.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["auc_attribution"]["by_believed_bucket"] = {
+        "available": False,
+        "reason": "the buckets count 14 decisions and the rank statistic's population counts 20."}
+    rendered = _text(_render(feed)["arms-decisions"])
+    assert "What the reversal looks like: not shown" in rendered
+    assert "the buckets count 14 decisions" in rendered
+
+
 def test_the_reader_is_told_the_backwards_figure_is_not_a_sign_error(live):
     """THE FIRST THING A COMPETENT READER SUSPECTS, answered where they meet the figure.
 
@@ -1271,3 +1339,149 @@ def test_the_oracle_ceiling_reaches_the_reader_as_a_number_not_a_verdict(live):
     assert "{:.3f}".format(grade["oracle_ceiling_auc"]) in rendered, (
         "the oracle ceiling that closes the instrument-defect branch is not on the page")
     assert str(grade["renewals"]) in rendered
+
+
+# ── the 20 → 6 funnel, and the code that drew the book it was measured on ─────────────────────
+
+
+def test_the_drop_out_funnel_reaches_the_reader_broken_out_by_class(live):
+    """The answer this page computed for two stretches and never published.
+
+    A reader met "20 decisions priced" and a concordance interval scored on 6 a few hundred
+    pixels apart, with nothing between them. The gap is the whole question of whether the sample
+    can be widened, and the classes are the answer: a join failure is ours to fix, a coverage gap
+    is data we owe, an eligibility drop is not available at any book size.
+
+    Fires on: rendering the totals without the class split, which is the reading that makes the
+    14 look like plumbing.
+    """
+    rendered = _text(live["arms-method"])
+    drop = _live_feed()["method_skill"]["drop_out"]
+    assert drop["available"] is True, (
+        "the live feed withholds the funnel, so this control is measuring an absence -- fix the "
+        "promoted artefact, not this test")
+    assert "The arm priced {} decisions and this figure rests on {}".format(
+        drop["priced_decisions"], drop["decisions_scored"]) in rendered
+    for row in drop["by_reason"]:
+        assert str(row["count"]) in rendered
+    assert "no — no outcome exists" in rendered
+    assert "yes — an input we owe" in rendered
+
+
+def test_the_reader_is_told_the_sample_cannot_be_widened_by_our_own_code(live):
+    """THE CONSEQUENCE, which is the durable half of the whole block.
+
+    The classification does not depend on the population, so it survives the provenance problem
+    that withholds the counts. What it says is that the concordance interval three lines above is
+    not a number that gets better by trying harder here -- and a reader who takes it for one has
+    read the page backwards.
+
+    Fires on: publishing the funnel without its consequence.
+    """
+    rendered = _text(live["arms-method"])
+    assert "cannot be widened by fixing our own code" in rendered
+    assert "ZERO are a join we failed to make" in rendered
+
+
+def test_MUTATION_a_run_with_a_join_failure_is_told_the_gap_is_OURS(live):
+    """NULL RUNG. The sentence above must be a reading of the classes, not a constant.
+
+    A join failure is a DEFECT and it is ours to fix here with no world change. A page that says
+    "cannot be widened by fixing our own code" over a non-zero join count would be telling the
+    reader to stop looking at the one class they should act on.
+
+    Fires on: hard-coding either sentence; on a consequence composed from the total rather than
+    from the class split.
+    """
+    # THE PRODUCER'S OWN COMPOSER, not a hand-written sentence. A fixture that typed the join
+    # wording would prove only that the door renders a string it was handed.
+    from tools.generate_value_arms_data import _widening_consequence
+
+    feed = copy.deepcopy(_live_feed())
+    drop = feed["method_skill"]["drop_out"]
+    drop["by_class"] = {"join": 3, "coverage": 4, "eligibility": 10}
+    drop["consequence"] = _widening_consequence(drop["by_class"])
+    rendered = _text(_render(feed)["arms-method"])
+    assert "3 are a join we failed to make" in rendered
+    assert "cannot be widened by fixing our own code" not in rendered, (
+        "a run WITH a join failure was told its sample cannot be widened -- the page is printing "
+        "a constant, not the classes")
+
+
+def test_a_run_that_cannot_name_the_code_that_drew_its_book_shows_no_book_count(live):
+    """The counts go on the page labelled by the code that made them, or they do not go on it.
+
+    "167 settled billing accounts" reads to every reader as a fact about this supplier. On the
+    run promoted 2026-08-30 it is a fact about a population the tree no longer draws, and the
+    artefact cannot say otherwise because it predates the producing-commit stamp.
+
+    Fires on: rendering the count from either of its two feed routes when the feed withholds it;
+    on printing "null settled accounts", which is the shape a naive withdrawal leaves behind.
+    """
+    feed = _live_feed()
+    assert feed["book"]["available"] is False, (
+        "the live feed labels its counts, so this control is asserting against the wrong branch "
+        "-- drive it from a stripped feed instead of deleting it")
+    count = str(feed["book"]["unlabelled_counts"]["billing_accounts_settled_in_window"])
+    note = _text(live["arms-note"])
+    assert "settled-book counts are withheld" in note
+    assert "predates the producing-commit stamp" in note
+    assert count + " settled billing accounts" not in note
+    decisions = _text(live["arms-decisions"])
+    assert "null settled accounts" not in decisions
+    assert "undefined settled accounts" not in decisions
+    assert count + " settled accounts" not in decisions
+
+
+def test_a_run_that_CAN_name_its_code_puts_the_count_back_with_the_commit(live):
+    """THE PASS BRANCH -- the one that stops this being a page that only ever refuses.
+
+    R15: a control whose pass branch is unreachable reports a constant. Keyed to the property, so
+    the first stamped run promoted here restores the count with nobody editing a string.
+
+    Fires on: hard-coding the withheld wording; on restoring the count without its label, which
+    is the state the page was in when both provenance traps went unnoticed.
+    """
+    feed = copy.deepcopy(_live_feed())
+    counts = feed["book"].pop("unlabelled_counts")
+    feed["book"] = dict(counts, available=True, produced_by={
+        "stated": True, "commit": "a" * 40, "short": "a" * 9,
+        "publishing_tree_commit": "a" * 40,
+        "produced_by_the_tree_it_publishes_from": True,
+        "counts_are_labelled_by_the_code_that_made_them": True,
+        "reading": "Produced and published by the same tree (aaaaaaaaa)."})
+    feed["producing_commit"] = feed["book"]["produced_by"]
+    feed["decisions"]["book_accounts_settled"] = counts["billing_accounts_settled_in_window"]
+    rendered = _render(feed)
+    note = _text(rendered["arms-note"])
+    assert "{} settled billing accounts".format(
+        counts["billing_accounts_settled_in_window"]) in note
+    assert "the same code this page runs (aaaaaaaaa)" in note
+    assert "withheld" not in note
+    assert "{} settled accounts".format(
+        counts["billing_accounts_settled_in_window"]) in _text(rendered["arms-decisions"])
+
+
+def test_a_count_drawn_by_code_the_page_no_longer_runs_names_BOTH_trees(live):
+    """THE MIDDLE STATE, and the normal one for any run longer than the landing cadence.
+
+    An attributable count stays on the page. What changes is that the page names the tree that
+    drew it AND the tree publishing it, instead of letting a reader assume they are the same.
+
+    Fires on: collapsing this into either neighbour -- withholding an attributable count, or
+    rendering a stale run as current.
+    """
+    feed = copy.deepcopy(_live_feed())
+    counts = feed["book"].pop("unlabelled_counts")
+    feed["book"] = dict(counts, available=True, produced_by={
+        "stated": True, "commit": "b" * 40, "short": "b" * 9,
+        "publishing_tree_commit": "c" * 40,
+        "produced_by_the_tree_it_publishes_from": False,
+        "counts_are_labelled_by_the_code_that_made_them": True,
+        "reading": "Produced at bbbbbbbbb and published from ccccccccc."})
+    feed["producing_commit"] = feed["book"]["produced_by"]
+    note = _text(_render(feed)["arms-note"])
+    assert "{} settled billing accounts".format(
+        counts["billing_accounts_settled_in_window"]) in note
+    assert "code this page no longer runs" in note
+    assert "bbbbbbbbb" in note and "ccccccccc" in note

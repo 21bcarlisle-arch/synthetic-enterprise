@@ -1939,3 +1939,77 @@ def test_the_null_narrows_as_decisions_accumulate():
         observed, _, _ = _concordance(pts)
         sds.append(concordance_null_spread(pts, observed, draws=4000)["null_sd"])
     assert sds[0] > sds[1] > sds[2]
+
+
+# ── the artefact carries the code that made it, resolved at PROCESS START ─────────────────────
+
+
+def test_the_producing_commit_is_bound_at_import_not_at_assembly():
+    """THE MECHANISM, and the only property that distinguishes this from a `git rev-parse` at the
+    write site -- which is what both previous repairs amounted to and what both of them missed.
+
+    A run takes an hour and fifty minutes; this tree lands population changes about every forty.
+    So a sha read at ASSEMBLY names the tree the artefact was WRITTEN by, which is precisely the
+    tree that did NOT draw its book. Python binds a module's code at import, so the import-time
+    constant is the only moment in the process that answers the question actually being asked.
+
+    Fires on: calling `current_head()` inside `producing_commit()`. The head is moved AFTER
+    import here -- exactly what a concurrent lane landing a commit mid-run does -- and the stamp
+    must not follow it.
+
+    THE PATCH IS ON `rvca.current_head`, NOT ON `background.boot_sha.current_head`, and the first
+    draft of this test got that wrong and passed against the mutation. `run_value_cycle_ab` does
+    `from background.boot_sha import current_head`, so it holds its OWN reference; rebinding the
+    name in the defining module leaves the caller's copy untouched and the control sees nothing.
+    A control that cannot observe its own mutation is the tautology R15 names, and this one was
+    established by running the mutation rather than by reading the code.
+    """
+    bound_at_import = rvca.PRODUCING_COMMIT
+    original = rvca.current_head
+    try:
+        rvca.current_head = lambda: "d" * 40              # the tree moves under the run
+        stamp = rvca.producing_commit()
+    finally:
+        rvca.current_head = original
+
+    assert stamp["commit"] == bound_at_import, (
+        "the stamp followed the tree instead of the process -- it is being resolved at assembly, "
+        "which names the code that WROTE the artefact rather than the code that made its numbers")
+    assert stamp["commit"] != "d" * 40
+
+
+def test_every_artefact_this_runner_writes_carries_the_same_stamp():
+    """One shape, one answer. A consumer meets `producing_commit.commit` or its absence, never
+    three spellings of the same fact.
+
+    Fires on: stamping one artefact and not the others; on a per-call resolution that could give
+    two artefacts of one process two different shas.
+    """
+    assert rvca.producing_commit() == rvca.producing_commit()
+    assert set(rvca.producing_commit()) >= {
+        "commit", "resolved_at", "resolved_when", "unavailable_because"}
+
+
+def test_a_run_that_cannot_reach_git_states_the_absence_rather_than_a_placeholder():
+    """FAIL-CLOSED. `commit: None` WITH the reason -- never "", never "unknown", never the
+    assembly tree's sha.
+
+    A consumer that cannot tell "no commit" from "some commit" is the fail-open shape this field
+    replaces, and a wrong sha is worse here than an admitted absence: the whole use of the field
+    is to let a reader tell the producing tree from the publishing one.
+
+    Fires on: defaulting the constant to `""`; on dropping `unavailable_because`.
+    """
+    original = rvca.PRODUCING_COMMIT
+    try:
+        rvca.PRODUCING_COMMIT = None
+        stamp = rvca.producing_commit()
+    finally:
+        rvca.PRODUCING_COMMIT = original
+
+    assert stamp["commit"] is None
+    assert stamp["unavailable_because"]
+    assert "cannot name the code" in stamp["unavailable_because"]
+    # AND THE HEALTHY CASE STILL SAYS NOTHING, so `unavailable_because` is a signal and not decor.
+    if original:
+        assert rvca.producing_commit()["unavailable_because"] is None

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T08:54:22.769830Z",
+  "generated_at": "2026-08-30T14:16:44.648222Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -204,23 +204,42 @@
     ],
     "withdrawals": 3
   },
-  "run_generated_at": "2026-08-29T14:40:24Z",
+  "run_generated_at": "2026-08-30T10:37:06Z",
+  "producing_commit": {
+    "stated": false,
+    "publishing_tree_commit": "3e90ae5e10fe1a3f5f060b74495fe3863e3419f6",
+    "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
+    "counts_are_labelled_by_the_code_that_made_them": false
+  },
   "book": {
-    "served_segments": [
-      "resi",
-      "SME"
-    ],
-    "billing_accounts_settled_in_window": 167,
-    "with_an_electricity_leg": 149,
-    "with_a_gas_leg": 108,
-    "dual_fuel": 90,
-    "dual_fuel_share_of_accounts": 0.5389221556886228,
-    "accounts_at_end_of_window": 113,
-    "what_each_count_selects": {
-      "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
-      "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+    "available": false,
+    "produced_by": {
+      "stated": false,
+      "publishing_tree_commit": "3e90ae5e10fe1a3f5f060b74495fe3863e3419f6",
+      "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
+      "counts_are_labelled_by_the_code_that_made_them": false
     },
-    "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+    "why_the_counts_are_withheld": "These counts describe a population, and this run cannot name the code that drew it. the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time. A count published without the tree that made it reads as a fact about the supplier when it may be a fact about code that has since been replaced.",
+    "unlabelled_counts": {
+      "served_segments": [
+        "resi",
+        "SME"
+      ],
+      "served_segments_resolved_from": "curriculum",
+      "served_segments_override_env": null,
+      "served_segments_unavailable_because": null,
+      "billing_accounts_settled_in_window": 167,
+      "with_an_electricity_leg": 149,
+      "with_a_gas_leg": 108,
+      "dual_fuel": 90,
+      "dual_fuel_share_of_accounts": 0.5389221556886228,
+      "accounts_at_end_of_window": 113,
+      "what_each_count_selects": {
+        "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+        "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+      },
+      "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+    }
   },
   "realised": {
     "available": true,
@@ -269,10 +288,10 @@
     },
     "is_the_published_supplier": {
       "checked": true,
-      "same_supplier": true,
-      "published_run_net_gbp": 154164.434728,
-      "gap_gbp": 6.490154191851616e-09,
-      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
+      "same_supplier": false,
+      "published_run_net_gbp": 148719.64515,
+      "gap_gbp": -5444.789577993506,
+      "statement": "The published run's net margin (\u00a3148,719.65) is NOT the baseline arm's (\u00a3154,164.43) -- they differ by \u00a35,444.79. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -332,7 +351,7 @@
     "bounds_figure_clock": "settled-realised",
     "clock": null,
     "clock_caveat": "This noise floor carries no clock label of its own, so it is paired with the panel it was measured beside rather than with the restated figure. Its producer has labelled the floor since this one was taken; the next noise-floor run empties this.",
-    "staleness_caveat": null,
+    "staleness_caveat": "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run of 2026-08-29T17:04:23Z and the point estimate on the run of 2026-08-30T10:37:06Z. Anything that changed the world between those two runs is inside the point estimate and outside the spread -- and something did, on 2026-08-28: the market gained the ability to DEFEND against a company that undercuts it. A spread measured where nothing could react is not a confidence interval on a figure measured where it can. Read it as the size of this instrument's seed sensitivity; re-running the noise floor on the current world is owed work.",
     "elasticity_draws_min": 2020,
     "point_estimate_inside_the_measured_band": false,
     "reading": "The point estimate now sits OUTSIDE the band this spread was measured over, so the spread is not a bound on it and nothing here resolves the selection effect either way. An estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it -- which is the direction the reading would drift if this sentence were fixed rather than derived."
@@ -388,8 +407,38 @@
     "decisions_scored": 6,
     "accounts": 5,
     "drop_out": {
-      "available": false,
-      "reason": "the run that produced this artefact predates the drop-out funnel, so the page can say how many decisions were scored but not why the rest were not. It is withheld until a run carries `method_skill.drop_out`."
+      "available": true,
+      "priced_decisions": 20,
+      "decisions_scored": 6,
+      "by_reason": [
+        {
+          "reason": "the_priced_term_carried_no_settled_row",
+          "count": 10,
+          "class": "eligibility",
+          "means": "the account DOES settle, but this priced term has no settled record inside its own 365 days. Nothing was billed under the price that was chosen, so there is no outcome to rank it against -- the boundary `_term_period_of` exists to impose."
+        },
+        {
+          "reason": "no_published_counterfactual_rate_for_the_term",
+          "count": 4,
+          "class": "coverage",
+          "means": "settled rows exist inside the term and not one of them found a published default-tariff rate for its own date and fuel. Without the counterfactual there is no denominator and no saving -- a gap in the sourced tariff series, not in the world's record."
+        }
+      ],
+      "declined": 0,
+      "by_class": {
+        "join": 0,
+        "coverage": 4,
+        "eligibility": 10
+      },
+      "what_each_class_means": {
+        "join": "the arm's key and the settled book's key never met. Widenable by us, here, with no world change and no ruling -- and a non-zero count is a DEFECT, not a bound.",
+        "coverage": "the join succeeded and the outcome exists, but an input this repository is supposed to supply was missing for it. Widenable, but the work is outside this measurement -- it is a gap in what we have sourced, not in what the world did.",
+        "eligibility": "the concordance genuinely needs it. There is no settled outcome behind the price, so scoring the decision would rank a coverage gap. Widening this is not available at any book size; only a LARGER settled book adds decisions here."
+      },
+      "the_sample_can_be_widened_from_this_book": true,
+      "consequence": "Of the 14 decisions that dropped out, ZERO are a join we failed to make -- so this sample cannot be widened by fixing our own code. 4 wait on a gap in our own sourced tariff series -- widenable, but by sourcing data rather than by writing code -- and 10 are decisions the world never billed under the price that was chosen, so no outcome to rank them against exists at any book size. The interval above is what this book can earn, and only a larger settled book moves it.",
+      "reconciliation": "6 scored + 14 dropped = 20 against 20 logged",
+      "reading": "20 priced decisions, 6 scored. The largest single reason is `the_priced_term_carried_no_settled_row` at 10 -- the account DOES settle, but this priced term has no settled record inside its own 365 days. Nothing was billed under the price that was chosen, so there is no outcome to rank it against -- the boundary `_term_period_of` exists to impose. Of the 14 priced decisions that dropped out, 0 are a join that could be widened here with no world change, 4 are an input this repository could supply, and 10 are the eligibility the concordance genuinely needs."
     },
     "churn_auc_for_contrast": 0.13,
     "churn_auc_null": {
@@ -477,7 +526,7 @@
     "available": true,
     "value_arm_priced": 20,
     "level_arm_priced": 20,
-    "book_accounts_settled": 167,
+    "book_accounts_settled": null,
     "renewals_the_world_offered": 1369,
     "priced_share_of_renewals_offered": 0.0146,
     "why_the_rest_were_not_priced": [
@@ -532,8 +581,8 @@
       "accounts_the_world_offered_a_renewal": 168,
       "accounts_never_reached_by_the_arm": 158,
       "won_or_drawn_accounts_priced": 0,
-      "classification_basis": "the account id scheme (`PROS-*` won, `SYN-*` drawn), because this artefact predates `by_account_class`",
-      "premise_basis": "argued from the code path, not measured -- this artefact predates `renewal_funnel.product_label_by_account_class`",
+      "classification_basis": "the world's own `acquisition_type`, via `renewal_funnel.by_account_class`",
+      "premise_basis": "measured on the roster this run bound: 0 of the accounts it won or drew carry an electricity product the guard would admit",
       "sentence": "THE METHOD HAS NEVER PRICED A CUSTOMER THE COMPANY WON. Every renewal it priced belongs to one of 10 accounts the company was founded with; the other 158 accounts the world offered a renewal to have never had one reach the arm. That is a GATE, not a book size: all 662 renewals refused at the product gate carry `tariff_type = None`, which is what the world renders for every account it won or drew, while the founding accounts omit the field and take the `\"fixed\"` default -- and the arm admits only `fixed` and `pass_through` (`UPLIFTABLE_TARIFF_TYPES`, company/crm/customer_profitability.py, applied at company/pricing/value_based_renewal.py). No number of won households changes what that guard reads, so there is no book size at which the first one is priced.",
       "what_is_owed": "Not a relaxed guard. The world has no standard-variable product, so a won household's product was never decided rather than forgotten; the repair is that product, drawn from the published domestic fixed/SVT split, and it makes the in-scope surface SMALLER as a share of the book, not bigger (docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md, settled 2026-08-28)."
     },
@@ -568,8 +617,71 @@
         "C9"
       ],
       "the_departures": {
-        "available": false,
-        "reason": "this run predates `belief_vs_outcome.scored_decisions` (added 2026-08-30), so the artefact carries only the first ten scored rows and the departures behind this figure cannot be listed from it. The accounts the arm's own price drove out ARE named above; the per-renewal list ships with the next A/B run."
+        "available": true,
+        "count": 10,
+        "agrees_with_auc_population": true,
+        "departures": [
+          {
+            "account": "C1",
+            "term_start": "2017-12-31",
+            "believed_p_retain": 0.6219,
+            "chosen_margin_gbp_per_mwh": 61.5
+          },
+          {
+            "account": "C1_2",
+            "term_start": "2019-12-31",
+            "believed_p_retain": 0.6258,
+            "chosen_margin_gbp_per_mwh": 160.0
+          },
+          {
+            "account": "C2",
+            "term_start": "2018-04-01",
+            "believed_p_retain": 0.5581,
+            "chosen_margin_gbp_per_mwh": 108.5
+          },
+          {
+            "account": "C3",
+            "term_start": "2018-07-01",
+            "believed_p_retain": 0.5655,
+            "chosen_margin_gbp_per_mwh": 96.0
+          },
+          {
+            "account": "C4",
+            "term_start": "2018-10-01",
+            "believed_p_retain": 0.4821,
+            "chosen_margin_gbp_per_mwh": 67.25
+          },
+          {
+            "account": "C5",
+            "term_start": "2017-12-31",
+            "believed_p_retain": 0.575,
+            "chosen_margin_gbp_per_mwh": 86.0
+          },
+          {
+            "account": "C6",
+            "term_start": "2017-04-01",
+            "believed_p_retain": 0.3004,
+            "chosen_margin_gbp_per_mwh": 39.5
+          },
+          {
+            "account": "C7",
+            "term_start": "2017-12-31",
+            "believed_p_retain": 0.5802,
+            "chosen_margin_gbp_per_mwh": 83.75
+          },
+          {
+            "account": "C8",
+            "term_start": "2018-04-01",
+            "believed_p_retain": 0.5788,
+            "chosen_margin_gbp_per_mwh": 139.25
+          },
+          {
+            "account": "C9",
+            "term_start": "2019-07-01",
+            "believed_p_retain": 0.9506,
+            "chosen_margin_gbp_per_mwh": 60.0
+          }
+        ]
       },
       "by_believed_bucket": {
         "available": true,
@@ -767,10 +879,10 @@
     "decided_by_a_bound": 1,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [
-      0.303,
-      0.813
+      0.302,
+      0.881
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and the price is now measured: 100% of this spread is the priced households' own draw, so it takes about 27 priced renewals against this book's 20 to bring the bar under the gap. That price is against the two legs' own total, which came to 0.66x the +-figure this page states -- within what three seeds alone produce, and still a real difference to anyone acting on it. Against the published bound the same arithmetic asks for about 41 priced renewals, and that is the number to plan on. But that growth is NOT reachable by acquiring customers: all 10 accounts the arm priced are the founding roster and not one is a household this world drew, because drawn households' renewals stop for want of a standard-variable product to be moved off. Buying more of them adds churn cascade -- the half of the floor no book size shrinks -- and no priced decisions at all. The lever is a PRODUCT, not a size. Read that price as a direction and not a settled figure: the split behind it is 3 seeds, and it clears the margin it has to beat by 0.753 against a bar of 0.15 -- wide enough to name a direction, not wide enough to call the number settled. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine came out \u00a3607 from flat rules -- INSIDE the \u00b1\u00a3990 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE which of the two earned more. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a31,816 separates the two -- INSIDE the \u00b1\u00a32,578 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and the price is now measured: 100% of this spread is the priced households' own draw, so it takes about 27 priced renewals against this book's 20 to bring the bar under the gap. That price is against the two legs' own total, which came to 0.66x the +-figure this page states -- within what three seeds alone produce, and still a real difference to anyone acting on it. Against the published bound the same arithmetic asks for about 41 priced renewals, and that is the number to plan on. But that growth is NOT reachable by acquiring customers: all 10 accounts the arm priced are the founding roster and not one is a household this world drew, because drawn households' renewals stop for want of a standard-variable product to be moved off. Buying more of them adds churn cascade -- the half of the floor no book size shrinks -- and no priced decisions at all. The lever is a PRODUCT, not a size. Read that price as a direction and not a settled figure: the split behind it is 3 seeds, and it clears the margin it has to beat by 0.753 against a bar of 0.15 -- wide enough to name a direction, not wide enough to call the number settled. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 20 of the 1,369 renewals the world offered, 1.46% of them, so every figure here is those decisions and what they cascade into."
 }

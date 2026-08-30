@@ -87,22 +87,78 @@ def test_no_page_defines_its_own_nav(door):
     )
 
 
+WRAPPER = '<div class="table-scroll">'
+# The doors build tables by concatenating JS string literals, so a wrapper and the <table> it
+# wraps are routinely split across a `' + '` join and a newline (capabilities/index.html:849).
+# Removing the glue lets one adjacency rule read both the hand-written and the built shapes.
+_JS_GLUE = re.compile(r"['\"]\s*\+\s*['\"]")
+
+
+def unwrapped_tables(html):
+    """Return the source offset of every `<table` NOT opened immediately inside a WRAPPER.
+
+    COUNTING IS THE DEFECT THIS REPLACES, not a stylistic choice. The previous assertion was
+    `len(findall("table-scroll")) >= len(findall("<table"))`, and `table-scroll` matches things
+    that are not wrappers: every door's own `.table-scroll { overflow-x: auto }` rule, and in
+    site/capabilities/index.html a comment naming the class as well. So the real assertion was
+    `real_wrappers + 1 >= n_tables` on two doors and `real_wrappers + 2 >= n_tables` on the
+    third -- one unwrapped table always passed, and two passed on capabilities. A count also
+    cannot tell a table wrapped twice from two tables wrapped once.
+
+    Adjacency is the property the reader actually gets: a table scrolls inside its own box iff
+    the element opened around it is the overflow-x container. It has no fail-open slack because
+    each `<table` is judged on its own, and the CSS rule and the comment can never satisfy it.
+    """
+    flat = _JS_GLUE.sub("", html)
+    return [
+        m.start()
+        for m in re.finditer(r"<table[\s>]", flat)
+        if not flat[: m.start()].rstrip().endswith(WRAPPER)
+    ]
+
+
 @pytest.mark.parametrize("door", DOORS)
 def test_tables_scroll_inside_their_own_container(door):
-    """Every rendered <table> must be inside an overflow-x container, so a wide
+    """Every rendered <table> must open immediately inside an overflow-x container, so a wide
     table scrolls inside its box rather than forcing horizontal body scroll."""
     html = _html(door)
-    n_tables = len(re.findall(r"<table", html))
+    n_tables = len(re.findall(r"<table[\s>]", html))
     if n_tables == 0:
         pytest.skip(f"{door}: renders no tables")
-    # The doors build tables via JS as '<div class="table-scroll">...<table>'.
-    assert "table-scroll" in html, f"{door}: {n_tables} table(s) but no table-scroll wrapper"
-    assert "overflow-x" in html, f"{door}: table-scroll present but no overflow-x rule"
-    n_wrappers = len(re.findall(r"table-scroll", html))
-    # A wrapper for every table (each scrollable table has its own container).
-    assert n_wrappers >= n_tables, (
-        f"{door}: {n_tables} table(s) but only {n_wrappers} table-scroll wrapper(s)"
+    assert "overflow-x" in html, f"{door}: {n_tables} table(s) but no overflow-x rule"
+    loose = unwrapped_tables(html)
+    lines = [html.count("\n", 0, off) + 1 for off in loose]
+    assert not loose, (
+        f"{door}: {len(loose)} of {n_tables} table(s) not opened inside {WRAPPER} "
+        f"(near source line(s) {lines}) -- a wide table there scrolls the whole body"
     )
+
+
+def test_the_table_scroll_check_can_fail():
+    """R15: the mutation the replaced control could not see -- ONE unwrapped table.
+
+    Each fixture is the previous assertion's blind spot expressed literally. The first two
+    carry the exact `table-scroll` occurrences that made it pass (the CSS rule, and the comment
+    that pushed capabilities' slack to two) while wrapping nothing at all. If any of these
+    stops failing, the count has come back.
+    """
+    css = ".table-scroll { overflow-x: auto; }"
+    comment = "// `table-scroll` rather than an inline overflow-x:auto"
+
+    # 1 table, 1 `table-scroll` hit that is the CSS rule -> the old check passed this.
+    assert unwrapped_tables(f"<style>{css}</style><table><tr><td>x</td></tr></table>")
+    # capabilities' shape: the comment bought a second table's worth of slack.
+    assert (
+        len(unwrapped_tables(f"<style>{css}</style>{comment}<table></table><table></table>")) == 2
+    )
+    # One wrapped, one bare -- the single-violation case the old check was built to miss.
+    one_bare = f"<style>{css}</style>{WRAPPER}<table></table></div><table></table>"
+    assert len(unwrapped_tables(one_bare)) == 1
+    # A wrapper that wraps something else does not cover a later bare table.
+    assert unwrapped_tables(f"{WRAPPER}<div>x</div></div><table></table>")
+    # And the honest shapes stay green, including across the JS `' + '` join.
+    assert unwrapped_tables(f"<style>{css}</style>{WRAPPER}<table></table></div>") == []
+    assert unwrapped_tables("'" + WRAPPER + "'\n      + '<table style=\"x\">'") == []
 
 
 @pytest.mark.parametrize("door", DOORS)

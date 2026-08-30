@@ -1058,10 +1058,24 @@ def test_pricing_one_won_account_makes_the_structural_sentence_unreachable():
     evidence -- the defect `_headline_reading` was repaired for on this same page, one panel up.
 
     Fires on: hard-coding the structural sentence, or gating it on anything but the priced set.
+
+    THE PRICED ACCOUNT IS ADDED TO BOTH THE ROSTER AND THE WORLD'S CLASS MAP, and it has to be.
+    Until 2026-08-30 the live artefact carried no `by_account_class`, so appending a `PROS-`
+    prefix to the priced list was enough -- the fallback rule read the id. The run promoted that
+    day carries the world's own `acquisition_type`, and against it a fabricated id is simply not
+    a won account, so the mutation stopped reaching the branch it was written to test. It was
+    the FIXTURE that went stale, not the property: this test still says the verdict follows the
+    priced set, and it now says it through whichever basis the artefact declares.
     """
     art = _load(THREE_ARM)
     funnel = art["renewal_funnel"]["value_arm"]
     funnel["accounts_the_arm_priced"] = list(funnel["accounts_the_arm_priced"]) + ["PROS-2019-0015"]
+    if (funnel.get("by_account_class") or {}).get("available"):
+        by_class = dict(funnel["by_account_class"]["priced_accounts_by_class"])
+        by_class["won_by_the_funnel"] = list(by_class.get("won_by_the_funnel") or []) + [
+            "PROS-2019-0015"]
+        funnel["by_account_class"] = dict(funnel["by_account_class"],
+                                          priced_accounts_by_class=by_class)
     who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
         "decisions"]["who_the_method_has_priced"]
     assert who["verdict"] == "reached"
@@ -1158,8 +1172,15 @@ def test_an_artefact_with_no_census_keeps_the_older_reading_rather_than_upgradin
     agreement would let the strongest wording ride on the weakest evidence -- the fail-open shape
     a missing field takes when it is read as a zero. The verdict is unchanged; only its stated
     basis is.
+
+    THE ABSENCE IS CONSTRUCTED, NOT BORROWED FROM THE LIVE ARTEFACT. This test used to read the
+    promoted run directly, which worked only while no promoted run carried a census -- so it went
+    red on 2026-08-30 for the one reason a control must never go red: the artefact got BETTER.
+    A control keyed to today's poverty reports the poverty, not the property.
     """
-    who = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+    art = _load(THREE_ARM)
+    art["renewal_funnel"]["value_arm"].pop("product_label_by_account_class", None)
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
         "decisions"]["who_the_method_has_priced"]
     assert who["verdict"] == "structural"
     assert who["premise_basis"].startswith("argued from the code path")
@@ -1363,7 +1384,7 @@ def _scored(retained_flags, left_in_population=None):
     return art
 
 
-def test_a_run_that_cannot_name_its_departures_says_so_rather_than_naming_TEN_OF_THEM(real):
+def test_a_run_that_cannot_name_its_departures_says_so_rather_than_naming_TEN_OF_THEM():
     """R15 FAIL-OPEN, the half-population shape -- and the version of it that LOOKS answered.
 
     `matched_sample` is `scored[:10]` and has been in this artefact since the statistic existed.
@@ -1372,8 +1393,20 @@ def test_a_run_that_cannot_name_its_departures_says_so_rather_than_naming_TEN_OF
     instead, with the reason and what fixes it.
 
     Fires on: sourcing `the_departures` from `matched_sample`.
+
+    THE RUN WITHOUT `scored_decisions` IS BUILT HERE. It used to be the live artefact, and on
+    2026-08-30 a run carrying the field was promoted -- so this control went red because the
+    thing it guards started working. `matched_sample` is left in place deliberately: that is the
+    tempting wrong source, and a fixture with neither field could pass by having nothing to read.
     """
-    departures = real["decisions"]["auc_attribution"]["the_departures"]
+    art = _load(THREE_ARM)
+    art["belief_vs_outcome"] = {k: v for k, v in art["belief_vs_outcome"].items()
+                                if k != "scored_decisions"}
+    assert art["belief_vs_outcome"].get("matched_sample"), (
+        "the fixture lost `matched_sample` too, so this test can no longer see the fail-open "
+        "source it exists to refuse")
+    departures = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["auc_attribution"]["the_departures"]
     assert departures["available"] is False
     assert "predates" in departures["reason"]
     assert "departures" not in departures, (
@@ -1410,6 +1443,80 @@ def test_a_row_list_that_disagrees_with_the_rank_statistics_own_population_says_
     assert dep["available"] is True
     assert dep["count"] == 1
     assert dep["agrees_with_auc_population"] is False
+
+
+def test_the_reversal_the_page_asserts_is_published_as_a_table_and_not_only_a_word(real):
+    """"It ranked customers BACKWARDS" is an adjective over a scalar until the reader can see it.
+
+    `the_departures` is the check they should have and it is unavailable on every artefact written
+    before 2026-08-30. `by_believed_bucket` has been in this one all along and shows the reversal
+    directly: the least-confident band mostly stayed, the most-confident band kept none.
+
+    Fires on: publishing the verdict without the table it is a description of.
+    """
+    table = real["decisions"]["auc_attribution"]["by_believed_bucket"]
+    assert table["available"] is True, table.get("reason")
+    assert table["scored"] == 20 and table["agrees_with_auc_population"] is True
+    rates = [b["realised_retention_rate"] for b in table["buckets"]]
+    assert rates[0] > rates[-1], (
+        "the table the page calls a reversal does not fall as the belief rises")
+
+
+def test_the_flipped_column_ships_so_the_table_cannot_be_read_as_settling_the_sign(real):
+    """THE TABLE ARGUES THE OPPOSITE OF THE BLOCK BESIDE IT UNLESS THE FLIP IS SHOWN.
+
+    Flipped, this table reads monotone the right way and looks better than any belief on this
+    page. A reader given only the real column can reasonably take it as evidence OF the sign error
+    `polarity_check` refutes -- so the flipped rate is published beside the real one, and the
+    reading says which leg settles the question.
+
+    Fires on: dropping the flipped column, or letting the reading claim this table closes polarity.
+    """
+    table = real["decisions"]["auc_attribution"]["by_believed_bucket"]
+    for bucket in table["buckets"]:
+        assert bucket["realised_retention_rate_under_a_flipped_label"] == pytest.approx(
+            1.0 - bucket["realised_retention_rate"])
+    flipped = [b["realised_retention_rate_under_a_flipped_label"] for b in table["buckets"]]
+    assert flipped == sorted(flipped), (
+        "the flipped column is not the flattering one, so the caveat this test guards is not the "
+        "caveat the table needs -- re-read the reading against the numbers")
+    assert "cannot tell you the labels are the right way round" in table["reading"]
+
+
+def test_buckets_that_do_not_sum_to_the_rank_statistics_own_population_are_withheld():
+    """DETECTION BY CONTRADICTION, the same route `the_departures` takes.
+
+    The buckets and `auc_population` tally one set of decisions by different routes. A run where
+    they disagree is publishing a table the AUC was not computed over, and half a table under a
+    statistic is the fail-open shape: it renders, it looks answered, and it is a different book.
+
+    Fires on: publishing `buckets` without reconciling their counts, or reconciling the bucket
+    counts against themselves.
+    """
+    art = _load(THREE_ARM)
+    art["belief_vs_outcome"] = dict(art["belief_vs_outcome"],
+                                    auc_population={"retained": 10, "left": 4})
+    table = gva.build(art, _load(NOISE_FLOOR),
+                      _load(RUN_OUTPUT))["decisions"]["auc_attribution"]["by_believed_bucket"]
+    assert table["available"] is False
+    assert "20 decisions" in table["reason"] and "counts 14" in table["reason"]
+    assert "buckets" not in table, "an unavailable table published its rows anyway"
+
+
+def test_a_run_without_the_bucket_table_says_so_rather_than_rendering_an_empty_one():
+    """FAIL-CLOSED on the artefact that does not carry the field at all.
+
+    Fires on: defaulting the missing table to `[]`, which renders as a table with no reversal in
+    it -- indistinguishable, on the page, from a belief that ranked correctly.
+    """
+    art = _load(THREE_ARM)
+    art["belief_vs_outcome"] = {k: v for k, v in art["belief_vs_outcome"].items()
+                                if k != "by_believed_bucket"}
+    table = gva.build(art, _load(NOISE_FLOOR),
+                      _load(RUN_OUTPUT))["decisions"]["auc_attribution"]["by_believed_bucket"]
+    assert table["available"] is False
+    assert "no `belief_vs_outcome.by_believed_bucket`" in table["reason"]
+    assert "buckets" not in table
 
 
 def test_the_polarity_leg_is_computed_from_the_runs_and_not_asserted():
@@ -1492,3 +1599,156 @@ def test_the_history_believed_and_realised_pairs_match_the_artefacts_they_cite()
         belief = _load(path)["belief_vs_outcome"]
         assert belief["mean_believed_p_retain"] == pytest.approx(run["believed"], abs=5e-5)
         assert belief["realised_retention_rate"] == pytest.approx(run["realised"], abs=5e-5)
+
+
+# ── an artefact carries the code that made it, or its counts come off the page ────────────────
+#
+# THE DEFECT (2026-08-30, twice in two stretches). A three-arm run takes an hour and fifty
+# minutes; this tree lands population changes about every forty. So the code that DREW a run's
+# book and the code ASSEMBLING its artefact are routinely two different trees, and every field
+# resolved at assembly time describes the later one. Both traps were repaired by guarding the
+# field the previous trap had named -- `book_identity`'s shape, then its resolution point -- and
+# both repairs missed the property behind them, which is that only the producing process knows
+# which tree it bound. `run_value_cycle_ab.PRODUCING_COMMIT` is resolved at import for that
+# reason; these are the consumer's half.
+
+
+def _stamped(art: dict, commit: str | None) -> dict:
+    """`art` with a producing-commit stamp of the producer's own shape."""
+    art = dict(art)
+    art["producing_commit"] = {
+        "commit": commit,
+        "resolved_at": "2026-08-30T09:50:08Z",
+        "resolved_when": "at process start",
+        "unavailable_because": None if commit else "git did not answer",
+    }
+    return art
+
+
+def test_a_run_that_cannot_name_its_producing_commit_gets_no_counts_on_the_page():
+    """FAIL-CLOSED, and on the field a reader would most readily mistake for a fact.
+
+    "167 settled billing accounts" reads as a fact about this supplier. On the run promoted
+    2026-08-30 it is a fact about a population the tree no longer draws, and the artefact cannot
+    say so because it predates the stamp. The counts are withheld with the reason rather than
+    published unattributed.
+
+    Fires on: publishing `book_identity.control_arm` regardless of provenance; on defaulting an
+    absent stamp to "same tree"; and on leaving the same count reachable through
+    `decisions.book_accounts_settled`, which is the second route to it and the one a withdrawal
+    that only edits `book` would leave behind.
+    """
+    art = _load(THREE_ARM)
+    art.pop("producing_commit", None)
+    d = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    assert d["producing_commit"]["stated"] is False
+    assert d["producing_commit"]["counts_are_labelled_by_the_code_that_made_them"] is False
+    assert d["book"]["available"] is False
+    assert "billing_accounts_settled_in_window" not in d["book"], (
+        "the withheld count is still on the page under its own name")
+    assert d["decisions"]["book_accounts_settled"] is None, (
+        "the count came off `book` and stayed reachable through `decisions` -- a cosmetic "
+        "withdrawal, which is the shape this control exists to refuse")
+    # THE REASON IS PUBLISHED, not just the absence. A refusal that does not name its cause is
+    # how this project discovered a refusal was itself wrong, within an hour of shipping.
+    assert "predates the producing-commit stamp" in d["book"]["why_the_counts_are_withheld"]
+    # AND THE REVIEWER'S COPY SURVIVES, under a key the door does not render.
+    assert d["book"]["unlabelled_counts"]["billing_accounts_settled_in_window"] == (
+        art["book_identity"]["control_arm"]["billing_accounts_settled_in_window"])
+
+
+def test_a_stamped_run_published_from_the_same_tree_puts_its_counts_back():
+    """THE PASS BRANCH, which is what stops this being a machine for printing a refusal.
+
+    R15: a control whose PASS branch is unreachable reports a constant verdict. Keyed to the
+    property -- the day a stamped run is promoted the counts return with nobody editing a string.
+
+    Fires on: hard-coding the withheld branch; on a `stated` flag that cannot become true.
+    """
+    art = _stamped(_load(THREE_ARM), gva.PUBLISHING_TREE_COMMIT or "0" * 40)
+    d = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    assert d["producing_commit"]["stated"] is True
+    assert d["book"]["available"] is True
+    assert d["book"]["billing_accounts_settled_in_window"] == (
+        art["book_identity"]["control_arm"]["billing_accounts_settled_in_window"])
+    assert d["decisions"]["book_accounts_settled"] == (
+        d["book"]["billing_accounts_settled_in_window"])
+    if gva.PUBLISHING_TREE_COMMIT:
+        assert d["producing_commit"]["produced_by_the_tree_it_publishes_from"] is True
+        assert "same tree" in d["producing_commit"]["reading"]
+
+
+def test_a_stamped_run_published_from_a_DIFFERENT_tree_says_which_two_trees():
+    """THE MIDDLE STATE, and the one the whole mechanism was built to make sayable.
+
+    A run stamped with a commit that is not the publishing tree's is not a failure -- it is the
+    normal case for any run longer than the landing cadence. The counts stay on the page BECAUSE
+    they are attributable; what changes is that the page names both trees instead of letting the
+    reader assume one.
+
+    Fires on: collapsing this into either neighbour -- withholding a perfectly attributable
+    count, or reporting a stale run as though it were current.
+    """
+    art = _stamped(_load(THREE_ARM), "f" * 40)
+    d = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    assert d["book"]["available"] is True
+    if gva.PUBLISHING_TREE_COMMIT:
+        assert d["producing_commit"]["produced_by_the_tree_it_publishes_from"] is False
+        assert "the code was replaced between the run and this page" in (
+            d["producing_commit"]["reading"])
+        assert d["producing_commit"]["short"] == "f" * 9
+
+
+def test_a_stamp_carrying_no_commit_is_not_read_as_a_commit():
+    """MUTATION: `three_arm.get("producing_commit") is not None` as the whole test.
+
+    A producer that could not reach git writes the block WITH `commit: None` and the reason. A
+    consumer keyed on the block's presence rather than on the sha would read that run as fully
+    attributed -- the fail-open a missing field takes when it is read as a zero -- and would
+    publish the producer's own stated absence as a label. The empty string is the same shape.
+
+    The producer's OWN reason is preferred over this file's generic one, because it is the
+    specific fact: "git did not answer" and "this run predates the stamp" are different states
+    and only the run knows which it was in.
+    """
+    for empty in (None, "", "   "):
+        d = gva.build(_stamped(_load(THREE_ARM), empty), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+        assert d["producing_commit"]["stated"] is False, empty
+        assert d["book"]["available"] is False, empty
+    assert "git did not answer" in gva.build(
+        _stamped(_load(THREE_ARM), None), _load(NOISE_FLOOR), _load(RUN_OUTPUT)
+    )["producing_commit"]["reason"]
+
+
+def test_the_drop_out_consequence_names_the_class_that_is_ours_to_fix():
+    """The unflattering half of "widenable: yes", said out loud and DERIVED from the counts.
+
+    `the_sample_can_be_widened_from_this_book` is true whenever EITHER a join failure or a
+    coverage gap is non-zero, and those are not the same news: one is our code and one is data we
+    owe. A reader who meets the boolean and stops has been told the flattering half.
+
+    Fires on: hard-coding either sentence. The join branch and the no-join branch are both driven
+    here, because a control that only ever sees today's zero cannot tell a derived sentence from
+    a constant.
+    """
+    none_ours = gva._widening_consequence({"join": 0, "coverage": 4, "eligibility": 10})
+    assert "ZERO are a join we failed to make" in none_ours
+    assert "cannot be widened by fixing our own code" in none_ours
+    assert "4 wait on a gap in our own sourced tariff series" in none_ours
+    assert "10 are decisions the world never billed" in none_ours
+
+    ours = gva._widening_consequence({"join": 3, "coverage": 4, "eligibility": 10})
+    assert "3 are a join we failed to make" in ours
+    assert "cannot be widened" not in ours, (
+        "a run WITH a join failure was told its sample cannot be widened -- the sentence is a "
+        "constant, not a reading of the classes")
+    assert "ours to fix here" in ours
+
+    # FAIL-CLOSED on a class table that is not three integers: no sentence rather than a wrong
+    # one, because this sentence is the one a reader would trust most.
+    assert gva._widening_consequence({"join": 0, "coverage": 0, "eligibility": 0}) is None
+    assert gva._widening_consequence({"join": None, "coverage": 4, "eligibility": 10}) is None
+    assert gva._widening_consequence({}) is None

@@ -77,6 +77,11 @@ from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# THE COMMIT THIS PROCESS BOUND ITS CODE FROM. `background.boot_sha` already answers exactly this
+# question for the daemons, so the primitive is imported rather than rewritten; what is new here
+# is WHEN it is asked -- see `PRODUCING_COMMIT` below.
+from background.boot_sha import current_head
+
 # THE HOUSEHOLD SIDE (atom `A47`), read here in the HARNESS -- the reporting use R12 protects.
 # No company organ, world module or draw may import it, and
 # `tests/company/test_household_share_is_not_yet_a_target.py` holds that and names what
@@ -108,6 +113,23 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 from tools.run_price_ladder import household_side, published_default_tariff
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+
+#: THE COMMIT THIS ARTEFACT WAS PRODUCED AT, RESOLVED HERE AND NEVER AGAIN -- at import, which is
+#: when Python bound every module this run will execute. That timing is the whole mechanism and
+#: not an implementation detail: a run of this file takes an hour and fifty minutes against a tree
+#: that lands population changes every forty, so a sha read at ASSEMBLY names a tree that did not
+#: make these numbers. It has happened twice. Both times the artefact looked promotable and both
+#: times the counts in it had been drawn by code the tree had already replaced -- and each repair
+#: guarded the field the previous trap named rather than the property behind both, which is that
+#: the producing code and the publishing code are two different trees and only one of them is
+#: knowable at assembly time.
+#:
+#: A run that cannot resolve one publishes None and the reason. It never publishes the assembly
+#: tree's sha instead: a wrong commit is worse here than an admitted absence, because the whole
+#: use of this field is to let a reader tell those two trees apart.
+PRODUCING_COMMIT: str | None = current_head()
+PRODUCING_COMMIT_RESOLVED_AT: str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
 #: The noise-floor mode's own artefact. A SEPARATE file on purpose: it is the error bar ON
 #: `value_cycle_ab.json`, and writing it over the thing it qualifies would leave the published
@@ -171,6 +193,37 @@ ARM_FIGURE_CLOCKS = {
     "provisioned_bad_debt_gbp": "settled-provisioned",
     "provisioned_final_treasury_gbp": "settled-provisioned",
 }
+
+
+def producing_commit() -> dict:
+    """The commit that made this artefact, as a block a consumer can fail closed on.
+
+    IT IS A READ OF A CONSTANT, NOT A MEASUREMENT. Everything interesting happened at import
+    (`PRODUCING_COMMIT`); this function exists so that every artefact this file writes carries the
+    SAME answer, and so that a consumer meets one shape rather than three. Calling `current_head()`
+    here instead would reintroduce exactly the defect the constant exists to remove -- it would
+    resolve at assembly, an hour and fifty minutes after the code was bound.
+
+    `unavailable_because` IS THE FAIL-CLOSED LEG. A run inside a git-less checkout, or one whose
+    `git rev-parse` did not answer, states that it cannot name its code. Consumers key on the
+    absence of `commit`; they never see an empty string or a placeholder sha, because a consumer
+    that cannot tell "no commit" from "some commit" is the fail-open shape this field replaces.
+    """
+    return {
+        "commit": PRODUCING_COMMIT,
+        "resolved_at": PRODUCING_COMMIT_RESOLVED_AT,
+        "resolved_when": (
+            "at process start, when Python bound the modules this run executed -- NOT at artefact "
+            "assembly, which is a later tree"),
+        "unavailable_because": (
+            None if PRODUCING_COMMIT else
+            "`git rev-parse HEAD` did not answer in this process, so this run cannot name the "
+            "code that produced it"),
+        "why_this_is_here": (
+            "This run takes hours and the tree moves under it. A consumer that wants to publish "
+            "these counts needs to know which code drew them, and no diff between two artefacts "
+            "can supply that."),
+    }
 
 
 def realised_metrics(result: dict) -> dict:
@@ -2818,6 +2871,9 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
 
     artefact = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        # WHICH CODE MADE THIS, above every figure it made, because `generated_at` is the one
+        # timestamp on this artefact that is guaranteed NOT to be when the numbers were decided.
+        "producing_commit": producing_commit(),
         "report_end": report_end,
         # EVERY CLOCK USED IN THIS FILE, defined once and above every figure. `clock_audit`
         # resolves each figure's label against this and refuses a label that is not in it.
@@ -3213,6 +3269,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
 
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "producing_commit": producing_commit(),
         "report_end": report_end,
         "what_this_is": (
             "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "

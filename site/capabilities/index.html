@@ -516,7 +516,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         }).join("")
       + "</table></div>"
       + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
-      + prose(fn.reading) + "</p>";
+      + prose(fn.reading) + "</p>"
+      /* WHAT THE SPLIT COSTS US, in the same breath as the split. Amber, because "no amount of
+         work on our own code widens this sample" is a bound on the concordance interval a few
+         lines above, and a reader who takes that interval as improvable by effort has read the
+         page wrong. Read from the feed -- the branch between "ours to fix" and "not ours" is
+         derived there from the class counts, never decided here. */
+      + (fn.consequence
+          ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+            + prose(fn.consequence) + "</p>"
+          : "");
   }
 
   /* THE HOUSEHOLD CELL, and it is a cell rather than a section on purpose. An arm that earned
@@ -762,6 +771,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       if (dec.available) {
         var accts = dec.accounts_named_in_the_decision_sample || [];
         var who = dec.who_the_method_has_priced || {};
+        var bookCount = dec.book_accounts_settled;
         $("arms-decisions").innerHTML =
           '<p style="margin:14px 0 6px;font-size:13px;"><strong>How many decisions this rests on.</strong> '
           + "The per-customer arm priced <strong>" + esc(dec.value_arm_priced)
@@ -770,13 +780,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           // THE DENOMINATOR IS RENEWALS, NOT ACCOUNTS. Until 2026-08-28 this read "out of a book
           // of N settled accounts" -- a renewal numerator over an account denominator, which
           // makes 2.07% of the renewals the world offered look like ~12% of the book.
+          /* THE BOOK COUNT IS CONDITIONAL ON ITS OWN PROVENANCE. A run that cannot name the code
+             that drew its population has no business publishing how many accounts that population
+             held: the count reads as a fact about this supplier when it may be a fact about code
+             the tree has since replaced. `bookCount` is null in exactly that case (the feed
+             withholds it), and the clause is dropped rather than rendering "null accounts". */
           + (dec.renewals_the_world_offered
               ? ", out of the <strong>" + esc(dec.renewals_the_world_offered)
                 + "</strong> renewals the world offered &mdash; <strong>"
                 + (dec.priced_share_of_renewals_offered * 100).toFixed(2)
-                + "%</strong> of them. The book is "
-                + esc(dec.book_accounts_settled) + " settled accounts"
-              : ", out of a book of " + esc(dec.book_accounts_settled) + " settled accounts")
+                + "%</strong> of them"
+                + (bookCount === null || bookCount === undefined ? ""
+                    : ". The book is " + esc(bookCount) + " settled accounts")
+              : (bookCount === null || bookCount === undefined ? ""
+                  : ", out of a book of " + esc(bookCount) + " settled accounts"))
           + ". Every account named among the scored decisions is one of "
           + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
@@ -963,11 +980,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          is that it publishes the unflattering direction -- which is worth nothing if it can also
          un-publish one silently. Read from the feed, not typed here. */
       var wd = d.withdrawn_claim || {};
+      /* WHICH CODE MADE THIS RUN, beside the run's own timestamp -- because `generated_at` is the
+         one clock on the artefact guaranteed NOT to be when the numbers were decided. A run of
+         these arms takes an hour and fifty minutes against a tree that lands population changes
+         every forty, so the book count and the code that drew it are two separate facts and the
+         page states both or neither. The count is rendered only on the labelled branch; the
+         unlabelled branch prints the reason it is missing, which is the reading that branch
+         exists to make available. */
+      var bk = d.book || {};
+      var pc = d.producing_commit || {};
+      var bookClause = bk.available === false
+        ? ". Its settled-book counts are withheld: "
+          + (pc.reason || "this run cannot name the code that drew its book") + " "
+        : ", on " + bk.billing_accounts_settled_in_window + " settled billing accounts, drawn by "
+          + (pc.produced_by_the_tree_it_publishes_from === false
+              ? "code this page no longer runs (" + pc.short + ", published from "
+                + String(pc.publishing_tree_commit || "").slice(0, 9) + ")"
+              : "the same code this page runs (" + pc.short + ")")
+          + ". ";
       $("arms-note").textContent =
-        "From the A/B run generated " + esc(d.run_generated_at || "at an unknown time")
-        + ", on " + esc((d.book || {}).billing_accounts_settled_in_window)
-        + " settled billing accounts. " + esc(d.provisional_note) + " " + esc(d.not_a_target)
-        + (wd.note ? " " + esc(wd.note) : "");
+        "From the A/B run generated " + (d.run_generated_at || "at an unknown time")
+        + bookClause + d.provisional_note + " " + d.not_a_target
+        + (wd.note ? " " + wd.note : "");
     })
     .catch(function (err) {
       $("arms-note").textContent =

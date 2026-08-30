@@ -117,7 +117,16 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
+# THE TREE THIS PAGE PUBLISHES FROM, resolved at import for the same reason the producer resolves
+# its own at import: it is the OTHER half of the comparison, and asking it later would compare an
+# artefact's producing commit against whatever the tree had become by assembly time.
+from background.boot_sha import current_head
+
 PROJECT = Path(__file__).resolve().parent.parent
+#: The commit the code RENDERING this page came from. Compared against the artefact's own
+#: `producing_commit`; when they differ, the page says so beside the figures rather than letting
+#: the reader assume one tree.
+PUBLISHING_TREE_COMMIT: str | None = current_head()
 THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.json"
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
@@ -1047,6 +1056,43 @@ def _attribution_sentence(exclusions: list[dict], offered) -> str:
         reasons="; ".join(sorted(_SCOPE_BY_DESIGN.values())))
 
 
+def _widening_consequence(by_class: dict) -> str | None:
+    """What the class split costs us, in the reader's words. DERIVED from the counts, never typed.
+
+    THE SENTENCE THAT MATTERS IS THE UNFLATTERING ONE, and it is the one nothing on this page said
+    until now: when `join` is zero, no amount of work on our own code makes this sample any
+    bigger, so the concordance interval three lines above is not a number that gets better by
+    trying harder here. That is the evidence base under every claim the method works, and a reader
+    is entitled to it in the same breath as the funnel.
+
+    KEYED TO THE PROPERTY. The branch is on `join`, not on today's zero -- the day a join failure
+    appears, the sentence says it is ours to fix and names the count, with nobody editing a
+    string. A version that hard-coded "cannot be widened" would go on saying so after the defect
+    it describes had come back.
+    """
+    join = by_class.get("join")
+    coverage = by_class.get("coverage")
+    eligibility = by_class.get("eligibility")
+    if not all(isinstance(v, int) for v in (join, coverage, eligibility)):
+        return None
+    total = join + coverage + eligibility
+    if total <= 0:
+        return None
+    tail = ("{coverage} wait on a gap in our own sourced tariff series -- widenable, but by "
+            "sourcing data rather than by writing code -- and {eligibility} are decisions the "
+            "world never billed under the price that was chosen, so no outcome to rank them "
+            "against exists at any book size.").format(coverage=coverage, eligibility=eligibility)
+    if join:
+        return ("Of the {total} decisions that dropped out, {join} are a join we failed to make. "
+                "That is a defect and it is ours to fix here, with no world change and no ruling: "
+                "fixing it widens this sample. Of the rest, ".format(total=total, join=join)
+                + tail[0].lower() + tail[1:])
+    return ("Of the {total} decisions that dropped out, ZERO are a join we failed to make -- so "
+            "this sample cannot be widened by fixing our own code. ".format(total=total) + tail
+            + " The interval above is what this book can earn, and only a larger settled book "
+              "moves it.")
+
+
 def _skill_drop_out(method_skill: dict) -> dict:
     """The 20 → 6 funnel, read off the run and NEVER recomputed here.
 
@@ -1107,6 +1153,13 @@ def _skill_drop_out(method_skill: dict) -> dict:
         # a sentence they have to take on trust.
         "the_sample_can_be_widened_from_this_book": bool(
             by_class.get("join") or by_class.get("coverage")),
+        # WHAT THAT COSTS US, said out loud rather than left for the reader to derive from three
+        # class counts. The boolean above is true whenever EITHER `join` or `coverage` is
+        # non-zero, and those two are not the same news: a join failure is our own code and we
+        # can fix it here, while a coverage gap is data this repository owes and a larger sample
+        # of it is a separate piece of work. A reader who meets "widenable: yes" and stops has
+        # been told the flattering half.
+        "consequence": _widening_consequence(by_class),
         "reconciliation": drop.get("reconciliation"),
         "reading": drop.get("reading"),
     }
@@ -1966,19 +2019,114 @@ def _auc_reading(belief: dict, attribution: dict) -> str:
     return head + body + endogeneity
 
 
-def _decisions(three_arm: dict) -> dict:
+def _producing_commit(three_arm: dict) -> dict:
+    """Which code made the run this page is about, and whether it is the code publishing it.
+
+    THE DEFECT. Twice in two stretches an artefact was produced by code the tree replaced while
+    the run was still going, and both times the counts inside it -- how many billing accounts
+    settled, how many carried an electricity leg, how many were left at the end -- were drawn by
+    a population the repair had already changed. Neither artefact could say so, because nothing
+    in it recorded the tree it ran against, and a diff between two artefacts cannot supply that:
+    both sides of such a diff are outputs, and the question is about the code.
+
+    So this reads the producer's OWN stamp (`run_value_cycle_ab.producing_commit`, resolved at
+    that process's import) and refuses to invent one. `stated: False` is published with its
+    reason, and the counts it labels come off the page rather than going on it unattributed --
+    see `_book`. A run that predates the stamp lands here, which is correct: it genuinely cannot
+    say which tree drew its book, and the page saying so is the honest reading of that.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the current artefact
+    is stale, or unstamped, or anything else about today. It asserts that a count is published
+    with the code that made it or not at all -- so the day a stamped run is promoted the counts
+    come back with nobody editing a string, and the day a stamped run is published from a
+    different tree the page says which two trees they were.
+    """
+    stamp = three_arm.get("producing_commit") or {}
+    stated = stamp.get("commit")
+    tree = PUBLISHING_TREE_COMMIT
+    if not isinstance(stated, str) or not stated.strip():
+        return {
+            "stated": False,
+            "publishing_tree_commit": tree,
+            "reason": (
+                stamp.get("unavailable_because")
+                or ("the run that produced this artefact predates the producing-commit stamp, so "
+                    "it cannot say which code drew its book. This run takes hours and the tree "
+                    "moves under it, so the code at assembly time is not evidence about the code "
+                    "at draw time.")),
+            "counts_are_labelled_by_the_code_that_made_them": False,
+        }
+    same = None if not tree else (stated == tree)
+    return {
+        "stated": True,
+        "commit": stated,
+        "short": stated[:9],
+        "resolved_at": stamp.get("resolved_at"),
+        "publishing_tree_commit": tree,
+        "produced_by_the_tree_it_publishes_from": same,
+        "counts_are_labelled_by_the_code_that_made_them": True,
+        "reading": (
+            "Produced and published by the same tree ({}).".format(stated[:9]) if same
+            else ("Produced at {} and published from {} -- the code was replaced between the run "
+                  "and this page, so read every count here as the older tree's."
+                  .format(stated[:9], (tree or "an unresolved tree")[:9]) if same is False
+                  else "Produced at {}; this publish could not resolve its own tree, so the two "
+                       "cannot be compared.".format(stated[:9]))),
+    }
+
+
+def _book(three_arm: dict, provenance: dict) -> dict:
+    """The settled-book counts, labelled by the code that drew them -- or withheld.
+
+    THE COUNTS ARE THE POPULATION, which is why they are the block gated on provenance and the
+    classification below is not. `billing_accounts_settled_in_window` and its siblings are what
+    the draw produced; a run whose draw code the page cannot name is a run whose counts the page
+    cannot attribute, and "167 settled billing accounts" reads to every reader as a fact about
+    this supplier rather than about a tree that no longer exists.
+
+    THE UNLABELLED COUNTS ARE KEPT, NOT DELETED, under a key the door does not render. A reviewer
+    comparing two runs wants them; a reader meeting them without their tree is the defect. That
+    split is deliberate and is the same one `_skill_drop_out` makes between the reasons that fired
+    and the whole table.
+    """
+    counts = dict((three_arm.get("book_identity") or {}).get("control_arm") or {})
+    if provenance.get("counts_are_labelled_by_the_code_that_made_them"):
+        counts["available"] = True
+        counts["produced_by"] = provenance
+        return counts
+    return {
+        "available": False,
+        "produced_by": provenance,
+        "why_the_counts_are_withheld": (
+            "These counts describe a population, and this run cannot name the code that drew it. "
+            + str(provenance.get("reason") or "")
+            + " A count published without the tree that made it reads as a fact about the "
+              "supplier when it may be a fact about code that has since been replaced."),
+        # FOR A REVIEWER, NEVER FOR THE PAGE. Rendering anything from here would reinstate exactly
+        # what the branch exists to prevent.
+        "unlabelled_counts": counts,
+    }
+
+
+def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
     The account names are read out of the artefact's own decision sample rather than restated
     from the design note that measured them, so this block cannot claim a population the run did
     not have.
+
+    `book_accounts_settled` IS THE SAME COUNT `_book` GATES, reached by a second route -- this
+    block reads `book_identity.control_arm` too, and the door falls back from one to the other.
+    Gating one and not the other would leave the withheld figure on the page under a different
+    key, which is how a withdrawal becomes cosmetic.
     """
     shape = three_arm.get("decision_shape") or {}
     level_shape = three_arm.get("level_arm_decision_shape") or {}
     belief = three_arm.get("belief_vs_outcome") or {}
     bound = three_arm.get("bound_attribution") or {}
     credibility = three_arm.get("control_credibility") or {}
-    book = (three_arm.get("book_identity") or {}).get("control_arm") or {}
+    labelled = (provenance or {}).get("counts_are_labelled_by_the_code_that_made_them", True)
+    book = ((three_arm.get("book_identity") or {}).get("control_arm") or {}) if labelled else {}
 
     sample = [row for row in (belief.get("matched_sample") or [])
               + (belief.get("unmatched_sample") or []) if isinstance(row, dict)]
@@ -2219,6 +2367,7 @@ def build(three_arm: dict | None, floor: dict | None,
             "The three-arm A/B artefact could not be read, so no comparison is shown rather than "
             "a partial one."))
 
+    provenance = _producing_commit(three_arm)
     realised = _realised(three_arm, published_run)
     provisioned = _provisioned(three_arm)
     if not realised["available"] and not provisioned["available"]:
@@ -2260,7 +2409,10 @@ def build(three_arm: dict | None, floor: dict | None,
                                                "this page states no remedy")}),
         withdrawn_claim=_withdrawn(),
         run_generated_at=three_arm.get("generated_at"),
-        book=(three_arm.get("book_identity") or {}).get("control_arm") or {},
+        # WHICH CODE MADE THE RUN, in the payload rather than the commit message, and above the
+        # counts it decides the fate of. See `_producing_commit`.
+        producing_commit=provenance,
+        book=_book(three_arm, provenance),
         realised=realised,
         provisioned=provisioned,
         error_bar=_error_bar(floor, point, three_arm, point_clock),
@@ -2273,7 +2425,7 @@ def build(three_arm: dict | None, floor: dict | None,
         # keyed by the same arm keys, so the surface can render one row per arm with both
         # columns on it -- see `_household`.
         household=_household(three_arm),
-        decisions=_decisions(three_arm),
+        decisions=_decisions(three_arm, provenance),
         headline=(
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check
             # exists: this sentence is a claim about the supplier the rest of the site publishes,
