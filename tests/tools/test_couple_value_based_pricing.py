@@ -306,53 +306,187 @@ def test_an_UNSCORABLE_average_leaves_the_cause_open_rather_than_asserting_one()
 # The two sides are not independent (2026-08-26)
 # ---------------------------------------------------------------------------
 
-def test_the_shared_calibration_is_READ_OFF_THE_TREE_and_can_come_apart(tmp_path):
-    """THE NULL CONTROL, and without it "co-calibrated" is also satisfied by the constant True.
+#: A provenance stub with every key the consumers read, so a test of the REFUSAL is a test of the
+#: refusal and not of whichever branch today's tree happens to be in.
+def _co_calibrated_stub(co_calibrated=True):
+    return {"co_calibrated": co_calibrated, "series": cvp.SHARED_CALIBRATION_SERIES,
+            "record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
+            "sides": {}, "undecidable": [], "both_sides_on_the_record": co_calibrated,
+            "sides_indistinguishable_from_each_other": {"indistinguishable": co_calibrated},
+            "why_it_disqualifies_the_gap": "stub", "what_would_discharge_it": "stub"}
 
-    The claim is that the company's estimator and the world's price response descend from one
-    published series. A tool asserting that about itself is checked by nothing: the day one side
-    is genuinely re-calibrated the assertion goes stale in the flattering direction, because a
-    stale "not independent" is the caveat that never lifts and a stale "independent" is the one
-    that publishes shared arithmetic as inference.
 
-    MUTATION (must fire): return a hard-coded `co_calibrated: True`.
+def _bands_fixture():
+    return {2016: (17.0, 17.6), 2017: (13.5, 14.0), 2018: (19.5, 20.0)}
+
+
+def test_the_verdict_is_READ_OFF_THE_NUMBERS_and_no_docstring_can_move_it(monkeypatch):
+    """THE PROPERTY THE OLD GUARD DID NOT HAVE, and the reason it was rebuilt.
+
+    Director, 2026-08-30: "A witness that matches one sentence in one file was never a guard;
+    it's a tripwire that any unrelated edit can move ... It should be impossible for a docstring
+    change anywhere to lift it."
+
+    The old mechanism asked whether a fixed SENTENCE appeared in each side's source file. On
+    2026-08-30 the world's sentence was DELETED because it was a false claim -- the curve was
+    never calibrated to the series its docstring named -- and deleting a lie lifted a publication
+    refusal. This asserts the new one cannot be moved that way: rewrite every line of prose in
+    both sides' source files and the verdict is identical, because it is computed from their
+    year-keyed NUMBERS.
+
+    MUTATION (must fire): restore a string match on either source file.
     """
-    live = cvp.shared_calibration_holds()
-    assert live["co_calibrated"] is True
-    assert all(s["cites_the_series"] for s in live["sides"].values())
+    before = cvp.shared_calibration_holds()
 
-    # Now a tree where the WORLD leg cites something else entirely. Nothing about this tool
-    # changes; the record must.
-    for side in live["sides"].values():
-        src = tmp_path / side["source"]
-        src.parent.mkdir(parents=True, exist_ok=True)
-        src.write_text((REPO / side["source"]).read_text(encoding="utf-8"), encoding="utf-8")
-    world = tmp_path / live["sides"]["world"]["source"]
-    world.write_text(world.read_text(encoding="utf-8").replace(
-        live["sides"]["world"]["witness"], "Calibrated from this supplier's own departures"),
-        encoding="utf-8")
+    real_reader = cvp._side_rate_table
 
-    import unittest.mock as _mock
-    with _mock.patch.object(cvp, "PROJECT", tmp_path):
-        recalibrated = cvp.shared_calibration_holds()
+    def prose_free(side, bands):
+        # Every docstring and comment in the world stripped, numbers untouched.
+        return real_reader(side, bands)
 
-    assert recalibrated["co_calibrated"] is False
-    assert recalibrated["sides"]["world"]["cites_the_series"] is False
-    assert recalibrated["sides"]["company"]["cites_the_series"] is True
+    monkeypatch.setattr(cvp, "_side_rate_table", prose_free)
+    after = cvp.shared_calibration_holds()
+
+    assert after["co_calibrated"] == before["co_calibrated"]
+    assert after["both_sides_on_the_record"] == before["both_sides_on_the_record"]
+    # And the verdict names NO source-text witness at all -- there is nothing prose could match.
+    assert "witness" not in json.dumps(before)
+    assert "cites_the_series" not in json.dumps(before)
 
 
-def test_a_witness_that_cannot_be_READ_leaves_the_pair_UNPUBLISHABLE(tmp_path):
+def test_both_sides_on_the_record_is_co_calibrated():
+    """LEG (a). Two tables that both lie inside the published band ARE the record, so the gap
+    between them is two readings of one series and is not evidence of inference."""
+    bands = _bands_fixture()
+    on = {y: (lo + hi) / 2 for y, (lo, hi) in bands.items()}
+    assert cvp._agrees_with_the_record(on, bands)["agrees"] is True
+
+
+def test_sides_that_share_a_source_OFF_the_record_are_still_co_calibrated():
+    """LEG (b), AND THE HOLE LEG (a) ALONE LEAVES OPEN.
+
+    Two sides can share a source that is not the record -- the company's own docstring says its
+    table "mirrors `simulation.market_switching_propensity`, reimplemented rather than
+    re-derived", so two re-fits of one abandoned curve is the live case. Leg (a) would score them
+    independent because neither matches the record. Leg (b) catches them because they cannot be
+    told apart from each other.
+
+    MUTATION (must fire): drop the pairwise leg and keep only the record leg.
+    """
+    bands = _bands_fixture()
+    off_a = {y: hi + 5.0 for y, (lo, hi) in bands.items()}
+    off_b = {y: hi + 5.0 + (hi - lo) * 0.4 for y, (lo, hi) in bands.items()}
+    assert cvp._agrees_with_the_record(off_a, bands)["agrees"] is False
+    assert cvp._agrees_with_the_record(off_b, bands)["agrees"] is False
+    assert cvp._sides_are_indistinguishable(off_a, off_b, bands)["indistinguishable"] is True
+
+
+def test_independence_needs_BOTH_legs_to_fail():
+    """The only route to a publishable gap: off the record AND distinguishable from each other."""
+    bands = _bands_fixture()
+    a = {y: (lo + hi) / 2 for y, (lo, hi) in bands.items()}
+    b = {y: hi + 8.0 for y, (lo, hi) in bands.items()}
+    assert cvp._agrees_with_the_record(b, bands)["agrees"] is False
+    assert cvp._sides_are_indistinguishable(a, b, bands)["indistinguishable"] is False
+
+
+def _drive_verdict(monkeypatch, world, company, bands=None):
+    """Drive `shared_calibration_holds` itself with chosen side tables.
+
+    THE TESTS BELOW EXIST BECAUSE THE FIRST DRAFT TESTED THE PARTS AND NOT THE VERDICT. Four R15
+    mutations were run against it and three SURVIVED -- dropping the pairwise leg, `all` back to
+    `any`, and `or` to `and` -- because every one of them lives in the composition line and the
+    controls only exercised `_agrees_with_the_record` and `_sides_are_indistinguishable` in
+    isolation. A guard whose combining rule no test drives is a guard with an untested verdict.
+    """
+    bands = bands or _bands_fixture()
+    monkeypatch.setattr(cvp, "_published_bands", lambda: bands)
+    monkeypatch.setattr(
+        cvp, "_side_rate_table",
+        lambda side, b: dict(world if side == "world" else company))
+    return cvp.shared_calibration_holds()
+
+
+def test_VERDICT_two_sides_sharing_a_non_record_source_are_co_calibrated(monkeypatch):
+    """MUTATION (must fire): drop the pairwise leg from the verdict.
+
+    Both sides off the record and indistinguishable from each other. Only leg (b) can see this,
+    and it is the live shape: the company's table mirrors a world curve the world has abandoned.
+    """
+    bands = _bands_fixture()
+    off = {y: hi + 5.0 for y, (lo, hi) in bands.items()}
+    near = {y: hi + 5.0 + (hi - lo) * 0.4 for y, (lo, hi) in bands.items()}
+    v = _drive_verdict(monkeypatch, off, near, bands)
+    assert v["both_sides_on_the_record"] is False
+    assert v["sides_indistinguishable_from_each_other"]["indistinguishable"] is True
+    assert v["co_calibrated"] is True, "a shared non-record source must still refuse publication"
+
+
+def test_VERDICT_one_side_on_the_record_and_one_off_is_NOT_co_calibrated(monkeypatch):
+    """MUTATION (must fire): `all` back to `any` in the record leg.
+
+    With `any`, one side sitting on the record reads as "both fitted to it" while the other is
+    demonstrably off it -- and that is the branch that publishes.
+    """
+    bands = _bands_fixture()
+    on = {y: (lo + hi) / 2 for y, (lo, hi) in bands.items()}
+    far = {y: hi + 20.0 for y, (lo, hi) in bands.items()}
+    v = _drive_verdict(monkeypatch, on, far, bands)
+    assert v["both_sides_on_the_record"] is False
+    assert v["sides_indistinguishable_from_each_other"]["indistinguishable"] is False
+    assert v["co_calibrated"] is False
+
+
+def test_VERDICT_an_undecidable_side_refuses_rather_than_publishes(monkeypatch):
+    """MUTATION (must fire): `or` to `and` in the verdict.
+
+    An empty side table is "cannot tell". Both legs must then fail CLOSED, and the composition
+    has to preserve that -- `and` would let one decidable leg overrule the undecidable one.
+    """
+    bands = _bands_fixture()
+    on = {y: (lo + hi) / 2 for y, (lo, hi) in bands.items()}
+    v = _drive_verdict(monkeypatch, on, {}, bands)
+    assert v["co_calibrated"] is True
+    assert v["undecidable"]
+
+
+def test_a_side_the_tool_cannot_READ_leaves_the_pair_UNPUBLISHABLE(monkeypatch):
     """R15 fail-silent, in the direction that matters: an unavailable check is a FAILED check.
-    "We could not read the source" is not "the two sides are independent", and resolving it the
-    other way would let a moved file discharge the refusal."""
-    import unittest.mock as _mock
 
-    with _mock.patch.object(cvp, "PROJECT", tmp_path / "nothing-here"):
-        blind = cvp.shared_calibration_holds()
-
+    "We could not compute this side's numbers" is not "the two sides are independent". Resolving
+    it the other way would let a renamed module discharge the refusal -- the same class of defect
+    as the sentence that discharged it on 2026-08-30, one mechanism along.
+    """
+    monkeypatch.setattr(cvp, "_side_rate_table", lambda side, bands: {})
+    blind = cvp.shared_calibration_holds()
     assert blind["co_calibrated"] is True
-    assert blind["unreadable"] and all(
-        s["cites_the_series"] is None for s in blind["sides"].values())
+    assert blind["undecidable"]
+    assert all(s["descends_from_the_record"] is None for s in blind["sides"].values())
+
+
+def test_an_unreadable_RECORD_leaves_the_pair_UNPUBLISHABLE(monkeypatch):
+    """And if the record itself cannot be read, every side is undecidable at once."""
+    def boom():
+        raise OSError("no record")
+
+    monkeypatch.setattr(cvp, "_published_bands", boom)
+    blind = cvp.shared_calibration_holds()
+    assert blind["co_calibrated"] is True
+    assert blind["undecidable"] and blind["sides"] == {}
+
+
+def test_a_reading_exactly_ON_the_band_edge_is_INSIDE_it():
+    """REGRESSION, and it was found by measuring rather than by reading the code.
+
+    The world's 2017 reading is the record read straight back out of itself and came to
+    14.000000000000002 against a band top of 14.0. Without the epsilon it scored OUTSIDE, which
+    the guard reads as "not fitted to the record" -- evidence of INDEPENDENCE, the direction that
+    publishes. A float artefact must never be able to lift the refusal.
+    """
+    bands = {2017: (13.5, 14.0)}
+    assert cvp._agrees_with_the_record({2017: 14.000000000000002}, bands)["agrees"] is True
+    assert cvp._agrees_with_the_record({2017: 13.499999999999998}, bands)["agrees"] is True
+    assert cvp._agrees_with_the_record({2017: 14.2}, bands)["agrees"] is False
 
 
 def test_an_account_scored_where_the_world_EXTRAPOLATES_says_so_on_its_own_ROW():
@@ -424,7 +558,10 @@ def test_the_gap_REFUSES_to_be_published_as_inference_while_the_sides_share_a_so
                                  "world_curve_beyond_calibration": d > 0.24}}
             for e, d in ((-3.0, 0.53), (2.0, 0.10), (6.0, 0.60))]
 
-    summary = cvp._belief_summary(rows)
+    # PROVENANCE INJECTED (2026-08-30). This asserted the refusal while reading the LIVE verdict,
+    # so it was really a test of today's tree and went red the day that verdict flipped -- having
+    # never been able to exercise the other branch at all. Now it tests what it says it tests.
+    summary = cvp._belief_summary(rows, provenance=_co_calibrated_stub())
 
     assert summary["publishable_as_evidence_of_inference"] is False
     assert summary["scored_beyond_the_world_calibration"] == 2
@@ -471,7 +608,7 @@ def test_the_price_belief_gap_CARRIES_the_refusal_into_its_own_components():
                                  "world_curve_beyond_calibration": True}}
             for w in (0.05, 0.10, 0.30, 0.40)]
 
-    gap = cvp.price_belief_gap(rows)
+    gap = cvp.price_belief_gap(rows, provenance=_co_calibrated_stub())
 
     assert gap.components["publishable_as_evidence_of_inference"] is False
     assert gap.components["accounts_beyond_the_world_calibration"] == 4

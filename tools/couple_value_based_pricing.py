@@ -111,21 +111,164 @@ SHARED_CALIBRATION_SERIES = (
     "Engagement Survey"
 )
 
-#: Each side's OWN SOURCE saying so, so the claim is READ OFF THE TREE rather than asserted here
-#: by the tool that would benefit from asserting it (R15 tautology: a provenance claim written
-#: down beside the measurement is checked by nothing and goes stale silently). If either side is
-#: ever genuinely re-calibrated from an independent source, its witness leaves its source file and
-#: the refusal below lifts by itself -- which is what makes it a control and not a comment.
-_PROVENANCE_WITNESSES = (
-    ("world", "simulation/market_switching_propensity.py",
-     "Calibrated from DESNZ electricity switching series 2015-2025",
-     "`churn_position_multiplier` is the reciprocal of the win leg below saturation, and that "
-     "leg IS `_savings_to_rate` -- the piecewise curve fitted to the series"),
-    ("company", "company/crm/market_conditions.py",
-     "from the same public DESNZ/Ofgem series",
-     "`market_conditions_multiplier` scales every `enriched_churn_estimate`, and its own "
-     "docstring says it mirrors `simulation.market_switching_propensity`, reimplemented rather "
-     "than re-derived"),
+#: EACH SIDE'S YEAR-KEYED NUMBERS, AND THE RECORD THEY ARE JUDGED AGAINST.
+#:
+#: REBUILT 2026-08-30, DIRECTOR: "A witness that matches one sentence in one file was never a
+#: guard; it's a tripwire that any unrelated edit can move. Rebuild it so it answers the actual
+#: question -- do the company's estimator and the world's response descend from the same record --
+#: and make it fail-closed when it cannot tell. It should be impossible for a docstring change
+#: anywhere to lift it."
+#:
+#: WHAT THE OLD ONE DID AND HOW IT FAILED. It asked whether a fixed SENTENCE appeared in each
+#: side's source file, reasoning that "if either side is ever genuinely re-calibrated from an
+#: independent source, its witness leaves its source file and the refusal lifts by itself." The
+#: intent was right. The mechanism could not tell re-calibration from any other edit -- and on
+#: 2026-08-30 the world's sentence left its file because it was a FALSE CLAIM being deleted (the
+#: curve was never calibrated to that series and said it was). Deleting a lie lifted a publication
+#: refusal, at the exact moment the two sides became MORE coupled: the world's level had just moved
+#: onto the published record via `departure_level_anchor`, which is the record the company's
+#: estimator also descends from. A guard that a correction can switch off is not a guard.
+#:
+#: WHAT THIS ONE DOES. It asks the question of the NUMBERS. Both sides carry a year-keyed table
+#: about GB domestic switching; the commons artefact states, per year, the band the published
+#: record bears. A side whose table lies inside that band for the years the record covers IS
+#: calibrated to the record, whatever its docstring says. Two such sides descend from one record,
+#: which is the question. Prose cannot move it in either direction.
+#:
+#: WHY "AGREES WITH THE RECORD" IS THE RIGHT OPERATIONALISATION, and its one honest weakness: two
+#: independently-derived tables could in principle both land inside the band by coincidence, and
+#: would be scored co-calibrated. That error is in the FAIL-CLOSED direction -- it refuses
+#: publication -- and the band is deliberately narrow (`test_switching_rate_commons` asserts it is
+#: "narrower than the thing it is meant to discriminate"), so the coincidence is not a cheap one.
+#: The opposite error, scoring genuinely-coupled sides independent, is the one that publishes a
+#: false claim, and it is the one this design makes hard.
+_SHARED_RECORD = "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json"
+
+#: side -> (dotted module, attribute, reference_year or None).
+#:
+#: `reference_year=None` means the table is already a RATE in percent. An integer means the table
+#: is a normalised MULTIPLIER and is read back as the rate it asserts, against that year's band --
+#: the same conversion `tests/architecture/test_switching_rate_commons.py` uses, because a second
+#: conversion would let the two disagree about what a multiplier means.
+_SIDE_TABLES = {
+    "company": ("company.crm.market_conditions", "MARKET_SWITCHING_MULTIPLIER_BY_YEAR", 2024),
+}
+
+#: The world's side is not a table but a function, and it is read through the SAME instrument the
+#: commons is read through so the two cannot drift apart.
+_WORLD_RATE_READER = ("simulation.market_switching_propensity", "market_departure_rate_pct")
+
+
+def _published_bands() -> dict:
+    """The record's per-year band, via the instrument that measures the world against it."""
+    from tools.measure_departure_level import published_bands
+
+    return published_bands()
+
+
+def _side_rate_table(side: str, bands: dict) -> dict:
+    """One side's year-keyed table read back as a rate in percent, or {} if it cannot be read."""
+    import importlib
+
+    try:
+        if side == "world":
+            dotted, fn_name = _WORLD_RATE_READER
+            fn = getattr(importlib.import_module(dotted), fn_name)
+            return {y: float(fn(y)) for y in bands}
+        dotted, attr, reference_year = _SIDE_TABLES[side]
+        table = dict(getattr(importlib.import_module(dotted), attr))
+        if reference_year is None:
+            return {int(y): float(v) for y, v in table.items()}
+        reference_rate = bands[reference_year][1]
+        return {int(y): float(v) * reference_rate for y, v in table.items()}
+    except Exception:
+        return {}
+
+
+#: The published band is quoted to one decimal place; a difference smaller than that is not a
+#: disagreement with it, it is arithmetic.
+_BAND_EPS = 1e-6
+
+
+def _sides_are_indistinguishable(a: dict, b: dict, bands: dict) -> dict:
+    """Do the two sides' own series differ by less than the record's own precision, everywhere?
+
+    THE SECOND LEG, AND THE ONE THAT CLOSES THE REAL HOLE. Leg one asks whether each side agrees
+    with the RECORD, which catches the case both sides ARE the record. It does not catch two sides
+    that share some OTHER source and are both off the record -- and that case is live here, because
+    the company's own docstring says its table "mirrors `simulation.market_switching_propensity`,
+    reimplemented rather than re-derived". Two re-fits of one abandoned curve are exactly the
+    "arithmetic residue wearing the costume of a company knowing something" this guard exists for,
+    and leg one alone would score them independent.
+
+    The threshold is the record's OWN band width for that year, not a number chosen here: two
+    series closer than the record's precision are not distinguishable as different fits of
+    anything. Fail-closed -- no overlapping years returns None, "cannot tell".
+    """
+    overlap = sorted(set(a) & set(b) & set(bands))
+    if not overlap:
+        return {"indistinguishable": None, "years_checked": 0, "max_divergence_pp": None,
+                "why_unknown": "the two sides share no year the record covers"}
+    gaps = {y: abs(a[y] - b[y]) for y in overlap}
+    worst_year = max(gaps, key=gaps.get)
+    apart = [y for y in overlap if gaps[y] > (bands[y][1] - bands[y][0]) + _BAND_EPS]
+    return {
+        "indistinguishable": not apart,
+        "years_checked": len(overlap),
+        "max_divergence_pp": round(gaps[worst_year], 2),
+        "max_divergence_year": worst_year,
+        "years_further_apart_than_the_band_is_wide": apart,
+    }
+
+
+def _agrees_with_the_record(rates: dict, bands: dict) -> dict:
+    """Does this side's table lie inside the published band everywhere the record covers?
+
+    FAIL-CLOSED at every step. An empty table, or one that covers none of the record's years,
+    returns `agrees=None` -- "cannot tell" -- which the caller reads as co-calibrated, never as
+    independent.
+    """
+    overlap = sorted(set(rates) & set(bands))
+    if not rates or not overlap:
+        return {"agrees": None, "years_checked": 0, "years_outside": [],
+                "why_unknown": "no year of this side's table overlaps the published record"}
+    # THE BAND IS QUOTED TO ONE DECIMAL PLACE, so the comparison is too. Without `_BAND_EPS` the
+    # world's 2017 reading -- which IS the record, read straight back out of it -- came to
+    # 14.000000000000002 against a band top of 14.0 and scored OUTSIDE. A float artefact would
+    # then have been read as "this side is not fitted to the record", i.e. as evidence of
+    # independence, which is the direction that publishes. Measured, not hypothesised.
+    outside = [
+        {"year": y, "reads_pct": round(rates[y], 2),
+         "band_pct": [bands[y][0], bands[y][1]]}
+        for y in overlap
+        if not (bands[y][0] - _BAND_EPS <= rates[y] <= bands[y][1] + _BAND_EPS)
+    ]
+    return {"agrees": not outside, "years_checked": len(overlap), "years_outside": outside}
+
+
+#: The two sentences a reader of the artefact needs, hoisted so the record-unreadable
+#: branch and the normal branch cannot drift into saying different things.
+_WHY_IT_DISQUALIFIES = (
+        "A belief-versus-truth gap is quotable as evidence of the company's INFERENCE only if "
+        "the two sides were arrived at independently. Both of these were fitted from the same "
+        "market-level switching counts, so a small gap can be shared arithmetic and a large "
+        "one can be two fits disagreeing about noise. Neither reading distinguishes a company "
+        "that knows something from one that shares a source with the world it is being "
+        "scored against."
+)
+
+_WHAT_WOULD_DISCHARGE = (
+        "ONE of: (a) the world leg re-calibrated from a series the company cannot read -- a "
+        "SUPPLIER-level churn series against that supplier's own position versus the market "
+        "(the 2018-19 small-supplier failures and the SoLR events are where to look), which "
+        "`churn_position_multiplier` already names as the thing that would settle its own "
+        "extrapolation; or (b) the company estimator re-fitted from its OWN observed "
+        "departures rather than the published market series, which is what a real supplier "
+        "actually has and this one does not yet use. Scoring the pair inside the calibrated "
+        "window does NOT discharge it -- that removes the extrapolation flag below and leaves "
+        "the shared source untouched. Neither does the realised two-run earnings comparison "
+        "named in this module's docstring, but that comparison does not need this to be "
+        "discharged: it scores what happened, not two curves against each other."
 )
 
 
@@ -140,43 +283,72 @@ def shared_calibration_holds() -> dict:
     `docs/observability/value_based_pricing_arms.json` must be able to see the shared provenance,
     both witnesses, and what would discharge it, without opening a source file.
     """
-    sides, unreadable = {}, []
-    for side, relpath, witness, reaches in _PROVENANCE_WITNESSES:
-        entry = {"source": relpath, "witness": witness, "why_it_reaches_this_pair": reaches}
-        try:
-            entry["cites_the_series"] = witness in (PROJECT / relpath).read_text(encoding="utf-8")
-        except OSError as exc:
-            entry["cites_the_series"] = None
-            entry["why_unknown"] = f"{exc.__class__.__name__}: {str(exc)[:80]}"
-            unreadable.append(relpath)
-        sides[side] = entry
-    co_calibrated = bool(unreadable) or all(s["cites_the_series"] for s in sides.values())
+    try:
+        bands = _published_bands()
+    except Exception as exc:
+        # THE RECORD ITSELF IS UNREADABLE. Every side is then undecidable, so the pair is
+        # co-calibrated and the gap is unpublishable. "We could not check" is not "they are
+        # independent" -- and this is the branch where that sentence does the most work.
+        return {
+            "co_calibrated": True,
+            "series": SHARED_CALIBRATION_SERIES,
+            "record": _SHARED_RECORD,
+            "sides": {},
+            "undecidable": ["the published record could not be read: "
+                            f"{exc.__class__.__name__}: {str(exc)[:80]}"],
+            "why_it_disqualifies_the_gap": _WHY_IT_DISQUALIFIES,
+            "what_would_discharge_it": _WHAT_WOULD_DISCHARGE,
+        }
+
+    sides, undecidable = {}, []
+    for side in ("world", "company"):
+        rates = _side_rate_table(side, bands)
+        verdict = _agrees_with_the_record(rates, bands)
+        source = (_WORLD_RATE_READER[0] if side == "world" else _SIDE_TABLES[side][0])
+        sides[side] = {
+            "source": source,
+            "reads": (_WORLD_RATE_READER[1] if side == "world" else _SIDE_TABLES[side][1]),
+            "descends_from_the_record": verdict["agrees"],
+            "years_checked": verdict["years_checked"],
+            "years_outside_the_band": verdict["years_outside"],
+        }
+        if "why_unknown" in verdict:
+            sides[side]["why_unknown"] = verdict["why_unknown"]
+        if verdict["agrees"] is None:
+            undecidable.append(source)
+
+    pairwise = _sides_are_indistinguishable(
+        _side_rate_table("world", bands), _side_rate_table("company", bands), bands)
+    if pairwise["indistinguishable"] is None:
+        undecidable.append("the two sides could not be compared with each other")
+
+    # CO-CALIBRATED unless a side is DEMONSTRABLY off the record. `None` (cannot tell) counts as
+    # co-calibrated, which is the fail-closed direction: independence has to be shown, never
+    # inferred from an absence. Only a side whose own numbers sit OUTSIDE the published band --
+    # a positive demonstration that it was not fitted to the record -- can lift this.
+    # TWO LEGS, EITHER OF WHICH MEANS SHARED DESCENT.
+    #
+    # (a) both sides agree with the RECORD -- then both ARE the record. `all`, not `any`: with one
+    #     side demonstrably off the record they are not both fitted to it, and `any` would have
+    #     read "one side is on the record" as co-calibrated, which is the branch that publishes.
+    # (b) the two sides are indistinguishable FROM EACH OTHER -- then they share a source whatever
+    #     it is, including one neither the record nor this tool knows about.
+    #
+    # Independence therefore requires BOTH legs to fail, and each leg fails closed on "cannot
+    # tell": independence is demonstrated, never inferred from an absence.
+    both_on_the_record = all(s["descends_from_the_record"] is not False for s in sides.values())
+    same_as_each_other = pairwise["indistinguishable"] is not False
+    co_calibrated = both_on_the_record or same_as_each_other
     return {
         "co_calibrated": co_calibrated,
         "series": SHARED_CALIBRATION_SERIES,
+        "record": _SHARED_RECORD,
         "sides": sides,
-        "unreadable": unreadable,
-        "why_it_disqualifies_the_gap": (
-            "A belief-versus-truth gap is quotable as evidence of the company's INFERENCE only if "
-            "the two sides were arrived at independently. Both of these were fitted from the same "
-            "market-level switching counts, so a small gap can be shared arithmetic and a large "
-            "one can be two fits disagreeing about noise. Neither reading distinguishes a company "
-            "that knows something from one that shares a source with the world it is being "
-            "scored against."
-        ),
-        "what_would_discharge_it": (
-            "ONE of: (a) the world leg re-calibrated from a series the company cannot read -- a "
-            "SUPPLIER-level churn series against that supplier's own position versus the market "
-            "(the 2018-19 small-supplier failures and the SoLR events are where to look), which "
-            "`churn_position_multiplier` already names as the thing that would settle its own "
-            "extrapolation; or (b) the company estimator re-fitted from its OWN observed "
-            "departures rather than the published market series, which is what a real supplier "
-            "actually has and this one does not yet use. Scoring the pair inside the calibrated "
-            "window does NOT discharge it -- that removes the extrapolation flag below and leaves "
-            "the shared source untouched. Neither does the realised two-run earnings comparison "
-            "named in this module's docstring, but that comparison does not need this to be "
-            "discharged: it scores what happened, not two curves against each other."
-        ),
+        "both_sides_on_the_record": both_on_the_record,
+        "sides_indistinguishable_from_each_other": pairwise,
+        "undecidable": undecidable,
+        "why_it_disqualifies_the_gap": _WHY_IT_DISQUALIFIES,
+        "what_would_discharge_it": _WHAT_WOULD_DISCHARGE,
     }
 
 
@@ -513,7 +685,7 @@ def _population(rows: list[dict], as_of_year: int) -> dict:
     }
 
 
-def _belief_summary(rows: list[dict]) -> dict:
+def _belief_summary(rows: list[dict], provenance: dict | None = None) -> dict:
     """How wrong the company would be, at the price its own arm chooses.
 
     UNDER-ESTIMATES ARE COUNTED SEPARATELY because the sign is the whole story: a company that
@@ -528,7 +700,12 @@ def _belief_summary(rows: list[dict]) -> dict:
     beyond = sum(1 for s in scored if s.get("world_curve_beyond_calibration"))
     differentials = sorted(s["price_differential_vs_svt"] for s in scored
                            if s.get("price_differential_vs_svt") is not None)
-    provenance = shared_calibration_holds()
+    # INJECTABLE, so the refusal can be exercised in BOTH directions (2026-08-30). It used to
+    # read live provenance unconditionally, which made every test of this block a test of today's
+    # tree: the three controls below it asserted `publishable_as_evidence_of_inference is False`
+    # with synthetic rows and went red the day the live verdict flipped, having never been able
+    # to test the other branch at all.
+    provenance = shared_calibration_holds() if provenance is None else provenance
     return {
         "available": True,
         "accounts_scored": n,
@@ -746,7 +923,7 @@ def _git_head() -> str | None:
         return None
 
 
-def price_belief_gap(rows: list[dict]):
+def price_belief_gap(rows: list[dict], provenance: dict | None = None):
     """The company's price-response belief against the world's, normalised by NO SKILL.
 
     THE GAP IS THE SCORE (COUPLED_TRIAD_DESIGN). The belief-vs-truth summary beside this reports
@@ -768,7 +945,10 @@ def price_belief_gap(rows: list[dict]):
     mean_actual = sum(actual) / len(actual)
     raw = sum(abs(b - a) for b, a in zip(believed, actual)) / len(actual)
     g0 = sum(abs(mean_actual - a) for a in actual) / len(actual)
-    provenance = shared_calibration_holds()
+    # INJECTABLE for the same reason `_belief_summary` is: the control below asserts the refusal
+    # reaches the ledger ROW, and it could only ever exercise whichever branch today's tree
+    # happened to be in.
+    provenance = shared_calibration_holds() if provenance is None else provenance
     beyond = sum(1 for s in scored if s.get("world_curve_beyond_calibration"))
     return _normalise(
         raw, g0,

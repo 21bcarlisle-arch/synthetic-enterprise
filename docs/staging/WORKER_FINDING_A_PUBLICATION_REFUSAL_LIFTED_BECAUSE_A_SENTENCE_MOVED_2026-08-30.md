@@ -132,3 +132,77 @@ publish outage, which is now closing.
 
 *Recorded because "we could not check" and "we checked and it is clean" are different sentences,
 and the first was standing in for the second.*
+
+---
+
+## REPAIRED 2026-08-30 — and the repair proved my own central claim WRONG
+
+**Discharged:** `tests/tools/test_couple_value_based_pricing.py::test_the_verdict_is_READ_OFF_THE_NUMBERS_and_no_docstring_can_move_it`
+
+Director's ruling: *"A witness that matches one sentence in one file was never a guard; it's a
+tripwire that any unrelated edit can move. Rebuild it so it answers the actual question — do the
+company's estimator and the world's response descend from the same record — and make it
+fail-closed when it cannot tell. It should be impossible for a docstring change anywhere to lift
+it."*
+
+### The correction I owe first
+
+**This document argued the two sides are "in substance MORE coupled than before". Rebuilt on
+numbers, that is false, and it was reasoned from docstrings — the exact failure the old guard
+had.** I read the company's source saying it descends from "the same public DESNZ/Ofgem series",
+read the commons artefact citing Ofgem, ElectraLink and DESNZ, and concluded shared descent.
+Measured:
+
+| year | world reads | company implies | band |
+|---|---|---|---|
+| 2016 | 17.60 | **34.94** | 17.0–17.6 |
+| 2017 | 14.00 | **30.27** | 13.5–14.0 |
+| 2020 | 23.00 | **15.29** | 22.5–23.0 |
+| 2022 | 4.30 | **7.08** | 2.9–4.3 |
+
+The world is inside the published band in **10 of 10** years — it is the record. The company is
+outside it in **8 of 10**, by up to 17.3 percentage points, and the two series correlate at 0.362
+with opposite shapes (the company falls monotonically to 2022; the world peaks at 2020). They are
+not two fits of one series. **The sides are genuinely independent, and the refusal lifting was the
+right answer reached by a mechanism that could not have known it.**
+
+The finding stands as filed on the mechanism and is withdrawn on the coupling. Kept beside the
+original claim rather than edited over it.
+
+### What the guard does now
+
+Two legs, either of which means shared descent, and both fail closed on "cannot tell":
+
+* **(a) both sides' year tables lie inside the published band** — then both ARE the record.
+  `all`, not `any`: one side on the record with the other demonstrably off is not shared descent,
+  and `any` there is the branch that publishes.
+* **(b) the two sides are indistinguishable from EACH OTHER**, closer everywhere than the record's
+  own band width. This closes the hole leg (a) leaves: two sides sharing a source that is *not*
+  the record — live here, since the company's table "mirrors
+  `simulation.market_switching_propensity`, reimplemented rather than re-derived" — would
+  otherwise score independent.
+
+Independence therefore requires **both** legs to fail. Nothing in it reads prose: the verdict
+carries no `witness` and no `cites_the_series` field, so there is no string for a docstring edit
+to match or stop matching.
+
+### Two defects found in my own rebuild, both by running mutations rather than reading code
+
+1. **A float artefact could have lifted the refusal.** The world's 2017 reading — the record read
+   straight back out of itself — came to `14.000000000000002` against a band top of `14.0` and
+   scored OUTSIDE, i.e. as evidence of independence. Fixed with an epsilon at the band's own
+   quoted precision; pinned by `test_a_reading_exactly_ON_the_band_edge_is_INSIDE_it`.
+2. **The first set of tests exercised the parts and not the verdict.** Four mutations were run and
+   **three survived** — dropping leg (b), `all`→`any`, and `or`→`and` — because every one of them
+   lives in the composition line while the tests only drove the two helpers in isolation. Three
+   verdict-level controls added; all four mutations now fire, each on its own named test.
+
+### And the three red tests are green for the right reason
+
+They asserted the refusal while reading the LIVE verdict, so they were tests of today's tree and
+could never exercise the other branch. `_belief_summary` and `price_belief_gap` now take
+`provenance` injectably, so the refusal is tested in both directions rather than in whichever one
+the tree happens to be in.
+
+113 passed across the guard, the commons and the CLV coupling; 160 across the value-cycle A/B, the
+gap-population class and the coupled-triad gate.
