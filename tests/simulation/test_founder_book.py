@@ -37,7 +37,13 @@ def test_the_directors_number_is_read_from_the_curriculum_file():
 def test_an_unreadable_file_falls_back_to_the_ROSTER_and_never_to_zero(monkeypatch, tmp_path):
     """FAIL-SILENT killer. A YAML typo must not silently empty the book a supplier launched
     with. The fallback is the pre-decision state, which is also how the act is reverted."""
-    roster = len([c for c in lp._STATIC_ROSTER if lp._serves(c, lp.served_segments())])
+    # THE WORLD'S ROSTER, NOT THE SERVED ONE (2026-08-30). `founder_accounts` and
+    # `founder_book` size the WORLD's opening book and no longer read the segment dial --
+    # director's ruling: "the SIM keeps creating those accounts and only the company's book
+    # changes". Computing the expectation from the SERVED roster is what this file did, and
+    # it is the contract being repaired, so the expectation moves with it. The PROPERTY each
+    # of these tests asserts is unchanged.
+    roster = len(lp._STATIC_ROSTER)
     for content in ("", "not a mapping", "founder_accounts: 'eighty'",
                     "founder_accounts: true", "founder_accounts: 5000"):
         path = tmp_path / "FOUNDER_BOOK.yaml"
@@ -51,7 +57,13 @@ def test_an_unreadable_file_falls_back_to_the_ROSTER_and_never_to_zero(monkeypat
 def test_the_file_cannot_SHRINK_the_hand_authored_roster(monkeypatch, tmp_path):
     """The roster is history. A number below it is a request this parameter has no authority to
     honour, and honouring it would delete accounts the world already settled."""
-    roster = len([c for c in lp._STATIC_ROSTER if lp._serves(c, lp.served_segments())])
+    # THE WORLD'S ROSTER, NOT THE SERVED ONE (2026-08-30). `founder_accounts` and
+    # `founder_book` size the WORLD's opening book and no longer read the segment dial --
+    # director's ruling: "the SIM keeps creating those accounts and only the company's book
+    # changes". Computing the expectation from the SERVED roster is what this file did, and
+    # it is the contract being repaired, so the expectation moves with it. The PROPERTY each
+    # of these tests asserts is unchanged.
+    roster = len(lp._STATIC_ROSTER)
     path = tmp_path / "FOUNDER_BOOK.yaml"
     path.write_text("founder_accounts: 1\nmin_founder_accounts: 1\nmax_founder_accounts: 120\n",
                     encoding="utf-8")
@@ -73,8 +85,21 @@ def test_every_founder_is_dated_at_the_windows_START():
 
     Fires on: drawing founders across the trickle's 2021-2025 window, which would produce 80
     accounts and not 80 founders.
+
+    KEYED TO THE DRAWN FOUNDERS, WHICH ARE ITS ACTUAL SUBJECT (2026-08-30). This asserted the
+    year over the WHOLE founder book and passed only because the segment dial happened to remove
+    the accounts that would have broken it: the hand-authored roster carries five I&C accounts
+    dated 2017-2020 (C_IC1..C_IC4, C_IC3g), all suspended by default. When `founder_book` stopped
+    reading the dial they reappeared and this went red -- on hand-authored HISTORY, which is not
+    what the test is about and cannot be a defect.
+
+    So the subject is the TOP-UP, and this is now the stronger control: it can no longer be
+    satisfied by a filter that happens to hide its counterexamples, which is how it was passing.
     """
-    years = {c["acquisition_date"][:4] for c in lp.founder_book(SEED)}
+    roster_ids = {c["customer_id"] for c in lp._STATIC_ROSTER}
+    drawn = [c for c in lp.founder_book(SEED) if c["customer_id"] not in roster_ids]
+    assert drawn, "no drawn founders in the book -- this test has lost its subject"
+    years = {c["acquisition_date"][:4] for c in drawn}
     assert years == {str(lp.FOUNDER_ACQUISITION_YEAR)}, years
 
 
@@ -195,14 +220,29 @@ def test_every_founder_REACHES_THE_SERVED_BOOK_and_not_only_the_growth_plan(monk
     finally:
         lp._CAMPAIGN_MEMO.clear()
 
-    founder_ids = {c["customer_id"] for c in lp.founder_book(SEED)}
+    # THE SERVED FOUNDERS, NOT ALL OF THEM (2026-08-30). `founder_book` is now the WORLD's
+    # opening book and legitimately contains accounts this company does not serve -- those
+    # SHOULD be absent from `live_population`, and asserting otherwise would re-assert the
+    # defect just repaired. The property under test is unchanged and is the one that shipped
+    # broken: a founder the company DOES serve must reach the book it bills, not only the plan
+    # the campaign was charged for.
+    _served = lp.served_segments()
+    founder_ids = {c["customer_id"] for c in lp.founder_book(SEED)
+                   if lp._serves(c, _served)}
     missing = founder_ids - served_ids
     assert not missing, (
-        f"{len(missing)} of {len(founder_ids)} founders are in the plan the campaign was "
-        f"charged for but not in the book the company serves"
+        f"{len(missing)} of {len(founder_ids)} served founders are in the plan the campaign "
+        f"was charged for but not in the book the company serves"
     )
+    # And the world's unserved founders must NOT be in the served book -- the other half of the
+    # same property, and the half that only became assertable once the dial stopped reaching
+    # into the draw.
+    unserved = {c["customer_id"] for c in lp.founder_book(SEED)
+                if not lp._serves(c, _served)}
+    assert not (unserved & served_ids), (
+        f"{len(unserved & served_ids)} founders in a suspended segment reached the served book")
     assert len(founder_ids) > len([c for c in lp._STATIC_ROSTER
-                                   if lp._serves(c, lp.served_segments())]), (
+                                   if lp._serves(c, _served)]), (
         "the founder book is only the hand-authored roster here, so this test cannot tell "
         "whether the DRAWN founders reach the served book"
     )
@@ -214,8 +254,13 @@ def test_setting_the_number_back_to_the_roster_restores_the_pre_decision_book(
         monkeypatch, tmp_path):
     """The file says reverting is setting the number back. That has to be TRUE, not a hope —
     an act whose stated reversal does not work is an act nobody can undo."""
-    served = lp.served_segments()
-    roster = [c for c in lp._STATIC_ROSTER if lp._serves(c, served)]
+    # THE WORLD'S ROSTER, NOT THE SERVED ONE (2026-08-30). `founder_accounts` and
+    # `founder_book` size the WORLD's opening book and no longer read the segment dial --
+    # director's ruling: "the SIM keeps creating those accounts and only the company's book
+    # changes". Computing the expectation from the SERVED roster is what this file did, and
+    # it is the contract being repaired, so the expectation moves with it. The PROPERTY each
+    # of these tests asserts is unchanged.
+    roster = list(lp._STATIC_ROSTER)
     path = tmp_path / "FOUNDER_BOOK.yaml"
     path.write_text("founder_accounts: {}\nmin_founder_accounts: {}\nmax_founder_accounts: 120\n"
                     .format(len(roster), len(roster)), encoding="utf-8")

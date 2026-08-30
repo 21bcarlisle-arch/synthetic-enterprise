@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `PB4_engagement_separated_from_elasticity`
+**Severity:** LATENT · **Status:** DISCHARGED 2026-08-30 (see the discharge at the foot of this file) · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `PB4_engagement_separated_from_elasticity`
 
 # Eleven drawn households are wearing a business label, and three separate red controls are all reporting it
 
@@ -91,3 +91,63 @@ while dispositioning someone else's red census, which is the definition of on-th
 `test_real_roster_business_segment_never_residential` is the right control, keyed to the property
 rather than to a count, and it is currently red for the right reason. It should go green because
 the labels were fixed, and never because the assertion was relaxed.
+
+---
+
+## DISCHARGED 2026-08-30 — the director directed it in the same pass as the dial
+
+**Discharged:** `tests/simulation/test_phase_b_life_events.py::test_real_roster_business_segment_never_residential`
+
+> "Fix the labels in the same pass — eleven of thirteen 'SME' accounts being houses means my
+> suspension mostly removed households, and it inverts the pricing red." — director, 2026-08-30
+
+## The repair, and why it is one line
+
+`DEFAULT_SEGMENT_WEIGHTS` goes from `{resi: 0.80, SME: 0.15, I&C: 0.05}` to `{resi: 1.00}`.
+
+Three lines that never met produced the defect: the weight labelled a fifth of the draw
+non-resi; `_draw_dwelling` correctly returned `None` for them; and the consumption band came from
+`TDCV_BANDS_KWH`, a **domestic** table, for every segment regardless. Downstream `make_household`
+defaulted the absent property type to a house. **The label was the only non-domestic thing about
+them**, so removing the label is the whole repair — there was never a body to keep.
+
+`_weighted_choice` consumes exactly one `rng.random()` whatever the weights are, so the rest of
+each account's draw is untouched: this changes the label and nothing else about the sequence.
+
+## Measured, after
+
+```
+business-segment accounts:                    13 -> 2   (C5, C6 — the hand-authored founders)
+of those mapping to a residential dwelling:   11 -> 0
+non-domestic share of the electricity book:  5.3% -> 1.4%   (2 of 147)
+```
+
+1.4% is the share the pricing control was shaped around, and it goes green with nothing changed
+about pricing — which is what "it inverts the pricing red" meant.
+
+## THE DIRECTION FLATTERS US, AND THAT IS WHY IT IS REPORTED WITH A NUMBER
+
+Measured on the live seed at the default dial (`resi,SME`): the served book goes **247 → 253, six
+accounts gained and none lost.** Those six were drawn households carrying an I&C label, which the
+2026-08-24 suspension then removed.
+
+Under the director's refinement of the same day — *"if a curriculum-adjacent change is a
+correction rather than a choice, and the honest version makes our position worse or leaves it
+unchanged, make it and tell me"* — a correction that makes our position BETTER is the case that
+must not be waved through. It is made here only because he directed this specific change in the
+same message, having identified the effect himself: *"my suspension mostly removed households."*
+The six are returned, not won. Reported with the number rather than folded into a total.
+
+## What this does NOT do
+
+It does not give the world a non-domestic account. Drawing a genuine SME — business-scale
+consumption, no dwelling, a business tariff structure, broker commission as a per-kWh trail rather
+than a per-switch fee — is real world-building with its own anchor requirements and is on the
+roadmap at C4. `draw_population(segment_weights=...)` still takes a real marginal whenever one
+exists. What was removed is a label, not a capability.
+
+## The falsifier
+
+`test_real_roster_business_segment_never_residential` was the right control all along, keyed to
+the property rather than to a count, and it is now green because the labels are honest. It must
+never go green because the assertion was relaxed.

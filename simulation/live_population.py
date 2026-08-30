@@ -184,6 +184,11 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # The DRAWN founders only, for the same reason the trickle is registered below: they are
     # synthetic points and `run_phase2b` resolves an account by id through `registered_point()`.
     # The hand-authored roster is not a drawn point and is not registered here.
+    #
+    # REGISTERED UNFILTERED (2026-08-30). These are the WORLD's points. A suspended segment is
+    # an account this company does not serve, not an account that does not exist, so it stays
+    # resolvable by id -- the director's ruling in one line. The company's book is filtered
+    # once, at the end of this function.
     _roster_ids = {c["customer_id"] for c in _STATIC_ROSTER}
     register_drawn_points([c for c in static if c["customer_id"] not in _roster_ids])
     book = static
@@ -201,7 +206,6 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
         # Idempotent by `customer_id`: entrypoints bind the book at import time in
         # whatever order Python resolves them, so this runs more than once per process
         # and must not double the book.
-        drawn = [c for c in drawn if _serves(c, served)]
         register_drawn_points(drawn)
         book = static + drawn
 
@@ -229,12 +233,27 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # record of what the company SPENT pursuing, and a supplier that quoted a prospect it will
     # not serve has still spent the money. Hiding that would make the acquisition cost per win
     # flatter itself. So the spend stays visible and the account never joins the book.
-    won = [c for c in _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
-           if _serves(c, served)]
+    won = _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
     if won:
         register_drawn_points(won)
         book = book + won
-    return book
+
+    # THE COMPANY'S BOOK, AND THE ONE PLACE THE SEGMENT CHOICE APPLIES (2026-08-30).
+    #
+    # Everything above is the WORLD: founders, the drawn trickle and the campaign's winners, all
+    # a function of `seed` alone and all registered as resolvable points. This line is the
+    # company's acquisition decision — which of those accounts it actually serves.
+    #
+    # Director's ruling, 2026-08-30, on his own 2026-08-24 suspension: *"the SIM keeps creating
+    # those accounts and only the company's book changes. A dial that alters which households
+    # exist is the opposite of that, and it invalidates every comparison across it. The segment
+    # choice belongs at the company's acquisition decision, not in the world's draw."*
+    #
+    # Filtered at the WIN and not at the quote, deliberately and unchanged by this repair:
+    # `campaign_quotes_paid_for` is the record of what the company SPENT pursuing, and a
+    # supplier that quoted a prospect it will not serve has still spent the money. Hiding that
+    # would make the acquisition cost per win flatter itself.
+    return [c for c in book if _serves(c, served)]
 
 
 # ---------------------------------------------------------------------------
@@ -421,7 +440,7 @@ def book_subset_verdict(seed: Optional[int] = None) -> dict:
                 "n_book_domestic": 0, "n_remainder": 0}
     seed = _DEFAULT_BASE_SEED if seed is None else seed
     served = served_segments()
-    book = [sc for sc in _drawn_trickle(seed) if _serves(sc.to_customer_dict(), served)]
+    book = list(_drawn_trickle(seed))
     book += [p for p, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]]
     verdict = dict(subset_verdict(world_premise_stock(seed), book))
     # THE WHOLE FOUNDER BOOK, not just the hand-authored part of it. This counted
@@ -685,8 +704,9 @@ def founder_accounts() -> int:
     roster alone. A YAML typo must not silently empty the book a supplier launched with, which is
     the same fail-silent shape `simulation/competitor_reference.aggression()` is written against.
     """
-    served = served_segments()
-    roster = len([c for c in _STATIC_ROSTER if _serves(c, served)])
+    # The WORLD's roster (2026-08-30): this value sizes the world's opening book, and a
+    # fallback that shrank with the segment dial would move the draw with it.
+    roster = len(_STATIC_ROSTER)
     try:
         import yaml
 
@@ -744,7 +764,12 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         return []
     from simulation.population_draw import iter_acquisition_events
 
-    served = served_segments()
+    # NO SEGMENT SKIP IN THIS LOOP (2026-08-30). Skipping a non-served account WHILE DRAWING
+    # made the dial consume the stream at a different rate: suspend a segment and the loop walks
+    # further down the same sequence to reach `wanted`, so a different set of households becomes
+    # founders. Measured before the repair, one seed: 26 residential accounts existed only when
+    # I&C was suspended. The world draws its founders; `live_population` decides which of them
+    # this company serves.
     out: List[tuple] = []
     for customer in iter_acquisition_events(
         seed + _FOUNDER_SEED_OFFSET,
@@ -755,8 +780,6 @@ def _drawn_founder_pairs(seed: int) -> "List[tuple]":
         assign_cohorts=True,
     ):
         record = customer.to_customer_dict()
-        if not _serves(record, served):
-            continue
         # A DRAWN FOUNDER CAN BE A GAS ACCOUNT IN ITS OWN RIGHT, unlike a campaign win, which
         # is always won on electricity and picks up gas as a second leg. `draw_population`
         # gives the account the fuel its dwelling is heated on, and five of the hand-authored
@@ -799,9 +822,16 @@ def founder_book(seed: int) -> List[dict]:
     R13 curriculum (`docs/design/FOUNDER_BOOK.yaml`, director 2026-08-28: "take the 80
     founders"). At the roster's own size this returns the roster and nothing else, so the
     pre-decision run is reachable by setting the number back rather than by reverting code.
+
+    DIAL-INDEPENDENT SINCE 2026-08-30, and this is the whole of the repair here. This function
+    used to filter `_STATIC_ROSTER` by the served segments and then size its top-up against the
+    FILTERED length, so suspending a segment changed how many drawn founders were taken and
+    therefore WHICH households the world contained. Director's ruling, 2026-08-30: *"the SIM
+    keeps creating those accounts and only the company's book changes. A dial that alters which
+    households exist is the opposite of that."* The world is now a function of the seed alone;
+    the segment choice is applied once, at the company's book, in `live_population`.
     """
-    served = served_segments()
-    static = [c for c in _STATIC_ROSTER if _serves(c, served)]
+    static = list(_STATIC_ROSTER)
     if founder_accounts() <= len(static):
         return static
     # GATED ON THE DRAW, and here rather than at each call site so the two sides of the book
@@ -822,8 +852,12 @@ def _founder_roster_size() -> int:
     The top-up `_drawn_founder_pairs` has to draw is the director's number MINUS this, and it
     is a function rather than a value passed in so that the draw and the book cannot be asked
     for different sizes -- which is the shape of the defect this whole change repairs.
+
+    UNFILTERED SINCE 2026-08-30. Counting the SERVED roster here made the top-up size a function
+    of the segment dial: suspend a segment, the roster shrinks, `wanted` grows, and the world
+    draws a different set of founders. That is the dial reaching into the draw.
     """
-    return len([c for c in _STATIC_ROSTER if _serves(c, served_segments())])
+    return len(_STATIC_ROSTER)
 
 
 def _pre_growth_book(seed: int) -> List[dict]:
@@ -832,16 +866,18 @@ def _pre_growth_book(seed: int) -> List[dict]:
     One function so that every caller resolves the identical campaign. It also states the
     obvious thing that would otherwise be implicit: the opening balance sheet and the opening
     account count a growth plan is built on are the ones BEFORE it grows.
+
+    UNFILTERED SINCE 2026-08-30. The campaign is stochastic and plans against this book, so a
+    segment-filtered input made the dial reorder the funnel and win a DIFFERENT SET of
+    residential prospects — measured: 7 households existed only when I&C was served and 10 only
+    when it was suspended, on one seed. The company's segment choice reaches the campaign at the
+    WIN (`live_population`), which is an acquisition decision; it must not reach the draw, which
+    is the world.
     """
-    served = served_segments()
     static = founder_book(seed)
     if not draw_population_enabled():
         return static
-    return static + [
-        sc.to_customer_dict()
-        for sc in _drawn_trickle(seed)
-        if _serves(sc.to_customer_dict(), served)
-    ]
+    return static + [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
 
 
 # The run's last reported day, as the campaign's quote cutoff.

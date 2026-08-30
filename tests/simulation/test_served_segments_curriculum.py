@@ -288,3 +288,92 @@ def test_the_capital_env_override_wins_and_a_bad_one_falls_back(monkeypatch):
     assert lp.founding_capital_gbp(fallback=1.0) == 777.0
     monkeypatch.setenv("SE_FOUNDING_CAPITAL_GBP", "not-a-number")
     assert lp.founding_capital_gbp(fallback=1.0) == 1.0
+
+
+# ── THE DIAL IS A FILTER ON THE COMPANY'S BOOK, NEVER A CHANGE TO THE WORLD ──────────────────
+# Director's ruling, 2026-08-30, on his own 2026-08-24 suspension:
+#
+#   "the SIM keeps creating those accounts and only the company's book changes. A dial that
+#    alters which households exist is the opposite of that, and it invalidates every comparison
+#    across it. The segment choice belongs at the company's acquisition decision, not in the
+#    world's draw."
+#
+# THE DEFECT THESE FIRE ON, measured before the repair on one seed: serving all segments gave
+# {resi 238, SME 9, I&C 11}; serving resi only gave {resi 257}. Suspending a segment ADDED
+# nineteen households, and the sets were not nested in either direction -- 7 residential
+# accounts existed only when I&C was served and 10 only when it was suspended. Four separate
+# places read the dial while DRAWING: `founder_book` filtered the roster and then sized its
+# top-up against the filtered length; `_founder_roster_size` and `founder_accounts` did the
+# same; and `_drawn_founder_pairs` skipped non-served accounts INSIDE the draw loop, so the
+# dial changed how far down the stream it walked to reach `wanted`.
+#
+# WHY THE SET AND NOT THE COUNT. The pre-existing control asserted the residential COUNT, which
+# is why it took a nineteen-account swing to fire at all. A dial that swapped ten households for
+# ten others would have passed it silently -- and that is the confound, not the size change.
+
+def test_the_residential_SET_is_identical_across_dial_positions(monkeypatch):
+    """THE LOAD-BEARING ONE. Same seed, two dial positions, byte-identical households.
+
+    An A/B across this dial is only attributable if the population is held fixed. A count test
+    cannot establish that; only the identities can.
+    """
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", ",".join(CANONICAL_SEGMENTS))
+    everything = lp.live_population(base_seed=20260824)
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    resi_only = lp.live_population(base_seed=20260824)
+
+    def resi_ids(book):
+        return {c["customer_id"] for c in book if lp._canonical(c.get("segment")) == "resi"}
+
+    served_all, served_resi = resi_ids(everything), resi_ids(resi_only)
+    assert served_all, "no residential accounts at all -- the test has lost its subject"
+    only_when_served = sorted(served_all - served_resi)
+    only_when_suspended = sorted(served_resi - served_all)
+    assert served_all == served_resi, (
+        f"the dial changed WHICH households exist, not just how many: "
+        f"{len(only_when_served)} present only when the business segments are served "
+        f"({only_when_served[:5]}), {len(only_when_suspended)} present only when they are "
+        f"suspended ({only_when_suspended[:5]}). The world must be a function of the seed alone."
+    )
+
+
+def test_suspending_a_segment_is_a_strict_subset_and_removes_only_that_segment(monkeypatch):
+    """The other half: a filter may only ever REMOVE, and only the thing it filters on."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", ",".join(CANONICAL_SEGMENTS))
+    everything = lp.live_population(base_seed=20260824)
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    resi_only = lp.live_population(base_seed=20260824)
+
+    all_ids = {c["customer_id"] for c in everything}
+    kept_ids = {c["customer_id"] for c in resi_only}
+    assert kept_ids <= all_ids, (
+        f"suspension ADDED {len(kept_ids - all_ids)} account(s) -- a filter cannot add")
+    removed = all_ids - kept_ids
+    assert removed, "the dial removed nothing -- it is not reaching the book"
+    removed_segments = {lp._canonical(c.get("segment")) for c in everything
+                        if c["customer_id"] in removed}
+    assert removed_segments <= {"SME", "I&C"}, (
+        f"suspending the business segments removed {removed_segments} -- it took households "
+        f"with it, which is the defect this pair exists to refuse")
+
+
+def test_the_world_itself_is_untouched_by_the_dial(monkeypatch):
+    """Upstream of the company's book: the WORLD's opening book and the campaign's planning
+    roster must both be functions of the seed alone.
+
+    This is the property the repair actually installed; the two tests above are its observable
+    consequence. Asserted separately so a future change that re-filters the draw and then
+    re-filters the book back into agreement still reds here.
+    """
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", ",".join(CANONICAL_SEGMENTS))
+    founders_all = [c["customer_id"] for c in lp.founder_book(20260824)]
+    plan_all = [c["customer_id"] for c in lp._pre_growth_book(20260824)]
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    founders_resi = [c["customer_id"] for c in lp.founder_book(20260824)]
+    plan_resi = [c["customer_id"] for c in lp._pre_growth_book(20260824)]
+
+    assert founders_all == founders_resi, (
+        "the world's opening book moved with the dial -- founder_book is reading it again")
+    assert plan_all == plan_resi, (
+        "the campaign's planning roster moved with the dial, so the funnel draws a different "
+        "sequence and wins a different set of households")

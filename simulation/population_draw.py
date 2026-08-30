@@ -129,7 +129,42 @@ TDCV_BANDS_KWH: Dict[str, Dict[str, Tuple[float, float]]] = {
 # ---------------------------------------------------------------------------
 _PLACEHOLDER_REGION = "UNKNOWN_SYNTHETIC"
 
-DEFAULT_SEGMENT_WEIGHTS: Dict[str, float] = {"resi": 0.80, "SME": 0.15, "I&C": 0.05}
+# RESI-ONLY SINCE 2026-08-30, because the draw could not generate a BODY for any other label.
+#
+# THE DEFECT, MEASURED. Of 13 accounts carrying `segment` in ("SME", "I&C"), ELEVEN mapped to a
+# residential property type. Every one was drawn, every one was semi_detached, and every one
+# consumed a household's worth of energy -- electricity 1,744-3,627 kWh against an Ofgem TDCV of
+# 2,700, gas 6,306-14,748 against 11,500. The two genuinely non-domestic accounts were the
+# hand-authored founders C5 and C6, at 15,000 and 45,000 kWh. An SME that uses less electricity
+# than a typical house is not an SME.
+#
+# WHY IT HAPPENED, in three lines that never met: this weight labelled a fifth of the draw
+# non-resi; `_draw_dwelling` correctly returned None for them; and the consumption band came from
+# `TDCV_BANDS_KWH` -- a DOMESTIC table -- for every segment regardless. Downstream,
+# `make_household` defaulted the absent property type to a house. So the label was the only
+# non-domestic thing about them.
+#
+# THIS IS A CORRECTION, NOT A CURRICULUM CHOICE, and the distinction is the director's own
+# (2026-08-30): "if a curriculum-adjacent change is a correction rather than a choice ... make it
+# and tell him". The weights were never anchored -- the HONEST SIMPLIFICATIONS block above has
+# said so since 2026-07-13: "NO anchored population-level SEGMENT marginal for NEW acquisitions
+# exists. DEFAULT_SEGMENT_WEIGHTS is a documented placeholder ... Not claimed as anchored." There
+# is no published number being overridden here, only a label the world cannot honour.
+#
+# THE DIRECTION IS RECORDED BECAUSE IT FLATTERS US, which is the case that must never be waved
+# through quietly. Measured on the live seed with the default dial (resi+SME): the served book
+# goes 247 -> 253, six accounts GAINED and none lost. Those six were households the whole time,
+# withheld from the company's book by an I&C label its suspension then removed -- which is
+# precisely what the director identified: "my suspension mostly removed households". Returning
+# them is the repair, not a windfall, and he directed it in the same breath. Reported to him with
+# the number rather than folded in.
+#
+# STILL OVERRIDABLE, deliberately. `draw_population(segment_weights=...)` takes a real marginal
+# whenever one exists. Drawing a GENUINE non-domestic account -- business-scale consumption, no
+# dwelling, a business tariff structure, broker commission as a per-kWh trail rather than a
+# per-switch fee -- is real world-building with its own anchor requirements, and it is on the
+# roadmap (docs/design/CHOICE_AND_CHANNEL_ROADMAP.md, C4). It is not a weight.
+DEFAULT_SEGMENT_WEIGHTS: Dict[str, float] = {"resi": 1.00}
 DEFAULT_COMMODITY_WEIGHTS: Dict[str, float] = {"electricity": 0.72, "gas": 0.28}
 DEFAULT_BAND_WEIGHTS: Dict[str, float] = {"LOW": 0.30, "MEDIUM": 0.45, "HIGH": 0.25}
 
