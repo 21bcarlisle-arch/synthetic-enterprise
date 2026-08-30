@@ -66,10 +66,23 @@ asking. Nothing inside the simulation is a one-way door.
 **Prefer measuring to arguing.** If a question can be settled by running something, run it. Most
 disagreements here are about a number nobody has looked at yet.
 
-**Knowledge first, then discovery, then a roadmap — never a constant chosen because a number was
-needed.** Establish from published evidence what the real thing costs or does; run that against what
-we have already built; only then decide what to change and in what order. A number invented to fill
-a slot will be load-bearing within a week and unattributable within a month.
+**Knowledge first is a RULE, not a preference. A number you need is a question to research, never a
+value to pick.** Establish from published evidence what the real thing costs or does; run that
+against what we have already built; only then decide what to change and in what order. A number
+invented to fill a slot will be load-bearing within a week and unattributable within a month.
+
+Before writing any domain constant, check the knowledge layer, the commons and the published
+record. **If nothing establishes it, that is a finding to file, and the code carries the gap
+explicitly rather than a placeholder that looks like an answer.** An honest `None` with a named
+reason is worth more than a plausible number, because the number will be read as established and
+the `None` cannot be.
+
+*Why this became a rule (director, 2026-08-30, reviewing the constants in `company/` and `saas/`):
+"a short-term fix that answers today's request, with a number picked because a number was needed,
+that comes undone when it meets the rest of the system. £150 CAC. A 0.95 churn cap. A standing
+charge that matches neither fuel. Each looked reasonable in isolation and each was wrong in the
+whole. That isn't carelessness — a bounded invocation can't see the whole, and we asked you for
+speed. So the fix is structural."*
 
 **Build the smallest mechanism that can fail, and prefer doing the work to building the thing that
 watches the work.** A file made of rules breeds rules — 117 harness atoms and 34 alarm documents are
@@ -185,6 +198,7 @@ goes stale and the code cannot.
 | The canon page still matches the code | `tools/canon_drift_check.py` + `docs/design/canon_claims.yaml` |
 | Staging is a work queue, not a filing cabinet | `background/staging_rooms.py --check` |
 | A money constant citing a source must be reached | `tests/architecture/test_a_cited_constant_has_a_caller.py` |
+| A rate/price/probability/threshold/cap declares its origin | `tests/architecture/test_a_domain_constant_carries_its_origin.py` + `tools/domain_constant_origins.py` |
 | This file's own size limit | `background/claude_md_integrity.py` — **35,000 CHARACTERS**, not bytes |
 
 Two rules cannot be enforced in this repo and stay prose by necessity: the sandbox profile above,
@@ -198,6 +212,17 @@ re-fetch and diff before first run).
 **Orient first.** Poll `docs/staging/` — the root is the work queue, ranked. `docs/status/LATEST.md`
 is live state. `docs/design/maturity_map.yaml` (read via `tools/maturity_map_store`) is what exists
 and at what level.
+
+**Then review INTERCONNECTION, not only priority.** Every orientation already asks what matters
+next. Also ask: *of what landed since the last orientation, what else assumes it, and does that
+assumption still hold?* When the answer is "something downstream now disagrees", **that is the next
+item, ahead of new work.**
+
+This is the seat's alone. A thirty-minute tick is a bounded invocation and structurally cannot see
+the whole; the seat is the only place in the architecture that can hold it, so a defect of this
+class is invisible everywhere else until it is expensive. *(Director, 2026-08-30. The evidence is
+the VAT rule: one legal requirement, five implementations, a defect fixed in one of them in July
+and still live in another in August, and nothing anywhere able to notice.)*
 
 **Then read the knowledge layer, and read it BEFORE you make a number up.**
 `docs/institutional/knowledge_map.md` is what we know and what we have not established;

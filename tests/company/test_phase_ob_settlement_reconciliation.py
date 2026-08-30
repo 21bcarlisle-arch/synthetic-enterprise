@@ -9,8 +9,8 @@ from company.regulatory.settlement_reconciliation import (
     _rag,
     _HH_RECON_VARIANCE,
     _NON_HH_RECON_VARIANCE,
-    _GREEN_THRESHOLD,
-    _AMBER_THRESHOLD,
+    _GREEN_ADVERSE_REVENUE_PCT_THRESHOLD,
+    _AMBER_ADVERSE_REVENUE_PCT_THRESHOLD,
 )
 
 
@@ -41,17 +41,17 @@ class TestBlendedVariance:
 class TestRAGThresholds:
     def test_green_below_threshold(self):
         monthly_rev = 100_000.0
-        max_adverse = monthly_rev * _GREEN_THRESHOLD / 100 * 0.9
+        max_adverse = monthly_rev * _GREEN_ADVERSE_REVENUE_PCT_THRESHOLD / 100 * 0.9
         assert _rag(max_adverse, monthly_rev) == "GREEN"
 
     def test_amber_between_thresholds(self):
         monthly_rev = 100_000.0
-        max_adverse = monthly_rev * (_GREEN_THRESHOLD + _AMBER_THRESHOLD) / 200
+        max_adverse = monthly_rev * (_GREEN_ADVERSE_REVENUE_PCT_THRESHOLD + _AMBER_ADVERSE_REVENUE_PCT_THRESHOLD) / 200
         assert _rag(max_adverse, monthly_rev) == "AMBER"
 
     def test_red_above_amber(self):
         monthly_rev = 100_000.0
-        max_adverse = monthly_rev * _AMBER_THRESHOLD / 100 * 2.0
+        max_adverse = monthly_rev * _AMBER_ADVERSE_REVENUE_PCT_THRESHOLD / 100 * 2.0
         assert _rag(max_adverse, monthly_rev) == "RED"
 
     def test_zero_monthly_revenue_with_open_exposure_is_red(self):

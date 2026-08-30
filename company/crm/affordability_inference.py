@@ -89,7 +89,7 @@ BAND_ORDER: tuple = (
 
 # A "bad" payment = a late payment or a failed direct debit. `bad_rate` is the
 # fraction of records in the recent window that are bad.
-_SEVERE_BAD_RATE = 0.50          # sustained non-payment -> reads as cannot-pay
+_SEVERE_BAD_RATE_CANNOT_PAY = 0.50          # sustained non-payment -> reads as cannot-pay
 _MODERATE_BAD_RATE = 0.15        # intermittent strain -> reads as stretched
 
 # Consumption proxy for wealth. A real supplier has only a very weak read on
@@ -178,12 +178,12 @@ class AffordabilityInference:
         # --- Payment-behaviour read (primary channel) ---------------------
         # NEGATIVE: sustained non-payment, or escalated arrears, or a moderate
         # payment strain corroborated by the customer telling us they struggle.
-        if escalated or (bad_rate is not None and bad_rate >= _SEVERE_BAD_RATE) or (
+        if escalated or (bad_rate is not None and bad_rate >= _SEVERE_BAD_RATE_CANNOT_PAY) or (
             bad_rate is not None and bad_rate >= _MODERATE_BAD_RATE
             and obs.inbound_hardship_contacts > 0
         ):
             band = AffordabilityBand.NEGATIVE
-            confidence = 0.75 if escalated or (bad_rate or 0) >= _SEVERE_BAD_RATE else 0.6
+            confidence = 0.75 if escalated or (bad_rate or 0) >= _SEVERE_BAD_RATE_CANNOT_PAY else 0.6
 
         # STRETCHED: intermittent strain -- some bad payments, an open (but not
         # yet escalated) arrears case, or a hardship contact without arrears.

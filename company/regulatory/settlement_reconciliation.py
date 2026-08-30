@@ -94,8 +94,8 @@ _R3_SHARE = 0.2062
 _RF_SHARE = 0.1752  # the remainder, so the four sum to exactly 1.0
 
 # RAG thresholds: max adverse adjustment as % of monthly revenue
-_GREEN_THRESHOLD = 5.0   # < 5% of monthly revenue
-_AMBER_THRESHOLD = 15.0  # < 15% of monthly revenue
+_GREEN_ADVERSE_REVENUE_PCT_THRESHOLD = 5.0   # < 5% of monthly revenue
+_AMBER_ADVERSE_REVENUE_PCT_THRESHOLD = 15.0  # < 15% of monthly revenue
 
 
 @dataclass(frozen=True)
@@ -160,9 +160,9 @@ def _rag(max_adverse_gbp: float, monthly_revenue_gbp: float) -> Literal["GREEN",
         # Nothing at risk is genuinely green; exposure with no revenue is not.
         return "GREEN" if max_adverse_gbp == 0 else "RED"
     pct = max_adverse_gbp / monthly_revenue_gbp * 100
-    if pct < _GREEN_THRESHOLD:
+    if pct < _GREEN_ADVERSE_REVENUE_PCT_THRESHOLD:
         return "GREEN"
-    if pct < _AMBER_THRESHOLD:
+    if pct < _AMBER_ADVERSE_REVENUE_PCT_THRESHOLD:
         return "AMBER"
     return "RED"
 

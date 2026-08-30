@@ -58,7 +58,7 @@ from company.crm.vulnerability_register import VulnerabilityFlag, VulnerabilityR
 # fraction of records in a window that are bad.
 _RECENT_BAD_RATE_TRIGGER = 0.30      # >= ~4 bad in a 12-record year, on its own
 _BAD_RATE_DELTA_TRIGGER = 0.20       # a >= 20pt jump vs the customer's baseline
-_SEVERE_BAD_RATE = 0.70              # income shock severe enough to read as HIGH
+_SEVERE_BAD_RATE_INCOME_SHOCK = 0.70              # income shock severe enough to read as HIGH
 
 # Consumption is a corroborating / disambiguating signal, not a sole trigger for
 # the payment-mediated distress events, but a large shift with a mild payment
@@ -175,7 +175,7 @@ class LifeEventDetector:
         confidence = 0.0
         if payment_signal:
             confidence += 0.55
-            if recent_bad is not None and recent_bad >= _SEVERE_BAD_RATE:
+            if recent_bad is not None and recent_bad >= _SEVERE_BAD_RATE_INCOME_SHOCK:
                 confidence += 0.20
         if consumption_signal:
             confidence += 0.20
@@ -216,7 +216,7 @@ class LifeEventDetector:
             return LifeEventType.DIVORCE
         # A severe, sustained income shock reads as job loss (could be illness --
         # the two are genuinely hard to separate from payments alone).
-        if recent_bad is not None and recent_bad >= _SEVERE_BAD_RATE:
+        if recent_bad is not None and recent_bad >= _SEVERE_BAD_RATE_INCOME_SHOCK:
             return LifeEventType.JOB_LOSS
         # Consumption up with a payment strain -> more time at home (job loss).
         if shift is not None and shift >= _CONSUMPTION_SHIFT_PCT:

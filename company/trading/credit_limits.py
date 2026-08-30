@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-_GREEN_THRESHOLD = 0.70
-_AMBER_THRESHOLD = 0.90
+_GREEN_LIMIT_UTILISATION_THRESHOLD = 0.70
+_AMBER_LIMIT_UTILISATION_THRESHOLD = 0.90
 
 
 @dataclass
@@ -81,11 +81,11 @@ class CounterpartyCreditManager:
         proposed_total = current + trade_notional_gbp
         util = proposed_total / limit.limit_gbp if limit.limit_gbp > 0 else 1.0
 
-        if util >= _AMBER_THRESHOLD:
+        if util >= _AMBER_LIMIT_UTILISATION_THRESHOLD:
             status = "RED"
             approved = False
             msg = f"Breach: {util:.0%} utilisation (limit £{limit.limit_gbp:,.0f})"
-        elif util >= _GREEN_THRESHOLD:
+        elif util >= _GREEN_LIMIT_UTILISATION_THRESHOLD:
             status = "AMBER"
             approved = True
             msg = f"Amber: {util:.0%} utilisation — trade approved with monitoring"
@@ -104,7 +104,7 @@ class CounterpartyCreditManager:
         result = []
         for cp_id, limit in self._limits.items():
             exp = self.current_exposure(cp_id)
-            if limit.limit_gbp > 0 and exp / limit.limit_gbp >= _AMBER_THRESHOLD:
+            if limit.limit_gbp > 0 and exp / limit.limit_gbp >= _AMBER_LIMIT_UTILISATION_THRESHOLD:
                 result.append((cp_id, exp, limit.limit_gbp))
         return result
 

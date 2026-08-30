@@ -186,7 +186,7 @@ def test_RED_IS_NOW_UNREACHABLE_at_every_book_composition():
 
     So RED is unreachable for ANY composition, which makes a third of this control's
     output space dead. That is not a reason to put the wrong constants back: the
-    thresholds (_GREEN_THRESHOLD=5, _AMBER_THRESHOLD=15) were calibrated against an
+    thresholds (_GREEN_ADVERSE_REVENUE_PCT_THRESHOLD=5, _AMBER_ADVERSE_REVENUE_PCT_THRESHOLD=15) were calibrated against an
     exposure inflated by carrying DF's 28-month dispute tail on every ordinary
     settlement day, so it is the THRESHOLDS that were fitted to a wrong scale. Re-deriving
     them belongs with whoever owns this control's calibration and needs its own evidence
