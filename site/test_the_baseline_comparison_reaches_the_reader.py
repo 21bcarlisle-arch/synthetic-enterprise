@@ -927,3 +927,55 @@ def test_the_withdrawn_sentence_reaches_the_reader_beside_the_one_that_replaced_
         "what stopped being claimed")
     assert "withdrawn, not reversed" in note, (
         "the page lets a reader take the withdrawal for the opposite claim")
+
+
+# ── whose customers the method has priced ─────────────────────────────────────────────────────
+#
+# THE DEFECT (2026-08-30). `#arms-decisions` said how MANY decisions the reading rests on and
+# named the accounts, and never said the thing a reader needs: that every one of them is an
+# account the company was FOUNDED with, and that not one of the 158 it won or drew has ever had
+# a renewal reach the arm. The mission's claim is that the value comes from inference over the
+# customers the method FINDS, so "the method has never priced a customer the company won" is a
+# fact about the enterprise value claim and belongs on the surface, not in an observability file.
+
+def test_the_page_says_the_method_has_never_priced_a_customer_the_company_won(live):
+    """Fires on: dropping the paragraph from the door, or from the feed that fills it."""
+    who = (_live_feed()["decisions"] or {}).get("who_the_method_has_priced") or {}
+    assert who.get("available") is True, (
+        "the live feed carries no verdict on whose customers the arm reached, so the paragraph "
+        "below cannot be rendered: {}".format(who))
+    # The door runs every string through `prose()`, which turns ` -- ` into an em dash before the
+    # reader sees it. Comparing the raw feed string against the rendered one without undoing that
+    # is how a correct page gets reported red.
+    rendered = _text(live["arms-decisions"]).replace(" — ", " -- ")
+    assert who["sentence"] in rendered, "the verdict reached the feed and not the reader"
+    assert "GATE, not a book size" in rendered
+
+
+def test_MUTATION_a_run_that_priced_a_won_account_renders_the_other_verdict(live):
+    """NULL RUNG on the RENDERED string, not just on the feed. A door that prints one sentence
+    whatever the feed says is a constant wearing a measurement's clothes -- and this panel is the
+    one whose whole purpose is to be able to return the unflattering answer.
+    """
+    feed = copy.deepcopy(_live_feed())
+    who = feed["decisions"]["who_the_method_has_priced"]
+    who["verdict"] = "reached"
+    who["won_or_drawn_accounts_priced"] = 1
+    who["sentence"] = ("The method has priced 1 account the company found rather than started "
+                       "with (PROS-2019-0015).")
+    rendered = _text(_render(feed)["arms-decisions"])
+    assert "PROS-2019-0015" in rendered
+    assert "GATE, not a book size" not in rendered
+
+
+def test_MUTATION_a_feed_with_no_verdict_renders_no_claim_about_it():
+    """FAIL-CLOSED. An artefact that cannot say whose customers the arm reached must leave the
+    reader with nothing there rather than the last run's sentence or a guessed one.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["who_the_method_has_priced"] = {"available": False, "reason": "no funnel"}
+    rendered = _text(_render(feed)["arms-decisions"])
+    assert "GATE, not a book size" not in rendered
+    assert "never priced a customer" not in rendered.lower()
+    # The panel still renders its other content, so this is an absence and not a blank page.
+    assert "renewals" in rendered

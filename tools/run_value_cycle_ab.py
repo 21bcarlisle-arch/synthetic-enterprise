@@ -1456,6 +1456,113 @@ FUNNEL_STAGE_MEANINGS: dict[str, str] = {
     "priced": "the arm chose a margin for this renewal. This is `decision_shape.priced`.",
 }
 
+#: HOW AN ACCOUNT CAME TO BE ON THE BOOK, in the WORLD'S OWN vocabulary. `acquisition_type` is
+#: written by the roster that minted the account -- `net_new_won` by the acquisition funnel
+#: (`PROS-*`), `synthetic_draw` by the curriculum's population draw (`SYN-*`) -- and an account
+#: the company was FOUNDED with carries no such field at all, because nothing acquired it.
+#: Keyed to that field rather than to the shape of the id: a prefix test is a control pinned to
+#: today's naming, and it would read a renamed id as a founder account without saying so.
+ACCOUNT_CLASS_BY_ACQUISITION_TYPE: dict[str, str] = {
+    "net_new_won": "won_by_the_funnel",
+    "synthetic_draw": "drawn_by_the_curriculum",
+}
+#: The class of an account no roster acquired -- the hand-authored seed the company started with.
+FOUNDER_ACCOUNT_CLASS = "founder_hand_authored"
+#: An account in the funnel log that no roster claims. Its own bucket, never folded into the
+#: founder one: "the roster does not know this account" and "the company was founded with it"
+#: are the same absence and opposite facts, which is the fail-silent shape this whole block
+#: exists to close.
+UNCLASSIFIED_ACCOUNT_CLASS = "unclassified_no_roster_row"
+
+
+def account_class_map() -> dict[str, str]:
+    """Billing account -> the world's own label for how it joined the book.
+
+    Read off the roster THIS RUN used (`run_phase2b.CUSTOMERS`, bound once at that module's
+    import), not re-drawn here: a second draw would give a second population and the map would
+    silently describe a book the funnel never saw.
+
+    Keyed on the BILLING account, because that is what the funnel log's `customer_id` is --
+    `renewal_rate_chain` writes `billing_account`, so `C1` and `C1g` are one row's subject and a
+    map keyed on the supply point would miss every gas leg.
+    """
+    from simulation.run_phase2b import CUSTOMERS, SUCCESSOR_CUSTOMERS
+
+    legs: dict[str, set[str]] = collections.defaultdict(set)
+    for record in list(CUSTOMERS) + list(SUCCESSOR_CUSTOMERS):
+        acquisition_type = record.get("acquisition_type")
+        legs[_billing_account_id(record["customer_id"])].add(
+            FOUNDER_ACCOUNT_CLASS if acquisition_type is None
+            else ACCOUNT_CLASS_BY_ACQUISITION_TYPE.get(
+                acquisition_type, "acquisition_type_{}".format(acquisition_type)))
+    # A billing account whose two legs disagree about how it joined is NAMED, not resolved by
+    # picking one. There is no such account today and if one appears it is a finding.
+    return {account: (classes.pop() if len(classes) == 1 else "legs_disagree_{}".format(
+        "_and_".join(sorted(classes)))) for account, classes in legs.items()}
+
+
+def funnel_by_account_class(log: list[dict]) -> dict:
+    """The same funnel, split by whether the company was FOUNDED with the account or WON it.
+
+    WHY THIS EXISTS (2026-08-30). The funnel could say where 1,349 unpriced renewals went and
+    could not say WHOSE they were. The arm priced 20 renewals across 10 accounts and every one of
+    them is a hand-authored founder account -- `C1 ... C9` plus the `C1_2` successor -- while the
+    90 accounts the acquisition funnel has won and the 69 the curriculum drew have never had a
+    single renewal reach the arm. A stage total cannot show that: `product_not_upliftable = 662`
+    and `priced = 20` are true of the book as a whole and say nothing about which population sits
+    behind each, so the enterprise-value claim -- that the advantage comes from inference over
+    the customers the method FINDS -- was unfalsifiable from this artefact.
+
+    R12: a diagnostic. No class's count is a target, and specifically this is not a cue to relax
+    the product guard so the won book gets counted.
+    """
+    classes = account_class_map()
+    buckets: dict[str, dict] = {}
+    for row in log:
+        account = row.get("customer_id")
+        bucket = buckets.setdefault(
+            classes.get(account, UNCLASSIFIED_ACCOUNT_CLASS),
+            {"renewals": 0, "accounts": set(), "priced_accounts": set(),
+             "stages": collections.Counter()})
+        bucket["renewals"] += 1
+        bucket["accounts"].add(account)
+        bucket["stages"][row.get("stage")] += 1
+        if row.get("stage") == STAGE_PRICED:
+            bucket["priced_accounts"].add(account)
+    priced_by_class = {
+        name: sorted(bucket["priced_accounts"]) for name, bucket in buckets.items()}
+    return {
+        "available": True,
+        "what_this_is": (
+            "The renewal funnel split by how each billing account joined the book, from the "
+            "world's own `acquisition_type` rather than from the shape of its id. The stage "
+            "totals beside this block are true of the book as a whole and cannot say WHOSE "
+            "renewals they are."),
+        "classes": {
+            name: {
+                "renewals_the_world_offered": bucket["renewals"],
+                "accounts": len(bucket["accounts"]),
+                "priced": bucket["stages"].get(STAGE_PRICED, 0),
+                "priced_share_of_its_own_renewals": (
+                    round(bucket["stages"].get(STAGE_PRICED, 0) / bucket["renewals"], 4)
+                    if bucket["renewals"] else None),
+                "stages": {stage: bucket["stages"].get(stage, 0) for stage in FUNNEL_STAGES},
+            }
+            for name, bucket in sorted(buckets.items())
+        },
+        "priced_accounts_by_class": {
+            name: accounts for name, accounts in sorted(priced_by_class.items())},
+        # THE ONE NUMBER THE ENTERPRISE-VALUE CLAIM TURNS ON, published as a count so a reader
+        # does not have to sum a dict to find out that it is zero.
+        "accounts_the_company_won_or_drew_that_the_arm_priced": sum(
+            len(accounts) for name, accounts in priced_by_class.items()
+            if name in ("won_by_the_funnel", "drawn_by_the_curriculum")),
+        "reading": (
+            "The mission says the value comes from inference over the individual customers the "
+            "method FINDS. A run in which every priced renewal belongs to a founder account has "
+            "not tested that claim at all, whatever its headline says."),
+    }
+
 
 def renewal_funnel(result: dict, arm_label: str) -> dict:
     """Every renewal the world offered this arm, and the stage each one stopped at.
@@ -1532,6 +1639,10 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         "accounts_the_arm_priced": sorted({
             row.get("customer_id") for row in log if row.get("stage") == STAGE_PRICED}),
         "accounts_the_world_offered_a_renewal": len({row.get("customer_id") for row in log}),
+        # WHOSE renewals these are. A stage total is true of the book as a whole and cannot
+        # distinguish "the method reaches a small share of every customer" from "the method
+        # reaches the founding customers and none of the ones the company won".
+        "by_account_class": funnel_by_account_class(log),
         # A stage this module does not know about means the adapter grew a guard and this block
         # did not follow it. Named rather than folded into an "other" bucket.
         "unrecognised_stages": unknown,

@@ -1135,6 +1135,103 @@ def _household(three_arm: dict) -> dict:
     }
 
 
+#: The world's id scheme for an account the company did NOT start with: `PROS-*` is won by the
+#: acquisition funnel, `SYN-*` is drawn by the curriculum. Used only as the FALLBACK, when the
+#: artefact predates `renewal_funnel.*.by_account_class` -- that block classifies on the world's
+#: own `acquisition_type` field and is preferred wherever it exists, because a prefix test reads
+#: a renamed id as a founder account and says nothing about having done so.
+_WON_OR_DRAWN_ID_PREFIXES: tuple[str, ...] = ("PROS-", "SYN-")
+#: The classes in `by_account_class` that mean "the company did not start with this account".
+_WON_OR_DRAWN_CLASSES: tuple[str, ...] = ("won_by_the_funnel", "drawn_by_the_curriculum")
+
+
+def _who_the_method_has_priced(funnel: dict) -> dict:
+    """Whether the method has ever priced a customer the company FOUND, and if not, why not.
+
+    THE ENTERPRISE-VALUE CLAIM IS THAT THE ADVANTAGE COMES FROM INFERENCE OVER THE CUSTOMERS THE
+    METHOD FINDS, and until 2026-08-30 no published surface could say whether it had ever priced
+    one. The page already said the priced accounts are "one of the nine hand-seeded customers";
+    what it did not say is the complement -- that the 90 accounts the acquisition funnel has won
+    and the 69 the curriculum drew have never had a single renewal reach the arm, and that this
+    is a GATE rather than a book size.
+
+    DERIVED AND FAIL-CLOSED IN BOTH DIRECTIONS. The verdict is computed from the artefact's own
+    two fields, not asserted: the moment one won or drawn account is priced, the structural
+    sentence is unreachable and the page says the gate is passable instead. A conclusion that
+    cannot change when the evidence changes is not a reading of the evidence, which is the defect
+    `_headline_reading` was repaired for on this same page.
+    """
+    priced_accounts = [str(a) for a in (funnel.get("accounts_the_arm_priced") or [])]
+    offered = funnel.get("accounts_the_world_offered_a_renewal")
+    by_class = funnel.get("by_account_class") or {}
+    if not priced_accounts or not isinstance(offered, int) or offered <= 0:
+        return {
+            "available": False,
+            "reason": ("this run's funnel names no priced accounts, or no account denominator, "
+                       "so nothing can be said about whose customers the method reached."),
+        }
+    if by_class.get("available"):
+        classified = by_class.get("priced_accounts_by_class") or {}
+        won_priced = sorted(account for name in _WON_OR_DRAWN_CLASSES
+                            for account in (classified.get(name) or []))
+        basis = "the world's own `acquisition_type`, via `renewal_funnel.by_account_class`"
+    else:
+        won_priced = sorted(a for a in priced_accounts
+                            if a.startswith(_WON_OR_DRAWN_ID_PREFIXES))
+        basis = ("the account id scheme (`PROS-*` won, `SYN-*` drawn), because this artefact "
+                 "predates `by_account_class`")
+    labels = funnel.get("product_not_upliftable_by_tariff_type") or {}
+    unlabelled = labels.get("None") if isinstance(labels, dict) else None
+    never_reached = offered - len(priced_accounts)
+
+    if won_priced:
+        verdict = "reached"
+        sentence = (
+            "The method has priced {n} account{s} the company found rather than started with "
+            "({names}). The gate that used to refuse every won household is passable, so what "
+            "limits this experiment now is book size, not eligibility."
+        ).format(n=len(won_priced), s="" if len(won_priced) == 1 else "s",
+                 names=", ".join(won_priced))
+    elif isinstance(unlabelled, int) and unlabelled > 0 and len(labels) == 1:
+        verdict = "structural"
+        sentence = (
+            "THE METHOD HAS NEVER PRICED A CUSTOMER THE COMPANY WON. Every renewal it priced "
+            "belongs to one of {priced} accounts the company was founded with; the other {rest} "
+            "accounts the world offered a renewal to have never had one reach the arm. That is a "
+            "GATE, not a book size: all {unlabelled:,} renewals refused at the product gate carry "
+            "`tariff_type = None`, which is what the world renders for every account it won or "
+            "drew, while the founding accounts omit the field and take the `\"fixed\"` default -- "
+            "and the arm admits only `fixed` and `pass_through` "
+            "(`UPLIFTABLE_TARIFF_TYPES`, company/crm/customer_profitability.py, applied at "
+            "company/pricing/value_based_renewal.py). No number of won households changes what "
+            "that guard reads, so there is no book size at which the first one is priced."
+        ).format(priced=len(priced_accounts), rest=never_reached, unlabelled=unlabelled)
+    else:
+        verdict = "unresolved"
+        sentence = (
+            "The method has priced none of the {rest} accounts the company won or drew, but this "
+            "run's product gate refuses renewals under more than one label ({labels}), so this "
+            "surface does not claim a single cause for it."
+        ).format(rest=never_reached,
+                 labels=", ".join(sorted(str(k) for k in labels)) or "none recorded")
+    return {
+        "available": True,
+        "verdict": verdict,
+        "priced_accounts": priced_accounts,
+        "accounts_the_world_offered_a_renewal": offered,
+        "accounts_never_reached_by_the_arm": never_reached,
+        "won_or_drawn_accounts_priced": len(won_priced),
+        "classification_basis": basis,
+        "sentence": sentence,
+        "what_is_owed": (
+            "Not a relaxed guard. The world has no standard-variable product, so a won "
+            "household's product was never decided rather than forgotten; the repair is that "
+            "product, drawn from the published domestic fixed/SVT split, and it makes the "
+            "in-scope surface SMALLER as a share of the book, not bigger "
+            "(docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md, settled 2026-08-28)."),
+    }
+
+
 def _decisions(three_arm: dict) -> dict:
     """How many decisions the whole reading rests on, and how concentrated they are.
 
@@ -1177,6 +1274,9 @@ def _decisions(three_arm: dict) -> dict:
         # are published. Dropped by the 2026-08-28 denominator edit and caught by rendering the
         # panel rather than by reading the diff -- the page said "one of 0 ()".
         "accounts_named_in_the_decision_sample": accounts,
+        # WHOSE customers those decisions are, which is a different question from how many there
+        # are and is the one the enterprise-value claim turns on.
+        "who_the_method_has_priced": _who_the_method_has_priced(funnel),
         "concentration_note": (
             "Every account the artefact names among its own scored decisions is one of the nine "
             "hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note "

@@ -929,3 +929,80 @@ def test_the_undecided_and_cannot_branches_do_NOT_gain_a_price_caveat():
         "the too-close-to-call branch, which states no price, was given the price caveat anyway")
     cannot = _withheld_headline(_decomposition(0.20, resolvable=False))
     assert "direction and not a settled figure" not in cannot
+
+
+# ── whose customers the method has actually priced ────────────────────────────────────────────
+#
+# THE DEFECT (2026-08-30). The page said how MANY decisions the reading rests on and never whose.
+# Every renewal the arm has ever priced belongs to a founder account; the 90 the acquisition
+# funnel won and the 69 the curriculum drew have never had one reach the arm, and that is a fact
+# about the enterprise value claim -- the advantage is supposed to come from inference over the
+# customers the method FINDS -- rather than an internal note.
+
+def test_the_page_says_the_method_has_never_priced_a_customer_the_company_won():
+    """Fires on: dropping the block, or losing the structural verdict.
+
+    The claim is only allowed when the artefact supports it in both parts -- no won or drawn
+    account priced, AND a product gate whose whole refusal is the unset label.
+    """
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    who = out["decisions"]["who_the_method_has_priced"]
+    assert who["available"] is True
+    assert who["verdict"] == "structural"
+    assert who["won_or_drawn_accounts_priced"] == 0
+    assert "NEVER PRICED A CUSTOMER THE COMPANY WON" in who["sentence"]
+    # The GATE is named, so a reader can check it rather than take the verdict on trust.
+    assert "UPLIFTABLE_TARIFF_TYPES" in who["sentence"]
+    assert "no book size at which the first one is priced" in who["sentence"]
+
+
+def test_pricing_one_won_account_makes_the_structural_sentence_unreachable():
+    """NULL RUNG. A verdict that cannot change when its evidence changes is not a reading of the
+    evidence -- the defect `_headline_reading` was repaired for on this same page, one panel up.
+
+    Fires on: hard-coding the structural sentence, or gating it on anything but the priced set.
+    """
+    art = _load(THREE_ARM)
+    funnel = art["renewal_funnel"]["value_arm"]
+    funnel["accounts_the_arm_priced"] = list(funnel["accounts_the_arm_priced"]) + ["PROS-2019-0015"]
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "reached"
+    assert who["won_or_drawn_accounts_priced"] == 1
+    assert "NEVER PRICED" not in who["sentence"]
+    assert "book size, not eligibility" in who["sentence"]
+
+
+def test_a_mixed_product_gate_does_not_get_the_single_cause_sentence():
+    """FAIL-CLOSED on the CAUSE, not just on the verdict. The structural sentence names ONE
+    mechanism -- the unset product label -- and it is only true while that label is the whole of
+    the refusal. A run whose product gate also refuses `flex` terms would have the same zero
+    priced-won count for two reasons, and naming one of them would be a refusal citing a cause
+    the checker never observed.
+    """
+    art = _load(THREE_ARM)
+    art["renewal_funnel"]["value_arm"]["product_not_upliftable_by_tariff_type"] = {
+        "None": 400, "'flex'": 262}
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "unresolved"
+    assert "more than one label" in who["sentence"]
+
+
+def test_the_class_split_prefers_the_worlds_own_label_over_the_id_prefix():
+    """MUTATION: read the prefixes even when `by_account_class` is present.
+
+    The prefix rule is a fallback for artefacts that predate the block, and a fallback that runs
+    in preference to the measurement is how a page comes to publish the guess and the evidence
+    interchangeably. Here the world's own classification says a founder-looking id was won, and
+    the page must follow the world.
+    """
+    art = _load(THREE_ARM)
+    art["renewal_funnel"]["value_arm"]["by_account_class"] = {
+        "available": True,
+        "priced_accounts_by_class": {"won_by_the_funnel": ["C7"], "founder_hand_authored": []},
+    }
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["won_or_drawn_accounts_priced"] == 1
+    assert "acquisition_type" in who["classification_basis"]

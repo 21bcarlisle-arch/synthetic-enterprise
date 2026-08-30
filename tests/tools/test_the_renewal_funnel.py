@@ -30,7 +30,9 @@ from company.pricing import value_based_renewal as vbr
 from company.pricing.renewal_rate_chain import decide_renewal_rate
 from tools.run_value_cycle_ab import (
     FUNNEL_STAGE_MEANINGS,
+    account_class_map,
     decision_population,
+    funnel_by_account_class,
     renewal_funnel,
 )
 
@@ -321,3 +323,79 @@ def test_the_comparison_is_symmetric_in_which_arm_is_larger(priced):
     block = decision_population({
         "value_arm": _funnel(priced, "value_arm"), "level_arm": _funnel(other, "level_arm")})
     assert block["largest_denominator_difference"] == 9
+
+
+# ---------------------------------------------------------------------------
+# WHOSE renewals these are — founder, won, or drawn
+#
+# THE DEFECT (2026-08-30). The funnel could say where 1,349 unpriced renewals went and could not
+# say whose they were. The arm priced 20 renewals across 10 accounts, every one of them a
+# hand-authored founder account, while the 90 accounts the acquisition funnel has won and the 69
+# the curriculum drew had never had a single renewal reach the arm — and no stage total can show
+# that, because `product_not_upliftable = 662` is true of the book as a whole. The enterprise
+# value claim is that the advantage comes from inference over the customers the method FINDS, so
+# a run that priced only the founding customers has not tested it at all.
+# ---------------------------------------------------------------------------
+
+def test_a_class_that_priced_nothing_is_reported_rather_than_missing():
+    """MUTATION: build the buckets from `priced_accounts_by_class` instead of from every row.
+
+    A class whose accounts all stopped at a guard would then be ABSENT from the block, and a
+    missing class reads exactly like a class the world does not have. That is the fail-silent
+    shape one layer up: "no won account was priced" and "there are no won accounts" are the same
+    absence and opposite facts, and the second is the flattering one.
+    """
+    block = funnel_by_account_class([
+        _row(customer_id="C1", stage="priced"),
+        _row(customer_id="PROS-2019-0015", stage="product_not_upliftable", tariff_type=None),
+    ])
+    assert block["classes"]["won_by_the_funnel"]["renewals_the_world_offered"] == 1
+    assert block["classes"]["won_by_the_funnel"]["priced"] == 0
+    assert block["priced_accounts_by_class"]["won_by_the_funnel"] == []
+    assert block["accounts_the_company_won_or_drew_that_the_arm_priced"] == 0
+
+
+def test_an_account_no_roster_claims_is_named_not_folded_into_the_founders():
+    """MUTATION: default the class map lookup to `FOUNDER_ACCOUNT_CLASS`.
+
+    "The roster does not know this account" and "the company was founded with it" are the same
+    absence. Folding the first into the second would let a renamed or newly minted id be counted
+    as evidence that the FOUNDING book is what the arm reaches — the exact claim this block
+    exists to test — and nothing would say so.
+    """
+    block = funnel_by_account_class([_row(customer_id="GHOST-1", stage="priced")])
+    assert "unclassified_no_roster_row" in block["classes"]
+    assert block["classes"].get("founder_hand_authored") is None
+    assert block["priced_accounts_by_class"]["unclassified_no_roster_row"] == ["GHOST-1"]
+
+
+def test_the_won_book_counter_moves_when_a_won_account_is_priced():
+    """NULL RUNG, and the one that makes the count a measurement rather than a constant.
+
+    `accounts_the_company_won_or_drew_that_the_arm_priced` is 0 on every run to date. A counter
+    that has only ever been observed at zero is indistinguishable from a counter that cannot
+    leave zero — R15's unreachable-branch shape — so this rung prices a won account and asserts
+    the count follows it.
+    """
+    priced_a_won_one = funnel_by_account_class([
+        _row(customer_id="PROS-2019-0015", stage="priced")])
+    assert priced_a_won_one["accounts_the_company_won_or_drew_that_the_arm_priced"] == 1
+    assert priced_a_won_one["priced_accounts_by_class"]["won_by_the_funnel"] == [
+        "PROS-2019-0015"]
+
+
+def test_the_class_of_an_account_comes_from_the_world_not_from_its_id():
+    """MUTATION: classify on `customer_id.startswith("PROS-")` instead of `acquisition_type`.
+
+    A prefix test is a control pinned to today's naming: rename the funnel's ids and every won
+    account reads as a founder account, which is the flattering direction, and the block would
+    not say it had changed its mind. `acquisition_type` is the field the roster that MINTED the
+    account writes, so the two populations here must be exactly the roster's own.
+    """
+    mapping = account_class_map()
+    classes = {c for c in mapping.values()}
+    assert "won_by_the_funnel" in classes and "founder_hand_authored" in classes
+    # The successor of a hand-authored account was not won by anything, and its id carries no
+    # marker either way — so it is the case that separates the two rules.
+    assert mapping["C1_2"] == "founder_hand_authored"
+    assert not any(k.startswith("legs_disagree_") for k in classes), sorted(classes)

@@ -703,6 +703,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       var dec = d.decisions || {};
       if (dec.available) {
         var accts = dec.accounts_named_in_the_decision_sample || [];
+        var who = dec.who_the_method_has_priced || {};
         $("arms-decisions").innerHTML =
           '<p style="margin:14px 0 6px;font-size:13px;"><strong>How many decisions this rests on.</strong> '
           + "The per-customer arm priced <strong>" + esc(dec.value_arm_priced)
@@ -722,6 +723,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(dec.concentration_note) + "</p>"
+          // WHOSE customers those decisions are. The claim this whole page exists to support is
+          // that the advantage comes from inference over the customers the method FINDS, and
+          // until 2026-08-30 the page said how MANY decisions there were and never whose. Amber
+          // when the method has reached none of them -- that is a fact about the enterprise
+          // value claim, not an internal note.
+          + (who.available
+              ? '<p style="margin:0 0 6px;font-size:11.5px;color:'
+                + (who.verdict === "reached" ? "var(--muted)" : "var(--amber)") + ';">'
+                + prose(who.sentence) + " " + prose(who.what_is_owed) + "</p>"
+              : "")
           + (dec.discrimination_auc === null || dec.discrimination_auc === undefined ? ""
               : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">The company’s '
                 + "own belief about who will leave scored <strong>"
