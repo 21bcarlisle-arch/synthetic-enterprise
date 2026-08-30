@@ -37,8 +37,15 @@ from simulation.market_switching_propensity import (
     offer_position_multiplier,
     perceived_price_differential,
 )
-from simulation.satisfaction_churn import adjust_churn_for_satisfaction
-from simulation.switching_propensity import adjust_churn_probability
+from simulation.satisfaction_churn import (
+    adjust_churn_for_satisfaction,
+    satisfaction_churn_multiplier,
+)
+from simulation.switching_propensity import (
+    adjust_churn_probability,
+    stress_switching_multiplier,
+    tenure_switching_multiplier,
+)
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
@@ -344,12 +351,25 @@ def roll_lifecycle_event(
     if passive_churn_cap is not None:
         p_churn_raw = 1.0 - effective_p_retain
         effective_p_retain = 1.0 - min(p_churn_raw, passive_churn_cap)
+    # C2 (2026-08-30): the four factor values the competing-risks form needs as hazard inputs,
+    # captured as they are computed rather than reconstructed afterwards. They are emitted on the
+    # event dict below as SIM ground truth -- same class as `engagement_level`, and like it they
+    # MUST NEVER be read by company/** decision code. Reconstructing them later is not equivalent:
+    # `renewal_data["churn_probability"]` (the raw base rate on the event) is NOT the number the
+    # chain starts from, which is `1 - effective_retention_probability`, and the difference is
+    # exactly the quantity the P0 calibration is fitted against.
+    _bill_shock_base = 1.0 - effective_p_retain
+    _market_opportunity = 1.0
+    _price_response = 1.0
+    _action_propensity = 1.0
+    _dissatisfaction_response = 1.0
     # Phase NS: apply market-conditions switching multiplier (savings elasticity).
     # Suppresses churn in crisis years (2022: no cheaper alternatives); amplifies in
     # high-competition years (2016-2018). Applied before income_stress so market
     # opportunity ceiling is set first, then individual customer frictions modify it.
     if market_year is not None:
-        p_churn_market = (1.0 - effective_p_retain) * market_switching_multiplier(market_year)
+        _market_opportunity = market_switching_multiplier(market_year)
+        p_churn_market = (1.0 - effective_p_retain) * _market_opportunity
         effective_p_retain = 1.0 - min(p_churn_market, WORLD_MAX_CHURN_PROBABILITY)
     # OUR OWN PRICE POSITION, and until 2026-08-25 the world could not see it.
     #
@@ -460,10 +480,11 @@ def roll_lifecycle_event(
         # Point-in-Time safe because `records_so_far` stops before this term by construction.
         _segment = next(
             (c.get("segment") for c in customers if c.get("customer_id") == billing_account), None)
-        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(
+        _price_response = churn_position_multiplier(
             felt,
             annual_bill_gbp=_bill_scale_for(
                 _segment, _annual_bill_gbp(billing_account, records_so_far, term_start_str)))
+        p_churn_price = (1.0 - effective_p_retain) * _price_response
         effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
@@ -471,10 +492,21 @@ def roll_lifecycle_event(
     if income_stress is not None:
         from simulation.household_segments import tenure_for_customer
         tenure = tenure_for_customer(billing_account).value
+        # The same product `switching_propensity.adjust_churn_probability` applies internally and
+        # is no longer called from here: C2 treats it as the ACTION PROPENSITY modulator scaling
+        # every risk, rather than as the fourth risk the design listed -- high income stress
+        # (0.65) and renting (0.75-0.80) make a household leave LESS, and a competing-risks model
+        # has no negative hazards. See `simulation/departure_risks.py`.
+        _action_propensity = (
+            stress_switching_multiplier(income_stress) * tenure_switching_multiplier(tenure)
+        )
         p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress, tenure)
         effective_p_retain = 1.0 - p_churn_stress
-    # Phase NF: apply SIM-side satisfaction score before retention modifier
+    # Phase NF: SIM-side satisfaction score. A RISK, not a modulator: it runs 1.30 / 1.00 / 0.85,
+    # and the protective 0.85 branch is a smaller dissatisfaction hazard rather than a negative
+    # one, so it passes the test income stress fails.
     if satisfaction_score is not None:
+        _dissatisfaction_response = satisfaction_churn_multiplier(satisfaction_score)
         p_churn_sat = adjust_churn_for_satisfaction(1.0 - effective_p_retain, satisfaction_score)
         effective_p_retain = 1.0 - p_churn_sat
     # Phase QA: capture the true pre-retention-offer probability. This is what
@@ -483,6 +515,34 @@ def roll_lifecycle_event(
     # already bakes in the company's own retention action would be circular
     # (the company would look "wrong" purely because its own intervention
     # worked).
+    # C2 LANDED THE MECHANISM AND NOT THE PHYSICS, ON PURPOSE (2026-08-30).
+    #
+    # `simulation/departure_risks.py` holds the competing-risks form this chain is meant to become,
+    # with its controls and its risk/modulator split. It is NOT wired in here, because the P0
+    # calibration the pre-registration puts ahead of everything else was run and came back
+    # non-identifying: measured on the real 708-renewal factor table, every bill-shock scale from
+    # 0.87 down reproduces population-mean realised churn EXACTLY while the reason mix ranges from
+    # 99.9% bill-shock to 56.6%. Choosing one would be choosing P2's answer and reporting it as a
+    # measurement. The only scale with evidence behind it -- 1.0, the world's own calibrated base
+    # rate -- overshoots the target by 14.9%.
+    #
+    # AND THE OVERSHOOT IS THE INTERESTING PART, because it says the P0 target itself is
+    # contaminated by the defect C2 exists to remove. The multiply below lets `_price_response` and
+    # `_dissatisfaction_response` scale the BILL-SHOCK term: in 74.4% of these renewals the company
+    # is cheaper than the market reference, so being cheaper than average DISCOUNTS a household's
+    # churn from its own bill doubling, by 13% on average. Competing risks cannot express that and
+    # should not -- "we are cheaper than average" is not a reason to fail to notice your own bill.
+    # So holding the level exactly constant across the change would mean PRESERVING the discount.
+    #
+    # Per the pre-registration's own abandon criterion and the delivery direction, the composed
+    # form therefore stands until the calibration question is settled, rather than a half-rewrite
+    # shipping. See
+    # `docs/staging/WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`.
+    #
+    # Phase QA: the true PRE-retention-offer probability -- what the company's estimate (computed
+    # before any retention decision) is trying to predict. Comparing against a probability that
+    # already baked in the company's own intervention would make the company look wrong precisely
+    # when its intervention worked.
     effective_p_retain_pre_offer = effective_p_retain
     if retention_modifier is not None:
         p_churn_base = 1.0 - effective_p_retain
@@ -558,4 +618,13 @@ def roll_lifecycle_event(
             round(churn_position_multiplier(differential), 4) if differential else None
         ),
         "market_switching_multiplier": round(market_switching_multiplier(market_year), 4) if market_year is not None else None,
+        # C2 FACTOR DECOMPOSITION -- SIM ground truth, never readable by company/** decision code
+        # (pinned by tests/architecture). These are the hazard inputs the competing-risks form
+        # consumes, published so that the departure decomposition is reproducible from the event
+        # log alone rather than only from a re-run.
+        "sim_bill_shock_base": round(_bill_shock_base, 6),
+        "sim_market_opportunity": round(_market_opportunity, 6),
+        "sim_price_response": round(_price_response, 6),
+        "sim_action_propensity": round(_action_propensity, 6),
+        "sim_dissatisfaction_response": round(_dissatisfaction_response, 6),
     }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T02:43:17Z",
+  "generated_at": "2026-08-30T08:54:13Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -19,7 +19,7 @@
     "due": 0,
     "unchecked": 0,
     "stub": 0,
-    "fresh": 11
+    "fresh": 13
   },
   "topics": [
     {
@@ -95,6 +95,18 @@
       "detail": "Checked 11 days ago against a 365-day threshold. Source: Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021."
     },
     {
+      "id": "how-households-choose",
+      "title": "How a household chooses, and why most don't",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-30",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-30",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Consumer Impacts of Market Conditions survey waves 5 and 6; Ofgem non-domestic 2024 research."
+    },
+    {
       "id": "imbalance-cashout-settlement",
       "title": "Imbalance & cash-out",
       "rate_of_change": "medium",
@@ -153,6 +165,18 @@
       "overdue_by": null,
       "label": "Reviewed 2026-08-18",
       "detail": "Checked 12 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
+    },
+    {
+      "id": "the-price-a-household-is-shown",
+      "title": "The price a household is shown",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-30",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-30",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10."
     }
   ]
 }

@@ -193,3 +193,83 @@ taken from published evidence and cited, and where the evidence is ambiguous the
 the one that makes the company's advantage harder to demonstrate, with the reason recorded. On the
 evidence above that means erring toward MORE service-driven and fewer price-driven departures,
 because price is the cause the company's observables can already see.
+
+---
+
+# MARKED, 2026-08-30, beside each prediction
+
+Marked after the first implementation turn, against
+`docs/reports/c2_departure_factors.json` (708 renewals, full 2016–2025 run) and
+`docs/staging/WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`.
+Marks are written here rather than in a separate report so that a wrong prediction sits next to the
+result that refuted it. **The competing-risks physics did NOT land in the world this turn** — the
+mechanism, its controls and the calibration measurement did — so the predictions that need the new
+physics running are marked NOT YET MEASURABLE rather than silently left open.
+
+**P0 — FAILED, and in a more interesting way than "the fit missed".**
+Not "the calibration was hard": it is **infeasible at the only evidenced anchor and non-identifying
+everywhere it is feasible.** The bill-shock hazard alone is 0.069665 against a 0.060643 target
+(+14.9%), and freeing `a_shock` produces a one-parameter family that all hit the target *exactly*
+(+0.0000%) with reason mixes from 99.9%/0.0%/0.0% to 56.6%/23.2%/20.1%. Choosing `a_shock` would be
+choosing P2's answer.
+And the target itself is contaminated: the composed form lets `m_price` scale the BILL-SHOCK term,
+and the company is cheaper than the market reference in **74.4%** of renewals, discounting
+bill-shock churn by a factor of **0.8705**. Holding that level constant would preserve the defect
+C2 exists to remove. *The abandon criterion below was written for exactly this and is honoured.*
+
+**P1 — NOT YET MEASURABLE, and the direction of the tail is already visible.**
+It cannot be marked without a P0 that holds, because with the level free the distribution's shift
+and its shape are confounded — which is the reason P0 was put first. What the arithmetic already
+shows on the captured factors, at an arbitrary feasible scale: p99 falls hard (0.4502 → 0.2787) and
+the median rises (0.0334 → 0.0489), which is the predicted direction. **This is NOT scored as a
+confirmation**: at a scale I chose, a prediction about shape is not independent of the choice.
+
+**P2 — NOT MEASURED, DELIBERATELY, and §5's instruction was followed.**
+The design fixes the order of work and says not to reorder it: do not look at the reason mix before
+P0 holds. P0 does not hold, so the mix was not computed as a result. The expected-share column in
+the finding's table exists only to *demonstrate the non-identifiability* — it is the evidence that
+the mix is unconstrained, and it is explicitly not published as a measurement of the world.
+One correction to P2's own arithmetic: with `financial_stress` demoted to a modulator there are
+**three** causes, not five, so a decade's ~40 departures give ~13 per cause rather than eight. The
+n problem is smaller than filed and is not solved — the mix still gets measured across seeds or not
+at all.
+
+**P2b — CONFIRMED, and independently.**
+Predicted from a 19,200-combination sweep that the protective satisfaction band (×0.85) is reached
+in ~1.60% of cases. Measured on the live 708-renewal run: **8 of 708 = 1.13%**, against 98 at ×1.30
+and 602 at ×1.00. Satisfaction is a two-state variable in this world, and the consequence stands as
+filed — the decomposition will attribute service-driven departures fairly and show service almost
+never *preventing* one. The half that is missing remains the half a supplier can act on.
+
+**P3 — NOT YET MEASURABLE.** Needs the new physics running. The leak it warns about is now guarded
+in advance rather than checked afterwards: `tests/architecture/test_the_departure_cause_never_reaches_the_company.py`
+refuses any read of a cause label or its decomposition from `company/**`, and was verified to fire
+by planting one in `company/analytics/churn_accuracy_report.py`.
+
+**P4 — CONFIRMED, and it was right for the right reason.**
+*"A naive rewrite BREAKS it"* — it does, provably and not merely empirically. `m(d)·m(−d) == 1` held
+only because price multiplied the whole probability; under competing risks
+`p(d)·p(−d) = c² + cb(m + 1/m) + b² ≥ p(0)²`, with equality only when price is the sole risk.
+*"If it passes first time, distrust the test"* — this is the line that earned its place. The first
+draft of the control asserted the old equality at the total level and would have been **written to
+pass** by correcting the bound; the bound runs AGAINST the company (over-pricing punished harder
+than under-pricing is rewarded), so correcting it would have been tuning in the direction R13
+forbids. The guarantee is re-established as an inequality, which is stronger than the equality where
+it matters: a ratio below 1 is now impossible rather than calibrated away. The exact identity
+survives at the price hazard itself, for every household. Both legs pinned; both mutation-checked.
+
+**P5 — NOT TESTABLE YET, as filed.** Needs C1b. Unchanged.
+
+**P6 — MECHANISM LANDED, EFFECT NOT YET MEASURED.** The retention offer scales the price risk and
+nothing else, pinned by a control that reds when the offer is wired to every risk. The predicted
+*fall* in measured retention effectiveness needs the physics running.
+
+**And one prediction that was not filed, which I got wrong by omission.**
+The design's §2 risk table was taken as given. It puts `financial_stress` among the RISKS, and its
+own stated test — *"a competing-risks model has no negative hazards"* — demotes it: income stress
+runs 1.10 / 0.85 / **0.65** and tenure 1.00 / 0.80 / 0.75, so the households the multiplier damps
+would have needed negative hazards. I should have applied the design's test to the design's own
+table before building to it, and did not; the multiplier table caught it in seconds once printed.
+Recorded at design §8. **Both design errors this document has now cost were caught by printing
+numbers rather than by more thinking, and neither would have been caught by a test written after
+the formula.**

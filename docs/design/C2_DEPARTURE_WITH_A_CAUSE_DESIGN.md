@@ -39,7 +39,7 @@ not risks at all.** Treating them as risks is what produced the flat multiply.
 |---|---|---|
 | `bill_shock` | a rise in this household's own bill | `renewal_data["churn_probability"]` |
 | `price_position` | our rate against the competitor reference, felt in pounds at their bill | `churn_position_multiplier` |
-| `financial_stress` | income stress, damped by tenure | `adjust_churn_probability` |
+| ~~`financial_stress`~~ | ~~income stress, damped by tenure~~ | **WRONG — see the amendment at §8** |
 | `dissatisfaction` | service failures | `adjust_churn_for_satisfaction` |
 | *(C1b)* `svt_inertia` | drift off a variable tariff with no term | not yet |
 | *(C6)* `home_move` | moving house | not yet |
@@ -153,3 +153,63 @@ churn estimate gets worse (P3), and dissatisfaction stops being suppressed in cr
 The per-cause SENSITIVITIES are curriculum. Under §7 of the brief they are taken from published
 evidence and cited, and where the evidence is ambiguous the option chosen is the one that makes
 the company's advantage harder to demonstrate, with the reason recorded on the page.
+
+---
+
+## 8. AMENDMENT, 2026-08-30, at implementation: §2 put one term on the wrong side of its own line
+
+Written beside the claim rather than as a quiet edit to the table, because a design corrected in
+place is indistinguishable from one that was right the first time.
+
+**§2 defines the test for a modulator and then fails to apply it to its own third row.** The test
+is stated there in full: *"a competing-risks model has no negative hazards, and 'there was nowhere
+to go' is not a reason anyone left."* It is applied to market opportunity, which is correctly
+demoted. Applied to `financial_stress` it demotes that too, and the design did not notice.
+
+The numbers, printed before a line of the hazard code was written:
+
+```
+STRESS_SWITCHING_MULTIPLIER    low 1.10    moderate 0.85    high 0.65
+TENURE_SWITCHING_MULTIPLIER    owner 1.00  private_renter 0.80  social_renter 0.75
+```
+
+A household under HIGH income stress is modelled as **35% less likely to leave**, and a social
+renter 25% less. *"I was too financially stressed to switch"* is not a reason anyone left; it is a
+precondition damping whether they act at all — the same shape as *"there was nowhere to go"*, and
+the same disqualification. Modelling it as a risk would have required a negative hazard for exactly
+the households the multiplier damps.
+
+**So there are THREE risks here, not four,** and income stress × tenure is a single ACTION
+PROPENSITY modulator scaling every risk. `dissatisfaction` was tested the same way and survives:
+it runs 1.30 / 1.00 / 0.85, and the protective 0.85 branch is a *smaller* dissatisfaction hazard
+bounded below by zero, not a negative one.
+
+This is the **second** time on this design that printing a table first caught a term facing the
+wrong way — §3 caught the first, and both were caught in seconds by numbers rather than by more
+thinking about the prose. The §3 argument for printing before writing is now evidenced twice.
+
+**It does not weaken any pre-registered prediction.** P2's reason mix now has three causes to
+split rather than four, which makes its n-per-cause problem *less* severe (~13 per cause in a
+decade rather than eight) and leaves the prediction — price modal, service double-digit —
+unchanged. P6 is untouched. P4 is untouched.
+
+### And P4's guarantee changes shape, exactly as P4 said a naive rewrite would
+
+`m(d)·m(−d) == 1` held on the composed form because price multiplied the WHOLE probability. Under
+competing risks price scales one hazard among several and the equality does not survive it. Writing
+`p(d) = c + b·m(d)` with `c = 1 − Π_{k≠price}(1−h_k)` and `b = Π_{k≠price}(1−h_k)·h_price(0)`:
+
+```
+p(d)·p(−d) = c² + c·b·(m + 1/m) + b²   ≥   c² + 2cb + b²  =  p(0)²
+```
+
+since `m + 1/m ≥ 2` for all `m > 0`. **The break is provably in the company-unfavourable
+direction** and equals 1 exactly when price is the only risk. So the guarantee is re-established as
+an inequality that is *stronger* than the old equality where it matters: a ratio below 1 would be
+the goal-seeking hole R12 exists to close — price up one year, down the next, and finish with less
+churn than parity — and that is now impossible rather than merely calibrated away. Restoring the
+exact equality would mean correcting a bound that runs against us, which R13 forbids.
+
+The exact identity survives where it is a property rather than an artefact: at the price hazard
+itself, `h_price(d)·h_price(−d) == h_price(0)²` for every household. Both legs are pinned by
+`tests/simulation/test_departure_risks.py`, and both were mutation-checked.
