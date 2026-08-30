@@ -60,3 +60,64 @@
 > 3. One node filled to depth, with charts.
 
 Ruling §5.2/§5.5: *"Then fill exactly ONE node to full depth — your choice which, with your reasoning… Rung 5 still binds: the one deep node ships with its charts, or it does not ship."*
+
+---
+
+## DISCHARGED 2026-08-30 — the LIVE-surface verification, finally taken
+
+**Discharged:** `site/knowledge/electricity-wholesale/test_the_four_charts_render_on_the_live_surface.py::test_the_page_boots_itself`
+
+The owed work was *"verify the four rung-5 charts on the LIVE surface (R11, deferred to 'the next
+publish' and never taken), then self-certify the level on that evidence."* Done, and here is the
+evidence rather than the assertion.
+
+### Why it sat for eight days: it looked done
+
+`test_knowledge_wholesale.py` carries forty-three passing tests — three per chart
+(`_present_and_pipeline_sourced`, `_chart_renders_to_svg_from_data`,
+`_chart_is_data_driven_not_constant`), a DoD gate asserting all four render, and two both-ways
+mutations on that gate. Anyone opening that suite concludes the verification exists.
+
+It does, and it is not the verification R11 asks for. Those tests drive the page through
+`_render_harness.mjs`, a PER-DOOR harness that imports the page's inline script and calls its
+render functions BY NAME. The generic harness's own docstring says of exactly these files that
+such a harness *"cannot be pointed at the LIVE site"*. Calling `renderLive(data)` directly skips
+the entire boot sequence in which the real failure lives.
+
+### The number that settles it
+
+The page's feed url was repointed at a path that does not exist — the live shape of "the json
+404s after a deploy" — and both suites were run against the same broken page:
+
+```
+test_knowledge_wholesale.py                          31 passed
+test_the_four_charts_render_on_the_live_surface.py    6 failed, 2 passed
+```
+
+**Thirty-one green tests on a page that renders nothing to a reader.** Neither suite is wrong —
+one grades chart CONTENT and provenance, the other grades that the content reaches the reader
+through the page's own boot — but only the second is R11, and only the first existed.
+
+### What the new control asserts
+
+Driven through `site/_live_harness.mjs`, which knows no function names, supplies only `fetch`, and
+lets the door's own promise chain run to completion. Four SVGs reach `r-live`; each is graded on a
+structural FLOOR of its own marks in document order (price series `path`/`line`/`text`; merit
+order and the two histograms `rect`/`line`/`text`), never on today's data-point counts — a chart
+that gains a point must not red and a chart that loses its geometry must. Per chart and not as a
+total, because a total is satisfied by one chart drawing four times as much. Plus a check that no
+two charts rendered identical markup, which is what a loop drawing one series four times looks
+like.
+
+The element-existence check reads the FILE rather than the render, because the harness autocreates
+any id it is asked for — verified: deleting `<div id="r-live">` reds that one test while all seven
+render assertions still pass.
+
+### Level
+
+Self-certified on this evidence, per PROPOSE-RECORD-ACT (the `director_level_up` act this mint was
+originally blocked on was abolished 2026-07-29 and swept 2026-08-03). No director act involved and
+none sought.
+
+Sibling disposition: `docs/staging/SEAT_DISPOSITION_THE_THREE_JULY_MINTS_2026-08-30.md`, which
+named this as the one of the three with real work owed and predicted the shape of it.
