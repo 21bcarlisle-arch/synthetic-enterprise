@@ -82,3 +82,54 @@ DOTTED MODULE NAME, and says why. That stops the bleeding and fixes nothing.
    whichever definition makes the count look better.
 
 ## Still live
+
+---
+
+## SECOND INSTANCE, 2026-08-30 — found in the HEAD red census, and it is a live red control
+
+`tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan` is one
+of the ten failures in today's unscoped census. Its message:
+
+> STALE DISPOSITION: `company.trading.initial_margin_register` (line 400) is now wired, not an
+> orphan — delete the row; a ruling kept past its subject is how the count stops meaning anything
+
+**Nothing is wired.** Checked, rather than taken from the index:
+
+```
+capability_index row: status='wired', callers=['company.risk.independent_amount (by path)']
+
+company/risk/independent_amount.py imports:
+    from __future__ import annotations
+    from math import isfinite
+    from company.pricing.tariff_engine import EWMA_HALF_LIFE_DAYS   (function-local)
+
+grep -c "import.*initial_margin" company/risk/independent_amount.py  ->  0
+```
+
+The three references in that file are all prose citing the register's path as the source of a
+market convention — *"`initial_margin_register.py:11` states the standard"* — which is the AO2
+reuse discipline working exactly as intended, and is precisely the shape §1 above describes.
+
+**So the register row saying `unhooked` is TRUE, and the control is asking for a true row to be
+deleted.** The row stays. Recorded here rather than as a second document, per the standing
+convention that a continuing condition appends.
+
+### What this instance adds to the class
+
+The first instance was caught by the seat that created it, within the hour, on its own new module.
+This one was caught in a census, two days later, on a module nobody had touched — which means the
+class does not depend on anyone remembering. It also confirms the prediction in §2: the modules
+most likely to be cited as near-misses are the unreached ones, and `initial_margin_register` had
+been sitting unreached and unmentioned until a neighbouring module cited it as a source.
+
+**Running count of modules falsely reported wired: 2** (`fair_value_assessment_register`,
+`initial_margin_register`). Both are company-side orphans whose ruling the control asked to have
+deleted. That is the number to watch: each one is a true record the gate tries to destroy.
+
+### Consequence for today's census
+
+This red is DISPOSITIONED, NOT FIXED, and it should stay red. Making it green requires either
+repairing `_path_references` to distinguish a citation from an invocation — the repair this
+document already specifies — or deleting a true row, which is the failure it exists to prevent.
+It is therefore expected in the red set until `AO1_capability_index` is worked, and it is not a
+new defect.

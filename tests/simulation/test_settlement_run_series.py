@@ -27,7 +27,7 @@ from simulation.settlement_run_series import (
     bills_from_settled_records,
     build_settlement_revision_log,
 )
-from simulation.settlement_timetable import emit_settlement_timetable
+from simulation.settlement_timetable import R1_SHARE, emit_settlement_timetable
 
 
 def _dt(d: dt.date) -> dt.datetime:
@@ -196,9 +196,23 @@ class TestPointInTimeBlindfold:
             _dt(r1.publication_date), "book", "settlement_revenue_gbp",
         )
         assert rec.value == pytest.approx(r1.value)
-        # gap = 1000 - 970 = 30; R1 resolves 60% -> 970 + 18 = 988.0
-        assert rec.value == pytest.approx(988.0)
+        # KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER (2026-08-30). This line read
+        # `assert rec.value == pytest.approx(988.0)` with the comment "gap = 1000 - 970 = 30;
+        # R1 resolves 60% -> 970 + 18 = 988.0". The 60% was never sourced. On 2026-08-29
+        # `settlement_timetable.R1_SHARE` was CORRECTED to 0.3093 from an Elexon primary
+        # document (`docs/market_research/elexon_settlement_run_timetable_verified.md`), and
+        # this assertion went red at 979.279 -- which is exactly 970 + 0.3093 x 30.
+        #
+        # So the control went red because the code became MORE honest, which CLAUDE.md names as
+        # exactly backwards for a control. The repair is not to re-pin it at 979.279; that would
+        # rebuild the same trap one correction later. It derives from the constant, so a future
+        # re-sourcing of the share passes and a wrong RESOLUTION still fails.
+        gap = 1000.0 - 970.0
+        assert rec.value == pytest.approx(970.0 + R1_SHARE * gap)
+        # And the blindfold itself, which is what this test is actually for: R1 must not be the
+        # final. Independent of the share -- it holds for any share strictly below 1.0.
         assert rec.value != pytest.approx(1000.0)
+        assert rec.value < 1000.0
 
     def test_rf_final_invisible_before_its_publication_date(self):
         log, events = self._build()

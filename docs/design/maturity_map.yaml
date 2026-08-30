@@ -563,22 +563,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a retail energy CRM that has no idea who is price-sensitive: it learns only from who opened the email, who took the fixed-price offer, who churned after a price rise -- and the honest ones run a holdout so they can tell whether the retention campaign did anything at all, because the treated group would partly have stayed anyway"
   records_rehomed: [evidence]
-- id: B10_competitor_switching_response
-  notes_rehomed: [name]
-  lane: W2_customer_generator
-  value_stream: meter_to_cash
-  epoch: 3
-  level_current: 3   # 2026-08-29: coupled-triad gap MEASURED on a chase-on/chase-off pair, one tree (subject 23f45e73e252), founder book, 2021 window. The company's belief moves between the two worlds at ALL FOUR rungs in the correct direction on 31/99 paired decisions, and the belief-vs-truth gap NARROWS at every rung when the rival presses -- COMPETITOR_FIELD_FRAME.md §5's own criterion. Recorded in docs/observability/gate_authorizations.jsonl; evidence docs/staging/WORKER_FINDING_THE_CHASE_COMPARISON_WAS_ASKING_ITS_QUESTION_ON_THE_SLOPES_POPULATION_2026-08-29.md. NOT covered: §5 component 1 (the ceiling gap) is unbuilt -- the company still has no observation of the cheapest rival price.
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 3
-  provenance: proposal
-  file_scope: [simulation/competitor_reference.py, tests/simulation/test_competitor_reference.py, simulation/customer_events.py, simulation/run_phase2b.py]   # 2026-08-28: `sim/` is not a package in this repo and never was -- the SIM lives under `simulation/`. The FRAME's own §1.1 flagged the path as intended-not-actual and asked BUILD to correct it.
-  depends_on: []
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "the GB retail switching market: comparison sites publish every rival tariff, a fraction of the book acts on a relative-price gap within weeks, and the incumbent learns it lost only when the erroneous-transfer/gaining-supplier flows arrive -- never by being told what the competitor was thinking"
-  records_rehomed: [evidence]
 - id: SP2_1_working_day_calculator
   notes_rehomed: [name]
   lane: D_billing_metering
@@ -1525,66 +1509,6 @@
   file_scope: ['site/capabilities/', 'tools/generate_capabilities_door.py', 'tests/tools/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a backtest published with its own assumption stated on the same page -- 'this result assumes the market does not react to our trades' -- rather than in a methodology appendix nobody opens, because the assumption is the difference between a result and an artefact"
-- id: A47_the_score_has_no_household_side
-  title: "The objective is scored on the company in all three legs, so a maximiser can win it by transferring value rather than creating any"
-  gain: "Director, 2026-08-28, mission (verbatim): 'We are creating enterprise value by automating ways to find individual customers we can create value for, and SHARING in that value... Value is created and then shared, so every decision has two sides: good for the household and good for us. Charging someone the cap transfers value, it doesn't create it, which is why the maximiser kept finding it.' Observed: SURVIVE and EARN are the company's by construction, and ABATE -- though it counts a household's tonnes -- is instrumented as our GBP/tCO2e and is not yet instrumented at all. There is no household-side term in ANY currency. This re-reads a finding already on file: WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED_2026-08-25 diagnosed a missing CEILING in the churn model, and that repair is real; but a ceiling repair cannot fix a score with a side missing, because the maximiser was optimising a one-sided objective CORRECTLY. A two-sided score makes cap-pricing unattractive on the merits rather than merely unreachable. Level 2 is the objective STATED and instrumented on one household currency (money saved vs counterfactual), not the whole six-cell table."
-  lane: A_strategy_governance
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 2
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null
-  depends_on: []
-  couples_with: [B10_competitor_switching_response, A48_enterprise_value_is_the_method_not_the_book]
-  # NAMED FILES, NOT TREE GLOBS. `saas/`, `tools/`, `site/` and `tests/` swept in every other
-  # lane's in-flight work, so the level gate correctly refused a level declared over source
-  # this commit does not contain. A scope is the evidence the claim rests on, not the
-  # neighbourhood it lives in.
-  file_scope: ['company/analytics/household_value_share.py',
-               'tests/company/analytics/test_household_value_share.py',
-               'tests/company/test_household_share_is_not_yet_a_target.py',
-               'tools/run_price_ladder.py',
-               'tests/tools/test_run_price_ladder.py',
-               'docs/design/THE_MODEL_ON_A_PAGE.md']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a regulated firm whose customer-outcomes duty is measured on the customer, not inferred from the firm's own margin -- the distinction Consumer Duty exists to force, and the one that separates a supplier creating value from one extracting it"
-- id: A48_enterprise_value_is_the_method_not_the_book
-  title: "The only module in the repo named enterprise_value measures the book, which is precisely the definition the mission supersedes"
-  gain: "Director, 2026-08-28, mission: 'the enterprise value is the automated method for finding those customers, not the book itself.' Observed-with-evidence the same day: saas/enterprise_value.py's own docstring says 'The portfolio-wide sum of the resulting per-account CLVs is the enterprise value: the total discounted future net margin of the customer book.' That is the superseded definition, written into the one place carrying the mission's own noun, and reached through company/analytics/customer_value_view.py into the live phase-4c run. This atom is NOT a rename: the CLV roll-up is a correct and useful figure and keeps its name in its own domain. What is missing is any measure of the METHOD -- how reliably the machine finds individual customers it can create value for, at what cost per customer found, and whether that improves. Until one exists, the project's headline number is the thing the director says is the evidence, presented as the thing being built. Filed: WORKER_FINDING_THE_ONLY_MODULE_NAMED_ENTERPRISE_VALUE_MEASURES_THE_BOOK_2026-08-28."
-  lane: A_strategy_governance
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 2
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: director_ruling
-  blocked_on: null
-  block_reason: null
-  depends_on: []
-  couples_with: [A47_the_score_has_no_household_side, A46_book_depth_is_a_curriculum_question]
-  # NAMED FILES. Tree globs sweep other lanes' in-flight work and the level gate refuses a
-  # level declared over source the commit does not contain -- learned on A47 the same day.
-  #
-  # THE LAST TWO ENTRIES WERE ADDED AT THE L2 BUILD, and adding them is the honest move rather
-  # than the convenient one. The FRAME's section 4 named a grouping change to
-  # `build_household_value_share` as the thing that had to happen first; that change lands in
-  # the module and therefore in the module's OWN test and its OTHER caller. A scope is the
-  # evidence the claim rests on, so a scope that omitted the files the change actually touched
-  # would be declaring a level over source the commit does not contain -- which is the defect
-  # this comment already existed to prevent, arriving from the other direction.
-  file_scope: ['docs/design/A48_MEASURING_THE_METHOD_FRAME.md',
-               'company/analytics/household_value_share.py',
-               'tools/run_value_cycle_ab.py',
-               'tests/tools/test_run_value_cycle_ab.py',
-               'tests/company/analytics/test_household_value_share.py',
-               'tools/run_price_ladder.py']
-  real_world_twin: "an asset manager whose value is the strategy and the pipeline that finds trades, not the current positions -- the positions are how you prove the strategy works, and a firm that confuses the two optimises the wrong asset"
-  expert_hour: {status: not_attempted, last: null, findings: []}
 - id: C30_advice_reaches_a_household
   title: "Advice is the third channel in the mission and has modules on disk, no recipient, and no household whose behaviour it has ever changed"
   gain: "Director, 2026-08-28, mission: value reaches the customer 'through personalised modelling, tariffs and advice', with the instruction to NOTE that two of the three do not exist rather than fix it now. Observed: company/pricing/switching_recommendation.py renders inside company/portal/app.py and company/crm/decarb_recommender.py is discovery-wired, but NOTHING in simulation/ consumes a recommendation and no simulated customer visits the portal. The channel is built everywhere except the point where it would matter. TARIFFS is the only channel of the three that reaches a household today -- the renewal rate reaches the churn decision in simulation/customer_events.py and changes an outcome."
