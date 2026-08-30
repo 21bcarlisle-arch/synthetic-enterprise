@@ -38,7 +38,7 @@ from simulation.departure_risks import (
     resolve_departure,
     total_departure_probability,
 )
-from simulation.household import IncomeStress, household_of
+from simulation.household import GAS_LEG_ID_SUFFIX, IncomeStress, household_of
 from simulation.market_switching_propensity import (
     churn_position_multiplier,
     market_switching_multiplier,
@@ -46,6 +46,7 @@ from simulation.market_switching_propensity import (
     perceived_price_differential,
 )
 from simulation.satisfaction_churn import satisfaction_churn_multiplier
+from simulation.shown_price import shown_annual_bill_gbp
 from simulation.switching_propensity import (
     stress_switching_multiplier,
     tenure_switching_multiplier,
@@ -56,6 +57,14 @@ PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 #: The only occasion this module emits. A renewal-point decision is the one place the world
 #: currently asks a household whether it stays, and `roll_lifecycle_event` owns it.
 DEPARTURE_OCCASION_RENEWAL = "renewal"
+
+#: C1b. A departure from the standard variable product, which happens DURING a cap period and not
+#: at any boundary the supplier serves notice of. Named for the occasion and not for the cause --
+#: `departure_cause` carries the risk that fired, and the two are separate facts. A reader whose
+#: denominator is renewal DECISIONS must select on this to keep its own quantity whole:
+#: `tools/population_anchor._churn_by_year` divides by `renewals + churns`, and an SVT departure
+#: is a churn with no renewal beside it.
+DEPARTURE_OCCASION_SVT_SEGMENT = "svt_segment"
 
 
 def departure_event(
@@ -289,19 +298,46 @@ def _annual_bill_gbp(
     Point-in-Time: `records_so_far` stops before this term by construction (see the caller), so
     this can only ever see settled history.
     """
+    billed = _annual_bill_and_volume(billing_account, records_so_far, term_start_str)
+    return billed["gbp"] if billed else None
+
+
+def _annual_bill_and_volume(
+    billing_account: str, records_so_far: list[dict], term_start_str: str
+) -> dict | None:
+    """The same trailing window, returning what was billed AND the volume it was billed on.
+
+    ONE PASS AND ONE POPULATION, which is the whole reason this exists rather than a second
+    walker beside `_annual_bill_gbp`. C3 needs pounds and kWh over the identical set of records:
+    two walkers with independently-drifting filters would produce a ratio whose numerator and
+    denominator count different things, and this repository's most-repeated published defect is
+    exactly that -- two true numbers whose ratio is not a quantity.
+
+    `fuels` comes from the records actually settled in the window, not from the roster. A roster
+    saying dual-fuel while only the electricity leg billed would have the household shown a
+    dual-fuel typical volume it never took, and the shown price has to be built on what was
+    supplied.
+    """
     start = date.fromisoformat(term_start_str)
     window_start = twelve_month_window_open(start)
     total = 0.0
+    kwh = 0.0
+    fuels: set[str] = set()
     seen = False
     for rec in records_so_far:
-        if household_of(rec.get("customer_id", "")) != billing_account:
+        rec_id = rec.get("customer_id", "")
+        if household_of(rec_id) != billing_account:
             continue
         settled = rec.get("settlement_date")
         if not settled or not (window_start <= date.fromisoformat(settled) < start):
             continue
         total += float(rec.get("revenue_gbp") or 0.0)
+        kwh += float(rec.get("consumption_kwh") or 0.0)
+        fuels.add("gas" if rec_id.endswith(GAS_LEG_ID_SUFFIX) else "electricity")
         seen = True
-    return total if seen and total > 0 else None
+    if not seen or total <= 0:
+        return None
+    return {"gbp": total, "kwh": kwh, "fuels": fuels}
 
 
 # Disposition of a churned account's home-move outcome. Three-valued because the
@@ -542,12 +578,24 @@ def roll_lifecycle_event(
         # savings in absolute terms rather than in proportion to their bill."* Derived from what we
         # have actually BILLED this household -- a fact a real supplier plainly has, and
         # Point-in-Time safe because `records_so_far` stops before this term by construction.
+        # C3, 2026-08-30: THE SCALE IS THE BILL THE HOUSEHOLD IS SHOWN, NOT THE ONE IT PAYS.
+        # The paragraph above is right that a percentage has to become pounds, and right about the
+        # source. What it got wrong is WHICH pounds: a household's own settled trailing-year bill
+        # is a number only its supplier holds, and nothing a household is ever shown is built from
+        # it. The published convention -- an annual figure at typical consumption -- is what the
+        # cap headline and every comparison listing use, so that is what the decision keys on.
+        # The SETTLEMENT is untouched and still bills the true volume at the true rate; the gap
+        # between the two is now a real quantity in the world instead of an unmodelled
+        # convenience. See `simulation/shown_price.py` and the pre-registration filed before it.
         _segment = next(
             (c.get("segment") for c in customers if c.get("customer_id") == billing_account), None)
+        _billed = _annual_bill_and_volume(billing_account, records_so_far, term_start_str)
+        _shown_bill = shown_annual_bill_gbp(
+            billed_gbp=(_billed or {}).get("gbp"),
+            billed_kwh=(_billed or {}).get("kwh"),
+            fuels=(_billed or {}).get("fuels"))
         _price_response = churn_position_multiplier(
-            felt,
-            annual_bill_gbp=_bill_scale_for(
-                _segment, _annual_bill_gbp(billing_account, records_so_far, term_start_str)))
+            felt, annual_bill_gbp=_bill_scale_for(_segment, _shown_bill))
     # Phase MZ: income_stress switching propensity. Layer 2 dimension 3 (2026-07-09): tenure in
     # the same product -- renters switch less (see switching_propensity.py's module note). Order
     # no longer matters here: under competing risks these are hazard INPUTS, not a chain of
