@@ -274,15 +274,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M":
         "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
         "market total in millions and is a straightforward pin once the series is fetched.",
-    "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
-        "BAND-PINNED, NOT SCALAR-PINNED (2026-08-30), so it stays here rather than moving to "
-        "_PINNED: the record states switch COUNTS, and a count over an account total is a range "
-        "once the account total's own drift is admitted, so leg (a)'s equality machinery has no "
-        "published scalar to assert against and forcing one would mean choosing a point inside "
-        "the band. gb_domestic_switching_rate.json holds the band and "
-        "tests/architecture/test_switching_rate_commons.py holds this table inside it, year by "
-        "year, with three mutation legs. Nine of its ten values were outside the published band "
-        "before that control existed.",
     "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
         "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
         "states the aggregate; the pin is each component, which is most of this register.",
@@ -341,9 +332,41 @@ _NOT_PUBLISHED: dict[str, str] = {
 }
 
 
+# status "band_pinned": a commons artefact states a BAND rather than a scalar, and a control holds
+# the table inside it year by year. Added 2026-08-30.
+#
+# WHY A FOURTH BUCKET EXISTS. Three buckets could not describe a table that IS pinned but not by
+# equality, so the only home for one was `_PUBLISHED_UNPINNED` with a paragraph explaining that it
+# was not really unpinned — which is how that bucket reached its own ratchet ceiling. The register
+# was mis-describing its best-evidenced entries as its weakest.
+#
+# The distinction is real and not bookkeeping. `_PINNED` asserts EQUALITY against a published
+# scalar. A switching record states COUNTS, and a count over an account total that drifts is a
+# RANGE; forcing a scalar out of it would mean choosing a point inside the band and then asserting
+# the world equals the choice. Band-pinning asserts the weaker, true thing — the table lies inside
+# what the record supports — and it is falsifiable in both directions, which is what makes it a pin
+# rather than a note.
+_BAND_PINNED: dict[str, str] = {
+    "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
+        "gb_domestic_switching_rate.json holds the band; "
+        "tests/architecture/test_switching_rate_commons.py holds this table inside it year by "
+        "year with three mutation legs. Nine of its ten values were outside the published band "
+        "before that control existed. MOVED here from _PUBLISHED_UNPINNED on 2026-08-30: it was "
+        "never unpinned, and parking it there is what took that bucket to its ratchet.",
+    "simulation/departure_level_anchor.py::YEAR_LEVEL_ANCHOR":
+        "the world's own departure LEVEL, derived from the same commons band by "
+        "tools/fit_year_level_anchor.py and held inside it by "
+        "test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_"
+        "published_band, whose mutation leg halves any one year's entry and fires on that year. "
+        "Band and not scalar for the same reason as the row above: the record states counts.",
+}
+
 # Ratchet. May only be LOWERED. Raising it to make a red test green is the goal-seeking R12
 # forbids, applied to a control — and is exactly how a register stops shrinking.
-_MAX_PUBLISHED_UNPINNED = 40
+#
+# LOWERED 40 -> 39 on 2026-08-30, by moving `_UK_SWITCHING_RATE_PCT` to `_BAND_PINNED` where it
+# always belonged. A ratchet paid down by pinning something, which is the only move it permits.
+_MAX_PUBLISHED_UNPINNED = 39
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.
@@ -353,6 +376,7 @@ _UNRATCHETED_BUCKET = "_NOT_PUBLISHED"
 def _register() -> dict[str, str]:
     out = {k: "pinned" for k in _PINNED}
     out.update({k: "published_unpinned" for k in _PUBLISHED_UNPINNED})
+    out.update({k: "band_pinned" for k in _BAND_PINNED})
     out.update({k: "not_published" for k in _NOT_PUBLISHED})
     return out
 
@@ -524,7 +548,7 @@ def test_every_discovered_table_is_classified():
     unclassified = sorted(discovered - registered)
     assert not unclassified, (
         "year-keyed rate tables discovered in simulation/, company/ or saas/ and classified "
-        f"in none of the three buckets: {unclassified}"
+        f"in none of the four buckets: {unclassified}"
     )
     stale = sorted(registered - discovered)
     assert not stale, (
@@ -535,13 +559,13 @@ def test_every_discovered_table_is_classified():
 
 def test_every_unpinned_entry_states_a_reason():
     """"Unpinned" with no reason is a TODO; with a reason it is a decision someone can audit."""
-    for bucket in (_PUBLISHED_UNPINNED, _NOT_PUBLISHED):
+    for bucket in (_PUBLISHED_UNPINNED, _NOT_PUBLISHED, _BAND_PINNED):
         for key, reason in bucket.items():
             assert len(reason) >= 40, f"{key}'s reason is too thin to audit: {reason!r}"
 
 
 def test_a_table_is_in_exactly_one_bucket():
-    keys = list(_PINNED) + list(_PUBLISHED_UNPINNED) + list(_NOT_PUBLISHED)
+    keys = list(_PINNED) + list(_PUBLISHED_UNPINNED) + list(_NOT_PUBLISHED) + list(_BAND_PINNED)
     dupes = sorted({k for k in keys if keys.count(k) > 1})
     assert not dupes, f"classified in more than one bucket: {dupes}"
 
@@ -661,7 +685,7 @@ def test_mutation_c_an_unclassified_new_table_is_caught(monkeypatch):
         "tests.architecture.test_year_keyed_rate_table_census.discover_year_keyed_tables",
         lambda *a, **k: {**real, "company/market/new_levy.py::_NEW_LEVY_BY_YEAR": 5},
     )
-    with pytest.raises(AssertionError, match="classified in none of the three buckets"):
+    with pytest.raises(AssertionError, match="classified in none of the four buckets"):
         test_every_discovered_table_is_classified()
 
 
