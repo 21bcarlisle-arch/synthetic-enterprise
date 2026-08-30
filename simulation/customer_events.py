@@ -30,6 +30,7 @@ from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.departure_risks import ORDERED_CAUSES
 from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import (
     churn_position_multiplier,
@@ -48,6 +49,62 @@ from simulation.switching_propensity import (
 )
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
+
+#: The only occasion this module emits. A renewal-point decision is the one place the world
+#: currently asks a household whether it stays, and `roll_lifecycle_event` owns it.
+DEPARTURE_OCCASION_RENEWAL = "renewal"
+
+
+def departure_event(
+    *,
+    customer_id: str,
+    event_date: str,
+    commodity: str,
+    occasion: str,
+    cause: str | None = None,
+    **extra,
+) -> dict:
+    """A lifecycle event for a departure that did NOT happen at a renewal point.
+
+    THE SHAPE, NOT THE PHYSICS, AND THAT SPLIT IS DELIBERATE (2026-08-30). C2's competing-risks
+    form is still unwired -- `simulation/departure_risks.py` holds it, the P0 calibration came back
+    non-identifying, and the delivery direction holds the wiring until the departure-level
+    correction has landed and its run has been read on its own. None of that blocks the SCHEMA
+    question, which is the one C1b and C6 are actually stuck behind: a household that never leaves
+    SVT never reaches a renewal point, so until now its leaving had no record shape at all. It was
+    not that the world said it stayed; it was that there was nowhere to write down that it went.
+
+    `occasion` is what brought the account to a decision and must not be `"renewal"` --
+    `roll_lifecycle_event` is the sole producer of renewal-point events because it is the only
+    thing holding the roll, the probabilities and the factor decomposition, and a second
+    constructor able to mint one would put records in the log that look like renewal decisions and
+    carry none of the evidence for one.
+
+    `cause` is which risk fired, and defaults to `None` rather than to a risk. A default of
+    `bill_shock` -- first in `ORDERED_CAUSES`, and the tempting one -- would publish a reason mix
+    of 100%/0%/0% that a reader could not tell from a measurement.
+    """
+    if not occasion:
+        raise ValueError("a departure must name its occasion; an unnamed one cannot be selected")
+    if occasion == DEPARTURE_OCCASION_RENEWAL:
+        raise ValueError(
+            f"occasion {occasion!r} belongs to roll_lifecycle_event, which is the only producer "
+            "holding the roll and the factor decomposition a renewal-point event must carry"
+        )
+    if cause is not None and cause not in ORDERED_CAUSES:
+        raise ValueError(
+            f"cause {cause!r} is not a risk this world publishes: {ORDERED_CAUSES}. "
+            "(`financial_stress` is a MODULATOR -- see simulation/departure_risks.py.)"
+        )
+    return {
+        "customer_id": customer_id,
+        "event_date": event_date,
+        "commodity": commodity,
+        "event_type": "churned",
+        "departure_occasion": occasion,
+        "departure_cause": cause,
+        **extra,
+    }
 
 
 def twelve_month_window_open(anniversary: date) -> date:
@@ -309,8 +366,14 @@ def roll_lifecycle_event(
     Returns a lifecycle event dict:
       {customer_id (billing account), event_date, commodity,
        event_type: "renewed"|"churned",
+       departure_occasion: "renewal", departure_cause: None,
        churn_probability, win_probability, effective_retention_probability,
        realized_churn_probability, random_roll}
+
+    `departure_occasion` is always "renewal" here — this function is the sole producer of
+    renewal-point events. `simulation.customer_events.departure_event` is the constructor for a
+    departure that is not a renewal (C1b, C6), and refuses the "renewal" occasion for that reason.
+    `departure_cause` is None until C2's competing-risks form is wired.
 
     `churn_probability` is the raw, pre-adjustment SIM base rate (bill-shock
     driven, from `saas.churn_model`) -- informational only, never what the
@@ -590,6 +653,17 @@ def roll_lifecycle_event(
         "event_date": term_start_str,
         "commodity": commodity,
         "event_type": "renewed" if retained else "churned",
+        # THE OCCASION AND THE CAUSE ARE TWO FACTS AND ONLY THE FIRST IS KNOWN (2026-08-30).
+        # Occasion is what brought this account to a decision; it is "renewal" for everything this
+        # function emits, and it exists so that a reader whose denominator is renewal DECISIONS can
+        # still select its own population once C1b and C6 start emitting departures that are not
+        # renewals -- `tools/population_anchor._churn_by_year` divides by `renewals + churns`, and
+        # the first non-renewal departure would move that rate with no reader able to say which
+        # quantity had changed. Cause is `None` because C2's physics is not wired; see the block at
+        # the churn roll above for why it is held, and `departure_event` for why the default is not
+        # a risk.
+        "departure_occasion": DEPARTURE_OCCASION_RENEWAL,
+        "departure_cause": None,
         "churn_probability": round(renewal_data["churn_probability"], 4),
         "win_probability": round(renewal_data["win_probability"], 4),
         "effective_retention_probability": round(effective_p_retain, 4),
