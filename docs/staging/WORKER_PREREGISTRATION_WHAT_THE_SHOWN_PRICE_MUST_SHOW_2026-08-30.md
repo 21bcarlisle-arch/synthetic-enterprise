@@ -91,3 +91,75 @@ C3, because it moves the same numbers and folding it in would leave neither attr
 
 *Filed before the work. Whatever the run says, this document is not edited — the result is written
 beside it.*
+
+---
+
+# THE RESULT, AND PREDICTION 1 IS REFUTED
+
+**Measured 2026-08-31, two full captures in an isolated worktree at `915bfab9b`** — the same tree
+in both arms, differing only by `simulation/shown_price.py` and the seam in `customer_events.py`,
+so that another lane's uncommitted C1b work could not confound it. The world is seeded and
+deterministic, so these differences carry no run-to-run noise: they are exact.
+
+| year | band | baseline % | in? | C3 shown % | in? | move |
+|---|---|---|---|---|---|---|
+| 2016 | 17.0–17.6 | 17.60 | yes | 18.10 | **NO** | +0.50 |
+| 2017 | 13.5–14.0 | 14.00 | yes | 14.31 | **NO** | +0.31 |
+| 2018 | 19.5–20.0 | 20.00 | yes | 20.14 | **NO** | +0.14 |
+| 2019 | 20.7–21.3 | 21.30 | yes | 21.83 | **NO** | +0.53 |
+| 2020 | 22.5–23.0 | 23.00 | yes | 23.68 | **NO** | +0.68 |
+| 2021 | 17.9–18.4 | 18.40 | yes | 18.02 | yes | −0.38 |
+| 2022 | 2.9–4.3 | 4.30 | yes | 4.16 | yes | −0.14 |
+| 2023 | 8.9–12.5 | 12.50 | yes | 12.44 | yes | −0.07 |
+| 2024 | 12.5–16.1 | 16.10 | yes | 16.21 | **NO** | +0.11 |
+| 2025 | 14.3–17.9 | 17.90 | yes | 17.77 | yes | −0.13 |
+
+2017–2024 mean: **16.20% → 16.35%, +0.15pp.** Departures **79 → 79**. Renewal decisions 465 → 459.
+
+## I predicted DOWN. It went UP. That is the refutation, in my own words
+
+The pre-registration says: *"the population level therefore falls … should go RED below the band …
+If it goes red ABOVE the band, my sign is wrong and the step must be re-read before it is
+believed."* It went red **above** the band in five years. **My sign was wrong** and this section is
+what the pre-registration was filed to make possible.
+
+## Two things the table says that the prediction did not anticipate
+
+**1. The band exits are mostly an artefact of the anchor, not a measure of C3's size.** Look at the
+baseline column: 17.60 against a 17.0–17.6 band; 14.00 against 13.5–14.0; 23.00 against 22.5–23.0.
+**The baseline sits exactly on the band's high endpoint in every year**, because
+`departure_level_anchor` was fitted to that endpoint — §6's anti-flattering tie-break. There is
+*zero headroom above*, so **any** upward movement, of any size, exits the band. A +0.11pp move in
+2024 "leaves the published band" and means almost nothing.
+
+That is worth more than this experiment: **the level control cannot distinguish a small honest
+change from a large one in the upward direction, because the fit left it on the ceiling.** Filed
+separately rather than buried here.
+
+**2. The effect is small — 0.15pp on 16.2%, under 1% relative — and it moved no departures at all.**
+79 either way. The 6 fewer renewal decisions are re-timing, not attrition.
+
+## Why my sign was wrong, as a hypothesis to test rather than a conclusion
+
+My 0.81 median shown/felt ratio was computed over **lifetime book totals annualised**, while the
+world scales by the **trailing-year bill at each renewal**. Those are different populations, and I
+compared one to reason about the other — the ratio-of-two-different-things error I have a standing
+note about.
+
+The candidate mechanism for the sign: `_savings_to_rate` is piecewise and flattens toward its
+calibrated ceiling, so a household already deep in the saturated region loses little propensity
+when its perceived saving is cut, while a low-consumption household — whose shown bill is up to
+**5.5×** its own — gains a lot when lifted from the steep part of the curve. The gains at the
+bottom would then outweigh the losses at the top. **This is not established.** Testing it means
+splitting the per-decision `sim_price_response` change by where each household sat on the curve,
+which is one pass over the two captured tables and is the next step.
+
+## What is NOT answered
+
+Predictions 2 and 3 — that the company's advantage must not improve, and that the belief-vs-truth
+gap should widen — need the value-arms A/B, a separate run that has not been made. **C3 is
+therefore measured but not cleared, and it is not landed on `main`.** The band exits above would
+need the anchor re-fitted whatever the cause, and re-fitting to absorb a change whose mechanism I
+cannot yet explain would be fitting the world to make a control green.
+
+*The prediction above is left exactly as filed.*
