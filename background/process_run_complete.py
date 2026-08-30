@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -169,6 +169,28 @@ EXIT_PUBLISH_DID_NOT_LAND = 77
 # must reach `record_publish_gate_failure` and keep the wedge streak. What changes is what the
 # alarm SAYS, never whether it fires.
 EXIT_GATE_TIMED_OUT = 78
+# THE FOURTH CLOCK, closed 2026-08-30. The same defect as the two above, on the one clock nobody
+# had counted: `tree_lock()`. `git_commit_push` entered it OUTSIDE its own try, so on a busy tree
+# `TreeLockTimeout` propagated all the way out of `main()` as an uncaught traceback -- rc=1, the
+# generic code, which `_classify_gate_failure` reads as `test_regression`.
+#
+# OBSERVED, not inferred (docs/observability/.publish_gate_state.json + sim-runner-log.md,
+# 2026-08-30 12:29Z): the log for that cycle reads "Tests skipped -- already passed for
+# git=09b90343d" three lines above "Publish-gate failure #3 (test_regression, rc=1)". The suite
+# was never even RUN, let alone red, and the state file recorded `blocking_tests: []` with
+# `total_red: 0` -- an accusation with no accused, for the third time in this module's history.
+# Two of the seven failures of that wedge episode were this, and the RUNG-1 draw that came to
+# diagnose it was sent hunting a red test that did not exist.
+#
+# NOT `commit_did_not_land` (rc=77), deliberately: that label tells the reader the pre-commit
+# hook chain refused the commit and to go and read the hook output. Here the hook chain never
+# ran -- another writer held the tree lock for the full 60s -- so filing it there would point at
+# a gate that never spoke. Same class, own name, per the two carve-outs above.
+#
+# CONTENTION IS NOT A REGRESSION and it is not a wedge either: this cycle publishes nothing and
+# the NEXT one retries. But it is still a FAILED publish (R15: an unavailable check is a failed
+# check), so it keeps the streak and fires the alarm -- what changes is only what the alarm SAYS.
+EXIT_TREE_LOCK_UNAVAILABLE = 79
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
@@ -983,6 +1005,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background import (  # noqa: E402
     finding_severity,  # (OPS9 header parser; exoneration field)
+    publish_cause,  # (which of the four an rc=77 was, and the observation that decided it)
     publish_gate_blocking_read,  # (the record's honesty contract)
 )
 from background.child_diagnostics import (  # noqa: E402  (H30)
@@ -991,7 +1014,7 @@ from background.child_diagnostics import (  # noqa: E402  (H30)
     stderr_tail,
 )
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW2)
-from background.tree_lock import tree_lock  # noqa: E402
+from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402
 
 
 @contextmanager
@@ -2901,6 +2924,11 @@ def _log_gate_failure_payload(result, git_hash="unknown", census=None):
 #     and the alarm then SAYS "unrecorded". It never falls back to a guess: fabricating a
 #     plausible suspect is the defect being closed, so an absent answer must read as absent.
 GATE_BLOCKING_TESTS_FILE = PROJECT_DIR / "docs" / "observability" / ".last_gate_blocking_tests.json"
+# THE ATTRIBUTED CAUSE of a publish that did not land, written by `git_commit_push` at the
+# moment it takes one of its four rc=77 paths and read by `record_publish_gate_outcome` in a
+# LATER PROCESS, which otherwise sees only the exit code. See `background/publish_cause.py` for
+# why an exit code cannot carry this and why the record is keyed to its own commit.
+PUBLISH_CAUSE_FILE = PROJECT_DIR / "docs" / "observability" / ".last_publish_cause.json"
 # Two full gate timeouts. Comfortably longer than any real red-to-alarm gap (the recorder runs
 # seconds after the gate returns) and far short of the multi-hour episodes, so a wedge whose
 # cause has since been repaired cannot keep re-citing yesterday's test.
@@ -3853,9 +3881,26 @@ COMMIT_TIMEOUT = "commit_timeout"             # the hook chain outran the deadli
 COMMIT_REFUSED = "commit_refused"             # a gate said no, or git failed
 PUSH_DID_NOT_REACH_ORIGIN = "push_did_not_reach_origin"
 PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have published a false stamp
+TREE_LOCK_UNAVAILABLE = "tree_lock_unavailable"   # another writer held the tree lock; nothing ran
 #: Outcomes after which re-running this identical cycle would genuinely find nothing to do. Every
 #: other outcome leaves the fingerprint alone so the next cycle really does retry.
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
+#: Outcomes that report their OWN exit code rather than the generic EXIT_PUBLISH_DID_NOT_LAND,
+#: because the reader is sent somewhere different to look. Kept as a mapping beside the closed
+#: set above so `publish_exit_code` stays the single place both answers are decided.
+NAMED_PUBLISH_EXIT_CODES = {TREE_LOCK_UNAVAILABLE: EXIT_TREE_LOCK_UNAVAILABLE}
+#: The four outcomes that all report rc=77, mapped onto the causes the LATER process records.
+#: Two vocabularies rather than one because they answer different questions and are read by
+#: different people: an outcome decides what THIS process does next (fingerprint? which exit
+#: code?), a cause tells a reader of the alarm what happened and what to go and look at. The
+#: mapping is the seam between them and is asserted exhaustive by a control -- an outcome added
+#: here without a cause reads as `unattributed`, which is honest, and the control says so.
+PUBLISH_CAUSE_FOR_REASON = {
+    COMMIT_REFUSED: publish_cause.GATE_REFUSAL,
+    COMMIT_TIMEOUT: publish_cause.DEADLINE_KILL,
+    PUSH_DID_NOT_REACH_ORIGIN: publish_cause.PUSH_NEVER_LANDED,
+    PROVENANCE_REFUSED: publish_cause.PROVENANCE_REFUSED,
+}
 
 
 def publish_exit_code(reason):
@@ -3876,8 +3921,14 @@ def publish_exit_code(reason):
     FAIL-CLOSED: an unrecognised or missing reason is NOT a publish. A future outcome added
     without being classified therefore reports "did not land" and gets an alarm, rather than
     inheriting rc=0 and the silence that cost 11.5 hours of stale public figures.
+
+    `NAMED_PUBLISH_EXIT_CODES` is consulted only AFTER the retryable set, so an outcome can
+    never buy itself a 0 by naming a code: the two questions stay in the order that makes
+    "did this publish?" answerable without knowing what the code is for.
     """
-    return 0 if reason in RETRYABLE_PUBLISH_OUTCOMES else EXIT_PUBLISH_DID_NOT_LAND
+    if reason in RETRYABLE_PUBLISH_OUTCOMES:
+        return 0
+    return NAMED_PUBLISH_EXIT_CODES.get(reason, EXIT_PUBLISH_DID_NOT_LAND)
 
 
 def _git_knows_path(path) -> bool:
@@ -4020,10 +4071,22 @@ def git_commit_push(git_hash, net_margin, outcome=None):
 
     `outcome`, when given, is a dict this fills with {"reason": <one of the constants above>} so
     the caller can tell a no-op from a failure. Optional and keyword-safe on purpose: every
-    existing caller and test passes two positional args and is unaffected."""
-    def _outcome(reason, value):
+    existing caller and test passes two positional args and is unaffected.
+
+    `_outcome`'s `evidence` argument is what closes the nine-episode attribution hole (see
+    PUBLISH_CAUSE_FILE): this function is the ONE funnel every publish outcome passes through,
+    so the cause record is written in exactly one place and no future branch can name an
+    outcome without passing through the write."""
+    def _outcome(reason, value, evidence=None):
         if outcome is not None:
             outcome["reason"] = reason
+        # The observation that decided it, recorded WHERE IT WAS OBSERVED. A reason with no
+        # evidence writes nothing rather than an empty attribution -- `publish_cause` maps only
+        # the four rc=77 reasons, so the retryable outcomes and TREE_LOCK_UNAVAILABLE (which
+        # carries its own exit code and its own alarm text) fall through silently by design.
+        if evidence is not None:
+            publish_cause.record_cause(PUBLISH_CAUSE_FILE, PUBLISH_CAUSE_FOR_REASON.get(reason),
+                                       evidence, git_hash)
         return value
 
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
@@ -4239,7 +4302,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # cycle, loudly, and the site keeps serving its last honest state. An unverified page is an
     # availability cost; a page stamped with a run that never happened is a public lie.
     if not _provenance_is_publishable(files, label="Auto-process publish"):
-        return _outcome(PROVENANCE_REFUSED, False)
+        return _outcome(PROVENANCE_REFUSED, False,
+                        evidence="the fail-closed provenance check refused the stamp for "
+                                 "git={} before any git command ran -- nothing was staged, "
+                                 "no hook chain started and no push was attempted".format(
+                                     git_hash))
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
@@ -4249,10 +4316,30 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # staged between this one's add and commit gets swept into this commit
     # (observed directly: a manually-staged code change landed inside an
     # unrelated auto-process commit message).
-    with tree_lock():
+    #
+    # ACQUISITION IS GUARDED SEPARATELY FROM THE BODY (2026-08-30, see
+    # EXIT_TREE_LOCK_UNAVAILABLE). Losing the lock is a contention outcome this publisher
+    # already knows how to name; letting it escape `main()` as an uncaught TreeLockTimeout
+    # made it rc=1, which the wedge classifier reads as a red test. ExitStack, rather than an
+    # outer `try` around the whole `with`, so the except clause below can ONLY see a failure
+    # to ACQUIRE -- a TreeLockTimeout raised from anywhere INSIDE the body would be a
+    # different fact (a nested acquisition, i.e. the deadlock shape documented at
+    # `_git_add_or_refuse`) and must not be mislabelled as contention in its turn.
+    stack = ExitStack()
+    try:
+        stack.enter_context(tree_lock())
+    except TreeLockTimeout as exc:
+        log("Auto-process publish: tree lock held by another writer ({}) -- publishing NOTHING "
+            "this cycle and retrying next. No test was run, so no test is implicated.".format(exc))
+        return _outcome(TREE_LOCK_UNAVAILABLE, False)
+    with stack:
         try:
             if not _git_add_or_refuse(files, timeout=120, label="Auto-process publish"):
-                return _outcome(COMMIT_REFUSED, False)
+                return _outcome(COMMIT_REFUSED, False,
+                                evidence="`git add` of the publish surface failed, so NOTHING "
+                                         "was staged -- the hook chain never ran and no test "
+                                         "was judged. See the `git add` FAILED line in "
+                                         "docs/observability/sim-runner-log.md")
             # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
             # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
             # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
@@ -4261,7 +4348,11 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                     ["-A", "docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
                      "docs/design/atom_status"],
                     timeout=120, label="Auto-process publish (map fold)"):
-                return _outcome(COMMIT_REFUSED, False)
+                return _outcome(COMMIT_REFUSED, False,
+                                evidence="`git add` of the maturity-map fold failed, so the "
+                                         "commit was never attempted -- the hook chain never "
+                                         "ran and no test was judged. See the `git add` FAILED "
+                                         "line in docs/observability/sim-runner-log.md")
             # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
             # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
             # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
@@ -4312,7 +4403,8 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # and the diagnosis pointed at the test suite for hours. A slow hook chain
             # must degrade to "retry next cycle", never take the pipeline down, and must
             # say SO in the log.
-            _record_commit_hook_duration(time.monotonic() - _hook_started, git_hash, "timeout")
+            _hook_elapsed = time.monotonic() - _hook_started
+            _record_commit_hook_duration(_hook_elapsed, git_hash, "timeout")
             _tail = stderr_tail(exc.stderr) or stderr_tail(exc.stdout)
             log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
                 "deadline. Nothing committed; retrying next cycle. If this repeats, the "
@@ -4320,7 +4412,15 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                     GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__,
                     "\n  hook output before the kill (names the SLOW hook):\n{}".format(_tail)
                     if _tail else "\n  hook output: nothing captured before the kill"))
-            return _outcome(COMMIT_TIMEOUT, False)
+            # THE EVIDENCE IS A STOPWATCH, NOT A STATUS. A killed child has no return code to
+            # reason from -- the elapsed wall time against the budget that killed it is the
+            # only observation that separates this from a refusal, and it is exact.
+            return _outcome(COMMIT_TIMEOUT, False,
+                            evidence="the pre-commit hook chain was killed after {:.0f}s "
+                                     "against its own {}s budget -- the suite was still "
+                                     "running, so NO test returned a verdict and none is "
+                                     "implicated".format(_hook_elapsed,
+                                                         GIT_COMMIT_HOOK_TIMEOUT_SECONDS))
         if result.returncode != 0:
             # H30: which of the two it was is now IN the log, not inferred.
             _tail = (stderr_tail(getattr(result, "stderr", None))
@@ -4338,9 +4438,23 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 # The hook chain's verdict reaches the RECORD, not just this log line -- see
                 # `_record_commit_refusal_reds`. Keyed on the REFUSAL, not on the no-op, so the
                 # empty-index case cannot write a record at all.
-                _record_commit_refusal_reds(getattr(result, "stdout", None),
-                                            getattr(result, "stderr", None), git_hash)
-            return _outcome(COMMIT_REFUSED if refused else NOTHING_TO_COMMIT, False)
+                _reds = _record_commit_refusal_reds(getattr(result, "stdout", None),
+                                                    getattr(result, "stderr", None), git_hash)
+                # The red COUNT is part of the evidence, including when it is zero: "refused
+                # naming no test" is what a non-test gate (orphan-ratchet, finding-class,
+                # level-promotion) looks like, and saying so is what stops the reader running
+                # the suite. Zero reds here is a fact about the refusal, not a missing answer.
+                return _outcome(
+                    COMMIT_REFUSED, False,
+                    evidence="`git commit` returned rc={} and the pre-commit hook chain named "
+                             "{} red test(s){}".format(
+                                 result.returncode, len(_reds),
+                                 " -- so the refusal came from a NON-TEST gate; read the hook "
+                                 "output in docs/observability/sim-runner-log.md rather than "
+                                 "running the suite" if not _reds
+                                 else " -- recorded in .last_gate_blocking_tests.json against "
+                                      "this same commit"))
+            return _outcome(NOTHING_TO_COMMIT, False)
 
         if not _push_due():
             log("Committed locally, push deferred (throttled to every {}min)".format(
@@ -4393,7 +4507,17 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9],
                 "\n  git push stderr:\n{}".format(_tail) if _tail
                 else "\n  git push stderr: EMPTY (consistent with a phantom up-to-date)"))
-        return _outcome(PUSH_DID_NOT_REACH_ORIGIN, False)
+        # THE EVIDENCE IS THE REMOTE REF, read by ls-remote above -- not the push's exit status,
+        # which returned 0 while origin stood still for 3.5 hours in the 2026-07-24 incident.
+        # The commit is on this machine and the hook chain passed to get it there, so this is
+        # the one rc=77 cause where the reader must be told NOT to look at the tests at all.
+        return _outcome(
+            PUSH_DID_NOT_REACH_ORIGIN, False,
+            evidence="the commit LANDED locally (HEAD {}) and `git ls-remote` shows "
+                     "origin/main still at {} -- the hook chain passed, so no test is "
+                     "implicated; the remote ref, not the push's rc={}, is the evidence"
+                     .format((local_head or "?")[:9],
+                             (remote_head or "unreadable")[:9], push.returncode))
 
 
 def _push_reached_origin(push_rc: int, remote_head: str, local_head: str) -> bool:
@@ -4861,6 +4985,16 @@ def _classify_gate_failure(rc):
     return "test_regression"
 
 
+#: THE KINDS FOR WHICH NO TEST WAS JUDGED. Each of these means the suite never returned a
+#: verdict -- it timed out, or it was never reached at all -- so the alarm must not attach
+#: `blocking`/`suspects` to it. Those are derived from whatever an EARLIER cycle left behind,
+#: which on these kinds is evidence about a different cycle: naming nobody beats naming the
+#: innocent. This is a SET rather than three `kind != "..."` comparisons because it was two
+#: separate comparisons for nine days and the second carve-out (2026-08-30) had to find both.
+#: `tests/background/test_publish_gate_alert.py` holds it to the class.
+UNJUDGED_GATE_KINDS = frozenset({"gate_timeout", "tree_lock_unavailable"})
+
+
 def _gate_failure_label(kind):
     return {
         "resource_kill": "resource kill (SIGKILL/OOM -- almost certainly memory, NOT a code regression)",
@@ -4871,6 +5005,10 @@ def _gate_failure_label(kind):
                          "before the suite returned a verdict -- NOT a test failure, and the "
                          "tests it was running are unjudged. Nothing here says a test is red; "
                          "read the gate's wall time against its bound, not the test list"),
+        "tree_lock_unavailable": ("another writer held the tree lock for the whole timeout, so "
+                                  "the publisher never reached its commit -- NOT a test failure "
+                                  "and NOT a hook refusal: nothing was judged. Contention, not "
+                                  "regression; the next cycle retries"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
         "commit_did_not_land": ("the publish COMMIT did not land -- the publisher's OWN scoped "
                                 "suite was GREEN, so this is NOT a publish-path regression: the "
@@ -5357,7 +5495,8 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
                              *, wedge_since=None, episode_failures=0, now=None,
                              cited=None, markers_pending=None, blocking=None,
                              blocking_hash=None, suspects=None,
-                             census=CENSUS_FAIL_FAST_ONLY, total_red=0):
+                             census=CENSUS_FAIL_FAST_ONLY, total_red=0,
+                             cause=None, cause_evidence=None):
     now = time.time() if now is None else float(now)
     window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
     n = len(recent)
@@ -5376,7 +5515,19 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
-    if kind == "gate_timeout":
+    if kind == "tree_lock_unavailable":
+        # THE THIRD MEMBER OF THE SAME CLASS (2026-08-30, see EXIT_TREE_LOCK_UNAVAILABLE).
+        # Contention is the one wedge cause where the RIGHT action is to do nothing: the next
+        # cycle retries and gets the lock. Sending the RUNG-1 draw after a red here does not
+        # just waste the draw, it spends the attention the streak was raised to buy.
+        how = ("NO TEST WAS JUDGED -- another writer held the tree lock for the whole "
+               "timeout, so the publisher never reached its commit. Do NOT hunt a red and do "
+               "NOT read the hook output: neither ran. Check for a long-running writer "
+               "(`fuser -v docs/observability/.tree.lock`); a single occurrence is normal "
+               "contention and clears itself on the next cycle. A STREAK of these is the real "
+               "finding -- it means a writer is holding the lock longer than the publish "
+               "cadence, and that writer is the subject, not any test.")
+    elif kind == "gate_timeout":
         # THE READER IS NOT SENT AFTER A TEST THAT WAS NEVER JUDGED (2026-08-21, see
         # EXIT_GATE_TIMED_OUT). The standing clause below says "rc>0 means run that test at
         # HEAD" -- true of a red, a lie about a stopwatch, and the reason the RUNG-1 draw
@@ -5393,7 +5544,21 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
                "NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full "
                "output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. "
                "The alarm clears automatically on the next clean publish.")
-    if kind != "gate_timeout":
+    if cause and cause != publish_cause.UNATTRIBUTED:
+        # THE ATTRIBUTION GOES ON THE PAGE, ahead of the standing prose, because the standing
+        # prose is written for the common wedge and the whole point of the attribution is that
+        # this is a different one. `_gate_failure_label` above still names the KIND; this names
+        # which of the four that kind was and what was observed to decide it.
+        how = ("ATTRIBUTED CAUSE: `{}` -- {}. {}").format(cause, cause_evidence, how)
+    elif kind == "commit_did_not_land":
+        # UNATTRIBUTED IS A RESULT AND IT IS SAID OUT LOUD. Silence here would leave the reader
+        # with the standing "run that test at HEAD" prose and no way to know it was never
+        # established -- which is the nine-episode failure this closes, one layer up.
+        how = ("CAUSE NOT ESTABLISHED: {}. Do not assume a red -- read the publisher's own tail "
+               "in docs/observability/sim-runner-log.md and `git ls-remote origin "
+               "refs/heads/main` against HEAD before suspecting a test. {}").format(
+                   cause_evidence or "no cause record was available", how)
+    if kind not in UNJUDGED_GATE_KINDS and not publish_cause.no_test_was_judged(cause):
         # Suspects are DERIVED FROM `blocking`, which on a timeout is whatever an earlier cycle
         # left behind -- so on this kind they are not weak evidence, they are evidence about a
         # different cycle. Naming nobody beats naming the innocent.
@@ -5424,7 +5589,7 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
 
 
 def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None, send_ntfy_fn=None,
-                                kind=None):
+                                kind=None, cause=None, cause_evidence=None):
     """Record ONE publish-gate failure and fire a single [ACTION NEEDED] alert
     once N failures accumulate within the window (re-armed by a cooldown so a
     persistently-wedged pipeline can't spam). Returns a small result dict for
@@ -5442,7 +5607,15 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         kind = kind if kind else _classify_gate_failure(rc)
         failures = [f for f in state.get("failures", [])
                     if isinstance(f, dict) and now - float(f.get("ts", 0)) <= PUBLISH_GATE_WINDOW_SECONDS]
-        failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind, "git_hash": git_hash})
+        # `cause` is a FIELD beside `kind`, not a widening of it, for the reason the supervisor's
+        # own `WEDGE_KINDS_NO_TEST_JUDGED` comment gives: `reason` is a human sentence that would
+        # have to be pattern-matched, and `kind` is a closed set three other readers switch on.
+        # The attribution is a third, finer answer to "what happened", so it gets its own field
+        # and every existing reader is untouched.
+        cause = cause if cause else publish_cause.UNATTRIBUTED
+        failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind,
+                         "git_hash": git_hash, "cause": str(cause),
+                         "cause_evidence": str(cause_evidence or "")})
         count = len(failures)
         # PERSISTENT wedge-start (2026-07-24): preserve the existing streak start; only stamp `now`
         # when the streak is starting (no prior wedge_since). Survives the 1h window trim above so a
@@ -5461,9 +5634,32 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # EVIDENCE BEFORE SUSPICION (R9): re-read on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads names the CURRENT red's test even between pages.
         blocking, blocking_hash = last_blocking_tests(now=now)
+        # NO GREEN TEST MAY APPEAR IN A BLOCKING LIST (2026-08-30, item (b) of the same
+        # direction as `publish_cause`). `last_blocking_tests` is bounded by AGE alone, so on a
+        # cause where nothing was judged -- a deadline kill, a push that never landed, a
+        # provenance refusal -- it returns whatever an EARLIER cycle left behind. That is not
+        # weak evidence about this failure, it is evidence about a different one, and the state
+        # file is what the RUNG-1 draw and the director's own brief read: four green tests were
+        # named as blockers of a wedge they had nothing to do with. Suppressed at the RECORD,
+        # not only in the alarm prose, because the record is the thing that gets quoted.
+        #
+        # Keyed to the PROPERTY (did anything judge a test?), never to today's answer, and it
+        # fails toward SHOWING the list: only a positively-attributed no-test-judged cause
+        # suppresses. See `publish_cause.no_test_was_judged`.
+        if publish_cause.no_test_was_judged(cause) and blocking:
+            log("Publish gate: suppressing {} carried-forward blocking test(s) -- this failure "
+                "is attributed to `{}`, on which NO test returned a verdict, so the record from "
+                "git={} describes a different cycle.".format(
+                    len(blocking), cause, (blocking_hash or "unknown")[:9]))
+            blocking, blocking_hash = [], None
         # Read from the SAME record, at the same moment, so the depth claim can never describe a
         # different red than the node ids beside it.
         census, total_red = last_red_census(now=now)
+        if blocking_hash is None and publish_cause.no_test_was_judged(cause):
+            # The census counts the SAME record just suppressed. Leaving `total_red: 3` beside
+            # `blocking_tests: []` would be the accusation-with-no-accused shape inverted, and
+            # a depth claim about reds that were never this cycle's is still a claim.
+            census, total_red = CENSUS_FAIL_FAST_ONLY, 0
         # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
         # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
@@ -5477,7 +5673,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                      wedge_since=wedge_since, episode_failures=episode_failures,
                                      now=now, cited=cited, blocking=blocking,
                                      blocking_hash=blocking_hash, suspects=suspects,
-                                     census=census, total_red=total_red)
+                                     census=census, total_red=total_red,
+                                     cause=cause, cause_evidence=cause_evidence)
             alerted_at = now
             fired = True
         _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at,
@@ -5684,11 +5881,20 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
             # "test_regression" and send the RUNG-1 draw hunting a red test that is not the
             # cause. The publisher WATCHED this one: its scoped suite was green and the COMMIT
             # was refused, so the payload says so and points at the hook chain's output.
+            # ONE CAUSE, NAMED, WITH THE OBSERVATION THAT DECIDED IT (2026-08-30). This sentence
+            # used to end "refused/timed out/never reached origin" -- three alternatives in one
+            # breath, which is not a diagnosis, and nine consecutive episodes of it produced no
+            # attribution at all while origin sat five commits behind HEAD. The publisher knew
+            # which of the four it was at the moment it happened and threw it away between
+            # processes; `publish_cause` carries it across. Absent or from another commit reads
+            # as UNATTRIBUTED and SAYS so -- "we cannot tell" is a result, a disjunction is not.
+            cause, cause_evidence = publish_cause.read_cause(
+                PUBLISH_CAUSE_FILE, git_hash, max_age=GATE_BLOCKING_TESTS_MAX_AGE_SECONDS)
             record_publish_gate_failure(
                 "the publish COMMIT did not land for {} -- the publisher's own scoped suite was "
-                "GREEN and the commit was refused/timed out/never reached origin".format(
-                    Path(marker).name),
+                "GREEN. Cause: {} ({})".format(Path(marker).name, cause, cause_evidence),
                 rc=rc, git_hash=git_hash, kind="commit_did_not_land",
+                cause=cause, cause_evidence=cause_evidence,
             )
             return "failure"
         if rc == EXIT_GATE_TIMED_OUT:
@@ -5701,6 +5907,17 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
                 "verdict -- NO test was judged, so no test is implicated".format(
                     Path(marker).name),
                 rc=rc, git_hash=git_hash, kind="gate_timeout",
+            )
+            return "failure"
+        if rc == EXIT_TREE_LOCK_UNAVAILABLE:
+            # NAMED for the third time and the same reason (see EXIT_TREE_LOCK_UNAVAILABLE):
+            # `_classify_gate_failure` would read this as "test_regression" and send the RUNG-1
+            # draw hunting a red test. Nothing was judged -- the publisher never got the lock.
+            record_publish_gate_failure(
+                "the tree lock was held by another writer for the whole timeout on {} -- the "
+                "publisher never reached its commit, NO test was run, so no test is "
+                "implicated".format(Path(marker).name),
+                rc=rc, git_hash=git_hash, kind="tree_lock_unavailable",
             )
             return "failure"
         if rc == 0:
