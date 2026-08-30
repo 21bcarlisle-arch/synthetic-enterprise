@@ -103,3 +103,32 @@ whether that artefact regenerated since the anchor landed — and publishing has
 which for once is the reason to think it has not. **Not verified either way here**, and it is the
 first thing to check when publishing recovers: if a run has published with the refusal lifted, the
 site is making a claim this finding says it cannot support.
+
+---
+
+## BLAST RADIUS: CHECKED, AND IT IS ZERO TODAY (2026-08-30, same evening)
+
+The section above said this was not verified either way and was the first thing to check. Checked
+rather than left as an inference:
+
+| where | `publishable_as_evidence_of_inference` | `co_calibrated` |
+|---|---|---|
+| working tree, regenerated 21:44 | **true** | false |
+| **origin/main, committed** | **false** | **true** |
+
+**The refusal is intact on origin.** The flip exists only in the uncommitted working-tree artefact,
+because publishing has been refused all day — the outage that cost eleven hours of site freshness
+is the same thing that kept this off the record.
+
+And a second, independent bound: `grep -rln "publishable_as_evidence_of_inference|co_calibrated"`
+over `site/` and `tools/generate_*.py` returns **nothing**. No published surface reads either key
+today, so even had it landed, the claim would have sat in an observability artefact rather than on
+a page a reader sees.
+
+**So no published figure is wrong right now, and the finding stays BLOCKING anyway.** The severity
+is about the instrument, not about today's exposure: the next successful publish commits this
+artefact, and the repair above is what has to land first. The window is exactly as long as the
+publish outage, which is now closing.
+
+*Recorded because "we could not check" and "we checked and it is clean" are different sentences,
+and the first was standing in for the second.*
