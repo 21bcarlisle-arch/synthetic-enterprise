@@ -33,6 +33,7 @@ from tools.run_value_cycle_ab import (
     account_class_map,
     decision_population,
     funnel_by_account_class,
+    product_label_by_account_class,
     renewal_funnel,
 )
 
@@ -50,6 +51,32 @@ CHAIN_KWARGS = dict(
     segment="resi",
     settled_records=[],
 )
+
+
+def a_won_account_id() -> str:
+    """A customer_id the WORLD records as won by the funnel, taken from the live roster.
+
+    NOT HARD-CODED, since 2026-08-30. This file pinned `PROS-2019-0015`, which was a won account
+    on the roster the day it was written. When `simulation/live_population` stopped letting the
+    served-segments dial reach into the world's draw (director's ruling, 2026-08-30), the campaign
+    began planning against the unfiltered world and won a DIFFERENT set of prospects — correctly —
+    and that id left the roster. Two tests then reported `KeyError: 'won_by_the_funnel'` and
+    `0 == 1`, which read as the funnel having stopped working. It had not: 176 accounts are won on
+    the current roster.
+
+    A control that names one account by id is pinned to today's answer and reds whenever the world
+    legitimately redraws. The PROPERTY these tests assert is "a won account", so the fixture asks
+    the world for one. Sorted for determinism; `acquisition_type` is the world's own record and is
+    what `account_class_map` classifies on, so this establishes the precondition without borrowing
+    the answer from the function under test.
+    """
+    from simulation.run_phase2b import CUSTOMERS
+
+    won = sorted(c["customer_id"] for c in CUSTOMERS
+                 if c.get("acquisition_type") == "net_new_won"
+                 and c.get("commodity") == "electricity")
+    assert won, "no won accounts on the roster -- these tests have lost their subject"
+    return won[0]
 
 
 def _row(**over):
@@ -347,7 +374,7 @@ def test_a_class_that_priced_nothing_is_reported_rather_than_missing():
     """
     block = funnel_by_account_class([
         _row(customer_id="C1", stage="priced"),
-        _row(customer_id="PROS-2019-0015", stage="product_not_upliftable", tariff_type=None),
+        _row(customer_id=a_won_account_id(), stage="product_not_upliftable", tariff_type=None),
     ])
     assert block["classes"]["won_by_the_funnel"]["renewals_the_world_offered"] == 1
     assert block["classes"]["won_by_the_funnel"]["priced"] == 0
@@ -377,11 +404,11 @@ def test_the_won_book_counter_moves_when_a_won_account_is_priced():
     leave zero — R15's unreachable-branch shape — so this rung prices a won account and asserts
     the count follows it.
     """
+    won_id = a_won_account_id()
     priced_a_won_one = funnel_by_account_class([
-        _row(customer_id="PROS-2019-0015", stage="priced")])
+        _row(customer_id=won_id, stage="priced")])
     assert priced_a_won_one["accounts_the_company_won_or_drew_that_the_arm_priced"] == 1
-    assert priced_a_won_one["priced_accounts_by_class"]["won_by_the_funnel"] == [
-        "PROS-2019-0015"]
+    assert priced_a_won_one["priced_accounts_by_class"]["won_by_the_funnel"] == [won_id]
 
 
 def test_the_class_of_an_account_comes_from_the_world_not_from_its_id():
@@ -399,3 +426,127 @@ def test_the_class_of_an_account_comes_from_the_world_not_from_its_id():
     # marker either way — so it is the case that separates the two rules.
     assert mapping["C1_2"] == "founder_hand_authored"
     assert not any(k.startswith("legs_disagree_") for k in classes), sorted(classes)
+
+
+# ---------------------------------------------------------------------------
+# WHY, and it is the roster rather than the run
+#
+# THE DEFECT (2026-08-30). `by_account_class` above can say that no account the company found was
+# priced in THIS run. It cannot say whether that is a fact about this run's size or about the
+# world's record shapes, and the two license opposite decisions -- grow the book, versus fix the
+# world. The live arms page already states the second ("a GATE, not a book size") and until this
+# block its premise -- that the world renders `tariff_type = None` for every account it won or
+# drew -- was ASSERTED in a hardcoded sentence and measured by nothing.
+# ---------------------------------------------------------------------------
+
+def _roster(*records):
+    """A roster in the world's own shape. `tariff_type` is passed only where a caller sets it,
+    because the whole subject here is the difference between a key that is ABSENT and one that is
+    PRESENT AND `None` -- rendering it unconditionally in the fixture would erase the defect."""
+    out = []
+    for record in records:
+        row = {"customer_id": record["customer_id"], "commodity": record["commodity"]}
+        if "acquisition_type" in record:
+            row["acquisition_type"] = record["acquisition_type"]
+        if "tariff_type" in record:
+            row["tariff_type"] = record["tariff_type"]
+        out.append(row)
+    return out
+
+
+@pytest.fixture()
+def roster(monkeypatch):
+    """Bind a roster in place of the world's, for both readers of it."""
+    import simulation.run_phase2b as p2b
+
+    def _bind(records):
+        monkeypatch.setattr(p2b, "CUSTOMERS", _roster(*records))
+        monkeypatch.setattr(p2b, "SUCCESSOR_CUSTOMERS", [])
+        return product_label_by_account_class()
+    return _bind
+
+
+def test_the_census_counts_what_the_guard_reads_not_whether_the_key_is_there():
+    """MUTATION: census on `"tariff_type" in record` instead of `record.get(..., "fixed")`.
+
+    The two are DIFFERENT CENSUSES and only the second is what the arm sees. A won electricity
+    record carries the key PRESENT with value `None`, so `run_phase2b`'s `"fixed"` fallback never
+    fires; a census keyed on key-presence would report those legs as labelled and the structural
+    verdict below would invert. Both fields are published for exactly that reason, and this pins
+    them apart on the live roster.
+    """
+    census = product_label_by_account_class()
+    won_elec = [r for r in census["legs"]
+                if r["account_class"] == "won_by_the_funnel"
+                and r["commodity"] == "electricity"]
+    assert won_elec, "the roster has no won electricity leg, so this control has no subject"
+    for row in won_elec:
+        assert row["tariff_type_key_present"] is True
+        assert row["resolved_tariff_type"] is None
+        assert row["the_guard_admits_it"] is False
+
+
+def test_MUTATION_a_labelled_won_record_makes_the_gate_reachable(roster):
+    """NULL RUNG on the verdict the live page's sentence turns on.
+
+    `a_found_account_can_reach_the_product_gate` is False on every roster to date. A boolean only
+    ever observed False cannot be told from one that is structurally unable to leave False --
+    R15's unreachable-PASS-branch shape -- and this is the field that decides whether the page
+    says "a GATE" or "book size". So: label one won electricity record and the verdict must
+    follow it and NAME the account.
+    """
+    unlabelled = roster([
+        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+         "acquisition_type": "net_new_won", "tariff_type": None}])
+    assert unlabelled["a_found_account_can_reach_the_product_gate"] is False
+    assert unlabelled["found_accounts_the_guard_would_admit"] == []
+
+    labelled = roster([
+        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+         "acquisition_type": "net_new_won", "tariff_type": "fixed"}])
+    assert labelled["a_found_account_can_reach_the_product_gate"] is True
+    assert labelled["found_accounts_the_guard_would_admit"] == ["PROS-2019-0015"]
+
+
+def test_a_founder_account_passing_the_gate_is_not_a_found_account_reaching_it(roster):
+    """MUTATION: drop the `name in _FOUND_ACCOUNT_CLASSES` clause from the reachability test.
+
+    Every founder electricity leg resolves to `"fixed"` and IS admitted by the guard, so a
+    reachability check that did not filter by class would report True on today's roster and the
+    page would say the gate is passable while no found household has ever passed it. The
+    flattering answer, produced by deleting one condition.
+    """
+    census = roster([
+        {"customer_id": "C1", "commodity": "electricity"},
+        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+         "acquisition_type": "net_new_won", "tariff_type": None}])
+    founder = [r for r in census["legs"] if r["account_class"] == "founder_hand_authored"]
+    assert [r["the_guard_admits_it"] for r in founder] == [True]
+    assert census["a_found_account_can_reach_the_product_gate"] is False
+
+
+def test_a_gas_leg_that_omits_the_key_is_named_as_disagreeing_with_its_own_electricity_leg(
+        roster):
+    """MUTATION: report labelling per LEG only and drop `..._legs_disagree_about_labelling`.
+
+    A won account's two legs are minted by two paths and answer the question differently: the
+    electricity leg carries the key present and `None`, the gas leg omits it and takes the
+    `"fixed"` default. That is invisible in a per-leg table -- both rows are individually
+    truthful -- and it is latent rather than harmless: the gas leg would be priced as a product
+    the world never decided for it the moment the commodity guard stops refusing gas one step
+    earlier. 86 accounts on the live roster.
+    """
+    agreeing = roster([
+        {"customer_id": "SYN-2016-003", "commodity": "electricity",
+         "acquisition_type": "synthetic_draw", "tariff_type": None},
+        {"customer_id": "SYN-2016-003g", "commodity": "gas",
+         "acquisition_type": "synthetic_draw", "tariff_type": None}])
+    assert agreeing["billing_accounts_whose_legs_disagree_about_labelling"] == []
+
+    disagreeing = roster([
+        {"customer_id": "PROS-2016-0072", "commodity": "electricity",
+         "acquisition_type": "net_new_won", "tariff_type": None},
+        {"customer_id": "PROS-2016-0072g", "commodity": "gas",
+         "acquisition_type": "net_new_won"}])
+    assert disagreeing["billing_accounts_whose_legs_disagree_about_labelling"] == [
+        "PROS-2016-0072"]
