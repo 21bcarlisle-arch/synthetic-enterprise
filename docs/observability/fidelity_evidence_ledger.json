@@ -174,40 +174,40 @@
     "atom_id": "W2_11_payment_truth",
     "rel_id": "live_payment_detection_gap::A1_G1",
     "relationship": {
-      "believed_failures": 34,
+      "believed_failures": 653,
       "cell_id": "A1_G1",
-      "detection_gap": 0.2463451776649746,
+      "detection_gap": 0.13031343745425641,
       "detection_measure": "detection_measures_both_directions",
       "exclusion_reason": "cases in NEITHER direction's population within this cell: a payment that eventually succeeded but arrived after the reconciliation grace really was unpaid past grace, so flagging it was CORRECT and counting it as a false flag would score the company down for being right (the tenfold error D11's first draft made); an unresolved dispute is not a settled success; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.",
-      "false_flag_rate": 0.01269,
+      "false_flag_rate": 0.01478,
       "kind": "payment_failure_detection",
-      "missed_failure_rate": 0.48,
-      "n_excluded": 95,
-      "n_false_flags": 15,
-      "n_negatives": 1182,
+      "missed_failure_rate": 0.245847,
+      "n_excluded": 1297,
+      "n_false_flags": 106,
+      "n_negatives": 7172,
       "provenance": "estimated_from_data",
       "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
-      "true_failures": 25
+      "true_failures": 602
     }
   },
   "live_payment_detection_gap::A1_G2": {
     "atom_id": "W2_11_payment_truth",
     "rel_id": "live_payment_detection_gap::A1_G2",
     "relationship": {
-      "believed_failures": 0,
+      "believed_failures": 113,
       "cell_id": "A1_G2",
-      "detection_gap": 0.5,
+      "detection_gap": 0.16975806451612904,
       "detection_measure": "detection_measures_both_directions",
       "exclusion_reason": "cases in NEITHER direction's population within this cell: a payment that eventually succeeded but arrived after the reconciliation grace really was unpaid past grace, so flagging it was CORRECT and counting it as a false flag would score the company down for being right (the tenfold error D11's first draft made); an unresolved dispute is not a settled success; and a record carrying no `days_late` truth is UNKNOWN, never assumed paid on time.",
-      "false_flag_rate": 0.0,
+      "false_flag_rate": 0.002016,
       "kind": "payment_failure_detection",
-      "missed_failure_rate": 1.0,
-      "n_excluded": 23,
-      "n_false_flags": 0,
-      "n_negatives": 226,
+      "missed_failure_rate": 0.3375,
+      "n_excluded": 359,
+      "n_false_flags": 3,
+      "n_negatives": 1488,
       "provenance": "estimated_from_data",
       "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
-      "true_failures": 6
+      "true_failures": 160
     }
   }
 }
