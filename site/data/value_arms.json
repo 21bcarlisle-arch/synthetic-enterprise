@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T02:16:06.514202Z",
+  "generated_at": "2026-08-30T02:47:16.077564Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -184,11 +184,17 @@
     "how_to_read_this": "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. False means the rest of the book's churn cascade alone is wider than the contrast, so NO book resolves this comparison and the remedy is not a smaller version of the same thing -- it is a different instrument. That is a finding about the instrument and it belongs on the surface (R12), not in a footnote."
   },
   "withdrawn_claim": {
-    "withdrawn_on": "2026-08-29",
-    "the_words": "What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and not more seeds: re-drawing the dice measures this spread again, it does not shrink it.",
-    "why": "The second half is arithmetic and stands. The FIRST half named a remedy nobody had measured. The floor it qualifies re-draws price sensitivity for about 2,050 households while the arm priced 20 renewals, so the spread has two possible sources with OPPOSITE remedies -- the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. The page asserted the first without separating them, one day after withdrawing a different sentence for asserting a direction its evidence could not carry. What replaces it is derived from a measured split of the floor, and says so when there is no split to derive it from.",
-    "note": "WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
+    "withdrawn_on": "2026-08-30",
+    "the_words": "Below 0.50 means the company's own belief about who will leave ranks customers worse than a coin flip. An estimator that cannot rank cannot select profitably, so the selection result and the belief result corroborate each other rather than merely coexisting.",
+    "why": "It made a corroboration argument out of an unbounded figure, and it was a CONSTANT string, so the page read 0.4653 and 0.13 as the same finding when one sits a third of a null standard deviation from 0.5 and the other 2.8 of them. Three things are wrong with it. (1) No bound: on 10 departures a signal carrying no information at all scores anywhere from 0.20 to 0.80, and the same estimator has scored 0.646, 0.672, 0.465, 0.465 and 0.130 across five runs in four days. (2) The subject is misnamed: `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE -- a median \u00a360/MWh against the control's \u00a32 -- not the company's belief about who will leave. Graded independently over 708 renewals on 2026-08-30, the company-side estimate scores 0.534 and the world's own churn model 0.660, against an oracle ceiling of 0.762. (3) The two results are not independent: five of the ten accounts the arm priced left under the value arm and did NOT leave under the control, so the selection result and the belief result share a cause rather than corroborating each other. What replaces it is composed from the figure's own exact null interval and states the endogeneity at any sample size.",
+    "note": "WITHDRAWN 2026-08-30: this page previously said the belief result and the selection result \u201ccorroborate each other rather than merely coexisting\u201d. They are not independent \u2014 five of the ten accounts the arm priced were driven out by the arm's own price rise, so both results have one cause \u2014 and the figure was published with no interval on a population of ten departures. What stands in its place carries the sample, the exact null, and what the figure is actually a belief about. WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
     "also_withdrawn": [
+      {
+        "withdrawn_on": "2026-08-29",
+        "the_words": "What would resolve it is a larger SETTLED BOOK -- more renewals actually priced by the arm -- and not more seeds: re-drawing the dice measures this spread again, it does not shrink it.",
+        "why": "The second half is arithmetic and stands. The FIRST half named a remedy nobody had measured. The floor it qualifies re-draws price sensitivity for about 2,050 households while the arm priced 20 renewals, so the spread has two possible sources with OPPOSITE remedies -- the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. The page asserted the first without separating them, one day after withdrawing a different sentence for asserting a direction its evidence could not carry. What replaces it is derived from a measured split of the floor, and says so when there is no split to derive it from.",
+        "note": "WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run."
+      },
       {
         "withdrawn_on": "2026-08-29",
         "the_words": "On this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing.",
@@ -196,7 +202,7 @@
         "note": "WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports."
       }
     ],
-    "withdrawals": 2
+    "withdrawals": 3
   },
   "run_generated_at": "2026-08-29T14:40:24Z",
   "book": {
@@ -382,6 +388,18 @@
     "decisions_scored": 6,
     "accounts": 5,
     "churn_auc_for_contrast": 0.13,
+    "churn_auc_null": {
+      "available": true,
+      "retained": 10,
+      "left": 10,
+      "ordered_pairs": 100,
+      "null_point": 0.5,
+      "null_95_low": 0.24,
+      "null_95_high": 0.76,
+      "p_two_sided": 0.0038862066725843815,
+      "inside_the_null": false,
+      "basis": "exact Mann-Whitney null over all 184756 arrangements of 10 retained and 10 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+    },
     "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
     "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
   },
@@ -517,7 +535,106 @@
     },
     "concentration_note": "Every account the artefact names among its own scored decisions is one of the nine hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note used to name ONE eligibility guard -- the drawn population carrying no product label -- and conclude the surface was small by PLUMBING and not by design. The funnel says otherwise. Of the 1,349 renewals the arm did not price, 687 are DELIBERATE SCOPE (51%) -- term 0 has no prior term to price against; the arm is fitted to electricity and has never been fitted to gas -- and 662 (49%) are the product-label gap in the drawn book. So the surface is small by design AND by plumbing, and design is the larger half. Giving the drawn population a product is a change to the baseline world, which R13 says is decided on fidelity evidence and never because it would make this experiment bigger.",
     "discrimination_auc": 0.13,
-    "auc_reading": "Below 0.50 means the company's own belief about who will leave ranks customers worse than a coin flip. An estimator that cannot rank cannot select profitably, so the selection result and the belief result corroborate each other rather than merely coexisting.",
+    "auc_population": {
+      "retained": 10,
+      "left": 10,
+      "scored_decisions": 20,
+      "accounts": 9
+    },
+    "auc_attribution": {
+      "available": true,
+      "verdict": "the population, and the population is endogenous to the arm's own price",
+      "null_bound": {
+        "available": true,
+        "retained": 10,
+        "left": 10,
+        "ordered_pairs": 100,
+        "null_point": 0.5,
+        "null_95_low": 0.24,
+        "null_95_high": 0.76,
+        "p_two_sided": 0.0038862066725843815,
+        "inside_the_null": false,
+        "basis": "exact Mann-Whitney null over all 184756 arrangements of 10 retained and 10 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+      },
+      "priced_accounts_the_arm_itself_drove_out": [
+        "C1_2",
+        "C2",
+        "C7",
+        "C8",
+        "C9"
+      ],
+      "priced_accounts": 10,
+      "value_arm_only_churners": [
+        "C1_2",
+        "C2",
+        "C7",
+        "C8",
+        "C9",
+        "PROS-2020-0006"
+      ],
+      "median_margin_gbp_per_mwh": 60.0,
+      "control_margin_gbp_per_mwh": 2.0,
+      "history": [
+        {
+          "artefact": "docs/observability/value_cycle_ab_s1_three_arm.json",
+          "on": "2026-08-29",
+          "auc": 0.13,
+          "scored": 20,
+          "retained": 10,
+          "left": 10,
+          "median_margin": 60.0
+        },
+        {
+          "artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json",
+          "on": "2026-08-28",
+          "auc": 0.4652777777777778,
+          "scored": 25,
+          "retained": 16,
+          "left": 9,
+          "median_margin": 44.5
+        },
+        {
+          "artefact": "docs/observability/value_cycle_ab_resi_renewal_fixed.json",
+          "on": "2026-08-27",
+          "auc": 0.4652777777777778,
+          "scored": 25,
+          "retained": 16,
+          "left": 9,
+          "median_margin": 44.5
+        },
+        {
+          "artefact": "docs/observability/value_cycle_ab_resi_only.json",
+          "on": "2026-08-26",
+          "auc": 0.671875,
+          "scored": 20,
+          "retained": 16,
+          "left": 4,
+          "median_margin": 57.75
+        },
+        {
+          "artefact": "docs/observability/value_cycle_ab.json",
+          "on": "2026-08-26",
+          "auc": 0.6462585034013606,
+          "scored": 28,
+          "retained": 21,
+          "left": 7,
+          "median_margin": 60.0
+        }
+      ],
+      "independent_grade": {
+        "graded_on": "2026-08-30",
+        "tool": "tools/grade_renewal_churn_belief.py",
+        "run_output": "docs/reports/run_output_latest.json",
+        "renewals": 708,
+        "accounts": 134,
+        "bill_shock_model_auc": 0.6596,
+        "company_churn_estimate_auc": 0.534,
+        "oracle_ceiling_auc": 0.7618,
+        "what_it_settles": "The oracle ceiling at 0.7618 says this book IS rankable, so a low AUC is a statement about a belief and not about an unrankable population -- that is the instrument-defect branch closed. The two graded beliefs at 0.6596 and 0.534 sit ABOVE a coin flip on the same rank statistic, which is the polarity branch closed. Both are measured on a different run from the 0.13 -- 708 renewals over 134 accounts against 20 over 10 -- so neither is a replacement figure for it, and neither is quoted here as one."
+      },
+      "reading": "0.13 is not a sign error and not a broken instrument. It is what the arm's own retention belief scores on 20 decisions across 10 founding accounts, five of which the arm's price rise itself drove out. The quantity is not 'does this company know who will leave' -- it is 'did the arm predict who would survive the price it chose', graded on departures that choice caused."
+    },
+    "auc_reading": "Measured on 10 departures and 10 retentions -- 20 decisions on 10 accounts. A signal carrying no information at all scores between 0.24 and 0.76 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and below the null (two-sided p 0.004), so on this population the belief ranked customers BACKWARDS -- the renewals it was most confident of keeping are the ones that left. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 5 of the 10 accounts this arm priced (C1_2, C2, C7, C8, C9) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 60.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
     "decided_by_a_bound": 1,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [
