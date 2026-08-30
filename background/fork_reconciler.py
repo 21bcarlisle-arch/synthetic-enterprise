@@ -249,9 +249,13 @@ def evaluate_fork_lifecycle(*, branches: list[dict] | None = None, now: float | 
 
 
 def scan_worktrees() -> list[dict]:
-    """Every registered worktree as {path, branch, detached, locked, locked_reason, bare}. Parses
-    `git worktree list --porcelain`. `locked`/`bare` default False; `locked_reason` is the text
-    after `locked` on its porcelain line, or None if locked with no reason given."""
+    """Every registered worktree as {path, branch, head, detached, locked, locked_reason, bare}.
+    Parses `git worktree list --porcelain`. `locked`/`bare` default False; `locked_reason` is the
+    text after `locked` on its porcelain line, or None if locked with no reason given.
+
+    `head` (2026-08-30) is the porcelain's own `HEAD <sha>` line, and it is here because a
+    DETACHED worktree has no branch and was therefore permanently undeterminable -- see
+    `classify_detached_head`. Every worktree has a HEAD; only some have a branch."""
     out = _git("worktree", "list", "--porcelain")
     wts: list[dict] = []
     cur: dict | None = None
@@ -259,8 +263,10 @@ def scan_worktrees() -> list[dict]:
         if line.startswith("worktree "):
             if cur:
                 wts.append(cur)
-            cur = {"path": line[len("worktree "):].strip(), "branch": None, "detached": False,
-                   "locked": False, "locked_reason": None, "bare": False}
+            cur = {"path": line[len("worktree "):].strip(), "branch": None, "head": None,
+                   "detached": False, "locked": False, "locked_reason": None, "bare": False}
+        elif cur is not None and line.startswith("HEAD "):
+            cur["head"] = line[len("HEAD "):].strip()
         elif cur is not None and line.startswith("branch "):
             ref = line[len("branch "):].strip()
             cur["branch"] = ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else ref
@@ -385,11 +391,120 @@ def _salvage_tag_for(branch: str) -> str | None:
     return tag if _git("rev-parse", "-q", "--verify", f"refs/tags/{tag}").strip() else None
 
 
+def detached_salvage_tag_name(head: str) -> str:
+    """The tag name pinning a detached worktree's HEAD. One convention, one place."""
+    return "salvage/detached-" + str(head)[:12]
+
+
+def _detached_salvage_tag_for(head: str | None) -> str | None:
+    """The salvage tag pinning this detached HEAD, if one exists and resolves. Else None."""
+    if not head:
+        return None
+    tag = detached_salvage_tag_name(head)
+    return tag if _git("rev-parse", "-q", "--verify", f"refs/tags/{tag}").strip() else None
+
+
+def _head_reachable_from_main(head: str | None) -> bool:
+    """True if `head` is an ancestor of main -- i.e. this commit already came home."""
+    if not head:
+        return False
+    from subprocess import CalledProcessError, run
+    try:
+        r = run(["git", "-C", str(PROJECT_DIR), "merge-base", "--is-ancestor", head, "main"],
+                capture_output=True, timeout=30)
+    except (OSError, CalledProcessError):
+        return False
+    return r.returncode == 0
+
+
+def classify_detached_head(head: str | None, *, reachable: bool, salvage_tag: str | None) -> str:
+    """Pure: the lifecycle state of a DETACHED worktree's HEAD, in the same vocabulary as
+    `classify_branch` uses for a branch.
+
+    WHY THIS EXISTS (2026-08-30). `classify_worktree_reap` refused every detached worktree with
+    "detached/no branch -- undetermined, never reaped", and `_LIVE_REFUSALS` scored that refusal
+    as the control WORKING rather than as STRANDED. Both halves were wrong in the same direction,
+    and together they made a detached worktree immortal AND invisible: `[WORKTREE UNDECLARED]`
+    fired 159 times over 14.3 hours naming three of them while `refusal_is_stranded` reported the
+    reaper as correctly sparing them. That is the exact accretion this module was written to stop,
+    reappearing in the one population its own stranded/live split could not see -- and it is the
+    reason the separation existed in the first place (H24, 26 worktrees over 16 days behind a
+    green report).
+
+    The refusal was not paranoid, it was incomplete. "Undetermined" was true of the CODE, not of
+    the worktree: a detached HEAD is a commit, and a commit is determinable exactly as a branch
+    tip is.
+
+      MERGED    reachable from main -- the commit came home; removing the directory touches
+                nothing that is not already on main.
+      SALVAGED  not reachable, but pinned by a salvage tag -- the work is preserved and
+                recoverable, so the directory is a redundant working copy.
+      ORPHAN    not reachable and not pinned. Refused, and STRANDED rather than live, so it is
+                reported loudly instead of being counted as correctly spared. Salvage-tagging it
+                is what moves it on, and that is a deliberate act with a tag to show for it.
+    """
+    if reachable:
+        return "MERGED"
+    if salvage_tag:
+        return "SALVAGED"
+    return "ORPHAN"
+
+
+def _determine_detached(wt: dict, reachable_fn, detached_tag_fn) -> str | None:
+    """The detached-HEAD state for `wt`, or None if it is not detached (so the branch path runs).
+
+    One place, so `evaluate_worktree_reap` and `reap_one_worktree` cannot disagree about whether
+    a worktree is reapable -- the pair of them disagreeing is how a directory gets removed by one
+    door and refused by the other.
+    """
+    if not (wt.get("detached") or not wt.get("branch")):
+        return None
+    head = wt.get("head")
+    return classify_detached_head(
+        head, reachable=reachable_fn(head), salvage_tag=detached_tag_fn(head))
+
+
+def salvage_detached_head(head: str) -> dict:
+    """Pin a detached worktree's HEAD with a salvage tag, so the directory becomes reapable.
+
+    The detached counterpart of `salvage_and_reap`, and it exists so the route out of a
+    `detached ORPHAN` refusal is a MECHANISM rather than a hand-typed `git tag`. Without it the
+    classifier names a condition nothing can clear, which is the shape that produced the
+    159-repeat alarm in the first place -- a refusal with no door beside it is a stall wearing a
+    control's clothes.
+
+    Salvage-first, never reap: this only creates and VERIFIES the tag. Whether the directory then
+    goes is `evaluate_worktree_reap`'s decision on its next pass, under its own arming flag.
+    Returns {"head", "tag", "salvaged": bool, "detail"}. Never raises.
+    """
+    tag = detached_salvage_tag_name(head)
+    resolved = _git("rev-parse", "-q", "--verify", f"{head}^{{commit}}").strip()
+    if not resolved:
+        return {"head": head, "tag": tag, "salvaged": False,
+                "detail": f"{head} does not resolve to a commit -- nothing to salvage"}
+    existing = _git("rev-parse", "-q", "--verify", f"refs/tags/{tag}").strip()
+    if existing:
+        return {"head": head, "tag": tag, "salvaged": existing == resolved,
+                "detail": ("already tagged" if existing == resolved else
+                           f"tag {tag} exists but points at {existing[:12]}, not {resolved[:12]}")}
+    _git("tag", tag, resolved)
+    # VERIFY, exactly as `salvage_and_reap` does: an unverified tag is not a salvage, and the
+    # whole safety argument for removing the directory rests on the commit being pinned.
+    check = _git("rev-parse", "-q", "--verify", f"refs/tags/{tag}").strip()
+    ok = check == resolved
+    return {"head": head, "tag": tag, "salvaged": ok,
+            "detail": "tagged and verified" if ok else "tag did not verify -- NOT salvaged"}
+
+
 # A refusal reason is either LIVE -- the worktree is legitimately in use and keeping it is the
 # control WORKING -- or STRANDED: the control cannot act on it and never will without a change.
 # Separating these is what makes "0 eligible" interpretable; conflating them is what let 26
 # worktrees accumulate over 16 days behind a green WORKTREE_REAP_CLEAN (H24, 2026-08-03).
-_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "detached/no branch")
+#: `detached/no branch` was removed from this tuple on 2026-08-30. It had been scoring the one
+#: population that was actually accumulating as "the control working" -- see
+#: `classify_detached_head`. A detached HEAD that is unreachable and unpinned is now
+#: `detached ORPHAN`, which this tuple does NOT match, so it reports STRANDED and loud.
+_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT")
 
 
 def refusal_is_stranded(reason: str) -> bool:
@@ -402,7 +517,8 @@ def refusal_is_stranded(reason: str) -> bool:
 
 
 def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *,
-                           dirty: bool, salvage_tag: str | None) -> dict:
+                           dirty: bool, salvage_tag: str | None,
+                           detached_head_state: str | None = None) -> dict:
     """Pure: given one worktree {path, branch, detached, locked, locked_reason, bare}, its branch's
     lifecycle state (None if the branch ref no longer exists at all -- e.g. already salvage-reaped),
     whether the worktree has uncommitted/untracked changes, and whether a matching salvage tag
@@ -417,7 +533,34 @@ def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *
         return {"eligible": False, "reason": f"locked ({reason}) -- never reaped"}
     branch = wt.get("branch")
     if wt.get("detached") or not branch:
-        return {"eligible": False, "reason": "detached/no branch -- undetermined, never reaped"}
+        # A DETACHED HEAD IS A COMMIT, AND A COMMIT IS DETERMINABLE. See `classify_detached_head`
+        # for why this was a blanket refusal until 2026-08-30 and what that cost. `dirty` is
+        # still checked below on the eligible paths -- a detached worktree with uncommitted work
+        # is refused for the same reason any other one is.
+        if detached_head_state == "MERGED":
+            head_ok, head_reason = True, "detached HEAD reachable from main -- already came home"
+        elif detached_head_state == "SALVAGED":
+            head_ok, head_reason = (
+                True,
+                f"detached HEAD unmerged but confirmed-salvaged (tag "
+                f"{detached_salvage_tag_name(wt.get('head') or '')}) -- directory is a "
+                f"redundant copy")
+        elif detached_head_state == "ORPHAN":
+            head_ok, head_reason = (
+                False,
+                "detached ORPHAN: HEAD is unreachable from main and carries no salvage tag -- "
+                "refused until it is tagged, and STRANDED, not correctly spared")
+        else:
+            # No state supplied at all -- the caller did not determine it. Refuse, and say that
+            # it is the DETERMINATION that is missing rather than implying the worktree is live.
+            head_ok, head_reason = (
+                False,
+                "detached HEAD state not determined by the caller -- refused, and STRANDED")
+        if not head_ok:
+            return {"eligible": False, "reason": head_reason}
+        if dirty:
+            return {"eligible": False, "reason": "uncommitted/untracked changes -- never reaped"}
+        return {"eligible": True, "reason": head_reason}
     if branch_state == "MERGED":
         branch_ok, branch_reason = True, "branch MERGED into main"
     elif branch_state is None:
@@ -467,7 +610,7 @@ def reap_worktree_dir(path: str) -> dict:
 def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states: dict | None = None,
                            main_path: str | None = None, now: float | None = None,
                            enforce: bool | None = None, dirty_fn=None, salvage_tag_fn=None,
-                           remover=None) -> dict:
+                           remover=None, reachable_fn=None, detached_tag_fn=None) -> dict:
     """REPORT the worktree-DIRECTORY reap state. Report-first by default (list what WOULD be
     removed, remove nothing); enforce (armed by `WORKTREE_REAP_ENFORCE_FLAG`) actually removes each
     eligible worktree dir + prunes, serialized through `shared_tree_lock` (this mutates the SHARED
@@ -486,6 +629,8 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
     dirty_fn = dirty_fn or _worktree_dirty
     salvage_tag_fn = salvage_tag_fn or _salvage_tag_for
     remover = remover or reap_worktree_dir
+    reachable_fn = reachable_fn or _head_reachable_from_main
+    detached_tag_fn = detached_tag_fn or _detached_salvage_tag_for
 
     eligible, kept = [], []
     for wt in worktrees:
@@ -493,7 +638,9 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         bstate = branch_states.get(branch) if branch else None
         tag = salvage_tag_fn(branch) if branch else None
         dirty = dirty_fn(wt["path"])
-        result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag)
+        dstate = _determine_detached(wt, reachable_fn, detached_tag_fn)
+        result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
+                                        detached_head_state=dstate)
         entry = {"path": wt["path"], "branch": branch, **result}
         (eligible if result["eligible"] else kept).append(entry)
 
@@ -583,7 +730,7 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
 def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
                       branch_states: dict | None = None, main_path: str | None = None,
                       now: float | None = None, dirty_fn=None, salvage_tag_fn=None,
-                      remover=None) -> dict:
+                      remover=None, reachable_fn=None, detached_tag_fn=None) -> dict:
     """Reap ONE worktree by path -- the ONLY sanctioned way to do this (never call raw
     `git worktree remove --force` directly). Runs the EXISTING `classify_worktree_reap` for `path`
     and refuses LOUDLY (never calls the remover, never raises) unless it says eligible: not a
@@ -603,6 +750,8 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
     dirty_fn = dirty_fn or _worktree_dirty
     salvage_tag_fn = salvage_tag_fn or _salvage_tag_for
     remover = remover or reap_worktree_dir
+    reachable_fn = reachable_fn or _head_reachable_from_main
+    detached_tag_fn = detached_tag_fn or _detached_salvage_tag_for
 
     wt = next((w for w in worktrees if w["path"] == path), None)
     if wt is None:
@@ -613,7 +762,9 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
     bstate = branch_states.get(branch) if branch else None
     tag = salvage_tag_fn(branch) if branch else None
     dirty = dirty_fn(path)
-    result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag)
+    dstate = _determine_detached(wt, reachable_fn, detached_tag_fn)
+    result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
+                                    detached_head_state=dstate)
     if not result["eligible"]:
         return {"path": path, "removed": False, "refused": True, "loud": True, "reason": result["reason"]}
 

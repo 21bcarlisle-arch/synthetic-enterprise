@@ -996,6 +996,28 @@
         "last_verified": "2026-08-28",
         "source": "Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74"
       }
+    },
+    {
+      "id": "how-households-choose",
+      "title": "How a household chooses, and why most don't",
+      "kind": "page",
+      "blurb": "Almost nobody deliberately chooses a standard variable tariff and most of the country is on one -- the stock is an outcome of behaviour, not an input to it.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-08-30",
+        "source": "Ofgem State of the Market (April 2025); Ofgem Consumer Impacts of Market Conditions survey waves 5 and 6; Ofgem non-domestic 2024 research"
+      }
+    },
+    {
+      "id": "the-price-a-household-is-shown",
+      "title": "The price a household is shown",
+      "kind": "page",
+      "blurb": "The cap headline and every comparison listing quote a year's money at an assumed consumption, for a tariff whose rate may not last the year.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-08-30",
+        "source": "Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10"
+      }
     }
   ],
   "edges": [
@@ -1068,6 +1090,21 @@
       "from": "acquisition-and-retention-economics",
       "type": "bounded-by",
       "to": "price-cap"
+    },
+    {
+      "from": "the-price-a-household-is-shown",
+      "type": "drives",
+      "to": "how-households-choose"
+    },
+    {
+      "from": "the-price-a-household-is-shown",
+      "type": "governed-by",
+      "to": "price-cap"
+    },
+    {
+      "from": "how-households-choose",
+      "type": "drives",
+      "to": "acquisition-and-retention-economics"
     }
   ],
   "review_policy": {

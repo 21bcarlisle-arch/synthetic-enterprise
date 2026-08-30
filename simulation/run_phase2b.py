@@ -171,6 +171,7 @@ from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
 from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
+from simulation.svt_product import SVT_TARIFF_TYPE
 from simulation.tou_periods import is_peak_period as _is_peak_period
 from simulation.triad import (
     _triad_year,
@@ -1444,7 +1445,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # Phase 40c: skip for deemed terms (no fixed unit_rate to record or compare).
         old_elec_rate = prev_elec_unit_rates.get(cid) if commodity == "electricity" else None
         old_gas_rate = prev_gas_unit_rates.get(cid) if commodity == "gas" else None
-        _indexed_tariff = term_tariff_type in ("deemed", "flex")
+        # `svt` joins the indexed tariffs (2026-08-30, brief WORK item 4). It belongs here for
+        # the same reason `deemed` and `flex` do and for one more: those two have no RENEWAL
+        # because their price is indexed, and an SVT segment has no renewal because there is no
+        # TERM -- a segment boundary is a cap change, not an expiry. Gating it out here is what
+        # makes "no renewal decision" a property of the product rather than a claim about it.
+        # An SVT account therefore cannot depart yet, which is exactly why no roster assigns
+        # one; see simulation/svt_product.py on what is owed before assignment.
+        _indexed_tariff = term_tariff_type in ("deemed", "flex", SVT_TARIFF_TYPE)
         if commodity == "electricity" and not _indexed_tariff:
             prev_elec_unit_rates[cid] = unit_rate
             if old_elec_rate is not None and old_elec_rate > 0:

@@ -39,6 +39,7 @@ from simulation.policy_costs import (
     get_electricity_policy_cost_per_mwh,
 )
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.svt_product import SVT_TARIFF_TYPE, build_svt_schedule
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 # Phase 34a: company prices the tariff 42 days before term start (statutory notice period).
@@ -89,6 +90,20 @@ def build_renewal_schedule(
     weather-sensitivity multiplier. Defaults to None (no adjustment),
     fully backward compatible.
     """
+    # A STANDARD VARIABLE TARIFF IS NOT A TERM, so it is not built by a loop over terms.
+    # Everything below this line assumes a contract that ends: a 42-day notice date, a price
+    # struck through `request_renewal_offer`, a `prev_fixed_unit_rate` locked for the next
+    # boundary, and a renewal decision at each one. An SVT has none of those -- its price
+    # changes on the cap's calendar and the household is never asked. Delegated rather than
+    # branched, because a fourth `tariff_type` inside this loop would put a no-renewal product
+    # in a loop every line of which is about a renewal. See simulation/svt_product.py, and
+    # `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` for why the world owed one.
+    if tariff_type == SVT_TARIFF_TYPE:
+        return build_svt_schedule(
+            customer_id, original_acquisition_date, report_end_date, price_records,
+            lookback_temps_fn=lookback_temps_fn,
+        )
+
     term_start = date.fromisoformat(original_acquisition_date)
     report_end = date.fromisoformat(report_end_date)
     terms = []

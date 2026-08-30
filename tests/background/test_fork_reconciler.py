@@ -303,10 +303,14 @@ def test_scan_worktrees_parses_porcelain():
         wts = FR.scan_worktrees()
     finally:
         FR._git = orig
+    # `head` added 2026-08-30. It is the field that makes a DETACHED worktree determinable at
+    # all -- every worktree has a HEAD and only some have a branch -- so a parser that drops it
+    # sends `classify_detached_head` a None and every detached worktree back to permanently
+    # refused. That is what this line is guarding, not the porcelain format.
     assert wts == [
-        {"path": "/repo", "branch": "main", "detached": False,
+        {"path": "/repo", "branch": "main", "head": "abc", "detached": False,
          "locked": False, "locked_reason": None, "bare": False},
-        {"path": "/tmp/x", "branch": None, "detached": True,
+        {"path": "/tmp/x", "branch": None, "head": "def", "detached": True,
          "locked": False, "locked_reason": None, "bare": False},
     ]
 
@@ -855,12 +859,22 @@ def test_eligible_work_still_reports_ELIGIBLE_not_stranded():
 
 def test_refusal_is_stranded_splits_the_two_classes():
     for live in ("main worktree -- never reaped", "locked (in use) -- never reaped",
-                 "branch is IN_FLIGHT -- live/undecided fork, never reaped",
-                 "detached/no branch -- undetermined, never reaped"):
+                 "branch is IN_FLIGHT -- live/undecided fork, never reaped"):
         assert F.refusal_is_stranded(live) is False, live
     for stuck in ("uncommitted/untracked changes -- never reaped",
                   "branch is ORPHAN -- live/undecided fork, never reaped",
-                  "branch ref absent, no salvage tag -- undetermined, never reaped"):
+                  "branch ref absent, no salvage tag -- undetermined, never reaped",
+                  # MOVED OUT OF `live` ON 2026-08-30, and this is the correction that matters.
+                  # A detached worktree used to be scored as correctly SPARED, so the reaper
+                  # reported itself healthy while `[WORKTREE UNDECLARED]` fired 159 times over
+                  # 14.3 hours naming three detached directories it could never touch. The
+                  # stranded/live split exists precisely to make "0 eligible" interpretable
+                  # (H24: 26 worktrees over 16 days behind a green report) and it was blind in
+                  # the one population that was accumulating. An unreachable, unpinned detached
+                  # HEAD is STUCK, and must read as stuck.
+                  "detached ORPHAN: HEAD is unreachable from main and carries no salvage tag "
+                  "-- refused until it is tagged, and STRANDED, not correctly spared",
+                  "detached HEAD state not determined by the caller -- refused, and STRANDED"):
         assert F.refusal_is_stranded(stuck) is True, stuck
 
 
@@ -942,3 +956,121 @@ def test_in_flight_worktree_is_never_reaped_even_with_a_salvage_tag():
     """A LIVE fork's home is never touched -- the deadlock-breaker applies to ORPHAN only."""
     r = F.classify_worktree_reap(_wt_reap(), "/repo", "IN_FLIGHT", dirty=False, salvage_tag="salvage/worktree-agent-x")
     assert r["eligible"] is False and "live/undecided" in r["reason"]
+
+
+# ── A DETACHED HEAD IS A COMMIT, AND A COMMIT IS DETERMINABLE (2026-08-30) ──────────────────
+# THE DEFECT THESE FIRE ON. `classify_worktree_reap` refused every detached worktree with
+# "detached/no branch -- undetermined, never reaped", and `_LIVE_REFUSALS` scored that refusal as
+# the control WORKING. Both halves were wrong in the same direction, so a detached worktree was
+# immortal AND invisible: `[WORKTREE UNDECLARED]` fired 159 times over 14.3 hours naming three of
+# them (2026-08-26 alarm document) while the reaper reported itself clean. That is the accretion
+# this module exists to stop, reappearing in the one population its own stranded/live split could
+# not see. Measured before the repair: 4 undeclared worktrees, of which the reaper could act on
+# exactly 1 (the branch-holding orphan); after, 4 of 4, two of them via a deliberate salvage tag.
+
+def _wt_detached(path="/tmp/x", head="a" * 40):
+    return {"path": path, "branch": None, "head": head, "detached": True,
+            "locked": False, "locked_reason": None, "bare": False}
+
+
+def test_a_detached_head_reachable_from_main_is_eligible():
+    """It came home. Removing the directory touches no commit that is not already on main."""
+    r = F.classify_worktree_reap(_wt_detached(), "/repo", None, dirty=False, salvage_tag=None,
+                                 detached_head_state="MERGED")
+    assert r["eligible"] is True and "already came home" in r["reason"]
+
+
+def test_a_detached_head_with_a_salvage_tag_is_eligible():
+    """Unmerged but pinned: the work is recoverable, so the directory is a redundant copy."""
+    r = F.classify_worktree_reap(_wt_detached(), "/repo", None, dirty=False, salvage_tag=None,
+                                 detached_head_state="SALVAGED")
+    assert r["eligible"] is True and "confirmed-salvaged" in r["reason"]
+
+
+def test_an_unpinned_unmerged_detached_head_is_refused_AND_reads_as_stranded():
+    """The safety half and the visibility half, asserted together because either alone is the bug.
+
+    Refusing without reporting STRANDED is exactly what shipped: safe, permanent, and silent.
+    """
+    r = F.classify_worktree_reap(_wt_detached(), "/repo", None, dirty=False, salvage_tag=None,
+                                 detached_head_state="ORPHAN")
+    assert r["eligible"] is False, "an unsalvaged detached HEAD must never be reaped"
+    assert F.refusal_is_stranded(r["reason"]) is True, (
+        "refused-and-scored-live is the exact combination that hid three worktrees for four days")
+
+
+def test_a_caller_that_determines_nothing_is_refused_and_stranded():
+    """FAIL CLOSED, and say which thing failed. `detached_head_state=None` means the CALLER did
+    not determine it -- which is a defect in the caller, not evidence the worktree is live."""
+    r = F.classify_worktree_reap(_wt_detached(), "/repo", None, dirty=False, salvage_tag=None)
+    assert r["eligible"] is False
+    assert "not determined by the caller" in r["reason"]
+    assert F.refusal_is_stranded(r["reason"]) is True
+
+
+def test_a_dirty_detached_worktree_is_refused_however_determined():
+    """Uncommitted work outranks every determination. The one that would lose real work."""
+    for state in ("MERGED", "SALVAGED"):
+        r = F.classify_worktree_reap(_wt_detached(), "/repo", None, dirty=True, salvage_tag=None,
+                                     detached_head_state=state)
+        assert r["eligible"] is False and "uncommitted" in r["reason"], state
+
+
+def test_classify_detached_head_is_a_pure_three_way():
+    assert F.classify_detached_head("abc", reachable=True, salvage_tag=None) == "MERGED"
+    assert F.classify_detached_head("abc", reachable=False, salvage_tag="t") == "SALVAGED"
+    assert F.classify_detached_head("abc", reachable=False, salvage_tag=None) == "ORPHAN"
+    # Reachability wins over a tag: a commit on main needs no salvage argument.
+    assert F.classify_detached_head("abc", reachable=True, salvage_tag="t") == "MERGED"
+
+
+def test_both_reap_doors_determine_a_detached_worktree_the_same_way():
+    """`evaluate_worktree_reap` and `reap_one_worktree` must not disagree.
+
+    Two doors with two answers is how a directory gets removed by one and refused by the other,
+    and it is why the determination lives in one helper rather than being inlined twice.
+    """
+    wt = _wt_detached("/tmp/orphan")
+    env = dict(worktrees=[wt], branch_states={}, main_path="/repo",
+               dirty_fn=lambda p: False,
+               reachable_fn=lambda h: False, detached_tag_fn=lambda h: None)
+    ev = F.evaluate_worktree_reap(enforce=False, **env)
+    assert ev["eligible"] == []
+    one = F.reap_one_worktree("/tmp/orphan", remover=lambda p: {"removed": True}, **env)
+    assert one["refused"] is True
+    assert ev["kept"][0]["reason"] == one["reason"], "the two doors disagree"
+
+
+def test_salvage_tag_name_is_one_convention(monkeypatch):
+    """The writer and the reader must agree, or a salvage nobody can find is not a salvage."""
+    head = "e614a788616b72a71f8a965e7f03c1555736f254"
+    name = F.detached_salvage_tag_name(head)
+    assert name == "salvage/detached-e614a788616b"
+    def fake_git(*args):
+        resolves = args[:1] == ("rev-parse",) and f"refs/tags/{name}" in args
+        return head + "\n" if resolves else ""
+
+    monkeypatch.setattr(F, "_git", fake_git)
+    assert F._detached_salvage_tag_for(head) == name
+    # A head with no tag reads as untagged, and a missing head is not an error.
+    assert F._detached_salvage_tag_for("c" * 40) is None
+    assert F._detached_salvage_tag_for(None) is None
+
+
+def test_salvage_refuses_when_the_tag_does_not_verify(monkeypatch):
+    """R15: an unverified tag is not a salvage. The whole safety argument for removing the
+    directory rests on the commit being pinned, so a tag that did not land must say so."""
+    head = "b" * 40
+    calls = []
+
+    def fake_git(*args):
+        calls.append(args)
+        if args[:1] == ("rev-parse",) and args[-1].endswith("^{commit}"):
+            return head + "\n"
+        if args[:1] == ("rev-parse",) and "refs/tags/" in args[-1]:
+            return ""            # the tag never appears, before OR after `git tag`
+        return ""
+
+    monkeypatch.setattr(F, "_git", fake_git)
+    r = F.salvage_detached_head(head)
+    assert r["salvaged"] is False and "did not verify" in r["detail"]

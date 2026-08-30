@@ -344,7 +344,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + "</tr>";
       }).join("");
       $("growth").innerHTML =
-        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
+        // `table-scroll` rather than an inline `overflow-x:auto` (2026-08-30). Behaviourally
+        // identical -- the class IS `overflow-x: auto` -- but the mobile control counts the
+        // class, so an inline equivalent read as a MISSING wrapper. One table was genuinely
+        // unwrapped and one was wrapped in a way the control could not see, and the count
+        // happened to come out one short rather than two, which is how a real defect and a
+        // false one cancelled into a single confusing number.
+        '<div class="table-scroll"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
         + "<thead><tr>"
         + '<th style="text-align:left;">Year</th>'
         + '<th style="text-align:right;">Quotes</th>'
@@ -825,6 +831,49 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                     + "Which departures: not listed. "
                     + prose(dec.auc_attribution.the_departures.reason) + "</p>")
               : "")
+          // THE REVERSAL ITSELF, not the word for it. With the departures unnamed on every run
+          // before 2026-08-30, "it ranked customers backwards" reached the reader as a scalar and
+          // an adjective. This table has been in the artefact all along. The flipped column ships
+          // beside the real one on purpose: flipped, this table looks BETTER, so a reader given
+          // only the real column could reasonably read it as evidence OF a sign error — which is
+          // the question the level check below answers, and this one cannot.
+          + ((dec.auc_attribution && dec.auc_attribution.by_believed_bucket
+              && dec.auc_attribution.by_believed_bucket.available)
+              ? '<p style="margin:0 0 4px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>What the reversal looks like.</strong> "
+                + prose(dec.auc_attribution.by_believed_bucket.reading) + "</p>"
+                // FOUR COLUMNS AND NO SCROLL CONTAINER, until 2026-08-30. This is the widest
+                // table on the page and it was the one that could force horizontal BODY scroll
+                // on a phone -- see test_expert_doors_mobile::test_tables_scroll_inside_their
+                // _own_container, which this failed, and which was refusing the publish commit.
+                + '<div class="table-scroll">'
+                + '<table style="font-size:11px;color:var(--muted);margin:0 0 8px;'
+                + 'border-collapse:collapse;"><tr>'
+                + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Belief "
+                + "it would stay</th>"
+                + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Renewals"
+                + "</th>"
+                + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Actually"
+                + " stayed</th>"
+                + "<th style=\"text-align:right;padding:1px 0;font-weight:600;opacity:.7;\">If the"
+                + " labels were flipped</th></tr>"
+                + dec.auc_attribution.by_believed_bucket.buckets.map(function (b) {
+                    return "<tr><td style=\"padding:1px 10px 1px 0;\">"
+                      + b.believed_from.toFixed(1) + "–" + b.believed_to.toFixed(1)
+                      + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+                      + esc(b.n)
+                      + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+                      + Math.round(b.realised_retention_rate * 100) + "%"
+                      + "</td><td style=\"text-align:right;padding:1px 0;opacity:.7;\">"
+                      + Math.round(b.realised_retention_rate_under_a_flipped_label * 100) + "%"
+                      + "</td></tr>";
+                  }).join("")
+                + "</table></div>"
+              : ((dec.auc_attribution && dec.auc_attribution.by_believed_bucket)
+                  ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                    + "What the reversal looks like: not shown. "
+                    + prose(dec.auc_attribution.by_believed_bucket.reason) + "</p>"
+                  : ""))
           // WHAT 0.13 IS NOT, AND ON WHAT NUMBER. The page told the reader this figure ranks
           // BACKWARDS and then left them no way to tell that claim apart from a sign error in our
           // own code — which is the first thing a competent reader suspects of an estimator that
