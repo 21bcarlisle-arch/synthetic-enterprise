@@ -1,294 +1,272 @@
 version: 1
-oriented_at: "2026-08-30T02:24:08.459346+00:00"
+oriented_at: "2026-08-30T08:22:29.345708+00:00"
 thesis_read: >-
-  All three focus items were drawn — the second consecutive stretch where the steer reached the
-  work — and two of them landed to the standard this project claims for itself. The floor split is
-  finished and it is the cleanest piece of work in weeks: the two legs partition the call stream,
-  the denominator defect I filed against myself was actually repaired (`what_each_count_counts`
-  now says in the artefact that `independent_draws_this_book` is the only sample size and
-  `elasticity_calls_per_seed` "is a sample size for nothing at all"), and my point prediction of
-  £1,506 for the except leg is marked **❌ REFUTED** beside its result in the preregistration. It
-  came out at **£0.21** — four orders of magnitude out. That number is the stretch's real finding
-  and it is not noise: re-drawing 1,950 households moves *both* arms' totals by about £1,000 each
-  and the difference cancels, so 99.99% of the published ±£2,578 is the ten priced households' own
-  dice. The second item is finished and it is the one that changes what this project is arguing
-  about. `cdbb1a772` established from the code path, not from the id scheme, that **158 of the 168
-  accounts the world offered a renewal to can never reach the arm**: a won or drawn electricity
-  record carries `tariff_type` present and `None`, `run_phase2b.py:1170`'s `.get(…, "fixed")`
-  default is dead on 141 of 150 legs because `.get` only defaults on an *absent* key, and
-  `UPLIFTABLE_TARIFF_TYPES = {fixed, pass_through}` refuses it. The nine founders pass only because
-  their hand-authored record omits the field. It is a gate, no book size opens it, the relabel was
-  refused on the 2026-08-28 fidelity ruling rather than on convenience, and the curriculum question
-  went to the director at 00:4xZ with delivery verified against `delivery_state()` rather than
-  inferred from a returned id. Put those two results together and they compose into the sentence
-  this whole stretch was really about: **the floor is 99.99% priced-side, the priced side is ten
-  founder accounts, and nothing the company can lawfully do adds an eleventh.** Then there is the
-  third item, and it went backwards in a way I have to state plainly because it is the shape this
-  project has a rule against. `docs/staging/SEAT_TO_DIRECTOR_A46_THE_PRICED_MENU_2026-08-30.md`
-  and `docs/design/A46_THE_PRICED_MENU_2026-08-30.md` are addressed to the director and assert, in
-  §2 and §8, "a clean two-point slope taken with the publisher stood down" and "both points were
-  measured with the producer held down". The artefact they cite says
-  `recommendation.decidable: false` — *"1 CLEAN point(s); a slope needs at least two"* — because
-  another process wrote `book_growth_campaign.json` during the 2,000 point, which is the identical
-  contamination the clean re-run existed to eliminate. §7 says the four predictions "are marked in
-  that file, beside themselves, right or wrong": the preregistration contains **zero** marks and has
-  not been touched since its 22:26 commit. §1 cites `settlement_ceiling_probe.menu`; the artefact
-  has no `menu` key. And the menu itself — the entire deliverable, the thing the atom exists to
-  produce — is the literal string `<!-- MENU TABLE -->` in both documents. Nothing is committed,
-  `engine_bound_basis` still reads `NOT YET KNOWN`, and A46 is still at level 0 against a bar of 2,
-  so zero levels moved for the second stretch running. The honest reading is that A46's
-  *recommendation* is sound and does not depend on the slope at all — it rests on the gate column,
-  which is flat at every interval — but it was written as though the measurement had succeeded, and
-  a document that overstates its own evidence to the one reader who cannot check it is worse than
-  the missing menu it was covering for. One thing nobody is looking at: `decisions.discrimination_auc`
-  is **0.13** on the live page, framed there as corroboration, while `grade_renewal_churn_belief.py`
-  records the same quantity at **0.4653**. A belief that ranks at 0.13 is not uninformative — it is
-  0.87 upside down — and nothing has attributed that move.
+  The steer correction worked and it should be said before anything else, because it is the only
+  reason this stretch has a level move in it. I named A46 as an atom id twice and it was drawn
+  neither time; I re-keyed the identical work as lane 0 and it was drawn first, worked and landed
+  inside one stretch. `717472661` did the whole of it — the false "clean two-point slope" sentence
+  in the file addressed to the director is now replaced with what the artefact actually says, the
+  `<!-- MENU TABLE -->` placeholder is gone from both documents, all four preregistered predictions
+  are marked beside themselves and two of them are marked WRONG against me, `engine_bound_basis`
+  carries the established answer instead of `NOT YET KNOWN`, and `A46_book_depth_is_a_curriculum_question`
+  moved 0→1 — the first level to move in four stretches. It is L1 and not L2 and the map says why in
+  its own comment: what is missing is the director's ruling, not our work. **That item is finished
+  and it disappears from this file.** The second thing that happened is that the funnel answered its
+  question while nobody was looking. `value_cycle_ab_s1_three_arm_20260830.json` landed at 05:32Z
+  carrying `method_skill.drop_out.available: true`, and the split of the fourteen dropped decisions
+  is **0 join, 4 coverage, 10 eligibility** — reconciling exactly, 20 logged = 6 scored + 14 dropped.
+  Read against the thesis that is a bigger result than the item that commissioned it. I asked which
+  of those fourteen were *ours and recoverable today*, expecting the answer to be the lever that
+  sharpens the concordance this week. The answer is **none of them**: zero are a join we failed to
+  make, ten are eligibility (`the_priced_term_carried_no_settled_row` — the arm priced a term the
+  world never billed under), and the four coverage cases are a gap in our sourced default-tariff
+  series, which the artefact's own class definition says is *"widenable, but the work is outside this
+  measurement"*. So the measurement scoring the thesis cannot be widened by tidying our own code. Six
+  decisions is what this world can offer, and the reason is the world. **And that is precisely what
+  the director's brief says, in his words, arrived the same morning independently**: *"the company
+  can never be right or wrong about why a household moved. That is the only thing worth inferring,
+  and it is the whole of the thesis."* Two lines of evidence converged on one diagnosis this stretch
+  and they were produced by different lanes hours apart. Against that, the honest reading is that the
+  project moved forward on design and stood still on measurement. `067a00dfd` gave the world a
+  standard variable product that is a genuinely different product and not a different label — no
+  locked rate, no term boundary, no renewal notice, cap-bounded off the series we already hold — and
+  **no account is on it**. `population_draw.py:222` still reads `tariff_type: Optional[str] = None`,
+  the 158-of-168 unreached accounts are unreached by exactly as much as they were yesterday, and the
+  roadmap amended itself in public four hours after being written to say that assigning them (C1b)
+  cannot come before a departure carries a reason (C2), because an SVT account has no renewal and
+  every field of a renewal-shaped churn event is meaningless for it. That amendment is right and it
+  is the sequencing constraint that decides this direction. So: the instrument is honest, complete
+  and unusually well-controlled; what it measures is six decisions on ten founder accounts, 1.46% of
+  the renewals the world offered; the one figure outside its null is still more likely to be
+  measuring our extraction than our inference; and we now have a diagnosis, a design and a
+  preregistration for the thing that would change that, and no code. The work is C2.
 stretch_reviewed:
-  since: "2026-08-29T23:20:29.337113+00:00"
+  since: "2026-08-30T05:21:08.835299+00:00"
   commits: 8
-  substantive: 4
+  substantive: 8
 focus:
-  - id: A46_book_depth_is_a_curriculum_question
+  - id: c2-a-departure-carries-a-cause
     what: >-
-      Close A46 honestly and land it, **without buying a third probe point.** Five things, in order.
-      (a) **Correct the two documents' claims about their own evidence, beside the claims.**
-      `docs/staging/SEAT_TO_DIRECTOR_A46_THE_PRICED_MENU_2026-08-30.md` says the menu rests on "a
-      clean two-point slope"; `docs/design/A46_THE_PRICED_MENU_2026-08-30.md` §8 says "both points
-      were measured with the producer held down". `docs/observability/settlement_ceiling_slope_20260829.json`
-      says `recommendation.decidable: false`, one clean point, and
-      `campaign_record_agrees: false` on the 2,000 point because another writer touched
-      `book_growth_campaign.json` mid-run. Say that on the surface of both, in the words the
-      artefact uses — the hold covered the producer and something else still wrote the record, which
-      is a fact about this box and belongs in §8 rather than being smoothed out of it. **(b) Fill
-      `<!-- MENU TABLE -->` from what actually exists**, which is enough: the 1,200 clean point
-      (928.6s, 3,952 MB, 90 wins, 1,195.4 cy committed, `campaign_record_agrees: true`), the 2,000
-      point carried as a **single contaminated observation explicitly barred from the slope**, and
-      the funnel-supply arithmetic that needs no run at all — `recommend()`'s
-      `funnel_supply_customer_years`, opening book 778.1, campaign demand 2,358.4, so a ceiling above
-      3,136.5 buys nothing. Mark every row's basis so a reader can tell a measured cost from a
-      projected one, and mark the marginal-cost column absent rather than interpolating a slope from
-      one point. (c) **Mark the four predictions in
-      `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_CLEAN_CEILING_SLOPE_MUST_SHOW_2026-08-29.md`,
-      beside themselves, right or wrong** — the file has none and §7 says it does. From the artefact:
-      (1) the 2,000 point committed 1,995.3 cy and 261 wins, so ceiling-bound not funnel-bound —
-      **held, on a contaminated point, and say that**; (2) predicted 1,500–1,800s and 6,000–6,800 MB,
-      measured 2,097.6s and 6,784.5 MB — **RSS in band, wall clock above it, so the contamination
-      claim's falsifiable half is half refuted**; (3) memory did not bind at 6.8 GB of 24,032 —
-      held, but `oom_kills_total` went 186 → 187 *during the probe*, so record that beside it;
-      (4) refuted in substance by its own author in §7 already, which stands. (d) Replace
-      `NOT YET KNOWN` in `tools/generate_book_growth_data.py::engine_bound_basis` with what is now
-      established — that the time leg is a chosen publish interval and not an engineering limit, that
-      the memory leg is slack at the measured point, and that the slope is undecidable on one clean
-      point — because that string is the reader's only copy of this answer. (e) **Commit it by
-      pathspec and move A46 off level 0**, on the decision and the corrected menu, not on a second
-      probe point.
+      **Lane 0. Build C2 to the design and the preregistration that are already committed** —
+      `docs/design/C2_DEPARTURE_WITH_A_CAUSE_DESIGN.md` and
+      `docs/staging/WORKER_PREREGISTRATION_WHAT_A_DEPARTURE_WITH_A_CAUSE_MUST_SHOW_2026-08-30.md`.
+      Nothing here needs another design pass; the trap has already been found and written down.
+      Replace the composed form in `simulation/renewals.py` — `p = p_base · Π m_k`, rolled once —
+      with the competing-risks form the design specifies: each RISK carries its own hazard, survival
+      is `Π (1 − p_k)`, the cause that fires names the departure, and the MODULATORS in §2 scale
+      risks and never become risks (`market_switching_multiplier` is a modulator, and §2 says why:
+      at 0.444 in 2022 it would otherwise be a cause that made people leave *less*). Work in the
+      order §5 fixes and **do not reorder it**: (1) fit `a_k` so population-mean realised churn
+      matches today within ±0.5% relative — until that holds nothing else in the preregistration is
+      readable; (2) re-establish the anti-goal-seek guarantee `m(d)·m(−d) == 1` at the population
+      mean, and note the design's own warning that a naive rewrite is predicted to BREAK it, so if it
+      passes first time distrust the test before you trust the code; (3) only then look at P1, P3, P6
+      and last of all the reason mix P2, across seeds and never off one run — there are 40 departures
+      in a decade, eight per cause. Honour §3's constraint literally: **hazards are functions of each
+      household's state, never constants**, because constant hazards reproduce the input weights as
+      the output reason mix and would satisfy P2 while measuring nothing. Then mark every prediction
+      in the preregistration beside itself, right or wrong, the way A46's four were marked this
+      morning. The twelve readers branching on `event_type == "churned"` are the compatibility
+      surface: the schema has to carry a reason without breaking them, and it has to generalise to a
+      departure that is not a renewal, because that is what C1b will hand it next.
     why: >-
-      This is first because it is the only work here that is wrong rather than merely unfinished,
-      and because the reader it is wrong in front of is the director, who cannot check it. Three
-      separate sentences in those two files assert evidence that their own cited artefacts refuse —
-      a clean slope that is `decidable: false`, predictions "marked beside themselves" in a file
-      with zero marks, and a `settlement_ceiling_probe.menu` key that does not exist — and the
-      deliverable itself is an unfilled HTML comment. That is this project's most-filed defect
-      class, a claim describing its own completion in the past tense, landing on the one path where
-      it does the most damage. It is also, separately, the only level that can move: A46 is at 0
-      against 2 with provenance `director_ruling`, and nothing has moved for two stretches. **The
-      recommendation in those documents is right and I am keeping it** — leave
-      `SETTLEMENT_CUSTOMER_YEAR_BUDGET` at 1,200 — precisely because it never depended on the slope:
-      it rests on the gate column, which is zero at every interval, and the two results that landed
-      this stretch make it stronger rather than weaker. That is exactly why a third 35-minute run on
-      a box that OOM-killed during the last one buys nothing, and why the repair is to the writing
-      and the table, not to the measurement. **Done means:** the cleanliness sentences corrected in
-      both files in the artefact's own words, the menu table present and every row marked measured
-      or projected, four predictions marked, `engine_bound_basis` carrying the established answer,
-      the whole thing committed, and A46 moved. A permitted and honest outcome is a menu whose
-      marginal-cost column reads *"one clean point; no slope"* — that is a result about this box,
-      and it belongs in the table rather than in a footnote.
-  - id: attribute-the-churn-auc-move-from-0-4653-to-0-13
+      First because it is the binding constraint on everything this project measures, and two
+      independent lines of evidence landed on it this morning. The director's brief states it as the
+      whole of the thesis — a supplier's central commercial question cannot be asked in a world where
+      a household leaves because a number came up — and the drop-out funnel says the same thing from
+      the other end: **zero of the fourteen unscored decisions are recoverable by us**, so the sample
+      that grades our inference cannot grow by any amount of work on our own code. It grows when the
+      world gets richer, and C2 is the step the roadmap's own amendment identifies as the one that
+      has to come before the assignment (C1b) that widens the priced surface from 25 renewals to
+      roughly 70. It is also the step with the highest chance of going quietly wrong, which is why it
+      is worth the first slot rather than a later one: `1 − Π(1 − p_k) ≠ p_base · Π m_k`, so churn
+      rates *will* move, and a move that is not predicted in advance is a move nobody can attribute.
+      Everything needed to make it attributable is already filed. **Done means:** the competing-risks
+      form landed in `simulation/renewals.py` with a cause named on every departure; P0 calibration
+      holding within ±0.5% relative and stated; the `m(d)·m(−d) == 1` guarantee re-established with a
+      test that can fail; every preregistered prediction marked beside itself including the ones that
+      refute me; and the reason mix reported across seeds against the published mover-mix as a CHECK
+      and never as an input. If P0 will not calibrate, that is a result — say so, keep the prediction,
+      and leave the composed form standing rather than shipping a half-rewrite.
+  - id: promote-the-funnel-artefact-and-publish-the-drop-out-split
     what: >-
-      `site/data/value_arms.json` publishes `decisions.discrimination_auc = 0.13` with the reading
-      *"below 0.50 means the company's own belief about who will leave ranks customers worse than a
-      coin flip"*, and `company/pricing/value_based_renewal.py:112` and
-      `tools/grade_renewal_churn_belief.py:27` both record the same quantity at **0.4653** on 25
-      priced renewals, 9 of them departures. Establish which of three things 0.13 is, and do it from
-      the artefact and the grader rather than by argument: **(i)** a genuine belief that is
-      anti-predictive, **(ii)** a polarity or label defect — 0.13 is 0.87 inverted, and an estimator
-      that is *strongly* wrong in a consistent direction is the classic signature of a comparison
-      taken against the wrong side of the outcome label — or **(iii)** a small-sample artefact,
-      given the priced surface is 20 decisions on 10 accounts and the 0.4653 figure was measured on
-      25. `tools/grade_renewal_churn_belief.py` already carries an `oracle_ceiling` block and a
-      `bill_shock_model` comparison, so run the grader against the current run rather than building
-      anything: an oracle that also comes out below 0.5 on this population is an instrument defect,
-      one that comes out near 1.0 leaves the belief itself as the subject. Then publish the answer
-      beside the figure. **If it is polarity, the repair is in the company's own belief code and it
-      is ours to make; if it is the population, the page must say which 9 departures the AUC is
-      computed over, because an AUC on single-digit positives is a number with no bound on the page.**
-      Do not delete the figure and do not soften the reading if it survives — a company that ranks
-      churn backwards is a real finding about the method.
+      The run finished. `docs/observability/value_cycle_ab_s1_three_arm_20260830.json`
+      (`generated_at: 2026-08-30T05:32:11Z`) carries `method_skill.drop_out` and
+      `belief_vs_outcome.scored_decisions`, and `site/data/value_arms.json` — regenerated at 07:21Z,
+      *after* it — still renders both blocks `available: false` and "Not shown", because the
+      publisher reads the promoted name `value_cycle_ab_s1_three_arm.json`, which is byte-identical
+      to the 08-29 file. **Nobody promoted it.** Four steps. (a) Run
+      `tools/run_arms_with_the_skill_funnel_20260830.sh --check` and obey it: an empty diff promotes,
+      a non-empty diff is a FINDING and not a publish to force. (b) **Before promoting, check the
+      provenance trap this direction created and did not see in time.** `f9866cd2a` — *"the arms'
+      book was read once at the end, so two arms on two books read as one"* — committed at 05:31Z,
+      one minute before this artefact was written and forty-four minutes after the run started, so
+      the artefact was produced by the PRE-FIX code and its `book_identity` is the shape that fix
+      exists to correct. Promoting it puts a stale-labelled `book_identity` on the live page under a
+      commit whose tree contains the newer labeller. Either regenerate `book_identity` honestly or
+      publish it carrying an explicit note of which code wrote it — do not let the promotion date
+      speak for the code date. (c) Publish the split on the page, in the reader's words and beside
+      the 0.133–0.867 interval: of fourteen dropped decisions, **zero are a join we failed to make,
+      four are a gap in our own sourced tariff series, and ten are decisions the world never billed
+      under the price that was chosen** — and say the consequence out loud, which is that this sample
+      cannot be widened by fixing our code. (d) Fix the control that let the wrapper defect through:
+      `site/test_expert_doors_mobile.py::test_tables_scroll_inside_their_own_container` counts
+      `table-scroll` occurrences against `<table>` occurrences, and the door's own `<style>` rule at
+      `site/capabilities/index.html:71` matches, so the assertion is really `real_wrappers + 1 >=
+      n_tables` and exactly one unwrapped table always passes. It gates every publish commit in this
+      lane. Repair it and prove it can fail.
     why: >-
-      The thesis says the company "beats average precisely to the degree it understands and predicts
-      the truth behind the SIM better than average", and this is the only published number that
-      measures that understanding directly rather than through a £ contrast. It currently says the
-      company understands its customers *worse than nothing*, it is framed on the live page as
-      corroborating the selection result — *"the selection result and the belief result corroborate
-      each other rather than merely coexisting"* — and it has moved from 0.4653 to 0.13 with nobody
-      attributing the move. Two numbers for one quantity in one tree is the thread this project has
-      a standing rule about following. It is second rather than first because it is not yet in front
-      of the director, and it is above the item below it because a corroboration argument built on
-      an unattributed figure is load-bearing on the page today. It costs no long run, which matters
-      while the box is still killing processes. **Done means:** 0.13 attributed to one of the three
-      causes with the grader's own output as the evidence, the polarity question answered rather
-      than assumed either way, the answer written where the page's reader meets the figure, and — if
-      it survives as a real result — the `auc_reading` corroboration sentence either kept with its
-      sample size stated or withdrawn into `WITHDRAWN_CLAIMS` like the two before it.
-  - id: establish-what-drops-fourteen-of-the-twenty-priced-decisions
+      Second because it is the completion of last direction's second item and the answer is already
+      computed and sitting in a file the reader cannot see — a landed mechanism with no published
+      verdict is this project's "half a cut", and this one has the added property that the verdict is
+      *more* interesting than I predicted. I asked for the join/coverage split expecting a lever;
+      the answer is that there is no lever, and that is the evidence base under item one. Publishing
+      says so to the reader; leaving it says nothing while the page still reads "Not shown" for
+      something we know. It is below C2 because nothing on the page is currently false — it fails
+      closed and gives its reason, which is the behaviour we want — and because this is roughly an
+      hour of work against a build. The control repair rides here rather than getting its own slot
+      because it sits on the publish path this item has to cross anyway, and a control that permits
+      exactly one violation is the fail-open class this project has paid for repeatedly. **Done
+      means:** the determinism diff run and obeyed, `book_identity`'s provenance resolved rather than
+      inherited, the 20 → 6 funnel broken out by class on the live page with its consequence stated,
+      and the mobile control asserting what it claims with a mutation proving it can fail. If the
+      diff is non-empty, the finding is filed, both blocks stay honestly fail-closed, and nothing is
+      published — that is a complete outcome, not a failure.
+  - id: the-segment-dial-generates-a-population-rather-than-selecting-one
     what: >-
-      `method_skill` scores **6 decisions across 5 accounts** — null interval 0.133–0.867, p=0.47,
-      `inside_the_null: true` — while `decisions.value_arm_priced` is **20**, on the ten founder
-      accounts named in `who_the_method_has_priced.priced_accounts`. Fourteen of the twenty priced
-      decisions do not reach the measurement that scores the method, and no artefact says why.
-      Find the filter in `tools/generate_value_arms_data.py`'s skill path and name it, then answer
-      one question a reader can check: **is the drop from 20 to 6 a join that can be honestly
-      widened, or an eligibility rule the concordance genuinely needs?** If it is a join — a missing
-      counterfactual, an unmatched key, an account excluded because one side of the pair is absent —
-      widening it narrows the null interval with no world change and no director ruling, which is
-      the only lever on that interval currently available to us. If it is a real eligibility rule,
-      say what each of the two counts counts, put the reason on the page beside the 0.133–0.867
-      interval, and stop the site implying that 20 priced decisions are what the skill figure rests
-      on. Either way, `decisions_scored` and `accounts` should carry, in the artefact, the funnel
-      from 20 down to 6 broken out by the reason each decision was dropped.
+      Discharge the tree's only BLOCKING finding,
+      `docs/staging/WORKER_FINDING_THE_SEGMENT_DIAL_CHANGES_WHICH_HOUSEHOLDS_EXIST_NOT_JUST_HOW_MANY_2026-08-30.md`.
+      `SE_SERVED_SEGMENTS="resi"` yields 257 residential households where `"resi,SME,I&C"` yields
+      238, at the same seed, and the sets are not nested in either direction. The mechanism is
+      located and named: in `simulation/live_population.py` the growth campaign filters its WINNERS
+      correctly but plans against `_pre_growth_book(seed)`, which is itself segment-filtered, so
+      suspending a segment changes the book the campaign plans against, which changes its stochastic
+      funnel, which changes which residential prospects it wins. Make the campaign plan against the
+      unfiltered book and filter only at the output, so the dial selects from a fixed population
+      instead of generating a different one — and **prove the repair is inert on the live world**,
+      which it should be, because the published book serves all segments and the filter is then the
+      identity. Print the two censuses before and after. Then key the control to the property rather
+      than to today's answer: the invariant is that the served set is a subset relation across any
+      pair of dial settings, not that some particular count is 257.
     why: >-
-      With the product gate established as structural and the SVT ruling now genuinely with the
-      director, the sample that scores the thesis is frozen at whatever the founder book yields
-      until he rules — so the only remaining honest way to sharpen it is to stop discarding
-      decisions we already have. A concordance on six decisions cannot distinguish the method from a
-      coin in either direction, A46's own §4 correctly calls that the row that matters, and the
-      difference between six and twenty is the difference between a measurement that can say nothing
-      and one that might. It is third because it may turn out to be a legitimate eligibility rule,
-      in which case the deliverable is a sentence rather than a narrower interval — but the sentence
-      is still owed, because two counts for one subject on one page is the pattern that has
-      published something misleading here more than once. **Done means:** the filter named, the
-      20 → 6 drop-out broken out by reason in the artefact, and either the join widened with the
-      new interval published, or the rule stated on the page beside the interval it produces. **This
-      does not license touching the eligibility rule to make n larger** — if the honest answer is
-      that six is what the method has earned, that is the answer and it goes on the page.
+      Third because it is the only BLOCKING finding open, because a curriculum dial that cannot be
+      moved and attributed is a broken instrument belonging to the director, and because it is
+      cheap and provably inert on anything published — the finding says so itself: *"no published
+      figure is known to be wrong; it is the measurement that is unsafe, not the current number."*
+      It is below the two items above precisely because of that: nothing downstream is wrong today,
+      so it costs nothing to sit one slot lower, and the two above are respectively the thesis and an
+      answer already computed. It earns its place in the file rather than the backlog because
+      `served_segments` appears in `book_identity` on the artefact item two is about to promote, and
+      because C1's SVT assignment will change which households exist along a second axis — doing that
+      on top of a dial that already moves the population is how two changes land at once and neither
+      can be attributed. **Done means:** the campaign's input unfiltered, the subset property holding
+      across dial settings with a test that fails on the old code, both censuses printed, and the
+      finding archived to its class.
 not_now:
   - what: >-
-      Buying a third settlement-ceiling probe point to get a clean 2,000 and a real slope.
+      Grading the churn belief on a population the arm did not create — the exogenous-population AUC
+      I named as focus item three in the last direction.
+  # kept out on the measurement's own arithmetic, and the drawing history is only corroboration
     why: >-
-      The obvious repair for item one, and it is the wrong one. The slope was commissioned to price
-      the interval decision, and that decision is already taken and does not depend on it: the menu's
-      second column — accounts the method could price — is zero at every interval for a structural
-      reason no ceiling reaches, so the marginal cost of a customer-year cannot change the
-      recommendation. Against that, a third point costs ~35 minutes of a box whose `oom_kills_total`
-      went 186 → 187 *during the last probe*, and the 2,000 point has now been contaminated twice by
-      the same shared file. Buying a precise answer to a question whose decision is already settled,
-      on a box that is killing processes, to repair a document whose actual defect is that it
-      overstated its evidence, is spending compute to avoid writing an honest sentence. The honest
-      sentence is free. The point becomes worth buying again if and when the SVT ruling lands and
-      the menu's second column stops being zero.
+      Dropped rather than carried a third time, and the substantive reason comes first. The repair
+      would compute the same discrimination statistic on the level or control arm's outcomes for the
+      same accounts — but `method_skill.drop_out` has just told us the scored population is **six
+      decisions**, and there is no reason to think the exogenous arm's scored population is larger,
+      because the ten eligibility drops are a property of the world's settlement record and not of
+      which arm priced them. So the deliverable is a second unreadable number placed beside the first
+      and an exact null over a handful of arrangements. Against that, the page already fails closed
+      correctly: `auc_attribution.verdict` reads *"the population, and the population is endogenous to
+      the arm's own price"*, and it names the five accounts the arm drove out. The reader is told the
+      figure cannot be read as evidence about our inference, which is the true statement, and item
+      one is the work that makes the population large enough for the question to have an answer. The
+      corroborating fact, recorded because it is evidence about my own judgement rather than about
+      the measurement: I placed this at position three twice and it was drawn neither time, so it has
+      never once out-competed anything I ranked above it. Keeping it at three a third time would be
+      the same error I marked corrected this morning, wearing a different key.
   - what: >-
-      Launching the lifted-`SETTLEMENT_CUSTOMER_YEAR_BUDGET` arms re-run to buy the floor down.
+      C1b — assigning drawn accounts to the standard variable product now, to take the value arm's
+      reachable surface from 25 renewals to roughly 70 immediately.
     why: >-
-      Held three stretches, and it is now refused on measurement rather than deferred on contention,
-      which is the difference between a queue and a judgement. The split says 99.99% of the ±£2,578
-      is the ten priced households' own dice and the rest-of-book cascade contributes £0.21 — so the
-      remedy is more *priced* decisions and only that. The gate says no book size produces an
-      eleventh priced account. The two results compose: a larger settled book buys **nothing at all**
-      on this floor, and the artefact's own
-      `where_the_priced_decisions_come_from.reading` already says so in the words a reader gets.
-      Every earlier version of this deferral was about contention; this one is arithmetic, and it
-      should not be re-litigated as though the box were the obstacle.
+      The fastest route to a bigger `n` and refused for that reason, on the roadmap's own published
+      amendment rather than on my preference. An SVT account has no renewal, so booking its departure
+      through `roll_lifecycle_event` emits a renewal-shaped event whose `churn_probability`,
+      `win_probability`, `company_churn_estimate`, `churn_estimate_error_pct` and `retention_offered`
+      are all meaningless — with twelve live readers branching on `event_type == "churned"`. That is
+      the exact shape by which a plumbing artefact becomes a published figure, and the beneficiary
+      would be this experiment's own sample size. It is the third time in three directions that the
+      cheap route to a larger sample has been the wrong one, after setting `tariff_type` to `fixed`
+      and after defaulting the absent-versus-`None` distinction. C1b is the first non-renewal
+      departure the new schema has to carry, so it is the test of whether C2's schema generalises;
+      built first, it would make the schema a description of one case. It goes to position one the
+      moment C2 lands.
   - what: >-
-      Building the standard-variable product into the drawn world so won households become
-      upliftable — or, faster, defaulting the absent-versus-`None` distinction so the existing guard
-      admits them.
+      Taking A46 from L1 to its L2 bar, now that the priced menu is built and the level has moved.
     why: >-
-      Refused again, and the second form is the more dangerous because it looks like a one-line bug
-      fix. `run_phase2b.py:1170`'s dead `.get(…, "fixed")` default is *not* a defect to repair: making
-      it fire would assert a 100%-fixed domestic book against a published fixed share centred near a
-      third, which is a fidelity regression whose only beneficiary is this experiment's sample size.
-      That was settled on 2026-08-28 in `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, blind to
-      what it does to `n`, and internal consistency is not a fidelity argument for a world change
-      that enlarges the experiment making it. The real repair — the SVT product from the published
-      split — is R13 curriculum, is the director's, and **has now actually been sent** (00:4xZ,
-      `PqJjeQp6wEB2`, delivery verified against `delivery_state()`), so the correct posture is
-      waiting, not building. The direction check that makes it credible is stated in the escalation
-      itself: it makes the arm's in-scope surface smaller as a share of the book, not bigger.
+      The obvious follow-on and it is not ours to do. The atom's own map comment states the gap: the
+      menu exists, what it buys is measured, the funnel-supply ceiling is arithmetic, and the column
+      that decides it is zero for a structural reason no ceiling reaches — what is missing is the
+      director's ruling on which world the book lives in, which R13 reserves to him and which this
+      seat may not take. Doing more work on A46 would be manufacturing activity on an atom that is
+      waiting on a person, and the correct posture for that is waiting. The standing recommendation
+      is unchanged and stays recorded: hold `SETTLEMENT_CUSTOMER_YEAR_BUDGET` at 1,200.
   - what: >-
-      Pinning or snapshotting `book_growth_campaign.json` so a concurrent writer cannot contaminate
-      a probe point again.
+      Re-running the noise-floor leg beside the three-arm leg to put the pair back on one clock, and
+      buying a third settlement-ceiling probe point.
     why: >-
-      The mechanism is real and it has now cost two measurements, so this is the moment it is most
-      tempting. But the probe **already detected it** — `campaign_record_agrees: false`,
-      `clean: false`, `decidable: false`, with the reason named — and refused to build a slope on it.
-      The control worked exactly as designed; what failed was a human-facing document that reported
-      the refusal as a success. Building isolation machinery to protect a measurement I have just
-      decided not to re-take is the shape this project has a rule against: prefer doing the work to
-      building the thing that watches the work. It earns its place the moment item one's exclusion
-      is lifted and a third point is actually bought, and not before.
+      Both are long runs on a box whose `oom_kill` counter has been climbing all week and whose last
+      three-arm run held 6.6 GB for forty-five minutes, and both would be bought to avoid writing an
+      honest sentence. The noise-floor re-run is only owed if the determinism diff in item two comes
+      back non-empty, and if it does, the correct first move is to file the finding and leave the
+      page fail-closed, not to spend ninety minutes of a contended machine before anyone has read the
+      diff. The third probe point stays refused for the third direction on the same arithmetic as
+      before: the decision it would inform is taken and does not rest on the slope. Buying compute to
+      replace a sentence that is free to write is the trade in both cases.
   - what: >-
-      Re-opening the £22,788 pre-2021 loss adjudication, and sending the director the R6 collateral
-      headroom result.
+      The £22,788 pre-2021 loss adjudication, and sending the director the R6 collateral headroom
+      result.
     why: >-
-      The adjudication stays out of focus for a second stretch, and I am recording that as a
-      standing decision rather than letting it drift back in at the bottom of a list: it sat at
-      position four for three directions and was drawn zero times, and the correction that fixed
-      that was dropping it, not re-wording it. It returns at position one or two when it is genuinely
-      what matters most. The R6 headroom result is still a co-movement rather than an attribution,
-      because the one-variable run that would separate it is the same class of long run I have just
-      refused twice above, and sending the director a co-movement described as a finding is the
-      defect this direction opens by naming.
+      The adjudication stays out for a fourth stretch as a standing decision rather than a drift — it
+      sat unread at position four through three directions, and dropping it was the fix. It returns at
+      position one or two when it is what matters most, and it is not that today. The R6 headroom
+      figure is still a co-movement rather than an attribution, and the one-variable run that would
+      separate it is the class of long run refused immediately above; sending him a co-movement
+      described as a finding is the defect this file opens by naming.
 wrong:
   - what: >-
-      `docs/staging/SEAT_TO_DIRECTOR_A46_THE_PRICED_MENU_2026-08-30.md` tells the director the menu
-      rests on "a clean two-point slope taken with the publisher stood down", and
-      `docs/design/A46_THE_PRICED_MENU_2026-08-30.md` §8 says "both points were measured with the
-      producer held down". The artefact both cite says `recommendation.decidable: false` —
-      *"1 CLEAN point(s); a slope needs at least two"* — and puts `campaign_record_agrees: false` on
-      the 2,000 point because another process wrote `book_growth_campaign.json` during it, which is
-      the identical contamination that clean re-run existed to eliminate. The write-up reported its
-      own instrument's refusal as a success, on the one path where the reader cannot check it.
+      I directed a determinism diff on a re-run — *"publish only if that diff is empty"* — without
+      checking whether the producer was under concurrent edit, and it was. `tools/run_value_cycle_ab.py`
+      changed under `f9866cd2a` at 05:31Z, forty-four minutes into a run that wrote at 05:32Z, so the
+      artefact I told a worker to promote was made by code that no longer exists in the tree, and its
+      `book_identity` is the exact field that commit was fixing. The diff I specified strips
+      `generated_at` and the two new keys and would have compared two pre-fix artefacts and reported
+      DETERMINISM OK — a green light that says nothing about the question. This is the class I have a
+      note on: an artefact promoted alongside its producer's new labelling code predates that code.
+      I wrote the concurrency warning into the direction's own preamble and then specified an exit
+      condition blind to it.
     corrected: false
   - what: >-
-      §7 of the same design document says the four predictions "are marked **in that file, beside
-      themselves**, right or wrong". `WORKER_PREREGISTRATION_WHAT_THE_CLEAN_CEILING_SLOPE_MUST_SHOW_2026-08-29.md`
-      contains zero marks and is unmodified since its 22:26 commit. A document asserting its own
-      preregistration discipline in the past tense while the marking never happened is the same class
-      as the escalation finding archived this stretch — one file over, one night later, and this time
-      inside the artefact written to demonstrate the discipline.
-    corrected: false
-  - what: >-
-      The deliverable of `A46_book_depth_is_a_curriculum_question` — the priced menu, the thing the
-      atom exists to produce — is the literal string `<!-- MENU TABLE -->` in both the design
-      document and the file addressed to the director, and §1 cites a
-      `settlement_ceiling_probe.menu` key the artefact does not have. Around that empty comment sit
-      three sections of prose reading as though the table were present. Nothing is committed, so
-      none of it has been through a gate.
-    corrected: false
-  - what: >-
-      My last direction told the worker to move A46 off level 0 while making it depend on a run that
-      depended on two other things landing first, in the same paragraph where I named box contention
-      as the risk. Both dependencies landed and the level still did not move. Naming the risk and
-      then routing the level-moving item through it anyway is not a mitigation; the correct move was
-      to specify a version of the menu that a single clean point could produce, which is what item
-      one now says.
+      In the same item I wrote *"how many are `join` or `coverage` (ours, and therefore recoverable
+      today)"*, fusing two classes the artefact keeps apart on purpose. Its own definitions say join
+      is *"widenable by us, here, with no world change and no ruling — and a non-zero count is a
+      DEFECT"*, while coverage is *"widenable, but the work is outside this measurement"*. The answer
+      came back 0 join and 4 coverage, so under my phrasing four decisions are recoverable today and
+      under the artefact's none are. The number I would have published from my own sentence would
+      have been wrong in the direction that flatters the sample, and the instrument was more careful
+      than the direction that commissioned it. This is the "say out loud what each number counts"
+      habit failing at the point where two counts were added rather than divided.
     corrected: true
   - what: >-
-      I predicted the except leg's `selection_gbp` spread at £1,506 — `sqrt(2577.80² − 2092.29²)` —
-      and it came out at £0.21, wrong by four orders of magnitude. It is marked ❌ REFUTED beside its
-      number in the preregistration, and the reason it was wrong is worth more than the prediction:
-      re-drawing the rest of the book moves both arms' totals together, so the churn cascade cancels
-      in the contrast instead of adding to it. The variance-sum ratio of 0.66 still sits inside the
-      0.3–3.0 band three seeds allow, so the legs are not disqualified as two halves of one thing —
-      but 34% of the published spread is reproduced by neither leg and is currently attributed to
-      sample size by assumption rather than by measurement.
+      I filed three lane-0 items last stretch on the evidence that two lane-0 items had both been
+      drawn the stretch before, treating "lane 0 is reachable" as "lane 0 is unbounded". One was
+      drawn. Items two and three sat untouched, and item two was only completed at all because a
+      process launched in the previous stretch happened to finish on its own. Ordering is the whole
+      of the instrument and I diluted it.
     corrected: true
   - what: >-
-      `decisions.discrimination_auc` has been publishing at 0.13 on the live page, framed as
-      corroborating the selection result, while two places in the tree record the same quantity at
-      0.4653. Nobody attributed the move, and 0.13 is not a weak signal — it is 0.87 inverted, which
-      is what a polarity defect looks like. It has been read as a finding about the company's belief
-      without anyone ruling out that it is a finding about the comparison.
-    corrected: false
+      A46: the three false claims in the file addressed to the director, the `<!-- MENU TABLE -->`
+      placeholder standing in for the deliverable in two documents, the four preregistered
+      predictions asserted as marked while the file held none, and the atom sitting at level 0
+      against a bar of 2. All four were recorded as `corrected: false` this morning. All four are now
+      repaired in `717472661` and the level is recorded at 1.
+    corrected: true
 for_the_director: []
