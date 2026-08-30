@@ -109,6 +109,29 @@ UNMODELLED_EXIT_FEE_IMPORTANCE = 0.22
 #: say where they got it.
 _SENSITIVITY_SCALE: float | None = None
 
+#: WHAT THE PER-YEAR LEVEL ANCHOR CHANGED ABOUT THE PARAGRAPH ABOVE (2026-08-30), AND WHAT IT DID
+#: NOT. P0 was one equation -- hold the population mean -- and it tied `a_shock` to the scale, so
+#: the family above is the set of pairs satisfying it. `simulation/departure_level_anchor.py` now
+#: sets each year's level from the published record, which DISCHARGES that equation: the anchor
+#: absorbs whatever level the pair implies, so the pair no longer has a level to hit and only its
+#: RATIO survives. That makes `a_shock` cleanly free rather than entangled -- and free is what it
+#: still is. No domestic instrument separates "my own bill rose" from "someone else is cheaper";
+#: Ofgem's Consumer Impacts survey codes both as one answer, and only the non-domestic instrument
+#: splits them, on a population the evidence itself records as differing in kind.
+#:
+#: THE WORLD STILL HAS TO ROLL A DIE, so a pair is DECLARED below rather than fitted, and the
+#: reason mix it produces is published as an INTERVAL over the feasible family -- never as a point.
+#: The declared pair is the a_shock = 0.50 row of that family, measured in
+#: `docs/staging/WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`
+#: §1, and the reason is FIDELITY under R13 and not a tie-break: it is the end of the published
+#: feasible set at which all three risks are materially live. The other end (a_shock = 0.87,
+#: mix 99.9%/0.0%/0.0%) is a world in which a supplier's price position and service quality cause
+#: no departures at all -- which is the defect `churn_position_multiplier` was wired in to remove,
+#: arriving again through a calibration parameter. A world where what a supplier does has no
+#: consequence is not a harder world, it is an unmodelled one.
+DECLARED_SHOCK_WEIGHT = 0.50
+DECLARED_SENSITIVITY_SCALE = 0.039520
+
 
 def _clip_hazard(h: float) -> float:
     """A hazard is a probability in [0, WORLD_MAX_CHURN_PROBABILITY].
@@ -131,6 +154,8 @@ def build_departure_risks(
     action_propensity: float = 1.0,
     retention_offer_retained_fraction: float = 1.0,
     sensitivity_scale: float | None = None,
+    shock_weight: float = 1.0,
+    level_anchor: float = 1.0,
 ) -> dict[str, float]:
     """Return `{cause: hazard}` for one household at one renewal point.
 
@@ -143,6 +168,16 @@ def build_departure_risks(
     world's existing calibrated response curves, both ~1.0 at a neutral household, so the fitted
     scale multiplies a dimensionless response rather than re-deriving a curve that already has a
     source behind it.
+
+    `shock_weight` is `a_shock`, the within-price split. It is FREE and the caller declares it;
+    see the note on `_SENSITIVITY_SCALE`.
+
+    `level_anchor` is the YEAR'S LEVEL and it is not a preference either -- it is what makes this
+    form able to sit on the published record at all. It scales every hazard by the same factor, so
+    it moves the year's departure LEVEL and cannot move the reason MIX within that year: the
+    published rate says how many households left in 2020, the hazards say which ones and why. See
+    `simulation/departure_level_anchor.py` for where the number comes from and why one constant
+    could not do this job.
     """
     scale = _SENSITIVITY_SCALE if sensitivity_scale is None else sensitivity_scale
     if scale is None:
@@ -154,12 +189,13 @@ def build_departure_risks(
         )
     return {
         CAUSE_BILL_SHOCK: _clip_hazard(
-            bill_shock_base * market_opportunity * action_propensity
+            level_anchor * shock_weight * bill_shock_base
+            * market_opportunity * action_propensity
         ),
         # Opportunity-seeking, so market opportunity applies; and the retention offer is a PRICE
         # cut, so it scales this risk and nothing else (P6).
         CAUSE_PRICE_POSITION: _clip_hazard(
-            scale * PRICE_IMPORTANCE * price_response
+            level_anchor * scale * PRICE_IMPORTANCE * price_response
             * market_opportunity * action_propensity * retention_offer_retained_fraction
         ),
         # NOT opportunity-scaled, and this is the substantive consequence of the split. Today a
@@ -167,7 +203,8 @@ def build_departure_risks(
         # because fixed deals were expensive -- a mechanism nobody would defend once it is
         # written down. Dissatisfaction is a reason to leave whatever the market is doing.
         CAUSE_DISSATISFACTION: _clip_hazard(
-            scale * SERVICE_IMPORTANCE * dissatisfaction_response * action_propensity
+            level_anchor * scale * SERVICE_IMPORTANCE
+            * dissatisfaction_response * action_propensity
         ),
     }
 

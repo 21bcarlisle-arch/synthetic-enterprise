@@ -1,0 +1,51 @@
+{
+ "produced_by": "tools/fit_departure_hazards.py",
+ "factor_table": "docs/reports/c2_departure_factors.json",
+ "renewals": 465,
+ "declared_shock_weight": 0.5,
+ "declared_sensitivity_scale": 0.03952,
+ "free_parameter": "a_shock -- the split of the price family between 'my own bill rose' and 'someone else is cheaper'. No domestic instrument separates them; Ofgem's Consumer Impacts survey codes both as one answer.",
+ "level": "every point of the sweep is re-anchored onto the published GB domestic switching record, so the interval is over the reason mix alone and not over the level as well.",
+ "basis": "EXPECTED shares, hazard-weighted over every renewal in the captured run. NOT the realised mix.",
+ "sweep": {
+  "a_shock=0.87,scale=0.000053": {
+   "bill_shock": 0.999328887686843,
+   "price_position": 0.00034189586913698557,
+   "dissatisfaction": 0.0003292164440195622
+  },
+  "a_shock=0.80,scale=0.007649": {
+   "bill_shock": 0.9061771953808765,
+   "price_position": 0.0479547206928522,
+   "dissatisfaction": 0.045868083926270835
+  },
+  "a_shock=0.70,scale=0.018395": {
+   "bill_shock": 0.7821877653202595,
+   "price_position": 0.11167522845310479,
+   "dissatisfaction": 0.10613700622663788
+  },
+  "a_shock=0.60,scale=0.029018": {
+   "bill_shock": 0.6650549122100433,
+   "price_position": 0.1719851514267352,
+   "dissatisfaction": 0.1629599363632219
+  },
+  "a_shock=0.50,scale=0.039520": {
+   "bill_shock": 0.5513769931910689,
+   "price_position": 0.2303687065533871,
+   "dissatisfaction": 0.21825430025554554
+  }
+ },
+ "interval": {
+  "bill_shock": [
+   0.5513769931910689,
+   0.999328887686843
+  ],
+  "price_position": [
+   0.00034189586913698557,
+   0.2303687065533871
+  ],
+  "dissatisfaction": [
+   0.0003292164440195622,
+   0.21825430025554554
+  ]
+ }
+}

@@ -67,6 +67,12 @@ def main(out_path: Path) -> int:
             "sim_price_response": event.get("sim_price_response"),
             "sim_action_propensity": event.get("sim_action_propensity"),
             "sim_dissatisfaction_response": event.get("sim_dissatisfaction_response"),
+            # The year's level term and the risk that fired. Captured so the departure
+            # decomposition can be replayed from this table alone: with the factors, the anchor
+            # and the roll, `resolve_departure` reproduces the cause exactly, which is what lets
+            # the realised reason mix be measured without a second run of the world.
+            "sim_level_anchor": event.get("sim_level_anchor"),
+            "departure_cause": event.get("departure_cause"),
             # `is_active_renewal` and `engagement_level` are NOT captured here: the caller sets
             # them on the event dict AFTER this function returns, so they are absent at this
             # point. They are joined back from the published event log on (customer_id,

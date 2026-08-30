@@ -313,3 +313,125 @@ could not arrive unheld, and a second lane reading was sitting in the tree the w
 older than the register. It was not hidden — it was the wrong shape to be seen. That is the same
 lesson as the denominator: **what a control can see is set by the shape of its subject, not by the
 diligence of the person who wrote it.**
+
+## 11. Pre-registered predictions for the level ANCHOR, filed 2026-08-30 18:08Z
+
+Filed while the capture that tests them was still running and before a single one of its numbers had
+been read. §8 stands unchanged above it and is the standing pre-registration for the level move
+itself; this section is the pass-specific set for the change that lands the anchor —
+`simulation/departure_level_anchor.py`, a per-year level term inside
+`departure_risks.build_departure_risks`, and the competing-risks form wired into the churn chain.
+
+**A — the level moves, and it does not land clean first time.** The anchor is fitted on the
+*pre-change* population, and raising departures roughly threefold changes the book underneath it:
+accounts leave sooner, re-acquisition replaces them, and the renewal population the anchor was
+solved against is not the one the next run has. So: the 2017–24 mean lands inside **13–18%** (up
+from 4.50%), and **at least one year lands outside its own band** on the first capture. If every
+year lands in band first time, the book is less sensitive to its own churn rate than this predicts
+and the fixed-point argument in `tools/fit_year_level_anchor.py` is overstated.
+
+**B — the trap-detector, still standing and still armed.** More departures means more re-acquisition
+spend, less retained revenue and a harder book to hold. **If any headline company result improves,
+that is a defect in the change and not a finding about the company.** It fired last pass, on a
+0.43pp move; it is a stronger test this time because the move is ~11pp.
+
+**C — retention offers retain strictly fewer accounts.** The offer now scales the price-position
+hazard alone (P6) instead of the whole probability, so a discount can no longer retain a
+service-driven churner. Predicted: the realised effect of a retention offer on departure probability
+falls, and does not rise for any household.
+
+**D — the reason mix is an interval and its width is large.** At the declared `a_shock`, no single
+cause takes more than **70%** of the expected mix and price-position plus dissatisfaction together
+take more than **30%** — i.e. all three risks are materially live. The interval across the feasible
+family is **wider than 30pp on bill-shock**, because that is what "unidentified" means here.
+
+**E — the desk's pressure signal is untouched.** `market_switching_multiplier(2024)` is exactly 1.0,
+at least four years produce strictly positive undercut pressure, and the record's peak switching
+year still buys a strictly lower ceiling than the reference year. This is a prediction about
+something that must NOT move: the level anchor is a separate quantity and pushing it through the
+company-facing ratio would zero that signal forever. Held by
+`tests/simulation/test_market_switching_propensity.py::TestTheTwoQuantitiesStaySeparate`.
+
+## 12. §11 marked beside itself, 2026-08-30
+
+The change §11 was filed against landed the same evening: `simulation/departure_level_anchor.py`,
+the competing-risks form wired into `simulation/customer_events.py`, and the level term inside the
+hazards. §11 is left exactly as written; each prediction is marked here, right or wrong.
+
+Measured on two full 2016–2025 runs captured by `tools/capture_departure_factors.py` and read
+through `tools/measure_departure_level.py`. The committed table is the second one.
+
+**A — CORRECT on both legs, including the leg that predicted its own failure.** The 2017–24 mean
+went **4.50% → 16.04%** on the first capture, inside the predicted 13–18% and against a published
+midpoint of 15.50%. And the first capture did **not** land clean: 2017 came in at 14.01% against a
+13.5–14.0% band and 2020 at 23.72% against 22.5–23.0%, exactly the drift the fixed-point argument
+said a once-fitted anchor would carry. Refitting on that capture and re-running closed it: every
+year of the second capture sits on its band.
+
+| year | pre-anchor | capture 1 | capture 2 | published band |
+|---|---|---|---|---|
+| 2017 |  1.72% | 14.01% | 14.00% | 13.5–14.0 |
+| 2018 |  6.58% | 19.53% | 20.00% | 19.5–20.0 |
+| 2019 |  5.36% | 21.21% | 21.30% | 20.7–21.3 |
+| 2020 |  3.33% | 23.72% | 23.00% | 22.5–23.0 |
+| 2021 |  7.01% | 18.37% | 18.40% | 17.9–18.4 |
+| 2022 |  3.19% |  4.19% |  4.30% |  2.9–4.3  |
+| 2023 |  3.62% | 12.32% | 12.50% |  8.9–12.5 |
+| 2024 |  5.14% | 14.96% | 16.10% | 12.5–16.1 |
+| **mean** | **4.50%** | **16.04%** | **16.20%** | **15.50%** |
+
+**A′ — AN UNPREDICTED RESULT, and it is a defect in the CONTROL rather than in the change.** The
+second capture landed on each band's **top edge to four decimal places**, because §6's tie-break
+aims the world at the high end and the anchor hits its target. Five of the eight years then read
+**0.0002pp ABOVE** their endpoint and three on or below it — pure rounding noise from
+`realized_churn_probability` being stored to four decimals — and a strict float containment check
+turned that into a coin flip. Repaired at the property: `tools/measure_departure_level.inside_band`
+compares at the precision the commons publishes its endpoints to (0.1pp, derived from the artefact,
+not written down). It still fails capture 1's 23.72% at 2020, and it fails the pre-anchor world at
+every year by miles. A control decided by the thirteenth decimal place of a figure published to one
+is not measuring the world.
+
+**B — the trap-detector: CONFIRMED, and in the right direction this time.** Every quantity the
+capture carries moved against the company:
+
+| | pre-change | post-change |
+|---|---|---|
+| renewals reaching a decision | 681 | **465** |
+| departures | 43 | **79** |
+| departure share of renewals | 6.3% | **17.0%** |
+| mean realised departure probability | 5.62% | **16.20%** |
+| retention offers made | 8 | **29** |
+
+The book turns over so much faster that a third fewer accounts survive to a renewal at all. Nothing
+here improved. **The headline P&L set is NOT yet measured** and this is stated rather than implied:
+these are the capture's own columns, and retained revenue, acquisition spend and CLV arrive with the
+next sim-runner publish. §11 B applies to those too, unchanged, and they must be read against the
+last published run before this change.
+
+**C — NOT YET MEASURED, and it is the one piece of §11 this pass does not settle.** A retention offer
+now scales the price-position hazard alone rather than the whole probability, so a discount cannot
+retain a service-driven churner. The mechanism is in the code and pinned by
+`test_a_retention_offer_cannot_retain_a_service_driven_churner`, but the realised effect across the
+book is not measured here: offers rose 8 → 29 in the same change, so a before/after on retention
+effectiveness would be comparing two different offer populations. It needs its own pass with the
+offer count held.
+
+**D — CORRECT.** At the declared pair the expected mix is **bill_shock 55.1% / price_position 23.0% /
+dissatisfaction 21.8%** — no cause above 70%, and price plus service at 44.8%, above the predicted
+30%. All three risks are materially live. The realised mix over the 79 actual departures is
+**39 / 18 / 22**, which is the same shape from a different direction and is *not* published as a
+result: 79 departures across a decade is far too few, and P2 reserves the realised mix for a
+multi-seed measurement. The interval across the feasible family is **55.1% to 99.9%** on bill-shock —
+44.8pp wide, well beyond the predicted 30pp.
+
+**D′ — AND THE FIRST DRAFT OF THAT INTERVAL WAS WRONG BY 44pp, caught by printing it.** The sweep
+initially moved `a_shock` alone at the declared scale and produced a comfortable-looking 55%–68%.
+The feasible set is a family of `(a_shock, scale)` **pairs** — both coordinates moved together along
+P0's constraint — and across the real family the mix runs to 99.9%. A one-coordinate slice reported
+as an interval would have understated its own bound by more than the width it claimed.
+
+**E — CORRECT, and checked rather than assumed.** `market_switching_multiplier(2024)` is exactly
+1.0, six years produce strictly positive undercut pressure (2016, 2018–2021, 2025), and the peak
+switching year still buys a strictly lower ceiling at
+`renewal_desk._competitive_ceiling_gbp_per_mwh` than the reference year does. `TestTheTwoQuantitiesStaySeparate` passes unweakened; the level anchor is a
+third quantity in its own module and never went near the company-facing ratio.

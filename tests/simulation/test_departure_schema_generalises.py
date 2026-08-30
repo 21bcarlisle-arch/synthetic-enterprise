@@ -16,9 +16,10 @@ but because there is no record shape in which its leaving could be written down.
 TWO FIELDS, BECAUSE THEY ARE TWO FACTS.
   `departure_occasion`  what brought this account to a decision -- "renewal" is the only occasion
                         this module emits today
-  `departure_cause`     which risk fired -- `None` until C2's physics is wired, and `None` on
-                        purpose rather than a fabricated default, because a cause invented to fill
-                        the field would be indistinguishable on the page from a measured one
+  `departure_cause`     which risk fired -- one of `ORDERED_CAUSES` on a departure, and `None` on
+                        a retention and on a departure whose producer has not measured one. Never
+                        a fabricated default: a cause invented to fill the field would be
+                        indistinguishable on the page from a measured one
 
 THE DEMONSTRATION IS RUNNING THE REAL READERS, NOT ASSERTING ABOUT THEM. `test_the_compatibility_
 surface_still_counts_a_departure` feeds a mixed log to `scenario_comparison.extract_scenario_kpis`
@@ -113,9 +114,17 @@ def test_a_departure_that_is_not_a_renewal_can_be_written_down():
 def test_a_departure_without_a_measured_cause_says_so_rather_than_naming_one():
     """DEFECT: the cause field carries a default that reads on the page as a measurement.
 
-    C2's physics is not wired, so no departure in this world has a measured cause. A default of
-    `bill_shock` -- the first entry in `ORDERED_CAUSES`, and the tempting one -- would put a reason
-    mix of 100%/0%/0% in front of a reader with nothing to distinguish it from a result.
+    A producer that has NOT measured a cause -- `departure_event`, which C1b and C6 will call --
+    must say so. A default of `bill_shock`, the first entry in `ORDERED_CAUSES` and the tempting
+    one, would put a reason mix of 100%/0%/0% in front of a reader with nothing to distinguish it
+    from a result.
+
+    KEYED TO THE PROPERTY, NOT TO THE DAY C2 WAS UNWIRED. The first version of this asserted the
+    real producer's cause was `None` too, which was true only because the physics had not landed;
+    it would have gone red the moment the world became more honest, and it passed for the wrong
+    reason in between (the fixture's account happens to renew). The property is: a RETENTION
+    carries no cause, because a cause on an account that stayed is a reason mix no departure
+    supports.
     """
     event = departure_event(
         customer_id="BA-0007", event_date="2022-04-01", commodity="electricity",
@@ -125,8 +134,44 @@ def test_a_departure_without_a_measured_cause_says_so_rather_than_naming_one():
 
     renewal = _real_renewal_event()
     assert "departure_cause" in renewal, "the real producer does not carry the cause field at all"
-    assert renewal["departure_cause"] is None
+    assert renewal["event_type"] == "renewed", "the fixture account stopped renewing"
+    assert renewal["departure_cause"] is None, (
+        "an account that STAYED was given a departure cause -- that is a reason mix with no "
+        "departure under it"
+    )
     assert renewal["departure_occasion"] == DEPARTURE_OCCASION_RENEWAL
+
+
+def test_the_real_producer_names_the_risk_that_fired_on_a_departure():
+    """DEFECT: `roll_lifecycle_event` emits a churn with `departure_cause` still `None`.
+
+    THE OTHER HALF, and the one that could not exist while the physics was unwired. The schema is
+    only worth having if the producer that owns the roll fills it: a `churned` event with no cause
+    is the uncaused-by-construction departure C2 exists to remove, wearing the new field.
+
+    MUTATION: put `"departure_cause": None` back on `roll_lifecycle_event`'s return and this fires.
+
+    The departing account is FOUND, not asserted into existence. The roll is
+    `Random(f"{account}_{date}").random()`, so scanning candidate ids for the highest roll picks
+    the account most likely to depart at any level -- which keeps this green across a level move
+    instead of pinning it to a customer id that happens to churn at today's rate.
+    """
+    import random as _random
+
+    from simulation.departure_risks import ORDERED_CAUSES
+
+    candidates = [f"C{i}" for i in range(1, 200)]
+    worst = max(candidates,
+                key=lambda cid: _random.Random(f"{cid}_{_FIRST_RENEWAL}").random())
+    event = _real_renewal_event(worst)
+    assert event["event_type"] == "churned", (
+        f"{worst} rolled {event['random_roll']} and still renewed -- the world's departure "
+        f"probability has collapsed to near zero, which is a finding and not a fixture problem"
+    )
+    assert event["departure_cause"] in ORDERED_CAUSES, (
+        f"a departure came back with cause {event['departure_cause']!r}: the producer that owns "
+        f"the roll is emitting an uncaused departure"
+    )
 
 
 def test_a_cause_the_risk_module_does_not_publish_is_refused():

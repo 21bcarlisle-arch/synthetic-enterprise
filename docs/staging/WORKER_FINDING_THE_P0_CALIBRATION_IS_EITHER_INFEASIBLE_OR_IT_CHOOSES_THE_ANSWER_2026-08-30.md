@@ -133,3 +133,35 @@ itself. Both legs pinned and mutation-checked.
 **Recommendation, and it is what I am doing unless overruled:** option 3, pre-registered as a
 predicted +15% level move with the decomposition measured across seeds, in the next C2 turn. Option
 1 is worth a discovery pass first because it is cheap and would make option 3 unnecessary.
+
+---
+
+## DISPOSITION UPDATE, 2026-08-30 evening: option 3 landed; this stays STAGED
+
+**§5's option 3 — "accept that the level moves, and pre-register the move instead of the
+invariance" — is what was done**, and it went further than this finding proposed. The level does not
+merely move; it is taken from the published GB domestic switching record, per year, by
+`simulation/departure_level_anchor.py`. The world went **4.50% → 16.20%** (2017–24 mean realised
+departure probability per renewal) against a published midpoint of 15.50%.
+
+**That DISCHARGES P0 rather than satisfying it.** P0 was one equation — hold the population mean —
+and the anchor removes it: there is no mean left for a scale to hit. So the entanglement this
+finding measured is gone, and the non-identification it found is not.
+
+**Which is why this stays staged.** `a_shock` is still free, for exactly the reason §1 gives, and
+the mix is published as an interval over the feasible family rather than as a point:
+
+| | expected share |
+|---|---|
+| bill_shock | **55.1% – 99.9%** |
+| price_position | **0.0% – 23.0%** |
+| dissatisfaction | **0.0% – 21.8%** |
+
+The world runs at the `a_shock = 0.50` end of that family, declared in
+`departure_risks.DECLARED_SHOCK_WEIGHT` and argued on FIDELITY under R13 rather than on a tie-break:
+it is the only end at which all three risks are materially live, and the other end is a world in
+which a supplier's price position and service quality cause no departures at all — the defect
+`churn_position_multiplier` was wired in to remove, arriving again through a calibration parameter.
+
+**§5's three routes to settling it are unchanged and all still open.** Route 1 (published evidence
+for the within-price split) is still the cheap one and still the one that would end this.

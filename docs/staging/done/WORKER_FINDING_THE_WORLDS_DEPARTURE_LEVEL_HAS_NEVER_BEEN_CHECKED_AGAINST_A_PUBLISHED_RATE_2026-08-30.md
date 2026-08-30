@@ -216,3 +216,35 @@ a register that only held rate tables. Read back against the record it asserts 3
 xfailed, not overwritten in passing. See `gb_switching_rate_denominators.md` §10.
 
 **Disposition unchanged: STAGED.** Measurement half discharged; correction half half-discharged.
+
+---
+
+## DISCHARGED and ARCHIVED, 2026-08-30 evening
+
+Both halves are closed and the strict xfail this finding put in place is gone, which is the only
+evidence that matters here: it was written so it would **break loudly** the day the level landed
+rather than sit green forever, and that is how it ended.
+
+**Measurement half** — `tools/measure_departure_level.py` stands, and its principal subject is in
+`tests/architecture/test_switching_rate_commons.py`'s register by name.
+
+**Correction half** — `simulation/departure_level_anchor.py` carries a per-year level term inside
+`departure_risks.build_departure_risks`, fitted onto `market_departure_rate` by
+`tools/fit_year_level_anchor.py`. The world's realised departure rate went **4.50% → 16.20%**
+(2017–24 mean) against a published midpoint of 15.50%, and every comparison year now sits on its
+band. `test_the_worlds_realised_departure_rate_is_inside_the_published_band` is GREEN with the xfail
+marker removed, and is now a drift detector — mutation-proven by halving a year's anchor.
+
+**What this finding got right and what it under-called.** Right: the level was never anchored to
+anything outside this repository, and that was the larger half. Under-called: it expected the fix to
+be a scale on the market term. It cannot be — the market term is dimensionless by necessity (it
+crosses the wall as the desk's pressure signal) so the level has to live in the churn chain itself,
+and no single scale reaches the band anyway.
+
+**One thing left open and it is NOT this finding's.** `a_shock` — the split of the price family
+between "my own bill rose" and "someone else is cheaper" — remains unidentified, and the reason mix
+is published as an interval (55.1%–99.9% bill-shock) rather than a point because of it. That is
+carried by the P0 finding, which stays staged.
+
+Predictions marked beside themselves: `docs/market_research/gb_switching_rate_denominators.md`
+§11 (filed before the run) and §12 (marked after it).

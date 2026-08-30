@@ -236,36 +236,45 @@ def test_the_register_names_the_worlds_own_realised_departure_rate():
         assert 0.0 <= value < 100.0, f"{year}: realised departure rate {value} is not a rate"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "OPEN, and declared rather than hidden. The world's realised departure rate is 4.93% "
-        "against a 2017-2024 published mean of 15.50% -- 3.15x short. The 2026-08-30 correction "
-        "moved the market term's SHAPE onto the record (`market_departure_rate`) but the term "
-        "reaches the churn chain as a dimensionless RATIO, so no level reaches the run. Measured: "
-        "no single scale on that ratio can put all eight years in band, because the non-market "
-        "factor product varies ~7x across years (0.0196 at 2017 to 0.137 at 2022) with a shape "
-        "unrelated to the record. Closing it is C2's per-year level anchor, not a constant. "
-        "See docs/market_research/gb_switching_rate_denominators.md section 8."
-    ),
-)
 def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
-    """THE ONE THE ANCHOR EXISTS FOR. Strict xfail: it must FAIL while the world is short of the
-    record, and it must FAIL TO XFAIL -- i.e. break loudly -- the moment the level lands.
+    """THE ONE THE ANCHOR EXISTS FOR, AND IT IS GREEN AS OF 2026-08-30.
 
-    That is the property a stale marker cannot have. `strict=True` makes an XPASS an error, so
-    whoever moves the level is forced to remove this marker in the same commit; the alternative,
-    a plain xfail, would sit here green forever and be the stale-xfail shape this repo has
-    already been caught by.
+    IT WAS A STRICT XFAIL AND THE MARKER IS GONE, WHICH IS THE POINT OF HAVING WRITTEN IT STRICT.
+    The world ran 3.15x -- then 3.45x -- below the published GB domestic switching record for the
+    whole of this project's history, and the marker held that open in a form that had to break
+    loudly the day the level landed rather than sit green forever. It broke on the day, and this
+    is what replaced it. The reason it carried, kept here because a discharged xfail whose reason
+    is deleted takes the evidence with it: no single multiplicative scale on the market term could
+    reach the band, because the non-market factor product varies ~6x across years with a shape
+    unrelated to the record, and the per-year divisors that would fix each year have an empty
+    intersection. `simulation/departure_level_anchor.py` is what closed it.
+
+    NOW IT IS A DRIFT DETECTOR, AND THAT IS NOT A TAUTOLOGY. The anchor is fitted, so of course the
+    run it was fitted to sits in the band -- the question this asks is whether it STILL does. A
+    change to the churn model, the pricing desk or the population draw moves the factor population
+    out from under a fitted anchor, and nothing else in the tree would notice. The repair when it
+    fires is to re-capture and re-fit (`tools/capture_departure_factors.py`,
+    `tools/fit_year_level_anchor.py`), never to widen the band.
+
+    MUTATION: divide any `YEAR_LEVEL_ANCHOR` entry by two and this fires on that year.
+
+    Containment is judged by the instrument's own `inside_band`, at the precision the commons
+    publishes its endpoints to. See that function for why a strict float comparison here was a
+    coin flip and not a control.
     """
     bands = _bands()
     world = _world_realised_reading()
     assert world, "no realised rate to judge -- an empty subject is not a pass"
+    assert len(world) >= 8, (
+        f"only {len(world)} years of realised rate to judge; a subject narrowed to a handful of "
+        f"years is the scope-shrink fail-open this file's leg (c) exists for"
+    )
     for year, value in sorted(world.items()):
         lo, hi = bands[year]
-        assert lo <= value <= hi, (
+        assert instrument.inside_band(value, lo, hi), (
             f"the world's realised departure rate at {year} is {value:.2f}% against a published "
-            f"{lo}-{hi}%"
+            f"{lo}-{hi}%. The level anchor has gone stale against a world that moved under it: "
+            f"re-capture and re-fit, do not widen the band."
         )
 
 

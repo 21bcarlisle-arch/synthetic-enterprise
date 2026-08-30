@@ -213,3 +213,45 @@ exact equality would mean correcting a bound that runs against us, which R13 for
 The exact identity survives where it is a property rather than an artefact: at the price hazard
 itself, `h_price(d)·h_price(−d) == h_price(0)²` for every household. Both legs are pinned by
 `tests/simulation/test_departure_risks.py`, and both were mutation-checked.
+
+---
+
+## 9. AMENDMENT, 2026-08-30, at wiring: §5's step 1 no longer exists, and that is a result
+
+§5 puts **P0 first** — fit the sensitivities so population-mean realised churn does not move, "until
+this holds, nothing else in the pre-registration is readable". That order was right for the question
+it was written against and the question changed underneath it. Both halves of the change are
+recorded here rather than quietly reordered.
+
+**P0 was non-identifying, and then it was discharged.** The fit came back with every `a_shock` from
+0.87 down reproducing the population mean *exactly* while the reason mix ran from 99.9% to 56.6%
+bill-shock (`WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`).
+Choosing a point in that family would have been choosing P2's answer and reporting it as a
+measurement. Then the level anchor removed the equation altogether: `simulation/departure_level_anchor.py`
+sets each year's departure level from the **published GB domestic switching record**, so there is no
+population mean left for a scale to hit. P0 as an invariance is not merely unidentified now, it is
+unaskable.
+
+**And holding the level constant would have been the wrong target anyway.** §5's step 1 assumes
+today's level is the thing to preserve. It is not: the world ran **3.45× below** the published record
+for the whole of this project's history, and the composed form's mean was additionally contaminated
+by letting the price multiplier discount the bill-shock term for the 74.4% of renewals where the
+company is cheaper than the market. Preserving that mean would have preserved both. So P0 is
+restated as a predicted **move** — the level rises to the record's — pre-registered at
+`docs/market_research/gb_switching_rate_denominators.md` §8 and §11 before the run that tests it.
+
+**What replaces the ordering rule.** §5's real content is *do not look at the reason mix first*, and
+that survives intact and is obeyed: the level is set by an anchor derived from an external
+publication, the anchor scales every hazard by the same factor so it cannot move the mix at all, and
+the mix is published as an **interval** across the free parameter rather than as a point. The
+protection §5 wanted — that the mix cannot be nudged toward a recognisable answer — is now
+structural rather than procedural.
+
+**What the mechanism change and the level change landing together cost, and what buys it back.** The
+intent was to land them separately so a churn series would carry one moving part at a time. Measured,
+they are not separable: no single scale on the market term reaches the band, and the per-year
+divisors that would fix each year have an empty intersection, so the level correction requires the
+per-year anchor and the anchor lives inside the competing-risks form. Attribution is bought instead
+by the band being an **external** anchor this tree does not generate, by the predictions being filed
+before the run, and by the free parameter being published as an interval. None of those depends on
+the two changes being in different commits.

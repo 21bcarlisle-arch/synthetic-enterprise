@@ -1456,11 +1456,68 @@ def _principles():
     ]
 
 
+#: The C2 reason-mix interval, written by `tools/fit_departure_hazards.py`.
+REASON_MIX_PATH = PROJECT / "docs" / "reports" / "c2_reason_mix_interval.json"
+
+
+def _why_households_leave():
+    """The world's departure reason mix, as an INTERVAL, on the surface that says what is not known.
+
+    WHY IT IS HERE AND NOT ON A RESULTS SURFACE. This world now knows why every departure happened
+    -- each one carries the risk that fired -- and the SPLIT between the two price reasons is not
+    identified by any evidence. No domestic instrument separates "my own bill rose" from "someone
+    else is cheaper"; Ofgem's Consumer Impacts survey codes both as one answer. So the honest form
+    of this figure is a range whose width IS the admission, and the place for a figure like that is
+    the surface that lists what we cannot yet tell. Publishing the point the world happens to run at
+    would be this project reporting its own free parameter back as a measurement.
+
+    READ FROM THE ARTEFACT, NEVER TRANSCRIBED. A hand-copied interval is a number that goes stale
+    the next time the family is re-swept and nothing says so. FAILS CLOSED: if the artefact cannot
+    be read the row still appears and says the mix could not be read, because a claim that vanishes
+    when its evidence does is worse than one that admits it.
+    """
+    try:
+        mix = json.loads(REASON_MIX_PATH.read_text())
+        lo, hi = mix["interval"]["bill_shock"]
+        plo, phi = mix["interval"]["price_position"]
+        dlo, dhi = mix["interval"]["dissatisfaction"]
+        declared = mix["sweep"][
+            f"a_shock={mix['declared_shock_weight']:.2f},"
+            f"scale={mix['declared_sensitivity_scale']:.6f}"
+        ]
+        note = (
+            f"Every departure in this world carries the risk that fired. How those departures "
+            f"SPLIT between the two price reasons is not identified by any published evidence: no "
+            f"domestic instrument separates “my own bill rose” from “someone else is "
+            f"cheaper” — Ofgem's Consumer Impacts survey codes both as one answer. So the "
+            f"mix is published as the range it takes across every value that evidence cannot rule "
+            f"out: bill shock {lo:.0%}–{hi:.0%}, our price position {plo:.0%}–{phi:.0%}, "
+            f"service {dlo:.0%}–{dhi:.0%}, over {mix['renewals']} renewals. The world itself "
+            f"runs at one point in that range ({declared['bill_shock']:.0%} / "
+            f"{declared['price_position']:.0%} / {declared['dissatisfaction']:.0%}), declared as a "
+            f"modelling choice and argued on fidelity — it is the only end of the range where "
+            f"a supplier's price and service actually cause departures. The published mover-mix is "
+            f"deliberately NOT used to pick the point; it is reserved as a check on this output, "
+            f"and identifying from it would make that check a tautology."
+        )
+        status = "measured, but its split is not identified — published as a range"
+    except (OSError, ValueError, KeyError) as exc:
+        note = (
+            f"The departure reason mix could not be read from "
+            f"{REASON_MIX_PATH.relative_to(PROJECT)} ({type(exc).__name__}), so no share is shown "
+            f"here rather than a stale one. Regenerate with `python3 -m tools.fit_departure_hazards`."
+        )
+        status = "not shown — the measurement could not be read"
+    return dict(claim="Why households leave this supplier, as a single share per reason",
+                status=status, note=note)
+
+
 def _not_proven():
     """v4 pitch §13 honesty spine: the load-bearing claims NOT yet proven, stated
     plainly (honesty is the aesthetic). Per the Note on Claims these are arguments
     and hypotheses-with-a-designed-test, not results -- and the site says so."""
     return [
+        _why_households_leave(),
         dict(claim="Personalisation keeps paying as it gets finer",
              status="hypothesis — test designed, not a result",
              note="That value keeps rising past broad groups into the fine-grained combinations most companies never reach is the load-bearing commercial claim; currently a hypothesis with a designed test."),

@@ -34,6 +34,13 @@ C2_GROUND_TRUTH_FIELDS = frozenset({
     "sim_price_response",
     "sim_action_propensity",
     "sim_dissatisfaction_response",
+    # The year's departure LEVEL, added 2026-08-30 with the level anchor. It belongs here for a
+    # sharper reason than the others: it is the published GB switching rate divided by the world's
+    # own factor population, so a company module reading it would know exactly how many of its
+    # accounts are going to leave this year before any of them did. No real supplier has that.
+    # The guard below is what put this line here -- it went red on the new name the same commit
+    # the name appeared, which is the whole point of reading the emission site back.
+    "sim_level_anchor",
 })
 
 

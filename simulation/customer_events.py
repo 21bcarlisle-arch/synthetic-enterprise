@@ -29,8 +29,15 @@ from datetime import date
 from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
 from saas.home_move_win_rate import build_home_move_win_rates
-from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
-from simulation.departure_risks import ORDERED_CAUSES
+from simulation.departure_level_anchor import year_level_anchor
+from simulation.departure_risks import (
+    DECLARED_SENSITIVITY_SCALE,
+    DECLARED_SHOCK_WEIGHT,
+    ORDERED_CAUSES,
+    build_departure_risks,
+    resolve_departure,
+    total_departure_probability,
+)
 from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import (
     churn_position_multiplier,
@@ -38,12 +45,8 @@ from simulation.market_switching_propensity import (
     offer_position_multiplier,
     perceived_price_differential,
 )
-from simulation.satisfaction_churn import (
-    adjust_churn_for_satisfaction,
-    satisfaction_churn_multiplier,
-)
+from simulation.satisfaction_churn import satisfaction_churn_multiplier
 from simulation.switching_propensity import (
-    adjust_churn_probability,
     stress_switching_multiplier,
     tenure_switching_multiplier,
 )
@@ -432,8 +435,6 @@ def roll_lifecycle_event(
     # opportunity ceiling is set first, then individual customer frictions modify it.
     if market_year is not None:
         _market_opportunity = market_switching_multiplier(market_year)
-        p_churn_market = (1.0 - effective_p_retain) * _market_opportunity
-        effective_p_retain = 1.0 - min(p_churn_market, WORLD_MAX_CHURN_PROBABILITY)
     # OUR OWN PRICE POSITION, and until 2026-08-25 the world could not see it.
     #
     # THE DEFECT, MEASURED. `price_differential_pct` arrived here as a parameter and was used at
@@ -547,11 +548,10 @@ def roll_lifecycle_event(
             felt,
             annual_bill_gbp=_bill_scale_for(
                 _segment, _annual_bill_gbp(billing_account, records_so_far, term_start_str)))
-        p_churn_price = (1.0 - effective_p_retain) * _price_response
-        effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
-    # Phase MZ: apply income_stress switching propensity before retention modifier.
-    # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
-    # renters switch less (see switching_propensity.py's module note).
+    # Phase MZ: income_stress switching propensity. Layer 2 dimension 3 (2026-07-09): tenure in
+    # the same product -- renters switch less (see switching_propensity.py's module note). Order
+    # no longer matters here: under competing risks these are hazard INPUTS, not a chain of
+    # multiplications into a running probability, so nothing depends on what was applied first.
     if income_stress is not None:
         from simulation.household_segments import tenure_for_customer
         tenure = tenure_for_customer(billing_account).value
@@ -563,54 +563,78 @@ def roll_lifecycle_event(
         _action_propensity = (
             stress_switching_multiplier(income_stress) * tenure_switching_multiplier(tenure)
         )
-        p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress, tenure)
-        effective_p_retain = 1.0 - p_churn_stress
     # Phase NF: SIM-side satisfaction score. A RISK, not a modulator: it runs 1.30 / 1.00 / 0.85,
     # and the protective 0.85 branch is a smaller dissatisfaction hazard rather than a negative
     # one, so it passes the test income stress fails.
     if satisfaction_score is not None:
         _dissatisfaction_response = satisfaction_churn_multiplier(satisfaction_score)
-        p_churn_sat = adjust_churn_for_satisfaction(1.0 - effective_p_retain, satisfaction_score)
-        effective_p_retain = 1.0 - p_churn_sat
-    # Phase QA: capture the true pre-retention-offer probability. This is what
-    # the company's churn estimate (computed before any retention decision) is
-    # actually trying to predict -- comparing it against a probability that
-    # already bakes in the company's own retention action would be circular
-    # (the company would look "wrong" purely because its own intervention
-    # worked).
-    # C2 LANDED THE MECHANISM AND NOT THE PHYSICS, ON PURPOSE (2026-08-30).
+    # ═══════════════════════════════════════════════════════════════════════════════════════
+    # C2 — COMPETING RISKS, AND THE YEAR'S LEVEL IS THE PUBLISHED RECORD'S (2026-08-30)
+    # ═══════════════════════════════════════════════════════════════════════════════════════
     #
-    # `simulation/departure_risks.py` holds the competing-risks form this chain is meant to become,
-    # with its controls and its risk/modulator split. It is NOT wired in here, because the P0
-    # calibration the pre-registration puts ahead of everything else was run and came back
-    # non-identifying: measured on the real 708-renewal factor table, every bill-shock scale from
-    # 0.87 down reproduces population-mean realised churn EXACTLY while the reason mix ranges from
-    # 99.9% bill-shock to 56.6%. Choosing one would be choosing P2's answer and reporting it as a
-    # measurement. The only scale with evidence behind it -- 1.0, the world's own calibrated base
-    # rate -- overshoots the target by 14.9%.
+    # WHAT THIS REPLACED. The five factors above used to be multiplied into one scalar and rolled
+    # once. By the time the die was cast the causes were gone, so a departure was not merely
+    # unlabelled -- it was UNCAUSED BY CONSTRUCTION, and any reason bolted onto the record could
+    # only be a story invented after the roll. Now each risk keeps its own hazard, survival is the
+    # product of the survivals, and the risk that fires names the departure. See
+    # `simulation/departure_risks.py` for the risk/modulator split and why there are three risks
+    # and not the design's four.
     #
-    # AND THE OVERSHOOT IS THE INTERESTING PART, because it says the P0 target itself is
-    # contaminated by the defect C2 exists to remove. The multiply below lets `_price_response` and
-    # `_dissatisfaction_response` scale the BILL-SHOCK term: in 74.4% of these renewals the company
-    # is cheaper than the market reference, so being cheaper than average DISCOUNTS a household's
-    # churn from its own bill doubling, by 13% on average. Competing risks cannot express that and
-    # should not -- "we are cheaper than average" is not a reason to fail to notice your own bill.
-    # So holding the level exactly constant across the change would mean PRESERVING the discount.
+    # TWO CHANGES LANDED TOGETHER BECAUSE THE RUN REFUTED HOLDING THEM APART. The intent was to
+    # correct the world's departure LEVEL first and change the MECHANISM second, so a level move
+    # and a physics change would not land in one churn series and make neither attributable.
+    # `56718a719` measured that the level correction is impossible without the mechanism: no single
+    # multiplicative scale on the market term reaches the published band (the derived 1.99x puts
+    # 2022 at 6.0% against 2.9-4.3% and 2016 at 29.2% against 17.0-17.6%), and the per-year
+    # divisors that would fix each year have an empty intersection. There is no run in which they
+    # are separable. Attribution is bought a different way instead: the band is an external anchor
+    # this tree does not generate, the prediction was filed before the run
+    # (`docs/market_research/gb_switching_rate_denominators.md` §8), and the reason mix is
+    # published as an interval because its parameter is unidentified.
     #
-    # Per the pre-registration's own abandon criterion and the delivery direction, the composed
-    # form therefore stands until the calibration question is settled, rather than a half-rewrite
-    # shipping. See
-    # `docs/staging/WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`.
-    #
+    # AND THE OLD P0 TARGET WAS CONTAMINATED BY THE DEFECT BEING REMOVED, which is why it is not
+    # what this is fitted to. The composed form let `_price_response` scale the BILL-SHOCK term: in
+    # 74.4% of these renewals the company is cheaper than the market reference, so being cheaper
+    # than average discounted a household's churn from its own bill doubling, by 13% on average.
+    # "We are cheaper than average" is not a reason to fail to notice your own bill. Holding the
+    # level constant across this change would have PRESERVED that discount, so P0 is restated as a
+    # predicted MOVE -- the level lands inside the published band -- and not as an invariance.
+    _level_anchor = year_level_anchor(int(term_start_str[:4]))
+    _risk_inputs = dict(
+        bill_shock_base=_bill_shock_base,
+        price_response=_price_response,
+        dissatisfaction_response=_dissatisfaction_response,
+        market_opportunity=_market_opportunity,
+        action_propensity=_action_propensity,
+        sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
+        shock_weight=DECLARED_SHOCK_WEIGHT,
+        level_anchor=_level_anchor,
+    )
     # Phase QA: the true PRE-retention-offer probability -- what the company's estimate (computed
     # before any retention decision) is trying to predict. Comparing against a probability that
     # already baked in the company's own intervention would make the company look wrong precisely
-    # when its intervention worked.
-    effective_p_retain_pre_offer = effective_p_retain
-    if retention_modifier is not None:
-        p_churn_base = 1.0 - effective_p_retain
-        effective_p_retain = 1.0 - p_churn_base * (1.0 - retention_modifier)
-    retained = roll <= effective_p_retain
+    # when its intervention worked. It is a separate `build_departure_risks` call rather than a
+    # captured intermediate because the offer now scales ONE hazard, not the total.
+    risks_pre_offer = build_departure_risks(
+        retention_offer_retained_fraction=1.0, **_risk_inputs)
+    effective_p_retain_pre_offer = 1.0 - total_departure_probability(risks_pre_offer)
+    # P6, AND IT IS THE FIRST ACTIONABLE CONSEQUENCE IN THIS PROGRAMME. A retention offer is a
+    # PRICE cut, so it scales the price-position hazard and nothing else: a discount cannot retain
+    # a service-driven churner. The composed form scaled the whole probability, which modelled a
+    # world where money buys back a customer who left because we failed them. This moves against
+    # the company -- offers retain strictly fewer accounts than they used to -- and the answer to a
+    # service-driven churner is now a service intervention, which is a thing a supplier can
+    # actually observe about itself.
+    risks = build_departure_risks(
+        retention_offer_retained_fraction=(
+            1.0 - retention_modifier if retention_modifier is not None else 1.0),
+        **_risk_inputs)
+    effective_p_retain = 1.0 - total_departure_probability(risks)
+    # ONE ROLL, SAME DIRECTION AS THE FORM THIS REPLACES: a departure is the upper tail, and the
+    # cause is read from WHERE in that tail the roll landed, so it costs no second draw and cannot
+    # decorrelate from the departure it explains.
+    departed, departure_cause = resolve_departure(risks, roll)
+    retained = not departed
 
     # Phase 7e: when an account churns, roll whether we win the home-mover's
     # business. Separate seed so it never interferes with the churn roll.
@@ -653,17 +677,17 @@ def roll_lifecycle_event(
         "event_date": term_start_str,
         "commodity": commodity,
         "event_type": "renewed" if retained else "churned",
-        # THE OCCASION AND THE CAUSE ARE TWO FACTS AND ONLY THE FIRST IS KNOWN (2026-08-30).
+        # THE OCCASION AND THE CAUSE ARE TWO FACTS AND BOTH ARE NOW KNOWN (2026-08-30).
         # Occasion is what brought this account to a decision; it is "renewal" for everything this
         # function emits, and it exists so that a reader whose denominator is renewal DECISIONS can
         # still select its own population once C1b and C6 start emitting departures that are not
         # renewals -- `tools/population_anchor._churn_by_year` divides by `renewals + churns`, and
         # the first non-renewal departure would move that rate with no reader able to say which
-        # quantity had changed. Cause is `None` because C2's physics is not wired; see the block at
-        # the churn roll above for why it is held, and `departure_event` for why the default is not
-        # a risk.
+        # quantity had changed. Cause is the risk that fired, and it is `None` on a RETENTION for
+        # the reason `departure_event` states: a cause on an account that stayed would be a reason
+        # mix that no departure supports.
         "departure_occasion": DEPARTURE_OCCASION_RENEWAL,
-        "departure_cause": None,
+        "departure_cause": departure_cause,
         "churn_probability": round(renewal_data["churn_probability"], 4),
         "win_probability": round(renewal_data["win_probability"], 4),
         "effective_retention_probability": round(effective_p_retain, 4),
@@ -701,4 +725,8 @@ def roll_lifecycle_event(
         "sim_price_response": round(_price_response, 6),
         "sim_action_propensity": round(_action_propensity, 6),
         "sim_dissatisfaction_response": round(_dissatisfaction_response, 6),
+        # The year's level, emitted so the decomposition is reproducible from the log alone. A
+        # reader who cannot see it would find the hazards not reconstructing and have no way to
+        # tell a level anchor from a defect.
+        "sim_level_anchor": round(_level_anchor, 6),
     }

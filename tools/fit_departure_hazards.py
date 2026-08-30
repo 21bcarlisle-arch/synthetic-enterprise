@@ -1,54 +1,85 @@
-"""Fit C2's ONE free constant — the P0 calibration — and print the table it is judged on.
+"""C2's reason mix, published as an INTERVAL over the parameter no instrument identifies.
 
 Pre-registration: `docs/staging/WORKER_PREREGISTRATION_WHAT_A_DEPARTURE_WITH_A_CAUSE_MUST_SHOW_2026-08-30.md`.
-Design: `docs/design/C2_DEPARTURE_WITH_A_CAUSE_DESIGN.md` §5, which fixes the order of work and says
-not to reorder it: P0 first, because until the LEVEL is held still the DECOMPOSITION is the only
-thing that should have moved and nothing else in the pre-registration is readable.
+The non-identification: `docs/staging/WORKER_FINDING_THE_P0_CALIBRATION_IS_EITHER_INFEASIBLE_OR_IT_CHOOSES_THE_ANSWER_2026-08-30.md`.
+Level anchor: `simulation/departure_level_anchor.py`; `tools/fit_year_level_anchor.py`.
 
-WHAT IS FITTED, AND WHY IT IS ONLY ONE NUMBER. `simulation/departure_risks.py` takes the published
-Ofgem/BMG importances (price 0.40, service 0.32) as the RATIO between the two sensitivities, and
-the bill-shock hazard keeps the churn model's own calibrated base rate unscaled. That leaves a
-single global scale with nothing published behind it, and this module fits it — by bisection, to
-the population-mean realised churn of the run the factor table was captured from.
+WHAT THIS TOOL USED TO BE, AND WHY IT IS NOT THAT ANY MORE. It fitted C2's P0 calibration -- one
+global sensitivity scale bisected onto the population mean of the composed form, so the LEVEL would
+be held and the DECOMPOSITION would be the only thing that moved. That question is closed twice
+over. P0 came back NON-IDENTIFYING (every `a_shock` from 0.87 down reproduced the mean exactly while
+the reason mix ran from 99.9% to 56.6% bill-shock), and then the level anchor DISCHARGED the
+equation P0 was: the year's level is the published record's, so there is no population mean left for
+a scale to hit. Fitting it again would be fitting to a constraint that is already satisfied by
+construction, which is the shape of a calibration that reports its own inputs.
 
-A SCALE CANNOT TUNE THE ANSWER, which is the property that keeps P0 from quietly setting P2. It
-moves every non-shock hazard together, so it moves the LEVEL and leaves the price:service ratio
-where the published evidence put it. If the fit needed a second parameter, one of them would be
-free to shape the reason mix, and the mix is the thing being measured.
+WHAT IS LEFT IS THE THING THAT WAS ALWAYS THE MEASUREMENT: the reason mix. And its parameter is
+still free. No domestic instrument separates "my own bill rose" from "someone else is cheaper" --
+Ofgem's Consumer Impacts survey codes both as one answer, and only the non-domestic instrument
+splits them, on a population the evidence records as differing in kind. So the feasible FAMILY is
+swept -- `(a_shock, scale)` pairs, both coordinates, because that is the shape the set has -- and the
+mix is reported as an INTERVAL over it, never as a point. A point would be this project publishing
+its own free parameter back as a finding.
 
-THE BASELINE IS THE SAME RUN, NOT A STORED ONE. The target mean is read from
-`realized_churn_probability` in the captured table itself, not from a previous
-`run_output_latest.json`. A calibration fitted against a baseline from a DIFFERENT run measures the
-difference between two runs and reports it as the effect of the change.
+THE LEVEL IS RE-ANCHORED AT EVERY POINT OF THE SWEEP, which is what makes the interval about the
+mix alone. Without that, moving `a_shock` would move the level too and the interval would be over
+two things at once -- and the reader would have no way to tell which one it was reading.
+
+WHAT THE INTERVAL IS NOT ALLOWED TO BE CHECKED AGAINST HERE. The published mover-mix (why people
+say they switched) is reserved by the roadmap as a CHECK on this output. Identifying `a_shock` from
+it and then reporting agreement with it would be a tautology wearing a validation.
 
 Usage:  python3 -m tools.fit_departure_hazards [factor_table.json]
 """
+import collections
 import json
 import statistics
 import sys
 from pathlib import Path
 
 from simulation.departure_risks import (
+    DECLARED_SENSITIVITY_SCALE,
+    DECLARED_SHOCK_WEIGHT,
     ORDERED_CAUSES,
     build_departure_risks,
     cause_shares,
     total_departure_probability,
 )
+from simulation.market_switching_propensity import market_departure_rate
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
+MIX_ARTEFACT = PROJECT / "docs" / "reports" / "c2_reason_mix_interval.json"
 
-#: Pre-registration P0: population-mean realised churn must match the composed form within this
-#: RELATIVE tolerance. Not a target to be approached -- the one number that must NOT be interesting.
-P0_RELATIVE_TOLERANCE = 0.005
+#: The feasible family, verbatim from the P0 finding's own measured table: `(a_shock, scale)` PAIRS,
+#: not a sweep of `a_shock` at a fixed scale.
+#:
+#: THE PAIR IS THE POINT AND THE FIRST DRAFT OF THIS SWEPT ONE COORDINATE. `a_shock` alone, at the
+#: declared scale, gives a mix interval of 55%-68% bill-shock, which looks like a reassuringly
+#: narrow result and is an artefact of holding the other coordinate still. The feasible SET is the
+#: family that satisfied P0, along which BOTH moved together -- and across it the mix runs from
+#: 99.9% to 56.6%. Publishing the one-coordinate slice would have understated the bound by more
+#: than 40pp while carrying the word "interval".
+#:
+#: 0.87 is where the P0 fit first became feasible; 0.50 is the far end the finding measured to. The
+#: world runs at the last row -- see `DECLARED_SHOCK_WEIGHT` for why that is a fidelity choice under
+#: R13 and not a tie-break -- and the page carries the whole range as the bound the declared point
+#: does not have.
+FEASIBLE_PAIRS = (
+    (0.87, 0.000053),
+    (0.80, 0.007649),
+    (0.70, 0.018395),
+    (0.60, 0.029018),
+    (0.50, 0.039520),
+)
 
 
-def _risks_for(row: dict, scale: float) -> dict[str, float]:
+def _risks_for(row: dict, pair: tuple[float, float], anchor: float) -> dict[str, float]:
     """The competing risks for one captured renewal.
 
-    `retention_offer_retained_fraction` is deliberately 1.0: the baseline being matched is
-    `realized_churn_probability`, which is captured BEFORE any retention offer, so including the
-    offer here would compare a post-intervention probability against a pre-intervention one.
+    `retention_offer_retained_fraction` is deliberately 1.0: the quantity being anchored is
+    `realized_churn_probability`, captured BEFORE any retention offer, so including the offer here
+    would compare a post-intervention probability against a pre-intervention record.
     """
     return build_departure_risks(
         bill_shock_base=row["sim_bill_shock_base"],
@@ -57,93 +88,115 @@ def _risks_for(row: dict, scale: float) -> dict[str, float]:
         market_opportunity=row["sim_market_opportunity"],
         action_propensity=row["sim_action_propensity"],
         retention_offer_retained_fraction=1.0,
-        sensitivity_scale=scale,
+        shock_weight=pair[0],
+        sensitivity_scale=pair[1],
+        level_anchor=anchor,
     )
 
 
-def mean_departure_probability(rows: list[dict], scale: float) -> float:
-    return statistics.fmean(
-        total_departure_probability(_risks_for(r, scale)) for r in rows
-    )
+def _anchor_for(rows: list[dict], pair: tuple[float, float], target: float) -> float:
+    """Bisect this year's anchor onto the published rate at this `(a_shock, scale)` pair.
 
-
-def fit_scale(rows: list[dict], target_mean: float) -> float:
-    """Bisect the sensitivity scale onto the target population mean.
-
-    Monotone by construction -- every hazard the scale touches is increasing in it, and
-    `1 - Π(1-h)` is increasing in every hazard — so bisection cannot land on a local solution.
+    Same bisection as `tools/fit_year_level_anchor.py` and deliberately not imported from it: that
+    tool derives the anchor the WORLD runs at, at the declared pair, and is the thing whose output
+    is committed. This one re-anchors at every sweep point so the interval is about the mix alone.
+    A shared helper would make it too easy to change one and silently move the other.
     """
     lo, hi = 0.0, 1.0
-    if mean_departure_probability(rows, hi) < target_mean:
-        raise SystemExit(
-            "P0 CANNOT BE MET: even a sensitivity scale of 1.0 leaves mean departure probability "
-            f"at {mean_departure_probability(rows, hi):.6f}, below the target {target_mean:.6f}. "
-            "Per the pre-registration this is a RESULT, not something to force: the composed form "
-            "is encoding something the competing-risks form cannot express. Leave the composed "
-            "form standing and find out what."
-        )
-    for _ in range(200):
+    for _ in range(60):
+        if statistics.fmean(
+            total_departure_probability(_risks_for(r, pair, hi)) for r in rows
+        ) >= target:
+            break
+        hi *= 2.0
+    for _ in range(80):
         mid = (lo + hi) / 2.0
-        if mean_departure_probability(rows, mid) < target_mean:
+        mean = statistics.fmean(
+            total_departure_probability(_risks_for(r, pair, mid)) for r in rows
+        )
+        if mean < target:
             lo = mid
         else:
             hi = mid
     return (lo + hi) / 2.0
 
 
-def _quantile(sorted_vals: list[float], q: float) -> float:
-    """Nearest-rank quantile, stated because the pre-registration's baseline table used one method
-    and a reader comparing against a different one would see a move that is not there."""
-    if not sorted_vals:
-        return float("nan")
-    idx = min(len(sorted_vals) - 1, int(q * len(sorted_vals)))
-    return sorted_vals[idx]
+def expected_mix(rows: list[dict], pair: tuple[float, float]) -> dict[str, float]:
+    """Hazard-weighted expected cause shares over every renewal, at the record's level.
 
-
-def _distribution(vals: list[float]) -> dict[str, float]:
-    s = sorted(vals)
-    return {
-        "min": s[0], "median": _quantile(s, 0.5), "mean": statistics.fmean(s),
-        "p90": _quantile(s, 0.90), "p95": _quantile(s, 0.95), "p99": _quantile(s, 0.99),
-        "max": s[-1],
-    }
+    EXPECTED, NOT REALISED, and the difference must survive to the page. The realised mix is a few
+    hundred departures over a decade; the expected mix is what the hazards say across every
+    renewal, and it is the only one with enough behind it to carry an interval at all.
+    """
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for r in rows:
+        by_year[int(r["event_date"][:4])].append(r)
+    agg = {c: 0.0 for c in ORDERED_CAUSES}
+    weight = 0.0
+    for year, year_rows in by_year.items():
+        anchor = _anchor_for(year_rows, pair, market_departure_rate(year))
+        for r in year_rows:
+            risks = _risks_for(r, pair, anchor)
+            p = total_departure_probability(risks)
+            for c, sh in cause_shares(risks).items():
+                agg[c] += sh * p
+            weight += p
+    return {c: agg[c] / weight for c in ORDERED_CAUSES} if weight else {}
 
 
 def main(table_path: Path) -> int:
     rows = [r for r in json.loads(table_path.read_text())
             if r.get("sim_bill_shock_base") is not None]
-    baseline = [r["realized_churn_probability"] for r in rows]
-    target = statistics.fmean(baseline)
-    scale = fit_scale(rows, target)
-    achieved = mean_departure_probability(rows, scale)
-    rel = (achieved - target) / target
-
-    print(f"rows: {len(rows)}   composed-form mean (baseline): {target:.6f}")
-    print(f"fitted sensitivity scale: {scale:.8f}")
-    print(f"competing-risks mean:     {achieved:.6f}   relative error {rel:+.5%}")
-    print(f"P0 (|rel| <= {P0_RELATIVE_TOLERANCE:.1%}): "
-          f"{'HOLDS' if abs(rel) <= P0_RELATIVE_TOLERANCE else 'FAILS'}")
-
-    new = [total_departure_probability(_risks_for(r, scale)) for r in rows]
-    print("\nP1 -- distribution of the departure probability (nearest-rank quantiles)")
-    print(f"{'':>8} {'composed':>10} {'competing':>10}   {'move':>8}")
-    b, n = _distribution(baseline), _distribution(new)
-    for k in ("min", "median", "mean", "p90", "p95", "p99", "max"):
-        print(f"{k:>8} {b[k]:10.4f} {n[k]:10.4f}   {n[k] - b[k]:+8.4f}")
-
-    print("\nP2 -- reason mix, EXPECTED shares (hazard-weighted over all renewals).")
-    print("     This is NOT the realised mix and must not be published as one: the realised mix")
-    print("     is ~40 departures in a decade and needs measuring across seeds (see P2).")
-    agg = {c: 0.0 for c in ORDERED_CAUSES}
-    weight = 0.0
-    for r in rows:
-        risks = _risks_for(r, scale)
-        p = total_departure_probability(risks)
-        for c, sh in cause_shares(risks).items():
-            agg[c] += sh * p
-        weight += p
+    print(f"rows: {len(rows)}   table: {table_path}")
+    print(f"declared: a_shock={DECLARED_SHOCK_WEIGHT}  scale={DECLARED_SENSITIVITY_SCALE}")
+    print()
+    print(f"{'a_shock':>9} {'scale':>10} " + " ".join(f"{c:>17}" for c in ORDERED_CAUSES))
+    sweep: dict[str, dict[str, float]] = {}
+    for pair in FEASIBLE_PAIRS:
+        mix = expected_mix(rows, pair)
+        sweep[f"a_shock={pair[0]:.2f},scale={pair[1]:.6f}"] = mix
+        declared = (pair[0] == DECLARED_SHOCK_WEIGHT
+                    and pair[1] == DECLARED_SENSITIVITY_SCALE)
+        marker = "  <- the world runs here" if declared else ""
+        print(f"{pair[0]:>9.2f} {pair[1]:>10.6f} "
+              + " ".join(f"{mix[c]:>16.1%}" for c in ORDERED_CAUSES) + marker)
+    interval = {
+        c: [min(m[c] for m in sweep.values()), max(m[c] for m in sweep.values())]
+        for c in ORDERED_CAUSES
+    }
+    print()
+    print("  THE INTERVAL, which is the figure that goes on the page:")
     for c in ORDERED_CAUSES:
-        print(f"  {c:>16}: {agg[c] / weight:6.1%}")
+        lo, hi = interval[c]
+        print(f"    {c:>16}: {lo:.1%} to {hi:.1%}")
+    print()
+    print("  The width is not noise and it is not a confidence interval. It is the range the")
+    print("  reason mix takes across every value of `a_shock` the evidence cannot rule out --")
+    print("  the split between 'my own bill rose' and 'someone else is cheaper', which no")
+    print("  domestic instrument measures separately. A point estimate here would be this")
+    print("  project reporting its own free parameter back as a measurement.")
+
+    MIX_ARTEFACT.parent.mkdir(parents=True, exist_ok=True)
+    MIX_ARTEFACT.write_text(json.dumps({
+        "produced_by": "tools/fit_departure_hazards.py",
+        "factor_table": (
+            str(table_path.relative_to(PROJECT)) if table_path.is_relative_to(PROJECT)
+            else str(table_path)),
+        "renewals": len(rows),
+        "declared_shock_weight": DECLARED_SHOCK_WEIGHT,
+        "declared_sensitivity_scale": DECLARED_SENSITIVITY_SCALE,
+        "free_parameter": "a_shock -- the split of the price family between 'my own bill rose' "
+                          "and 'someone else is cheaper'. No domestic instrument separates them; "
+                          "Ofgem's Consumer Impacts survey codes both as one answer.",
+        "level": "every point of the sweep is re-anchored onto the published GB domestic "
+                 "switching record, so the interval is over the reason mix alone and not over "
+                 "the level as well.",
+        "basis": "EXPECTED shares, hazard-weighted over every renewal in the captured run. NOT "
+                 "the realised mix.",
+        "sweep": sweep,
+        "interval": interval,
+    }, indent=1))
+    print(f"\n  -> {MIX_ARTEFACT.relative_to(PROJECT)}")
     return 0
 
 

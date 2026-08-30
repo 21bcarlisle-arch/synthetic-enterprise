@@ -49,6 +49,14 @@ DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the
 #: per-account denominator has to come from the run that counted it. Stated rather than inferred so
 #: a reader can see which years the per-account column can even be computed for.
+#:
+#: THESE ARE THE PRE-ANCHOR RUN'S COUNTS AND THE PER-ACCOUNT COLUMN IS THEREFORE INDICATIVE ONLY
+#: (2026-08-30). Anchoring the level to the record roughly trebles departures, which changes the
+#: book: accounts leave sooner, re-acquisition replaces them, and the active count per year is not
+#: what it was. The column is kept because it is the only place the two denominators appear side by
+#: side, and it is flagged rather than deleted because a per-account figure quietly recomputed on a
+#: renewal denominator is exactly the confusion this tool exists to stop. The BAND is judged on the
+#: `world E[depart]` column, which needs no external count.
 ACTIVE_ELEC_ACCOUNTS: dict[int, int] = {
     2017: 81, 2018: 88, 2019: 94, 2020: 101, 2021: 108, 2022: 110, 2023: 117, 2024: 131,
 }
@@ -68,6 +76,40 @@ def published_bands() -> dict[int, tuple[float, float]]:
     """
     raw = json.loads(COMMONS.read_text())
     return {int(r["year"]): (float(r["rate_pct_lo"]), float(r["rate_pct_hi"])) for r in raw["rates"]}
+
+
+def band_decimals() -> int:
+    """How many decimal places the commons publishes its band endpoints to.
+
+    DERIVED from the artefact rather than written down, so a record refined to two decimals
+    tightens `inside_band` below without anyone remembering to.
+    """
+    raw = json.loads(COMMONS.read_text())
+    return max(
+        len(str(r[key]).partition(".")[2])
+        for r in raw["rates"] for key in ("rate_pct_lo", "rate_pct_hi")
+    )
+
+
+def inside_band(value_pct: float, lo: float, hi: float) -> bool:
+    """Is a measured level inside a published band, AT THE PRECISION THE BAND IS PUBLISHED TO?
+
+    WHY THIS IS NOT A TOLERANCE BOLTED ON TO MAKE SOMETHING PASS, and the distinction matters
+    because that is exactly what it would be if the number were chosen. The commons states every
+    band to 0.1pp -- `13.5-14.0`, `22.5-23.0` -- because that is the precision the published switch
+    counts and account totals bear. The world's level is measured from event records that round
+    `realized_churn_probability` to four decimals, so a population mean carries rounding noise of
+    order 0.0002pp. Aiming the level anchor at a band ENDPOINT (§6's tie-break: the high end, the
+    anti-flattering choice) puts the measurement exactly on the boundary, and then a strict float
+    comparison is decided by that noise: measured 2026-08-30, five of eight years landed 0.0002pp
+    ABOVE their endpoint and three landed on or below it. That is a control reporting a coin flip.
+
+    A value differing from an endpoint by 0.0002pp is EQUAL to it at every precision the record
+    actually bears. So the comparison is made at the record's own precision, derived from the
+    artefact. It cannot hide a real miss: the same run's 2020 sat at 23.72 against a 23.0 endpoint
+    and fails here, as it should, and the pre-anchor world's 4.93% fails every year by miles.
+    """
+    return lo <= round(value_pct, band_decimals()) <= hi
 
 
 def world_curve_pct(year: int) -> float:
@@ -135,7 +177,7 @@ def main(argv: list[str]) -> int:
         per_account = (
             f"{100.0 * d / ACTIVE_ELEC_ACCOUNTS[year]:.1f}" if year in ACTIVE_ELEC_ACCOUNTS else "—"
         )
-        flag = "" if lo <= mean_p <= hi else "   OUT OF BAND"
+        flag = "" if inside_band(mean_p, lo, hi) else "   OUT OF BAND"
         print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
               f"{mean_p:6.2f}            {per_account:>5}{flag}")
         if year in COMPARISON_YEARS:
@@ -160,10 +202,13 @@ def main(argv: list[str]) -> int:
     print("  2026-08-30 it no longer sets the market level for a year the record covers, because a")
     print("  function of savings alone cannot reproduce the series (2017 and 2018 share a saving and")
     print("  differ by 6pp in the record). `world rate` is `market_departure_rate` -- the record")
-    print("  itself inside the window -- and it is the quantity `market_switching_multiplier` now")
-    print("  normalises. `world E[depart]` is what the RUN did, and it is still short of the record:")
-    print("  the market term reaches the churn chain as a RATIO, so correcting the ratio moved the")
-    print("  shape and not the level. See §8 of docs/market_research/gb_switching_rate_denominators.md.")
+    print("  itself inside the window -- and it is the quantity `market_switching_multiplier`")
+    print("  normalises. `world E[depart]` is what the RUN did, and it is the only column that can")
+    print("  be OUT OF BAND: the market term reaches the churn chain as a dimensionless RATIO, so")
+    print("  the level it lands at is `simulation/departure_level_anchor.py`'s and not the ratio's.")
+    print("  A year flagged OUT OF BAND means the anchor has gone stale against a world that moved")
+    print("  under it -- re-capture and re-fit (`tools/fit_year_level_anchor.py`), never widen the")
+    print("  band. See §8-§11 of docs/market_research/gb_switching_rate_denominators.md.")
     return 0
 
 
