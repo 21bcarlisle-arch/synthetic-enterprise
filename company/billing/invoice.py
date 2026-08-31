@@ -16,8 +16,39 @@ from pathlib import Path
 
 DEFAULT_DB_PATH = Path("company/data/invoices.db")
 
-VAT_RATE = 0.05  # 5% VAT on domestic energy (UK reduced rate)
+# VAT IS THE LAW AND IT HAS ONE HOME (2026-08-31). This module used to declare
+# `VAT_RATE = 0.05` with the comment "5% VAT on domestic energy (UK reduced rate)", which is true
+# of a household and wrong of every business supply -- and `saas/non_commodity.py` held the correct
+# per-segment table twelve lines from here in the same repo. `tools/domain_constant_origins`
+# reported the pair as one of exactly TWO name collisions in 221 domain constants: one name, two
+# values, one of them a legal rate.
+#
+# The director's own example of why this matters is this rule: "one legal requirement, five
+# implementations, a defect fixed in one of them in July and still live in another in August, and
+# nothing anywhere able to notice."
+#
+# So the rate is ASKED FOR, per segment, from the invariant that owns it, which reads the published
+# commons artefact `docs/domain_artefact_library/regulatory/uk_vat_rates.json`. There is no module
+# constant to drift.
+#
+# THE DEFECT THIS ACTUALLY FIXED IS NARROW AND WORTH STATING AS NARROW: the flat 5% was only ever
+# reached on the FALLBACK path below -- a bill with no line-item breakdown, i.e. legacy and test
+# bills. A Phase-9a+ bill carries its own `vat_gbp` and that is preferred. So this was not a live
+# mis-billing of business customers; it was a second declaration of a legal rate, sitting one
+# `bill.get()` default away from becoming one.
 PAYMENT_TERMS_DAYS = 14
+
+
+def _vat_rate(bill: dict) -> float:
+    """The VAT rate this bill's supply attracts, from the invariant that owns the rule.
+
+    `domain_invariants.vat_rate_for_segment` reads the published commons artefact; a bill with no
+    segment is treated as residential, which is what an unlabelled domestic supply is and what this
+    module assumed unconditionally before.
+    """
+    from company.compliance.domain_invariants import vat_rate_for_segment
+
+    return float(vat_rate_for_segment(bill.get("segment") or "resi"))
 
 
 @contextmanager
@@ -117,10 +148,10 @@ def create_invoice(bill: dict, db_path: Path = DEFAULT_DB_PATH) -> int:
 
     if commodity_gbp or non_comm_gbp or sc_gbp:
         subtotal = round(commodity_gbp + non_comm_gbp + sc_gbp, 2)
-        vat = round(bill.get("vat_gbp", subtotal * VAT_RATE), 2)
+        vat = round(bill.get("vat_gbp", subtotal * _vat_rate(bill)), 2)
     else:
         subtotal = bill.get("total_amount_gbp", 0.0)
-        vat = round(subtotal * VAT_RATE, 2)
+        vat = round(subtotal * _vat_rate(bill), 2)
         commodity_gbp = subtotal
 
     total = round(subtotal + vat, 2)

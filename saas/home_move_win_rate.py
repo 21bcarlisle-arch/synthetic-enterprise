@@ -37,6 +37,11 @@ epc_rating) and returns a plain dict. No imports from `sim/`.
 # from that observable belongs beside the other property derivations rather than
 # duplicated here (two copies of a derivation drift, and the drifting copy is
 # always the one nobody is looking at). `property_model` is a leaf module.
+# ASKED FOR, NOT RE-DECLARED (2026-08-31). This used to be its own `= 0.10` under a comment
+# saying "Matches saas/clv_model.py::DISCOUNT_RATE_ANNUAL -- the same book, the same rate":
+# a duplicate that documented itself instead of being removed, and therefore one that could
+# only ever drift silently.
+from company.analytics.clv_three_horizon import DISCOUNT_RATE as DISCOUNT_RATE_ANNUAL
 from saas.property_model import _epc_rating_of
 
 # Baseline win probability when our price is exactly at the market average
@@ -120,8 +125,7 @@ DEFAULT_TARIFF_3YR_HOLD_RATE = (
 )
 DEFAULT_TARIFF_ANNUAL_CHURN_HAZARD = 1.0 - DEFAULT_TARIFF_3YR_HOLD_RATE ** (1.0 / 3.0)
 
-# Matches saas/clv_model.py::DISCOUNT_RATE_ANNUAL — the same book, the same rate.
-DISCOUNT_RATE_ANNUAL = 0.10
+# `DISCOUNT_RATE_ANNUAL` is imported at the top of this file -- see the note there.
 
 
 def landed_occupant_churn_probability(book_churn_probability: float) -> float:

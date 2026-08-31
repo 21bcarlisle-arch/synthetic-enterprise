@@ -41,9 +41,11 @@ import numpy as np
 import pandas as pd
 from pymc_marketing.clv import ShiftedBetaGeoModelIndividual
 
+# ASKED FOR, NOT RE-DECLARED (2026-08-31): one concept, one home. See
+# `company/analytics/clv_three_horizon.DISCOUNT_RATE` for the origin and the named
+# simplification -- including why it is NOT Ofgem's 12.3% cost of capital.
+from company.analytics.clv_three_horizon import DISCOUNT_RATE as DISCOUNT_RATE_ANNUAL
 from saas.customer_reaction import _billing_account_id
-
-DISCOUNT_RATE_ANNUAL = 0.10  # applied per renewal period (annual contracts)
 
 # THE COST BASIS THE BOOK IS VALUED ON — one symbol, used BOTH to index
 # `cost_to_serve["by_customer"]` below AND as the label every downstream

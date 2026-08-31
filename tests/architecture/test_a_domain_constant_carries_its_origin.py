@@ -89,7 +89,92 @@ UNSOURCED_DEBT_CEILING = 197
 #:   * `MAX_CHURN_PROBABILITY` -- 1.0 against 0.95, one on each side of the SIM/company seam.
 #:
 #: Both are recorded in their own finding.
-KNOWN_NAME_COLLISIONS = frozenset({"VAT_RATE", "MAX_CHURN_PROBABILITY"})
+# `VAT_RATE` STRUCK 2026-08-31 — the register asked for this edit and it is the record the work
+# happened. `company/billing/invoice.py` declared its own `VAT_RATE = 0.05` ("5% VAT on domestic
+# energy") while `saas/non_commodity.py` held {'resi': 0.05, 'SME': 0.2, 'I&C': 0.2}: a LEGAL rate
+# with two homes, which is the director's own example of the class. The company side now asks
+# `domain_invariants.vat_rate_for_segment`, which reads the published commons artefact, so there is
+# no constant left to collide.
+#
+# `MAX_CHURN_PROBABILITY` STAYS, and it is a different animal: 1.0 in `company/crm/churn_model` is
+# the COMPANY BELIEF model's ceiling, deliberately raised from a hard clamp so genuinely different
+# elevated risks stay distinguishable; 0.95 in `saas/churn_model` caps a bill-shock model in the
+# world. Two concepts, one name — the repair is a rename, not a reconciliation, and it is 74
+# references on one side and 17 on the other. Attempted here and REVERTED: a blunt pass renamed
+# company-side references inside test modules that touch both. It wants a per-reference pass, which
+# is its own piece of work.
+KNOWN_NAME_COLLISIONS = frozenset({"MAX_CHURN_PROBABILITY"})
+
+
+#: ONE VALUE UNDER SEVERAL NAMES — the same rule as the collision above, with the halves swapped.
+#:
+#: The check above asks "does one NAME carry two values?". It cannot see one CONCEPT declared in
+#: several modules under different names, and that is the half that had actually gone wrong: on
+#: 2026-08-31 the CLV discount rate was 0.10 in `company/analytics/clv_three_horizon` as
+#: `DISCOUNT_RATE` and 0.10 again in `saas/clv_model` and `saas/home_move_win_rate` as
+#: `DISCOUNT_RATE_ANNUAL`. Three homes for one number, invisible to a name-keyed check.
+#:
+#: WORSE THAN INVISIBLE: `clv_three_horizon`'s own comment said *"ONE discount rate for the whole
+#: seam… stated once here rather than five times in five callers"*, and named `saas/clv_model` as
+#: the module whose value it had adopted — without removing it. **A consolidation that added a home
+#: instead of removing one**, documented as a consolidation.
+#:
+#: THE SUFFIXES STRIPPED are the ones that describe UNITS or PERIOD rather than the concept, so
+#: `DISCOUNT_RATE` and `DISCOUNT_RATE_ANNUAL` collapse together. Deliberately short: a longer list
+#: would start merging genuinely different quantities, and a false positive here sends someone to
+#: delete a constant that should exist.
+_CONCEPT_SUFFIXES = ("_ANNUAL", "_PER_YEAR", "_PCT", "_PERCENT", "_FRACTION",
+                     "_GBP", "_KWH", "_PER_MWH")
+
+#: Concept+value pairs living in more than one module TODAY, each with why it is still there.
+#: Same discipline as `KNOWN_NAME_COLLISIONS`: when one is fixed it comes off this list in the
+#: commit that fixed it, and that edit is the record the work happened.
+KNOWN_CONCEPT_DUPLICATES = frozenset({
+    # 4.5 GBP/MWh, `origin=cited` on BOTH sides -- the lowest-severity case here, since neither is
+    # an invented number. Still two homes for one published rate.
+    ("DFS_RATE_GBP", "4.5"),
+})
+
+
+def _concept(name: str) -> str:
+    n = name.lstrip("_").upper()
+    for suffix in _CONCEPT_SUFFIXES:
+        if n.endswith(suffix):
+            n = n[: -len(suffix)]
+    return n
+
+
+def test_no_concept_is_declared_in_more_than_one_module():
+    """One concept, one home -- checked the way round the name-keyed test cannot see.
+
+    MUTATION: re-declare `DISCOUNT_RATE_ANNUAL = 0.10` in `saas/clv_model.py` and this fires,
+    naming both modules. That mutation is the code as it stood this morning.
+    """
+    import collections
+
+    groups = collections.defaultdict(list)
+    for row in scan():
+        groups[(_concept(row["name"]), repr(row["value"]))].append(row)
+
+    found = {key for key, rows in groups.items()
+             if len({r["path"] for r in rows}) > 1}
+    new = found - KNOWN_CONCEPT_DUPLICATES
+    assert not new, (
+        "{} concept(s) are declared in more than one module. One concept, one home:\n".format(len(new))
+        + "\n".join(
+            "  {} = {}\n".format(c, v)
+            + "\n".join("      {}:{} as {}".format(r["path"], r["line"], r["name"])
+                         for r in groups[(c, v)])
+            for c, v in sorted(new)
+        )
+    )
+
+    gone = KNOWN_CONCEPT_DUPLICATES - found
+    assert not gone, (
+        "{} no longer duplicated, which is good -- remove it from KNOWN_CONCEPT_DUPLICATES in the "
+        "same commit that fixed it. That edit is the record the work happened.".format(
+            sorted(c for c, _ in gone))
+    )
 
 #: A FLOOR UNDER THE DEBT ITSELF, and it exists because the ratchet above could not fail.
 #:
