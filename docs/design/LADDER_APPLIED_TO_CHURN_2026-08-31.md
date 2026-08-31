@@ -239,7 +239,13 @@ from a belief that seeds the roll would publish a tautology as company skill. Fo
 **−0.5%** — a number with the authority of a measurement and the content of noise. Refused, not
 rounded to zero.
 
-### SVT route — 1,266 decisions, 50 departures. **The company forms no belief at all.**
+### SVT route — 1,266 decisions, 50 departures. ~~**The company forms no belief at all.**~~
+
+> **THE ABSENCE WAS CLOSED THE SAME DAY, AND THE FIRST BELIEF ORDERS THE BILLING CALENDAR — see
+> "The company's first SVT belief" below.** Everything in this subsection was true when written and
+> is kept because it is what the new belief has to be read against. The heading's claim is no
+> longer current: `company.crm.churn_desk.estimate_svt_drift` exists, and it reads **0.4691 per
+> exposure-day, inside its null**, against a ceiling of 0.6091 on the same rows.
 
 **Ceiling 0.6721, null [0.4139, 0.5854] — it clears. There is signal on this route and nothing on
 the company's side is looking at it.** This is structural, not a gap in the capture:
@@ -304,18 +310,76 @@ segment length was doing.
 > act as withdrawing the one it replaces, and the page asserted the second because the first had
 > been done.
 
+### The company's first SVT belief — and it clears its null only before the exposure offset
+
+*Added 2026-08-31, later the same day. Pre-registration:
+`WORKER_PREREGISTRATION_WHAT_THE_SVT_DRIFT_BELIEF_MUST_SHOW_2026-08-31.md`, filed before the run;
+its result section is appended below its own line and nothing above it was edited.*
+
+`company.crm.churn_desk.estimate_svt_drift` reads two observables that are the company's own
+records — how long since the account last left a fixed deal, and how long this cap period ran —
+and converts the published band at its **midpoint** (17.5% under three years, 7.5% at three or
+more; `svt_rates_active_passive_2016_2025.md` §4 publishes 15–20% and 5–10%). It takes the midpoint
+where the world takes the top, because the top is the director's anti-flattering tie-break governing
+where the *world* is aimed and the company's belief is not the director's dial.
+
+| leg, on the same 1,266 decisions | AUC | null 95% | verdict |
+|---|---|---|---|
+| CEILING, as published | 0.6721 | [0.4139, 0.5854] | clears |
+| `estimate_svt_drift` — **superseded, do not quote** | ~~0.6054~~ | [0.4142, 0.5883] | ~~clears~~ |
+| **CEILING per exposure-day** | **0.6091** | [0.4159, 0.5850] | **clears** |
+| **`estimate_svt_drift` per exposure-day** | **0.4691** | [0.4164, 0.5834] | **we cannot tell** |
+| its band term alone (the only non-exposure content it has) | 0.5393 | [0.4407, 0.5515] | inside its null |
+
+**The belief orders how long the cap period ran, and nothing else.** It is
+`1 − (1 − annual) ** (days / 365.25)` — monotone in the billing calendar. Uncorrected it looks like
+a working model; divide exposure out and it cannot be told from chance, while the ceiling on the
+identical rows still clears. **So the signal is there and the company's first attempt finds none
+of it.** That is a sharper finding than a merely low score, because it names what is missing: the
+world damps every SVT departure by an action propensity built from income stress and tenure, and
+the company may read neither. Its honest proxy — its own arrears and payment history — is not
+wired, which the belief's docstring says rather than leaves to be found.
+
+**No ratio is published, and the refusal is the fourth condition in `ceiling_vs_belief`, added for
+this.** The first three conditions all passed: one population, independent of the roll, clears its
+null. A "fraction of the ceiling captured" would have read **88%** for the company's first look at
+61% of its own departures. The instrument now requires a belief to clear its null **after any
+exposure offset its route carries**, and it refuses this one by name. Keyed to the property: the
+condition reads whether the route's rows carry a positive exposure field, not whether the route is
+called `svt_segment`, so a route that gains an offset inherits the requirement.
+
+**Mean believed 0.0333 against a realised 0.0395** — the belief is low, as pre-registered, and the
+0.6pp gap is smaller than the 12.5% relative band difference alone would give, because the world's
+action propensity damps its own realised rate in the other direction.
+
+**The belief is kept and fenced rather than reverted.** Keeping it is the anti-flattering choice:
+it converts an absence that could not be measured into a number with a null beside it. The
+pre-registration's withdrawal condition was argued rather than met, and because that argument was
+made by the session that wanted the belief to survive, it is replaced by a control —
+`tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py`. The number may be
+recorded and graded; it may not reach a decision surface while it reads inside its null. The
+guard's strictness is read from the artefact at run time, so if a later version of the belief
+clears, the guard stands down and says so.
+
 ### What this comparison is allowed to say
 
 * On the renewal route, on one population: **the ceiling is 0.7400 and the company's independent
   belief is 0.4988, inside its null.**
-* On the SVT route: **the ceiling is 0.6721 and there is no company belief to compare.**
-* **No ratio between the routes, and no whole-book company figure.** The company's belief exists on
-  144 of 1,410 decisions; a "company AUC for the book" would have a numerator and denominator
-  counting different things. The two readings are published side by side with their populations
-  named, which is what the direction asked for.
-* It does **not** say the company's model is badly built. It says that on the population where it
-  can be graded independently, it carries no ordering information, and on the population carrying
-  most of the departures it is not consulted. Those are two different repairs.
+* On the SVT route: **the ceiling is 0.6091 per exposure-day and the company's belief is 0.4691,
+  inside its null.** *(Updated later on 2026-08-31: it read "there is no company belief to compare"
+  until `estimate_svt_drift` landed. Both figures are the exposure-offset ones, because that is the
+  quotable reading on this route — the uncorrected 0.6721/0.6054 pair is superseded.)*
+* **No ratio on either route, and no whole-book company figure.** Every leg is refused for a named
+  cause: the renewal route's `build_churn_risk` seeds the roll it is graded against,
+  `company_churn_estimate` reads inside its null, and `estimate_svt_drift` clears only before its
+  route's exposure offset. A "company AUC for the book" would additionally have a numerator and a
+  denominator counting different things. The readings are published side by side with their
+  populations named, which is what the direction asked for.
+* It does **not** say the company's model is badly built. It says that on **both** populations
+  where it can be graded independently it carries no ordering information a null can distinguish
+  from chance — and that the ceiling clears on both, so there was something to find. Those are the
+  repairs owed, and they are different ones: the renewal route needs a better belief, and the SVT
+  route needs a belief that is not a function of the billing calendar.
 
 ---
 

@@ -152,29 +152,46 @@ def test_the_belief_is_scored_by_the_same_estimator_as_the_ceiling():
         assert reading["decisions"] == len(rows)
 
 
-def test_a_route_with_no_company_belief_says_so_rather_than_returning_nothing():
+def test_a_belief_not_defined_on_a_route_says_so_rather_than_returning_nothing():
     """"No belief exists here" and "the belief scored at chance" are opposite findings.
 
-    61% of this book's departures happen on the SVT route, where `build_churn_risk` -- indexed on
-    renewal anniversaries -- forms no estimate at all. An empty list, a missing key or a 0.5 would
-    all let that read as a data gap someone could close by adding a column. It cannot be closed
-    that way: there is no number to record, and the absence IS the finding.
+    RE-KEYED 2026-08-31, and the reason is this file's own opening standard. It used to assert
+    `"svt_segment" not in ROUTES_WITH_A_COMPANY_BELIEF` -- that is today's answer, not the
+    property. When `company.crm.churn_desk.estimate_svt_drift` gave the company its first belief
+    about the SVT route the control went red, having caught nothing: the world had become MORE
+    honest and the guard reported a regression. The header two hundred lines above says a control
+    pinned to a current value "would go red when the world becomes more honest and stay green when
+    the claim rots", and this was that control.
+
+    The durable property is per BELIEF, not per route: a belief that is not formed on the route
+    being read must say so, with its cause, rather than being omitted or scored. That survives any
+    number of routes gaining or losing beliefs, including the SVT route gaining one.
     """
-    assert "svt_segment" not in ROUTES_WITH_A_COMPANY_BELIEF
-    readings = belief_readings(_rows(route="svt_segment"), "svt_segment", permutations=200)
-    assert len(readings) == len(COMPANY_BELIEFS), (
-        "a route with no company belief returned fewer readings than there are beliefs: the "
-        "absence has to be stated per belief, not omitted"
+    route = "svt_segment"
+    not_defined = [b for b in COMPANY_BELIEFS if route not in b.get("routes", ("renewal",))]
+    assert not_defined, (
+        f"every declared belief is now defined on {route}, so this control has no subject. That "
+        "is a real change and it needs a route where one is absent, not a deleted assertion."
     )
-    for reading in readings:
+    readings = {r["field"]: r for r in belief_readings(_rows(route=route), route, permutations=200)}
+    assert len(readings) == len(COMPANY_BELIEFS), (
+        "a route returned fewer readings than there are beliefs: an absence has to be stated per "
+        "belief, not omitted"
+    )
+    for spec in not_defined:
+        reading = readings[spec["field"]]
         assert reading["available"] is False
         assert reading.get("belief_auc") is None, (
-            "a beliefless route reported an AUC. A number here is indistinguishable from a belief "
+            "an undefined belief reported an AUC. A number here is indistinguishable from a belief "
             "that was graded and came out uninformative."
         )
-        assert "renewal anniversaries" in reading["reason"], (
-            "the refusal does not name its cause, so a reader cannot tell whether the belief is "
-            "absent by construction or merely uncaptured"
+        assert spec["field"] in reading["reason"] and route in reading["reason"], (
+            "the refusal does not name the belief and the route it is absent on, so a reader "
+            "cannot tell which channel is missing"
+        )
+        assert "NOT a missing column" in reading["reason"], (
+            "the refusal does not distinguish absent-by-construction from merely-uncaptured, "
+            "which is the whole finding: this gap cannot be closed by adding a column"
         )
 
 
@@ -184,12 +201,19 @@ def test_a_ratio_is_refused_when_the_legs_count_different_populations():
     readings = belief_readings(rows, "renewal", permutations=200)
     entry = _entry(rows, readings)
     entry["decisions"] = len(rows) + 1  # the ceiling now counts a population the belief does not
+    graded = {r["field"] for r in readings if r.get("available")}
+    assert graded, "no belief was graded on this route, so the population guard was never reached"
     for reading in ceiling_vs_belief(entry)["readings"]:
         assert reading["excess_over_chance_captured"] is None, (
             "a fraction of the ceiling was published across two populations -- the exact move the "
             "ladder page refused in prose"
         )
-        assert "not one population" in reading["refused_because"]
+        # Only a belief that was actually GRADED can be refused for counting the wrong population.
+        # One that is not formed on this route at all is refused earlier and for a better reason,
+        # and demanding this phrase of it would assert the wrong cause -- the shape where a refusal
+        # names a cause the checker never observed.
+        if reading["field"] in graded:
+            assert "not one population" in reading["refused_because"]
 
 
 def test_a_ratio_is_refused_when_the_belief_seeds_the_worlds_roll():
@@ -219,14 +243,30 @@ def test_a_ratio_is_refused_when_the_belief_seeds_the_worlds_roll():
     # its null DOES get a ratio. Without this the four refusals above are equally consistent with
     # `excess_over_chance_captured` being hard-wired to None (R15: a control whose PASS branch is
     # unreachable reports a constant verdict).
-    independent = [b for b in COMPANY_BELIEFS if not b["seeds_the_world_roll"]]
-    assert independent, "no independent belief is declared; the pass branch has no subject"
-    published = [
-        by_field[spec["field"]]["excess_over_chance_captured"] for spec in independent
-    ]
-    assert any(p is not None for p in published), (
-        "no independent, same-population, null-clearing belief produced a ratio: the guard cannot "
-        "be told apart from a function that always refuses"
+    #
+    # PROVEN ON A CONSTRUCTED BELIEF, NOT ON THE LIVE SPEC SET -- corrected 2026-08-31. It used to
+    # scan `COMPANY_BELIEFS` for a real belief that got a ratio, and on 2026-08-31 the last one
+    # stopped: `company_churn_estimate` reads inside its null, `build_churn_risk` seeds the roll,
+    # and `estimate_svt_drift` clears only before its route's exposure offset. All three refusals
+    # are CORRECT, and the reachability check went red anyway -- because whether the live book
+    # happens to contain a null-clearing independent belief is a fact about the world, not about
+    # this guard. Reachability is a property of the CODE and is proven against a belief built to
+    # satisfy every condition.
+    reachable = ceiling_vs_belief({
+        "route": "renewal", "decisions": 144, "oracle_auc": 0.7400,
+        "company_belief": [{
+            "belief": "a constructed belief that satisfies every condition",
+            "field": "constructed", "available": True,
+            "seeds_the_world_roll": False, "independent_of_the_outcome": True,
+            "decisions": 144, "belief_auc": 0.65,
+            "null": {"low": 0.40, "high": 0.60, "median": 0.5, "permutations": 200},
+            "clears_the_null": True,
+        }],
+    })["readings"][0]
+    assert reachable["excess_over_chance_captured"] is not None, (
+        "a belief that is independent, counts one population, clears its null and carries no "
+        "exposure offset was still refused a ratio: the guard cannot be told apart from a "
+        "function that always refuses"
     )
 
 

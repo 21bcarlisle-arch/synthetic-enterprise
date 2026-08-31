@@ -141,6 +141,14 @@
           "distinct_values": 127,
           "mean_believed": 0.27129444444444445,
           "realised_rate": 0.2222222222222222
+        },
+        {
+          "belief": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+          "field": "company_svt_drift_estimate",
+          "available": false,
+          "not_defined_on_this_route": true,
+          "reason": "`company_svt_drift_estimate` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
+          "seeds_the_world_roll": false
         }
       ],
       "ceiling_vs_belief": {
@@ -154,6 +162,7 @@
             "one_population": true,
             "independent": false,
             "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": true,
             "excess_over_chance_captured": null,
             "refused_because": "the belief seeds the world's own roll, so a captured fraction would be the world reading back its own input"
           },
@@ -165,8 +174,17 @@
             "one_population": true,
             "independent": true,
             "clears_its_null": false,
+            "clears_its_null_after_exposure_offset": true,
             "excess_over_chance_captured": null,
             "refused_because": "the belief reads 0.4988 INSIDE its null [0.3829, 0.6241] \u2014 a fraction of the ceiling computed from a cannot-tell is a percentage that reads as a finding"
+          },
+          {
+            "belief": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+            "field": "company_svt_drift_estimate",
+            "ceiling_auc": 0.7400468384074942,
+            "belief_auc": null,
+            "excess_over_chance_captured": null,
+            "refused_because": "`company_svt_drift_estimate` is not formed on the renewal route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
           }
         ]
       },
@@ -212,15 +230,58 @@
           "belief": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
           "field": "churn_probability",
           "available": false,
-          "reason": "the company forms no belief on the svt_segment route. `build_churn_risk` is indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its hazard with bill shock, price response and dissatisfaction all set to 0.0 and consults no company estimate. There is no number to grade, and that is the finding rather than a gap in the capture.",
+          "not_defined_on_this_route": true,
+          "reason": "`churn_probability` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
           "seeds_the_world_roll": true
         },
         {
           "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
           "field": "company_churn_estimate",
           "available": false,
-          "reason": "the company forms no belief on the svt_segment route. `build_churn_risk` is indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its hazard with bill shock, price response and dissatisfaction all set to 0.0 and consults no company estimate. There is no number to grade, and that is the finding rather than a gap in the capture.",
+          "not_defined_on_this_route": true,
+          "reason": "`company_churn_estimate` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture.",
           "seeds_the_world_roll": false
+        },
+        {
+          "belief": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+          "field": "company_svt_drift_estimate",
+          "available": true,
+          "seeds_the_world_roll": false,
+          "independent_of_the_outcome": true,
+          "reading": "The company's FIRST belief about the route carrying 61% of this book's departures. Two observables cross and both are the company's own records -- when the account last left a fixed deal, and how long this cap period ran. It reads the published band at its MIDPOINT (17.5%/7.5%) where the world takes the top (20%/10%), because the top is the director's anti-flattering tie-break governing where the WORLD is aimed and the company's belief is not the director's dial. It carries NO action-propensity term, because income stress is SIM truth and housing tenure is a segment label; that absence is the finding, not a gap. Computed AFTER the roll and reaching no hazard, which is what makes it gradable.",
+          "decisions": 1266,
+          "departures": 50,
+          "pairs": 7174,
+          "belief_auc": 0.6053805408419292,
+          "null": {
+            "low": 0.4142040702536939,
+            "high": 0.5883049902425426,
+            "median": 0.5000696961248955,
+            "permutations": 2000
+          },
+          "clears_the_null": true,
+          "verdict": "the belief orders who leaves",
+          "tie_fraction": 0.17591301923613048,
+          "distinct_values": 116,
+          "mean_believed": 0.03326903633491311,
+          "realised_rate": 0.03949447077409163,
+          "exposure_offset": {
+            "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
+            "belief_auc_per_exposure_day": 0.46912461667131305,
+            "null": {
+              "low": 0.4164343462503485,
+              "high": 0.5833565653749652,
+              "median": 0.5013242263730137,
+              "permutations": 2000
+            },
+            "pairs": 7174,
+            "clears_the_null": false,
+            "verdict": "we cannot tell",
+            "reading": "THIS is the quotable reading for this belief. The difference from the uncorrected one above is the part of its apparent discrimination that was how long the segment ran rather than anything about the household."
+          },
+          "belief_auc_superseded_by": "exposure_offset.belief_auc_per_exposure_day",
+          "belief_auc_superseded_because": "this reading does not carry the exposure offset its route requires: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so this figure credits the belief with what the billing calendar was doing",
+          "clears_the_null_superseded_by": "exposure_offset.clears_the_null"
         }
       ],
       "ceiling_vs_belief": {
@@ -232,7 +293,7 @@
             "ceiling_auc": 0.6721494284917758,
             "belief_auc": null,
             "excess_over_chance_captured": null,
-            "refused_because": "the company forms no belief on the svt_segment route. `build_churn_risk` is indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its hazard with bill shock, price response and dissatisfaction all set to 0.0 and consults no company estimate. There is no number to grade, and that is the finding rather than a gap in the capture."
+            "refused_because": "`churn_probability` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
           },
           {
             "belief": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
@@ -240,7 +301,19 @@
             "ceiling_auc": 0.6721494284917758,
             "belief_auc": null,
             "excess_over_chance_captured": null,
-            "refused_because": "the company forms no belief on the svt_segment route. `build_churn_risk` is indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its hazard with bill shock, price response and dissatisfaction all set to 0.0 and consults no company estimate. There is no number to grade, and that is the finding rather than a gap in the capture."
+            "refused_because": "`company_churn_estimate` is not formed on the svt_segment route at all -- it is defined at a different moment in the account's life, so there is nothing to grade here. This is NOT a missing column in the capture."
+          },
+          {
+            "belief": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+            "field": "company_svt_drift_estimate",
+            "ceiling_auc": 0.6721494284917758,
+            "belief_auc": 0.6053805408419292,
+            "one_population": true,
+            "independent": true,
+            "clears_its_null": true,
+            "clears_its_null_after_exposure_offset": false,
+            "excess_over_chance_captured": null,
+            "refused_because": "the belief clears its null only BEFORE the exposure offset its route requires: 0.6054 uncorrected, but 0.4691 per exposure-day, inside [0.4164, 0.5834]. The ceiling still clears offset, so there is signal here and this belief is not finding it \u2014 what it orders is how long the segment ran"
           }
         ]
       },
@@ -291,14 +364,18 @@
     "joined": true,
     "from": "docs/reports/run_output_latest.json",
     "renewals_matched": 144,
-    "verified_on": "realized_churn_probability, every row, to 1e-9"
+    "verified_on": "realized_churn_probability, every row, to 1e-9",
+    "replayed": {
+      "derived": {
+        "company_svt_drift_estimate": 1266
+      },
+      "how": "replayed by calling the company's own estimator on observables the capture already records; the stamped value always wins where the run wrote one"
+    }
   },
   "departures_on_routes_the_company_has_no_belief_for": {
-    "departures": 50,
+    "departures": 0,
     "of_total": 82,
-    "routes": [
-      "svt_segment"
-    ]
+    "routes": []
   },
   "stratified_by": "calendar year AND departure route",
   "structural_terms_excluded_by_construction": [
