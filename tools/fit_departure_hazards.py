@@ -140,8 +140,30 @@ UNOBSERVABLE_REASON = (
     "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a "
     "second departure route -- an account drifting off the standard variable product at a segment "
     "boundary -- which strikes no rate and reaches no renewal roll, so no row in this population "
-    "can carry it. Its share here is UNKNOWN, not zero. On the two-route capture of 2026-08-31 it "
-    "was 50 of 82 departures."
+    "can carry it. Its share here is UNKNOWN, not zero."
+)
+
+#: THE ONLY NUMBER ANYONE HAS FOR THE SVT ROUTE, AND IT IS NOT A MEASUREMENT OF THIS WORLD.
+#:
+#: This sentence used to end `UNOBSERVABLE_REASON` as a bare *"on the two-route capture of
+#: 2026-08-31 it was 50 of 82 departures"*, sitting inside the published mix artefact with nothing
+#: to say where it came from. It came from `docs/reports/ladder_churn_factors_svt_segment_decisions
+#: .json`, which is committed and whose PRODUCER IS IN NO COMMIT: `run_phase2b` has no
+#: `_svt_decisions` recorder, `simulation/svt_product.py` says no roster assigns the product and
+#: that an account on it cannot leave, and `test_svt_product.py::test_no_account_is_on_the_svt_
+#: product_yet` holds that. So the figure describes a world with an SVT departure route -- not this
+#: one -- and a reader had no way to tell.
+#:
+#: Kept rather than deleted, because it is the only size estimate the route has and deleting it
+#: would leave the reader with no sense of scale at all. Separated and attributed, because an
+#: unattributed one reads as this world's answer. Finding:
+#: `docs/staging/WORKER_FINDING_A_FOREIGN_SVT_SIBLING_IS_WHAT_MAKES_THE_ACCOUNT_DENOMINATOR_CONTROL_PASS_2026-08-31.md`.
+UNOBSERVABLE_SCALE_HINT = (
+    "The only figure anyone has for this route's size is 50 of 82 departures, and it is NOT a "
+    "reading of this world: it comes from `docs/reports/ladder_churn_factors_svt_segment_"
+    "decisions.json`, an artefact that is committed but whose producer is in no commit. This "
+    "world has no SVT departure route for a capture to see. Treat it as an order of magnitude "
+    "from a tree that had one, never as a measured share here."
 )
 
 
@@ -219,6 +241,8 @@ def main(table_path: Path) -> int:
     if unobservable:
         print(f"  {UNOBSERVABLE_REASON}")
         print()
+        print(f"  {UNOBSERVABLE_SCALE_HINT}")
+        print()
     print("  The width is not noise and it is not a confidence interval. It is the range the")
     print("  reason mix takes across every value of `a_shock` the evidence cannot rule out --")
     print("  the split between 'my own bill rose' and 'someone else is cheaper', which no")
@@ -249,6 +273,9 @@ def main(table_path: Path) -> int:
         "causes_in_the_interval": list(MIX_CAUSES),
         "causes_not_observable_on_this_population": {c: None for c in unobservable},
         "causes_not_observable_reason": UNOBSERVABLE_REASON if unobservable else None,
+        # ATTRIBUTED, NOT ASSERTED. See `UNOBSERVABLE_SCALE_HINT` for why the 50-of-82 figure is
+        # carried as a hint about a different tree rather than as a share of this capture.
+        "causes_not_observable_scale_hint": UNOBSERVABLE_SCALE_HINT if unobservable else None,
         "sweep": sweep,
         "interval": interval,
     }, indent=1))

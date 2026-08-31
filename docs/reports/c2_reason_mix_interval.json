@@ -42,7 +42,8 @@
  "causes_not_observable_on_this_population": {
   "svt_inertia": null
  },
- "causes_not_observable_reason": "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a second departure route -- an account drifting off the standard variable product at a segment boundary -- which strikes no rate and reaches no renewal roll, so no row in this population can carry it. Its share here is UNKNOWN, not zero. On the two-route capture of 2026-08-31 it was 50 of 82 departures.",
+ "causes_not_observable_reason": "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a second departure route -- an account drifting off the standard variable product at a segment boundary -- which strikes no rate and reaches no renewal roll, so no row in this population can carry it. Its share here is UNKNOWN, not zero.",
+ "causes_not_observable_scale_hint": "The only figure anyone has for this route's size is 50 of 82 departures, and it is NOT a reading of this world: it comes from `docs/reports/ladder_churn_factors_svt_segment_decisions.json`, an artefact that is committed but whose producer is in no commit. This world has no SVT departure route for a capture to see. Treat it as an order of magnitude from a tree that had one, never as a measured share here.",
  "sweep": {
   "a_shock=0.87,scale=0.000053": {
    "bill_shock": 0.999328887686843,
