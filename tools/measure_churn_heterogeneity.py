@@ -50,15 +50,31 @@ because the two routes are not the same experiment:
     world's adjustment chain preserves the ordering of the base rate it was handed. It is published
     as that, on the surface, not in a footnote. `company_churn_estimate` is the independent leg on
     the same rows and does not feed the roll.
-  * the SVT route carries no company belief at all. `build_churn_risk` is indexed on renewal
-    anniversaries and `run_phase2b`'s SVT branch consults no company estimate, so the 61% of this
-    book's departures that leave by drifting off the standard variable product are invisible to the
-    company's churn model. That absence is the finding, and it is stated rather than left as a
-    missing column.
+  * the SVT route carried no company belief at all until 2026-08-31. `build_churn_risk` is indexed
+    on renewal anniversaries and `run_phase2b`'s SVT branch consulted no company estimate, so the
+    61% of this book's departures that leave by drifting off the standard variable product were
+    invisible to the company's churn model. That absence was the finding, and
+    `company.crm.churn_desk.estimate_svt_drift` is the first belief formed about the route.
+
+AND THE FIRST SVT BELIEF FAILS ON THE EXPOSURE OFFSET, WHICH IS WHY THAT OFFSET NOW BINDS BELIEFS
+AND NOT ONLY FACTOR TABLES (2026-08-31). Uncorrected, `estimate_svt_drift` reads 0.6054 against a
+null topping out at 0.5883 -- it clears, and a "fraction of the ceiling captured" computed from it
+would have said the company's first look at the route captures 88% of the available signal. Divide
+out segment days and it reads 0.4691, INSIDE its null, while the ceiling still clears at 0.6091.
+The belief is `1 - (1 - annual) ** (days / 365.25)`: monotone in the billing calendar, and the
+calendar is all its apparent discrimination was. Its only non-exposure content, the 3-year band
+term, scores 0.5393 inside its own null alone.
+
+That is the same defect the per-factor table had, arriving through a different door, so the repair
+is keyed to the PROPERTY rather than to the table it was first seen on: any route whose rows carry
+a positive exposure field offsets its BELIEFS too, the uncorrected belief reading is superseded in
+place, and `ceiling_vs_belief` requires the OFFSET reading to clear. A route that gains an exposure
+field inherits both halves without an edit here.
 
 No ratio, share or "fraction of the ceiling captured" is emitted unless both legs count one
-population AND the belief is independent of the roll -- see `ceiling_vs_belief`, which refuses with
-a named cause rather than publishing a capture rate that is the world reading back its own input.
+population, the belief is independent of the roll, AND it clears its null after any exposure offset
+its route carries -- see `ceiling_vs_belief`, which refuses with a named cause rather than
+publishing a capture rate that is the world reading back its own input or the billing calendar.
 
 Usage:  python3 -m tools.measure_churn_heterogeneity [factor_table.json] [--permutations N]
                  [--run-output=PATH] [--out=PATH]
@@ -386,6 +402,80 @@ ROUTE_FACTORS = {
 #: retire once no older capture is in use.
 JOIN_SUPPLIED_FIELD = "company_churn_estimate"
 
+
+def _derive_svt_drift_belief(row: dict) -> float:
+    """The company's SVT belief, REPLAYED from the observables the capture already recorded.
+
+    IT CALLS THE COMPANY'S OWN FUNCTION. The formula is not restated here and must never be: one
+    legal requirement with five implementations is this repository's most expensive recorded defect
+    (the VAT rule, fixed in one place in July and still live in another in August). If
+    `estimate_svt_drift` changes, this reading changes with it or fails loudly -- there is no third
+    copy to drift.
+
+    WHY REPLAY RATHER THAN RE-RUN, AND WHY THAT IS NOT FABRICATING AN OBSERVABLE. The harness
+    inventing a channel the company does not have is a known failure here, so the distinction
+    matters: `estimate_svt_drift` is a PURE FUNCTION of `years_on_svt` and `segment_days`, both of
+    which the capture records as `sim_years_on_svt` and `sim_segment_days` because the world needed
+    them for its own hazard, and both of which a real supplier reads off its own systems -- it set
+    the tariff and it issued the bills. Replaying a deterministic function of two recorded
+    observables yields the identical number the run would have stamped, which is asserted rather
+    than assumed: `test_the_replayed_svt_belief_equals_the_stamped_one` grades a row carrying both
+    against each other.
+
+    The alternative was a fresh decade run, and it is the WORSE option, not merely the slower one.
+    It would put the belief and the ceiling on two different runs -- the exact defect that made the
+    published 0.4653 uncomparable to 0.6760 and the reason this whole instrument exists. One
+    capture, one population, or no comparison.
+
+    Captures taken from the commit that wired `run_phase2b` carry the field directly and this
+    becomes dead weight, exactly as the renewal join above did.
+    """
+    from company.crm.churn_desk import SvtSegmentObservation, estimate_svt_drift
+
+    return estimate_svt_drift(
+        SvtSegmentObservation(
+            years_on_svt=row["sim_years_on_svt"], segment_days=row["sim_segment_days"]
+        )
+    )
+
+
+def derive_company_beliefs(rows: list[dict]) -> tuple[list[dict], dict]:
+    """Fill in any belief the capture did not stamp but whose inputs it did record.
+
+    SEPARATE FROM `attach_company_beliefs` AND CALLED OUTSIDE ITS `try`, deliberately. That join
+    refuses when the capture and the run output are not the same run, and the refusal is right; but
+    it was once allowed to take the ceiling down with it, blocking every lane, and the lesson
+    recorded at the call site is that a correct refusal with the wrong blast radius is still a
+    defect. A derived belief depends on the CAPTURE alone and must survive a refused join.
+
+    A row missing an input is left WITHOUT the field rather than given a default. `belief_readings`
+    then refuses the whole belief with a named count, which is the fail-closed direction: a default
+    would silently change the population out from under the ceiling it is compared with.
+    """
+    derived: dict[str, int] = {}
+    out = []
+    for row in rows:
+        row_route = row.get("route", "renewal")
+        new = row
+        for spec in COMPANY_BELIEFS:
+            field, fn = spec["field"], spec.get("derive")
+            if fn is None or row_route not in spec.get("routes", ("renewal",)):
+                continue
+            if isinstance(row.get(field), (int, float)):
+                continue  # the run stamped it; the stamp wins and the replay is not consulted
+            if any(not isinstance(row.get(k), (int, float)) for k in spec["derive_from"]):
+                continue
+            new = dict(new, **{field: fn(row)})
+            derived[field] = derived.get(field, 0) + 1
+        out.append(new)
+    return out, {
+        "derived": derived,
+        "how": (
+            "replayed by calling the company's own estimator on observables the capture already "
+            "records; the stamped value always wins where the run wrote one"
+        ),
+    }
+
 COMPANY_BELIEFS = (
     {
         "field": "churn_probability",
@@ -412,6 +502,26 @@ COMPANY_BELIEFS = (
             "the ceiling without the tautology above."
         ),
     },
+    {
+        "field": "company_svt_drift_estimate",
+        "field_optional": True,
+        "routes": ("svt_segment",),
+        "derive": _derive_svt_drift_belief,
+        "derive_from": ("sim_years_on_svt", "sim_segment_days"),
+        "label": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+        "seeds_the_world_roll": False,
+        "reading": (
+            "The company's FIRST belief about the route carrying 61% of this book's departures. "
+            "Two observables cross and both are the company's own records -- when the account "
+            "last left a fixed deal, and how long this cap period ran. It reads the published "
+            "band at its MIDPOINT (17.5%/7.5%) where the world takes the top (20%/10%), because "
+            "the top is the director's anti-flattering tie-break governing where the WORLD is "
+            "aimed and the company's belief is not the director's dial. It carries NO action-"
+            "propensity term, because income stress is SIM truth and housing tenure is a segment "
+            "label; that absence is the finding, not a gap. Computed AFTER the roll and reaching "
+            "no hazard, which is what makes it gradable."
+        ),
+    },
 )
 
 #: Routes on which the company forms a belief at all. `build_churn_risk` is indexed on RENEWAL
@@ -424,7 +534,7 @@ COMPANY_BELIEFS = (
 #: route" and "the company forms no belief on this route" are different findings, and only naming
 #: the second stops the first being read as a data-collection gap someone could close by adding a
 #: column. It cannot be closed that way: there is no number to record.
-ROUTES_WITH_A_COMPANY_BELIEF = ("renewal",)
+ROUTES_WITH_A_COMPANY_BELIEF = ("renewal", "svt_segment")
 
 
 def attach_company_beliefs(rows: list[dict], run_output: Path) -> tuple[list[dict], dict]:
@@ -501,17 +611,23 @@ def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dic
     out = []
     for spec in COMPANY_BELIEFS:
         field = spec["field"]
-        if route not in ROUTES_WITH_A_COMPANY_BELIEF:
+        # PER-BELIEF ROUTES, because the company now holds TWO beliefs formed at two different
+        # moments and neither is defined on the other's route. Before 2026-08-31 there was one
+        # belief and one route, so a single module-level tuple said everything; registering the
+        # SVT belief made that tuple ambiguous -- it would have asserted that `build_churn_risk`,
+        # which is indexed on renewal anniversaries, is missing from every SVT row, which is true
+        # and useless. A belief that was never DEFINED on a route is not a belief the capture
+        # lost, and the two must read differently.
+        if route not in spec.get("routes", ("renewal",)):
             out.append({
                 "belief": spec["label"],
                 "field": field,
                 "available": False,
+                "not_defined_on_this_route": True,
                 "reason": (
-                    f"the company forms no belief on the {route} route. `build_churn_risk` is "
-                    "indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its "
-                    "hazard with bill shock, price response and dissatisfaction all set to 0.0 "
-                    "and consults no company estimate. There is no number to grade, and that is "
-                    "the finding rather than a gap in the capture."
+                    f"`{field}` is not formed on the {route} route at all -- it is defined at a "
+                    f"different moment in the account's life, so there is nothing to grade here. "
+                    "This is NOT a missing column in the capture."
                 ),
                 "seeds_the_world_roll": spec["seeds_the_world_roll"],
             })
@@ -533,7 +649,7 @@ def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dic
         score = lambda r, f=field: r[f]  # noqa: E731 — passed to the estimator, not called here
         observed, pairs = within_strata_auc(rows, score)
         null = permutation_null(rows, score, permutations)
-        out.append({
+        entry = {
             "belief": spec["label"],
             "field": field,
             "available": True,
@@ -555,7 +671,15 @@ def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dic
             "distinct_values": len({r[field] for r in rows}),
             "mean_believed": statistics.fmean(r[field] for r in rows),
             "realised_rate": sum(_label(r) for r in rows) / len(rows),
-        })
+        }
+        # THE OFFSET BINDS THE BELIEF, NOT ONLY THE FACTOR TABLE. Keyed to the route CARRYING
+        # exposure rather than to the route's name, so a route that gains the field inherits this
+        # without an edit here — and so this cannot go green by the subject disappearing.
+        offset = belief_exposure_offset(rows, score, permutations)
+        if offset is not None:
+            entry["exposure_offset"] = offset
+            _supersede_uncorrected_belief(entry)
+        out.append(entry)
     return out
 
 
@@ -615,7 +739,24 @@ def ceiling_vs_belief(route_entry: dict) -> dict:
                 f"[{belief['null']['low']:.4f}, {belief['null']['high']:.4f}] — a fraction of the "
                 "ceiling computed from a cannot-tell is a percentage that reads as a finding"
             )
-        legal = same_population and independent and clears and ceiling is not None and ceiling > 0.5
+        # THE FOURTH CONDITION, and on this book it is the one that fires. A belief may clear its
+        # null on a reading its own route has already withdrawn; `estimate_svt_drift` does exactly
+        # that, and the ratio the first three conditions would have waved through is 88%.
+        offset = belief.get("exposure_offset")
+        clears_offset = True if offset is None else bool(offset["clears_the_null"])
+        if offset is not None and not clears_offset:
+            reasons.append(
+                f"the belief clears its null only BEFORE the exposure offset its route requires: "
+                f"{belief['belief_auc']:.4f} uncorrected, but "
+                f"{offset['belief_auc_per_exposure_day']:.4f} per exposure-day, inside "
+                f"[{offset['null']['low']:.4f}, {offset['null']['high']:.4f}]. The ceiling still "
+                "clears offset, so there is signal here and this belief is not finding it — what "
+                "it orders is how long the segment ran"
+            )
+        legal = (
+            same_population and independent and clears and clears_offset
+            and ceiling is not None and ceiling > 0.5
+        )
         out.append({
             "belief": belief["belief"],
             "field": belief["field"],
@@ -624,6 +765,7 @@ def ceiling_vs_belief(route_entry: dict) -> dict:
             "one_population": same_population,
             "independent": independent,
             "clears_its_null": clears,
+            "clears_its_null_after_exposure_offset": clears_offset,
             "excess_over_chance_captured": (
                 (belief["belief_auc"] - 0.5) / (ceiling - 0.5) if legal else None
             ),
@@ -634,6 +776,76 @@ def ceiling_vs_belief(route_entry: dict) -> dict:
 
 #: The field carrying how long each SVT segment lasted. Exposure, in the survival-analysis sense.
 EXPOSURE_FIELD = "sim_segment_days"
+
+
+def route_carries_exposure(rows: list[dict]) -> bool:
+    """Does every decision on this route carry a positive exposure? Then the offset applies.
+
+    THE PROPERTY, NOT THE ROUTE NAME. `route == "svt_segment"` would have been shorter and it is
+    the shape this project has been bitten by: a control pinned to today's answer goes green when
+    the subject moves rather than when the claim holds. Any route whose rows carry exposure gets
+    the offset, and a route that loses the field stops claiming to have applied one.
+
+    ALL, not any: a partial offset would divide some rows and not others and the resulting ranking
+    would mix two scales, which is worse than not offsetting at all.
+    """
+    return bool(rows) and all(
+        isinstance(r.get(EXPOSURE_FIELD), (int, float)) and r[EXPOSURE_FIELD] > 0 for r in rows
+    )
+
+
+def belief_exposure_offset(rows: list[dict], score, permutations: int) -> dict | None:
+    """One belief's reading with exposure divided out, or None where the route carries none.
+
+    WHY A BELIEF NEEDS THIS AND NOT ONLY THE ORACLE'S FACTOR TABLE. `estimate_svt_drift` is
+    `1 - (1 - annual) ** (days / 365.25)` — monotone in segment days, so on a route where segments
+    run 1 to 92 days most of its ordering IS the billing calendar. Uncorrected it reads 0.6054 and
+    clears; offset it reads 0.4691, inside its null, while the ceiling still clears at 0.6091.
+    Without this the instrument would have published the company's first look at the SVT route as
+    capturing 88% of the available signal, when what it captures is the calendar.
+
+    None rather than a neutral reading where there is no exposure field, because "this route has no
+    offset to apply" and "the offset was applied and changed nothing" are opposite facts.
+    """
+    if not route_carries_exposure(rows):
+        return None
+    per_day = lambda r: score(r) / r[EXPOSURE_FIELD]  # noqa: E731 — passed on to the estimator
+    observed, pairs = within_strata_auc(rows, per_day)
+    null = permutation_null(rows, per_day, permutations)
+    clears = observed is not None and observed > null["high"]
+    return {
+        "offset": "belief divided by segment days, i.e. a per-exposure-day rate",
+        "belief_auc_per_exposure_day": observed,
+        "null": null,
+        "pairs": pairs,
+        "clears_the_null": clears,
+        "verdict": "the belief orders who leaves beyond the calendar" if clears else CANNOT_TELL,
+        "reading": (
+            "THIS is the quotable reading for this belief. The difference from the uncorrected one "
+            "above is the part of its apparent discrimination that was how long the segment ran "
+            "rather than anything about the household."
+        ),
+    }
+
+
+def _supersede_uncorrected_belief(entry: dict) -> None:
+    """Mark a belief's un-offset reading withdrawn IN the reading, not beside it.
+
+    The same repair as `_supersede_uncorrected_factors` and for the same reason, which is why it
+    says so here: the withdrawn number is the FLATTERING one (0.6054 clearing its null versus
+    0.4691 inside it), and a reader taking the obvious `belief_auc` key would otherwise get it
+    wearing a `clears_the_null: true` flag. That is worse than no flag.
+
+    The measurement is kept, not deleted. The uncorrected reading is what sizes the correction.
+    """
+    reason = (
+        "this reading does not carry the exposure offset its route requires: on a route where "
+        "segments run 1-92 days a longer segment is simply more time in which to leave, so this "
+        "figure credits the belief with what the billing calendar was doing"
+    )
+    entry["belief_auc_superseded_by"] = "exposure_offset.belief_auc_per_exposure_day"
+    entry["belief_auc_superseded_because"] = reason
+    entry["clears_the_null_superseded_by"] = "exposure_offset.clears_the_null"
 
 
 def exposure_offset(rows: list[dict], score_with, factors, permutations: int) -> dict:
@@ -774,6 +986,12 @@ def report(
                 "output."
             ),
         }
+    # OUTSIDE the `try` above, and that placement is the point — see `derive_company_beliefs`.
+    # A belief replayed from the capture's own columns does not depend on the run output, so a
+    # refused join must not take it down: correct refusal, wrong blast radius, already paid for
+    # once on this exact line.
+    rows, derived_provenance = derive_company_beliefs(rows)
+    belief_provenance = dict(belief_provenance, **{"replayed": derived_provenance})
     realised = lambda r: r["realized_churn_probability"]  # noqa: E731 — one expression, named twice below
 
     observed, pairs = within_strata_auc(rows, realised)
@@ -1034,6 +1252,18 @@ def _print_belief(r: dict) -> None:
                 f"       └ {seeds}; ties {b['tie_fraction']:.1%}, {b['distinct_values']} distinct "
                 f"values, mean believed {b['mean_believed']:.4f} vs realised {b['realised_rate']:.4f}"
             )
+            # THE OFFSET READING GOES HERE, under the belief a reader is looking at — not only in
+            # the refusal further down. The withdrawn number is the flattering one, so a reader
+            # who stops at the line above must not stop at a figure the route has withdrawn.
+            bo = b.get("exposure_offset")
+            if bo is not None:
+                on = bo["null"]
+                print(
+                    f"       └ ⚠ THE LINE ABOVE IS SUPERSEDED — DO NOT QUOTE IT. Per exposure-day: "
+                    f"{bo['belief_auc_per_exposure_day']:.4f}   "
+                    f"null [{on['low']:.4f}, {on['high']:.4f}]   {bo['verdict']}"
+                )
+                print(f"       └ {b['belief_auc_superseded_because']}")
         for c in d.get("ceiling_vs_belief", {}).get("readings", []):
             if c["excess_over_chance_captured"] is not None:
                 print(
@@ -1044,11 +1274,26 @@ def _print_belief(r: dict) -> None:
                 print(f"     NO RATIO PUBLISHED for {c['belief'].split(' (')[0]} — {c['refused_because']}")
         if "exposure_offset" in d:
             _print_exposure(d["exposure_offset"])
-    print(
-        f"\n  {nb['departures']} of {nb['of_total']} departures "
-        f"({nb['departures'] / nb['of_total']:.0%}) happen on {', '.join(nb['routes'])} — a route "
-        "the company's churn model does not form a belief about at all."
-    )
+    # THE ABSENCE WAS THE FINDING UNTIL 2026-08-31, AND IT IS NOW CLOSED — so this line must be
+    # able to say so. It read "0 of 82 departures (0%) happen on  — a route the company's churn
+    # model does not form a belief about at all", with an empty route name and a 0% that looked
+    # like a measurement, the moment `estimate_svt_drift` covered the last uncovered route. A
+    # summary that degenerates into a true-sounding sentence about nothing is the fail-open shape
+    # this file exists to refuse, and the empty case is the one worth printing loudest.
+    if not nb["routes"]:
+        print(
+            f"\n  Every route carrying departures now has a company belief on it — the "
+            f"{nb['of_total']} departures in this book are all on routes the company forms a view "
+            "about. That is a change of subject, NOT a pass: whether any of those beliefs orders "
+            "who leaves is the reading above, and on the SVT route it does not."
+        )
+    else:
+        print(
+            f"\n  {nb['departures']} of {nb['of_total']} departures "
+            f"({nb['departures'] / nb['of_total']:.0%} of the book) happen on "
+            f"{', '.join(nb['routes'])} — route(s) the company's churn model does not form a "
+            "belief about at all."
+        )
 
 
 def main(argv: list[str]) -> int:

@@ -35,23 +35,38 @@ CRM builders, the trading desk, the pricing group and the `saas.*` set are
 separate processes on separate inputs, and the two indirect edges are untouched.
 This door carries the company's churn belief and nothing else. Stated rather
 than left to be discovered from a count that stops at 3.
+
+THE SECOND ROUTE CROSSES HERE TOO (2026-08-31). `estimate_svt_drift` is the
+company's view of an account drifting off the standard variable product — 61% of
+this book's departures, and a route it formed no belief about at all until now.
+It goes through THIS door rather than a second one, because it is the same
+question (will this account leave) asked at a different moment, and a second door
+for the same question is how a wall acquires a hole nobody is watching. What
+crosses is an `SvtSegmentObservation` of two things the company reads off its own
+systems: when the account last left a fixed deal, and how long this cap period
+ran. Nothing about income, tenure or segment crosses — see the belief's own
+docstring for why that absence is the finding rather than a gap.
 """
 
 from __future__ import annotations
 
 from company.crm.churn_desk import (
     RenewalObservation,
+    SvtSegmentObservation,
     active_pressure_ledger,
     crisis_hangover_periods,
     estimate_churn_without_rate_history,
     estimate_renewal_churn,
     estimate_secondary_fuel_churn,
+    estimate_svt_drift,
     pressure_ledger_scope,
     score_churn_estimates,
 )
 
 __all__ = [
     "RenewalObservation",
+    "SvtSegmentObservation",
+    "estimate_svt_drift",
     "active_pressure_ledger",
     "pressure_ledger_scope",
     "crisis_hangover_periods",

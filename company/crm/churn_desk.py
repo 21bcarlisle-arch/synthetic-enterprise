@@ -219,4 +219,97 @@ __all__ = [
     "estimate_renewal_churn",
     "estimate_secondary_fuel_churn",
     "score_churn_estimates",
+    # The SVT route, added 2026-08-31. Same door, because it is the same question (will this
+    # account leave) asked at a different moment in the account's life.
+    "SvtSegmentObservation",
+    "estimate_svt_drift",
 ]
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# THE STANDARD VARIABLE ROUTE — 61% of this book's departures, and the company had no view at all
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# Measured 2026-08-31 (`WORKER_FINDING_THE_COMPANY_FORMS_NO_BELIEF_ON_THE_ROUTE_CARRYING_61_
+# PERCENT_OF_DEPARTURES_2026-08-31.md`): 50 of 82 departures happen when an account drifts off the
+# standard variable product, and `estimate_renewal_churn` above is indexed on renewal
+# anniversaries, which an SVT segment does not have. So the company's churn belief was scored on
+# the minority of departures it could see and was BLIND BY CONSTRUCTION to the majority. Not
+# mis-calibrated — looking somewhere else.
+#
+# This is the view it was missing. A real supplier can form it: it sets the tariff, so it knows
+# exactly which accounts sit on its default product and since when.
+
+#: THE COMPANY'S READING OF THE PUBLISHED BANDS, AND IT IS THE MIDPOINT, NOT THE TOP.
+#:
+#: `docs/market_research/svt_rates_active_passive_2016_2025.md` §4 publishes two RANGES and is
+#: explicit that they are structural inferences rather than a series — long-stayers (3+ years on
+#: the default tariff) ~5-10%/yr, recent rollers (under 3 years) ~15-20%/yr, confidence M on both.
+#:
+#: A supplier reading a published range reads out its MIDPOINT. Taking the top of each band is the
+#: director's §7 anti-flattering tie-break, which governs where the WORLD is aimed — and the
+#: company's belief about the market is not the director's dial. This is the identical distinction
+#: `company/crm/market_conditions` already draws on the switching band, in the same words, and it
+#: is followed here rather than re-argued.
+#:
+#: THE CONSEQUENCE IS REAL AND IS PREDICTED RATHER THAN DISCOVERED: the world runs 0.20/0.10 and
+#: the company believes 0.175/0.075, so **the company systematically under-estimates drift by
+#: about 12.5% relative** on every SVT account. That is a belief-vs-truth gap with a stated cause,
+#: which is the only kind worth having, and the coupled triad scores it.
+SVT_DRIFT_BELIEF_ANNUAL_RECENT = 0.175
+SVT_DRIFT_BELIEF_ANNUAL_LONG_STAYER = 0.075
+#: The published boundary between the two bands, in continuous years on the default tariff.
+SVT_DRIFT_BELIEF_LONG_STAYER_YEARS = 3.0
+
+
+@dataclass(frozen=True)
+class SvtSegmentObservation:
+    """Everything the company can observe about one account over one cap period on its SVT.
+
+    Both fields are the company's OWN RECORDS and neither is an inference: it set the tariff, so
+    it knows when this account last left a fixed deal, and it issues the bills, so it knows how
+    long this cap period ran. Nothing here is a simulation internal.
+    """
+
+    years_on_svt: float
+    segment_days: float
+
+
+def estimate_svt_drift(observation: SvtSegmentObservation) -> float:
+    """The company's probability that this account drifts off the default tariff this period.
+
+    THE SEGMENT CONVERSION IS ARITHMETIC, NOT A BELIEF. The bands are annual and cap periods are
+    neither equal nor quarters — the first one after a household arrives can be 47 days. Constant
+    hazard, `1 - (1 - annual) ** (days / 365.25)`, is the only conversion that makes four real cap
+    quarters recompose to the annual figure. Using the annual rate as a per-period rate would give
+    `1-(1-0.175)**4 = 0.5361` a year against 0.175. The company and the world necessarily agree on
+    this step and disagree on the BAND, which is the whole point: the disagreement is a belief,
+    not an arithmetic error.
+
+    WHAT THE COMPANY CANNOT SEE, AND IT IS THE INTERESTING HALF. The world damps every departure
+    risk by an ACTION PROPENSITY built from income stress and housing tenure — measured
+    `corr(dissatisfaction, action_propensity) = -0.5188`, and realised churn running 0.243 / 0.200
+    / 0.083 across low / moderate / high income stress. **No term for that appears here**, because
+    no observable the company holds at a cap boundary carries it: income stress is SIM ground
+    truth and housing tenure is a segment label, and the D-SEGMENT wall forbids either crossing.
+    Payment behaviour is the honest proxy and it is NOT wired in v1 — the company's own arrears
+    history is available but joining it here needs a payment view this seam does not carry.
+    **So this belief is expected to order accounts by EXPOSURE and to miss the dimension that
+    decides who actually acts.** That is stated before the measurement rather than after it; the
+    pre-registration is
+    `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SVT_DRIFT_BELIEF_MUST_SHOW_2026-08-31.md`.
+
+    IT MUST NEVER SEED THE ROLL. `saas.churn_model.build_churn_risk` seeds `effective_p_retain`
+    and is then graded against the roll it seeded, so its 0.6815 against a 0.7400 ceiling measures
+    the world reading back its own input and its capture ratio is refused. This one is RECORDED
+    ALONGSIDE the SVT decision and reaches no hazard, which is what makes it gradable at all.
+    """
+    if observation.segment_days <= 0:
+        return 0.0
+    annual = (
+        SVT_DRIFT_BELIEF_ANNUAL_LONG_STAYER
+        if observation.years_on_svt >= SVT_DRIFT_BELIEF_LONG_STAYER_YEARS
+        else SVT_DRIFT_BELIEF_ANNUAL_RECENT
+    )
+    drift = 1.0 - (1.0 - annual) ** (observation.segment_days / 365.25)
+    return round(max(0.0, min(1.0, drift)), _ESTIMATE_DP)

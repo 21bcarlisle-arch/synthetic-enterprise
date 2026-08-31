@@ -123,6 +123,7 @@ import sys
 from pathlib import Path
 
 from background import direction as direction_mod
+from background import seat_continuation
 from background import seat_work_in_hand as claims_mod
 from tools import maturity_map_store as map_store
 
@@ -409,6 +410,24 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     store = path or CLAIMS_FILE
     sweep_stale(now=now, path=store)
     taken = held(store)
+    # THE INTERACTIVE SEAT'S OWN CONTINUATION FIRST, AND ONLY WHILE IT IS FRESH (2026-08-31).
+    # The periodic seat RE-DERIVES focus from the state of the tree every three hours; it does not
+    # inherit what a session that just did four hours of work already knew. That judgement used to
+    # die at the turn boundary and the director restarted it by hand -- which he named as the
+    # biggest single drag on the project. It is offered ahead of `focus` because it is strictly
+    # fresher: a continuation is minutes old and written by a session holding the whole context,
+    # where a focus item is up to three hours old and re-derived from the tree.
+    #
+    # `live()` drops anything past its window, so a continuation cannot outlive the tree it
+    # reasoned about -- see `seat_continuation`'s note on why that expiry is load-bearing and not
+    # tidying. Wrapped because `draw` documents that a lane which can throw takes every other lane
+    # down with it, and a handoff store must never cost the machine a tick.
+    try:
+        for item in seat_continuation.live(now=now):
+            if item.get("id") and item["id"] not in taken:
+                return item
+    except Exception:
+        pass
     for item in direction_mod.unreachable_focus(_atom_ids()):
         if item.get("id") and item["id"] not in taken:
             return item
