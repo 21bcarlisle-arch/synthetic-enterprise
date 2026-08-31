@@ -53,9 +53,17 @@ from simulation.switching_propensity import (
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
-#: The only occasion this module emits. A renewal-point decision is the one place the world
-#: currently asks a household whether it stays, and `roll_lifecycle_event` owns it.
+#: A renewal-point decision: the world serves notice, the company prices, and the household
+#: answers. `roll_lifecycle_event` is the sole producer and `departure_event` refuses it.
 DEPARTURE_OCCASION_RENEWAL = "renewal"
+
+#: C1b. A cap period on the standard variable product, which is not a decision anyone convened.
+#: Nothing expired, no notice was served and no offer was made -- the household got round to it
+#: at some point inside the segment. Named as its own occasion rather than folded into the one
+#: above because `tools/population_anchor._churn_by_year` divides churns by `renewals + churns`:
+#: an SVT departure filed as a renewal would add to BOTH sides of that ratio at once, and no
+#: reader could tell the resulting move from a change in the world's departure level.
+DEPARTURE_OCCASION_SVT_SEGMENT = "svt_segment"
 
 
 def departure_event(

@@ -65,6 +65,15 @@ The belief is `1 - (1 - annual) ** (days / 365.25)`: monotone in the billing cal
 calendar is all its apparent discrimination was. Its only non-exposure content, the 3-year band
 term, scores 0.5393 inside its own null alone.
 
+THOSE FIGURES ARE v1's AND v1 IS NOW A DECOMPOSITION ARM, NOT THE BELIEF (2026-08-31, later the
+same day). `estimate_svt_drift` gained `payment_behaviour` -- the company's own collections record,
+and the only one of its observables that differs between two accounts on the SAME cap period. The
+current readings on one capture of 1,266 decisions: **JOINT 0.5482 inside [0.4125, 0.5866], the
+held-out v1 arm 0.4691, the payment term alone 0.5115, ceiling 0.6091.** The belief moved +0.0791
+and still cannot be told from chance. The paragraphs above are kept, not rewritten, because they
+are what sizes that move and because 0.4691 is still a live number here -- it is what the HELD-OUT
+arm reproduces to the digit, which is the control proving both readings count one population.
+
 That is the same defect the per-factor table had, arriving through a different door, so the repair
 is keyed to the PROPERTY rather than to the table it was first seen on: any route whose rows carry
 a positive exposure field offsets its BELIEFS too, the uncorrected belief reading is superseded in
@@ -434,7 +443,66 @@ def _derive_svt_drift_belief(row: dict) -> float:
 
     return estimate_svt_drift(
         SvtSegmentObservation(
+            years_on_svt=row["sim_years_on_svt"],
+            segment_days=row["sim_segment_days"],
+            payment_behaviour=row.get("company_payment_behaviour"),
+        )
+    )
+
+
+def _derive_svt_drift_belief_calendar_only(row: dict) -> float:
+    """The SAME belief with the payment observable HELD OUT — v1, replayed on v2's population.
+
+    THIS IS THE ARM THAT MAKES THE JOINT READING MEAN ANYTHING, and it exists because grading the
+    new term alone would answer a question nobody asked. What is wanted is whether adding payment
+    behaviour moved the belief, measured on ONE population with ONE null, and that needs the belief
+    WITHOUT it computed on the same rows rather than quoted from yesterday's run. 0.4691 was
+    measured on the previous capture; re-deriving it here means the comparison cannot be a
+    cross-run artefact even if the two captures agree, which is a failure mode this instrument
+    exists because of.
+
+    It calls the company's own function with `payment_behaviour` omitted, so v1 is not
+    reimplemented here — omitting the field IS v1, exactly, and `estimate_svt_drift` returns the
+    band midpoint for an absent record by construction.
+    """
+    from company.crm.churn_desk import SvtSegmentObservation, estimate_svt_drift
+
+    return estimate_svt_drift(
+        SvtSegmentObservation(
             years_on_svt=row["sim_years_on_svt"], segment_days=row["sim_segment_days"]
+        )
+    )
+
+
+def _derive_svt_drift_belief_payment_only(row: dict) -> float:
+    """The band position the payment record alone implies, with the calendar held out.
+
+    NOT QUOTED AS THE BELIEF'S SCORE AND NOT COMPARABLE TO THE CEILING. It is the third leg of the
+    decomposition the brief required — joint, held-out, and the new term on its own — and it is
+    here to answer one question: if the joint reading moves, did the payment term carry it, or did
+    it merely perturb an ordering the calendar had already made? A term that reads at chance ALONE
+    and still lifts the joint is a real finding about interaction; a term that reads well alone and
+    does not lift the joint is a redundancy. Neither is visible from the joint figure by itself.
+
+    WHAT IS HELD OUT IS THE BAND, AND `segment_days` IS DELIBERATELY THE ROW'S REAL ONE. Fixing
+    the exposure to a constant here was the first draft and it was wrong in a way worth recording,
+    because it looks more like "holding out the calendar": every reading on this route is graded
+    per exposure-day, so `belief_exposure_offset` divides whatever this returns by the row's actual
+    `sim_segment_days`. A score that did not vary with days would come back ordered by 1/days — the
+    billing calendar, inverted, which is further from chance than not offsetting at all. Passing
+    the real exposure lets the offset cancel it exactly as it does for the other two arms, so all
+    three are on one scale.
+
+    So `years_on_svt` is pinned to 0.0 instead: every row is scored inside the RECENT band and the
+    only thing left varying is the payment grade. That is the new term on its own.
+    """
+    from company.crm.churn_desk import SvtSegmentObservation, estimate_svt_drift
+
+    return estimate_svt_drift(
+        SvtSegmentObservation(
+            years_on_svt=0.0,
+            segment_days=row["sim_segment_days"],
+            payment_behaviour=row.get("company_payment_behaviour"),
         )
     )
 
@@ -508,18 +576,58 @@ COMPANY_BELIEFS = (
         "routes": ("svt_segment",),
         "derive": _derive_svt_drift_belief,
         "derive_from": ("sim_years_on_svt", "sim_segment_days"),
-        "label": "company.crm.churn_desk.estimate_svt_drift (years on SVT, cap-period length)",
+        "label": (
+            "company.crm.churn_desk.estimate_svt_drift v2 JOINT "
+            "(years on SVT, cap-period length, own payment record)"
+        ),
         "seeds_the_world_roll": False,
         "reading": (
-            "The company's FIRST belief about the route carrying 61% of this book's departures. "
-            "Two observables cross and both are the company's own records -- when the account "
-            "last left a fixed deal, and how long this cap period ran. It reads the published "
-            "band at its MIDPOINT (17.5%/7.5%) where the world takes the top (20%/10%), because "
-            "the top is the director's anti-flattering tie-break governing where the WORLD is "
-            "aimed and the company's belief is not the director's dial. It carries NO action-"
-            "propensity term, because income stress is SIM truth and housing tenure is a segment "
-            "label; that absence is the finding, not a gap. Computed AFTER the roll and reaching "
-            "no hazard, which is what makes it gradable."
+            "The company's belief about the route carrying 61% of this book's departures, with "
+            "the one observable that VARIES ACROSS HOUSEHOLDS AT THE SAME INSTANT. v1 carried two "
+            "observables and both were calendar, so it could only order the billing calendar, and "
+            "it did: 0.4691 per exposure-day, inside its null. v2 adds the company's own "
+            "collections record -- on-time rate and returned Direct Debits, off its own bank feed "
+            "-- which places the account inside the published band whose stated basis is "
+            "engagement variation. It carries NO action-propensity term: income stress is SIM "
+            "truth and housing tenure is a segment label, so the company must INFER the link from "
+            "its own book rather than be handed it, which is the claim under test. Computed AFTER "
+            "the roll and reaching no hazard, which is what makes it gradable. Read this beside "
+            "the two arms below -- the joint alone cannot say what the new term did."
+        ),
+    },
+    {
+        "field": "company_svt_drift_estimate_calendar_only",
+        "field_optional": True,
+        "routes": ("svt_segment",),
+        "derive": _derive_svt_drift_belief_calendar_only,
+        "derive_from": ("sim_years_on_svt", "sim_segment_days"),
+        "label": "estimate_svt_drift v1 HELD-OUT ARM (payment record withheld)",
+        "decomposition_arm": True,
+        "seeds_the_world_roll": False,
+        "reading": (
+            "THE HELD-OUT ARM, not a belief anyone ships. Same function, same population, same "
+            "null, with `payment_behaviour` omitted -- which IS v1, because the estimator returns "
+            "the band midpoint for an absent record by construction. Its whole job is to make the "
+            "joint reading attributable: the difference between this and the joint is what the "
+            "payment observable bought, measured on ONE capture rather than quoted across two runs."
+        ),
+    },
+    {
+        "field": "company_svt_drift_estimate_payment_only",
+        "field_optional": True,
+        "routes": ("svt_segment",),
+        "derive": _derive_svt_drift_belief_payment_only,
+        "derive_from": ("sim_segment_days",),
+        "label": "estimate_svt_drift PAYMENT TERM ALONE (band held out)",
+        "decomposition_arm": True,
+        "seeds_the_world_roll": False,
+        "reading": (
+            "THE NEW TERM ON ITS OWN, published only as the third leg of the decomposition and "
+            "NEVER as the belief's score. Every row is placed inside the recent band regardless of "
+            "tenure, so the only thing varying is the payment grade. It separates two very "
+            "different outcomes a joint figure cannot tell apart: a term that reads at chance "
+            "alone and still lifts the joint is an interaction, and a term that reads well alone "
+            "but does not lift the joint is a redundancy."
         ),
     },
 )
@@ -655,6 +763,14 @@ def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dic
             "available": True,
             "seeds_the_world_roll": spec["seeds_the_world_roll"],
             "independent_of_the_outcome": not spec["seeds_the_world_roll"],
+            # A DECOMPOSITION ARM IS NOT A BELIEF, and `ceiling_vs_belief` must not hand one a
+            # capture ratio. Its four conditions all concern whether a ratio would be ARITHMETICALLY
+            # legal, and for an arm every one of them can pass -- one population, no seeding, clears
+            # its null, clears it offset -- while the resulting "X% of the ceiling captured" would
+            # describe a scoring rule the company does not ship and nobody could act on. That is a
+            # percentage reading as a finding, which is the exact failure the other three conditions
+            # exist to prevent, arriving through the one door they do not cover.
+            "decomposition_arm": bool(spec.get("decomposition_arm")),
             "reading": spec["reading"],
             "decisions": len(rows),
             "departures": sum(_label(r) for r in rows),
@@ -723,6 +839,12 @@ def ceiling_vs_belief(route_entry: dict) -> dict:
         independent = belief["independent_of_the_outcome"]
         clears = belief["clears_the_null"]
         reasons = []
+        if belief.get("decomposition_arm"):
+            reasons.append(
+                "this is a DECOMPOSITION ARM, not a belief the company forms: it exists only to "
+                "make the joint reading attributable, and a fraction-of-the-ceiling computed from "
+                "it would describe a scoring rule nothing ships and nobody could act on"
+            )
         if not same_population:
             reasons.append(
                 f"the belief counts {belief['decisions']} decisions and the ceiling "
@@ -803,6 +925,11 @@ def belief_exposure_offset(rows: list[dict], score, permutations: int) -> dict |
     clears; offset it reads 0.4691, inside its null, while the ceiling still clears at 0.6091.
     Without this the instrument would have published the company's first look at the SVT route as
     capturing 88% of the available signal, when what it captures is the calendar.
+
+    STILL TRUE OF v2, WHICH IS THE POINT OF SAYING SO. Adding the payment observable moved the
+    belief to 0.5482 offset (from 0.6220 uncorrected) — the offset is not something v1 failed and
+    v2 grew out of, it is the scale every reading on this route is quoted on. A version that
+    cleared uncorrected and not offset would be caught by exactly this function.
 
     None rather than a neutral reading where there is no exposure field, because "this route has no
     offset to apply" and "the offset was applied and changed nothing" are opposite facts.

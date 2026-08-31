@@ -256,8 +256,37 @@ def test_the_policy_switch_still_zeroes_the_whole_credit():
 # this truncated window still produces retention_log entries (2 entries, the
 # first including acq_cost_saved_gbp), so the assertion's exposure is unchanged.
 @pytest.fixture(scope="module")
-def _phase2b_result_2017():
-    return _run_phase2b_main(report_end="2017-12-31")
+def _phase2b_result_2017(tmp_path_factory):
+    # `gap_ledger_path` IS LOAD-BEARING, NOT TIDINESS, and its absence made this test RED at clean
+    # HEAD — wedging every commit that touched `simulation/run_phase2b.py`. The full pipeline
+    # publishes the coupled payment gap entry at run end, and `live_ledger_guard` refuses a test
+    # process writing to the live observability ledger: a fixture's book once overwrote the real
+    # one and republished the public Proof door 2.68x too low. The guard is right and there is no
+    # env override by design; the route past it is this argument, which `main()` grew on
+    # 2026-08-27 and this fixture never took up. Same shape as
+    # `test_phase40a_pass_through` and `test_home_move_undeliverable_win`, which already pass it.
+    #
+    # `tmp_path_factory` rather than `tmp_path` because this fixture is module-scoped and the
+    # function-scoped `tmp_path` cannot be requested from it.
+    # WINDOW EXTENDED 2016-2017 -> 2016-2018 (2026-08-31), the SECOND pre-existing red in this
+    # fixture and a different one. The truncation above was a throughput optimisation resting on a
+    # measurement — "verified directly (2026-07-19) that this truncated window still produces
+    # retention_log entries (2 entries)". That premise is no longer true: the world's earliest
+    # retention offer now lands on 2018-02-09, so the 2016-2017 window contains NONE and the
+    # assertion below was failing on an empty list.
+    #
+    # THE TEST WAS RIGHT AND ITS WINDOW WAS STALE, which is the good version of this failure. The
+    # `assert rl` is fail-CLOSED: an empty log reds rather than passing vacuously, so the rot
+    # announced itself instead of quietly reducing the test to nothing. That property is why the
+    # repair here is to move the window rather than to soften the assertion — a `if rl:` guard
+    # would have made this green today and blind forever.
+    #
+    # It will rot the same way if retention offers move again, and that is acceptable for the same
+    # reason: it fails loudly and names the window in this comment.
+    return _run_phase2b_main(
+        report_end="2018-12-31",
+        gap_ledger_path=tmp_path_factory.mktemp("gap") / "coupled_gap_ledger.json",
+    )
 
 
 def test_retention_log_includes_acq_cost_saved(_phase2b_result_2017):

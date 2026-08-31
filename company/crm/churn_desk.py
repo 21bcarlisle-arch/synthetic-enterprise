@@ -261,18 +261,72 @@ SVT_DRIFT_BELIEF_ANNUAL_LONG_STAYER = 0.075
 #: The published boundary between the two bands, in continuous years on the default tariff.
 SVT_DRIFT_BELIEF_LONG_STAYER_YEARS = 3.0
 
+#: THE SAME §4 BANDS, KEPT AS EDGES RATHER THAN COLLAPSED TO THEIR MIDPOINT — because the width
+#: of a published range is information and the midpoints above throw it away.
+#:
+#: Source is the identical table the two midpoints are read from
+#: (`docs/market_research/svt_rates_active_passive_2016_2025.md` §4): long-stayer ~5-10%/yr,
+#: recent roller ~15-20%/yr. No new number is minted here; these ARE those two rows, unrounded.
+SVT_DRIFT_BELIEF_BAND_LONG_STAYER = (0.05, 0.10)
+SVT_DRIFT_BELIEF_BAND_RECENT = (0.15, 0.20)
+
+#: WHERE INSIDE ITS BAND ONE ACCOUNT SITS, AS A FRACTION OF THE BAND'S WIDTH — and this is a
+#: POSITION, not a rate, which is why it declares no currency and no per-year.
+#:
+#: WHY THE BAND HAS A WIDTH AT ALL IS THE WHOLE ARGUMENT. §4's stated basis for the long-stayer
+#: row is "Ofgem engagement surveys: most inert segment", and for the recent row "switched once
+#: before; some re-engagement". The published range is therefore a range BECAUSE ENGAGEMENT
+#: VARIES INSIDE IT. Placing an account within the range by an engagement observable is following
+#: the source's own reason for the range's existence, not imposing a structure on it.
+#:
+#: THE DIRECTION IS PUBLISHED AND THE MAGNITUDE IS NOT, AND ONLY THE DIRECTION IS USED. A domestic
+#: account in arrears is materially LESS able to leave: under the domestic debt-objection regime
+#: (Ofgem, "Decision on review of domestic objections", 2016) a supplier may object to the
+#: transfer of an indebted domestic customer, and indebted prepayment switches run through the
+#: Debt Assignment Protocol. The mechanism is not in question — an objection legally stops the
+#: transfer. What is NOT established anywhere I could check is any MAGNITUDE for it, and both
+#: Ofgem source PDFs refused text extraction, so the figures a search summary offered are
+#: deliberately not quoted or used. `docs/market_research/svt_drift_by_payment_behaviour.md`
+#: records exactly what was and was not established, including that failure.
+#:
+#: SO THE SPACING IS UNIFORM, AND UNIFORM IS THE HONEST CHOICE RATHER THAN A CONVENIENT ONE.
+#: Nothing published gives a within-band structure, so the five grades are spread evenly and the
+#: MIDDLE grade lands exactly on the midpoint the belief used before this term existed — an
+#: account the company knows nothing bad about is scored exactly as it was. It is also why the
+#: spacing is not load-bearing: the belief is graded by a RANKING statistic within a band, and
+#: every strictly-monotone spacing gives the identical ranking there. A different spacing could
+#: not have produced a different verdict, which is the property that stops this being a number
+#: picked to make a result.
+_SVT_DRIFT_BAND_POSITION_BY_BEHAVIOUR: dict[str, float] = {
+    "EXCELLENT": 1.00,
+    "GOOD": 0.75,
+    "FAIR": 0.50,
+    "POOR": 0.25,
+    "CRITICAL": 0.00,
+}
+
 
 @dataclass(frozen=True)
 class SvtSegmentObservation:
     """Everything the company can observe about one account over one cap period on its SVT.
 
-    Both fields are the company's OWN RECORDS and neither is an inference: it set the tariff, so
-    it knows when this account last left a fixed deal, and it issues the bills, so it knows how
-    long this cap period ran. Nothing here is a simulation internal.
+    Every field is one of the company's OWN RECORDS and none is an inference: it set the tariff,
+    so it knows when this account last left a fixed deal; it issues the bills, so it knows how
+    long this cap period ran; and it collects the money, so it knows whether this account paid on
+    time, paid late, or had a Direct Debit returned. Nothing here is a simulation internal.
+
+    `payment_behaviour` IS THE ONE FIELD THAT VARIES ACROSS HOUSEHOLDS AT THE SAME INSTANT, which
+    the other two do not do in any useful way — see `estimate_svt_drift` for why that sentence is
+    the reason this field exists. It is the `BehaviourScore` name
+    (`company.crm.payment_behaviour_analytics`) the company's own desk already computes from its
+    own collections history, passed as a plain string so this seam type does not drag an enum
+    across it. `None` means the company holds no payment history for this account yet — a new
+    account, most often — and is handled as an absence rather than as a good record.
     """
 
     years_on_svt: float
     segment_days: float
+    payment_behaviour: str | None = None
 
 
 def estimate_svt_drift(observation: SvtSegmentObservation) -> float:
@@ -292,12 +346,36 @@ def estimate_svt_drift(observation: SvtSegmentObservation) -> float:
     / 0.083 across low / moderate / high income stress. **No term for that appears here**, because
     no observable the company holds at a cap boundary carries it: income stress is SIM ground
     truth and housing tenure is a segment label, and the D-SEGMENT wall forbids either crossing.
-    Payment behaviour is the honest proxy and it is NOT wired in v1 — the company's own arrears
-    history is available but joining it here needs a payment view this seam does not carry.
-    **So this belief is expected to order accounts by EXPOSURE and to miss the dimension that
-    decides who actually acts.** That is stated before the measurement rather than after it; the
-    pre-registration is
+
+    V1 SHIPPED WITH NOTHING IN ITS PLACE AND WAS GRADED FOR IT. Both of its observables are
+    CALENDAR — years since a fixed deal ended, and the length of this cap period — so the belief
+    could only order the billing calendar, and the instrument said so: **0.4691 per exposure-day,
+    inside a null of [0.4164, 0.5834], against an oracle ceiling of 0.6091 that clears.** The
+    signal on this route is real and v1 found none of it. Result and scoring:
     `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_SVT_DRIFT_BELIEF_MUST_SHOW_2026-08-31.md`.
+
+    V2 ADDS THE ONE THING THAT VARIES ACROSS HOUSEHOLDS AT THE SAME INSTANT, and that phrase is
+    the specification rather than a description of it. `years_on_svt` and `segment_days` are both
+    properties of a clock; two accounts sitting side by side on the same cap period differ in
+    neither in any way the company could act on. **A belief every household shares cannot select
+    a household.** `payment_behaviour` is the company's own collections record — on-time rate and
+    returned Direct Debits, off its own bank feed — and it is genuinely different per account at
+    one instant, which is the property that makes selection possible at all.
+
+    AND IT IS AN INFERENCE, WHICH IS THE ENTIRE POINT AND ALSO THE ONLY THING THAT KEEPS IT LEGAL.
+    The company is NOT handed propensity to act. It is handed whether the money arrived, and must
+    work out for itself that the two are related. The world happens to generate both from one
+    hardship substrate (`simulation.arrears_engine.payment_outcome` takes income stress; so does
+    `stress_switching_multiplier`) — but that shared cause is a fact about the world the company
+    has to DISCOVER from its own book, not a channel it reads. Nothing about income stress,
+    housing tenure, segment or `sim_action_propensity` crosses here, in this direction or any
+    other; the wall argument is set out in full in `company/interfaces/churn_estimation.py`.
+
+    IF THIS STILL READS INSIDE ITS NULL, THAT IS THE PUBLISHED RESULT AND IT IS WORTH MORE THAN
+    THE FIRST ONE. It would say the company's best honest proxy for who acts cannot reach the
+    dimension the world uses — and on a route where the oracle proves the signal exists, that is a
+    measurement of how much of this world's advantage is unreachable by inference. Written here
+    before the run, not after it.
 
     IT MUST NEVER SEED THE ROLL. `saas.churn_model.build_churn_risk` seeds `effective_p_retain`
     and is then graded against the roll it seeded, so its 0.6815 against a 0.7400 ceiling measures
@@ -306,10 +384,24 @@ def estimate_svt_drift(observation: SvtSegmentObservation) -> float:
     """
     if observation.segment_days <= 0:
         return 0.0
+    long_stayer = observation.years_on_svt >= SVT_DRIFT_BELIEF_LONG_STAYER_YEARS
     annual = (
-        SVT_DRIFT_BELIEF_ANNUAL_LONG_STAYER
-        if observation.years_on_svt >= SVT_DRIFT_BELIEF_LONG_STAYER_YEARS
-        else SVT_DRIFT_BELIEF_ANNUAL_RECENT
+        SVT_DRIFT_BELIEF_ANNUAL_LONG_STAYER if long_stayer else SVT_DRIFT_BELIEF_ANNUAL_RECENT
     )
+    # AN UNRECOGNISED GRADE FALLS BACK TO THE MIDPOINT AND DOES NOT GUESS A POSITION. `.get` with
+    # no default would have handed `None` to the arithmetic below and raised; a numeric default
+    # would have silently scored an unknown grade as though it were a known one. The midpoint is
+    # the same answer the belief gives when it holds no payment history at all, which is the
+    # honest reading of "the company cannot tell where this account sits".
+    position = (
+        None
+        if observation.payment_behaviour is None
+        else _SVT_DRIFT_BAND_POSITION_BY_BEHAVIOUR.get(observation.payment_behaviour)
+    )
+    if position is not None:
+        low, high = (
+            SVT_DRIFT_BELIEF_BAND_LONG_STAYER if long_stayer else SVT_DRIFT_BELIEF_BAND_RECENT
+        )
+        annual = low + position * (high - low)
     drift = 1.0 - (1.0 - annual) ** (observation.segment_days / 365.25)
     return round(max(0.0, min(1.0, drift)), _ESTIMATE_DP)

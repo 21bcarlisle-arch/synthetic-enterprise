@@ -28,11 +28,13 @@ from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from background.live_payment_triad import LivePaymentTriad
 from company.interfaces.churn_estimation import (
     RenewalObservation,
+    SvtSegmentObservation,
     active_pressure_ledger,
     crisis_hangover_periods,
     estimate_churn_without_rate_history,
     estimate_renewal_churn,
     estimate_secondary_fuel_churn,
+    estimate_svt_drift,
     pressure_ledger_scope,
     score_churn_estimates,
 )
@@ -109,12 +111,21 @@ from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shock
 from simulation.churn_journey import ChurnJourneyRegister
 from simulation.competitor_reference import CompanyPositionLedger
 from simulation.customer_events import (
+    DEPARTURE_OCCASION_SVT_SEGMENT,
     HOME_MOVE_ACTIVATE_SUCCESSOR,
+    departure_event,
     home_move_disposition,
     roll_lifecycle_event,
 )
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
+from simulation.departure_level_anchor import year_level_anchor
+from simulation.departure_risks import (
+    CAUSE_SVT_INERTIA,
+    DECLARED_SENSITIVITY_SCALE,
+    build_departure_risks,
+    total_departure_probability,
+)
 from simulation.dwelling_records import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -171,7 +182,7 @@ from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
 from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
-from simulation.svt_product import SVT_TARIFF_TYPE
+from simulation.svt_product import SVT_TARIFF_TYPE, inertia_hazard_for_term
 from simulation.tou_periods import is_peak_period as _is_peak_period
 from simulation.triad import (
     _triad_year,
@@ -1168,7 +1179,24 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]],
             lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
             segment=c.get("segment", "resi"),
-            tariff_type=c.get("tariff_type", "fixed"),
+            # `or`, NOT `.get(..., "fixed")`, AND THE DIFFERENCE WAS 137 OF 146 ACCOUNTS.
+            # `population_draw.to_customer_dict` renders `"tariff_type": self.tariff_type`
+            # unconditionally, so a drawn or won electricity leg carries the key PRESENT with
+            # value None and the default here was never reached
+            # (`DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` §(a), measured again at 137/146
+            # on 2026-08-30). Those terms then settled with `tariff_type: None`, which the
+            # company's `UPLIFTABLE_TARIFF_TYPES` refuses -- the value arm reached 10 of 168
+            # accounts for this reason and no other.
+            #
+            # THE DETERMINATION REFUSED A BLANKET `fixed` AND THIS IS NOT ONE. It refused
+            # labelling the whole drawn book fixed for its whole tenure, against a published
+            # domestic fixed share of roughly a third. What this resolves is the FIRST term only:
+            # an account the company won or drew arrived by taking a deal, so its opening product
+            # is a fixed term. Every boundary after that is decided by the household's own
+            # engagement roll in `build_renewal_schedule`, which is what puts roughly two thirds
+            # of the domestic book on the standard variable product -- the distribution the
+            # determination said was owed, generated rather than asserted.
+            tariff_type=c.get("tariff_type") or "fixed",
             deemed_gap_days=c.get("deemed_gap_days", 0),
         )
 
@@ -1315,6 +1343,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # opponent moves on its own cycle rather than inside the term the company is pricing.
     _competitor_position_ledger = CompanyPositionLedger()
     churned_billing_accounts: set[str] = set()
+    # C1b. THE DAY THIS ACCOUNT'S CURRENT STINT ON THE STANDARD VARIABLE PRODUCT BEGAN, which is
+    # what the published inertia bands are cut on (under 3 years / 3+ years on the default
+    # tariff). Reset when a household takes a fixed deal again, because "years on SVT" is
+    # CONTINUOUS tenure on the default tariff and not a lifetime total -- a household that fixed
+    # in between has demonstrably shopped, which is the whole thing the band is measuring.
+    _svt_stint_start: dict[str, str] = {}
+    _last_tariff_type: dict[str, str] = {}
+    _svt_departures: list[dict] = []
+    #: EVERY SVT segment decision, not only the ones that ended in a departure. `_svt_departures`
+    #: is the numerator; nothing can be graded on a numerator. A hazard or a belief is scored over
+    #: the decisions where the household COULD have left, which on this book is 1,266 against 50
+    #: departures — and without the 1,216 that stayed there is no denominator, no null and no AUC.
+    _svt_decisions: list[dict] = []
     administration_event = None
     periods_since_committee = COMMITTEE_COOLDOWN_PERIODS
     last_committee_date: date = date.fromisoformat(REPORT_START) - timedelta(days=COMMITTEE_COOLDOWN_DAYS)
@@ -1461,6 +1502,189 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _bill_shock_dates.setdefault(cid, []).append(term_start_str)
         elif commodity == "gas" and not _indexed_tariff:
             prev_gas_unit_rates[cid] = unit_rate
+
+        # ═══════════════════════════════════════════════════════════════════════════════════════
+        # C1b — AN ACCOUNT ON THE STANDARD VARIABLE PRODUCT CAN NOW LEAVE (2026-08-30)
+        # ═══════════════════════════════════════════════════════════════════════════════════════
+        #
+        # `simulation/svt_product.py` refused assignment until this existed, and named the reason:
+        # the renewal decision was the only place this function rolled a departure, an SVT segment
+        # correctly has no renewal decision, so a household moved here would have been IMMORTAL and
+        # a book of immortal households earns more than a real one. This is that interlock
+        # discharged, and it lands in the same commit as the assignment for exactly that reason.
+        #
+        # THIS IS NOT A RENEWAL AND IT IS NOT SHAPED LIKE ONE. No offer is requested, no rate is
+        # struck, no retention discount is considered and no company estimate is compared -- there
+        # is nothing for the company to price and nothing it is being graded on. What happens is
+        # that the household, at some point in this cap period, gets round to it. The record says
+        # so: `departure_occasion` is the segment, never `"renewal"`, which is the distinction
+        # `customer_events.departure_event` refuses to let a caller blur.
+        #
+        # WHAT IS DELIBERATELY NOT ON THIS ROLL, AND WHICH WAY IT ERRS. Only the inertia risk
+        # fires here. A household on SVT can in reality also leave over a bill shock, our price
+        # position or our service, and all three of those hazards need per-renewal state this
+        # branch does not compute (`_price_response` needs the felt differential against an offer
+        # that was never made). Omitting them REMOVES departure routes, which is the direction
+        # that favours the company, so it is stated here and on the artefact rather than left to
+        # be discovered: the honest reading is that an SVT account's departures are understated by
+        # whatever those three would have added. What is NOT true is that SVT accounts leave less
+        # than fixed ones -- the inertia band alone (10-20%/yr) sits above this book's anchored
+        # whole-population level in most years of the window, and the run measures the net.
+        if commodity == "electricity" and term_tariff_type == SVT_TARIFF_TYPE:
+            if _last_tariff_type.get(cid) != SVT_TARIFF_TYPE:
+                _svt_stint_start[cid] = term_start_str
+            _stint_start = _svt_stint_start[cid]
+            _segment_days = (
+                date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
+            ).days
+            _years_on_svt = (
+                date.fromisoformat(term_start_str) - date.fromisoformat(_stint_start)
+            ).days / 365.25
+            # THE GUARD IS IN `inertia_hazard_for_term`, NOT IN THIS BRANCH CONDITION. It returns
+            # 0.0 for any term that is not an SVT segment, so a future edit that widens the branch
+            # above cannot hand a fixed-term household the inertia hazard -- and the guard is one
+            # call a test can drive, rather than the condition of a 2,000-line loop that needs a
+            # decade run to reach. `term` carries its own start and end, so the two are read from
+            # the same record the settlement will use.
+            _svt_hazard = inertia_hazard_for_term(term, stint_start=_stint_start)
+            # The SAME action-propensity modulator every other risk carries. Income stress and
+            # tenure gate whether a household acts at all, and drifting off a default tariff is
+            # an action -- `departure_risks` records why a carve-out here was rejected.
+            from simulation.household_segments import tenure_for_customer
+            from simulation.switching_propensity import (
+                stress_switching_multiplier,
+                tenure_switching_multiplier,
+            )
+            _svt_stress = (
+                household_demand_register.income_stress_at_date(billing_account, term_start_str)
+                if household_demand_register is not None else None
+            )
+            _svt_propensity = (
+                stress_switching_multiplier(_svt_stress)
+                * tenure_switching_multiplier(tenure_for_customer(billing_account).value)
+                if _svt_stress is not None else 1.0
+            )
+            _svt_risks = build_departure_risks(
+                bill_shock_base=0.0,
+                price_response=0.0,
+                dissatisfaction_response=0.0,
+                action_propensity=_svt_propensity,
+                sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
+                level_anchor=year_level_anchor(int(term_start_str[:4])),
+                svt_inertia=_svt_hazard,
+            )
+            _svt_p_depart = total_departure_probability(_svt_risks)
+            # READ BEFORE THE ROLL AND USED ONLY AFTER IT. This is the company's side of the
+            # decision -- its own collections record on this account -- and it is deliberately
+            # NOT among the `_svt_risks` above: the belief reaches no hazard, which is the only
+            # thing that makes it gradable against the outcome (see the estimate below).
+            #
+            # KEYED ON `cid`, NOT `billing_account`, AND THE DIFFERENCE IS NOT COSMETIC. The desk
+            # is fed by `observe_payment(customer_id=cid)` below and read the same way by the
+            # renewal belief; `billing_account` is `household_of(cid)` and differs wherever a
+            # household holds more than one meter point. Looking the score up under the household
+            # key would have returned `None` for exactly those accounts and the belief would have
+            # quietly fallen back to its midpoint on them -- a fail-open that reads as "no payment
+            # history" when the history is right there under another key.
+            _svt_behaviour = _cx_desk.payment_behaviour_score(cid)
+            _svt_roll = random.Random(
+                f"svt_inertia_{billing_account}_{term_start_str}").random()
+            # THE DECISION IS RECORDED BEFORE THE BRANCH, so that staying is a row too. Recording
+            # inside the `if` below would log only departures and every rate computed from the file
+            # would have a numerator and no denominator.
+            _svt_decisions.append({
+                "route": "svt_segment",
+                "customer_id": billing_account,
+                "event_date": term_start_str,
+                "market_year": int(term_start_str[:4]),
+                "event_type": "churned" if _svt_roll < _svt_p_depart else "stayed",
+                "departure_cause": CAUSE_SVT_INERTIA if _svt_roll < _svt_p_depart else None,
+                "realized_churn_probability": round(_svt_p_depart, 6),
+                "random_roll": round(_svt_roll, 6),
+                "sim_svt_inertia": round(_svt_hazard, 6),
+                "sim_action_propensity": round(_svt_propensity, 6),
+                "sim_level_anchor": round(year_level_anchor(int(term_start_str[:4])), 6),
+                "sim_years_on_svt": round(_years_on_svt, 3),
+                "sim_segment_days": _segment_days,
+                # THE COMPANY'S OWN COLLECTIONS RECORD ON THIS ACCOUNT, AS AT THIS DECISION.
+                # Prefixed `company_`, not `sim_`, because it is not the world's: `_cx_desk` is
+                # company-side and this is what it has already been told through
+                # `observe_payment`. Recorded on the row so the grader can REPLAY the belief off
+                # the capture instead of joining a second artefact -- the same reason
+                # `sim_years_on_svt` is here.
+                #
+                # POINT-IN-TIME IS A PROPERTY OF WHERE THIS LINE SITS, and it is worth saying
+                # because nothing local would show it. `observe_payment` is called further down
+                # this same `all_terms` loop, which is ordered by term start, so at this moment
+                # the desk holds payments from terms that started BEFORE this one and none from
+                # this one or later. Reading it after the loop would have scored every account on
+                # its own future.
+                "company_payment_behaviour": (
+                    _svt_behaviour.value if _svt_behaviour is not None else None
+                ),
+                # THE COMPANY'S OWN VIEW OF THIS SEGMENT, AND IT REACHES NO HAZARD ABOVE.
+                # Computed AFTER `_svt_p_depart` and after the roll, deliberately: the number
+                # cannot influence what happened, which is the only thing that makes it gradable.
+                # `build_churn_risk` seeds `effective_p_retain` and is then scored against the roll
+                # it seeded, so its 0.6815 against a 0.7400 ceiling measures the world reading back
+                # its own input and its capture ratio is refused. This one is recorded beside the
+                # outcome and nothing else — `tests/architecture/
+                # test_the_svt_drift_belief_is_not_wired_to_any_decision.py` holds that open.
+                "company_svt_drift_estimate": estimate_svt_drift(
+                    SvtSegmentObservation(
+                        years_on_svt=_years_on_svt,
+                        segment_days=_segment_days,
+                        payment_behaviour=(
+                            _svt_behaviour.value if _svt_behaviour is not None else None
+                        ),
+                    )
+                ),
+                "data_regime": "historical",
+            })
+            if _svt_roll < _svt_p_depart:
+                churned_billing_accounts.add(billing_account)
+                _svt_event = departure_event(
+                    customer_id=billing_account,
+                    event_date=term_start_str,
+                    commodity=commodity,
+                    occasion=DEPARTURE_OCCASION_SVT_SEGMENT,
+                    cause=CAUSE_SVT_INERTIA,
+                    realized_churn_probability=round(_svt_p_depart, 4),
+                    random_roll=round(_svt_roll, 4),
+                    unit_rate_gbp_per_mwh=unit_rate,
+                    sim_years_on_svt=round(_years_on_svt, 3),
+                    sim_segment_days=_segment_days,
+                    sim_action_propensity=round(_svt_propensity, 6),
+                    sim_level_anchor=round(year_level_anchor(int(term_start_str[:4])), 6),
+                )
+                # ITS OWN LIST, NOT `customer_events_log`, AND THE FIRST RUN IS WHY. Appending it
+                # there crashed `_main`'s own summary at `evt['churn_probability']` -- a key an
+                # SVT departure has no business carrying, because there was no renewal decision to
+                # estimate a churn probability FOR. Twelve more consumers index the same key
+                # unguarded (`saas/clv_model`, `saas/enterprise_value`, `saas/home_move_win_rate`,
+                # `saas/growth_mandate`, `saas/reporting/annual_report`,
+                # `company/analytics/customer_value_view`, `tools/capture_departure_factors`), and
+                # every one of them has RENEWAL DECISIONS as its subject.
+                #
+                # THE REPAIR IS NOT `evt.get("churn_probability") or 0`. That is the fail-open
+                # this project has already paid for once: it would put a departure with no renewal
+                # into a CLV survival sum as a renewal with zero churn probability, which is a
+                # customer who was there and certain to stay. Two populations, two lists, and a
+                # reader that wants both unions them deliberately.
+                #
+                # OWED, NAMED RATHER THAN LEFT TO BE FOUND: the readers whose subject is ALL
+                # departures -- `tools/population_anchor._churn_by_year` and
+                # `tools/measure_departure_level` -- must union these in, or they will report a
+                # departure LEVEL that is missing the route this commit added. Neither is live
+                # against this log today (both read captured artefacts), so nothing regresses on
+                # landing; both go stale the moment the next capture runs.
+                _svt_departures.append(_svt_event)
+                print(
+                    f"  [CHURN-SVT] {billing_account} at {term_start_str} — "
+                    f"p_depart={_svt_p_depart:.4f}  roll={_svt_roll:.4f}  "
+                    f"years_on_svt={_years_on_svt:.2f}"
+                )
+        _last_tariff_type[cid] = term_tariff_type
 
         if term_index >= 1 and commodity == "electricity" and not _indexed_tariff:
             company_est_pre = None
@@ -2946,6 +3170,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "tou_by_customer": period_registers.tou_by_customer,
         "committee_wake_ups": committee_wake_ups,
         "customer_events": customer_events_log,
+        # C1b. A SECOND POPULATION UNDER A SECOND NAME. These are departures from the standard
+        # variable product: no renewal decision happened, so none of the renewal-decision fields
+        # `customer_events` carries exist on them. A reader whose subject is departures unions
+        # the two; a reader whose subject is renewal decisions keeps reading the one above and is
+        # unaffected by this commit, which is the property the separation buys.
+        "svt_departures": _svt_departures,
+        # And the DECISIONS behind them — `tools/capture_departure_factors` writes these to the
+        # `_svt_segment_decisions.json` companion, which is the population every SVT-route reading
+        # in `tools/measure_churn_heterogeneity` is computed over.
+        "svt_decisions": _svt_decisions,
         "churned_billing_accounts": sorted(churned_billing_accounts),
         "won_successor_activations": won_successor_activations,
         "hedge_evolution": evolution_logs,

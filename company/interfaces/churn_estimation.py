@@ -42,10 +42,59 @@ this book's departures, and a route it formed no belief about at all until now.
 It goes through THIS door rather than a second one, because it is the same
 question (will this account leave) asked at a different moment, and a second door
 for the same question is how a wall acquires a hole nobody is watching. What
-crosses is an `SvtSegmentObservation` of two things the company reads off its own
-systems: when the account last left a fixed deal, and how long this cap period
-ran. Nothing about income, tenure or segment crosses — see the belief's own
-docstring for why that absence is the finding rather than a gap.
+crosses is an `SvtSegmentObservation` of things the company reads off its own
+systems: when the account last left a fixed deal, how long this cap period ran,
+and — from v2 — what its own collections record on this account looks like.
+
+THE THIRD FIELD IS THE SECOND BELIEF THROUGH THIS DOOR AND IT IS ARGUED HERE
+RATHER THAN ASSUMED (2026-08-31). A door that grows a hole is how a wall fails,
+so the crossing gets its own paragraph instead of a shrug.
+
+WHAT IS BEING ASKED FOR. v1 carried two observables and both were CALENDAR, so
+it could only order the billing calendar and the instrument caught it doing
+exactly that — 0.4691 per exposure-day, inside its own null, against a ceiling
+of 0.6091 that clears. The repair needs an observable that VARIES ACROSS
+HOUSEHOLDS AT THE SAME INSTANT, because a belief every household shares cannot
+select a household. The world's own SVT hazard has exactly one such term:
+`action_propensity`, built from income stress and housing tenure.
+
+WHY THAT TERM MAY NOT CROSS, IN ITS OWN WORDS. Income stress is SIM ground
+truth and housing tenure is a segment label; the D-SEGMENT ruling
+(`docs/design/SEGMENTATION_RECONCILIATION_FRAME.md` §0) says no segment label,
+attitude or sensitivity ever crosses this wall directly, and "directly" has
+never been read here as leaving a proxy-with-a-different-name open. Handing the
+company a renamed `sim_action_propensity` would let it score 0.6091 and prove
+nothing whatever, because the thesis under test is that the advantage comes from
+INFERENCE and never from ACCESS. A belief fed the answer cannot test that
+sentence; it can only flatter it.
+
+WHY `payment_behaviour` IS NOT THAT. It is the company's own record of its own
+collections on its own account — did the money arrive, was it late, was the
+Direct Debit returned. A real GB supplier holds precisely this and holds it
+without asking anyone: it is the output of its billing and its bank feed, and
+it already crosses this wall through an established door for the fixed-term
+belief (`CustomerExperienceDesk.observe_payment`, feeding
+`RenewalObservation.behaviour_score` above). No new channel is opened here; the
+SVT route is joined to a channel that was already legal, already used, and
+already point-in-time — the desk is fed inside the same term loop that makes
+this decision, so the score reflects payments observed BEFORE this cap period
+and never after it.
+
+THE PART THAT IS THE COMPANY'S WORK, NOT THE WALL'S GIFT. Payment behaviour and
+propensity to act are related in this world because both descend from one
+hardship substrate — `simulation.arrears_engine.payment_outcome` takes income
+stress as an input, and so does `stress_switching_multiplier`. That common cause
+is a FACT ABOUT THE WORLD, and the company is not told it. It observes only
+whether the money arrived and must infer the rest from its own book. That is the
+distinction the whole project turns on, and it is the reason this field is a
+legal crossing where a renamed propensity would not be: one is an observable the
+company must reason FROM, the other is the conclusion handed over.
+
+WHAT STILL DOES NOT CROSS, AND THE LIST IS UNCHANGED. Income stress, housing
+tenure, segment label, green stance, `sim_action_propensity`, and any
+probability the world computed. If the belief cannot reach the ceiling on the
+observables above, that gap is the finding — see the belief's own docstring for
+why an honest shortfall is worth more here than a closed one.
 """
 
 from __future__ import annotations

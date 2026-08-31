@@ -100,6 +100,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from sim.forward_curve import generate_forward_price
+from simulation.departure_risks import svt_inertia_hazard
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 #: Cap-period starts, straight off `simulation/svt_rates.py`'s own key structure. Named here
@@ -117,6 +118,36 @@ def _next_cap_period_start(day: date) -> date:
         if month > day.month:
             return date(day.year, month, 1)
     return date(day.year + 1, CAP_PERIOD_START_MONTHS[0], 1)
+
+
+def inertia_hazard_for_term(term: dict, *, stint_start: str | None) -> float:
+    """The inertia hazard this term carries, and **0.0 for anything that is not an SVT segment**.
+
+    C1b. THE GUARD IS THE POINT AND IT IS WHY THIS IS A FUNCTION RATHER THAN AN `if` IN THE RUN
+    LOOP. `svt_inertia_hazard` will happily convert an annual rate for any caller who passes it a
+    positive `segment_days`; nothing in it knows what product the days belonged to. Inlined at the
+    call site, the only thing standing between a fixed-term household and a 10-20%/yr hazard it
+    should never carry would be the branch condition of a 2,000-line loop, which no test can drive
+    without a decade run. Here it is one call with one argument, so
+    `test_a_fixed_term_household_is_never_given_the_inertia_hazard` can put a real fixed term in
+    and read the answer.
+
+    `stint_start` is the day this account's CURRENT continuous stint on the default tariff began
+    -- not its acquisition date and not a lifetime total, because the published bands are cut on
+    continuous tenure on SVT and a household that fixed in between has demonstrably shopped.
+    `None` means the caller does not know, and that is treated as the stint starting at this
+    segment (the RECENT band, 20%/yr), which is the higher hazard of the two: an unknown tenure
+    fails toward the account being more likely to leave, never less.
+    """
+    if (term.get("tariff_type") or "") != SVT_TARIFF_TYPE:
+        return 0.0
+    segment_start = date.fromisoformat(term["acquisition_date"])
+    segment_days = (date.fromisoformat(term["term_end"]) - segment_start).days
+    stint = date.fromisoformat(stint_start) if stint_start else segment_start
+    return svt_inertia_hazard(
+        years_on_svt=(segment_start - stint).days / 365.25,
+        segment_days=segment_days,
+    )
 
 
 def build_svt_schedule(

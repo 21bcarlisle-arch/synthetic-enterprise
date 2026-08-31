@@ -329,6 +329,10 @@ where the *world* is aimed and the company's belief is not the director's dial.
 | `estimate_svt_drift` — **superseded, do not quote** | ~~0.6054~~ | [0.4142, 0.5883] | ~~clears~~ |
 | **CEILING per exposure-day** | **0.6091** | [0.4159, 0.5850] | **clears** |
 | **`estimate_svt_drift` per exposure-day** | **0.4691** | [0.4164, 0.5834] | **we cannot tell** |
+
+*(**Superseded as the current reading by v2, later on 2026-08-31 — see "The belief gets an
+observable that varies across households" below.** 0.4691 is NOT withdrawn: it is now the HELD-OUT
+arm, re-derived on the v2 capture to the same digit, and it is what sizes the v2 move.)*
 | its band term alone (the only non-exposure content it has) | 0.5393 | [0.4407, 0.5515] | inside its null |
 
 **The belief orders how long the cap period ran, and nothing else.** It is
@@ -623,3 +627,106 @@ which is why every year lands on the endpoint. It does not say the company's mod
 comparison is not yet available on one population and is refused above. And it does not say rung 3
 passing means the company knows anything: **independence is not inference**, per the standing rule
 in `tools/inference_claim.py`. Rung 3 establishes only that there is something to infer.
+
+---
+
+## The belief gets an observable that varies across households, and still cannot be told from chance
+
+*Added 2026-08-31, later the same day. Pre-registration:
+`WORKER_PREREGISTRATION_WHAT_THE_SVT_DRIFT_BELIEF_V2_MUST_SHOW_2026-08-31.md`, filed before the run
+with an addendum also filed before the result; its result section is appended below its own line and
+nothing above it was edited.*
+
+The section above ends by naming what v1 was missing: *"its honest proxy — its own arrears and
+payment history — is not wired"*. It is now. `SvtSegmentObservation` carries a third field,
+`payment_behaviour` — the company's own collections record on the account, on-time rate and returned
+Direct Debits, off its own bank feed. **It is the only one of the three observables that differs
+between two accounts sitting on the same cap period**, which is the whole specification: a belief
+every household shares cannot select a household.
+
+It places the account **inside** the published band rather than moving the band. §4's own stated
+basis for the band is engagement — *"Ofgem engagement surveys: most inert segment"* — so the range
+is a range because engagement varies inside it, and an engagement observable placing an account
+within it follows the source's reasoning. `FAIR` and an absent record both return the v1 midpoint
+exactly, so an account the company knows nothing bad about is scored as before.
+
+**The direction is published; the magnitude is not, and only the direction is used.** A supplier may
+object to an indebted domestic customer's transfer (Ofgem, *Decision on review of domestic
+objections*, 2016) and indebted prepayment switches run through the Debt Assignment Protocol — so a
+worse payment record means a lower believed drift. Both Ofgem source PDFs refused text extraction,
+so no figure from them is quoted or used; `docs/market_research/svt_drift_by_payment_behaviour.md`
+records that failure and the resulting gap. The five grades are spread evenly across the band
+because nothing published gives a within-band structure, and being a ranking statistic the spacing
+could not have changed the verdict.
+
+### The reading — three arms, one capture, both nulls
+
+| leg, on the same 1,266 decisions and 50 departures | per exposure-day | null 95% | verdict |
+|---|---|---|---|
+| **CEILING** — the world's own hazard | **0.6091** | [0.4159, 0.5850] | **clears** |
+| **`estimate_svt_drift` v2 — JOINT** | **0.5482** | [0.4125, 0.5866] | **we cannot tell** |
+| HELD-OUT arm — v1, payment record withheld | 0.4691 | [0.4164, 0.5834] | inside its null |
+| TERM ALONE — payment grade only, band held out | 0.5115 | [0.4131, 0.5825] | inside its null |
+
+**The company's belief about 61% of its own departures still cannot be told from chance.** 0.5482
+against a null topping out at 0.5866, while the ceiling on the identical rows clears at 0.6091.
+*We cannot tell.* Said in those words because a second null result here is worth more than the
+first, and because the alternative — quoting the uncorrected 0.6220, which does clear — is the
+withdrawn reading this instrument already refuses by name.
+
+**And it is not the same null result as v1.** The observable worked; it was not enough:
+
+* the belief moved **0.4691 → 0.5482, +0.0791**, on ONE capture with the held-out arm re-derived on
+  the same rows rather than quoted across runs — the held-out arm landing on **0.4691 to the digit**
+  is what makes that a comparison instead of two numbers from two worlds;
+* **the payment record alone (0.5115) orders departures better than the whole of v1 (0.4691) did** —
+  one household observable beats both calendar terms combined;
+* it closed **57%** of the v1-to-ceiling gap, and stopped short.
+
+**No ratio is published for any of the three**, each refused by a named cause: the joint clears only
+before its route's exposure offset, and the two arms are decomposition arms rather than beliefs the
+company forms — a fifth condition added to `ceiling_vs_belief` for this, because all four existing
+conditions can pass for an arm while the resulting "% of the ceiling captured" would describe a
+scoring rule nothing ships.
+
+**Mean believed 0.0346 against a realised 0.0395** — the under-estimate narrowed by about a fifth,
+which was **predicted the wrong way round** (P5 said calibration would worsen) and is flagged rather
+than banked: it came from the book's payment mix, not from anything reasoned about, and an
+unpredicted move in the flattering direction is the one least entitled to be claimed.
+
+### What the wall did and did not permit, since this is the second belief through that door
+
+What crosses is **whether the money arrived**. `sim_action_propensity`, income stress, housing
+tenure and segment do not, in any direction or under any other name — and the crossing is argued in
+`company/interfaces/churn_estimation.py`'s own docstring rather than left to be inferred from a
+diff. That payment behaviour and propensity to act are related *in this world* — both descend from
+one hardship substrate — is a fact the company must **infer from its own book**, not a channel it
+reads. That distinction is the difference between testing the thesis and flattering it.
+
+### What this run says about the thesis, in both directions
+
+* **For it:** an observable a real supplier holds without asking anyone recovered more than half the
+  distance to the oracle and beat the calendar belief on its own, with nothing crossing the wall.
+* **Against it:** it still cannot be told from chance. The world's remaining discrimination is in
+  the **product** `svt_inertia × action_propensity` — the instrument shows neither factor clears
+  alone even for the world itself — and a proxy sharing one factor's cause reaches a product from
+  one side.
+
+**What is owed is an interaction, not another single term.** A belief whose payment placement varies
+*with* tenure rather than sitting alongside it is the shape the ceiling's own decomposition points
+at, and this run says what it must beat: **0.5482 against 0.6091.**
+
+### The pre-registered withdrawal fired, and is recorded rather than argued away
+
+Both of its triggers fired and both halves of the premise they were written to detect are refuted by
+the same measurement — the observable carries +0.0791, and 0.5482 is not "the same reading" as
+0.4691. **The trigger was keyed to two null verdicts when the property it meant to test was whether
+the new term moved the joint**, which is this project's most-catalogued control defect committed
+inside the clause written to be immune to it. Filed as
+`WORKER_FINDING_A_PREREGISTERED_WITHDRAWAL_TRIGGER_KEYED_TO_TWO_NULL_VERDICTS_FIRES_ON_A_PREMISE_ITS_OWN_MEASUREMENT_REFUTES_2026-08-31.md`.
+
+The belief is not deleted — that would delete the +0.0791 the direction asked for — and it reaches
+no decision, enforced by `test_the_svt_drift_belief_is_not_wired_to_any_decision`, which reds if
+anyone wires it while it reads inside its null. **That control, not this paragraph, is what closes
+the harm the clause was reaching for.** The revert, for anyone who disagrees, is a one-line removal
+of `payment_behaviour` from `SvtSegmentObservation` and its two call sites.
