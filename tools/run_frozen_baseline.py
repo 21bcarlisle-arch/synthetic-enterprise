@@ -26,7 +26,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, policy_scope
-from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "site" / "state" / "frozen_policy_baseline.json"
@@ -43,6 +42,35 @@ REFRESH_LOCK_PATH = PROJECT_DIR / "docs" / "observability" / ".frozen_baseline_r
 REFRESH_INTERVAL_SECONDS = 7 * 24 * 60 * 60  # weekly
 
 
+def run_phase4c(report_end: str | None = None, policy=None) -> dict:
+    """The decade replay, imported at CALL time rather than at module import.
+
+    IMPORTING THIS MODULE USED TO BUILD THE BOOK AND WRITE A PRODUCTION SURFACE.
+    `from simulation.run_phase4c_on_phase2b import main` at line 29 pulled in
+    `simulation.run_phase2b`, whose module body runs `CUSTOMERS = live_population()`,
+    whose `_resolve_campaign` writes `docs/observability/book_growth_campaign.json`.
+    So `import tools.run_frozen_baseline` -- an import, not a call -- assembled the whole
+    population and stamped the evidence base.
+
+    That was invisible until 2026-08-31, when `docs/observability` became a whole
+    PROTECTED_SURFACE in `tests/production_surface_guard.py` (before that the directory was
+    guarded file-by-file and this file was not on the list). From that commit every test that
+    imported this module raised `ProductionWriteRefused`, which is exactly what the guard is
+    for: the write was real and had been happening on every test run for months.
+
+    The cost was not only the test isolation. `process_run_complete.
+    _trigger_frozen_baseline_refresh_out_of_band` imports this module every publish cycle to
+    ask ONE question -- is the baseline older than a week -- and paid a full population build
+    to compare two mtimes.
+
+    Kept as a module-level name, not inlined into `run_frozen_baseline`, because it is the seam
+    the arms are faked at: `monkeypatch.setattr(rfb, "run_phase4c", ...)` is how both policy
+    arms are driven in the tests without a real decade replay.
+    """
+    from simulation.run_phase4c_on_phase2b import main
+    return main(report_end=report_end, policy=policy)
+
+
 def _portfolio_metrics(result: dict) -> dict:
     """Extract the headline metrics used for the delta-EV comparison from one
     run_phase4c_on_phase2b.main() result."""
@@ -57,8 +85,16 @@ def _portfolio_metrics(result: dict) -> dict:
     return {
         "enterprise_value_gbp": result["enterprise_value"]["portfolio"]["enterprise_value_gbp"],
         "account_count": result["enterprise_value"]["portfolio"]["account_count"],
-        "total_net_gbp": phase2b.get("total_net", 0.0),
-        "final_treasury_gbp": phase2b.get("final_treasury", 0.0),
+        # BOTH ON `settled-realised`, AND NEITHER WITH A FALLBACK (2026-08-28, class
+        # `figures_on_a_superseded_clock`). These were `.get(..., 0.0)`: a run whose output did
+        # not carry the key reported GBP 0 for it, and a GBP 0 delta between two arms reads
+        # exactly like two arms that performed identically -- R15's fail-open, in the file whose
+        # only job is to say which policy did better. `[key]` raises instead, and the raise is
+        # the finding. They are on the realised clock because `refresh_settlement_scalars`
+        # re-derives these names from `all_records` after the arrears engine has mutated them,
+        # so both arms are compared on what the world did rather than on what was provisioned.
+        "total_net_gbp": phase2b["total_net"],
+        "final_treasury_gbp": phase2b["final_treasury"],
         "retention_offers_made": len(retention_log),
         "retention_offers_retained": retained,
         "retention_cost_gbp": retention_cost_total,

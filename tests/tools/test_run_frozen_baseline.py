@@ -139,3 +139,61 @@ def test_generate_skips_when_refresh_lock_already_held(tmp_path, monkeypatch):
                         lambda report_end=None: {"generated_at": "2026-01-01T00:00:00Z",
                                                  "delta_ev_gbp": 7.0})
     assert rfb.generate(path=path, force=True)["delta_ev_gbp"] == 7.0
+
+
+# ── Importing this module must not BUILD THE BOOK (2026-08-31 publish wedge) ──────────
+# Nine consecutive publish-gate failures, ~6h wedged. `tools/run_frozen_baseline.py` carried
+# `from simulation.run_phase4c_on_phase2b import main` at module scope; that import chain
+# reaches `simulation/run_phase2b.py`'s module body, which runs `CUSTOMERS = live_population()`,
+# which writes `docs/observability/book_growth_campaign.json`. On 2026-08-31 that directory
+# became a whole PROTECTED_SURFACE in tests/production_surface_guard.py, so every test that
+# merely IMPORTED this module raised ProductionWriteRefused -- and before that commit the write
+# had simply been landing on the live evidence base unnoticed.
+#
+# R15: this is keyed to the PROPERTY (an import has no simulation side effects), not to today's
+# error. Restoring the module-level import makes it red whether or not the guard covers the path,
+# and it would also have been red for the months when the guard did not.
+
+
+def test_importing_the_module_does_not_import_the_simulation():
+    """A subprocess, because in a full suite run `simulation.run_phase2b` is already in
+    `sys.modules` from some other test and an in-process check would pass vacuously."""
+    import subprocess
+    import sys
+
+    probe = (
+        "import sys; import tools.run_frozen_baseline; "
+        "print(','.join(sorted(m for m in sys.modules "
+        "if m.startswith('simulation.'))))"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", probe],
+        cwd=str(rfb.PROJECT_DIR), capture_output=True, text=True, timeout=300,
+    )
+    assert proc.returncode == 0, "the probe itself failed:\n{}".format(proc.stderr)
+    leaked = [m for m in proc.stdout.strip().split(",") if m]
+    assert leaked == [], (
+        "importing tools.run_frozen_baseline pulled in {} -- the replay must be imported "
+        "at CALL time, inside run_phase4c(), not at module scope".format(leaked)
+    )
+
+
+def test_the_replay_is_still_reachable_through_the_module_level_seam(monkeypatch):
+    """The other half: a lazy import that nothing can reach, or that the arms can no longer be
+    faked at, would make the test above pass for the wrong reason."""
+    import sys
+    import types
+
+    seen = []
+    # A STUB MODULE, not `monkeypatch.setattr("simulation.run_phase4c_on_phase2b.main", ...)`:
+    # that string form imports the real module to patch it, which is the very import this
+    # module was just stopped from doing -- the test would rebuild the book to prove the book
+    # is not rebuilt.
+    fake = types.ModuleType("simulation.run_phase4c_on_phase2b")
+    fake.main = lambda report_end=None, policy=None: (
+        seen.append((report_end, policy)) or {"ok": True}
+    )
+    monkeypatch.setitem(sys.modules, "simulation.run_phase4c_on_phase2b", fake)
+
+    assert rfb.run_phase4c(report_end="2020-01-01", policy=None) == {"ok": True}
+    assert seen == [("2020-01-01", None)]
