@@ -189,3 +189,54 @@ def test_the_reading_covers_BOTH_departure_routes_and_says_which(reading):
         "a route with zero departures cannot contribute to a rung-3 reading; if that is real, it "
         "is a finding about the world and not something to pass over"
     )
+
+
+def test_a_per_factor_table_a_correction_WITHDREW_is_not_published_unmarked(reading):
+    """A route whose figures were withdrawn must say so where the figures are, not downstream.
+
+    THE DEFECT THIS NAMES. `exposure_offset` recomputes the SVT per-factor table rather than
+    caveating it, and the assessment page said in as many words that the instrument "prints the
+    corrected table with the uncorrected one marked as superseded". It did not. The withdrawn table
+    was published under `per_factor` -- the key that IS the quotable table on the renewal route --
+    with `inside_null_alone: False` on both factors and no marker in the JSON or on stdout. The
+    correction existed only in a block printed forty lines further down. On this book that is
+    `sim_action_propensity` at 0.6421 (outside its null) against 0.5067 (inside it), so the
+    unmarked figure was also the flattering one.
+
+    KEYED TO THE PROPERTY, NOT TO THE ROUTE. Nothing here says "svt_segment". Any route that gains
+    an offset -- or any offset added to the renewal route later -- inherits the requirement, and a
+    route that never needed one is silent rather than red.
+
+    MUTATIONS, each of which fires this: drop the `_supersede_uncorrected_factors` call; stamp the
+    entry but not the factors; stamp a `superseded_by` naming a key that is not in the reading;
+    stamp it with an empty reason; publish the offset table without its own `per_factor`.
+    """
+    for route, entry in reading["per_route"].items():
+        offset_keys = [k for k, v in entry.items() if isinstance(v, dict) and "per_factor" in v]
+        if not offset_keys:
+            continue
+        pointer = entry.get("per_factor_superseded_by")
+        assert pointer, (
+            f"route {route!r} publishes a corrected per-factor table under {offset_keys} AND an "
+            "uncorrected one under `per_factor`, with nothing on the uncorrected table saying it "
+            "was withdrawn — a reader taking the obvious key gets the figures the correction "
+            "removed"
+        )
+        assert entry.get("per_factor_superseded_because"), (
+            f"route {route!r} marks `per_factor` superseded without naming why: a marker that "
+            "gives no reason cannot be checked, and cannot be discovered to be wrong"
+        )
+        head, _, tail = pointer.partition(".")
+        assert tail == "per_factor" and head in offset_keys, (
+            f"route {route!r} points its withdrawn table at {pointer!r}, which is not one of the "
+            f"corrected tables actually published ({offset_keys})"
+        )
+        assert entry[head]["per_factor"], (
+            f"route {route!r} withdraws `per_factor` in favour of {pointer!r}, and that table is "
+            "empty: the correction removed a reading and published nothing in its place"
+        )
+        for factor, fd in entry["per_factor"].items():
+            assert fd.get("superseded_by") == pointer, (
+                f"{route}/{factor} is quotable on its own — a figure is copied out of a row, not "
+                "out of a table, so the row is where the withdrawal has to be"
+            )

@@ -191,7 +191,9 @@
           "contribution": 0.030039029829941444,
           "tie_fraction": 0.17549484248675773,
           "distinct_values": 127,
-          "inside_null_alone": false
+          "inside_null_alone": false,
+          "superseded_by": "exposure_offset.per_factor",
+          "superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
         },
         "sim_action_propensity": {
           "alone": 0.6421103986618344,
@@ -199,7 +201,9 @@
           "contribution": 0.06642040702536933,
           "tie_fraction": 0.36869250069696125,
           "distinct_values": 10,
-          "inside_null_alone": false
+          "inside_null_alone": false,
+          "superseded_by": "exposure_offset.per_factor",
+          "superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
         }
       },
       "route": "svt_segment",
@@ -278,7 +282,9 @@
           }
         },
         "reading": "Per-factor figures on the SVT route are quoted from THIS table, not from the uncorrected one above. The difference between the two oracle readings is the part of the route's discrimination that was the billing calendar rather than the household."
-      }
+      },
+      "per_factor_superseded_by": "exposure_offset.per_factor",
+      "per_factor_superseded_because": "this reading does not carry the exposure offset: on a route where segments run 1-92 days a longer segment is simply more time in which to leave, so these figures credit the factors with what the billing calendar was doing"
     }
   },
   "company_belief_provenance": {

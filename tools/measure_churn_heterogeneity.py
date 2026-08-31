@@ -683,6 +683,33 @@ def exposure_offset(rows: list[dict], score_with, factors, permutations: int) ->
     }
 
 
+def _supersede_uncorrected_factors(entry: dict, offset_key: str = "exposure_offset") -> None:
+    """Stamp the un-offset per-factor table as withdrawn IN the table, not beside it.
+
+    WHY THIS IS NOT A NOTE ELSEWHERE. `exposure_offset` recomputes the table rather than caveating
+    it, and its own docstring says a caution recorded beside a table is a caution nobody applies.
+    But the un-offset table was still published under the canonical `per_factor` key -- the same key
+    that IS the quotable table on the renewal route -- unmarked, and with `inside_null_alone: False`
+    on both factors. A reader taking the obvious key got the withdrawn figures wearing a
+    clears-its-null flag, which is worse than no flag. On this book that is `sim_action_propensity`
+    at 0.6421 (outside its null) versus 0.5067 (inside it), and the withdrawn number is the
+    flattering one: it credits the term with what the segment length was doing.
+
+    The measurements are NOT deleted. The uncorrected reading is what makes the size of the
+    correction visible, and a figure removed cannot be checked against the one that replaced it.
+    """
+    reason = (
+        "this reading does not carry the exposure offset: on a route where segments run 1-92 days "
+        "a longer segment is simply more time in which to leave, so these figures credit the "
+        "factors with what the billing calendar was doing"
+    )
+    entry["per_factor_superseded_by"] = f"{offset_key}.per_factor"
+    entry["per_factor_superseded_because"] = reason
+    for fd in entry["per_factor"].values():
+        fd["superseded_by"] = f"{offset_key}.per_factor"
+        fd["superseded_because"] = reason
+
+
 def _factor_decomposition(rows: list[dict], factors, score_with, null: dict, observed: float) -> dict:
     """ALONE and HELD OUT readings for each factor, plus the tie fraction that bounds both."""
     means = {f: statistics.fmean(r[f] for r in rows) for f in factors}
@@ -803,6 +830,9 @@ def report(
         entry["ceiling_vs_belief"] = ceiling_vs_belief(entry)
         if route == "svt_segment":
             entry["exposure_offset"] = exposure_offset(sub, score_with, factors, permutations)
+            # The offset does not replace the table it corrects unless something says so where the
+            # table is read. Marked at the point of publication, not in the prose downstream.
+            _supersede_uncorrected_factors(entry)
         if route == "renewal":
             # The anchor counterfactual: the same reading with the year's level term flattened to
             # 1.0. It lives here rather than in a one-off script because it is the answer to the
@@ -896,12 +926,24 @@ def _print(r: dict) -> None:
                 f"{d['oracle_auc_with_level_anchor_flattened']:.4f} — the top-down anchor is not "
                 "what makes this reading what it is"
             )
+        superseded = d.get("per_factor_superseded_by")
+        if superseded:
+            # The correction is printed further down, in the belief block. Nothing carried it UP to
+            # the table it withdraws, so a reader who stopped here met the withdrawn figures with
+            # `inside_null_alone: False` beside them and no reason to doubt either.
+            print(
+                f"     ⚠ SUPERSEDED — DO NOT QUOTE. {d['per_factor_superseded_because']}.\n"
+                f"       Quote `{superseded}` (printed below); these are kept only to size the "
+                "correction."
+            )
         print(
             f"     {'factor':32s} {'ALONE':>7s} {'HELD OUT':>9s} {'CONTRIB':>8s} "
             f"{'TIED PAIRS':>11s} {'VALUES':>7s}"
         )
         for f, fd in d["per_factor"].items():
             flag = "  (alone: inside its null)" if fd["inside_null_alone"] else ""
+            if superseded:
+                flag = f"  ← SUPERSEDED{flag}"
             print(
                 f"     {f:32s} {fd['alone']:7.4f} {fd['held_out']:9.4f} "
                 f"{fd['contribution']:+8.4f} {fd['tie_fraction']:11.1%} "

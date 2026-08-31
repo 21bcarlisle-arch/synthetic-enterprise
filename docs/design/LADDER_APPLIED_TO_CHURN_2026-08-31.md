@@ -281,8 +281,28 @@ now what the instrument prints:
 The remaining discrimination on this route lives in the product of the two terms, not in either of
 them, and **no single factor from the SVT route may be quoted as carrying it.** The uncorrected
 reading — which showed `action_propensity` at 0.6421 ALONE — was crediting a term with what the
-segment length was doing. The instrument prints the corrected table with the uncorrected one marked
-as superseded, because a caution recorded beside a table is a caution nobody applies.
+segment length was doing.
+
+> **THAT SENTENCE USED TO SAY THE INSTRUMENT ALREADY DID THIS, AND IT DID NOT — corrected
+> 2026-08-31, later the same day.** It read: *"The instrument prints the corrected table with the
+> uncorrected one marked as superseded, because a caution recorded beside a table is a caution
+> nobody applies."* The first clause was false and the second is the reason it mattered. The
+> withdrawn table was published under `per_route.svt_segment.per_factor` — **the same key that IS
+> the quotable table on the renewal route** — with `inside_null_alone: false` on both factors and
+> no marker in the JSON or on stdout; the correction lived only in a block printed forty lines
+> further down, under a separate banner. So a reader taking the obvious key got 0.6421 for
+> `sim_action_propensity` wearing a clears-its-null flag, which is worse than no flag, and the
+> unmarked figure was the flattering one. **Now true of the code:** every withdrawn row carries
+> `superseded_by: exposure_offset.per_factor` and its reason, the table prints under a
+> `⚠ SUPERSEDED — DO NOT QUOTE` header, and
+> `test_churn_carries_per_customer_signal.py::test_a_per_factor_table_a_correction_WITHDREW_is_not_published_unmarked`
+> fails on five mutations, including the one that stamps the table but not the rows. The
+> measurements are kept, not deleted — the uncorrected reading is what sizes the correction. Keyed
+> to the property, not the route: any route that gains an offset inherits the requirement.
+>
+> This is the ladder page's own recurring failure in miniature. Recomputing a table is not the same
+> act as withdrawing the one it replaces, and the page asserted the second because the first had
+> been done.
 
 ### What this comparison is allowed to say
 
