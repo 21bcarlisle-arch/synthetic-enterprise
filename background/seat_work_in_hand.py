@@ -327,3 +327,129 @@ if __name__ == "__main__":
 
     refuse_if_foreign("seat_work_in_hand")
     raise SystemExit(main())
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# DUPLICATION — the risk that survived every other fix, and the one I committed myself
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# Director, 2026-08-31: *"Include duplication in that build — you named it as the larger risk and
+# you did it yourself today."*
+#
+# WHAT ACTUALLY HAPPENED, so the mechanism is aimed at the real thing. Another lane filed the
+# ceiling-vs-belief finding at `b666a2b50`; I filed the same defect, from the same capture, found
+# the same way, minutes later at `9b3aa883b`. Neither of us could see the other was mid-flight.
+# The staging root is a RANKED queue, so a duplicate does not merely waste a turn — it displaces
+# something real down the order.
+#
+# CLAIMS ALREADY SOLVE THE QUEUE HALF. `delivery_lane` claims an item so two ticks cannot take
+# one focus id. What no claim covered is two writers independently choosing the SAME WORK under
+# two different names, which is what a claim keyed only on an id cannot see.
+#
+# SO THE KEY IS THE PATHS, NOT THE NAME. `claim()` has taken a `paths` file_scope since it was
+# written; nothing ever asked the question it makes answerable. Two pieces of work that will move
+# the same files are the same work however they are labelled — and if they genuinely are not, the
+# overlap is still the thing that will make them collide.
+#
+# IT WARNS BY DEFAULT AND REFUSES ONLY WHERE THE CALLER SAYS SO. An overlap is strong evidence of
+# duplication and not proof of it: two lanes legitimately touch `docs/staging/` constantly. The
+# executor refuses on overlap because an unattended writer must not gamble; a human-driven session
+# is shown the holder and decides. A guard that cried wolf on `docs/` would be routed around
+# within a day, and a guard nobody obeys is worse than none.
+
+class DuplicateWork(RuntimeError):
+    """Another live claim holds paths this work would move."""
+
+
+#: DIRECTORIES WHERE MACHINE CHURN IS EXPECTED AND CARRIES NO SIGNAL ABOUT A WRITER'S WORK.
+#:
+#: Deliberately SHORT: the temptation is to exempt anything noisy, and every exemption is a place a
+#: real defect can hide. These are the directories every lane and every daemon appends to by
+#: design — a collision here is traffic, and the unit is one file per writer.
+#:
+#: ONE HOME, TWO READERS, AND THEY ARE THE SAME QUESTION. `overlapping_claims` asks "does an
+#: overlap here mean two writers chose the same work?"; `promote_worktree_landing` asks "does dirt
+#: here mean the writer left work uncommitted?". Both answer *no, that is machine exhaust* — and
+#: the second reader exists because the pre-commit gate WRITES into the tree it has just gated, so
+#: a worktree is dirty the instant a land succeeds and the promotion route was refusing its own
+#: predecessor's output. Shared rather than copied, per the end-to-end canon: two implementations
+#: that happen to agree is not agreement, it is a coincidence waiting to end. **If the two readers
+#: ever need different sets, split them and say why — do not quietly widen this one.**
+SHARED_BY_DESIGN = (
+    "docs/staging/",
+    "docs/observability/",
+    "docs/reports/",
+)
+
+#: Kept as the old private name because this module's own callers use it; DERIVED, not restated.
+_SHARED_BY_DESIGN = SHARED_BY_DESIGN
+
+
+def _informative(rel: str) -> bool:
+    """Is an overlap on this path evidence of duplicated WORK rather than shared traffic?"""
+    return not any(rel.startswith(prefix) for prefix in _SHARED_BY_DESIGN)
+
+
+def overlapping_claims(
+    paths: list[str],
+    *,
+    exclude: str | None = None,
+    stores: list[Path] | None = None,
+    now: float | None = None,
+) -> dict[str, list[str]]:
+    """`{work_id: [the paths it already holds that you also want]}`, across EVERY claim store.
+
+    BOTH STORES, because there are two writers and they claim in different files: the interactive
+    seat's `.seat_work_in_hand.json` and the delivery lane's own. A check that read one would be
+    blind to exactly the pair that collided on 2026-08-31 — one item held by a tick, the other by
+    a session.
+
+    Stale claims are swept first, so a dead writer cannot hold a path forever. `exclude` is the
+    caller's own work id, so re-checking your own claim is not an overlap with yourself.
+
+    Returns `{}` when there is nothing informative — a shared-by-design directory is traffic, not
+    duplication, and reporting it would train every reader to ignore this.
+    """
+    from background import delivery_lane  # local: avoids an import cycle at module load
+
+    wanted = {p for p in paths if _informative(p)}
+    if not wanted:
+        return {}
+    if stores is None:
+        stores = [CLAIMS_FILE, delivery_lane.CLAIMS_FILE]
+
+    found: dict[str, list[str]] = {}
+    for store in stores:
+        try:
+            sweep(path=store, now=now)
+            claims = _load(store)
+        except Exception:  # noqa: BLE001 - an unreadable store must not block a writer
+            continue
+        for work_id, rec in claims.items():
+            if work_id == exclude:
+                continue
+            held_paths = {p for p in (rec.get("paths") or []) if _informative(p)}
+            shared = sorted(wanted & held_paths)
+            if shared:
+                found.setdefault(work_id, []).extend(shared)
+    return {k: sorted(set(v)) for k, v in found.items()}
+
+
+def refuse_if_duplicated(paths: list[str], *, exclude: str | None = None) -> None:
+    """Raise if another live claim already holds any of these paths. For UNATTENDED writers.
+
+    An unattended writer must not gamble on an overlap being coincidental: it cannot read the
+    other claim's note and judge, and the cost of two writers on one file is the collision class
+    this whole design exists to remove.
+    """
+    clash = overlapping_claims(paths, exclude=exclude)
+    if not clash:
+        return
+    lines = [f"  {work_id} already holds: {', '.join(shared)}" for work_id, shared in clash.items()]
+    raise DuplicateWork(
+        "another live claim holds paths this work would move:\n"
+        + "\n".join(lines)
+        + "\nTwo pieces of work that move the same files are the same work however they are "
+          "labelled. Release the other claim, wait for it to land, or narrow this one."
+    )
+
