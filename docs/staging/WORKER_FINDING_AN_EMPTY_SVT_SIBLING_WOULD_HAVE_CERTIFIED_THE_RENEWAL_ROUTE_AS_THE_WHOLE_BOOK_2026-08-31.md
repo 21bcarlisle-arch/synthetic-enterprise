@@ -91,6 +91,45 @@ small one** — with the extra twist that the control written to catch it,
 `test_an_unreadable_route_is_not_reported_as_an_empty_one`, **asserts the fail-open in its
 assertions while forbidding it in its docstring**.
 
+## The measurement, run to a scratch path and never to `docs/reports/`
+
+The capture was run on the current world with the pre-repair tool, output to `/tmp/c2probe/`. **P1
+and P2 confirmed as predicted**: 460 renewal rows (predicted 400–500), 80 `churned` (predicted
+70–90), and `probe_svt_segment_decisions.json` written containing exactly `[]`, with the tool's own
+`⚠ NO SVT SEGMENT DECISIONS CAPTURED` line on stderr. Not a hand-fed fixture — two real files from a
+real run of this HEAD.
+
+Pointing `declare` at that pair — which is precisely what the draw asked to be published:
+
+```
+  covers_svt_route = True
+  routes_readable = ['renewal', 'svt_segment']
+  decisions = {'renewal': 460, 'svt_segment': 0}
+  share_of_departures_visible = 1.0
+  causes_observable = ['bill_shock', 'price_position', 'dissatisfaction', 'svt_inertia']
+  causes_not_observable = []
+  warning = None
+  account_denominator_refusal = None
+```
+
+and the same pair after the repair (no sibling written, same run, same renewal table):
+
+```
+  covers_svt_route = False
+  routes_readable = ['renewal']
+  share_of_departures_visible = None
+  causes_not_observable = ['svt_inertia']
+  account_denominator_refusal = "the SVT route is unreadable, so a whole-book count cannot be taken at all…"
+```
+
+**One more thing the run showed that no amount of reading would have.** The banner *did* fire — it
+printed *"⚠ probe_svt_segment_decisions.json is EMPTY. That is not evidence nobody drifted off
+SVT"*. And two lines above it, in the same banner, it printed *"this reading's own route accounts
+for **100%** of the departures in the capture"*. The human-readable warning and the
+machine-readable fields beside it said opposite things, and it is the fields that reach
+`c2_reason_mix_interval.json` and the page. A warning contradicted by the artefact it is embedded in
+is not a control; the reader quotes the number.
+
 ## The repair
 
 Not "flip the assertion". The test's counter-argument is right as far as it goes: an empty sibling
