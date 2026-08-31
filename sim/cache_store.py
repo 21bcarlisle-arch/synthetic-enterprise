@@ -45,6 +45,23 @@ def log_cache_access(file_name: str, hit: bool, phase: str, task_name: str = "")
     log_path = Path("docs/observability/token-log.md")
     if not log_path.exists():
         return
+    # A TEST PROCESS MAY NOT APPEND TO THE LIVE TOKEN LOG (2026-08-31). This is called on every
+    # cache read, so any test that touches the cache appended a line to
+    # `docs/observability/token-log.md` -- the ledger `tools/activity_cost` parses to attribute
+    # frontier-token spend by session. **10 of the 16 refusals remaining after the writer fixes
+    # were this one call**, in tests that were not about caching at all.
+    #
+    # BOTH HALVES OF THE PREDICATE, which the first draft of the sibling guards got wrong: what
+    # must not happen is a test process writing a LIVE record, not a test process writing at all.
+    # A test that redirects this path and asserts the append still works.
+    #
+    # A NO-OP, not a raise: this function's own contract is that it never disturbs a cache read --
+    # it already returns silently when the log is absent -- so a refusal here would break that
+    # promise to protect a diary.
+    from background.live_ledger_guard import in_test_process, is_live_record_path
+
+    if in_test_process() and is_live_record_path(log_path):
+        return
     from datetime import datetime, timezone
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     if hit:

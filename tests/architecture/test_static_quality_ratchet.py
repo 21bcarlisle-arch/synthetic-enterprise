@@ -600,7 +600,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1338,
+    "I001": 1336,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -622,7 +622,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2324  # was 2327; -3 (I001) on 2026-08-31: the import blocks touched by the
+RUFF_BASELINE_TOTAL = 2322  # was 2327; -3 (I001) on 2026-08-31: the import blocks touched by the
                             # tests-write-the-evidence-base work were sorted on the way past.
                             # Sorted, never suppressed — a ratchet that falls because a rule stopped
                             # being counted is the failure this file exists to make impossible.

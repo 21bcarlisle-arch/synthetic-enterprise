@@ -172,6 +172,34 @@ def test_the_guards_coverage_set_is_a_single_source():
     assert all(t.startswith(str(_REPO)) for t in targets)
 
 
+def test_gt2_blocks_a_narrative_ledger_nobody_listed():
+    """`docs/observability` BECAME A SURFACE, and the reason is worth being exact about because the
+    guard already "covered" this directory.
+
+    It covered nine hand-listed dotfiles — every one runtime CONTROL STATE, every one added after a
+    test had already written it. The narrative `*.md` ledgers, which are the record of what the
+    machine actually did, were not covered at all. Measured: `autonomous-runner-log.md` was 27,675
+    lines of which **6,421 (23%) were written by pytest**, for a module that had not RUN since
+    2026-07-08.
+
+    THE COST WAS NOT A PUBLISHED FIGURE. The delivery seat read those lines to answer a direct
+    question about why autonomous turns were not firing and reported a usage limit to the director.
+    There was none. **A record a test can write is not a record.**
+
+    AND THE FILE-BY-FILE VERSION HAD A HOLE NO LIST COULD CLOSE: the refusal that found
+    `console_sanctity` named `.sanctified_consoles.json.tmp` — the SIBLING an atomic write goes to
+    before `os.replace`. A guard on the destination leaves the sibling open, for every atomic writer
+    in the tree.
+
+    The file named here is one nobody listed: `.md` under the surface, not a dotfile anyone had been
+    burned by yet."""
+    probe = _REPO / "docs" / "observability" / _UNGUARDED_WOULD_RAISE_NOT_WRITE / "a-daemon-log.md"
+    with pytest.raises(RuntimeError, match="G-T2"):
+        probe.write_text("- [2026-08-31 00:00 UTC] a test wrote this into the record\n")
+    with pytest.raises(RuntimeError, match="G-T2"):
+        open(probe, "a")
+
+
 @pytest.mark.parametrize("fingerprint", ("MagicMock", "/tmp/pytest-of-", "pytest-of-rich"))
 def test_no_live_ledger_carries_a_test_process_fingerprint(fingerprint):
     """THE ARTEFACT, not the writer — because the sink only catches the primitives it patches.
