@@ -36,6 +36,7 @@ THE FOUR THINGS THAT CAN GO WRONG HERE, and each has a mutation below rather tha
 from __future__ import annotations
 
 import sys
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -51,6 +52,7 @@ from company.policy.decision_policy import (  # noqa: E402
 )
 from company.pricing import renewal_rate_chain as chain  # noqa: E402
 from company.pricing import value_based_renewal as vbr  # noqa: E402
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date  # noqa: E402
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH  # noqa: E402
 
 
@@ -483,9 +485,21 @@ def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRI
     priced can never afterwards be clamped. A `price_cap` component on a PRICED renewal therefore
     means the ceiling stopped being threaded, or the arm's read of it and writer 4's have come
     apart. Drop `max_offered_rate_gbp_per_mwh` from the adapter call and this reds three ways.
+
+    THE BASE RATE IS DERIVED FROM THE CAP, not written down, and that is a repair rather than a
+    convenience (2026-08-31). It was `120.0`, and at that rate the ceiling bound only because the
+    company's 2021 switching belief was WRONG -- `market_conditions` asserted a multiplier of 0.57
+    against a published record implying 1.27, so the arm believed almost nobody would leave in
+    2021 and chased a margin the cap then had to stop. Correcting that belief onto the record
+    (10 of 10 years inside the published band) made the arm price 13 GBP/MWh below the ceiling
+    and this leg went red -- a control keyed to today's answer going red because the code became
+    more honest, which is the shape this project has repaired repeatedly. Struck two pounds under
+    the cap, the unbounded optimum exceeds the ceiling for ANY churn belief that leaves a positive
+    margin, so the flag's ability to fire no longer rides on a company belief being mistaken.
     """
+    cap = get_cap_unit_rate_for_date("electricity", date(2021, 6, 1))
     domestic = dict(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
-                    struck_unit_rate_gbp_per_mwh=120.0,
+                    struck_unit_rate_gbp_per_mwh=cap - 2.0,
                     settled_records=_settled_with_standing_charge())
     with policy_scope(VALUE_ARM_POLICY):
         result = _drive(**domestic)

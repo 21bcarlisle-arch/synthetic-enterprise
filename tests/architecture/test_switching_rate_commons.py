@@ -50,6 +50,10 @@ COMMONS = instrument.COMMONS
 #: how the first one got nine years wrong.
 _LANE_READINGS: dict[str, str] = {
     "company.market.market_report": "_UK_SWITCHING_RATE_PCT",
+    # Added 2026-08-31 when `market_conditions` stopped carrying a normalised ratio as its
+    # primary form. This entry is the repair: the reading now HAS units, so the band check
+    # below can reach it. It could not before, and that is the whole defect.
+    "company.crm.market_conditions": "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
 }
 
 #: THE PRINCIPAL SUBJECT, and it was not in the register when the register was written
@@ -71,16 +75,49 @@ _PRINCIPAL_SUBJECT = "the world's own realised departure rate (tools.measure_dep
 #: record's rate for that year recovers the rate the table asserts. Holding only the rate-shaped
 #: tables is how a reading hides in plain sight -- which is where this one was found, on
 #: 2026-08-30, by following the thread from the world's own multiplier.
-_MULTIPLIER_READINGS: dict[str, tuple[str, str, int]] = {
+#: `{name: (dotted, multiplier_attr, reference_year, rate_attr_or_None)}` -- readings held as a
+#: MULTIPLIER TABLE rather than as a rate. A multiplier normalised to a reference year IS a
+#: switching-rate reading: it states every year's rate as a fraction of the reference year's, so
+#: multiplying it back by that year's rate recovers the rate the table asserts. Holding only the
+#: rate-shaped tables is how a reading hides in plain sight -- which is where this one was found,
+#: on 2026-08-30, by following the thread from the world's own multiplier.
+#:
+#: `rate_attr` NAMES THE LEVEL THE RATIO IS A RATIO OF, and it is the difference between a
+#: reading that can be checked and one that cannot. A module that derives its multiplier from a
+#: declared absolute table is held to that derivation (leg b3) AND to the band through the
+#: absolute table's own `_LANE_READINGS` entry. A module that carries a bare ratio and declares
+#: no level has nothing to be multiplied back by, so it is held to the widest thing the record
+#: can say -- and that weakness is the reason to declare a level, stated rather than hidden.
+_MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str | None]] = {
     "company.crm.market_conditions:MARKET_SWITCHING_MULTIPLIER_BY_YEAR": (
         "company.crm.market_conditions", "MARKET_SWITCHING_MULTIPLIER_BY_YEAR", 2024,
+        "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
     ),
 }
 
 
-def _implied_rate_table(dotted: str, attr: str, reference_year: int) -> dict[int, float]:
+def _reference_rate(dotted: str, reference_year: int, rate_attr: str | None) -> float:
+    """The absolute rate a normalised table is normalised BY.
+
+    THE MODULE'S OWN DECLARATION WHEN IT HAS ONE. The first version of this helper used the HIGH
+    ENDPOINT of the reference year's band, which is an arbitrary point inside a 12.5-16.1 range
+    and inflates every implied rate by 1.13x -- enough on its own to push a correctly-derived
+    2016 reading (19.5%) outside a 17.0-17.6 band and report a defect that is the checker's. The
+    endpoint was not a considered choice; it was `[1]`. Where the module declares the level it
+    normalised by, that is the only rate the ratio is a ratio of. Where it does not, the midpoint
+    is the non-arbitrary point and the check is correspondingly weaker -- see leg (b2).
+    """
+    if rate_attr is not None:
+        return _lane_table(dotted, rate_attr)[reference_year]
+    lo, hi = _bands()[reference_year]
+    return (lo + hi) / 2.0
+
+
+def _implied_rate_table(
+    dotted: str, attr: str, reference_year: int, rate_attr: str | None = None
+) -> dict[int, float]:
     """A normalised multiplier table read back as the rate table it asserts."""
-    reference_rate = _bands()[reference_year][1]
+    reference_rate = _reference_rate(dotted, reference_year, rate_attr)
     return {y: m * reference_rate for y, m in _lane_table(dotted, attr).items()}
 
 
@@ -319,40 +356,91 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
         )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "OPEN, found 2026-08-30 by following the thread from the world's own multiplier and "
-        "declared here rather than left in prose. `company/crm/market_conditions.py` carries a "
-        "SECOND company-side reading of the same published series, shaped as a 2024-normalised "
-        "multiplier and therefore invisible to a register that only held rate tables. Its "
-        "docstring says it is 'derived from the same public switching-rate series'; read back "
-        "against the record it asserts 34.9% for 2016 (published 17.0-17.6%) and 15.3% for 2020 "
-        "(published 22.5-23.0%). It is a LIVE prior -- `company/crm/competitive_pressure.py` "
-        "scales every enriched churn estimate by it and derives its own log-spread from the "
-        "table's values -- so correcting it is a company-behaviour change with its own blast "
-        "radius, not a number to overwrite in passing. It is registered and xfailed so it cannot "
-        "go quiet again."
-    ),
-)
 def test_every_multiplier_shaped_reading_implies_a_rate_inside_the_published_band():
-    """MUTATION: point the reference year at a band the record does not carry and this errors;
-    move a multiplier back onto the record and this XPASSes, which `strict` makes a failure.
+    """THE SECOND SHAPE, AND IT IS GREEN AS OF 2026-08-31.
+
+    IT WAS A STRICT XFAIL AND THE MARKER IS GONE, WHICH IS THE POINT OF HAVING WRITTEN IT STRICT.
+    The reason it carried, kept here because a discharged xfail whose reason is deleted takes the
+    evidence with it: `company/crm/market_conditions.py` carried a SECOND company-side reading of
+    the same published series, shaped as a 2024-normalised multiplier and therefore invisible to
+    a register that only held rate tables. Its docstring said it was "derived from the same public
+    switching-rate series"; read back against the record it asserted 31.0% for 2016 (published
+    17.0-17.6%) and 13.6% for 2020 (published 22.5-23.0%), and it correlated with the record at
+    0.40 over 2016-2025 and at MINUS 0.47 over 2016-2021 -- falling monotonically to 2022 while
+    the record rose to its 2020 peak. It was a LIVE prior: `competitive_pressure` scales every
+    enriched churn estimate by it and derives `PRIOR_LOG_VARIANCE` from its dispersion.
 
     THE CLASS THIS FILE WAS WRITTEN FOR, ONE SHAPE ALONG. The opening defect was a rate table
-    nobody compared with the record. This is the same defect wearing a ratio: a table whose
-    numbers look like 0.95 and 2.17 rather than 14.2 and 17.0, and which therefore passed every
+    nobody compared with the record. That was the same defect wearing a ratio: a table whose
+    numbers looked like 0.95 and 2.17 rather than 14.2 and 17.0, and which therefore passed every
     eye that knew to check percentages against a published band.
+
+    MUTATION: give any multiplier entry a hand-authored value off the record -- 2020 back to 0.95
+    -- and this fires on that year.
     """
     bands = _bands()
-    for name, (dotted, attr, reference_year) in _MULTIPLIER_READINGS.items():
-        for year, value in sorted(_implied_rate_table(dotted, attr, reference_year).items()):
+    checked = 0
+    for name, (dotted, attr, reference_year, rate_attr) in _MULTIPLIER_READINGS.items():
+        implied = _implied_rate_table(dotted, attr, reference_year, rate_attr)
+        for year, value in sorted(implied.items()):
             if year not in bands:
                 continue
             lo, hi = bands[year]
-            assert lo <= value <= hi, (
+            assert instrument.inside_band(value, lo, hi), (
                 f"{name}[{year}] implies {value:.1f}% against a published {lo}-{hi}%"
             )
+            checked += 1
+    assert checked >= 10, (
+        f"only {checked} (multiplier, year) pairs compared -- a control over an emptied register "
+        f"reports a constant PASS"
+    )
+
+
+def test_a_multiplier_reading_that_declares_a_level_is_the_normalisation_of_that_level():
+    """MUTATION: replace the derived comprehension in `market_conditions` with the ten literals it
+    replaced -- or with any nine of them plus one hand-edited entry -- and this fires.
+
+    WHY THIS LEG EXISTS AND WHY IT IS NOT A TAUTOLOGY. Above holds the implied rate to the band.
+    On a module that DECLARES the level it normalised by, that check reads the declared level
+    back through its own reference year, so it would still pass if somebody replaced the derived
+    ratios with hand-authored ones that happened to land in band -- the band is 12.5-16.1 wide at
+    2024 and 8.9-12.5 at 2023, which is room for a lot of authored numbers. This asserts the
+    DERIVATION instead: every entry equals the declared rate over the reference year's rate,
+    exactly. It has a real FAIL branch -- the pre-2026-08-31 literals fail it at every year but
+    2024 -- and it is the only leg that can see the repair being undone, because undoing it means
+    replacing a comprehension with a literal, which no band check can notice.
+
+    It also asserts the declared level is itself registered as a lane reading. A module could
+    otherwise satisfy this leg by declaring a level nothing holds to the record, which would move
+    the defect one hop rather than close it.
+    """
+    checked = 0
+    for name, (dotted, attr, reference_year, rate_attr) in _MULTIPLIER_READINGS.items():
+        if rate_attr is None:
+            continue
+        assert _LANE_READINGS.get(dotted) == rate_attr, (
+            f"{name} declares {rate_attr} as the level it normalises by, but that table is not "
+            f"in `_LANE_READINGS` and so is held to no published band. A declared level nothing "
+            f"checks moves the defect one hop instead of closing it."
+        )
+        rates = _lane_table(dotted, rate_attr)
+        multipliers = _lane_table(dotted, attr)
+        assert set(rates) == set(multipliers), (
+            f"{name} covers {sorted(set(multipliers) ^ set(rates))} differently from the level it "
+            f"claims to normalise; a ratio table that has drifted in COVERAGE has been authored"
+        )
+        reference_rate = rates[reference_year]
+        for year, m in sorted(multipliers.items()):
+            assert m == pytest.approx(rates[year] / reference_rate, rel=1e-12), (
+                f"{name}[{year}] = {m!r} but {rate_attr}[{year}]/{rate_attr}[{reference_year}] "
+                f"= {rates[year] / reference_rate!r}. The multiplier is no longer the "
+                f"normalisation of the level it declares -- a hand-authored ratio is back, which "
+                f"is exactly how this module got six years of the record's shape inverted."
+            )
+            checked += 1
+    assert checked >= 10, (
+        f"only {checked} derived entries compared -- an emptied register reports a constant PASS"
+    )
 
 
 def test_a_lane_reading_covers_the_whole_published_window():

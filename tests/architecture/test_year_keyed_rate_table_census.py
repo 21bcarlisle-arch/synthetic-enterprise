@@ -301,9 +301,15 @@ _NOT_PUBLISHED: dict[str, str] = {
     "simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR":
         "the modelled saving available from switching, used to drive propensity. Published "
         "switching SAVINGS estimates exist but are computed differently; this is the world's.",
-    "company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR":
-        "the company's own belief multiplier on market switching intensity — a belief the "
-        "epistemic wall specifically ALLOWS to be wrong. Pinning it would be the violation.",
+    # `company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR` was classified here
+    # until 2026-08-31, on the reason "the company's own belief multiplier on market switching
+    # intensity — a belief the epistemic wall specifically ALLOWS to be wrong. Pinning it would
+    # be the violation." THAT REASON WAS THE DEFECT, not a mitigation of it. DESNZ and Ofgem
+    # publish GB domestic switching; a supplier can look it up; so being wrong about it is an
+    # ordinary defect and not the wall doing its job. The classification bought the table six
+    # weeks of silence while it asserted 31.0% for 2016 against a published 17.0-17.6% and
+    # inverted the record's shape across 2016-2021. The table now loads from the commons and is
+    # held in `_MUST_NOT_BE_LITERALS_SWITCHING` below.
     "company/crm/css_tracker.py::_INDUSTRY_AVERAGE_OVERALL":
         "an internal benchmark score for customer service comparison; no regulator publishes a "
         "single industry-average CSS score on this scale.",
@@ -615,6 +621,34 @@ def test_the_ro_tables_have_not_been_re_inlined():
         f"{relapsed} is a literal table again. These four names carried ten years of "
         "obligation levels and buy-out prices that matched no publication and understated "
         "the report's RO line by GBP486,458.88. They load from the commons; keep it that way."
+    )
+
+
+# The company's reading of the GB domestic switching record, same repair one series along
+# (2026-08-31). Held separately from the RO names because the evidence is different and a
+# relapse message that cited the wrong incident would send the next reader to the wrong file.
+_MUST_NOT_BE_LITERALS_SWITCHING = (
+    "company/crm/market_conditions.py::MARKET_SWITCHING_RATE_PCT_BY_YEAR",
+    "company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR",
+)
+
+
+def test_the_switching_reading_has_not_been_re_inlined():
+    """MUTATION: paste either table back as a dict literal and this fires on that name.
+
+    `MARKET_SWITCHING_MULTIPLIER_BY_YEAR` was ten hand-authored numbers under a docstring
+    claiming they were derived from the published series. They were not: 2.17 for 2016 implies
+    31.0% switching against a published 17.0-17.6%, and the table correlated with the record at
+    MINUS 0.47 across 2016-2021 -- falling to 2022 while the record rose to its 2020 peak. Both
+    names now derive from `docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`.
+    "Absent from the census" and "unchecked" look identical to a census, so this leg makes the
+    absence load-bearing.
+    """
+    discovered = set(discover_year_keyed_tables())
+    relapsed = sorted(set(_MUST_NOT_BE_LITERALS_SWITCHING) & discovered)
+    assert not relapsed, (
+        f"{relapsed} is a literal table again. It loads from the commons; keep it that way, and "
+        "see tests/architecture/test_switching_rate_commons.py for the band it answers to."
     )
 
 
