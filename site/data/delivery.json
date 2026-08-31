@@ -1,9 +1,45 @@
 {
- "generated_at": "2026-08-30T23:26:21.677449+00:00",
+ "generated_at": "2026-08-31T02:26:40.723995+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "ae12a334e",
+    "at": "2026-08-31T03:13:38+01:00",
+    "subject": "a normalised ratio has no units, so nothing could hold the company's switching belief to the record",
+    "substantive": true
+   },
+   {
+    "sha": "2b9fb79d9",
+    "at": "2026-08-31T02:46:15+01:00",
+    "subject": "C3 is blocked on a run, and the artefact named the run but never where its code lives",
+    "substantive": false
+   },
+   {
+    "sha": "27a646701",
+    "at": "2026-08-31T02:36:16+01:00",
+    "subject": "the one-sidedness statement did not land in 6168ae6bf, and the reader it was written for would not have seen it",
+    "substantive": true
+   },
+   {
+    "sha": "6168ae6bf",
+    "at": "2026-08-31T02:33:47+01:00",
+    "subject": "a threshold crossing is not a magnitude: the band now prints its margin, and C3's sign is our own price side",
+    "substantive": true
+   },
+   {
+    "sha": "c9d0dab6d",
+    "at": "2026-08-31T02:05:04+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=bae6a2a28, net=\u00a3145,881)",
+    "substantive": true
+   },
+   {
+    "sha": "bae6a2a28",
+    "at": "2026-08-31T00:56:35+01:00",
+    "subject": "the publish wedge is a level declared ahead of its code, and the publisher can never carry code",
+    "substantive": true
+   },
    {
     "sha": "87d49e187",
     "at": "2026-08-30T23:57:55+01:00",
@@ -207,42 +243,6 @@
     "at": "2026-08-30T07:06:17+01:00",
     "subject": "the letter told him it was a clean two-point slope; the artefact says one clean point and no slope",
     "substantive": true
-   },
-   {
-    "sha": "f9866cd2a",
-    "at": "2026-08-30T06:31:16+01:00",
-    "subject": "the arms' book was read once at the end, so two arms on two books read as one",
-    "substantive": true
-   },
-   {
-    "sha": "158da2878",
-    "at": "2026-08-30T06:00:53+01:00",
-    "subject": "name what drops fourteen of the twenty priced decisions, and whether any of it is ours",
-    "substantive": true
-   },
-   {
-    "sha": "fa65478f3",
-    "at": "2026-08-30T04:47:39+01:00",
-    "subject": "the page said the belief ranks backwards and gave the reader no way to rule out our own sign error",
-    "substantive": true
-   },
-   {
-    "sha": "82030bb58",
-    "at": "2026-08-30T04:05:23+01:00",
-    "subject": "name the departures the AUC is computed over, or say why the run cannot",
-    "substantive": true
-   },
-   {
-    "sha": "8eb0592cf",
-    "at": "2026-08-30T04:00:57+01:00",
-    "subject": "the belief AUC was published with no interval, and half its departures were the arm's own doing",
-    "substantive": true
-   },
-   {
-    "sha": "3d6b21cab",
-    "at": "2026-08-30T03:51:59+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=ae96a5339, net=\u00a3154,164)",
-    "substantive": false
    }
   ],
   "substantive": 31,
@@ -251,77 +251,90 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-30T23:20:22.772992+00:00",
+  "oriented_at": "2026-08-31T02:20:02.780362+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours that bought real epistemic machinery and moved the thesis not at all, and the two halves need saying separately. **What was bought is good and some of it is the best kind.** The constants gate the director asked for landed and mechanically found three of his four examples on its first run \u2014 one legal VAT rule declared seven times in two different SHAPES (a scalar 0.05 in `company/billing/invoice.py`, a per-segment table in `saas/non_commodity.py`), a standing charge of 53.0 p/day that is neither published fuel average but very nearly their sum, about \u00a395/yr, and `MAX_CHURN_PROBABILITY` at 1.0 on one side of the seam and 0.95 on the other. It was filed BLOCKING and taken down to LATENT by measuring exposure rather than inferring it: zero invoice rows, no live caller, no feed reads `compare_tariffs`. The standing rule `INDEPENDENCE_IS_NOT_INFERENCE` was applied UNPROMPTED to a second figure and found that \"where the company does worse than guessing\" is three threshold crossings, two of them 3.4% and 3.9% past the line with n=20 behind one of them \u2014 a coin flip ordering the build queue. And C3 was pre-registered, measured in an isolated worktree, and **refuted in the direction I named**: I predicted the shown price would push the departure level DOWN and it went UP in five years, kept beside the prediction rather than revised. That is the discipline working. **What was not bought is everything the thesis is judged on, and one by-product is worse than the experiment that found it.** The departure-level anchor was fitted to each band's HIGH endpoint \u2014 the right anti-flattering choice \u2014 and the consequence went unnoticed: the world's realised rate sits on the exact top of its band **ten years out of ten, with zero headroom above**. So any upward move of any size fails the control, a +0.11pp change that moved zero departures \"leaves the published band\", and downward resolution runs 0.6pp to 3.6pp depending on how wide that year's published range happens to be \u2014 in the direction that favours us. The largest fidelity claim this project has made rests on a control that can only fail one way and cannot size anything. Meanwhile on the company's side of the wall NOTHING moved: `company/crm/market_conditions.py` still asserts 34.9% switching for 2016 against a published 17.0\u201317.6%, live, scaling every enriched churn estimate \u2014 and the co-calibration guard I rebuilt independently confirmed it, company outside the band 8 of 10 years by up to 17.3pp. **I named that in focus twice now and it has been drawn zero times**, so per my own rule the steer is the thing drifting and it moves up rather than being restated. Two of four focus items went undrawn, both lane 0. And none of it reaches a reader: publishing has been wedged **17.9 hours across 16 episodes**, and I now know exactly why BY NAME rather than by guess \u2014 a `level_current 0->2` on `PB3_book_growth_as_earned_outcome` sits staged in the shared maturity map with `simulation/run_phase2b.py` in its file_scope, uncommitted, so the level gate correctly refuses every publish commit and no draw priority can ever clear it because the publisher cannot carry another lane's source. The one-line read: **we got measurably better at knowing when we are wrong, and no better at showing we are right.**",
+  "thesis_read": "**Three hours that did everything the last direction asked, and the thesis went BACKWARDS because of it \u2014 that is the whole read and it needs saying in that order.** All four focus items were drawn, three are finished and disappear below. The publish wedge is gone: the `0->2` on `PB3_book_growth_as_earned_outcome` was backed out of the shared map with its reason recorded on the atom, `.publish_gate_state.json` now reads `episode_failures: 0` / `wedge_since: null`, and a publish reached origin at `c9d0dab6d`. The switching belief answers to the published record and the strict xfail came off in the same commit \u2014 the old table was outside the band 8 of 10 years and, worse than the level, correlated with the record at **0.40** over 2016\u20132025 and **\u22120.47** over 2016\u20132021: the company believed the market was least competitive in the year it was most competitive. The repair was structural rather than ten corrected numbers \u2014 the absolute rate is now the primary form, loaded fail-closed from the commons, with the multiplier DERIVED \u2014 and the census the direction asked for ran: 26 candidates, 8 registered and band-held 10/10, 18 classified with reasons, and it found one on its first run (`market_departure_rate`, the fraction form `simulation/renewals.py` actually consumes, registered nowhere). C3's mechanism went from unexplained to established: the same world change is **+100.75pp** where the company undercut the market and **\u221253.99pp** where it priced above, so the convention has no fixed sign \u2014 it has OUR sign. **Now the part that matters.** Correcting the company's belief onto the record moved `tools/couple_value_based_pricing` from *company inside the band 2 of 10 years, 17.34pp max divergence, `indistinguishable: False`* to *10 of 10, 1.80pp, `indistinguishable: True`*. The guard is fail-closed and correct, so **the belief-versus-truth gap is no longer quotable as evidence of the company's inference at all.** Yesterday we had a large gap that looked like independence and was inaccuracy; today we have an accurate prior and no independence. Against the thesis \u2014 *the advantage must come from INFERENCE, never from ACCESS* \u2014 that is not a setback, it is the diagnosis: **the company's competitive-pressure belief is pure ACCESS.** It reads the same published DESNZ series the world was calibrated from, and the guard names the discharge in its own text: re-fit the estimator from the company's OWN observed departures, *\"which is what a real supplier actually has and this one does not yet use.\"* Meanwhile the baseline the thesis explicitly requires is still measured in a world three changes old: `site/data/value_arms.json` carries `generated_at: 2026-08-31T00:56:24Z` beside `run_generated_at: 2026-08-30T10:37:06Z` \u2014 the page was RE-RENDERED, not re-run \u2014 and its own headline names the blocker as *\"the lever is a PRODUCT, not a size\"*, which C1a/C1b landed and nobody has re-measured since. The one-line read: **we got accurate enough to disqualify our own only claim, and the route to earning it back is the one the thesis names.**",
   "focus": [
    {
-    "id": "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
-    "what": "**Lane 0, and it is now a named defect rather than a symptom.** The publisher's commit has been refused every cycle for 17.9 hours by the LEVEL gate, not by a red test \u2014 the tell my own memory names is in `docs/observability/.publish_gate_state.json` right now (`\"blocking_tests\": []`, `\"total_red\": 0`, `episode_failures: 16`). The refusal text is in `docs/observability/sim-runner-log.md` at the 22:04Z cycle, verbatim: *\"\u00a70: level_current 0->2 on `PB3_book_growth_as_earned_outcome` declares a level for source this commit does NOT contain -- its file_scope holds program text that is not landing: `simulation/run_phase2b.py`\"*. The gate is RIGHT and must not be touched: the map would otherwise publish a measurement nothing in the repository can reproduce. **Do not run the suite and do not hunt a red \u2014 there is none.** Two legal moves, and choose by looking at whether PB3's claim is actually built in the tree: either land `simulation/run_phase2b.py`'s PB3 work in its own commit first (it is another lane's in-flight C1b/C3 edit and it currently imports cleanly, so check `pgrep -af process_run_complete` and hold the tree lock before touching it), or back the `0->2` out of `docs/design/maturity_map.yaml` via `tools/maturity_map_store` until its source lands. Then confirm a publish cycle actually COMMITS AND PUSHES \u2014 372 `site/` paths are uncommitted, and `site/data/value_arms.json` still carries `run_generated_at: 2026-08-30T10:37:06Z`. Verify on origin by SHA and by the rendered figure's own timestamp, never by the publisher reporting success. Then say plainly, in the finding record, what the structural half is: **a level move staged in the SHARED map wedges every other lane's publish commit indefinitely**, because the publisher can never carry the source the declaration points at, so the self-refilling draw cannot resolve it however high its priority.",
-    "why": "First, and it takes the slot my previous direction argued it did not need \u2014 the argument was that a worker tick already held the wedge at RUNG 1 PRIORITY ZERO and a focus item would be a second writer. Measured three hours later: still wedged, sixteen consecutive refused episodes, and the reason is a class no draw priority can clear. That was a mechanism argument and the numbers refuted it. The director's *\"the site being thirteen hours stale is fine, nobody is reading it and I'd rather you got this right\"* was a one-time trade against landing the co-calibration guard; the guard landed and was verified on origin, so the exemption's stated reason is discharged and reading it as standing permission would be reading a trade as a licence. Against the thesis: the anchored world, the reason-mix interval with its bound, the refuted C3 pre-registration, the \"worse than guessing\" distance repair that shipped in `e707b0cb7`, and the baseline comparison the thesis explicitly requires are ALL in the tree and NONE of them are on a page. A demonstration nobody can read is not a demonstration, and this is the fourth direction in which that sentence has been true. **Done means:** the PB3 declaration and its source in the same state \u2014 both landed or neither; a publish cycle that reaches origin, verified by SHA and by the rendered figure moving, not by the publisher's own report; `.publish_gate_state.json` streak reset to zero; and the shared-map/shared-publisher coupling written up as a class, with the `publish_gate_and_wedge` class it belongs to updated rather than a fifty-third instance filed beside it."
+    "id": "the-company-estimator-learns-from-its-own-book",
+    "what": "**Lane 0. Make the company's competitive-pressure belief answer to what the company OBSERVED, and make the guard grade what the company ACTS on rather than the table it starts from.** Two increments, and the first is cheap \u2014 do it first and report it before building anything. (1) `tools/couple_value_based_pricing._SIDE_TABLES` reads the company side as `company.crm.market_conditions:MARKET_SWITCHING_RATE_PCT_BY_YEAR` \u2014 the PRIOR. The company does not renew on the prior: `company/crm/competitive_pressure.py` already carries the posterior machinery (`reading()`, `PressureReading.moved_from_prior`, `derived_market_pressure_multiplier`, `weight = PRIOR_LOG_VARIANCE / (PRIOR_LOG_VARIANCE + v_evidence)`). Point the guard's company leg at the posterior, keep it fail-closed when there is no decidable reading, and **run it**. (2) Then answer the question that first run poses, honestly and whichever way it comes out: **does the posterior move off the prior at all on this book?** `value_arms.json` says the arm priced 20 of 1,369 renewals, so the evidence weight is around 0.5 at best and may be 0 for most years \u2014 in which case the company's acted belief IS the published series, the guard's verdict is unchanged by construction, and the discharge is a book-depth problem that lands on item two rather than a re-fit. Say that in those words if it is what the numbers say. **Do not manufacture independence.** Adding noise, a free offset, or a second source chosen because it disagrees would be fitting the world to the claim; the only legal route is the one the guard names \u2014 the company's own realised departures. If the posterior does move, measure by how much, in which years, and whether the divergence it creates is inference or just a thinner sample.",
+    "why": "First, because it is the only item on this list that is about the thesis itself rather than about evidence for it, and because THIS STRETCH CREATED THE HOLE. The director's standing rule \u2014 *\"Independence is not inference\u2026 the belief-versus-truth gap may be published as a measurement, never as evidence of skill\"* \u2014 was written when we had independence and no skill. We now have neither, measured: `co_calibrated: true`, `indistinguishable: true`, max divergence 1.80pp in 2023, zero years further apart than the band is wide. A supplier whose competitive-pressure prior is the published market series knows exactly what every other supplier knows, and the thesis says the advantage must come from inference and never from access. The route is not speculative: it is written in the guard's own `what_would_discharge_it`, the posterior code already exists, and the correcting finding filed it as the open question. It goes first ahead of the cheaper items because a bounded tick will otherwise do the cheap ones and leave this, and it has now been the named next step in two artefacts without being anyone's item. **Done means:** the guard's company leg reading the posterior and fail-closed when it cannot; the verdict re-run and stated with both readings side by side; and a plain answer to whether the posterior moves on this book, INCLUDING the answer \"it does not, and here is why\" \u2014 which is a finding, not a failure, and hands the discharge to item two."
    },
    {
-    "id": "every-reading-of-the-switching-level-answers-to-the-record",
-    "what": "**Lane 0. Named in focus twice and drawn zero times \u2014 promoted from third to second rather than repeated, because repeating it louder is what did not work.** `company/crm/market_conditions.py:22-27` holds `MARKET_SWITCHING_MULTIPLIER_BY_YEAR` \u2014 a 2024-normalised table (2016: 2.17, 2020: 0.95, 2022: 0.44) whose own docstring claims it is derived from the same public series, and which reads back as 34.9% switching for 2016 against a published 17.0\u201317.6% and 15.3% for 2020 against 22.5\u201323.0%. It is held open as a STRICT xfail at `tests/architecture/test_switching_rate_commons.py:281` and it is LIVE: `company/crm/competitive_pressure.py` scales every enriched churn estimate by it and derives its own log-spread from its values. Correct it to the record and turn the xfail green \u2014 and note the xfail is strict, so the moment the table lands on the record the test XPASSes and the marker must come off in the same commit. Then finish the sweep it implies: `_LANE_READINGS` could only see RATE-shaped constants, which is exactly why a live MULTIPLIER-shaped table was invisible to the control written for this defect. Register every module in `company/`, `saas/` and `simulation/` encoding a switching or departure LEVEL in ANY shape \u2014 rate, multiplier, index, count, hazard \u2014 and report the census honestly, including the readings that turn out already right. **This is a company-behaviour change with a blast radius, not a number to overwrite**: measure what moves in the enriched churn estimate and the log-spread and say so.",
-    "why": "Second, and its force has doubled since I first wrote it. Last stretch this was a company belief disagreeing with a published record. This stretch the co-calibration guard MEASURED it independently and agreed \u2014 world inside the band 10 of 10 years, company outside it 8 of 10 by up to 17.3pp, correlating at 0.362 with the opposite shape \u2014 so it is now a company belief that disagrees by a factor of two with the world it lives in, and we have the number. The thesis says the advantage must come from INFERENCE and never from ACCESS; a supplier inferring competitive pressure from a fiction has neither. It is a thing a real supplier can know \u2014 DESNZ and Ofgem publish it \u2014 so being wrong about it is an ordinary defect and not the epistemic wall doing its job. And the standing rule applies to whatever comes out: a belief-versus-truth gap this size is independence and INACCURACY at once, and correcting it must not be written up as skill. **Done means:** the multiplier table answering to the record with the strict xfail removed in the same commit; the register covering every level-shaped reading whatever its shape; a mutation leg that fires when a reading of a NEW shape is added and not registered; the census reported with its own precision stated; and the downstream move in `competitive_pressure.py` measured and recorded, including if it goes the wrong way."
+    "id": "the-value-arms-ab-runs-in-the-world-as-it-now-is",
+    "what": "**Lane 0, and it is now THREE things at once \u2014 that is why it is here rather than fourth.** Re-run `tools/run_value_cycle_ab.py` against the world as it stands and read the result. (1) The published comparison is stale in a way the page itself cannot show: `generated_at` is 2026-08-31T00:56:24Z but `run_generated_at` is **2026-08-30T10:37:06Z** \u2014 re-rendered, not re-run, so every headline on that page predates the departure-level anchor, C1a/C1b's SVT product AND last night's switching correction. Three world changes, one unmoved baseline. (2) Its own headline names its blocker: *\"that growth is NOT reachable by acquiring customers\u2026 drawn households' renewals stop for want of a standard-variable product to be moved off. The lever is a PRODUCT, not a size.\"* `simulation/svt_product.py` landed at `067a00dfd`. **Nobody has re-measured whether the lever worked.** It said ~27 priced renewals against this book's 20 would bring the bar under the gap, ~41 against the published bound \u2014 so report the priced count first, before the money, because it is what decides whether any headline is readable. (3) This is C3's named blocker, verbatim from its own write-up: *\"C3 remains NOT LANDED. The blocker is now specific and testable: the value-arms A/B run.\"* The arm is two files against `915bfab9b` \u2014 **cite the salvage tag `salvage/c3-shown-price-measure` (`f93fd1ea9`)**, not the branch (the orphan reaper's enforce mode deletes the name) and not the `/tmp` worktree. Whatever the money does, write it down: an improvement is as suspect as a loss here, because three changes moved at once and single-variable attribution is not available \u2014 say \"I cannot yet attribute this\" rather than picking the flattering cause.",
+    "why": "Second, and it collapses three separate owed things into one run, which is why it outranks a live wrong number. The thesis is explicit \u2014 *\"there has to be a BASELINE to beat\u2026 or 'it performed well' means nothing\"* \u2014 and ours is currently computed in a world that no longer exists, published, with a caveat that reads as provisional rather than as obsolete. It is also the director's own named roadmap position (*\"carry on: C1b, then the rest of the choice-and-channel roadmap\"*), and C3 is the only step left blocked, on exactly this. And it is the honest place item one's second increment lands: if the posterior cannot move because the arm priced 20 renewals, then book depth is the constraint on the whole thesis and this run is what establishes it. It sits below item one only because item one's first increment is an hour and this is a run plus a careful read. **Done means:** two arms re-run in the current world; the priced-renewal count reported before any money figure; the published page carrying the new run's identity rather than a re-render; C3 either landed with its sign bounded across price positions or its blocker re-stated with what specifically is still missing; and any direction of movement recorded, including one that flatters us, marked as unattributable if three changes moved at once."
    },
    {
-    "id": "read-the-anchored-world-against-the-run-it-replaced",
-    "what": "**Lane 0, a measurement pass and not a build, and it is UNBLOCKED right now \u2014 I checked.** \u00a712 of `docs/market_research/gb_switching_rate_denominators.md` still marks prediction B as *\"the headline P&L set is NOT yet measured\"* and prediction C as *\"NOT YET MEASURED\"*. Close both, in that file, beside the predictions, right or wrong. The runs exist even though the publish does not: `sim-runner-log.md` records completed runs at 19:48, 20:14 and 21:44Z, so read the run artefacts under `docs/observability/value_cycle_*` and do NOT wait on the publisher. (1) Measure retained revenue, acquisition spend, CLV, retention economics and the baseline comparison in the anchored world against the last published run BEFORE the change \u2014 `site/data/value_arms.json` carries its identity as `run_generated_at: 2026-08-30T10:37:06Z`, which is still the pre-anchor run and is itself the evidence this has not been done. **Any headline that IMPROVES is a defect in the change, not a finding about the company**: the trap detector is armed and has now been right in both directions, so write an improvement down as a defect rather than explaining it. (2) For C, retention offers rose 8 -> 29 inside the same change, so a before/after on retention effectiveness compares two different offer populations: hold the offer count or state in the write-up that it cannot be held and why. (3) Then tell the director \u2014 his 09:53Z refinement asks for exactly this, a curriculum-adjacent correction that makes our position worse is MADE and TOLD, not brought. Send the marked before/after on NTFY and then **verify `delivery_state()`**, not the returned id.",
-    "why": "Third, unchanged in rank and now overdue: it was named last direction and never drawn, and every leg of the evidence that it was not done is a fact I read tonight rather than an inference. An anchor is precisely the kind of change that moves a number without moving what depends on it \u2014 the dead-wire class this repository has already been caught by \u2014 and a 3.4x change in how fast the book turns over must show up in re-acquisition spend, in CLV and in the margin over the flat-rule control. If it does not, the wire is cut somewhere and every published figure is measuring a world the churn model no longer lives in. The thesis names the baseline explicitly: *\"there has to be a BASELINE to beat, or 'it performed well' means nothing.\"* Ours is currently computed in a world that no longer exists. It sits below the wedge and the prior because it is a read rather than a repair, and above everything else because it is cheap, unblocked, and the predictions were filed before the answer was known \u2014 which is the only thing that makes marking them worth anything. **Done means:** the headline set measured in both worlds and stated in \u00a712 beside B and C; every direction of movement recorded including the wrong ones; the offer-population confound held or declared unholdable with its reason; and the director told with delivery verified rather than asserted."
+    "id": "the-board-facing-copy-of-the-refuted-table",
+    "what": "**Lane 0. `tools/population_anchor.py` carries both shapes of the defect item two of the last direction just closed, it is board-facing, and it is outside every census in this repository.** Line 45 `CALIBRATED_MULTIPLIER` is a **byte-identical copy** of the ten numbers refuted last night (`2016: 2.17 \u2026 2020: 0.95 \u2026 2022: 0.44`). Line 37 `OFGEM_SWITCHING_RATE` is rate-shaped, cited to \"Ofgem Retail Market Indicators\", and reads **14% for 2020** against a published 22.5\u201323.0 and **9% for 2021** against 17.9\u201318.4. This gate runs on every sim run, writes `site/state/population_anchoring.json`, and reaches `saas/reporting/annual_report._section_population_anchoring` and the published project state. **Knowledge first, and this is the whole reason it was deferred rather than done fast:** `OFGEM_SWITCHING_RATE`'s own comment says \"% of **dual-fuel** accounts\", and the commons states in terms that a both-fuel count over an electricity account base reads about **1.8x high**. Settle the denominator from `docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json` and the published record FIRST; if the record cannot settle it, that is a finding to file and the constant carries an honest refusal, not a number overwritten to make a band go green. Then repair both declarations against whatever the record establishes, and widen the census: both existing censuses are scoped to `company/`, `saas/` and `simulation/`, which is precisely the enumerator blindness `test_year_keyed_rate_table_census` was written to fix, one directory over. Add a leg that fires when a level-shaped reading appears in `tools/` unregistered.",
+    "why": "Third. It is a wrong number on a page a board reads, produced every run, and the only reason it is not first is that item one is the thesis and item two unblocks the director's roadmap \u2014 not that this is tidying. It is the direct continuation of the thread the last direction opened: the old docstring claimed the multiplier *\"matches the calibration already published for board-facing population anchoring\"*, and it does \u2014 which is the problem, not the reassurance. Correcting `company/crm/market_conditions.py` alone leaves the company's belief and the board's anchoring gate asserting different things about one published series, which is the VAT class the director named on 2026-08-30 (one rule, several implementations, one of them repaired and the rest live) reproduced within twenty-four hours of the rule being written. The seat is the only place that can see it, because each lane's census is correctly scoped and correctly blind. **Done means:** the dual-fuel denominator settled from the record or an explicit refusal filed with its reason; both `tools/population_anchor.py` declarations answering to whatever that establishes; the census reaching `tools/` with a mutation leg proved firing on a new unregistered reading; and the moved board-facing figures reported, including if the anchoring verdict changes."
    },
    {
-    "id": "A46_the_priced_menu",
-    "what": "Make the departure-level control able to size a change, then land C3 or say why it cannot be landed. `simulation/departure_level_anchor.YEAR_LEVEL_ANCHOR` was fitted to each published band's HIGH endpoint, so the world's realised rate sits on the exact ceiling in all ten years and `test_the_worlds_realised_departure_rate_is_inside_the_published_band` has ZERO headroom above. (1) `tools/measure_departure_level.py` already computes everything needed \u2014 make it print each year's MARGIN TO BOTH BAND EDGES beside the verdict, so a reader can tell a +0.11pp move that shifted zero departures from a +5pp move that broke the world. This is the same repair shipped for the \"worse than guessing\" count in `e707b0cb7` and for the same reason: a threshold crossing is not a magnitude. (2) Say on the control itself, where the next reader will hit it, that its resolution is zero above the line and 0.6pp\u20133.6pp below depending on the year's published width, and that the asymmetry favours us. (3) Then take C3's owed next step, which its own write-up names: split the per-decision `sim_price_response` change by where each household sat on `_savings_to_rate`'s piecewise curve, over the two captured tables, to establish whether the sign flipped because gains at the bottom outweigh losses in the saturated region. **Do not re-fit the anchor to absorb C3.** Re-fitting to make a control green, for a move whose mechanism is not yet established, is fitting the world to the answer. **Do not widen the band** \u2014 it is the published record.",
-    "why": "Fourth, and it is the atom the C3 measurement is filed against, at level 0. This is the failure mode CLAUDE.md names in its own words \u2014 *\"key a control to the property, not to today's answer\"* \u2014 caught in the largest fidelity claim this project has made. The control answers *\"is the world still on its anchor\"* and reads as though it answered *\"is the world still lawful\"*, and I over-read it myself an hour after it was built. It sits fourth rather than higher because the repair does not change what the world does and the anchor's VALUES are not in question \u2014 the fit is good, which is exactly why every year lands on the endpoint. It sits this high rather than lower because C3 is the director's own named next roadmap step (*\"carry on: C1b, then the rest of the choice-and-channel roadmap\"*), C1b is closed, and C3 is measured but NOT LANDED specifically because this control cannot tell whether its band exits mean anything. **Done means:** the measuring tool printing margins to both edges; the one-sidedness stated on the control rather than in a finding nobody re-reads; a test that fails if the margin output is dropped; the curve-position split done and reported whichever way it comes out; and C3 either landed with its size honestly bounded or declared blocked with the reason on the artefact."
+    "id": "what-the-guard-now-refuses-must-reach-a-reader",
+    "what": "**Lane 0, small, and it is the surface half of item one.** `tools/inference_claim._sentence` derives its prose from the flags rather than carrying a hand-written claim beside them \u2014 that is good design and it is why the reversal should self-correct. **Verify that it did, from the reader's side, not from the producer's.** Run `python3 -m tools.inference_claim`, then find every published artefact whose text descends from `shared_calibration_holds` (`proof.json`, `value_arms.json`, `capabilities_door.json`, `delivery.json`, `simplified.json` are where to start) and establish what a reader actually sees today. Three outcomes and each needs a different action, so do not assume the first: the sentence has flipped to the \"measurement and not evidence of skill\" branch and needs only a verified publish to origin; or a page still asserts *\"the two sides are independent\"* \u2014 in which case it is a live wrong public claim and goes to the front of this item; or the verdict reaches **no reader at all**, in which case the honest finding is that a fail-closed guard the director made his priority publishes nothing, and that is worth more than the check. Verify by SHA on origin and by the rendered string, never by the publisher's own report. Note while you are there that four commits (`6168ae6bf`, `27a646701`, `2b9fb79d9`, `ae12a334e`) are local-only \u2014 `origin/main` is `c9d0dab6d` \u2014 so a publish must carry them before any of this is readable.",
+    "why": "Fourth because it is half an hour, not because it is optional. CLAUDE.md's rule is *\"fail closed, and say so ON THE SURFACE \u2014 'we cannot tell' is a result, it belongs on the page, not in a footnote.\"* The single most consequential thing this stretch produced is a REDUCTION in what we may claim, and it currently lives in one staging document. The claim grammar here can express its own negation, which is the failure class this project has been caught by before, so the likely answer is that it works \u2014 and a check that confirms a good design is cheap and is how the design stops being a hope. The director's most expensive class this month is his own words: *\"'in the tree' and 'on origin' are different claims and you reported the first as the second.\"* **Done means:** the derived sentence read off origin rather than the working tree; whichever of the three outcomes holds stated plainly; and if the answer is that no reader ever sees this verdict, that filed as the finding rather than quietly satisfied by the check passing."
    }
   ],
   "not_now": [
    {
-    "what": "The VAT and standing-charge authorities \u2014 establishing the published rule, collapsing seven declarations to one consumption-conditional authority, and deciding whether `company/billing/invoice.py` and `company/pricing/tariff_comparison.py` should exist at all.",
-    "why": "This is the director's own named class and it is the most tempting thing on the list, which is why it is written down rather than quietly deferred. It loses on MEASURED exposure, not on argument: zero rows in `company/data/invoices.db`, every caller of `create_invoice` outside the module is a test, `company/portal/app.py` is not served, and no `site/` feed reads `compare_tariffs`. Nothing a reader can see is wrong today. It also cannot be done fast without breaking this project's first rule \u2014 the VAT rule is consumption-conditional (a low-usage SME is a business by segment and domestic by law), so a segment-keyed constant cannot be correct at ANY value, and picking one tonight is exactly the forbidden act. It is a knowledge-layer research task and it needs the commons, VAT Notice 701/19 and the de minimis history, not a slot behind a wedged publisher. The gate that found it now holds both survivors in an exact set, so neither can go quiet while it waits."
+    "what": "Re-opening either question I put to the director last night \u2014 the route the world takes past 2025 and the window length, and whether `YEAR_LEVEL_ANCHOR` should aim at the published band's midpoint rather than its high endpoint.",
+    "why": "Silence is validation and I am applying my own rule to myself rather than reading the absence of a reply as an absence of an answer. Both were brought with a recommendation (route A at high frequency and route B at low, boundary marked on every figure; leave the anchor on the high endpoint and publish the margin instead), and the margin half shipped this stretch \u2014 `tools/measure_departure_level.py` now prints each year's distance to both band edges and the control states on its own face that it has 0.00pp room above in all ten years. So the damage the question was about is removed and the ruling is no longer blocking anything. Re-raising it would be interrupting him with what he has already answered by not objecting, which is the exact failure the seat exists to avoid. `for_the_director` is empty for this reason and not for want of candidates."
    },
    {
-    "what": "Giving every `background/gap_metric.py` producer its own n and a bootstrapped interval, so the \"worse than guessing\" count can say *too close to the line to call*.",
-    "why": "The honest repair is real work in every producer \u2014 the ledger stores summary components, not the per-case errors, so the interval cannot be computed at the ledger or the page even in principle, and only 4 of 16 rows expose a sample size at all. It loses because the URGENT half already shipped this stretch: `e707b0cb7` put the distances on the page, so a reader can now see that two of the three crossings are 3.4% and 3.9% past the line rather than reading \"3\" as three findings. The remaining work upgrades a caveat into a bound. It is also the correct shape and I am recording that I know it, so the next pass does not re-derive it: per-metric, at production time, with a verdict that can refuse \u2014 and **never** an invented \"within X% counts as too close\" constant, which would be load-bearing within a week and unattributable within a month."
+    "what": "`EP13_adapter_carbon_intensity` \u2014 carbon, the second of the mission's three currencies, which CLAUDE.md itself describes as \"designed and unwired\".",
+    "why": "It loses on concurrency, not on merit, and the merit is real: two of three currencies are unwired and this is one of them. But `docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md`, `docs/design/simplifications/EP13_adapter_carbon_intensity.yaml` and `docs/observability/ep13_per_fuel_oracle_bound.json` are all **staged in this shared index right now** by another lane mid-flight. Drawing it would put a second writer on a live file set, which is this tree's documented way of losing work \u2014 and I lost 508 files to exactly that class of reflex last night. It comes back the moment that lane lands, and it does not need a focus slot to do so: the ordinary draw already reaches it."
    },
    {
-    "what": "C4 and C5 \u2014 the channel a household sees an offer through, and a market of named rivals \u2014 pulled forward to identify `a_shock` and close the 99.9%-to-56.6% reason-mix interval.",
-    "why": "Still the mechanism that would shrink that interval honestly, by making \"someone else is cheaper\" an event a household can be SHOWN rather than a free parameter. It still loses, and the reason is sharper than last time: C3 is measured but not landed, its sign was refuted, and its mechanism is unestablished. A channel built on top of a shown price whose direction I cannot yet explain is a channel fitted to a number that may move again. C4 and C5 come back when C3 lands with its size bounded, which is item four."
+    "what": "`C31_time_is_the_currency_that_does_not_exist` \u2014 building the time currency out, which the mission names as one of three and which does not exist here at all.",
+    "why": "The largest genuinely unstarted piece of the stated mission, recorded here so that it is a deliberate deferral rather than a thing nobody looked at. It loses because we currently cannot publish an inference claim in the currency we HAVE fully built, our baseline for that currency is three world changes stale, and a board-facing figure in it is wrong. Opening a third currency while the first cannot demonstrate the thesis would be breadth bought with the only depth we have. It earns its slot when the money currency can carry a claim that survives its own guard."
    },
    {
-    "what": "Choosing `a_shock` to close the reason-mix interval \u2014 from the published mover-mix, from a plausible prior, or from whichever value makes the mix look sensible.",
-    "why": "Carried forward verbatim because it gets more tempting each direction, not less. P0 is satisfied to +0.0000% by every value from 0.87 down, so the constraint cannot see the parameter: **choosing `a_shock` IS choosing the answer**, and it would then be reported as a measurement of the world. The published mover-mix is reserved as a check on the OUTPUT; spending it as an input buys a number and destroys the only test of it we have. The interval carrying its own bound on the page is the honest form and it stays until an instrument separates \"my own bill rose\" from \"someone else is cheaper\" \u2014 not until someone is tired of looking at it."
+    "what": "Choosing `a_shock` to close the 99.9%-to-56.6% reason-mix interval \u2014 from the published mover-mix, from a prior, or from whatever makes the mix look sensible.",
+    "why": "Carried forward verbatim for the third direction running, because it gets more tempting each time rather than less, and the argument has not weakened: P0 is satisfied to +0.0000% by every value from 0.87 down, so the constraint cannot see the parameter and **choosing `a_shock` IS choosing the answer**, which would then be reported as a measurement of the world. The published mover-mix is reserved as a check on the OUTPUT; spending it as an input buys a number and destroys the only test of it we have. The interval carrying its own bound on the page is the honest form. It stays until an instrument separates \"my own bill rose\" from \"someone else is cheaper\" \u2014 which is C4/C5, which is still behind C3, which is item two."
    },
    {
-    "what": "A control that catches the next half-finished working-tree edit killing the continuous sim runner \u2014 tonight's `ImportError: cannot import name 'DEPARTURE_OCCASION_SVT_SEGMENT'`, where the runner executed another lane's in-flight `run_phase2b.py` before its `customer_events.py` symbol existed.",
-    "why": "I found this at orientation and then measured its cost before proposing to fix it, which is the order that changed the answer. It failed exactly two runs, at 23:01 and 23:06Z, and the tree imports cleanly again now \u2014 a roughly ten-minute self-healing window, and HEAD was never broken. It is inherent to a shared tree that a daemon executes, and a control over it would be a control over our own concurrency: this project's rule is to prefer doing the work to building the thing that watches the work. Recording it beats guarding it, and the recording matters because the next reader seeing a red sim runner will otherwise hunt a defect at HEAD that is not there. It earns a slot if it recurs and costs a whole publish cycle rather than two runs."
+    "what": "Per-producer sample sizes and bootstrapped intervals for `background/gap_metric.py`, so the \"worse than guessing\" count can say *too close to the line to call*.",
+    "why": "Unchanged and still correct-shaped, still not urgent: the distances shipped in `e707b0cb7`, so a reader can already see that two of the three crossings are 3.4% and 3.9% past the line rather than reading \"3\" as three findings. Only 4 of 16 rows expose a sample size at all and the ledger stores summary components rather than per-case errors, so the interval cannot be computed at the ledger or the page even in principle \u2014 it is real work in every producer. The shape is recorded so the next pass does not re-derive it: per-metric, at production time, with a verdict that can refuse, and **never** an invented \"within X% counts as too close\" constant."
    },
    {
-    "what": "The unranked housekeeping \u2014 forty-one documents in the staging root, four undeclared worktrees with one orphan, three July mints still undrawn, and the `publish_gate_and_wedge` class now past fifty instances.",
-    "why": "`finding_classes --check` passes, no BLOCKING finding is open, and none of it wedges a commit, so it is accretion rather than obstruction. One qualification I did not have last time and it changes what happens next: item one is a `publish_gate_and_wedge` instance, so the CLASS gets updated as part of that work rather than a fifty-third sibling filed beside it. That is the deliberate pass over the class earning its way in through the work, which is the only way it should ever arrive."
+    "what": "The unranked accretion \u2014 forty-one documents in the staging root, the undeclared worktrees, and the orphan branch the repeating alarm has now fired on three times.",
+    "why": "`finding_classes --check` passes, BLOCKING is 0 (21 LATENT, 23 RECORDED), and none of it wedges a commit. One change since last direction that resolves the loudest part rather than deferring it: the orphan branch `c3-shown-price-measure` is **intentionally** unmerged \u2014 C3's own write-up decided it stays unmerged because one price position cannot speak for the others \u2014 and what was actually missing was a durable pointer, which landed in `2b9fb79d9` as the salvage tag. The alarm was right that something needed saying and wrong about what. It is answerable now rather than actionable, and item two cites the tag."
    }
   ],
-  "for_the_director": [
-   {
-    "what": "Which route the world takes past 2025, and how long the generated window runs \u2014 the choice you registered on Sunday night, now framed with numbers in `docs/design/WHAT_AN_ANCHOR_MEANS_BEYOND_THE_RECORD_2026-08-30.md`.",
-    "why": "Yours because you asked for it in writing (*\"Those are different projects and I'd rather choose than drift\"*) and because the window length is squarely inside the class you reserved \u2014 how long the window runs. One thing the document establishes that changes the question you asked: past 2025 the world does not become UNANCHORED, it becomes FROZEN. Every year from 2026 returns identical numbers forever \u2014 multiplier 1.114, departure rate 17.93%, anchor 3.021 \u2014 so a company predicting a constant meets a constant, its churn belief is trivially right, and the measured \"skill\" is an artefact of a world with no variance to predict. Under the standing rule that is evidence of nothing. The prize you named does not currently exist, which is the strongest argument for the work rather than against it.",
-    "recommendation": "Route A at high frequency, route B at low, and the boundary marked on every figure. Prices, demand, weather and grid intensity have 10\u00b3\u201310\u2075 observations and can support a real shape test, which is also where the interesting futures live. The annual behavioural calibrations have TEN annual points and cannot support a claim about autocorrelation or regime persistence, so past 2025 they are declared constant and declared unvalidated \u2014 which is what they already are; the change is that it stops being silent. I am not waiting on you for the two pieces that are mine and I have started neither: making the 2025/2026 boundary a first-class fact on artefacts, and ensuring nothing quotes a post-2025 figure beside a measured one without the marker. Both make our figures look more provisional, not less."
-   },
-   {
-    "what": "Whether `YEAR_LEVEL_ANCHOR` should aim at the published band's MIDPOINT instead of its high endpoint.",
-    "why": "Brought rather than decided because it is the exact shape you reserved and not the shape you released. Your refinement said a curriculum-adjacent change is mine when it is a CORRECTION and the honest version makes our position worse or leaves it unchanged. This is not that: both options are defensible and each is anti-flattering in a DIFFERENT currency. Aiming high keeps the book maximally leaky, which costs us money and was the right original call; aiming at the midpoint gives the control symmetric detection, which would start catching downward drift that currently hides \u2014 but a stickier book earns more, so it flatters the P&L. Choosing between two kinds of anti-flattering is choosing what the world is calibrated to, and moving it in a direction that improves our earnings is precisely the act you kept.",
-    "recommendation": "Leave it on the high endpoint for now and take item four instead, which is mine and needs no ruling: publish the MARGIN to both band edges so the control stops reporting a +0.11pp move and a +5pp move identically. That removes the damage without touching the world, and it means when you do rule, you will be ruling with the resolution in both directions actually printed rather than argued. If you would rather rule now, say midpoint or high and I will implement it and re-read every figure that crosses it."
-   }
-  ],
+  "for_the_director": [],
   "orientations_recorded": 20,
   "skips_recorded": 0,
   "refusals_recorded": 0
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "My last direction's item two told a worker to \"correct it to the record\" and named the blast radius as `competitive_pressure`'s enriched churn estimate and log-spread. I named the wrong downstream. The consequence that mattered was that correcting the company's belief onto the same published series the world is calibrated from would make the two sides **co-calibrated** and destroy the independence verdict \u2014 the very guard the director had made his explicit priority twelve hours earlier. The work found it and reported it under a heading saying it goes against us, which is the discipline working. But I had every fact needed to predict it when I wrote the item and did not, so it arrived as a discovery instead of as a design decision, and the difference is that a designed version would have built the posterior route in the same pass."
+   },
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "My last direction's item three said \"done means\" the anchored world read against the run it replaced, and named `site/data/value_arms.json`'s `run_generated_at` as the evidence it had not been done. Prediction B was closed properly from the run records in `docs/reports/` and C was declared not closable with its reason \u2014 both correct. But `run_generated_at` still reads `2026-08-30T10:37:06Z` beside a `generated_at` of `2026-08-31T00:56:24Z`: the page was re-rendered from the same run rather than re-run. I wrote an exit condition and then treated a differently-evidenced answer as satisfying it. It is item two now, with the re-run as the work rather than as the check."
+   },
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "`git stash push --keep-index` on the shared tree, mid-turn, to isolate a test failure \u2014 a rule this seat already holds, broken by reflex. It swept 508 files including every other lane's unstaged work. Then `git stash apply` failed **silently under a pipe**: `$?` was read after `| tail`, so `tail`'s exit code was mistaken for a successful restore. Both defects are already in this seat's index and both were re-learned the expensive way."
+   },
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "The switching checker had a defect that would have manufactured a false red on a correct repair: `_implied_rate_table` read multipliers back through `_bands()[reference_year][1]` \u2014 the HIGH endpoint of 2024's 12.5\u201316.1 band, which is not a considered choice, it is `[1]`. It inflates every implied rate by 1.13x, enough to push a correctly-derived 2016 reading of 17.30% (dead centre of its band) out to 19.48% and report a defect belonging to the checker. This is why the strict xfail quoted 34.9% rather than 31.0%."
+   },
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "A control was keyed to today's answer and only fired because the company's belief was WRONG: `test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP`'s `ceiling_bound is True` leg passed only because a 2021 multiplier of 0.57 made the arm chase margin into the cap. Correcting the belief turned it red \u2014 the code becoming more honest breaking the control, exactly the shape CLAUDE.md names. Repaired by deriving the fixture's base rate from the cap so the leg tests what its docstring claims."
+   },
+   {
+    "at": "2026-08-31T02:20:02.780362+00:00",
+    "what": "The one-sidedness statement claimed as landed in `6168ae6bf` was not in that commit, and the reader it was written for would not have seen it. Caught and landed in `27a646701` within the stretch. Same class one commit later: C3's write-up named its next step precisely and never said where the code to run it lives, so a reader drawing the A/B run would have rebuilt the arm from prose. Fixed in `2b9fb79d9` by citing the salvage tag."
+   },
    {
     "at": "2026-08-30T23:20:22.772992+00:00",
     "what": "My previous direction argued the publish wedge did not need a focus slot because a worker tick already held it at RUNG 1 PRIORITY ZERO and the self-refilling draw does not need direction to reach a worker. Three hours later: still wedged, 16 consecutive refused episodes, 17.9 hours, and the cause is a class no draw priority can EVER clear \u2014 a `level_current 0->2` on `PB3_book_growth_as_earned_outcome` staged in the shared maturity map pointing at an uncommitted `simulation/run_phase2b.py`, which the publisher can never carry into its own commit. I made a mechanism argument and did not check whether the mechanism could reach this failure. It is item one now."
@@ -1101,30 +1114,6 @@
    {
     "at": "2026-08-26T05:20:29.341002+00:00",
     "what": "`docs/observability/autonomous-runner-log.md` is carrying test fixture output as if it were production: \"claude binary not found at /tmp/pytest-of-rich/pytest-19/...\", and launch lines whose pid is a `MagicMock` repr. A test writes into the live operational log, so anyone diagnosing the runner from it reads three phantom launches per cycle. Noted, not fixed -- LATENT, not worth a focus slot tonight."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "`docs/design/maturity_map.yaml` is STAGED at 74 atoms while `docs/design/maturity_map_closed.yaml` holding the other 224 and `tools/maturity_map_store.py` that reunites them are both UNTRACKED. Any lane committing that path alone lands a record with 224 atoms deleted and no reader able to find them -- the exact hazard the prune was warned about, created by the prune succeeding."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "`background/supervisor.py` and `background/pull_forward_proposal.py` in the working tree both import `tools.maturity_map_store`, which git has never seen. The supervisor reads the working tree, so this runs today and dies at import the moment either module lands without it."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "The value arm rebuild -- 252 lines, the most thesis-relevant work in the repository -- is still uncommitted after being named focus item one for two consecutive records. Second strike on the same component: the instruction is not the problem, the landing path is, which is why this record makes measuring the gate part of the instruction rather than repeating the ask."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "The last record reported the carbon panel correction as `corrected: true`. It is 152 uncommitted lines in `sim/grid_carbon_intensity.py` and 142 in its test. A correction that is not in git has not been made, and this seat told the director otherwise."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "The last record named `W2_3_competitor_field` as focus and cited a flat loss-side switching curve at `simulation/market_switching_propensity.py:55` as live. `fbe8b0ab6`, landed at 17:13 that day and six hours before the record was written, had already made the loss leg continue the last informed slope past the calibrated ceiling and stated the assumption. The seat steered at a defect that no longer existed, reading a constant instead of its caller."
-   },
-   {
-    "at": "2026-08-26T02:20:07.163415+00:00",
-    "what": "The orienting brief reported `levels_moved: {}` for a stretch in which `12b972fb9` closed W4_2 and with it the whole of epoch 1, recorded in the consolidation ledger. It also reported one of four focus items drawn when three were non-atom items that were largely BUILT. The brief undercounts both what moved and what the steer achieved; a seat trusting it would conclude the direction is not working when the failure is entirely in the landing."
    }
   ],
   "refused_own_records": [],
@@ -1132,12 +1121,45 @@
  },
  "what_next": {
   "focus": [
-   "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
-   "every-reading-of-the-switching-level-answers-to-the-record",
-   "read-the-anchored-world-against-the-run-it-replaced",
-   "A46_the_priced_menu"
+   "the-company-estimator-learns-from-its-own-book",
+   "the-value-arms-ab-runs-in-the-world-as-it-now-is",
+   "the-board-facing-copy-of-the-refuted-table",
+   "what-the-guard-now-refuses-must-reach-a-reader"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
+       "every-reading-of-the-switching-level-answers-to-the-record",
+       "read-the-anchored-world-against-the-run-it-replaced",
+       "A46_the_priced_menu"
+      ],
+      "focus": [
+       "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
+       "every-reading-of-the-switching-level-answers-to-the-record",
+       "read-the-anchored-world-against-the-run-it-replaced",
+       "A46_the_priced_menu"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
+     "every-reading-of-the-switching-level-answers-to-the-record",
+     "read-the-anchored-world-against-the-run-it-replaced",
+     "A46_the_priced_menu"
+    ],
+    "focus": [
+     "the-publish-wedge-is-a-level-declared-ahead-of-its-code",
+     "every-reading-of-the-switching-level-answers-to-the-record",
+     "read-the-anchored-world-against-the-run-it-replaced",
+     "A46_the_priced_menu"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "atom": {
@@ -1284,35 +1306,6 @@
      "anchor-the-departure-level-then-wire-the-cause",
      "make-an-artefact-carry-the-code-that-made-it",
      "PB4_engagement_separated_from_elasticity"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "c2-a-departure-carries-a-cause",
-       "promote-the-funnel-artefact-and-publish-the-drop-out-split",
-       "the-segment-dial-generates-a-population-rather-than-selecting-one"
-      ],
-      "focus": [
-       "c2-a-departure-carries-a-cause",
-       "promote-the-funnel-artefact-and-publish-the-drop-out-split",
-       "the-segment-dial-generates-a-population-rather-than-selecting-one"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "c2-a-departure-carries-a-cause",
-     "promote-the-funnel-artefact-and-publish-the-drop-out-split",
-     "the-segment-dial-generates-a-population-rather-than-selecting-one"
-    ],
-    "focus": [
-     "c2-a-departure-carries-a-cause",
-     "promote-the-funnel-artefact-and-publish-the-drop-out-split",
-     "the-segment-dial-generates-a-population-rather-than-selecting-one"
     ],
     "note": "the previous direction named work the draw then took",
     "steered": true
