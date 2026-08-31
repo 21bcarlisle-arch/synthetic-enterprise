@@ -439,6 +439,37 @@ def changed_paths(root: Path, parent_tree: str, result_tree: str) -> list[str]:
 # Step 3: the clean extract.
 # ---------------------------------------------------------------------------------------------
 
+def _object_store(root: Path) -> Path:
+    """The repo's real object directory, ASKED FOR rather than assumed to be `root/.git/objects`.
+
+    WHY THIS IS A FUNCTION AND NOT A PATH JOIN (2026-08-31). It was the join, and it made this
+    whole door unusable from a `git worktree`: a linked worktree's `.git` is a FILE containing
+    `gitdir: <path>`, not a directory, so `root/.git/objects` does not exist and the alternates
+    line written from it sent git looking for the parent commit in a directory that was never
+    there:
+
+        error: unable to normalize alternate object path: <worktree>/.git/objects
+        fatal: failed to unpack tree object <sha>
+
+    It refused rather than mis-committing, which is the right failure -- but it made two of this
+    project's own rules mutually exclusive. Hook-bypass is a wall and this is the only legal door;
+    the shared working tree is a known collision surface and `git worktree` is the standard remedy.
+    Any writer that isolated itself therefore had no way to commit at all, which is why the
+    delivery seat could not be given its own tree.
+
+    `git rev-parse --git-common-dir` answers for BOTH layouts, and the COMMON dir is the right one
+    rather than `--git-dir`: a worktree's own gitdir (`.git/worktrees/<name>`) holds its HEAD and
+    index and NOT the objects, which live once in the shared store. Lending the per-worktree dir
+    would produce the same missing-objects failure one directory down.
+
+    It returns `.git` (relative) in a normal repo and an absolute path from a worktree.
+    `Path(root, common)` is correct for both -- an absolute right-hand side wins, a relative one
+    joins -- so the normal path is byte-identical to what it was before.
+    """
+    common = _git_text(root, "rev-parse", "--git-common-dir", env=_gitless_env())
+    return (Path(root, common) / "objects").resolve()
+
+
 def _make_standalone_repo(root: Path, checkout: Path, parent: str) -> None:
     """Turn an extracted tree into a real standalone repo whose HEAD is the PARENT commit.
 
@@ -450,7 +481,7 @@ def _make_standalone_repo(root: Path, checkout: Path, parent: str) -> None:
     _git_text(checkout, "init", "-q", env=env)
     alternates = checkout / ".git" / "objects" / "info" / "alternates"
     alternates.parent.mkdir(parents=True, exist_ok=True)
-    alternates.write_text(str((root / ".git" / "objects").resolve()) + "\n")
+    alternates.write_text(str(_object_store(root)) + "\n")
     (checkout / ".git" / "HEAD").write_text(parent + "\n")
     _git_text(checkout, "read-tree", parent, env=env)
 

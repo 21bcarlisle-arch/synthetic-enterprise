@@ -1,4 +1,10 @@
-# Can the delivery seat self-advance? No — measured, not judged. The work moves to the ticks instead.
+# Can the delivery seat self-advance? Asked, answered NO on a measurement, then the blocker was FIXED — now yes
+
+> **READ THE REVISIT AT THE BOTTOM BEFORE QUOTING THIS.** The first answer was NO and the reason
+> was `surgical_land` being unable to commit from a worktree. **That was fixed the same day and
+> proven end to end**, so the answer is now a qualified YES with two named residuals. The original
+> reasoning is kept intact above the revisit because it is the record of how the decision was
+> made, not because it still stands.
 
 **Director, 2026-08-31:** *"CLAUDE.md line 47 says finishing a piece of work is where the next one
 starts. This seat is built not to self-advance, because two writers on a shared tree caused most of
@@ -111,9 +117,76 @@ lane — `delivery_lane.draw` documents that a lane which can throw takes every 
    the mechanism will be as empty as that file. `--list` printing EXPIRED items is what makes that
    visible instead of quiet.
 
-## The decision in one line
+## The decision in one line, AS IT STOOD BEFORE THE FIX
 
 **The seat cannot self-advance because the only legal commit door does not work outside the shared
 working tree — so the seat's continuation moves into the ticks, which are already writers and need
 no new one.** When `surgical_land` learns about worktrees, the better answer is available and this
 document is the record of why it was not taken today.
+
+*It learned, within the hour. See the revisit.*
+
+---
+
+# REVISITED, same day, after fixing the door — the answer is now YES, with two named residuals
+
+**Director: *"Fix surgical_land for worktrees, then revisit self-advancing."*** Done, and the
+revisit follows.
+
+## The fix
+
+One line, and it was exactly where the error said. `_make_standalone_repo` wrote its alternates
+line from `root / ".git" / "objects"`; a linked worktree's `.git` is a file, so that path never
+existed. It now **asks** — `git rev-parse --git-common-dir` — and `Path(root, common)` is correct
+for both layouts, because an absolute right-hand side wins and a relative one joins.
+
+**`--git-common-dir`, not `--git-dir`**, and that distinction is the whole of it: a worktree's own
+gitdir (`.git/worktrees/<name>`) holds its HEAD and index and **no objects at all**. Lending that
+would fail the same way one directory down.
+
+**Proven end to end, not just at the unit.** A real linked worktree ran a real land through the
+full pre-commit gate and committed: `[surgical-land] landed 6d1916736 (1 path(s))`. Four mutations
+fire on `tests/tools/test_the_door_works_from_a_worktree.py`, including a blast-radius leg that
+holds the ordinary main-repo answer unchanged — this is the door every lane commits through and a
+quiet change to the normal case would be worse than the gap it closed.
+
+## What the probe also showed, which I had not predicted
+
+**A worktree land commits to the worktree's own detached HEAD. `main` was untouched.** That is
+*more* isolation than the design assumed, and it is the good kind: an isolated writer cannot move
+the shared branch by committing. Integration is a separate, deliberate step.
+
+## So: can the seat self-advance safely now? YES — and the residuals are no longer the commit
+
+The blocker is gone and the evidence for the rest already existed: twelve landings in a day, one
+race auto-re-gated, every receipt verified, zero commit-layer collisions, and every real collision
+on the shared working tree — which a worktree removes.
+
+**Two residuals, and neither is hypothetical:**
+
+1. **Integration to `main` is a route, not a command.** The worktree commits to a detached HEAD;
+   getting there means `git push origin HEAD:main` (rejected, correctly, if `main` moved — fetch,
+   re-gate, retry) and the shared tree fast-forwarding afterwards. I have now done that route by
+   hand twice today and it worked both times, including once when the shared tree was too dirty for
+   any in-place merge. **It is not yet a tool**, and hand-rolled git on a shared tree is precisely
+   where `git stash` nearly took another lane's parked work this morning.
+2. **Duplication is still unsolved and is now the larger risk.** Continuations are claimed, so two
+   ticks cannot take one item — but two *writers* can still independently choose the same work. I
+   filed a duplicate of another lane's finding today for exactly this reason. An unattended seat
+   raises the rate at which that can happen.
+
+**And the honest one that no fix reaches:** an unattended writer can be confidently wrong for hours.
+I was wrong four times today and caught each by measuring. Nothing structural guarantees the next
+run does.
+
+## What I am doing about it, and why not all of it now
+
+The correct next step is the integration route as a tool, then the seat tick that uses it. **I am
+handing that to the ticks through the mechanism built for exactly this** rather than building it in
+the same turn that changed the commit door — a door fix and a new autonomous writer are two
+independent risks and landing them together would make a bad result unattributable.
+
+`background/seat_continuation.py` now carries it. That is also the first non-trivial test of the
+handoff: if it is picked up and done, the mechanism works; if it expires unclaimed, `--list` says
+so, and that is the drag made visible rather than quiet.
+
