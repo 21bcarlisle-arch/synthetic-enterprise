@@ -680,3 +680,128 @@ measurement, and it is a measurement before it is a build.
 **No level move. LAW A.** Reproduce: `python3 -m tools.ep13_peer_bound` →
 `docs/observability/ep13_peer_bound.json`. Controls: `tests/tools/test_ep13_peer_bound.py`, 16
 tests.
+
+---
+
+## 14. 2026-08-30 — the PER-FUEL ORACLE: the timing is in CCGT, the one fuel the model never sees
+
+§13 ended by naming this measurement and deliberately not building it: *NESO forecasts PER FUEL
+where this model reduces everything to a residual.* This is that measurement, and it is the atom's
+first result that names a **build target** rather than retiring a candidate.
+
+### What the shipped reconstruction does, stated plainly, because it is the thing being tested
+
+`build_shape` never sees a fuel dispatched. It takes demand, subtracts renewables, imports and the
+zero-carbon must-run block, and splits what is left by a merit order it decides for itself. Coal
+enters as one *capacity* per year, biomass as one annual *envelope* — availability, not dispatch.
+The half-hourly question "how much gas is running right now" is answered by a residual.
+
+### The instrument, and the one thing it is NOT
+
+Hold the TRUE half-hourly per-fuel outturn from Elexon FUELHH, put it through NESO's own published
+factor table, score the result against NESO's published outturn on the same held-out even days
+through the same `neso.compare_shapes`. It fits nothing, so it costs minutes where §11's ceiling
+cost 85.
+
+**IT IS NOT A CEILING, and every previous oracle on this atom was.** §10 and the embedded pass both
+bounded a candidate from *above*: perfect knowledge of the input, so a negative retires the
+candidate outright. That is how four candidates died. This one is **handicapped** — embedded
+generation, interconnectors, OIL and OTHER are all missing from the arithmetic, and all three
+omissions cost it accuracy it could have had. So it is an **attainment floor** on what per-fuel
+truth is worth, not a ceiling on it. A negative here would have retired nothing. *(This correction
+is recorded because the preregistration filed before the run got it wrong and said a negative would
+make per-fuel the fifth retirement. It would not have.)*
+
+The inversion is why the **positive** is worth more than a positive ceiling would be: a
+handicapped model that still reaches 0.9352 has proved the input carries the information, and a
+better-equipped one can only do better.
+
+### THE RESULT
+
+| year | baseline (shipped) | **per-fuel oracle** | oracle − baseline | oracle's own day mean | gen/demand | MAE vs NESO |
+|---|---|---|---|---|---|---|
+| 2019 | 0.8819 | **0.9665** | +0.085 | 0.8268 | 0.970 | 14.7 g |
+| 2020 | 0.8737 | **0.9634** | +0.090 | 0.8369 | 0.988 | 11.7 g |
+| 2021 | 0.9078 | **0.9780** | +0.070 | 0.8419 | 0.964 | 16.9 g |
+| 2022 | 0.8698 | **0.9823** | +0.113 | 0.8850 | 1.063 | 14.4 g |
+| 2023 | 0.7973 | **0.9434** | +0.146 | 0.8602 | 0.911 | 30.3 g |
+| **2024** | **0.7425** | **0.9352** | **+0.193** | 0.8185 | 0.874 | 33.1 g |
+
+**In 2024 — the year that has held this level for nine passes — per-fuel truth is worth +0.193 of
+correlation, and closes 84% of the distance to the peer bound's 0.9711.**
+
+### THE ABLATION LADDER, which is the part that survives every caveat above
+
+A number saying "per-fuel truth is worth +0.19" tells the atom to find per-fuel data. It does not
+say *which fuel*, and the fuels are not equally observable from outside: coal availability is an
+annual fact about steel, gas dispatch is a half-hourly decision. So each fuel is flattened to its
+own day mean in turn — its within-day timing deleted, every other fuel left at truth — and what it
+costs is what its timing was worth.
+
+| year | COAL | **CCGT** | OCGT | BIOMASS | WIND |
+|---|---|---|---|---|---|
+| 2019 | −0.0137 | **−0.0787** | +0.0001 | −0.0008 | −0.0314 |
+| 2020 | −0.0056 | **−0.0760** | +0.0002 | −0.0004 | −0.0220 |
+| 2021 | −0.0106 | **−0.0766** | +0.0002 | −0.0001 | −0.0257 |
+| 2022 | −0.0040 | **−0.0522** | +0.0001 | −0.0002 | −0.0313 |
+| 2023 | −0.0034 | **−0.0566** | +0.0000 | +0.0001 | −0.0000 |
+| **2024** | −0.0013 | **−0.0949** | −0.0001 | −0.0003 | +0.0024 |
+
+**The within-day timing is almost entirely in CCGT, in every one of the six years.** Flattening gas
+costs 0.052–0.095; flattening coal costs 0.001–0.014 and biomass 0.0003. This is a fact about the
+GB grid rather than about the reconstruction, and it holds even if the headline number above is
+dismissed entirely.
+
+### AND IT EXPLAINS THE DECAY NOBODY HAD ACCOUNTED FOR
+
+The baseline falls 0.88 → 0.74 across the window and eight passes treated that as the model getting
+worse. It is not. **WIND's ablation cost collapses from −0.031 to ~0 while CCGT's grows to its
+largest**, so the within-day information *migrated* into the one fuel the model cannot observe.
+The reconstruction did not decay; the grid moved the answer out of its reach. Coal's own collapse
+(−0.0137 → −0.0013) is the same story one fuel over, and it is the fuel this model *does* hold.
+
+### THE TAUTOLOGY GUARD, first thing a reader should check
+
+NESO's `actual` is itself a metered fuel mix through a factor table. If FUELHH were the same mix
+and this the same table, the measurement would be NESO's arithmetic replayed at ~1.0 by
+construction — R15's first killer. Measured: **bit-identical on 0.000 of half hours**, mean
+absolute difference **11.7–33.1 g** against a 2.0 g bar. That gap is the embedded, interconnector
+and loss terms showing up as exactly what they are.
+
+### FAIL CLOSED ON AN ABSENT FUEL — the defect the first draft had
+
+The four FUELHH caches do not cover identical half hours; BIOMASS begins later than COAL. The first
+draft summed an absent fuel as zero, which is not "no gas was running" but "no reading" — and it
+deletes the largest carbon term on the system and publishes a clean grid. Every fuel in
+`HELD_FUELS` must be present or the half hour is refused: **28,813 refused, 99.6% of them in
+2016–17** before the biomass cache begins, which is why this table starts at 2019.
+
+### R15 — SEVENTEEN TESTS, and the control that had to be keyed to the property
+
+The load-bearing test is the inverse of the previous four bounds'. Those reported negatives, so
+their danger was an instrument that can only say "no headroom". This reports a **positive**, so its
+danger is one that says "big headroom" whatever it is handed:
+`test_the_instrument_reports_a_LOW_oracle_when_THE_FUELS_DO_NOT_CARRY_THE_TIMING` builds a world
+where the timing lives somewhere the fuel mix cannot see and requires the oracle to fall *below*
+the shipped baseline. Beside it, `test_the_ablation_ladder_NAMES_THE_FUEL_THAT_CARRIES_THE_TIMING`
+puts the swing in CCGT in advance and requires the ladder to finger it by a 5× margin.
+
+**The coverage control is the one worth reading.** Generation over demand is all that stands
+between this instrument and a silently rescaled intensity — but 2022 comes in at **1.063**, because
+GB was a net *exporter* that year. A bound capped at 1.0, which is what the preregistration
+predicted, would have gone red **because the world got more honest**. That is the failure mode this
+project has hit repeatedly, so the shipped bound is keyed to the property (a sum of generation is
+near demand, 0.80–1.20) and `test_the_coverage_bound_admits_a_NET_EXPORT_year` pins 1.063 open
+against a later pass re-tightening it.
+
+### What this licenses, and what it does not
+
+**L3's build is a publishable proxy for within-day CCGT dispatch.** That is the first time this
+atom has had a named target rather than a retired candidate. The oracle itself may never be
+published — it is NESO's factor table on metered truth — and
+`oracle_reaches_the_published_feed` is False by AST walk, not by promise.
+
+**No level move. LAW A.** Reproduce: `python3 -m tools.ep13_per_fuel_oracle_bound` →
+`docs/observability/ep13_per_fuel_oracle_bound.json`. Controls:
+`tests/tools/test_ep13_per_fuel_oracle_bound.py`, 17 tests. Prediction filed before the run:
+`docs/staging/WORKER_PREREGISTRATION_WHAT_THE_PER_FUEL_ORACLE_MUST_SHOW_2026-08-30.md`.
