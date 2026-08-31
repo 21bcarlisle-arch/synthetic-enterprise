@@ -48,14 +48,31 @@ departure route the capture could not see, and 61% of this book's departures are
 
 ### Where the signal is, and where it is not
 
-**Renewal route — 144 decisions, 32 departures. AUC 0.7412, null [0.3817, 0.6194].**
+**Renewal route — 144 decisions, 32 departures. AUC 0.7400, null [0.3794, 0.6206].**
+
+> **REFRESHED 2026-08-31, later the same day — this table used to be the BUCKETED world's and was
+> the last thing on the page still reading it.** Item 1 made `sim_dissatisfaction_response`
+> continuous, and the SVT table below got its superseded banner the same hour while this one did
+> not, so the page carried two captures at once and said **+0.0527** here and **+0.0539** eighty
+> lines down for the same quantity. The figures below are now `docs/reports/`
+> `ladder_churn_ceiling_vs_belief.json`, the same artefact the ceiling-vs-belief section reads, and
+> `tests/architecture/test_the_ladder_page_quotes_the_report.py` fails if they drift apart again.
+>
+> What moved, and it is small everywhere except the row the repair was aimed at: route AUC
+> 0.7412 → **0.7400**; bill shock HELD OUT 0.6054 → 0.6066, contribution +0.1358 → **+0.1335**;
+> action propensity HELD OUT 0.6885 → 0.6862, contribution +0.0527 → **+0.0539**; price response
+> HELD OUT 0.7342 → 0.7143, contribution +0.0070 → **+0.0258**; and dissatisfaction ALONE
+> 0.4672 → **0.3806** with ties 92.0% → 0.2% and 3 → 135 distinct values, which is item 1's whole
+> point and is worked through below. **The ALONE column for the other three did not move at all,**
+> and that is why this went unnoticed: freezing every other factor at its population mean makes a
+> factor's own ALONE score invariant to what the others are made of.
 
 | factor | ALONE | HELD OUT | contribution | tied pairs | distinct values |
 |---|---|---|---|---|---|
-| `sim_bill_shock_base` | **0.7014** | 0.6054 | **+0.1358** | 27.9% | 17 |
-| `sim_action_propensity` | 0.5925 *(inside null)* | 0.6885 | **+0.0527** | 27.6% | 9 |
-| `sim_price_response` | 0.4836 *(inside null)* | 0.7342 | +0.0070 | **2.1%** | **131** |
-| `sim_dissatisfaction_response` | 0.4672 *(inside null)* | 0.7412 | **+0.0000** | **92.0%** | **3** |
+| `sim_bill_shock_base` | **0.7014** | 0.6066 | **+0.1335** | 27.9% | 17 |
+| `sim_action_propensity` | 0.5925 *(inside null)* | 0.6862 | **+0.0539** | 27.6% | 9 |
+| `sim_price_response` | 0.4836 *(inside null)* | 0.7143 | +0.0258 | **2.1%** | **131** |
+| `sim_dissatisfaction_response` | 0.3806 *(inside null)* | 0.7412 | **−0.0012** | **0.2%** | **135** |
 
 **SVT route — 1,266 decisions, 50 departures. AUC 0.6721, null [0.4139, 0.5854].**
 

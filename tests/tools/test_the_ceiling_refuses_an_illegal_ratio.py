@@ -27,6 +27,7 @@ what they hold is that each condition is *required*, not what today's answers ar
 from __future__ import annotations
 
 import copy
+import json
 
 import pytest
 
@@ -147,10 +148,29 @@ def test_the_CEILING_survives_a_belief_join_that_refuses(tmp_path):
     are gradable whatever the join does. An over-broad refusal is its own defect — it would hide a
     real reading behind an unrelated failure, which is the same blast-radius mistake one direction
     over. Both halves are asserted here.
+
+    AND THE SITUATION IS BUILT, NOT BORROWED — the second thing this test got wrong. It first ran
+    `report()` on the committed capture and assumed that capture would always NEED the join. Hours
+    later a fresh capture recorded `JOIN_SUPPLIED_FIELD` directly, `attach_company_beliefs` returned
+    early with "the capture already carries the field", and the test `KeyError`ed on a refusal that
+    correctly never happened. **A control coupled to an incidental property of an artefact fails
+    when the artefact improves**, which is the wrong direction to be brittle in. So the capture that
+    needs the join is constructed here by stripping the field, and this leg keeps testing the
+    refusal path for as long as the code has one — and goes green by construction the day it does
+    not, because `_needs_join` will be False and the assertions are skipped rather than inverted.
     """
+    stripped = tmp_path / "capture_without_the_joined_field.json"
+    rows = json.loads(mch.DEFAULT_TABLE.read_text())
+    for row in rows:
+        row.pop(mch.JOIN_SUPPLIED_FIELD, None)
+    stripped.write_text(json.dumps(rows))
+    companion = mch.svt_companion(mch.DEFAULT_TABLE)
+    if companion.exists():
+        mch.svt_companion(stripped).write_text(companion.read_text())
+
     unmatched = tmp_path / "not_the_same_run.json"
     unmatched.write_text('{"customer_events": [{"customer_id": "NOBODY", "event_date": "1970-01-01"}]}')
-    reading = mch.report(mch.DEFAULT_TABLE, permutations=100, run_output=unmatched)
+    reading = mch.report(stripped, permutations=100, run_output=unmatched)
 
     assert reading["oracle_auc"] is not None
     assert isinstance(reading["clears_the_null"], bool)
