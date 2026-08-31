@@ -1,12 +1,12 @@
 # [CLASS] Controls that cannot fail: vacuous, fail-open, or blind to their own subject
 
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 25 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 26 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 25 instances
+## The 26 instances
 
 - `WORKER_FINDING_A_BULK_PASS_BLINDS_THE_AGED_STAGING_DIGEST_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_A_HARNESSES_CONVENIENCE_CHOSE_THE_CONTROLS_SUBJECT_2026-08-12.md` — RECORDED
@@ -24,6 +24,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_CONSTANT_CENSUS_IS_BLIND_TO_THE_LIVE_PATHS_OWN_WINDOW_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_DOORS_DEPTH_LIMIT_SWALLOWED_FIFTY_THREE_FIGURES_2026-08-11.md` — LATENT
 - `WORKER_FINDING_THE_EVIDENCE_PAGE_FIXTURE_COPIES_ONE_OF_THE_MAPS_TWO_HALVES_2026-08-27.md` — LATENT
+- `WORKER_FINDING_THE_LANE_WALL_WAS_FAIL_OPEN_ON_A_FULL_DISK_2026-08-31.md` — BLOCKING
 - `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_ONLY_ESCALATION_CHANNEL_FAILS_SILENTLY_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_THE_OPERATIONAL_SIGNAL_HAS_ITS_OWN_WALL_AND_NOTHING_WATCHES_IT_2026-08-20.md` — LATENT
@@ -36,11 +37,17 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**25.0 recorded episode-hours** across 1 of the 25 instances; largest single recorded episode **25h**; 7 instance(s) name a published figure in scope.
+**25.0 recorded episode-hours** across 1 of the 26 instances; largest single recorded episode **25h**; 7 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **25 hours** — `WORKER_FINDING_THE_MONOTONIC_GUARD_IS_NUMERIC_ONLY_2026-08-10.md`: …start — a reset would publish "paused since 30 seconds ago" through a 25-hour outage, the ruling's own cardinal sin wearing the opposite coat. So…
+
+## What is owed
+
+1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+
+- `WORKER_FINDING_THE_LANE_WALL_WAS_FAIL_OPEN_ON_A_FULL_DISK_2026-08-31.md`
 
 ---
 

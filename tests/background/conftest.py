@@ -37,6 +37,18 @@ from tests.background import env_constant_sync as _env_sync
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _GIT_DIR = REPO_ROOT / ".git"
 
+#: Daemon runtime-state constants that a test writes as an INCIDENTAL SIDE-EFFECT of exercising
+#: something else, so the live file is nobody's subject and re-rooting it costs no control. Read
+#: `_no_daemon_state_reaches_the_live_record` below before adding to this: the derived-over-all-138
+#: version of it was run, and the reason it is not what shipped is measured there.
+#: (module name, attribute)
+_LEAKING_STATE_CONSTANTS = (
+    ("background.agent_status", "STATUS_FILE"),       # every daemon's update_agent_status call
+    ("background.agent_status", "SITE_STATUS_FILE"),  # written immediately after — both or neither
+    ("background.reconcile_watch", "STATE_FILE"),     # the drift-transition memo
+    ("background.console_sanctity", "REGISTRY_PATH"),  # live control state: which console is spared
+)
+
 
 @pytest.fixture(autouse=True)
 def _publisher_log_never_reaches_the_live_record(tmp_path, monkeypatch):
@@ -73,6 +85,104 @@ def _publisher_log_never_reaches_the_live_record(tmp_path, monkeypatch):
     """
     from background import process_run_complete as prc
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "sim-runner-log.md", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _no_daemon_state_reaches_the_live_record(tmp_path, monkeypatch):
+    """The same fix as the fixture above, for EVERY daemon rather than the one that hurt — and
+    for every path constant rather than the one attribute called `LOG_FILE`.
+
+    That fixture's own docstring makes this argument and then stops one module short: *"Fixed for
+    the directory rather than per file… the first two were patched individually earlier the same
+    day, and the third file proved that was an instance fix on a class."* `process_run_complete`
+    was the third file. There are fifty more modules in `background/` with a `LOG_FILE`, and on
+    2026-08-31 three of their ledgers turned out to be carrying test output —
+    `autonomous-runner-log.md` was **23% pytest**, and a reader of it (this seat, answering the
+    director) reported a usage limit that had never existed.
+
+    WIDENED BEYOND `LOG_FILE`, 2026-08-31, because keying isolation to one attribute NAME was
+    the defect. `tests/production_surface_guard.py` promoted `docs/observability` from nine
+    hand-listed files to a whole protected SURFACE the same day; 35 daemon tests then failed on
+    the guard rather than on their own subject, because they had never been isolated — nothing
+    made them be. Eighteen were repaired at the instance. The nineteen that remained were three
+    more attribute names for exactly what this fixture already did for `LOG_FILE`:
+    `agent_status.STATUS_FILE` (16 tests — every daemon calls `update_agent_status`),
+    `reconcile_watch.STATE_FILE` (2) and `console_sanctity.REGISTRY_PATH` (1).
+
+    WHY THIS IS NOT DERIVED OVER ALL 138 SUCH CONSTANTS, AND THE ANSWER WAS MEASURED RATHER THAN
+    ARGUED. `background/` declares 138 upper-case observability/site-data `Path` constants across
+    72 modules, and the obvious closure — re-root every one of them — was written and RUN against
+    this whole directory on 2026-08-31. It fixed the 19 and cost **43 other controls**, because
+    for a large class of them THE LIVE ARTEFACT IS THE CONTROL'S SUBJECT, not an incidental write
+    destination: `test_suite_duration_watch::test_a_test_process_cannot_append_to_the_live_series`,
+    `test_publish_provenance::test_a_test_cannot_write_the_published_provenance_claim`,
+    `test_live_ledger_guard::test_write_gap_entry_refuses_the_default_path`,
+    `test_suppression_register::test_live_register_passes`, `test_model_tier`,
+    `test_harness_exit_criterion`, `test_open_question_register`, `test_publish_step_ledger`,
+    `test_segmentation_testability_ledger`, `test_tree_divergence`, `test_worktree_isolation`.
+    Re-rooting moves the subject out from under the control: the guard tests then assert that a
+    test cannot write a path nothing was ever going to write, which is the tautology class R15
+    exists for. **Isolation and a live-artefact control want opposite things from the same
+    constant, and nothing in the constant distinguishes them** — so the set below is the measured
+    residue, not a list somebody stopped extending. A new leak is one line plus a re-run of this
+    directory; do not re-derive the wide version without reading the 43.
+
+    THE NAMED CONSTANTS ARE RE-ROOTED PRESERVING THEIR REPO-RELATIVE PATH, not flattened to
+    `tmp_path / name`, so that a control asserting a constant still NAMES the right output file
+    can still fire — `test_process_run_complete.py`'s `_PIPELINE_OUTPUT_PATHS` check is exactly
+    that shape, and a flattening redirect turns it red while claiming the isolation had been lost.
+    `LOG_FILE` stays flat because that is the shipped behaviour no ledger control depends on.
+
+    THE PARENT DIRECTORY IS DELIBERATELY NOT PRE-CREATED. All four writers below `mkdir` their own
+    parent, and eagerly creating `tmp_path/site/data` here red-ed
+    `test_git_commit_push_commits_whole_generated_site_data_surface`, which builds that directory
+    itself with a bare `mkdir()`. A fixture that materialises directories inside another test's
+    `tmp_path` is changing the world it is supposed to be isolating.
+
+    BOTH `agent_status` PATHS OR NEITHER. `update_agent_status` writes `STATUS_FILE` and then
+    `SITE_STATUS_FILE`; the observability write is the one the guard refuses, so redirecting only
+    it would ARM the site-data write these 16 tests have never actually performed.
+
+    REDIRECTS THE DESTINATION, NEVER REPLACES A FUNCTION — see the fixture above on why that
+    distinction is the whole thing. Every `log()` still formats, still calls the ledger guard, and
+    a test asserting on behaviour reads the redirected file through the same constant.
+    """
+    import importlib
+    import sys
+
+    live_dir = (REPO_ROOT / "docs" / "observability").resolve()
+    root = REPO_ROOT.resolve()
+
+    def _reroot(module, attribute):
+        current = getattr(module, attribute, None)
+        if not isinstance(current, Path):
+            return
+        try:
+            relative = current.resolve().relative_to(root)
+        except (ValueError, OSError):
+            return  # already pointed somewhere harmless
+        monkeypatch.setattr(module, attribute, tmp_path / relative, raising=False)
+
+    for name, module in list(sys.modules.items()):
+        if not name.startswith("background.") or module is None:
+            continue
+        current = getattr(module, "LOG_FILE", None)
+        if not isinstance(current, Path):
+            continue
+        try:
+            current.resolve().relative_to(live_dir)
+        except (ValueError, OSError):
+            continue  # already pointed somewhere harmless
+        monkeypatch.setattr(module, "LOG_FILE", tmp_path / current.name, raising=False)
+
+    # IMPORTED, not looked up in `sys.modules`. The `LOG_FILE` sweep above can only reach what a
+    # test has already imported, and that is fine for a sweep -- but these four are NAMED, so the
+    # isolation must not depend on collection order. `test_substep4_exit` imports
+    # `console_sanctity` inside the test BODY: under a `sys.modules.get` lookup it was isolated
+    # only when `test_console_sanctity.py` happened to be in the same selection, which is a
+    # control that passes or fails on which other files you ran.
+    for module_name, attribute in _LEAKING_STATE_CONSTANTS:
+        _reroot(importlib.import_module(module_name), attribute)
 
 
 @pytest.fixture(autouse=True)
