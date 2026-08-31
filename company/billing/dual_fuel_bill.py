@@ -64,10 +64,52 @@ def _load_de_minimis() -> dict[str, float]:
     return out
 
 
+_VAT_RATES_COMMONS = _VAT_DE_MINIMIS_COMMONS.with_name("uk_vat_rates.json")
+
+
+def _load_vat_rates() -> dict[str, float]:
+    """`{band: rate}` from the regulation commons — the PERCENTAGES, which 701/19 does not carry.
+
+    A SECOND ARTEFACT ON PURPOSE. VAT Notice 701/19 names "the reduced rate" and "the standard
+    rate" and states neither figure; it points at `gov.uk/vat-rates`. Reading both is what makes
+    this module's rate decision fully sourced instead of half-sourced, and keeping them apart is
+    what stops the notice's citation being attached to figures it never published.
+
+    Raises on every failed read, for the reason `_load_de_minimis` gives.
+    """
+    if not _VAT_RATES_COMMONS.exists():
+        raise FileNotFoundError(
+            f"UK VAT rates commons missing: {_VAT_RATES_COMMONS}. There is no invented default "
+            "for a tax rate."
+        )
+    raw = json.loads(_VAT_RATES_COMMONS.read_text())
+    bands = raw.get("rates")
+    if not isinstance(bands, dict) or not {"reduced", "standard"} <= set(bands):
+        raise ValueError(
+            f"{_VAT_RATES_COMMONS} must publish at least `reduced` and `standard` rates"
+        )
+    out = {}
+    for band, entry in bands.items():
+        rate = entry.get("rate") if isinstance(entry, dict) else None
+        if not isinstance(rate, (int, float)) or not 0.0 <= rate <= 1.0:
+            raise ValueError(f"{_VAT_RATES_COMMONS} carries no usable `rate` for band {band!r}")
+        out[band] = float(rate)
+    return out
+
+
+VAT_RATES = _load_vat_rates()
+
+#: SEGMENT DEFAULTS, DERIVED FROM THE PUBLISHED BANDS rather than restated as literals. The mapping
+#: from a market segment to a band is this lane's READING and is where the simplification lives:
+#: `resi` is domestic and unconditionally reduced-rated; `I&C` is business at scale and never near
+#: a de minimis limit; `SME` is the only one where the answer depends on consumption, and every
+#: caller that HAS a consumption figure goes through `_sme_vat_rate` instead of this table. The
+#: entry here is what an SME leg falls back to when no daily volume is available, and it is the
+#: REDUCED rate deliberately: over-charging a customer is the error that takes their money.
 VAT_RATE_BY_MARKET: dict[str, float] = {
-    "resi": 0.05,
-    "SME": 0.05,
-    "I&C": 0.20,
+    "resi": VAT_RATES["reduced"],
+    "SME": VAT_RATES["reduced"],
+    "I&C": VAT_RATES["standard"],
 }
 
 #: THE VAT DE MINIMIS, PER FUEL, AND THE TWO FUELS ARE NOT THE SAME NUMBER.

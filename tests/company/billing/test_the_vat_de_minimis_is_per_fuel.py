@@ -164,3 +164,68 @@ def test_the_commons_still_carries_its_SOURCE_and_its_declared_gaps():
         "the artefact must keep saying what it does NOT establish — whether the limits moved "
         "across 2016-2025 is unchecked, and an artefact that drops its own gaps reads as complete"
     )
+
+
+def _rates_commons() -> dict:
+    return json.loads(dfb._VAT_RATES_COMMONS.read_text())
+
+
+def test_the_RATES_come_from_their_own_artefact_and_the_segment_table_is_DERIVED():
+    """The percentages are a second published document, and the segment map must not restate them.
+
+    VAT Notice 701/19 names "the reduced rate" and "the standard rate" and states NEITHER figure —
+    it points at gov.uk/vat-rates. Two documents, two artefacts. A module that reads the de minimis
+    from the notice and then hard-codes 0.05 beside it has attached the notice's citation to a
+    figure it never published.
+
+    MUTATION: write `0.05` or `0.20` as a literal anywhere in `VAT_RATE_BY_MARKET`, and this fires.
+    """
+    published = _rates_commons()["rates"]
+    assert dfb.VAT_RATES["reduced"] == published["reduced"]["rate"]
+    assert dfb.VAT_RATES["standard"] == published["standard"]["rate"]
+
+    assert dfb.VAT_RATE_BY_MARKET["resi"] == dfb.VAT_RATES["reduced"], (
+        "domestic supply is reduced-rated unconditionally and must be DERIVED from the published "
+        "band, not restated"
+    )
+    assert dfb.VAT_RATE_BY_MARKET["I&C"] == dfb.VAT_RATES["standard"]
+    assert REDUCED < STANDARD, "the reduced band is not below the standard band"
+
+
+def test_the_rates_loader_REFUSES_rather_than_defaulting(tmp_path, monkeypatch):
+    """There is no invented default for a tax rate.
+
+    MUTATION: return `{"reduced": 0.05, "standard": 0.20}` on a failed read and this fires.
+    """
+    monkeypatch.setattr(dfb, "_VAT_RATES_COMMONS", tmp_path / "absent.json")
+    with pytest.raises(FileNotFoundError):
+        dfb._load_vat_rates()
+
+    partial = tmp_path / "partial.json"
+    partial.write_text(json.dumps({"rates": {"reduced": {"rate": 0.05}}}))
+    monkeypatch.setattr(dfb, "_VAT_RATES_COMMONS", partial)
+    with pytest.raises(ValueError):
+        dfb._load_vat_rates()
+
+    impossible = tmp_path / "impossible.json"
+    impossible.write_text(json.dumps({"rates": {"reduced": {"rate": 0.05}, "standard": {"rate": 7}}}))
+    monkeypatch.setattr(dfb, "_VAT_RATES_COMMONS", impossible)
+    with pytest.raises(ValueError):
+        dfb._load_vat_rates()
+
+
+def test_the_rates_artefact_keeps_its_SOURCE_and_says_what_it_does_not_establish():
+    """Including the one gap that matters: nobody has checked these rates held across 2016-2025.
+
+    MUTATION: strip `source` or the NOT_ESTABLISHED list and this fires.
+    """
+    raw = _rates_commons()
+    assert raw["source"]["url"].startswith("https://www.gov.uk/vat-rates")
+    assert raw["source"]["fetched"]
+    for band in ("reduced", "standard", "zero"):
+        assert raw["rates"][band]["quoted"], f"{band} lost the words it was read from"
+    gaps = raw["NOT_ESTABLISHED_declared_rather_than_assumed"]
+    assert gaps and any("2016" in g for g in gaps), (
+        "the artefact must keep declaring that WHEN these rates last changed is unchecked — "
+        "today's rates are being used for every modelled year on an unverified assumption"
+    )

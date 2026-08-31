@@ -1,0 +1,36 @@
+{
+  "artefact": "uk_vat_rates",
+  "version": 1,
+  "published_by": "HM Government (GOV.UK)",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The three current UK VAT rates as percentages, and the fact that domestic fuel and power falls in the reduced band. Nothing here decides WHICH rate a given supply attracts — that is a reading, and for fuel and power it needs `vat_fuel_and_power_de_minimis.json` as well as this.",
+  "source": {
+    "document": "VAT rates on different goods and services",
+    "url": "https://www.gov.uk/vat-rates",
+    "fetched": "2026-08-31"
+  },
+  "rates": {
+    "standard": {
+      "rate": 0.20,
+      "percent": "20%",
+      "quoted": "Most goods and services"
+    },
+    "reduced": {
+      "rate": 0.05,
+      "percent": "5%",
+      "quoted": "Some goods and services, for example, children's car seats and home energy"
+    },
+    "zero": {
+      "rate": 0.0,
+      "percent": "0%",
+      "quoted": "Zero-rated goods and services, for example, most food and children's clothes"
+    }
+  },
+  "domestic_fuel_and_power_is_REDUCED_rate": "The reduced band explicitly names home energy. Business supply is standard-rated UNLESS it is domestic-use or falls under its fuel's de minimis — see vat_fuel_and_power_de_minimis.json, which is the other half of the rule and cannot be inferred from this artefact.",
+  "WHY_THIS_IS_A_SEPARATE_ARTEFACT_FROM_THE_DE_MINIMIS": "VAT Notice 701/19 names 'the reduced rate' and 'the standard rate' and states NEITHER percentage — it points at this page. Copying 0.05 and 0.20 into the de minimis artefact would have attached that notice's citation to figures it does not carry, which is how an unsourced number acquires a source it never had. Two documents, two artefacts, and a reading that needs both says so.",
+  "NOT_ESTABLISHED_declared_rather_than_assumed": [
+    "WHEN these rates last changed, and therefore whether they held across 2016-2025. The standard rate has been 20% since 2011-01-04 and the domestic fuel reduced rate 5% since 1997-09-01 by common knowledge, but THIS PAGE STATES NEITHER DATE and no dated source has been read for them. Anything in this repository modelling a year before 2026 is using today's rates for that year on an unchecked assumption. This matters less than it looks — the window is 2016-2025 and both rates are believed stable across it — but 'believed stable' is not 'established', and the gap is declared rather than closed by assertion.",
+    "The temporary reduced rate applied to hospitality in 2020-2021 is irrelevant to fuel and power and is not modelled; noted so a reader does not think it was missed."
+  ],
+  "r13_wall": "BASELINE. External published law. It does not change because a company result looks wrong.",
+  "portability": "Any lane may read this. It answers 'what is the reduced rate', never 'does this supply get it'."
+}
