@@ -805,3 +805,133 @@ published — it is NESO's factor table on metered truth — and
 `docs/observability/ep13_per_fuel_oracle_bound.json`. Controls:
 `tests/tools/test_ep13_per_fuel_oracle_bound.py`, 17 tests. Prediction filed before the run:
 `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_PER_FUEL_ORACLE_MUST_SHOW_2026-08-30.md`.
+
+---
+
+## 15. 2026-08-31 — the CCGT SWAP CEILING: the model knows WHEN gas runs, not HOW MUCH
+
+§14 ended by naming L3's build target — *a publishable proxy for within-day CCGT dispatch* — on the
+strength of a +0.193 measured by an oracle that **replaced the whole arithmetic at once**: factor
+mapping, denominator, fuel coverage, the must-run block, coal's dispatch and the CCGT efficiency
+band, with imports dropped from both sides. This project's own rule applies to its own instruments:
+*when a result moves and more than one thing changed, you cannot attribute it.* This is the
+one-variable version, and **it refutes the reading §14 was given.**
+
+### The instrument
+
+`tools/ep13_ccgt_swap_ceiling.py` re-implements `emissions_rate_t_per_mwh` line for line with one
+override point at `ccgt_mw`, and proves the copy with the override off: **max drift 0.0** against
+`gci.build_shape` on the same population. Read that first — without it every rung below is a second
+model, and the difference would be attributed to the substitution.
+
+**IT IS A CEILING, WHICH INVERTS §14.** §14's oracle was handicapped and bounded the input from
+*below*; a negative there retired nothing. This one hands the shipped model **perfect** knowledge of
+the exact quantity a proxy would approximate and changes nothing else, so no build of that class can
+beat it and a negative retires the target outright. Up to error cancellation, as always: a proxy
+whose errors offset the model's other errors could score above it, and one that does is fitting the
+residual rather than modelling gas.
+
+### THE RESULT
+
+Baseline is 0.7385 in 2024 rather than §14's 0.7425 because the population is restricted to half
+hours carrying a metered gas reading — the same restriction applied to **every** rung, so no gain
+below is partly a coverage difference.
+
+| year | baseline | **+TIMING** | +level | +full | flat gas | NULL | gas r | gas r *within* | model MW | true MW |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2019 | 0.8814 | **+0.0170** | −0.0637 | −0.0321 | −0.5427 | −0.2860 | 0.898 | 0.866 | 11,346 | 13,116 |
+| 2020 | 0.8726 | **+0.0209** | −0.0784 | −0.0608 | −0.4717 | −0.2928 | 0.902 | 0.866 | 9,330 | 10,974 |
+| 2021 | 0.9098 | **+0.0039** | −0.0407 | −0.0251 | −0.5026 | −0.3071 | 0.901 | 0.870 | 10,747 | 12,415 |
+| 2022 | 0.8725 | **+0.0232** | +0.0053 | +0.0077 | −0.2662 | −0.2336 | 0.823 | 0.825 | 9,498 | 12,366 |
+| 2023 | 0.8021 | **+0.0393** | +0.0595 | +0.1299 | −0.1492 | −0.2365 | 0.860 | 0.820 | 9,408 | 9,981 |
+| **2024** | **0.7385** | **+0.0485** | **+0.1162** | **+0.2163** | −0.1409 | −0.2192 | 0.832 | **0.807** | 8,846 | 8,339 |
+
+### THE NAMED BUILD TARGET IS CAPPED AT +0.05, AND IS RETIRED
+
+Perfect within-day CCGT timing, at the level the residual already decides, is worth **+0.0485 in
+2024** and +0.004 to +0.049 across the window. The distance still to be closed is the peer bound's:
+0.9711 − 0.7385 = **0.233**. The target §14 named closes **21% of it** at its theoretical best.
+
+**That is the fifth candidate retired by measuring its ceiling before building it** — after the
+biomass outage model, the merit-order programme, post-hoc recalibration and embedded generation —
+and it is the first retirement of a target this atom had already committed to. §14's floor could not
+have done it: a floor says "at least this much is there" and never "no more than this".
+
+### WHERE THE +0.193 ACTUALLY LIVES
+
+Decomposed on the shipped model, in 2024: **timing +0.0485, level +0.1162, both together +0.2163.**
+The level is worth **2.4×** the timing, and the two interact for a further +0.052.
+
+The direct diagnostic on the MW series says the same thing without any of the shape machinery: **the
+model's implied gas already tracks the metered series within days at r = 0.807–0.870**, falling only
+0.06 across six years. §14's ablation ladder established that the *grid's* within-day information is
+in CCGT — that stands, and nothing here disturbs it. What does not stand is the sentence it was read
+as: *the model cannot see when gas runs.* It sees most of it.
+
+**Flattening gas inside the day costs 0.14–0.54.** So within-day gas variation carries most of this
+shape's correlation, and the reconstruction already holds all but 0.05 of the attainable part. Both
+facts are needed together and either alone misleads.
+
+### THE DECAY, EXPLAINED A THIRD TIME AND DIFFERENTLY
+
+Eight passes read the fall from 0.88 to 0.74 as the model getting worse. §14 read it as the
+information migrating into a fuel the model cannot see. This says which *property* of that fuel
+migrated: within-day r falls only 0.866 → 0.807, while the level rung's worth goes **−0.064 → +0.116**.
+And the bias flips sign — in 2019 the model dispatches 11,346 MW of gas against a true 13,116
+(**13% low**); in 2024 it dispatches 8,846 against 8,339 (**6% high**).
+
+**The reconstruction did not stop knowing when gas runs. It started being wrong about how much.**
+
+### ONLY ONE RUNG IS A CEILING, AND IT IS NOT THE BIGGEST NUMBER
+
+`ccgt_timing` is day-total preserving by construction, so the half hour is still met by the same
+energy and the substitution is genuinely one variable. **`ccgt_level` and `ccgt_full` are not**:
+they move the daily gas total without re-deciding the residual's other terms, so part of what they
+report is that disturbance. They point at an axis; they do not bound it. Stated here rather than in
+a footnote because the largest number in the table is one of them, and it is the one a later pass
+will be tempted to quote.
+
+### R15 — THIRTEEN TESTS, AND THE REAL RUN CAUGHT TWO CONTROL DEFECTS
+
+**The load-bearing test is inverted from the four negative bounds'.** They reported negatives, so
+their danger was an instrument that can only say "no headroom"; this reports a positive, so its
+danger is one that says "big headroom" whatever it is handed.
+`test_the_instrument_reports_NO_gain_when_THE_MODEL_ALREADY_HAS_THE_TIMING` hands it a truth series
+identical to the model's own and requires both the gain and the distinctness control to go to zero.
+
+**THE NULL CONTROL WAS KEYED TO A GUESSED ANSWER AND WENT RED AGAINST A SOUND INSTRUMENT.** The
+first draft asked for `abs(null gain) < 0.01` — "the null collapses to nothing". Scrambled timing
+does not sit at nothing: it replaces the model's own gas timing with *wrong* timing and must hurt,
+measured at −0.219 to −0.307. A control pinned to today's expected answer, going red because the
+world behaved correctly, is this project's own named failure shape and a fresh instance of it.
+Repaired to the property — *a null may not FLATTER* — plus a discrimination leg, because "did not
+gain" alone is satisfied by an instrument that reports one constant whatever it is handed.
+
+**`timing_beats_level` COMPARED AGAINST THE WRONG RUNG AND REPORTED TRUE IN EVERY YEAR.** The first
+draft had no level rung; it labelled `ccgt_day_mean` "the level-only rung", which it is not — it
+deletes within-day variation rather than isolating the level. The comparison was therefore against a
+destruction rung, and it read True in all six years including the two where the honest answer is
+False. **A comparison is only as good as the name of what it compares against**, and the repair was
+to build the complement (`ccgt_level`) rather than to reword the label.
+
+**One MISSING TEST found by mutation, and it was not the flattering finding.** Two mutations survived
+the first battery. `test_substituting_the_models_OWN_gas_changes_NOTHING` survived a uniform scale of
+the subject — established as an **equivalence**, since a targeted mutation of the override path fires
+it. The AST-walk test survived a plain substring search — established as a **missing test**: all four
+fixtures were real imports, on which a substring search and an AST walk agree. The leg that separates
+them is a source that *mentions* this module without importing it, which is every doc comment a later
+pass will write next to the feed pointing here; a substring search would call that a leak, and the
+cheapest repair would be deleting the pointer a reader needs.
+
+### NEXT, named as a hypothesis and NOT built
+
+**The daily and seasonal LEVEL of gas**, worth +0.116 in 2024 on a rung that is a diagnostic rather
+than a bound. Two things must happen before it is a target: a proper ceiling on it, with the residual
+re-decided so the energy balance holds, and a check that it is *publishable* — a daily gas figure is
+a far softer thing to proxy from outside than a half-hourly dispatch, which is the first time this
+atom's next candidate has looked easier rather than harder.
+
+**No level move. LAW A.** Reproduce: `python3 -m tools.ep13_ccgt_swap_ceiling` →
+`docs/observability/ep13_ccgt_swap_ceiling.json`. Controls:
+`tests/tools/test_ep13_ccgt_swap_ceiling.py`. Preregistration and its scorecard, one confirmed of
+five: `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_CCGT_SWAP_CEILING_MUST_SHOW_2026-08-31.md`.
