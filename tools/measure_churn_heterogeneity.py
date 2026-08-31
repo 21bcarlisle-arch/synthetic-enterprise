@@ -38,7 +38,30 @@ evidence that service does not drive departures -- it is evidence that the varia
 until it could not carry the difference. Those are different findings and only the tie fraction
 tells them apart.
 
+THE COMPANY IS GRADED HERE TOO, AND ONLY BECAUSE IT IS THE SAME ROWS (2026-08-31). The ceiling was
+measured before the company's belief could be put beside it: 0.6760 and the A/B's 0.4653 came from
+different populations and different runs, and two true numbers whose legs are different populations
+do not have a difference. So the belief is fed to THIS file's `within_strata_auc` and
+`permutation_null` -- same rows, same strata, same seed -- and the readings are split by route,
+because the two routes are not the same experiment:
+
+  * the RENEWAL route is partly tautological. `roll_lifecycle_event` seeds `effective_p_retain`
+    from the same `build_churn_risk` number it then grades, so that leg measures whether the
+    world's adjustment chain preserves the ordering of the base rate it was handed. It is published
+    as that, on the surface, not in a footnote. `company_churn_estimate` is the independent leg on
+    the same rows and does not feed the roll.
+  * the SVT route carries no company belief at all. `build_churn_risk` is indexed on renewal
+    anniversaries and `run_phase2b`'s SVT branch consults no company estimate, so the 61% of this
+    book's departures that leave by drifting off the standard variable product are invisible to the
+    company's churn model. That absence is the finding, and it is stated rather than left as a
+    missing column.
+
+No ratio, share or "fraction of the ceiling captured" is emitted unless both legs count one
+population AND the belief is independent of the roll -- see `ceiling_vs_belief`, which refuses with
+a named cause rather than publishing a capture rate that is the world reading back its own input.
+
 Usage:  python3 -m tools.measure_churn_heterogeneity [factor_table.json] [--permutations N]
+                 [--run-output=PATH] [--out=PATH]
 """
 from __future__ import annotations
 
@@ -56,6 +79,9 @@ PROJECT = Path(__file__).resolve().parent.parent
 #: The two-route capture taken for the ladder assessment. `c2_departure_factors.json` is the older,
 #: renewal-only table and is still readable with `whole_book=False`.
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "ladder_churn_factors.json"
+#: The finished run the independent company belief is joined from -- see `attach_company_beliefs`,
+#: which refuses unless it is the same run that produced the capture.
+DEFAULT_RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
 #: The per-household factors that reach `departure_risks.build_departure_risks`, and the modulators
 #: that scale them. Each is checked ALONE and HELD OUT, because those answer different questions: a
@@ -345,6 +371,318 @@ ROUTE_FACTORS = {
 }
 
 
+#: The company-side beliefs that exist at a renewal decision. TWO, and they are not the same claim
+#: -- which is the whole reason this leg is split rather than reported as "the company's AUC".
+#:
+#: `seeds_the_world_roll` is the field that decides what a reading MEANS, so it travels with the
+#: belief rather than living in a caveat a reader may not reach.
+#: The ONE belief field that `attach_company_beliefs` supplies from the run output, named rather
+#: than left inline — because it is exactly the set that becomes unavailable when the join refuses.
+#: Everything else in `COMPANY_BELIEFS` is already on the capture row and is gradable whatever the
+#: join does, which is a distinction the first run of
+#: `tests/tools/test_the_ceiling_refuses_an_illegal_ratio.py` forced into the open: an over-broad
+#: reading of "the join refused" would have marked a belief unavailable that never depended on it.
+#: Captures taken from 2026-08-31 record this field directly, so the join — and this constant —
+#: retire once no older capture is in use.
+JOIN_SUPPLIED_FIELD = "company_churn_estimate"
+
+COMPANY_BELIEFS = (
+    {
+        "field": "churn_probability",
+        "label": "saas.churn_model.build_churn_risk (BASE + k x UPLIFT), logged per renewal",
+        "seeds_the_world_roll": True,
+        "reading": (
+            "`simulation.customer_events.roll_lifecycle_event` seeds the world's "
+            "`effective_p_retain` FROM this number and then multiplies it through the passive cap, "
+            "the market-year switching multiplier, the price-position multiplier, income stress "
+            "and satisfaction. Grading it against the outcome is therefore NOT a forecast against "
+            "an unrelated tally: it measures whether the world's own adjustment chain preserves "
+            "the ordering of the base rate it was handed. A weaker claim, and the honest one."
+        ),
+    },
+    {
+        "field": "company_churn_estimate",
+        "field_optional": True,
+        "label": "company.crm.churn_model.estimate_churn_probability (rate move, bill stress, tenure)",
+        "seeds_the_world_roll": False,
+        "reading": (
+            "This one does NOT feed the roll -- `roll_lifecycle_event` computes it, stamps it on "
+            "the event and never multiplies it into `effective_p_retain`. It is the independent "
+            "leg on the renewal route, and the only renewal-route reading that can be compared to "
+            "the ceiling without the tautology above."
+        ),
+    },
+)
+
+#: Routes on which the company forms a belief at all. `build_churn_risk` is indexed on RENEWAL
+#: ANNIVERSARIES (`saas.churn_model._renewal_periods` walks `acquisition_date + n x 365 days`), so
+#: a household drifting off the standard variable product at a segment boundary has no entry in it
+#: -- and `run_phase2b`'s SVT branch consults no company belief of any kind, building its hazard
+#: with `bill_shock_base=0.0, price_response=0.0, dissatisfaction_response=0.0`.
+#:
+#: LISTED AS A STRUCTURAL FACT, NOT AS A MISSING COLUMN. "The capture has no belief field on this
+#: route" and "the company forms no belief on this route" are different findings, and only naming
+#: the second stops the first being read as a data-collection gap someone could close by adding a
+#: column. It cannot be closed that way: there is no number to record.
+ROUTES_WITH_A_COMPANY_BELIEF = ("renewal",)
+
+
+def attach_company_beliefs(rows: list[dict], run_output: Path) -> tuple[list[dict], dict]:
+    """Join the run's `company_churn_estimate` onto the captured rows, or refuse.
+
+    WHY A JOIN AT ALL, AND WHY IT IS GUARDED THIS HARD. `capture_departure_factors` did not record
+    `company_churn_estimate` (it does from this commit; every capture taken before it does not), so
+    the independent renewal-route belief lives only on the published run output. Joining two
+    artefacts is exactly how this project has published a figure whose legs came from different
+    runs, so the join VERIFIES rather than trusts: every captured row must be present, and its
+    `realized_churn_probability` must agree to 1e-9 with the event log's. A world that was re-run
+    between the capture and the log disagrees on the first hazard and this refuses.
+
+    Returns `(rows, provenance)` unchanged and with `joined=False` when the field is already on the
+    capture -- so this becomes dead weight rather than a second code path once captures carry it.
+    """
+    field = JOIN_SUPPLIED_FIELD
+    renewals = [r for r in rows if r.get("route", "renewal") == "renewal"]
+    if renewals and all(field in r for r in renewals):
+        return rows, {"joined": False, "reason": "the capture already carries the field"}
+    try:
+        events = json.loads(run_output.read_text()).get("customer_events")
+    except FileNotFoundError as exc:
+        raise Unreadable(f"no run output at {run_output} to join the independent belief from") from exc
+    if not isinstance(events, list) or not events:
+        raise Unreadable(f"{run_output} publishes no `customer_events` to join")
+    by_key = {(e.get("customer_id"), e.get("event_date")): e for e in events if isinstance(e, dict)}
+
+    missing, disagreed = 0, 0
+    joined = []
+    for row in rows:
+        if row.get("route", "renewal") != "renewal":
+            joined.append(row)
+            continue
+        event = by_key.get((row["customer_id"], row["event_date"]))
+        if event is None:
+            missing += 1
+            joined.append(row)
+            continue
+        truth = event.get("realized_churn_probability")
+        if not isinstance(truth, (int, float)) or abs(truth - row["realized_churn_probability"]) > 1e-9:
+            disagreed += 1
+            joined.append(row)
+            continue
+        joined.append(dict(row, **{field: event.get(field)}))
+    if missing or disagreed:
+        raise Unreadable(
+            f"the capture and {run_output} are not the same run: {missing} captured renewals are "
+            f"absent from the event log and {disagreed} disagree on `realized_churn_probability`. "
+            "A belief joined across runs would be graded against outcomes it never saw."
+        )
+    return joined, {
+        "joined": True,
+        "from": str(run_output.relative_to(PROJECT)) if run_output.is_relative_to(PROJECT) else str(run_output),
+        "renewals_matched": len(renewals),
+        "verified_on": "realized_churn_probability, every row, to 1e-9",
+    }
+
+
+def belief_readings(rows: list[dict], route: str, permutations: int) -> list[dict]:
+    """Grade every company belief on ONE route, through the SAME estimator as the ceiling.
+
+    THIS IS THE POINT OF THE WHOLE FUNCTION AND IT IS ONE LINE OF CODE: the belief is fed to
+    `within_strata_auc` and `permutation_null` -- the identical stratified estimator, the identical
+    within-stratum shuffle, the identical seed, on the identical rows -- as the world's own hazard.
+    The published 0.4653 could not be put beside the ceiling because it was a POOLED statistic on a
+    different population from a different run, and two true numbers whose legs are different
+    populations do not have a difference. Same rows, same strata, same null, or no comparison.
+
+    A route on which the company forms no belief returns a REFUSAL carrying its cause, never an
+    empty list and never 0.5. "There is no belief here" and "the belief scored at chance" are
+    opposite findings and a reader must not have to tell them apart from a missing row.
+    """
+    out = []
+    for spec in COMPANY_BELIEFS:
+        field = spec["field"]
+        if route not in ROUTES_WITH_A_COMPANY_BELIEF:
+            out.append({
+                "belief": spec["label"],
+                "field": field,
+                "available": False,
+                "reason": (
+                    f"the company forms no belief on the {route} route. `build_churn_risk` is "
+                    "indexed on renewal anniversaries, and `run_phase2b`'s SVT branch builds its "
+                    "hazard with bill shock, price response and dissatisfaction all set to 0.0 "
+                    "and consults no company estimate. There is no number to grade, and that is "
+                    "the finding rather than a gap in the capture."
+                ),
+                "seeds_the_world_roll": spec["seeds_the_world_roll"],
+            })
+            continue
+        present = [r for r in rows if isinstance(r.get(field), (int, float))]
+        if len(present) != len(rows):
+            out.append({
+                "belief": spec["label"],
+                "field": field,
+                "available": False,
+                "reason": (
+                    f"{len(rows) - len(present)} of {len(rows)} decisions on this route carry no "
+                    f"`{field}`. Grading the rest would silently change the population out from "
+                    "under the ceiling it is being compared with."
+                ),
+                "seeds_the_world_roll": spec["seeds_the_world_roll"],
+            })
+            continue
+        score = lambda r, f=field: r[f]  # noqa: E731 — passed to the estimator, not called here
+        observed, pairs = within_strata_auc(rows, score)
+        null = permutation_null(rows, score, permutations)
+        out.append({
+            "belief": spec["label"],
+            "field": field,
+            "available": True,
+            "seeds_the_world_roll": spec["seeds_the_world_roll"],
+            "independent_of_the_outcome": not spec["seeds_the_world_roll"],
+            "reading": spec["reading"],
+            "decisions": len(rows),
+            "departures": sum(_label(r) for r in rows),
+            "pairs": pairs,
+            "belief_auc": observed,
+            "null": null,
+            "clears_the_null": observed is not None and observed > null["high"],
+            "verdict": (
+                "the belief orders who leaves"
+                if observed is not None and observed > null["high"]
+                else CANNOT_TELL
+            ),
+            "tie_fraction": tie_fraction(rows, field),
+            "distinct_values": len({r[field] for r in rows}),
+            "mean_believed": statistics.fmean(r[field] for r in rows),
+            "realised_rate": sum(_label(r) for r in rows) / len(rows),
+        })
+    return out
+
+
+def ceiling_vs_belief(route_entry: dict) -> dict:
+    """Put the ceiling beside each belief on one route, and REFUSE the ratio unless it is legal.
+
+    Three conditions, all required, and the refusal names which one failed:
+
+    * **one population.** The belief and the ceiling must be the same decisions. A "fraction of the
+      ceiling captured" whose numerator counts 144 renewals and whose denominator counts 1,410
+      decisions across both routes is the exact move this repository has published wrongly before.
+    * **independence.** A belief that SEEDS the world's roll and then scores well against it has
+      measured the world reading back its own input. Normalising that onto the ceiling would
+      publish a tautology as a capture rate, and the number would be quoted long after the sentence
+      explaining it was dropped.
+    * **the belief clears its own null.** A reading inside its null is `CANNOT_TELL`, and dividing
+      a cannot-tell by a ceiling produces a percentage that reads as a finding -- the rank-statistic
+      failure this project already has a rule for. On this book `company_churn_estimate` scores
+      0.4988 inside `[0.3829, 0.6241]`; the ratio it yields is **-0.5%**, a number with the
+      authority of a measurement and the content of noise. It is refused, not rounded to zero.
+
+    `excess_over_chance_captured` is therefore `None` on this book for BOTH beliefs, for different
+    reasons, and each is printed beside the reading it refuses. The two AUCs are published side by side with their
+    populations named instead -- which is what the direction asked for and what the ladder page
+    refused to do without it.
+    """
+    ceiling = route_entry.get("oracle_auc")
+    out = []
+    for belief in route_entry.get("company_belief", []):
+        if not belief.get("available"):
+            out.append({
+                "belief": belief["belief"],
+                "field": belief["field"],
+                "ceiling_auc": ceiling,
+                "belief_auc": None,
+                "excess_over_chance_captured": None,
+                "refused_because": belief["reason"],
+            })
+            continue
+        same_population = belief["decisions"] == route_entry["decisions"]
+        independent = belief["independent_of_the_outcome"]
+        clears = belief["clears_the_null"]
+        reasons = []
+        if not same_population:
+            reasons.append(
+                f"the belief counts {belief['decisions']} decisions and the ceiling "
+                f"{route_entry['decisions']}: not one population"
+            )
+        if not independent:
+            reasons.append(
+                "the belief seeds the world's own roll, so a captured fraction would be the world "
+                "reading back its own input"
+            )
+        if not clears:
+            reasons.append(
+                f"the belief reads {belief['belief_auc']:.4f} INSIDE its null "
+                f"[{belief['null']['low']:.4f}, {belief['null']['high']:.4f}] — a fraction of the "
+                "ceiling computed from a cannot-tell is a percentage that reads as a finding"
+            )
+        legal = same_population and independent and clears and ceiling is not None and ceiling > 0.5
+        out.append({
+            "belief": belief["belief"],
+            "field": belief["field"],
+            "ceiling_auc": ceiling,
+            "belief_auc": belief["belief_auc"],
+            "one_population": same_population,
+            "independent": independent,
+            "clears_its_null": clears,
+            "excess_over_chance_captured": (
+                (belief["belief_auc"] - 0.5) / (ceiling - 0.5) if legal else None
+            ),
+            "refused_because": None if legal else "; ".join(reasons) or "the ceiling is not above chance",
+        })
+    return {"route": route_entry.get("route"), "readings": out}
+
+
+#: The field carrying how long each SVT segment lasted. Exposure, in the survival-analysis sense.
+EXPOSURE_FIELD = "sim_segment_days"
+
+
+def exposure_offset(rows: list[dict], score_with, factors, permutations: int) -> dict:
+    """The SVT route's reading with EXPOSURE divided out, and the per-factor table recomputed on it.
+
+    WHY. An SVT segment runs from 1 to 92 days and a longer segment is simply more time in which to
+    leave. That is not a hidden reason of anyone's own -- it is the billing calendar -- so any part
+    of the route's discrimination it explains must come off before a per-factor figure is quoted as
+    heterogeneity. Measured on this book: segment length ALONE scores 0.5868 against a null topping
+    out at 0.5866. It clears by 0.0002, sitting on its own boundary: present, small, and real.
+
+    THE OFFSET IS A DIVISION, NOT A STRATIFICATION, AND THAT IS DELIBERATE. `sim_svt_inertia` is a
+    published annual rate converted to the segment's length, so the hazard is very nearly linear in
+    days; dividing by days is the offset that matches how the quantity was built. Stratifying on
+    length instead would cut the 1,266 decisions into 90-odd strata of a handful of rows each and
+    the reading would be thin rather than corrected.
+
+    THE PER-FACTOR TABLE IS RECOMPUTED HERE RATHER THAN CAVEATED. A caution recorded beside a table
+    is a caution nobody applies; the corrected numbers are the ones a reader meets.
+    """
+    bad = [r for r in rows if not isinstance(r.get(EXPOSURE_FIELD), (int, float)) or r[EXPOSURE_FIELD] <= 0]
+    if bad:
+        raise Unreadable(
+            f"{len(bad)} SVT decisions carry no positive `{EXPOSURE_FIELD}`: exposure cannot be "
+            "offset, and quoting the uncorrected per-factor table instead would be the fail-open"
+        )
+    per_day = lambda r, **o: score_with(r, **o) / r[EXPOSURE_FIELD]  # noqa: E731 — passed on
+    observed, pairs = within_strata_auc(rows, per_day)
+    null = permutation_null(rows, per_day, permutations)
+    length, _ = within_strata_auc(rows, lambda r: r[EXPOSURE_FIELD])
+    length_null = permutation_null(rows, lambda r: r[EXPOSURE_FIELD], permutations)
+    return {
+        "offset": "hazard divided by segment days, i.e. a per-exposure-day rate",
+        "oracle_auc_per_exposure_day": observed,
+        "null": null,
+        "clears_the_null": observed is not None and observed > null["high"],
+        "pairs": pairs,
+        "segment_length_alone": length,
+        "segment_length_null": length_null,
+        "segment_length_clears": length is not None and length > length_null["high"],
+        "per_factor": _factor_decomposition(rows, factors, per_day, null, observed),
+        "reading": (
+            "Per-factor figures on the SVT route are quoted from THIS table, not from the "
+            "uncorrected one above. The difference between the two oracle readings is the part of "
+            "the route's discrimination that was the billing calendar rather than the household."
+        ),
+    }
+
+
 def _factor_decomposition(rows: list[dict], factors, score_with, null: dict, observed: float) -> dict:
     """ALONE and HELD OUT readings for each factor, plus the tie fraction that bounds both."""
     means = {f: statistics.fmean(r[f] for r in rows) for f in factors}
@@ -364,7 +702,11 @@ def _factor_decomposition(rows: list[dict], factors, score_with, null: dict, obs
     return out
 
 
-def report(path: Path = DEFAULT_TABLE, permutations: int = DEFAULT_PERMUTATIONS) -> dict:
+def report(
+    path: Path = DEFAULT_TABLE,
+    permutations: int = DEFAULT_PERMUTATIONS,
+    run_output: Path = DEFAULT_RUN_OUTPUT,
+) -> dict:
     """The whole rung-3 reading for one captured book.
 
     THE HEADLINE IS STRATIFIED BY YEAR **AND ROUTE**, which is the conservative choice and the
@@ -381,6 +723,30 @@ def report(path: Path = DEFAULT_TABLE, permutations: int = DEFAULT_PERMUTATIONS)
     )
 
     rows = load(path)
+    # THE BELIEF LEG MAY REFUSE; THE CEILING MUST NOT REFUSE WITH IT (2026-08-31).
+    # `attach_company_beliefs` raises when the capture and the run output are not the same run,
+    # and that refusal is right -- a belief graded against outcomes it never saw is worthless.
+    # But it was allowed to propagate out of `report`, and the ceiling does not depend on the
+    # belief at all: the landed rung-3 control calls `report()` with no run output of its own and
+    # ERRORED on every leg, tree-wide, blocking every lane. Correct refusal, wrong blast radius --
+    # the same class as `project_fail_closed_on_unreadable_input`, arriving from the other side.
+    #
+    # So the refusal is CAUGHT AND CARRIED rather than swallowed: `company_belief_provenance`
+    # holds its cause verbatim, and `belief_readings` then reports every belief as unavailable
+    # with the reason attached, because no row carries the field. Nothing reads as chance and
+    # nothing reads as absent-without-explanation.
+    try:
+        rows, belief_provenance = attach_company_beliefs(rows, run_output)
+    except Unreadable as exc:
+        belief_provenance = {
+            "joined": False,
+            "refused": str(exc),
+            "consequence": (
+                "every company-belief reading below is unavailable. The CEILING readings are "
+                "unaffected: they are computed from the capture alone and never touch the run "
+                "output."
+            ),
+        }
     realised = lambda r: r["realized_churn_probability"]  # noqa: E731 — one expression, named twice below
 
     observed, pairs = within_strata_auc(rows, realised)
@@ -431,6 +797,12 @@ def report(path: Path = DEFAULT_TABLE, permutations: int = DEFAULT_PERMUTATIONS)
             "clears_the_null": route_observed is not None and route_observed > route_null["high"],
             "per_factor": _factor_decomposition(sub, factors, score_with, route_null, route_observed),
         }
+        entry["route"] = route
+        # THE COMPANY LEG, ON THE SAME ROWS AND THE SAME STRATA AS THE CEILING DIRECTLY ABOVE IT.
+        entry["company_belief"] = belief_readings(sub, route, permutations)
+        entry["ceiling_vs_belief"] = ceiling_vs_belief(entry)
+        if route == "svt_segment":
+            entry["exposure_offset"] = exposure_offset(sub, score_with, factors, permutations)
         if route == "renewal":
             # The anchor counterfactual: the same reading with the year's level term flattened to
             # 1.0. It lives here rather than in a one-off script because it is the answer to the
@@ -457,6 +829,15 @@ def report(path: Path = DEFAULT_TABLE, permutations: int = DEFAULT_PERMUTATIONS)
         "variance": variance_split(rows),
         "variance_year_only": variance_split(rows, by_year),
         "per_route": per_route,
+        "company_belief_provenance": belief_provenance,
+        "departures_on_routes_the_company_has_no_belief_for": {
+            "departures": sum(
+                d["departures"] for r, d in per_route.items()
+                if r not in ROUTES_WITH_A_COMPANY_BELIEF
+            ),
+            "of_total": sum(_label(r) for r in rows),
+            "routes": [r for r in per_route if r not in ROUTES_WITH_A_COMPANY_BELIEF],
+        },
         "stratified_by": "calendar year AND departure route",
         "structural_terms_excluded_by_construction": list(YEAR_FACTORS) + ["route"],
     }
@@ -531,17 +912,123 @@ def _print(r: dict) -> None:
         "only this one frozen.\n  A factor tied on most pairs cannot discriminate however large "
         "its hazard is."
     )
+    _print_belief(r)
+
+
+def _print_exposure(e: dict) -> None:
+    """The exposure-corrected SVT table, with the uncorrected one explicitly deprecated in place."""
+    en = e["null"]
+    print(
+        f"\n     EXPOSURE OFFSET ({e['offset']}):\n"
+        f"       oracle per exposure-day = {e['oracle_auc_per_exposure_day']:.4f}   "
+        f"null [{en['low']:.4f}, {en['high']:.4f}]   clears: {e['clears_the_null']}"
+    )
+    print(
+        f"       segment length alone = {e['segment_length_alone']:.4f} against a null "
+        f"topping out at {e['segment_length_null']['high']:.4f} "
+        f"(clears: {e['segment_length_clears']}) — exposure is present and small"
+    )
+    print(
+        f"       {'factor':30s} {'ALONE':>7s} {'HELD OUT':>9s} {'CONTRIB':>8s} "
+        f"{'TIED PAIRS':>11s} {'VALUES':>7s}   ← quote THESE, not the uncorrected table"
+    )
+    for f, fd in e["per_factor"].items():
+        flag = "  (alone: inside its null)" if fd["inside_null_alone"] else ""
+        print(
+            f"       {f:30s} {fd['alone']:7.4f} {fd['held_out']:9.4f} "
+            f"{fd['contribution']:+8.4f} {fd['tie_fraction']:11.1%} "
+            f"{fd['distinct_values']:7d}{flag}"
+        )
+    if all(fd["inside_null_alone"] for fd in e["per_factor"].values()):
+        print(
+            "       ⚠ with exposure divided out, NEITHER factor alone clears its null while the "
+            "composed hazard does:\n         the route's remaining discrimination is in the "
+            "product, not in either term, and no single\n         factor from this table may be "
+            "quoted as carrying it."
+        )
+
+
+def _print_belief(r: dict) -> None:
+    """The company beside the ceiling, per route -- and the refusals in the same place as the reads.
+
+    Printed at the END and in full sentences because this is the comparison the ladder page refused
+    to make, and the two things that make it legal (one population, and which belief seeds the
+    world's roll) are exactly the two a reader drops when they quote a pair of numbers.
+    """
+    print("\n" + "=" * 78)
+    print("THE COMPANY BESIDE THE CEILING — same rows, same strata, same shuffle")
+    print("=" * 78)
+    nb = r["departures_on_routes_the_company_has_no_belief_for"]
+    for route, d in r["per_route"].items():
+        if d.get("departures", 0) == 0:
+            continue
+        print(f"\n  ── route: {route} ({d['decisions']} decisions, {d['departures']} departures)")
+        print(f"     CEILING (the world's own hazard)      {d['oracle_auc']:.4f}")
+        beliefs = d.get("company_belief", [])
+        if beliefs and not any(b.get("available") for b in beliefs):
+            # ONE STATEMENT, NOT ONE PER BELIEF. The cause is the route, not the field, so
+            # repeating it per field would read as several separate gaps rather than one absence.
+            print(f"     {'NO COMPANY BELIEF EXISTS ON THIS ROUTE':<37s} — nothing to grade")
+            print(f"       └ {beliefs[0]['reason']}")
+            print(
+                f"       └ fields checked and absent: "
+                f"{', '.join(b['field'] for b in beliefs)}"
+            )
+            if "exposure_offset" in d:
+                _print_exposure(d["exposure_offset"])
+            continue
+        for b in beliefs:
+            if not b.get("available"):
+                print(f"     {b['field']:<37s} NO BELIEF EXISTS")
+                print(f"       └ {b['reason']}")
+                continue
+            bn = b["null"]
+            seeds = "SEEDS THE WORLD'S ROLL" if b["seeds_the_world_roll"] else "independent of the roll"
+            print(
+                f"     {b['field']:<37s} {b['belief_auc']:.4f}   "
+                f"null [{bn['low']:.4f}, {bn['high']:.4f}]   {b['verdict']}"
+            )
+            print(
+                f"       └ {seeds}; ties {b['tie_fraction']:.1%}, {b['distinct_values']} distinct "
+                f"values, mean believed {b['mean_believed']:.4f} vs realised {b['realised_rate']:.4f}"
+            )
+        for c in d.get("ceiling_vs_belief", {}).get("readings", []):
+            if c["excess_over_chance_captured"] is not None:
+                print(
+                    f"     fraction of the ceiling's excess captured: "
+                    f"{c['excess_over_chance_captured']:.1%} ({c['belief']})"
+                )
+            else:
+                print(f"     NO RATIO PUBLISHED for {c['belief'].split(' (')[0]} — {c['refused_because']}")
+        if "exposure_offset" in d:
+            _print_exposure(d["exposure_offset"])
+    print(
+        f"\n  {nb['departures']} of {nb['of_total']} departures "
+        f"({nb['departures'] / nb['of_total']:.0%}) happen on {', '.join(nb['routes'])} — a route "
+        "the company's churn model does not form a belief about at all."
+    )
 
 
 def main(argv: list[str]) -> int:
     args = [a for a in argv if not a.startswith("--")]
     perms = DEFAULT_PERMUTATIONS
+    run_output = DEFAULT_RUN_OUTPUT
+    out = None
     for a in argv:
         if a.startswith("--permutations="):
             perms = int(a.split("=", 1)[1])
+        if a.startswith("--run-output="):
+            run_output = Path(a.split("=", 1)[1]).resolve()
+        if a.startswith("--out="):
+            out = Path(a.split("=", 1)[1]).resolve()
     path = Path(args[0]).resolve() if args else DEFAULT_TABLE
     try:
-        _print(report(path, perms))
+        result = report(path, perms, run_output)
+        _print(result)
+        if out is not None:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(result, indent=2) + "\n")
+            print(f"\nwrote {out}")
     except Unreadable as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2

@@ -63,6 +63,14 @@ def main(out_path: Path) -> int:
             "new_rate_gbp_per_mwh": kwargs.get("new_rate_gbp_per_mwh"),
             # And what the composed form actually produced from them.
             "churn_probability": event["churn_probability"],
+            # THE INDEPENDENT COMPANY BELIEF, AND IT IS HERE SO THE NEXT READING NEED NOT JOIN.
+            # `company.crm.churn_model.estimate_churn_probability` is the only company-side belief
+            # that does NOT seed `effective_p_retain`, so it is the one leg on this route that can
+            # be graded against the world's ceiling without the tautology `build_churn_risk` has.
+            # Captures taken before 2026-08-31 lack it, and `measure_churn_heterogeneity` joins it
+            # from the run output for those -- a cross-artefact join it has to verify row by row.
+            # Recording it here retires that join rather than leaving a second code path alive.
+            "company_churn_estimate": event.get("company_churn_estimate"),
             "realized_churn_probability": event["realized_churn_probability"],
             "effective_retention_probability": event["effective_retention_probability"],
             "price_differential_vs_market_reference": event.get(
