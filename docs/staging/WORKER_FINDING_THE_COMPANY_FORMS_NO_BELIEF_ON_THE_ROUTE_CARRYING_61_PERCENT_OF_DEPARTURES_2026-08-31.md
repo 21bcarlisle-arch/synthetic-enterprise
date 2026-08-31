@@ -91,3 +91,27 @@ takes a rate-move term, a bill-stress term and a tenure term. **So the question 
 company would need to see; it is why what it already sees produces no ordering.** That is the next
 measurement, and it is a decomposition of the company's own estimator against the same 144
 decisions — not a change to any constant. R12: every figure here is a diagnostic.
+
+---
+
+## MERGED IN, 2026-08-31: a duplicate of this finding was filed independently and is retired into it
+
+`WORKER_FINDING_THE_COMPANY_FORMS_NO_BELIEF_AT_ALL_ABOUT_61_PERCENT_OF_ITS_DEPARTURES_2026-08-31.md`
+(landed `9b3aa883b`, minutes after this one) is the same defect, found the same way, from the same
+capture. **The staging root is a ranked work queue, and two entries for one item mis-rank it** — so
+the duplicate is deleted rather than left beside this. This one is kept because it carries the
+control, the persisted artefact and the sharper next step; nothing is lost but the second copy.
+
+**The one thing the duplicate said that this did not, carried across:**
+
+> **The renewal leg cannot be re-read usefully until there are more departures.** At n=32 the null
+> is **[0.383, 0.624] — 0.24 wide**. No company-side improvement short of an enormous one could
+> move a reading outside that band, so *"we cannot tell"* here is a statement about the
+> **instrument's resolution**, not a verdict on the company. Re-running the same measurement after
+> a company change and reading the difference would be reading noise. A longer window or a larger
+> book is what makes this leg say anything, and that is a precondition on the next measurement
+> rather than a caveat under it.
+
+Same class as `project_instrument_resolution_is_seventeen`: what the instrument *could* have
+detected is part of the reading, and both this finding's legs are near that limit — the renewal leg
+by departure count, the SVT leg by having no belief to grade at all.
