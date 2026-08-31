@@ -49,6 +49,7 @@ from simulation.departure_risks import (
     total_departure_probability,
 )
 from simulation.market_switching_propensity import market_departure_rate
+from tools.departure_population import banner, declare
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
@@ -110,15 +111,57 @@ def fit_year_anchor(rows: list[dict], target: float) -> float:
     return (lo + hi) / 2.0
 
 
+def emission_refusal(decl: dict) -> str | None:
+    """Why this capture may not hand over a `YEAR_LEVEL_ANCHOR` block, or `None` if it may.
+
+    THE REFUSAL IS THE REPAIR, AND A PRINTED CAVEAT WOULD NOT HAVE BEEN. C1b's author wrote the
+    staleness down at the site, named this tool, and predicted exactly what would happen on the
+    next capture. It happened. So the debt carries something that FAILS: the per-year diagnostic
+    table below still prints, because a measurement withheld is a measurement nobody can argue
+    with, but the constant a reader would paste into `simulation/departure_level_anchor.py` does
+    not come out of a population that is not the book.
+
+    TWO DISTINCT REFUSALS, because they are two different states and a reader must be able to tell
+    them apart:
+
+      * **the capture cannot see the SVT route at all** -- it may or may not be the book, and this
+        tool cannot establish which. Fitting anyway would be asserting the thing that is unknown.
+      * **the capture CAN see it and the renewal route is a minority** -- measured 2026-08-31 at
+        39% of departures. Fitting here is worse than the staleness it appears to cure: the
+        households on the standard variable product never reach the renewal roll, so what is left
+        is the SELECTED subset who demonstrably shop, and anchoring their mean onto a
+        whole-population published rate fits the world to a sub-population.
+
+    What lifts it is item 1 of the finding and is not a wider band: a whole-book departure target
+    that both routes are fitted against together.
+    """
+    if not decl["covers_svt_route"]:
+        return (
+            "this table's population cannot be established as the book. " + decl["warning"]
+        )
+    share = decl["share_of_departures_visible"]
+    if share is not None and share < 1.0:
+        return (
+            f"the renewal route carries only {share:.0%} of the departures in this capture "
+            f"({decl['departures']}). Anchoring a mean over renewal decisions onto a "
+            f"whole-population published switching rate would fit the world to the SELECTED "
+            f"subset of households that reach a renewal roll at all."
+        )
+    return None
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     table_path = Path(args[0]) if args else DEFAULT_TABLE
-    rows = [r for r in json.loads(table_path.read_text())
-            if r.get("sim_bill_shock_base") is not None]
+    all_rows = json.loads(table_path.read_text())
+    rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)
     for r in rows:
         by_year[int(r["event_date"][:4])].append(r)
 
+    decl = declare(table_path, all_rows)
+    print(banner(decl))
+    print()
     print(f"factor table: {table_path}   ({len(rows)} renewals)")
     print(f"declared pair: a_shock={DECLARED_SHOCK_WEIGHT}  scale={DECLARED_SENSITIVITY_SCALE}")
     print()
@@ -135,6 +178,17 @@ def main(argv: list[str]) -> int:
         print(f"{year:>6} {len(year_rows):>4} {100.0 * target:>9.2f} {base:>13.3f} "
               f"{anchor:>9.4f} {achieved:>11.3f}")
     print()
+    refusal = emission_refusal(decl)
+    if refusal is not None:
+        print("  REFUSED — no YEAR_LEVEL_ANCHOR block is emitted from this capture.")
+        print(f"  Reason: {refusal}")
+        print("  The per-year table above is a DIAGNOSTIC on this population and is not the")
+        print("  world's level. Lifting this needs a whole-book departure target that both")
+        print("  routes are fitted against together — never a widened band, and never this")
+        print("  table pasted into simulation/departure_level_anchor.py. See item 1 of")
+        print("  docs/staging/WORKER_FINDING_C1B_ADDED_A_DEPARTURE_ROUTE_AND_EVERY_INSTRUMENT"
+              "_MEASURING_DEPARTURES_KEPT_READING_THE_OLD_POPULATION_2026-08-31.md.")
+        return 1
     print("  YEAR_LEVEL_ANCHOR: dict[int, float] = {")
     for year in sorted(fitted):
         print(f"    {year}: {fitted[year]:.6f},")

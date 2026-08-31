@@ -7,6 +7,42 @@
  "free_parameter": "a_shock -- the split of the price family between 'my own bill rose' and 'someone else is cheaper'. No domestic instrument separates them; Ofgem's Consumer Impacts survey codes both as one answer.",
  "level": "every point of the sweep is re-anchored onto the published GB domestic switching record, so the interval is over the reason mix alone and not over the level as well.",
  "basis": "EXPECTED shares, hazard-weighted over every renewal in the captured run. NOT the realised mix.",
+ "population": {
+  "table": "docs/reports/c2_departure_factors.json",
+  "svt_source": null,
+  "routes_readable": [
+   "renewal"
+  ],
+  "covers_svt_route": false,
+  "decisions": {
+   "renewal": 465
+  },
+  "departures": {
+   "renewal": 79
+  },
+  "total_departures_visible": 79,
+  "share_of_departures_visible": null,
+  "population": "renewal decisions only",
+  "causes_observable": [
+   "bill_shock",
+   "price_position",
+   "dissatisfaction"
+  ],
+  "causes_not_observable": [
+   "svt_inertia"
+  ],
+  "svt_unreadable_reason": "no SVT segment-decision file beside this table (c2_departure_factors_svt_segment_decisions.json). Either the capture predates C1b's `_svt_decisions` recorder or it was run against a tree without it.",
+  "warning": "this reading CANNOT SEE the SVT inertia route (C1b). It is the renewal-decision population only, which is no longer the whole book, and the cause it cannot see is the one `departure_risks` calls the single largest departure route in a real domestic book."
+ },
+ "causes_in_the_interval": [
+  "bill_shock",
+  "price_position",
+  "dissatisfaction"
+ ],
+ "causes_not_observable_on_this_population": {
+  "svt_inertia": null
+ },
+ "causes_not_observable_reason": "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a second departure route -- an account drifting off the standard variable product at a segment boundary -- which strikes no rate and reaches no renewal roll, so no row in this population can carry it. Its share here is UNKNOWN, not zero. On the two-route capture of 2026-08-31 it was 50 of 82 departures.",
  "sweep": {
   "a_shock=0.87,scale=0.000053": {
    "bill_shock": 0.999328887686843,

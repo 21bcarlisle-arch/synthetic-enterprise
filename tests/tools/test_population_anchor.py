@@ -3,9 +3,14 @@ import json
 from pathlib import Path
 
 from tools.population_anchor import (
-    generate, _churn_by_year, _bad_debt_check, _crisis_churn_direction,
-    _multiplier_alignment, _long_run_comparison,
-    OFGEM_SWITCHING_RATE, CALIBRATED_MULTIPLIER,
+    CALIBRATED_MULTIPLIER,
+    OFGEM_SWITCHING_RATE,
+    _bad_debt_check,
+    _churn_by_year,
+    _crisis_churn_direction,
+    _long_run_comparison,
+    _multiplier_alignment,
+    generate,
 )
 
 
@@ -54,7 +59,9 @@ def test_churn_by_year_empty():
 def test_churn_by_year_has_ofgem_benchmark():
     events = [_ev("C1", 2022, "renewed"), _ev("C2", 2022, "churned")]
     result = _churn_by_year(events)
-    assert result[2022]["ofgem_benchmark"] == OFGEM_SWITCHING_RATE[2022]
+    # Rounded at emission; the constant itself stays exactly its per-cent table over 100 so
+    # `test_every_unit_derived_reading_is_still_its_source_table_in_other_units` can assert it.
+    assert result[2022]["ofgem_benchmark"] == round(OFGEM_SWITCHING_RATE[2022], 4)
 
 
 def test_bad_debt_within_band_is_green():
@@ -229,4 +236,8 @@ def test_crisis_note_in_result():
 def test_churn_by_year_includes_ofgem_multiplier():
     events = [_ev("C1", 2016, "renewed"), _ev("C2", 2016, "churned")]
     result = _churn_by_year(events)
-    assert result[2016]["calibrated_multiplier"] == CALIBRATED_MULTIPLIER[2016]
+    # Rounded AT EMISSION, not in the constant. The constant is exactly
+    # OFGEM_SWITCHING_RATE_PCT_BY_YEAR[2016]/[2024] so its derivation control can assert equality;
+    # a 2dp constant would be a hand-authored number that merely resembles the ratio.
+    assert result[2016]["calibrated_multiplier"] == round(CALIBRATED_MULTIPLIER[2016], 2)
+    assert result[2016]["ofgem_benchmark_band_pct"] == [17.0, 17.6]

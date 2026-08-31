@@ -46,6 +46,7 @@ from simulation.departure_risks import (
     total_departure_probability,
 )
 from simulation.market_switching_propensity import market_departure_rate
+from tools.departure_population import ROUTE_CAUSES, ROUTE_RENEWAL, banner, declare
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
@@ -121,36 +122,78 @@ def _anchor_for(rows: list[dict], pair: tuple[float, float], target: float) -> f
     return (lo + hi) / 2.0
 
 
+#: The causes this sweep's population can express, and it is a STRICT SUBSET of `ORDERED_CAUSES`.
+#:
+#: WHY THE LIST IS NARROWED RATHER THAN LEFT TO COME OUT OF THE ARITHMETIC, and this is the trap
+#: that made the repair urgent. `build_departure_risks` defaults `svt_inertia` to 0.0 and no
+#: renewal row carries `sim_svt_inertia`, because a renewal decision is not an SVT segment. So
+#: sweeping over `ORDERED_CAUSES` would have published `svt_inertia: 0.0%` -- a well-formed number
+#: that every reader takes for "almost nobody leaves this way", when C1b measured it as 50 of 82
+#: departures on the same capture and `departure_risks` calls it the single largest departure route
+#: in a real domestic book. **A quantity this population cannot observe must arrive as `None` with
+#: a reason, never as a small number.**
+MIX_CAUSES = ROUTE_CAUSES[ROUTE_RENEWAL]
+
+#: Why the causes outside `MIX_CAUSES` are absent, carried into the artefact so the page can say it
+#: rather than a reader having to know it.
+UNOBSERVABLE_REASON = (
+    "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a "
+    "second departure route -- an account drifting off the standard variable product at a segment "
+    "boundary -- which strikes no rate and reaches no renewal roll, so no row in this population "
+    "can carry it. Its share here is UNKNOWN, not zero. On the two-route capture of 2026-08-31 it "
+    "was 50 of 82 departures."
+)
+
+
 def expected_mix(rows: list[dict], pair: tuple[float, float]) -> dict[str, float]:
     """Hazard-weighted expected cause shares over every renewal, at the record's level.
 
     EXPECTED, NOT REALISED, and the difference must survive to the page. The realised mix is a few
     hundred departures over a decade; the expected mix is what the hazards say across every
     renewal, and it is the only one with enough behind it to carry an interval at all.
+
+    OVER `MIX_CAUSES` AND NOT `ORDERED_CAUSES` -- see that constant for the number this would
+    otherwise have published. The shares still sum to one because the causes left out are exactly
+    the ones whose hazard is identically zero on every row of this population.
     """
     by_year: dict[int, list[dict]] = collections.defaultdict(list)
     for r in rows:
         by_year[int(r["event_date"][:4])].append(r)
-    agg = {c: 0.0 for c in ORDERED_CAUSES}
+    agg = {c: 0.0 for c in MIX_CAUSES}
     weight = 0.0
     for year, year_rows in by_year.items():
         anchor = _anchor_for(year_rows, pair, market_departure_rate(year))
         for r in year_rows:
             risks = _risks_for(r, pair, anchor)
             p = total_departure_probability(risks)
-            for c, sh in cause_shares(risks).items():
-                agg[c] += sh * p
+            shares = cause_shares(risks)
+            for c in MIX_CAUSES:
+                agg[c] += shares.get(c, 0.0) * p
+            # FAIL LOUD RATHER THAN QUIETLY RENORMALISE. If a cause outside `MIX_CAUSES` ever
+            # carries hazard on a renewal row, the three shares below no longer sum to one and the
+            # published interval silently becomes a share of a share. That is a finding about the
+            # hazard model, not a number to divide away.
+            leaked = {c: s for c, s in shares.items() if c not in MIX_CAUSES and s > 0.0}
+            if leaked:
+                raise SystemExit(
+                    f"a renewal row carries hazard on a cause this population cannot observe "
+                    f"({leaked}). The mix over {list(MIX_CAUSES)} would no longer sum to one. "
+                    f"Establish where that hazard came from before publishing anything."
+                )
             weight += p
-    return {c: agg[c] / weight for c in ORDERED_CAUSES} if weight else {}
+    return {c: agg[c] / weight for c in MIX_CAUSES} if weight else {}
 
 
 def main(table_path: Path) -> int:
-    rows = [r for r in json.loads(table_path.read_text())
-            if r.get("sim_bill_shock_base") is not None]
+    all_rows = json.loads(table_path.read_text())
+    rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
+    decl = declare(table_path, all_rows)
+    print(banner(decl))
+    print()
     print(f"rows: {len(rows)}   table: {table_path}")
     print(f"declared: a_shock={DECLARED_SHOCK_WEIGHT}  scale={DECLARED_SENSITIVITY_SCALE}")
     print()
-    print(f"{'a_shock':>9} {'scale':>10} " + " ".join(f"{c:>17}" for c in ORDERED_CAUSES))
+    print(f"{'a_shock':>9} {'scale':>10} " + " ".join(f"{c:>17}" for c in MIX_CAUSES))
     sweep: dict[str, dict[str, float]] = {}
     for pair in FEASIBLE_PAIRS:
         mix = expected_mix(rows, pair)
@@ -159,17 +202,23 @@ def main(table_path: Path) -> int:
                     and pair[1] == DECLARED_SENSITIVITY_SCALE)
         marker = "  <- the world runs here" if declared else ""
         print(f"{pair[0]:>9.2f} {pair[1]:>10.6f} "
-              + " ".join(f"{mix[c]:>16.1%}" for c in ORDERED_CAUSES) + marker)
+              + " ".join(f"{mix[c]:>16.1%}" for c in MIX_CAUSES) + marker)
     interval = {
         c: [min(m[c] for m in sweep.values()), max(m[c] for m in sweep.values())]
-        for c in ORDERED_CAUSES
+        for c in MIX_CAUSES
     }
+    unobservable = [c for c in ORDERED_CAUSES if c not in MIX_CAUSES]
     print()
     print("  THE INTERVAL, which is the figure that goes on the page:")
-    for c in ORDERED_CAUSES:
+    for c in MIX_CAUSES:
         lo, hi = interval[c]
         print(f"    {c:>16}: {lo:.1%} to {hi:.1%}")
+    for c in unobservable:
+        print(f"    {c:>16}: NOT OBSERVABLE on this population — not 0%, unknown")
     print()
+    if unobservable:
+        print(f"  {UNOBSERVABLE_REASON}")
+        print()
     print("  The width is not noise and it is not a confidence interval. It is the range the")
     print("  reason mix takes across every value of `a_shock` the evidence cannot rule out --")
     print("  the split between 'my own bill rose' and 'someone else is cheaper', which no")
@@ -193,6 +242,13 @@ def main(table_path: Path) -> int:
                  "the level as well.",
         "basis": "EXPECTED shares, hazard-weighted over every renewal in the captured run. NOT "
                  "the realised mix.",
+        # WHICH CAUSES THIS MIX CAN AND CANNOT SEE, machine-readable beside the interval rather
+        # than as prose somewhere else. Every reader of this artefact before 2026-08-31 was reading
+        # three of four causes as if they were four of four, and nothing in the file said otherwise.
+        "population": decl,
+        "causes_in_the_interval": list(MIX_CAUSES),
+        "causes_not_observable_on_this_population": {c: None for c in unobservable},
+        "causes_not_observable_reason": UNOBSERVABLE_REASON if unobservable else None,
         "sweep": sweep,
         "interval": interval,
     }, indent=1))

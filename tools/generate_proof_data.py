@@ -1531,6 +1531,23 @@ def _why_households_leave():
             f"a_shock={mix['declared_shock_weight']:.2f},"
             f"scale={mix['declared_sensitivity_scale']:.6f}"
         ]
+        # WHICH CAUSES THE MIX CANNOT SEE, read from the artefact and never assumed empty. C1b
+        # gave the world a second way to leave -- drifting off the standard variable product --
+        # and the mix is a decomposition of the RENEWAL hazard, so no row in its population can
+        # carry that cause. The row said "bill shock / price / service" and a reader took three of
+        # four causes for four of four. A blind spot stated on the surface is the whole point of
+        # this row's own surface; one left implicit is the defect it was built to prevent.
+        blind = list(mix.get("causes_not_observable_on_this_population") or {})
+        blind_note = (
+            (" AND IT IS NOT EVERY REASON. This is a decomposition of the RENEWAL hazard, and "
+             f"there are causes it structurally cannot see — {', '.join(blind)}, drifting off the "
+             "standard variable product — whose share is UNKNOWN here and not zero: that "
+             "household strikes no rate and reaches no renewal decision, so no row in this "
+             "population can carry it. On the two-route capture of 2026-08-31 it was 50 of 82 "
+             "departures, so the ranges above describe the minority of departures this "
+             "measurement can reach.")
+            if blind else ""
+        )
         note = (
             f"Every departure in this world carries the risk that fired. How those departures "
             f"SPLIT between the two price reasons is not identified by any published evidence: no "
@@ -1544,9 +1561,14 @@ def _why_households_leave():
             f"modelling choice and argued on fidelity — it is the only end of the range where "
             f"a supplier's price and service actually cause departures. The published mover-mix is "
             f"deliberately NOT used to pick the point; it is reserved as a check on this output, "
-            f"and identifying from it would make that check a tautology."
+            f"and identifying from it would make that check a tautology.{blind_note}"
         )
-        status = "measured, but its split is not identified — published as a range"
+        status = (
+            "measured on the renewal route only — its split is not identified, and a departure "
+            "cause it cannot see is missing"
+            if blind else
+            "measured, but its split is not identified — published as a range"
+        )
     except (OSError, ValueError, KeyError) as exc:
         note = (
             f"The departure reason mix could not be read from "

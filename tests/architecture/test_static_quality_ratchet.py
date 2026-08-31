@@ -116,6 +116,42 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-31  F401 267 -> 266, I001 UNCHANGED at 1342  (departure readings declare their
+#               population)
+#     F401 -1 is this commit's: `tools/population_anchor.py` imported `typing.Optional` and never
+#     used it; `_churn_by_year` now takes `svt_decisions: Optional[list] = None`, so the import is
+#     load-bearing. Not a tidying pass — the signature had to change anyway.
+#
+#     AND I001 IS DELIBERATELY NOT MOVED, THOUGH THE WORKING TREE READS 1341. The first draft of
+#     this entry lowered it and `tools/surgical_land` refused the commit, which is the whole
+#     argument for that tool: **it grades the tree the COMMIT would create, and this log's counts
+#     must be that tree's, not the shared worktree's.** Two files carry an uncommitted I001 fix.
+#     `tests/tools/test_population_anchor.py` is IN this commit (adopted with the staged
+#     commons-read repair of `population_anchor` it belongs to — one file cannot be halved), so
+#     its -1 is real here. `simulation/renewals.py` is NOT: it is C1b's live lane, and adopting
+#     five files of another lane's in-flight interlock to bank a lint count is the trade that goes
+#     wrong. Net on the commit tree: 1343 - 1 = 1342, unchanged.
+#
+#     WHICH MEANS THE 2026-08-30 ENTRY BELOW BANKED A REDUCTION ITS OWN COMMIT DID NOT CONTAIN.
+#     `simulation/renewals.py` still carries that I001 at HEAD today. The record outran the code:
+#     the working tree was measured, the commit was not, and every commit since has had to
+#     reconcile a floor one lower than any committed tree has ever been. Corrected here rather
+#     than quietly re-lowered, because the same measurement mistake is what this ratchet exists to
+#     make visible. A tree-measured count is not a commit-measured one.
+#   2026-08-30  I001 1343 -> 1342  (C1b, the book lands on the SVT product)
+#     `simulation/renewals.py` carried ONE unsorted import block at HEAD. This commit has that
+#     file open anyway — it is where the passive roll is read and the SVT stint is built — and
+#     adding `household_of`, `active_renewal_probability_for_customer` and `rolls_active_renewal`
+#     meant sorting the block into place, which repaired it. Per this ratchet's standing per-file
+#     remedy. Not a tidying pass: no file this commit did not otherwise touch was reformatted.
+#     MEASURED, AND THE FIRST DRAFT OF THIS ENTRY WAS WRONG — kept beside its correction because
+#     it is the same failure this project keeps paying for, a count asserted rather than read.
+#     It attributed the -1 to `simulation/customer_events.py` (2) and
+#     `tests/simulation/test_svt_product.py` (1) and reconciled the shortfall away as "+2 from
+#     another lane". Driven at `git show HEAD:<path>` per file, BOTH of those carry 0 on both
+#     sides, and `renewals.py` goes 1 -> 0. Tree-wide, measured on a `git archive HEAD` checkout
+#     rather than inferred: HEAD 1343, working tree 1342. So the whole move is this commit's and
+#     the concurrent lanes carry a net 0 — there was no shortfall to explain.
 #   2026-08-28  I001 1348 -> 1347  (the competitive-pressure observation channel)
 #     `company/crm/enriched_churn_estimate.py` carried an unsorted import block at HEAD. This
 #     commit had that file open anyway — it swaps `market_conditions_multiplier` for the derived
@@ -553,11 +589,11 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1343,
+    "I001": 1342,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
-    "F401": 267,
+    "F401": 266,
     "E402": 174,
     "F841": 127,
     "E741": 107,
@@ -575,7 +611,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2330  # was 2331; -1 (I001, the switching-propensity test's import block)
+RUFF_BASELINE_TOTAL = 2328  # was 2329; -1 (F401, population_anchor's Optional is now used)
 
 
 # --------------------------------------------------------------------------

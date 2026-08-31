@@ -171,3 +171,61 @@ would appear to cure.
 
 This sharpens item 2 of what is owed above rather than adding to it, and it is inside the delivery
 lane's current focus item.
+
+---
+
+## LANDED 2026-08-31, delivery seat: the four readers now declare, and the debt carries something that fails
+
+Items 2 and 3 of "what is still owed" are discharged; **item 1 is not, and is now REFUSED rather
+than owed** — see below. The two files are still two files: nothing was unioned.
+
+**`tools/departure_population.py`** is the shared declaration — which routes a reading can see, the
+decisions and departures in each, what share of the capture's departures the reading's own route
+accounts for, and which departure CAUSES are structurally unobservable on it. Measured on the two
+real artefacts in the tree, it reproduces this finding's own table: 144/1,266 decisions, 32/50
+departures, **39%**.
+
+| reader | what changed |
+|---|---|
+| `tools/fit_year_level_anchor.py` | prints the declaration; **REFUSES to emit a `YEAR_LEVEL_ANCHOR` block** off a population that is not the book |
+| `tools/measure_departure_level.py` | prints the declaration, and says on the summary that a year INSIDE the band is not evidence about the world's level |
+| `tools/population_anchor._churn_by_year` | every year carries `population`, the SVT counts, and the share of its own departures `sim_churn_rate` is over |
+| `docs/reports/c2_reason_mix_interval.json` | carries `population` and `causes_not_observable_on_this_population`, and the rendered page says it |
+
+**The refusal is the repair, and it is deliberately not a re-fit.** This finding's own sharpest
+line is that re-fitting `YEAR_LEVEL_ANCHOR` on the renewal route would fit the world to the
+selected subset of households that reach a renewal roll — worse than the staleness it appears to
+cure. So the per-year diagnostic table still prints and the CONSTANT does not come out. On the
+2026-08-31 capture it refuses at 39%; on a synthetic capture where both routes are visible and
+every departure went through the renewal roll it emits normally, which is the null control that
+stops the refusal being a deletion.
+
+**`svt_inertia` is published as `None` with a reason, and that was the near-miss.**
+`build_departure_risks` defaults `svt_inertia` to 0.0 and no renewal row carries
+`sim_svt_inertia`, so simply re-running the sweep over `ORDERED_CAUSES` would have published
+**`svt_inertia: 0.0%`** — well-formed, plausible, and read by every reader as "almost nobody leaves
+this way" when it was 50 of 82 departures on the same capture. A missing quantity arriving as a
+small one. The tool now raises rather than renormalising if a renewal row ever carries hazard on a
+cause its population cannot observe.
+
+**No published number moved.** The regenerated mix is identical to the committed one at every sweep
+point (55.1%–99.9% bill shock, 0.0%–23.0% price position, 0.0%–21.8% service); what appeared is the
+caveat. `sim_churn_rate` is byte-identical too, and a control asserts it: recomputing it over a
+union would be the mean-across-two-populations this repository has paid for, and moving a published
+gate's metric inside the commit that repairs its labelling would make the move unattributable.
+
+**The seam debt now carries something that fails:**
+`tests/architecture/test_a_departure_reading_declares_its_population.py`, six legs, every mutation
+in its docstring fired. One of them fired on the SECOND draft only — the first version of the
+"absent rather than zero" leg **passed** when `svt_inertia` was moved out of the unobservable list
+and into the interval as `[0.0, 0.0]`, because the partition stayed well-formed. Two further legs
+close it: the interval must agree with its own declared population, and a range of 0%–0% across the
+whole feasible family is an absence, not a measurement. Recorded because a control that passes its
+own stated mutation is the exact class this file exists for, and it was one draft away from
+shipping.
+
+### Still owed, and it is item 1 alone
+
+A **whole-book departure target that both routes are fitted against together**. Until then
+`fit_year_level_anchor` will not hand over a constant, and `simulation/departure_level_anchor.py`
+keeps the values fitted pre-C1b. Never a widened band.

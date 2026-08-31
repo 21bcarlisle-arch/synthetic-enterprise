@@ -40,6 +40,7 @@ from simulation.market_switching_propensity import (
     _savings_to_rate,
     market_departure_rate_pct,
 )
+from tools.departure_population import banner, declare
 
 PROJECT = Path(__file__).resolve().parent.parent
 COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_domestic_switching_rate.json"
@@ -180,12 +181,34 @@ def world_realised_rate_pct(table_path: Path | None = None) -> dict[int, float]:
     }
 
 
+def reading_population(table_path: Path | None = None) -> dict:
+    """The population `world_realised_rate_pct` above just measured, as a declaration.
+
+    A SECOND FUNCTION AND NOT A SECOND RETURN VALUE, deliberately: `world_realised_rate_pct` is
+    the subject of `tests/architecture/test_switching_rate_commons.py` and of the band control, and
+    changing its shape to carry the declaration would have rewritten a control's subject in the
+    same commit that repaired what it measures. The declaration is what the READER must not be able
+    to skip, and the way to hold that is a control over the pair, not a wider tuple.
+
+    WHAT IT SAYS TODAY, MEASURED. On the committed `c2_departure_factors.json` it says *renewal
+    decisions only, SVT route unreadable* -- so the band verdict that control takes is a reading
+    over the households that reach a renewal roll, compared against a published rate whose
+    denominator is every domestic electricity account. Those are different quantities. The control
+    is green and the artefact is from a world that no longer exists; both facts belong on the
+    surface rather than in a footnote.
+    """
+    return declare(table_path or DEFAULT_TABLE)
+
+
 def main(argv: list[str]) -> int:
     table_path = Path(argv[1]) if len(argv) > 1 else DEFAULT_TABLE
     rows = json.loads(table_path.read_text())
     bands = published_bands()
     outcome = world_outcome(rows)
 
+    decl = declare(table_path, rows)
+    print(banner(decl))
+    print()
     print(f"factor table: {table_path}   ({len(rows)} renewals)")
     print()
     print("                published        savings curve    world rate       world E[depart]   departures /    room to    room to")
@@ -244,6 +267,19 @@ def main(argv: list[str]) -> int:
     print("  A year flagged OUT OF BAND means the anchor has gone stale against a world that moved")
     print("  under it -- re-capture and re-fit (`tools/fit_year_level_anchor.py`), never widen the")
     print("  band. See §8-§11 of docs/market_research/gb_switching_rate_denominators.md.")
+    print()
+    print("  AND THE `world E[depart]` COLUMN IS A MEAN OVER THE POPULATION NAMED AT THE TOP.")
+    if decl["covers_svt_route"]:
+        print(f"  This capture sees both routes, and the renewal route it means over carries "
+              f"{decl['share_of_departures_visible']:.0%} of")
+        print("  its departures. The published band's denominator is every domestic electricity")
+        print("  account, not the ones that reached a renewal roll, so the two are NOT the same")
+        print("  quantity and a verdict here is about the renewal route alone.")
+    else:
+        print("  This capture cannot see the SVT inertia route at all, so it cannot say what share")
+        print("  of the book's departures it is measuring. A year flagged OUT OF BAND on this")
+        print("  table is a statement about renewal decisions, and a year INSIDE it is not")
+        print("  evidence the world's departure level matches the record.")
     return 0
 
 

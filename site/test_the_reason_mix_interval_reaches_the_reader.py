@@ -121,8 +121,13 @@ def _reader_text(element: dict) -> str:
     return html.unescape(re.sub(r"<[^>]+>", " ", element["innerHTML"]))
 
 
-def _rendered_row(proof: dict) -> str:
-    """The rendered text of the departure-reason row, as a reader meets it."""
+def _rendered_row(proof: dict, width: int = 1400) -> str:
+    """The rendered text of the departure-reason row, as a reader meets it.
+
+    `width` is how much of the row to take. The default is what the range assertions need and is
+    deliberately tight, so a neighbouring claim's percentages cannot drift into a check about this
+    one; the blind-cause check asks for more because that sentence is the row's last.
+    """
     text = _reader_text(_render(proof)["not-proven"])
     assert CLAIM_FRAGMENT in text, (
         "the departure reason mix is not on the rendered page at all. The feed can carry it and "
@@ -130,7 +135,7 @@ def _rendered_row(proof: dict) -> str:
         "text began: {!r}".format(text[:400])
     )
     start = text.index(CLAIM_FRAGMENT)
-    return text[start:start + 1400]
+    return text[start:start + width]
 
 
 def _percentages(fragment: str) -> list[float]:
@@ -190,6 +195,43 @@ def test_the_range_is_narrower_than_the_thing_it_is_meant_to_bound():
         "every cause's published range spans more than half the scale ({}), which cannot "
         "discriminate any reason mix from any other".format(
             {c: round(w, 3) for c, w in widths.items()})
+    )
+
+
+def test_a_cause_the_mix_cannot_see_is_named_on_the_rendered_page():
+    """MUTATION: drop `blind_note` from the generator and this fires.
+
+    THE DEFECT, from
+    `docs/staging/WORKER_FINDING_C1B_ADDED_A_DEPARTURE_ROUTE_AND_EVERY_INSTRUMENT_MEASURING_DEPARTURES_KEPT_READING_THE_OLD_POPULATION_2026-08-31.md`.
+    C1b gave the world a second way to leave -- drifting off the standard variable product -- which
+    strikes no rate and reaches no renewal decision, so no row in this mix's population can carry
+    it. The rendered row listed bill shock, price position and service, and **every reader was
+    taking three of four causes for four of four**. A range is a bound on the split between the
+    causes it CAN see; it says nothing about a cause it cannot, and a reader has no way to know
+    which is which unless the page says so.
+
+    THE SUBJECT IS THE RENDERED TEXT for the reason this whole file gives: the caveat can be in the
+    artefact, in the generator and in the working tree and still not be on the page.
+
+    SKIPS RATHER THAN PASSES when the artefact declares no blind causes -- a two-route capture
+    would legitimately have none, and a control that demands a caveat which is no longer true would
+    go red exactly when the code became more honest.
+    """
+    blind = list(json.loads(MIX.read_text()).get(
+        "causes_not_observable_on_this_population") or {})
+    if not blind:
+        pytest.skip("the published mix declares no unobservable cause -- nothing to state")
+    fragment = _rendered_row(_live_proof_feed(), width=2200)
+    for cause in blind:
+        assert cause in fragment, (
+            "the mix declares {!r} unobservable on its population and the rendered row never says "
+            "so, so a reader meets three shares and takes them for every reason a household "
+            "leaves. Rendered: {!r}".format(cause, fragment)
+        )
+    assert "UNKNOWN" in fragment, (
+        "the page names a cause it cannot see without saying its share is UNKNOWN. An omitted "
+        "cause that is not called unknown reads as one measured at zero, which is the exact "
+        "misreading this row exists to prevent. Rendered: {!r}".format(fragment)
     )
 
 

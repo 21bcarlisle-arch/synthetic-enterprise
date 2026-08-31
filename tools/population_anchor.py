@@ -4,7 +4,9 @@ Compares SIM aggregate outputs against published UK energy market benchmarks.
 Runs every sim run; outputs to site/state/population_anchoring.json.
 
 Key benchmarks (sources: Ofgem switching data, DESNZ, Energy UK):
-  - Annual switching rates by year (Ofgem Retail Market Indicators)
+  - Annual switching rates by year, READ FROM the regulation commons
+    (`docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`) and never
+    authored here -- see `OFGEM_SWITCHING_RATE_PCT_BY_YEAR` below for what that repaired
   - Bad debt rates vs industry range (0.5-2.5% of revenue)
   - Churn direction: 2021-22 crisis = switching COLLAPSE, not rise
   - Complaint rate vs Ofgem QoS survey benchmarks (Phase PS)
@@ -23,6 +25,8 @@ from saas.reporting.arrears_ledger import UNAVAILABLE_NOTE as ARREARS_UNAVAILABL
 from saas.reporting.arrears_ledger import ArrearsLedgerView
 from saas.reporting.arrears_ledger import from_payload as arrears_ledger_from_payload
 from saas.reporting.arrears_ledger import load as load_arrears_ledger
+from tools.departure_population import declare_rows
+from tools.measure_departure_level import published_bands
 
 # The rag a year carries when the arrears numerator's source never loaded. NOT
 # "GREEN": an unavailable check is a failed check (R15), and this gate spent its
@@ -33,19 +37,56 @@ PROJECT = Path(__file__).resolve().parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "population_anchoring.json"
 
-# Ofgem published switching rates (% of dual-fuel accounts switching per year)
-# Source: Ofgem Retail Market Indicators
-OFGEM_SWITCHING_RATE = {
-    2016: 0.20, 2017: 0.19, 2018: 0.18, 2019: 0.17,
-    2020: 0.14, 2021: 0.09, 2022: 0.04, 2023: 0.08,
-    2024: 0.13, 2025: 0.14,
+#: THE PUBLISHED RECORD, read from the regulation commons at import, in PER CENT of GB domestic
+#: electricity accounts per year. The primary form is the BAND, because a band is what the record
+#: states: `rate_pct_lo`/`rate_pct_hi` per year, numerator EXTERNAL changes of supplier on a
+#: domestic electricity MPAN, denominator ALL domestic electricity accounts.
+#:
+#: THE DENOMINATOR THIS GATE USED TO CLAIM, AND WHY IT WAS BOTH WRONG AND UNCHECKABLE. The
+#: comment above this table said "% of dual-fuel accounts", and the ten numbers under it were
+#: hand-authored: 14% for 2020 against a published 22.5-23.0, 9% for 2021 against 17.9-18.4. The
+#: label was not a rounding of the record on a different base -- a both-fuel count over an
+#: electricity account base reads about 1.8x HIGH, and this table read LOW, so no denominator
+#: reconciles it. Settled 2026-08-31 from `gb_domestic_switching_rate.json`, whose `basis` states
+#: the numerator and denominator outright and whose `unreconciled_cross_check` is the place the
+#: 1.8x per-fuel question is held open. The gate inherits that basis whole rather than restating
+#: it, and there is no second denominator here to disagree with it.
+_PUBLISHED_BAND_PCT: dict[int, tuple[float, float]] = published_bands()
+if not _PUBLISHED_BAND_PCT:  # pragma: no cover - fail-closed; `published_bands` raises first
+    raise ValueError(
+        "the GB domestic switching commons carries no rates; a board-facing anchoring gate "
+        "does not fall back to a hand-authored benchmark"
+    )
+
+#: THE GATE'S READING, and it has units so a band check can reach it. The band MIDPOINT: the
+#: commons publishes a range and a gate comparing one number with another has to read one number
+#: out. Not the high end -- that tie-break is a CURRICULUM value governing where the WORLD is
+#: aimed (commons `reserved`), and this is a measuring stick, not a dial.
+OFGEM_SWITCHING_RATE_PCT_BY_YEAR: dict[int, float] = {
+    year: round((lo + hi) / 2.0, 2) for year, (lo, hi) in sorted(_PUBLISHED_BAND_PCT.items())
 }
 
-# Market switching multiplier from Phase NS calibration (normalised to 2024=1.0)
-CALIBRATED_MULTIPLIER = {
-    2016: 2.17, 2017: 1.88, 2018: 1.72, 2019: 1.43,
-    2020: 0.95, 2021: 0.57, 2022: 0.44, 2023: 0.79,
-    2024: 1.00, 2025: 0.93,
+#: The FRACTION form, derived by construction and never authored. Everything downstream of this
+#: gate -- `sim_churn_rate`, `site/state/population_anchoring.json`, the annual report section --
+#: is in fractions, so the units live here rather than at eleven call sites.
+OFGEM_SWITCHING_RATE: dict[int, float] = {
+    year: pct / 100.0 for year, pct in OFGEM_SWITCHING_RATE_PCT_BY_YEAR.items()
+}
+
+#: DERIVED FROM THE RATE ABOVE, normalised to 2024, because a normalised ratio has no units and a
+#: table of them cannot be compared with any publication. Ten hand-authored numbers stood here
+#: until 2026-08-31 -- 2016: 2.17, 2020: 0.95, 2022: 0.44 -- byte-identical to the ten refuted in
+#: `company/crm/market_conditions.py` the night before, which is what a copy of a reading looks
+#: like when the copy is the thing a board reads. They fell monotonically 2016->2022 while the
+#: record ROSE to its high-water mark in 2020. Held to its own derivation and to the published
+#: band by name in `tests/architecture/test_switching_rate_commons.py`.
+_MULTIPLIER_REFERENCE_YEAR = 2024
+#: NOT ROUNDED HERE: the derivation control asserts exact equality with the ratio it declares, and
+#: a 2dp constant is not that ratio -- it is a hand-authored number that happens to be close. The
+#: rounding belongs where the figure is READ, and it is applied at emission below.
+CALIBRATED_MULTIPLIER: dict[int, float] = {
+    year: pct / OFGEM_SWITCHING_RATE_PCT_BY_YEAR[_MULTIPLIER_REFERENCE_YEAR]
+    for year, pct in OFGEM_SWITCHING_RATE_PCT_BY_YEAR.items()
 }
 
 # Industry bad debt benchmark range (% of revenue)
@@ -77,8 +118,26 @@ ACQUISITION_FUNNEL_GREEN_RANGE = {
 }
 ACQUISITION_FUNNEL_AMBER_MARGIN = 5.0
 _ACQUISITION_FUNNEL_DEFAULT_GREEN_RANGE = (15.0, 20.0)
-def _churn_by_year(customer_events: list) -> dict:
-    """Compute SIM churn rate by year from customer_events list."""
+def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) -> dict:
+    """SIM churn rate by year from `customer_events`, ON A DECLARED DENOMINATOR.
+
+    `sim_churn_rate` IS AND ALWAYS WAS A RENEWAL-DECISION RATE: churns over `renewals + churns`,
+    both taken from `customer_events`, which C1b's SVT departures deliberately never enter (they
+    carry no `churn_probability` for the twelve consumers that index it unguarded). It is compared
+    here against `ofgem_benchmark`, whose denominator is every GB domestic electricity account.
+    Post-C1b those are not merely different denominators -- the renewal one no longer contains most
+    of the departures, measured at 39% of them on the 2026-08-31 capture.
+
+    SO EVERY YEAR NOW CARRIES `population`, AND THE SVT COUNTS WHEN THEY CAN BE READ. The rate
+    itself is unchanged: recomputing it over a union would be the mean-across-two-populations this
+    repository has paid for, and silently redefining a published gate's own metric in the commit
+    that repairs its labelling is how a moved number becomes unattributable. What changes is that a
+    reader can no longer take `sim_churn_rate` for the book's churn without being told it is not.
+
+    `svt_decisions` is `None` when the run output predates the recorder -- NOT an empty list, for
+    the reason `departure_population.load_svt_decisions` gives: an unwired recorder and a book with
+    nobody on SVT produce the identical artefact.
+    """
     by_year = {}
     for ev in customer_events:
         year = int(ev.get("event_date", "0000")[:4])
@@ -91,15 +150,52 @@ def _churn_by_year(customer_events: list) -> dict:
             by_year[year]["renewals"] += 1
         elif et == "churned":
             by_year[year]["churns"] += 1
+    svt_by_year: dict[int, dict] = {}
+    for ev in svt_decisions or []:
+        year = int(str(ev.get("event_date", "0000"))[:4])
+        if year == 0:
+            continue
+        slot = svt_by_year.setdefault(year, {"decisions": 0, "churns": 0})
+        slot["decisions"] += 1
+        if ev.get("event_type") == "churned":
+            slot["churns"] += 1
+
     result = {}
     for yr, counts in by_year.items():
         total = counts["renewals"] + counts["churns"]
+        svt = svt_by_year.get(yr) if svt_decisions is not None else None
+        visible = (
+            None if svt is None or (counts["churns"] + svt["churns"]) == 0
+            else round(counts["churns"] / (counts["churns"] + svt["churns"]), 4)
+        )
         result[yr] = {
             "renewals": counts["renewals"],
             "churns": counts["churns"],
             "sim_churn_rate": round(counts["churns"] / total, 4) if total > 0 else 0.0,
-            "ofgem_benchmark": OFGEM_SWITCHING_RATE.get(yr),
-            "calibrated_multiplier": CALIBRATED_MULTIPLIER.get(yr),
+            # THE DENOMINATOR THIS YEAR'S RATE IS OVER, said on the row rather than in the meta,
+            # because a year is quoted on its own and a caveat one level up does not travel with
+            # it. `None` for the SVT counts when the run could not record them -- an unreadable
+            # route is not an empty one.
+            "population": (
+                "renewal decisions + SVT segment decisions recorded separately"
+                if svt_decisions is not None else "renewal decisions only"
+            ),
+            "svt_segment_decisions": None if svt is None else svt["decisions"],
+            "svt_departures": None if svt is None else svt["churns"],
+            "share_of_departures_in_sim_churn_rate": visible,
+            # Rounded AT EMISSION for the same reason as the multiplier below: the constant
+            # stays exactly its per-cent table over 100 so its derivation can be asserted,
+            # and a board artefact does not publish 0.17300000000000001.
+            "ofgem_benchmark": (
+                round(OFGEM_SWITCHING_RATE[yr], 4) if yr in OFGEM_SWITCHING_RATE else None
+            ),
+            # The band the benchmark is the midpoint OF, in per cent. A midpoint published
+            # without the range it came from reads as a measured scalar, and the record does not
+            # state one: 2024 is 12.5-16.1, and a reader told "14.3" cannot see that.
+            "ofgem_benchmark_band_pct": list(_PUBLISHED_BAND_PCT[yr]) if yr in _PUBLISHED_BAND_PCT else None,
+            "calibrated_multiplier": (
+                round(CALIBRATED_MULTIPLIER[yr], 2) if yr in CALIBRATED_MULTIPLIER else None
+            ),
         }
     return result
 
@@ -366,17 +462,24 @@ def _crisis_churn_direction(churn_by_year: dict) -> dict:
 
     yr2022 = churn_by_year.get(2022, {})
     rate_2022 = yr2022.get("sim_churn_rate", 0.0)
-    ofgem_2022 = OFGEM_SWITCHING_RATE.get(2022, 0.04)
+    # NO INVENTED FALLBACK. This read `.get(2022, 0.04)` until 2026-08-31: a hand-authored
+    # literal standing by to answer for the published record if the record ever went missing,
+    # which is the fail-open shape (R15) -- a failed read presenting as a benchmark. If the
+    # commons stops carrying 2022 that is an unavailable check, and an unavailable check is a
+    # failed check, not a 4%.
+    ofgem_2022 = OFGEM_SWITCHING_RATE.get(2022)
 
     rolling_diverges = crisis_rate > pre_rate * 1.5 and crisis_rate > 0.05
-    absolute_diverges = rate_2022 > ofgem_2022 * 4.0 and crisis_n >= 5
-    insufficient_data = pre_n < 10 or crisis_n < 10
+    absolute_diverges = (
+        ofgem_2022 is not None and rate_2022 > ofgem_2022 * 4.0 and crisis_n >= 5
+    )
+    insufficient_data = pre_n < 10 or crisis_n < 10 or ofgem_2022 is None
 
     return {
         "pre_crisis_avg_pct": round(pre_rate * 100, 1),
         "crisis_avg_pct": round(crisis_rate * 100, 1),
         "2022_sim_rate_pct": round(rate_2022 * 100, 1),
-        "2022_ofgem_rate_pct": round(ofgem_2022 * 100, 1),
+        "2022_ofgem_rate_pct": round(ofgem_2022 * 100, 1) if ofgem_2022 is not None else None,
         "2022_ratio_vs_ofgem": round(rate_2022 / ofgem_2022, 1) if ofgem_2022 else None,
         "rolling_divergence_flag": rolling_diverges,
         "absolute_divergence_flag": absolute_diverges,
@@ -414,8 +517,8 @@ def _multiplier_alignment(churn_by_year: dict) -> list:
             "year_transition": "%d->%d" % (prev_yr, curr_yr),
             "ofgem_direction": ofgem_direction,
             "sim_direction": sim_direction,
-            "ofgem_rate_prev": OFGEM_SWITCHING_RATE[prev_yr],
-            "ofgem_rate_curr": OFGEM_SWITCHING_RATE[curr_yr],
+            "ofgem_rate_prev": round(OFGEM_SWITCHING_RATE[prev_yr], 4),
+            "ofgem_rate_curr": round(OFGEM_SWITCHING_RATE[curr_yr], 4),
             "sim_rate_prev": sim_rate_prev,
             "sim_rate_curr": sim_rate_curr,
             "rag": rag,
@@ -433,7 +536,33 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
     events = data.get("customer_events", [])
     years_data = data.get("years", {})
     
-    churn_by_year = _churn_by_year(events)
+    # C1b's second departure route. `svt_decisions` is every SVT segment evaluated (the
+    # denominator); `svt_departures` is only the ones that fired. A run output carrying the
+    # numerator alone can state how many left that way and NOT a rate, which is why the two are
+    # read separately and the declaration below says which of them was available.
+    svt_decisions = data.get("svt_decisions")
+    svt_departures = data.get("svt_departures")
+    churn_by_year = _churn_by_year(events, svt_decisions)
+    #
+    # `svt_departures` IS NOT A FALLBACK FOR `svt_decisions`, and the first draft of this made it
+    # one. Passing the numerator in where the decision list belongs reported 50 SVT "decisions"
+    # when 50 was the departure count -- a denominator manufactured out of a numerator, which is
+    # the same fail-open, one level up, inside the repair for it. It is named here instead.
+    churn_population = declare_rows(
+        events,
+        svt_decisions,
+        table=str(run_json_path),
+        svt_source="run output `svt_decisions`" if svt_decisions is not None else None,
+        svt_unreadable=(
+            None if svt_decisions is not None else
+            "this run output carries no `svt_decisions` list, so the SVT route's DENOMINATOR is "
+            "unrecorded and no rate can be formed on it. Its `svt_departures` list holds "
+            f"{len(svt_departures)} departures — a COUNT, in a population that was never written "
+            "down." if svt_departures else
+            "this run output carries neither `svt_decisions` nor `svt_departures`, so the SVT "
+            "route is entirely absent from it."
+        ),
+    )
     bad_debt_findings = _bad_debt_check(years_data)
     long_run = _long_run_comparison(churn_by_year)
     crisis_check = _crisis_churn_direction(churn_by_year)
@@ -463,12 +592,31 @@ def generate(run_json_path=None, out_path=None, billing_ledger_path=None):
 
     result = {
         "meta": {
-            "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
+            "ofgem_benchmark_source": (
+                "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json "
+                "(DESNZ Quarterly Domestic Energy Switching Statistics / Energy UK / Ofgem "
+                "Retail Market Indicators), band MIDPOINT. Numerator: external changes of "
+                "supplier on a GB domestic ELECTRICITY meter point. Denominator: all GB "
+                "domestic electricity accounts, not only those at a decision point."
+            ),
+            "ofgem_benchmark_denominator_note": (
+                "This gate published '% of dual-fuel accounts' until 2026-08-31 and the ten "
+                "rates under that label were hand-authored, not read off any publication: 14% "
+                "for 2020 against a published 22.5-23.0%. No denominator reconciles them -- a "
+                "both-fuel count over an electricity base reads about 1.8x HIGH and these read "
+                "LOW. The per-fuel question is held open in the commons' "
+                "`unreconciled_cross_check`, and it does not move this gate's basis."
+            ),
             "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
             "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
             "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
             "arrears_ledger_available": arrears_ledger.available,
             "arrears_ledger_note": arrears_ledger.unavailable_reason or "billing ledger loaded",
+            # WHICH DEPARTURE ROUTES `churn_by_year` BELOW CAN SEE. Added 2026-08-31: C1b gave the
+            # world a second way to leave and this gate went on dividing `customer_events` churns
+            # by `customer_events` decisions, which stayed well-formed and stopped being the book.
+            # Nothing went red because the scope moved, not the size.
+            "churn_population": churn_population,
         },
         "overall_rag": overall_rag,
         "long_run_comparison": long_run,
