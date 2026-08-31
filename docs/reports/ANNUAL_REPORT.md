@@ -2847,7 +2847,7 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 | 2020 | 5.79% | 6% | OK | 44.6% | 8% | ! |
 | 2021 | 5.95% | 8% | OK | 36.0% | 12% | ! |
 | 2022 | 6.48% | 8% | OK | 48.3% | 12% | ! |
-| 2023 | 6.51% | 8% | OK | 36.2% | 12% | ! |
+| 2023 | 6.51% | 8% | OK | 36.9% | 12% | ! |
 | 2024 | 5.84% | 6% | OK | 34.8% | 8% | ! |
 | 2025 | 5.44% | 6% | OK | 26.8% | 8% | ! |
 
@@ -3059,17 +3059,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (141 active customers) under 12-month forward scenarios.
-Generated: 2026-08-30T23:27:34Z
+Live portfolio (142 active customers) under 12-month forward scenarios.
+Generated: 2026-08-31T00:56:20Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-10,199 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£20,398 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£33,298 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-10,347 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£20,693 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£33,929 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
