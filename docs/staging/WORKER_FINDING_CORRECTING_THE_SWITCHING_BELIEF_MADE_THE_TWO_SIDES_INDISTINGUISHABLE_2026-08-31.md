@@ -203,3 +203,127 @@ indirectly through the world's realised rate), `simulation/switching_propensity`
 `STRESS_`/`TENURE_SWITCHING_MULTIPLIER` (per-household, not market-wide), and the scalar base
 hazards in `company/crm/churn_model` and `saas/churn_model`. That is the next increment and it is
 named here so it cannot be read as covered.
+
+---
+
+## 10. §9 IS NOW DISCHARGED — the census, and it found one on its first run
+
+§9 above is left standing rather than edited: it said the census was not done, and it was not, at
+`ae12a334e`. This section is the second increment. **Every number below is from running it, not
+from reading the tree by eye.**
+
+### 10.1 What the census is
+
+`discover_switching_level_candidates()` in `tests/architecture/test_switching_rate_commons.py`
+walks `company/`, `saas/` and `simulation/` and collects anything that could be carrying a
+switching or departure LEVEL. Every candidate must then appear in a register (and be held to the
+published band) or in `_NOT_A_LEVEL_READING` with the reason it is not one. **Absence is made
+load-bearing**, because "absent from the register" and "checked and fine" look identical to a
+register — which is the entire mechanism by which this defect survived six weeks.
+
+**Two discovery legs, because either alone has a hole this census already fell into:**
+
+* **by name** — vocabulary (`switch`, `depart`, `churn`, `leav`, `attrit`, `defect`) in the name or
+  the filename. **This leg alone misses `company/crm/market_conditions.py`** — neither the module
+  name nor `market_conditions_multiplier` carries any of those strings. It misses the exact module
+  the census was opened for.
+* **by commons read** — any module whose source mentions `gb_domestic_switching_rate`. This leg
+  alone misses a hand-authored table that never reads the record, which is what the original
+  defect *was*.
+
+`test_the_census_reaches_the_module_the_name_vocabulary_cannot_see` asserts the second leg is
+load-bearing, so a future tidy-up cannot collapse them and silently restore the blindness.
+
+**Three shapes**, where the registers held two: year-keyed dict *literal*; dict from a
+*comprehension or call* (the shape the repaired `market_conditions` now has); and a *callable
+taking a year* (the shape the world's own reading has always had).
+
+### 10.2 The census, run
+
+**26 candidates — 8 registered, 18 classified. No dead register entries, no stale exemptions.**
+
+| shape | n |
+|---|---|
+| callable of a year | 14 |
+| year-keyed dict literal | 7 |
+| value from a call | 4 |
+| year-keyed dict comprehension | 1 |
+
+**The eight registered readings, and all eight are inside the published band at all ten years:**
+
+| reading | shape | in band |
+|---|---|---|
+| `company.market.market_report:_UK_SWITCHING_RATE_PCT` | rate table | 10/10 |
+| `company.market.market_report:get_switching_rate` | callable | 10/10 |
+| `company.crm.market_conditions:MARKET_SWITCHING_RATE_PCT_BY_YEAR` | rate table | 10/10 |
+| `company.crm.market_conditions:MARKET_SWITCHING_MULTIPLIER_BY_YEAR` | multiplier | 10/10 |
+| `company.crm.market_conditions:market_conditions_multiplier` | callable multiplier | 10/10 |
+| `simulation.market_switching_propensity:market_departure_rate_pct` | callable | 10/10 |
+| `simulation.market_switching_propensity:market_departure_rate` | callable (fraction) | 10/10 |
+| `simulation.market_switching_propensity:market_switching_multiplier` | callable multiplier | 10/10 |
+
+**REPORTED HONESTLY AS THE DIRECTION ASKED: every reading that was not the one already known to be
+wrong turned out already right.** That is the finding, and it is not a reason the register was
+unnecessary — *nothing held any of them.* The three `market_switching_propensity` callables are
+the world's own level, the quantity `departure_level_anchor` was fitted to reach, and no control in
+this tree could read them, because both registers were keyed to module constants and these are
+functions. A reading that is correct today and held by nothing is one commit from being the next
+`MARKET_SWITCHING_MULTIPLIER_BY_YEAR`.
+
+**The two lanes sit at different points inside the band, and that is correct.** The world reads the
+**high endpoint** (§6's anti-flattering curriculum tie-break — more book to re-win); the company
+reads the **midpoint** (its own belief, not the director's dial). B3 holds: both are held to the
+record, neither is pinned to the other.
+
+### 10.3 It found one on its first run
+
+`simulation.market_switching_propensity:market_departure_rate` — the **fraction** form, sibling of
+the `_pct` accessor — was registered nowhere. Registered rather than exempted, because it is the
+form `simulation/renewals.py` actually consumes, so it is the one a defect would travel through.
+The register declares a per-entry `to_pct` factor rather than inferring units from magnitude:
+`market_departure_rate` returns 0.176 and `market_departure_rate_pct` returns 17.6, and a checker
+that guessed would report a 100x error as a units convention forever.
+
+### 10.4 One candidate is level-shaped and held INDIRECTLY, said so rather than exempted
+
+`simulation.departure_level_anchor:YEAR_LEVEL_ANCHOR` is a fitted per-year **correction factor**
+(~3.2–4.6), not a rate and not a ratio of one — multiplying it by a published rate yields nothing
+meaningful, so no band check can be written for it directly. It is held through its **effect**: the
+world's realised departure rate, which is `_PRINCIPAL_SUBJECT` and is band-checked every run. It is
+in `_HELD_INDIRECTLY` rather than `_NOT_A_LEVEL_READING`, because calling it "not a level reading"
+would be false.
+
+### 10.5 THE PRECISION OF THE CENSUS, STATED
+
+What it **can** see: module-level names in the three packages, in the four shapes above, reached by
+either leg.
+
+What it **cannot** see, stated rather than left for the next reader to discover:
+
+* **class attributes and instance state.** The scan walks `tree.body` only. A level held on a class
+  or built in `__init__` is invisible.
+* **a level assembled at runtime** from something neither named for it nor reading the commons —
+  e.g. a rate read out of a config dict by a computed key.
+* **`tools/`, `background/` and `site/`.** Scope is the three packages the direction named. This is
+  not academic: §8 above records `tools/population_anchor.py` carrying a byte-identical copy of the
+  ten refuted numbers *and* a rate-shaped table wrong in the same years, board-facing, and outside
+  every census in this repo. **Still true at this commit.** The census was not widened to `tools/`
+  here because `OFGEM_SWITCHING_RATE`'s denominator ("% of dual-fuel accounts") needs settling from
+  the record first, and a table overwritten to make a band go green is the defect, not the repair.
+* **the non-vacuity floor is 20**, against 26 found. A scanner that silently stopped matching most
+  shapes could still pass. The floor is a fail-open backstop, not a coverage claim.
+
+### 10.6 Mutations, all proved firing
+
+* a new-shape candidate arriving unregistered → census fires naming it (`mutation_e`)
+* an emptied discovery set → non-vacuity floor fires (`mutation_f`)
+* the world's callable reading inflated 1.5x → callable band leg fires (`mutation_g`)
+* a multiplier callable cut loose from its declared level → derivation leg fires (`mutation_h`),
+  and it is not the band leg twice: a constant 1.0 stays inside several years' implied range
+
+`test_the_repaired_reading_is_invisible_to_the_literal_scanner_and_that_is_why_this_census_exists`
+records a real limit of the neighbouring census rather than a preference: the repair turned
+`market_conditions`'s tables into a comprehension and a call, so
+`test_year_keyed_rate_table_census`'s literal scanner can no longer see them at all. That is sound
+— its relapse leg depends on it — but a reader could conclude that file covers this series. It does
+not. This one does.

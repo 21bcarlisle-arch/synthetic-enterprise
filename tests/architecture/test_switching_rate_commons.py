@@ -33,7 +33,10 @@ R15: every control here names the mutation that must make it fire.
 """
 from __future__ import annotations
 
+import ast
+import importlib
 import json
+from pathlib import Path
 
 import pytest
 
@@ -94,6 +97,62 @@ _MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str | None]] = {
         "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
     ),
 }
+
+
+#: THE THIRD SHAPE, and it is the one both registers above were structurally unable to hold
+#: (added 2026-08-31). `_LANE_READINGS` and `_MULTIPLIER_READINGS` are both keyed to MODULE
+#: CONSTANTS. A module that serves the switching level through a FUNCTION and keeps no constant at
+#: all is invisible to both -- and that is not hypothetical, it is where the world's own reading
+#: lives: `simulation/market_switching_propensity` loads the commons inside a cached function and
+#: exposes `market_departure_rate_pct(year)`. It was held by nothing here.
+#:
+#: `{name: (dotted, callable_attr, to_pct)}` -- callables of one year returning a rate, with the
+#: factor that puts it in PER CENT. The factor is declared per entry rather than inferred, because
+#: inferring it from the magnitude is exactly the mistake that makes a 100x error look like a
+#: units convention: `market_departure_rate` returns 0.176 and `market_departure_rate_pct` returns
+#: 17.6, and a checker that guessed would report both as fine forever.
+_CALLABLE_READINGS: dict[str, tuple[str, str, float]] = {
+    "company.market.market_report:get_switching_rate": (
+        "company.market.market_report", "get_switching_rate", 1.0,
+    ),
+    "simulation.market_switching_propensity:market_departure_rate_pct": (
+        "simulation.market_switching_propensity", "market_departure_rate_pct", 1.0,
+    ),
+    # The FRACTION form of the line above, and the census found it unregistered on its first run
+    # (2026-08-31) -- a sibling accessor for the same quantity in different units. Registered
+    # rather than exempted: it is the form `simulation/renewals.py` actually consumes, so it is
+    # the one a defect would travel through.
+    "simulation.market_switching_propensity:market_departure_rate": (
+        "simulation.market_switching_propensity", "market_departure_rate", 100.0,
+    ),
+}
+
+#: `{name: (dotted, callable_attr, reference_year, level_attr)}` -- callables returning a
+#: MULTIPLIER, each naming the attribute on the SAME module that carries the level it normalises
+#: by. Same doctrine as `_MULTIPLIER_READINGS`: a ratio is only checkable against a publication
+#: once the level it is a ratio OF is named. `level_attr` may be a dict or a callable -- the
+#: company declares its level as a table and the world as a function, and forcing either into the
+#: other's shape would mean adding production code to satisfy a test.
+_CALLABLE_MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str]] = {
+    "company.crm.market_conditions:market_conditions_multiplier": (
+        "company.crm.market_conditions", "market_conditions_multiplier", 2024,
+        "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
+    ),
+    "simulation.market_switching_propensity:market_switching_multiplier": (
+        "simulation.market_switching_propensity", "market_switching_multiplier", 2024,
+        "market_departure_rate_pct",
+    ),
+}
+
+
+def _lane_callable(dotted: str, attr: str):
+    return getattr(importlib.import_module(dotted), attr)
+
+
+def _level_at(dotted: str, level_attr: str, year: int) -> float:
+    """The declared level for `year`, whether the module declares it as a table or a function."""
+    level = getattr(importlib.import_module(dotted), level_attr)
+    return float(level(year)) if callable(level) else float(dict(level)[year])
 
 
 def _reference_rate(dotted: str, reference_year: int, rate_attr: str | None) -> float:
@@ -443,6 +502,318 @@ def test_a_multiplier_reading_that_declares_a_level_is_the_normalisation_of_that
     )
 
 
+def test_every_callable_shaped_reading_is_inside_the_published_band():
+    """THE THIRD SHAPE, AND EVERY ONE OF THEM WAS ALREADY RIGHT (census, 2026-08-31).
+
+    Reported that way deliberately: the direction that opened this census asked for the readings
+    that turn out already right to be reported too, and all four callables sit inside the band at
+    every one of the ten published years. Finding nothing wrong is the result, not a reason to
+    skip the register -- what was wrong is that NOTHING HELD THEM. `market_departure_rate_pct` is
+    the world's own level, the quantity `departure_level_anchor` was fitted to reach, and it was
+    checkable by no control in this tree because it is a function and both registers above are
+    keyed to module constants. A reading that is correct today and held by nothing is one commit
+    from being the next `MARKET_SWITCHING_MULTIPLIER_BY_YEAR`.
+
+    The two lanes sit at different points INSIDE the band and that is correct, not a discrepancy:
+    the world reads the HIGH endpoint (§6's anti-flattering curriculum tie-break -- more book to
+    re-win) and the company reads the MIDPOINT (its own belief, not the director's dial). B3's
+    rule holds -- both are held to the record, neither is pinned to the other.
+
+    MUTATION: make either callable return its year's rate times 1.5 and this fires on that year.
+    """
+    bands = _bands()
+    checked = 0
+    for name, (dotted, attr, to_pct) in _CALLABLE_READINGS.items():
+        fn = _lane_callable(dotted, attr)
+        for year, (lo, hi) in sorted(bands.items()):
+            value = float(fn(year)) * to_pct
+            below, above = instrument.band_margins(value, lo, hi)
+            assert instrument.inside_band(value, lo, hi), (
+                f"{name}({year}) = {value:.2f}% against a published {lo}-{hi}% "
+                f"({below:+.2f}pp from the low edge, {above:+.2f}pp from the high edge)"
+            )
+            checked += 1
+    assert checked >= 30, (
+        f"only {checked} (callable, year) pairs compared -- a control over an emptied register "
+        f"reports a constant PASS"
+    )
+
+
+def test_every_callable_multiplier_implies_the_level_it_declares():
+    """MUTATION: return a hand-picked constant from either multiplier callable and this fires.
+
+    The derivation leg for the callable shape, and it is not the band leg twice. A multiplier
+    function could return anything that happens to imply an in-band rate; this asserts it equals
+    the declared level over the reference year's level, exactly -- the property that makes the
+    ratio a reading of the record rather than a number beside one.
+    """
+    checked = 0
+    for name, (dotted, attr, ref_year, level_attr) in _CALLABLE_MULTIPLIER_READINGS.items():
+        fn = _lane_callable(dotted, attr)
+        reference = _level_at(dotted, level_attr, ref_year)
+        for year in sorted(_bands()):
+            expected = _level_at(dotted, level_attr, year) / reference
+            assert float(fn(year)) == pytest.approx(expected, rel=1e-9), (
+                f"{name}({year}) = {fn(year)!r} but its declared level {level_attr} implies "
+                f"{expected!r}. The multiplier has come apart from the level it normalises."
+            )
+            checked += 1
+    assert checked >= 20, f"only {checked} derived entries compared -- an emptied register passes"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (d) THE CENSUS — the leg that fires when a reading of a NEW SHAPE arrives unregistered
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+_SCOPE = ("company", "saas", "simulation")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+#: The commons filename. A module that reads it is BY CONSTRUCTION serving the published
+#: switching record, whatever it calls the thing it serves -- which is how the census reaches
+#: `market_conditions`, whose names carry none of the vocabulary below.
+_COMMONS_TOKEN = "gb_domestic_switching_rate"
+
+_VOCABULARY = ("switch", "depart", "churn", "leav", "attrit", "defect")
+
+_YEAR_ARG_NAMES = ("year", "renewal_year", "calendar_year")
+
+
+def _is_year_key(node: ast.expr) -> bool:
+    return isinstance(node, ast.Constant) and isinstance(node.value, int) and 1990 <= node.value <= 2100
+
+
+def discover_switching_level_candidates(root: Path = _REPO_ROOT, scope=_SCOPE) -> dict[str, str]:
+    """Every module-level name in scope that could be carrying a switching/departure LEVEL.
+
+    Returns `{"<dotted>:<NAME>": "<shape>"}`. DELIBERATELY OVER-INCLUSIVE. It is cheap to
+    classify a candidate that turns out to be a price table and expensive to miss one that turns
+    out to be a live wrong reading of a published series -- the asymmetry that cost this project
+    six weeks. Everything it finds must be registered or classified below.
+
+    TWO INDEPENDENT DISCOVERY LEGS, because either alone has a hole this census already walked
+    into:
+      * BY NAME -- a name or filename carrying the vocabulary. This leg alone MISSES
+        `company/crm/market_conditions.py`, whose module and function names contain none of it,
+        which is to say it misses the exact module this census was opened for.
+      * BY COMMONS READ -- any module whose source mentions the commons artefact. This leg alone
+        misses a hand-authored table that never reads the record, which is precisely what the
+        original defect was.
+
+    AND THREE SHAPES, because the register held two and the world's reading was in the third:
+    a year-keyed dict LITERAL, a dict built by a COMPREHENSION or a CALL (the shape the repaired
+    `market_conditions` has, and invisible to `test_year_keyed_rate_table_census`'s literal
+    scanner), and a CALLABLE taking a year.
+    """
+    found: dict[str, str] = {}
+    for package in scope:
+        for path in sorted((root / package).rglob("*.py")):
+            try:
+                source = path.read_text()
+                tree = ast.parse(source)
+            except (SyntaxError, UnicodeDecodeError):  # pragma: no cover - none in scope
+                continue
+            reads_commons = _COMMONS_TOKEN in source
+            dotted = path.relative_to(root).with_suffix("").as_posix().replace("/", ".")
+            for node in tree.body:
+                names: list[str] = []
+                shape: str | None = None
+                if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                    if node.value is None:
+                        continue
+                    targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                    names = [t.id for t in targets if isinstance(t, ast.Name)]
+                    value = node.value
+                    if isinstance(value, ast.Dict) and value.keys and all(
+                        k is not None and _is_year_key(k) for k in value.keys
+                    ):
+                        shape = "year-keyed dict literal"
+                    elif isinstance(value, ast.DictComp):
+                        shape = "year-keyed dict comprehension"
+                    elif isinstance(value, ast.Call):
+                        shape = "value from a call"
+                elif isinstance(node, ast.FunctionDef):
+                    if any(a.arg in _YEAR_ARG_NAMES for a in node.args.args):
+                        names, shape = [node.name], "callable of a year"
+                if shape is None:
+                    continue
+                for name in names:
+                    by_name = any(
+                        v in name.lower() or v in path.stem.lower() for v in _VOCABULARY
+                    )
+                    if by_name or reads_commons:
+                        found[f"{dotted}:{name}"] = shape
+    return found
+
+
+#: EVERY CANDIDATE THE DISCOVERER FINDS THAT IS *NOT* A READING OF THE PUBLISHED SWITCHING LEVEL,
+#: each with the reason it is not. Classified 2026-08-31 by reading each one. A candidate absent
+#: from here and from every register above makes the census leg fire -- which is the whole point:
+#: "absent" and "checked" look identical to a register, so absence is made load-bearing.
+_NOT_A_LEVEL_READING: dict[str, str] = {
+    # --- the level's DENOMINATOR and its neighbours in the same module ---
+    "company.market.market_report:_UK_DOMESTIC_ACCOUNTS_M":
+        "the DENOMINATOR the switching rate is expressed over, not the rate. It is caught here "
+        "only by module co-location. Worth naming rather than filtering: a rate is a ratio, and "
+        "the denominator drifting is the other way its level can go wrong.",
+    "company.market.market_report:_UK_AVG_ELEC_UNIT_RATE_P_KWH":
+        "a published domestic PRICE series, not a switching level. Same module as the rate table.",
+    "company.market.market_report:_UK_AVG_GAS_UNIT_RATE_P_KWH":
+        "a published domestic PRICE series, not a switching level. Same module as the rate table.",
+    "company.market.market_report:get_market_elec_rate":
+        "accessor over the electricity PRICE table above.",
+    "company.market.market_report:get_market_gas_rate":
+        "accessor over the gas PRICE table above.",
+    "company.market.market_report:compare_to_market":
+        "compares this company's price with the market's; returns a price comparison.",
+    "company.market.market_report:market_benchmark":
+        "assembles the price benchmark record; carries no switching level of its own.",
+    # --- company/crm/market_conditions: the non-switching half of the module ---
+    "company.crm.market_conditions:market_rate_move_pct":
+        "how far the whole market's PRICE moved into a year, derived from the Ofgem cap. A "
+        "different published series entirely; it shares a module with the switching reading.",
+    # --- the world's savings curve: DRIVERS of a rate, not a reading of one ---
+    "simulation.market_switching_propensity:MARKET_SAVINGS_BY_YEAR":
+        "the modelled saving available from switching, in POUNDS. An input to the curve that "
+        "produces a rate, not a rate. Inside the published window it does not set the level at "
+        "all -- `market_departure_rate` returns the record and ignores the curve there.",
+    "simulation.market_switching_propensity:_POST_BAN_STRUCTURAL_FACTOR":
+        "a dimensionless structural adjustment to the savings curve, not normalised to a "
+        "reference year and not a ratio of any published level. Same override applies: inside "
+        "the record the curve is not what sets the rate.",
+    "simulation.market_switching_propensity:_curve_rate":
+        "the savings curve's own answer BEFORE any level correction, and explicitly not the "
+        "world's departure rate -- `market_departure_rate` is, and it is registered.",
+    "simulation.market_switching_propensity:_PARITY_RATE":
+        "the curve evaluated at zero savings; a scalar reference point for the offer-position "
+        "multiplier, not an annual market level.",
+    # --- per-household / per-account model parameters, not market levels ---
+    "company.crm.churn_model:CRISIS_PASSIVE_YEARS":
+        "a frozenset of year LABELS selecting a behavioural regime; it carries no rate.",
+    "company.crm.churn_model:estimate_passive_churn_probability":
+        "a per-customer conditional probability from the company's fitted churn model. Not a "
+        "reading of the market-wide published level; the company is permitted to be wrong about "
+        "an individual customer in a way it is not permitted to be wrong about DESNZ.",
+    "company.pricing.switching_recommendation:_cap_p_per_kwh":
+        "the Ofgem cap in pence per kWh. A price, in a module whose FILENAME carries the "
+        "vocabulary -- which is why the name leg alone over-collects and must be classified "
+        "rather than filtered.",
+    "simulation.churn_journey:_TERMINAL_STATES":
+        "the set of absorbing states in the churn journey state machine; carries no rate.",
+}
+
+#: HELD INDIRECTLY, and named here rather than in `_NOT_A_LEVEL_READING` because it IS
+#: level-shaped and calling it "not a level reading" would be false.
+_HELD_INDIRECTLY: dict[str, str] = {
+    "simulation.departure_level_anchor:YEAR_LEVEL_ANCHOR":
+        "a fitted per-year CORRECTION FACTOR (~3.2-4.6), not a rate and not a ratio of one: "
+        "multiplying it by a published rate yields nothing meaningful, so no band check can be "
+        "written for it directly. It is held through its EFFECT -- the world's realised departure "
+        "rate, which is `_PRINCIPAL_SUBJECT` above and is band-checked every run. Registering it "
+        "as a reading would mean inventing a comparison the quantity does not support.",
+    "simulation.departure_level_anchor:year_level_anchor":
+        "the accessor over the table above; held by the same indirection.",
+}
+
+
+def _registered_names() -> set[str]:
+    """Every candidate name any register above already holds."""
+    names = {f"{d}:{a}" for d, a in _LANE_READINGS.items()}
+    names |= {f"{d}:{a}" for d, a, _ref, _rate in _MULTIPLIER_READINGS.values()}
+    names |= {f"{d}:{a}" for d, a, _pct in _CALLABLE_READINGS.values()}
+    names |= {f"{d}:{a}" for d, a, _ref, _lvl in _CALLABLE_MULTIPLIER_READINGS.values()}
+    return names
+
+
+def _classified_names() -> set[str]:
+    return set(_NOT_A_LEVEL_READING) | set(_HELD_INDIRECTLY)
+
+
+def test_every_discovered_switching_level_candidate_is_registered_or_classified():
+    """THE LEG THE DIRECTION ASKED FOR: a NEW SHAPE arriving unregistered must fire.
+
+    Both registers above are hand-maintained, and a hand-maintained register's failure mode is
+    not that its entries go wrong -- it is that the next one never gets added. That is exactly
+    what happened twice here: a multiplier-shaped reading was invisible to a rate-keyed register
+    for six weeks, and the world's own callable reading was invisible to both for as long as it
+    has existed. Neither was a bug in a check; both were a subject that no check had.
+
+    So this stops asking "are the registered readings right" and asks "is anything that could be
+    a reading NOT registered". A new table, a new accessor, a new module: it lands in the
+    discovery set and this goes red until somebody either registers it or writes down why it is
+    not a reading. Classifying is cheap and takes one line; the point is that it cannot be
+    skipped silently.
+
+    MUTATION: `test_mutation_e_a_new_shape_arriving_unregistered_is_caught` below.
+    """
+    discovered = discover_switching_level_candidates()
+    assert len(discovered) >= 20, (
+        f"the discoverer found only {len(discovered)} candidates; it found 26 when it was "
+        f"written, and a scanner that has quietly stopped matching reports a constant PASS"
+    )
+    accounted = _registered_names() | _classified_names()
+    unaccounted = sorted(set(discovered) - accounted)
+    assert not unaccounted, (
+        "these look like they could carry a switching or departure LEVEL and no register holds "
+        "them and nothing says why they are exempt:\n  "
+        + "\n  ".join(f"{n}  [{discovered[n]}]" for n in unaccounted)
+        + "\n\nEither add it to a register above (and it will be held to the published band), or "
+        "add it to `_NOT_A_LEVEL_READING` with the reason it is not one. A reading nothing holds "
+        "is how `MARKET_SWITCHING_MULTIPLIER_BY_YEAR` asserted 31% switching for 2016 for six "
+        "weeks beside the control written for exactly that defect."
+    )
+
+
+def test_the_census_reaches_the_module_the_name_vocabulary_cannot_see():
+    """MUTATION: drop the commons-read discovery leg and this fires.
+
+    THE PRECISION OF THE CENSUS, STATED AS A CONTROL RATHER THAN A CLAIM. `market_conditions`
+    carries neither "switch" nor "depart" nor "churn" in its module name or in
+    `market_conditions_multiplier`, so the vocabulary leg cannot see the module this whole census
+    was opened for. Only the commons-read leg reaches it. A future tidy-up that collapses the two
+    legs into one would restore precisely the blindness this census exists to remove, and would
+    otherwise do so silently -- every other leg here would stay green.
+    """
+    discovered = discover_switching_level_candidates()
+    assert "company.crm.market_conditions:market_conditions_multiplier" in discovered
+    assert "company.crm.market_conditions:MARKET_SWITCHING_MULTIPLIER_BY_YEAR" in discovered
+    assert not any(
+        v in "market_conditions" or v in "market_conditions_multiplier" for v in _VOCABULARY
+    ), (
+        "the vocabulary now matches `market_conditions` by name, so this leg no longer proves "
+        "the commons-read leg is load-bearing -- give it a module the vocabulary still cannot see"
+    )
+
+
+def test_the_repaired_reading_is_invisible_to_the_literal_scanner_and_that_is_why_this_census_exists():
+    """MUTATION: none needed -- this ASSERTS A LIMIT of the neighbouring census, and it is a fact
+    about the tree, not a preference.
+
+    `test_year_keyed_rate_table_census.discover_year_keyed_tables` matches year-keyed dict
+    LITERALS. The repair that closed this defect turned `market_conditions`'s tables into a
+    comprehension and a call, which means the older census can no longer see them AT ALL -- and
+    its `test_the_switching_reading_has_not_been_re_inlined` leg depends on exactly that (it
+    fires when the names come BACK as literals). That is sound, but it leaves the repaired form
+    held by nothing in that file, and a reader could reasonably conclude the older census covers
+    this series. It does not. This one does, via the comprehension and call shapes.
+    """
+    from tests.architecture.test_year_keyed_rate_table_census import (
+        discover_year_keyed_tables,
+    )
+
+    literals = set(discover_year_keyed_tables())
+    for name in (
+        "company/crm/market_conditions.py::MARKET_SWITCHING_RATE_PCT_BY_YEAR",
+        "company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR",
+    ):
+        assert name not in literals, (
+            f"{name} is a dict LITERAL again -- see "
+            f"test_year_keyed_rate_table_census.test_the_switching_reading_has_not_been_re_inlined"
+        )
+    discovered = discover_switching_level_candidates()
+    assert "company.crm.market_conditions:MARKET_SWITCHING_RATE_PCT_BY_YEAR" in discovered
+    assert "company.crm.market_conditions:MARKET_SWITCHING_MULTIPLIER_BY_YEAR" in discovered
+
+
 def test_a_lane_reading_covers_the_whole_published_window():
     """MUTATION: delete 2020 and 2021 from `_UK_SWITCHING_RATE_PCT` -- the two years the old table
     was most wrong about -- and this fires.
@@ -527,6 +898,67 @@ def test_mutation_d_dropping_the_principal_subject_from_the_register_is_caught(m
     )
     with pytest.raises(AssertionError, match="no longer names the world's own"):
         test_the_register_names_the_worlds_own_realised_departure_rate()
+
+
+def test_mutation_e_a_new_shape_arriving_unregistered_is_caught(monkeypatch):
+    """THE MUTATION THE DIRECTION NAMED. Add a reading of a shape no register holds and the
+    census must fire.
+
+    Mutating the DISCOVERER's output rather than writing a decoy module into the tree: the
+    subject under test is whether an unaccounted candidate can reach green, and a real file would
+    make this test edit a shared worktree other lanes are committing from.
+    """
+    real = discover_switching_level_candidates()
+    monkeypatch.setattr(
+        "tests.architecture.test_switching_rate_commons.discover_switching_level_candidates",
+        lambda *a, **k: {
+            **real,
+            "company.crm.brand_new_module:SWITCHING_INDEX_BY_YEAR": "year-keyed dict literal",
+        },
+    )
+    with pytest.raises(AssertionError, match="brand_new_module"):
+        test_every_discovered_switching_level_candidate_is_registered_or_classified()
+
+
+def test_mutation_f_an_emptied_discovery_set_cannot_read_green(monkeypatch):
+    """MUTATION: make the discoverer return nothing and the non-vacuity floor must fire.
+
+    The census's own fail-open: a scanner whose AST matching silently stops working finds zero
+    candidates, zero of which are unaccounted, and reports a clean PASS over an empty tree.
+    """
+    monkeypatch.setattr(
+        "tests.architecture.test_switching_rate_commons.discover_switching_level_candidates",
+        lambda *a, **k: {},
+    )
+    with pytest.raises(AssertionError, match="only 0 candidates"):
+        test_every_discovered_switching_level_candidate_is_registered_or_classified()
+
+
+def test_mutation_g_a_callable_reading_moved_off_the_record_is_caught(monkeypatch):
+    """MUTATION: inflate the world's own departure rate by half and the callable band leg fires.
+
+    The world's reading is the one that was held by nothing. This proves the new register is a
+    control and not a list.
+    """
+    import simulation.market_switching_propensity as msp
+
+    real = msp.market_departure_rate_pct
+    monkeypatch.setattr(msp, "market_departure_rate_pct", lambda year: real(year) * 1.5)
+    with pytest.raises(AssertionError, match="market_departure_rate_pct"):
+        test_every_callable_shaped_reading_is_inside_the_published_band()
+
+
+def test_mutation_h_a_multiplier_callable_cut_loose_from_its_level_is_caught(monkeypatch):
+    """MUTATION: return a hand-picked constant from the company's multiplier callable.
+
+    It stays inside every band's implied range for several years -- which is exactly why the band
+    leg alone is not enough and this derivation leg exists.
+    """
+    import company.crm.market_conditions as mc
+
+    monkeypatch.setattr(mc, "market_conditions_multiplier", lambda year: 1.0)
+    with pytest.raises(AssertionError, match="market_conditions_multiplier"):
+        test_every_callable_multiplier_implies_the_level_it_declares()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
