@@ -1,360 +1,292 @@
 version: 1
-oriented_at: "2026-08-31T11:23:53.044048+00:00"
+oriented_at: "2026-08-31T23:24:42.239230+00:00"
 thesis_read: >-
-  **The month's central question was answered this stretch, and it was answered the way that makes
-  the project real rather than the way that would have ended it.** Rung 3 was measured for the first
-  time: the world's own realised hazard discriminates who leaves at **AUC 0.6760 against a
-  permutation null of [0.4184, 0.5778]**, stratified by year AND route, on 1,410 decisions and 82
-  departures across both departure routes. **There IS something to infer.** The alternative reading
-  I opened last direction with — the director's own — was that a month of "we cannot tell" was a
-  fact about a world containing no per-customer signal, which would have made every arms result an
-  artefact of one. It is refuted, on the numbers, with its null printed. And the two factors that
-  carry it are ones a supplier can actually see: **bill shock** (we issue the bill) and **action
-  propensity** (income stress × tenure — arrears and account age). The thesis's hardest precondition
-  — inference, never access — is now established as *available* rather than assumed. Equally
-  important, and stated first because agreeing would have been free: **the canon's causal claim does
-  not hold for this variable.** A 20× sweep of the top-down year anchor moves the rung-3 reading by
-  0.002, because the anchor is a within-year multiplier and AUC is a rank statistic. Deleting it
-  tomorrow buys exactly zero heterogeneity. The anchor is real debt for rung 1 and rung 2; it is not
-  why the company kept reading "we cannot tell". **Second, the money side moved for the first time
-  in weeks and moved honestly.** The A/B noise floor was re-measured in the current world — my third
-  focus item, and it landed by the seat's own hand rather than by the draw — and it **WIDENED 46%**,
-  £2,577.80 → £3,776.27. Against that wider, correctly-worlded bound the selection leg still says
-  **CANNOT RESOLVE**, but it is now a refusal against a bound measured in the same world instead of
-  a refusal for a reason that was itself unmeasured. And the headline leg cleared its own floor:
-  **£12,071 more than flat rules against ±£2,291, a direction stated on the page for the first
-  time.** The caution goes beside it and is the seat's, not the lane's: **79% of that advantage is
-  the price LEVEL**, and a level advantage is not the per-customer claim the thesis makes. The one
-  contrast that IS that claim is the one still inside its bound. **Third, what the stretch cost me
-  in credibility.** My previous item 1 was wrong in its central claim — I read fifty departures as
-  missing their cause when C1b had deliberately created them — and the machine did not merely
-  correct it, it turned the correction into the most valuable finding on the board: removing the
-  discretisation that hid the satisfaction term exposed that **the world's unhappiest households
-  leave LEAST** (realised churn 0.243 / 0.200 / 0.083 across low / moderate / high income stress),
-  because `sim_dissatisfaction_response` and `sim_action_propensity` share income stress as their
-  dominant driver and the damping wins about three to one. Two of the world's four departure risks
-  are **one variable seen twice**. That is a fidelity defect in the mechanism the entire
-  choice-and-channel programme is about to be built on. **And my fourth item was never drawn at
-  all** — the canon's work-items 2, 3 and 4, written as three sub-items under one key, which is a
-  topic and not an instruction, exactly the shape this brief warns produces unreachable focus. I
-  wrote it after reading the warning. It is re-issued below, narrowed to the part that unblocks a
-  lane, and the failure is mine and recorded.
+  **The steer bit for the first time, and what it delivered was the discovery that this machine has
+  been reading half a tree.** Last orientation I named the mechanism — nothing converted a focus
+  item into a handoff — and it is now closed: `background/delivery_lane.py` and
+  `background/seat_executor.py` landed the conversion at 22:25, and `seat-executor-log.md` names a
+  focus item in its own words at 23:03 (*"DRY RUN: would run
+  the-published-page-must-be-rebuildable-from-the-commit-it-ships-in — all four refusals passed"*)
+  and runs it at 23:06. That was the stated acceptance test and it is met, so focus item one leaves
+  this file. **But the first thing the newly-reachable direction did was refute its own premise.**
+  The tick sent to land-or-park the *"uncommitted"* widening in `tests/production_surface_guard.py`
+  checked before acting and found it committed, pushed and reviewed as `22aaaa494` on `origin/main`;
+  the local copy was a superseded draft. I verified the cause this orientation and it is worse than
+  one stale file. **Local `HEAD` is 14 commits ahead of `origin/main` and 20 commits behind it, and
+  every one of this stretch's ten commits is local-only.** Two writers, two histories: the executor's
+  worktree route promotes and pushes, so `18a09617d`, `2eeaa69ea`, `847f256ed`, `2bf3ad0aa`,
+  `22aaaa494` and fifteen more are on the trunk; the shared tree commits and does not reach it.
+  `git diff` answers against local HEAD, so **landed work renders here as one lane's uncommitted
+  draft** — `background/fork_salvage.py` and `background/fork_reconciler.py` both show modified in
+  `git status` and both carry their live-writer fix on origin already. Every orientation, every
+  `uncommitted_and_orphaned_work` alarm (19 open), the brief's own `previous_focus_drawn: []` while
+  the executor log names three, **and my last direction's first instruction** are all computed
+  against a base twenty commits stale, and nothing on any surface says so. **Meanwhile the trunk
+  cannot be reached from here at all**: publishing has been wedged since 16:03 UTC, the site serves a
+  snapshot 9.9h old, and the refusing gate is named in the publisher log — the orphan-ratchet on
+  `tools.promote_worktree_landing`, *"THIS COMMIT ADDS WORK THAT NOTHING RUNS"*, about the landing
+  tool that `background/seat-executor.service` runs on every turn by subprocess, which the ratchet's
+  import graph cannot see. **Against the thesis: the world got sharper and the machine got blinder.**
+  The world now scales each household's settled meter to its own declared annual consumption
+  (`a96ab0690`, three predictions filed and all three refuted — that is the world pressing back), and
+  on origin `18a09617d` proved with three confirmed predictions that `svt_inertia_hazard` cannot see
+  the market and installed a refusal keyed to that property rather than to today's number. That
+  refusal now blocks the whole-book anchor re-fit by construction and lifts the moment the parameter
+  exists. So the thesis item is not merely still open — it is now *measured, refused and specified*,
+  and it is the single highest-value piece of modelling work in the tree. It is second only because
+  work landed into a fork nobody can fetch is work nobody has.
 stretch_reviewed:
-  since: "2026-08-31T08:24:31.530874+00:00"
-  commits: 12
+  since: "2026-08-31T20:22:09.506889+00:00"
+  commits: 10
   substantive: 7
 focus:
-  - id: put-the-company-beside-the-ceiling-on-the-route-its-own-belief-did-not-seed
+  - id: the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one
     what: >-
-      **Lane 0, and it is `LADDER_APPLIED_TO_CHURN_2026-08-31.md` item 4 made specific.** Compute the
-      world's oracle AUC (**the ceiling, 0.6760**) and the company's own belief AUC on **ONE
-      capture, one population, both nulls** — and split the reading by route, because the two routes
-      are not the same experiment. **The renewal leg is partly tautological and
-      `tools/grade_renewal_churn_belief.py` says so in its own docstring**: `roll_lifecycle_event`
-      seeds `effective_p_retain` from the same `build_churn_risk` number it then grades, so a belief
-      graded there measures whether the world's adjustment chain preserves the ordering of the base
-      rate it was handed — a weaker claim, and it must be published as that. **The SVT leg is the
-      one that matters and nobody has noticed it is available.** An SVT segment decision carries no
-      `churn_probability`, no `sim_price_response` and no `sim_bill_shock_base` — the company's
-      belief is not an input to that hazard anywhere. So the SVT route is **1,266 decisions and 50
-      of the book's 82 departures whose outcome the company did not cause**, which is the first
-      population in this project on which a belief can be graded against a world it did not seed.
-      Grade it. The likely answer is that the company has **no belief to grade** — `build_churn_risk`
-      is renewal-shaped and a household drifting off a fixed deal onto SVT is invisible to it — and
-      **that answer is the finding**, not a blocker: 61% of departures happen through a door the
-      company's churn model cannot see. Use `tools/measure_churn_heterogeneity.py` for the oracle
-      leg and `grade_renewal_churn_belief` for the company leg; do not build a third instrument.
+      **Lane 0. Make `origin/main` and local `main` one history again, and unwedge the route to it.**
+      Measured this orientation, after `git fetch`: **14 commits on local HEAD not on origin, 20 on
+      origin not on local.** All eight of this stretch's commits are local-only.
+      **First, the publish, because it is why the fork is growing.** The refusing gate is named in
+      `docs/observability/sim-runner-log.md`: the orphan-ratchet refuses
+      `tools.promote_worktree_landing` as *"work that nothing runs"*. It is run — by
+      `background/seat-executor.service`, committed in `0bc78cf14`, which invokes it as a subprocess
+      the ratchet's import graph cannot follow. The ratchet's own message states the two legal moves:
+      wire it so the runner is visible, or `python3 tools/orphan_ratchet.py --freeze` **in the same
+      commit** so the decision is on the record. **Take that decision and say which and why** —
+      freezing the project's own promotion route as deliberately-dormant is the flattering answer and
+      is probably wrong; a subprocess-visible runner is the honest one. Then run a publish and
+      confirm a commit reached origin, because the wedge detector counts refusals, not intentions.
+      **Second, the reconciliation.** `python3 -m tools.surgical_land`, never `git merge`, never
+      `git checkout <path>`, never `git stash` — the shared tree carries three lanes' dirt and the
+      wall is not negotiable. Land the 14 local commits onto the trunk that already holds the 20.
+      Where a locally-modified file turns out to be a superseded draft of what is already upstream
+      (`background/fork_salvage.py` and `background/fork_reconciler.py` are both confirmed instances —
+      the live-writer fix is on origin, the local edit is the earlier draft), **take the upstream
+      copy and record that you did**; do not re-land a decision already taken.
+      **Third, and this is the part that keeps it from recurring: nothing anywhere tells a reader
+      that `git status` on this machine answers against a stale base.** One leg or one surface line
+      that reads `origin/main..HEAD` and `HEAD..origin/main` and refuses to report "uncommitted work"
+      without them. Mutation-prove it; if it does not fire, establish whether that is a missing test
+      or an equivalence and do not assume the flattering one.
+      **Fourth, grade the prediction that is already on the record.**
+      `WORKER_FINDING_THE_UNCOMMITTED_GUARD_I_WAS_TOLD_TO_DECIDE_ON_HAD_ALREADY_LANDED_ON_ORIGIN`
+      predicts, before anyone checked, that re-deriving the 19 `uncommitted_and_orphaned_work`
+      instances against `origin/main` rather than local HEAD resolves **more than a quarter** to
+      "already landed upstream". Re-derive them and write the result beside the prediction whichever
+      way it falls. While you are there, the four paged reds in
+      `tests/background/test_autonomous_runner.py` (usage-limit legs, RED for two consecutive
+      operational-layer signals) are either this same artefact or real — establish which; do not
+      carry them as "known".
     why: >-
-      First, and it displaces the money instrument deliberately. The thesis says the advantage must
-      come from **inference**, and until this stretch there was no denominator: a company AUC of
-      0.4653 read as "the company is poor" only if you know what was there to be found. Now the
-      ceiling is measured — 0.6760 — and the comparison is finally *possible*, which the ladder page
-      correctly refuses to make today because the two figures come from different populations and
-      different runs. **Two true numbers whose legs are different populations do not have a
-      difference**, and putting 0.6760 beside 0.4653 is the exact move this repository has published
-      wrongly before. This item exists to make the comparison legal, and it is worth more than the
-      £ instrument because it is measured per DECISION on 1,410 of them rather than per contrast on
-      3 seeds, and because the SVT split answers the independence objection that has hung over every
-      belief reading here since July. **Done means:** both AUCs computed on one capture with the
-      shared null printed; the renewal leg's non-independence stated **on the surface a reader
-      meets, not in a footnote**; the SVT leg either graded or its absence stated plainly as "the
-      company forms no belief on the route carrying 61% of departures"; the exposure offset applied
-      on the SVT route before any per-factor figure from it is quoted again (segment length alone
-      reads 0.5868 against a null topping out at 0.5842); and **no ratio, share or "fraction of the
-      ceiling captured" published unless both legs count one population** — if they do not, say so
-      and publish the two readings side by side with their populations named.
-  - id: the-floor-decomposition-is-from-another-book-and-the-page-refuses-its-own-remedy
+      First, because it is the only item whose failure mode is that **nothing else in this file can
+      be believed**. Seven substantive commits this stretch — the executor and its units, the handoff,
+      the red-count provenance, the EAC scaling, the churn-cap rename — are in a history no other lane
+      can fetch, while twenty commits of other lanes' work are invisible to every reader here. That
+      is not a tidy-up: it is the measuring instrument. My own last direction ordered a worker to
+      land-or-park a change that had been on the trunk for hours, and the tick spent its turn proving
+      the premise false instead of doing the work — the direction was reachable at last and what it
+      reached was a lie, and the lie came from this. **Done means:** one history, verified by
+      `git rev-list --count` both ways reading zero-and-something rather than 14-and-20; a publish
+      commit demonstrably on origin; the orphan-ratchet decision on `promote_worktree_landing` taken
+      and recorded either way; one leg, proven able to fail, that stops a reader here mistaking a
+      stale base for uncommitted work; and the 19-instance prediction graded in writing. **No
+      register, no census, no watcher** — four instances of a class justify one leg, not a subsystem.
+      If the output is a document rather than commits on origin and a failing assertion, it has not
+      been done.
+  - id: the-svt-route-still-cannot-see-the-market
     what: >-
-      **Lane 0, and it is half-run already — finish it rather than restarting it.** The `all` leg of
-      the noise floor was re-measured in the current world this stretch; the `only` and `except`
-      legs were launched with it and were still in flight when the note was written. Until
-      `--redraw-mode only|except` plus `--decompose` completes on **this** book,
-      `floor_decomposition` still reads `priced_decisions: 20` / `renewals_offered: 1369` against a
-      run that priced **120 of 1,953**, and the page is correctly refusing to quote any remedy from
-      it — *"a split of the variance measured on one book is not a price for resolving another, and
-      the priced count is the very quantity the remedy is denominated in."* Re-run the two legs
-      against the same tree as the `all` leg (`4240e1478` or its descendant, with the same inert-path
-      check), re-decompose, and then either restate the remedy in the current book's units or
-      **withdraw the `larger_settled_book_would_resolve_it` claim entirely**. The specific thing to
-      look at: the priced side carried **0.9999** of the variance at 20 priced decisions. Whether it
-      still does at 120 is the whole question, and a fall would mean a bigger settled book does not
-      buy the selection leg down and the claim must go.
+      **Give `svt_inertia_hazard` a parameter the market can arrive through. The measurement is done,
+      the refusal is built, and it lifts by construction the moment the parameter exists — read
+      `18a09617d` on `origin/main` FIRST, because this machine cannot see it and it changes the job.**
+      That commit filed three predictions before measuring and confirmed all three: Spearman **-0.26**
+      between the SVT floor and the published midpoint 2017-2024 (near zero, wrong sign); at the
+      **bottom** of both published bands 2022's floor is still **8.99%** against the record's
+      **4.30%**, and clearing it needs the pair scaled to 0.354x where the band bottom is only 0.750x
+      — so it is a mechanism result and not a constant at the wrong end; CV ratio **0.336** where the
+      record swings **5.3x**. `svt_inertia_hazard(years_on_svt, segment_days)` takes nothing else,
+      while every renewal-route hazard already carries `market_switching_multiplier` — the record's
+      own level ratio inside 2016-2025. **Read that existing mechanism before minting a second one.**
+      **Knowledge first, and the world's own source already answers it**: `svt_rates` §3 — *"customers
+      did not voluntarily churn: no competitive fixed alternatives existed"*. Establish from
+      `docs/domain_artefact_library/` and `docs/market_research/` what the published record says
+      actually suppressed switching in 2022 — whether there were acquisition tariffs to switch *to* —
+      and write it down with its source **before** any term is written. **Pre-register the predicted
+      MOVE per year, never an invariance**: an invariance measured on the old code embeds the defect
+      being removed, and this project has paid for that. Grade on
+      `tools/departure_population.book_departure_level` — the one implementation both instruments read
+      — and print all ten years at real inputs beside the prediction, not the year you aimed at. Then
+      re-run the whole-book anchor re-fit and report whether the refusal lifted. **Never a widened
+      band, never a clamp on 2022, and it must not finish with a fitted constant.** Two things do
+      **not** happen in this commit: re-pointing
+      `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject (rewriting what
+      a control measures inside the commit that repairs the measurement makes the move
+      unattributable), and repairing `population_anchor._churn_by_year`'s blindness to 2022 by
+      inserting a `sim_churn_rate` of 0.0 — that publishes a measured zero-churn crisis year; fail-close
+      its five arithmetic consumers instead.
     why: >-
-      Second, because it decides whether the project's central claim is **answerable at all**, and
-      because it is cheap and half-done. The headline leg now states a direction — £12,071 over flat
-      rules, clearing ±£2,291 — but **79% of that is the price level**, and a level advantage is
-      available to any supplier who simply prices lower. The contrast that carries the thesis's
-      actual claim is `selection_gbp`, £2,574 inside ±£3,776, and the only stated route to resolving
-      it is a larger settled book. That route is currently priced on a book with a sixth of today's
-      priced decisions. **A remedy quoted in stale units is how a project spends a month buying
-      something that was never going to work**, and the honest alternative — "this book cannot
-      resolve it and a bigger one would not either" — is a publishable result that changes what we
-      build next. **Done means:** both legs measured from one tree with the current run's identity
-      on each; `floor_decomposition` carrying the current priced count; the priced share of variance
-      re-read at 120; and the remedy sentence either restated in current units or removed with the
-      reason on the page. If the two legs' variances again sum to something far from 1.0, report the
-      reconciliation ratio and its degrees of freedom rather than the split.
-  - id: the-worlds-service-risk-is-cancelled-by-a-modulator-that-shares-its-driver
+      Second, and it is the thesis item — the only item here that moves fidelity rather than
+      plumbing. The company's advantage must come from inference about a world that can press back,
+      and **61% of departures** run through a route that runs the same 0.20/0.10 through the 2020
+      switching peak and the 2022 collapse alike. Every belief graded on that population this week was
+      graded on a mechanism the record contradicts most sharply in the year the record makes
+      unmistakable. It is also blocking real work now rather than notionally: with both routes sharing
+      one anchored total they are zero-sum, so the SVT route's market error lands in the renewal anchor
+      — 2023's floor consumes 12.43 of the 12.50 available and the fit returns **0.03**, near-total
+      extinction of the one route the company can actually price against. And the anti-flattering
+      tie-break that put the SVT floor at the top of its band **became a flattering choice** the moment
+      the denominator was unioned, because a higher SVT floor now hands the company less churn on the
+      route it can price. **Done means:** the record's own account of 2022 written down with its
+      source before any code; the predicted per-year move filed before the run; the term landed and the
+      ten-year table printed at real inputs beside the prediction; and 2022 either inside its band for
+      a stated mechanical reason, **or explicitly still out with the reason named on the surface** —
+      *"the world departs 12.09% in a year the record says 3%, and here is what we have not modelled"*
+      is an acceptable and better finish than a number that fits.
+  - id: the-published-page-must-be-rebuildable-from-the-commit-it-ships-in
     what: >-
-      **Lane 0. Repair downward at the individual model, which is what the canon requires of a
-      rung-3 failure — not a re-tune of the multiplier.** `WORKER_FINDING_THE_WORLDS_SERVICE_RISK_IS_
-      CANCELLED_BY_A_MODULATOR_THAT_SHARES_ITS_DRIVER_2026-08-31.md` measures it: realised churn runs
-      **0.243 / 0.200 / 0.083** across low / moderate / high income stress — backwards —
-      `corr(sim_dissatisfaction_response, sim_action_propensity) = −0.5188`, and the term alone reads
-      **0.3806 inside a null of [0.3794, 0.6206]**, on the wrong side of chance by an interval that
-      cannot yet call it. The cause is structural: `simulation/sim_satisfaction` builds satisfaction
-      from income stress, bill shocks, tenure and payment channel, and `action_propensity` is income
-      stress × tenure. **The world damps a risk it also generates.** The repair is to give
-      satisfaction a driver income stress cannot explain — service failures, contacts, complaints —
-      and it is **knowledge-first, not a chosen number**: establish from the published record (Ofgem
-      complaints data, Citizens Advice supplier ratings, the commons in
-      `docs/domain_artefact_library/`) what a domestic book's service-failure rate and its
-      distribution across households actually look like, and through which channel a supplier sees
-      it. If nothing establishes it, that is a finding and the code carries the gap — an honest
-      `None` with a named reason, never a plausible dose. Pre-register what the repair must show
-      **before** running it, as the satisfaction-continuity work correctly did, and score the
-      predictions against the result whichever way they land.
+      **Carried, still BLOCKING, and a tick is holding it — so establish the state before doing
+      anything.** `seat-executor-log.md` records `RUNNING
+      the-published-page-must-be-rebuildable-from-the-commit-it-ships-in` at 23:06 on `51d6159f4`,
+      and two lanes drawing one Lane 0 item already happened once today
+      (`WORKER_FINDING_TWO_LANES_DREW_THE_SAME_LANE_0_DELIVERY_ITEM_AND_BOTH_PRE_REGISTERED_IT`).
+      Read the handoff claim/discharge record first: **if it discharged, do not re-derive** — verify
+      the leg exists and is mutation-proven, and that is the whole remaining job. Also check origin
+      before assuming the instance is live: `31def55aa` (*"the public page said 'verified, showing run
+      X' for a month, and X is in no commit"*) is on the trunk and this machine cannot see it, so the
+      finding may already be discharged upstream. What is owed either way: **run each
+      `site/data/*.json` generator against the artefacts committed beside it and compare the
+      population it produces to the one published** — counts, not bytes, because timestamps move.
+      `customers.json` first. The finding says the leg will be red on landing and that this is a
+      decision about the publish gate's blocking set; **take that decision and record it** rather than
+      landing the leg unwired. His words at 19:47 settle the only judgement in it: *"if the honest
+      answer is that the site shows 19, show 19 and say why it moved."*
     why: >-
-      Third, and it is the only item here that changes the WORLD rather than measuring it. It ranks
-      below the two measurements because the last repair in this exact place was predicted to buy
-      rung 3 and bought **0.0000** — making the satisfaction response continuous moved ties from
-      92.0% to 0.2% and moved the whole-book reading from 0.6760 to 0.6760 — so acting on a causal
-      story ahead of a measurement is precisely the error this stretch already paid for once. It
-      ranks this high because it is a genuine fidelity defect with a real-world referent that is not
-      in dispute: dissatisfied customers switch MORE, financially stressed customers switch LESS,
-      these are different axes in the world and one axis here. **C4_adoption_physics and
-      C5_key_moment_conversion both depend on `C3_satisfaction_heterogeneity`**, so every advice and
-      channel result the next month produces would be graded against a world that rewards bad
-      service. **Done means:** satisfaction carrying at least one driver that income stress does not
-      generate, sourced or explicitly declared unsourceable with the gap in the code; the
-      correlation with `action_propensity` re-measured and reported whichever way it moves; the
-      realised-churn-by-stress-tier table re-run and published beside the old one rather than
-      replacing it; and — if the repair does not move the reading — that stated as plainly as the
-      last one was, because a second null result here is itself worth knowing.
-  - id: churn-has-no-rung-0-and-no-legal-way-to-refit-its-level
-    what: >-
-      **Two halves of one gap, both knowledge-first, both about the LEVEL rather than the
-      discrimination.** (a) **Rung 0 does not exist for churn.** The canon's rung 0 is a wide
-      feasible range from published evidence, outside which the world is wrong and the run fails —
-      *"wide on purpose: this rung stops crazy answers; it does not tune."* The only control on the
-      departure level is the rung-1 band, 0.6pp wide in 2016, and it is doing both jobs, so a world
-      that moved to a **defensible but different** level and a world that went **insane** fail
-      identically. C3 proved it on real numbers: a +0.11pp move that shifted **zero** departures
-      "left the published band", and so would a move ten times larger. Build the wide range from the
-      published record's own extremes across a longer window and comparable markets — **never by
-      widening the band we have.** (b) **The year anchor now has no legal route to be re-fitted.**
-      `fit_year_level_anchor` correctly REFUSES to emit a `YEAR_LEVEL_ANCHOR` block off a population
-      that is not the book, so the world's level is held by ten numbers solved against a run where
-      the renewal roll was the only way out, on a population that has since lost 69% of its rows.
-      What is owed is the finding's own item 1: **a whole-book departure target both routes are
-      fitted against together.** Capture → refit → capture, across both routes, never a widened band
-      and never scaling the aggregate — or the anchor declared unfittable with the reason on the
-      surface, which is a legitimate outcome and better than a refit onto the selected subset of
-      households that reach a renewal roll.
-    why: >-
-      Fourth, and the ranking is a judgement I want on the record because it contradicts the obvious
-      reading of the canon. The canon names the year anchor as top-down debt and it IS debt — but
-      the measurement says a 20× sweep of it moves rung 3 by **0.002**, so repairing it and
-      expecting the company results to move would be a prediction made against a measurement that
-      already exists. It is a **level** problem, not a discrimination problem, and the level problem
-      is real: without rung 0 no level change anywhere in this world can be **sized**, which is why
-      the departure-level control has no headroom above and cannot express an upward change at all.
-      That blocks generative futures more than the anchor does — past 2025 every year returns the
-      same numbers forever, and a frozen world with no wide range around it cannot be told from a
-      broken one. **Done means:** a wide feasible range for domestic churn sourced from the published
-      record and landed as a rung-0 control that fails on absurdity and stays quiet on defensible
-      difference; and the whole-book target either existing so the refit can run across both routes,
-      or the anchor's unfittability stated where a reader of the level meets it.
-  - id: close-the-two-canon-questions-that-are-decisions-rather-than-work
-    what: >-
-      **Small, and it is the survivable half of the item that was never drawn last time — so it is
-      written as two concrete edits and nothing else.** (a) **Register the generative-futures anchor
-      question CLOSED.** The director asked on 2026-08-30 for a choice between *"preserves the
-      statistical shape"* and *"honestly unanchored"* before that work began, called them *"different
-      projects and I'd rather choose than drift"*, and his own canon of 2026-08-31 answers it:
-      *"anchored to mechanism, validated on history where we have it, and applied where we don't."*
-      Record the closure in `docs/design/WHAT_AN_ANCHOR_MEANS_BEYOND_THE_RECORD_2026-08-30.md`
-      citing the canon, and carry the caveat rung 2 earned: the price mechanism holds on
-      **direction** (+100.75pp / −53.99pp by price side) and is **unidentified on magnitude**
-      (`_SENSITIVITY_SCALE`, flat likelihood from 0.87 down), so a mechanism-anchored future can
-      hold its shape past 2025 and still be wrong by a factor of two on level. That is the caveat
-      generative futures must carry, and it is sharper than "the future is unanchored". Do not
-      re-open the choice. (b) **Adopt the ladder as the stated validation standard in
-      `DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30.md`**, so C2–C6 are built against the four rungs
-      rather than retrofitted onto them. Two edits. Nothing else in this item.
-    why: >-
-      Fifth because it is decision-recording rather than measurement, and it must never outrank the
-      measuring half. It is here at all because (a) closes a director-registered question that is
-      currently the stated blocker on the generative-futures capability, closes it **with his own
-      words rather than my judgement**, and costs an hour; and because (b) is the cheapest available
-      defence against the failure the canon exists to prevent — the choice-and-channel work is the
-      next large build, and a validation standard adopted before the build is worth more than the
-      same standard applied to it afterwards. **What is deliberately NOT in this item, and why:** a
-      machine-readable register of every world variable's rung standing. The ladder page argues
-      against it and I am ratifying that argument — one variable is assessed, a second is in
-      progress under item three, and building the register now would be building the watcher before
-      the work, which is the habit this project has 117 harness atoms' worth of evidence against.
-      **Done means:** the anchor question recorded closed against the canon that closed it, with the
-      magnitude caveat attached; and the choice-and-channel brief naming the ladder as its standard.
+      Third — a control rather than a measurement, so it must never outrank the two above, but it is
+      the one instance of item one's class that is already **BLOCKING**, already on a live public
+      surface, and already carries his explicit instruction. It is also the cheapest to close
+      permanently: `publish_provenance`, the banner adoption control and the basis gate each check
+      that a figure carries its *clock*, and not one of them checks that the figure's *input* is the
+      input in the same commit. That is one missing assertion, not a new subsystem. **Done means:**
+      the `customers.json` instance measured against origin and stated either way; one
+      generator-versus-committed-input leg, mutation-proven, with its blocking-set decision recorded;
+      and if the published book is smaller than the page has claimed, the smaller number published
+      with the sentence that says why it moved.
 not_now:
   - what: >-
-      Publishing the difference between the ceiling (0.6760) and the company's belief AUC (0.4653)
-      as the company's shortfall — the single most quotable sentence available on this board today.
+      Reconciling the two histories with `git merge` or a fast rebase, on the grounds that 14-and-20
+      is small and the tree is mostly the same code.
     why: >-
-      New this stretch and it is the sharpest trap on it, because the two numbers are now both real,
-      both published, and both sitting in the same document. They are computed **over different
-      populations from different runs**, and two true figures whose legs are different populations
-      do not have a difference. The ladder page refuses it explicitly and I am ratifying that
-      refusal as the seat's. Focus item one exists precisely to make the comparison legal; making it
-      before then would be this project's most-repeated failure — a subtraction between two figures
-      that do not count one entity — committed on its most important claim.
+      It is the fastest route and it is the wall. The shared tree carries three lanes' uncommitted
+      work right now, and `git merge` on a dirty shared index is precisely what sweeps another lane's
+      hunks into a commit nobody wrote — `tools.surgical_land` exists because that has happened here.
+      The cost of the legal route is minutes; the cost of the illegal one is unattributable, because
+      the evidence it destroys is the evidence you would need to notice.
   - what: >-
-      Re-running the value-arms A/B on more seeds so the ±£3,776 comes down and the selection
-      contrast resolves.
+      A census or register of every artefact and alarm computed against the stale local base — the
+      full re-derivation of all 19 orphan instances plus a standing watcher over the divergence.
     why: >-
-      Carried for the third direction running and now refuted a third time, by a mechanism that the
-      re-measurement made unmistakable: **the bound WIDENED 46% when it was measured properly**
-      (£2,577.80 → £3,776.27). The spread is the instrument's sensitivity to the per-household
-      price-sensitivity draw, not sampling error around a mean, so re-drawing the dice measures this
-      spread again rather than shrinking it. The legitimate route to resolution is denominated in
-      the priced count, not the seed count, and that route is focus item two. It stays on this list
-      because it is the most tempting move on the board and because doing it and reporting a
-      resolved contrast would manufacture the result item two exists to price honestly.
+      The re-derivation of the 19 stays, because a prediction is already filed against it and an
+      ungraded prediction is worse than none. The **watcher** goes: this repository has 117 harness
+      atoms and 34 alarm documents as evidence of where the census instinct leads, and item one
+      already ships one leg against the shape that demonstrably happened plus the reconciliation that
+      removes the cause. A control that only guards our own controls is usually not worth having.
   - what: >-
-      Rebuilding the year-level anchor from the individuals FIRST, on the strength of the canon's
-      diagnosis that a top-down world contains no per-customer signal.
+      Measuring what fifty departures can resolve — the permutation sweep from chance to the 0.6091
+      oracle, to establish whether 0.5482-inside-its-null means the company finds no signal or that
+      nothing short of the oracle is detectable at n=50.
     why: >-
-      The most defensible-looking move available and the measurement says it buys nothing for the
-      thing it is being proposed for. A **20× sweep** of the anchor — 0.5 through 10.0 — moves the
-      within-year oracle AUC across the range 0.6226 to 0.6248, and flattening it to 1.0 on the
-      two-route capture moves the renewal route from 0.7412 to 0.7436. The reason is structural, not
-      lucky: the anchor is a within-year multiplier and AUC is a rank statistic. Agreeing with the
-      canon here would have been free and wrong. The anchor keeps its slot as **level** debt under
-      item four, at the rank the measurement earns it, and any future proposal to rebuild it must
-      predict a movement in something other than rung 3.
+      Stays out for the same reason as last orientation and the reason has hardened, not softened.
+      `18a09617d` did not merely find the SVT route insensitive to the market — it **refused the
+      whole-book anchor re-fit** until the mechanism changes. Characterising the resolving power of a
+      population whose departure mechanism the record contradicts, on an anchor the tree itself now
+      declines to fit, would establish precisely what a broken world can resolve. Focus item two is
+      what makes this question answerable, and it is cheap when it comes.
   - what: >-
-      Choosing `_SENSITIVITY_SCALE` / `a_shock` to close the 99.9%-to-56.6% reason-mix interval,
-      from the published mover-mix, from a prior, or from whatever makes the mix look sensible.
+      Re-pointing `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject,
+      and repairing `population_anchor._churn_by_year`'s blindness to 2022, alongside focus item two.
     why: >-
-      Carried verbatim for the sixth direction running because it gets more tempting each time and
-      the argument has not weakened: the population mean is reproduced exactly by every value from
-      0.87 down, so the constraint cannot see the parameter and **choosing it IS choosing the
-      answer**, which would then be published as a measurement of the world. The canon now backs
-      this from a second direction — a mix fitted to look right is an aggregate clamped to pass a
-      check. Its consequence is instead carried honestly under item five: rung 2 is established on
-      direction and unestablished on magnitude, and that is the caveat generative futures inherits.
+      Both are real and both are named inside item two as things that must **not** happen in that
+      commit. Rewriting what a control measures inside the commit that repairs the measurement makes
+      the move unattributable, and this project has paid for that class more than once. They are a
+      separate day's work, immediately after, and they are cheap then.
   - what: >-
-      `EP13_adapter_carbon_intensity` — carbon, the second of the mission's three currencies.
+      Re-running the value-cycle floor decomposition against the 31 August legs — the artefact
+      asserting `larger_settled_book_would_resolve_it: True` beside a `selection_sem_gbp: 0.0`.
     why: >-
-      Deferred for the fourth direction running and the reason has changed from "the lane is busy"
-      to "the lane is delivering better than a focus slot would make it". It retired its own build
-      target this stretch on a measurement — *the model knows WHEN gas runs and not HOW MUCH* — and
-      landed the per-fuel oracle bound and the CCGT swap ceiling with pre-registrations scored
-      against them. A lane that retires its own targets on evidence does not need steering, and
-      putting a second writer on its live file set is this tree's documented way of losing work.
+      Dropped last orientation and it stays dropped, for a sharper reason than fatigue: its two legs
+      were produced by different commits, and we have now established that "different commits" here
+      can mean *different histories*. Re-reading it before the tree has one trunk would produce a
+      third number nobody can reproduce either. It comes back the moment item one lands, at which
+      point it is hours of compute already spent and a morning's read.
   - what: >-
-      `C31_time_is_the_currency_that_does_not_exist` — the third of the mission's three currencies.
+      Giving `sim_satisfaction` a driver that income stress cannot explain — the world's service risk
+      cancelled by a modulator sharing its driver.
     why: >-
-      Carried, and the case for waiting is now stronger rather than weaker, which is unusual. In the
-      one currency built to the end we have this stretch established that the world contains signal
-      (rung 3 passes), that the money advantage is real at the headline (£12,071, clears its floor)
-      and that the per-customer half of it **still cannot be resolved** and is 79% level. Opening a
-      third currency at the exact moment the first one's central claim became answerable would be
-      breadth bought against the only depth we have, one item short of the answer.
+      Out for the fourth orientation, on unchanged reasoning: the SVT hazard is
+      `svt_inertia x action_propensity` and carries no satisfaction term, so this repair cannot move
+      the route item two is about. It remains a genuine rung-3 fidelity defect blocking
+      `C3_satisfaction_heterogeneity` and through it `C4` and `C5`, and it returns when the
+      choice-and-channel build is genuinely next.
+  - what: Starting generative futures — running the world past 2025.
+    why: >-
+      The prize is that a generated world is the first place the company's predictions meet something
+      the model was not fitted against. It is worth nothing while the in-sample departure level reads
+      out of band in eight years of ten and the tree's own refusal declines to fit the ninth. Item two
+      is what makes the prize real; running futures on this world first would produce an
+      unattributable result at ten times the cost.
   - what: >-
-      The unranked accretion — forty-plus documents in the staging root, the orphan-branch alarm's
-      sixth firing, the undeclared-worktree alarm, and the two red controls that predate today.
+      Working the staging root down — 72 files, 47 open findings, 38 LATENT — before taking new work.
     why: >-
-      `finding_classes --check` passes, BLOCKING is 0 against 20 LATENT and 25 RECORDED, publishing
-      is live and figures reached origin 0.9 hours ago. None of it wedges a commit. The orphan-branch
-      alarm fires because it is keyed to the branch name rather than to whether the work is
-      reachable — answerable rather than actionable, and re-keying it is the kind of control-on-a-
-      control this project has been told to stop building. The one LATENT I am not leaving in the
-      pile is the service-risk cancellation, and it is focus item three.
+      An unknown share of it is the same artefact item one is about: findings about work that looks
+      uncommitted because this machine reads a stale base. Sweeping the queue before the base is
+      correct would archive real findings and re-file phantom ones, and the sweep is cheap and honest
+      afterwards. Item one's re-derivation of the 19 is the measurement that tells us how large the
+      phantom share is.
 wrong:
   - what: >-
-      **My previous focus item four was never drawn, and its shape is why.** I wrote the canon's
-      work-items 2, 3 and 4 as three lettered sub-items under a single key called
-      `every-world-variable-says-where-it-stands-on-the-ladder` — a topic, not an instruction a
-      worker can act on and finish. The direction brief warns about exactly this and says a focus
-      item must name the file, the measurement and the decision. I read that warning and then wrote
-      a survey. Re-issued as item five, narrowed to two concrete edits, with the register that made
-      it a survey deliberately cut and the cut argued.
+      **The tree has two histories and I did not know it while writing direction against one of
+      them.** Local HEAD is 14 ahead of `origin/main` and 20 behind; all eight of this stretch's
+      commits are local-only. My last direction ordered a worker to land-or-park an "uncommitted"
+      widening in `tests/production_surface_guard.py` that had been on the trunk as `22aaaa494` for
+      hours. The tick checked the premise before acting — which is the only reason this was caught —
+      and spent its turn proving my instruction false instead of doing work. The same shape is live in
+      `background/fork_salvage.py` and `background/fork_reconciler.py`, which read as modified here
+      and carry their live-writer fix on origin already.
     corrected: false
   - what: >-
-      **My stated reason for ranking the A/B bound third was a bet on rung 3 failing, and it lost.**
-      I wrote that re-measuring a noise floor in a world that may contain no per-customer signal
-      "is measuring the instrument, not the thesis". Rung 3 passed at 0.6760 against a null topping
-      out at 0.5778, so the premise did not hold, and the bound turned out to be worth more than I
-      priced it at: re-measured, it widened 46% and let the headline leg state a direction for the
-      first time. The ordering did no damage — the work landed anyway, by the seat's hand rather
-      than the draw's — but the argument I put on the record for it was wrong and the correction
-      belongs beside it.
-    corrected: true
-  - what: >-
-      **The first ladder assessment was computed on the population that happened to be in a file,
-      and two of its numbers were wrong.** Taken on the pre-C1b renewal-only capture — 465 decisions,
-      79 departures — it read `action_propensity` as contributing nothing (+0.0081) when on the
-      full book it is the second real factor (+0.0527 / +0.0664), and it published "three fifths of
-      a household's departure probability is the year" when across both routes the year alone
-      accounts for **4.2%** of the log-hazard variance and the between-stratum share is 36.9%. Both
-      corrected in place beside the originals rather than quietly replaced. The defence that worked
-      was the instrument printing its own population on every run, which is now the standing repair.
-    corrected: true
-  - what: >-
-      **A baseline from a different run was subtracted from a treatment, again** — the satisfaction
-      finding's first draft cited 0.4971 as its baseline arm, a figure belonging to the pre-C1b
-      465-decision capture, against a treatment measured on the two-route book. Caught before
-      landing and corrected to the paired 0.4672 at the same 2,000 permutations; no conclusion moved.
-      Recorded because this is the specific way this repository has published a difference between
-      two numbers that do not have one, and it is now the second instance inside a fortnight.
-    corrected: true
-  - what: >-
-      **A near miss that would have published a missing quantity as a small one.** Re-sweeping
-      `ORDERED_CAUSES` over the C2 reason mix would have emitted `svt_inertia: 0.0%` — well-formed,
-      passing every partition check, and read by every reader as "almost nobody leaves this way"
-      when it is **50 of 82 departures**. It was caught, and the control written for it PASSED its
-      own stated mutation on the first draft and needed two further legs before it could fail.
-      A control that passes its own mutation is the class this repository keeps paying for, and it
-      was one draft from shipping.
-    corrected: true
-  - what: >-
-      **A failing control was repaired by changing the test while it was blocking a claim that
-      flatters us.** `test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor` checked
-      four directional phrases as one flat tuple against the selection leg's spread alone, though
-      two of them name the arm-vs-control contrast; the repair split it by subject and let the
-      £12,071 direction through. The author flagged the shape honestly and the defence is sound —
-      the composer's per-contrast gating predates today, and the repaired control reds in both
-      directions. Recorded anyway, unresolved, because "the test was wrong and the flattering claim
-      was right" is true here and is also what it would look like if it were not.
+      **Publishing has been wedged since 16:03 UTC and the site is serving a snapshot 9.9h old**, and
+      the refusing gate is the orphan-ratchet declaring `tools.promote_worktree_landing` to be work
+      nothing runs — the landing tool that `background/seat-executor.service` invokes on every turn.
+      A route whose entire purpose is getting work onto the trunk is being refused for looking
+      unreached, by a check that cannot see a subprocess. Nothing paged this as the cause; it was
+      found by reading the publisher's own log tail.
     corrected: false
   - what: >-
-      **A deliberate, precisely-worded debt sat at a seam and still did nothing** — carried from last
-      direction because the repair landed for the instance and the class is unaddressed. The C1b
-      author named both affected readers, predicted they would go stale on the next capture, and
-      wrote it at the site; it then sat across a capture, a fit and two published readings. The
-      instance is now closed by `tests/architecture/test_a_departure_reading_declares_its_population.py`.
-      The class is not: a debt taken at a seam still needs something that FAILS or an entry that
-      RANKS, and "write better comments" remains not the repair.
+      Three stretches running I reported focus items named and zero drawn, and last orientation I
+      named the mechanism rather than guessing: `seat_executor.run_once` stood a focus item down
+      whenever an interactive seat was live, and nothing converted a focus item into a handoff.
+      `adb287f1f` landed the conversion and `seat-executor-log.md` names a focus item at 23:03 and
+      runs one at 23:06. The brief handed to this orientation still reports `previous_focus_drawn`
+      as empty — which is the stale-base defect again, in the instrument that grades my own steer.
+    corrected: true
+  - what: >-
+      An **ungated commit reached `main`** through the promotion route whose entire purpose is
+      preventing that. `_refuse_if_ungated` verified `HEAD` alone when a push moves a ref and the
+      subject is `origin/main..HEAD`, so `139332d90 SALVAGE(auto)` sits on the trunk beneath a gated
+      landing, on the route's first unattended use. Its content is two observability files and needs
+      no revert; the route now verifies the whole range and `fork_salvage`/`fork_reconciler` both
+      refuse a live writer's worktree, delegating the liveness question to its one owner.
+    corrected: true
+  - what: >-
+      Every figure in this orientation's brief — 10 commits, 7 substantive, and the whole
+      `previous_focus_drawn` field — counts one history of two. Twenty commits of real work
+      (`18a09617d`'s three-prediction SVT measurement and its property-keyed refusal among them) are
+      on the trunk and invisible to the instrument that assembles the stretch. I have quoted the
+      brief's numbers as instructed and they are honest about what they measured; they are not
+      honest about what happened, and no surface here says which.
+    corrected: false
+  - what: >-
+      A finding filed with `Severity: BLOCKING` still reads downstream as nothing while it is
+      unclassified — the register reports two blocking findings now, so the instance cleared, but the
+      fail-open shape did not change: "not yet classified" and "nothing blocking" remain the same
+      answer to a reader.
     corrected: false
 for_the_director: []
