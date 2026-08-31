@@ -308,3 +308,39 @@ missing was only the pointer, and the alarm was right that something needed sayi
 was wrong about what.
 
 *No number above is restated or revised here. This section adds a location, nothing else.*
+
+---
+
+## DISPOSITION, 2026-08-31: parked deliberately, and the work was nearly lost
+
+**The branch it was on is gone.** `c3-shown-price-measure` no longer exists — a fork/branch reaper
+removed it, and `edd5a497e` survived only as a dangling object, one `git gc` from being
+unrecoverable. Preserved as an annotated tag, **`parked/c3-shown-price`**, which no branch reaper
+walks. Recorded here because "it is on a branch" turned out not to be a place things stay.
+
+**And the measurement above no longer describes the world.** It was taken on a book of **465 renewal
+decisions**; C1b landed the SVT product and the renewal population is now **144**, a different and
+selected sub-population — the households that took a fixed deal. The +0.15pp level move, the
+79-either-way departure count and the by-price-side split are all readings of a book that no longer
+exists. **Re-deciding C3 means two fresh captures, not a re-read of this document.**
+
+**Not landed, and the reasons ranked:**
+
+1. Its own result refuted the prediction that motivated it, and the by-product finding (the
+   departure-level control's missing headroom) was worth more than the experiment — **that half is
+   already landed and discharged**, so the value has been extracted.
+2. Predictions 2 and 3 remain untested, and testing them needs the value-arms A/B on a book that has
+   since changed underneath it.
+3. `docs/design/LADDER_APPLIED_TO_CHURN_2026-08-31.md` ranks four items above it, and one of them —
+   union the departure routes and declare the denominator — has to land **first** anyway, because
+   until it does, any C3 re-measurement would be taken on the same selected sub-population that made
+   this one stale.
+
+**What is still true and is why it is parked rather than deleted.** Modelling what a household is
+*shown* — an annual bill at typical consumption — rather than only what it would pay per unit is a
+**rung-2 fidelity improvement**: households compare annual figures, and the world currently asks
+them to respond to a quantity nobody is ever quoted. That argument survives the refuted prediction
+intact. It is the *effect size* that was not established, not the mechanism.
+
+**Revisit when:** the routes are unioned and the denominator declared, at which point one capture
+pair answers it properly. Until then this is a decision, not a queue.
