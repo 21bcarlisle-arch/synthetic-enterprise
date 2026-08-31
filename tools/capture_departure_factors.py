@@ -17,6 +17,13 @@ calibration comes out right about a world that does not exist.
 Point-in-time is not at risk here: nothing captured is fed back into the run, and the file is
 written after `main()` returns.
 
+TWO ROUTES, TWO FILES (2026-08-31). The world now has a second way to leave -- drifting off the
+standard variable product, C1b -- which never reaches a renewal roll. This tool writes
+`<out>.json` (renewal decisions, unchanged) and `<out>_svt_segment_decisions.json` (every SVT
+segment decision with its outcome, which is the DENOMINATOR C1b named as owed and nothing recorded).
+A reader whose subject is the whole book unions them; a reader whose subject is renewal decisions
+is unaffected. See the note at the write for why they are not one file.
+
 Usage:  python3 -m tools.capture_departure_factors [output_path]
 """
 import json
@@ -85,13 +92,41 @@ def main(out_path: Path) -> int:
 
     rp2b.roll_lifecycle_event = capturing
     try:
-        rp2b.main()
+        result = rp2b.main()
     finally:
         rp2b.roll_lifecycle_event = original
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(captured, indent=1))
     print(f"captured {len(captured)} renewal factor rows -> {out_path}")
+
+    # ─────────────────────────────────────────────────────────────────────────────────────────
+    # THE SECOND ROUTE, IN A SECOND FILE, AND THE SEPARATION IS THE POINT
+    # ─────────────────────────────────────────────────────────────────────────────────────────
+    # C1b gave SVT accounts a way to leave that never reaches a renewal roll, so this tool -- and
+    # therefore `fit_year_level_anchor`, `measure_departure_level` and the C2 reason mix -- went
+    # from seeing the whole book to seeing a minority of it, silently, on the commit that landed
+    # the route. Nothing went red: the table still had 465 rows of the population it could see.
+    #
+    # NOT UNIONED INTO `out_path`. An SVT decision carries no `churn_probability`, no
+    # `sim_price_response` and no `sim_bill_shock_base` -- there was no renewal decision for any of
+    # them to describe. Appending them to the renewal table would hand every existing reader rows
+    # whose keys are None and let a mean be taken over two populations. Two files, and the reader
+    # that wants the whole book unions them deliberately, per the note in `run_phase2b`.
+    svt = result.get("svt_decisions", []) if isinstance(result, dict) else []
+    svt_path = out_path.with_name(out_path.stem + "_svt_segment_decisions.json")
+    svt_path.write_text(json.dumps(svt, indent=1))
+    departed = sum(1 for r in svt if r.get("event_type") == "churned")
+    print(f"captured {len(svt)} SVT segment decisions ({departed} departed) -> {svt_path}")
+    if not svt:
+        # LOUD, BECAUSE AN EMPTY SECOND FILE READS EXACTLY LIKE A BOOK WITH NOBODY ON SVT.
+        print(
+            "  ⚠ NO SVT SEGMENT DECISIONS CAPTURED. Either no account sat on the standard variable "
+            "product in this run, or `run_phase2b` stopped populating `svt_decisions`. Those are "
+            "very different and this tool cannot tell them apart — check before reading any rate "
+            "computed from this file.",
+            file=sys.stderr,
+        )
     return 0
 
 
