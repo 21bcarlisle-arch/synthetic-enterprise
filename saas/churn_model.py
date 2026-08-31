@@ -14,7 +14,7 @@ the underlying prices were fair or the supplier's margin was thin.
 
 Model: `churn_probability = BASE_ANNUAL_CHURN_PROBABILITY +
 bill_shock_count * CHURN_UPLIFT_PER_BILL_SHOCK`, capped at
-`MAX_CHURN_PROBABILITY`. `BASE_ANNUAL_CHURN_PROBABILITY` (5%) reflects the
+`MAX_BILL_SHOCK_CHURN_PROBABILITY`. `BASE_ANNUAL_CHURN_PROBABILITY` (5%) reflects the
 UK domestic switching rate baseline even for customers with no bill shocks
 at all; each triggered bill shock in the preceding contract year adds
 `CHURN_UPLIFT_PER_BILL_SHOCK` (3 percentage points).
@@ -34,17 +34,43 @@ CONTRACT_LENGTH_DAYS = 365  # matches simulation/settlement.py
 
 BASE_ANNUAL_CHURN_PROBABILITY = 0.05
 CHURN_UPLIFT_PER_BILL_SHOCK = 0.03
-MAX_CHURN_PROBABILITY = 0.95
+
+# ORIGIN: A NAMED SIMPLIFICATION (2026-08-31), and this constant is the director's own example of
+# the class -- "a 0.95 churn cap", one of the four he named on 2026-08-30.
+#
+# WHAT WAS LOOKED FOR AND NOT FOUND. The knowledge layer, the market-research anchors and the
+# regulation commons were searched for a residual-inertia ceiling on annual domestic churn: the
+# share of households who do not leave whatever their bill does. Nothing establishes one. What the
+# record does publish is the market-wide annual SWITCHING RATE (roughly 15-23% across 2016-2025),
+# which is a flow across a whole market and not a bound on one household's response to its own
+# supplier -- reading it as this ceiling is the category error `simulation/market_switching_
+# propensity.py` records at its `_MAX_RATE`. So 0.95 is not sourced and was never derived; it is
+# the value all three of the world's copies already carried when `simulation/churn_ceiling.py` was
+# cut out of this module, and that file says the same thing about its own copy.
+#
+# WHICH WAY THE ERROR RUNS: NEITHER, BECAUSE NO CALLER CAN REACH IT. Reaching 0.95 takes 30 bill
+# shocks -- (0.95 - 0.05) / 0.03 -- and `build_churn_risk` counts them in BILLING PERIODS inside a
+# twelve-month window, so it can count at most 12 and `churn_probability` tops out at 0.41. The
+# only other reader, `company.crm.payment_churn_model.combined_churn_probability`, adds at most
+# +0.30 (a CRITICAL payer with low satisfaction) and tops out at 0.71. Printed at those inputs,
+# not argued. The `min()` below therefore never binds, which is why no run this company has ever
+# executed could tell you whether the value is right.
+#
+# TO DO IT PROPERLY takes two things this repository does not have: a sourced residual-inertia
+# figure for the cap to be set against and graded on, and a caller whose reachable range includes
+# it. Until both exist the number is INERT and must not be read as calibrated.
+# Filed: WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31
+MAX_BILL_SHOCK_CHURN_PROBABILITY = 0.95
 
 
 def churn_probability(bill_shock_count: int) -> float:
     """Return the churn (non-renewal) probability for a renewal point that
     had `bill_shock_count` triggered bill shocks in the preceding contract
-    year, capped at MAX_CHURN_PROBABILITY.
+    year, capped at MAX_BILL_SHOCK_CHURN_PROBABILITY.
     """
     return min(
         BASE_ANNUAL_CHURN_PROBABILITY + bill_shock_count * CHURN_UPLIFT_PER_BILL_SHOCK,
-        MAX_CHURN_PROBABILITY,
+        MAX_BILL_SHOCK_CHURN_PROBABILITY,
     )
 
 

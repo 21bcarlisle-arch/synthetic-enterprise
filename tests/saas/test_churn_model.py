@@ -3,7 +3,7 @@ import pytest
 from saas.churn_model import (
     BASE_ANNUAL_CHURN_PROBABILITY,
     CHURN_UPLIFT_PER_BILL_SHOCK,
-    MAX_CHURN_PROBABILITY,
+    MAX_BILL_SHOCK_CHURN_PROBABILITY,
     build_churn_risk,
     churn_probability,
     _shift_month,
@@ -35,7 +35,7 @@ def test_churn_probability_increases_per_shock():
 
 
 def test_churn_probability_capped():
-    assert churn_probability(100) == MAX_CHURN_PROBABILITY
+    assert churn_probability(100) == MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_empty_input_returns_empty_dict():
@@ -77,7 +77,7 @@ def test_unknown_account_raises_key_error():
 def test_constants_values():
     assert BASE_ANNUAL_CHURN_PROBABILITY == pytest.approx(0.05)
     assert CHURN_UPLIFT_PER_BILL_SHOCK == pytest.approx(0.03)
-    assert MAX_CHURN_PROBABILITY == pytest.approx(0.95)
+    assert MAX_BILL_SHOCK_CHURN_PROBABILITY == pytest.approx(0.95)
 
 
 def test_shift_month_forward():

@@ -460,7 +460,8 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # 2026-08-10, KNIFE pass 3 step 12 (`B3_world_needs_its_own_cap_physics`, applied a
     # SECOND time — register §3g): `simulation.satisfaction_churn -> saas.churn_model`
     # deleted. The world was clamping its own ground-truth churn probability at the
-    # COMPANY's `MAX_CHURN_PROBABILITY`, so the company's belief about the ceiling
+    # COMPANY's `MAX_BILL_SHOCK_CHURN_PROBABILITY` (named `MAX_CHURN_PROBABILITY`
+    # until 2026-08-31), so the company's belief about the ceiling
     # constituted the ceiling — B2's inversion at one edge. The world's ceiling now lives
     # in `simulation/churn_ceiling.py`; the company keeps its estimate; both are 0.95, so
     # no simulated outcome moved. Independence is proven by mutation with a vacuity guard

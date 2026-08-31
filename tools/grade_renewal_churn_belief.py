@@ -85,7 +85,7 @@ from pathlib import Path
 from saas.churn_model import (
     BASE_ANNUAL_CHURN_PROBABILITY,
     CHURN_UPLIFT_PER_BILL_SHOCK,
-    MAX_CHURN_PROBABILITY,
+    MAX_BILL_SHOCK_CHURN_PROBABILITY,
 )
 
 DEFAULT_RUN_OUTPUT = Path("docs/reports/run_output_latest.json")
@@ -106,7 +106,7 @@ def recover_bill_shock_count(believed_churn: float) -> int | None:
     off-lattice belief into the model's own base-rate bucket and make the mechanism table read as
     if it had a population it does not have.
     """
-    if believed_churn >= MAX_CHURN_PROBABILITY - LATTICE_TOLERANCE:
+    if believed_churn >= MAX_BILL_SHOCK_CHURN_PROBABILITY - LATTICE_TOLERANCE:
         return None
     steps = (believed_churn - BASE_ANNUAL_CHURN_PROBABILITY) / CHURN_UPLIFT_PER_BILL_SHOCK
     nearest = round(steps)

@@ -8,7 +8,7 @@ company's belief about the ceiling WAS the ceiling.
 WHAT IS ASSERTED, AND WHAT DELIBERATELY IS NOT
 ----------------------------------------------
 NOT asserted: that `WORLD_MAX_CHURN_PROBABILITY == saas.churn_model.
-MAX_CHURN_PROBABILITY`. Pinning them equal would restore in the suite exactly
+MAX_BILL_SHOCK_CHURN_PROBABILITY`. Pinning them equal would restore in the suite exactly
 the coupling the cut removes from the code — the refusal recorded for `B3` (the
 cap schedule) and `B7` (the hedge floor). The readings may drift; that is a
 finding to report, never a gate (R12).
@@ -64,7 +64,7 @@ def test_mutating_the_companys_ceiling_does_not_move_the_worlds(monkeypatch):
     """THE CUT. Fails if any sim module reads the company's constant again."""
     before = satisfaction_churn.adjust_churn_for_satisfaction(0.99, 0.10)
 
-    monkeypatch.setattr(saas.churn_model, "MAX_CHURN_PROBABILITY", 0.10)
+    monkeypatch.setattr(saas.churn_model, "MAX_BILL_SHOCK_CHURN_PROBABILITY", 0.10)
     importlib.reload(satisfaction_churn)
     try:
         after = satisfaction_churn.adjust_churn_for_satisfaction(0.99, 0.10)
@@ -83,11 +83,11 @@ def test_mutating_the_companys_ceiling_does_not_move_the_worlds(monkeypatch):
 def test_the_same_mutation_does_move_the_companys_own_answer(monkeypatch):
     """VACUITY GUARD for the test above: prove the mutation bites somewhere.
 
-    If mutating `MAX_CHURN_PROBABILITY` changed nothing anywhere, "it did not
+    If mutating `MAX_BILL_SHOCK_CHURN_PROBABILITY` changed nothing anywhere, "it did not
     change the world" would be a statement about a dead constant, not about
     independence.
     """
-    monkeypatch.setattr(saas.churn_model, "MAX_CHURN_PROBABILITY", 0.10)
+    monkeypatch.setattr(saas.churn_model, "MAX_BILL_SHOCK_CHURN_PROBABILITY", 0.10)
     # 100 bill shocks: far past the company's real cap, so the clamp decides
     # the answer and the mutation is visible in it.
     assert saas.churn_model.churn_probability(100) == pytest.approx(0.10), (
@@ -116,8 +116,9 @@ def test_no_sim_module_names_the_companys_churn_constant():
 
     A substring scan fails on its own subject here: the docstrings recording
     *why* the import went away contain both `saas.churn_model` and
-    `MAX_CHURN_PROBABILITY` (the `REVIEW_GATE must match idleness, not prose
-    mentioning the string` class, which bit this programme once already at §3a).
+    `MAX_BILL_SHOCK_CHURN_PROBABILITY` (the `REVIEW_GATE must match idleness,
+    not prose mentioning the string` class, which bit this programme once
+    already at §3a).
     So this asks `tools.epistemic_wall.live_crossings()` — the one definition of
     "a crossing" this pass extracted as its first step.
     """

@@ -68,7 +68,7 @@ contact_model)` drew the world's ACTUAL contact events off
 estimate. The company's belief about how often it will be contacted therefore
 CONSTITUTES how often it is contacted: the B2/B3 inversion, the same shape as
 `simulation/satisfaction_churn.py` clamping the world's churn at the company's
-`MAX_CHURN_PROBABILITY` before §3g cut it. That leak pre-dates this cut and is
+`MAX_BILL_SHOCK_CHURN_PROBABILITY` before §3g cut it. That leak pre-dates this cut and is
 untouched by it — the crossing being paid down here is the run module's IMPORT,
 not the world's use of the returned dict. It is filed as a finding rather than
 fixed on sight (SELF_INTERRUPT_DISCIPLINE: the repair is a world-side contact

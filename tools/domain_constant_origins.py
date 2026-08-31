@@ -82,8 +82,18 @@ SCOPE = ("company", "saas")
 DOMAIN_NAME = re.compile(r"(RATE|PRICE|PROBABILITY|THRESHOLD|CAP)")
 
 #: It came from outside us.
+#:
+#: THE ABBREVIATIONS ARE ANCHORED ON BOTH SIDES (2026-08-31). `CMA\b` and `ONS\b` carried a
+#: TRAILING boundary and no LEADING one, so they matched INSIDE ordinary words -- `ONS\b` hit
+#: "comparisons", "commons", "reasons", "seasons". That is FAIL-OPEN in the direction that matters:
+#: a constant reads as CITED because its comment contains an English plural, and the debt it owes
+#: is discharged by a word. Found live, not hypothetically: `company/regulatory/seg_book.py`'s
+#: `_SEG_RATE_P_PER_KWH_BY_YEAR` says "Based on publicly available SEG rate comparisons 2020-2024"
+#: -- illustrative rates naming no publisher and no path -- and it was counted as cited.
+#: Guarded by `test_a_word_ending_in_ons_is_not_a_CITATION`.
 _CITED = re.compile(
-    r"docs/|Ofgem|DESNZ|CMA\b|Elexon|NESO|ONS\b|BEIS|Cornwall|Citizens Advice|https?://", re.I)
+    r"docs/|Ofgem|DESNZ|\bCMA\b|Elexon|NESO|\bONS\b|BEIS|Cornwall|Citizens Advice|https?://",
+    re.I)
 #: The company made it up on purpose, and something grades it.
 _BELIEF = re.compile(r"\bBELIEF\b|COMPANY BELIEF|the company believes|company's own assumption", re.I)
 #: We know it is not the real thing and we have said what the real thing would take.
@@ -277,8 +287,10 @@ def duplicates(root: Path | None = None) -> dict[str, list[dict]]:
 
     ONE NAME, ONE NUMBER. Two constants sharing a name and disagreeing is the defect the director
     put first, and it is worse than an unsourced constant: a reader who has met one of them
-    believes they know what the other means. `MAX_CHURN_PROBABILITY` is 0.95 on the company side
-    and 1.0 on the SIM-facing side, and nothing anywhere says which a given call site gets.
+    believes they know what the other means. `MAX_CHURN_PROBABILITY` was 1.0 in
+    `company/crm/churn_model` and 0.95 in `saas/churn_model` -- a company BELIEF ceiling and a
+    bill-shock cap, two concepts under one name -- and nothing anywhere said which a given call
+    site got. Struck 2026-08-31 by renaming the saas side; it was the last of the five.
 
     Compared on the REPR of the value, so `0.05` and `{"resi": 0.05, ...}` are different -- which
     they are, and dangerously so: the same name means a flat rate in one file and a per-segment

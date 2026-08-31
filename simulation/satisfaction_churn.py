@@ -6,7 +6,7 @@ for income stress.
 
 This operates at the SIM physics layer -- NOT visible to the company. The
 ceiling it clamps to is the WORLD's own (`simulation/churn_ceiling.py`); it
-used to be the company's `saas.churn_model.MAX_CHURN_PROBABILITY`, which made
+used to be the company's `saas.churn_model.MAX_BILL_SHOCK_CHURN_PROBABILITY`, which made
 the company's belief about the ceiling constitute the ceiling. See the
 register's §3g.
 """
