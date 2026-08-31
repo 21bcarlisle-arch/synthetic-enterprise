@@ -181,6 +181,200 @@ def declare_rows(
     }
 
 
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# THE UNION, AND WHY IT IS AN ACCOUNT DENOMINATOR AND NOT A BIGGER DECISION COUNT
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# The module note above says the two FILES stay two files, and they do -- an SVT decision still
+# carries no `sim_price_response` and no mean may be taken across the two. What is unioned here is
+# not the rows: it is the DEPARTURES, over a denominator that is neither route's.
+#
+# Both routes' natural denominators are wrong for the published band, and wrong in opposite
+# directions. A renewal-decision denominator counts only households at a decision point, so it
+# reads about a third high. An SVT-segment denominator counts cap periods -- roughly eleven per
+# account-year on the 2026-08-31 capture -- so it reads an order of magnitude low. The published
+# record's denominator is neither: `gb_domestic_switching_rate.json` counts external changes of
+# supplier on a domestic electricity MPAN over ALL domestic electricity accounts.
+#
+# So the union's denominator is ACCOUNTS, and that is the entire reason the union is a repair
+# rather than simply a larger number. It is the first denominator in this area that has the same
+# shape as the record's.
+
+#: The three properties a capture must have before an ACCOUNT denominator can be read off it, each
+#: CHECKED rather than assumed by `account_denominator_refusal`. They held on the two-route capture
+#: measured 2026-08-31 (131 accounts, 82 departures) -- but they are properties of the world's
+#: departure mechanics, not of that file, and a world where an account can re-join and leave again
+#: would break the first two silently while leaving every row well-formed.
+ACCOUNT_DENOMINATOR_PROPERTIES = (
+    "a departure is terminal: no account departs twice",
+    "a departed account takes no further decision on either route",
+    "an account on the book is visible every year: no unobserved interior account-year",
+)
+
+
+def _year(row: dict) -> int:
+    return int(str(row.get("event_date", "0000"))[:4])
+
+
+def account_denominator_refusal(
+    renewal_rows: list[dict], svt_rows: list[dict] | None
+) -> str | None:
+    """Why these two routes cannot be read on an account denominator, or `None` if they can.
+
+    A REFUSAL AND NOT A CAVEAT, because every one of the three properties is what makes the
+    denominator MEAN something and each fails silently. If an account could depart twice, the
+    numerator would count events while the denominator counted accounts, and the ratio would not be
+    a quantity -- the class CLAUDE.md names as this project's commonest way to publish something
+    misleading. If an account could sit on the book unobserved for a year, the denominator would be
+    the accounts that happened to make a decision, which is the selected sub-population this whole
+    repair exists to stop being compared against a whole-population rate.
+
+    The interior-gap check is deliberately INTERIOR only. An account absent before its first
+    decision or after its last has joined or left, which is the book changing size and not the
+    instrument going blind; an account absent BETWEEN two of its own decisions is the instrument
+    going blind, and nothing else produces that shape.
+    """
+    if svt_rows is None:
+        return (
+            "the SVT route is unreadable, so a whole-book count cannot be taken at all. "
+            + SVT_BLIND_WARNING
+        )
+    departed_year: dict[str, int] = {}
+    seen: dict[str, set[int]] = {}
+    twice: list[str] = []
+    unidentified = 0
+    for row in list(renewal_rows) + list(svt_rows):
+        acct = row.get("customer_id")
+        year = _year(row)
+        # A ROW WITHOUT AN ACCOUNT IS REFUSED, NOT SKIPPED, and the first draft skipped it. That
+        # skip made the check FAIL-OPEN on precisely the rows that make the denominator
+        # uncheckable: with no identifier there is no way to know whether an account departed
+        # twice or was invisible for a year, so the three properties below were being certified
+        # over the rows that could not violate them. Counted here and refused after the loop.
+        if acct is None:
+            unidentified += 1
+            continue
+        if year == 0:
+            continue
+        seen.setdefault(acct, set()).add(year)
+        if _is_departure(row):
+            if acct in departed_year:
+                twice.append(acct)
+            departed_year[acct] = min(departed_year.get(acct, year), year)
+    if unidentified:
+        return (
+            f"{unidentified} decision(s) carry no `customer_id`, so they cannot be attributed to "
+            f"an account. An account denominator cannot be counted from rows that do not name "
+            f"their account, and the three properties below cannot be checked on them either."
+        )
+    if twice:
+        return (
+            f"{len(twice)} account(s) depart more than once in this capture (e.g. {twice[0]}). "
+            f"A departure is not terminal here, so a departure COUNT is not an account count and "
+            f"dividing one by the other does not give a rate comparable to the published record."
+        )
+    after = [a for a, y in departed_year.items() if any(v > y for v in seen[a])]
+    if after:
+        return (
+            f"{len(after)} account(s) take a decision in a year AFTER the year they departed "
+            f"(e.g. {after[0]}). Either departure is not terminal or the two routes disagree about "
+            f"when an account left; a whole-book rate cannot be read until which is established."
+        )
+    gaps = [
+        (a, y) for a, years in seen.items()
+        for y in range(min(years), max(years) + 1) if y not in years
+    ]
+    if gaps:
+        return (
+            f"{len(gaps)} unobserved interior account-year(s) (e.g. {gaps[0][0]} is absent from "
+            f"both routes in {gaps[0][1]} while present either side). The denominator would be the "
+            f"accounts that happened to make a decision, which is the selected sub-population this "
+            f"reading exists to stop being compared against a whole-population rate."
+        )
+    return None
+
+
+def union_by_year(renewal_rows: list[dict], svt_rows: list[dict] | None) -> dict[int, dict]:
+    """`{year: whole-book departure reading}` over the ACCOUNT denominator. Fails closed.
+
+    Raises rather than returning a partial answer when `account_denominator_refusal` names a cause:
+    a whole-book rate is the figure a reader will quote, and there is no shape of caveat that
+    survives being quoted. Callers that want to degrade to a renewal-only reading ask the refusal
+    first.
+
+    Two rates per year, and they are different quantities:
+
+      `realised_rate_pct`   departures that HAPPENED over accounts on the book. One draw of a
+                            binomial on ~50 accounts, so a year of it carries about 5pp of
+                            sampling noise and a single year inside or outside a band says little.
+      `expected_rate_pct`   the sum of every decision's own `realized_churn_probability` over the
+                            same accounts -- the world's departure LEVEL rather than its roll. This
+                            is the quantity a level anchor is fitted onto and the one the published
+                            band should be read against, because the band is a population rate and
+                            not one country's coin flip.
+
+    `expected_rate_pct` is model-free: it adds up probabilities the world already recorded on each
+    row, so it cannot disagree with the run by being a reimplementation of it.
+    """
+    refusal = account_denominator_refusal(renewal_rows, svt_rows)
+    if refusal is not None:
+        raise ValueError(f"no account denominator is available for this capture: {refusal}")
+    per_year: dict[int, dict] = {}
+    for route, rows in ((ROUTE_RENEWAL, renewal_rows), (ROUTE_SVT, svt_rows)):
+        for row in rows:
+            year = _year(row)
+            if year == 0:
+                continue
+            slot = per_year.setdefault(year, {
+                "accounts": set(),
+                "decisions": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "departures": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "expected_departures": 0.0,
+                "unpriced_decisions": 0,
+            })
+            slot["accounts"].add(row["customer_id"])
+            slot["decisions"][route] += 1
+            if _is_departure(row):
+                slot["departures"][route] += 1
+            p = row.get("realized_churn_probability")
+            # A DECISION WITHOUT ITS PROBABILITY IS COUNTED, NOT SKIPPED. Skipping it would shrink
+            # the expected NUMERATOR while leaving the account DENOMINATOR whole -- a full
+            # denominator with an emptied numerator, which reads as a world that departs less
+            # rather than as a capture that recorded less. So the year keeps the count and
+            # `expected_rate_pct` goes `None` below: an honest absence, which cannot be mistaken
+            # for a measurement the way a quietly-low rate can.
+            if p is None:
+                slot["unpriced_decisions"] += 1
+            else:
+                slot["expected_departures"] += float(p)
+    span = sorted(per_year)
+    out: dict[int, dict] = {}
+    for year, slot in sorted(per_year.items()):
+        accounts = len(slot["accounts"])
+        departures = sum(slot["departures"].values())
+        out[year] = {
+            "year": year,
+            "accounts": accounts,
+            "decisions": dict(slot["decisions"]),
+            "departures": dict(slot["departures"]),
+            "departures_total": departures,
+            "expected_departures": round(slot["expected_departures"], 4),
+            "unpriced_decisions": slot["unpriced_decisions"],
+            "realised_rate_pct": round(100.0 * departures / accounts, 4) if accounts else None,
+            "expected_rate_pct": (
+                round(100.0 * slot["expected_departures"] / accounts, 4)
+                if accounts and not slot["unpriced_decisions"] else None
+            ),
+            "denominator": "accounts with at least one decision on either route in the year",
+            # THE CAPTURE'S OWN EDGES, and they are not a rate's business to hide. An account's
+            # exposure in the first and last year of the capture is a fraction of a year, so a
+            # rate over a full-year account count reads LOW there. Flagged per year rather than
+            # excluded by a hand-written year range, because the range would be a fact about the
+            # 2026-08-31 run and this is a fact about any capture.
+            "partial_year": year in (span[0], span[-1]),
+        }
+    return out
+
+
 def declare(table_path: Path | str, renewal_rows: list[dict] | None = None) -> dict:
     """The population declaration for a reading taken off a captured renewal factor table."""
     path = Path(table_path)

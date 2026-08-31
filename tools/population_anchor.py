@@ -25,7 +25,7 @@ from saas.reporting.arrears_ledger import UNAVAILABLE_NOTE as ARREARS_UNAVAILABL
 from saas.reporting.arrears_ledger import ArrearsLedgerView
 from saas.reporting.arrears_ledger import from_payload as arrears_ledger_from_payload
 from saas.reporting.arrears_ledger import load as load_arrears_ledger
-from tools.departure_population import declare_rows
+from tools.departure_population import account_denominator_refusal, declare_rows, union_by_year
 from tools.measure_departure_level import published_bands
 
 # The rag a year carries when the arrears numerator's source never loaded. NOT
@@ -160,6 +160,19 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
         if ev.get("event_type") == "churned":
             slot["churns"] += 1
 
+    # THE WHOLE-BOOK RATE, BESIDE `sim_churn_rate` AND NEVER INSTEAD OF IT. `sim_churn_rate` is a
+    # renewal-decision rate and stays one, byte for byte: it is a published gate metric and
+    # redefining it here would move a board figure inside the commit that repairs its labelling.
+    # What goes beside it is the quantity `ofgem_benchmark` was always about — departures on BOTH
+    # routes over the ACCOUNTS on the book, which is the record's own numerator and denominator.
+    # Until now nothing in this gate could compute it, so the only rate a reader could compare
+    # against the benchmark was the one that is not comparable to it.
+    renewal_rows = [
+        ev for ev in customer_events if ev.get("event_type") in ("renewed", "churned")
+    ]
+    book_refusal = account_denominator_refusal(renewal_rows, svt_decisions)
+    book = {} if book_refusal else union_by_year(renewal_rows, svt_decisions)
+
     result = {}
     for yr, counts in by_year.items():
         total = counts["renewals"] + counts["churns"]
@@ -183,6 +196,19 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
             "svt_segment_decisions": None if svt is None else svt["decisions"],
             "svt_departures": None if svt is None else svt["churns"],
             "share_of_departures_in_sim_churn_rate": visible,
+            # THE COMPARABLE RATE. `None` with a named reason when the two routes cannot be read
+            # on an account denominator — never a fallback to the renewal rate under a
+            # whole-book name, which would be the same figure wearing the label of the thing it
+            # is not. A reader comparing `ofgem_benchmark` against anything should compare it
+            # against this and against nothing else on the row.
+            "book_departure_rate": (
+                round(book[yr]["realised_rate_pct"] / 100.0, 4)
+                if yr in book and book[yr]["realised_rate_pct"] is not None else None
+            ),
+            "book_accounts": book[yr]["accounts"] if yr in book else None,
+            "book_departures": book[yr]["departures_total"] if yr in book else None,
+            "book_denominator": book[yr]["denominator"] if yr in book else None,
+            "book_unavailable_reason": book_refusal,
             # Rounded AT EMISSION for the same reason as the multiplier below: the constant
             # stays exactly its per-cent table over 100 so its derivation can be asserted,
             # and a board artefact does not publish 0.17300000000000001.

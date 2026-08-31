@@ -45,11 +45,19 @@ from pathlib import Path
 from simulation.departure_risks import (
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
+    WORLD_MAX_CHURN_PROBABILITY,
     build_departure_risks,
+    svt_inertia_hazard,
     total_departure_probability,
 )
 from simulation.market_switching_propensity import market_departure_rate
-from tools.departure_population import banner, declare
+from tools.departure_population import (
+    account_denominator_refusal,
+    banner,
+    declare,
+    load_svt_decisions,
+    union_by_year,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
@@ -109,6 +117,182 @@ def fit_year_anchor(rows: list[dict], target: float) -> float:
         else:
             hi = mid
     return (lo + hi) / 2.0
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# THE WHOLE-BOOK FIT
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+
+#: Tolerance for the composition check below, in probability units. The capture rounds
+#: `sim_svt_inertia` to six decimals and `realized_churn_probability` likewise, so an exact
+#: comparison would fail on rounding alone. Set at the rounding, not above it: this check exists to
+#: catch a MISSING FACTOR of ~2-6x, and a tolerance that could hide one would make the check a
+#: formality. Derived from the artefact's own precision rather than chosen.
+_COMPOSITION_TOLERANCE = 1e-5
+
+
+def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
+    """Does the world compose the SVT hazard the way this fit assumes? `None` if it does.
+
+    THE WHOLE-BOOK FIT HOLDS THE SVT CONTRIBUTION FIXED AND SOLVES THE RENEWAL ANCHOR AROUND IT,
+    and that is only legitimate if the year level anchor does not scale the SVT route. It does not,
+    and the check is here rather than in a comment because the alternative is unfalsifiable.
+
+    MEASURED ON THE 2026-08-31 CAPTURE, all 1,266 rows: `realized_churn_probability` equals
+    `svt_inertia_hazard(years_on_svt, segment_days) x action_propensity`, with the recorded
+    `sim_level_anchor` NOT multiplied in. `simulation.departure_risks.build_departure_risks`
+    computes `CAUSE_SVT_INERTIA = clip(level_anchor x svt_inertia x action_propensity)` — it
+    disagrees, and today that line is unreachable because no production caller passes
+    `svt_inertia=`. **The world's composition is the correct one.** `svt_inertia_hazard` is derived
+    from an ALREADY-ABSOLUTE published annual rate (0.20 recent / 0.10 long-stayer); multiplying it
+    by a year anchor of ~4.6 would put annual drift off SVT near 65% against a published 20%.
+    Anchoring an absolute published rate a second time destroys the only level anyone could check.
+
+    So this refuses if the capture ever starts matching the ANCHORED form, and names which. A fit
+    solved under one composition while the world runs the other lands the world nowhere in
+    particular, and nothing downstream would report it: every row would still be well-formed and
+    the fitted table would still print.
+    """
+    unanchored = anchored = neither = 0
+    example = None
+    for row in svt_rows:
+        raw = svt_inertia_hazard(
+            years_on_svt=row["sim_years_on_svt"], segment_days=row["sim_segment_days"]
+        )
+        propensity = row["sim_action_propensity"]
+        recorded = row["realized_churn_probability"]
+        anchor = row.get("sim_level_anchor", 1.0)
+        if abs(raw * propensity - recorded) <= _COMPOSITION_TOLERANCE:
+            unanchored += 1
+        elif abs(min(raw * propensity * anchor, WORLD_MAX_CHURN_PROBABILITY) - recorded) <= _COMPOSITION_TOLERANCE:
+            anchored += 1
+        else:
+            neither += 1
+            example = example or row
+    total = len(svt_rows)
+    if anchored:
+        return (
+            f"{anchored} of {total} SVT rows carry the year level anchor in their realised "
+            f"probability. This fit holds the SVT contribution FIXED while solving the renewal "
+            f"anchor around it, which is wrong if the anchor scales the SVT route too — and "
+            f"scaling it would anchor an already-absolute published rate (0.20/0.10 annual drift) "
+            f"a second time. Settle which composition the world runs before fitting."
+        )
+    if neither:
+        return (
+            f"{neither} of {total} SVT rows are reproduced by NEITHER composition (e.g. "
+            f"{example['customer_id']} on {example['event_date']}: recorded "
+            f"{example['realized_churn_probability']}). The SVT hazard this fit models is not the "
+            f"one the world ran, so the contribution held fixed here is not the world's."
+        )
+    if not unanchored:
+        return "this capture has no SVT segment decisions to establish a composition from."
+    return None
+
+
+def fit_whole_book(
+    renewal_rows: list[dict], svt_rows: list[dict]
+) -> dict[int, tuple[float | None, str | None, dict]]:
+    """`{year: (anchor, refusal, diagnostics)}` — the year anchor fitted against the WHOLE BOOK.
+
+    THE TARGET IS THE ONE THING THAT CHANGED AND IT IS THE ONLY THING THAT MATTERED. The old fit
+    solved `mean realised probability over RENEWAL DECISIONS == published rate`. Post-C1b that
+    fits the world to the selected subset of households who took a fixed deal — the ones who
+    demonstrably shop — against a published whole-population rate. This solves
+
+        (expected departures on BOTH routes) / (accounts on the book)  ==  published rate
+
+    which has the record's own numerator and the record's own denominator.
+
+    THE SVT CONTRIBUTION IS TAKEN FROM THE CAPTURE'S RECORDED PROBABILITIES, not recomputed: a
+    contribution recomputed by this tool would be a reimplementation, and fitting against a
+    reimplementation is how a calibration comes out right about a world that does not exist.
+    `svt_composition_refusal` is what establishes that holding it fixed is legitimate.
+
+    THREE REFUSALS, AND EACH NAMES A DIFFERENT STATE. They are separate because a reader who sees
+    one blank year must be able to tell which:
+
+      * **partial year** — the capture's first and last year. Exposure is a fraction of a year, so
+        the account denominator is not an account-year and any anchor solved on it is solving a
+        different equation. On the 2026-08-31 capture 2016 would otherwise fit at 15.99 off ONE
+        renewal decision and three accounts.
+      * **no renewal population** — the year has SVT decisions and no renewal decisions at all, so
+        there is nothing to solve an anchor against whatever the target. 2022 is this, exactly:
+        zero renewal decisions in the capture, which is also why the renewal-only instrument's
+        summary printed `nan`.
+      * **unreachable** — the SVT route alone already expects more departures than the record
+        allows for the whole book, so no renewal anchor >= 0 can bring it down. This is a result
+        about the mechanism and NOT a number to clamp; the same discipline `fit_year_anchor` above
+        applies in the opposite direction. 2022 is this too, and independently: an SVT floor of
+        12.80% against a published 2.9-4.3%.
+    """
+    book = union_by_year(renewal_rows, svt_rows)
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    svt_expected: dict[int, float] = collections.defaultdict(float)
+    for row in svt_rows:
+        svt_expected[int(str(row["event_date"])[:4])] += float(row["realized_churn_probability"])
+
+    out: dict[int, tuple[float | None, str | None, dict]] = {}
+    for year in sorted(book):
+        accounts = book[year]["accounts"]
+        target_pct = 100.0 * market_departure_rate(year)
+        floor = svt_expected[year]
+        floor_pct = 100.0 * floor / accounts
+        diag = {
+            "accounts": accounts,
+            "renewal_decisions": len(by_year[year]),
+            "svt_decisions": book[year]["decisions"]["svt_segment"],
+            "target_pct": target_pct,
+            "svt_floor_pct": floor_pct,
+        }
+        # EVERY APPLICABLE CAUSE, NOT THE FIRST ONE. 2022 fails two of these independently — no
+        # renewal population AND an unreachable SVT floor — and a reader shown only the first
+        # would fix it by finding some renewal decisions, which would not help. A short-circuit
+        # here reports the cheapest cause rather than the binding one.
+        causes = []
+        if book[year]["partial_year"]:
+            causes.append("partial year at the capture's edge")
+        if not by_year[year]:
+            causes.append("no renewal decisions in this year")
+        if floor_pct > target_pct:
+            causes.append(f"unreachable: SVT alone expects {floor_pct:.2f}% against a target "
+                          f"of {target_pct:.2f}%")
+        if causes:
+            out[year] = (None, "; ".join(causes), diag)
+            continue
+        target = accounts * market_departure_rate(year)
+        residual = target - floor
+        lo, hi = 0.0, 1.0
+        for _ in range(60):
+            if _sum_probability(by_year[year], hi) >= residual:
+                break
+            hi *= 2.0
+        else:
+            out[year] = (None, "the renewal route cannot carry the residual at any anchor", diag)
+            continue
+        for _ in range(200):
+            mid = (lo + hi) / 2.0
+            if _sum_probability(by_year[year], mid) < residual:
+                lo = mid
+            else:
+                hi = mid
+        anchor = (lo + hi) / 2.0
+        diag["achieved_pct"] = 100.0 * (floor + _sum_probability(by_year[year], anchor)) / accounts
+        out[year] = (anchor, None, diag)
+    return out
+
+
+def _sum_probability(rows: list[dict], anchor: float) -> float:
+    """Expected departures over these renewal rows at one anchor. A SUM, not a mean.
+
+    The whole-book target is a count over accounts, so the renewal route has to contribute a COUNT.
+    `_mean_probability` above divides by the renewal decisions, which is the denominator this fit
+    exists to stop using.
+    """
+    return _mean_probability(rows, anchor) * len(rows) if rows else 0.0
 
 
 def emission_refusal(decl: dict) -> str | None:
@@ -178,6 +362,55 @@ def main(argv: list[str]) -> int:
         print(f"{year:>6} {len(year_rows):>4} {100.0 * target:>9.2f} {base:>13.3f} "
               f"{anchor:>9.4f} {achieved:>11.3f}")
     print()
+    print("  THE TABLE ABOVE IS THE RENEWAL ROUTE ALONE and is a diagnostic, not the world's level:")
+    print("  its `record %` target is a whole-population published rate and its population is the")
+    print("  households that reached a renewal roll. The whole-book fit is what emits a constant.")
+    print()
+
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    book_refusal = account_denominator_refusal(all_rows, svt_rows)
+    composition = None if svt_rows is None else svt_composition_refusal(svt_rows)
+    if book_refusal is None and composition is None:
+        print("── WHOLE-BOOK FIT: both routes, over the accounts on the book ──")
+        print()
+        result = fit_whole_book(all_rows, svt_rows)
+        print(f"{'year':>6} {'accts':>6} {'nRen':>5} {'nSVT':>5} {'record %':>9} "
+              f"{'SVT floor %':>12} {'anchor':>9} {'achieved %':>11}")
+        for year in sorted(result):
+            anchor, refusal, diag = result[year]
+            shown = f"{anchor:>9.4f}" if anchor is not None else f"{'—':>9}"
+            achieved = (f"{diag['achieved_pct']:>11.3f}" if anchor is not None
+                        else f"{'—':>11}")
+            print(f"{year:>6} {diag['accounts']:>6} {diag['renewal_decisions']:>5} "
+                  f"{diag['svt_decisions']:>5} {diag['target_pct']:>9.2f} "
+                  f"{diag['svt_floor_pct']:>12.2f} {shown} {achieved}")
+        print()
+        for year in sorted(result):
+            if result[year][1] is not None:
+                print(f"  {year}: NOT FITTED — {result[year][1]}")
+        fitted_book = {y: a for y, (a, _r, _d) in result.items() if a is not None}
+        print()
+        print("  YEAR_LEVEL_ANCHOR: dict[int, float] = {")
+        for year in sorted(fitted_book):
+            print(f"    {year}: {fitted_book[year]:.6f},")
+        print("  }")
+        print()
+        print("  A YEAR ABSENT FROM THIS BLOCK IS ABSENT ON PURPOSE and must NOT be interpolated.")
+        print("  `departure_level_anchor.year_level_anchor` already falls back to the reference")
+        print("  year for a year it does not carry, and that fallback is declared and readable;")
+        print("  a value invented to fill the gap would not be. See the per-year causes above.")
+        return 0
+
+    if book_refusal is not None:
+        print("  NO WHOLE-BOOK FIT — the two routes cannot be read on an account denominator.")
+        print(f"  Reason: {book_refusal}")
+    else:
+        print("  NO WHOLE-BOOK FIT — the world and this fit disagree about the SVT composition.")
+        print(f"  Reason: {composition}")
+    if svt_reason:
+        print(f"  ⚠ {svt_reason}")
+    print()
+
     refusal = emission_refusal(decl)
     if refusal is not None:
         print("  REFUSED — no YEAR_LEVEL_ANCHOR block is emitted from this capture.")
