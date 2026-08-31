@@ -260,3 +260,51 @@ fitting the world to the answer, and it would be doing so for a move whose sign 
 our own price position.
 
 *The prediction and the first result section above are left exactly as filed.*
+
+---
+
+# WHERE THE C3 ARM ACTUALLY IS, BECAUSE THIS DOCUMENT DID NOT SAY
+
+Added 2026-08-31, on re-reading the blocker above rather than on new measurement.
+
+**The defect in my own write-up.** Everything above names the next step precisely — the value-arms
+A/B run — and nowhere says **where the code to run it lives**. It says only *"not landed on
+`main`"*, which tells the next reader where it ISN'T. `simulation/shown_price.py` exists in exactly
+one place and it is not in this repository's working tree, so a reader who draws the A/B run from
+the sentence above would conclude the arm had to be rebuilt from the prose. That is how a blocker
+that looks discharged-in-principle becomes a rebuild.
+
+**Where it is, verified rather than remembered:**
+
+| handle | value | checked |
+|---|---|---|
+| salvage tag | `salvage/c3-shown-price-measure` | → `f93fd1ea9`, `git ls-tree` shows `simulation/shown_price.py` |
+| branch | `c3-shown-price-measure` | tip `f93fd1ea9` — **identical to the tag**, `git diff` empty |
+| worktree | `/tmp/.../scratchpad/c3wt` | clean, idle, and **on `/tmp`** |
+
+The arm is two files against `915bfab9b`: `simulation/shown_price.py` (new, 122 lines) and the seam
+in `simulation/customer_events.py`, with `tests/simulation/test_shown_price.py` beside them.
+
+**Cite the TAG, not the branch or the worktree.** The branch is being counted as an orphan by
+`background/alarm_repetition.py` — *"[FORK ORPHANS] 1 orphaned fork branch(es) never merged home
+[ENFORCE (salvage+reap)]"*, fired 3 times — and that reaper's enforce mode deletes the branch name.
+The worktree is on `/tmp` and does not survive a reboot. **The salvage tag is the only durable
+handle of the three**, and until this section it was named by nothing: the reaper wrote the tag, and
+no artefact a reader would reach pointed at it.
+
+**The tag is durable by construction, and that is why no new control is filed here.** I was going
+to write a test asserting the arm stays reachable. `background/fork_reconciler.py` already carries
+the floor — *"salvage ALWAYS precedes reap; a reap that cannot first confirm salvage is REFUSED"* —
+mutation-proven in `tests/background/test_fork_reconciler.py`
+(`test_salvage_precedes_reap_and_refuses_when_salvage_cannot_be_confirmed` asserts `branch -D` is
+never called when the tag does not match the tip). The reap that deletes the branch cannot happen
+unless this tag already holds the work. A second control over the same property would guard my own
+pointer rather than the arm.
+
+**This orphan is intentional and should not be read as an escape.** The branch is unmerged because
+the section above decided it stays unmerged — C3's sign is a property of our own price position, so
+one arm cannot speak for the others. It is not abandoned work that lost its way home. What was
+missing was only the pointer, and the alarm was right that something needed saying even though it
+was wrong about what.
+
+*No number above is restated or revised here. This section adds a location, nothing else.*
