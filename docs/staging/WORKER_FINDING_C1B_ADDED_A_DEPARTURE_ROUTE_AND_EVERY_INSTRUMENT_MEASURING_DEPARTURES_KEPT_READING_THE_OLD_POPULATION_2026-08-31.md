@@ -129,3 +129,45 @@ feeds: `docs/reports/c2_departure_factors.json` and the fitted anchor are files,
 regenerates them on a schedule. No figure a reader can see moved on the C1b landing. What is true is
 that **the next capture, fit or published mix would have been wrong and would have looked right** —
 which is why this is filed rather than quietly fixed.
+
+---
+
+## MEASURED, 2026-08-31, after the finding landed: the band control is green on a stale artefact while its live subject is unreadable
+
+Running `measure_departure_level`'s own comparison over the two-route capture, per renewal:
+
+| year | published band | modelled E[depart] % | inside? |
+|---|---|---|---|
+| 2016 | 17.00–17.60 | 17.86 | no |
+| 2017 | 13.50–14.00 | 14.29 | no |
+| 2018 | 19.50–20.00 | **29.50** | no |
+| 2019 | 20.70–21.30 | 20.44 | no |
+| 2020 | 22.50–23.00 | **29.43** | no |
+| 2021 | 17.90–18.40 | 17.19 | no |
+| 2023 | 8.90–12.50 | **15.51** | no |
+| 2024 | 12.50–16.10 | **22.35** | no |
+| 2025 | 14.30–17.90 | **21.10** | no |
+
+**Nine years, none inside**, and 2022 is absent entirely — the renewal book has no decisions at all
+in that year, which is why the instrument's summary line prints `world E[depart] = nan%`.
+
+`test_the_worlds_realised_departure_rate_is_inside_the_published_band` is **green**, because its
+subject is `docs/reports/c2_departure_factors.json` — the pre-C1b, 465-renewal artefact.
+
+**THE CORRECT READING IS NOT "THE WORLD IS OUT OF BAND", AND SAYING SO WOULD BE THE SAME MISTAKE
+ONE LEVEL UP.** This column is a mean over *renewal decisions*, and C1b changed what a renewal
+decision is a sample of: the households that sit on the standard variable product no longer reach
+the roll, so the 144 that remain are a **selected** subset of the book — the ones who took a fixed
+deal, i.e. the ones who demonstrably shop. A mean over shoppers is not the book's departure level
+and is not comparable to a published whole-population switching rate. The denominator moved, so the
+comparison the instrument makes no longer has a subject.
+
+So the honest statement is: **the control is passing on an artefact from a world that no longer
+exists, and the reading it would take from the world that does exist is not a quantity it can
+compare.** Both halves have to be fixed together — union the routes AND declare the denominator —
+and neither is a re-fit. **Re-fitting `YEAR_LEVEL_ANCHOR` against the numbers in the table above
+would be fitting the world to a selected sub-population**, which is worse than the staleness it
+would appear to cure.
+
+This sharpens item 2 of what is owed above rather than adding to it, and it is inside the delivery
+lane's current focus item.

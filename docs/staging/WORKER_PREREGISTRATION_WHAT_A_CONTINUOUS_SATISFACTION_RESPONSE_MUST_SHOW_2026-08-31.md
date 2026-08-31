@@ -112,11 +112,35 @@ departures, 144 renewals + 1,266 SVT segments.
 | **P3** whole-book AUC rises above 0.6760 | **REFUTED** — **0.6760 → 0.6760**, unchanged; renewal route 0.7412 → 0.7400 |
 | **P4** level rises, band control reds | **refuted in magnitude** — level +0.0699pp, **departures 32 → 32**, band control green |
 
+**Both arms were re-measured together before this was landed**, on the same instrument at the same
+2,000 permutations, so every pair above is a paired reading off two captures that share a seed and a
+decision sequence — 144 renewals in the same order, same `random_roll` on every row. That is what
+makes differences this small readable at all: the only quantity that differs between the two files
+is `sim_dissatisfaction_response`. The internal check is that **`HELD OUT` for dissatisfaction is
+0.7412 in both arms** — freeze the one variable that changed and the two worlds give the identical
+reading, to four decimals. (One number did not survive that re-measurement and is corrected below.)
+
+**P4, exactly.** No realised departure moved: the per-year realised rate is identical in all nine
+years, and the SVT companion file is **byte-identical** between the arms. What moved is the
+*modelled* expectation `world E[depart]`, by +0.07pp on the 2017–2024 mean, two years down (2016
+−0.23pp, 2017 −0.09pp) and seven up. The prediction that the band control would red was not merely
+wrong in size but **in direction**: 2016 moved from OUT OF BAND *into* band, and no year left one.
+The prereg conflated the realised level with the modelled one; they are different quantities and
+only the first is an outcome.
+
 ## What actually happened, and it is worth more than the prediction was
 
-`sim_dissatisfaction_response` ALONE moved from **0.4971 to 0.3806**. It did not become
+`sim_dissatisfaction_response` ALONE moved from **0.4672 to 0.3806**. It did not become
 uninformative — it was *already* uninformative-looking, and removing the ties revealed that it
 points the **wrong way**. In this world, less satisfied households leave **less**.
+
+*Correction, made before landing and kept here rather than applied silently: this line first read
+**0.4971 to 0.3806**. 0.4971 is a real reading but it is the **pre-C1b, renewal-only** capture's —
+465 decisions, a different run and a different population from the treatment. Subtracting across
+those two is the "cited baseline from a different run" defect this repository already has a name
+for, and it was in the very sentence claiming a one-variable comparison. The paired baseline is
+0.4672. The conclusion is unchanged in direction and size — inside its null before, below chance
+after — which is why the correction is a correction and not a retraction.*
 
 Measured, on the treatment capture:
 
@@ -135,7 +159,7 @@ models as least able to act, and the damping wins by roughly three to one. The s
 express itself, and it is not because its dose is small — it is because the world cancels it against
 itself.
 
-**With three buckets this was invisible.** 92% of pairs tied, the reading sat on chance at 0.4971,
+**With three buckets this was invisible.** 92% of pairs tied, the reading sat on chance at 0.4672,
 and the honest conclusion a reader would draw was *"service does not drive departures in this
 world"*. That conclusion was wrong in an important way: the mechanism is there, it is wired
 backwards, and the tie fraction was hiding it.

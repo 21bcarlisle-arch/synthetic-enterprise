@@ -86,6 +86,37 @@ within-stratum pairs are ties**, a tie scores 0.5, so the variable cannot move a
 from chance whatever hazard is attached to it. Its contribution is **+0.0000** — not small, *zero*.
 The variation exists in the population and is thrown away between the population and the hazard.
 
+> **REPAIRED, AND THE REPAIR FOUND SOMETHING WORSE — 2026-08-31, later the same day.** Item 1 below
+> was done: `satisfaction_churn_multiplier` now interpolates between its two declared endpoints
+> instead of bucketing. Ties fell **92.0% → 0.2%**, distinct values **3 → 135**, and the pre-
+> registered predictions were **scored and mostly refuted**
+> (`WORKER_PREREGISTRATION_WHAT_A_CONTINUOUS_SATISFACTION_RESPONSE_MUST_SHOW_2026-08-31.md`). The
+> whole-book reading did **not** move — 0.6760 → 0.6760 — and the renewal route fell 0.7412 →
+> 0.7400, contribution **+0.0000 → −0.0012**.
+>
+> **The diagnosis in the paragraph above was right that the tie fraction was hiding something and
+> wrong about what.** Ordered rather than bucketed, the factor ALONE reads **0.4672 → 0.3806**: the
+> point estimate crosses to the *wrong side of chance*, and in this book the households that
+> departed were on average **more** satisfied (0.6845) than those that stayed (0.6543). It sits
+> inside its null `[0.3794, 0.6206]` — by 0.0012, on the bottom edge — so **we cannot say the term
+> is anti-predictive**; what we can say is that there is no evidence it predicts in the right
+> direction and the point estimate is on the wrong side.
+>
+> **The cause is measured and it is not the dose.** `corr(sim_dissatisfaction_response,
+> sim_action_propensity) = −0.5188`: `sim_satisfaction` builds satisfaction partly from income
+> stress, and `action_propensity` is income stress × tenure, so the households the world models as
+> most dissatisfied are the same ones it models as least able to act, and the damping wins about
+> three to one. Realised churn by stress tier runs **0.243 / 0.200 / 0.083** for low / moderate /
+> high — backwards. Two of the four departure risks are **one variable seen twice**. Filed as
+> `WORKER_FINDING_THE_WORLDS_SERVICE_RISK_IS_CANCELLED_BY_A_MODULATOR_THAT_SHARES_ITS_DRIVER_2026-08-31.md`;
+> the repair is downward, to `sim_satisfaction`'s drivers, and it is choice-and-channel work.
+>
+> **This is a TOP-DOWN construction found on the way, named as such per the canon's instruction.**
+> The three buckets were not derived from any household's rationale — they are a hand-cut mapping
+> onto a published Likert distribution, and the two doses (0.85 / 1.30) remain unsourced and are
+> *not* invented here. Fixing the shape did not fix the variable, which is the ladder's own point:
+> a rung-3 failure repairs at the individual model, and the individual model is still wrong.
+
 **`price_response` is the opposite and it is the more interesting one.** 131 distinct values, only
 **2.1% ties** — full dispersion, nothing discretised — and it still lands at 0.4836 alone and
 contributes +0.0070. So the world's price term **moves the level and does not order who leaves.**
@@ -296,7 +327,16 @@ carry, and it is a sharper one than "the future is unanchored".
 
 ## What this changes, in order
 
-1. **Let satisfaction reach the hazard as itself.** The highest-value repair on the page, and it is
+1. **~~Let satisfaction reach the hazard as itself.~~ DONE 2026-08-31 — and it did not buy rung 3.**
+   The shape is repaired (ties 92.0% → 0.2%) and the reading did not move (0.6760 → 0.6760). What
+   it bought instead is the *diagnosis*: the service risk is cancelled by a modulator that shares
+   its driver, and **that** is now the highest-value repair on the page. It is not a re-tune of this
+   function — it is `sim_satisfaction` needing a driver income cannot explain (service failures,
+   contacts, complaints), which is choice-and-channel work and is where item 1 has moved to. The
+   original wording is kept below because the reasoning was sound and the prediction was wrong, and
+   the pair is the evidence the experiment preceded its answer.
+
+   *Original:* **Let satisfaction reach the hazard as itself.** The highest-value repair on the page, and it is
    downward to the individuals exactly as the canon requires. `satisfaction_score` varies across
    434 distinct values and arrives at the hazard as three, of which one covers most of the book; the
    result is a **+0.0000** contribution and 92% tied pairs. This is not a modelling choice to be

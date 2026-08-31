@@ -19,9 +19,21 @@ Realised churn by income-stress tier, on a full two-route capture (144 renewal d
 `corr(dissatisfaction_response, action_propensity) = −0.5188`.
 
 **The households the world models as most dissatisfied leave at a third the rate of the most
-satisfied.** As a discriminator, `sim_dissatisfaction_response` alone scores **0.3806** — not merely
-uninformative, but pointing the wrong way, and by more than the whole-book reading clears its null
-by in the right direction.
+satisfied** — 0.083 against 0.243, on 12 and 111 decisions respectively.
+
+As a discriminator, `sim_dissatisfaction_response` alone scores **0.3806** against a null of
+**[0.3794, 0.6206]**. **It sits INSIDE that null — by 0.0012, on the bottom edge — so on this leg
+we cannot tell**, in those words, per the standing rule in `tools/inference_claim.py`. What can be
+said is narrower and is still the finding: **there is no evidence the term predicts in the right
+direction, and the point estimate is on the wrong side of chance.** The claim that the mechanism is
+backwards rests on the realised-churn table above, which is a direct outcome measurement rather than
+a rank statistic — and its high-stress cell is 12 decisions, which is stated here so nobody quotes
+the ratio without it.
+
+*(This paragraph replaced a first draft that read "not merely uninformative, but pointing the wrong
+way". That asserted a direction the interval does not support. The correction is kept visible rather
+than applied silently: a reading inside its null says we cannot tell, and that rule binds hardest
+when the point estimate is the one I would like to be true.)*
 
 ## The cause is structural, not a parameter
 
@@ -45,8 +57,17 @@ switch less. They are **different axes in the real world and the same axis here.
 
 `satisfaction_churn_multiplier` collapsed 434 distinct satisfaction scores into three values, 88% of
 the book sharing one. That produced **92.0% tied pairs**, and a tied pair scores 0.5 in any rank
-statistic, so the factor read **0.4971 — dead on chance**. The honest conclusion available to a
-reader was *"service does not drive departures in this world"*.
+statistic, so the factor read **0.4672 — inside its null and near enough chance**. The honest
+conclusion available to a reader was *"service does not drive departures in this world"*.
+
+*(Corrected in place, 2026-08-31, before this finding was landed. The first draft of this paragraph
+and of the pre-registration's result table cited **0.4971** as the baseline arm. That figure is real
+but belongs to the **pre-C1b, renewal-only** capture of 465 decisions — a different run and a
+different population from the treatment it was being subtracted from. The paired baseline, measured
+on `ladder_churn_factors.json` at the same 2,000 permutations as the treatment, is **0.4672**.
+Nothing in the conclusion moves: the reading still sits inside its null before and below chance
+after. It is corrected because a baseline taken from another run is the specific way this repository
+has published a difference between two numbers that do not have one.)*
 
 **That conclusion was wrong in the way that matters.** The mechanism was there, wired backwards, and
 the tie fraction was standing in front of it. Making the response continuous moved the reading to
