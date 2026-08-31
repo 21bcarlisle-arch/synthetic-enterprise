@@ -98,7 +98,32 @@ def scan_worktrees() -> list[dict]:
     return [w for w in worktrees
             if str(Path(w["path"]).resolve()) != main_path
             and w.get("branch") not in PROTECTED_BRANCHES
-            and not w.get("bare")]
+            and not w.get("bare")
+            and not _is_a_live_writers_worktree(w["path"])]
+
+
+def _is_a_live_writers_worktree(path: str) -> bool:
+    """Delegates to `seat_executor.worktree_is_live`, which OWNS this question.
+
+    SALVAGE IS FOR ABANDONED WORK, and this module's own name says so: it rescues what a dead fork
+    left behind. A worktree with a LIVE process in it is not abandoned, and committing into it makes
+    this daemon a second writer in the one place isolation was supposed to guarantee there is only
+    ever one -- which is what it did, four minutes into the seat executor's first unattended turn on
+    2026-08-31.
+
+    NOT REIMPLEMENTED HERE. `fork_reconciler` needs the same answer for its reaper, and two modules
+    that do not import each other each carrying their own liveness rule is the ontology defect this
+    project has been paying for all month. One question, one home, two readers.
+
+    Nothing is lost by skipping a live worktree: `seat_executor.ensure_worktree` resets it to
+    `origin/main` at the start of every turn, so anything it did not land was, by its own design,
+    not finished.
+    """
+    try:
+        from background.seat_executor import worktree_is_live
+    except Exception:  # noqa: BLE001 - never let this import take the salvage sweep down
+        return False
+    return worktree_is_live(path)
 
 
 def is_dirty(path: str) -> bool:

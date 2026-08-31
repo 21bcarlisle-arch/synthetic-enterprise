@@ -5787,7 +5787,27 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
         # demonstrated close of a real episode -- a green gate with no wedge behind it has no
         # list to score, and scoring it would pad the denominator with free wins.
         if episode_closed and had_state:
-            _measure_suspect_list(prev, float(now) if now is not None else time.time())
+            # SCORING THE LIST MAY NOT DECIDE WHETHER THE WEDGE CLEARS (2026-08-31).
+            #
+            # `_measure_suspect_list` writes `.wedge_suspect_hit_rate.json` -- a DIAGNOSTIC about
+            # how good this pipeline's guesses were. It sat un-wrapped, one line above the clear,
+            # inside the function's outer `except`: so any failure to write that side-file
+            # abandoned the whole function and `_write_publish_gate_state` never ran. The observable
+            # behaviour of "the hit-rate file is unwritable" was **the publish gate stays wedged**,
+            # with `episode_failures` still standing and only a swallowed log line to say why.
+            #
+            # A full disk, a read-only mount, or a permissions change on docs/observability were
+            # all enough. Found when the test-isolation sink began refusing that write and three
+            # tests reported "a clean publish must CLEAR the wedge streak" -- the tests were right
+            # and had been describing a real failure mode nobody had reached yet.
+            #
+            # Same class as the lane wall hook found the same afternoon: a control that enforces
+            # only while an auxiliary WRITE succeeds. Fail-closed on unreadable input is a rule
+            # here; this is its mirror and had no rule at all.
+            try:
+                _measure_suspect_list(prev, float(now) if now is not None else time.time())
+            except Exception as exc:  # noqa: BLE001 - diagnostics may never gate a recovery
+                log("Suspect-list scoring skipped (the wedge still clears): {}".format(exc))
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
                                    "episode_failures": 0, "cited_findings": [], "suspects": {}},
                                   episode_closed=episode_closed)

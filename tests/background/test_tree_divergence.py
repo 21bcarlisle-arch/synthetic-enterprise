@@ -159,12 +159,20 @@ def test_the_measure_publishes_its_own_attribution_coverage():
 
 
 # ── it can never punish ──────────────────────────────────────────────────────────────────────
-def test_the_publish_path_helper_returns_nothing_blockable():
+def test_the_publish_path_helper_returns_nothing_blockable(tmp_path):
     """"never punished via the public site": write_artifact returns a path, not a verdict, and
-    swallows its own errors. Nothing here can hand the publish path a reason to refuse."""
+    swallows its own errors. Nothing here can hand the publish path a reason to refuse.
+
+    WRITTEN TO TMP SINCE 2026-08-31, and the destination is not what this asserts. It used to write
+    the LIVE `docs/observability/tree_divergence.json` -- so every run of this test replaced the
+    real divergence measurement with one taken over whatever the test tree happened to look like.
+    `docs/observability` became a protected surface that day, after 6,421 lines of one ledger
+    turned out to be pytest output and a reader of it reported a usage limit that never existed.
+    What is asserted here is that the helper RETURNS A PATH THAT EXISTS rather than a verdict; the
+    real measurement of record must come from a real publish cycle."""
     m = td.measure()
     assert isinstance(m, dict)
-    out = td.write_artifact(m, td.PROJECT_DIR / "docs" / "observability" / "tree_divergence.json")
+    out = td.write_artifact(m, tmp_path / "tree_divergence.json")
     assert out.exists()
 
 

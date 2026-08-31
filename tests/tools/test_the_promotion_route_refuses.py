@@ -212,3 +212,69 @@ def test_MACHINE_EXHAUST_from_the_gate_is_not_unfinished_work(worktree):
         "machine exhaust was reported as unfinished work"
     )
     assert any(str(p).startswith("docs/") for p in SHARED_BY_DESIGN)
+
+
+# ── A PUSH PROMOTES A RANGE, NOT A TIP (2026-08-31) ──────────────────────────────────────────────
+# Found by the first live run of the seat executor. Four minutes after it started its first
+# unattended turn, `background/fork_salvage.py` -- a daemon that sweeps worktrees for uncommitted
+# work -- committed `SALVAGE(auto): preserve this fork's uncommitted work` INSIDE the executor's
+# own worktree, ungated. Had the executor then landed on top of it, HEAD would have carried a valid
+# receipt, `_refuse_if_ungated` would have passed, and the fast-forward would have carried the
+# salvage commit onto `main` underneath the landing.
+#
+# The route's whole claim is about what reaches `main`. A push moves a REF, so the subject is
+# `origin/main..HEAD` and never the tip alone.
+
+def test_an_ungated_commit_beneath_a_gated_tip_is_refused(tmp_path, monkeypatch):
+    """MUTATION: verify only `commit` instead of the range and this fires with the salvage commit
+    named. That mutation is the code as shipped this morning."""
+    from tools import promote_worktree_landing as promote
+
+    tip = "aaaaaaaaa"
+    beneath = "bbbbbbbbb"
+    verified: list[str] = []
+
+    def _fake_git_out(cwd, *args):
+        if args[:2] == ("rev-parse", "origin/main"):
+            return "000000000"
+        if args[0] == "rev-list":
+            return f"{beneath}\n{tip}"
+        raise AssertionError(f"unexpected git call: {args}")
+
+    def _fake_run(argv, **kwargs):
+        import subprocess as sp
+        candidate = argv[-1]
+        verified.append(candidate)
+        rc = 0 if candidate == tip else 1
+        return sp.CompletedProcess(argv, rc, stdout="", stderr="no receipt")
+
+    monkeypatch.setattr(promote, "_git_out", _fake_git_out)
+    monkeypatch.setattr(promote, "_git", lambda cwd, *a: __import__("subprocess").CompletedProcess(
+        a, 0, stdout="SALVAGE(auto): preserve this fork's uncommitted work\n", stderr=""))
+    monkeypatch.setattr(promote.subprocess, "run", _fake_run)
+
+    with pytest.raises(promote.PromotionRefused) as exc:
+        promote._refuse_if_ungated(tmp_path, tip)
+
+    assert beneath[:9] in str(exc.value)
+    assert "beneath the tip" in str(exc.value)
+    assert "SALVAGE(auto)" in str(exc.value)
+    assert beneath in verified, "the commit under the tip was never verified at all"
+
+
+def test_a_range_of_gated_commits_is_promotable(tmp_path, monkeypatch):
+    """The blast-radius leg: widening the subject must not refuse an honest multi-commit landing.
+
+    Landing an increment and then landing again is the shape the charter actively asks for -- *"if
+    it is bigger than one turn, land the part you finished"* -- so a route that could only ever
+    promote a single commit would refuse the behaviour it teaches."""
+    from tools import promote_worktree_landing as promote
+
+    commits = ["111111111", "222222222", "333333333"]
+
+    monkeypatch.setattr(promote, "_git_out", lambda cwd, *a: (
+        "000000000" if a[:2] == ("rev-parse", "origin/main") else "\n".join(commits)))
+    monkeypatch.setattr(promote.subprocess, "run", lambda argv, **k:
+                        __import__("subprocess").CompletedProcess(argv, 0, stdout="", stderr=""))
+
+    promote._refuse_if_ungated(tmp_path, commits[-1])  # must not raise

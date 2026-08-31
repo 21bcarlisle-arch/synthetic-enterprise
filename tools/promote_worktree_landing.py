@@ -106,24 +106,63 @@ def _refuse_if_dirty(worktree: Path) -> None:
         )
 
 
+def _commits_being_promoted(worktree: Path, commit: str) -> list[str]:
+    """Every commit this push would add to `origin/main`, oldest first.
+
+    A PUSH PROMOTES A RANGE, NOT A TIP, and the first version of this file forgot it. See
+    `_refuse_if_ungated`.
+    """
+    try:
+        base = _git_out(worktree, "rev-parse", f"{REMOTE}/{BRANCH}")
+    except PromotionRefused:
+        # No local remote ref yet. Everything reachable is being promoted; verifying the whole of
+        # history is neither useful nor affordable, so fall back to the tip and SAY so rather than
+        # silently checking less than the caller thinks.
+        return [commit]
+    listed = _git_out(worktree, "rev-list", "--reverse", f"{base}..{commit}")
+    return [line.strip() for line in listed.splitlines() if line.strip()] or [commit]
+
+
 def _refuse_if_ungated(worktree: Path, commit: str) -> None:
-    """The commit must carry a `surgical_land` receipt that verifies.
+    """EVERY commit this push would add must carry a `surgical_land` receipt that verifies.
 
     THIS IS THE ONE THAT MATTERS. Everything else here is hygiene; this is what makes "only gated
     commits reach `main`" a property of the ROUTE. A commit made with a hand-rolled `git commit`,
     or with `--no-verify`, has no receipt and cannot be promoted — so the wall is enforced at the
     place work leaves the machine rather than trusted at the place it was made.
+
+    IT CHECKED ONLY THE TIP UNTIL 2026-08-31, AND THAT WAS A HOLE THE FIRST LIVE RUN WALKED INTO.
+    Four minutes after the seat executor started its first unattended turn, `background/
+    fork_salvage.py` — a daemon that sweeps worktrees for uncommitted work — committed
+    `SALVAGE(auto): preserve this fork's uncommitted work` **inside the executor's own worktree**,
+    ungated. Had the executor then landed on top of it, HEAD would have carried a valid receipt,
+    this function would have passed, and the fast-forward would have carried the salvage commit
+    onto `main` underneath it.
+
+    That run's salvage commit was two observability files and harmless. The shape is not: the
+    route's whole claim is about what reaches `main`, and a push moves a REF, so the subject is
+    `origin/main..HEAD` and never the tip alone. It also says something worth keeping about the
+    isolation one layer up — a worktree is isolated from other WRITERS, not from other DAEMONS on
+    the same machine — and the route is the right place to be robust to that, because it is the
+    only place that has to be right about every commit rather than about its own.
     """
-    proc = subprocess.run(
-        [sys.executable, "-m", "tools.surgical_land", "--verify", commit],
-        cwd=str(worktree), capture_output=True, text=True, timeout=300,
-    )
-    if proc.returncode != 0:
-        raise PromotionRefused(
-            f"{commit[:9]} carries no verifying surgical_land receipt, so it was not gated:\n"
-            f"{(proc.stdout + proc.stderr).strip()[-400:]}\n"
-            "Only gated commits are promotable. Re-land it through the door."
+    commits = _commits_being_promoted(worktree, commit)
+    for candidate in commits:
+        proc = subprocess.run(
+            [sys.executable, "-m", "tools.surgical_land", "--verify", candidate],
+            cwd=str(worktree), capture_output=True, text=True, timeout=300,
         )
+        if proc.returncode != 0:
+            subject = _git(worktree, "log", "-1", "--pretty=%s", candidate).stdout.strip()
+            where = ("the landing itself" if candidate == commit
+                     else f"one of the {len(commits)} commits this push would add, beneath the tip")
+            raise PromotionRefused(
+                f"{candidate[:9]} carries no verifying surgical_land receipt, so it was not "
+                f"gated — {where}: {subject[:120]!r}\n"
+                f"{(proc.stdout + proc.stderr).strip()[-400:]}\n"
+                "Only gated commits are promotable. Re-land it through the door, or reset past it "
+                "if it is not yours."
+            )
 
 
 def _refuse_if_not_fast_forward(worktree: Path, commit: str) -> str:

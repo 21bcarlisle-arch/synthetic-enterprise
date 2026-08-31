@@ -41,19 +41,25 @@ def _run(
 
 
 @pytest.fixture(autouse=True)
-def _clean_denial_log():
-    """Each test starts and ends with no denial log -- restores whatever
-    was there before (or removes it if it didn't exist) so this test file
-    doesn't leave permanent evidence artifacts from arbitrary test runs."""
-    original = DENIAL_LOG.read_text() if DENIAL_LOG.exists() else None
-    if DENIAL_LOG.exists():
-        DENIAL_LOG.unlink()
+def _clean_denial_log(tmp_path, monkeypatch):
+    """The denial log goes to tmp for the whole of this module. Nothing here touches the real one.
+
+    IT USED TO DELETE AND RESTORE THE REAL FILE around each of 72 tests, which meant every denial
+    the suite exercised appended a fixture's payload to the live record first. That is the
+    tests-write-the-evidence-base class: on 2026-08-31 the same class had the delivery seat report
+    a usage limit to the director out of a ledger that was 23% pytest output, and
+    `tests/production_surface_guard.py` now refuses the write outright.
+
+    The redirect is `SE_LANE_DENIAL_LOG`, exported into the hook's subprocess environment -- the
+    hook is driven by `subprocess.run`, so an in-process monkeypatch of the module constant would
+    reach nothing. It moves the DESTINATION and never a verdict; the leg below asserts that.
+    """
+    import sys
+
+    redirected = tmp_path / "lane_hook_denials.jsonl"
+    monkeypatch.setenv("SE_LANE_DENIAL_LOG", str(redirected))
+    monkeypatch.setattr(sys.modules[__name__], "DENIAL_LOG", redirected)
     yield
-    if DENIAL_LOG.exists():
-        DENIAL_LOG.unlink()
-    if original is not None:
-        DENIAL_LOG.parent.mkdir(parents=True, exist_ok=True)
-        DENIAL_LOG.write_text(original)
 
 
 class TestLaneWallHook:
@@ -156,6 +162,32 @@ class TestLaneWallHook:
         assert entry["lane"] == "supplier"
         assert entry["tool_name"] == "Read"
         assert entry["path"] == "sim/forward_curve.py"
+
+    def test_the_denial_log_redirect_cannot_change_a_verdict(self, tmp_path):
+        """`SE_LANE_DENIAL_LOG` moves the DIARY, never the WALL.
+
+        The redirect exists so this module's 72 subprocess-driven tests stop appending fixture
+        payloads to the live record. An env var read by a wall-enforcing hook deserves suspicion —
+        an env var that could re-permit a write would be a fail-open door set by exactly the
+        process that must not have it — so this asserts the verdict is IDENTICAL across a
+        redirect, an absent value and a value that cannot be written at all.
+        """
+        denied = {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}}
+        allowed = {"tool_name": "Read",
+                   "tool_input": {"file_path": "company/pricing/tariff_engine.py"}}
+        settings = (
+            {"SE_LANE_DENIAL_LOG": str(tmp_path / "elsewhere.jsonl")},
+            {"SE_LANE_DENIAL_LOG": ""},                       # empty -> falls back to the default
+            {"SE_LANE_DENIAL_LOG": "/proc/definitely/not/writable.jsonl"},
+        )
+        for payload in (denied, allowed):
+            verdicts = {
+                _run(payload, env={"SE_LANE": "supplier", **setting}).returncode
+                for setting in settings
+            }
+            assert len(verdicts) == 1, (
+                f"the denial-log destination changed the wall's answer for {payload}: {verdicts}"
+            )
 
     def test_allowed_calls_are_not_logged(self):
         _run(

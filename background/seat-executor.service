@@ -1,0 +1,20 @@
+[Unit]
+Description=Synthetic Enterprise seat-executor — ONE bounded, unattended delivery-seat turn in an isolated git worktree. Armed 2026-08-31 on the director's instruction ("arm the executor and let the first tick run"). This is the first unattended WRITER in the project's history, and it is only legal because two things landed the same day: surgical_land works from a worktree (178bf5a56), so an isolated writer has a legal commit door; and tools/promote_worktree_landing made integration a route with five refusals rather than a remembered git sequence. It writes no CODE to the shared tree — every edit is in /var/tmp/se-seat-executor — and the only shared-tree paths it touches are its own log and pid file, held as a list by tests/background/test_the_seat_executor_stands_down.py.
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+ExecStart=/usr/bin/python3 -m background.seat_executor --once
+# The turn is bounded IN PROCESS at seat_executor.SESSION_TIMEOUT_SECONDS (90 min). This is the
+# outer bound for the whole invocation including the worktree reset and the promotion, and it is
+# deliberately larger so that a session which is about to be killed by systemd is instead killed
+# by its own timeout, which unlinks the pid file and logs a reason. A kill from outside leaves a
+# pid file behind — survivable (the liveness check reads /proc, not the file's existence) but
+# silent, and this project has paid for silent before.
+TimeoutStartSec=6600
+Environment=DISABLE_AUTOUPDATER=1
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+
+[Install]
+WantedBy=default.target

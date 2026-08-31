@@ -69,6 +69,8 @@ import sys
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STORE = PROJECT_DIR / "docs" / "observability" / ".seat_continuation.json"
 
@@ -102,7 +104,11 @@ def _load(path: Path | None = None) -> list[dict]:
 
 
 def _save(items: list[dict], path: Path | None = None) -> None:
-    store = path or STORE
+    # THE STORE IS A LIVE OBSERVABILITY RECORD, so a test process may not write the real one --
+    # `background/live_ledger_guard` is the choke point and this is its 17th caller. A test that
+    # genuinely exercises the write passes `path=tmp_path / "continuations.json"`, which every
+    # test of this module already does.
+    store = guard_live_ledger_write(path or STORE, writer="seat_continuation._save")
     store.parent.mkdir(parents=True, exist_ok=True)
     store.write_text(json.dumps(items, indent=1) + "\n")
 
@@ -200,4 +206,7 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
 
 
 if __name__ == "__main__":  # pragma: no cover
+    from background._seat import refuse_if_foreign  # seat guard, FIRST act
+
+    refuse_if_foreign("seat_continuation")
     raise SystemExit(main())

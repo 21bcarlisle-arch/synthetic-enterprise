@@ -181,6 +181,47 @@ systemd_units:
       so the real cadence is bounded by material change rather than by this clock — which is R5's
       rule and, separately, what the token budget requires.
 
+  - name: seat-executor.service
+    unit_file: background/seat-executor.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — runs one bounded turn and EXITS; inactive(dead) is correct
+    reason: >-
+      THE FIRST UNATTENDED WRITER IN THIS PROJECT'S HISTORY, armed 2026-08-31 on the director's
+      instruction ("arm the executor and let the first tick run"). Where delivery-seat ORIENTS and
+      writes direction but never code, this one WRITES CODE — bounded, one piece, in an isolated
+      git worktree at /var/tmp/se-seat-executor.
+      IT IS NOT A SECOND WRITER ON THE SHARED TREE, and that claim is held as a list rather than a
+      sentence: `seat_executor.SHARED_TREE_WRITES` is exactly its own log and its own pid file,
+      both under docs/observability/, asserted by
+      tests/background/test_the_seat_executor_stands_down.py. Every code edit is in the worktree,
+      lands through `tools.surgical_land` there, and reaches origin only through
+      `tools.promote_worktree_landing`, which refuses anything carrying no verifying receipt — so
+      "only gated commits reach main" is a property of the route rather than of this daemon's
+      discipline.
+      FOUR STAND-DOWNS, and running is what happens when it has run out of reasons not to: another
+      executor already running; nothing handed off and no unclaimed focus item; work that
+      duplicates a live claim (keyed on PATHS, because the duplication that actually happened was
+      two writers choosing the same work under two different labels); and a live interactive seat
+      holding a RE-DERIVED focus item — a handed-off continuation runs anyway, because a
+      continuation is the seat deliberately giving that piece away and the seat that wrote it is
+      nearly always still alive.
+
+  - name: seat-executor.timer
+    unit_file: background/seat-executor.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — a handoff mechanism nobody schedules is the drag it was built to remove
+    reason: >-
+      Every thirty minutes at :05 and :35 — off the worker tick's :00/:30 and off delivery-seat's
+      :20, because three writers arriving in the same second is how a claim store gets read
+      half-written. With nothing handed off it stands down on a cheap read and spawns no model
+      turn at all, so the cost is bounded by how often the interactive seat actually hands work
+      over, which is a deliberate act.
+      WHY THE TIMER IS THE POINT: the handoff store existed for a day and was never once drawn
+      from. Measured 2026-08-31 across the whole supervisor log, LANE 0 claimed 68 items and
+      delivered ZERO — the escalation watchdog claimed each one and threw the doorbell away. That
+      is fixed at the lane (delivery_lane.draw(claim=False)); this timer is the second consumer,
+      and the one that can act on a continuation without waiting for a turn boundary.
+
   - name: head-green-census.service
     unit_file: background/head-green-census.service
     enabled: false           # timer-triggered, not boot-enabled itself (static)

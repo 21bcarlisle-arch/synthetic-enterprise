@@ -600,7 +600,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1341,
+    "I001": 1338,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -622,8 +622,16 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2327  # was 2328; -1 (I001, dual_fuel_bill's import block sorted when
-                            # the commons loader was added — see the 2026-08-31 shrink-log entry)
+RUFF_BASELINE_TOTAL = 2324  # was 2327; -3 (I001) on 2026-08-31: the import blocks touched by the
+                            # tests-write-the-evidence-base work were sorted on the way past.
+                            # Sorted, never suppressed — a ratchet that falls because a rule stopped
+                            # being counted is the failure this file exists to make impossible.
+                            #
+                            # RE-DERIVED IN THE TREE THAT LANDS. The first draft of this number was
+                            # taken in the shared working tree, which carries other lanes' in-flight
+                            # edits, and read 1337 against 1338 here. A frozen census is a statement
+                            # about a COMMIT; measuring it anywhere but the tree being committed is
+                            # the same population mistake this day's work is otherwise about.
 
 
 # --------------------------------------------------------------------------

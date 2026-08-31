@@ -41,6 +41,24 @@ import pytest
 
 from background import process_run_complete as prc
 from background import publish_provenance as prov
+from background import tree_lock as _tree_lock
+
+
+@pytest.fixture(autouse=True)
+def _never_take_the_real_working_tree_lock(tmp_path, monkeypatch):
+    """THE FOURTH INSTANCE OF THE SAME TRAP, and the first one that could stall another process.
+
+    `tree_lock.LOCK_FILE` is computed at module import from the real `PROJECT_DIR`, so patching
+    `prc.PROJECT_DIR` inside a test does not move it -- exactly the trap this file already patches
+    around three times (`LATEST_MD`, `LAST_PUSH_FILE`, `PUBLISH_CAUSE_FILE`, each with its own
+    comment). The tests below drive `_process()` end to end, which takes the WORKING-TREE LOCK.
+
+    That lock is not a record; it is coordination state shared with every live git writer on this
+    machine, and a test holding it serialises real publishes behind a fixture. It surfaced on
+    2026-08-31 when `docs/observability` became a protected surface -- the guard refused the write
+    and the failure said, correctly, that a test was reaching into production.
+    """
+    monkeypatch.setattr(_tree_lock, "LOCK_FILE", tmp_path / ".tree.lock")
 
 
 def _real_sha() -> str:

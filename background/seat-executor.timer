@@ -1,0 +1,18 @@
+[Unit]
+Description=Synthetic Enterprise seat-executor timer — activates seat-executor.service, offering the seat's handed-off work to an unattended turn every 30 minutes. The unit it starts is named here rather than left to systemd's name-derivation: this file IS the schedule, and a reader (or a control asserting that exactly one declared thing invokes the executor) should not have to know the convention to see what it fires.
+
+[Timer]
+# THIRTY MINUTES, matching the worker tick, and the cadence is bounded by material change rather
+# than by this clock: with nothing handed off and no unclaimed focus item the service stands down
+# on a cheap read and spawns no model turn at all. The expensive case only arises when the
+# interactive seat has actually written a continuation, which is a deliberate act.
+#
+# :05 and :35, deliberately OFF the tick's :00/:30 and off delivery-seat's :20. Three writers
+# arriving in the same second is how a claim store gets read half-written, and the three-hour
+# orientation is the one that must not be read mid-stretch (see delivery-seat.timer).
+OnCalendar=*-*-* *:05,35:00
+Persistent=false
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

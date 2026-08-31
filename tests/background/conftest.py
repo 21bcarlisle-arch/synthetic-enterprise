@@ -75,6 +75,69 @@ def _publisher_log_never_reaches_the_live_record(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "sim-runner-log.md", raising=False)
 
 
+#: The path constants this directory's tests are redirected away from. NAMED AND MEASURED, not
+#: swept: a version of this fixture that re-rooted EVERY upper-case `Path` attribute of every
+#: imported `background.*` module was tried on 2026-08-31 and broke **153 tests** — it moved
+#: `live_ledger_guard.LIVE_RECORD_DIR` (disarming the ledger guard), collided with fixtures that
+#: `mkdir()` their own directories, and reddened `test_tree_divergence`'s porcelain wiring. Each
+#: entry below is here because a test was measured hitting it:
+#:
+#:   LOG_FILE — ~50 daemons; `autonomous-runner-log.md` was 23% pytest output
+#:
+#: `STATUS_FILE` (agent_status, which every daemon calls), `STATE_FILE` (reconcile_watch) and
+#: `REGISTRY_PATH` (console_sanctity) are MEASURED as needed too, and are NOT here: they only
+#: become necessary once `docs/observability` is a protected surface, and redirecting them alone
+#: reddened 86 tests in `process_run_complete`. They land with that promotion, not before it.
+_REDIRECTED_CONSTANTS = ("LOG_FILE",)
+
+
+@pytest.fixture(autouse=True)
+def _no_daemon_log_reaches_the_live_record(tmp_path, monkeypatch):
+    """The same fix as the fixture above, for EVERY daemon's `LOG_FILE` rather than the one that hurt.
+
+    That fixture's own docstring makes this argument and then stops one module short: *"Fixed for
+    the directory rather than per file… the first two were patched individually earlier the same
+    day, and the third file proved that was an instance fix on a class."* `process_run_complete`
+    was the third file. There are fifty more modules in `background/` with a `LOG_FILE`, and on
+    2026-08-31 three of their ledgers turned out to be carrying test output —
+    `autonomous-runner-log.md` was **23% pytest**, and a reader of it (this seat, answering the
+    director) reported a usage limit that had never existed.
+
+    THE SUBJECT IS DERIVED, never enumerated: any already-imported `background.*` module whose
+    `LOG_FILE` resolves inside `docs/observability/` is redirected. A daemon written tomorrow is
+    covered on the day its first test imports it, which is the difference between this and the
+    hand-listed tuple `tests/production_surface_guard.py` spent three incidents growing out of.
+
+    SCOPED TO `LOG_FILE`, AND THE SCOPE WAS MEASURED RATHER THAN CHOSEN. A wider version of this
+    fixture — re-rooting every upper-case `Path` attribute of every imported background module —
+    was tried on 2026-08-31 and **broke 11 tests across two modules that had been green**
+    (`test_publish_provenance_banner_adoption` errored on `mkdir` of a directory the re-rooting had
+    already created; `test_tree_divergence`'s porcelain-wiring leg went red). The narrow version
+    closes the 102 tests the `docs/observability` surface promotion actually reddened, measured;
+    the wide one closes more and costs more, and "more isolation is better" is an argument rather
+    than a measurement. If the wider scope is wanted, it needs those 11 repaired first.
+
+    REDIRECTS THE DESTINATION, NEVER REPLACES `log()` — see the fixture above on why that
+    distinction is the whole thing. Every `log()` still formats, still calls the ledger guard, and
+    a test asserting on logging behaviour reads the redirected file through the same constant.
+    """
+    import sys
+
+    live_dir = (REPO_ROOT / "docs" / "observability").resolve()
+    for name, module in list(sys.modules.items()):
+        if not name.startswith("background.") or module is None:
+            continue
+        for attr in _REDIRECTED_CONSTANTS:
+            current = getattr(module, attr, None)
+            if not isinstance(current, Path):
+                continue
+            try:
+                current.resolve().relative_to(live_dir)
+            except (ValueError, OSError):
+                continue  # already pointed somewhere harmless
+            monkeypatch.setattr(module, attr, tmp_path / current.name, raising=False)
+
+
 @pytest.fixture(autouse=True)
 def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     """Default every test in tests/background/ to a NON-wedged publish-gate state so the
@@ -323,14 +386,49 @@ def _real_repo_head() -> str:
             # A constant also satisfies the tripwire honestly: before == after, nothing moved,
             # because nothing here could move.
             return "no-git-dir"
-        if not _GIT_DIR.is_dir():  # worktree/submodule: .git is a file -> ask git once
-            out = subprocess.run(
-                ["git", "rev-parse", "HEAD"], cwd=str(REPO_ROOT),
-                capture_output=True, text=True, timeout=15,
-            )
-            # Defensive: a stubbed subprocess can return anything, and a tripwire that raises
-            # is worse than one that cannot see.
-            return (getattr(out, "stdout", "") or "").strip() or "unreadable"
+        git_dir = _GIT_DIR
+        if not _GIT_DIR.is_dir():
+            # A LINKED WORKTREE, READ FROM DISK AND NOT THROUGH `git` (2026-08-31).
+            #
+            # This used to shell out to `git rev-parse HEAD`, and the comment eight lines above
+            # already explains why that is fatal here: **a test that stubs `subprocess.run` answers
+            # this call**, the read comes back empty, HEAD appears to move from a real sha to
+            # "unreadable", and the tripwire fails closed with GHOST PUSHER (unattributable). The
+            # no-`.git` case was fixed exactly this way and the worktree case was left shelling out.
+            #
+            # MEASURED: **31 errors** across nine modules on an unmodified `origin/main` checkout,
+            # for no reason but the environment. In the main repo `.git` is a DIRECTORY, the reader
+            # never shells out, and the same tests are green — so the suite was worktree-hostile and
+            # nobody could see it while everyone worked in the main tree.
+            #
+            # IT MATTERS NOW BECAUSE THE FIRST UNATTENDED WRITER LIVES IN A WORKTREE. `seat_executor`
+            # gates its landings there; 31 ghost failures would either send it chasing nothing or,
+            # far worse, teach it that reds in its own tree are normal.
+            #
+            # `.git` is `gitdir: <path>` and THAT directory holds this worktree's own HEAD. Refs
+            # resolve against the COMMON dir two levels up (`.git/worktrees/<name>/../..`), the same
+            # distinction `tools/surgical_land._object_store` turns on: a worktree's gitdir has its
+            # own HEAD and index and none of the shared refs.
+            pointer = _GIT_DIR.read_text().strip()
+            if not pointer.startswith("gitdir:"):
+                return "unreadable"
+            git_dir = Path(pointer.split(":", 1)[1].strip())
+            if not git_dir.is_absolute():
+                git_dir = (REPO_ROOT / git_dir).resolve()
+            head = (git_dir / "HEAD").read_text().strip()
+            if not head.startswith("ref: "):
+                return head  # detached HEAD -- what the executor's worktree always is
+            ref = head[5:].strip()
+            common = git_dir.parent.parent  # .git/worktrees/<name> -> .git
+            loose = common / ref
+            if loose.is_file():
+                return loose.read_text().strip()
+            packed = common / "packed-refs"
+            if packed.is_file():
+                for line in packed.read_text().splitlines():
+                    if line.endswith(" " + ref):
+                        return line.split()[0]
+            return "unborn:" + ref
         head = (_GIT_DIR / "HEAD").read_text().strip()
         if not head.startswith("ref: "):
             return head  # detached HEAD: the sha is right there

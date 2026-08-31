@@ -434,8 +434,33 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     return None
 
 
-def draw(now: float | None = None, path: Path | None = None) -> str | None:
-    """Claim the next delivery item and return its doorbell, or None.
+def draw(now: float | None = None, path: Path | None = None, *, claim: bool = True) -> str | None:
+    """Return the next delivery item's doorbell, or None. Claims it only if `claim`.
+
+    WHY `claim` EXISTS, AND IT IS THE DEFECT THAT MADE THIS LANE DELIVER NOTHING FOR SIX DAYS.
+
+    Measured 2026-08-31 over the whole supervisor log: the line this lane's DRAW writes
+    (`"LANE 0 DELIVERY:"`) appears **68** times; the DOORBELL text it produces
+    (`"LANE 0 DELIVERY --"`) appears **zero** times, here or in any other ledger. Sixty-eight items
+    claimed, none delivered, every one of them swept back into the pool 100 minutes later as an
+    abandoned claim.
+
+    The cause is that `find_work()` has TWO callers with different powers:
+
+      * `background/supervisor.py` polls it every ~2 minutes as an INDEPENDENT ESCALATION WATCHDOG.
+        Its own `grant_turn` docstring says it "performs ZERO pane writes" -- it draws for the
+        alarm signal and THROWS THE REASON AWAY.
+      * `.claude/hooks/pull_next_work.py`, the Stop hook, calls the same draw at a turn boundary
+        and is the only thing that actually feeds work to a session.
+
+    Claiming inside `draw()` meant the watchdog took the item first -- ~2-minute polling against a
+    turn boundary is not a race, it is a walkover -- and by the time the transport asked, the item
+    was `held()` and `next_item` skipped it. **A DRAW IS NOT A DELIVERY, and this lane counted one
+    as the other.** It also logged the claim as a success, which is why it failed quietly for six
+    days across two separate sessions looking directly at it.
+
+    So the claim now belongs to the caller that can deliver. `claim=False` is the watchdog's read:
+    it sees exactly what would be handed out, and hands out nothing.
 
     NEVER RAISES. This sits inside `supervisor._self_refill_draw`, and a lane that can throw takes
     every other lane down with it -- an empty feasible set is a defect in the dials (Rule 0), and
@@ -445,6 +470,8 @@ def draw(now: float | None = None, path: Path | None = None) -> str | None:
         item = next_item(now=now, path=path)
         if item is None:
             return None
+        if not claim:
+            return doorbell(item)
         store = path or CLAIMS_FILE
         claims_mod.claim(item["id"], note=str(item.get("what") or "")[:200], paths=[],
                          path=store, now=now)

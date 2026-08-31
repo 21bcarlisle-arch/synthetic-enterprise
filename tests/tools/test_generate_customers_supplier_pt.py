@@ -2,6 +2,7 @@
 import json
 import pathlib
 import tempfile
+
 import pytest
 
 PROJECT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -123,15 +124,70 @@ def test_customers_json_kwh_aggregated(tmp_path):
     assert c["combined"]["total_kwh"] == 15000.0
 
 
-def test_customers_json_avg_rate(tmp_path):
+def test_customers_json_publishes_both_rates_each_named_for_what_it_is(tmp_path):
+    """This used to assert one field, `avg_rate_gbp_per_mwh`, at 120.0 and 40.0.
+
+    Those values are the COMMODITY leg -- `average_unit_rate_gbp_per_mwh` off the bill, which
+    `saas/bill_generator` computes as `commodity_amount / MWh`. The fixture's own bills say so:
+    electricity is 5,000 kWh at a declared 120/MWh while the bill TOTAL is £600, i.e. 120/MWh of
+    energy inside £120/MWh... and gas is 10,000 kWh at 40/MWh against a £400 total. The old name
+    said neither, and `tools/couple_value_based_pricing` was reading it as the price the customer
+    pays -- 1.53x low across the real book. Both rates are published now and both are named.
+    """
     from tools.generate_customers_json import generate
     rp = _minimal_run(tmp_path)
     out = tmp_path / "customers.json"
     generate(rp, out)
     data = json.loads(out.read_text())
     c = data["customers"][0]
-    assert c["legs"]["electricity"]["avg_rate_gbp_per_mwh"] == 120.0
-    assert c["legs"]["gas"]["avg_rate_gbp_per_mwh"] == 40.0
+    elec, gas = c["legs"]["electricity"], c["legs"]["gas"]
+
+    assert elec["avg_commodity_rate_gbp_per_mwh"] == 120.0
+    assert gas["avg_commodity_rate_gbp_per_mwh"] == 40.0
+    # £600 over 5 MWh and £400 over 10 MWh -- the whole bill, over the volume it covered.
+    assert elec["avg_effective_rate_gbp_per_mwh"] == 120.0
+    assert gas["avg_effective_rate_gbp_per_mwh"] == 40.0
+    # Neither fixture bill carries a catch-up, so nothing is excluded and the denominator says so.
+    assert elec["effective_rate_bills_excluded"] == 0
+    assert gas["effective_rate_bills_excluded"] == 0
+    # The ambiguous name must not survive alongside them: two names for one number is the defect.
+    assert "avg_rate_gbp_per_mwh" not in elec
+
+
+def test_a_catchup_bill_is_excluded_from_the_effective_rate_and_the_count_says_so(tmp_path):
+    """A catch-up bill's MONEY spans up to thirteen periods and its VOLUME spans one.
+
+    Across the real book, 959 of 11,167 bills carry one and 178 of those have a NEGATIVE GBP/MWh.
+    Here the catch-up bill is deliberately absurd -- £2,000 on 1,000 kWh, a reconciliation of a
+    year of under-estimates -- so that including it would visibly wreck the rate.
+    """
+    import json as _json
+
+    from tools.generate_customers_json import generate
+    rp = _minimal_run(tmp_path)
+    data = _json.loads(rp.read_text())
+    data["bills"].append({
+        "customer_id": "C1", "total_consumption_kwh": 1000.0,
+        "average_unit_rate_gbp_per_mwh": 120.0, "total_amount_gbp": 2000.0,
+        "commodity": "electricity", "segment": "resi", "catchup_applied": True,
+        "catchup_adjustment_gbp": 1880.0,
+    })
+    rp.write_text(_json.dumps(data))
+
+    out = tmp_path / "customers.json"
+    generate(rp, out)
+    elec = _json.loads(out.read_text())["customers"][0]["legs"]["electricity"]
+
+    assert elec["effective_rate_bills_excluded"] == 1
+    assert elec["avg_effective_rate_gbp_per_mwh"] == 120.0, (
+        "the catch-up bill reached the effective rate: £2,600 over 6 MWh is 433/MWh, and none of "
+        "that extra money is for the volume it is being divided by"
+    )
+    # The commodity leg KEEPS the bill -- `commodity_amount_gbp` is for this period's volume even
+    # on a catch-up row, so the two legs exclude differently and each says what it counts.
+    assert elec["avg_commodity_rate_gbp_per_mwh"] == 120.0
+    # TWO, not three: the fixture's other bill belongs to the GAS leg `C1g`.
+    assert elec["bill_count"] == 2
 
 
 def test_customers_json_has_generated_timestamp(tmp_path):

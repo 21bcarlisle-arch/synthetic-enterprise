@@ -66,9 +66,29 @@ def create_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
 
 
 def _unit_rate_from_bill(bill: dict) -> float:
-    """Derive p/kWh from bill dict — bills carry total_amount_gbp and total_consumption_kwh."""
+    """Derive p/kWh from a bill — over money and volume that count the SAME PERIOD.
+
+    THE CATCH-UP TERM IS NETTED OUT FIRST, and until 2026-08-31 it was not. A catch-up bill
+    reconciles earlier estimated reads: `catchup_adjustment_gbp` can span up to thirteen billing
+    periods while `total_consumption_kwh` spans exactly one, so `total / kwh` on such a row divides
+    two true numbers whose legs are different populations. It is not a rate at all.
+
+    MEASURED ACROSS THE BOOK before this changed (11,167 bills; 959 carry a catch-up):
+
+        catch-up bills, total/kwh               median 17.90 p   min -173.52   max 398.09   178 NEGATIVE
+        catch-up bills, (total - catchup)/kwh   median 20.21 p   min    3.33   max  81.51     0 negative
+        every other bill, total/kwh             median 19.48 p   min    3.20   max 100.03     0 negative
+
+    The netted figure lands inside the ordinary population; the raw one produced 178 invoices
+    carrying a NEGATIVE unit rate, and a sign is the only reason any of them was ever visible —
+    every other catch-up bill was wrong by an amount nothing announced.
+
+    Netting rather than refusing, because the money for THIS period's volume is exactly what is
+    left when the adjustment for other periods is removed, and an invoice with no unit rate at all
+    would lose a real figure to avoid a wrong one.
+    """
     kwh = bill.get("total_consumption_kwh", 0.0)
-    gbp = bill.get("total_amount_gbp", 0.0)
+    gbp = bill.get("total_amount_gbp", 0.0) - (bill.get("catchup_adjustment_gbp") or 0.0)
     if kwh > 0:
         return (gbp / kwh) * 100.0  # convert £/kWh → p/kWh
     return 0.0

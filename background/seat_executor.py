@@ -33,12 +33,18 @@ exactly those two.
 
 THE FOUR REFUSALS BEFORE IT RUNS, and each is a way an unattended writer goes wrong
 -----------------------------------------------------------------------------------
-  * **an interactive seat is live.** The heartbeat `.claude/hooks/stamp_seat_heartbeat.py` stamps
-    on every tool call a session makes. If it is warm, a human is holding this seat and two
-    writers would be choosing work from the same queue. The heartbeat is a HOOK precisely because
-    a session that has died cannot keep it warm.
   * **another executor is running.** A pid file with a liveness check, not a bare lock — a lock
     left by a killed process is a machine that never runs again.
+  * **an interactive seat is live AND the item was not handed over.** The heartbeat
+    `.claude/hooks/stamp_seat_heartbeat.py` stamps on every tool call a session makes; if it is
+    warm, a human is holding this seat. What that protects against is TWO WRITERS CHOOSING FROM
+    THE SAME QUEUE, so the refusal asks about contention rather than presence. A re-derived
+    `direction.unreachable_focus` item stands down: nobody gave it away and the live seat may be
+    part-way through it with nothing claimed, which the path guard cannot see. **A continuation
+    runs.** It is the seat writing down, deliberately and in full context, *"this piece is for
+    whoever runs next"* — and the seat that wrote it is nearly always still alive, because it
+    writes the handoff and then keeps working. Refusing on presence refuses every handoff there
+    will ever be, which is what the first version of this module did.
   * **there is nothing to do.** No continuation and no unclaimed focus item is a legitimate
     resting state, recorded with its reason. `delivery_seat`'s skip rule already says why: running
     anyway produces a confident restatement, which reads downstream exactly like a decision.
@@ -71,7 +77,9 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background import delivery_lane, seat_work_in_hand  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.seat_work_in_hand import DuplicateWork  # noqa: E402
+from tools.wait_for import pid_is_alive  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "seat-executor-log.md"
 PID_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_executor.pid"
@@ -122,19 +130,112 @@ def _interactive_seat_is_live(now: float | None = None) -> bool:
         return False
 
 
+def _is_handed_off(item: dict, now: float | None = None) -> bool:
+    """Was this item written by the interactive seat as a continuation, rather than re-derived?
+
+    ASKS `seat_continuation` RATHER THAN INFERRING FROM THE ITEM'S SHAPE. A continuation and a
+    focus item are both `{"id": ..., "what": ...}` dicts by the time `next_item` returns one, so a
+    duck-type check would be a second, weaker answer to a question the store already owns -- and
+    the store applies the six-hour window, which is what stops a handoff from outliving the tree it
+    reasoned about.
+
+    Absent or unreadable store reads as NOT handed off, which is the conservative direction here:
+    it costs a stand-down that says why, and the alternative would let an unreadable file license
+    an unattended writer to run beside a live seat.
+    """
+    from background import seat_continuation
+
+    try:
+        return any(c.get("id") == item.get("id") for c in seat_continuation.live(now=now))
+    except Exception:  # noqa: BLE001 - a handoff store must never cost the machine a tick
+        return False
+
+
+#: A worktree declares itself IN USE by dropping this file with the owning pid in it. Any writer
+#: may write one -- the seat executor does it automatically, an interactive session working in a
+#: worktree can do it by hand -- and the daemons that sweep worktrees read it.
+OWNER_MARKER = ".se_worktree_owner"
+
+
+def worktree_is_live(path) -> bool:
+    """Is a writer's process still working inside this worktree?
+
+    THE ONE HOME FOR THE QUESTION, and it is public because two daemons outside this module have to
+    ask it. `background/fork_salvage` sweeps worktrees for uncommitted work and commits it;
+    `background/fork_reconciler` reaps worktree directories and its reaper is ARMED. Both were
+    written when no worktree on this machine had a resident writer — reasonably, because until
+    2026-08-31 none did.
+
+    WHAT IT COST, TWICE IN ONE EVENING. `fork_salvage` committed `SALVAGE(auto)` inside
+    `/var/tmp/se-seat-executor` four minutes into the executor's first turn — an ungated commit
+    under a running writer's HEAD, which rode onto `main` beneath the landing because the promotion
+    route was then verifying only the tip. **Ninety minutes later it did the same to the delivery
+    seat's own landing worktree**, mid-preparation, and the first version of this function did not
+    cover it: it compared against `WORKTREE` and nothing else, so it exempted the executor and left
+    every other writer exposed. That is the wrong subject. The property is *a live writer*, not
+    *this module's path*.
+
+    And `fork_reconciler`'s reaper is the sharper one, still un-fired only by luck: it refuses a
+    DIRTY worktree, and the executor is dirty for most of a turn — but there is a window at the
+    start of every turn, after `ensure_worktree` resets and cleans and before the first edit, when
+    the tree is clean and detached at `origin/main`, which is to say MERGED and **reap-eligible**.
+    `git worktree remove` on a live writer is the whole turn gone.
+
+    ANY WRITER MAY DECLARE ITSELF, which is what makes this general rather than a special case for
+    one daemon. `OWNER_MARKER` holds the owning pid; this executor writes one for its own worktree,
+    and a session working in a worktree by hand can write one too. The executor's own `PID_FILE` is
+    still honoured for the worktree it owns, so nothing depends on the marker having been written.
+
+    A PID **WITH A LIVENESS CHECK**, never the file's mere existence. A killed writer leaves its
+    marker behind, and that worktree holds exactly the abandoned work those daemons exist to rescue
+    and reap — the 2026-08-03 sweeps found modules that existed nowhere else, one `rm -rf` from
+    being lost. Exempting a path outright would trade one collision for a class of silent losses.
+    """
+    try:
+        resolved = Path(path).resolve()
+    except (OSError, ValueError):
+        return False
+
+    # 1. THE MARKER, which any writer can drop. Checked first because it is the general answer.
+    try:
+        marker = int((resolved / OWNER_MARKER).read_text().strip())
+        if pid_is_alive(marker):
+            return True
+    except (OSError, ValueError):
+        pass
+
+    # 2. THIS EXECUTOR'S OWN WORKTREE, via the pid file it already keeps. Kept so the executor is
+    #    covered even on a turn where the marker could not be written.
+    try:
+        if resolved != WORKTREE.resolve():
+            return False
+        return pid_is_alive(int(PID_FILE.read_text().strip()))
+    except (OSError, ValueError):
+        return False
+
+
 def _another_executor_is_running() -> bool:
-    """A pid file WITH a liveness check. A bare lock left by a killed process never runs again."""
+    """A pid file WITH a liveness check. A bare lock left by a killed process never runs again.
+
+    `/proc` RATHER THAN THE SIGNAL-0 PROBE, and that is a safety invariant rather than a style
+    choice. `tests/background/test_substep4_exit.py::test_reaper_absent_no_kill_path_in_background`
+    greps every `background/*.py` for any signal-sending call, because the exit-143 vector that
+    killed an interactive session came from a reaper in this directory; the control is deliberately
+    blind to the signal ARGUMENT, since a probe and a kill differ by one integer and a grep that
+    trusted the integer would have to be right about every future edit. The first draft of this
+    function used the signal-0 probe and reddened that control plus its twin in
+    `test_process_reconciler.py`, wedging the operational-layer signal for every lane.
+
+    `tools.wait_for.pid_is_alive` is the reuse, and it is also the better probe: the signal form
+    raises PermissionError for a live process owned by someone else -- which the first draft had to
+    special-case, and `/proc` does not. `background/worker_tick.py::_pid_alive` reaches the same
+    conclusion for the same reason; this one is public and takes no second copy.
+    """
     try:
         pid = int(PID_FILE.read_text().strip())
     except (OSError, ValueError):
         return False
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-    return True
+    return pid_is_alive(pid)
 
 
 def ensure_worktree(base: str) -> Path:
@@ -204,8 +305,6 @@ def build_prompt(item: dict) -> str:
 def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, str]:
     """One bounded turn. Returns `(ran, detail)`; a stand-down is `(False, reason)`, never a raise."""
     try:
-        if _interactive_seat_is_live(now):
-            raise StoodDown("an interactive seat is live — a human holds this seat")
         if _another_executor_is_running():
             raise StoodDown("another executor is already running")
 
@@ -214,6 +313,28 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             raise StoodDown("nothing to do: no continuation and no unclaimed focus item")
 
         work_id = item["id"]
+
+        # THE SEAT-IS-LIVE STAND-DOWN NOW ASKS ABOUT CONTENTION, NOT PRESENCE (2026-08-31).
+        #
+        # It used to run FIRST and refuse on a warm heartbeat alone, which made this executor
+        # unrunnable in exactly the situation it was built for. What it is protecting against is
+        # TWO WRITERS CHOOSING WORK FROM THE SAME QUEUE. A continuation is not that: it is the
+        # interactive seat writing down, deliberately and in full context, *"this piece is for
+        # whoever runs next"*. Standing down on a handoff because the session that WROTE the
+        # handoff is still alive refuses the one thing the mechanism exists to do -- and the
+        # session is nearly always still alive, because it writes the handoff and then keeps
+        # working.
+        #
+        # A FOCUS ITEM IS DIFFERENT and still stands down. `direction.unreachable_focus` is
+        # re-derived from the tree every three hours; nobody handed it over, and a live seat may
+        # well be part-way through it with nothing claimed yet. That is real contention, and the
+        # path guard cannot see it because an unclaimed decision has no paths.
+        if _interactive_seat_is_live(now) and not _is_handed_off(item, now=now):
+            raise StoodDown(
+                f"an interactive seat is live and {work_id!r} was not handed off to a tick -- "
+                "a re-derived focus item may be work that seat is already part-way through"
+            )
+
         try:
             seat_work_in_hand.refuse_if_duplicated(
                 list(item.get("paths") or []), exclude=work_id)
@@ -231,7 +352,16 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
                               capture_output=True, text=True, timeout=60).stdout.strip()
         worktree = ensure_worktree(base or "origin/main")
         delivery_lane.claims_mod.claim(work_id, note=str(item.get("what") or "")[:200], paths=[])
-        PID_FILE.write_text(str(os.getpid()))
+        # Guarded like every other live-record write here: an unattended writer whose pid file a
+        # test can forge is one a test can make look alive or dead.
+        guard_live_ledger_write(PID_FILE, writer="seat_executor.run_once").write_text(
+            str(os.getpid()))
+        # DECLARE THE WORKTREE IN USE, in the worktree itself, so the daemons that sweep worktrees
+        # can see it without knowing anything about this module. See `worktree_is_live`.
+        try:
+            (worktree / OWNER_MARKER).write_text(str(os.getpid()) + "\n")
+        except OSError:
+            pass  # a marker that cannot be written costs the PID_FILE route below, not the turn
         log(f"RUNNING {work_id} in {worktree} on {base[:9]}")
 
         try:
@@ -279,4 +409,7 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
 
 
 if __name__ == "__main__":  # pragma: no cover
+    from background._seat import refuse_if_foreign  # seat guard, FIRST act
+
+    refuse_if_foreign("seat_executor")
     raise SystemExit(main())

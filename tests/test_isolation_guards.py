@@ -172,6 +172,47 @@ def test_the_guards_coverage_set_is_a_single_source():
     assert all(t.startswith(str(_REPO)) for t in targets)
 
 
+@pytest.mark.parametrize("fingerprint", ("MagicMock", "/tmp/pytest-of-", "pytest-of-rich"))
+def test_no_live_ledger_carries_a_test_process_fingerprint(fingerprint):
+    """THE ARTEFACT, not the writer — because the sink only catches the primitives it patches.
+
+    `install()` patches thirteen write primitives and the surface list now covers this directory,
+    so the KNOWN routes are closed. This leg asks the other question: whatever the route, does the
+    record on disk contain the marks of a test process? It covers a writer nobody wired, a
+    primitive nobody patched, and a module written tomorrow — the three ways every previous fix
+    in this file was found to be one level too low.
+
+    IT HAS A POPULATION FLOOR. A scan that finds nothing because it scanned nothing passes
+    vacuously, and this repo has shipped that shape more than once: the floor is what makes the
+    green mean something. Ledgers were cleaned on 2026-08-31 (6,421 + 825 + 150 lines); this is
+    what keeps them clean.
+    """
+    ledger_dir = _REPO / "docs" / "observability"
+    ledgers = sorted(ledger_dir.glob("*.md"))
+    assert len(ledgers) >= 40, (
+        f"population floor: only {len(ledgers)} ledger(s) found under {ledger_dir}. A scan with "
+        "no subjects is not a pass — either the directory moved or the glob stopped matching."
+    )
+
+    offenders = []
+    for path in ledgers:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        hits = sum(1 for line in text.splitlines() if fingerprint in line)
+        if hits:
+            offenders.append(f"{path.name}: {hits} line(s)")
+
+    assert not offenders, (
+        f"a test process has written the live record — {fingerprint!r} appears in: "
+        + "; ".join(offenders)
+        + ". Redirect the module's path constant to tmp_path in the test that writes it (see "
+        "tests/background/test_autonomous_runner.py::_ledger_to_tmp). These files are what a "
+        "human reads when they need to know what actually happened."
+    )
+
+
 def test_gt2_allows_tmp_writes(tmp_path):
     (tmp_path / "x.json").write_text("ok")
     assert (tmp_path / "x.json").read_text() == "ok"

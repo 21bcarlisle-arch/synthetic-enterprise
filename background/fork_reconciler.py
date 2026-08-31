@@ -607,10 +607,20 @@ def reap_worktree_dir(path: str) -> dict:
     return {"path": path, "removed": True, "detail": "removed"}
 
 
+def _live_writer_default(path: str) -> bool:
+    """Is a writer's process alive inside this worktree? Delegates to the module that owns it."""
+    try:
+        from background.seat_executor import worktree_is_live
+    except Exception:  # noqa: BLE001 - a broken import must not stop the reaper working
+        return False
+    return worktree_is_live(path)
+
+
 def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states: dict | None = None,
                            main_path: str | None = None, now: float | None = None,
                            enforce: bool | None = None, dirty_fn=None, salvage_tag_fn=None,
-                           remover=None, reachable_fn=None, detached_tag_fn=None) -> dict:
+                           remover=None, reachable_fn=None, detached_tag_fn=None,
+                           live_writer_fn=None) -> dict:
     """REPORT the worktree-DIRECTORY reap state. Report-first by default (list what WOULD be
     removed, remove nothing); enforce (armed by `WORKTREE_REAP_ENFORCE_FLAG`) actually removes each
     eligible worktree dir + prunes, serialized through `shared_tree_lock` (this mutates the SHARED
@@ -631,6 +641,11 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
     remover = remover or reap_worktree_dir
     reachable_fn = reachable_fn or _head_reachable_from_main
     detached_tag_fn = detached_tag_fn or _detached_salvage_tag_for
+    # INJECTABLE LIKE EVERY OTHER PROBE HERE, and defaulted to the executor's own answer rather
+    # than a copy of it -- `seat_executor` owns `WORKTREE` and `PID_FILE`, so it owns the question.
+    # An unimportable executor reads as "no live writer": this reaper must not stop working because
+    # a module it does not depend on is broken, and the DIRTY check still stands behind it.
+    live_writer_fn = live_writer_fn or _live_writer_default
 
     eligible, kept = [], []
     for wt in worktrees:
@@ -639,8 +654,24 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         tag = salvage_tag_fn(branch) if branch else None
         dirty = dirty_fn(wt["path"])
         dstate = _determine_detached(wt, reachable_fn, detached_tag_fn)
-        result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
-                                        detached_head_state=dstate)
+        # A LIVE WRITER'S WORKTREE IS NOT ABANDONED (2026-08-31). Decided HERE and not inside
+        # `classify_worktree_reap`, which is documented as pure and I/O-free and is the
+        # mutation-testable core -- a liveness probe belongs on this side of that line.
+        #
+        # THE REAPER WAS ARMED AND HAD NOT FIRED ONLY BY LUCK. It refuses a DIRTY worktree, and the
+        # seat executor is dirty for most of a turn -- but there is a window at the start of every
+        # turn, after `ensure_worktree` resets and cleans and before the first edit, when its tree
+        # is clean and detached at `origin/main`: MERGED, and by this classifier's own rules
+        # eligible. `git worktree remove` on a live writer is the whole turn gone, and the writer
+        # was armed this afternoon. Its sibling `fork_salvage` had already collided with it four
+        # minutes into the first run, which is what prompted looking here at all.
+        if live_writer_fn(wt["path"]):
+            result = {"eligible": False,
+                      "reason": "a live writer holds this worktree -- never reaped while its "
+                                "process is alive; it is in use, not abandoned"}
+        else:
+            result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
+                                            detached_head_state=dstate)
         entry = {"path": wt["path"], "branch": branch, **result}
         (eligible if result["eligible"] else kept).append(entry)
 
@@ -730,7 +761,8 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
 def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
                       branch_states: dict | None = None, main_path: str | None = None,
                       now: float | None = None, dirty_fn=None, salvage_tag_fn=None,
-                      remover=None, reachable_fn=None, detached_tag_fn=None) -> dict:
+                      remover=None, reachable_fn=None, detached_tag_fn=None,
+                      live_writer_fn=None) -> dict:
     """Reap ONE worktree by path -- the ONLY sanctioned way to do this (never call raw
     `git worktree remove --force` directly). Runs the EXISTING `classify_worktree_reap` for `path`
     and refuses LOUDLY (never calls the remover, never raises) unless it says eligible: not a
@@ -752,6 +784,11 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
     remover = remover or reap_worktree_dir
     reachable_fn = reachable_fn or _head_reachable_from_main
     detached_tag_fn = detached_tag_fn or _detached_salvage_tag_for
+    # INJECTABLE LIKE EVERY OTHER PROBE HERE, and defaulted to the executor's own answer rather
+    # than a copy of it -- `seat_executor` owns `WORKTREE` and `PID_FILE`, so it owns the question.
+    # An unimportable executor reads as "no live writer": this reaper must not stop working because
+    # a module it does not depend on is broken, and the DIRTY check still stands behind it.
+    live_writer_fn = live_writer_fn or _live_writer_default
 
     wt = next((w for w in worktrees if w["path"] == path), None)
     if wt is None:
@@ -763,8 +800,17 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
     tag = salvage_tag_fn(branch) if branch else None
     dirty = dirty_fn(path)
     dstate = _determine_detached(wt, reachable_fn, detached_tag_fn)
-    result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
-                                    detached_head_state=dstate)
+    # BOTH REAP DOORS ASK THE SAME QUESTION. `test_both_reap_doors_determine_a_detached_worktree
+    # _the_same_way` exists because a rule enforced at one door and not the other is a rule with a
+    # way round it, and a live writer's worktree is exactly that kind of subject: this door is the
+    # one an operator calls by hand.
+    if live_writer_fn(path):
+        result = {"eligible": False,
+                  "reason": "a live writer holds this worktree -- never reaped while its process "
+                            "is alive; it is in use, not abandoned"}
+    else:
+        result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
+                                        detached_head_state=dstate)
     if not result["eligible"]:
         return {"path": path, "removed": False, "refused": True, "loud": True, "reason": result["reason"]}
 

@@ -1193,3 +1193,61 @@ def test_a_second_writer_blocks_for_the_default_busy_timeout_then_raises(db):
         blocker.close()
     # The register is unchanged — the failed write left nothing behind.
     assert issued_debits_gbp("A1", db_path=db) == 105.0
+
+
+# ── A UNIT RATE'S MONEY AND ITS VOLUME MUST COUNT THE SAME PERIOD (2026-08-31) ────────────────
+# `_unit_rate_from_bill` divided `total_amount_gbp` by `total_consumption_kwh`. On a catch-up bill
+# those legs are different populations: the money reconciles up to thirteen earlier periods of
+# estimated reads, the volume is this period alone. Measured across the real book (11,167 bills,
+# 959 of them catch-ups):
+#
+#     total/kwh               median 17.90 p   min -173.52   max 398.09   178 NEGATIVE invoices
+#     (total - catchup)/kwh   median 20.21 p   min    3.33   max  81.51     0 negative
+#     every other bill        median 19.48 p   min    3.20   max 100.03     0 negative
+#
+# The sign is the only reason any of the 178 was visible; every other catch-up bill was wrong by
+# an amount nothing announced. Found by the end-to-end journey walk on a single household, where
+# one bill came to -£5.78 over 328 kWh.
+
+def test_a_catchup_bill_does_not_divide_thirteen_periods_of_money_by_one_of_volume():
+    """MUTATION: drop the `- catchup_adjustment_gbp` and this fires on the negative rate."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    # Real shape: a year of under-estimates reconciled downward on one 328 kWh month.
+    catchup_bill = {
+        "total_consumption_kwh": 328.0,
+        "total_amount_gbp": -5.78,
+        "catchup_adjustment_gbp": -72.10,
+    }
+    rate = _unit_rate_from_bill(catchup_bill)
+    assert rate > 0, (
+        "an invoice carrying a negative unit rate is arithmetic, not a price: the money spans "
+        "thirteen periods and the volume spans one"
+    )
+    assert rate == pytest.approx((66.32 / 328.0) * 100.0, abs=0.01)
+
+
+def test_an_ordinary_bill_is_untouched_by_the_catchup_netting():
+    """The blast-radius leg. 10,208 of 11,167 bills carry no catch-up at all, and a change to the
+    common path dressed as a fix for the rare one is how a repair becomes a regression."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 1000.0, "total_amount_gbp": 200.0}
+    ) == pytest.approx(20.0)
+    # An explicit null adjustment reads the same as an absent one.
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 1000.0, "total_amount_gbp": 200.0,
+         "catchup_adjustment_gbp": None}
+    ) == pytest.approx(20.0)
+
+
+def test_a_zero_volume_bill_still_claims_no_rate():
+    """Unchanged, and asserted because it is the branch the netting could quietly reorder into a
+    division by zero."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 0.0, "total_amount_gbp": 42.0,
+         "catchup_adjustment_gbp": 10.0}
+    ) == 0.0
