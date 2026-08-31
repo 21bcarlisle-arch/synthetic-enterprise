@@ -108,7 +108,10 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     # ("run_verified.json") reached the live banner and was pushed to origin. A test that
     # needs a value the publisher would never emit is a test asserting on an impossible
     # state -- so this uses a value the publisher WOULD emit.
-    prov.record_verified(run_id=VERIFIED_RUN_ID, git_commit=VERIFIED_SHA, path=p)
+    # A stamp must say what the run held (2026-08-31) -- see publish_provenance.population_of.
+    prov.record_verified(run_id=VERIFIED_RUN_ID, git_commit=VERIFIED_SHA, path=p,
+                         population={"accounts": 251, "bills": 10948,
+                                     "total_revenue_gbp": 801199.0})
 
     pushed = {}
 

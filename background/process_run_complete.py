@@ -6292,8 +6292,14 @@ def _process(marker_path_str):
     # there is, and it is reachable only from here, downstream of a green scoped gate.
     try:
         from background import publish_provenance as _prov
+        # THE POPULATION TRAVELS WITH THE CLAIM (2026-08-31). The publisher already holds the run
+        # it is about to attribute the page to, so it costs one dict to say what was in it. Without
+        # this the page names a run and says nothing about it -- and the run itself is 27 MB and is
+        # not retained, so "showing run X" was a citation nobody could follow. See
+        # `publish_provenance.population_of`.
         _state = _prov.record_verified(
             run_id=json_path.name, git_commit=git_hash,
+            population=_prov.population_of(data),
             generated_at=(data.get("meta") or {}).get("generated_at"))
         log("Provenance: {}".format(_prov.banner_line(_state)))
     except Exception as exc:  # noqa: BLE001 -- provenance must never break a green publish

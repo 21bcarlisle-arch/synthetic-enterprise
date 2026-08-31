@@ -23,6 +23,12 @@ RUN_A = "run_output_{}_20260809T031627Z.json".format(SHA_A)
 RUN_B = "run_output_{}_20260810T041627Z.json".format(SHA_B)
 
 
+#: Every `record_verified` call needs a population since 2026-08-31: a stamp that names a run and
+#: says nothing about it is refused, because the page's whole claim is about that run and the run
+#: itself is 27 MB and not retained. Declared once so the shape of a stamp stays one fact.
+POP = {"accounts": 251, "bills": 10948, "total_revenue_gbp": 801199.0}
+
+
 def _at(minutes):
     return datetime(2026, 8, 10, 12, 0, tzinfo=timezone.utc) + timedelta(minutes=minutes)
 
@@ -33,7 +39,7 @@ def _p(tmp_path):
 
 def test_a_verified_publish_advances_freshness(tmp_path):
     p = _p(tmp_path)
-    state = prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    state = prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     assert state["verification_state"] == prov.STATE_VERIFIED
     assert state["showing_run"]["run_id"] == RUN_A
     assert state["last_verified"]["git_commit"] == SHA_A
@@ -44,7 +50,7 @@ def test_a_pause_cannot_move_the_served_run_by_a_byte(tmp_path):
     """THE CARDINAL SIN, attempted directly. A red gate must never be able to make the served
     figures look newer than the last run that was actually verified."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     before = json.loads(p.read_text())
 
     for i in range(1, 40):
@@ -61,7 +67,7 @@ def test_paused_since_is_stamped_once_not_re_stamped_every_cycle(tmp_path):
     ago' for 25 hours is a fresh-looking lie about staleness -- the pause timestamp must be the
     TRANSITION, not the last time anything ran."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     first = prov.record_paused(path=p, now=_at(5))["paused_since"]
     for i in range(6, 60):
         prov.record_paused(path=p, now=_at(i))
@@ -74,9 +80,9 @@ def test_recovery_clears_the_pause_and_advances(tmp_path):
     would be an orphan transition -- and a site permanently branded stale is as ignored as one
     that never says anything."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
-    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, population=POP, path=p, now=_at(90))
     assert state["paused_since"] is None
     assert state["verification_state"] == prov.STATE_VERIFIED
     assert state["showing_run"]["run_id"] == RUN_B
@@ -95,7 +101,7 @@ def test_recovery_clears_the_REASON_and_not_only_the_flag(tmp_path):
     MUTATION (must fire): drop `state["paused_reason"] = None` from `record_verified`.
     """
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(reason="scoped publish-path suite red at git=deadbeef1",
                        path=p, now=_at(5))
     paused = prov.read(p)
@@ -103,7 +109,7 @@ def test_recovery_clears_the_REASON_and_not_only_the_flag(tmp_path):
     # nothing ever wrote it.
     assert "deadbeef1" in str(paused["paused_reason"])
 
-    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, population=POP, path=p, now=_at(90))
     assert not state.get("paused_reason"), (
         "the pause cleared but its explanation did not: a reader fetching this file is told the "
         "gate is verified and, in the same object, why it is red -- {!r}".format(
@@ -118,7 +124,7 @@ def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
     paused site into a verified-looking one either. The annotation is a different KIND of
     claim and has no write access to the state that says how fresh the numbers are."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
     state = prov.record_annotation(open_findings=140, nonblocking_reds=["FAILED x"] * 50,
                                    path=p, now=_at(6))
@@ -169,7 +175,7 @@ def test_a_test_cannot_write_the_published_provenance_claim():
 
 def test_the_banner_sentence_names_the_pause_and_the_run(tmp_path):
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     verified_line = prov.banner_line(prov.read(p))
     assert "Verified" in verified_line and RUN_A in verified_line
 
