@@ -75,11 +75,34 @@ def _refuse_if_dirty(worktree: Path) -> None:
     A dirty tracked file means the writer left work uncommitted, so the commit being promoted is
     not the whole of what it did — and promoting half a change is the wedge shape in miniature.
     """
-    dirty = _git_out(worktree, "status", "--porcelain", "--untracked-files=no")
+    from background.seat_work_in_hand import SHARED_BY_DESIGN
+
+    # `_git`, NOT `_git_out`, AND THE DIFFERENCE IS A REAL BUG THIS CAUGHT. `_git_out` strips the
+    # whole of stdout, which eats the leading space of the FIRST porcelain line (` M path` becomes
+    # `M path`) and shifts every subsequent field by one character — so the first dirty file in any
+    # list was parsed as `ocs/observability/...` and never matched a prefix. A convenience `.strip()`
+    # silently corrupting a fixed-width format, visible only on line one.
+    status = _git(worktree, "status", "--porcelain", "--untracked-files=no")
+    if status.returncode != 0:
+        raise PromotionRefused(f"git status failed rc={status.returncode}: {status.stderr[-300:]}")
+    raw = status.stdout.splitlines()
+    # MACHINE EXHAUST IS NOT UNFINISHED WORK, and this was found by the route refusing its own
+    # predecessor. The pre-commit gate WRITES into the tree it has just gated -- observability
+    # ledgers, repeating-alarm documents -- so a worktree is dirty the instant a land succeeds.
+    # Refusing on that would make the route unusable at the only moment it is ever called.
+    #
+    # The exclusion is the SAME list the duplication guard uses, shared rather than copied: both
+    # readers are asking whether churn in these directories carries signal about a writer's work,
+    # and the answer is no for the same reason. See `SHARED_BY_DESIGN`.
+    dirty = [
+        line for line in raw
+        if not any(line[3:].strip().startswith(prefix) for prefix in SHARED_BY_DESIGN)
+    ]
     if dirty:
         raise PromotionRefused(
-            "the worktree has uncommitted tracked changes, so this landing is not the whole of "
-            f"what was done:\n{dirty[:600]}"
+            "the worktree has uncommitted tracked changes outside the directories where machine "
+            "churn is expected, so this landing is not the whole of what was done:\n"
+            + "\n".join(dirty)[:600]
         )
 
 

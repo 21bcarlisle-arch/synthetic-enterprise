@@ -177,3 +177,38 @@ def test_the_route_NEVER_forces():
             f"a git call passes the refspec {argument!r} — a leading `+` is a force push wearing "
             "different clothes."
         )
+
+
+def test_MACHINE_EXHAUST_from_the_gate_is_not_unfinished_work(worktree):
+    """Found by the route refusing its own predecessor's output, which is the best kind of finding.
+
+    The pre-commit gate WRITES into the tree it has just gated — observability ledgers, repeating
+    alarm documents — so a worktree is dirty the instant a `surgical_land` succeeds. A dirty check
+    that counted those would make this route unusable at the only moment it is ever called.
+
+    The exclusion is the SAME list the duplication guard uses, shared rather than copied: both
+    readers ask whether churn in these directories carries signal about a writer's work.
+
+    MUTATION: stop excluding `SHARED_BY_DESIGN` and this fires — and the route would then refuse
+    every real landing it was built for.
+    """
+    import tools.promote_worktree_landing as mod
+    from background.seat_work_in_hand import SHARED_BY_DESIGN
+
+    _git(worktree, "commit", "-q", "--allow-empty", "--no-verify", "-m", "a landing")
+    churned = worktree / "docs" / "observability" / "agent_status.json"
+    assert churned.exists(), "fixture assumption: this observability file is tracked"
+    churned.write_text(churned.read_text() + "\n")
+
+    monkey_free = mod._refuse_if_dirty(worktree)  # must NOT raise
+    assert monkey_free is None
+
+    real = worktree / "CLAUDE.md"
+    real.write_text(real.read_text() + "\n# genuinely unfinished\n")
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    assert "CLAUDE.md" in str(exc.value), "real unfinished work must still be caught"
+    assert "agent_status.json" not in str(exc.value), (
+        "machine exhaust was reported as unfinished work"
+    )
+    assert any(str(p).startswith("docs/") for p in SHARED_BY_DESIGN)

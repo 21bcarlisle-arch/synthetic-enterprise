@@ -361,15 +361,28 @@ class DuplicateWork(RuntimeError):
     """Another live claim holds paths this work would move."""
 
 
-#: Paths so widely shared that an overlap on them carries no information. Deliberately SHORT: the
-#: temptation is to exempt anything noisy, and every exemption is a place duplication can hide.
-#: These are directories every lane appends to by design, where a collision is expected and
-#: harmless because the unit is one file per writer.
-_SHARED_BY_DESIGN = (
+#: DIRECTORIES WHERE MACHINE CHURN IS EXPECTED AND CARRIES NO SIGNAL ABOUT A WRITER'S WORK.
+#:
+#: Deliberately SHORT: the temptation is to exempt anything noisy, and every exemption is a place a
+#: real defect can hide. These are the directories every lane and every daemon appends to by
+#: design — a collision here is traffic, and the unit is one file per writer.
+#:
+#: ONE HOME, TWO READERS, AND THEY ARE THE SAME QUESTION. `overlapping_claims` asks "does an
+#: overlap here mean two writers chose the same work?"; `promote_worktree_landing` asks "does dirt
+#: here mean the writer left work uncommitted?". Both answer *no, that is machine exhaust* — and
+#: the second reader exists because the pre-commit gate WRITES into the tree it has just gated, so
+#: a worktree is dirty the instant a land succeeds and the promotion route was refusing its own
+#: predecessor's output. Shared rather than copied, per the end-to-end canon: two implementations
+#: that happen to agree is not agreement, it is a coincidence waiting to end. **If the two readers
+#: ever need different sets, split them and say why — do not quietly widen this one.**
+SHARED_BY_DESIGN = (
     "docs/staging/",
     "docs/observability/",
     "docs/reports/",
 )
+
+#: Kept as the old private name because this module's own callers use it; DERIVED, not restated.
+_SHARED_BY_DESIGN = SHARED_BY_DESIGN
 
 
 def _informative(rel: str) -> bool:
