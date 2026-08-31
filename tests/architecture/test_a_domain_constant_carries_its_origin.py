@@ -17,8 +17,10 @@ WHAT EACH TEST HERE NAMES AS ITS OWN DEFECT (CONTROLS_THAT_CANNOT_FAIL):
     but it makes the 198th impossible.
   * `test_no_domain_constant_NAME_carries_two_values` — worse than an unsourced constant, because
     a reader who has met one of them believes they know what the other means.
-    `MAX_CHURN_PROBABILITY` is 1.0 in `company/crm/churn_model` and 0.95 in `saas/churn_model`,
-    and nothing anywhere says which a given call site gets.
+    `MAX_CHURN_PROBABILITY` was 1.0 in `company/crm/churn_model` and 0.95 in `saas/churn_model`,
+    and nothing anywhere said which a given call site got. Struck 2026-08-31 by renaming the
+    second to `MAX_BILL_SHOCK_CHURN_PROBABILITY`; `VAT_RATE` is the one left, and it is not a
+    rename. See `KNOWN_NAME_COLLISIONS` below for what the strike cost.
   * `test_the_scan_has_not_lost_its_SUBJECTS` — the population floor. A control that counts
     violations goes GREEN when its scan breaks, which is how this project's scanning controls have
     failed four times. If the scan stops finding constants at all, the debt reads as paid.
@@ -87,9 +89,25 @@ UNSOURCED_DEBT_CEILING = 197
 #:     this repository, one of which knows the de minimis threshold the others do not, so choosing
 #:     the authority is a decision about which is right and not a rename.
 #:   * `MAX_CHURN_PROBABILITY` -- 1.0 against 0.95, one on each side of the SIM/company seam.
+#:     **STRUCK 2026-08-31, and this entry's removal is the record.** It was a RENAME after all,
+#:     not a reconciliation: the two numbers were never estimates of one quantity, so no amount of
+#:     agreeing on a value would have been right. `company/crm/churn_model.MAX_CHURN_PROBABILITY`
+#:     = 1.0 is the asymptote of the company's own opinion, deliberately raised off a hard clamp so
+#:     genuinely different elevated risks stay distinguishable. The 0.95 caps ONE model -- base
+#:     churn plus bill-shock uplift -- and is now
+#:     `saas/churn_model.MAX_BILL_SHOCK_CHURN_PROBABILITY`, carrying a named-simplification origin
+#:     it did not have (it was the director's own cited example of a number picked because a number
+#:     was needed, and the most widely read unsourced constant in the codebase).
 #:
-#: Both are recorded in their own finding.
-KNOWN_NAME_COLLISIONS = frozenset({"VAT_RATE", "MAX_CHURN_PROBABILITY"})
+#:     WHY THE FIRST ATTEMPT WAS REVERTED, since the cheap move looks safe and is not: a file-level
+#:     replace rewrote COMPANY-side references inside test modules that import BOTH models
+#:     (`test_phase_nc_enriched_churn_estimate` aliases each one; `test_churn_ceiling` mutates the
+#:     saas constant to prove the world does NOT follow it, three lines from a `WORLD_MAX_...` it
+#:     must not touch). A rename whose whole purpose is that one name meant two things cannot be
+#:     applied by a tool that also cannot tell them apart. Per reference, or not at all.
+#:
+#: `VAT_RATE` is recorded in its own finding.
+KNOWN_NAME_COLLISIONS = frozenset({"VAT_RATE"})
 
 #: A FLOOR UNDER THE DEBT ITSELF, and it exists because the ratchet above could not fail.
 #:

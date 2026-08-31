@@ -5,7 +5,7 @@ applied a second time — see `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md
 §3g).
 
 `simulation/satisfaction_churn.py` clamped the world's GROUND-TRUTH churn
-probability at `saas.churn_model.MAX_CHURN_PROBABILITY` — the company's own
+probability at `saas.churn_model.MAX_BILL_SHOCK_CHURN_PROBABILITY` — the company's own
 constant. That is the B2 inversion in miniature: whatever the company believed
 the ceiling was, that is what the world enforced, so the belief could not be
 wrong about it. The COUPLED TRIAD scores the gap between what the company
@@ -13,7 +13,7 @@ believes and what the world does; a quantity pinned to the company's opinion by
 construction contributes a guaranteed zero to that score.
 
 The world's ceiling now lives here, on the world's side of the wall, and the
-company's `MAX_CHURN_PROBABILITY` stays exactly where it is as the company's
+company's `MAX_BILL_SHOCK_CHURN_PROBABILITY` stays exactly where it is as the company's
 ESTIMATE of it. Today the two numbers agree (both 0.95) and no simulated
 outcome moves; what changed is who depends on whom.
 

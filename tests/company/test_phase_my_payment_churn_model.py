@@ -12,7 +12,7 @@ from company.crm.payment_churn_model import (
 from saas.churn_model import (
     BASE_ANNUAL_CHURN_PROBABILITY,
     CHURN_UPLIFT_PER_BILL_SHOCK,
-    MAX_CHURN_PROBABILITY,
+    MAX_BILL_SHOCK_CHURN_PROBABILITY,
     churn_probability,
 )
 
@@ -67,7 +67,7 @@ def test_bill_shocks_still_apply():
 def test_bill_shocks_plus_poor_stacks():
     expected = min(
         BASE_ANNUAL_CHURN_PROBABILITY + 2 * CHURN_UPLIFT_PER_BILL_SHOCK + 0.10,
-        MAX_CHURN_PROBABILITY,
+        MAX_BILL_SHOCK_CHURN_PROBABILITY,
     )
     assert abs(combined_churn_probability(2, BehaviourScore.POOR) - expected) < 1e-9
 
@@ -75,7 +75,7 @@ def test_bill_shocks_plus_poor_stacks():
 def test_bill_shocks_plus_critical_stacks():
     expected = min(
         BASE_ANNUAL_CHURN_PROBABILITY + 3 * CHURN_UPLIFT_PER_BILL_SHOCK + 0.20,
-        MAX_CHURN_PROBABILITY,
+        MAX_BILL_SHOCK_CHURN_PROBABILITY,
     )
     assert abs(combined_churn_probability(3, BehaviourScore.CRITICAL) - expected) < 1e-9
 
@@ -89,7 +89,7 @@ def test_bill_shocks_plus_excellent_reduces():
 def test_total_capped_at_095():
     # Many shocks + CRITICAL should not exceed 0.95
     result = combined_churn_probability(100, BehaviourScore.CRITICAL)
-    assert result == MAX_CHURN_PROBABILITY
+    assert result == MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_zero_shocks_excellent_is_low():
@@ -148,7 +148,7 @@ def test_epistemic_combined_uses_observables_only():
     # Neither reads income_stress directly
     p = combined_churn_probability(2, BehaviourScore.POOR)
     assert isinstance(p, float)
-    assert 0.0 < p <= MAX_CHURN_PROBABILITY
+    assert 0.0 < p <= MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_combined_probability_is_float_in_range():
@@ -156,4 +156,4 @@ def test_combined_probability_is_float_in_range():
         for score in list(BehaviourScore) + [None]:
             p = combined_churn_probability(shocks, score)
             assert isinstance(p, float)
-            assert 0.0 <= p <= MAX_CHURN_PROBABILITY
+            assert 0.0 <= p <= MAX_BILL_SHOCK_CHURN_PROBABILITY

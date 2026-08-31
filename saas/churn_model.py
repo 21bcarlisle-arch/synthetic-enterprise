@@ -14,7 +14,7 @@ the underlying prices were fair or the supplier's margin was thin.
 
 Model: `churn_probability = BASE_ANNUAL_CHURN_PROBABILITY +
 bill_shock_count * CHURN_UPLIFT_PER_BILL_SHOCK`, capped at
-`MAX_CHURN_PROBABILITY`. `BASE_ANNUAL_CHURN_PROBABILITY` (5%) reflects the
+`MAX_BILL_SHOCK_CHURN_PROBABILITY`. `BASE_ANNUAL_CHURN_PROBABILITY` (5%) reflects the
 UK domestic switching rate baseline even for customers with no bill shocks
 at all; each triggered bill shock in the preceding contract year adds
 `CHURN_UPLIFT_PER_BILL_SHOCK` (3 percentage points).
@@ -34,17 +34,47 @@ CONTRACT_LENGTH_DAYS = 365  # matches simulation/settlement.py
 
 BASE_ANNUAL_CHURN_PROBABILITY = 0.05
 CHURN_UPLIFT_PER_BILL_SHOCK = 0.03
-MAX_CHURN_PROBABILITY = 0.95
+
+#: THE NAME CARRIES ITS SUBJECT, because it used to carry two (2026-08-31). This caps exactly ONE
+#: model -- base churn plus bill-shock uplift, the arithmetic in `churn_probability` below.
+#: `company/crm/churn_model.py` has its own `MAX_CHURN_PROBABILITY`, deliberately 1.0: that is the
+#: asymptote of the company's own opinion of churn, raised off a hard clamp so genuinely different
+#: elevated risks stay distinguishable (its comment gives the reason at length). NOT SAID HERE IN
+#: THE WORD THAT WOULD MISFILE THIS ONE: `tools/domain_constant_origins._classify` reads the
+#: comment block above an assignment, and prose about a NEIGHBOURING constant's origin is
+#: indistinguishable to it from a declaration about this one. Naming the other model's origin in
+#: this block labelled 0.95 with it, which is exactly backwards. Two concepts, one name, and
+#: nothing at a call site said which you were getting -- so a reader who had met either believed
+#: they knew what the other meant. The repair is a rename, not a reconciliation: the numbers are
+#: allowed to disagree because they are not the same quantity.
+#:
+#: NAMED SIMPLIFICATION, and it is the honest label because nothing establishes 0.95. The
+#: knowledge layer and the market-research anchors were searched on 2026-08-31 for a published
+#: maximum annual churn probability for a domestic account and there is none; the switching record
+#: bounds a MARKET-WIDE annual rate, which is a different quantity from an INDIVIDUAL's response
+#: to their own supplier. What 0.95 asserts is only that no bill-shock history makes departure a
+#: certainty: a residual 5% stay through anything -- inertia, no viable alternative supplier, a
+#: tariff nobody can beat. The world states the same modelling choice in its own words and on its
+#: own side of the wall at `simulation/churn_ceiling.py`, which is where the equivalent world
+#: ceiling lives; the two are deliberately NOT pinned equal, and drift between them is a finding.
+#:
+#: TO DO IT PROPERLY: read the asymptote off the non-switching tail of a real book segmented by
+#: bill-shock count. That needs a household-level switching panel this company cannot see.
+#:
+#: WHICH WAY THE ERROR RUNS: a ceiling BELOW the truth understates churn for the worst-served
+#: accounts, so it flatters retention and, wherever this reaches a price, flatters the price we
+#: believe we can charge. It cannot make us look worse than we are.
+MAX_BILL_SHOCK_CHURN_PROBABILITY = 0.95
 
 
 def churn_probability(bill_shock_count: int) -> float:
     """Return the churn (non-renewal) probability for a renewal point that
     had `bill_shock_count` triggered bill shocks in the preceding contract
-    year, capped at MAX_CHURN_PROBABILITY.
+    year, capped at MAX_BILL_SHOCK_CHURN_PROBABILITY.
     """
     return min(
         BASE_ANNUAL_CHURN_PROBABILITY + bill_shock_count * CHURN_UPLIFT_PER_BILL_SHOCK,
-        MAX_CHURN_PROBABILITY,
+        MAX_BILL_SHOCK_CHURN_PROBABILITY,
     )
 
 

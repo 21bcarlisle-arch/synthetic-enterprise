@@ -23,7 +23,7 @@ from company.crm.churn_model import (
 )
 from company.crm.enriched_churn_estimate import enriched_passive_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
-from saas.churn_model import MAX_CHURN_PROBABILITY
+from saas.churn_model import MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_no_behaviour_signals_matches_passive_rate_model():
@@ -72,7 +72,7 @@ def test_capped_at_max_churn_probability():
         behaviour_score=BehaviourScore.CRITICAL,
         satisfaction_score=0.20,
     )
-    assert p == MAX_CHURN_PROBABILITY
+    assert p == MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_result_never_below_zero():

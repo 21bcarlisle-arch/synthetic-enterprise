@@ -21,7 +21,7 @@ from __future__ import annotations
 from typing import Optional
 
 from company.crm.payment_behaviour_analytics import BehaviourScore
-from saas.churn_model import MAX_CHURN_PROBABILITY, churn_probability
+from saas.churn_model import MAX_BILL_SHOCK_CHURN_PROBABILITY, churn_probability
 
 CHURN_UPLIFT_BY_SCORE: dict[BehaviourScore, float] = {
     BehaviourScore.EXCELLENT: -0.02,
@@ -58,9 +58,9 @@ def combined_churn_probability(
     base = churn_probability(bill_shock_count) from saas/churn_model.py
     payment_uplift = CHURN_UPLIFT_BY_SCORE[behaviour_score] (zero if None)
     satisfaction_uplift = function of satisfaction_score (zero if None)
-    result capped at MAX_CHURN_PROBABILITY (0.95).
+    result capped at MAX_BILL_SHOCK_CHURN_PROBABILITY (0.95).
     """
     base = churn_probability(bill_shock_count)
     payment_uplift = CHURN_UPLIFT_BY_SCORE.get(behaviour_score, 0.0) if behaviour_score is not None else 0.0
     sat_uplift = _satisfaction_uplift(satisfaction_score)
-    return min(base + payment_uplift + sat_uplift, MAX_CHURN_PROBABILITY)
+    return min(base + payment_uplift + sat_uplift, MAX_BILL_SHOCK_CHURN_PROBABILITY)

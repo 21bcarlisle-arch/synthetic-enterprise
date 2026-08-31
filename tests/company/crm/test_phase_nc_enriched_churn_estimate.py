@@ -9,7 +9,7 @@ from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.interfaces.sim_interface import StubSimInterface
 from company.crm.churn_model import MAX_CHURN_PROBABILITY as COMPANY_MAX_CHURN_PROBABILITY
 from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY
-from saas.churn_model import MAX_CHURN_PROBABILITY as SAAS_MAX_CHURN_PROBABILITY
+from saas.churn_model import MAX_BILL_SHOCK_CHURN_PROBABILITY as SAAS_MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 #: Kept as the module-level name every other test here already uses. It is now the COMPANY's
 #: ceiling, which is the one a company belief should ever have been bounded by.
@@ -65,7 +65,7 @@ def test_all_three_signals_approach_certainty_without_a_captive_floor():
                                  satisfaction_score=0.20)
     assert p == pytest.approx(COMPANY_MAX_CHURN_PROBABILITY, abs=0.01)
     assert p < COMPANY_MAX_CHURN_PROBABILITY
-    assert p > SAAS_MAX_CHURN_PROBABILITY, (
+    assert p > SAAS_MAX_BILL_SHOCK_CHURN_PROBABILITY, (
         "the old 0.95 ceiling must no longer bind this estimate -- if it does, the captive "
         "floor is back and a value-maximising price is unbounded again"
     )

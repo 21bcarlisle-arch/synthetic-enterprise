@@ -15,7 +15,7 @@ from company.crm.payment_churn_model import (
     _satisfaction_uplift,
     combined_churn_probability,
 )
-from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_CHURN_PROBABILITY
+from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_satisfaction_none_no_change():
@@ -75,13 +75,13 @@ def test_three_signals_stack():
     # all three signals: 2 shocks + POOR + low satisfaction
     p = combined_churn_probability(2, BehaviourScore.POOR, 0.30)
     base = BASE_ANNUAL_CHURN_PROBABILITY + 2 * 0.03  # 2 shocks
-    expected = min(base + 0.10 + _LOW_SATISFACTION_UPLIFT, MAX_CHURN_PROBABILITY)
+    expected = min(base + 0.10 + _LOW_SATISFACTION_UPLIFT, MAX_BILL_SHOCK_CHURN_PROBABILITY)
     assert abs(p - expected) < 1e-9
 
 
 def test_three_signals_cap_at_095():
     p = combined_churn_probability(100, BehaviourScore.CRITICAL, 0.10)
-    assert p == MAX_CHURN_PROBABILITY
+    assert p == MAX_BILL_SHOCK_CHURN_PROBABILITY
 
 
 def test_excellent_behaviour_and_high_satisfaction_suppresses():

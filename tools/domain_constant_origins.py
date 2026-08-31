@@ -277,8 +277,17 @@ def duplicates(root: Path | None = None) -> dict[str, list[dict]]:
 
     ONE NAME, ONE NUMBER. Two constants sharing a name and disagreeing is the defect the director
     put first, and it is worse than an unsourced constant: a reader who has met one of them
-    believes they know what the other means. `MAX_CHURN_PROBABILITY` is 0.95 on the company side
-    and 1.0 on the SIM-facing side, and nothing anywhere says which a given call site gets.
+    believes they know what the other means. `VAT_RATE` is a flat 0.05 in `company/billing/invoice`
+    and a per-segment table in `saas/non_commodity`, and nothing anywhere says which a given call
+    site gets.
+
+    A COLLISION IS NOT ALWAYS A DISAGREEMENT, which the first one fixed here taught (2026-08-31).
+    `MAX_CHURN_PROBABILITY` read 1.0 in `company/crm/churn_model` and 0.95 in `saas/churn_model`,
+    and the repair was NOT to pick a value: they were never two estimates of one quantity. One is
+    the asymptote of the company's own opinion of churn, the other caps a single bill-shock model.
+    Renaming the second `MAX_BILL_SHOCK_CHURN_PROBABILITY` left both numbers exactly where they
+    were. So this scan is right to compare on the value while being unable to say WHICH repair is
+    owed, and reading its output as "reconcile these" is the wrong default half the time.
 
     Compared on the REPR of the value, so `0.05` and `{"resi": 0.05, ...}` are different -- which
     they are, and dangerously so: the same name means a flat rate in one file and a per-segment

@@ -554,7 +554,7 @@ def churn_position_multiplier(
     than the market has engaged households to give, and `_MAX_RATE` is exactly that ceiling. On
     the LOSS side the same number is a category error -- a MARKET-WIDE annual switching rate used
     to bound an INDIVIDUAL's response to their own supplier doubling their bill. It is the third
-    instance of that shape found today, after the company's `MAX_CHURN_PROBABILITY` cap and the
+    instance of that shape found today, after the company's bill-shock churn cap and the
     win leg's own crisis-floor defect (`50274434a`).
 
     WHAT IS ASSUMED, NAMED AS A SIMPLIFICATION. Above the calibrated ceiling the response
