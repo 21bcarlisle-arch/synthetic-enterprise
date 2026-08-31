@@ -17,7 +17,7 @@ and predicted the staleness -- and a named comment is not a control. It sat acro
 and two published readings. This module is the repair the comment could not be: **a reading that
 cannot be taken without naming the population it was taken on.**
 
-WHY THIS IS NOT A UNION, AND THE REFUSAL IS DELIBERATE. An SVT segment decision carries no
+WHY THE ROWS ARE NOT UNIONED, AND THE REFUSAL IS DELIBERATE. An SVT segment decision carries no
 `churn_probability`, no `sim_price_response` and no `sim_bill_shock_base` -- there was no renewal
 for any of them to describe. Appending the two lists hands every existing reader rows of `None` and
 lets a mean be taken across two populations, which is the failure this repository has already paid
@@ -25,6 +25,24 @@ for. So the two files stay two files, and what is shared is the DECLARATION: whi
 can see, how many decisions and departures are in each, what share of the book's departures the
 reading's own population accounts for, and which departure CAUSES are structurally unobservable on
 it.
+
+AND THERE IS EXACTLY ONE QUANTITY THE TWO ROUTES CAN BE UNIONED ON, WHICH `book_departure_level`
+BELOW COMPUTES. Both routes record the hazard the account actually faced at that decision
+(`realized_churn_probability`) and both label the outcome the same way, so the DEPARTURE LEVEL --
+unlike any factor decomposition -- is defined on the union. The distinction is not a loophole in the
+paragraph above: a mean of `sim_price_response` over both routes is a mean over two populations of a
+quantity only one of them has, while a departure probability is the same quantity on both. What it
+still cannot be is a mean over DECISIONS, and that is the trap this module was built to stop one
+level down: an SVT account faces a segment decision at every boundary and a fixed account faces one
+renewal roll a year, so decisions are not accounts and their ratio is not an annual rate. Measured
+on the 2026-08-31 two-route capture, the per-decision mean runs 3.6-7.5% against a published band of
+2.9-23.0% -- a figure that would have read as "the world departs far too little" when the truth is
+that the denominator counted the wrong thing.
+
+SO THE UNION IS TAKEN PER ACCOUNT-YEAR AND SAYS SO. Each account's decisions within a year are
+combined into one annual departure probability, `1 - PROD(1 - p)`, and the mean is over ACCOUNTS.
+That is the denominator class the published switching rate uses -- domestic electricity accounts --
+and it is the only reading in this tree comparable to it.
 
 AN UNOBSERVABLE CAUSE IS `None` AND NEVER `0.0`, and that distinction is the whole reason
 `causes_not_observable` exists. `simulation.departure_risks.build_departure_risks` defaults
@@ -192,6 +210,167 @@ def declare(table_path: Path | str, renewal_rows: list[dict] | None = None) -> d
         table=_rel(path),
         svt_source=_rel(svt_sibling(path)) if svt_rows is not None else None,
         svt_unreadable=reason,
+    )
+
+
+#: What `book_departure_level` divides by, said in one sentence so no caller has to re-say it and
+#: none can quote the level without it. Named as a constant because three readers print it and a
+#: denominator restated at three sites is a denominator that drifts at two of them.
+BOOK_DENOMINATOR = (
+    "distinct accounts facing at least one departure decision in the year, either route "
+    "(account-years, NOT decisions)"
+)
+
+#: Which way the reading is wrong, and it is stated rather than left for the reader to work out.
+#: An account that faced no decision at all in a year cannot depart in it and is excluded from the
+#: denominator, so the level below is an UPPER bound on the whole book's annual departure rate. The
+#: direction matters: it is the anti-flattering one, so a year reading OUT OF BAND above cannot be
+#: explained away by this bound, while a year reading inside might be outside on the full book.
+BOOK_BOUND = "upper"
+
+#: Said wherever the whole-book level cannot be taken. The renewal-only figure is NOT offered as a
+#: substitute: on the same capture the two differ by up to 13pp and, in 2022, the renewal route has
+#: no decisions at all while the book has 198.
+BOOK_BLIND_REFUSAL = (
+    "the whole-book departure level cannot be computed from a capture that cannot see both "
+    "routes. The renewal-only level is not a stand-in for it: " + SVT_BLIND_WARNING
+)
+
+
+def _year_of(row: dict) -> int | None:
+    """The calendar year of a decision, or `None` if the row does not carry a readable date."""
+    raw = str(row.get("event_date") or "")[:4]
+    return int(raw) if raw.isdigit() else None
+
+
+def book_departure_level(
+    renewal_rows: list[dict],
+    svt_rows: list[dict] | None,
+) -> tuple[dict[int, dict] | None, str | None]:
+    """`({year: reading}, None)` for the whole book, or `(None, reason)` — the union both level
+    instruments were reading around.
+
+    THE READING. For each year, every account that faced a decision on either route has its
+    decisions combined into one annual departure probability, `1 - PROD(1 - p)`, and the mean of
+    that over accounts is the year's expected departure level. `BOOK_DENOMINATOR` names what is
+    divided by and `BOOK_BOUND` names which way it is wrong; both travel on every row, because a
+    level quoted without its denominator is exactly the defect that produced this module.
+
+    WHY NOT THE MEAN OVER DECISIONS, which is the obvious union and the wrong one. An SVT account
+    faces a segment decision at every boundary -- 198 of them in 2022 across 55 accounts -- and a
+    fixed account faces one renewal roll. Averaging per-decision hazards mixes a per-segment
+    probability with an annual one and lands at 3.6-7.5%, which would have been published as a
+    world departing far below the record when in fact it departs above it. Combining within the
+    account first is what makes the two routes' hazards the same quantity.
+
+    IT REFUSES RATHER THAN FALLING BACK, on either of two states. A capture that cannot see the SVT
+    route yields `(None, reason)` and never a renewal-only number wearing a whole-book label -- the
+    fail-open shape here is a substitute that is well-formed and answers a different question. And
+    a row missing its hazard or its account id makes its YEAR `None` with a count, never a hazard of
+    zero: a decision whose probability was not recorded is unknown, and treating it as zero would
+    pull the level down by exactly the rows nobody can see.
+    """
+    if svt_rows is None:
+        return None, BOOK_BLIND_REFUSAL
+
+    per_year: dict[int, dict] = {}
+    for route, rows in ((ROUTE_RENEWAL, renewal_rows), (ROUTE_SVT, svt_rows)):
+        for row in rows:
+            year = _year_of(row)
+            if year is None:
+                continue
+            slot = per_year.setdefault(year, {
+                "decisions": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "departures": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "_hazards": {},
+                "_renewal_hazards": [],
+                "unreadable_rows": 0,
+            })
+            slot["decisions"][route] += 1
+            if _is_departure(row):
+                slot["departures"][route] += 1
+            account = row.get("customer_id")
+            hazard = row.get("realized_churn_probability")
+            if account is None or hazard is None:
+                slot["unreadable_rows"] += 1
+                continue
+            slot["_hazards"].setdefault(account, []).append(float(hazard))
+            if route == ROUTE_RENEWAL:
+                slot["_renewal_hazards"].append(float(hazard))
+
+    out: dict[int, dict] = {}
+    for year, slot in sorted(per_year.items()):
+        hazards = slot.pop("_hazards")
+        renewal_hazards = slot.pop("_renewal_hazards")
+        departures = sum(slot["departures"].values())
+        accounts = len(hazards)
+        readable = slot["unreadable_rows"] == 0 and bool(hazards)
+        out[year] = {
+            **slot,
+            "accounts": accounts,
+            "total_decisions": sum(slot["decisions"].values()),
+            "total_departures": departures,
+            # `None` and not 0.0 on an unreadable year, per the docstring: a hazard nobody recorded
+            # is unknown, and the zero would read as a measured absence of departure risk.
+            "expected_departure_pct": (
+                100.0 * book_level_from_hazards(hazards) if readable else None
+            ),
+            "realised_departure_pct": (
+                100.0 * departures / accounts if accounts else None
+            ),
+            # The old subject, carried beside the new one so the move is visible on the same line
+            # rather than inferred across two runs. `None` in a year with no renewal decisions --
+            # 2022 is such a year on the committed capture, which is why the renewal-only summary
+            # printed `nan` and nothing said why.
+            "renewal_only_expected_pct": (
+                100.0 * sum(renewal_hazards) / len(renewal_hazards) if renewal_hazards else None
+            ),
+            "denominator": BOOK_DENOMINATOR,
+            "bound": BOOK_BOUND,
+        }
+    return out, None
+
+
+def _survival(hazards: list[float]) -> float:
+    """`PROD(1 - p)` — the chance an account facing all these decisions survives the year.
+
+    Written out rather than `math.prod(...)` inline so the complement below reads as the annual
+    departure probability it is, and so an empty list is 1.0 (no decision, no departure) rather
+    than an accident of the reduction's identity element.
+    """
+    survival = 1.0
+    for p in hazards:
+        survival *= (1.0 - p)
+    return survival
+
+
+def book_level_from_hazards(hazards_by_account: dict[object, list[float]]) -> float:
+    """One year's whole-book departure level, as a FRACTION, from each account's hazards that year.
+
+    THE ACCOUNT-YEAR MEAN, IN ONE PLACE, because it now has two callers that reach it by different
+    routes. `book_departure_level` above passes the hazards the run RECORDED; the whole-book fit in
+    `tools/fit_year_level_anchor.py` passes hazards RECOMPUTED at a candidate anchor, and it has to
+    be the identical combination or the fit solves for a quantity the band control does not read.
+    That is the VAT rule applied before there are five copies rather than after.
+
+    Each account's decisions in the year combine to `1 - PROD(1 - p)` and the mean is over ACCOUNTS,
+    never over decisions -- the distinction the module note opens with, and the one that decides the
+    SIGN of the 2022 error rather than only its size.
+    """
+    annual = [1.0 - _survival(ps) for ps in hazards_by_account.values()]
+    return sum(annual) / len(annual)
+
+
+def book_banner(levels: dict[int, dict] | None, refusal: str | None) -> str:
+    """The lines a whole-book level reader prints, refusal included, before its own numbers."""
+    if levels is None:
+        return f"whole-book departure level: UNAVAILABLE\n  ⚠ {refusal}"
+    total_accounts = sum(y["accounts"] for y in levels.values())
+    return (
+        f"whole-book departure level: over {total_accounts} account-years, {len(levels)} years\n"
+        f"  denominator: {BOOK_DENOMINATOR}\n"
+        f"  this is an {BOOK_BOUND.upper()} bound: an account facing no decision in a year cannot "
+        f"depart in it and is not in the denominator"
     )
 
 
