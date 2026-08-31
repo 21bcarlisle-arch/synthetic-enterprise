@@ -58,6 +58,7 @@ from tools.fit_year_level_anchor import (
     emission_refusal,
     fit_whole_book,
     svt_composition_refusal,
+    svt_market_invariance_refusal,
 )
 from tools.population_anchor import _churn_by_year
 
@@ -512,3 +513,47 @@ def test_the_fit_refuses_when_the_world_anchors_the_svt_route():
         "SVT rows carrying the year anchor in their realised probability are fitted as though "
         "they did not, so the anchor solves against a contribution that is not the world's"
     )
+
+
+def test_the_fit_refuses_while_the_svt_route_cannot_see_the_market():
+    """MUTATION: emit the whole-book anchor anyway, and 2023's 0.03 becomes the world's level.
+
+    The route carrying most of this world's departures takes `years_on_svt` and `segment_days` and
+    nothing else, so it runs the same 0.20/0.10 through a decade whose published switching rate
+    moves 5.3x. Measured 2026-08-31 and pre-registered first: rank correlation -0.26 against the
+    published midpoint over 2017-2024, and 2022 unreachable at EVERY point in the published SVT
+    band -- 8.99% at the band bottom against a 4.30% target, where clearing it needs 0.354x and the
+    band bottom is only 0.750x.
+
+    With the whole-book total pinned to the record the two routes are zero-sum, so that market
+    error lands in the renewal anchor: 2023's SVT floor consumes 12.43 of 12.50 and the fit returns
+    0.03. Every row stays well-formed and the table still prints -- nothing else in the tree would
+    report it. This is what stops the constant.
+    """
+    assert svt_market_invariance_refusal() is not None, (
+        "the SVT hazard has gained a market term, or this check has stopped being able to fire"
+    )
+
+
+def test_the_market_invariance_refusal_lifts_when_the_hazard_gains_the_market_term():
+    """The other leg, and without it the check above is satisfied by a constant `not None`.
+
+    A refusal that cannot lift is not a control -- it is a permanent red that the next reader
+    routes around. This drives the same predicate with a market-aware hazard and requires it to go
+    quiet, which is what makes the refusal above a statement about the world rather than about
+    itself.
+    """
+    import tools.fit_year_level_anchor as fit
+
+    def market_aware_hazard(*, years_on_svt, segment_days, market_switching_multiplier=1.0):
+        return 0.0
+
+    original = fit.svt_inertia_hazard
+    fit.svt_inertia_hazard = market_aware_hazard
+    try:
+        assert fit.svt_market_invariance_refusal() is None, (
+            "a hazard the market can reach is still refused, so the refusal is keyed to something "
+            "other than the property it names"
+        )
+    finally:
+        fit.svt_inertia_hazard = original

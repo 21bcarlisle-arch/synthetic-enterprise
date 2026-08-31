@@ -37,6 +37,7 @@ Usage:
 from __future__ import annotations
 
 import collections
+import inspect
 import json
 import statistics
 import sys
@@ -295,6 +296,73 @@ def _sum_probability(rows: list[dict], anchor: float) -> float:
     return _mean_probability(rows, anchor) * len(rows) if rows else 0.0
 
 
+#: Parameter names through which the market could reach `svt_inertia_hazard`. The check below is
+#: STRUCTURAL -- does the function have a route for the market year to arrive at all -- rather than
+#: a comparison against today's hazard values. A control keyed to the current numbers would go red
+#: the moment the SVT rates were refined for any reason and green again on any refit, which is the
+#: "keyed to today's answer" shape; a control keyed to the SIGNATURE says exactly what the claim
+#: says: this hazard cannot see the market.
+_MARKET_PARAMETER_NAMES = frozenset(
+    {"market_year", "market_switching_multiplier", "market_multiplier", "market_opportunity"}
+)
+
+
+def svt_market_invariance_refusal() -> str | None:
+    """May a whole-book anchor be emitted while the SVT route cannot see the market? `None` if yes.
+
+    THE ROUTE CARRYING 61% OF THIS WORLD'S DEPARTURES IS INVARIANT TO THE RECORD IT IS FITTED
+    AGAINST. `svt_inertia_hazard` takes `years_on_svt` and `segment_days` and nothing else. Every
+    renewal-route hazard carries `market_switching_multiplier`, which is the record's own level
+    ratio inside 2016-2025. The SVT route does not, so it runs the same 0.20/0.10 through a decade
+    whose published switching rate moves 5.3x.
+
+    MEASURED 2026-08-31 on `ladder_churn_factors.json`, pre-registered before the run:
+
+      * The SVT floor and the published band midpoint are rank-correlated at **-0.26** over
+        2017-2024 -- near zero and the wrong sign (P1, predicted |rho| < 0.4).
+      * The floor's coefficient of variation is **0.336x** the record's: flat where the record
+        swings (P3, predicted < 0.5x).
+      * **2022 is unreachable at every point in the published band** (P2). The record's trough
+        allows 4.30% for the whole book; the SVT route alone expects 12.80% at the band top and
+        still **8.99%** at the band BOTTOM (0.15/0.05), 2.09x the target. Clearing it needs the
+        published pair scaled to 0.354x, and the band bottom is only 0.750x of the top. So this is
+        a property of the MECHANISM and not a constant chosen at the wrong end of its band.
+
+    WHY THIS BLOCKS THE CONSTANT RATHER THAN MERELY WARNING. With the whole-book total pinned to
+    the record, the SVT floor and the renewal anchor are in a zero-sum: 2023's floor consumes 12.43
+    of the 12.50 available and the fit drives the renewal anchor to **0.03**, near-total extinction
+    of the only route the company can price against. Pasting that table into
+    `simulation/departure_level_anchor.py` would not be a level -- it would be this defect wearing
+    a calibration's clothes, and every downstream reason-mix reading would inherit it.
+
+    AND THE §7 TIE-BREAK INVERTS ITS OWN SIGN HERE, which is the part worth keeping. `0.20` was
+    taken at the TOP of its band under the director's anti-flattering rule, on the argument that
+    the company "loses accounts it has NO renewal lever on". That argument was made when the SVT
+    route was sized on its own. Once both routes share one anchored total, a HIGHER SVT floor
+    LOWERS the renewal anchor -- it hands the company LESS churn on the route it can actually price
+    against. The anti-flattering choice became a flattering one when the denominator was unioned,
+    and nothing would have reported that.
+
+    WHAT LIFTS IT: giving the SVT hazard the market term the renewal route already carries. Checked
+    2026-08-31 and it is sufficient -- `floor x market_switching_multiplier(year)` puts all eight
+    years under their target, 2022 included at 3.42% against 4.30%. This refusal lifts by
+    construction when that parameter exists, so it cannot outlive the defect it names.
+    """
+    params = set(inspect.signature(svt_inertia_hazard).parameters)
+    if params & _MARKET_PARAMETER_NAMES:
+        return None
+    return (
+        "`svt_inertia_hazard` takes "
+        f"{sorted(params)} -- no market term, so the route carrying most of this world's "
+        "departures is invariant to the record the anchor is fitted against. Measured: rank "
+        "correlation -0.26 against the published midpoint 2017-2024, and 2022 unreachable at "
+        "EVERY point in the published SVT band (8.99% at the band bottom against a 4.30% target). "
+        "The whole-book fit is therefore solving for a renewal anchor that absorbs the SVT route's "
+        "market error -- 2023 comes out at 0.03. Wire the market term into the SVT hazard; do not "
+        "paste this table."
+    )
+
+
 def emission_refusal(decl: dict) -> str | None:
     """Why this capture may not hand over a `YEAR_LEVEL_ANCHOR` block, or `None` if it may.
 
@@ -390,6 +458,16 @@ def main(argv: list[str]) -> int:
                 print(f"  {year}: NOT FITTED — {result[year][1]}")
         fitted_book = {y: a for y, (a, _r, _d) in result.items() if a is not None}
         print()
+        # THE DIAGNOSTIC TABLE ABOVE ALWAYS PRINTS AND THE CONSTANT BELOW DOES NOT. A measurement
+        # withheld is a measurement nobody can argue with, so the per-year fit stays visible; what
+        # is refused is the block a reader would paste into the world.
+        invariance = svt_market_invariance_refusal()
+        if invariance is not None:
+            print("  REFUSED — no YEAR_LEVEL_ANCHOR block is emitted from this whole-book fit.")
+            print(f"  Reason: {invariance}")
+            print("  See docs/staging/WORKER_FINDING_THE_ROUTE_CARRYING_MOST_DEPARTURES_IS_"
+                  "INVARIANT_TO_THE_RECORD_IT_IS_FITTED_AGAINST_2026-08-31.md.")
+            return 1
         print("  YEAR_LEVEL_ANCHOR: dict[int, float] = {")
         for year in sorted(fitted_book):
             print(f"    {year}: {fitted_book[year]:.6f},")
