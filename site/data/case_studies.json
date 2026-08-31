@@ -1,64 +1,64 @@
 {
   "meta": {
-    "generated_at": "2026-08-30T08:50:05Z",
+    "generated_at": "2026-08-31T00:52:07Z",
     "git_commit": "unknown",
-    "household_count": 167,
+    "household_count": 164,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "113 timeline + reaction-chain entries on record",
+      "headline": "153 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "SYN-2016-021",
-      "base_account_id": "SYN-2016-021",
+      "account_id": "PROS-2017-0065",
+      "base_account_id": "PROS-2017-0065",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-021",
+        "acc": "PROS-2017-0065",
         "tab": "timeline"
       }
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "84.5 percentage points apart at the 2025 renewal (sim 95.0% vs company 10.5%)",
+      "headline": "75.1 percentage points apart at the 2023 renewal (sim 14.7% vs company 89.8%)",
       "wall_side": "sim",
-      "account_id": "SYN-2016-025",
-      "base_account_id": "SYN-2016-025",
+      "account_id": "C8",
+      "base_account_id": "C8",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-025",
+        "acc": "C8",
         "tab": "timeline",
-        "year": 2025
+        "year": 2023
       }
     },
     {
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "SYN-2016-007",
-      "base_account_id": "SYN-2016-007",
+      "account_id": "PROS-2018-0016",
+      "base_account_id": "PROS-2018-0016",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-007",
+        "acc": "PROS-2018-0016",
         "tab": "timeline",
         "year": 2025
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "11 debt write-off event(s) in the arrears cascade",
+      "headline": "10 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
-      "account_id": "SYN-2016-028",
-      "base_account_id": "SYN-2016-028",
+      "account_id": "SYN-2016-001",
+      "base_account_id": "SYN-2016-001",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-028",
+        "acc": "SYN-2016-001",
         "tab": "timeline",
-        "year": 2019
+        "year": 2017
       }
     },
     {
@@ -68,7 +68,7 @@
       "account_id": "SYN-2016-037",
       "base_account_id": "SYN-2016-037",
       "segment": "resi",
-      "commodity": "electricity",
+      "commodity": "gas",
       "link": {
         "acc": "SYN-2016-037",
         "tab": "timeline",
@@ -77,14 +77,14 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 27.0 percentage points (70.9% in 2020 to 43.9% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 12.0 percentage points (53.2% in 2020 to 41.2% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2019-0308",
-      "base_account_id": "PROS-2019-0308",
+      "account_id": "PROS-2019-0164",
+      "base_account_id": "PROS-2019-0164",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2019-0308",
+        "acc": "PROS-2019-0164",
         "tab": "timeline",
         "year": 2024
       }

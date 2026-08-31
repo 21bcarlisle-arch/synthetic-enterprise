@@ -56,7 +56,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0163-INV8909",
+      "id": "PROS-2025-0163-INV6681",
       "date": "2025-05-31",
       "period_start": "2025-05-23",
       "period_end": "2025-05-31",
@@ -97,7 +97,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0163-INV8910",
+      "id": "PROS-2025-0163-INV6682",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -139,52 +139,42 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-26",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-05-31",
         "type": "invoice_raised",
-        "invoice_number": 8909,
+        "invoice_number": 6681,
         "amount_gbp": 40.99,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8909 raised",
+        "description": "Invoice INV6681 raised",
         "running_balance_gbp": 40.99
       },
       {
         "date": "2025-06-12",
         "type": "invoice_raised",
-        "invoice_number": 8910,
+        "invoice_number": 6682,
         "amount_gbp": 32.19,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8910 raised",
+        "description": "Invoice INV6682 raised",
         "running_balance_gbp": 73.18
       },
       {
         "date": "2025-06-14",
         "type": "payment_received",
-        "invoice_number": 8909,
+        "invoice_number": 6681,
         "amount_gbp": -40.99,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
         "running_balance_gbp": 32.19
-      },
-      {
-        "date": "2025-06-26",
-        "type": "payment_received",
-        "invoice_number": 8910,
-        "amount_gbp": -32.19,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
       }
     ],
-    "current_balance_gbp": 0.0,
+    "current_balance_gbp": 32.19,
     "total_billed_gbp": 73.18,
-    "total_collected_gbp": 73.18,
+    "total_collected_gbp": 40.99,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

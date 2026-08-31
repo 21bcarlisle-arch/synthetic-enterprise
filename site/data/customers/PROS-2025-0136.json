@@ -63,7 +63,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0136-INV8905",
+      "id": "PROS-2025-0136-INV6677",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -104,7 +104,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0136-INV8906",
+      "id": "PROS-2025-0136-INV6678",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -146,42 +146,32 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-26",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 8905,
+        "invoice_number": 6677,
         "amount_gbp": 85.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8905 raised",
+        "description": "Invoice INV6677 raised",
         "running_balance_gbp": 85.71
       },
       {
         "date": "2025-06-11",
         "type": "invoice_raised",
-        "invoice_number": 8906,
+        "invoice_number": 6678,
         "amount_gbp": 18.96,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8906 raised",
+        "description": "Invoice INV6678 raised",
         "running_balance_gbp": 104.67
-      },
-      {
-        "date": "2025-06-25",
-        "type": "payment_received",
-        "invoice_number": 8906,
-        "amount_gbp": -18.96,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Payment received",
-        "running_balance_gbp": 85.71
       }
     ],
-    "current_balance_gbp": 85.71,
+    "current_balance_gbp": 104.67,
     "total_billed_gbp": 104.67,
-    "total_collected_gbp": 18.96,
+    "total_collected_gbp": 0,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

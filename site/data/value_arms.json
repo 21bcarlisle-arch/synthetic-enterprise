@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T21:58:14.536010Z",
+  "generated_at": "2026-08-31T00:56:24.425298Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -207,7 +207,7 @@
   "run_generated_at": "2026-08-30T10:37:06Z",
   "producing_commit": {
     "stated": false,
-    "publishing_tree_commit": "2d8807fe1be1b0fd489901baf6091eda46f276d3",
+    "publishing_tree_commit": "bae6a2a28172c312305744bff3ece757edfb1eb7",
     "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
     "counts_are_labelled_by_the_code_that_made_them": false
   },
@@ -215,7 +215,7 @@
     "available": false,
     "produced_by": {
       "stated": false,
-      "publishing_tree_commit": "2d8807fe1be1b0fd489901baf6091eda46f276d3",
+      "publishing_tree_commit": "bae6a2a28172c312305744bff3ece757edfb1eb7",
       "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
       "counts_are_labelled_by_the_code_that_made_them": false
     },
@@ -289,9 +289,9 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "published_run_net_gbp": 144234.558137,
-      "gap_gbp": -9929.876590993488,
-      "statement": "The published run's net margin (\u00a3144,234.56) is NOT the baseline arm's (\u00a3154,164.43) -- they differ by \u00a39,929.88. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "published_run_net_gbp": 145881.426457,
+      "gap_gbp": -8283.008270993509,
+      "statement": "The published run's net margin (\u00a3145,881.43) is NOT the baseline arm's (\u00a3154,164.43) -- they differ by \u00a38,283.01. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {

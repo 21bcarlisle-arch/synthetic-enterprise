@@ -1,27 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-28T20:01:50Z",
+    "checked_at": "2026-08-30T14:32:38Z",
     "nonblocking_reds": [
-      "ERROR tests/tools/test_phase_rx_track_record.py"
+      "FAILED tests/tools/test_bill_correctness_addendum_defect4.py::test_billed_total_never_less_than_gross_margin_for_any_real_customer_year",
+      "FAILED tests/tools/test_capability_index.py::test_live_repo_index_is_healthy_and_substantial",
+      "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run",
+      "FAILED tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan",
+      "FAILED tests/tools/test_knife_hotspot_measure.py::test_the_live_plan_reconciles_with_the_tree",
+      "FAILED tests/tools/test_knife_hotspot_measure.py::test_every_probe_scanned_something",
+      "FAILED tests/tools/test_knife_hotspot_measure.py::test_cli_returns_zero_on_the_live_plan",
+      "FAILED tests/tools/test_knife_hotspot_measure.py::test_json_report_separates_the_two_sources"
     ],
-    "nonblocking_reds_total": 1,
-    "open_findings": 26
+    "nonblocking_reds_total": 14,
+    "open_findings": 28
   },
   "last_verified": {
-    "generated_at": "2026-08-30T09:02:58Z",
-    "git_commit": "2aa62d672",
-    "run_id": "run_output_2aa62d672_20260830T083422Z.json",
-    "verified_at": "2026-08-30T09:02:58Z"
+    "generated_at": "2026-08-31T01:05:04Z",
+    "git_commit": "bae6a2a28",
+    "run_id": "run_output_bae6a2a28_20260831T004018Z.json",
+    "verified_at": "2026-08-31T01:05:04Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-30T09:02:58Z",
-    "git_commit": "2aa62d672",
-    "run_id": "run_output_2aa62d672_20260830T083422Z.json",
-    "verified_at": "2026-08-30T09:02:58Z"
+    "generated_at": "2026-08-31T01:05:04Z",
+    "git_commit": "bae6a2a28",
+    "run_id": "run_output_bae6a2a28_20260831T004018Z.json",
+    "verified_at": "2026-08-31T01:05:04Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-30T09:02:58Z"
+  "written_at": "2026-08-31T01:05:04Z"
 }

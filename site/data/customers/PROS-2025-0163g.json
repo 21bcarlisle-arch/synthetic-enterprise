@@ -47,7 +47,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0163g-INV8911",
+      "id": "PROS-2025-0163g-INV6683",
       "date": "2025-05-31",
       "period_start": "2025-05-23",
       "period_end": "2025-05-31",
@@ -88,7 +88,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0163g-INV8912",
+      "id": "PROS-2025-0163g-INV6684",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -130,52 +130,42 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-26",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-06-04",
         "type": "invoice_raised",
-        "invoice_number": 8911,
+        "invoice_number": 6683,
         "amount_gbp": 11.88,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8911 raised",
+        "description": "Invoice INV6683 raised",
         "running_balance_gbp": 11.88
       },
       {
         "date": "2025-06-11",
         "type": "invoice_raised",
-        "invoice_number": 8912,
+        "invoice_number": 6684,
         "amount_gbp": 6.03,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV8912 raised",
+        "description": "Invoice INV6684 raised",
         "running_balance_gbp": 17.91
       },
       {
         "date": "2025-06-18",
         "type": "payment_received",
-        "invoice_number": 8911,
+        "invoice_number": 6683,
         "amount_gbp": -11.88,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
         "running_balance_gbp": 6.03
-      },
-      {
-        "date": "2025-06-25",
-        "type": "payment_received",
-        "invoice_number": 8912,
-        "amount_gbp": -6.03,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
       }
     ],
-    "current_balance_gbp": 0.0,
+    "current_balance_gbp": 6.03,
     "total_billed_gbp": 17.91,
-    "total_collected_gbp": 17.91,
+    "total_collected_gbp": 11.88,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

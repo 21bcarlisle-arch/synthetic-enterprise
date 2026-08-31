@@ -1,60 +1,60 @@
 {
-  "generated_at": "2026-08-30T08:54:18Z",
-  "wall_clock_today": "2026-08-30",
+  "generated_at": "2026-08-31T00:56:20Z",
+  "wall_clock_today": "2026-08-31",
   "clock_started": "2026-07-04",
-  "log_entry_count": 53,
+  "log_entry_count": 54,
   "renewal_tolerance_pct": 0.02,
   "renewal_grading": {
-    "graded_count": 0,
+    "graded_count": 4,
     "pending_count": 0,
-    "inconclusive_count": 4,
+    "inconclusive_count": 0,
     "on_target_count": 0,
     "off_target_count": 0,
-    "churned_count": 0,
-    "graded": [],
-    "pending": [],
-    "inconclusive": [
+    "churned_count": 4,
+    "graded": [
       {
         "decision_run_at": "2026-07-04",
         "cid": "C9",
         "renewal_date": "2025-06-29",
         "proposed_rate_gbp_per_mwh": 153.49,
-        "outcome": "no_renewal_detected_yet",
-        "graded": false,
-        "note": "the flagged renewal date has passed relative to real wall-clock today, but live_portfolio.json's last_renewal_date has not advanced past it -- inconclusive (the portfolio snapshot itself may simply be stale), not counted as a miss."
+        "outcome": "churned",
+        "graded": true,
+        "note": "cid no longer present in live_portfolio.json's active customer list -- inferred departure from a single snapshot, not a logged churn event or date. live_portfolio.json carries no historical time series, so 'absent' only means 'not currently active', nothing more precise than that."
       },
       {
         "decision_run_at": "2026-07-05",
         "cid": "C9",
         "renewal_date": "2025-06-29",
         "proposed_rate_gbp_per_mwh": 153.49,
-        "outcome": "no_renewal_detected_yet",
-        "graded": false,
-        "note": "the flagged renewal date has passed relative to real wall-clock today, but live_portfolio.json's last_renewal_date has not advanced past it -- inconclusive (the portfolio snapshot itself may simply be stale), not counted as a miss."
+        "outcome": "churned",
+        "graded": true,
+        "note": "cid no longer present in live_portfolio.json's active customer list -- inferred departure from a single snapshot, not a logged churn event or date. live_portfolio.json carries no historical time series, so 'absent' only means 'not currently active', nothing more precise than that."
       },
       {
         "decision_run_at": "2026-07-06",
         "cid": "C9",
         "renewal_date": "2025-06-29",
         "proposed_rate_gbp_per_mwh": 153.49,
-        "outcome": "no_renewal_detected_yet",
-        "graded": false,
-        "note": "the flagged renewal date has passed relative to real wall-clock today, but live_portfolio.json's last_renewal_date has not advanced past it -- inconclusive (the portfolio snapshot itself may simply be stale), not counted as a miss."
+        "outcome": "churned",
+        "graded": true,
+        "note": "cid no longer present in live_portfolio.json's active customer list -- inferred departure from a single snapshot, not a logged churn event or date. live_portfolio.json carries no historical time series, so 'absent' only means 'not currently active', nothing more precise than that."
       },
       {
         "decision_run_at": "2026-07-07",
         "cid": "C9",
         "renewal_date": "2025-06-29",
         "proposed_rate_gbp_per_mwh": 153.49,
-        "outcome": "no_renewal_detected_yet",
-        "graded": false,
-        "note": "the flagged renewal date has passed relative to real wall-clock today, but live_portfolio.json's last_renewal_date has not advanced past it -- inconclusive (the portfolio snapshot itself may simply be stale), not counted as a miss."
+        "outcome": "churned",
+        "graded": true,
+        "note": "cid no longer present in live_portfolio.json's active customer list -- inferred departure from a single snapshot, not a logged churn event or date. live_portfolio.json carries no historical time series, so 'absent' only means 'not currently active', nothing more precise than that."
       }
-    ]
+    ],
+    "pending": [],
+    "inconclusive": []
   },
   "hedge_grading": {
     "graded_count": 1,
-    "ungraded_count": 52,
+    "ungraded_count": 53,
     "current_market_data_stale_days": 1,
     "entries": [
       {
@@ -371,6 +371,12 @@
       },
       {
         "decision_run_at": "2026-08-30",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-08-31",
         "hedge_recommendation": "INCREASE",
         "market_data_stale_days_at_log_time": 1,
         "outcome": "ungraded -- market data has not advanced"
