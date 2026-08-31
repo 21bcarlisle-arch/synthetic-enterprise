@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-08-31T05:27:30.949134+00:00",
+ "generated_at": "2026-08-31T08:30:01.753684+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "340ba58ed",
+    "at": "2026-08-31T08:26:56+01:00",
+    "subject": "the finding that opened the question kept the answer it was corrected by",
+    "substantive": false
+   },
+   {
+    "sha": "37ecd27ef",
+    "at": "2026-08-31T08:10:29+01:00",
+    "subject": "the acted belief is a book quantity and we were grading it against a market one",
+    "substantive": true
+   },
+   {
+    "sha": "feff2d3a9",
+    "at": "2026-08-31T08:01:06+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=34a05c130, net=\u00a3145,881)",
+    "substantive": false
+   },
+   {
+    "sha": "34a05c130",
+    "at": "2026-08-31T06:50:38+01:00",
+    "subject": "the arms A/B ran in the world as it now is, and publishing it put two books on one page",
+    "substantive": true
+   },
+   {
+    "sha": "1e3f6a026",
+    "at": "2026-08-31T06:32:17+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=4240e1478, net=\u00a3145,881)",
+    "substantive": false
+   },
    {
     "sha": "4240e1478",
     "at": "2026-08-31T05:24:04+01:00",
@@ -213,91 +243,65 @@
     "at": "2026-08-30T10:32:59+01:00",
     "subject": "C2: the competing-risks mechanism, and a calibration that turned out to choose its own answer",
     "substantive": true
-   },
-   {
-    "sha": "15a9703ae",
-    "at": "2026-08-30T09:45:48+01:00",
-    "subject": "the tools shard: ten reds in all, and two of them were controls asking to be made wrong",
-    "substantive": true
-   },
-   {
-    "sha": "2aa62d672",
-    "at": "2026-08-30T09:28:29+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "cd07caa71",
-    "at": "2026-08-30T09:21:30+01:00",
-    "subject": "the C2 design, and the trap a printed table caught before a line of it was written",
-    "substantive": true
-   },
-   {
-    "sha": "6be4c9163",
-    "at": "2026-08-30T09:18:47+01:00",
-    "subject": "the red census, measured in eleven minutes instead of six hours: two housekeeping fixes and two findings, of which one is a confounded curriculum dial",
-    "substantive": true
-   },
-   {
-    "sha": "da1226bc4",
-    "at": "2026-08-30T08:59:49+01:00",
-    "subject": "the world can punish bad service but barely reward good, and a hash decides which households are eligible",
-    "substantive": true
    }
   ],
-  "substantive": 29,
-  "mechanical": 11,
+  "substantive": 27,
+  "mechanical": 13,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-31T05:21:39.789188+00:00",
+  "oriented_at": "2026-08-31T08:24:31.530874+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "**All four focus items were drawn, all four were worked, and all four disappear below \u2014 and the answer they produced is the first honest one this project has had about its own thesis.** The window's `substantive: 2` undercounts: the estimator work landed at `ae12a334e`, seven minutes before the boundary, and the stretch's real content is one seat finding, one worker finding and the re-run. What they establish, in order. **The company's belief is now its own.** The guard was grading the PRIOR while every churn estimate in the book was priced off the POSTERIOR, and no test could have caught it: outside a run scope the ledger is empty, the weight is 0, and the two are byte-identical \u2014 a leg pointed at the wrong one of two quantities that agree everywhere the tests can see. Pointed at what the company acts on, and rebuilt from 453 closed decisions in the company's own renewal ledger, `sides_are_independent` moves `false \u2192 true`. **Independence bought nothing yet, measured.** `method_skill` is now the binding leg: concordance **0.517 against a null of 0.429\u20130.572 on 86 decisions**, so on whether the method carries any information we cannot tell, and the posterior sits outside the published band in 4 of 6 years \u2014 independence and inaccuracy at once, which produce the same number. **And the baseline the thesis demands now exists in the present world.** C1a/C1b's SVT product worked: the arm priced **120 of 1,953 renewals** where it priced 20 of 1,369. The per-customer engine earned **\u00a312,071 more than flat rules**; once one flat margin at the same price LEVEL is credited with what a level alone earns, **\u00a32,574 separates them, INSIDE a \u00b1\u00a32,578 spread**, and **79% of the arm's advantage is the price level**. So the page now says, in its own words, that this book CANNOT RESOLVE whether the per-customer choosing is worth anything in either direction. That is not a step backwards \u2014 it is the first time the question was asked in a shape that could have answered either way, against a baseline, and the machine reported the unflattering half itself. **What DID go backwards is underneath all of it.** The world's own renewal record broke between the 20:03Z and 21:31Z runs of 2026-08-30 and is still broken at HEAD: 144 `customer_events` over 68 households where the run before had 465 over 131, **32 churn events against 82 churned billing accounts** \u2014 fifty departures with no cause, no roll and no probability anywhere \u2014 and **2022 absent from the record entirely** while every other year is present. The departure-level anchor is measured through that record and the bias has our sign: fewer renewal events with the departures still landing reads as a higher departure rate, which is what the anchor was fitted to produce. The one-line read: **we got a real baseline and a real refusal on the same night, and the record they are both measured through quietly lost a year of the historical truth that is supposed to be the precondition for either.**",
+  "thesis_read": "**Two of the four focus items are finished and disappear below; one was WRONG in its central claim and dissolves; and the director issued canon this stretch that reframes the whole month.** Taking them in that order. **Finished.** The estimator question was settled and settled the right way: route (b) was chosen, and `inference_claim` now says on the page that *\"the company's acted belief is this BOOK's departure hazard and the published band is the GB MARKET's switching rate, which are two different quantities\"*, with `accuracy_reading_available: false` and the reason carried as a machine-readable companion beside the prose. The accuracy clause was withdrawn rather than defended. Equally, the drop-out is now characterised: of 120 priced decisions and 86 scored, **join failures are ZERO**, 2 are a gap in our own sourced tariff series, and **32 are eligibility** \u2014 the world never billed under the price that was chosen, so no outcome exists to rank them against at any book size. By-design and by-us are separated and counted, and the conclusion is stated plainly: this sample cannot be widened by fixing our own code. **Wrong, and it was mine.** I opened last direction with fifty departures that supposedly had *\"no cause, no roll and no probability anywhere\"* and read it as a fidelity break biased in our favour. They have all three. `run_output_latest.json` carries a `svt_departures` list of **exactly 50** \u2014 the arithmetic 82 churned accounts minus 32 churn events lands on it precisely \u2014 with cause `svt_inertia`, its hazard and its roll, added deliberately by C1b on 2026-08-30. I compared two keys without asking what each one counted, which is the rule I had invoked by name three paragraphs earlier in the same file. It was not a break; it was a mechanism landing whose recorder was blind to the route it created. **And what that leaves is far bigger than what I thought I had.** The director's `DIRECTOR_CANON_WORLD_VALIDATION_LADDER` says the world is generated bottom-up and checked top-down, that aggregates emerge from individuals and published figures are tests rather than dials, and that **\"the one move that is always wrong\" is clamping an aggregate to pass a check.** He then names the diagnosis I did not consider: *\"for a month the company has been asked whether it can predict the world, and every answer has come back 'we cannot tell'\u2026 a world validated top-down contains no per-customer signal\u2026 the company kept failing to find inference advantage because there was structurally nothing to infer.\"* That indicts our churn anchor by name, and the code agrees with him in its own words \u2014 `departure_risks.py` says `level_anchor` *\"gives the family units by calibrating it onto the published departure level\"* and, forty lines on, **\"THE YEAR ANCHOR IS NOW OVER-FITTED.\"** So the honest read of this stretch is not that the project went backwards. It is that we spent the month building an increasingly rigorous instrument for detecting a signal, published an honest refusal when it found none, and have now been handed a serious argument that **the world may not contain the signal to begin with** \u2014 which no amount of tightening the instrument could ever have revealed, and which every \"cannot tell\" we published is equally consistent with.",
   "focus": [
    {
-    "id": "the-renewal-record-lost-a-year-and-fifty-departures",
-    "what": "**Lane 0, and it goes ahead of the thesis items because everything below it is measured through this artefact.** `docs/reports/run_output_latest.json` at HEAD (`4240e1478`, run 05:07Z) carries **144 `customer_events` over 68 households, 32 of `event_type == \"churned\"`, beside a `churned_billing_accounts` list of 82**. Fifty departures have no renewal event, so no cause, no roll and no probability exist for them anywhere. `event_date` covers 2016\u20132021 and 2023\u20132025: **2022 is absent entirely** and every other year is present. The same three numbers hold in all four runs back to `2b9fb79d9`; the two before them (`ff44d0bce` 20:03Z, `56718a719` 17:37Z on 08-30) read 465/131/79-against-79 and 681/130/43-against-43 with all ten years. So it broke in a known three-hour window and it is live. **Attribute it.** The commits between the two run markers are `00d855cf2`, `60d30b0a6`, `112eb0b11`, and the departure path was edited three times that evening (`1596019fc`, `71242c941`, `3bf3345de`). **Read `git diff` before you assume HEAD is the whole story:** `simulation/customer_events.py`, `departure_risks.py`, `renewals.py` and `run_phase2b.py` are all UNCOMMITTED in this shared tree right now \u2014 another lane is mid-flight in exactly the four files that write this record, so bisect against committed trees and land nothing across their hunks. Then ship the one-leg control the worker finding already specifies and does not need re-derived: **every account in `churned_billing_accounts` has at least one `customer_events` row with `event_type == \"churned\"`, and every year of the reported window appears in `customer_events`** \u2014 red on the last four runs, green on the two before, keyed to the property and not to today's count. **Do not make it pass by widening its tolerance**, and do not repair the year by writing 2022 rows from anything other than the world producing them.",
-    "why": "First. `2022 is a fact, not a scenario` is one of the four walls in CLAUDE.md, and 2022 is missing from the only artefact that records who renewed, who left, and why. It is the crisis year and the year the departure band is narrowest (2.9\u20134.3%). The direction of the damage is not neutral and it is not against us: fewer renewal events with the departures still landing reads as a **higher** departure rate per renewal, which is the direction `tools/measure_departure_level.py`'s anchor was fitted to produce, and the anchor landed the same evening \u2014 instrument and result moving together, published side by side on `site/data/value_arms.json`, with nothing in the tree comparing the two counts. Fidelity is the precondition, not the goal: a world that has lost half its households and one of its ten years cannot press back, and every claim in items two, three and four is computed through it. It is filed LATENT and owned by nobody, which is why it needs a focus slot rather than a draw. **Done means:** the change that did it named, or **\"I cannot yet attribute this\"** written down with what was ruled out and what remains; the record carrying its departures and all ten years again, or an explicit statement of why it cannot and what that costs; and the reconciliation control landed and mutation-proven, with the mutation named."
+    "id": "does-the-worlds-churn-discriminate-between-households-at-all",
+    "what": "**Lane 0, and it is the director's own canon work-item 1: apply the validation ladder to churn, rebuilding anything top-down from the individuals up.** Do rung 3 FIRST, before any refitting, because it is the one nobody has ever measured and it decides whether the rest is worth doing: **do individual households in this world depart for hidden reasons of their own that a supplier could in principle infer, or is individual variation noise around a forced mean?** `tools/measure_churn_heterogeneity.py` is UNTRACKED in this shared tree right now and already carries a `route_coverage` reading \u2014 **adopt it, do not rebuild it**, and read `WORKER_FINDING_C1B_ADDED_A_DEPARTURE_ROUTE\u2026` before touching anything, because the repair to `run_phase2b`/`capture_departure_factors` that makes this measurable is UNCOMMITTED in the same tree from another lane. Land across nobody's hunks. Then, and only with rung 3's answer in hand, take the anchor: `departure_risks.py` states in its own comment that `level_anchor` calibrates onto the published departure level and that the year anchor **is now over-fitted** \u2014 fitted on a run where the renewal roll was the only way out, when by the same file's estimate roughly 55\u201358% of domestic account-days no longer reach that roll. The loop is **capture \u2192 refit \u2192 capture across BOTH routes**, and the canon forbids the two shortcuts by name: **never a widened band, and never scaling the aggregate.** A rung-1 failure is repaired at the individual model's attributes and rationale until the emergent level moves, or it is not repaired at all.",
+    "why": "First, and it displaces everything I ranked above it last time. This is the director's canon, issued today, and he calls it *\"a crux document\u2026 it explains a month of 'we cannot tell' results.\"* Rung 3 is **the thesis itself** in his words: *\"without it there is nothing for the company to infer, and every A/B result is an artefact.\"* That is the sentence that reorders the board. We have been reporting `method_skill` at 0.517 inside a null of 0.429\u20130.572 and calling it an honest refusal about the COMPANY \u2014 and it is equally consistent with a world that has no per-customer signal in it, which would make the refusal a fact about the WORLD and every arms result an artefact of one. **We cannot tell those two apart today**, and until we can, the project's headline finding has two readings with opposite implications. Rung 3 separates them, and nothing else does. The anchor half is the same item because his canon names it explicitly as debt \u2014 *\"a world whose level sits on the exact edge of the band every year has almost certainly been fitted to that edge\u2026 that is what the recent churn anchor exhibited\"* \u2014 and because the code already agrees. **Done means:** rung 3 measured on churn and answered in plain words, INCLUDING the answer *\"the world does not discriminate\"*, which is the most valuable result available anywhere on this board and hands the constraint to the world rather than to the company; the anchor re-fitted across both departure routes or explicitly declared unfittable with the reason; and every top-down construction found along the way **named as such in the record**, per his instruction to *\"say plainly which were top-down.\"*"
    },
    {
-    "id": "the-bound-that-decides-cannot-resolve-is-from-another-world",
-    "what": "**Lane 0.** The A/B re-run landed and it was the right call \u2014 `run_generated_at` 2026-08-31T03:47:57Z, 120 priced of 1,953 against the old 20 of 1,369, the SVT lever demonstrably worked. Its verdict is *\"\u00a32,574 separates the two \u2014 INSIDE the \u00b1\u00a32,578\"*, and **both halves of that \u00b1 are stale in ways the page itself already names.** (1) `error_bar.staleness_caveat`: the seed spread was measured on the run of 2026-08-29T17:04:23Z and the point estimate on 2026-08-31T03:47:57Z, and in between the market gained the ability to DEFEND against a company that undercuts it \u2014 *\"a spread measured where nothing could react is not a confidence interval on a figure measured where it can.\"* Re-run the noise floor in the world as it now is. (2) `floor_decomposition` reads `priced_decisions: 20` / `renewals_offered: 1369`; the run above priced 120 of 1,953, and because the remedy is denominated in the priced count the page correctly refuses to quote it at all. Re-run it: `tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`. **Report the new spread BEFORE re-stating the verdict**, and state the verdict whichever way it lands \u2014 a bound that narrows and turns \"cannot resolve\" into a resolved advantage is exactly as suspect as one that widens, because the world moved between the two measurements as well. If the priced side still carries essentially all the variance (it was 0.9999 of it at 20 priced), say plainly what a larger settled book would and would not buy down at 120.",
-    "why": "Second, because this interval is the only thing standing between the project and its first answerable claim against the thesis \u2014 *\"there has to be a BASELINE to beat\u2026 or 'it performed well' means nothing\"* \u2014 and it is currently a number from a world that no longer exists, adjudicating a figure from this one. The refusal it produces is the honest kind and I want it to survive contact with a bound measured in the same world; if it does, the refusal is evidence, and if it does not, we have a resolved result we currently cannot see. It also matters that 79% of the arm's advantage is the price LEVEL, which the page states outright: the residual is the entire per-customer claim, and the residual is what the interval is being compared against. It sits below item one only because item one's record is what both arms are counted from. **Done means:** `error_bar` and `floor_decomposition` both carrying the current run's identity; the staleness caveat gone or replaced by what is now true; the resolve / cannot-resolve sentence re-derived from a bound measured in the same world as the figure it bounds; and any direction of movement recorded, including one that flatters us, marked unattributable if more than one thing moved."
+    "id": "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause",
+    "what": "**Lane 0.** C1b made `capture_departure_factors` \u2014 which builds its table by wrapping `roll_lifecycle_event`, the renewal decision \u2014 into a recorder of the renewal-decision SUBSET of the book rather than the book. **Nothing went red**; the table kept its rows and every field populated, because it was the SCOPE of the population that moved. A two-route capture taken for the finding now sizes it: renewal decisions **465 \u2192 144**, SVT segment decisions **1,266** where none were recorded at all, departures by renewal **79 \u2192 32** against **50** off SVT \u2014 so **the population the year anchor is fitted on lost 69% of its rows, and the renewal table can see only 39% of departures.** Four readers take that table as their subject and must be repaired on a **declared denominator**: `tools/fit_year_level_anchor.py`, `tools/measure_departure_level.py`, `tools/population_anchor._churn_by_year`, and the C2 reason mix. **Do not union the two files into one table** \u2014 the finding is right that an SVT decision carries no `churn_probability`, no `sim_price_response` and no `sim_bill_shock_base`, and appending them hands every reader rows of `None` and lets a mean be taken across two populations. The separately urgent half: **`docs/reports/c2_reason_mix_interval.json` publishes bill_shock, dissatisfaction and price_position only**, while `departure_risks` describes `svt_inertia` as *\"the single largest departure route in a real domestic book.\"* Every reader of that mix today is reading three of four causes as if they were four of four. Either publish the fourth cause or state on the surface which causes the mix can and cannot see.",
+    "why": "Second, because it is the measurement plumbing item one's refit runs through, and because one of its four readers is already wrong on a published page. The class matters more than the instance: this is *controls-keyed-to-a-structure-that-moved* arriving for the **fifth** time, and the population floor that normally catches it did not fire because the population was intact. Worth more than the repair is the lesson the finding draws and I am ratifying as the seat's: **the C1b author wrote the debt down at the site, precisely, naming both readers and predicting they would go stale on the next capture \u2014 and it still did not act.** It sat across a capture, a fit and two published readings. A deliberate debt taken at a seam needs something that FAILS or a queue entry that RANKS; a named comment is neither, and \"write better comments\" is not the repair. **Done means:** the four readers naming their population on every reading; the published reason mix either carrying its largest cause or saying on the surface that it cannot; and the seam debt carrying something that fails rather than something that explains."
    },
    {
-    "id": "the-estimator-samples-its-own-book-and-is-graded-against-the-market",
-    "what": "**Decide a question the stretch opened and then published an answer to without settling.** The posterior now serving as the company's acted belief is a market-wide prior corrected by the company's OWN realised departures \u2014 and it is graded against the published market band, with the result live on the page: *\"The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp.\"* This seat's own finding says in the same document why those may be two different quantities: *\"the likelihood is one supplier's book, not a market sample\u2026 coherent as 'the market rate this company's acted belief implies'; not a market measurement.\"* Choose, and write down which. **(a)** The posterior IS meant to estimate the market rate \u2014 in which case the update is mis-specified, because a supplier that retains better than average observes fewer departures without the market being any less competitive, and the missing piece is a link separating *how competitive the market is* from *how retainable my book is*. **(b)** It is a belief about this book and not about the market \u2014 in which case the accuracy clause compares a book quantity to a market quantity and must be renamed or withdrawn from the page. **Neither route is \"widen the band.\"** If (a), the first step is to state what the link needs in terms of what a real supplier can actually observe \u2014 not to fit a correction factor, which would be choosing the answer. Note while you are there: `inference_claim.accuracy` publishes as `null` in `site/data/value_arms.json` while the derived sentence carries the numbers, so the reader-facing figure has no machine-readable companion on the published surface and nothing downstream can check it.",
-    "why": "Third. The company over-predicted its own losses by about **1.6\u00d7** \u2014 22 realised against 35.2 predicted on 453 closed decisions \u2014 so the posterior drags the implied market rate down and away from a record the world sits squarely on, and we published that as inaccuracy. This is the rule this project keeps paying for: **say out loud what each number counts before you compare them.** It is thesis-central rather than tidy, because this is the one place the company does genuine inference from its own observations rather than reading a published series \u2014 the exact move from ACCESS to INFERENCE the thesis demands \u2014 and if the inference is mis-specified then the honest reading is that the company is now worse than the series it just stopped using. That would be the first measured evidence that the epistemic wall costs us something, which is worth far more than a clean number. **Done means:** (a) or (b) chosen and recorded with the argument that decided it; the published clause either standing with its reason stated or renamed / withdrawn; the structured companion to the prose figure either published or its absence filed; and if (a), the missing link named in terms a real supplier could observe, with no fitted fudge factor."
+    "id": "the-bound-that-decides-cannot-resolve-is-still-from-another-world",
+    "what": "**Carried forward \u2014 drawn last stretch and NOT done, and the page got more honest about it rather than less.** `error_bar` still reads its spread from 2026-08-29T17:04:23Z against a point estimate from 2026-08-31T03:47:57Z, still carries its `staleness_caveat` verbatim, and `floor_decomposition` still reads `priced_decisions: 20` / `renewals_offered: 1369` when the current run priced 120 of 1,953. What DID move is the derived reading, and it is now sharper than my last direction was: **`point_estimate_inside_the_measured_band: false`** \u2014 the seed distribution is centred at \u2212\u00a31,614 with a range of \u2212\u00a34,274 to +\u00a3873, and the \u00a32,574 contrast sits outside it entirely. So the old \"\u00a32,574 INSIDE \u00b1\u00a32,578\" reading was comparing the figure to a spread around ZERO when the spread is not centred there. The page now says so itself: *\"an estimate that has left its own error bar's range needs the error bar re-measured, not read as having escaped it.\"* Do exactly that \u2014 re-run both legs from one tree, then `--redraw-mode only|except` and `--decompose` \u2014 and **report the new spread BEFORE re-stating the verdict**, whichever way it lands.",
+    "why": "Third, and DELIBERATELY below the ladder items, which is the trade-off I most want on the record. This interval is the only thing between us and the first answerable claim against the thesis \u2014 *\"there has to be a BASELINE to beat\u2026 or 'it performed well' means nothing\"* \u2014 and last stretch I ranked it second. The canon moved it. **Re-measuring a noise floor around a contrast produced by a world that may contain no per-customer signal is measuring the instrument, not the thesis**; if item one finds the world does not discriminate, this bound is a precise interval around an artefact and the precision is worthless. It stays high because it is genuinely close and because a re-run in the right world converts an honest refusal into evidence either way. It is not first because a tighter bound on a number that may not mean anything is exactly the polishing this project is prone to. **Done means:** both legs measured from one tree with the current run's identity on each; the staleness caveat gone or replaced by what is now true; the resolve / cannot-resolve sentence re-derived rather than edited; and any movement that flatters us marked unattributable if more than one thing moved \u2014 which, after item one, it will have."
    },
    {
-    "id": "what-actually-limits-the-scored-decisions",
-    "what": "`method_skill` is the leg now binding the whole inference claim \u2014 0.517 against a null of 0.429\u20130.572 on **86 decisions**, so on whether the method carries any information we cannot tell. **120 priced decisions became 86 scored, and the drop-out is almost all one reason:** 32 lost to `the_priced_term_carried_no_settled_row` \u2014 the account does settle, but the priced term has no settled record inside its own 365 days, a boundary `_term_period_of` imposes. Take those 32 and report what their terms and settled coverage actually look like, and establish whether that is a genuine eligibility boundary or an artefact of how short the settled window is relative to a term. Separately, report **what the null interval is at the decision counts this book can actually reach** \u2014 that is arithmetic about the null distribution, stated so the seat knows whether this book can ever clear it, and it is not a number to aim at. Two of the losses are already known and honest and should be stated as such: 346 renewals are gas and the arm has never been fitted to gas; 252 are acquisition terms with no prior term to price against. **Say which losses are by design and which are ours.**",
-    "why": "Fourth because it is the constraint everything above eventually hits, and it is currently being described as \"book depth\" by three separate artefacts without anyone having established what depth is reachable. The seat's own finding closed on *\"six scored decisions cannot clear a null\"* and the re-run took that to 86 \u2014 a fourteen-fold move out of one product landing \u2014 so this is a tractable frontier and not a wall, which is exactly why it deserves measuring rather than asserting. Losing 32 of 120 at a single definition nobody has looked at is too large a fraction to leave unexamined, and if that boundary is an artefact it is the cheapest depth available anywhere. **Done means:** the 32 characterised and classed as boundary or artefact with evidence; by-design and by-us losses separated and counted; and a plain statement of whether the null is reachable on a book this world can produce, including the answer \"not on this world's book\", which is a finding and hands the constraint back to the world rather than to the estimator."
+    "id": "every-world-variable-says-where-it-stands-on-the-ladder",
+    "what": "**The director's canon work-items 2, 3 and 4, which are cheap next to item one and close questions he has explicitly registered.** (2) Each existing world variable states which of the four rungs it currently passes, on its own Knowledge page \u2014 his standard is that *\"a page that cannot say is a page whose variable has not been validated\"*, so **\"not assessed\" is a permitted and useful answer** and is far better than a page that implies validation it never had. Start with the variables the published arms figures are computed through, not with an alphabetical sweep. (3) Adopt the ladder as the stated validation standard for the choice-and-channel work in `DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30.md`, so C2\u2013C6 are built against it rather than retrofitted. (4) **Register the generative-futures anchor question as CLOSED by rung 2** \u2014 he asked on 30 August for a choice between *\"preserves the statistical shape\"* and *\"honestly unanchored\"* before that work began, called them *\"different projects and I'd rather choose than drift\"*, and his own canon answers it: *\"anchored to mechanism, validated on history where we have it, and applied where we don't.\"* Record the closure citing his document; do not re-open the choice.",
+    "why": "Fourth because it is the systematising half and it must not outrank the measuring half \u2014 a ladder applied to one variable properly is worth more than a ladder recited on twenty pages. But it is not tidying: item (4) closes an open director-registered question that is currently **blocking the generative-futures capability from starting**, and it closes it with his own words rather than my judgement, which costs nothing and unblocks a lane. And item (2) is the cheapest defence against the failure the canon exists to prevent, because the rung a variable cannot claim is exactly where the next top-down clamp gets introduced by a bounded tick that cannot see the whole. **Done means:** the arms-facing variables each stating their rung standing, with honest \"not assessed\" where true; the choice-and-channel brief carrying the ladder as its validation standard; and the generative-futures anchor question registered closed against the canon that closed it."
    }
   ],
   "not_now": [
    {
+    "what": "Re-running the value-arms A/B on more seeds so the \u00b1\u00a32,578 comes down and the \u00a32,574 contrast resolves one way or the other.",
+    "why": "Carried for the second direction running and now refuted TWICE over. The page's own text: *\"more seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it\"* \u2014 the spread is the instrument's sensitivity to the per-household price-sensitivity draw, not sampling error around a mean. And this stretch added the sharper reason: the point estimate sits OUTSIDE the seed band entirely, so the two are not even commensurate yet and more draws of the wrong band buy nothing. It stays here because it is the single most tempting move on the board and because doing it and reporting a resolved contrast would be manufacturing the result item three exists to measure honestly."
+   },
+   {
+    "what": "Repairing the departure record by widening the published band, by scaling the aggregate back onto it, or by writing 2022 renewal rows from anything other than the world producing them.",
+    "why": "New this stretch, and it is rejected on the director's authority rather than mine: *\"the one move that is always wrong: clamping an aggregate to pass a check. It passes the test by destroying the thing the test exists to protect.\"* Recording it because **I was about to walk into the 2022 version of it.** My last direction read 2022's absence from `customer_events` as a breach of the historical-truth wall. The leading explanation is now that it is **rung 2 working**: fixed prices sat above SVT through the crisis, so no household took a fixed deal and no renewal roll fired \u2014 and the canon uses that exact mechanism as its worked example, *\"2022 is where we saw it, not why it is true.\"* Not established, and item one must settle it. But a year that is empty because the mechanism emptied it is a world behaving correctly, and writing rows into it to make the record look complete would have been the purest form of the move he just forbade."
+   },
+   {
     "what": "`EP13_adapter_carbon_intensity` \u2014 carbon, the second of the mission's three currencies, which CLAUDE.md itself calls \"designed and unwired\".",
-    "why": "Deferred for the second direction running and the reason has got STRONGER, not weaker: last time the lane had design documents staged, and now it has **code** \u2014 `tools/ep13_per_fuel_oracle_bound.py` and `tests/tools/test_ep13_per_fuel_oracle_bound.py` are added in this shared index right now, with `docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md` and its simplification yaml modified alongside. That lane is actively landing. Putting a second writer on a live file set is this tree's documented way of losing work, and drawing it would be me taking a slot from a lane that is already delivering it. It needs no focus slot when that lands: the ordinary draw already reaches it."
+    "why": "Deferred for the third direction running and the reason is unchanged and still correct: that lane is actively landing in this shared tree right now \u2014 `tools/ep13_per_fuel_oracle_bound.py` and its test are ADDED in the index, with the design frame and its simplification yaml modified alongside. Putting a second writer on a live file set is this tree's documented way of losing work, and taking the slot would be me competing with a lane that is already delivering it. The ordinary draw reaches it the moment it lands; it needs no focus slot."
    },
    {
-    "what": "Raising the seed count on the value-arms A/B so the \u00b1\u00a32,578 comes down and the \u00a32,574 contrast resolves.",
-    "why": "The single most tempting move on the board this stretch, and the page has already refuted it in its own text: *\"More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it.\"* The spread is the instrument's sensitivity to the per-household price-sensitivity draw, not sampling error around a mean, so more draws estimates the same spread more precisely and moves the verdict not at all. Recording it here because it will be proposed again, and because doing it and reporting a resolved contrast would be manufacturing the result item two exists to measure honestly. What CAN move it is a larger settled book, which is item four, and a bound measured in the right world, which is item two."
-   },
-   {
-    "what": "`C31_time_is_the_currency_that_does_not_exist` \u2014 building out the time currency, one of the mission's three, which does not exist here at all.",
-    "why": "Carried forward, and it is a deliberate deferral rather than an oversight. The argument is unchanged and it got sharper this stretch: in the one currency we HAVE built to the end, the per-customer advantage is now measured, published, and **not resolvable in either direction**. Opening a third currency while the first cannot demonstrate the thesis would be breadth bought with the only depth we have. It earns its slot when the money currency carries a claim that survives its own guard \u2014 which is now a concrete, near event rather than a distant one."
+    "what": "`C31_time_is_the_currency_that_does_not_exist` \u2014 building out the time currency, the third of the mission's three.",
+    "why": "Carried, and the canon strengthened the argument rather than weakening it. In the one currency built to the end, the per-customer advantage is measured, published, unresolvable in either direction \u2014 and now, additionally, under a live question about whether the world it was measured in contains anything to resolve. Opening a third currency on that footing would be breadth bought against the only depth we have, at the exact moment that depth is being re-examined. It earns its slot when the money currency carries a claim that survives its own guard in a world that has passed rung 3."
    },
    {
     "what": "Choosing `a_shock` to close the 99.9%-to-56.6% reason-mix interval \u2014 from the published mover-mix, from a prior, or from whatever makes the mix look sensible.",
-    "why": "Carried verbatim for the fourth direction running, because it gets more tempting each time and the argument has not weakened. P0 is satisfied to +0.0000% by every value from 0.87 down, so the constraint cannot see the parameter and **choosing `a_shock` IS choosing the answer**, which would then be reported as a measurement of the world. The published mover-mix is reserved as a check on the OUTPUT; spending it as an input buys a number and destroys the only test of it we have. The interval carrying its own bound on the page is the honest form. It stays until an instrument separates \"my own bill rose\" from \"someone else is cheaper\" \u2014 which is C4/C5, still behind C3, which is now unblocked by the run in item two."
+    "why": "Carried verbatim for the fifth direction running because it gets more tempting each time and the argument has not weakened \u2014 P0 is satisfied to +0.0000% by every value from 0.87 down, so the constraint cannot see the parameter and **choosing `a_shock` IS choosing the answer**, which would then be published as a measurement of the world. Note that the canon now backs this from a second direction: a mix fitted to look right is an aggregate clamped to pass a check. And note the interval has a nearer problem than its width, which is item two \u2014 it is missing its largest cause entirely."
    },
    {
-    "what": "The unranked accretion \u2014 forty-six documents in the staging root, the undeclared worktrees whose alarm fired again today, and the orphan-branch alarm's fourth firing.",
-    "why": "`finding_classes --check` passes, BLOCKING is 0 (21 LATENT, 25 RECORDED), and none of it wedges a commit. The orphan-branch alarm was answered last stretch by landing the salvage tag `salvage/c3-shown-price-measure` (`f93fd1ea9`) \u2014 it is answerable now rather than actionable, and it fires because the alarm is keyed to the branch name rather than to whether the work is reachable, which is worth knowing but not worth a slot this stretch. The one thing I will not let slide is the LATENT that matters: the renewal-record finding is item one precisely because leaving it in the pile is how a fidelity break becomes a published figure."
+    "what": "The unranked accretion \u2014 forty-six documents in the staging root, the undeclared-worktree alarm, and the orphan-branch alarm's fifth firing.",
+    "why": "`finding_classes --check` passes, BLOCKING is 0 against 20 LATENT and 24 RECORDED, and none of it wedges a commit. The orphan-branch alarm fires because it is keyed to the branch name rather than to whether the work is reachable, and the salvage tag landed last stretch \u2014 it is answerable rather than actionable. The one LATENT I will not leave in the pile is the C1b finding, which is item two precisely because its four stale readers are how a scope change becomes a published figure."
    }
   ],
   "for_the_director": [],
@@ -307,6 +311,26 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-31T08:24:31.530874+00:00",
+    "what": "**My own item one, in its central claim.** I wrote that fifty departures had *\"no cause, no roll and no probability anywhere\"* and ranked it first as a fidelity break biased in our favour. All three exist. `run_output_latest.json` carries `svt_departures` with **exactly 50** entries \u2014 82 churned accounts minus 32 churn events lands on it precisely \u2014 each with cause `svt_inertia`, its hazard and its roll, added deliberately by C1b. I read a mechanism landing as data corruption because I compared `churned_billing_accounts` against `customer_events` without asking what each one counted, three paragraphs after invoking that exact rule by name. The record is not damaged; the RECORDER is blind to a route the world now has. That is a smaller defect and a more interesting one, and it is item two."
+   },
+   {
+    "at": "2026-08-31T08:24:31.530874+00:00",
+    "what": "Worse than the miscount: I spent item one defending the record the departure anchor was fitted TO, and never once asked whether fitting to the record was itself the defect. I treated the anchor as an instrument to protect from a corrupted input. The director's canon, arriving the same morning, names the churn anchor as top-down debt to be rebuilt from the individuals \u2014 and `departure_risks.py` had been saying so in its own comment the whole time: *\"calibrating it onto the published departure level\"*, and **\"THE YEAR ANCHOR IS NOW OVER-FITTED.\"** I read that file's neighbourhood and did not read that. The seat's job is the interconnection view and this is precisely the class it exists to catch."
+   },
+   {
+    "at": "2026-08-31T08:24:31.530874+00:00",
+    "what": "A deliberate, precisely-worded debt sat at a seam and did nothing. The C1b author named both affected readers, predicted they would go stale on the next capture, and wrote it at the site \u2014 the strongest form a comment can take. It then sat across a capture, a fit and two published readings, and was found by the interconnection question rather than by any control, because no control could have: the table kept its rows and every field populated while its SCOPE moved. Fifth arrival of this class. The lesson is not \"write better comments\" \u2014 a debt taken at a seam needs something that fails or an entry that ranks."
+   },
+   {
+    "at": "2026-08-31T08:24:31.530874+00:00",
+    "what": "The A/B bound was drawn last stretch as focus item two and was not done: `error_bar` still carries the 2026-08-29 spread and its staleness caveat, and `floor_decomposition` still reads `priced_decisions: 20` against a run that priced 120. The derived reading did get better on its own \u2014 the page now states that the point estimate sits outside the band the spread was measured over, which is more honest than my last direction's framing of it \u2014 but the measurement the item asked for did not happen, and a focus item that was drawn and left half-done is a failure of my sequencing, not of the lane's."
+   },
+   {
+    "at": "2026-08-31T08:24:31.530874+00:00",
+    "what": "I published, as the lead sentence of my last thesis read, that the world *\"quietly lost a year of the historical truth that is supposed to be the precondition\"* \u2014 a wall-breach claim about 2022, stated with confidence, on evidence that equally supports the world's crisis mechanism working exactly as designed. I had the falsifying reading available: the canon's own worked example is fixed take-up collapsing when fixed prices sit above SVT. Still unsettled, and it is item one's to settle, but the certainty was unearned and it nearly bought a repair that would have written rows into a year the mechanism correctly emptied."
+   },
    {
     "at": "2026-08-31T05:21:39.789188+00:00",
     "what": "My last direction's item one pre-registered the honest possibility that the posterior would not move, on the argument that *\"the arm priced 20 of 1,369 renewals, so the evidence weight is around 0.5 at best and may be 0 for most years.\"* **Refuted, and I was reading the wrong counter.** The value ARM priced 20; the pressure LEDGER books from `churn_desk.estimate_renewal_churn`, the company's single once-per-renewal belief site, and carries **453 closed decisions** by 2022. The weight is 0.82\u20130.89, not 0.5, and the posterior moves by up to 17.0pp. The prediction was filed before the answer and refuted in the record beside it, which is the discipline working \u2014 but the mistake itself is the one this project names most often: I compared two numbers without first saying what each of them counts."
@@ -1090,26 +1114,6 @@
    {
     "at": "2026-08-26T11:21:14.564328+00:00",
     "what": "`docs/observability/autonomous-runner-log.md` still carries 2,619 lines of test-fixture output -- MagicMock pids and `/tmp/pytest-of-rich/` paths -- in the live operational log, so anyone diagnosing the runner from it reads phantom launches. Recorded for the third time and deliberately not promoted: it misleads a reader, it does not stop the machine, and the four items above all outrank it."
-   },
-   {
-    "at": "2026-08-26T08:22:57.401289+00:00",
-    "what": "Commit `03b60e1e9` announced in its own subject that \"the first realised run says it earns 5% more net margin and gives all of it back as lost book\". The completed realised run, written to `docs/observability/value_cycle_ab.json` at 08:02Z, says -GBP 93,555 net and -GBP 118,252 enterprise value. A commit message announced a positive result the finished measurement refutes, and it is a commit message, so it cannot be corrected in place."
-   },
-   {
-    "at": "2026-08-26T08:22:57.401289+00:00",
-    "what": "Four consecutive direction records, mine included, attributed the publish wedge to the commit deadline when it was six named red tests and a half-rolled map split. Both the diagnosis and the record layer that hid it are now fixed -- the split is at HEAD and the hook chain's failing node IDs reach `.publish_gate_state.json` -- but the raise of `_COMMIT_DEADLINE` from 600 to 840 was bought on that misdiagnosis and has not been revisited."
-   },
-   {
-    "at": "2026-08-26T08:22:57.401289+00:00",
-    "what": "The register carries two findings at BLOCKING whose fixes are at HEAD, and the staging root carries auto-filed repetition alarms for `land-the-map-split`, `land-the-value-arm`, `publish-path-lands` and `land-lane-zero`, at least one of which describes work that landed hours before the alarm fired. The machine is alarming on its own record rather than on its state."
-   },
-   {
-    "at": "2026-08-26T08:22:57.401289+00:00",
-    "what": "`git status --porcelain` returns 544 entries, and the residue in it is why the \"uncommitted work\" alarm can never clear: six `.land_*.sh` scratch scripts and `_r11_tmp.mjs` at the tree root, four stray lock files (`.tree.lock`, `.tree_lock`, `docs/.tree.lock`, `docs/.tree_lock`), and four staged-but-uncommitted deletions of WORKER_FINDING files. An alarm keyed on a permanently resident condition can never close, so it repeats instead."
-   },
-   {
-    "at": "2026-08-26T08:22:57.401289+00:00",
-    "what": "`docs/observability/autonomous-runner-log.md` still carries test fixture output as if it were production -- 5,933 occurrences of MagicMock pids and `/tmp/pytest-of-rich/` paths, the most recent stamped 08:05 today. A test writes into the live operational log, so anyone diagnosing the runner from it reads phantom launches. Carried over from last night's record unfixed and recorded again rather than promoted: it misleads a reader, it does not stop the machine."
    }
   ],
   "refused_own_records": [],
@@ -1117,12 +1121,43 @@
  },
  "what_next": {
   "focus": [
-   "the-renewal-record-lost-a-year-and-fifty-departures",
-   "the-bound-that-decides-cannot-resolve-is-from-another-world",
-   "the-estimator-samples-its-own-book-and-is-graded-against-the-market",
-   "what-actually-limits-the-scored-decisions"
+   "does-the-worlds-churn-discriminate-between-households-at-all",
+   "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause",
+   "the-bound-that-decides-cannot-resolve-is-still-from-another-world",
+   "every-world-variable-says-where-it-stands-on-the-ladder"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-renewal-record-lost-a-year-and-fifty-departures",
+       "the-bound-that-decides-cannot-resolve-is-from-another-world",
+       "the-estimator-samples-its-own-book-and-is-graded-against-the-market"
+      ],
+      "focus": [
+       "the-renewal-record-lost-a-year-and-fifty-departures",
+       "the-bound-that-decides-cannot-resolve-is-from-another-world",
+       "the-estimator-samples-its-own-book-and-is-graded-against-the-market",
+       "what-actually-limits-the-scored-decisions"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-renewal-record-lost-a-year-and-fifty-departures",
+     "the-bound-that-decides-cannot-resolve-is-from-another-world",
+     "the-estimator-samples-its-own-book-and-is-graded-against-the-market"
+    ],
+    "focus": [
+     "the-renewal-record-lost-a-year-and-fifty-departures",
+     "the-bound-that-decides-cannot-resolve-is-from-another-world",
+     "the-estimator-samples-its-own-book-and-is-graded-against-the-market",
+     "what-actually-limits-the-scored-decisions"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1258,46 +1293,6 @@
      "anchor-the-departure-level-with-the-competing-risks-form",
      "the-page-states-the-worlds-departure-level-against-the-record",
      "every-reading-of-the-switching-level-answers-to-the-record",
-     "PB4_engagement_separated_from_elasticity"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "PB4_engagement_separated_from_elasticity"
-      ],
-      "focus": [
-       "PB4_engagement_separated_from_elasticity"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "move-the-departure-level-into-the-published-band",
-       "a-publish-failure-must-name-which-of-the-three-it-was",
-       "wire-the-cause-onto-every-departure"
-      ],
-      "focus": [
-       "move-the-departure-level-into-the-published-band",
-       "a-publish-failure-must-name-which-of-the-three-it-was",
-       "wire-the-cause-onto-every-departure"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "move-the-departure-level-into-the-published-band",
-     "a-publish-failure-must-name-which-of-the-three-it-was",
-     "wire-the-cause-onto-every-departure",
-     "PB4_engagement_separated_from_elasticity"
-    ],
-    "focus": [
-     "move-the-departure-level-into-the-published-band",
-     "a-publish-failure-must-name-which-of-the-three-it-was",
-     "wire-the-cause-onto-every-departure",
      "PB4_engagement_separated_from_elasticity"
     ],
     "note": "the previous direction named work the draw then took",
