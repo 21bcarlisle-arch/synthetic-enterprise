@@ -193,6 +193,63 @@ def scan(root: Path | None = None) -> list[dict]:
     return found
 
 
+def promoted(root: Path | None = None) -> list[dict]:
+    """Domain-named module constants whose value is NOT a literal — computed, or read from elsewhere.
+
+    WHY THIS EXISTS, AND IT IS A HOLE IN THIS TOOL FOUND BY USING IT (2026-08-31). The FIRST unit of
+    debt actually paid moved the count 197 -> 196, and **not because the constant gained an origin.**
+    `SME_VAT_THRESHOLD_KWH_PER_DAY = 33.0` became
+    `SME_VAT_DE_MINIMIS_KWH_PER_DAY = _load_de_minimis()`, read at import from a cited commons
+    artefact -- the best outcome the rule can produce -- and `scan()` stopped seeing it at all,
+    because `_is_numeric` is False for a call.
+
+    So the count could not tell **the best repair** from a **deletion**, and it fell either way.
+    That is the same family as "debt paid by renaming out of scope"
+    (`feedback_a_ratchet_with_no_floor_cannot_fail`), one disguise over: **debt paid by promoting a
+    literal to a read.** Left alone, this tool would have rewarded leaving a number in place with a
+    comment over replacing it with the authority.
+
+    Reporting them separately is the repair rather than trying to classify them. A statically-
+    resolved "does this call reach the commons" check would be a guess; a COUNT that a reader can
+    subtract is not. When the debt drops, this number should rise by the same amount unless
+    something was genuinely deleted.
+    """
+    root = PROJECT if root is None else root
+    out: list[dict] = []
+    for package in SCOPE:
+        base = root / package
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            if "__pycache__" in path.parts or path.name.startswith("test_"):
+                continue
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except (OSError, SyntaxError):
+                continue
+            for node in tree.body:
+                if isinstance(node, ast.Assign):
+                    names = [t.id for t in node.targets if isinstance(t, ast.Name)]
+                    value = node.value
+                elif (isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
+                        and node.value is not None):
+                    names = [node.target.id]
+                    value = node.value
+                else:
+                    continue
+                if _is_numeric(value):
+                    continue
+                for name in names:
+                    if name.isupper() and DOMAIN_NAME.search(name):
+                        out.append({
+                            "path": str(path.relative_to(root)),
+                            "name": name,
+                            "line": node.lineno,
+                            "form": type(value).__name__,
+                        })
+    return out
+
+
 def unreadable(root: Path | None = None) -> list[str]:
     """Files in scope this scanner could not parse, so a caller can refuse to trust the count."""
     root = PROJECT if root is None else root
@@ -238,6 +295,8 @@ def _main() -> int:  # pragma: no cover - operator surface
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--list", action="store_true", help="print every constant without an origin")
     ap.add_argument("--duplicates", action="store_true", help="print name collisions only")
+    ap.add_argument("--promoted", action="store_true",
+                    help="print domain-named constants whose value is not a literal")
     args = ap.parse_args()
 
     rows = scan()
@@ -249,6 +308,14 @@ def _main() -> int:  # pragma: no cover - operator surface
     bad = unreadable()
     if bad:
         print(f"  UNPARSEABLE FILES (count is incomplete): {bad}")
+    lifted = promoted()
+    print(
+        f"  PROMOTED         {len(lifted)}  (domain-named, value is not a literal — computed or "
+        "read from an authority; NOT counted above, and a fall in NO ORIGIN should show up here)"
+    )
+    if args.promoted:
+        for row in lifted:
+            print(f"      {row['path']}:{row['line']:<5} {row['name']}  <- {row['form']}")
     dupes = duplicates()
     print(f"\nname collisions (one name, more than one value): {len(dupes)}")
     for name, group in sorted(dupes.items()):

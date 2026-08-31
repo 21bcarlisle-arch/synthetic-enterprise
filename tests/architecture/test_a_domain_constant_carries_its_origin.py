@@ -55,6 +55,7 @@ from __future__ import annotations
 
 from tools.domain_constant_origins import (
     duplicates,
+    promoted,
     scan,
     unreadable,
     without_origin,
@@ -109,6 +110,45 @@ UNSOURCED_DEBT_FLOOR = 150
 #: scan loses its subjects, which is how five separate controls in this repository went quiet in a
 #: single day.
 CONSTANT_POPULATION_FLOOR = 190
+
+#: THE WHOLE DOMAIN-NAMED POPULATION, literals AND non-literals, and it exists because the debt
+#: count alone could not see the best repair (2026-08-31). `scan()` only sees constants whose value
+#: is a numeric LITERAL. The first unit of debt actually paid --
+#: `SME_VAT_THRESHOLD_KWH_PER_DAY = 33.0` becoming a read from a cited commons artefact -- left the
+#: scan entirely, and the debt fell by one **for the same reason a deletion would have.**
+#:
+#: Measured the same day: **29 constants were ALREADY promoted and invisible**, so the 197 baseline
+#: was never the whole population — it excluded the ones that had been done properly. A count that
+#: can only see unfixed-shaped things can never show progress made the right way, and would have
+#: rewarded leaving a literal in place with a comment over replacing it with the authority.
+#:
+#: Floor set below 222 + 29 = 251 with headroom, for the reason on CONSTANT_POPULATION_FLOOR above.
+DOMAIN_NAMED_POPULATION_FLOOR = 235
+
+
+def test_the_whole_domain_named_population_is_still_in_scope():
+    """Neither half of the population may quietly leave, and a fall in one must show in the other.
+
+    The debt ceiling ratchets violations down; this floors the SUBJECT. Renaming a constant out of
+    the name regex, deleting it, or promoting it to a computed value all reduce the debt, and only
+    this can tell "the scan lost its subject" from "the work was done".
+
+    MUTATION: make `promoted()` return `[]`, or narrow `DOMAIN_NAME` so a package's constants stop
+    matching, and this fires where the debt ceiling alone reads GREEN and calls it progress.
+    """
+    literals = scan()
+    lifted = promoted()
+    total = len(literals) + len(lifted)
+    assert total >= DOMAIN_NAMED_POPULATION_FLOOR, (
+        f"{len(literals)} literal + {len(lifted)} promoted = {total} domain-named constants, below "
+        f"the floor of {DOMAIN_NAMED_POPULATION_FLOOR}. Constants have left the SCOPE of this "
+        "control rather than gained an origin — check for a rename out of the name regex, a "
+        "narrowed DOMAIN_NAME, or a package dropped from SCOPE. If they were genuinely deleted, "
+        "lower this floor in the commit that deleted them.")
+    assert lifted, (
+        "no domain constant reads from an authority any more. Promotion is the BEST outcome the "
+        "origin rule can produce; zero of them means `promoted()` has broken shut, and the debt "
+        "count would then read every future proper repair as a deletion.")
 
 
 def test_the_unsourced_domain_constant_debt_only_SHRINKS():

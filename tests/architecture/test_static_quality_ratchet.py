@@ -116,6 +116,17 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-31  I001 1342 -> 1341  (the VAT de minimis becomes per-fuel and reads the commons)
+#     `company/billing/dual_fuel_bill.py` carried ONE unsorted import block at HEAD. This commit
+#     has that file open anyway -- it is where `_sme_vat_rate` gains its `fuel` argument and where
+#     the commons loader is added -- and adding `import json` and `from pathlib import Path` meant
+#     sorting the block into place, which repaired it. Per this ratchet's standing per-file remedy.
+#     Not a tidying pass: no file this commit did not otherwise touch was reformatted.
+#     MEASURED PER-FILE AGAINST `git show HEAD:`, per this log's standing rule and not off the
+#     working tree (which carries three other lanes' uncommitted work). That file: HEAD 1, this
+#     tree 0. The other two files this commit touches -- `tools/domain_constant_origins.py` and
+#     `tests/architecture/test_a_domain_constant_carries_its_origin.py` -- carry 0 on BOTH sides,
+#     so the whole move is this one file's and there is no shortfall to explain.
 #   2026-08-31  F401 267 -> 266, I001 UNCHANGED at 1342  (departure readings declare their
 #               population)
 #     F401 -1 is this commit's: `tools/population_anchor.py` imported `typing.Optional` and never
@@ -589,7 +600,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1342,
+    "I001": 1341,
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -611,7 +622,8 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2328  # was 2329; -1 (F401, population_anchor's Optional is now used)
+RUFF_BASELINE_TOTAL = 2327  # was 2328; -1 (I001, dual_fuel_bill's import block sorted when
+                            # the commons loader was added — see the 2026-08-31 shrink-log entry)
 
 
 # --------------------------------------------------------------------------

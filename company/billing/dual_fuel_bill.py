@@ -6,15 +6,17 @@ sees one bill showing both fuels, with a combined balance.
 
 Market-type differences:
   resi  -- monthly billing, 5% VAT, price cap applies
-  SME   -- quarterly billing, 5% VAT if <33 kWh/day else 20%
+  SME   -- quarterly billing, reduced-rate VAT below that FUEL's published de minimis
+           (electricity 33 kWh/day, gas 145 kWh/day -- VAT Notice 701/19) else standard rate
   I&C   -- monthly/HH-settled, 20% VAT, pass-through levy visibility
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 from typing import Optional
-
 
 BILLING_CALENDAR: dict[str, str] = {
     "resi": "monthly",
@@ -22,13 +24,69 @@ BILLING_CALENDAR: dict[str, str] = {
     "I&C": "monthly",
 }
 
+_VAT_DE_MINIMIS_COMMONS = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "vat_fuel_and_power_de_minimis.json"
+)
+
+
+def _load_de_minimis() -> dict[str, float]:
+    """`{fuel: kWh per day}` from the regulation commons, at import.
+
+    WHY READING THE COMMONS IS NOT A WALL CROSSING. `docs/domain_artefact_library/` is the
+    regulation commons: the published record, readable by every lane, because it is published in
+    reality. Same doctrine and same shape as `company/crm/market_conditions._load_published_rate_pct`
+    and `company/regulatory/ro_commons`. What stays owned per lane is the READING -- here, that a
+    supply AT the limit is reduced-rated and only one ABOVE it is standard-rated.
+
+    RAISES ON EVERY FAILED READ, and never returns a default. A VAT threshold that quietly falls
+    back to a hard-coded number is the exact defect this replaces: the fallback is what let one
+    fuel's limit stand in for both for as long as nobody looked.
+    """
+    if not _VAT_DE_MINIMIS_COMMONS.exists():
+        raise FileNotFoundError(
+            f"VAT de minimis commons missing: {_VAT_DE_MINIMIS_COMMONS}. VAT Notice 701/19 is "
+            "required to decide a business supply's rate; there is no invented default."
+        )
+    raw = json.loads(_VAT_DE_MINIMIS_COMMONS.read_text())
+    table = raw.get("de_minimis_by_fuel")
+    if not isinstance(table, dict) or not table:
+        raise ValueError(f"{_VAT_DE_MINIMIS_COMMONS} publishes no `de_minimis_by_fuel`")
+    out = {}
+    for fuel, entry in table.items():
+        limit = entry.get("kwh_per_day") if isinstance(entry, dict) else None
+        if not isinstance(limit, (int, float)) or limit <= 0:
+            raise ValueError(
+                f"{_VAT_DE_MINIMIS_COMMONS} carries no usable `kwh_per_day` for {fuel!r}"
+            )
+        out[fuel] = float(limit)
+    return out
+
+
 VAT_RATE_BY_MARKET: dict[str, float] = {
     "resi": 0.05,
     "SME": 0.05,
     "I&C": 0.20,
 }
 
-SME_VAT_THRESHOLD_KWH_PER_DAY = 33.0
+#: THE VAT DE MINIMIS, PER FUEL, AND THE TWO FUELS ARE NOT THE SAME NUMBER.
+#: Source: VAT Notice 701/19 (HMRC), electricity §5.2 "not more than an average rate of 33
+#: kilowatt hours per day", gas §4.2 "not more than an average rate of 5 therms or 145 kilowatt
+#: hours per day". Filed in the commons at
+#: `docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json`, which is the
+#: authority; these are read from it at import so the two cannot drift apart.
+#:
+#: THIS USED TO BE ONE NUMBER, 33.0, APPLIED TO BOTH FUELS. Gas is 145 kWh/day -- 4.39x higher --
+#: so every SME gas leg between 33 and 145 kWh/day was charged the standard rate where the law
+#: says reduced. A supplier under-charging VAT owes HMRC the difference; a supplier OVER-charging
+#: it has taken money from a customer it was not entitled to, which is the direction this was
+#: wrong in.
+SME_VAT_DE_MINIMIS_KWH_PER_DAY: dict[str, float] = _load_de_minimis()
+
+#: Kept as the electricity figure under its old name because it is imported elsewhere, and
+#: DERIVED from the table above rather than restated, so it cannot become a second answer.
+SME_VAT_THRESHOLD_KWH_PER_DAY = SME_VAT_DE_MINIMIS_KWH_PER_DAY["electricity"]
 
 
 @dataclass(frozen=True)
@@ -123,8 +181,30 @@ def _days_in_period(start: str, end: str) -> int:
         return 30
 
 
-def _sme_vat_rate(daily_kwh: float) -> float:
-    return 0.20 if daily_kwh > SME_VAT_THRESHOLD_KWH_PER_DAY else 0.05
+def _sme_vat_rate(daily_kwh: float, fuel: str) -> float:
+    """The VAT rate for one business fuel leg, on that FUEL's own de minimis limit.
+
+    `fuel` is required and has no default. A default would re-create the defect this replaces --
+    a gas leg silently tested against electricity's 33 kWh/day when the law says 145 -- and the
+    caller already knows which fuel it is holding, so there is nothing to infer.
+
+    REFUSES AN UNKNOWN FUEL rather than falling back. Refusing to bill is safe; billing a supply
+    at a rate no published limit supports is a legal error either way it lands, and the guard is
+    keyed to the commons rather than to a list written here, so a fuel added to the artefact
+    becomes billable without this function changing.
+    """
+    limit = SME_VAT_DE_MINIMIS_KWH_PER_DAY.get(fuel)
+    if limit is None:
+        raise ValueError(
+            f"no VAT de minimis limit published for fuel {fuel!r}: "
+            f"{sorted(SME_VAT_DE_MINIMIS_KWH_PER_DAY)} are the fuels VAT Notice 701/19 carries in "
+            f"{_VAT_DE_MINIMIS_COMMONS.name}. Refusing to choose a rate rather than defaulting to "
+            "another fuel's threshold."
+        )
+    # AT the limit is reduced-rated: the notice says "not more than an average rate of", so the
+    # comparison is strictly-greater and this is the lane's reading of the published words, stated
+    # rather than left in an operator.
+    return VAT_RATE_BY_MARKET["I&C"] if daily_kwh > limit else VAT_RATE_BY_MARKET["resi"]
 
 
 def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSection:
@@ -150,7 +230,7 @@ def _invoice_to_section(inv: dict, fuel: str, market_type: str) -> FuelBillSecti
         vat_rate = round(vat / subtotal, 4) if subtotal > 0 else 0.05
     else:
         if market_type == "SME" and days > 0:
-            vat_rate = _sme_vat_rate(kwh / days)
+            vat_rate = _sme_vat_rate(kwh / days, fuel)
         else:
             vat_rate = VAT_RATE_BY_MARKET.get(market_type, 0.05)
         vat = round(subtotal * vat_rate, 2)

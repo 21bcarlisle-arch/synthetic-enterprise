@@ -1,0 +1,42 @@
+{
+  "artefact": "vat_fuel_and_power_de_minimis",
+  "version": 1,
+  "published_by": "HM Revenue & Customs",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The de minimis quantity limits below which a supply of fuel and power to BUSINESS premises is eligible for the reduced rate of VAT. Nothing here interprets the law: no segment mapping, no billing-period averaging rule, no fallback for an unknown fuel. Those are READINGS and each lane owns its own.",
+  "source": {
+    "document": "VAT Notice 701/19: Fuel and power",
+    "url": "https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119",
+    "last_updated_on_the_page": "2025-02-05",
+    "fetched": "2026-08-31",
+    "sections": {
+      "electricity": "5.2",
+      "gas": "4.2"
+    }
+  },
+  "the_rule_in_one_sentence": "A supply to business premises at or below the fuel's de minimis rate is charged at the reduced rate; above it, the standard rate. Domestic supply is the reduced rate regardless of quantity.",
+  "de_minimis_by_fuel": {
+    "electricity": {
+      "kwh_per_day": 33.0,
+      "kwh_per_month": 1000.0,
+      "quoted": "supplies of not more than an average rate of 33 kilowatt hours per day, 1,000 kilowatt hours per month",
+      "section": "5.2"
+    },
+    "gas": {
+      "kwh_per_day": 145.0,
+      "therms_per_day": 5.0,
+      "kwh_per_month": 4397.0,
+      "therms_per_month": 150.0,
+      "quoted": "supplies of not more than an average rate of 5 therms or 145 kilowatt hours per day, 150 therms or 4,397 kilowatt hours per month",
+      "section": "4.2"
+    }
+  },
+  "the_limits_are_NOT_the_same_for_the_two_fuels": "Gas is 145 kWh/day and electricity is 33 kWh/day -- a factor of 4.39. A single threshold applied to both fuels charges an SME gas account the standard rate across the whole 33-145 kWh/day band where the law says reduced. That is what `company/billing/dual_fuel_bill._sme_vat_rate` did until 2026-08-31, and it is the reason this artefact exists.",
+  "domestic_is_unconditional": "Supplies of fuel and power for genuine domestic use are eligible for the reduced rate with no quantity test at all. A de minimis check applied to a domestic account is not merely redundant, it is a different rule.",
+  "rates_are_NOT_IN_THIS_ARTEFACT_AND_THAT_IS_DELIBERATE": "Notice 701/19 names 'the reduced rate' and 'the standard rate' and does not state either percentage -- it points at https://www.gov.uk/vat-rates. Copying 0.05 and 0.20 in here would attach this artefact's citation to figures it does not carry, which is how an unsourced number acquires a source it never had. The percentages need their own artefact against their own page.",
+  "NOT_ESTABLISHED_declared_rather_than_assumed": [
+    "Whether the de minimis AMOUNTS moved at any point across 2016-2025. The page records that the guidance section on de minimis quantities was updated on 2022-05-16, which is a change to the GUIDANCE and is not evidence that the figures changed. Anything in this repository modelling a year before 2025 is using today's limits for that year, and that is a simplification nobody has yet checked.",
+    "The averaging rule the 'average rate per day' is computed over -- billing period, month, or a rolling window. This artefact carries the limit; the reading that decides what to average is the lane's."
+  ],
+  "r13_wall": "BASELINE. This is external published law, not a curriculum value. It does not change because a company result looks wrong.",
+  "portability": "Any lane may read this. A lane needing a VAT RATE needs a different artefact; this one answers only 'which side of the de minimis is this supply on'."
+}
