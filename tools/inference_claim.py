@@ -33,11 +33,43 @@ THE RULE, AS THREE CLAIMS THAT ARE NOT THE SAME CLAIM:
      clears the interval a random signal produces on this many decisions (also necessary --
      otherwise the measurement cannot be told from chance). Independence is the first leg alone
      and was being read as the whole thing.
-  3. A LARGE GAP IS NOT A LARGE RESULT. The company sits outside the published band in 8 of 10
-     years, by up to 17.3pp. That is independence and inaccuracy at once: the gap it produces is
-     as likely to be the company being wrong as the company knowing something. Any surface that
-     quotes the gap carries that clause, because "the company's estimator differs from the world"
-     and "the company's estimator is bad" produce the same number.
+  3. A LARGE GAP IS NOT A LARGE RESULT, AND IT IS NOT AN ACCURACY READING EITHER. Wherever the
+     company sits outside the published band, a reader must not take the SIZE of the distance as
+     the size of anything -- not as the size of an error, and not as the size of an insight.
+
+     THIS CLAUSE WAS AN ACCURACY CLAIM UNTIL 2026-08-31 AND IT WAS COMPARING TWO DIFFERENT
+     QUANTITIES. It read "independence and inaccuracy at once: the gap is as likely to be the
+     company being wrong as the company knowing something". That reading requires the company's
+     number and the band to count the same thing. They do not.
+     `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md` settles it: the company's
+     acted belief is `prior x ratio ** w`, where the ratio is realised over predicted departures
+     on ONE SUPPLIER'S OWN BOOK at w = 0.82-0.89 -- so the LEVEL of that number is a book level,
+     while the published band is a market level. Supplier churn is roughly the market switching
+     rate times that supplier's retention RELATIVE to the market, and the update carries no term
+     that could separate the two. A sticky book in a competitive year sits far outside the band
+     without being wrong about anything.
+
+     So the distance is reported as a DISTANCE, `accuracy_reading_available` is False with its
+     reason, and the prose names both populations. The withdrawal is the fail-closed direction
+     even though it is also the flattering one: the page does not gain an accuracy reading, it
+     loses the ability to make one, and there is no other comparison available that would give it
+     back. See `record_distance` below.
+
+     NO COUNT IS WRITTEN HERE, and that is a separate correction. This paragraph once read
+     "outside the band in 8 of 10 years, by up to 17.3pp" -- a measurement of the hand-authored
+     multiplier table, stated in the present tense. That table was replaced on 2026-08-31
+     (`company/crm/market_conditions` now loads the absolute rate from the commons) and the
+     company leg was then repointed from the prior to the posterior it actually prices on, and
+     the sentence outlived both. The count is computed live in `record_distance` below from
+     whatever the guard reads today; a prose copy of it is a second source for one figure and
+     the stale one is always the one a reader quotes.
+
+  WHAT THIS DOES NOT TOUCH: leg 1, INDEPENDENCE. The band test behind it is a PROVENANCE test --
+  "is this side's series the record?" -- and the posterior IS the record exactly when the book
+  adds nothing (ratio 1 or w 0 gives posterior = prior). Only the company's own realised
+  departures can move it off, and those are not in the record. Sitting outside the band therefore
+  still demonstrates the number carries information the record does not, which needs no
+  commensurability. It never demonstrated the number was wrong, which does.
 
 FAIL-CLOSED, ON BOTH LEGS. A missing skill reading, an absent null spread, an unreadable
 artefact and an undecidable side all resolve to `None`, and `None` never satisfies leg 2 --
@@ -136,13 +168,35 @@ def _independence(provenance: dict | None) -> bool | None:
     return not co
 
 
-def accuracy_clause(provenance: dict | None) -> dict:
-    """WHAT INDEPENDENCE COSTS, computed from the same record independence was computed from.
+#: WHY THE DISTANCE IS NOT AN ERROR, held as a constant so no branch can render the distance
+#: without it and no edit can soften it to "may not be" while the flag beside it says False.
+#: The argument is in `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.
+NOT_AN_ACCURACY_READING = (
+    "the company's acted belief is this BOOK's departure hazard and the published band is the GB "
+    "MARKET's switching rate, which are two different quantities. A supplier that retains better "
+    "than average sits far outside the band without being wrong about anything, and the update "
+    "carries no term separating how competitive the market is from how retainable this book is"
+)
 
-    Independence and accuracy are opposite readings of one measurement here: the company's table
-    is independent BECAUSE it is nowhere near the published record. A surface that reports the
-    first without the second lets a reader take the size of the gap as the size of the insight,
-    when a company that is simply wrong produces exactly the same number.
+
+def record_distance(provenance: dict | None) -> dict:
+    """HOW FAR THE ACTED BELIEF SITS FROM THE RECORD -- a distance, and NOT an accuracy reading.
+
+    RENAMED FROM `accuracy_clause` ON 2026-08-31, and the rename IS the correction. The old
+    version read the same list of `years_outside_the_band` as evidence that the company's
+    estimator is BAD. That reading needs the company's number and the band to count the same
+    thing; the determination above establishes they do not. So the count and the worst distance
+    are still reported -- they are facts about this run and nothing is withheld -- but
+    `accuracy_reading_available` is False with its reason, and the prose says what the distance
+    is not.
+
+    THE JOB THE OLD CLAUSE DID GETS BIGGER, NOT SMALLER. It stopped a reader taking the size of
+    the gap as the size of the insight. Under the book reading the distance is evidence of
+    NEITHER error nor insight, because the two numbers count different populations, so the
+    warning now runs in both directions and the clause says so explicitly.
+
+    Computed from the same record independence was computed from, so a reader who sees one sees
+    the other's inputs.
     """
     sides = ((provenance or {}).get("sides") or {})
     company = sides.get("company") or {}
@@ -150,7 +204,8 @@ def accuracy_clause(provenance: dict | None) -> dict:
     checked = company.get("years_checked")
     if not outside:
         return {"applies": False, "years_outside": 0, "years_checked": checked,
-                "max_distance_pp": None, "clause": ""}
+                "max_distance_pp": None, "accuracy_reading_available": False,
+                "why_no_accuracy_reading": NOT_AN_ACCURACY_READING, "clause": ""}
     distances = []
     for row in outside:
         band = row.get("band_pct") or [None, None]
@@ -164,13 +219,19 @@ def accuracy_clause(provenance: dict | None) -> dict:
         "years_outside": len(outside),
         "years_checked": checked,
         "max_distance_pp": worst,
+        # ALWAYS FALSE WHILE THE COMPANY LEG READS A BOOK QUANTITY. Not a flag some branch can
+        # flip: there is no comparison available on this side of the wall that would make the
+        # company's belief scoreable for accuracy, so the honest value is a constant refusal.
+        "accuracy_reading_available": False,
+        "why_no_accuracy_reading": NOT_AN_ACCURACY_READING,
         "clause": (
-            "The company's estimator is outside the published band in {} of {} years{} -- so "
-            "this is independence and inaccuracy at once. A gap that size is as likely to be "
-            "the company being wrong as the company knowing something, and the two produce the "
-            "same number."
+            "The company's acted belief sits outside the published band in {} of {} years{}. "
+            "That distance is NOT an accuracy reading: {}. It is not evidence of insight either "
+            "-- the two numbers count different populations, so nothing about whether the "
+            "company knows anything can be read off how far apart they are."
         ).format(len(outside), checked if checked is not None else len(outside),
-                 "" if worst is None else ", by up to {:.1f}pp".format(worst)),
+                 "" if worst is None else ", by up to {:.1f}pp".format(worst),
+                 NOT_AN_ACCURACY_READING),
     }
 
 
@@ -218,7 +279,7 @@ def inference_claim(provenance: dict | None, skill: dict | None = None) -> dict:
     # can never satisfy it. `and` not `or`: independence is necessary and not sufficient, which
     # is the entire correction.
     supported = (independent is True) and (clears is True)
-    accuracy = accuracy_clause(provenance)
+    distance = record_distance(provenance)
     return {
         "rule": THE_RULE,
         "the_gap_is_a_measurement": True,
@@ -226,8 +287,11 @@ def inference_claim(provenance: dict | None, skill: dict | None = None) -> dict:
         "the_method_clears_its_null": clears,
         "publishable_as_evidence_of_skill": supported,
         "skill_reading": skill,
-        "accuracy": accuracy,
-        "sentence": _sentence(independent, clears, skill, accuracy, supported),
+        # KEYED `record_distance`, NOT `accuracy`. The old key named the reading the determination
+        # withdrew, and a consumer reading `claim["accuracy"]` would be asking a question this
+        # module no longer answers -- a KeyError there is the correct outcome, not a regression.
+        "record_distance": distance,
+        "sentence": _sentence(independent, clears, skill, distance, supported),
     }
 
 
@@ -240,13 +304,15 @@ def _interval_phrase(skill: dict) -> str:
                                 skill.get("decisions_scored"))
 
 
-def _sentence(independent, clears, skill, accuracy, supported) -> str:
+def _sentence(independent, clears, skill, distance, supported) -> str:
     """The prose, DERIVED from the flags above rather than written beside them.
 
     Every branch that mentions the method's reading mentions its interval in the same breath,
-    and every branch that is not `supported` contains the words the director specified.
+    and every branch that is not `supported` contains the words the director specified. Every
+    branch that quotes the distance to the record carries `record_distance`'s clause, which says
+    in the same sentence that the distance is not an accuracy reading.
     """
-    tail = (" " + accuracy["clause"]) if accuracy.get("applies") else ""
+    tail = (" " + distance["clause"]) if distance.get("applies") else ""
     if independent is not True:
         why = ("the two sides descend from one source, so the gap is two fits of one series"
                if independent is False else

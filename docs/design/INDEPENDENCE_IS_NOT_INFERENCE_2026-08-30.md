@@ -53,6 +53,22 @@ would have had to rediscover it. So the rule has one owner.
    the same number as one that knows something, so every surface quoting the gap carries that
    clause.
 
+   > **CORRECTED 2026-08-31, beside its subject rather than over it.** The first sentence stands;
+   > the second half of this claim was **wrong**, and so was the count. Reading the distance as
+   > *inaccuracy* requires the company's number and the band to count the same thing, and they do
+   > not: the company's acted belief is `prior × ratio ** w`, where the ratio comes from realised
+   > over predicted departures **on this supplier's own book** — a book-level departure hazard,
+   > while the band is the GB market's switching rate. A supplier that retains better than average
+   > sits far outside the band without being wrong about anything. The clause is withdrawn and the
+   > distance now publishes as a distance, with `accuracy_reading_available: false` and its reason.
+   > The **independence** leg is untouched, because that band test asks only whether this side's
+   > series *is* the record — which needs no commensurability.
+   >
+   > The count "8 of 10 years, by up to 17.3pp" was separately stale: it measured the hand-authored
+   > multiplier table replaced on 2026-08-31, and it is now computed live rather than written down.
+   >
+   > `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.
+
 Composed from two `is True` tests and nothing else:
 
 ```python

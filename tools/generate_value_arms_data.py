@@ -914,6 +914,36 @@ def _what_would_resolve_it(decomposition: dict | None,
 #: that quietly overwrites the first correction with the second and leaves a page claiming to keep
 #: its record while keeping one entry of it.
 WITHDRAWN_CLAIMS = [{
+    "withdrawn_on": "2026-08-31",
+    "the_words": ("The company's estimator is outside the published band in 4 of 6 years, by up "
+                  "to 16.5pp -- so this is independence and inaccuracy at once. A gap that size "
+                  "is as likely to be the company being wrong as the company knowing something, "
+                  "and the two produce the same number."),
+    "why": ("It read one measurement as an ACCURACY reading, and the two numbers in it do not "
+            "count the same thing. The company's acted belief is `prior x ratio ** w`, where the "
+            "ratio is realised over predicted departures on THIS SUPPLIER'S OWN BOOK at a weight "
+            "of 0.82-0.89 -- so the level of that number is a book level, while the published "
+            "band is the GB market's switching rate. Supplier churn is roughly the market rate "
+            "times that supplier's retention RELATIVE to the market, and the update carries no "
+            "term separating the two: 2018's 3.04% against a 19.5-20.0% band is what a sticky "
+            "book in a competitive year looks like, not a 16.5pp error. The obvious repair -- "
+            "de-bias the ratio into a market estimate -- is self-defeating, because the only "
+            "market-level quantity a real supplier observes IS the published series, so the "
+            "'market' half of the result would be that series again and the independence this "
+            "leg just earned would be spent buying back co-calibration. This is the flattering "
+            "direction and nothing replaces it: the page does not gain an accuracy reading, it "
+            "loses the ability to make one, and the distance now publishes as a distance with "
+            "`accuracy_reading_available: false`. The INDEPENDENCE leg is untouched -- that band "
+            "test asks whether this side's series IS the record, which needs no commensurability "
+            "and which only the company's own departures can move it off. "
+            "`docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`."),
+    "note": ("WITHDRAWN 2026-08-31: this page previously called the company's distance from the "
+             "published band “independence and inaccuracy at once”. It is not an accuracy "
+             "reading — the company's belief is this book's departure hazard and the band is the "
+             "market's switching rate, and a supplier that retains better than average sits far "
+             "outside the band without being wrong. The distance still publishes, as a distance; "
+             "no accuracy reading replaces it, and none is available on this side of the wall."),
+}, {
     "withdrawn_on": "2026-08-30",
     "the_words": ("Below 0.50 means the company's own belief about who will leave ranks customers "
                   "worse than a coin flip. An estimator that cannot rank cannot select "
@@ -1298,6 +1328,10 @@ def _inference_claim() -> dict:
             "sides_are_independent": None,
             "the_method_clears_its_null": None,
             "publishable_as_evidence_of_skill": False,
+            # PRESENT AND NULL, never absent. A door leg asks whether the counts a reader sees
+            # have a machine-readable companion; a missing key and an unreachable guard would
+            # look identical to it, and only one of those is a defect.
+            "record_distance": None,
         }
     return {
         "available": True,
@@ -1312,7 +1346,16 @@ def _inference_claim() -> dict:
         "sides_are_independent": claim["sides_are_independent"],
         "the_method_clears_its_null": claim["the_method_clears_its_null"],
         "publishable_as_evidence_of_skill": claim["publishable_as_evidence_of_skill"],
-        "accuracy_clause": (claim.get("accuracy") or {}).get("clause") or None,
+        # THE WHOLE DICT, NOT THE PROSE OFF THE FRONT OF IT. Until 2026-08-31 this line read
+        # `(claim.get("accuracy") or {}).get("clause")`, so `inference_claim.accuracy` published
+        # as `null` while the derived sentence beside it carried live counts. A figure a reader
+        # can see and nothing downstream can check is the shape this project keeps paying for:
+        # the counts had no machine-readable companion, so no door, no drift check and no
+        # consumer could tell whether the sentence's numbers were the guard's numbers.
+        # `record_distance` carries `years_outside`, `years_checked`, `max_distance_pp` and the
+        # `accuracy_reading_available: False` refusal with its reason, so the flag a machine
+        # reads and the clause a human reads come from one object.
+        "record_distance": claim.get("record_distance"),
         "what_it_is": (
             "Whether the gap between what the company believed about departures and what the "
             "world delivered may be quoted as evidence that the company INFERRED something. Two "

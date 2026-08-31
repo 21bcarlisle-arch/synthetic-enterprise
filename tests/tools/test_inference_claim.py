@@ -23,10 +23,16 @@ WHAT EACH TEST HERE NAMES AS ITS OWN DEFECT (CONTROLS_THAT_CANNOT_FAIL):
   * `test_no_sentence_names_the_reading_without_its_interval` — the second condition: the gap and
     the skill claim "must not appear in one sentence without the null interval beside them". A
     bare 0.614 reads as a result; 0.614 against 0.283-0.717 reads as what it is.
-  * `test_independence_is_reported_WITH_the_inaccuracy_that_produced_it` — the defect where a
+  * `test_independence_is_reported_WITH_the_distance_that_produced_it` — the defect where a
     reader takes the size of the gap for the size of the insight. The company is outside the
-    published band in 8 of 10 years; that is WHY it is independent, and a company that is simply
-    wrong produces the same number as one that knows something.
+    published band in 8 of 10 years; that is WHY it is independent.
+  * `test_the_distance_is_NOT_published_as_an_accuracy_reading` — the 2026-08-31 determination.
+    That same distance was ALSO being read as an error, and the two numbers do not count the same
+    thing: the company's belief is this book's departure hazard, the band is the GB market's
+    switching rate. Keyed to the property, not to today's counts.
+  * `test_the_INDEPENDENCE_leg_is_untouched_by_the_withdrawal` — the paired control, because one
+    list of years now answers one question and refuses the other, and the obvious over-correction
+    is to let the refusal swallow both.
 
 R15 MUTATIONS, each applied in place and reverted, with the OBSERVED result recorded:
   * `inference_claim`: `and` -> `or` in the composition -> **4 red**, the two named cases plus
@@ -47,7 +53,27 @@ R15 MUTATIONS, each applied in place and reverted, with the OBSERVED result reco
   * `_interval_phrase`: return only `"{:.3f}".format(concordance)` -> **1 red**
     (`..._no_sentence_names_the_reading_without_its_interval`).
   * `_sentence`: `tail = ""` unconditionally -> **1 red**
-    (`..._independence_is_reported_WITH_the_inaccuracy_that_produced_it`).
+    (`..._independence_is_reported_WITH_the_distance_that_produced_it`), plus 1 more after the
+    2026-08-31 determination (`..._the_distance_is_NOT_published_as_an_accuracy_reading`, which
+    reads the withdrawn wording out of the prose).
+  * `record_distance`: `"accuracy_reading_available": False` -> `True` -> **3 red**
+    (`..._the_distance_is_NOT_published_as_an_accuracy_reading`,
+    `..._a_company_ON_the_record_carries_no_distance_clause`,
+    `..._the_INDEPENDENCE_leg_is_untouched_by_the_withdrawal`).
+  * `record_distance`: clause reverted to the withdrawn "independence and inaccuracy at once"
+    wording -> **1 red** (`..._the_distance_is_NOT_published_as_an_accuracy_reading`). TWO were
+    predicted, on the reasoning that `..._a_company_ON_the_record_carries_no_distance_clause` also
+    refuses the word "inaccuracy". The prediction was WRONG and the reason is worth keeping: that
+    control runs at `years_outside=0`, where `applies` is False and the clause is the empty
+    string, so no wording of the clause can reach it. It guards the DISAPPEARANCE of the clause,
+    not its content, and one control covers each.
+  * `NOT_AN_ACCURACY_READING`: the clause naming the two populations stripped out of it ->
+    **0 red on the first pass**, and it is a MISSING TEST rather than an equivalence — the mutant
+    genuinely lost the sentence that says which two quantities were being confused, and the
+    control stayed green because the constant's closing phrase still carried the words "book" and
+    "market". The assertion was strengthened to pin the claim ("two different quantities") rather
+    than the vocabulary, and the mutation now fires **1 red**
+    (`..._the_distance_is_NOT_published_as_an_accuracy_reading`).
 """
 from __future__ import annotations
 
@@ -215,26 +241,102 @@ def test_no_sentence_names_the_reading_without_its_interval():
                     f"independent={independent}, clears={clears} branch: {sentence}")
 
 
-def test_independence_is_reported_WITH_the_inaccuracy_that_produced_it():
+def test_independence_is_reported_WITH_the_distance_that_produced_it():
     """The company is outside the published band in 8 of 10 years, and that is WHY it is
     independent. A surface that reports the first without the second lets a reader take the size
-    of the gap for the size of the insight."""
+    of the gap for the size of the insight.
+
+    RENAMED FROM `..._WITH_the_inaccuracy_that_produced_it` on 2026-08-31: the distance is still
+    reported with the independence it produced, but it is no longer an accuracy reading. See
+    `..._the_distance_is_NOT_published_as_an_accuracy_reading` below for the half that changed.
+    """
     claim = ic.inference_claim(_provenance(co_calibrated=False, years_outside=8),
                                _skill(clears=False))
 
-    accuracy = claim["accuracy"]
-    assert accuracy["applies"] is True
-    assert accuracy["years_outside"] == 8
-    assert accuracy["max_distance_pp"] == pytest.approx(17.34)
+    distance = claim["record_distance"]
+    assert distance["applies"] is True
+    assert distance["years_outside"] == 8
+    assert distance["max_distance_pp"] == pytest.approx(17.34)
     assert "8 of 10" in claim["sentence"]
-    assert "as likely to be the company being wrong" in claim["sentence"]
 
 
-def test_a_company_ON_the_record_carries_no_inaccuracy_clause():
+def test_the_distance_is_NOT_published_as_an_accuracy_reading():
+    """THE DETERMINATION, AS A CONTROL. The company's belief is this book's departure hazard; the
+    published band is the GB market's switching rate. The distance between them is a distance and
+    nothing else — not an error, and not evidence of insight either.
+
+    Fires on: restoring the withdrawn "independence and inaccuracy at once" clause, flipping
+    `accuracy_reading_available` to True, or dropping the reason so the refusal stops naming the
+    two populations it turns on. Keyed to the PROPERTY (this comparison cannot yield an accuracy
+    reading), not to today's counts, so it stays red if the company's estimator moves and stays
+    green when the numbers change honestly.
+
+    `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.
+    """
+    claim = ic.inference_claim(_provenance(co_calibrated=False, years_outside=8),
+                               _skill(clears=False))
+    distance = claim["record_distance"]
+    sentence = claim["sentence"]
+
+    assert distance["accuracy_reading_available"] is False
+    # The refusal NAMES BOTH POPULATIONS AND SAYS THEY ARE DIFFERENT. A refusal that does not say
+    # which two quantities were being confused is one nobody can find to be wrong.
+    #
+    # THE FIRST DRAFT OF THIS ASSERTION WAS `"book" in why and "market" in why` AND IT DID NOT
+    # FIRE. Stripping the naming clause out of `NOT_AN_ACCURACY_READING` left its closing
+    # phrase — "how competitive the market is from how retainable this book is" — carrying both
+    # words, so the control could not tell "names the two populations" from "mentions the two
+    # nouns". A missing test, not an equivalence: the mutant genuinely lost the sentence. The
+    # assertion below pins the CLAIM (these are two different quantities) rather than its
+    # vocabulary.
+    why = distance["why_no_accuracy_reading"].lower()
+    assert "book" in why and "market" in why
+    assert "two different quantities" in why
+
+    # The withdrawn reading is gone from the prose, in both directions it could be taken.
+    assert "inaccuracy" not in sentence
+    assert "as likely to be the company being wrong" not in sentence
+    # And the warning it carried is still there, now running both ways.
+    assert "NOT an accuracy reading" in sentence
+    assert "not evidence of insight either" in sentence
+
+
+def test_a_company_ON_the_record_carries_no_distance_clause():
     """The other half: the clause is COMPUTED from the years, not asserted, so it disappears by
-    itself if the company's estimator ever lands on the record."""
+    itself if the company's estimator ever lands on the record. The refusal does NOT disappear
+    with it -- there is still no accuracy reading available, there is simply no distance to
+    report -- which is why `accuracy_reading_available` is asserted on this branch too."""
     claim = ic.inference_claim(_provenance(co_calibrated=False, years_outside=0),
                                _skill(clears=True))
 
-    assert claim["accuracy"]["applies"] is False
+    assert claim["record_distance"]["applies"] is False
+    assert claim["record_distance"]["accuracy_reading_available"] is False
     assert "inaccuracy" not in claim["sentence"]
+
+
+def test_the_INDEPENDENCE_leg_is_untouched_by_the_withdrawal():
+    """The determination withdrew the accuracy reading and left the provenance reading standing,
+    and the two are taken from the SAME list of years. This pins that the withdrawal did not
+    quietly take independence with it.
+
+    Fires on: making `_independence` depend on `record_distance`, or on any repair that decides
+    "if the distance means nothing then being off the band means nothing". The band test asks
+    whether this side's series IS the record — which needs no commensurability, because the
+    posterior equals the record exactly when the book adds nothing.
+    """
+    claim = ic.inference_claim(_provenance(co_calibrated=False, years_outside=8),
+                               _skill(clears=False))
+    assert claim["sides_are_independent"] is True
+    assert claim["record_distance"]["accuracy_reading_available"] is False
+
+
+def test_the_OLD_accuracy_key_is_GONE_rather_than_kept_beside_the_new_one():
+    """A withdrawn reading kept under its old key is a second source for one figure, and the
+    stale one is always the one a reader quotes. The key is removed so a consumer still asking
+    for `accuracy` gets a KeyError rather than a plausible dict.
+
+    Fires on: reinstating `accuracy` as an alias for backwards compatibility.
+    """
+    claim = ic.inference_claim(_provenance(co_calibrated=False, years_outside=8),
+                               _skill(clears=False))
+    assert "accuracy" not in claim

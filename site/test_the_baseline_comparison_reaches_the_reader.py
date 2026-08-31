@@ -1847,6 +1847,49 @@ def test_the_page_prints_the_verdict_it_is_GIVEN_and_never_one_it_composes(live)
         "the page printed the live branch's wording over a driven verdict that says the opposite")
 
 
+def test_the_counts_a_reader_SEES_have_a_machine_readable_companion_beside_them():
+    """THE PROSE FIGURE AND ITS STRUCTURED FORM, on the same published surface.
+
+    Until 2026-08-31 `tools/generate_value_arms_data._inference_claim` published only the CLAUSE
+    off the front of the distance reading, so `inference_claim.accuracy` read `null` in the feed
+    while the sentence a reader gets carried live counts ("4 of 6 years, by up to 16.5pp"). A
+    figure a reader can see and nothing downstream can check is the shape this project keeps
+    paying for: no door, no drift check and no consumer could establish that the sentence's
+    numbers were the guard's numbers, so the sentence was the only source for its own figures.
+
+    THE KEY IS ASSERTED PRESENT EVEN WHEN NULL, and that is the fail-closed half. An unreachable
+    guard publishes `record_distance: None` with the reason in `why`; a publisher that dropped the
+    block publishes nothing. Those are different facts and only one is a defect, so a missing key
+    is the failure and a null value on an unavailable claim is not.
+
+    Fires on: reverting the publisher to `...get("clause")`, or renaming the key without moving
+    the reader-facing counts with it.
+    `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.
+    """
+    claim = _live_feed().get("inference_claim") or {}
+    assert "record_distance" in claim, (
+        "the published feed carries no `inference_claim.record_distance`, so the counts in the "
+        "rendered sentence have no machine-readable companion and nothing can check them")
+    if not claim.get("available"):
+        assert claim["record_distance"] is None
+        return
+    distance = claim["record_distance"]
+    assert isinstance(distance, dict), (
+        "`record_distance` published as {!r} on an AVAILABLE claim -- an available guard that "
+        "cannot say how far the belief sits from the record is not available".format(distance))
+    # THE REFUSAL TRAVELS WITH THE NUMBERS. A consumer that reads `years_outside` and
+    # `max_distance_pp` without `accuracy_reading_available` beside them would reconstruct exactly
+    # the reading the 2026-08-31 determination withdrew.
+    assert distance["accuracy_reading_available"] is False
+    assert distance.get("why_no_accuracy_reading")
+    if distance.get("applies"):
+        # And the structured counts ARE the counts in the prose, not a second source for them.
+        assert "{} of {}".format(distance["years_outside"], distance["years_checked"]) in \
+            claim["sentence"], (
+            "the sentence's counts and the structured companion disagree, which is the two-source "
+            "defect the companion was published to close")
+
+
 def test_the_verdict_SURVIVES_a_run_that_carries_no_method_skill_reading():
     """THE FAIL-OPEN THE OBVIOUS PLACEMENT WOULD HAVE CREATED.
 
