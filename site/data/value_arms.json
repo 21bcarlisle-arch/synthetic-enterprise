@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T13:22:52.340068Z",
+  "generated_at": "2026-08-31T23:40:24.244347Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -226,10 +226,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "5ccc0e0c86ff5be0f17b7c65cee0f52fece100c7",
+    "publishing_tree_commit": "8c5eb966b227e03005a74c006a98e29e05575de1",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 5ccc0e0c8 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 8c5eb966b -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "book": {
     "served_segments": [
@@ -256,10 +256,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "5ccc0e0c86ff5be0f17b7c65cee0f52fece100c7",
+      "publishing_tree_commit": "8c5eb966b227e03005a74c006a98e29e05575de1",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 5ccc0e0c8 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 8c5eb966b -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -309,10 +309,10 @@
     },
     "is_the_published_supplier": {
       "checked": true,
-      "same_supplier": true,
-      "published_run_net_gbp": 145881.426457,
-      "gap_gbp": 2.240994945168495e-09,
-      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
+      "same_supplier": false,
+      "published_run_net_gbp": 131289.339938,
+      "gap_gbp": -14592.086518997763,
+      "statement": "The published run's net margin (\u00a3131,289.34) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a314,592.09. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -423,87 +423,78 @@
     "years": [
       {
         "year": 2017,
-        "world_pct": 14.0,
+        "world_pct": 15.12,
         "band_lo_pct": 13.5,
         "band_hi_pct": 14.0,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 57
+        "inside_band": false,
+        "share_of_the_band": 3.241,
+        "renewals": 20
       },
       {
         "year": 2018,
-        "world_pct": 20.0,
+        "world_pct": 25.77,
         "band_lo_pct": 19.5,
         "band_hi_pct": 20.0,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 52
+        "inside_band": false,
+        "share_of_the_band": 12.536,
+        "renewals": 20
       },
       {
         "year": 2019,
-        "world_pct": 21.3,
+        "world_pct": 28.1,
         "band_lo_pct": 20.7,
         "band_hi_pct": 21.3,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 50
+        "inside_band": false,
+        "share_of_the_band": 12.328,
+        "renewals": 16
       },
       {
         "year": 2020,
-        "world_pct": 23.0,
+        "world_pct": 38.89,
         "band_lo_pct": 22.5,
         "band_hi_pct": 23.0,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 51
+        "inside_band": false,
+        "share_of_the_band": 32.789,
+        "renewals": 18
       },
       {
         "year": 2021,
-        "world_pct": 18.4,
+        "world_pct": 23.4,
         "band_lo_pct": 17.9,
         "band_hi_pct": 18.4,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 50
-      },
-      {
-        "year": 2022,
-        "world_pct": 4.3,
-        "band_lo_pct": 2.9,
-        "band_hi_pct": 4.3,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 54
+        "inside_band": false,
+        "share_of_the_band": 10.996,
+        "renewals": 23
       },
       {
         "year": 2023,
-        "world_pct": 12.5,
+        "world_pct": 2.81,
         "band_lo_pct": 8.9,
         "band_hi_pct": 12.5,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 54
+        "inside_band": false,
+        "share_of_the_band": -1.691,
+        "renewals": 17
       },
       {
         "year": 2024,
-        "world_pct": 16.1,
+        "world_pct": 22.34,
         "band_lo_pct": 12.5,
         "band_hi_pct": 16.1,
-        "inside_band": true,
-        "share_of_the_band": 1.0,
-        "renewals": 59
+        "inside_band": false,
+        "share_of_the_band": 2.732,
+        "renewals": 17
       }
     ],
-    "years_inside_the_band": 8,
-    "years_compared": 8,
-    "all_inside_the_band": true,
-    "world_mean_pct": 16.2,
-    "published_midpoint_mean_pct": 15.5,
-    "mean_share_of_the_band": 1.0,
+    "years_inside_the_band": 0,
+    "years_compared": 7,
+    "all_inside_the_band": false,
+    "world_mean_pct": 22.35,
+    "published_midpoint_mean_pct": 17.2,
+    "mean_share_of_the_band": 10.419,
     "denominator": "EXTERNAL changes of supplier on a GB domestic electricity meter point, over all GB domestic electricity accounts. Both sides count the same pair; a per-renewal denominator is a different quantity and reads about a third high.",
     "measured_by": "tools/measure_departure_level.py",
     "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
-    "statement": "Over the 8 years this run can be compared on, the world's own departures averaged 16.20% of electricity accounts a year against a published GB record averaging 15.50%. Each year is judged against its OWN published band, never against that average, and all 8 sit INSIDE it. They sit on average 100% of the way UP their own bands, which is the anti-flattering end -- the record's own tie-break is to take the level that makes this company's advantage harder to demonstrate. The figures below are therefore not flattered by a world that is easier to hold a customer in than the real one. This is a property of this run, checked at publish time, and not a promise about the next."
+    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 22.35% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.30x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor."
   },
   "method_skill": {
     "available": true,
@@ -584,6 +575,61 @@
       "clause": "The company's acted belief sits outside the published band in 4 of 6 years, by up to 16.5pp. That distance is NOT an accuracy reading: the company's acted belief is this BOOK's departure hazard and the published band is the GB MARKET's switching rate, which are two different quantities. A supplier that retains better than average sits far outside the band without being wrong about anything, and the update carries no term separating how competitive the market is from how retainable this book is. It is not evidence of insight either -- the two numbers count different populations, so nothing about whether the company knows anything can be read off how far apart they are."
     },
     "what_it_is": "Whether the gap between what the company believed about departures and what the world delivered may be quoted as evidence that the company INFERRED something. Two necessary legs: the two sides arrived at independently, AND the method's own ranking clearing the interval a random signal produces."
+  },
+  "svt_drift_belief": {
+    "available": true,
+    "why": null,
+    "route": "the standard variable tariff",
+    "decisions": 1266,
+    "departures": 50,
+    "ceiling": 0.6091441315862838,
+    "ceiling_null_low": 0.4159464733760803,
+    "ceiling_null_high": 0.585029272372456,
+    "ceiling_clears": true,
+    "arms": [
+      {
+        "field": "company_svt_drift_estimate",
+        "label": "The belief",
+        "what_it_is": "years on SVT, cap-period length, and the company's own payment record",
+        "is_the_belief": true,
+        "per_exposure_day": 0.5482297184276554,
+        "null_95_low": 0.4124616671313075,
+        "null_95_high": 0.5865625871201561,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.548 sits inside the 0.412\u20130.587 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.034606398104265405,
+        "realised_rate": 0.03949447077409163
+      },
+      {
+        "field": "company_svt_drift_estimate_calendar_only",
+        "label": "Held-out arm",
+        "what_it_is": "the same belief with the payment record withheld \u2014 what v1 read, re-derived on these same rows rather than quoted from an earlier run",
+        "is_the_belief": false,
+        "per_exposure_day": 0.46912461667131305,
+        "null_95_low": 0.4164343462503485,
+        "null_95_high": 0.5833565653749652,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.469 sits inside the 0.416\u20130.583 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.03326903633491311,
+        "realised_rate": 0.03949447077409163
+      },
+      {
+        "field": "company_svt_drift_estimate_payment_only",
+        "label": "Payment record alone",
+        "what_it_is": "the new term on its own, with the calendar band held out",
+        "is_the_belief": false,
+        "per_exposure_day": 0.5114998606077502,
+        "null_95_low": 0.4130889322553666,
+        "null_95_high": 0.5824505157513242,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.511 sits inside the 0.413\u20130.582 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.03905315955766193,
+        "realised_rate": 0.03949447077409163
+      }
+    ],
+    "sentence": "On whether this reading orders who leaves, we cannot tell: 0.548 sits inside the 0.412\u20130.587 a signal carrying no information reaches on 1266 decisions.",
+    "what_it_is": "Whether the company's belief about departures from the standard variable tariff ORDERS them \u2014 does it put the accounts that left above the ones that stayed. The ceiling is the world's own hazard scored the same way on the same rows: it is what a perfect reader of this world would get, so the gap between the two is how much of this world's signal the company is not finding.",
+    "why_per_exposure_day": "Cap segments run from 1 to 92 days, so a belief that simply ran longer would appear to discriminate. Every figure here is divided by the days it was exposed for; the uncorrected readings in the artefact are superseded and are not quoted."
   },
   "household": {
     "available": true,
@@ -1202,5 +1248,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
 }

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-31T13:22:47Z",
-  "portfolio_as_of": "2026-08-31T13:22:44Z",
-  "active_customers": 142,
+  "generated_at": "2026-08-31T23:40:19Z",
+  "portfolio_as_of": "2026-08-31T23:40:17Z",
+  "active_customers": 140,
   "projection_months": 12,
   "scenarios": {
     "base": {
@@ -13,7 +13,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -23,6 +22,7 @@
         "PROS-2020-0249",
         "PROS-2020-0347",
         "PROS-2020-0347g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0288",
         "PROS-2021-0288g",
@@ -53,12 +53,12 @@
         "PROS-2024-0349",
         "PROS-2024-0349g",
         "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -71,7 +71,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -81,6 +80,7 @@
         "PROS-2020-0249",
         "PROS-2020-0347",
         "PROS-2020-0347g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0288",
         "PROS-2021-0288g",
@@ -111,12 +111,12 @@
         "PROS-2024-0349",
         "PROS-2024-0349g",
         "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -129,7 +129,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -139,6 +138,7 @@
         "PROS-2020-0249",
         "PROS-2020-0347",
         "PROS-2020-0347g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0288",
         "PROS-2021-0288g",
@@ -169,12 +169,12 @@
         "PROS-2024-0349",
         "PROS-2024-0349g",
         "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -187,7 +187,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -197,6 +196,7 @@
         "PROS-2020-0249",
         "PROS-2020-0347",
         "PROS-2020-0347g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0288",
         "PROS-2021-0288g",
@@ -227,19 +227,19 @@
         "PROS-2024-0349",
         "PROS-2024-0349g",
         "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": -10346.64,
-    "bear": 20693.28,
-    "crisis": 33928.86
+    "bull": -9355.35,
+    "bear": 18710.69,
+    "crisis": 29628.02
   }
 }

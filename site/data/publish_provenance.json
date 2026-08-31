@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-31T10:04:42Z",
+    "checked_at": "2026-08-31T23:22:41Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_derived_artefact_register.py::TestCompleteness::test_completeness_is_clean_again_once_the_mutant_is_gone",
-      "FAILED tests/background/test_staging_rooms.py::test_no_LIVE_reference_or_console_document_exists_ONLY_in_the_root",
-      "FAILED tests/simulation/test_renewals.py::test_multiple_terms_all_have_notice_date",
-      "FAILED tests/simulation/test_renewals_approval_routing.py::test_outcome_neutral_tariff_identical_with_and_without_approval_wiring",
-      "FAILED tests/simulation/test_renewals_approval_routing.py::test_non_routine_move_is_routed_through_submit_resolve_with_real_latency",
-      "FAILED tests/simulation/test_renewals_approval_routing.py::test_non_routine_move_shows_pending_on_the_human_operable_queue_mid_flight"
+      "FAILED tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py::test_no_tree_scanning_test_passes_on_an_empty_population",
+      "FAILED tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band",
+      "FAILED tests/architecture/test_switching_rate_commons.py::test_the_instrument_prints_the_distance_to_both_band_edges_and_not_only_the_verdict",
+      "FAILED tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py::test_no_undeclared_module_names_the_svt_drift_belief",
+      "FAILED tests/background/test_doorbell_redaction.py::test_the_guard_is_wired_into_the_one_channel_he_reads",
+      "FAILED tests/background/test_doorbell_redaction.py::test_the_full_text_stays_recoverable_in_the_mirror",
+      "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_publish_commits_a_genuine_stamp",
+      "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_refusal_is_the_guards_doing"
     ],
-    "nonblocking_reds_total": 26,
-    "open_findings": 30
+    "nonblocking_reds_total": 57,
+    "open_findings": 47
   },
   "last_verified": {
-    "generated_at": "2026-08-31T13:32:35Z",
-    "git_commit": "5ccc0e0c8",
-    "run_id": "run_output_5ccc0e0c8_20260831T130500Z.json",
-    "verified_at": "2026-08-31T13:32:35Z"
+    "generated_at": "2026-08-31T23:49:13Z",
+    "git_commit": "847503708",
+    "run_id": "run_output_847503708_20260831T232342Z.json",
+    "verified_at": "2026-08-31T23:49:13Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-31T13:32:35Z",
-    "git_commit": "5ccc0e0c8",
-    "run_id": "run_output_5ccc0e0c8_20260831T130500Z.json",
-    "verified_at": "2026-08-31T13:32:35Z"
+    "generated_at": "2026-08-31T23:49:13Z",
+    "git_commit": "847503708",
+    "run_id": "run_output_847503708_20260831T232342Z.json",
+    "verified_at": "2026-08-31T23:49:13Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-31T13:32:35Z"
+  "written_at": "2026-08-31T23:49:13Z"
 }
