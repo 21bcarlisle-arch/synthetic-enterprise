@@ -274,6 +274,30 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
     Containment is judged by the instrument's own `inside_band`, at the precision the commons
     publishes its endpoints to. See that function for why a strict float comparison here was a
     coin flip and not a control.
+
+    ══ READ THIS BEFORE YOU READ A RED FROM IT. THIS CONTROL IS ONE-SIDED, AND THE ASYMMETRY
+    FAVOURS US. ══
+
+    `YEAR_LEVEL_ANCHOR` is fitted to each band's HIGH endpoint -- §6's deliberate anti-flattering
+    tie-break, and the right choice. Its unnoticed consequence is that the world sits ON the
+    ceiling in ALL TEN YEARS, so as measured 2026-08-31:
+
+      * room ABOVE the level is 0.00pp in every year. ANY upward movement fails this, of any
+        size. A +0.11pp move in the C3 arm that shifted ZERO departures -- 79 either way --
+        exits the band and reads identically to a move ten times larger.
+      * room BELOW is 0.50pp (2017) to 3.60pp (2023, 2024, 2025), i.e. year-dependent and set by
+        how wide that year's published band happens to be. So the same size of downward change is
+        caught or missed by the calendar -- and downward means FEWER departures, a stickier book,
+        which is the direction that flatters us.
+
+    So this control answers *"is the world still on its anchor"* and reads as though it answered
+    *"is the world still lawful"*. Those are different questions. A red here is a threshold
+    crossing and NOT a magnitude: go to `tools/measure_departure_level.py`, whose `room to LOW/HIGH`
+    columns give the size, before concluding anything about how far the world moved. The failure
+    message below carries those margins for the same reason.
+
+    It is stated here rather than in a finding because this docstring is where the next reader
+    hits it -- and the seat over-read exactly this red an hour after the anchor was built.
     """
     bands = _bands()
     world = _world_realised_reading()
