@@ -52,6 +52,7 @@ from tools.departure_population import (
     declare,
     declare_rows,
     load_svt_decisions,
+    svt_sibling,
     union_by_year,
 )
 from tools.fit_year_level_anchor import (
@@ -236,6 +237,67 @@ def test_an_unreadable_route_is_not_reported_as_an_empty_one():
     )
     assert absent["decisions"].get(ROUTE_SVT) is None
     assert empty["decisions"][ROUTE_SVT] == 0
+
+
+def test_a_run_with_no_svt_recorder_writes_no_sibling_rather_than_an_empty_one(tmp_path):
+    """The producer leg of the test above, and without it that test asserts a fail-open.
+
+    MUTATION: restore `result.get("svt_decisions", [])` in `tools.capture_departure_factors` and
+    the first leg fires. Proven by making that edit, 2026-08-31.
+
+    WHY THIS LEG WAS OWED. `test_an_unreadable_route_is_not_reported_as_an_empty_one` says in its
+    docstring that *"nobody was on SVT" and "the recorder was never wired" produce the identical
+    artefact* -- and then discriminates on `None` vs `[]`, which is a fact about whether a FILE
+    EXISTS. Those are only the same discriminator if the producer refuses to write a file for the
+    unwired case. It did not: it read the key with an `[]` default, so an unwired recorder wrote an
+    empty sibling, which `declare_rows` counts as coverage, which sets `covers_svt_route: true`,
+    `share_of_departures_visible: 1.0`, `causes_not_observable: []` and `warning: null` on a
+    reading that measured the SVT route not at all.
+
+    THAT IS NOT HYPOTHETICAL AT THIS HEAD. `run_phase2b` returns 63 keys and `svt_decisions` is not
+    among them, because `067a00dfd` landed the SVT product and not the SVT departure route. So
+    every capture run today takes the unwired branch, and the standing instruction to re-run
+    `tools/capture_departure_factors` would have published exactly that certification.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S WORLD. Nothing here asserts that the recorder is
+    missing. The day it lands, the second leg is the one doing the work and the first becomes
+    vacuous-but-correct -- which is the right direction for a control to age in.
+    """
+    from tools import capture_departure_factors as cap
+
+    out = tmp_path / "probe.json"
+
+    # LEG 1 -- no key at all. The run cannot say anything about the SVT route, so no file.
+    rc = cap.emit_svt_sibling({"all_records": []}, out)
+    sibling = svt_sibling(out)
+    assert rc == 0
+    assert not sibling.exists(), (
+        "a run carrying no `svt_decisions` recorder wrote an SVT sibling anyway ({} rows). An "
+        "unwired recorder and an empty book produce the same file, and the file is what every "
+        "downstream declaration reads as coverage of the route.".format(
+            len(json.loads(sibling.read_text())))
+    )
+    rows, reason = load_svt_decisions(out)
+    assert declare_rows(
+        [{"event_type": "churned"}], rows, svt_unreadable=reason)["covers_svt_route"] is False, (
+        "with no sibling written, a reading over this capture still declares it can see the SVT "
+        "route"
+    )
+
+    # LEG 2 -- the key PRESENT and empty is a measured zero, and must still be written. Without
+    # this leg the repair could be "never write the sibling", which discards a real measurement.
+    rc = cap.emit_svt_sibling({"svt_decisions": []}, out)
+    assert rc == 0 and sibling.is_file() and json.loads(sibling.read_text()) == [], (
+        "a run whose recorder RAN and found nobody on SVT wrote no sibling. That is a measured "
+        "zero and discarding it is the opposite error."
+    )
+
+    # LEG 3 -- a stale sibling beside a fresh unwired run is refused, not silently left to be
+    # joined. MUTATION: return 0 instead of 2 and this fires.
+    assert cap.emit_svt_sibling({"all_records": []}, out) == 2, (
+        "a sibling from a different run was left beside a table this run wrote, and every reader "
+        "unions the two as one capture"
+    )
 
 
 def test_the_level_anchor_refuses_to_emit_a_constant_from_a_minority_population():

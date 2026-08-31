@@ -106,6 +106,15 @@ def load_svt_decisions(table_path: Path | str) -> tuple[list[dict] | None, str |
     never wired" produce the identical artefact** and a reader must not have to tell them apart by
     inference. An EMPTY sibling that exists is returned as an empty list AND carries its own
     reason, because that too is a claim a reading should be unable to make silently.
+
+    THAT SENTENCE WAS TRUE OF THE ARTEFACT AND FALSE OF THE PRODUCER, WHICH IS WHY IT DID NOT SAVE
+    ANYONE (2026-08-31). It says the two states must not be told apart by inference -- and until
+    today `tools/capture_departure_factors` wrote the same empty file for both, because it read
+    `result.get("svt_decisions", [])`. So the discriminator this function offers (`None` vs `[]`) was
+    a fact about whether a FILE EXISTED, not about whether anything was measured, and an unwired
+    recorder landed squarely on the `[]` branch that `declare_rows` counts as coverage. The producer
+    now writes NO sibling when the run carries no recorder, which is what makes `[]` here mean what
+    the caller below assumes it means: the recorder ran, and found nobody on the product.
     """
     sib = svt_sibling(table_path)
     if not sib.is_file():
