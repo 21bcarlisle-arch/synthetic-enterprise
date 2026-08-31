@@ -220,11 +220,24 @@ _ARMED_BY = {
 
 #: What INVOKING it looks like, as opposed to importing something from it. Each of these starts a
 #: turn; none of them can be produced by reading a predicate.
+#:
+#: THE TWO PYTHON ENTRY POINTS CARRY THEIR CALL PAREN (2026-08-31), and this is the SAME refinement
+#: this list already made once, one step further. It moved from "mentions the module" to "invokes
+#: it" when `fork_salvage` and `fork_reconciler` began calling `worktree_is_live` and were reported
+#: as new schedulers. It then fired again on `background/delivery_lane.py`, whose new
+#: `hand_off_focus` docstring EXPLAINS the executor's stand-down and had to name the function it
+#: was explaining. Prose about a function is not a call to it, and a control that cannot tell those
+#: apart makes every accurate comment about this module a reason to extend an allow-list -- which
+#: is the shape the docstring above already rejects.
+#:
+#: `(` IS THE PROPERTY, not a convenience: a Python call cannot be written without it, and a
+#: mention in a sentence essentially never carries one. The subprocess forms below need no paren
+#: because a shell invocation is already unambiguous.
 _INVOCATION_PATTERNS = (
     "background.seat_executor --once",
     "background/seat_executor.py",
-    "seat_executor.run_once",
-    "seat_executor.main",
+    "seat_executor.run_once(",
+    "seat_executor.main(",
     "-m background.seat_executor",
     "seat-executor.service",
 )
