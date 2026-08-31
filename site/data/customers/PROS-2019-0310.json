@@ -2029,7 +2029,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 18% churn risk at decision time, SIM realized probability was 10%.",
       "company_belief": 0.175,
-      "sim_truth": 0.104,
+      "sim_truth": 0.105,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -2205,7 +2205,7 @@
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 55% churn risk, decided to offer a 5% discount (cost GBP63.16) against GBP522.71 expected term margin at risk -- expected value of offering GBP459.55. Comms framed as a loss (you will lose the discount).",
       "company_belief": 0.547,
-      "sim_truth": 0.085,
+      "sim_truth": 0.089,
       "amount_gbp": 459.55000000000007,
       "outcome": "churned_despite_offer",
       "framing_type": "loss_framed"
@@ -2214,9 +2214,9 @@
       "customer_id": "PROS-2019-0310",
       "date": "2021-10-08",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 55% churn risk at decision time, SIM realized probability was 8%.",
+      "description": "Renewal outcome: CHURNED -- company believed 55% churn risk at decision time, SIM realized probability was 9%.",
       "company_belief": 0.547,
-      "sim_truth": 0.085,
+      "sim_truth": 0.089,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

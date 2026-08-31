@@ -6,7 +6,34 @@
     "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
     "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
     "arrears_ledger_available": true,
-    "arrears_ledger_note": "billing ledger loaded"
+    "arrears_ledger_note": "billing ledger loaded",
+    "churn_population": {
+      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_c1b61dccc_20260831T093219Z.json",
+      "svt_source": null,
+      "routes_readable": [
+        "renewal"
+      ],
+      "covers_svt_route": false,
+      "decisions": {
+        "renewal": 144
+      },
+      "departures": {
+        "renewal": 32
+      },
+      "total_departures_visible": 32,
+      "share_of_departures_visible": null,
+      "population": "renewal decisions only",
+      "causes_observable": [
+        "bill_shock",
+        "price_position",
+        "dissatisfaction"
+      ],
+      "causes_not_observable": [
+        "svt_inertia"
+      ],
+      "svt_unreadable_reason": "this run output carries no `svt_decisions` list, so the SVT route's DENOMINATOR is unrecorded and no rate can be formed on it. Its `svt_departures` list holds 50 departures \u2014 a COUNT, in a population that was never written down.",
+      "warning": "this reading CANNOT SEE the SVT inertia route (C1b). It is the renewal-decision population only, which is no longer the whole book, and the cause it cannot see is the one `departure_risks` calls the single largest departure route in a real domestic book."
+    }
   },
   "overall_rag": "RED",
   "long_run_comparison": {
@@ -199,6 +226,10 @@
       "renewals": 1,
       "churns": 0,
       "sim_churn_rate": 0.0,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.173,
       "ofgem_benchmark_band_pct": [
         17.0,
@@ -210,6 +241,10 @@
       "renewals": 15,
       "churns": 5,
       "sim_churn_rate": 0.25,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.1375,
       "ofgem_benchmark_band_pct": [
         13.5,
@@ -221,6 +256,10 @@
       "renewals": 11,
       "churns": 9,
       "sim_churn_rate": 0.45,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.1975,
       "ofgem_benchmark_band_pct": [
         19.5,
@@ -232,6 +271,10 @@
       "renewals": 12,
       "churns": 2,
       "sim_churn_rate": 0.1429,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.21,
       "ofgem_benchmark_band_pct": [
         20.7,
@@ -243,6 +286,10 @@
       "renewals": 13,
       "churns": 4,
       "sim_churn_rate": 0.2353,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.2275,
       "ofgem_benchmark_band_pct": [
         22.5,
@@ -254,6 +301,10 @@
       "renewals": 17,
       "churns": 5,
       "sim_churn_rate": 0.2273,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.1815,
       "ofgem_benchmark_band_pct": [
         17.9,
@@ -265,6 +316,10 @@
       "renewals": 16,
       "churns": 1,
       "sim_churn_rate": 0.0588,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.107,
       "ofgem_benchmark_band_pct": [
         8.9,
@@ -276,6 +331,10 @@
       "renewals": 16,
       "churns": 2,
       "sim_churn_rate": 0.1111,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.143,
       "ofgem_benchmark_band_pct": [
         12.5,
@@ -287,6 +346,10 @@
       "renewals": 11,
       "churns": 4,
       "sim_churn_rate": 0.2667,
+      "population": "renewal decisions only",
+      "svt_segment_decisions": null,
+      "svt_departures": null,
+      "share_of_departures_in_sim_churn_rate": null,
       "ofgem_benchmark": 0.161,
       "ofgem_benchmark_band_pct": [
         14.3,

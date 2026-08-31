@@ -5495,7 +5495,7 @@
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 44% churn risk, decided to offer a 3% discount (cost GBP12.77) against GBP324.33 expected term margin at risk -- expected value of offering GBP311.56. Comms framed as a gain (save with this discount).",
       "company_belief": 0.443,
-      "sim_truth": 0.119,
+      "sim_truth": 0.127,
       "amount_gbp": 311.56,
       "outcome": "retained",
       "framing_type": "gain_framed"
@@ -5504,9 +5504,9 @@
       "customer_id": "PROS-2019-0164",
       "date": "2020-06-04",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 44% churn risk at decision time, SIM realized probability was 12%.",
+      "description": "Renewal outcome: RENEWED -- company believed 44% churn risk at decision time, SIM realized probability was 13%.",
       "company_belief": 0.443,
-      "sim_truth": 0.119,
+      "sim_truth": 0.127,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -5638,7 +5638,7 @@
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 30% churn risk, decided to offer a 3% discount (cost GBP17.74) against GBP346.73 expected term margin at risk -- expected value of offering GBP328.99. Comms framed as a loss (you will lose the discount).",
       "company_belief": 0.301,
-      "sim_truth": 0.261,
+      "sim_truth": 0.266,
       "amount_gbp": 328.99,
       "outcome": "retained",
       "framing_type": "loss_framed"
@@ -5647,9 +5647,9 @@
       "customer_id": "PROS-2019-0164",
       "date": "2021-06-04",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 30% churn risk at decision time, SIM realized probability was 26%.",
+      "description": "Renewal outcome: RENEWED -- company believed 30% churn risk at decision time, SIM realized probability was 27%.",
       "company_belief": 0.301,
-      "sim_truth": 0.261,
+      "sim_truth": 0.266,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

@@ -1732,7 +1732,7 @@
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 37% churn risk, decided to offer a 3% discount (cost GBP25.17) against GBP409.86 expected term margin at risk -- expected value of offering GBP384.69. Comms framed as a loss (you will lose the discount).",
       "company_belief": 0.369,
-      "sim_truth": 0.491,
+      "sim_truth": 0.492,
       "amount_gbp": 384.69,
       "outcome": "churned_despite_offer",
       "framing_type": "loss_framed"
@@ -1743,7 +1743,7 @@
       "event_type": "outcome_churned",
       "description": "Renewal outcome: CHURNED -- company believed 37% churn risk at decision time, SIM realized probability was 49%.",
       "company_belief": 0.369,
-      "sim_truth": 0.491,
+      "sim_truth": 0.492,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

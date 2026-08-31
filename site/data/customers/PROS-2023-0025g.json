@@ -1731,9 +1731,9 @@
       "customer_id": "PROS-2023-0025",
       "date": "2024-01-21",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 4% churn risk at decision time, SIM realized probability was 12%.",
+      "description": "Renewal outcome: RENEWED -- company believed 4% churn risk at decision time, SIM realized probability was 11%.",
       "company_belief": 0.044,
-      "sim_truth": 0.116,
+      "sim_truth": 0.113,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -1753,9 +1753,9 @@
       "customer_id": "PROS-2023-0025",
       "date": "2025-01-20",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 17% churn risk at decision time, SIM realized probability was 30%.",
+      "description": "Renewal outcome: CHURNED -- company believed 17% churn risk at decision time, SIM realized probability was 29%.",
       "company_belief": 0.166,
-      "sim_truth": 0.296,
+      "sim_truth": 0.293,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null
