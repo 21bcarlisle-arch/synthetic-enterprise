@@ -91,6 +91,29 @@ def band_decimals() -> int:
     )
 
 
+def band_margins(value_pct: float, lo: float, hi: float) -> tuple[float, float]:
+    """`(room to the LOW edge, room to the HIGH edge)` in percentage points, SIGNED.
+
+    Positive means the level could move that far in that direction and still be inside the band;
+    negative means it is already outside by that much. So a year reading `(+0.4, +0.0)` can fall
+    0.4pp before the control fires and cannot rise at all.
+
+    WHY THE VERDICT ALONE IS NOT ENOUGH, and it is the same repair `e707b0cb7` shipped for the
+    "worse than guessing" count. `inside_band` answers a threshold question, and a threshold
+    crossing is not a magnitude: measured 2026-08-31, `YEAR_LEVEL_ANCHOR` is fitted to each band's
+    HIGH endpoint (§6's anti-flattering tie-break), so the world sits with ZERO room above in all
+    ten years. A +0.11pp move in 2024 that shifted no departures at all -- 79 either way -- exits
+    the band and reads identically to one ten times larger. Printing the distance is what lets a
+    reader tell those apart, and nothing else in the tree can.
+
+    Rounded at the record's own precision, for the reason `inside_band` gives: a margin quoted to
+    more decimals than the band bears would report measurement noise as headroom.
+    """
+    dp = band_decimals()
+    value = round(value_pct, dp)
+    return round(value - lo, dp), round(hi - value, dp)
+
+
 def inside_band(value_pct: float, lo: float, hi: float) -> bool:
     """Is a measured level inside a published band, AT THE PRECISION THE BAND IS PUBLISHED TO?
 
@@ -165,10 +188,11 @@ def main(argv: list[str]) -> int:
 
     print(f"factor table: {table_path}   ({len(rows)} renewals)")
     print()
-    print("                published        savings curve    world rate       world E[depart]   departures /")
-    print("  year          band %           %                (absolute) %     per renewal %     active elec %")
-    print("  " + "-" * 96)
+    print("                published        savings curve    world rate       world E[depart]   departures /    room to    room to")
+    print("  year          band %           %                (absolute) %     per renewal %     active elec %   LOW pp     HIGH pp")
+    print("  " + "-" * 118)
     mids, curves, rates, expected = [], [], [], []
+    room_below, room_above = [], []
     for year in sorted(bands):
         lo, hi = bands[year]
         curve = world_curve_pct(year)
@@ -177,14 +201,25 @@ def main(argv: list[str]) -> int:
         per_account = (
             f"{100.0 * d / ACTIVE_ELEC_ACCOUNTS[year]:.1f}" if year in ACTIVE_ELEC_ACCOUNTS else "—"
         )
+        below, above = band_margins(mean_p, lo, hi)
         flag = "" if inside_band(mean_p, lo, hi) else "   OUT OF BAND"
         print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
-              f"{mean_p:6.2f}            {per_account:>5}{flag}")
+              f"{mean_p:6.2f}            {per_account:>5}   {below:+7.2f}   {above:+7.2f}{flag}")
         if year in COMPARISON_YEARS:
             mids.append((lo + hi) / 2.0)
             curves.append(curve)
             rates.append(rate)
             expected.append(mean_p)
+            room_below.append(below)
+            room_above.append(above)
+    print()
+    print(f"  RESOLUTION OF THIS CONTROL, {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1}. Room ABOVE the level before the band is exited: "
+          f"{min(room_above):+.2f} to {max(room_above):+.2f}pp.")
+    print(f"  Room BELOW: {min(room_below):+.2f} to {max(room_below):+.2f}pp. A movement smaller than the room in its own "
+          f"direction CANNOT be seen here,")
+    print("  and one larger is reported the same whatever its size -- so read the margin, never the verdict alone. Where the")
+    print("  room above is 0.00 the anchor is sitting on its band's ceiling and ANY upward move exits, however small; that is")
+    print("  a property of the fit, not a finding about the world. See the finding filed 2026-08-31 on this asymmetry.")
     print()
     pub_mean, curve_mean, rate_mean, world_mean = (
         statistics.fmean(mids), statistics.fmean(curves),

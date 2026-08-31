@@ -163,3 +163,100 @@ need the anchor re-fitted whatever the cause, and re-fitting to absorb a change 
 cannot yet explain would be fitting the world to make a control green.
 
 *The prediction above is left exactly as filed.*
+
+---
+
+# THE CURVE-POSITION SPLIT, AND IT REFUTES MY OWN EXPLANATION TOO
+
+**Measured 2026-08-31** by `tools/split_price_response_by_curve_position.py` over the two captured
+tables, now both in the repo: `docs/reports/c2_departure_factors.json` (baseline) and
+`docs/reports/c3_shown_price_departure_factors.json` (arm). 459 of 465 decisions pair; the 6
+unmatched are the re-timing already reported.
+
+The hypothesis above was: *"a household already deep in the saturated region loses little propensity
+when its perceived saving is cut, while a low-consumption household gains a lot when lifted from the
+steep part of the curve. The gains at the bottom would then outweigh the losses at the top."*
+
+**That is not what happened. Curve position does not decide the sign — the company's own price side
+does.**
+
+| baseline curve position | n | cens | mean £ → arm | price_response | Σ Δp_churn pp | departures |
+|---|---|---|---|---|---|---|
+| **CHEAPER (we undercut) — 338** ||||||
+| 0–100 steep bottom | 139 | 0 | 45 → 34 | 0.853 → 0.886 | **+24.69** | 27 → 28 |
+| 100–250 steepest | 103 | 0 | 167 → 134 | 0.533 → 0.621 | **+44.91** | 23 → 23 |
+| 250–400 flattening | 40 | 6 | ≥314 → ≥241 | 0.333 → 0.430 | **+18.12** | 4 → 4 |
+| ≥400 SATURATED | 56 | 56 | ≥400 → ≥345 | 0.227 → 0.298 | **+13.03** | 4 → 4 |
+| **side total** | 338 | | | | **+100.75** | |
+| **DEARER (we price above) — 121** ||||||
+| 0–100 steep bottom | 75 | 0 | 37 → 28 | 1.148 → 1.115 | **−9.09** | 13 → 13 |
+| 100–250 steepest | 32 | 0 | 156 → 127 | 1.852 → 1.677 | **−15.20** | 4 → 4 |
+| 250–400 flattening | 6 | 0 | 304 → 266 | 2.957 → 2.875 | **−2.57** | 2 → 2 |
+| ≥400 SATURATED | 8 | 0 | 500 → 347 | 5.599 → 3.640 | **−27.13** | 1 → 1 |
+| **side total** | 121 | | | | **−53.99** | |
+
+**Net +46.76pp summed, +0.1019pp per decision.**
+
+## Why the hypothesis is wrong
+
+1. **Every segment within a side carries the SAME sign.** There are no "losses at the top" on the
+   cheaper side — the saturated bucket contributes **+13.03pp**, in the same direction as the
+   bottom. The losses are entirely on the *dearer* side, where every segment is negative.
+2. **The largest single contributor is not the bottom** — it is the 100–250 *steepest* segment
+   (+44.91pp on 103 decisions), which is where the curve's slope is greatest. That is the
+   ordinary consequence of a slope, not the saturation story I told.
+3. **0 violations, out of 422 moved decisions**, of *"fewer perceived pounds → more switchy when
+   we are cheaper, less switchy when we are dearer."* The relationship is monotone within a side.
+   Curve position sets the **size** of a household's move; **side sets the direction.**
+
+## The actual mechanism
+
+Perceived pounds **fell** for 335 of 459 decisions (median shown/felt ratio at renewal **0.692** —
+the renewing population consumes *more* than TDCV, so its shown bill is smaller). When we are
+cheaper, the perceived saving is what *holds* a household; shrinking it moves them toward parity,
+and parity is switchier than cheap. **338 of 459 decisions are on that side, so the book-level
+effect is up.**
+
+This also predicts the year-by-year sign, which the original write-up left unexplained:
+
+| | cheaper-majority years | dearer-majority years |
+|---|---|---|
+| years | 2016, 2017, 2018, 2019, 2020, 2023, 2024 | 2021, 2022, 2025 |
+| level moved | up (+0.11 … +0.68) — **6 of 7** | down (−0.38, −0.14, −0.13) — **3 of 3** |
+
+**8 of 10 years' sign is set by the arm mix alone.** 2023 is the exception: 96% cheaper yet moved
+−0.07pp. Not explained, and stated as unexplained rather than rounded away.
+
+## A defect found in my own first pass, recorded because it nearly reached this table
+
+The first inversion extrapolated `_savings_to_rate`'s last graduated segment across the **jump
+discontinuity at £400** (the curve steps 0.18 → 0.22 there; rates in [0.18, 0.22) are unreachable)
+and reported a mean of **£520** for a bucket whose every member is censored at £400. Caught by
+printing the curve at real inputs before trusting the table. The `cens` column and the `≥` marks
+now say which figures are floors rather than means.
+
+## WHAT THIS CHANGES ABOUT LANDING C3 — AND IT IS THE ARGUMENT FOR *NOT* LANDING IT
+
+The blocker recorded on `edd5a497e` was *"a world change whose mechanism I cannot yet explain is
+not one to land"*. **That blocker is discharged: the mechanism is established above.** But the
+split replaces it with a sharper one, and this is a finding rather than a restatement:
+
+> **C3's effect on the world depends on where the company chose to price.** Same world change,
+> same households: **+100.75pp** where the company undercut the market, **−53.99pp** where it
+> priced above. The convention does not have a fixed sign — it has the company's sign.
+
+That is exactly why **predictions 2 and 3 cannot be waived**. They ask whether the company's
+measured advantage improves and whether the belief-vs-truth gap widens, and both are questions
+about a *different pricing arm* — which this split now shows will get a **different sign** from
+the identical world change. Landing C3 on the strength of a run made at one price position would
+be generalising from the one arm whose answer cannot speak for the others.
+
+**C3 remains NOT LANDED. The blocker is now specific and testable: the value-arms A/B run.** The
+band exits above are separately unreadable as evidence — the anchor sits on its ceiling with
+**0.00pp room above in all ten years**, so a +0.11pp move that shifted zero departures exits the
+band identically to one ten times larger (`tools/measure_departure_level.py` now prints that
+margin). The anchor is **not** being re-fitted to absorb C3: re-fitting to make a control green is
+fitting the world to the answer, and it would be doing so for a move whose sign is a property of
+our own price position.
+
+*The prediction and the first result section above are left exactly as filed.*

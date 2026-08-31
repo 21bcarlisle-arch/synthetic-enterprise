@@ -256,7 +256,20 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
     fires is to re-capture and re-fit (`tools/capture_departure_factors.py`,
     `tools/fit_year_level_anchor.py`), never to widen the band.
 
-    MUTATION: divide any `YEAR_LEVEL_ANCHOR` entry by two and this fires on that year.
+    MUTATION: halve any year in `world_realised_rate_pct()` -- the CAPTURED table's realised
+    probabilities -- and this fires on that year with the margin in the message.
+
+    AND THE MUTATION THIS DOCSTRING USED TO NAME CANNOT FIRE, established 2026-08-31 rather than
+    assumed. It said *"divide any `YEAR_LEVEL_ANCHOR` entry by two"*. It does nothing: this
+    control's subject is `docs/reports/c2_departure_factors.json`, a captured artefact, and the
+    anchor module is not in its read path. Halving `YEAR_LEVEL_ANCHOR[2020]` leaves the control
+    green because the captured table still carries `sim_level_anchor: 4.425742` from the run that
+    produced it. That is not a fail-open -- the control does fire on the quantity it actually
+    reads, proven above -- but a reader following the old instruction would have concluded the
+    control was broken, or worse, that the anchor was safe to edit. The anchor only reaches this
+    control through a RE-CAPTURE (`tools/capture_departure_factors.py`), and that indirection is
+    the thing to know: this is a drift detector over a stored measurement, not a live assertion
+    about the module.
 
     Containment is judged by the instrument's own `inside_band`, at the precision the commons
     publishes its endpoints to. See that function for why a strict float comparison here was a
@@ -271,10 +284,14 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
     )
     for year, value in sorted(world.items()):
         lo, hi = bands[year]
+        below, above = instrument.band_margins(value, lo, hi)
         assert instrument.inside_band(value, lo, hi), (
             f"the world's realised departure rate at {year} is {value:.2f}% against a published "
-            f"{lo}-{hi}%. The level anchor has gone stale against a world that moved under it: "
-            f"re-capture and re-fit, do not widen the band."
+            f"{lo}-{hi}% -- {below:+.2f}pp from the low edge, {above:+.2f}pp from the high edge. "
+            f"READ THAT MARGIN BEFORE ACTING ON THIS: the anchor is fitted to the HIGH endpoint, "
+            f"so room above is 0.00pp and a move of ANY size upward lands here. The level anchor "
+            f"may have gone stale against a world that moved under it -- re-capture and re-fit, "
+            f"do not widen the band."
         )
 
 
@@ -398,3 +415,87 @@ def test_mutation_d_dropping_the_principal_subject_from_the_register_is_caught(m
     )
     with pytest.raises(AssertionError, match="no longer names the world's own"):
         test_the_register_names_the_worlds_own_realised_departure_rate()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (e) THE MARGIN — a threshold crossing is not a magnitude, and the instrument must say which
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def test_the_instrument_prints_the_distance_to_both_band_edges_and_not_only_the_verdict():
+    """MUTATION: delete either margin column from `measure_departure_level.main()`'s table, or
+    drop the RESOLUTION paragraph, and this fires.
+
+    THE DEFECT THIS EXISTS FOR, found 2026-08-31 as a by-product of the C3 counterfactual. The
+    anchor is fitted to each band's HIGH endpoint, so the world sits on the ceiling in all ten
+    years and there is ZERO room above. `inside_band` therefore returns the same verdict for a
+    +0.11pp move that shifted no departures at all and for one ten times larger, and a reader --
+    including the seat, an hour after the anchor was built -- over-reads the red as "the world
+    left the lawful range". The distance is the only thing that can tell those apart, and until
+    this landed nothing in the tree printed it.
+
+    Keyed to the PROPERTY, not to today's answer: it asserts the margins are PRESENT, are the
+    ones `band_margins` computes, and that the summary states the resolution in both directions.
+    It does not assert the room above is 0.00 -- that would be a control pinned to the current
+    fit, which would go red the day somebody re-aims the anchor at the band midpoint and give
+    exactly the backwards signal this project has repaired repeatedly.
+
+    WHAT THIS LEG CANNOT SEE, and it is why the next test exists. It compares the printed row
+    against `band_margins`, and `main()` computes the row with that same function -- so a change
+    to `band_margins` ITSELF moves both sides together and passes here. Proven, not assumed:
+    making `band_margins` return unsigned distances leaves this green. That is a bounded
+    tautology rather than a defect -- this leg's subject is whether the instrument still PRINTS
+    the distance -- but the signedness needs a leg with an independent expectation, and
+    `test_band_margins_are_signed_distances_and_go_negative_outside_the_band` is it.
+    """
+    import io
+    from contextlib import redirect_stdout
+
+    out = io.StringIO()
+    with redirect_stdout(out):
+        instrument.main(["measure_departure_level"])
+    text = out.getvalue()
+
+    assert "room to" in text and "LOW" in text and "HIGH" in text, (
+        "the instrument's table no longer names a distance to each band edge; a verdict without "
+        "its magnitude is the defect this leg exists for"
+    )
+    assert "RESOLUTION OF THIS CONTROL" in text, (
+        "the instrument no longer states what size of movement it could have detected -- the "
+        "one-sidedness is back to being invisible"
+    )
+
+    bands = _bands()
+    world = _world_realised_reading()
+    checked = 0
+    for year, value in sorted(world.items()):
+        lo, hi = bands[year]
+        below, above = instrument.band_margins(value, lo, hi)
+        line = next((ln for ln in text.splitlines() if ln.strip().startswith(str(year))), None)
+        assert line is not None, f"the instrument's table no longer carries a row for {year}"
+        assert f"{below:+.2f}" in line and f"{above:+.2f}" in line, (
+            f"{year}: the row {line.strip()!r} does not carry both margins "
+            f"({below:+.2f}, {above:+.2f}) that `band_margins` computes for it"
+        )
+        checked += 1
+    assert checked >= 8, (
+        f"only {checked} years had their margins checked -- a control over an emptied subject "
+        f"reports a constant PASS"
+    )
+
+
+def test_band_margins_are_signed_distances_and_go_negative_outside_the_band():
+    """MUTATION: return `abs()` of either margin, or clamp them at zero, and this fires.
+
+    The sign is load-bearing. A margin reported as an unsigned distance cannot distinguish "0.4pp
+    of room left" from "0.4pp outside already", which is the whole quantity the caller needs. It
+    is the containment-check-degrading-into-a-range-check shape one level down.
+    """
+    assert instrument.band_margins(15.0, 12.5, 16.1) == (2.5, 1.1)
+    assert instrument.band_margins(16.1, 12.5, 16.1) == (3.6, 0.0)   # on the ceiling: no room up
+    assert instrument.band_margins(12.5, 12.5, 16.1) == (0.0, 3.6)   # on the floor: no room down
+    below, above = instrument.band_margins(16.6, 12.5, 16.1)
+    assert above < 0.0, "a level ABOVE the band must report negative room above, not a distance"
+    assert below > 0.0
+    below, above = instrument.band_margins(11.0, 12.5, 16.1)
+    assert below < 0.0, "a level BELOW the band must report negative room below, not a distance"
+    assert above > 0.0
