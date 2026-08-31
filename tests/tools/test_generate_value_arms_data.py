@@ -47,6 +47,17 @@ from tools import generate_value_arms_data as gva
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
 THREE_ARM = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.json"
+#: THE RUN THAT STILL HAS THE STRUCTURAL PROPERTY, pinned by its DATED name (2026-08-31).
+#: `THREE_ARM` is the canonical path each new run is PROMOTED to, so a test that asserts a
+#: particular run's figures through it is keyed to today's answer and reds the day the world
+#: improves. That is what happened when the 2026-08-31 run landed: the standard-variable product
+#: shipped, the arm went from pricing 20 renewals on 10 roster accounts to 120 on 65 -- 25 of them
+#: drawn households -- and six controls asserting "the method has NEVER priced a customer the
+#: company won" went red for the single reason that it had. The claims were true of the run they
+#: were written against and that run is still on disk, so they cite it directly. Tests of a
+#: PROPERTY keep reading `THREE_ARM`; tests of a RUN read this.
+THREE_ARM_20260829 = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260829.json")
 NOISE_FLOOR = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -80,6 +91,17 @@ def _load(path: Path) -> dict:
 @pytest.fixture(scope="module")
 def real() -> dict:
     return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+
+@pytest.fixture
+def real_20260829() -> dict:
+    """The page as built from the run whose BELIEF RANKED BACKWARDS -- see `THREE_ARM_20260829`.
+
+    The reversal tables below are descriptions of that run and stay pinned to it. The 2026-08-31
+    run ranks the right way round (AUC 0.13 -> 0.655), so asserting the reversal through the
+    canonical path would be a control asserting the model stays bad.
+    """
+    return gva.build(_load(THREE_ARM_20260829), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
 
 
 # ── the null rungs: the real artefacts, fully published ──────────────────────────────────────
@@ -426,12 +448,19 @@ def test_the_generator_rides_the_publish_cycle():
 # ── the headline must be able to say the arm LOST ────────────────────────────────────────────
 
 def _split_with(advantage, selection):
-    """A three-arm artefact whose split says exactly what these two numbers say."""
+    """A three-arm artefact whose split says exactly what these two numbers say.
+
+    THE FLOOR IS CURRENT BY CONSTRUCTION (2026-08-31). These tests are about which DIRECTION the
+    headline states, which is gated on the contrast clearing a bound -- so they need a floor that
+    is not older than the run, or they measure the staleness refusal instead of the direction
+    they were written for. `_floor_with_spread` is stamped far in the future for exactly this
+    reason; the spread is small enough that both directions still clear it.
+    """
     art = _load(THREE_ARM)
     art["level_vs_selection"] = dict(art["level_vs_selection"],
                                      value_advantage_gbp=advantage,
                                      selection_gbp=selection)
-    return gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    return gva.build(art, _floor_with_spread(100.0), _load(RUN_OUTPUT))
 
 
 def test_the_headline_says_LESS_when_the_arm_earned_less():
@@ -786,7 +815,16 @@ def _decomposition(priced_share: float, resolvable: bool, decisive: bool = True)
     The fields are the ones `run_value_cycle_ab.decompose_floor` publishes, and the two the remedy
     turns on are set INDEPENDENTLY here on purpose: a composer that derived one from the other
     would pass a fixture that varied them together and fail on the real artefact.
+
+    THE BOOK IS READ OFF THE CANONICAL RUN, NOT HARD-CODED (2026-08-31). These tests are about the
+    remedy's LOGIC, not about which run happens to be canonical, so the fixture declares itself
+    measured on whatever book is on disk. Hard-coding `priced_decisions: 20` made every one of
+    them red the moment a new run was promoted -- a control keyed to today's answer rather than to
+    its property. The same-book refusal is proved instead by
+    `test_a_remedy_measured_on_another_book_is_refused_rather_than_restated`, which sets the two
+    books apart ON PURPOSE.
     """
+    priced, offered = gva._three_arm_book(_load(THREE_ARM))
     return {
         "available": True, "seeds": 3,
         "priced_share_of_variance": priced_share,
@@ -794,7 +832,8 @@ def _decomposition(priced_share: float, resolvable: bool, decisive: bool = True)
         "share_is_decisive": decisive,
         "larger_settled_book_would_resolve_it": resolvable,
         "priced_decisions_needed": 54 if resolvable else None,
-        "priced_decisions": 20,
+        "priced_decisions": priced,
+        "renewals_offered": offered,
         "irreducible_sd_gbp": 1153.0 if resolvable else 2306.0,
         "contrast_gbp": 1815.79,
         "undecomposed_sd_gbp": 2577.80,
@@ -864,6 +903,80 @@ def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
                            ("unmeasured", unmeasured), ("undecided", undecided)):
         assert "More seeds would not resolve it" in headline, (
             "the {} branch dropped the half of the remedy that is arithmetic".format(name))
+
+
+def test_a_remedy_measured_on_another_book_is_refused_rather_than_restated():
+    """THE DEFECT, and it shipped on 2026-08-31. The three-arm run was re-taken after the
+    standard-variable product landed and the priced count went 20 -> 120, but the floor
+    decomposition was not re-run. `_staleness_caveat` had been built for exactly this on the noise
+    floor and the decomposition never got it -- it carries no `generated_at` and no
+    `producing_commit`, so nothing could notice. The page then published both books at once:
+    `decisions.value_arm_priced` read 120 while the headline, three sentences later, said "about
+    27 priced renewals against this book's 20" and "all 10 accounts the arm priced are the founding
+    roster ... The lever is a PRODUCT, not a size". The product had SHIPPED and the lever had
+    WORKED, and the page went on naming its absence as the blocker, in the flattering-to-nobody
+    direction but wrong either way.
+
+    KEYED TO THE PROPERTY -- whether the two books are the SAME -- and not to 20, or 120, or any
+    count. Re-running the decomposition on the current book clears it with no edit here, and the
+    next world change that moves the counts re-arms it. A control pinned to today's numbers goes
+    red when the page becomes more honest, which is this project's most repeated failure.
+
+    R15 -- the mutations, each run and reverted:
+      * return `None` unconditionally from `_decomposition_is_the_same_book` (the defect as it
+        shipped) -> the `different` leg reds, the remedy comes back on the wrong book.
+      * compare only `priced_decisions` and ignore `renewals_offered` -> the `same_count_different_
+        book` leg reds.
+      * treat missing counts as agreement (`if any(... ) : return None`) -> the `no_counts` leg
+        reds, which is the FAIL-SILENT half.
+    The null rung is `same`, which must KEEP the remedy: a control that only ever demands the
+    remedy be absent is satisfied by deleting the remedy.
+    """
+    priced, offered = gva._three_arm_book(_load(THREE_ARM))
+
+    # THE NULL RUNG. A decomposition measured on this very book must still price the remedy --
+    # otherwise this control is satisfied by a page that never states one.
+    same = _withheld_headline(_decomposition(0.85, resolvable=True))
+    assert "larger SETTLED BOOK" in same, (
+        "the null rung: a decomposition measured on the published book was refused anyway, so "
+        "this control would be satisfied by deleting the remedy entirely: {}".format(same))
+    assert "DIFFERENT BOOK" not in same, (
+        "a decomposition measured on the published book was accused of being from another: {}"
+        .format(same))
+
+    # A DIFFERENT BOOK, which is the state that shipped.
+    different = _withheld_headline(
+        dict(_decomposition(0.85, resolvable=True),
+             priced_decisions=priced - 100, renewals_offered=offered - 584))
+    assert "larger SETTLED BOOK" not in different, (
+        "a remedy priced on a book the page no longer publishes was restated as though it "
+        "described this one -- the defect as it shipped: {}".format(different))
+    assert "DIFFERENT BOOK" in different and "has not been established" in different, (
+        "the refusal must NAME its reason and leave the remedy explicitly unestablished; a "
+        "silently dropped remedy reads as a question nobody asked: {}".format(different))
+    assert str(priced) in different and str(priced - 100) in different, (
+        "the refusal states neither book, so a reader cannot check the very comparison it "
+        "refuses on: {}".format(different))
+
+    # THE SAME PRICED COUNT ON A DIFFERENT-SIZED BOOK. Both counts carry the identity, because a
+    # remedy denominated in priced decisions is still the wrong remedy if the book around them
+    # changed -- the cascade half of the floor is what the second count tracks.
+    same_count_different_book = _withheld_headline(
+        dict(_decomposition(0.85, resolvable=True), renewals_offered=offered + 500))
+    assert "larger SETTLED BOOK" not in same_count_different_book, (
+        "only the priced count was reconciled, so a decomposition from a different-sized book "
+        "priced the remedy: {}".format(same_count_different_book))
+
+    # FAIL CLOSED, not fail silent: an artefact that cannot show which book it describes is not
+    # thereby current.
+    no_counts = _decomposition(0.85, resolvable=True)
+    no_counts.pop("renewals_offered")
+    headline = _withheld_headline(no_counts)
+    assert "larger SETTLED BOOK" not in headline, (
+        "a decomposition that never said which book it was measured on had its remedy published "
+        "as though it described this one (R15 FAIL-SILENT): {}".format(headline))
+    assert "does not say which book" in headline, (
+        "the silence was not named, so a reader cannot tell an unknown from an agreement")
 
 
 def _priced_by(*accounts, **extra):
@@ -1042,7 +1155,7 @@ def test_the_page_says_the_method_has_never_priced_a_customer_the_company_won():
     The claim is only allowed when the artefact supports it in both parts -- no won or drawn
     account priced, AND a product gate whose whole refusal is the unset label.
     """
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    out = gva.build(_load(THREE_ARM_20260829), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
     who = out["decisions"]["who_the_method_has_priced"]
     assert who["available"] is True
     assert who["verdict"] == "structural"
@@ -1067,7 +1180,7 @@ def test_pricing_one_won_account_makes_the_structural_sentence_unreachable():
     the FIXTURE that went stale, not the property: this test still says the verdict follows the
     priced set, and it now says it through whichever basis the artefact declares.
     """
-    art = _load(THREE_ARM)
+    art = _load(THREE_ARM_20260829)
     funnel = art["renewal_funnel"]["value_arm"]
     funnel["accounts_the_arm_priced"] = list(funnel["accounts_the_arm_priced"]) + ["PROS-2019-0015"]
     if (funnel.get("by_account_class") or {}).get("available"):
@@ -1091,7 +1204,7 @@ def test_a_mixed_product_gate_does_not_get_the_single_cause_sentence():
     priced-won count for two reasons, and naming one of them would be a refusal citing a cause
     the checker never observed.
     """
-    art = _load(THREE_ARM)
+    art = _load(THREE_ARM_20260829)
     art["renewal_funnel"]["value_arm"]["product_not_upliftable_by_tariff_type"] = {
         "None": 400, "'flex'": 262}
     who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
@@ -1142,7 +1255,7 @@ def test_a_roster_census_agreeing_with_the_gate_says_the_premise_was_measured():
     the same claim, and a reader deciding whether to spend a curriculum change on it needs to
     know which one they have. Without this field the page reads at the higher strength always.
     """
-    who = _with_census(_load(THREE_ARM),
+    who = _with_census(_load(THREE_ARM_20260829),
                        a_found_account_can_reach_the_product_gate=False,
                        found_accounts_the_guard_would_admit=[])
     assert who["verdict"] == "structural"
@@ -1157,7 +1270,7 @@ def test_MUTATION_a_census_that_finds_a_labelled_won_account_withdraws_the_gate_
     roster that directly refutes it. The census is the only field that moves, and the verdict
     must move with it. R15: a control whose PASS branch is unreachable reports a constant.
     """
-    who = _with_census(_load(THREE_ARM),
+    who = _with_census(_load(THREE_ARM_20260829),
                        a_found_account_can_reach_the_product_gate=True,
                        found_accounts_the_guard_would_admit=["PROS-2019-0015"])
     assert who["verdict"] == "unresolved"
@@ -1178,7 +1291,7 @@ def test_an_artefact_with_no_census_keeps_the_older_reading_rather_than_upgradin
     red on 2026-08-30 for the one reason a control must never go red: the artefact got BETTER.
     A control keyed to today's poverty reports the poverty, not the property.
     """
-    art = _load(THREE_ARM)
+    art = _load(THREE_ARM_20260829)
     art["renewal_funnel"]["value_arm"].pop("product_label_by_account_class", None)
     who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
         "decisions"]["who_the_method_has_priced"]
@@ -1276,8 +1389,16 @@ def test_a_figure_OUTSIDE_its_null_ABOVE_the_point_is_not_reported_as_a_failure(
     assert dec["auc_attribution"]["null_bound"]["inside_the_null"] is False
     assert "carried real information" in dec["auc_reading"]
     assert "BACKWARDS" not in dec["auc_reading"]
-    # and the live run is the other branch, so neither is unreachable
-    assert "BACKWARDS" in real["decisions"]["auc_reading"]
+    # AND THE OTHER BRANCH IS REACHABLE TOO, so neither is a constant verdict. This used to be
+    # asserted through the LIVE run, on the assumption that it would go on ranking backwards --
+    # a control resting on the model staying bad, and on 2026-08-31 it stopped being true (AUC
+    # 0.13 -> 0.655 once the standard-variable product gave the arm 120 decisions instead of 20).
+    # The reachability of the branch is a property of the composer, so it is proved from a
+    # constructed belief, which no world change can take away.
+    backwards = gva.build(_belief(0.13, 10, 10), _load(NOISE_FLOOR),
+                          _load(RUN_OUTPUT))["decisions"]
+    assert backwards["auc_attribution"]["null_bound"]["inside_the_null"] is False
+    assert "BACKWARDS" in backwards["auc_reading"]
 
 
 def test_the_endogeneity_clause_is_NOT_gated_on_the_sample_size():
@@ -1290,10 +1411,21 @@ def test_the_endogeneity_clause_is_NOT_gated_on_the_sample_size():
     finally has the decisions to state it.
     """
     for auc, retained, left in ((0.4652777777777778, 16, 9), (0.95, 10, 10), (0.13, 10, 10)):
-        reading = gva.build(_belief(auc, retained, left), _load(NOISE_FLOOR),
-                            _load(RUN_OUTPUT))["decisions"]["auc_reading"]
+        decisions = gva.build(_belief(auc, retained, left), _load(NOISE_FLOOR),
+                              _load(RUN_OUTPUT))["decisions"]
+        reading = decisions["auc_reading"]
         assert "NOT INDEPENDENT OF THE THING BEING GRADED" in reading, (auc, retained, left)
-        assert "C2" in reading and "C9" in reading
+        # THE ACCOUNTS ARE READ OFF THE ARTEFACT, NOT HARD-CODED (2026-08-31). This asserted
+        # `"C2" in reading and "C9" in reading` -- the set the 2026-08-29 run drove out. The
+        # 2026-08-31 run drives out `C5_2` and `C8` instead, so the hard-coded pair red-flagged a
+        # composer that was working correctly. The property is that the clause NAMES the accounts
+        # it is talking about, whichever they are; a reader who cannot see them cannot check it.
+        drove_out = decisions["auc_attribution"]["priced_accounts_the_arm_itself_drove_out"]
+        assert drove_out, "the fixture no longer exercises the endogeneity branch at all"
+        for account in drove_out:
+            assert account in reading, (
+                "the clause claims the arm drove {} out but does not name it, so the reader "
+                "cannot check the claim: {}".format(account, reading))
 
 
 def test_an_unrankable_population_gets_NO_bound_rather_than_a_default_one():
@@ -1445,7 +1577,8 @@ def test_a_row_list_that_disagrees_with_the_rank_statistics_own_population_says_
     assert dep["agrees_with_auc_population"] is False
 
 
-def test_the_reversal_the_page_asserts_is_published_as_a_table_and_not_only_a_word(real):
+def test_the_reversal_the_page_asserts_is_published_as_a_table_and_not_only_a_word(
+        real_20260829):
     """"It ranked customers BACKWARDS" is an adjective over a scalar until the reader can see it.
 
     `the_departures` is the check they should have and it is unavailable on every artefact written
@@ -1454,7 +1587,7 @@ def test_the_reversal_the_page_asserts_is_published_as_a_table_and_not_only_a_wo
 
     Fires on: publishing the verdict without the table it is a description of.
     """
-    table = real["decisions"]["auc_attribution"]["by_believed_bucket"]
+    table = real_20260829["decisions"]["auc_attribution"]["by_believed_bucket"]
     assert table["available"] is True, table.get("reason")
     assert table["scored"] == 20 and table["agrees_with_auc_population"] is True
     rates = [b["realised_retention_rate"] for b in table["buckets"]]
@@ -1462,7 +1595,8 @@ def test_the_reversal_the_page_asserts_is_published_as_a_table_and_not_only_a_wo
         "the table the page calls a reversal does not fall as the belief rises")
 
 
-def test_the_flipped_column_ships_so_the_table_cannot_be_read_as_settling_the_sign(real):
+def test_the_flipped_column_ships_so_the_table_cannot_be_read_as_settling_the_sign(
+        real_20260829):
     """THE TABLE ARGUES THE OPPOSITE OF THE BLOCK BESIDE IT UNLESS THE FLIP IS SHOWN.
 
     Flipped, this table reads monotone the right way and looks better than any belief on this
@@ -1472,7 +1606,7 @@ def test_the_flipped_column_ships_so_the_table_cannot_be_read_as_settling_the_si
 
     Fires on: dropping the flipped column, or letting the reading claim this table closes polarity.
     """
-    table = real["decisions"]["auc_attribution"]["by_believed_bucket"]
+    table = real_20260829["decisions"]["auc_attribution"]["by_believed_bucket"]
     for bucket in table["buckets"]:
         assert bucket["realised_retention_rate_under_a_flipped_label"] == pytest.approx(
             1.0 - bucket["realised_retention_rate"])

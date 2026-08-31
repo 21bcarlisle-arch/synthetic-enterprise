@@ -788,7 +788,65 @@ def _priced_against_which_floor(decomposition: dict) -> str:
             .format(ratio, decisions))
 
 
-def _what_would_resolve_it(decomposition: dict | None) -> str:
+def _decomposition_book(decomposition: dict | None) -> tuple:
+    """The book the floor decomposition was measured on, as the pair it publishes about itself."""
+    d = decomposition or {}
+    return (d.get("priced_decisions"), d.get("renewals_offered"))
+
+
+def _three_arm_book(three_arm: dict | None) -> tuple:
+    """The same pair, read off the run this page publishes, from the value arm's own funnel."""
+    arm = (((three_arm or {}).get("renewal_funnel") or {}).get("value_arm") or {})
+    return (arm.get("priced"), arm.get("renewals_the_world_offered"))
+
+
+def _decomposition_is_the_same_book(decomposition: dict | None,
+                                    three_arm: dict | None) -> str | None:
+    """Whether the remedy's evidence was measured on the book this page publishes. `None` = yes.
+
+    THE DEFECT THIS EXISTS FOR (2026-08-31). `_staleness_caveat` got this repair for the noise
+    floor and the decomposition never did, so the page shipped both answers at once: `decisions`
+    read 120 priced renewals off the new three-arm run while the headline, three sentences later,
+    said "about 27 priced renewals against this book's 20" and "all 10 accounts the arm priced are
+    the founding roster ... The lever is a PRODUCT, not a size" -- off a decomposition measured
+    before the standard-variable product shipped. The product HAD shipped, and the page went on
+    naming its absence as the blocker. One feed, two runs, opposite claims.
+
+    RECONCILED ON THE BOOK, NOT ON A TIMESTAMP, because the decomposition artefact carries no
+    stamp to compare -- it has no `generated_at` and no `producing_commit`. What it does carry is
+    `priced_decisions` and `renewals_offered`, which are the three-arm's own two counts, so the
+    artefacts can be held against each other with nothing added to either. A producer-side stamp
+    is the deeper fix and is owed; this one works on the files already on disk, which is the half
+    that does not break every existing consumer.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It asks whether the two books are the SAME, not
+    whether either is 20 or 120, so re-running the decomposition on the current book clears it
+    with no edit here -- and a future world change that moves the counts again re-arms it.
+
+    FAIL CLOSED ON MISSING COUNTS. An artefact that cannot show it describes this book is not
+    thereby current: unknown provenance under a remedy reads as fine unless something says
+    otherwise, which is the FAIL-SILENT half of R15.
+    """
+    theirs, ours = _decomposition_book(decomposition), _three_arm_book(three_arm)
+    if any(not isinstance(v, int) for v in theirs + ours):
+        return ("The floor decomposition does not say which book it was measured on, so this page "
+                "cannot show that its remedy describes the run published above. No remedy is "
+                "stated from it.")
+    if theirs == ours:
+        return None
+    return (
+        "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor "
+        "decomposition was measured where the arm priced {tp:,} of {tr:,} renewals; the run "
+        "published above priced {op:,} of {or_:,}. A split of the variance measured on one book is "
+        "not a price for resolving another, and the priced count is the very quantity the remedy "
+        "is denominated in -- so quoting it here would state a remedy in units this page no longer "
+        "has. Re-running the decomposition on the current book is owed work "
+        "(`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`)."
+    ).format(tp=theirs[0], tr=theirs[1], op=ours[0], or_=ours[1])
+
+
+def _what_would_resolve_it(decomposition: dict | None,
+                           three_arm: dict | None = None) -> str:
     """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
 
     THE PROPERTY, NOT TODAY'S WORDING. The clause claiming a larger settled book is the remedy
@@ -806,6 +864,13 @@ def _what_would_resolve_it(decomposition: dict | None) -> str:
     """
     if not (decomposition or {}).get("available"):
         return WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
+    # BEFORE ANY FIGURE IS READ OUT OF IT. A decomposition measured on another book is not a
+    # weaker remedy, it is a remedy for a different question -- so it is refused here rather than
+    # caveated below, and the "not established" wording is reused because that is the state the
+    # page is genuinely in. See `_decomposition_is_the_same_book`.
+    different_book = _decomposition_is_the_same_book(decomposition, three_arm)
+    if different_book:
+        return different_book + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
     # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
     # two degrees of freedom, and the producer says whether the split cleared that.
     if not decomposition.get("share_is_decisive"):
@@ -927,8 +992,23 @@ def _withdrawn() -> dict:
                 withdrawals=len(WITHDRAWN_CLAIMS))
 
 
-def _seed_spreads(floor: dict | None) -> dict:
+def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
     """Per-contrast seed spread, DERIVED from the noise floor's own per-seed rows.
+
+    A SPREAD FROM AN OLDER RUN BOUNDS NOTHING HERE (2026-08-31), and this is where that has to
+    bite, because this block is what every directional claim on the page is gated on. The
+    2026-08-31 run raised the realised advantage to GBP 12,071 while the floor on disk was
+    measured on 2026-08-29, on the book where the arm priced 20 renewals rather than 120. The
+    page then declared that figure "clearing the +-GBP 990 this figure moves across 3 seed
+    re-draws" -- naming a WINNER against a bound earned on a different, smaller book. That is
+    fail-open in the flattering direction: the staler and smaller the bound, the more decisive
+    every contrast looks. `error_bar.staleness_caveat` had been saying so in words on the same
+    page while the gate went on using the number.
+
+    So the same comparison that writes the caveat withholds the bounds. No bound means no
+    direction, never a free one -- which is this file's rule for the superseded clock already,
+    applied to the superseded WORLD. `available: false` with a reason, so the surface prints the
+    refusal rather than a silence.
 
     WHY DERIVED HERE AND NOT READ. The producer publishes a spread block for exactly one of the
     three contrasts (`selection_gbp_spread`). The other two are in the seed rows and nowhere else,
@@ -945,6 +1025,11 @@ def _seed_spreads(floor: dict | None) -> dict:
     seeds list that is not the one the spread was computed over) would not confine itself to one
     key. A floor carrying no published spread at all is the same refusal: nothing to check against.
     """
+    stale = _staleness_caveat(floor or {}, three_arm or {}) if three_arm is not None else None
+    if stale:
+        return {"available": False, "reason": stale,
+                "what_this_costs": ("no contrast on this page can have its direction stated until "
+                                    "the noise floor is re-run on the book published above")}
     seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
     if len(seeds) < 2:
         return {"available": False,
@@ -1613,7 +1698,14 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
 #: DIRECTION wrong but moves the realised retention rate to its complement, so the two columns
 #: together can be asked a question the AUC column alone cannot answer (`_polarity_check`).
 AUC_RUN_HISTORY = [
-    {"artefact": "docs/observability/value_cycle_ab_s1_three_arm.json", "on": "2026-08-29",
+    # CITES THE DATED COPY, NOT THE CANONICAL PATH (2026-08-31). This entry used to name
+    # `value_cycle_ab_s1_three_arm.json`, which is the path the newest run is PROMOTED to -- so
+    # promoting the 2026-08-31 run silently changed what a dated historical record "cites", and
+    # the re-read check went red reporting 0.655 against a recorded 0.13. The record was right and
+    # its pointer was wrong. Every other entry here already names an immutable artefact; this one
+    # was the exception because it was the newest when it was written. A history entry must cite
+    # something that cannot be rewritten under it.
+    {"artefact": "docs/observability/value_cycle_ab_s1_three_arm_20260829.json", "on": "2026-08-29",
      "auc": 0.13, "scored": 20, "retained": 10, "left": 10, "median_margin": 60.0,
      "believed": 0.47876, "realised": 0.5},
     {"artefact": "docs/observability/value_cycle_ab_chase_off_2026-08-28.json", "on": "2026-08-28",
@@ -2657,7 +2749,7 @@ def build(three_arm: dict | None, floor: dict | None,
     # THE BOUND EVERY DIRECTIONAL CLAUSE OF THE HEADLINE IS GATED ON. Published in the same
     # payload as the sentence it gates so a reader can check the gate rather than take it, and so
     # the surface can never render a direction whose bound is not on the page with it.
-    spreads = _seed_spreads(floor)
+    spreads = _seed_spreads(floor, three_arm)
     return dict(
         base,
         available=True,
@@ -2667,7 +2759,22 @@ def build(three_arm: dict | None, floor: dict | None,
         # a claim. A reader who wants to disagree with it needs the split it was derived from, not
         # a paraphrase of it. `available: false` is published too -- "not measured" is a state a
         # reader is entitled to see, and it is the state the page was in when it asserted one.
-        floor_decomposition=(decomposition if isinstance(decomposition, dict)
+        floor_decomposition=(dict(decomposition,
+                                  # THE RECONCILIATION, ON THE SURFACE AND BESIDE THE EVIDENCE it
+                                  # judges, so a reader can check the gate rather than take the
+                                  # headline's word for why no remedy is stated. `None` when the
+                                  # two books agree -- the honest silence, not a missing key.
+                                  measured_on_this_page_s_book=_decomposition_is_the_same_book(
+                                      decomposition, three_arm) is None,
+                                  different_book_caveat=_decomposition_is_the_same_book(
+                                      decomposition, three_arm),
+                                  book_it_was_measured_on=dict(zip(
+                                      ("priced_decisions", "renewals_offered"),
+                                      _decomposition_book(decomposition))),
+                                  book_this_page_publishes=dict(zip(
+                                      ("priced_decisions", "renewals_offered"),
+                                      _three_arm_book(three_arm))))
+                             if isinstance(decomposition, dict)
                              else {"available": False,
                                    "why_not": ("no floor decomposition artefact was readable, so "
                                                "this page states no remedy")}),
@@ -2708,7 +2815,7 @@ def build(three_arm: dict | None, floor: dict | None,
             # so it may only be made while the published run and the baseline arm are the same run.
             ("The comparison below is against the very supplier this site publishes. " if
              (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
-            + _headline_reading(realised, provisioned, spreads, decomposition)
+            + _headline_reading(realised, provisioned, spreads, decomposition, three_arm)
             + _coverage_clause(three_arm)),
     )
 
@@ -2739,7 +2846,8 @@ def _coverage_clause(three_arm: dict) -> str:
 
 
 def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = None,
-                      decomposition: dict | None = None) -> str:
+                      decomposition: dict | None = None,
+                      three_arm: dict | None = None) -> str:
     """The sentence the page leads with, DERIVED from the restated figures' own signs.
 
     THIS SENTENCE USED TO BE A CONSTANT (2026-08-28). It asserted that the level arm "earned as
@@ -2766,15 +2874,15 @@ def _headline_reading(realised: dict, provisioned: dict, spreads: dict | None = 
         clock_note = (" This is on the superseded clock -- see the panels below.")
         return _selection_sentence(selection, _f(fallback.get("level_share_of_advantage")),
                                    _f(fallback.get("value_advantage_gbp")), None,
-                                   decomposition) + clock_note
+                                   decomposition, three_arm) + clock_note
     return _selection_sentence(split.get("selection_gbp"),
                                split.get("level_share_of_advantage"),
                                split.get("value_advantage_gbp"),
-                               spreads, decomposition)
+                               spreads, decomposition, three_arm)
 
 
 def _selection_sentence(selection, share, advantage=None, spreads=None,
-                        decomposition=None) -> str:
+                        decomposition=None, three_arm=None) -> str:
     """What the per-customer CHOOSING was worth -- with a DIRECTION only when the figure is bigger
     than the spread the same figure shows across seeds, and its SIZE and BOUND when it is not."""
     selection = _f(selection)
@@ -2799,7 +2907,7 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # than flat rules while the published headline said it earned more. The selection direction
     # had been made derived for exactly this reason and the arm-vs-control direction was left
     # behind, which is a half-finished repair rather than an oversight of a different kind.
-    opening = _arm_vs_control_clause(advantage, advantage_spread)
+    opening = _arm_vs_control_clause(advantage, advantage_spread, spreads)
 
     # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as inside: a
     # missing spread is not evidence that the sign is safe to state.
@@ -2808,7 +2916,8 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
             selection, selection_spread,
             ("Once one flat margin at the same price LEVEL is given credit for what a level "
              "alone would have earned, £{:,.0f} separates the two").format(abs(selection)),
-            "whether the per-customer choosing is worth anything at all, in either direction")
+            "whether the per-customer choosing is worth anything at all, in either direction",
+            spreads)
     elif selection < 0:
         body = ("Running it through ONE flat margin at the same price LEVEL earned "
                 "£{:,.0f} more than the per-customer engine did{}. On this evidence the advantage "
@@ -2829,10 +2938,10 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
                                          (selection, selection_spread)))
     return "{} {}{}{}".format(
         opening, body, share_clause,
-        " " + _what_would_resolve_it(decomposition).strip() if withheld else "")
+        " " + _what_would_resolve_it(decomposition, three_arm).strip() if withheld else "")
 
 
-def _cannot_resolve(value, spread, size_clause: str, what: str) -> str:
+def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) -> str:
     """The sentence a contrast inside its own floor gets: the SIZE, the BOUND, and the refusal to
     state a sign. On the surface, never in a footnote.
 
@@ -2845,7 +2954,18 @@ def _cannot_resolve(value, spread, size_clause: str, what: str) -> str:
     against a spread it does not clear is a book too small to answer the question; a contrast with
     no spread beside it at all is a floor nobody has run. Collapsing them would send the next
     reader to re-run seeds when what is owed is a bigger book, or the reverse.
+
+    AND SINCE 2026-08-31 THERE IS A THIRD REASON, which is neither of those: a spread WAS measured
+    and describes a superseded world. Reporting that as "no seed spread has been measured" is a
+    refusal naming a cause nobody observed -- it sends the reader to run a floor that has already
+    been run, and hides that the bound on disk is simply from the wrong book. `_seed_spreads`
+    withholds those bounds and says why; this sentence repeats the why rather than inventing one.
     """
+    withheld_because = (spreads or {}).get("reason") if not (spreads or {}).get(
+        "available", True) else None
+    if _f((spread or {}).get("stdev_gbp")) is None and withheld_because:
+        return ("{size}. Its DIRECTION is not stated here, and the reason is not that no floor "
+                "has been run: {why}".format(size=size_clause, why=withheld_because))
     if _f((spread or {}).get("stdev_gbp")) is None:
         return ("{size}. No seed spread has been measured for that contrast on this clock, so its "
                 "DIRECTION is not stated here: on a comparison this size an unbounded sign is a "
@@ -2866,7 +2986,7 @@ def _clears_its_floor(spread) -> str:
         stdev, (spread or {}).get("n"))
 
 
-def _arm_vs_control_clause(advantage, spread=None) -> str:
+def _arm_vs_control_clause(advantage, spread=None, spreads=None) -> str:
     """Did the per-customer arm beat flat rules, or not? Stated in the direction it came out --
     and ONLY when the gap is bigger than the gap seeds alone produce.
 
@@ -2891,7 +3011,7 @@ def _arm_vs_control_clause(advantage, spread=None) -> str:
             advantage, spread,
             ("Running the same book through the per-customer decision engine came out £{:,.0f} "
              "from flat rules").format(abs(advantage)),
-            "which of the two earned more")
+            "which of the two earned more", spreads)
     if advantage > 0:
         return ("Running the same book through the per-customer decision engine earned "
                 "£{:,.0f} MORE than flat rules{}.".format(advantage, _clears_its_floor(spread)))

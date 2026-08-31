@@ -1029,8 +1029,19 @@ def test_the_withdrawn_sentence_reaches_the_reader_beside_the_one_that_replaced_
 # customers the method FINDS, so "the method has never priced a customer the company won" is a
 # fact about the enterprise value claim and belongs on the surface, not in an observability file.
 
-def test_the_page_says_the_method_has_never_priced_a_customer_the_company_won(live):
-    """Fires on: dropping the paragraph from the door, or from the feed that fills it."""
+def test_the_verdict_on_whose_customers_the_arm_reached_reaches_the_reader(live):
+    """Fires on: dropping the paragraph from the door, or from the feed that fills it.
+
+    KEYED TO THE VERDICT THE FEED STATES, NOT TO ONE OF THEM (2026-08-31). This test used to
+    assert the STRUCTURAL verdict -- "the method has NEVER priced a customer the company won",
+    with its "GATE, not a book size" clause -- through the live page. That was true of every run
+    up to 2026-08-30 and it stopped being true the moment the standard-variable product shipped:
+    the 2026-08-31 run priced 58 accounts the company found rather than started with, and this
+    control went red for the single reason that the thing it described had been fixed. A control
+    that reds when the world improves is keyed to today's answer, so it now checks that WHICHEVER
+    verdict the feed states is the one the reader gets, and the branch the live run is not in is
+    driven from a constructed feed below.
+    """
     who = (_live_feed()["decisions"] or {}).get("who_the_method_has_priced") or {}
     assert who.get("available") is True, (
         "the live feed carries no verdict on whose customers the arm reached, so the paragraph "
@@ -1040,23 +1051,36 @@ def test_the_page_says_the_method_has_never_priced_a_customer_the_company_won(li
     # is how a correct page gets reported red.
     rendered = _text(live["arms-decisions"]).replace(" — ", " -- ")
     assert who["sentence"] in rendered, "the verdict reached the feed and not the reader"
-    assert "GATE, not a book size" in rendered
+    # The clause that only the STRUCTURAL verdict earns, asserted in both directions so neither
+    # branch can be rendered as the other.
+    if who["verdict"] == "structural":
+        assert "GATE, not a book size" in rendered
+    else:
+        assert "GATE, not a book size" not in rendered, (
+            "a run that HAS priced a won account was rendered with the structural gate clause, "
+            "which tells the reader no book size would ever reach one: {}".format(rendered))
 
 
-def test_MUTATION_a_run_that_priced_a_won_account_renders_the_other_verdict(live):
+def test_MUTATION_a_run_that_priced_no_won_account_renders_the_other_verdict(live):
     """NULL RUNG on the RENDERED string, not just on the feed. A door that prints one sentence
     whatever the feed says is a constant wearing a measurement's clothes -- and this panel is the
     one whose whole purpose is to be able to return the unflattering answer.
+
+    THE BRANCH DRIVEN HERE IS THE ONE THE LIVE RUN IS NOT IN, and which that is flipped on
+    2026-08-31. Until then the live page was structural and this rung constructed `reached`; the
+    standard-variable product made `reached` the live state, so this now constructs the structural
+    verdict. Both branches stay reachable either way, which is the property.
     """
     feed = copy.deepcopy(_live_feed())
     who = feed["decisions"]["who_the_method_has_priced"]
-    who["verdict"] = "reached"
-    who["won_or_drawn_accounts_priced"] = 1
-    who["sentence"] = ("The method has priced 1 account the company found rather than started "
-                       "with (PROS-2019-0015).")
+    who["verdict"] = "structural"
+    who["won_or_drawn_accounts_priced"] = 0
+    who["sentence"] = ("The method has NEVER PRICED A CUSTOMER THE COMPANY WON. Every account it "
+                       "priced was in the opening roster, and the reason is the product GATE, not "
+                       "a book size: there is no book size at which the first one is priced.")
     rendered = _text(_render(feed)["arms-decisions"])
-    assert "PROS-2019-0015" in rendered
-    assert "GATE, not a book size" not in rendered
+    assert "GATE, not a book size" in rendered
+    assert "NEVER PRICED A CUSTOMER THE COMPANY WON" in rendered
 
 
 def test_MUTATION_a_feed_with_no_verdict_renders_no_claim_about_it():
@@ -1095,8 +1119,10 @@ def test_MUTATION_a_page_whose_feed_states_no_basis_prints_no_basis_clause():
     feed["decisions"]["who_the_method_has_priced"].pop("premise_basis", None)
     rendered = _text(_render(feed)["arms-decisions"])
     assert "Basis:" not in rendered
-    # The verdict itself still renders, so this is an absence and not a blanked panel.
-    assert "GATE, not a book size" in rendered
+    # The verdict itself still renders, so this is an absence and not a blanked panel. Keyed to
+    # whatever verdict the feed states -- see the rename above for why naming one went stale.
+    assert feed["decisions"]["who_the_method_has_priced"]["sentence"] in rendered.replace(
+        " — ", " -- ")
 
 
 # ── the belief AUC, and the interval it went out without ─────────────────────────────────────
@@ -1408,6 +1434,51 @@ def test_MUTATION_a_run_with_a_join_failure_is_told_the_gap_is_OURS(live):
         "a constant, not the classes")
 
 
+def _book_counts(feed):
+    """The settled-book counts, from whichever branch the live feed is currently in.
+
+    THE LIVE BRANCH FLIPPED ON 2026-08-31. Until then every run predated the producing-commit
+    stamp, so `book.available` was False and the counts sat in `unlabelled_counts` -- and three
+    controls below popped that key off the live feed to build their fixtures. The 2026-08-31 run
+    carries the stamp, so the key is gone and they raised `KeyError` for the single reason that
+    the provenance gap they were written about had been closed. The counts are the same numbers
+    in both branches; only their address moves.
+    """
+    book = feed["book"]
+    return dict(book.get("unlabelled_counts") or
+                {k: v for k, v in book.items()
+                 if k not in ("available", "produced_by", "why_the_counts_are_withheld",
+                              "unlabelled_counts")})
+
+
+def _feed_with_an_unlabelled_book(feed):
+    """The feed as it looks for a run whose draw code cannot be named -- the REFUSAL branch.
+
+    Constructed rather than read, because the live run can name its code. A control for the
+    withheld branch that can only be driven by a live artefact in that branch stops being a
+    control the day the artefact improves, which is what happened here.
+    """
+    counts = _book_counts(feed)
+    provenance = {"stated": False, "commit": None, "short": None,
+                  "reason": "this artefact predates the producing-commit stamp.",
+                  "counts_are_labelled_by_the_code_that_made_them": False}
+    feed["book"] = {"available": False, "produced_by": provenance,
+                    "why_the_counts_are_withheld": (
+                        "These counts describe a population, and this run cannot name the code "
+                        "that drew it. " + provenance["reason"]
+                        + " A count published without the tree that made it reads as a fact "
+                          "about the supplier when it may be a fact about code that has since "
+                          "been replaced."),
+                    "unlabelled_counts": counts}
+    feed["producing_commit"] = provenance
+    # THE SECOND ROUTE THE COUNT REACHES THE PAGE BY. `_decisions` withholds it on the same
+    # provenance gate, and a fixture that strips only `book` leaves the decisions panel still
+    # printing "The book is 164 settled accounts" -- which is the very sentence this branch
+    # exists to suppress, arriving by the other door.
+    feed["decisions"] = dict(feed.get("decisions") or {}, book_accounts_settled=None)
+    return feed
+
+
 def test_a_run_that_cannot_name_the_code_that_drew_its_book_shows_no_book_count(live):
     """The counts go on the page labelled by the code that made them, or they do not go on it.
 
@@ -1418,16 +1489,15 @@ def test_a_run_that_cannot_name_the_code_that_drew_its_book_shows_no_book_count(
     Fires on: rendering the count from either of its two feed routes when the feed withholds it;
     on printing "null settled accounts", which is the shape a naive withdrawal leaves behind.
     """
-    feed = _live_feed()
-    assert feed["book"]["available"] is False, (
-        "the live feed labels its counts, so this control is asserting against the wrong branch "
-        "-- drive it from a stripped feed instead of deleting it")
+    feed = _feed_with_an_unlabelled_book(copy.deepcopy(_live_feed()))
+    assert feed["book"]["available"] is False
     count = str(feed["book"]["unlabelled_counts"]["billing_accounts_settled_in_window"])
-    note = _text(live["arms-note"])
+    rendered = _render(feed)
+    note = _text(rendered["arms-note"])
     assert "settled-book counts are withheld" in note
     assert "predates the producing-commit stamp" in note
     assert count + " settled billing accounts" not in note
-    decisions = _text(live["arms-decisions"])
+    decisions = _text(rendered["arms-decisions"])
     assert "null settled accounts" not in decisions
     assert "undefined settled accounts" not in decisions
     assert count + " settled accounts" not in decisions
@@ -1443,7 +1513,7 @@ def test_a_run_that_CAN_name_its_code_puts_the_count_back_with_the_commit(live):
     is the state the page was in when both provenance traps went unnoticed.
     """
     feed = copy.deepcopy(_live_feed())
-    counts = feed["book"].pop("unlabelled_counts")
+    counts = _book_counts(feed)
     feed["book"] = dict(counts, available=True, produced_by={
         "stated": True, "commit": "a" * 40, "short": "a" * 9,
         "publishing_tree_commit": "a" * 40,
@@ -1626,7 +1696,7 @@ def test_a_count_drawn_by_code_the_page_no_longer_runs_names_BOTH_trees(live):
     rendering a stale run as current.
     """
     feed = copy.deepcopy(_live_feed())
-    counts = feed["book"].pop("unlabelled_counts")
+    counts = _book_counts(feed)
     feed["book"] = dict(counts, available=True, produced_by={
         "stated": True, "commit": "b" * 40, "short": "b" * 9,
         "publishing_tree_commit": "c" * 40,
