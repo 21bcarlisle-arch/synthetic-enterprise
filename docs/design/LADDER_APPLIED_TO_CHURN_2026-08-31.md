@@ -5,6 +5,13 @@
 `tests/architecture/test_churn_carries_per_customer_signal.py` (new, seven mutations proven).
 **Subject:** `docs/reports/ladder_churn_factors.json` + `..._svt_segment_decisions.json` — **1,410
 decisions across both departure routes, 82 departures, 2016–2025**, captured for this assessment.
+**Every live figure on this page is the CONTINUOUS-satisfaction capture** — item 1, landed the same
+day — and those two files now hold it, carrying `company_churn_estimate` as well so the belief legs
+below are reproducible from the tree rather than from a run that has gone. The pre-item-1 BUCKETED
+capture is in git history only; every reading still shown from it is marked superseded where it
+appears. The published readings are `docs/reports/ladder_churn_ceiling_vs_belief.json`, and
+`tests/architecture/test_the_ladder_page_quotes_the_report.py` fails if this page and that artefact
+drift apart — which they had, for six hours, on the renewal table below.
 
 The canon requires every world variable to *say where it stands*. This is churn saying it.
 
@@ -13,14 +20,14 @@ The canon requires every world variable to *say where it stands*. This is churn 
 | **0 — red lines** | **DOES NOT EXIST** | there is no wide feasible range for churn anywhere in the repo; the narrow published band is doing both jobs |
 | **1 — level** | **PASSES, top-down, and stale** | fitted onto the band's high endpoint, 10/10 years, by a per-year scalar — on a population that has since lost 69% of its rows |
 | **2 — mechanism** | **PASSES ON DIRECTION, NOT ON MAGNITUDE** | the price-side split is +100.75pp / −53.99pp; the sensitivity that sets its size is unidentified by its own docstring |
-| **3 — heterogeneity** | **PASSES, ON TWO OF SIX FACTORS** | oracle AUC 0.6760 against a null of [0.4184, 0.5778]; bill shock and action propensity carry it, and two factors contribute nothing |
+| **3 — heterogeneity** | **PASSES, ON TWO OF SIX FACTORS** | oracle AUC 0.6760 against a null of [0.4184, 0.5780]; bill shock and action propensity carry it, and two factors contribute nothing |
 
 ---
 
 ## Rung 3 first, because it had never been measured and it is the thesis
 
 **Reading: the world's own realised hazard discriminates who leaves at AUC 0.6760, against a
-permutation null of [0.4184, 0.5778] (median 0.4986, 2000 shuffles). It clears.** So there *is*
+permutation null of [0.4184, 0.5780] (median 0.4986, 2000 shuffles). It clears.** So there *is*
 something to infer. Rung 3 passes.
 
 Four things make that reading mean what it says rather than something flattering.
@@ -33,7 +40,7 @@ number is the missing denominator for a month of company-side results.
 **It is stratified by year AND route, and both exclusions are load-bearing.** Two of the terms
 reaching the renewal hazard (`sim_level_anchor`, `sim_market_opportunity`) take one value per
 calendar year. And the two routes run mean hazards **5.7× apart** — 0.211 at a renewal, 0.037 at an
-SVT segment. Pooled across routes the same reading is **0.7446**: a score that knew only which
+SVT segment. Pooled across routes the same reading is **0.7445**: a score that knew only which
 product a household sat on would discriminate, and **that is product structure, not a hidden reason
 of anyone's own.** The 0.069 difference is the size of what is being excluded, and it is printed
 rather than asserted.
@@ -300,11 +307,14 @@ of [0.4267, 0.5677]**, with bill shock carrying it and the other three inside th
 direction of every conclusion survived; two numbers did not, and they are corrected here rather than
 quietly replaced:
 
-* **`action_propensity` looked like nothing (+0.0081) and is the second real factor (+0.0527 /
-  +0.0664).** It was invisible because the route on which it matters most was not in the table.
+* **`action_propensity` looked like nothing (+0.0081) and is the second real factor on the renewal
+  route (+0.0539).** It was invisible because the route on which it appeared to matter most was not
+  in the table. *The SVT figure that used to stand beside it here (+0.0664) is **withdrawn** — that
+  reading is uncorrected for exposure and, offset, the factor does not clear its null on that route
+  at all. See "Exposure is now offset on the SVT route".*
 * **"Three fifths of a household's departure probability is the year" was true of the renewal slice
   and is false of the book.** Over both routes, the between-stratum share of log-hazard variance is
-  36.9% across 19 year×route strata, and **the year alone accounts for 4.2%.** The rest is the
+  37.0% across 19 year×route strata, and **the year alone accounts for 4.2%.** The rest is the
   route. The renewal-only figure of 60.2% was a property of a population that had lost 69% of its
   rows, not of the world.
 
@@ -359,8 +369,9 @@ no per-customer signal. Individual variation becomes noise around a forced mean.
 
 *Sweep taken on the renewal route, which is the only route the anchor scales — `svt_inertia`
 deliberately does not carry it. Re-measured on the two-route capture, the renewal route reads
-**0.7412 as fitted and 0.7436 with the anchor flattened to 1.0**: the same answer, 0.002 apart, on a
-different population.*
+**0.7400 as fitted and 0.7400 with the anchor flattened to 1.0** — on the continuous-satisfaction
+capture the two are not 0.002 apart, they are the same number to four places, on a different
+population.*
 
 **A 20× sweep of the anchor moves the rung-3 reading by 0.002.** The reason is structural rather
 than lucky: the anchor is a single multiplier *within* a year, AUC is a *rank* statistic, and a
@@ -374,8 +385,8 @@ not the reason the company keeps reading "we cannot tell". Repairing it and expe
 results to move would be a prediction made against a measurement that already exists.
 
 **And the year is a much smaller part of a household's hazard than the renewal slice suggested.**
-Decomposing log(realised hazard) over the whole book: **between-stratum 36.9% across 19 year×route
-strata, within-stratum 63.1% — and the year alone accounts for 4.2%.** On the renewal slice alone
+Decomposing log(realised hazard) over the whole book: **between-stratum 37.0% across 19 year×route
+strata, within-stratum 63.0% — and the year alone accounts for 4.2%.** On the renewal slice alone
 the between-year share reads 60.2%, and that figure was a property of a population that had lost 69%
 of its rows rather than of the world. Corrected here rather than quietly replaced, because a
 between-population correction is the mistake this project keeps paying for.
