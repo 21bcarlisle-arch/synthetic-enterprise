@@ -254,3 +254,102 @@ def test_a_green_remainder_run_still_publishes_no_reds(monkeypatch, tmp_path):
     state = prc.run_remainder_annotation_step("abc", force=True, runner=lambda _a: Green())
 
     assert state["annotation"]["nonblocking_reds"] == []
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# THE RED COUNT NAMES THE TREE IT WAS COUNTED ON — THE CALLER'S HALF
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# `publish_provenance.record_annotation` refuses a red count with no `measured_on`; these are the
+# legs for the thing that BUILDS it. The producer's refusal cannot check whether the answer is
+# true, only that one was given -- so a caller that always said "commit" would satisfy the refusal
+# and publish the same misattribution with a certificate attached. That is the gap these close.
+
+
+class _Probe:
+    """A stand-in for `git status --porcelain`."""
+
+    def __init__(self, returncode=0, stdout=""):
+        self.returncode = returncode
+        self.stdout = stdout
+
+
+class _Subprocess:
+    """A stand-in for the `subprocess` MODULE, bound over the name in `prc`'s namespace.
+
+    NARROW ON PURPOSE, and the wide version was caught doing real damage in this repo's own
+    worktree during this change. `monkeypatch.setattr(prc.subprocess, "run", ...)` reaches
+    through to the STDLIB module object, which every caller in the process shares -- including
+    `tests/background/conftest.py::_real_repo_head`, whose teardown `git rev-parse` then read
+    this fixture's stdout and reported a GHOST PUSHER: "HEAD moved 0bc78cf14 -> unreadabl".
+    A fixture that fabricates the answer to an unrelated control is the harness-fabricates-the-
+    observable class, and it surfaced as an ERROR at teardown -- neither pass nor fail, so the
+    shared-tree run reported 14 passed and only the isolated worktree showed it.
+    Rebinding the NAME in `prc` touches nothing outside that module.
+
+    (Two older tests in this file, `_fake_run` and the `_explode` above, still patch the wide
+    way. Left alone deliberately -- not this change's subject, and not observed colliding.)
+    """
+
+    def __init__(self, result):
+        self._result = result
+
+    def run(self, *a, **k):
+        if callable(self._result):
+            return self._result(*a, **k)
+        return self._result
+
+
+def test_a_dirty_tree_is_never_recorded_as_the_commit(monkeypatch):
+    """THE DEFECT ITSELF. The remainder suite runs with `cwd=PROJECT_DIR` -- the shared working
+    tree, carrying every other lane's uncommitted work. On 2026-08-31 that tree also held an
+    uncommitted guard widening reddening ~1,760 tests while the banner published 66 reds beside
+    `git_commit: d1ba6bd46`. The count belonged to neither object."""
+    monkeypatch.setattr(prc, "subprocess", _Subprocess(
+        _Probe(0, " M background/supervisor.py\n?? tools/x.py\n")))
+    measured = prc._annotation_measured_on("d1ba6bd46")
+    assert measured["git_commit"] == "d1ba6bd46"
+    assert measured["tree_state"] == prov.TREE_WORKING, (
+        "a working tree carrying two other lanes' uncommitted files was recorded as though the "
+        "reds had been counted on the published commit alone")
+
+
+def test_a_clean_tree_is_recorded_as_the_commit(monkeypatch):
+    """NULL CONTROL, and without it the test above passes on a function that returns the string
+    'working-tree' unconditionally -- a control asserting a constant. The two directions have to
+    be distinguishable or neither leg means anything."""
+    monkeypatch.setattr(prc, "subprocess", _Subprocess(_Probe(0, "\n  \n")))
+    assert prc._annotation_measured_on("d1ba6bd46")["tree_state"] == prov.TREE_COMMIT
+
+
+def test_an_unreadable_git_probe_claims_the_working_tree_not_the_commit(monkeypatch):
+    """FAIL-CLOSED IN THE DIRECTION THAT CLAIMS LESS. 'I could not tell whether the tree was
+    clean' must not resolve to the stronger claim. A probe that fails open here would put the
+    misattribution back on every cycle where git is slow or absent -- and it would do it
+    silently, which is this repo's most-repeated failure shape."""
+    def _explode(*a, **k):
+        raise OSError("git not on PATH")
+
+    monkeypatch.setattr(prc, "subprocess", _Subprocess(_explode))
+    assert prc._annotation_measured_on("d1ba6bd46")["tree_state"] == prov.TREE_WORKING
+
+    monkeypatch.setattr(prc, "subprocess", _Subprocess(_Probe(128, "")))
+    assert prc._annotation_measured_on("d1ba6bd46")["tree_state"] == prov.TREE_WORKING
+
+
+def test_the_tree_the_reds_were_counted_on_reaches_the_rendered_page():
+    """THE PRODUCER'S HALF ONLY -- that the field is written and the renderer names it.
+
+    NOT SUFFICIENT ON ITS OWN, and this docstring says so because the first version of this
+    leg was exactly this grep and nothing more. Mutation M5 (make `annotationSentence` stop
+    CALLING `redTreeClause`, leaving the function defined and unreached) SURVIVED it: every
+    string it greps for still existed in dead code. That is the fail-closed-verdict-composed-
+    into-an-artefact-no-surface-reads class, committed inside the test written to prevent it.
+    The leg that actually fires lives in
+    `site/test_freshness_banner_publish_state.py::test_the_tree_the_red_count_was_taken_on_is_rendered`,
+    which drives the real asset through a DOM. This one is kept as the cheap producer-side
+    tripwire that runs in the background selection, and it is honest about being half."""
+    js = (prc.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
+    assert "nonblocking_reds_measured_on" in js, (
+        "the publisher records which tree the reds were counted on and the banner asset does "
+        "not mention it at all")

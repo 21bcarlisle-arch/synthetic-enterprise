@@ -23,6 +23,12 @@ RUN_A = "run_output_{}_20260809T031627Z.json".format(SHA_A)
 RUN_B = "run_output_{}_20260810T041627Z.json".format(SHA_B)
 
 
+#: A complete tree identity for the red count. Every annotation test that publishes reds has to
+#: carry one now, which is itself the point: there is no way to write the count without saying
+#: where it came from, including by accident in a fixture.
+_MEASURED_ON = {"git_commit": SHA_A, "tree_state": prov.TREE_WORKING}
+
+
 def _at(minutes):
     return datetime(2026, 8, 10, 12, 0, tzinfo=timezone.utc) + timedelta(minutes=minutes)
 
@@ -121,7 +127,7 @@ def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
     prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
     state = prov.record_annotation(open_findings=140, nonblocking_reds=["FAILED x"] * 50,
-                                   path=p, now=_at(6))
+                                   measured_on=_MEASURED_ON, path=p, now=_at(6))
     assert state["verification_state"] == prov.STATE_PAUSED
     assert state["paused_since"] is not None
     assert state["showing_run"]["run_id"] == RUN_A
@@ -215,3 +221,88 @@ def test_the_banner_layer_fails_loud_not_silent():
 #
 # The replacement derives the population from the pages themselves and is selected by the gate on
 # any staged `site/**.html` (SITE_SURFACE_TESTS), which is the half that lets it stay true.
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# A RED COUNT MUST NAME THE TREE IT WAS COUNTED ON
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# THE DEFECT, observed on the live endpoint 2026-08-31. `publish_provenance.json` served
+# `nonblocking_reds_total: 66` in the same object as `git_commit: "d1ba6bd46"`, and the banner
+# rendered "66 non-blocking test reds elsewhere in the repository". A reader joins those two and
+# concludes there are 66 reds at d1ba6bd46.
+#
+# There are not. `run_remainder_annotation_step` had `git_hash` in its hand, wrote it into its own
+# private state file, and did NOT pass it to `record_annotation`; and the suite it counts runs with
+# `cwd=PROJECT_DIR`, the shared working tree, carrying every lane's uncommitted work. That evening
+# the tree also held an uncommitted widening of `tests/production_surface_guard.py` reddening ~1,760
+# tests. The published 66 was counted on a tree that has never existed in the history.
+#
+# WHY THE OBVIOUS REPAIR IS THE ONE THAT HAD TO BE BLOCKED. Passing `git_hash` through — a
+# one-line change, and the first thing anyone would write — makes it strictly WORSE: an
+# unattributed number becomes a number confidently attributed to a commit that did not produce it.
+# Unattributed cannot be checked; misattributed reads as established. So the leg below is aimed at
+# the REPAIR, not only at the original defect, and that is what makes it able to fail against the
+# next passer-by rather than only against the past.
+
+
+def test_a_red_count_may_not_be_published_without_the_tree_it_was_counted_on(tmp_path):
+    """FAIL-CLOSED at the write. A count with no tree is a number about no tree."""
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    try:
+        prov.record_annotation(nonblocking_reds=["FAILED a::b"], path=p, now=_at(1))
+    except ValueError as exc:
+        assert "tree" in str(exc).lower()
+    else:
+        raise AssertionError(
+            "a non-blocking red count was published with nothing saying which tree produced it, "
+            "which is exactly what put 66 reds beside d1ba6bd46 on the live banner")
+    # NULL CONTROL: the refusal must not have written a half-annotation on its way out.
+    assert "nonblocking_reds_total" not in (prov.read(p).get("annotation") or {})
+
+
+def test_naming_the_commit_alone_is_refused_because_that_is_the_misattribution(tmp_path):
+    """THE LEG THAT AIMS AT THE REPAIR. `measured_on={"git_commit": sha}` is the natural
+    one-line fix and it is the worse outcome: it asserts the count belongs to that commit.
+    Both fields, or neither."""
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    try:
+        prov.record_annotation(nonblocking_reds=["FAILED a::b"],
+                               measured_on={"git_commit": SHA_A}, path=p, now=_at(1))
+    except ValueError as exc:
+        assert "tree_state" in str(exc)
+    else:
+        raise AssertionError(
+            "a red count was accepted carrying a commit and no tree state, so it now CLAIMS to "
+            "be a property of that commit -- the misattribution, published as established")
+
+
+def test_the_tree_the_reds_were_counted_on_survives_to_the_served_artefact(tmp_path):
+    """It has to reach the file the endpoint serves, not merely the returned dict -- a verdict
+    composed into an object no published surface reads is the failure mode this repo repeats."""
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_annotation(nonblocking_reds=["FAILED a::b"] * 3,
+                           measured_on={"git_commit": SHA_B, "tree_state": prov.TREE_WORKING},
+                           path=p, now=_at(1))
+    served = json.loads(p.read_text())["annotation"]
+    assert served["nonblocking_reds_total"] == 3
+    assert served["nonblocking_reds_measured_on"] == {
+        "git_commit": SHA_B, "tree_state": prov.TREE_WORKING}
+    # AND IT MUST BE ABLE TO DISAGREE WITH THE PUBLISHED COMMIT, which is the whole point: the
+    # count was taken on SHA_B's tree while SHA_A is what the banner says is showing. If these
+    # two were wired to the same source the field would be decoration.
+    assert json.loads(p.read_text())["showing_run"]["git_commit"] == SHA_A
+
+
+def test_an_open_findings_only_annotation_still_needs_no_tree(tmp_path):
+    """SCOPE CONTROL, and it is the leg that stops this becoming ceremony. `open_findings`
+    counts files in `docs/staging/` -- the same on any tree at that path -- and the cheap
+    findings-only refresh runs on every cycle. Requiring a tree there would have made the
+    guard something a caller routes around, and a guard nobody obeys is worse than none."""
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    state = prov.record_annotation(open_findings=47, path=p, now=_at(1))
+    assert state["annotation"]["open_findings"] == 47

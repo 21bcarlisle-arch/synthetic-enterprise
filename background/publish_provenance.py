@@ -81,6 +81,31 @@ STATE_PAUSED = "paused"
 # PUBLISH_GATE_MAX_CITED_FINDINGS).
 MAX_ANNOTATED_REDS = 8
 
+#: A red count MUST name the tree it was counted on. Both fields, never one.
+#:
+#: WHY BOTH, AND WHY THE OBVIOUS ONE-FIELD REPAIR IS WORSE THAN THE DEFECT (2026-08-31).
+#: `run_remainder_annotation_step` already receives `git_hash` — the commit being published — and
+#: dropped it on the floor, so `nonblocking_reds_total` reached the live banner as a number about
+#: no tree at all. Observed on the endpoint: `nonblocking_reds_total: 66` sitting in the same
+#: object as `git_commit: d1ba6bd46`, which any reader takes to mean "66 reds at d1ba6bd46".
+#:
+#: It was not. The remainder suite runs with `cwd=PROJECT_DIR` — the SHARED WORKING TREE, carrying
+#: every lane's uncommitted work. On the evening this was found that tree held an uncommitted
+#: widening of `tests/production_surface_guard.py` reddening ~1,760 tests. The published 66 was
+#: counted on a tree that has never existed in the history and never will.
+#:
+#: So stamping `git_commit` ALONE would have been the worse repair: it turns a number attributable
+#: to nothing into a number confidently attributed to a commit that did not produce it. An
+#: unattributed figure at least cannot be checked; a misattributed one reads as established. That
+#: is why `TREE_STATE` is required beside the commit and why this refuses a partial `measured_on`
+#: rather than filling the gap with a default — a default here would BE the misattribution.
+MEASURED_ON_FIELDS = ("git_commit", "tree_state")
+
+#: The tree the count was actually taken on. `TREE_COMMIT` may only be claimed when the working
+#: tree is clean, i.e. when the tree measured and the commit published are the same object.
+TREE_COMMIT = "commit"
+TREE_WORKING = "working-tree"
+
 
 # ===========================================================================================
 # THE PUBLISHED PROVENANCE MUST BE A REAL RUN AND A REAL COMMIT (2026-08-11, director P1)
@@ -318,23 +343,43 @@ def record_paused(*, reason=None, path: Path = None, now=None) -> dict:
     return _write(state, path, now)
 
 
-def record_annotation(*, open_findings=None, nonblocking_reds=None, path: Path = None,
-                      now=None) -> dict:
+def record_annotation(*, open_findings=None, nonblocking_reds=None, measured_on=None,
+                      path: Path = None, now=None) -> dict:
     """The honest repo-health line: "published with N open findings — see health".
 
     Separate from the two state recorders because it is a different KIND of claim: those say
     how current the numbers are, this says what is known to be wrong elsewhere while they are
     published. It never touches `verification_state` — an annotation must not be able to
     pause or unpause the site, or a noisy finding count would become an outage.
+
+    A RED COUNT WITHOUT `measured_on` IS REFUSED. See `MEASURED_ON_FIELDS` for why the tree has
+    to travel with the count and why naming the commit alone would be worse than naming nothing.
+    The refusal is scoped to the red count deliberately: `open_findings` is a count of files in
+    `docs/staging/`, which is the same on any tree at that path, so requiring a tree of the
+    findings-only caller would be ceremony. Reds are a property of a TREE and findings are not.
+
+    Repo-independent, like `assert_publishable`'s shape half: this validates that the caller said
+    which tree, and never goes and looks. The caller is the one that knows — `git_hash` is already
+    in its hand — and putting a `git status` in the publish path would buy an answer this module
+    cannot check with a cost the publish path cannot afford.
     """
     state = read(path)
     annotation = dict(state.get("annotation") or {})
     if open_findings is not None:
         annotation["open_findings"] = int(open_findings)
     if nonblocking_reds is not None:
+        missing = [f for f in MEASURED_ON_FIELDS if not (measured_on or {}).get(f)]
+        if missing:
+            raise ValueError(
+                "a non-blocking red count may not be published without the tree it was counted "
+                "on; missing {} in measured_on={!r}. A count stamped beside a commit that did "
+                "not produce it is a number about no tree at all.".format(
+                    " and ".join(missing), measured_on))
         reds = [str(r) for r in nonblocking_reds]
         annotation["nonblocking_reds"] = reds[:MAX_ANNOTATED_REDS]
         annotation["nonblocking_reds_total"] = len(reds)
+        annotation["nonblocking_reds_measured_on"] = {
+            f: measured_on[f] for f in MEASURED_ON_FIELDS}
     annotation["checked_at"] = _now_iso(now)
     state["annotation"] = annotation
     return _write(state, path, now)

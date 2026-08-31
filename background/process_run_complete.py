@@ -4741,6 +4741,33 @@ def _default_remainder_runner(argv, timeout=None):
                           capture_output=True, text=True, errors="replace")
 
 
+def _annotation_measured_on(git_hash):
+    """WHICH TREE the remainder suite just counted reds on. The commit, AND whether it was alone.
+
+    `_default_remainder_runner` runs pytest with `cwd=PROJECT_DIR` — the SHARED WORKING TREE,
+    which on this machine carries several lanes' uncommitted work at any moment. So `git_hash`
+    names the commit being PUBLISHED, and the count was taken on that commit plus whatever else
+    happened to be lying in the tree. Those are two different objects and the banner used to
+    publish the number as though they were one.
+
+    THE DIRTY ANSWER IS THE HONEST ONE and it is not a degraded case: it is what actually happens
+    on nearly every cycle here. Reporting `TREE_COMMIT` unconditionally, or defaulting to it when
+    the `git status` probe fails, would be the misattribution `MEASURED_ON_FIELDS` exists to stop
+    — so an unreadable probe reads as WORKING TREE, the answer that claims less.
+    """
+    from background import publish_provenance as _prov
+
+    tree_state = _prov.TREE_WORKING
+    try:
+        dirt = subprocess.run(["git", "status", "--porcelain"], cwd=str(PROJECT_DIR),
+                              capture_output=True, text=True, timeout=60)
+        if dirt.returncode == 0 and not dirt.stdout.strip():
+            tree_state = _prov.TREE_COMMIT
+    except Exception:  # noqa: BLE001 -- an observer that can red its subject is a defect
+        pass
+    return {"git_commit": git_hash, "tree_state": tree_state}
+
+
 def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
     """Run the NON-BLOCKING remainder and record its reds into the published banner.
 
@@ -4772,7 +4799,8 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
         REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
             {"last_run_ts": time.time(), "rc": result.returncode, "reds": reds[:32],
              "git_hash": git_hash}, indent=2) + "\n")
-        state = _prov.record_annotation(open_findings=findings, nonblocking_reds=reds)
+        state = _prov.record_annotation(open_findings=findings, nonblocking_reds=reds,
+                                        measured_on=_annotation_measured_on(git_hash))
         log("Remainder annotation: rc={}, {} non-blocking red(s), {} open finding(s) -- "
             "published as page annotation, NOT as a block.".format(
                 result.returncode, len(reds), findings))

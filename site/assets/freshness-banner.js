@@ -160,9 +160,32 @@
        passed the suite that produces and renders them, which is precisely what
        the scoped gate means and precisely what a reader should take from it. */
     return "Published with " + findings + " open finding" + (findings === 1 ? "" : "s") +
-           (reds ? " and " + reds + " non-blocking test red" + (reds === 1 ? "" : "s") : "") +
+           (reds ? " and " + reds + " non-blocking test red" + (reds === 1 ? "" : "s") +
+                   redTreeClause(a) : "") +
            " elsewhere in the repository — these are not defects in the figures above; " +
            "the suite that produces and renders them is green.";
+  }
+
+  /* WHICH TREE THE RED COUNT WAS TAKEN ON, on the surface rather than in the JSON (2026-08-31).
+     The count is produced by a suite run in the shared working tree, which carries several
+     lanes' uncommitted work; the banner beside it names the published COMMIT. A reader joined
+     the two and got a number about neither. Observed on the live endpoint: 66 reds published
+     next to git_commit d1ba6bd46, counted on a tree that also held an uncommitted change
+     reddening ~1,760 tests.
+
+     ABSENT reads as UNRECORDED, never as the commit. Every artefact written before today has no
+     measured_on, and defaulting those to the commit would retro-fit a claim nobody made — the
+     misattribution this whole change exists to remove, applied to the entire back catalogue. */
+  function redTreeClause(a) {
+    var m = a && a.nonblocking_reds_measured_on;
+    if (!m || !m.tree_state || !m.git_commit) {
+      return " (counted on an unrecorded tree)";
+    }
+    if (m.tree_state === "commit") {
+      return " counted at " + m.git_commit;
+    }
+    return " counted on the working tree at " + m.git_commit +
+           ", which carried uncommitted work — so the count is not a property of that commit";
   }
 
   function render(d, unknown, hb) {

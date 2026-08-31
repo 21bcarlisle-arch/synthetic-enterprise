@@ -210,3 +210,72 @@ def test_a_figures_page_is_unaffected_by_the_reference_opt_out():
 
     assert "PUBLISHING IS DOWN" in out["text"]
     assert out["state"] == "stale"
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# THE RED COUNT'S TREE, RENDERED (2026-08-31)
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# `nonblocking_reds_total: 66` was served in the same object as `git_commit: "d1ba6bd46"`, and the
+# banner rendered "66 non-blocking test reds elsewhere in the repository". A reader joins those and
+# concludes 66 reds at that commit. The count was taken by a pytest run with `cwd=PROJECT_DIR` --
+# the shared working tree, which that evening also held an uncommitted guard widening reddening
+# ~1,760 tests. The number was about neither object.
+#
+# THESE ARE HERE RATHER THAN BESIDE THE PRODUCER BECAUSE THE PRODUCER-SIDE VERSION DID NOT WORK.
+# Its assertions grepped the asset for the field name; mutation M5 -- leave `redTreeClause`
+# defined and stop calling it -- SURVIVED, because every grepped string still existed in dead
+# code. Rendering is the only thing that can tell a called function from an uncalled one.
+
+_REDS_PROVENANCE = dict(VERIFIED_PROVENANCE)
+
+
+def _with_annotation(annotation):
+    prov = json.loads(json.dumps(VERIFIED_PROVENANCE))
+    prov["annotation"] = annotation
+    return prov
+
+
+def test_the_tree_the_red_count_was_taken_on_is_rendered():
+    """The dirty case, which is the ordinary one on this machine: several lanes always have
+    uncommitted work in the shared tree when the remainder suite runs."""
+    out = render(prov=_with_annotation({
+        "open_findings": 47,
+        "nonblocking_reds": ["FAILED tests/x.py::test_y"],
+        "nonblocking_reds_total": 66,
+        "nonblocking_reds_measured_on": {"git_commit": "d1ba6bd46",
+                                         "tree_state": "working-tree"},
+    }))
+    assert "66 non-blocking test reds" in out["text"]
+    assert "working tree at d1ba6bd46" in out["text"], (
+        "the count is rendered beside the published commit with nothing saying it was taken on "
+        "a different tree -- the reader joins them and gets a number about neither: {!r}".format(
+            out["text"]))
+    assert "not a property of that commit" in out["text"]
+
+
+def test_a_count_taken_on_the_commit_itself_says_so_and_does_not_hedge():
+    """NULL CONTROL. Without it the test above passes on a renderer that appends the caveat
+    unconditionally -- a warning on every count is a warning on none, and it would make the
+    honest case unreadable to stop the dishonest one."""
+    out = render(prov=_with_annotation({
+        "open_findings": 47,
+        "nonblocking_reds": ["FAILED tests/x.py::test_y"],
+        "nonblocking_reds_total": 66,
+        "nonblocking_reds_measured_on": {"git_commit": "d1ba6bd46", "tree_state": "commit"},
+    }))
+    assert "counted at d1ba6bd46" in out["text"]
+    assert "not a property of that commit" not in out["text"]
+
+
+def test_an_annotation_written_before_this_field_renders_as_unrecorded():
+    """THE BACK CATALOGUE. Every artefact published before 2026-08-31 carries a red count and no
+    `measured_on`. Defaulting those to the showing commit would retro-fit the exact claim nobody
+    made -- the misattribution, applied to everything already served. It must read as unknown."""
+    out = render(prov=_with_annotation({
+        "open_findings": 47,
+        "nonblocking_reds": ["FAILED tests/x.py::test_y"],
+        "nonblocking_reds_total": 66,
+    }))
+    assert "counted on an unrecorded tree" in out["text"]
+    assert "d1ba6bd46" not in out["text"].split("non-blocking test red")[-1]
