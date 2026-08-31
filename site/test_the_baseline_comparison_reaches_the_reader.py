@@ -945,41 +945,67 @@ def test_an_arm_with_no_household_figure_renders_an_absence_beside_its_own_net_m
 # the book is big enough for a contrast to clear its spread, the direction comes back and this
 # stays green; a page that goes on refusing, or goes back to asserting, reds either way.
 
-#: Every rendered sentence on this surface that names a winner.
-_DIRECTIONAL_CLAIMS = (
-    "MORE than flat rules",
-    "LESS than flat rules",
-    "the per-customer choosing is worth less than nothing",
-    "the choosing itself carried part of it",
-)
+#: Every rendered sentence on this surface that names a winner, KEYED TO THE CONTRAST IT NAMES.
+#
+# THE SCOPE DEFECT THIS SPLIT REPAIRS (2026-08-31). These four phrases used to be one flat tuple
+# checked against the SELECTION leg's spread alone -- but the first two are the arm-vs-control
+# contrast (`value_advantage_gbp`) and only the last two are the selection contrast. The composer
+# has always gated each against its own spread (`_BOUNDED_CONTRASTS` names all three separately;
+# `_arm_vs_control_clause` takes `advantage_spread`), so the control's scope was wider than its
+# claim: it read one contrast's bound and vetoed another contrast's sentence.
+#
+# It could not fire until today. While `contrast_bounds.available` was false the `stdev is None`
+# branch suppressed both groups together, and on the 2026-08-29 run both contrasts happened to be
+# unresolvable at once (£607 against ±£990, £1,816 against ±£2,578), so the OR never diverged from
+# the AND. The 2026-08-31 floor is the first run where they disagree -- £12,071 clears its ±£2,291
+# while £2,574 sits inside its ±£3,776 -- and the flat tuple made the page's correct refusal on the
+# selection leg veto its earned direction on the headline leg.
+_DIRECTIONAL_CLAIMS_BY_CONTRAST = {
+    "value_advantage_gbp": ("MORE than flat rules", "LESS than flat rules"),
+    "selection_gbp": ("the per-customer choosing is worth less than nothing",
+                      "the choosing itself carried part of it"),
+}
 
 
 def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live):
     feed = _live_feed()
     split = (feed.get("realised") or {}).get("split") or {}
     bounds = (feed.get("contrast_bounds") or {})
-    spread = ((bounds.get("contrasts") or {}).get("selection_gbp") or {}) \
-        if bounds.get("available") else {}
-    selection, stdev = split.get("selection_gbp"), spread.get("stdev_gbp")
     headline = live["arms-headline"]
 
+    selection = split.get("selection_gbp")
     if selection is None:
         pytest.fail("the live feed carries no selection leg, so this control's subject is absent")
-    if stdev is None:
-        assert not any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
-            "the page named a winner on a contrast with no measured spread behind it: {}".format(
-                headline))
-        return
-    if abs(selection) > stdev:
-        assert any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
-            "the contrast cleared its own seed spread and the page still refused to say which "
-            "way it went -- a refusal that cannot be withdrawn is not a reading: {}".format(
-                headline))
-        assert _gbp(stdev).lstrip("-") in headline or "clearing the" in headline, (
-            "a direction was published without the spread it beat")
-    else:
-        assert not any(claim in headline for claim in _DIRECTIONAL_CLAIMS), (
-            "the page named a winner on a contrast INSIDE its own error bar: {}".format(headline))
+
+    # EACH CONTRAST AGAINST ITS OWN FLOOR, never one against another's. A contrast the feed does
+    # not report is not evidence its sign is safe to state, so it takes the no-spread branch.
+    for contrast, claims in _DIRECTIONAL_CLAIMS_BY_CONTRAST.items():
+        spread = ((bounds.get("contrasts") or {}).get(contrast) or {}) \
+            if bounds.get("available") else {}
+        value, stdev = split.get(contrast), spread.get("stdev_gbp")
+        said = [c for c in claims if c in headline]
+
+        if stdev is None or value is None:
+            assert not said, (
+                "the page named a winner on `{}` with no measured spread behind it: {}".format(
+                    contrast, headline))
+            continue
+        if abs(value) > stdev:
+            assert said, (
+                "`{}` cleared its own seed spread and the page still refused to say which way it "
+                "went -- a refusal that cannot be withdrawn is not a reading: {}".format(
+                    contrast, headline))
+            assert _gbp(stdev).lstrip("-") in headline or "clearing the" in headline, (
+                "a direction was published without the spread it beat")
+        else:
+            assert not said, (
+                "the page named a winner on `{}`, a contrast INSIDE its own error bar: {}".format(
+                    contrast, headline))
+
+    selection_spread = ((bounds.get("contrasts") or {}).get("selection_gbp") or {}) \
+        if bounds.get("available") else {}
+    stdev = selection_spread.get("stdev_gbp")
+    if stdev is not None and abs(selection) <= stdev:
         assert "CANNOT RESOLVE" in headline, headline
         # THE REMEDY MUST REACH THE READER, AND IT MUST BE THE MEASURED ONE. This pinned the words
         # "larger SETTLED BOOK" until 2026-08-29 -- a control keyed to today's answer, which would
@@ -989,6 +1015,17 @@ def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live)
         decomposition = feed.get("floor_decomposition") or {}
         if not decomposition.get("available"):
             expected = "has not been established"
+        # A DECOMPOSITION MEASURED ON ANOTHER BOOK IS NOT A WEAKER REMEDY, IT IS A REMEDY FOR A
+        # DIFFERENT QUESTION (2026-08-31). The composer refuses before reading a figure out of it
+        # (`_what_would_resolve_it`), and this rung was missing here -- so on the first run where
+        # the two books diverged (20 of 1,369 measured, 120 of 1,953 published) this ladder
+        # demanded the page quote a remedy denominated in a priced count it no longer has. Read
+        # off the feed's published verdict, never recomputed here, so the two cannot drift.
+        elif decomposition.get("measured_on_this_page_s_book") is False:
+            expected = "has not been established"
+            assert "FROM A DIFFERENT BOOK" in headline, (
+                "the page dropped the remedy but not the reason, so a reader cannot tell a "
+                "refusal from an omission: {}".format(headline))
         elif not decomposition.get("share_is_decisive"):
             expected = "too close to the"
         elif decomposition.get("larger_settled_book_would_resolve_it"):
