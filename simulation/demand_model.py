@@ -334,6 +334,67 @@ def need_volume_index(people_count: int, commodity: str, *, children_count: int 
     return curve[lo] + frac * (curve[lo + 1] - curve[lo])
 
 
+# --- The base profile's LEVEL: the household's own EAC, not the nation's ------
+#
+# `sim/profile_class_1.py` returns Group Average Demand: the ABSOLUTE half-hourly
+# series of the average PC1 customer, ~3,921 kWh annualised. Used unnormalised it
+# gives every household in the book the same level, so a household's drawn
+# `eac_kwh` -- the world's own statement about how much it consumes -- reached
+# pricing and hedging and never reached the volume. Measured 2026-08-31 over the
+# 133 resi/PC1/legacy accounts live in 2024: Spearman rho(drawn EAC, settled kWh)
+# = -0.0016, and the settled lower quartile sat exactly on the national average.
+#
+# The repair is the settlement convention, not an invention: profile coefficient
+# x EAC. The profile supplies the SHAPE; the EAC supplies the LEVEL.
+#
+# The divisor is the profile's own annual total FOR THAT YEAR, never a frozen
+# constant. GAD annualises to 3,921.8 in 2019 and 3,904.2 in 2022 because the
+# season/day-type calendar moves; a frozen divisor would push that +-0.5% year
+# effect into every household's level and attribute it to nothing.
+
+
+@functools.lru_cache(maxsize=64)
+def profile_annual_kwh(base_shape_fn, year: int) -> float:
+    """Total kWh a base profile function delivers across every day of `year`.
+
+    `base_shape_fn` is a `SHAPE_LOADERS[...]`-shaped callable: a date (ISO string
+    or `date`) in, 48 half-hourly kWh values out. Cached per (function, year) --
+    365 loader calls the first time a year is asked for, none afterwards.
+    """
+    import datetime as _dt
+
+    day = _dt.date(year, 1, 1)
+    total = 0.0
+    while day.year == year:
+        total += sum(base_shape_fn(day.isoformat()))
+        day += _dt.timedelta(days=1)
+    return total
+
+
+def eac_scaled_shape_fn(base_shape_fn, eac_kwh: float):
+    """Wrap a base-shape function so its ANNUAL INTEGRAL is `eac_kwh`.
+
+    The within-year shape is untouched -- every period is multiplied by the one
+    scalar `eac_kwh / profile_annual_kwh(...)`, so season, day-type and
+    time-of-day structure survive exactly and only the level moves.
+
+    This scales the BASE PROFILE ONLY. The additive physical overlays that
+    `build_demand_shape` and its callers stack on top -- degree-day heating and
+    cooling load, EV charging, ASHP uplift -- are absolute kWh quantities and are
+    deliberately NOT divided by the household's EAC: an EV does not charge less
+    because the house it is parked at consumes little. A household's settled
+    total therefore need not equal its EAC, which is also true of a real EAC.
+    """
+    def scaled(target_date):
+        year = (
+            int(target_date[:4]) if isinstance(target_date, str) else target_date.year
+        )
+        factor = eac_kwh / profile_annual_kwh(base_shape_fn, year)
+        return [v * factor for v in base_shape_fn(target_date)]
+
+    return scaled
+
+
 @functools.lru_cache(maxsize=8)
 def volume_factor_normaliser(commodity: str) -> float:
     """The share-weighted mean RAW NEED index over the ONS TS017 reference

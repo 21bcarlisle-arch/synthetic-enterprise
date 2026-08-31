@@ -117,7 +117,11 @@ from simulation.customer_events import (
     home_move_disposition,
     roll_lifecycle_event,
 )
-from simulation.demand_model import build_demand_shape, solar_generation_shape
+from simulation.demand_model import (
+    build_demand_shape,
+    eac_scaled_shape_fn,
+    solar_generation_shape,
+)
 from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
 from simulation.departure_level_anchor import year_level_anchor
 from simulation.departure_risks import (
@@ -330,6 +334,49 @@ COMMITTEE_COOLDOWN_DAYS = 30  # calendar-day cooldown; replaces record-count app
 
 SHAPE_LOADERS = {1: load_pc1_shape, 3: load_pc3_shape}
 
+#: Profile classes whose published base shape is a DOMESTIC average, and for which
+#: an account's own annual consumption is therefore the right level. PC1 is
+#: "domestic unrestricted"; PC3 is non-domestic and its two SME accounts keep the
+#: published Group Average Demand level until the same question is answered for a
+#: non-domestic profile from its own evidence, which is a separate piece of work.
+_EAC_LEVELLED_PROFILE_CLASSES = frozenset({1})
+
+
+def _base_profile_eac(customer: dict) -> float | None:
+    """The annual consumption that sets the LEVEL of this account's base profile,
+    or None to leave the published Group Average Demand level alone.
+
+    ONE function, called by BOTH `_weather_adjusted_shape_fn` call sites, because
+    the second of them builds the LEGACY COUNTERFACTUAL that W1_11's
+    `the_switch_moves_the_settled_volume` control grades the fabric provider
+    against. Two independent decisions about the level here would move that
+    control's subject for a reason that has nothing to do with fabric.
+
+    WHOSE NUMBER THIS IS, said plainly because it matters and is not yet settled.
+    On a drawn account, `eac_kwh` is the world's own draw
+    (`population_draw._draw_one` samples the published Ofgem TDCV band) rendered
+    into the supplier's roster VERBATIM by `SyntheticCustomer.to_customer_dict`.
+    So the world's statement and the supplier's declaration are the same object
+    today, and driving the world's volume from it makes the company's own EAC
+    re-estimation partly self-referential in a way it was not before -- W1_11's
+    docstring reads the declared EAC as the company's BELIEF for exactly this
+    reason. What keeps it from being a tautology is that the overlays sit on top,
+    so settled volume is not the declaration: occupancy, EPC band, heating system
+    and assets all move a household away from it, and that gap is what
+    `_company_eac_estimate` still has to discover. The structural repair -- a
+    world-side true EAC and a supplier-side declaration that may differ, with a
+    read error between them -- is OWED and named in
+    docs/staging/WORKER_PREREGISTRATION_WHAT_SCALING_EACH_HOUSEHOLDS_PROFILE_TO_ITS_OWN_EAC_MUST_SHOW_2026-08-31.md.
+    Not doing this at all was the worse option: it left the world's own statement
+    about a household reaching nothing at all.
+    """
+    if customer.get("profile_class", 1) not in _EAC_LEVELLED_PROFILE_CLASSES:
+        return None
+    declared = customer.get("eac_kwh")
+    if declared is None:
+        return None
+    return float(declared)
+
 # Phase 4c-1 property records only cover resi electricity customers (C1-C4).
 # SME customers (C5, C6) get this default property for 4c-2's demand-shape
 # adjustment — no occupancy/asset seed data exists for them.
@@ -387,6 +434,7 @@ def _weather_adjusted_shape_fn(
     latitude_deg: float | None = None,
     household_register: "HouseholdDemandRegister | None" = None,
     customer_id: str | None = None,
+    eac_kwh: float | None = None,
 ):
     """Wrap a SHAPE_LOADERS[...] base-shape function with 4c-2's
     weather/occupancy/asset demand adjustment (`build_demand_shape`).
@@ -398,10 +446,22 @@ def _weather_adjusted_shape_fn(
     reduction for customers with assets.solar=True (currently C4).
     Phase C: household_register + customer_id enable EPC consumption
     multiplier and time-varying EV ownership.
+
+    `eac_kwh` sets the LEVEL of the base profile to this household's own annual
+    consumption (`demand_model.eac_scaled_shape_fn`). Omitted or None, the base
+    profile keeps its published Group Average Demand level -- the average
+    customer's -- which is correct for a non-domestic profile class and for an
+    account the world makes no annual statement about, and wrong for a domestic
+    account that carries one. It is applied HERE, ahead of every overlay, so
+    that the multiplicative responses (occupancy volume, EPC band) compose with
+    it and the additive ones (heating, EV, ASHP) do not.
     """
     from datetime import date as _date
 
     from sim.weather_engine import half_hourly_solar_irradiance
+
+    if eac_kwh is not None:
+        base_shape_fn = eac_scaled_shape_fn(base_shape_fn, float(eac_kwh))
 
     def shape_fn(date_str):
         base_shape = base_shape_fn(date_str)
@@ -1158,6 +1218,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 latitude_deg=_legacy_customer.get("location", {}).get("lat"),
                 household_register=household_demand_register,
                 customer_id=_fab_cid,
+                eac_kwh=_base_profile_eac(_legacy_customer),
             ),
             _sample_dates,
         ):
@@ -2277,6 +2338,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     SHAPE_LOADERS[profile_class], weather_by_customer[cid], property_record,
                     cloud_cover_means=cloud_cover, latitude_deg=latitude,
                     household_register=household_demand_register, customer_id=cid,
+                    eac_kwh=_base_profile_eac(customer),
                 )
 
             cust_segment = customer.get("segment", "resi") if customer else "resi"

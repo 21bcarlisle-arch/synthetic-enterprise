@@ -133,3 +133,107 @@ Three things, and a landed increment is not "the run got greener":
 2. rho(drawn, settled) is published as a measured number with the population it was measured on, and
    the pre-change reading of −0.0016 is kept beside it.
 3. P4 and P5 are stated as OWED with what would settle them, rather than left unmentioned.
+
+---
+
+# THE RESULT — P1, P2 and P3 ALL REFUTED. The repair works and every number I predicted about it was wrong.
+
+*Appended 2026-08-31 after the measurement. Nothing above this line has been edited.*
+
+Same instrument, same population, same years as the pre-change table: the annual integral of the
+shape function `run_phase2b` hands to settlement, over the resi/PC1/legacy-provider accounts
+carrying a declared `eac_kwh`. One variable changed — the base profile's level.
+
+| | 2019 (n=79) before → after | 2024 (n=133) before → after |
+|---|---|---|
+| settled kWh — median | 4,902.2 → **2,630.6** | 4,917.6 → **2,669.5** |
+| settled kWh — IQR | 3,921.8–4,902.2 → 2,028.6–3,842.7 | 3,934.1–4,917.6 → 2,030.4–3,769.9 |
+| settled p90/p10 spread | 1.310 → **2.664** | 1.250 → **2.749** |
+| Spearman rho(drawn, settled) | −0.0733 → **+0.8691** | −0.0016 → **+0.8845** |
+| median settled ÷ median drawn | 1.976 → **1.060** | 1.962 → **1.065** |
+
+| prediction | outcome |
+|---|---|
+| **P1** median settled 2024 lands in [2,900, 3,400] | **REFUTED** — 2,669.5. The fall is **1.842×**, not the 1.45–1.70× I derived |
+| **P2** settled spread rises above 2.00 **and** below 2.421 | **REFUTED on the second clause** — 2.749, *above* the drawn spread |
+| **P3** rho rises above +0.90 | **REFUTED** — +0.8845, short by 0.0155 |
+| **P4** company EAC error at least halves | **OWED** — needs a full `run_phase2b`; not measured, not claimed |
+| **P5** revenue and margin fall | **OWED** — same reason. Volume fell 1.84× on 133 of 146 electricity accounts, so the direction is not in doubt; the magnitude is unmeasured and is not being quoted |
+
+## Why P1 was wrong, which is the part worth reading
+
+I predicted the fall from the median household's overlay factor: 4,917.6 ÷ 3,934.1 = 1.254, applied
+to a drawn median of 2,506 gives ~3,143. **The arithmetic is fine and the quantity is not a
+quantity.** Before the change the settled distribution was nearly constant — p10 3,934.1, median
+4,917.6, p90 4,917.6 — so its median was picking out the *modal overlay multiplier* (the EPC band D
+1.25), not a median household. After the change the ordering is set by the EAC, so the median is a
+median-EAC household carrying whatever overlay it happens to have. **The two medians are medians of
+different things**, and dividing one by the other was exactly the mistake this project's own rule
+warns about: say out loud what each number counts before dividing them.
+
+**The brief's ~1.8× was right and my correction of it was wrong.** I recorded the disagreement in
+advance and it went against me. Worth noting: the other lane that drew this same item independently
+(see the finding below) filed the *same* 2,900–3,400 band from the *same* reasoning, so this is a
+reproducible error in how the two of us read the pre-change distribution, not a slip.
+
+## Why P2 was wrong, and it is the one with a live question attached
+
+I said the additive overlays would compress the spread below the drawn 2.421. They do not — the
+settled spread came out **wider** than the drawn one, 2.749. The reason is that the multiplicative
+overlays (occupancy volume factor, EPC band) vary across households roughly independently of the
+EAC, and independent multiplicative variation *adds*: it cannot compress. The additive terms pull
+the other way and lose.
+
+**Whether 2.749 is more faithful than 2.421 is an open question and I am not claiming it is.** It is
+the honest consequence of composing two independent household descriptions, and the reason it is
+open is the same double-description problem the other lane names: the drawn EAC and the EPC band are
+two statements about one household's consumption, drawn on separate substreams, and nothing
+reconciles them. Filed as owed. **What is not open is the direction**: a settled spread of 1.250 on
+a drawn spread of 2.421 was the world flattening its own households.
+
+## Why P3 landing at +0.8845 rather than +1.0 is the good half
+
+The pre-registration recorded that rho = +1.0 would be an unwelcome result — it would mean the
+physical overlays stopped ordering households at all, trading one missing dimension for another.
++0.8845 says the household's own annual statement now sets the level *and* its fabric, occupancy and
+assets still move it around that level. The prediction is refuted; the property it was reaching for
+holds.
+
+## Filed BEFORE P4 is measured, because it bears on P4 and on nothing above
+
+On a drawn account, `eac_kwh` is the world's own draw (`population_draw._draw_one`, Ofgem TDCV band)
+rendered into the supplier's roster **verbatim** by `SyntheticCustomer.to_customer_dict`. So the
+world's statement and the supplier's declaration are one object, and driving settled volume from it
+makes the company's EAC re-estimation partly self-referential in a way it was not before — W1_11's
+own docstring reads the declared EAC as the company's *belief* for exactly this reason.
+
+**P4 must therefore be scored knowing that some of any improvement is self-inflicted.** What keeps
+it from being a pure tautology is that settled volume is not the declaration: occupancy, EPC band,
+heating system and assets move a household away from it, which is precisely the 2.749-vs-2.421 gap
+above. The structural repair — a world-side true EAC and a supplier-side declaration that may
+differ, with a read error between them — is **OWED** and is the next atom on this thread. Recorded
+here rather than in the result table because it changes how P4 is read and P4 has not been read yet.
+
+## What landed, and what did not
+
+Landed: the level, the control, and this reading. `simulation/demand_model.eac_scaled_shape_fn` +
+`profile_annual_kwh`, wired at both `_weather_adjusted_shape_fn` call sites through one
+`_base_profile_eac` decision, with `tests/simulation/test_the_drawn_eac_sets_the_settled_level.py`
+keyed to the property.
+
+**Not landed, and named rather than left quiet:**
+
+1. **P4 and P5** — both need a full `run_phase2b`, which did not fit this invocation.
+2. **PC3 / the two SME accounts.** I scoped this to the domestic profile class and pre-registered
+   that scope. The other lane pre-registered the *wider* scope with the better argument — *"fixing
+   the resi instance and leaving the SME one is fixing an instance, not a class"* — which is this
+   project's own rule. **Their argument wins and I am not adopting it here**, because changing the
+   intervention after filing the pre-registration and before publishing its result is the thing the
+   discipline exists to prevent. It is theirs to land, on their pre-registration, and this is the
+   pointer.
+3. **A mutation proof of the new controls.** `process_run_complete` was live in this shared tree
+   while the work was done, and mutating a shared module under a running hook chain manufactures a
+   red in another lane's gate. The controls are structurally able to fail — the unlevelled arm is
+   exercised as its own test beside the levelled one, and
+   `test_the_level_is_applied_exactly_once_on_the_path_the_book_settles_on` goes red on a second
+   normalisation — but **"able to fail" is not "proven to fail" and I am not claiming the latter.**
