@@ -122,7 +122,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
-from tools.inference_claim import cannot_tell_sentence
+from tools.inference_claim import cannot_tell_sentence, inference_claim
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -1164,6 +1164,75 @@ def _skill_drop_out(method_skill: dict) -> dict:
         "consequence": _widening_consequence(by_class),
         "reconciliation": drop.get("reconciliation"),
         "reading": drop.get("reading"),
+    }
+
+
+def _inference_claim() -> dict:
+    """THE STANDING RULE'S VERDICT, ON THE PAGE. Independence is not inference, said to a reader.
+
+    WHY THIS EXISTS AT ALL. On 2026-08-31 the whole composed verdict --
+    `sides_are_independent`, `the_method_clears_its_null`,
+    `publishable_as_evidence_of_skill` and the sentence derived from them -- reached NO published
+    surface. `tools/couple_value_based_pricing` wrote it to
+    `docs/observability/value_based_pricing_arms.json`, which nothing under `site/` reads, and the
+    committed copy of that artefact predated `tools/inference_claim` and carried no verdict at
+    all. The half that DID reach a reader was leg two alone (`method_skill.cannot_tell`), so the
+    page could say "we cannot tell whether the method works" while saying nothing whatever about
+    whether the two sides were even independent. CLAUDE.md: *"fail closed, and say so ON THE
+    SURFACE -- 'we cannot tell' is a result, it belongs on the page, not in a footnote."* A
+    fail-closed guard that publishes nothing is a guard nobody is held by.
+
+    COMPUTED LIVE, NOT READ FROM THE RUN ARTEFACT, and that is the load-bearing choice. Every
+    other figure on this page is read from a run because it is a MEASUREMENT OF THAT RUN and
+    recomputing it would mint a second source. This is not that: it is a RULE APPLIED TO TODAY'S
+    CODE, and the failure mode it exists to prevent is a stale copy. The committed artefact was
+    the worked example -- it was written before the module and would have published a verdict the
+    module no longer holds. Recomputing is what makes a reversal self-correcting, which is the
+    only reason the design is trustworthy at all.
+
+    FAIL-CLOSED, AND VISIBLY. Any failure to reach the guard resolves to `available: False` with
+    the reason, and the render says the verdict could not be read rather than omitting the
+    paragraph -- an absent caveat and a discharged one look identical to a reader.
+    """
+    try:
+        # Imported here rather than at module scope: this pulls the whole company-side pricing
+        # guard in, and a failure inside it must cost this page one paragraph, never the run.
+        from tools.couple_value_based_pricing import shared_calibration_holds
+        claim = inference_claim(shared_calibration_holds())
+    except Exception as exc:  # noqa: BLE001 - any failure here is "we cannot tell", by design
+        return {
+            "available": False,
+            "why": ("the co-calibration guard could not be run against this tree, so whether the "
+                    "two sides are independent is unknown ({}: {})".format(
+                        type(exc).__name__, str(exc)[:200])),
+            # THE WORDS ANYWAY. An unavailable check is a failed check, and the page says so in
+            # the phrase the director specified rather than falling silent.
+            "sentence": ("On whether the belief-versus-truth gap is evidence of the company's "
+                         "inference, we cannot tell: the check that would answer it could not be "
+                         "run against this tree."),
+            "sides_are_independent": None,
+            "the_method_clears_its_null": None,
+            "publishable_as_evidence_of_skill": False,
+        }
+    return {
+        "available": True,
+        "why": None,
+        "rule": claim["rule"],
+        # THE SENTENCE IS THE PAYLOAD. Derived by `tools/inference_claim._sentence` from the two
+        # flags below, so the page cannot print prose that disagrees with the verdict beside it.
+        "sentence": claim["sentence"],
+        # THE TWO LEGS, REPORTED APART. They fail for different reasons and are fixed by
+        # different work -- the first by re-fitting one side off a series the other cannot read,
+        # the second only by scoring more decisions -- and a single flag hides which is binding.
+        "sides_are_independent": claim["sides_are_independent"],
+        "the_method_clears_its_null": claim["the_method_clears_its_null"],
+        "publishable_as_evidence_of_skill": claim["publishable_as_evidence_of_skill"],
+        "accuracy_clause": (claim.get("accuracy") or {}).get("clause") or None,
+        "what_it_is": (
+            "Whether the gap between what the company believed about departures and what the "
+            "world delivered may be quoted as evidence that the company INFERRED something. Two "
+            "necessary legs: the two sides arrived at independently, AND the method's own "
+            "ranking clearing the interval a random signal produces."),
     }
 
 
@@ -2622,6 +2691,12 @@ def build(three_arm: dict | None, floor: dict | None,
         # see `_world_departure_level`.
         departure_level=_world_departure_level(),
         method_skill=_method_skill(three_arm),
+        # THE STANDING RULE'S VERDICT, BESIDE THE FIGURE IT QUALIFIES. `method_skill` above is
+        # only the SECOND of the rule's two legs; until 2026-08-31 the first -- whether the two
+        # sides were even arrived at independently -- reached no published surface at all. See
+        # `_inference_claim`: computed live rather than read from a run, because this is a rule
+        # applied to today's code and not a measurement of that run.
+        inference_claim=_inference_claim(),
         # THE OTHER SIDE OF THE ARMS ABOVE. Published in the same payload as the net margins,
         # keyed by the same arm keys, so the surface can render one row per arm with both
         # columns on it -- see `_household`.

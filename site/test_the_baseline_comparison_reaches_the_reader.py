@@ -50,8 +50,8 @@ CAPS = SITE / "data" / "capabilities_door.json"
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
-          "arms-errorbar", "arms-decisions", "arms-method", "arms-note", "arms-market",
-          "arms-sample", "arms-departure")
+          "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
+          "arms-market", "arms-sample", "arms-departure")
 
 
 def _text(fragment: str) -> str:
@@ -1707,3 +1707,98 @@ def test_a_reading_that_CLEARS_its_null_does_not_say_it():
     assert "we cannot tell" not in rendered.lower(), (
         "the page says we cannot tell about a reading that clears its own null, which makes the "
         "phrase a constant rather than a verdict")
+
+
+# ── the OTHER leg: independence, and whether it reaches anyone ────────────────────────────────
+#
+# The pair above enforces leg TWO of the standing rule -- "can the method's ranking be told from
+# chance". On 2026-08-31 a reader-side check found that leg ONE reached no published surface at
+# all: `tools/couple_value_based_pricing` composed the whole verdict -- `sides_are_independent`,
+# `the_method_clears_its_null`, `publishable_as_evidence_of_skill` and the sentence derived from
+# them -- into `docs/observability/value_based_pricing_arms.json`, and nothing under `site/` reads
+# that file. Worse, the committed copy of it predated `tools/inference_claim` and carried no
+# verdict at all. So the page could say "we cannot tell whether the method works" while saying
+# nothing about whether the two sides were even arrived at independently, which is the leg the
+# director's own instance-of-the-rule was written about.
+#
+# These three are the reader-side control that this cannot silently recur.
+
+
+def test_the_INDEPENDENCE_verdict_reaches_the_reader_and_not_only_the_skill_leg(live):
+    """The composed verdict, in the rendered DOM of the published door.
+
+    A guard that fails closed into an observability file nobody reads has not failed closed on the
+    surface, which is what CLAUDE.md's rule asks for: "'we cannot tell' is a result, it belongs on
+    the page, not in a footnote."
+
+    Fires on: dropping the `inference_claim` render from `site/capabilities/index.html`, or
+    dropping the block from `tools/generate_value_arms_data.build`.
+    """
+    claim = _live_feed().get("inference_claim") or {}
+    assert claim.get("sentence"), (
+        "the published feed carries no `inference_claim.sentence`, so the standing rule's verdict "
+        "reaches no reader -- which is the exact defect this control exists for")
+
+    rendered = live["arms-inference"]
+    # Compared CLAUSE BY CLAUSE rather than whole-string: the door's `prose()` turns " -- " into
+    # an em dash before assigning, so a whole-sentence `in` test reports a correct page red. The
+    # clauses are split on the same separator the door rewrites, so every one of them is checked.
+    for clause in (c.strip() for c in claim["sentence"].split(" -- ")):
+        assert _text(clause) in rendered, (
+            "the standing rule's verdict is in the feed and not on the page: {!r} is missing"
+            .format(clause[:80]))
+
+
+def test_the_page_prints_the_verdict_it_is_GIVEN_and_never_one_it_composes(live):
+    """THE BRANCH. Driven with the OPPOSITE verdict, because the live run is in one branch and a
+    control that can only see one branch is a control over today's answer.
+
+    `tools/inference_claim._sentence` derives the prose from the flags so the two cannot disagree;
+    the risk this catches is the page re-deriving prose of its own from `sides_are_independent`,
+    which would give one claim two authors and let the page assert what the flag beside it denies.
+    So the flags are left at the LIVE values and only the sentence is swapped: a page composing
+    its own text would print the live branch and fail.
+
+    Fires on: rendering a hand-written sentence chosen from `ic.sides_are_independent` rather than
+    rendering `ic.sentence`.
+    """
+    feed = copy.deepcopy(_live_feed())
+    claim = feed.get("inference_claim") or {}
+    if not claim.get("sentence"):
+        pytest.fail("the live feed carries no verdict to drive")
+    claim["sentence"] = ("The two sides descend from one source, so the gap is two fits of one "
+                         "series and we cannot tell whether the company inferred anything.")
+
+    rendered = _render(feed)["arms-inference"]
+
+    assert "descend from one source" in rendered, (
+        "the driven verdict did not reach the page, so the page is printing prose of its own")
+    assert "removes the objection that we were measuring our own reflection" not in rendered, (
+        "the page printed the live branch's wording over a driven verdict that says the opposite")
+
+
+def test_the_verdict_SURVIVES_a_run_that_carries_no_method_skill_reading():
+    """THE FAIL-OPEN THE OBVIOUS PLACEMENT WOULD HAVE CREATED.
+
+    Both `method_skill` branches in the door assign `arms-method.innerHTML`, and a run whose
+    artefact carries neither assigns nothing at all. Rendering the verdict into that same element
+    would delete it exactly when the page has least to stand on -- an artefact-less run is when
+    "we cannot tell whether this is evidence of anything" matters most, and it is also when it
+    would have vanished. The verdict does not depend on that artefact and must not share its
+    lifetime, which is why it has an element of its own.
+
+    Fires on: moving the `inference_claim` render into `arms-method`, or inside the
+    `if (msk.available)` branch.
+    """
+    feed = copy.deepcopy(_live_feed())
+    claim = feed.get("inference_claim") or {}
+    if not claim.get("sentence"):
+        pytest.fail("the live feed carries no verdict to drive")
+    feed["method_skill"] = {"available": False, "withheld": False}
+
+    rendered = _render(feed)["arms-inference"]
+
+    for clause in (c.strip() for c in claim["sentence"].split(" -- ")):
+        assert _text(clause) in rendered, (
+            "a run with no method-skill artefact loses the standing rule's verdict as well, so "
+            "the page falls silent about what it may claim precisely when it can claim least")

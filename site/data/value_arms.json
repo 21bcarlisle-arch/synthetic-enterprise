@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T03:54:22.569090Z",
+  "generated_at": "2026-08-31T04:16:51.894203Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -207,7 +207,7 @@
   "run_generated_at": "2026-08-30T10:37:06Z",
   "producing_commit": {
     "stated": false,
-    "publishing_tree_commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
+    "publishing_tree_commit": "44d99a62e5206226107de146f67a10e10b5c4c9c",
     "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
     "counts_are_labelled_by_the_code_that_made_them": false
   },
@@ -215,7 +215,7 @@
     "available": false,
     "produced_by": {
       "stated": false,
-      "publishing_tree_commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
+      "publishing_tree_commit": "44d99a62e5206226107de146f67a10e10b5c4c9c",
       "reason": "the run that produced this artefact predates the producing-commit stamp, so it cannot say which code drew its book. This run takes hours and the tree moves under it, so the code at assembly time is not evidence about the code at draw time.",
       "counts_are_labelled_by_the_code_that_made_them": false
     },
@@ -544,6 +544,17 @@
     },
     "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
     "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+  },
+  "inference_claim": {
+    "available": true,
+    "why": null,
+    "rule": "The belief-versus-truth gap is publishable as a MEASUREMENT and never as evidence of skill unless the two sides are independent AND the method's own ranking clears the interval a random signal produces on this many decisions. Independence alone removes the objection that we were measuring our own reflection; it does not establish that the company knows anything.",
+    "sentence": "The two sides are independent, which removes the objection that we were measuring our own reflection -- it does not establish that the company knows anything. The gap is published as a measurement only: the method's ranking sits INSIDE the interval a random signal produces, so on whether the method works we cannot tell (0.333 against 0.133\u20130.867 for a signal carrying no information, on 6 decisions). The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp -- so this is independence and inaccuracy at once. A gap that size is as likely to be the company being wrong as the company knowing something, and the two produce the same number.",
+    "sides_are_independent": true,
+    "the_method_clears_its_null": false,
+    "publishable_as_evidence_of_skill": false,
+    "accuracy_clause": "The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp -- so this is independence and inaccuracy at once. A gap that size is as likely to be the company being wrong as the company knowing something, and the two produce the same number.",
+    "what_it_is": "Whether the gap between what the company believed about departures and what the world delivered may be quoted as evidence that the company INFERRED something. Two necessary legs: the two sides arrived at independently, AND the method's own ranking clearing the interval a random signal produces."
   },
   "household": {
     "available": true,

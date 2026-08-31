@@ -440,6 +440,11 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        are the EVIDENCE and this is the thing they are evidence for. It renders only when the
        artefact carries the interval a random signal produces; see `_method_skill`. -->
   <div id="arms-method"></div>
+  <!-- THE STANDING RULE'S VERDICT. Its OWN element, not a paragraph appended to the one above,
+       and deliberately: `arms-method` renders only when the run artefact carries a method-skill
+       reading, and the question "may this gap be quoted as evidence the company knows something"
+       is at its sharpest on a run that carries none. Separate element, separate lifetime. -->
+  <div id="arms-inference"></div>
   <p id="arms-note" class="stamp" style="margin-top:12px;"></p>
 </section>
 <script>
@@ -1050,6 +1055,37 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           '<p style="margin:16px 0 6px;font-size:13px;"><strong>Does the method work?</strong> '
           + '<span style="color:var(--amber);font-weight:600;">Measured, and withheld.</span> '
           + prose(msk.reason) + "</p>";
+      }
+
+      /* WHETHER THE GAP IS EVIDENCE OF INFERENCE AT ALL — the OTHER leg, and until 2026-08-31 it
+         reached no reader anywhere on this site. `method_skill` above answers only "can the
+         method's ranking be told from chance"; the standing rule needs that AND the two sides
+         having been arrived at independently, and the second leg's verdict lived in
+         `docs/observability/value_based_pricing_arms.json`, which nothing under site/ reads.
+
+         ITS OWN ELEMENT, NOT NESTED, and that is deliberate. Both branches above assign
+         `arms-method.innerHTML`, and a run whose artefact carries no method-skill reading assigns
+         neither — so rendering this into that element would make the rule's verdict disappear
+         exactly when the page has least to stand on. The verdict does not depend on that artefact
+         and must not share its lifetime.
+
+         The sentence is DERIVED from the flags by `tools/inference_claim._sentence` and rendered
+         verbatim; this page does not compose prose from `sides_are_independent`, because a second
+         author for one claim is how a page ends up asserting what the flag beside it denies. */
+      var ic = d.inference_claim || {};
+      if (ic.sentence) {
+        $("arms-inference").innerHTML =
+          '<p style="margin:14px 0 4px;font-size:13px;"><strong>Is that gap evidence the '
+          + "company knows something?</strong> " + prose(ic.what_it_is) + "</p>"
+          + '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;color:var(--amber);">'
+          + prose(ic.sentence) + "</p>"
+          + (ic.available
+              ? ""
+              /* FAIL-CLOSED, ON THE SURFACE. An unavailable check is a failed check, and the
+                 reason is shown rather than swallowed — a caveat that is absent and one that is
+                 discharged look identical to a reader. */
+              : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + prose(ic.why) + "</p>");
       }
 
       /* THE SENTENCE THIS PAGE WITHDREW, beside the reading that replaced it. A correction a
