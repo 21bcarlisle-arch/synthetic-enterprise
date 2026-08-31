@@ -59,6 +59,12 @@ departure route the capture could not see, and 61% of this book's departures are
 
 **SVT route — 1,266 decisions, 50 departures. AUC 0.6721, null [0.4139, 0.5854].**
 
+> **⚠ THE PER-FACTOR TABLE BELOW IS SUPERSEDED — 2026-08-31, later the same day.** It is kept
+> because the correction is the point. These figures do not carry the exposure offset, and once
+> exposure is divided out **neither factor clears its null alone** while the composed hazard still
+> does. `sim_action_propensity`'s 0.6421 was crediting a term with what the segment length was
+> doing. **Quote the corrected table in "The company beside the ceiling" below, never this one.**
+
 | factor | ALONE | HELD OUT | contribution | tied pairs | distinct values |
 |---|---|---|---|---|---|
 | `sim_action_propensity` | **0.6421** | 0.6057 | **+0.0664** | 36.9% | 10 |
@@ -70,8 +76,15 @@ departures order the factors, they do not measure them to three decimals.
 
 **Two factors carry rung 3 and they are not the two the design is about.** Bill shock, and action
 propensity — income stress × tenure, a term the C2 design demoted to a *modulator* precisely because
-it is not a reason anyone left. It is nonetheless the strongest single discriminator on the route
-that now carries most of the departures.
+it is not a reason anyone left.
+
+> **AMENDED 2026-08-31 by the exposure offset.** The second half of that sentence used to read "It
+> is nonetheless the strongest single discriminator on the route that now carries most of the
+> departures." **That is withdrawn.** With exposure divided out, `sim_action_propensity` reads
+> 0.5067 ALONE on the SVT route — inside its null. It is the strongest single discriminator on the
+> **renewal** route among the non-bill-shock terms (+0.0539), and on SVT it cannot be separated
+> from the segment length it was riding. The claim was true of an uncorrected reading and is false
+> of a corrected one.
 
 ### The two that contribute nothing, and they fail for OPPOSITE reasons
 
@@ -128,9 +141,14 @@ information about *which* household goes (rung 3 does not). Both can be true and
 
 Part of the SVT route's discrimination is **exposure**, not heterogeneity. Segments run from 1 to 92
 days and a longer segment is simply more time in which to leave. Measured: segment length alone
-scores **0.5868 against a null of [0.4199, 0.5842]** — it clears, but by 0.003, sitting on its own
-boundary. So exposure is present, small, and should be offset in any future reading rather than
-counted as a reason. `sim_years_on_svt`, which is what the published inertia band is actually cut on
+scores **0.5868 against a null of [0.4166, 0.5866]** — it clears, but by 0.0002, sitting on its own
+boundary. So exposure is present, small, and must be offset rather than counted as a reason.
+
+> **OFFSET, AND IT WAS NOT SMALL WHERE IT MATTERED — 2026-08-31.** "Present and small" is true of
+> the *headline*: the route reads 0.6721 uncorrected and 0.6091 per exposure-day, still clearing.
+> It is **false of the per-factor table**, where offsetting exposure moves both factors from
+> outside their null to inside it. A caution sized on the headline and applied to the factors would
+> have been wrong by exactly the amount that mattered. `sim_years_on_svt`, which is what the published inertia band is actually cut on
 (under 3 years / 3+), scores **0.4480** — below chance, carrying nothing.
 
 ### The second half of rung 3, and it passes too
@@ -146,13 +164,116 @@ And `company/crm/churn_model.estimate_churn_probability` already takes a rate-mo
 stress term and a tenure term. **So the world's real signal is one the company can see and already
 looks at.**
 
-**What that does NOT establish, stated deliberately.** The company's renewal-belief AUC most recently
-read **0.4653**. It is tempting to put that beside 0.6760 and call the difference the company's
-shortfall. **I am not doing that and nothing published should**: the two are computed over different
-populations from different runs, and two true numbers whose legs are different populations do not
-have a difference. What is now true is only that **the ceiling exists and has been measured**, so the
-comparison is finally *possible*. Making it means computing both on one capture, which is the next
-measurement and is registered below, not a conclusion available today.
+**What that did NOT establish, and it has since been measured.** The company's renewal-belief AUC
+most recently read **0.4653**. It was tempting to put that beside 0.6760 and call the difference the
+company's shortfall. **That was refused here and the refusal was right**: the two were computed over
+different populations from different runs, and two true numbers whose legs are different populations
+do not have a difference. What the ceiling bought was that the comparison became *possible*. It has
+now been made, on one capture — see **"The company beside the ceiling"** below.
+
+---
+
+## The company beside the ceiling — one capture, one population, both nulls
+
+*Added 2026-08-31. Instrument: `tools/measure_churn_heterogeneity` (the company leg is fed to the
+same `within_strata_auc` and `permutation_null` as the ceiling — same rows, same strata, same seed).
+Control: `tests/architecture/test_the_ceiling_and_the_belief_count_one_population.py`, seven
+mutations proven. Artefact: `docs/reports/ladder_churn_ceiling_vs_belief.json`. Subject:
+`ladder_churn_factors_continuous_satisfaction.json`, the post-repair capture, verified row-for-row
+against `run_output_latest.json` on all 144 realised hazards.*
+
+**The two routes are not the same experiment and are read separately. This is the whole design.**
+
+### Renewal route — 144 decisions, 32 departures
+
+| leg | AUC | null 95% | verdict |
+|---|---|---|---|
+| **CEILING** — the world's own realised hazard | **0.7400** | [0.3794, 0.6206] | clears |
+| `saas.churn_model.build_churn_risk` (`churn_probability`) | **0.6815** | [0.3946, 0.6089] | clears |
+| `company.crm.churn_model.estimate_churn_probability` | **0.4988** | [0.3829, 0.6241] | **we cannot tell** |
+
+**The middle row is partly tautological and that is stated here, not in a footnote.**
+`roll_lifecycle_event` seeds `effective_p_retain` from the same `build_churn_risk` number it then
+grades. So 0.6815 does not say the company can pick who leaves; it says **the world's adjustment
+chain preserves the ordering of the base rate it was handed**. The strongest oracle factor on this
+route is `sim_bill_shock_base` (+0.1335) and the belief is a pure function of the bill-shock count —
+the world is reading back the company's own input. Nothing may be inferred from it about inference.
+
+**The bottom row is the one that answers the question, and it reads at chance.**
+`company_churn_estimate` is the only company-side belief that does **not** feed the roll —
+`roll_lifecycle_event` computes it, stamps it on the event, and never multiplies it into
+`effective_p_retain`. On the identical 144 decisions it scores **0.4988, inside its null**. Against
+a ceiling of 0.7400 on the same rows: **there was real signal to find on this route, and the belief
+the company forms independently of the world's dice finds none of it.** It is not badly calibrated
+in level either — mean believed churn 0.2713 against a realised rate of 0.2222 — it simply does not
+order *which* household goes.
+
+**No "fraction of the ceiling captured" is published, for two different reasons, and the instrument
+refuses both in code rather than in prose.** For `build_churn_risk`, because a capture rate built
+from a belief that seeds the roll would publish a tautology as company skill. For
+`company_churn_estimate`, because a reading **inside its null** normalised onto a ceiling yields
+**−0.5%** — a number with the authority of a measurement and the content of noise. Refused, not
+rounded to zero.
+
+### SVT route — 1,266 decisions, 50 departures. **The company forms no belief at all.**
+
+**Ceiling 0.6721, null [0.4139, 0.5854] — it clears. There is signal on this route and nothing on
+the company's side is looking at it.** This is structural, not a gap in the capture:
+
+* `saas.churn_model.build_churn_risk` is indexed on **renewal anniversaries** —
+  `_renewal_periods` walks `acquisition_date + n × 365 days`. A household drifting off the standard
+  variable product at a segment boundary has no entry in it.
+* `run_phase2b`'s SVT branch builds its hazard with `bill_shock_base=0.0, price_response=0.0,
+  dissatisfaction_response=0.0` and **consults no company estimate of any kind**. The comment at
+  the site already said so: *"there was no renewal decision to estimate a churn probability FOR."*
+
+**So 50 of this book's 82 departures — 61% — leave through a door the company's churn model cannot
+see.** That is the finding, and it is a stronger one than a poor AUC would have been: a low score is
+a model that looked and failed, and this is a model that never looked. Filed as
+`WORKER_FINDING_THE_COMPANY_FORMS_NO_BELIEF_ON_THE_ROUTE_CARRYING_61_PERCENT_OF_DEPARTURES_2026-08-31.md`.
+
+### Exposure is now offset on the SVT route, and it changes what may be quoted
+
+Item 5 below, done. Segments run 1–92 days and a longer segment is more time in which to leave.
+Dividing the hazard by segment days — the offset that matches how `sim_svt_inertia` was built, a
+published annual rate converted to segment length:
+
+| reading | AUC | null 95% |
+|---|---|---|
+| SVT ceiling, as published | 0.6721 | [0.4139, 0.5854] |
+| **SVT ceiling per exposure-day** | **0.6091** | [0.4159, 0.5850] |
+| segment length alone | 0.5868 | [0.4166, 0.5866] |
+
+**The route still clears with exposure divided out — 0.6091 — so the discrimination is not just the
+billing calendar.** But the per-factor table changes character completely, and the corrected one is
+now what the instrument prints:
+
+| factor | ALONE | HELD OUT | contribution |
+|---|---|---|---|
+| `sim_svt_inertia` | 0.4629 *(inside null)* | 0.5067 | +0.1025 |
+| `sim_action_propensity` | 0.5067 *(inside null)* | 0.4629 | +0.1463 |
+
+**Once exposure is offset, NEITHER factor alone clears its null while the composed hazard does.**
+The remaining discrimination on this route lives in the product of the two terms, not in either of
+them, and **no single factor from the SVT route may be quoted as carrying it.** The uncorrected
+reading — which showed `action_propensity` at 0.6421 ALONE — was crediting a term with what the
+segment length was doing. The instrument prints the corrected table with the uncorrected one marked
+as superseded, because a caution recorded beside a table is a caution nobody applies.
+
+### What this comparison is allowed to say
+
+* On the renewal route, on one population: **the ceiling is 0.7400 and the company's independent
+  belief is 0.4988, inside its null.**
+* On the SVT route: **the ceiling is 0.6721 and there is no company belief to compare.**
+* **No ratio between the routes, and no whole-book company figure.** The company's belief exists on
+  144 of 1,410 decisions; a "company AUC for the book" would have a numerator and denominator
+  counting different things. The two readings are published side by side with their populations
+  named, which is what the direction asked for.
+* It does **not** say the company's model is badly built. It says that on the population where it
+  can be graded independently, it carries no ordering information, and on the population carrying
+  most of the departures it is not consulted. Those are two different repairs.
+
+---
 
 ### The earlier reading, kept beside this one
 
@@ -349,11 +470,18 @@ carry, and it is a sharper one than "the future is unanchored".
    publishes three of four causes and is missing the largest.
 3. **Build rung 0 for churn** — a wide feasible range from published evidence, so "not absurd" and
    "on the anchor" become two different questions and a level change can be sized.
-4. **The company-vs-ceiling comparison on one capture.** Both AUCs, one population, both nulls. Not
-   before then.
-5. **Offset exposure on the SVT route** before its per-factor readings are quoted again. Segment
-   length carries 0.5868 against a null topping out at 0.5842 — small, real, and not a reason anyone
-   left.
+4. **~~The company-vs-ceiling comparison on one capture.~~ DONE 2026-08-31 — and the independent
+   leg reads at chance.** Both AUCs, one population, both nulls, split by route. Renewal: ceiling
+   0.7400, `build_churn_risk` 0.6815 (but it seeds the roll, so it measures the world preserving
+   its own input), `company_churn_estimate` **0.4988 inside its null**. SVT: ceiling 0.6721 and
+   **no company belief exists**, on the route carrying 61% of departures. Section above.
+   *What it displaces:* the next question is no longer "is the company poor" — it is **why the
+   company's independent estimate carries no ordering at all** when the world's own strongest
+   factor on that route, bill shock, is one the company issues the bill for and already reads.
+5. **~~Offset exposure on the SVT route~~ DONE 2026-08-31 — and it removed both per-factor
+   readings.** Per exposure-day the route still clears (0.6091), but neither `sim_svt_inertia` nor
+   `sim_action_propensity` clears alone: the discrimination is in the product. The uncorrected
+   per-factor table is superseded and the instrument now prints the corrected one.
 6. **Then the anchor's rebuild.** Making the level emerge is right and is rung-1 and rung-2 work. It
    is last rather than first because the measurement above says it buys no rung 3, and doing it
    first would be acting on the causal story rather than on the reading.
