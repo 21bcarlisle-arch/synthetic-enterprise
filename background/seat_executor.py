@@ -365,6 +365,12 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             raise StoodDown(f"the work duplicates a live claim: {exc}") from exc
 
         if dry_run:
+            # A DRY RUN THAT WRITES NOTHING CANNOT DEMONSTRATE ANYTHING. Every other outcome of
+            # this function reaches the log -- RUNNING, FINISHED, STOOD DOWN -- and this one
+            # returned silently, so "the executor can reach a handed-off focus item" was an
+            # argument about the code rather than a record of it having happened. It is marked
+            # DRY RUN in the ledger precisely so it can never be read back as a real turn.
+            log(f"DRY RUN: would run {work_id} -- all four refusals passed")
             return False, f"would run {work_id} (dry run)"
 
         claude_bin = _resolve_claude()

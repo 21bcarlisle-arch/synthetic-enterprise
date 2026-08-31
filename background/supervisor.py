@@ -694,12 +694,18 @@ def _delivery_lane_draw() -> str | None:
     returned on the first non-empty tier left SITE and DISCOVERY permanently idle, and a new tier
     that pre-empted them would be that regression wearing a delivery seat's clothes.
 
-    Never raises -- see the helper's own docstring."""
+    Never raises -- see the helper's own docstring.
+
+    `claim=False` BECAUSE THIS CALLER CANNOT DELIVER (2026-08-31). `grant_turn` below performs
+    zero pane writes -- this module is the escalation watchdog and the pull-loop Stop hook is the
+    transport. Claiming here took the item off the lane roughly a hundred times faster than the
+    thing that could hand it to anyone: measured over the whole log, 68 delivery items were
+    claimed by this call and **zero** doorbells were ever emitted. See `delivery_lane.draw`."""
     try:
         from background import delivery_lane
     except Exception:  # noqa: BLE001 - a lane that cannot import must not take the draw down
         return None
-    return delivery_lane.draw()
+    return delivery_lane.draw(claim=False)
 
 
 def _maturity_map_draw(rng: Any = None) -> str | None:

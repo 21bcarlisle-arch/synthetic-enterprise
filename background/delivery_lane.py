@@ -434,8 +434,33 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     return None
 
 
-def draw(now: float | None = None, path: Path | None = None) -> str | None:
-    """Claim the next delivery item and return its doorbell, or None.
+def draw(now: float | None = None, path: Path | None = None, *, claim: bool = True) -> str | None:
+    """Return the next delivery item's doorbell, or None. Claims it only if `claim`.
+
+    WHY `claim` EXISTS, AND IT IS THE DEFECT THAT MADE THIS LANE DELIVER NOTHING FOR SIX DAYS.
+
+    Measured 2026-08-31 over the whole supervisor log: the line this lane's DRAW writes
+    (`"LANE 0 DELIVERY:"`) appears **68** times; the DOORBELL text it produces
+    (`"LANE 0 DELIVERY --"`) appears **zero** times, here or in any other ledger. Sixty-eight items
+    claimed, none delivered, every one of them swept back into the pool 100 minutes later as an
+    abandoned claim.
+
+    The cause is that `find_work()` has TWO callers with different powers:
+
+      * `background/supervisor.py` polls it every ~2 minutes as an INDEPENDENT ESCALATION WATCHDOG.
+        Its own `grant_turn` docstring says it "performs ZERO pane writes" -- it draws for the
+        alarm signal and THROWS THE REASON AWAY.
+      * `.claude/hooks/pull_next_work.py`, the Stop hook, calls the same draw at a turn boundary
+        and is the only thing that actually feeds work to a session.
+
+    Claiming inside `draw()` meant the watchdog took the item first -- ~2-minute polling against a
+    turn boundary is not a race, it is a walkover -- and by the time the transport asked, the item
+    was `held()` and `next_item` skipped it. **A DRAW IS NOT A DELIVERY, and this lane counted one
+    as the other.** It also logged the claim as a success, which is why it failed quietly for six
+    days across two separate sessions looking directly at it.
+
+    So the claim now belongs to the caller that can deliver. `claim=False` is the watchdog's read:
+    it sees exactly what would be handed out, and hands out nothing.
 
     NEVER RAISES. This sits inside `supervisor._self_refill_draw`, and a lane that can throw takes
     every other lane down with it -- an empty feasible set is a defect in the dials (Rule 0), and
@@ -445,6 +470,8 @@ def draw(now: float | None = None, path: Path | None = None) -> str | None:
         item = next_item(now=now, path=path)
         if item is None:
             return None
+        if not claim:
+            return doorbell(item)
         store = path or CLAIMS_FILE
         claims_mod.claim(item["id"], note=str(item.get("what") or "")[:200], paths=[],
                          path=store, now=now)
@@ -457,10 +484,48 @@ def draw(now: float | None = None, path: Path | None = None) -> str | None:
         return None
 
 
+def hand_off_focus(focus_id: str, done_means: str, now: float | None = None) -> dict:
+    """Turn a FOCUS ITEM into a CONTINUATION a tick can actually take.
+
+    THE HALF THAT WAS MISSING, and it is why zero of three focus items were ever drawn by the
+    executor. `seat_executor.run_once` stands down on a re-derived focus item while an interactive
+    seat is live -- correctly: nobody handed it over, and the live seat may be part-way through it
+    with nothing claimed, which the path guard cannot see. A handed-off continuation runs. So the
+    stand-down was never the defect; the defect was that NOTHING turned the first into the second,
+    and the mechanism sat with a full queue on one side and an empty store on the other.
+
+    IT STAYS A DELIBERATE ACT. This is a command the seat runs, not a promotion that happens on a
+    timer, and that is the whole point rather than an omission -- auto-promoting would defeat the
+    stand-down it exists beside and hand an unattended writer work a live seat is mid-way through.
+    What it removes is the FRICTION, which is what actually stopped it happening: the seat had to
+    retype three long prose fields it had already written into `DIRECTION.yaml`.
+
+    `done_means` IS SUPPLIED BY THE CALLER, BECAUSE A FOCUS ITEM DOES NOT HAVE ONE. The direction
+    that asked for this wiring said `--hand-off` "takes exactly the fields a focus item has"; it
+    does not. `direction.unreachable_focus` yields `id`, `what` and `why` -- three of the four --
+    and `seat_continuation.hand_off` REFUSES without the fourth, for a reason worth keeping: "a
+    tick handed a topic writes a restatement of it". Where a focus item states done-ness at all it
+    is prose inside `what`, and scraping it out by marker would manufacture the field rather than
+    carry it. So the one field that cannot be inherited is the one the caller types, and it is
+    also the one carrying the judgement.
+    """
+    for item in direction_mod.unreachable_focus(_atom_ids()):
+        if item.get("id") == focus_id:
+            return seat_continuation.hand_off(
+                focus_id, item.get("what") or "", item.get("why") or "", done_means, now=now)
+    raise KeyError(
+        f"{focus_id!r} is not a live, draw-unreachable focus item. Handing off something the "
+        "draw can already reach would create a second route to the same work, which is the "
+        "duplication the path-keyed guard exists to refuse.")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--release", metavar="FOCUS_ID",
                     help="mark a delivery-lane item finished and free its claim")
+    ap.add_argument("--hand-off", nargs=2, metavar=("FOCUS_ID", "DONE_MEANS"),
+                    help="promote a focus item to a continuation a tick can take, carrying its "
+                         "what/why across and taking the done-means it does not have")
     ap.add_argument("--landed", metavar="FOCUS_ID",
                     help="bind the paths of a just-landed commit to a claim, restarting its "
                          "deadline from that commit's own timestamp")
@@ -482,6 +547,15 @@ def main(argv=None) -> int:
                   f"{refusal_reason(args.landed, commit=args.commit)}")
             return 1
         print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
+        return 0
+    if args.hand_off:
+        focus_id, done_means = args.hand_off
+        try:
+            item = hand_off_focus(focus_id, done_means)
+        except (KeyError, ValueError) as exc:
+            print(str(exc).strip('"'))
+            return 1
+        print(f"handed off {item['id']} -- a tick can now take it even with a seat live")
         return 0
     if args.sweep:
         freed = sweep_stale()

@@ -39,6 +39,7 @@ import yaml
 
 from background import delivery_lane as dl
 from background import direction as d
+from background import seat_continuation as sc
 from background import seat_work_in_hand as claims_mod
 
 # THE CLOCK IS RELATIVE, NOT FIXED (2026-08-26). A frozen `NOW` was a time bomb: the record it
@@ -66,19 +67,31 @@ def _record(focus, **over) -> dict:
 
 @pytest.fixture()
 def tree(tmp_path, monkeypatch):
-    """A direction record, a map, and a claims store, all under tmp_path."""
+    """A direction record, a map, a claims store AND a continuation store, all under tmp_path.
+
+    THE CONTINUATION STORE IS ISOLATED HERE FOR THE SAME REASON AS THE OTHER THREE, and it was
+    added a turn late (2026-08-31). When `next_item` gained `seat_continuation` as a source ahead
+    of `focus`, this fixture kept isolating only what the lane had read the day before -- so every
+    test below read the REAL `docs/observability/.seat_continuation.json`, and the moment an
+    interactive session wrote a genuine handoff into it, twelve of these went red describing a
+    delivery lane that was working correctly. `next_item` takes a `path` for the CLAIMS store only;
+    the continuation source has no parameter, so the module attribute is the only seam.
+    """
     direction_path = tmp_path / "DIRECTION.yaml"
     map_path = tmp_path / "maturity_map.yaml"
     claims_path = tmp_path / "claims.json"
+    continuation_path = tmp_path / ".seat_continuation.json"
     map_path.write_text(yaml.safe_dump([{"id": "EP1_real_atom", "level_current": 1}]),
                         encoding="utf-8")
     monkeypatch.setattr(dl, "MATURITY_MAP", map_path)
     monkeypatch.setattr(d, "DIRECTION_PATH", direction_path)
+    monkeypatch.setattr(sc, "STORE", continuation_path)
 
     def _write(focus):
         direction_path.write_text(yaml.safe_dump(_record(focus)), encoding="utf-8")
 
-    return {"write": _write, "claims": claims_path, "map": map_path}
+    return {"write": _write, "claims": claims_path, "map": map_path,
+            "continuation": continuation_path}
 
 
 def _item(key, what="do the thing", why="because"):
@@ -126,6 +139,31 @@ def test_THE_SEATS_ORDER_IS_THE_DRAW_ORDER(tree):
     assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "zzz-first-by-the-seat"
 
 
+def test_a_LIVE_CONTINUATION_is_offered_AHEAD_of_focus_and_a_STALE_one_is_not(tree):
+    """The source `next_item` gained on 2026-08-31, which landed with no test at this level.
+
+    WHY IT OUTRANKS `focus`: a continuation is minutes old and written by a session holding the
+    whole context; a focus item is up to three hours old and re-derived from the tree. Freshness
+    is the whole argument for the ordering, so the SAME argument bounds it -- past
+    `STALE_AFTER_SECONDS` the continuation is no longer fresher than anything and must stop
+    pre-empting the seat's own ranked list.
+
+    MUTATION (must fire), two of them: (a) move the continuation loop BELOW the `focus` loop in
+    `next_item` -- the first assertion goes red; (b) drop `live()`'s cutoff (return `_load(path)`)
+    -- the second goes red, and without it this test would pass on a store that pre-empts `focus`
+    forever, which is the failure the window exists to prevent.
+    """
+    tree["write"]([_item("the-seats-three-hour-old-judgement")])
+    sc.hand_off("minutes-old-handoff", "finish the thing", "the session knew why",
+                "the band control reads its live subject", now=NOW_EPOCH)
+
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "minutes-old-handoff"
+
+    # The same store, read past its window: focus is what is left, not nothing.
+    stale = NOW_EPOCH + sc.STALE_AFTER_SECONDS + 1
+    assert dl.next_item(now=stale, path=tree["claims"])["id"] == "the-seats-three-hour-old-judgement"
+
+
 def test_the_doorbell_carries_the_WHY_and_says_what_DONE_means(tree):
     """A focus item has no exit test -- that is what makes it direction rather than an atom. A
     doorbell that handed over the work without saying so would get a tick looking for an exit
@@ -148,7 +186,21 @@ def test_the_doorbell_carries_the_WHY_and_says_what_DONE_means(tree):
 # 2. It never pre-empts the lanes that already work                            #
 # --------------------------------------------------------------------------- #
 
-def test_LANE_0_is_PREPENDED_to_the_ladder_and_never_returned_instead_of_it(monkeypatch):
+@pytest.fixture()
+def quiet_supervisor_log(tmp_path, monkeypatch):
+    """`_self_refill_draw` LOGS when the delivery lane returns something, and the log is a
+    production surface. Any test that drives it to a non-empty delivery item must send that write
+    to tmp or `production_surface_guard` refuses it -- which reads as "the draw is broken" and is
+    really "the test wrote to `docs/observability/`". The two tests that hit it are the two that
+    stub `_delivery_lane_draw` to a truthy value.
+    """
+    from background import supervisor as sup
+
+    monkeypatch.setattr(sup, "LOG_FILE", tmp_path / "supervisor-log.md")
+    return sup
+
+
+def test_LANE_0_is_PREPENDED_to_the_ladder_and_never_returned_instead_of_it(quiet_supervisor_log, monkeypatch):
     """THREE_LANES.md exists because a cascade that RETURNED on the first non-empty tier left SITE
     and DISCOVERY permanently idle while BUILD had work. A new tier at the top of that ladder is
     that regression wearing a delivery seat's clothes.
@@ -197,7 +249,7 @@ def test_an_empty_delivery_lane_leaves_the_draw_BYTE_IDENTICAL(monkeypatch):
     assert sup._self_refill_draw() is None
 
 
-def test_the_delivery_item_stands_alone_when_the_ladder_is_empty(monkeypatch):
+def test_the_delivery_item_stands_alone_when_the_ladder_is_empty(quiet_supervisor_log, monkeypatch):
     """The state this lane was built for: the supervisor's own log on 2026-08-25 read *"all 24
     idle atom(s) are OVER THE PASS CEILING ... every one of them is now a decision"*. A decision is
     what the seat produces, so an empty ladder is the lane's ordinary case, not an edge one."""
@@ -858,3 +910,92 @@ def test_the_reason_NEVER_OUTRANKS_the_refusal_it_explains(repo, monkeypatch):
     )
     # And the thing it explains still refuses rather than raising into the tick.
     assert dl.record_landing("f", path=repo["claims"]) == []
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# A FOCUS ITEM BECOMES A CONTINUATION — the half that was missing (2026-08-31)
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+#
+# `seat_executor.run_once` stands down on a RE-DERIVED focus item while an interactive seat is
+# live, and takes a CONTINUATION instead. That is right: nobody handed the focus item over and the
+# live seat may be part-way through it with nothing claimed. But nothing anywhere turned the first
+# into the second, so the store the executor reads was permanently empty while the queue beside it
+# held three items -- and zero of three were ever drawn. The stand-down was never the defect.
+
+def test_a_focus_item_can_be_handed_off_and_is_then_drawable_beside_a_live_seat(
+        tmp_path, monkeypatch):
+    """THE LOOP, end to end, on the store the executor actually reads."""
+    from background import delivery_lane as dl
+    from background import seat_continuation
+
+    store = tmp_path / "continuations.json"
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(dl, "_atom_ids", lambda: set())
+    monkeypatch.setattr(
+        dl.direction_mod, "unreachable_focus",
+        lambda _ids, **kw: [{"id": "wire-the-thing", "what": "WHAT the seat wrote",
+                             "why": "WHY it matters"}])
+
+    # NULL CONTROL: the store must be empty first, or the assertion below proves only that
+    # something else once wrote a continuation.
+    assert seat_continuation.live(path=store) == []
+
+    dl.hand_off_focus("wire-the-thing", "a failing assertion and a commit")
+
+    live = seat_continuation.live(path=store)
+    assert [i["id"] for i in live] == ["wire-the-thing"]
+    # The prose the seat already wrote is CARRIED, not restated -- that is what removes the
+    # friction that stopped this happening by hand.
+    assert live[0]["what"] == "WHAT the seat wrote"
+    assert live[0]["why"] == "WHY it matters"
+    assert live[0]["done_means"] == "a failing assertion and a commit"
+
+
+def test_handing_off_something_the_draw_can_already_reach_is_refused(tmp_path, monkeypatch):
+    """A focus item with an atom is reached by the weight bias; handing it off too would make a
+    SECOND route to one piece of work, which is the duplication the path-keyed guard exists to
+    refuse. `unreachable_focus` already excludes atoms, so this is the leg that proves the
+    refusal is keyed to that and not merely to a typo'd id."""
+    from background import delivery_lane as dl
+    from background import seat_continuation
+
+    store = tmp_path / "continuations.json"
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(dl, "_atom_ids", lambda: {"already-an-atom"})
+    monkeypatch.setattr(
+        dl.direction_mod, "unreachable_focus",
+        lambda ids, **kw: [i for i in [{"id": "already-an-atom", "what": "w", "why": "y"}]
+                           if i["id"] not in ids])
+
+    try:
+        dl.hand_off_focus("already-an-atom", "done means something")
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("an atom-backed focus item was handed off, creating a second route")
+    assert seat_continuation.live(path=store) == []
+
+
+def test_a_handoff_without_done_means_is_refused_rather_than_stored_as_a_topic(
+        tmp_path, monkeypatch):
+    """The refusal `seat_continuation.hand_off` already carries must survive being reached
+    through this new door. A focus item has `id`, `what` and `why` and NO done-means -- so if
+    this path defaulted the missing field, it would hand a tick a topic, and a tick handed a
+    topic writes a confident restatement of it."""
+    from background import delivery_lane as dl
+    from background import seat_continuation
+
+    store = tmp_path / "continuations.json"
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(dl, "_atom_ids", lambda: set())
+    monkeypatch.setattr(
+        dl.direction_mod, "unreachable_focus",
+        lambda _ids, **kw: [{"id": "wire-the-thing", "what": "w", "why": "y"}])
+
+    try:
+        dl.hand_off_focus("wire-the-thing", "   ")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a continuation was stored with no done-means")
+    assert seat_continuation.live(path=store) == []
