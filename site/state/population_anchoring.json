@@ -1,6 +1,7 @@
 {
   "meta": {
-    "ofgem_benchmark_source": "Ofgem Retail Market Indicators (annual switching data)",
+    "ofgem_benchmark_source": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json (DESNZ Quarterly Domestic Energy Switching Statistics / Energy UK / Ofgem Retail Market Indicators), band MIDPOINT. Numerator: external changes of supplier on a GB domestic ELECTRICITY meter point. Denominator: all GB domestic electricity accounts, not only those at a decision point.",
+    "ofgem_benchmark_denominator_note": "This gate published '% of dual-fuel accounts' until 2026-08-31 and the ten rates under that label were hand-authored, not read off any publication: 14% for 2020 against a published 22.5-23.0%. No denominator reconciles them -- a both-fuel count over an electricity base reads about 1.8x HIGH and these read LOW. The per-fuel question is held open in the commons' `unreconciled_cross_check`, and it does not move this gate's basis.",
     "bad_debt_benchmark": "Industry range 0.5-2.5% (Ofgem/EUA annual survey)",
     "complaint_benchmark": "Ofgem QoS survey; I&C adjusted 2-6% normal, 2-8% crisis",
     "arrears_benchmark": "DESNZ business energy debt; I&C <8% normal, <12% crisis",
@@ -10,8 +11,8 @@
   "overall_rag": "RED",
   "long_run_comparison": {
     "sim_avg_pct": 19.4,
-    "ofgem_avg_pct": 14.7,
-    "ratio": 1.32,
+    "ofgem_avg_pct": 17.1,
+    "ratio": 1.13,
     "years_compared": 9,
     "total_renewals": 144,
     "rag": "GREEN",
@@ -21,7 +22,7 @@
     "pre_crisis_avg_pct": 20.2,
     "crisis_avg_pct": 14.3,
     "2022_sim_rate_pct": 0.0,
-    "2022_ofgem_rate_pct": 4.0,
+    "2022_ofgem_rate_pct": 3.6,
     "2022_ratio_vs_ofgem": 0.0,
     "rolling_divergence_flag": false,
     "absolute_divergence_flag": false,
@@ -116,48 +117,48 @@
       "year_transition": "2016->2017",
       "ofgem_direction": "down",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.2,
-      "ofgem_rate_curr": 0.19,
+      "ofgem_rate_prev": 0.173,
+      "ofgem_rate_curr": 0.1375,
       "sim_rate_prev": 0.0,
       "sim_rate_curr": 0.25,
       "rag": "AMBER"
     },
     {
       "year_transition": "2017->2018",
-      "ofgem_direction": "down",
+      "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.19,
-      "ofgem_rate_curr": 0.18,
+      "ofgem_rate_prev": 0.1375,
+      "ofgem_rate_curr": 0.1975,
       "sim_rate_prev": 0.25,
       "sim_rate_curr": 0.45,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year_transition": "2018->2019",
-      "ofgem_direction": "down",
+      "ofgem_direction": "up",
       "sim_direction": "down",
-      "ofgem_rate_prev": 0.18,
-      "ofgem_rate_curr": 0.17,
+      "ofgem_rate_prev": 0.1975,
+      "ofgem_rate_curr": 0.21,
       "sim_rate_prev": 0.45,
       "sim_rate_curr": 0.1429,
       "rag": "GREEN"
     },
     {
       "year_transition": "2019->2020",
-      "ofgem_direction": "down",
+      "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.17,
-      "ofgem_rate_curr": 0.14,
+      "ofgem_rate_prev": 0.21,
+      "ofgem_rate_curr": 0.2275,
       "sim_rate_prev": 0.1429,
       "sim_rate_curr": 0.2353,
-      "rag": "AMBER"
+      "rag": "GREEN"
     },
     {
       "year_transition": "2020->2021",
       "ofgem_direction": "down",
       "sim_direction": "down",
-      "ofgem_rate_prev": 0.14,
-      "ofgem_rate_curr": 0.09,
+      "ofgem_rate_prev": 0.2275,
+      "ofgem_rate_curr": 0.1815,
       "sim_rate_prev": 0.2353,
       "sim_rate_curr": 0.2273,
       "rag": "GREEN"
@@ -166,8 +167,8 @@
       "year_transition": "2021->2023",
       "ofgem_direction": "down",
       "sim_direction": "down",
-      "ofgem_rate_prev": 0.09,
-      "ofgem_rate_curr": 0.08,
+      "ofgem_rate_prev": 0.1815,
+      "ofgem_rate_curr": 0.107,
       "sim_rate_prev": 0.2273,
       "sim_rate_curr": 0.0588,
       "rag": "GREEN"
@@ -176,8 +177,8 @@
       "year_transition": "2023->2024",
       "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.08,
-      "ofgem_rate_curr": 0.13,
+      "ofgem_rate_prev": 0.107,
+      "ofgem_rate_curr": 0.143,
       "sim_rate_prev": 0.0588,
       "sim_rate_curr": 0.1111,
       "rag": "GREEN"
@@ -186,8 +187,8 @@
       "year_transition": "2024->2025",
       "ofgem_direction": "up",
       "sim_direction": "up",
-      "ofgem_rate_prev": 0.13,
-      "ofgem_rate_curr": 0.14,
+      "ofgem_rate_prev": 0.143,
+      "ofgem_rate_curr": 0.161,
       "sim_rate_prev": 0.1111,
       "sim_rate_curr": 0.2667,
       "rag": "GREEN"
@@ -198,64 +199,100 @@
       "renewals": 1,
       "churns": 0,
       "sim_churn_rate": 0.0,
-      "ofgem_benchmark": 0.2,
-      "calibrated_multiplier": 2.17
+      "ofgem_benchmark": 0.173,
+      "ofgem_benchmark_band_pct": [
+        17.0,
+        17.6
+      ],
+      "calibrated_multiplier": 1.21
     },
     "2017": {
       "renewals": 15,
       "churns": 5,
       "sim_churn_rate": 0.25,
-      "ofgem_benchmark": 0.19,
-      "calibrated_multiplier": 1.88
+      "ofgem_benchmark": 0.1375,
+      "ofgem_benchmark_band_pct": [
+        13.5,
+        14.0
+      ],
+      "calibrated_multiplier": 0.96
     },
     "2018": {
       "renewals": 11,
       "churns": 9,
       "sim_churn_rate": 0.45,
-      "ofgem_benchmark": 0.18,
-      "calibrated_multiplier": 1.72
+      "ofgem_benchmark": 0.1975,
+      "ofgem_benchmark_band_pct": [
+        19.5,
+        20.0
+      ],
+      "calibrated_multiplier": 1.38
     },
     "2019": {
       "renewals": 12,
       "churns": 2,
       "sim_churn_rate": 0.1429,
-      "ofgem_benchmark": 0.17,
-      "calibrated_multiplier": 1.43
+      "ofgem_benchmark": 0.21,
+      "ofgem_benchmark_band_pct": [
+        20.7,
+        21.3
+      ],
+      "calibrated_multiplier": 1.47
     },
     "2020": {
       "renewals": 13,
       "churns": 4,
       "sim_churn_rate": 0.2353,
-      "ofgem_benchmark": 0.14,
-      "calibrated_multiplier": 0.95
+      "ofgem_benchmark": 0.2275,
+      "ofgem_benchmark_band_pct": [
+        22.5,
+        23.0
+      ],
+      "calibrated_multiplier": 1.59
     },
     "2021": {
       "renewals": 17,
       "churns": 5,
       "sim_churn_rate": 0.2273,
-      "ofgem_benchmark": 0.09,
-      "calibrated_multiplier": 0.57
+      "ofgem_benchmark": 0.1815,
+      "ofgem_benchmark_band_pct": [
+        17.9,
+        18.4
+      ],
+      "calibrated_multiplier": 1.27
     },
     "2023": {
       "renewals": 16,
       "churns": 1,
       "sim_churn_rate": 0.0588,
-      "ofgem_benchmark": 0.08,
-      "calibrated_multiplier": 0.79
+      "ofgem_benchmark": 0.107,
+      "ofgem_benchmark_band_pct": [
+        8.9,
+        12.5
+      ],
+      "calibrated_multiplier": 0.75
     },
     "2024": {
       "renewals": 16,
       "churns": 2,
       "sim_churn_rate": 0.1111,
-      "ofgem_benchmark": 0.13,
+      "ofgem_benchmark": 0.143,
+      "ofgem_benchmark_band_pct": [
+        12.5,
+        16.1
+      ],
       "calibrated_multiplier": 1.0
     },
     "2025": {
       "renewals": 11,
       "churns": 4,
       "sim_churn_rate": 0.2667,
-      "ofgem_benchmark": 0.14,
-      "calibrated_multiplier": 0.93
+      "ofgem_benchmark": 0.161,
+      "ofgem_benchmark_band_pct": [
+        14.3,
+        17.9
+      ],
+      "calibrated_multiplier": 1.13
     }
   },
   "complaints_vs_benchmark": [
