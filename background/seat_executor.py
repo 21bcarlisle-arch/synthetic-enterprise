@@ -214,6 +214,29 @@ def worktree_is_live(path) -> bool:
         return False
 
 
+def _still_claimed(work_id: str) -> bool:
+    """Is the lane's claim on this id still held? An unreadable store reads as STILL CLAIMED.
+
+    Conservative in the direction that costs a repeat rather than a loss: mistakenly discharging a
+    handoff loses the seat's judgement about what comes next, and mistakenly keeping one costs a
+    tick that finds the work already done and says so.
+    """
+    try:
+        return work_id in delivery_lane.held()
+    except Exception:  # noqa: BLE001
+        return True
+
+
+def seat_continuation_drop(work_id: str) -> bool:
+    """Drop a discharged continuation. Never raises -- a handoff store must not cost a tick."""
+    try:
+        from background import seat_continuation
+
+        return bool(seat_continuation.drop(work_id))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _another_executor_is_running() -> bool:
     """A pid file WITH a liveness check. A bare lock left by a killed process never runs again.
 
@@ -378,6 +401,20 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         finally:
             PID_FILE.unlink(missing_ok=True)
 
+        # A RELEASED CLAIM DISCHARGES THE HANDOFF (2026-08-31), and the two stores had never
+        # spoken. `seat_continuation` re-offers a live continuation on every tick until its six-hour
+        # window closes; `delivery_lane` claims are released by the tick calling `--release` when it
+        # judges the work finished. Nothing connected them, so the FIRST handoff this executor ever
+        # took was drawn twice -- 18:12 and again at 19:06 on the same id.
+        #
+        # RE-OFFERING IS DELIBERATE while work is unfinished: the charter tells a tick to land the
+        # part it finished, and a piece bigger than one turn must come back. So the signal is not
+        # "a turn ended", it is "the tick said it was done" -- which is exactly what releasing the
+        # claim means. If it did not release, the continuation stands and the next tick continues.
+        if not _still_claimed(work_id):
+            if seat_continuation_drop(work_id):
+                log(f"DISCHARGED {work_id}: the tick released its claim, so the handoff is done "
+                    "and will not be re-offered")
         log(f"FINISHED {detail}")
         return True, detail
 
