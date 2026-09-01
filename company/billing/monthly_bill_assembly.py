@@ -481,9 +481,13 @@ def build_monthly_bills(
                     # project's own bill-shock mechanic exists to capture).
                     if previous_bill_total_gbp:
                         old_shock = bill.get("bill_shock_pct") or 0.0
+                        # `abs()` on the DENOMINATOR too -- see `saas/bill_generator` for why.
+                        # An issued total can be negative (a catch-up credit); a true bill never
+                        # was, which is why this only became reachable when the baseline moved to
+                        # the issued bill.
                         new_shock = abs(
                             bill["total_amount_gbp"] - previous_bill_total_gbp
-                        ) / previous_bill_total_gbp
+                        ) / abs(previous_bill_total_gbp)
                         bill["bill_shock_pct"] = new_shock
                         # The denominator moves with the ratio, or publishing it would be worse
                         # than not publishing it: a baseline that disagreed with the shock beside

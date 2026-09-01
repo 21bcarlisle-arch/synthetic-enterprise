@@ -185,7 +185,21 @@ def generate_bill(
     bill_shock_baseline_gbp = None
     if previous_bill_total_gbp is not None and previous_bill_total_gbp != 0:
         bill_shock_baseline_gbp = previous_bill_total_gbp
-        bill_shock_pct = abs(total_amount_gbp - previous_bill_total_gbp) / previous_bill_total_gbp
+        # THE DENOMINATOR IS A MAGNITUDE, and the numerator always was. This read
+        # `/ previous_bill_total_gbp` and produced a NEGATIVE ratio whenever the baseline was
+        # negative -- which never happened while the baseline was the TRUE bill (a real
+        # consumption bill is always positive) and happens immediately now that it is the ISSUED
+        # bill: a catch-up credit can take an issued total below zero, and 169 of this book's
+        # 10,906 bills are negative, the largest -£964.62.
+        #
+        # It broke the run pipeline for 75 minutes on 2026-09-01 -- `contact_propensity` refused a
+        # shock of -1.4434 and the whole publish cycle failed with it, which is the fail-closed
+        # guard doing exactly its job on a value that should never have reached it. A ratio of two
+        # money amounts is a ratio of MAGNITUDES; the sign of the baseline is not information
+        # about how much the bill moved.
+        bill_shock_pct = (
+            abs(total_amount_gbp - previous_bill_total_gbp) / abs(previous_bill_total_gbp)
+        )
         clarity_score -= min(bill_shock_pct, 1.0) * BILL_SHOCK_PENALTY_FACTOR
 
     clarity_score = max(MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity_score))

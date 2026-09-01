@@ -223,3 +223,40 @@ def test_the_book_is_not_permanently_unarmed():
             "than a publishing cycle — which means the publisher has stopped, not that it has "
             "not run yet."
         )
+
+
+def test_MUTATION_a_negative_baseline_still_yields_a_non_negative_shock():
+    """THE OUTAGE, 2026-09-01. Moving the baseline from the TRUE bill to the ISSUED bill made a
+    negative denominator reachable for the first time: a catch-up CREDIT can take an issued total
+    below zero, and 169 of the book's 10,906 bills are negative (largest -£964.62). A true bill is
+    a real consumption bill and never was.
+
+    `bill_shock_pct` divided by the raw previous total, so the ratio came out NEGATIVE (-1.4434
+    observed), and `simulation/contact_propensity` refused it -- correctly, and the whole publish
+    cycle failed with it. **75 minutes of no runs.** The guard did its job on a value that should
+    never have reached it.
+
+    A ratio of two money amounts is a ratio of MAGNITUDES. The sign of the baseline is not
+    information about how much the bill moved, and every consumer of this field asserts >= 0.
+
+    MUTATION: drop either `abs()` from the denominator and this reds."""
+    from saas.bill_generator import generate_bill
+
+    records = [
+        {"customer_id": "C1", "settlement_date": f"2024-01-{d:02d}", "settlement_period": 1,
+         "consumption_kwh": 10.0, "unit_rate_gbp_per_mwh": 200.0,
+         "revenue_gbp": 2.0, "wholesale_cost_gbp": 0.0, "margin_gbp": 0.0}
+        for d in range(1, 31)
+    ]
+    for previous in (-964.62, -180.22, -0.01, 100.0):
+        bill = generate_bill("C1", records, "fixed_1yr", previous_bill_total_gbp=previous)
+        shock = bill["bill_shock_pct"]
+        baseline = bill["bill_shock_baseline_gbp"]
+        assert shock >= 0.0, (
+            f"a baseline of {previous} produced bill_shock_pct={shock}. Every consumer of this "
+            "field asserts >= 0; contact_propensity raises on a negative and takes the run with it"
+        )
+        assert baseline == previous, "the baseline must record what was actually divided by"
+        assert abs(abs(bill["total_amount_gbp"] - baseline) / abs(baseline) - shock) < 1e-9, (
+            "the published trio must still recompute when the baseline is negative"
+        )
