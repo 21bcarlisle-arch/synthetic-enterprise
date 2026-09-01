@@ -1112,22 +1112,80 @@ def test_the_reaper_refuses_a_live_writers_worktree(tmp_path):
     assert len(kept) == 1 and "live writer" in kept[0]["reason"]
 
 
-def test_the_same_worktree_IS_eligible_once_its_writer_is_gone(tmp_path):
-    """THE LEG THAT STOPS THIS BECOMING A PERMANENT EXEMPTION.
+_FORK_WT = "/var/tmp/se-some-fork"       # a fork's worktree: NOT any daemon's declared home
 
-    A killed executor leaves its pid file behind and its worktree behind, and that directory is
-    exactly the accretion this reaper exists to remove -- the H24 gap was worktree dirs climbing
-    2 -> 7 in one session. Exempting the PATH would trade one collision for unbounded accretion;
-    only LIVENESS may spare it.
+
+def test_a_forks_worktree_IS_eligible_once_its_writer_is_gone(tmp_path):
+    """THE LEG THAT STOPS LIVENESS BECOMING A PERMANENT EXEMPTION.
+
+    A killed fork leaves its pid file behind and its worktree behind, and that directory is exactly
+    the accretion this reaper exists to remove -- the H24 gap was worktree dirs climbing 2 -> 7 in
+    one session. Exempting a PATH would trade one collision for unbounded accretion; only LIVENESS
+    may spare a fork.
+
+    THE SUBJECT MOVED ON 2026-09-01, and the argument is answered rather than dropped. This test
+    was written against `/var/tmp/se-seat-executor`, which is now a DECLARED DAEMON HOME and is
+    spared by name (see the next test for why that is not the exemption this docstring forbids).
+    Its real subject was always a fork's worktree, so it uses one.
     """
     report = F.evaluate_worktree_reap(
-        worktrees=_merged_clean_detached_worktree(),
+        worktrees=_merged_clean_detached_worktree(_FORK_WT),
         branch_states={}, main_path="/repo", enforce=False,
         dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
         reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
         live_writer_fn=lambda p: False,                 # the writer has exited
     )
-    assert [e["path"] for e in report["eligible"]] == [_LIVE_WT]
+    assert [e["path"] for e in report["eligible"]] == [_FORK_WT]
+
+
+def test_a_declared_daemon_home_is_spared_even_with_no_writer_in_it():
+    """AND WHY THAT IS NOT THE PATH EXEMPTION THE TEST ABOVE FORBIDS.
+
+    "Exempting a path trades one collision for unbounded accretion" is exactly right about a FORK,
+    and false about a declared home, because the spared population is bounded at one PER DAEMON by
+    construction: `ensure_worktree` creates it if absent and RESETS it if present. Reaping it
+    between turns reduces nothing -- it makes the owner recreate it next turn and leaves a salvage
+    tag behind each time. On a 30-minute timer that is ~50 tags a day, which is the same disease
+    with a smaller footprint.
+
+    Nothing is lost, and the owning module says so: *"this worktree holds no history worth keeping
+    between turns. Anything it landed was promoted at the end of the turn that landed it, and
+    anything it did not land was not finished."*
+
+    THE FAILURE MODE IS NAMED RATHER THAN HIDDEN: if a daemon is retired, its declared home stops
+    being reaped and must be removed with it. That is ONE stale directory, bounded, against
+    unbounded tag growth -- and it is why the spared set is read from the OWNING MODULE's own
+    declaration rather than a literal typed here, so retiring the daemon retires the exemption.
+    """
+    homes = F.declared_daemon_homes()
+    assert homes, "no daemon declares a home worktree -- this test has lost its subject"
+    report = F.evaluate_worktree_reap(
+        worktrees=_merged_clean_detached_worktree(homes[0]),
+        branch_states={}, main_path="/repo", enforce=False,
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,                 # idle between turns, not abandoned
+    )
+    assert report["eligible"] == []
+    assert "declared daemon" in report["kept"][0]["reason"]
+    # And it is the control WORKING, not the reaper stuck -- a spared home must never count toward
+    # the stranded alarm, which is the mistake `live writer` made for a day.
+    assert F.refusal_is_stranded(report["kept"][0]["reason"]) is False
+
+
+def test_both_reap_doors_spare_a_declared_daemon_home():
+    """A rule enforced at one door and not the other is a rule with a way round it, and
+    `reap_one_worktree` is the door an operator calls by hand."""
+    homes = F.declared_daemon_homes()
+    r = F.reap_one_worktree(
+        homes[0], worktrees=_merged_clean_detached_worktree(homes[0]),
+        branch_states={}, main_path="/repo",
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,
+        remover=lambda p: pytest.fail("removed a declared daemon's home worktree"),
+    )
+    assert r["refused"] is True and "declared daemon" in r["reason"]
 
 
 def test_BOTH_reap_doors_refuse_a_live_writer(tmp_path):

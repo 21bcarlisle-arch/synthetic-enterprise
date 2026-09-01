@@ -517,7 +517,44 @@ def salvage_detached_head(head: str) -> dict:
 #: A new refusal reason must be classified here in the same change that introduces it. There is no
 #: default that is safe for both halves: unlisted means STRANDED, which over-reports a live
 #: refusal, and listing everything means a genuinely stuck reaper reads as healthy.
-_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "live writer")
+#: `declared daemon` was added 2026-09-01 with the refusal it names, in the SAME change -- which is
+#: what this tuple's own note above demands, and the first draft still got it wrong: the token read
+#: `declared home` against a reason saying `a declared daemon's home worktree`, so it matched
+#: nothing and the refusal scored STRANDED. The class control
+#: `test_every_refusal_the_classifier_can_emit_is_deliberately_classified` caught it before it ran.
+_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "live writer",
+                  "declared daemon")
+
+
+def declared_daemon_homes() -> tuple[str, ...]:
+    """Worktree paths a DECLARED daemon owns as its home, resolved. Never raises.
+
+    NOT ACCRETION, AND THE DIFFERENCE IS THE WHOLE POINT (2026-09-01). This reaper exists to stop
+    an UNBOUNDED population of worktrees growing. A daemon's declared home is bounded at exactly
+    one by construction: `seat_executor.ensure_worktree` creates it if absent and RESETS it if
+    present, so reaping it between turns does not reduce anything -- it makes the next turn
+    re-create it, and leaves a salvage tag behind each time. On a 30-minute timer that is roughly
+    fifty tags a day: the same disease with a smaller footprint, which is not tidying.
+
+    Between turns such a worktree is IDLE, not abandoned. `worktree_is_live` answers a different
+    question -- is a writer working in it *right now* -- and it correctly says no.
+
+    NOTHING IS LOST BY SPARING IT, and the owning module says so itself: *"this worktree holds no
+    history worth keeping between turns. Anything it landed was promoted at the end of the turn
+    that landed it, and anything it did not land was not finished."* That is the same reasoning
+    `fork_salvage` already cites for skipping a live writer, applied to the gap between turns.
+
+    ASKED OF THE MODULE THAT DECLARES IT, never a path literal here. A path typed into this file is
+    a copy of someone else's declaration and goes stale silently -- which is the defect that put
+    five worktrees beyond every control on this machine for a day.
+    """
+    homes: list[str] = []
+    try:
+        from background.seat_executor import WORKTREE
+        homes.append(str(Path(WORKTREE).resolve()))
+    except Exception:  # noqa: BLE001 - an unimportable owner declares no home; the reaper still runs
+        pass
+    return tuple(homes)
 
 
 def refusal_is_stranded(reason: str) -> bool:
@@ -531,7 +568,8 @@ def refusal_is_stranded(reason: str) -> bool:
 
 def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *,
                            dirty: bool, salvage_tag: str | None,
-                           detached_head_state: str | None = None) -> dict:
+                           detached_head_state: str | None = None,
+                           declared_homes: tuple[str, ...] = ()) -> dict:
     """Pure: given one worktree {path, branch, detached, locked, locked_reason, bare}, its branch's
     lifecycle state (None if the branch ref no longer exists at all -- e.g. already salvage-reaped),
     whether the worktree has uncommitted/untracked changes, and whether a matching salvage tag
@@ -544,6 +582,16 @@ def classify_worktree_reap(wt: dict, main_path: str, branch_state: str | None, *
     if wt.get("locked"):
         reason = wt.get("locked_reason") or "no reason given"
         return {"eligible": False, "reason": f"locked ({reason}) -- never reaped"}
+    if declared_homes:
+        try:
+            here = str(Path(wt["path"]).resolve())
+        except (OSError, ValueError):
+            here = str(wt["path"])
+        if here in declared_homes:
+            return {"eligible": False,
+                    "reason": "a declared daemon's home worktree -- bounded at one by its owner, "
+                              "which recreates and resets it every turn; idle between turns is not "
+                              "abandoned. See `declared_daemon_homes`."}
     branch = wt.get("branch")
     if wt.get("detached") or not branch:
         # A DETACHED HEAD IS A COMMIT, AND A COMMIT IS DETERMINABLE. See `classify_detached_head`
@@ -745,6 +793,7 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
     # An unimportable executor reads as "no live writer": this reaper must not stop working because
     # a module it does not depend on is broken, and the DIRTY check still stands behind it.
     live_writer_fn = live_writer_fn or _live_writer_default
+    homes = declared_daemon_homes()
 
     eligible, kept = [], []
     for wt in worktrees:
@@ -770,7 +819,7 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
                                 "process is alive; it is in use, not abandoned"}
         else:
             result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
-                                            detached_head_state=dstate)
+                                            detached_head_state=dstate, declared_homes=homes)
         entry = {"path": wt["path"], "branch": branch, **result}
         (eligible if result["eligible"] else kept).append(entry)
 
@@ -932,7 +981,8 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
                             "is alive; it is in use, not abandoned"}
     else:
         result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
-                                        detached_head_state=dstate)
+                                        detached_head_state=dstate,
+                                        declared_homes=declared_daemon_homes())
     if not result["eligible"]:
         return {"path": path, "removed": False, "refused": True, "loud": True, "reason": result["reason"]}
 

@@ -97,6 +97,36 @@ Dogfooded end to end on the live tree, three passes of the machinery's own lifec
 under six `salvage/detached-*` tags. 24 tests; the four load-bearing mutations were applied,
 confirmed failing, and reverted.
 
+## And the fix's own consequence, closed before it ran
+
+Wiring the reaper to the cycle would have churned the seat executor's worktree every 30 minutes:
+between turns its writer is not live and its tree is dirty, so `advance_stranded` would salvage it,
+the next pass would reap it, and `ensure_worktree` would recreate it next turn. **Roughly fifty
+salvage tags a day** — worktree accretion traded for tag accretion, which is not tidying.
+
+`declared_daemon_homes()` spares it, and the interesting part is the argument it had to answer.
+`test_the_same_worktree_IS_eligible_once_its_writer_is_gone` was written on 2026-08-31 against this
+exact path and says in terms: *"Exempting the PATH would trade one collision for unbounded
+accretion; only LIVENESS may spare it."*
+
+**That is right about a fork and false about a declared home**, and the difference is boundedness.
+A fork's worktree is one of an unbounded family. A daemon's home is one, permanently — its owner
+creates it if absent and RESETS it if present. Reaping it between turns reduces nothing. And nothing
+is lost, on the owning module's own testimony: *"this worktree holds no history worth keeping between
+turns. Anything it landed was promoted at the end of the turn that landed it, and anything it did not
+land was not finished."*
+
+So the older test keeps its argument and gets its real subject (a fork's worktree, not this one), and
+two new legs carry the exemption at both doors. **The failure mode is named rather than hidden:** if
+a daemon is retired, its home stops being reaped and must be removed with it — one stale directory,
+bounded, against unbounded tag growth. That is why the spared set is read from the owning module's
+declaration and never from a path typed into the reaper: retiring the daemon retires the exemption.
+
+The first draft of it got the token wrong (`declared home` against a reason reading `a declared
+daemon's home worktree`), so the refusal matched nothing and scored STRANDED — the same defect as
+the `live writer` one above, in the change that fixed it. **The class control caught it before it
+ran**, which is what that control is for.
+
 ## What this finding does not claim
 
 Not that any single guard was wrong — every refusal in that module is individually correct and most
