@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-01T05:53:26Z",
+    "checked_at": "2026-09-01T06:22:09Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,7 +9,7 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 54
+    "open_findings": 55
   },
   "last_verified": {
     "generated_at": "2026-09-01T06:20:16Z",
@@ -23,8 +23,8 @@
     "run_retained": true,
     "verified_at": "2026-09-01T06:20:16Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=fb65a7a42; blocking tests: FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_a_refused_publish_commit_records_the_hook_chains_failing_tests, FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_the_recorded_reds_reach_the_state_file_the_alarm_and_the_draw_read, FAILED tests/background/test_a_refused_publi",
+  "paused_since": "2026-09-01T06:48:52Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-09-01T06:20:16Z",
@@ -38,6 +38,6 @@
     "run_retained": true,
     "verified_at": "2026-09-01T06:20:16Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-01T06:20:16Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-01T06:48:52Z"
 }
