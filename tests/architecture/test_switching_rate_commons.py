@@ -1167,7 +1167,8 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "as a reading would mean inventing a comparison the quantity does not support. "
         "AND THAT INDIRECTION IS NINE YEARS OF TEN, NOT TEN (corrected 2026-09-01, having been "
         "written as though it were unconditional). It holds an entry only where the world runs "
-        "-- AND IT IS HOLDING NONE OF THEM TODAY, for two reasons neither of which is 2022. "
+        "renewal decisions that the anchor scales -- AND IT IS HOLDING NONE OF THEM TODAY, for "
+        "two reasons neither of which is 2022. "
         "(i) THE HOLDER IS XFAIL. That band leg is `xfail(strict)` as of 2026-09-01: the world is "
         "out of band in 7 of 7 readable years, and a verdict held open can only fire on the world "
         "coming BACK into the band. Any anchor that keeps it outside passes silently, so while "
@@ -1180,11 +1181,14 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "again -- measured 2026-09-01, halving EVERY entry leaves this whole file green. It is "
         "band-checked once per RE-CAPTURE, not once per run, and the register said the stronger "
         "thing while the leg forty lines below said the weaker one. "
-        "Both statements are held by "
-        "`test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holding`, so this "
-        "text cannot go stale in the flattering direction when the re-fit lands. It holds an "
-        "entry only where the world runs "
-        "renewal decisions that the anchor scales. `YEAR_LEVEL_ANCHOR[2022] = 1.524110` is held by "
+        "The two statements have TWO SEPARATE HOLDERS and that is not tidiness -- they go stale "
+        "independently, and until 2026-09-02 this sentence claimed one leg held both. Statement "
+        "(i) is held by "
+        "`test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holding`; "
+        "statement (ii) by "
+        "`test_the_disclosed_read_path_is_checked_against_the_read_path_the_holder_actually_has`. "
+        "Neither can go stale in the flattering direction when the re-fit lands. "
+        "`YEAR_LEVEL_ANCHOR[2022] = 1.524110` is held by "
         "NOTHING: 2022 is 100% crisis-forced-passive (`renewal_engagement.CRISIS_PASSIVE_YEARS`), "
         "C1b routes every passive roll to the SVT segment table, and `build_departure_risks` "
         "deliberately does not put the anchor on `svt_inertia` -- so the capture carries ZERO 2022 "
@@ -1239,9 +1243,14 @@ def test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holdi
 
     WHAT THIS LEG DOES NOT CLAIM. It cannot tell whether the holder is a GOOD holder -- that the
     stored-capture read path makes it a per-re-capture drift detector rather than a live assertion
-    is recorded in the entry's prose and in the holder's own docstring, not asserted here. This
-    leg's subject is narrower and mechanisable: disclosure of the holder's state, at the place a
-    reader of the register is standing.
+    is not asserted here. This leg's subject is narrower and mechanisable: disclosure of the
+    XFAIL, at the place a reader of the register is standing.
+
+    AND THAT DISCLAIMER WAS READ AS A GAP THE REGISTER HAD ALREADY FILLED. Between 2026-09-01 and
+    2026-09-02 the entry said *"Both statements are held by"* this leg, while this paragraph said
+    the second one is not asserted here. The read-path disclosure now has its own holder,
+    `test_the_disclosed_read_path_is_checked_against_the_read_path_the_holder_actually_has`; the
+    sentence above is a statement about THIS leg's subject and not about whether that one is held.
     """
     entries = {
         name: text for name, text in _HELD_INDIRECTLY.items()
@@ -1272,6 +1281,115 @@ def test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holdi
                 f"register was not corrected. A stale disclosure of a defect that has been fixed "
                 f"understates the cover the quantity now has, and the next reader will re-open a "
                 f"finding that is closed."
+            )
+
+
+#: The phrases a `_HELD_INDIRECTLY` entry uses to disclose statement (ii) -- that the anchor MODULE
+#: is not in its holder's read path, so editing it moves the holder's verdict only once the capture
+#: is retaken. Kept separate from `_CLAIMS_THE_BAND_LEG_HOLDS_IT` because the two disclosures fail
+#: independently: an entry can be honest about the XFAIL and stale about the read path, which is
+#: precisely the state the register was in for a day.
+_DISCLOSES_THE_STORED_CAPTURE_READ_PATH = ("not in its read path", "stored-capture read path")
+
+
+def _anchor_reaches_the_holders_reading() -> bool:
+    """Does perturbing `YEAR_LEVEL_ANCHOR` move what the band leg reads? Measured, not assumed.
+
+    MUTATED IN PLACE, and that is what makes the negative answer worth anything. Rebinding the
+    module attribute is invisible to a `from simulation.departure_level_anchor import
+    YEAR_LEVEL_ANCHOR` captured at import time, so a re-wire of exactly that shape would read as
+    "does not reach" and the disclosure would stay green while going false -- the flattering
+    direction. The table is a plain dict, so every binding of it is the same object: module
+    attribute, from-import, and the `year_level_anchor` accessor that reads it at call time all see
+    the mutation.
+
+    7x AND NOT 2x DELIBERATELY. The register cites a halving as its evidence; a probe that repeated
+    the cited perturbation could not distinguish "unreachable" from "reachable but insensitive at
+    that size". Seven times every entry moves any reading that is a function of the table at all.
+    """
+    anchor = importlib.import_module("simulation.departure_level_anchor")
+    table = anchor.YEAR_LEVEL_ANCHOR
+    original = dict(table)
+    before = instrument.world_realised_rate_pct()
+    try:
+        table.update({year: value * 7.0 for year, value in original.items()})
+        # THE PROBE HAS TO BE ABLE TO SHOW ITS OWN PERTURBATION LANDED. A mutation that silently
+        # did nothing would report "does not reach" against every possible read path, which is the
+        # constant-verdict shape one level below the one this file exists for.
+        probe_year = next(iter(original))
+        assert anchor.year_level_anchor(probe_year) == pytest.approx(original[probe_year] * 7.0), (
+            "the probe's own perturbation is not visible through `year_level_anchor` -- it cannot "
+            "tell an unreachable module from a mutation that never happened"
+        )
+        after = instrument.world_realised_rate_pct()
+    finally:
+        table.clear()
+        table.update(original)
+    return after != before
+
+
+def test_the_disclosed_read_path_is_checked_against_the_read_path_the_holder_actually_has():
+    """MUTATION: delete the read-path disclosure from either `_HELD_INDIRECTLY` entry and this
+    fires naming the entry; make the reading a function of the anchor module without correcting
+    those entries and it fires the other way. Both proven with `python3 -B`, 2026-09-02.
+
+    THE DEFECT THIS EXISTS FOR, and it is the leg above's own defect recursed one level. On
+    2026-09-01 `4871e53ee` gave statement (i) -- THE HOLDER IS XFAIL -- a mechanical holder. In the
+    same edit the entry acquired the sentence *"Both statements are held by
+    `test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holding`"*, while that
+    leg's own docstring said, under WHAT THIS LEG DOES NOT CLAIM, that the read path is *"recorded
+    in the entry's prose ... not asserted here"*. So a register being corrected for claiming cover
+    its holder was not providing acquired, in the correction itself, a second claim of cover its
+    named holder explicitly disclaimed -- and the two sentences sat ninety lines apart in one file
+    with nothing able to compare them. Prose asserting that prose is held is worth nothing.
+
+    WHY STATEMENT (ii) IS THE ONE THAT COSTS. Statement (i) is visible: the marker is on the leg,
+    and anyone reading the band control sees it. (ii) is a claim about a path nobody reads --
+    `tools.measure_departure_level` never imports the anchor at all, it reads the STORED capture
+    `docs/reports/c2_departure_factors.json`, so every edit to `YEAR_LEVEL_ANCHOR` leaves this
+    whole file green until `tools/capture_departure_factors.py` runs again. That is exactly how a
+    1.98x fallback on 2022 survived a capture, a fit and two preregistrations. A reader who trusts
+    the indirection believes an anchor edit is band-checked; it is checked once per RE-CAPTURE.
+
+    KEYED TO THE PROPERTY AND SYMMETRIC, for the same reason as the leg above. It does not assert
+    that the anchor is unreachable -- that would pin the control to today's wiring and make it go
+    red on the day someone puts the module back in the read path, which is the improvement this
+    project wants. It asserts the entry and the measured read path AGREE. Re-wire the instrument to
+    read the live table and the entry claiming "not in its read path at all" must be corrected;
+    leave it reading the stored capture and the entry must keep saying so.
+    """
+    entries = {
+        name: text for name, text in _HELD_INDIRECTLY.items()
+        if any(phrase in text for phrase in _CLAIMS_THE_BAND_LEG_HOLDS_IT)
+    }
+    assert entries, (
+        "no `_HELD_INDIRECTLY` entry names the band leg as its holder any more, so this leg has no "
+        f"subject. Either the register was emptied or {_CLAIMS_THE_BAND_LEG_HOLDS_IT} were "
+        "reworded -- and a disclosure leg over an empty subject is the constant PASS this file was "
+        "rewritten to stop reporting."
+    )
+
+    reaches = _anchor_reaches_the_holders_reading()
+    for name, text in sorted(entries.items()):
+        disclosed = any(phrase in text for phrase in _DISCLOSES_THE_STORED_CAPTURE_READ_PATH)
+        if reaches:
+            assert not disclosed, (
+                f"{name} says the anchor module is not in its holder's read path, but multiplying "
+                f"`YEAR_LEVEL_ANCHOR` by seven MOVED what "
+                f"`test_the_worlds_realised_departure_rate_is_inside_the_published_band` reads. "
+                f"The instrument now sees the live table -- the indirection is stronger than the "
+                f"entry admits, and a stale disclosure of a defect that has been fixed sends the "
+                f"next reader to re-open a closed finding."
+            )
+        else:
+            assert disclosed, (
+                f"{name} is classified as held indirectly through the band leg, and that leg does "
+                f"not read this module: multiplying `YEAR_LEVEL_ANCHOR` by seven left its reading "
+                f"BIT-IDENTICAL, because it reads the stored capture "
+                f"{instrument.DEFAULT_TABLE.name}. The entry does not disclose it, so it claims "
+                f"cover that arrives only when the capture is retaken. Say so in the entry with "
+                f"one of {_DISCLOSES_THE_STORED_CAPTURE_READ_PATH}, or put the module back in the "
+                f"read path."
             )
 
 
