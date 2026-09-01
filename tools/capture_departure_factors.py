@@ -43,16 +43,38 @@ the first whose two files describe ONE RUN. Do not difference a cell across the 
 the population, not the hazard.
 
 BUT "ONE RUN" IS NOT "IN GIT", AND THE SECOND HALF OF THAT REPAIR IS STILL OWED (2026-09-01, third
-pass). The RECORDER is committed at `6db30a350`. The ROLL that puts an account on the SVT product
-so the recorder has anything to record is NOT: at this HEAD `simulation/svt_product.py` still says
-in its own docstring that *"no roster writes that"*, and the C1b passive roll that does write it --
-`rolls_active_renewal(...)` -> `build_svt_schedule(...)` in `build_renewal_schedule` -- is 56
-uncommitted lines in `simulation/renewals.py`, in no commit and not on `origin/main`. So whether
-this tool writes a populated sibling or an empty one is decided by the WORKING TREE, not by the
-commit: run it on a clean checkout of this HEAD and `emit_svt_sibling` prints `THE SVT RECORDER RAN
-AND RECORDED NOTHING`. Record the tree state you ran on; do not read a populated sibling as evidence
-that the route is in git. Finding:
+pass). The RECORDER is committed at `6db30a350`. What is missing is what puts an account ON the SVT
+product, so that the recorder has anything to record: at this HEAD `simulation/svt_product.py` still
+says in its own docstring that *"no roster writes that"*. So whether this tool writes a populated
+sibling or an empty one is decided by the WORKING TREE, not by the commit: run it on a clean checkout
+of this HEAD and `emit_svt_sibling` prints `THE SVT RECORDER RAN AND RECORDED NOTHING`. Record the
+tree state you ran on; do not read a populated sibling as evidence that the route is in git. Finding:
 `docs/staging/done/WORKER_FINDING_THE_SVT_RECORDER_IS_IN_GIT_AND_THE_ROLL_THAT_FILLS_IT_IS_NOT_2026-09-01.md`.
+
+    MEASURED 2026-09-01, fourth pass, and the paragraph above is CONFIRMED as a prediction and
+    CORRECTED as a locator. A clean-tree run (`68ec6825b` == `origin/main`, every producer verified
+    committed) printed `THE SVT RECORDER RAN AND RECORDED NOTHING` and captured 0 SVT segment
+    decisions, exactly as promised. But it is NOT true that the missing piece is "the roll", and it
+    was never `56 uncommitted lines in simulation/renewals.py`:
+
+      * `rolls_active_renewal` is not in `renewals.py` and never has been. It is committed, at
+        `simulation/renewal_engagement.py:65`, and is CALLED every renewal at `run_phase2b.py:1771`.
+      * `build_svt_schedule` is likewise committed and called at `renewals.py:101` -- but only under
+        `if tariff_type == SVT_TARIFF_TYPE`, which nothing ever writes.
+      * The roll's answer feeds exactly one thing, `passive_churn_cap_for`, and then STOPS.
+        `build_renewal_schedule` never receives it.
+
+    So the gap is the ASSIGNMENT, not the roll: the world already decides, per household and against
+    an Ofgem-anchored rate, who rolls onto SVT -- and then builds them a fixed term anyway. See
+    `docs/staging/WORKER_FINDING_THE_WORLD_ALREADY_DECIDES_WHO_ROLLS_TO_SVT_AND_THEN_DISCARDS_THE_ANSWER_2026-08-30.md`,
+    which scoped this correctly in August: *"not a missing rule, a discarded answer"*.
+
+    WHY THE DISTINCTION IS WORTH THESE LINES, given the prediction was right either way. A reader
+    who believes the roll is uncommitted goes looking for lost work to recover, and there is none to
+    find. A reader who knows the roll is committed and DISCARDED goes to the one call site that
+    drops it. The first search ends in a wrong conclusion about provenance; only the second ends in
+    the repair. Grading:
+    `docs/staging/WORKER_PREREGISTRATION_WHAT_A_RERUN_FROM_THE_CLEAN_TREE_MUST_SHOW_2026-09-01.md`.
 
 Findings on the foreign artefact:
 `docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`,

@@ -132,3 +132,134 @@ exists, and no run from any current tree can recover it. This run establishes wh
 tree produces the same numbers — which is the question that actually governs adoption, but it is a
 weaker claim than the grading's owed item 3 implied, and the difference is worth stating: agreement
 here means *today's tree agrees with that output*, never *that output has been reproduced*.
+
+---
+
+# GRADED 2026-09-01, delivery seat, Lane 0
+
+**Four of five REFUTED. The one that held is the one that predicted its siblings would fail.**
+
+## What was run
+
+`systemd-run --user --unit=svt-rerun-clean`, from `68ec6825b` == `origin/main`, tree `0 0` against
+origin, every run-relevant producer clean (`/tmp/svtcap2/PROVENANCE.txt` carries the hashes and an
+empty dirty list). Waited with `tools/wait_for.py --pid`, never `pgrep`. `EXIT_RC=0`, full window,
+~13 minutes. Whole-book fit run separately: `python3 -B -m tools.fit_year_level_anchor
+/tmp/svtcap2/c2_marketterm.json` → `/tmp/svtcap2/fit.log`.
+
+```
+captured 465 renewal factor rows        -> /tmp/svtcap2/c2_marketterm.json
+captured 0 SVT segment decisions (0 departed)
+  ⚠ THE SVT RECORDER RAN AND RECORDED NOTHING.
+```
+
+## The five predictions, as filed
+
+### R1 — REFUTED, on its own stated refuter.
+
+*"Neither the 'no recorder' nor the 'recorded nothing' stderr warning fired."* The **recorded
+nothing** warning fired. The recorder ran — the key was present, so this is a measured zero and not
+a missing measurement — and found nobody on the standard variable product. 0 SVT segment decisions;
+the sibling is 2 bytes, `[]`.
+
+My stated confidence was *"high — that is inspection, not prediction."* The inspection was sound
+and the inference from it was wrong: **the recorder and the roll are both in `origin/main`, and
+neither is what puts a household on SVT.** `rolls_active_renewal` is committed and called at
+`run_phase2b.py:1771`, and its answer feeds exactly one thing — `passive_churn_cap_for` — and then
+stops. `build_renewal_schedule` never receives it, so no customer record is ever written
+`tariff_type: "svt"`, so `renewals.py:101`'s `build_svt_schedule` is unreachable in practice. The
+missing half was never the roll. **It is the ASSIGNMENT**, and `WORKER_FINDING_THE_WORLD_ALREADY_
+DECIDES_WHO_ROLLS_TO_SVT_AND_THEN_DISCARDS_THE_ANSWER_2026-08-30.md` said so in August, before
+either grading. I read that file's title in the search results and did not open it until after the
+run.
+
+### R2 — REFUTED. Not byte-identical, and not close.
+
+1373 SVT decisions on 2026-09-01; **0** here.
+`4bb04dcd…` vs `4f53cda1…` (the latter being the sha256 of `[]`).
+
+### R3 — CONFIRMED. The renewal table is not byte-identical.
+
+156 rows on 2026-09-01; **465** here. `bd6ad1da…` vs `24270e9c…`.
+
+### R2 and R3 together — the paired test resolves, and one cause explains both.
+
+They were filed predicting opposite outcomes from one cause, to locate where the lost `renewals.py`
+diff lived. **It reached both outputs, in the same direction, by one mechanism:** the uncommitted
+tree diverted SVT households out of the renewal loop into `build_svt_schedule`, which produces no
+renewal rows and 1373 SVT segment rows. Restore the committed tree and those households stay on
+fixed terms: the renewal rows come back (156 → 465) and the SVT rows vanish (1373 → 0). The two
+numbers move in opposite directions because they are the same households counted on whichever side
+the tree put them.
+
+**This is the outcome the prereg named as costing the most, in advance: *"If R2 fails and R3 holds,
+the block must not be adopted."*** It is not adopted.
+
+### R4 — REFUTED. No whole-book fit; the refusal names its cause.
+
+```
+NO WHOLE-BOOK FIT — the world and this fit disagree about the SVT composition.
+Reason: this capture has no SVT segment decisions to establish a composition from.
+```
+
+2022's SVT floor is not 2.54% — there is no SVT floor, because there is no SVT population. 2023's
+anchor is **2.0112**, not 2.0539. The direction's "done means" offered *"either emitting a
+`YEAR_LEVEL_ANCHOR` block or refusing with the cause named"*: **it refuses, and names it.**
+
+### R5 — REFUTED, and this is the expensive one.
+
+Predicted: 2022 prints `NOT FITTED — no renewal decisions in this year`, over 55 accounts, anchor
+`—`. Measured: **2022 is FITTED**, on **54 renewal decisions**, anchor **1.6595**, achieved 4.300%
+against its 4.30% target.
+
+I wrote *"I want this one to survive"* and named what its refutation would cost. It costs that.
+**The 2026-09-01 grading's most useful finding is an artefact of the lost `renewals.py`, not a
+property of the world.** That grading held that clearing the SVT floor left 2022 unreachable because
+two independent causes bind, the second being zero renewal decisions. On the committed tree 2022 has
+54 renewal decisions and fits without complaint. The "zero renewal decisions in 2022" was the
+uncommitted tree diverting that year's households onto SVT — the same mechanism as R2/R3, showing up
+a third time.
+
+**Downstream, and it is the useful part:** finding (a) of the 2026-09-01 grading — that
+`population_anchor`'s `.get("sim_churn_rate", 0.0)` publishes a measured zero-churn 2022 — was
+argued *from* that zero. On the committed tree 2022 is present in `_churn_by_year` and the default
+never fires. **The `= 0.0` default is still a live fail-open and still owed a fail-closed repair —
+that is a property of the code — but the "real 2022 behind it" is not real.** The hazard is
+hypothetical again. Recorded here so the next reader does not inherit a live crisis that isn't one.
+
+## Constraints honoured
+
+1. **No constant pasted into `simulation/departure_level_anchor.py`.** Untouched, clean vs origin.
+   Two captures that disagree are not an argument for adopting either.
+2. **No widened band, no clamp on 2022.** None applied.
+3. **`population_anchor` not touched** — outside pathspec, still owed a fail-closed repair, now with
+   a corrected rationale (above).
+4. **R2 not re-scored as "close enough".** It was a hash comparison and it failed.
+5. **Clause 5 does not apply** — it was conditioned on both files being identical; neither was.
+
+## What this settles about P1, which was the point
+
+P1's heading clause — a sibling *"written by a producer in git"* — is now **MEASURED and REFUTED**,
+by a run instead of a grep. On the committed tree the sibling is empty.
+
+So the 2026-09-01 grading reached the right conclusion by invalid means, and the correction filed at
+`39967d018` was right to withdraw the reasoning and wrong to leave the impression the conclusion was
+doubtful. **Both corrections stand and neither is deleted:** the grep was not evidence, *and* the
+thing it was offered as evidence for is true. The order matters — had the invalid grep been left
+standing, the docstring's locator (below) would never have been checked.
+
+## One finding this run produced that was not predicted
+
+**`tools/fit_year_level_anchor.py` refuses the whole-book fit and then prints a paste-ready
+`YEAR_LEVEL_ANCHOR` block anyway, and exits 0.** Filed separately:
+`WORKER_FINDING_A_REFUSED_WHOLE_BOOK_FIT_STILL_PRINTS_THE_PASTE_READY_BLOCK_AND_EXITS_ZERO_2026-09-01.md`.
+`tools/fit_year_level_anchor.py` is outside this stretch's pathspec and is not touched.
+
+## What is owed next
+
+1. **Wire the ASSIGNMENT** — thread `rolls_active_renewal`'s answer into `build_renewal_schedule` so
+   the world stops discarding a decision it already makes. This, not "the roll", is C1b's real gap,
+   and the 2026-08-30 finding scoped it as *"not a missing rule, a discarded answer"*.
+2. **Fail `population_anchor`'s 2022 consumers closed** — still owed, rationale corrected above.
+3. **Re-run this capture after (1) lands.** Only then is a whole-book fit possible at all, and only
+   then is adoption a live question.
