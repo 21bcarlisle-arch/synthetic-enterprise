@@ -110,6 +110,59 @@ director's three; it is the measurement being taken from the wrong baseline for 
 book, and it is the same root as cause (a): we estimated, we were wrong, and the instrument that is
 supposed to record what the household experienced recorded our own revision instead.
 
+## SECOND CORRECTION: the mechanism above is wrong, and the truth is sharper
+
+The correction above said the irreproducible values were *"a difference against a number that no
+longer exists"* because an estimated bill's total *"was subsequently revised by the catch-up
+reconciliation"*. **That is not what happens.** Kept above, as required, rather than edited away.
+
+`company/billing/monthly_bill_assembly.py:533` threads the baseline forward as:
+
+    previous_bill_total_gbp = true_bill["total_amount_gbp"]
+
+**Always the TRUE bill's total — never the bill the household was actually issued.** For an
+estimated month the household receives the ESTIMATE, and the next month's shock is differenced
+against the TRUE amount for that month. Nothing is revised later; the two numbers are different from
+the start, and one of them was never sent to anybody.
+
+Tested against the artefact, which carries `true_total_amount_gbp` on all 6,825 estimated bills:
+
+| baseline used | pairs reproducing the stored `bill_shock_pct` |
+|---|---:|
+| previous **ISSUED** total | 3,198 — **30.0%** |
+| previous **TRUE** total | **9,813 — 92.1%** |
+
+That settles it, and it explains both discriminators exactly: a pair following an *actual* bill
+reproduces either way (issued == true), and a pair following an *estimated* bill reproduces only
+against the true total.
+
+### Why this is a bigger finding than the one it replaces
+
+**The world measures a household's bill shock against a bill the household never received.** 63% of
+bills in this book are estimated. What the household experienced is the estimate; what the
+instrument differences is the truth.
+
+And that is the director's cause (a) defeated at the modelling layer rather than merely conflated.
+His description was *"a catch-up after months of estimates, which is our own inference failure"* —
+the household's shock in that scenario **is** the catch-up measured against the estimates it was
+lulled by. Differencing against the truth smooths away precisely the shock that matters: if we
+estimated low for six months and then corrected, the true-total baseline has already absorbed the
+correction, so the world records a small movement where the household received a large one.
+
+### Consequence for the repair already landed
+
+`bill_shock_baseline_gbp` publishes `previous_bill_total_gbp` — so it faithfully publishes the
+*true*-bill total that was actually used. The field is honest and the reproducibility control is
+right to pass on it: its job is that the ratio can be recomputed, not that the denominator was the
+correct choice. **The field now makes this defect visible on every bill instead of requiring an
+archaeology pass to find it**, which is what publishing a denominator is for.
+
+**The repair is one line** — baseline against the issued bill rather than the true one — and it
+moves every downstream figure that reads bill shock (clarity, contact propensity, satisfaction, and
+through them churn). So it is its own pre-registered, one-variable change, and it now goes at the
+top of the owed list, above splitting by cause and above dropping the `abs()`: a cause attached to
+a movement measured from the wrong baseline would be a label on the wrong event.
+
 ## What this changes in the owed list
 
 Item 1 (split by cause) and item 2 (drop the `abs()`) stand. **A new item goes ahead of both:
