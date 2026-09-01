@@ -531,6 +531,7 @@ def extract_financial(data):
     mgmt_accounts = data.get("management_accounts", {})
     period_from, period_to = _load_sim_window()
     annual = []
+    shock_pops = _annual_shock_by_population(data, sorted(data.get("years", {}).keys()))
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
         csplit = ydata.get("commodity_split", {})
@@ -560,19 +561,32 @@ def extract_financial(data):
             "gas_net_gbp": _fmt(gas.get("net_gbp", 0)),
             "bills_count": int(ydata.get("bills_count", 0)),
             "avg_bill_shock_pct": _fmt(ydata.get("avg_bill_shock_pct", 0)),
-            # The population this year's mean is over -- see
-            # monthly_ops.avg_shock_pct_population for why both fields need saying
-            # out loud. The COUNT of that population is deliberately not published
-            # here yet: it has to come from the run producer
-            # (saas/reporting/annual_report.py), that file is carrying another
-            # lane's in-flight work, and a field that could only ever be null until
-            # the producer lands is a stub rather than a bound.
+            # WHICH BILLS -- and, since 2026-09-01, WHICH HOUSEHOLDS. The second
+            # half was missing and its absence was worse than silence: a note that
+            # answers the population question in the wrong dimension reads as a
+            # field whose population question is settled. This one is a mean over
+            # BOTH definitions of bill shock at once and says so, and points at the
+            # field that separates them.
             "avg_bill_shock_pct_population": (
                 "every bill with a computable shock (has a prior bill, and a "
                 "baseline at or above BILL_SHOCK_BASELINE_FLOOR_GBP) -- NOT only "
                 "the bills flagged as shocks. The flagged-only mean is "
-                "monthly_ops.monthly[].avg_shock_pct and is several times larger."
+                "monthly_ops.monthly[].avg_shock_pct and is several times larger. "
+                "THIS FIGURE IS A MEAN OVER BOTH POPULATIONS AT ONCE and is kept "
+                "only as the reconciling total: bill shock is two experiences in "
+                "two populations decided by how the household pays, and the two "
+                "means are bill_shock_by_population below. It is also a FRACTION "
+                "despite the _pct name -- bill_shock_by_population publishes "
+                "percentages, as monthly_ops.shock_by_population does."
             ),
+            # THE SPLIT, on the surface rather than in a note. Each population's
+            # own mean, median, max and bootstrap interval, plus `n`, which this
+            # field has never carried at all. A cell with no bills publishes nulls
+            # and its n=0 -- not 0.0, which would be an unobservable published as a
+            # measured zero -- and a cell too thin to bound itself publishes a null
+            # interval beside a real n, which is this series saying "we cannot
+            # tell" in the reader's own units.
+            "bill_shock_by_population": shock_pops.get(yr, {}),
             # SITE_EH3 MAJOR-6 (R10 class-closing invariant): every published
             # annual row states its own period coverage, COMPUTED from the
             # real sim window -- never a hardcoded "this year is partial".
@@ -1482,6 +1496,56 @@ def _shock_stats(sample, seed_key):
         "ci95_low": round(lo * 100, 1) if lo is not None else None,
         "ci95_high": round(hi * 100, 1) if hi is not None else None,
     }
+
+
+def _annual_shock_by_population(data, years):
+    """Each year's computable bill shocks, split by which DEFINITION applies to the household.
+
+    THE SUBJECT IS A DIFFERENT AND LARGER ONE THAN ``monthly_ops``'. That series covers the
+    bills already FLAGGED as shocks; this covers EVERY bill with a computable shock -- 6,094
+    against 1,748 on the run this was written for. It is the population
+    ``financial.annual[].avg_bill_shock_pct`` has always been a mean over, and it has always
+    been a mean over both definitions at once.
+
+    Read off ``data["bills"]`` rather than off a per-year reducer field, because the reducer
+    (``saas.reporting.annual_report``) publishes only the mixed scalar -- the per-bill
+    ``bill_shock_population`` exists on every bill and stops at the year boundary. Computing
+    the split here needs no change to the producer, which matters beyond convenience: that
+    file was carrying another lane's in-flight work when this was written, and a publishing
+    concern does not belong in the run reducer anyway.
+
+    ``mixed_all_population`` is deliberately kept. It is what the pre-split field was, in the
+    same units as its siblings, so the re-partition reconciles from the artefact alone rather
+    than from this diff -- and because ``avg_bill_shock_pct`` beside it is a FRACTION under a
+    ``_pct`` name, a reader needs one figure in each system to see that without being caught
+    by it.
+    """
+    from collections import defaultdict as _dd
+    by_year = _dd(lambda: _dd(list))
+    for b in data.get("bills", []):
+        pct = b.get("bill_shock_pct")
+        if pct is None:
+            continue
+        yr = (b.get("period_end") or "")[:4]
+        if not yr:
+            continue
+        # No attribution is "unknown" -- its own value, never folded into either definition.
+        by_year[yr][b.get("bill_shock_population") or "unknown"].append(float(pct))
+    out = {}
+    # Keyed on the years being PUBLISHED, not on the years that happen to have bills, so a
+    # year with no computable shock carries an explicit empty block rather than a missing key
+    # a consumer would read as "not applicable".
+    for yr in years:
+        pops = by_year.get(yr, {})
+        block = {
+            p: _shock_stats(pops.get(p, []), f"annual::{yr}::{p}")
+            for p in ("payment", "bill", "out_of_scope", "unknown")
+        }
+        block["mixed_all_population"] = _shock_stats(
+            [v for s in pops.values() for v in s], f"annual::{yr}::mixed"
+        )
+        out[yr] = block
+    return out
 
 
 def extract_monthly_ops(data):
