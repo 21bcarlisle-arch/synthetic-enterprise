@@ -61,10 +61,10 @@ from company.billing.account_adjustment_register import (
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
-    BILL_SHOCK_BASELINE_FLOOR_GBP,
     BILL_SHOCK_PENALTY_FACTOR,
     MAX_CLARITY_SCORE,
     MIN_CLARITY_SCORE,
+    bill_movement,
     generate_bill,
 )
 
@@ -502,29 +502,34 @@ def build_monthly_bills(
                     # internally-inconsistent shock/clarity figure (a real
                     # catch-up bill is exactly the kind of surprise this
                     # project's own bill-shock mechanic exists to capture).
-                    # Same floor as `generate_bill` and for the same reason: a baseline too
-                    # small to divide by is refused, not divided by anyway.
-                    if (
-                        previous_bill_total_gbp is not None
-                        and abs(previous_bill_total_gbp) >= BILL_SHOCK_BASELINE_FLOOR_GBP
-                    ):
-                        old_shock = bill.get("bill_shock_pct") or 0.0
-                        # `abs()` on the DENOMINATOR too -- see `saas/bill_generator` for why.
-                        # An issued total can be negative (a catch-up credit); a true bill never
-                        # was, which is why this only became reachable when the baseline moved to
-                        # the issued bill.
-                        new_shock = abs(
-                            bill["total_amount_gbp"] - previous_bill_total_gbp
-                        ) / abs(previous_bill_total_gbp)
+                    # THE ARITHMETIC IS NOT RESTATED HERE. It was, and the two copies had already
+                    # started to matter: the sign fix would have had to be made twice and a
+                    # catch-up REFUND is exactly the bill this branch runs on, so a miss here
+                    # would have left the defect live in the one place it bites hardest.
+                    # `bill_movement` owns the floor, the signed movement and the rule that a
+                    # shock is an increase.
+                    old_shock = bill.get("bill_shock_pct")
+                    movement, new_shock, baseline = bill_movement(
+                        bill["total_amount_gbp"], previous_bill_total_gbp
+                    )
+                    if baseline is not None:
                         bill["bill_shock_pct"] = new_shock
+                        bill["bill_movement_pct"] = movement
                         # The denominator moves with the ratio, or publishing it would be worse
                         # than not publishing it: a baseline that disagreed with the shock beside
                         # it would read as authoritative and be wrong, and the control that checks
                         # reproducibility would be checking this line against itself.
-                        bill["bill_shock_baseline_gbp"] = previous_bill_total_gbp
+                        bill["bill_shock_baseline_gbp"] = baseline
+                        # Reverse the penalty that was actually applied and apply the one now
+                        # earned. `None` on either side means NO penalty was applied or is due --
+                        # written as an explicit None test rather than `or 0.0`, because after the
+                        # sign fix `None` is a routine value here (the catch-up took the bill
+                        # DOWN) and an `or 0.0` reads as a default where it is really the identity.
                         clarity = bill["clarity_score"]
-                        clarity += min(old_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
-                        clarity -= min(new_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
+                        if old_shock is not None:
+                            clarity += min(old_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
+                        if new_shock is not None:
+                            clarity -= min(new_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
                         bill["clarity_score"] = max(
                             MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity)
                         )

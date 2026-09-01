@@ -239,7 +239,17 @@ def test_MUTATION_a_negative_baseline_still_yields_a_non_negative_shock():
     A ratio of two money amounts is a ratio of MAGNITUDES. The sign of the baseline is not
     information about how much the bill moved, and every consumer of this field asserts >= 0.
 
-    MUTATION: drop either `abs()` from the denominator and this reds."""
+    RE-KEYED TO THE PROPERTY, 2026-09-01, when the sign fix landed. This read
+    `assert shock >= 0.0` and went red on `None` -- the control was pinned to today's answer
+    (the field is always a float) rather than to what it exists to protect (the field is never
+    NEGATIVE, because a negative is what takes the run down). `None` is the new, and correct,
+    value for a bill that FELL: not a shock of some size, no shock. A control that reds when the
+    code becomes more honest is exactly backwards, so the assertion now names the property and
+    the `None` case carries its own reason.
+
+    MUTATION: drop either `abs()` from the denominator and this reds -- a negative baseline then
+    produces a movement of the wrong sign, so a RISING bill reads as `None` and a falling one as
+    a shock, and the trio stops recomputing."""
     from saas.bill_generator import generate_bill
 
     records = [
@@ -248,15 +258,36 @@ def test_MUTATION_a_negative_baseline_still_yields_a_non_negative_shock():
          "revenue_gbp": 2.0, "wholesale_cost_gbp": 0.0, "margin_gbp": 0.0}
         for d in range(1, 31)
     ]
+    # The three negative baselines are the outage's own shape; 100.0 is a bill that FELL, and it
+    # is what makes this a two-branch control rather than a one-sided one.
     for previous in (-964.62, -180.22, -5.0, 100.0):   # -0.01 is now below the baseline floor
         bill = generate_bill("C1", records, "fixed_1yr", previous_bill_total_gbp=previous)
         shock = bill["bill_shock_pct"]
+        movement = bill["bill_movement_pct"]
         baseline = bill["bill_shock_baseline_gbp"]
-        assert shock >= 0.0, (
-            f"a baseline of {previous} produced bill_shock_pct={shock}. Every consumer of this "
-            "field asserts >= 0; contact_propensity raises on a negative and takes the run with it"
-        )
         assert baseline == previous, "the baseline must record what was actually divided by"
-        assert abs(abs(bill["total_amount_gbp"] - baseline) / abs(baseline) - shock) < 1e-9, (
+        assert abs((bill["total_amount_gbp"] - baseline) / abs(baseline) - movement) < 1e-9, (
             "the published trio must still recompute when the baseline is negative"
         )
+        assert not (shock is not None and shock < 0.0), (
+            f"a baseline of {previous} produced bill_shock_pct={shock}. NEGATIVE is the value "
+            "that takes the run down: contact_propensity raises on it and the whole publish "
+            "cycle fails. None is fine and means the bill did not rise; a negative never is"
+        )
+        if movement < 0.0:
+            assert shock is None, (
+                f"a baseline of {previous} gave a movement of {movement} -- the bill FELL, and a "
+                "bill that fell has not been shocked by some amount, it has not been shocked. "
+                "Publishing 0.0 here would drag every downstream mean toward a number no "
+                "household experienced"
+            )
+        else:
+            assert shock == movement, "a bill that rose IS the shock, with no transformation"
+
+    # Every consumer that refuses a negative must still be reachable with what this produces --
+    # the guard is kept, not lifted, because the repair belongs at the definition.
+    from simulation.contact_propensity import contact_propensity
+
+    for previous in (-964.62, 100.0):
+        bill = generate_bill("C1", records, "fixed_1yr", previous_bill_total_gbp=previous)
+        contact_propensity("C1", bill["clarity_score"], bill["bill_shock_pct"])

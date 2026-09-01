@@ -103,6 +103,56 @@ MIN_CLARITY_SCORE = 0.0
 MAX_CLARITY_SCORE = 1.0
 
 
+def bill_movement(
+    total_amount_gbp: float, previous_bill_total_gbp: float | None
+) -> tuple[float | None, float | None, float | None]:
+    """`(movement, shock, baseline)` for one bill against the one before it.
+
+    THE ONE PLACE THIS ARITHMETIC LIVES. It was written twice — here and again in
+    `company.billing.monthly_bill_assembly`, which recomputes it after folding a catch-up
+    correction onto the bill. Two copies of one definition is the shape that put five
+    implementations of the VAT rule in this tree and a defect fixed in one of them still live in
+    another a month later. The recompute now calls this.
+
+    **`movement` is SIGNED and positive means the bill went UP.** It is the honest quantity: the
+    relative change between what the household was asked for this month and last. The denominator
+    is a magnitude because the sign of the baseline is not information about how far the bill
+    moved (an issued total can be negative — a catch-up credit — and 169 of this book's bills are).
+
+    **`shock` is `None` when the bill FELL, and it is not `0.0`.** A shock is an increase. The
+    established definition says so for both populations
+    (`docs/market_research/what_bill_shock_is.md`): for standard credit the three published
+    triggers — cold weather, a usage change, a catch-up after estimates — are all upward, and for
+    a level direct debit the regulated trigger is a payment *rise*. Measured on the published
+    record, **45.9% of the movements this codebase called shocks (5,161 of 11,255) are bills that
+    went DOWN**, including catch-up refunds: the world read a supplier returning money as an event
+    that reduced clarity, identically to one that took money.
+
+    `None` rather than `0.0` because a bill that fell has not been measured at zero shock — no
+    shock happened to it. `0.0` would enter every downstream mean and drag it toward a number no
+    household experienced, which is this project's `a_default_zero_parameter_turns_an_unobservable
+    _cause_into_a_published_measured_zero` class. `None` is already a fully supported value at
+    every consumer, because a first bill has always carried it. A bill that did NOT move keeps
+    `0.0`: that IS measured, and it is zero.
+
+    THIS IS WHY `simulation.contact_propensity` KEEPS ITS `>= 0` REFUSAL RATHER THAN LOSING IT.
+    That guard crashed the publish cycle for 75 minutes on 2026-09-01 on a shock of -1.4434, and
+    the guard was right: a negative value should never have reached it. The repair is here, at the
+    definition, not there — wrapping the consumer in another `abs()` or an `or 0` would have
+    reinstated exactly the fold this removes while looking like resilience.
+
+    `baseline` is `None`, and so are the other two, when the previous total is missing or too
+    small to divide by (`BILL_SHOCK_BASELINE_FLOOR_GBP`).
+    """
+    if (
+        previous_bill_total_gbp is None
+        or abs(previous_bill_total_gbp) < BILL_SHOCK_BASELINE_FLOOR_GBP
+    ):
+        return None, None, None
+    movement = (total_amount_gbp - previous_bill_total_gbp) / abs(previous_bill_total_gbp)
+    return movement, (movement if movement >= 0.0 else None), previous_bill_total_gbp
+
+
 def consumption_coefficient_of_variation(settlement_records: list[dict]) -> float:
     """Coefficient of variation (population stdev / mean) of total daily
     consumption_kwh across the distinct settlement_dates in
@@ -256,28 +306,15 @@ def generate_bill(
     # twice — `monthly_bill_assembly.CATCHUP_MATERIALITY_THRESHOLD_GBP` and
     # `smart_meter_reconciliation.is_material` — for "below this, a real supplier does not act".
     # A bill a supplier would not bother correcting is a bill it should not be dividing by either.
-    bill_shock_pct = None
-    bill_shock_baseline_gbp = None
-    if (
-        previous_bill_total_gbp is not None
-        and abs(previous_bill_total_gbp) >= BILL_SHOCK_BASELINE_FLOOR_GBP
-    ):
-        bill_shock_baseline_gbp = previous_bill_total_gbp
-        # THE DENOMINATOR IS A MAGNITUDE, and the numerator always was. This read
-        # `/ previous_bill_total_gbp` and produced a NEGATIVE ratio whenever the baseline was
-        # negative -- which never happened while the baseline was the TRUE bill (a real
-        # consumption bill is always positive) and happens immediately now that it is the ISSUED
-        # bill: a catch-up credit can take an issued total below zero, and 169 of this book's
-        # 10,906 bills are negative, the largest -£964.62.
-        #
-        # It broke the run pipeline for 75 minutes on 2026-09-01 -- `contact_propensity` refused a
-        # shock of -1.4434 and the whole publish cycle failed with it, which is the fail-closed
-        # guard doing exactly its job on a value that should never have reached it. A ratio of two
-        # money amounts is a ratio of MAGNITUDES; the sign of the baseline is not information
-        # about how much the bill moved.
-        bill_shock_pct = (
-            abs(total_amount_gbp - previous_bill_total_gbp) / abs(previous_bill_total_gbp)
-        )
+    # THE DIRECTION IS CARRIED, and it decides whether a shock happened at all -- see
+    # `bill_movement`, which is now the one place this arithmetic lives. The numerator used to be
+    # wrapped in `abs()`, so a bill that FELL was reported as a shock of the same size as one that
+    # rose, and the clarity penalty below was applied to a household the supplier had just
+    # refunded.
+    bill_movement_pct, bill_shock_pct, bill_shock_baseline_gbp = bill_movement(
+        total_amount_gbp, previous_bill_total_gbp
+    )
+    if bill_shock_pct is not None:
         clarity_score -= min(bill_shock_pct, 1.0) * BILL_SHOCK_PENALTY_FACTOR
 
     clarity_score = max(MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity_score))
@@ -294,10 +331,20 @@ def generate_bill(
         "total_amount_gbp": total_amount_gbp,
         "average_unit_rate_gbp_per_mwh": average_unit_rate_gbp_per_mwh,
         "clarity_score": clarity_score,
+        #: The INCREASE, or None where the bill did not rise. Never a negative "shock" and never
+        #: a `0.0` standing in for one — see `bill_movement`.
         "bill_shock_pct": bill_shock_pct,
-        #: The denominator `bill_shock_pct` was actually taken against. None exactly when the
-        #: ratio is None (a first bill has nothing to be shocked against), so the pair is either
-        #: both-present or both-absent and a reader never has to guess which.
+        #: THE SIGNED MOVEMENT, always present when a baseline exists, positive meaning the bill
+        #: went up. The decrease is NOT deleted by the sign fix: 45.9% of what this codebase used
+        #: to call a shock is here, under a name that says what it is. What a large DECREASE does
+        #: to a household is a real question with no published magnitude behind it — Ofgem's
+        #: definition-A experience is "a credit or debit balance they do not understand", which is
+        #: about the payment and the balance rather than the bill — so it drives nothing here. A
+        #: named gap rather than an invented coefficient.
+        "bill_movement_pct": bill_movement_pct,
+        #: The denominator both ratios were actually taken against. None exactly when
+        #: `bill_movement_pct` is None (a first bill has nothing to be measured against), so the
+        #: pair is either both-present or both-absent and a reader never has to guess which.
         "bill_shock_baseline_gbp": bill_shock_baseline_gbp,
         #: How the household pays, and therefore which of the two definitions of bill shock its
         #: `bill_shock_pct` should be read under. `None`/"unknown" exactly when the caller did not
