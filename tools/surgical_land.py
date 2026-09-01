@@ -116,6 +116,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 from collections.abc import Callable, Mapping
 from contextlib import contextmanager
 from pathlib import Path
@@ -134,7 +135,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from background import child_diagnostics, staging_root_resurrection_watch  # noqa: E402
-from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402  (needs the path insert above)
+from background.tree_lock import (  # noqa: E402  (needs the path insert above)
+    TreeLockTimeout,
+    tree_lock,
+)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
@@ -179,6 +183,30 @@ _NULL_SHA = "0" * 40
 class LandingRefused(Exception):
     """Raised for every refusal. Carrying one exception type keeps the fail-CLOSED contract
     provable: `land()` either returns a commit sha or raises, and never returns None."""
+
+
+class IndexNotRefreshed(LandingRefused):
+    """THE COMMIT LANDED. Only the shared index was left disagreeing with it.
+
+    This is a subclass rather than a plain `LandingRefused` because the two mean opposite things
+    to a caller and the word REFUSED was being used for both. Observed 2026-09-01: a landing
+    printed `REFUSED: the commit LANDED but refreshing the index for its paths failed` -- honest
+    and self-contradictory in one sentence -- while its commit sat on HEAD. A daemon keying on the
+    exception type concludes the work is unlanded, and either re-lands it (a duplicate commit of
+    a tree that is already the parent) or reports failure for work that shipped.
+
+    The window is not narrow. The lock is held by another lane's `git commit`, and a commit here
+    is ten to fifteen minutes of gate, so this failure is available for a quarter of an hour every
+    time any lane commits. `_refresh_with_retry` now outlasts the holder, and this type exists so
+    that if it ever still fires, the ONE thing a caller must not do -- conclude the landing failed
+    -- is impossible to do by accident.
+
+    `sha` carries the landed commit, so a caller that catches this can record the truth.
+    """
+
+    def __init__(self, message: str, sha: str = ""):
+        super().__init__(message)
+        self.sha = sha
 
 
 class BaseMoved(LandingRefused):
@@ -826,7 +854,7 @@ def _write_worktree_from_tree(root: Path, result_tree: str, paths: list[str]) ->
                 pass
 
 
-def _refresh_index_for(root: Path, result_tree: str, files: list[str]) -> None:
+def _refresh_index_for(root: Path, result_tree: str, files: list[str], sha: str = "") -> None:
     """Bring the REAL index into line for exactly the landed paths -- the same post-state
     `git commit -- <paths>` produces.
 
@@ -849,13 +877,48 @@ def _refresh_index_for(root: Path, result_tree: str, files: list[str]) -> None:
         else "0 {}\t{}\n".format(_NULL_SHA, f)
         for f in files
     )
-    r = _git(root, "update-index", "--index-info", stdin=payload.encode())
+    r = _refresh_with_retry(root, payload.encode())
     if r.returncode != 0:
-        raise LandingRefused(
-            "the commit LANDED but refreshing the index for its paths failed rc={}: {}. The "
-            "index now disagrees with HEAD for those paths -- run `git reset -- <paths>` before "
-            "committing again.".format(r.returncode,
-                                       r.stderr.decode("utf-8", "replace").strip()[-300:]))
+        raise IndexNotRefreshed(
+            "THE COMMIT LANDED as {}. Only the index refresh failed, rc={}: {}. The index now "
+            "disagrees with HEAD for those paths -- run `git reset -- <paths>`. Do NOT re-land: "
+            "the work is on HEAD.".format(sha or "(sha unavailable)", r.returncode,
+                                          r.stderr.decode("utf-8", "replace").strip()[-300:]),
+            sha=sha)
+
+
+#: HOW LONG TO WAIT FOR `.git/index.lock`, and why waiting is the right answer rather than a
+#: bigger refusal. The lock is held by another lane's `git commit`, and on this repo a commit is
+#: ten to fifteen minutes of gate. So the window in which this call fails is not a rare race -- it
+#: is open for a quarter of an hour every time any lane commits, which is most of the day. The
+#: holder is a process that WILL finish and release; the only thing worth doing is to outlast it.
+#:
+#: Bounded, and the bound is a deadline the caller cannot outlive rather than a retry count: this
+#: runs AFTER the commit is already on HEAD, so a long wait costs nothing anybody is waiting on,
+#: and an unbounded one would hang a daemon behind a crashed git.
+_INDEX_LOCK_DEADLINE_S = 1200.0
+_INDEX_LOCK_POLL_S = 5.0
+
+
+def _refresh_with_retry(root: Path, payload: bytes):
+    """`update-index --index-info`, retried while the failure is a held lock.
+
+    Only a LOCK failure is retried, and it is identified from git's own message rather than from
+    the return code, because rc=128 covers everything from a held lock to a corrupt object. Any
+    other failure returns immediately -- retrying a genuine error would turn one bad landing into
+    twenty minutes of silence.
+    """
+    deadline = time.monotonic() + _INDEX_LOCK_DEADLINE_S
+    while True:
+        r = _git(root, "update-index", "--index-info", stdin=payload)
+        if r.returncode == 0:
+            return r
+        stderr = r.stderr.decode("utf-8", "replace")
+        if "index.lock" not in stderr and "File exists" not in stderr:
+            return r
+        if time.monotonic() >= deadline:
+            return r
+        time.sleep(_INDEX_LOCK_POLL_S)
 
 
 #: How long the commit-and-swap waits for the tree lock, and why it is not `tree_lock`'s own
@@ -930,10 +993,10 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
             # ask the shared tree what it is holding before touching anything. See
             # `merge_dispositions` for why the two lists differ and what each one protects.
             refreshable, writable = dispositions
-            _refresh_index_for(root, result_tree, refreshable)
+            _refresh_index_for(root, result_tree, refreshable, sha=new)
             _write_worktree_from_tree(root, result_tree, writable)
         else:
-            _refresh_index_for(root, result_tree, files)
+            _refresh_index_for(root, result_tree, files, sha=new)
         return new
 
 

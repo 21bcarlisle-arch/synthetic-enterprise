@@ -81,6 +81,34 @@ no term for "something went wrong and here is how it was handled"** — which th
 says is where essentially all of the variance lives. The world *does* generate the raw material
 (a contact centre, complaint arrivals, resolution) and none of it reaches satisfaction.
 
+### The resolution process, as the regulator structures it
+
+Ofgem requires suppliers to report complaints quarterly, and the two cut-points it makes them report
+are the shape of the distribution:
+
+| | |
+|---|---|
+| **Day+1** | complaints resolved **by the end of the next working day** after receipt — reported quarterly, per supplier |
+| **8 weeks** | complaints resolved **within 8 weeks (56 calendar days)** — reported quarterly, per supplier |
+| **The boundary** | a complaint unresolved at 8 weeks, or issued a **deadlock letter**, becomes eligible for the **Energy Ombudsman** |
+| **Escalation** | of domestic customers *entitled* to refer (they held an 8-week or deadlock letter), only about **7%** actually did |
+
+**Two published cut-points on one distribution is enough to shape it** — the same argument that fixes
+the satisfaction spread from Wave 20's two quantiles. A resolution-time model does not need a
+published mean; it needs Day+1 and 8-week shares, and those are reported.
+
+### Complaint incidence, per 100,000 accounts
+
+| period | market | large suppliers | medium | small |
+|---|---:|---:|---:|---:|
+| Q4 2025 | **1,011** (−2% QoQ, −15% YoY) | — | — | — |
+| Q1 2026 | **1,038** | **1,006** | **1,827** | **208** |
+
+Roughly **1% of accounts complain per quarter**, consistent with the 2–6% self-reported annual
+figures in the satisfaction survey. The **medium-versus-large spread is 1.8×** — a published
+between-supplier spread on the same axis the Citizens Advice star rating measures, and a reminder
+that complaint rate is a property of the supplier, not only of the customer.
+
 ---
 
 ## Part 2 — What "bill shock" actually is
@@ -184,6 +212,8 @@ Survey asks satisfaction, and no published instrument crosses them on this quest
 - [Ofgem, Energy Consumer Satisfaction Survey: January 2026 summary](https://www.ofgem.gov.uk/research/energy-consumer-satisfaction-survey-january-2026-summary) — n=3,911, fieldwork 5 Jan–3 Feb 2026; full findings due Spring 2026.
 - [Ofgem, biennial survey on how suppliers handle complaints](https://www.ofgem.gov.uk/press-release/ofgem-publishes-biennial-survey-how-suppliers-handle-complaints) — n=3,049 domestic, 468 micro-business.
 - [Ofgem, Direct Debit Market Compliance Review / press release, July 2022](https://www.ofgem.gov.uk/press-release/ofgem-requires-improvements-energy-suppliers-customer-direct-debits) and [Progress Update](https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update).
+- [Ofgem, customer service data portal](https://www.ofgem.gov.uk/news-and-insight/data/data-portal/customer-service-data) — quarterly complaints per 100,000 accounts, Day+1 and 8-week resolution shares, reported by suppliers since July 2018.
+- [Energy Ombudsman / Ofgem, eight-week and deadlock letters](https://www.energyombudsman.org/complaints-data/explaining-our-complaints-data)
 - [Ofgem, back-billing ban beyond 12 months (SLC 21BA)](https://www.ofgem.gov.uk/press-release/ofgem-bans-suppliers-backbilling-customers-beyond-12-months) and [Energy Ombudsman, What is back billing](https://www.energyombudsman.org/advice-for-consumers/what-is-back-billing).
 
 *Fetched live 2026-09-01. No figure on this page is simulation output. Where a wave does not publish

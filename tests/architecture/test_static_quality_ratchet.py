@@ -634,7 +634,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1335,
+    "I001": 1334,  # lowered 2026-09-01: surgical_land's import block sorted (shrink-only ratchet)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -656,8 +656,12 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2321  # was 2322; -1 (I001) on 2026-09-01, and NOT earned by that commit —
-                            # see the SECOND 2026-09-01 entry in the log above.
+RUFF_BASELINE_TOTAL = 2320  # was 2321; -1 (I001) on 2026-09-01 (THIRD entry): `tools/
+                            # surgical_land.py`'s import block, sorted while adding `import time`
+                            # for the index-lock retry. Earned by that commit, unlike the entry
+                            # below it.
+                            # Before that: was 2322; -1 (I001) on 2026-09-01, and NOT earned by
+                            # that commit — see the SECOND 2026-09-01 entry in the log above.
                             # Before that: was 2327; -4 (I001) on 2026-08-31: the import blocks
                             # by the tests-write-the-evidence-base work were sorted on the way
                             # past, four of them net-new to the census. Sorted, never suppressed —
