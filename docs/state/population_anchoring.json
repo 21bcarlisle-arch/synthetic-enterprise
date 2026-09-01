@@ -8,7 +8,7 @@
     "arrears_ledger_available": true,
     "arrears_ledger_note": "billing ledger loaded",
     "churn_population": {
-      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_db17e31a1_20260901T021306Z.json",
+      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_f5a9004c2_20260901T030654Z.json",
       "svt_source": "run output `svt_decisions`",
       "routes_readable": [
         "renewal",
@@ -232,14 +232,11 @@
       "svt_segment_decisions": 2,
       "svt_departures": 0,
       "share_of_departures_in_sim_churn_rate": null,
-      "book_expected_departure_rate": 0.0391,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 3,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.0,
+      "book_accounts": 3,
+      "book_departures": 0,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.173,
       "ofgem_benchmark_band_pct": [
         17.0,
@@ -255,14 +252,11 @@
       "svt_segment_decisions": 115,
       "svt_departures": 5,
       "share_of_departures_in_sim_churn_rate": 0.5,
-      "book_expected_departure_rate": 0.1406,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 57,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.1754,
+      "book_accounts": 57,
+      "book_departures": 10,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.1375,
       "ofgem_benchmark_band_pct": [
         13.5,
@@ -278,14 +272,11 @@
       "svt_segment_decisions": 139,
       "svt_departures": 13,
       "share_of_departures_in_sim_churn_rate": 0.35,
-      "book_expected_departure_rate": 0.1914,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 53,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.3774,
+      "book_accounts": 53,
+      "book_departures": 20,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.1975,
       "ofgem_benchmark_band_pct": [
         19.5,
@@ -301,14 +292,11 @@
       "svt_segment_decisions": 110,
       "svt_departures": 3,
       "share_of_departures_in_sim_churn_rate": 0.5,
-      "book_expected_departure_rate": 0.2069,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 41,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.1463,
+      "book_accounts": 41,
+      "book_departures": 6,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.21,
       "ofgem_benchmark_band_pct": [
         20.7,
@@ -324,14 +312,11 @@
       "svt_segment_decisions": 127,
       "svt_departures": 3,
       "share_of_departures_in_sim_churn_rate": 0.6667,
-      "book_expected_departure_rate": 0.2354,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 49,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.1837,
+      "book_accounts": 49,
+      "book_departures": 9,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.2275,
       "ofgem_benchmark_band_pct": [
         22.5,
@@ -347,14 +332,11 @@
       "svt_segment_decisions": 142,
       "svt_departures": 6,
       "share_of_departures_in_sim_churn_rate": 0.5714,
-      "book_expected_departure_rate": 0.1794,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 53,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.2642,
+      "book_accounts": 53,
+      "book_departures": 14,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.1815,
       "ofgem_benchmark_band_pct": [
         17.9,
@@ -370,14 +352,11 @@
       "svt_segment_decisions": 179,
       "svt_departures": 9,
       "share_of_departures_in_sim_churn_rate": 0.0,
-      "book_expected_departure_rate": 0.1227,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 50,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.18,
+      "book_accounts": 50,
+      "book_departures": 9,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.107,
       "ofgem_benchmark_band_pct": [
         8.9,
@@ -393,14 +372,11 @@
       "svt_segment_decisions": 141,
       "svt_departures": 5,
       "share_of_departures_in_sim_churn_rate": 0.1667,
-      "book_expected_departure_rate": 0.1559,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 52,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.1154,
+      "book_accounts": 52,
+      "book_departures": 6,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.143,
       "ofgem_benchmark_band_pct": [
         12.5,
@@ -416,14 +392,11 @@
       "svt_segment_decisions": 78,
       "svt_departures": 0,
       "share_of_departures_in_sim_churn_rate": 1.0,
-      "book_expected_departure_rate": 0.1422,
-      "book_departure_denominator": "distinct accounts facing at least one departure decision in the year, either route (account-years, NOT decisions)",
-      "book_departure_denominator_accounts": 48,
-      "book_departure_bound": "upper",
-      "book_departure_unreadable_reason": null,
-      "book_departure_years_this_gate_cannot_show": [
-        2022
-      ],
+      "book_departure_rate": 0.125,
+      "book_accounts": 48,
+      "book_departures": 6,
+      "book_denominator": "accounts with at least one decision on either route in the year",
+      "book_unavailable_reason": null,
       "ofgem_benchmark": 0.161,
       "ofgem_benchmark_band_pct": [
         14.3,
