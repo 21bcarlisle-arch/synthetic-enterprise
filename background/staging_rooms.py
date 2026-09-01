@@ -98,8 +98,23 @@ FYI_DIRNAME = "fyi"
 # KINDS
 # ---------------------------------------------------------------------------
 
-#: A standing register. Reference, never work, never drains.
+#: A standing register. Reference by default — see `KIND_CLASS_DEBT` for the one condition
+#: under which a register is work, and why that is not a reversal of D2 below.
 KIND_REFERENCE = "reference"
+#: A class register that is STILL ACCRUING INSTANCES and carries no recorded decision.
+#:
+#: D2 below is right that a standing register cannot be a queue item: it is re-rendered in
+#: place and never actioned-and-archived, so while every register sat in the work channel the
+#: root could never reach zero. That argument turns entirely on a register having NO EXIT.
+#: `background/class_debt.py` gives it one — a `## Disposition` section recording a decision
+#: about the class (accepted with its cost showing, or closed by a named mechanism). A
+#: register with a current decision is reference and is dropped here exactly as before; a
+#: register nobody has decided anything about, that produced two or more instances this week,
+#: is work. It drains by being DECIDED, never by being consumed, so the root can still reach
+#: zero. (Director, 2026-09-01: "cumulative cost should rank a class against other work in the
+#: draw ... that makes it a decision rather than a rule, which is what stops it becoming
+#: bureaucracy".)
+KIND_CLASS_DEBT = "class_debt"
 #: An archived verbatim transcript. Record, never work.
 KIND_CONSOLE = "console"
 #: The pipeline's own coordination markers. These self-process on the daemon's cadence and
@@ -131,18 +146,31 @@ KIND_UNKNOWN = "unknown"
 #:                   (supervisor RUNG 1 already gates RUNG 7 on exactly this).
 #:   4 finding     — a worker turn found something real about the system.
 #:   5 unknown     — unrecognised, so treated as a real ask until shown otherwise.
-#:   6 alarm       — the machine complaining about the machine. Real work, and it must never
+#:   60 alarm      — the machine complaining about the machine. Real work, and it must never
 #:                   outrank a human's ask again: on 2026-08-25 eighteen copies of ONE alarm
 #:                   took the head of the draw and pushed three self-drawable mints to
 #:                   positions 43-46 of 48, where no bounded session ever reached them.
 #:   - doorbell/reference/console are absent: they are not work and `work_queue()` drops them.
+#:
+#: 35 class_debt — an accruing class register, BETWEEN mint and finding. The argument is the
+#:                 ruling's own: "a class with a live instance list is the artefact that can
+#:                 win a draw; twenty siblings filed separately cannot." An individual finding
+#:                 is one instance of something; an accruing class is what GENERATES such
+#:                 findings, so closing the generator dominates repairing one instance. Below
+#:                 a person's ask and below an already-decomposed mint, because neither of
+#:                 those is competing with the class — they are the work the class is taxing.
+#:
+#: SPACED BY TENS so a band can be inserted between two existing ones without renumbering
+#: every consumer. Only the ORDER of these values has ever been load-bearing; the tests assert
+#: relative rank and never an absolute number.
 ORDER: dict[str, int] = {
-    KIND_FROM_RICH: 1,
-    KIND_DIRECTIVE: 2,
-    KIND_MINT: 3,
-    KIND_FINDING: 4,
-    KIND_UNKNOWN: 5,
-    KIND_ALARM: 6,
+    KIND_FROM_RICH: 10,
+    KIND_DIRECTIVE: 20,
+    KIND_MINT: 30,
+    KIND_CLASS_DEBT: 35,
+    KIND_FINDING: 40,
+    KIND_UNKNOWN: 50,
+    KIND_ALARM: 60,
 }
 
 #: Kinds that are not work at all. `work_queue()` returns nothing of these kinds no matter
@@ -196,7 +224,12 @@ def kind_of(name: str) -> str:
 
 def room_for(kind: str) -> str | None:
     """The room a kind belongs in, relative to the staging root, or None for the root itself."""
-    if kind == KIND_REFERENCE:
+    if kind in (KIND_REFERENCE, KIND_CLASS_DEBT):
+        # A DRAWN REGISTER IS STILL A REGISTER. `KIND_CLASS_DEBT` is the same document as
+        # `KIND_REFERENCE` promoted for one reason (it is accruing and undecided), so its ROOM
+        # must not change with its rank — a register that migrated to the root because it became
+        # work would be moved back the moment it was decided, and a document that moves rooms on
+        # a schedule is how `class_document_path` came to have to span both.
         return REFERENCE_DIRNAME
     if kind == KIND_CONSOLE:
         return CONSOLE_DIRNAME
@@ -363,6 +396,14 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
     Sorted by (rank, mtime, name): the KIND decides the band, AGE decides within it, and the
     name only ever breaks a tie between two files of the same kind written in the same second
     — which is the only job a filename ever had here.
+
+    THE ONE EXCEPTION IS THE CLASS REGISTERS, and it is why `mtime` is not the within-band
+    tie-break for them. `kind_of` answers from the NAME alone and must keep doing so (see its
+    docstring: every consumer has to be able to classify a file it cannot read). Whether a
+    register is work depends on its ACCRUAL and its DISPOSITION, which are properties of the
+    corpus and not of the filename, so the promotion is made here — the one place that is
+    already reading the filesystem. A register's mtime is when it was last re-rendered, which
+    is meaningless as a queue age, so `class_debt` supplies the within-band order instead.
     """
     root = Path(root)
     if not root.is_dir():
@@ -380,7 +421,43 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
             mtime = 0.0
         items.append(QueueItem(p, kind, ORDER.get(kind, ORDER[KIND_UNKNOWN]), mtime))
     items.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
-    return items
+    return _with_accruing_class_registers(root, items)
+
+
+def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[QueueItem]:
+    """Splice the drawable class registers into the queue at rank 35.
+
+    FAIL-OPEN, deliberately, and it is the same call `supervisor._unprocessed_staging_files`
+    already makes about this module: a draw that cannot rank its work must still SEE it. If
+    `class_debt` cannot be imported or cannot read the corpus, the queue is exactly what it
+    was before this function existed — the findings, mints and asks are all still there and
+    still in order. What is lost is a promotion, which is a degradation; what would be lost by
+    raising is the whole queue, which is a stall.
+
+    The within-band order comes from `class_debt.drawable()`, which returns the registers
+    already sorted, so `enumerate` preserves it through the outer sort by giving each a
+    distinct increasing sub-key in the `mtime` slot.
+    """
+    try:
+        from background import class_debt
+        debts = class_debt.drawable(root)
+    except Exception:
+        return items
+    if not debts:
+        return items
+    rank = ORDER[KIND_CLASS_DEBT]
+    promoted = [
+        QueueItem(
+            class_document_path(debt.finding_class.document_name, root),
+            KIND_CLASS_DEBT,
+            rank,
+            float(position),
+        )
+        for position, debt in enumerate(debts)
+    ]
+    merged = items + promoted
+    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    return merged
 
 
 def queue_census(root: Path | str = DEFAULT_STAGING_ROOT) -> dict[str, int]:

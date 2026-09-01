@@ -85,7 +85,12 @@ def test_the_resolved_store_actually_EXISTS_and_holds_objects(worktree):
     MUTATION: return a plausible-but-absent path and this fires where an equality check alone
     would pass — both sides could be equally wrong.
     """
-    for where, label in ((worktree, "worktree"), (PROJECT, "main repo")):
+    layouts = ((worktree, "worktree"), (PROJECT, "main repo"))
+    # THE EXACT SET, not a floor, because the population here is the two layouts a commit can be
+    # made from and both are the point: the gap this closed was the worktree one, and a scan that
+    # silently checked only the main repo would read exactly like a pass.
+    assert len(layouts) == 2, "both layouts must be checked — one of them is the gap this closed"
+    for where, label in layouts:
         store = _object_store(where)
         assert store.is_dir(), f"the {label}'s object store {store} is not a directory"
         assert any(store.iterdir()), f"the {label}'s object store {store} is empty"

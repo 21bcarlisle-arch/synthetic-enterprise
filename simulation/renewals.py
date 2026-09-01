@@ -29,14 +29,13 @@ increment.
 from datetime import date, timedelta
 
 from company.interfaces.renewal_offer import request_renewal_offer
-
 from sim.forward_curve import generate_forward_price
 from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.policy_costs import (
     get_cm_levy_per_mwh,
-    get_fit_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
     get_electricity_policy_cost_per_mwh,
+    get_fit_levy_per_mwh,
 )
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.svt_product import SVT_TARIFF_TYPE, build_svt_schedule

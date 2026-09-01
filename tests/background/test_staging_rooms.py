@@ -267,12 +267,28 @@ def test_no_LIVE_reference_or_console_document_exists_ONLY_in_the_root():
     The two-rooms DUPLICATE is a different condition with a different owner:
     `finding_classes --check` refuses the commit on it, and `staging_two_rooms_repair` resolves
     it. Two controls, two conditions, no overlap.
+
+    TODAY'S CONSOLE TRANSCRIPT IS NOT STRANDED, IT IS OPEN (carve-out added 2026-09-01). The
+    transcript writer APPENDS to `DIRECTOR_CONSOLE_<today>.md` in the root all day. Migrating it
+    while it is still being written does not archive a record, it freezes a snapshot — and that
+    is not hypothetical: the room's copy of `DIRECTOR_CONSOLE_2026-08-30.md` was found this
+    morning holding **1 turn of a conversation that has 8**, with the fuller copy sitting in the
+    root, so the migration had run mid-conversation and the room held the truncated half. The
+    director's ruling on reservation was in the part that never reached the room.
+
+    Without the carve-out this control reds every single day, for a state that is correct, until
+    the day rolls over — and a control that is red on correct code every morning is one that gets
+    deleted rather than fixed. It is keyed to the DATE IN THE NAME and to today's date, so it
+    exempts exactly one file and only while that file can still grow.
     """
+    import datetime as dt
+
     root = sr.DEFAULT_STAGING_ROOT
+    open_today = f"DIRECTOR_CONSOLE_{dt.date.today().isoformat()}.md"
     stranded = []
     for p in sorted(root.glob("*.md")):
         room = sr.room_for(sr.kind_of(p.name))
-        if room is None:
+        if room is None or p.name == open_today:
             continue
         if not (root / room / p.name).exists():
             stranded.append(p.name)
