@@ -58,6 +58,13 @@ CONSUMPTION_CV_PENALTY_FACTOR = 0.5
 # further reduce clarity — the bill is already as confusing as it gets).
 BILL_SHOCK_PENALTY_FACTOR = 0.5
 
+#: The smallest |previous bill| worth expressing a percentage change against. Reused from the £5
+#: materiality convention this codebase already applies twice (`monthly_bill_assembly.
+#: CATCHUP_MATERIALITY_THRESHOLD_GBP`, `smart_meter_reconciliation.is_material`) for "below this a
+#: real supplier does not act" — NOT a new number. Below it, `bill_shock_pct` is None: no
+#: meaningful comparison exists, and None is already what a first bill carries.
+BILL_SHOCK_BASELINE_FLOOR_GBP = 5.0
+
 MIN_CLARITY_SCORE = 0.0
 MAX_CLARITY_SCORE = 1.0
 
@@ -181,9 +188,31 @@ def generate_bill(
     # one-variable changes. It fixes the thing that has to come first: until the denominator is on
     # the bill, NOTHING can check either of them, because the ratio cannot be recomputed by anyone.
     # This change moves no financial figure; it only makes an existing one checkable.
+    # A BASELINE TOO SMALL TO DIVIDE BY IS REFUSED, not divided by anyway.
+    #
+    # Moving the baseline to the ISSUED bill made near-zero denominators reachable: a catch-up can
+    # settle a month to a few pence. The published run then carried a maximum `bill_shock_pct` of
+    # **7,575.8** and an "average bill shock" for 2022 of **6.2 (620%)** against 0.3-0.6 in every
+    # other year — a headline figure on the dashboard and in the annual report, dominated entirely
+    # by division by nearly nothing. A percentage change against a baseline of £0.05 is not a
+    # quantity; it is this project's most-filed publishing defect wearing a ratio's clothes.
+    #
+    # `None` IS ALREADY A SUPPORTED VALUE — a first bill has no baseline, so every consumer already
+    # handles it (`contact_propensity` takes `float | None`, the annual report filters on
+    # `is not None`, and clarity is only penalised when a shock exists). Refusing is therefore
+    # cheaper than capping AND more honest: a cap would publish a bounded wrong number where the
+    # truth is that no meaningful comparison exists.
+    #
+    # THE £5 IS NOT A NEW CONSTANT. It is the materiality convention this codebase already applies
+    # twice — `monthly_bill_assembly.CATCHUP_MATERIALITY_THRESHOLD_GBP` and
+    # `smart_meter_reconciliation.is_material` — for "below this, a real supplier does not act".
+    # A bill a supplier would not bother correcting is a bill it should not be dividing by either.
     bill_shock_pct = None
     bill_shock_baseline_gbp = None
-    if previous_bill_total_gbp is not None and previous_bill_total_gbp != 0:
+    if (
+        previous_bill_total_gbp is not None
+        and abs(previous_bill_total_gbp) >= BILL_SHOCK_BASELINE_FLOOR_GBP
+    ):
         bill_shock_baseline_gbp = previous_bill_total_gbp
         # THE DENOMINATOR IS A MAGNITUDE, and the numerator always was. This read
         # `/ previous_bill_total_gbp` and produced a NEGATIVE ratio whenever the baseline was

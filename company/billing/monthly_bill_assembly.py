@@ -60,6 +60,7 @@ from company.billing.account_adjustment_register import (
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.interfaces.supply_book import registered_point as get_customer
 from saas.bill_generator import (
+    BILL_SHOCK_BASELINE_FLOOR_GBP,
     BILL_SHOCK_PENALTY_FACTOR,
     MAX_CLARITY_SCORE,
     MIN_CLARITY_SCORE,
@@ -479,7 +480,12 @@ def build_monthly_bills(
                     # internally-inconsistent shock/clarity figure (a real
                     # catch-up bill is exactly the kind of surprise this
                     # project's own bill-shock mechanic exists to capture).
-                    if previous_bill_total_gbp:
+                    # Same floor as `generate_bill` and for the same reason: a baseline too
+                    # small to divide by is refused, not divided by anyway.
+                    if (
+                        previous_bill_total_gbp is not None
+                        and abs(previous_bill_total_gbp) >= BILL_SHOCK_BASELINE_FLOOR_GBP
+                    ):
                         old_shock = bill.get("bill_shock_pct") or 0.0
                         # `abs()` on the DENOMINATOR too -- see `saas/bill_generator` for why.
                         # An issued total can be negative (a catch-up credit); a true bill never

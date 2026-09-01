@@ -1,6 +1,7 @@
 import pytest
 
 from saas.bill_generator import (
+    BILL_SHOCK_BASELINE_FLOOR_GBP,
     BILL_SHOCK_PENALTY_FACTOR,
     CONSUMPTION_CV_PENALTY_FACTOR,
     consumption_coefficient_of_variation,
@@ -175,9 +176,19 @@ def test_bill_shock_zero_when_previous_equals_total():
 
 def test_bill_shock_reduces_clarity():
     """Large bill shock (>100%) is capped at 1.0 for the clarity penalty."""
-    records = make_records({"2023-02-01": 10.0, "2023-02-02": 10.0})
-    # previous_bill_total_gbp much smaller than actual → large shock
-    bill_with_shock = generate_bill("C1", records, "fixed_1yr", previous_bill_total_gbp=0.01)
+    # Consumption raised from 10+10 kWh to 150+150 so the bill (~£79) is a realistic monthly one
+    # rather than £5.29. With the old £0.01 baseline any bill produced a >100% shock; with the
+    # £5 floor the bill has to be genuinely larger than the baseline for the cap to be reached,
+    # which is the honest version of what this test always meant to exercise.
+    records = make_records({"2023-02-01": 150.0, "2023-02-02": 150.0})
+    # previous_bill_total_gbp much smaller than actual → large shock. Uses the baseline FLOOR
+    # (£5) rather than the £0.01 this once used: 2026-09-01 added
+    # `BILL_SHOCK_BASELINE_FLOOR_GBP`, below which no shock is computed at all, because a
+    # percentage change against a few pence is not a quantity. The device changed; what this
+    # test asserts — that the clarity penalty caps at 1.0 — did not.
+    bill_with_shock = generate_bill(
+        "C1", records, "fixed_1yr", previous_bill_total_gbp=BILL_SHOCK_BASELINE_FLOOR_GBP
+    )
     bill_no_shock = generate_bill("C1", records, "fixed_1yr")
 
     assert bill_with_shock["clarity_score"] < bill_no_shock["clarity_score"]
@@ -189,7 +200,10 @@ def test_bill_shock_reduces_clarity():
 
 def test_clarity_score_floored_at_zero():
     volatile = make_records({"2023-01-01": 0.1, "2023-01-02": 100.0})
-    bill = generate_bill("C1", volatile, "tou_smart", previous_bill_total_gbp=0.01)
+    # £5 is the baseline floor (see test_bill_shock_reduces_clarity); still a huge shock here.
+    bill = generate_bill(
+        "C1", volatile, "tou_smart", previous_bill_total_gbp=BILL_SHOCK_BASELINE_FLOOR_GBP
+    )
     assert bill["clarity_score"] == pytest.approx(0.0)
 
 

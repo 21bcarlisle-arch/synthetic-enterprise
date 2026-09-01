@@ -248,7 +248,7 @@ def test_MUTATION_a_negative_baseline_still_yields_a_non_negative_shock():
          "revenue_gbp": 2.0, "wholesale_cost_gbp": 0.0, "margin_gbp": 0.0}
         for d in range(1, 31)
     ]
-    for previous in (-964.62, -180.22, -0.01, 100.0):
+    for previous in (-964.62, -180.22, -5.0, 100.0):   # -0.01 is now below the baseline floor
         bill = generate_bill("C1", records, "fixed_1yr", previous_bill_total_gbp=previous)
         shock = bill["bill_shock_pct"]
         baseline = bill["bill_shock_baseline_gbp"]
