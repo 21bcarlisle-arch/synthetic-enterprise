@@ -1343,3 +1343,167 @@ def test_the_budget_no_longer_shrinks_as_the_gate_clears_more_checks():
                                             _REAL_REFUSAL, limit=1200)
     assert "NO PARSEABLE SEVERITY HEADER" in one_tick
     assert "NO PARSEABLE SEVERITY HEADER" in twenty
+
+
+# --------------------------------------------------------------------------------------------
+# --merge: reconciling two histories without opening the shared index.
+#
+# The defect these were written against (2026-09-01): local `main` and `origin/main` ran as two
+# histories for ten hours, every "uncommitted work" alarm on the machine read the shorter one,
+# and a whole tick was spent rebuilding work that was already on the trunk. `git merge` was not
+# available to fix it -- it commits the SHARED INDEX, which held 40 paths of another lane's
+# staged work -- so the merge had to become a gated, index-free operation like every other
+# landing here.
+# --------------------------------------------------------------------------------------------
+
+def _fork(repo: Path) -> str:
+    """A second history: one commit on a side branch touching a file `main` does not."""
+    base = _head(repo)
+    _run(repo, "git", "checkout", "-q", "-b", "side")
+    (repo / "from_upstream.py").write_text("UPSTREAM = 1\n")
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "-m", "upstream work")
+    side = _head(repo)
+    _run(repo, "git", "checkout", "-q", "main")
+    assert _head(repo) == base
+    return side
+
+
+def test_a_merge_lands_one_history_with_both_parents(repo: Path):
+    side = _fork(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    local = _head(repo)
+
+    sha = sl.land(repo, [], "reconcile", merge="side")
+
+    parents = _run(repo, "git", "rev-list", "--parents", "-n", "1", sha).stdout.split()[1:]
+    assert parents == [local, side], "a merge must record BOTH histories, got {}".format(parents)
+    assert _run(repo, "git", "rev-list", "--count", "{}..HEAD".format(side)).stdout.strip() != "0"
+    assert _run(repo, "git", "rev-list", "--count", "HEAD..{}".format(side)).stdout.strip() == "0"
+
+
+def test_a_merge_puts_the_other_historys_file_on_disk(repo: Path):
+    _fork(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+
+    sl.land(repo, [], "reconcile", merge="side")
+
+    assert (repo / "from_upstream.py").read_text() == "UPSTREAM = 1\n", (
+        "a merge that only moves the ref leaves the trunk's work invisible on disk, and the "
+        "next `git add -A` in this tree commits its deletion")
+    assert _run(repo, "git", "status", "--porcelain").stdout.strip() == ""
+
+
+def test_a_merge_does_NOT_sweep_another_lanes_STAGED_work(repo: Path):
+    """The defect that made `git merge` illegal here. `git merge` commits the shared index, so
+    another lane's staged bytes land in a commit nobody reviewed -- and the index refresh
+    afterwards would destroy them even if the commit did not."""
+    side = _fork(repo)
+    _run(repo, "git", "checkout", "-q", "side")
+    (repo / "other_lane.txt").write_text("UPSTREAM edited this too\n")
+    _run(repo, "git", "commit", "-q", "-am", "upstream touches the contested file")
+    side = _head(repo)
+    _run(repo, "git", "checkout", "-q", "main")
+
+    (repo / "other_lane.txt").write_text("another lane's UNCOMMITTED staged bytes\n")
+    _run(repo, "git", "add", "other_lane.txt")
+    staged_before = _index_blob(repo, "other_lane.txt")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-m", "local", "--", "code.py")
+
+    sha = sl.land(repo, [], "reconcile", merge=side)
+
+    assert _index_blob(repo, "other_lane.txt") == staged_before, (
+        "the merge overwrote another lane's STAGED entry -- those bytes are in no commit and no "
+        "reflog, so they are simply gone")
+    assert (repo / "other_lane.txt").read_text() == "another lane's UNCOMMITTED staged bytes\n"
+    committed = _run(repo, "git", "show", "{}:other_lane.txt".format(sha)).stdout
+    assert "UNCOMMITTED staged bytes" not in committed, (
+        "the merge SWEPT another lane's staged work into its commit")
+
+
+def test_a_merge_does_NOT_overwrite_an_unstaged_local_edit(repo: Path):
+    """The `git checkout <path>` the wall forbids: uncommitted bytes with no reflog behind them."""
+    _run(repo, "git", "checkout", "-q", "-b", "side")
+    (repo / "other_lane.txt").write_text("upstream's version\n")
+    _run(repo, "git", "commit", "-q", "-am", "upstream edits it")
+    _run(repo, "git", "checkout", "-q", "main")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    (repo / "other_lane.txt").write_text("a lane's UNSAVED edit\n")
+
+    sl.land(repo, [], "reconcile", merge="side")
+
+    assert (repo / "other_lane.txt").read_text() == "a lane's UNSAVED edit\n", (
+        "the merge destroyed an uncommitted working-tree edit")
+    # The index must still have MOVED, or the merge reads as a staged revert of the trunk.
+    assert _run(repo, "git", "diff", "--cached", "--name-only").stdout.strip() == "", (
+        "the index was left at the old base, so `git status` shows the whole merge as a staged "
+        "REVERT and the next commit undoes the other history")
+
+
+def test_a_conflicting_merge_is_REFUSED_and_commits_nothing(repo: Path):
+    _run(repo, "git", "checkout", "-q", "-b", "side")
+    (repo / "code.py").write_text("VALUE = 'upstream'\n")
+    _run(repo, "git", "commit", "-q", "-am", "upstream")
+    _run(repo, "git", "checkout", "-q", "main")
+    (repo / "code.py").write_text("VALUE = 'local'\n")
+    _run(repo, "git", "commit", "-q", "-am", "local")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as exc:
+        sl.land(repo, [], "reconcile", merge="side")
+
+    assert "CONFLICT" in str(exc.value)
+    assert "code.py" in str(exc.value), "a conflict refusal must name what to go and read"
+    assert _head(repo) == before
+
+
+def test_a_merge_whose_resulting_tree_is_RED_is_refused(repo: Path):
+    """The whole reason the tree is built by plumbing rather than committed by `git merge`: it
+    still has to face the gate."""
+    _run(repo, "git", "checkout", "-q", "-b", "side")
+    (repo / "gate_verdict").write_text("red")
+    _run(repo, "git", "commit", "-q", "-am", "upstream reds the gate")
+    _run(repo, "git", "checkout", "-q", "main")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as exc:
+        sl.land(repo, [], "reconcile", merge="side")
+
+    assert "GATE RED" in str(exc.value)
+    assert _head(repo) == before
+
+
+def test_a_merge_refuses_a_pathspec_because_it_cannot_honour_one(repo: Path):
+    _fork(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    with pytest.raises(sl.LandingRefused) as exc:
+        sl.land(repo, ["code.py"], "reconcile", merge="side")
+    assert "no pathspec" in str(exc.value)
+
+
+def test_merging_an_ancestor_is_refused_rather_than_writing_an_empty_merge(repo: Path):
+    base = _head(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    with pytest.raises(sl.LandingRefused) as exc:
+        sl.land(repo, [], "reconcile", merge=base)
+    assert "already an ancestor" in str(exc.value)
+
+
+def test_the_merge_receipt_names_the_second_parent_and_still_verifies(repo: Path):
+    side = _fork(repo)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    _run(repo, "git", "commit", "-q", "-am", "local work")
+    sha = sl.land(repo, [], "reconcile", merge="side")
+    message = _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+    assert "merge-parent: {}".format(side) in message, (
+        "a receipt naming one parent on a two-parent commit understates the commit's scope")
+    rc, text = sl.verify(repo, sha)
+    assert rc == 0, text

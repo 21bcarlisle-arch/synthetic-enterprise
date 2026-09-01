@@ -428,6 +428,48 @@ def build_resulting_tree(root: Path, paths: list[str], parent: str,
                 pass
 
 
+def build_merge_tree(root: Path, parent: str, other: str) -> str:
+    """Return the tree a merge of `other` into `parent` would produce. Refuses on conflict.
+
+    WHY THIS EXISTS (2026-09-01, the Lane 0 reconciliation). `git merge` commits THE SHARED
+    INDEX. On this tree that index routinely holds another lane's staged work -- 40 paths of the
+    gap-ledger lane's, the morning this was written -- so a `git merge` here does the exact thing
+    the wall forbids and `land()` was built to avoid: it sweeps work nobody reviewed into a
+    commit. Git's own answer is to refuse the merge outright, which leaves the two histories
+    diverged and every "uncommitted work" alarm on this machine reading a stale base.
+
+    So the merge needs the same treatment a partial commit already gets: compute the tree
+    WITHOUT opening the caller's index, then gate THAT tree and commit it. `--write-tree` does
+    exactly that -- it reads the two commits and writes a tree to the object store, touching
+    neither the index nor the working tree. Writing loose objects that no ref yet reaches is not
+    a mutation of anything a reader can see; only `_commit_and_swap` moves a ref.
+
+    THIS IS NOT THE BYPASS THE WALL NAMES. The forbidden shape is a HAND-BUILT merge whose commit
+    never faces the hook. Here the merged tree goes through `materialise` + `run_gate` like every
+    other resulting tree, and a red gate refuses it. The tree is built by plumbing for the same
+    reason `build_resulting_tree` is: so the shared index is never opened.
+
+    A CONFLICT IS A REFUSAL, NEVER A RESOLUTION. `merge-tree` exits 1 and names the conflicted
+    paths; resolving them is a judgement about two lanes' intent that belongs to a person reading
+    both, not to a plumbing call. The refusal names them so the caller knows what to go and read.
+    """
+    r = _git(root, "merge-tree", "--write-tree", "--name-only", parent, other)
+    out = r.stdout.decode("utf-8", "replace").strip().splitlines()
+    if r.returncode == 1:
+        raise LandingRefused(
+            "MERGE CONFLICT between {} and {} -- {} conflicted path(s), nothing was committed:\n"
+            "  {}\nA conflict is two lanes disagreeing about one file; resolve it by reading "
+            "both sides, not by re-running this.".format(
+                parent[:9], other[:9], max(len(out) - 1, 0),
+                "\n  ".join(out[1:]) if len(out) > 1 else "(git named none)"))
+    if r.returncode != 0 or not out:
+        raise LandingRefused(
+            "`git merge-tree --write-tree {} {}` failed rc={}: {}".format(
+                parent[:9], other[:9], r.returncode,
+                r.stderr.decode("utf-8", "replace").strip()[-400:]))
+    return out[0].strip()
+
+
 def changed_paths(root: Path, parent_tree: str, result_tree: str) -> list[str]:
     """The files this commit actually changes -- expanded from the pathspec by git, not by us,
     so a directory argument is accounted for file by file in the receipt."""
@@ -669,11 +711,19 @@ def _verdict_excerpt(stdout: str, stderr: str = "", limit: int = 4000) -> str:
 
 def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
                   tests: str, hook_rel: str = HOOK_REL,
-                  content_sourced: list[str] | None = None) -> str:
+                  content_sourced: list[str] | None = None,
+                  merge_parent: str | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
         "parent: {}".format(parent),
+    ]
+    if merge_parent:
+        # `verify` re-derives `parent` as `<commit>^`, which is the FIRST parent, so it keeps
+        # working on a merge unchanged. This line is what tells a reader the second one exists --
+        # a receipt naming one parent on a two-parent commit would understate the scope.
+        lines.append("merge-parent: {}".format(merge_parent))
+    lines += [
         "tree: {}".format(result_tree),
         "gate: sh {} (run in a clean extract of tree {})".format(hook_rel, result_tree[:9]),
         "gate-rc: {}".format(gate_rc),
@@ -688,6 +738,92 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
     lines.append("paths: {}".format(len(files)))
     lines += ["  - {}".format(p) for p in files]
     return "\n".join(lines)
+
+
+def merge_dispositions(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
+    """Split a merge's changed paths by what the SHARED working tree is already doing with them.
+
+    Returns (index_refreshable, worktree_writable).
+
+    A pathspec landing changes only paths its caller named, so its post-state is simple. A merge
+    changes whatever the other history changed -- here, 97 paths across three lanes' live work --
+    and the shared tree has an opinion about some of them. Three cases, and the difference
+    between them is whose bytes get destroyed:
+
+    STAGED BY ANOTHER LANE (index differs from HEAD): refresh neither index nor working tree.
+      Their staged bytes are a decision they have not committed yet; overwriting the index entry
+      would delete it with no reflog and no diff to find it in. Left alone, `git status` reports
+      it as a staged modification against the new HEAD -- which is exactly what it now is.
+    MODIFIED IN THE WORKING TREE (unstaged): refresh the index, leave the file.
+      The index must move or `git status` would read the whole merge as a staged REVERT and the
+      next commit would undo 23 commits of other lanes' work. The file must NOT move: those
+      bytes are someone's uncommitted edit, and this is the `git checkout <path>` that the wall
+      forbids for exactly that reason.
+    CLEAN: refresh the index and write the file.
+      This is the only case where the working tree can safely be moved to the merged content,
+      and it is what makes the merge visible on disk rather than only in the history.
+
+    Untracked ('??') counts as modified, not clean: a merge that adds a path someone is already
+    holding untracked bytes for must not overwrite them.
+    """
+    if not files:
+        return [], []
+    r = _git(root, "status", "--porcelain", "-z", "--no-renames", "--", *files)
+    if r.returncode != 0:
+        raise LandingRefused(
+            "could not read the working tree's disposition for the merge's {} path(s) rc={}: {}. "
+            "Refusing rather than guessing -- guessing here overwrites another lane's "
+            "uncommitted work.".format(
+                len(files), r.returncode, r.stderr.decode("utf-8", "replace").strip()[-300:]))
+    staged, modified = set(), set()
+    for entry in r.stdout.decode("utf-8", "replace").split("\0"):
+        if len(entry) < 4:
+            continue
+        x, y, path = entry[0], entry[1], entry[3:]
+        if x not in " ?":
+            staged.add(path)
+        if y != " ":
+            modified.add(path)
+    refreshable = [f for f in files if f not in staged]
+    writable = [f for f in refreshable if f not in modified]
+    return refreshable, writable
+
+
+def _write_worktree_from_tree(root: Path, result_tree: str, paths: list[str]) -> None:
+    """Put `paths` on disk as `result_tree` has them, via a THROWAWAY index.
+
+    `git checkout-index` is the only plumbing that writes tracked content to the working tree
+    without an opinion about HEAD, and pointing it at a scratch index keeps the real one shut --
+    the same discipline as `build_resulting_tree`. The caller has already established that every
+    path here is clean, so nothing being overwritten is anybody's uncommitted work."""
+    if not paths:
+        return
+    fd, idx = tempfile.mkstemp(prefix="surgical-land-merge-index-")
+    os.close(fd)
+    os.unlink(idx)
+    env = _gitless_env()
+    env["GIT_INDEX_FILE"] = idx
+    try:
+        _git_text(root, "read-tree", result_tree, env=env)
+        listing = _git_text(root, "ls-tree", "-r", "--name-only", "--full-name", result_tree,
+                            "--", *paths, env=env)
+        present = {ln for ln in listing.splitlines() if ln.strip()}
+        write = [p for p in paths if p in present]
+        if write:
+            _git_text(root, "checkout-index", "-f", "--", *write, env=env)
+        # The merge's deletions. A path the other history removed has to leave the disk too, or
+        # the next `git add -A` in this tree resurrects it as a new file.
+        for gone in (p for p in paths if p not in present):
+            try:
+                (root / gone).unlink()
+            except OSError:
+                pass
+    finally:
+        for leftover in (idx, idx + ".lock"):
+            try:
+                os.unlink(leftover)
+            except OSError:
+                pass
 
 
 def _refresh_index_for(root: Path, result_tree: str, files: list[str]) -> None:
@@ -762,7 +898,7 @@ def _write_lock(root: Path):
 
 
 def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
-                     files: list[str]) -> str:
+                     files: list[str], merge_parent: str | None = None) -> str:
     """commit-tree + a compare-and-swap ref update, under the tree lock.
 
     The CAS is what makes the gate's verdict still true at the moment of landing: on this shared
@@ -779,15 +915,32 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
                 "HEAD moved from {} to {} while the gate ran, so the gated tree is no longer the "
                 "tree this commit would create. Nothing was committed; re-run and it will gate "
                 "the new base.".format(parent[:9], now[:9]), parent, now)
-        new = _git_text(root, "commit-tree", result_tree, "-p", parent, "-m", message)
+        # READ THE DISPOSITIONS BEFORE THE REF MOVES, and that ordering is the whole correctness
+        # of it. `git status` answers against HEAD; once HEAD is the merge commit every path the
+        # merge changed reports as a STAGED difference (the index still holds the parent's), so
+        # asking afterwards classifies all of them as another lane's staged work and the merge
+        # lands with an index and a working tree that were never moved. Both of this module's
+        # merge post-state tests fail on that mistake, which is how it was found.
+        dispositions = merge_dispositions(root, files) if merge_parent else None
+        extra = ["-p", merge_parent] if merge_parent else []
+        new = _git_text(root, "commit-tree", result_tree, "-p", parent, *extra, "-m", message)
         _git_text(root, "update-ref", "-m", "surgical-land", "HEAD", new, parent)
-        _refresh_index_for(root, result_tree, files)
+        if dispositions is not None:
+            # A merge moves paths this caller never named, so unlike a pathspec landing it has to
+            # ask the shared tree what it is holding before touching anything. See
+            # `merge_dispositions` for why the two lists differ and what each one protects.
+            refreshable, writable = dispositions
+            _refresh_index_for(root, result_tree, refreshable)
+            _write_worktree_from_tree(root, result_tree, writable)
+        else:
+            _refresh_index_for(root, result_tree, files)
         return new
 
 
 def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
          attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None,
-         content: Mapping[str, bytes | None] | None = None) -> str:
+         content: Mapping[str, bytes | None] | None = None,
+         merge: str | None = None) -> str:
     """Land exactly `paths`, re-gating against the new base when the race is lost.
 
     Returns the new commit sha, or raises LandingRefused. `attempts` bounds the loop; `on_lost`
@@ -815,7 +968,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:
-            return _land_once(root, paths, message, hook_rel, content)
+            return _land_once(root, paths, message, hook_rel, content, merge)
         except BaseMoved as exc:
             lost.append(exc)
             if on_lost is not None:
@@ -832,17 +985,37 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
 
 
 def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
-               content: Mapping[str, bytes | None] | None = None) -> str:
+               content: Mapping[str, bytes | None] | None = None,
+               merge: str | None = None) -> str:
     """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
-    if not paths:
+    if merge is None and not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
     parent = _git_text(root, "rev-parse", "HEAD")
     parent_tree = _git_text(root, "rev-parse", "HEAD^{tree}")
-    result_tree = build_resulting_tree(root, paths, parent, content)
+    merge_parent = None
+    if merge is not None:
+        if paths or content:
+            raise LandingRefused(
+                "--merge takes no pathspec and no content override: a merge lands whatever the "
+                "other history changed, so a pathspec here would claim a scope the commit does "
+                "not have and the receipt would be a lie.")
+        merge_parent = _git_text(root, "rev-parse", "{}^{{commit}}".format(merge))
+        if _git(root, "merge-base", "--is-ancestor", merge_parent, parent).returncode == 0:
+            raise LandingRefused(
+                "{} ({}) is already an ancestor of HEAD -- there is nothing to merge.".format(
+                    merge, merge_parent[:9]))
+        result_tree = build_merge_tree(root, parent, merge_parent)
+        paths = changed_paths(root, parent_tree, result_tree)
+    else:
+        result_tree = build_resulting_tree(root, paths, parent, content)
     if result_tree == parent_tree:
-        raise LandingRefused(
-            "the named paths are already at HEAD -- the resulting tree is identical, so there is "
-            "nothing to land. (If you expected a change, check the pathspec.)")
+        # For a merge this is the already-up-to-date case that `--is-ancestor` did not catch:
+        # the other history's content is all here, but its COMMITS are not, so the merge is
+        # still worth making. Only a pathspec landing has nothing to do.
+        if merge_parent is None:
+            raise LandingRefused(
+                "the named paths are already at HEAD -- the resulting tree is identical, so "
+                "there is nothing to land. (If you expected a change, check the pathspec.)")
     files = changed_paths(root, parent_tree, result_tree)
     EXTRACT_ROOT.mkdir(parents=True, exist_ok=True)
     checkout = Path(tempfile.mkdtemp(prefix="surgical-land-", dir=str(EXTRACT_ROOT)))
@@ -874,8 +1047,9 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         shutil.rmtree(checkout, ignore_errors=True)
         _ACTIVE_CHECKOUTS.discard(checkout)
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
-                            content_sourced=sorted(content or ()))
-    return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files)
+                            content_sourced=sorted(content or ()), merge_parent=merge_parent)
+    return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
+                            merge_parent=merge_parent)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -950,6 +1124,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--content-remove", action="append", default=[], metavar="REPOPATH",
                     help="commit REPOPATH as a DELETION without removing it from the working "
                          "tree (repeatable). The mapping's None case.")
+    ap.add_argument("--merge", metavar="REF",
+                    help="land a MERGE of REF into HEAD instead of a pathspec. The merged tree "
+                         "is computed by plumbing (the shared index is never opened, so another "
+                         "lane's staged work cannot be swept into it), gated like any other "
+                         "resulting tree, and committed with REF as a second parent. Refuses on "
+                         "conflict. Takes no paths and no --content.")
     ap.add_argument("paths", nargs="*", help="the exact paths to land")
     args = ap.parse_args(argv)
     if args.verify:
@@ -981,11 +1161,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost,
-                   content=content or None)
+                   content=content or None, merge=args.merge)
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
         return 1
-    print("[surgical-land] landed {} ({} path(s))".format(sha[:9], len(args.paths)))
+    if args.merge:
+        print("[surgical-land] landed MERGE {} ({} into HEAD)".format(sha[:9], args.merge))
+    else:
+        print("[surgical-land] landed {} ({} path(s))".format(sha[:9], len(args.paths)))
     print("[surgical-land] verify with: python3 -m tools.surgical_land --verify {}".format(
         sha[:9]))
     return 0
