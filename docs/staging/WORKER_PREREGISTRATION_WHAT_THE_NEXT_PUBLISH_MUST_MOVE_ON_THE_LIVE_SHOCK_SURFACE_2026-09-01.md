@@ -110,3 +110,94 @@ The `unknown` population is 11 events with no `payment_channel` at all. The sign
 attribution, so those 11 will still be unattributed after it. **A shock measure that cannot say
 which definition applies to eleven of its own rows has not finished**, and that is a separate item
 from this one.
+
+---
+
+# GRADED, 2026-09-01, against the publish that settled it
+
+The publish landed at `318066998`. `site/data/dashboard.json` now reads:
+
+    meta.generated_at   2026-09-01T16:06:49Z
+    meta.git_commit     64e586f3b            (this file's own commit)
+    source run          run_output_98db658f2_20260901T155311Z.json
+
+**One thing about that provenance has to be said before any grading, because it is the same defect
+this file was written about.** The run output is stamped `98db658f2` and timed 15:53:11Z;
+`da0431897` — the sign fix — landed at 15:58:15Z, **five minutes later.** By its stamp this run
+predates the change being graded. It does not: the event count below is 1,748, which is `da0431897`'s
+own pre-registered P2 to the unit, and no code path other than the sign fix produces it. **The run
+executed working-tree code that was not yet committed**, exactly as the ancestry table above recorded
+for `a984ad213`. The grading stands because the artefact carries the fingerprint of the change; the
+provenance stamp does not, and would have been the wrong thing to trust. That the run stamp cannot be
+relied on to say what code ran is a real defect and it is not this item's.
+
+## The after state, measured on the live artefact
+
+| population | n | mean % | median % | max % |
+|---|---:|---:|---:|---:|
+| `payment` (direct debit) | 1,231 | 152.5 | 62.8 | 2,593.1 |
+| `bill` (standard credit) | 512 | 117.3 | 56.1 | 1,305.2 |
+| `unknown` (no channel) | 5 | 142.3 | 144.3 | 295.6 |
+| `out_of_scope` (prepayment) | 0 | — | — | — |
+| mixed, all populations | 1,748 | 142.2 | | |
+
+`catchup_driven` 454 of 1,748 (26.0%), from 870 of 3,161 (27.5%).
+
+## P1–P4
+
+**P1 — every population's count falls. CONFIRMED.** `payment` 2,238 → 1,231; `bill` 912 → 512;
+`unknown` 11 → 5; `out_of_scope` 0 → 0. No population rose; neither `payment` nor `bill` was
+unchanged, which was the named refuter.
+
+**P2 — no `max_pct` rises. CONFIRMED, and it is the weakest of the four.** `payment` 2,593.1 →
+2,593.1 and `bill` 1,305.2 → 1,305.2 — both *equal*, not lower. Recorded plainly: a prediction that
+"falls or is equal" and comes back equal on both real populations was nearly unfalsifiable by this
+run. It survived, and it earned very little.
+
+**P3 — no negative anywhere on the surface. CONFIRMED.** Swept every numeric field of `monthly_ops`
+across all 113 months — `avg_shock_pct`, `median_shock_pct`, `max_shock_pct`, both CI bounds,
+`mixed_all_population_avg_pct` and all five fields of all four populations. Zero negatives. The
+fail-closed guard in `simulation.contact_propensity` is still armed and still never saw one.
+
+**P4 — `mixed_all_population_count` falls by exactly the sum of the per-population falls.
+CONFIRMED.** 3,161 → 1,748, a fall of 1,413; the per-population falls are 1,007 + 400 + 6 + 0 =
+1,413. The mixed figure is still reconcilable and therefore still worth keeping.
+
+## The thing that was not predicted, explained rather than claimed
+
+**Every real population's mean rose a long way** — `payment` 113.9 → 152.5, `bill` 93.4 → 117.3,
+mixed 108.1 → 142.2. This file refused to predict a direction, so none of that is a hit.
+
+The arithmetic of it, which is checkable from the two tables alone: the removed events entered the
+old mean at an implied mean magnitude of **66.7%** (`payment`), **62.8%** (`bill`) and **65.9%**
+(mixed), against survivors at 152.5%, 117.3% and 142.2%. **A bill that fell was, on this book, a
+much milder movement than a bill that rose** — so dropping the falls raises what is left. Same
+mechanism as `da0431897`'s P4 at year level, now confirmed at event level.
+
+**And the rejected argument is refuted on the record, not merely reasoned about.** The argument said
+removing decreases must raise every mean *with certainty*, because a decrease is bounded at −100%.
+`unknown`'s mean **FELL**, 158.1 → 142.3: its six removed events entered at an implied 171.3%, above
+its own survivors. Six rows, so it proves nothing about magnitudes — but it does not need to. It
+needed to be non-empty, and a single population moving the other way is enough to show the removed
+set genuinely straddles, which is what the certainty argument denied. **Had that argument been
+accepted this grading would have recorded a refutation.** It is the only part of this exercise that
+changed what I believe.
+
+## What this closes, and what it does not
+
+**Closes:** the split and the sign have both reached the published surface, and the surface's labels
+are now true of the quantity underneath them. `figures_on_a_superseded_clock` is discharged for this
+field.
+
+**Does not close, and neither is absorbed here:**
+
+1. **`unknown` is 5 events with no `payment_channel`.** It was 11 and it is 5 because six of them
+   were decreases, not because any were attributed. The gap is unchanged in kind.
+2. **`financial.annual[].avg_bill_shock_pct` is still ONE MEAN SPANNING BOTH POPULATIONS**, on this
+   same published surface, over a larger sample than the series just split — 6,094 computable bills
+   against 1,748 flagged events — and with no `n` and no bound of any kind beside it. On the run
+   behind the live page: `bill` n=1,696 mean 38.40%, `payment` n=4,366 mean 45.58%, `unknown` n=32
+   mean 23.15%, published as a single ~43%. It carries an `avg_bill_shock_pct_population` note that
+   says which *bills* it covers and is silent on which *households* — so it reads as settled while
+   being the identical mixed-subject failure one level up. **That is the next item and it is filed
+   with its own pre-registration.**
