@@ -1,9 +1,51 @@
 {
- "generated_at": "2026-08-31T23:29:30.670385+00:00",
+ "generated_at": "2026-09-01T02:24:48.375604+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "be3ceb76a",
+    "at": "2026-09-01T03:22:09+01:00",
+    "subject": "the only legal landing tool could not land a merge, so the tree stayed forked",
+    "substantive": true
+   },
+   {
+    "sha": "db17e31a1",
+    "at": "2026-09-01T03:10:17+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=d114e39bb, net=\u00a3131,289)",
+    "substantive": false
+   },
+   {
+    "sha": "fe3b78009",
+    "at": "2026-09-01T02:50:40+01:00",
+    "subject": "the operational red self-heals before the drawn worker arrives, and I rebuilt a fix that was already on origin",
+    "substantive": false
+   },
+   {
+    "sha": "d114e39bb",
+    "at": "2026-09-01T01:44:54+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=5f34dfe9c, net=\u00a3131,289)",
+    "substantive": false
+   },
+   {
+    "sha": "5f34dfe9c",
+    "at": "2026-09-01T01:17:01+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=7b77df0c3, net=\u00a3131,289)",
+    "substantive": false
+   },
+   {
+    "sha": "7b77df0c3",
+    "at": "2026-09-01T00:49:14+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=847503708, net=\u00a3131,289)",
+    "substantive": false
+   },
+   {
+    "sha": "8c5eb966b",
+    "at": "2026-09-01T00:29:31+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "847503708",
     "at": "2026-09-01T00:16:17+01:00",
@@ -201,110 +243,69 @@
     "at": "2026-08-31T11:05:46+01:00",
     "subject": "the departure-population finding is discharged and moves to done",
     "substantive": false
-   },
-   {
-    "sha": "65b881040",
-    "at": "2026-08-31T10:57:52+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=c1b61dccc, net=\u00a3145,881)",
-    "substantive": false
-   },
-   {
-    "sha": "b43b3d44e",
-    "at": "2026-08-31T10:52:08+01:00",
-    "subject": "four instruments measured one departure route, and the published reason mix was missing its largest cause",
-    "substantive": true
-   },
-   {
-    "sha": "c1b61dccc",
-    "at": "2026-08-31T10:02:04+01:00",
-    "subject": "the baseline I subtracted from was another run's, and the reading I called anti-predictive is inside its null",
-    "substantive": true
-   },
-   {
-    "sha": "15b7aa873",
-    "at": "2026-08-31T09:57:50+01:00",
-    "subject": "reconcile main with origin: the director's canon reached origin unchained while the tree's copy carries the severity classification the gate requires",
-    "substantive": false
-   },
-   {
-    "sha": "c75fee667",
-    "at": "2026-08-31T09:57:24+01:00",
-    "subject": "the world's unhappiest households leave least, and three buckets were standing in front of it",
-    "substantive": true
-   },
-   {
-    "sha": "c30b98048",
-    "at": "2026-08-31T09:38:44+01:00",
-    "subject": "the bound that decided \"cannot resolve\" was measured in another world, and the new one is wider",
-    "substantive": true
-   },
-   {
-    "sha": "ba7195f02",
-    "at": "2026-08-31T09:36:41+01:00",
-    "subject": "the ladder's rung 3 is measured for the first time, and the top-down anchor is not why the answer was always \"we cannot tell\"",
-    "substantive": true
    }
   ],
-  "substantive": 27,
-  "mechanical": 13,
+  "substantive": 23,
+  "mechanical": 17,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-31T23:24:42.239230+00:00",
+  "oriented_at": "2026-09-01T02:20:15.753683+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "**The steer bit for the first time, and what it delivered was the discovery that this machine has been reading half a tree.** Last orientation I named the mechanism \u2014 nothing converted a focus item into a handoff \u2014 and it is now closed: `background/delivery_lane.py` and `background/seat_executor.py` landed the conversion at 22:25, and `seat-executor-log.md` names a focus item in its own words at 23:03 (*\"DRY RUN: would run the-published-page-must-be-rebuildable-from-the-commit-it-ships-in \u2014 all four refusals passed\"*) and runs it at 23:06. That was the stated acceptance test and it is met, so focus item one leaves this file. **But the first thing the newly-reachable direction did was refute its own premise.** The tick sent to land-or-park the *\"uncommitted\"* widening in `tests/production_surface_guard.py` checked before acting and found it committed, pushed and reviewed as `22aaaa494` on `origin/main`; the local copy was a superseded draft. I verified the cause this orientation and it is worse than one stale file. **Local `HEAD` is 14 commits ahead of `origin/main` and 20 commits behind it, and every one of this stretch's ten commits is local-only.** Two writers, two histories: the executor's worktree route promotes and pushes, so `18a09617d`, `2eeaa69ea`, `847f256ed`, `2bf3ad0aa`, `22aaaa494` and fifteen more are on the trunk; the shared tree commits and does not reach it. `git diff` answers against local HEAD, so **landed work renders here as one lane's uncommitted draft** \u2014 `background/fork_salvage.py` and `background/fork_reconciler.py` both show modified in `git status` and both carry their live-writer fix on origin already. Every orientation, every `uncommitted_and_orphaned_work` alarm (19 open), the brief's own `previous_focus_drawn: []` while the executor log names three, **and my last direction's first instruction** are all computed against a base twenty commits stale, and nothing on any surface says so. **Meanwhile the trunk cannot be reached from here at all**: publishing has been wedged since 16:03 UTC, the site serves a snapshot 9.9h old, and the refusing gate is named in the publisher log \u2014 the orphan-ratchet on `tools.promote_worktree_landing`, *\"THIS COMMIT ADDS WORK THAT NOTHING RUNS\"*, about the landing tool that `background/seat-executor.service` runs on every turn by subprocess, which the ratchet's import graph cannot see. **Against the thesis: the world got sharper and the machine got blinder.** The world now scales each household's settled meter to its own declared annual consumption (`a96ab0690`, three predictions filed and all three refuted \u2014 that is the world pressing back), and on origin `18a09617d` proved with three confirmed predictions that `svt_inertia_hazard` cannot see the market and installed a refusal keyed to that property rather than to today's number. That refusal now blocks the whole-book anchor re-fit by construction and lifts the moment the parameter exists. So the thesis item is not merely still open \u2014 it is now *measured, refused and specified*, and it is the single highest-value piece of modelling work in the tree. It is second only because work landed into a fork nobody can fetch is work nobody has.",
+  "thesis_read": "**The diagnosis landed and the repair did not, and the machine is now actively making the problem worse on a twelve-minute cycle.** Last orientation I named one defect \u2014 two histories, every alarm reading the shorter one \u2014 and it was worked: `82aae13ae`, `16fe54aa4` and `64bea0ba0` are on `origin/main` and carry the divergence surface leg, the fork-salvage live-writer fix and the subprocess runner the orphan-ratchet could not see. That is the steer biting for a second stretch and it is real. **But the reconciliation itself never happened, and the shape has inverted.** Local is now **3 ahead and 23 behind** \u2014 I ordered \"land the 14 onto the trunk that holds the 20\" and nothing in that instruction stopped the *publisher* widening the fork while it waited. It has been rejected non-fast-forward on every cycle since: `PUSH did NOT advance origin (rc=1)`, `will retry next cycle`, and each retry first **manufactures another local commit** \u2014 two of the three local-only commits are auto-publish commits produced by the loop that cannot push them. **A retry that cannot succeed is not a retry, it is an engine for the thing it is retrying.** The site has served a snapshot for over nine hours and the gap grows by one commit every twelve minutes. **Second, and it is the sharper one: a disposition in the staging root says a control landed, mutation-proven three ways, and that file is in no commit on any ref.** `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` exists on disk, untracked, in a shared tree three lanes are writing to. `SEAT_DISPOSITION_THE_PUBLISHED_CUSTOMER_SURFACE_AND_ITS_MISSING_INPUT_2026-09-01.md` is untracked too. So the finding it disposes of \u2014 `site/data/customers.json` publishing 164 households the tree cannot derive \u2014 is **still BLOCKING, still live on the public page**, and the record now says otherwise. I would have believed that disposition; I only checked because the same class is in the memory. That is item one's defect wearing different clothes: the record outran the code, and the only reason anyone knows is that somebody went and looked. **Third, and it is the honest reading of this whole stretch: fidelity work has been third or later for four orientations running.** `svt_inertia_hazard` still takes `(years_on_svt, segment_days)` and nothing else \u2014 the measurement that proved it blind to the market (`18a09617d`, three predictions filed and confirmed) is a day old and the term it demands is unwritten, while every stretch since has been spent on the machine's own plumbing. Against the thesis the world is where it was: 61% of departures run a route the record contradicts most sharply in the year the record makes unmistakable, and the company's advantage cannot come from inference about a world that does not press back. **The plumbing goes first this stretch because a publisher that widens its own wedge is not a stall, it is a regression \u2014 but it goes first for the last time. If item three is still here at the next orientation, the drift is me.**",
   "focus": [
    {
-    "id": "the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one",
-    "what": "**Lane 0. Make `origin/main` and local `main` one history again, and unwedge the route to it.** Measured this orientation, after `git fetch`: **14 commits on local HEAD not on origin, 20 on origin not on local.** All eight of this stretch's commits are local-only. **First, the publish, because it is why the fork is growing.** The refusing gate is named in `docs/observability/sim-runner-log.md`: the orphan-ratchet refuses `tools.promote_worktree_landing` as *\"work that nothing runs\"*. It is run \u2014 by `background/seat-executor.service`, committed in `0bc78cf14`, which invokes it as a subprocess the ratchet's import graph cannot follow. The ratchet's own message states the two legal moves: wire it so the runner is visible, or `python3 tools/orphan_ratchet.py --freeze` **in the same commit** so the decision is on the record. **Take that decision and say which and why** \u2014 freezing the project's own promotion route as deliberately-dormant is the flattering answer and is probably wrong; a subprocess-visible runner is the honest one. Then run a publish and confirm a commit reached origin, because the wedge detector counts refusals, not intentions. **Second, the reconciliation.** `python3 -m tools.surgical_land`, never `git merge`, never `git checkout <path>`, never `git stash` \u2014 the shared tree carries three lanes' dirt and the wall is not negotiable. Land the 14 local commits onto the trunk that already holds the 20. Where a locally-modified file turns out to be a superseded draft of what is already upstream (`background/fork_salvage.py` and `background/fork_reconciler.py` are both confirmed instances \u2014 the live-writer fix is on origin, the local edit is the earlier draft), **take the upstream copy and record that you did**; do not re-land a decision already taken. **Third, and this is the part that keeps it from recurring: nothing anywhere tells a reader that `git status` on this machine answers against a stale base.** One leg or one surface line that reads `origin/main..HEAD` and `HEAD..origin/main` and refuses to report \"uncommitted work\" without them. Mutation-prove it; if it does not fire, establish whether that is a missing test or an equivalence and do not assume the flattering one. **Fourth, grade the prediction that is already on the record.** `WORKER_FINDING_THE_UNCOMMITTED_GUARD_I_WAS_TOLD_TO_DECIDE_ON_HAD_ALREADY_LANDED_ON_ORIGIN` predicts, before anyone checked, that re-deriving the 19 `uncommitted_and_orphaned_work` instances against `origin/main` rather than local HEAD resolves **more than a quarter** to \"already landed upstream\". Re-derive them and write the result beside the prediction whichever way it falls. While you are there, the four paged reds in `tests/background/test_autonomous_runner.py` (usage-limit legs, RED for two consecutive operational-layer signals) are either this same artefact or real \u2014 establish which; do not carry them as \"known\".",
-    "why": "First, because it is the only item whose failure mode is that **nothing else in this file can be believed**. Seven substantive commits this stretch \u2014 the executor and its units, the handoff, the red-count provenance, the EAC scaling, the churn-cap rename \u2014 are in a history no other lane can fetch, while twenty commits of other lanes' work are invisible to every reader here. That is not a tidy-up: it is the measuring instrument. My own last direction ordered a worker to land-or-park a change that had been on the trunk for hours, and the tick spent its turn proving the premise false instead of doing the work \u2014 the direction was reachable at last and what it reached was a lie, and the lie came from this. **Done means:** one history, verified by `git rev-list --count` both ways reading zero-and-something rather than 14-and-20; a publish commit demonstrably on origin; the orphan-ratchet decision on `promote_worktree_landing` taken and recorded either way; one leg, proven able to fail, that stops a reader here mistaking a stale base for uncommitted work; and the 19-instance prediction graded in writing. **No register, no census, no watcher** \u2014 four instances of a class justify one leg, not a subsystem. If the output is a document rather than commits on origin and a failing assertion, it has not been done."
+    "id": "the-publish-loop-is-rejecting-its-own-push-and-widening-the-fork-it-rejects-over",
+    "what": "**Lane 0. Stop the publisher manufacturing the divergence it is blocked by, then make one history.** Measured this orientation after `git fetch`: `git rev-list --count origin/main..HEAD` = **3**, `HEAD..origin/main` = **23**. Two of the three local commits are `Auto-process run complete` \u2014 produced by the very loop whose push is refused. The publisher log names the cause exactly: `! [rejected] HEAD -> main (non-fast-forward)` \u2026 `Updates were rejected because the tip of your current branch is behind its remote counterpart`, then `throttle left untouched, will retry next cycle`. **First, the ordering, and it is the whole item: integrate BEFORE the next publish commit is created, not after.** The reconciliation is `python3 -m tools.surgical_land` \u2014 never `git merge`, never `git pull`, never `git checkout <path>`, never `git stash`, never `--force-with-lease`. Three lanes have uncommitted work in this tree right now and the wall is not negotiable. The third local commit, `fe3b78009`, is a finding that exists nowhere else \u2014 it goes onto the trunk, it is not discarded. Where a locally-modified file turns out to be a superseded draft of what is already upstream, take the upstream copy and record that you did: `background/fork_salvage.py` and `background/fork_reconciler.py` were confirmed instances last orientation and the tree still shows both modified. **Second, the leg that stops it recurring, and it is one leg.** `background/process_run_complete.py` treats a non-fast-forward rejection as a transient to re-attempt identically. It is not transient \u2014 it is a *state*, and the retry deepens it. Make the publish path, before it commits, refuse or integrate when `HEAD..origin/main` is non-zero, and say which on the surface. **Mutation-prove it against a behind-origin tree**; if it does not fire, establish whether that is a missing test or an equivalence and do not assume the flattering one. **Third, confirm with the only evidence that counts**: `git rev-list --count HEAD..origin/main` reading zero, and an `Auto-process run complete` commit visible on `origin/main` with the site snapshot moving. The wedge detector counts refusals, not intentions. **What does NOT happen here:** no watcher over the publisher, no divergence register, no dashboard panel. Two commits of evidence justify one leg.",
+    "why": "First, because it is the only item on this list that is getting worse while nobody touches it, and because it is the reason nothing else in this file can reach the world. Every surface the publisher regenerated in the last nine hours is local; the public page serves a snapshot; and the loop's own retry is what keeps the fork ahead of the reconciliation. My last direction ordered the landing and did not order the engine stopped, so the landing target moved every twelve minutes \u2014 that is my defect, not the tick's. **Done means:** `HEAD..origin/main` reads zero; `fe3b78009` on the trunk rather than discarded; a publish commit demonstrably on origin with the live snapshot moved; and one mutation-proven leg that makes a behind-origin publish refuse or integrate instead of committing-then-being-rejected. If the output is a document rather than commits on origin and a failing assertion, it has not been done."
+   },
+   {
+    "id": "the-disposition-said-the-control-landed-and-it-is-in-no-commit",
+    "what": "**This is minutes, not a stretch. Do it, then go to item three.** Verified this orientation: `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` is **untracked \u2014 `git log --all` returns nothing for it** \u2014 as is `docs/staging/SEAT_DISPOSITION_THE_PUBLISHED_CUSTOMER_SURFACE_AND_ITS_MISSING_INPUT_2026-09-01.md`, which asserts under *\"What landed\"* that the control landed and was mutation-proven three ways. Both sit on disk in a shared tree with daemons writing to it, one `reset` away from being gone with no reflog. **Land them, by pathspec, together** \u2014 the control and its own disposition, so the claim and the code arrive in one commit. **Then re-run the measurement before believing either.** The disposition's core claim is that `docs/reports/run_output_latest.json` was repaired so the property is true at the commit it lands in. That was 00:21; the publisher has rewritten `run_output_latest.json` on every cycle since. **Run the control at the commit you are about to make, not at the commit the disposition was written against**, and if it is red, the honest finish is to land it red with the blocking-set decision recorded \u2014 not to hold it back until it is green. **Then grade the record.** The disposition states the finding's open question is answered: the published 164-household surface is honest and the *committed input* was a stale interconnector probe from `e9cdef112`. If that survives re-measurement, say so and archive the BLOCKING finding properly. If it does not, the disposition's own conclusion is the thing to correct, beside the claim, and it stays open. **The class, in one line and no more than one leg:** a staged disposition can describe work that is in no commit. If a cheap assertion can make a `SEAT_DISPOSITION_*` naming a landed artefact fail when that artefact is untracked, write it. If it cannot be made to fail, say so and write nothing.",
+    "why": "Second because it is the cheapest permanent close on this list and because it is currently making the record lie about a live public surface. `site/data/customers.json` publishes 164 households; the tree cannot derive them; the finding is one of two BLOCKING; and the staging root says it is disposed of. Everything the seat does rests on dispositions being true \u2014 I read that one this orientation and would have carried it forward as done. It is also the same defect as item one seen from the other end: there, code that never reached origin; here, a claim that never reached a commit. **Done means:** the control and its disposition in a commit that is on origin; the control run at that commit and its verdict stated whichever way it falls; the BLOCKING finding either archived with the measurement beside it or explicitly still open with the disposition's conclusion corrected; and at most one leg against the class."
    },
    {
     "id": "the-svt-route-still-cannot-see-the-market",
-    "what": "**Give `svt_inertia_hazard` a parameter the market can arrive through. The measurement is done, the refusal is built, and it lifts by construction the moment the parameter exists \u2014 read `18a09617d` on `origin/main` FIRST, because this machine cannot see it and it changes the job.** That commit filed three predictions before measuring and confirmed all three: Spearman **-0.26** between the SVT floor and the published midpoint 2017-2024 (near zero, wrong sign); at the **bottom** of both published bands 2022's floor is still **8.99%** against the record's **4.30%**, and clearing it needs the pair scaled to 0.354x where the band bottom is only 0.750x \u2014 so it is a mechanism result and not a constant at the wrong end; CV ratio **0.336** where the record swings **5.3x**. `svt_inertia_hazard(years_on_svt, segment_days)` takes nothing else, while every renewal-route hazard already carries `market_switching_multiplier` \u2014 the record's own level ratio inside 2016-2025. **Read that existing mechanism before minting a second one.** **Knowledge first, and the world's own source already answers it**: `svt_rates` \u00a73 \u2014 *\"customers did not voluntarily churn: no competitive fixed alternatives existed\"*. Establish from `docs/domain_artefact_library/` and `docs/market_research/` what the published record says actually suppressed switching in 2022 \u2014 whether there were acquisition tariffs to switch *to* \u2014 and write it down with its source **before** any term is written. **Pre-register the predicted MOVE per year, never an invariance**: an invariance measured on the old code embeds the defect being removed, and this project has paid for that. Grade on `tools/departure_population.book_departure_level` \u2014 the one implementation both instruments read \u2014 and print all ten years at real inputs beside the prediction, not the year you aimed at. Then re-run the whole-book anchor re-fit and report whether the refusal lifted. **Never a widened band, never a clamp on 2022, and it must not finish with a fitted constant.** Two things do **not** happen in this commit: re-pointing `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject (rewriting what a control measures inside the commit that repairs the measurement makes the move unattributable), and repairing `population_anchor._churn_by_year`'s blindness to 2022 by inserting a `sim_churn_rate` of 0.0 \u2014 that publishes a measured zero-churn crisis year; fail-close its five arithmetic consumers instead.",
-    "why": "Second, and it is the thesis item \u2014 the only item here that moves fidelity rather than plumbing. The company's advantage must come from inference about a world that can press back, and **61% of departures** run through a route that runs the same 0.20/0.10 through the 2020 switching peak and the 2022 collapse alike. Every belief graded on that population this week was graded on a mechanism the record contradicts most sharply in the year the record makes unmistakable. It is also blocking real work now rather than notionally: with both routes sharing one anchored total they are zero-sum, so the SVT route's market error lands in the renewal anchor \u2014 2023's floor consumes 12.43 of the 12.50 available and the fit returns **0.03**, near-total extinction of the one route the company can actually price against. And the anti-flattering tie-break that put the SVT floor at the top of its band **became a flattering choice** the moment the denominator was unioned, because a higher SVT floor now hands the company less churn on the route it can price. **Done means:** the record's own account of 2022 written down with its source before any code; the predicted per-year move filed before the run; the term landed and the ten-year table printed at real inputs beside the prediction; and 2022 either inside its band for a stated mechanical reason, **or explicitly still out with the reason named on the surface** \u2014 *\"the world departs 12.09% in a year the record says 3%, and here is what we have not modelled\"* is an acceptable and better finish than a number that fits."
+    "what": "**Give `svt_inertia_hazard` a parameter the market can arrive through. The measurement is done, the refusal is built and keyed to the property, and it lifts by construction the moment the parameter exists.** Confirmed unchanged this orientation: `simulation/departure_risks.py:175` still reads `def svt_inertia_hazard(*, years_on_svt: float, segment_days: float)` and nothing else, while every renewal-route hazard already carries `market_switching_multiplier` \u2014 the record's own level ratio inside 2016-2025, live in fourteen modules. **Read that existing mechanism before minting a second one.** Read `18a09617d` on `origin/main` first: three predictions filed before measuring, all three confirmed \u2014 Spearman **-0.26** between the SVT floor and the published midpoint 2017-2024 (near zero, wrong sign); at the bottom of both published bands 2022's floor is still **8.99%** against the record's **4.30%**, needing the pair scaled to 0.354x where the band bottom is only 0.750x, so it is a mechanism result and not a constant at the wrong end; CV ratio **0.336** where the record swings **5.3x**. **Knowledge first, and the world's own source already answers it**: `svt_rates` \u00a73 \u2014 *\"customers did not voluntarily churn: no competitive fixed alternatives existed\"*. Establish from `docs/domain_artefact_library/` and `docs/market_research/` what the published record says suppressed switching in 2022 \u2014 whether there were acquisition tariffs to switch *to* \u2014 and write it down with its source **before any term is written**. **Pre-register the predicted MOVE per year, never an invariance**: an invariance measured on the old code embeds the defect being removed, and this project has paid for that class. Grade on `tools/departure_population.book_departure_level` \u2014 the one implementation both instruments read \u2014 and print all ten years at real inputs beside the prediction, not the year you aimed at. Then re-run the whole-book anchor re-fit and report whether the refusal lifted. **Never a widened band, never a clamp on 2022, and it must not finish with a fitted constant.** Two things do **not** happen in this commit: re-pointing `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject, and repairing `population_anchor._churn_by_year`'s blindness to 2022 by inserting a `sim_churn_rate` of 0.0 \u2014 that publishes a measured zero-churn crisis year; fail-close its five arithmetic consumers instead.",
+    "why": "Third on this list and **first in value** \u2014 the only item here that moves fidelity rather than plumbing, and it has now been third or later for four orientations while the machine repaired itself. That is the drift I am naming, and it is mine. The company's advantage must come from inference about a world that can press back, and **61% of departures** run through a route that runs the same 0.20/0.10 through the 2020 switching peak and the 2022 collapse alike. Every belief graded on that population is graded on a mechanism the record contradicts most sharply in the year the record makes unmistakable. It blocks real work now: with both routes sharing one anchored total they are zero-sum, so the SVT route's market error lands in the renewal anchor \u2014 2023's floor consumes 12.43 of the 12.50 available and the fit returns **0.03**, near-total extinction of the one route the company can actually price against. And the anti-flattering tie-break that put the SVT floor at the top of its band **became a flattering choice** the moment the denominator was unioned, because a higher SVT floor hands the company less churn on the route it can price. **Done means:** the record's own account of 2022 written down with its source before any code; the predicted per-year move filed before the run; the term landed and the ten-year table printed at real inputs beside the prediction; and 2022 either inside its band for a stated mechanical reason, **or explicitly still out with the reason named on the surface** \u2014 *\"the world departs 12.09% in a year the record says 3%, and here is what we have not modelled\"* is an acceptable and better finish than a number that fits."
    },
    {
-    "id": "the-published-page-must-be-rebuildable-from-the-commit-it-ships-in",
-    "what": "**Carried, still BLOCKING, and a tick is holding it \u2014 so establish the state before doing anything.** `seat-executor-log.md` records `RUNNING the-published-page-must-be-rebuildable-from-the-commit-it-ships-in` at 23:06 on `51d6159f4`, and two lanes drawing one Lane 0 item already happened once today (`WORKER_FINDING_TWO_LANES_DREW_THE_SAME_LANE_0_DELIVERY_ITEM_AND_BOTH_PRE_REGISTERED_IT`). Read the handoff claim/discharge record first: **if it discharged, do not re-derive** \u2014 verify the leg exists and is mutation-proven, and that is the whole remaining job. Also check origin before assuming the instance is live: `31def55aa` (*\"the public page said 'verified, showing run X' for a month, and X is in no commit\"*) is on the trunk and this machine cannot see it, so the finding may already be discharged upstream. What is owed either way: **run each `site/data/*.json` generator against the artefacts committed beside it and compare the population it produces to the one published** \u2014 counts, not bytes, because timestamps move. `customers.json` first. The finding says the leg will be red on landing and that this is a decision about the publish gate's blocking set; **take that decision and record it** rather than landing the leg unwired. His words at 19:47 settle the only judgement in it: *\"if the honest answer is that the site shows 19, show 19 and say why it moved.\"*",
-    "why": "Third \u2014 a control rather than a measurement, so it must never outrank the two above, but it is the one instance of item one's class that is already **BLOCKING**, already on a live public surface, and already carries his explicit instruction. It is also the cheapest to close permanently: `publish_provenance`, the banner adoption control and the basis gate each check that a figure carries its *clock*, and not one of them checks that the figure's *input* is the input in the same commit. That is one missing assertion, not a new subsystem. **Done means:** the `customers.json` instance measured against origin and stated either way; one generator-versus-committed-input leg, mutation-proven, with its blocking-set decision recorded; and if the published book is smaller than the page has claimed, the smaller number published with the sentence that says why it moved."
+    "id": "a-focus-item-stood-down-six-times-is-a-steer-that-does-not-reach",
+    "what": "**Read `docs/observability/seat-executor-log.md` before deciding anything here \u2014 it is the evidence and it is unambiguous.** Six consecutive ticks, 23:35 through 02:05, each identical: *\"STOOD DOWN: an interactive seat is live and 'the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one' was not handed off to a tick \u2014 a re-derived focus item may be work that seat is already part-way through.\"* Two and a half hours in which the top-ranked Lane 0 item was re-derived, recognised and declined, every time, for the same reason, with nothing anywhere counting the repetition. **The guard is right and its termination is missing**: standing down once because a live seat may be mid-work is correct; standing down the sixth time is the guard asserting a hypothesis it has never checked. **Take the decision and record which**: either the stand-down escalates after N consecutive declines of the *same* item \u2014 NTFY, per `background/recommendation_guard.py`, never a question in the interactive pane \u2014 or the handoff store is written when the item is re-derived so a later tick can take it without re-deriving. **Recommend the second and say why if you choose otherwise**: a stand-down that pages is still a stall wearing an alert's clothes. **Key the leg to the property, not to today's answer.** The property is *\"a focus item declined for the same reason repeatedly is not being worked\"*, not *\"this item is stuck\"*. Mutation-prove it; a leg that cannot go red against six identical stand-downs in a fixture is not a leg.",
+    "why": "Fourth because the evidence says work still reaches the trunk despite it \u2014 three commits on `origin/main` this stretch are titled after my last direction's items \u2014 so it degrades the steer rather than severing it. But it is the fourth consecutive orientation at which I have reported focus items named and the drawn-count reading empty, and each time the mechanism was one layer further in: nothing converted a focus item to a handoff, then the brief read the shorter history, now the conversion exists and declines to fire. **The steer itself is the thing drifting, and the pattern is that each repair reveals the next gate rather than a working route.** **Done means:** the decision recorded either way with its reasoning; the chosen mechanism landed; one mutation-proven leg keyed to repeated identical stand-down rather than to this item's name; and the executor log showing a subsequent tick either taking the item or escalating it, not declining it a seventh time. **No register of stand-downs** \u2014 a counter and one branch is the whole mechanism."
    }
   ],
   "not_now": [
    {
-    "what": "Reconciling the two histories with `git merge` or a fast rebase, on the grounds that 14-and-20 is small and the tree is mostly the same code.",
-    "why": "It is the fastest route and it is the wall. The shared tree carries three lanes' uncommitted work right now, and `git merge` on a dirty shared index is precisely what sweeps another lane's hunks into a commit nobody wrote \u2014 `tools.surgical_land` exists because that has happened here. The cost of the legal route is minutes; the cost of the illegal one is unattributable, because the evidence it destroys is the evidence you would need to notice."
+    "what": "Clearing the wedge the fast way \u2014 `git reset --hard origin/main`, or `git pull`, or a `--force-with-lease` push \u2014 on the grounds that only three local commits stand in the way and two of them are regenerable auto-publish artefacts.",
+    "why": "It is the fastest route and it is the wall, twice over. `reset --hard` and `checkout` destroy three lanes' unstaged work in this tree with no reflog to recover it, and `git pull` on a dirty shared index is exactly what sweeps another lane's hunks into a commit nobody wrote. The third commit, `fe3b78009`, is a finding that exists on no other ref \u2014 \"only auto-publish commits\" is true of two of three and the exception is the one that matters. Minutes for the legal route against an unattributable loss, where the evidence destroyed is the evidence needed to notice."
    },
    {
-    "what": "A census or register of every artefact and alarm computed against the stale local base \u2014 the full re-derivation of all 19 orphan instances plus a standing watcher over the divergence.",
-    "why": "The re-derivation of the 19 stays, because a prediction is already filed against it and an ungraded prediction is worse than none. The **watcher** goes: this repository has 117 harness atoms and 34 alarm documents as evidence of where the census instinct leads, and item one already ships one leg against the shape that demonstrably happened plus the reconciliation that removes the cause. A control that only guards our own controls is usually not worth having."
+    "what": "A watcher, register or dashboard panel over the publish divergence \u2014 something standing that reports ahead/behind and the publish-gate failure streak continuously.",
+    "why": "117 harness atoms and 34 alarm documents are what the census instinct has already cost here, and the divergence surface leg landed on origin this stretch (`16fe54aa4`) \u2014 the reader is already told. Item one ships one leg against the specific shape that demonstrably happened, a publish that commits while behind origin, plus the reconciliation that removes the cause. A control that mostly guards our own controls is not worth its upkeep."
+   },
+   {
+    "what": "Working the staging root down \u2014 72 files, 47 open findings, 41 LATENT \u2014 before taking new work.",
+    "why": "Sharper reason than last orientation, and it now cuts the other way for one file. An untracked \"what landed\" claim in one disposition means the queue's dispositions cannot be trusted by reading them, and a sweep that archives on the strength of a disposition would bury exactly the class item two is about. The sweep is cheap and honest *after* item two establishes whether that instance is unique or a class; before it, it is a shredder."
    },
    {
     "what": "Measuring what fifty departures can resolve \u2014 the permutation sweep from chance to the 0.6091 oracle, to establish whether 0.5482-inside-its-null means the company finds no signal or that nothing short of the oracle is detectable at n=50.",
-    "why": "Stays out for the same reason as last orientation and the reason has hardened, not softened. `18a09617d` did not merely find the SVT route insensitive to the market \u2014 it **refused the whole-book anchor re-fit** until the mechanism changes. Characterising the resolving power of a population whose departure mechanism the record contradicts, on an anchor the tree itself now declines to fit, would establish precisely what a broken world can resolve. Focus item two is what makes this question answerable, and it is cheap when it comes."
+    "why": "Out for a third orientation and the reason has hardened again. `18a09617d` did not merely find the SVT route insensitive to the market, it **refused the whole-book anchor re-fit** until the mechanism changes. Characterising the resolving power of a population whose departure mechanism the record contradicts, against an anchor the tree itself declines to fit, would establish what a broken world can resolve. Item three is what makes the question answerable, and it is cheap the moment it lands."
    },
    {
-    "what": "Re-pointing `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject, and repairing `population_anchor._churn_by_year`'s blindness to 2022, alongside focus item two.",
-    "why": "Both are real and both are named inside item two as things that must **not** happen in that commit. Rewriting what a control measures inside the commit that repairs the measurement makes the move unattributable, and this project has paid for that class more than once. They are a separate day's work, immediately after, and they are cheap then."
+    "what": "Re-pointing `tests/architecture/test_switching_rate_commons.py` off its renewal-only subject, and repairing `population_anchor._churn_by_year`'s blindness to 2022, alongside item three.",
+    "why": "Both are real and both are named inside item three as things that must **not** happen in that commit. Rewriting what a control measures inside the commit that repairs the measurement makes the move unattributable, and this project has paid for that class more than once. A separate day's work immediately after, and cheap then."
+   },
+   {
+    "what": "Starting generative futures \u2014 running the world past 2025 \u2014 and giving `sim_satisfaction` a driver that income stress cannot explain.",
+    "why": "Both wait on item three and neither is idle-worth. A generated world is the first place the company's predictions meet something the model was not fitted against, and that prize is worth nothing while the in-sample departure level reads out of band in eight years of ten. The satisfaction driver cannot move the route item three is about at all: the SVT hazard is `svt_inertia x action_propensity` and carries no satisfaction term. It stays a genuine rung-3 defect blocking `C3_satisfaction_heterogeneity`, and it returns when choice-and-channel is genuinely next."
    },
    {
     "what": "Re-running the value-cycle floor decomposition against the 31 August legs \u2014 the artefact asserting `larger_settled_book_would_resolve_it: True` beside a `selection_sem_gbp: 0.0`.",
-    "why": "Dropped last orientation and it stays dropped, for a sharper reason than fatigue: its two legs were produced by different commits, and we have now established that \"different commits\" here can mean *different histories*. Re-reading it before the tree has one trunk would produce a third number nobody can reproduce either. It comes back the moment item one lands, at which point it is hours of compute already spent and a morning's read."
-   },
-   {
-    "what": "Giving `sim_satisfaction` a driver that income stress cannot explain \u2014 the world's service risk cancelled by a modulator sharing its driver.",
-    "why": "Out for the fourth orientation, on unchanged reasoning: the SVT hazard is `svt_inertia x action_propensity` and carries no satisfaction term, so this repair cannot move the route item two is about. It remains a genuine rung-3 fidelity defect blocking `C3_satisfaction_heterogeneity` and through it `C4` and `C5`, and it returns when the choice-and-channel build is genuinely next."
-   },
-   {
-    "what": "Starting generative futures \u2014 running the world past 2025.",
-    "why": "The prize is that a generated world is the first place the company's predictions meet something the model was not fitted against. It is worth nothing while the in-sample departure level reads out of band in eight years of ten and the tree's own refusal declines to fit the ninth. Item two is what makes the prize real; running futures on this world first would produce an unattributable result at ten times the cost."
-   },
-   {
-    "what": "Working the staging root down \u2014 72 files, 47 open findings, 38 LATENT \u2014 before taking new work.",
-    "why": "An unknown share of it is the same artefact item one is about: findings about work that looks uncommitted because this machine reads a stale base. Sweeping the queue before the base is correct would archive real findings and re-file phantom ones, and the sweep is cheap and honest afterwards. Item one's re-derivation of the 19 is the measurement that tells us how large the phantom share is."
+    "why": "Dropped twice and it stays dropped for the same sharpened reason: its two legs were produced by different commits, and \"different commits\" here has meant *different histories* for a day. Re-reading it before the tree has one trunk produces a third number nobody can reproduce. It comes back the moment item one lands, by which point it is compute already spent."
    }
   ],
   "for_the_director": [],
@@ -314,6 +315,26 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**I ordered the fork landed and did not order the engine stopped, so the landing target moved every twelve minutes.** My last direction's item one said \"land the 14 local commits onto the trunk that already holds the 20\". The diagnosis was worked and three commits carrying it are on `origin/main`. The reconciliation was not, and in the interval the publisher committed and was rejected non-fast-forward on every cycle \u2014 so the divergence is now 3-and-23 with two of the three local commits being auto-publish commits the loop itself produced. The instruction was correct about the destination and silent about the thing filling the gap behind it."
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**I carried item three as \"a tick is holding it, verify rather than re-derive\" and the tick's disposition claims a control landed, mutation-proven three ways, that is in no commit on any ref.** `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` and the disposition asserting it are both untracked. The BLOCKING finding is still live, still on the public page. I would have carried the disposition forward as done \u2014 the only reason I did not is that the same class was already in the memory and I went and looked. My instruction told the worker to \"verify the leg exists and is mutation-proven\"; the worker verified it against the working tree."
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**The brief reports `previous_focus_drawn: []` for the fourth stretch running, and this time it is demonstrably wrong in a way I can name.** `seat-executor-log.md` records all three of last orientation's focus items handed to ticks and one DISCHARGED at 23:26, and `origin/main` holds commits titled after two of them. The instrument that grades my own steer reads only local history and does not read the executor log at all, so it reported zero against three. I quoted its numbers as instructed and they are honest about what they measured; they are not honest about what happened."
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "Six consecutive identical stand-downs on the top-ranked item, over two and a half hours, with nothing counting the repetition \u2014 and it did not page, appear on a surface, or reach this orientation through any channel except reading the log by hand. I named \"nothing converts a focus item into a handoff\" as the mechanism two orientations ago and treated its repair as the end of that class. It was one gate of at least two."
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "Last orientation I recorded that publishing was wedged by the orphan-ratchet refusing `tools.promote_worktree_landing` as work nothing runs, and named the two legal moves. That was right and it was taken \u2014 `64bea0ba0`, *\"the promotion route's only runner is a prompt, and I was told to write it a subprocess\"*, is on the trunk and the ratchet no longer refuses. The publish is still down, for an entirely different reason. Clearing one wedge cause revealed the next gate rather than a green publish, which is a class this project has recorded before and which I did not anticipate in the instruction."
+   },
    {
     "at": "2026-08-31T23:24:42.239230+00:00",
     "what": "**The tree has two histories and I did not know it while writing direction against one of them.** Local HEAD is 14 ahead of `origin/main` and 20 behind; all eight of this stretch's commits are local-only. My last direction ordered a worker to land-or-park an \"uncommitted\" widening in `tests/production_surface_guard.py` that had been on the trunk as `22aaaa494` for hours. The tick checked the premise before acting \u2014 which is the only reason this was caught \u2014 and spent its turn proving my instruction false instead of doing work. The same shape is live in `background/fork_salvage.py` and `background/fork_reconciler.py`, which read as modified here and carry their live-writer fix on origin already."
@@ -1105,22 +1126,6 @@
    {
     "at": "2026-08-27T05:23:35.379994+00:00",
     "what": "The seat's own steer-effectiveness signal reported success from the items that failed, for the second cycle running. `previous_focus_drawn` handed me `steered: true` and \"the previous direction named work the draw then took\", crediting EP1 (did not move) and EP13 (moved halfway), while the price ladder -- the one item that landed complete and the best work of the stretch -- is invisible to it because `focus_was_drawn` reads a tracker keyed by maturity-map atom id and no Lane 0 slug can appear there. Unchanged from last cycle and it will report PASS again next cycle. This orientation is built on the commits and the artefacts, not on that signal."
-   },
-   {
-    "at": "2026-08-27T02:23:27.395679+00:00",
-    "what": "EP1 was named FIRST, with the diagnosis declared settled and the tick explicitly told not to re-derive it, was drawn, and `saas/churn_model.py::churn_probability` is byte-identical. The ledger is still stamped 2026-08-26T11:46:22Z with `distinct_hazards: 1`, `hazard_histogram {\"0.05\": 33}` and a believed tenure of 20.0 years. Third naming, second consecutive stretch drawn-and-unchanged. Two seats have now tried it second and first, so position is not the variable -- the instruction is, and both attempts were long restatements of a diagnosis nobody disputed. R3 says a second false completion on the same component means redesign the mechanism rather than patch it again; this is the third. So the instruction is now a quarter as long and names the exact function signature to feed the hazard from. If it does not move on that, the honest next act is to decompose the atom or correct the map entry to say the lifetime term is a constant by design, not to name it a fifth time."
-   },
-   {
-    "at": "2026-08-27T02:23:27.395679+00:00",
-    "what": "`python3 -m tools.run_value_cycle_ab` was not executed for the third stretch running. The newest artefact is 17:09:29Z and none of the four `value_cycle_ab*.json` on the tree contains `gross_to_net_bridge`, `bound_attribution` or `cross_section_reconciliation` -- three instruments built for a reading nobody has taken. My predecessor diagnosed the cause correctly (the load-bearing mechanical act was written as the cheapest clause of a long instruction) and then repeated the shape at position three. The repair this time is structural: it is item one and its `what` is six lines with no analysis in it."
-   },
-   {
-    "at": "2026-08-27T02:23:27.395679+00:00",
-    "what": "EP13 was given four clauses -- build the coupler, grade the belief, put a row in the ledger, or correct the level down -- and the tick did a different, well-controlled piece of work instead: an oracle bound with two mutation-proven controls and an AST proof that the illegal treatment cannot reach the published feed. Good science, and it retired the outage model as the atom's next gap, so nothing is wasted. But it answered the SIM half for the third time while the company half stayed ungraded, and it left the map entry 335 B from a cap that wedges every lane. I record this as mine more than the machine's: all four clauses were analysis, the disposable one was last, and nothing in the instruction said which act had to exist by the end."
-   },
-   {
-    "at": "2026-08-27T02:23:27.395679+00:00",
-    "what": "My own feedback loop reported success from the two items that failed. The brief handed me `steered: true` and \"the previous direction named work the draw then took\"; both credited ids are atoms, one of which did not move and one of which moved sideways, while the item that landed in full was a Lane 0 slug the control cannot represent at all -- `focus_was_drawn` reads a tracker keyed by maturity-map atom id, and no Lane 0 slug has ever appeared among its 53 keys. I read the commits and the artefacts instead of the signal, so this orientation is not built on it, but the control itself is untouched and will report PASS again next cycle."
    }
   ],
   "refused_own_records": [],
@@ -1128,11 +1133,33 @@
  },
  "what_next": {
   "focus": [
-   "the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one",
+   "the-publish-loop-is-rejecting-its-own-push-and-widening-the-fork-it-rejects-over",
+   "the-disposition-said-the-control-landed-and-it-is-in-no-commit",
    "the-svt-route-still-cannot-see-the-market",
-   "the-published-page-must-be-rebuildable-from-the-commit-it-ships-in"
+   "a-focus-item-stood-down-six-times-is-a-steer-that-does-not-reach"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one",
+       "the-svt-route-still-cannot-see-the-market",
+       "the-published-page-must-be-rebuildable-from-the-commit-it-ships-in"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "the-tree-has-two-histories-and-every-alarm-reads-the-shorter-one",
+     "the-svt-route-still-cannot-see-the-market",
+     "the-published-page-must-be-rebuildable-from-the-commit-it-ships-in"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1229,35 +1256,6 @@
      "the-worlds-service-risk-is-cancelled-by-a-modulator-that-shares-its-driver",
      "churn-has-no-rung-0-and-no-legal-way-to-refit-its-level",
      "close-the-two-canon-questions-that-are-decisions-rather-than-work"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "does-the-worlds-churn-discriminate-between-households-at-all",
-       "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause"
-      ],
-      "focus": [
-       "does-the-worlds-churn-discriminate-between-households-at-all",
-       "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause",
-       "the-bound-that-decides-cannot-resolve-is-still-from-another-world",
-       "every-world-variable-says-where-it-stands-on-the-ladder"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "does-the-worlds-churn-discriminate-between-households-at-all",
-     "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause"
-    ],
-    "focus": [
-     "does-the-worlds-churn-discriminate-between-households-at-all",
-     "four-instruments-measure-one-route-and-the-published-mix-is-missing-its-largest-cause",
-     "the-bound-that-decides-cannot-resolve-is-still-from-another-world",
-     "every-world-variable-says-where-it-stands-on-the-ladder"
     ],
     "note": "the previous direction named work the draw then took",
     "steered": true
