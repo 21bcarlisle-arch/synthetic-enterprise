@@ -49,6 +49,75 @@ one that takes money.
 **61% of shocks are measured against a bill that is itself an estimate** — a guess compared with a
 guess, presented to the household as a fact about its own consumption.
 
+---
+
+## CORRECTION, made the same day, and it found a bigger defect than the one it corrects
+
+**One row of the table above crossed two populations, which is the defect this document is about,
+committed inside it.** The wrong version is kept above rather than edited away.
+
+**What was wrong.** The row *"…where the bill FELL — 1,364 — 42.0%"* was presented as a property of
+the 3,249 bills whose **stored** `bill_shock_pct` is ≥0.30. It is not. The direction came from a
+*reconstructed* pairing (consecutive bills, same customer, same commodity) and was then quoted
+against a count selected by the stored field. Two legs, two populations, one percentage. The other
+rows — catch-up 20.2%, estimated basis 61.0%, undercharge 340 / overcharge 315 — are properties of
+**the bill itself** and are unaffected.
+
+**The corrected figures, with each population named.**
+
+| | population A: stored `bill_shock_pct` ≥ 0.30 | population B: recomputed movement ≥ 30% |
+|---|---:|---:|
+| n | **3,249 bills** | **2,269 pairs** (of 10,654) |
+| carry a catch-up | 20.2% | 33.3% |
+| on an estimated bill | 61.0% | 35.7% |
+| **the bill FELL** | *not recoverable — see below* | **40.9%** |
+
+So the corrected headline is **40.9% of large bill MOVEMENTS are decreases**, on population B. The
+direction of population A's members cannot be recovered from the artefact at all, which is the next
+paragraph and is worse.
+
+## The bigger defect: the stored shock cannot be reproduced from the published bill
+
+Checking the stored field against a recomputation on the pair it should describe:
+
+    stored bill_shock_pct == abs(this - previous)/previous   on   3,198 of 10,654 pairs  =  30.0%
+
+**Seventy per cent of the published `bill_shock_pct` values cannot be reproduced from the published
+bills.** Tested and excluded: it is not the grouping (same-customer-same-fuel, both-fuels
+interleaved and customer-plus-segment all give the identical 30.0%, so the same pairs match under
+every grouping), and it is not a component convention (ex-VAT, ex-catchup and ex-both all sit at
+30.0–30.2%).
+
+**What does discriminate is the PREVIOUS bill's basis:**
+
+| | previous bill was `actual` | previous bill was `estimated` |
+|---|---:|---:|
+| reproducible | **3,075** | 123 |
+| not reproducible | 841 | **6,615** |
+
+96% of the reproducible pairs follow an actual bill; 89% of the irreproducible ones follow an
+estimated bill. **`bill_shock_pct` is measured against the previous bill's total as the pipeline
+held it at the time — and where that bill was an estimate, its total was subsequently revised by the
+catch-up reconciliation, so the stored shock is a difference against a number that no longer exists
+in the published artefact.**
+
+That is `figures_on_a_superseded_clock` — a figure frozen before the rows it summarises were
+mutated — sitting inside the field that drives satisfaction, clarity and contact propensity.
+
+And it sharpens the finding rather than softening it. **The household's "shock" is measured against
+an estimate the supplier itself later admitted was wrong.** That is not a fourth cause beside the
+director's three; it is the measurement being taken from the wrong baseline for the majority of the
+book, and it is the same root as cause (a): we estimated, we were wrong, and the instrument that is
+supposed to record what the household experienced recorded our own revision instead.
+
+## What this changes in the owed list
+
+Item 1 (split by cause) and item 2 (drop the `abs()`) stand. **A new item goes ahead of both:
+`bill_shock_pct` must be computed against a baseline that survives into the artefact**, or it cannot
+be checked by anyone — including by the control that would police items 1 and 2. A measure that
+cannot be reproduced from what is published is not a measurement of the world; it is a measurement
+of an intermediate state nobody can see.
+
 ### Cause (c) is not separable at all
 
 No bill field in the artefact names a renewal, tariff change, price change or contract event
