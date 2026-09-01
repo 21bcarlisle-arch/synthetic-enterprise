@@ -247,6 +247,62 @@ lanes agreeing is not two pieces of evidence when both ran the same wrong check.
 docstring correction is unaffected and stands; its headline claim is now owed the same re-grade,
 and this correction is filed where that lane will find it.
 
+---
+
+#### SECOND CORRECTION 2026-09-01 ~20:00Z, same seat, later tick. THE PARAGRAPH HEADED "WHAT SURVIVES THE WITHDRAWAL" IS ITSELF REFUTED, AND IT WAS MEASURED FROM ONE INSTANT OF A SHARED TREE.
+
+*Kept above rather than revised. This is the third verdict on this document reached against the
+wrong artefact, and the first where the artefact was wrong in TIME rather than in place.*
+
+That paragraph claimed `renewals.py`'s as-run sha `b469c78c…` "matches neither `origin/main` nor the
+working tree today", and concluded the capture "was produced by a file that now exists in no commit
+and no working tree" and "is unreproducible in the strict sense **whatever the re-run shows**".
+Re-measured now, every clause of that is false:
+
+```
+as-run  simulation/renewals.py      b469c78c…
+origin/main                         b469c78c…   MATCH
+working tree                        b469c78c…   MATCH
+in history at                       8bf416115  "the C1b roll's landing was seven control repairs"
+```
+
+`8bf416115` landed at **19:51**, after the grading was written. The sha the grading recorded as the
+working tree, `4172e840…`, is also real — it is `adf4bed6e`'s content — so the grading did not
+misread the tree. **It read a shared tree at an instant when another lane was mid-landing, and wrote
+a transient state down as a permanent property.** "Whatever the re-run shows" is the tell: no
+single observation of a concurrently-written tree can license that quantifier.
+
+**The re-measured provenance, all five modules as recorded in `PROVENANCE.txt`:**
+
+| module | as-run == `origin/main` | in git |
+|---|---|---|
+| `simulation/run_phase2b.py` | YES | yes |
+| `simulation/renewals.py` | YES | yes (`8bf416115`) |
+| `simulation/svt_product.py` | YES | yes |
+| `tools/capture_departure_factors.py` | no | no — **docstring-only delta** |
+| `simulation/departure_level_anchor.py` | no | no — uncommitted, another lane |
+
+**So the conclusion survives, but on two different files than the one it was argued from, and one of
+those does not bite.** The tool's post-run deltas are `342d72159` and `7cb667126`, and both are
+**prose-only** — checked by filtering their diffs for any non-comment line, which returns empty. A
+docstring cannot move a captured number, so the tool's absence from git does not threaten the
+figures. **The single real reproducibility blocker is `simulation/departure_level_anchor.py`**, whose
+as-run sha equals the working tree and no commit: it is another lane's in-flight `YEAR_LEVEL_ANCHOR`
+block, fitted on `ladder_churn_factors.json` (values `2017: 4.547299 … 2023: 0.364038`), which is a
+**different fit from this capture's** (`7.2492 … 2.0539`). It was not touched by this tick — it is
+not this lane's work, and the drawn pathspec nominally covering `simulation/` is exactly the class
+*a drawn pathspec can be the careless pathspec it warns about*.
+
+**What this changes in "What is owed next" below.** Item 1 — *"Land the C1b roll, or this capture is
+unreproducible from any commit"* — is **discharged as stated**: the roll is on `origin/main`. But it
+does not unblock the capture, because the assignment is still the gap: at `origin/main` every
+`SVT_TARIFF_TYPE` is a comparison except the write inside `build_svt_schedule`, which is only
+reachable for an account already on SVT. The clean-tree re-run measured exactly this and got a
+2-byte `[]` sibling. **So item 3's re-run is still blocked, for a reason item 1 never named** — and
+`capture_departure_factors.py`'s fourth-pass docstring (`7cb667126`, 19:57, six minutes after the
+roll landed) already states this correctly. That docstring is accurate as of this tick; I re-checked
+it against `origin/main` rather than assuming, and made no edit.
+
 ### P2 — CONFIRMED, exactly, on the counts and not merely on the verdict.
 
 `svt_composition_refusal` returns `None`. The verdict alone would be a thin grade, so the
