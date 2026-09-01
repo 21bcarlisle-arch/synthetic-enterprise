@@ -27,9 +27,24 @@ from tools.generate_dashboard_data import (
 )
 
 
-def _events(month, pcts):
+def _events(month, pcts, population="bill"):
+    """Bill-shock events for one month.
+
+    `population` is EXPLICIT and defaults to "bill" (2026-09-01, the definition split).
+    `avg_shock_pct` is now a mean over the "bill" population only -- standard credit, the
+    households for whom the difference between two bills is the quantity the definition
+    names -- so a fixture that does not say which population it is describing is no longer
+    describing the published headline at all.
+
+    THE FIXTURE MOVED, NOT THE PRODUCER. The tempting repair when these went red was to
+    default a missing population to "bill" inside `extract_monthly_ops`, which would have
+    reinstated exactly the fold the split exists to remove: every unattributed event
+    silently readmitted to definition B. An event nobody attributed is "unknown", and
+    `test_an_unattributed_event_is_not_readmitted_to_the_headline` holds that line.
+    """
     return [
-        {"customer_id": f"C{i}", "period_end": f"{month}-28", "bill_shock_pct": p}
+        {"customer_id": f"C{i}", "period_end": f"{month}-28", "bill_shock_pct": p,
+         "bill_shock_population": population}
         for i, p in enumerate(pcts)
     ]
 

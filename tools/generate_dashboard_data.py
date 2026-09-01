@@ -1448,16 +1448,61 @@ def _bootstrap_mean_interval(sample, seed_key):
     return (lo, hi)
 
 
+#: WHICH DEFINITION OF BILL SHOCK A PUBLISHED EVENT IS UNDER
+#: (`docs/market_research/what_bill_shock_is.md`; `saas.bill_generator.
+#: BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL`). `"bill"` -- standard credit -- is the ONLY
+#: population for whom the difference between two bills is the quantity the definition names.
+#: For `"payment"` (a level direct debit, ~74% of GB households and 70.8% of our own events) the
+#: bill is a statement that arrives and is filed, and the shock is a change in the amount
+#: COLLECTED, which this codebase cannot yet measure because the DD amount is not a modelled
+#: quantity. So its bill-to-bill difference is published UNDER ITS OWN NAME and explicitly not as
+#: a shock: deleting it would hide 70.8% of the record, and leaving it inside `avg_shock_pct` is
+#: the defect this split exists to end.
+SHOCK_DEFINITION_POPULATION = "bill"
+UNMEASURABLE_SHOCK_POPULATION = "payment"
+
+
+def _shock_stats(sample, seed_key):
+    """Mean/median/max/bound for one population's events in one month.
+
+    EMPTY IS `None`, NEVER `0.0`. A month with no event in this population has not been
+    measured at zero shock -- it has not been measured. `0.0` is what this field published
+    before the split and it reads as "measured, and no shock", which is an unobservable
+    turned into a published measured zero.
+    """
+    if not sample:
+        return {"n": 0, "avg_pct": None, "median_pct": None, "max_pct": None,
+                "ci95_low": None, "ci95_high": None}
+    lo, hi = _bootstrap_mean_interval(sample, seed_key)
+    return {
+        "n": len(sample),
+        "avg_pct": round(statistics.mean(sample) * 100, 1),
+        "median_pct": round(statistics.median(sample) * 100, 1),
+        "max_pct": round(max(sample) * 100, 1),
+        "ci95_low": round(lo * 100, 1) if lo is not None else None,
+        "ci95_high": round(hi * 100, 1) if hi is not None else None,
+    }
+
+
 def extract_monthly_ops(data):
     from collections import defaultdict as _dd
     shock_m = _dd(list)
+    # The same events partitioned by WHICH DEFINITION applies to the household, which is decided
+    # entirely by how it pays. Before 2026-09-01 these were averaged into one percentage across
+    # populations that experience different things -- the failure the director named as this
+    # project's most expensive recurring shape.
+    shock_m_by_pop = _dd(lambda: _dd(list))
     likely_seasonal_count = 0
     genuine_shock_count = 0
     for yr, yd in data.get("years", {}).items():
         for e in yd.get("bill_shock_events", []):
             m = e.get("period_end", "")[:7]
             if m:
-                shock_m[m].append(float(e.get("bill_shock_pct", 0)))
+                pct = float(e.get("bill_shock_pct", 0))
+                shock_m[m].append(pct)
+                # An event with no attribution is "unknown" -- its own value, never silently
+                # folded into either definition.
+                shock_m_by_pop[m][e.get("bill_shock_population") or "unknown"].append(pct)
             # Additive 2026-07-10 (docs/design/BILL_SHOCK_DEFINITION_FINDING.md):
             # split the raw MoM shock count into "likely just seasonal" (large
             # MoM, small YoY, prior month wasn't itself a shock) vs "genuine"
@@ -1486,19 +1531,42 @@ def extract_monthly_ops(data):
     for m in all_months:
         sh = shock_m.get(m, [])
         rt = ret_m.get(m, {"offers": 0, "retained": 0})
-        ci_lo, ci_hi = _bootstrap_mean_interval(sh, m)
+        by_pop = shock_m_by_pop.get(m, {})
+        pops = {
+            p: _shock_stats(by_pop.get(p, []), f"{m}::{p}")
+            for p in ("payment", "bill", "out_of_scope", "unknown")
+        }
+        # THE HEADLINE IS DEFINITION B ONLY. `avg_shock_pct` used to be the mean over every
+        # population at once; it is now the mean over the households the arithmetic is actually
+        # valid for. This does NOT flatter the figure -- the peak moves UP, from 315.6% (2016-08,
+        # mixed) to 465.3% (2017-02, definition B) -- because 2016-08 had no definition-B event
+        # in it at all. That the split makes the headline worse is the evidence it was not
+        # chosen for its answer.
+        b = pops[SHOCK_DEFINITION_POPULATION]
         rows.append({
             "month": m,
-            "shock_count": len(sh),
-            "avg_shock_pct": round(statistics.mean(sh) * 100, 1) if sh else 0.0,
+            "shock_count": b["n"],
+            "avg_shock_pct": b["avg_pct"],
             # The bound the sample size earns, per the standing rule. `shock_count`
             # alone was never it: a reader handed "315.6% over 5 events" still has
             # no way to tell that month from a typical one, and five of the six
             # worst surviving months carry fewer than 20 events.
-            "median_shock_pct": round(statistics.median(sh) * 100, 1) if sh else 0.0,
-            "avg_shock_pct_ci95_low": round(ci_lo * 100, 1) if ci_lo is not None else None,
-            "avg_shock_pct_ci95_high": round(ci_hi * 100, 1) if ci_hi is not None else None,
-            "max_shock_pct": round(max(sh) * 100, 1) if sh else 0.0,
+            "median_shock_pct": b["median_pct"],
+            "avg_shock_pct_ci95_low": b["ci95_low"],
+            "avg_shock_pct_ci95_high": b["ci95_high"],
+            "max_shock_pct": b["max_pct"],
+            # What the headline is a mean OVER, in the artefact rather than in a source comment.
+            "avg_shock_pct_definition": SHOCK_DEFINITION_POPULATION,
+            # Every population's own figures, so the 70.8% the headline no longer speaks for is
+            # visible rather than deleted. `payment` is a bill-to-bill difference for households
+            # who do not pay the bill: NOT a shock measure, and named so on the surface.
+            "shock_by_population": pops,
+            # Kept so a reader can see exactly what the pre-split series was, and so the size of
+            # the re-partition is checkable from the artefact alone rather than from this diff.
+            "mixed_all_population_avg_pct": (
+                round(statistics.mean(sh) * 100, 1) if sh else None
+            ),
+            "mixed_all_population_count": len(sh),
             "committee_interventions": comm_m.get(m, 0),
             "retention_offers": rt["offers"],
             "retained": rt["retained"],
@@ -1549,7 +1617,28 @@ def extract_monthly_ops(data):
             "bills already flagged as a bill shock (month-on-month increase >=20%, "
             "bill_shock_tracker.BILL_SHOCK_THRESHOLD) -- NOT all bills. The "
             "all-bills mean is financial.annual[].avg_bill_shock_pct and is a "
-            "different and much smaller number."
+            "different and much smaller number. SINCE 2026-09-01 it is ALSO restricted "
+            "to the 'bill' population only -- see avg_shock_pct_definition_note."
+        ),
+        # THE DEFINITION, on the surface, because a reader cannot infer it from a number.
+        "avg_shock_pct_definition_note": (
+            "Bill shock is TWO experiences in two populations, not one experience with "
+            "three causes (docs/market_research/what_bill_shock_is.md, sourced from Ofgem's "
+            "credit-balance and Direct Debit Market Compliance publications and SLC 27B/21BA). "
+            "Which one applies to a household is decided entirely by HOW IT PAYS. For standard "
+            "credit ('bill', ~13% of GB households) the shock IS the bill, and the difference "
+            "between two bills is the right quantity -- that is what avg_shock_pct now means, "
+            "and only that. For a level direct debit ('payment', ~74% of GB households and "
+            "70.8% of this book's events) the bill is a statement that arrives and is filed; "
+            "the shock is a material change in the amount COLLECTED, which this codebase "
+            "CANNOT YET MEASURE because the direct-debit amount is not a modelled quantity. "
+            "Its bill-to-bill difference is published under shock_by_population.payment and is "
+            "NOT a shock measure. Until 2026-09-01 these two were averaged into one percentage: "
+            "the worst month on record, 2016-08 at 315.6%, contained ZERO 'bill'-population "
+            "events and was therefore computed entirely from households the definition says the "
+            "bill does not shock. Prepayment ('out_of_scope', ~13% of GB households) has neither "
+            "a bill to be shocked by nor a direct debit to be changed; it is 0 here because this "
+            "world has no prepayment channel, which is a known gap and not a measured zero."
         ),
         "avg_shock_pct_bound_note": (
             "avg_shock_pct is a mean over a right-skewed distribution (whole-book "

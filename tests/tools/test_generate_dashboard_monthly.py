@@ -7,10 +7,17 @@ def _data(**overrides):
     base = {
         "years": {
             "2022": {
+                # `bill_shock_population` became load-bearing 2026-09-01: `avg_shock_pct` is
+                # a mean over the "bill" population only, so a fixture that does not say
+                # which population its events are in is not describing the headline. These
+                # are all "bill" so this file's subject -- the AGGREGATION -- is unchanged.
                 "bill_shock_events": [
-                    {"customer_id": "C1", "period_end": "2022-01-31", "bill_shock_pct": 0.8},
-                    {"customer_id": "C2", "period_end": "2022-01-31", "bill_shock_pct": 0.6},
-                    {"customer_id": "C3", "period_end": "2022-02-28", "bill_shock_pct": 1.1},
+                    {"customer_id": "C1", "period_end": "2022-01-31", "bill_shock_pct": 0.8,
+                     "bill_shock_population": "bill"},
+                    {"customer_id": "C2", "period_end": "2022-01-31", "bill_shock_pct": 0.6,
+                     "bill_shock_population": "bill"},
+                    {"customer_id": "C3", "period_end": "2022-02-28", "bill_shock_pct": 1.1,
+                     "bill_shock_population": "bill"},
                 ],
                 "committee_wake_ups": [
                     {"settlement_date": "2022-01-15", "treasury_gbp": 3000000},
@@ -120,10 +127,16 @@ def test_likely_seasonal_and_genuine_shock_counts_split():
 
 
 def test_shock_count_zero_when_no_shocks():
+    """2026-09-01: a month with no event publishes `None`, not `0.0`.
+
+    This assertion used to read `== 0.0`. It was changed deliberately, not to make a red
+    go green: `0.0` reads as "measured, and no shock", which turns an unobserved month
+    into a published measured zero. The count is still 0 -- that IS observed.
+    """
     r = extract_monthly_ops(_data())
     mar = next(m for m in r["monthly"] if m["month"] == "2022-03")
     assert mar["shock_count"] == 0
-    assert mar["avg_shock_pct"] == 0.0
+    assert mar["avg_shock_pct"] is None
 
 
 def test_monthly_is_list():
