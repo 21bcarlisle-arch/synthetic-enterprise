@@ -40,6 +40,7 @@ import json
 import subprocess
 from pathlib import Path
 
+from saas.bill_generator import UNKNOWN_BILL_SHOCK_POPULATION
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
@@ -533,6 +534,17 @@ def extract_report_data(run_output: dict) -> dict:
                 # confound. Consumers wanting only organic/market-driven
                 # shocks (e.g. a crisis-year comparison) should filter this.
                 "catchup_driven": bool(b.get("catchup_applied", False)),
+                # Additive 2026-09-01: WHICH DEFINITION OF BILL SHOCK THIS EVENT IS UNDER.
+                # `generate_bill` has attributed every bill since fc1c9a65c, and this reducer
+                # dropped the attribution on the floor -- 3,161 of 3,161 published events carried
+                # no population, so the one field that decides which definition applies was
+                # computed, written onto the bill, and then made unreachable to every published
+                # surface. Same shape as the two additive fields above it, one level up: a
+                # distinction that exists on `bills` and cannot be shown by anything downstream.
+                "payment_channel": b.get("payment_channel"),
+                "bill_shock_population": b.get(
+                    "bill_shock_population", UNKNOWN_BILL_SHOCK_POPULATION
+                ),
             }
             for b in shocked
             if b["bill_shock_pct"] >= 0.20
