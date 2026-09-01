@@ -1,43 +1,43 @@
 {
   "annotation": {
-    "checked_at": "2026-09-01T05:25:24Z",
+    "checked_at": "2026-09-01T05:53:26Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
     "nonblocking_reds_measured_on": {
-      "git_commit": "b17d86e3e",
+      "git_commit": "7568a321e",
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 53
+    "open_findings": 54
   },
   "last_verified": {
-    "generated_at": "2026-09-01T05:51:22Z",
-    "git_commit": "7568a321e",
+    "generated_at": "2026-09-01T06:20:16Z",
+    "git_commit": "6d80d4441",
     "population": {
       "accounts": 251,
       "bills": 10906,
       "total_revenue_gbp": 652074.42
     },
-    "run_id": "run_output_7568a321e_20260901T052625Z.json",
+    "run_id": "run_output_6d80d4441_20260901T055426Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-01T05:51:22Z"
+    "verified_at": "2026-09-01T06:20:16Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-01T05:51:22Z",
-    "git_commit": "7568a321e",
+    "generated_at": "2026-09-01T06:20:16Z",
+    "git_commit": "6d80d4441",
     "population": {
       "accounts": 251,
       "bills": 10906,
       "total_revenue_gbp": 652074.42
     },
-    "run_id": "run_output_7568a321e_20260901T052625Z.json",
+    "run_id": "run_output_6d80d4441_20260901T055426Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-01T05:51:22Z"
+    "verified_at": "2026-09-01T06:20:16Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-09-01T05:51:22Z"
+  "written_at": "2026-09-01T06:20:16Z"
 }
