@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-01T00:18:49Z",
+    "checked_at": "2026-09-01T01:44:34Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py::test_no_tree_scanning_test_passes_on_an_empty_population",
       "FAILED tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band",
@@ -8,27 +8,31 @@
       "FAILED tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py::test_no_undeclared_module_names_the_svt_drift_belief",
       "FAILED tests/background/test_doorbell_redaction.py::test_the_guard_is_wired_into_the_one_channel_he_reads",
       "FAILED tests/background/test_doorbell_redaction.py::test_the_full_text_stays_recoverable_in_the_mirror",
-      "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_publish_commits_a_genuine_stamp",
-      "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_refusal_is_the_guards_doing"
+      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
+      "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_publish_commits_a_genuine_stamp"
     ],
+    "nonblocking_reds_measured_on": {
+      "git_commit": "5f34dfe9c",
+      "tree_state": "working-tree"
+    },
     "nonblocking_reds_total": 57,
-    "open_findings": 48
+    "open_findings": 50
   },
   "last_verified": {
-    "generated_at": "2026-09-01T00:44:53Z",
-    "git_commit": "5f34dfe9c",
-    "run_id": "run_output_5f34dfe9c_20260901T001955Z.json",
-    "verified_at": "2026-09-01T00:44:53Z"
+    "generated_at": "2026-09-01T02:10:16Z",
+    "git_commit": "d114e39bb",
+    "run_id": "run_output_d114e39bb_20260901T014535Z.json",
+    "verified_at": "2026-09-01T02:10:16Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-01T00:44:53Z",
-    "git_commit": "5f34dfe9c",
-    "run_id": "run_output_5f34dfe9c_20260901T001955Z.json",
-    "verified_at": "2026-09-01T00:44:53Z"
+    "generated_at": "2026-09-01T02:10:16Z",
+    "git_commit": "d114e39bb",
+    "run_id": "run_output_d114e39bb_20260901T014535Z.json",
+    "verified_at": "2026-09-01T02:10:16Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-09-01T00:44:53Z"
+  "written_at": "2026-09-01T02:10:16Z"
 }
