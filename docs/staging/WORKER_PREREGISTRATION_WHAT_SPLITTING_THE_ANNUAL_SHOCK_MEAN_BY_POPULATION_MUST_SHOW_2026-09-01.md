@@ -124,3 +124,106 @@ weighted average of the two and P2 requires it to stay reconcilable.
 
 Re-render the dashboard from the same run output and grade P1–P7 in this file, beside the
 predictions, whichever way they fall.
+
+---
+
+# GRADED, 2026-09-01. THREE OF SEVEN REFUTED.
+
+Measured by re-rendering `extract_financial` over the same run
+(`run_output_98db658f2_20260901T155311Z.json`) that the live page was built from, and diffing
+against the live artefact field by field.
+
+## The after state
+
+| year | payment mean % (95% CI) | n | bill mean % (95% CI) | n | unknown n |
+|---|---:|---:|---:|---:|---:|
+| 2016 | 44.3 (30.7, 60.2) | 306 | 43.5 (25.4, 65.5) | 78 | 9 |
+| 2017 | 35.8 (23.7, 51.1) | 454 | **36.1** (18.4, 59.2) | 143 | 7 |
+| 2018 | 35.6 (25.5, 47.4) | 437 | **16.9** (11.8, 22.5) | 134 | 6 |
+| 2019 | 43.4 (30.0, 61.0) | 401 | **43.5** (24.5, 66.5) | 153 | 5 |
+| 2020 | 46.5 (33.1, 62.6) | 420 | 24.7 (16.4, 34.7) | 158 | 5 |
+| 2021 | 43.4 (31.7, 57.8) | 531 | 39.4 (28.5, 52.0) | 220 | 0 |
+| 2022 | **63.0** (48.6, 79.2) | 547 | 45.7 (30.6, 65.6) | 252 | 0 |
+| 2023 | 48.8 (38.1, 60.6) | 527 | 42.2 (29.3, 59.6) | 242 | 0 |
+| 2024 | 45.7 (34.8, 58.1) | 553 | 38.2 (26.2, 52.7) | 230 | 0 |
+| 2025 | 43.4 (26.2, 67.3) | 190 | **53.1** (26.3, 90.5) | 86 | 0 |
+
+`out_of_scope` is 0 in every year.
+
+## P1–P7
+
+**P1 — counts tie. CONFIRMED.** Every year's per-population counts sum to its computable-bill count
+(393, 604, 577, 559, 583, 751, 799, 769, 783, 276) and to 6,094 in total, and `mixed_all_population`
+carries the same n in every year.
+
+**P2 — the weighted mean reproduces the mixed figure. CONFIRMED, against the right target.** My
+first grader read the *published* `avg_bill_shock_pct` and reported a mismatch in eight years out of
+ten. The code was right and the grader was wrong: that field is `_fmt`'d to two decimals **of a
+fraction**, so it is only good to ±0.5 percentage points and cannot settle a reconciliation at this
+precision. Graded against the producer's own unrounded mean, all ten tie to within 0.03pp
+(2022: weighted 57.544, block 57.5, producer 57.519). **Recorded because it is the more useful half
+of this grading: the refutation I nearly filed was an artefact of the resolution of the field I was
+checking against, and limit 1 above — the fraction-under-a-`_pct`-name — is what caused it. A
+recorded limit bit within the hour.**
+
+**P3 — no existing published field moves. REFUTED ON ITS OWN WORDING, CONFIRMED ON EVERY NUMBER.**
+Exactly one field changed and it is not a number: `avg_bill_shock_pct_population`, whose prose I
+rewrote in the same commit because it was the misleading half of the defect — a note answering the
+population question in the wrong dimension reads as a field whose population question is settled.
+Every numeric field of `financial.annual` is byte-identical, and all of `monthly_ops` is
+byte-identical.
+
+**I am not reinterpreting the prediction to make it pass.** I wrote "byte-identical outside the new
+keys", the change is deliberate, and the prediction as written is refuted. What it protected — that
+this is a re-partition and not a re-computation — holds completely. Had I noticed the collision
+before filing, the honest fix was to write P3 about *figures* and name the note change as intended;
+having not, the honest fix is this paragraph. Leaving a misleading note standing to keep a
+prediction green would have been the control driving the code.
+
+**P4 — 2022 is the peak in both populations. REFUTED, and it is the finding I said it would be.**
+`payment` peaks in 2022 at 63.0%. **`bill` peaks in 2025 at 53.1%**, with 2022 second at 45.7%.
+
+**But the bound is what makes this readable, and it says: we cannot tell.** `bill`'s 2025 interval is
+(26.3, 90.5) on n=86 — it contains 2022's 45.7 comfortably, so the two years are not distinguishable
+and 2025 is a partial year besides. The same caution applies to the confirmed half: `payment`'s 2022
+interval is (48.6, 79.2) and 2023's point estimate is 48.8, *just inside it*. **So the correct
+statement is not "the populations peak in different years" — it is that this book cannot resolve a
+peak year in either population, and the pre-split single series was stating one by omission.**
+Publishing the interval is what turned a spurious ranking into an honest refusal, which is the whole
+argument for the bound.
+
+**P5 — `payment` exceeds `bill` in every year. REFUTED, in three: 2017 (36.1 vs 35.8), 2019 (43.5 vs
+43.4) and 2025 (53.1 vs 43.4).** The first two are fractions of a point and mean nothing; 2025 is
+visible and sits inside an interval that spans 64 points. **The whole-book 7.2-point gap is not a
+year-by-year fact**, and I should not have predicted it was — the whole-book figure is dominated by
+the years where the gap is large, which is exactly the aggregation error this exercise is about, made
+by me one level up.
+
+**The result that survives its own bound, and the reason the split earns its place:** in **2018**,
+`payment` reads 35.6 (25.5, 47.4) and `bill` reads 16.9 (11.8, 22.5) — **non-overlapping intervals.**
+One year in ten where the two populations are definitively not the same number. 2020 is nearly a
+second (33.1–62.6 against 16.4–34.7, overlapping only in a sliver). That is the split's evidence: not
+that the two means differ on average, which a mixed mean could always be accused of manufacturing,
+but that there is at least one year where no single figure can honestly stand for both.
+
+**P6 — `out_of_scope` publishes null, never 0.0. CONFIRMED**, in all ten years, and held by a control.
+
+**P7 — at least one year × population cell cannot bound itself. REFUTED.** No cell has `0 < n < 2`;
+the smallest non-empty cell is n=5. My reasoning was that 32 `unknown` bills spread over ten years
+must leave some year below two. It does not, because **they are not spread: `unknown` is 9, 7, 6, 5,
+5 across 2016–2020 and then exactly 0 from 2021 onward.** The unattributed bills are entirely a
+feature of the early book. That is a fact worth having and I got it by being wrong about it. The
+thin-cell branch is therefore unexercised by real data and is held by a control
+(`test_a_cell_too_thin_to_bound_itself_says_so_beside_a_real_count`) and by mutation M8, not by the
+artefact — said plainly so nobody reads the refusal path as demonstrated in production.
+
+## What this closes and what it does not
+
+**Closes:** no mean spanning both populations is published on this surface without its two component
+means, each with its own `n`, median, max and bootstrap interval, beside it. Both series — flagged
+and all-computable — are now split.
+
+**Does not close:** the 32 `unknown` bills are still unattributed; `avg_bill_shock_pct` is still a
+fraction under a `_pct` name; and the `payment` population's figure remains a bill-to-bill difference
+for households who do not pay the bill. The last of those is the director's named out-of-scope build
+and is the only one of the three that changes what the number *means* rather than what it is called.
