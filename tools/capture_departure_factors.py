@@ -25,13 +25,38 @@ DENOMINATOR C1b named as owed and nothing recorded). A reader whose subject is t
 them; a reader whose subject is renewal decisions is unaffected. See the note at the write for why
 they are not one file.
 
-AND WHEN THE RUN CARRIES NO RECORDER, NO SIBLING IS WRITTEN (2026-08-31, second pass). At this HEAD
-that is every run: `run_phase2b`'s return dict has 63 keys and `svt_decisions` is not one of them,
-because `067a00dfd` landed the SVT PRODUCT and not the SVT departure route -- `simulation/svt_product
-.py` states plainly that *"an account on this product cannot currently leave"* and that no roster
-assigns one. The 1,266-row siblings under `ladder_churn_factors*` came from a working tree carrying
-another lane's uncommitted roll and recorder; their producer is not in git. Finding:
-`docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`.
+AND WHEN THE RUN CARRIES NO RECORDER, NO SIBLING IS WRITTEN (2026-08-31, second pass). That branch
+is still live and still the repair -- see `emit_svt_sibling` -- but the sentence that used to stand
+here, *"at this HEAD that is every run"*, IS NO LONGER TRUE and this note is what a reader consults
+before deciding whether re-capturing is worth a ten-minute run. `run_phase2b` now carries the
+recorder: `_svt_decisions` is built and returned under the `svt_decisions` key. It landed at
+`6db30a350`, whose headline claim is about the SVT belief telling two households apart -- which is
+why a finding filed one lane over on 2026-09-01 could still call the recorder outstanding in good
+faith, and why the correction is dated here rather than silently applied.
+
+WHAT THAT CHANGES FOR A READER OF THE COMMITTED ARTEFACTS, WHICH IS THE PART THAT BITES. Every SVT
+sibling committed before 2026-09-01 -- the 1,266-row files under `ladder_churn_factors*` -- came
+from a working tree carrying another lane's uncommitted roll and recorder, so their producer is in
+no commit, and their renewal table is a DIFFERENT RUN (144 renewal decisions over 68 accounts
+against 1,266 SVT decisions over 116 accounts, only 53 shared). A capture taken from this HEAD is
+the first whose two files describe ONE RUN. Do not difference a cell across the two: that measures
+the population, not the hazard.
+
+BUT "ONE RUN" IS NOT "IN GIT", AND THE SECOND HALF OF THAT REPAIR IS STILL OWED (2026-09-01, third
+pass). The RECORDER is committed at `6db30a350`. The ROLL that puts an account on the SVT product
+so the recorder has anything to record is NOT: at this HEAD `simulation/svt_product.py` still says
+in its own docstring that *"no roster writes that"*, and the C1b passive roll that does write it --
+`rolls_active_renewal(...)` -> `build_svt_schedule(...)` in `build_renewal_schedule` -- is 56
+uncommitted lines in `simulation/renewals.py`, in no commit and not on `origin/main`. So whether
+this tool writes a populated sibling or an empty one is decided by the WORKING TREE, not by the
+commit: run it on a clean checkout of this HEAD and `emit_svt_sibling` prints `THE SVT RECORDER RAN
+AND RECORDED NOTHING`. Record the tree state you ran on; do not read a populated sibling as evidence
+that the route is in git. Finding:
+`docs/staging/done/WORKER_FINDING_THE_SVT_RECORDER_IS_IN_GIT_AND_THE_ROLL_THAT_FILLS_IT_IS_NOT_2026-09-01.md`.
+
+Findings on the foreign artefact:
+`docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`,
+`docs/staging/WORKER_FINDING_A_FOREIGN_SVT_SIBLING_IS_WHAT_MAKES_THE_ACCOUNT_DENOMINATOR_CONTROL_PASS_2026-08-31.md`.
 
 Usage:  python3 -m tools.capture_departure_factors [output_path]
 """
