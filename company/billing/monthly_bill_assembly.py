@@ -48,6 +48,7 @@ IS.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
@@ -314,6 +315,7 @@ def build_monthly_bills(
     read_feed: ReadArrivalFeed,
     churned_ids: set[str] | None = None,
     read_events_out: list | None = None,
+    payment_channel_feed: Callable[[dict], str | None] | None = None,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -372,6 +374,23 @@ def build_monthly_bills(
     `simulation.meter_reads.meter_read_log_from_events`. Nothing about the
     bills changes when it is passed; it is a pure observation of work already
     done here, which is why the events (not the bill dicts) carry it.
+
+    `payment_channel_feed` (2026-09-01): how each account pays — "direct_debit" or
+    "standard_credit", or None where no domestic answer exists. It decides WHICH of the two
+    published definitions of bill shock applies to that household
+    (`docs/market_research/what_bill_shock_is.md`), and it therefore has to reach
+    `saas.bill_generator.generate_bill`, which until now was the one organ never told.
+
+    IT IS SUPPLIED BY THE CALLER FOR THE SAME REASON `read_feed` IS. A supplier does not decide
+    how a customer pays it any more than it decides whether a meter read arrives; it observes both.
+    So the company cannot import `simulation.household_segments.payment_channel_for_customer` — it
+    takes a feed, keyed on the supply-book record this function already resolved, exactly as it
+    already takes `read_feed.meter_type_for(customer_data)`. The wall permits the FACT (a supplier
+    holds its own customers' mandates) while refusing the route.
+
+    Omitting it leaves every bill's `bill_shock_population` at "unknown", which is what it was
+    before this argument existed. The shock arithmetic is identical either way — this argument adds
+    an attribution, not a calculation.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -386,6 +405,9 @@ def build_monthly_bills(
         contract_type = customer_data.get("contract_type", "fixed_1yr")
         segment = customer_data.get("segment", "resi")
         commodity = customer_data.get("commodity", "electricity")
+        payment_channel = (
+            payment_channel_feed(customer_data) if payment_channel_feed is not None else None
+        )
         # D3 step 1 (docs/design/maturity_map.yaml "Estimated billing &
         # catch-up rebilling cycle"): decide per bill whether a real read
         # arrived or the bill is ESTIMATED, and when estimated bill the
@@ -417,7 +439,7 @@ def build_monthly_bills(
             # and standing charge an estimated bill reuses.
             true_bill = generate_bill(
                 customer_id, months[month], contract_type,
-                previous_bill_total_gbp, segment, commodity,
+                previous_bill_total_gbp, segment, commodity, payment_channel,
             )
             event = read_feed.read_for(
                 customer_id, true_bill["period_end"], meter_type,
@@ -518,7 +540,7 @@ def build_monthly_bills(
                     )
                     estimated_bill = generate_bill(
                         customer_id, scaled, contract_type,
-                        previous_bill_total_gbp, segment, commodity,
+                        previous_bill_total_gbp, segment, commodity, payment_channel,
                     )
                 else:
                     # Degenerate zero-metered month: no real per-MWh rate to

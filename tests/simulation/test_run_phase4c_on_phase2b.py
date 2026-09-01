@@ -73,9 +73,14 @@ def test_build_monthly_bills_groups_by_customer_and_month():
 
 
 def test_build_monthly_bills_carries_previous_bill_total_for_shock(force_actual_reads):
+    # 300/3000 kWh rather than the 10/100 this used until 2026-09-01. `BILL_SHOCK_BASELINE_FLOOR_GBP`
+    # (£5, landed `41cdd5b51`) refuses to divide by a baseline below £5, and a 10 kWh month bills
+    # about £3 — so this test asserted a ratio the code correctly declines to compute, and had been
+    # red at HEAD ever since in a file the publish suite `--ignore`s. The 10× jump, and everything
+    # this test claims about it, is unchanged; only the scale is.
     records = [
-        make_record("C1", "2023-01-01", 10.0),   # small bill
-        make_record("C1", "2023-02-01", 100.0),  # 10× jump — big shock
+        make_record("C1", "2023-01-01", 300.0),   # small bill, but above the baseline floor
+        make_record("C1", "2023-02-01", 3000.0),  # 10× jump — big shock
     ]
     bills = build_monthly_bills(records)
 
@@ -319,9 +324,14 @@ def test_bill_shock_yoy_pct_computed_when_year_ago_exists(force_actual_reads):
 def test_bill_shock_likely_seasonal_true_for_genuine_repeating_pattern(force_actual_reads):
     """July is a real, repeating seasonal peak both years -- large MoM
     (vs June), small YoY (vs last July), and June itself was never flagged
-    -- this SHOULD be flagged likely_seasonal."""
-    year1 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
-    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    -- this SHOULD be flagged likely_seasonal.
+
+    300/1500 kWh rather than 10/50 for the reason given in
+    `test_build_monthly_bills_carries_previous_bill_total_for_shock`: the £5 baseline floor refuses
+    a ratio against a ~£3 bill, so this went red when the floor landed. The 5× seasonal peak and
+    every assertion below are unchanged."""
+    year1 = [300, 300, 300, 300, 300, 300, 1500, 300, 300, 300, 300, 300]
+    year2 = [300, 300, 300, 300, 300, 300, 1500, 300, 300, 300, 300, 300]
     records = consecutive_monthly_records("C1", 2019, year1 + year2)
     bills = bills_by_month(build_monthly_bills(records), "C1")
     july_y2 = bills["2020-07"]
@@ -332,9 +342,12 @@ def test_bill_shock_likely_seasonal_true_for_genuine_repeating_pattern(force_act
 
 def test_bill_shock_likely_seasonal_false_for_genuine_one_off_anomaly(force_actual_reads):
     """July Y2 spikes with no precedent in July Y1 -- large MoM AND large
-    YoY -- a real shock, must NOT be labelled seasonal."""
-    year1 = [10] * 12
-    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    YoY -- a real shock, must NOT be labelled seasonal.
+
+    Scaled off 10/50 for the £5 baseline floor -- see
+    `test_build_monthly_bills_carries_previous_bill_total_for_shock`."""
+    year1 = [300] * 12
+    year2 = [300, 300, 300, 300, 300, 300, 1500, 300, 300, 300, 300, 300]
     records = consecutive_monthly_records("C1", 2019, year1 + year2)
     bills = bills_by_month(build_monthly_bills(records), "C1")
     july_y2 = bills["2020-07"]
@@ -350,9 +363,12 @@ def test_bill_shock_likely_seasonal_false_for_shock_aftermath_month(force_actual
     July's spike) and its YoY is small (August is normal both years) --
     without the prior-month-shock exclusion, August would be WRONGLY
     labelled likely_seasonal, when the real cause is July's anomaly, not
-    August's own seasonal pattern."""
-    year1 = [10] * 12
-    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    August's own seasonal pattern.
+
+    Scaled off 10/50 for the £5 baseline floor -- see
+    `test_build_monthly_bills_carries_previous_bill_total_for_shock`."""
+    year1 = [300] * 12
+    year2 = [300, 300, 300, 300, 300, 300, 1500, 300, 300, 300, 300, 300]
     records = consecutive_monthly_records("C1", 2019, year1 + year2)
     bills = bills_by_month(build_monthly_bills(records), "C1")
     august_y2 = bills["2020-08"]
@@ -442,7 +458,15 @@ def test_actual_read_bills_are_byte_identical_to_pre_d3(force_actual_reads):
         old_bills.append(ob)
         prev = ob["total_amount_gbp"]
 
-    added_keys = {"billing_basis", "bill_shock_yoy_pct", "bill_shock_likely_seasonal"}
+    # `payment_channel`/`bill_shock_population` join the additive set (2026-09-01): the world path
+    # now hands the company a payment-channel feed and the reconstruction below deliberately does
+    # not, so these two differ BY CONSTRUCTION. They are an attribution, not a figure — and the
+    # money fields, `bill_shock_pct` and `clarity_score` all stay in the compared set, which is
+    # what makes this test the check that the channel changed no arithmetic.
+    added_keys = {
+        "billing_basis", "bill_shock_yoy_pct", "bill_shock_likely_seasonal",
+        "payment_channel", "bill_shock_population",
+    }
     assert len(new_bills) == len(old_bills)
     for nb, ob in zip(new_bills, old_bills):
         nb_core = {k: v for k, v in nb.items() if k not in added_keys}

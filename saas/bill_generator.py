@@ -65,6 +65,40 @@ BILL_SHOCK_PENALTY_FACTOR = 0.5
 #: meaningful comparison exists, and None is already what a first bill carries.
 BILL_SHOCK_BASELINE_FLOOR_GBP = 5.0
 
+#: WHICH DEFINITION OF BILL SHOCK APPLIES IS DECIDED ENTIRELY BY HOW THE HOUSEHOLD PAYS
+#: (`docs/market_research/what_bill_shock_is.md`, 2026-09-01, sourced from Ofgem's credit-balance
+#: and Direct Debit Market Compliance publications and SLC 27B/21BA). There are TWO experiences in
+#: two populations, not one experience with three causes:
+#:
+#:   "payment"      — a level direct debit. The bill is a statement that arrives and is filed; the
+#:                    shock is a MATERIAL CHANGE IN THE AMOUNT COLLECTED (±5% is the SLC 27B review
+#:                    trigger; >100% was Ofgem's 2022 escalation cut), or a balance the household
+#:                    does not understand. ~74% of GB domestic households.
+#:   "bill"         — standard credit, and variable direct debit. The shock IS the bill. ~13%.
+#:   "out_of_scope" — prepayment. No bill to be shocked by and no direct debit to be changed; the
+#:                    equivalent experience is an unaffordable top-up or self-disconnection, a
+#:                    different measurement with a different remedy. ~13%.
+#:
+#: THE "prepayment" BRANCH IS UNREACHABLE IN THIS WORLD TODAY and is written anyway.
+#: `simulation.household_segments.PaymentChannel` has two members, so our book is 0% prepayment
+#: against a published ~13%; the non-DD remainder is folded into standard credit. That fold is a
+#: recorded simplification made for a DIFFERENT question (`dd_attribution_confound_w2_10.md`, DD
+#: discount confounding) and it is the wrong one here, because bill shock is DEFINED by payment
+#: method rather than merely correlated with it. Naming the branch is not the repair — adding the
+#: channel or excluding those households explicitly is, and it is owed separately. It is written
+#: because a definition with no place to put prepayment is exactly how prepayment got folded into
+#: standard credit in the first place.
+BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL = {
+    "direct_debit": "payment",
+    "standard_credit": "bill",
+    "prepayment": "out_of_scope",
+}
+
+#: The value when NO channel was supplied. Its own value, never one of the two real ones: a caller
+#: that did not say how the household pays has not told us which definition applies, and defaulting
+#: that to either would publish an unmeasured attribution as a measured one.
+UNKNOWN_BILL_SHOCK_POPULATION = "unknown"
+
 MIN_CLARITY_SCORE = 0.0
 MAX_CLARITY_SCORE = 1.0
 
@@ -96,6 +130,7 @@ def generate_bill(
     previous_bill_total_gbp: float | None = None,
     segment: str = "resi",
     commodity: str = "electricity",
+    payment_channel: str | None = None,
 ) -> dict:
     """Aggregate one customer's `settlement_records` for one billing month.
 
@@ -105,7 +140,21 @@ def generate_bill(
       {customer_id, period_start, period_end, total_consumption_kwh,
        commodity_amount_gbp, non_commodity_amount_gbp, standing_charge_gbp,
        vat_gbp, total_amount_gbp, average_unit_rate_gbp_per_mwh,
-       clarity_score, bill_shock_pct, segment, commodity}
+       clarity_score, bill_shock_pct, payment_channel,
+       bill_shock_population, segment, commodity}
+
+    `payment_channel` (2026-09-01) is how this household pays — the one attribute that decides
+    WHICH DEFINITION of bill shock applies to it (`BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL`). A
+    real supplier knows it: it set the mandate up with the customer. It is passed IN rather than
+    looked up, because this is company/SaaS-side code and the channel lives world-side — the same
+    injection shape `saas/opex_ledger.py` already uses for this same field.
+
+    THIS ARGUMENT CHANGES NO ARITHMETIC. `bill_shock_pct` is still the difference between two bills
+    for every household including the ~70% for whom the bill is not what they pay. The bill now
+    SAYS which definition it should have been measured under; making the measurement follow the
+    definition is a separate change that moves published figures, pre-registered in
+    `WORKER_PREREGISTRATION_WHAT_TELLING_THE_SHOCK_MEASURE_HOW_THE_HOUSEHOLD_PAYS_MUST_SHOW_
+    2026-09-01`. This step exists so that split can be attributed when it happens.
 
     Raises ValueError if `settlement_records` is empty.
     """
@@ -250,6 +299,13 @@ def generate_bill(
         #: ratio is None (a first bill has nothing to be shocked against), so the pair is either
         #: both-present or both-absent and a reader never has to guess which.
         "bill_shock_baseline_gbp": bill_shock_baseline_gbp,
+        #: How the household pays, and therefore which of the two definitions of bill shock its
+        #: `bill_shock_pct` should be read under. `None`/"unknown" exactly when the caller did not
+        #: say — see UNKNOWN_BILL_SHOCK_POPULATION for why that is not silently one of the two.
+        "payment_channel": payment_channel,
+        "bill_shock_population": BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL.get(
+            payment_channel, UNKNOWN_BILL_SHOCK_POPULATION
+        ),
         "segment": segment,
         "commodity": commodity,
         # Calculation-transparency breakdown (2026-07-10, director page comment

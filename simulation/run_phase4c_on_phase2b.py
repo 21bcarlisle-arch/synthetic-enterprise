@@ -124,6 +124,37 @@ def _get_all_customers() -> list[dict]:
 # REPORT data is persisted is a reporting concern, not the run module's.
 
 
+def simulated_payment_channel(customer_data: dict) -> str | None:
+    """How this account pays — the world's answer, handed to the company's billing.
+
+    THE DOMESTIC DEFINITION OF BILL SHOCK IS DECIDED BY PAYMENT METHOD
+    (`docs/market_research/what_bill_shock_is.md`), and this is the feed that carries it to
+    `saas.bill_generator.generate_bill`. Same shape and same reason as `SimulatedReadFeed`: the
+    supplier observes how it is paid, it does not decide it, so the answer comes from this side.
+
+    Keyed on `(customer_id, commodity)` because `payment_channel_for_customer` is fuel-specific by
+    construction (72% DD on electricity, 75% on gas) and this codebase bills electricity and gas as
+    two independent accounts — the identical keying `simulation/arrears_engine.py` and
+    `simulation/final_bill_outcome.py` already use, so the four organs cannot disagree about how
+    one household pays.
+
+    RETURNS None FOR NON-RESI, DELIBERATELY. The two published populations are DOMESTIC ones; an
+    SME or I&C account pays by bacs/chaps and is not a household with a level direct debit or a
+    bill that shocks it. Handing it either domestic label would be an attribution nobody measured,
+    so it gets `bill_shock_population == "unknown"`, which is the true statement.
+    """
+    if customer_data is None or customer_data.get("segment") != "resi":
+        return None
+    customer_id = customer_data.get("customer_id")
+    if not customer_id:
+        return None
+    from simulation.household_segments import payment_channel_for_customer
+
+    return payment_channel_for_customer(
+        customer_id, customer_data.get("commodity", "electricity")
+    ).value
+
+
 def build_monthly_bills(
     all_records: list[dict],
     churned_ids: set[str] | None = None,
@@ -148,10 +179,15 @@ def build_monthly_bills(
     the bills were actually assembled from, one per bill in bills order. The
     published meter-read log is projected from those events rather than
     re-derived from the seed -- see `main()` below.
+
+    `payment_channel_feed` (2026-09-01): `simulated_payment_channel` above — the world's answer to
+    "how does this household pay us", which is what decides which definition of bill shock applies
+    to it. It changes no bill arithmetic; it attributes one.
     """
     return assemble_monthly_bills(
         all_records, SimulatedReadFeed(), churned_ids=churned_ids,
         read_events_out=read_events_out,
+        payment_channel_feed=simulated_payment_channel,
     )
 
 
