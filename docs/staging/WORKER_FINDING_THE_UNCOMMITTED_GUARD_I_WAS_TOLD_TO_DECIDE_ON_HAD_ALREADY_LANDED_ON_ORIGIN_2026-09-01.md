@@ -109,3 +109,155 @@ than against local `HEAD`, **I expect a material fraction — I will say more th
 resolve to "already landed upstream", and I expect the whole 19 to be reported again unchanged on
 the next tick if they are not.** I have not checked, and I am writing the number down first so the
 result can refute it.
+
+---
+
+## The prediction, graded — 2026-09-01, by the tick that drew the Lane 0 item
+
+**REFUTED, and not narrowly.** The prediction was *"more than a quarter"* of the 19
+`uncommitted_and_orphaned_work` instances resolve to "already landed upstream" when re-derived
+against `origin/main` instead of local `HEAD`. The threshold is 5 of 19. The answer is **0 of 19**.
+
+Re-derivation, mechanical rather than eyeballed: for each of the 19 instance documents listed in
+`docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`, extract every source
+path it names, and ask of each whether it exists on `origin/main` and *not* at local `HEAD`.
+
+| | |
+|---|---|
+| instances | **19** |
+| instances naming at least one source path | 19 |
+| instances with an artefact present upstream and absent at HEAD | **0** |
+| instances naming a path whose upstream *content* differs from HEAD | 9 |
+
+The 9 are not the prediction's claim and must not be read as a partial score. "The trunk has also
+edited this file" is true of most files under active work in both directions; "the thing this
+finding says is uncommitted is in fact committed upstream" is what was predicted, and it holds for
+none of them.
+
+**Why it was wrong, which is the part worth keeping.** The divergence begins at `178bf5a56`,
+2026-08-31 14:49. All 19 instances are dated 2026-08-09 … 2026-08-29 — every one of them predates
+the fork, so every artefact they name is on both sides of it. The prediction generalised from a
+sample of one (`22aaaa494`, the `production_surface_guard` widening) to a population whose members
+could not, by date, contain the artefact. That the one instance was vivid and self-inflicted is
+exactly why it read as representative. **A finding that discovers a mechanism has not thereby
+measured its extent, and the fact that its own case is the newest thing in the class was checkable
+before the number was written down.**
+
+## What the mechanism *does* account for, established the same pass
+
+The prediction pointed at the wrong population, not at a wrong mechanism. The mechanism is live and
+was costing something measurable on the day it was written down:
+
+- **The four paged reds in `tests/background/test_autonomous_runner.py`** — RED across two
+  consecutive operational-layer signals, carried as "known" — are this artefact exactly.
+  `background/autonomous_runner.py` and its test in the working tree are **byte-identical to
+  `origin/main`** (`git diff origin/main --` on both paths is empty); they landed upstream in
+  `7a995e2b1`. Two of the four named tests —
+  `test_a_verified_limit_carries_the_line_it_read` and `test_the_skip_is_logged_with_its_evidence` —
+  **do not exist at local `HEAD` at all**, so the publish gate, which grades a checkout of HEAD,
+  reports them as reds. In the working tree all five collect and pass. They are not real, they were
+  never anyone's uncommitted work, and they cannot be cleared by any edit — only by the
+  fast-forward.
+- **21 of the 245 files** the tree-divergence measure was naming as squatting are byte-identical to
+  `origin/main`, measured this pass with the leg below.
+
+## The leg, and it is proven able to fail
+
+`background/tree_divergence` is the surface that answers "how much uncommitted work is in this
+tree" — the daily naming, the publish-path log line, `docs/observability/tree_divergence.json`. It
+measured against `HEAD` and said nothing about what `HEAD` is. It now:
+
+- reads `origin/main...HEAD` and **refuses the count** when the base cannot be resolved — the same
+  fail-closed shape the module already applies to an unanswerable `git status`, for the same
+  reason: a count that cannot tell "not committed yet" from "committed, and this base is stale" is
+  an unavailable measure, not a clean bill;
+- partitions the count, publishing `already_on_origin` — the files whose working-tree bytes are
+  identical to the trunk's — and names the stale base in `breaches()` **whether or not** the file
+  count breaches, because the reader who goes and re-decides a landed decision is reading a *small*
+  number.
+
+Compared by **hash, not by `git diff`**: `git diff origin/main -- <path>` ignores an untracked path
+and returns "no difference", so the commonest shape of this artefact — added upstream, absent from
+the stale HEAD — would be counted as already-landed with nothing having been compared.
+
+The first version of this leg was REFUSED by the gate, and the refusal was right. It treated a
+repo with no `origin/main` at all as unreadable, so it refused the count inside the publish gate's
+own archive checkout — which has no remote — and `KeyError`'d an existing consumer. That is a
+control whose scope is wider than its claim: there is no trunk there to be stale against. It now
+separates three answers, and only the third is a refusal: the trunk read; **no** trunk in this repo
+(reported as `no_remote_base`, never as `behind: 0`, which would read as up to date); and the trunk
+present but unreadable, which is the refusal.
+
+Mutation-proven, five mutants, each red on the test that names its defect and green elsewhere
+(run in an isolated worktree so no other lane saw a manufactured red):
+
+| mutant | red |
+|---|---|
+| unreadable base falls back to `{behind: 0}` | `test_a_base_that_exists_but_cannot_be_read_refuses_the_count` |
+| a missing remote reported as `behind: 0` | `test_a_checkout_with_no_trunk_at_all_still_reports_its_count` |
+| `paths_already_on_origin` always `[]` | the identical-to-trunk test, and the untracked test |
+| stale-base sentence keyed to the count breach | `test_the_stale_base_is_named_even_when_the_count_is_under_the_threshold` |
+| `git diff` instead of hashing | `test_an_untracked_path_that_is_tracked_upstream_is_compared_not_skipped` |
+
+Live output on the shared tree this pass:
+
+```
+tree divergence: 245 source file(s) vs HEAD ... — HEAD is 20 behind / 16 ahead of origin/main,
+                 21 of the 245 already on the trunk
+  BREACH: HEAD is 20 commit(s) behind origin/main (and 16 ahead), so this count is measured
+          against a stale base: 21 of the 245 are byte-identical to the trunk and are not
+          uncommitted work
+```
+
+## The orphan-ratchet decision was already taken, and the direction's premise for it is false
+
+The Lane 0 item said the publish is wedged by the orphan-ratchet refusing
+`tools.promote_worktree_landing`, and asked for a decision between wiring and freezing. Neither is
+owed:
+
+- **It is already frozen, on both sides.** `tools.promote_worktree_landing` is in
+  `docs/design/orphan_baseline.json` at local `HEAD` (`0bc78cf14`) *and* at `origin/main`. The
+  ratchet run this pass reports `new_orphans: []`, `orphans now: 379 | baseline: 380`, **rc=0**. It
+  is not refusing anything and is not what is wedging the publish. (It does report one baseline
+  orphan now wired — `tools.wait_for` — i.e. the floor can be lowered, which is the opposite
+  problem.)
+- **The stated justification for wiring it is not true.** The direction says
+  `background/seat-executor.service` "invokes it as a subprocess the ratchet's import graph cannot
+  follow". The unit's only `Exec` line is `ExecStart=/usr/bin/python3 -m background.seat_executor
+  --once`. Every reference to `promote_worktree_landing` in `seat_executor.py` is prose: a module
+  docstring, a comment, and step 2 of the `CHARTER` **prompt string** handed to an agent. No
+  committed code runs it. The ratchet's import graph is not failing to follow a subprocess edge —
+  there is no subprocess edge.
+
+So the honest reading is a third thing the ratchet's grammar cannot say: the module is neither
+wired nor dormant, it is **run by an agent under written instruction**. Freezing it records
+"deliberately dormant", which is false; wiring the charter string as an edge would make every
+module merely *named* in a prompt read as called, which is the false-caller defect already filed.
+The freeze stands because it is what is committed and re-deciding it changes nothing that runs;
+the mislabel is recorded here rather than corrected, because the correction worth making is to the
+ratchet's vocabulary and that is not this item.
+
+## The reconciliation has no sanctioned route, and that is the finding
+
+I did not make the histories one, and it is not a matter of care or time. Measured this pass:
+`origin/main...HEAD` = **20 behind / 16 ahead**, merge base `178bf5a56` (2026-08-31 14:49).
+
+- `tools/promote_worktree_landing._refuse_if_not_fast_forward` promotes **only** a fast-forward,
+  correctly and by design — "never `--force`, ever".
+- `tools/surgical_land`'s receipt names the **parent sha and the result tree**, and `--verify`
+  falsifies on either. So a rebase of the 16 local commits onto the trunk falsifies all 15 of their
+  receipts, and `_refuse_if_ungated` — which checks *every* commit a push would add — then refuses
+  the lot.
+
+Fast-forward is impossible while local is ahead; rebase destroys the receipts that make promotion
+legal. **The moment the shared tree makes one local commit while an unattended writer pushes to
+`origin`, the two histories can never be reunited by any route this project sanctions.** That is
+why the fork only ever grows, and it is not a tidy-up defect — it is a hole in the route that was
+landed the same day the executor was armed.
+
+The one shape that survives both constraints is a **merge commit**: it leaves every existing
+commit's parent and tree untouched, so all 15 receipts still verify. It is refused today only
+because the merge commit itself carries no receipt. The repair is therefore in
+`_refuse_if_ungated` — an integration commit whose own tree is the gated result — and it is a
+change to the promotion route, which wants its own turn rather than being improvised at the end of
+this one. **Filed, named, not attempted.**

@@ -8,6 +8,8 @@ publish.
 """
 from __future__ import annotations
 
+import subprocess
+
 from background import tree_divergence as td
 
 
@@ -403,3 +405,134 @@ def test_an_ordinary_breach_still_goes_to_the_digest(monkeypatch):
     msg, topic_class = sent[0]
     assert topic_class == notification_digest.DIVERGENCE, "an ordinary squat must stay batched"
     assert "OVER]" not in msg, "the ordinary case must not borrow the severe prefix"
+
+
+# ── the base the count is measured against ───────────────────────────────────────────────────
+#
+# `git status` answers against local HEAD. When HEAD is behind `origin/main`, work that reached
+# the trunk renders here as somebody's uncommitted draft, and the two have opposite repairs.
+# Measured 2026-09-01 on the shared tree: HEAD 20 behind / 16 ahead, and 21 of the 245 files
+# this measure was calling squatters were byte-identical to `origin/main`.
+
+
+def _git(root):
+    def git(*a):
+        return subprocess.run(["git", *a], cwd=str(root), capture_output=True,
+                              text=True, check=True)
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    return git
+
+
+def _repo_with_a_stale_base(tmp_path):
+    """A repo whose HEAD is one commit behind `origin/main`, with the upstream copy of a source
+    file sitting in the working tree. That file is "modified vs HEAD" and IS the trunk's."""
+    git = _git(tmp_path)
+    src = tmp_path / "tools" / "thing.py"
+    src.parent.mkdir(parents=True)
+    src.write_text("v1\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    base = git("rev-parse", "HEAD").stdout.strip()
+    src.write_text("v2-upstream\n")
+    git("add", "-A")
+    git("commit", "-qm", "upstream")
+    git("update-ref", "refs/remotes/origin/main", git("rev-parse", "HEAD").stdout.strip())
+    git("reset", "-q", "--hard", base)
+    src.write_text("v2-upstream\n")          # the trunk's bytes, on a HEAD that predates them
+    return tmp_path
+
+
+def test_a_file_identical_to_the_trunk_is_not_reported_as_uncommitted_work(tmp_path):
+    """THE DEFECT, NAMED. `background/autonomous_runner.py` was byte-identical to `origin/main`
+    and paged four reds through two consecutive operational-layer signals as uncommitted work;
+    two of those four tests do not exist at local HEAD at all. The measure must be able to say
+    which of its own count is that artefact."""
+    m = td.measure(project_dir=_repo_with_a_stale_base(tmp_path))
+    assert not m.get("unavailable"), m
+    assert "tools/thing.py" in (m["already_on_origin_paths"] or []), m
+    assert m["already_on_origin"] == 1, m
+    assert m["total_files"] == 1, "precondition: git status still counts it"
+    assert any("already on the trunk" in b or "byte-identical to the trunk" in b
+               for b in td.breaches(m)), td.breaches(m)
+
+
+def test_the_stale_base_is_named_even_when_the_count_is_under_the_threshold(tmp_path):
+    """The reader who goes and 'finishes' a landed decision is reading a SMALL count. Keying
+    this sentence to the file-count breach would make it silent in exactly that case."""
+    m = td.measure(project_dir=_repo_with_a_stale_base(tmp_path))
+    assert m["total_files"] <= td.FILE_COUNT_THRESHOLD, "precondition: under the file line"
+    assert m["base"] == {"behind": 1, "ahead": 0}, m.get("base")
+    assert any("behind origin/main" in b for b in td.breaches(m)), td.breaches(m)
+
+
+def test_a_base_that_exists_but_cannot_be_read_refuses_the_count(tmp_path):
+    """R15's third killer, closed the same way this module already closed it for `git status`.
+    The ref is there, so this is not the no-remote case; git cannot answer against it, so the
+    distance to the trunk is unknown and a confident count would be measured against nothing."""
+    git = _git(tmp_path)
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "thing.py").write_text("x\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    git("update-ref", "refs/remotes/origin/main", git("rev-parse", "HEAD").stdout.strip())
+    # The trunk is there; HEAD is not resolvable, so the DISTANCE between them is unknown.
+    # An unborn HEAD is the reachable shape of that: `git status` answers perfectly well, and
+    # `rev-list origin/main...HEAD` cannot.
+    git("checkout", "-q", "--orphan", "detached-and-unborn")
+
+    assert td.changed_paths(tmp_path) == ["tools/thing.py"], "precondition: git status answers"
+    assert td._base_state(tmp_path)[0] is None, "precondition: the base is unreadable, not absent"
+    m = td.measure(project_dir=tmp_path)
+    assert m.get("unavailable") is True, m
+    assert "base" in m["unavailable_reason"], m["unavailable_reason"]
+    assert "total_files" not in m, "an unavailable measure must omit the count, never zero it"
+    assert td.breaches(m), "an unmeasurable base is its own breach"
+
+
+def test_a_checkout_with_no_trunk_at_all_still_reports_its_count(tmp_path):
+    """SCOPE, BOTH WAYS. The publish gate archives HEAD into a repo with no remote; refusing
+    there would red every consumer over a base that does not exist to be stale. It reports the
+    count -- and says `no_remote_base` rather than `behind: 0`, which would read as up to date."""
+    git = _git(tmp_path)
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "thing.py").write_text("x\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    (tmp_path / "tools" / "thing.py").write_text("y\n")
+
+    m = td.measure(project_dir=tmp_path)
+    assert not m.get("unavailable"), m
+    assert m["total_files"] == 1, m
+    assert m["base"] == {"no_remote_base": True}, m.get("base")
+    assert m["base"].get("behind") is None, "must never read as 'up to date with the trunk'"
+
+
+def test_an_untracked_path_that_is_tracked_upstream_is_compared_not_skipped(tmp_path):
+    """`git diff origin/main -- <path>` IGNORES an untracked path and reports no difference,
+    which would count it as already-landed without comparing anything. That is the commonest
+    shape of this artefact -- a file added upstream, absent from the stale HEAD -- so it is the
+    one case the cheap implementation gets exactly backwards."""
+    git = _git(tmp_path)
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "keep.py").write_text("k\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    base = git("rev-parse", "HEAD").stdout.strip()
+    (tmp_path / "tools" / "added_upstream.py").write_text("upstream\n")
+    git("add", "-A")
+    git("commit", "-qm", "upstream adds a file")
+    git("update-ref", "refs/remotes/origin/main", git("rev-parse", "HEAD").stdout.strip())
+    git("reset", "-q", "--hard", base)
+
+    # Untracked here, tracked upstream, DIFFERENT bytes: genuinely new work, not the trunk's.
+    (tmp_path / "tools" / "added_upstream.py").write_text("mine, not the trunk's\n")
+    m = td.measure(project_dir=tmp_path)
+    assert m["already_on_origin"] == 0, m
+    assert "tools/added_upstream.py" not in (m["already_on_origin_paths"] or []), m
+
+    # Same path, the trunk's bytes: now it IS the trunk's, and must be recognised though untracked.
+    (tmp_path / "tools" / "added_upstream.py").write_text("upstream\n")
+    m2 = td.measure(project_dir=tmp_path)
+    assert m2["already_on_origin"] == 1, m2
