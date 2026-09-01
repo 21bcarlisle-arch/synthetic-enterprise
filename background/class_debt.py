@@ -385,6 +385,10 @@ class ClassDebt:
     commits_on_top: int = 0
     same_day_pairs: int = 0
     recent_instances: int = 0
+    #: Instances the lane guard refused consolidation. They COUNT toward this class (see
+    #: `compute`) and are reported separately so a reader can see that the register's instance
+    #: LIST is shorter than its instance COUNT, and why.
+    out_of_lane: int = 0
     disposition: Disposition | None = None
 
     @property
@@ -481,6 +485,7 @@ class ClassDebt:
             f"measured={self.measured_instances}/{self.instances:<4} "
             f"{self.recorded_hours:>7.1f}h {self.persisted_days:>6.2f}d "
             f"{self.commits_on_top:>6} commits  {self.same_day_pairs:>4} same-day pairs  "
+            f"{('+%d out-of-lane  ' % self.out_of_lane) if self.out_of_lane else ''}"
             f"{self.draw_verdict()[1]}"
         )
 
@@ -498,9 +503,31 @@ def compute(
     out: list[ClassDebt] = []
 
     for class_id, membership in fc.derive_memberships(root).items():
-        paths = membership.instance_paths(root)
+        # OUT-OF-LANE INSTANCES COUNT TOWARD THE CLASS, and only consolidation is lane-scoped.
+        #
+        # THE DEFECT THIS FIXES, found the same day this module landed and by this module's own
+        # output. `measurements_that_mirror` was recorded ACCEPTED at 7 instances on the grounds
+        # that it had "stopped recurring" — 1 instance in the trailing week. By that evening it had
+        # THREE more, all filed that day, all `W2_customer_generator` against an `H_harness`
+        # register. `derive_memberships` correctly REFUSES to consolidate them (severity is
+        # lane-scoped, and filing a W2 finding under H_harness would launder W2's blocker), and
+        # this module then read the same-lane count and reported "not accruing" for a class that
+        # had recurred three times in a day.
+        #
+        # The lane guard is right and stays. What was wrong was reading it as the population:
+        # consolidation is a claim about SUPERSESSION, which must not cross a lane; accrual and
+        # cost are claims about HOW OFTEN THE SHAPE HAPPENS, which have no lane. A class register
+        # that cannot see its own class recurring one lane over is a control whose subject moved —
+        # the shape this register exists to catalogue, committed by the instrument that ranks it.
+        #
+        # Applied here, this reverses the author's own ACCEPTED by that decision's own re-arm rule,
+        # which is the mechanism working rather than a special case.
+        paths = membership.instance_paths(root) + [
+            p for p, _lane in membership.refused_out_of_lane
+        ]
         debt = ClassDebt(finding_class=membership.finding_class,
-                         instances=membership.count)
+                         instances=len(paths),
+                         out_of_lane=len(membership.refused_out_of_lane))
 
         costs = fc.cost_for_members(paths, root)
         worst = fc.worst_per_instance(costs)

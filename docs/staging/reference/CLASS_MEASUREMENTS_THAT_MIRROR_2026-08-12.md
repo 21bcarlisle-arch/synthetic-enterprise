@@ -32,10 +32,29 @@ These documents match this class but carry a different lane. They are NOT archiv
 
 ## Disposition
 
-**Decision:** ACCEPTED
+**Decision:** OPEN
 **Taken:** 2026-09-01
-**At:** 7 instances
-**Because:** LIVED WITH, AND THE COST IS SHOWING AND THE COST IS UNKNOWN — those are two different
+**At:** 10 instances
+**Because:** **THE ACCEPTANCE ABOVE WAS TAKEN THIS MORNING AND WAS OVERTAKEN BY THE SAME
+EVENING. It is reversed here, and the reasoning that was wrong is kept below rather than deleted.**
+
+What happened: it was accepted at 7 instances on the ground that it was the only class in the set
+that had **stopped recurring** — 1 instance in the trailing week. By that evening it had **three
+more**, all filed that day, all `W2_customer_generator` against this `H_harness` register. The lane
+guard correctly refused to consolidate them, and `background/class_debt.py` read the same-lane count
+and reported *"not accruing"* for a class that had recurred three times in a day.
+
+**The lane guard was right; reading it as the population was wrong.** Consolidation is a claim about
+SUPERSESSION and must not cross a lane. Accrual and cost are claims about how often the shape
+happens, and have no lane. Fixed in `class_debt.compute`, and the fix reversed this decision by the
+decision's own re-arm rule rather than by anyone's judgement — which is the mechanism working.
+
+**And the cost was not small after all.** This register read 0.0 recorded hours and 0.00
+persisted-days when it was accepted. With the three out-of-lane instances counted it reads **49.00
+persisted-days — the second highest in the set.** The acceptance said "not measured, never not
+costly"; that caveat has now been cashed.
+
+**Original reasoning, kept because it was wrong:** LIVED WITH, AND THE COST IS SHOWING AND THE COST IS UNKNOWN — those are two different
 statements and this record makes both. Seven instances, one in the last seven days, so it is the
 only class in the set that has stopped recurring; it is the director's *"few instances"* case and
 it is accepted on that basis rather than on being cheap. **It is not known to be cheap.** Zero of
@@ -55,7 +74,7 @@ evidence can overtake is a silencer, and it would be a silencer wearing the regi
 authority. Note that the cost measure added today is itself vulnerable to this class: it reads
 loudest on the vocabulary it was written from. That is recorded in the module and is the reason
 instances, not cost, lead the draw order.
-**Re-opens if:** the class reaches 9 instances.
+**Re-opens if:** n/a — OPEN is the drawable state. It reached 10 on the day it was accepted at 7.
 
 ---
 
