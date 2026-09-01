@@ -76,6 +76,37 @@ tree state you ran on; do not read a populated sibling as evidence that the rout
     the repair. Grading:
     `docs/staging/WORKER_PREREGISTRATION_WHAT_A_RERUN_FROM_THE_CLEAN_TREE_MUST_SHOW_2026-09-01.md`.
 
+    THE DIAGNOSIS ABOVE IS RIGHT AND ITS LAST PARAGRAPH IS WRONG (2026-09-01, fifth pass, the other
+    lane, merged at `a70a7ceff`). The gap WAS the assignment — and the assignment existed, as
+    uncommitted work, in this tree, while the paragraph above was being written. It is now committed
+    at `8bf416115`, so at this HEAD every bullet above is false and the line numbers they cite have
+    moved:
+
+      * `rolls_active_renewal` IS in `renewals.py` — imported at line 42, called at line 154 inside
+        `build_renewal_schedule`, which is the receiver the third bullet says never gets it.
+      * `build_svt_schedule` has a SECOND call site at line 159, reached on the passive branch. The
+        `if tariff_type == SVT_TARIFF_TYPE` gate at line 103 is still there and still unwritten-to;
+        it was never the route.
+      * `run_phase2b.py`'s call moved to line 1772.
+
+    WHAT ACTUALLY WENT WRONG, WHICH IS WORTH MORE THAN THE LINE NUMBERS. The refutation was reached
+    by inspecting the COMMITTED tree — `git show`, committed line numbers, a clean checkout — to
+    disprove a claim whose entire subject was UNCOMMITTED. That method cannot return anything but
+    "not there", for a true claim and a false one alike, so it could not have failed. **A claim about
+    uncommitted work cannot be refuted from the committed tree**; it is refuted by reading the
+    working tree, or it is not refuted.
+
+    The cost was nearly 421 lines: the 56-line assignment, and `tests/simulation/test_svt_assignment.py`
+    — nine tests with their R15 mutations already recorded — which was UNTRACKED and therefore
+    invisible to every committed-tree search, `tests_for()` included. *"There is none to find"* is
+    the sentence that would have stopped the next reader looking, and this is the
+    `uncommitted_and_orphaned_work` class doing exactly what that register says it does. Finding:
+    `docs/staging/done/WORKER_FINDING_A_CLAIM_ABOUT_UNCOMMITTED_WORK_WAS_REFUTED_FROM_THE_COMMITTED_TREE_2026-09-01.md`.
+
+    Both lanes were right about their own tree and neither could see the other's: the clean-tree run
+    correctly found an empty sibling BECAUSE the assignment was not yet committed. Re-running the
+    capture from this HEAD is now a different experiment from either, and is owed.
+
 Findings on the foreign artefact:
 `docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`,
 `docs/staging/WORKER_FINDING_A_FOREIGN_SVT_SIBLING_IS_WHAT_MAKES_THE_ACCOUNT_DENOMINATOR_CONTROL_PASS_2026-08-31.md`.
