@@ -206,6 +206,47 @@ Another lane reached the same conclusion independently and landed it at `342d721
 recorder is in git and the roll that fills it is not, so the native capture is native by half"* —
 together with the docstring correction this direction asked for. **I did not redo either.**
 
+---
+
+#### CORRECTION 2026-09-01, same seat, later the same day. THE REFUTATION ABOVE IS WITHDRAWN: the grep tested a symbol against a file that has never held it.
+
+*Kept above rather than revised, because the grade and its correction are only worth anything
+together. What follows is the repair, not a rewrite.*
+
+`rolls_active_renewal` is not defined in `simulation/renewals.py` and never has been. It is defined
+at `origin/main:simulation/renewal_engagement.py:65`, imported at `origin/main:run_phase2b.py:181`,
+and called at `origin/main:run_phase2b.py:1772`:
+
+```
+$ git show origin/main:simulation/renewal_engagement.py | grep -n 'def rolls_active_renewal'
+65:def rolls_active_renewal(
+```
+
+The grep above therefore returned `0` for the same reason it would have returned `0` for any string:
+**it was pointed at the wrong file.** A zero from a file that could not have contained the symbol is
+not evidence of absence. The C1b SVT roll itself is `_svt_roll` at `run_phase2b.py:1651`, and
+`run_phase2b.py` was **not** in `PROVENANCE.txt`'s dirty list — its sha256 as run equals origin's.
+This is the class *a grader reading the wrong artefact reports a false refutation*, and it is the
+second time on this document that a verdict was reached against something other than its subject.
+
+**So P1's heading clause is UNMEASURED, not refuted.** It is now under measurement: see
+`WORKER_PREREGISTRATION_WHAT_A_RERUN_FROM_THE_CLEAN_TREE_MUST_SHOW_2026-09-01.md`, filed before that
+run started. That prereg's R1 tests the sentence above — *"run it on a clean checkout of this HEAD
+and the sibling is empty"* — directly, from a tree verified clean against `origin/main`.
+
+**What survives the withdrawal, because it rests on different evidence.** `PROVENANCE.txt` records
+`DIRTY-vs-origin: simulation/renewals.py`, and that file's recorded sha256 `b469c78c…` matches
+neither `origin/main` nor the working tree today (`4172e840…`). So **the 2026-09-01 capture was
+produced by a file that now exists in no commit and no working tree**, and is unreproducible in the
+strict sense whatever the re-run shows. The provenance worry was real. The reasoning offered for it
+was not, and the two had to be separated before either could be graded.
+
+**What this costs elsewhere.** `342d72159`'s headline — *"the recorder is in git and the roll that
+fills it is not"* — rests on the same withdrawn grep, reached independently by another lane. Two
+lanes agreeing is not two pieces of evidence when both ran the same wrong check. That commit's
+docstring correction is unaffected and stands; its headline claim is now owed the same re-grade,
+and this correction is filed where that lane will find it.
+
 ### P2 — CONFIRMED, exactly, on the counts and not merely on the verdict.
 
 `svt_composition_refusal` returns `None`. The verdict alone would be a thin grade, so the
