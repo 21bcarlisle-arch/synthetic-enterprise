@@ -33,10 +33,18 @@ cause is separable at the moment it happens, by a different observation:
                           The REF is the evidence; a push can return 0 and land nothing, which
                           is the 3.5-hour origin-freeze of 2026-07-24.
   * `provenance_refused`— the fail-closed stamp check refused before any git ran.
+  * `behind_origin`     — `git rev-list --count HEAD..FETCH_HEAD` is non-zero (or unreadable)
+                          BEFORE the commit. A fetched ref, read ahead of the commit, is what
+                          separates this from `push_never_landed`.
 
-Four, not the three the direction named: `provenance_refused` is a real fourth path to rc=77,
-and folding it into one of the three to make the count match would be exactly the invention
-this module exists to stop. The contract is "names EXACTLY ONE", not "one of exactly three".
+Five, not the three the direction named: `provenance_refused` and `behind_origin` are real paths
+to rc=77, and folding either into one of the three to make the count match would be exactly the
+invention this module exists to stop. The contract is "names EXACTLY ONE", not "one of exactly
+three". `behind_origin` was added on 2026-09-01, when the publish loop's own retry was found to
+be widening the fork it was blocked by: it committed, was rejected non-fast-forward, left the
+throttle untouched, and did it again twelve minutes later. Recorded as `push_never_landed` every
+time, which is true and sends the reader to the wrong repair — the ref did not advance, but the
+fixable fact was that the commit should never have been made.
 
 FAIL-CLOSED, AND KEYED TO THE COMMIT IT IS ABOUT
 -------------------------------------------------
@@ -54,9 +62,10 @@ NO-TEST-JUDGED IS A PROPERTY OF THE CAUSE
 ------------------------------------------
 `NO_TEST_JUDGED_CAUSES` is what makes the attribution ACT rather than merely read better. On a
 deadline kill the suite was killed mid-verdict; on a push failure the hook chain passed and the
-commit landed; on a provenance refusal nothing ran at all. In none of those three did any test
-go red — so the alarm must not attach a blocking list or suspects, which on those causes are
-whatever an earlier cycle left behind. Naming nobody beats naming the innocent.
+commit landed; on a provenance refusal nothing ran at all; on a behind-origin refusal git was
+never invoked past the read. In none of those four did any test go red — so the alarm must not
+attach a blocking list or suspects, which on those causes are whatever an earlier cycle left
+behind. Naming nobody beats naming the innocent.
 
 `gate_refusal` is deliberately NOT in that set: there the hook chain did judge, and
 `_record_commit_refusal_reds` writes its reds against the same git hash in the same moment.
@@ -89,17 +98,24 @@ DEADLINE_KILL = "deadline_kill"
 PUSH_NEVER_LANDED = "push_never_landed"
 #: The fail-closed provenance check refused before git ran. Nothing was staged, judged or sent.
 PROVENANCE_REFUSED = "provenance_refused"
+#: Origin was AHEAD of local HEAD (or unreadable) when the publish path was about to commit, so
+#: the commit was refused before it was created. Distinct from `PUSH_NEVER_LANDED`, which is the
+#: same fork observed one commit too late: there the local commit already exists and the fork is
+#: one wider. The observation is `git rev-list --count HEAD..FETCH_HEAD` after a fetch.
+BEHIND_ORIGIN = "behind_origin"
 #: Not a cause: the honest answer when no usable record exists for the failure being described.
 UNATTRIBUTED = "unattributed"
 
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
-CAUSES = frozenset({GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED})
+CAUSES = frozenset({GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED,
+                    BEHIND_ORIGIN})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
 #: See the module docstring. `GATE_REFUSAL`'s absence is the content of this set, not an
 #: oversight — that is the one cause where a named red is real evidence about THIS cycle.
-NO_TEST_JUDGED_CAUSES = frozenset({DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED})
+NO_TEST_JUDGED_CAUSES = frozenset({DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED,
+                                   BEHIND_ORIGIN})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held

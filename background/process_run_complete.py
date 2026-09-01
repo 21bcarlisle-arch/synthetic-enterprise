@@ -3926,6 +3926,7 @@ COMMIT_TIMEOUT = "commit_timeout"             # the hook chain outran the deadli
 COMMIT_REFUSED = "commit_refused"             # a gate said no, or git failed
 PUSH_DID_NOT_REACH_ORIGIN = "push_did_not_reach_origin"
 PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have published a false stamp
+BEHIND_ORIGIN = "behind_origin"               # origin is ahead: a commit here CANNOT be pushed
 TREE_LOCK_UNAVAILABLE = "tree_lock_unavailable"   # another writer held the tree lock; nothing ran
 #: Outcomes after which re-running this identical cycle would genuinely find nothing to do. Every
 #: other outcome leaves the fingerprint alone so the next cycle really does retry.
@@ -3945,6 +3946,7 @@ PUBLISH_CAUSE_FOR_REASON = {
     COMMIT_TIMEOUT: publish_cause.DEADLINE_KILL,
     PUSH_DID_NOT_REACH_ORIGIN: publish_cause.PUSH_NEVER_LANDED,
     PROVENANCE_REFUSED: publish_cause.PROVENANCE_REFUSED,
+    BEHIND_ORIGIN: publish_cause.BEHIND_ORIGIN,
 }
 
 
@@ -4111,6 +4113,74 @@ def _git_add_or_refuse(args, *, timeout, label) -> bool:
     return True
 
 
+#: How long to wait on the network read that decides whether origin has moved. Generous, because
+#: the alternative to a slow answer here is a commit that cannot be pushed; and bounded, because
+#: this runs inside a publish cycle that must finish.
+DIVERGENCE_FETCH_TIMEOUT_SECONDS = 60
+
+
+def _commits_origin_is_ahead_by():
+    """How many commits origin/main holds that local HEAD does not. `None` means UNREADABLE.
+
+    GROUND TRUTH, NOT THE TRACKING REF. `refs/remotes/origin/main` is only as fresh as the last
+    successful fetch, and a REJECTED push is exactly the case where it may not have been updated
+    -- so reading it would answer "zero" in the one state this function exists to detect. This
+    fetches an explicit refspec and reads FETCH_HEAD, which is what the remote said just now.
+    Same lesson, same file: `_push_reached_origin` reads `ls-remote` and not the tracking ref,
+    for the 3.5-hour origin-freeze of 2026-07-24.
+
+    `None` is a real third answer and is NOT folded into zero. `git rev-list --count` always
+    prints an integer, so an empty or unparseable stdout means git did not answer the question,
+    not that the answer was nought -- and "missing reads as zero" is the fail-open shape that
+    would let this guard pass in precisely the conditions (no network, broken remote) under
+    which a commit is least likely to reach origin.
+    """
+    try:
+        fetched = subprocess.run(["git", "fetch", "--quiet", "origin", "main"],
+                                 cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                                 timeout=DIVERGENCE_FETCH_TIMEOUT_SECONDS)
+        if fetched.returncode != 0:
+            return None
+        counted = subprocess.run(["git", "rev-list", "--count", "HEAD..FETCH_HEAD"],
+                                 cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                                 timeout=DIVERGENCE_FETCH_TIMEOUT_SECONDS)
+        if counted.returncode != 0:
+            return None
+        return int((counted.stdout or "").strip())
+    except (ValueError, OSError, subprocess.SubprocessError):
+        return None
+
+
+def _divergence_refusal():
+    """The evidence string for refusing to commit, or `None` when committing is legal.
+
+    THE RETRY IS THE THING THAT WIDENS THE FORK (2026-09-01). Measured that morning:
+    `origin/main..HEAD` = 3, `HEAD..origin/main` = 23, and two of the three local commits were
+    `Auto-process run complete` -- produced by this loop, after this loop's push had already
+    been rejected non-fast-forward. The push path treated the rejection as a transient and
+    re-attempted identically; being behind origin is a STATE, and every attempt added another
+    unpushable commit to the side of the fork that could not move.
+
+    REFUSE RATHER THAN INTEGRATE, and the choice is not a preference. The only sanctioned
+    reconciliation in this repository is `python3 -m tools.surgical_land --merge origin/main`
+    (CLAUDE.md's hook-bypass wall), which gates the whole tree and takes longer than a publish
+    cycle; and there are routinely three lanes with uncommitted work in this tree. A daemon that
+    merged unattended would be deciding, every twelve minutes, to move other people's work. So
+    the publish path stops, says the state and the remedy, and the site keeps serving its last
+    honest figures -- which it was doing anyway, since nothing committed here could be pushed.
+    """
+    ahead = _commits_origin_is_ahead_by()
+    if ahead == 0:
+        return None
+    if ahead is None:
+        return ("origin is UNREADABLE (`git fetch origin main` or the rev-list that follows it "
+                "did not answer), so whether a commit here could be pushed cannot be "
+                "established -- refusing rather than creating one that may be rejected")
+    return ("origin/main is {} commit(s) AHEAD of HEAD, so a commit created here could only be "
+            "rejected non-fast-forward and would widen the fork by one more. Reconcile first: "
+            "`python3 -m tools.surgical_land --merge origin/main`".format(ahead))
+
+
 def git_commit_push(git_hash, net_margin, outcome=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -4133,6 +4203,20 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             publish_cause.record_cause(PUBLISH_CAUSE_FILE, PUBLISH_CAUSE_FOR_REASON.get(reason),
                                        evidence, git_hash)
         return value
+
+    # BEFORE ANYTHING IS STAGED. The order is the whole repair: integrate (or refuse) BEFORE the
+    # next publish commit is created, never after it has been rejected. See `_divergence_refusal`.
+    _behind = _divergence_refusal()
+    if _behind is not None:
+        log("Publish commit REFUSED before staging: {}.".format(_behind))
+        from background.notify import notify
+        notify(
+            "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
+            "not one wider than it was. Nothing is wrong with the run or the suite; the tree "
+            "needs reconciling.".format(_behind),
+            kind="real_alarm",
+        )
+        return _outcome(BEHIND_ORIGIN, False, evidence=_behind)
 
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
     site_index = PROJECT_DIR / "site" / "index.html"
@@ -4976,6 +5060,15 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # commit is real, we refuse and the site stays honestly paused rather than publishing a
     # claim we cannot stand behind.
     if not _provenance_is_publishable(paths, label=label):
+        return False
+    # THE SAME REFUSAL AT THE OTHER COMMIT SITE. The liveness heartbeat and the provenance banner
+    # deepen a fork exactly as a content commit does, and a guard placed only where the incident
+    # was observed is what makes a class recur -- the note on `_git_add_or_refuse` above is the
+    # same lesson, learned in this function. On a behind-origin tree the banner cannot reach
+    # origin either, so refusing costs nothing that was going to be published.
+    _behind = _divergence_refusal()
+    if _behind is not None:
+        log("{} commit REFUSED before staging: {}.".format(label, _behind))
         return False
     with tree_lock():
         # THE SAME UNCHECKED ADD, at the site the finding did not name (2026-08-25). The
