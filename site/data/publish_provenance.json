@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-01T06:20:16Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=fb65a7a42; blocking tests: FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_a_refused_publish_commit_records_the_hook_chains_failing_tests, FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_the_recorded_reds_reach_the_state_file_the_alarm_and_the_draw_read, FAILED tests/background/test_a_refused_publi",
+  "paused_reason": "scoped publish-path suite red at git=6fed05942; blocking tests: FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_a_refused_publish_commit_records_the_hook_chains_failing_tests, FAILED tests/background/test_a_refused_publish_commit_records_its_reds.py::test_the_recorded_reds_reach_the_state_file_the_alarm_and_the_draw_read, FAILED tests/background/test_a_refused_publi",
   "paused_since": "2026-09-01T06:48:52Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-01T06:20:16Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-01T07:15:38Z"
+  "written_at": "2026-09-01T07:31:14Z"
 }
