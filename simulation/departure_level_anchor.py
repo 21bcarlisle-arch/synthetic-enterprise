@@ -42,7 +42,10 @@ and drift that takes one outside it fails. When it fails, re-capture and re-fit 
 """
 from __future__ import annotations
 
-from simulation.market_switching_propensity import MULTIPLIER_REFERENCE_YEAR
+from simulation.market_switching_propensity import (
+    MULTIPLIER_REFERENCE_YEAR,
+    _published_departure_rates,
+)
 
 #: `{calendar year: anchor}`. Fitted by `tools/fit_year_level_anchor.py` on
 #: `docs/reports/c2_departure_factors.json` at the declared (a_shock, scale) pair, one number per
@@ -74,9 +77,41 @@ def year_level_anchor(year: int) -> float:
     window and the scaled savings curve's outside it -- so the year-to-year LEVEL movement for a
     synthetic future is already accounted for by that term, and what this has to supply is the
     calibration of the factor population to a rate, which is a property of the population and not
-    of the year. Taking the reference year's value says exactly that. It fails toward the record
-    rather than toward the 3.45x-short world, which is the direction a fallback should fail in.
+    of the year. Taking the reference year's value says exactly that.
+
+    INSIDE THE RECORD, A MISSING YEAR IS A REFUSAL AND NOT A FALLBACK -- AND UNTIL 2026-09-01 THIS
+    BRANCHED ON THE WRONG SET. The condition was `YEAR_LEVEL_ANCHOR.get(year, ...)`, i.e. absence
+    from the FITTED TABLE, while the paragraph above justifies the fallback by absence from the
+    RECORD. Those are two different sets. They coincide exactly today -- both are 2016-2025 -- which
+    is why it went unseen; `market_departure_rate` two files over already branches the right way,
+    on `if year in published`.
+
+    THE NATIVE SVT CAPTURE IS THE PROOF THEY COME APART. `9a03f3b44` measured
+    `year_level_anchor(2022)` at 3.053619 in a run whose (uncommitted) block was missing 2022,
+    against 1.524110 committed. 2022 is squarely INSIDE the record; it silently took the reference
+    year's value under an argument written only for synthetic futures, and nothing said so.
+
+    AND THE SENTENCE THAT USED TO END THIS DOCSTRING WAS FALSE ON THE CASE IT FIRED ON. It claimed
+    the fallback "fails toward the record rather than toward the 3.45x-short world, which is the
+    direction a fallback should fail in". Against each year's own fitted anchor the reference year's
+    is 0.657x at 2016 and 1.982x at 2022 -- it overshoots on three of the nine non-reference years
+    and undershoots on six, so it has no direction at all. On 2022, the record's LOWEST year at
+    4.30%, it nearly doubles the anchor and therefore pushes departures UP, away from the record.
+    The old claim holds only against the alternative of no anchor at all, which is not the live
+    alternative. It is corrected here rather than deleted so the next reader can see it was made.
+
+    So: inside the record, fail closed and name the reason. Outside it, the reference year's value,
+    unchanged.
     """
+    if year not in YEAR_LEVEL_ANCHOR and year in _published_departure_rates():
+        raise ValueError(
+            f"no fitted level anchor for {year}, which is INSIDE the published switching record "
+            f"({min(_published_departure_rates())}-{max(_published_departure_rates())}). The "
+            "reference year's anchor is NOT a stand-in here: it is fitted to that year's factor "
+            "population, and against 2022's own value it runs 1.98x. Re-fit with "
+            "`tools/fit_year_level_anchor.py` and land the block -- do not let the fallback cover "
+            "a gap inside the record."
+        )
     return YEAR_LEVEL_ANCHOR.get(year, YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR])
 
 

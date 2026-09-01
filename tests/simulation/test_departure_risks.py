@@ -601,3 +601,71 @@ def test_the_level_anchor_scales_the_response_risks_and_never_the_svt_route():
             f"the published {100 * annual:.0f}%. The anchor is being applied to a rate that was "
             f"already published as a rate."
         )
+
+
+def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instead_of_falling_back():
+    """THE DEFECT: the fallback's CONDITION was the fitted table; its JUSTIFICATION is the record.
+
+    `year_level_anchor` read `YEAR_LEVEL_ANCHOR.get(year, YEAR_LEVEL_ANCHOR[REFERENCE])`, so the
+    branch fired on absence from the FITTED TABLE. The docstring above it justifies the fallback
+    by absence from the RECORD -- a synthetic future, where `market_switching_multiplier` already
+    carries the level movement. Two different sets. They coincide exactly today (both 2016-2025),
+    which is the only reason this survived: a control keyed to today's answer would read green.
+
+    IT IS NOT HYPOTHETICAL. `9a03f3b44` measured `year_level_anchor(2022)` at 3.053619 in a run
+    whose block was missing 2022 -- inside the record -- against 1.524110 committed. 1.98x, silent,
+    on the one year the published record is loudest about, and in the direction that ADDS
+    departures against a 4.30% record. Nothing observed it: not the run, not the fit, not two
+    preregistrations written over the top of it.
+
+    THIS CONTROL IS UNREACHABLE AT HEAD BY CONSTRUCTION and that is the point -- all ten record
+    years are fitted, so the world never hits it. An unreachable guard that is never driven is
+    this repository's most catalogued shape, so leg (c) DRIVES it by removing a year, and leg (a)
+    states the size the old code would have returned instead. Keyed to the property (record
+    membership), not to the current ten keys: adding 2026 to the record and not to the fit must
+    turn this red, and re-fitting must turn it green.
+    """
+    from simulation.departure_level_anchor import year_level_anchor
+    from simulation.market_switching_propensity import (
+        MULTIPLIER_REFERENCE_YEAR,
+        _published_departure_rates,
+    )
+
+    record = _published_departure_rates()
+
+    # (a) THE PREMISE, MEASURED RATHER THAN ASSERTED. The reference year's anchor is not a
+    #     conservative stand-in for a record year: it has no direction at all.
+    ref = YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR]
+    ratios = {y: ref / YEAR_LEVEL_ANCHOR[y] for y in record if y in YEAR_LEVEL_ANCHOR}
+    assert min(ratios.values()) < 1.0 < max(ratios.values()), (
+        "the reference year's anchor is on one side of every fitted year's, so the old docstring's "
+        "'fails toward the record' claim would be defensible and this control is arguing with "
+        f"something that is not there. ratios: {ratios}"
+    )
+
+    # (b) NO PUBLISHED FIGURE MOVES. Every record year is fitted, so the guard is silent, and
+    #     every year outside the record still takes the reference year's value.
+    for y in sorted(record):
+        assert year_level_anchor(y) == YEAR_LEVEL_ANCHOR[y]
+    assert year_level_anchor(max(record) + 5) == ref
+
+    # (c) THE MUTATION, DRIVEN RATHER THAN DESCRIBED. Remove one record year from the fit and the
+    #     accessor must refuse, naming the year and the record. Before this guard it returned
+    #     `ref` -- a number, silently, that no caller could tell from a fitted one.
+    victim = min(record, key=lambda y: YEAR_LEVEL_ANCHOR.get(y, ref))
+    saved = YEAR_LEVEL_ANCHOR.pop(victim)
+    try:
+        assert ref / saved > 1.5, (
+            f"{victim} was chosen as the year the fallback distorts most and it only moves "
+            f"{ref / saved:.3f}x -- restate this leg rather than letting it pass on a small move."
+        )
+        with pytest.raises(ValueError, match=f"{victim}"):
+            year_level_anchor(victim)
+        with pytest.raises(ValueError, match="INSIDE the published"):
+            year_level_anchor(victim)
+        # ...and the outside-record path is NOT collateral damage of the guard.
+        assert year_level_anchor(max(record) + 5) == ref
+    finally:
+        YEAR_LEVEL_ANCHOR[victim] = saved
+
+    assert year_level_anchor(victim) == saved, "the fixture leaked; every later test is now suspect"
