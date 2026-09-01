@@ -135,6 +135,76 @@ def test_the_population_counts_what_it_says_it_counts():
     assert prov.population_of({}) == {"accounts": 0, "bills": 0, "total_revenue_gbp": 0.0}
 
 
+def test_the_guard_has_a_producer_that_can_satisfy_it():
+    """THE PRODUCER MUST SATISFY THE CONSUMER, and nothing asserted that it did.
+
+    Every other control in this file, and every `record_verified` call in every test module,
+    supplies a `population` of its own. So the guard is exercised only through compliant callers
+    and is green whatever the real publisher does. Its ONE production caller --
+    `process_run_complete._process`, the only route by which `last_verified` ever advances -- was
+    pinned by nothing. This leg pins it.
+
+    WHAT THIS LEG DOES **NOT** CATCH, said plainly, because the incident that prompted it is
+    exactly the case it misses. On 2026-09-01 publishing refused with `provenance_refused` for
+    hours, and the call at HEAD was correct the whole time: `31def55aa` had added the population
+    a day earlier. What was wrong was the file **on disk** -- the shared working tree held a
+    pre-merge copy 23 commits behind HEAD, and the publisher subprocess loads from disk, so it
+    ran a version that predated the fix. A control reading HEAD's source, like this one, is green
+    throughout that. The stale-code class is not testable from inside the suite and belongs to
+    `boot_sha` / `evaluate_boot_sha_drift`; see
+    `docs/staging/done/WORKER_FINDING_THE_WEDGE_DETECTOR_HAS_BEEN_RUNNING_PRE_REPAIR_CODE_FROM_MEMORY_FOR_TWO_DAYS_2026-09-01.md`.
+
+    It is still worth having: the property is real, currently unpinned, and its violation is
+    precisely what the stale copy was a violation OF -- so a future edit that drops the argument
+    at HEAD is caught here rather than by a wedged publisher hours later.
+
+    A NOTE ON THE SIBLING BELOW, which is a live instance of a control that cannot fail. It skips
+    while the live stamp has no population, reasoning *"a stamp without a population cannot be
+    published at all once `record_verified` starts refusing it, so the skip window closes on the
+    next publish and cannot reopen"*. That is only true while publishing WORKS. Through this
+    incident the refusal it relies on is what stopped every publish, so the window it promised
+    would close stayed open and the reconciliation skipped silently for the whole wedge. A skip
+    keyed to "the next publish fixes it" is trusting the very path that is broken.
+
+    MUTATION (must fire): drop `population=_prov.population_of(data)` from the `record_verified`
+    call in `background/process_run_complete.py` -- proven 2026-09-01, the leg reds naming the
+    missing field and the three kwargs that remain.
+    """
+    import ast
+
+    src = (PROJECT / "background" / "process_run_complete.py").read_text()
+    calls = [
+        node for node in ast.walk(ast.parse(src))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "record_verified"
+    ]
+    assert calls, (
+        "no call to record_verified in the publisher: `last_verified` advances from nowhere, so "
+        "the freshness stamp can only ever go stale"
+    )
+    for call in calls:
+        kwargs = {kw.arg for kw in call.keywords}
+        assert "population" in kwargs, (
+            f"the publisher's record_verified call at line {call.lineno} supplies "
+            f"{sorted(k for k in kwargs if k)} and no population. `assert_publishable` requires "
+            "one, so this call cannot produce a publishable stamp and every publish refuses "
+            "with provenance_refused -- the guard is correct and has no producer."
+        )
+
+    # AND THE PRODUCER'S OUTPUT MUST ACTUALLY CLEAR THE CONSUMER, not merely be present: this is
+    # what fails if POPULATION_FIELDS grows a field `population_of` does not compute.
+    pop = prov.population_of({
+        "per_customer_lifetime": {"a": {}, "b": {}},
+        "bills": [{}, {}, {}],
+        "total_revenue_gbp": 99.5,
+    })
+    assert not prov.publishable_violations(
+        {"showing_run": _stamp(population=pop), "last_verified": _stamp(population=pop)},
+        check_commit_exists=False,
+    ), "population_of does not produce a population that publishable_violations accepts"
+
+
 @pytest.mark.skipif(not PROVENANCE.exists() or not CUSTOMERS.exists(),
                     reason="the published surfaces are not in this tree")
 def test_THE_LIVE_PAGE_agrees_with_the_run_it_claims():

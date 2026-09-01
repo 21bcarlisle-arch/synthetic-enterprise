@@ -81,6 +81,32 @@ Same daemon, same failure, same second — one half two days newer than the othe
 inference from the process start time; it is the start time *and* two artefacts that can only
 have been produced by different code.
 
+**And it does not rest on inference at all — this repo already owns the instrument.** `boot_sha`
+records what each daemon actually booted from, and the three commands settle it:
+
+```
+background.boot_sha.read_boot_sha('sim-runner')      -> cf7ae97be  (2026-08-24 15:05)
+git merge-base --is-ancestor c03455cdb cf7ae97be     -> rc=1   the repair is NOT in the running code
+git show cf7ae97be:background/process_run_complete.py
+  | grep -c "Cause: {} ({})"                         -> 0      the repair is absent
+  | grep -c "refused/timed out/never reached origin" -> 1      the abolished string is present
+```
+
+So the running code is proven, not guessed: it is the pre-repair module, and it contains exactly
+the sentence found in today's records. This is an **R2** defect — the subject is the *process
+table*, never the module, which is why no function-level test can see it.
+
+The deploy route exists and is self-verifying: these are generated systemd user units
+(`background/process_manifest.yaml` → `generate_units.py`), so
+`systemctl --user restart sim-runner.service` re-stamps the boot SHA on `ExecStartPre`. Verify by
+**discrimination** — assert this module drops out of
+`process_reconciler.evaluate_boot_sha_drift()`'s `stale_detail`, not by watching a counter; the
+daemon usually stays `stale` overall because other lanes' uncommitted files are in its import
+closure, and a wholesale flip to green would be the suspicious outcome.
+
+**Detection was never the gap.** The drift signal has been able to read RED on exactly this
+module the whole time. Nothing consumes a RED drift row and restarts.
+
 This file already carries three documented "sibling half" defects, each a class closed on one
 caller and left open on another: the wrapper deadline (2026-08-10, "the wedge continued for
 another 3 hours after the 'fix' landed"), the stderr capture (2026-08-21, which made the
@@ -126,12 +152,71 @@ That is the missing leg, and it is a one-liner in shape: the live record's `reas
 the same assertion the unit test makes. Keyed to the property (does the record match what current
 code would write?), not to today's answer.
 
+## THE SAME CLASS AGAIN, ON DISK, TWENTY MINUTES LATER — and this one was the live blocker
+
+Clearing the fork did not clear the wedge. The next cycle refused with a *different* cause,
+`provenance_refused`, naming four missing provenance fields (`showing_run.population`,
+`last_verified.population`, and both `run_retained`). Hooks fire serially, so one cause clearing
+reveals the next rather than a green publish.
+
+I diagnosed it as a fail-closed guard whose only producer never supplied a population, wrote the
+one-line fix, verified it (`violations -> []`, banner reading *"over 251 accounts and 10,906
+bills"*), and then found **the fix was already at HEAD** — `31def55aa`, brought in by the merge I
+had just landed, a day old.
+
+**The code was right. The file on disk was not.** `background/process_run_complete.py` in the
+shared working tree was a pre-merge copy, 23 commits behind HEAD, and `sim_runner` spawns the
+publisher as a *subprocess that loads from disk*. So the publisher was executing a version that
+predated the guard's producer, and refusing against a guard that HEAD could satisfy perfectly
+well.
+
+Why the merge did not fix it: `surgical_land --merge` deliberately does not touch a path that is
+**modified-unstaged** in the shared tree — moving the file would be the `git checkout <path>` the
+wall forbids, and those bytes are in no commit and no reflog. That is the correct rule. Its cost
+is that a stale unstaged copy of a file the daemons *execute* silently outranks HEAD.
+
+Measured before touching it, because the rule exists to protect real work:
+
+| | in the working copy | at HEAD |
+|---|---|---|
+| `population=_prov.population_of(data)` (`31def55aa`) | **absent** | present |
+| `_measure_suspect_list` wrapped so a diagnostic cannot block the wedge clear (`7a995e2b1`) | present | **also present** |
+| `_object_store()`, the linked-worktree object path | **absent (reverted to the literal)** | present |
+
+Working-tree-unique content, excluding my own edit: **two lines, both reverting `_object_store()`
+to the legacy literal.** Nothing unique, nothing owed to any lane — a pure superseded draft of
+work already on origin. Copy preserved outside the repo, then the file written to HEAD's bytes
+(a plain write, not `git checkout`, and nothing destroyed that was not provably already committed).
+
+**So one root class produced this whole episode twice over:**
+
+| | stale **in memory** | stale **on disk** |
+|---|---|---|
+| subject | `sim_runner`'s lazy-imported `process_run_complete` | the shared working tree's copy of the same file |
+| age | booted 08-24, repair landed 08-30 | 23 commits behind HEAD |
+| symptom | the wedge record named an abolished cause | every publish refused `provenance_refused` |
+| why invisible | control is over the code, defect is in the process | control reads HEAD's source, defect is the disk |
+
+Both are the same sentence: **the thing that ran is not the thing that was reviewed.** Every
+control here reads HEAD or imports fresh, and neither of those is what executed.
+
 ## Disposition
 
 - **Done in this pass:** the fork itself, merged and pushed. See the merge commit's receipt.
-- **Owed, and the reason it is not done here:** restarting PID 495 reloads the module and stops
-  the bleeding, but it is a fix that expires the next time a daemon outlives a repair — which is
-  the instance-not-class error a second time. The durable repair is a control that reads the live
-  artefact, plus a route that makes a long-lived daemon pick up a changed reporting module. Both
-  are more than this bounded tick should start; filed here so the next seat draws them with the
-  evidence attached rather than rediscovering them from a green test.
+- **Also done in this pass:** `systemctl --user restart sim-runner.service`, deferred until the
+  in-flight publish had landed so the verification of the unwedge was not destroyed by the fix to
+  the thing that misreported it. Verified by discrimination against `evaluate_boot_sha_drift()`,
+  not by watching `episode_failures` — and `episode_failures` is deliberately **not** hand-cleared:
+  OPS3's criterion says the counter clears through a real pass, never by hand.
+- **Owed, and named rather than done:** the restart is still the *instance*. It expires the next
+  time a daemon outlives a repair, which is the same instance-not-class error that produced the
+  four sibling-half defects above. Two legs close it as a class, and neither belongs in a bounded
+  tick:
+  1. **A control over the live record, not the code.** Nothing reads
+     `.publish_gate_state.json` and asks whether current code could have written that `reason`.
+     The existing test asserts the same property against a fresh in-process import and is green
+     throughout. One leg, keyed to the property: *the record on disk matches what HEAD's code
+     would write.* It goes red exactly when a daemon is stale, which is the condition no
+     function-level test can reach.
+  2. **Something that consumes a RED drift row.** The drift signal already detects this for all
+     five daemons and has no hand. A detector nothing acts on is as ignored as a blind one.
