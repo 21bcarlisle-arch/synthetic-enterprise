@@ -1,9 +1,20 @@
 {
-  "generated_at": "2026-09-01T09:12:48Z",
+  "generated_at": "2026-09-01T10:11:02Z",
   "source_year": 2025,
-  "treasury_gbp": 381289.34,
-  "active_customer_count": 140,
+  "treasury_gbp": 399156.2,
+  "active_customer_count": 157,
   "customers": [
+    {
+      "cid": "C3_2",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 107.7589,
+      "last_renewal_date": "2020-06-30",
+      "next_renewal_estimate": "2021-06-30",
+      "eac_kwh_per_year": 13157.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 180.39
+    },
     {
       "cid": "C8",
       "commodity": "electricity",
@@ -46,7 +57,7 @@
       "next_renewal_estimate": "2022-04-20",
       "eac_kwh_per_year": 1789.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 109.77
+      "net_gbp_2025": 113.05
     },
     {
       "cid": "PROS-2017-0130g",
@@ -68,7 +79,7 @@
       "next_renewal_estimate": "2026-01-10",
       "eac_kwh_per_year": 3704.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": -113.68
+      "net_gbp_2025": -115.73
     },
     {
       "cid": "PROS-2018-0016g",
@@ -85,12 +96,12 @@
       "cid": "PROS-2018-0039",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 240.6255,
+      "current_rate_gbp_per_mwh": 241.017,
       "last_renewal_date": "2025-01-29",
       "next_renewal_estimate": "2026-01-29",
       "eac_kwh_per_year": 1689.0,
-      "hedge_fraction": 0.8641,
-      "net_gbp_2025": 97.03
+      "hedge_fraction": 0.864,
+      "net_gbp_2025": 96.95
     },
     {
       "cid": "PROS-2018-0039g",
@@ -112,7 +123,7 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1781.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.15
+      "net_gbp_2025": 105.83
     },
     {
       "cid": "PROS-2018-0080g",
@@ -145,13 +156,13 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8029.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 89.14
+      "net_gbp_2025": 88.24
     },
     {
       "cid": "PROS-2019-0024",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 240.6255,
+      "current_rate_gbp_per_mwh": 241.017,
       "last_renewal_date": "2025-01-27",
       "next_renewal_estimate": "2026-01-27",
       "eac_kwh_per_year": 3720.0,
@@ -239,12 +250,12 @@
       "cid": "PROS-2019-0216g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 44.4705,
+      "current_rate_gbp_per_mwh": 44.4418,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9303.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 43.93
+      "net_gbp_2025": 43.78
     },
     {
       "cid": "PROS-2019-0302",
@@ -261,18 +272,84 @@
       "cid": "PROS-2019-0302g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 48.232,
+      "current_rate_gbp_per_mwh": 48.2427,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9910.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 47.07
+      "net_gbp_2025": 47.13
+    },
+    {
+      "cid": "PROS-2020-0012",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 256.785,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 3145.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 118.62
+    },
+    {
+      "cid": "PROS-2020-0012g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 66.8371,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 13384.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 106.4
+    },
+    {
+      "cid": "PROS-2020-0067",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 222.5919,
+      "last_renewal_date": "2025-02-25",
+      "next_renewal_estimate": "2026-02-25",
+      "eac_kwh_per_year": 4307.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 74.8
+    },
+    {
+      "cid": "PROS-2020-0067g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 63.4,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 16702.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 123.81
+    },
+    {
+      "cid": "PROS-2020-0190",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 256.785,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 1696.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 107.39
+    },
+    {
+      "cid": "PROS-2020-0190g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 41.8094,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 7300.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 41.46
     },
     {
       "cid": "PROS-2020-0221",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 165.3573,
+      "current_rate_gbp_per_mwh": 165.266,
       "last_renewal_date": "2021-07-05",
       "next_renewal_estimate": "2022-07-05",
       "eac_kwh_per_year": 2231.0,
@@ -283,12 +360,12 @@
       "cid": "PROS-2020-0221g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.1655,
+      "current_rate_gbp_per_mwh": 43.2187,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7109.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 39.97
+      "net_gbp_2025": 40.18
     },
     {
       "cid": "PROS-2020-0249",
@@ -316,7 +393,7 @@
       "cid": "PROS-2020-0347g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 57.5851,
+      "current_rate_gbp_per_mwh": 57.5854,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17257.0,
@@ -324,10 +401,32 @@
       "net_gbp_2025": 108.47
     },
     {
+      "cid": "PROS-2020-0391",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 230.3343,
+      "last_renewal_date": "2024-12-24",
+      "next_renewal_estimate": "2025-12-24",
+      "eac_kwh_per_year": 9165.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 93.01
+    },
+    {
+      "cid": "PROS-2020-0391g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 61.0049,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 13758.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 106.29
+    },
+    {
       "cid": "PROS-2021-0029",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 242.5791,
+      "current_rate_gbp_per_mwh": 242.9738,
       "last_renewal_date": "2025-01-25",
       "next_renewal_estimate": "2026-01-25",
       "eac_kwh_per_year": 3669.0,
@@ -344,6 +443,28 @@
       "eac_kwh_per_year": 13797.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 35.19
+    },
+    {
+      "cid": "PROS-2021-0060",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 234.1375,
+      "last_renewal_date": "2025-02-24",
+      "next_renewal_estimate": "2026-02-24",
+      "eac_kwh_per_year": 3894.0,
+      "hedge_fraction": 0.8514,
+      "net_gbp_2025": 94.47
+    },
+    {
+      "cid": "PROS-2021-0060g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 63.4,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 17517.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 110.31
     },
     {
       "cid": "PROS-2021-0105",
@@ -426,12 +547,34 @@
       "cid": "PROS-2021-0212g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.806,
+      "current_rate_gbp_per_mwh": 43.8596,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9695.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 40.23
+      "net_gbp_2025": 40.52
+    },
+    {
+      "cid": "PROS-2021-0248",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 256.785,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 2603.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 115.48
+    },
+    {
+      "cid": "PROS-2021-0248g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 45.4858,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 13449.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 42.58
     },
     {
       "cid": "PROS-2021-0288",
@@ -448,12 +591,12 @@
       "cid": "PROS-2021-0288g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 42.8775,
+      "current_rate_gbp_per_mwh": 42.7694,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5884.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 24.44
+      "net_gbp_2025": 23.96
     },
     {
       "cid": "PROS-2021-0324",
@@ -470,12 +613,12 @@
       "cid": "PROS-2021-0324g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 49.3824,
+      "current_rate_gbp_per_mwh": 49.3801,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7195.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 46.38
+      "net_gbp_2025": 46.37
     },
     {
       "cid": "PROS-2021-0362",
@@ -500,6 +643,28 @@
       "net_gbp_2025": 99.58
     },
     {
+      "cid": "PROS-2021-0399",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 385.1775,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 1518.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 106.43
+    },
+    {
+      "cid": "PROS-2021-0399g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 61.787,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 6110.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 77.16
+    },
+    {
       "cid": "PROS-2022-0019",
       "commodity": "electricity",
       "segment": "resi",
@@ -508,7 +673,7 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1451.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 101.31
+      "net_gbp_2025": 101.61
     },
     {
       "cid": "PROS-2022-0019g",
@@ -558,12 +723,12 @@
       "cid": "PROS-2023-0001g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 61.8853,
+      "current_rate_gbp_per_mwh": 61.7817,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 16759.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 125.88
+      "net_gbp_2025": 124.94
     },
     {
       "cid": "PROS-2023-0025",
@@ -657,12 +822,12 @@
       "cid": "PROS-2023-0172g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.4949,
+      "current_rate_gbp_per_mwh": 43.5574,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5967.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 44.42
+      "net_gbp_2025": 44.63
     },
     {
       "cid": "PROS-2023-0205",
@@ -690,12 +855,12 @@
       "cid": "PROS-2023-0225g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 45.2299,
+      "current_rate_gbp_per_mwh": 45.2234,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12153.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 45.36
+      "net_gbp_2025": 45.32
     },
     {
       "cid": "PROS-2023-0280",
@@ -712,12 +877,12 @@
       "cid": "PROS-2023-0280g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 46.4637,
+      "current_rate_gbp_per_mwh": 46.469,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4145.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 42.15
+      "net_gbp_2025": 42.17
     },
     {
       "cid": "PROS-2023-0305",
@@ -734,12 +899,12 @@
       "cid": "PROS-2023-0305g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 48.789,
+      "current_rate_gbp_per_mwh": 48.7989,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8432.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 46.58
+      "net_gbp_2025": 46.63
     },
     {
       "cid": "PROS-2024-0014",
@@ -794,7 +959,7 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2233.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 112.84
+      "net_gbp_2025": 113.97
     },
     {
       "cid": "PROS-2024-0065g",
@@ -1223,7 +1388,18 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8062.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 89.17
+      "net_gbp_2025": 89.0
+    },
+    {
+      "cid": "SYN-2016-004",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 129.9879,
+      "last_renewal_date": "2018-01-16",
+      "next_renewal_estimate": "2019-01-16",
+      "eac_kwh_per_year": 3910.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 107.43
     },
     {
       "cid": "SYN-2016-005",
@@ -1322,7 +1498,7 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2765.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 112.01
+      "net_gbp_2025": 112.21
     },
     {
       "cid": "SYN-2016-021",
@@ -1460,12 +1636,12 @@
       "cid": "SYN-2016-046",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.9763,
+      "current_rate_gbp_per_mwh": 42.5914,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 11813.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 44.61
+      "net_gbp_2025": 35.28
     },
     {
       "cid": "SYN-2016-048",
@@ -1493,23 +1669,23 @@
       "cid": "SYN-2016-050",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.2904,
+      "current_rate_gbp_per_mwh": 42.3996,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7750.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 40.38
+      "net_gbp_2025": 35.51
     },
     {
       "cid": "SYN-2016-052",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 42.6214,
+      "current_rate_gbp_per_mwh": 42.8193,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 15920.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 28.65
+      "net_gbp_2025": 30.14
     },
     {
       "cid": "SYN-2016-053",
@@ -1537,12 +1713,23 @@
       "cid": "SYN-2016-056",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 45.4817,
+      "current_rate_gbp_per_mwh": 45.5412,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 10557.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 42.4
+      "net_gbp_2025": 42.73
+    },
+    {
+      "cid": "SYN-2016-061",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 256.785,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 1855.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 110.17
     }
   ]
 }
