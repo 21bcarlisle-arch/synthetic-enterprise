@@ -100,11 +100,31 @@ __all__ = [
 ]
 
 
-# ONE discount rate for the whole seam. The census below found two live (0.10 in
-# `channel_roi` and `saas/clv_model`, 0.08 in `switching_cba`) for one quantity. 0.10 is
-# adopted because it is what the module that actually values the BOOK uses, so adopting
-# it moves no published figure. It is a company parameter, not a world constant, and it
-# is stated once here rather than five times in five callers.
+# ONE discount rate for the whole seam -- AND SINCE 2026-08-31 FOR BOTH SEAMS, which is the half
+# this comment used to get wrong. The census it describes was real and it consolidated `channel_roi`
+# and `switching_cba` onto this line; what it did NOT do was remove the declaration in
+# `saas/clv_model.py` that it names as its own justification. So "stated once here rather than five
+# times" became a THIRD home: 0.10 here as `DISCOUNT_RATE`, 0.10 in `saas/clv_model` and again in
+# `saas/home_move_win_rate` as `DISCOUNT_RATE_ANNUAL`. **A consolidation that adds a home instead of
+# removing one**, and the two `saas` modules now import this.
+#
+# WHY THE COLLISION GATE COULD NOT SEE IT: `tools/domain_constant_origins` asks whether one NAME
+# carries two values. This was one VALUE under two names -- the same "a concept has one home"
+# failure with the halves swapped -- and it stayed invisible until the question was asked the other
+# way round.
+#
+# NAMED SIMPLIFICATION, and the published record does not say 10%. Ofgem's default tariff cap
+# methodology sets an implicit allowed EBIT of 1.9% of revenue, raised post-2023 to reflect a
+# **12.3% cost of capital** (`docs/market_research/CSS_BENCHMARKS.md`). That is a REGULATORY
+# ALLOWANCE for a notional efficient supplier, not this company's cost of capital, and it is a
+# 2023+ figure while these models discount lifetimes spanning 2016-2025.
+#
+# To do it properly needs three things none of these modules has: a time-varying rate across the
+# record, a decision about whether a regulatory EBIT allowance is the right discount rate for a
+# commercial CLV at all, and the pre-2023 series. Swapping 0.10 for 0.123 without those would move
+# every published CLV and cite a source that does not say what the swap claims.
+#
+# It is a company parameter, not a world constant.
 DISCOUNT_RATE = 0.10
 
 # A retention rate that exactly offsets the discount rate makes every period contribute

@@ -40,6 +40,7 @@ from pathlib import Path
 
 import pytest
 
+import tools.departure_population as departure_population
 import tools.measure_departure_level as instrument
 
 #: ONE READER OF THE COMMONS, and it is the instrument rather than this file. A test that parses
@@ -70,7 +71,29 @@ _LANE_READINGS: dict[str, str] = {
 #:
 #: It is not a module constant, so it cannot be a `_LANE_READINGS` entry: it is what the RUN did,
 #: read from the captured factor table through the same instrument the gap was measured with.
-_PRINCIPAL_SUBJECT = "the world's own realised departure rate (tools.measure_departure_level)"
+#:
+#: THE NAME CARRIES THE ROUTE, AND IT DID NOT UNTIL 2026-08-31. It read *"the world's own realised
+#: departure rate"* -- a WHOLE-BOOK name on a reading that is a mean over renewal DECISIONS. C1b
+#: gave the world a second way to leave and the register kept the old name, so every green in this
+#: file read as a statement about the book when it was a statement about the households that reach
+#: a renewal roll: 39% of the departures on the two-route capture. The band it is judged against
+#: counts every domestic electricity account. Those are different quantities and the register was
+#: the only place a reader would have seen which one they had.
+#:
+#: `_SUBJECT_ROUTE_QUALIFIERS` below is what holds the name honest, and the leg that reads it takes
+#: its cue from the INSTRUMENT'S OWN DECLARATION rather than from this string -- so the day a
+#: two-route capture becomes the subject, the requirement lifts by construction instead of needing
+#: someone to remember it.
+_PRINCIPAL_SUBJECT = (
+    "the world's own realised departure rate, RENEWAL DECISIONS ONLY "
+    "(tools.measure_departure_level)"
+)
+
+#: Any one of these in the principal subject's register key counts as naming the route. A LIST and
+#: not one exact string: pinning the key to today's wording would make every honest re-phrasing a
+#: red, which is the pinned-to-the-answer shape this file exists to avoid. What must not be
+#: possible is a whole-book name on a partial-route reading.
+_SUBJECT_ROUTE_QUALIFIERS = ("renewal decision", "renewal-decision", "renewal route")
 
 #: `{name: (dotted, attribute, reference_year)}` -- readings held as a MULTIPLIER TABLE rather
 #: than as a rate. A multiplier normalised to a reference year IS a switching-rate reading: it
@@ -413,6 +436,174 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
             f"may have gone stale against a world that moved under it -- re-capture and re-fit, "
             f"do not widen the band."
         )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (b2) THE POPULATION THE VERDICT ABOVE WAS TAKEN ON — added 2026-08-31
+#
+# WHAT WENT WRONG, AND IT IS NOT THAT THE ABOVE LEG IS WRONG. It is green, it fires on its own
+# subject, and its subject is a real measurement. The defect is that its subject is a mean over
+# renewal DECISIONS and the band it is judged against counts every domestic electricity ACCOUNT.
+# Before C1b those were merely different denominators. After C1b the renewal route carries 39% of
+# the world's departures, so the green above is a statement about the households that reach a
+# renewal roll -- the ones who demonstrably shop -- read as a statement about the book.
+#
+# AND ITS ARTEFACT IS FROM A WORLD THAT NO LONGER EXISTS. `docs/reports/c2_departure_factors.json`
+# has no `_svt_segment_decisions.json` sibling, so it was captured before the world had a second
+# departure route at all. Nothing above can notice that: the table kept its rows and every field
+# populated, because it was the SCOPE of the population that moved and not its size.
+#
+# Measured 2026-08-31 on the two-route capture `docs/reports/ladder_churn_factors.json`, the
+# comparable quantity -- every departure on either route over the accounts on the book -- is OUT
+# OF BAND in all eight full years, by -2.17 to +8.50pp. The renewal-only column prints `nan` for
+# 2022 because the renewal book has no decisions that year at all.
+#
+# So these three legs do not re-judge the world. They make it impossible for this file to report a
+# whole-book verdict it has not taken.
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def test_the_register_names_the_route_its_principal_subject_can_see():
+    """MUTATION: drop the route qualifier from `_PRINCIPAL_SUBJECT`, or widen
+    `world_realised_rate_pct` to mean across both routes, and this fires.
+
+    TWO LEGS, AND THE FIRST IS THE ONE THAT IS NOT A STRING CHECK. Leg (i) establishes WHICH
+    population the principal subject is a mean over, by counting it: the decisions the instrument
+    means over must equal the RENEWAL decision count in `departure_population`'s declaration, and
+    not the total across both routes. Those two counts come from different modules, so this is a
+    cross-check and not a parse of the same parse. It is also the leg that catches the failure
+    this repository has already paid for -- a mean taken ACROSS two populations, which would make
+    the register key honest and the number meaningless.
+
+    Leg (ii) is the string check, and it only means anything because leg (i) pinned the
+    population first. A reading over renewal decisions must not be registered under a whole-book
+    name; that is exactly how the green above came to read as a statement about the book. The
+    qualifier is matched against a LIST of acceptable phrasings rather than one exact string,
+    because pinning the key to today's wording would turn every honest re-phrasing red -- the
+    keyed-to-the-answer shape this file exists to avoid.
+    """
+    decl = instrument.reading_population()
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    outcome = instrument.world_outcome(rows)
+
+    # (i) WHICH POPULATION IS IT A MEAN OVER? Counted, not assumed.
+    meaned_over = sum(n for n, _d, _p in outcome.values())
+    renewal_decisions = decl["decisions"][departure_population.ROUTE_RENEWAL]
+    assert meaned_over == renewal_decisions, (
+        f"the principal subject means over {meaned_over} decisions but the population declaration "
+        f"counts {renewal_decisions} renewal decisions "
+        f"({decl['decisions']}). If it has widened to span both routes, the mean is taken ACROSS "
+        f"two populations -- an SVT segment decision carries no renewal to describe -- and the "
+        f"resulting figure is not a quantity. If it has narrowed, the subject is smaller than the "
+        f"register says."
+    )
+    assert meaned_over > 0, "an empty subject is not a pass"
+
+    # (ii) GIVEN THAT, DOES THE REGISTER SAY SO?
+    key = _PRINCIPAL_SUBJECT.lower()
+    assert any(q in key for q in _SUBJECT_ROUTE_QUALIFIERS), (
+        f"the principal subject is a mean over {renewal_decisions} RENEWAL decisions, and it is "
+        f"registered as {_PRINCIPAL_SUBJECT!r} -- a name that claims the whole book. The published "
+        f"band's denominator is every domestic electricity account; this reading's is the "
+        f"households that reached a renewal roll. Post-C1b that is "
+        f"{decl['population']!r}. Name the route or the green above will be quoted as a "
+        f"whole-book verdict, which is the defect this leg was added for."
+    )
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "THE COMPARABLE QUANTITY IS NOT IN BAND, AND THE MARKER IS THE THING TO DELETE. Two causes, "
+    "both filed, neither dischargeable in this lane. (1) The subject the band control reads, "
+    "docs/reports/c2_departure_factors.json, is a PRE-C1b capture with no SVT sibling, so no "
+    "whole-book reading can be taken off it at all -- world_book_rate_pct() refuses. (2) On the "
+    "two-route capture that does exist, the whole book is out of band in all eight full years "
+    "(-2.17 to +8.50pp), and the re-fit that would close that is REFUSED by "
+    "tools/fit_year_level_anchor.py for a mechanism reason: svt_inertia_hazard has no parameter "
+    "the market could arrive through, so the route carrying most departures is invariant to the "
+    "record it is fitted against (18a09617d). "
+    "STRICT because this must break loudly on the day it is fixed rather than sit green -- the "
+    "same device that held the pre-anchor 3.15x gap open until departure_level_anchor closed it. "
+    "See docs/staging/WORKER_FINDING_THE_BAND_CONTROL_IS_GREEN_ON_A_POPULATION_THE_BAND_IS_NOT_"
+    "ABOUT_2026-08-31.md."
+))
+def test_the_whole_book_departure_level_is_inside_the_published_band():
+    """THE VERDICT THE BAND WAS ALWAYS ABOUT, held open until it can be taken.
+
+    `test_the_worlds_realised_departure_rate_is_inside_the_published_band` above judges the
+    renewal route. This judges every departure on either route over the accounts on the book --
+    the record's own numerator and its own denominator. Until `b8e6ba32d` nothing in this tree
+    could compute it, which is why the file shipped without it.
+
+    IT IS NOT A CONTROL THAT ASSERTS THE MODEL STAYS BAD, and the distinction is the whole reason
+    for `strict=True`. A plain xfail would sit quiet forever in either direction. A strict one
+    fails the moment the world comes into band, forcing the marker off and the real verdict on.
+    The failure mode it cannot have is the flattering one: if `world_book_rate_pct` ever starts
+    returning the renewal reading under the whole-book name, this XPASSes and reports a failure
+    rather than absorbing it.
+
+    Read the refusal before the numbers. A capture that cannot see both routes does not produce a
+    low whole-book rate -- it produces no whole-book rate, which is the only honest answer and the
+    reason `world_book_rate_pct` returns its cause rather than raising.
+    """
+    book, refusal = instrument.world_book_rate_pct()
+    assert refusal is None, (
+        f"no whole-book departure reading can be taken from this capture: {refusal}"
+    )
+    assert len(book) >= 8, (
+        f"only {len(book)} full years of whole-book reading; a subject narrowed to a handful of "
+        f"years is the scope-shrink fail-open this file's leg (c) exists for"
+    )
+    bands = _bands()
+    for year, value in sorted(book.items()):
+        lo, hi = bands[year]
+        below, above = instrument.band_margins(value, lo, hi)
+        assert instrument.inside_band(value, lo, hi), (
+            f"the world's WHOLE-BOOK departure level at {year} is {value:.2f}% against a published "
+            f"{lo}-{hi}% -- {below:+.2f}pp from the low edge, {above:+.2f}pp from the high edge. "
+            f"Re-capture and re-fit; never widen the band."
+        )
+
+
+def test_the_whole_book_reading_refuses_with_a_named_cause_and_never_the_renewal_one():
+    """MUTATION: return an empty refusal string, or fall back to `world_realised_rate_pct()` when
+    the account denominator is unavailable, and this fires.
+
+    THE FAIL-OPEN THIS GUARDS IS THE FLATTERING ONE, and it is a shape this project has paid for
+    repeatedly: a producer that cannot compute the honest quantity returns the quantity it CAN
+    compute, under the honest one's name. Here the renewal reading is sitting in band in all eight
+    years, so the fallback would buy a green -- and it would be the same figure already judged one
+    leg up, counted twice and labelled as the thing it is not.
+
+    A REFUSAL MUST NAME ITS REASON, which is what makes it possible to discover the refusal was
+    wrong. A missing whole-book reading with no cause attached is indistinguishable from a reader
+    who forgot to ask.
+    """
+    book, refusal = instrument.world_book_rate_pct()
+    renewal = instrument.world_realised_rate_pct()
+    assert renewal, "the renewal reading is empty, so this leg cannot tell the two apart"
+
+    if refusal is None:
+        assert book, (
+            "no refusal and no reading: the whole-book quantity went missing without a cause, "
+            "which is the shape a reader cannot act on"
+        )
+    else:
+        assert refusal.strip(), (
+            "the whole-book reading was refused with an EMPTY cause. A refusal that does not say "
+            "why cannot be checked, and cannot be discovered to have been wrong."
+        )
+        assert not book, (
+            f"the whole-book reading was refused ({refusal}) and still returned "
+            f"{len(book)} year(s). A refusal that also answers is not a refusal."
+        )
+
+    # BOTH BRANCHES. Exact equality with the renewal reading is the fallback's fingerprint: the
+    # two are means over different populations on different denominators, so they agree year for
+    # year only when one IS the other.
+    assert book != renewal, (
+        "the whole-book reading is byte-identical to the renewal-decision reading. Either the "
+        "refusal path degrades to the flattering quantity under the comparable one's name, or the "
+        "two have been made the same thing -- and the published band is only about one of them."
+    )
 
 
 def test_every_multiplier_shaped_reading_implies_a_rate_inside_the_published_band():

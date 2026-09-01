@@ -16,8 +16,39 @@ from pathlib import Path
 
 DEFAULT_DB_PATH = Path("company/data/invoices.db")
 
-VAT_RATE = 0.05  # 5% VAT on domestic energy (UK reduced rate)
+# VAT IS THE LAW AND IT HAS ONE HOME (2026-08-31). This module used to declare
+# `VAT_RATE = 0.05` with the comment "5% VAT on domestic energy (UK reduced rate)", which is true
+# of a household and wrong of every business supply -- and `saas/non_commodity.py` held the correct
+# per-segment table twelve lines from here in the same repo. `tools/domain_constant_origins`
+# reported the pair as one of exactly TWO name collisions in 221 domain constants: one name, two
+# values, one of them a legal rate.
+#
+# The director's own example of why this matters is this rule: "one legal requirement, five
+# implementations, a defect fixed in one of them in July and still live in another in August, and
+# nothing anywhere able to notice."
+#
+# So the rate is ASKED FOR, per segment, from the invariant that owns it, which reads the published
+# commons artefact `docs/domain_artefact_library/regulatory/uk_vat_rates.json`. There is no module
+# constant to drift.
+#
+# THE DEFECT THIS ACTUALLY FIXED IS NARROW AND WORTH STATING AS NARROW: the flat 5% was only ever
+# reached on the FALLBACK path below -- a bill with no line-item breakdown, i.e. legacy and test
+# bills. A Phase-9a+ bill carries its own `vat_gbp` and that is preferred. So this was not a live
+# mis-billing of business customers; it was a second declaration of a legal rate, sitting one
+# `bill.get()` default away from becoming one.
 PAYMENT_TERMS_DAYS = 14
+
+
+def _vat_rate(bill: dict) -> float:
+    """The VAT rate this bill's supply attracts, from the invariant that owns the rule.
+
+    `domain_invariants.vat_rate_for_segment` reads the published commons artefact; a bill with no
+    segment is treated as residential, which is what an unlabelled domestic supply is and what this
+    module assumed unconditionally before.
+    """
+    from company.compliance.domain_invariants import vat_rate_for_segment
+
+    return float(vat_rate_for_segment(bill.get("segment") or "resi"))
 
 
 @contextmanager
@@ -66,9 +97,29 @@ def create_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
 
 
 def _unit_rate_from_bill(bill: dict) -> float:
-    """Derive p/kWh from bill dict — bills carry total_amount_gbp and total_consumption_kwh."""
+    """Derive p/kWh from a bill — over money and volume that count the SAME PERIOD.
+
+    THE CATCH-UP TERM IS NETTED OUT FIRST, and until 2026-08-31 it was not. A catch-up bill
+    reconciles earlier estimated reads: `catchup_adjustment_gbp` can span up to thirteen billing
+    periods while `total_consumption_kwh` spans exactly one, so `total / kwh` on such a row divides
+    two true numbers whose legs are different populations. It is not a rate at all.
+
+    MEASURED ACROSS THE BOOK before this changed (11,167 bills; 959 carry a catch-up):
+
+        catch-up bills, total/kwh               median 17.90 p   min -173.52   max 398.09   178 NEGATIVE
+        catch-up bills, (total - catchup)/kwh   median 20.21 p   min    3.33   max  81.51     0 negative
+        every other bill, total/kwh             median 19.48 p   min    3.20   max 100.03     0 negative
+
+    The netted figure lands inside the ordinary population; the raw one produced 178 invoices
+    carrying a NEGATIVE unit rate, and a sign is the only reason any of them was ever visible —
+    every other catch-up bill was wrong by an amount nothing announced.
+
+    Netting rather than refusing, because the money for THIS period's volume is exactly what is
+    left when the adjustment for other periods is removed, and an invoice with no unit rate at all
+    would lose a real figure to avoid a wrong one.
+    """
     kwh = bill.get("total_consumption_kwh", 0.0)
-    gbp = bill.get("total_amount_gbp", 0.0)
+    gbp = bill.get("total_amount_gbp", 0.0) - (bill.get("catchup_adjustment_gbp") or 0.0)
     if kwh > 0:
         return (gbp / kwh) * 100.0  # convert £/kWh → p/kWh
     return 0.0
@@ -97,10 +148,10 @@ def create_invoice(bill: dict, db_path: Path = DEFAULT_DB_PATH) -> int:
 
     if commodity_gbp or non_comm_gbp or sc_gbp:
         subtotal = round(commodity_gbp + non_comm_gbp + sc_gbp, 2)
-        vat = round(bill.get("vat_gbp", subtotal * VAT_RATE), 2)
+        vat = round(bill.get("vat_gbp", subtotal * _vat_rate(bill)), 2)
     else:
         subtotal = bill.get("total_amount_gbp", 0.0)
-        vat = round(subtotal * VAT_RATE, 2)
+        vat = round(subtotal * _vat_rate(bill), 2)
         commodity_gbp = subtotal
 
     total = round(subtotal + vat, 2)

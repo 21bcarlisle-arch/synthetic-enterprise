@@ -27,6 +27,10 @@ RUN_B = "run_output_{}_20260810T041627Z.json".format(SHA_B)
 #: carry one now, which is itself the point: there is no way to write the count without saying
 #: where it came from, including by accident in a fixture.
 _MEASURED_ON = {"git_commit": SHA_A, "tree_state": prov.TREE_WORKING}
+#: Every `record_verified` call needs a population since 2026-08-31: a stamp that names a run and
+#: says nothing about it is refused, because the page's whole claim is about that run and the run
+#: itself is 27 MB and not retained. Declared once so the shape of a stamp stays one fact.
+POP = {"accounts": 251, "bills": 10948, "total_revenue_gbp": 801199.0}
 
 
 def _at(minutes):
@@ -39,7 +43,7 @@ def _p(tmp_path):
 
 def test_a_verified_publish_advances_freshness(tmp_path):
     p = _p(tmp_path)
-    state = prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    state = prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     assert state["verification_state"] == prov.STATE_VERIFIED
     assert state["showing_run"]["run_id"] == RUN_A
     assert state["last_verified"]["git_commit"] == SHA_A
@@ -50,7 +54,7 @@ def test_a_pause_cannot_move_the_served_run_by_a_byte(tmp_path):
     """THE CARDINAL SIN, attempted directly. A red gate must never be able to make the served
     figures look newer than the last run that was actually verified."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     before = json.loads(p.read_text())
 
     for i in range(1, 40):
@@ -67,7 +71,7 @@ def test_paused_since_is_stamped_once_not_re_stamped_every_cycle(tmp_path):
     ago' for 25 hours is a fresh-looking lie about staleness -- the pause timestamp must be the
     TRANSITION, not the last time anything ran."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     first = prov.record_paused(path=p, now=_at(5))["paused_since"]
     for i in range(6, 60):
         prov.record_paused(path=p, now=_at(i))
@@ -80,9 +84,9 @@ def test_recovery_clears_the_pause_and_advances(tmp_path):
     would be an orphan transition -- and a site permanently branded stale is as ignored as one
     that never says anything."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
-    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, population=POP, path=p, now=_at(90))
     assert state["paused_since"] is None
     assert state["verification_state"] == prov.STATE_VERIFIED
     assert state["showing_run"]["run_id"] == RUN_B
@@ -101,7 +105,7 @@ def test_recovery_clears_the_REASON_and_not_only_the_flag(tmp_path):
     MUTATION (must fire): drop `state["paused_reason"] = None` from `record_verified`.
     """
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(reason="scoped publish-path suite red at git=deadbeef1",
                        path=p, now=_at(5))
     paused = prov.read(p)
@@ -109,7 +113,7 @@ def test_recovery_clears_the_REASON_and_not_only_the_flag(tmp_path):
     # nothing ever wrote it.
     assert "deadbeef1" in str(paused["paused_reason"])
 
-    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, population=POP, path=p, now=_at(90))
     assert not state.get("paused_reason"), (
         "the pause cleared but its explanation did not: a reader fetching this file is told the "
         "gate is verified and, in the same object, why it is red -- {!r}".format(
@@ -124,7 +128,7 @@ def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
     paused site into a verified-looking one either. The annotation is a different KIND of
     claim and has no write access to the state that says how fresh the numbers are."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_paused(path=p, now=_at(5))
     state = prov.record_annotation(open_findings=140, nonblocking_reds=["FAILED x"] * 50,
                                    measured_on=_MEASURED_ON, path=p, now=_at(6))
@@ -175,7 +179,7 @@ def test_a_test_cannot_write_the_published_provenance_claim():
 
 def test_the_banner_sentence_names_the_pause_and_the_run(tmp_path):
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     verified_line = prov.banner_line(prov.read(p))
     assert "Verified" in verified_line and RUN_A in verified_line
 
@@ -249,7 +253,7 @@ def test_the_banner_layer_fails_loud_not_silent():
 def test_a_red_count_may_not_be_published_without_the_tree_it_was_counted_on(tmp_path):
     """FAIL-CLOSED at the write. A count with no tree is a number about no tree."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     try:
         prov.record_annotation(nonblocking_reds=["FAILED a::b"], path=p, now=_at(1))
     except ValueError as exc:
@@ -267,7 +271,7 @@ def test_naming_the_commit_alone_is_refused_because_that_is_the_misattribution(t
     one-line fix and it is the worse outcome: it asserts the count belongs to that commit.
     Both fields, or neither."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     try:
         prov.record_annotation(nonblocking_reds=["FAILED a::b"],
                                measured_on={"git_commit": SHA_A}, path=p, now=_at(1))
@@ -283,7 +287,7 @@ def test_the_tree_the_reds_were_counted_on_survives_to_the_served_artefact(tmp_p
     """It has to reach the file the endpoint serves, not merely the returned dict -- a verdict
     composed into an object no published surface reads is the failure mode this repo repeats."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     prov.record_annotation(nonblocking_reds=["FAILED a::b"] * 3,
                            measured_on={"git_commit": SHA_B, "tree_state": prov.TREE_WORKING},
                            path=p, now=_at(1))
@@ -303,6 +307,6 @@ def test_an_open_findings_only_annotation_still_needs_no_tree(tmp_path):
     findings-only refresh runs on every cycle. Requiring a tree there would have made the
     guard something a caller routes around, and a guard nobody obeys is worse than none."""
     p = _p(tmp_path)
-    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, population=POP, path=p, now=_at(0))
     state = prov.record_annotation(open_findings=47, path=p, now=_at(1))
     assert state["annotation"]["open_findings"] == 47

@@ -464,6 +464,18 @@ def _record_subset_verdict(seed: int) -> None:
     — one that can be run against a deliberately broken world and observed to red.
     """
     try:
+        # A TEST'S VERDICT IS NOT THE VERDICT OF RECORD (2026-08-31), the same rule as the campaign
+        # record above and revealed only once that one stopped failing first -- a masked writer,
+        # which is why the blast radius had to be measured twice.
+        from background.live_ledger_guard import in_test_process, is_live_record_path
+
+        # BOTH HALVES. "A test process" alone is the wrong predicate: a test that redirects this
+        # constant to `tmp_path` and asserts the write happened is exercising the writer correctly,
+        # and a blanket no-op breaks it -- which is exactly what the first draft did to
+        # `test_the_recorded_verdict_is_the_predicate_the_tests_judge`. What must not happen is a
+        # test process writing the LIVE record, and `live_ledger_guard` already says both.
+        if in_test_process() and is_live_record_path(_SUBSET_VERDICT_RECORD):
+            return
         _SUBSET_VERDICT_RECORD.parent.mkdir(parents=True, exist_ok=True)
         _SUBSET_VERDICT_RECORD.write_text(
             json.dumps(
@@ -998,8 +1010,25 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
             "quotes": len(outcome["spend"]),
             "spend_gbp": round(sum(r["amount_gbp"] for r in outcome["spend"]), 2),
         }
-        _CAMPAIGN_RECORD.parent.mkdir(parents=True, exist_ok=True)
-        _CAMPAIGN_RECORD.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        # A TEST'S CAMPAIGN IS NOT THE CAMPAIGN OF RECORD (2026-08-31). This is written on every
+        # population draw, and 67-plus test modules draw a population -- so
+        # `docs/observability/book_growth_campaign.json` was being overwritten with a fixture's
+        # wins, quotes and spend on nearly every run. Measured when `docs/observability` became a
+        # protected surface: **40 of the 84 refusals across the whole suite were this one write**,
+        # the largest single source, in tests that were not about acquisition at all.
+        #
+        # `tools/generate_book_growth_data` reads this file to publish the book-growth page, so a
+        # fixture reaching it is a published figure measured on a test population -- the same shape
+        # as the 2026-08-17 coupled-gap-ledger incident that earned `live_ledger_guard`.
+        #
+        # NO-OP, NOT RAISE: this sits inside a `try/except OSError: pass` whose whole point is that
+        # recording the campaign must never break a draw, and every one of those 67 modules would
+        # have to grow a fixture to satisfy a refusal it does not care about.
+        from background.live_ledger_guard import in_test_process, is_live_record_path
+
+        if not (in_test_process() and is_live_record_path(_CAMPAIGN_RECORD)):
+            _CAMPAIGN_RECORD.parent.mkdir(parents=True, exist_ok=True)
+            _CAMPAIGN_RECORD.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     except OSError:
         pass
     return outcome

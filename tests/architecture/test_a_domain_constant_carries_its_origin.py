@@ -18,9 +18,9 @@ WHAT EACH TEST HERE NAMES AS ITS OWN DEFECT (CONTROLS_THAT_CANNOT_FAIL):
   * `test_no_domain_constant_NAME_carries_two_values` — worse than an unsourced constant, because
     a reader who has met one of them believes they know what the other means.
     `MAX_CHURN_PROBABILITY` was 1.0 in `company/crm/churn_model` and 0.95 in `saas/churn_model`,
-    and nothing anywhere said which a given call site got. Struck 2026-08-31 by renaming the
-    second to `MAX_BILL_SHOCK_CHURN_PROBABILITY`; `VAT_RATE` is the one left, and it is not a
-    rename. See `KNOWN_NAME_COLLISIONS` below for what the strike cost.
+    and nothing anywhere said which a given call site got. Struck 2026-08-31 by renaming the saas
+    side to `MAX_BILL_SHOCK_CHURN_PROBABILITY`; the set below is now empty, and an empty set is the
+    only state in which this control is a statement about the code rather than about a register.
   * `test_the_scan_has_not_lost_its_SUBJECTS` — the population floor. A control that counts
     violations goes GREEN when its scan breaks, which is how this project's scanning controls have
     failed four times. If the scan stops finding constants at all, the debt reads as paid.
@@ -56,6 +56,7 @@ to be recorded. Observed after the repair, each applied in place and reverted:
 from __future__ import annotations
 
 from tools.domain_constant_origins import (
+    _classify,
     duplicates,
     promoted,
     scan,
@@ -99,15 +100,96 @@ UNSOURCED_DEBT_CEILING = 197
 #:     it did not have (it was the director's own cited example of a number picked because a number
 #:     was needed, and the most widely read unsourced constant in the codebase).
 #:
-#:     WHY THE FIRST ATTEMPT WAS REVERTED, since the cheap move looks safe and is not: a file-level
-#:     replace rewrote COMPANY-side references inside test modules that import BOTH models
-#:     (`test_phase_nc_enriched_churn_estimate` aliases each one; `test_churn_ceiling` mutates the
-#:     saas constant to prove the world does NOT follow it, three lines from a `WORLD_MAX_...` it
-#:     must not touch). A rename whose whole purpose is that one name meant two things cannot be
-#:     applied by a tool that also cannot tell them apart. Per reference, or not at all.
+#: Both are recorded in their own finding. BOTH ARE NOW STRUCK; the notes below are the record.
+# `VAT_RATE` STRUCK 2026-08-31 — the register asked for this edit and it is the record the work
+# happened. `company/billing/invoice.py` declared its own `VAT_RATE = 0.05` ("5% VAT on domestic
+# energy") while `saas/non_commodity.py` held {'resi': 0.05, 'SME': 0.2, 'I&C': 0.2}: a LEGAL rate
+# with two homes, which is the director's own example of the class. The company side now asks
+# `domain_invariants.vat_rate_for_segment`, which reads the published commons artefact, so there is
+# no constant left to collide.
+#
+# `MAX_CHURN_PROBABILITY` STRUCK 2026-08-31 — the register asked for this edit too, and it was the
+# last collision of the five. It was never a reconciliation: 1.0 in `company/crm/churn_model` is the
+# COMPANY BELIEF model's ceiling, deliberately raised from a hard clamp so genuinely different
+# elevated risks stay distinguishable; 0.95 in `saas/churn_model` capped a bill-shock model. Two
+# concepts, one name. The saas side is now `MAX_BILL_SHOCK_CHURN_PROBABILITY` and the company side
+# keeps the plain name. An earlier blunt pass was REVERTED because a file-level replace rewrote
+# company-side references inside test modules that touch BOTH models; this one was done per
+# reference, and the modules that read both (`test_phase_nc_enriched_churn_estimate`,
+# `test_churn_ceiling`) are what made that necessary. Note `tests/simulation/test_churn_ceiling.py`
+# monkeypatches the saas name as a STRING — a rename that missed it would have raised, not passed.
+KNOWN_NAME_COLLISIONS: frozenset[str] = frozenset()
+
+
+#: ONE VALUE UNDER SEVERAL NAMES — the same rule as the collision above, with the halves swapped.
 #:
-#: `VAT_RATE` is recorded in its own finding.
-KNOWN_NAME_COLLISIONS = frozenset({"VAT_RATE"})
+#: The check above asks "does one NAME carry two values?". It cannot see one CONCEPT declared in
+#: several modules under different names, and that is the half that had actually gone wrong: on
+#: 2026-08-31 the CLV discount rate was 0.10 in `company/analytics/clv_three_horizon` as
+#: `DISCOUNT_RATE` and 0.10 again in `saas/clv_model` and `saas/home_move_win_rate` as
+#: `DISCOUNT_RATE_ANNUAL`. Three homes for one number, invisible to a name-keyed check.
+#:
+#: WORSE THAN INVISIBLE: `clv_three_horizon`'s own comment said *"ONE discount rate for the whole
+#: seam… stated once here rather than five times in five callers"*, and named `saas/clv_model` as
+#: the module whose value it had adopted — without removing it. **A consolidation that added a home
+#: instead of removing one**, documented as a consolidation.
+#:
+#: THE SUFFIXES STRIPPED are the ones that describe UNITS or PERIOD rather than the concept, so
+#: `DISCOUNT_RATE` and `DISCOUNT_RATE_ANNUAL` collapse together. Deliberately short: a longer list
+#: would start merging genuinely different quantities, and a false positive here sends someone to
+#: delete a constant that should exist.
+_CONCEPT_SUFFIXES = ("_ANNUAL", "_PER_YEAR", "_PCT", "_PERCENT", "_FRACTION",
+                     "_GBP", "_KWH", "_PER_MWH")
+
+#: Concept+value pairs living in more than one module TODAY, each with why it is still there.
+#: Same discipline as `KNOWN_NAME_COLLISIONS`: when one is fixed it comes off this list in the
+#: commit that fixed it, and that edit is the record the work happened.
+KNOWN_CONCEPT_DUPLICATES = frozenset({
+    # 4.5 GBP/MWh, `origin=cited` on BOTH sides -- the lowest-severity case here, since neither is
+    # an invented number. Still two homes for one published rate.
+    ("DFS_RATE_GBP", "4.5"),
+})
+
+
+def _concept(name: str) -> str:
+    n = name.lstrip("_").upper()
+    for suffix in _CONCEPT_SUFFIXES:
+        if n.endswith(suffix):
+            n = n[: -len(suffix)]
+    return n
+
+
+def test_no_concept_is_declared_in_more_than_one_module():
+    """One concept, one home -- checked the way round the name-keyed test cannot see.
+
+    MUTATION: re-declare `DISCOUNT_RATE_ANNUAL = 0.10` in `saas/clv_model.py` and this fires,
+    naming both modules. That mutation is the code as it stood this morning.
+    """
+    import collections
+
+    groups = collections.defaultdict(list)
+    for row in scan():
+        groups[(_concept(row["name"]), repr(row["value"]))].append(row)
+
+    found = {key for key, rows in groups.items()
+             if len({r["path"] for r in rows}) > 1}
+    new = found - KNOWN_CONCEPT_DUPLICATES
+    assert not new, (
+        "{} concept(s) are declared in more than one module. One concept, one home:\n".format(len(new))
+        + "\n".join(
+            "  {} = {}\n".format(c, v)
+            + "\n".join("      {}:{} as {}".format(r["path"], r["line"], r["name"])
+                         for r in groups[(c, v)])
+            for c, v in sorted(new)
+        )
+    )
+
+    gone = KNOWN_CONCEPT_DUPLICATES - found
+    assert not gone, (
+        "{} no longer duplicated, which is good -- remove it from KNOWN_CONCEPT_DUPLICATES in the "
+        "same commit that fixed it. That edit is the record the work happened.".format(
+            sorted(c for c, _ in gone))
+    )
 
 #: A FLOOR UNDER THE DEBT ITSELF, and it exists because the ratchet above could not fail.
 #:
@@ -268,3 +350,39 @@ def test_an_UNPARSEABLE_file_is_reported_and_not_silently_skipped():
     assert not bad, (
         "these files in company/ or saas/ could not be parsed, so any constants they hold are "
         f"absent from the debt count and the count is not trustworthy: {bad}")
+
+
+def test_a_word_ending_in_ons_is_not_a_CITATION():
+    """An English plural may not discharge a constant's debt.
+
+    THE DEFECT, found live 2026-08-31 while giving `MAX_BILL_SHOCK_CHURN_PROBABILITY` an origin:
+    `_CITED` listed the short publisher abbreviations as `CMA\\b` and `ONS\\b` — a TRAILING word
+    boundary and no LEADING one — so `ONS` matched inside "comparisons", "commons", "reasons",
+    "seasons". The classifier then returned `"cited"` for a comment that names no publisher and no
+    path, and `_classify` checks CITED first, so the mislabel also outranks the honest origins
+    behind it.
+
+    IT WAS NOT HYPOTHETICAL. `company/regulatory/seg_book.py::_SEG_RATE_P_PER_KWH_BY_YEAR` says
+    "Based on publicly available SEG rate comparisons 2020-2024" over an illustrative table, and
+    was counted among the 26 cited. Fixing the anchors moved exactly two constants: that one, back
+    into the debt where it belongs, and the new simplification above, which had said "the
+    regulation commons" and been read as citing the ONS.
+
+    THE DIRECTION MATTERS. This is FAIL-OPEN: a false CITED shrinks the debt, and the debt ratchet
+    only catches increases — so the whole register could have been discharged, one plural at a
+    time, with the gate green throughout.
+
+    MUTATION (must fire): drop either leading `\\b` from `_CITED`.
+    """
+    assert _classify("# based on published rate comparisons across suppliers") is None, (
+        "a comment whose only match is a word ENDING in 'ons' reads as a citation — the leading "
+        "word boundary has been dropped from `ONS` in tools.domain_constant_origins._CITED")
+    assert _classify("# the same rule the commons artefact carries") is None
+    # `CMA`'s leading boundary is DEFENSIVE, not evidenced: no ordinary English word contains
+    # "cma", so unlike `ONS` it has never mislabelled anything. Anchored anyway because the two
+    # were written as a pair and leaving one half-anchored invites the next reader to copy it.
+
+    # THE VACUITY GUARD: the abbreviations must still match when they are the real thing, or this
+    # test would pass against a `_CITED` that matches nothing at all.
+    assert _classify("# ONS, Consumer price inflation time series") == "cited"
+    assert _classify("# CMA Energy Market Investigation, final report") == "cited"

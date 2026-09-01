@@ -17,7 +17,7 @@ and predicted the staleness -- and a named comment is not a control. It sat acro
 and two published readings. This module is the repair the comment could not be: **a reading that
 cannot be taken without naming the population it was taken on.**
 
-WHY THE ROWS ARE NOT UNIONED, AND THE REFUSAL IS DELIBERATE. An SVT segment decision carries no
+WHY THIS IS NOT A UNION, AND THE REFUSAL IS DELIBERATE. An SVT segment decision carries no
 `churn_probability`, no `sim_price_response` and no `sim_bill_shock_base` -- there was no renewal
 for any of them to describe. Appending the two lists hands every existing reader rows of `None` and
 lets a mean be taken across two populations, which is the failure this repository has already paid
@@ -25,24 +25,6 @@ for. So the two files stay two files, and what is shared is the DECLARATION: whi
 can see, how many decisions and departures are in each, what share of the book's departures the
 reading's own population accounts for, and which departure CAUSES are structurally unobservable on
 it.
-
-AND THERE IS EXACTLY ONE QUANTITY THE TWO ROUTES CAN BE UNIONED ON, WHICH `book_departure_level`
-BELOW COMPUTES. Both routes record the hazard the account actually faced at that decision
-(`realized_churn_probability`) and both label the outcome the same way, so the DEPARTURE LEVEL --
-unlike any factor decomposition -- is defined on the union. The distinction is not a loophole in the
-paragraph above: a mean of `sim_price_response` over both routes is a mean over two populations of a
-quantity only one of them has, while a departure probability is the same quantity on both. What it
-still cannot be is a mean over DECISIONS, and that is the trap this module was built to stop one
-level down: an SVT account faces a segment decision at every boundary and a fixed account faces one
-renewal roll a year, so decisions are not accounts and their ratio is not an annual rate. Measured
-on the 2026-08-31 two-route capture, the per-decision mean runs 3.6-7.5% against a published band of
-2.9-23.0% -- a figure that would have read as "the world departs far too little" when the truth is
-that the denominator counted the wrong thing.
-
-SO THE UNION IS TAKEN PER ACCOUNT-YEAR AND SAYS SO. Each account's decisions within a year are
-combined into one annual departure probability, `1 - PROD(1 - p)`, and the mean is over ACCOUNTS.
-That is the denominator class the published switching rate uses -- domestic electricity accounts --
-and it is the only reading in this tree comparable to it.
 
 AN UNOBSERVABLE CAUSE IS `None` AND NEVER `0.0`, and that distinction is the whole reason
 `causes_not_observable` exists. `simulation.departure_risks.build_departure_risks` defaults
@@ -124,6 +106,15 @@ def load_svt_decisions(table_path: Path | str) -> tuple[list[dict] | None, str |
     never wired" produce the identical artefact** and a reader must not have to tell them apart by
     inference. An EMPTY sibling that exists is returned as an empty list AND carries its own
     reason, because that too is a claim a reading should be unable to make silently.
+
+    THAT SENTENCE WAS TRUE OF THE ARTEFACT AND FALSE OF THE PRODUCER, WHICH IS WHY IT DID NOT SAVE
+    ANYONE (2026-08-31). It says the two states must not be told apart by inference -- and until
+    today `tools/capture_departure_factors` wrote the same empty file for both, because it read
+    `result.get("svt_decisions", [])`. So the discriminator this function offers (`None` vs `[]`) was
+    a fact about whether a FILE EXISTED, not about whether anything was measured, and an unwired
+    recorder landed squarely on the `[]` branch that `declare_rows` counts as coverage. The producer
+    now writes NO sibling when the run carries no recorder, which is what makes `[]` here mean what
+    the caller below assumes it means: the recorder ran, and found nobody on the product.
     """
     sib = svt_sibling(table_path)
     if not sib.is_file():
@@ -199,6 +190,200 @@ def declare_rows(
     }
 
 
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# THE UNION, AND WHY IT IS AN ACCOUNT DENOMINATOR AND NOT A BIGGER DECISION COUNT
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# The module note above says the two FILES stay two files, and they do -- an SVT decision still
+# carries no `sim_price_response` and no mean may be taken across the two. What is unioned here is
+# not the rows: it is the DEPARTURES, over a denominator that is neither route's.
+#
+# Both routes' natural denominators are wrong for the published band, and wrong in opposite
+# directions. A renewal-decision denominator counts only households at a decision point, so it
+# reads about a third high. An SVT-segment denominator counts cap periods -- roughly eleven per
+# account-year on the 2026-08-31 capture -- so it reads an order of magnitude low. The published
+# record's denominator is neither: `gb_domestic_switching_rate.json` counts external changes of
+# supplier on a domestic electricity MPAN over ALL domestic electricity accounts.
+#
+# So the union's denominator is ACCOUNTS, and that is the entire reason the union is a repair
+# rather than simply a larger number. It is the first denominator in this area that has the same
+# shape as the record's.
+
+#: The three properties a capture must have before an ACCOUNT denominator can be read off it, each
+#: CHECKED rather than assumed by `account_denominator_refusal`. They held on the two-route capture
+#: measured 2026-08-31 (131 accounts, 82 departures) -- but they are properties of the world's
+#: departure mechanics, not of that file, and a world where an account can re-join and leave again
+#: would break the first two silently while leaving every row well-formed.
+ACCOUNT_DENOMINATOR_PROPERTIES = (
+    "a departure is terminal: no account departs twice",
+    "a departed account takes no further decision on either route",
+    "an account on the book is visible every year: no unobserved interior account-year",
+)
+
+
+def _year(row: dict) -> int:
+    return int(str(row.get("event_date", "0000"))[:4])
+
+
+def account_denominator_refusal(
+    renewal_rows: list[dict], svt_rows: list[dict] | None
+) -> str | None:
+    """Why these two routes cannot be read on an account denominator, or `None` if they can.
+
+    A REFUSAL AND NOT A CAVEAT, because every one of the three properties is what makes the
+    denominator MEAN something and each fails silently. If an account could depart twice, the
+    numerator would count events while the denominator counted accounts, and the ratio would not be
+    a quantity -- the class CLAUDE.md names as this project's commonest way to publish something
+    misleading. If an account could sit on the book unobserved for a year, the denominator would be
+    the accounts that happened to make a decision, which is the selected sub-population this whole
+    repair exists to stop being compared against a whole-population rate.
+
+    The interior-gap check is deliberately INTERIOR only. An account absent before its first
+    decision or after its last has joined or left, which is the book changing size and not the
+    instrument going blind; an account absent BETWEEN two of its own decisions is the instrument
+    going blind, and nothing else produces that shape.
+    """
+    if svt_rows is None:
+        return (
+            "the SVT route is unreadable, so a whole-book count cannot be taken at all. "
+            + SVT_BLIND_WARNING
+        )
+    departed_year: dict[str, int] = {}
+    seen: dict[str, set[int]] = {}
+    twice: list[str] = []
+    unidentified = 0
+    for row in list(renewal_rows) + list(svt_rows):
+        acct = row.get("customer_id")
+        year = _year(row)
+        # A ROW WITHOUT AN ACCOUNT IS REFUSED, NOT SKIPPED, and the first draft skipped it. That
+        # skip made the check FAIL-OPEN on precisely the rows that make the denominator
+        # uncheckable: with no identifier there is no way to know whether an account departed
+        # twice or was invisible for a year, so the three properties below were being certified
+        # over the rows that could not violate them. Counted here and refused after the loop.
+        if acct is None:
+            unidentified += 1
+            continue
+        if year == 0:
+            continue
+        seen.setdefault(acct, set()).add(year)
+        if _is_departure(row):
+            if acct in departed_year:
+                twice.append(acct)
+            departed_year[acct] = min(departed_year.get(acct, year), year)
+    if unidentified:
+        return (
+            f"{unidentified} decision(s) carry no `customer_id`, so they cannot be attributed to "
+            f"an account. An account denominator cannot be counted from rows that do not name "
+            f"their account, and the three properties below cannot be checked on them either."
+        )
+    if twice:
+        return (
+            f"{len(twice)} account(s) depart more than once in this capture (e.g. {twice[0]}). "
+            f"A departure is not terminal here, so a departure COUNT is not an account count and "
+            f"dividing one by the other does not give a rate comparable to the published record."
+        )
+    after = [a for a, y in departed_year.items() if any(v > y for v in seen[a])]
+    if after:
+        return (
+            f"{len(after)} account(s) take a decision in a year AFTER the year they departed "
+            f"(e.g. {after[0]}). Either departure is not terminal or the two routes disagree about "
+            f"when an account left; a whole-book rate cannot be read until which is established."
+        )
+    gaps = [
+        (a, y) for a, years in seen.items()
+        for y in range(min(years), max(years) + 1) if y not in years
+    ]
+    if gaps:
+        return (
+            f"{len(gaps)} unobserved interior account-year(s) (e.g. {gaps[0][0]} is absent from "
+            f"both routes in {gaps[0][1]} while present either side). The denominator would be the "
+            f"accounts that happened to make a decision, which is the selected sub-population this "
+            f"reading exists to stop being compared against a whole-population rate."
+        )
+    return None
+
+
+def union_by_year(renewal_rows: list[dict], svt_rows: list[dict] | None) -> dict[int, dict]:
+    """`{year: whole-book departure reading}` over the ACCOUNT denominator. Fails closed.
+
+    Raises rather than returning a partial answer when `account_denominator_refusal` names a cause:
+    a whole-book rate is the figure a reader will quote, and there is no shape of caveat that
+    survives being quoted. Callers that want to degrade to a renewal-only reading ask the refusal
+    first.
+
+    Two rates per year, and they are different quantities:
+
+      `realised_rate_pct`   departures that HAPPENED over accounts on the book. One draw of a
+                            binomial on ~50 accounts, so a year of it carries about 5pp of
+                            sampling noise and a single year inside or outside a band says little.
+      `expected_rate_pct`   the sum of every decision's own `realized_churn_probability` over the
+                            same accounts -- the world's departure LEVEL rather than its roll. This
+                            is the quantity a level anchor is fitted onto and the one the published
+                            band should be read against, because the band is a population rate and
+                            not one country's coin flip.
+
+    `expected_rate_pct` is model-free: it adds up probabilities the world already recorded on each
+    row, so it cannot disagree with the run by being a reimplementation of it.
+    """
+    refusal = account_denominator_refusal(renewal_rows, svt_rows)
+    if refusal is not None:
+        raise ValueError(f"no account denominator is available for this capture: {refusal}")
+    per_year: dict[int, dict] = {}
+    for route, rows in ((ROUTE_RENEWAL, renewal_rows), (ROUTE_SVT, svt_rows)):
+        for row in rows:
+            year = _year(row)
+            if year == 0:
+                continue
+            slot = per_year.setdefault(year, {
+                "accounts": set(),
+                "decisions": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "departures": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
+                "expected_departures": 0.0,
+                "unpriced_decisions": 0,
+            })
+            slot["accounts"].add(row["customer_id"])
+            slot["decisions"][route] += 1
+            if _is_departure(row):
+                slot["departures"][route] += 1
+            p = row.get("realized_churn_probability")
+            # A DECISION WITHOUT ITS PROBABILITY IS COUNTED, NOT SKIPPED. Skipping it would shrink
+            # the expected NUMERATOR while leaving the account DENOMINATOR whole -- a full
+            # denominator with an emptied numerator, which reads as a world that departs less
+            # rather than as a capture that recorded less. So the year keeps the count and
+            # `expected_rate_pct` goes `None` below: an honest absence, which cannot be mistaken
+            # for a measurement the way a quietly-low rate can.
+            if p is None:
+                slot["unpriced_decisions"] += 1
+            else:
+                slot["expected_departures"] += float(p)
+    span = sorted(per_year)
+    out: dict[int, dict] = {}
+    for year, slot in sorted(per_year.items()):
+        accounts = len(slot["accounts"])
+        departures = sum(slot["departures"].values())
+        out[year] = {
+            "year": year,
+            "accounts": accounts,
+            "decisions": dict(slot["decisions"]),
+            "departures": dict(slot["departures"]),
+            "departures_total": departures,
+            "expected_departures": round(slot["expected_departures"], 4),
+            "unpriced_decisions": slot["unpriced_decisions"],
+            "realised_rate_pct": round(100.0 * departures / accounts, 4) if accounts else None,
+            "expected_rate_pct": (
+                round(100.0 * slot["expected_departures"] / accounts, 4)
+                if accounts and not slot["unpriced_decisions"] else None
+            ),
+            "denominator": "accounts with at least one decision on either route in the year",
+            # THE CAPTURE'S OWN EDGES, and they are not a rate's business to hide. An account's
+            # exposure in the first and last year of the capture is a fraction of a year, so a
+            # rate over a full-year account count reads LOW there. Flagged per year rather than
+            # excluded by a hand-written year range, because the range would be a fact about the
+            # 2026-08-31 run and this is a fact about any capture.
+            "partial_year": year in (span[0], span[-1]),
+        }
+    return out
+
+
 def declare(table_path: Path | str, renewal_rows: list[dict] | None = None) -> dict:
     """The population declaration for a reading taken off a captured renewal factor table."""
     path = Path(table_path)
@@ -210,167 +395,6 @@ def declare(table_path: Path | str, renewal_rows: list[dict] | None = None) -> d
         table=_rel(path),
         svt_source=_rel(svt_sibling(path)) if svt_rows is not None else None,
         svt_unreadable=reason,
-    )
-
-
-#: What `book_departure_level` divides by, said in one sentence so no caller has to re-say it and
-#: none can quote the level without it. Named as a constant because three readers print it and a
-#: denominator restated at three sites is a denominator that drifts at two of them.
-BOOK_DENOMINATOR = (
-    "distinct accounts facing at least one departure decision in the year, either route "
-    "(account-years, NOT decisions)"
-)
-
-#: Which way the reading is wrong, and it is stated rather than left for the reader to work out.
-#: An account that faced no decision at all in a year cannot depart in it and is excluded from the
-#: denominator, so the level below is an UPPER bound on the whole book's annual departure rate. The
-#: direction matters: it is the anti-flattering one, so a year reading OUT OF BAND above cannot be
-#: explained away by this bound, while a year reading inside might be outside on the full book.
-BOOK_BOUND = "upper"
-
-#: Said wherever the whole-book level cannot be taken. The renewal-only figure is NOT offered as a
-#: substitute: on the same capture the two differ by up to 13pp and, in 2022, the renewal route has
-#: no decisions at all while the book has 198.
-BOOK_BLIND_REFUSAL = (
-    "the whole-book departure level cannot be computed from a capture that cannot see both "
-    "routes. The renewal-only level is not a stand-in for it: " + SVT_BLIND_WARNING
-)
-
-
-def _year_of(row: dict) -> int | None:
-    """The calendar year of a decision, or `None` if the row does not carry a readable date."""
-    raw = str(row.get("event_date") or "")[:4]
-    return int(raw) if raw.isdigit() else None
-
-
-def book_departure_level(
-    renewal_rows: list[dict],
-    svt_rows: list[dict] | None,
-) -> tuple[dict[int, dict] | None, str | None]:
-    """`({year: reading}, None)` for the whole book, or `(None, reason)` — the union both level
-    instruments were reading around.
-
-    THE READING. For each year, every account that faced a decision on either route has its
-    decisions combined into one annual departure probability, `1 - PROD(1 - p)`, and the mean of
-    that over accounts is the year's expected departure level. `BOOK_DENOMINATOR` names what is
-    divided by and `BOOK_BOUND` names which way it is wrong; both travel on every row, because a
-    level quoted without its denominator is exactly the defect that produced this module.
-
-    WHY NOT THE MEAN OVER DECISIONS, which is the obvious union and the wrong one. An SVT account
-    faces a segment decision at every boundary -- 198 of them in 2022 across 55 accounts -- and a
-    fixed account faces one renewal roll. Averaging per-decision hazards mixes a per-segment
-    probability with an annual one and lands at 3.6-7.5%, which would have been published as a
-    world departing far below the record when in fact it departs above it. Combining within the
-    account first is what makes the two routes' hazards the same quantity.
-
-    IT REFUSES RATHER THAN FALLING BACK, on either of two states. A capture that cannot see the SVT
-    route yields `(None, reason)` and never a renewal-only number wearing a whole-book label -- the
-    fail-open shape here is a substitute that is well-formed and answers a different question. And
-    a row missing its hazard or its account id makes its YEAR `None` with a count, never a hazard of
-    zero: a decision whose probability was not recorded is unknown, and treating it as zero would
-    pull the level down by exactly the rows nobody can see.
-    """
-    if svt_rows is None:
-        return None, BOOK_BLIND_REFUSAL
-
-    per_year: dict[int, dict] = {}
-    for route, rows in ((ROUTE_RENEWAL, renewal_rows), (ROUTE_SVT, svt_rows)):
-        for row in rows:
-            year = _year_of(row)
-            if year is None:
-                continue
-            slot = per_year.setdefault(year, {
-                "decisions": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
-                "departures": {ROUTE_RENEWAL: 0, ROUTE_SVT: 0},
-                "_hazards": {},
-                "_renewal_hazards": [],
-                "unreadable_rows": 0,
-            })
-            slot["decisions"][route] += 1
-            if _is_departure(row):
-                slot["departures"][route] += 1
-            account = row.get("customer_id")
-            hazard = row.get("realized_churn_probability")
-            if account is None or hazard is None:
-                slot["unreadable_rows"] += 1
-                continue
-            slot["_hazards"].setdefault(account, []).append(float(hazard))
-            if route == ROUTE_RENEWAL:
-                slot["_renewal_hazards"].append(float(hazard))
-
-    out: dict[int, dict] = {}
-    for year, slot in sorted(per_year.items()):
-        hazards = slot.pop("_hazards")
-        renewal_hazards = slot.pop("_renewal_hazards")
-        departures = sum(slot["departures"].values())
-        accounts = len(hazards)
-        readable = slot["unreadable_rows"] == 0 and bool(hazards)
-        out[year] = {
-            **slot,
-            "accounts": accounts,
-            "total_decisions": sum(slot["decisions"].values()),
-            "total_departures": departures,
-            # `None` and not 0.0 on an unreadable year, per the docstring: a hazard nobody recorded
-            # is unknown, and the zero would read as a measured absence of departure risk.
-            "expected_departure_pct": (
-                100.0 * book_level_from_hazards(hazards) if readable else None
-            ),
-            "realised_departure_pct": (
-                100.0 * departures / accounts if accounts else None
-            ),
-            # The old subject, carried beside the new one so the move is visible on the same line
-            # rather than inferred across two runs. `None` in a year with no renewal decisions --
-            # 2022 is such a year on the committed capture, which is why the renewal-only summary
-            # printed `nan` and nothing said why.
-            "renewal_only_expected_pct": (
-                100.0 * sum(renewal_hazards) / len(renewal_hazards) if renewal_hazards else None
-            ),
-            "denominator": BOOK_DENOMINATOR,
-            "bound": BOOK_BOUND,
-        }
-    return out, None
-
-
-def _survival(hazards: list[float]) -> float:
-    """`PROD(1 - p)` — the chance an account facing all these decisions survives the year.
-
-    Written out rather than `math.prod(...)` inline so the complement below reads as the annual
-    departure probability it is, and so an empty list is 1.0 (no decision, no departure) rather
-    than an accident of the reduction's identity element.
-    """
-    survival = 1.0
-    for p in hazards:
-        survival *= (1.0 - p)
-    return survival
-
-
-def book_level_from_hazards(hazards_by_account: dict[object, list[float]]) -> float:
-    """One year's whole-book departure level, as a FRACTION, from each account's hazards that year.
-
-    THE ACCOUNT-YEAR MEAN, IN ONE PLACE, because it now has two callers that reach it by different
-    routes. `book_departure_level` above passes the hazards the run RECORDED; the whole-book fit in
-    `tools/fit_year_level_anchor.py` passes hazards RECOMPUTED at a candidate anchor, and it has to
-    be the identical combination or the fit solves for a quantity the band control does not read.
-    That is the VAT rule applied before there are five copies rather than after.
-
-    Each account's decisions in the year combine to `1 - PROD(1 - p)` and the mean is over ACCOUNTS,
-    never over decisions -- the distinction the module note opens with, and the one that decides the
-    SIGN of the 2022 error rather than only its size.
-    """
-    annual = [1.0 - _survival(ps) for ps in hazards_by_account.values()]
-    return sum(annual) / len(annual)
-
-
-def book_banner(levels: dict[int, dict] | None, refusal: str | None) -> str:
-    """The lines a whole-book level reader prints, refusal included, before its own numbers."""
-    if levels is None:
-        return f"whole-book departure level: UNAVAILABLE\n  ⚠ {refusal}"
-    total_accounts = sum(y["accounts"] for y in levels.values())
-    return (
-        f"whole-book departure level: over {total_accounts} account-years, {len(levels)} years\n"
-        f"  denominator: {BOOK_DENOMINATOR}\n"
-        f"  this is an {BOOK_BOUND.upper()} bound: an account facing no decision in a year cannot "
-        f"depart in it and is not in the denominator"
     )
 
 

@@ -41,11 +41,11 @@ from simulation.market_switching_propensity import (
     market_departure_rate_pct,
 )
 from tools.departure_population import (
+    account_denominator_refusal,
     banner,
-    book_banner,
-    book_departure_level,
     declare,
     load_svt_decisions,
+    union_by_year,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -187,38 +187,41 @@ def world_realised_rate_pct(table_path: Path | None = None) -> dict[int, float]:
     }
 
 
-def world_book_departure_rate_pct(
-    table_path: Path | None = None,
-) -> tuple[dict[int, float] | None, str | None]:
-    """`({year: whole-book expected departure %}, None)`, or `(None, reason)` — BOTH ROUTES.
+def world_book_rate_pct(table_path: Path | None = None) -> tuple[dict[int, float], str | None]:
+    """`({year: whole-book expected departure rate %}, refusal)` — the comparable quantity, at last.
 
-    THE COMPARABLE COLUMN, AND `world_realised_rate_pct` ABOVE IS NOT ONE. That function means
-    `realized_churn_probability` over renewal decisions, and post-C1b the renewal roll is a
-    SELECTED sub-population: the households that took a fixed deal and reached a decision point.
-    The published band's denominator is every domestic electricity account. Comparing the two was
-    never a like-for-like comparison, and the tell was in the artefact all along -- on the
-    2026-08-31 two-route capture the renewal route has NO decisions at all in 2022, which is why
-    the eight-year summary printed `nan` for that year and nothing said why.
+    THIS IS THE COLUMN THE PUBLISHED BAND WAS ALWAYS ABOUT, and until the two routes were unioned
+    nothing in this tree could compute it. `world_realised_rate_pct` above is a mean over renewal
+    DECISIONS: post-C1b that is the selected subset of households who took a fixed deal, i.e. the
+    ones who demonstrably shop, and a mean over shoppers is not the book's departure level. This is
+    every departure the world expects on either route, over the accounts on the book — the same
+    numerator and the same denominator the record states.
 
-    Kept as a SECOND function rather than a repair of the first, deliberately, and it is the same
-    reasoning `reading_population` gives. `world_realised_rate_pct` is the declared subject of
-    `tests/architecture/test_switching_rate_commons.py`; rewriting what a control measures inside
-    the commit that repairs the measurement makes the move unattributable, and this project has
-    paid for that. The two readings sit side by side, both printed, and which one the band control
-    should take is a separate act on a separate day.
+    `world_realised_rate_pct` is deliberately left alone rather than redefined: it is the subject
+    of `tests/architecture/test_switching_rate_commons.py`'s band control, and moving a control's
+    subject inside the commit that repairs what it measures is how a moved number becomes
+    unattributable. The two live side by side and the summary says which is which.
 
-    NOT RESTRICTED TO `COMPARISON_YEARS`. That window exists because the renewal route had three
-    decisions in 2016 and a partial 2025; on the whole book those years carry 3 and 48 accounts,
-    and 2016 is small for a real reason rather than a route-selection one. The caller windows it.
+    Returns the refusal rather than raising, because a reader that cannot get the whole-book
+    reading still wants the renewal one PLUS the reason the other is missing — which is the whole
+    point of `tools/departure_population`.
+
+    PARTIAL YEARS ARE DROPPED, and by the capture's own edges rather than a written-down range: an
+    account's exposure in the first and last year of a capture is a fraction of a year, so a rate
+    over a full-year account count reads low there. `COMPARISON_YEARS` above encodes the same
+    exclusion for the 2026-08-30 run as two hand-typed endpoints; this derives it.
     """
     path = table_path or DEFAULT_TABLE
     rows = json.loads(path.read_text())
     svt_rows, _ = load_svt_decisions(path)
-    levels, refusal = book_departure_level(rows, svt_rows)
-    if levels is None:
-        return None, refusal
-    return {y: r["expected_departure_pct"] for y, r in levels.items()
-            if r["expected_departure_pct"] is not None}, None
+    refusal = account_denominator_refusal(rows, svt_rows)
+    if refusal is not None:
+        return {}, refusal
+    return {
+        year: v["expected_rate_pct"]
+        for year, v in union_by_year(rows, svt_rows).items()
+        if not v["partial_year"] and v["expected_rate_pct"] is not None
+    }, None
 
 
 def reading_population(table_path: Path | None = None) -> dict:
@@ -247,12 +250,15 @@ def main(argv: list[str]) -> int:
     outcome = world_outcome(rows)
 
     decl = declare(table_path, rows)
+    svt_rows, _ = load_svt_decisions(table_path)
+    book_refusal = account_denominator_refusal(rows, svt_rows)
+    book = {} if book_refusal else union_by_year(rows, svt_rows)
     print(banner(decl))
     print()
     print(f"factor table: {table_path}   ({len(rows)} renewals)")
     print()
     print("                published        savings curve    world rate       world E[depart]   departures /    room to    room to")
-    print("  year          band %           %                (absolute) %     per renewal %     active elec %   LOW pp     HIGH pp")
+    print("  year          band %           %                (absolute) %     per renewal %     account %       LOW pp     HIGH pp")
     print("  " + "-" * 118)
     mids, curves, rates, expected = [], [], [], []
     room_below, room_above = [], []
@@ -261,9 +267,22 @@ def main(argv: list[str]) -> int:
         curve = world_curve_pct(year)
         rate = market_departure_rate_pct(year)
         n, d, mean_p = outcome.get(year, (0, 0, float("nan")))
-        per_account = (
-            f"{100.0 * d / ACTIVE_ELEC_ACCOUNTS[year]:.1f}" if year in ACTIVE_ELEC_ACCOUNTS else "—"
-        )
+        # DERIVED FROM THE CAPTURE when both routes are readable, and only then falling back to
+        # the stated table. The fallback is the pre-anchor run's counts and is indicative only
+        # (see the constant); the derived figure is this capture's own accounts and is the real
+        # per-account denominator. A `*` marks the derived one so the two can never be read as
+        # the same measurement.
+        # THE TWO ARE NOT THE SAME QUANTITY AND THE MARKER IS NOT DECORATION. `*` is every
+        # departure on either route over the accounts THIS capture puts on the book. `†` is
+        # renewal departures alone over a count stated from a different run, which is the only
+        # per-account figure a one-route capture can offer and is indicative only. An unmarked
+        # column carrying both numerators by turns is the defect this whole repair is about.
+        if year in book:
+            per_account = f"{book[year]['realised_rate_pct']:.1f}*"
+        elif year in ACTIVE_ELEC_ACCOUNTS:
+            per_account = f"{100.0 * d / ACTIVE_ELEC_ACCOUNTS[year]:.1f}†"
+        else:
+            per_account = "—"
         below, above = band_margins(mean_p, lo, hi)
         flag = "" if inside_band(mean_p, lo, hi) else "   OUT OF BAND"
         print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
@@ -309,70 +328,55 @@ def main(argv: list[str]) -> int:
     print("  band. See §8-§11 of docs/market_research/gb_switching_rate_denominators.md.")
     print()
     print("  AND THE `world E[depart]` COLUMN IS A MEAN OVER THE POPULATION NAMED AT THE TOP.")
-    if decl["covers_svt_route"]:
-        print(f"  This capture sees both routes, and the renewal route it means over carries "
-              f"{decl['share_of_departures_visible']:.0%} of")
-        print("  its departures. The published band's denominator is every domestic electricity")
-        print("  account, not the ones that reached a renewal roll, so the two are NOT the same")
-        print("  quantity and a verdict here is about the renewal route alone.")
-    else:
+    if book:
+        print("  This capture sees both routes, and the renewal route the column above means over")
+        print(f"  carries {decl['share_of_departures_visible']:.0%} of its departures. That column is therefore about the renewal")
+        print("  route alone. The whole book is below, and it is the comparable quantity.")
+        print()
+        print("  ── THE WHOLE BOOK: every departure on either route, over the accounts on the book ──")
+        print()
+        print(f"  {'year':<7}{'published':>12}{'expected':>11}{'realised':>11}{'accounts':>10}"
+              f"{'dep ren':>9}{'dep SVT':>9}   verdict on the expected level")
+        book_years = [y for y in sorted(book) if not book[y]["partial_year"]]
+        for year in book_years:
+            v = book[year]
+            lo, hi = bands.get(year, (float("nan"), float("nan")))
+            exp = v["expected_rate_pct"]
+            if exp is None:
+                verdict = (f"NO VERDICT — {v['unpriced_decisions']} decision(s) carry no "
+                           f"probability, so the expected level is not measurable here")
+            elif year not in bands:
+                verdict = "n/a — no published band"
+            else:
+                verdict = ("inside" if inside_band(exp, lo, hi)
+                           else ("OUT OF BAND, high" if exp > hi else "OUT OF BAND, low"))
+            shown = f"{exp:>11.2f}" if exp is not None else f"{'—':>11}"
+            print(f"  {year:<7}{lo:>6.1f}–{hi:<5.1f}{shown}{v['realised_rate_pct']:>11.2f}"
+                  f"{v['accounts']:>10}{v['departures']['renewal']:>9}"
+                  f"{v['departures']['svt_segment']:>9}   {verdict}")
+        dropped = [y for y in sorted(book) if book[y]["partial_year"]]
+        print()
+        print(f"  DENOMINATOR: {book[book_years[0]]['denominator']}.")
+        print(f"  Partial years dropped at the capture's own edges: {dropped or 'none'} — an account's exposure in the")
+        print("  first and last year of a capture is a fraction of a year, so a rate over a full-year account count")
+        print("  reads low there. READ THE `expected` COLUMN, NOT `realised`: the realised one is a single draw of a")
+        print("  binomial on a few dozen accounts and carries several points of sampling noise, while the published")
+        print("  band is a population rate over millions. A year's realised figure landing inside or outside the band")
+        print("  is close to uninformative on its own; the expected level is what an anchor is fitted onto.")
+    elif not decl["covers_svt_route"]:
         print("  This capture cannot see the SVT inertia route at all, so it cannot say what share")
         print("  of the book's departures it is measuring. A year flagged OUT OF BAND on this")
         print("  table is a statement about renewal decisions, and a year INSIDE it is not")
         print("  evidence the world's departure level matches the record.")
-    print()
-    _print_book_level(table_path, rows, bands)
+    else:
+        # BOTH ROUTES READABLE AND STILL NO WHOLE-BOOK READING. The third state, and it needs
+        # saying loudest of the three: the capture has the rows but violates one of the properties
+        # that make an account denominator mean anything, so the comparable quantity is not
+        # merely missing — something about the world's departure mechanics has changed.
+        print("  This capture sees both routes and STILL cannot be read on an account denominator:")
+        print(f"  {book_refusal}")
+        print("  Until that is established, the table above is the renewal route alone.")
     return 0
-
-
-def _print_book_level(table_path: Path, rows: list[dict], bands: dict[int, tuple[float, float]]) -> None:
-    """The whole-book level over both routes, which is the only column comparable to the band.
-
-    Printed BELOW the renewal table rather than replacing it, so a reader sees the two readings
-    disagree on the same screen. On the committed captures they disagree by up to 13pp and in one
-    year the renewal reading does not exist at all.
-    """
-    svt_rows, _ = load_svt_decisions(table_path)
-    levels, refusal = book_departure_level(rows, svt_rows)
-    print("  " + "=" * 118)
-    print(book_banner(levels, refusal))
-    if levels is None:
-        return
-    print()
-    print("                published        BOTH ROUTES       renewal route     accounts   decisions   departures   room to    room to")
-    print("  year          band %           E[depart] %       only E[depart] %  (denom)    both routes  both routes LOW pp     HIGH pp")
-    print("  " + "-" * 130)
-    for year in sorted(levels):
-        row = levels[year]
-        book = row["expected_departure_pct"]
-        renewal_only = row["renewal_only_expected_pct"]
-        lo, hi = bands.get(year, (None, None))
-        if book is None or lo is None:
-            print(f"  {year}          {'—':>13}      {'—':>13}")
-            continue
-        below, above = band_margins(book, lo, hi)
-        flag = "" if inside_band(book, lo, hi) else "   OUT OF BAND"
-        ro = f"{renewal_only:.2f}" if renewal_only is not None else "— no renewals"
-        print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {book:6.2f}            {ro:>13}     "
-              f"{row['accounts']:>5}      {row['total_decisions']:>6}      {row['total_departures']:>6}   "
-              f"{below:+7.2f}   {above:+7.2f}{flag}")
-    print()
-    print("  READ THE DENOMINATOR BEFORE THE VERDICT. The `BOTH ROUTES` column is a mean over")
-    print("  ACCOUNT-YEARS: each account's decisions in the year are combined into one annual")
-    print("  departure probability. The mean over DECISIONS is NOT this number and is not")
-    print("  comparable to anything -- an SVT account faces a segment decision at every boundary")
-    print("  and a fixed account faces one renewal roll, so that mean reads 3.6–7.5% and would")
-    print("  publish a world departing far below the record when it departs above it in 2022.")
-    print()
-    print("  AND THE TWO COLUMNS DISAGREE, WHICH IS THE POINT. The renewal route is the households")
-    print("  that took a fixed deal and reached a decision point -- a SELECTED sub-population, not")
-    print("  the book. Where the renewal column is blank the route had no decisions that year at")
-    print("  all, and the renewal-only summary above prints `nan` for it. The band's denominator")
-    print("  is every domestic electricity account, so only the BOTH ROUTES column is the same")
-    print("  KIND of quantity as the band -- and it is an UPPER bound on it, because an account")
-    print("  facing no decision in the year cannot depart and is not in the denominator. A year")
-    print("  reading OUT OF BAND ABOVE therefore cannot be explained away by the bound; a year")
-    print("  reading inside it might still be outside on the full book.")
 
 
 if __name__ == "__main__":

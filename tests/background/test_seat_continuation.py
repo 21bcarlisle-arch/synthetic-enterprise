@@ -22,6 +22,7 @@ WHAT EACH LEG NAMES AS ITS OWN DEFECT:
 from __future__ import annotations
 
 import json
+import time
 
 import pytest
 
@@ -165,3 +166,66 @@ def test_a_CLAIMED_continuation_is_not_handed_out_twice(store, monkeypatch, tmp_
     assert delivery_lane.next_item(now=1_000_200.0, path=claims) is None, (
         "the same continuation was offered to a second tick while the first still held it"
     )
+
+
+# ── AN EXPIRY AFTER A DRAW IS THE MECHANISM WORKING (2026-08-31) ─────────────────────────────────
+# The seat executor's first unattended turn took `union-the-departure-routes-and-declare-the-
+# denominator`, did it, and landed b8e6ba32d on origin. Hours later `--list` printed that id under
+# "written and never taken; that is the drag, visible". The one surface built to say whether the
+# handoff works was reporting its only success as its defining failure.
+#
+# `delivery_lane.DRAW_LEDGER_FILE` had recorded `first_drawn_at` for that id the whole time. This is
+# not new information; it is a join nobody had made.
+
+def test_an_expiry_after_a_draw_is_reported_as_done(tmp_path, monkeypatch):
+    """MUTATION: drop the `drawn_at` join from `expired()` and this fires."""
+    import json as _json
+
+    from background import delivery_lane
+    from background import seat_continuation as sc
+
+    store = tmp_path / "continuations.json"
+    ledger = tmp_path / "draws.json"
+    monkeypatch.setattr(sc, "STORE", store)
+    monkeypatch.setattr(delivery_lane, "DRAW_LEDGER_FILE", ledger)
+
+    old = time.time() - sc.STALE_AFTER_SECONDS - 60
+    sc.hand_off("taken-and-done", what="w", why="y", done_means="d", now=old)
+    sc.hand_off("nobody-came", what="w", why="y", done_means="d", now=old)
+    ledger.write_text(_json.dumps({"taken-and-done": {"first_drawn_at": old + 300,
+                                                      "last_drawn_at": old + 300}}))
+
+    by_id = {i["id"]: i for i in sc.expired()}
+    assert by_id["taken-and-done"]["drawn_at"], "a drawn handoff must not read as never taken"
+    assert by_id["nobody-came"]["drawn_at"] is None, (
+        "an undrawn handoff must still report the drag -- that is the whole point of the surface"
+    )
+
+
+def test_an_unreadable_draw_ledger_reports_the_drag_rather_than_hiding_it(tmp_path, monkeypatch):
+    """FAIL TOWARD THE UNCOMFORTABLE ANSWER. If the ledger cannot be read, the honest report is
+    'nothing took this', not 'something probably did' -- the second would let a broken ledger
+    quietly certify a mechanism that had stopped working."""
+    from background import delivery_lane
+    from background import seat_continuation as sc
+
+    monkeypatch.setattr(sc, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(delivery_lane, "DRAW_LEDGER_FILE", tmp_path / "does-not-exist.json")
+
+    old = time.time() - sc.STALE_AFTER_SECONDS - 60
+    sc.hand_off("cannot-tell", what="w", why="y", done_means="d", now=old)
+    assert sc.expired()[0]["drawn_at"] is None
+
+
+def test_the_live_list_is_untouched_by_the_join(tmp_path, monkeypatch):
+    """Blast radius: `live()` answers a different question and must not grow a draw column.
+
+    A continuation inside its window is offerable whether or not a tick has already looked at it;
+    folding draw state into `live()` would stop re-offering work a tick started and abandoned.
+    """
+    from background import seat_continuation as sc
+
+    monkeypatch.setattr(sc, "STORE", tmp_path / "continuations.json")
+    sc.hand_off("fresh", what="w", why="y", done_means="d")
+    assert [i["id"] for i in sc.live()] == ["fresh"]
+    assert "drawn_at" not in sc.live()[0]

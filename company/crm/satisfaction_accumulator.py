@@ -27,7 +27,19 @@ _CSS_POOR_THRESHOLD = 4.0   # CSS score < 4 is negative
 _CSS_GOOD_DELTA = +0.05
 _CSS_POOR_DELTA = -0.05
 _MONTHLY_DECAY_RATE = 0.01  # reversion toward baseline per month of no events
-_LOW_SATISFACTION_THRESHOLD = 0.50
+# THE ONE HOME for "what counts as low satisfaction" (2026-08-31). This module already owns the
+# QUESTION -- it exposes `is_low_satisfaction()` -- and `company/crm/payment_churn_model.py`
+# declared the same 0.50 separately, so two modules answered one question and could drift apart
+# without either being wrong on its own face. Public (no underscore) because another module needs
+# it; the private alias below keeps this file's own references unchanged.
+#
+# NAMED SIMPLIFICATION: 0.50 is the midpoint of a 0-1 satisfaction score this project defines
+# itself, so there is no published counterpart to cite -- CSS and Ofgem's Consumer Engagement
+# Survey report satisfaction on their own scales, not ours. To do it properly, the threshold would
+# be fitted to the score at which observed behaviour actually changes in this book rather than
+# assumed at the midpoint, which is a measurement nobody has made.
+LOW_SATISFACTION_THRESHOLD = 0.50
+_LOW_SATISFACTION_THRESHOLD = LOW_SATISFACTION_THRESHOLD
 _MIN_SATISFACTION = 0.0
 _MAX_SATISFACTION = 1.0
 

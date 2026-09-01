@@ -413,3 +413,63 @@ def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
         sensitivity_scale=SCALE, svt_inertia=0.0)
     assert without == explicit_zero
     assert total_departure_probability(without) == total_departure_probability(explicit_zero)
+
+
+# ── The SVT floor's base year ───────────────────────────────────────────────────────────────────
+# `SVT_INERTIA_ANNUAL_*` are ABSOLUTE annual rates inferred against a 2019-20 market;
+# `market_switching_multiplier` is a RATIO normalised to 2024. The repair filed at `18a09617d`
+# composes them directly, which levels a 2019-20 rate up into the market it was already measured
+# in. Finding: docs/staging/WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_2019_20_RATE_2026-08-31.md
+
+#: The window §4 states its basis over, on the all-customer row the segment rows must average to.
+SVT_INERTIA_BASE_YEARS = (2019, 2020)
+
+#: What the comment on the constants tells the next implementer to divide by. Written down HERE so
+#: the leg below can catch it rotting; derived from the record, never chosen.
+STATED_BASE_MULTIPLIER = 1.3758
+
+
+def _base_multiplier() -> float:
+    """The record's own 2019-20 level over its 2024 level -- derived, not written down."""
+    from simulation.market_switching_propensity import (
+        MULTIPLIER_REFERENCE_YEAR,
+        market_departure_rate,
+    )
+    base = sum(market_departure_rate(y) for y in SVT_INERTIA_BASE_YEARS) / len(SVT_INERTIA_BASE_YEARS)
+    return base / market_departure_rate(MULTIPLIER_REFERENCE_YEAR)
+
+
+def test_the_svt_floors_base_year_is_not_the_multipliers_reference_year():
+    """DEFECT: composing an absolute 2019-20 rate with a ratio normalised to 2024.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. This does not assert the record's current
+    values. It asserts the two base years are far enough apart that `floor * multiplier(year)` is
+    materially wrong -- which is the condition that makes the warning on the constants worth
+    carrying. If the record is ever refined so that 2019-20 and 2024 coincide, this goes RED and
+    the correct response is to DELETE the warning, not to widen the bound: the naive form would
+    have become right.
+
+    The error is a CONSTANT factor -- the year cancels -- so no year-shaped check can see it, and
+    it is exactly zero at 2024 where `multiplier` is 1.00 by definition. That is why it needs its
+    own leg rather than falling out of some other test.
+    """
+    factor = _base_multiplier()
+    # 1pp of the reference level is the smallest difference the published bands bear; anything
+    # inside that is rounding and the two base years would be interchangeable.
+    assert abs(factor - 1.0) > 0.01, (
+        f"2019-20 and 2024 now sit within rounding of each other (factor {factor:.4f}). The base-"
+        f"year warning on SVT_INERTIA_ANNUAL_* is no longer warranted -- delete it."
+    )
+
+
+def test_the_base_year_factor_on_the_constants_still_matches_the_record():
+    """DEFECT: the correction factor in the comment rots when the record is refined.
+
+    The constants carry a written instruction -- divide by 1.3758 -- and a written number in a
+    comment is exactly the shape this project has paid for: it stays green while the record moves
+    under it. Derived here from `market_departure_rate` so the comment cannot outlive its evidence.
+    """
+    assert round(_base_multiplier(), 4) == STATED_BASE_MULTIPLIER, (
+        f"the record now gives {_base_multiplier():.4f}; the comment on SVT_INERTIA_ANNUAL_* and "
+        f"STATED_BASE_MULTIPLIER above both say {STATED_BASE_MULTIPLIER} and must be corrected together."
+    )

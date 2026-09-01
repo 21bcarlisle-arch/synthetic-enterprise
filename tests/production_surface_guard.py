@@ -78,9 +78,34 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 #: covered without anyone remembering to list it -- which is the entire difference between this
 #: and the tuple it grew out of.
 PROTECTED_SURFACES = (
-    "docs/staging",      # the director's draw queue: what lands here gets acted on
-    "docs/status",       # the published status surface
+    "docs/staging",        # the director's draw queue: what lands here gets acted on
+    "docs/observability",  # the evidence base — see below
+    "docs/status",         # the published status surface
 )
+
+# WHY `docs/observability` BECAME A SURFACE ON 2026-08-31, and it is this module's own argument
+# turned on its own tuple. Until this landed the directory was protected FILE BY FILE -- nine
+# hand-listed entries below, every one a dotfile of runtime control state, every one added after a
+# test had already written it. The narrative ledgers, the `*.md` files that ARE the record of what
+# the machine did, were not protected at all.
+#
+# MEASURED: `docs/observability/autonomous-runner-log.md` was 27,675 lines and **6,421 of them
+# (23%) were written by pytest** -- launches whose pid is a `MagicMock` repr, refusals naming a
+# pytest fixture directory as the binary. The module that owns it had not RUN since 2026-07-08.
+#
+# THE COST WAS NOT A PUBLISHED FIGURE. The delivery seat read that ledger to answer a direct
+# question about why autonomous turns were not firing, found 17 "Usage limit active" lines dated
+# that day, and reported a usage limit to the director. There was no limit, no runner and no turn;
+# there were seventeen unit tests. **A production surface a test can write is not evidence.**
+#
+# BLAST RADIUS MEASURED OVER THE WHOLE SUITE, not a subset -- the previous attempt measured 102
+# tests, repaired them, then found more, twice. The honest figure is **84 refusals**, and they
+# concentrate on FOUR writers rather than 84 tests: `book_growth_campaign.json` (40),
+# `agent_status.json` (32), `token-log.md` (6), `supervisor-log.md` (4) and
+# `.sanctified_consoles.json` (2). Repairing four writers is a different job from repairing 84
+# tests, and only measuring the whole suite showed that.
+#
+# The nine observability dotfiles that used to be listed individually are SUBSUMED by the surface.
 
 #: Individual files under directories that are NOT wholly production. Each was added after a
 #: test wrote it, and the incident is recorded beside it -- THIS tuple, not the one that used to
@@ -90,10 +115,12 @@ PROTECTED_SURFACES = (
 #: G-T2 protects the high-danger RUNTIME CONTROL STATE -- files a live daemon READS to make a
 #: control decision, where a test writing a fake value corrupts live behaviour.
 PROTECTED_FILES = (
-    "docs/observability/.build_executor_enabled",   # THE kill switch — a test must never set it
-    "docs/observability/.pull_loop_health.json",    # deadman alarms on this (the proven leak)
-    "docs/observability/.notify_transitions.json",  # notify() transition-dedup store
-    "docs/observability/.daemon_boot",              # boot-SHA drift records (dir)
+    # ── The nine `docs/observability/...` entries that used to be listed here are SUBSUMED by the
+    # `docs/observability` surface above (2026-08-31). Their incidents stay recorded because they
+    # are the evidence FOR the surface: `.build_executor_enabled` (the kill switch),
+    # `.pull_loop_health.json` (the proven leak), `.notify_transitions.json`, `.daemon_boot`,
+    # `.last_gate_blocking_tests.json`, `.last_tested_hash`, `.publish_gate_state.json`.
+    #
     # THE WEDGE ALARM'S ONLY NON-GUESSING EVIDENCE (2026-08-10, caught in the act, twelfth
     # publish wedge). `_write_blocking_tests` publishes "which test is blocking publishing"
     # here for the alarm, which runs in a different process and otherwise has only an exit code.
@@ -104,7 +131,6 @@ PROTECTED_FILES = (
     # does not read as absent: `last_blocking_tests` returns it, and the alarm reports "the gate
     # printed no FAILED line" and falls back to citing findings by mtime -- the 0/8-hit-rate guess
     # this file was built to replace.
-    "docs/observability/.last_gate_blocking_tests.json",   # the wedge alarm's diagnostic payload
     # THE ONLY EVIDENCE THAT CAN CLOSE A WEDGE EPISODE (2026-08-13, OPS3, caught in the act).
     # `process_run_complete._green_is_on_record_for()` reads `.last_tested_hash` to answer the one
     # question rc=0 cannot -- did the SUITE pass for exactly this commit -- and that answer is what
@@ -116,8 +142,6 @@ PROTECTED_FILES = (
     # was ~10 per-test `monkeypatch.setattr` calls. Observed 2026-08-13 11:26Z: a publisher test's
     # fixture hash `abc1234` reached the LIVE sim-runner-log through the outcome router while a
     # real publish cycle was mid-flight.
-    "docs/observability/.last_tested_hash",         # the suite-pass stamp the episode close rests on
-    "docs/observability/.publish_gate_state.json",  # the wedge streak + the RUNG-1 draw's input
     # PUBLISHED SURFACE, not just internal state (2026-08-10, caught in the act). The publish
     # decoupling made `_process()` stamp this file, and the ordinary publisher tests that drive
     # `_process()` promptly wrote a run id of "abc1234" into the REAL file -- which the live

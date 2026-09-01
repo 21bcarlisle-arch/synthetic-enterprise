@@ -200,3 +200,71 @@ def test_a_failed_init_is_reported_as_failure(tmp_path, monkeypatch):
 
     monkeypatch.setattr(prc.subprocess, "run", lambda *a, **kw: _Result())
     assert prc._make_checkout_a_repo(tmp_path, "deadbeef") is False
+
+
+# ── THE OBJECT STORE IS NOT ALWAYS `<project>/.git/objects` (2026-09-01) ─────────────────────────
+# The alternates line is what lends the checkout the real repo's history. It was assembled from
+# `PROJECT_DIR / ".git" / "objects"`, which is a DIRECTORY only in the main working tree: in a
+# linked worktree `.git` is a FILE, so the path does not exist, `git read-tree` refuses with
+# "unable to normalize alternate object path", and `_head_checkout` returns None.
+#
+# That made the publish gate unable to materialise HEAD from ANY worktree -- so every landing from
+# an isolated writer (`tools/surgical_land` from `background/seat_executor`, promoted by
+# `tools/promote_worktree_landing`) hit a gate that could not run. Found on 2026-09-01 by a merge
+# commit refusing inside the worktree it was being reconciled in, four tests of THIS module being
+# the thing that refused it.
+
+def test_the_object_store_is_asked_of_git_not_assembled_from_the_project_path():
+    """MUTATION (must fire): return `PROJECT_DIR / ".git" / "objects"` from `_object_store()`.
+
+    Asserted as "git's answer" rather than "the string ends in .git/objects", because the whole
+    defect is that the assembled string LOOKS right and names a path that is not there.
+    """
+    asked = subprocess.run(
+        ["git", "rev-parse", "--git-common-dir"], cwd=str(REPO),
+        capture_output=True, text=True, timeout=30)
+    assert asked.returncode == 0, "this test needs a git repo to be meaningful"
+    common = Path(asked.stdout.strip())
+    if not common.is_absolute():
+        common = (REPO / common).resolve()
+
+    assert prc._object_store() == common / "objects", (
+        "the alternates path must be the COMMON object store git names, not one built by "
+        "appending '.git/objects' to the working-tree root -- those differ in every worktree"
+    )
+
+
+def test_the_alternates_path_exists_as_a_directory():
+    """The property the defect actually violated, stated without reference to how it is computed.
+
+    `git read-tree` refuses an alternates line naming a path that is not a directory, and that
+    refusal is silent in the gate's verdict: it becomes `checkout -> None`, which reads as
+    "the gate could not run" and never as "the alternates line was wrong".
+    """
+    store = prc._object_store()
+    assert store.is_dir(), f"the alternates line would name {store}, which is not a directory"
+
+
+def test_a_worktrees_dot_git_is_a_file_which_is_why_the_assembled_path_was_wrong():
+    """THE REACHABILITY LEG -- it proves the defect above is a real shape, not a story.
+
+    Without this, the two tests above pass in the main tree forever and say nothing about the
+    case that broke. Skips rather than passes where worktrees cannot be made, because a
+    vacuous pass is exactly what this module exists to refuse.
+    """
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        wt = Path(tmp) / "probe"
+        made = subprocess.run(
+            ["git", "worktree", "add", "--detach", str(wt), "HEAD"], cwd=str(REPO),
+            capture_output=True, text=True, timeout=120)
+        if made.returncode != 0:
+            pytest.skip(f"could not make a probe worktree: {made.stderr.strip()[:200]}")
+        try:
+            assert (wt / ".git").is_file(), "a linked worktree's .git is a file, not a directory"
+            assert not (wt / ".git" / "objects").exists(), (
+                "the assembled path must NOT exist in a worktree -- that absence is the defect"
+            )
+        finally:
+            subprocess.run(["git", "worktree", "remove", "--force", str(wt)],
+                           cwd=str(REPO), capture_output=True, text=True, timeout=120)

@@ -22,8 +22,8 @@ RUN = {"per_customer_lifetime": {
     "C3": {"segment": "resi", "cost_to_serve_gbp": 90.0},
 }}
 BOOK = {"customers": [
-    {"legs": {"e": {"cid": "C1", "total_kwh": 30000, "avg_rate_gbp_per_mwh": 150.0, "bill_count": 60}}},
-    {"legs": {"e": {"cid": "C2", "total_kwh": 9000, "avg_rate_gbp_per_mwh": 140.0, "bill_count": 36}}},
+    {"legs": {"e": {"cid": "C1", "total_kwh": 30000, "avg_effective_rate_gbp_per_mwh": 150.0, "bill_count": 60}}},
+    {"legs": {"e": {"cid": "C2", "total_kwh": 9000, "avg_effective_rate_gbp_per_mwh": 140.0, "bill_count": 36}}},
     {"legs": {"e": {"cid": "C3"}}},          # no consumption on record at all
 ]}
 
@@ -105,15 +105,42 @@ def test_the_LIVE_book_reports_a_verdict_consistent_with_its_own_rows(tmp_path):
     # diagnostic makes the suite a producer, and the next reader cannot tell a measurement from
     # a test run.
     data = cvp.generate(tmp_path / "arms.json")
-    at_edge = sum(1 for r in data["accounts"] if r["endpoint_bound"])
 
-    assert data["accounts_priced"] > 0
+    # THE ARM MAY LEGITIMATELY PRICE NOTHING, AND ONLY FOR ONE NAMED REASON (2026-08-31). It now
+    # reads `avg_effective_rate_gbp_per_mwh` -- what the customer actually pays -- where it used to
+    # read `avg_rate_gbp_per_mwh`, which was the COMMODITY leg and left every comparison anchored
+    # 1.53x low across the real book. A `site/data/customers.json` published before that change
+    # carries no effective rate, so the arm refuses every account and SAYS SO.
+    #
+    # This is not the assertion being weakened to accommodate a transition. Pricing zero accounts
+    # is only accepted when the arm's own skip ledger names THAT cause; any other zero still reds,
+    # and the moment the surface is regenerated the first branch is the live one again. The
+    # alternative -- falling back to the commodity leg -- would restore the defect while looking
+    # like resilience.
+    stale = [r for r in data.get("accounts_skipped", {}) if "no effective rate" in r]
+    if data["accounts_priced"] == 0:
+        assert stale, (
+            "the arm priced nothing and did not name the two-rate transition as the cause: "
+            f"{data.get('accounts_skipped')}"
+        )
+        return
+
+    at_edge = sum(1 for r in data["accounts"] if r["endpoint_bound"])
     assert data["verdict"]["fit_to_run"] == (at_edge == 0
                                              and data["median_implied_bill_change_pct"] < 25.0)
 
 
 def _a_book_of(n: int) -> tuple[dict, dict]:
     """A synthetic book wide enough for a CONCENTRATION to mean something.
+
+    THE RATE FIELD IS `avg_effective_rate_gbp_per_mwh` SINCE 2026-08-31, and the rename is the whole
+    point of the change that forced it. `avg_rate_gbp_per_mwh` was the COMMODITY leg — wholesale
+    energy, no network charges, no levies, no standing charge, no VAT — and `compare` was reading it
+    as `current_rate_gbp_per_mwh`, "what this customer currently pays". Measured across the real
+    book: 102.57 against 156.42 GBP/MWh, so every price this arm compared against was anchored 1.53x
+    low. A fixture that still emitted the old name would price ZERO accounts and say so, which is
+    how the pre-commit gate caught this module — the field's readers were searched, its READERS'
+    TESTS were not.
 
     NOT THE LIVE BOOK, AND THAT IS THE POINT. The first version of the two controls below read
     the published book, and the pre-commit gate refused them: the gate builds its tree from HEAD
@@ -131,7 +158,7 @@ def _a_book_of(n: int) -> tuple[dict, dict]:
         kwh = 1200.0 + 300.0 * (i % 40)
         rate = 110.0 + 1.7 * (i % 30)
         customers.append({"legs": {"e": {
-            "cid": cid, "total_kwh": kwh * 3, "avg_rate_gbp_per_mwh": rate,
+            "cid": cid, "total_kwh": kwh * 3, "avg_effective_rate_gbp_per_mwh": rate,
             "bill_count": 36, "revenue_gbp": kwh * 3 * rate / 1000.0}}})
     return {"per_customer_lifetime": run}, {"customers": customers}
 

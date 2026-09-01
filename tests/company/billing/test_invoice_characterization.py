@@ -39,7 +39,6 @@ import pytest
 from company.billing.invoice import (
     DEFAULT_DB_PATH,
     PAYMENT_TERMS_DAYS,
-    VAT_RATE,
     InvoiceControlSource,
     bulk_create_invoices,
     cash_received_gbp,
@@ -154,7 +153,15 @@ def rich_bill(**overrides) -> dict:
 
 
 def test_module_constants_are_frozen():
-    assert VAT_RATE == 0.05  # UK domestic reduced rate
+    # `VAT_RATE` IS GONE FROM THIS MODULE (2026-08-31) and is not replaced by another literal here.
+    # It was one of exactly two name collisions in 221 domain constants -- 0.05 in this module
+    # against a per-segment table in `saas/non_commodity.py` -- and a legal rate declared twice is
+    # the director's own example of the defect class. The rate is now asked of
+    # `domain_invariants.vat_rate_for_segment`, which reads the published commons artefact, so
+    # there is no module constant left to freeze. What replaces this line is the behavioural leg
+    # below: a business supply must attract 20% and a household 5%, on the FALLBACK path where the
+    # old flat rate actually bit.
+    assert PAYMENT_TERMS_DAYS == 14
     assert PAYMENT_TERMS_DAYS == 14
     assert DEFAULT_DB_PATH == Path("company/data/invoices.db")
     # SURPRISE (configuration class): DEFAULT_DB_PATH is a RELATIVE path, so which
@@ -453,7 +460,7 @@ def test_line_item_bill_sums_the_three_components_and_trusts_the_bills_vat(db):
 
 
 def test_a_bills_declared_vat_is_never_sanity_checked(db):
-    """SURPRISE (fail-open class, R15): `bill.get("vat_gbp", subtotal * VAT_RATE)`
+    """SURPRISE (fail-open class, R15): `bill.get("vat_gbp", subtotal * _vat_rate(bill))`
     accepts whatever the bill says. A £999 VAT charge on a £100 subtotal (999%) is
     stored and flows straight into the issued-debits control total. The 5% rate is a
     fallback, never a validation."""
@@ -576,7 +583,7 @@ def test_aggregate_sums_already_rounded_per_invoice_totals_so_error_accumulates(
     stored = [inv["total_gbp"] for inv in invoices_for_account("A1", db)]
     assert stored == [0.14, 0.14, 0.14]
     assert issued_debits_gbp("A1", db_path=db) == 0.42
-    assert round(3 * 0.125 * (1 + VAT_RATE), 2) == 0.39  # what it should be
+    assert round(3 * 0.125 * 1.05, 2) == 0.39  # what it should be, at the domestic 5%
 
 
 # ---------------------------------------------------------------------------
@@ -1193,3 +1200,100 @@ def test_a_second_writer_blocks_for_the_default_busy_timeout_then_raises(db):
         blocker.close()
     # The register is unchanged — the failed write left nothing behind.
     assert issued_debits_gbp("A1", db_path=db) == 105.0
+
+
+# ── A UNIT RATE'S MONEY AND ITS VOLUME MUST COUNT THE SAME PERIOD (2026-08-31) ────────────────
+# `_unit_rate_from_bill` divided `total_amount_gbp` by `total_consumption_kwh`. On a catch-up bill
+# those legs are different populations: the money reconciles up to thirteen earlier periods of
+# estimated reads, the volume is this period alone. Measured across the real book (11,167 bills,
+# 959 of them catch-ups):
+#
+#     total/kwh               median 17.90 p   min -173.52   max 398.09   178 NEGATIVE invoices
+#     (total - catchup)/kwh   median 20.21 p   min    3.33   max  81.51     0 negative
+#     every other bill        median 19.48 p   min    3.20   max 100.03     0 negative
+#
+# The sign is the only reason any of the 178 was visible; every other catch-up bill was wrong by
+# an amount nothing announced. Found by the end-to-end journey walk on a single household, where
+# one bill came to -£5.78 over 328 kWh.
+
+def test_a_catchup_bill_does_not_divide_thirteen_periods_of_money_by_one_of_volume():
+    """MUTATION: drop the `- catchup_adjustment_gbp` and this fires on the negative rate."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    # Real shape: a year of under-estimates reconciled downward on one 328 kWh month.
+    catchup_bill = {
+        "total_consumption_kwh": 328.0,
+        "total_amount_gbp": -5.78,
+        "catchup_adjustment_gbp": -72.10,
+    }
+    rate = _unit_rate_from_bill(catchup_bill)
+    assert rate > 0, (
+        "an invoice carrying a negative unit rate is arithmetic, not a price: the money spans "
+        "thirteen periods and the volume spans one"
+    )
+    assert rate == pytest.approx((66.32 / 328.0) * 100.0, abs=0.01)
+
+
+def test_an_ordinary_bill_is_untouched_by_the_catchup_netting():
+    """The blast-radius leg. 10,208 of 11,167 bills carry no catch-up at all, and a change to the
+    common path dressed as a fix for the rare one is how a repair becomes a regression."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 1000.0, "total_amount_gbp": 200.0}
+    ) == pytest.approx(20.0)
+    # An explicit null adjustment reads the same as an absent one.
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 1000.0, "total_amount_gbp": 200.0,
+         "catchup_adjustment_gbp": None}
+    ) == pytest.approx(20.0)
+
+
+def test_a_zero_volume_bill_still_claims_no_rate():
+    """Unchanged, and asserted because it is the branch the netting could quietly reorder into a
+    division by zero."""
+    from company.billing.invoice import _unit_rate_from_bill
+
+    assert _unit_rate_from_bill(
+        {"total_consumption_kwh": 0.0, "total_amount_gbp": 42.0,
+         "catchup_adjustment_gbp": 10.0}
+    ) == 0.0
+
+
+# ── VAT IS ASKED FOR, PER SEGMENT, AND HAS ONE HOME (2026-08-31) ─────────────────────────────────
+# `company/billing/invoice.py` declared `VAT_RATE = 0.05` — "5% VAT on domestic energy" — while
+# `saas/non_commodity.py` held {'resi': 0.05, 'SME': 0.2, 'I&C': 0.2}. `tools/domain_constant_origins`
+# reported the pair as one of exactly TWO name collisions in 221 domain constants, and one of them
+# is a legal rate. The rate now comes from `domain_invariants.vat_rate_for_segment`, which reads the
+# published commons artefact.
+
+def test_a_business_supply_is_not_charged_the_domestic_rate(db):
+    """The behavioural leg that replaces the frozen constant.
+
+    MUTATION: put a flat rate back in `_vat_rate` and this fires — an SME bill with no line-item
+    breakdown is charged 5% instead of 20%.
+    """
+    inv = get_invoice(create_invoice(
+        dict(bill(), total_amount_gbp=100.0, segment="SME",
+             commodity_amount_gbp=0.0, non_commodity_amount_gbp=0.0, standing_charge_gbp=0.0), db), db)
+    assert inv["vat_gbp"] == 20.0, "a business supply attracts 20%, not the domestic reduced rate"
+
+
+def test_a_household_still_gets_the_reduced_rate(db):
+    """Blast radius. The change must not move the rate on the supplies that were already right —
+    which is every domestic bill, i.e. almost the whole book."""
+    inv = get_invoice(create_invoice(
+        dict(bill(), total_amount_gbp=100.0, segment="resi",
+             commodity_amount_gbp=0.0, non_commodity_amount_gbp=0.0, standing_charge_gbp=0.0), db), db)
+    assert inv["vat_gbp"] == 5.0
+
+
+def test_an_unlabelled_supply_is_treated_as_domestic(db):
+    """STATED, because it is a choice rather than an accident. A bill with no segment is what this
+    module assumed unconditionally before, and the book is ~99% domestic; treating it as business
+    would newly over-charge every legacy bill in the register. The assumption is unchanged and is
+    now written down instead of implied by a constant."""
+    inv = get_invoice(create_invoice(
+        dict(bill(), total_amount_gbp=100.0,
+             commodity_amount_gbp=0.0, non_commodity_amount_gbp=0.0, standing_charge_gbp=0.0), db), db)
+    assert inv["vat_gbp"] == 5.0

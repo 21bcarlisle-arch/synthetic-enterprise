@@ -3,12 +3,34 @@
 import json
 import time
 from collections import deque
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from background import autonomous_runner
+
+
+@pytest.fixture(autouse=True)
+def _ledger_to_tmp(tmp_path, monkeypatch):
+    """THIS MODULE WROTE 6,421 LINES INTO THE LIVE LEDGER, and they were read as evidence.
+
+    Every test below calls `launch_turn()`, which calls the real `log()`, which appended to the
+    real `docs/observability/autonomous-runner-log.md`. Measured 2026-08-31: 23% of that ledger's
+    27,675 lines are this file's output -- launches whose pid is a `MagicMock` repr, refusals
+    naming `/tmp/pytest-of-rich/...` binaries, and seventeen "Usage limit active" skips dated
+    today for a module that has not run since 2026-07-08.
+
+    On 2026-08-31 the delivery seat read those seventeen lines and reported a usage limit to the
+    director. There was none. **A production surface a test can write is not merely at risk of
+    being wrong -- it stops being evidence at all.** `tests/production_surface_guard.py` now
+    refuses the write outright; this fixture is what makes the tests legitimate rather than
+    merely blocked.
+    """
+    monkeypatch.setattr(autonomous_runner, "LOG_FILE", tmp_path / "runner-log.md")
+    monkeypatch.setattr(autonomous_runner, "TURN_OUTPUT_FILE", tmp_path / "turn-output.md")
+    monkeypatch.setattr(autonomous_runner, "PANE_STATE_FILE", tmp_path / "pane-state.json")
 
 
 def test_turns_in_last_hour_empty():
@@ -108,7 +130,10 @@ def test_launch_turn_explicitly_sets_disable_autoupdater(tmp_path, monkeypatch):
     fake_bin = tmp_path / "claude"
     fake_bin.write_text("#!/bin/sh\n")
     monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
-    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+    # `_pane_content`, NOT `_usage_limit_active`: these three tests patch `subprocess.Popen`,
+    # and the real pane read goes through `subprocess.run` -- which builds a `Popen`. Stubbing
+    # the verdict would hide that, so the clean pane is supplied at the source instead.
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: "all quiet")
     monkeypatch.delenv("DISABLE_AUTOUPDATER", raising=False)
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
@@ -129,7 +154,10 @@ def test_launch_turn_uses_skip_permissions_flag(tmp_path, monkeypatch):
     fake_bin = tmp_path / "claude"
     fake_bin.write_text("#!/bin/sh\n")
     monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
-    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+    # `_pane_content`, NOT `_usage_limit_active`: these three tests patch `subprocess.Popen`,
+    # and the real pane read goes through `subprocess.run` -- which builds a `Popen`. Stubbing
+    # the verdict would hide that, so the clean pane is supplied at the source instead.
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: "all quiet")
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         mock_popen.return_value = MagicMock(poll=lambda: None)
@@ -149,7 +177,10 @@ def test_launch_turn_uses_cheap_model_for_supervisor_micro_turns(tmp_path, monke
     fake_bin = tmp_path / "claude"
     fake_bin.write_text("#!/bin/sh\n")
     monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
-    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+    # `_pane_content`, NOT `_usage_limit_active`: these three tests patch `subprocess.Popen`,
+    # and the real pane read goes through `subprocess.run` -- which builds a `Popen`. Stubbing
+    # the verdict would hide that, so the clean pane is supplied at the source instead.
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: "all quiet")
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         mock_popen.return_value = MagicMock(poll=lambda: None)
@@ -160,10 +191,53 @@ def test_launch_turn_uses_cheap_model_for_supervisor_micro_turns(tmp_path, monke
         assert args[model_idx + 1] == autonomous_runner.AUTONOMOUS_TURN_MODEL
 
 
+def _in_minutes(minutes: int) -> str:
+    """A wall-clock `HH:MM` that many minutes from now, so a test about RECENCY is not a test
+    about what time the suite happens to run at.
+
+    IT DID NOT ACHIEVE THAT, and the leg below is why it now has company. Stripping the date is
+    what makes the string realistic — the pane really does print a bare `HH:MM` — but it also
+    hands the parser the ambiguity, so whether the arithmetic crosses midnight depends on the
+    clock. `_in_minutes(-120)` is yesterday's date only when the suite runs before 02:00, so
+    this helper's own subject was untested for 22 hours out of every 24, and the miss was a
+    live defect that suppressed autonomous turns. Kept, because the realistic string is the
+    right input; joined by `test_a_reset_time_is_read_the_same_way_at_every_hour_of_the_day`,
+    which pins the clock instead of borrowing it."""
+    return (datetime.now().astimezone() + timedelta(minutes=minutes)).strftime("%H:%M")
+
+
+def test_a_reset_time_is_read_the_same_way_at_every_hour_of_the_day():
+    """THE LEG `_in_minutes` COULD NOT BE: the clock is an argument, so every hour is reachable.
+
+    MUTATION (must fire): drop the closest-candidate selection in `_parse_reset_minutes` and go
+    back to a bare `now.replace(...)`. The 01:27 row below flips from -120 to +1319 — a limit
+    that lifted two hours ago reported as lifting in twenty-two, which is what was live.
+    """
+    from datetime import time as _time
+
+    for hour, minute in ((1, 27), (9, 0), (13, 45), (23, 59), (0, 0), (12, 0)):
+        now = datetime.now().astimezone().replace(
+            hour=hour, minute=minute, second=0, microsecond=0)
+
+        past = (now - timedelta(minutes=120)).strftime("%H:%M")
+        got = autonomous_runner._parse_reset_minutes(f"Try again at {past}.", now=now)
+        assert got == -120, (
+            "a reset two hours ago must read as -120 at every hour of the day; at "
+            f"{_time(hour, minute)} it read {got}"
+        )
+
+        ahead = (now + timedelta(minutes=90)).strftime("%H:%M")
+        got = autonomous_runner._parse_reset_minutes(f"Try again at {ahead}.", now=now)
+        assert got == 90, (
+            "a reset ninety minutes out must read as +90 at every hour of the day; at "
+            f"{_time(hour, minute)} it read {got}"
+        )
+
+
 def test_usage_limit_active_detects_limit_phrase(monkeypatch):
     monkeypatch.setattr(
         autonomous_runner, "_pane_content",
-        lambda: "Claude.ai usage limit reached. Try again at 18:00."
+        lambda: f"Claude.ai usage limit reached. Try again at {_in_minutes(90)}."
     )
     assert autonomous_runner._usage_limit_active() is True
 
@@ -182,12 +256,83 @@ def test_launch_turn_skips_during_usage_limit(monkeypatch):
     monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", Path("/usr/bin/true"))
     monkeypatch.setattr(
         autonomous_runner, "_pane_content",
-        lambda: "Claude.ai usage limit reached."
+        lambda: f"Claude.ai usage limit reached. Try again at {_in_minutes(45)}."
     )
 
     with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
         autonomous_runner.launch_turn()
         mock_popen.assert_not_called()
+
+
+# ── A LIMIT MUST BE VERIFIED, AND AN UNVERIFIABLE ONE RUNS ────────────────────────────────────
+# Director, 2026-08-31: *"Make it impossible to claim a limit it hasn't verified, and where the
+# real signal is unavailable it should run rather than skip -- a false stop costs more than a
+# false start here."*
+#
+# The old check matched a phrase anywhere in `tmux capture-pane` output. A pane is SCROLLBACK: a
+# limit message from three hours ago is still on screen, and the check had no notion of recency at
+# all, so once a limit had ever been shown it read as active until the text scrolled away. These
+# four legs are the four ways that goes wrong, and each of them ends in RUNNING.
+
+def test_a_limit_phrase_with_no_reset_time_cannot_be_dated_so_it_runs(monkeypatch):
+    """The sharp one. This is old scrollback's exact shape: the words, and nothing that says when."""
+    monkeypatch.setattr(
+        autonomous_runner, "_pane_content",
+        lambda: "Claude.ai usage limit reached.",
+    )
+    verdict = autonomous_runner.usage_limit_verdict()
+    assert verdict.limited is False
+    assert "names no reset time" in verdict.reason
+    assert "usage limit reached" in verdict.evidence
+
+
+def test_a_limit_whose_reset_has_passed_is_expired_so_it_runs(monkeypatch):
+    monkeypatch.setattr(
+        autonomous_runner, "_pane_content",
+        lambda: f"Claude.ai usage limit reached. Try again at {_in_minutes(-120)}.",
+    )
+    verdict = autonomous_runner.usage_limit_verdict()
+    assert verdict.limited is False
+    assert "expired" in verdict.reason
+
+
+def test_an_unreadable_pane_runs_rather_than_skips(monkeypatch):
+    """A false stop costs every turn until someone notices. A false start costs one API call that
+    the real limit refuses in a second. The asymmetry is the whole argument, and it is the
+    OPPOSITE of this repo's usual fail-closed instinct -- which is why it is asserted."""
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: "   \n\n")
+    verdict = autonomous_runner.usage_limit_verdict()
+    assert verdict.limited is False
+    assert "no pane content" in verdict.reason
+
+
+def test_a_verified_limit_carries_the_line_it_read(monkeypatch):
+    """THE CLAIM CARRIES ITS PROOF OR IT IS NOT MADE. 3,443 skip lines were logged with no
+    evidence, and a reader -- this seat, answering the director -- could not tell them from
+    phantoms. A verdict that has to hold its own evidence cannot be written down without it."""
+    line = f"Claude.ai usage limit reached. Try again at {_in_minutes(75)}."
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: f"blah\n{line}\nblah")
+    verdict = autonomous_runner.usage_limit_verdict()
+    assert verdict.limited is True
+    assert verdict.evidence == line
+    assert "lifts in" in verdict.reason
+
+
+def test_the_skip_is_logged_with_its_evidence(monkeypatch, tmp_path):
+    """The log line, not just the verdict -- the ledger is what a human reads six weeks later."""
+    autonomous_runner._active_proc = None
+    autonomous_runner._turn_times.clear()
+    monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", Path("/usr/bin/true"))
+    line = f"Claude.ai usage limit reached. Try again at {_in_minutes(30)}."
+    monkeypatch.setattr(autonomous_runner, "_pane_content", lambda: line)
+
+    with patch("background.autonomous_runner.subprocess.Popen"):
+        autonomous_runner.launch_turn()
+
+    written = autonomous_runner.LOG_FILE.read_text()
+    assert "VERIFIED" in written
+    assert "Evidence:" in written
+    assert "usage limit reached" in written
 
 
 def test_max_turns_per_hour_is_positive():
@@ -209,4 +354,5 @@ def test_turns_in_last_hour_returns_int():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational

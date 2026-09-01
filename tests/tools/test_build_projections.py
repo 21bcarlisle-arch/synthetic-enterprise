@@ -508,6 +508,14 @@ def test_the_store_is_never_committed():
     assert tracked.returncode != 0, f"{bp.STORE_RELPATH} is tracked"
 
 
+# GENUINELY EXERCISES THE REAL WRITE, and the marker is the named way to say so rather than a
+# hole in the guard. `docs/observability` became a protected surface on 2026-08-31 after 6,421
+# lines of one ledger turned out to be pytest output. These two are the legitimate case the
+# escape hatch exists for: the store is rebuilt from COMMITTED BLOBS ONLY and is byte-deterministic,
+# so what a test leaves behind is what a real build leaves behind -- the opposite of a fixture
+# population becoming the record. A marker is greppable and shows up in review; "the guard did not
+# happen to cover this path" does not.
+@pytest.mark.real_state_write
 def test_the_live_repository_builds_from_its_own_committed_truth():
     """The happy path L2 asks for, on the real artefacts rather than a fixture."""
     report = bp.build(repo=REPO)
@@ -520,6 +528,7 @@ def test_the_live_repository_builds_from_its_own_committed_truth():
     }
 
 
+@pytest.mark.real_state_write
 def test_the_query_entrypoint_reads_the_live_store_back():
     bp.build(repo=REPO)
     rows = bp.query("SELECT count(*) FROM atoms", repo=REPO)

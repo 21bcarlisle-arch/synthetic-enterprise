@@ -38,6 +38,26 @@ def update_sim_metrics(
     enterprise_value_gbp: float = 0.0,
 ) -> None:
     """Update top-level simulation metrics in agent_status.json."""
+    # A TEST PROCESS MAY NOT STAMP THE LIVE DAEMON REGISTER (2026-08-31). Every daemon calls this
+    # on every cycle, so every test that drives a daemon writes `docs/observability/agent_status.json`
+    # -- the file the dashboard reads to say which agents are alive. Measured when
+    # `docs/observability` became a protected surface: **32 of the 84 refusals across the whole
+    # suite were this one call**, in tests that were not about agent status at all.
+    #
+    # A NO-OP RATHER THAN A REFUSAL, and that is the difference from `live_ledger_guard`. That guard
+    # RAISES because a fixture population reaching a measurement of record is a published figure
+    # being wrong. This is liveness telemetry: a test writing it corrupts a status board, and a test
+    # PREVENTED from writing it has learned nothing it needed. Raising would red every daemon test
+    # in the repo to protect a dashboard field.
+    #
+    # THE PROBE IS BORROWED, NOT REWRITTEN. `live_ledger_guard.in_test_process` already reasons
+    # about this properly -- two independent signals OR'd, because `PYTEST_CURRENT_TEST` misses
+    # collection and import time while `"pytest" in sys.modules` covers them. A second answer to
+    # that question here is exactly the duplication this day's work has been about.
+    from background.live_ledger_guard import in_test_process, is_live_record_path
+
+    if in_test_process() and is_live_record_path(STATUS_FILE):
+        return
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     with open(STATUS_FILE, "a+") as lockfile:
@@ -91,6 +111,15 @@ def update_agent_status(
         a ping. Callers that did real work leave this False (the default). See
         tests/background/test_agent_status.py for the R15 both-ways proof.
     """
+    # THE SAME GUARD, ON THE FUNCTION EVERY DAEMON ACTUALLY CALLS. This module has TWO write
+    # sites -- `update_sim_metrics` above and `update_agent_status` here -- and the first
+    # attempt guarded only the first, which is why 32 refusals survived it unchanged. Both
+    # stamp `docs/observability/agent_status.json`, the register the dashboard reads to say
+    # which agents are alive; a test writing either corrupts a status board it was not about.
+    from background.live_ledger_guard import in_test_process, is_live_record_path
+
+    if in_test_process() and is_live_record_path(STATUS_FILE):
+        return
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     with open(STATUS_FILE, "a+") as lockfile:

@@ -32,16 +32,34 @@ value lets the value arm win by construction — R15's tautology with money in i
 The honest earnings comparison is REALISED: the same book, the same world, run once per arm,
 scored on what actually happened. That needs two full runs and is the next step.
 
-AND IT DOES NOT MEASURE THE COMPANY'S INFERENCE, which is the thing the thesis is actually
-about. The belief-versus-truth block below holds the company's churn estimate beside the world's
-response, and both descend from ONE published series -- the DESNZ 2015-2025 switching counts
-(`shared_calibration_holds` reads that off each side's own source rather than asserting it here).
-A gap between two fits of one series is those fits disagreeing about noise; it is not a supplier
-knowing something. Nor is most of the book scored where the world is observing: past
-`_CALIBRATED_SAVINGS_CEILING_GBP` of annual shortfall the world continues its last informed
-slope, and the median account here sits well beyond that. So the pair REFUSES to be published as
-evidence of inference while that holds -- the summary carries the refusal, the verdict paragraph
-carries it, and the ledger write declines. What would discharge it is recorded beside it.
+WHETHER IT MEASURES THE COMPANY'S INFERENCE -- the thing the thesis is actually about -- IS ONE
+OF TWO QUESTIONS, and only the first has moved. The belief-versus-truth block below holds the
+company's churn estimate beside the world's response.
+
+  LEG ONE, INDEPENDENCE: DISCHARGED 2026-08-31, by taking the route this module's own
+  `what_would_discharge_it` names as (b). Until then the company leg was read as
+  `market_conditions.MARKET_SWITCHING_RATE_PCT_BY_YEAR` -- the PRIOR, the published DESNZ series
+  that the world's response also descends from, and two fits of one series disagreeing about
+  noise is not a supplier knowing something. But the company does not renew on the prior:
+  `company/crm/competitive_pressure` blends it with the company's OWN realised departures and
+  every churn estimate downstream scales by the POSTERIOR. Pointed at what the company acts on,
+  the leg reads 3.0% for 2018 against a published 19.5-20.0% and is outside the band in four of
+  the six years the run priced renewals in, 17.0pp at the widest. `co_calibrated` is now False.
+
+  LEG TWO, SKILL: NOT DISCHARGED, and it is the one binding. `tools/inference_claim` scores the
+  method's own ranking at 0.333 against a null interval of 0.133-0.867 on six decisions -- it
+  cannot be told from chance. So the gap is still publishable only as a MEASUREMENT. Nor is most
+  of the book scored where the world is observing: past `_CALIBRATED_SAVINGS_CEILING_GBP` of
+  annual shortfall the world continues its last informed slope, and the median account here sits
+  well beyond that.
+
+AND THE DIRECTION THE POSTERIOR MOVED IS NOT A CREDIT. The company over-predicted its own losses
+by about 1.6x -- 22 realised against 35.2 predicted on 453 closed decisions -- so the posterior
+drags its implied market rate DOWN, away from a published record the world sits on. That is
+independence and inaccuracy at once, exactly the clause `inference_claim` holds: "the company's
+estimator differs from the world" and "the company's estimator is bad" produce the same number.
+The likelihood is one supplier's book and not a market sample, which is both why the leg is now
+independent of the published series and why the number it produces is a poor estimate of it.
 
 WHAT IT FOUND ON ITS FIRST RUN, which is why the arm is not wired to the renewal desk. See
 `value_based_renewal.max_supported_rate_increase_pct` for the mechanism.
@@ -54,6 +72,7 @@ import argparse
 import collections
 import glob
 import json
+import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -145,15 +164,46 @@ SHARED_CALIBRATION_SERIES = (
 #: false claim, and it is the one this design makes hard.
 _SHARED_RECORD = "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json"
 
-#: side -> (dotted module, attribute, reference_year or None).
+#: side -> (dotted module, what it reads).
 #:
-#: `reference_year=None` means the table is already a RATE in percent. An integer means the table
-#: is a normalised MULTIPLIER and is read back as the rate it asserts, against that year's band --
-#: the same conversion `tests/architecture/test_switching_rate_commons.py` uses, because a second
-#: conversion would let the two disagree about what a multiplier means.
+#: POINTED AT WHAT THE COMPANY ACTS ON, NOT WHAT IT STARTS FROM, 2026-08-31. This leg used to read
+#: `company.crm.market_conditions.MARKET_SWITCHING_RATE_PCT_BY_YEAR` -- the PRIOR, and the
+#: company does not renew on the prior. `company/crm/competitive_pressure` already blends that
+#: prior with the company's own realised departures and every churn estimate scales by the
+#: POSTERIOR. Grading the prior was grading the table the company starts from against a world it
+#: has since observed, which is the guard checking a quantity nothing downstream uses.
+#:
+#: WHAT THE PRODUCT MEANS, said out loud because the ratio is the load-bearing step. The prior is
+#: a market-wide switching rate in percent. The posterior/prior ratio is the correction the
+#: company's OWN BOOK put on its competitive-pressure multiplier -- realised departures over
+#: predicted ones, precision-weighted. The multiplier is the rate table normalised, so the two are
+#: one quantity in two units and the ratio applies to either. The product is therefore "the
+#: market-wide rate the company's acted belief implies", which is exactly what the world leg is
+#: quoted in. It is ALSO why that number is a poor market estimate: the likelihood is one
+#: supplier's book, not a market sample. Independence and inaccuracy at once -- see
+#: `tools/inference_claim`, which is the reason this guard's verdict does not by itself publish.
 _SIDE_TABLES = {
-    "company": ("company.crm.market_conditions", "MARKET_SWITCHING_MULTIPLIER_BY_YEAR", 2024),
+    "company": ("company.crm.competitive_pressure",
+                "CompetitivePressureLedger.reading (posterior, prior x ratio**w)"),
 }
+
+#: The company's PRIOR, kept separately because the posterior is expressed as a correction to it
+#: and because the artefact reports the two side by side. A reader who cannot see both cannot
+#: tell a belief that MOVED from one that could not.
+_COMPANY_PRIOR_TABLE = ("company.crm.market_conditions", "MARKET_SWITCHING_RATE_PCT_BY_YEAR")
+
+#: WHERE THE COMPANY'S OWN RENEWAL EXPERIENCE IS READ FROM, and it has to be an artefact of a real
+#: run: the ledger is run-scoped state (`pressure_ledger_scope`) and outside a run the posterior
+#: IS the prior. `tools/_ladder_chase_arm` already books the ledger out at the end of every run it
+#: drives, so this reads that census rather than minting a second recorder for one quantity.
+#:
+#: THE CHASE-ON ARM IS THE CANONICAL WORLD -- `_ladder_chase_arm` only redirects
+#: `AGGRESSION_PATH` for arm "off", so "on" is the committed default the company actually lives
+#: in. Grading the company against a world configuration it does not inhabit would be measuring
+#: a counterfactual supplier.
+_COMPANY_POSTERIOR_CENSUS = (
+    PROJECT / "docs" / "observability" / "ladder_chase_on_founder_2021.ledger_census.json"
+)
 
 #: The world's side is not a table but a function, and it is read through the SAME instrument the
 #: commons is read through so the two cannot drift apart.
@@ -167,8 +217,83 @@ def _published_bands() -> dict:
     return published_bands()
 
 
+def _company_posterior_readings(bands: dict) -> tuple[dict, str]:
+    """The company's ACTED competitive-pressure belief, year by year, with its prior beside it.
+
+    Returns `({}, reason)` at every step it cannot complete, and the reason is carried to the
+    artefact rather than collapsed into "no overlapping year": a leg that cannot say WHY it is
+    blind is a leg nobody can unblind.
+
+    FAIL-CLOSED ON AN UNARMED LEDGER, and that is the one branch worth reading twice. An unarmed
+    ledger's `reading()` returns the prior by design -- `arm_loss_reporting` documents why. If
+    this returned those numbers they would be the PRIOR wearing a posterior's label, the guard
+    would grade the prior while reporting that it graded the posterior, and the change made here
+    would be undetectable from the artefact. So an unarmed ledger is "cannot tell", which the
+    caller reads as co-calibrated.
+
+    ONLY YEARS THE RUN PRICED RENEWALS IN. `reading()` is defined for any year -- past the end of
+    the run it keeps returning the last closed window's ratio -- but a year the run never reached
+    is a year the company held no belief in, and extrapolating one would put four invented rows
+    in front of a reader who is being asked whether the belief moved.
+    """
+    import importlib
+
+    try:
+        census = json.loads(_COMPANY_POSTERIOR_CENSUS.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {}, (f"the company's own renewal ledger could not be read from "
+                    f"{_COMPANY_POSTERIOR_CENSUS.name}: {type(exc).__name__}")
+    runs = census.get("runs") or []
+    if not runs:
+        return {}, f"{_COMPANY_POSTERIOR_CENSUS.name} carries no run to read a ledger from"
+    # RUN 0 IS THE FLAT-RULES CONTROL -- the census `run_order` names it, and it is today's
+    # company. The rungs after it are price experiments, not what the book was run on.
+    booked = runs[0]
+    if not booked.get("armed"):
+        return {}, ("the run's competitive-pressure ledger was never armed, so its posterior is "
+                    "the prior and reading it as a posterior would be a tautology")
+    try:
+        cp = importlib.import_module("company.crm.competitive_pressure")
+        prior_rates = getattr(
+            importlib.import_module(_COMPANY_PRIOR_TABLE[0]), _COMPANY_PRIOR_TABLE[1])
+        ledger = cp.CompetitivePressureLedger()
+        ledger.arm_loss_reporting()
+        ledger.decisions_by_year = {
+            int(y): int(n) for y, n in (booked.get("decisions_by_year") or {}).items()}
+        ledger.expected_by_year = {
+            int(y): float(v) for y, v in (booked.get("predicted_losses_by_year") or {}).items()}
+        ledger.losses_by_year = {
+            int(y): int(v) for y, v in (booked.get("realised_losses_by_year") or {}).items()}
+    except Exception as exc:
+        return {}, f"the company's posterior could not be rebuilt: {type(exc).__name__}"
+    if not ledger.decisions_by_year:
+        return {}, "the run priced no renewals, so there is nothing for a posterior to move on"
+
+    out: dict[int, dict] = {}
+    for year in sorted(set(ledger.decisions_by_year) & set(bands)):
+        prior_rate = prior_rates.get(year)
+        reading = ledger.reading(year)
+        if prior_rate is None or not reading.prior:
+            continue
+        out[year] = {
+            "year": year,
+            "prior_pct": round(float(prior_rate), 2),
+            "posterior_pct": float(prior_rate) * (reading.multiplier / reading.prior),
+            "moved_from_prior": reading.moved_from_prior,
+            "ratio": None if reading.ratio is None else round(reading.ratio, 4),
+            "weight": round(reading.weight, 4),
+            "closed_decisions": reading.decisions,
+            "predicted_losses": round(reading.expected_losses, 2),
+            "realised_losses": reading.observed_losses,
+            "basis": reading.basis,
+        }
+    if not out:
+        return {}, "no year the run priced renewals in is covered by the published record"
+    return out, ""
+
+
 def _side_rate_table(side: str, bands: dict) -> dict:
-    """One side's year-keyed table read back as a rate in percent, or {} if it cannot be read."""
+    """One side's year-keyed reading as a rate in percent, or {} if it cannot be read."""
     import importlib
 
     try:
@@ -176,12 +301,8 @@ def _side_rate_table(side: str, bands: dict) -> dict:
             dotted, fn_name = _WORLD_RATE_READER
             fn = getattr(importlib.import_module(dotted), fn_name)
             return {y: float(fn(y)) for y in bands}
-        dotted, attr, reference_year = _SIDE_TABLES[side]
-        table = dict(getattr(importlib.import_module(dotted), attr))
-        if reference_year is None:
-            return {int(y): float(v) for y, v in table.items()}
-        reference_rate = bands[reference_year][1]
-        return {int(y): float(v) * reference_rate for y, v in table.items()}
+        readings, _why = _company_posterior_readings(bands)
+        return {y: r["posterior_pct"] for y, r in readings.items()}
     except Exception:
         return {}
 
@@ -315,6 +436,25 @@ def shared_calibration_holds() -> dict:
         }
         if "why_unknown" in verdict:
             sides[side]["why_unknown"] = verdict["why_unknown"]
+        if side == "company":
+            # BOTH READINGS SIDE BY SIDE, because "the belief did not move" and "the belief
+            # cannot move" are the two facts this leg exists to tell apart, and a reader given
+            # only the posterior cannot tell them apart at all.
+            readings, why_blind = _company_posterior_readings(bands)
+            sides[side]["prior_source"] = ".".join(_COMPANY_PRIOR_TABLE)
+            # `os.path.relpath`, not `Path.relative_to`: the latter RAISES on a path outside the
+            # project, which turns the guard's own reporting line into a crash on exactly the
+            # branch -- a redirected or absent census -- that the fail-closed path exists for.
+            sides[side]["ledger_read_from"] = os.path.relpath(
+                _COMPANY_POSTERIOR_CENSUS, PROJECT)
+            sides[side]["prior_and_posterior_by_year"] = [
+                {**r, "posterior_pct": round(r["posterior_pct"], 2)}
+                for r in readings.values()
+            ]
+            sides[side]["years_the_belief_moved"] = sorted(
+                y for y, r in readings.items() if r["moved_from_prior"])
+            if why_blind:
+                sides[side]["why_unknown"] = why_blind
         if verdict["agrees"] is None:
             undecidable.append(source)
 
@@ -509,10 +649,35 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
     for cid, record in (run.get("per_customer_lifetime") or {}).items():
         leg = legs.get(cid) or {}
         total_kwh = float(leg.get("total_kwh") or 0.0)
-        avg_rate = float(leg.get("avg_rate_gbp_per_mwh") or 0.0)
+        # THE EFFECTIVE RATE, BECAUSE "WHAT THIS CUSTOMER CURRENTLY PAYS" IS THE WHOLE BILL
+        # (2026-08-31). This read `avg_rate_gbp_per_mwh`, which was the COMMODITY leg alone --
+        # wholesale energy, no network charges, no levies, no standing charge, no VAT -- and then
+        # used it as `current_rate_gbp_per_mwh` and derived `base_rate = current_rate -
+        # TARGET_MARGIN` from it. Measured over the whole book: the commodity leg is 102.57
+        # GBP/MWh against 156.42 actually paid, so every price this arm compared against was
+        # anchored **1.53x low** at book level, median 1.59x per account and 4.17x at worst.
+        #
+        # Nothing was wrong with the field; it was correctly computed and misleadingly named, and
+        # the walk that found it predicted exactly this reader. `tools/generate_customers_json`
+        # now publishes `avg_commodity_rate_gbp_per_mwh` and `avg_effective_rate_gbp_per_mwh`, so
+        # a caller has to choose. This one wants the effective rate and says so.
+        avg_rate = float(leg.get("avg_effective_rate_gbp_per_mwh") or 0.0)
         bills = float(leg.get("bill_count") or 0.0)
         years = max(1.0, bills / BILLS_PER_YEAR)
         eac = total_kwh / years
+        legacy_rate = (leg.get("avg_commodity_rate_gbp_per_mwh")
+                       or leg.get("avg_rate_gbp_per_mwh"))
+        if avg_rate <= 0.0 and legacy_rate:
+            # THE SURFACE PREDATES THE TWO-RATE PUBLICATION, and that is its own answer rather than
+            # a missing number (2026-08-31). A leg carrying `avg_rate_gbp_per_mwh` (the ambiguous
+            # old name) or only `avg_commodity_rate_gbp_per_mwh` was published before the generator
+            # started saying which rate is which. BOTH legacy shapes are recognised, because the
+            # first version of this branch checked only the newer one and the live artefact -- the
+            # one that actually exists -- carries the older. There is deliberately NO FALLBACK to the
+            # commodity leg: reading it as the price is the exact defect this change fixes, and a
+            # silent fallback would restore it while looking like resilience.
+            skipped["the published surface carries no effective rate yet (regenerate it)"] += 1
+            continue
         if eac <= 0.0 or avg_rate <= 0.0:
             # NAMED, not dropped. An account the company cannot price is a fact about its own
             # records, and a comparison that silently covers 200 of 263 accounts is a different

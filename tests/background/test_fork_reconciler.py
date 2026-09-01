@@ -1074,3 +1074,108 @@ def test_salvage_refuses_when_the_tag_does_not_verify(monkeypatch):
     monkeypatch.setattr(F, "_git", fake_git)
     r = F.salvage_detached_head(head)
     assert r["salvaged"] is False and "did not verify" in r["detail"]
+
+
+# ── A LIVE WRITER'S WORKTREE IS NOT ABANDONED (2026-08-31) ───────────────────────────────────────
+# The seat executor -- the first unattended WRITER in this project's history -- was armed on
+# 2026-08-31 with a worktree at /var/tmp/se-seat-executor. This reaper is ARMED and had not
+# destroyed it only by luck: it refuses a DIRTY worktree, and the executor is dirty for most of a
+# turn. But `ensure_worktree` resets and cleans that tree at the START of every turn, so there is a
+# window where it is clean and detached at origin/main -- MERGED, and by this classifier's own
+# rules ELIGIBLE. `git worktree remove` on a live writer is the whole turn gone.
+#
+# Its sibling `fork_salvage` had already collided with the same worktree four minutes into the
+# first run, committing into it while the executor worked. That is what prompted looking here.
+
+_LIVE_WT = "/var/tmp/se-seat-executor"
+
+
+def _merged_clean_detached_worktree(path=_LIVE_WT):
+    """The exact shape the reaper would otherwise take: detached, reachable from main, clean."""
+    return [{"path": path, "branch": None, "head": "abc1234", "detached": True,
+             "locked": False, "locked_reason": None, "bare": False}]
+
+
+def test_the_reaper_refuses_a_live_writers_worktree(tmp_path):
+    """MUTATION: drop the `live_writer_fn` branch in `evaluate_worktree_reap` and this fires."""
+    report = F.evaluate_worktree_reap(
+        worktrees=_merged_clean_detached_worktree(),
+        branch_states={}, main_path="/repo", enforce=False,
+        dirty_fn=lambda p: False,                       # clean -- the dangerous window
+        salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True,                    # MERGED
+        detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: p == _LIVE_WT,
+    )
+    assert report["eligible"] == []
+    kept = report["kept"]
+    assert len(kept) == 1 and "live writer" in kept[0]["reason"]
+
+
+def test_the_same_worktree_IS_eligible_once_its_writer_is_gone(tmp_path):
+    """THE LEG THAT STOPS THIS BECOMING A PERMANENT EXEMPTION.
+
+    A killed executor leaves its pid file behind and its worktree behind, and that directory is
+    exactly the accretion this reaper exists to remove -- the H24 gap was worktree dirs climbing
+    2 -> 7 in one session. Exempting the PATH would trade one collision for unbounded accretion;
+    only LIVENESS may spare it.
+    """
+    report = F.evaluate_worktree_reap(
+        worktrees=_merged_clean_detached_worktree(),
+        branch_states={}, main_path="/repo", enforce=False,
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,                 # the writer has exited
+    )
+    assert [e["path"] for e in report["eligible"]] == [_LIVE_WT]
+
+
+def test_BOTH_reap_doors_refuse_a_live_writer(tmp_path):
+    """A rule enforced at one door and not the other is a rule with a way round it, and this file
+    already holds that principle for detached-HEAD determination. `reap_one_worktree` is the door
+    an operator calls by hand, which is if anything the likelier one to be pointed at a live tree.
+
+    MUTATION: remove the check from `reap_one_worktree` and this fires alone.
+    """
+    removed = []
+    result = F.reap_one_worktree(
+        _LIVE_WT,
+        worktrees=_merged_clean_detached_worktree(),
+        branch_states={}, main_path="/repo",
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        remover=lambda p: removed.append(p) or {"removed": True},
+        live_writer_fn=lambda p: True,
+    )
+    assert result["refused"] is True
+    assert result["removed"] is False
+    assert "live writer" in result["reason"]
+    assert removed == [], "the remover was called on a worktree with a live process in it"
+
+
+def test_the_default_liveness_answer_comes_from_the_module_that_owns_it():
+    """One question, one home. `seat_executor` owns WORKTREE and PID_FILE, so it owns the answer;
+    `fork_salvage` asks the same function. Two modules that do not import each other each carrying
+    their own liveness rule is the ontology defect this project has been paying for all month.
+
+    MUTATION: reimplement the probe locally in either daemon and this fires.
+    """
+    from background import fork_reconciler, fork_salvage, seat_executor
+
+    probe = object()
+    seen = []
+
+    class _Spy:
+        def worktree_is_live(self, path):  # pragma: no cover - shape only
+            return True
+
+    import unittest.mock as mock
+    with mock.patch.object(seat_executor, "worktree_is_live",
+                           lambda p: (seen.append(p), True)[1]):
+        assert fork_reconciler._live_writer_default("/some/path") is True
+        assert fork_salvage._is_a_live_writers_worktree("/some/path") is True
+    assert seen == ["/some/path", "/some/path"], (
+        "one of the daemons answered the liveness question itself instead of asking the module "
+        f"that owns it: {seen}"
+    )
+    del probe, _Spy

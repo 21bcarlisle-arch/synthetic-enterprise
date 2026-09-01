@@ -86,11 +86,33 @@ def test_reaper_absent_no_kill_path_in_background():
         assert kill_call.search(src) is None, f"{path}: a process-kill call reappeared"
 
 
-def test_exit_143_invariant_still_holds_against_console_sanctity():
+def test_exit_143_invariant_still_holds_against_console_sanctity(tmp_path, monkeypatch):
     """The exit-143 CLASS invariant survives the reaper's deletion (SUBSTEP4 §6): a sanctified
-    console is spared and the marker is tmux-independent. Consumer gone, contract kept."""
-    from background import console_sanctity as cs
+    console is spared and the marker is tmux-independent. Consumer gone, contract kept.
+
+    ISOLATED TO tmp_path SINCE 2026-08-31. This registers THIS pytest process as a sanctified
+    console in the LIVE register -- `docs/observability/.sanctified_consoles.json`, which
+    `is_sanctified()` reads to decide whether a process is spared. It unsanctifies afterwards, so
+    it left no trace and nobody noticed; a run that died between the two lines would have left a
+    dead test pid registered as a console.
+
+    It surfaced when `docs/observability` became a protected surface, and the refusal named
+    `.sanctified_consoles.json.tmp` -- the SIBLING an atomic write goes to first. A file-by-file
+    guard protects the destination and leaves the sibling open, which is the argument for the
+    surface in one path name.
+
+    ISOLATION RATHER THAN A WRITER GUARD, and the distinction matters: the five writers guarded
+    alongside this (agent status, the campaign record, the subset verdict, the cache-access log,
+    the supervisor log) are SIDE EFFECTS on hot paths, where a no-op costs a test nothing. Here the
+    write IS the function -- `sanctify` then `is_sanctified` is the round trip under test -- so a
+    no-op would break the thing being asserted. My first attempt guarded this writer too and did
+    exactly that.
+    """
     import os
+
+    from background import console_sanctity as cs
+
+    monkeypatch.setattr(cs, "REGISTRY_PATH", tmp_path / ".sanctified_consoles.json")
     assert cs.sanctify(os.getpid()) is True
     assert cs.is_sanctified(os.getpid()) is True   # reads /proc + registry only, no tmux
     cs.unsanctify(os.getpid())
@@ -136,4 +158,5 @@ def test_install_schedule_never_starts_a_service_daemon():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational

@@ -35,26 +35,6 @@ R15 -- the mutations, each one a real way this repair could rot:
     `test_the_level_anchor_refuses_to_emit_a_constant_from_a_minority_population` red.
   * drop the per-year `population` key from `population_anchor._churn_by_year` ->
     `test_the_churn_gate_names_its_denominator_on_every_year` red.
-
-ITEM 1 OF THE FINDING LANDED 2026-08-31 AND ITS OWN MUTATIONS ARE BELOW. Declaring the population
-told a reader the level was taken on the wrong one; it did not give them the right one. The
-whole-book level does -- `departure_population.book_departure_level`, both routes, one reading,
-shared by both level instruments. The trap it had to avoid is the one this project keeps paying
-for and it is a DENOMINATOR: an SVT account faces a segment decision at every boundary and a fixed
-account faces one renewal roll a year, so a mean over DECISIONS mixes a per-segment probability
-with an annual one. On the committed capture that mean reads 3.6-7.5% against a 2.9-23.0% band --
-it would have published a world departing far below the record when in 2022 it departs at 12.09%
-against a band of 2.9-4.3%.
-  * take the mean over decisions instead of over account-years ->
-    `test_the_whole_book_level_is_a_mean_over_accounts_and_not_over_decisions` red.
-  * let the whole-book level fall back to the renewal-only one when the SVT route is unreadable ->
-    `test_the_whole_book_level_refuses_a_capture_that_cannot_see_both_routes` red.
-  * treat a decision whose hazard was never recorded as a hazard of zero ->
-    `test_an_unrecorded_hazard_makes_its_year_unknown_rather_than_zero` red.
-  * publish the whole-book level without saying which way it is bounded, or which years the churn
-    gate's own year set cannot show ->
-    `test_the_whole_book_level_states_its_denominator_and_its_direction` and
-    `test_the_churn_gate_names_the_years_its_own_year_set_cannot_show` red.
 """
 from __future__ import annotations
 
@@ -65,21 +45,21 @@ import pytest
 
 from simulation.departure_risks import CAUSE_SVT_INERTIA, ORDERED_CAUSES
 from tools.departure_population import (
-    BOOK_BOUND,
-    BOOK_DENOMINATOR,
     ROUTE_RENEWAL,
     ROUTE_SVT,
+    account_denominator_refusal,
     banner,
-    book_departure_level,
     declare,
     declare_rows,
     load_svt_decisions,
+    svt_sibling,
+    union_by_year,
 )
 from tools.fit_year_level_anchor import (
-    book_emission_refusal,
     emission_refusal,
-    fit_year_anchor_on_book,
-    outside_comparison_window,
+    fit_whole_book,
+    svt_composition_refusal,
+    svt_market_invariance_refusal,
 )
 from tools.population_anchor import _churn_by_year
 
@@ -90,6 +70,20 @@ MIX = PROJECT / "docs" / "reports" / "c2_reason_mix_interval.json"
 #: point: a declaration that cannot tell them apart is a constant wearing a verdict's clothes.
 ONE_ROUTE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
 TWO_ROUTE = PROJECT / "docs" / "reports" / "ladder_churn_factors.json"
+
+
+def _two_route_rows() -> tuple[list[dict], list[dict]]:
+    """The real two-route capture, both files. Skips rather than fails if the artefact is gone.
+
+    A capture is an artefact and artefacts get regenerated; a control that goes RED because a file
+    moved is reporting on the tree's tidiness, not on the property it owns.
+    """
+    if not TWO_ROUTE.is_file():
+        pytest.skip(f"{TWO_ROUTE.name} is not in the tree")
+    svt, reason = load_svt_decisions(TWO_ROUTE)
+    if svt is None:
+        pytest.skip(f"the two-route capture's SVT sibling is unreadable: {reason}")
+    return json.loads(TWO_ROUTE.read_text()), svt
 
 
 def _mix() -> dict:
@@ -245,6 +239,67 @@ def test_an_unreadable_route_is_not_reported_as_an_empty_one():
     assert empty["decisions"][ROUTE_SVT] == 0
 
 
+def test_a_run_with_no_svt_recorder_writes_no_sibling_rather_than_an_empty_one(tmp_path):
+    """The producer leg of the test above, and without it that test asserts a fail-open.
+
+    MUTATION: restore `result.get("svt_decisions", [])` in `tools.capture_departure_factors` and
+    the first leg fires. Proven by making that edit, 2026-08-31.
+
+    WHY THIS LEG WAS OWED. `test_an_unreadable_route_is_not_reported_as_an_empty_one` says in its
+    docstring that *"nobody was on SVT" and "the recorder was never wired" produce the identical
+    artefact* -- and then discriminates on `None` vs `[]`, which is a fact about whether a FILE
+    EXISTS. Those are only the same discriminator if the producer refuses to write a file for the
+    unwired case. It did not: it read the key with an `[]` default, so an unwired recorder wrote an
+    empty sibling, which `declare_rows` counts as coverage, which sets `covers_svt_route: true`,
+    `share_of_departures_visible: 1.0`, `causes_not_observable: []` and `warning: null` on a
+    reading that measured the SVT route not at all.
+
+    THAT IS NOT HYPOTHETICAL AT THIS HEAD. `run_phase2b` returns 63 keys and `svt_decisions` is not
+    among them, because `067a00dfd` landed the SVT product and not the SVT departure route. So
+    every capture run today takes the unwired branch, and the standing instruction to re-run
+    `tools/capture_departure_factors` would have published exactly that certification.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S WORLD. Nothing here asserts that the recorder is
+    missing. The day it lands, the second leg is the one doing the work and the first becomes
+    vacuous-but-correct -- which is the right direction for a control to age in.
+    """
+    from tools import capture_departure_factors as cap
+
+    out = tmp_path / "probe.json"
+
+    # LEG 1 -- no key at all. The run cannot say anything about the SVT route, so no file.
+    rc = cap.emit_svt_sibling({"all_records": []}, out)
+    sibling = svt_sibling(out)
+    assert rc == 0
+    assert not sibling.exists(), (
+        "a run carrying no `svt_decisions` recorder wrote an SVT sibling anyway ({} rows). An "
+        "unwired recorder and an empty book produce the same file, and the file is what every "
+        "downstream declaration reads as coverage of the route.".format(
+            len(json.loads(sibling.read_text())))
+    )
+    rows, reason = load_svt_decisions(out)
+    assert declare_rows(
+        [{"event_type": "churned"}], rows, svt_unreadable=reason)["covers_svt_route"] is False, (
+        "with no sibling written, a reading over this capture still declares it can see the SVT "
+        "route"
+    )
+
+    # LEG 2 -- the key PRESENT and empty is a measured zero, and must still be written. Without
+    # this leg the repair could be "never write the sibling", which discards a real measurement.
+    rc = cap.emit_svt_sibling({"svt_decisions": []}, out)
+    assert rc == 0 and sibling.is_file() and json.loads(sibling.read_text()) == [], (
+        "a run whose recorder RAN and found nobody on SVT wrote no sibling. That is a measured "
+        "zero and discarding it is the opposite error."
+    )
+
+    # LEG 3 -- a stale sibling beside a fresh unwired run is refused, not silently left to be
+    # joined. MUTATION: return 0 instead of 2 and this fires.
+    assert cap.emit_svt_sibling({"all_records": []}, out) == 2, (
+        "a sibling from a different run was left beside a table this run wrote, and every reader "
+        "unions the two as one capture"
+    )
+
+
 def test_the_level_anchor_refuses_to_emit_a_constant_from_a_minority_population():
     """MUTATION: delete the refusal and `fit_year_level_anchor` hands over the constant again.
 
@@ -317,396 +372,250 @@ def test_the_churn_gate_names_its_denominator_on_every_year():
     )
 
 
-# ---------------------------------------------------------------------------
-# Item 1 of the finding: the whole-book level, on a declared denominator.
-# ---------------------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# THE UNION: a whole-book rate, and the three properties that make its denominator mean anything
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# Item 1 of the finding above -- "a whole-book departure target that both routes are fitted
+# against together" -- was the one thing it left owed, and the reason `fit_year_level_anchor`
+# refused to emit a constant at all. These legs hold the repair.
+#
+# THE PROPERTY, NOT TODAY'S ANSWER. Not "2022 is unfittable" and not "the fitted 2020 anchor is
+# 5.85"; both go red the moment a better capture is taken, which is precisely when this control
+# should stay green. The property is: *a whole-book departure rate is taken on an ACCOUNT
+# denominator, and is refused outright when the capture cannot carry one.*
 
 
-def _decision(account: str, date: str, hazard: float, departed: bool = False) -> dict:
-    """One departure decision in the shape both routes record it."""
-    return {
-        "customer_id": account,
-        "event_date": date,
-        "realized_churn_probability": hazard,
-        "event_type": "churned" if departed else "stayed",
-    }
+def _renewal(acct: str, year: int, departed: bool = False, p: float | None = 0.1) -> dict:
+    return {"customer_id": acct, "event_date": f"{year}-06-30",
+            "event_type": "churned" if departed else "renewed",
+            "realized_churn_probability": p}
 
 
-def test_the_whole_book_level_refuses_a_capture_that_cannot_see_both_routes():
-    """MUTATION: return the renewal-only level when `svt_rows is None` and this fires.
+def _svt(acct: str, year: int, departed: bool = False, p: float | None = 0.01) -> dict:
+    return {"customer_id": acct, "event_date": f"{year}-06-30",
+            "event_type": "churned" if departed else "stayed",
+            "realized_churn_probability": p}
 
-    The fail-open shape here is a SUBSTITUTE: a well-formed number that answers a different
-    question. On the committed capture the two readings differ by up to 13pp and in 2022 the
-    renewal reading does not exist at all, so a silent fallback would have been the same defect
-    the declaration was built to expose, one level down.
 
-    BOTH BRANCHES, because a refusal that fires on everything is a deletion.
+def test_a_whole_book_rate_is_taken_on_an_account_denominator_not_a_decision_count():
+    """MUTATION: divide by decisions instead of accounts and this fires on the real capture.
+
+    THE ENTIRE REASON THE UNION IS A REPAIR. Both routes' natural denominators are wrong for the
+    published band and wrong in opposite directions: renewal decisions count only households at a
+    decision point, SVT segments count cap periods at roughly eleven per account-year. The record
+    counts ACCOUNTS. A union that simply added the two decision counts together would read an
+    order of magnitude low and would look more thorough while being further from the record.
+
+    Asserted as the inequality rather than as a number, so a bigger capture cannot rot it.
     """
-    renewal = [_decision("A", "2021-01-01", 0.2)]
-    blind, reason = book_departure_level(renewal, None)
-    assert blind is None and reason, "a capture blind to the SVT route still yielded a book level"
-
-    sighted, no_reason = book_departure_level(renewal, [_decision("B", "2021-02-01", 0.1)])
-    assert no_reason is None and sighted is not None, (
-        "the refusal fires even on a capture that CAN see both routes, which makes this control a "
-        "constant and the whole-book reading unreachable"
-    )
-
-
-def test_the_whole_book_level_is_a_mean_over_accounts_and_not_over_decisions():
-    """MUTATION: mean the hazards over decisions instead of combining within the account.
-
-    THE DENOMINATOR THIS WHOLE REPAIR TURNS ON. Account A faces four SVT segment decisions at 10%
-    each; account B faces one renewal roll at 40%. Both have a ~34-40% chance of leaving the year.
-    The mean over ACCOUNTS is 37.2%. The mean over DECISIONS is 16% -- five decisions, four of them
-    small -- and it is not a rate of anything: it mixes a per-segment probability with an annual
-    one. Published against an annual switching band it reads as a world departing far too little,
-    which is exactly what the real capture would have said.
-
-    The fixture is built so the two answers cannot coincide, which is what makes this a control
-    rather than a restatement: no weighting of five decisions gives 37.2%.
-    """
-    renewal = [_decision("B", "2021-06-01", 0.4)]
-    svt = [_decision("A", f"2021-0{m}-01", 0.1) for m in (1, 2, 3, 4)]
-
-    levels, _ = book_departure_level(renewal, svt)
-    measured = levels[2021]["expected_departure_pct"]
-
-    per_account = 100.0 * ((1.0 - 0.9 ** 4) + 0.4) / 2.0
-    per_decision = 100.0 * (0.4 + 0.1 * 4) / 5.0
-    assert measured == pytest.approx(per_account, abs=1e-6), (
-        "the whole-book level reads {:.2f}%, not the account-year mean of {:.2f}%. If it reads "
-        "{:.2f}% it is the mean over DECISIONS, and an SVT account facing a decision at every "
-        "segment boundary then outvotes a renewal account facing one roll a year.".format(
-            measured, per_account, per_decision)
-    )
-    assert levels[2021]["accounts"] == 2, (
-        "the denominator counts {} things and there are 2 accounts in this year; a denominator "
-        "of 5 is the decision count".format(levels[2021]["accounts"])
-    )
-
-
-def test_an_unrecorded_hazard_makes_its_year_unknown_rather_than_zero():
-    """MUTATION: default a missing `realized_churn_probability` to 0.0 and this fires.
-
-    A decision whose probability was never recorded is UNKNOWN. Read as zero it pulls the year's
-    level down by exactly the rows nobody can see, and the resulting figure is well-formed,
-    plausible and lower -- the flattering direction, which is how this class survives review.
-    """
-    good = [_decision("A", "2021-01-01", 0.3)]
-    blind_row = {"customer_id": "B", "event_date": "2021-02-01", "event_type": "stayed"}
-
-    clean, _ = book_departure_level(good, [])
-    assert clean[2021]["expected_departure_pct"] == pytest.approx(30.0)
-
-    holed, _ = book_departure_level(good, [blind_row])
-    assert holed[2021]["expected_departure_pct"] is None, (
-        "a year containing a decision with no recorded hazard published a level of {}. The row "
-        "must not be read as a zero hazard.".format(holed[2021]["expected_departure_pct"])
-    )
-    assert holed[2021]["unreadable_rows"] == 1, (
-        "the year reports no unreadable rows, so a reader cannot tell an unknown level from a "
-        "year that simply had no decisions"
-    )
-    assert holed[2021]["total_decisions"] == 2, (
-        "the unreadable row vanished from the decision count as well, which would let a capture "
-        "quietly shrink its own population"
-    )
-
-
-def test_the_whole_book_level_states_its_denominator_and_its_direction():
-    """MUTATION: drop `denominator` or `bound` from the row and this fires.
-
-    A level is quoted on its own. `BOOK_BOUND` says it is an UPPER bound because an account facing
-    no decision in a year cannot depart and is not in the denominator -- and the direction is what
-    makes a verdict readable: a year OUT OF BAND ABOVE cannot be explained away by the bound,
-    while a year inside might still be outside on the full book. A bound whose direction is not
-    stated is not a bound.
-    """
-    levels, _ = book_departure_level(
-        [_decision("A", "2021-01-01", 0.2)], [_decision("B", "2021-01-01", 0.1)])
-    row = levels[2021]
-    assert row["denominator"] == BOOK_DENOMINATOR and "account" in row["denominator"].lower()
-    assert "NOT decisions" in row["denominator"], (
-        "the denominator does not say what it is NOT, and the decision count is the reading a "
-        "reader reaches for first"
-    )
-    assert row["bound"] == BOOK_BOUND == "upper", (
-        "the whole-book level does not say which way it is wrong"
-    )
-
-
-def test_the_whole_book_and_renewal_only_levels_are_two_different_readings():
-    """NULL CONTROL, on the real two-route capture: if they agreed, the union bought nothing.
-
-    Keyed to the property and not to today's numbers -- no year, no threshold, no direction is
-    asserted. What is asserted is that the renewal route is a SELECTED sub-population: it gives a
-    different answer, and in at least one year it gives no answer at all while the book has
-    decisions and departures. That stays true whichever way the world moves, and it goes red the
-    moment someone quietly re-points the whole-book reading at the renewal rows.
-    """
-    if not TWO_ROUTE.is_file():
-        pytest.fail(
-            "the two-route capture {} is missing, so the whole-book reading cannot be checked "
-            "against a real population -- an unavailable check is a FAILED check (R15).".format(
-                TWO_ROUTE.name)
+    renewal, svt = _two_route_rows()
+    book = union_by_year(renewal, svt)
+    assert book, "the real two-route capture yields no whole-book reading at all"
+    narrower = 0
+    for year, v in book.items():
+        # RECOMPUTED INDEPENDENTLY, because asserting the field against itself would be the
+        # tautology leg of R15. This counts distinct accounts straight off the two row lists.
+        expected_accounts = len({
+            r["customer_id"] for rows in (renewal, svt) for r in rows
+            if int(str(r["event_date"])[:4]) == year
+        })
+        assert v["accounts"] == expected_accounts, (
+            f"{year}: the denominator is {v['accounts']} but the capture has "
+            f"{expected_accounts} distinct accounts that year -- it is not an account count"
         )
-    rows = json.loads(TWO_ROUTE.read_text())
-    svt, reason = load_svt_decisions(TWO_ROUTE)
-    assert svt is not None, f"the two-route capture has no readable SVT sibling: {reason}"
-    levels, _ = book_departure_level(rows, svt)
+        decisions = sum(v["decisions"].values())
+        assert v["accounts"] <= decisions
+        narrower += v["accounts"] < decisions
+        assert v["denominator"].startswith("accounts"), (
+            f"{year}: the denominator no longer declares itself as accounts"
+        )
+        assert v["departures_total"] == sum(v["departures"].values()), (
+            f"{year}: the whole-book numerator has stopped being the sum of both routes"
+        )
+    assert narrower, (
+        "no year has fewer accounts than decisions, so accounts and decisions are the same "
+        "number here and this control cannot tell the two denominators apart"
+    )
 
-    paired = [
-        (y, r["expected_departure_pct"], r["renewal_only_expected_pct"])
-        for y, r in levels.items()
-        if r["expected_departure_pct"] is not None and r["renewal_only_expected_pct"] is not None
+
+def test_an_account_that_departs_twice_refuses_the_account_denominator():
+    """MUTATION: drop the terminal-departure check and a rate is returned anyway.
+
+    If an account can depart twice the numerator counts EVENTS while the denominator counts
+    ACCOUNTS, and their ratio is not a quantity -- the class CLAUDE.md names as this project's
+    commonest route to publishing something misleading. It fails silently: every row stays
+    well-formed and the rate simply reads high.
+
+    The clean pair is exercised too, because a refusal that fires on everything is not a refusal.
+    """
+    clean = ([_renewal("A", 2020)], [_svt("A", 2020, departed=True)])
+    twice = ([_renewal("A", 2020, departed=True)], [_svt("A", 2020, departed=True)])
+    assert account_denominator_refusal(*clean) is None, (
+        "a capture in which every account departs at most once is refused -- the check has "
+        "become a constant"
+    )
+    refusal = account_denominator_refusal(*twice)
+    assert refusal and "more than once" in refusal, (
+        "an account departing on both routes yields a whole-book rate whose numerator counts "
+        "events and whose denominator counts accounts"
+    )
+    with pytest.raises(ValueError):
+        union_by_year(*twice)
+
+
+def test_an_unobserved_interior_account_year_refuses_the_account_denominator():
+    """MUTATION: check only that accounts exist, not that they are visible every year.
+
+    An account absent from BOTH routes between two of its own decisions means the denominator is
+    "accounts that happened to make a decision" -- the selected sub-population this whole repair
+    exists to stop being compared against a whole-population rate. C1b created exactly that shape
+    once already, and nothing noticed.
+
+    The boundary case is the null control: absence BEFORE an account's first decision or AFTER its
+    last is joining and leaving, which is the book changing size, and must NOT refuse.
+    """
+    joins_and_leaves = ([_renewal("A", 2019), _renewal("B", 2020)], [_svt("A", 2019)])
+    assert account_denominator_refusal(*joins_and_leaves) is None, (
+        "an account that joins late or leaves early is refused, so the check cannot tell a book "
+        "changing size from an instrument going blind"
+    )
+    gap = ([_renewal("A", 2019), _renewal("A", 2021)], [_svt("B", 2020)])
+    refusal = account_denominator_refusal(*gap)
+    assert refusal and "interior account-year" in refusal, (
+        "an account invisible in 2020 while present in 2019 and 2021 still yields a whole-book rate"
+    )
+
+
+def test_a_decision_without_its_probability_makes_the_expected_level_absent_not_low():
+    """MUTATION: skip unpriced rows when summing, and the expected rate silently reads LOW.
+
+    THE FAIL-OPEN THIS LEG EXISTS FOR, and it was in the first draft of `union_by_year`. Skipping a
+    row with no `realized_churn_probability` shrinks the expected NUMERATOR while leaving the
+    account DENOMINATOR whole -- a full denominator with an emptied numerator, which reads as a
+    world that departs less rather than as a capture that recorded less. Exactly the producer/
+    consumer shape this repository has paid for before.
+
+    An absence cannot be mistaken for a measurement; a quietly-low rate can.
+    """
+    priced = ([_renewal("A", 2020), _renewal("B", 2020)], [_svt("A", 2020), _svt("B", 2020)])
+    full = union_by_year(*priced)[2020]
+    assert full["expected_rate_pct"] is not None and full["unpriced_decisions"] == 0
+
+    unpriced = ([_renewal("A", 2020), _renewal("B", 2020, p=None)],
+                [_svt("A", 2020), _svt("B", 2020)])
+    partial = union_by_year(*unpriced)[2020]
+    assert partial["unpriced_decisions"] == 1
+    assert partial["expected_rate_pct"] is None, (
+        "a decision that recorded no probability produced a LOWER expected rate instead of no "
+        "expected rate -- a capture that recorded less now reads as a world that departs less"
+    )
+    assert partial["realised_rate_pct"] is not None, (
+        "the realised count needs no probability and must survive; refusing it too would make "
+        "this a deletion rather than a fail-closed"
+    )
+
+
+def test_the_whole_book_fit_refuses_a_year_the_svt_route_alone_overshoots():
+    """MUTATION: clamp the residual at zero and the year fits at an anchor of 0.
+
+    A year whose SVT route alone already expects more departures than the record allows for the
+    WHOLE book cannot be brought down by any renewal anchor >= 0. Clamping would emit a number, and
+    that number would say "the renewal route contributes nothing" when the truth is "the mechanism
+    cannot reach this year's record". That is a result about the world, not a value to pick.
+
+    Held on the property, so a re-capture that fixes the year turns this green rather than red: the
+    assertion is that whenever the floor exceeds the target, no anchor is emitted.
+    """
+    renewal, svt = _two_route_rows()
+    result = fit_whole_book(renewal, svt)
+    assert result, "the whole-book fit returns nothing on the real two-route capture"
+    fitted = 0
+    for year, (anchor, refusal, diag) in result.items():
+        if diag["svt_floor_pct"] > diag["target_pct"]:
+            assert anchor is None, (
+                f"{year}: SVT alone expects {diag['svt_floor_pct']:.2f}% against a target of "
+                f"{diag['target_pct']:.2f}% and an anchor was emitted anyway"
+            )
+            assert "unreachable" in refusal
+        if anchor is not None:
+            fitted += 1
+            assert abs(diag["achieved_pct"] - diag["target_pct"]) < 0.01, (
+                f"{year}: the fitted anchor does not put the whole book on its target"
+            )
+    assert fitted, (
+        "no year fitted at all -- a fit that refuses everything is a deletion, and this control "
+        "would then be asserting only that nothing happens"
+    )
+
+
+def test_the_fit_refuses_when_the_world_anchors_the_svt_route():
+    """MUTATION: assume the composition instead of checking it, and the fit solves the wrong sum.
+
+    The whole-book fit holds the SVT contribution FIXED and solves the renewal anchor around it.
+    That is legitimate only because the year level anchor does not scale the SVT route -- measured
+    on every row of the real capture. `build_departure_risks` disagrees, computing
+    `CAUSE_SVT_INERTIA = clip(level_anchor * svt_inertia * action_propensity)`, and that line is
+    unreachable today only because no production caller passes `svt_inertia=`.
+
+    If the world ever starts anchoring it, every row stays well-formed, the table still prints, and
+    the fit silently solves an equation the world does not run. This is what fires instead.
+    """
+    _renewal_rows, svt = _two_route_rows()
+    assert svt_composition_refusal(svt) is None, (
+        "the real capture no longer matches the unanchored composition the fit assumes -- either "
+        "the world changed or this check has stopped being able to pass"
+    )
+    anchored = [
+        dict(row, realized_churn_probability=min(
+            row["realized_churn_probability"] * row["sim_level_anchor"], 0.95))
+        for row in svt if row["sim_level_anchor"] > 1.0
     ]
-    assert paired, "no year has both readings, so the comparison cannot be made at all"
-    assert any(abs(book - renewal) > 1e-6 for _y, book, renewal in paired), (
-        "the whole-book level equals the renewal-only level in every year of the capture. Either "
-        "the union is not being taken, or the SVT route contributes nothing -- and the capture "
-        "records {} SVT decisions, so it is the former.".format(len(svt))
-    )
-
-    unreachable = [
-        y for y, r in levels.items()
-        if r["renewal_only_expected_pct"] is None and r["total_departures"]
-    ]
-    assert unreachable, (
-        "every year with departures also has renewal decisions, so this capture cannot show that "
-        "the renewal route is a selected sub-population. That is a claim about the capture, not "
-        "about the code -- re-check it before deleting this assertion."
+    refusal = svt_composition_refusal(anchored)
+    assert refusal and "year level anchor" in refusal, (
+        "SVT rows carrying the year anchor in their realised probability are fitted as though "
+        "they did not, so the anchor solves against a contribution that is not the world's"
     )
 
 
-def test_the_churn_gate_names_the_years_its_own_year_set_cannot_show():
-    """MUTATION: drop `book_departure_years_this_gate_cannot_show` and this fires.
+def test_the_fit_refuses_while_the_svt_route_cannot_see_the_market():
+    """MUTATION: emit the whole-book anchor anyway, and 2023's 0.03 becomes the world's level.
 
-    `_churn_by_year` builds its year set from `customer_events`, so a year in which no account
-    reached a renewal roll has NO ROW here even though the book made decisions and lost accounts
-    in it. On the committed capture that year is 2022 -- 198 SVT decisions, 4 departures, and the
-    eight-year renewal summary printing `nan` with nothing saying why. The absence is named on
-    every row rather than in a `meta` block, because a year is quoted on its own.
+    The route carrying most of this world's departures takes `years_on_svt` and `segment_days` and
+    nothing else, so it runs the same 0.20/0.10 through a decade whose published switching rate
+    moves 5.3x. Measured 2026-08-31 and pre-registered first: rank correlation -0.26 against the
+    published midpoint over 2017-2024, and 2022 unreachable at EVERY point in the published SVT
+    band -- 8.99% at the band bottom against a 4.30% target, where clearing it needs 0.354x and the
+    band bottom is only 0.750x.
 
-    The years are NOT silently inserted with a `sim_churn_rate` of 0.0: five arithmetic consumers
-    below average that field, and a fabricated zero-churn year is the fail-open this module has
-    already been repaired for once.
+    With the whole-book total pinned to the record the two routes are zero-sum, so that market
+    error lands in the renewal anchor: 2023's SVT floor consumes 12.43 of 12.50 and the fit returns
+    0.03. Every row stays well-formed and the table still prints -- nothing else in the tree would
+    report it. This is what stops the constant.
     """
-    events = [
-        {"event_date": "2021-03-01", "event_type": "renewed",
-         "customer_id": "A", "realized_churn_probability": 0.2},
-        # A churn as well as a renewal, so `sim_churn_rate` below is 0.5 rather than 0.0 -- a
-        # zero would be indistinguishable from the fail-open default this file exists to catch.
-        {"event_date": "2021-05-01", "event_type": "churned",
-         "customer_id": "C", "realized_churn_probability": 0.6},
-    ]
-    svt = [
-        {"event_date": "2021-04-01", "event_type": "stayed",
-         "customer_id": "B", "realized_churn_probability": 0.05},
-        {"event_date": "2022-04-01", "event_type": "churned",
-         "customer_id": "B", "realized_churn_probability": 0.4},
-    ]
-
-    gate = _churn_by_year(events, svt)
-    assert 2022 not in gate, (
-        "2022 was inserted into the churn gate's year set with no renewal decisions in it. Its "
-        "`sim_churn_rate` would be a fabricated zero and the RAG checks below average it in."
-    )
-    assert gate[2021]["book_departure_years_this_gate_cannot_show"] == [2022], (
-        "the gate does not name the year the book departed in and it has no row for, so the "
-        "absence is invisible to anyone quoting a year off this table"
-    )
-    assert gate[2021]["book_departure_bound"] == "upper", (
-        "the gate publishes a whole-book rate without saying which way it is bounded"
-    )
-    assert gate[2021]["sim_churn_rate"] == 0.5, (
-        "the gate's own published metric moved when the whole-book level was added beside it"
+    assert svt_market_invariance_refusal() is not None, (
+        "the SVT hazard has gained a market term, or this check has stopped being able to fire"
     )
 
 
-# ---------------------------------------------------------------------------------------------
-# ITEM 1 OF THE FINDING'S SECOND HALF: the whole-book FIT. The union gave the band control a
-# quantity comparable to the record; these hold the tool that solves the world's constant against
-# that same quantity, and each mutation below is a way the fit could quietly stop being about the
-# book. The defect the third one owns was live in the pre-registration's own result tables.
-# ---------------------------------------------------------------------------------------------
+def test_the_market_invariance_refusal_lifts_when_the_hazard_gains_the_market_term():
+    """The other leg, and without it the check above is satisfied by a constant `not None`.
 
-
-def _renewal_row(customer_id: str, date: str) -> dict:
-    """A renewal row carrying the factor columns the fit rebuilds a hazard from.
-
-    Mid-range rather than extreme values, so the fitted anchor is interior to the bracket and a
-    control below cannot pass by accident on a clipped hazard.
+    A refusal that cannot lift is not a control -- it is a permanent red that the next reader
+    routes around. This drives the same predicate with a market-aware hazard and requires it to go
+    quiet, which is what makes the refusal above a statement about the world rather than about
+    itself.
     """
-    return {
-        "customer_id": customer_id,
-        "event_date": date,
-        "event_type": "renewed",
-        "sim_bill_shock_base": 0.10,
-        "sim_price_response": 0.10,
-        "sim_dissatisfaction_response": 0.05,
-        "sim_market_opportunity": 0.20,
-        "sim_action_propensity": 1.0,
-    }
+    import tools.fit_year_level_anchor as fit
 
+    def market_aware_hazard(*, years_on_svt, segment_days, market_switching_multiplier=1.0):
+        return 0.0
 
-def _svt_row(customer_id: str, date: str, hazard: float) -> dict:
-    return {
-        "customer_id": customer_id,
-        "event_date": date,
-        "event_type": "stayed",
-        "realized_churn_probability": hazard,
-    }
-
-
-def test_the_whole_book_fit_refuses_a_year_whose_svt_floor_is_above_the_record():
-    """MUTATION: clamp to the bracket end instead of refusing, and 2022 gets a fitted constant.
-
-    THE YEAR THE PRE-REGISTRATION NAMED IN ADVANCE, as a property rather than as 2022. The anchor
-    does not scale `svt_inertia` (`departure_risks.build_departure_risks`, and the comment there
-    gives the reason), so the SVT route's own contribution is a FLOOR under the whole-book level
-    that no anchor >= 0 can get beneath. A published band whose high endpoint sits below that floor
-    is unreachable, and a fit that returns a number anyway is reporting one it did not measure.
-
-    BOTH BRANCHES, because a refusal that fires on everything is not a refusal: the same shape with
-    a reachable target must fit.
-    """
-    svt = [_svt_row("A", "2022-01-01", 0.30), _svt_row("B", "2022-01-01", 0.30)]
-    renewals = [_renewal_row("A", "2022-06-01")]
-
-    anchor, why = fit_year_anchor_on_book(renewals, svt, target=0.043)
-    assert anchor is None, (
-        "the fit returned an anchor for a year whose SVT route alone expects 30% of accounts to "
-        "depart against a 4.3% target -- it clamped a target it cannot reach"
-    )
-    assert "does not scale" in why and "clamp" in why, (
-        f"the refusal does not name the mechanism that makes the floor a floor: {why!r}"
-    )
-
-    reachable, why_not = fit_year_anchor_on_book(renewals, svt, target=0.60)
-    assert reachable is not None, (
-        f"the fit refuses a target well above its floor, so the refusal is a constant: {why_not!r}"
-    )
-
-
-def test_the_whole_book_fit_refuses_a_year_with_no_renewal_population():
-    """MUTATION: fit anyway, and an unidentified year gets a six-decimal constant.
-
-    A year in which no account reached a renewal roll gives the anchor nothing to multiply: floor
-    and ceiling are the same number and the fitted value is arbitrary within the bracket. That is
-    UNIDENTIFICATION, not a bad fit, and the two must not read the same -- a bisection over a
-    constant function returns the bracket midpoint and looks exactly like a solution.
-
-    Held with a target ABOVE the floor on purpose, so the only thing that can refuse this year is
-    the missing renewal population and not the floor control above.
-    """
-    svt = [_svt_row("A", "2022-01-01", 0.02), _svt_row("B", "2022-01-01", 0.02)]
-
-    anchor, why = fit_year_anchor_on_book([], svt, target=0.10)
-    assert anchor is None, (
-        "a year with zero renewal decisions was fitted: the anchor multiplies nothing there, so "
-        "the returned number is the bisection bracket and not a measurement"
-    )
-    assert "NO renewal decisions" in why, (
-        f"the refusal does not name the reason a reader would need to act on: {why!r}"
-    )
-
-
-def test_the_whole_book_fit_combines_an_accounts_decisions_as_competing_risks():
-    """MUTATION: sum an account's hazards instead of `1 - PROD(1 - p)`, and this fires.
-
-    THIS DEFECT WAS LIVE AND PUBLISHED, which is why it gets a control rather than a comment. The
-    pre-registration's own result tables were computed with the additive form: 2022's SVT-only
-    level came out at 12.80% where the landed competing-risks form gives 12.09%, and every fitted
-    anchor in that block was ~12% low as a result. One combination, seven wrong constants.
-
-    THE PROPERTY, NOT THE ARITHMETIC. The additive form is not merely a different choice -- it is
-    UNBOUNDED, so an account facing enough cap-period decisions is assigned a departure probability
-    above 1. Eleven decisions at 0.15 sum to 1.65 and combine to 0.833. A control keyed to the
-    exact figure would go red when the capture changes; this one is keyed to the bound, which
-    cannot.
-    """
-    hazard, decisions = 0.15, 11
-    svt = [_svt_row("A", f"2020-{m:02d}-01", hazard) for m in range(1, decisions + 1)]
-
-    # Target the competing-risks level exactly, with no renewal route to move it: a fit that
-    # combines correctly needs no help from the anchor and lands on the target.
-    competing = 1.0 - (1.0 - hazard) ** decisions
-    assert competing < 1.0 < hazard * decisions, (
-        "the fixture no longer separates the two forms, so this control cannot fire"
-    )
-
-    _anchor, why = fit_year_anchor_on_book([], svt, target=competing)
-    assert why is not None and "unidentified" in why, (
-        "the fixture year has no renewal population, so it must refuse for THAT reason -- if it "
-        f"refuses on the floor instead, the combination is overstating the level: {why!r}"
-    )
-
-    # The floor is what the additive form would inflate. Under `1 - PROD(1-p)` the year's level
-    # sits at `competing` and a target a hair above it is reachable; under the additive form the
-    # floor would already exceed it and the fit would refuse on the floor instead.
-    _a2, why2 = fit_year_anchor_on_book([], svt, target=competing * 1.001)
-    assert "does not scale" not in (why2 or ""), (
-        f"the year's floor exceeds its own competing-risks level, so hazards are being summed "
-        f"rather than combined: {why2!r}"
-    )
-
-
-def test_the_whole_book_fits_minority_renewal_population_the_old_refusal_rejected():
-    """MUTATION: point the fit at `emission_refusal` and it refuses the population it asked for.
-
-    THE RE-KEY, AND IT IS THE POINT OF THE WHOLE CHANGE. `emission_refusal` refuses a capture whose
-    renewal route carries a minority of departures, and it is still right about the renewal-only
-    fit. Under a whole-book target a minority renewal route is the EXPECTED state -- that is what
-    having two routes means -- so reusing that guard here would have made the repair refuse exactly
-    the thing it was built to accept.
-
-    BOTH BRANCHES: the observability clause must survive, because a capture that cannot see the SVT
-    route cannot form the union at all and fitting it would assert what is unknown.
-    """
-    minority = declare_rows(
-        [{"event_type": "churned"}] * 3 + [{"event_type": "renewed"}] * 10,
-        [{"event_type": "churned"}] * 7 + [{"event_type": "stayed"}] * 100,
-    )
-    blind = declare_rows([{"event_type": "churned"}] * 10, None)
-
-    assert emission_refusal(minority), (
-        "the renewal-only refusal stopped firing on a minority population, so the old guard was "
-        "weakened rather than re-keyed"
-    )
-    assert book_emission_refusal(minority) is None, (
-        "the whole-book fit refuses a minority renewal route -- the state it exists to handle. "
-        "That is the refusal refusing the population it asked for."
-    )
-    assert book_emission_refusal(blind), (
-        "the whole-book fit accepts a capture that cannot see the SVT route, so it would fit a "
-        "union it cannot form"
-    )
-
-
-def test_a_year_too_thin_to_identify_an_anchor_is_refused_and_not_emitted():
-    """MUTATION: drop the window check and 2016 gets a six-decimal constant off ONE decision.
-
-    THE DEFECT IS SPECIFIC AND IT WAS LIVE IN THIS TOOL'S FIRST DRAFT. 2016 holds a single renewal
-    decision across three accounts on the committed capture, and the bisection solves it happily to
-    `15.988769` — an anchor four times every other year's, emitted into a block whose neighbours
-    are backed by fifty decisions, with nothing on the line to say so.
-
-    KEYED TO THE DECLARED WINDOW, NOT TO A COUNT. `measure_departure_level.COMPARISON_YEARS` is
-    where this repository already wrote down which years a capture can report on, with its reason
-    attached. A fresh `MIN_RENEWALS = 5` here would be the invented constant that reads as
-    established a week later; reusing the declared window means the exemption can be checked.
-
-    BOTH BRANCHES, so the guard cannot be a constant: a year inside the window must pass it.
-    """
-    assert outside_comparison_window(2016), (
-        "2016 is admitted to the fit despite sitting outside the declared comparison window -- it "
-        "has one renewal decision and solves to an anchor near 16"
-    )
-    assert outside_comparison_window(2025), (
-        "2025 is admitted despite being a partial year in the capture"
-    )
-    assert outside_comparison_window(2020) is None, (
-        "a year inside the declared window is refused, so the guard refuses everything and the "
-        "fit emits nothing at all -- a refusal that cannot be lifted is a deletion"
-    )
+    original = fit.svt_inertia_hazard
+    fit.svt_inertia_hazard = market_aware_hazard
+    try:
+        assert fit.svt_market_invariance_refusal() is None, (
+            "a hazard the market can reach is still refused, so the refusal is keyed to something "
+            "other than the property it names"
+        )
+    finally:
+        fit.svt_inertia_hazard = original
