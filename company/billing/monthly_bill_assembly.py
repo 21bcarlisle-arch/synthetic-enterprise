@@ -485,6 +485,11 @@ def build_monthly_bills(
                             bill["total_amount_gbp"] - previous_bill_total_gbp
                         ) / previous_bill_total_gbp
                         bill["bill_shock_pct"] = new_shock
+                        # The denominator moves with the ratio, or publishing it would be worse
+                        # than not publishing it: a baseline that disagreed with the shock beside
+                        # it would read as authoritative and be wrong, and the control that checks
+                        # reproducibility would be checking this line against itself.
+                        bill["bill_shock_baseline_gbp"] = previous_bill_total_gbp
                         clarity = bill["clarity_score"]
                         clarity += min(old_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
                         clarity -= min(new_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR

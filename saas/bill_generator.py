@@ -165,8 +165,26 @@ def generate_bill(
     clarity_score = BASE_CLARITY_BY_CONTRACT_TYPE.get(contract_type, DEFAULT_BASE_CLARITY)
     clarity_score -= consumption_coefficient_of_variation(settlement_records) * CONSUMPTION_CV_PENALTY_FACTOR
 
+    # THE BASELINE IS PUBLISHED BESIDE THE RATIO, and that is the whole of this change
+    # (2026-09-01, `WORKER_FINDING_BILL_SHOCK_IS_THREE_CAUSES_AND_A_SIGN_COLLAPSED_INTO_ONE_ABS`).
+    # `bill_shock_pct` is a ratio against `previous_bill_total_gbp`, and that number reached no
+    # artefact -- so on the published book the stored value could be reproduced from the published
+    # bills on only 3,198 of 10,654 consecutive pairs (30.0%). The 70% that could not are the ones
+    # whose PREVIOUS bill was ESTIMATED (89% of them): that bill's total was later revised by the
+    # catch-up reconciliation, so the stored ratio is a difference against a number that no longer
+    # exists anywhere. A figure frozen before the rows it summarises were mutated is this project's
+    # `figures_on_a_superseded_clock` class, and it was sitting inside the field that drives
+    # satisfaction, clarity and contact propensity.
+    #
+    # Publishing the denominator does not fix the conflation of causes or the `abs()` -- both are
+    # separately owed and both move published figures, so both are their own pre-registered
+    # one-variable changes. It fixes the thing that has to come first: until the denominator is on
+    # the bill, NOTHING can check either of them, because the ratio cannot be recomputed by anyone.
+    # This change moves no financial figure; it only makes an existing one checkable.
     bill_shock_pct = None
+    bill_shock_baseline_gbp = None
     if previous_bill_total_gbp is not None and previous_bill_total_gbp != 0:
+        bill_shock_baseline_gbp = previous_bill_total_gbp
         bill_shock_pct = abs(total_amount_gbp - previous_bill_total_gbp) / previous_bill_total_gbp
         clarity_score -= min(bill_shock_pct, 1.0) * BILL_SHOCK_PENALTY_FACTOR
 
@@ -185,6 +203,10 @@ def generate_bill(
         "average_unit_rate_gbp_per_mwh": average_unit_rate_gbp_per_mwh,
         "clarity_score": clarity_score,
         "bill_shock_pct": bill_shock_pct,
+        #: The denominator `bill_shock_pct` was actually taken against. None exactly when the
+        #: ratio is None (a first bill has nothing to be shocked against), so the pair is either
+        #: both-present or both-absent and a reader never has to guess which.
+        "bill_shock_baseline_gbp": bill_shock_baseline_gbp,
         "segment": segment,
         "commodity": commodity,
         # Calculation-transparency breakdown (2026-07-10, director page comment
