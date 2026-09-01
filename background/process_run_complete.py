@@ -2513,7 +2513,11 @@ def _publish_tree_divergence():
                    # there is anything to say at all. Severity decides only how it travels, so
                    # a standing severe squat still pages once a day rather than every cycle.
                    transition_key="tree_divergence",
-                   state=_td.top_squatters(m),
+                   # THE IDENTITY OF THE SQUAT, not a rendering of it. `top_squatters` was the
+                   # state here and carries an age in hours, so the state changed on every cycle
+                   # and the transition check could never suppress a repeat -- 27 pages of one
+                   # condition in a day. See `tree_divergence.divergence_state`.
+                   state=_td.divergence_state(m),
                    re_escalate_after=24 * 3600)
     except Exception as exc:  # noqa: BLE001 -- see docstring; never raise into the publish path
         log("Tree-divergence measure unavailable (publish unaffected): {}".format(exc))

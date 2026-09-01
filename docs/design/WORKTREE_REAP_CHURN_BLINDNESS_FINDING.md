@@ -33,3 +33,37 @@ Split "dirty" into **fork-dirty** vs **churn-only**:
 2. Whether to also add a periodic sweep that reaps churn-only-dirty MERGED worktrees left by earlier runs (would clear `a857b050` and any siblings) — or leave that to the next reconcile pass once the classifier is churn-aware.
 
 **No BUILD here.** Mitigation until built (already the current practice, now recorded): reap manually with `git -C <wt> checkout -- .` to drop churn, then no-force `git worktree remove`. Relates `reference_worktree_scan_hazard`, `feedback_check_fronts_before_twin_open` (don't reap a live fork), and the Campaign-A debt-E coverage-seam FRAME (same "a control that can't do its job silently degrades an invariant" shape).
+
+---
+
+## DECISION 2026-09-01 — NOT BUILT, and the reason is that the lifecycle now preserves everything
+
+This FRAME sat unbuilt for six weeks. Working the same population tonight on the director's
+instruction ("give them a lifetime"), the diagnosis above was confirmed exactly: five of the six
+accreting worktrees were refused as dirty, and their dirt was `.seat_work_in_hand.json`,
+`test_execution_log.jsonl`, `canon_drift.json`, `agent_status.json`, `book_subset_verdict.json`,
+`supervisor-log.md`, `token-log.md` and the ownership marker — daemon output, every one.
+
+**The allowlist is still not built, and should not be.** What changed is that the refusal stopped
+being a dead end. `fork_reconciler.advance_stranded` now walks the salvage door for a stranded
+worktree: `fork_salvage.salvage_worktree` commits whatever is in the tree to that worktree's own
+HEAD, `salvage_detached_head` pins it with a verified tag, and the reap follows on the next pass.
+So churn no longer makes a worktree immortal — it makes one junk commit on a detached head that is
+never merged and is reachable only through its salvage tag.
+
+That leaves the allowlist buying exactly one thing: not making that commit. Against it:
+
+* The R15 spec above is real work — an exact glob set, both directions mutation-proven, plus a
+  scoped `checkout`/`clean` on the reap path.
+* **Its failure direction is the expensive one.** A path wrongly inside the allowlist is discarded
+  work; a path wrongly outside is one junk commit. Salvage-everything has no such asymmetry, which
+  is why it is the right default for a mechanism that runs unattended.
+* Three of the six had authored dirt anyway — a modified finding under `docs/staging/` and a
+  modified `docs/context-handshake-latest.md`. A churn allowlist would correctly have refused those
+  three and left them exactly as stranded as before.
+
+Measured tonight, end to end, without it: six worktrees cleared in three passes, nothing lost, six
+salvage tags. **The gap this document names is real and is now closed by a different mechanism**, so
+this stays as the record of a fix direction that was overtaken rather than one that was forgotten.
+If the junk commits ever become a nuisance in their own right, the allowlist above is still the
+right shape and its R15 spec still stands.

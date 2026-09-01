@@ -41,12 +41,27 @@ from background.alarm_repetition import (  # noqa: E402
 )
 
 # G-N2: the closed set of notification kinds, each with a structural tag the director sees.
-KINDS = ("real_alarm", "digest", "director_echo", "test_fixture")
+#
+# `work_done` was added 2026-09-01, and the gap it fills is the director's complaint: *"the channel
+# under-reports you. Eight commits this evening produced no message, while divergence and publishing
+# alarms filled the mirror. I've read that as a stall twice today when you were working normally."*
+#
+# The routing layer had a class for routine landings from the day it was written -- it is one of the
+# four categories he named himself -- and in three weeks it took ONE entry, from a health check. The
+# KINDS set is why nothing else could use it: every member is a thing that went wrong, a batch of
+# things that went wrong, a reply, or a fixture. There was no kind meaning "the machine finished a
+# piece of work", so a landing had to masquerade as an alarm or not be sent, and it was not sent.
+#
+# It must NOT be `real_alarm`: an unkeyed real_alarm auto-keys on its own message with numbers
+# normalised away (G-N4), so two landings with similar subjects would dedup each other and the
+# second would vanish. Work done is never a repeat of other work done.
+KINDS = ("real_alarm", "digest", "director_echo", "test_fixture", "work_done")
 _KIND_TAG = {
     "real_alarm": "rotating_light",
     "digest": "bar_chart",
     "director_echo": "speech_balloon",
     "test_fixture": "test_tube",
+    "work_done": "hammer_and_wrench",
 }
 
 

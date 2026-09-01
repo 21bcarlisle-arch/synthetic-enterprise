@@ -1031,7 +1031,9 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:
-            return _land_once(root, paths, message, hook_rel, content, merge)
+            sha = _land_once(root, paths, message, hook_rel, content, merge)
+            announce_landing(sha, message, paths, merge=merge)
+            return sha
         except BaseMoved as exc:
             lost.append(exc)
             if on_lost is not None:
@@ -1045,6 +1047,52 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
             len(lost),
             "\n".join("  attempt {}: {} -> {}".format(i + 1, e.parent[:9], e.observed[:9])
                       for i, e in enumerate(lost))))
+
+
+def announce_landing(sha: str, message: str, paths: list[str], *,
+                     merge: str | None = None, _notify=None) -> str | None:
+    """Tell the channel that a piece of work LANDED. Never raises.
+
+    WHY A LANDING HAD NEVER REACHED THE CHANNEL (2026-09-01, director: *"the channel under-reports
+    you. Eight commits this evening produced no message, while divergence and publishing alarms
+    filled the mirror. I've read that as a stall twice today when you were working normally."*).
+
+    Measured, from the outbound mirror and the digest queue on the day he wrote it: 64 messages, of
+    which 27 were one tree-divergence condition and 20 were publishing. Landings: **zero**, out of
+    nineteen commits. Not batched-and-delayed -- `routine_landing` had no producer at all, in three
+    weeks, anywhere. The channel carried what was WRONG and nothing of what was DONE, so working
+    normally and being stuck looked identical from his phone.
+
+    HERE, BECAUSE THIS IS THE ONE DOOR. `--no-verify` is a wall and `surgical_land` is the only
+    legal move, so every landing this project makes passes through this function -- a producer
+    anywhere else would report the landings that particular caller happened to make. It is placed
+    after the compare-and-swap succeeded, so it announces a commit that EXISTS.
+
+    BATCHED, NOT PAGED. `routine_landing` is one of the director's own four deferrable categories
+    (2026-08-12: *"batch and summarise everything that isn't action-needed"*), and a landing is not
+    action-needed. It rides the digest, which now leads with what was done rather than burying it
+    behind whatever was filed.
+
+    NEVER RAISES, and the reason is the whole safety argument: a landing has already happened when
+    this runs, so an exception here could only turn a successful commit into a caller-visible
+    failure -- a notifier that can fail a landing is a defect, not an observer.
+    """
+    try:
+        if _notify is None:
+            from background.notify import notify as _notify
+        from background import notification_digest
+        subject = str(message or "").strip().splitlines()
+        scope = ("merge {}".format(merge) if merge
+                 else "{} path(s)".format(len(paths)))
+        return _notify(
+            "[LANDED] {} — {} ({})".format(sha[:9], (subject[0] if subject else "")[:140], scope),
+            kind="work_done", topic_class=notification_digest.ROUTINE_LANDING,
+            # No transition key. Every landing is a distinct event and must never be suppressed as
+            # a repeat of another one -- see the `work_done` note in `background/notify.py` for why
+            # `real_alarm`'s auto-keying would have done exactly that.
+        )
+    except Exception:  # noqa: BLE001 -- see NEVER RAISES above
+        return None
 
 
 def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,

@@ -116,6 +116,20 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-01  I001 1334 -> 1333  (the worktree reaper gets a caller, and landings reach the channel)
+#     EARNED, and by one file: `background/deadmans_switch.py`. MEASURED PER-FILE AGAINST
+#     `git show HEAD:`, per this log's standing rule and not off the shared working tree. That file
+#     reads 2 at HEAD and 1 here; the other seven code files in this commit read the same on both
+#     sides, and the three new test files carry 0, so the whole move is that file's and there is no
+#     shortfall to explain.
+#     The block is the function-local `from background.tree_lock import assert_repo_not_bare,
+#     RepoBareError` inside `_check_repo_not_bare` -- unsorted at HEAD. This commit has that file
+#     open anyway (it is where `_check_worktree_reap` is added and wired into `run_cycle`), so
+#     sorting it is this ratchet's standing per-file remedy. NOT a tidying pass: no file this commit
+#     did not otherwise touch was reformatted, and the module's OTHER unsorted block -- the
+#     `# noqa: E402` group after the `sys.path.insert` at line 70 -- is deliberately LEFT ALONE.
+#     Sorting that one moves the `noqa` off the statement it suppresses and E402 rises by 1, which
+#     is the ratchet's other floor: paying I001 by raising E402 is not a payment.
 #   2026-09-01  I001 1336 -> 1335  (banking the shared tree's -1 so that ANY code commit can land)
 #     THIS REVERSES THE DECISION IN THE ENTRY DIRECTLY BELOW, AND THE REASON IS WHAT THAT DECISION
 #     COST. That entry set the floor to HEAD's 1336 and recorded, correctly, that the shared
@@ -634,7 +648,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1334,  # lowered 2026-09-01: surgical_land's import block sorted (shrink-only ratchet)
+    "I001": 1333,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -656,7 +670,11 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2320  # was 2321; -1 (I001) on 2026-09-01 (THIRD entry): `tools/
+RUFF_BASELINE_TOTAL = 2319  # was 2320; -1 (I001) on 2026-09-01 (FOURTH entry):
+                            # `background/deadmans_switch.py`'s function-local tree_lock
+                            # import, sorted while the reaper's caller was added to the
+                            # same file. Earned; measured per-file against `git show HEAD:`.
+                            # Before that: was 2321; -1 (I001) on 2026-09-01 (THIRD entry): `tools/
                             # surgical_land.py`'s import block, sorted while adding `import time`
                             # for the index-lock retry. Earned by that commit, unlike the entry
                             # below it.

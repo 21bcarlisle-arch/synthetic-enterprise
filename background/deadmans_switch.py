@@ -128,6 +128,7 @@ _DRAWABLE_UNDRAWN_KEY = "deadman_drawable_undrawn"  # LAW C: self-drawable mint 
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
 _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
+_WORKTREE_REAP_KEY = "deadman_worktree_reap"
 _STATUS_STALE_KEY = "deadman_status_stale"
 
 
@@ -576,6 +577,60 @@ def _check_worktree_reconcile() -> None:
     log(f"WORKTREE UNDECLARED checked (notify-gated): {st['detail']}")
 
 
+def _check_worktree_reap() -> None:
+    """RUN the worktree reaper. Not a second report -- the one thing that CLEARS what
+    `_check_worktree_reconcile` above merely names.
+
+    THE REAPER HAD NO CALLER, ANYWHERE, FROM THE DAY IT WAS BUILT (2026-07-18) TO 2026-09-01.
+    `evaluate_worktree_reap` is a careful mechanism: two modes, its own arming flag, a live/locked/
+    dirty/main refusal set, no `--force`, serialized through the shared tree lock, mutation-proven
+    both ways. Its own atom record predicted this in terms -- *"arm the flag and wire it to the
+    reconcile-watch/deadman cadence, else the mechanism stays a library nobody calls: an unwired
+    reaper is prose"* -- and then nobody wired it. The flag was armed at some point since, which is
+    worse than neither: `enforce=True` on a function no scheduler calls reads, to anyone checking,
+    as a reaper that is running and finding nothing to do.
+
+    So the director's six accreting worktrees had three independent reasons to survive, and this was
+    the outermost: the only worktree code on the cycle was the REPORTER. "Being reported rather than
+    cleared" was the literal architecture.
+
+    Report-only stays report-only if the flag is absent -- this call does not arm anything; it makes
+    the armed mechanism run. Never raises (a check that cannot run must not crash the cycle)."""
+    try:
+        from background.fork_reconciler import evaluate_worktree_reap
+        st = evaluate_worktree_reap()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"worktree-reap error: {e}")
+        return
+    log(f"WORKTREE REAP ({'enforce' if st['enforce'] else 'report-first'}): {st['detail']}")
+    if not st["alarm"]:
+        clear_transition(_WORKTREE_REAP_KEY)
+        return
+    notify(
+        f"[WORKTREE REAP] {st['detail']}",
+        kind="real_alarm", transition_key=_WORKTREE_REAP_KEY,
+        # Keyed on the STRANDED COUNT and not on the detail line: the detail carries paths and
+        # tallies that move every cycle, and a state that moves every cycle is a transition check
+        # that cannot suppress anything (which is what tree divergence has been doing to this
+        # channel all day). A count that stops falling is the condition worth hearing about.
+        state="stranded:{}".format(sum(1 for k in st["kept"]
+                                       if _reap_refusal_is_stranded(k.get("reason", "")))),
+        re_escalate_after=RE_ESCALATE_SECONDS,
+        topic_class=_digest_classes().DRIFT,
+    )
+
+
+def _reap_refusal_is_stranded(reason: str) -> bool:
+    """`fork_reconciler.refusal_is_stranded`, imported at the point of use so this module stays
+    importable when that one is not. An unavailable classifier counts nothing as stranded, which
+    understates the alarm rather than inventing one."""
+    try:
+        from background.fork_reconciler import refusal_is_stranded
+    except Exception:  # noqa: BLE001
+        return False
+    return refusal_is_stranded(reason)
+
+
 def _check_status_honesty() -> None:
     """Fire a transition-only, LOUD STATUS_STALE alarm when LATEST.md describes a non-running daemon
     or a retired governance model as current (director P0 step 5). The stale narrative, re-stamped
@@ -613,7 +668,7 @@ def _check_repo_not_bare() -> None:
     periodic catch of the SAME still-unrepaired state never double-page); this is just the
     commit-independent trigger."""
     try:
-        from background.tree_lock import assert_repo_not_bare, RepoBareError
+        from background.tree_lock import RepoBareError, assert_repo_not_bare
     except Exception as e:  # a check that cannot even import must not crash the deadman cycle
         log(f"repo-bare check unavailable: {e}")
         return
@@ -763,6 +818,7 @@ def run_cycle() -> None:
     _check_pull_loop_transport()
     _check_fork_lifecycle()
     _check_worktree_reconcile()
+    _check_worktree_reap()
     _check_status_honesty()
     _check_repo_not_bare()
     _check_operational_layer_signal()

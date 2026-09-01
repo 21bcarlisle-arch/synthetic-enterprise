@@ -220,6 +220,38 @@ def _promote_to_handoff(work_id: str, now: float | None = None) -> tuple[bool, s
 #: worktree can do it by hand -- and the daemons that sweep worktrees read it.
 OWNER_MARKER = ".se_worktree_owner"
 
+#: HOW LONG A CLAIM LASTS. A marker is a LEASE, not a deed: it expires, and an expired claim is
+#: not a live writer whatever pid it names.
+#:
+#: DERIVED, NOT PICKED. The longest a writer may legitimately hold a worktree is one bounded turn
+#: -- `SESSION_TIMEOUT_SECONDS` above, which systemd enforces -- plus a grace for a slow start and
+#: for clock skew between the marker's mtime and the turn's real end. A writer that genuinely needs
+#: longer re-writes its marker, which is one line and refreshes the lease.
+#:
+#: WHY A PID ALONE WAS NOT ENOUGH (2026-09-01, director: "give them a lifetime"). Five worktrees
+#: carried a marker naming pid 215 -- the tmux SERVER, started 2026-08-24 and alive for as long as
+#: the console is. `pid_is_alive(215)` is true today and will be true next month, so every one of
+#: those five read as "a live writer holds this worktree" a full day after its writer had gone. The
+#: reaper is ARMED and refused all five; `fork_salvage` skipped all five. The isolation machinery
+#: was working and nothing could ever tidy up behind it.
+#:
+#: A bare pid is a WEAK IDENTITY, and the pid a hand-working session can most easily name is the
+#: longest-lived process on the box -- so the failure is not one careless write, it is the shape of
+#: the claim. A lease fixes the class: whatever pid is named, the claim dies of old age.
+OWNER_LEASE_SECONDS = SESSION_TIMEOUT_SECONDS + 30 * 60
+
+
+def _claim_age_seconds(marker_path, now: float | None = None) -> float | None:
+    """Seconds since the ownership claim at `marker_path` was last written, or None if unreadable.
+
+    Its own function so the lease decision is testable without a clock, and so an unreadable mtime
+    is a distinct answer from a fresh one -- an mtime that cannot be read must not silently become
+    "written just now", which is the fail-open that would restore the immortal claim."""
+    try:
+        return (time.time() if now is None else now) - marker_path.stat().st_mtime
+    except OSError:
+        return None
+
 
 def worktree_is_live(path) -> bool:
     """Is a writer's process still working inside this worktree?
@@ -254,6 +286,12 @@ def worktree_is_live(path) -> bool:
     marker behind, and that worktree holds exactly the abandoned work those daemons exist to rescue
     and reap — the 2026-08-03 sweeps found modules that existed nowhere else, one `rm -rf` from
     being lost. Exempting a path outright would trade one collision for a class of silent losses.
+
+    AND A LEASE ON TOP OF THE PID (2026-09-01). A live pid is necessary and was not sufficient: see
+    `OWNER_LEASE_SECONDS` for the five worktrees that spent a day claimed by the tmux server. Both
+    legs must hold — the named process alive AND the claim younger than the lease — because either
+    one alone has a permanent failure mode: a pid alone never expires, and an mtime alone would
+    release a worktree whose writer is mid-turn but wrote its marker early.
     """
     try:
         resolved = Path(path).resolve()
@@ -262,8 +300,14 @@ def worktree_is_live(path) -> bool:
 
     # 1. THE MARKER, which any writer can drop. Checked first because it is the general answer.
     try:
-        marker = int((resolved / OWNER_MARKER).read_text().strip())
-        if pid_is_alive(marker):
+        marker_path = resolved / OWNER_MARKER
+        marker = int(marker_path.read_text().strip())
+        age = _claim_age_seconds(marker_path)
+        # An unreadable mtime (age is None) FAILS THE LEASE. The marker was readable a line ago, so
+        # this is a genuine anomaly, and the safe direction for an anomaly here is "the claim is not
+        # established" -- the dirty check and the salvage step still stand between that answer and
+        # any loss.
+        if pid_is_alive(marker) and age is not None and age < OWNER_LEASE_SECONDS:
             return True
     except (OSError, ValueError):
         pass

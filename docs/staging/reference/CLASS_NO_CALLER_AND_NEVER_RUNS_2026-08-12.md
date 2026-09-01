@@ -27,6 +27,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
+- `WORKER_FINDING_THE_WORLD_DECLARES_A_GAP_ITS_OWN_KNOWLEDGE_LAYER_HAS_CLOSED_2026-09-01.md` — lane `W2_customer_generator`
 - `WORKER_FINDING_THE_WORLD_KNOWS_HOW_EACH_HOUSEHOLD_PAYS_AND_BILL_SHOCK_IS_THE_ONE_ORGAN_NOT_TOLD_2026-09-01.md` — lane `W2_customer_generator`
 
 ## Disposition

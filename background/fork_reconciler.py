@@ -504,7 +504,20 @@ def salvage_detached_head(head: str) -> dict:
 #: population that was actually accumulating as "the control working" -- see
 #: `classify_detached_head`. A detached HEAD that is unreachable and unpinned is now
 #: `detached ORPHAN`, which this tuple does NOT match, so it reports STRANDED and loud.
-_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT")
+#:
+#: `live writer` WAS MISSING FROM THIS TUPLE FOR A DAY (added 2026-09-01). The refusal was written
+#: on 2026-08-31, at both reap doors, correctly -- and the vocabulary that decides what a refusal
+#: MEANS was not told about it. So the one refusal that is most emphatically the control working
+#: ("it is in use, not abandoned") scored as the control being STUCK: five live-writer worktrees
+#: counted toward `STRANDED_WORKTREE_ALARM_AT`, which is the alarm for a reaper that cannot do its
+#: job. Harmless while nothing acted on the stranded set; the moment `advance_stranded` did, it
+#: would have committed into a live writer's tree -- which is the exact 2026-08-31 incident that
+#: prompted the live-writer refusal in the first place, arriving by the other door.
+#:
+#: A new refusal reason must be classified here in the same change that introduces it. There is no
+#: default that is safe for both halves: unlisted means STRANDED, which over-reports a live
+#: refusal, and listing everything means a genuinely stuck reaper reads as healthy.
+_LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "live writer")
 
 
 def refusal_is_stranded(reason: str) -> bool:
@@ -616,11 +629,97 @@ def _live_writer_default(path: str) -> bool:
     return worktree_is_live(path)
 
 
+def _why_stranded(stranded: list[dict]) -> str:
+    """The tally of WHY the reaper is stuck, as one phrase. One implementation because both modes
+    ask the same question and a status that differs by mode is how the enforce branch came to print
+    CLEAN over six stranded worktrees while report-first printed STRANDED over the same six."""
+    from collections import Counter
+    why = Counter(
+        "dirty" if "uncommitted" in k.get("reason", "") else
+        "orphan-branch" if "ORPHAN" in k.get("reason", "") else
+        "undetermined"
+        for k in stranded
+    )
+    return ", ".join(f"{n} {w}" for w, n in why.most_common())
+
+
+def advance_stranded(kept: list[dict], *, salvage_dirty=None, salvage_detached=None,
+                     head_of=None, live_writer_fn=None) -> list[dict]:
+    """Take the ONE preserving step that moves each STRANDED worktree along its lifecycle.
+
+    WHY THE LIFECYCLE HAD NO TERMINAL STATE (2026-09-01, director: "six undeclared worktrees are
+    accreting and being reported rather than cleared -- that's the isolation machinery working with
+    nothing tidying up behind it. Give them a lifetime.").
+
+    Every refusal above is individually correct and every one of them is a dead end. A dirty
+    worktree is never reaped -- and nothing was cleaning it. A detached ORPHAN is "refused until it
+    is tagged" -- and nothing was tagging it. `salvage_detached_head` was written as the door out of
+    that exact refusal, with a docstring saying so, and it has never had a caller. So the six
+    accreted: each one correctly refused, forever, by a control that named the remedy and did not
+    apply it.
+
+    This is the applying. It is deliberately NOT the reaping: salvage strictly precedes reap here as
+    everywhere in this module, and separating them by one pass means the log reads SALVAGED then
+    REAPED rather than presenting a preservation and a deletion as one event. The cycle is minutes.
+
+    NOTHING HERE DESTROYS ANYTHING. `salvage_worktree` commits a dirty tree to its own HEAD;
+    `salvage_detached_head` creates a verified tag. Both only ever ADD a ref. That is why running
+    them automatically is safe in a way that automatic reaping is not, and it is why the arming flag
+    still governs the step after this one.
+
+    Returns one row per worktree acted on: {path, step, ok, detail}. Never raises -- a salvage that
+    fails leaves the worktree stranded and loud, which is the state it was already in.
+    """
+    if salvage_dirty is None:
+        from background.fork_salvage import salvage_worktree as salvage_dirty
+    salvage_detached = salvage_detached or salvage_detached_head
+    head_of = head_of or (lambda p: _git("-C", p, "rev-parse", "HEAD").strip())
+    live_writer_fn = live_writer_fn or _live_writer_default
+
+    out: list[dict] = []
+    for k in kept:
+        reason = str(k.get("reason", ""))
+        if not refusal_is_stranded(reason):
+            continue                      # locked / live / main -- correctly spared, not stuck
+        path = k["path"]
+        # ASKED AGAIN, INDEPENDENTLY. `refusal_is_stranded` already excludes a live writer, and
+        # that is a check on a STRING this function did not produce: it was wrong for a full day
+        # (see `_LIVE_REFUSALS`). Committing into a live writer's tree is the one irreversible
+        # mistake available here, so it gets the same belt-and-braces the reap itself gets from
+        # git's own no-force refusal -- never trust one gate alone.
+        if live_writer_fn(path):
+            out.append({"path": path, "step": "none", "ok": False,
+                        "detail": "a live writer holds this worktree -- not advanced"})
+            continue
+        try:
+            if "uncommitted" in reason:
+                # DIRT FIRST, because a dirty worktree cannot be tagged into a stable state: the
+                # tag would pin a commit that does not contain the uncommitted work beside it.
+                r = salvage_dirty({"path": path, "branch": k.get("branch")})
+                ok = r.get("action") in ("SALVAGED", "NOOP")
+                out.append({"path": path, "step": "salvage_dirty", "ok": ok,
+                            "detail": f"{r.get('action')}: {r.get('sha') or r.get('reason', '')}"})
+            elif "detached ORPHAN" in reason:
+                head = head_of(path)
+                r = salvage_detached(head)
+                out.append({"path": path, "step": "salvage_detached", "ok": bool(r.get("salvaged")),
+                            "detail": f"{r.get('tag')}: {r.get('detail')}"})
+            else:
+                # A stranded refusal with no step behind it. Named rather than skipped silently --
+                # a lifecycle with an unreachable state is exactly the defect this function exists
+                # to close, and a new one must not be able to hide inside it.
+                out.append({"path": path, "step": "none", "ok": False,
+                            "detail": f"no advancing step for this refusal: {reason[:120]}"})
+        except Exception as e:  # noqa: BLE001 - a failed salvage must not stop the sweep
+            out.append({"path": path, "step": "error", "ok": False, "detail": f"{type(e).__name__}: {e}"})
+    return out
+
+
 def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states: dict | None = None,
                            main_path: str | None = None, now: float | None = None,
                            enforce: bool | None = None, dirty_fn=None, salvage_tag_fn=None,
                            remover=None, reachable_fn=None, detached_tag_fn=None,
-                           live_writer_fn=None) -> dict:
+                           live_writer_fn=None, advance=None) -> dict:
     """REPORT the worktree-DIRECTORY reap state. Report-first by default (list what WOULD be
     removed, remove nothing); enforce (armed by `WORKTREE_REAP_ENFORCE_FLAG`) actually removes each
     eligible worktree dir + prunes, serialized through `shared_tree_lock` (this mutates the SHARED
@@ -686,6 +785,17 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
             reaped = [{"path": e["path"], "removed": False, "detail": f"lock/import error: {e}"}
                       for e in eligible]
 
+    # THE STRANDED SET GETS ITS ONE PRESERVING STEP, under the same arming flag as the reap it
+    # leads to. Run AFTER the classification so `advance_stranded` acts on this pass's verdicts,
+    # and deliberately WITHOUT re-reaping in the same pass -- see that function's docstring.
+    advanced: list[dict] = []
+    if enforce:
+        try:
+            advanced = (advance or advance_stranded)(kept)
+        except Exception as e:  # noqa: BLE001 - never let the advance take the report down
+            advanced = [{"path": "*", "step": "error", "ok": False,
+                         "detail": f"{type(e).__name__}: {e}"}]
+
     failed = [r for r in reaped if not r["removed"]]
     _stranded_now = [k for k in kept if refusal_is_stranded(k.get("reason", ""))]
     # Eligible-but-not-yet-enforced is routine housekeeping, not a problem -- only a genuine
@@ -704,9 +814,24 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         elif removed_n:
             status = "WORKTREE_REAPED"
             detail = f"removed {removed_n} eligible worktree dir(s), 0 failures"
+        elif len(_stranded_now) >= STRANDED_WORKTREE_ALARM_AT:
+            # THE SAME FAIL-SILENT DEFECT, ON THE OTHER BRANCH (found 2026-09-01, by running the
+            # reaper for the first time). The 2026-08-03 repair below made WORKTREE_REAP_CLEAN
+            # unreachable while a stranded population exists -- and only in REPORT-FIRST mode. In
+            # enforce mode "removed nothing" still printed CLEAN, so the first live enforce pass
+            # reported `WORKTREE_REAP_CLEAN` over six stranded worktrees, with `alarm` True beside
+            # it. A status and an alarm that disagree is worse than either being wrong.
+            #
+            # The fix took the branch it was looking at as its subject rather than the property:
+            # "reaped nothing while unable to act" means the same thing in both modes.
+            status = "WORKTREE_REAP_STRANDED"
+            detail = (f"removed 0; {len(_stranded_now)} STRANDED worktree dir(s) the reaper cannot "
+                      f"act on ({_why_stranded(_stranded_now)}); "
+                      f"{len(kept) - len(_stranded_now)} legitimately kept (locked/live/main).")
         else:
             status = "WORKTREE_REAP_CLEAN"
-            detail = f"no reapable worktree dirs; {len(kept)} kept (locked/live/dirty/main)"
+            detail = (f"no reapable worktree dirs; {len(kept)} kept (locked/live/dirty/main), "
+                      f"{len(_stranded_now)} stranded (under the alarm threshold)")
     elif eligible:
         status = "WORKTREE_REAP_ELIGIBLE"
         shown = ", ".join(Path(e["path"]).name for e in eligible[:6]) + (" …" if len(eligible) > 6 else "")
@@ -717,31 +842,28 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         # unconditionally -- indistinguishable from "nothing to do" -- so a population the control
         # is STRUCTURALLY unable to touch read as health for 16 days while 26 worktrees piled up.
         # An unavailable check is a FAILED check (R15 fail-silent): say which it is.
-        stranded = [k for k in kept if refusal_is_stranded(k.get("reason", ""))]
-        if len(stranded) >= STRANDED_WORKTREE_ALARM_AT:
-            from collections import Counter
-            why = Counter(
-                "dirty" if "uncommitted" in k.get("reason", "") else
-                "orphan-branch" if "ORPHAN" in k.get("reason", "") else
-                "undetermined"
-                for k in stranded
-            )
+        if len(_stranded_now) >= STRANDED_WORKTREE_ALARM_AT:
             status = "WORKTREE_REAP_STRANDED"
             detail = (
-                f"0 reapable but {len(stranded)} STRANDED worktree dir(s) the reaper cannot act on "
-                + "(" + ", ".join(f"{n} {w}" for w, n in why.most_common()) + "); "
-                + f"{len(kept) - len(stranded)} legitimately kept (locked/live/main). "
+                f"0 reapable but {len(_stranded_now)} STRANDED worktree dir(s) the reaper cannot "
+                f"act on ({_why_stranded(_stranded_now)}); "
+                + f"{len(kept) - len(_stranded_now)} legitimately kept (locked/live/main). "
                 "Eligibility requires MERGED-and-CLEAN, but a fork here dies DIRTY, so the "
                 "conjunction is unsatisfiable for the real population -- salvage the content to a "
-                "ref first, then the worktree is clean and removable with nothing lost."
+                "ref first, then the worktree is clean and removable with nothing lost. ARM the "
+                "reap flag and the cycle now walks that route itself (advance_stranded)."
             )
         else:
             status = "WORKTREE_REAP_CLEAN"
             detail = (f"no reapable worktree dirs; {len(kept)} kept "
-                      f"({len(stranded)} stranded, under the alarm threshold)")
+                      f"({len(_stranded_now)} stranded, under the alarm threshold)")
 
+    if advanced:
+        moved = sum(1 for a in advanced if a["ok"])
+        detail += (f" ADVANCED {moved}/{len(advanced)} stranded worktree(s) one preserving step "
+                   f"(salvage before reap; the reap itself is the next pass).")
     return {"status": status, "alarm": alarm, "detail": detail, "eligible": eligible, "kept": kept,
-            "reaped": reaped, "enforce": enforce}
+            "reaped": reaped, "advanced": advanced, "enforce": enforce}
 
 
 # ── SINGLE-WORKTREE SANCTIONED REAP (H24 gap-close): the guarded replacement for raw

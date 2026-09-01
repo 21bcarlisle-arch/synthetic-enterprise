@@ -55,6 +55,7 @@ _OBS = _HERE.parent / "docs" / "observability"
 
 # The append-only record of every deferred notification (G-N4). Never rewritten.
 QUEUE_FILE = _OBS / "ntfy_digest_queue.jsonl"
+_DEFAULT_QUEUE_FILE = QUEUE_FILE
 # The high-water mark of what a CONFIRMED digest has carried (G-N5). Separate on purpose.
 STATE_FILE = _OBS / ".ntfy_digest_state.json"
 
@@ -141,7 +142,22 @@ def defer(message: str, *, kind: str, topic_class: str | None) -> str:
 
     Never returns an id: a batched item has not been sent, and G-N5 forbids any record or
     caller reading it as if it had.
+
+    A TEST CANNOT WRITE THE REAL QUEUE (2026-09-01). `send_ntfy` has had a hard pytest guard since
+    the director's phone spammed with test pages -- and the deferral path reaches neither it nor
+    the guard, so under pytest a deferrable notify wrote a row into the live channel's queue and it
+    would have ridden the next real digest to his phone. That mattered the moment a landing became
+    a notification: `surgical_land`'s own test suite lands commits into fixture repos.
+
+    Structural, and testable, on the same pattern as `ntfy_utils.record_delivery_outcome`: a pytest
+    run that has NOT redirected the queue is a no-op returning the ordinary deferred sentinel, and
+    a test that monkeypatches `QUEUE_FILE` exercises the real body. Blanket-guarding on
+    PYTEST_CURRENT_TEST alone would make this mechanism unfalsifiable, which is the defect.
     """
+    import os
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None and QUEUE_FILE == _DEFAULT_QUEUE_FILE:
+        return "deferred:pytest-suppressed"
+
     entries = _read_queue()
     seq = (entries[-1].get("seq", len(entries)) + 1) if entries else 1
     row = {
@@ -163,10 +179,50 @@ def pending() -> list[dict]:
     return [e for e in _read_queue() if int(e.get("seq", 0)) > mark]
 
 
+#: WHAT WAS DONE LEADS THE DIGEST. Everything else is ordered after it, alphabetically as before.
+#:
+#: Director, 2026-09-01: *"Real work should reach the channel and routine noise shouldn't crowd it
+#: out."* Both halves of that sentence were failing inside this one function. Classes were rendered
+#: in `sorted()` order, which puts `routine_landing` LAST of the four -- behind divergence, drift
+#: and finding_announcement -- and the line budget is consumed greedily in that order. On the day he
+#: wrote, 42 finding announcements and 13 drift notices were queued against a 25-line budget, so
+#: landings would have been elided in full even once they had a producer. The reader would have got
+#: a digest of everything filed and nothing finished.
+_LEAD_CLASSES = ("routine_landing",)
+
+
+def _class_order(classes) -> list[str]:
+    lead = [c for c in _LEAD_CLASSES if c in classes]
+    return lead + sorted(c for c in classes if c not in lead)
+
+
+def _line_budget(by_class: dict, total: int) -> dict:
+    """A FLOOR UNDER EVERY CLASS, then the remainder to the classes that can use it.
+
+    Greedy-in-order spending means one loud class silently consumes the whole digest, and the
+    classes behind it are elided without ever having competed for a line. A floor is the same
+    discipline this project applies to scanning controls: guarantee the small population is
+    represented, then let volume have what is left over.
+    """
+    classes = list(by_class)
+    if not classes:
+        return {}
+    floor = max(1, total // len(classes))
+    alloc = {c: min(floor, len(by_class[c])) for c in classes}
+    spare = total - sum(alloc.values())
+    for c in _class_order(classes):          # leftovers follow the same precedence as the render
+        if spare <= 0:
+            break
+        take = min(spare, len(by_class[c]) - alloc[c])
+        alloc[c] += take
+        spare -= take
+    return alloc
+
+
 def compose(entries: list[dict]) -> str:
-    """The digest text. Groups by class, and when it elides it SAYS SO and names the file
-    that still holds every line (G-N4 -- a summary that hides its own truncation is how a
-    batched item becomes a lost one)."""
+    """The digest text. Groups by class, leads with what was DONE, gives every class a floor of the
+    line budget, and when it elides it SAYS SO and names the file that still holds every line
+    (G-N4 -- a summary that hides its own truncation is how a batched item becomes a lost one)."""
     if not entries:
         return ""
     by_class: dict[str, list[dict]] = {}
@@ -174,17 +230,14 @@ def compose(entries: list[dict]) -> str:
         by_class.setdefault(str(e.get("class", "unclassified")), []).append(e)
 
     lines = [f"[DIGEST] {len(entries)} batched item(s) since the last digest."]
-    budget = _MAX_DIGEST_LINES
+    alloc = _line_budget(by_class, _MAX_DIGEST_LINES)
     shown = 0
-    for cls in sorted(by_class):
+    for cls in _class_order(by_class):
         rows = by_class[cls]
         lines.append(f"— {cls} ({len(rows)}):")
-        for e in rows:
-            if budget <= 0:
-                break
+        for e in rows[:alloc.get(cls, 0)]:
             first = str(e.get("message", "")).strip().splitlines()
             lines.append(f"   #{e.get('seq')} {(first[0] if first else '')[:120]}")
-            budget -= 1
             shown += 1
     if shown < len(entries):
         lines.append(

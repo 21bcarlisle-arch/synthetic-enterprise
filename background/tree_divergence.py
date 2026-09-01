@@ -438,6 +438,39 @@ def top_squatters(m: dict, n: int = 3) -> str:
                      for k, v in rows) or "none"
 
 
+def divergence_state(m: dict) -> str:
+    """The IDENTITY of a squat, for the notification contract's transition check.
+
+    A STATE THAT MOVES EVERY CYCLE IS A TRANSITION CHECK THAT CANNOT SUPPRESS ANYTHING (2026-09-01,
+    director: *"the channel under-reports you… divergence and publishing alarms filled the mirror.
+    I've read that as a stall twice today when you were working normally."*).
+
+    `top_squatters(m)` was being passed as `state`, and it carries `oldest_age_hours` — a clock. So
+    one unchanging condition (the same file, ageing 92.6h → 110.4h across the day) presented as a
+    NEW state on every publish cycle: **27 pages, 42% of everything the director received that day,
+    all of them the same squat.** Transition-only (G-N1/R5) was fully engaged and had nothing to
+    compare, because no two firings were ever equal.
+
+    Worse, and this is the part that mattered: `alarm_repetition`'s escalation — the mechanism that
+    turns a repeating alarm into a DRAWN WORK ITEM and then stops re-telling him — counts REPEATS of
+    an unchanged state. A state that never repeats never escalates. The one condition that most
+    deserved to become work was the one condition structurally unable to.
+
+    The author's intent was already right and is stated in the caller: *"keying state on the lane
+    table rather than the raw counts means the generated-file churn that moves the total every cycle
+    does not re-page; a lane appearing, growing or leaving does."* The implementation then used a
+    function containing both a clock and the counts.
+
+    SO THE STATE IS THE LANE SET AND NOTHING ELSE. A lane starting or finishing a squat is a real
+    change and pages. A standing squat ageing or wobbling by a few files is the same condition, is
+    named DAILY by `re_escalate_after`, and becomes a work item after three repeats. Every number
+    stays in the MESSAGE, where the reader wants it; none of it is in the identity.
+    """
+    if m.get("unavailable"):
+        return "unavailable"
+    return "lanes:" + ",".join(sorted(m.get("by_lane", {})))
+
+
 def write_artifact(m: dict, path: Path | None = None) -> Path:
     """Publish the measure. Called from the publish path; must never raise into it."""
     p = path or ARTIFACT_PATH
