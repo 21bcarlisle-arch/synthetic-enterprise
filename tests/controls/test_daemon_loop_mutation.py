@@ -160,6 +160,30 @@ NEUTRALISED_BY_DMS_ISOLATED = (
     # stayed intact (.ntfy_digest_state.json mtime unchanged across the run that observed this).
     # The director lost no batched item. Neutralised for the count, not for a data loss.
     "_flush_notification_digest",
+    # ADDED 2026-09-02 by this section's own class guard, on the FIRST cycle after `run_cycle`
+    # gained it in 580c47101 -- the commit that finally wired the worktree reaper to the deadman
+    # cadence. Caught in one commit again, which is the second time this guard has paid for itself.
+    #
+    # The most disqualified entry in this list, and the only one that MUTATES state outside the
+    # process: `evaluate_worktree_reap` takes the shared tree lock, salvages and TAGS detached
+    # HEADs, and REMOVES worktree directories. Its arming flag is
+    # `fork_reconciler.WORKTREE_REAP_ENFORCE_FLAG` -- an absolute path into the real
+    # docs/observability/ that this fixture's OBSERVABILITY_DIR patch does not reach -- and that
+    # file EXISTS (armed 2026-08-03). So this was not the latent hazard the two escalation checks
+    # above were: every one of the 12 run_cycle() calls below was running the ARMED, ENFORCING
+    # reaper against the live `git worktree list`. It also pages (`notify(kind="real_alarm")` on
+    # the stranded count), which breaks the `assert len(calls) == 1` these tests are built on.
+    #
+    # BOUND, R9 -- what did NOT happen, so this is not read as a bigger incident than it was, and
+    # MEASURED rather than assumed. The reaper's own refusal set is what held. At the time of this
+    # fix `git worktree list` holds exactly two entries: the main worktree (refused by
+    # construction) and `/var/tmp/se-seat-executor`, the declared daemon home that
+    # `declared_daemon_homes()` spares by declaration -- so there was no eligible subject for a
+    # test-driven reap to take. The six `salvage/detached-*` tags all carry creatordate 2026-09-01
+    # 21:58/22:20, matching the finding's dogfooding table (1 orphan, then 5), not a test run; no
+    # tag was written after it. It is neutralised because the NEXT lane to leave a fork on disk
+    # would have had it deleted by a unit test, not because damage was observed.
+    "_check_worktree_reap",
 )
 
 # Allowed to run for real, each for a stated reason. A check earns a place here only if it is
