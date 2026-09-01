@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-01T11:50:01.091807+00:00",
+  "last_updated": "2026-09-01T13:21:16.403332+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T11:50:01.091807+00:00",
+      "last_heartbeat": "2026-09-01T13:21:16.403332+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-08-12T08:55:34.236201+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T11:35:51.135844+00:00",
-      "last_action": "Run complete in 725s \u2014 28639 KB (run_output_3df8f7400_20260901T112345Z.json)",
-      "last_action_ts": "2026-09-01T11:35:51.135844+00:00",
+      "last_heartbeat": "2026-09-01T13:05:56.513875+00:00",
+      "last_action": "Run complete in 765s \u2014 29576 KB (run_output_b9418ce19_20260901T125311Z.json)",
+      "last_action_ts": "2026-09-01T13:05:56.513875+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T11:46:30.322738+00:00",
+      "last_heartbeat": "2026-09-01T13:16:30.930732+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-09-01T11:46:30.322738+00:00",
+      "last_action_ts": "2026-09-01T13:16:30.930732+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T10:12:28.821771+00:00",
+      "last_heartbeat": "2026-09-01T11:51:16.135702+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-09-01T10:12:28.821771+00:00",
+      "last_action_ts": "2026-09-01T11:51:16.135702+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T11:49:39.990768+00:00",
+      "last_heartbeat": "2026-09-01T13:19:34.115691+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-08-12T08:55:35.036636+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-01T11:49:16.952694+00:00",
+      "last_heartbeat": "2026-09-01T13:19:17.776927+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-01T11:49:16.952694+00:00",
+      "last_action_ts": "2026-09-01T13:19:17.776927+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
