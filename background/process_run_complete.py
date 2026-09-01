@@ -1007,7 +1007,21 @@ from background import (  # noqa: E402
     finding_severity,  # (OPS9 header parser; exoneration field)
     publish_cause,  # (which of the four an rc=77 was, and the observation that decided it)
     publish_gate_blocking_read,  # (the record's honesty contract)
+    publish_provenance,  # BOUND HERE ON PURPOSE — see below
 )
+
+# ONE GENERATION PER CYCLE (2026-09-01). This was five lazy `from background import
+# publish_provenance` statements inside the publish path, and a publish cycle here runs for
+# ~25 minutes while other lanes land commits into the same tree. On 2026-09-01 a publisher
+# started at 02:40 from pre-merge source, the 02:49 merge rewrote BOTH sides of this call, and
+# at 03:05 the lazy import handed that old process the NEW module: an old call site that passes
+# no `population` met a new checker that requires one. The stamp was refused by its own
+# fail-closed guard, the commit was refused behind it, and the publish gate wedged — with
+# nothing in the tree wrong and every test green, which is why it read as self-clearing and
+# repeated. sys.modules caches on first import, so binding at module scope pins the module to
+# the same generation as the call sites that use it. An old process then publishes an old-shape
+# stamp (correct for its own code) and the next cycle upgrades it; a mixed pair is what could
+# not be made to work.
 from background.child_diagnostics import (  # noqa: E402  (H30)
     STDERR_TAIL_LINES,
     failure_detail,
@@ -4786,7 +4800,7 @@ def _annotation_measured_on(git_hash):
     the `git status` probe fails, would be the misattribution `MEASURED_ON_FIELDS` exists to stop
     — so an unreadable probe reads as WORKING TREE, the answer that claims less.
     """
-    from background import publish_provenance as _prov
+    _prov = publish_provenance
 
     tree_state = _prov.TREE_WORKING
     try:
@@ -4806,7 +4820,7 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
     this observes the publish it follows and must never be able to affect it.
     """
     try:
-        from background import publish_provenance as _prov
+        _prov = publish_provenance
         findings = _open_findings_count()
         if not (force or _remainder_due()):
             # Findings are cheap to count, so refresh that half every cycle even when the
@@ -4868,7 +4882,7 @@ def _publish_provenance_banner(git_hash, *, reason=None):
               "(process_run_complete._publish_provenance_banner)", file=sys.stderr)
         return False
     try:
-        from background import publish_provenance as _prov
+        _prov = publish_provenance
         state = _prov.record_paused(reason=reason)
         log("Provenance banner: {}".format(_prov.banner_line(state)))
         target = str(_prov.PROVENANCE_FILE)
@@ -4903,7 +4917,7 @@ def _provenance_is_publishable(paths, *, label="publish") -> bool:
     except OSError:
         return True
     try:
-        from background import publish_provenance as _prov
+        _prov = publish_provenance
         violations = []
         if prov_path.resolve() in in_commit:
             violations += _prov.publishable_violations(
@@ -6350,7 +6364,7 @@ def _process(marker_path_str):
     # is the fake-fresh sin with an off-by-one. This is the only advance of `last_verified`
     # there is, and it is reachable only from here, downstream of a green scoped gate.
     try:
-        from background import publish_provenance as _prov
+        _prov = publish_provenance
         # THE POPULATION TRAVELS WITH THE CLAIM (2026-08-31). The publisher already holds the run
         # it is about to attribute the page to, so it costs one dict to say what was in it. Without
         # this the page names a run and says nothing about it -- and the run itself is 27 MB and is

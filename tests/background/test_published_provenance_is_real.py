@@ -406,3 +406,116 @@ def test_the_green_cycle_refusal_is_the_guards_doing(tmp_path, monkeypatch):
     prc.git_commit_push("3abd6e1df", 1000.0)
     assert any(c[:2] == ["git", "commit"] for c in calls), \
         "the mutation did not reach the publish -- this pair is not proving what it claims"
+
+
+# ---------------------------------------------------------------------------
+# ONE GENERATION PER CYCLE (2026-09-01)
+# ---------------------------------------------------------------------------
+# The guard above asks whether a stamp's VALUES could have come from a run. This asks something
+# the value check structurally cannot: whether the code that WROTE the stamp and the code that
+# JUDGED it came from the same version of this repository.
+#
+# MEASURED, not hypothesised. On 2026-09-01 a publisher process started at 02:40 UTC from
+# main at d95c659e3, whose `record_verified` call site passed no `population`. At 02:49 the
+# merge d9b9dd2f3 brought 31def55aa onto main, rewriting BOTH `publish_provenance` (population
+# now REQUIRED) and the publisher's call site (population now SUPPLIED). At 03:05 that
+# still-running 02:40 process executed a function-scope `from background import
+# publish_provenance` and got the 02:49 module. Old call site, new checker:
+#
+#   "Provenance stamp skipped (non-fatal): REFUSING TO PUBLISH A FALSE PROVENANCE --
+#    showing_run.population is missing"
+#
+# followed by `Commit/push failed (provenance_refused)` and a wedged publish gate. Nothing in
+# the tree was wrong and the scoped suite was green, so it read as a self-clearing wedge and
+# repeated. A ~25-minute publish cycle in a tree several lanes land into makes this ordinary,
+# not exotic.
+#
+# `sys.modules` caches on first import, so WHERE the first import happens decides which
+# generation the whole process gets. At module scope it is pinned to the process's own
+# generation; inside the publish path it is whatever the tree holds 25 minutes later.
+#
+#   * FIRES   -- a function-scope import of the provenance module (the shape that was live).
+#   * SILENT  -- the current source.
+#   * VACUITY -- a source that imports it NOWHERE fails too, so deleting the binding cannot
+#                buy a pass.
+
+
+def _function_scope_imports_of(source: str, module: str) -> list:
+    """Line numbers where `module` is imported INSIDE a function/class body, not at module scope.
+
+    Driven rather than asserted: the same function is run below against a source known to carry
+    the defect, so a pass here is evidence the check can see it."""
+    import ast
+
+    tree = ast.parse(source)
+    module_scope = {id(n) for n in ast.walk(tree) if isinstance(n, ast.Module)}
+    del module_scope
+    nested = []
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        for inner in ast.walk(node):
+            if isinstance(inner, ast.ImportFrom) and inner.module == "background":
+                if any(a.name == module for a in inner.names):
+                    nested.append(inner.lineno)
+            elif isinstance(inner, ast.ImportFrom) and inner.module == "background." + module:
+                nested.append(inner.lineno)
+            elif isinstance(inner, ast.Import):
+                if any(a.name in (module, "background." + module) for a in inner.names):
+                    nested.append(inner.lineno)
+    return sorted(set(nested))
+
+
+def _module_scope_imports(source: str, module: str) -> bool:
+    import ast
+
+    tree = ast.parse(source)
+    for node in tree.body:
+        if isinstance(node, ast.ImportFrom) and node.module == "background":
+            if any(a.name == module for a in node.names):
+                return True
+        if isinstance(node, ast.ImportFrom) and node.module == "background." + module:
+            return True
+        if isinstance(node, ast.Import):
+            if any(a.name in (module, "background." + module) for a in node.names):
+                return True
+    return False
+
+
+def _publisher_source() -> str:
+    from pathlib import Path
+
+    return Path(prc.__file__).read_text()
+
+
+def test_the_checker_sees_a_function_scope_import():
+    """FIRES. The exact shape that was live at 03:05 on 2026-09-01, so the silence below is
+    evidence about the source rather than about a checker that finds nothing anywhere."""
+    defective = (
+        "from background import publish_cause\n"
+        "def _process():\n"
+        "    from background import publish_provenance as _prov\n"
+        "    return _prov\n"
+    )
+    assert _function_scope_imports_of(defective, "publish_provenance") == [3]
+    assert not _module_scope_imports(defective, "publish_provenance"), \
+        "the defective fixture must not also carry the module-scope binding, or it proves nothing"
+
+
+def test_the_publisher_binds_one_generation_of_its_provenance_module():
+    """SILENT on the current source, and NOT VACUOUSLY: the module-scope binding must exist.
+
+    Keyed to the property (the process uses one generation of the module it is judged by), not
+    to today's line numbers -- a new lazy import anywhere in the file turns this red, and
+    deleting the binding altogether does too."""
+    source = _publisher_source()
+    nested = _function_scope_imports_of(source, "publish_provenance")
+    assert not nested, (
+        "background/process_run_complete.py imports publish_provenance inside a function body "
+        "at line(s) {} -- a publish cycle runs ~25 minutes in a tree other lanes land into, so "
+        "this binds whatever generation the tree holds at the moment the publish path is "
+        "reached, which on 2026-09-01 paired an old call site with a new checker and wedged "
+        "the publish gate. Import it at module scope.".format(nested))
+    assert _module_scope_imports(source, "publish_provenance"), (
+        "no module-scope binding of publish_provenance -- the check above is then vacuous, and "
+        "the publisher has no pinned generation of the module that judges its own stamps")
