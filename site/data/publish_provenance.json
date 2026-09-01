@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-01T01:44:34Z",
+    "checked_at": "2026-09-01T02:12:05Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py::test_no_tree_scanning_test_passes_on_an_empty_population",
       "FAILED tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band",
@@ -16,23 +16,23 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 57,
-    "open_findings": 50
+    "open_findings": 54
   },
   "last_verified": {
-    "generated_at": "2026-09-01T02:10:16Z",
-    "git_commit": "d114e39bb",
-    "run_id": "run_output_d114e39bb_20260901T014535Z.json",
-    "verified_at": "2026-09-01T02:10:16Z"
+    "generated_at": "2026-09-01T02:37:53Z",
+    "git_commit": "db17e31a1",
+    "run_id": "run_output_db17e31a1_20260901T021306Z.json",
+    "verified_at": "2026-09-01T02:37:53Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-01T02:10:16Z",
-    "git_commit": "d114e39bb",
-    "run_id": "run_output_d114e39bb_20260901T014535Z.json",
-    "verified_at": "2026-09-01T02:10:16Z"
+    "generated_at": "2026-09-01T02:37:53Z",
+    "git_commit": "db17e31a1",
+    "run_id": "run_output_db17e31a1_20260901T021306Z.json",
+    "verified_at": "2026-09-01T02:37:53Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-09-01T02:10:16Z"
+  "written_at": "2026-09-01T02:37:53Z"
 }
