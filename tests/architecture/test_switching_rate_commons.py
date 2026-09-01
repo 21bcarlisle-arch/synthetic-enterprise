@@ -2,7 +2,7 @@
 
 Commons: `docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`.
 Write-up: `docs/market_research/gb_switching_rate_denominators.md`.
-Opened by: `docs/staging/WORKER_FINDING_THE_WORLDS_DEPARTURE_LEVEL_HAS_NEVER_BEEN_CHECKED_AGAINST_A_PUBLISHED_RATE_2026-08-30.md`.
+Opened by: `docs/staging/done/WORKER_FINDING_THE_WORLDS_DEPARTURE_LEVEL_HAS_NEVER_BEEN_CHECKED_AGAINST_A_PUBLISHED_RATE_2026-08-30.md`.
 
 THE DEFECT THIS EXISTS FOR. `company/market/market_report.py::_UK_SWITCHING_RATE_PCT` carried ten
 years of domestic switching rates with no per-line citation, and NINE of the ten sat outside the
@@ -36,6 +36,7 @@ from __future__ import annotations
 import ast
 import importlib
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -425,8 +426,12 @@ def test_the_register_names_the_worlds_own_realised_departure_rate():
     "DISCHARGED BY: re-fitting YEAR_LEVEL_ANCHOR against the committed capture, and 2022 must be "
     "excluded from that fit because it is unidentified (see _HELD_INDIRECTLY). NEVER by widening "
     "the band and never by re-keying this leg to today's readings. "
-    "Finding: docs/staging/done/WORKER_FINDING_A_SCOPE_ASSERTION_WAS_STANDING_IN_FRONT_OF_A_"
-    "SEVEN_OF_SEVEN_OUT_OF_BAND_VERDICT_2026-09-01.md"
+    "Finding: docs/staging/done/WORKER_FINDING_THE_ANCHORS_ONLY_ACCOUNTABILITY_ROUTE_HAS_BEEN_"
+    "BLIND_TO_2022_SINCE_THE_CAPTURE_WAS_SWAPPED_2026-09-01.md "
+    "(citation corrected 2026-09-01: this reason cited a filename that was never written, and "
+    "because it is SPLIT ACROSS TWO STRING LITERALS no grep of this file's source could see the "
+    "path. `test_every_document_this_file_cites_is_a_document_that_exists` reads the assembled "
+    "marker reasons at runtime and now holds it.)"
 ))
 def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
     """THE ONE THE ANCHOR EXISTS FOR. GREEN 2026-08-30, RE-MARKED XFAIL 2026-09-01.
@@ -1162,6 +1167,23 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "as a reading would mean inventing a comparison the quantity does not support. "
         "AND THAT INDIRECTION IS NINE YEARS OF TEN, NOT TEN (corrected 2026-09-01, having been "
         "written as though it were unconditional). It holds an entry only where the world runs "
+        "-- AND IT IS HOLDING NONE OF THEM TODAY, for two reasons neither of which is 2022. "
+        "(i) THE HOLDER IS XFAIL. That band leg is `xfail(strict)` as of 2026-09-01: the world is "
+        "out of band in 7 of 7 readable years, and a verdict held open can only fire on the world "
+        "coming BACK into the band. Any anchor that keeps it outside passes silently, so while "
+        "the marker stands the indirection constrains the anchor in one direction only. "
+        "(ii) `band-checked every run` OVERSTATED THE PATH, and the holder's own docstring has "
+        "said so since 2026-08-31: this control reads the STORED capture "
+        "`docs/reports/c2_departure_factors.json`, which carries the `sim_level_anchor` of the run "
+        "that produced it, so the module is not in its read path at all. Editing "
+        "`YEAR_LEVEL_ANCHOR` here moves nothing until `tools/capture_departure_factors.py` runs "
+        "again -- measured 2026-09-01, halving EVERY entry leaves this whole file green. It is "
+        "band-checked once per RE-CAPTURE, not once per run, and the register said the stronger "
+        "thing while the leg forty lines below said the weaker one. "
+        "Both statements are held by "
+        "`test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holding`, so this "
+        "text cannot go stale in the flattering direction when the re-fit lands. It holds an "
+        "entry only where the world runs "
         "renewal decisions that the anchor scales. `YEAR_LEVEL_ANCHOR[2022] = 1.524110` is held by "
         "NOTHING: 2022 is 100% crisis-forced-passive (`renewal_engagement.CRISIS_PASSIVE_YEARS`), "
         "C1b routes every passive roll to the SVT segment table, and `build_departure_risks` "
@@ -1175,9 +1197,165 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "`SEAT_FINDING_THE_DEPARTURE_LEVEL_UNIONED_ONTO_ACCOUNT_YEARS_AND_2022_HAS_NO_LEVER` "
         "and the finding filed alongside this correction.",
     "simulation.departure_level_anchor:year_level_anchor":
-        "the accessor over the table above; held by the same indirection, and unheld in 2022 for "
-        "the same reason.",
+        "the accessor over the table above; held by the same indirection -- including its two "
+        "current defeats, the XFAIL on the holder and the stored-capture read path -- and unheld "
+        "in 2022 for the same reason.",
 }
+
+
+# The phrases a `_HELD_INDIRECTLY` entry uses to name the band leg as its holder. Matching on an
+# explicit phrase rather than fuzzily on the whole text is deliberate: a new entry held by some
+# OTHER control must not silently inherit this leg's disclosure requirement, and the leg below
+# refuses an empty match set rather than passing over one.
+_CLAIMS_THE_BAND_LEG_HOLDS_IT = ("held through its EFFECT", "held by the same indirection")
+
+
+def _holder_xfail_marks() -> list[object]:
+    """The `xfail` markers on the band leg that `_HELD_INDIRECTLY` names as its holder."""
+    holder = test_the_worlds_realised_departure_rate_is_inside_the_published_band
+    return [m for m in getattr(holder, "pytestmark", []) if m.name == "xfail"]
+
+
+def test_a_register_entry_naming_a_holder_discloses_whether_that_holder_is_holding():
+    """MUTATION: delete the word XFAIL from either `_HELD_INDIRECTLY` entry and this fires; delete
+    the `@pytest.mark.xfail` from the band leg without editing the entries and it fires the other
+    way. Both proven with `python3 -B`, 2026-09-01.
+
+    THE DEFECT THIS EXISTS FOR, and it is one level up from the emptied subject `f97c34eb0` just
+    repaired. That commit corrected this register's DENOMINATOR -- ten years to nine, 2022 named
+    as held by nothing. In the same tree, on the same day, the leg the entry names as its holder
+    was marked `xfail(strict)`. So the entry went on asserting that the anchor is "held through
+    its EFFECT ... band-checked every run" while the effect's verdict was held open, and nothing
+    anywhere could notice the two had come apart. A quantity classified as held INDIRECTLY is
+    held by exactly as much as its holder is holding, and until this leg there was no route by
+    which xfailing a holder told its dependants.
+
+    KEYED TO THE PROPERTY AND SYMMETRIC, which is the whole reason it is worth having. It does not
+    assert the holder IS xfail -- that would be the catalogued "control asserts the model stays
+    bad" shape, and it would go red on the day the re-fit lands and the marker comes off. It
+    asserts the entry and the holder AGREE about which state they are in. Xfail the holder and the
+    entry must say so; discharge the holder and the entry claiming XFAIL must be corrected. The
+    stale-in-the-flattering-direction case is the one that costs, and it is the second branch.
+
+    WHAT THIS LEG DOES NOT CLAIM. It cannot tell whether the holder is a GOOD holder -- that the
+    stored-capture read path makes it a per-re-capture drift detector rather than a live assertion
+    is recorded in the entry's prose and in the holder's own docstring, not asserted here. This
+    leg's subject is narrower and mechanisable: disclosure of the holder's state, at the place a
+    reader of the register is standing.
+    """
+    entries = {
+        name: text for name, text in _HELD_INDIRECTLY.items()
+        if any(phrase in text for phrase in _CLAIMS_THE_BAND_LEG_HOLDS_IT)
+    }
+    assert entries, (
+        "no `_HELD_INDIRECTLY` entry names the band leg as its holder any more. Either the "
+        f"register was emptied or the naming phrases {_CLAIMS_THE_BAND_LEG_HOLDS_IT} were "
+        "reworded -- and a disclosure leg over an empty subject is the constant PASS this whole "
+        "file was rewritten to stop reporting. Re-point the phrases at the new wording."
+    )
+
+    marks = _holder_xfail_marks()
+    for name, text in sorted(entries.items()):
+        if marks:
+            assert "XFAIL" in text, (
+                f"{name} is classified as held indirectly through "
+                f"`test_the_worlds_realised_departure_rate_is_inside_the_published_band`, and that "
+                f"leg is xfail -- reason: {marks[0].kwargs.get('reason', '')[:120]!r}... The entry "
+                f"does not disclose it, so it claims cover its holder is not currently providing. "
+                f"An xfailed holder can only fire on the world returning INTO the band; every "
+                f"value that keeps it outside passes silently."
+            )
+        else:
+            assert "XFAIL" not in text, (
+                f"{name} still says its holder is held open XFAIL, but the "
+                f"`@pytest.mark.xfail` on that band leg is gone -- the re-fit landed and the "
+                f"register was not corrected. A stale disclosure of a defect that has been fixed "
+                f"understates the cover the quantity now has, and the next reader will re-open a "
+                f"finding that is closed."
+            )
+
+
+def _cited_documents() -> dict[str, str]:
+    """`{cited docs/ path: where it was cited}`, read from the ASSEMBLED strings, not the source.
+
+    Runtime, and that is the whole point. The citation this leg was written for lives in an
+    `xfail` reason built from two adjacent string literals, so the path only exists once Python
+    has concatenated them. Every grep over this file's source missed it for exactly that reason.
+    """
+    import re
+
+    module = sys.modules[__name__]
+    texts: dict[str, str] = {}
+    if module.__doc__:
+        texts["the module docstring"] = module.__doc__
+    for name, obj in vars(module).items():
+        if callable(obj) and getattr(obj, "__doc__", None) and name.startswith(("test_", "_")):
+            texts[f"{name}'s docstring"] = obj.__doc__
+        for mark in getattr(obj, "pytestmark", []) or []:
+            reason = mark.kwargs.get("reason") if hasattr(mark, "kwargs") else None
+            if reason:
+                texts[f"the {mark.name} reason on {name}"] = reason
+    for register in ("_HELD_INDIRECTLY", "_NOT_A_LEVEL_READING"):
+        for key, value in getattr(module, register, {}).items():
+            if isinstance(value, str):
+                texts[f"{register}[{key!r}]"] = value
+
+    cited: dict[str, str] = {}
+    for where, text in texts.items():
+        for path in re.findall(r"docs/[A-Za-z0-9_/.-]*\.md", text):
+            cited.setdefault(path, where)
+    return cited
+
+
+def test_every_document_this_file_cites_is_a_document_that_exists():
+    """MUTATION: point any document citation in this file at a path that is not in the tree and
+    this fires, naming the citation site. Proven with `python3 -B`, 2026-09-01 -- and proven the
+    first time by accident, on the illustrative fake path this docstring originally carried.
+    Prose examples are part of the subject: an example that LOOKS like a citation is checked like
+    one, which is the conservative direction for a leg about whether readers can follow a link.
+
+    THE DEFECT THIS EXISTS FOR, found 2026-09-01 while verifying `f97c34eb0`. Two of this file's
+    three document citations did not resolve.
+
+    1. The `xfail(strict)` reason on the band leg ended `Finding: docs/staging/done/WORKER_FINDING_
+       A_SCOPE_ASSERTION_WAS_STANDING_IN_FRONT_OF_A_SEVEN_OF_SEVEN_OUT_OF_BAND_VERDICT...` — a
+       filename that was **never written**. The finding it means landed in the same commit under a
+       different name. That reason is not decoration: it carries the DISCHARGE INSTRUCTION for the
+       one control this whole file exists to serve, and it sends the reader who needs the evidence
+       to a path that has never existed.
+    2. The module docstring's `Opened by:` pointed at `docs/staging/...` for a finding that had
+       since been archived to `docs/staging/done/`. A correct citation that rots when the filing
+       system does its job.
+
+    WHY NOTHING CAUGHT IT, and it generalises past this file. Citation (1) is assembled from two
+    adjacent string literals, so the path never appears contiguously in the source and no grep,
+    link checker or reviewer reading the diff could see it. The check has to run on the ASSEMBLED
+    string. That is why `_cited_documents` walks the loaded module's objects rather than parsing
+    the file.
+
+    KEYED TO THE PROPERTY. It asserts every cited path RESOLVES, not that any particular document
+    is cited — so archiving a finding to `done/` is still allowed, it just has to be followed
+    through into the citation, and a new finding may be cited freely. An empty citation set is
+    refused rather than passed: a file that cites no evidence would otherwise make this leg the
+    constant PASS it was written to prevent.
+    """
+    cited = _cited_documents()
+    assert cited, (
+        "this file cites no document at all. Either the citations were stripped or "
+        "`_cited_documents` no longer reaches them -- and a citation checker with an empty "
+        "subject is a control that cannot fail, which is the class this file is filed under."
+    )
+    missing = {
+        path: where for path, where in sorted(cited.items())
+        if not (_REPO_ROOT / path).is_file()
+    }
+    assert not missing, (
+        "these documents are cited by this file and are not in the tree:\n"
+        + "\n".join(f"  {path}\n    cited by {where}" for path, where in missing.items())
+        + "\n A citation is how a reader reaches the evidence for a refusal or a discharge "
+          "instruction. One that does not resolve sends them nowhere, and the reader most likely "
+          "to follow it is the one about to repair the control."
+    )
 
 
 def _registered_names() -> set[str]:
