@@ -150,15 +150,46 @@ def test_notice_constant_is_42():
     assert NOTICE_DAYS == 42
 
 
-def test_multiple_terms_all_have_notice_date():
+def test_multiple_terms_all_have_notice_date(monkeypatch):
+    """42 days' notice is a property of a CONTRACT ENDING, not of every row in a schedule.
+
+    The defect this names: a fixed term shipped without the 42-day notice its renewal offer
+    depends on. It quantified over every row until C1b (2026-09-01) put passive households on
+    the SVT product mid-schedule, and an SVT segment has no notice BY CONSTRUCTION --
+    `svt_product.build_svt_schedule` sets `notice_date` to the segment start because a cap
+    period ending is a price change, not an expiry, and nothing is offered.
+
+    Scoping to `tariff_type == "fixed"` is the property; DELETING the SVT rows would not be.
+    So the complement is asserted rather than skipped -- an SVT segment that acquired a
+    42-day notice would be a fixed term wearing a new label, which is the substitution
+    `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` refused, and it fires here too.
+    """
     records = _flat_price_records("2015-01-01", "2020-12-31")
-    schedule = build_renewal_schedule("C1", "2016-01-01", "2018-01-01", records, 2800)
-    assert len(schedule) >= 2
-    for term in schedule:
+
+    # Both legs are driven EXPLICITLY rather than read off whatever the roster happens to say
+    # about "C1", so neither can go vacuous when an engagement probability is re-anchored.
+    # ("C1" is in fact a passive household and yields exactly ONE fixed term, which is why the
+    # naive scoped version of this control passed over an empty list.)
+    monkeypatch.setattr("simulation.renewals.rolls_active_renewal", lambda *a, **k: True)
+    active = build_renewal_schedule("C1", "2016-01-01", "2018-01-01", records, 2800)
+    monkeypatch.setattr("simulation.renewals.rolls_active_renewal", lambda *a, **k: False)
+    passive = build_renewal_schedule("C1", "2016-01-01", "2018-01-01", records, 2800)
+
+    fixed = [t for t in active if t.get("tariff_type", "fixed") == "fixed"]
+    svt = [t for t in passive if t.get("tariff_type") == "svt"]
+    assert len(fixed) >= 2, f"the active leg built no renewals to check notice on: {active}"
+    assert svt, f"the passive leg reached no SVT segment: {passive}"
+
+    for term in fixed:
         assert "notice_date" in term
         assert (
             date.fromisoformat(term["acquisition_date"]) - date.fromisoformat(term["notice_date"])
         ).days == NOTICE_DAYS
+    for segment in svt:
+        assert (
+            date.fromisoformat(segment["acquisition_date"])
+            == date.fromisoformat(segment["notice_date"])
+        ), "an SVT segment gave notice of something; it has nothing to give notice of"
 
 
 def test_deemed_premium_constant():

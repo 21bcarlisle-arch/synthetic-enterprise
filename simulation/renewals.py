@@ -30,6 +30,8 @@ from datetime import date, timedelta
 
 from company.interfaces.renewal_offer import request_renewal_offer
 from sim.forward_curve import generate_forward_price
+from simulation.household import household_of
+from simulation.household_segments import active_renewal_probability_for_customer
 from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.policy_costs import (
     get_cm_levy_per_mwh,
@@ -37,6 +39,7 @@ from simulation.policy_costs import (
     get_electricity_policy_cost_per_mwh,
     get_fit_levy_per_mwh,
 )
+from simulation.renewal_engagement import rolls_active_renewal
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 from simulation.svt_product import SVT_TARIFF_TYPE, build_svt_schedule
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
@@ -114,6 +117,59 @@ def build_renewal_schedule(
     prev_fixed_unit_rate: float | None = None
 
     while term_start <= report_end:
+        # ═══════════════════════════════════════════════════════════════════════════════════
+        # C1b — THE WORLD ALREADY DECIDED THIS, AND USED TO THROW THE ANSWER AWAY (2026-08-30)
+        # ═══════════════════════════════════════════════════════════════════════════════════
+        #
+        # `rolls_active_renewal` has been called at every electricity renewal since Phase 33 and
+        # returns, in its own docstring's words, "False if a passive SVT roll". The answer reached
+        # `event["is_active_renewal"]`, was written to the log, and then the world built the
+        # household another fixed term anyway. So the world both knew who had rolled onto the
+        # standard variable tariff and settled them as though nobody had.
+        #
+        # NO NEW RULE AND NO NEW CONSTANT. Same function, same seed grammar
+        # (`{household}_{term_index}`, and `len(terms)` is that index because `run_phase2b`
+        # counts every term this builder appends), same per-household engagement archetype and
+        # the same anchored 35% population rate. The 2022 crisis-year forcing comes along
+        # unchanged and is the reason the generated fixed share collapses that year, which is
+        # what the published record does too.
+        #
+        # WHY A PASSIVE STINT IS BOUNDED BY THE ANNIVERSARY AND NOT ABSORBING. An SVT has no term
+        # and this does not give it one: no notice is served, no rate is struck and no offer is
+        # made for the whole stint (`build_svt_schedule` prices every segment off the published
+        # cap). What the anniversary marks is the HOUSEHOLD's own next look at the market, on the
+        # cadence the world already uses for one. Making SVT absorbing instead was the first
+        # draft and the published split refutes it: with no route back, the fixed share decays to
+        # 12% by the second renewal and to nothing after 2022, against a published domestic fixed
+        # share that is a minority in every year of the window but never vanishes and is ~33% in
+        # 2025 (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` §(b)).
+        #
+        # DOMESTIC ONLY, because the product is. `simulation/svt_rates.py` is the Ofgem DOMESTIC
+        # default-tariff cap; an SME or I&C site has no default tariff to roll onto and its
+        # renewals are broker-driven, which `run_phase2b` already states at its own passive
+        # branch. That is the published scope of the anchor, not a carve-out chosen here.
+        if not first_term and tariff_type == "fixed" and segment == "resi":
+            _household = household_of(customer_id)
+            _anniversary = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
+            if not rolls_active_renewal(
+                term_start.isoformat(),
+                f"{_household}_{len(terms)}",
+                active_renewal_probability_for_customer(_household),
+            ):
+                terms.extend(build_svt_schedule(
+                    customer_id,
+                    term_start.isoformat(),
+                    min(_anniversary - timedelta(days=1), report_end).isoformat(),
+                    price_records,
+                    lookback_temps_fn=lookback_temps_fn,
+                ))
+                # The rate this household is on is now the cap, and the cap is not a struck
+                # price. Clearing the lock stops the next fixed offer being classified against a
+                # rate the company never set, which is what `prior_fixed_unit_rate` is for.
+                prev_fixed_unit_rate = None
+                term_start = _anniversary
+                continue
+
         # Phase 40c: insert a deemed gap term before each renewal (except the first).
         # During the gap, the customer is out-of-contract and billed at spot + DEEMED_PREMIUM.
         if deemed_gap_days > 0 and not first_term:

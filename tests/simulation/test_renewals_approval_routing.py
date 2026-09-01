@@ -46,6 +46,37 @@ def _fresh_log():
     reset_decision_log()
 
 
+@pytest.fixture(autouse=True)
+def _household_actively_renews(monkeypatch):
+    """This module's subject is APPROVAL ROUTING GIVEN A RENEWAL. C1b decides whether there is one.
+
+    C1b (2026-09-01) made `build_renewal_schedule` read the roll the world had always been
+    making and discarding: a passive resi household now rolls onto the SVT product at its
+    anniversary instead of being handed another fixed term. Every fixture below is a resi
+    customer built across a term boundary, so without this fixture the second term is an SVT
+    segment, no `PRICING_MOVE` is ever logged, and six tests fail on their own NON-VACUITY
+    guards -- which is the guards working correctly, on a subject that is no longer present.
+
+    Forcing the roll ACTIVE is isolation, not a workaround: an actively-renewing resi household
+    is the ordinary majority case (the anchored population rate is 35% passive), and it is the
+    only population for which "the non-routine move is routed through submit/resolve" is even a
+    question. A passive roller strikes no rate, so there is no pricing move to approve.
+
+    Patched on `simulation.renewals`, which is where the name is BOUND (that module imports it
+    at the top). Patching `simulation.renewal_engagement` would leave the already-bound
+    reference in place and this fixture would silently do nothing.
+
+    C1b's own behaviour is not measured here and must not be -- it is
+    `tests/simulation/test_svt_assignment.py`'s subject, including the complement this fixture
+    suppresses (`test_an_always_active_household_never_reaches_the_svt_product` and
+    `test_a_passive_household_leaves_the_fixed_product_and_can_come_back` are the OFF and ON of
+    the same switch).
+    """
+    monkeypatch.setattr(
+        "simulation.renewals.rolls_active_renewal", lambda *a, **k: True
+    )
+
+
 def _flat_price_records(start_date: str, end_date: str, price: float = 50.0) -> list[dict]:
     start = date.fromisoformat(start_date)
     end = date.fromisoformat(end_date)
