@@ -90,4 +90,54 @@ Appended below this line after the one-variable run, with the predictions above 
 written whether or not they hold.
 
 ---
-*(result section, empty until the run)*
+
+## RESULT, 2026-09-01. Nothing above this line was edited.
+
+Baseline run `run_output_76968ee59_20260901T083012Z.json`; treatment run
+`run_output_fb6e29e6d_20260901T095405Z.json`. Only my own three commits touch
+`simulation/`, `company/` or `saas/` between them, so the code is one-variable. The book grew from
+10,906 to 11,565 bills — a **consequence**, not a confound: clarity rose, churn fell, customers
+stayed and were billed for longer.
+
+| | predicted | actual | |
+|---|---|---|---|
+| **P1** median → 0.04–0.06 | 0.0497 | **0.0500** | **HIT** |
+| **P2** share ≥30% → 20–23% | 21.3% | **21.28%** | **HIT** |
+| **P3** mean up 5–10% | +7.1% | **+172%** | **MISSED** |
+| **P4** reproducible ≥99% | ~100% | **100.0%** | **HIT** |
+| **P5** mean clarity up | up | **+4.6%** | **HIT** |
+
+**The central claim held.** Median down 69% while the mean rose — the two moving in opposite
+directions was the whole prediction, and it is the bimodality signature: flat, flat, flat, bang.
+P1 landed within 0.0003 and P2 within 0.02 percentage points. The refutation condition (median AND
+mean AND ≥30% share all falling, meaning the change was cosmetic) did not occur.
+
+### P3 missed badly, and the reason is mine
+
+The mean of this distribution is dominated by a tail with a **near-zero denominator**. In the
+treatment run: max `bill_shock_pct` **7,575.8**, p99 6.5, p99.9 31.8.
+
+**My own counterfactual already contained that tail.** Recomputed on the old book it showed p99
+6.46, p99.9 29.4, max 241.6 — and I reported mean, median, p90 and the ≥30% share, and never looked
+above p90 of my own numbers. A mean is not a summary of a distribution whose p99 is fifteen times
+it. I had everything needed to predict this and did not look.
+
+### And it published a wrong figure
+
+`avg_bill_shock_pct` is published per year, on the dashboard and as a "Worst bill shock" headline in
+the annual report. The treatment run put **2022 at 6.2 — an average bill shock of 620%** — against
+0.3–0.6 in every other year. Not the energy crisis; division by nearly nothing.
+
+Repaired in the same pass by **refusing** rather than capping: below a £5 baseline floor there is no
+shock at all (`bill_shock_pct` and its baseline both `None`, which is already what a first bill
+carries and what every consumer already handles). A cap would have published a bounded wrong number
+where the truth is that no comparison exists. The £5 is the materiality convention this codebase
+already applies twice, not a new constant.
+
+### What the miss is worth keeping
+
+The change was right and the prediction's substance held. What failed was the summary statistic I
+chose to predict: I picked the mean without checking whether the mean means anything on this
+distribution, and my own working already said it did not. Same root as the outage this change caused
+earlier the same day — reasoning about a distribution without first checking the domain of the thing
+being divided by.
