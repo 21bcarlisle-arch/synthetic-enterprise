@@ -530,7 +530,29 @@ def build_monthly_bills(
             # alignment by construction (the caller joins them positionally).
             if read_events_out is not None:
                 read_events_out.append(event)
-            previous_bill_total_gbp = true_bill["total_amount_gbp"]
+            # THE BILL THE HOUSEHOLD WAS ISSUED, not the one it would have received had the read
+            # been actual (2026-09-01, pre-registered in `WORKER_PREREGISTRATION_WHAT_BASELINING_
+            # ON_THE_ISSUED_BILL_MUST_SHOW_2026-09-01`, landed as `34d5120c7` BEFORE this change).
+            #
+            # This was `true_bill["total_amount_gbp"]`, so `bill_shock_pct` differenced every bill
+            # against a bill nobody received: 63% of this book is estimated, the household got the
+            # ESTIMATE, and the instrument measured against the TRUTH. Measured on the published
+            # book, 9,813 of 10,655 pairs (92.1%) reproduce against the previous true total and
+            # 3,198 (30.0%) against the issued one -- which is what made the field irreproducible
+            # from its own artefact.
+            #
+            # WHY IT MATTERS RATHER THAN BEING TIDIER: on a run of estimates the household receives
+            # the SAME estimate each month, so its experienced movement is near zero, and then the
+            # catch-up month is one large jump. Flat, flat, flat, bang -- which is the shape the
+            # published record describes ("a catch-up after months of estimates") and the shape the
+            # true-bill baseline smooths away, because the true series moves every month while the
+            # household's actual bills did not.
+            #
+            # AND IT NARROWS A TIMING EXPOSURE. `true_bill` is priced off the real settlement
+            # records for a month the company has only ESTIMATED, so baselining on it made a
+            # published field depend on a quantity the company could not have known when it issued
+            # the bill. The issued total is what the company itself sent.
+            previous_bill_total_gbp = bill["total_amount_gbp"]
 
     # Additive year-over-year comparison (see docstring above) -- a second
     # pass since it needs every bill for a customer already generated to
