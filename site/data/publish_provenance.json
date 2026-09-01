@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-31T23:22:41Z",
+    "checked_at": "2026-08-31T23:51:12Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_tree_scan_passes_on_an_empty_population.py::test_no_tree_scanning_test_passes_on_an_empty_population",
       "FAILED tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_published_provenance_is_real.py::test_the_green_cycle_refusal_is_the_guards_doing"
     ],
     "nonblocking_reds_total": 57,
-    "open_findings": 47
+    "open_findings": 48
   },
   "last_verified": {
-    "generated_at": "2026-08-31T23:49:13Z",
-    "git_commit": "847503708",
-    "run_id": "run_output_847503708_20260831T232342Z.json",
-    "verified_at": "2026-08-31T23:49:13Z"
+    "generated_at": "2026-09-01T00:17:00Z",
+    "git_commit": "7b77df0c3",
+    "run_id": "run_output_7b77df0c3_20260831T235213Z.json",
+    "verified_at": "2026-09-01T00:17:00Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-31T23:49:13Z",
-    "git_commit": "847503708",
-    "run_id": "run_output_847503708_20260831T232342Z.json",
-    "verified_at": "2026-08-31T23:49:13Z"
+    "generated_at": "2026-09-01T00:17:00Z",
+    "git_commit": "7b77df0c3",
+    "run_id": "run_output_7b77df0c3_20260831T235213Z.json",
+    "verified_at": "2026-09-01T00:17:00Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-31T23:49:13Z"
+  "written_at": "2026-09-01T00:17:00Z"
 }
