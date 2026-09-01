@@ -69,6 +69,12 @@ def publish(tmp_path, monkeypatch):
     # already let a fixture's git_hash "abc1234" reach that record before the guard landed).
     monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / ".last_publish_cause.json")
     monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
+    # ORIGIN IS LEVEL, and this fixture now says so out loud. `git_commit_push` reads origin
+    # before it stages (2026-09-01, `_divergence_refusal`); `tmp_path` is not a git repository,
+    # so the read would answer UNREADABLE and every assertion below would be about the refusal
+    # rather than about the pathspec. The guard is proven against real git in
+    # `test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`.
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
     monkeypatch.setattr(prc, "_MARKERS_ARCHIVED_BY_THIS_RUN", [])
 
     for rel in ("docs/reports/ANNUAL_REPORT.md", "docs/status/LATEST.md",
