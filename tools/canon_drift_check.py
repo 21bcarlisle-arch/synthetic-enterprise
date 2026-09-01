@@ -390,8 +390,20 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
             out = root / DEFAULT_REPORT
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-        except OSError:
-            pass  # the LINE is the deliverable; a read-only tree must not suppress it
+        except Exception:  # noqa: BLE001 - see below; the LINE is the deliverable
+            # WIDENED FROM `OSError` ON 2026-08-31, to match what this except was always FOR.
+            # The comment states the intent exactly -- *"a read-only tree must not suppress it"* --
+            # and a test-isolation refusal IS a read-only tree from here: `docs/observability`
+            # became a protected surface, `ProductionWriteRefused` is a RuntimeError, and it went
+            # straight past an `except OSError`.
+            #
+            # THE FAILURE THAT FOUND IT LOOKED LIKE SOMETHING ELSE ENTIRELY, which is the part
+            # worth remembering. `note_line` raised, `daily_self_note`'s own fail-closed wrapper
+            # rendered "canon drift check unavailable", and
+            # `test_the_daily_self_note_actually_asks_the_question` failed on a missing substring.
+            # A refusal swallowed by one caller's `except` re-surfaces as an unrelated assertion in
+            # another, so the narrow `except` cost more than it saved.
+            pass
     drift = report["drift"]
     checked = report["claims_checked"]
     if not drift:

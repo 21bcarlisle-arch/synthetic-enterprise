@@ -76,7 +76,19 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _seat import is_resident_seat  # noqa: E402
 
-DENIAL_LOG = Path("docs/observability/lane_hook_denials.jsonl")
+# `SE_LANE_DENIAL_LOG` REDIRECTS THE LOG, AND ONLY THE LOG (2026-08-31). This hook is driven by
+# subprocess in its own tests, with `cwd=REPO_ROOT` because the lane logic resolves paths against
+# it -- so every denial the suite exercised appended a fixture's payload to the REAL record, and
+# the fixture then deleted and restored the real file around each of 72 tests. That is the
+# tests-write-the-evidence-base class, which on this same day had the delivery seat reporting a
+# usage limit to the director out of a ledger that was 23% pytest output.
+#
+# It is a DESTINATION, never a permission: nothing about the wall itself reads this. The hook
+# denies or allows identically whatever this is set to, and `test_the_denial_log_redirect_cannot
+# _change_a_verdict` holds that. An env var that could re-permit a write would be a fail-open
+# door; an env var that says where to write the diary is not.
+DENIAL_LOG = Path(os.environ.get("SE_LANE_DENIAL_LOG")
+                  or "docs/observability/lane_hook_denials.jsonl")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # 2026-07-12 HARDEN pass (docs/observability/invariant_redteam-style adversarial
@@ -485,15 +497,39 @@ def _has_explicit_scope(tool_name: str, tool_input: dict) -> bool:
 
 
 def _log_denial(lane: str, tool_name: str, path: str) -> None:
-    DENIAL_LOG.parent.mkdir(parents=True, exist_ok=True)
+    """Record a denial. NEVER let recording one decide one.
+
+    THE WALL WAS FAIL-OPEN ON A FULL DISK, and it was found on 2026-08-31 by a control written to
+    check something else entirely -- that redirecting this log could not change a verdict. It
+    could. Every `return 2` in `main()` is preceded by a call to this function, and an unwritable
+    `DENIAL_LOG` -- a read-only mount, a full disk, a permissions change, a path that does not
+    resolve -- raised straight out of `main()`. The process then exits 1 with a traceback instead
+    of 2 with a refusal, **and a hook that exits 1 does not block the call**. So the observable
+    behaviour of "the diary is unwritable" was "the lane wall is off", with no signal that it had
+    happened beyond a traceback nobody reads.
+
+    That is this project's fail-closed rule inverted: a control must not depend on a WRITE
+    succeeding any more than it may refuse on input it could not READ. The refusal is the
+    product; the log is a note about it.
+    """
     entry = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "lane": lane,
         "tool_name": tool_name,
         "path": path,
     }
-    with DENIAL_LOG.open("a") as f:
-        f.write(json.dumps(entry) + "\n")
+    try:
+        DENIAL_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with DENIAL_LOG.open("a") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError as exc:
+        # LOUD, and on the channel the user is already about to read: the denial message itself
+        # goes to stderr one line later, so this cannot be lost in a log nobody opens -- which is
+        # the whole problem being fixed.
+        sys.stderr.write(
+            f"lane_wall_hook: the denial was ENFORCED but could not be recorded to "
+            f"{DENIAL_LOG} ({exc}). The wall is unaffected; the audit trail has a gap.\n"
+        )
 
 
 def _resolve_lane() -> str | None:

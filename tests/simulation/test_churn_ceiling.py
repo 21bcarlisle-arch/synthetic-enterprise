@@ -116,8 +116,9 @@ def test_no_sim_module_names_the_companys_churn_constant():
 
     A substring scan fails on its own subject here: the docstrings recording
     *why* the import went away contain both `saas.churn_model` and
-    `MAX_BILL_SHOCK_CHURN_PROBABILITY` (the `REVIEW_GATE must match idleness, not prose
-    mentioning the string` class, which bit this programme once already at §3a).
+    `MAX_BILL_SHOCK_CHURN_PROBABILITY` (the `REVIEW_GATE must match idleness,
+    not prose mentioning the string` class, which bit this programme once
+    already at §3a).
     So this asks `tools.epistemic_wall.live_crossings()` — the one definition of
     "a crossing" this pass extracted as its first step.
     """

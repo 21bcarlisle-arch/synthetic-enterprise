@@ -17,18 +17,29 @@ calibration comes out right about a world that does not exist.
 Point-in-time is not at risk here: nothing captured is fed back into the run, and the file is
 written after `main()` returns.
 
-TWO ROUTES, TWO FILES (2026-08-31). The world now has a second way to leave -- drifting off the
+TWO ROUTES, TWO FILES (2026-08-31). The world is to gain a second way to leave -- drifting off the
 standard variable product, C1b -- which never reaches a renewal roll. This tool writes
-`<out>.json` (renewal decisions, unchanged) and `<out>_svt_segment_decisions.json` (every SVT
-segment decision with its outcome, which is the DENOMINATOR C1b named as owed and nothing recorded).
-A reader whose subject is the whole book unions them; a reader whose subject is renewal decisions
-is unaffected. See the note at the write for why they are not one file.
+`<out>.json` (renewal decisions, unchanged) and, WHEN THE RUN CARRIES AN SVT RECORDER,
+`<out>_svt_segment_decisions.json` (every SVT segment decision with its outcome, which is the
+DENOMINATOR C1b named as owed and nothing recorded). A reader whose subject is the whole book unions
+them; a reader whose subject is renewal decisions is unaffected. See the note at the write for why
+they are not one file.
+
+AND WHEN THE RUN CARRIES NO RECORDER, NO SIBLING IS WRITTEN (2026-08-31, second pass). At this HEAD
+that is every run: `run_phase2b`'s return dict has 63 keys and `svt_decisions` is not one of them,
+because `067a00dfd` landed the SVT PRODUCT and not the SVT departure route -- `simulation/svt_product
+.py` states plainly that *"an account on this product cannot currently leave"* and that no roster
+assigns one. The 1,266-row siblings under `ladder_churn_factors*` came from a working tree carrying
+another lane's uncommitted roll and recorder; their producer is not in git. Finding:
+`docs/staging/WORKER_FINDING_AN_EMPTY_SVT_SIBLING_WOULD_HAVE_CERTIFIED_THE_RENEWAL_ROUTE_AS_THE_WHOLE_BOOK_2026-08-31.md`.
 
 Usage:  python3 -m tools.capture_departure_factors [output_path]
 """
 import json
 import sys
 from pathlib import Path
+
+from tools.departure_population import svt_sibling
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
@@ -121,18 +132,69 @@ def main(out_path: Path) -> int:
     # them to describe. Appending them to the renewal table would hand every existing reader rows
     # whose keys are None and let a mean be taken over two populations. Two files, and the reader
     # that wants the whole book unions them deliberately, per the note in `run_phase2b`.
-    svt = result.get("svt_decisions", []) if isinstance(result, dict) else []
-    svt_path = out_path.with_name(out_path.stem + "_svt_segment_decisions.json")
+    return emit_svt_sibling(result, out_path)
+
+
+def emit_svt_sibling(result: object, out_path: Path) -> int:
+    """Write the SVT sibling beside `out_path` — or deliberately not write it. Returns the rc.
+
+    SPLIT OUT OF `main` SO IT CAN BE TESTED WITHOUT RUNNING THE WORLD. The decision below is the
+    whole of the repair and `main` is a ten-minute run; a control that could only reach this by
+    running the world would not have been written, which is how the defect it fixes survived.
+    """
+    # THE DEFAULT WAS THE DEFECT AND IT WAS FOUR CHARACTERS WIDE. This read
+    # `result.get("svt_decisions", [])`, which collapses the two states the whole two-file design
+    # exists to keep apart — *"the recorder ran and nobody drifted off SVT"* and *"there is no
+    # recorder"* — into the SAME empty file. `departure_population.load_svt_decisions` says in its
+    # own docstring that a reader must not have to tell those apart by inference, and this is the
+    # only place in the chain where they are still distinguishable, because only here is the run's
+    # own return dict in scope. Read with NO default so the absence survives as `None`.
+    svt = result.get("svt_decisions") if isinstance(result, dict) else None
+    svt_path = svt_sibling(out_path)
+
+    if svt is None:
+        # NO SIBLING IS WRITTEN, AND NOT WRITING IT IS THE REPAIR. An absent sibling is what makes
+        # `departure_population.declare` report `covers_svt_route: false` with a named reason — and
+        # that is TRUE of this world. `simulation/svt_product.py` says the product exists, that no
+        # roster assigns it, and that *"an account on this product cannot currently leave"*;
+        # `test_svt_product.py::test_no_account_is_on_the_svt_product_yet` holds it there. Writing
+        # `[]` instead would flip every downstream declaration to `covers_svt_route: true`,
+        # `share_of_departures_visible: 1.0`, `causes_not_observable: []` and `warning: null` — the
+        # renewal route certifying its own blind spot as the whole book, off a file that measured
+        # nothing.
+        print(
+            "  ⚠ NO SVT RECORDER IN THIS RUN. `run_phase2b` returned no `svt_decisions` key at "
+            "all, so this run cannot say anything about the SVT departure route — not even that "
+            "it is empty. NO SIBLING FILE WAS WRITTEN, deliberately: every reader downstream will "
+            "now report `covers_svt_route: false` with its reason, which is the honest answer. An "
+            "empty file here would have read as a measured zero.",
+            file=sys.stderr,
+        )
+        if svt_path.exists():
+            # A STALE SIBLING BESIDE A FRESH TABLE IS A CROSS-RUN JOIN AND IT IS REFUSED, NOT
+            # DELETED. The two files would then describe two different runs while every reader
+            # unions them as one capture. Refusing names it; deleting another lane's committed
+            # artefact from inside a capture tool is a bigger blast radius than this needs.
+            print(
+                f"  ✗ REFUSING TO LEAVE {svt_path.name} BESIDE A FRESH RENEWAL TABLE. It was "
+                f"written by a different run — this one has no recorder — and every reader joins "
+                f"the two as one capture. Move it aside, or re-capture to a stem of its own.",
+                file=sys.stderr,
+            )
+            return 2
+        return 0
+
     svt_path.write_text(json.dumps(svt, indent=1))
     departed = sum(1 for r in svt if r.get("event_type") == "churned")
     print(f"captured {len(svt)} SVT segment decisions ({departed} departed) -> {svt_path}")
     if not svt:
-        # LOUD, BECAUSE AN EMPTY SECOND FILE READS EXACTLY LIKE A BOOK WITH NOBODY ON SVT.
+        # A MEASURED ZERO, AND IT IS NOW SAFE TO WRITE ONE. Reaching here means the key was
+        # PRESENT: the recorder ran and found nobody on the product. That is a reading over both
+        # routes which found nothing on one, and `declare_rows` is right to call it coverage.
         print(
-            "  ⚠ NO SVT SEGMENT DECISIONS CAPTURED. Either no account sat on the standard variable "
-            "product in this run, or `run_phase2b` stopped populating `svt_decisions`. Those are "
-            "very different and this tool cannot tell them apart — check before reading any rate "
-            "computed from this file.",
+            "  ⚠ THE SVT RECORDER RAN AND RECORDED NOTHING. Nobody sat on the standard variable "
+            "product in this run. This is a measured zero and not a missing measurement — the "
+            "missing case writes no file at all.",
             file=sys.stderr,
         )
     return 0

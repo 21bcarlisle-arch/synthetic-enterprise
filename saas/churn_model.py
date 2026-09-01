@@ -35,35 +35,31 @@ CONTRACT_LENGTH_DAYS = 365  # matches simulation/settlement.py
 BASE_ANNUAL_CHURN_PROBABILITY = 0.05
 CHURN_UPLIFT_PER_BILL_SHOCK = 0.03
 
-#: THE NAME CARRIES ITS SUBJECT, because it used to carry two (2026-08-31). This caps exactly ONE
-#: model -- base churn plus bill-shock uplift, the arithmetic in `churn_probability` below.
-#: `company/crm/churn_model.py` has its own `MAX_CHURN_PROBABILITY`, deliberately 1.0: that is the
-#: asymptote of the company's own opinion of churn, raised off a hard clamp so genuinely different
-#: elevated risks stay distinguishable (its comment gives the reason at length). NOT SAID HERE IN
-#: THE WORD THAT WOULD MISFILE THIS ONE: `tools/domain_constant_origins._classify` reads the
-#: comment block above an assignment, and prose about a NEIGHBOURING constant's origin is
-#: indistinguishable to it from a declaration about this one. Naming the other model's origin in
-#: this block labelled 0.95 with it, which is exactly backwards. Two concepts, one name, and
-#: nothing at a call site said which you were getting -- so a reader who had met either believed
-#: they knew what the other meant. The repair is a rename, not a reconciliation: the numbers are
-#: allowed to disagree because they are not the same quantity.
-#:
-#: NAMED SIMPLIFICATION, and it is the honest label because nothing establishes 0.95. The
-#: knowledge layer and the market-research anchors were searched on 2026-08-31 for a published
-#: maximum annual churn probability for a domestic account and there is none; the switching record
-#: bounds a MARKET-WIDE annual rate, which is a different quantity from an INDIVIDUAL's response
-#: to their own supplier. What 0.95 asserts is only that no bill-shock history makes departure a
-#: certainty: a residual 5% stay through anything -- inertia, no viable alternative supplier, a
-#: tariff nobody can beat. The world states the same modelling choice in its own words and on its
-#: own side of the wall at `simulation/churn_ceiling.py`, which is where the equivalent world
-#: ceiling lives; the two are deliberately NOT pinned equal, and drift between them is a finding.
-#:
-#: TO DO IT PROPERLY: read the asymptote off the non-switching tail of a real book segmented by
-#: bill-shock count. That needs a household-level switching panel this company cannot see.
-#:
-#: WHICH WAY THE ERROR RUNS: a ceiling BELOW the truth understates churn for the worst-served
-#: accounts, so it flatters retention and, wherever this reaches a price, flatters the price we
-#: believe we can charge. It cannot make us look worse than we are.
+# ORIGIN: A NAMED SIMPLIFICATION (2026-08-31), and this constant is the director's own example of
+# the class -- "a 0.95 churn cap", one of the four he named on 2026-08-30.
+#
+# WHAT WAS LOOKED FOR AND NOT FOUND. The knowledge layer, the market-research anchors and the
+# regulation commons were searched for a residual-inertia ceiling on annual domestic churn: the
+# share of households who do not leave whatever their bill does. Nothing establishes one. What the
+# record does publish is the market-wide annual SWITCHING RATE (roughly 15-23% across 2016-2025),
+# which is a flow across a whole market and not a bound on one household's response to its own
+# supplier -- reading it as this ceiling is the category error `simulation/market_switching_
+# propensity.py` records at its `_MAX_RATE`. So 0.95 is not sourced and was never derived; it is
+# the value all three of the world's copies already carried when `simulation/churn_ceiling.py` was
+# cut out of this module, and that file says the same thing about its own copy.
+#
+# WHICH WAY THE ERROR RUNS: NEITHER, BECAUSE NO CALLER CAN REACH IT. Reaching 0.95 takes 30 bill
+# shocks -- (0.95 - 0.05) / 0.03 -- and `build_churn_risk` counts them in BILLING PERIODS inside a
+# twelve-month window, so it can count at most 12 and `churn_probability` tops out at 0.41. The
+# only other reader, `company.crm.payment_churn_model.combined_churn_probability`, adds at most
+# +0.30 (a CRITICAL payer with low satisfaction) and tops out at 0.71. Printed at those inputs,
+# not argued. The `min()` below therefore never binds, which is why no run this company has ever
+# executed could tell you whether the value is right.
+#
+# TO DO IT PROPERLY takes two things this repository does not have: a sourced residual-inertia
+# figure for the cap to be set against and graded on, and a caller whose reachable range includes
+# it. Until both exist the number is INERT and must not be read as calibrated.
+# Filed: WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31
 MAX_BILL_SHOCK_CHURN_PROBABILITY = 0.95
 
 

@@ -25,7 +25,7 @@ from saas.reporting.arrears_ledger import UNAVAILABLE_NOTE as ARREARS_UNAVAILABL
 from saas.reporting.arrears_ledger import ArrearsLedgerView
 from saas.reporting.arrears_ledger import from_payload as arrears_ledger_from_payload
 from saas.reporting.arrears_ledger import load as load_arrears_ledger
-from tools.departure_population import book_departure_level, declare_rows
+from tools.departure_population import account_denominator_refusal, declare_rows, union_by_year
 from tools.measure_departure_level import published_bands
 
 # The rag a year carries when the arrears numerator's source never loaded. NOT
@@ -137,25 +137,6 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
     `svt_decisions` is `None` when the run output predates the recorder -- NOT an empty list, for
     the reason `departure_population.load_svt_decisions` gives: an unwired recorder and a book with
     nobody on SVT produce the identical artefact.
-
-    AND SINCE 2026-08-31 THE WHOLE-BOOK LEVEL SITS BESIDE IT, from
-    `departure_population.book_departure_level` -- one implementation shared with
-    `tools/measure_departure_level`, because the VAT rule is what five copies of one calculation
-    looks like eighteen months on. `sim_churn_rate` still does not move: it is a renewal-decision
-    rate, it is what this gate's RAG checks and the annual report are computed from, and
-    redefining it underneath them in the commit that adds the comparison would make every
-    downstream move unattributable. `book_expected_departure_rate` is the new quantity and it is
-    the one comparable to `ofgem_benchmark`.
-
-    WHAT THIS GATE STILL CANNOT SHOW, SAID ON EVERY ROW RATHER THAN OWED IN A COMMENT. The year set
-    above is built from `customer_events` alone, so a year in which no account reached a renewal
-    roll is ABSENT from this table entirely even though the book made decisions and lost accounts
-    in it -- 2022 on the 2026-08-31 capture: 198 SVT decisions, 4 departures, and no row here.
-    `book_departure_years_this_gate_cannot_show` names them. They are not silently inserted with a
-    `sim_churn_rate` of 0.0, which is the fail-open shape this module has already been repaired
-    for once: a year with no renewal decisions would publish a measured zero churn and five
-    arithmetic consumers below would average it in. Widening the year set means fail-closing those
-    consumers first, and that is a separate change.
     """
     by_year = {}
     for ev in customer_events:
@@ -179,17 +160,23 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
         if ev.get("event_type") == "churned":
             slot["churns"] += 1
 
-    book_levels, book_refusal = book_departure_level(customer_events, svt_decisions)
-    book_only_years = sorted(
-        y for y in (book_levels or {}) if y not in by_year and (book_levels[y]["accounts"] or 0)
-    )
+    # THE WHOLE-BOOK RATE, BESIDE `sim_churn_rate` AND NEVER INSTEAD OF IT. `sim_churn_rate` is a
+    # renewal-decision rate and stays one, byte for byte: it is a published gate metric and
+    # redefining it here would move a board figure inside the commit that repairs its labelling.
+    # What goes beside it is the quantity `ofgem_benchmark` was always about — departures on BOTH
+    # routes over the ACCOUNTS on the book, which is the record's own numerator and denominator.
+    # Until now nothing in this gate could compute it, so the only rate a reader could compare
+    # against the benchmark was the one that is not comparable to it.
+    renewal_rows = [
+        ev for ev in customer_events if ev.get("event_type") in ("renewed", "churned")
+    ]
+    book_refusal = account_denominator_refusal(renewal_rows, svt_decisions)
+    book = {} if book_refusal else union_by_year(renewal_rows, svt_decisions)
 
     result = {}
     for yr, counts in by_year.items():
         total = counts["renewals"] + counts["churns"]
         svt = svt_by_year.get(yr) if svt_decisions is not None else None
-        book = (book_levels or {}).get(yr)
-        book_rate = book["expected_departure_pct"] if book else None
         visible = (
             None if svt is None or (counts["churns"] + svt["churns"]) == 0
             else round(counts["churns"] / (counts["churns"] + svt["churns"]), 4)
@@ -209,23 +196,19 @@ def _churn_by_year(customer_events: list, svt_decisions: Optional[list] = None) 
             "svt_segment_decisions": None if svt is None else svt["decisions"],
             "svt_departures": None if svt is None else svt["churns"],
             "share_of_departures_in_sim_churn_rate": visible,
-            # THE COLUMN THAT IS ACTUALLY COMPARABLE TO `ofgem_benchmark`, over both routes and on
-            # the account-year denominator the published rate uses. `None` with a reason when the
-            # run could not see both routes -- never the renewal rate under a whole-book name.
-            "book_expected_departure_rate": (
-                None if book_rate is None else round(book_rate / 100.0, 4)
+            # THE COMPARABLE RATE. `None` with a named reason when the two routes cannot be read
+            # on an account denominator — never a fallback to the renewal rate under a
+            # whole-book name, which would be the same figure wearing the label of the thing it
+            # is not. A reader comparing `ofgem_benchmark` against anything should compare it
+            # against this and against nothing else on the row.
+            "book_departure_rate": (
+                round(book[yr]["realised_rate_pct"] / 100.0, 4)
+                if yr in book and book[yr]["realised_rate_pct"] is not None else None
             ),
-            "book_departure_denominator": None if book is None else book["denominator"],
-            "book_departure_denominator_accounts": None if book is None else book["accounts"],
-            # Which way the whole-book figure is wrong, carried beside it: an account facing no
-            # decision in the year cannot depart and is not in the denominator, so this is an
-            # UPPER bound. A year above its benchmark cannot be explained away by the bound.
-            "book_departure_bound": None if book is None else book["bound"],
-            "book_departure_unreadable_reason": book_refusal,
-            # The years the book departed in and this table has no row for, because no account
-            # reached a renewal roll in them. Repeated on every row on purpose: a year is quoted
-            # on its own and an absence recorded one level up does not travel with the quote.
-            "book_departure_years_this_gate_cannot_show": book_only_years,
+            "book_accounts": book[yr]["accounts"] if yr in book else None,
+            "book_departures": book[yr]["departures_total"] if yr in book else None,
+            "book_denominator": book[yr]["denominator"] if yr in book else None,
+            "book_unavailable_reason": book_refusal,
             # Rounded AT EMISSION for the same reason as the multiplier below: the constant
             # stays exactly its per-cent table over 100 so its derivation can be asserted,
             # and a board artefact does not publish 0.17300000000000001.

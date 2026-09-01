@@ -69,6 +69,8 @@ import sys
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STORE = PROJECT_DIR / "docs" / "observability" / ".seat_continuation.json"
 
@@ -102,7 +104,11 @@ def _load(path: Path | None = None) -> list[dict]:
 
 
 def _save(items: list[dict], path: Path | None = None) -> None:
-    store = path or STORE
+    # THE STORE IS A LIVE OBSERVABILITY RECORD, so a test process may not write the real one --
+    # `background/live_ledger_guard` is the choke point and this is its 17th caller. A test that
+    # genuinely exercises the write passes `path=tmp_path / "continuations.json"`, which every
+    # test of this module already does.
+    store = guard_live_ledger_write(path or STORE, writer="seat_continuation._save")
     store.parent.mkdir(parents=True, exist_ok=True)
     store.write_text(json.dumps(items, indent=1) + "\n")
 
@@ -151,14 +157,44 @@ def live(now: float | None = None, path: Path | None = None) -> list[dict]:
 
 
 def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
-    """The ones that timed out unclaimed. Reported, never silently dropped.
+    """The ones that timed out. Reported, never silently dropped — and each says whether it was TAKEN.
 
-    A continuation that expires is the seat having judged something worth doing next and nothing
-    having done it — which is exactly the drag this module exists to remove, so it must be visible
-    rather than swept. `--list` prints them and the count is what says whether this is working.
+    A continuation that expires UNTAKEN is the seat having judged something worth doing next and
+    nothing having done it, which is exactly the drag this module exists to remove. One that expires
+    after a tick drew it is the opposite: the mechanism worked and the record simply outlived the
+    work.
+
+    THIS TOLD ME THE WRONG ONE ON ITS FIRST REAL DAY (2026-08-31). The seat executor's first
+    unattended turn took `union-the-departure-routes-and-declare-the-denominator`, did it, and
+    landed `b8e6ba32d` on origin. Hours later `--list` printed that same id under
+    *"written and never taken; that is the drag, visible"* — because nothing here had ever asked
+    whether it was drawn. The one surface built to say whether the handoff works was reporting its
+    only success as its defining failure.
+
+    `delivery_lane` already knew. `DRAW_LEDGER_FILE` records `first_drawn_at` per id and has since
+    it was built; nothing read it from this side. So this is not new information, it is a join
+    nobody had made — the shape the end-to-end canon exists for.
     """
     cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
-    return [i for i in _load(path) if float(i.get("written_at") or 0.0) < cutoff]
+    stale = [i for i in _load(path) if float(i.get("written_at") or 0.0) < cutoff]
+    return [dict(i, drawn_at=_first_drawn(i.get("id"))) for i in stale]
+
+
+def _first_drawn(work_id) -> float | None:
+    """When a tick first drew this id, or None. Never raises: an unreadable ledger reads as
+    NOT DRAWN, which is the conservative direction -- it reports the drag rather than hiding it
+    behind a file it could not open."""
+    if not work_id:
+        return None
+    try:
+        from background import delivery_lane
+
+        raw = json.loads(delivery_lane.DRAW_LEDGER_FILE.read_text())
+        entry = raw.get(work_id) or {}
+        drawn = entry.get("first_drawn_at")
+        return float(drawn) if drawn else None
+    except Exception:  # noqa: BLE001 - the draw ledger must never cost a caller its answer
+        return None
 
 
 def drop(work_id: str, path: Path | None = None) -> bool:
@@ -195,9 +231,20 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
         age = (time.time() - float(item["written_at"])) / 3600.0
         print(f"  LIVE     {item['id']}  ({age:.1f}h old)\n           {item['what'][:110]}")
     for item in expired():
-        print(f"  EXPIRED  {item['id']}  — written and never taken; that is the drag, visible")
+        # TWO OUTCOMES, NOT ONE. An expiry after a draw is the mechanism working; an expiry with
+        # no draw is the drag. Printing both as the second turned this module's only success into
+        # its defining failure on the day it first worked.
+        if item.get("drawn_at"):
+            age = (time.time() - float(item["drawn_at"])) / 3600.0
+            print(f"  DONE     {item['id']}  — drawn by a tick {age:.1f}h ago and aged out; "
+                  "the handoff worked")
+        else:
+            print(f"  EXPIRED  {item['id']}  — written and never taken; that is the drag, visible")
     return 0
 
 
 if __name__ == "__main__":  # pragma: no cover
+    from background._seat import refuse_if_foreign  # seat guard, FIRST act
+
+    refuse_if_foreign("seat_continuation")
     raise SystemExit(main())

@@ -21,6 +21,13 @@ from __future__ import annotations
 from typing import Optional
 
 from company.crm.payment_behaviour_analytics import BehaviourScore
+
+# ASKED FOR, NOT RE-DECLARED (2026-08-31): `satisfaction_accumulator` owns the question -- it
+# exposes `is_low_satisfaction()` -- so it owns the threshold. Two modules answering one
+# question is how they drift apart without either looking wrong.
+from company.crm.satisfaction_accumulator import (
+    LOW_SATISFACTION_THRESHOLD as _LOW_SATISFACTION_THRESHOLD,
+)
 from saas.churn_model import MAX_BILL_SHOCK_CHURN_PROBABILITY, churn_probability
 
 CHURN_UPLIFT_BY_SCORE: dict[BehaviourScore, float] = {
@@ -32,7 +39,8 @@ CHURN_UPLIFT_BY_SCORE: dict[BehaviourScore, float] = {
 }
 
 _HIGH_SATISFACTION_THRESHOLD = 0.80
-_LOW_SATISFACTION_THRESHOLD = 0.50
+# `_LOW_SATISFACTION_THRESHOLD` is imported at the top of this file -- see the note there.
+
 _HIGH_SATISFACTION_UPLIFT = -0.02
 _LOW_SATISFACTION_UPLIFT = +0.10
 

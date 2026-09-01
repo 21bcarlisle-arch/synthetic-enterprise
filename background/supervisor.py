@@ -381,6 +381,20 @@ _IGNORED_STAGING_NAMES = {".gitkeep"}
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = f"\n- [{ts}] {msg}"
+    # A TEST PROCESS MAY NOT APPEND TO THE LIVE SUPERVISOR LOG (2026-08-31). `tests/background/`
+    # has redirected `LOG_FILE` for a while, but any test OUTSIDE that directory that reaches
+    # supervisor code -- `test_canon_drift_check`, `test_discovery_pass_ceiling` -- wrote the real
+    # ledger. That log is what a reader consults to find out what the machine drew and when; the
+    # whole point of making `docs/observability` a surface is that such a record is evidence.
+    #
+    # BOTH HALVES: a test process writing a LIVE record, not a test process writing at all, so the
+    # directory fixture that redirects `LOG_FILE` to tmp still exercises the real `log()`.
+    # PRINTED REGARDLESS -- a test that drives the supervisor should still see its narration.
+    from background.live_ledger_guard import in_test_process, is_live_record_path
+
+    if in_test_process() and is_live_record_path(LOG_FILE):
+        print(entry)
+        return
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(entry)

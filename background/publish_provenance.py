@@ -165,6 +165,55 @@ def _commit_exists(sha: str, repo_root: Path = None) -> bool:
         return False
 
 
+#: What the page has to be able to say about the run it names. See `population_of`.
+POPULATION_FIELDS = ("accounts", "bills", "total_revenue_gbp")
+
+#: Where a run artefact would live if it were retained.
+RUN_DIR = PROJECT_DIR / "docs" / "reports"
+
+
+def population_of(run: dict) -> dict:
+    """The three counts that make a published surface CHECKABLE against the run it came from.
+
+    WHY A POPULATION AND NOT THE RUN ITSELF (2026-08-31). The provenance record already names the
+    run -- `showing_run.run_id` -- and already refuses a run_id that is fixture vocabulary or a
+    git_commit that names no commit. It never asked whether the RUN existed. Measured on
+    `origin/main`: the page published `verification_state: "verified"` and
+    `showing_run: run_output_5ccc0e0c8_20260831T130500Z.json`, and **that file is in no commit**.
+    The newest run artefact the tree tracks is dated 18 June; the newest publish commit that
+    carried one is 2026-07-29. So the public claim was "verified, showing run X" where X was
+    unfindable, and the derived surfaces had drifted a month ahead of the inputs on origin --
+    `site/data/customers.json` publishing 251 households while `run_output_latest.json` in the same
+    commit holds 19.
+
+    RETAINING THE RUN IS NOT THE ANSWER: the live artefact is **27 MB**, and committing one per
+    publish would put a gigabyte of machine output into git within a month. That is why nobody's
+    pathspec sweeps it, and no amount of discipline will change the arithmetic.
+
+    So the page carries the run's POPULATION instead -- three numbers, a few dozen bytes -- and the
+    claim becomes falsifiable without the artefact: `site/data/customers.json` must publish the
+    account count this says the run had. A reader can check the page against itself. That is
+    strictly weaker than reproducing the run and strictly stronger than naming a file nobody can
+    open, and the difference between those two is the whole of this change.
+    """
+    pcl = run.get("per_customer_lifetime") or {}
+    return {
+        "accounts": len(pcl),
+        "bills": len(run.get("bills") or []),
+        "total_revenue_gbp": round(float(run.get("total_revenue_gbp") or 0.0), 2),
+    }
+
+
+def run_is_retained(run_id, root: Path = None) -> bool:
+    """Is the named run artefact actually present? Absent/unreadable reads as NOT retained."""
+    if not isinstance(run_id, str) or not run_id:
+        return False
+    try:
+        return (Path(root or RUN_DIR) / run_id).is_file()
+    except (OSError, ValueError):
+        return False
+
+
 def publishable_violations(state, *, repo_root: Path = None, check_commit_exists=True) -> list:
     """Every reason `state` must not be published. Empty list == publishable.
 
@@ -198,6 +247,29 @@ def publishable_violations(state, *, repo_root: Path = None, check_commit_exists
         elif check_commit_exists and not _commit_exists(sha, repo_root):
             out.append("{}.git_commit names no commit in this repo: {!r} (an unavailable git "
                        "reads as absent -- fail-closed)".format(field, sha))
+
+        # THE PAGE MUST BE ABLE TO SAY WHAT THE RUN CONTAINED (2026-08-31). Everything above
+        # checks the run's NAME; nothing checked that the name meant anything. A stamp naming a
+        # run nobody can open is publishable only if it also carries the run's population, which
+        # is what makes the claim checkable against the surfaces shipped beside it. See
+        # `population_of` for the measurement that forced this and why the artefact itself cannot
+        # be retained.
+        pop = stamp.get("population")
+        if not isinstance(pop, dict):
+            out.append("{}.population is missing: the page would name a run and say nothing "
+                       "about what was in it, so no reader could check the figures beside it "
+                       "against it".format(field))
+        else:
+            missing = [k for k in POPULATION_FIELDS if not isinstance(pop.get(k), (int, float))]
+            if missing:
+                out.append("{}.population is incomplete: {}".format(field, ", ".join(missing)))
+            elif not pop.get("accounts"):
+                out.append("{}.population.accounts is zero -- a publish of nothing is not a "
+                           "verification".format(field))
+        if "run_retained" not in stamp:
+            out.append("{}.run_retained is unstated: whether the run is in the tree is the "
+                       "difference between a reproducible claim and a citation, and the page "
+                       "may not leave a reader to assume the better one".format(field))
     return out
 
 
@@ -294,7 +366,8 @@ def _write(state: dict, path: Path = None, now=None) -> dict:
     return state
 
 
-def record_verified(*, run_id, git_commit, generated_at=None, path: Path = None, now=None) -> dict:
+def record_verified(*, run_id, git_commit, generated_at=None, population=None,
+                    path: Path = None, now=None) -> dict:
     """A publish completed with the scoped gate GREEN. The ONLY freshness advance there is."""
     state = read(path)
     stamp = {
@@ -302,6 +375,12 @@ def record_verified(*, run_id, git_commit, generated_at=None, path: Path = None,
         "git_commit": git_commit,
         "generated_at": generated_at or _now_iso(now),
         "verified_at": _now_iso(now),
+        # STATED, NEVER ASSUMED. `population` makes the claim checkable against the surfaces
+        # published beside it; `run_retained` says whether the run itself can be opened. A
+        # publisher that cannot supply the population is refused below rather than allowed to
+        # publish a name with nothing behind it.
+        "population": dict(population) if isinstance(population, dict) else None,
+        "run_retained": bool(run_is_retained(run_id)),
     }
     # REFUSE AT THE WRITE, as well as at the commit (below, in the publisher). This is the
     # shape check only -- deliberately NOT the commit-existence check, because this runs inside
@@ -393,8 +472,19 @@ def banner_line(state=None, now=None) -> str:
     showing = state.get("showing_run") or {}
     run = showing.get("run_id") or "unknown"
     if state.get("verification_state") == STATE_VERIFIED:
-        return "Verified {} · showing run {}".format(
-            showing.get("verified_at") or "unknown", run)
+        # WHAT THE RUN CONTAINED, AND WHETHER IT CAN BE OPENED (2026-08-31). "showing run X" was
+        # a citation to a 27 MB artefact that is not retained, and for a month X named nothing at
+        # all. The population makes the sentence checkable against the figures beside it; the
+        # not-retained clause stops a reader assuming they could go and look.
+        pop = showing.get("population") or {}
+        detail = ""
+        if pop.get("accounts"):
+            detail = " over {:,} accounts and {:,} bills".format(
+                int(pop["accounts"]), int(pop.get("bills") or 0))
+        if showing.get("run_retained") is False:
+            detail += " (the run itself is not retained in the repository)"
+        return "Verified {} · showing run {}{}".format(
+            showing.get("verified_at") or "unknown", run, detail)
     since = state.get("paused_since") or "unknown"
     return "Verification paused since {} · showing run {} (last verified {})".format(
         since, run, (state.get("last_verified") or {}).get("verified_at") or "never")

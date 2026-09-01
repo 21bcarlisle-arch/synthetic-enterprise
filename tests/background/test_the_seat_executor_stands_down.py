@@ -301,3 +301,53 @@ def test_the_only_thing_that_invokes_it_is_the_declared_schedule():
         f"the declared schedule is missing: {sorted(_ARMED_BY - set(invokers))}. An armed executor "
         "with no unit is a handoff mechanism nobody fires, which is the drag it was built to remove."
     )
+
+
+# ── A RELEASED CLAIM DISCHARGES THE HANDOFF (2026-08-31) ─────────────────────────────────────────
+# The first handoff this executor ever took was drawn TWICE — 18:12 and again at 19:06 on the same
+# id — because `seat_continuation` re-offers a live continuation on every tick until its six-hour
+# window closes, and nothing told it the work was done. The two stores had never spoken.
+#
+# Re-offering is DELIBERATE while work is unfinished: the charter tells a tick to land the part it
+# finished, so a piece bigger than one turn must come back. The signal is therefore not "a turn
+# ended" but "the tick said it was done", which is what releasing the lane claim means.
+
+def test_a_turn_that_released_its_claim_discharges_the_handoff(monkeypatch, tmp_path):
+    """MUTATION: drop the discharge and this fires — the continuation survives a finished turn."""
+    from background import seat_continuation
+
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    seat_continuation.hand_off("done-and-released", what="w", why="y", done_means="d")
+    monkeypatch.setattr(seat_executor.delivery_lane, "held", lambda *a, **k: set())
+
+    assert seat_executor._still_claimed("done-and-released") is False
+    assert seat_executor.seat_continuation_drop("done-and-released") is True
+    assert [i["id"] for i in seat_continuation.live()] == []
+
+
+def test_a_turn_that_KEPT_its_claim_leaves_the_handoff_standing(monkeypatch, tmp_path):
+    """THE LEG THAT PROTECTS MULTI-TURN WORK. A tick that landed an increment and did not release
+    has said the piece is unfinished; dropping the continuation there would lose the seat's
+    judgement about what comes next and leave the rest of the work unowned."""
+    from background import seat_continuation
+
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    seat_continuation.hand_off("still-going", what="w", why="y", done_means="d")
+    monkeypatch.setattr(seat_executor.delivery_lane, "held", lambda *a, **k: {"still-going"})
+
+    assert seat_executor._still_claimed("still-going") is True
+    assert [i["id"] for i in seat_continuation.live()] == ["still-going"]
+
+
+def test_an_unreadable_claim_store_keeps_the_handoff(monkeypatch):
+    """Conservative in the direction that costs a REPEAT rather than a LOSS.
+
+    Mistakenly discharging loses the seat's judgement about what comes next; mistakenly keeping
+    costs a tick that finds the work already done and says so. The second is much the cheaper
+    error, so an unreadable store reads as STILL CLAIMED.
+    """
+    def _explode(*a, **k):
+        raise RuntimeError("claims unreadable")
+
+    monkeypatch.setattr(seat_executor.delivery_lane, "held", _explode)
+    assert seat_executor._still_claimed("anything") is True

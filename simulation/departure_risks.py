@@ -113,6 +113,26 @@ UNMODELLED_EXIT_FEE_IMPORTANCE = 0.22
 #: makes the company's advantage harder to demonstrate -- the higher rate is the harder world: the
 #: company loses accounts it has NO renewal lever on, since an SVT account has no renewal to price.
 #: It is pure loss with no instrument against it, and it shrinks the book the A/B is measured on.
+#:
+#: THESE ARE ABSOLUTE RATES AND THEY CARRY A BASE YEAR: 2019-20. §4 states its basis on the
+#: all-customer row the segment rows must average to -- "DESNZ: ~6M switches / ~28M accounts
+#: (2019-20)" -- which is the published band's own numerator and denominator. The base year is
+#: recorded HERE because an absolute rate whose base year lives in someone else's table gets
+#: composed with a ratio that has a different one.
+#:
+#: SO ANY MARKET TERM ADDED HERE MUST DIVIDE BY THE BASE YEAR'S MULTIPLIER, NOT MERELY MULTIPLY BY
+#: THE YEAR'S. `market_switching_multiplier` is normalised to `MULTIPLIER_REFERENCE_YEAR = 2024`,
+#: and the record puts 2019-20 at 1.3758x of 2024. The repair filed at `18a09617d` is written
+#: `floor * market_switching_multiplier(year)`, which levels a 2019-20 rate up into the market it
+#: was already measured in: 0.20 becomes 0.2857 at 2020, against a source figure of 0.20. The
+#: correct form is `floor * market_switching_multiplier(year) / 1.3758`.
+#:
+#: THE ERROR IS A CONSTANT FACTOR, SO NO YEAR-SHAPED CHECK CAN SEE IT, and it is exactly zero at
+#: 2024 -- the reference year, where `multiplier` is 1.00 by definition and the naive form looks
+#: like it did nothing. That is the year a reader spot-checks. Measured and written up at
+#: `docs/staging/WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_2019_20_RATE_2026-08-31.md`.
+#: No production caller composes the two today, so nothing is mis-levelled yet; this is here to
+#: stop the filed repair being implemented in its filed form.
 SVT_INERTIA_ANNUAL_RECENT = 0.20
 SVT_INERTIA_ANNUAL_LONG_STAYER = 0.10
 #: The published boundary between the two bands, in years on SVT.

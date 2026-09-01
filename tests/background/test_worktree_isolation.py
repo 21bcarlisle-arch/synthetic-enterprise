@@ -271,3 +271,61 @@ def test_per_tree_lock_differs_across_worktrees_by_design(tmp_path):
     # shared lock DOES vary with the repo it is asked about, and is a distinct
     # location from the per-tree lock.
     assert tl.shared_lock_file(main) != tl.LOCK_FILE
+
+
+# ── THE SUITE MUST BE RUNNABLE IN A WORKTREE (2026-08-31) ────────────────────────────────────────
+# The first unattended writer gates its landings inside `/var/tmp/se-seat-executor`. Measured on an
+# unmodified origin/main checkout that day: running tests THERE produced **31 errors across nine
+# modules** that are green in the main repo, all from one line — `_real_repo_head` shelled out to
+# `git rev-parse HEAD` when `.git` was a file, and every test that stubs `subprocess.run` answered
+# that call with a Mock. HEAD then appeared to move from a real sha to "unreadable" and the
+# anti-commit tripwire failed closed with GHOST PUSHER (unattributable).
+#
+# The no-`.git` case had already been fixed exactly this way, with a comment saying why; the
+# worktree case was left shelling out. In the main repo `.git` is a directory, the reader never
+# shells out, and nobody could see it.
+
+def test_the_head_reader_survives_a_stubbed_subprocess():
+    """THE DEFECT ITSELF: a stubbed `subprocess.run` must not make HEAD unreadable.
+
+    This is what every one of those 31 tests does before touching the publish path. If the reader
+    goes near a subprocess, the stub answers and the tripwire blames the test for a move it
+    invented.
+
+    MUTATION: put `subprocess.run(["git", "rev-parse", "HEAD"], …)` back into the worktree branch
+    of `_real_repo_head` and this fires when run from a worktree.
+    """
+    import subprocess as _sp
+    from unittest import mock
+
+    from tests.background import conftest as ct
+
+    with mock.patch.object(_sp, "run", side_effect=AssertionError(
+            "_real_repo_head must not shell out -- a stubbed subprocess answers this call")):
+        head = ct._real_repo_head()
+
+    assert head, "the head reader returned nothing at all"
+    assert head != "unreadable", (
+        "HEAD read as unreadable with subprocess stubbed. In a worktree this makes the "
+        "anti-commit tripwire fail closed on every test that stubs subprocess -- 31 of them."
+    )
+
+
+def test_the_head_reader_agrees_with_git_wherever_it_runs():
+    """Correctness, not merely non-emptiness: the sha it reads is the sha git reports.
+
+    Holds in BOTH layouts — a `.git` directory and a `.git` file — because this is the one reader
+    the tripwire's whole verdict rests on, and a fast wrong answer is worse than a slow right one.
+    """
+    import subprocess
+
+    from tests.background import conftest as ct
+
+    expected = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=str(ct.REPO_ROOT),
+        capture_output=True, text=True, timeout=30,
+    ).stdout.strip()
+    if not expected:
+        import pytest as _pytest
+        _pytest.skip("no git HEAD available here")
+    assert ct._real_repo_head() == expected

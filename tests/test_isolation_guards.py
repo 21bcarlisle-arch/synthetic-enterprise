@@ -172,6 +172,75 @@ def test_the_guards_coverage_set_is_a_single_source():
     assert all(t.startswith(str(_REPO)) for t in targets)
 
 
+def test_gt2_blocks_a_narrative_ledger_nobody_listed():
+    """`docs/observability` BECAME A SURFACE, and the reason is worth being exact about because the
+    guard already "covered" this directory.
+
+    It covered nine hand-listed dotfiles — every one runtime CONTROL STATE, every one added after a
+    test had already written it. The narrative `*.md` ledgers, which are the record of what the
+    machine actually did, were not covered at all. Measured: `autonomous-runner-log.md` was 27,675
+    lines of which **6,421 (23%) were written by pytest**, for a module that had not RUN since
+    2026-07-08.
+
+    THE COST WAS NOT A PUBLISHED FIGURE. The delivery seat read those lines to answer a direct
+    question about why autonomous turns were not firing and reported a usage limit to the director.
+    There was none. **A record a test can write is not a record.**
+
+    AND THE FILE-BY-FILE VERSION HAD A HOLE NO LIST COULD CLOSE: the refusal that found
+    `console_sanctity` named `.sanctified_consoles.json.tmp` — the SIBLING an atomic write goes to
+    before `os.replace`. A guard on the destination leaves the sibling open, for every atomic writer
+    in the tree.
+
+    The file named here is one nobody listed: `.md` under the surface, not a dotfile anyone had been
+    burned by yet."""
+    probe = _REPO / "docs" / "observability" / _UNGUARDED_WOULD_RAISE_NOT_WRITE / "a-daemon-log.md"
+    with pytest.raises(RuntimeError, match="G-T2"):
+        probe.write_text("- [2026-08-31 00:00 UTC] a test wrote this into the record\n")
+    with pytest.raises(RuntimeError, match="G-T2"):
+        open(probe, "a")
+
+
+@pytest.mark.parametrize("fingerprint", ("MagicMock", "/tmp/pytest-of-", "pytest-of-rich"))
+def test_no_live_ledger_carries_a_test_process_fingerprint(fingerprint):
+    """THE ARTEFACT, not the writer — because the sink only catches the primitives it patches.
+
+    `install()` patches thirteen write primitives and the surface list now covers this directory,
+    so the KNOWN routes are closed. This leg asks the other question: whatever the route, does the
+    record on disk contain the marks of a test process? It covers a writer nobody wired, a
+    primitive nobody patched, and a module written tomorrow — the three ways every previous fix
+    in this file was found to be one level too low.
+
+    IT HAS A POPULATION FLOOR. A scan that finds nothing because it scanned nothing passes
+    vacuously, and this repo has shipped that shape more than once: the floor is what makes the
+    green mean something. Ledgers were cleaned on 2026-08-31 (6,421 + 825 + 150 lines); this is
+    what keeps them clean.
+    """
+    ledger_dir = _REPO / "docs" / "observability"
+    ledgers = sorted(ledger_dir.glob("*.md"))
+    assert len(ledgers) >= 40, (
+        f"population floor: only {len(ledgers)} ledger(s) found under {ledger_dir}. A scan with "
+        "no subjects is not a pass — either the directory moved or the glob stopped matching."
+    )
+
+    offenders = []
+    for path in ledgers:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        hits = sum(1 for line in text.splitlines() if fingerprint in line)
+        if hits:
+            offenders.append(f"{path.name}: {hits} line(s)")
+
+    assert not offenders, (
+        f"a test process has written the live record — {fingerprint!r} appears in: "
+        + "; ".join(offenders)
+        + ". Redirect the module's path constant to tmp_path in the test that writes it (see "
+        "tests/background/test_autonomous_runner.py::_ledger_to_tmp). These files are what a "
+        "human reads when they need to know what actually happened."
+    )
+
+
 def test_gt2_allows_tmp_writes(tmp_path):
     (tmp_path / "x.json").write_text("ok")
     assert (tmp_path / "x.json").read_text() == "ok"

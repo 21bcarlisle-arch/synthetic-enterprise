@@ -1915,6 +1915,37 @@ def _materialise_head_into(dest: Path, head_sha: str) -> bool:
     return _make_checkout_a_repo(dest, head_sha)
 
 
+def _object_store() -> Path:
+    """The repo's real object directory, which is NOT always `<project>/.git/objects`.
+
+    IN A LINKED WORKTREE `.git` IS A FILE, not a directory, so the literal path does not exist and
+    `git read-tree` refuses the alternates line with "unable to normalize alternate object path".
+    The publish gate could therefore not materialise HEAD from ANY worktree, and returned None --
+    which `_head_checkout`'s caller correctly reads as "the gate cannot run". That is every landing
+    made from an isolated writer through `tools/surgical_land`, i.e. the whole route
+    `background/seat_executor` and `tools/promote_worktree_landing` exist to use. It was found by
+    a merge commit refusing in the worktree it was being reconciled in.
+
+    ASKED OF GIT RATHER THAN ASSEMBLED FROM `PROJECT_DIR`, because git is the only thing that knows
+    where the common directory is; a worktree's `.git` file can point anywhere.
+
+    WHEN GIT CANNOT SAY, this returns the legacy path -- deliberately, and it is not a fail-open:
+    it reproduces exactly today's behaviour, and the caller's existing fail-closed branch still
+    refuses to run the gate on a checkout that could not be built.
+    """
+    try:
+        r = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
+                           capture_output=True, text=True, timeout=30)
+        if r.returncode != 0 or not r.stdout.strip():
+            return PROJECT_DIR / ".git" / "objects"
+        common = Path(r.stdout.strip())
+        if not common.is_absolute():
+            common = (PROJECT_DIR / common).resolve()
+        return common / "objects"
+    except (OSError, subprocess.SubprocessError):
+        return PROJECT_DIR / ".git" / "objects"
+
+
 def _checkout_is_usable(path: Path) -> bool:
     """Is this an existing checkout this process can legitimately refresh in place?
 
@@ -1925,7 +1956,7 @@ def _checkout_is_usable(path: Path) -> bool:
         if not (path / ".git" / "HEAD").is_file():
             return False
         alternates = path / ".git" / "objects" / "info" / "alternates"
-        return alternates.read_text().strip() == str(PROJECT_DIR / ".git" / "objects")
+        return alternates.read_text().strip() == str(_object_store())
     except OSError:
         return False
 
@@ -2176,7 +2207,7 @@ def _make_checkout_a_repo(checkout: Path, head_sha: str) -> bool:
             return False
         alternates = checkout / ".git" / "objects" / "info" / "alternates"
         alternates.parent.mkdir(parents=True, exist_ok=True)
-        alternates.write_text(str(PROJECT_DIR / ".git" / "objects") + "\n")
+        alternates.write_text(str(_object_store()) + "\n")
         (checkout / ".git" / "HEAD").write_text(head_sha + "\n")
         read_tree = subprocess.run(["git", "read-tree", head_sha], cwd=str(checkout),
                                    capture_output=True, text=True, timeout=120)
@@ -5815,7 +5846,27 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
         # demonstrated close of a real episode -- a green gate with no wedge behind it has no
         # list to score, and scoring it would pad the denominator with free wins.
         if episode_closed and had_state:
-            _measure_suspect_list(prev, float(now) if now is not None else time.time())
+            # SCORING THE LIST MAY NOT DECIDE WHETHER THE WEDGE CLEARS (2026-08-31).
+            #
+            # `_measure_suspect_list` writes `.wedge_suspect_hit_rate.json` -- a DIAGNOSTIC about
+            # how good this pipeline's guesses were. It sat un-wrapped, one line above the clear,
+            # inside the function's outer `except`: so any failure to write that side-file
+            # abandoned the whole function and `_write_publish_gate_state` never ran. The observable
+            # behaviour of "the hit-rate file is unwritable" was **the publish gate stays wedged**,
+            # with `episode_failures` still standing and only a swallowed log line to say why.
+            #
+            # A full disk, a read-only mount, or a permissions change on docs/observability were
+            # all enough. Found when the test-isolation sink began refusing that write and three
+            # tests reported "a clean publish must CLEAR the wedge streak" -- the tests were right
+            # and had been describing a real failure mode nobody had reached yet.
+            #
+            # Same class as the lane wall hook found the same afternoon: a control that enforces
+            # only while an auxiliary WRITE succeeds. Fail-closed on unreadable input is a rule
+            # here; this is its mirror and had no rule at all.
+            try:
+                _measure_suspect_list(prev, float(now) if now is not None else time.time())
+            except Exception as exc:  # noqa: BLE001 - diagnostics may never gate a recovery
+                log("Suspect-list scoring skipped (the wedge still clears): {}".format(exc))
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
                                    "episode_failures": 0, "cited_findings": [], "suspects": {}},
                                   episode_closed=episode_closed)
@@ -6300,8 +6351,14 @@ def _process(marker_path_str):
     # there is, and it is reachable only from here, downstream of a green scoped gate.
     try:
         from background import publish_provenance as _prov
+        # THE POPULATION TRAVELS WITH THE CLAIM (2026-08-31). The publisher already holds the run
+        # it is about to attribute the page to, so it costs one dict to say what was in it. Without
+        # this the page names a run and says nothing about it -- and the run itself is 27 MB and is
+        # not retained, so "showing run X" was a citation nobody could follow. See
+        # `publish_provenance.population_of`.
         _state = _prov.record_verified(
             run_id=json_path.name, git_commit=git_hash,
+            population=_prov.population_of(data),
             generated_at=(data.get("meta") or {}).get("generated_at"))
         log("Provenance: {}".format(_prov.banner_line(_state)))
     except Exception as exc:  # noqa: BLE001 -- provenance must never break a green publish

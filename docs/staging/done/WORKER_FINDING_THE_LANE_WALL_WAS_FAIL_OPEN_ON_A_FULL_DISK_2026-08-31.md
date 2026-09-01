@@ -39,6 +39,13 @@ refuse:
 
 The allowed call is identical in every respect except whether a *diary entry* could be written.
 
+## The conditions that reach it, none of them exotic — and one of them happened the same evening
+
+**`/tmp` on this machine filled while this finding was being written.** Three test suites running
+concurrently exhausted a 12 GB tmpfs, and for several minutes every process on the box that tried to
+write a file failed with ENOSPC. That is precisely the state in which a control whose refusal path
+writes a log stops refusing. It is not a scenario; it is Monday evening.
+
 ## The conditions that reach it, none of them exotic
 
 A read-only mount. A full disk — and `background/disk_headroom.py` exists because this machine has

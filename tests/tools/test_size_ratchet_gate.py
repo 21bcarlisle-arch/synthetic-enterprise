@@ -46,6 +46,20 @@ def _clone_body(name: str, n: int = 14) -> str:
     return "\n".join(lines) + "\n"
 
 
+@pytest.fixture(autouse=True)
+def _warn_log_to_tmp(tmp_path: Path, monkeypatch):
+    """The warn log goes to tmp for every test here, not just the three that remembered.
+
+    Three of these tests wrote `docs/observability/size_ratchet_warnings.jsonl` -- the LIVE one --
+    with fixture violations against a fixture repo, while a fourth carefully redirected it and
+    restored the constant in a `finally`. That inconsistency is the shape: whoever added the next
+    test would have had to notice. `docs/observability` is a protected surface since 2026-08-31 and
+    the write is refused outright; this makes the tests legitimate rather than merely blocked.
+    """
+    monkeypatch.setattr(gate, "WARN_LOG_PATH", tmp_path / "size_ratchet_warnings.jsonl")
+    monkeypatch.setattr(size_ratchet, "WARN_LOG_PATH", tmp_path / "size_ratchet_warnings.jsonl")
+
+
 @pytest.fixture()
 def repo(tmp_path: Path) -> Path:
     """A throwaway git repo shaped like the real one: two scope roots, a baseline, a HEAD."""

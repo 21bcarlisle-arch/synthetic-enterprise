@@ -113,6 +113,102 @@ def _is_generated(rel: str, untracked: bool = False) -> bool:
     return rel.startswith(GENERATED_PREFIXES) or _is_runtime_state(rel)
 
 
+#: THE BASE THIS MODULE MEASURES AGAINST, and why reading it is not optional.
+#:
+#: `git status` answers against local `HEAD`. On 2026-09-01 local `HEAD` stood 15 commits ahead
+#: of `origin/main` and 20 behind it, and 9 of the files counted here as squatting were
+#: byte-identical to `origin/main` -- landed, pushed work that the local base cannot see.
+#: `background/autonomous_runner.py` was one: it paged four reds through two consecutive
+#: operational-layer signals while being exactly what is on the trunk, and two of those four
+#: tests do not even exist at local HEAD. A direction was issued to "land or park" another such
+#: file, and the tick that drew it spent its turn proving the premise false.
+#:
+#: So "diverges from HEAD" is TWO different findings wearing one number, and they have opposite
+#: repairs: one is a lane's unfinished work, the other is a stale base. This module already
+#: refuses to report a count when `git status` cannot answer; a count that cannot separate those
+#: two is unavailable in the same way, and is refused the same way.
+REMOTE_BASE = "origin/main"
+
+
+def _base_state(project_dir: Path | None = None) -> tuple[dict | None, str]:
+    """How far local `HEAD` is from `origin/main`. Three answers, and the third is the refusal.
+
+      * `({"behind": n, "ahead": n}, "")` — the trunk is there and was read.
+      * `({"no_remote_base": True}, "")` — there is NO `origin/main` in this repo. Not a failure:
+        a checkout with no remote (the publish gate archives HEAD into exactly one) has no trunk
+        to be stale against, so the count is measured against the only base there is. It is
+        published as this rather than as `behind: 0` so no reader can mistake "nothing to be
+        behind" for "up to date with the trunk".
+      * `(None, reason)` — the ref EXISTS and git still could not answer. That one is a refusal.
+
+    Keeping the second case out of the refusal is the difference between a control and a nuisance:
+    scoped any wider it reds every consumer in every archive checkout, which is a control failing
+    against a passer-by rather than against its own defect.
+    """
+    root = project_dir or PROJECT_DIR
+    try:
+        present = subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", "refs/remotes/{}".format(REMOTE_BASE)],
+            cwd=str(root), capture_output=True, text=True, timeout=60)
+        if present.returncode != 0:
+            return {"no_remote_base": True}, ""
+        out = subprocess.run(
+            ["git", "rev-list", "--count", "--left-right", "{}...HEAD".format(REMOTE_BASE)],
+            cwd=str(root), capture_output=True, text=True, timeout=60)
+    except Exception as exc:  # noqa: BLE001 -- TimeoutExpired/OSError are "git could not answer"
+        return None, "{}: {}".format(type(exc).__name__, exc)
+    if out.returncode != 0:
+        return None, "{} exists but cannot be read (git rev-list rc={}: {})".format(
+            REMOTE_BASE, out.returncode,
+            (out.stderr or "").strip().splitlines()[0] if out.stderr else "no stderr")
+    parts = out.stdout.split()
+    if len(parts) != 2 or not all(p.isdigit() for p in parts):
+        return None, "git rev-list {}...HEAD returned unreadable output {!r}".format(
+            REMOTE_BASE, out.stdout.strip()[:80])
+    return {"behind": int(parts[0]), "ahead": int(parts[1])}, ""
+
+
+def paths_already_on_origin(project_dir: Path | None,
+                            paths: list[str]) -> list[str] | None:
+    """Of `paths`, those whose WORKING-TREE bytes are identical to `origin/main`'s.
+
+    These are not squatting and naming them as such is the defect. They are work that reached the
+    trunk while this checkout's `HEAD` stayed behind it.
+
+    HASHED, NOT DIFFED, and the difference is load-bearing: `git diff origin/main -- <path>`
+    ignores an UNTRACKED path entirely, so a file that is tracked upstream and untracked here --
+    the commonest shape of this artefact -- would come back "no difference" and be counted as
+    already-landed without anything having compared it. Hashing the working file against the
+    upstream blob compares the only two things that matter, and cannot answer for a path it did
+    not read. Returns None when git could not answer, so the caller can refuse rather than guess.
+    """
+    root = project_dir or PROJECT_DIR
+    if not paths:
+        return []
+    existing = [p for p in paths if (root / p).is_file()]
+    if not existing:
+        return []
+    try:
+        tree = subprocess.run(["git", "ls-tree", "-r", REMOTE_BASE],
+                              cwd=str(root), capture_output=True, text=True, timeout=120)
+        hashed = subprocess.run(["git", "hash-object", "--", *existing],
+                                cwd=str(root), capture_output=True, text=True, timeout=120)
+    except Exception:  # noqa: BLE001 -- an unanswerable git is a refusal, handled by the caller
+        return None
+    if tree.returncode != 0 or hashed.returncode != 0:
+        return None
+    upstream: dict[str, str] = {}
+    for line in tree.stdout.splitlines():
+        meta, _, rel = line.partition("\t")
+        bits = meta.split()
+        if rel and len(bits) >= 3 and bits[1] == "blob":
+            upstream[rel.strip().strip('"')] = bits[2]
+    local = hashed.stdout.split()
+    if len(local) != len(existing):
+        return None
+    return sorted(p for p, sha in zip(existing, local) if upstream.get(p) == sha)
+
+
 def changed_paths(project_dir: Path | None = None) -> list[str] | None:
     """Repo-relative paths differing from HEAD (tracked modifications AND untracked files),
     generated artefacts excluded. Untracked counts: KNIFE2's new seam module was untracked, and
@@ -198,6 +294,14 @@ def measure(project_dir: Path | None = None, now: float | None = None,
     oldest_age = 0.0
     oldest_path = None
     paths, why = _changed_paths_or_reason(root)
+    base, base_why = _base_state(root)
+    if paths is not None and base is None:
+        # THE SAME REFUSAL, FOR THE SAME REASON. `git status` answered, but its answer is
+        # against a base whose distance from the trunk is unknown, so "uncommitted" cannot be
+        # told from "stale". An unavailable check is a FAILED check, not a clean tree, and it
+        # is not a clean tree here either.
+        paths, why = None, "cannot read the base this count is measured against -- {}".format(
+            base_why or "reason unrecorded")
     if paths is None:
         # THE COUNTS ARE OMITTED, NOT ZEROED. A reader that has never heard of `unavailable`
         # gets a loud KeyError; it can no longer receive a quiet 0 and publish a clean bill of
@@ -222,8 +326,15 @@ def measure(project_dir: Path | None = None, now: float | None = None,
         if age > oldest_age:
             oldest_age, oldest_path = age, rel
     attributed = sum(v["count"] for k, v in by_lane.items() if not k.startswith("unattributed:"))
+    landed = paths_already_on_origin(root, paths)
     return {
         "measured_at": now,
+        "base": base,
+        # Of `total_files`, the ones that are NOT squatting: identical to the trunk, invisible
+        # here only because HEAD is behind it. `None` means git could not answer, which is why
+        # the count is published beside the base rather than subtracted out of sight of it.
+        "already_on_origin": None if landed is None else len(landed),
+        "already_on_origin_paths": None if landed is None else landed[:20],
         "total_files": len(paths),
         "attributed_files": attributed,
         "unattributed_files": len(paths) - attributed,
@@ -248,6 +359,18 @@ def breaches(m: dict) -> list[str]:
         out.append(
             "{} source files diverge from HEAD (threshold {})".format(
                 m["total_files"], FILE_COUNT_THRESHOLD))
+    # NAMED WHENEVER THE BASE IS STALE, not only when the count breaches. The count can sit
+    # under the threshold while every file in it is already on the trunk, and that reader is
+    # the one who goes and "finishes" a decision somebody already took.
+    base = m.get("base") or {}
+    if base.get("behind"):
+        landed = m.get("already_on_origin")
+        out.append(
+            "HEAD is {} commit(s) behind {} (and {} ahead), so this count is measured against a "
+            "stale base: {} of the {} are byte-identical to the trunk and are not uncommitted "
+            "work".format(base["behind"], REMOTE_BASE, base.get("ahead"),
+                          "an unknown number" if landed is None else landed,
+                          m["total_files"]))
     if m["oldest_age_hours"] > AGE_HOURS_THRESHOLD:
         out.append(
             "the oldest has sat {}h (threshold {}h): {}".format(
@@ -341,9 +464,13 @@ def main(argv: list[str] | None = None) -> int:
     elif m.get("unavailable"):
         print("tree divergence: UNAVAILABLE — " + (m.get("unavailable_reason") or "unrecorded"))
     else:
+        base = m.get("base") or {}
         print("tree divergence: {} source file(s) vs HEAD, oldest {}h ({} attributed, "
-              "{} unattributed)".format(m["total_files"], m["oldest_age_hours"],
-                                        m["attributed_files"], m["unattributed_files"]))
+              "{} unattributed) — HEAD is {} behind / {} ahead of {}, {} of the {} already on "
+              "the trunk".format(m["total_files"], m["oldest_age_hours"],
+                                 m["attributed_files"], m["unattributed_files"],
+                                 base.get("behind"), base.get("ahead"), REMOTE_BASE,
+                                 m.get("already_on_origin"), m["total_files"]))
         print("  top: " + top_squatters(m))
     for b in breaches(m):
         print("  BREACH: " + b)

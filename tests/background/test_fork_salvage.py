@@ -18,6 +18,7 @@ The three killer patterns from R15, and how they are covered:
 """
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -174,3 +175,129 @@ def test_main_returns_zero_even_when_everything_fails(repo, monkeypatch):
                                                               "salvaged": 0, "failed": 0,
                                                               "results": []})
     assert fork_salvage.main() == 0
+
+
+# ── SALVAGE IS FOR ABANDONED WORK (2026-08-31) ───────────────────────────────────────────────────
+# Four minutes into the seat executor's FIRST unattended turn, this daemon committed
+# `SALVAGE(auto): preserve this fork's uncommitted work` into /var/tmp/se-seat-executor while the
+# executor was mid-turn -- making it a second writer inside the one place isolation was supposed to
+# guarantee there is only ever one. The commit was ungated, and had the executor landed on top of
+# it, the promotion route (which then verified only the tip) would have fast-forwarded it onto main.
+
+def test_a_live_executors_worktree_is_not_salvaged(monkeypatch, tmp_path):
+    """MUTATION: drop the live-writer filter and this fires."""
+    from background import fork_salvage, seat_executor
+
+    wt = tmp_path / "se-seat-executor"
+    wt.mkdir()
+    pid_file = tmp_path / "executor.pid"
+    pid_file.write_text(str(os.getpid()))          # this process is unarguably alive
+    monkeypatch.setattr(seat_executor, "WORKTREE", wt)
+    monkeypatch.setattr(seat_executor, "PID_FILE", pid_file)
+
+    assert fork_salvage._is_a_live_writers_worktree(str(wt)) is True
+
+
+def test_a_DEAD_executors_worktree_is_still_salvaged(monkeypatch, tmp_path):
+    """THE LEG THAT STOPS THIS BECOMING A BLANKET EXEMPTION, and it is the point of using a
+    liveness check rather than the pid file's existence.
+
+    A killed executor leaves its pid file behind, and THAT worktree holds exactly the abandoned
+    work this daemon exists to rescue -- the 2026-08-03 sweeps found new modules that existed
+    nowhere else, one `rm -rf` from being lost. Exempting the path would trade one collision for
+    a class of silent losses.
+    """
+    from background import fork_salvage, seat_executor
+
+    wt = tmp_path / "se-seat-executor"
+    wt.mkdir()
+    pid_file = tmp_path / "executor.pid"
+    pid_file.write_text("999999999")               # not a live pid
+    monkeypatch.setattr(seat_executor, "WORKTREE", wt)
+    monkeypatch.setattr(seat_executor, "PID_FILE", pid_file)
+
+    assert fork_salvage._is_a_live_writers_worktree(str(wt)) is False
+    # and an absent pid file is the ordinary case, which must also stay salvageable
+    pid_file.unlink()
+    assert fork_salvage._is_a_live_writers_worktree(str(wt)) is False
+
+
+def test_any_other_worktree_is_untouched_by_the_exemption(monkeypatch, tmp_path):
+    """Blast radius: the exemption is one path, not 'worktrees that look busy'."""
+    from background import fork_salvage, seat_executor
+
+    monkeypatch.setattr(seat_executor, "WORKTREE", tmp_path / "se-seat-executor")
+    assert fork_salvage._is_a_live_writers_worktree(str(tmp_path / "some-other-fork")) is False
+
+
+def test_the_SCAN_applies_the_live_writer_filter_not_just_the_predicate(monkeypatch, tmp_path):
+    """R15: the first three legs above tested `_is_a_live_writers_worktree` and NOT its caller.
+
+    Proven by mutation, honestly: deleting the filter from `scan_worktrees` left all three green.
+    A predicate nothing consults is a comment with a test attached, and this repo's most repeated
+    failure is a control keyed to something one level away from where the decision is made. So
+    this leg drives the SCAN and asserts the executor's worktree is absent from what it returns.
+    """
+    from background import fork_salvage, seat_executor
+
+    live_wt = tmp_path / "se-seat-executor"
+    other_wt = tmp_path / "ordinary-fork"
+    pid_file = tmp_path / "executor.pid"
+    pid_file.write_text(str(os.getpid()))
+    monkeypatch.setattr(seat_executor, "WORKTREE", live_wt)
+    monkeypatch.setattr(seat_executor, "PID_FILE", pid_file)
+
+    porcelain = (
+        f"worktree {fork_salvage.PROJECT_DIR.resolve()}\nbranch refs/heads/main\n\n"
+        f"worktree {live_wt}\ndetached\n\n"
+        f"worktree {other_wt}\ndetached\n\n"
+    )
+    monkeypatch.setattr(fork_salvage, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        a, 0, stdout=porcelain, stderr=""))
+
+    paths = [w["path"] for w in fork_salvage.scan_worktrees()]
+    assert str(other_wt) in paths, "an ordinary abandoned fork must still be salvageable"
+    assert str(live_wt) not in paths, (
+        "the scan handed the live executor's worktree to the salvager — which is how an ungated "
+        "SALVAGE(auto) commit appeared under a running writer's HEAD on 2026-08-31"
+    )
+
+
+def test_ANY_writer_can_declare_its_worktree_in_use_not_just_the_executor(monkeypatch, tmp_path):
+    """THE EXEMPTION'S SUBJECT IS A LIVE WRITER, NOT ONE MODULE'S PATH — proven by it failing.
+
+    The first version of `worktree_is_live` compared against `seat_executor.WORKTREE` and nothing
+    else. Ninety minutes after it landed, this daemon committed `SALVAGE(auto)` into the DELIVERY
+    SEAT's own landing worktree, mid-preparation, because that worktree was not the executor's. The
+    fix that only covers the module you happened to be looking at is the shape this repo pays for
+    over and over.
+
+    Any writer may now drop `seat_executor.OWNER_MARKER` holding its pid. A live pid means in use.
+
+    MUTATION: drop the marker branch from `worktree_is_live` and this fires.
+    """
+    from background import seat_executor
+
+    other = tmp_path / "some-other-writers-worktree"
+    other.mkdir()
+    monkeypatch.setattr(seat_executor, "WORKTREE", tmp_path / "not-this-one")
+    (other / seat_executor.OWNER_MARKER).write_text(str(os.getpid()))
+
+    assert fork_salvage._is_a_live_writers_worktree(str(other)) is True
+
+
+def test_a_marker_left_by_a_DEAD_writer_does_not_spare_the_worktree(monkeypatch, tmp_path):
+    """A marker is a claim, and a claim is checked. A killed writer leaves its file behind and that
+    worktree holds exactly the abandoned work this daemon exists to rescue — the 2026-08-03 sweeps
+    found modules that existed nowhere else, one `rm -rf` from being lost."""
+    from background import seat_executor
+
+    other = tmp_path / "abandoned"
+    other.mkdir()
+    monkeypatch.setattr(seat_executor, "WORKTREE", tmp_path / "not-this-one")
+    (other / seat_executor.OWNER_MARKER).write_text("999999999")
+
+    assert fork_salvage._is_a_live_writers_worktree(str(other)) is False
+    # and unreadable rubbish in the marker is not a licence either
+    (other / seat_executor.OWNER_MARKER).write_text("not-a-pid")
+    assert fork_salvage._is_a_live_writers_worktree(str(other)) is False
