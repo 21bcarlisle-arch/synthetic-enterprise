@@ -187,6 +187,56 @@ def world_realised_rate_pct(table_path: Path | None = None) -> dict[int, float]:
     }
 
 
+def realised_rate_coverage(
+    table_path: Path | None = None,
+) -> tuple[dict[int, float], dict[int, str]]:
+    """`({year: reading}, {year: why there is none})` over `COMPARISON_YEARS`, as a PARTITION.
+
+    WHY THIS EXISTS. `world_realised_rate_pct` above intersects the capture with
+    `COMPARISON_YEARS`, and an intersection cannot tell a year it EXCLUDED from a year the capture
+    never had. Both come back as absence. So a comparison year the run stopped producing leaves the
+    subject silently, every consumer keeps iterating whatever is left, and a control counting what
+    it checked reports a smaller PASS rather than a failure — the emptied-subject shape.
+
+    2022 IS THAT YEAR TODAY AND IT IS A HOLE, NOT AN EDGE. On the committed capture the years run
+    2016–2025 with 16–23 renewal decisions each, and 2022 has ZERO. It is not truncation at the
+    capture's rim: it is interior. `b46318106` swapped a 465-row capture carrying 54 decisions in
+    2022 for the 148-row anchored one carrying none, and nothing in the tree said a year had gone.
+    `fit_year_level_anchor.fit_year_anchor` records the same absence independently, as its "no
+    renewal population" refusal.
+
+    THE SEPARATION OF THE TWO CAUSES IS THE POINT. A year outside the capture's span is a shorter
+    run and is unremarkable. A year INSIDE the span with no decision at all is the run telling you
+    something happened to that year, and the reader must not have to diff two artefacts to find out
+    which they are looking at.
+
+    A SECOND FUNCTION AND NOT A WIDER RETURN, for the reason `reading_population` states below:
+    `world_realised_rate_pct` is the subject of a band control, and changing a control's subject
+    shape in the commit that repairs what it measures makes the move unattributable. Consumers that
+    only want the readings keep the function they have.
+    """
+    rows = json.loads((table_path or DEFAULT_TABLE).read_text())
+    outcome = world_outcome(rows)
+    captured = {int(r["event_date"][:4]) for r in rows}
+    readings: dict[int, float] = {}
+    refusals: dict[int, str] = {}
+    for year in COMPARISON_YEARS:
+        if year in outcome:
+            readings[year] = outcome[year][2]
+        elif not captured or not (min(captured) <= year <= max(captured)):
+            span = f"{min(captured)}–{max(captured)}" if captured else "an empty capture"
+            refusals[year] = (
+                f"{year} lies outside the capture's span ({span}), so the run never reached it"
+            )
+        else:
+            refusals[year] = (
+                f"{year} is inside the capture's span "
+                f"({min(captured)}–{max(captured)}) and carries ZERO renewal decisions, so the "
+                f"run reached it and produced nothing to measure"
+            )
+    return readings, refusals
+
+
 def world_book_rate_pct(table_path: Path | None = None) -> tuple[dict[int, float], str | None]:
     """`({year: whole-book expected departure rate %}, refusal)` — the comparable quantity, at last.
 
@@ -249,6 +299,7 @@ def main(argv: list[str]) -> int:
     bands = published_bands()
     outcome = world_outcome(rows)
 
+    readings, refusals = realised_rate_coverage(table_path)
     decl = declare(table_path, rows)
     svt_rows, _ = load_svt_decisions(table_path)
     book_refusal = account_denominator_refusal(rows, svt_rows)
@@ -285,9 +336,20 @@ def main(argv: list[str]) -> int:
             per_account = "—"
         below, above = band_margins(mean_p, lo, hi)
         flag = "" if inside_band(mean_p, lo, hi) else "   OUT OF BAND"
-        print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
-              f"{mean_p:6.2f}            {per_account:>5}   {below:+7.2f}   {above:+7.2f}{flag}")
-        if year in COMPARISON_YEARS:
+        # A REFUSED YEAR IS NAMED IN THE ROW, NOT LEFT AS `nan`. `nan` reads as a rendering
+        # accident; `REFUSED` reads as a fact about the run, which is what it is.
+        if year in refusals:
+            print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
+                  f"{'REFUSED':>6}            {per_account:>5}   {'—':>7}   {'—':>7}   NO READING")
+        else:
+            print(f"  {year}          {lo:5.1f}–{hi:5.1f}      {curve:6.1f}           {rate:6.1f}           "
+                  f"{mean_p:6.2f}            {per_account:>5}   {below:+7.2f}   {above:+7.2f}{flag}")
+        # REFUSED YEARS ARE KEPT OUT OF EVERY AGGREGATE. They used to enter as `nan`, which makes
+        # `fmean` nan and `min`/`max` order-dependent -- so one unread year silently destroyed the
+        # summary AND the resolution line rather than reducing their coverage. The years actually
+        # averaged are stated under the table, because an aggregate over a subset that does not say
+        # which subset is the same defect one level up.
+        if year in COMPARISON_YEARS and year not in refusals:
             mids.append((lo + hi) / 2.0)
             curves.append(curve)
             rates.append(rate)
@@ -295,6 +357,18 @@ def main(argv: list[str]) -> int:
             room_below.append(below)
             room_above.append(above)
     print()
+    # THE REFUSALS GO ON THE SURFACE, ABOVE THE SUMMARY. A year that cannot be read is a result
+    # about the run and belongs where the reader already is -- CLAUDE.md's "fail closed, and say so
+    # on the surface". Dropping it is how a control over an emptied subject came to report a
+    # constant PASS: the count it checked fell by one and nothing anywhere said which one.
+    if refusals:
+        print(f"  YEARS IN {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} WITH NO READING "
+              f"({len(refusals)} of {len(COMPARISON_YEARS)}) -- named, not dropped:")
+        for year, reason in sorted(refusals.items()):
+            print(f"    {year}: {reason}")
+        print(f"  Every figure below is over the {len(readings)} year(s) that DO have a reading "
+              f"({', '.join(str(y) for y in sorted(readings))}).")
+        print()
     print(f"  RESOLUTION OF THIS CONTROL, {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1}. Room ABOVE the level before the band is exited: "
           f"{min(room_above):+.2f} to {max(room_above):+.2f}pp.")
     print(f"  Room BELOW: {min(room_below):+.2f} to {max(room_below):+.2f}pp. A movement smaller than the room in its own "

@@ -58,6 +58,13 @@ _LANE_READINGS: dict[str, str] = {
     # primary form. This entry is the repair: the reading now HAS units, so the band check
     # below can reach it. It could not before, and that is the whole defect.
     "company.crm.market_conditions": "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
+    # Added 2026-08-31 with the scope widening below. The BOARD's reading, and it was outside
+    # every census in the repository: `tools/population_anchor.py` ran on every sim run, wrote
+    # `site/state/population_anchoring.json` and reached the annual report, carrying ten
+    # hand-authored rates (2020 at 14% against 22.5-23.0) under a comment claiming a dual-fuel
+    # denominator. One published series, three implementations, one of them repaired -- the VAT
+    # class, reproduced inside twenty-four hours of the rule being written.
+    "tools.population_anchor": "OFGEM_SWITCHING_RATE_PCT_BY_YEAR",
 }
 
 #: THE PRINCIPAL SUBJECT, and it was not in the register when the register was written
@@ -119,6 +126,17 @@ _MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str | None]] = {
         "company.crm.market_conditions", "MARKET_SWITCHING_MULTIPLIER_BY_YEAR", 2024,
         "MARKET_SWITCHING_RATE_PCT_BY_YEAR",
     ),
+    # The board-facing twin, and it was a BYTE-IDENTICAL COPY of the company's refuted table
+    # until 2026-08-31 -- 2016: 2.17, 2020: 0.95, 2022: 0.44. The old docstring in
+    # `company/crm/market_conditions.py` said the multiplier "matches the calibration already
+    # published for board-facing population anchoring", and it did. That was the defect, not the
+    # reassurance: correcting one copy leaves the other asserting the opposite shape about one
+    # published series. It now derives from `OFGEM_SWITCHING_RATE_PCT_BY_YEAR` and leg (b3) holds
+    # it to that derivation, so a hand-authored ratio cannot come back silently.
+    "tools.population_anchor:CALIBRATED_MULTIPLIER": (
+        "tools.population_anchor", "CALIBRATED_MULTIPLIER", 2024,
+        "OFGEM_SWITCHING_RATE_PCT_BY_YEAR",
+    ),
 }
 
 
@@ -168,6 +186,26 @@ _CALLABLE_MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str]] = {
 }
 
 
+#: THE FOURTH SHAPE (added 2026-08-31): a table that is another registered table in DIFFERENT
+#: UNITS. `_CALLABLE_READINGS` already carries an explicit `to_pct` factor for exactly this, with
+#: the reason stated there -- inferring units from magnitude is what makes a 100x error look like
+#: a convention -- but the dict registers had no equivalent, so a fraction-shaped table had
+#: nowhere to go but `_NOT_A_LEVEL_READING`, and calling a switching rate "not a level reading"
+#: because it is written as 0.228 rather than 22.8 would be false in the register that exists to
+#: stop exactly that.
+#:
+#: `{name: (dotted, derived_attr, source_attr, factor)}` -- `derived[y] == source[y] * factor`.
+#: Held by the DERIVATION rather than by the band, because a fraction cannot be compared with a
+#: per-cent band without picking a factor, and picking one is the mistake. The source is held to
+#: the band by `_LANE_READINGS`, so the pair is closed.
+_UNIT_DERIVED_READINGS: dict[str, tuple[str, str, str, float]] = {
+    "tools.population_anchor:OFGEM_SWITCHING_RATE": (
+        "tools.population_anchor", "OFGEM_SWITCHING_RATE",
+        "OFGEM_SWITCHING_RATE_PCT_BY_YEAR", 0.01,
+    ),
+}
+
+
 def _lane_callable(dotted: str, attr: str):
     return getattr(importlib.import_module(dotted), attr)
 
@@ -206,6 +244,22 @@ def _implied_rate_table(
 def _world_realised_reading() -> dict[int, float]:
     """The world's realised per-renewal departure probability by year, as a percentage."""
     return instrument.world_realised_rate_pct()
+
+
+def _capture_decisions_by_year() -> dict[int, int]:
+    """Renewal decisions per year, counted STRAIGHT OFF THE CAPTURE.
+
+    THE SECOND READER, and it is deliberately not `instrument.world_outcome`. The legs that accept
+    a refused year need something the refusing module did not also produce, or the corroboration is
+    the producer agreeing with itself. This is the cheapest independent statement of the same fact:
+    one row is one renewal decision, so the count is a length.
+    """
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    counts: dict[int, int] = {}
+    for row in rows:
+        year = int(row["event_date"][:4])
+        counts[year] = counts.get(year, 0) + 1
+    return counts
 
 
 def _all_readings() -> dict[str, dict[int, float]]:
@@ -355,8 +409,27 @@ def test_the_register_names_the_worlds_own_realised_departure_rate():
         assert 0.0 <= value < 100.0, f"{year}: realised departure rate {value} is not a rate"
 
 
+@pytest.mark.xfail(strict=True, reason=(
+    "RE-INSTATED 2026-09-01, having been discharged on 2026-08-30. The world is OUT OF BAND in "
+    "7 of the 7 readable years -- 2017 -1.10pp, 2018 -5.80pp, 2019 -6.80pp, 2020 -15.90pp, "
+    "2021 -5.00pp, 2023 -6.10pp, 2024 -6.20pp. It is held open STRICT so the re-fit that repairs "
+    "it breaks this loudly instead of leaving it quietly green, which is the same reason the "
+    "marker was written strict the first time. "
+    "THE CAUSE IS A CAPTURE SWAP, NOT A WORLD DRIFT, AND IT IS ATTRIBUTABLE. On the capture this "
+    "control was discharged against (465 rows, b46318106^) all EIGHT comparison years are inside "
+    "the band, each sitting exactly on its high endpoint -- the anchor's own fit. b46318106 "
+    "replaced it with the 148-row anchored capture, on which the same code fails every year. That "
+    "one commit ALSO emptied 2022 (C1b routes the crisis year's forced-passive rolls to the SVT "
+    "table), which made the file's old `assert len(world) >= 8` fire FIRST -- so the commit that "
+    "broke this verdict installed, in the same change, the assertion that hid the break. "
+    "DISCHARGED BY: re-fitting YEAR_LEVEL_ANCHOR against the committed capture, and 2022 must be "
+    "excluded from that fit because it is unidentified (see _HELD_INDIRECTLY). NEVER by widening "
+    "the band and never by re-keying this leg to today's readings. "
+    "Finding: docs/staging/done/WORKER_FINDING_A_SCOPE_ASSERTION_WAS_STANDING_IN_FRONT_OF_A_"
+    "SEVEN_OF_SEVEN_OUT_OF_BAND_VERDICT_2026-09-01.md"
+))
 def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
-    """THE ONE THE ANCHOR EXISTS FOR, AND IT IS GREEN AS OF 2026-08-30.
+    """THE ONE THE ANCHOR EXISTS FOR. GREEN 2026-08-30, RE-MARKED XFAIL 2026-09-01.
 
     IT WAS A STRICT XFAIL AND THE MARKER IS GONE, WHICH IS THE POINT OF HAVING WRITTEN IT STRICT.
     The world ran 3.15x -- then 3.45x -- below the published GB domestic switching record for the
@@ -417,15 +490,56 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
 
     It is stated here rather than in a finding because this docstring is where the next reader
     hits it -- and the seat over-read exactly this red an hour after the anchor was built.
+
+    WHY THE MARKER CAME BACK, AND IT IS NOT THE COVERAGE DEFECT NEXT DOOR. Until this commit the
+    leg opened with `assert len(world) >= 8`, which fired first on every run because 2022 is
+    unreadable. Re-keying that assertion to the property did NOT turn this green -- it revealed
+    what the count had been standing in front of: **7 of the 7 readable years are OUT OF BAND**,
+    2017 by -1.10pp through 2020 by -15.90pp.
+
+    AND THE TWO ARE THE SAME COMMIT, WHICH IS THE PART WORTH CARRYING. `b46318106` swapped the
+    465-row capture for the 148-row anchored one. On the old capture all eight comparison years are
+    INSIDE the band, each exactly on its high endpoint. On the new one every year is outside. The
+    same swap emptied 2022 -- so the change that broke this verdict also installed the assertion
+    that hid the break, and the file's red said "the subject shrank" for as long as the real answer
+    was "the anchor is stale against the capture it is now read with".
+
+    So the drawn premise -- that the count keying was the defect -- is refuted here. It was ONE of
+    two defects and the smaller one. The coverage property now has its own control
+    (`test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cause`), green and
+    mutation-proven. This leg is held open STRICT rather than left failing, for the reason its own
+    first marker gave: a verdict that cannot yet be taken should break loudly the day it can be.
+    Do NOT widen the band and do NOT re-key this to today's readings.
     """
     bands = _bands()
-    world = _world_realised_reading()
-    assert world, "no realised rate to judge -- an empty subject is not a pass"
-    assert len(world) >= 8, (
-        f"only {len(world)} years of realised rate to judge; a subject narrowed to a handful of "
-        f"years is the scope-shrink fail-open this file's leg (c) exists for"
-    )
-    for year, value in sorted(world.items()):
+    readings, refusals = instrument.realised_rate_coverage()
+    expected = [y for y in instrument.COMPARISON_YEARS if y in bands]
+    assert expected, "no comparison year carries a published band -- an empty subject is not a pass"
+
+    # AN INDEPENDENT READ OF THE CAPTURE, and the whole non-tautology of the leg below rests on it.
+    # `realised_rate_coverage` both decides a year is unreadable AND supplies the reason; a leg that
+    # accepted its own subject's excuse would let the producer retire any year it liked by naming it
+    # refused. So the excuse is checked against the artefact, through a different reader.
+    decisions = _capture_decisions_by_year()
+
+    for year in expected:
+        if year in refusals:
+            # A REFUSED YEAR IS CORROBORATED, NEVER TAKEN ON TRUST. The only refusal this leg
+            # accepts is one the capture itself demonstrates: no renewal decision to average.
+            # A year with decisions that the producer declines to read is a subject being
+            # narrowed, which is the exact shape this leg exists to catch.
+            assert decisions.get(year, 0) == 0, (
+                f"{year} is refused a reading -- {refusals[year]} -- but the capture carries "
+                f"{decisions[year]} renewal decisions for it. A refusal whose stated cause the "
+                f"artefact contradicts is a subject being narrowed under cover of a reason."
+            )
+            continue
+        assert year in readings, (
+            f"{year} is a comparison year with a published band and it is in NEITHER the readings "
+            f"nor the refusals -- it was dropped silently. That is the emptied-subject fail-open: "
+            f"the loop below would simply have run one year shorter and still reported PASS."
+        )
+        value = readings[year]
         lo, hi = bands[year]
         below, above = instrument.band_margins(value, lo, hi)
         assert instrument.inside_band(value, lo, hi), (
@@ -436,6 +550,68 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
             f"may have gone stale against a world that moved under it -- re-capture and re-fit, "
             f"do not widen the band."
         )
+
+
+def test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cause():
+    """THE COVERAGE PROPERTY, keyed to the property and NEVER to how many years there are today.
+
+    MUTATION: make `realised_rate_coverage` drop an unreadable year from BOTH returns instead of
+    refusing it (the state `world_realised_rate_pct` is in, and the state this whole file was in
+    until 2026-09-01) and this fires by name. Mutation-proven with `python3 -B`.
+
+    WHAT THE OLD SHAPE WAS AND WHY IT COULD NOT WORK. The leg above used to open with
+    `assert len(world) >= 8`. That is keyed to today's subject size, so it goes red when the world
+    honestly loses a year and green again the moment someone edits the 8 -- backwards on both
+    sides. Worse, it answers a question nobody asked: eight is not a property of anything, it is
+    the number of years the capture happened to carry the day it was written.
+
+    THE PROPERTY IS: every year the published record bands AND the comparison window covers either
+    has a reading, or is REFUSED BY NAME with a cause the artefact itself corroborates. Nothing is
+    dropped. A year cannot leave the subject quietly, which is the only way an emptied subject can
+    reach a constant PASS.
+
+    AND THE CORROBORATION IS THE LOAD-BEARING HALF. `realised_rate_coverage` both decides a year is
+    unreadable and writes the reason, so a leg that accepted the reason on trust would let the
+    producer retire any inconvenient year by naming it refused -- the refusal-names-a-cause-never-
+    observed shape this repository has a catalogue entry for. The count comes off the capture
+    through a second reader (`_capture_decisions_by_year`), so a refusal is only honoured when the
+    artefact shows there was genuinely nothing to average.
+
+    TODAY THE ONE REFUSED YEAR IS 2022, AND ITS CAUSE IS A MECHANISM, NOT AN ACCIDENT. 2022 is
+    100% crisis-forced-passive (`simulation.renewal_engagement.CRISIS_PASSIVE_YEARS`); since C1b
+    every passive roll is settled on the SVT segment route instead of a renewal roll; so the
+    renewal capture carries ZERO 2022 decisions. It is permanent while those two hold, not a gap
+    a re-capture fills -- `b46318106`'s predecessor capture carried 54 decisions that year.
+    """
+    bands = _bands()
+    readings, refusals = instrument.realised_rate_coverage()
+    expected = [y for y in instrument.COMPARISON_YEARS if y in bands]
+    assert expected, "no comparison year carries a published band -- an empty subject is not a pass"
+
+    decisions = _capture_decisions_by_year()
+    assert not (set(readings) & set(refusals)), (
+        f"{sorted(set(readings) & set(refusals))} are BOTH read and refused -- the two returns are "
+        f"a partition of the comparison window, and a year in both makes the coverage count "
+        f"unreadable in either direction"
+    )
+    for year in expected:
+        assert year in readings or year in refusals, (
+            f"{year} is inside the comparison window and the published record bands it, and it is "
+            f"in neither the readings nor the refusals. It left the subject SILENTLY -- which is "
+            f"the whole defect: every consumer keeps iterating what is left, and a control that "
+            f"counts what it checked reports a smaller PASS instead of a failure."
+        )
+        if year in refusals:
+            assert decisions.get(year, 0) == 0, (
+                f"{year} is refused with the cause {refusals[year]!r}, but the capture carries "
+                f"{decisions[year]} renewal decisions for it. The refusal's stated cause is "
+                f"contradicted by the artefact it claims to describe."
+            )
+            assert str(year) in refusals[year], (
+                f"{year}'s refusal does not name the year it is about: {refusals[year]!r}. A "
+                f"refusal a reader cannot attribute to a year is not on the surface in any useful "
+                f"sense."
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -693,6 +869,41 @@ def test_a_multiplier_reading_that_declares_a_level_is_the_normalisation_of_that
     )
 
 
+def test_every_unit_derived_reading_is_still_its_source_table_in_other_units():
+    """MUTATION: `test_mutation_i_a_unit_derived_reading_cut_loose_from_its_source_is_caught`.
+
+    THE CONSUMERS ARE WHY THE FRACTION FORM EXISTS AND WHY IT IS A RISK.
+    `tools/population_anchor` publishes fractions -- `sim_churn_rate`, `ofgem_benchmark`, the
+    annual report section -- so the per-cent table it reads from the commons has to be divided
+    somewhere. Divided once at the declaration, this leg holds it. Divided at eleven call sites,
+    or re-authored as a literal because a comprehension "looked indirect", the band check reaches
+    the per-cent table and nothing at all reaches the numbers the board actually reads.
+    """
+    checked = 0
+    for name, (dotted, derived_attr, source_attr, factor) in _UNIT_DERIVED_READINGS.items():
+        assert _LANE_READINGS.get(dotted) == source_attr, (
+            f"{name} says it derives from {source_attr}, but that table is in no band register, "
+            f"so the pair is held to nothing"
+        )
+        source = _lane_table(dotted, source_attr)
+        derived = _lane_table(dotted, derived_attr)
+        assert set(source) == set(derived), (
+            f"{name} covers {sorted(set(source) ^ set(derived))} differently from {source_attr}; "
+            f"a derived table that has drifted in COVERAGE has been authored"
+        )
+        for year, value in sorted(derived.items()):
+            assert value == pytest.approx(source[year] * factor, rel=1e-12), (
+                f"{name}[{year}] = {value!r}, but {source_attr}[{year}] * {factor} = "
+                f"{source[year] * factor!r}. The units form is no longer a units form -- it is a "
+                f"second reading, and a second reading of one published series is this file's "
+                f"whole subject."
+            )
+            checked += 1
+    assert checked >= 10, (
+        f"only {checked} derived entries compared -- an emptied register reports a constant PASS"
+    )
+
+
 def test_every_callable_shaped_reading_is_inside_the_published_band():
     """THE THIRD SHAPE, AND EVERY ONE OF THEM WAS ALREADY RIGHT (census, 2026-08-31).
 
@@ -756,7 +967,14 @@ def test_every_callable_multiplier_implies_the_level_it_declares():
 # (d) THE CENSUS — the leg that fires when a reading of a NEW SHAPE arrives unregistered
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
-_SCOPE = ("company", "saas", "simulation")
+#: WIDENED 2026-08-31 TO INCLUDE `tools/`, and the omission is the same defect one directory
+#: over. `test_year_keyed_rate_table_census` was written because "a register of unverified
+#: constants inherits the blindness of its own enumerator" -- and this census, written for that
+#: lesson, was itself scoped to the three lanes that hold the MODEL, missing the one that holds
+#: what the BOARD reads. `tools/population_anchor.py` ran on every sim run with ten hand-authored
+#: rates and a copy of the refuted multiplier, and no census in the repository could name it.
+#: A gate's readers are not a reason to exempt it; they are the reason not to.
+_SCOPE = ("company", "saas", "simulation", "tools")
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: The commons filename. A module that reads it is BY CONSTRUCTION serving the published
@@ -890,6 +1108,47 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
         "rather than filtered.",
     "simulation.churn_journey:_TERMINAL_STATES":
         "the set of absorbing states in the churn journey state machine; carries no rate.",
+    # --- tools/, reached from 2026-08-31 when `_SCOPE` widened ---
+    "tools.fit_year_level_anchor:outside_comparison_window":
+        "a REFUSAL, not a reading: it returns the reason a year may not carry a fitted anchor, or "
+        "None. It takes a year and lives in a module whose stem carries the vocabulary, so both "
+        "discovery legs reach it, and neither a refusal string nor the anchor it guards is a rate "
+        "or a ratio of one. The anchor itself is classified under `_HELD_INDIRECTLY` above, for "
+        "the reason given there; this is the gate in front of it. Added by the delivery seat "
+        "alongside the whole-book fit, in the working tree rather than in that commit, because "
+        "this file's `_SCOPE` widening was another lane's in-flight work at the time -- without "
+        "the entry that lane's own commit would have gone red on a function it never wrote.",
+    "tools.fit_year_level_anchor:_MARKET_PARAMETER_NAMES":
+        "a frozenset of PYTHON PARAMETER NAMES ('market_year', 'market_switching_multiplier', "
+        "...), used by `svt_market_invariance_refusal` to ask whether `svt_inertia_hazard` has any "
+        "route for the market to reach it. Strings naming a signature, not rates: there is no year "
+        "key and no value to compare to a band. Surfaced 2026-09-01 by the union of two lanes -- "
+        "one widened `_SCOPE` to `tools/`, the other added this constant -- so neither lane's own "
+        "test run could see it and only the merged tree goes red. That is the interconnection "
+        "check CLAUDE.md asks the seat for, arriving as a test failure instead of a question.",
+    "tools.grade_renewal_churn_belief:DEFAULT_ARTEFACT":
+        "a filesystem PATH. Caught because the filename carries 'churn'; the name leg cannot "
+        "tell a Path() call from a rate, and classifying is cheaper than narrowing the leg.",
+    "tools.grade_renewal_churn_belief:DEFAULT_RUN_OUTPUT":
+        "a filesystem PATH, same module and same reason.",
+    "tools.measure_departure_level:ACTIVE_ELEC_ACCOUNTS":
+        "the DENOMINATOR, in accounts: the active domestic electricity book per year in the "
+        "captured run. Not a rate and not a ratio of one. It is the same shape as "
+        "`market_report:_UK_DOMESTIC_ACCOUNTS_M` and named for the same reason -- a rate is a "
+        "ratio, and the denominator drifting is the other way its level can go wrong.",
+    "tools.measure_departure_level:COMPARISON_YEARS":
+        "a `range` of year LABELS selecting which years the comparison averages over; carries "
+        "no rate.",
+    "tools.measure_departure_level:world_curve_pct":
+        "the world's savings-elasticity curve read back in per cent, i.e. the instrument's "
+        "accessor over `simulation.market_switching_propensity:_curve_rate`, which is already "
+        "classified above as the curve's answer BEFORE any level correction. Inside the "
+        "published window the curve is not what sets the world's rate; "
+        "`market_departure_rate_pct` is, and it is registered.",
+    "tools.population_anchor:_PUBLISHED_BAND_PCT":
+        "the published BAND itself, `published_bands()` verbatim -- the record, not a reading "
+        "of it. Holding it to the band would compare the commons with itself, which is the "
+        "tautology shape; leg (a) and mutation (b) are what hold the record.",
 }
 
 #: HELD INDIRECTLY, and named here rather than in `_NOT_A_LEVEL_READING` because it IS
@@ -900,9 +1159,24 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "multiplying it by a published rate yields nothing meaningful, so no band check can be "
         "written for it directly. It is held through its EFFECT -- the world's realised departure "
         "rate, which is `_PRINCIPAL_SUBJECT` above and is band-checked every run. Registering it "
-        "as a reading would mean inventing a comparison the quantity does not support.",
+        "as a reading would mean inventing a comparison the quantity does not support. "
+        "AND THAT INDIRECTION IS NINE YEARS OF TEN, NOT TEN (corrected 2026-09-01, having been "
+        "written as though it were unconditional). It holds an entry only where the world runs "
+        "renewal decisions that the anchor scales. `YEAR_LEVEL_ANCHOR[2022] = 1.524110` is held by "
+        "NOTHING: 2022 is 100% crisis-forced-passive (`renewal_engagement.CRISIS_PASSIVE_YEARS`), "
+        "C1b routes every passive roll to the SVT segment table, and `build_departure_risks` "
+        "deliberately does not put the anchor on `svt_inertia` -- so the capture carries ZERO 2022 "
+        "renewal decisions and the anchor multiplies nothing that year. Measured independently by "
+        "the seat on 2026-08-31: sweeping the 2022 anchor from 0 to 10^3 moves the book's 2022 "
+        "level by not one basis point (floor == ceiling == 12.09%). The entry is UNIDENTIFIED, not "
+        "badly fitted, and it is the one year where a fallback silently ran 1.98x. The refusal leg "
+        "above now names 2022 rather than dropping it, which is the honest form of this gap -- but "
+        "naming it is not holding it, and nothing in this file holds it. See "
+        "`SEAT_FINDING_THE_DEPARTURE_LEVEL_UNIONED_ONTO_ACCOUNT_YEARS_AND_2022_HAS_NO_LEVER` "
+        "and the finding filed alongside this correction.",
     "simulation.departure_level_anchor:year_level_anchor":
-        "the accessor over the table above; held by the same indirection.",
+        "the accessor over the table above; held by the same indirection, and unheld in 2022 for "
+        "the same reason.",
 }
 
 
@@ -912,6 +1186,7 @@ def _registered_names() -> set[str]:
     names |= {f"{d}:{a}" for d, a, _ref, _rate in _MULTIPLIER_READINGS.values()}
     names |= {f"{d}:{a}" for d, a, _pct in _CALLABLE_READINGS.values()}
     names |= {f"{d}:{a}" for d, a, _ref, _lvl in _CALLABLE_MULTIPLIER_READINGS.values()}
+    names |= {f"{d}:{a}" for d, a, _src, _f in _UNIT_DERIVED_READINGS.values()}
     return names
 
 
@@ -1152,6 +1427,71 @@ def test_mutation_h_a_multiplier_callable_cut_loose_from_its_level_is_caught(mon
         test_every_callable_multiplier_implies_the_level_it_declares()
 
 
+def test_mutation_i_a_unit_derived_reading_cut_loose_from_its_source_is_caught(monkeypatch):
+    """MUTATION: put the old hand-authored 2020 benchmark back into the FRACTION table only.
+
+    0.14 is what `tools/population_anchor` published for 2020 against a record of 22.5-23.0, and
+    it is the value a repair that stopped at the per-cent table would leave the board reading.
+    The band leg cannot see it -- the per-cent table is still correct -- so this leg is the only
+    one that can.
+    """
+    import tools.population_anchor as anchor
+
+    broken = dict(anchor.OFGEM_SWITCHING_RATE)
+    broken[2020] = 0.14
+    monkeypatch.setattr(anchor, "OFGEM_SWITCHING_RATE", broken)
+    with pytest.raises(AssertionError, match="2020"):
+        test_every_unit_derived_reading_is_still_its_source_table_in_other_units()
+
+
+def test_mutation_j_a_level_shaped_reading_appearing_in_tools_unregistered_is_caught(
+    monkeypatch, tmp_path
+):
+    """THE LEG THE DIRECTION NAMED, and it is distinct from mutation (e).
+
+    (e) proves an unaccounted candidate fires; it plants its decoy in `company/`, which was
+    already in scope. This plants one in `tools/` -- the directory that was OUT of scope, where
+    the board's own copy of the refuted table lived unseen -- and asserts BOTH that the decoy
+    fires AND that it is the SCOPE that carries it: with `tools` removed from `_SCOPE` the
+    discoverer never reaches the file at all, so the same decoy goes silent. A widened scope that
+    quietly narrowed again would otherwise leave every leg here green.
+
+    The decoy is written into a tmp tree rather than the repo: a real file would edit a shared
+    worktree other lanes are committing from.
+    """
+    decoy_root = tmp_repo = tmp_path
+    (decoy_root / "tools").mkdir()
+    (decoy_root / "tools" / "board_switching_view.py").write_text(
+        "SWITCHING_RATE_BY_YEAR = {2016: 0.20, 2020: 0.14}\n"
+    )
+    for package in ("company", "saas", "simulation"):
+        (decoy_root / package).mkdir()
+
+    widened = discover_switching_level_candidates(root=tmp_repo)
+    assert "tools.board_switching_view:SWITCHING_RATE_BY_YEAR" in widened, (
+        "the census does not reach `tools/`, which is where the board-facing copy of the "
+        "refuted table sat outside every census in this repository"
+    )
+    narrowed = discover_switching_level_candidates(
+        root=tmp_repo, scope=("company", "saas", "simulation")
+    )
+    assert "tools.board_switching_view:SWITCHING_RATE_BY_YEAR" not in narrowed, (
+        "the decoy is found with `tools` out of scope too, so this proves nothing about the "
+        "scope -- give it a path only the widened scope reaches"
+    )
+
+    real = discover_switching_level_candidates()  # BEFORE the patch, or the lambda recurses
+    monkeypatch.setattr(
+        "tests.architecture.test_switching_rate_commons.discover_switching_level_candidates",
+        lambda *a, **k: {
+            **real,
+            "tools.board_switching_view:SWITCHING_RATE_BY_YEAR": "year-keyed dict literal",
+        },
+    )
+    with pytest.raises(AssertionError, match="board_switching_view"):
+        test_every_discovered_switching_level_candidate_is_registered_or_classified()
+
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # (e) THE MARGIN — a threshold crossing is not a magnitude, and the instrument must say which
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -1200,21 +1540,48 @@ def test_the_instrument_prints_the_distance_to_both_band_edges_and_not_only_the_
     )
 
     bands = _bands()
-    world = _world_realised_reading()
-    checked = 0
-    for year, value in sorted(world.items()):
-        lo, hi = bands[year]
-        below, above = instrument.band_margins(value, lo, hi)
+    readings, refusals = instrument.realised_rate_coverage()
+    expected = [y for y in instrument.COMPARISON_YEARS if y in bands]
+    assert expected, "no comparison year carries a published band -- an empty subject is not a pass"
+
+    for year in expected:
         line = next((ln for ln in text.splitlines() if ln.strip().startswith(str(year))), None)
         assert line is not None, f"the instrument's table no longer carries a row for {year}"
+        if year in refusals:
+            # THE REFUSAL IS ONLY DISCHARGED ON THE SURFACE. A year the instrument cannot read is
+            # a result about the run, and a result that lives only in a return value is one no
+            # reader of this tool ever sees. Both halves are required: the ROW must stop claiming
+            # a margin it does not have, and the REASON must be printed where the reader is.
+            assert "NO READING" in line, (
+                f"{year} has no reading and its row {line.strip()!r} does not say so -- a row that "
+                f"prints a margin for a year with nothing behind it is the fabricated-observable "
+                f"shape, and `nan` in that cell reads as a rendering accident rather than a fact."
+            )
+            assert refusals[year] in text, (
+                f"{year} is refused with reason {refusals[year]!r} and that reason is nowhere in "
+                f"the instrument's output. Dropping it is how a control over an emptied subject "
+                f"came to report a constant PASS: the count fell by one and nothing said which."
+            )
+            continue
+        assert year in readings, (
+            f"{year} is neither read nor refused -- it left the subject silently, so this leg "
+            f"would have checked one row fewer and still reported PASS"
+        )
+        value = readings[year]
+        lo, hi = bands[year]
+        below, above = instrument.band_margins(value, lo, hi)
         assert f"{below:+.2f}" in line and f"{above:+.2f}" in line, (
             f"{year}: the row {line.strip()!r} does not carry both margins "
             f"({below:+.2f}, {above:+.2f}) that `band_margins` computes for it"
         )
-        checked += 1
-    assert checked >= 8, (
-        f"only {checked} years had their margins checked -- a control over an emptied subject "
-        f"reports a constant PASS"
+
+    # NO `nan` ANYWHERE ON THE SURFACE. This is what the emptying actually did before it was
+    # named: 2022 entered every aggregate as `nan`, and the instrument's headline printed
+    # `mean world E[depart] : nan%` and `nanx short of the record`. One unread year did not
+    # reduce the summary's coverage -- it destroyed the summary, in the shape of a number.
+    assert "nan" not in text, (
+        "the instrument prints `nan` somewhere. A year with no reading must be REFUSED by name, "
+        "not averaged in as a float that poisons every aggregate it touches."
     )
 
 
