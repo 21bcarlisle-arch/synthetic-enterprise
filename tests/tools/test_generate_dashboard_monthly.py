@@ -90,10 +90,16 @@ def test_no_crisis_in_2020():
 
 def test_empty_data():
     r = extract_monthly_ops({})
-    assert r == {
-        "monthly": [], "demand_estimation_annual": [],
-        "likely_seasonal_shock_count": 0, "genuine_shock_count": 0,
-    }
+    assert r["monthly"] == []
+    assert r["demand_estimation_annual"] == []
+    assert r["likely_seasonal_shock_count"] == 0
+    assert r["genuine_shock_count"] == 0
+    # The population/bound descriptors are unconditional: a reader served an
+    # EMPTY series still has to be told which bills it would have been over.
+    # (Asserted by key rather than by whole-dict equality, which is what this
+    # test used to do -- that shape makes every additive field a red.)
+    assert r["avg_shock_pct_population"]
+    assert r["avg_shock_pct_bound_note"]
 
 
 def test_likely_seasonal_and_genuine_shock_counts_split():

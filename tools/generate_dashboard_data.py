@@ -6,6 +6,8 @@ Called by process_run_complete.py after every full sim run, or manually:
 """
 import json
 import math
+import operator
+import random
 import re
 import statistics
 import subprocess
@@ -558,6 +560,19 @@ def extract_financial(data):
             "gas_net_gbp": _fmt(gas.get("net_gbp", 0)),
             "bills_count": int(ydata.get("bills_count", 0)),
             "avg_bill_shock_pct": _fmt(ydata.get("avg_bill_shock_pct", 0)),
+            # The population this year's mean is over -- see
+            # monthly_ops.avg_shock_pct_population for why both fields need saying
+            # out loud. The COUNT of that population is deliberately not published
+            # here yet: it has to come from the run producer
+            # (saas/reporting/annual_report.py), that file is carrying another
+            # lane's in-flight work, and a field that could only ever be null until
+            # the producer lands is a stub rather than a bound.
+            "avg_bill_shock_pct_population": (
+                "every bill with a computable shock (has a prior bill, and a "
+                "baseline at or above BILL_SHOCK_BASELINE_FLOOR_GBP) -- NOT only "
+                "the bills flagged as shocks. The flagged-only mean is "
+                "monthly_ops.monthly[].avg_shock_pct and is several times larger."
+            ),
             # SITE_EH3 MAJOR-6 (R10 class-closing invariant): every published
             # annual row states its own period coverage, COMPUTED from the
             # real sim window -- never a hardcoded "this year is partial".
@@ -1371,6 +1386,68 @@ def extract_b2_taxonomy(data):
 # Main
 # ---------------------------------------------------------------------------
 
+#: Resamples behind the published shock interval. A COMPUTATIONAL parameter (how
+#: finely the bootstrap distribution is sampled), not a domain quantity: it changes
+#: the interval's last decimal, never what the interval means. 2,000 is the
+#: conventional floor for a percentile bootstrap and the whole 113-month series
+#: costs well under a second.
+_SHOCK_BOOTSTRAP_RESAMPLES = 2000
+#: The published interval is the conventional 95%. Named here rather than inlined
+#: so the field name and the number cannot drift apart.
+_SHOCK_BOOTSTRAP_TAILS_PCT = (2.5, 97.5)
+
+
+def _bootstrap_mean_interval(sample, seed_key):
+    """The bound a sample of this size earns for its own mean, as a percentile
+    bootstrap over ``_SHOCK_BOOTSTRAP_RESAMPLES`` resamples.
+
+    Why a bootstrap and not a standard error. The distribution under complaint is
+    the reason this exists: post-floor, the shock series' p99 is 19.8x its median.
+    A symmetric +/-1.96*SE band around the mean of five draws from that would state
+    a precision the sample does not have, and would do it in the exact months --
+    the thin ones -- where the bound is the whole point. The bootstrap assumes no
+    shape.
+
+    Why no minimum-n cutoff anywhere in this function. Suppressing months below
+    some n would be a threshold picked because a threshold was needed, and no
+    published source establishes a minimum sample for this quantity -- nobody
+    published measures it. The interval IS the honest statement: for a thin month
+    it comes out wide, and a wide interval says "we cannot tell" in the reader's
+    own units instead of hiding the month.
+
+    Returns (low, high) as fractions, or (None, None) when the sample cannot bound
+    itself. n < 2 returns Nones rather than a degenerate zero-width interval around
+    the single point: a one-observation "interval" of [x, x] would publish perfect
+    confidence off one bill, which is the fail-open reading of this whole field.
+
+    ``seed_key`` makes the draw deterministic per subject, so the published
+    interval is reproducible from the same run artefact and a re-render is not a
+    new measurement. R15 both ways: what MUST hold is independence from the
+    `random` module's global state -- a bootstrap drawing from it reproduces only
+    until something else in the publish run draws first, and that mutation is
+    killed by a control. Keying the seed on ``seed_key`` rather than on a constant
+    is ESTABLISHED AS AN EQUIVALENCE for every published figure, not assumed to be
+    one: under a constant seed each month's interval is still a valid bootstrap of
+    its own sample, and only the resample draws of two same-n months become
+    correlated, which no published field reads. It is kept because decorrelating
+    them is free, and it is deliberately not asserted, because a control that
+    cannot name the defect it catches is one this project has paid for before.
+    """
+    n = len(sample)
+    if n < 2:
+        return (None, None)
+    rng = random.Random(f"bill-shock-bound::{seed_key}")
+    means = []
+    for _ in range(_SHOCK_BOOTSTRAP_RESAMPLES):
+        resample = [sample[rng.randrange(n)] for _ in range(n)]
+        means.append(sum(resample) / n)
+    means.sort()
+    lo_pct, hi_pct = _SHOCK_BOOTSTRAP_TAILS_PCT
+    lo = means[min(len(means) - 1, int(lo_pct / 100.0 * len(means)))]
+    hi = means[min(len(means) - 1, int(hi_pct / 100.0 * len(means)))]
+    return (lo, hi)
+
+
 def extract_monthly_ops(data):
     from collections import defaultdict as _dd
     shock_m = _dd(list)
@@ -1409,10 +1486,18 @@ def extract_monthly_ops(data):
     for m in all_months:
         sh = shock_m.get(m, [])
         rt = ret_m.get(m, {"offers": 0, "retained": 0})
+        ci_lo, ci_hi = _bootstrap_mean_interval(sh, m)
         rows.append({
             "month": m,
             "shock_count": len(sh),
             "avg_shock_pct": round(statistics.mean(sh) * 100, 1) if sh else 0.0,
+            # The bound the sample size earns, per the standing rule. `shock_count`
+            # alone was never it: a reader handed "315.6% over 5 events" still has
+            # no way to tell that month from a typical one, and five of the six
+            # worst surviving months carry fewer than 20 events.
+            "median_shock_pct": round(statistics.median(sh) * 100, 1) if sh else 0.0,
+            "avg_shock_pct_ci95_low": round(ci_lo * 100, 1) if ci_lo is not None else None,
+            "avg_shock_pct_ci95_high": round(ci_hi * 100, 1) if ci_hi is not None else None,
             "max_shock_pct": round(max(sh) * 100, 1) if sh else 0.0,
             "committee_interventions": comm_m.get(m, 0),
             "retention_offers": rt["offers"],
@@ -1454,6 +1539,26 @@ def extract_monthly_ops(data):
     return {
         "monthly": rows,
         "demand_estimation_annual": demand_estimation_annual,
+        # WHICH BILLS THIS SERIES IS A MEAN OVER, on the surface a reader is served
+        # rather than in a source comment. `monthly[].avg_shock_pct` and
+        # `financial.annual[].avg_bill_shock_pct` are both "the average bill shock"
+        # and are means over different populations -- 110.6% and 30.8% for the same
+        # 2016, a factor of 3.6 -- so a reader moving from the year row to the
+        # monthly chart saw the number treble with nothing to tell them why.
+        "avg_shock_pct_population": (
+            "bills already flagged as a bill shock (month-on-month increase >=20%, "
+            "bill_shock_tracker.BILL_SHOCK_THRESHOLD) -- NOT all bills. The "
+            "all-bills mean is financial.annual[].avg_bill_shock_pct and is a "
+            "different and much smaller number."
+        ),
+        "avg_shock_pct_bound_note": (
+            "avg_shock_pct is a mean over a right-skewed distribution (whole-book "
+            "p99 is 19.8x the median), so median_shock_pct and the 95% bootstrap "
+            "interval are published beside it and neither alone is the figure. A "
+            "wide interval is this series saying it cannot tell that month from a "
+            "typical one; months with fewer than 2 events cannot bound themselves "
+            "and publish a null interval rather than a false one."
+        ),
         "likely_seasonal_shock_count": likely_seasonal_count,
         "genuine_shock_count": genuine_shock_count,
     }
@@ -2143,9 +2248,25 @@ def _check_basis_labels_present(portfolio):
 # later by a human.
 #
 # The claim is machine-readable: site/index.html carries
-#   data-mix-claim="non_domestic_revenue_share_gt_<NN>"
+#   data-mix-claim="non_domestic_revenue_share_gt_<NN>"   -- an I&C-dominated book
+#   data-mix-claim="non_domestic_revenue_share_lt_<NN>"   -- a domestic book
 # and this gate recomputes the real share from the run's OWN segment split and
 # fails if the claim no longer holds.
+#
+# WHY BOTH DIRECTIONS EXIST (2026-08-30). The gate was born when the book was ~99%
+# non-domestic, so `gt` was the only shape the disclosure ever needed. On 2026-08-24 the
+# director suspended I&C supply and the book flipped to 98.35% domestic; the prose in the
+# bookmix section was rewritten that day to say so ("This book is households"), but its
+# machine-readable form could not be: there was no way to WRITE "this book is domestic" in
+# a grammar that only says "greater than". The attribute was left at `gt_95` asserting the
+# exact opposite of the paragraph beneath it, and the gate correctly went red and stayed
+# red -- the front door carried a false machine claim for six days.
+#
+# The fix is NOT to weaken the claim to something 1.65% happens to satisfy (`gt_0` passes
+# today and would go on passing if the book flipped back to I&C -- a control keyed to
+# today's answer instead of to the property, which is the failure this project keeps
+# paying for). It is to give the disclosure the direction it actually makes, so a `lt`
+# claim fails the moment the book stops being domestic.
 #
 # INDEPENDENCE (R15 anti-tautology): the CLAIM is parsed from the hand-authored HTML;
 # the VALUE is computed from dashboard.financial.segment_annual. Two different
@@ -2155,7 +2276,11 @@ def _check_basis_labels_present(portfolio):
 # FAILED check (R15 fail-silent), and "no claim found" must never mean "claim fine".
 # ---------------------------------------------------------------------------
 FRONT_DOOR_PATH = PROJECT / "site" / "index.html"
-_MIX_CLAIM_RE = re.compile(r'data-mix-claim="non_domestic_revenue_share_gt_(\d{1,3})"')
+_MIX_CLAIM_RE = re.compile(r'data-mix-claim="non_domestic_revenue_share_(gt|lt)_(\d{1,3})"')
+#: The comparison each claim direction asserts, and the symbol its refusal prints. An
+#: attribute whose direction is neither of these does not match the regex at all, so it
+#: reads as "no claim found" -> FAIL, never as a pass by absence.
+_MIX_CLAIM_OPS = {"gt": (operator.gt, ">"), "lt": (operator.lt, "<")}
 
 
 def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
@@ -2175,9 +2300,14 @@ def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
     if not matches:
         print(
             "FRONT-DOOR MIX-CLAIM GATE FAILED: no data-mix-claim="
-            '"non_domestic_revenue_share_gt_<NN>" on the front door. The segment '
-            "disclosure that must precede the mission claim is missing or was edited "
-            "into an unverifiable form (SITE_EH1_segment_disclosure).",
+            '"non_domestic_revenue_share_gt_<NN>" (an I&C book) or '
+            '"non_domestic_revenue_share_lt_<NN>" (a domestic one) on the front door. The '
+            "segment disclosure that must precede the mission claim is missing or was edited "
+            "into an unverifiable form (SITE_EH1_segment_disclosure). NAMING BOTH DIRECTIONS "
+            "deliberately: for six days in August 2026 this refusal offered only `gt`, while "
+            "the book was domestic and the true claim was unwritable -- a refusal that names "
+            "only half its grammar reads as 'you typed it wrong' when the answer is 'the "
+            "vocabulary cannot say what is true'.",
             file=sys.stderr,
         )
         return False
@@ -2194,15 +2324,17 @@ def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
         return False
 
     actual = mix["non_domestic_revenue_share_pct"]
-    for raw in matches:
+    for direction, raw in matches:
+        compare, symbol = _MIX_CLAIM_OPS[direction]
         threshold = float(raw)
-        if not actual > threshold:
+        if not compare(actual, threshold):
             print(
                 "FRONT-DOOR MIX-CLAIM GATE FAILED: the front door claims non-domestic "
-                "revenue share > {:.0f}%, but this run's book is {:.2f}% non-domestic "
+                "revenue share {} {:.0f}%, but this run's book is {:.2f}% non-domestic "
                 "({} composition). The published sentence is now FALSE -- fix the "
                 "sentence (it is a disclosure, not a target: never reweight the book to "
-                "make it true, R12/R13).".format(threshold, actual, mix["composition_class"]),
+                "make it true, R12/R13).".format(symbol, threshold, actual,
+                                                 mix["composition_class"]),
                 file=sys.stderr,
             )
             return False
