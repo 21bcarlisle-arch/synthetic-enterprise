@@ -61,3 +61,74 @@ def test_a_landing_announcement_can_never_fail_a_landing():
 
     assert surgical_land.announce_landing("abc123", "x", ["a.py"], _notify=_boom) is None
     assert "except Exception" in inspect.getsource(surgical_land.announce_landing)
+
+
+# ── THE PRODUCER MUST BE ABLE TO PRODUCE, AND MUST SAY SO WHEN IT CANNOT ─────────────────────
+def test_the_announcer_works_without_a_daemons_environment(monkeypatch, tmp_path):
+    """SHIPPED BROKEN AND CAUGHT WITHIN MINUTES (2026-09-01). `background/ntfy_utils` raises at
+    IMPORT time when `SE_NTFY_TOPIC` is unset — deliberately, so a daemon dies at start rather than
+    finding its only channel dead when it needs it. Nobody had met the consequence until landings
+    became notifications: `background.notify` is not importable outside a daemon's environment, and
+    that includes a DEFERRED notification which never touches the wire at all.
+
+    This tool is run BY HAND, by every lane, from shells that never sourced `start_worker.sh`. So
+    the commit that added the producer landed and announced nothing.
+
+    IN A SUBPROCESS, and that is not fussiness. The first draft used `monkeypatch.delenv` and the
+    mutation SURVIVED: `background.ntfy_utils` was already in `sys.modules` from this file's own
+    imports, so the raise this test exists to provoke could not happen. A control that cannot fail
+    is worse than none, and it took removing the fix and watching the test stay green to see it.
+    Only a FRESH interpreter, with the variable genuinely absent, reproduces a lane's bare shell.
+
+    MUTATION: remove the `load_secret_env()` call from `announce_landing` and this fails.
+    """
+    import os
+    import subprocess
+    import sys
+
+    queue = tmp_path / "q.jsonl"
+    probe = (
+        "import sys\n"
+        "from background import notification_digest as nd\n"
+        f"nd.QUEUE_FILE = __import__('pathlib').Path({str(queue)!r})\n"
+        "from tools import surgical_land as sl\n"
+        "r = sl.announce_landing('abc123def', 'a landing from a bare shell', ['a.py'])\n"
+        "print(r)\n"
+    )
+    env = {k: v for k, v in os.environ.items() if k != "SE_NTFY_TOPIC"}
+    env.pop("PYTEST_CURRENT_TEST", None)   # a fresh process is not inside this test
+    proc = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True,
+                          cwd=str(surgical_land.ROOT), env=env, timeout=120)
+    assert proc.returncode == 0, proc.stderr
+    assert "SE_NTFY_TOPIC is not set" not in proc.stderr, proc.stderr
+    assert "could NOT announce" not in proc.stderr, proc.stderr
+    assert proc.stdout.strip().startswith("deferred:"), (proc.stdout, proc.stderr)
+    assert "a landing from a bare shell" in queue.read_text()
+
+
+def test_the_announcer_never_takes_the_signing_key_with_it():
+    """The topic and nothing else. Reading `.env.ntfy` wholesale also loads `SE_WAKE_HMAC_KEY`, the
+    authority-signing key `MODEL_FACING_FORBIDDEN_SECRETS` exists to keep out of processes like this
+    one — a helper that hands out more authority than its caller asked for is a worse defect than
+    the silence it was written to fix.
+
+    Both legs: the default asks for the topic only, AND the forbidden set is refused even when a
+    caller explicitly asks for it."""
+    from background import secrets_location as sl
+    env = {}
+    sl.load_secret_env(environ=env)
+    assert set(env) <= {"SE_NTFY_TOPIC"}, env.keys()
+    env2 = {}
+    sl.load_secret_env(only=tuple(sl.MODEL_FACING_FORBIDDEN_SECRETS), environ=env2)
+    assert env2 == {}, "the forbidden set is the floor and outranks any caller's `only`"
+
+
+def test_an_unannounceable_landing_says_so_on_stderr(capsys):
+    """A notifier that cannot fail a landing must still not fail SILENTLY — that combination is
+    exactly what shipped this evening, and it is the shape the producer exists to report."""
+    def _boom(*a, **kw):
+        raise RuntimeError("the channel is down")
+
+    assert surgical_land.announce_landing("abc123", "x", ["a.py"], _notify=_boom) is None
+    err = capsys.readouterr().err
+    assert "could NOT announce" in err and "abc123" in err

@@ -1076,9 +1076,24 @@ def announce_landing(sha: str, message: str, paths: list[str], *,
     NEVER RAISES, and the reason is the whole safety argument: a landing has already happened when
     this runs, so an exception here could only turn a successful commit into a caller-visible
     failure -- a notifier that can fail a landing is a defect, not an observer.
+
+    BUT IT NEVER FAILS QUIETLY EITHER, and the first version of this function did, within minutes of
+    shipping. `background/ntfy_utils` raises at IMPORT time when `SE_NTFY_TOPIC` is unset -- so
+    `background.notify` is not importable outside a daemon's environment, including for a DEFERRED
+    notification that never touches the wire. This tool is run by hand, by every lane, from ordinary
+    shells that never sourced `start_worker.sh`. The very commit that added the producer therefore
+    landed and announced nothing, and the `except` below swallowed the reason.
+
+    A producer that is structurally unable to produce AND structurally unable to say so is the exact
+    shape this function was written to report, arriving inside the reporting of it. So: the topic is
+    loaded from the file the daemons already read (topic ONLY -- `load_secret_env` refuses the
+    signing key whatever a caller asks for), and any remaining failure goes to STDERR beside the
+    landing line, where the operator is already looking.
     """
     try:
         if _notify is None:
+            from background.secrets_location import load_secret_env
+            load_secret_env()          # topic only; no-op when the environment already has it
             from background.notify import notify as _notify
         from background import notification_digest
         subject = str(message or "").strip().splitlines()
@@ -1091,7 +1106,13 @@ def announce_landing(sha: str, message: str, paths: list[str], *,
             # a repeat of another one -- see the `work_done` note in `background/notify.py` for why
             # `real_alarm`'s auto-keying would have done exactly that.
         )
-    except Exception:  # noqa: BLE001 -- see NEVER RAISES above
+    except Exception as exc:  # noqa: BLE001 -- see NEVER RAISES above
+        sys.stderr.write(
+            "[surgical-land] LANDED {} but could NOT announce it: {}: {}\n"
+            "[surgical-land] The commit is fine. The CHANNEL did not hear about it, which is the "
+            "defect this producer exists to fix -- say so rather than swallow it.\n".format(
+                sha[:9], type(exc).__name__, str(exc).strip()[:200]))
+        sys.stderr.flush()
         return None
 
 

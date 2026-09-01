@@ -95,6 +95,41 @@ pytest is a no-op; a monkeypatched one exercises the real body), and its test li
 `tests/tools/` because `tests/background/conftest.py` pins the queue for its whole directory and the
 guard would be unreachable from there.
 
+## The producer shipped SILENT, and was caught by its own subject
+
+Recorded here rather than quietly repaired, because it is the same defect as the three above and it
+arrived inside the fix for them.
+
+`580c47101` — the commit that added the producer — landed and **announced nothing**. Cause:
+`background/ntfy_utils` raises at IMPORT time when `SE_NTFY_TOPIC` is unset. That is deliberate and
+right for a daemon (die at start, not at the moment the channel is needed). Nobody had met its
+consequence: **`background.notify` is not importable outside a daemon's environment at all**,
+including for a DEFERRED notification that never touches the wire. `surgical_land` is run by hand,
+by every lane, from shells that never sourced `start_worker.sh`.
+
+And the `except Exception: return None` that stops a notifier failing a landing also stopped it
+saying why. **A producer structurally unable to produce and structurally unable to say so** — the
+exact shape, one layer inside the reporting of it.
+
+Three repairs, and the second and third matter more than the first:
+
+1. `secrets_location.load_secret_env()` — the topic, from the file the daemons already read.
+2. **The failure goes to STDERR beside the landing line.** "Landed but could not announce" is now
+   visible where the operator is already looking. The commit is never at risk; the silence is.
+3. **`load_secret_env` takes an allowlist.** The first draft read `.env.ntfy` wholesale, which also
+   loads `SE_WAKE_HMAC_KEY` — the authority-signing key `MODEL_FACING_FORBIDDEN_SECRETS` exists to
+   keep out of processes exactly like this one. A helper that hands out more authority than its
+   caller asked for is a worse defect than the silence it was written to fix. The forbidden set is
+   now a floor beneath any caller's `only`.
+
+And the first test of (1) was itself a control that could not fail: `monkeypatch.delenv` cannot
+provoke an import that `sys.modules` has already cached, so removing the fix left the test green.
+It reproduces in a subprocess now, and the mutation fires.
+
+**The wider gap is left open and named:** any process without the env var still cannot use the
+notification contract, even to batch. That is a real constraint on every future producer and it is
+not this finding's to close.
+
 ## What this finding does not claim
 
 Not that the batching design is wrong — it is his own instruction and it works; the digest flushed

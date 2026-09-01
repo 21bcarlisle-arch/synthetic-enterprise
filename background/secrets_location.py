@@ -64,3 +64,62 @@ def resolve_secret_file(filename: str) -> Path:
     if new_path.is_file():
         return new_path
     return OLD_SECRETS_DIR / filename
+
+
+def load_secret_env(filename: str = ".env.ntfy", *, only=("SE_NTFY_TOPIC",),
+                    environ=None) -> list[str]:
+    """Load NAMED `KEY=VALUE` lines from a secret file into the environment, WITHOUT overwriting
+    anything already set. Returns the names it set (never the values). Never raises.
+
+    WHY A TOOL NEEDS THIS (2026-09-01). `background/ntfy_utils` raises at IMPORT time when
+    `SE_NTFY_TOPIC` is unset -- deliberately, so a daemon dies at start rather than discovering
+    its only channel is dead at the moment it needs it. The consequence nobody had met until
+    landings became notifications: **`background.notify` is not importable at all outside a
+    daemon's environment**, including for a DEFERRED notification that never touches the wire.
+
+    `tools/surgical_land` is run by hand, by every lane, from ordinary shells that never sourced
+    `start_worker.sh`. So its landing announcement imported `background.notify`, raised, and was
+    swallowed by the guard that exists to stop a notifier failing a landing -- a producer that was
+    structurally unable to produce and structurally unable to say so. That is the same shape as
+    the three unwired mechanisms it was written to report, arriving in the reporting of them.
+
+    It lives HERE rather than in `ntfy_utils` because this module already owns *where secrets
+    live*, and because `ntfy_utils` raises before any code in it can run. `start_worker.sh` does
+    the same job in shell; this is the same act for a Python caller, not a second policy.
+
+    NEVER OVERWRITES an existing value: a caller that has already been given a topic keeps it, so
+    this can never redirect a live daemon's channel. Values are read and set, never logged or
+    returned -- the names are enough for a caller that wants to say what it loaded.
+
+    AN ALLOWLIST, NOT THE WHOLE FILE, and the first draft of this function got that wrong. Reading
+    `.env.ntfy` wholesale also loads `SE_WAKE_HMAC_KEY` -- the authority-SIGNING key that
+    `MODEL_FACING_FORBIDDEN_SECRETS` above exists to keep out of exactly this kind of process. A
+    caller that wants to announce a landing needs the TOPIC and nothing else, so `only` names what
+    it needs and the forbidden set is refused on top of that whatever any caller asks for. A helper
+    that hands out more authority than its caller asked for is a worse defect than the silence it
+    was written to fix.
+    """
+    import os
+    env = os.environ if environ is None else environ
+    loaded: list[str] = []
+    try:
+        text = resolve_secret_file(filename).read_text(encoding="utf-8")
+    except OSError:
+        return loaded
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):].strip()
+        key, sep, value = line.partition("=")
+        key = key.strip()
+        if not sep or not key or key in env:
+            continue
+        if key in MODEL_FACING_FORBIDDEN_SECRETS:
+            continue          # never, whatever `only` says -- the forbidden set is the floor
+        if only is not None and key not in only:
+            continue
+        env[key] = value.strip().strip('"').strip("'")
+        loaded.append(key)
+    return loaded
