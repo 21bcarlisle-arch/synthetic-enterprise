@@ -143,3 +143,168 @@ Named in advance so the flattering repair is not available afterwards:
    2022. That publishes a measured zero-churn crisis year. Its arithmetic consumers fail closed.
 4. **If P3 refuses on `twice`, the reader is not de-duplicated.** The refusal is then correct and the
    question moves to the world.
+
+---
+
+# GRADED 2026-09-01, delivery seat, Lane 0
+
+**The text above is untouched. Every miss below is kept where it was filed, not revised.**
+
+## What was actually run
+
+The run that produced this grading is the **fourth** launch. The first three died with the bounded
+tick that launched them — the class `a job launched from a bounded tick dies with it` — and the
+third's corpse is kept at `/tmp/svtcap/capture.DEAD-run3-1147Z.log`, ending at `2020-10-18 period 2`.
+The fourth was launched under `systemd-run --user --unit=svt-native-capture`, which outlives its
+launcher, and **ran to completion**: `EXIT_RC=0`, the full window, `OUTCOME: SURVIVED`.
+
+I did not launch it — I found it already in flight at 17:31:18Z and waited on it with
+`tools/wait_for.py --pid 2771542 --deadline 1800`, never a hand-rolled `pgrep`. It finished 240s
+into that wait. **The run took ~11 minutes of wall-clock, not the hours the direction budgeted**, and
+that matters for scheduling the next one: this is a cheap experiment, and three stretches of it being
+"too expensive to restart" were mis-costed.
+
+| artefact | sha256 |
+|---|---|
+| `/tmp/svtcap/c2_marketterm.json` (156 renewal rows) | `bd6ad1da9207a5ff8f7c364bffcf4c546613ded7fd47d2a156e259f7a272fa70` |
+| `/tmp/svtcap/c2_marketterm_svt_segment_decisions.json` (1373 SVT decisions, 38 departed) | `4bb04dcd0a1ccd6e64df618860c9d687e009200eca01c89f932544fe690e3e58` |
+
+`/tmp/svtcap/PROVENANCE.txt` records the module sha256s **as run**. Read them: the run executed the
+**shared working tree**, not a commit, and three of its five run-relevant modules were dirty against
+`origin/main` at launch.
+
+## The five predictions, as filed
+
+### P1 — SPLIT. The falsifiable clause holds; the clause in its own heading is REFUTED.
+
+The heading claims a sibling *"written **by a producer in git**"*. The `Refuted by:` line named only
+the two stderr warnings, and **neither fired**: the key is present, the list has 1373 rows, and
+`load_svt_decisions` returns no warning. On its own stated refutation criterion, **P1 stands**.
+
+**But its heading is false, and I am grading the heading because the prereg wrote it.** The producer
+is in git by half. The *recorder* landed at `6db30a350`, as the prereg says. The **C1b roll** that
+puts an account on the SVT product so the recorder has anything to record did **not**:
+
+```
+$ git show origin/main:simulation/renewals.py | grep -c 'rolls_active_renewal'
+0
+```
+
+Zero occurrences, checked against `origin/main` after fetching, not against the working tree. The
+roll is ~56 uncommitted lines in the shared checkout. **So whether this tool writes a populated
+sibling or an empty one is decided by the working tree, not by the commit** — run it on a clean
+checkout of this HEAD and the sibling is empty.
+
+**The prereg said P1 was the one it was least sure of, and it was right to be — but it was wrong
+about which half would fail.** It braced for an *empty* sibling and got a full one; what actually
+failed was *provenance*, which it had listed as settled. That is the more useful miss, because the
+prereg's own cited precedent
+(`A_PUBLISHED_CAPTURE_WAS_PRODUCED_BY_CODE_THAT_WAS_NEVER_COMMITTED_2026-08-31`) is exactly this
+class and the prereg still filed the clause as established.
+
+Another lane reached the same conclusion independently and landed it at `342d72159` — *"the SVT
+recorder is in git and the roll that fills it is not, so the native capture is native by half"* —
+together with the docstring correction this direction asked for. **I did not redo either.**
+
+### P2 — CONFIRMED, exactly, on the counts and not merely on the verdict.
+
+`svt_composition_refusal` returns `None`. The verdict alone would be a thin grade, so the
+classification was re-run row by row:
+
+```
+total=1373   unanchored=1373   anchored=0   market_blind=0   neither=0
+```
+
+`market_blind == 0` ✓ and `unanchored == total` ✓, both as predicted. The staleness leg goes to
+exactly zero and every row reproduces under the market-factored hazard.
+
+**The prereg's own caveat stands and is repeated here so the count is not over-read**: the branches
+are ordered and mutually exclusive, so 2019–20 rows where the factor ≈ 1.0 match `unanchored`
+*before* `market_blind` is evaluated. `market_blind == 0` is **not** evidence those years are
+market-blind. `anchored == 0` is the load-bearing one: the world does not multiply the level anchor
+into the SVT route, so the whole-book fit holding the SVT contribution fixed is legitimate.
+
+### P3 — CONFIRMED. The coin-flip landed on the predicted side.
+
+`account_denominator_refusal(renewal_rows, svt_rows)` returns `None`. Sub-properties measured rather
+than inferred from the verdict: **0 rows carry no `customer_id`**, and **131 distinct accounts**
+across both routes. `twice` did **not** fire.
+
+So the question the prereg raised — whether a household can churn on the SVT route *and* reach a
+renewal roll that records a departure — **does not arise in this world**, and constraint 4 is moot.
+Filed at ~65% confidence; it paid.
+
+### P4 — CONFIRMED. The first whole-book fit in this repository's history.
+
+`── WHOLE-BOOK FIT: both routes, over the accounts on the book ──` printed, replacing the standing
+`REFUSED — no YEAR_LEVEL_ANCHOR block is emitted from this capture`. Seven years carry an anchor;
+three are absent with a named cause each.
+
+### P5 — SPLIT. The magnitudes are sharp hits. One clause is REFUTED by a cause the prereg did not put in its refuter list.
+
+| year | accts | nRen | nSVT | record % | SVT floor % | anchor |
+|---|---|---|---|---|---|---|
+| 2017 | 57 | 20 | 116 | 14.00 | 5.72 | 7.2492 |
+| 2018 | 55 | 21 | 144 | 20.00 | 10.20 | 3.2492 |
+| 2019 | 45 | 16 | 122 | 21.30 | 10.89 | 5.2532 |
+| 2020 | 51 | 18 | 137 | 23.00 | 10.39 | 5.4772 |
+| 2021 | 55 | 23 | 153 | 18.40 | 7.87 | 5.2686 |
+| **2022** | **55** | **0** | **213** | **4.30** | **2.54** | **—** |
+| 2023 | 57 | 20 | 210 | 12.50 | 6.90 | 2.0539 |
+| 2024 | 62 | 19 | 181 | 16.10 | 6.83 | 4.1204 |
+
+**CONFIRMED, and sharply:** 2022's SVT floor is **2.54%**. Predicted 1.5–3.5% ✓; below the 4.30%
+target ✓; straddling the 2.33%/2.34% the two diagnostic runs recorded and **not equal to either** ✓ —
+a third population, as predicted. **CONFIRMED:** 2023's anchor is **2.0539** — above 1.0 ✓, inside
+the predicted 1.5–3.5 ✓, no longer the 0.03 that made the priceable route near-extinct.
+
+**CONFIRMED on the stated refuter:** no year printed `NOT FITTED — unreachable: SVT alone expects …`.
+
+**REFUTED:** the clause *"so the year is **reachable** and the renewal anchor for it is a positive
+finite number"*. 2022 prints `NOT FITTED — no renewal decisions in this year`. Its anchor is `—`, not
+a positive finite number.
+
+**Why this miss is worth keeping.** The prereg treated the SVT floor as the binding constraint on
+2022 and predicted that clearing it would make the year fittable. **Clearing it changed nothing**:
+the floor came down from 12.09% to 2.54% — comfortably under target — and 2022 is *still* unfitted,
+because it holds **zero renewal decisions over 55 accounts**. The anchor multiplies nothing, so no
+value of it moves the year by a basis point. `departure_level_anchor`'s own docstring already said
+both causes bind; the prereg cited that docstring and still predicted the year would become
+reachable. **Two independent causes, and I fixed the one I was looking at.**
+
+## Constraints honoured
+
+1. **No constant pasted into `simulation/departure_level_anchor.py`.** The block above is recorded
+   as a *result*, not adopted. Adopting it is a separate decision needing evidence this one capture
+   cannot supply — and it should not be taken while the producer is half-uncommitted (P1).
+2. **No widened band, no clamp on 2022.** None applied. 2022 stays unfitted with both causes named.
+3. **`_churn_by_year` not repaired with a `sim_churn_rate` of 0.0.** Not touched — and this capture
+   turns that hazard from hypothetical into live, which is a result in its own right. See below.
+4. **Reader not de-duplicated.** Moot: P3 did not refuse on `twice`.
+
+## Two findings this capture produced that were not predicted
+
+**(a) The `= 0.0` default in `population_anchor` now has a real 2022 behind it.**
+`_churn_by_year` only creates `by_year[year]` when a `customer_events` entry exists for that year.
+This capture establishes 2022 has **zero renewal decisions over 55 accounts** — so the year is
+**absent**, `churn_by_year.get(2022, {})` is `{}`, and `tools/population_anchor.py:490`'s
+`.get("sim_churn_rate", 0.0)` resolves to **0.0**. That zero then flows into `2022_sim_rate_pct`,
+`2022_ratio_vs_ofgem` and the crisis-divergence test — **publishing a measured zero-churn crisis
+year for the one year the published record is loudest about.** This is the class
+`a default-zero parameter turns an unobservable cause into a published measured zero`. The repair is
+to fail those consumers closed, never to insert the zero. **`tools/population_anchor.py` is outside
+this stretch's pathspec, so it is recorded here and not touched.**
+
+**(b) The 61%-of-departures figure is a property of the foreign artefact, not of this world.**
+This capture: 38 SVT departures and 36 renewal departures over 74 — the SVT route is **51%**, and the
+tool reports the renewal route's own share as 49%. The prereg predicted the 61% figure would be
+exposed as foreign only *if P1 landed empty*. P1 landed full and **the 61% is foreign anyway**.
+Anything downstream still citing 61% is citing the 1,266-row artefact at `87709c617`.
+
+## What is owed next
+
+1. **Land the C1b roll**, or this capture is unreproducible from any commit. Until then the
+   whole-book block above cannot be adopted — the fit is real, its producer is not in git.
+2. **Fail `population_anchor`'s five 2022 consumers closed** (finding (a)).
+3. **Re-run this capture after (1) lands** and confirm the block is byte-stable. It costs ~11
+   minutes, not hours.
