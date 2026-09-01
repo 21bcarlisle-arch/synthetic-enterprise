@@ -1,5 +1,13 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `OPS1_process_manifest_reconstruction`
 
+**Discharged:** `tests/tools/test_the_promotion_route_refuses.py::test_an_ungated_commit_beneath_a_gated_tip_is_refused`,
+`tests/tools/test_the_promotion_route_refuses.py::test_a_range_of_gated_commits_is_promotable`,
+`tests/background/test_fork_salvage.py::test_the_SCAN_applies_the_live_writer_filter_not_just_the_predicate`,
+`tests/background/test_fork_reconciler.py::test_BOTH_reap_doors_refuse_a_live_writer`,
+`tests/background/test_worktree_isolation.py::test_the_head_reader_survives_a_stubbed_subprocess`,
+`tests/background/test_worktree_isolation.py::test_the_head_reader_agrees_with_git_wherever_it_runs`
+— all four repairs verified present on `origin/main` and re-run green 2026-09-01; see §Verification below.
+
 # A worktree is isolated from other WRITERS, not from other DAEMONS — and the promotion route was verifying the tip, not the range
 
 **Found:** 2026-08-31, four minutes into the seat executor's first unattended turn. Not by a
@@ -163,3 +171,42 @@ holds this worktree's own HEAD, and refs resolve against the COMMON dir two leve
 `--git-common-dir` distinction `tools/surgical_land._object_store` turns on. No subprocess, so no
 stub can poison it. `tests/background/test_worktree_isolation.py` gains two legs: the reader
 survives a stubbed subprocess, and it agrees with `git rev-parse` in both layouts.
+
+## Verification, 2026-09-01 — run rather than inherited
+
+This finding was written and its repairs claimed on 2026-08-31. It stayed BLOCKING in lane
+`H_harness`, drawing ahead of that lane's whole disposition queue, so the discharge was checked
+against `origin/main` rather than read off the prose above. This project has paid for the other
+habit twice: a finding can describe its own repair in the past tense while only the arm landed.
+
+**All four repairs are present on `origin/main`**, checked by reading the blob at the remote ref and
+not the working tree:
+
+| repair | subject on `origin/main` |
+|---|---|
+| range verification | `tools/promote_worktree_landing` verifies `origin/main..HEAD` |
+| salvage liveness | `background/fork_salvage._is_a_live_writers_worktree`, delegating to `seat_executor.worktree_is_live` |
+| reaper liveness | `background/fork_reconciler` asks the same owner; both doors |
+| worktree HEAD reader | `tests/background/conftest.py` reads `gitdir:` / common-dir from disk, no subprocess |
+
+**The legs re-run green today:** 28 passed across
+`tests/tools/test_the_promotion_route_refuses.py` and `tests/background/test_worktree_isolation.py`,
+plus the three liveness legs in `test_fork_salvage.py` / `test_fork_reconciler.py`. Run with
+`python3 -B` — a mutation harness reporting SURVIVED off a stale `.pyc` is a known trap here.
+
+**The ungated commit named in §2 is still on `main`, and that is the correct end state.**
+`139332d90` (2026-08-31 18:16:42 +0100) remains an ancestor of `origin/main`. Its content is
+`docs/observability/.human_last_input` and `.seat_heartbeat.json` — machine exhaust, 57 lines,
+nothing a revert would improve. **The record says it is there and why, which is what this finding
+asked for; rewriting history to hide an ungated commit would cost more than the commit did.** What
+changed is that the route can no longer let another one through: the check is now over the range a
+push actually moves.
+
+**What is NOT discharged by this, and stays open as ordinary work.** The census in §"beyond the two
+fixes" checked four modules that enumerate worktrees. `background/disk_headroom` and
+`background/process_run_complete` were reasoned to be safe rather than driven by a leg — that
+reasoning is recorded above and it is not a control. If a third daemon is ever given a write door
+onto a foreign worktree, the liveness question has one home (`seat_executor.worktree_is_live`) and
+it must ask there. That is a latent item, not a blocker.
+
+Severity reads down to RECORDED on the `**Discharged:**` line above.
