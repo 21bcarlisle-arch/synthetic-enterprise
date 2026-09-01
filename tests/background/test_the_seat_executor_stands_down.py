@@ -96,6 +96,17 @@ def test_a_REDERIVED_focus_item_is_REACHABLE_BY_A_LATER_TICK(tmp_path, monkeypat
 
     MUTATION (must fire): delete the `_promote_to_handoff` call from `run_once` and tick two stands
     down exactly as tick one did — which is HEAD as of 2026-08-31, and is the defect.
+
+    AND THE ONE THAT PROVES THE HEADLINE CLAIM, because the mutation above does not (proven both
+    ways, 2026-09-01, `python3 -B`). Deleting the promotion call fires this leg at the TICK ONE
+    assertion — "declined without promoting" — so it demonstrates that a promotion is WRITTEN, not
+    that the route TERMINATES. Those are different claims, and only the second one is what
+    thirty-two stand-downs were the absence of. So the load-bearing mutation is instead: narrow the
+    guard in `run_once` back to presence alone, `if _interactive_seat_is_live(now):`, dropping the
+    `and not _is_handed_off(...)`. The promotion still writes and tick one still passes; tick two
+    then declines the item it was just handed, and the assertion below fires carrying the defect
+    verbatim — *"is PROMOTED rather than run"*, every tick, forever. A leg whose documented mutation
+    stops one assertion short of its own claim is how a control ends up proving the cheaper thing.
     """
     from background import seat_continuation
 
