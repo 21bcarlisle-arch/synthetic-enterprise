@@ -12,10 +12,12 @@ import math
 import pytest
 
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.departure_level_anchor import YEAR_LEVEL_ANCHOR
 from simulation.departure_risks import (
     CAUSE_BILL_SHOCK,
     CAUSE_DISSATISFACTION,
     CAUSE_PRICE_POSITION,
+    CAUSE_SVT_INERTIA,
     ORDERED_CAUSES,
     PRICE_IMPORTANCE,
     SERVICE_IMPORTANCE,
@@ -27,10 +29,14 @@ from simulation.departure_risks import (
     price_move_symmetry,
     resolve_departure,
     survival,
+    svt_inertia_base_multiplier,
     svt_inertia_hazard,
     total_departure_probability,
 )
-from simulation.market_switching_propensity import churn_position_multiplier
+from simulation.market_switching_propensity import (
+    churn_position_multiplier,
+    market_switching_multiplier,
+)
 
 SCALE = 0.05  # a fixed non-zero sensitivity, so these controls do not depend on the P0 fit
 
@@ -362,7 +368,8 @@ def test_the_annual_anchor_recomposes_from_the_segment_hazard():
                              (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
         survival_ = 1.0
         for days in year:
-            survival_ *= 1.0 - svt_inertia_hazard(years_on_svt=years_on, segment_days=days)
+            survival_ *= 1.0 - svt_inertia_hazard(years_on_svt=years_on, segment_days=days,
+            market_switching_multiplier=svt_inertia_base_multiplier())
         assert abs((1.0 - survival_) - annual) < 5e-4, (
             f"four cap quarters recompose to {1 - survival_:.5f}, not the published {annual}")
         # And the naive substitution is the large, obvious error this guards.
@@ -373,8 +380,10 @@ def test_the_annual_anchor_recomposes_from_the_segment_hazard():
 def test_a_partial_opening_segment_is_charged_for_its_own_length():
     """DEFECT: a flat per-quarter rate. A household arriving mid-quarter gets a 47-day segment;
     charging it a full quarter's hazard over-bills the one segment every SVT account has."""
-    short = svt_inertia_hazard(years_on_svt=0.0, segment_days=47)
-    full = svt_inertia_hazard(years_on_svt=0.0, segment_days=92)
+    short = svt_inertia_hazard(years_on_svt=0.0, segment_days=47,
+            market_switching_multiplier=svt_inertia_base_multiplier())
+    full = svt_inertia_hazard(years_on_svt=0.0, segment_days=92,
+            market_switching_multiplier=svt_inertia_base_multiplier())
     assert short < full
     assert abs(short / full - 47 / 92) < 0.02, "not proportional to elapsed time at these rates"
 
@@ -382,10 +391,13 @@ def test_a_partial_opening_segment_is_charged_for_its_own_length():
 def test_a_long_stayer_drifts_less_than_a_recent_arrival():
     """The published split (5-10% at 3+ years, 15-20% under 3) is the one piece of genuine
     per-household structure this anchor carries. Collapsing it to one rate loses it."""
-    recent = svt_inertia_hazard(years_on_svt=1.0, segment_days=91)
-    settled = svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS, segment_days=91)
+    recent = svt_inertia_hazard(years_on_svt=1.0, segment_days=91,
+            market_switching_multiplier=svt_inertia_base_multiplier())
+    settled = svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS, segment_days=91,
+            market_switching_multiplier=svt_inertia_base_multiplier())
     assert settled < recent
-    assert svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS - 0.01, segment_days=91) == recent
+    assert svt_inertia_hazard(years_on_svt=SVT_LONG_STAYER_YEARS - 0.01, segment_days=91,
+            market_switching_multiplier=svt_inertia_base_multiplier()) == recent
 
 
 def test_an_account_not_on_svt_carries_no_inertia_hazard():
@@ -393,7 +405,91 @@ def test_an_account_not_on_svt_carries_no_inertia_hazard():
     signals that with `segment_days <= 0` and must get exactly zero -- never a small default that
     would put an SVT cause on a household that has never been on SVT."""
     for days in (0, -1, -91):
-        assert svt_inertia_hazard(years_on_svt=0.0, segment_days=days) == 0.0
+        assert svt_inertia_hazard(years_on_svt=0.0, segment_days=days,
+            market_switching_multiplier=svt_inertia_base_multiplier()) == 0.0
+
+
+def test_the_market_term_reaches_the_hazard_and_is_not_merely_in_the_signature():
+    """DEFECT: a parameter accepted and then ignored.
+
+    This is the failure mode the repair was most exposed to, because the refusal that demanded it
+    (`tools/fit_year_level_anchor.svt_market_invariance_refusal`) inspects the SIGNATURE. A term
+    added to the signature and dropped in the body would lift that refusal, emit the whole-book
+    anchor, and leave the route carrying 61% of departures exactly as market-blind as before --
+    with the one control that named the defect now reporting green.
+
+    So this drives the two years the record separates most and reads the ANSWER. The published GB
+    domestic switching rate is 23.00% in 2020 and 4.30% in 2022, a 5.3x swing; the hazard must
+    carry it.
+    """
+    peak = svt_inertia_hazard(years_on_svt=0.0, segment_days=91,
+                              market_switching_multiplier=market_switching_multiplier(2020))
+    trough = svt_inertia_hazard(years_on_svt=0.0, segment_days=91,
+                                market_switching_multiplier=market_switching_multiplier(2022))
+    assert trough < peak, "the market term does not reach the hazard at all"
+    assert peak / trough > 4.0, (
+        f"2020 drift is only {peak / trough:.2f}x 2022's, against a published switching record "
+        f"that moves 5.3x between those years -- the term is reaching the hazard damped or "
+        f"partially applied"
+    )
+
+
+def test_the_published_rate_is_unchanged_inside_its_own_inference_window():
+    """DEFECT, and it is the one a filed repair got wrong: `rate x multiplier(year)` at 2024-ref.
+
+    `SVT_INERTIA_ANNUAL_RECENT = 0.20` is an ABSOLUTE annual rate and
+    `svt_rates_active_passive_2016_2025.md` §4 infers it against a 2019-20 market.
+    `market_switching_multiplier` is normalised at 2024. Multiplying the two directly levels a
+    2019-20 rate UP into the market it was already measured in, by a constant 1.375776 in every
+    year -- the year cancels, so no year-shaped check can see it, and at 2024 the naive form looks
+    like it did nothing at all because `multiplier(2024) = 1.0` by definition.
+
+    The re-referencing is what makes the composition a re-levelling rather than a new constant, and
+    this is the leg that states it: across the window the constants were inferred in, the world
+    still runs the published number.
+    """
+    year = (90, 91, 92, 92)
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+        for y in (2019, 2020):
+            survival_ = 1.0
+            for days in year:
+                survival_ *= 1.0 - svt_inertia_hazard(
+                    years_on_svt=years_on, segment_days=days,
+                    market_switching_multiplier=market_switching_multiplier(y))
+            realised = 1.0 - survival_
+            # The window is a two-year MEAN, so neither endpoint sits exactly on the published
+            # rate -- 2019 below it and 2020 above, by the record's own spread between them. The
+            # naive 2024-referenced form misses by 37.6%, an order of magnitude outside this.
+            assert abs(realised - annual) / annual < 0.06, (
+                f"a year of SVT drift at {y} recomposes to {100 * realised:.2f}% against the "
+                f"published {100 * annual:.0f}% -- the rate has been re-levelled inside the very "
+                f"window it was inferred in"
+            )
+    # And the mean across the window IS the published rate, which is the property `factor()` has
+    # by construction and the reason a reader can still check the level.
+    mean_factor = sum(market_switching_multiplier(y) for y in (2019, 2020)) / 2.0
+    assert abs(mean_factor / svt_inertia_base_multiplier() - 1.0) < 1e-12
+
+
+def test_the_market_term_is_required_so_a_caller_cannot_quietly_run_market_blind():
+    """FAIL-CLOSED, and a default of 1.0 is the specific thing being refused here.
+
+    With a default the signature would advertise a market the hazard could see while every
+    existing caller kept running market-blind, and the structural refusal keyed to that signature
+    would have lifted on a term reaching nothing. This module already fails closed the same way
+    for `_SENSITIVITY_SCALE`.
+    """
+    import inspect
+
+    param = inspect.signature(svt_inertia_hazard).parameters["market_switching_multiplier"]
+    assert param.default is inspect.Parameter.empty, (
+        "the market term has acquired a default, so a caller can run the market-blind hazard "
+        "while the signature says otherwise"
+    )
+    assert param.kind is inspect.Parameter.KEYWORD_ONLY
+    with pytest.raises(TypeError):
+        svt_inertia_hazard(years_on_svt=0.0, segment_days=91)
 
 
 def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
@@ -403,6 +499,13 @@ def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
     gets a hazard of exactly zero for this cause and the composed probability is unchanged to the
     last bit. The mechanism exists; nothing is assigned to it. When C1b's assignment lands, THAT
     is the commit where the churn series moves, and it moves for one reason.
+
+    THE TITLE IS NOW HISTORY AND THE ASSERTIONS ARE NOT, corrected 2026-08-31 rather than
+    renamed. C1b's assignment HAS landed: `run_phase2b` rolls an SVT segment decision and passes
+    `svt_inertia=` explicitly. So "nothing is on SVT yet" is false about the world. What this
+    still checks is true and worth checking -- the DEFAULT is 0.0, so the renewal roll, which
+    passes no `svt_inertia`, is unchanged to the last bit by the cause's existence. That is the
+    interlock; the name is the state it was written in.
     """
     without = build_departure_risks(
         bill_shock_base=0.06, price_response=1.0, dissatisfaction_response=1.0,
@@ -415,61 +518,86 @@ def test_nothing_is_on_svt_yet_so_the_fourth_cause_moves_no_published_figure():
     assert total_departure_probability(without) == total_departure_probability(explicit_zero)
 
 
-# ── The SVT floor's base year ───────────────────────────────────────────────────────────────────
-# `SVT_INERTIA_ANNUAL_*` are ABSOLUTE annual rates inferred against a 2019-20 market;
-# `market_switching_multiplier` is a RATIO normalised to 2024. The repair filed at `18a09617d`
-# composes them directly, which levels a 2019-20 rate up into the market it was already measured
-# in. Finding: docs/staging/WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_2019_20_RATE_2026-08-31.md
+def test_the_level_anchor_scales_the_response_risks_and_never_the_svt_route():
+    """DEFECT, and it was LIVE at HEAD when this was written: `level_anchor * svt_inertia`.
 
-#: The window §4 states its basis over, on the all-customer row the segment rows must average to.
-SVT_INERTIA_BASE_YEARS = (2019, 2020)
+    `svt_inertia` arrives already carrying units -- `svt_inertia_hazard` converts the published
+    ANNUAL rate (0.20 recent stayer, 0.10 long stayer) into this segment's length, and
+    `test_the_annual_anchor_recomposes_from_the_segment_hazard` above is what pins that. The three
+    response risks are the opposite: dimensionless curves, ~1.0 at a neutral household, carrying
+    no rate at all, which is the entire reason `simulation/departure_level_anchor.py` had to
+    exist. Anchoring the one that already has a level destroys the only level anyone could check.
 
-#: What the comment on the constants tells the next implementer to divide by. Written down HERE so
-#: the leg below can catch it rotting; derived from the record, never chosen.
-STATED_BASE_MULTIPLIER = 1.3758
+    HOW IT GOT LIVE, because "unreachable" was true when it was written and stopped being true
+    without anything noticing. The finding that named this line
+    (`WORKER_FINDING_THE_WORLD_AND_THE_COMPOSED_FORM_DISAGREE_ABOUT_WHETHER_THE_LEVEL_ANCHOR_
+    REACHES_THE_SVT_ROUTE_2026-08-31.md`) filed it LATENT on the ground that `svt_inertia`
+    defaults to 0.0 and no production caller passed it. It then predicted, in its own words, that
+    *"the first commit to wire the SVT roll through `build_departure_risks` would silently triple
+    the world's SVT departure rate"*. That commit landed -- `run_phase2b` passes
+    `svt_inertia=_svt_hazard` AND `level_anchor=year_level_anchor(...)` in the same call -- and
+    nothing went red, because the only thing guarding the composition was a refusal inside
+    `tools/fit_year_level_anchor.py` that fires at FIT time, on a capture, after the run. A
+    severity keyed to "no caller passes it" expires the moment a caller does, and there was no
+    control keyed to the property. This is that control.
 
+    LEG (b) IS NOT DECORATION -- IT IS WHAT STOPS THIS BEING FAIL-OPEN. Leg (a) alone passes on
+    code where `level_anchor` reaches NOTHING: delete it from all four lines and the SVT hazard is
+    still invariant to it. Asserting the response risks DO move with it is what makes (a) mean
+    "exempt" rather than "absent". Both legs come from the same call.
 
-def _base_multiplier() -> float:
-    """The record's own 2019-20 level over its 2024 level -- derived, not written down."""
-    from simulation.market_switching_propensity import (
-        MULTIPLIER_REFERENCE_YEAR,
-        market_departure_rate,
-    )
-    base = sum(market_departure_rate(y) for y in SVT_INERTIA_BASE_YEARS) / len(SVT_INERTIA_BASE_YEARS)
-    return base / market_departure_rate(MULTIPLIER_REFERENCE_YEAR)
-
-
-def test_the_svt_floors_base_year_is_not_the_multipliers_reference_year():
-    """DEFECT: composing an absolute 2019-20 rate with a ratio normalised to 2024.
-
-    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. This does not assert the record's current
-    values. It asserts the two base years are far enough apart that `floor * multiplier(year)` is
-    materially wrong -- which is the condition that makes the warning on the constants worth
-    carrying. If the record is ever refined so that 2019-20 and 2024 coincide, this goes RED and
-    the correct response is to DELETE the warning, not to widen the bound: the naive form would
-    have become right.
-
-    The error is a CONSTANT factor -- the year cancels -- so no year-shaped check can see it, and
-    it is exactly zero at 2024 where `multiplier` is 1.00 by definition. That is why it needs its
-    own leg rather than falling out of some other test.
+    MUTATION: put `level_anchor *` back on the `CAUSE_SVT_INERTIA` line -> (a) fires with the
+    magnitude in the message. Remove it from the three response lines -> (b) fires.
     """
-    factor = _base_multiplier()
-    # 1pp of the reference level is the smallest difference the published bands bear; anything
-    # inside that is rounding and the two base years would be interchangeable.
-    assert abs(factor - 1.0) > 0.01, (
-        f"2019-20 and 2024 now sit within rounding of each other (factor {factor:.4f}). The base-"
-        f"year warning on SVT_INERTIA_ANNUAL_* is no longer warranted -- delete it."
+    anchors = sorted(YEAR_LEVEL_ANCHOR.values())
+    lo, hi = anchors[0], anchors[-1]
+    assert hi > 1.05, (
+        f"every committed level anchor is now ~1.0 (max {hi:.4f}), so multiplying the SVT route "
+        f"by one would be undetectable and this control has gone VACUOUS. That is a finding about "
+        f"the anchor, not a reason to delete this -- an exemption nobody can measure is not an "
+        f"exemption. Re-key it to a declared probe value and say so here."
     )
 
+    at_lo = _risks(level_anchor=lo, svt_inertia=0.05)
+    at_hi = _risks(level_anchor=hi, svt_inertia=0.05)
 
-def test_the_base_year_factor_on_the_constants_still_matches_the_record():
-    """DEFECT: the correction factor in the comment rots when the record is refined.
-
-    The constants carry a written instruction -- divide by 1.3758 -- and a written number in a
-    comment is exactly the shape this project has paid for: it stays green while the record moves
-    under it. Derived here from `market_departure_rate` so the comment cannot outlive its evidence.
-    """
-    assert round(_base_multiplier(), 4) == STATED_BASE_MULTIPLIER, (
-        f"the record now gives {_base_multiplier():.4f}; the comment on SVT_INERTIA_ANNUAL_* and "
-        f"STATED_BASE_MULTIPLIER above both say {STATED_BASE_MULTIPLIER} and must be corrected together."
+    # (a) THE SVT ROUTE IS EXEMPT. Exact equality: this is one term present or absent, not a
+    #     tolerance question, and a tolerance here would swallow a small anchor.
+    assert at_lo[CAUSE_SVT_INERTIA] == at_hi[CAUSE_SVT_INERTIA], (
+        f"the SVT hazard moved from {at_lo[CAUSE_SVT_INERTIA]:.6f} to "
+        f"{at_hi[CAUSE_SVT_INERTIA]:.6f} across the committed anchor range {lo:.4f}-{hi:.4f}, so "
+        f"the year level anchor is reaching a hazard that already carries a published absolute "
+        f"rate. At the top of that range the published 10-20%/yr band arrives at the roll as "
+        f"{100 * SVT_INERTIA_ANNUAL_LONG_STAYER * hi:.0f}-{100 * SVT_INERTIA_ANNUAL_RECENT * hi:.0f}%/yr. "
+        f"The repair is to drop `level_anchor *` from that line, NEVER to widen the published band "
+        f"and never to re-fit the anchor around it."
     )
+
+    # (b) THE RESPONSE RISKS ARE NOT EXEMPT, or (a) is passing on a dead argument.
+    for cause in (CAUSE_BILL_SHOCK, CAUSE_PRICE_POSITION, CAUSE_DISSATISFACTION):
+        assert at_hi[cause] > at_lo[cause], (
+            f"{cause} did not move when the level anchor went {lo:.4f} -> {hi:.4f}. The anchor is "
+            f"what gives the dimensionless response curves their units; if it reaches none of "
+            f"them then leg (a) above is vacuous and the world has no level at all."
+        )
+
+    # (c) AT REAL INPUTS, WHICH IS THE LEG THAT STATES THE SIZE. Four real cap quarters under the
+    #     largest committed anchor must still recompose to the published annual rate. This is the
+    #     same recomposition `test_the_annual_anchor_recomposes_from_the_segment_hazard` pins at
+    #     an anchor of 1.0, run at the anchor the world actually uses -- because that test cannot
+    #     see `build_departure_risks` and so could not have caught this.
+    for annual, years_on in ((SVT_INERTIA_ANNUAL_RECENT, 0.0),
+                             (SVT_INERTIA_ANNUAL_LONG_STAYER, SVT_LONG_STAYER_YEARS)):
+        survival_ = 1.0
+        for days in (90, 91, 92, 92):
+            hazard = svt_inertia_hazard(years_on_svt=years_on, segment_days=days,
+            market_switching_multiplier=svt_inertia_base_multiplier())
+            survival_ *= 1.0 - _risks(
+                level_anchor=hi, svt_inertia=hazard, action_propensity=1.0
+            )[CAUSE_SVT_INERTIA]
+        assert abs((1.0 - survival_) - annual) < 5e-4, (
+            f"composed through `build_departure_risks` at the world's largest committed anchor "
+            f"({hi:.4f}), a year of SVT drift recomposes to {100 * (1 - survival_):.1f}% against "
+            f"the published {100 * annual:.0f}%. The anchor is being applied to a rate that was "
+            f"already published as a rate."
+        )

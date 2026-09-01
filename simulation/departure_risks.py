@@ -64,9 +64,11 @@ back into a tautology.
 Only ONE number here is fitted (`_SENSITIVITY_SCALE`, the P0 calibration), and the split between
 the two sensitivities it scales is published rather than chosen.
 """
+import functools
 import math
 
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.market_switching_propensity import market_switching_multiplier
 
 CAUSE_BILL_SHOCK = "bill_shock"
 CAUSE_PRICE_POSITION = "price_position"
@@ -113,30 +115,52 @@ UNMODELLED_EXIT_FEE_IMPORTANCE = 0.22
 #: makes the company's advantage harder to demonstrate -- the higher rate is the harder world: the
 #: company loses accounts it has NO renewal lever on, since an SVT account has no renewal to price.
 #: It is pure loss with no instrument against it, and it shrinks the book the A/B is measured on.
-#:
-#: THESE ARE ABSOLUTE RATES AND THEY CARRY A BASE YEAR: 2019-20. §4 states its basis on the
-#: all-customer row the segment rows must average to -- "DESNZ: ~6M switches / ~28M accounts
-#: (2019-20)" -- which is the published band's own numerator and denominator. The base year is
-#: recorded HERE because an absolute rate whose base year lives in someone else's table gets
-#: composed with a ratio that has a different one.
-#:
-#: SO ANY MARKET TERM ADDED HERE MUST DIVIDE BY THE BASE YEAR'S MULTIPLIER, NOT MERELY MULTIPLY BY
-#: THE YEAR'S. `market_switching_multiplier` is normalised to `MULTIPLIER_REFERENCE_YEAR = 2024`,
-#: and the record puts 2019-20 at 1.3758x of 2024. The repair filed at `18a09617d` is written
-#: `floor * market_switching_multiplier(year)`, which levels a 2019-20 rate up into the market it
-#: was already measured in: 0.20 becomes 0.2857 at 2020, against a source figure of 0.20. The
-#: correct form is `floor * market_switching_multiplier(year) / 1.3758`.
-#:
-#: THE ERROR IS A CONSTANT FACTOR, SO NO YEAR-SHAPED CHECK CAN SEE IT, and it is exactly zero at
-#: 2024 -- the reference year, where `multiplier` is 1.00 by definition and the naive form looks
-#: like it did nothing. That is the year a reader spot-checks. Measured and written up at
-#: `docs/staging/WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_2019_20_RATE_2026-08-31.md`.
-#: No production caller composes the two today, so nothing is mis-levelled yet; this is here to
-#: stop the filed repair being implemented in its filed form.
 SVT_INERTIA_ANNUAL_RECENT = 0.20
 SVT_INERTIA_ANNUAL_LONG_STAYER = 0.10
 #: The published boundary between the two bands, in years on SVT.
 SVT_LONG_STAYER_YEARS = 3.0
+
+#: THE MARKET YEAR THE TWO RATES ABOVE WERE INFERRED IN, AND THE REASON THIS IS NOT 2024.
+#:
+#: §4's basis column states its bottom row -- the all-customers rate the segment rows resolve --
+#: as "DESNZ: ~6M switches / ~28M accounts (2019-20)". So 0.20 and 0.10 are ABSOLUTE annual rates
+#: measured against a 2019-20 market, not against a reference year of 1.0.
+#:
+#: `market_switching_multiplier` is a DIMENSIONLESS ratio normalised at `MULTIPLIER_REFERENCE_YEAR
+#: = 2024`, and the record's own level at 2019-20 is well above 2024's. Composing the two naively
+#: as `rate x multiplier(year)` -- the form filed at `18a09617d` -- therefore levels a 2019-20 rate
+#: UP into the market it was already measured in, by a constant 1.375776 in EVERY year. The year
+#: cancels, which is what makes the error invisible to any year-shaped check; and it is exactly
+#: invisible at 2024, where `multiplier(2024) = 1.0` makes the naive form look like it did nothing.
+#: Measured and recorded at
+#: `docs/staging/WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_
+#: 2019_20_RATE_2026-08-31.md`, whose item 2 asks for this note to live HERE rather than only
+#: there, because the next implementer reads the constant and not the finding.
+#:
+#: So the multiplier is RE-REFERENCED to this window before it is applied. `factor()` below is
+#: 1.0 across 2019-20 by construction, which is the property that makes this a re-levelling of a
+#: published rate rather than a new constant: inside the inference window the world still runs the
+#: published 0.20 / 0.10.
+#:
+#: The evidence for the window is DOCUMENTARY -- §4's basis column -- and no arithmetic in this
+#: repo can test it; that limit is stated rather than dressed up. What can be said is robustness:
+#: every other plausible window (2020 alone, 2019 alone, 2018-19) moves the re-levelled rate by a
+#: few per cent, against a 37.6% mismatch being corrected. The candidate windows are far nearer to
+#: each other than any of them is to 2024.
+SVT_INERTIA_BASE_WINDOW: tuple[int, ...] = (2019, 2020)
+
+
+@functools.lru_cache(maxsize=1)
+def svt_inertia_base_multiplier() -> float:
+    """The 2024-referenced multiplier averaged over `SVT_INERTIA_BASE_WINDOW`.
+
+    Read from the live record rather than written down as 1.375776, so that a refinement of the
+    published switching series moves the divisor with it. A literal here would silently become a
+    different window's answer the first time the record was corrected.
+    """
+    return sum(market_switching_multiplier(y) for y in SVT_INERTIA_BASE_WINDOW) / len(
+        SVT_INERTIA_BASE_WINDOW
+    )
 
 #: THERE IS NO CALIBRATED DEFAULT, AND THE ABSENCE IS THE POINT (2026-08-30).
 #:
@@ -192,12 +216,47 @@ def _clip_hazard(h: float) -> float:
     return min(h, WORLD_MAX_CHURN_PROBABILITY)
 
 
-def svt_inertia_hazard(*, years_on_svt: float, segment_days: float) -> float:
+def svt_inertia_hazard(
+    *, years_on_svt: float, segment_days: float, market_switching_multiplier: float
+) -> float:
     """The drift off a standard variable tariff, over ONE cap period of `segment_days`.
 
     C1b. Returns 0.0 for an account that is not on SVT -- the caller signals that by passing
     `segment_days <= 0`, which is what a fixed-term account's renewal point has: no cap period
     elapsed under a variable tariff.
+
+    WHY THIS TAKES A MARKET TERM, AND WHY IT IS REQUIRED RATHER THAN DEFAULTED. Until 2026-09-01
+    this function took `years_on_svt` and `segment_days` and nothing else, so the route carrying
+    **61% of this world's departures** ran the same 0.20 / 0.10 through the 2020 switching peak and
+    the 2022 collapse alike -- flat across a decade whose published switching rate moves 5.3x.
+    Every renewal-route hazard already carried `market_switching_multiplier`; this one did not, so
+    it was invariant to the very record the year level anchor is fitted against.
+
+    THE WORLD'S OWN SOURCE SAYS THE OPPOSITE OF INVARIANCE, and says it about the supply side
+    rather than about household psychology. `svt_rates_active_passive_2016_2025.md` §3: *"Active
+    renewal effectively collapsed. Suppliers withdrew fixed tariffs -- wholesale costs exceeded the
+    Ofgem price cap ceiling so no viable fixed product could be offered. […] Customers did not
+    voluntarily churn: no competitive fixed alternatives existed."* A household on SVT in 2022
+    could not drift off it onto a competitive fix because **the destination product did not
+    exist**. That is not a preference this hazard could ever have expressed through tenure.
+
+    The parameter is REQUIRED and keyword-only. A default of 1.0 would have been the fail-open
+    shape: every existing caller would have kept running the market-blind hazard while the
+    signature advertised that it could see the market, and the structural refusal in
+    `tools/fit_year_level_anchor.py` -- which inspects this signature -- would have lifted on a
+    term that reached nothing. This module already fails closed the same way for
+    `_SENSITIVITY_SCALE`, and for the same reason: the caller must pass it and say where it came
+    from.
+
+    Pass the 2024-referenced `market_switching_propensity.market_switching_multiplier(year)`. The
+    RE-REFERENCING to the constants' own 2019-20 inference window happens here, beside the
+    constants -- see `SVT_INERTIA_BASE_WINDOW`. A caller that did its own re-referencing would be
+    re-deriving a correction that belongs to these two numbers.
+
+    THE FACTOR MULTIPLIES THE ANNUAL RATE, NOT THE CONVERTED HAZARD, and the order matters. The
+    published quantity is annual; the constant-hazard conversion below is what carries it to a cap
+    period. Scaling after the conversion would re-level an already-converted quantity and break the
+    recomposition property `test_the_annual_anchor_recomposes_from_the_segment_hazard` pins.
 
     WHY THE CONVERSION IS CONSTANT-HAZARD AND NOT A FLAT QUARTERLY RATE. The published anchor is
     ANNUAL and the world's SVT segments are cap periods, which are neither equal nor quarters: the
@@ -223,6 +282,11 @@ def svt_inertia_hazard(*, years_on_svt: float, segment_days: float) -> float:
         return 0.0
     annual = (SVT_INERTIA_ANNUAL_LONG_STAYER if years_on_svt >= SVT_LONG_STAYER_YEARS
               else SVT_INERTIA_ANNUAL_RECENT)
+    annual *= market_switching_multiplier / svt_inertia_base_multiplier()
+    # A rate cannot be negative and cannot reach 1.0 without making `-log(1 - h)` infinite. The
+    # published multiplier is positive in every year the record covers, so this guards a caller
+    # passing a value the record never produced, not the record itself.
+    annual = min(max(annual, 0.0), WORLD_MAX_CHURN_PROBABILITY)
     return _clip_hazard(1.0 - (1.0 - annual) ** (segment_days / 365.25))
 
 
@@ -308,7 +372,40 @@ def build_departure_risks(
         # under it, and if it does, the repair is to divide the anchor by the book's own mean
         # propensity -- never to widen the band.** Same discipline as the year-level anchor's own
         # note: a reading out of band means the anchor has gone stale, not that the record has.
-        CAUSE_SVT_INERTIA: _clip_hazard(level_anchor * svt_inertia * action_propensity),
+        #
+        # ─────────────────────────────────────────────────────────────────────────────────────
+        # AND `level_anchor` IS NOT ON THIS LINE, WHICH IS A CORRECTION TO THE LINE ABOVE IT
+        # (C1b, 2026-08-30). It was, and the paragraph above was written as though the anchor
+        # were about 1.0 -- a 14% shift down from the band is only the story if it is. The first
+        # assignment run printed the actual products at real inputs and refuted that: the anchor
+        # is a per-year table running 1.524 (2022) to 4.597 (2016), so the published 10-20% band
+        # was arriving at the roll as 15-92%/yr. Segment hazards of 0.2532 for one cap quarter
+        # came out of the first run's log, against 0.0547 for the same quarter at the anchor.
+        # The prediction above stands as filed and is kept beside its refutation; what was wrong
+        # was not the prediction but the assumption underneath it, and it was caught by printing
+        # the numbers rather than by reasoning about them.
+        #
+        # WHY THE EXEMPTION IS PRINCIPLED AND NOT A CONVENIENCE. Every other risk here is a
+        # dimensionless RESPONSE -- a multiplier on a curve -- and `level_anchor` is what gives
+        # the family units by calibrating it onto the published departure level. `svt_inertia`
+        # arrives already carrying units: it is a published ANNUAL RATE converted to this
+        # segment's length, from the same class of record the year anchor is itself fitted to.
+        # Scaling it is applying a correction to the one quantity that did not need correcting,
+        # and the two anchors say consistent things when it is not: SVT accounts drift off at
+        # 10-20%/yr against a whole-population published switching rate of ~15.5%. At 3-4x that
+        # is the "normalising a published absolute rate destroys the only level anyone could
+        # check" failure, arriving from the other direction.
+        #
+        # THE COST, STATED RATHER THAN BURIED: the anchor no longer scales EVERY hazard by the
+        # same factor, so within a year it now moves the reason MIX and not only the LEVEL, which
+        # is a property the module note above claims. The claim is narrowed rather than kept and
+        # quietly falsified -- it holds across the three response risks and not across this one.
+        # AND THE YEAR ANCHOR IS NOW OVER-FITTED: it was fitted on a run in which the renewal
+        # roll was the only departure route, and roughly 55-58% of domestic account-days no
+        # longer reach that roll at all. `test_the_worlds_realised_departure_rate_is_inside_the
+        # _published_band` is the control that says so; when it fails the repair is capture ->
+        # refit -> capture, per `departure_level_anchor`'s own note, and never a widened band.
+        CAUSE_SVT_INERTIA: _clip_hazard(svt_inertia * action_propensity),
     }
 
 

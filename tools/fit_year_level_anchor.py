@@ -48,10 +48,14 @@ from simulation.departure_risks import (
     DECLARED_SHOCK_WEIGHT,
     WORLD_MAX_CHURN_PROBABILITY,
     build_departure_risks,
+    svt_inertia_base_multiplier,
     svt_inertia_hazard,
     total_departure_probability,
 )
-from simulation.market_switching_propensity import market_departure_rate
+from simulation.market_switching_propensity import (
+    market_departure_rate,
+    market_switching_multiplier,
+)
 from tools.departure_population import (
     account_denominator_refusal,
     banner,
@@ -140,8 +144,11 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
     and the check is here rather than in a comment because the alternative is unfalsifiable.
 
     MEASURED ON THE 2026-08-31 CAPTURE, all 1,266 rows: `realized_churn_probability` equals
-    `svt_inertia_hazard(years_on_svt, segment_days) x action_propensity`, with the recorded
-    `sim_level_anchor` NOT multiplied in. `simulation.departure_risks.build_departure_risks`
+    `svt_inertia_hazard(...) x action_propensity`, with the recorded
+    `sim_level_anchor` NOT multiplied in. **That capture is now STALE and this function says so** --
+    the hazard gained a required `market_switching_multiplier` on 2026-09-01, so those 1,266 rows
+    reproduce only under the market-blind form and land in the third branch below, not the first.
+    `simulation.departure_risks.build_departure_risks`
     computes `CAUSE_SVT_INERTIA = clip(level_anchor x svt_inertia x action_propensity)` — it
     disagrees, and today that line is unreachable because no production caller passes
     `svt_inertia=`. **The world's composition is the correct one.** `svt_inertia_hazard` is derived
@@ -154,11 +161,25 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
     particular, and nothing downstream would report it: every row would still be well-formed and
     the fitted table would still print.
     """
-    unanchored = anchored = neither = 0
+    unanchored = anchored = neither = market_blind = 0
     example = None
     for row in svt_rows:
         raw = svt_inertia_hazard(
-            years_on_svt=row["sim_years_on_svt"], segment_days=row["sim_segment_days"]
+            years_on_svt=row["sim_years_on_svt"],
+            segment_days=row["sim_segment_days"],
+            market_switching_multiplier=market_switching_multiplier(row["market_year"]),
+        )
+        # THE THIRD COMPOSITION, AND IT IS A STALENESS TEST RATHER THAN A DISAGREEMENT. A capture
+        # taken before the SVT hazard was given its market term reproduces exactly under a factor
+        # of 1.0 -- which is what passing the base-window multiplier back in reconstructs. Without
+        # this leg such a capture lands in `neither` and reads as "the world runs a hazard this
+        # fit does not model", sending the reader to hunt a mechanism disagreement that is really
+        # just an artefact older than the code. Naming it is the difference between "re-run the
+        # capture" and a day spent in `departure_risks.py`.
+        market_blind_raw = svt_inertia_hazard(
+            years_on_svt=row["sim_years_on_svt"],
+            segment_days=row["sim_segment_days"],
+            market_switching_multiplier=svt_inertia_base_multiplier(),
         )
         propensity = row["sim_action_propensity"]
         recorded = row["realized_churn_probability"]
@@ -167,10 +188,20 @@ def svt_composition_refusal(svt_rows: list[dict]) -> str | None:
             unanchored += 1
         elif abs(min(raw * propensity * anchor, WORLD_MAX_CHURN_PROBABILITY) - recorded) <= _COMPOSITION_TOLERANCE:
             anchored += 1
+        elif abs(market_blind_raw * propensity - recorded) <= _COMPOSITION_TOLERANCE:
+            market_blind += 1
         else:
             neither += 1
             example = example or row
     total = len(svt_rows)
+    if market_blind:
+        return (
+            f"{market_blind} of {total} SVT rows reproduce under a MARKET-BLIND hazard -- this "
+            f"capture predates the market term on `svt_inertia_hazard` and is stale. The floors "
+            f"it records are the flat 0.20/0.10 the record contradicts, so fitting against them "
+            f"would solve the renewal anchor around a world that no longer exists. Re-run "
+            f"`tools/capture_departure_factors.py`; do not fit this table."
+        )
     if anchored:
         return (
             f"{anchored} of {total} SVT rows carry the year level anchor in their realised "
@@ -310,10 +341,19 @@ _MARKET_PARAMETER_NAMES = frozenset(
 def svt_market_invariance_refusal() -> str | None:
     """May a whole-book anchor be emitted while the SVT route cannot see the market? `None` if yes.
 
-    THE ROUTE CARRYING 61% OF THIS WORLD'S DEPARTURES IS INVARIANT TO THE RECORD IT IS FITTED
-    AGAINST. `svt_inertia_hazard` takes `years_on_svt` and `segment_days` and nothing else. Every
-    renewal-route hazard carries `market_switching_multiplier`, which is the record's own level
-    ratio inside 2016-2025. The SVT route does not, so it runs the same 0.20/0.10 through a decade
+    **DISCHARGED 2026-09-01 — this refusal is DOWN, and everything below is kept in the past tense
+    on purpose.** `svt_inertia_hazard` now takes a required `market_switching_multiplier`, wired
+    through `simulation/svt_product.inertia_hazard_for_term` from each cap segment's own start
+    year, and re-referenced inside `departure_risks` to the 2019-20 window §4 inferred the two
+    constants in. The predicate below is unchanged and still the only thing that decides: it reads
+    the live signature, so if the term is ever removed this refusal comes back up by itself. What
+    is recorded here is WHY it was up, because a discharged refusal with its reasoning deleted is
+    how the same defect gets re-argued from scratch in six weeks.
+
+    THE ROUTE CARRYING 61% OF THIS WORLD'S DEPARTURES WAS INVARIANT TO THE RECORD IT IS FITTED
+    AGAINST. `svt_inertia_hazard` took `years_on_svt` and `segment_days` and nothing else. Every
+    renewal-route hazard carried `market_switching_multiplier`, which is the record's own level
+    ratio inside 2016-2025. The SVT route did not, so it ran the same 0.20/0.10 through a decade
     whose published switching rate moves 5.3x.
 
     MEASURED 2026-08-31 on `ladder_churn_factors.json`, pre-registered before the run:
@@ -343,10 +383,27 @@ def svt_market_invariance_refusal() -> str | None:
     against. The anti-flattering choice became a flattering one when the denominator was unioned,
     and nothing would have reported that.
 
-    WHAT LIFTS IT: giving the SVT hazard the market term the renewal route already carries. Checked
-    2026-08-31 and it is sufficient -- `floor x market_switching_multiplier(year)` puts all eight
-    years under their target, 2022 included at 3.42% against 4.30%. This refusal lifts by
-    construction when that parameter exists, so it cannot outlive the defect it names.
+    WHAT LIFTED IT, MEASURED ON 2026-09-01 RATHER THAN INHERITED FROM THE 08-31 CHECK. The filed
+    repair was `floor x market_switching_multiplier(year)`, predicting 2022 at 3.42%. That form was
+    wrong in a way found before it was written: the multiplier is 2024-referenced and the two SVT
+    constants are inferred against a 2019-20 market, so it levelled them up by 1.375776 in every
+    year (`WORKER_FINDING_THE_SVT_FLOORS_FILED_REPAIR_APPLIES_A_2024_REFERENCED_RATIO_TO_A_2019_20_
+    RATE_2026-08-31.md`). The landed form re-references to the inference window, and was
+    pre-registered per year before running
+    (`WORKER_PREREGISTRATION_WHAT_GIVING_THE_SVT_HAZARD_A_MARKET_TERM_MUST_MOVE_2026-09-01.md`):
+
+        floor rank-correlation vs the published midpoint 2017-2024   -0.26  ->  +0.90
+        floor CV ratio against the record                             0.37  ->   1.04
+        2022 SVT floor against a 4.30% target                       12.80%  ->  2.33%
+        2023 renewal anchor                                          0.030  ->  2.442
+
+    So 2022 is reachable with headroom where the published band's own BOTTOM left it at 8.99%, and
+    the priceable route stopped being extinct. This refusal lifts by construction when the
+    parameter exists, so it could not outlive the defect it named -- and it did not.
+
+    IT IS NOT THE LAST GATE, and that was pre-registered too. Every committed capture was produced
+    by the market-blind world, so `svt_composition_refusal` above now refuses them as STALE. The
+    whole-book fit still emits no constant; it refuses for an honest and different reason.
     """
     params = set(inspect.signature(svt_inertia_hazard).parameters)
     if params & _MARKET_PARAMETER_NAMES:

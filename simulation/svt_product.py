@@ -101,6 +101,7 @@ from datetime import date, timedelta
 
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
+from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 #: Cap-period starts, straight off `simulation/svt_rates.py`'s own key structure. Named here
@@ -144,9 +145,14 @@ def inertia_hazard_for_term(term: dict, *, stint_start: str | None) -> float:
     segment_start = date.fromisoformat(term["acquisition_date"])
     segment_days = (date.fromisoformat(term["term_end"]) - segment_start).days
     stint = date.fromisoformat(stint_start) if stint_start else segment_start
+    # THE MARKET YEAR IS THE SEGMENT'S OWN YEAR, taken from the day the cap period STARTS rather
+    # than the day it ends. A segment straddling a year boundary was lived under the switching
+    # conditions it began in, and the published series is annual: reading the end date would move
+    # a 1 October segment into the next year's market, which is the year it has not reached yet.
     return svt_inertia_hazard(
         years_on_svt=(segment_start - stint).days / 365.25,
         segment_days=segment_days,
+        market_switching_multiplier=market_switching_multiplier(segment_start.year),
     )
 
 

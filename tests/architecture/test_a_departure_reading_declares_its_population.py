@@ -43,7 +43,12 @@ from pathlib import Path
 
 import pytest
 
-from simulation.departure_risks import CAUSE_SVT_INERTIA, ORDERED_CAUSES
+from simulation.departure_risks import (
+    CAUSE_SVT_INERTIA,
+    ORDERED_CAUSES,
+    svt_inertia_hazard,
+)
+from simulation.market_switching_propensity import market_switching_multiplier
 from tools.departure_population import (
     ROUTE_RENEWAL,
     ROUTE_SVT,
@@ -84,6 +89,49 @@ def _two_route_rows() -> tuple[list[dict], list[dict]]:
     if svt is None:
         pytest.skip(f"the two-route capture's SVT sibling is unreadable: {reason}")
     return json.loads(TWO_ROUTE.read_text()), svt
+
+
+def _restated_svt_rows() -> tuple[list[dict], list[dict]]:
+    """The real capture's REAL INPUTS, with the recorded probability restated at today's hazard.
+
+    WHY THIS EXISTS AND WHY IT IS NOT A TAUTOLOGY. On 2026-09-01 `svt_inertia_hazard` gained the
+    market term it had been refused for wanting, which made every committed capture stale by
+    construction: all 1,266 rows of `ladder_churn_factors_svt_segment_decisions.json` reproduce
+    only under a market-BLIND hazard, and `svt_composition_refusal` says so in those words. The
+    ordinary repair -- re-run the capture -- is blocked by a DIFFERENT lane: at this HEAD
+    `run_phase2b` emits no `svt_decisions` key, so `tools/capture_departure_factors.py` writes no
+    SVT sibling at all. See `WORKER_FINDING_A_PUBLISHED_CAPTURE_WAS_PRODUCED_BY_CODE_THAT_WAS_
+    NEVER_COMMITTED_2026-08-31.md`.
+
+    So the fixture is restated rather than skipped, because an unavailable check is a FAILED check
+    (R15) and skipping would retire the control the moment its subject moved.
+
+    THE RESTATEMENT TOUCHES A DIFFERENT AXIS FROM THE ONE UNDER TEST, which is the whole reason it
+    is honest. Every per-household input -- `sim_years_on_svt`, `sim_segment_days`, `market_year`,
+    `sim_action_propensity`, `sim_level_anchor` -- comes from the real capture and is not
+    recomputed. Only the RECORDED PROBABILITY is restated, to the unanchored composition the world
+    runs. The control's subject is whether the year level anchor is multiplied in, and the
+    restatement deliberately does not multiply it in: it is what supplies the control's negative
+    case, and the caller then builds the anchored variant and requires it to be caught. A
+    restatement that also anchored would make the check compare the fit's arithmetic to itself.
+    """
+    renewal, svt = _two_route_rows()
+    restated = [
+        dict(
+            row,
+            realized_churn_probability=round(
+                svt_inertia_hazard(
+                    years_on_svt=row["sim_years_on_svt"],
+                    segment_days=row["sim_segment_days"],
+                    market_switching_multiplier=market_switching_multiplier(row["market_year"]),
+                )
+                * row["sim_action_propensity"],
+                6,
+            ),
+        )
+        for row in svt
+    ]
+    return renewal, restated
 
 
 def _mix() -> dict:
@@ -560,7 +608,7 @@ def test_the_fit_refuses_when_the_world_anchors_the_svt_route():
     If the world ever starts anchoring it, every row stays well-formed, the table still prints, and
     the fit silently solves an equation the world does not run. This is what fires instead.
     """
-    _renewal_rows, svt = _two_route_rows()
+    _renewal_rows, svt = _restated_svt_rows()
     assert svt_composition_refusal(svt) is None, (
         "the real capture no longer matches the unanchored composition the fit assumes -- either "
         "the world changed or this check has stopped being able to pass"
@@ -577,45 +625,49 @@ def test_the_fit_refuses_when_the_world_anchors_the_svt_route():
     )
 
 
-def test_the_fit_refuses_while_the_svt_route_cannot_see_the_market():
-    """MUTATION: emit the whole-book anchor anyway, and 2023's 0.03 becomes the world's level.
+def test_the_svt_route_can_see_the_market_so_the_fit_no_longer_refuses():
+    """THE LIVE LEG, and it INVERTED on 2026-09-01 when the market term landed.
 
-    The route carrying most of this world's departures takes `years_on_svt` and `segment_days` and
-    nothing else, so it runs the same 0.20/0.10 through a decade whose published switching rate
-    moves 5.3x. Measured 2026-08-31 and pre-registered first: rank correlation -0.26 against the
-    published midpoint over 2017-2024, and 2022 unreachable at EVERY point in the published SVT
-    band -- 8.99% at the band bottom against a 4.30% target, where clearing it needs 0.354x and the
-    band bottom is only 0.750x.
+    Until then this file asserted `svt_market_invariance_refusal() is not None` -- it required the
+    refusal to be UP, which is a control asserting that the model stays bad. Keyed that way it
+    would have gone red on the repair and green on the defect, which is exactly backwards, and it
+    is why the pair below now carries the injection leg instead.
 
-    With the whole-book total pinned to the record the two routes are zero-sum, so that market
-    error lands in the renewal anchor: 2023's SVT floor consumes 12.43 of 12.50 and the fit returns
-    0.03. Every row stays well-formed and the table still prints -- nothing else in the tree would
-    report it. This is what stops the constant.
+    What the repair was, measured and pre-registered before the run
+    (`WORKER_PREREGISTRATION_WHAT_GIVING_THE_SVT_HAZARD_A_MARKET_TERM_MUST_MOVE_2026-09-01.md`):
+    the SVT floor's rank correlation against the published midpoint over 2017-2024 moved from
+    **-0.26 to +0.90**, its CV ratio from **0.37 to 1.04**, and 2022's floor from **12.80% to
+    2.33%** against a 4.30% target -- from unreachable at every point in the published band to
+    reachable with headroom. 2023's renewal anchor moved from **0.03 to 2.44**, which is the leg
+    that matters: the route the company can actually price against stopped being extinct.
     """
-    assert svt_market_invariance_refusal() is not None, (
-        "the SVT hazard has gained a market term, or this check has stopped being able to fire"
+    assert svt_market_invariance_refusal() is None, (
+        "the SVT hazard has lost its market term, so the route carrying most of this world's "
+        "departures is invariant to the record the anchor is fitted against again"
     )
 
 
-def test_the_market_invariance_refusal_lifts_when_the_hazard_gains_the_market_term():
-    """The other leg, and without it the check above is satisfied by a constant `not None`.
+def test_the_market_invariance_refusal_still_fires_on_a_market_blind_hazard():
+    """The other leg, and without it the check above is satisfied by a constant `None`.
 
-    A refusal that cannot lift is not a control -- it is a permanent red that the next reader
-    routes around. This drives the same predicate with a market-aware hazard and requires it to go
-    quiet, which is what makes the refusal above a statement about the world rather than about
-    itself.
+    A refusal that cannot FIRE is not a control -- it is a green light nobody can distinguish from
+    a working one. This drives the same predicate with the market-blind hazard the world ran until
+    2026-09-01 and requires it to refuse, which is what makes the assertion above a statement
+    about the world rather than about itself.
     """
     import tools.fit_year_level_anchor as fit
 
-    def market_aware_hazard(*, years_on_svt, segment_days, market_switching_multiplier=1.0):
+    def market_blind_hazard(*, years_on_svt, segment_days):
         return 0.0
 
     original = fit.svt_inertia_hazard
-    fit.svt_inertia_hazard = market_aware_hazard
+    fit.svt_inertia_hazard = market_blind_hazard
     try:
-        assert fit.svt_market_invariance_refusal() is None, (
-            "a hazard the market can reach is still refused, so the refusal is keyed to something "
-            "other than the property it names"
+        refusal = fit.svt_market_invariance_refusal()
+        assert refusal is not None, (
+            "a hazard the market cannot reach is not refused, so the refusal is keyed to "
+            "something other than the property it names"
         )
+        assert "no market term" in refusal
     finally:
         fit.svt_inertia_hazard = original
