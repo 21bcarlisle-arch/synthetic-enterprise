@@ -96,6 +96,39 @@ and I did not chase it because both are far below the 0.7 the prediction turned 
 
 **P6 CONFIRMED — the wedge MOVED rather than cleared, as pre-registered.**
 
+## Re-verified 2026-09-01 by a second worker, at a denominator that had moved
+
+A later tick was drawn on this same item, found it already landed at `c628cb37d` and on origin, and
+**re-ran the table rather than inheriting it** — the direction that drew it said so explicitly, and
+this repo has paid before for a cited baseline that came from a different run than the comparison.
+
+`svt_market_invariance_refusal()` returns `None` live. The staleness leg fires live, in its own
+words: *"1221 of 1221 SVT rows reproduce under a MARKET-BLIND hazard"*. Floors recomputed from each
+row's own `sim_years_on_svt` / `sim_segment_days` / `market_year` under the current hazard:
+
+| year | accts | target % | old floor % | **new floor %** | reachable |
+|---|---|---|---|---|---|
+| 2016 | 3 | 17.60 | 0.04 | 0.03 | yes |
+| 2017 | 57 | 14.00 | 9.27 | 5.67 | yes |
+| 2018 | 53 | 20.00 | 11.36 | 10.17 | yes |
+| 2019 | **41** | 21.30 | **11.04** | **10.58** | yes |
+| 2020 | **49** | 23.00 | **9.65** | **10.06** | yes |
+| 2021 | **53** | 18.40 | **9.30** | **7.62** | yes |
+| 2022 | **52** | **4.30** | **12.83** | **2.34** | **yes** |
+| 2023 | **51** | 12.50 | **11.94** | **6.51** | yes |
+| 2024 | **52** | 16.10 | **9.06** | **6.45** | yes |
+| 2025 | 48 | 17.90 | 4.79 | 3.81 | yes |
+
+**The claim holds and the denominator is NOT the same one.** Bolded cells are the years whose
+account count moved between the two runs (2022: 55 → 52). The capture is unchanged — the union
+denominator is not, because it is computed over both routes from a tree other lanes keep landing
+into. So this is the stronger reading rather than a repeat: the conclusion survived a population
+change nobody arranged for it. 2022 lands at **2.34%** here against **2.33%** filed, and every year
+is reachable in both.
+
+**Do not read the two tables as one series.** Same mechanism, two populations — differencing a cell
+across them measures the denominator, not the hazard.
+
 ---
 
 ## The next gate, and it is honest
