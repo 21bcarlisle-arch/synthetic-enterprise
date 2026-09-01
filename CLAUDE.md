@@ -90,6 +90,24 @@ the evidence. A control that only guards your own controls is usually not worth 
 one-leg check would catch the defect, ship the one leg and delete the register you were about to
 write.
 
+**Before measuring a thing, say what it is.** If the definition splits into several distinct
+experiences, measure them separately or state plainly which one you mean. A concept nobody defined,
+then differenced, published and treated as a driver, is this project's most expensive recurring
+shape — *average unit rate*, *net margin*, the journey's end having two homes, and *bill shock* are
+all the same failure. Bill shock is the clearest: for a direct-debit household the shock is a
+material DD change or a balance they do not understand, and the bill itself shocks nobody; for
+someone paying in full the shock IS the bill. Different populations, different triggers, different
+remedies — and we measured one percentage across both for months. **The cause split follows from the
+definition; never let the definition be inferred from the split.**
+
+**Knowledge has three sides, not two, and the third is a practitioner.** Published evidence for what
+is established; discovery for what our code actually does; and someone who knows the trade for what
+is *too obvious to anyone in the industry to be written down anywhere*. A first direct debit set
+from a half-month stub was measured correctly, sourced correctly and reasoned about carefully — and
+the whole frame was wrong, because no published source says a half-month direct debit does not
+exist. **When a reading is odd against how the industry actually works, say so and ask. Do not build
+on it.** The director is that third side; asking is cheap and a wrong frame compounds.
+
 **Print the numbers at real inputs before you ship a formula.** Two plausible, wrong drafts of the
 competitor model were caught in seconds by printing a table across the real range. Neither would
 have been caught by more thinking. Do it before you write the test, not after.

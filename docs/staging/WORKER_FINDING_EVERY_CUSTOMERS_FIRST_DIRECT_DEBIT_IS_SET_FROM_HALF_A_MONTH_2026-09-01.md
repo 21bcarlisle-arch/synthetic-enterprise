@@ -92,6 +92,60 @@ worst quarter in the published GB record** — and routes none of it into their 
 commits the failure, records it in a register, flags it `large_increase`, and the household never
 notices.
 
+## CORRECTION — the mechanism above is WRONG, and a practitioner caught it (director, 2026-09-01)
+
+> *"There's no such thing as a half-month direct debit — an annualised plan divides estimated annual
+> cost by twelve whatever the start date. You read a first billing period of half a month and
+> treated it as the DD amount."*
+
+**He is right, and the title of this document is wrong.** Everything above stays.
+
+### What survives
+
+The measurements. `dd_review_runner.py:155` really does read `standing_dd = seq[0][1]`. The first
+review really is the whole story: median +102.1%, 111 of 195 increases above 100%, windows 2–4
+inside ±8%. 85% of first bills really do cover fewer than 28 days, median 16.
+
+### What does not
+
+**The frame.** I treated "a DD set from half a month" as a coherent object that is simply too small
+by a factor of two. It is not an object at all. **A direct debit is an annualised plan: estimated
+annual cost ÷ 12, whatever the start date.** A supplier does not set your monthly payment to your
+first bill, and it certainly does not set it to a stub. So the code is not setting a DD *badly* —
+**it is not setting a DD.** "Off by a factor of 2.37 because the first period is half a month" reads
+as a calibration error in a real mechanism, and there is no real mechanism there to mis-calibrate.
+
+**And the seasonality reading goes with it.** Summer acquisitions +155.6% against winter +71.8% is a
+true statement about what this code does, and it is *not* evidence about how DD-setting behaves,
+because the thing it measures the seasonality OF does not exist. It must not be carried forward as a
+finding about the world. I presented it as "a real second-order effect on top", which claimed
+exactly that.
+
+### What the real defect is, per the director
+
+> *"The DD is only as good as the estimated annual consumption behind it: when that estimate is
+> wrong the account drifts into credit or debit, and the correction arrives later as a change the
+> customer didn't expect."*
+
+That is a different and better defect, and it is the one worth modelling. The chain is
+**EAC error → balance drift → an unexpected correction**, and each link is a thing a supplier
+observes and a customer experiences. Our world has none of it: no EAC behind the DD, so no drift
+that means anything, so a "correction" that is an artefact of a first-bill placeholder rather than a
+consequence of a wrong estimate.
+
+Note that the repair this document proposed — 1/12 of an estimated annual cost, from the EAC the
+company already holds — happens to be right. **It was right for the wrong reason.** I proposed it as
+a fix to a magnitude; it is actually the introduction of the mechanism.
+
+### How this got past knowledge-first, which is the part worth keeping
+
+The published research was real, the code reading was correct, and the arithmetic checked out. What
+was missing is that **no published source writes down that a half-month direct debit does not
+exist** — it is too obvious to anyone in the industry to be worth publishing. Published evidence
+tells you what is established; discovery tells you what our code does; **neither tells you what is
+obvious to a practitioner.** When a reading is odd against how the industry actually works, that is
+the moment to say so and ask, not to build on it. Recorded as a standing habit in `CLAUDE.md`.
+
 ## The repair, anchored rather than invented
 
 Ofgem's published expectation, already on the knowledge page: *"where a consumer account is in a
