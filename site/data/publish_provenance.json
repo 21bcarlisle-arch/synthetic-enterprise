@@ -12,32 +12,32 @@
     "open_findings": 55
   },
   "last_verified": {
-    "generated_at": "2026-09-01T06:20:16Z",
-    "git_commit": "6d80d4441",
+    "generated_at": "2026-09-01T09:22:28Z",
+    "git_commit": "76968ee59",
     "population": {
       "accounts": 251,
       "bills": 10906,
       "total_revenue_gbp": 652074.42
     },
-    "run_id": "run_output_6d80d4441_20260901T055426Z.json",
+    "run_id": "run_output_76968ee59_20260901T083012Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-01T06:20:16Z"
+    "verified_at": "2026-09-01T09:22:28Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=76968ee59; blocking tests: FAILED tests/background/test_the_publish_commit_carries_only_its_own_work.py::test_the_runs_own_marker_is_still_committed, FAILED tests/background/test_the_publish_commit_carries_only_its_own_work.py::test_the_publish_commit_names_its_paths_rather_than_committing_the_index, FAILED tests/background/test_the_publish_commit_carries_only_",
-  "paused_since": "2026-09-01T06:48:52Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-01T06:20:16Z",
-    "git_commit": "6d80d4441",
+    "generated_at": "2026-09-01T09:22:28Z",
+    "git_commit": "76968ee59",
     "population": {
       "accounts": 251,
       "bills": 10906,
       "total_revenue_gbp": 652074.42
     },
-    "run_id": "run_output_6d80d4441_20260901T055426Z.json",
+    "run_id": "run_output_76968ee59_20260901T083012Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-01T06:20:16Z"
+    "verified_at": "2026-09-01T09:22:28Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-01T09:04:02Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-01T09:22:28Z"
 }
