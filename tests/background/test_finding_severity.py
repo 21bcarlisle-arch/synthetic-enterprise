@@ -179,6 +179,28 @@ def test_a_machine_doorbell_is_out_of_the_population_and_only_by_exact_prefix(tm
     assert len(fs.unclassified(fs.scan_staging_root(tmp_path))) == 1
 
 
+def test_the_monthly_maintenance_marker_is_out_of_the_population(tmp_path):
+    """It wedged this gate on 2026-09-01 and would have again every month.
+
+    `staging_watcher` writes `maintenance_due_<YYYYMM>.md` on the first of each month. It is a
+    checklist reminder, not an authored finding, so it carries no severity and no lane — and an
+    UNCLASSIFIED verdict on it took `finding_severity` to rc=1, which refuses EVERY lane's commit
+    in this tree until someone hand-edits a machine's marker.
+
+    MUTATION: drop `maintenance_due_` from `DOORBELL_PREFIXES` and this fires.
+
+    The exclusion stays exact-prefix for the reason the list has always been short: a boundary
+    wide enough to hide a finding behind is the fail-open shape this module exists to refuse.
+    """
+    (tmp_path / "maintenance_due_202609.md").write_text(
+        "[MAINTENANCE] Monthly maintenance due for 2026-09.\n", encoding="utf-8")
+    (tmp_path / "WORKER_FINDING_maintenance_due_lookalike.md").write_text("# f\n", encoding="utf-8")
+
+    names = [p.name for p in fs.classifiable_documents(tmp_path)]
+    assert names == ["WORKER_FINDING_maintenance_due_lookalike.md"]
+    assert len(fs.unclassified(fs.scan_staging_root(tmp_path))) == 1
+
+
 def test_blocking_findings_group_by_lane(tmp_path):
     (tmp_path / "h.md").write_text(
         CLEAN.replace("LATENT", "BLOCKING"), encoding="utf-8")

@@ -4204,20 +4204,6 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                                        evidence, git_hash)
         return value
 
-    # BEFORE ANYTHING IS STAGED. The order is the whole repair: integrate (or refuse) BEFORE the
-    # next publish commit is created, never after it has been rejected. See `_divergence_refusal`.
-    _behind = _divergence_refusal()
-    if _behind is not None:
-        log("Publish commit REFUSED before staging: {}.".format(_behind))
-        from background.notify import notify
-        notify(
-            "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
-            "not one wider than it was. Nothing is wrong with the run or the suite; the tree "
-            "needs reconciling.".format(_behind),
-            kind="real_alarm",
-        )
-        return _outcome(BEHIND_ORIGIN, False, evidence=_behind)
-
     report = PROJECT_DIR / "docs" / "reports" / "ANNUAL_REPORT.md"
     site_index = PROJECT_DIR / "site" / "index.html"
     site_data = PROJECT_DIR / "site" / "data" / "dashboard.json"
@@ -4436,6 +4422,30 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                                  "git={} before any git command ran -- nothing was staged, "
                                  "no hook chain started and no push was attempted".format(
                                      git_hash))
+
+    # BEFORE ANYTHING IS STAGED. The order is the whole repair: integrate (or refuse) BEFORE the
+    # next publish commit is created, never after it has been rejected. See `_divergence_refusal`.
+    # Building `files` above stages nothing -- it is a list of paths -- so this still runs before
+    # the first `git add`, which is what that property is about.
+    #
+    # AND IT SITS AFTER THE PROVENANCE CHECK, DELIBERATELY (2026-09-01). It used to be the first
+    # statement in this function, which made the provenance refusal's own recorded evidence --
+    # "before any git command ran" -- false: the divergence read had already run `git fetch` and
+    # `git rev-list`. Two fail-closed refusals in a row cannot mask each other into publishing, so
+    # the order is free to be chosen, and the cheap LOCAL check belongs in front of the one that
+    # opens a network round trip with a 60s timeout to answer a question we no longer need asked.
+    _behind = _divergence_refusal()
+    if _behind is not None:
+        log("Publish commit REFUSED before staging: {}.".format(_behind))
+        from background.notify import notify
+        notify(
+            "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
+            "not one wider than it was. Nothing is wrong with the run or the suite; the tree "
+            "needs reconciling.".format(_behind),
+            kind="real_alarm",
+        )
+        return _outcome(BEHIND_ORIGIN, False, evidence=_behind)
+
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )

@@ -88,6 +88,23 @@ def fake_completed(cmd, returncode=0, **kwargs):
 
 
 @pytest.fixture(autouse=True)
+def _origin_is_level(monkeypatch):
+    """Hold the divergence read at "level with origin" for this file.
+
+    `git_commit_push` reads origin BEFORE it stages anything (2026-09-01: the publish loop's own
+    retry was widening the fork it was blocked by — see `_divergence_refusal`), and the sandbox
+    `PROJECT_DIR` these tests run in is not a git repository at all, so the read would answer
+    UNREADABLE and every test below would measure the refusal instead of its own subject.
+
+    STATED, NOT NEUTERED. This is the assumption these tests already made silently when the
+    question did not exist, and it is now written down. The guard itself is proven against real
+    git in `test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`, which does
+    NOT use this fixture — so setting it here cannot make that control green.
+    """
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_project_dir(tmp_path_factory, monkeypatch):
     """Point PROJECT_DIR -- and EVERY module path derived from it -- at a throwaway tree,
     for every test in this file. Zero real-tree WRITES (real-tree reads of static input

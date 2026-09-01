@@ -87,7 +87,13 @@ LANES = (
 #: that fires on normal behaviour is one nobody reads. The list is EXACT-PREFIX and short
 #: on purpose: it is a population boundary, and a boundary wide enough to hide a finding
 #: behind would be the fail-open shape this module exists to refuse.
-DOORBELL_PREFIXES = ("run_complete_", "run_pending_", "from_rich_")
+#: `maintenance_due_` joined the list on 2026-09-01, having wedged this gate that morning.
+#: `staging_watcher._queue_monthly_maintenance` writes `maintenance_due_<YYYYMM>.md` on the
+#: FIRST OF EVERY MONTH — a checklist reminder, machine-authored, with no severity and no lane
+#: because it is not a finding and nobody could honestly give it one. It is the same category
+#: as `run_complete_`: an ordinary operation of the machine that this control was reporting as
+#: an unclassified finding, monthly, for as long as both have existed.
+DOORBELL_PREFIXES = ("run_complete_", "run_pending_", "from_rich_", "maintenance_due_")
 
 #: A header line must sit in the document's header block — the prose before the first
 #: `## ` section, and never more than this many lines in. A severity buried in §7 is not

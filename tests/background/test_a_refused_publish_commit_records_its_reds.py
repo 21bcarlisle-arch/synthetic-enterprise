@@ -110,6 +110,25 @@ class _Sink:
 
 
 @pytest.fixture(autouse=True)
+def _origin_is_level(monkeypatch):
+    """Hold the divergence read at "level with origin" for this file.
+
+    `git_commit_push` reads origin BEFORE it stages anything (2026-09-01: the publish loop's own
+    retry was widening the fork it was blocked by -- see `_divergence_refusal`). Every test below
+    drives it through the `publish` fixture's subprocess stub, which answers rc=0 with EMPTY
+    stdout; `_commits_origin_is_ahead_by` reads that as UNREADABLE -- correctly, since an empty
+    `rev-list --count` is not a zero -- and refuses. So without this line each test measures
+    `behind_origin` instead of the refusal-recording it is about.
+
+    STATED, NOT NEUTERED. This is the assumption these tests already made silently when the
+    question did not exist, and it is now written down. The guard itself is proven against a real
+    git repository in `test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`,
+    which does NOT use this fixture -- so pinning the read here cannot make that control green.
+    """
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_records(tmp_path, monkeypatch):
     """Every file this mechanism writes lands in the scratch tree, never the live records."""
     monkeypatch.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp_path / ".blocking.json")

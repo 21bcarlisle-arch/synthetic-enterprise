@@ -45,6 +45,27 @@ from background import tree_lock as _tree_lock
 
 
 @pytest.fixture(autouse=True)
+def _origin_is_level(monkeypatch):
+    """Hold the divergence read at "level with origin" for this file.
+
+    `git_commit_push` reads origin before it stages (2026-09-01: the publish loop's own retry was
+    widening the fork it was blocked by -- see `_divergence_refusal`). Every green-cycle test below
+    replaces `prc.subprocess.run` with a stub answering rc=0 and EMPTY stdout, and one builds a
+    real scratch repo that has no `origin` remote at all. Both read as UNREADABLE -- correctly, an
+    empty `rev-list --count` is not a zero -- so without this line these tests measure
+    `behind_origin` instead of the provenance guard they are about.
+
+    STATED, NOT NEUTERED, and this file is the one that would notice. The mutation test below
+    neutralises `_provenance_is_publishable` and requires the publish to REACH `git commit`; if
+    this fixture were hiding a refusal, that test could not pass. The divergence guard itself is
+    proven against a real git repository in
+    `test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`, which does NOT use
+    this fixture -- so pinning the read here cannot make that control green.
+    """
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
+
+
+@pytest.fixture(autouse=True)
 def _never_take_the_real_working_tree_lock(tmp_path, monkeypatch):
     """THE FOURTH INSTANCE OF THE SAME TRAP, and the first one that could stall another process.
 

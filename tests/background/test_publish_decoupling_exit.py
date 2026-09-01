@@ -127,6 +127,14 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     monkeypatch.setattr(prc.subprocess, "run", _fake_run)
     monkeypatch.setattr(prc, "_push_reached_origin", lambda *a, **k: True)
     monkeypatch.setattr(prc, "tree_lock", lambda: _NullCtx())
+    # Hold the divergence read level with origin. The banner path reads origin before it stages
+    # (2026-09-01, `_divergence_refusal`), and `_fake_run` above answers every git command with
+    # rc=0 and EMPTY stdout -- which `_commits_origin_is_ahead_by` correctly calls UNREADABLE, so
+    # the banner would be refused for a reason that is not this test's subject. STATED, NOT
+    # NEUTERED: the subject here is that a RED GATE still publishes the banner and never the
+    # content; being behind origin is a different refusal with its own real-git control in
+    # `test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`.
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
     import background._seat as seat
     monkeypatch.setattr(seat, "is_resident_seat", lambda: True)
 
