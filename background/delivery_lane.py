@@ -494,11 +494,20 @@ def hand_off_focus(focus_id: str, done_means: str, now: float | None = None) -> 
     stand-down was never the defect; the defect was that NOTHING turned the first into the second,
     and the mechanism sat with a full queue on one side and an empty store on the other.
 
-    IT STAYS A DELIBERATE ACT. This is a command the seat runs, not a promotion that happens on a
-    timer, and that is the whole point rather than an omission -- auto-promoting would defeat the
-    stand-down it exists beside and hand an unattended writer work a live seat is mid-way through.
-    What it removes is the FRICTION, which is what actually stopped it happening: the seat had to
-    retype three long prose fields it had already written into `DIRECTION.yaml`.
+    IT WAS "A DELIBERATE ACT ONLY", AND THAT WAS WRONG -- corrected 2026-09-01, beside the claim.
+    This docstring said auto-promoting "would defeat the stand-down it exists beside and hand an
+    unattended writer work a live seat is mid-way through". The first half was refuted by
+    measurement: `seat_executor._interactive_seat_is_live` is true whenever ANY session is running
+    and one always is, so there was no stand-down left to defeat -- the log recorded thirty-two
+    consecutive declines across five work ids and not one turn. A refusal whose condition is never
+    false protects nothing. The second half was real and is now answered by ORDERING rather than by
+    never promoting: `seat_executor._promote_to_handoff` writes the handoff on the tick that
+    DECLINES the work, so a live seat mid-way through keeps the rest of the cycle to land something
+    the path guard can see, and only the tick after that takes it.
+
+    So this remains the seat's own command AND is now the executor's promotion route, with the
+    same refusal in both mouths. What it removed first was the FRICTION, which is what stopped the
+    seat doing it by hand: three long prose fields it had already written into `DIRECTION.yaml`.
 
     `done_means` IS SUPPLIED BY THE CALLER, BECAUSE A FOCUS ITEM DOES NOT HAVE ONE. The direction
     that asked for this wiring said `--hand-off` "takes exactly the fields a focus item has"; it

@@ -20,16 +20,16 @@ now obsolete — not by argument, by two landings:
     remembered sequence of git commands.
 
 So this is not a second writer on the shared tree. **It writes no CODE there at all** — every edit
-it makes is in the worktree, and the only shared-tree files it touches are its own two
-observability files, `SHARED_TREE_WRITES` below.
+it makes is in the worktree, and the only shared-tree files it touches are the observability
+ledgers in `SHARED_TREE_WRITES` below.
 
 That distinction is stated precisely because the first draft of this docstring claimed it never
 wrote to the shared tree *at all*, which was false the moment it logged anything. A log and a pid
 file cannot live in the worktree: `ensure_worktree` resets that tree at the start of every turn, so
 a pid written there would vanish before the liveness check that needs it, and the log would lose
-every turn's record. Both live in `docs/observability/`, the directory every daemon in this project
-appends to by design, and `test_the_executor_writes_no_code_to_the_shared_tree` holds the list to
-exactly those two.
+every turn's record. They live in `docs/observability/`, the directory every daemon in this project
+appends to by design, alongside the handoff store the promotion below writes, and
+`test_the_executor_writes_no_code_to_the_shared_tree` holds the list to exactly those.
 
 THE FOUR REFUSALS BEFORE IT RUNS, and each is a way an unattended writer goes wrong
 -----------------------------------------------------------------------------------
@@ -38,13 +38,21 @@ THE FOUR REFUSALS BEFORE IT RUNS, and each is a way an unattended writer goes wr
   * **an interactive seat is live AND the item was not handed over.** The heartbeat
     `.claude/hooks/stamp_seat_heartbeat.py` stamps on every tool call a session makes; if it is
     warm, a human is holding this seat. What that protects against is TWO WRITERS CHOOSING FROM
-    THE SAME QUEUE, so the refusal asks about contention rather than presence. A re-derived
-    `direction.unreachable_focus` item stands down: nobody gave it away and the live seat may be
-    part-way through it with nothing claimed, which the path guard cannot see. **A continuation
+    THE SAME QUEUE, so the refusal asks about contention rather than presence. **A continuation
     runs.** It is the seat writing down, deliberately and in full context, *"this piece is for
     whoever runs next"* — and the seat that wrote it is nearly always still alive, because it
     writes the handoff and then keeps working. Refusing on presence refuses every handoff there
     will ever be, which is what the first version of this module did.
+
+    **A re-derived `direction.unreachable_focus` item still stands down THIS tick — and is now
+    PROMOTED into the handoff store on the way out, so a later tick takes it (2026-09-01).** The
+    refusal as written on 2026-08-31 declined it and stopped there, which read as caution and
+    measured as severance: `_interactive_seat_is_live` is true whenever any session is running and
+    one always is, so the item was not sometimes declined, it was never reachable by any tick.
+    Thirty-two consecutive stand-downs across five work ids are in the log. Deferring by one tick
+    keeps everything the refusal was actually protecting — a live seat part-way through the item
+    with nothing claimed gets the rest of the cycle to land something the path guard can then see —
+    while `_promote_to_handoff` makes the route terminate.
   * **there is nothing to do.** No continuation and no unclaimed focus item is a legitimate
     resting state, recorded with its reason. `delivery_seat`'s skip rule already says why: running
     anyway produces a confident restatement, which reads downstream exactly like a decision.
@@ -85,9 +93,15 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "seat-executor-log.md"
 PID_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_executor.pid"
 
 #: EVERY path in the shared tree this module may write. The claim "it is not a second writer" rests
-#: on this list being exhaustive and on both entries being observability rather than code, so the
+#: on this list being exhaustive and on every entry being observability rather than code, so the
 #: list is the control's subject rather than a comment.
-SHARED_TREE_WRITES = (LOG_FILE, PID_FILE)
+#:
+#: THE THIRD ENTRY ARRIVED WITH THE PROMOTION (2026-09-01). `_promote_to_handoff` writes the
+#: handoff store, which is a shared-tree write and has to be declared as one. It is still not code:
+#: it is the same `docs/observability/` ledger the interactive seat writes with
+#: `seat_continuation --hand-off`, behind the same `live_ledger_guard`, and this module now writes
+#: it for the same reason the seat does.
+SHARED_TREE_WRITES = (LOG_FILE, PID_FILE, delivery_lane.seat_continuation.STORE)
 WORKTREE = Path(os.environ.get("SE_EXECUTOR_WORKTREE", "/var/tmp/se-seat-executor"))
 
 #: A bounded turn. Long enough for a real piece of work including a capture; short enough that a
@@ -149,6 +163,56 @@ def _is_handed_off(item: dict, now: float | None = None) -> bool:
         return any(c.get("id") == item.get("id") for c in seat_continuation.live(now=now))
     except Exception:  # noqa: BLE001 - a handoff store must never cost the machine a tick
         return False
+
+
+#: WHAT `done_means` SAYS FOR AN AUTOMATIC PROMOTION, and why a constant is honest here.
+#:
+#: `seat_continuation.hand_off` refuses a handoff without a `done_means`, for a good reason: "a
+#: tick handed a topic writes a restatement of it". That refusal guards a HUMAN handoff, where the
+#: seat holds the context and is the only thing that can state an exit test. It cannot guard this
+#: one, because a focus item genuinely has no exit test -- that is what makes it direction rather
+#: than an atom (`delivery_lane` §"DONE IS DERIVED"), and scraping a marker out of its prose would
+#: manufacture the field rather than carry it.
+#:
+#: The constant costs nothing that the refusal was protecting, because `delivery_lane.doorbell`
+#: formats only `what`, `why` and `id`: `done_means` NEVER REACHES THE TICK'S PROMPT for either
+#: kind of item. The tick is already told, in the doorbell itself, to decide what done means. So
+#: what this string is for is the READER of the store -- it says the entry was written by the
+#: machine at derivation rather than by a session, which is the provenance `seat_continuation`
+#: exists to keep legible.
+AUTO_PROMOTION_DONE_MEANS = (
+    "DERIVED, NOT DECLARED -- this entry was promoted automatically by seat_executor at "
+    "derivation, not written by a session. A focus item has no exit test; done is when the seat's "
+    "next orientation stops naming it (delivery_lane, 'DONE IS DERIVED'). The tick decides what "
+    "done means for the piece it takes, exactly as the doorbell tells it to."
+)
+
+
+def _promote_to_handoff(work_id: str, now: float | None = None) -> tuple[bool, str]:
+    """Write a re-derived focus item into the handoff store. Returns `(promoted, refusal)`.
+
+    THE ONE CALL SITE IS THE STAND-DOWN ABOVE, and the write happens on the tick that DECLINES the
+    work rather than on the tick that takes it. That ordering is the mechanism: it turns an
+    unclaimed decision, which loses to a live heartbeat every single time, into a claimed handoff,
+    which the same guard already lets through.
+
+    IT GOES THROUGH `delivery_lane.hand_off_focus` RATHER THAN WRITING THE STORE DIRECTLY, and the
+    refusal that route carries is the reason. `hand_off_focus` re-reads
+    `direction.unreachable_focus` and raises unless `work_id` is a LIVE, DRAW-UNREACHABLE focus
+    item -- so this cannot promote an atom the dial-weighted draw already reaches, cannot promote
+    an expired direction record, and cannot promote something invented in between. Promoting work
+    the draw can already reach would create a second route to the same item, which is the
+    duplication the path-keyed guard exists to refuse.
+
+    NEVER RAISES. A handoff store must not cost the machine a tick, and the caller stands down with
+    the named reason either way -- which is also how a promotion that stops working stays visible
+    rather than going quiet.
+    """
+    try:
+        delivery_lane.hand_off_focus(work_id, AUTO_PROMOTION_DONE_MEANS, now=now)
+    except Exception as exc:  # noqa: BLE001 - see NEVER RAISES above
+        return False, f"{type(exc).__name__}: {str(exc).strip()[:160]}"
+    return True, ""
 
 
 #: A worktree declares itself IN USE by dropping this file with the owning pid in it. Any writer
@@ -348,14 +412,36 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # session is nearly always still alive, because it writes the handoff and then keeps
         # working.
         #
-        # A FOCUS ITEM IS DIFFERENT and still stands down. `direction.unreachable_focus` is
-        # re-derived from the tree every three hours; nobody handed it over, and a live seat may
-        # well be part-way through it with nothing claimed yet. That is real contention, and the
-        # path guard cannot see it because an unclaimed decision has no paths.
+        # THE 2026-08-31 NARROWING LEFT A FOCUS ITEM OUTSIDE IT, AND THAT WAS SEVERANCE RATHER
+        # THAN CAUTION (measured, 2026-09-01). `_interactive_seat_is_live` is true whenever any
+        # session is running and one always is, so a focus item was not SOMETIMES declined -- it
+        # was never reachable. `docs/observability/seat-executor-log.md` records thirty-two
+        # identical stand-downs unbroken from 2026-08-31 23:35, five different work ids, zero
+        # turns. A refusal whose condition is never false is not a control; it is a disconnected
+        # wire that reports itself as safety.
+        #
+        # SO THE STAND-DOWN NOW PROMOTES INSTEAD OF DISCARDING. The item is written into the
+        # handoff store here, at derivation, and THIS tick still stands down -- which keeps the
+        # whole of what the old refusal was actually protecting: a live seat part-way through the
+        # item with nothing claimed gets the rest of this cycle, and by the next tick it will have
+        # either landed something (the path guard three lines below then sees it) or moved on. The
+        # cost is one tick of latency. What it buys is a route that terminates.
+        #
+        # WHY NOT AUTO-RUN, AND WHY NOT "ESCALATE AFTER N DECLINES". Running immediately removes
+        # the window the live seat needs; escalating after N declines is a stall wearing an
+        # alert's clothes -- it converts a severed route into a louder severed route, and there is
+        # nobody on the other end of it at 03:00, which is exactly when this executor matters.
         if _interactive_seat_is_live(now) and not _is_handed_off(item, now=now):
+            promoted, refusal = _promote_to_handoff(work_id, now=now)
+            if not promoted:
+                raise StoodDown(
+                    f"an interactive seat is live and {work_id!r} was not handed off to a tick, "
+                    f"and it could not be promoted either: {refusal}"
+                )
             raise StoodDown(
-                f"an interactive seat is live and {work_id!r} was not handed off to a tick -- "
-                "a re-derived focus item may be work that seat is already part-way through"
+                f"an interactive seat is live, so {work_id!r} is PROMOTED rather than run: it is "
+                "now a continuation a later tick can take, and this tick leaves the live seat the "
+                "rest of the cycle to claim paths against it"
             )
 
         try:

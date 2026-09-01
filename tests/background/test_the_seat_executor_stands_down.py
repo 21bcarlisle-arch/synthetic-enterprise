@@ -42,16 +42,136 @@ def test_it_stands_down_on_a_REDERIVED_item_while_an_interactive_seat_is_live(mo
     The item here was NOT handed off — it is a `direction.unreachable_focus` entry, re-derived
     from the tree every three hours. Nobody gave it away, and the live seat may be part-way
     through it with nothing claimed yet; the path guard cannot see that, because an unclaimed
-    decision has no paths.
+    decision has no paths. So THIS tick does not run it. (What happens next is the subject of
+    `test_a_REDERIVED_focus_item_is_REACHABLE_BY_A_LATER_TICK` below: the item is promoted on the
+    way out. Standing down and standing down forever are different things, and this leg only ever
+    held the first.)
+
+    `"anything"` is not in any live direction record, so the promotion refuses it and the reason
+    is named — which is also the leg that says a promotion cannot invent work.
 
     MUTATION: drop the liveness check and this fires.
     """
     monkeypatch.setattr(seat_executor, "_interactive_seat_is_live", lambda now=None: True)
     monkeypatch.setattr(seat_executor, "_is_handed_off", lambda item, now=None: False)
+    monkeypatch.setattr(seat_executor.delivery_lane.direction_mod, "unreachable_focus",
+                        lambda *a, **k: [])
     _offer(monkeypatch, {"id": "anything", "what": "w", "why": "y"})
     ran, detail = seat_executor.run_once()
     assert ran is False
     assert "not handed off" in detail
+    assert "could not be promoted" in detail and "KeyError" in detail, (
+        "a promotion that refuses must name its reason: a silent refusal here is the severance "
+        "this whole mechanism exists to remove, wearing a different message"
+    )
+
+
+#: THE FIXTURE'S CLOCK IS EXPLICIT AND NEVER `time.time()`. A fixture built from wall-clock `now`
+#: gives a control a RED WINDOW: it fails only when the run happens to fall inside some interval and
+#: heals itself before the worker drawn to fix it arrives. Every instant below is derived from this
+#: one constant, so the leg's verdict does not depend on when it is run.
+_TICK_ONE = 1_756_700_000.0
+
+#: The executor's own cadence — `background/seat-executor.timer`, one turn every half hour. The
+#: property is "reachable by SOME later tick", and this is the soonest one.
+_ONE_TICK_LATER = _TICK_ONE + 30 * 60
+
+
+def test_a_REDERIVED_focus_item_is_REACHABLE_BY_A_LATER_TICK(tmp_path, monkeypatch):
+    """THE PROPERTY IS REACHABILITY, and it is keyed to no item's name on purpose.
+
+    A control that said *"`a-focus-item-is-structurally-unreachable-by-the-executor` is stuck"*
+    would pin today's answer: it goes green the moment that particular id leaves `DIRECTION.yaml`,
+    which is when the seat re-orients, and it would have gone green through the whole of the
+    stretch that produced the defect. What must hold is structural — **a focus item the executor
+    re-derives is reachable by some tick, with an interactive seat live throughout** — because the
+    interactive seat is ALWAYS live and a route that requires it to be dead is not a route.
+
+    Measured 2026-09-01: thirty-two consecutive stand-downs in `seat-executor-log.md`, unbroken
+    from 2026-08-31 23:35, five different work ids, not one turn. That is the shape this fires on.
+
+    NOTE WHAT IS *NOT* ASSERTED. Tick one still declines, and that is deliberate rather than a
+    concession: it leaves a live seat mid-way through the item the rest of the cycle to land
+    something the path guard can see. The claim is that declining TERMINATES, not that it stops.
+
+    MUTATION (must fire): delete the `_promote_to_handoff` call from `run_once` and tick two stands
+    down exactly as tick one did — which is HEAD as of 2026-08-31, and is the defect.
+    """
+    from background import seat_continuation
+
+    item = {"id": "some-focus-item", "what": "the work", "why": "the reason"}
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(seat_executor.delivery_lane, "CLAIMS_FILE", tmp_path / "claims.json")
+    monkeypatch.setattr(seat_executor.delivery_lane, "_atom_ids", lambda *a, **k: set())
+    monkeypatch.setattr(seat_executor.delivery_lane.direction_mod, "unreachable_focus",
+                        lambda *a, **k: [dict(item)])
+    # The condition that made the old refusal unfalsifiable, held TRUE for both ticks. If the item
+    # is only reachable once the seat dies, nothing has been fixed.
+    monkeypatch.setattr(seat_executor, "_interactive_seat_is_live", lambda now=None: True)
+
+    ran, first = seat_executor.run_once(dry_run=True, now=_TICK_ONE)
+    assert ran is False, "tick one must not run a re-derived item out from under a live seat"
+    assert "PROMOTED" in first, f"tick one declined without promoting: {first}"
+    assert [i["id"] for i in seat_continuation.live(now=_TICK_ONE)] == ["some-focus-item"]
+
+    ran, second = seat_executor.run_once(dry_run=True, now=_ONE_TICK_LATER)
+    assert "would run some-focus-item" in second, (
+        f"a re-derived focus item is still unreachable by any tick: {second}. Thirty-two "
+        "consecutive stand-downs is what this looks like in the log."
+    )
+
+
+def test_the_promotion_carries_the_focus_items_OWN_WHAT_AND_WHY_to_the_tick(tmp_path, monkeypatch):
+    """A promotion that reached the tick with a restatement would be worse than the stand-down.
+
+    The doorbell formats `what` and `why` and nothing else, so those two fields ARE the work
+    instruction. If the promotion manufactured them the tick would receive a topic, which is the
+    exact failure `seat_continuation.hand_off`'s required-field refusal exists to prevent.
+
+    MUTATION: have `_promote_to_handoff` write a summary instead of the item's own prose, or drop
+    `why`, and this fires.
+    """
+    from background import seat_continuation
+
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(seat_executor.delivery_lane, "_atom_ids", lambda *a, **k: set())
+    monkeypatch.setattr(
+        seat_executor.delivery_lane.direction_mod, "unreachable_focus",
+        lambda *a, **k: [{"id": "carried", "what": "SPLIT THE SERIES BY POPULATION",
+                          "why": "one mean over a mixed population"}])
+
+    promoted, refusal = seat_executor._promote_to_handoff("carried", now=_TICK_ONE)
+    assert promoted is True, refusal
+    stored = seat_continuation.live(now=_TICK_ONE)[0]
+    assert stored["what"] == "SPLIT THE SERIES BY POPULATION"
+    assert stored["why"] == "one mean over a mixed population"
+    doorbell = seat_executor.delivery_lane.doorbell(stored)
+    assert "SPLIT THE SERIES BY POPULATION" in doorbell
+    assert "one mean over a mixed population" in doorbell
+
+
+def test_the_promotion_cannot_invent_work_the_direction_does_not_name(tmp_path, monkeypatch):
+    """It goes through `hand_off_focus` so that the refusal comes with it.
+
+    An unattended writer that can promote an arbitrary id has a second route to work the
+    dial-weighted draw already reaches, which is the duplication the path-keyed guard exists to
+    refuse — and it would also survive the direction record expiring, so stale direction would keep
+    handing out work after it stopped steering.
+
+    MUTATION: write `seat_continuation.hand_off` directly from `_promote_to_handoff` and this
+    fires.
+    """
+    from background import seat_continuation
+
+    monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
+    monkeypatch.setattr(seat_executor.delivery_lane, "_atom_ids", lambda *a, **k: set())
+    monkeypatch.setattr(seat_executor.delivery_lane.direction_mod, "unreachable_focus",
+                        lambda *a, **k: [])
+
+    promoted, refusal = seat_executor._promote_to_handoff("invented", now=_TICK_ONE)
+    assert promoted is False
+    assert "KeyError" in refusal
+    assert seat_continuation.live(now=_TICK_ONE) == []
 
 
 def test_a_HANDED_OFF_continuation_runs_even_though_the_seat_that_wrote_it_is_live(monkeypatch):
@@ -190,13 +310,16 @@ def test_the_executor_writes_no_code_to_the_shared_tree():
     """The claim the whole design rests on, held as a list rather than a sentence.
 
     Every edit it makes is in its worktree. The only shared-tree files it may touch are its own
-    log and pid — both in `docs/observability/`, which every daemon here appends to by design.
+    log and pid, and — since the promotion landed on 2026-09-01 — the handoff store it writes a
+    declined focus item into. All three are in `docs/observability/`, which every daemon here
+    appends to by design, and the third is the same ledger the interactive seat writes with
+    `seat_continuation --hand-off`, behind the same `live_ledger_guard`.
 
     MUTATION: add any other shared-tree path to `SHARED_TREE_WRITES`, or write one directly, and
     this fires.
     """
     allowed = {p.name for p in seat_executor.SHARED_TREE_WRITES}
-    assert allowed == {"seat-executor-log.md", ".seat_executor.pid"}
+    assert allowed == {"seat-executor-log.md", ".seat_executor.pid", ".seat_continuation.json"}
     for path in seat_executor.SHARED_TREE_WRITES:
         rel = path.relative_to(seat_executor.PROJECT_DIR)
         assert str(rel).startswith("docs/observability/"), (
