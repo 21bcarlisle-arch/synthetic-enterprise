@@ -129,6 +129,35 @@ def test_an_unmeasured_population_is_not_published_as_a_measured_zero():
     )
 
 
+def test_an_unmeasured_population_is_none_in_the_data_layer_not_only_in_the_render():
+    """The SAME fail-closed property one layer down, and it needs its own leg.
+
+    ESTABLISHED BY A MUTATION THAT DID NOT FIRE, which is either a missing test or an
+    equivalence and must never be left as whichever is flattering. Making `_shock_stats`
+    return `avg_pct=0.0` for an empty sample -- the exact pre-split defect -- left
+    `test_an_unmeasured_population_is_not_published_as_a_measured_zero` GREEN. That test is
+    an equivalence at the render layer: `_section_bill_shock_analysis` short-circuits on
+    `if not stats.get("n")` and prints the refusal without ever reading `avg_pct`, so it
+    cannot see a measured zero underneath it.
+
+    The only control that DID fire was the coupling one -- the two split implementations
+    agreeing bill for bill. That is agreement with `tools/generate_dashboard_data.py`, not
+    the property itself, and it is primed to stop holding: the repair filed in
+    `docs/staging/FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER_2026-09-02.md`
+    unifies the two copies into one, at which point the coupling check compares a thing to
+    itself and this property has no holder at all. This leg is what makes that repair safe
+    to land.
+    """
+    pops = _bill_shock_populations(_data([_bill("2022-01-31", 0.42, "bill")]))
+    empty = pops["2022"]["out_of_scope"]
+    assert empty["n"] == 0
+    for field in ("avg_pct", "median_pct", "max_pct", "ci95_low", "ci95_high"):
+        assert empty[field] is None, (
+            f"an unmeasured population published {field}={empty[field]!r}; a population with no "
+            "bill in a year has not been measured at zero shock, it has not been measured"
+        )
+
+
 def test_an_unmeasured_band_refuses_rather_than_reporting_the_best_branch():
     """DEFECT: a None/absent mean banding as 'within band' -- fail-open in a verdict."""
     assert _shock_band(None) == SHOCK_NOT_MEASURED
