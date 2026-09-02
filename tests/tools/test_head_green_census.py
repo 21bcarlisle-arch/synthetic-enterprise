@@ -326,3 +326,77 @@ def test_the_subject_is_cleaned_up_even_though_it_is_large():
         captured = Path(subject)
         assert captured.exists()
     assert not captured.exists(), "the census left its checkout behind"
+
+
+# ---------------------------------------------------------------- the two clocks over one run
+
+#: The unit that actually runs the census. Read as text rather than parsed with a systemd
+#: library: the property is a relationship between two numbers written in two files, and the
+#: cheapest thing that can notice them crossing is the one worth having.
+_UNIT_PATH = Path(hgc.PROJECT_DIR) / "background" / "head-green-census.service"
+
+
+def _unit_timeout_start_sec() -> int:
+    for line in _UNIT_PATH.read_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("TimeoutStartSec="):
+            return int(stripped.split("=", 1)[1].strip())
+    raise AssertionError(
+        "{} declares no TimeoutStartSec, so systemd's default bounds the census and nothing "
+        "here can say what it is".format(_UNIT_PATH)
+    )
+
+
+def test_the_census_timeout_clears_the_duration_it_has_observed():
+    """A bound BELOW the worst run actually observed aborts healthy slow nights, not hangs.
+
+    THE DEFECT THIS PINS, and it lasted about an hour on 2026-09-02. The nightly run took 3537s
+    against a 3600s unit limit -- 1.7% of margin -- and the repair set the suite's own timeout to
+    3300 so that it, not systemd, would fire first. That fixed the ORDERING and spent the whole
+    headroom paying for it: 3300 < 3537, so the next run of ordinary length would have been
+    killed by its own clock and reported UNPROVEN. Silence is the one failure mode this control
+    cannot afford, and the repair for silence had made it likelier.
+
+    MUTATION (must fire): set `SUITE_TIMEOUT_SECONDS` back to 3300 and this fails on the first
+    assertion -- 3300 < 2 * 3537. Set `TimeoutStartSec` back to 3600 and it fails on the second.
+    Both mutations are exactly the state the tree was in, so neither is hypothetical.
+
+    IT IS NOT AN EQUIVALENCE WITH `test_the_subject_is_built_on_real_disk_not_the_tmpfs`: that one
+    is about WHERE the run allocates, this one about HOW LONG it is allowed to take, and the
+    2026-09-02 tree passed that one while failing this.
+    """
+    assert hgc.SUITE_TIMEOUT_SECONDS > hgc.WORST_OBSERVED_SUITE_SECONDS * 2, (
+        "the suite's bound is {}s against a worst observed run of {}s -- a timeout under 2x the "
+        "healthy duration reports UNPROVEN on a slow night, which is indistinguishable from the "
+        "census not running at all".format(
+            hgc.SUITE_TIMEOUT_SECONDS, hgc.WORST_OBSERVED_SUITE_SECONDS)
+    )
+    # The other direction, and the one the comment asserted in prose while nothing checked it.
+    # If systemd gets there first it SIGTERMs the unit, `TimeoutExpired` is never caught, and the
+    # census vanishes rather than saying UNPROVEN.
+    unit = _unit_timeout_start_sec()
+    assert unit > hgc.SUITE_TIMEOUT_SECONDS, (
+        "systemd would kill the census at {}s while its own timeout is {}s, so the branch that "
+        "reports UNPROVEN can never execute".format(unit, hgc.SUITE_TIMEOUT_SECONDS)
+    )
+    assert unit - hgc.SUITE_TIMEOUT_SECONDS >= 300, (
+        "only {}s between the suite's timeout and systemd's -- the checkout, the teardown and "
+        "the report all happen inside the unit and outside the suite's clock".format(
+            unit - hgc.SUITE_TIMEOUT_SECONDS)
+    )
+
+
+def test_raising_the_census_timeout_cannot_turn_a_red_verdict_green():
+    """The allowance must be unable to forgive anything, or it is a licence wearing a clock.
+
+    A run-duration bound sits next to an acceptance baseline in this module, and the two must not
+    be confusable: `verdict()` reads only the failure delta and the passed count, so no value of
+    the timeout can move a NEW_RED to GREEN. Pinned because "give it headroom" is the shape of
+    request that quietly acquires a second effect.
+
+    MUTATION (must fire): make `verdict` return GREEN when `passed_count` is None.
+    """
+    delta = {"new_red": ["tests/x.py::test_a"], "fixed": [], "still_red": []}
+    assert hgc.verdict(delta, 24000)[0] == "NEW_RED"
+    # And the fail-safe the timeout branch relies on: no summary line is UNPROVEN, never green.
+    assert hgc.verdict({"new_red": [], "fixed": [], "still_red": []}, None)[0] == "UNPROVEN"

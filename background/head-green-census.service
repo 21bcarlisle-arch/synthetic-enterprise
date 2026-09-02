@@ -12,5 +12,15 @@ EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
 # measurement. Report-only: it pages on a DELTA against the committed baseline and changes
 # nothing (G-R4).
 ExecStart=/usr/bin/python3 -m tools.head_green_census --notify
-# ~25 min at 24k tests; give it room without letting a hang run to the next firing.
-TimeoutStartSec=3600
+# MUST STAY ABOVE tools.head_green_census.SUITE_TIMEOUT_SECONDS (7200), by enough for the
+# checkout, the teardown and the report -- 300s. If systemd gets there first it SIGTERMs the whole
+# unit, `subprocess.TimeoutExpired` is never caught, and the census vanishes instead of reporting
+# UNPROVEN. That is the one failure mode this control cannot afford, because its whole purpose is
+# to be the thing that notices.
+#
+# 3600 was set against "~25 min at 24k tests" and the run on 2026-09-02 took 58:57 -- 63s of
+# margin, 1.7%. The suite is now bounded at 2x its worst observed duration, so this follows it up.
+# The timer fires once a day, so 7500s still cannot reach the next firing.
+# `tests/tools/test_head_green_census.py::test_the_census_timeout_clears_the_duration_it_has_observed`
+# reads THIS FILE and fails if the two ever cross.
+TimeoutStartSec=7500
