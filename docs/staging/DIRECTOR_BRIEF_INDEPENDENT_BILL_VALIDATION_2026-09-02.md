@@ -1,16 +1,16 @@
 # [DIRECTOR-BRIEF] — Independent bill validation behind a curtain (2026-09-02)
 
-**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** unminted
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** unminted
 
-*Chained by the delivery seat, 2026-09-02. The brief arrived unchained and left the severity gate
-UNCLASSIFIED, which refuses EVERY lane's commit — so the first thing this brief did was block the
-four landings waiting to reach origin. That is the third time (2026-08-30, 2026-08-31, today), and
-the director named the shape in the same hour: "a staged document arriving should never block your
-landing." The classification is metadata the machine requires; not one word of the brief is altered.
-`D_billing_metering` because the subject is the bill; `unminted` because the brief itself says the
-design is the seat's.*
+*Header added by the delivery seat, 2026-09-02. The director DID state the severity — "Severity:
+LATENT — a programme, not a live defect", inside the `**Type:**` line — and `finding_severity`
+could not read it, because it parses a fixed shape (`**Severity:** X · **Lane:** Y`) and there was
+no lane at all. So this is not a forgotten header; it is a machine format satisfied in the wrong
+register, by someone writing prose. His severity is carried through verbatim and only the lane is
+mine. `background/staging_watcher` now applies this automatically for externally-authored
+documents, so the block this caused three times cannot recur.*
 
-**Type:** [BRIEF — problem, requirements, and the reasoning behind them. The design is the delivery seat's, and it is explicitly invited to improve on what is proposed here or replace it with something better, provided the properties in §4 hold.]
+**Type:** [BRIEF — problem, requirements, and the reasoning behind them. Severity: LATENT — a programme, not a live defect. The design is the delivery seat's, and it is explicitly invited to improve on what is proposed here or replace it with something better, provided the properties in §4 hold.]
 
 ---
 
@@ -28,9 +28,11 @@ The remedy is not more tests written by the same hand. It is **independent recon
 
 ## 2. Two exports, kept strictly apart
 
-**The raw export** — the validator's input. Every fact needed to reconstitute an account over its life: meter reads with their dates and type (actual, estimated, customer, deemed); tariff terms with their effective dates; payments as received; adjustments and their reasons; the issued bills as documents, exactly as the customer saw them. **Nothing derived.** No computed rate, no total, no running balance. If a derived figure leaks into this export, the validator confirms our arithmetic against itself and the exercise is worthless.
+**The raw export** — the validator's input. Every fact needed to reconstitute an account over its life: meter reads with their dates and type (actual, estimated, customer, deemed); tariff terms with their effective dates; payments as received; adjustments and their reasons. **Nothing derived.** No computed rate, no total, no running balance — and no bill, because a bill *is* the calculation. If a derived figure leaks into this export, the validator confirms our arithmetic against itself and the exercise is worthless.
 
-**The statement export** — what we claim. Every bill's calculation shown line by line, and the balance after each event across the account's life: the transaction history a real supplier gives a customer, and a bill that shows how it reached its number. This is what the validator's reconstruction is compared against.
+*(Corrected 2026-09-02 on the delivery seat's objection: the first draft listed "the issued bills as documents" here, two sentences after "nothing derived". A bill is entirely derived and belongs on the statement side. The objection was right.)*
+
+**The statement export** — what we claim. The issued bills as documents, exactly as the customer saw them; every bill's calculation shown line by line; and the balance after each event across the account's life — the transaction history a real supplier gives a customer, and a bill that shows how it reached its number. This is what the validator's reconstruction is compared against.
 
 The separation is the whole value. The validator must never see the statement before it has rebuilt.
 

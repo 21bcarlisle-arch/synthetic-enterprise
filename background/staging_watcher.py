@@ -64,6 +64,7 @@ the file up shortly after regardless.
 """
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -441,6 +442,92 @@ def sweep_answered_from_rich(now: datetime | None = None) -> list[str]:
     return archived
 
 
+#: The lane an externally-authored instruction gets when its author named none. NOT a guess about
+#: the document's subject: it is a statement about what KIND of document it is. A brief, a canon or
+#: a ruling from the director IS strategy and governance, whatever it happens to be about.
+AUTO_CHAIN_LANE = "A_strategy_governance"
+
+
+def auto_chain_header(text: str) -> str | None:
+    """The header block an unclassified externally-authored document should get, or None.
+
+    WHY THIS EXISTS (director, 2026-09-02, after it happened for the third time): *"a staged
+    document arriving should never block your landing."* An UNCLASSIFIED staging document refuses
+    EVERY lane's commit, so a brief arriving from the console blocked four gated landings, the
+    publish path and the site until a human noticed and chained it by hand — 2026-08-30,
+    2026-08-31, and again the same day he said it would not recur.
+
+    AND IT WAS NOT CARELESSNESS, which is why the fix is here and not a reminder. On the third
+    occasion he DID state the severity — *"Severity: LATENT — a programme, not a live defect"* —
+    inside the `**Type:**` line. `finding_severity` parses a fixed shape (`**Severity:** X ·
+    **Lane:** Y`) and there was no lane at all. A machine format satisfied in the wrong register by
+    someone writing prose is a design problem, not a discipline problem.
+
+    NARROW BY CONSTRUCTION. Only `ADVISOR_`/`DIRECTOR_` documents — the same set
+    `finding_classes` already holds OUT of consolidation, because they are another party's ask
+    rather than this machine's finding. A `WORKER_FINDING`'s severity is a judgement about a
+    defect and is never defaulted here.
+
+    IT CANNOT LAUNDER A REAL DEFECT. `RECORDED` is right for an instruction — a landed record of
+    direction with nothing owed as a defect, which is what the seat chose by hand all three times.
+    But an advisor document whose own text says an instrument or a published figure is WRONG is not
+    an instruction, and `finding_severity.by_construction_evidence` already names exactly those. If
+    it fires, the default is BLOCKING instead. So the automatic path can only ever be as severe as
+    the document's own words, never less.
+
+    The author's OWN stated severity wins over both, wherever in the header they wrote it.
+    """
+    from background import finding_severity as fs
+
+    block = fs.header_block(text)
+    stated = re.search(r"\bSeverity:\s*\**\s*(BLOCKING|LATENT|RECORDED)\b", block, re.I)
+    if stated:
+        severity, why = stated.group(1).upper(), "carried through from the author's own words"
+    elif fs.by_construction_evidence(text):
+        severity, why = ("BLOCKING",
+                         "its own text says an instrument or a published figure is wrong, so it is "
+                         "BLOCKING by construction and must not be defaulted quieter")
+    else:
+        severity, why = ("RECORDED",
+                         "an instruction is a landed record of direction with nothing owed as a "
+                         "defect")
+    return (
+        "**Severity:** {sev} \u00b7 **Lane:** {lane} \u00b7 **Epoch:** 3 \u00b7 **Atom:** unminted\n\n"
+        "*Header applied AUTOMATICALLY by `background/staging_watcher` on arrival, because an "
+        "unclassified staging document refuses every lane's commit and an arriving document must "
+        "never block a landing. Severity {sev}: {why}. Lane {lane} is the default for an "
+        "externally-authored instruction and says what KIND of document this is, not what it is "
+        "about \u2014 correct it if it belongs to a lane. Not one word of the author's text is "
+        "altered.*\n".format(sev=severity, lane=AUTO_CHAIN_LANE, why=why)
+    )
+
+
+def auto_chain(path: Path) -> str | None:
+    """Give an unclassified externally-authored document a header, in place. Returns the severity
+    applied, or None if nothing was needed or the document is not one this may touch.
+
+    Never raises: a watcher that dies on one malformed document stops watching all of them.
+    """
+    from background import finding_classes as fc
+    from background import finding_severity as fs
+
+    try:
+        if not path.name.startswith(fc.EXTERNALLY_AUTHORED_PREFIXES):
+            return None
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if fs.parse_severity_text(text, path).severity != fs.UNCLASSIFIED:
+            return None
+        header = auto_chain_header(text)
+        lines = text.splitlines(keepends=True)
+        # AFTER THE TITLE, never before it: the first line is the document's own heading and a
+        # header block above it reads as a different document.
+        at = 1 if lines and lines[0].startswith("# ") else 0
+        path.write_text("".join(lines[:at]) + "\n" + header + "\n" + "".join(lines[at:]))
+        return fs.parse_severity_file(path).severity
+    except OSError:
+        return None
+
+
 def _is_instruction_doc(p: Path) -> bool:
     """True for a staged instruction .md in the root that relies on a manual
     agent `mv` to done/ (there is no code that auto-archives it) -- i.e. an
@@ -562,6 +649,13 @@ def check_once(seen: set[str]) -> set[str]:
         elif name.startswith("run_complete_") and name.endswith(".md"):
             log(f"Silently registered sim run marker: {name} (Claude polls staging, no notification needed)")
         else:
+            # CHAIN IT BEFORE ANNOUNCING IT. An unclassified staging document refuses every lane's
+            # commit, so the window between "arrived" and "a human noticed" is a window in which
+            # nothing on this machine can land. Closing it here makes that window zero.
+            applied = auto_chain(STAGING_DIR / name)
+            if applied:
+                log(f"Auto-chained {name} as {applied} (it arrived unclassified, which refuses "
+                    f"every lane's commit)")
             # THE fire-once-then-daily gate (2026-07-16, same rule as escalations):
             # announce a staged doc ONCE; never re-announce while it sits open. The
             # persistent register (not just the in-memory `seen`) makes this survive
