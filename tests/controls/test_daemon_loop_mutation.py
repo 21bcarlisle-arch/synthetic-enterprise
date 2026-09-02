@@ -148,6 +148,29 @@ NEUTRALISED_BY_DMS_ISOLATED = (
     # shells out to git for `last_committed_ts`. Not latent either -- publishing is stale RIGHT
     # NOW (the wedge these tests sit inside), so its alarm branch is the live one.
     "_check_content_publishing",
+    # ADDED 2026-09-02 by this section's own class guard, on the first cycle after `run_cycle`
+    # gained it in a78879ed7 ("close the fork with origin automatically, in a worktree"). The
+    # same shape a THIRD time, and the guard caught it in one commit again.
+    #
+    # NEUTRALISED HERE, and deliberately not by the input-pinning route `tests/background/
+    # conftest.py` takes for the same check. That conftest pins `origin_reconcile.fork_state` at
+    # (0, 0) so the rung stays live for the tests written to prove it ACTS -- the right call
+    # THERE, where such tests exist. `tests/controls/` has no conftest at all and no test in this
+    # file is about the reconciler, so the live check runs FOR REAL in all 12 cycles here.
+    #
+    # Disqualified on every count: `origin_reconcile.reconcile()` FETCHES from the real remote and
+    # can MERGE in a worktree (subprocesses, unbounded, against the shared tree these tests are
+    # running inside); and its failure branch `notify(kind="real_alarm")`s on BLOCKED_WORK, which
+    # _capture_ntfy records -- so a fork that cannot be closed appends to `calls` and breaks the
+    # `assert len(calls) == 1` every test here is built on.
+    #
+    # KEYED TO THE PROPERTY, NOT TO TODAY'S FORK STATE. `HEAD...origin/main` reads 0/0 as this
+    # lands, and justifying the entry on "the tree is forked right now" would make it look
+    # removable the moment it went level again -- while the fetch and the merge stay exactly as
+    # real. The disqualifier is that the check REACHES THE REMOTE AND CAN PAGE at all; whether it
+    # is currently paging is the weather. Six automatic reconciliation merges in the 24h before
+    # this commit are how often the weather turns.
+    "_check_origin_fork",
     # NOT a `_check_*` name, and that is the whole point -- see the class guard below, whose
     # subject was widened on 2026-08-13 because this function proved the guard was watching a
     # NAMING CONVENTION rather than a call set. `run_cycle` calls it every cycle; it reads

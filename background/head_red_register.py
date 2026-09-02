@@ -280,7 +280,7 @@ def drawable(root: Path | str | None = None) -> list[str]:
     takes, and for the same reason.
     """
     try:
-        from tools.head_green_census import load_baseline
+        from background.head_red_baseline import load_baseline
         accepted = load_baseline()
     except Exception:  # noqa: BLE001
         accepted = set()
@@ -296,7 +296,7 @@ def main(argv=None) -> int:
     ap.add_argument("--render", action="store_true", help="(re)write the register document")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
-    from tools.head_green_census import load_baseline
+    from background.head_red_baseline import load_baseline
     store, accepted = load_observed(), load_baseline()
     o = owed(store, accepted)
     if args.render:

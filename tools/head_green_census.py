@@ -49,8 +49,16 @@ import sys
 import tempfile
 from pathlib import Path
 
+from background.head_red_baseline import BASELINE_PATH, load_baseline
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-BASELINE_PATH = PROJECT_DIR / "docs" / "observability" / "head_red_baseline.json"
+
+# The acceptance list is READ from a leaf that cannot write it, and that is the whole point of
+# the indirection: `background/head_red_register` needs the same reader, and reaching it through
+# THIS module put `process_run_complete` -- a publish-path source -- on the supervisor's import
+# graph, wedging every publish. Re-exported rather than moved outright because this module's own
+# four uses below, and `test_head_green_census.py`, address it as `head_green_census.load_baseline`
+# -- so the NAME stays where its callers already look and the DEFINITION has one home.
 
 # The publish gate's own marker expression, so the DESELECTIONS match -- not a set of our own
 # choosing that could drift away from it.
@@ -142,20 +150,6 @@ def parse_passed_count(output: str):
     """
     matches = _SUMMARY_RE.findall(output or "")
     return int(matches[-1]) if matches else None
-
-
-def load_baseline(path: Path = BASELINE_PATH) -> set:
-    """The known-red set. A missing/malformed baseline is EMPTY, so every red reads as new.
-
-    Fail direction is towards NOISE, never towards silence: an unreadable baseline that resolved
-    to "everything is known" would turn this control off exactly when its state is broken.
-    """
-    try:
-        data = json.loads(path.read_text())
-    except (OSError, ValueError):
-        return set()
-    known = data.get("known_red")
-    return set(known) if isinstance(known, list) else set()
 
 
 def diff_against_baseline(failures, baseline) -> dict:
