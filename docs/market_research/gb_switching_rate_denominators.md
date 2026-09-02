@@ -435,3 +435,163 @@ as an interval would have understated its own bound by more than the width it cl
 switching year still buys a strictly lower ceiling at
 `renewal_desk._competitive_ceiling_gbp_per_mwh` than the reference year does. `TestTheTwoQuantitiesStaySeparate` passes unweakened; the level anchor is a
 third quantity in its own module and never went near the company-facing ratio.
+
+## 13. B and C closed, 2026-08-31 — the headline P&L set in both worlds
+
+§12 left two of §11's five predictions open with the words *"the headline P&L set is NOT yet
+measured"* and *"NOT YET MEASURED"*. This section closes B and marks C **not closable from these
+artefacts**, with the reason named. Nothing in §11 or §12 is edited; both stand as filed.
+
+### 13.1 Which two runs, and why the attribution holds
+
+Measured from the run records in `docs/reports/`, not from the site — the publisher has been wedged
+since 22:04Z on a level declaration and has published nothing since (`docs/observability/sim-runner-log.md`).
+
+* **BEFORE** — `run_output_56718a719_20260830T173756Z.json`. Its columns are §12 B's own
+  "pre-change" column exactly: 681 renewals, 43 departures, 8 retention offers.
+* **AFTER** — `run_output_ff44d0bce_20260830T200354Z.json`. Its columns are §12 B's "post-change"
+  column exactly: 465 renewals, 79 departures, 29 retention offers.
+
+Six commits sit between those two run markers, so attribution to the anchor alone would normally be
+unavailable — the rule this project keeps: *when a result moves and more than one thing changed, you
+cannot attribute it.* Here it survives, and by measurement rather than by argument. Three separate
+run markers span that interval — `c03455cdb` (19:09Z), `3bf3345de` (19:37Z) and `ff44d0bce`
+(20:03Z) — and **every figure in all three is identical to the last decimal place**. The other five
+commits are therefore demonstrably inert on the simulation, and the one change the interval carries
+that the run can see is `71242c941`, the anchor. That is the null control this comparison needed and
+it was already lying in the artefacts.
+
+**A THIRD WORLD ALREADY EXISTS AND IT IS NOT THIS ONE.** The two most recent runs
+(`112eb0b11` 21:31Z, `87d49e187` 23:11Z) are a different world again and are carried as a third
+column below for honesty, never as the marking. Their renewal record is not sound — see §13.5 — so
+marking B against them would be marking against a broken instrument.
+
+### 13.2 B — CONFIRMED on the headline set, and it is unanimous where it is readable
+
+| | BEFORE 17:37Z | AFTER 20:03Z | move | (23:11Z, unsound) |
+|---|---|---|---|---|
+| revenue | £1,086,890 | £788,996 | **−27.4%** | £812,929 |
+| gross margin | £588,807 | £428,158 | **−27.3%** | £452,956 |
+| net margin | £150,880 | £112,725 | **−25.3%** | £144,235 |
+| net after cost-to-serve | £83,770 | £62,433 | **−25.5%** | £93,975 |
+| closing treasury | £400,880 | £362,725 | **−9.5%** | £394,235 |
+| enterprise value | £119,844 | £95,787 | **−20.1%** | £128,969 |
+| accounts it could value | 106 | 72 | **−32.1%** | 68 |
+| book on supply, 2025 | 198 | 148 | **−25.3%** | — |
+| acquisition spend | £61,470 | £62,174 | **+1.1%** | £61,209 |
+| acquisition attempts | 2,771 | 2,806 | **+1.3%** | 2,760 |
+| acquisition wins | 505 | 509 | +0.8% | 504 |
+| cost per win | £121.72 | £122.15 | **+0.4%** | £121.45 |
+| CLV per account (`avg_clv_gbp`) | £571.26 | £998.58 | **+74.8%** | £3,461.22 |
+| three-horizon CLV, mean | £437.86 | £557.29 | **+27.3%** | £722.66 |
+| three-horizon CLV, median | £153.54 | £179.74 | **+17.1%** | £286.74 |
+| three-horizon CLV, **total** | £46,413 | £40,125 | **−13.5%** | £49,141 |
+| bad debt | £11,334 | £11,230 | **−0.9%** | £15,282 |
+
+**Every direction is recorded, including the three that went the wrong way for the prediction and
+the wrong way for the company's own story.** B said *"if any headline company result improves, that
+is a defect in the change and not a finding about the company."* Three improved. Two of them are the
+same defect and one is a symptom.
+
+**B′ — CLV PER ACCOUNT ROSE 74.8% BECAUSE THE COMPANY GOT WORSE, AND IT IS A PUBLISHED FIGURE.**
+This is written down as a defect, not explained away. Every per-account CLV on the page is computed
+over *accounts with a renewal point, still on supply at the window's edge, and with an observed
+margin*. That population fell 106 → 72, and the artefact says why in its own field: exclusions for
+`ceased` went **43 → 78**. The accounts the anchor destroys are the short-lived, low-value ones, so
+removing them lifts the survivors' mean and median. The check that settles it is in the same
+artefact and needs no new code: the **total** three-horizon CLV, which is not divided by a
+survivor count, fell 13.5% in the same run the mean rose 27.3% in. A mean and a total that move in
+opposite directions is the signature of a survivor-selected denominator, and `avg_clv_gbp` carries
+no bound and no population note beside it. **The £3,461 in the third column — a 6.1× move — is the
+same wire with a smaller survivor set behind it, and it is what would have reached the site had the
+publisher not been wedged.**
+
+**B″ — BAD DEBT "IMPROVED" BY 0.9%, AND THAT IS THE SAME MECHANISM ONE STEP DOWNSTREAM.** Arrears
+accrue over a tenure. Cutting tenures shortens the window in which a customer can fail to pay. It is
+recorded here as a movement in the flattering direction with a named cause and no claim attached.
+
+**B‴ — RE-ACQUISITION IS WIRED, AND IT IS WIRED TOO THIN TO REPLACE.** §11 B predicted *"more
+departures means more re-acquisition spend"*. It does, and the size is the finding: **36 extra
+departures bought 35 extra attempts (0.97 per departure), £704 of extra spend (£19.56 per
+departure), and 4 extra wins (0.11 per departure).** The response is real — this is not the dead
+wire the pass was looking for — but one quote per lost customer at an 11% conversion cannot hold a
+book flat, and the book fell 198 → 148 accounts under a mandate whose label is `"flat"`. That is
+the mechanism behind PB3's standing observation that book size here is monotonically non-increasing,
+stated for the first time as a measured rate rather than as a property of the code.
+
+### 13.3 C — NOT CLOSED, and the reason is that the BEFORE side does not exist
+
+C predicted: *"the realised effect of a retention offer on departure probability falls, and does not
+rise for any household."* That is a claim about **causes** — a discount can no longer retain a
+service-driven churner. It cannot be marked from these two runs, and the reason is structural rather
+than a matter of sample size:
+
+**The pre-change run records no departure cause at all.** All 43 departures in the BEFORE run carry
+`departure_cause: null`; the field is created by the same change C is about. There is no
+service-driven churner to identify on the before side, so the before/after C asks for has one side
+missing by construction. Closing C needs a run of the *pre-change code* with the cause field
+back-fitted, or a within-run counterfactual that re-prices each offered household at discount zero.
+Neither is an artefact read; both are a build, and neither is done here.
+
+**The offer population cannot be held, and this is why.** §12 already named the confound (8 → 29
+offers). It is not holdable: the offer count is an *outcome* of the quantity the change moved. The
+desk offers when its own churn estimate crosses a threshold, and the anchor raised the estimates.
+Pinning the count would mean changing the offer policy — a second change inside the comparison — and
+the before arm has n=8, so any count-matched design is a measurement on eight households.
+
+### 13.4 What IS measured about retention, on rates, and one of it moved against us
+
+| | BEFORE | AFTER |
+|---|---|---|
+| offers made | 8 | 29 |
+| accepted | 6 | 25 |
+| acceptance rate | 75.0% | 86.2% |
+| offer cost, accepted | £156.24 | £747.63 |
+| cost per retention | £26.04 | £29.91 |
+| expected term margin defended | £2,091 | £11,512 |
+| departures with no offer made | 41 | 75 |
+| **realised churn among OFFERED** | **25.0%** | **13.8%** |
+| **realised churn among NOT-OFFERED** | **6.1%** | **17.2%** |
+| mean company churn estimate, offered | 0.3797 | 0.3774 |
+| mean company churn estimate, not offered | 0.0788 | 0.1314 |
+
+**The acceptance rate rose and we cannot tell whether that is real.** 6/8 → 25/29 is Fisher exact
+two-sided **p = 0.59** — comfortably inside what no effect produces at these counts. Published as
+"cannot tell", which is a result.
+
+**The one movement that IS outside the noise is the comparison group, and it is the finding.** Before
+the change, an offered household was **4.1× more likely** to leave than a household that got no
+offer (25.0% vs 6.1%) — the desk was aiming at risk. After, an offered household is **0.80×** as
+likely (13.8% vs 17.2%): the offer now looks effective mainly because everyone it is *not* aimed at
+got much riskier. The desk's own threshold did not move — the mean churn estimate among offered
+households is 0.3797 before and 0.3774 after, unchanged to a third decimal — while the estimate
+among the un-offered rose 0.0788 → 0.1314. **The retention threshold is an absolute level that did
+not follow the world's departure level when that level moved 3.4×**, and 75 departures now happen
+with no offer ever considered, against 41 before. Anything read off "retention effectiveness" on
+this book is reading a moved control group.
+
+The mechanism's realised signature is visible post-change and is far too thin to publish: of the 4
+households that left despite an offer, the causes split price_position 2 / dissatisfaction 1 /
+bill_shock 1. At n=4 every mix is consistent with that, and it is recorded here rather than on any
+page.
+
+### 13.5 Two things this pass found that it is not the fix for
+
+**The baseline comparison is measured in a world that no longer exists, and the page mixes the two.**
+`site/data/value_arms.json` carries `run_generated_at: 2026-08-30T10:37:06Z`, and its source
+`docs/observability/value_cycle_ab_s1_three_arm.json` stamps itself `2026-08-30T10:37:06Z` — nine
+hours before the anchor. Every arm figure on that surface (control £154,164, per-customer £154,772,
+flat-at-the-same-level £152,956, the £1,816 selection figure) is a pre-anchor measurement. The same
+file's `departure_level` block reports the **anchored** world — 16.20% against a published 15.50%,
+with the sentence *"how readily customers left the world every figure on this page was measured
+in"*. That sentence is false of every other figure in the file. **The baseline comparison in the
+anchored world is not measured and cannot be measured from any artefact in the tree: no A/B arms run
+has been executed since the anchor landed.** That is the honest answer to the third leg of this
+pass, and the remedy is a run, not a read.
+
+**The two most recent runs have lost most of their renewal record.** In BEFORE and AFTER, churn
+events and churned billing accounts agree exactly (43/43, 79/79). In the 23:11Z run they do not:
+**83 churned accounts against 33 churn events**, 143 renewal events against 465, 68 distinct
+households against 131, and **the year 2022 is absent from `customer_events` entirely**. A whole
+calendar year missing from the renewal record is not a churn result. It is filed as its own finding
+and is the reason B is marked against the 20:03Z capture.
