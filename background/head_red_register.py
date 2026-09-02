@@ -86,6 +86,10 @@ def load_observed(path: Path | None = None) -> dict:
     return data
 
 
+class UnobservedRunRefused(ValueError):
+    """A run row that no completed census could have produced. See `record`."""
+
+
 def record(failures, *, head_sha: str | None, passed: int | None, causes: dict | None = None,
            now: datetime | None = None, store: dict | None = None) -> dict:
     """Fold one census run into the observation store and return the new store.
@@ -97,7 +101,30 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
     failing keeps its record with `last_seen` where it was and `currently_red` False, because
     "this one came back" and "this one is finally fixed" are both things a reader needs and a
     store that deletes on green can express neither.
+
+    A PASS COUNT IS THE PROOF THAT A RUN HAPPENED, so a row without one is refused (2026-09-02).
+    `_record_observation` is the only sanctioned caller and it already turns UNPROVEN away, and
+    `verdict()` calls a run UNPROVEN precisely when `passed` is None or zero — so `passed is None`
+    arriving here means the row is not a census observation at all, whatever the file's `_doc`
+    says about being machine-written.
+
+    THE INSTANCE. This store's first row — `2026-09-02T04:30:02+00:00`, head `ec2e0b1a4`, 830 red
+    — carries `"passed": null`, and could not have been written by the run it describes: that run
+    finished at 04:30:02 **BST** and exited 1 on the pre-register code, an hour before this row's
+    UTC stamp, and printed the older "newly failing" wording that `bc57c8e30` replaced. Its 830
+    node ids match the journal's exactly, 830 for 830, so it is a faithful hand transcription of a
+    COMPLETE run with one field dropped — not a truncated run, which is what it was read as. The
+    cost of that dropped field was a whole day: the count could not be told apart from a partial
+    one, so it had to be treated as a floor of unknown depth.
+
+    The refusal is unreachable from the nightly path on purpose. Its subject is the OTHER way a
+    row can arrive, which is the way the only row here did arrive.
     """
+    if passed is None:
+        raise UnobservedRunRefused(
+            "refusing a run row with no pass count: `verdict()` calls such a run UNPROVEN and "
+            "`_record_observation` never forwards one, so this row was not written by a completed "
+            "census. Record what the run printed, including its pass count, or record nothing.")
     store = load_observed() if store is None else store
     stamp = _now_iso(now)
     failing = set(failures or ())
@@ -201,8 +228,7 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
         "| red at HEAD, last run | **{}** |".format(last.get("red", 0)),
         "| accepted by a person, with a reason | {} |".format(len(accepted)),
         "| **owed — neither fixed nor accepted** | **{}** |".format(len(owed_nodes)),
-        "| passed, same run | {} |".format(
-            last.get("passed") if last.get("passed") is not None else "unreadable"),
+        "| passed, same run | {} |".format(_passed_cell(last)),
         "",
         "Last run **{}** at HEAD `{}`.".format(last.get("at", "?"), str(last.get("head") or "?")[:9]),
         "",
@@ -253,12 +279,23 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
     return "\n".join(lines) + "\n" + _history(runs) + "\n"
 
 
+#: What a missing pass count MEANS, now that `record` refuses to write one. "unreadable" said the
+#: machine had tried and failed to parse a summary line; since 2026-09-02 the only way a row can
+#: lack a count is that no completed census wrote it, and a reader comparing two runs needs to know
+#: that about the earlier one. The distinction is the whole difference between "830 is a floor of
+#: unknown depth" and "830 is a complete list with one field missing".
+NO_PASS_COUNT = "not written by a completed census run"
+
+
+def _passed_cell(run: dict) -> str:
+    return str(run.get("passed")) if run.get("passed") is not None else NO_PASS_COUNT
+
+
 def _history(runs) -> str:
     rows = ["", "## Run history", "", "| run | red | passed |", "|---|---:|---:|"]
     for r in runs[-14:]:
         rows.append("| {} | {} | {} |".format(
-            r.get("at", "?"), r.get("red", "?"),
-            r.get("passed") if r.get("passed") is not None else "unreadable"))
+            r.get("at", "?"), r.get("red", "?"), _passed_cell(r)))
     return "\n".join(rows)
 
 

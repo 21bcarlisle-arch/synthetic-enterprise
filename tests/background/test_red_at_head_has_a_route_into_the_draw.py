@@ -180,6 +180,55 @@ def test_an_unproven_run_is_not_allowed_to_mark_every_red_as_fixed():
     assert "observed nothing" in note
 
 
+def test_a_run_row_with_no_pass_count_is_refused_because_no_completed_census_can_produce_one():
+    """THE DEFECT, and it cost a day. This store's only row carried `"passed": null` — and a null
+    pass count is what `verdict()` reads as UNPROVEN, which `_record_observation` refuses to
+    forward. So the row could not have come from the run it names, and the 830 in it had to be
+    read as a FLOOR of unknown depth rather than a count.
+
+    MUTATION: drop the guard in `record` and this fails.
+    """
+    import pytest
+    with pytest.raises(reg.UnobservedRunRefused) as exc:
+        reg.record(["tests/a.py::x"], head_sha="abc", passed=None, now=T0, store=_empty())
+    # A refusal that says why is how you find out the refusal itself was wrong.
+    assert "not written by a completed census" in str(exc.value)
+
+
+def test_a_completed_runs_pass_count_reaches_the_stored_row():
+    """The other leg, and the one the nightly run needs: the number the suite printed must survive
+    the whole chain, because it is the only evidence in the store that a run happened at all.
+
+    Read end-to-end from a pytest log rather than handed to `record` directly — the chain is where
+    the count was lost, so asserting on `record` alone would pass on the defect.
+    """
+    log = "\n".join(["FAILED tests/a.py::x", "FAILED tests/b.py::y",
+                     "2 failed, 23456 passed, 12 skipped in 3537.02s"])
+    result = census.evaluate(log)
+    assert result["status"] == "NEW_RED" and result["passed"] == 23456
+    store = reg.record(result["failures"], head_sha="abc123456", passed=result["passed"],
+                       causes=result["causes"], now=T0, store=_empty())
+    assert store["runs"][-1]["passed"] == 23456
+    assert store["runs"][-1]["red"] == 2
+
+
+def test_a_missing_pass_count_is_never_called_unreadable():
+    """"unreadable" says the machine tried to parse a summary and could not. Since `record`
+    refuses a countless row, the only way one can exist is that no completed run wrote it — a
+    different fact, and the one that decides whether an earlier count is comparable at all.
+
+    MUTATION: restore the "unreadable" label and this fails.
+    """
+    store = _empty()
+    store["runs"] = [{"at": "2026-09-02T04:30:02+00:00", "head": "ec2e0b1a4",
+                      "red": 830, "passed": None, "causes": {}}]
+    store["tests"] = {"tests/a.py::x": {"currently_red": True, "runs_red": 1,
+                                        "first_seen": "2026-09-02"}}
+    text = reg.render(store, accepted=[])
+    assert "unreadable" not in text
+    assert text.count(reg.NO_PASS_COUNT) == 2, "the count table and the run history both say it"
+
+
 def test_a_register_that_cannot_be_written_is_reported_not_swallowed(monkeypatch):
     """The census's verdict must not depend on its artefact — and a silent failure here would
     recreate, one layer down, the exact defect this register exists to fix."""

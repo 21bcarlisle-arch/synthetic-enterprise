@@ -44,6 +44,27 @@ never printed its summary (it was truncated or killed), or the store was seeded 
 
 That is filed separately as a finding about the store, not resolved here.
 
+> **CORRECTED 2026-09-02, before run 2, by the finding this paragraph promised**
+> (`WORKER_FINDING_THE_830_ROW_WAS_HAND_TRANSCRIBED_FROM_A_RUN_THAT_DID_FINISH_2026-09-02.md`).
+> **The disjunction above is resolved, and the reading it settles on is the one this paragraph
+> ruled out.** The 04:30 run FINISHED: `status=1` is `main()`'s own `NEW_RED` return, and
+> `verdict()` cannot reach `NEW_RED` unless `parse_passed_count` returned an integer. It wrote no
+> row because it was running pre-`bc57c8e30` code (the journal prints the old *"newly failing"*
+> wording, and the register did not yet exist); the row was transcribed by hand an hour later —
+> the stamp is the journal's minute and second with BST relabelled as UTC. **The transcription is
+> COMPLETE: 830 journal node ids against 830 store keys, zero either way.**
+>
+> So *"830 is a floor because the run may have been partial"* is **REFUTED**. 830 is the complete
+> `FAILED` set of a completed run, missing one field. The clauses below are graded against a
+> complete count, and the asymmetry this paragraph granted them — *"above is not a refutation,
+> below still is"* — **is withdrawn: C1–C4 are graded in both directions.**
+>
+> One narrower caveat survives and is NOT the same claim: `parse_failures` reads only `FAILED`
+> lines, so a test reported as a setup/collection `ERROR` is outside the count. Whether run 1
+> emitted any is not establishable — the journal holds the census's printout, not raw pytest
+> output. That bounds the ABSOLUTE number and not the delta, because it applies identically to
+> run 2.
+
 `ec2e0b1a4` is not reachable from this worktree (`git cat-file` cannot name it), so run 1's
 subject commit cannot be re-derived. Run 2's is recorded in the store by the machine.
 
@@ -100,6 +121,18 @@ work next is not what Lane 0 says it is.
 **C5 — the run finishes and says so.** Run 2's stored `passed` is an integer, not `null`, and the
 verdict is not UNPROVEN. **Refuted if `passed` is null again** — in which case nothing above can
 be graded at all and the finding is about the timeout, not the tmpfs.
+
+> **GRADED EARLY, 2026-09-02 — this is the one clause that did not have to wait for run 2, and it
+> is now HELD BY A CONTROL rather than by hope.** `record()` refuses a run row whose `passed` is
+> `None`, naming its reason; `_record_observation` already turns UNPROVEN away, so a countless row
+> arriving at `record` proves the caller was not a completed census. **C5 can therefore no longer
+> be refuted by a `null` row appearing — that outcome is now a loud refusal instead of a silent
+> ungradeable row.** It can still be refuted by the run not finishing, which is C6's subject and a
+> different failure.
+>
+> The write path was measured, not assumed — `evaluate()` on a realistic completed-run log returns
+> `status=NEW_RED, passed=23456`, and the row it produces carries `'passed': 23456`. Three
+> mutations applied, each confirmed failing, each reverted.
 
 **C6 — the run is also faster.** If RAM-backed scratch was the binding constraint, removing it
 should show in wall-clock, not only in the red count. Run 2 completes in **< 3537 s**. **Refuted
