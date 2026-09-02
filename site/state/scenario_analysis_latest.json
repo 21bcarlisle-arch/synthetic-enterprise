@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-02T03:02:07Z",
-  "portfolio_as_of": "2026-09-02T03:02:05Z",
-  "active_customers": 162,
+  "generated_at": "2026-09-02T04:31:50Z",
+  "portfolio_as_of": "2026-09-02T04:31:48Z",
+  "active_customers": 157,
   "projection_months": 12,
   "scenarios": {
     "base": {
@@ -13,7 +13,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -22,11 +21,11 @@
         "PROS-2020-0190g",
         "PROS-2020-0221g",
         "PROS-2020-0249",
-        "PROS-2020-0287g",
         "PROS-2020-0347",
         "PROS-2020-0347g",
         "PROS-2020-0391",
         "PROS-2020-0391g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0248g",
         "PROS-2021-0288",
@@ -58,12 +57,13 @@
         "PROS-2024-0335g",
         "PROS-2024-0349",
         "PROS-2024-0349g",
+        "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -76,7 +76,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -85,11 +84,11 @@
         "PROS-2020-0190g",
         "PROS-2020-0221g",
         "PROS-2020-0249",
-        "PROS-2020-0287g",
         "PROS-2020-0347",
         "PROS-2020-0347g",
         "PROS-2020-0391",
         "PROS-2020-0391g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0248g",
         "PROS-2021-0288",
@@ -121,12 +120,13 @@
         "PROS-2024-0335g",
         "PROS-2024-0349",
         "PROS-2024-0349g",
+        "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -139,7 +139,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -148,11 +147,11 @@
         "PROS-2020-0190g",
         "PROS-2020-0221g",
         "PROS-2020-0249",
-        "PROS-2020-0287g",
         "PROS-2020-0347",
         "PROS-2020-0347g",
         "PROS-2020-0391",
         "PROS-2020-0391g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0248g",
         "PROS-2021-0288",
@@ -184,12 +183,13 @@
         "PROS-2024-0335g",
         "PROS-2024-0349",
         "PROS-2024-0349g",
+        "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     },
@@ -202,7 +202,6 @@
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
         "PROS-2018-0016g",
-        "PROS-2018-0161g",
         "PROS-2019-0024",
         "PROS-2019-0024g",
         "PROS-2019-0069g",
@@ -211,11 +210,11 @@
         "PROS-2020-0190g",
         "PROS-2020-0221g",
         "PROS-2020-0249",
-        "PROS-2020-0287g",
         "PROS-2020-0347",
         "PROS-2020-0347g",
         "PROS-2020-0391",
         "PROS-2020-0391g",
+        "PROS-2021-0029g",
         "PROS-2021-0212g",
         "PROS-2021-0248g",
         "PROS-2021-0288",
@@ -247,19 +246,20 @@
         "PROS-2024-0335g",
         "PROS-2024-0349",
         "PROS-2024-0349g",
+        "SYN-2016-009",
+        "SYN-2016-030",
         "SYN-2016-046",
         "SYN-2016-048",
         "SYN-2016-050",
         "SYN-2016-052",
-        "SYN-2016-056",
-        "SYN-2016-057"
+        "SYN-2016-056"
       ],
       "renewal_flags": []
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": -10937.56,
-    "bear": 21875.11,
-    "crisis": 34815.02
+    "bull": -10726.8,
+    "bear": 21453.61,
+    "crisis": 34161.08
   }
 }
