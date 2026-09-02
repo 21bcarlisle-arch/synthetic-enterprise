@@ -652,11 +652,11 @@ RUFF_BASELINE: dict[str, int] = {
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
-    "F401": 266,
+    "F401": 265,
     "E402": 174,
     "F841": 127,
     "E741": 107,
-    "F811": 95,
+    "F811": 94,
     "E702": 76,
     "E701": 45,
     "F541": 25,
@@ -670,7 +670,15 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2319  # was 2320; -1 (I001) on 2026-09-01 (FOURTH entry):
+RUFF_BASELINE_TOTAL = 2317  # was 2319; -1 (F401) and -1 (F811) on 2026-09-02, both from
+                            # `tests/saas/reporting/test_phase_aw_bill_shock.py`, which defined
+                            # `test_elevated_flag_shown` TWICE (F811) with the second copy
+                            # re-importing a name already imported at module level (F401). The
+                            # shadowed first copy had never run. Renaming the second un-shadows
+                            # it. Earned, and attributed per-file: that file reported exactly 2
+                            # F401/F811 errors at `git show HEAD:` and reports 0 now, which is
+                            # the whole delta.
+                            # Before that: was 2320; -1 (I001) on 2026-09-01 (FOURTH entry):
                             # `background/deadmans_switch.py`'s function-local tree_lock
                             # import, sorted while the reaper's caller was added to the
                             # same file. Earned; measured per-file against `git show HEAD:`.

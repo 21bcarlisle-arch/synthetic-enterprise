@@ -37,7 +37,10 @@ rather than an estimate.
 
 import argparse
 import json
+import random
+import statistics
 import subprocess
+from collections import defaultdict
 from pathlib import Path
 
 from saas.bill_generator import UNKNOWN_BILL_SHOCK_POPULATION
@@ -1414,6 +1417,256 @@ def _fmt_pct(value: float | None) -> str:
     return f"{value:.1%}" if value is not None else "n/a"
 
 
+#: THE UNMEASURED CELL. Never `0.0`, and never an empty string either: a blank table cell
+#: reads as "nothing to report", which is the same fail-open in punctuation.
+SHOCK_NOT_MEASURED = "not measured"
+
+#: WHICH POPULATION'S FIGURE IS A BILL SHOCK, and which is a bill-to-bill difference published
+#: under its own name. Imported rather than restated so this report and the dashboard cannot
+#: drift apart on the one question that decides what each column means
+#: (`tools/generate_dashboard_data.py:1465-1476`; `docs/market_research/what_bill_shock_is.md`).
+#: `"bill"` -- standard credit, ~13% of GB households -- is the ONLY population for whom the
+#: difference between two consecutive bills is the quantity the definition names. For `"payment"`
+#: (level direct debit, ~74%) the bill is a statement that arrives and is filed; the shock is a
+#: change in the amount COLLECTED, which this codebase cannot yet measure.
+_SHOCK_POPULATION_ORDER = ("bill", "payment", "unknown", "out_of_scope")
+
+
+#: The ONE population whose bill-to-bill difference IS a bill shock.
+#:
+#: RESTATED HERE RATHER THAN IMPORTED, AND THE FIRST ATTEMPT WAS TO IMPORT IT. Reading
+#: `tools.generate_dashboard_data.SHOCK_DEFINITION_POPULATION` -- reusing the one implementation
+#: instead of minting a rival -- was the right instinct and the wrong edge: that module reaches
+#: `simulation.live_population` and `simulation.household_segments`, so a lazy import from here
+#: put `saas.reporting.annual_report -> simulation.*` back on the graph that KNIFE pass 1 took it
+#: off (see the note at `_customer_book`). `tools.wall_crossing_dispositions` refused the commit,
+#: which is the wall working. A duplicated constant is a cost; a route from the business layer to
+#: the world is a wall.
+#:
+#: So the duplication is held by a control instead of by hope:
+#: `tests/saas/reporting/test_a_rendered_shock_figure_is_in_the_units_of_its_own_percent_sign.py`
+#: asserts this constant equals the dashboard's, and that the two split computations agree bill
+#: for bill on the same input. A test may make that crossing; this module may not.
+#: The proper repair -- one implementation in `saas/`, imported DOWN by `tools/` -- is filed in
+#: `docs/staging/FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER_2026-09-02.md`.
+SHOCK_DEFINITION_POPULATION = "bill"
+
+
+def _shock_definition_population() -> str:
+    return SHOCK_DEFINITION_POPULATION
+
+_SHOCK_POPULATION_LABEL = {
+    "bill": "standard credit (bill IS the shock)",
+    "payment": "direct debit (bill-to-bill difference, NOT a shock)",
+    "unknown": "no payment attribution",
+    "out_of_scope": "out of scope",
+}
+
+#: The same populations for a table CELL, where the long form repeated forty times pushes the
+#: numbers off the right of the page. The long form is printed once, as a legend, above each
+#: table that uses these -- never only here, or the short form becomes the undefined jargon that
+#: made `avg_bill_shock_pct` unreadable in the first place.
+_SHOCK_POPULATION_SHORT = {
+    "bill": "standard credit",
+    "payment": "direct debit",
+    "unknown": "unattributed",
+    "out_of_scope": "out of scope",
+}
+
+_SHOCK_POPULATION_LEGEND = (
+    "Populations: **standard credit** — the bill is what the household pays, so its bill-to-bill "
+    "difference IS the bill shock. **direct debit** — the household pays a level monthly amount; "
+    "its bill-to-bill difference is published here under its own name and is NOT a shock they "
+    "experienced. **unattributed** — no payment method recorded on the bill, folded into neither. "
+    "**out of scope** — excluded from the definition."
+)
+
+#: THIS PROJECT'S OWN WORKING BAND. NOT a regulator's, and the report says so where it prints it.
+#: `docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md` §3 searched for one and recorded the
+#: answer verbatim: "Formal Ofgem 'bill shock' definition -- does one exist? Confirmed: no.
+#: Multiple targeted searches ... returned no formal Ofgem definition of 'bill shock' as a term,
+#: threshold, or comparison basis." Until 2026-09-02 both this band and the sentence "Ofgem
+#: monitors bill shock as a consumer harm indicator" were published in `ANNUAL_REPORT.md` under
+#: Ofgem's name, contradicted by our own commons. The band is kept because it is reachable in
+#: both directions on the population the definition names (GREEN 2018, AMBER 2020, RED in the
+#: other eight years of the real book) -- it is a working threshold that can fail, which is worth
+#: more than no band. It is not evidence of a regulatory standard and must never be cited as one.
+_SHOCK_BAND_AMBER_PCT = 20.0
+_SHOCK_BAND_RED_PCT = 30.0
+_SHOCK_BAND_ATTRIBUTION = (
+    "Band: Poesys working threshold, NOT a regulator's. We searched for a formal Ofgem "
+    "definition of bill shock -- a term, a threshold, or a comparison basis -- and there is "
+    "none (`docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md` section 3). Earlier "
+    "editions of this report attributed this band to Ofgem; that attribution was wrong and is "
+    "withdrawn."
+)
+
+
+def _shock_band(avg_pct: float | None) -> str:
+    """The band a population's mean shock falls in, or the refusal. Percent in, label out.
+
+    FAILS CLOSED. An unmeasured cell gets `SHOCK_NOT_MEASURED`, never the flattering empty
+    string the previous renderer produced from `avg or 0.0` -- which banded fifteen n=0 cells
+    of the real ten-year book as "below 20%, nothing to see".
+    """
+    if avg_pct is None:
+        return SHOCK_NOT_MEASURED
+    if avg_pct >= _SHOCK_BAND_RED_PCT:
+        return "**HIGH**"
+    if avg_pct >= _SHOCK_BAND_AMBER_PCT:
+        return "ELEVATED"
+    return "within band"
+
+
+def _fmt_shock_pct(avg_pct: float | None) -> str:
+    """THE ONE RENDERING. Input is ALREADY a percentage; nothing here multiplies by anything.
+
+    Every bill-shock figure in this report goes through this function, so the units question is
+    asked once instead of at each call site. It is asked here because it was got wrong two ways
+    at once: `docs/reports/ANNUAL_REPORT.md` published "Worst bill shock: 2022 (0.58%)" at line
+    2447 and "| 2022 | 57.5% |" at line 3613 -- one stored fraction, two renderers 1,166 lines
+    apart, a hundredfold disagreement inside one document under this company's name.
+    """
+    return SHOCK_NOT_MEASURED if avg_pct is None else f"{avg_pct:.1f}%"
+
+
+def _fmt_shock_interval(stats: dict) -> str:
+    """A mean's 95% bootstrap interval, or the reason there isn't one.
+
+    A cell too thin to bound itself says so rather than printing a bare mean, because a figure
+    published without the bound its sample size earns is worse than no figure.
+    """
+    lo, hi = stats.get("ci95_low"), stats.get("ci95_high")
+    if lo is None or hi is None:
+        return "no bound (n too small)" if stats.get("n") else SHOCK_NOT_MEASURED
+    return f"{lo:.1f}–{hi:.1f}%"
+
+
+#: Bootstrap parameters, held identical to `tools.generate_dashboard_data`'s by the coupling
+#: control named on `SHOCK_DEFINITION_POPULATION` above. Changing either copy alone reds it.
+_SHOCK_BOOTSTRAP_RESAMPLES = 2000
+_SHOCK_BOOTSTRAP_TAILS_PCT = (2.5, 97.5)
+
+
+def _shock_mean_interval(sample: list, seed_key: str) -> tuple:
+    """A 95% bootstrap interval for one population's mean, as FRACTIONS, or `(None, None)`.
+
+    `n < 2` returns `(None, None)` rather than a degenerate zero-width interval around the single
+    point: a one-observation "interval" of [x, x] would publish perfect confidence off one bill,
+    which is the fail-open reading of the whole field.
+
+    NO MINIMUM-n CUTOFF anywhere here. Suppressing thin populations would be a threshold picked
+    because a threshold was needed, and nothing published establishes a minimum sample for this
+    quantity. The interval IS the honest statement: for a thin population it comes out wide, and a
+    wide interval says "we cannot tell" in the reader's own units instead of hiding the row.
+
+    `seed_key` makes the draw deterministic per subject, so a re-render of the same run artefact
+    is not a new measurement. It uses its own `random.Random` instance rather than the `random`
+    module's global state, which would reproduce only until something else in the render drew
+    first.
+    """
+    n = len(sample)
+    if n < 2:
+        return (None, None)
+    rng = random.Random(f"bill-shock-bound::{seed_key}")
+    means = []
+    for _ in range(_SHOCK_BOOTSTRAP_RESAMPLES):
+        resample = [sample[rng.randrange(n)] for _ in range(n)]
+        means.append(sum(resample) / n)
+    means.sort()
+    lo_pct, hi_pct = _SHOCK_BOOTSTRAP_TAILS_PCT
+    lo = means[min(len(means) - 1, int(lo_pct / 100.0 * len(means)))]
+    hi = means[min(len(means) - 1, int(hi_pct / 100.0 * len(means)))]
+    return (lo, hi)
+
+
+def _shock_stats(sample: list, seed_key: str) -> dict:
+    """Mean/median/max/bound for one population in one year, in PERCENT.
+
+    EMPTY IS `None`, NEVER `0.0`. A population with no bill in a year has not been measured at
+    zero shock -- it has not been measured. `0.0` is what this field published before the split
+    and it reads as "measured, and no shock", which is an unobservable turned into a published
+    measured zero.
+    """
+    if not sample:
+        return {"n": 0, "avg_pct": None, "median_pct": None, "max_pct": None,
+                "ci95_low": None, "ci95_high": None}
+    lo, hi = _shock_mean_interval(sample, seed_key)
+    return {
+        "n": len(sample),
+        "avg_pct": round(statistics.mean(sample) * 100, 1),
+        "median_pct": round(statistics.median(sample) * 100, 1),
+        "max_pct": round(max(sample) * 100, 1),
+        "ci95_low": round(lo * 100, 1) if lo is not None else None,
+        "ci95_high": round(hi * 100, 1) if hi is not None else None,
+    }
+
+
+def _bill_shock_populations(data: dict) -> dict:
+    """`{year: {population: {n, avg_pct, median_pct, max_pct, ci95_low, ci95_high}}}`, in PERCENT.
+
+    THE SUBJECT IS LARGER THAN `bill_shock_events`. That list is the bills already FLAGGED as
+    shocks (>=20%); this is EVERY bill with a computable change. It is the population
+    `avg_bill_shock_pct` has always been a mean over, and it has always been a mean over both
+    definitions at once.
+
+    Read off `data["bills"]` rather than a per-year reducer field, because the per-bill
+    `bill_shock_population` exists on every bill and stops at the year boundary -- the reducer
+    publishes only the mixed scalar.
+
+    A SECOND COPY OF `tools.generate_dashboard_data._annual_shock_by_population`, knowingly, and
+    the reason is on `SHOCK_DEFINITION_POPULATION` above: importing that one puts `simulation.*`
+    back on this module's import graph and the wall register refuses it. Held by a coupling
+    control that asserts the two agree bill for bill.
+
+    `mixed_all_population` is deliberately kept: it is what the pre-split field was, in the same
+    units as its siblings, so the re-partition reconciles from the artefact alone.
+    """
+    by_year: dict = defaultdict(lambda: defaultdict(list))
+    for b in data.get("bills", []) or []:
+        pct = b.get("bill_shock_pct")
+        if pct is None:
+            continue
+        yr = (b.get("period_end") or "")[:4]
+        if not yr:
+            continue
+        # No attribution is "unknown" -- its own value, never folded into either definition.
+        by_year[yr][b.get("bill_shock_population") or UNKNOWN_BILL_SHOCK_POPULATION].append(
+            float(pct)
+        )
+    out = {}
+    # Keyed on the years being PUBLISHED, not on the years that happen to have bills, so a year
+    # with no computable shock carries an explicit empty block rather than a missing key a
+    # consumer would read as "not applicable".
+    for yr in sorted(data.get("years", {}).keys()):
+        pops = by_year.get(yr, {})
+        block = {
+            p: _shock_stats(pops.get(p, []), f"annual::{yr}::{p}")
+            for p in ("payment", "bill", "out_of_scope", "unknown")
+        }
+        block["mixed_all_population"] = _shock_stats(
+            [v for s in pops.values() for v in s], f"annual::{yr}::mixed"
+        )
+        out[yr] = block
+    return out
+
+
+def _flagged_shock_counts_by_population(yd: dict) -> dict:
+    """Per-population count of bills FLAGGED as shocks (>=20% bill-to-bill), for one year.
+
+    A DIFFERENT QUANTITY FROM THE MEAN ABOVE, and the reason this function exists separately.
+    The mean is a magnitude -- how big the move was for the households who had one. This is an
+    incidence -- how many households had one at all. The report used to judge the magnitude
+    against a band whose wording read as an incidence while publishing the incidence in the
+    column next to it.
+    """
+    counts: dict[str, int] = {}
+    for ev in yd.get("bill_shock_events", []) or []:
+        pop = ev.get("bill_shock_population") or UNKNOWN_BILL_SHOCK_POPULATION
+        counts[pop] = counts.get(pop, 0) + 1
+    return counts
+
+
 def _solvency_summary_line(data: dict) -> str:
     """Phase 21b: per-customer net assets for the final year of the run."""
     years = sorted(data["years"])
@@ -2052,7 +2305,13 @@ def _portfolio_health_section(year: str, yd: dict, data: dict) -> str:
     if yd["bills_count"]:
         lines.append(
             f"- Bills issued: {yd['bills_count']}, average clarity {yd['avg_clarity']:.3f}, "
-            f"average bill shock {_fmt_pct(yd['avg_bill_shock_pct'])}, "
+            # NOT "average bill shock". This field is the mean bill-to-bill change over BOTH
+            # populations, only one of which experiences that difference as a shock, and it is
+            # the superseded reconciling total -- `## Bill Shock Analysis` publishes the split.
+            # `_fmt_pct` is right here and nowhere else in this file's shock rendering: it takes
+            # a FRACTION, which is what this stored field is despite its `_pct` name.
+            f"average bill-to-bill change {_fmt_pct(yd['avg_bill_shock_pct'])} "
+            f"(both populations -- see Bill Shock Analysis for the split), "
             f"bad debt provision {_fmt_gbp(yd['bad_debt_gbp'])}, "
             f"avg complaint probability {_fmt_pct(yd['avg_complaint_probability'])}"
         )
@@ -2077,6 +2336,37 @@ def _portfolio_health_section(year: str, yd: dict, data: dict) -> str:
     return "\n".join(lines)
 
 
+def _year_shock_sentence(yd: dict) -> str:
+    """The year narrative's one sentence about bill shock, split by population.
+
+    It used to say "N customer(s) experienced a bill shock of >=20%" over a count that mixed
+    both populations. Most of that N is level-direct-debit households whose bill moved by 20%
+    and whose payment did not, so the sentence asserted an experience for people who did not
+    have it. The counts are the same events; only the claim attached to each is narrowed to
+    what it can support.
+    """
+    events = yd.get("bill_shock_events") or []
+    if not events:
+        return "No customer's bill rose by >=20% against its predecessor this year."
+    counts = _flagged_shock_counts_by_population(yd)
+    defined_pop = _shock_definition_population()
+    n_defined = counts.get(defined_pop, 0)
+    n_other = len(events) - n_defined
+    parts = []
+    if n_defined:
+        parts.append(
+            f"{n_defined} standard-credit customer(s) experienced a bill shock of >=20% "
+            "-- for them the bill is the thing they pay"
+        )
+    if n_other:
+        parts.append(
+            f"a further {n_other} bill(s) rose >=20% for customers who do not pay the bill "
+            "directly (level direct debit, or no payment attribution), which is a bill-to-bill "
+            "change and not a shock they experienced"
+        )
+    return "; ".join(parts) + "."
+
+
 def _year_narrative(year: str, yd: dict) -> str:
     flag = " (flagged crisis year)" if year in CRISIS_YEARS else ""
     direction = "a net gain" if yd["net_gbp"] >= 0 else "a net loss"
@@ -2090,12 +2380,7 @@ def _year_narrative(year: str, yd: dict) -> str:
         f"**Year narrative:** {year}{flag} produced {direction} of "
         f"{_fmt_gbp(yd['net_gbp'])} across {len(yd['active_customer_ids'])} accounts. "
         f"{risk_line} "
-        + (
-            f"{len(yd['bill_shock_events'])} customer(s) experienced a bill shock of "
-            f">=20%."
-            if yd["bill_shock_events"]
-            else "No customer experienced a large (>=20%) bill shock this year."
-        )
+        + _year_shock_sentence(yd)
     )
 
 
@@ -3727,6 +4012,10 @@ def _section_bill_shock_summary(data: dict) -> str:
                 "customer_id": ev["customer_id"],
                 "period_end": ev["period_end"],
                 "pct": ev["bill_shock_pct"],
+                # WHICH DEFINITION this event is under. Without it the "worst spike" rows below
+                # read as ten years of worst bill shocks when most of them are level-direct-debit
+                # households whose bill moved and whose payment did not.
+                "population": ev.get("bill_shock_population") or UNKNOWN_BILL_SHOCK_POPULATION,
             })
     if not all_shocks:
         return ""
@@ -3736,6 +4025,11 @@ def _section_bill_shock_summary(data: dict) -> str:
         "",
         "Month-on-month billing increase ≥20%. Bill shocks elevate SIM churn probability",
         "via the bill-shock history model. Crisis years (2021-22) see the largest spikes.",
+        "",
+        "**These counts mix both bill-shock populations.** A row is a bill that rose ≥20% against",
+        "its predecessor; for a standard-credit household that is a shock, and for a level-direct-",
+        "debit household it is a change to a statement, not to what they pay. The `Population`",
+        "column below says which. `## Bill Shock Analysis` publishes the two separately.",
         "",
     ]
 
@@ -3763,13 +4057,15 @@ def _section_bill_shock_summary(data: dict) -> str:
     lines += [
         "**Top 10 worst single-period bill spikes:**",
         "",
-        "| Date | Customer | Spike | Eventually Churned? |",
-        "|------|----------|-------|---------------------|",
+        "| Date | Customer | Spike | Population | Eventually Churned? |",
+        "|------|----------|-------|------------|---------------------|",
     ]
     for s in top10:
         churned_str = "yes" if s["customer_id"] in churned else "no"
         lines.append(
-            f"| {s['period_end']} | {s['customer_id']} | +{s['pct']:.0%} | {churned_str} |"
+            f"| {s['period_end']} | {s['customer_id']} | +{s['pct']:.0%} "
+            f"| {_SHOCK_POPULATION_SHORT.get(s['population'], s['population'])} "
+            f"| {churned_str} |"
         )
     lines.append("")
     return "\n".join(lines)
@@ -7104,12 +7400,25 @@ def _section_hedge_value_add(data: dict) -> str:
     return chr(10).join(lines)
 
 def _section_service_quality(data: dict) -> str:
-    """Phase CA: Customer service quality — clarity, complaint probability, bill shock per year."""
+    """Phase CA: Customer service quality — clarity and complaint probability per year.
+
+    BILL SHOCK LEFT THIS SECTION ON 2026-09-02 and the report says so where the column used to
+    be. It was rendering `avg_bill_shock_pct` — a fraction — with a bare `%`, giving "0.58%"
+    for the same year `## Bill Shock Analysis` rendered "57.5%"; it was a mean across both
+    bill-shock populations; and its band was published under Ofgem's name when
+    `docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md` §3 records that no Ofgem definition,
+    threshold or comparison basis exists. The RAG here is now clarity + complaint only, computed
+    in this function rather than read from `ServiceQualitySnapshot.overall_rag`, because that
+    property ORs in a shock verdict that was RED in all ten years of the real book.
+    """
     years = data.get("years", {})
     if not years:
         return ""
 
     from company.crm.service_quality_monitor import ServiceQualityMonitor, ServiceQualityRAG
+
+    pops = _bill_shock_populations(data)
+    defined_pop = _shock_definition_population()
 
     mon = ServiceQualityMonitor()
     for yr in sorted(years.keys()):
@@ -7120,20 +7429,39 @@ def _section_service_quality(data: dict) -> str:
             year=int(yr),
             avg_clarity=y.get("avg_clarity", 0.0),
             avg_complaint_probability=y.get("avg_complaint_probability", 0.0),
-            avg_bill_shock_pct=y.get("avg_bill_shock_pct") or 0.0,
+            # `None`, NOT `y.get("avg_bill_shock_pct") or 0.0`, and NOT the mixed mean either.
+            # This report no longer reads the monitor's `bill_shock_rag`, `overall_rag`,
+            # `worst_bill_shock_year` or `red_years`/`amber_years` -- see the withdrawal note
+            # rendered below for why -- so passing the superseded mixed figure in would put a
+            # quantity into a snapshot that nothing renders and that nobody could then check.
+            # `None` is the honest value: this monitor's shock leg has no measurement here.
+            avg_bill_shock_pct=None,
             bills_count=y.get("bills_count", 0),
             shock_event_count=n_shock,
         )
 
+    # THE RAG THIS TABLE PUBLISHES IS TWO-LEGGED, COMPUTED HERE, and deliberately not
+    # `snap.overall_rag`. `overall_rag` ORs in `bill_shock_rag`, whose GREEN and AMBER branches
+    # were unreachable on the real ten-year book: fed the mixed fraction it returned RED in all
+    # ten years, so the column carried no information while reading as a ten-year run of
+    # failures. A control -- or a verdict -- whose other branch cannot be reached reports a
+    # constant, and a constant is not a finding.
     rows = []
+    two_leg = {}
     for snap in mon.all_snapshots:
-        rag_icon = {"GREEN": "GREEN", "AMBER": "AMBER", "RED": "RED !"}.get(snap.overall_rag.value, "")
-        rows.append("| {} | {:.3f} {} | {:.1f}% | {:.2f}% | {} | {:d} | {} |".format(
+        legs = [snap.clarity_rag, snap.complaint_rag]
+        rag = (
+            ServiceQualityRAG.RED if ServiceQualityRAG.RED in legs
+            else ServiceQualityRAG.AMBER if ServiceQualityRAG.AMBER in legs
+            else ServiceQualityRAG.GREEN
+        )
+        two_leg[snap.year] = rag
+        rag_icon = {"GREEN": "GREEN", "AMBER": "AMBER", "RED": "RED !"}[rag.value]
+        rows.append("| {} | {:.3f} {} | {:.1f}% | {} | {:d} | {} |".format(
             snap.year,
             snap.avg_clarity,
             snap.clarity_rag.value[0],  # G/A/R
             snap.avg_complaint_probability * 100,
-            snap.avg_bill_shock_pct,
             snap.shock_event_count,
             snap.bills_count,
             rag_icon,
@@ -7141,19 +7469,18 @@ def _section_service_quality(data: dict) -> str:
 
     wc = mon.worst_clarity_year
     wcp = mon.worst_complaint_year
-    ws = mon.worst_bill_shock_year
-    red_yrs = [str(s.year) for s in mon.red_years]
-    amber_yrs = [str(s.year) for s in mon.amber_years]
+    red_yrs = [str(y) for y, r in sorted(two_leg.items()) if r == ServiceQualityRAG.RED]
+    amber_yrs = [str(y) for y, r in sorted(two_leg.items()) if r == ServiceQualityRAG.AMBER]
     improving = mon.is_improving()
 
     lines = [
         "## Customer Service Quality",
         "",
-        "Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); "
-        "complaint probability <5% (GREEN) / <6% (RED); bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED).",
+        "Bands: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); complaint probability "
+        "<5% (GREEN) / <6% (RED). The RAG below is these two legs only.",
         "",
-        "| Year | Clarity | Complaint% | Shock% | Shock events | Bills | RAG |",
-        "|------|---------|------------|--------|--------------|-------|-----|",
+        "| Year | Clarity | Complaint% | Shock events | Bills | RAG |",
+        "|------|---------|------------|--------------|-------|-----|",
     ]
     lines += rows
     lines += [""]
@@ -7162,12 +7489,60 @@ def _section_service_quality(data: dict) -> str:
         lines.append("Worst clarity year: **{}** ({:.3f})".format(wc.year, wc.avg_clarity))
     if wcp:
         lines.append("Highest complaint probability: **{}** ({:.1f}%)".format(wcp.year, wcp.avg_complaint_probability * 100))
-    if ws:
-        lines.append("Worst bill shock: **{}** ({:.2f}%)".format(ws.year, ws.avg_bill_shock_pct))
+
+    # THE WITHDRAWAL, ON THE PAGE. A column that disappears without a sentence saying it
+    # disappeared is a silent deletion, and a reader comparing two editions of this report
+    # cannot tell that from a rendering bug.
+    worst = _worst_defined_shock_year(pops, sorted(years.keys()))
+    lines += [
+        "",
+        "**Withdrawn from this table (2026-09-02): the `Shock%` column and the bill-shock leg of",
+        "this RAG.** Three separate reasons, and the column is not coming back in this shape.",
+        "(1) It rendered the stored fraction verbatim while `## Bill Shock Analysis` rendered the",
+        "same field ×100 — this report published \"Worst bill shock: 2022 (0.58%)\" and \"| 2022 |",
+        "57.5% |\" about one number. (2) It averaged across both bill-shock populations, so it was",
+        "a mean of two quantities only one of which is a bill shock. (3) Its band was attributed",
+        "to Ofgem, which publishes no such thing. The measurement has not been dropped — it moved",
+        "to `## Bill Shock Analysis`, split by population, each mean carrying its n and a 95%",
+        "interval. `Shock events` above is a COUNT and stays; it was never in the disputed units.",
+    ]
+    if worst:
+        wyr, wstats = worst
+        lines.append(
+            "Worst year for bill shock on the population the definition names (" +
+            _SHOCK_POPULATION_LABEL[defined_pop] + "): **" + wyr + "** (" +
+            _fmt_shock_pct(wstats["avg_pct"]) + ", n=" + str(wstats["n"]) + ")."
+        )
+    else:
+        lines.append(
+            "No year has a measured bill shock on the population the definition names, so no "
+            "worst year is named. " + SHOCK_NOT_MEASURED + "."
+        )
+    lines += [""]
+
     if red_yrs:
         lines.append("RED years: {}".format(", ".join(red_yrs)))
     if amber_yrs:
         lines.append("AMBER years: {}".format(", ".join(amber_yrs)))
+    if not red_yrs and not amber_yrs:
+        lines.append("RED years: none. AMBER years: none.")
+
+    # THE VERDICT'S OWN REACHABILITY, STATED. Removing a leg that was RED in all ten years can
+    # leave a column that is GREEN in all ten, which is the same defect facing the other way and
+    # would read as an achievement. Whether it is constant is a property of the book, so it is
+    # computed from the rendered years rather than asserted, and it goes on the page either way.
+    distinct = {r.value for r in two_leg.values()}
+    if len(distinct) == 1 and two_leg:
+        lines.append(
+            "**This RAG is {} in every year shown and therefore carries no information about "
+            "this book.** Neither remaining leg crossed its amber edge in any year: clarity "
+            "stayed above 0.82 throughout and complaint probability below 5% throughout. The "
+            "column would move if either did — that is what makes it a check rather than a "
+            "label — but on this record it has not, and a verdict with one reachable value "
+            "should be read as an untested check, not as a passed one.".format(
+                next(iter(distinct))
+            )
+        )
     lines.append("Trend (last 2 years): {}".format("IMPROVING" if improving else "DECLINING"))
 
     return chr(10).join(lines) + chr(10)
@@ -8997,53 +9372,175 @@ def _section_customer_experience(data: dict) -> str:
 
 
 def _section_bill_shock_analysis(data: dict) -> str:
+    """Bill shock, in the TWO populations it is two different experiences in.
+
+    REWRITTEN 2026-09-02. What this section published before, and why each part went:
+
+    * ONE COLUMN CALLED `Avg Shock %` OVER BOTH POPULATIONS. Superseded, not deleted: it is
+      still here, last, labelled as the reconciling total it is. `bill_shock_pct` is the
+      percentage difference between two consecutive bill totals -- an arithmetic operation,
+      applied uniformly to households who would describe what happened to them in completely
+      different words. ~74% of GB households pay a level direct debit and never pay the bill
+      being differenced. Averaging across both and calling the result "average bill shock" is
+      the definition being inferred from the split instead of the other way round.
+    * `avg or 0.0`. An unmeasured cell was published as a measured zero and then banded as
+      "below 20%". On the real ten-year book that was fifteen cells. Every cell now fails
+      closed through `_fmt_shock_pct` / `_shock_band`.
+    * `Avg Shock %` RENDERED `avg * 100` HERE AND `avg` VERBATIM IN `## Customer Service
+      Quality`. One stored fraction, two renderers, a hundredfold apart in one document.
+      Nothing in this section multiplies by anything now: `_bill_shock_populations` returns
+      percentages and `_fmt_shock_pct` prints them.
+    * `Shock Rate` (events/bills) IN THE SAME TABLE AS THE MEAN, with the mean banded against a
+      threshold whose wording read as an incidence. They are a magnitude and an incidence and
+      they are now in separate columns under separate headings, each naming what it counts.
+      The incidence denominator changed too, and the old one was wrong: it was every bill in the
+      year, including bills that CANNOT be flagged because they have no prior bill to difference.
+    * "Ofgem monitors bill shock as a consumer harm indicator." Withdrawn. Unsourced, and
+      contradicted by our own commons -- see `_SHOCK_BAND_ATTRIBUTION`. SLC 21 stays; it is real.
+    """
     ydata = data.get("years", {})
     if not ydata:
         return ""
     years = sorted(ydata.keys())
-    has_data = any(ydata[yr].get("avg_bill_shock_pct") is not None for yr in years)
-    if not has_data:
+    if not any(ydata[yr].get("avg_bill_shock_pct") is not None for yr in years):
         return ""
+
+    pops = _bill_shock_populations(data)
+    defined_pop = _shock_definition_population()
+
     lines = [
         "## Bill Shock Analysis",
         "",
-        "Bill shock events occur when a customer\'s bill increases >20% vs the prior bill.",
-        "Regulatory context: Ofgem monitors bill shock as a consumer harm indicator.",
+        "**Bill shock is two experiences in two populations, decided by how the household pays**",
+        "(`docs/market_research/what_bill_shock_is.md`). For a household on standard credit the",
+        "bill IS the thing they pay, so the difference between two consecutive bills is the shock.",
+        "For a household on a level direct debit -- about 74% of GB, and the majority of this book",
+        "-- the bill is a statement that arrives and is filed; the shock is a change in the amount",
+        "COLLECTED, which this company cannot yet measure because the direct debit amount is not a",
+        "modelled quantity. Its bill-to-bill difference is published below under its own name and",
+        "explicitly **not** as a shock. Deleting it would hide most of the record; folding it into",
+        "one average is the defect this split exists to end.",
         "",
-        "| Year | Avg Shock % | Events | Bills | Shock Rate | Flag |",
-        "|------|------------|--------|-------|------------|------|",
+        "Two different quantities follow and they are never mixed. **Magnitude** is how large the",
+        "move was for the households who had one. **Incidence** is how many households had one at",
+        "all. A band on one says nothing about the other.",
+        "",
+        "### Magnitude — mean bill-to-bill change, by population",
+        "",
+        "Mean over every bill with a computable change (one that has a prior bill and a baseline at",
+        "or above the floor) -- not only the bills flagged as shocks. 95% interval is a bootstrap",
+        "over that population's own bills. " + _SHOCK_BAND_ATTRIBUTION,
+        "",
+        _SHOCK_POPULATION_LEGEND,
+        "",
+        "| Year | Population | n | Mean | Median | Max | 95% interval | Band |",
+        "|------|------------|---|------|--------|-----|--------------|------|",
     ]
-    worst_yr = None
-    worst_shock = 0.0
+
     for yr in years:
-        yd = ydata[yr]
-        avg = yd.get("avg_bill_shock_pct") or 0.0
-        events_list = yd.get("bill_shock_events", [])
-        n_events = len(events_list) if isinstance(events_list, list) else int(events_list or 0)
-        bills = yd.get("bills_count", 0) or 0
-        shock_rate = (n_events / bills * 100) if bills > 0 else 0.0
-        flag = ""
-        if avg >= 0.30:
-            flag = "**HIGH**"
-        elif avg >= 0.20:
-            flag = "ELEVATED"
-        if avg > worst_shock:
-            worst_shock = avg
-            worst_yr = yr
+        block = pops.get(yr, {})
+        for pop in _SHOCK_POPULATION_ORDER:
+            stats = block.get(pop) or {"n": 0}
+            if not stats.get("n"):
+                # An n=0 population is printed, not skipped: a row that disappears when it has
+                # nothing in it is indistinguishable from a population that does not exist.
+                lines.append(
+                    "| " + yr + " | " + _SHOCK_POPULATION_SHORT[pop] + " | 0 | " +
+                    SHOCK_NOT_MEASURED + " | — | — | — | " + SHOCK_NOT_MEASURED + " |"
+                )
+                continue
+            band = _shock_band(stats["avg_pct"]) if pop == defined_pop else "n/a"
+            lines.append(
+                "| " + yr + " | " + _SHOCK_POPULATION_SHORT[pop] + " | " + str(stats["n"]) +
+                " | " + _fmt_shock_pct(stats["avg_pct"]) +
+                " | " + _fmt_shock_pct(stats["median_pct"]) +
+                " | " + _fmt_shock_pct(stats["max_pct"]) +
+                " | " + _fmt_shock_interval(stats) + " | " + band + " |"
+            )
+
+    lines += [
+        "",
+        "The band is applied ONLY to the standard-credit row, because it is the only row where the",
+        "figure is a bill shock. Applying it to the direct-debit row would band a quantity nobody",
+        "experienced.",
+        "",
+        "### Incidence — share of computable bills that were flagged (>=20%), by population",
+        "",
+        "Numerator: bills flagged as a >=20% bill-to-bill increase. Denominator: bills in that same",
+        "population with a **computable** change. A bill with no prior bill cannot be flagged, so",
+        "including it in the denominator understates incidence -- which is what this report did",
+        "until 2026-09-02, dividing flagged events by every bill issued in the year.",
+        "",
+        _SHOCK_POPULATION_LEGEND,
+        "",
+        "| Year | Population | Flagged | Computable bills | Incidence |",
+        "|------|------------|---------|------------------|-----------|",
+    ]
+    for yr in years:
+        block = pops.get(yr, {})
+        flagged = _flagged_shock_counts_by_population(ydata[yr])
+        for pop in _SHOCK_POPULATION_ORDER:
+            denom = (block.get(pop) or {}).get("n", 0)
+            n_flag = flagged.get(pop, 0)
+            rate = f"{n_flag / denom * 100:.0f}%" if denom else SHOCK_NOT_MEASURED
+            lines.append(
+                "| " + yr + " | " + _SHOCK_POPULATION_SHORT[pop] + " | " + str(n_flag) +
+                " | " + str(denom) + " | " + rate + " |"
+            )
+
+    # The superseded total, kept and labelled. It is what `financial.annual[].avg_bill_shock_pct`
+    # in `site/data/dashboard.json` is, so a reader holding both artefacts can reconcile the
+    # re-partition from the artefacts alone rather than from this diff.
+    lines += [
+        "",
+        "### The superseded total",
+        "",
+        "This is the single figure this section used to publish as \"average bill shock\". It is a",
+        "mean over both definitions at once, kept only so the split above reconciles against it and",
+        "against `site/data/dashboard.json`. **It is not a bill shock rate and should not be cited",
+        "as one.**",
+        "",
+        "| Year | Mixed mean (both populations) | Computable bills |",
+        "|------|------------------------------|------------------|",
+    ]
+    for yr in years:
+        mixed = (pops.get(yr, {}).get("mixed_all_population") or {"n": 0})
         lines.append(
-            "| " + yr + " | " + ("%.1f%%" % (avg * 100)) + " | " + str(n_events) +
-            " | " + str(bills) + " | " + ("%.0f%%" % shock_rate) + " | " + flag + " |"
+            "| " + yr + " | " + _fmt_shock_pct(mixed.get("avg_pct")) +
+            " | " + str(mixed.get("n", 0)) + " |"
         )
-    lines.append("")
-    if worst_yr:
+
+    worst = _worst_defined_shock_year(pops, years)
+    if worst:
+        wyr, wstats = worst
         lines += [
-            "**Crisis peak: " + worst_yr + "** — " + ("%.1f%%" % (worst_shock * 100)) +
-            " average shock. Energy crisis drove wholesale costs above locked tariff rates,",
-            "causing step-change increases at every renewal. SLC 21: suppliers must issue",
-            "renewal notice 42 days before contract end, giving customers time to switch.",
+            "",
+            "**Worst year for the population the definition names (" +
+            _SHOCK_POPULATION_LABEL[defined_pop] + "): " + wyr + "** — mean " +
+            _fmt_shock_pct(wstats["avg_pct"]) + " (n=" + str(wstats["n"]) + ", 95% " +
+            _fmt_shock_interval(wstats) + "). SLC 21: suppliers must issue renewal notice 42 days",
+            "before contract end, giving customers time to switch.",
             "",
         ]
     return "\n".join(lines)
+
+
+def _worst_defined_shock_year(pops: dict, years: list) -> tuple | None:
+    """The worst year on the ONE population whose figure is a bill shock, or `None`.
+
+    `None` when no year has a measured standard-credit mean. Returning `None` rather than the
+    first year, or a year with a fabricated 0.0, is what stops "worst year" naming a year that
+    was never measured -- the shape the old `worst_shock = 0.0` seed had, where any year at all
+    beat the seed and an all-empty book would still have crowned one.
+    """
+    measured = [
+        (yr, (pops.get(yr, {}).get(_shock_definition_population()) or {}))
+        for yr in years
+    ]
+    measured = [(yr, s) for yr, s in measured if s.get("n") and s.get("avg_pct") is not None]
+    if not measured:
+        return None
+    return max(measured, key=lambda t: t[1]["avg_pct"])
 
 
 def _section_policy_cost_breakdown(data: dict) -> str:

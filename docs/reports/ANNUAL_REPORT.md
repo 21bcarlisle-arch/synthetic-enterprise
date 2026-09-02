@@ -774,6 +774,11 @@ Total HH revenue: £34,149.08 vs flat equivalent £31,086.92 (+9.9% ToU premium)
 Month-on-month billing increase ≥20%. Bill shocks elevate SIM churn probability
 via the bill-shock history model. Crisis years (2021-22) see the largest spikes.
 
+**These counts mix both bill-shock populations.** A row is a bill that rose ≥20% against
+its predecessor; for a standard-credit household that is a shock, and for a level-direct-
+debit household it is a change to a statement, not to what they pay. The `Population`
+column below says which. `## Bill Shock Analysis` publishes the two separately.
+
 | Year | Events | Max Spike | Worst Customer |
 |------|--------|-----------|----------------|
 | 2016 | 114 | 1360% | SYN-2016-015 (2016-03-31) |
@@ -791,18 +796,18 @@ Total: **1748** bill shock events across 10 years
 
 **Top 10 worst single-period bill spikes:**
 
-| Date | Customer | Spike | Eventually Churned? |
-|------|----------|-------|---------------------|
-| 2019-09-30 | PROS-2018-0238g | +2593% | no |
-| 2017-07-31 | SYN-2016-014 | +2130% | no |
-| 2025-03-31 | PROS-2021-0248 | +1692% | no |
-| 2022-08-31 | PROS-2018-0238 | +1648% | yes |
-| 2020-09-30 | PROS-2018-0016g | +1646% | no |
-| 2022-12-31 | PROS-2019-0302 | +1646% | no |
-| 2021-01-31 | PROS-2020-0303g | +1605% | no |
-| 2024-10-31 | PROS-2018-0039g | +1549% | no |
-| 2023-07-31 | SYN-2016-035 | +1469% | no |
-| 2022-08-31 | PROS-2020-0391 | +1395% | no |
+| Date | Customer | Spike | Population | Eventually Churned? |
+|------|----------|-------|------------|---------------------|
+| 2019-09-30 | PROS-2018-0238g | +2593% | direct debit | no |
+| 2017-07-31 | SYN-2016-014 | +2130% | direct debit | no |
+| 2025-03-31 | PROS-2021-0248 | +1692% | direct debit | no |
+| 2022-08-31 | PROS-2018-0238 | +1648% | direct debit | yes |
+| 2020-09-30 | PROS-2018-0016g | +1646% | direct debit | no |
+| 2022-12-31 | PROS-2019-0302 | +1646% | direct debit | no |
+| 2021-01-31 | PROS-2020-0303g | +1605% | direct debit | no |
+| 2024-10-31 | PROS-2018-0039g | +1549% | direct debit | no |
+| 2023-07-31 | SYN-2016-035 | +1469% | direct debit | no |
+| 2022-08-31 | PROS-2020-0391 | +1395% | direct debit | no |
 
 ## Gas Renewal Pressure (Dual-Fuel Portfolio)
 
@@ -2427,25 +2432,37 @@ Conclusion: systematic forward hedging cost £232,463 over 10 years vs spot purc
 
 ## Customer Service Quality
 
-Ofgem benchmarks: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); complaint probability <5% (GREEN) / <6% (RED); bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED).
+Bands: bill clarity >0.82 (GREEN) / >0.80 (AMBER) / ≤0.80 (RED); complaint probability <5% (GREEN) / <6% (RED). The RAG below is these two legs only.
 
-| Year | Clarity | Complaint% | Shock% | Shock events | Bills | RAG |
-|------|---------|------------|--------|--------------|-------|-----|
-| 2016 | 0.908 G | 3.5% | 0.43% | 114 | 719 | RED ! |
-| 2017 | 0.926 G | 2.9% | 0.36% | 120 | 1054 | RED ! |
-| 2018 | 0.929 G | 3.0% | 0.31% | 126 | 1029 | RED ! |
-| 2019 | 0.929 G | 3.1% | 0.43% | 151 | 1051 | RED ! |
-| 2020 | 0.936 G | 3.0% | 0.41% | 152 | 1174 | RED ! |
-| 2021 | 0.930 G | 3.2% | 0.42% | 195 | 1281 | RED ! |
-| 2022 | 0.910 G | 3.9% | 0.58% | 302 | 1338 | RED ! |
-| 2023 | 0.923 G | 3.4% | 0.47% | 276 | 1420 | RED ! |
-| 2024 | 0.938 G | 3.0% | 0.43% | 243 | 1639 | RED ! |
-| 2025 | 0.955 G | 2.4% | 0.46% | 69 | 860 | RED ! |
+| Year | Clarity | Complaint% | Shock events | Bills | RAG |
+|------|---------|------------|--------------|-------|-----|
+| 2016 | 0.908 G | 3.5% | 114 | 719 | GREEN |
+| 2017 | 0.926 G | 2.9% | 120 | 1054 | GREEN |
+| 2018 | 0.929 G | 3.0% | 126 | 1029 | GREEN |
+| 2019 | 0.929 G | 3.1% | 151 | 1051 | GREEN |
+| 2020 | 0.936 G | 3.0% | 152 | 1174 | GREEN |
+| 2021 | 0.930 G | 3.2% | 195 | 1281 | GREEN |
+| 2022 | 0.910 G | 3.9% | 302 | 1338 | GREEN |
+| 2023 | 0.923 G | 3.4% | 276 | 1420 | GREEN |
+| 2024 | 0.938 G | 3.0% | 243 | 1639 | GREEN |
+| 2025 | 0.955 G | 2.4% | 69 | 860 | GREEN |
 
 Worst clarity year: **2016** (0.908)
 Highest complaint probability: **2022** (3.9%)
-Worst bill shock: **2022** (0.58%)
-RED years: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025
+
+**Withdrawn from this table (2026-09-02): the `Shock%` column and the bill-shock leg of
+this RAG.** Three separate reasons, and the column is not coming back in this shape.
+(1) It rendered the stored fraction verbatim while `## Bill Shock Analysis` rendered the
+same field ×100 — this report published "Worst bill shock: 2022 (0.58%)" and "| 2022 |
+57.5% |" about one number. (2) It averaged across both bill-shock populations, so it was
+a mean of two quantities only one of which is a bill shock. (3) Its band was attributed
+to Ofgem, which publishes no such thing. The measurement has not been dropped — it moved
+to `## Bill Shock Analysis`, split by population, each mean carrying its n and a 95%
+interval. `Shock events` above is a COUNT and stays; it was never in the disputed units.
+Worst year for bill shock on the population the definition names (standard credit (bill IS the shock)): **2025** (53.1%, n=86).
+
+RED years: none. AMBER years: none.
+**This RAG is GREEN in every year shown and therefore carries no information about this book.** Neither remaining leg crossed its amber edge in any year: clarity stayed above 0.82 throughout and complaint probability below 5% throughout. The column would move if either did — that is what makes it a check rather than a label — but on this record it has not, and a verdict with one reachable value should be read as an untested check, not as a passed one.
 Trend (last 2 years): IMPROVING
 
 ## Portfolio VaR Trajectory and Treasury Evolution
@@ -3054,7 +3071,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (157 active customers) under 12-month forward scenarios.
-Generated: 2026-09-01T20:40:29Z
+Generated: 2026-09-02T00:12:30Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -3602,25 +3619,149 @@ Quadrant CLV: £3,310.99 (100% of portfolio)
 
 ## Bill Shock Analysis
 
-Bill shock events occur when a customer's bill increases >20% vs the prior bill.
-Regulatory context: Ofgem monitors bill shock as a consumer harm indicator.
+**Bill shock is two experiences in two populations, decided by how the household pays**
+(`docs/market_research/what_bill_shock_is.md`). For a household on standard credit the
+bill IS the thing they pay, so the difference between two consecutive bills is the shock.
+For a household on a level direct debit -- about 74% of GB, and the majority of this book
+-- the bill is a statement that arrives and is filed; the shock is a change in the amount
+COLLECTED, which this company cannot yet measure because the direct debit amount is not a
+modelled quantity. Its bill-to-bill difference is published below under its own name and
+explicitly **not** as a shock. Deleting it would hide most of the record; folding it into
+one average is the defect this split exists to end.
 
-| Year | Avg Shock % | Events | Bills | Shock Rate | Flag |
-|------|------------|--------|-------|------------|------|
-| 2016 | 43.1% | 114 | 719 | 16% | **HIGH** |
-| 2017 | 35.7% | 120 | 1054 | 11% | **HIGH** |
-| 2018 | 30.9% | 126 | 1029 | 12% | **HIGH** |
-| 2019 | 43.5% | 151 | 1051 | 14% | **HIGH** |
-| 2020 | 40.7% | 152 | 1174 | 13% | **HIGH** |
-| 2021 | 42.3% | 195 | 1281 | 15% | **HIGH** |
-| 2022 | 57.5% | 302 | 1338 | 23% | **HIGH** |
-| 2023 | 46.7% | 276 | 1420 | 19% | **HIGH** |
-| 2024 | 43.5% | 243 | 1639 | 15% | **HIGH** |
-| 2025 | 46.4% | 69 | 860 | 8% | **HIGH** |
+Two different quantities follow and they are never mixed. **Magnitude** is how large the
+move was for the households who had one. **Incidence** is how many households had one at
+all. A band on one says nothing about the other.
 
-**Crisis peak: 2022** — 57.5% average shock. Energy crisis drove wholesale costs above locked tariff rates,
-causing step-change increases at every renewal. SLC 21: suppliers must issue
-renewal notice 42 days before contract end, giving customers time to switch.
+### Magnitude — mean bill-to-bill change, by population
+
+Mean over every bill with a computable change (one that has a prior bill and a baseline at
+or above the floor) -- not only the bills flagged as shocks. 95% interval is a bootstrap
+over that population's own bills. Band: Poesys working threshold, NOT a regulator's. We searched for a formal Ofgem definition of bill shock -- a term, a threshold, or a comparison basis -- and there is none (`docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md` section 3). Earlier editions of this report attributed this band to Ofgem; that attribution was wrong and is withdrawn.
+
+Populations: **standard credit** — the bill is what the household pays, so its bill-to-bill difference IS the bill shock. **direct debit** — the household pays a level monthly amount; its bill-to-bill difference is published here under its own name and is NOT a shock they experienced. **unattributed** — no payment method recorded on the bill, folded into neither. **out of scope** — excluded from the definition.
+
+| Year | Population | n | Mean | Median | Max | 95% interval | Band |
+|------|------------|---|------|--------|-----|--------------|------|
+| 2016 | standard credit | 78 | 43.5% | 6.4% | 499.5% | 25.4–65.5% | **HIGH** |
+| 2016 | direct debit | 306 | 44.3% | 6.2% | 1360.0% | 30.7–60.2% | n/a |
+| 2016 | unattributed | 9 | 0.1% | 0.1% | 0.3% | 0.1–0.2% | n/a |
+| 2016 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2017 | standard credit | 143 | 36.1% | 4.4% | 1071.2% | 18.4–59.2% | **HIGH** |
+| 2017 | direct debit | 454 | 35.8% | 2.3% | 2129.9% | 23.7–51.1% | n/a |
+| 2017 | unattributed | 7 | 25.7% | 1.1% | 144.3% | 1.1–66.8% | n/a |
+| 2017 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2018 | standard credit | 134 | 16.9% | 3.5% | 167.0% | 11.8–22.5% | within band |
+| 2018 | direct debit | 437 | 35.6% | 2.0% | 1320.5% | 25.5–47.4% | n/a |
+| 2018 | unattributed | 6 | 3.0% | 0.1% | 16.8% | 0.1–8.6% | n/a |
+| 2018 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2019 | standard credit | 153 | 43.5% | 6.1% | 1026.5% | 24.5–66.5% | **HIGH** |
+| 2019 | direct debit | 401 | 43.4% | 2.8% | 2593.1% | 30.0–61.0% | n/a |
+| 2019 | unattributed | 5 | 49.0% | 0.4% | 219.2% | 0.2–136.6% | n/a |
+| 2019 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2020 | standard credit | 158 | 24.7% | 3.9% | 448.5% | 16.4–34.7% | ELEVATED |
+| 2020 | direct debit | 420 | 46.5% | 2.0% | 1646.2% | 33.1–62.6% | n/a |
+| 2020 | unattributed | 5 | 59.2% | 0.1% | 295.6% | 0.1–177.4% | n/a |
+| 2020 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2021 | standard credit | 220 | 39.4% | 6.0% | 614.0% | 28.5–52.0% | **HIGH** |
+| 2021 | direct debit | 531 | 43.4% | 3.9% | 1604.8% | 31.7–57.8% | n/a |
+| 2021 | unattributed | 0 | not measured | — | — | — | not measured |
+| 2021 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2022 | standard credit | 252 | 45.7% | 9.4% | 1305.2% | 30.6–65.6% | **HIGH** |
+| 2022 | direct debit | 547 | 63.0% | 9.4% | 1647.7% | 48.6–79.2% | n/a |
+| 2022 | unattributed | 0 | not measured | — | — | — | not measured |
+| 2022 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2023 | standard credit | 242 | 42.2% | 5.9% | 1291.5% | 29.3–59.6% | **HIGH** |
+| 2023 | direct debit | 527 | 48.8% | 3.6% | 1469.3% | 38.1–60.6% | n/a |
+| 2023 | unattributed | 0 | not measured | — | — | — | not measured |
+| 2023 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2024 | standard credit | 230 | 38.2% | 5.7% | 978.0% | 26.2–52.7% | **HIGH** |
+| 2024 | direct debit | 553 | 45.7% | 5.0% | 1549.4% | 34.8–58.1% | n/a |
+| 2024 | unattributed | 0 | not measured | — | — | — | not measured |
+| 2024 | out of scope | 0 | not measured | — | — | — | not measured |
+| 2025 | standard credit | 86 | 53.1% | 8.6% | 1109.4% | 26.3–90.5% | **HIGH** |
+| 2025 | direct debit | 190 | 43.4% | 4.8% | 1692.2% | 26.2–67.3% | n/a |
+| 2025 | unattributed | 0 | not measured | — | — | — | not measured |
+| 2025 | out of scope | 0 | not measured | — | — | — | not measured |
+
+The band is applied ONLY to the standard-credit row, because it is the only row where the
+figure is a bill shock. Applying it to the direct-debit row would band a quantity nobody
+experienced.
+
+### Incidence — share of computable bills that were flagged (>=20%), by population
+
+Numerator: bills flagged as a >=20% bill-to-bill increase. Denominator: bills in that same
+population with a **computable** change. A bill with no prior bill cannot be flagged, so
+including it in the denominator understates incidence -- which is what this report did
+until 2026-09-02, dividing flagged events by every bill issued in the year.
+
+Populations: **standard credit** — the bill is what the household pays, so its bill-to-bill difference IS the bill shock. **direct debit** — the household pays a level monthly amount; its bill-to-bill difference is published here under its own name and is NOT a shock they experienced. **unattributed** — no payment method recorded on the bill, folded into neither. **out of scope** — excluded from the definition.
+
+| Year | Population | Flagged | Computable bills | Incidence |
+|------|------------|---------|------------------|-----------|
+| 2016 | standard credit | 25 | 78 | 32% |
+| 2016 | direct debit | 89 | 306 | 29% |
+| 2016 | unattributed | 0 | 9 | 0% |
+| 2016 | out of scope | 0 | 0 | not measured |
+| 2017 | standard credit | 35 | 143 | 24% |
+| 2017 | direct debit | 83 | 454 | 18% |
+| 2017 | unattributed | 2 | 7 | 29% |
+| 2017 | out of scope | 0 | 0 | not measured |
+| 2018 | standard credit | 26 | 134 | 19% |
+| 2018 | direct debit | 100 | 437 | 23% |
+| 2018 | unattributed | 0 | 6 | 0% |
+| 2018 | out of scope | 0 | 0 | not measured |
+| 2019 | standard credit | 38 | 153 | 25% |
+| 2019 | direct debit | 111 | 401 | 28% |
+| 2019 | unattributed | 2 | 5 | 40% |
+| 2019 | out of scope | 0 | 0 | not measured |
+| 2020 | standard credit | 40 | 158 | 25% |
+| 2020 | direct debit | 111 | 420 | 26% |
+| 2020 | unattributed | 1 | 5 | 20% |
+| 2020 | out of scope | 0 | 0 | not measured |
+| 2021 | standard credit | 70 | 220 | 32% |
+| 2021 | direct debit | 125 | 531 | 24% |
+| 2021 | unattributed | 0 | 0 | not measured |
+| 2021 | out of scope | 0 | 0 | not measured |
+| 2022 | standard credit | 100 | 252 | 40% |
+| 2022 | direct debit | 202 | 547 | 37% |
+| 2022 | unattributed | 0 | 0 | not measured |
+| 2022 | out of scope | 0 | 0 | not measured |
+| 2023 | standard credit | 85 | 242 | 35% |
+| 2023 | direct debit | 191 | 527 | 36% |
+| 2023 | unattributed | 0 | 0 | not measured |
+| 2023 | out of scope | 0 | 0 | not measured |
+| 2024 | standard credit | 68 | 230 | 30% |
+| 2024 | direct debit | 175 | 553 | 32% |
+| 2024 | unattributed | 0 | 0 | not measured |
+| 2024 | out of scope | 0 | 0 | not measured |
+| 2025 | standard credit | 25 | 86 | 29% |
+| 2025 | direct debit | 44 | 190 | 23% |
+| 2025 | unattributed | 0 | 0 | not measured |
+| 2025 | out of scope | 0 | 0 | not measured |
+
+### The superseded total
+
+This is the single figure this section used to publish as "average bill shock". It is a
+mean over both definitions at once, kept only so the split above reconciles against it and
+against `site/data/dashboard.json`. **It is not a bill shock rate and should not be cited
+as one.**
+
+| Year | Mixed mean (both populations) | Computable bills |
+|------|------------------------------|------------------|
+| 2016 | 43.1% | 393 |
+| 2017 | 35.7% | 604 |
+| 2018 | 30.9% | 577 |
+| 2019 | 43.5% | 559 |
+| 2020 | 40.7% | 583 |
+| 2021 | 42.3% | 751 |
+| 2022 | 57.5% | 799 |
+| 2023 | 46.7% | 769 |
+| 2024 | 43.5% | 783 |
+| 2025 | 46.4% | 276 |
+
+**Worst year for the population the definition names (standard credit (bill IS the shock)): 2025** — mean 53.1% (n=86, 95% 26.3–90.5%). SLC 21: suppliers must issue renewal notice 42 days
+before contract end, giving customers time to switch.
 
 ## Policy Cost & Levy Breakdown
 
@@ -6309,7 +6450,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 1.0% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 719, average clarity 0.908, average bill shock 43.1%, bad debt provision £563.78, avg complaint probability 3.5%
+- Bills issued: 719, average clarity 0.908, average bill-to-bill change 43.1% (both populations -- see Bill Shock Analysis for the split), bad debt provision £563.78, avg complaint probability 3.5%
 - Solvency signal: £3,446/customer (75 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -6399,7 +6540,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-061: actual £76.30 vs. naked £174.82 -- hedging cost £98.52
   - SYN-2016-062: actual £94.36 vs. naked £289.49 -- hedging cost £195.13
 
-**Year narrative:** 2016 produced a net gain of £5,938.99 across 82 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 114 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2016 produced a net gain of £5,938.99 across 82 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 25 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 89 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2017
 
@@ -6527,7 +6668,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 1.0% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1054, average clarity 0.926, average bill shock 35.7%, bad debt provision £735.44, avg complaint probability 2.9%
+- Bills issued: 1054, average clarity 0.926, average bill-to-bill change 35.7% (both populations -- see Bill Shock Analysis for the split), bad debt provision £735.44, avg complaint probability 2.9%
 - Solvency signal: £3,298/customer (81 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -6625,7 +6766,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-061: actual £40.90 vs. naked £82.86 -- hedging cost £41.96
   - SYN-2016-062: actual £39.55 vs. naked £248.51 -- hedging cost £208.96
 
-**Year narrative:** 2017 produced a net gain of £9,898.55 across 94 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 120 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2017 produced a net gain of £9,898.55 across 94 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 35 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 85 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2018
 
@@ -6760,7 +6901,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 0.9% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1029, average clarity 0.929, average bill shock 30.9%, bad debt provision £1,815.07, avg complaint probability 3.0%
+- Bills issued: 1029, average clarity 0.929, average bill-to-bill change 30.9% (both populations -- see Bill Shock Analysis for the split), bad debt provision £1,815.07, avg complaint probability 3.0%
 - Solvency signal: £3,396/customer (81 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -6864,7 +7005,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-061: actual £95.30 vs. naked £243.43 -- hedging cost £148.14
   - SYN-2016-062: actual £73.27 vs. naked £387.65 -- hedging cost £314.38
 
-**Year narrative:** 2018 produced a net gain of £7,527.58 across 101 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 126 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2018 produced a net gain of £7,527.58 across 101 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 26 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 100 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2019
 
@@ -7004,7 +7145,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 0.6% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1051, average clarity 0.929, average bill shock 43.5%, bad debt provision £1,196.28, avg complaint probability 3.1%
+- Bills issued: 1051, average clarity 0.929, average bill-to-bill change 43.5% (both populations -- see Bill Shock Analysis for the split), bad debt provision £1,196.28, avg complaint probability 3.1%
 - Solvency signal: £3,601/customer (80 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -7110,7 +7251,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-061: actual £156.86 vs. naked £322.70 -- hedging cost £165.84
   - SYN-2016-062: actual £89.54 vs. naked £431.05 -- hedging cost £341.50
 
-**Year narrative:** 2019 produced a net gain of £12,093.62 across 106 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 151 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2019 produced a net gain of £12,093.62 across 106 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 38 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 113 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2020
 
@@ -7259,7 +7400,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 0.5% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1174, average clarity 0.936, average bill shock 40.7%, bad debt provision £758.73, avg complaint probability 3.0%
+- Bills issued: 1174, average clarity 0.936, average bill-to-bill change 40.7% (both populations -- see Bill Shock Analysis for the split), bad debt provision £758.73, avg complaint probability 3.0%
 - Solvency signal: £3,669/customer (82 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -7373,7 +7514,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-061: actual £173.27 vs. naked £330.37 -- hedging cost £157.10
   - SYN-2016-062: actual £73.89 vs. naked £176.74 -- hedging cost £102.85
 
-**Year narrative:** 2020 produced a net gain of £14,020.41 across 115 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 152 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2020 produced a net gain of £14,020.41 across 115 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 40 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 112 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2021
 
@@ -7531,7 +7672,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 1.7% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1281, average clarity 0.930, average bill shock 42.3%, bad debt provision £1,406.01, avg complaint probability 3.2%
+- Bills issued: 1281, average clarity 0.930, average bill-to-bill change 42.3% (both populations -- see Bill Shock Analysis for the split), bad debt provision £1,406.01, avg complaint probability 3.2%
 - Solvency signal: £3,552/customer (85 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -7652,7 +7793,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-062: actual £58.89 vs. naked £272.34 -- hedging cost £213.45
   - SYN-2021-001: actual £-275.70 vs. naked £-6.35 -- hedging cost £269.35
 
-**Year narrative:** 2021 (flagged crisis year) produced a net gain of £6,520.84 across 124 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 195 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2021 (flagged crisis year) produced a net gain of £6,520.84 across 124 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 70 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 125 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2022
 
@@ -7797,7 +7938,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 3.7% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1338, average clarity 0.910, average bill shock 57.5%, bad debt provision £455.23, avg complaint probability 3.9%
+- Bills issued: 1338, average clarity 0.910, average bill-to-bill change 57.5% (both populations -- see Bill Shock Analysis for the split), bad debt provision £455.23, avg complaint probability 3.9%
 - Solvency signal: £4,043/customer (76 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -7917,7 +8058,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-062: actual £81.86 vs. naked £608.89 -- hedging cost £527.03
   - SYN-2021-001: actual £22.44 vs. naked £38.98 -- hedging cost £16.54
 
-**Year narrative:** 2022 (flagged crisis year) produced a net gain of £4,028.90 across 112 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 302 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2022 (flagged crisis year) produced a net gain of £4,028.90 across 112 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 100 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 202 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2023
 
@@ -8083,7 +8224,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 2.2% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1420, average clarity 0.923, average bill shock 46.7%, bad debt provision £2,418.04, avg complaint probability 3.4%
+- Bills issued: 1420, average clarity 0.923, average bill-to-bill change 46.7% (both populations -- see Bill Shock Analysis for the split), bad debt provision £2,418.04, avg complaint probability 3.4%
 - Solvency signal: £4,138/customer (87 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -8219,7 +8360,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-062: actual £332.85 vs. naked £523.56 -- hedging cost £190.71
   - SYN-2021-001: actual £517.57 vs. naked £954.97 -- hedging cost £437.40
 
-**Year narrative:** 2023 produced a net gain of £41,900.77 across 132 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 276 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2023 produced a net gain of £41,900.77 across 132 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 85 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 191 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2024
 
@@ -8405,7 +8546,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 1.9% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 1639, average clarity 0.938, average bill shock 43.5%, bad debt provision £760.99, avg complaint probability 3.0%
+- Bills issued: 1639, average clarity 0.938, average bill-to-bill change 43.5% (both populations -- see Bill Shock Analysis for the split), bad debt provision £760.99, avg complaint probability 3.0%
 - Solvency signal: £4,121/customer (95 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -8562,7 +8703,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-056: actual £69.30 vs. naked £166.06 -- hedging cost £96.76
   - SYN-2016-061: actual £262.46 vs. naked £486.51 -- hedging cost £224.05
 
-**Year narrative:** 2024 produced a net gain of £34,680.94 across 152 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 243 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2024 produced a net gain of £34,680.94 across 152 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 68 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 175 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.
 
 ## 2025
 
@@ -8753,7 +8894,7 @@ _The carried figure is cost this book has already paid whose matching benefit fa
 
 - Capital cost ratio: 2.7% of gross
 - Treasury drawdown events (>=10% threshold): none
-- Bills issued: 860, average clarity 0.955, average bill shock 46.4%, bad debt provision £73.26, avg complaint probability 2.4%
+- Bills issued: 860, average clarity 0.955, average bill-to-bill change 46.4% (both populations -- see Bill Shock Analysis for the split), bad debt provision £73.26, avg complaint probability 2.4%
 - Solvency signal: £4,073/customer (98 customers) — OK (Ofgem floor £130/customer)
 
 **Hedge Effectiveness**
@@ -8866,4 +9007,4 @@ _The carried figure is cost this book has already paid whose matching benefit fa
   - SYN-2016-055: actual £107.25 vs. naked £229.71 -- hedging cost £122.46
   - SYN-2016-061: actual £104.14 vs. naked £197.38 -- hedging cost £93.23
 
-**Year narrative:** 2025 produced a net gain of £12,545.59 across 157 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 69 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2025 produced a net gain of £12,545.59 across 157 accounts. The risk committee did not intervene -- VaR stayed within the stressed floor. 25 standard-credit customer(s) experienced a bill shock of >=20% -- for them the bill is the thing they pay; a further 44 bill(s) rose >=20% for customers who do not pay the bill directly (level direct debit, or no payment attribution), which is a bill-to-bill change and not a shock they experienced.

@@ -15,11 +15,21 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **85** |
-| ...of which reach into private `_section_*` functions | **81** |
-| `saas/reporting/annual_report.py` | **10321 lines** |
+| Test files importing the report | **86** |
+| ...of which reach into private `_section_*` functions | **82** |
+| `saas/reporting/annual_report.py` | **10854 lines** |
 
-Re-measured 2026-08-29. The importer count moved 84 → 85 for one file, and it is the shape this
+Re-measured 2026-09-02: **86 / 82 / 10,854**. The importer count moved 85 → 86 for one file, and
+it is this record's shape again. `tests/saas/reporting/test_a_rendered_shock_figure_is_in_the_units_of_its_own_percent_sign.py`
+asserts that no bill-shock figure the report renders disagrees with the `%` beside it — the defect
+being that `ANNUAL_REPORT.md` published one stored fraction as both "0.58%" and "57.5%". The
+property is about what the RENDERING does, so the control has to render. Measured with the tool's
+own definitions (`render_debt`'s `_section` substring test), not a hand-rolled variant, because
+two counts of "reaching into private" would be two different quantities under one heading. The
+line count moved 10,321 → 10,854: the population split, its bootstrap, and the withdrawal notes.
+Corrected by hand, not by `--write`, for the reason two paragraphs down.
+
+Before that: re-measured 2026-08-29. The importer count moved 84 → 85 for one file, and it is the shape this
 record exists to name: `tests/saas/reporting/test_crm_section_cannot_mirror_itself.py` asserts
 that `_section_company_crm` publishes no agreement verdict between two projections of one write,
 which it can only do by rendering the section — so a control about a published claim has to
