@@ -135,13 +135,34 @@ make the test green.
 # SECOND market quantity hiding in that door and not counted by this register: the trail is a rate
 # per kWh, and kWh is as market-varying as GBP. It stays inside `saas/opex_ledger.py` and does not
 # cross, which is why the door hands over a settled amount rather than a rate.
+# dd_review_outcome 2 -> 6, and dd_review 0 -> 3, amended 2026-09-02 under the same-change rule
+# (atom `D_opening_dd_seasonal_sizing`). Until today the direct debit had no estimate behind it:
+# both books opened every customer at their FIRST ISSUED BILL, so the monthly payment was an
+# accident of which month the account started in. Giving it an annualised opening amount means
+# the world must be able to ask what that amount WAS -- `opening_monthly_amount()` returns it,
+# `annual_dd_review_view()` now takes an `opening_dd_gbp` mapping, and the refusal path names
+# the same quantity. Every new site is row #1's shape and nothing else: a currency spelled into
+# a field name.
+# WHY THIS IS NOT THE WIDENING THIS FILE FORBIDS. The forbidden move is loosening a row so an
+# UNCHANGED seam stops failing. Here the seam genuinely gained a money field it did not carry
+# before, and the register is doing its job by making that visible in the same commit that adds
+# it. The disposition is unchanged and on-touch: getting the currency out is a `Money{amount,
+# ccy}` type the adapter carries, which is row #1's cross-cutting remediation, not a rename to
+# be done inside a billing-arithmetic change.
+# THE SECOND MARKET QUANTITY BEHIND THIS DOOR, and it deliberately does not cross: the door takes
+# NO unit rate and NO standing charge. The first draft did, which made the world import
+# `company.pricing.ofgem_price_cap` to work out the supplier's own tariff -- two live wall
+# crossings, refused at the gate. A supplier's tariff is not something the world computes on its
+# behalf; the world asks what the payment was set to and is told. So `gbp` is the only
+# market-varying token here, and that is by construction rather than by luck.
 # Machine-read by
 # tests/architecture/test_market_at_the_seams.py. Exact in both directions.
 counterparty      company/interfaces/recorded_sim_interface.py         mpan         2
 counterparty      company/interfaces/sim_interface.py                  mpan         7
 counterparty      company/interfaces/sim_interface.py                  nbp          1
 market_quantity   company/interfaces/credit_refund_requests.py         gbp          5
-market_quantity   company/interfaces/dd_review_outcome.py              gbp          2
+market_quantity   company/interfaces/dd_review.py                      gbp          3
+market_quantity   company/interfaces/dd_review_outcome.py              gbp          6
 market_quantity   company/interfaces/growth_desk.py                    gbp         25
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4

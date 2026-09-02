@@ -37,14 +37,16 @@ def _bills(cid: str, monthly_amounts: list[float], start=(2020, 1)):
 
 def test_no_review_before_twelve_months():
     # Only 6 months of data -> no completed year -> no review event.
-    result = run_annual_reviews(_bills("C1", [50.0] * 6))
+    result = run_annual_reviews(_bills("C1", [50.0] * 6), opening_dd_gbp={"C1": 50.0})
     assert result.events == []
     assert result.summary()["total_reviews"] == 0
 
 
 def test_first_review_fires_after_a_full_year():
     # 13 bills: window 0 (months 0..11) is complete once month 12 exists.
-    result = run_annual_reviews(_bills("C1", [100.0] * 13))
+    result = run_annual_reviews(
+        _bills("C1", [100.0] * 13), opening_dd_gbp={"C1": 100.0}
+    )
     assert len(result.events) == 1
     assert result.events[0].window_index == 0
 
@@ -55,7 +57,7 @@ def test_underestimated_dd_yields_large_increase():
     # First (Jan) bill £40 -> standing DD £40 -> implied annual £480.
     # Actual year of spend is much higher -> big INCREASE, material shock.
     amounts = [40.0] + [120.0] * 11 + [999.0]  # 13th bill just completes the year
-    result = run_annual_reviews(_bills("C1", amounts))
+    result = run_annual_reviews(_bills("C1", amounts), opening_dd_gbp={"C1": 40.0})
     ev = result.events[0]
     assert ev.action == DDAction.INCREASE.value
     assert ev.variance_pct > LARGE_INCREASE_THRESHOLD_PCT
@@ -64,7 +66,9 @@ def test_underestimated_dd_yields_large_increase():
 
 
 def test_stable_customer_maintains_and_is_not_a_shock():
-    result = run_annual_reviews(_bills("C1", [100.0] * 13))
+    result = run_annual_reviews(
+        _bills("C1", [100.0] * 13), opening_dd_gbp={"C1": 100.0}
+    )
     ev = result.events[0]
     assert ev.action == DDAction.MAINTAIN.value
     assert ev.large_increase is False
@@ -73,7 +77,7 @@ def test_stable_customer_maintains_and_is_not_a_shock():
 def test_overpaying_customer_decreases():
     # First bill £150 -> implied annual £1800; actual year ~£1200 -> DECREASE.
     amounts = [150.0] + [100.0] * 11 + [100.0]
-    result = run_annual_reviews(_bills("C1", amounts))
+    result = run_annual_reviews(_bills("C1", amounts), opening_dd_gbp={"C1": 150.0})
     ev = result.events[0]
     assert ev.action == DDAction.DECREASE.value
     assert ev.large_increase is False
@@ -87,7 +91,7 @@ def test_moderate_increase_is_not_flagged_large():
     # always-true (fail-open) nor coupled to action alone.
     # Standing DD £100 -> implied £1200. Target actual ~ +10% = £1320.
     amounts = [100.0] * 11 + [1320.0 - 100.0 * 11] + [100.0]
-    result = run_annual_reviews(_bills("C1", amounts))
+    result = run_annual_reviews(_bills("C1", amounts), opening_dd_gbp={"C1": 100.0})
     ev = result.events[0]
     assert ev.action == DDAction.INCREASE.value
     assert 5.0 < ev.variance_pct <= LARGE_INCREASE_THRESHOLD_PCT
@@ -97,7 +101,7 @@ def test_moderate_increase_is_not_flagged_large():
 def test_large_flag_requires_increase_not_just_magnitude():
     # A large NEGATIVE variance (big DECREASE) must never be a large_increase.
     amounts = [500.0] + [50.0] * 11 + [50.0]
-    result = run_annual_reviews(_bills("C1", amounts))
+    result = run_annual_reviews(_bills("C1", amounts), opening_dd_gbp={"C1": 500.0})
     ev = result.events[0]
     assert ev.action == DDAction.DECREASE.value
     assert abs(ev.variance_pct) > LARGE_INCREASE_THRESHOLD_PCT
@@ -109,7 +113,10 @@ def test_large_flag_requires_increase_not_just_magnitude():
 def test_second_year_uses_prior_recommendation_as_standing_dd():
     # 25 bills -> windows 0 and 1 both complete. Year-2 standing DD must equal
     # year-1's recommendation (the review reset the DD).
-    result = run_annual_reviews(_bills("C1", [40.0] + [120.0] * 23 + [120.0]))
+    result = run_annual_reviews(
+        _bills("C1", [40.0] + [120.0] * 23 + [120.0]),
+        opening_dd_gbp={"C1": 40.0},
+    )
     assert len(result.events) == 2
     y0, y1 = result.events
     assert y0.window_index == 0 and y1.window_index == 1
@@ -120,8 +127,11 @@ def test_second_year_uses_prior_recommendation_as_standing_dd():
 
 def test_deterministic_and_idempotent():
     bills = _bills("C1", [40.0] + [120.0] * 12) + _bills("C2", [100.0] * 13, start=(2021, 6))
-    a = run_annual_reviews(bills).serialise()
-    b = run_annual_reviews(list(reversed(bills))).serialise()  # order-insensitive
+    opening = {"C1": 40.0, "C2": 100.0}
+    a = run_annual_reviews(bills, opening_dd_gbp=opening).serialise()
+    b = run_annual_reviews(  # order-insensitive
+        list(reversed(bills)), opening_dd_gbp=opening
+    ).serialise()
     assert a == b
 
 
@@ -134,7 +144,7 @@ def test_reads_only_observable_bill_fields():
         {"customer_id": "C1", "period_end": f"2020-{m:02d}-28", "total_amount_gbp": 100.0}
         for m in range(1, 13)
     ] + [{"customer_id": "C1", "period_end": "2021-01-28", "total_amount_gbp": 100.0}]
-    result = run_annual_reviews(minimal)
+    result = run_annual_reviews(minimal, opening_dd_gbp={"C1": 100.0})
     assert result.summary()["total_reviews"] == 1
 
 

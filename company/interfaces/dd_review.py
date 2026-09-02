@@ -33,7 +33,8 @@ supplier's routine and the routine moves company-side. §3h was right that there
 no process here left to lift — `run_annual_reviews` is already company-side, pure
 and read-only. The defect is therefore not composition at all. It is that the
 supplier's DD desk is REACHABLE: importing the runner module hands the world
-`review` (the SLC 27B ±5% variance rule), `DDAction`, `DDReviewBook` and
+`review` (the ±5% variance band — a modelling convention applied under the
+SLC 27.15 duty, not a licence rule), `DDAction`, `DDReviewBook` and
 `LARGE_INCREASE_THRESHOLD_PCT` (the 15% bill-shock cut). Those are the supplier's
 own compliance reading and its own materiality judgement, and a real customer does
 not read them. The remedy for a routing residual is a DOOR, and the door is the
@@ -91,8 +92,19 @@ from __future__ import annotations
 __all__ = ["annual_dd_review_view"]
 
 
-def annual_dd_review_view(bills: list[dict]) -> dict:
+def annual_dd_review_view(
+    bills: list[dict],
+    opening_dd_gbp: dict | None = None,
+) -> dict:
     """The supplier's annual DD review over its own issued `bills`, serialised.
+
+    `opening_dd_gbp` carries the monthly amount the supplier SET when each
+    account opened — the annualised estimate that replaced the first-issued-bill
+    artefact on 2026-09-02 (atom `D_opening_dd_seasonal_sizing`). It crosses as
+    plain floats per customer id: the AMOUNT, never the routine that chose it,
+    which is the same property `dd_review_outcome` holds for the reviewed
+    amount. A customer absent from it is REFUSED and counted in the serialised
+    summary's `unestimated_customers`, never opened from a bill.
 
     Returns the JSON-safe `{"summary": ..., "events": [...]}` form. Nothing of
     the supplier's decision machinery — the variance rule, the bill-shock
@@ -114,4 +126,4 @@ def annual_dd_review_view(bills: list[dict]) -> dict:
     """
     from company.billing.dd_review_runner import run_annual_reviews
 
-    return run_annual_reviews(bills).serialise()
+    return run_annual_reviews(bills, opening_dd_gbp=opening_dd_gbp).serialise()

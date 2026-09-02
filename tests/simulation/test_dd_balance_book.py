@@ -4,12 +4,18 @@ credit/debit balance and the portfolio held-credit LIABILITY it aggregates to.
 """
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 
+from company.billing.annual_consumption_estimate import (
+    estimate_annual_consumption,
+    opening_monthly_dd_gbp,
+)
 from simulation.dd_balance_book import (
-    build_dd_balance_book,
-    BalancePoint,
     _SAMPLE_TRAJECTORY_CUSTOMERS,
+    BalancePoint,
+    build_dd_balance_book,
 )
 
 
@@ -64,6 +70,24 @@ _DD_ID = _pick_ids(1, want_dd=True)[0]
 
 # ---- seasonal physics ------------------------------------------------------
 
+
+def _opening_from_first_bill(bills: list[dict]) -> dict:
+    """Each customer's first issued bill amount, as an EXPLICIT opening DD.
+
+    This helper exists only so the arithmetic tests below keep the exact
+    numbers they were written against. It is deliberately named for what it
+    does: `build_dd_balance_book` no longer opens anyone from their first bill
+    (that was the defect fixed 2026-09-02, atom `D_opening_dd_seasonal_sizing`),
+    so a test that WANTS that opening must now say so out loud. The property
+    itself is held by
+    tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py.
+    """
+    first: dict = {}
+    for b in sorted(bills, key=lambda x: x["period_end"]):
+        first.setdefault(b["customer_id"], float(b["total_amount_gbp"]))
+    return first
+
+
 def test_summer_credit_builds_winter_draws_down():
     """A perfectly seasonal customer whose annual spend equals its level DD
     ends a full year near zero, but PEAKS in credit mid-year (summer build)."""
@@ -74,7 +98,7 @@ def test_summer_credit_builds_winter_draws_down():
     # 100,100 (Jan/Feb) then a summer dip to 40 for 6 months then winter 160.
     amounts = [jan, jan, 40, 40, 40, 40, 40, 40, 160, 160, 160, 160]
     bills = _monthly_bills(_DD_ID, amounts)
-    book = build_dd_balance_book(bills)
+    book = build_dd_balance_book(bills, _opening_from_first_bill(bills))
     pts = book.trajectories[_DD_ID]
     balances = [p.balance_gbp for p in pts]
     # Credit builds during the summer dip (collect 100, consume 40 -> +60/mo).
@@ -86,7 +110,7 @@ def test_summer_credit_builds_winter_draws_down():
 def test_balance_is_cumulative_collected_minus_consumed():
     amounts = [80.0, 50.0, 50.0]  # standing DD (year0) = 80 (first bill)
     bills = _monthly_bills(_DD_ID, amounts)
-    book = build_dd_balance_book(bills)
+    book = build_dd_balance_book(bills, _opening_from_first_bill(bills))
     pts = book.trajectories[_DD_ID]
     # month1: 80-80=0 ; month2: +80-50=+30 ; month3: +80-50=+30 -> 60
     assert pts[0].balance_gbp == 0.0
@@ -101,7 +125,7 @@ def test_held_credit_is_positive_balance_only():
     # Standing DD (year0) = 50 (first bill), then consume 200/mo -> deep debit.
     amounts = [50.0, 200.0, 200.0]
     bills = _monthly_bills(_DD_ID, amounts)
-    book = build_dd_balance_book(bills)
+    book = build_dd_balance_book(bills, _opening_from_first_bill(bills))
     s = book.summary()
     assert s["portfolio_final_balance_gbp"] < 0, "customer should be in debit"
     assert s["portfolio_final_held_credit_gbp"] == 0.0, (
@@ -118,7 +142,8 @@ def test_non_direct_debit_customers_excluded():
     dd_bills = _monthly_bills(dd_id, [90.0] * 12)
     nondd_resi = _monthly_bills(nondd_id, [90.0] * 12)
     sme_bills = _monthly_bills("SME1", [90.0] * 12, segment="sme")
-    book = build_dd_balance_book(dd_bills + nondd_resi + sme_bills)
+    _all = dd_bills + nondd_resi + sme_bills
+    book = build_dd_balance_book(_all, _opening_from_first_bill(_all))
     assert dd_id in book.trajectories
     assert nondd_id not in book.trajectories, "non-DD resi customer must not carry a DD balance"
     assert "SME1" not in book.trajectories, "SME (bacs) customer must not carry a DD balance"
@@ -129,14 +154,19 @@ def test_non_direct_debit_customers_excluded():
 def test_deterministic_and_order_insensitive():
     amounts = [90.0, 40.0, 40.0, 160.0, 90.0, 90.0]
     bills = _monthly_bills(_DD_ID, amounts)
-    a = build_dd_balance_book(bills).serialise()
-    b = build_dd_balance_book(list(reversed(bills))).serialise()
+    _o = _opening_from_first_bill(bills)
+    a = build_dd_balance_book(bills, _o).serialise()
+    b = build_dd_balance_book(list(reversed(bills)), _o).serialise()
     assert a == b, "book must be a pure function of the bill SET, order-insensitive"
 
 
 def test_replay_reproduces_identical_book():
     bills = _monthly_bills(_DD_ID, [90.0] * 24)
-    assert build_dd_balance_book(bills).serialise() == build_dd_balance_book(bills).serialise()
+    _o2 = _opening_from_first_bill(bills)
+    assert (
+        build_dd_balance_book(bills, _o2).serialise()
+        == build_dd_balance_book(bills, _o2).serialise()
+    )
 
 
 # ---- year-on-year DD reset consistency with DD4a ---------------------------
@@ -151,7 +181,7 @@ def test_standing_dd_resets_from_prior_year_actual():
     y0 = [100.0] * 12
     y1 = [200.0] * 12
     bills = _monthly_bills(_DD_ID, y0 + y1)
-    book = build_dd_balance_book(bills)
+    book = build_dd_balance_book(bills, _opening_from_first_bill(bills))
     pts = book.trajectories[_DD_ID]
     expected_y1_dd = reviewed_monthly_amount(sum(y0))
     for p in pts[12:24]:
@@ -165,7 +195,7 @@ def test_serialise_shape_and_sample_cap():
     bills = []
     for cid in ids:
         bills += _monthly_bills(cid, [90.0] * 12)
-    out = build_dd_balance_book(bills).serialise()
+    out = build_dd_balance_book(bills, _opening_from_first_bill(bills)).serialise()
     assert set(out) == {"summary", "monthly_held_credit_series", "sample_trajectories"}
     assert len(out["sample_trajectories"]) == _SAMPLE_TRAJECTORY_CUSTOMERS, (
         "sample trajectories must be capped for the business surface"
@@ -179,7 +209,7 @@ def test_serialise_shape_and_sample_cap():
 
 
 def test_empty_bills_safe():
-    book = build_dd_balance_book([])
+    book = build_dd_balance_book([], {})
     s = book.summary()
     assert s["n_customers"] == 0
     assert s["peak_held_credit_gbp"] == 0.0
@@ -197,7 +227,7 @@ def test_held_credit_liability_is_actually_measured_not_fail_open():
     # sustained credit that cannot round to zero.
     amounts = [100.0] + [20.0] * 8
     bills = _monthly_bills(_DD_ID, amounts)
-    s = build_dd_balance_book(bills).summary()
+    s = build_dd_balance_book(bills, _opening_from_first_bill(bills)).summary()
     assert s["peak_held_credit_gbp"] > 100.0, (
         "a sustained-credit customer must register real held credit"
     )
@@ -237,7 +267,9 @@ def test_quarterly_billing_still_collects_twelve_direct_debits_a_year():
     # is 100/month, and the standing DD is sized off the first BILL (300), so
     # the customer massively overpays. Assert only the collection COUNT physics.
     bills = _quarterly_bills(_DD_ID, [300.0] * 4)
-    pts = build_dd_balance_book(bills).trajectories[_DD_ID]
+    pts = build_dd_balance_book(
+        bills, _opening_from_first_bill(bills)
+    ).trajectories[_DD_ID]
 
     assert [p.n_collections for p in pts] == [1, 3, 3, 3], (
         "quarterly bills must span 1 then 3 monthly DD collections each"
@@ -254,7 +286,9 @@ def test_monthly_billing_is_byte_identical_under_the_cs5_fix():
     """The C-S5 correction must not move the monthly-billed book this repo
     actually runs: every bill spans exactly one collection."""
     bills = _monthly_bills(_DD_ID, [90.0, 40.0, 40.0, 160.0, 90.0, 90.0])
-    pts = build_dd_balance_book(bills).trajectories[_DD_ID]
+    pts = build_dd_balance_book(
+        bills, _opening_from_first_bill(bills)
+    ).trajectories[_DD_ID]
     assert all(p.n_collections == 1 for p in pts)
     running = 0.0
     for p in pts:
@@ -264,22 +298,18 @@ def test_monthly_billing_is_byte_identical_under_the_cs5_fix():
 
 # ---- the OPENING DD is sized off one seasonal month (measured defect) -------
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "MEASURED DEFECT, pinned not fixed (2026-08-03). The opening standing "
-        "level DD is the customer's FIRST BILL, i.e. one seasonal month "
-        "annualised flat, so the DD a customer is put on is a function of the "
-        "month they joined. On the real book the year-0 standing DD misses "
-        "that customer's own realised year-0 average by +33.2% (gas, April "
-        "join) and -46.3% (gas, July join). A real supplier sizes the opening "
-        "DD from the industry EAC/AQ handed over at registration or from a "
-        "published seasonal profile -- precisely so it does NOT depend on the "
-        "join month. Fixing it needs a published monthly-shape source; no "
-        "coefficient in this codebase may be fabricated, so it is registered "
-        "as its own atom. Remove this xfail when that atom lands."
-    ),
-)
+# THE XFAIL THAT USED TO STAND HERE IS GONE, AND THAT IS THE POINT.
+# From 2026-08-03 to 2026-09-02 this test was pinned `strict=True` with the
+# reason: "MEASURED DEFECT, pinned not fixed. The opening standing level DD is
+# the customer's FIRST BILL... A real supplier sizes the opening DD from the
+# industry EAC/AQ handed over at registration or from a published seasonal
+# profile -- precisely so it does NOT depend on the join month... registered as
+# its own atom. Remove this xfail when that atom lands."
+#
+# That atom is `D_opening_dd_seasonal_sizing` and it landed on 2026-09-02. The
+# exit condition was written before the fix existed and is discharged here
+# unchanged -- the assertion below is the one the xfail was pinned against, not
+# a re-cut one.
 def test_opening_dd_size_must_not_depend_on_the_join_month():
     """Two customers, identical seasonal cycle, identical first-year annual
     spend -- one joins in January, one in July. Their opening standing DD must
@@ -300,8 +330,26 @@ def test_opening_dd_size_must_not_depend_on_the_join_month():
     # July->June: identical annual total, different first month.
     jul_bills = _monthly_bills(jul_id, cycle[6:] + cycle[:6], segment="resi")
 
-    jan_pts = build_dd_balance_book(jan_bills).trajectories[jan_id]
-    jul_pts = build_dd_balance_book(jul_bills).trajectories[jul_id]
+    # The openings come from the REAL estimator, not from a literal passed
+    # twice -- which would make this test a tautology. Both households have the
+    # same annual consumption, so the registration EAC a supplier is handed is
+    # the same, and `opening_monthly_dd_gbp` must therefore return the same
+    # monthly amount for both. Nothing here tells it about the join month.
+    eac = 11_500.0  # Ofgem TDCV medium gas, in force from 1 Oct 2023
+    est = estimate_annual_consumption(
+        as_of=date(2024, 1, 1), commodity="gas", registry_eac_kwh=eac
+    )
+    opening = opening_monthly_dd_gbp(
+        est, unit_rate_p_kwh=6.0, standing_charge_p_day=31.0
+    )
+    assert opening is not None
+
+    jan_pts = build_dd_balance_book(
+        jan_bills, {jan_id: opening}
+    ).trajectories[jan_id]
+    jul_pts = build_dd_balance_book(
+        jul_bills, {jul_id: opening}
+    ).trajectories[jul_id]
 
     assert sum(p.consumed_gbp for p in jan_pts) == sum(p.consumed_gbp for p in jul_pts)
 

@@ -145,7 +145,8 @@ def _dd_customer_bills():
     excluded and the whole suite would then measure nothing."""
     for i in range(200):
         bills = _three_year_bills(cid=f"CUST{i:04d}")
-        if build_dd_balance_book(bills).trajectories:
+        opening = {bills[0]["customer_id"]: float(bills[0]["total_amount_gbp"])}
+        if build_dd_balance_book(bills, opening).trajectories:
             return bills
     raise AssertionError("vacuity: no direct-debit customer found in 200 candidates")
 
@@ -153,8 +154,18 @@ def _dd_customer_bills():
 # ── 1-2. The door exposes the amount and nothing else ───────────────────────
 
 
+#: The doors this seam is SANCTIONED to publish -- both of them amounts a real
+#: customer is told (the opening figure at sign-up, the reviewed figure after
+#: each annual review), neither of them the routine that chose it. Kept a CLOSED
+#: list so an accidental widening still trips; `opening_monthly_amount` joined it
+#: on 2026-09-02 with atom `D_opening_dd_seasonal_sizing`, which gave the opening
+#: DD an estimate to be set from. The load-bearing leg of this control is the
+#: FORBIDDEN_AT_THE_DOOR reachability check below, not this list.
+SANCTIONED_DOORS = ["opening_monthly_amount", "reviewed_monthly_amount"]
+
+
 def test_the_door_exposes_only_the_reviewed_amount():
-    assert seam.__all__ == ["reviewed_monthly_amount"]
+    assert sorted(seam.__all__) == SANCTIONED_DOORS
     reachable = [n for n in FORBIDDEN_AT_THE_DOOR if hasattr(seam, n)]
     assert reachable == [], (
         "the DD-review door hands the world back the company's own review machinery: "
@@ -169,13 +180,13 @@ def test_the_door_exposes_only_the_reviewed_amount():
     # written with a module-level import, which put the private routine in the seam's
     # own namespace. This mutation restores that exact mistake.
     (
-        '__all__ = ["reviewed_monthly_amount"]',
-        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = ["reviewed_monthly_amount"]',
+        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
+        'from company.billing.dd_review import _recommended_monthly\n\n__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
         "_recommended_monthly",
     ),
     # (b) The convenience widening: hand back the whole review API.
     (
-        '__all__ = ["reviewed_monthly_amount"]',
+        '__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]',
         'from company.billing.dd_review import review\n\n__all__ = ["reviewed_monthly_amount", "review"]',
         "review",
     ),
@@ -217,7 +228,11 @@ def test_mutation_a_drifting_door_moves_the_published_held_credit_liability():
     The vacuity guard first asserts the un-mutated book actually re-sizes the standing
     DD across years; a single-year population would pass against any door at all."""
     bills = _dd_customer_bills()
-    book = build_dd_balance_book(bills)
+    # An explicit opening amount: since 2026-09-02 the book refuses to open a
+    # customer from their first issued bill, so a population with no opening
+    # carries no trajectory at all and this control would measure nothing.
+    opening = {bills[0]["customer_id"]: float(bills[0]["total_amount_gbp"])}
+    book = build_dd_balance_book(bills, opening)
     standing = {p.collected_gbp for pts in book.trajectories.values() for p in pts}
     assert len(standing) > 1, (
         "vacuity: the standing DD never changed, so this population never asks the door"
@@ -234,7 +249,7 @@ def test_mutation_a_drifting_door_moves_the_published_held_credit_liability():
         original = bb.reviewed_monthly_amount
         try:
             bb.reviewed_monthly_amount = mutant.reviewed_monthly_amount
-            drifted = build_dd_balance_book(bills).serialise()
+            drifted = build_dd_balance_book(bills, opening).serialise()
         finally:
             bb.reviewed_monthly_amount = original
 
@@ -243,4 +258,6 @@ def test_mutation_a_drifting_door_moves_the_published_held_credit_liability():
         "either the door is not load-bearing (so the cut moved nothing) or the book "
         "is not really asking it"
     )
-    assert build_dd_balance_book(bills).serialise() == baseline, "restoration failed"
+    assert (
+        build_dd_balance_book(bills, opening).serialise() == baseline
+    ), "restoration failed"

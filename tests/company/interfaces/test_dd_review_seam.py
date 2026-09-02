@@ -13,8 +13,8 @@ The epistemic-wall ratchet polices one half: a module-scope
 things it cannot see, and each is what a plausible future edit would actually do:
 
 1. **THE DOOR WIDENING.** This cut's whole substance is that the desk's own rule
-   (`review`, the SLC 27B ±5% variance test), its materiality judgement
-   (`LARGE_INCREASE_THRESHOLD_PCT`, the 15% bill-shock cut) and its types
+   (`review`, the ±5% variance test it runs under SLC 27.15), its materiality
+   judgement (`LARGE_INCREASE_THRESHOLD_PCT`, the 15% bill-shock cut) and its types
    (`DDReviewBook`, `DDReviewRunResult`, `DDAction`) are UNREACHABLE through the
    seam. Nothing static objects to a convenience re-export, and the ratchet is
    happy either way because the module is under `SEAM_PACKAGE`. Control 1 asks
@@ -115,9 +115,21 @@ def _population() -> list[dict]:
     return bills
 
 
-# The rule as PUBLISHED, transcribed here rather than imported: Ofgem SLC 27B
-# annual review, ±5% variance band, recommendation = annual spend / 12 rounded up
-# to the pound. `large_increase` is the project's own 15% bill-shock cut.
+#: The monthly amount the supplier SET at each account's opening. Stated
+#: explicitly since 2026-09-02 (atom `D_opening_dd_seasonal_sizing`): the door no
+#: longer opens a customer from their first issued bill, so a fixture that wants
+#: a particular standing DD must say so. These are the same three figures this
+#: suite has always been written against, now named rather than inferred.
+_OPENING_DD_GBP = {"A": 50.0, "B": 50.0, "C": 100.0}
+
+
+# The rule as the desk applies it, transcribed here rather than imported. The
+# DUTY is published -- SLC 27.15 requires the DD be set on the best and most
+# current information available. The ±5% variance band is NOT: there is no
+# "SLC 27B" and no band appears anywhere in the licence, so it is a MODELLING
+# CONVENTION (a widely used supplier review band) and is labelled as one.
+# Recommendation = annual spend / 12 rounded up to the pound.
+# `large_increase` is the project's own 15% bill-shock cut.
 _VARIANCE_BAND_PCT = 5.0
 _LARGE_INCREASE_PCT = 15.0
 
@@ -156,7 +168,7 @@ def test_desk_internals_are_unreachable_through_the_door():
     leaked = [name for name in DESK_INTERNALS if hasattr(door, name)]
     assert leaked == [], (
         "the seam re-exports the supplier's own decision machinery: %r. The whole "
-        "substance of this cut is that the SLC 27B rule, the bill-shock threshold "
+        "substance of this cut is that the SLC 27.15 review rule, the bill-shock threshold "
         "and the review types are unreachable from the SIM." % leaked
     )
 
@@ -168,7 +180,7 @@ def test_the_return_value_carries_no_company_type():
     and still hand the world a `DDReviewRunResult` whose `.book` is the desk's own
     register.
     """
-    view = door.annual_dd_review_view(_population())
+    view = door.annual_dd_review_view(_population(), _OPENING_DD_GBP)
     assert isinstance(view, dict)
     assert set(view) == {"summary", "events"}
     assert isinstance(view["summary"], dict)
@@ -227,7 +239,7 @@ def test_mutation_a_company_object_on_the_return_value_is_caught():
     ],
 )
 def test_the_door_reproduces_the_published_addr_arithmetic(cid, standing_dd, actual_annual):
-    view = door.annual_dd_review_view(_population())
+    view = door.annual_dd_review_view(_population(), _OPENING_DD_GBP)
     events = _events_by_customer(view)
     assert cid in events, "no first-window review fired for %s — the population is wrong" % cid
     got = events[cid]
@@ -242,7 +254,7 @@ def test_the_door_reproduces_the_published_addr_arithmetic(cid, standing_dd, act
 def test_all_three_branches_actually_fire():
     """Vacuity guard for control 2: a population that only ever MAINTAINed would
     make the parametrised test pass while testing one branch of three."""
-    view = door.annual_dd_review_view(_population())
+    view = door.annual_dd_review_view(_population(), _OPENING_DD_GBP)
     actions = {e["action"] for e in view["events"] if e["window_index"] == 0}
     assert actions == {"increase", "decrease", "maintain"}, (
         "the fixture no longer exercises every branch: %r" % (actions,)
@@ -256,7 +268,7 @@ def test_mutation_a_shifted_variance_band_is_caught():
     original = _VARIANCE_BAND_PCT
     _VARIANCE_BAND_PCT = 200.0
     try:
-        view = door.annual_dd_review_view(_population())
+        view = door.annual_dd_review_view(_population(), _OPENING_DD_GBP)
         events = _events_by_customer(view)
         mismatches = [
             cid

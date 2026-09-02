@@ -2,7 +2,8 @@
 FIRST-CLASS, LIVE event.
 
 Before this, ``company/billing/dd_review.py`` held complete, correct review
-logic (variance +/-5% under Ofgem SLC 27B, recommended = actual/12) but had
+logic (the SLC 27.15 duty, applied at a +/-5% modelling-convention band,
+recommended = actual/12) but had
 ZERO live callers anywhere in ``simulation/`` or ``saas/`` -- the exact
 "paper compliance" shape the payments-maturity audit named: a mechanism that
 cannot "live in time" because nothing drives it over the real portfolio. This
@@ -37,6 +38,7 @@ from __future__ import annotations
 import dataclasses
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Mapping
 
 from company.billing.dd_review import DDAction, DDReviewBook, review
 
@@ -44,7 +46,8 @@ from company.billing.dd_review import DDAction, DDReviewBook, review
 # annual by more than this percent is a "bill-shock"-class jump -- the
 # magnitude a real customer notices and reacts to, and the cut DD4b will route
 # into the satisfaction/complaint/churn organ. The review itself already fires
-# at +/-5% (Ofgem SLC 27B, in dd_review.review); this SECOND, larger cut marks
+# at +/-5% (a modelling convention under the SLC 27.15 duty, in
+# dd_review.review -- there is no SLC 27B); this SECOND, larger cut marks
 # the *material shock* subset. Deliberately conservative and NOT sourced to a
 # specific published figure -- a documented modelling choice, never a
 # fabricated precision claim.
@@ -76,9 +79,15 @@ class DDReviewEvent:
 class DDReviewRunResult:
     book: DDReviewBook
     events: list = field(default_factory=list)
+    #: Customer IDs with issued bills but NO established opening DD amount --
+    #: households whose direct debit we cannot say was set from anything. A
+    #: result, not an error: it is published rather than filled, and it is the
+    #: denominator's missing half for any claim about DD review coverage.
+    unestimated_customers: list = field(default_factory=list)
 
     def summary(self) -> dict:
         n = len(self.events)
+        unestimated = len(self.unestimated_customers)
         if n == 0:
             return {
                 "total_reviews": 0,
@@ -87,9 +96,11 @@ class DDReviewRunResult:
                 "maintain_count": 0,
                 "large_increase_count": 0,
                 "avg_variance_pct": 0.0,
+                "unestimated_customers": unestimated,
             }
         return {
             "total_reviews": n,
+            "unestimated_customers": unestimated,
             "increase_count": sum(1 for e in self.events if e.action == DDAction.INCREASE.value),
             "decrease_count": sum(1 for e in self.events if e.action == DDAction.DECREASE.value),
             "maintain_count": sum(1 for e in self.events if e.action == DDAction.MAINTAIN.value),
@@ -110,19 +121,42 @@ class DDReviewRunResult:
 def run_annual_reviews(
     bills: list[dict],
     *,
+    opening_dd_gbp: Mapping[str, float] | None = None,
     large_increase_threshold_pct: float = LARGE_INCREASE_THRESHOLD_PCT,
 ) -> DDReviewRunResult:
     """Drive ``dd_review.review`` over the portfolio at each customer's own
     12-month anniversary.
 
-    The standing DD entering a customer's FIRST review is their first issued
-    bill's amount -- the naive initial estimate a mandate is sized from before
-    any year of data exists (mirrors ``dd_collection_book``'s default mandate
-    sizing). Each subsequent year the standing DD is the PRIOR review's
+    The standing DD entering a customer's FIRST review is the amount the
+    supplier SET when the account opened, supplied per customer in
+    ``opening_dd_gbp``. Each subsequent year it is the PRIOR review's
     recommendation, so the reviews form the real year-on-year re-estimation
     chain "estimate meets reality".
 
-    Deterministic and idempotent: pure function of ``bills``, no RNG, no
+    THE FIRST BILL IS NOT AN ESTIMATE, AND THIS USED TO PRETEND IT WAS.
+    Until 2026-09-02 this function opened every customer at ``seq[0][1]`` --
+    their first issued bill -- under the comment "initial estimate = first
+    issued bill". That made the standing DD an accident of which month the
+    account started in: a first bill falling in January over-sizes the whole
+    year, one falling in July under-sizes it. The director's correction of
+    2026-09-01: *"There's no such thing as a half-month direct debit -- an
+    annualised plan divides estimated annual cost by twelve whatever the start
+    date."* An annualised opening amount now comes from
+    ``company/billing/annual_consumption_estimate.py``, which sizes it from
+    what a supplier actually holds (metered history, the registration EAC/AQ,
+    the customer's declaration, or Ofgem's published TDCV) under SLC 27.15.
+
+    **A customer with no opening amount is REFUSED, not invented.** They are
+    counted in ``summary()["unestimated_customers"]`` and emit no review at
+    all, because there is no established standing DD for the first year to be
+    reviewed against and every later year's chain descends from it. That count
+    is a result and belongs on the surface: it is the number of households whose
+    direct debit we cannot yet say was set from anything. Silently falling back
+    to the first bill is exactly the defect this parameter removes, so there is
+    no fallback -- ``tests/company/billing/
+    test_the_opening_dd_is_never_the_first_issued_bill.py`` fails if one returns.
+
+    Deterministic and idempotent: pure function of its inputs, no RNG, no
     mutation of any input or ground-truth structure.
     """
     by_cust: dict[str, list[tuple[date, float]]] = {}
@@ -152,7 +186,13 @@ def run_annual_reviews(
             if wi > max_wi:
                 max_wi = wi
 
-        standing_dd = seq[0][1]  # initial estimate = first issued bill
+        # The amount the supplier SET at registration, annualised. Absent ->
+        # this customer is refused and counted, never opened from a bill.
+        opening = (opening_dd_gbp or {}).get(cid)
+        if opening is None or opening <= 0.0:
+            result.unestimated_customers.append(cid)
+            continue
+        standing_dd = float(opening)
         for wi in range(0, max_wi):  # windows 0..max_wi-1 have a following window
             wbills = windows.get(wi)
             if not wbills:

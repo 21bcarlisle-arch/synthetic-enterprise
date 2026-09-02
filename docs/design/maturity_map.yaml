@@ -397,8 +397,23 @@
   lane: D_billing_metering
   value_stream: meter_to_cash
   provenance: proposal
-  level_current: 0
+  level_current: 1
   level_target: 2
+  level_move_recorded: '2026-09-02: 0 -> 1. An estimated annual consumption now exists in the
+    DD path (company/billing/annual_consumption_estimate.py), sourced to SLC 27.15''s precedence
+    with a date-keyed Ofgem TDCV series read from the decision letters, and the opening DD is
+    annual cost / 12. The first-issued-bill artefact is gone from BOTH modules that carried it
+    (dd_review_runner.py:155 and dd_balance_book.py:243) and cannot return: the control is
+    mutation-proven under python3 -B against each. The strict xfail that pinned this exact defect
+    since 2026-08-03 -- test_opening_dd_size_must_not_depend_on_the_join_month, whose reason said
+    "Remove this xfail when that atom lands" -- is discharged unchanged, through the real
+    estimator rather than a literal passed twice. NOT 2, and the reason is measured not modest:
+    115 of 257 customers get NO opening because get_cap_unit_rate_for_date returns None before
+    the price cap began in Jan 2019, so pre-cap acquisitions have no published rate to annualise
+    against. They are refused and counted in unestimated_customers, never opened from a bill.
+    Level 2 wants that hole closed with a company-side dated tariff book, and the two
+    pre-registered predictions (window-0 mean |variance| falls; held-credit liability moves
+    materially) graded against a full run.'
   loop_stage: build
   blocked_on: null
   dial_inherited: 3

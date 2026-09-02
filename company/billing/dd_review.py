@@ -12,7 +12,12 @@ class DDAction(str, Enum):
     MAINTAIN = "maintain"
 
 
-# Variance beyond ±5% triggers a DD adjustment under Ofgem SLC 27B
+# Variance beyond ±5% triggers a DD adjustment. The DUTY is Ofgem SLC 27.15 (set
+# and revise the DD on "the best and most current information available"); the
+# ±5% is NOT in the licence -- there is no SLC 27B, and SLC 27.13-27.16 name no
+# numeric trigger. It is a widely used supplier review band, so it stands here as
+# a MODELLING CONVENTION, not a licence requirement.
+# Source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md
 _VARIANCE_THRESHOLD_PCT = 5.0
 
 

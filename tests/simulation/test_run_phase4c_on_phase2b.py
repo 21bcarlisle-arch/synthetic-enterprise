@@ -366,13 +366,42 @@ def test_bill_shock_likely_seasonal_false_for_shock_aftermath_month(force_actual
     August's own seasonal pattern.
 
     Scaled off 10/50 for the £5 baseline floor -- see
-    `test_build_monthly_bills_carries_previous_bill_total_for_shock`."""
+    `test_build_monthly_bills_carries_previous_bill_total_for_shock`.
+
+    AMENDED 2026-09-02, and the amendment is the interesting part. This test was
+    RED AT CLEAN HEAD (`TypeError: '>=' not supported between NoneType and
+    float`) because it still asserted `bill_shock_pct >= 0.20` on the aftermath
+    month. `saas.bill_generator.bill_movement` was corrected on 2026-09-01 to
+    make **shock signed**: a shock is an INCREASE, so a bill that FELL carries
+    `None`, not the `abs()` of its fall. August reverts DOWN from July's spike,
+    so `None` is now the correct value and the old assertion was measuring the
+    defect that correction removed.
+
+    **The assertion is not merely relaxed -- it is moved onto the honest
+    quantity.** `bill_movement_pct` is the signed movement and is what "August's
+    own MoM change is large" always meant; -0.799 is that change. Asserting the
+    sign as well as the magnitude is what stops this test passing again on a
+    future `abs()` regression.
+
+    **AND IT NO LONGER PROVES WHAT ITS NAME CLAIMS -- read this before trusting
+    it.** The exclusion it was written for is
+    `... and not prior_month_was_shock` in `monthly_bill_assembly`, and that
+    clause is now UNREACHABLE for the aftermath shape: the same expression
+    short-circuits on `mom_pct is not None` first, and an aftermath month is by
+    definition a month that fell, so `mom_pct` is always None before the
+    exclusion is consulted. The `None` guard now does the exclusion's job and
+    does it earlier. So this test passing is NOT evidence the exclusion works --
+    it would pass with that clause deleted. Filed as its own finding rather than
+    left for a reader to discover; do not read a green here as covering it."""
     year1 = [300] * 12
     year2 = [300, 300, 300, 300, 300, 300, 1500, 300, 300, 300, 300, 300]
     records = consecutive_monthly_records("C1", 2019, year1 + year2)
     bills = bills_by_month(build_monthly_bills(records), "C1")
     august_y2 = bills["2020-08"]
-    assert august_y2["bill_shock_pct"] >= 0.20  # reverting from July's spike
+    # The month's own change is large AND DOWNWARD -- reverting from July's spike.
+    assert august_y2["bill_movement_pct"] <= -0.20
+    # ...which is exactly why it is not a shock: a shock is an increase.
+    assert august_y2["bill_shock_pct"] is None
     assert august_y2["bill_shock_yoy_pct"] < 0.20  # August is normal both years
     assert august_y2["bill_shock_likely_seasonal"] is False  # NOT seasonal -- shock aftermath
 

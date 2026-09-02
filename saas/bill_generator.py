@@ -67,12 +67,14 @@ BILL_SHOCK_BASELINE_FLOOR_GBP = 5.0
 
 #: WHICH DEFINITION OF BILL SHOCK APPLIES IS DECIDED ENTIRELY BY HOW THE HOUSEHOLD PAYS
 #: (`docs/market_research/what_bill_shock_is.md`, 2026-09-01, sourced from Ofgem's credit-balance
-#: and Direct Debit Market Compliance publications and SLC 27B/21BA). There are TWO experiences in
-#: two populations, not one experience with three causes:
+#: and Direct Debit Market Compliance publications and SLC 27.15/21BA — there is no SLC 27B; see
+#: `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`). There are TWO
+#: experiences in two populations, not one experience with three causes:
 #:
 #:   "payment"      — a level direct debit. The bill is a statement that arrives and is filed; the
-#:                    shock is a MATERIAL CHANGE IN THE AMOUNT COLLECTED (±5% is the SLC 27B review
-#:                    trigger; >100% was Ofgem's 2022 escalation cut), or a balance the household
+#:                    shock is a MATERIAL CHANGE IN THE AMOUNT COLLECTED (±5% is a supplier review
+#:                    convention, not a licence trigger; >100% was Ofgem's 2022 escalation cut, and
+#:                    that one IS published), or a balance the household
 #:                    does not understand. ~74% of GB domestic households.
 #:   "bill"         — standard credit, and variable direct debit. The shock IS the bill. ~13%.
 #:   "out_of_scope" — prepayment. No bill to be shocked by and no direct debit to be changed; the

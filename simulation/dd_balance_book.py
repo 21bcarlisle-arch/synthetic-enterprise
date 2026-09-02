@@ -41,8 +41,9 @@ artefact where none existed before, with NO existing number changed:
 * The DD-customer population and the standing level-DD chain are IDENTICAL to
   the two sibling artefacts so the three stay mutually consistent: the DD
   population is ``payment_method(...) == "direct_debit"`` (same gate as
-  ``dd_collection_book``); the standing monthly DD is the first issued bill's
-  amount in the first year, then each subsequent year is the amount the supplier
+  ``dd_collection_book``); the standing monthly DD is the amount the supplier SET
+  AT REGISTRATION in the first year (handed in through ``opening_dd_gbp``, never
+  read off a bill), then each subsequent year is the amount the supplier
   SET after reviewing the prior year's actual spend, asked for through
   ``company/interfaces/dd_review_outcome.py`` -- the very same year-on-year
   re-estimation chain ``dd_review_runner`` walks. (KNIFE pass 3, B4: this used to
@@ -79,25 +80,35 @@ Deferred / NOT built here (registered, not silently dropped):
      with a permanently dead input. Registered as work on W2_12's own wiring,
      not silently carried here as a DD residual that looks drawable and is not.
 
-* The OPENING STANDING DD is sized from the customer's first issued bill, and
-  that is a measured fidelity defect, pinned as a strict xfail in this module's
-  suite (``test_opening_dd_size_must_not_depend_on_the_join_month``). One
-  month's bill annualised flat is a seasonal number: on the real book the
-  year-0 standing DD misses the customer's own realised year-0 average by
-  +33.2% (gas, April join) and -46.3% (gas, July join), against 2.1% / -1.0% /
-  2.6% for the weakly-seasonal electricity accounts. The error is a function of
-  WHICH MONTH the customer joined, which is exactly what a real supplier's
-  opening estimate is built to be independent of (it sizes from the industry
-  EAC/AQ handed over at registration, or from a published seasonal profile,
-  never from one month grossed up). Fixing it needs a published monthly-shape
-  source, so it is registered as its own atom rather than fabricated here --
-  no coefficient in this codebase may be invented.
+* The OPENING STANDING DD used to be sized from the customer's FIRST ISSUED BILL
+  (``seq[0][1]``), which was a measured fidelity defect pinned as a strict xfail
+  in this module's suite
+  (``test_opening_dd_size_must_not_depend_on_the_join_month``).
+  One month's bill annualised flat is a seasonal number: on the real
+  book the year-0 standing DD missed the customer's own realised year-0 average
+  by +33.2% (gas, April join) and -46.3% (gas, July join), against 2.1% / -1.0%
+  / 2.6% for the weakly-seasonal electricity accounts. The error was a function
+  of WHICH MONTH the customer joined, which is exactly what a real supplier's
+  opening estimate is built to be independent of.
+
+  CORRECTED 2026-09-02 (atom ``D_opening_dd_seasonal_sizing``, level 0 -> 1).
+  The amount now arrives as ``opening_dd_gbp``, sized company-side at
+  registration from ``company/billing/annual_consumption_estimate.py`` against
+  the SLC 27.15 precedence (declaration / industry EAC-AQ / Ofgem TDCV), and no
+  coefficient was invented to do it. The xfail is discharged.
+
+  A customer for whom the company could establish NO opening amount is REFUSED,
+  not defaulted: they land in ``unestimated_customers`` and get no trajectory.
+  There is deliberately no fallback to ``seq[0][1]`` -- restoring one turns
+  ``tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py``
+  red, and its source leg reads THIS file as well as the runner.
 """
 from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Mapping
 
 from company.interfaces.dd_review_outcome import reviewed_monthly_amount
 from simulation.arrears_engine import payment_method
@@ -140,6 +151,10 @@ class DDBalanceBook:
     trajectories: dict = field(default_factory=dict)
     # 'YYYY-MM' -> aggregate across all DD customers active that month
     monthly: dict = field(default_factory=dict)
+    #: DD customers with issued bills but NO established opening amount. They
+    #: carry no trajectory and no held credit: without a standing DD there is no
+    #: level payment. A result to be published, not a gap to be filled.
+    unestimated_customers: list = field(default_factory=list)
 
     def _months_sorted(self) -> list:
         return sorted(self.monthly)
@@ -204,9 +219,20 @@ class DDBalanceBook:
         }
 
 
-def build_dd_balance_book(bills: list[dict]) -> DDBalanceBook:
+def build_dd_balance_book(
+    bills: list[dict],
+    opening_dd_gbp: Mapping[str, float] | None = None,
+) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
+
+    ``opening_dd_gbp`` is the monthly amount the supplier SET when each account
+    opened -- the world is told the amount, never the routine that chose it
+    (the same property the ``reviewed_monthly_amount`` seam exists to hold).
+    A customer with no opening amount carries NO balance trajectory and is
+    counted in ``unestimated_customers``: without a standing DD there is no
+    level payment, and therefore no credit to build or draw down. Inventing one
+    from their first bill is the defect this parameter removes.
 
     Pure, deterministic, idempotent (no RNG, no mutation of ``bills`` or any
     ground-truth structure). See the module docstring for the wall-clean basis
@@ -239,17 +265,31 @@ def build_dd_balance_book(bills: list[dict]) -> DDBalanceBook:
         seq = sorted(by_cust[cid], key=lambda t: t[0])
         anchor = seq[0][0]
 
-        # Standing level DD per 12-month window: window 0 = the naive initial
-        # estimate (first issued bill amount, exactly dd_review_runner's and
-        # dd_collection_book's initial mandate sizing); each later year resets to
-        # the amount the supplier set at that review, asked for at the seam
+        # Standing level DD per 12-month window: window 0 is the amount the
+        # supplier SET at registration (an annualised estimate, told to the
+        # world through `opening_dd_gbp`); each later year resets to the amount
+        # the supplier set at that review, asked for at the seam
         # (reviewed_monthly_amount) -- the identical year-on-year chain
         # dd_review_runner walks.
+        #
+        # WINDOW 0 USED TO BE `seq[0][1]` -- THE FIRST ISSUED BILL. That made
+        # every household's level payment, and therefore the whole seasonal
+        # credit trajectory and the portfolio held-credit liability this module
+        # exists to measure, an accident of which month the account opened in.
+        # Corrected 2026-09-02 with dd_review_runner, which carried the same
+        # line: one defect, two implementations, exactly the shape CLAUDE.md
+        # names. Held by tests/company/billing/
+        # test_the_opening_dd_is_never_the_first_issued_bill.py, whose source
+        # leg reads THIS file too.
+        opening = (opening_dd_gbp or {}).get(cid)
+        if opening is None or opening <= 0.0:
+            book.unestimated_customers.append(cid)
+            continue
         windows: dict[int, list[tuple[date, float]]] = {}
         for d, amt in seq:
             windows.setdefault(_months_between(anchor, d) // 12, []).append((d, amt))
         standing_dd_by_window: dict[int, float] = {}
-        standing = seq[0][1]
+        standing = float(opening)
         for wi in sorted(windows):
             standing_dd_by_window[wi] = standing
             actual_annual = sum(a for _, a in windows[wi])

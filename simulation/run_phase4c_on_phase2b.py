@@ -62,36 +62,36 @@ hand here — `tools/wall_crossing_dispositions.py` prints it from the walker, a
 this docstring disagreeing with it is a defect in this docstring.
 """
 
-from simulation.dd_collection_book import build_dd_collection_book
-from simulation.dd_balance_book import build_dd_balance_book
-from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.interfaces.accounting_close import close_the_books
-from company.interfaces.dd_review import annual_dd_review_view
 from company.interfaces.bill_assembly import assemble_monthly_bills
-from company.interfaces.growth_desk import broker_commission_schedule
 from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import (
     build_customer_value_view,
     build_three_horizon_clv_snapshots,
 )
+from company.interfaces.dd_review import annual_dd_review_view
+from company.interfaces.growth_desk import broker_commission_schedule
 from company.interfaces.supply_book import (
     acquired_supply_points,
     successor_supply_points,
 )
+from simulation import policy_costs as _policy_costs
 from simulation.arrears_engine import (
-    compute_emergent_bad_debt,
+    apply_debt_recovery,
     apply_emergent_bad_debt,
     compute_debt_recovery,
-    apply_debt_recovery,
+    compute_emergent_bad_debt,
 )
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
+from simulation.dd_balance_book import build_dd_balance_book
+from simulation.dd_collection_book import build_dd_collection_book
+from simulation.dd_level_collection_book import build_dd_level_collection_book
+from simulation.live_population import live_population
 from simulation.meter_reads import (
     SimulatedReadFeed,
     meter_read_log_from_events,
 )
-from simulation.live_population import live_population
-from simulation import policy_costs as _policy_costs
 from simulation.run_phase2b import main as run_phase2b
 from simulation.settlement_clocks import refresh_settlement_scalars
 from tools.contact_centre_port import ContactCentreMessage
@@ -109,6 +109,62 @@ CUSTOMERS = live_population()
 SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
+
+
+
+def _opening_dd_by_customer(customers: list[dict]) -> dict[str, float]:
+    """The monthly Direct Debit the supplier SET when each account opened.
+
+    ATOM `D_opening_dd_seasonal_sizing`, 2026-09-02. Until this existed, both
+    `annual_dd_review_view` and `build_dd_balance_book` opened every customer at
+    their FIRST ISSUED BILL, which made the standing DD an accident of the month
+    the account started in. The director's correction, 2026-09-01: *"an
+    annualised plan divides estimated annual cost by twelve whatever the start
+    date."*
+
+    Asked through `company/interfaces/dd_review_outcome.opening_monthly_amount`
+    -- the world is told the AMOUNT, never the routine that chose it, exactly as
+    it already is for the reviewed amount. Everything fed in is registration
+    data a real supplier holds: the EAC/AQ handed over on the industry flow, the
+    commodity, and the date. **The household's true annual consumption is not
+    passed and must never be.**
+
+    A customer with no reachable price anchor gets NO entry, and the DD books
+    count them as unestimated rather than opening them from a bill. That is
+    fail-closed and the count is published, not hidden: the company holds no
+    published rate before the price cap began in January 2019, so pre-cap
+    acquisitions genuinely have no rate to annualise against in this repository.
+    Giving the company its own dated tariff book is the registered next step for
+    this atom, and it is what would put those accounts back in scope.
+
+    NOTHING ABOUT THE SUPPLIER'S PRICING IS COMPUTED HERE. An earlier draft
+    resolved the cap rate and standing charge in this function and passed them
+    through the door, which created two live wall crossings from `simulation/`
+    into `company.pricing` with no disposition -- refused at the gate, correctly.
+    The world hands over registration facts and is told an amount.
+    """
+    from company.interfaces.dd_review_outcome import opening_monthly_amount
+
+    opening: dict[str, float] = {}
+    for c in customers:
+        cid = c.get("customer_id")
+        as_of_iso = c.get("acquisition_date")
+        if not cid or not as_of_iso:
+            continue
+        commodity = c.get("commodity", "electricity")
+        # EAC for electricity, AQ for gas -- the same registration figure under
+        # the two industries' names.
+        eac = c.get("eac_kwh") if commodity == "electricity" else c.get("aq_kwh")
+
+        amount = opening_monthly_amount(
+            as_of_iso=as_of_iso,
+            commodity=commodity,
+            registry_eac_kwh=float(eac) if eac else None,
+            band="MEDIUM" if not eac else None,
+        )
+        if amount is not None:
+            opening[cid] = amount
+    return opening
 
 
 def _get_all_customers() -> list[dict]:
@@ -252,11 +308,16 @@ def main(report_end: str | None = None, policy=None):
     # ground-truth churn and needs population-level verification).
     #
     # KNIFE pass 3 step 32 (§3aa, B13): this used to call the desk module
-    # directly, which handed the world the SLC 27B variance rule, the 15%
-    # bill-shock threshold and the review book type. It now goes through
+    # directly, which handed the world the +/-5% variance rule, the 15%
+    # bill-shock threshold and the review book type. (That comment used to cite
+    # "SLC 27B" for the +/-5%. There is no SLC 27B: the DUTY is SLC 27.15 and
+    # the band is a modelling convention --
+    # docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md.)
+    # It now goes through
     # `company.interfaces.dd_review`, which takes the bills and returns the
     # SERIALISED review -- no company type crosses at all.
-    annual_dd_review = annual_dd_review_view(bills)
+    opening_dd = _opening_dd_by_customer(_get_all_customers())
+    annual_dd_review = annual_dd_review_view(bills, opening_dd)
 
     # DD2 (atom DD_seasonal_cashflow_physics): the per-customer level-DD seasonal
     # credit/debit balance carried tick-by-tick, and the portfolio HELD-CREDIT
@@ -268,7 +329,7 @@ def main(report_end: str | None = None, policy=None):
     # financial figure. It emits the held-credit-liability figure DD3 will book
     # into the double-entry chart and DD-H will weigh against believed solvency
     # (both the registered next gated steps, deliberately not wired here).
-    dd_balance_book = build_dd_balance_book(bills)
+    dd_balance_book = build_dd_balance_book(bills, opening_dd)
 
     # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
     # made first-class -- the standing monthly amount actually SIZES a collection

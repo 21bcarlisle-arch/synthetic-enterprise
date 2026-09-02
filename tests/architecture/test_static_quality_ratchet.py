@@ -648,7 +648,12 @@ RUFF_BASELINE: dict[str, int] = {
     #             ratio were separated, and sorting the new name into place fixed a block that
     #             was already unsorted AT CLEAN HEAD. SHRINK-ONLY: the floor moves DOWN and the
     #             new count is held. Sorted by hand, not by `--fix`.
-    "I001": 1333,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
+    # 2026-09-02  I001 1333 -> 1331. Atom `D_opening_dd_seasonal_sizing` added imports to
+    #             `simulation/run_phase4c_on_phase2b.py` (`datetime.date`) and
+    #             `tests/simulation/test_dd_balance_book.py` (`datetime.date`, the estimator),
+    #             and each file's from-import block was already unsorted. Attributed per-file:
+    #             both reported 1 I001 at `git show HEAD:` and report 0 now. SHRINK-ONLY.
+    "I001": 1331,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -674,7 +679,9 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2315  # was 2317; -2 (W293) on 2026-09-02 from `tools/population_anchor.py`,
+RUFF_BASELINE_TOTAL = 2313  # was 2315; -2 (I001) on 2026-09-02 from the two files named on the
+                            # I001 entry above (atom `D_opening_dd_seasonal_sizing`).
+                            # Before that it was 2317; -2 (W293) on 2026-09-02 from `tools/population_anchor.py`,
                             # attributed per-file: that file reported 2 W293 at `git show HEAD:`
                             # and reports 0 now. See the dated note on the W293 entry above.
                             # Before that it was 2319; -1 (F401) and -1 (F811) on 2026-09-02, from

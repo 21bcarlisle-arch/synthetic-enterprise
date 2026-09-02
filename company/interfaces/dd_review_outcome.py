@@ -20,7 +20,8 @@ WHAT THE WORLD LEGITIMATELY KNOWS, AND WHAT IT DOES NOT
     after an annual review ("we're changing your payments to £64 a month"). The
     household's bank balance, its seasonal credit position and the refund it is owed
     at closure all follow from that number, so the world must be able to see it.
-  * Not known — **the routine.** The ±5% SLC 27B variance band, the increase /
+  * Not known — **the routine.** The ±5% variance band (a modelling convention
+    under the SLC 27.15 duty, not a licence threshold), the increase /
     decrease / maintain classification, the rounding convention, `DDReviewResult`.
     Those are the supplier's review policy. A customer receives the letter; they do
     not receive the pricing desk's spreadsheet.
@@ -86,7 +87,7 @@ chokepoint.
 """
 from __future__ import annotations
 
-__all__ = ["reviewed_monthly_amount"]
+__all__ = ["opening_monthly_amount", "reviewed_monthly_amount"]
 
 
 def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
@@ -107,3 +108,85 @@ def reviewed_monthly_amount(actual_annual_spend_gbp: float) -> float:
     from company.billing.dd_review import _recommended_monthly
 
     return _recommended_monthly(actual_annual_spend_gbp)
+
+
+def opening_monthly_amount(
+    *,
+    as_of_iso: str,
+    commodity: str,
+    metered_annual_kwh: float | None = None,
+    registry_eac_kwh: float | None = None,
+    declared_annual_kwh: float | None = None,
+    band: str | None = None,
+) -> float | None:
+    """The standing monthly Direct Debit the supplier SET when the account
+    opened — or `None` where nothing it holds established one.
+
+    The counterpart to `reviewed_monthly_amount` at the other end of the
+    account's life, and the same door in both directions: a real customer is
+    told "your payments will be £62 a month" at sign-up exactly as they are told
+    the reviewed figure afterwards, so the world must be able to see the amount.
+
+    WHAT CROSSES, PRECISELY
+    -----------------------
+    In: REGISTRATION FACTS ONLY — the date, the fuel, and whichever of the
+    industry EAC/AQ, the customer's declaration or our own metered history
+    exists. Every one of them is something both parties already have.
+
+    Out: one number, the opening monthly amount.
+
+    What stays behind the door is the whole ROUTINE: the SLC 27.15 precedence
+    over those sources, the date-keyed Ofgem TDCV series, **and the price the
+    supplier annualised at**. That last one is why this function takes no unit
+    rate and no standing charge, and it is not a convenience — the first draft
+    of this door DID accept them, which made
+    `simulation/run_phase4c_on_phase2b.py` import `company.pricing.
+    ofgem_price_cap` and `company.pricing.tariff_comparison` to work them out.
+    Two live wall crossings with no disposition, refused by the register at the
+    gate. A supplier's own tariff is not something the world computes on its
+    behalf; the world asks what the payment was set to and is told.
+
+    **The household's true annual consumption is not a parameter here and must
+    never become one** — this door is exactly where that breach would be easiest
+    to make by accident.
+
+    `None` is a RESULT and callers must carry it as one: the DD books count
+    those customers as unestimated rather than opening them from a bill. It is
+    returned when nothing establishes a consumption, and also when the company
+    holds no published rate for that date — before the price cap began in
+    January 2019 there is none in this repository, and inventing one to fill the
+    gap is the defect this whole atom removes.
+    """
+    from datetime import date
+
+    from company.billing.annual_consumption_estimate import (
+        estimate_annual_consumption,
+        opening_monthly_dd_gbp,
+    )
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+    from company.pricing.tariff_comparison import STANDING_CHARGE_RESI_P_PER_DAY
+
+    as_of = date.fromisoformat(as_of_iso)
+
+    cap_gbp_per_mwh = get_cap_unit_rate_for_date(commodity, as_of)
+    if cap_gbp_per_mwh is None:
+        return None
+
+    estimate = estimate_annual_consumption(
+        as_of=as_of,
+        commodity=commodity,
+        metered_annual_kwh=metered_annual_kwh,
+        registry_eac_kwh=registry_eac_kwh,
+        declared_annual_kwh=declared_annual_kwh,
+        band=band,
+    )
+    return opening_monthly_dd_gbp(
+        estimate,
+        # £/MWh -> p/kWh.
+        unit_rate_p_kwh=cap_gbp_per_mwh / 10.0,
+        # REUSED, not re-declared: the repo already carries exactly one published
+        # resi standing charge, and a fifth declaration of it is a filed finding
+        # of its own. It is a 2024 figure applied across the window — a known
+        # limitation of that constant, not of this call site.
+        standing_charge_p_day=STANDING_CHARGE_RESI_P_PER_DAY,
+    )
