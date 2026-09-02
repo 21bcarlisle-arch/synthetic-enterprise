@@ -531,10 +531,65 @@ absent — not as a hypothesis confirmed.** A prediction whose condition was eng
 less than one that was allowed to run, and saying so is cheaper than the alternative, which is a
 record that reads as two-for-two.
 
-### 13.4 What is closed and what is still owed
+### 13.4 The grading found a defect of its own: the absence names no cause, so it is now named
+
+§13.2 could not attribute one missing `DISCHARGED` line, and that is not an accident of this
+turn — it is the same complaint this whole finding makes about the *positive* result, arriving
+through the negative one. Until now the only line written at that branch was `DISCHARGED`, so
+every other outcome was a silence, and three different things produce it.
+
+The smallest thing that fixes it is the one leg: say which silence it is.
+
+```
+HANDOFF STANDS <id>: the tick did not release its claim, so the continuation is re-offered
+                     to the next tick rather than consumed
+NO HANDOFF TO DROP <id>: the tick released its claim, but no continuation record held this id
+                     -- a DRAWN item never has one, so this turn says nothing either way
+                     about the discharge condition
+```
+
+Neither string contains the token `DISCHARGED`, deliberately: three existing controls assert on
+that token, and a reason line that made them pass by string coincidence would be worse than no
+reason line at all. Nor does either match `_TURN_LINE`, so the drawn channel's census is unmoved.
+
+Two controls, each asserting on the branch's own observable (`routed.dropped`) as well as on the
+line, so a reason attached to the wrong branch fails rather than reading plausibly:
+
+* `test_a_turn_whose_TICK_DID_NOT_RELEASE_says_so_instead_of_going_quiet`
+* `test_a_DRAWN_items_missing_discharge_is_not_read_as_the_tick_holding_on`
+
+| # | Mutation | Result |
+|---|---|---|
+| A | the `if not tick_released:` arm loses its reason line — the 2026-09-02 silence restored exactly | **DIES**, and only the first test fires |
+| B | the drawn arm loses its reason line | **DIES**, and only the second test fires, so each silence has a SOLE witness rather than one subject satisfying both alternations |
+| C | the two reasons swapped between the branches | **DIES on both** — the reason is keyed to its branch, not merely present |
+
+Green at rest: 31 passed, up from 29. The sole-witness separation in A and B was established by
+running each mutation and reading which test failed, not by assuming the tests were disjoint.
+
+**What this does NOT do:** it does not make §9.7 clause 2 retrospectively gradable. The lines that
+would have settled it were never written. It makes the *next* one gradable from the log alone,
+which is the only direction available.
+
+### 13.5 What is closed and what is still owed
 
 Closed: §12.6's open clause — the repaired writer is measured in production, on the promoted route,
-with nothing mirrored by hand (§13.1); §8 graded (§13.3); §9.7 clause 2 graded, split (§13.2).
+with nothing mirrored by hand (§13.1); §8 graded (§13.3); §9.7 clause 2 graded, split (§13.2); the
+absence of a discharge now names its cause, mutation-proven (§13.4).
+
+P1 and P2 of this turn's pre-registration are **CONFIRMED**, measured after the landing was
+promoted, by calling the shared tree's own `subject_moved` rather than reading the log:
+
+```
+--landed  ->  bound 2 path(s) to grade-the-repaired-writer-on-a-real-executor-turn
+leg 1  bound landing: 2 path(s), at 1788392588.0 (> started 1788392160.03: True)
+leg 2  shared tree changed since c1e24f4bb: 2 path(s), unreadable=''
+VERDICT: moved=True -- 2 of 2 bound path(s) moved on the shared tree
+```
+
+§9.2's measurement of the same call, on the same route, was `bound NOTHING … it is NOT CLAIMED`
+with `.delivery_lane_claims.json (shared) -> []`. The difference is the writer, and this time
+nothing was mirrored by hand — which is precisely what §12.6 said it could not yet claim.
 
 Owed, and handed off with its exact reading: this turn's own `DISCHARGED`/`FINISHED` pair, which
 the parent writes after the child exits and which no turn can read about itself, plus the sibling

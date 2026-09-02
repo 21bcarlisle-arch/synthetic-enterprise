@@ -952,10 +952,32 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # part it finished, and a piece bigger than one turn must come back. So the signal is not
         # "a turn ended", it is "the tick said it was done" -- which is exactly what releasing the
         # claim means. If it did not release, the continuation stands and the next tick continues.
-        if tick_released:
-            if seat_continuation_drop(work_id):
-                log(f"DISCHARGED {work_id}: the tick released its claim, so the handoff is done "
-                    "and will not be re-offered")
+        # THE ABSENCE OF A DISCHARGE NOW NAMES ITS CAUSE, and that is not decoration.
+        #
+        # Until 2026-09-03 the only line written here was the DISCHARGED one, so a turn that did
+        # not discharge was a SILENCE -- and three different things produce that same silence:
+        # the verdict said LANDED NOTHING and returned above; `tick_released` was False; or
+        # `seat_continuation_drop` found nothing, which is the case for EVERY DRAWN ITEM because a
+        # draw writes no continuation record. Grading the finding's own §9.7 prediction --
+        # "DISCHARGED on some turns and not others" -- ran straight into that: the one absence on
+        # the live log was a drawn item, so it could not be attributed to the discharge condition
+        # at all, and the flattering reading was the unearned one. An instrument whose negative
+        # result carries no cause cannot be read back, which is the same complaint this whole
+        # finding makes about the positive one.
+        #
+        # NEITHER NEW WORD CONTAINS "DISCHARGED", deliberately: the controls above assert on that
+        # token, and a reason line that made them pass by string coincidence would be worse than
+        # no reason line.
+        if not tick_released:
+            log(f"HANDOFF STANDS {work_id}: the tick did not release its claim, so the "
+                "continuation is re-offered to the next tick rather than consumed")
+        elif not seat_continuation_drop(work_id):
+            log(f"NO HANDOFF TO DROP {work_id}: the tick released its claim, but no continuation "
+                "record held this id -- a DRAWN item never has one, so this turn says nothing "
+                "either way about the discharge condition")
+        else:
+            log(f"DISCHARGED {work_id}: the tick released its claim, so the handoff is done "
+                "and will not be re-offered")
         log(f"FINISHED {detail}")
         return True, detail
 
