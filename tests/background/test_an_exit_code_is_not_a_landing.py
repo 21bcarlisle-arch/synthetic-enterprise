@@ -491,3 +491,140 @@ def test_a_shared_tree_with_NO_log_falls_back_to_this_trees(tmp_path, monkeypatc
 
     assert seat_executor.ids_run_since(0.0) == ["readable-right-here"], \
         "reaching for the shared tree threw away a log this tree could read"
+
+
+# ------------------------------------------------------ the release message, the third instrument
+
+
+@pytest.fixture()
+def stores(tmp_path, monkeypatch):
+    """Both claim stores, off the live records.
+
+    BOTH, because `release_refusal_reason` reads the OTHER one to tell the matched pair apart, and
+    the live `.seat_work_in_hand.json` really does hold ids while this suite runs -- a test that
+    read it would pass or fail on what the tree happened to be doing.
+    """
+    lane = tmp_path / "delivery_lane_claims.json"
+    hand = tmp_path / "work_in_hand.json"
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", lane)
+    monkeypatch.setattr(delivery_lane.claims_mod, "CLAIMS_FILE", hand)
+
+    # AND THE TREE THIS PROCESS IS STANDING IN, which is an INPUT to the reason and was ambient
+    # until it was caught. `release_refusal_reason`'s worktree clause reads `PROJECT_DIR`, so
+    # these tests passed from the shared tree and FAILED, unmutated, from a linked worktree --
+    # and a drawn tick runs in one. That is the same defect `8cb73c627` fixed for the executor's
+    # log arriving inside the repair for it: a control whose verdict depends on who launched it.
+    # Pinned to a PLAIN repo so the clause is exercised at its real equality (common == own),
+    # not merely skipped by a git that refused.
+    shared = tmp_path / "shared_repo"
+    shared.mkdir()
+    subprocess.run(["git", "init", "-q", str(shared)], check=True, capture_output=True)
+    monkeypatch.setattr(delivery_lane, "PROJECT_DIR", shared)
+    return type("Stores", (), {"lane": lane, "hand": hand, "shared": shared})()
+
+
+def test_release_reports_whether_a_record_WAS_ACTUALLY_REMOVED(stores):
+    """ASSERTED AGAINST THE STORE, which is the discipline the finding asks for by name.
+
+    `release` returned `None` unconditionally, so the CLI's `print("released ...")` was true of
+    nothing. The claim here is not "it returned False" but "the store still holds it" -- a return
+    value is another self-report, and this whole chain is made of those.
+
+    MUTATION: `return True` unconditionally, or restore `-> None`, and this fires.
+    """
+    delivery_lane.claims_mod.claim("real-claim", paths=[], path=stores.lane)
+    assert "real-claim" in delivery_lane.claims_mod.held(path=stores.lane)
+
+    assert delivery_lane.claims_mod.release("real-claim", path=stores.lane) is True
+    assert "real-claim" not in delivery_lane.claims_mod.held(path=stores.lane), "the store kept it"
+
+    # Releasing again removes nothing, and the store is the witness.
+    assert delivery_lane.claims_mod.release("real-claim", path=stores.lane) is False
+    assert "real-claim" not in delivery_lane.claims_mod.held(path=stores.lane)
+
+
+def test_the_release_CLI_REFUSES_instead_of_printing_success(stores, capsys):
+    """The measured pair from the finding: one id, one turn, two commands that disagreed.
+
+    `--landed` said `bound NOTHING: it is NOT CLAIMED` and `--release` said `released <id>`. The
+    CLI must now decline in the same voice `--landed` already uses, and exit non-zero so a caller
+    that scripts it cannot read the refusal as a success.
+
+    MUTATION: drop the `if not ...` guard and print unconditionally, or `return 0` on the refusal
+    branch, and this fires.
+    """
+    rc = delivery_lane.main(["--release", "never-claimed"])
+    out = capsys.readouterr().out
+    assert rc == 1, "a release that let nothing go exited 0"
+    assert "released NOTHING for never-claimed" in out
+    assert "NOT CLAIMED here" in out
+
+    # And the PASS branch is still reachable — a real claim releases and reports success.
+    delivery_lane.claims_mod.claim("real-claim", paths=[], path=stores.lane)
+    assert delivery_lane.main(["--release", "real-claim"]) == 0
+    assert "released real-claim" in capsys.readouterr().out
+    assert "real-claim" not in delivery_lane.claims_mod.held(path=stores.lane)
+
+
+def test_the_refusal_NAMES_THE_MATCHED_PAIR_rather_than_reciting_causes(stores):
+    """The one cause that means STOP AND LOOK, separated from the one that means "fine".
+
+    An id held in `seat_work_in_hand` but not the delivery-lane store is the promoted route of
+    §9.1 — the work is still in hand and the release could never have found it. Collapsing that
+    into "not claimed" is how the seat would read a constant verdict as an ordinary one.
+
+    MUTATION: return the generic NOT CLAIMED string for every case and this fires.
+    """
+    delivery_lane.claims_mod.claim("promoted-item", paths=[], path=stores.hand)
+
+    why = delivery_lane.release_refusal_reason("promoted-item", path=stores.lane)
+    assert "matched pair" in why and "still in hand" in why
+    assert "NOT CLAIMED here" not in why, "the actionable cause was collapsed into the ordinary one"
+
+    # An id in NEITHER store is the ordinary reading, and must not borrow the alarming one.
+    plain = delivery_lane.release_refusal_reason("nowhere-at-all", path=stores.lane)
+    assert "NOT CLAIMED here" in plain and "matched pair" not in plain
+
+
+def test_a_release_reason_that_BLOWS_UP_still_names_its_class(stores, monkeypatch):
+    """It runs on a failure path; a reason that raised would lose the refusal it explains.
+
+    MUTATION: let the exception escape and this fires.
+    """
+    monkeypatch.setattr(delivery_lane.claims_mod, "held",
+                        lambda **k: (_ for _ in ()).throw(RuntimeError("store on fire")))
+    why = delivery_lane.release_refusal_reason("anything", path=stores.lane)
+    assert "could not be derived" in why and "RuntimeError" in why
+
+
+def test_the_refusal_NAMES_THE_WORKTREE_when_that_is_where_it_is_standing(stores, tmp_path,
+                                                                          monkeypatch):
+    """§6's trap, pinned against a REAL linked worktree rather than a stubbed answer.
+
+    A child running `--release` with its cwd in the executor's worktree writes the WORKTREE's
+    store; `ensure_worktree` resets it next turn, so the shared tree never hears the release. The
+    reason has to say so, because "not claimed" would send the reader to the wrong store entirely.
+
+    THIS CLAUSE IS WHY THE FIXTURE PINS `PROJECT_DIR`. It is a property of where the PROCESS
+    stands, not of the id, so it fires for every id once it fires at all — which means it MASKS
+    the other two causes rather than joining them. Covering it here is what keeps that a
+    deliberate ordering instead of an accident nobody measured.
+
+    MUTATION: drop the `common != own` comparison, or return the generic string here, and this
+    fires.
+    """
+    worktree = tmp_path / "linked"
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-C", str(stores.shared)]
+    subprocess.run([*git, "commit", "-q", "--allow-empty", "-m", "root"], check=True)
+    subprocess.run([*git, "worktree", "add", "-q", "--detach", str(worktree)], check=True,
+                   capture_output=True)
+    monkeypatch.setattr(delivery_lane, "PROJECT_DIR", worktree)
+
+    why = delivery_lane.release_refusal_reason("nowhere-at-all", path=stores.lane)
+    assert "LINKED WORKTREE" in why and "shared tree" in why
+
+    # The id-specific cause still OUTRANKS it: the matched pair is actionable and the worktree
+    # clause would otherwise swallow it on the executor's own route, where it matters most.
+    delivery_lane.claims_mod.claim("promoted-item", paths=[], path=stores.hand)
+    assert "matched pair" in delivery_lane.release_refusal_reason("promoted-item",
+                                                                  path=stores.lane)

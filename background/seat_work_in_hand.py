@@ -218,11 +218,34 @@ def bind_paths(work_id: str, paths: list[str], *, path: Path | None = None) -> l
     return rec["paths"]
 
 
-def release(work_id: str, *, path: Path | None = None) -> None:
+def release(work_id: str, *, path: Path | None = None) -> bool:
+    """Drop the claim. Returns whether a record was ACTUALLY REMOVED.
+
+    IT RETURNED `None` UNTIL 2026-09-02, and the caller printed success either way. That is the
+    third instrument in one chain reporting on itself rather than its subject -- the exit code,
+    the claim store and the release message -- and it is the reason a turn could run
+
+        $ python3 -m background.delivery_lane --landed  an-exit-code-is-not-a-landing
+        bound NOTHING to it: it is NOT CLAIMED
+        $ python3 -m background.delivery_lane --release an-exit-code-is-not-a-landing
+        released an-exit-code-is-not-a-landing
+
+    on the same id, in the same turn, and be told both that nothing holds it and that it was let
+    go. `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02`
+    §9.1 is the measurement.
+
+    The BOOLEAN is the whole repair here; deciding which store the claim should have been in is a
+    separate design call this deliberately does not make (the finding's §5/§6, handed off as
+    `the-landing-verdict-can-never-say-yes-on-a-promoted-item`). A caller that wants to know WHY
+    nothing was removed asks `delivery_lane.release_refusal_reason`, following the same split
+    `record_landing`/`refusal_reason` already uses in the module that owns that pattern.
+    """
     p = path or CLAIMS_FILE
     claims = _load(p)
-    if claims.pop(work_id, None) is not None:
-        _save(claims, p)
+    if claims.pop(work_id, None) is None:
+        return False
+    _save(claims, p)
+    return True
 
 
 def held(*, path: Path | None = None) -> list[str]:

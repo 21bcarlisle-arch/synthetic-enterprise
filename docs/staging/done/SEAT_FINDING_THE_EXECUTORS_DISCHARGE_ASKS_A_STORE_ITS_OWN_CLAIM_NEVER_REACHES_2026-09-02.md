@@ -273,3 +273,46 @@ should say whether a record was removed, and the CLI should print the refusal an
 it was not — the same discipline `record_landing`'s `refusal_reason` already follows, in the module
 that already owns the pattern.
 
+
+---
+
+## 11. AMENDMENT 2026-09-02, later still — §10.2's clause is LANDED. §9.5's clauses 1, 2 and 4 are NOT
+
+Written by the turn drawn on `an-exit-code-is-not-a-landing`, which found this finding already on
+origin and its clause 3 still open.
+
+**Discharged: only the release-reporting clause of repair A.** claims_mod.release now returns
+whether a record was actually removed, and the delivery-lane CLI prints released NOTHING for the
+id followed by a named reason and exits non-zero, matching what the landed binding step already
+does one branch below it. Evidence: 20 tests in the control file, four mutations run in an
+isolated worktree, each killing the test that names it — release returning True unconditionally
+kills two, the unconditional print kills one, collapsing the reason to a single generic string
+kills three, and dropping the worktree comparison kills one.
+
+### 11.1 The reason SEPARATES the causes, because that was the whole point
+
+Three, ordered, and the ordering is load-bearing rather than incidental:
+
+1. **Held in the other store** — §9.1's matched pair, and the only one that means STOP AND LOOK.
+   The work is still in hand and the release could never have found it.
+2. **Standing in a linked worktree** — §6's trap. Checked second because it is a property of the
+   PROCESS, not of the id, so once it fires it fires for everything.
+3. **Not claimed anywhere** — the ordinary reading, which must not borrow the alarming one.
+
+### 11.2 A defect in the repair, caught by the repair's own discipline
+
+The first draft of the control passed from the shared tree and FAILED, unmutated, from a linked
+worktree — because clause 2 above reads the tree the process is standing in, and the test left
+that ambient. That is the same class as the executor-log defect fixed the day before: a control
+whose verdict depends on who launched it. The fixture now pins the project directory to a plain
+repository, and a separate test pins the worktree clause against a real linked worktree, so the
+environment is an input rather than an accident. Both trees now agree at 20 passed.
+
+### 11.3 What is still open, and it is the larger half
+
+§9.5 clauses 1, 2 and 4 are untouched and deliberately so — which store a claim should land in is
+the design call §5 declined to guess at, and it is still handed off as
+the-landing-verdict-can-never-say-yes-on-a-promoted-item. Until it lands, leg 1 of the verdict
+remains a constant on the promoted route. **This amendment narrows the chain from three
+self-reporting instruments to two; it does not close it.** §8's prediction is untouched and
+still unobserved.

@@ -372,6 +372,52 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
 
 
+def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
+    """WHY `--release` removed nothing. Called only after it did.
+
+    THE TWO CAUSES ARE NOT THE SAME NEWS and separating them is the whole value, exactly as in
+    `refusal_reason` above. "Already released" is ordinary and ends the matter. "Claimed in the
+    OTHER store" is the matched pair of
+    `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02`
+    §9.1 -- `draw()` claims with `path=CLAIMS_FILE` and `run_once` claims without it, so the store
+    a claim lands in depends on the ROUTE it arrived by, and a promoted item is claimed somewhere
+    `--release` never looks. Telling those apart is the difference between "fine" and "the verdict
+    on this route is a constant".
+
+    THE WORKTREE CLAUSE IS THE §6 TRAP and it is checked SECOND, because it is a property of where
+    this process is standing rather than of the id: a child running `--release` with its cwd in the
+    executor's worktree imports the worktree's module, writes the worktree's store, and
+    `ensure_worktree` resets it next turn -- so the shared store never hears the release and the
+    message said "released" anyway.
+
+    Never raises, for `refusal_reason`'s reason: it runs on a failure path and a reason that blew
+    up would lose the refusal it exists to explain.
+    """
+    try:
+        store = path or CLAIMS_FILE
+        if focus_id in claims_mod.held(path=claims_mod.CLAIMS_FILE) and \
+                store != claims_mod.CLAIMS_FILE:
+            return (f"it is NOT in the delivery-lane store, but IS held in "
+                    f"{claims_mod.CLAIMS_FILE.name} -- the two stores are the matched pair of "
+                    f"the 2026-09-02 finding: a PROMOTED item is claimed there and released "
+                    f"here, so this release could never have found it. The work is still in "
+                    f"hand; nothing has been let go")
+        common = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
+                                capture_output=True, text=True, timeout=10)
+        own = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=str(PROJECT_DIR),
+                             capture_output=True, text=True, timeout=10)
+        if common.returncode == 0 and own.returncode == 0 and \
+                common.stdout.strip() and common.stdout.strip() != own.stdout.strip():
+            return (f"this is a LINKED WORKTREE, so {store.name} here is the worktree's copy and "
+                    f"the shared tree's store never heard the release. Run it from the shared "
+                    f"tree, or the next `ensure_worktree` resets this away")
+        return ("it is NOT CLAIMED here -- nothing holds it, so nothing was let go. If the tick "
+                "already released it, this is the expected reading; if it never claimed, the "
+                "work was done unclaimed and the lane could not see it move")
+    except Exception as exc:  # noqa: BLE001
+        return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
+
+
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    claimed_at: float | None = None) -> list[str]:
     """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
@@ -603,7 +649,13 @@ def main(argv=None) -> int:
                     help="return abandoned claims to the pool")
     args = ap.parse_args(argv)
     if args.release:
-        claims_mod.release(args.release, path=CLAIMS_FILE)
+        # NON-ZERO ON A REFUSAL, matching --landed directly below: the caller believes it finished
+        # and the lane disagrees, which it needs to hear NOW. Printing success either way is what
+        # let a turn be told "bound NOTHING: it is NOT CLAIMED" and "released" about one id.
+        if not claims_mod.release(args.release, path=CLAIMS_FILE):
+            print(f"released NOTHING for {args.release}: "
+                  f"{release_refusal_reason(args.release)}")
+            return 1
         print(f"released {args.release}")
         return 0
     if args.landed:
