@@ -108,12 +108,28 @@ def test_a_missing_or_malformed_baseline_reads_as_EMPTY(tmp_path):
 
 def test_nothing_in_this_module_writes_the_baseline():
     """THE ANTI-LAUNDERING PROPERTY. A control that folds its own new failures into its own
-    baseline cannot fail. Asserted structurally so a future edit that adds a write is named."""
-    src = (hgc.PROJECT_DIR / "tools" / "head_green_census.py").read_text()
-    body = src.split('"""', 2)[-1]  # skip the module docstring
-    for forbidden in ("write_text", "json.dump(", "BASELINE_PATH.open"):
-        assert forbidden not in body, (
-            "head_green_census must never write its own baseline -- found {!r}".format(forbidden))
+    baseline cannot fail. Asserted structurally so a future edit that adds a write is named.
+
+    SUBJECT FOLLOWED THE PATH, 2026-09-02. `BASELINE_PATH` and `load_baseline` moved OUT of
+    head_green_census into `background/head_red_baseline.py`, to cut the import edge that put
+    `process_run_complete` on the supervisor's graph and wedged every publish. Scanning only the
+    census after that move would have left this control GREEN over a module that no longer holds
+    the thing it is about -- the "scope narrower than its claim" shape. Both modules are scanned:
+    the census because it MEASURES the reds, the leaf because it OWNS the path.
+    """
+    subjects = (
+        hgc.PROJECT_DIR / "tools" / "head_green_census.py",
+        hgc.PROJECT_DIR / "background" / "head_red_baseline.py",
+    )
+    for path in subjects:
+        assert path.exists(), (
+            "{} is gone -- this control has lost half its subject. The acceptance list must still "
+            "live in a module nothing writes; re-point this test at wherever it moved.".format(path))
+        body = path.read_text().split('"""', 2)[-1]  # skip the module docstring
+        for forbidden in ("write_text", "json.dump(", "BASELINE_PATH.open"):
+            assert forbidden not in body, (
+                "{} must never write the known-red baseline -- found {!r}".format(
+                    path.name, forbidden))
 
 
 # ------------------------------------------------------------------ it measures the GATE's population
@@ -199,6 +215,126 @@ def test_a_subject_that_cannot_be_built_reads_UNPROVEN_never_GREEN():
 
     assert output == "", "an unbuildable subject must produce no output to score"
     assert hgc.evaluate(output)["status"] == "UNPROVEN"
+
+
+def test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_afterwards(
+        tmp_path, monkeypatch):
+    """THE DEFECT, observed live on 2026-09-02 against a census that was still running.
+
+    `_head_sha()` was read twice -- once to build the subject, once to label the stored row --
+    with the whole unscoped suite in between. The census that started 12:52:44 that day held
+    `f5b19b43f` in its own checkout while the shared tree advanced through six commits to
+    `2a84aec8e`; the row it was about to write would have named a commit its suite never ran a
+    test against. Every downstream question ("is this red NEW?") is keyed to that field.
+
+    THE MUTATION THIS KILLS: put `prc._head_sha()` back in `_record_observation`. The subject here
+    holds a DIFFERENT sha from the live tree deliberately, so the two readings cannot be confused
+    -- a fixture where they agreed would pass on the defect.
+    """
+    import subprocess as _sp
+
+    subject = tmp_path / "subject"
+    subject.mkdir()
+    for cmd in (["git", "init", "-q"],
+                ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit",
+                 "-q", "--allow-empty", "-m", "the commit the suite measured"]):
+        _sp.run(cmd, cwd=str(subject), capture_output=True, text=True, check=True)
+    measured = hgc.subject_head_sha(subject)
+    assert measured, "the subject must be able to name itself"
+
+    live = _sp.run(["git", "rev-parse", "HEAD"], cwd=str(hgc.PROJECT_DIR),
+                   capture_output=True, text=True).stdout.strip()
+    assert measured != live, "fixture is degenerate: the subject must differ from the live tree"
+
+    recorded = {}
+
+    class _Reg:
+        @staticmethod
+        def record(failures, *, head_sha, passed, causes=None):
+            recorded["head"] = head_sha
+            return {"runs": [], "tests": {}}
+
+        save_observed = staticmethod(lambda store: None)
+        write_register = staticmethod(lambda store, accepted: "register.md")
+        owed = staticmethod(lambda store, accepted: [])
+
+    monkeypatch.setitem(sys.modules, "background.head_red_register", _Reg)
+    hgc._record_observation({"status": "NEW_RED", "failures": ["tests/a.py::x"],
+                             "passed": 100, "causes": {}, "subject_head": measured})
+
+    assert recorded["head"] == measured, (
+        "the row was labelled with the tree's CURRENT head instead of the commit the suite "
+        "actually ran against -- an unattributable measurement wearing an attribution")
+
+
+def test_run_suite_actually_fills_in_the_subject_it_measured():
+    """THE OUT-PARAMETER MUST NOT BE ACCEPTED AND IGNORED. The two controls either side of this
+    one drive `_record_observation` directly, so both would stay green if `run_suite` never wrote
+    `subject_head` at all -- and then every row would silently record `None` forever, which reads
+    as "unattributable" rather than as a broken wire. This is the leg that joins them.
+
+    MUTATION: delete the `observed[...] = ...` assignment in `run_suite` and this fails.
+    """
+    import subprocess as _sp
+
+    real = _sp.run
+
+    class _Proc:
+        stdout, stderr, returncode = "1 passed in 1.0s\n", "", 0
+
+    def fake_run(argv, cwd=None, **kw):
+        if list(argv[:3]) != [sys.executable, "-m", "pytest"]:
+            return real(argv, cwd=cwd, **kw)
+        return _Proc()
+
+    observed: dict = {}
+    _sp.run = fake_run
+    try:
+        hgc.run_suite(observed=observed)
+    finally:
+        _sp.run = real
+
+    # THE KEY, NOT ITS VALUE, IS WHAT SAYS THE WIRE IS INTACT -- and getting this backwards was
+    # caught by the mutation, not by review. `run_suite` sets `subject_head` unconditionally, to
+    # None when no checkout could be built; so a MISSING key means the assignment is gone, while a
+    # None VALUE means the box could not build a subject. Skipping on the value swallowed exactly
+    # the mutation this test exists to catch -- the fail-silent shape, in the control itself.
+    assert "subject_head" in observed, (
+        "run_suite accepted `observed` and never wrote to it: every stored row would record an "
+        "unattributed None while looking like an honest 'we cannot tell'")
+    if observed["subject_head"] is None:
+        pytest.skip("checkout machinery unavailable on this box")
+    live = real(["git", "rev-parse", "HEAD"], cwd=str(hgc.PROJECT_DIR),
+                capture_output=True, text=True).stdout.strip()
+    assert observed["subject_head"] == live, (
+        "run_suite must report the sha its own checkout holds; it reported "
+        "{!r}".format(observed.get("subject_head")))
+
+
+def test_a_run_that_cannot_name_its_subject_records_no_sha_rather_than_todays(monkeypatch):
+    """FAIL DIRECTION. `--from-log` parses a log written by some other run, so the commit behind
+    it is not knowable. Falling back to the live HEAD there is how a row comes to claim a commit
+    nobody measured -- which is precisely what this store's first row did.
+
+    MUTATION: default `subject_head` to `prc._head_sha()` and this fails.
+    """
+    assert hgc.subject_head_sha(None) is None
+    recorded = {}
+
+    class _Reg:
+        @staticmethod
+        def record(failures, *, head_sha, passed, causes=None):
+            recorded["head"] = head_sha
+            return {"runs": [], "tests": {}}
+
+        save_observed = staticmethod(lambda store: None)
+        write_register = staticmethod(lambda store, accepted: "register.md")
+        owed = staticmethod(lambda store, accepted: [])
+
+    monkeypatch.setitem(sys.modules, "background.head_red_register", _Reg)
+    hgc._record_observation({"status": "NEW_RED", "failures": ["tests/a.py::x"],
+                            "passed": 100, "causes": {}, "subject_head": None})
+    assert recorded["head"] is None, "an unattributable run must stay unattributed"
 
 
 def test_the_built_subject_carries_committed_truth_and_not_the_lanes_edits():
@@ -330,20 +466,27 @@ def test_the_subject_is_cleaned_up_even_though_it_is_large():
 
 # ---------------------------------------------------------------- the two clocks over one run
 
-#: The unit that actually runs the census. Read as text rather than parsed with a systemd
+#: The unit as this repo writes it. Read as text rather than parsed with a systemd
 #: library: the property is a relationship between two numbers written in two files, and the
 #: cheapest thing that can notice them crossing is the one worth having.
 _UNIT_PATH = Path(hgc.PROJECT_DIR) / "background" / "head-green-census.service"
 
+#: The unit systemd OPENS. `systemctl --user show` reports `FragmentPath` here, and this is the
+#: only file that bounds the run -- the one above is a copy the repo keeps and nothing loads.
+#: Deliberately outside the checkout, and that is the point: every other test in this file wants
+#: isolation from the box, and this one wants the box, because a bound that is only true in the
+#: tree does not stop systemd killing anything.
+_INSTALLED_UNIT_PATH = Path.home() / ".config" / "systemd" / "user" / "head-green-census.service"
 
-def _unit_timeout_start_sec() -> int:
-    for line in _UNIT_PATH.read_text().splitlines():
+
+def _unit_timeout_start_sec(path: Path = _UNIT_PATH) -> int:
+    for line in path.read_text().splitlines():
         stripped = line.strip()
         if stripped.startswith("TimeoutStartSec="):
             return int(stripped.split("=", 1)[1].strip())
     raise AssertionError(
         "{} declares no TimeoutStartSec, so systemd's default bounds the census and nothing "
-        "here can say what it is".format(_UNIT_PATH)
+        "here can say what it is".format(path)
     )
 
 
@@ -383,6 +526,49 @@ def test_the_census_timeout_clears_the_duration_it_has_observed():
         "only {}s between the suite's timeout and systemd's -- the checkout, the teardown and "
         "the report all happen inside the unit and outside the suite's clock".format(
             unit - hgc.SUITE_TIMEOUT_SECONDS)
+    )
+
+
+def test_the_bound_systemd_will_apply_is_the_one_this_repo_wrote():
+    """The clause above reads a file systemd never opens, so it was green while it was false.
+
+    THE DEFECT THIS PINS, MEASURED 2026-09-02 12:55 UTC. `2112a1f03` raised
+    `SUITE_TIMEOUT_SECONDS` to 7200 and `TimeoutStartSec` to 7500, and
+    `test_the_census_timeout_clears_the_duration_it_has_observed` went green on both. It reads
+    `background/head-green-census.service`. systemd reads
+    `~/.config/systemd/user/head-green-census.service`, which still said **3600** -- unchanged
+    since 2026-08-31, because the repair edited the repo copy and nobody installed it. The live
+    ordering was therefore not merely unfixed but INVERTED BY THE REPAIR: before it the two
+    clocks were 3600 and 3600, and after it systemd's 3600 fired unconditionally ahead of the
+    suite's 7200, so every run past the hour was SIGTERMed with no verdict -- and the run being
+    described took 58:57. The next firing was 14 hours away.
+
+    So the repair's own subject was one `cp` short of existing, and the control that exists to
+    notice these two numbers crossing could not see the number that does the killing.
+
+    MUTATION (must fire): write `TimeoutStartSec=3600` into the installed unit and this fails on
+    the second assertion. That is the exact state of this box before the copy, so it is not
+    hypothetical -- and the mutation is the one the tree could not previously detect at all.
+
+    NOT AN EQUIVALENCE with the test above: mutate the installed unit alone and that one stays
+    green; mutate the repo unit alone and this one fails on the FIRST assertion for the same
+    underlying reason, that the two files have to be the same file.
+    """
+    assert _INSTALLED_UNIT_PATH.exists(), (
+        "{} is not installed, so nothing on a cadence runs the census and its nightly verdict "
+        "is a file this repo believes in rather than one systemd produces".format(
+            _INSTALLED_UNIT_PATH)
+    )
+    installed = _unit_timeout_start_sec(_INSTALLED_UNIT_PATH)
+    assert installed == _unit_timeout_start_sec(), (
+        "the installed unit bounds the census at {}s while the repo's copy says {}s -- the "
+        "assertion next door reads the copy, so it grades a number that kills nothing".format(
+            installed, _unit_timeout_start_sec())
+    )
+    assert installed > hgc.SUITE_TIMEOUT_SECONDS, (
+        "systemd will SIGTERM the census at {}s while the suite's own clock is {}s, so the "
+        "UNPROVEN branch cannot execute and a slow night reports nothing at all".format(
+            installed, hgc.SUITE_TIMEOUT_SECONDS)
     )
 
 

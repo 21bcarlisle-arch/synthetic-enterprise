@@ -310,16 +310,51 @@ SUITE_TIMEOUT_SECONDS = 7200
 WORST_OBSERVED_SUITE_SECONDS = 3537.0
 
 
-def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS) -> str:
+def subject_head_sha(subject) -> str | None:
+    """The commit the SUBJECT CHECKOUT actually holds, or None if it cannot be read.
+
+    Read back OUT of the tree that was measured rather than taken from the variable that built it:
+    the two can only agree, so this cannot drift, and it also catches a checkout that materialised
+    something other than what was asked for. None rather than a fallback to the live HEAD -- an
+    unattributable measurement must stay unattributable, because a plausible sha is read as
+    established and a None cannot be.
+    """
+    if subject is None:
+        return None
+    try:
+        proc = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(subject),
+                              capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    sha = (proc.stdout or "").strip()
+    return sha or None
+
+
+def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None) -> str:
     """Run the unscoped suite against a clean checkout of HEAD.
 
     Returns the run's output, or "" when no subject could be built -- and "" carries no pytest
     summary line, so `verdict()` reads it as UNPROVEN. The absence of a subject is therefore
     expressed through the existing fail-safe rather than through a new branch that could be
     got wrong.
+
+    `observed`, when given, receives `subject_head`: THE COMMIT THIS RUN MEASURED. It is an
+    out-parameter rather than a second return value only so that every existing caller keeps
+    working; what it carries is not optional detail.
+
+    WHY IT EXISTS (2026-09-02). `_head_sha()` was called TWICE -- once here to build the subject,
+    once in `_record_observation` to label the row -- with the whole suite in between. On this box
+    that gap is an hour, on a tree five other lanes land into. Observed live the same day: the
+    census that started 12:52:44 held `f5b19b43f` in its own subject checkout while the shared
+    HEAD had moved on through six commits to `2a84aec8e`, so the row it was about to write would
+    have named a commit its suite never ran a single test against. Every downstream comparison --
+    "is this red new?", "did the fix work?" -- is keyed to that field, and this census is what
+    certifies every other claim here.
     """
     from background import process_run_complete as prc
     with head_subject_checkout() as subject:
+        if observed is not None:
+            observed["subject_head"] = subject_head_sha(subject)
         if subject is None:
             return ""
         # PYTEST'S TEMP ROOTS GO ON REAL DISK, not on the tmpfs (2026-09-02).
@@ -391,8 +426,12 @@ def _record_observation(result: dict) -> str:
         return "register not updated: the run proved nothing, so it observed nothing"
     try:
         from background import head_red_register as reg
-        from background import process_run_complete as prc
-        store = reg.record(result.get("failures") or [], head_sha=prc._head_sha(),
+        # THE SUBJECT'S SHA, NOT TODAY'S HEAD. Re-reading `prc._head_sha()` here labelled the row
+        # with whatever the shared tree had advanced to by the time the suite finished -- see
+        # `run_suite`'s note for the run that was live when this was found. `None` when the run
+        # cannot name its subject (`--from-log`, or an unreadable checkout): an unattributed
+        # observation is a fact about what we can say, and inventing a sha for it is the defect.
+        store = reg.record(result.get("failures") or [], head_sha=result.get("subject_head"),
                            passed=result.get("passed"), causes=result.get("causes"))
         reg.save_observed(store)
         path = reg.write_register(store, load_baseline())
@@ -412,8 +451,13 @@ def main(argv=None) -> int:
                     help="send one NTFY when the verdict is NEW_RED (transition payload, R5)")
     args = ap.parse_args(argv)
 
-    output = args.from_log.read_text(errors="replace") if args.from_log else run_suite()
+    observed: dict = {}
+    output = (args.from_log.read_text(errors="replace") if args.from_log
+              else run_suite(observed=observed))
     result = evaluate(output)
+    # Stays absent for `--from-log`: a log parsed after the fact cannot name the commit that
+    # produced it, and that is exactly how this store's first row came to claim one.
+    result["subject_head"] = observed.get("subject_head")
     register = _record_observation(result)
 
     if args.json:
