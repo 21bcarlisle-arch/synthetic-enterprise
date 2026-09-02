@@ -133,3 +133,135 @@ both lanes', neither reverted.
 **What I have not established:** whether the publish path should hold its own view of HEAD rather
 than testing a tree that other lanes can pin. That is a real question and I am not answering it
 from inside an incident.
+
+## 6. CORRECTED 18:40 UTC: §5's stated cause is spent, and the fork re-opened from the console
+
+§5 said the wedge's second cause was *"a genuinely red test at HEAD ... its fix is already on origin
+and cannot reach HEAD, because the lane that wrote it still holds those two files staged."* **Both
+halves of that are now false, and neither expired the way §5 expected.**
+
+* The two nodes are **not red** any more: `66c4e780b` composed both lanes and `49e840ec6` is
+  origin/main, which defines all five controls — the lane's six overlay tests AND `30adb2b66`'s
+  three recording tests — plus `_install_fake_register`, which is the actual repair.
+* The lane no longer holds the files. **The director committed them himself at 18:34:35 UTC as
+  `5260c6859`**, from the shared tree, onto the stale parent `83c63ac58`.
+
+**That commit is the armed silent revert of §5a, fired — as a commit.** Checked node by node rather
+than assumed: `5260c6859` contains the two wedging tests and the six overlay tests, and does **not**
+contain `test_a_completed_run_lands_a_row_the_REAL_register_accepts`,
+`test_a_log_parsed_after_the_fact_records_no_sha_so_it_cannot_manufacture_a_run` or
+`test_a_census_that_could_not_record_says_so_on_the_channel_he_reads`. Merged naively into origin it
+deletes three landed controls. **Nothing of his is lost by preferring origin**: every test node and
+every function in `5260c6859` already exists at `49e840ec6`, verified by set difference in both
+directions, so origin is a strict content superset and the resolution loses nothing.
+
+### The wedge's remaining cause is the FORK ALONE, and that is a measurement, not a reading
+
+The 18:29 refusal is `origin/main is 31 commit(s) AHEAD of HEAD`. The obvious next question is
+whether the shared tree could even accept those commits, given 564 modified files. **Measured:**
+
+```
+files origin/main changes vs the shared tree's HEAD (5260c6859) :  15
+of those 15, how many are locally modified in the shared tree   :   0
+```
+
+**Zero.** The shared tree is not blocked by its own dirt at all — a fast-forward would touch fifteen
+files it has not edited. It is blocked *only* because `5260c6859` made it 1-ahead, and a 1-ahead
+tree cannot fast-forward. So the whole wedge now rests on one commit that contributes no content.
+
+**The act:** merge `5260c6859` into origin/main from an isolated worktree, resolving both census
+files to origin's superset, so origin becomes a DESCENDANT of his commit. His authorship stays in
+history, the revert is defused permanently (it can never replay), the shared tree goes 0-ahead, and
+`test_when_the_tree_CAN_advance_it_advances_without_making_a_commit` is then the branch that applies
+— the fixed reconciler fast-forwards it without making a commit at all.
+
+**Pre-registered, before running it:** if that merge lands and the shared tree still does not
+publish, the fork was not the remaining cause and this correction is wrong in its turn. The
+falsifiable reading is `.last_content_publish.json`, whose `ts` must move past 04:44 UTC — not the
+log's optimism, and not my expectation of it.
+
+### 6a. GRADED 18:47 UTC. The diagnosis held; the act was someone else's, and I did not perform it
+
+**I did not run that merge, and the prediction is graded on a fork closed by another route.** Said
+plainly rather than quietly rewritten: between my writing §6 and reaching for the door, origin gained
+three commits — `5260c6859`, then `17e40f7b7` *"merge origin/main: the census overlay work had
+already been salvaged there, so ours is superseded"*, then `6cecb32ef`. The shared tree went from
+1-ahead-33-behind to **1 ahead, 0 behind**. The fork is closed and my merge would now be a no-op, so
+it was never made.
+
+**What that grades, clause by clause, because a heading must not claim more than its evidence:**
+
+* *"origin is a strict content superset, so preferring it loses nothing of his"* — **CONFIRMED, and
+  it is what actually happened.** `17e40f7b7`'s own subject is that finding in the other lane's
+  words. Re-checked at `6cecb32ef` node by node: all five controls, the six overlay tests,
+  `_install_fake_register` and `_record_observation` are present. **The silent revert never fired.**
+* *"the wedge's remaining cause is the fork alone"* — **NOT YET GRADED.** The fork is closed and
+  that is necessary, not shown to be sufficient. The reading that settles it is still
+  `.last_content_publish.json` moving past 04:44 UTC, and it had not moved when this was written.
+* *"the act: merge it from an isolated worktree"* — **NOT PERFORMED BY ME.** Correct as a plan,
+  overtaken as an act.
+
+**The lesson is the one this finding is already about, one turn later and against its own author.**
+I measured a fork at 18:37, wrote a plan against it at 18:40, and by 18:43 the subject had moved
+twice. Two director commits and a lane's merge landed inside a six-minute window while I was
+composing prose about them. §3's third rule — *RE-READ THE SUBJECT AFTER ACTING* — has a twin that
+this near-miss exposes: **re-read the subject before acting, too.** Had I gone straight from the
+measurement to `surgical_land --merge`, I would have pushed a merge of a commit that was already
+merged, and widened by one the fork I had just finished proving was the whole remaining cause.
+
+**Note for whoever grades this next:** the director has since filed the reachability half himself —
+`docs/staging/done/SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md`,
+corrected in `59d70e9a1` to *"the behind-origin check exists and is unreachable, which is worse"*.
+That is a different defect from this one and is not discharged here.
+
+## 7. THE CLAUSE IS NOW GRADED, AND IT REFUTES ME: closing the fork did not publish
+
+§6a left one clause open and pre-registered its reading. **It is graded, and the answer is no.**
+
+```
+.last_content_publish.json   ts = 04:44:07Z    UNMOVED
+.last_publish_cause.json     18:47:33Z  cause = gate_refusal   git_hash = 6c44b2109
+```
+
+**"The wedge's remaining cause is the FORK ALONE" is REFUTED.** I am recording that beside the
+prediction rather than softening the prediction, because that is the only thing that makes §6's
+pre-registration worth anything.
+
+**What the fork's closure did buy, stated so the refutation is not overstated:** the 18:45 cycle got
+*further than any cycle since 07:13*. `behind_origin` never fired again — the run passed provenance,
+reached `Committing and pushing (net=£149,156)`, and died at the pre-commit chain instead. The fork
+was a real cause and it is gone. It was not the *last* one.
+
+### The next gate, named from its own output rather than guessed
+
+Not a red test. The log is explicit that this must not be read as one:
+
+> Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output — recording NO
+> blocking test. The refusal was a non-test gate.
+
+It is **`tools/level_promotion_gate.py`**, on the rule that a level move must be BUILT in the commit
+that declares it (`WORKER_FINDING_A_LEVEL_CAN_BE_DECLARED_FOR_UNCOMMITTED_CODE_2026-08-10`):
+
+> `[level-gate] ❌ COMMIT REFUSED (a level move must be BUILT in the commit that declares it)` —
+> declares a level for source this commit does NOT contain: `company/billing/raw_account_export.py`,
+> `company/billing/statement_export.py`, `simulation/dd_balance_book.py`,
+> `tests/simulation/test_dd_balance_book.py`
+
+**Measured rather than inferred.** All four files exist on `origin/main`, so the gate is not asking
+for missing code — it is refusing the shared tree's *uncommitted edits* to them. Shared-tree status:
+`raw_account_export.py` modified-unstaged, `dd_balance_book.py` and `test_dd_balance_book.py`
+modified-STAGED, `statement_export.py` untracked only because the shared tree has not yet taken
+`e853fd051`. Beside them sits a **staged `level_current: 0 → 1`** in `docs/design/maturity_map.yaml`.
+
+**So the gate is right and the tree is wrong.** A level staged in the shared map, with its
+`file_scope` sources edited but not landing, refuses *every* lane's publish — not just the lane that
+staged it. This is the `publish_gate_and_wedge` class again, third instance today, and it is the
+"a level staged in the SHARED map wedges every lane" shape exactly.
+
+**It is not mine to land.** Those paths are the DD payload, explicitly held out of this lane's
+pathspec. The repair is for the DD lane to land its own payload together with the level move, in one
+commit, per the gate's own instruction — or to take the level move back out of the map.
+
+**Do not read the fork's closure as the wedge lifting.** Clearing one publish-wedge cause reveals
+the next gate; it does not produce a green publish, and `.last_content_publish.json` remains the
+only reading that settles it.
