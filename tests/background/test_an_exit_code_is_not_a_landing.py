@@ -628,3 +628,210 @@ def test_the_refusal_NAMES_THE_WORKTREE_when_that_is_where_it_is_standing(stores
     delivery_lane.claims_mod.claim("promoted-item", paths=[], path=stores.hand)
     assert "matched pair" in delivery_lane.release_refusal_reason("promoted-item",
                                                                   path=stores.lane)
+# ------------------------------------------------------------- the ROUTE decides the store
+#
+# WHY THIS SECTION EXISTS AND WHY IT DRIVES `run_once` RATHER THAN A FIXTURE.
+#
+# Everything above stubs `bound_landing`, so it pins the verdict's LOGIC and is silent about the
+# production claim path. That gap was not hypothetical: while every test above was green and
+# honest, the verdict was a CONSTANT `LANDED NOTHING` on the executor's busiest route, because
+# `run_once` wrote its claim to `seat_work_in_hand`'s store and `record_landing` looked for it in
+# `delivery_lane`'s. A tick that really landed and really promoted `8cb73c627` was scored as having
+# landed nothing. The old verdict could never say NO; its replacement could never say YES.
+#
+# So these tests stub NOTHING between `run_once` and the stores. They let the ROUTE choose where
+# the claim lands -- which is the thing that was wrong -- and a fixture that claimed directly would
+# pass under the defect, which is exactly the trap the finding's §9.6 names.
+#
+# Finding: docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md
+
+
+@pytest.fixture()
+def routed(tmp_path, monkeypatch):
+    """A `run_once` with REAL claim stores and a session that acts like a tick.
+
+    The two stores are real files at real paths, and the stubbed session runs the same
+    `record_landing` / `release` calls the charter tells a tick to run -- against the store its own
+    cwd would resolve to. Nothing between `run_once` and those files is patched.
+    """
+    shared = tmp_path / "shared" / "docs" / "observability" / ".delivery_lane_claims.json"
+    worktree = tmp_path / "wt"
+    (worktree / "docs" / "observability").mkdir(parents=True)
+    shared.parent.mkdir(parents=True)
+
+    monkeypatch.setattr(seat_executor, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(seat_executor, "PID_FILE", tmp_path / "executor.pid")
+    monkeypatch.setattr(seat_executor, "WORKTREE", worktree)
+    monkeypatch.setattr(seat_executor, "_interactive_seat_is_live", lambda now=None: False)
+    monkeypatch.setattr(seat_executor, "_another_executor_is_running", lambda: False)
+    monkeypatch.setattr(seat_executor, "_is_handed_off", lambda item, now=None: True)
+    monkeypatch.setattr(seat_executor, "_resolve_claude", lambda: "claude")
+    monkeypatch.setattr(seat_executor, "ensure_worktree", lambda base: worktree)
+    monkeypatch.setattr(seat_executor, "guard_live_ledger_write", lambda path, writer="": path)
+    monkeypatch.setattr(seat_executor.delivery_lane, "CLAIMS_FILE", shared)
+    monkeypatch.setattr(seat_executor.seat_work_in_hand, "CLAIMS_FILE",
+                        tmp_path / "work_in_hand.json")
+    monkeypatch.setattr(seat_executor.delivery_lane, "next_item",
+                        lambda **k: {"id": "the-item", "what": "w", "why": "y"})
+    # Leg 2 is pinned separately above; here the shared tree always agrees, so a failure in these
+    # tests is unambiguously leg 1 -- the claim store -- and never the git read.
+    _shared_tree(monkeypatch, changed={"background/seat_executor.py"})
+
+    dropped: list[str] = []
+    monkeypatch.setattr(seat_executor, "seat_continuation_drop",
+                        lambda wid: dropped.append(wid) or True)
+
+    def child_binds(store):
+        """What `python3 -m background.delivery_lane --landed the-item` does from a given cwd.
+
+        The cwd is what selects the store: a tick in the worktree imports the worktree's module,
+        a tick on the shared tree imports the shared one. That is simulated by the explicit
+        `path=`, and it is the whole subject of these tests.
+        """
+        def run_it():
+            monkeypatch.setattr(delivery_lane, "_commit_facts",
+                                lambda commit: (time.time() + 30,
+                                                ["background/seat_executor.py"]))
+            return delivery_lane.record_landing("the-item", path=store)
+        return run_it
+
+    def spawn(child=None, returncode: int = 0):
+        def fake_run(cmd, **kwargs):
+            if cmd[:2] == ["git", "rev-parse"]:
+                return subprocess.CompletedProcess(cmd, 0, stdout="basesha0000\n", stderr="")
+            if child is not None:
+                child()
+            return subprocess.CompletedProcess(cmd, returncode, stdout="", stderr="")
+        monkeypatch.setattr(seat_executor.subprocess, "run", fake_run)
+
+    return type("Routed", (), {
+        "shared": shared,
+        "worktree_store": worktree / "docs" / "observability" / shared.name,
+        "spawn": staticmethod(spawn),
+        "child_binds": staticmethod(child_binds),
+        "dropped": dropped,
+        "log": lambda self=None: (tmp_path / "log.md").read_text(),
+    })()
+
+
+def test_the_verdict_can_say_YES_on_the_PROMOTED_route(routed):
+    """THE ONE THIS REPAIR EXISTS FOR. A promoted item is the executor's busiest route.
+
+    A promotion never goes through `delivery_lane.draw()`, so nothing claims the id in the
+    delivery-lane store before the turn -- `run_once` is the only thing that can. When it did not,
+    the child's `--landed` refused with `NOT CLAIMED`, nothing was ever bound, and leg 1 could
+    never pass. The verdict was a constant, which is not a control (R15's fourth shape).
+
+    MUTATION: drop `_worktree_claims()` from the claim loop in `run_once` and this fires -- the
+    child binds into a store holding no claim, `record_landing` refuses, and the turn scores
+    LANDED NOTHING. That is the measured 2026-09-02 behaviour, restored exactly.
+    """
+    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    ran, detail = seat_executor.run_once()
+
+    assert "LANDED NOTHING" not in detail, \
+        f"a promoted turn that really bound a landing was scored as landing nothing: {detail}"
+    assert "moved on the shared tree" in detail
+    assert "FINISHED the-item:" in routed.log()
+
+
+def test_the_verdict_can_say_YES_on_the_DRAWN_route(routed):
+    """The other arm of the union, and §9.6's clause: BOTH routes, because the route picks the
+    store. A drawn tick runs on the shared tree, so its `--landed` reaches the SHARED store; a
+    promoted one runs in the worktree. A control that exercised only one would pass whichever
+    half of the repair was written.
+
+    MUTATION: drop `delivery_lane.CLAIMS_FILE` from `bound_landing`'s store list and this fires
+    while the promoted test above stays green.
+    """
+    routed.spawn(child=routed.child_binds(routed.shared))
+    ran, detail = seat_executor.run_once()
+
+    assert "LANDED NOTHING" not in detail, detail
+    assert "FINISHED the-item:" in routed.log()
+
+
+def test_a_LANDED_NOTHING_turn_leaves_the_item_DRAWABLE_AGAIN(routed):
+    """THE PRICE THE OBVIOUS REPAIR WOULD HAVE PAID, and the reason it was not the one taken.
+
+    `delivery_lane.next_item` skips any id in `held()`. That filter is the entire mechanism by
+    which an item is not handed out twice -- so a claim left standing when the turn ends does not
+    protect anything, it SUPPRESSES THE RE-OFFER that `LANDED NOTHING` exists to produce. The item
+    would then wait for the 100-minute sweep instead of the next tick: the verdict would say no
+    correctly and the work would not come back, which is the same defect one door along.
+
+    MUTATION: delete the `_hand_back` call in `run_once` and this fires.
+    """
+    routed.spawn(child=None)  # a session that lands nothing at all
+    ran, detail = seat_executor.run_once()
+    assert detail.startswith("LANDED NOTHING: the-item,"), detail
+
+    assert "the-item" not in delivery_lane.held(path=routed.shared), \
+        "the refused turn held on to its own claim, so next_item will skip the re-offer"
+    assert routed.dropped == [], "a turn that landed nothing consumed the handoff"
+
+
+def test_the_executors_OWN_hand_back_is_not_read_as_the_tick_releasing(routed):
+    """ORDER, and it is the repair rebuilding the defect out of itself if it is wrong.
+
+    `_still_claimed` asks *did the TICK release*; `_hand_back` is the executor's own bookkeeping.
+    Run the hand-back first and the two are indistinguishable: every turn would look like a tick
+    saying it had finished, and the unconditional discharge this whole repair removes would be
+    back -- built, this time, out of the repair.
+
+    Here the tick lands but never releases, so the work is unfinished and the handoff must STAND.
+
+    MUTATION: move `_hand_back(...)` above `tick_released = not _still_claimed(...)` and this
+    fires.
+    """
+    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    ran, detail = seat_executor.run_once()
+
+    assert "LANDED NOTHING" not in detail, detail
+    assert routed.dropped == [], \
+        "the executor's own hand-back was read as the tick reporting the work finished"
+    assert "DISCHARGED" not in routed.log()
+
+
+def test_the_tick_RELEASING_really_does_discharge(routed):
+    """THE PASS BRANCH, WHICH HAS NEVER ONCE BEEN REACHED IN THIS MODULE'S LIFE.
+
+    §7 of the finding asked for exactly this and could not write it: no test reached
+    `_still_claimed` with a True answer, so a condition that had never been false survived in a
+    module whose own docstring is about that failure. Both branches now exist, so the discharge is
+    a control rather than a constant in either direction.
+
+    MUTATION: make `_still_claimed` return True unconditionally and this fires; make it return
+    False unconditionally and the test above fires. Neither constant passes both.
+    """
+    def lands_then_releases():
+        routed.child_binds(routed.worktree_store)()
+        # `python3 -m background.delivery_lane --release the-item`, run from the worktree.
+        assert delivery_lane.claims_mod.release("the-item", path=routed.worktree_store) is True, \
+            "the tick's release found nothing to remove -- run_once never claimed there"
+
+    routed.spawn(child=lands_then_releases)
+    ran, detail = seat_executor.run_once()
+
+    assert "LANDED NOTHING" not in detail, detail
+    assert routed.dropped == ["the-item"], "the tick said it was finished and was not believed"
+    assert "DISCHARGED the-item" in routed.log()
+
+
+def test_the_hand_back_releases_only_the_claim_THIS_turn_took(routed):
+    """A hand-back that cleared whatever was there would free another writer's live claim.
+
+    MUTATION: drop the `claimed_at` comparison in `_hand_back` and this fires.
+    """
+    def another_writer_reclaims_it():
+        # Someone else takes the id after `run_once` claimed it and before the turn ends. That
+        # claim is theirs, with their own `claimed_at`, and it must outlive this turn.
+        delivery_lane.claims_mod.claim("the-item", path=routed.shared, now=1.0)
+
+    routed.spawn(child=another_writer_reclaims_it)
+    seat_executor.run_once()
+
+    assert "the-item" in delivery_lane.held(path=routed.shared), \
+        "the hand-back released a claim this turn did not take"
+
+

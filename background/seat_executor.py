@@ -456,17 +456,73 @@ def worktree_is_live(path) -> bool:
         return False
 
 
+def _worktree_claims() -> Path:
+    """The delivery-lane claims store INSIDE the executor's worktree.
+
+    `delivery_lane.PROJECT_DIR` is `Path(__file__).resolve().parent.parent`, so the child running
+    `python3 -m background.delivery_lane --landed/--release <id>` with its cwd in the worktree
+    imports the WORKTREE's copy of the module and reads and writes THIS file. The shared store
+    never hears it. That is not a bug to route around -- it is what worktree isolation is for --
+    so both readers here ask both stores instead, and `delivery_lane.CLAIMS_FILE` keeps pointing
+    at the tree that imported it.
+    """
+    return WORKTREE / "docs" / "observability" / delivery_lane.CLAIMS_FILE.name
+
+
 def _still_claimed(work_id: str) -> bool:
     """Is the lane's claim on this id still held? An unreadable store reads as STILL CLAIMED.
 
     Conservative in the direction that costs a repeat rather than a loss: mistakenly discharging a
     handoff loses the seat's judgement about what comes next, and mistakenly keeping one costs a
     tick that finds the work already done and says so.
+
+    BOTH STORES, AND `held` IN EITHER IS NOT ENOUGH -- it must be held in BOTH. `run_once` writes
+    the claim to both, so the id going ABSENT from either one is a release that really happened:
+    from the worktree store when the tick ran `--release` (its cwd is the worktree, so that is the
+    copy it reaches), from the shared store when a tick or a sweep released it there.
+
+    THIS USED TO ASK ONE STORE AND IT WAS THE WRONG ONE. `run_once` claimed via
+    `claims_mod.claim(...)` with no `path=`, which is `seat_work_in_hand`'s store, and this asked
+    `delivery_lane.held()`, which is a different file. The condition was therefore never true, the
+    discharge fired unconditionally, and its stated reason -- *"the tick released its claim"* --
+    was false on all six turns of 2026-09-02 that carry it. R15's fourth shape arriving through
+    the discharge door instead of the refusal door. Finding:
+    `docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md`.
+    """
+    for store in (delivery_lane.CLAIMS_FILE, _worktree_claims()):
+        try:
+            if work_id not in delivery_lane.held(path=store):
+                return False
+        except Exception:  # noqa: BLE001
+            return True
+    return True
+
+
+def _hand_back(work_id: str, claimed_at: float) -> None:
+    """Release the claim THIS turn took on the shared store, and only if it is still ours.
+
+    WHY THE EXECUTOR RELEASES ITS OWN CLAIM AT ALL, and it is the clause that makes claiming in
+    this store safe. `delivery_lane.next_item` skips any id in `held()` -- that filter is the
+    entire mechanism by which an item is not handed out twice. So a claim left standing after the
+    turn ends does not protect anything; it SUPPRESSES THE RE-OFFER that a `LANDED NOTHING`
+    verdict exists to produce, and the item would wait for the 100-minute sweep instead of the
+    next tick. Buying the verdict's *yes* at the price of the re-offer would be the same defect one
+    door along, which is why the repair is not the one-line diff the finding proposed.
+
+    The claim is real and load-bearing FOR THE DURATION OF THE TURN: it is what stops a concurrent
+    draw handing the same item to a second writer while this one is running.
+
+    MATCHED ON `claimed_at`, so this releases what it took rather than whatever is there now. If
+    another writer re-claimed the id mid-turn, that claim is theirs and outlives this call.
+
+    Never raises: a turn that has already produced its verdict must not lose it to bookkeeping.
     """
     try:
-        return work_id in delivery_lane.held()
+        rec = delivery_lane.claims_mod._load(delivery_lane.CLAIMS_FILE).get(work_id)
+        if isinstance(rec, dict) and float(rec.get("claimed_at", 0)) == claimed_at:
+            delivery_lane.claims_mod.release(work_id, path=delivery_lane.CLAIMS_FILE)
     except Exception:  # noqa: BLE001
-        return True
+        pass
 
 
 def seat_continuation_drop(work_id: str) -> bool:
@@ -566,8 +622,7 @@ def bound_landing(work_id: str) -> tuple[float, list[str]]:
     `(0.0, [])` if neither store carries one. Never raises.
     """
     best: tuple[float, list[str]] = (0.0, [])
-    for store in (delivery_lane.CLAIMS_FILE,
-                  WORKTREE / "docs" / "observability" / delivery_lane.CLAIMS_FILE.name):
+    for store in (delivery_lane.CLAIMS_FILE, _worktree_claims()):
         try:
             when, paths = delivery_lane.last_landing(work_id, path=store)
         except Exception:  # noqa: BLE001
@@ -771,7 +826,30 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         base = subprocess.run(["git", "rev-parse", "origin/main"], cwd=str(PROJECT_DIR),
                               capture_output=True, text=True, timeout=60).stdout.strip()
         worktree = ensure_worktree(base or "origin/main")
-        delivery_lane.claims_mod.claim(work_id, note=str(item.get("what") or "")[:200], paths=[])
+
+        # THE CLAIM GOES IN THREE PLACES AND EACH ONE ANSWERS A DIFFERENT QUESTION. It used to go
+        # in one, and it was the one nothing downstream asked.
+        #
+        #   * `seat_work_in_hand` is the CROSS-LANE PATH GUARD's store: `refuse_if_duplicated`
+        #     reads it so another writer cannot take the same paths.
+        #   * The SHARED delivery-lane store is what `next_item` filters on, so this is what stops
+        #     a concurrent draw handing the same item to a second writer mid-turn. `_hand_back`
+        #     releases it when the turn ends -- read its docstring before removing that call, or
+        #     the item stops being re-offered.
+        #   * The WORKTREE's delivery-lane store is the one the CHILD reaches. Its cwd is the
+        #     worktree, so `python3 -m background.delivery_lane --landed <id>` imports the
+        #     worktree's module; with no claim there `record_landing` refuses outright with
+        #     `NOT CLAIMED`, and a turn that really landed and really promoted scored
+        #     `LANDED NOTHING`. Measured on `8cb73c627`, which this turn's charter required be
+        #     bound and which could not be.
+        #
+        # `claimed_at` is captured because `_hand_back` matches on it: this releases the claim it
+        # took, never whatever happens to be there when the turn ends.
+        claimed_at = time.time()
+        for store in (None, delivery_lane.CLAIMS_FILE, _worktree_claims()):
+            delivery_lane.claims_mod.claim(
+                work_id, note=str(item.get("what") or "")[:200], paths=[],
+                path=store, now=claimed_at)
         # Guarded like every other live-record write here: an unattended writer whose pid file a
         # test can forge is one a test can make look alive or dead.
         guard_live_ledger_write(PID_FILE, writer="seat_executor.run_once").write_text(
@@ -807,6 +885,20 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # on it: a turn that exits 0 and lands nothing and a turn that times out having landed an
         # increment are DIFFERENT results, and the exit code has them exactly backwards.
         moved, why = subject_moved(work_id, base, started)
+
+        # ORDER IS LOAD-BEARING, both halves of it.
+        #
+        # READ FIRST: `_still_claimed` asks whether the TICK released, and `_hand_back` releases
+        # this turn's own claim. Run in the other order, the executor's own bookkeeping would look
+        # exactly like the tick saying it was finished, and every turn would discharge -- the same
+        # unconditional discharge this repair removes, rebuilt out of the repair itself.
+        #
+        # HAND BACK ON BOTH PATHS, including `LANDED NOTHING`: the claim is what `next_item`
+        # filters on, so holding it past the turn suppresses the re-offer rather than protecting
+        # anything. The refusal has to leave the work in the pool AND drawable.
+        tick_released = not _still_claimed(work_id)
+        _hand_back(work_id, claimed_at)
+
         if not moved:
             detail = (f"LANDED NOTHING: {work_id}, bound paths unchanged since {base[:9]} "
                       f"({how}) -- {why}")
@@ -829,7 +921,7 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         # part it finished, and a piece bigger than one turn must come back. So the signal is not
         # "a turn ended", it is "the tick said it was done" -- which is exactly what releasing the
         # claim means. If it did not release, the continuation stands and the next tick continues.
-        if not _still_claimed(work_id):
+        if tick_released:
             if seat_continuation_drop(work_id):
                 log(f"DISCHARGED {work_id}: the tick released its claim, so the handoff is done "
                     "and will not be re-offered")

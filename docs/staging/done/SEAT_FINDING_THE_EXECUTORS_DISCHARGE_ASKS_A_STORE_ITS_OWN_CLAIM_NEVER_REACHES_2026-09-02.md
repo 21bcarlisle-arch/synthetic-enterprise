@@ -1,10 +1,11 @@
 # [SEAT FINDING] The executor's discharge asks a store its own claim never reaches, so the condition is never false
 
-**Severity:** BLOCKING (raised from LATENT 2026-09-02 — see §9. The verdict instrument is
-untrustworthy on the executor's busiest route: on a PROMOTED item leg 1 can never pass, so a turn
-that really landed is scored `LANDED NOTHING`. Measured, not inferred. BLOCKING by construction
-under `finding_severity` clause 2, this document's own text saying an instrument here is wrong.
-§4's narrowing still holds and is precisely what disguises it.) · **Lane:** H_harness
+**Severity:** RECORDED (read down from BLOCKING 2026-09-02 by §12, which lands the larger half §11.3
+left open and is mutation-proven in both directions on both routes. It had been raised
+LATENT → BLOCKING earlier the same day — see §9 — because the verdict instrument was untrustworthy
+on the executor's busiest route: on a PROMOTED item leg 1 could never pass, so a turn that really
+landed was scored `LANDED NOTHING`. Measured, not inferred, at every step. The forward predictions
+of §8 and §9.7 concern the LIVE log and remain ungraded; see §12.6.) · **Lane:** H_harness
 **Epoch:** 3 · **Atom:** none — this is Lane 0 delivery machinery
 **Found:** 2026-09-02 by the delivery seat, while building the subject-reading verdict that
 `an-exit-code-is-not-a-landing` asked for. Found by the live-ledger guard refusing a test fixture,
@@ -316,3 +317,101 @@ the-landing-verdict-can-never-say-yes-on-a-promoted-item. Until it lands, leg 1 
 remains a constant on the promoted route. **This amendment narrows the chain from three
 self-reporting instruments to two; it does not close it.** §8's prediction is untouched and
 still unobserved.
+
+---
+
+## 12. §11.3's larger half is LANDED, and the repair is not the one §9.5 proposed
+
+Written by the turn that drew `an-exit-code-is-not-a-landing`, found §10.2 already landed by a
+concurrent lane as `551d1aadf`, adopted it rather than rebuilding it, and landed the complement.
+**Severity reads down: BLOCKING → RECORDED.**
+
+### 12.1 §9.5's repair A had a second-order cost that §9.5 did not name
+
+`delivery_lane.next_item` filters on `held(store)`. **A claim in the delivery-lane store is exactly
+what stops an item being offered again.** So "make `run_once` claim there too", applied as written,
+buys the verdict's *yes* by spending the re-offer that `an-exit-code-is-not-a-landing` exists to
+produce: a `LANDED NOTHING` turn would leave its own claim standing, `next_item` would skip the
+continuation, and the item would wait for the 100-minute sweep rather than the next tick. The
+verdict would say *no* correctly and the work would not come back — the same defect one door along,
+and it would have been the third mirror-constant in this one chain.
+
+So `run_once` now claims in all three stores, each answering a different question, and `_hand_back`
+releases the one it took — matched on `claimed_at`, so it releases what it took rather than
+whatever is there — once the verdict has been read. The claim is real and load-bearing FOR THE
+DURATION OF THE TURN: it is what stops a concurrent draw handing the same item to a second writer.
+Pre-registered before the repair, with this consequence named in advance, in
+`docs/staging/SEAT_PREREGISTRATION_WHETHER_CLAIMING_IN_BOTH_STORES_RESTORES_THE_YES_WITHOUT_KILLING_THE_REOFFER_2026-09-02.md`.
+
+### 12.2 §9.4's shared-tree resolution was deliberately NOT taken
+
+§9.5A asks for `delivery_lane.CLAIMS_FILE` to resolve shared-tree-first by `_shared_tree_log`'s
+mechanism. It is unnecessary and it would cost something: both readers (`bound_landing` and
+`_still_claimed`) now union the two stores, and pointing that module-level constant at the shared
+tree would have every worktree child writing the live shared records — the opposite of what the
+worktree exists for. `_worktree_claims()` names the second store in one place instead.
+
+The recommendation was followed where it was right and departed from where it was not, and the
+departure is recorded here rather than left for the next reader to infer from the diff.
+
+### 12.3 ORDER is load-bearing, and getting it wrong rebuilds the defect out of its own repair
+
+`_still_claimed` asks *did the TICK release*; `_hand_back` is the executor's own bookkeeping. Run
+the hand-back first and the two are indistinguishable — every turn would look like a tick reporting
+itself finished, and the unconditional discharge this finding is about would be back, built this
+time out of the repair.
+`test_the_executors_OWN_hand_back_is_not_read_as_the_tick_releasing` dies to exactly that
+transposition.
+
+### 12.4 What discharges §7 and §9.6
+
+§7 asked for a control exercising both branches of the discharge; §9.6 added that it must exercise
+both **routes**, because the route selects the store. Both now exist in
+`tests/background/test_an_exit_code_is_not_a_landing.py`, and none of them stub anything between
+`run_once` and the stores — a fixture that claimed directly would pass under the defect, which is
+exactly how `test_the_verdict_is_not_the_exit_code` stayed green and honest while production was a
+constant:
+
+* `test_the_verdict_can_say_YES_on_the_PROMOTED_route` — dies to dropping `_worktree_claims()` from
+  `run_once`'s claim loop, which restores the measured behaviour of §9.2 exactly.
+* `test_the_verdict_can_say_YES_on_the_DRAWN_route` — dies to dropping the shared store from
+  `bound_landing`, **and the promoted test stays green under that same mutation** (verified by
+  running it, not assumed), so the two routes are separately witnessed rather than one subject
+  satisfying both alternations.
+* `test_a_LANDED_NOTHING_turn_leaves_the_item_DRAWABLE_AGAIN` — dies to deleting `_hand_back`. This
+  is §12.1's cost, pinned.
+* `test_the_tick_RELEASING_really_does_discharge` — **the pass branch, reached for the first time
+  in this module's life.** §7's *"today no test reaches `_still_claimed` with a True answer"* is now
+  false. `_still_claimed` dies to a constant in EITHER direction: True fails this test, False fails
+  §12.3's.
+* `test_the_hand_back_releases_only_the_claim_THIS_turn_took` — dies to dropping the `claimed_at`
+  match.
+
+Ten mutations were run against the full repair and ten died.
+
+### 12.5 The three instruments are now all reporting on their subject
+
+§10.1 named them: the exit code, the claim store, and the release message. `551d1aadf` closed the
+third; this closes the second; the first was closed by `6d18107c7`. **The chain is complete.**
+
+### 12.6 §8 and §9.7's predictions, graded
+
+§9.7's *"this turn's own line will be `LANDED NOTHING` for a turn that landed and promoted
+`8cb73c627`"* — **correct**, and measured in §9.2 before the log was read.
+
+§8 and §9.7's FORWARD predictions are about the LIVE log and are **not yet gradeable**: they need
+the next real executor turn under this code. §8 predicts that a repair without §6's clause makes
+`DISCHARGED` vanish entirely and the continuation re-offer indefinitely — a livelock. The repair
+landed here includes the clause (`_still_claimed` reads the worktree store, which is where the
+tick's `--release` lands), so the prediction to check is §9.7's: **the log should carry its first
+`FINISHED ... bound path(s) moved` line on a promoted item, and `DISCHARGED` on some turns and not
+others.** Neither has been observed yet, and §9.7's own warning stands — check the store contents
+directly, not the log, because the failure mode is indistinguishable from success at a glance.
+
+### 12.7 One thing this repair adds that no section predicted
+
+`.gitignore` now covers `docs/observability/.delivery_lane_claims.json` and its draw ledger. The
+executor writes a copy of the claim into its WORKTREE, so without this the child finds an untracked
+file in `docs/observability/` every turn — noise at best, and at worst a broad pathspec committing
+one lane's live claims into the shared tree. Neither store was ever tracked; this makes that
+explicit rather than incidental.
