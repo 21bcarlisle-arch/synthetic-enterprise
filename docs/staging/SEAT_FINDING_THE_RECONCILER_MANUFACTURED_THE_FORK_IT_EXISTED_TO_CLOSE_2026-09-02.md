@@ -179,3 +179,37 @@ history, the revert is defused permanently (it can never replay), the shared tre
 publish, the fork was not the remaining cause and this correction is wrong in its turn. The
 falsifiable reading is `.last_content_publish.json`, whose `ts` must move past 04:44 UTC — not the
 log's optimism, and not my expectation of it.
+
+### 6a. GRADED 18:47 UTC. The diagnosis held; the act was someone else's, and I did not perform it
+
+**I did not run that merge, and the prediction is graded on a fork closed by another route.** Said
+plainly rather than quietly rewritten: between my writing §6 and reaching for the door, origin gained
+three commits — `5260c6859`, then `17e40f7b7` *"merge origin/main: the census overlay work had
+already been salvaged there, so ours is superseded"*, then `6cecb32ef`. The shared tree went from
+1-ahead-33-behind to **1 ahead, 0 behind**. The fork is closed and my merge would now be a no-op, so
+it was never made.
+
+**What that grades, clause by clause, because a heading must not claim more than its evidence:**
+
+* *"origin is a strict content superset, so preferring it loses nothing of his"* — **CONFIRMED, and
+  it is what actually happened.** `17e40f7b7`'s own subject is that finding in the other lane's
+  words. Re-checked at `6cecb32ef` node by node: all five controls, the six overlay tests,
+  `_install_fake_register` and `_record_observation` are present. **The silent revert never fired.**
+* *"the wedge's remaining cause is the fork alone"* — **NOT YET GRADED.** The fork is closed and
+  that is necessary, not shown to be sufficient. The reading that settles it is still
+  `.last_content_publish.json` moving past 04:44 UTC, and it had not moved when this was written.
+* *"the act: merge it from an isolated worktree"* — **NOT PERFORMED BY ME.** Correct as a plan,
+  overtaken as an act.
+
+**The lesson is the one this finding is already about, one turn later and against its own author.**
+I measured a fork at 18:37, wrote a plan against it at 18:40, and by 18:43 the subject had moved
+twice. Two director commits and a lane's merge landed inside a six-minute window while I was
+composing prose about them. §3's third rule — *RE-READ THE SUBJECT AFTER ACTING* — has a twin that
+this near-miss exposes: **re-read the subject before acting, too.** Had I gone straight from the
+measurement to `surgical_land --merge`, I would have pushed a merge of a commit that was already
+merged, and widened by one the fork I had just finished proving was the whole remaining cause.
+
+**Note for whoever grades this next:** the director has since filed the reachability half himself —
+`docs/staging/done/SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md`,
+corrected in `59d70e9a1` to *"the behind-origin check exists and is unreachable, which is worse"*.
+That is a different defect from this one and is not discharged here.
