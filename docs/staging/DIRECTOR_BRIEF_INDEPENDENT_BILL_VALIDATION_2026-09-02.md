@@ -3,14 +3,7 @@
 **Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** unminted
 
 *Header added by the delivery seat, 2026-09-02. The director DID state the severity — "Severity:
-LATENT — a programme, not a live defect", inside the `**Type:**` line — and `finding_severity`
-could not read it, because it parses a fixed shape (`**Severity:** X · **Lane:** Y`) and there was
-no lane at all. So this is not a forgotten header; it is a machine format satisfied in the wrong
-register, by someone writing prose. His severity is carried through verbatim and only the lane is
-mine. `background/staging_watcher` now applies this automatically for externally-authored
-documents, so the block this caused three times cannot recur.*
-
-**Type:** [BRIEF — problem, requirements, and the reasoning behind them. Severity: LATENT — a programme, not a live defect. The design is the delivery seat's, and it is explicitly invited to improve on what is proposed here or replace it with something better, provided the properties in §4 hold.]
+LATENT — a programme, not a live defect", inside the `**Type:** [BRIEF — problem, requirements, and the reasoning behind them. Severity: LATENT — a programme, not a live defect. The design is the delivery seat's, and it is explicitly invited to improve on what is proposed here or replace it with something better, provided the properties in §4 hold.]
 
 ---
 
