@@ -222,3 +222,54 @@ the store contents directly and not the log.
 
 **This turn's own line will be `LANDED NOTHING` for a turn that landed and promoted `8cb73c627`.
 That is the prediction most easily checked, and it is written before the log was read.**
+
+---
+
+## 10. `--release` reports success unconditionally, and that is the mechanism behind §3's six false lines
+
+Found immediately after §9, by running `--release` and then looking at the store instead of the
+message. The same turn's two commands disagreed about whether one id was claimed:
+
+```
+$ python3 -m background.delivery_lane --landed  an-exit-code-is-not-a-landing
+bound NOTHING: it is NOT CLAIMED
+$ python3 -m background.delivery_lane --release an-exit-code-is-not-a-landing
+released an-exit-code-is-not-a-landing          <- and the claim is STILL in the other store
+```
+
+`background/delivery_lane.py:605`:
+
+```python
+if args.release:
+    claims_mod.release(args.release, path=CLAIMS_FILE)
+    print(f"released {args.release}")
+```
+
+`release()` returns `None`. **The success line is unconditional** — it prints whether or not
+anything was there, and it releases from `CLAIMS_FILE`, which is the store the executor's claim
+never reaches (§1). Measured after the call above: `.seat_work_in_hand.json` still held the id and
+`.delivery_lane_claims.json` was still `[]`.
+
+### 10.1 Why this closes the loop on §3
+
+§3 established that `_still_claimed` is never true, so the discharge always fires. §10 supplies the
+other end: the tick's `--release` **cannot** release the executor's claim, and tells the tick it
+did. So the discharge's stated reason — *"the tick released its claim"* — is false in a second,
+independent way, and a tick that never released reads a success message confirming it had.
+
+Three instruments in one chain, each reporting on itself rather than its subject: the exit code,
+the claim store, and now the release message. That is why §7's control has to assert against the
+STORE, never against a return value or a printed line.
+
+### 10.2 What this adds to repair A
+
+Repair A (§9.5) is necessary but **not sufficient on its own**. Making `run_once` claim into the
+delivery-lane store gives `--release` something real to remove, but the unconditional `print`
+remains: a `--release` that refuses, or that finds nothing, would still tell the tick it succeeded,
+and the next reader of that line has the same problem this whole finding is about.
+
+**So repair A gains a clause: `--release` must report what it actually did.** `claims_mod.release`
+should say whether a record was removed, and the CLI should print the refusal and its reason when
+it was not — the same discipline `record_landing`'s `refusal_reason` already follows, in the module
+that already owns the pattern.
+
