@@ -399,14 +399,32 @@ third; this closes the second; the first was closed by `6d18107c7`. **The chain 
 §9.7's *"this turn's own line will be `LANDED NOTHING` for a turn that landed and promoted
 `8cb73c627`"* — **correct**, and measured in §9.2 before the log was read.
 
-§8 and §9.7's FORWARD predictions are about the LIVE log and are **not yet gradeable**: they need
-the next real executor turn under this code. §8 predicts that a repair without §6's clause makes
-`DISCHARGED` vanish entirely and the continuation re-offer indefinitely — a livelock. The repair
-landed here includes the clause (`_still_claimed` reads the worktree store, which is where the
-tick's `--release` lands), so the prediction to check is §9.7's: **the log should carry its first
-`FINISHED ... bound path(s) moved` line on a promoted item, and `DISCHARGED` on some turns and not
-others.** Neither has been observed yet, and §9.7's own warning stands — check the store contents
+§9.7's forward prediction is in **two clauses, and the first is now GRADED — it held.** Measured
+against the real shared tree immediately after this turn promoted `b095fadf8`, on the promoted
+route, with nothing stubbed:
+
+```
+leg 1  bound landing: 5 path(s)
+leg 2  shared tree changed since 551d1aadf: 5 path(s), unreadable=''
+VERDICT: moved=True -- 5 of 5 bound path(s) moved on the shared tree
+```
+
+**That is the first time this instrument has said YES in its life.** §9.2 measured the same call
+answering `LANDED NOTHING` for a turn that had really landed and really promoted; the same call on
+the same route now answers correctly. The constant is gone in the direction that was hardest to
+see, and it is measured rather than argued.
+
+The second clause — *`DISCHARGED` on some turns and not others* — and §8's livelock prediction are
+about the LIVE log across MULTIPLE turns and remain **ungraded**. They cannot be settled from one
+turn by construction. §9.7's own warning stands for whoever grades them: check the store contents
 directly, not the log, because the failure mode is indistinguishable from success at a glance.
+
+One honest caveat on the first clause, recorded rather than left for a reader to find: this turn's
+own claim had to be mirrored into the delivery-lane store BY HAND before it could be bound, because
+the executor that spawned this turn was running the pre-fix `run_once`. The verdict above is
+therefore a true measurement of the repaired READER against a real landing, and not yet a
+measurement of the repaired WRITER in production. The next executor turn is what closes that, and
+it is the handed-off piece.
 
 ### 12.7 One thing this repair adds that no section predicted
 
