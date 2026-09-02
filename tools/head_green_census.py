@@ -570,9 +570,19 @@ def main(argv=None) -> int:
             # Composing the payload FROM `result["reason"]` is what stops that recurring: the
             # numbers, their populations and the causes now have exactly one author, so the two
             # surfaces cannot disagree again without the verdict itself being wrong.
+            # AND IT CARRIES THE FATE OF ITS OWN OBSERVATION (2026-09-02, third finding of the
+            # day on this control). `_record_observation` NEVER RAISES -- right, a downstream
+            # artefact must not eat the verdict -- but its note went only to stdout, and this
+            # process's stdout is a systemd journal. So the alarm said "830 red" and said nothing
+            # about whether those 830 had actually been STORED, which is the one thing that
+            # decides whether the hour the census just spent produced an observation or nothing.
+            #
+            # This is the register's own founding complaint one level up: the census's output
+            # went to a journal nobody reads. A fail-closed verdict composed into an artefact no
+            # published surface reads is not a control, and `register` is exactly that artefact.
             notify(
-                "[HEAD-GREEN] {}\n  {}".format(
-                    result["reason"], "\n  ".join(result["new_red"][:12])),
+                "[HEAD-GREEN] {}\n  {}\n  {}".format(
+                    result["reason"], register, "\n  ".join(result["new_red"][:12])),
                 kind="real_alarm",
                 headers={"X-Tags": "rotating_light", "X-Priority": "high"},
             )

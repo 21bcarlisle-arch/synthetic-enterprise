@@ -219,6 +219,48 @@ def commits_since(since: datetime) -> list[dict]:
     return commits
 
 
+def commit_shape(since: datetime, now: datetime | None = None) -> dict:
+    """READ the stretch's commits as a list a person would read, and say if the shape is wrong.
+
+    Director, 2026-09-02: *"Every instrument you have counts commits, gates them or receipts them.
+    None reads them. Twelve identical titles in an hour was visible at a human glance and invisible
+    to you by construction."*
+
+    WHY `commits_since` ABOVE DID NOT ALREADY DO THIS, which is the part worth keeping. It does
+    classify substantive vs mechanical -- and it classifies BY FILENAME, from `git log
+    --name-only`, which prints **no filenames at all for a merge commit**. So all 29 of that day's
+    empty merges scored `substantive: False`, `substantive_count` was 0, and `is_material` read
+    the stretch as EMPTY and skipped orientation. A machine committing every six minutes and a
+    machine doing nothing produced the identical brief.
+
+    The two readings answer different questions and both are kept: `substantive` asks *were the
+    files worth orienting on*, this asks *did the commit change anything at all*. The second is
+    structural (tree against every parent's tree) so no subject line or merge shape defeats it.
+
+    Never raises: a seat that cannot orient because its shape reader is unavailable is a worse
+    failure than one that orients without it, and the unavailability is recorded either way.
+    """
+    try:
+        from background import commit_narrative
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "why": repr(exc)}
+    try:
+        hours = max(0.25, ((now or datetime.now(timezone.utc)) - since).total_seconds() / 3600.0)
+        state = commit_narrative.narrative(since_hours=hours, limit=200)
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "why": repr(exc)}
+    return {
+        "available": True,
+        "count": state["count"],
+        "carrying_work": state["carrying_work"],
+        "changed_nothing": sum(1 for r in state["commits"] if r["carries_work"] is False),
+        "shape_is_wrong": state["shape_is_wrong"],
+        "findings": [{"kind": f["kind"], "detail": f["detail"], "commits": f["commits"][:12]}
+                     for f in state["findings"]],
+        "rendered": commit_narrative.render(state),
+    }
+
+
 def findings_now() -> dict:
     """Open staging findings by severity, from the parser the rest of the tree already reads."""
     try:
@@ -376,6 +418,7 @@ def build_brief(now: datetime | None = None) -> dict:
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
+        "shape": commit_shape(since, now),
         "findings": findings_now(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
@@ -394,6 +437,21 @@ def is_material(brief: dict) -> tuple[bool, str]:
     recorded whichever it is."""
     if brief["substantive_count"]:
         return True, f"{brief['substantive_count']} substantive commit(s) in the stretch"
+    # A STRETCH THAT COMMITTED AND CHANGED NOTHING IS A FINDING, NOT SILENCE, and getting these
+    # two the same way round is the whole reason 29 empty merges went unremarked for three and a
+    # quarter hours. Every other clause here asks "did something happen worth reacting to"; this
+    # one asks "did the machine spend three hours producing commits that contain nothing", which
+    # is a fault report about the machine and outranks a quiet night by a distance. It is placed
+    # ABOVE the level and director clauses deliberately: a spinning daemon is why the rest of the
+    # stretch is empty, so it is the thing to orient on first.
+    shape = brief.get("shape") or {}
+    if shape.get("shape_is_wrong"):
+        kinds = ", ".join(sorted({f["kind"] for f in shape.get("findings", [])})) or "wrong shape"
+        return True, (
+            "the commit stretch reads wrong ({}): {} commit(s), {} carrying work, {} that changed "
+            "nothing at all -- a machine fault, not a quiet stretch".format(
+                kinds, shape.get("count"), shape.get("carrying_work"),
+                shape.get("changed_nothing")))
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -435,8 +493,25 @@ def _resolve_claude() -> str | None:
 
 
 def _prompt(brief: dict) -> str:
+    # THE LIST GOES ABOVE THE JSON, AND OUTSIDE THE TRUNCATION. `brief` is dumped with a 60k cap
+    # and `commits` is the first big key in it, so a long stretch can push everything after it off
+    # the end -- including the one part of this brief that is meant to be READ rather than counted.
+    # A vantage that a truncation can silently remove is not a vantage. Director, 2026-09-02:
+    # *"every orientation reads the last stretch of commits as a list a person would read -- what
+    # landed, what it was, whether the shape is right."*
+    shape = brief.get("shape") or {}
+    rendered = shape.get("rendered") or ""
+    if not shape.get("available", True):
+        rendered = "THE COMMIT STRETCH COULD NOT BE READ ({}) -- so its shape was NOT checked, " \
+                   "and nothing below should be taken as evidence that it is sound.".format(
+                       shape.get("why", "unknown"))
     return (
         CHARTER
+        + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit whose "
+          "tree is identical to one of its own parents -- it changed NOTHING. A run of those, or a "
+          "run of identical subjects, is a finding about the MACHINE and outranks whatever else "
+          "this brief says is due.\n\n"
+        + rendered
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"
         + json.dumps(brief, indent=1)[:60_000]

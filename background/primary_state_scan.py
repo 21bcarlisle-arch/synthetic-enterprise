@@ -41,9 +41,30 @@ DONE_DIR = STAGING_DIR / "done"
 # supervisor draw and the deadman's blocked-mint reader key on -- kept in sync by being the
 # ONE documented convention (project_r17_tick_never_rests): a parked mint MUST carry
 # `<!-- SUPERVISOR_DRAW: self-drawable|blocked -->` or it is invisible.
-_SELF_DRAWABLE_RE = re.compile(r"SUPERVISOR_DRAW:\s*self-drawable")
+_SELF_DRAWABLE_RE = re.compile(r"SUPERVISOR_DRAW:\s*self-drawable", re.IGNORECASE)
+_BLOCKED_RE = re.compile(r"SUPERVISOR_DRAW:\s*blocked", re.IGNORECASE)
 _MINT_GLOB = "PLANNER_MINTED_*.md"
-_HEAD_BYTES = 600  # the marker lives in the doc's leading HTML comment; bounded read
+
+#: THE WHOLE DOCUMENT, AND NOT A PREFIX OF IT. This read was bounded to the first 600 bytes,
+#: because "the marker lives in the doc's leading HTML comment" -- which was true when it was
+#: written and stopped being true as ticks prepended their notes above it.
+#:
+#: MEASURED 2026-09-02: `PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md` carries
+#: `<!-- SUPERVISOR_DRAW: self-drawable -->` at character **3513**, behind 3.5 KB of accreted tick
+#: history. So this scan could not see it; and `_open_blocked_mints`, which is this function's
+#: COMPLEMENT, therefore counted it as BLOCKED. The mint's block was dissolved on 2026-08-03 -- the
+#: file says so in its own text -- and it has been alarming as blocked, and invisible as drawable,
+#: for a month. Nobody drew it from either direction.
+#:
+#: A control keyed to a POSITION goes quiet, not loud, when the thing moves past it, and widening
+#: the number would only move the date of the next failure. There is no cost to reading the file:
+#: these are a handful of documents of a few KB each.
+#:
+#: FAIL-CLOSED ON AMBIGUITY, matching `staging_disposition.selfdrawable_mint_in_progress`: a
+#: blocked marker anywhere PARKS the mint even if a self-drawable marker is also present. A
+#: whole-document scan can meet a token quoted inside a historical note, and parking on a
+#: contradiction is the safe direction -- an over-reported drawable item is drawn and found done,
+#: an under-reported block is work nobody does.
 
 
 def _title(body: str, fallback: str) -> str:
@@ -75,7 +96,7 @@ def drawable_undrawn_mints(in_progress_dir: Path) -> list[tuple[str, str]]:
             body = f.read_text(encoding="utf-8")
         except OSError:
             continue
-        if _SELF_DRAWABLE_RE.search(body[:_HEAD_BYTES]):
+        if _SELF_DRAWABLE_RE.search(body) and not _BLOCKED_RE.search(body):
             out.append((f.name, _title(body, f.name)))
     return out
 
