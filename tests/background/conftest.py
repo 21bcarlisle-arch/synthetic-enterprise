@@ -372,7 +372,12 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     # so the reconciler returns LEVEL and does nothing, and
     # `test_a_staged_document_no_longer_blocks_every_landing.py` injects `behind_fn` explicitly, so
     # its own legs are untouched by this pin.
-    monkeypatch.setattr(origin_reconcile, "commits_behind", lambda project=None: 0, raising=False)
+    # PINNED AT THE SEAM, NOT AT A FUNCTION LIST. The first version of this pin named
+    # `commits_behind`; an hour later the rung grew `commits_ahead` and the pin covered half of it,
+    # and the same 28 assertions went red a second time on the same cause. `fork_state` is now the
+    # module's one window onto the world, so a future world-read either comes through this door or
+    # is a new seam visible as one.
+    monkeypatch.setattr(origin_reconcile, "fork_state", lambda project=None: (0, 0), raising=False)
     monkeypatch.setattr(
         notification_digest, "QUEUE_FILE",
         tmp_path / "ntfy_digest_queue_absent.jsonl", raising=False,

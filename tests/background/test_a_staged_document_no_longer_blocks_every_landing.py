@@ -66,8 +66,13 @@ def test_a_fork_is_closed_automatically(tmp_path):
 
 
 def test_level_does_nothing_at_all(tmp_path):
-    """No fork, no worktree, no merge. A reconciler that acted every cadence would be churn."""
-    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 0,
+    """No fork in EITHER direction: no worktree, no merge, no push. A reconciler that acted every
+    cadence would be churn.
+
+    `ahead_fn` is explicit because "level" stopped meaning "not behind" when the push half was
+    added — a test that only pins one direction would pass while the other read the live world."""
+    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
+                      drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: 0,
                       runner=lambda w: _proc(1, "should not run"),
                       pusher=lambda w: _proc(1, "should not run"))
     assert r["status"] == orc.LEVEL and r["pushed"] is False
@@ -205,3 +210,75 @@ def test_a_fork_that_cannot_be_closed_pages_as_BLOCKED_WORK():
     body = inspect.getsource(deadmans_switch._check_origin_fork)
     assert "BLOCKED_WORK" in body
     assert "clear_transition" in body, "a closed fork must clear its own alarm"
+
+
+# ── the other half of the fork, which the first version of this module did not have ─────────
+def test_a_landing_sitting_local_only_is_PUSHED(tmp_path):
+    """THE DIRECTOR'S ACTUAL COMPLAINT: *"landed in the tree, reported as landed, not pushed."*
+
+    Nothing else on this machine pushes a `surgical_land` landing. The publish path pushes its OWN
+    commits and carries whatever else is on the branch, so a landing reaches origin only when a
+    publish happens to follow it — and a blocked publish path means no landing ever leaves.
+
+    MUTATION: return LEVEL whenever `behind == 0` and this fails. That mutation IS the first
+    version of this module, whose own landing then sat unpushed — the defect reproduced inside the
+    fix for it, and found by running the verification the finding says to run.
+    """
+    pushed = []
+    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
+                      drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: 3,
+                      runner=lambda w: _proc(1, "should not merge when not behind"),
+                      pusher=lambda w: pushed.append(w) or _proc(0))
+    assert r["status"] == orc.PUSHED and r["pushed"] is True
+    assert "3 gated landing(s)" in r["detail"]
+    assert pushed, "it must actually push, not merely report that it would"
+
+
+def test_level_now_means_AGREEMENT_not_merely_not_behind(tmp_path):
+    """"Not behind" and "agrees" are different states and only one of them is done."""
+    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
+                      drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: 0,
+                      runner=lambda w: _proc(1), pusher=lambda w: _proc(1))
+    assert r["status"] == orc.LEVEL and "agree" in r["detail"]
+
+
+def test_an_unreadable_ahead_count_does_not_push(tmp_path):
+    """Same fail-closed direction as the behind side: do not act on a state not observed."""
+    pushed = []
+    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
+                      drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: None,
+                      runner=lambda w: _proc(1), pusher=lambda w: pushed.append(1) or _proc(0))
+    assert r["status"] == orc.UNREADABLE and pushed == []
+
+
+def test_a_rejected_push_is_never_reported_as_done(tmp_path):
+    r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
+                      drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: 1,
+                      runner=lambda w: _proc(1),
+                      pusher=lambda w: _proc(1, "", "! [rejected] non-fast-forward"))
+    assert r["status"] == orc.ERROR and r["pushed"] is False
+
+
+def test_the_world_is_read_through_ONE_seam_so_a_pin_cannot_go_partial():
+    """A pin against a LIST of functions is fail-open on the next function.
+
+    `tests/background/conftest.py` pinned `commits_behind`, correctly. An hour later the rung grew
+    `commits_ahead`, the pin covered half of it, and the same 28 assertions in
+    `test_deadmans_switch.py` went red a second time on the same cause. `fork_state` is the module's
+    one window onto the world, so a future world-read comes through that door or is a new seam
+    visible as one.
+
+    MUTATION: read `commits_behind`/`commits_ahead` directly in `reconcile` and this fails.
+    """
+    src = inspect.getsource(orc.reconcile)
+    assert "(state_fn or fork_state)(project)" in src
+    # The per-leg overrides may still exist, but the DEFAULT path must not touch the two readers.
+    default_path = src.split("state_fn or fork_state")[0]
+    assert "commits_behind(" not in default_path and "commits_ahead(" not in default_path
+
+
+def test_the_directory_fixture_pins_that_seam():
+    """The pin and the seam must be the same thing; a conftest naming a function the rung no longer
+    calls is a pin that silently stopped pinning."""
+    conftest = Path("tests/background/conftest.py").read_text()
+    assert 'origin_reconcile, "fork_state"' in conftest

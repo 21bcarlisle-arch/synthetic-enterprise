@@ -654,7 +654,8 @@ def _check_origin_fork() -> None:
         log(f"origin-reconcile error: {e}")
         return
     log(f"ORIGIN FORK ({r['status']}): {r['detail']}")
-    if r["status"] in (origin_reconcile.LEVEL, origin_reconcile.RECONCILED):
+    if r["status"] in (origin_reconcile.LEVEL, origin_reconcile.RECONCILED,
+                        origin_reconcile.PUSHED):
         clear_transition(_ORIGIN_FORK_KEY)
         return
     notify(

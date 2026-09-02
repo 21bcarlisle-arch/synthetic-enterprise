@@ -90,6 +90,25 @@ from an earlier `cd`, not because I passed `-C`. Had it persisted the other way 
 committed another lane's 57 staged entries. Every git call in that sequence should have been
 `git -C <path>`, and the ones after it were.
 
+## And I shipped the fix with the same defect in it
+
+The first version of `origin_reconcile` closed the BEHIND direction only. Its own landing then sat
+unpushed — *"landed in the tree, reported as landed, not pushed"*, reproduced inside the fix for it,
+within the hour.
+
+Found by running the verification step this very finding says I should have been running:
+`git merge-base --is-ancestor <sha> origin/main` reported **MISSING** for the reconciler's own
+commit. The habit caught the defect the habit is about.
+
+**Reconcile has to mean BOTH directions or it does not mean agreement.** Nothing else on this
+machine pushes a `surgical_land` landing: the publish path pushes its own commits and carries
+whatever else is on the branch, so a landing reaches origin only when a publish happens to follow
+it — and a blocked publish path means no landing ever leaves the machine. That is the whole
+mechanism behind the director's complaint, and the behind-only version left it in place.
+
+`LEVEL` now means AGREEMENT rather than "not behind", and an ahead count that cannot be read does
+not push, on the same fail-closed direction as the behind side.
+
 ## What is not fixed
 
 **The sanctioned merge door cannot resolve a conflict.** `surgical_land --merge` refuses, and there

@@ -67,6 +67,7 @@ MERGE_TIMEOUT_SECONDS = 25 * 60
 
 LEVEL = "LEVEL"
 RECONCILED = "RECONCILED"
+PUSHED = "PUSHED"
 REFUSED_CONFLICT = "REFUSED_CONFLICT"
 REFUSED_GATE = "REFUSED_GATE"
 UNREADABLE = "UNREADABLE"
@@ -76,6 +77,30 @@ ERROR = "ERROR"
 def _git(cwd: Path, *args: str, timeout: int = 300) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True,
                           timeout=timeout)
+
+
+def commits_ahead(project: Path | None = None) -> int | None:
+    """How many commits local HEAD is AHEAD of `origin/main`. None if it cannot be established.
+
+    THE OTHER HALF OF THE FORK, AND I SHIPPED THIS MODULE WITHOUT IT (2026-09-02). The director's
+    complaint was *"landed in the tree, reported as landed, not pushed"* — and the first version of
+    this reconciler only closed the BEHIND direction. Its own landing then sat unpushed, which is
+    the same defect reproduced inside the fix for it, found by running the verification step that
+    the same finding says I should have been running all along.
+
+    Nothing else pushes a `surgical_land` landing. The publish path pushes its OWN commits and
+    carries whatever else is on the branch, so a landing reaches origin only when a publish happens
+    to follow it — and a blocked publish path means no landing ever leaves the machine. Reconcile
+    has to mean BOTH directions or it does not mean agreement.
+    """
+    project = project or PROJECT_DIR
+    try:
+        counted = _git(project, "rev-list", "--count", "{}/{}..HEAD".format(REMOTE, BRANCH))
+        if counted.returncode != 0:
+            return None
+        return int((counted.stdout or "").strip())
+    except (ValueError, OSError, subprocess.SubprocessError):
+        return None
 
 
 def commits_behind(project: Path | None = None) -> int | None:
@@ -143,8 +168,25 @@ def _classify_merge_failure(output: str) -> tuple[str, str]:
     return ERROR, output.strip()[-400:]
 
 
+def fork_state(project: Path | None = None) -> tuple[int | None, int | None]:
+    """`(behind, ahead)` in one call — the module's ONE window onto the world.
+
+    ONE SEAM SO A PIN CANNOT GO PARTIAL (2026-09-02). `reconcile` first read only `commits_behind`,
+    and `tests/background/conftest.py` pinned exactly that, correctly. Adding `commits_ahead` an
+    hour later made the pin cover half the rung's live reads, and the other half went straight back
+    to asking git about a remote — 28 assertions in `test_deadmans_switch.py` red again, for the
+    second time, on the same cause.
+
+    A pin against a list of functions is fail-open on the next function. A pin against one seam is
+    not, and any future world-read added here has to come through this door or be a new seam that
+    is visible as one.
+    """
+    project = project or PROJECT_DIR
+    return commits_behind(project), commits_ahead(project)
+
+
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
-              behind_fn=None, runner=None, pusher=None,
+              state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
@@ -153,15 +195,33 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
     """
     project = project or PROJECT_DIR
     worktree = worktree or WORKTREE
-    behind = (behind_fn or commits_behind)(project)
+    # `behind_fn`/`ahead_fn` stay as per-leg overrides for the tests that pin one direction; the
+    # DEFAULT goes through the single seam, which is the thing a fixture pins.
+    _behind, _ahead = (state_fn or fork_state)(project)
+    behind = behind_fn(project) if behind_fn else _behind
 
     if behind is None:
         return {"status": UNREADABLE, "behind": None, "pushed": False,
                 "detail": "origin is unreadable, so whether a fork exists cannot be established -- "
                           "not acting on a state that was not observed"}
     if behind == 0:
-        return {"status": LEVEL, "behind": 0, "pushed": False,
-                "detail": "origin/main is not ahead; nothing to reconcile"}
+        # NOT BEHIND IS NOT THE SAME AS AGREEING. Local may be AHEAD, and nothing else on this
+        # machine pushes a gated landing -- see `commits_ahead`.
+        ahead = ahead_fn(project) if ahead_fn else _ahead
+        if ahead is None:
+            return {"status": UNREADABLE, "behind": 0, "pushed": False,
+                    "detail": "origin/main is not ahead, but how far LOCAL is ahead could not be "
+                              "established -- not pushing on a state that was not observed"}
+        if ahead == 0:
+            return {"status": LEVEL, "behind": 0, "pushed": False,
+                    "detail": "local and origin/main agree; nothing to reconcile"}
+        pushed = (pusher or _push)(project)
+        if pushed.returncode != 0:
+            return {"status": ERROR, "behind": 0, "pushed": False,
+                    "detail": "local is {} commit(s) ahead and the push was rejected: {}".format(
+                        ahead, (pushed.stderr or pushed.stdout or "").strip()[:300])}
+        return {"status": PUSHED, "behind": 0, "pushed": True,
+                "detail": "pushed {} gated landing(s) that were sitting local-only".format(ahead)}
 
     ok, why = (make_worktree or _fresh_worktree)(project, worktree)
     if not ok:
@@ -235,7 +295,7 @@ def main(argv=None) -> int:
     result = reconcile()
     print(json.dumps(result, indent=2) if args.json
           else "{}: {}".format(result["status"], result["detail"]))
-    return 0 if result["status"] in (LEVEL, RECONCILED) else 1
+    return 0 if result["status"] in (LEVEL, RECONCILED, PUSHED) else 1
 
 
 if __name__ == "__main__":
