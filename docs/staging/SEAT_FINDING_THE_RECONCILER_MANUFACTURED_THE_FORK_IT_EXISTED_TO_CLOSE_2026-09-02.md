@@ -265,3 +265,341 @@ commit, per the gate's own instruction — or to take the level move back out of
 **Do not read the fork's closure as the wedge lifting.** Clearing one publish-wedge cause reveals
 the next gate; it does not produce a green publish, and `.last_content_publish.json` remains the
 only reading that settles it.
+
+## 8. RE-MEASURED 19:35 UTC: the census repair landed, and the wedge has narrowed four files to one
+
+§7 named four files. **Re-running the gate itself — not re-reading §7 — now names exactly one.** A
+cited defect goes stale exactly like a green, so this is the gate's own output at `38fbe2853`:
+
+> `[level-gate] ❌ COMMIT REFUSED` — `§0: level_current 0->1 on D_opening_dd_seasonal_sizing`
+> declares a level for source this commit does NOT contain: `company/billing/statement_export.py`
+
+**Why three of the four dropped off, measured from `git status --porcelain`.** The gate asks whether
+the `file_scope` source is *in the commit*, and a STAGED edit is in the commit:
+
+| file | state at 19:35 | in the commit? |
+|---|---|---|
+| `company/billing/raw_account_export.py` | clean — landed | yes |
+| `simulation/dd_balance_book.py` | `M ` staged | yes |
+| `tests/simulation/test_dd_balance_book.py` | `M ` staged | yes |
+| `company/billing/statement_export.py` | ` M` **unstaged** | **NO — the whole wedge** |
+
+The DD lane is draining its own payload, exactly as §7 said it should. One file is left behind, and
+the difference between it and its two green neighbours is a single `git add`.
+
+**I did not perform that `git add`, and the reason is not deference.** A pre-commit hook chain
+(pid `1274555`, 34 minutes in) was live against the shared index throughout this tick. Staging a
+file into an index whose hook chain is already running makes that commit sweep a path its gates
+never tested — the dirty-shared-index hazard the surgical-land rule exists for. The correct order is
+for the in-flight cycle to finish first; the repair is one command and it survives the wait.
+
+## 9. §7's clause-5 prediction CANNOT BE GRADED FROM THIS CYCLE, and saying so is the point
+
+The drawn item asked whether the census repair made publishing recover, and said a still-wedged
+publisher "refutes my diagnosis in full". **It does not yet, and the honest reading is "I cannot
+attribute it" rather than either verdict.** The timestamps, not the log's optimism:
+
+```
+census repair landed  38fbe2853   19:05:04 UTC
+process_run_complete  pid 1189565 started 18:29:24 UTC   <- 36 min BEFORE the fix
+full suite            pid 1243846 started 18:47:33 UTC   <- 18 min BEFORE the fix
+.last_publish_cause   git_hash = 6c44b2109  ts 18:47:33  <- the PRE-FIX commit, stamped by that run
+.last_content_publish ts = 04:44:07 UTC, unmoved
+```
+
+Every artefact a grader would read was written by a cycle that **started before the repair existed**
+and measures `6c44b2109`, the pre-fix commit. Its refusal is not evidence about `38fbe2853`; read as
+one it would convict the fix of a failure it could not have caused. The first cycle that can grade
+clause 5 is the one that starts after `38fbe2853` — and per the same rule, no second suite was run
+beside the live one to force the answer sooner.
+
+**What IS settled, at HEAD, by reading the committed tree rather than the tree I am sitting in:**
+the compose is done and the armed silent revert is disarmed. `git show HEAD:` on the two census
+files carries all nine controls — the six leg-2 overlay controls *and* `30adb2b66`'s three recording
+controls (`test_a_completed_run_lands_a_row_the_REAL_register_accepts`,
+`test_a_log_parsed_after_the_fact_records_no_sha_so_it_cannot_manufacture_a_run`,
+`test_a_census_that_could_not_record_says_so_on_the_channel_he_reads`) — and the notify payload
+still carries `register`. `HEAD...origin/main` is `0 0`. `background/finding_severity` reports
+**zero FALSE-DISCHARGE**: the report against
+`SEAT_PREREGISTRATION_WHETHER_THE_CENSUS_CAN_RECORD_A_COMPLETE_ROW_2026-09-02.md` was an artefact of
+being behind origin and cleared itself on the merge, as predicted. One BLOCKING finding remains and
+it is this document, not the census one, which is discharged.
+
+## 10. A THIRD gate, found by trying to land section 8 — and it blocks every lane, not just this one
+
+I attempted the ordinary route (`shared_tree_lock` + a one-file pathspec commit of *this document*).
+It was refused, and **not by the level gate** — by `tools/orphan_ratchet.py`:
+
+> `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS.` — `tools.artefact_rerun_diff`,
+> `tools.independent_bill_validator`
+
+**Neither module is mine, and my pathspec contained one markdown file.** The ratchet reads the whole
+tree, not the pathspec — the shape CLAUDE.md already names ("an unwired module or an unfiled finding
+from any lane blocks every commit"). Measured:
+
+| module | tree state | at HEAD? | wired to a runner? |
+|---|---|---|---|
+| `tools/artefact_rerun_diff.py` | `A ` staged | no | only `tests/tools/test_artefact_rerun_diff.py` imports it |
+| `tools/independent_bill_validator.py` | `??` untracked | no | only `tests/tools/test_the_curtained_validator_rebuilds_the_bills_without_us.py` |
+
+A test importing a module is not a runner, which is exactly what the ratchet is for.
+
+**I did not `--freeze` either one, and that is a judgement rather than an omission.** Freezing
+declares a module *deliberately dormant*. `independent_bill_validator` is the subject of a live
+director brief still in the staging root
+(`DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02.md`), and both modules have tests written
+against them. They are **unfinished, not dormant** — freezing them would put a false statement on
+the record to buy my own commit a green, which is the trade this project has paid for before.
+
+### The wedge is a QUEUE of independent causes, and each is invisible until the one before it clears
+
+This is the third cause today and the important thing is the shape, not the instance:
+
+```
+07:13  fork / behind_origin      closed 19:05 by the compose  -> revealed the next
+18:47  level_promotion_gate      1 file left (§8)             -> revealed the next
+19:40  orphan_ratchet            2 modules, 2 other lanes     -> unknown what is behind it
+```
+
+Each cause was **fully invisible** while the one before it held, so every "the wedge's remaining
+cause is X" statement in this document — including two of my own — was structurally unable to be
+complete when it was written. **The correct claim is never "X is the cause" but "X is the cause the
+gate can currently see."** A publish-wedge diagnosis has no right to a "in full" clause, and neither
+the drawn item's nor mine should have carried one.
+
+**Consequence worth stating plainly: this document cannot be landed by the lane that wrote it**,
+because the gate that refuses it is held open by two other lanes' in-flight work. It sits in the
+working tree until one of them lands or freezes. That is not a failure of this tick; it is the
+measurement the tick produced.
+
+## 11. 20:03 UTC: the fork RE-OPENED and was closed by the one act no gate can refuse
+
+§9 recorded `HEAD...origin/main` at `0 0`. **It did not stay there**, and the next tick was drawn on
+the strength of that reading. Measured at the start of this tick:
+
+```
+HEAD                    38fbe2853        (the compose)
+origin/main             d2c86f8c2        [DIRECTOR-RULING] Mothball audit third addendum
+HEAD...origin/main      0  1
+.last_publish_cause     19:51:22Z   cause = behind_origin   git_hash = 6c44b2109
+```
+
+The publisher's cause had reverted to **`behind_origin`** — §7's cause, back for the second time,
+from a single director commit landing while the shared tree stood still. This is §6a's lesson
+holding against a fourth author: *re-read the subject before acting.* The drawn item asked for a
+compose of the census files; the census files were **already byte-identical to origin** and every
+control it asked me to verify was already at HEAD. The work it named was done. The work that
+remained was the one-line residue the DD lane's own commit message had named and declared itself
+barred from: *"the shared tree taking the advance."*
+
+### Why the advance was possible when no commit is
+
+§10 establishes that `orphan_ratchet` refuses **every** commit in this tree, and I re-measured it
+rather than trusting the citation — `tools/artefact_rerun_diff.py` still `A `, `independent_bill_validator.py`
+still `??`, each imported only by its own test. So the obvious routes were all shut.
+
+**A fast-forward is not a commit.** `git merge-base --is-ancestor HEAD origin/main` was true, so the
+advance creates no new tree, and a whole-tree pre-commit ratchet has nothing to gate. That is the
+general fact worth keeping:
+
+> When the pre-commit chain is held open by another lane, a pure fast-forward is the only shared-tree
+> act still available — and `behind_origin` is precisely the cause it cures.
+
+Measured before acting, so the advance could not sweep anything: origin changed **one** file,
+`docs/staging/in_progress/DIRECTOR_RULING_MOTHBALL_THE_APPARATUS_2026-07-29.md`, and it was **clean**
+in both index and worktree. Preserved first as `refs/preserved/lane0-census-2026-09-02-t2`
+(`279504d1b`) — no `git stash`, no `git checkout <path>`.
+
+**I waited rather than fired.** A `surgical_land` gate (pid `1364325`) was live when the tick opened.
+§3's second rule is *NEVER WHILE A GATE IS RUNNING*, so the advance was held until it exited. It is
+worth recording that the hazard turned out to be smaller than the rule assumes — that lander ran in a
+**detached** worktree (`/var/tmp/se-seat-executor`) with its own index, so moving `refs/heads/main`
+could not have spent its run. The rule is still right to obey: establishing that took longer than the
+wait did.
+
+### After, verified rather than asserted
+
+```
+HEAD...origin/main                     0  0
+git diff HEAD -- <the ff'd file>       empty    <- worktree LEVEL with HEAD, no armed revert
+staged entries                         112 before, 112 after   <- nothing swept
+HEAD:tests/.../test_head_green_census  all nine controls, both lanes
+HEAD:tools/head_green_census.py        `register` still on the notify payload
+background/finding_severity            zero FALSE-DISCHARGE
+```
+
+### The two "done means" clauses I did NOT satisfy, said plainly
+
+* **"zero BLOCKING"** — not reached, and **not reachable by me without lying.** The one BLOCKING
+  finding is *this document*. It is not the census finding the drawn item named (that one is
+  discharged, §9). Discharging this one requires landing it, and §10 is why that is impossible from
+  this tree. Downgrading its severity to buy a green is the exact trade §10 refused for `--freeze`,
+  and it would be worse here because the severity is my own lane's.
+* **"the next cycle publishes"** — **cannot be graded from this tick, and that is a result, not a
+  hedge.** The publisher live throughout (pid `1337800`, started 15:37Z) is stamped `6c44b2109`,
+  a commit that predates even the compose. Reading its outcome as evidence about `d2c86f8c2` would
+  convict the advance of a failure it could not have caused — §9's error, one tick later. No second
+  suite was run beside it. **The first cycle that can grade this is one starting after `d2c86f8c2`,
+  and the reading remains `.last_content_publish.json` moving past 04:44:07Z.**
+
+### Pre-registered, before that cycle runs
+
+`behind_origin` is now cured as a matter of measured state. **If the next cycle still refuses, the
+cause will be `orphan_ratchet`** (§10), on two modules belonging to two other lanes — not the fork,
+not the census, and not the level gate. If it refuses for any *other* named cause, this prediction is
+refuted and the queue in §10's table is longer than four.
+
+**Fourth cause, and the shape from §10 now has a count.** The queue is not merely a queue: `behind_origin`
+**recurred** after being closed. A cause crossed off can come back while a slower cause is still being
+worked, so "causes remaining" is not monotonically decreasing and no diagnosis here may claim
+completeness — including this one.
+
+## 12. 20:37 UTC: the fork re-opened a THIRD time, and what jammed the advance was our own superseded copies
+
+§11 closed the fork at 20:03 and verified `0 0`. **It did not stay there either.** Measured at the
+start of this tick, before acting:
+
+```
+shared tree HEAD         d2c86f8c2
+origin/main              380b86207
+HEAD...origin/main       0  2        <- 55513c99e (false licence citation) + 380b86207 (merge)
+.last_publish_cause      behind_origin   git_hash 6c44b2109   19:51:22Z
+.publish_gate_state      episode_failures 18   wedge_since 07:13:20Z
+.last_content_publish    04:44:07Z            <- unmoved, 16h
+```
+
+`behind_origin` has now been closed three times and returned twice. §11 wrote that "causes
+remaining" is not monotonically decreasing and offered it as a caution. **It is no longer a caution;
+it is a measured rate.** Origin advanced twice inside the 34 minutes between §11's verification and
+this reading, and the shared tree cannot follow on its own.
+
+### The drawn item's diagnosis, graded: right about the repair, wrong about the wedge
+
+The item was drawn on measurements taken at `6c44b2109`: `HEAD...origin/main` = `0 24`, and the two
+`test_head_green_census.py` reds as the wedge. Re-read rather than re-derived, all three had moved:
+
+* the compose **was already landed and on origin** — `git show HEAD:tests/tools/test_head_green_census.py`
+  defines all nine controls, both lanes', and `register` is still on the notify payload;
+* `.publish_gate_state.json` reports `total_red: 0` and `blocking_tests: []` — the census reds are cured;
+* `background/finding_severity` reports **zero FALSE-DISCHARGE**; the census finding is discharged.
+
+So the census repair landed and **publishing did not recover**, which is the item's own stated
+refutation condition. The live cause was `behind_origin` alone. This is §10's shape for the fifth
+time: clearing one cause reveals the next, and a diagnosis written against one instant grades itself
+against a different one.
+
+### What actually jammed the fast-forward, and it is not what §2 assumed
+
+§2 attributed the jammed fast-forward to *a lane holding the files origin changed* — forward work in
+contention. **That was not the case here, and checking rather than assuming changed the act.** The
+advance would have been refused:
+
+```
+git read-tree -n -m -u HEAD origin/main
+error: Entry 'company/billing/statement_export.py' not uptodate. Cannot merge.
+```
+
+Origin changed six files; four were obstructed — two tracked and modified, two untracked. Every one
+of the four was **byte-identical to the blob origin was bringing in**:
+
+| path | state | worktree sha | origin sha |
+|---|---|---|---|
+| `company/billing/statement_export.py` | ` M` | `7dbcecc12` | `7dbcecc12` |
+| `tests/company/billing/test_the_statement_shows_how_each_bill_reached_its_number.py` | ` M` | `bd2fbcccb` | `bd2fbcccb` |
+| `docs/staging/SEAT_FINDING_THE_LAST_PUBLISH_WEDGE_WAS_ONE_UNSTAGED_FILE_2026-09-02.md` | `??` | `43933ed27` | `43933ed27` |
+| `docs/staging/SEAT_PREREGISTRATION_WHETHER_THE_LAST_WEDGING_FILE_IS_FORWARD_WORK_OR_A_SUPERSEDED_DRAFT_2026-09-02.md` | `??` | `0365a08f6` | `0365a08f6` |
+
+Not one was forward work. All four were **superseded local copies of work that had already landed as
+`55513c99e`** — the same content, sitting uncommitted, blocking the advance onto itself.
+
+> **A stale shared tree accumulates copies of the very work it cannot advance onto, and those copies
+> are then what prevent the advance.** §5a found that a stale tree silently *reverts*. This is the
+> other half: it also *self-jams*, and the jam presents identically to a live lane holding
+> contended files. The two are distinguishable only by comparing blob shas, which costs one command.
+
+Because identity was established first, the clearance was provably content-preserving: the two
+tracked paths were staged (their content already equalled origin, so this staged nothing new), and
+the two untracked files removed — their blobs are `origin/main`'s own, so removal could not lose
+them and the checkout recreated them byte-for-byte. Preserved beforehand as
+`refs/preserved/shared-tree-pre-ff-2026-09-02` (`91fe539fb`). No `git stash`, no `git checkout <path>`.
+
+### After, verified rather than asserted
+
+```
+git merge --ff-only origin/main    Updating d2c86f8c2..380b86207   (no commit created)
+HEAD...origin/main                 0  0
+git diff HEAD --stat -- <the 6>    empty     <- worktree LEVEL with HEAD, no armed revert
+git status --porcelain             590 -> 586
+  lines gone                       exactly the 4 obstructions above, and nothing else
+  lines new                        none
+```
+
+586 dirty entries belonging to other lanes were untouched. §11's general fact held again: the
+pre-commit chain is still held open by `orphan_ratchet`, and a pure fast-forward creates no tree, so
+it remains the only shared-tree act available.
+
+### 12a. §11's pre-registration: NOT YET GRADEABLE, and its precondition re-measured as live
+
+§11 pre-registered: *if the next cycle still refuses, the cause will be `orphan_ratchet`.* It cannot
+be graded from this tick, for §11's own reason — the publisher live throughout (pid `1337800`) is
+stamped `6c44b2109`, which predates the compose, this advance, and both of origin's new commits.
+Reading its outcome as evidence about `380b86207` would convict the advance of a failure it could not
+have caused. No second suite was run beside it.
+
+What *can* be established is that the prediction's precondition is still live, measured rather than
+cited:
+
+```
+python3 -m tools.orphan_ratchet   ->  rc=1
+  tools.artefact_rerun_diff            A   (staged)
+  tools.independent_bill_validator     ??  (untracked)
+```
+
+and each is still imported by its own test alone. The prediction stands un-refuted and ungraded.
+**The first cycle that can grade it is one starting after `380b86207`, and the reading remains
+`.last_content_publish.json` moving past 04:44:07Z** — not the log's optimism.
+
+### 12b. The route §11 concluded did not exist, and it does
+
+§11 recorded that discharging this finding requires landing it, and that §10 made landing impossible
+"from this tree" — then declined to buy a green by downgrading its own severity, which was right.
+
+The scope of that impossibility was wider than the fact warranted. `orphan_ratchet` reads the **whole
+working tree**, and both of its subjects are shared-tree-only: `tools/artefact_rerun_diff.py` is
+staged in the shared index and `tools/independent_bill_validator.py` is untracked there. Neither file
+exists in a detached worktree checked out from `origin/main`. Verified in
+`/var/tmp/se-seat-executor`, whose entire dirt is four unrelated observability files.
+
+So the blocker is **positional, not absolute**: a commit that cannot be created in the shared tree can
+be created from an isolated worktree, because the ratchet's subjects are uncommitted and therefore do
+not travel. That is how this section lands. It does not clear the ratchet for the shared tree, and it
+must not be read as clearing it — the two modules still block every commit *there*, and wiring or
+`--freeze`ing another lane's unfinished module remains the trade §10 refused and this section also
+refuses.
+
+**Severity unchanged: still BLOCKING.** Publishing has not recovered — `.last_content_publish.json`
+still reads 04:44:07Z. Landing this section records the incident; it does not discharge it, and no
+`**Discharged:**` line is offered here, because the condition that would justify one has not happened.
+
+### 12c. Found by trying to land it: four sections of this incident existed only as uncommitted prose
+
+Composing this section surfaced the sharpest instance of its own subject. The committed blob of this
+file at `380b86207` is **267 lines and ends at §7**. Sections **8, 9, 10 and 11 were never landed** —
+they existed only in the shared tree's working copy (455 lines, ` M`), stranded by exactly the
+`orphan_ratchet` that §10 discovered *by trying to land §8*.
+
+Appending §12 to the committed version — the obvious act, and the one a fresh worktree invites —
+would have produced a file holding §1–§7 and §12, **silently deleting the record of the third gate,
+the ungradeable prediction, and the first fork closure.** It was caught only because a line count
+disagreed with a line number quoted forty minutes earlier.
+
+> **An incident record that cannot be landed decays into the state it is describing.** The
+> uncommitted sections are the most recent and the most load-bearing — §10 and §11 are the only
+> account of the gate now blocking every lane — and they were one careless `>>` from being reverted
+> by a lane acting in good faith on a clean checkout.
+
+Composed here rather than chosen between: the shared tree's §1–§11 followed by §12, 455 + 127 = 582
+lines, every section header present and each exactly once. This is the second time in this incident
+that the correct move was **compose, not pick a side** — §5a's three-way merge of the census tests was
+the first, and both arose from the same root: *a tree that cannot advance grows a second copy of the
+truth, and the copies then differ in both directions at once.*
