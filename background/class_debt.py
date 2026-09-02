@@ -158,6 +158,12 @@ REOPEN_AFTER_INSTANCES = 2
 FLOOR_CLASSES = 6
 FLOOR_INSTANCES = 118
 
+#: POPULATION FLOOR for the RECURRENCE count, dated 2026-09-02 and measured by hand before the
+#: code that computes it existed (`SEAT_PREREGISTRATION_WHAT_COUNTING_RECURRENCE_MUST_SHOW`).
+#: 212 = 124 consolidated + 88 archived-and-recorded additions. Like its sibling above it can only
+#: rise, so a drop means the archive scan lost its subject.
+FLOOR_RECURRENCE = 212
+
 _DATE_IN_NAME = re.compile(r"(20\d\d-\d\d-\d\d)")
 
 _WORD_NUMBERS = {
@@ -385,6 +391,26 @@ class ClassDebt:
     commits_on_top: int = 0
     same_day_pairs: int = 0
     recent_instances: int = 0
+    #: EVERY TIME THIS SHAPE HAPPENED, including the times it was fixed on sight.
+    #:
+    #: WHY A SECOND COUNT AND NOT A BIGGER FIRST ONE (director, 2026-09-02: *"a class repaired on
+    #: sight twenty times reading as zero debt is the exact thing the measure exists to prevent"*).
+    #: `derive_memberships` drops RECORDED documents, and says why: *"a RECORDED document is a
+    #: landed record with nothing owed … folding reports of FIXES into a class of DEFECTS would
+    #: inflate every instance list with work already done."* That is right for CONSOLIDATION, which
+    #: is a claim about SUPERSESSION — a class register must not archive a fix report under a
+    #: defect heading.
+    #:
+    #: It is wrong for the question this module asks. Recurrence is *how often the shape happens*,
+    #: and a class repaired within the hour twenty times has happened twenty times. Under the
+    #: consolidated count `no_caller_and_never_runs` took three instances on 2026-09-01 and three
+    #: more on 2026-09-02, every one RECORDED, and moved by ZERO.
+    #:
+    #: This is the same distinction the out-of-lane note below already draws one level down —
+    #: consolidation is lane-scoped, accrual is not — arriving again at severity instead of lane.
+    #: One population was answering two questions, and only one of them was its own.
+    recurrence: int = 0
+    recent_recurrence: int = 0
     #: Instances the lane guard refused consolidation. They COUNT toward this class (see
     #: `compute`) and are reported separately so a reader can see that the register's instance
     #: LIST is shorter than its instance COUNT, and why.
@@ -397,7 +423,11 @@ class ClassDebt:
 
     @property
     def still_accruing(self) -> bool:
-        return self.recent_instances >= ACCRUAL_MIN_INSTANCES
+        # RECURRENCE, not the consolidated count: a class fixed on sight twice this week is
+        # accruing by any honest reading, and under the consolidated count it is invisible.
+        # `max` rather than a swap so this can only ever see MORE than it did — a class that was
+        # accruing before this change cannot stop being so because of it.
+        return max(self.recent_instances, self.recent_recurrence) >= ACCRUAL_MIN_INSTANCES
 
     @property
     def measured_fraction(self) -> float:
@@ -422,9 +452,15 @@ class ClassDebt:
             return False, f"CLOSED by `{disposition.mechanism}` on {disposition.taken}"
         if disposition is not None and disposition.decision == ACCEPTED:
             at = disposition.at_instances
-            if at is not None and self.instances >= at + REOPEN_AFTER_INSTANCES:
+            # THE RE-ARM READS RECURRENCE, and this is where the whole change earns its place.
+            # An acceptance says "we will live with this"; the evidence that overtakes it is the
+            # shape HAPPENING AGAIN, and whether someone repaired it within the hour has no
+            # bearing on that. Under the consolidated count an acceptance could never be overtaken
+            # by instances that were fixed on sight — which is most of them.
+            seen = max(self.instances, self.recurrence)
+            if at is not None and seen >= at + REOPEN_AFTER_INSTANCES:
                 return True, (
-                    f"ACCEPTED on {disposition.taken} at {at} instances, now {self.instances} "
+                    f"ACCEPTED on {disposition.taken} at {at} instances, now {seen} "
                     f"— {REOPEN_AFTER_INSTANCES} further instances is a class's worth of "
                     "evidence arriving after the decision, so the decision is re-opened"
                 )
@@ -490,6 +526,50 @@ class ClassDebt:
         )
 
 
+def recurrence_paths(root: Path, class_id: str, already: set[str]) -> list[Path]:
+    """Documents that are instances of `class_id` but are NOT in its consolidated list.
+
+    Two sources, and both are things the consolidated count deliberately drops:
+      * RECORDED documents still in the root — fixed in the turn that found them;
+      * archived documents in `done/` the classifier assigns to this class.
+
+    MINUS THE TWO EXCLUSIONS THE REGISTER'S OWN RULES ALREADY APPLY, and this is the part that had
+    to be got right. Externally-authored documents (an advisor pointer, a director ruling) and
+    self-clearing alarm documents are OUT OF POPULATION for consolidation, and they are out of
+    population here for the same reasons — one is another party's ask, the other is a live alarm,
+    and neither is an instance of anything.
+
+    OMITTING THEM IS EXACTLY THE ERROR THIS FUNCTION EXISTS TO CORRECT. On 2026-09-01 I counted
+    the archive WITHOUT these exclusions, got 119 additions where the honest figure is 88, and
+    published that `uncommitted_and_orphaned_work` would overtake `controls_that_cannot_fail` in
+    the draw. With the exclusions applied it does not: 40 against 51. That is
+    `a correct refusal is not a population`, committed inside the finding whose subject is a
+    correct refusal being read as a population.
+
+    A FLOOR, WITH A KNOWN UPWARD BIAS, and it must be reported as one. A hand sample of 25 on
+    2026-09-02 put the residual misclassification at roughly a quarter of the archived additions —
+    mostly a REPORT about a class counted as an INSTANCE of it. And it counts DOCUMENTS, not
+    incidents: two filings about one condition count twice, and a recurrence nobody filed counts
+    zero. So this is never a claim about how many times the shape actually happened.
+    """
+    out: list[Path] = []
+    for folder in (root, root / fc.ARCHIVE_DIRNAME):
+        if not folder.is_dir():
+            continue
+        for path in sorted(folder.glob("*.md")):
+            if path.name in already:
+                continue
+            if path.name.startswith(fc.EXTERNALLY_AUTHORED_PREFIXES):
+                continue
+            if path.name.startswith(fc.SELF_CLEARING_ALARM_PREFIXES):
+                continue
+            if path.name.startswith(fc.CLASS_DOC_PREFIX) or path.name.startswith(fc.DOORBELL_PREFIXES):
+                continue
+            if fc.classify_file(path).class_id == class_id:
+                out.append(path)
+    return out
+
+
 def compute(
     root: Path | str = DEFAULT_STAGING_ROOT,
     *,
@@ -548,6 +628,18 @@ def compute(
         )
         debt.persisted_days = sum(span.days for span in debt.persisted)
 
+        # RECURRENCE, computed from its own population — see `recurrence_paths`. Derived from the
+        # UNION OF DATES rather than by adding to `debt.recent_instances`, which is assigned below:
+        # the first draft read that attribute before it was written, so the recent count was
+        # silently the extras alone. An ordering dependency inside one function is the cheapest
+        # possible place to get this wrong and the hardest to see later.
+        extra = recurrence_paths(root, class_id, {p.name for p in paths})
+        debt.recurrence = len(paths) + len(extra)
+        debt.recent_recurrence = sum(
+            1 for d in _instance_dates(paths) + _instance_dates(extra)
+            if (today - d).days <= ACCRUAL_WINDOW_DAYS
+        )
+
         dates = _instance_dates(paths)
         debt.dated = len(dates)
         if dates:
@@ -604,6 +696,17 @@ def floor_violations(debts: list[ClassDebt]) -> list[str]:
             f"POPULATION FLOOR instances: {total}, floor {FLOOR_INSTANCES} (2026-09-01). "
             "Instances are archived, never unfiled, so a drop means membership derivation is "
             "reading a subject that has moved."
+        )
+    recurrence = sum(d.recurrence for d in debts)
+    if recurrence < FLOOR_RECURRENCE:
+        # ITS OWN FLOOR, because it has its OWN subject: `recurrence_paths` scans two folders and
+        # applies two exclusions, and every one of those four things can silently stop matching.
+        # A scanning control without a dated floor is the defect this project found five times in
+        # one day, and inheriting the instances floor would leave the archive half unwatched.
+        out.append(
+            f"POPULATION FLOOR recurrence: {recurrence}, floor {FLOOR_RECURRENCE} (2026-09-02). "
+            "The archive only grows and a RECORDED document is never unfiled, so a drop means the "
+            "recurrence scan lost one of its two folders or over-applied an exclusion."
         )
     return out
 
