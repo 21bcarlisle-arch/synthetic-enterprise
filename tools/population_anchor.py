@@ -487,7 +487,24 @@ def _crisis_churn_direction(churn_by_year: dict) -> dict:
                    for yr in crisis_years)
 
     yr2022 = churn_by_year.get(2022, {})
-    rate_2022 = yr2022.get("sim_churn_rate", 0.0)
+    # AN ABSENT 2022 IS AN UNAVAILABLE CHECK, NOT A ZERO CHURN RATE. This read
+    # `.get("sim_churn_rate", 0.0)` until 2026-09-02, on a capture family that carries ZERO 2022
+    # renewal decisions -- 2022 is 100% crisis-forced-passive and C1b routes every passive roll to
+    # the SVT segment table, so the year is legitimately absent from the renewal capture and this
+    # published `0.0` was a MEASURED ZERO for the crisis year. It read as the flattering answer
+    # twice over: `2022_sim_rate_pct: 0.0` on the surface, and `absolute_divergence_flag: False`
+    # from arithmetic on the fabricated zero, so the divergence check reported GREEN for a year it
+    # never observed. Same class as the `.get(2022, 0.04)` removed from `ofgem_2022` below on
+    # 2026-08-31, and it survived that repair because only one of the two reads was looked at.
+    rate_2022 = yr2022.get("sim_churn_rate")
+    rate_2022_unavailable = (
+        None if rate_2022 is not None else
+        "2022 carries no `sim_churn_rate` in this capture. It is 100% crisis-forced-passive "
+        "(`simulation.renewal_engagement.CRISIS_PASSIVE_YEARS`) and C1b settles every passive roll "
+        "on the SVT segment route, so the renewal capture has no 2022 decisions to rate. This is "
+        "an UNAVAILABLE check, not a zero: the crisis year's departures happened on the other "
+        "route. Read the whole-book figure instead, or re-capture with the SVT sibling."
+    )
     # NO INVENTED FALLBACK. This read `.get(2022, 0.04)` until 2026-08-31: a hand-authored
     # literal standing by to answer for the published record if the record ever went missing,
     # which is the fail-open shape (R15) -- a failed read presenting as a benchmark. If the
@@ -497,16 +514,28 @@ def _crisis_churn_direction(churn_by_year: dict) -> dict:
 
     rolling_diverges = crisis_rate > pre_rate * 1.5 and crisis_rate > 0.05
     absolute_diverges = (
-        ofgem_2022 is not None and rate_2022 > ofgem_2022 * 4.0 and crisis_n >= 5
+        ofgem_2022 is not None
+        and rate_2022 is not None
+        and rate_2022 > ofgem_2022 * 4.0
+        and crisis_n >= 5
     )
-    insufficient_data = pre_n < 10 or crisis_n < 10 or ofgem_2022 is None
+    # A MISSING 2022 MAKES THE ABSOLUTE LEG UNAVAILABLE, AND AN UNAVAILABLE CHECK IS A FAILED
+    # CHECK. Without this the composite below reads `crisis_divergence_flag: False` on a year that
+    # was never measured, which is indistinguishable from the same False on a year that was.
+    insufficient_data = (
+        pre_n < 10 or crisis_n < 10 or ofgem_2022 is None or rate_2022 is None
+    )
 
     return {
         "pre_crisis_avg_pct": round(pre_rate * 100, 1),
         "crisis_avg_pct": round(crisis_rate * 100, 1),
-        "2022_sim_rate_pct": round(rate_2022 * 100, 1),
+        "2022_sim_rate_pct": round(rate_2022 * 100, 1) if rate_2022 is not None else None,
+        "2022_unavailable_reason": rate_2022_unavailable,
         "2022_ofgem_rate_pct": round(ofgem_2022 * 100, 1) if ofgem_2022 is not None else None,
-        "2022_ratio_vs_ofgem": round(rate_2022 / ofgem_2022, 1) if ofgem_2022 else None,
+        "2022_ratio_vs_ofgem": (
+            round(rate_2022 / ofgem_2022, 1)
+            if ofgem_2022 and rate_2022 is not None else None
+        ),
         "rolling_divergence_flag": rolling_diverges,
         "absolute_divergence_flag": absolute_diverges,
         "crisis_divergence_flag": rolling_diverges and absolute_diverges and not insufficient_data,
@@ -530,15 +559,45 @@ def _multiplier_alignment(churn_by_year: dict) -> list:
         if curr_yr not in OFGEM_SWITCHING_RATE or prev_yr not in OFGEM_SWITCHING_RATE:
             continue
         ofgem_direction = "down" if OFGEM_SWITCHING_RATE[curr_yr] < OFGEM_SWITCHING_RATE[prev_yr] else "up"
-        sim_rate_prev = churn_by_year[prev_yr].get("sim_churn_rate", 0.0)
-        sim_rate_curr = churn_by_year[curr_yr].get("sim_churn_rate", 0.0)
+        # SAME `.get(..., 0.0)` SHAPE AS `_crisis_churn_direction` ABOVE, AND IT IS NOT THE SAME
+        # DEFECT -- established by driving it rather than assumed from the resemblance. A year
+        # ABSENT from `churn_by_year` never enters `years`, so it produces no transition at all and
+        # the old default was unreachable that way. It is reachable only for a year PRESENT with
+        # the key missing, which `_build_churn_by_year` above never emits: it sets
+        # `"sim_churn_rate"` on every year it builds. So this is an EQUIVALENCE under today's
+        # producer, not a live defect, and the change below is a fail-closed guard against a future
+        # producer rather than a repair of a published figure. Recorded as such because "it looked
+        # like the one next to it" is how a defensive edit gets written up as a fix.
+        #
+        # It is still worth having: if a producer ever emits a year without the key, 0.0 would make
+        # the transition INTO it read "down" and the one OUT of it "up", scoring GREEN and AMBER
+        # off a rate nobody measured. A transition with a missing end is not a direction.
+        sim_rate_prev = churn_by_year[prev_yr].get("sim_churn_rate")
+        sim_rate_curr = churn_by_year[curr_yr].get("sim_churn_rate")
+        if sim_rate_prev is None or sim_rate_curr is None:
+            absent = [y for y, r in ((prev_yr, sim_rate_prev), (curr_yr, sim_rate_curr))
+                      if r is None]
+            findings.append({
+                "year_transition": "%d->%d" % (prev_yr, curr_yr),
+                "ofgem_direction": ofgem_direction,
+                "sim_direction": None,
+                "rag": "UNAVAILABLE",
+                "unavailable_reason": (
+                    f"{', '.join(str(y) for y in absent)} carries no `sim_churn_rate` in this "
+                    f"capture, so this transition has no measured end and no direction. Scored "
+                    f"neither GREEN nor AMBER: an unavailable check is a failed check, not an "
+                    f"agreement."
+                ),
+            })
+            continue
         sim_direction = "down" if sim_rate_curr < sim_rate_prev else ("up" if sim_rate_curr > sim_rate_prev else "flat")
-        
+
         if ofgem_direction == "down" and sim_direction == "up":
             rag = "AMBER"
         else:
             rag = "GREEN"
-        
+
+
         findings.append({
             "year_transition": "%d->%d" % (prev_yr, curr_yr),
             "ofgem_direction": ofgem_direction,

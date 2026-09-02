@@ -41,6 +41,7 @@ from pathlib import Path
 
 import pytest
 
+import simulation.departure_level_anchor as anchor_module
 import tools.departure_population as departure_population
 import tools.measure_departure_level as instrument
 
@@ -555,6 +556,34 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
             f"may have gone stale against a world that moved under it -- re-capture and re-fit, "
             f"do not widen the band."
         )
+
+
+def test_the_anchors_fit_window_is_the_window_the_comparison_is_taken_over():
+    """THE DEFECT: one requirement, two declarations, and nothing able to notice them diverge.
+
+    `simulation.departure_level_anchor.FIT_COMPARISON_WINDOW` duplicates
+    `tools.measure_departure_level.COMPARISON_YEARS` on purpose -- `simulation/` must not acquire a
+    `tools/` edge on its import graph, and the world layer cannot ask a publishing tool what its own
+    fit is scoped to. Duplication is the right call and the unheld duplicate is not: this project's
+    most expensive recurring shape is one legal requirement with five implementations and a defect
+    fixed in one of them.
+
+    AND THIS PAIR IS LOAD-BEARING IN BOTH DIRECTIONS. The anchor uses the window to decide whether
+    an unfitted record year applies NO level correction (inside: the fit claimed it and could not
+    identify it) or takes the reference year's anchor (outside: the fit never claimed it). The
+    instrument uses it to decide which years the band comparison averages over. If they drift, a
+    year is judged by a comparison the fit never targeted, or excused by a scope the comparison
+    does not grant -- and 2016 and 2025 are exactly the years that turn on it.
+
+    MUTATION: change either constant's endpoints and this fires naming both. Proven with `python3
+    -B`.
+    """
+    assert list(anchor_module.FIT_COMPARISON_WINDOW) == list(instrument.COMPARISON_YEARS), (
+        f"the anchor's fit window {anchor_module.FIT_COMPARISON_WINDOW} and the comparison window "
+        f"{instrument.COMPARISON_YEARS} have diverged. One of them was edited and the other was "
+        f"not; the anchor decides 2016/2025's fallback by the first and the band comparison "
+        f"selects its years by the second, so they cannot be allowed to disagree."
+    )
 
 
 def test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cause():
@@ -1165,10 +1194,11 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "written for it directly. It is held through its EFFECT -- the world's realised departure "
         "rate, which is `_PRINCIPAL_SUBJECT` above and is band-checked every run. Registering it "
         "as a reading would mean inventing a comparison the quantity does not support. "
-        "AND THAT INDIRECTION IS NINE YEARS OF TEN, NOT TEN (corrected 2026-09-01, having been "
-        "written as though it were unconditional). It holds an entry only where the world runs "
-        "renewal decisions that the anchor scales -- AND IT IS HOLDING NONE OF THEM TODAY, for "
-        "two reasons neither of which is 2022. "
+        "AND THAT INDIRECTION IS SEVEN YEARS OF TEN, NOT TEN (was NINE until 2026-09-02, and was "
+        "written as though it were unconditional before that -- both corrections kept because the "
+        "denominator has now moved twice and a reader should see it moving). It holds an entry "
+        "only where the world runs renewal decisions that the anchor scales -- AND IT IS HOLDING "
+        "NONE OF THEM TODAY, for two reasons neither of which is 2022. "
         "(i) THE HOLDER IS XFAIL. That band leg is `xfail(strict)` as of 2026-09-01: the world is "
         "out of band in 7 of 7 readable years, and a verdict held open can only fire on the world "
         "coming BACK into the band. Any anchor that keeps it outside passes silently, so while "
@@ -1195,11 +1225,43 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "renewal decisions and the anchor multiplies nothing that year. Measured independently by "
         "the seat on 2026-08-31: sweeping the 2022 anchor from 0 to 10^3 moves the book's 2022 "
         "level by not one basis point (floor == ceiling == 12.09%). The entry is UNIDENTIFIED, not "
-        "badly fitted, and it is the one year where a fallback silently ran 1.98x. The refusal leg "
-        "above now names 2022 rather than dropping it, which is the honest form of this gap -- but "
-        "naming it is not holding it, and nothing in this file holds it. See "
+        "badly fitted, and it is the one year where a fallback silently ran 1.98x. "
+        "AND AS OF 2026-09-02 THE TABLE NO LONGER CARRIES 2022 AT ALL -- the whole-book re-fit "
+        "landed and refused it, so the sentence above is kept in the past tense and this is what "
+        "replaced it. 2022 is now declared in `departure_level_anchor.UNFITTED_YEARS` and takes "
+        "`NO_LEVEL_CORRECTION` (1.0), which is the identity of the parameter rather than the "
+        "reference year's borrow that ran 1.98x. THAT IS STILL NOT HELD BY THIS FILE and naming it "
+        "is not holding it: no anchor >= 0 reaches 2022's band while `build_departure_risks` "
+        "leaves `svt_inertia` unscaled, so there is no value for a band control to discriminate. "
+        "What IS now held is that the year cannot be dropped quietly -- the declaration is "
+        "corroborated against `renewal_engagement.CRISIS_PASSIVE_YEARS` and the fit window by "
+        "`test_departure_risks.py::test_a_year_inside_the_published_record_with_no_fitted_anchor_"
+        "refuses_instead_of_falling_back` leg (d), so a producer cannot retire an inconvenient "
+        "year by naming it. See "
         "`SEAT_FINDING_THE_DEPARTURE_LEVEL_UNIONED_ONTO_ACCOUNT_YEARS_AND_2022_HAS_NO_LEVER` "
-        "and the finding filed alongside this correction.",
+        "and `docs/design/THE_LEVEL_ANCHOR_COLLISION_ANSWERED_2026-09-02.md`.",
+    "simulation.departure_level_anchor:_unfitted_anchor":
+        "the declared value for a record year the fit does not carry -- the SAME QUANTITY as the "
+        "table above (a correction factor), which is why it is here and not in "
+        "`_NOT_A_LEVEL_READING`. Its two branches are held very differently and saying so is the "
+        "point of the entry. OUT OF WINDOW (2016, 2025) it returns the reference year's fitted "
+        "anchor, held by the same indirection as the table, with the same two defeats. IN WINDOW "
+        "(2022 today) it returns 1.0 and is held by NOTHING band-shaped, for the reason in the "
+        "entry above: the year is unreachable by any anchor, so there is no verdict to move. It is "
+        "held only in the weaker sense that the declaration must be corroborated. Both of the "
+        "table's defeats apply to the out-of-window branch unchanged and are disclosed here rather "
+        "than inherited silently: the holder is XFAIL, and the anchor module is not in its read "
+        "path -- the band leg reads the stored capture, so an edit here moves nothing until "
+        "`tools/capture_departure_factors.py` runs again.",
+    "simulation.departure_level_anchor:UNFITTED_YEARS":
+        "a year-keyed dict of PROSE CAUSES -- the values are strings, not rates, and there is "
+        "nothing in it to compare with a band. It is the other half of the coverage partition and "
+        "the thing a band control would want is the VALUE, which is `_unfitted_anchor` above.",
+    "simulation.departure_level_anchor:FIT_COMPARISON_WINDOW":
+        "a `range` of year LABELS declaring which years the fit is SCOPED to; carries no rate, for "
+        "the same reason as `tools.measure_departure_level:COMPARISON_YEARS`, which it duplicates "
+        "deliberately (`simulation/` must not take a `tools/` import edge) and is coupled to by "
+        "`test_the_anchors_fit_window_is_the_window_the_comparison_is_taken_over`.",
     "simulation.departure_level_anchor:year_level_anchor":
         "the accessor over the table above; held by the same indirection -- including its two "
         "current defeats, the XFAIL on the holder and the stored-capture read path -- and unheld "

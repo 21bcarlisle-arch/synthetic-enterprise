@@ -625,11 +625,17 @@ def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instea
     membership), not to the current ten keys: adding 2026 to the record and not to the fit must
     turn this red, and re-fitting must turn it green.
     """
-    from simulation.departure_level_anchor import year_level_anchor
+    from simulation.departure_level_anchor import (
+        FIT_COMPARISON_WINDOW,
+        NO_LEVEL_CORRECTION,
+        anchor_coverage,
+        year_level_anchor,
+    )
     from simulation.market_switching_propensity import (
         MULTIPLIER_REFERENCE_YEAR,
         _published_departure_rates,
     )
+    from simulation.renewal_engagement import CRISIS_PASSIVE_YEARS
 
     record = _published_departure_rates()
 
@@ -643,16 +649,31 @@ def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instea
         f"something that is not there. ratios: {ratios}"
     )
 
-    # (b) NO PUBLISHED FIGURE MOVES. Every record year is fitted, so the guard is silent, and
-    #     every year outside the record still takes the reference year's value.
+    # (b) THE PARTITION, WHICH REPLACED "EVERY RECORD YEAR IS FITTED" ON 2026-09-02. That older
+    #     leg was true of the ten-year block and the whole-book re-fit abandons it ON PURPOSE:
+    #     seven years are identified and three are not. Keyed to the property -- every record year
+    #     is in EXACTLY ONE side, and a year in neither has left the subject silently, which is how
+    #     an emptied subject reaches a constant PASS. Nothing here raises on an ordinary run.
+    fitted, unfitted = anchor_coverage()
+    assert not (set(fitted) & set(unfitted)), (
+        f"{sorted(set(fitted) & set(unfitted))} are BOTH fitted and declared-unfitted; the two "
+        f"returns are a partition and a year in both makes the coverage unreadable either way"
+    )
     for y in sorted(record):
-        assert year_level_anchor(y) == YEAR_LEVEL_ANCHOR[y]
+        assert y in fitted or y in unfitted, (
+            f"{y} is inside the published record and is in neither the fits nor the declared "
+            f"absences -- it left the subject SILENTLY, which is the defect this control is for"
+        )
+        assert year_level_anchor(y) == (fitted[y] if y in fitted else unfitted[y][0]), (
+            f"{y}: the accessor and the coverage report disagree, so a consumer asking which "
+            f"years are fits gets an answer about a different table than the one the world runs"
+        )
     assert year_level_anchor(max(record) + 5) == ref
 
-    # (c) THE MUTATION, DRIVEN RATHER THAN DESCRIBED. Remove one record year from the fit and the
-    #     accessor must refuse, naming the year and the record. Before this guard it returned
-    #     `ref` -- a number, silently, that no caller could tell from a fitted one.
-    victim = min(record, key=lambda y: YEAR_LEVEL_ANCHOR.get(y, ref))
+    # (c) THE MUTATION, DRIVEN RATHER THAN DESCRIBED. Remove one FITTED record year from the fit
+    #     and the accessor must refuse, naming the year and the record. Before this guard it
+    #     returned `ref` -- a number, silently, that no caller could tell from a fitted one.
+    victim = min(fitted, key=lambda y: YEAR_LEVEL_ANCHOR[y])
     saved = YEAR_LEVEL_ANCHOR.pop(victim)
     try:
         assert ref / saved > 1.5, (
@@ -669,3 +690,41 @@ def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instea
         YEAR_LEVEL_ANCHOR[victim] = saved
 
     assert year_level_anchor(victim) == saved, "the fixture leaked; every later test is now suspect"
+
+    # (d) THE CORROBORATION, AND IT IS THE LEG THAT MATTERS. Leg (c) proves an UNDECLARED gap
+    #     refuses. But the escape from that refusal is a declared cause, and a producer that can
+    #     retire any inconvenient year by NAMING it refused has lifted its own guard -- the
+    #     catalogued *refusal names a cause the checker never observed*. So a declaration is only
+    #     honoured where something OTHER than `UNFITTED_YEARS` says the year cannot be fitted:
+    #     either it is outside the window the fit is scoped to, or it is a crisis-forced-passive
+    #     year whose renewal rolls C1b routes to the SVT table. Both corroborators live outside
+    #     this module and neither is editable from the block.
+    #
+    #     MUTATION: declare a fitted, in-window, non-crisis year (2020) unfitted and this fires by
+    #     name, even though leg (c) goes quiet because the declaration suppresses the raise. That
+    #     is exactly the hole (c) alone leaves. Mutation-proven with `python3 -B`.
+    for y, (_value, cause) in sorted(unfitted.items()):
+        assert str(y) in cause, (
+            f"{y}'s declared cause does not name the year it is about: {cause!r}. A refusal a "
+            f"reader cannot attribute to a year is not on the surface in any useful sense."
+        )
+        assert y not in FIT_COMPARISON_WINDOW or str(y) in CRISIS_PASSIVE_YEARS, (
+            f"{y} is declared unfitted, but it is INSIDE the fit's comparison window "
+            f"({FIT_COMPARISON_WINDOW.start}-{FIT_COMPARISON_WINDOW.stop - 1}) and is not a "
+            f"crisis-forced-passive year, so nothing outside `UNFITTED_YEARS` corroborates the "
+            f"claim that it cannot be fitted. Declared cause: {cause!r}. A year the fit CLAIMED "
+            f"and could simply not be bothered with is a dropped year wearing a refusal's clothes."
+        )
+
+    # ...and the two fallback cases are DIFFERENT values, not one shrug wearing two labels.
+    in_window = {y for y in unfitted if y in FIT_COMPARISON_WINDOW}
+    if in_window and set(unfitted) - in_window:
+        assert {unfitted[y][0] for y in in_window} == {NO_LEVEL_CORRECTION}, (
+            "a year the fit claimed and could not identify must apply NO level correction, not a "
+            "calibration borrowed from the reference year's population -- leg (a) above is the "
+            "measurement that the borrow has no direction"
+        )
+        assert {unfitted[y][0] for y in set(unfitted) - in_window} == {ref}, (
+            "a year outside the fit's window takes the reference year's anchor, on the same "
+            "argument that covers a synthetic future"
+        )

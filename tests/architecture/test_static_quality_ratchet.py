@@ -662,7 +662,11 @@ RUFF_BASELINE: dict[str, int] = {
     "F541": 25,
     "E401": 20,
     "E731": 19,
-    "W293": 19,
+    # 2026-09-02  W293 19 -> 17. `tools/population_anchor.py`'s `_multiplier_alignment` carried two
+    #             blank lines with trailing whitespace inside the block that was rewritten to fail
+    #             closed on a missing `sim_churn_rate`. Not a whitespace pass: the lines went with
+    #             the code around them. SHRINK-ONLY: the floor moves DOWN and the new count is held.
+    "W293": 17,
     "E722": 5,
     "W291": 3,
     "W292": 2,
@@ -670,7 +674,10 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2317  # was 2319; -1 (F401) and -1 (F811) on 2026-09-02, both from
+RUFF_BASELINE_TOTAL = 2315  # was 2317; -2 (W293) on 2026-09-02 from `tools/population_anchor.py`,
+                            # attributed per-file: that file reported 2 W293 at `git show HEAD:`
+                            # and reports 0 now. See the dated note on the W293 entry above.
+                            # Before that it was 2319; -1 (F401) and -1 (F811) on 2026-09-02, from
                             # `tests/saas/reporting/test_phase_aw_bill_shock.py`, which defined
                             # `test_elevated_flag_shown` TWICE (F811) with the second copy
                             # re-importing a name already imported at module level (F401). The

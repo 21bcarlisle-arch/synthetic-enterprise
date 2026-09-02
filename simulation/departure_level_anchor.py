@@ -47,25 +47,108 @@ from simulation.market_switching_propensity import (
     _published_departure_rates,
 )
 
-#: `{calendar year: anchor}`. Fitted by `tools/fit_year_level_anchor.py` on
-#: `docs/reports/c2_departure_factors.json` at the declared (a_shock, scale) pair, one number per
-#: year, by bisection onto `market_departure_rate(year)`.
+#: The years the fit is SCOPED TO, and the third of the three sets this file has to keep apart.
+#:
+#: THE FITTED TABLE, THE PUBLISHED RECORD AND THE COMPARISON WINDOW ARE THREE DIFFERENT SETS.
+#: `9fd700366` fixed a defect in which the fallback's CONDITION was the first and its
+#: JUSTIFICATION was the second. It replaced the condition with the record and stopped there --
+#: but the fit's own scope is neither: `tools.measure_departure_level.COMPARISON_YEARS` restricts
+#: the comparison to 2017-2024 because 2016 carries 1-3 renewal decisions in every capture on disk
+#: and 2025 is a partial year, and a three-account year must not weigh as much as a 131-account
+#: one. A year the fit never CLAIMED is not a year the fit FAILED to identify, and reading the
+#: record's edge years as failures is what turned a scope statement into a crash.
+#:
+#: Duplicated from `measure_departure_level` rather than imported, because `simulation/` must not
+#: acquire a `tools/` edge on its import graph, and held to it by
+#: `tests/architecture/test_switching_rate_commons.py::test_the_anchors_fit_window_is_the_window_the_comparison_is_taken_over`.
+FIT_COMPARISON_WINDOW = range(2017, 2025)
+
+#: A YEAR WHOSE ANCHOR IS NOT IDENTIFIED APPLIES NO LEVEL CORRECTION, and 1.0 is not a number
+#: picked to fill a slot -- it is the IDENTITY of this parameter and `build_departure_risks`'s own
+#: default for it, i.e. the arithmetic form of "no calibration is identified". The alternative on
+#: offer was the reference year's anchor, and this file's own docstring below already establishes
+#: that borrow is wrong on the one year it fires on: 1.98x, on the record's LOWEST year, in the
+#: direction that ADDS departures. A borrowed calibration is a claim; the identity is the absence
+#: of one, and a reader can tell it from a fit at a glance in the capture's `sim_level_anchor`
+#: column -- which is precisely how the last unfitted block was detected at all.
+NO_LEVEL_CORRECTION = 1.0
+
+#: `{calendar year: anchor}`, fitted by `tools/fit_year_level_anchor.fit_year_anchor_on_book` on the
+#: TWO-ROUTE capture `docs/reports/ladder_churn_factors.json` + its `_svt_segment_decisions.json`
+#: sibling, at the declared (a_shock, scale) pair, by bisection onto `market_departure_rate(year)`.
+#:
+#: THE PROVENANCE IS MEASURED, NOT CITED, because the block this replaced could not be followed.
+#: Its docstring named `docs/reports/c2_departure_factors.json` as its fit input; that file was
+#: overwritten in place by `b46318106` a day after the block landed, and the artefact carrying the
+#: name today RAN UNDER THIS BLOCK. The citation resolved, at HEAD, to a capture produced two steps
+#: later by its own successor -- `figures_on_a_superseded_clock`, with a stable path over a moving
+#: run. So the direction here was established from the artefacts instead: every capture records the
+#: anchor it executed under in its `sim_level_anchor` column, and reading that column across every
+#: capture on disk gives ten-year block -> `ladder` capture -> THIS block -> `c2` capture. The
+#: retired ten-year table and the working is in
+#: `docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md`.
+#:
+#: THE DENOMINATOR IS ACCOUNT-YEARS AND THAT IS THE WHOLE CHANGE HERE. The block this replaced was
+#: fitted on a renewal-only capture -- and since C1b a renewal decision is a SELECTED
+#: sub-population, the households that took a fixed deal, because an SVT account can leave without
+#: ever reaching a renewal roll. Anchoring their mean onto a whole-population published rate fits
+#: the world to the households that demonstrably shop. The union combines an account's decisions on
+#: both routes within the account (`1 - PROD(1-p)`) and means over ACCOUNTS, not decisions; a mean
+#: over decisions reads 3.6-7.5% and inverts the sign of the error in 2022. It is an UPPER bound,
+#: per `departure_population.BOOK_BOUND`.
+#:
+#: THREE YEARS ARE ABSENT ON PURPOSE. They are enumerated in `UNFITTED_YEARS` below with a cause
+#: each, and they must NOT be interpolated: an absence nobody explains and an absence nobody
+#: thought about are the same hole in the block.
 #:
 #: THE FIT IS EXACT ON THE RUN IT WAS FITTED TO AND APPROXIMATE ON THE NEXT ONE, which is a
 #: property of the thing and not a defect in the fit: raising the level changes the book, so the
-#: renewal population the following year is not the one the anchor was solved against. The
-#: iteration is capture -> fit -> capture; the band is what says when it has converged.
+#: population the following year is not the one the anchor was solved against. The iteration is
+#: capture -> fit -> capture; the band is what says when it has converged.
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
-    2016: 4.597312,
-    2017: 4.256902,
-    2018: 3.345826,
-    2019: 3.228064,
-    2020: 4.425742,
-    2021: 3.219914,
-    2022: 1.524110,
-    2023: 2.091517,
-    2024: 3.020806,
-    2025: 2.118624,
+    2017: 4.547299,
+    2018: 2.882178,
+    2019: 4.803900,
+    2020: 6.412007,
+    2021: 4.488202,
+    2023: 0.364038,
+    2024: 3.053619,
+}
+
+#: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the
+#: partition that makes the guard below liveable, and every entry is a claim an artefact can
+#: contradict -- `test_switching_rate_commons` corroborates each against the capture and the record
+#: rather than taking it on trust, because a producer that can retire a year by NAMING it refused
+#: is the catalogued *refusal names a cause the checker never observed*.
+#:
+#: THE THREE CAUSES ARE NOT ALIKE AND THE FALLBACKS DIFFER ACCORDINGLY. 2016 and 2025 are outside
+#: the comparison window and take the reference year's anchor; 2022 is inside it, is unidentified,
+#: and takes `NO_LEVEL_CORRECTION`. A reader shown one cause for all three would go looking for
+#: renewal decisions in 2016, which would not help.
+UNFITTED_YEARS: dict[int, str] = {
+    2016: (
+        "2016 is OUTSIDE the comparison window (2017-2024) the fit is scoped to: it carries 1 "
+        "renewal decision in `c2` and `ladder` and 3 in `c3`, and solves to an anchor near 16 to "
+        "six decimals. An edge year cannot carry a fit and this one was never asked to."
+    ),
+    2022: (
+        "2022 is INSIDE the comparison window and is UNIDENTIFIED, for two independently binding "
+        "reasons -- a reader given only the first would go looking for renewal decisions. (i) It "
+        "is 100% crisis-forced-passive (`renewal_engagement.CRISIS_PASSIVE_YEARS`), C1b routes "
+        "every passive roll to the SVT segment table, and the `c2`/`ladder`/native capture family "
+        "therefore carries ZERO 2022 renewal decisions, so the anchor multiplies nothing and floor "
+        "equals ceiling. THAT REASON IS CAPTURE-SCOPED: `c3_shown_price_departure_factors.json` "
+        "carries 53 renewal rows in 2022 under the retired ten-year block. (ii) The reason that is "
+        "NOT capture-scoped: its SVT floor is 12.09% against a published 4.30% ceiling, and "
+        "`build_departure_risks` deliberately does not scale `svt_inertia`, so NO anchor >= 0 "
+        "brings 2022 to the record. Do not clamp it, do not widen the band, do not interpolate: it "
+        "is a result about the mechanism, not a gap a re-fit closes."
+    ),
+    2025: (
+        "2025 is OUTSIDE the comparison window (2017-2024) the fit is scoped to: it is a PARTIAL "
+        "year in every capture on disk (15-35 rows against a full year's 49-59), so its realised "
+        "rate is not a year's rate and an anchor fitted onto it would be calibrating to a stub."
+    ),
 }
 
 
@@ -100,19 +183,79 @@ def year_level_anchor(year: int) -> float:
     The old claim holds only against the alternative of no anchor at all, which is not the live
     alternative. It is corrected here rather than deleted so the next reader can see it was made.
 
-    So: inside the record, fail closed and name the reason. Outside it, the reference year's value,
-    unchanged.
+    AND "REFUSE OR FALL BACK" WAS A FALSE CHOICE, SETTLED 2026-09-02. The guard above was keyed to
+    the RECORD, so the whole-book re-fit -- which honestly identifies seven years of ten -- made the
+    accessor raise on 2016, 2022 and 2025 term starts. Those occur in every capture on disk, and
+    `year_level_anchor` is on the run's hot path (`customer_events:610`, `run_phase2b:1634/1667/
+    1719`), so refusing crashes the world on the record it exists to run. Falling back silently is
+    the 1.98x defect above. NEITHER IS THE ANSWER: it is a PARTITION, the shape
+    `measure_departure_level.realised_rate_coverage` already uses. A record year is FITTED, or it is
+    UNFITTED WITH A DECLARED CAUSE. The guard is unchanged in condition and can still fire -- an
+    undeclared gap inside the record still raises -- and what lifts it is a named reason an artefact
+    can contradict, never a value.
+
+    So: fitted, return it. Inside the record and undeclared, fail closed and name the reason.
+    Inside the record and declared, return the declared value and say so through `anchor_coverage`.
+    Outside the record, the reference year's value, unchanged.
     """
-    if year not in YEAR_LEVEL_ANCHOR and year in _published_departure_rates():
-        raise ValueError(
-            f"no fitted level anchor for {year}, which is INSIDE the published switching record "
-            f"({min(_published_departure_rates())}-{max(_published_departure_rates())}). The "
-            "reference year's anchor is NOT a stand-in here: it is fitted to that year's factor "
-            "population, and against 2022's own value it runs 1.98x. Re-fit with "
-            "`tools/fit_year_level_anchor.py` and land the block -- do not let the fallback cover "
-            "a gap inside the record."
-        )
-    return YEAR_LEVEL_ANCHOR.get(year, YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR])
+    if year in YEAR_LEVEL_ANCHOR:
+        return YEAR_LEVEL_ANCHOR[year]
+    if year in _published_departure_rates():
+        if year not in UNFITTED_YEARS:
+            raise ValueError(
+                f"no fitted level anchor for {year}, which is INSIDE the published switching "
+                f"record ({min(_published_departure_rates())}-"
+                f"{max(_published_departure_rates())}), and no declared cause for its absence. "
+                "The reference year's anchor is NOT a stand-in: it is fitted to that year's factor "
+                "population, and against 2022's own value it runs 1.98x. Either re-fit with "
+                "`tools/fit_year_level_anchor.py` and land the block, or declare the year in "
+                "`UNFITTED_YEARS` with a cause the capture corroborates -- do not let the fallback "
+                "cover a gap inside the record."
+            )
+        return _unfitted_anchor(year)
+    return YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR]
 
 
-__all__ = ["YEAR_LEVEL_ANCHOR", "year_level_anchor"]
+def _unfitted_anchor(year: int) -> float:
+    """The declared value for a record year the fit does not carry -- and the case decides it.
+
+    Inside the comparison window the fit CLAIMED the year and could not identify it, so no level
+    correction is applied. Outside it the fit never claimed the year, and the reference year's
+    anchor carries the same justification it carries for a synthetic future: the year-to-year LEVEL
+    movement is already in `market_switching_multiplier(year)`, and what this supplies is the
+    calibration of the factor population to a rate -- a property of the population, not of the year.
+    """
+    if year in FIT_COMPARISON_WINDOW:
+        return NO_LEVEL_CORRECTION
+    return YEAR_LEVEL_ANCHOR[MULTIPLIER_REFERENCE_YEAR]
+
+
+def anchor_coverage() -> tuple[dict[int, float], dict[int, tuple[float, str]]]:
+    """`({year: fitted anchor}, {year: (declared value, why there is no fit)})`, a PARTITION.
+
+    WHY A SECOND FUNCTION AND NOT A WIDER RETURN. `year_level_anchor` hands back a float and a float
+    cannot say whether it was fitted. That is not a hypothetical loss: the previous unfitted block
+    was detected ONLY because its three unfitted years all read `3.053619` in a capture's
+    `sim_level_anchor` column, which is a coincidence of the fallback and not a disclosure. A
+    consumer that publishes a per-year level must be able to ask which years are fits, and every
+    record year must appear in exactly one side -- a year that is in NEITHER has left the subject
+    silently, which is how an emptied subject reaches a constant PASS.
+    """
+    record = _published_departure_rates()
+    fitted = {y: YEAR_LEVEL_ANCHOR[y] for y in record if y in YEAR_LEVEL_ANCHOR}
+    unfitted = {
+        y: (_unfitted_anchor(y), UNFITTED_YEARS[y])
+        for y in record
+        if y not in YEAR_LEVEL_ANCHOR and y in UNFITTED_YEARS
+    }
+    return fitted, unfitted
+
+
+__all__ = [
+    "FIT_COMPARISON_WINDOW",
+    "NO_LEVEL_CORRECTION",
+    "UNFITTED_YEARS",
+    "YEAR_LEVEL_ANCHOR",
+    "anchor_coverage",
+    "year_level_anchor",
+]
