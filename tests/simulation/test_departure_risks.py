@@ -8,6 +8,7 @@ code wrong in exactly that way and watching it red -- a control that cannot fail
 (`docs/design/CONTROLS_THAT_CANNOT_FAIL.md`).
 """
 import math
+from pathlib import Path
 
 import pytest
 
@@ -728,3 +729,103 @@ def test_a_year_inside_the_published_record_with_no_fitted_anchor_refuses_instea
             "a year outside the fit's window takes the reference year's anchor, on the same "
             "argument that covers a synthetic future"
         )
+
+
+#: `71242c941`'s `YEAR_LEVEL_ANCHOR`, the ten-year block the whole-book re-fit retired. Recovered
+#: from git history, which is where a retired table is durable; restated here because the leg below
+#: has to have a subject that does NOT come from the document it is checking. Reading the expected
+#: values out of the cited document would make the check `x == x` -- the tautology this file's own
+#: header calls a control that cannot fail.
+RETIRED_TEN_YEAR_BLOCK: dict[int, float] = {
+    2016: 4.597312,
+    2017: 4.256902,
+    2018: 3.345826,
+    2019: 3.228064,
+    2020: 4.425742,
+    2021: 3.219914,
+    2022: 1.524110,
+    2023: 2.091517,
+    2024: 3.020806,
+    2025: 2.118624,
+}
+
+
+def _document_cited_for_the_retired_table() -> str:
+    """The `docs/...` path `departure_level_anchor` names as holding the retired ten-year table.
+
+    Parsed from the source rather than imported, because the citation is a comment: it has no
+    runtime representation, and a comment is exactly where a claim rots unwatched.
+    """
+    import re
+
+    source = (
+        Path(__file__).resolve().parents[2] / "simulation" / "departure_level_anchor.py"
+    ).read_text()
+    marker = "retired ten-year table"
+    assert marker in source, (
+        "`departure_level_anchor` no longer says anything about a retired ten-year table, so this "
+        "leg's subject is gone. Either the citation was reworded -- re-point this marker -- or the "
+        "retired block stopped being disclosed at all, which is the change to argue with. A leg "
+        "over an empty subject is a constant PASS."
+    )
+    tail = source[source.index(marker):]
+    paths = re.findall(r"`(docs/[^`]+\.md)`", tail)
+    assert paths, f"no `docs/*.md` citation follows {marker!r}; the retired table has no home named"
+    return paths[0]
+
+
+def test_the_document_cited_for_the_retired_table_contains_the_retired_table():
+    """MUTATION: re-point the citation at any other real document in the tree and this fires;
+    delete one year from the cited document's table and it fires naming that year. Both proven
+    with `python3 -B`, 2026-09-02.
+
+    THE DEFECT THIS EXISTS FOR, live at HEAD until 2026-09-02. `departure_level_anchor` cited
+    `docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md` as the home of the retired
+    ten-year table. That document is real, committed and on origin -- and it holds the SEVEN-year
+    block, the live one, preserved when it was in no commit. It carries **zero of ten** retired
+    values. The retired table is in `THE_LEVEL_ANCHOR_COLLISION_ANSWERED_2026-09-02.md`.
+
+    WHY THE CHEAP CONTROL IS FAIL-OPEN HERE, which is the only reason this leg is worth its lines.
+    The reflex check is "every cited path resolves" --
+    `test_switching_rate_commons.py::test_every_document_this_file_cites_is_a_document_that_exists`
+    is exactly that, and it is a good control for the defect it was written for (a path that was
+    never written). It is GREEN on this one. Pointing at the wrong REAL document defeats every
+    check that stops at existence, and the pre-registration
+    `docs/staging/WORKER_PREREGISTRATION_WHAT_A_CONTROL_ON_THE_ANCHORS_RETIRED_TABLE_CITATION_MUST_SHOW_2026-09-02.md`
+    predicted that before this leg was written. The claim being made is not *a file exists*, it is
+    *this document holds the retired table*, so the check has to read it for the values.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S FILENAME. It does not assert which document is cited --
+    move the retired table into a different write-up and re-cite, and this stays green. It asserts
+    that whatever is cited actually carries the table. The expected values come from `71242c941`
+    via `RETIRED_TEN_YEAR_BLOCK`, never from the document under test.
+    """
+    cited = _document_cited_for_the_retired_table()
+    path = Path(__file__).resolve().parents[2] / cited
+
+    assert path.is_file(), (
+        f"`departure_level_anchor` cites {cited} for the retired ten-year table and no such file "
+        f"is in the tree. This is the leg the existence check would also have caught."
+    )
+
+    text = path.read_text()
+    missing = sorted(
+        year for year, value in RETIRED_TEN_YEAR_BLOCK.items() if f"{value:.6f}" not in text
+    )
+    assert not missing, (
+        f"{cited} is cited as holding the retired ten-year table and does not carry "
+        f"{len(missing)} of its {len(RETIRED_TEN_YEAR_BLOCK)} values -- years {missing}. A reader "
+        f"sent there to see what the live block replaced cannot see it. Cite the document that "
+        f"holds the table, or put the table in this one; do not delete the citation, because a "
+        f"live block whose predecessor has no home is the state this whole thread started in."
+    )
+
+    # AND THE LIVE BLOCK MUST NOT BE MISTAKEN FOR THE RETIRED ONE. The two tables share 2024 to
+    # three decimals and nothing else; a document holding only the live block would fail above,
+    # but a document holding BOTH would pass while telling the reader nothing about which is which.
+    # This is the discriminating year: 2023 moved 2.091517 -> 0.364038, the largest ratio in the
+    # pair, so it cannot coincide.
+    assert f"{RETIRED_TEN_YEAR_BLOCK[2023]:.6f}" in text and "0.364038" in text, (
+        f"{cited} does not show the retired and live 2023 anchors together (2.091517 -> 0.364038, "
+        f"the largest move in the pair), so it does not let a reader tell the two tables apart"
+    )

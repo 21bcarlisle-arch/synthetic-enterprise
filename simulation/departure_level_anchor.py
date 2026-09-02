@@ -85,8 +85,20 @@ NO_LEVEL_CORRECTION = 1.0
 #: run. So the direction here was established from the artefacts instead: every capture records the
 #: anchor it executed under in its `sim_level_anchor` column, and reading that column across every
 #: capture on disk gives ten-year block -> `ladder` capture -> THIS block -> `c2` capture. The
-#: retired ten-year table and the working is in
+#: retired ten-year table, the side-by-side against this one and why it could not be re-cited are in
+#: `docs/design/THE_LEVEL_ANCHOR_COLLISION_ANSWERED_2026-09-02.md`; this block's own byte-exact
+#: preservation, taken on 2026-09-01 when it was in no commit, is in
 #: `docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md`.
+#:
+#: THOSE WERE ONE CITATION UNTIL 2026-09-02 AND IT POINTED AT THE WRONG DOCUMENT. The single pointer
+#: named the `UNLANDED_...` preservation as the home of the retired table. That document holds THIS
+#: block -- the live one -- and carries none of the retired table's ten values. So the sentence
+#: directly above, which exists to say that the block this replaced could not be followed, sat one
+#: line above a citation that could not be followed either: a real, committed, on-origin document
+#: that does not contain the thing it is cited for. Note what would NOT have caught it -- a link
+#: checker asserting the path resolves passes, because the path does resolve. Held by
+#: `tests/simulation/test_departure_risks.py::test_the_document_cited_for_the_retired_table_contains_the_retired_table`,
+#: which reads the cited document for the values rather than for its existence.
 #:
 #: THE DENOMINATOR IS ACCOUNT-YEARS AND THAT IS THE WHOLE CHANGE HERE. The block this replaced was
 #: fitted on a renewal-only capture -- and since C1b a renewal decision is a SELECTED
