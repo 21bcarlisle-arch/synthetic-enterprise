@@ -140,6 +140,39 @@ Leg 1 is landed with this finding and is mutation-proven. Leg 2 is named here an
 the leg that makes the class un-recurrable rather than this instance fixed, and it wants the
 census's own `--json` surface to carry the reason.
 
+> **LEG 2 IS LANDED, 2026-09-02. `tools/head_green_census.overlay_shortfall`.**
+>
+> `run_suite` now checks the subject BEFORE launching the suite: each declared overlay entry that
+> the machine actually has must be present in the subject and must **resolve to the machine's own
+> directory**. A shortfall returns `""`, which routes through the UNPROVEN fail-safe that already
+> exists — so the suite is not run at all, no red list is produced, and `_record_observation`
+> records nothing. Nothing manufactured can reach the register or the draw. The reason travels on
+> `observed` to `result["overlay_shortfall"]` and is composed into `result["reason"]`, so it is on
+> the `--json` surface the repair asked for by name.
+>
+> **What it catches, and it claims no more:** ABSENT (the overlay never arrived — both of
+> `_overlay_untracked_data`'s own silent paths, the missing source and the swallowed `OSError`)
+> and FOREIGN (the entry resolves elsewhere — still reachable after leg 1, because the overlay
+> skips any `dst` that already exists, so a REUSED checkout carries the link an earlier process
+> made from an earlier idea of where the data lived).
+>
+> **What it cannot catch, stated because a control whose scope exceeds its claim fails later:** if
+> `_machine_data_dir()` itself names the wrong tree, this agrees with it — two reads of one
+> derivation can only agree. That is leg 1's subject and leg 1's test holds it.
+>
+> **It is keyed to the property, not to today's answer.** Nothing here knows about twelve cache
+> files; a pin on the contents would go red when the machine's data legitimately changed and green
+> when the overlay broke. Six controls, each naming its own defect, **six mutations applied and
+> all six killed** (`python3 -B`), including the fail-DIRECTION one: a machine with no `sim/cache`
+> of its own is NOT a shortfall, or the census would refuse to run on a box that has simply never
+> populated the cache.
+>
+> **Run against the real instrument, not only fixtures** — `head_subject_checkout()` from the main
+> worktree: `shortfall []`, subject `sim/cache` resolving to
+> `/home/rich/synthetic-enterprise/sim/cache`, **12 entries**. So **tonight's 03:34 nightly run is
+> not blocked or delayed by this control**, which is the property that mattered most given what it
+> is being landed the day before.
+
 ## Route
 
 The 25 + 4 are struck from what the register asks for by the repair, not by a disposition —
