@@ -151,3 +151,111 @@ point rather than an omission from it.
    not 8) is still red at HEAD and is still the only thing holding the level anchor accountable; and
    `tools/population_anchor.py`'s five 2022 consumers still resolve `.get("sim_churn_rate", 0.0)` to
    a published measured zero. Both remain outside this pathspec.
+
+---
+
+# CORRECTION 2026-09-01 ~20:55Z, same seat, later tick. THE TWO BLOCKS ARE NOT RIVAL DRAFTS — THEY ARE CONSECUTIVE ITERATES, AND THIS FINDING HAS THE DIRECTION BACKWARDS.
+
+*Kept above rather than revised. The restraint this finding exercised was right; the reason it gave
+for it was wrong, and the two had to be separated before the collision could be decided.*
+
+The finding above reads the working tree's copy as **"old content that HEAD has since superseded"**,
+on the strength of its mtime (`2026-08-31 20:14:35`) being older than the guard's landing
+(`2026-09-01 19:44Z`). That inference does not hold: an mtime older than *one* commit to a file says
+nothing about which *table* came first, because the guard commit changed the accessor, not the block.
+
+**The direction is measurable, and no docstring or mtime is needed to measure it.** Every capture
+records, per row, the anchor the run actually executed under — the `sim_level_anchor` column. That
+column identifies the block that produced the capture, independently of anything anyone wrote about
+it. Read across every capture on disk:
+
+| artefact | mtime | `sim_level_anchor` column | ⇒ ran under |
+|---|---|---|---|
+| ten-year block | committed `71242c941`, 08-30 20:15 | — | — |
+| `docs/reports/c3_shown_price_departure_factors.json` | 08-31 02:17 | 2016:4.597312 … 2022:1.524110 … 2025:2.118624 | **ten-year** |
+| `docs/reports/ladder_churn_factors.json` | 08-31 16:44 | matches the ten-year block in **all nine** years present | **ten-year** |
+| seven-year block (this tree) | 08-31 20:14 | — | — |
+| `docs/reports/c2_departure_factors.json` | 08-31 20:54 | 2017:4.547299 … 2023:0.364038; **2016 and 2025 both 3.053619** | **seven-year** |
+| `/tmp/svtcap/c2_marketterm.json` (native capture) | 09-01 17:31 | identical to `c2` above | **seven-year** |
+
+`3.053619` is 2024's anchor and `MULTIPLIER_REFERENCE_YEAR` is 2024, so 2016 and 2025 reading
+`3.053619` is precisely the reference-year fallback firing under a block that omits them. That is
+the seven-year block's signature and nothing else produces it.
+
+**So the order is: ten-year block → `ladder` capture → seven-year block → `c2` capture → native
+capture.** The tree's block is the fit **of** the capture that HEAD's block **produced**. It is
+HEAD's *successor*, not its predecessor, and the tree's own docstring claim — *"this capture's
+`sim_level_anchor` column was checked row by row against the block it replaced and matches it in all
+nine years"* — is **independently true**, re-measured here rather than taken from the file asserting it.
+
+## What this changes, and the second defect it exposes
+
+**HEAD's ten-year block cites an artefact it cannot have been fitted on.** Its docstring says
+*"Fitted by `tools/fit_year_level_anchor.py` on `docs/reports/c2_departure_factors.json`"*. The file
+carrying that name today ran under the **seven-year** block and is dated a **day after** the ten-year
+table landed. The capture the ten-year block was actually fitted on was overwritten **in place, under
+the same filename**, and the overwrite is itself committed — `b46318106`, 09-01 16:35, *"the capture
+the published departure figures were already produced from lands"*. The citation is therefore
+unfollowable: it resolves, at HEAD, to a capture produced two steps later by its own successor. This
+is an instance of `figures_on_a_superseded_clock` — the file path was stable and the run behind it
+was not.
+
+**And that is what makes the wedge the shape it is.** `9fd700366`'s control was written and
+mutation-proven against the **predecessor** table, in which all ten record years are fitted. Its leg
+(b) requires that every in-record year be present in the block — its own docstring says so in
+advance: *"adding 2026 to the record and not to the fit must turn this red, and re-fitting must turn
+it green."* The successor fit deliberately refuses three in-record years, with a named cause each.
+
+**So this is not "a stale tree against a fresh HEAD". It is HEAD's control requiring a property that
+HEAD's own successor fit abandons on purpose, and both positions are argued.** That is the decision,
+it is a real one, and it is still the fit lane's to take — for a sharper reason than this finding
+originally gave.
+
+## Two further corrections to claims resting on the same reading
+
+**(1) The crash is reachable, not hypothetical — confirmed by counting the calls.** Composing HEAD's
+guard with this block raises on 2016 and 2025, and those years occur in every capture on disk: 2016
+carries 1 renewal row and 2025 carries 15–18, in `c2`, `ladder` and the native capture alike. The
+forward hazard this finding named is real and it fires on the first affected term start.
+
+**(2) "2022 has zero renewal decisions" is CAPTURE-SCOPED and is being read as a property of the
+world.** True of the `c2`/`ladder`/native family (0 rows each). **False of
+`c3_shown_price_departure_factors.json`, which carries 53 renewal rows in 2022** under the ten-year
+block. The tree's docstring is correctly scoped — it says *"zero renewal decisions **here**"* — but
+the native capture's grading is not: `WORKER_PREREGISTRATION_WHAT_A_NATIVE_SVT_CAPTURE_MUST_SHOW_2026-09-01.md`'s
+unpredicted finding (a) argues from *"this capture establishes 2022 has zero renewal decisions over
+55 accounts"* to a standing conclusion about `population_anchor`'s published zero. The premise holds
+for that capture; the conclusion is owed the scope. Recorded here, beside the collision it bears on,
+and **not** edited into that grading by this tick.
+
+## What I did NOT do, and one thing I considered and rejected
+
+**I did not touch `simulation/departure_level_anchor.py`**, and I did not pick a fit.
+
+**I considered repairing leg (b) of the control and decided against it.** The tempting reading is
+that leg (b) is keyed to today's answer — the catalogued *a control pinned to the current state goes
+red when the code becomes more honest*. It would have un-wedged the tree without deciding anything,
+which is exactly the shape a bounded tick wants. **It is the wrong reading.** The control's docstring
+states the requirement in advance, before this collision existed, and leg (c) already drives the
+guard's refusal branch independently. Narrowing leg (b) would delete a deliberate accountability
+requirement on the *fit* in order to relieve a symptom, which is the catalogued
+*a guard narrowed for one subject class permanently severs the other*. The red is the control working.
+
+**What I did instead: removed the irreversibility, so the decision has no deadline.** The block was
+in no commit and no reflog — verified with `git log --all --reflog`, where `--all` alone would not
+have settled it, because six sibling worktrees share this object store on detached HEADs that `--all`
+does not enumerate. It is now preserved byte-exact, sha256 `1ece30c4…` matching `PROVENANCE.txt`'s
+as-run entry, at **`docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md`**, with a
+verified round-trip. Until this tick, one `git checkout <path>` destroyed it with no route back —
+which meant whoever took the decision was working against a hazard as well as a question.
+
+## What is owed next, restated
+
+1. **The collision decision, unchanged in ownership and sharpened in content:** does an in-record
+   year that the whole-book fit honestly cannot identify refuse (crashing the run on 2016 and 2025)
+   or fall back? Landing either half alone is safe; landing both is the crash. **Neither table is
+   stale — the newer one is in this tree and the older one is at HEAD.**
+2. **Re-cite HEAD's block, or re-fit it.** Its stated fit input no longer resolves to the run it was
+   fitted on, so at HEAD the ten-year table is a set of numbers whose provenance cannot be followed.
+3. Unchanged and not re-derived: the band control's emptied subject; `population_anchor`'s five 2022
+   consumers, now also owed the scope correction in (2) above.
