@@ -656,11 +656,43 @@ def _make_standalone_repo(root: Path, checkout: Path, parent: str) -> None:
     _git_text(checkout, "read-tree", parent, env=env)
 
 
+def _machine_data_dir(root: Path) -> Path:
+    """The MAIN worktree, where the machine's untracked data actually lives. Never `root` itself
+    when `root` is a linked worktree.
+
+    THE SAME DEFECT AS `process_run_complete._machine_data_dir`, FIXED IN BOTH PLACES IN ONE GO
+    (2026-09-02). This module keeps its own copy of `UNTRACKED_DATA_OVERLAY` and its own overlay,
+    so it had its own copy of the bug: landing from a worktree symlinked THAT worktree's
+    `sim/cache` into the gate's checkout. Measured on this box -- the shared tree holds twelve
+    Elexon/NESO cache files and a worktree held one, which is 25 tests failing on an absent
+    `elexon_demand_full.json` inside a gate that would report them as the landing's fault.
+
+    One rule with two implementations and a fix applied to only one of them is this project's
+    most expensive recurring shape; the second leg is landed here rather than filed.
+
+    Falls back to `root` whenever git cannot answer, which is exactly the previous behaviour, so
+    a non-worktree caller is unchanged by construction.
+    """
+    try:
+        proc = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                              cwd=str(root), capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return root
+    common = (proc.stdout or "").strip()
+    if proc.returncode != 0 or not common:
+        return root
+    main_worktree = Path(common).parent
+    return main_worktree if main_worktree.is_dir() else root
+
+
 def _overlay_untracked_data(root: Path, checkout: Path) -> None:
     """Symlink the machine's untracked DATA in. Never raises: a missing overlay makes tests fail
-    loudly inside the gate, which is a better failure than the gate refusing to run at all."""
+    loudly inside the gate, which is a better failure than the gate refusing to run at all.
+
+    The source is the MACHINE's data, not `root`'s -- see `_machine_data_dir`."""
+    source = _machine_data_dir(root)
     for rel in UNTRACKED_DATA_OVERLAY:
-        src, dst = root / rel, checkout / rel
+        src, dst = source / rel, checkout / rel
         if not src.exists() or dst.exists():
             continue
         try:

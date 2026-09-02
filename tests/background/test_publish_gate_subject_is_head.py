@@ -1442,3 +1442,107 @@ def test_mutation_the_pre_elimination_criterion_text_reds():
     assert not ok, ("a re-enabled REUSE_HEAD_CHECKOUT must red against the superseded criterion "
                     "-- otherwise flipping the switch back is invisible to the atom's own exit")
     assert "went back on" in why
+
+
+# ── the overlay's SOURCE is the machine, not whichever tree imported the module ───────────────
+#
+# THE DEFECT THIS PINS (2026-09-02, reproduced before it was written). `_overlay_untracked_data`
+# resolved the machine's untracked DATA as `PROJECT_DIR / rel`, and `PROJECT_DIR` is the tree the
+# module was IMPORTED from. For the publish gate that is always the shared tree, so it never
+# fired. The HEAD-green census reuses this helper on purpose -- so the two cannot drift about
+# what "a checkout of HEAD" means -- and the census can be launched from a linked worktree.
+#
+# Launched from `/var/tmp/se-seat-executor`, the census symlinked THAT worktree's `sim/cache`
+# into its subject: one of the machine's twelve Elexon/NESO cache files. 25 tests in
+# `tests/sim/test_renewable_capacity_trend.py` then failed on the absent `elexon_demand_full.json`
+# -- the exact file and the exact count `UNTRACKED_DATA_OVERLAY`'s own comment already named --
+# and those 25 reached `docs/staging/reference/HEAD_RED_REGISTER.md` and were drawn as work HEAD
+# does not owe. A control whose subject is not the thing it claims to measure.
+#
+# A REAL LINKED WORKTREE is the only fixture that can tell the two trees apart. Monkeypatching
+# `PROJECT_DIR` at a directory would prove nothing: the whole question is what `git rev-parse
+# --git-common-dir` answers from inside a worktree, and only a worktree answers it.
+
+
+def _worktree_pair(tmp_path):
+    """A real repo holding the machine's data, plus a real linked worktree holding LESS of it.
+
+    Returns (main, linked). The asymmetry is the subject: `full.json` exists only in the main
+    worktree, exactly as the 291MB cache exists only in the shared tree, and `sim/cache` is
+    gitignored in both so neither can obtain it from a checkout."""
+    main = tmp_path / "main"
+    main.mkdir()
+    _git(["init", "-q", "-b", "main"], main)
+    _git(["config", "user.email", "t@t"], main)
+    _git(["config", "user.name", "t"], main)
+    (main / ".gitignore").write_text("sim/cache/\n")
+    (main / "sim" / "cache").mkdir(parents=True)
+    (main / "sim" / "cache" / "full.json").write_text('{"machine": true}')
+    _git(["add", "-A"], main)
+    _git(["commit", "-qm", "base"], main)
+
+    linked = tmp_path / "linked"
+    add = _git(["worktree", "add", "--detach", str(linked), "HEAD"], main)
+    assert add.returncode == 0, "fixture could not build a linked worktree: " + add.stderr
+    # What a stray run leaves behind in a worktree: SOME of the cache, never all of it.
+    (linked / "sim" / "cache").mkdir(parents=True)
+    (linked / "sim" / "cache" / "partial.json").write_text('{"stray": true}')
+    return main, linked
+
+
+def test_the_untracked_overlay_reads_the_MACHINES_data_not_the_importing_worktrees(
+        tmp_path, monkeypatch, logged):
+    """From a linked worktree, the overlay must still find the MAIN worktree's data.
+
+    Mutation-proven by `_machine_data_dir` returning `PROJECT_DIR`, which is what it did before
+    2026-09-02: the checkout then sees `partial.json` and not `full.json`, which is the census's
+    29 manufactured reds in miniature."""
+    main, linked = _worktree_pair(tmp_path)
+    monkeypatch.setattr(prc, "PROJECT_DIR", linked)
+    monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+
+    checkout = tmp_path / "subject"
+    checkout.mkdir()
+    prc._overlay_untracked_data(checkout)
+
+    overlaid = checkout / "sim" / "cache"
+    assert overlaid.exists(), "the overlay did not reach the subject at all"
+    names = sorted(p.name for p in overlaid.iterdir())
+    assert "full.json" in names, (
+        "the subject was given the LAUNCH TREE's cache, not the machine's -- this is the defect "
+        "that manufactured 25 reds in tests/sim/test_renewable_capacity_trend.py and routed them "
+        "into the HEAD-red register. Saw: {}".format(names))
+
+
+def test_mutation_resolving_the_overlay_from_the_importing_tree_reds(tmp_path, monkeypatch,
+                                                                     logged):
+    """MUTATION (R15): put the pre-fix resolution back and the control above must fail.
+
+    Without this, `_machine_data_dir` could be quietly reduced to `return PROJECT_DIR` and the
+    control would keep passing on a box where the two happen to coincide -- which is every box
+    that never uses a worktree, and is exactly why the defect survived this long."""
+    main, linked = _worktree_pair(tmp_path)
+    monkeypatch.setattr(prc, "PROJECT_DIR", linked)
+    monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+    monkeypatch.setattr(prc, "_machine_data_dir", lambda: prc.PROJECT_DIR)
+
+    checkout = tmp_path / "subject"
+    checkout.mkdir()
+    prc._overlay_untracked_data(checkout)
+
+    names = sorted(p.name for p in (checkout / "sim" / "cache").iterdir())
+    assert names == ["partial.json"], (
+        "the pre-fix resolution no longer reproduces the defect, so the control above is not "
+        "pinned by anything. Saw: {}".format(names))
+
+
+def test_the_main_worktree_resolution_falls_back_rather_than_raising(tmp_path, monkeypatch):
+    """A directory git cannot answer for must return `PROJECT_DIR`, not raise.
+
+    The fail direction is stated rather than left to be discovered: the overlay's whole contract
+    is that it never raises, because a gate that refuses to run is worse than one whose tests
+    fail loudly. A non-repo is the case that would have raised."""
+    not_a_repo = tmp_path / "bare"
+    not_a_repo.mkdir()
+    monkeypatch.setattr(prc, "PROJECT_DIR", not_a_repo)
+    assert prc._machine_data_dir() == not_a_repo

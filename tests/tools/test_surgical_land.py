@@ -1507,3 +1507,84 @@ def test_the_merge_receipt_names_the_second_parent_and_still_verifies(repo: Path
         "a receipt naming one parent on a two-parent commit understates the commit's scope")
     rc, text = sl.verify(repo, sha)
     assert rc == 0, text
+
+
+# ── the overlay's SOURCE, when the landing tree is a linked WORKTREE ──────────────────────────
+
+
+def _worktree_pair_for_overlay(tmp_path):
+    """A repo holding the machine's cache, plus a linked worktree holding a stray fragment.
+
+    `full.json` lives only in the main worktree, exactly as the 291MB Elexon cache lives only in
+    the shared tree; `sim/cache` is gitignored, so no checkout can obtain it from git."""
+    main = tmp_path / "main"
+    main.mkdir()
+    for args in (("init", "-q", "-b", "main"), ("config", "user.email", "t@t"),
+                 ("config", "user.name", "t")):
+        subprocess.run(["git", *args], cwd=str(main), capture_output=True, timeout=120)
+    (main / ".gitignore").write_text("sim/cache/\n")
+    (main / "sim" / "cache").mkdir(parents=True)
+    (main / "sim" / "cache" / "full.json").write_text('{"machine": true}')
+    subprocess.run(["git", "add", "-A"], cwd=str(main), capture_output=True, timeout=120)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=str(main), capture_output=True,
+                   timeout=120)
+
+    linked = tmp_path / "linked"
+    add = subprocess.run(["git", "worktree", "add", "--detach", str(linked), "HEAD"],
+                         cwd=str(main), capture_output=True, text=True, timeout=120)
+    assert add.returncode == 0, "fixture could not build a linked worktree: " + add.stderr
+    (linked / "sim" / "cache").mkdir(parents=True)
+    (linked / "sim" / "cache" / "partial.json").write_text('{"stray": true}')
+    return main, linked
+
+
+def test_landing_from_a_worktree_overlays_the_MACHINES_cache_not_the_worktrees(tmp_path,
+                                                                              monkeypatch):
+    """FAIL-SILENT (R15): the gate's checkout must see the machine's data, not the landing tree's.
+
+    THE SAME DEFECT AS `process_run_complete._machine_data_dir`, and this module had its own copy
+    of it because it keeps its own `UNTRACKED_DATA_OVERLAY` and its own overlay. Landing from a
+    worktree symlinked THAT worktree's `sim/cache` into the gate's checkout -- on this box, one
+    of twelve cache files -- so the gate would run the suite against a subject missing the data
+    and report the resulting `FileNotFoundError`s as the landing's fault. A landing tool that
+    reds for a reason that has nothing to do with what is being landed is the pressure toward
+    `--no-verify` this tool exists to remove.
+
+    Every unattended seat runs in a linked worktree, so this is the ordinary path, not an edge."""
+    main, linked = _worktree_pair_for_overlay(tmp_path)
+    monkeypatch.setattr(sl, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+
+    checkout = tmp_path / "subject"
+    checkout.mkdir()
+    sl._overlay_untracked_data(linked, checkout)
+
+    names = sorted(p.name for p in (checkout / "sim" / "cache").iterdir())
+    assert "full.json" in names, (
+        "landing from a worktree gave the gate the WORKTREE's cache, so the gate is judging a "
+        "subject that has no data. Saw: {}".format(names))
+
+
+def test_mutation_resolving_the_landing_overlay_from_the_landing_tree_reds(tmp_path, monkeypatch):
+    """MUTATION (R15): restore the pre-fix resolution and the control above must fail.
+
+    Otherwise `_machine_data_dir` could be reduced to `return root` and stay green on every box
+    that never lands from a worktree -- which is how this survived in two modules at once."""
+    main, linked = _worktree_pair_for_overlay(tmp_path)
+    monkeypatch.setattr(sl, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+    monkeypatch.setattr(sl, "_machine_data_dir", lambda root: root)
+
+    checkout = tmp_path / "subject"
+    checkout.mkdir()
+    sl._overlay_untracked_data(linked, checkout)
+
+    names = sorted(p.name for p in (checkout / "sim" / "cache").iterdir())
+    assert names == ["partial.json"], (
+        "the pre-fix resolution no longer reproduces the defect, so the control above is not "
+        "pinned by anything. Saw: {}".format(names))
+
+
+def test_the_landing_overlay_falls_back_when_git_cannot_answer(tmp_path):
+    """A non-repo must return `root`, not raise: the overlay's contract is that it never raises."""
+    not_a_repo = tmp_path / "bare"
+    not_a_repo.mkdir()
+    assert sl._machine_data_dir(not_a_repo) == not_a_repo

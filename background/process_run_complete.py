@@ -2253,11 +2253,48 @@ UNTRACKED_DATA_OVERLAY = ("sim/cache", "node_modules")
 REUSED_CHECKOUT_KEEP = ("__pycache__",) + UNTRACKED_DATA_OVERLAY
 
 
+def _machine_data_dir() -> Path:
+    """WHERE THE MACHINE'S UNTRACKED DATA LIVES -- the MAIN worktree, never the importing tree.
+
+    `PROJECT_DIR` is the tree this module was imported from, and for the publish gate that is
+    always `/home/rich/synthetic-enterprise`, so the difference never showed. The census reuses
+    this helper on purpose (so the two cannot drift about what "a checkout of HEAD" means) and
+    the census CAN be launched from a linked worktree -- where `PROJECT_DIR / "sim/cache"` is
+    whatever a stray run happened to leave behind.
+
+    MEASURED 2026-09-02, from a worktree, with the census's own `head_subject_checkout`: the
+    subject's `sim/cache` symlink resolved to a directory holding ONE of the machine's twelve
+    cache files, and 25 tests in `tests/sim/test_renewable_capacity_trend.py` failed on the
+    absent `elexon_demand_full.json` -- the exact file and the exact count this constant's own
+    comment names four lines up. Those reds reached the HEAD-red register and were drawn as work
+    that HEAD does not owe.
+
+    `git rev-parse --git-common-dir` names the ONE `.git` every linked worktree shares, and its
+    parent is the main worktree. Falls back to `PROJECT_DIR` when git cannot answer, which is
+    exactly today's behaviour -- so this can only ever fix a linked-worktree caller and can never
+    change what the gate already does.
+    """
+    try:
+        proc = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                              cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return PROJECT_DIR
+    common = (proc.stdout or "").strip()
+    if proc.returncode != 0 or not common:
+        return PROJECT_DIR
+    main_worktree = Path(common).parent
+    return main_worktree if main_worktree.is_dir() else PROJECT_DIR
+
+
 def _overlay_untracked_data(checkout: Path) -> None:
     """Symlink the machine's untracked DATA into a HEAD checkout. Never raises: a missing
-    overlay makes tests fail loudly, which is a better failure than the gate refusing to run."""
+    overlay makes tests fail loudly, which is a better failure than the gate refusing to run.
+
+    The source is the MACHINE's data (`_machine_data_dir`), not the importing tree's -- see that
+    docstring for the 29 reds the difference manufactured."""
+    source = _machine_data_dir()
     for rel in UNTRACKED_DATA_OVERLAY:
-        src = PROJECT_DIR / rel
+        src = source / rel
         dst = checkout / rel
         if not src.exists() or dst.exists():
             continue
