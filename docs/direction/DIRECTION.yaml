@@ -1,409 +1,446 @@
 version: 1
-oriented_at: "2026-09-01T20:21:47.715793+00:00"
+oriented_at: "2026-09-02T02:24:08.967563+00:00"
 thesis_read: >-
-  **The first whole-book fit in this repository's history emitted this stretch, and it is not
-  reproducible.** That is the whole reading and both halves are load-bearing. The native SVT capture
-  — named in focus for three consecutive orientations and relaunched zero times — ran to completion
-  at 17:42 UTC (`EXIT_RC=0`, 156 renewal rows, 1,373 SVT segment decisions), all five predictions in
-  its pre-registration were graded as filed with two SPLIT and one clause REFUTED kept rather than
-  revised, and **P4 confirmed the whole-book fit**. Against the thesis — *"there has to be a BASELINE
-  to beat, or 'it performed well' means nothing"* — that is the first movement on the binding
-  blocker in weeks. Then the clean-tree re-run at `7cb667126` **refuted four of its own five
-  predictions** and wrote a **2-byte, empty** SVT sibling, so the fit that emitted has no producer in
-  git; and `9a03f3b44` established that the two runs' own `PROVENANCE.txt` files declare **three
-  differing modules**, not one, with **2022's level anchor doubled between them** (3.053619 against
-  1.524110) because the working tree's uncommitted block was missing 2022 and the fallback silently
-  supplied the reference year's. So the honest position is: the anchor moved from *cannot be fitted
-  at all* to *fitted once, unreproducibly, on an input now known to be wrong at the one year the
-  expensive prediction was about.* **Forward, genuinely, and not as far as the commit subjects
-  read.** Two things were then repaired and both matter: `8bf416115` wired `rolls_active_renewal`
-  into `build_renewal_schedule` (the assignment both pre-registrations called their binding owed
-  item), and `9fd700366` made the fallback refuse inside the published record instead of borrowing
-  2024's value. **Both landed after both captures were taken, so neither capture has been run against
-  the repaired world — the re-run is now cheap, unblocked and unowned.** The sharper half of this
-  reading is what nothing was watching: `tests/architecture/test_switching_rate_commons.py` holds
-  `YEAR_LEVEL_ANCHOR` *"indirectly, through its EFFECT"*, and **that band check is red at clean HEAD**
-  with the assertion *"only 7 years had their margins checked — a control over an emptied subject
-  reports a constant PASS"*. The single indirection the register relies on to hold this quantity
-  accountable has not been holding it, which is how a silent 1.98x on 2022 survived a capture, a fit
-  and two pre-registrations. **On reachability, the brief is wrong and I am correcting it rather than
-  acting on it:** it reports the previous focus as never drawn. `docs/observability/seat-executor-log.md`
-  records the first item **RUNNING and FINISHED rc=0 three times** — 17:36, 18:36 and 19:35 UTC. The
-  steer bit. What it did not do is reach past item one: the lane delivers **exactly one focus item
-  per stretch**, and items two, three and four got nothing from it. That is the fact that should
-  order this list, so it does. And what is still live on origin under Poesys's name, untouched for a
-  full stretch after I ranked it third: **the annual report publishes one field a hundredfold apart
-  in two of its own tables.**
+  **Ranking the served defect first worked, and that is the finding of this stretch — the schedule
+  was the whole problem and nothing else changed.** The item I had put third, then second, for two
+  stretches with zero ticks took **three consecutive lane-0 ticks** the moment it was first
+  (`seat-executor-log.md`, 00:36 / 01:35 / 02:05) and landed at `e264e0305` as a genuinely good
+  piece of work. It did not stop at the units: it established the three defects separately before
+  touching one, was **refused by the wall on its first attempt and said so** — importing
+  `tools/generate_dashboard_data.py` put `saas -> simulation.*` back on the graph KNIFE pass 1 took
+  off — withdrew the Ofgem attribution because *our own commons refutes it*
+  (`BILL_SHOCK_EVENT_TYPES_ANCHORS.md` §3 recorded "Confirmed: no"), found the incidence denominator
+  was dividing by bills that could not be flagged, **withdrew a RAG leg that was RED in all ten years
+  with both other branches unreachable rather than rescaling it**, then noticed that removing it left
+  a two-leg RAG GREEN in all ten years — *the same defect facing the other way* — and made the report
+  disclose its own single-valuedness. Eight of nine mutations killed, the ninth established as an
+  equivalence rather than assumed to be one. Then `a1da56c99` — **not in my brief, it reached origin
+  during assembly** — followed the thread one layer down and found that `bill_shock_rag` returned
+  GREEN for a missing measurement, *armed by the fix above*, and closed the identical fail-open in
+  `shock_rate_pct` one property away as a class rather than an instance. So the served figure is
+  right, the band no longer claims a regulator it does not have, and the machine caught its own fix's
+  blast radius. **Against the thesis, the score is otherwise unchanged and that is the uncomfortable
+  half.** The baseline the thesis demands is still ungraded: the whole-book departure fit exists, is
+  three orientations old, and **nobody has taken the decision it needs**. Its state moved under me
+  during this orientation — `simulation/departure_level_anchor.py` is now **clean at HEAD's ten-year
+  block** (mtime 02:26), so the tree wedge and the composition crash are gone, and the seven-year
+  paste-ready block with its provenance now survives in exactly one place: a **staged, uncommitted**
+  design document. I verified every one of its seven values is separately recoverable from committed
+  files on origin, so this is not data loss — but the attributed block is one careless index
+  operation from having to be reassembled by hand. Meanwhile the shared index has grown from roughly
+  two dozen staged paths to **45**, and the direct debit is still set from the first issued bill it
+  happened to see. **Forward decisively on the thing I finally scheduled properly; flat on the two
+  things I have now deferred four and five times respectively.** The correction is not another essay
+  about ranking: it is that the two oldest items are now first and second, and if they are still here
+  next orientation the fault is mine and not the queue's.
 stretch_reviewed:
-  since: "2026-09-01T17:23:29.383752+00:00"
-  commits: 14
-  substantive: 5
+  since: "2026-09-01T23:23:16.207959+00:00"
+  commits: 8
+  substantive: 3
 focus:
-  - id: the-only-control-holding-the-level-anchor-is-red-and-reports-a-constant-pass
+  - id: union-the-departure-routes-and-declare-the-denominator
     what: >-
-      **Two tests are red at clean HEAD and they are the accountability route for the quantity every
-      other item on this list depends on.** Verify before acting and do not take my word for it —
-      extract with `git archive HEAD` into a clean stem rather than disturbing this tree, and run:
+      **Take the collision decision. It has been owed for three orientations, it is the thesis item,
+      and its hazard was removed on purpose so that whoever took it faced a question and not a
+      landmine. Take it.** Read
+      `docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md` in full, and
+      `docs/staging/done/WORKER_FINDING_THE_LEVEL_ANCHOR_GUARD_IS_GREEN_AT_HEAD_AND_RED_IN_THE_TREE_THE_WORLD_ACTUALLY_RUNS_FROM_2026-09-01.md`
+      **including its CORRECTION**. Do not take this summary as the instruction.
+
+      **THE STATE CHANGED SINCE THE LAST DIRECTION AND THE OLD INSTRUCTION IS STALE.** Verified this
+      orientation: `git status --porcelain simulation/departure_level_anchor.py` is now **empty** —
+      the working tree carries HEAD's **ten-year** block, not the seven-year one. The green-at-HEAD /
+      red-in-the-tree wedge is gone, `9fd700366`'s guard is no longer composed with a table that
+      makes it raise, and no lane is red on this. **Do not go looking for the ` M` the previous
+      direction described.** The seven-year block — account-years denominator, the two departure
+      routes unioned within the account as `1 - PROD(1-p)`, fitted by `fit_year_anchor_on_book` on
+      `ladder_churn_factors.json` plus its SVT sibling — now exists as an attributed, paste-ready
+      block **only in the staged design document above, which is in no commit.** Every individual
+      value is separately recoverable from committed files on `origin/main` (I checked all seven), so
+      nothing is lost, but the block with its reasoning is not durable. **Land that document first,
+      by pathspec, before anything else in this item** — it is the input to your own decision.
+
+      **The decision, and it is one question with two honest answers.** *Does an in-record year the
+      whole-book fit cannot identify REFUSE, or FALL BACK?* The three absences are **not alike and
+      must be answered separately**:
+
+      * **2016 and 2025** are outside the declared comparison window 2017–2024. 2016 holds one
+        renewal decision and solves to an anchor near 16 to six decimals; 2025 is partial. These are
+        edge years that cannot carry a fit.
+      * **2022 is UNIDENTIFIED for two independently binding reasons.** Zero renewal decisions in the
+        `c2`/`ladder`/native capture family, so the anchor multiplies nothing and floor equals
+        ceiling; **and** its SVT floor is 12.09% against a published 4.30%, so **no anchor ≥ 0 brings
+        it to the record**, because `build_departure_risks` deliberately does not scale `svt_inertia`.
+        **Do not clamp 2022, do not widen the band, do not interpolate.** Note the scope: the
+        zero-rows premise is true of that capture family;
+        `docs/reports/c3_shown_price_departure_factors.json` carries 53 renewal rows in 2022 under
+        the ten-year block. **State which capture your answer is about.**
+
+      **Whatever you decide is unverifiable until the anchor has a control that can move against it.**
+      `4871e53ee` measured that **halving every `YEAR_LEVEL_ANCHOR` entry leaves the whole control
+      file green** — a 2x error, larger than the 1.98x that started this thread — because the band leg
+      is `xfail` and a held-open verdict cannot see a value that keeps the world *outside* the band.
+      The disclosure handshake it built is the right mechanism and it is **armed**: when a fit lands,
+      the disclosure leg fires until the register is corrected. **That is intended, not a regression.**
+      Neither re-key the leg to today's readings nor assert the holder stays broken.
+
+      **Also owed, named in both documents.** (a) **HEAD's ten-year block cannot be followed** — its
+      stated fit input no longer resolves to the run it was fitted on, so at HEAD it is a set of
+      numbers with no traceable provenance. Re-cite it or re-fit it; one table live, the other
+      explicitly retired. (b) `tools/population_anchor.py:490` still resolves
+      `yr2022.get("sim_churn_rate", 0.0)` to a **published measured zero** — verified still present
+      this orientation. Fail it and its siblings closed with a named reason; **never by inserting a
+      zero-churn crisis year.**
+
+      **Method.** Clean stem via `git archive HEAD`, and **check free space first** — `/tmp` filled to
+      zero during the last orientation and silently broke tooling that writes there. Long runs under
+      `systemd-run --user --unit=<name>`; wait with `tools/wait_for.py` naming its subject and
+      carrying a deadline, never a hand-rolled `pgrep`. Mutation-prove under `python3 -B`. **File a
+      pre-registration before any run and before reading any of its output, predicting the MOVE, not
+      an invariance.**
+
+      **Pathspec:** `docs/design/UNLANDED_WHOLE_BOOK_LEVEL_ANCHOR_BLOCK_2026-09-01.md`,
+      `simulation/departure_level_anchor.py`, `tools/population_anchor.py`, `tests/simulation/`,
+      `tests/architecture/test_switching_rate_commons.py`, and the finding and pre-registration
+      documents.
+    why: >-
+      **First, because last stretch proved that first is the only rank that gets worked, and because
+      this is the thesis item.** *There has to be a BASELINE to beat or "it performed well" means
+      nothing* — the level anchor is the external, published, decided-blind quantity that makes the
+      book's departures a fact the company must beat rather than a dial it sets. The block moves the
+      world hard **against** us (4.50% to the record's 15.50% lost per renewal, 3.4x more revenue at
+      risk), which is exactly what makes it a fidelity change under the baseline/curriculum split and
+      not a curriculum one, and what makes it worth having. **The argument for deferring it has now
+      run out.** It was second last time because item one was bleeding a wrong number every hour;
+      that number is fixed. It was second the time before because the hazard made it dangerous; that
+      hazard was deliberately removed and the tree has since reverted to HEAD. There is nothing left
+      in front of it. **Done means:** the collision answered in writing with 2016/2025 and 2022
+      treated as the different cases they are and the capture scope stated; the block document landed
+      so the input to that decision is durable; one table live and the other explicitly retired or
+      re-cited; `year_level_anchor` neither crashing an ordinary run nor silently borrowing a year;
+      the disclosure handshake fired and the register corrected to match rather than re-keyed; the
+      `population_anchor` consumers failing closed with named reasons; a prereg filed before the run
+      with every prediction graded beside its filed text and misses kept. **If the honest answer is
+      that neither table can be justified until a re-capture runs, say that and file it** — that is a
+      result, and *"we cannot tell"* belongs on the surface.
+  - id: the-direct-debit-has-no-estimate-behind-it-so-definition-a-cannot-be-measured
+    what: >-
+      **The director's own correction of 2026-09-01, now deferred five times, and every stated
+      blocker has cleared. Verified untouched this orientation.**
+
+      His words: *"There's no such thing as a half-month direct debit — an annualised plan divides
+      estimated annual cost by twelve whatever the start date. The real defect is that the DD is only
+      as good as the estimated annual consumption behind it: when that estimate is wrong the account
+      drifts into credit or debit, and the correction arrives later as a change the customer didn't
+      expect."*
+
+      `company/billing/dd_review_runner.py:155` still reads, unchanged:
 
       ```
-      tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_published_band
-      tests/architecture/test_switching_rate_commons.py::test_the_instrument_prints_the_distance_to_both_band_edges_and_not_only_the_verdict
+      standing_dd = seq[0][1]  # initial estimate = first issued bill
       ```
 
-      Expect `2 failed, 24 passed, 1 xfailed` with
-      `AssertionError: only 7 years had their margins checked -- a control over an emptied subject
-      reports a constant PASS`. That message is the catalogued shape, written by the control about
-      itself: **a control over an emptied subject cannot fail, so its PASS carried no information.**
+      And `grep annual_consumption_kwh` across `company/billing/` and `saas/` still returns **only**
+      `exit_fee.py` and `renewal_engine.py` — **there is no estimated annual consumption anywhere in
+      the direct-debit path.** So definition A's real measure — *the change in the amount COLLECTED,
+      plus the balance the household is carrying* — has nothing to compute from.
 
-      **Establish WHY the subject emptied before repairing the count.** Eight years of margin became
-      seven; the question is whether a year stopped being produced, stopped being read, or stopped
-      being classified — three different defects wanting three different repairs, and only one of
-      them is in the test. `test_switching_rate_commons.py` classifies `YEAR_LEVEL_ANCHOR` and
-      `year_level_anchor` under `_HELD_INDIRECTLY`, explicitly *"held through its EFFECT — the
-      world's realised departure rate, which is `_PRINCIPAL_SUBJECT` above and is band-checked every
-      run"*. If the emptying is upstream in the run, the register's indirection claim is the thing
-      that is wrong and it must be corrected in the register, not patched in the assertion.
+      **The blockers are gone.** The channel wiring is done (`saas/bill_generator.py:183` takes
+      `payment_channel`; `company/billing/monthly_bill_assembly.py:408` feeds it across the seam
+      without importing `simulation.household_segments`). The two populations are published, with n,
+      median, max and a 95% interval, in both `site/data/dashboard.json` and — as of `e264e0305` —
+      the annual report. The shock definition now names *standard credit* as the population whose
+      bill-to-bill difference IS the shock, and says explicitly that the direct-debit figure is
+      **not** one. **That is precisely the gap this item fills**: we now publish that the DD
+      household's shock is not their bill, and we have nothing that says what it *is*.
 
-      **Do not repair it by asserting seven.** Keying the leg to today's subject size is the exact
-      move that makes a control go green when the code becomes more honest. Key it to the property —
-      *every year the record publishes has its margin checked, and a year that cannot be checked is
-      named and refused rather than dropped* — and make the refusal say which year and why.
-      Mutation-prove with `python3 -B`; two same-size edits inside one second match on
-      `(mtime, size)` and the harness reports SURVIVED off a stale `.pyc`.
+      **Knowledge first, and this is the £150 shape if you skip it.** Before writing any number: what
+      do suppliers actually use to estimate annual consumption, and how does the SLC 27B ±5% review
+      duty interact with a review cycle? `docs/domain_artefact_library/` holds the published law;
+      `docs/market_research/what_bill_shock_is.md` records the population shares (~74/13/13 published
+      against our world's 68.1% DD / 31.9% SC / **0% prepayment**) **and states its own gaps** — the
+      fixed-vs-variable DD split and debit balances are not published, and it says so. **If nothing
+      establishes a value, the code carries the gap explicitly rather than a placeholder that looks
+      like an answer.**
 
-      **Pathspec:** `tests/architecture/test_switching_rate_commons.py` and whatever single producer
-      the investigation names. Nothing under `saas/reporting/` or `tools/generate_dashboard_data.py`.
+      Then build it: an EAC behind the DD, the balance it accrues, and the correction arriving as a
+      change the household did not expect. **Pre-register before the change.** Our world has **zero**
+      prepayment households against a published ~13% — state that as a scope limit on the surface
+      rather than folding them into standard credit.
+
+      **Pathspec:** `company/billing/dd_review_runner.py`, `company/billing/`, `saas/`,
+      `docs/market_research/`, `tests/`. **The epistemic wall applies to every line** — ask what a
+      real supplier could know of each household's consumption, and route it through
+      `company/interfaces/sim_interface.py`. `e264e0305` was refused by that wall on its first
+      attempt; expect the same scrutiny and design for it rather than discovering it at the gate.
     why: >-
-      First because it is small, it is red **now**, and everything else in the anchor lane is
-      unsafe while it is red. `WORKER_PREREGISTRATION_WHAT_MAKING_THE_LEVEL_ANCHOR_FALLBACK_MATCH_ITS_JUSTIFICATION`
-      grades it G4-CONFIRMED as pre-existing, records it as owed and — correctly, given its pathspec
-      — did not repair it, then says the thing that promotes it to first: *"the single indirection the
-      register relies on to hold this quantity accountable is, at HEAD, not holding it. That is what
-      made a silent 1.98x on 2022 survive a capture, a fit and two preregistrations."* Item three
-      re-runs the capture and may emit a block that looks adoptable; **a fit whose only accountability
-      control reports a constant PASS is a number with nothing behind it**, and this project has been
-      burned by adopting exactly that shape before. It is first rather than third because it is
-      minutes of work standing in front of hours of other people's, and because a pre-existing red at
-      clean HEAD is a tax on every lane that touches the file. **Done means:** both legs green at
-      clean HEAD with the cause of the emptying named in writing; the leg keyed to the property, not
-      to a count; the refusal naming the missing year and its reason on the surface rather than
-      dropping it; one mutation-proven leg; and the `_HELD_INDIRECTLY` classification either
-      re-justified against what was found or corrected. If the honest answer is that the indirection
-      never held it, **say that** and file it — that is a bigger finding than the repair.
-  - id: one-field-is-published-a-hundredfold-apart-in-two-tables-of-one-report
+      **Second, and I am recording that I said a fifth deferral would be a decision rather than a
+      queue — and then made it. This is that decision reversed.** It is his correction, it is right,
+      and it is **the only item on this list that creates rather than repairs**. Against the mission —
+      *saving them money, time and carbon through personalised modelling* — an estimate of a
+      household's annual consumption that is better than average IS the product; against the thesis,
+      an EAC the company infers well is the first thing here where **the advantage would come from
+      inference rather than from a table**. It upgrades definition A from *"the amount collected
+      changed"* to *"and here is why"*. It sits second only to a fidelity precondition, and behind
+      nothing else. It is also **cheaper than when it was filed**: the split it needed has landed and
+      is published in two artefacts, so this is building the quantity underneath an answer that
+      already exists. **Done means:** the published evidence established and written to
+      `docs/market_research/` **before** any constant is chosen, with what is not published named as
+      a gap rather than filled; a DD set from an EAC ÷ 12 rather than from the first issued bill; a
+      balance that accrues and unwinds; SLC 27B's ±5% duty reaching the review cycle; a
+      pre-registration filed before the change and its predicted move graded afterwards beside the
+      filed text; prepayment's absence stated as a scope limit on the surface; and one mutation-proven
+      control keyed to the property, never to today's EAC. **If the evidence does not establish what
+      suppliers estimate consumption from, file that as a finding and ask the director** — he is the
+      third side of the knowledge loop, asking is cheap, and this exact subject has already proved
+      once that a wrong frame compounds.
+  - id: two-pieces-of-finished-work-are-staged-in-the-shared-index-and-in-no-commit
     what: >-
-      **Unchanged in content, still live on origin, and promoted from third because ranking it third
-      bought it zero ticks.** Verified this orientation against the served file, not the generator:
-      `git show origin/main:docs/reports/ANNUAL_REPORT.md` line 2447 reads
-      **`Worst bill shock: **2022** (0.58%)`** and line 2430 attributes the band to Ofgem —
-      *"bill shock <0.20% (GREEN) / <0.30% (AMBER) / ≥0.30% (RED)"*. The same
-      `financial.annual[].avg_bill_shock_pct` is a **fraction** (2022 = `0.58`), rendered ×100 as
-      **`57.5%`** by *Bill Shock Analysis* and raw as **`0.58%`** by *Customer Service Quality*.
-      Read `saas/reporting/annual_report.py` at **7123, 7136, 7166, 9004, 9020** at HEAD before
-      changing anything.
+      **Third stretch running, and it nearly doubled: roughly two dozen staged paths last orientation,
+      45 now.** `git status --porcelain | grep -cE '^[MARCD]'` — verified this orientation.
 
-      **Three separable defects wanting three different repairs — establish which before you touch
-      one.** (i) The **units**: one rendering is wrong and it is not a formatting preference. Decide
-      what the field is, name it so it cannot be misread, and fix the renderer rather than the callers
-      one at a time. (ii) The **comparison**: a mean shock *magnitude* is being judged against a band
-      whose own wording reads as an *incidence rate*, and the report publishes an incidence in the
-      same rows (`Shock Rate`, 16%–23%). **Before comparing two numbers, say out loud what each one
-      counts.** If they are not the same subject the comparison does not become right by rescaling it.
-      (iii) The **band's origin**: check `docs/market_research/` and `docs/domain_artefact_library/`
-      for whether Ofgem publishes anything of this shape at all. **If nothing establishes it, that is
-      a finding to file and the code carries the gap explicitly** — an honest refusal with a named
-      reason beats a plausible band, and this one is attributed to a regulator in the company's own
-      published report.
+      **(a) Land the finished controls.**
+      `tests/tools/test_the_published_artefact_carries_the_split_the_code_computes.py` is **still**
+      `A ` — staged, in no commit, third stretch. Its docstring records that it was run against the
+      artefact **before** the regeneration that fixed it: RED on the annual series, GREEN on the
+      monthly one — the same assertion over two series, one already correct, which is a
+      discrimination proof and not an assertion of today's state. Read it, **confirm the mutation
+      record is real rather than recalled**, and land it by pathspec with a message naming what it
+      guards. Alongside it, `tools/artefact_rerun_diff.py` + `tests/tools/test_artefact_rerun_diff.py`
+      are staged as a **new module with its test**; it has readers in `docs/observability/sim-runner-log.md`
+      and two shell scripts, so establish whether it is wired or orphaned before you land or drop it.
+      **If any of them go red against the current served files, that is the finding and it outranks
+      the rest of this item.**
 
-      A verdict that is RED in all ten years and HIGH in all ten **has no reachable other branch**.
-      Key the control to the property — *the bands are reachable in both directions on the real
-      series* — never to "2022 is the worst year", which pins today's answer.
+      **(b) The rest of the index is a live hazard and it is growing.** Among the 45: seventeen
+      `A  docs/staging/done/run_complete_*.md` back to 2026-08-30; an `AD` (staged as added, **deleted
+      in the worktree** — cannot be recovered by reading the worktree); a `D ` on a `done/` finding;
+      two `R ` renames; `MM` on `docs/observability/coupled_gap_ledger.json`,
+      `value_based_pricing_arms.json` and `tools/couple_value_based_pricing.py`; and **the only
+      attributed copy of the whole-book anchor block**, which is item one's first task. This is the
+      residue of refused publish commits. **One `git commit` without a pathspec lands all of it** —
+      which is exactly how a control ends up inside a commit whose message explains something else.
 
-      Both `7123` and `9020` read the field as `... or 0.0`, so **a missing year currently publishes
-      a measured zero**. Fail it closed and say so on the surface.
+      **Establish what each group is before touching it. `AD`, `D ` and `R ` are not the same case as
+      a plain `A `. Never `git checkout <path>` and never `git stash` on this tree** — both destroy
+      unstaged work belonging to lanes that are running right now. Land what is finished, by
+      pathspec, in commits that each explain one thing; leave what belongs to a live lane alone and
+      **say in writing which is which.**
 
-      **Note what changed underneath it since I filed this:** `docs/reports/run_output_latest.json`
-      was regenerated at 20:06 and the 20:20 run at `69f2f4058` carries the signed shock. The
-      hundredfold split is a rendering defect and is invariant to that, but **read the current figures
-      rather than quoting mine**.
-
-      **Pathspec:** `saas/reporting/annual_report.py`, `tests/saas/`, `docs/reports/ANNUAL_REPORT.md`.
-      Nothing under `tools/generate_dashboard_data.py` or `simulation/`.
+      **Pathspec:** name each one as you go. Nothing bundled.
     why: >-
-      Second, and it is here rather than third because **I ranked it third last orientation on merit
-      and the lane delivers one item per stretch, so "third on merit" is "not done".** That is my
-      ranking error to own, not the machine's. It is still the only item on this list where a **wrong
-      number is served right now under Poesys's name**, in the document `site/data/proof.json`,
-      `evidence.json` and `simplified.json` all point a reader at. It is this project's most
-      expensive recurring shape twice over in one screen: *before measuring a thing, say what it is* —
-      a magnitude and an incidence given one name and then compared; and *a control whose PASS branch
-      is unreachable reports a constant verdict* — ten years of RED that no state of the company could
-      change. **A supplier's own annual report telling its reader that 2022's worst bill shock was
-      0.58% when the same file says 57.5% is not a rounding disagreement**, and the epistemic argument
-      the whole project rests on does not survive a reader finding it. It sits below item one only
-      because item one is minutes and guards the lane below it. **Done means:** one quantity, one
-      name, one rendering across both tables, with the mean and the incidence named separately where
-      both are published; the Ofgem attribution sourced from the commons or removed and replaced with
-      a stated refusal; the RAG demonstrated reachable in both directions or withdrawn; the `or 0.0`
-      defaults failed closed; and a mutation-proven control keyed to the property. If the tables agree
-      because one was deleted, **say so explicitly** — that is a legitimate answer and a silent
-      deletion is not.
-  - id: the-whole-book-fit-is-unblocked-and-has-never-been-run-against-the-repaired-world
+      **Third because it is the smallest item here and because the trend is the argument, not the
+      state.** I recorded this last orientation and the orientation before; in one stretch it went
+      from ~24 paths to 45, so it is accreting faster than it is being cleared and the next
+      orientation reads 70. It ranks below the two above it because **nothing is wrong on a served
+      surface as a result** — this is hygiene, and CLAUDE.md is right that level-moving work outranks
+      tidying. But it is not costless hygiene: an index holding 45 unrelated staged paths is one
+      careless pathspec from a commit nobody can explain, and this tree has already produced a finding
+      titled *the shared index holds a branch that would silently revert three landed controls*. It
+      also now holds **item one's own input**. The recurring shape is exact and embarrassing: the
+      original defect was *computed and never published*; the control that catches it is *written,
+      mutation-proven, and never committed*, three stretches running. **Done means:** the split
+      control in a commit of its own; `artefact_rerun_diff` either landed with its wiring named or
+      explicitly withdrawn; the index reduced to what a live lane is actually holding, with each
+      remaining group named and attributed in writing; and **no path recovered by a command that
+      destroys unstaged work.**
+  - id: the-bill-shock-split-has-one-implementation-and-it-is-in-the-wrong-layer
     what: >-
-      **Both pre-registrations named the same blocking owed item and it has landed. Nothing has been
-      re-run since.** `WORKER_PREREGISTRATION_WHAT_A_RERUN_FROM_THE_CLEAN_TREE_MUST_SHOW` owes
-      *"wire the ASSIGNMENT — thread `rolls_active_renewal`'s answer into `build_renewal_schedule`"*;
-      `8bf416115` did it (`git show HEAD:simulation/renewals.py` — imported at 42, called at 154).
-      `9fd700366` then made `year_level_anchor` **refuse inside the published record** instead of
-      borrowing 2024's value, which is the mechanism that doubled 2022 between the two captures. **Both
-      landed at 19:51 and 20:44 local; both captures were taken before that.** Read the owed lists
-      yourself in both preregs and in the anchor prereg — do not take this summary as the instruction.
+      **Dissolve the duplicate. And correct the finding first, because it describes code that never
+      landed.**
 
-      **(a) File a pre-registration BEFORE the run and after reading nothing of its output.** It must
-      state, with directions and magnitudes: whether the SVT sibling is non-empty this time (the
-      clean-tree run wrote **2 bytes**); whether 2022 fits and on how many renewal decisions; and what
-      the whole-book block's 2022 anchor is against the committed `1.524110`. **This is a genuine
-      one-variable step and it is the reason to run it now** — `9a03f3b44` showed the previous pair
-      differed by three declared producers and could not attribute anything; those three have now
-      collapsed. Predict the MOVE, not an invariance.
+      `docs/staging/FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER_2026-09-02.md`
+      says *"`saas/reporting/annual_report.py` now imports all three, lazily"*. **It does not.** The
+      wall refused that import — `tools/generate_dashboard_data.py` reaches
+      `simulation.live_population` and `simulation.household_segments`, so a lazy import put
+      `saas -> simulation.*` back on the graph and `tools.wall_crossing_dispositions` refused the
+      commit. What landed instead is a **second copy, knowingly**:
+      `saas/reporting/annual_report.py:1481` (`SHOCK_DEFINITION_POPULATION`), `:1612` (`_shock_stats`),
+      `:1646` (`_annual_shock_by_population`, whose own docstring says *"A SECOND COPY … knowingly"*),
+      plus the bootstrap parameters at `:1574`. **A worker who reads the finding will go looking for a
+      lazy import, not find it, and conclude the finding is stale. Fix the finding's "What is wrong"
+      section against the code as it actually is, then do the repair.**
 
-      **(b) Run it from a clean extract, not this tree.** `git archive HEAD` into a stem of its own;
-      capture to `/tmp/` and never to `docs/reports/`, because `emit_svt_sibling` refuses to leave a
-      stale sibling beside a fresh renewal table. Launch under
-      `systemd-run --user --unit=<name>` so it outlives its launcher, and wait with `tools/wait_for.py`
-      naming its subject and carrying a deadline — **never a hand-rolled `pgrep`**, which matches the
-      agent process whose own prompt quotes the subject. It costs about eleven minutes, not hours.
-      **Read the run's own `PROVENANCE.txt` line by line and cite every module that differs**, not
-      only the one you went looking for.
+      The repair the finding names is still the right one and the wall refusal is the argument *for*
+      it, not against: move `_annual_shock_by_population`, `_shock_stats`, `_bootstrap_mean_interval`,
+      `SHOCK_DEFINITION_POPULATION` and `UNMEASURABLE_SHOCK_POPULATION` into `saas/` beside
+      `BILL_SHOCK_POPULATION_BY_PAYMENT_CHANNEL` and `UNKNOWN_BILL_SHOCK_POPULATION`, which are
+      already in `saas/bill_generator.py` — a new `saas/bill_shock_populations.py` or into
+      `bill_generator.py` itself. **Both** `tools/generate_dashboard_data.py` and
+      `saas/reporting/annual_report.py` then import from there. `tools/` may import `saas/`; `saas/`
+      importing `saas/` crosses nothing. The duplication dissolves **and** the wall is satisfied,
+      which is not true of any other arrangement.
 
-      **(c) Fail `population_anchor`'s five 2022 consumers closed.** Owed by **both** preregs, twice
-      each, never done. **Do not repair it by inserting a `sim_churn_rate` of 0.0** — that publishes a
-      measured zero-churn crisis year. Fail the arithmetic consumers closed with a named reason.
+      `test_the_defined_population_matches_the_dashboards_own_constant` holds the coupling until then
+      — **run it before and after and confirm it still discriminates**, because a control over one
+      copy is not a control over two.
 
-      **(d) Grade `9a03f3b44`'s "exactly 2.00x".** It is 3.053619 / 1.524110 = **2.0035x**. The
-      mechanism it names is unaffected; the word *exactly* is not earned and the correction belongs
-      beside the claim.
-
-      **Pathspec:** `tools/capture_departure_factors.py`, `tools/population_anchor.py`, the prereg and
-      finding documents, and `/tmp/`. **Not** `simulation/departure_level_anchor.py` — see below.
+      **Pathspec:** `saas/`, `tools/generate_dashboard_data.py`, `tests/saas/`, `tests/tools/`, and
+      the finding document. **This one needs the dashboard generator in the pathspec — that absence is
+      the entire reason it was not fixed in `e264e0305`.**
     why: >-
-      Third and it is the thesis item, placed third for a reason I am stating plainly rather than
-      hiding: it is the only item here with **no harm accruing while it waits**, because the blocker
-      that made it impossible is now discharged and the eleven-minute cost does not grow. Items one
-      and two both get worse every stretch they survive. Against the thesis this is still what the
-      whole project is waiting on — the first *reproducible* whole-book anchor is the baseline, and
-      without a baseline *"it performed well"* means nothing. It is also the gate on four things
-      parked below: the permutation sweep at n=50, the reversed 2022 crisis xfail, the level anchor's
-      adoption, and generative futures. **Done means:** a prereg filed before any output was read; the
-      run completed from a clean extract under a unit that outlives its launcher; every prediction
-      graded in writing beside the filed text with misses kept; the SVT sibling's byte count and the
-      2022 fit reported against the clean-tree run's empty sibling; `population_anchor`'s 2022
-      consumers failing closed with named reasons; and the *2.0035x* correction filed beside the
-      claim. **If the fit emits a block, that is the result — adopting it is not this item** and is
-      refused below.
-  - id: the-control-that-would-have-caught-last-stretchs-defect-is-in-the-index-and-in-no-commit
-    what: >-
-      **Two pieces of finished work are sitting ungraded, and both are minutes.**
-
-      **(a) Land the staged control.**
-      `tests/tools/test_the_published_artefact_carries_the_split_the_code_computes.py` is
-      `git status --porcelain` **`A `** — staged in this shared index, in no commit, and it is the
-      control for the defect the previous direction ranked second. Its own docstring records that it
-      was **run against the artefact before the regeneration that fixed it** and was RED on the
-      annual series and GREEN on the monthly one — the same assertion over two series, one already
-      correct, which is a discrimination proof rather than an assertion of today's state. Read it,
-      confirm the mutation record is real rather than recalled, and land it by pathspec. **A staged
-      file in a shared index is one careless pathspec away from landing inside another lane's commit**,
-      which is how a control ends up with no commit message explaining what it guards. *A seam is not
-      landed until its control is.*
-
-      **(b) Discharge or explicitly re-open the ValueError alarm.**
-      `WORKER_FINDING_REPEATING_ALARM_RUN_FAILED_AFTER_S_VALUEERROR_BILL_SHOCK_PCT_MUST_BE_2026-09-01.md`
-      is still **LATENT** on `ValueError: bill_shock_pct must be finite and >= 0, got
-      -1.4434469164399073`. The run at `69f2f4058` (20:20 local, net £149,156) **completed**, and
-      `git merge-base --is-ancestor da0431897 69f2f4058` returns true — the signed-shock repair was in
-      its ancestry. **Verify that from the run's own log and the alarm's own subject before archiving
-      it; do not close it by reading a diff, and do not assume a repaired alarm stops firing before
-      its daemon restarts.** If the evidence holds, archive it with the run named. If it does not,
-      say so and leave it open — *"we cannot tell"* is a result.
-
-      **Pathspec:** `tests/tools/test_the_published_artefact_carries_the_split_the_code_computes.py`,
-      `docs/staging/`. Nothing else.
-    why: >-
-      Fourth because it is the smallest thing here and because it is the **same defect as last
-      stretch's, one layer up**: the split was computed and not published, and now the control that
-      catches exactly that is written, mutation-proven and not committed. Recording the shape twice in
-      two stretches without landing it is how a class becomes a theme. It ranks below the three above
-      it because nothing is currently wrong on a served surface as a result — the split **did** reach
-      `origin/main:site/data/dashboard.json`, verified this orientation, with
-      `bill_shock_by_population` on all ten annual rows — so this is insurance rather than repair. It
-      is also the honest closing mechanism for `figures_on_a_superseded_clock`, which is why that
-      class is not a separate item this time: the control's own claim is *the artefact a reader is
-      served is not on an older clock than the code that computes it*, which is that class's property
-      keyed to the property rather than to today's four instances. **Done means:** the control in a
-      commit of its own with a message naming what it guards and what it would have caught; the
-      ValueError alarm archived with the completed run named as its evidence, or explicitly recorded
-      as still open with the reason. If landing the control turns it red against the current served
-      file, **that is the finding** and it outranks the rest of this item.
+      **Fourth and it is genuinely fourth, not parked.** It is LATENT — verified: no published figure
+      is wrong as a result, the two copies agree today, and a coupling control reds if they diverge.
+      So it loses to a fidelity precondition, to the only item that creates, and to an index hazard
+      that is doubling. But it is **this project's most expensive recurring shape with a name and a
+      price already attached**: one legal requirement, five implementations, a defect fixed in one in
+      July and still live in another in August. One published quantity — *what counts as a bill shock,
+      and for whom* — now has two implementations across two layers, with the derived half sitting
+      **above** the raw half in a publishing tool the business layer is forbidden to reach. The seat
+      that created it named it in the same hour and said exactly why, which is the machine behaving
+      well; leaving it a second stretch is how *knowingly duplicated* becomes *nobody remembers*.
+      It is also small and completely specified. **Done means:** one implementation, in `saas/`,
+      beside the constants it derives from; both readers importing it; the lazy-import comment
+      deleted with the lazy imports; the coupling control either retired with its reason stated or
+      re-keyed to something it can still discriminate; the finding's "What is wrong" section corrected
+      to describe the code that actually landed, and then archived; and the wall re-checked, not
+      assumed — *"it reads artefacts and opens no socket"* is not a wall check.
 not_now:
   - what: >-
-      Stopping the executor re-offering a focus item it has already discharged. It ran
-      `the-native-svt-capture-has-been-dead-for-three-stretches` at 17:36 and DISCHARGED it at 17:48,
-      then RAN THE SAME ITEM AGAIN at 18:36 and 19:35 — two of the stretch's three ticks spent on work
-      already finished.
+      Keeping `the-annual-report-publishes-one-shock-field-a-hundredfold-apart-and-ignores-the-split`
+      on the list for a verification pass, or for the residue it left behind.
     why: >-
-      The obvious repair, and it loses on the evidence rather than on cost. **Those two "wasted" ticks
-      produced the two best commits of the stretch.** The 18:36 tick found that a provenance claim
-      stated as permanent had been read from one instant of a shared tree and withdrew its own
-      refutation (`83cdb7dd4`, `39967d018`); the 19:35 tick verified the item was already done, said
-      so in writing, pivoted to the interconnection question and found the three-producer difference
-      and the doubled 2022 anchor (`9a03f3b44`) — which is what made `9fd700366`'s repair possible.
-      A worker arriving at a finished item **re-verified, refused to redo it, and did the review
-      instead**, which is the behaviour the seat wants. Suppressing the re-offer would have suppressed
-      both. The cheap mitigation is in this file, not in code: an item that is done disappears from
-      focus at the next orientation, and item one has. Recorded so that if a future re-offer produces
-      nothing, that is the second instance and it becomes an item with evidence.
+      **It is finished and it must disappear, because that disappearance is the only acceptance test
+      there is.** `e264e0305` closed all three defects it named and `a1da56c99` closed the fail-open
+      it armed one layer down. Verified on origin: the report no longer publishes "0.58%", the band no
+      longer claims Ofgem, the withdrawn RAG leg is documented where the column was, and fifteen
+      previously-zero cells now print "not measured". The lane-0 executor was **still offering this
+      atom at 02:05**, an hour after it finished — leaving it here would spend another three ticks on
+      work that is done. Its one genuine residue is item four, which is on the list under its own name
+      with its own exit. **A finished item kept "just to check" is how a queue stops meaning anything.**
   - what: >-
-      Adopting a constant into `simulation/departure_level_anchor.py` if item three's re-run finally
-      emits a whole-book block.
+      Re-running the whole-book capture before the collision in item one is decided.
     why: >-
-      Named for a second orientation so the flattering move is unavailable when the moment arrives,
-      and the case is stronger now, not weaker. The native capture **did** emit — P4 CONFIRMED, the
-      first in this repository's history — and it is still **recorded-not-adopted**, correctly: its
-      producer is not in git, the clean-tree re-run wrote an empty sibling, and the two runs' 2022
-      anchors differ by 2.0035x. *That the fit emits* is the result. Adoption is a separate decision
-      needing its own evidence, its own pre-registration, and item one's control green first —
-      otherwise the number lands with nothing able to hold it. This is also why item three's pathspec
-      **excludes** the anchor module: the temptation and the file are separated on purpose.
+      Unchanged from last orientation and still right: the fit already exists, and running another
+      capture first would characterise a population we are about to replace. The fit's own docstring
+      says why that is not a defect — *"the fit is exact on the run it was fitted to and approximate
+      on the next one — raising the level changes the book."* The iteration is capture → fit →
+      capture, **and the band is what says when it has converged.** Item one is the fit half. The next
+      capture comes after it, not instead of it.
   - what: >-
-      The class-debt work — closing `figures_on_a_superseded_clock` and splitting
-      `publish_gate_and_wedge` (56 instances against a ruling covering 18, two families with no shared
-      repair, ranked first in the draw partly because it is a catch-all).
+      Adopting any constant into `simulation/departure_level_anchor.py` on the strength of a fit
+      emitting, without a control that can move against the value.
     why: >-
-      Fourth last orientation, got nothing, and it drops off the list rather than being repeated,
-      because **item four is its closing mechanism arriving by the other route.** The staged control's
-      own claim is `figures_on_a_superseded_clock`'s property, keyed to the property; landing it moves
-      the class without touching the classifier. Machinery outranking the world has been my ranking
-      error in six of the last nine orientations and I am not making it a seventh while a wrong number
-      is served under the company's name. `background/class_debt.py` and
-      `docs/design/CLASS_DEBT_AND_CLOSURE_2026-09-01.md` are landed and the ranking is live; nothing
-      decays if the split waits. **The §4 ruling stands: no merge, the warranted consolidation is a
-      split.** Do not re-litigate it and do not build a register of registers.
-  - what: >-
-      Bisecting the reversed 2022 crisis claim —
-      `tests/tools/test_year_spotlight.py::test_crisis_year_2022_worse_than_2020`, `xfail(strict=True)`
-      and XPASSing at clean HEAD.
-    why: >-
-      Closer than it was and still losing. Its blocker was that no one-variable comparison could be
-      built; `9fd700366` has now changed 2022's anchor path and item three will produce a run against
-      the repaired world, which is exactly the comparison this needs — so it becomes cheap **after**
-      item three rather than instead of it. The worker who last touched it did the right thing: ran the
-      obvious hypothesis (`BILL_SHOCK_BASELINE_FLOOR_GBP`) across two artefacts differing only in the
-      floor and **killed its own hypothesis rather than publishing it**. **Do not repair it by
-      asserting `rate_2022 >= rate_2020` live** — that pins today's answer and re-creates the
-      change-detector this file has been burned by twice.
-  - what: >-
-      Making the direct debit a modelled quantity — an estimated annual consumption behind it, drift
-      into credit or debit, and the correction arriving later as a change the customer did not expect.
-      The director's own correction of 2026-09-01, and his framing of the real defect.
-    why: >-
-      His, right, and still losing to sequencing — and I am saying plainly how long it has been
-      waiting, because a fourth deferral would be a decision rather than a queue. It upgrades
-      definition A from *"the amount collected changed"* to *"and here is why"*, so it is load-bearing
-      rather than optional. But it is a build with its own knowledge work behind it (what suppliers
-      actually use to estimate annual consumption, and how the SLC 27B ±5% duty interacts with a
-      review cycle), and item two is a repair to how a shock figure is **rendered** — folding a new
-      model into the same window makes neither attributable. **It goes first the moment item two
-      lands**, and it is named here rather than inside an item so it cannot be quietly absorbed into
-      one.
-  - what: >-
-      Repairing the world's satisfaction — the `Φ⁻¹` derivation of the cohort deltas from published
-      shares, and replacing the sha256-of-customer-id that supplies the entire within-cohort spread.
-    why: >-
-      Out for a fourth orientation and the reason has not changed. Rung-3 work on the axis the
-      choice-and-channel brief puts at **32%** of the switching decision, and the only assessment
-      reaching a repair **derivable** from published quantiles rather than picked. But its own document
-      orders the 08-31 service-risk sign repair ahead of it and **no commit has touched
-      `simulation/sim_satisfaction.py` since 08-31**. More decisively: satisfaction multiplies churn,
-      churn drives the book, and item three already moves the departure hazard. Two book-moving changes
-      in one window are unattributable. The sign repair goes first when it comes back.
+      Named for a fourth orientation and the case is **measured**, not argued: `4871e53ee` halved
+      every entry — a 2x error — and the whole control file stayed green. *"The fit emitted and the
+      tests pass"* therefore carries no information about the fit at all. This is why item one makes
+      the disclosure handshake part of its exit rather than a follow-on. A number that lands with
+      nothing able to hold it is the exact shape that let a silent 1.98x on 2022 survive a capture, a
+      fit and two pre-registrations. **That the fit emits is the result. Adoption is a separate
+      decision needing its own evidence.**
   - what: >-
       Measuring what fifty departures can resolve — the permutation sweep from chance to the 0.6091
       oracle, to establish whether 0.5482-inside-its-null means the company finds no signal or that
       nothing short of the oracle is detectable at n=50.
     why: >-
-      Out for a ninth orientation and its blocker has genuinely moved for the first time: the capture
-      is no longer dead, the assignment is wired and the fallback is repaired. It stays out for one
-      more stretch because the population it would characterise is the one item three produces, and
-      characterising the **old** population would be a measurement of something we have just replaced.
-      It is first in the queue behind the four above and should be expected to become an item next
-      orientation.
+      Out for an eleventh orientation, and the reason is the same one as last time rather than a new
+      one: it is blocked on **which population it would characterise**, and item one decides that.
+      Characterising the pre-collision population would measure something we are choosing to replace.
+      It is first in the queue behind this list and should become an item the moment item one's table
+      is settled. **If item one slips again, this is the second thing it costs us**, and I am
+      recording that so the price of another deferral is visible rather than implied.
   - what: >-
-      Working the staging root down — 88 live documents, 49 LATENT findings, and six near-identical
-      undeclared-worktree alarms that are one alarm many times.
+      Repairing the world's satisfaction — the `Φ⁻¹` derivation of the cohort deltas from published
+      shares, and replacing the sha256-of-customer-id that supplies the entire within-cohort spread.
     why: >-
-      Loses again and the argument for it has not returned: **no BLOCKING findings and no unclassified
-      documents**, so the queue is neither wedging anyone nor hiding a crisis. It is bulk, it moves no
-      level, and the classes that give it structure now have a cost ranking and a draw. The six
-      worktree alarms are one deduplication away from being one item, and that remains a better first
-      move than reading eighty-eight files.
+      Out for a sixth orientation and losing on **attribution**, not merit. It is rung-3 work on the
+      axis the choice-and-channel brief puts at 32% of the switching decision, and it is the only
+      assessment reaching a repair *derivable* from published quantiles rather than picked. But
+      satisfaction multiplies churn, churn drives the book, and item one moves the departure level
+      directly and by design. **Two book-moving changes in one window are unattributable** — and when
+      a result moves and more than one thing changed, you cannot say which did it. Its own document
+      still orders the 08-31 service-risk sign repair ahead of it; that sign repair goes first when
+      this comes back.
+  - what: >-
+      Bisecting the reversed 2022 crisis claim —
+      `tests/tools/test_year_spotlight.py::test_crisis_year_2022_worse_than_2020`, `xfail(strict=True)`
+      and XPASSing at clean HEAD.
+    why: >-
+      Still losing, for the sharpest available reason: **2022 is the year item one is about** —
+      unidentified for two independently binding causes, with no anchor ≥ 0 able to bring it to the
+      record because `svt_inertia` is deliberately unscaled. Bisecting a 2022 claim across a table
+      that is about to change is a measurement of the wrong world. It becomes cheap after item one.
+      **Do not repair it by asserting `rate_2022 >= rate_2020` live** — that pins today's answer and
+      re-creates the change-detector this file has been burned by twice.
+  - what: >-
+      The class-debt work — splitting `publish_gate_and_wedge` (two families under one catch-all) and
+      closing `figures_on_a_superseded_clock` — and working the staging root down from 86 live
+      documents and 46 LATENT findings.
+    why: >-
+      Out for a third orientation. The argument is unchanged and item three is still its closing
+      mechanism arriving by the other route: the staged control's own claim — *the artefact a reader
+      is served is not on an older clock than the code that computes it* — is that class's property
+      keyed to the property, so landing it moves the class without touching the classifier. Reading
+      86 documents moves no level, and the brief reports **zero BLOCKING findings** this orientation,
+      so nothing in that pile is holding a lane. The §4 ruling stands: **no merge, the warranted
+      consolidation is a split.** Do not re-litigate it and do not build a register of registers. The
+      six undeclared-worktree alarms should now stop reproducing on their own after `580c47101`; **if
+      they are still arriving next orientation, that fix did not take** and it becomes an item with
+      evidence behind it.
 wrong:
   - what: >-
-      **My own orientation brief reported the previous focus as never drawn, and it was drawn three
-      times.** `previous_focus_drawn` returns `drawn: []` with the note *"the previous direction named
-      work and NONE of it was drawn — if this repeats, the steer is a no-op and the weight is not
-      biting"*, while `docs/observability/seat-executor-log.md` records
-      `the-native-svt-capture-has-been-dead-for-three-stretches` RUNNING and FINISHED rc=0 at 17:36,
-      18:36 and 19:35 UTC. The measurement reads the ordinary maturity-map draw and is blind to the
-      lane-0 executor — **the lane that exists specifically to make focus items reachable.** Taken at
-      face value it would have had me conclude the steer was a no-op and re-issue the same list
-      unchanged. Caught by reading the executor log rather than the brief.
+      **My orientation brief reported the previous focus as never drawn, for the THIRD consecutive
+      stretch, and it is wrong every time.** `previous_focus_drawn` returns `drawn: []` with the note
+      *"the previous direction named work and NONE of it was drawn — if this repeats, the steer is a
+      no-op and the weight is not biting"*, while
+      `docs/observability/seat-executor-log.md` records lane 0 **RUNNING the item-one atom by name at
+      00:36, 01:35 and 02:05**, and `e264e0305` — the stretch's largest commit — is its output. The
+      measurement reads the ordinary maturity-map draw and is **blind to the lane-0 executor, the lane
+      that exists specifically to make focus items reachable**. Its literal instruction would have had
+      me conclude, for the third time, that the steer is dead and re-issue an unchanged list. **Do not
+      believe the brief on this field. Read `seat-executor-log.md` and the atom line of each finding
+      filed in the window.** Filed uncorrected twice before; this is the third.
     corrected: false
   - what: >-
-      **I ranked a wrong number published under the company's name third, and third is not done.** The
-      annual report's hundredfold discrepancy was filed, measured and ranked third last orientation.
-      The executor lane delivers one item per stretch; it went to item one all three times; the report
-      got zero. `git show origin/main:docs/reports/ANNUAL_REPORT.md:2447` still reads
-      *"Worst bill shock: 2022 (0.58%)"*. That is a scheduling error of mine, not a machine failure,
-      and the correction is in this file: it is second, and the reason it is second is written into
-      its own `why`.
-    corrected: false
-  - what: >-
-      **A grading attributed a three-variable difference to one variable while citing the file that
-      refutes it.** `7cb667126` graded R2, R3 and R5 to a single mechanism and cited
-      `/tmp/svtcap2/PROVENANCE.txt` as evidence its tree was clean — without reading the other three
-      lines on the same page, which show `renewals.py`, `departure_level_anchor.py` and
-      `capture_departure_factors.py` all differing between the two runs, with 2022's level anchor
-      doubled. Caught within two ticks by `9a03f3b44`, and the repair it made possible landed at
-      `9fd700366`.
+      **I said last orientation that a fifth deferral of the director's direct-debit correction would
+      be a decision rather than a queue — and then I deferred it, which made it a decision I never
+      recorded as one.** It is now on its fifth stretch untouched: `dd_review_runner.py:155` still
+      reads `standing_dd = seq[0][1]`, and `annual_consumption_kwh` still appears nowhere in the
+      direct-debit path. Every blocker it was waiting on has cleared. Corrected here by ranking it
+      second with nothing plausible in front of it except a fidelity precondition, and I have written
+      the count into its own `why` so the next orientation grades the correction rather than takes my
+      word for it.
     corrected: true
   - what: >-
-      **A provenance refutation was reached against a file that never held the symbol.** P1's
-      provenance clause was graded REFUTED on a negative grep in a module where the symbol could not
-      have lived — a negative result that proves nothing. Withdrawn at `39967d018`, re-measured, and
-      the claim was then found to have been *"stated as permanent and read from one instant of a
-      shared tree"* (`83cdb7dd4`). The withdrawal was filed before the correct answer was known, which
-      is the right order.
+      **Ranking the served defect first was right and it is the one thing this stretch proves.** Two
+      orientations at third and second bought zero ticks; one orientation at first bought three
+      consecutive lane-0 ticks and a commit that closed all three sub-defects, plus a follow-on that
+      closed the fail-open it armed. Recorded as a correction that **worked**, because the lesson is
+      not "rank the loud thing first" — it is that **rank is the whole steer, and everything below
+      first is approximately unscheduled.** That is why this list has four items and not five, and why
+      the two oldest are now first and second.
     corrected: true
   - what: >-
-      **The control for last stretch's defect was written, mutation-proven and left in the index in no
-      commit** — `tests/tools/test_the_published_artefact_carries_the_split_the_code_computes.py`,
-      `git status` `A `. The defect it exists to catch was *computed and never published*; the control
-      is now *written and never landed*. Same shape, one layer up, one stretch later. Item four.
+      **A finding filed within the hour misdescribes the code it was filed against.**
+      `FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER_2026-09-02.md`
+      states the annual report *"now imports all three, lazily"*; the wall refused that import and
+      what landed is a knowingly-duplicated second copy, which the module's own docstring says at
+      `annual_report.py:1646`. The finding was evidently written against the attempt and not updated
+      after the refusal. **Its repair section is still correct and is now better-motivated than when
+      written** — but a worker following it will look for an import that does not exist. Folded into
+      item four as its first task rather than edited by this orientation, which writes direction and
+      not code.
     corrected: false
   - what: >-
-      **Two tests have been red at clean HEAD with nothing in the direction naming them.**
-      `tests/architecture/test_switching_rate_commons.py`'s band legs fail with *"only 7 years had
-      their margins checked — a control over an emptied subject reports a constant PASS"*. This is the
-      only route by which the register holds `YEAR_LEVEL_ANCHOR` accountable, and it has been reporting
-      a constant PASS while a 1.98x error on 2022 passed through a capture, a fit and two
-      pre-registrations. It reached the record only as owed item 1 of a pre-registration whose pathspec
-      excluded it. It is now item one.
+      **The seven-year whole-book block left the working tree during this orientation and I cannot
+      attribute how.** `simulation/departure_level_anchor.py` was ` M` with the seven-year table at the
+      last direction and is **clean at HEAD's ten-year table now** (mtime 02:26:33, after my brief was
+      assembled at 02:24). This is mostly good — the tree wedge and the composition crash are gone —
+      but it means the attributed, paste-ready block now exists **only in a staged, uncommitted
+      document**. I verified all seven values are separately recoverable from committed files on
+      `origin/main`, so nothing is lost. **I am recording the uncertainty rather than a story**: I do
+      not know whether a lane landed a decision, reverted deliberately, or used a command this tree
+      forbids. Item one's first task is to make that block durable before reasoning from it.
     corrected: false
   - what: >-
-      **The word "exactly" in `9a03f3b44`'s headline is not earned.** 3.053619 / 1.524110 = 2.0035x,
-      not exactly 2.00x. The mechanism the finding names is unaffected and the finding stands; the
-      claim as written overstates its own precision. Folded into item three (d) to be corrected beside
-      the claim rather than by revising the heading.
-    corrected: false
+      **My own brief undercounted the stretch: it reports 3 substantive commits and there were 4.**
+      `a1da56c99` — *the service-quality monitor reported GREEN for a measurement it never had* —
+      reached `origin/main` during or just after assembly and appears nowhere in the input I was
+      given; `HEAD` is one commit behind origin as I write. It is a substantive fail-open closure
+      that also caught two unsourced benchmarks counting the wrong denominator (Ofgem publishes
+      complaints per 100,000 **accounts**; the module held a per-**bill** probability). Recorded
+      because a review that reads only its brief would have missed the best follow-through of the
+      stretch, and because `stretch_reviewed` above is left at the brief's figures on instruction
+      rather than silently corrected.
+    corrected: true
 for_the_director: []
