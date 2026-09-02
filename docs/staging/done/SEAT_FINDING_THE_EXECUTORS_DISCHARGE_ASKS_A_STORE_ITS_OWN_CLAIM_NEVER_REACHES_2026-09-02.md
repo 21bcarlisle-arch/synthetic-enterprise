@@ -4,8 +4,10 @@
 left open and is mutation-proven in both directions on both routes. It had been raised
 LATENT → BLOCKING earlier the same day — see §9 — because the verdict instrument was untrustworthy
 on the executor's busiest route: on a PROMOTED item leg 1 could never pass, so a turn that really
-landed was scored `LANDED NOTHING`. Measured, not inferred, at every step. The forward predictions
-of §8 and §9.7 concern the LIVE log and remain ungraded; see §12.6.) · **Lane:** H_harness
+landed was scored `LANDED NOTHING`. Measured, not inferred, at every step. §8 and §9.7's forward
+predictions concerned the LIVE log across several turns and are now GRADED in §13 — §9.7 clause 2
+SPLIT, §8's antecedent designed against rather than tested. §12.6's last open clause is closed by
+§13.1: the repaired WRITER is measured in production on the promoted route.) · **Lane:** H_harness
 **Epoch:** 3 · **Atom:** none — this is Lane 0 delivery machinery
 **Found:** 2026-09-02 by the delivery seat, while building the subject-reading verdict that
 `an-exit-code-is-not-a-landing` asked for. Found by the live-ledger guard refusing a test fixture,
@@ -426,6 +428,14 @@ therefore a true measurement of the repaired READER against a real landing, and 
 measurement of the repaired WRITER in production. The next executor turn is what closes that, and
 it is the handed-off piece.
 
+**§12.6 IS NOW CLOSED — see §13**, written by the turn that took the hand-off. The writer is
+measured in production on the promoted route; §8 and §9.7 clause 2 are graded, and clause 2's grade
+is SPLIT rather than the clean pass this section expected. One clause of the caveat above needs
+correcting too: *"the next executor turn is what closes that"* was wrong for the same reason
+`2635bf7fe` was filed — the next turn would have imported the pre-fix writer from the shared tree.
+What closed it was a turn that ran **after a fast-forward**, and that is the third time in this
+chain the distinction has cost something.
+
 ### 12.7 One thing this repair adds that no section predicted
 
 `.gitignore` now covers `docs/observability/.delivery_lane_claims.json` and its draw ledger. The
@@ -433,3 +443,100 @@ executor writes a copy of the claim into its WORKTREE, so without this the child
 file in `docs/observability/` every turn — noise at best, and at worst a broad pathspec committing
 one lane's live claims into the shared tree. Neither store was ever tracked; this makes that
 explicit rather than incidental.
+
+---
+
+## 13. AMENDMENT 2026-09-03 — §12.6's last clause, graded on the live record
+
+Written by the executor turn `grade-the-repaired-writer-on-a-real-executor-turn`, which §12.6
+handed the grading to. **Severity stays RECORDED.** Pre-registration for this turn's own forward
+measurements, filed before `--landed` was run and before this section was written:
+`docs/staging/SEAT_PREREGISTRATION_WHETHER_THE_REPAIRED_WRITER_CLOSES_THE_LOOP_ON_A_PROMOTED_ITEM_2026-09-03.md`.
+
+### 13.1 The repaired WRITER is in production, measured on the promoted route
+
+§12.6's honest caveat was that its `moved=True` graded the repaired *reader*, because the claim had
+been mirrored into the delivery-lane store by hand. This turn needed no mirror. Read from the live
+stores three minutes into the turn, before anything was written:
+
+```
+shared   docs/observability/.seat_work_in_hand.json     claimed_at 1788392160.0330517
+shared   docs/observability/.delivery_lane_claims.json  claimed_at 1788392160.0330517
+worktree docs/observability/.delivery_lane_claims.json  claimed_at 1788392160.0330517
+                                                        = 2026-09-02 23:36:00 UTC
+```
+
+One `claimed_at` across three files is `run_once`'s `for store in _claim_stores()` loop — three
+files written by one loop, not three writers that happen to agree. And the route is the one §9.1's
+table said could *never* pass: this id is absent from the shared `.delivery_lane_claims.draws.json`
+(54 ids, back to 2026-08-28), so it arrived through `_promote_to_handoff`, not `draw()`. §9.2
+measured that exact route on the pre-fix writer and got `.delivery_lane_claims.json (shared) -> []`.
+
+The generation was checked rather than assumed, which is `2635bf7fe`'s whole point: the shared tree
+fast-forwarded to `c1e24f4bb` at 23:28:13 UTC and this tick logged `RUNNING` at 23:36 UTC, so the
+parent imported the three-store `run_once`.
+
+### 13.2 §9.7 clause 2 — GRADED, and the grade is SPLIT
+
+The five ticks either side of the repair, with each one's writer generation taken from the shared
+tree's reflog rather than from the `on <sha>` in its own log line — **that sha is `origin/main`,
+which is precisely not what the executor imports**:
+
+| Tick (UTC) | Item | Route | Shared tree at start | Verdict | `DISCHARGED`? |
+|---|---|---|---|---|---|
+| 21:36 | `an-exit-code-is-not-a-landing` | drawn | `c04dd0af6` (pre-fix) | LANDED NOTHING | no |
+| 22:05 | `an-exit-code-is-not-a-landing` | drawn | `6d18107c7`→`9cf0aff2b`, both pre-fix | 1 of 1 moved | **yes** |
+| 22:36 | `the-landing-verdict-can-never-say-yes-on-a-promoted-item` | drawn | ambiguous | 1 of 1 moved | no |
+| 23:05 | `the-landing-verdict-can-never-say-yes-on-a-promoted-item` | continuation | `2635bf7fe` (repaired) | 3 of 3 moved | **yes** |
+| 23:36 | `grade-the-repaired-writer-on-a-real-executor-turn` | continuation | `c1e24f4bb` (repaired) | in flight | in flight |
+
+**As written, clause 2 holds:** `DISCHARGED` appears on some turns and not others, within a day,
+which is the outcome §9.7 attached to the repair landing *with* a working store resolution.
+
+**As meant, it is not yet demonstrated, and I am not going to let the table imply it is.** The
+clause is only interesting if an absence is caused by `_still_claimed` answering True. Three
+different causes produce that one absence, and the log cannot tell them apart:
+
+1. the verdict said `LANDED NOTHING`, so the discharge branch is never reached (the 21:36 tick);
+2. `_still_claimed` answered True — the branch the repair exists to make reachable;
+3. `seat_continuation_drop` returned False because the id was never in the continuation store,
+   which is the case for **every drawn item** — `DISCHARGED` is inside that `if`.
+
+The 22:36 tick is cause 3 and possibly nothing else: `the-landing-verdict-…` has
+`first_drawn_at 22:36:26 UTC` in its own draw ledger, so it reached that turn by `draw()` and had
+no continuation record to drop. Its writer generation is ambiguous besides — it started within
+about two seconds of the fast-forward to `ff563798b` — so it is evidence for neither side and is
+recorded as such. Reading it as cause 2 would have been the flattering answer and it is unearned.
+
+**What discriminates it**, stated so the next turn does not re-derive it: a **promoted** item, which
+does have a continuation record, running under the repaired writer, where the child's decision to
+run `--release` is the only free variable. The 23:36 tick is exactly that, the branch was fixed in
+advance in P3 of this turn's pre-registration, and the reading is handed off. That is one tick's
+wait, not a redesign.
+
+### 13.3 §8 — the antecedent was designed against, and both symptoms are absent
+
+§8 predicted that repairing §5 *without* §6's clause would make `DISCHARGED` vanish entirely and
+livelock a continuation. **§6's clause was never taken** — §12.2 records it being declined on
+purpose, with both readers unioning the two stores instead of `delivery_lane.CLAIMS_FILE` being
+pointed at the shared tree. So §8's antecedent as written never obtained, and §8 cannot be graded
+as a test of it.
+
+Its two symptoms are checkable regardless, and both are **absent** on the live record: `DISCHARGED`
+has not vanished (22:36 and 23:30 UTC carry it), and no continuation was re-offered indefinitely —
+`the-landing-verdict-…` was offered twice, discharged at 23:30, and the next tick drew a different
+item. The failure §8 named is real and is what §12.1 and §12.3 were built against; what it is *not*
+is a prediction that was run. **Graded as: warning heeded, mechanism avoided, symptoms confirmed
+absent — not as a hypothesis confirmed.** A prediction whose condition was engineered away is worth
+less than one that was allowed to run, and saying so is cheaper than the alternative, which is a
+record that reads as two-for-two.
+
+### 13.4 What is closed and what is still owed
+
+Closed: §12.6's open clause — the repaired writer is measured in production, on the promoted route,
+with nothing mirrored by hand (§13.1); §8 graded (§13.3); §9.7 clause 2 graded, split (§13.2).
+
+Owed, and handed off with its exact reading: this turn's own `DISCHARGED`/`FINISHED` pair, which
+the parent writes after the child exits and which no turn can read about itself, plus the sibling
+prereg's P4 — that no `seat-claim:` alarm fires for this id, now that `_hand_back` releases all
+three stores.
