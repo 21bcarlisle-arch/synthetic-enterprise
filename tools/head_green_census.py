@@ -182,13 +182,25 @@ def verdict(delta: dict, passed_count) -> tuple[str, str]:
         #
         # A count with no subject is also not actionable, so the message now points at the
         # register that names every one of them rather than trying to fit ten into a page.
+        #
+        # AND IT STATES `passed` (2026-09-02, same day, second finding). This was the ONLY branch
+        # of the three that did not, and the omission cost a whole observation. The 04:30 run
+        # COMPLETED -- 58:57 wall, exit 1, all 830 names printed -- but its store row was
+        # backfilled by hand three hours later from this very string, and the string does not
+        # carry the passed count, so the row went in as `"passed": null`. A null there reads as
+        # UNPROVEN downstream (`_record_observation` refuses such a run on purpose), so a
+        # completed census was permanently indistinguishable from a truncated one.
+        #
+        # The red count is a NUMERATOR. Published without the denominator that proves the run
+        # reached the end of the suite, it cannot be told apart from a partial list -- which is
+        # the same defect the `-x` publish gate had, one level up.
         return "NEW_RED", (
             "{owed} test(s) red at HEAD and neither fixed nor accepted "
-            "({accepted} more are red but accepted by name). Every subject is named in "
-            "docs/staging/reference/{register}, which is DRAWN as work while this is non-zero. "
-            "First few: {sample}".format(
+            "({accepted} more are red but accepted by name, {passed} passed). Every subject is "
+            "named in docs/staging/reference/{register}, which is DRAWN as work while this is "
+            "non-zero. First few: {sample}".format(
                 owed=len(delta["new_red"]), accepted=len(delta["still_red"]),
-                register=HEAD_RED_REGISTER_NAME,
+                passed=passed_count, register=HEAD_RED_REGISTER_NAME,
                 sample=", ".join(delta["new_red"][:5])))
     if delta["still_red"]:
         return "GREEN", "no new failures ({} known-red still failing, {} passed)".format(
@@ -419,12 +431,20 @@ def main(argv=None) -> int:
     if args.notify and result["status"] == "NEW_RED":
         try:
             from background.notify import notify
-            causes = summarise_causes(result.get("causes") or {})
+            # THE ALARM SENDS THE VERDICT'S OWN SENTENCE, and that is the whole point of this
+            # line (2026-09-02). `bc57c8e30` abolished "newly failing" -- the word that made four
+            # absolute counts read to the director as a rising delta -- and mechanised the repair
+            # in `verdict()` only. This payload was a SECOND, hand-authored copy of the same
+            # claim, so it went on saying "830 newly failing test(s) at HEAD" on the one channel
+            # he actually reads, while the test pinning the correction passed. One correction,
+            # two surfaces, one edited.
+            #
+            # Composing the payload FROM `result["reason"]` is what stops that recurring: the
+            # numbers, their populations and the causes now have exactly one author, so the two
+            # surfaces cannot disagree again without the verdict itself being wrong.
             notify(
-                "[HEAD-GREEN] {} newly failing test(s) at HEAD{}:\n  {}".format(
-                    len(result["new_red"]),
-                    " ({})".format(causes) if causes else "",
-                    "\n  ".join(result["new_red"][:12])),
+                "[HEAD-GREEN] {}\n  {}".format(
+                    result["reason"], "\n  ".join(result["new_red"][:12])),
                 kind="real_alarm",
                 headers={"X-Tags": "rotating_light", "X-Priority": "high"},
             )

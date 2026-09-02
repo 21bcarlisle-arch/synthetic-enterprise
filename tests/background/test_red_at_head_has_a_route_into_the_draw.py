@@ -25,6 +25,7 @@ what it SAW; only a person writes what is FORGIVEN.
 from __future__ import annotations
 
 import inspect
+import json
 from datetime import datetime, timedelta, timezone
 
 from background import head_red_register as reg
@@ -203,3 +204,73 @@ def test_the_verdict_states_both_numbers_and_names_each_population():
     assert "neither fixed nor accepted" in reason
     assert "accepted by name" in reason
     assert census.HEAD_RED_REGISTER_NAME in reason, "the message must point at the named subjects"
+    # AND THE DENOMINATOR. This was the only one of the three verdict branches that omitted it,
+    # and the omission is why run 1's store row says `"passed": null` for a run that finished:
+    # the row was backfilled from this sentence, and the number was not in it. A red count
+    # published without the count that proves the suite reached the end cannot be told apart
+    # from a partial list.
+    #
+    # MUTATION: drop `{passed} passed` from the NEW_RED branch and this fails.
+    assert "10 passed" in reason, "the red count must carry the denominator that dates it"
+
+
+# ── AND THE SURFACE THAT CORRECTION MISSED ──────────────────────────────────────────────────
+def test_the_alarm_carries_the_verdicts_own_sentence_and_cannot_drift_from_it(monkeypatch,
+                                                                              tmp_path):
+    """The correction above mechanised `verdict()` and left a SECOND hand-authored copy of the
+    same claim in `main()`'s notify payload — so the channel the director actually reads went on
+    saying "newly failing test(s) at HEAD" while the test pinning the correction passed. One
+    correction, two surfaces, one edited.
+
+    MUTATION: hand-author the payload from `len(result["new_red"])` again and this fails.
+    """
+    sent = []
+    import background.notify as notify_mod
+    monkeypatch.setattr(notify_mod, "notify", lambda msg, **k: sent.append(msg))
+    log = tmp_path / "run.log"
+    log.write_text("FAILED tests/a/test_one.py::test_alpha\n1 failed, 500 passed in 10s\n")
+    monkeypatch.setattr(census, "_record_observation", lambda result: "not recorded (test)")
+
+    assert census.main(["--from-log", str(log), "--notify"]) == 1
+    assert len(sent) == 1, "a NEW_RED verdict pages exactly once"
+    assert "newly failing" not in sent[0], (
+        "the abolished word is back on the alarm — the verdict and the page have two authors again"
+    )
+    status, reason = census.verdict(
+        census.diff_against_baseline(["tests/a/test_one.py::test_alpha"], []), passed_count=500)
+    assert reason in sent[0], "the alarm must SEND the verdict's sentence, not restate it"
+
+
+# ── AND THAT A RUN WHICH FINISHED CAN BE TOLD APART FROM ONE THAT DID NOT ────────────────────
+def test_a_completed_run_records_a_row_whose_passed_is_populated(monkeypatch, tmp_path):
+    """THE DEFECT, MEASURED. Run 1 of this store (`2026-09-02T04:30:02Z`, head `ec2e0b1a4`, 830
+    red) carries `"passed": null` — and a null there is what `_record_observation` refuses to
+    write, so the row read as an outage. It was not one: the service ran 58:57, exited 1 (which
+    is `main()`'s NEW_RED code, unreachable when `passed_count is None`), and printed all 830
+    names, which the store reproduces exactly. The row was backfilled by hand from the alarm
+    string — and that string was the one branch of `verdict()` that never stated `passed`.
+
+    So the composition was never pinned: `verdict()` and `record()` each had tests, and nothing
+    asserted that a run which FINISHED lands a row a reader can tell apart from one that did not.
+
+    MUTATION: drop `passed=result.get("passed")` from `_record_observation`'s `reg.record` call
+    and this fails.
+    """
+    store_path = tmp_path / "observed.json"
+    monkeypatch.setattr(reg, "OBSERVED_PATH", store_path)
+    monkeypatch.setattr(reg, "REGISTER_PATH", tmp_path / "REGISTER.md")
+    log = tmp_path / "run.log"
+    log.write_text(
+        "tests/a/test_one.py:12: OSError\n"
+        "FAILED tests/a/test_one.py::test_alpha\n"
+        "2 failed, 23891 passed, 412 skipped in 3210.44s\n"
+    )
+
+    assert census.main(["--from-log", str(log)]) == 1
+
+    row = json.loads(store_path.read_text())["runs"][-1]
+    assert row["passed"] == 23891, (
+        "a run that printed its summary must store the denominator — without it the red count "
+        "cannot be told apart from a truncated list"
+    )
+    assert row["red"] == 1
