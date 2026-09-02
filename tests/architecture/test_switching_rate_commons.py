@@ -558,6 +558,98 @@ def test_the_worlds_realised_departure_rate_is_inside_the_published_band():
         )
 
 
+def _capture_anchor_column() -> dict[int, set[float]]:
+    """`{market year: the distinct `sim_level_anchor` values the capture recorded for it}`.
+
+    A SET AND NOT A VALUE, because collapsing it to one would hide the case worth catching: a
+    capture assembled from two runs under different tables carries both, and a reader taking
+    `[0]` or the mean would report a clean number for a mixed artefact.
+    """
+    column: dict[int, set[float]] = {}
+    for row in json.loads(instrument.DEFAULT_TABLE.read_text()):
+        column.setdefault(int(row["market_year"]), set()).add(round(row["sim_level_anchor"], 6))
+    return column
+
+
+def test_the_capture_the_band_verdict_is_read_from_was_produced_by_the_live_anchor():
+    """THE ANCHOR'S ONLY CONTROL THAT DOES NOT NEED A RE-CAPTURE TO NOTICE AN EDIT.
+
+    THE HOLE THIS CLOSES, MEASURED TWICE. `4871e53ee` established 2026-09-01 that halving every
+    `YEAR_LEVEL_ANCHOR` entry -- a 2x error, larger than the 1.98x fallback that started the
+    thread -- leaves this whole file green. Re-measured on a clean `4013b1de1` stem 2026-09-02,
+    after `d374b1977` added five legs: still `81 passed, 2 xfailed`, byte-identical to unmutated.
+    Five new legs and the table was still holdable by nothing.
+
+    The cause is not a fail-open in the band leg above and that leg is not weakened here. Its
+    subject is the STORED capture `docs/reports/c2_departure_factors.json`, which carries the
+    `sim_level_anchor` of the run that produced it, so `departure_level_anchor` is not in its read
+    path at all. Every document in this thread says so correctly. What none of them noticed is that
+    a capture recording the anchor it ran under is not opaque about it: it states, per row, which
+    table produced it. **The band verdict cannot be attributed to the live table unless the live
+    table is the one that produced the capture it is read from**, and that is checkable here, now,
+    with no re-capture and no re-fit.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER, and the distinction is the reason this is not the
+    re-keying the anchor's xfail markers forbid. It pins no anchor to a number. A re-fit that lands
+    a new block AND the re-capture it was fitted on moves both sides together and passes. An edit
+    to the table without a re-capture fails, which is exactly the state in which the band leg's
+    verdict is being read off a run some other table produced -- `figures_on_a_superseded_clock`,
+    the class this thread already found twice on this same file: the ten-year block's citation
+    resolved to a capture its own successor produced, under a stable path over a moving run.
+
+    IT DRIVES THE ACCESSOR, NOT THE TABLE, and that is deliberate. `year_level_anchor` is what the
+    world calls on its hot path (`customer_events:610`, `run_phase2b:1634/1667/1719`), so comparing
+    against it covers the fitted years and the declared-unfitted ones in one statement, and a
+    change to the PARTITION -- a year moving between `YEAR_LEVEL_ANCHOR` and `UNFITTED_YEARS`, or
+    `NO_LEVEL_CORRECTION` changing value -- is caught by the same leg rather than needing another.
+
+    WHAT IT DOES NOT CLAIM. It does not say the anchor is well fitted; the band leg above is what
+    judges that, and it is held open xfail. It says only that the two artefacts are the same
+    generation, which is the precondition for that judgement meaning anything. Scope, measured
+    2026-09-02: the capture carries 9 of the 10 record years (2016 n=1, 2017 n=20, 2018 n=20,
+    2019 n=16, 2020 n=18, 2021 n=23, 2023 n=17, 2024 n=17, 2025 n=16). **2022 is absent entirely**,
+    so this leg says nothing about it -- and cannot, for the reason `6fc06b535` established: the
+    year is 100% crisis-forced-passive, C1b routes every roll to the SVT table, and the slot is
+    inert. A control cannot hold a year the artefact does not contain, and saying so here is
+    cheaper than a reader inferring coverage this leg does not have.
+
+    MUTATION, both sides proven under `python3 -B` rather than argued:
+      * halve any `YEAR_LEVEL_ANCHOR` entry -- fires on that year (the case the whole file was
+        blind to);
+      * move a year between `YEAR_LEVEL_ANCHOR` and `UNFITTED_YEARS` -- fires;
+      * edit one row's `sim_level_anchor` in the capture -- fires, so the verdict is not driven
+        from the module side alone;
+      * unmutated -- green, so the pass branch is reachable and this is not a constant verdict.
+    """
+    column = _capture_anchor_column()
+    assert column, (
+        f"the capture at {instrument.DEFAULT_TABLE} carries no `sim_level_anchor` column at all, "
+        f"so nothing here can tell which anchor produced the band verdict read from it. An empty "
+        f"subject is not a pass: this leg exists because the module is otherwise unheld."
+    )
+    assert len(column) >= 8, (
+        f"only {len(column)} years carry an anchor column ({sorted(column)}) -- a subject narrowed "
+        f"to a handful of years is the scope-shrink fail-open this file's leg (c) exists for."
+    )
+
+    for year, recorded in sorted(column.items()):
+        assert len(recorded) == 1, (
+            f"the capture records {len(recorded)} different anchors for {year} -- "
+            f"{sorted(recorded)}. It is not one run under one table, so no single verdict read "
+            f"from it can be attributed to any anchor at all."
+        )
+        was_run_under = next(iter(recorded))
+        live = anchor_module.year_level_anchor(year)
+        assert abs(was_run_under - live) < 1e-6, (
+            f"the capture the band verdict is read from ran {year} at an anchor of "
+            f"{was_run_under}, and `year_level_anchor({year})` returns {live} today. The band leg "
+            f"reads that stored capture, so its verdict for {year} is a measurement of a world "
+            f"the live table did not produce -- a stable path over a moving run. Re-capture with "
+            f"`tools/capture_departure_factors.py` so the two are one generation again; do NOT "
+            f"edit this expectation to the capture, and do NOT widen the band."
+        )
+
+
 def test_the_anchors_fit_window_is_the_window_the_comparison_is_taken_over():
     """THE DEFECT: one requirement, two declarations, and nothing able to notice them diverge.
 
@@ -1211,6 +1303,16 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "again -- measured 2026-09-01, halving EVERY entry leaves this whole file green. It is "
         "band-checked once per RE-CAPTURE, not once per run, and the register said the stronger "
         "thing while the leg forty lines below said the weaker one. "
+        "AND AS OF 2026-09-02 DEFEAT (ii) HAS A PARTIAL REMEDY, which is recorded here because a "
+        "register that lists only its defeats reads as though nothing can be done about them. "
+        "`test_the_capture_the_band_verdict_is_read_from_was_produced_by_the_live_anchor` holds "
+        "the CO-GENERATION of the two artefacts: the capture records, per row, the anchor it ran "
+        "under, so an edit to `YEAR_LEVEL_ANCHOR` that is not followed by a re-capture now fails "
+        "immediately. That is what the halving mutation was walking through. **It does not lift "
+        "defeat (ii) and must not be read as doing so**: it holds that the band verdict is read "
+        "off a run THIS table produced, never that the value is right -- the band leg is still "
+        "the only thing that judges the value, and it is still xfail. Nine of the ten record "
+        "years are covered; 2022 is absent from the capture, so it is unheld here too. "
         "The two statements have TWO SEPARATE HOLDERS and that is not tidiness -- they go stale "
         "independently, and until 2026-09-02 this sentence claimed one leg held both. Statement "
         "(i) is held by "
