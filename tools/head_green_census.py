@@ -106,6 +106,11 @@ _CAUSE_RE = re.compile(r"^\S+\.py:\d+: ([A-Za-z_][\w.]*(?:Error|Exception|Refuse
                        re.MULTILINE)
 
 
+#: Named here rather than imported, so this module keeps working if the register module is
+#: unavailable -- the census's own verdict must not depend on the artefact it feeds.
+HEAD_RED_REGISTER_NAME = "HEAD_RED_REGISTER.md"
+
+
 def parse_failures(output: str) -> list[str]:
     """Every `FAILED <nodeid>` line, deduped, in a stable order."""
     return sorted(set(_FAILED_RE.findall(output or "")))
@@ -174,8 +179,22 @@ def verdict(delta: dict, passed_count) -> tuple[str, str]:
     if passed_count == 0:
         return "UNPROVEN", "the run passed ZERO tests -- it selected nothing, so it proved nothing"
     if delta["new_red"]:
-        return "NEW_RED", "{} test(s) newly failing: {}".format(
-            len(delta["new_red"]), ", ".join(delta["new_red"][:10]))
+        # SAY BOTH NUMBERS AND NAME EACH POPULATION (2026-09-02). "830 test(s) newly failing"
+        # was false, and had been false in every message this control ever sent: the acceptance
+        # list has been `known_red: []` since 2026-08-12, so "not on the list" means "red", and
+        # `newly` means nothing at all. The director read four of these messages -- 12, 17, 33,
+        # 830 -- as a rising delta when they were absolute counts wearing a delta's word.
+        #
+        # A count with no subject is also not actionable, so the message now points at the
+        # register that names every one of them rather than trying to fit ten into a page.
+        return "NEW_RED", (
+            "{owed} test(s) red at HEAD and neither fixed nor accepted "
+            "({accepted} more are red but accepted by name). Every subject is named in "
+            "docs/staging/reference/{register}, which is DRAWN as work while this is non-zero. "
+            "First few: {sample}".format(
+                owed=len(delta["new_red"]), accepted=len(delta["still_red"]),
+                register=HEAD_RED_REGISTER_NAME,
+                sample=", ".join(delta["new_red"][:5])))
     if delta["still_red"]:
         return "GREEN", "no new failures ({} known-red still failing, {} passed)".format(
             len(delta["still_red"]), passed_count)
@@ -272,6 +291,36 @@ def evaluate(output: str, baseline_path: Path = BASELINE_PATH) -> dict:
             "failures": failures, "causes": causes, **delta}
 
 
+def _record_observation(result: dict) -> str:
+    """Fold this run into the HEAD-red register and re-render it. Returns a one-line note.
+
+    NEVER RAISES INTO THE CENSUS. The census's job is to measure and to page; the register is a
+    downstream artefact, and a control that could not publish its own artefact must still deliver
+    its verdict. The failure is REPORTED rather than swallowed -- the whole reason this register
+    exists is that the census's output went to a journal nobody reads, and a silent failure here
+    would recreate that one layer down.
+
+    An UNPROVEN run records nothing. A run whose suite did not execute has observed no test to be
+    green, so folding its empty failure list in would mark every standing red as fixed -- a
+    control absorbing its own outage as progress, which is precisely the shape the acceptance
+    list is kept human to prevent.
+    """
+    if result.get("status") == "UNPROVEN":
+        return "register not updated: the run proved nothing, so it observed nothing"
+    try:
+        from background import head_red_register as reg
+        from background import process_run_complete as prc
+        store = reg.record(result.get("failures") or [], head_sha=prc._head_sha(),
+                           passed=result.get("passed"), causes=result.get("causes"))
+        reg.save_observed(store)
+        path = reg.write_register(store, load_baseline())
+        return "register: {} owed, written to {}".format(
+            len(reg.owed(store, load_baseline())), path)
+    except Exception as exc:  # noqa: BLE001 -- see NEVER RAISES above
+        return "register NOT updated ({}: {}) -- the verdict below still stands".format(
+            type(exc).__name__, str(exc).strip()[:160])
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--from-log", type=Path,
@@ -283,11 +332,13 @@ def main(argv=None) -> int:
 
     output = args.from_log.read_text(errors="replace") if args.from_log else run_suite()
     result = evaluate(output)
+    register = _record_observation(result)
 
     if args.json:
         print(json.dumps(result, indent=2))
     else:
         print("{}: {}".format(result["status"], result["reason"]))
+        print("  " + register)
         if result.get("causes"):
             print("  causes   " + summarise_causes(result["causes"]))
         for name in result["new_red"]:

@@ -80,6 +80,56 @@ going to substitute one for the other on the strength of a regex — that is
 3. **A pre-registration first**, because it re-orders the draw: state what the ranking will be
    before recomputing it, and keep the prediction beside the result.
 
+## CORRECTION 2026-09-02 — the draw order does NOT change, and I made the error this finding names
+
+The director asked for the 116 title-matched archives to be sampled before folding them. Sampling
+them refuted my own headline claim.
+
+**What I did wrong.** I counted every archived document a classifier puts in a class. I did not
+apply the exclusions `derive_memberships` applies to the live root: externally-authored documents
+(advisor pointers, director rulings) and self-clearing alarm documents are OUT OF POPULATION by the
+register's own rules. Applying them removes **39 of 127** — 10 externally authored, 29 alarms.
+
+That is `a correct refusal is not a population`, committed inside the finding whose subject is a
+correct refusal being read as a population. I had the rule in front of me and applied it to one
+population and not the other.
+
+**The corrected measurement**, register count → recurrence count:
+
+| class | register | + archive | recurrence |
+|---|---:|---:|---:|
+| publish_gate_and_wedge | 56 | 30 | 86 |
+| controls_that_cannot_fail | 27 | 24 | 51 |
+| uncommitted_and_orphaned_work | 21 | 19 | 40 |
+| measurements_that_mirror | 8 | 8 | 16 |
+| no_caller_and_never_runs | 8 | 6 | 14 |
+| figures_on_a_superseded_clock | 3 | 1 | 4 |
+
+**The order is identical.** My claim that `uncommitted_and_orphaned_work` (21 → 59) would overtake
+`controls_that_cannot_fail` (27 → 51) came from the uncorrected 59; the corrected figure is 40, and
+51 stays ahead. Tested for sensitivity by additionally excluding `WORKER_REPORT_*` documents
+(reports ABOUT a class rather than instances OF it, which the hand sample showed to be the main
+residual error): 73 / 51 / 39 / 14 / 13 / 4 — **still identical**.
+
+**Hand sample, 25 of the candidates, judged against their class definitions.** Of the 18 that
+survive the rule-based exclusions, 4–5 are genuinely wrong — around 25%, and they fall into two
+nameable kinds: a REPORT about a class counted as an INSTANCE of it, and two plain
+misclassifications (one document about a guard landing without callers matched
+`publish_gate_and_wedge` on the phrase "publish gate" when its actual subject is
+`no_caller_and_never_runs`).
+
+## What survives, and it is the part that mattered
+
+The defect is real and unchanged: `class_debt` inherits the RECORDED exclusion, so a class repaired
+on sight N times reads as zero debt. `no_caller_and_never_runs` took **three** instances on
+2026-09-01 and **three more** on 2026-09-02, every one of them RECORDED, and its count moved by zero.
+
+What changes is the JUSTIFICATION, because "it re-orders the draw" is now known to be false on this
+corpus. The real consequence is narrower and sharper, and it does not depend on ordering at all:
+**`REOPEN_AFTER_INSTANCES` keys on the instance count.** An understated count means an acceptance
+that should have been re-opened by recurrence is not — which is precisely the failure the re-arm rule
+exists to prevent, and it is the one that reversed my own decision on this register a day ago.
+
 ## What this finding does not claim
 
 Not that the debt register is wrong to exist or that this morning's build was misconceived — the

@@ -115,6 +115,19 @@ KIND_REFERENCE = "reference"
 #: draw ... that makes it a decision rather than a rule, which is what stops it becoming
 #: bureaucracy".)
 KIND_CLASS_DEBT = "class_debt"
+#: The HEAD-RED register, when tests are red at HEAD that nobody has fixed or accepted by name.
+#:
+#: Director, 2026-09-02: *"the HEAD-green census reports and nothing draws it. Twelve, seventeen,
+#: thirty-three and now 830 — each announced, none worked, while everything with a route into the
+#: draw gets done."* That is the same argument `KIND_CLASS_DEBT` above answers for a finding class,
+#: and it wants the same answer: a register with a NAMED SUBJECT and an EXIT.
+#:
+#: Ranked BELOW class debt and ABOVE a finding, deliberately. A class register is an argument about
+#: a pattern that is still producing instances; this is a list of things that are broken right now
+#: at committed HEAD, which is narrower and more certain but also, for any single red, smaller. It
+#: beats a finding because a finding describes something that might be wrong and this is something
+#: that IS.
+KIND_HEAD_RED = "head_red"
 #: An archived verbatim transcript. Record, never work.
 KIND_CONSOLE = "console"
 #: The pipeline's own coordination markers. These self-process on the daemon's cadence and
@@ -168,6 +181,7 @@ ORDER: dict[str, int] = {
     KIND_DIRECTIVE: 20,
     KIND_MINT: 30,
     KIND_CLASS_DEBT: 35,
+    KIND_HEAD_RED: 37,
     KIND_FINDING: 40,
     KIND_UNKNOWN: 50,
     KIND_ALARM: 60,
@@ -181,6 +195,10 @@ NOT_WORK = frozenset({KIND_REFERENCE, KIND_CONSOLE, KIND_DOORBELL})
 
 _ALARM_PREFIX = "WORKER_FINDING_REPEATING_ALARM_"
 _CLASS_PREFIX = "CLASS_"
+#: Standing registers whose names do not carry a family prefix. One entry, and it is here
+#: rather than given a `HEAD_` prefix because `HEAD_RED_REGISTER` is a singleton: a prefix
+#: implies a family and would invite a second one to be created rather than a row added.
+_STANDING_REGISTERS = frozenset({"HEAD_RED_REGISTER.md"})
 _CONSOLE_PREFIX = "DIRECTOR_CONSOLE_"
 _MINT_PREFIX = "PLANNER_MINTED_"
 _FROM_RICH_PREFIX = "from_rich_"
@@ -205,7 +223,12 @@ def kind_of(name: str) -> str:
     """
     if name.startswith(_CONSOLE_PREFIX):
         return KIND_CONSOLE
-    if name.startswith(_CLASS_PREFIX):
+    if name.startswith(_CLASS_PREFIX) or name in _STANDING_REGISTERS:
+        # REFERENCE BY NAME, PROMOTED BY STATE — the same two-step a class register takes. The
+        # name says "this is a standing document that lives in reference/ and is never archived";
+        # whether it is WORK right now is a question about its CONTENT, answered by the splices in
+        # `work_queue`. Keeping the room decision here and the rank decision there is what stops a
+        # register migrating between folders as its state changes.
         return KIND_REFERENCE
     if name.startswith(_DOORBELL_PREFIXES):
         return KIND_DOORBELL
@@ -224,7 +247,7 @@ def kind_of(name: str) -> str:
 
 def room_for(kind: str) -> str | None:
     """The room a kind belongs in, relative to the staging root, or None for the root itself."""
-    if kind in (KIND_REFERENCE, KIND_CLASS_DEBT):
+    if kind in (KIND_REFERENCE, KIND_CLASS_DEBT, KIND_HEAD_RED):
         # A DRAWN REGISTER IS STILL A REGISTER. `KIND_CLASS_DEBT` is the same document as
         # `KIND_REFERENCE` promoted for one reason (it is accruing and undecided), so its ROOM
         # must not change with its rank — a register that migrated to the root because it became
@@ -421,7 +444,7 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
             mtime = 0.0
         items.append(QueueItem(p, kind, ORDER.get(kind, ORDER[KIND_UNKNOWN]), mtime))
     items.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
-    return _with_accruing_class_registers(root, items)
+    return _with_the_head_red_register(root, _with_accruing_class_registers(root, items))
 
 
 def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[QueueItem]:
@@ -456,6 +479,31 @@ def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[Q
         for position, debt in enumerate(debts)
     ]
     merged = items + promoted
+    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    return merged
+
+
+def _with_the_head_red_register(root: Path, items: list[QueueItem]) -> list[QueueItem]:
+    """Splice the HEAD-red register into the queue at rank 37 when anything is owed.
+
+    FAIL-OPEN for the same reason as its sibling above: a draw that cannot rank one register must
+    still see every finding, mint and ask. What is lost by returning early is a promotion; what
+    would be lost by raising is the whole queue.
+
+    It is spliced only when `drawable()` is non-empty, so a green HEAD does not park a permanent
+    item in the draw. **That is the "zero means zero" property, enforced here rather than
+    promised in the document** — the register stops being work by there being nothing owed.
+    """
+    try:
+        from background import head_red_register
+        if not head_red_register.drawable(root):
+            return items
+        path = Path(root) / REFERENCE_DIRNAME / head_red_register.REGISTER_NAME
+        if not path.is_file():
+            return items
+    except Exception:
+        return items
+    merged = items + [QueueItem(path, KIND_HEAD_RED, ORDER[KIND_HEAD_RED], 0.0)]
     merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
     return merged
 
