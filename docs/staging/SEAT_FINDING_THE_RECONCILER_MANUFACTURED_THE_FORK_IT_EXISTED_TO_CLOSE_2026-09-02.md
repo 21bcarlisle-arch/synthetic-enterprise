@@ -106,8 +106,29 @@ E   KeyError: 'head'
 **Its fix is already on origin** (`30adb2b66`) and cannot reach HEAD, because the lane that wrote
 it still holds those two files staged — the same condition that jammed the fast-forward in §2. So
 the two causes share a root: *the shared tree cannot advance while a lane holds the files origin
-changed.* Nothing here touches that lane's work, and nothing should: it is live, and the correct
-resolution is that it lands or reverts its own files.
+changed.*
+
+### 5a. CORRECTED AN HOUR LATER: that lane is dead, and its copy would have reverted origin
+
+The paragraph above said *"it is live, and the correct resolution is that it lands or reverts its
+own files."* **It is not live.** Checked rather than assumed, after writing it: no `claude -p`
+session remains in the process table. The work was orphaned in the shared index with nothing to
+land it — the `uncommitted_and_orphaned_work` class.
+
+And it is worse than orphaned. **The lane's working copy was based on a state before its own landed
+commit.** It landed `30adb2b66` to origin; the shared tree never advanced past `83c63ac58`; so it
+went on editing a copy that predates its own work. Committing that working tree as-is would have
+**reverted** `30adb2b66` — the recording-seam tests and the `register:` line in the census's alarm.
+
+> **A stale shared tree does not merely block. It silently reverts.** That is the part of this
+> incident with the longest reach, and nothing on this machine was watching for it.
+
+Salvaged in `66c4e780b` by three-way merge with git's own plumbing — base the shared tree's HEAD,
+ours the lane's copy, theirs origin. `tools/head_green_census.py` merged clean; the test file's one
+conflict region was not a disagreement but two **disjoint** blocks of new tests appended at the same
+insertion point (the lane's six overlay tests, origin's three recording tests), resolved by keeping
+both, each asserted present exactly once before writing. 43 tests pass against the merged tool:
+both lanes', neither reverted.
 
 **What I have not established:** whether the publish path should hold its own view of HEAD rather
 than testing a tree that other lanes can pin. That is a real question and I am not answering it

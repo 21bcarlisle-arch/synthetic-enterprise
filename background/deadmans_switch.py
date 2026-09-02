@@ -357,7 +357,22 @@ def _open_blocked_mints() -> list[tuple[str, str]]:
             body = f.read_text(encoding="utf-8")
         except OSError:
             continue
-        if re.search(r"SUPERVISOR_DRAW:\s*self-drawable", body[:600]):
+        # THE WHOLE DOCUMENT, AND THE EXACT COMPLEMENT OF `drawable_undrawn_mints`.
+        #
+        # This read was `body[:600]`, hand-copied from `primary_state_scan` -- the same convention
+        # with THREE implementations, two of them carrying the same bounded read. On 2026-09-02
+        # `PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md` was found carrying its
+        # `SUPERVISOR_DRAW: self-drawable` marker at character 3513, behind 3.5 KB of tick history
+        # prepended above it. Neither bounded reader could see it, so it was INVISIBLE as drawable
+        # and ALARMED as blocked -- for a month, on a block its own text records as dissolved on
+        # 2026-08-03. Widening 600 would only move the date.
+        #
+        # The two sets are now complements by construction over one file glob: a mint is drawable
+        # iff it carries the self-drawable marker and no blocked marker, and blocked otherwise. A
+        # document that appeared in both sets is what let the alarm and the draw disagree in
+        # silence, each right by its own reading.
+        if (re.search(r"SUPERVISOR_DRAW:\s*self-drawable", body, re.IGNORECASE)
+                and not re.search(r"SUPERVISOR_DRAW:\s*blocked", body, re.IGNORECASE)):
             continue
         reason = "blocked (reason unstated in the mint doc)"
         for pat in (
