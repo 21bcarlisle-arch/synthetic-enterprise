@@ -1,337 +1,371 @@
 version: 1
-oriented_at: "2026-09-02T11:21:13.469427+00:00"
+oriented_at: "2026-09-02T14:20:29.342751+00:00"
 thesis_read: >-
-  **I found out why rank one did not get done, and it was my defect, not the worker's.** The
-  lane-0 executor runs in `/var/tmp/se-seat-executor` — `git worktree list` shows it as a linked
-  worktree at a detached `017589785`, and a linked worktree has **its own index**. My rank-one
-  instruction opened by quoting `git status --porcelain` of the main tree and told the worker to
-  land what was staged there. That payload is not visible from the executor's worktree at all. The
-  tick ran the item for seventeen minutes at 08:37, discharged, exited zero, and landed nothing,
-  because the thing it was told to land does not exist where it was standing. **A focus item whose
-  subject is the main worktree's uncommitted index cannot be handed to lane 0.** That is a fact
-  about the machine I did not know when I wrote the last direction and it invalidates the shape of
-  the instruction, not the priority.
-  **The steer detector is wrong for the third consecutive stretch, and this time it is provable
-  from a string match.** `previous_focus_drawn` reports `drawn: []`;
-  `docs/observability/seat-executor-log.md` contains `RUNNING the-830-red-was-diagnosed-and-never-re-measured`
-  at **09:35** and again at **10:36**, character-for-character the id in the last focus list. Lane 0
-  is drawing focus items. It is discharging them rc=0 whether or not they delivered.
-  **What actually moved.** Four substantive commits, and two of them are the director's own asks
-  discharged: the conflict door (`908726d24`) now lets a resolution through the front door and the
-  hole he named in the wall is closed, and the raw account export (`145d48345`) is the first leg of
-  the bill-validation brief, with a refusal that rejects a derived field **by its unit**. The census
-  bound was found fixed *below* the run it had just measured — `SUITE_TIMEOUT_SECONDS` was 3300
-  against an observed 3537 s — and raised to 7200 with the unit at 7500 (`1bfed77ff`). All real
-  work. None of it was rank one.
-  **What did not move, and it is the same thing as last stretch.** `annual_consumption_estimate.py`
-  — this company's first genuine per-customer inference organ — is in **no commit anywhere**
-  (`git log --all` on the path returns nothing) and has now sat staged for roughly four hours,
-  beside a `0 -> 1` level move in the shared `docs/design/maturity_map.yaml` and beside
-  `background/head_red_baseline.py`, also new, also unlanded. `HEAD...origin/main` is `0 0`. The
-  830-red still has exactly **one** observation, at 04:30 on `ec2e0b1a4`, and that row carries
-  `"passed": null`, which the register's own `_record_observation` is written to refuse — so the
-  only measurement we hold was not produced by a completed run. And publishing has been refused for
-  over four hours; the gate names eight blocking tests, I ran all eight at HEAD this orientation and
-  **all eight pass**, so the doorbell is dispatching workers at a set that has already cleared.
-  **Against the thesis: inference is built and invisible, fidelity gained a real checking organ, and
-  delivery went backwards for the second stretch running.** The advantage-from-inference side has
-  one organ and it reaches nothing. The baseline-to-beat is still unjudgeable. The bottleneck is not
-  thinking and it is not priority — it is that finished work is not becoming landed work, and the
-  one instruction I wrote to fix that could not be executed by the machine I handed it to.
+  **The director's question was answered this stretch and the machine's own instrument was caught
+  answering it wrongly — which is the best kind of stretch this project has.** The 830 reds now have
+  a second observation (`docs/observability/head_red_observed.json`, 13:18:33 at `f5b19b43f`,
+  `passed: 30479`, `red: 49`), run 1's `passed: null` was resolved — the row was hand-transcribed
+  from a run that **did** finish, so 830 was a complete list and not a floor — and then a direct
+  reproduction established that **29 of run 2's 49 reds were manufactured by the census itself**:
+  `_overlay_untracked_data` resolves the machine's untracked cache from *the tree the module was
+  imported from*, so a census launched from `/var/tmp/se-seat-executor` symlinked one of twelve
+  cache files into its subject and read the absences as reds. Leg 1 of that repair landed
+  mutation-proven in **both** implementations (`process_run_complete` and `surgical_land`), the
+  nightly service is unaffected because systemd sets the shared tree as its working directory, and
+  the honest residual owed at HEAD is **≤ 20, not 830 and not 49**.
+  **I now know exactly why rank one has not been done for three stretches, and it is my defect
+  again — a different one from the one I named last time.** `background/delivery_lane.next_item`
+  builds its candidate list from `direction.unreachable_focus(_atom_ids())`, which by construction
+  excludes every id that is on the maturity map. I gave rank one the id
+  `D_opening_dd_seasonal_sizing`, which **is** an atom. So lane 0 could never be offered it: it
+  walked past rank one to rank two every tick, and `docs/observability/seat-executor-log.md` shows
+  precisely that — `RUNNING the-830-red-second-observation-must-be-recordable` at 12:36 and 13:36,
+  rank two, twice. Last orientation I blamed the executor's linked worktree not seeing the main
+  index. That was true and it was subordinate: **the item never reached the executor at all.** An
+  atom id sends work to the weakest channel there is, and the ordinary draw did not take it either
+  (`atoms_drawn` does not contain it; the draw reports every idle atom over its pass ceiling).
+  **And the publish wedge is the same object as rank one, which I should have found last
+  orientation and did not.** `docs/observability/sim-runner-log.md:223894` names the refusing gate
+  in one line: `[level-gate] COMMIT REFUSED ... level_current 0->1 on D_opening_dd_seasonal_sizing
+  has no recorded LEVEL_UP in docs/observability/gate_authorizations.jsonl`. The level-gate reads
+  the **working tree**, so my staged `0 -> 1` in the shared map has refused **every lane's** publish
+  commit since 07:13 UTC — 9.6 hours of the site serving an older snapshot. Last orientation I ran
+  the eight named blocking tests, found all eight green, and reported that the doorbell was chasing
+  a cleared set. Correct, and useless: the gate had already stopped being a test gate and the log
+  said so.
+  **Against the thesis.** Fidelity gained a real checking organ and then proved it could check
+  itself — that is the epistemic side moving forward, hard. The inference side has not moved:
+  `company/billing/annual_consumption_estimate.py`, this company's first genuine per-customer
+  inference organ, is still in **no commit** (`git log --all` on the path returns nothing) after
+  roughly seven hours and three stretches, its commit message is drafted and sitting untracked at
+  `docs/observability/.dd_estimate_commit_msg.txt`, and its staged level move is what is holding the
+  whole tree's publishing shut. The baseline-to-beat remains unjudgeable. **Nothing is blocked on
+  thinking, on the director, or on a worker. One commit clears the mission work, the publish wedge
+  and the level move at once, and the only thing that has stopped it three times is where I filed
+  it.**
 stretch_reviewed:
-  since: "2026-09-02T08:20:46.392767+00:00"
-  commits: 16
-  substantive: 4
+  since: "2026-09-02T11:21:13.469427+00:00"
+  commits: 11
+  substantive: 5
 focus:
-  - id: D_opening_dd_seasonal_sizing
+  - id: land-the-dd-inference-organ-and-unwedge-every-lanes-publish
     what: >-
-      **Land the staged payload from the MAIN worktree. Read this first: if you are not standing in
-      `/home/rich/synthetic-enterprise` you cannot do this item at all.**
+      **Record the level move in the ledger, then land the staged DD payload from the MAIN worktree.
+      This one commit is also what unwedges publishing for every lane, and the refusing gate is
+      already named in the log — you do not need to diagnose it.**
 
-      **Check where you are before anything else.** Run `git rev-parse --show-toplevel`. The lane-0
-      executor runs in `/var/tmp/se-seat-executor`, which `git worktree list` shows as a **linked
-      worktree with its own index** — the payload below is staged in the main worktree's index and
-      is invisible from there. If you are in the executor worktree: **do not rebuild any of it, and
-      do not discharge rc=0.** Operate on the main tree explicitly (`git -C /home/rich/synthetic-enterprise`,
-      and run `python3 -m tools.surgical_land` *there*), or if the executor's own rules forbid
-      touching the main tree, **say that in the log, file it as a finding, and hand the item back
-      unfinished.** An item returned honestly unfinished is worth more than a success code; the last
-      three discharges of this item all exited zero having delivered nothing.
+      **Where you are, first.** Run `git rev-parse --show-toplevel`. The lane-0 executor runs in
+      `/var/tmp/se-seat-executor`, a **linked worktree with its own index**, and this payload is
+      staged in the main worktree's index where that cannot see it. Operate on the main tree
+      explicitly — `git -C /home/rich/synthetic-enterprise ...`, and run
+      `python3 -m tools.surgical_land` *there*. If the executor's own rules forbid touching the main
+      tree, **say that in the log, file it as a finding, and hand the item back unfinished**; four
+      discharges of this work have now exited zero having landed nothing, and an honest unfinished
+      is worth more than a success code.
 
-      **What to land, by pathspec, never `-A`** — three other lanes have work in this index:
-      `company/billing/annual_consumption_estimate.py` (new, 313 lines),
-      `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md` (new),
-      `company/billing/dd_review_runner.py`, `company/interfaces/dd_review.py`,
-      `company/interfaces/dd_review_outcome.py`, the three matching test files under
-      `tests/company/`, and `docs/design/maturity_map.yaml` carrying the `0 -> 1` move with its
-      `level_move_recorded` prose already written. The level move is **recorded, never authorised**.
-      The new module needs a REUSE block: run
-      `python3 tools/write_time_gate.py --explain company/billing/annual_consumption_estimate.py`
-      and put what it returned, and why the module was written anyway, in the commit message.
-      Pre-run the cheap gates in their fixed order first — `background/finding_classes --check`,
+      **The refusal, verbatim, at `docs/observability/sim-runner-log.md:223894`:**
+      `[level-gate] COMMIT REFUSED (MATURITY_MAP.md §0) -- level_current 0->1 on
+      D_opening_dd_seasonal_sizing has no recorded LEVEL_UP in
+      docs/observability/gate_authorizations.jsonl.` The level-gate reads the **working tree**, so
+      this has refused every commit in the tree, mine and the publisher's alike, since 07:13 UTC.
+      **The fix is to record it, never to unstage the move** — unstaging discards the work and
+      re-opens the same wedge the moment anyone re-stages it. Run
+      `background.gate_authorization.record_level_up_self_certified('D_opening_dd_seasonal_sizing',
+      1, '<evidence>')` with real evidence: the R15 proof that the first-issued-bill artefact is
+      gone from **both** `company/billing/dd_review_runner.py:155` and
+      `simulation/dd_balance_book.py:243`, under `python3 -B`, and the discharged strict xfail
+      `test_opening_dd_size_must_not_depend_on_the_join_month`. Recording is required and permission
+      is not (R16 / 2026-07-29 ruling item 2) — a level move is **recorded, never authorised**.
+
+      **Then land, by pathspec, never `-A`** — three other lanes have work in this index:
+      `company/billing/annual_consumption_estimate.py`, `company/billing/dd_review_runner.py`,
+      `company/interfaces/dd_review.py`, `company/interfaces/dd_review_outcome.py`,
+      `simulation/dd_balance_book.py`, `tests/company/billing/test_dd_review_runner.py`,
+      `tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py`,
+      `tests/company/interfaces/test_dd_review_seam.py`,
+      `tests/company/interfaces/test_dd_review_outcome_seam.py`,
+      `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`,
+      `docs/institutional/knowledge_map.md`, `docs/design/maturity_map.yaml` (the `0 -> 1` with its
+      `level_move_recorded` prose already written), and the two staged staging documents. **The
+      commit message is already drafted** at the untracked
+      `docs/observability/.dd_estimate_commit_msg.txt` — read it, keep its REUSE block honest by
+      re-running `python3 tools/write_time_gate.py --explain
+      company/billing/annual_consumption_estimate.py`, and use `git commit -F` on a file rather than
+      `-m` with backticks in it.
+
+      **Fix the false citation in the two files you are carrying.** `company/interfaces/dd_review.py`
+      and `company/interfaces/dd_review_outcome.py` cite **"SLC 27B"**, which does not exist — cite
+      **SLC 27.15** for the duty and name the ±5% as a modelling convention, not a licence
+      requirement. Landing a false citation into a file whose own sibling research page refutes it
+      is worse than not landing.
+
+      **Pre-run the cheap gates in their fixed order** — `background/finding_classes --check`,
       `background/finding_severity`, `ruff check --select I001`,
-      `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`.
-
-      **Two things to fix while you have these files open.** First,
-      `company/interfaces/dd_review.py:36` and `company/interfaces/dd_review_outcome.py:23` still
-      cite **"SLC 27B"**, a licence condition that does not exist (see item four) — you would be
-      landing a false citation into a file whose sibling research page refutes it. Cite **SLC 27.15**
-      for the duty and name the ±5% as a modelling convention. Second, land
-      `background/head_red_baseline.py` and the staged `background/head_red_register.py` change in a
-      **separate commit** with its own pathspec — the census timer next fires at **03:34 BST on
-      2026-09-03** and the census builds its tree from a checkout, so recorder work left in the index
-      is not exercised by tonight's run. Verify that claim against `tools/head_green_census.py`
-      before relying on it.
+      `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`. I ran the first two
+      and `staging_rooms --check` this orientation and all three pass, so the level ledger is the
+      live obstacle.
 
       **Done means:** `git log --all -- company/billing/annual_consumption_estimate.py` returns a
-      commit; the atom reads `level_current: 1` on **origin**; `HEAD...origin/main` is `0 0` with the
-      work in it; no file under `company/` or `saas/` says "27B"; and — once publishing is unwedged —
-      the DD figure has moved on the **rendered page**, not the JSON. If landing surfaces a red
-      another lane owns, name the lane and land around it rather than absorbing it.
+      commit; `gate_authorizations.jsonl` carries the `LEVEL_UP` for this atom; the map reads
+      `level_current: 1` on **origin**; `git rev-list --left-right --count HEAD...origin/main` is
+      `0 0` with the work in it; neither interface file says "27B"; and **the next
+      `process_run_complete` cycle publishes** — check `docs/observability/.last_publish_cause.json`
+      and `.last_content_publish.json`, not the log's optimism. **If publishing does NOT recover
+      after this lands, that refutes my diagnosis** — say so plainly, read the new `cause` and
+      `git_hash` out of `.last_publish_cause.json`, and name the next gate rather than re-running
+      the suite.
     why: >-
-      This is the same item as last stretch and the reason it did not get done is now known and
-      removable, which is the only thing that makes repeating a rank-one honest. The most valuable
-      inference organ this company has ever built exists in exactly one machine's index, next to a
-      level move in a file three other writers share — a known wedge shape and a known
-      sweep-and-redraw shape at once — and it has survived four hours of that. Everything below is
-      worth less than not losing it, and tonight's census gives the recorder half of it a deadline.
-  - id: the-830-red-second-observation-must-be-recordable
+      One commit closes three things that have each been reported as separate problems for two
+      days: the company's only per-customer inference organ becomes real code instead of one
+      machine's index, a level move stops being a claim, and every lane's publishing stops being
+      refused by my staged file. The site has served an older snapshot for 9.6 hours because of a
+      line in a YAML I put there — that is the "done means the rendered value changed" wall failing
+      continuously, caused by us. It is ranked first for the fourth time and for the first time
+      under an id `delivery_lane` can actually offer to lane 0, which is the whole reason the
+      previous three ranks were decorative.
+  - id: census-says-unproven-when-its-subject-is-incomplete
     what: >-
-      **Make tonight's census able to write a complete row, then grade the pre-registration against
-      it. The measurement arrives on its own; what is not established is that it can be recorded.**
+      **Build leg 2 of the BLOCKING finding — the leg that makes the class un-recurrable — and
+      discharge the finding.**
 
-      `systemctl --user list-timers` puts the next firing at **2026-09-03 03:34 BST**, and the
-      service failed at 04:30 today with `status=1`, 58:57 wall, 5.3 GB peak. The bound is now
-      generous (`SUITE_TIMEOUT_SECONDS = 7200`, unit 7500), so duration is handled. The open risk is
-      the store: run 1's row carries `"passed": null`, and
-      `docs/staging/SEAT_PREREGISTRATION_WHETHER_THE_TMPFS_DIAGNOSIS_EXPLAINS_THE_830_RED_2026-09-02.md`
-      establishes that `_record_observation` **refuses to write an UNPROVEN run on purpose**, so
-      that row cannot have come from a completed `main()` — it was truncated, killed, or seeded by
-      hand. Read `verdict()` and `_record_observation` in `tools/head_green_census.py`, establish
-      which of those it was, and make sure a run that finishes tonight lands a row with `passed`
-      populated. If it cannot, tonight's sixty minutes are spent and the director's question waits
-      another day.
+      `docs/staging/SEAT_FINDING_THE_CENSUS_OVERLAYS_ITS_LAUNCH_TREES_DATA_AND_MANUFACTURES_THE_REDS_IT_REPORTS_2026-09-02.md`
+      is the tree's only BLOCKING finding. Leg 1 landed at `859c529f7`, mutation-proven in both
+      implementations. Leg 2 is written down in that finding and explicitly **not built**: *"the
+      census fails closed when its subject's overlay is incomplete, and says so on its own
+      surface."*
 
-      **Do not run the census by hand today unless the publish gate is idle.** A full-suite
-      `process_run_complete` run was in flight this orientation on a 15 GB cgroup; a second heavy
-      suite beside it can kill the live one, and that kill is recorded as the episode's next
-      failure — you would manufacture the red you went looking for. Check with
-      `pgrep -af process_run_complete` first.
+      Build it in `tools/head_green_census.py`, and key the control to the **property** — *a census
+      whose subject cannot see the machine's data has not measured HEAD* — never to today's list of
+      twelve cache filenames, or it goes green the moment a thirteenth arrives. The census already
+      knows how to say `UNPROVEN`: `verdict()` refuses a run that proved nothing, and the gap is
+      that nothing refuses a run that measured the wrong tree. The reason must reach the `--json`
+      surface, per the finding. **Mutation-prove it under `python3 -B`**: an edit that lets an
+      incomplete overlay through must red a *named* test with its own stated reason. Then discharge
+      the finding with a structured `**Discharged:**` line naming a test node the filesystem can
+      resolve — a free-text "fixed" no longer releases anything.
 
-      **When run 2 exists, grade every clause of the pre-registration separately and report the
-      split, including any clause it refutes.** The prereg already binds you to one honest
-      constraint: 830 is a **floor**, not the complete set, so a residual count above a run-1
-      sub-count is not automatically a refutation while one below it still is. Then route the
-      surviving non-environmental reds — the ~70 that tmpfs never explained — through
-      `background/head_red_register` into the draw, which is what `bc57c8e30` built it for.
+      **Do not hand-edit `docs/observability/head_red_observed.json` to strike the 29.** The
+      finding's own Route section is explicit: they are struck by re-measurement, not by
+      disposition, and the nightly service — `WorkingDirectory=/home/rich/synthetic-enterprise`,
+      all twelve cache files — fires clean at **03:34 BST on 2026-09-03** and re-renders the
+      register. Editing the register by hand would be forgiving a red, which that store is built to
+      refuse. **Do not run a heavy census by hand beside a live publish gate**; check first, and use
+      `python3 -m tools.wait_for` rather than hand-rolling a `pgrep` that matches your own prompt.
 
-      **Done means:** a second row in `docs/observability/head_red_observed.json` at a post-fix head
-      with `passed` non-null, the prereg graded clause by clause beside its result, and the residual
-      reds named with a route into the draw.
+      **Done means:** a census launched from a linked worktree returns `UNPROVEN` with a reason on
+      its `--json` surface instead of a red list; one named test reds under a source mutation; the
+      BLOCKING finding carries a resolvable `**Discharged:**` line and `background/finding_severity`
+      reports zero BLOCKING; and tonight's clean run is read and its residual — I expect ≤ 20 —
+      graded against
+      `docs/staging/SEAT_PREREGISTRATION_WHETHER_THE_49_RESIDUAL_REDS_ARE_ONE_CAUSE_OR_FORTY_NINE_2026-09-02.md`
+      **clause by clause, reporting the split including any clause it refutes.**
     why: >-
-      The director asked what the 830 reds were and ranked it above the level-anchor work himself.
-      We answered in prose, fixed two real causes, and have shown him no number moving — and the one
-      observation we do hold was not written by a run that finished, so it is a floor of unknown
-      depth. A diagnosis goes stale exactly like a green does, and the head-green census is the thing
-      that certifies every other claim here.
+      The census is the instrument that certifies every other claim in this project, and it just
+      manufactured 29 reds that a worker would have spent a tick failing to reproduce — the register
+      routed them into the draw as work HEAD does not owe. Leg 1 fixed the instance in both places;
+      without leg 2 the next caller launched from anywhere new silently invents a new red list, and
+      "a fix that mechanises one leg and asserts the other in prose" is the shape this project pays
+      for most often. It is also the only BLOCKING finding in the tree, which outranks everything
+      below it.
   - id: bill-validation-the-curtain
     what: >-
-      **Build the curtain, before anything reconstructs a bill against the export that just landed.**
+      **Build the curtain, before anything reconstructs a bill against the export that already
+      landed.**
 
-      `company/billing/raw_account_export.py` landed this stretch (`145d48345`) with a check that
-      refuses a derived field by its unit. That is leg two of the director's brief
-      (`docs/staging/DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02.md`) and it arrived before
-      leg one. **There is no validation package and no curtain in this tree** — I looked. That
-      ordering is now the risk: a validator built against this export and walled afterwards will have
-      already inherited a shared concept, and no later control can un-inherit it.
+      `company/billing/raw_account_export.py` landed at `145d48345` with a check that refuses a
+      derived field **by its unit**. That is leg two of the director's brief
+      (`docs/staging/DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02.md`) and it arrived
+      before leg one. **There is still no validation package and no curtain in this tree.** That
+      ordering is the risk: a validator built against this export and walled afterwards has already
+      inherited a shared concept, and no later control can un-inherit it.
 
       Build a validation package that **structurally cannot import `company/` or `saas/`**, enforced
       the way the socket wall is enforced — refused by construction, not by approval. Reuse the
       existing import-graph machinery rather than minting a new one: `background/publish_scope.py`
       already walks an import graph and `tests/architecture/` already holds layer controls. Run
-      `python3 tools/write_time_gate.py --explain` before writing any new module and put the result
-      in the REUSE block. **Mutation-prove it**: an edit that lets it peek must turn a *named* test
-      red, under `python3 -B`. Key the control to the property — *this package may not reach the
-      billing code* — never to today's list of imports.
+      `python3 tools/write_time_gate.py --explain` before writing any new module and put what it
+      returned in the REUSE block. **Mutation-prove it under `python3 -B`**: an edit that lets the
+      package peek must red a *named* test. Key the control to the property — *this package may not
+      reach the billing code* — never to today's list of imports.
 
-      Then start §6, the plain statement of what this cannot catch, **as you go and not at the end**.
-      Put the worked example in it by name: the first direct debit set from a half-month stub, which
-      was measured correctly, sourced correctly, and wholly wrong in frame until a practitioner said
-      so. A claim of independence that does not state its own hole is the thing the brief exists to
-      stop.
+      Then start §6, the plain statement of what this cannot catch, **as you go and not at the
+      end**. Put the worked example in it by name: the first direct debit set from a half-month
+      stub, measured correctly, sourced correctly, and wholly wrong in frame until a practitioner
+      said so.
 
-      **Done means:** the curtain exists, a mutation against it fails a named test, and §6 names the
-      residual risk with that example. Leave the statement export and the one-account reconstruction
-      for the next stretch — and if you conclude the two-export shape is wrong, say so and build the
-      better one; the director explicitly invited that and it is a finding either way.
+      **Done means:** the curtain exists, a source mutation against it reds a named test, and §6
+      names the residual risk with that example. Leave the statement export and the one-account
+      reconstruction for the next stretch — and if you conclude the two-export shape is wrong, say
+      so and build the better one; the director explicitly invited that and it is a finding either
+      way.
     why: >-
-      This is the director's newest direction, delegated for sequencing and not for approval, and it
-      is what makes every other figure in this file checkable: our arithmetic has never been tested
-      against anything outside itself, which is the exact pattern that produced a rate spanning
-      thirteen periods of money over one of volume. The export landed without its wall, so the wall
-      is now the thing that decays if it waits — every day it is missing is another day something
-      gets built against the export with company concepts in it.
+      This is the director's newest direction, delegated for sequencing and not for approval, and
+      it is what makes every other figure in this file checkable: our arithmetic has never been
+      tested against anything outside itself, which is the exact pattern that produced a rate
+      spanning thirteen periods of money over one of volume. The export landed without its wall, so
+      the wall is the thing that decays while it waits — every day it is missing is another day
+      something gets built against the export with company concepts already inside it.
   - id: the-slc-27b-citation-does-not-exist-and-is-published
     what: >-
-      **Correct the "SLC 27B" attribution in the six sites item one does not reach, and close the
-      class rather than the instance.**
+      **Correct the "SLC 27B" attribution in the sites rank one does not reach, and close the class
+      rather than the instance.**
 
       `docs/staging/SEAT_FINDING_THE_DD_REVIEW_BAND_CITES_A_LICENCE_CONDITION_THAT_DOES_NOT_EXIST_2026-09-02.md`
-      establishes from Ofgem's own material that **there is no SLC 27B** — the direct-debit
+      establishes from Ofgem's own material that **there is no SLC 27B**: the direct-debit
       provisions are 27.13–27.16 inside SLC 27, the nearby lettered conditions are 27A and 28A/28AD,
-      and no ±5% band appears in the licence at all. I grepped the tree this orientation; after item
-      one takes the two interface files, what remains is `company/billing/dd_review.py:15`,
-      `company/billing/dd_review_runner.py:5` and `:48`, `saas/bill_generator.py:70` and `:74`,
-      `simulation/run_phase4c_on_phase2b.py:311`, and **three published pages** —
-      `docs/market_research/what_bill_shock_is.md:59`,
-      `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md:151`, and the new
-      research page's own account. The finding said four sites and one page; correct that count
-      **inside the finding, beside the original claim**, not quietly.
+      and no ±5% band appears in the licence at all. I grepped the tree this orientation and it
+      currently reaches **nine files**: `company/interfaces/dd_review.py`,
+      `company/interfaces/dd_review_outcome.py` (both taken by rank one),
+      `company/billing/dd_review.py`, `company/billing/dd_review_runner.py`,
+      `saas/bill_generator.py`, `simulation/run_phase4c_on_phase2b.py`, and **three published
+      pages** — `docs/market_research/what_bill_shock_is.md`,
+      `docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`, and the new research
+      page's own account of the error. The finding says four sites and one page. **Correct that
+      count inside the finding, beside the original claim**, not quietly.
 
       **The ±5% is not fabricated and must not be deleted** — it is a real and widely used supplier
       review convention and the code applying it behaves sensibly. What is wrong is a modelling
       convention wearing a regulation's clothes. Cite **SLC 27.15** for the duty, declare the ±5% as
       a convention with its own origin under `tools/domain_constant_origins.py`, and state on the
       surface that the licence names no numeric trigger. If nothing published establishes it as a
-      convention either, that is the honest answer and it goes on the page.
+      convention either, that is the honest answer and it goes on the page as a `None` with a named
+      reason.
 
       **Then close the class.**
       `docs/staging/WORKER_FINDING_THE_STANDING_CHARGE_IS_FOUR_DECLARATIONS_AND_A_CITATION_THAT_CANNOT_BE_CHECKED_2026-08-31.md`
       is the same shape and still staged. Two instances is a class, and the rule that should have
       caught both — *a money constant citing a source must be reached* — is prose where it needs to
-      be a refusal. Ask what a control keyed to the property looks like: **a cited authority that
-      cannot be resolved in the commons is a refusal, not a comment.** Key it to that property, never
-      to today's list of bad citations, or it goes green the moment someone invents a new fictional
-      condition.
+      be a refusal. **A cited authority that cannot be resolved in the commons is a refusal, not a
+      comment.** Key the control to that property, never to today's list of bad citations, or it
+      goes green the moment someone invents a new fictional condition.
 
       **Done means:** no file in the tree cites SLC 27B; the ±5% carries a declared origin as a
       convention; the finding's own count is corrected in place; and a mutation-proven control
       refuses an unresolvable citation as a class.
     why: >-
       A number sourced to a condition that does not exist can never be verified and will never be
-      corrected, and this one has reached eight code sites and three pages, two of which we serve to
-      readers as research. It is the second instance of a class that already has a written rule, and
-      the rule caught neither — which is the definition of a control that cannot fail. Ranked last
-      because it corrects an attribution rather than a behaviour: the ±5% produces the same decisions
-      tomorrow either way, whereas the three above are unlanded work, an unmeasured claim the
-      director asked for, and the wall that makes our arithmetic checkable.
+      corrected, and this one has reached nine files including two pages we serve to readers as
+      research. It is the second instance of a class that already has a written rule, and the rule
+      caught neither — which is the definition of a control that cannot fail. Ranked last because it
+      corrects an attribution rather than a behaviour: the ±5% produces the same decisions tomorrow
+      either way, whereas the three above are unlanded work plus a wedged publisher, the tree's only
+      blocking finding, and the wall that makes our arithmetic checkable.
 not_now:
   - what: >-
-      Putting the publish wedge itself in this focus list. Publishing has been refused since 07:13
-      UTC, `docs/observability/.publish_gate_state.json` names eight blocking tests, and the director
-      ruling makes unwedging priority zero.
+      Giving the publish wedge its own focus rank. Content publishing has been DOWN since 07:13 UTC,
+      the site has served an older snapshot for 9.6 hours, and the director's ruling makes unwedging
+      priority zero.
     why: >-
-      It already has a priority-zero route that outranks everything here, a worker tick was
-      dispatched on it during this orientation, and I ran all eight of the named blocking tests at
-      HEAD myself — **all eight pass**. The named set has already cleared, so the useful contribution
-      is the evidence, which is in `wrong` below, not a focus slot. Spending the only rank that
-      reliably gets worked on something the machinery already ranks above it would waste it twice
-      over.
+      Because it is not a separate piece of work — it **is** rank one. `sim-runner-log.md:223894`
+      names the refusing gate as the level-gate reading my own staged `0 -> 1` in the shared map, so
+      the wedge and the unlanded payload are one object. Splitting them into two ranks would put two
+      lanes on one index and invite the sweep-and-redraw shape that has already cost us this work
+      three times. The instruction to record the LEVEL_UP is inside rank one, with an explicit
+      refutation test if it turns out I am wrong.
+  - what: >-
+      Hand-editing `docs/observability/head_red_observed.json` to strike the 29 manufactured reds,
+      so the register stops asking for work HEAD does not owe.
+    why: >-
+      The finding's own Route section forbids it and is right: they are struck by re-measurement,
+      never by disposition, and a register that can be edited to remove a red is a register that
+      forgives. The nightly service runs from the shared tree with all twelve cache files and fires
+      at 03:34 BST tonight, which re-renders it for free. Paying nothing and waiting eleven hours
+      beats spending a tick to make a store lie in the direction we like.
   - what: >-
       The whole-book band leg of the departure level anchor — re-running the C2/ladder captures so
       the 2022 anchor block can be judged, and grading
       `SEAT_PREREGISTRATION_WHAT_A_WHOLE_BOOK_RECAPTURE_MUST_MOVE_2026-09-02.md`.
     why: >-
-      The director outranked it explicitly and it has held rank one for three stretches, producing a
-      better-specified "we cannot tell" each time. Beyond that it is a heavy run, and this box has a
-      publish gate and a nightly census already competing for it — the 830 reds were manufactured by
-      exactly this kind of overlap. It comes back when the census is clean and there is a machine
-      free.
-  - what: >-
-      Folding the 116 title-matched archives into the class-debt count — the second half of the
-      director's 06:21 message.
-    why: >-
-      He asked for sampling before folding and for the draw ordering not to stay wrong for long. The
-      counting mechanism landed at `734b79c4b` with its own control, so a class repaired on sight
-      twenty times no longer reads as zero debt and the ordering is already substantially less wrong.
-      The remaining fold refines a number already moving the right way, which makes it the cheapest
-      thing here to defer and the easiest to pick up cold.
+      The director outranked it explicitly, it has now produced a better-specified "we cannot tell"
+      four stretches running, and it is a heavy run on a box that already has a nightly census at
+      03:34 and a publish gate that timed out its own remainder pass at 3541 s this afternoon. The
+      29 manufactured reds came from exactly this kind of overlap. It comes back when the census is
+      clean and there is a machine free.
   - what: >-
       The inference atoms the thesis is actually about — `C29_decisions_stop_being_lookup_tables`,
       `C30_advice_reaches_a_household`, `C31_time_is_the_currency_that_does_not_exist` — all drawn
       this stretch and none advanced.
     why: >-
-      These are the mission and I am deferring them again with the cost stated. C29 and C30 are where
-      per-customer inference becomes a decision and then an outcome, and item one is the first organ
-      they would consume — which is precisely why it has to be *landed* before they are worth
-      starting. Building more decisions on arithmetic never checked outside itself is how we got a
-      rate over the wrong volume. If item one lands and item three's curtain stands, these take rank
-      one next.
+      These are the mission and I am deferring them again with the cost stated plainly. C29 and C30
+      are where per-customer inference becomes a decision and then an outcome, and rank one is the
+      first organ they would consume — which is exactly why it has to be *landed* before they are
+      worth starting. Building more decisions on arithmetic never checked outside itself is how we
+      got a rate over the wrong volume. If rank one lands and rank three's curtain stands, these
+      take rank one next.
   - what: >-
-      Rewriting the direction machine's steer detection so `previous_focus_drawn` stops reporting
-      `drawn: []` while the executor log shows the exact id running.
+      Rewriting the direction machine so `previous_focus_drawn` stops reporting `drawn: []` while
+      the executor log shows the exact id running, and so it warns when a focus id is an atom.
     why: >-
-      Third consecutive stretch of the same false negative, and I am still not spending a rank on it.
-      It misleads one reader once per orientation and that reader can refute it in ninety seconds
-      from `docs/observability/seat-executor-log.md`. Fixing the instrument that watches the work
-      loses to doing the work. It is in `wrong` below for the third time so the next orientation
-      distrusts the field by default.
+      Fourth consecutive stretch of the same false negative and I am still not spending a rank on
+      it. But my judgement here is weaker than it was: this stretch the field's silence hid a real
+      structural fact — an atom id can never be handed to lane 0 — for three stretches, and that
+      cost the project its most valuable module sitting unlanded. I am buying the cheap half instead
+      by writing the rule into `wrong` where the next orientation reads it first. If rank one lands
+      and the field still says `drawn: []`, the instrument earns a rank next time.
   - what: >-
-      Working the ~100 staged findings and the eighteen repeating alarm documents, including the
+      Working the ~99 staged findings and the eighteen repeating alarm documents, including the
       302 KB `WORKER_FINDING_REPEATING_ALARM_SEAT_CONTINUITY_2026-08-26.md`.
     why: >-
-      54 LATENT, 48 RECORDED, none blocking — this queue costs attention rather than correctness
-      right now. Most of the repeating alarms are symptoms of the wedge and the unlanded index above;
-      clearing them by hand first would destroy the evidence that fixing the causes stopped them.
+      50 LATENT, 48 RECORDED, one BLOCKING — and the one BLOCKING is rank two. This queue costs
+      attention rather than correctness right now, and most of the repeating alarms are symptoms of
+      the publish wedge and the unlanded index above. Clearing them by hand first would destroy the
+      evidence that fixing the causes stopped them.
 wrong:
   - what: >-
-      **My own defect, and it is the reason rank one did not happen.** I wrote a focus item whose
-      first instruction was to land what `git status --porcelain` showed staged in the main tree, and
-      handed it to lane 0. Lane 0 runs in `/var/tmp/se-seat-executor`, a linked git worktree with its
-      own index, where that payload does not exist. The instruction was structurally unexecutable by
-      the machine it was addressed to. Corrected in this file: item one now opens by telling the
-      worker to check `git rev-parse --show-toplevel` and to hand the item back unfinished rather
-      than discharge zero.
+      **The reason rank one has not been done for three stretches, and it is my defect — a different
+      one from the one I named last time.** `background/delivery_lane.next_item` builds its
+      candidate list from `direction.unreachable_focus(_atom_ids())`, which excludes every id on the
+      maturity map by construction. I gave rank one the id `D_opening_dd_seasonal_sizing`, which is
+      an atom, so **lane 0 could never be offered it** and walked past it to rank two every tick —
+      `seat-executor-log.md` shows `RUNNING the-830-red-second-observation-must-be-recordable` at
+      12:36 and 13:36. The ordinary draw did not take it either. Last orientation I diagnosed the
+      executor's linked worktree not seeing the main index; that was true and subordinate — the item
+      never reached the executor at all. **An atom id routes work to the weakest channel there is.**
+      Corrected in this file: rank one now carries a non-atom kebab-case id, and the worktree
+      instruction is kept because it is the second obstacle, not the first.
     corrected: true
+  - what: >-
+      **I had the publish wedge's cause in front of me last orientation and read past it.**
+      `docs/observability/sim-runner-log.md:223740` and `:223894` print
+      `[level-gate] COMMIT REFUSED ... level_current 0->1 on D_opening_dd_seasonal_sizing has no
+      recorded LEVEL_UP`, at 11:54 and 13:19. Instead I ran the eight named blocking tests, found
+      all eight green, and reported that the doorbell was chasing a cleared set — true, and useless,
+      because the gate had stopped being a test gate hours earlier and `.last_publish_cause.json`
+      already said `gate_refusal ... the refusal came from a NON-TEST gate; read the hook output in
+      docs/observability/sim-runner-log.md`. Nine and a half hours of a stale site, caused by my own
+      staged line in a shared file. Not corrected: the wedge is live at this instant and rank one is
+      the fix.
+    corrected: false
   - what: >-
       The DD payload is still in no commit. `git log --all -- company/billing/annual_consumption_estimate.py`
-      returns nothing, `HEAD...origin/main` is `0 0`, and the `0 -> 1` level move sits staged in the
-      shared `docs/design/maturity_map.yaml` alongside a second unlanded new module,
-      `background/head_red_baseline.py`. Roughly four hours, three lane-0 discharges, nothing landed.
+      returns nothing, its commit message has been sitting drafted and untracked at
+      `docs/observability/.dd_estimate_commit_msg.txt`, and the `0 -> 1` level move it needs has sat
+      staged in the shared `docs/design/maturity_map.yaml` refusing every commit in the tree. Roughly
+      seven hours, four lane-0 discharges, nothing landed.
     corrected: false
   - what: >-
-      The direction machine's steer detector reported `previous_focus_drawn: drawn: []` for the third
-      consecutive stretch, and this time it is refutable by string match:
-      `docs/observability/seat-executor-log.md` contains
-      `RUNNING the-830-red-was-diagnosed-and-never-re-measured` at 09:35 and at 10:36, verbatim from
-      the focus list the brief says was never drawn. Acting on that field as written would conclude
-      the steering weight is not biting, when what is true is narrower — lane 0 draws the focus and
-      discharges it rc=0 whether or not it delivered.
-    corrected: false
-  - what: >-
-      The 830-red item was drawn and run three times this stretch, each exiting rc=0, and
-      `docs/observability/head_red_observed.json` still holds exactly one run. What those runs did
-      produce is real — the pre-registration, and the discovery that `SUITE_TIMEOUT_SECONDS` was 3300
-      against an observed 3537 s — but the measurement the item exists for was not taken and the log
-      records success. This is the next instance of the class held by
-      `tests/background/test_a_draw_is_not_a_delivery.py`: there, a caller that could not deliver
-      still claimed; here, a claim that delivered nothing still discharged.
-    corrected: false
-  - what: >-
-      The only 830-red observation we hold carries `"passed": null`, and the register's own
-      `_record_observation` is written to refuse an UNPROVEN run on purpose — so that row was
-      truncated, killed, or seeded by hand, and cannot have come from a completed `main()`. Every
-      claim about "830 reds, 760 OSError" is therefore a floor of unknown depth, and it has been
-      quoted to the director as a count.
-    corrected: false
-  - what: >-
-      The publish gate has been refusing since 07:13 UTC and its blocking list names eight tests. I
-      ran all eight at HEAD this orientation and all eight pass, while the doorbell is still
-      dispatching workers at that set. **Caveat on my own evidence:** I ran them beside an in-flight
-      `process_run_complete` suite, which is against this repo's own rule and makes those greens a
-      measurement of a shared tree beside another lane — they should be re-read once the gate run
-      finishes, not taken as settled.
-    corrected: false
-  - what: >-
-      "SLC 27B" still appears in eight code sites and three published pages, two of which we serve as
-      research, while the corrected page citing SLC 27.15 now sits in the same directory. To a later
-      passer-by that reads as two authorities rather than one error, and two of the wrong sites are
-      inside the payload item one is about to land.
-    corrected: false
-  - what: >-
-      The director's two direct asks this stretch were both discharged and are named here so they are
-      not re-drawn: the conflict door got its design pass and landed (`908726d24`, with its finding
-      at `b7aa75e1c`) — the wall no longer has the hole he named — and the census bound that sat below
-      the duration it had just measured was found and raised (`1bfed77ff`).
+      **The census manufactured the reds it reported, and I quoted them.** Run 2's 49 included at
+      least 29 artefacts of the launch tree's partial `sim/cache`, which the register then routed
+      into the draw as owed work. Caught within the stretch by direct reproduction rather than by
+      reading, leg 1 landed mutation-proven in both implementations that carried the bug, and the
+      corrected reading is on the record: the residual owed at HEAD is **≤ 20**, with the ten C3
+      residuals as its confirmed core. Four of the 29 remain **unlocated** and are recorded as such
+      rather than assumed. Leg 2 — the census failing closed — is rank two.
     corrected: true
+  - what: >-
+      My previous entry that "the only 830 observation we hold carries `passed: null` and cannot
+      have come from a completed run, so 830 is a floor of unknown depth" was **too pessimistic and
+      is now settled the other way**:
+      `docs/staging/WORKER_FINDING_THE_830_ROW_WAS_HAND_TRANSCRIBED_FROM_A_RUN_THAT_DID_FINISH_2026-09-02.md`
+      establishes the 830 was a **complete** list from a run that finished, and the alarm never said
+      so. The store now refuses a row no completed census could have written (`4618826c6`). Recorded
+      here beside the wrong version rather than revised away.
+    corrected: true
+  - what: >-
+      "SLC 27B" — a licence condition that does not exist — still appears in nine files, three of
+      them published pages and two of those served to readers as research, while the corrected page
+      citing SLC 27.15 now sits in the same directory. To a later passer-by that reads as two
+      authorities rather than one error, and two of the wrong sites are inside the payload rank one
+      is about to land.
+    corrected: false
 for_the_director: []
