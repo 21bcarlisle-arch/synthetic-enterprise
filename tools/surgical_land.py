@@ -456,7 +456,60 @@ def build_resulting_tree(root: Path, paths: list[str], parent: str,
                 pass
 
 
-def build_merge_tree(root: Path, parent: str, other: str) -> str:
+def _conflicted_paths(lines: list[str]) -> list[str]:
+    """The conflicted PATHS from `merge-tree --write-tree --name-only` output.
+
+    The format is: the tree sha, then one path per line, then a BLANK LINE, then git's
+    informational messages ("Auto-merging x", "CONFLICT (content): Merge conflict in x").
+
+    THE BLANK LINE IS THE WHOLE POINT, and the refusal that predates this function did not stop
+    at it — it took everything after the tree sha, so a ONE-file conflict was reported as
+    **"4 conflicted path(s)"** with `Auto-merging ...` listed as if it were a filename. Harmless
+    while the number was only prose in a refusal; load-bearing the moment a resolution has to be
+    matched against the set, because a caller resolving the one real path would be told two
+    informational lines were still unresolved.
+    """
+    paths: list[str] = []
+    for raw in lines[1:]:
+        if not raw.strip():
+            break
+        paths.append(raw.strip())
+    return paths
+
+
+def _overlay_on_tree(root: Path, base_tree: str, content: Mapping[str, bytes]) -> str:
+    """`base_tree` with `content`'s bytes written over the paths it names. Returns the new tree.
+
+    The same plumbing `build_resulting_tree` uses -- a scratch index, never the caller's -- so the
+    shared index is not opened here either. Split out because two callers now need it and a second
+    copy of index handling is how the two would drift.
+    """
+    fd, idx = tempfile.mkstemp(prefix="surgical-land-index-")
+    os.close(fd)
+    os.unlink(idx)
+    env = _gitless_env()
+    env["GIT_INDEX_FILE"] = idx
+    try:
+        _git_text(root, "read-tree", base_tree, env=env)
+        for path, blob in content.items():
+            r = _git(root, "hash-object", "-w", "--stdin", "--path", path, env=env, stdin=blob)
+            if r.returncode != 0:
+                raise LandingRefused("hashing the resolution for {} failed rc={}: {}".format(
+                    path, r.returncode, r.stderr.decode("utf-8", "replace").strip()[-300:]))
+            sha = r.stdout.decode("ascii").strip()
+            _git_text(root, "update-index", "--add", "--cacheinfo",
+                      "{},{},{}".format(_mode_at(root, base_tree, path), sha, path), env=env)
+        return _git_text(root, "write-tree", env=env)
+    finally:
+        for leftover in (idx, idx + ".lock"):
+            try:
+                os.unlink(leftover)
+            except OSError:
+                pass
+
+
+def build_merge_tree(root: Path, parent: str, other: str,
+                     resolutions: Mapping[str, bytes] | None = None) -> str:
     """Return the tree a merge of `other` into `parent` would produce. Refuses on conflict.
 
     WHY THIS EXISTS (2026-09-01, the Lane 0 reconciliation). `git merge` commits THE SHARED
@@ -477,19 +530,66 @@ def build_merge_tree(root: Path, parent: str, other: str) -> str:
     other resulting tree, and a red gate refuses it. The tree is built by plumbing for the same
     reason `build_resulting_tree` is: so the shared index is never opened.
 
-    A CONFLICT IS A REFUSAL, NEVER A RESOLUTION. `merge-tree` exits 1 and names the conflicted
-    paths; resolving them is a judgement about two lanes' intent that belongs to a person reading
-    both, not to a plumbing call. The refusal names them so the caller knows what to go and read.
+    A CONFLICT IS A REFUSAL UNLESS THE CALLER RESOLVES IT BY NAME, and until 2026-09-02 there was
+    no way to resolve one at all. That was a wall with a hole in it (director's words): the only
+    sanctioned merge door refused on conflict, `git merge` is forbidden on a shared tree whose
+    index holds other lanes' work, and hook-bypass is a wall — so a conflicting reconciliation had
+    NO legal route and had to be done by hand in a worktree. Hit twice in one morning on one file,
+    both times blocking every landing and the publish path behind it.
+
+    `resolutions` closes it, under four rules that keep it a RESOLUTION and not a smuggling route:
+
+      1. **Only a path that actually conflicted may be resolved.** This is the load-bearing one.
+         Without it, `--merge --content` becomes a way to put arbitrary bytes into a merge commit
+         under the cover of resolving something, and the receipt would say "merge" while the tree
+         said otherwise.
+      2. **Every conflicted path must be resolved, or it refuses.** A partial resolution leaves
+         git's conflict markers in the committed tree — a broken file that passed a gate.
+      3. **The bytes come from OUTSIDE the repo**, exactly as `--content` already requires, so the
+         shared worktree is never swapped and the two-exits hazard of the 2026-08-19 finding
+         cannot return.
+      4. **The gate still runs on the resulting tree**, unchanged. Resolving a conflict does not
+         buy an exemption from anything; it only makes the tree expressible.
+
+    WHAT THIS DOES NOT DO: choose. The caller supplies the bytes, because which side wins is a
+    judgement about two lanes' intent that belongs to a person reading both. `origin_reconcile`
+    therefore still refuses on conflict and always will — an automatic reconciler must not pick.
     """
+    resolutions = dict(resolutions or {})
     r = _git(root, "merge-tree", "--write-tree", "--name-only", parent, other)
     out = r.stdout.decode("utf-8", "replace").strip().splitlines()
     if r.returncode == 1:
+        conflicted = _conflicted_paths(out)
+        if not resolutions:
+            raise LandingRefused(
+                "MERGE CONFLICT between {} and {} -- {} conflicted path(s), nothing was committed:\n"
+                "  {}\nA conflict is two lanes disagreeing about one file; resolve it by reading "
+                "both sides, not by re-running this. To land a resolution, pass the chosen bytes "
+                "with --resolve <path>=<file-outside-the-repo> for EVERY path above.".format(
+                    parent[:9], other[:9], len(conflicted),
+                    "\n  ".join(conflicted) if conflicted else "(git named none)"))
+        stray = sorted(k for k in resolutions if k not in set(conflicted))
+        if stray:
+            raise LandingRefused(
+                "resolution given for path(s) that did NOT conflict: {}. A resolution may only "
+                "settle a real disagreement -- allowing one anywhere else would make --resolve a "
+                "way to put arbitrary bytes into a merge commit whose receipt says 'merge'.".format(
+                    ", ".join(stray)))
+        missing = sorted(set(conflicted) - set(resolutions))
+        if missing:
+            raise LandingRefused(
+                "{} conflicted path(s) left unresolved: {}. A partial resolution commits git's "
+                "conflict markers into the tree -- a broken file that passed a gate.".format(
+                    len(missing), ", ".join(missing)))
+        if not out or not out[0].strip():
+            raise LandingRefused(
+                "`merge-tree` reported a conflict but wrote no tree to resolve against.")
+        return _overlay_on_tree(root, out[0].strip(), resolutions)
+    if resolutions:
         raise LandingRefused(
-            "MERGE CONFLICT between {} and {} -- {} conflicted path(s), nothing was committed:\n"
-            "  {}\nA conflict is two lanes disagreeing about one file; resolve it by reading "
-            "both sides, not by re-running this.".format(
-                parent[:9], other[:9], max(len(out) - 1, 0),
-                "\n  ".join(out[1:]) if len(out) > 1 else "(git named none)"))
+            "resolutions given but the merge of {} into {} has NO conflict. A resolution with "
+            "nothing to resolve is a content change wearing a merge's receipt.".format(
+                other[:9], parent[:9]))
     if r.returncode != 0 or not out:
         raise LandingRefused(
             "`git merge-tree --write-tree {} {}` failed rc={}: {}".format(
@@ -740,7 +840,8 @@ def _verdict_excerpt(stdout: str, stderr: str = "", limit: int = 4000) -> str:
 def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
                   tests: str, hook_rel: str = HOOK_REL,
                   content_sourced: list[str] | None = None,
-                  merge_parent: str | None = None) -> str:
+                  merge_parent: str | None = None,
+                  resolved: list[str] | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
@@ -763,6 +864,13 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
         # as a failed landing. Emitted ABOVE the `paths:` block so it cannot be mistaken for a
         # path entry by `parse_receipt` (which keys the path set on the "- " prefix).
         lines.append("content-sourced: {}".format(", ".join(sorted(content_sourced))))
+    if resolved:
+        # A RESOLVED MERGE SAYS SO, BY NAME. These paths conflicted and a person chose the bytes,
+        # so the tree at them is neither side's -- and a reader diffing this merge against either
+        # parent will find a difference that is neither a mistake nor a third lane. Recording it
+        # here is what makes "somebody decided" part of the record rather than folklore, and it is
+        # the difference between a resolution and a smuggled change.
+        lines.append("conflicts-resolved: {}".format(", ".join(sorted(resolved))))
     lines.append("paths: {}".format(len(files)))
     lines += ["  - {}".format(p) for p in files]
     return "\n".join(lines)
@@ -1003,7 +1111,8 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
 def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
          attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None,
          content: Mapping[str, bytes | None] | None = None,
-         merge: str | None = None) -> str:
+         merge: str | None = None,
+         resolutions: Mapping[str, bytes] | None = None) -> str:
     """Land exactly `paths`, re-gating against the new base when the race is lost.
 
     Returns the new commit sha, or raises LandingRefused. `attempts` bounds the loop; `on_lost`
@@ -1031,7 +1140,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:
-            sha = _land_once(root, paths, message, hook_rel, content, merge)
+            sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions)
             announce_landing(sha, message, paths, merge=merge)
             return sha
         except BaseMoved as exc:
@@ -1118,7 +1227,8 @@ def announce_landing(sha: str, message: str, paths: list[str], *,
 
 def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
                content: Mapping[str, bytes | None] | None = None,
-               merge: str | None = None) -> str:
+               merge: str | None = None,
+               resolutions: Mapping[str, bytes] | None = None) -> str:
     """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
     if merge is None and not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
@@ -1130,14 +1240,19 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
             raise LandingRefused(
                 "--merge takes no pathspec and no content override: a merge lands whatever the "
                 "other history changed, so a pathspec here would claim a scope the commit does "
-                "not have and the receipt would be a lie.")
+                "not have and the receipt would be a lie. To settle a CONFLICT, use --resolve, "
+                "which may only name paths git itself reports as conflicted.")
         merge_parent = _git_text(root, "rev-parse", "{}^{{commit}}".format(merge))
         if _git(root, "merge-base", "--is-ancestor", merge_parent, parent).returncode == 0:
             raise LandingRefused(
                 "{} ({}) is already an ancestor of HEAD -- there is nothing to merge.".format(
                     merge, merge_parent[:9]))
-        result_tree = build_merge_tree(root, parent, merge_parent)
+        result_tree = build_merge_tree(root, parent, merge_parent, resolutions)
         paths = changed_paths(root, parent_tree, result_tree)
+    elif resolutions:
+        raise LandingRefused(
+            "--resolve is only meaningful with --merge: outside a merge there is no conflict to "
+            "settle, and the bytes would just be an unnamed content change.")
     else:
         result_tree = build_resulting_tree(root, paths, parent, content)
     if result_tree == parent_tree:
@@ -1179,7 +1294,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         shutil.rmtree(checkout, ignore_errors=True)
         _ACTIVE_CHECKOUTS.discard(checkout)
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
-                            content_sourced=sorted(content or ()), merge_parent=merge_parent)
+                            content_sourced=sorted(content or ()), merge_parent=merge_parent,
+                            resolved=sorted(resolutions or ()))
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
                             merge_parent=merge_parent)
 
@@ -1199,6 +1315,9 @@ def parse_receipt(message: str) -> dict | None:
             out["paths"].append(ln[2:].strip())
             continue
         key, _, val = ln.partition(":")
+        if key.strip() == "conflicts-resolved":
+            out["conflicts_resolved"] = [x.strip() for x in val.split(",") if x.strip()]
+            continue
         if key.strip() in ("parent", "tree", "gate-rc", "tests"):
             out[key.strip()] = val.strip()
     return out
@@ -1261,7 +1380,14 @@ def main(argv: list[str] | None = None) -> int:
                          "is computed by plumbing (the shared index is never opened, so another "
                          "lane's staged work cannot be swept into it), gated like any other "
                          "resulting tree, and committed with REF as a second parent. Refuses on "
-                         "conflict. Takes no paths and no --content.")
+                         "conflict unless every conflicted path is settled with --resolve. Takes "
+                         "no paths and no --content.")
+    ap.add_argument("--resolve", action="append", default=[], metavar="REPOPATH=SRCFILE",
+                    help="settle a CONFLICTED path in a --merge with the bytes of SRCFILE "
+                         "(repeatable). Only with --merge, only for paths git itself reports as "
+                         "conflicted, and EVERY conflicted path must be given or the merge is "
+                         "refused. Keep SRCFILE outside the repo, as with --content: the shared "
+                         "worktree is never swapped. The gate still runs on the resulting tree.")
     ap.add_argument("paths", nargs="*", help="the exact paths to land")
     args = ap.parse_args(argv)
     if args.verify:
@@ -1283,6 +1409,30 @@ def main(argv: list[str] | None = None) -> int:
     for repo_path in args.content_remove:
         content[repo_path] = None
 
+    resolutions: dict[str, bytes] = {}
+    for spec in args.resolve:
+        repo_path, sep, src = spec.partition("=")
+        if not sep or not repo_path or not src:
+            ap.error("--resolve wants REPOPATH=SRCFILE, got {!r}".format(spec))
+        # OUTSIDE THE REPO, refused here rather than trusted: a resolution read from inside the
+        # working tree reintroduces the swap-and-restore hazard `--content` was built to remove,
+        # where a landing that never happened leaves a tree indistinguishable from one that did.
+        try:
+            resolved = Path(src).resolve()
+            resolved.relative_to(ROOT.resolve())
+        except ValueError:
+            pass
+        except OSError as exc:
+            ap.error("--resolve source unreadable: {}".format(exc))
+        else:
+            ap.error("--resolve source {} is INSIDE the repository. Keep the chosen bytes outside "
+                     "it, so the shared worktree is never swapped and the only evidence of a "
+                     "landing is the commit.".format(src))
+        try:
+            resolutions[repo_path] = resolved.read_bytes()
+        except OSError as exc:
+            ap.error("--resolve source unreadable: {}".format(exc))
+
     def report_lost(attempt: int, exc: BaseMoved) -> None:
         # stderr and FLUSHED: this is the diagnostic that had to be reconstructed from `git log`
         # last time, and a block-buffered pipe is where it would be lost again.
@@ -1293,7 +1443,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost,
-                   content=content or None, merge=args.merge)
+                   content=content or None, merge=args.merge,
+                   resolutions=resolutions or None)
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
         return 1
