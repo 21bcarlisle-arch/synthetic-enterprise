@@ -241,3 +241,102 @@ def test_churn_by_year_includes_ofgem_multiplier():
     # a 2dp constant would be a hand-authored number that merely resembles the ratio.
     assert result[2016]["calibrated_multiplier"] == round(CALIBRATED_MULTIPLIER[2016], 2)
     assert result[2016]["ofgem_benchmark_band_pct"] == [17.0, 17.6]
+
+
+# ── CONTROLS FOR THE FAIL-CLOSED 2022 READS (d374b1977) ───────────────────────────────────────
+# Added 2026-09-02 by the executor seat, on work that landed WITHOUT a control. The repair at
+# `d374b1977` replaced two `.get("sim_churn_rate", 0.0)` reads with fail-closed ones and was
+# gated green — but green against a suite that never drove either branch. Both legs below are
+# mutation-proven by restoring the exact default each one replaces.
+
+
+def test_an_absent_2022_is_refused_and_never_published_as_a_measured_zero():
+    """DEFECT: `yr2022.get("sim_churn_rate", 0.0)` published an absence as a measurement.
+
+    With 2022 missing, the report carried `2022_sim_rate_pct: 0.0` and `2022_ratio_vs_ofgem: 0.0`
+    while `insufficient_data` said False -- so a reader was shown a world with no 2022 churn, and
+    the absolute-divergence leg passed silently because `0.0 > ofgem * 4` is false for every
+    published ofgem. The zero was the FLATTERING direction on a check whose subject is the crisis
+    year.
+
+    THIS IS THE STANDING CASE, NOT A DEGRADED ONE, WHICH IS WHY THE FABRICATED ZERO MATTERED.
+    `renewal_engagement.CRISIS_PASSIVE_YEARS` forces every 2022 roll passive and C1b routes passive
+    rolls to the SVT segment table, so a post-C1b renewal capture carries ZERO 2022 decisions by
+    construction -- measured on c2, ladder and the native capture, 0 rows each. This branch fires
+    on every ordinary run.
+
+    MUTATION: restore `.get("sim_churn_rate", 0.0)` and `2022_sim_rate_pct` comes back `0.0` with
+    `insufficient_data` False -- the first and third assertions fire.
+    """
+    churn = _cby({
+        2019: (0.06, 20, 1), 2020: (0.06, 20, 1),
+        2021: (0.06, 20, 1), 2023: (0.06, 20, 1),
+    })
+    assert 2022 not in churn, "the fixture must actually omit 2022 or this control tests nothing"
+    result = _crisis_churn_direction(churn)
+
+    assert result["2022_sim_rate_pct"] is None, (
+        "an absent 2022 was published as a measured rate; a zero here reads as 'the world had no "
+        "2022 churn', which is a finding the run never made"
+    )
+    assert result["2022_ratio_vs_ofgem"] is None, "a ratio was computed against an absent numerator"
+    assert result["insufficient_data"] is True, (
+        "the check reported itself adequate while its principal subject was missing"
+    )
+    assert result["crisis_divergence_flag"] is False
+    assert "no `sim_churn_rate`" in (result["2022_unavailable_reason"] or ""), (
+        "the refusal does not name its cause, so a reader cannot tell an unavailable check from a "
+        "check that ran and found agreement"
+    )
+
+
+def test_a_present_2022_still_reads_and_still_diverges():
+    """THE PASS BRANCH IS REACHABLE — without this the leg above could be a constant verdict.
+
+    The catalogued failure this pairs against is *a control whose PASS branch is unreachable
+    reports a constant verdict*. A fail-closed repair that bought its safety by severing the check
+    would leave the leg above green forever and nothing would say so.
+    """
+    churn = _cby({
+        2019: (0.05, 20, 0), 2020: (0.05, 20, 0), 2021: (0.03, 20, 0),
+        2022: (0.50, 20, 8), 2023: (0.40, 20, 8),
+    })
+    result = _crisis_churn_direction(churn)
+    assert result["2022_sim_rate_pct"] == 50.0
+    assert result["2022_unavailable_reason"] is None
+    assert result["insufficient_data"] is False
+    assert result["crisis_divergence_flag"] is True
+
+
+def test_a_transition_with_an_absent_rate_is_unavailable_and_not_scored_green():
+    """THE SIBLING SITE, AND ITS COMMIT IS EXPLICIT THAT THIS IS AN EQUIVALENCE, NOT A REPAIR.
+
+    `_build_churn_by_year` sets `sim_churn_rate` on every year it emits, and a year absent from
+    `churn_by_year` never enters `years` at all -- so under today's producer the old `, 0.0`
+    default was unreachable and this is a guard against a future producer, not a fixed defect.
+    That distinction is `d374b1977`'s own and it is the honest one.
+
+    IT IS TESTED HERE ANYWAY, BECAUSE AN EQUIVALENCE IS EXACTLY WHAT ROTS SILENTLY. The guard's
+    value is entirely in what it does when a producer changes; if nothing ever drives it, the day a
+    producer starts emitting a year without the key is the day it is discovered to have been
+    deleted. Were the default restored, a missing CURRENT year would read 0.0 -> "down", and "down"
+    against an Ofgem "down" scores GREEN -- the absence producing the agreeing verdict.
+
+    MUTATION: restore the `, 0.0` defaults on both reads and this comes back rag=GREEN.
+    """
+    years = sorted(OFGEM_SWITCHING_RATE)
+    prev_yr, curr_yr = years[0], years[1]
+    churn = {
+        prev_yr: {"sim_churn_rate": 0.06, "renewals": 20, "churns": 1},
+        curr_yr: {"renewals": 20, "churns": 1},  # present, but carrying no rate
+    }
+    found = [f for f in _multiplier_alignment(churn)
+             if f["year_transition"] == "%d->%d" % (prev_yr, curr_yr)]
+    assert found, "the transition was dropped entirely; an absence must be reported, not skipped"
+    entry = found[0]
+    assert entry["rag"] == "UNAVAILABLE", (
+        f"a transition with an absent rate was scored {entry['rag']!r} -- a fabricated 0.0 gives it "
+        f"a direction the world never measured"
+    )
+    assert entry["sim_direction"] is None
+    assert "no `sim_churn_rate`" in entry["unavailable_reason"]
