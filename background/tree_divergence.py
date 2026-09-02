@@ -209,6 +209,137 @@ def paths_already_on_origin(project_dir: Path | None,
     return sorted(p for p, sha in zip(existing, local) if upstream.get(p) == sha)
 
 
+#: How far back each suspect path's OWN history is searched for the working-tree bytes. A path that
+#: reaches this without a match is reported UNPROVEN, never SAFE -- see `armed_revert_paths`. 25 is
+#: a DIAL: it bounds the search, never whether the search happens. Both hazards this was written for
+#: (the VAT pair, the level-anchor block) sat ONE commit back, and the artefact publishes the depth
+#: so a reader gets the bound the search actually earns rather than assuming "everything".
+#:
+#: SET AT 500 FROM A MEASUREMENT, NOT A GUESS, AND RAISED FROM 25 (2026-09-02). At 25 the first real
+#: run reported two files UNPROVEN -- `saas/reporting/annual_report.py` and
+#: `tests/background/test_supervisor.py`. Searching their FULL history (219 and 51 commits) cleared
+#: both as novel work, so the cap was producing false conservatism, not catching anything. The walk
+#: is affordable at this depth precisely because the blob-existence filter runs FIRST: only 2 of 283
+#: diverging files were ever walked. Raising it makes the check MORE complete, not quieter -- the
+#: UNPROVEN class stays, and still fails closed for a path whose history outruns even this.
+ARMED_REVERT_SEARCH_DEPTH = 500
+
+
+def _batch_check(root: Path, queries: list[str]) -> dict[str, str] | None:
+    """`git cat-file --batch-check` over `queries`. Maps query -> object id, omitting misses.
+
+    Returns None when git could not answer, so every caller refuses rather than guessing.
+    """
+    if not queries:
+        return {}
+    try:
+        proc = subprocess.run(["git", "cat-file", "--batch-check"],
+                              cwd=str(root), input="\n".join(queries) + "\n",
+                              capture_output=True, text=True, timeout=120)
+    except Exception:  # noqa: BLE001 -- an unanswerable git is a refusal, handled by the caller
+        return None
+    if proc.returncode != 0:
+        return None
+    out: dict[str, str] = {}
+    for query, line in zip(queries, proc.stdout.splitlines()):
+        bits = line.split()
+        if len(bits) >= 3 and bits[1] == "blob":
+            out[query] = bits[0]
+    return out
+
+
+def armed_revert_paths(project_dir: Path | None,
+                       paths: list[str]) -> tuple[list[dict] | None, list[str]]:
+    """Of `paths`, those whose working-tree bytes are an OLDER COMMITTED VERSION of that same path.
+
+    THIS IS THE POPULATION SPLIT, AND IT IS THE POINT. `changed_paths` counts one number across two
+    populations whose remedies are opposite. A file holding NOVEL bytes is work in progress and the
+    remedy is to LAND it. A file holding bytes this path already had at an ANCESTOR commit is an
+    ARMED SILENT REVERT and the remedy is to RESTORE it to HEAD: the next *correct* pathspec commit
+    that happens to include it undoes whatever HEAD holds, with no diff a reviewer would read as a
+    revert. That is how the canonical VAT repair (`2bf3ad0aa`) came within one `git add` of being
+    undone while the divergence alarm counted it as 1 of 272 and said "this blocks nothing".
+
+    THE CHEAP FILTER IS EXACT ABOUT WHAT IT EXCLUDES, WHICH IS WHY IT IS SAFE. Novel bytes have no
+    blob in the object store (`git hash-object` without `-w` writes nothing), so a blob that does
+    NOT exist cannot be a previously-committed version and is dropped with certainty. Existence is
+    necessary but NOT sufficient -- the same bytes may live at another path -- so every survivor is
+    then confirmed against that path's OWN history. Filter for speed, confirm for truth.
+
+    Returns `(armed, unproven)`. `armed` is a list of `{path, commit, subject}`. `unproven` names
+    suspects whose history hit `ARMED_REVERT_SEARCH_DEPTH` without a match: NOT a clean bill, and
+    published as its own field so the bound is on the surface rather than in a footnote.
+
+    Returns `(None, [])` when git could not answer. `None` is deliberately not falsy-equivalent to
+    `[]`: a new field that failed open to "nothing is armed" would reinstate, one field over, the
+    exact defect `changed_paths` was repaired for in
+    WORKER_FINDING_TREE_DIVERGENCE_FAILS_OPEN_TO_A_CLEAN_TREE.
+    """
+    root = project_dir or PROJECT_DIR
+    existing = [p for p in (paths or []) if (root / p).is_file()]
+    if not existing:
+        return [], []
+    try:
+        head = subprocess.run(["git", "ls-tree", "-r", "HEAD"],
+                              cwd=str(root), capture_output=True, text=True, timeout=120)
+        hashed = subprocess.run(["git", "hash-object", "--", *existing],
+                                cwd=str(root), capture_output=True, text=True, timeout=120)
+    except Exception:  # noqa: BLE001 -- an unanswerable git is a refusal, handled by the caller
+        return None, []
+    if head.returncode != 0 or hashed.returncode != 0:
+        return None, []
+    head_blobs: dict[str, str] = {}
+    for line in head.stdout.splitlines():
+        meta, _, rel = line.partition("\t")
+        bits = meta.split()
+        if rel and len(bits) >= 3 and bits[1] == "blob":
+            head_blobs[rel.strip().strip('"')] = bits[2]
+    local = hashed.stdout.split()
+    if len(local) != len(existing):
+        return None, []
+
+    # UNTRACKED CANNOT BE ARMED: with no entry at HEAD there is no version to revert TO. And a path
+    # already equal to HEAD is not diverged at all.
+    candidates = [(p, sha) for p, sha in zip(existing, local)
+                  if p in head_blobs and head_blobs[p] != sha]
+    if not candidates:
+        return [], []
+
+    present = _batch_check(root, [sha for _, sha in candidates])
+    if present is None:
+        return None, []
+    suspects = [(p, sha) for p, sha in candidates if sha in present]
+
+    armed: list[dict] = []
+    unproven: list[str] = []
+    for path, sha in suspects:
+        try:
+            hist = subprocess.run(
+                ["git", "log", "--format=%H", "-n", str(ARMED_REVERT_SEARCH_DEPTH), "--", path],
+                cwd=str(root), capture_output=True, text=True, timeout=120)
+        except Exception:  # noqa: BLE001
+            return None, []
+        if hist.returncode != 0:
+            return None, []
+        commits = hist.stdout.split()
+        at_commit = _batch_check(root, ["{}:{}".format(c, path) for c in commits])
+        if at_commit is None:
+            return None, []
+        hit = next((c for c in commits if at_commit.get("{}:{}".format(c, path)) == sha), None)
+        if hit is None:
+            if len(commits) >= ARMED_REVERT_SEARCH_DEPTH:
+                unproven.append(path)
+            continue
+        try:
+            subj = subprocess.run(["git", "log", "--format=%s", "-1", hit],
+                                  cwd=str(root), capture_output=True, text=True, timeout=60)
+            subject = subj.stdout.strip() if subj.returncode == 0 else ""
+        except Exception:  # noqa: BLE001
+            subject = ""
+        armed.append({"path": path, "commit": hit[:9], "subject": subject[:80]})
+    return sorted(armed, key=lambda r: r["path"]), sorted(unproven)
+
+
 def changed_paths(project_dir: Path | None = None) -> list[str] | None:
     """Repo-relative paths differing from HEAD (tracked modifications AND untracked files),
     generated artefacts excluded. Untracked counts: KNIFE2's new seam module was untracked, and
@@ -327,9 +458,17 @@ def measure(project_dir: Path | None = None, now: float | None = None,
             oldest_age, oldest_path = age, rel
     attributed = sum(v["count"] for k, v in by_lane.items() if not k.startswith("unattributed:"))
     landed = paths_already_on_origin(root, paths)
+    armed, armed_unproven = armed_revert_paths(root, paths)
     return {
         "measured_at": now,
         "base": base,
+        # THE POPULATION SPLIT. `total_files` counts work-in-progress and armed silent reverts
+        # together, and their remedies are opposite (land it / restore it). `None` means git could
+        # not answer and is NOT the same as "none armed" -- `breaches` names it as a failed check.
+        "armed_reverts": None if armed is None else len(armed),
+        "armed_revert_paths": None if armed is None else armed[:20],
+        "armed_revert_unproven": armed_unproven,
+        "armed_revert_search_depth": ARMED_REVERT_SEARCH_DEPTH,
         # Of `total_files`, the ones that are NOT squatting: identical to the trunk, invisible
         # here only because HEAD is behind it. `None` means git could not answer, which is why
         # the count is published beside the base rather than subtracted out of sight of it.
@@ -375,6 +514,30 @@ def breaches(m: dict) -> list[str]:
         out.append(
             "the oldest has sat {}h (threshold {}h): {}".format(
                 m["oldest_age_hours"], AGE_HOURS_THRESHOLD, m["oldest_path"]))
+    # ARMED REVERTS HAVE NO THRESHOLD AND THAT IS DELIBERATE. The other two lines here are volume
+    # measures with a dial, because divergence is normal and only its scale is a problem. This one
+    # is a class, not a quantity: ONE file holding an ancestor version is one `git add` away from
+    # silently undoing whatever HEAD holds, and 1 is not a smaller version of 272 -- it is a
+    # different population. A threshold here would hide exactly the case this exists to catch.
+    armed = m.get("armed_reverts")
+    if armed is None:
+        out.append(
+            "whether any diverging file is an ARMED SILENT REVERT could not be measured; "
+            "this is a FAILED check, not a clean tree")
+    elif armed:
+        named = ", ".join(
+            "{} (would revert to {} {})".format(r["path"], r["commit"], r["subject"])
+            for r in (m.get("armed_revert_paths") or [])[:3])
+        out.append(
+            "{} of the {} diverging file(s) hold an OLDER COMMITTED VERSION and are armed to "
+            "silently revert HEAD on the next pathspec commit that includes them -- restore to "
+            "HEAD, do not land: {}".format(armed, m["total_files"], named))
+    unproven = m.get("armed_revert_unproven") or []
+    if unproven:
+        out.append(
+            "{} file(s) could not be cleared of being an armed revert within {} commits of their "
+            "own history and are UNPROVEN, not safe: {}".format(
+                len(unproven), m.get("armed_revert_search_depth"), ", ".join(unproven[:3])))
     return out
 
 

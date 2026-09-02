@@ -35,12 +35,15 @@ def test_breaches_fire_on_age_even_when_the_count_is_small():
 def test_a_clean_tree_names_nobody():
     """Independence: the measure must be silent when there is nothing to name, or a daily
     naming becomes noise and stops being read."""
-    assert td.breaches({"total_files": 0, "oldest_age_hours": 0.0, "oldest_path": None}) == []
+    # `armed_reverts: 0` is part of what "clean" MEANS since 2026-09-02, and its absence is named
+    # rather than assumed silent -- this module's own rule that an omitted count must be loud.
+    assert td.breaches({"total_files": 0, "oldest_age_hours": 0.0, "oldest_path": None,
+                        "armed_reverts": 0}) == []
 
 
 def test_a_tree_just_under_both_thresholds_is_silent():
     m = {"total_files": td.FILE_COUNT_THRESHOLD, "oldest_age_hours": td.AGE_HOURS_THRESHOLD,
-         "oldest_path": "x.py"}
+         "oldest_path": "x.py", "armed_reverts": 0}
     assert td.breaches(m) == []
 
 
@@ -235,7 +238,8 @@ def test_breaches_names_the_unavailability_as_its_own_breach():
 def test_an_unavailable_measure_is_not_confusable_with_a_quiet_clean_tree():
     """Independence: the silent case and the failed case must produce different verdicts, or
     the caller cannot tell them apart -- which is the finding, restated as a test."""
-    clean = td.breaches({"total_files": 0, "oldest_age_hours": 0.0, "oldest_path": None})
+    clean = td.breaches({"total_files": 0, "oldest_age_hours": 0.0, "oldest_path": None,
+                         "armed_reverts": 0})
     failed = td.breaches({"unavailable": True, "unavailable_reason": "git status rc=128"})
     assert clean == [] and failed != []
 
@@ -536,3 +540,138 @@ def test_an_untracked_path_that_is_tracked_upstream_is_compared_not_skipped(tmp_
     (tmp_path / "tools" / "added_upstream.py").write_text("upstream\n")
     m2 = td.measure(project_dir=tmp_path)
     assert m2["already_on_origin"] == 1, m2
+
+
+# ── the ARMED / IN-PROGRESS population split ──────────────────────────────────────────────────
+# `total_files` counts two populations whose remedies are OPPOSITE: novel bytes are work in
+# progress and want LANDING; bytes this path already had at an ancestor commit are an armed silent
+# revert and want RESTORING. The VAT pair (2bf3ad0aa) sat in the second population and was counted
+# as 1 of 272 in the first. See
+# WORKER_PREREGISTRATION_WHAT_SPLITTING_DIVERGENCE_INTO_ARMED_AND_IN_PROGRESS_MUST_SHOW_2026-09-02.
+
+
+def _repo_with_two_versions(tmp_path):
+    """A repo where `src/a.py` has v1 then v2 committed, and `src/b.py` has one version."""
+    def git(*a):
+        subprocess.run(["git", *a], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    src = tmp_path / "src"
+    src.mkdir(parents=True)
+    (src / "a.py").write_text("VERSION = 1\n")
+    (src / "b.py").write_text("B = 1\n")
+    git("add", "-A")
+    git("commit", "-qm", "v1")
+    (src / "a.py").write_text("VERSION = 2\n")
+    git("add", "-A")
+    git("commit", "-qm", "v2 -- the fix that must not be silently reverted")
+    return git
+
+
+def test_a_file_written_back_to_an_ancestor_version_is_named_armed(tmp_path):
+    """THE DEFECT THIS EXISTS FOR, end-to-end against a real repo: the tree holds the PARENT of a
+    committed fix, so the next pathspec commit including it silently undoes that fix.
+
+    MUTATION: drop the history-confirmation loop in `armed_revert_paths` and return `[]`, and this
+    fails."""
+    _repo_with_two_versions(tmp_path)
+    (tmp_path / "src" / "a.py").write_text("VERSION = 1\n")  # back to the pre-fix parent
+
+    armed, unproven = td.armed_revert_paths(tmp_path, ["src/a.py"])
+
+    assert armed is not None, "git answered; this must not be a refusal"
+    assert [r["path"] for r in armed] == ["src/a.py"], armed
+    # The commit named is the one whose VERSION the tree is holding -- i.e. what it would revert
+    # TO. Asserting "v2" here (the fix that would be undone) was my own first draft and it was
+    # wrong about the field's semantics; kept in the record because the message wording depends
+    # on which of the two commits this is.
+    assert "v1" in armed[0]["subject"], \
+        "the reader is told WHICH version the tree would impose, not merely that it would"
+    assert unproven == []
+
+
+def test_novel_in_progress_content_is_NOT_armed(tmp_path):
+    """THE LOAD-BEARING LEG. A control that fires on every changed file is not a discriminator, it
+    is `git status` with a scarier sentence -- and it would bury the armed file in 272 again.
+
+    MUTATION: make `armed_revert_paths` skip the `sha in present` filter and the history
+    confirmation (i.e. return every candidate), and this fails while the test above still passes.
+    That pair is what proves the split is real."""
+    _repo_with_two_versions(tmp_path)
+    (tmp_path / "src" / "a.py").write_text("VERSION = 3  # ordinary work in progress\n")
+
+    armed, unproven = td.armed_revert_paths(tmp_path, ["src/a.py"])
+
+    assert armed == [], "novel bytes are work to LAND, never an armed revert"
+    assert unproven == [], "a path whose history was fully searched is not 'unproven'"
+
+
+def test_the_split_separates_them_in_ONE_measure(tmp_path):
+    """Both populations present at once -- the real shape, and the one the count cannot express."""
+    _repo_with_two_versions(tmp_path)
+    (tmp_path / "src" / "a.py").write_text("VERSION = 1\n")          # armed
+    (tmp_path / "src" / "b.py").write_text("B = 99  # in progress\n")  # in progress
+
+    armed, _ = td.armed_revert_paths(tmp_path, ["src/a.py", "src/b.py"])
+
+    assert [r["path"] for r in armed] == ["src/a.py"], armed
+
+
+def test_an_untracked_file_cannot_be_armed(tmp_path):
+    """With no entry at HEAD there is no version to revert TO. Counting it would be a false
+    positive on the commonest kind of divergence there is."""
+    _repo_with_two_versions(tmp_path)
+    (tmp_path / "src" / "new.py").write_text("VERSION = 1\n")  # same bytes as a's ancestor!
+
+    armed, _ = td.armed_revert_paths(tmp_path, ["src/new.py"])
+
+    assert armed == [], \
+        "matching bytes at a DIFFERENT path is not this path's own history -- the cheap " \
+        "blob-existence filter must not be trusted as the verdict"
+
+
+def test_armed_reverts_refuses_rather_than_reporting_none_armed_when_git_cannot_answer(tmp_path):
+    """FAIL-CLOSED, per this module's own rule. `[]` here would mean 'nothing is armed' and would
+    reinstate, one field over, the exact defect `changed_paths` was repaired for.
+
+    MUTATION: return `[], []` instead of `None, []` on the git failure path and this fails."""
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "a.py").write_text("x")
+    assert not (tmp_path / ".git").exists(), "precondition: not a repo"
+
+    armed, _ = td.armed_revert_paths(tmp_path, ["src/a.py"])
+
+    assert armed is None, "an unavailable check is a FAILED check, not 'none armed'"
+
+
+def test_an_unmeasurable_armed_check_is_named_as_a_failed_check():
+    """The refusal has to reach the SURFACE, or failing closed is the same as saying nothing."""
+    said = td.breaches({"total_files": 1, "oldest_age_hours": 0.0, "oldest_path": "x",
+                        "armed_reverts": None})
+    assert any("FAILED check" in s and "ARMED" in s for s in said), said
+
+
+def test_one_armed_revert_is_named_with_no_threshold_to_hide_behind():
+    """ARMED has no dial. One file is not a smaller version of 272; it is a different population,
+    and a threshold here would hide exactly the case this exists to catch.
+
+    MUTATION: gate the armed branch on `armed > FILE_COUNT_THRESHOLD` and this fails."""
+    said = td.breaches({"total_files": 272, "oldest_age_hours": 0.0, "oldest_path": "x",
+                        "armed_reverts": 1,
+                        "armed_revert_paths": [{"path": "company/billing/invoice.py",
+                                                "commit": "2bf3ad0aa", "subject": "the VAT fix"}]})
+    assert any("company/billing/invoice.py" in s and "armed" in s for s in said), said
+    assert any("restore to HEAD, do not land" in s for s in said), \
+        "naming the file without naming the REMEDY leaves the reader to guess, and the " \
+        "intuitive guess (commit it) is the defect"
+
+
+def test_a_suspect_unproven_within_the_search_depth_is_not_reported_safe():
+    """NO SILENT CAPS. A bounded search that reports 'clean' for what it never reached is the
+    fail-open this module already carries a scar for."""
+    said = td.breaches({"total_files": 3, "oldest_age_hours": 0.0, "oldest_path": "x",
+                        "armed_reverts": 0, "armed_revert_unproven": ["src/deep.py"],
+                        "armed_revert_search_depth": td.ARMED_REVERT_SEARCH_DEPTH})
+    assert any("UNPROVEN, not safe" in s and "src/deep.py" in s for s in said), said
