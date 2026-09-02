@@ -74,8 +74,10 @@ started by someone rather than by a landing.
 from __future__ import annotations
 
 import argparse
+import calendar
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -120,6 +122,67 @@ def log(message: str) -> None:
     stamp = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
     with LOG_FILE.open("a") as fh:
         fh.write(f"- [{stamp}] {message}\n")
+
+
+#: The log lines that name a work id this executor actually SPAWNED A TURN FOR.
+#:
+#: STAND-DOWNS ARE NOT IN IT, deliberately. A stand-down names the item it declined, and counting
+#: it as drawn would make the drawn channel report a steer as biting on the exact turns where it
+#: was refused. So this under-reports rather than over-reports, which is the safe direction for a
+#: channel whose job is to notice a steer that is NOT biting (`atoms_drawn_since` names the same
+#: limit for the same reason).
+#:
+#: THE EXCLUSION LIVES IN TWO PLACES -- this pattern and the extraction in `ids_run_since` -- and
+#: mutating either ALONE survives, because each makes the other unreachable. That is recorded here
+#: rather than left for the next person to read as coverage: the control that proves stand-downs
+#: are excluded has to move both sites at once, and `test_the_drawn_channel_reads_the_executors_
+#: OWN_LOG` was mutation-proven that way.
+_TURN_LINE = re.compile(
+    r"^- \[(?P<stamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}) UTC\] "
+    r"(?:RUNNING (?P<running>\S+) in "
+    r"|FINISHED (?P<finished>[^:\s]+): "
+    r"|LANDED NOTHING: (?P<nothing>[^,\s]+), )"
+)
+
+
+def ids_run_since(cutoff: float, *, path: Path | None = None) -> list[str]:
+    """Work ids this executor took a turn on at or after `cutoff`, read from its own log.
+
+    THE THIRD DRAWN CHANNEL, and it exists because the other two cannot see this route at all.
+    `delivery_seat.build_brief` reported `drawn: []` for five ids while this log carried seven
+    RUNNING/FINISHED pairs naming them: the atom stall tracker is keyed by maturity-map atom id and
+    a Lane 0 slug is by construction not one, and `delivery_lane.drawn_since` records what the
+    LANE handed out -- which is empty for an item the executor took as a promoted continuation,
+    because that route never goes through `draw()`. Two channels, and the one route that had
+    actually run was in neither. A steer that IS biting presenting as a steer that is not is the
+    same fail-silent shape as an exit code standing in for a landing; both instruments were
+    reporting on themselves rather than on their subject.
+
+    MINUTE RESOLUTION, from the log's own stamp. A line inside the cutoff minute reads as before
+    it -- under-reporting by up to 60s, again the safe direction.
+
+    Never raises: it is called from an orientation that must not be lost to a missing log.
+    """
+    log_file = path or LOG_FILE
+    try:
+        text = log_file.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    found: set[str] = set()
+    for line in text.splitlines():
+        match = _TURN_LINE.match(line)
+        if not match:
+            continue
+        work_id = match["running"] or match["finished"] or match["nothing"]
+        if not work_id or work_id in found:
+            continue
+        try:
+            when = calendar.timegm(time.strptime(match["stamp"], "%Y-%m-%d %H:%M"))
+        except ValueError:
+            continue
+        if when >= float(cutoff):
+            found.add(work_id)
+    return sorted(found)
 
 
 def _interactive_seat_is_live(now: float | None = None) -> bool:
@@ -377,6 +440,128 @@ def seat_continuation_drop(work_id: str) -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------------------------
+# THE VERDICT. It reads the SUBJECT, and it is deliberately not the exit code.
+#
+# WHAT IT REPLACED, AND WHAT THAT COST. The turn's outcome used to be `f"{work_id}: rc={returncode}"`
+# logged as `FINISHED`. `land-the-dd-inference-organ-and-unwedge-every-lanes-publish` took four
+# consecutive turns on 2026-09-02 -- 15:36, 16:35, 17:37 and the promotion before them -- and every
+# one logged `FINISHED ... rc=0`. Eleven hours. The work did not land, the publish stayed wedged,
+# and the seat that had RANKED the item read its own log and saw four successes. An exit code is a
+# fact about a PROCESS; the claim is about a TREE. Reporting the first as the second is R15's
+# fail-silent killer, and this module was the instrument least able to notice, because it was the
+# one reporting on itself.
+#
+# THE TWO LEGS, and each is load-bearing on its own.
+#
+#   1. THE TICK BOUND A LANDING DURING THIS TURN. `delivery_lane.record_landing` is where a tick
+#      says "this commit is mine", and it already refuses a commit that is unreadable, empty, or
+#      older than the id's first draw. Leg 1 asks whether that binding happened AFTER this turn
+#      started -- a tombstone from a previous turn is the across-turns fail-open, and the first
+#      draft of this check (bound paths non-empty) would have had exactly it: turn 1 binds, turns
+#      2-4 land nothing, all four read as landed.
+#
+#   2. THE SHARED TREE AGREES. Leg 1 alone is still the tick reporting on itself, and it passes
+#      for the precise failure that motivated all this: `git show` reads the shared OBJECT
+#      DATABASE, which a linked worktree writes into, so a commit made in the worktree and never
+#      promoted binds perfectly well. Leg 2 asks git whether those paths actually moved on the
+#      shared tree between the sha the turn started on and the sha now. A worktree commit that was
+#      never promoted fails it, which is the whole point.
+#
+# NEITHER LEG IS THE SESSION'S OWN ACCOUNT OF ITSELF.
+# ---------------------------------------------------------------------------------------------
+
+
+def shared_tree_changes_since(base: str) -> tuple[set[str], str]:
+    """Paths that changed on the SHARED tree since `base`, plus a reason if it cannot be read.
+
+    BOTH ENDS OF THE SHARED TREE ARE ASKED -- its own HEAD and `origin/main` -- because a turn's
+    landing is observable at either. `promote_worktree_landing` moves the shared branch, and the
+    push that follows is a separate act that fails on its own often enough to have a standing
+    alarm here. Reading only `origin/main` would call a landed-but-unpushed increment nothing;
+    reading only HEAD would miss a turn that landed and pushed while the shared HEAD sat behind.
+
+    THREE-DOT, so only the far side's changes count. Two-dot would credit this turn with paths
+    that moved on the BASE side of a divergence -- another lane's revert reading as this tick's
+    landing.
+
+    `(set(), reason)` when git will not answer, and the caller treats that as NOTHING LANDED. An
+    unavailable check is a failed check; the direction it must fail in is the one that costs a
+    repeated turn rather than one that consumes work nobody did.
+    """
+    if not base:
+        return set(), "the turn recorded no base sha, so there is nothing to compare against"
+    changed: set[str] = set()
+    unreadable: list[str] = []
+    for ref in ("HEAD", "origin/main"):
+        try:
+            out = subprocess.run(
+                ["git", "diff", "--name-only", "--no-renames", f"{base}...{ref}"],
+                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=120)
+        except (OSError, subprocess.SubprocessError) as exc:  # noqa: PERF203
+            unreadable.append(f"{ref}: {exc.__class__.__name__}")
+            continue
+        if out.returncode != 0:
+            unreadable.append(f"{ref}: git refused ({(out.stderr or '').strip()[:100]})")
+            continue
+        changed |= {ln.strip() for ln in out.stdout.splitlines() if ln.strip()}
+    if not changed and unreadable:
+        return set(), "the shared tree could not be read -- " + "; ".join(unreadable)
+    return changed, ""
+
+
+def bound_landing(work_id: str) -> tuple[float, list[str]]:
+    """The newest landing bound to `work_id`, from EITHER store this turn could have written.
+
+    TWO STORES, AND THE SECOND IS NOT BELT-AND-BRACES. `delivery_lane.PROJECT_DIR` is derived from
+    `__file__`, so the child running `python3 -m background.delivery_lane --landed <id>` with its
+    cwd in the worktree imports the WORKTREE's copy of the module and binds into the WORKTREE's
+    claims store. The shared store never hears about it. A verdict that read only the shared store
+    would therefore answer LANDED NOTHING for every correctly-behaved turn as well as every failed
+    one -- a constant verdict, which is not a control (R15).
+
+    The worktree's store is the STRONGER witness where it exists: `ensure_worktree` resets that
+    tree at the start of every turn, so anything in it was written by THIS turn's child. It is
+    still only leg 1 -- the shared tree has to agree separately.
+
+    `(0.0, [])` if neither store carries one. Never raises.
+    """
+    best: tuple[float, list[str]] = (0.0, [])
+    for store in (delivery_lane.CLAIMS_FILE,
+                  WORKTREE / "docs" / "observability" / delivery_lane.CLAIMS_FILE.name):
+        try:
+            when, paths = delivery_lane.last_landing(work_id, path=store)
+        except Exception:  # noqa: BLE001
+            continue
+        if when > best[0] and paths:
+            best = (when, paths)
+    return best
+
+
+def subject_moved(work_id: str, base: str, since: float) -> tuple[bool, str]:
+    """Did `work_id`'s bound paths actually move on the shared tree during this turn?
+
+    `since` is the instant the turn's session was spawned; `base` the sha the shared tree was at
+    then. Returns `(moved, reason)` and the reason is written for the log either way -- a refusal
+    that does not name its cause is how the previous verdict survived four turns.
+    """
+    landed_at, landed_paths = bound_landing(work_id)
+    if landed_at <= since or not landed_paths:
+        return False, ("no landing was bound to the claim during this turn -- the tick never ran "
+                       "`--landed`, or `record_landing` refused the commit it named "
+                       "(`python3 -m background.delivery_lane --landed <id>` prints the reason)")
+    changed, unreadable = shared_tree_changes_since(base)
+    if unreadable:
+        return False, unreadable
+    overlap = sorted(set(landed_paths) & changed)
+    if not overlap:
+        return False, (f"the tick bound {len(landed_paths)} path(s) from a commit the SHARED tree "
+                       f"does not carry -- a worktree commit that was never promoted reads exactly "
+                       f"like this, and `tools.promote_worktree_landing` is what moves it")
+    return True, (f"{len(overlap)} of {len(landed_paths)} bound path(s) moved on the shared tree, "
+                  f"including {overlap[0]}")
+
+
 def _another_executor_is_running() -> bool:
     """A pid file WITH a liveness check. A bare lock left by a killed process never runs again.
 
@@ -449,6 +634,11 @@ HOW TO LAND, and there is no other way:
   2. `python3 -m tools.promote_worktree_landing . --work-id <your claim id>` — gets the landing onto
      origin/main, or refuses with a named cause. If it refuses because origin moved, re-gate on the
      new base and land again. Never force anything.
+  3. `python3 -m background.delivery_lane --landed <your claim id>` — binds the paths that commit
+     touched to your claim. THIS IS WHAT THE TURN IS JUDGED ON. When the turn ends, the executor
+     asks whether those bound paths moved on the SHARED tree; a turn that landed nothing, or that
+     committed here and never ran step 2, is logged `LANDED NOTHING` and the item is re-offered
+     rather than consumed. Your exit code is not consulted.
 
 IF IT IS BIGGER THAN ONE TURN, LAND THE PART YOU FINISHED. A landed increment proves the work is
 moving; an unlanded whole proves nothing and is lost when this turn ends.
@@ -555,6 +745,10 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             pass  # a marker that cannot be written costs the PID_FILE route below, not the turn
         log(f"RUNNING {work_id} in {worktree} on {base[:9]}")
 
+        # THE INSTANT THE SUBJECT IS MEASURED FROM. Taken before the spawn, from the same clock
+        # `record_landing` compares commit timestamps against, so "bound during this turn" is a
+        # comparison between two facts about git rather than a claim about the session.
+        started = time.time()
         try:
             proc = subprocess.run(
                 [claude_bin, "-p", "--dangerously-skip-permissions", "--model", MODEL,
@@ -563,11 +757,28 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
                 timeout=SESSION_TIMEOUT_SECONDS,
                 env=dict(os.environ, DISABLE_AUTOUPDATER="1", SE_SEAT_EXECUTOR="1"),
             )
-            detail = f"{work_id}: rc={proc.returncode}"
+            how = f"rc={proc.returncode}"
         except subprocess.TimeoutExpired:
-            detail = f"{work_id}: did not finish inside {SESSION_TIMEOUT_SECONDS}s"
+            how = f"did not finish inside {SESSION_TIMEOUT_SECONDS}s"
         finally:
             PID_FILE.unlink(missing_ok=True)
+
+        # THE SESSION'S OWN OUTCOME IS NOW A FOOTNOTE, not the verdict. `how` is still logged
+        # because it separates a crash from a clean no-op when reading back, but nothing branches
+        # on it: a turn that exits 0 and lands nothing and a turn that times out having landed an
+        # increment are DIFFERENT results, and the exit code has them exactly backwards.
+        moved, why = subject_moved(work_id, base, started)
+        if not moved:
+            detail = (f"LANDED NOTHING: {work_id}, bound paths unchanged since {base[:9]} "
+                      f"({how}) -- {why}")
+            # NO DISCHARGE. The claim stays whatever the tick left it, and the handoff is NOT
+            # dropped, so `seat_continuation` re-offers the item to the next tick instead of it
+            # being consumed by a turn that did nothing. This is the half that makes the verdict
+            # worth reading: a refusal that still let the work be discharged would be a louder
+            # version of the same eleven hours.
+            log(detail)
+            return True, detail
+        detail = f"{work_id}: {how} -- {why}"
 
         # A RELEASED CLAIM DISCHARGES THE HANDOFF (2026-08-31), and the two stores had never
         # spoken. `seat_continuation` re-offers a live continuation on every tick until its six-hour

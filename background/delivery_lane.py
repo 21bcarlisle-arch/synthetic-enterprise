@@ -254,6 +254,52 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None
         return
 
 
+def _remember_landing(focus_id: str, when: float, paths: list[str], store: Path) -> None:
+    """Keep a landing readable AFTER the claim it informed has been released.
+
+    `claims_mod.release` pops the record, and the bound paths go with it. That is right for the
+    claims store -- it holds what is IN HAND -- but it makes the binding unreadable by anything
+    that runs after the tick, and the one reader that needs it most runs exactly there:
+    `seat_executor` judges, once the turn is over, whether the turn's subject actually moved. A
+    tick that landed and then released would be indistinguishable from a tick that landed nothing,
+    and the verdict would have to fall back to the exit code -- the defect it exists to remove.
+
+    So the draw ledger, which this module already owns and which survives release, carries the
+    tombstone. It is written ONLY on a binding that succeeded, so its presence is evidence rather
+    than intent, and `when` is the COMMIT's own timestamp (not now), so a reader comparing it
+    against a turn's start instant is comparing two facts about git.
+
+    Never raises: it runs after the binding, and losing the tombstone must not lose the binding.
+    """
+    try:
+        ledger_path = _ledger_path(store)
+        ledger = claims_mod._load(ledger_path)
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            row = {"first_drawn_at": float(when)}
+        row["last_landing_at"] = float(when)
+        row["last_landing_paths"] = sorted(paths)
+        ledger[focus_id] = row
+        claims_mod._save(ledger, ledger_path)
+    except Exception:
+        return
+
+
+def last_landing(focus_id: str, *, path: Path | None = None) -> tuple[float, list[str]]:
+    """`(commit time, paths)` of the last landing bound to `focus_id`. `(0.0, [])` if none.
+
+    Survives `--release`, which is the whole reason it is here rather than read off the claim.
+    """
+    try:
+        row = claims_mod._load(_ledger_path(path or CLAIMS_FILE)).get(focus_id)
+        if not isinstance(row, dict):
+            return 0.0, []
+        return (float(row.get("last_landing_at") or 0.0),
+                sorted(str(p) for p in (row.get("last_landing_paths") or [])))
+    except Exception:
+        return 0.0, []
+
+
 def drawn_since(cutoff: float, *, path: Path | None = None) -> list[str]:
     """Lane 0 ids drawn at or after `cutoff`. The drawn channel for non-atom focus ids.
 
@@ -372,7 +418,20 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
             since = float(claimed_at)
         if when <= since:
             return []
-        return claims_mod.bind_paths(focus_id, paths, path=store)
+        bound = claims_mod.bind_paths(focus_id, paths, path=store)
+        # AN ESTABLISHED EQUIVALENCE, NOT A LOAD-BEARING GUARD, and it is recorded as one because
+        # the flattering reading was available: mutating `if bound:` to `if True:` does not fail
+        # any control, and the reason is that every way `bind_paths` can answer `[]` is already
+        # refused above (unclaimed id, unreadable commit, no paths, commit older than the first
+        # draw). It is kept as the structural coupling -- evidence is written by the write that
+        # succeeded, never beside it -- so a future refusal added INSIDE `bind_paths` cannot leave
+        # a tombstone for a binding that did not happen.
+        if bound:
+            # THIS COMMIT's paths, not the claim's accumulated scope. The tombstone answers "what
+            # moved on this landing", and the accumulated scope would answer "what has ever moved",
+            # which is the across-turns fail-open a per-turn reader must not inherit.
+            _remember_landing(focus_id, when, paths, store)
+        return bound
     except Exception:
         return []
 

@@ -395,10 +395,23 @@ def focus_drawn_since(since: datetime) -> list[str]:
     False. `WORKER_FINDING_THE_STEER_EFFECTIVENESS_CONTROL_CANNOT_SEE_LANE_ZERO_AT_ALL_2026-08-27`
     names it and its fix 2 is this: give the slugs a channel, from the ledger of what the lane has
     actually handed out.
+
+    AND A THIRD CHANNEL, 2026-09-02: what the SEAT EXECUTOR actually ran. The lane's ledger records
+    what `draw()` handed out, and the executor's busiest route does not go through `draw()` -- a
+    promoted continuation is taken straight from the handoff store. So the executor's log carried
+    seven RUNNING/FINISHED pairs across five ids while this function, reading both of the other
+    channels, still answered `[]` for every one of them. A steer that is biting presenting as a
+    steer that is not is what makes the seat re-rank work already in hand.
+
+    UNION, NOT REPLACEMENT: the three channels see three different routes and no one of them is a
+    superset. Each under-reports on its own, which is why the disjunction is the honest read here
+    and not the fail-open the same shape usually is -- there is no "did NOT happen" claim being
+    OR'd away, only three partial records of what did.
     """
-    from background import delivery_lane
+    from background import delivery_lane, seat_executor
     return sorted(set(atoms_drawn_since(since))
-                  | set(delivery_lane.drawn_since(since.timestamp())))
+                  | set(delivery_lane.drawn_since(since.timestamp()))
+                  | set(seat_executor.ids_run_since(since.timestamp())))
 
 
 def build_brief(now: datetime | None = None) -> dict:
