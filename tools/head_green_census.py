@@ -276,9 +276,32 @@ def head_subject_checkout():
 #: Observed directly: a reproduction run under ordinary contention hit exactly this and died
 #: with nothing to show for an hour of CPU.
 #:
-#: 3300s leaves five minutes for the checkout, the teardown and the report, so the suite's own
-#: timeout fires first and the census says UNPROVEN instead of vanishing.
-SUITE_TIMEOUT_SECONDS = 3300
+#: THE ORDERING WAS FIXED AND THE HEADROOM WAS SPENT PAYING FOR IT (2026-09-02, same day). 3300
+#: put the suite's timeout below systemd's, which is the property this constant exists to hold --
+#: and below **3537s, the duration of the run being described one paragraph up**. A bound under
+#: the worst duration actually observed does not measure a hang; it aborts a healthy slow night
+#: and reports the same silence the reordering was meant to end. The two halves of that finding
+#: are one edit apart and only one of them landed.
+#:
+#: 7200s is this repo's own rule for a suite bound applied to the number in this comment:
+#: `bound > 2 x worst measured` (`test_process_run_complete.py`, for GATE_SUITE_TIMEOUT_SECONDS),
+#: which against 3537s demands at least 7074s. `TimeoutStartSec=7500` in the unit keeps the same
+#: five minutes for the checkout, the teardown and the report, so the suite's own timeout still
+#: fires first and the census says UNPROVEN instead of vanishing. The timer fires once every 24h,
+#: so 7500s cannot reach the next firing.
+#:
+#: THIS IS AN ALLOWANCE FOR HOW LONG THE RUN TAKES AND NOTHING ELSE. It forgives no red, it moves
+#: no baseline, and raising it can never turn a verdict green -- the only outcome it changes is
+#: UNPROVEN into a real answer. `test_the_census_timeout_clears_the_duration_it_has_observed`
+#: holds both directions against the unit file, because until it existed the relationship was
+#: asserted in this comment and true only by luck.
+SUITE_TIMEOUT_SECONDS = 7200
+
+#: The worst COMPLETE census duration on record, transcribed from the run described above so the
+#: control can compare against it. Moved by hand when a slower run is observed -- a bound that
+#: re-derived itself from the latest run would ratchet upward on its own, which is how a ceiling
+#: stops being a decision anyone made.
+WORST_OBSERVED_SUITE_SECONDS = 3537.0
 
 
 def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS) -> str:
