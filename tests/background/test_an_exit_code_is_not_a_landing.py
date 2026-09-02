@@ -418,3 +418,76 @@ def test_a_missing_executor_log_costs_the_orientation_NOTHING(tmp_path):
     MUTATION: let the `OSError` escape and this fires.
     """
     assert seat_executor.ids_run_since(0.0, path=tmp_path / "nope.md") == []
+
+
+def test_the_channel_reads_the_SHARED_trees_log_not_the_importing_trees(tmp_path, monkeypatch):
+    """A worktree import must still see the executor's real log.
+
+    THE DEFECT, measured 2026-09-02 at the commit that built this channel: same code, same
+    commit, two trees. From the shared tree `ids_run_since(now - 24h)` answered NINE ids; from a
+    linked worktree it answered `[]`. `LOG_FILE` is derived from `__file__`, so a module imported
+    out of a worktree looked for the log beside itself, did not find it, and returned empty
+    without a word — and `focus_drawn_since` silently lost a whole channel, so `build_brief`
+    reported `drawn: [], steered: false` with the note *"the previous direction named work and
+    NONE of it was drawn — if this repeats, the steer is a no-op"*.
+
+    That is the exact false reading this channel was built to abolish, arriving through path
+    resolution instead of through logic. REACHABLE, not theoretical: a drawn tick runs in a
+    worktree and is told to orient there.
+
+    MUTATION: revert `ids_run_since`'s default to `LOG_FILE` and this fires.
+    """
+    shared = tmp_path / "shared"
+    (shared / "docs" / "observability").mkdir(parents=True)
+    git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-C", str(shared)]
+    subprocess.run(["git", "init", "-q", str(shared)], check=True)
+    subprocess.run([*git, "commit", "-q", "--allow-empty", "-m", "root"], check=True)
+    worktree = tmp_path / "worktree"
+    subprocess.run([*git, "worktree", "add", "-q", "--detach", str(worktree)], check=True)
+
+    log_name = seat_executor.LOG_FILE.name
+    (shared / "docs" / "observability" / log_name).write_text(
+        "- [2026-09-02 15:36 UTC] RUNNING only-on-the-shared-tree in /var/tmp/wt on 9ebc2dfcc\n")
+
+    # Stand where a worktree-imported module stands: PROJECT_DIR and LOG_FILE both inside it.
+    monkeypatch.setattr(seat_executor, "PROJECT_DIR", worktree)
+    monkeypatch.setattr(seat_executor, "LOG_FILE",
+                        worktree / "docs" / "observability" / log_name)
+    assert not seat_executor.LOG_FILE.exists(), "fixture is not standing where the defect was"
+
+    assert seat_executor.ids_run_since(0.0) == ["only-on-the-shared-tree"], \
+        "a worktree-imported channel silently lost the shared tree's log, so a steer that IS " \
+        "biting reads as one that is not"
+
+
+def test_a_shared_tree_with_NO_log_falls_back_to_this_trees(tmp_path, monkeypatch):
+    """Resolving the shared tree must never LOSE a log that was readable before.
+
+    The repair above reaches past this tree for the log. If the shared tree it finds has no log
+    at all, the honest answer is the one we already had — a resolver that returned the absent
+    shared path unconditionally would turn a working read into an empty one, which is the same
+    silent channel loss pointing the other way.
+
+    MUTATION: drop the `shared.exists()` fallback in `_shared_tree_log` and this fires.
+
+    ESTABLISHED EQUIVALENCE, recorded rather than left as flattering silence: mutating the
+    `git rev-parse` refusal guard ALONE survives every test here, because a failed `rev-parse`
+    yields an empty stdout, `Path("")` is `Path(".")`, and the derived path then does not exist —
+    so this fallback catches it. The two guards are one control with two expressions and each
+    makes the other unreachable; the honest mutation moves both, and that combination IS caught
+    by this test. Same shape the stand-down exclusion in `ids_run_since` documents against itself.
+    """
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    subprocess.run(["git", "init", "-q", str(shared)], check=True)
+
+    here = tmp_path / "here" / "docs" / "observability"
+    here.mkdir(parents=True)
+    log = here / seat_executor.LOG_FILE.name
+    log.write_text("- [2026-09-02 15:36 UTC] RUNNING readable-right-here in /x on abc\n")
+
+    monkeypatch.setattr(seat_executor, "PROJECT_DIR", shared)
+    monkeypatch.setattr(seat_executor, "LOG_FILE", log)
+
+    assert seat_executor.ids_run_since(0.0) == ["readable-right-here"], \
+        "reaching for the shared tree threw away a log this tree could read"

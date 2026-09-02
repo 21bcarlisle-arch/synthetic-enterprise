@@ -145,6 +145,40 @@ _TURN_LINE = re.compile(
 )
 
 
+def _shared_tree_log() -> Path:
+    """The executor log on the SHARED tree, whichever tree this module was imported from.
+
+    THERE IS ONLY ONE SEAT EXECUTOR AND ONE LOG, and it lives on the shared tree. `LOG_FILE` is
+    derived from `__file__`, so a module imported out of a linked worktree resolves it to that
+    worktree -- where the log is absent, and `ids_run_since` returned `[]` without a word. The
+    union in `focus_drawn_since` then quietly lost a whole channel and the brief read
+    `drawn: [], steered: false`: *"the previous direction named work and NONE of it was drawn --
+    if this repeats, the steer is a no-op"*. That is the precise false reading the third channel
+    was built to abolish, reintroduced by path resolution rather than by logic, and it is
+    REACHABLE because a drawn tick runs in a worktree and is told to orient there.
+
+    Measured 2026-09-02, same commit, same code, two trees: from the worktree
+    `ids_run_since(now-24h)` answered `[]`; from the shared tree, nine ids.
+
+    `git rev-parse --git-common-dir` is the question "where is the real tree" asked of the only
+    thing that knows. Falls back to `LOG_FILE` when git will not answer or the shared copy is
+    absent, which preserves the deliberate missing-log-is-empty behaviour rather than trading one
+    silent failure for a noisy one on a path an orientation must survive.
+    """
+    try:
+        out = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
+                             capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return LOG_FILE
+    if out.returncode != 0 or not out.stdout.strip():
+        return LOG_FILE
+    common = Path(out.stdout.strip())
+    if not common.is_absolute():
+        common = (PROJECT_DIR / common).resolve()
+    shared = common.parent / "docs" / "observability" / LOG_FILE.name
+    return shared if shared.exists() else LOG_FILE
+
+
 def ids_run_since(cutoff: float, *, path: Path | None = None) -> list[str]:
     """Work ids this executor took a turn on at or after `cutoff`, read from its own log.
 
@@ -162,8 +196,13 @@ def ids_run_since(cutoff: float, *, path: Path | None = None) -> list[str]:
     it -- under-reporting by up to 60s, again the safe direction.
 
     Never raises: it is called from an orientation that must not be lost to a missing log.
+
+    THE DEFAULT IS THE SHARED TREE'S LOG, not this tree's -- see `_shared_tree_log` for what that
+    cost before it was. `path=` still overrides for tests, which need a fixture rather than the
+    live artefact; the two want opposite things from this constant and only the explicit argument
+    can hold both.
     """
-    log_file = path or LOG_FILE
+    log_file = path or _shared_tree_log()
     try:
         text = log_file.read_text(encoding="utf-8", errors="replace")
     except OSError:
