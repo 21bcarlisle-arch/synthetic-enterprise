@@ -762,6 +762,32 @@ def test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cau
 #: quotation from a claim would force the history to be deleted to stay green.
 _LIVE_FLOOR_CLAIM = re.compile(r"SVT floor is ([0-9.]+)% against a published ([0-9.]+)%")
 
+#: The capture this leg re-drives, and it is deliberately NOT `instrument.DEFAULT_TABLE`.
+#:
+#: THIS LEG NEEDS A PAIR AND THE BAND LEG NEEDS A TABLE, WHICH IS WHY THEY READ DIFFERENT FILES.
+#: `_live_svt_floor_pct` below needs the renewal rows AND the SVT sibling, because the floor is a
+#: numerator on one route over an account denominator that spans both. `instrument.DEFAULT_TABLE`
+#: (`c2_departure_factors.json`) has **no committed sibling** -- it never did; the run that produced
+#: it carried no SVT recorder. Until 2026-09-02 this leg read `svt_sibling(DEFAULT_TABLE)` anyway
+#: and was GREEN in the worktree that wrote it and RED at clean HEAD from the instant it landed,
+#: because that worktree held an untracked sibling. Re-driving `ladder`'s sibling reproduces its
+#: 2.34% exactly, which is what the untracked file was.
+#:
+#: AND PAIRING `c2`'s RENEWAL ROWS WITH A FOREIGN SIBLING WOULD NOT HAVE BEEN THE REPAIR EITHER.
+#: `capture_departure_factors`'s own docstring forbids it: two files from different runs describe
+#: different populations, so a cell differenced across them measures the POPULATION and not the
+#: hazard -- and the account denominator here is exactly such a cell.
+#:
+#: So this points at the first capture on disk whose two files describe ONE run with EVERY producer
+#: committed (the SVT recorder at `6db30a350`, the SVT assignment at `8bf416115`), taken from a
+#: clean `git archive HEAD` stem of `19e68169b`. The band leg is deliberately left on
+#: `DEFAULT_TABLE`: moving a control's subject in the commit that repairs a different control is how
+#: a moved number becomes unattributable.
+_FLOOR_CAPTURE = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "reports" / "c4_whole_book_departure_factors.json"
+)
+
 
 def _live_svt_floor_pct() -> dict[int, float]:
     """`{year: SVT-route floor as a % of accounts}`, recomputed under the hazard the world HAS.
@@ -779,10 +805,15 @@ def _live_svt_floor_pct() -> dict[int, float]:
     recorded inputs, as a DIAGNOSTIC, which is exactly the distinction `fit_whole_book`'s docstring
     draws when it says the SVT contribution must not be recomputed for a FIT.
     """
-    svt_rows = json.loads(
-        departure_population.svt_sibling(instrument.DEFAULT_TABLE).read_text()
+    sibling = departure_population.svt_sibling(_FLOOR_CAPTURE)
+    assert sibling.exists(), (
+        f"the SVT sibling {sibling.name} is not on disk, so no floor can be recomputed and this "
+        f"leg would fail on a FileNotFoundError rather than on its subject. A capture pair this "
+        f"leg re-drives must be COMMITTED -- the sibling that was read here until 2026-09-02 was "
+        f"untracked, which made the leg green in one worktree and red in every other."
     )
-    renewal_rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    svt_rows = json.loads(sibling.read_text())
+    renewal_rows = json.loads(_FLOOR_CAPTURE.read_text())
     book = _fit_module().union_by_year(renewal_rows, svt_rows)
     expected: dict[int, float] = {}
     for row in svt_rows:

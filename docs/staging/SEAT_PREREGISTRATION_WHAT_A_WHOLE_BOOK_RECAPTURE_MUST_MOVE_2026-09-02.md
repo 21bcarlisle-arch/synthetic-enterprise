@@ -143,3 +143,123 @@ Discharged at grading by pasting `git status --porcelain` and `git diff --stat` 
 
 *To be appended after the run. Each prediction graded beside its filed text above; misses kept, not
 revised.*
+
+## P7 — registered 2026-09-02 AFTER P4 was refuted and BEFORE the SVT floor was measured
+
+*Epistemic status stated plainly rather than overclaimed: P1–P6 were filed and **landed**
+(`f753f6252`) before the capture ran. P7 is written after reading P4's refutation but before running
+the measurement it predicts, and it lands in the same commit as its own grading. It is a prediction
+about a number I have not yet looked at; it is not a prediction filed before the run.*
+
+P4's last clause is refuted: 2022's whole-book expected rate on the fresh capture is **2.54%**
+against a published **2.9–4.3%** — **below the floor**, where the declared cause (ii) in
+`UNFITTED_YEARS` says its SVT floor is **12.09%, above the 4.30% ceiling**, and concludes *"NO anchor
+>= 0 brings 2022 to the record"*. Those cannot both be true of the same world.
+
+`UNFITTED_YEARS` declares cause (i) capture-scoped and cause (ii) explicitly **"NOT capture-scoped,
+and this is the one that binds"**.
+
+**P7 — predicted: cause (ii) IS capture-scoped, i.e. the 12.09% reproduces on the `ladder` family
+(under the retired ten-year block) and does NOT reproduce on this clean-HEAD capture.** Concretely:
+the SVT route's 2022 expected departure rate computed the same way reads ≥ 10% on
+`ladder_churn_factors_svt_segment_decisions.json` and ≤ 4% on the c4 sibling. **Refuted** if the
+12.09% reproduces on c4 (then my arithmetic is wrong and the declaration stands), or if it fails to
+reproduce on `ladder` either (then the figure came from somewhere else again, and the finding is
+about provenance rather than scope).
+
+*Consequence registered in advance:* if P7 holds, then the one cause declared as binding regardless
+of capture is the one that moved when the capture changed, and 2022's entry in `UNFITTED_YEARS`
+rests on a figure the current world does not produce. That is a finding to file against the
+declaration — **not** a licence to fit 2022, and **not** a reason to edit the entry in this stretch.
+
+*Run on a clean `git archive HEAD` stem of `19e68169b` at `/tmp/recap`, under
+`systemd-run --user --unit=recapture-c4`, waited on with `tools/wait_for.py --pid` naming its
+subject and carrying a 2400s deadline. Unit `Result=success ExecMainStatus=0`. Captured 156 renewal
+factor rows and 1,373 SVT segment decisions (38 departed). Both artefacts committed under their own
+names, sha256 `bd6ad1da…` and `c2db315c…`.*
+
+**P1 — CONFIRMED.** From: no `c2_departure_factors_svt_segment_decisions.json` exists at all. To: the
+sibling is written with **1,373 rows**, and `THE SVT RECORDER RAN AND RECORDED NOTHING` did not
+print. This is the first capture on disk whose two files describe one run with **every producer
+committed** — the SVT recorder at `6db30a350` and the SVT assignment at `8bf416115`.
+
+**P2 — CONFIRMED, and beyond the predicted margin.** From: `world_book_rate_pct()` on the committed
+capture returns `({}, "the SVT route is unreadable, so a whole-book count cannot be taken at all…")`.
+To: **8 years** (2017–2024) with `refusal=None`, against the predicted ≥5.
+
+**P3 — REFUTED, and this is the one I flagged as most able to embarrass the argument.** I predicted
+the whole-book rate would **strictly exceed** the renewal-decision rate in every year, because the
+union adds SVT departures to the numerator. It is **LOWER in 6 of 7** years; only 2023 moves up
+(+5.01pp). 2020 is −15.70pp, 2024 −9.04pp, 2019 −6.50pp.
+
+*Why I was wrong, stated rather than glossed:* I counted what the union adds to the numerator and not
+what it adds to the denominator. The SVT route contributes **1,373 decisions carrying 38 departures**
+against the renewal route's **156 carrying 36** — a much *lower* departure rate. The SVT route
+**dilutes** the book rate. The renewal population are the households who demonstrably shop, so their
+mean is the *high* reading, not the low one. The direction is **DOWN**.
+
+**P4 — SPLIT. Three clauses confirmed, the load-bearing one refuted.**
+- *0 renewal decisions in 2022:* **CONFIRMED** (2016:1, 2017:20, 2018:21, 2019:16, 2020:18, 2021:23,
+  2023:20, 2024:19, 2025:18 — 2022 absent, as in the committed capture).
+- *>0 SVT segment decisions in 2022:* **CONFIRMED** — 213 decisions over 55 accounts.
+- *2022 readable on the book column where it previously carried nothing:* **CONFIRMED** — 2.54%.
+- *That rate is above the published 4.30% ceiling:* **REFUTED.** It is **2.54% against a 2.9–4.3%
+  band — below the floor.** The direction of the miss is reversed from the declaration's.
+
+**P5 — CONFIRMED on the years present; the 2022 clause is VACUOUS and I report it as vacuous, not as
+passed.** All **nine** years carrying a `sim_level_anchor` agree with live `year_level_anchor()` to
+1e-6, including 2016 and 2025 at the reference-year `3.053619`. But **2022 carries no
+`sim_level_anchor` at all** — the column lives on renewal rows and 2022 has none — so the clause
+*"including 2022 at `NO_LEVEL_CORRECTION = 1.0`"* had nothing to test. Same shape as the preceding
+prereg's own P3, and recorded the same way rather than quietly counted as a pass. The substantive
+half stands: `test_the_capture_the_band_verdict_is_read_from_was_produced_by_the_live_anchor`'s
+claim that *"a re-fit that lands with its re-capture moves both sides together and stays green"* has
+now met an actual re-capture and holds.
+
+**P6 — CONFIRMED.** Predicted the renewal-decision rate stays outside the band in ≥5 readable years.
+It is outside in **7 of 7**. Re-capturing alone does **not** discharge the band leg, and the xfail
+marker's own diagnosis — *"the anchor is stale against the capture it is now read with"* — is not
+sufficient on its own.
+
+***But the registered consequence of P6 does NOT follow, and I am withdrawing it rather than
+reinterpreting it.*** I registered in advance: *"if P6 holds and P2/P3 hold, then the band leg's
+subject is the wrong column, and the repair is to judge the band on `world_book_rate_pct`."* P3 was
+refuted, so the antecedent never fired — and the measurement shows why it would not have helped: the
+whole-book column is **also out of band, in 7 of 8 years**. Switching the control's subject repairs
+nothing. The denominator mismatch is real and worth stating, but it is **not** the cause of the band
+failure, and I had argued as though it were.
+
+**P7 — CONFIRMED.** The ~12% floor reproduces on `ladder` (**12.80%**) and does not reproduce on c4
+(**2.54%**), same function, same 55-account denominator. The cause declared *"NOT capture-scoped, and
+this is the one that binds"* is precisely the one that moved when the capture changed; the cause
+declared capture-scoped is the one that survived. Filed as
+`SEAT_FINDING_THE_2022_CAUSE_DECLARED_NOT_CAPTURE_SCOPED_IS_THE_ONE_THAT_MOVED_2026-09-02.md`.
+The registered consequence is honoured: **no entry in `UNFITTED_YEARS` was edited by this stretch.**
+
+## The result, on the surface rather than in a footnote
+
+**The live seven-year block is inside its published band in ONE year of eight** on the record's own
+denominator (2024). Six sit below, one above. Three documents said the anchor was band-held in no
+year and that a re-capture was the discharge; the re-capture has run and **the answer is that it is
+still not band-verified** — but for the first time the whole-book column is readable, so this is now
+a measured "no" rather than a "we cannot tell".
+
+## Constraints, discharged by reading the artefact and not by recalling my own behaviour
+
+```
+$ git status --porcelain simulation/ docs/reports/
+?? docs/reports/c4_whole_book_departure_factors.json
+?? docs/reports/c4_whole_book_departure_factors_svt_segment_decisions.json
+$ git diff --stat simulation/ docs/reports/
+(empty)
+```
+
+1. **CONFIRMED** — `simulation/` is untouched; `git diff` over it is empty, so no value in
+   `YEAR_LEVEL_ANCHOR` or `UNFITTED_YEARS` moved.
+2. **CONFIRMED** — the only entries under `docs/reports/` are `??` (new, untracked). No tracked
+   capture is modified, so nothing was overwritten in place.
+3. **CONFIRMED** — no marker file is in the diff at all; both strict `xfail`s stand unedited.
+4. **CONFIRMED** — the run was from a clean `git archive HEAD` stem, so every producer it used is by
+   construction committed. Recorded explicitly because the stem has no `.git` and the run logged
+   `fatal: not a git repository` from an import-chain hook: the stem rev is `19e68169b`, captured
+   before extraction, and the per-row `sim_level_anchor` provenance is intact (P5).
