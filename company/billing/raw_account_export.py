@@ -78,6 +78,17 @@ GBP_COMPUTED = "GBP_COMPUTED"
 
 RAW_UNITS = (MEASURED, CONTRACTED, MOVED, IDENTIFIER, EVENT)
 
+#: The read_type of an OPENING reading. It is the previous period's CLOSING reading rather than a
+#: separate visit, so this bill's `read_type` is not its type -- claiming it would attribute an
+#: actual read to an estimated period, or the reverse.
+CARRIED_FORWARD = "carried_forward"
+
+#: How a period's volume can be established from what is exported. Declared per period so a
+#: reconstruction never has to infer whether it may subtract two readings.
+VOLUME_FROM_READS = "reads"                 # two readings exported; the validator subtracts
+VOLUME_CONSUMPTION_ONLY = "consumption_only"  # no usable readings; our volume is all there is
+VOLUME_UNAVAILABLE = "unavailable"          # neither; the period cannot be reconstructed at all
+
 #: EVERY field this export may contain, with its unit and why it is raw. A field absent from here
 #: is refused by `derived_leaks` whatever it is called.
 FIELDS: dict[str, tuple[str, str]] = {
@@ -93,7 +104,11 @@ FIELDS: dict[str, tuple[str, str]] = {
     "register_id": (IDENTIFIER, "which register on the meter"),
     "register_label": (EVENT, "what the register is called on the bill (Anytime, Night)"),
     "read_kwh": (MEASURED, "what the register said"),
-    "read_type": (EVENT, "actual, estimated, customer or deemed — how the read was obtained"),
+    "read_type": (EVENT, "actual, estimated, customer or deemed — how the read was obtained; "
+                         "or carried_forward, meaning it is the previous period's closing read"),
+    "volume_basis": (EVENT, "whether this period's volume can be established from exported "
+                            "readings, or only from the figure we computed — a fact about what "
+                            "was observable, not a quantity"),
     # the period the reads bound
     "period_start": (MEASURED, "first day the account was supplied in this period"),
     "period_end": (MEASURED, "last day the account was supplied in this period"),
@@ -151,29 +166,66 @@ def derived_leaks(record: dict, path: str = "") -> list[str]:
 
 
 def _reads_from_invoice(inv: dict) -> list[dict]:
-    """The meter reads an invoice was built from — the raw facts inside a derived document.
+    """The two register READINGS that bound this period — the raw facts inside a derived document.
 
     THE INVOICE IS NOT EXPORTED, and that is the brief's own correction: *"no bill, because a bill
-    IS the calculation."* What is taken from it is only what the WORLD put there — the reads, their
-    type, the period they bound — never a figure the biller produced.
+    IS the calculation."* What is taken from it is only what the WORLD put there — the readings,
+    their type, the dates they were taken — never a figure the biller produced.
+
+    ## THE DEFECT THIS REPLACES, FOUND BY BUILDING ITEM 2 (2026-09-02)
+
+    The first version put `consumption_kwh` — 1888.3 for one real period — into `read_kwh`, a field
+    this module DECLARES as *"what the register said"*. The register said 1937.9 and then 3826.2;
+    1888.3 is the subtraction WE performed between them, and neither actual reading was exported
+    at all.
+
+    **A derived number wearing a raw name is the exact failure the unit vocabulary was written to
+    catch, and the unit vocabulary did not catch it** — because the unit was not wrong. Both
+    quantities are MEASURED kWh. Units separate *measured* from *computed*; they do not separate
+    one measured quantity from another, and nothing here stopped a volume being filed as an index.
+    Stated so the next reader does not over-trust the check: `derived_leaks` is a floor, not a
+    guarantee of meaning.
+
+    It also mattered: a validator handed a volume cannot compute a volume. Exporting both readings
+    makes consumption RECONSTRUCTIBLE instead of handed over, which is the difference between
+    checking our arithmetic and being told the answer.
+
+    Verified before changing anything, across the whole book: `closing_read_kwh - opening_read_kwh`
+    equals `consumption_kwh` on **11,549 of 11,549** bills, so the readings are genuine cumulative
+    indices and not a second derived pair.
+
+    ## MULTI-REGISTER METERS: SAY SO RATHER THAN GUESS
+
+    The readings are recorded per INVOICE and the registers per BILL LINE, so with more than one
+    register there is no way to say which reading belongs to which. Today every one of the 11,549
+    bills is single-register — but keying to that is keying to today's answer, so an unattributable
+    case returns NO reads and the period declares `volume_basis: "unattributable"`. A guess here
+    would be a fabricated meter reading, which is worse than an absent one.
     """
-    reads = []
-    for reg in inv.get("registers") or [{}]:
-        reads.append({
-            "register_id": reg.get("register_id", "1"),
-            "register_label": reg.get("label", "Anytime"),
-            "read_date": inv.get("period_end"),
-            "read_kwh": reg.get("consumption_kwh", inv.get("consumption_kwh")),
-            "read_type": inv.get("read_type", "U"),
-        })
-    return reads
+    registers = inv.get("registers") or [{}]
+    opening, closing = inv.get("opening_read_kwh"), inv.get("closing_read_kwh")
+    if len(registers) != 1 or opening is None or closing is None:
+        return []
+    reg = registers[0]
+    ident = {"register_id": reg.get("register_id", "1"),
+             "register_label": reg.get("label", "Anytime")}
+    return [
+        # The opening reading is the PREVIOUS period's closing reading, not a separate visit. Its
+        # type is that period's, not this one's, so claiming this bill's `read_type` for it would
+        # attribute an actual read to an estimated period (or the reverse).
+        dict(ident, read_date=inv.get("period_start"), read_kwh=opening,
+             read_type=CARRIED_FORWARD),
+        dict(ident, read_date=inv.get("period_end"), read_kwh=closing,
+             read_type=inv.get("read_type", "U")),
+    ]
 
 
 def raw_account(customer_id: str, record: dict) -> dict:
     """One account's raw facts, from its ledger record. Never carries a computed amount."""
     periods = []
     for inv in record.get("invoices") or []:
-        periods.append({
+        reads = _reads_from_invoice(inv)
+        period = {
             "period_start": inv.get("period_start"),
             "period_end": inv.get("period_end"),
             "days_in_period": inv.get("days_in_period"),
@@ -181,11 +233,26 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "mpan": inv.get("mpan"),
             "mprn": inv.get("mprn"),
             "meter_serial": inv.get("meter_serial"),
-            "consumption_kwh": inv.get("consumption_kwh"),
             "unit_rate_p_per_kwh": inv.get("unit_rate_p_per_kwh"),
             "standing_charge_gbp_per_day": inv.get("standing_charge_gbp_per_day"),
-            "reads": _reads_from_invoice(inv),
-        })
+            "reads": reads,
+        }
+        # OUR VOLUME IS EXPORTED ONLY WHEN THE READINGS CANNOT PRODUCE IT. Where both readings are
+        # there, `consumption_kwh` is a subtraction WE did, and handing it over alongside the two
+        # numbers it came from lets a reconstruction take the shortcut and agree with us for no
+        # reason. Withholding it is what makes the volume genuinely recomputed.
+        #
+        # Where the readings are NOT there, our figure is the only thing anyone has, and refusing
+        # to export it would not make the period more validated -- it would make it invisible. So
+        # it goes, with `volume_basis` saying exactly which of the two situations this is.
+        if reads:
+            period["volume_basis"] = VOLUME_FROM_READS
+        elif inv.get("consumption_kwh") is not None:
+            period["volume_basis"] = VOLUME_CONSUMPTION_ONLY
+            period["consumption_kwh"] = inv.get("consumption_kwh")
+        else:
+            period["volume_basis"] = VOLUME_UNAVAILABLE
+        periods.append(period)
     payments = [{
         "payment_date": p.get("date") or p.get("payment_date"),
         "payment_amount_gbp": p.get("amount_gbp") or p.get("amount"),
