@@ -216,3 +216,60 @@ def test_the_census_puts_pytest_temp_on_real_disk_not_the_tmpfs():
     assert 'env.setdefault("TMPDIR"' in src
     assert "HEAD_CHECKOUT_ROOT" in src, "it must land where the subject already does, not /tmp"
     assert "env=env" in src, "setting it without passing it would be the same defect one line down"
+
+
+def test_the_suite_timeout_fires_before_systemd_kills_the_unit():
+    """A CONTROL WHOSE WHOLE PURPOSE IS TO NOTICE MUST NOT FAIL SILENTLY.
+
+    Measured 2026-09-02: the nightly run took 58:57 against a 3600s `TimeoutStartSec` — 1.7%
+    margin — and the suite's own timeout was ALSO 3600, so it could never fire first. systemd
+    SIGTERMs the unit at the same instant and the census produces no verdict at all. A
+    reproduction run under ordinary contention hit exactly that and died with nothing to show.
+
+    MUTATION: set `SUITE_TIMEOUT_SECONDS = 3600` and this fails.
+    """
+    from tools import head_green_census as census
+
+    unit = Path("background/head-green-census.service").read_text()
+    systemd_limit = int(next(ln for ln in unit.splitlines()
+                             if ln.startswith("TimeoutStartSec=")).split("=", 1)[1])
+    assert census.SUITE_TIMEOUT_SECONDS < systemd_limit, (
+        "the suite's own timeout must fire FIRST, or the unit is killed before the census can "
+        "say it could not measure"
+    )
+    assert systemd_limit - census.SUITE_TIMEOUT_SECONDS >= 240, (
+        "leave real room for the checkout, the teardown and the report"
+    )
+
+
+def test_a_timed_out_run_reports_unproven_and_discards_its_partial_output():
+    """`TimeoutExpired` carries whatever pytest had printed, and it contains real `FAILED` lines.
+    Returning it would publish a PARTIAL red list as the complete one — which, through the
+    register, marks every unreached red as FIXED. An outage booked as progress.
+
+    MUTATION: return the partial output and this fails.
+    """
+    import contextlib
+    import subprocess as sp
+
+    from tools import head_green_census as census
+
+    partial = "FAILED tests/a.py::one\nFAILED tests/b.py::two\n"
+
+    def _timeout(*a, **k):
+        raise sp.TimeoutExpired(cmd="pytest", timeout=1, output=partial)
+
+    @contextlib.contextmanager
+    def _subject():
+        yield Path("/nonexistent-subject")
+
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr(census, "head_subject_checkout", _subject)
+        m.setattr(census.subprocess, "run", _timeout)
+        out = census.run_suite(timeout=1)
+
+    assert out == "", "the partial FAILED lines must not escape as a complete red list"
+    assert census.parse_failures(out) == []
+    # and the fail-safe downstream reads that as UNPROVEN, never as green
+    assert census.verdict({"new_red": [], "still_red": [], "fixed": []},
+                          census.parse_passed_count(out))[0] == "UNPROVEN"

@@ -264,7 +264,24 @@ def head_subject_checkout():
         shutil.rmtree(str(tmp), ignore_errors=True)
 
 
-def run_suite(timeout: int = 3600) -> str:
+#: THE SUITE'S OWN TIMEOUT, and it must be COMFORTABLY LESS than systemd's `TimeoutStartSec`.
+#:
+#: MEASURED 2026-09-02: the nightly run took **58:57** against a 3600s unit limit — sixty-three
+#: seconds of margin, 1.7%. And this timeout was ALSO 3600, so it could never fire first: systemd
+#: SIGTERMs the whole unit at the same instant, which kills the census before
+#: `subprocess.TimeoutExpired` can be caught and reported. A slow night therefore produced no
+#: verdict at all, and no verdict is SILENT — the one failure mode this control cannot afford,
+#: because its whole purpose is to be the thing that notices.
+#:
+#: Observed directly: a reproduction run under ordinary contention hit exactly this and died
+#: with nothing to show for an hour of CPU.
+#:
+#: 3300s leaves five minutes for the checkout, the teardown and the report, so the suite's own
+#: timeout fires first and the census says UNPROVEN instead of vanishing.
+SUITE_TIMEOUT_SECONDS = 3300
+
+
+def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS) -> str:
     """Run the unscoped suite against a clean checkout of HEAD.
 
     Returns the run's output, or "" when no subject could be built -- and "" carries no pytest
@@ -294,8 +311,24 @@ def run_suite(timeout: int = 3600) -> str:
         # grew 1.67GB -> 3.36GB in one hour under three concurrent runs.
         env = dict(os.environ)
         env.setdefault("TMPDIR", str(prc.HEAD_CHECKOUT_ROOT))
-        proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
-                              capture_output=True, text=True, timeout=timeout)
+        try:
+            proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
+                                  capture_output=True, text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # "" CARRIES NO PYTEST SUMMARY, so `verdict()` reads it as UNPROVEN through the
+            # fail-safe that already exists, and `_record_observation` writes nothing — an
+            # incomplete run must never mark standing reds as fixed.
+            #
+            # THE PARTIAL OUTPUT IS DELIBERATELY DISCARDED. `TimeoutExpired` carries whatever
+            # pytest had printed, and it contains real `FAILED` lines; returning it would publish
+            # a PARTIAL red list as if it were the complete one, which is a worse answer than
+            # "could not measure".
+            sys.stderr.write(
+                "[head-green-census] the suite did not finish inside {}s -- UNPROVEN. Partial "
+                "output discarded: an incomplete failure list reported as complete would mark "
+                "every unreached red as fixed.\n".format(timeout))
+            sys.stderr.flush()
+            return ""
         return (proc.stdout or "") + (proc.stderr or "")
 
 

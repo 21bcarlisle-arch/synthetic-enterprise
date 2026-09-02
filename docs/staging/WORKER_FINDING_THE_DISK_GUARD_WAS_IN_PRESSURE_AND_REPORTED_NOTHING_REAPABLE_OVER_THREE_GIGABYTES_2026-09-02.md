@@ -96,10 +96,35 @@ say they were dead and not why the reaper spared them, and the `.git` explanatio
 the two I could still inspect. Snapshot the control's verdict, not just the symptom, before clearing
 the subject.
 
+## And the reproduction failed, which established something else
+
+The census re-run I started to pin the errno **timed out at 3600s** and produced nothing. That is
+its own finding:
+
+    last night's real run:  58:57 wall clock
+    systemd TimeoutStartSec: 3600s
+    margin:                  63 seconds — 1.7%
+
+And `run_suite`'s own timeout was **also 3600**, so it could never fire first: systemd SIGTERMs the
+unit at the same instant, killing the census before `subprocess.TimeoutExpired` can be caught. A
+slow night therefore produces **no verdict at all**, and no verdict is silent — the one failure mode
+a control whose whole purpose is to notice cannot afford.
+
+Fixed: the suite's timeout is 3300s, five minutes inside systemd's, so a run that overruns says
+UNPROVEN instead of vanishing. Its partial output is deliberately discarded — `TimeoutExpired`
+carries real `FAILED` lines, and publishing a partial red list as the complete one would, through
+the register, mark every unreached red as FIXED. An outage booked as progress.
+
+**So the errno behind the 760 `OSError`s is still an inference and is labelled as one.** It is now
+also not reproducible on demand: relieving the pressure was the right call for the box and it
+removed the condition. The real test is tonight's scheduled census, with `TMPDIR` on real disk — and
+the register will record the answer either way, which is the point of having built it.
+
 ## What this finding does not claim
 
 Not that `disk_headroom` is badly built — its positive-only identification, its in-use check, its
 TTLs and its stated failure direction are all right, and the self-heal was added for exactly this
 situation. Not that the tmpfs is misconfigured. And **not that the errno behind the 760 `OSError`s
-is proven**: the mechanism is established and the shape reproduced, but a full census re-run is
-still in flight and the specific errno remains an inference.
+is proven**: the mechanism is established and the shape reproduced, and the re-run that would have
+settled it timed out. The specific errno remains an inference and is written as one everywhere it
+appears.
