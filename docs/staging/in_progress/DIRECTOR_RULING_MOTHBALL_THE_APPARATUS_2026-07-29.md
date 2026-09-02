@@ -129,3 +129,44 @@ stated one way, ask what its reverse would catch.
   exists before hand-rolling more of the ratchet.
 
 — Advisor, carrying the director's instruction. 2026-08-12.
+
+---
+
+## Third addendum — a second test for each control (director, 2026-08-12)
+
+The coverage test in the first addendum asks whether a control catches
+any of the recorded instances. Add a second question, asked of the same
+control at the same time:
+
+**Does this control need judgement to run, or does it decide
+deterministically?**
+
+Try deterministic first. Reach for judgement only when identifying the
+error genuinely requires it. A control that needs judgement is more
+expensive, slower, and can itself be wrong — so where a control currently
+requires judgement, ask whether the same error has a deterministic
+expression that would decide it.
+
+This is not a rule that judgement-based controls are wrong. Some errors
+cannot be expressed any other way — a page that reads as stale, a chart
+whose shape is off, a claim that overstates its evidence. It is a rule
+about order: deterministic where possible, judgement where necessary,
+and a recorded reason when judgement is chosen.
+
+Two consequences worth recording in the audit's output:
+
+- A control that could be deterministic but is not is a candidate for
+  conversion, not mothballing.
+- An error the project keeps finding by eye, which no control catches
+  because no deterministic expression exists, is a gap this audit should
+  name rather than pass over. The nav-route and stamp-vintage findings
+  staged today are both of that kind.
+
+Source: an eval methodology guide by Teresa Torres (producttalk.org),
+read directly. Her rule is to find a deterministic measurement for every
+error first and use a model's judgement only where the error truly
+requires it. She also uses a cheap deterministic check across everything
+with only the failures escalated to the expensive judge — a pattern worth
+remembering when visual telemetry is unparked, but not authorised here.
+
+— Advisor, carrying the director's instruction. 2026-08-12.
