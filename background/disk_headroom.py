@@ -65,6 +65,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -221,6 +222,44 @@ def _is_repo_copy(path: Path) -> bool:
         return False
 
 
+def _git_dir_may_hold_work(git_path: Path) -> bool:
+    """Could this `.git` hold a commit or an edit that exists nowhere else? FAIL-CLOSED: yes.
+
+    THE EXCLUSION IS RIGHT AND WAS UNCHECKED (2026-09-02). `repo_copy_scratch` skipped any
+    directory containing `.git`, on the stated ground that *"a registered worktree, a clone, or a
+    gate checkout can hold committed branches or uncommitted edits that exist nowhere else"*. That
+    reason is sound; nothing ever tested whether it was TRUE of the directory in front of it.
+
+    MEASURED: `/tmp/hc2` — 232 MB, 40 hours old, `.git` present, **zero refs and no HEAD**. An
+    empty `.git` directory made 232 MB immortal, and the module reported *"nothing reapable (all
+    scratch in use or within TTL)"* while `/tmp` sat at 89% of a 12 GB tmpfs and the box's largest
+    red of the month was an environmental failure on that filesystem.
+
+    A control that fires correctly and does nothing is the same family as one that cannot fire.
+
+    SO THE REASON IS EVALUATED RATHER THAN ASSUMED, and only in the one direction that is safe:
+    a `.git` with NO refs and NO resolvable HEAD holds nothing, so it cannot be the thing the
+    exclusion protects. Every other outcome — refs present, HEAD resolves, git unavailable, the
+    call raises, a `.git` FILE rather than a directory (a linked worktree, whose real gitdir is
+    elsewhere and whose work this reaper must never pre-empt) — keeps the directory. The failure
+    direction is unchanged: uncertainty spares.
+    """
+    if not git_path.exists():
+        return False
+    if not git_path.is_dir():
+        return True            # a `.git` FILE is a linked worktree pointer -- never our business
+    try:
+        refs = subprocess.run(["git", "--git-dir", str(git_path), "for-each-ref", "--count=1"],
+                              capture_output=True, text=True, timeout=15)
+        head = subprocess.run(["git", "--git-dir", str(git_path), "rev-parse", "--verify", "HEAD"],
+                              capture_output=True, text=True, timeout=15)
+    except Exception:  # noqa: BLE001 -- ANY failure to ask means we did not establish emptiness,
+        return True    # and a probe that crashed the reaper would be worse than one that spared
+    if refs.returncode != 0:
+        return True            # not a readable repository -> assume it holds work
+    return bool(refs.stdout.strip()) or bool(head.stdout.strip())
+
+
 def repo_copy_scratch(now: float | None = None,
                       roots: tuple[Path, ...] = REAP_ROOTS,
                       project_dir: Path = PROJECT_DIR) -> list[dict]:
@@ -266,7 +305,7 @@ def repo_copy_scratch(now: float | None = None,
                 continue
             if resolved == project or resolved in project.parents or project in resolved.parents:
                 continue
-            if (path / ".git").exists():
+            if _git_dir_may_hold_work(path / ".git"):
                 continue
             if not _is_repo_copy(path):
                 continue

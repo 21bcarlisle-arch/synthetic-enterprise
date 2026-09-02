@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -271,10 +272,29 @@ def run_suite(timeout: int = 3600) -> str:
     expressed through the existing fail-safe rather than through a new branch that could be
     got wrong.
     """
+    from background import process_run_complete as prc
     with head_subject_checkout() as subject:
         if subject is None:
             return ""
-        proc = subprocess.run(pytest_argv(), cwd=str(subject),
+        # PYTEST'S TEMP ROOTS GO ON REAL DISK, not on the tmpfs (2026-09-02).
+        #
+        # This function already puts its SUBJECT on `/var/tmp` and says why: *"on this box `/tmp`
+        # is a tmpfs -- a ~130MB / 10,432-file checkout there is RAM"*. The same argument applies
+        # with more force to pytest's own scratch, and nothing was making it: `tmp_path` resolves
+        # under `tempfile.gettempdir()`, which is `/tmp`, so an unscoped run of ~24,000 tests wrote
+        # its every temp directory into RAM.
+        #
+        # AND THIS DIRECTORY IS WHERE IT LANDS HARDEST. `tests/background/conftest.py` has four
+        # autouse fixtures and every one takes `tmp_path`, so every test there allocates one
+        # unconditionally -- which is why 820 of the 830 reds on 2026-09-02 were in that one
+        # directory, all failing at fixture SETUP. A whole directory dying on an environmental
+        # limit reads, in the census's own message, as 820 defects.
+        #
+        # Measured the same morning: `/tmp` is a 12GB tmpfs on a 24GB box, and `pytest-of-rich`
+        # grew 1.67GB -> 3.36GB in one hour under three concurrent runs.
+        env = dict(os.environ)
+        env.setdefault("TMPDIR", str(prc.HEAD_CHECKOUT_ROOT))
+        proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
                               capture_output=True, text=True, timeout=timeout)
         return (proc.stdout or "") + (proc.stderr or "")
 
