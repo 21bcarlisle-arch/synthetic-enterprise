@@ -213,3 +213,55 @@ merged, and widened by one the fork I had just finished proving was the whole re
 `docs/staging/done/SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md`,
 corrected in `59d70e9a1` to *"the behind-origin check exists and is unreachable, which is worse"*.
 That is a different defect from this one and is not discharged here.
+
+## 7. THE CLAUSE IS NOW GRADED, AND IT REFUTES ME: closing the fork did not publish
+
+§6a left one clause open and pre-registered its reading. **It is graded, and the answer is no.**
+
+```
+.last_content_publish.json   ts = 04:44:07Z    UNMOVED
+.last_publish_cause.json     18:47:33Z  cause = gate_refusal   git_hash = 6c44b2109
+```
+
+**"The wedge's remaining cause is the FORK ALONE" is REFUTED.** I am recording that beside the
+prediction rather than softening the prediction, because that is the only thing that makes §6's
+pre-registration worth anything.
+
+**What the fork's closure did buy, stated so the refutation is not overstated:** the 18:45 cycle got
+*further than any cycle since 07:13*. `behind_origin` never fired again — the run passed provenance,
+reached `Committing and pushing (net=£149,156)`, and died at the pre-commit chain instead. The fork
+was a real cause and it is gone. It was not the *last* one.
+
+### The next gate, named from its own output rather than guessed
+
+Not a red test. The log is explicit that this must not be read as one:
+
+> Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output — recording NO
+> blocking test. The refusal was a non-test gate.
+
+It is **`tools/level_promotion_gate.py`**, on the rule that a level move must be BUILT in the commit
+that declares it (`WORKER_FINDING_A_LEVEL_CAN_BE_DECLARED_FOR_UNCOMMITTED_CODE_2026-08-10`):
+
+> `[level-gate] ❌ COMMIT REFUSED (a level move must be BUILT in the commit that declares it)` —
+> declares a level for source this commit does NOT contain: `company/billing/raw_account_export.py`,
+> `company/billing/statement_export.py`, `simulation/dd_balance_book.py`,
+> `tests/simulation/test_dd_balance_book.py`
+
+**Measured rather than inferred.** All four files exist on `origin/main`, so the gate is not asking
+for missing code — it is refusing the shared tree's *uncommitted edits* to them. Shared-tree status:
+`raw_account_export.py` modified-unstaged, `dd_balance_book.py` and `test_dd_balance_book.py`
+modified-STAGED, `statement_export.py` untracked only because the shared tree has not yet taken
+`e853fd051`. Beside them sits a **staged `level_current: 0 → 1`** in `docs/design/maturity_map.yaml`.
+
+**So the gate is right and the tree is wrong.** A level staged in the shared map, with its
+`file_scope` sources edited but not landing, refuses *every* lane's publish — not just the lane that
+staged it. This is the `publish_gate_and_wedge` class again, third instance today, and it is the
+"a level staged in the SHARED map wedges every lane" shape exactly.
+
+**It is not mine to land.** Those paths are the DD payload, explicitly held out of this lane's
+pathspec. The repair is for the DD lane to land its own payload together with the level move, in one
+commit, per the gate's own instruction — or to take the level move back out of the map.
+
+**Do not read the fork's closure as the wedge lifting.** Clearing one publish-wedge cause reveals
+the next gate; it does not produce a green publish, and `.last_content_publish.json` remains the
+only reading that settles it.
