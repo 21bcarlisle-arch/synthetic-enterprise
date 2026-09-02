@@ -3,7 +3,7 @@ import pytest
 from company.crm.service_quality_monitor import (
     ServiceQualityMonitor, ServiceQualityRAG, ServiceQualitySnapshot,
     _CLARITY_AMBER, _CLARITY_RED, _COMPLAINT_AMBER, _COMPLAINT_RED,
-    _BILL_SHOCK_AMBER, _BILL_SHOCK_RED,
+    _BILL_SHOCK_AMBER_PCT, _BILL_SHOCK_RED_PCT,
 )
 
 
@@ -11,45 +11,45 @@ def _mon_with_data():
     mon = ServiceQualityMonitor()
     # Good year
     mon.record(2020, avg_clarity=0.850, avg_complaint_probability=0.040,
-               avg_bill_shock_pct=0.15, bills_count=200, shock_event_count=30)
+               avg_bill_shock_pct=15.0, bills_count=200, shock_event_count=30)
     # Crisis year (RED)
     mon.record(2022, avg_clarity=0.791, avg_complaint_probability=0.056,
-               avg_bill_shock_pct=0.34, bills_count=148, shock_event_count=61)
+               avg_bill_shock_pct=34.0, bills_count=148, shock_event_count=61)
     # Recovery (AMBER)
     mon.record(2023, avg_clarity=0.808, avg_complaint_probability=0.048,
-               avg_bill_shock_pct=0.17, bills_count=144, shock_event_count=42)
+               avg_bill_shock_pct=17.0, bills_count=144, shock_event_count=42)
     return mon
 
 
 # 1. Clarity GREEN above threshold
 def test_clarity_rag_green():
-    snap = ServiceQualitySnapshot(2020, 0.850, 0.040, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2020, 0.850, 0.040, 15.0, 200, 30)
     assert snap.clarity_rag == ServiceQualityRAG.GREEN
 
 
 # 2. Clarity RED below threshold
 def test_clarity_rag_red():
-    snap = ServiceQualitySnapshot(2022, 0.791, 0.040, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2022, 0.791, 0.040, 15.0, 200, 30)
     assert snap.clarity_rag == ServiceQualityRAG.RED
 
 
 # 3. Complaint GREEN when below amber threshold
 def test_complaint_rag_green():
-    snap = ServiceQualitySnapshot(2020, 0.850, 0.040, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2020, 0.850, 0.040, 15.0, 200, 30)
     assert snap.complaint_rag == ServiceQualityRAG.GREEN
 
 
 # 4. Complaint RED when at or above red threshold
 def test_complaint_rag_red():
-    snap = ServiceQualitySnapshot(2022, 0.791, 0.060, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2022, 0.791, 0.060, 15.0, 200, 30)
     assert snap.complaint_rag == ServiceQualityRAG.RED
 
 
 # 5. Bill shock GREEN/AMBER/RED bands
 def test_bill_shock_rag_bands():
-    green = ServiceQualitySnapshot(2020, 0.85, 0.04, 0.10, 200, 20)
-    amber = ServiceQualitySnapshot(2021, 0.85, 0.04, 0.25, 200, 50)
-    red = ServiceQualitySnapshot(2022, 0.85, 0.04, 0.35, 200, 70)
+    green = ServiceQualitySnapshot(2020, 0.85, 0.04, 10.0, 200, 20)
+    amber = ServiceQualitySnapshot(2021, 0.85, 0.04, 25.0, 200, 50)
+    red = ServiceQualitySnapshot(2022, 0.85, 0.04, 35.0, 200, 70)
     assert green.bill_shock_rag == ServiceQualityRAG.GREEN
     assert amber.bill_shock_rag == ServiceQualityRAG.AMBER
     assert red.bill_shock_rag == ServiceQualityRAG.RED
@@ -57,22 +57,25 @@ def test_bill_shock_rag_bands():
 
 # 6. Overall RAG: any RED dimension = RED overall
 def test_overall_rag_red_if_any_red():
-    snap = ServiceQualitySnapshot(2022, 0.791, 0.040, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2022, 0.791, 0.040, 15.0, 200, 30)
     # clarity is RED, so overall is RED
     assert snap.overall_rag == ServiceQualityRAG.RED
 
 
 # 7. Shock rate pct calculation
 def test_shock_rate_pct():
-    snap = ServiceQualitySnapshot(2022, 0.80, 0.050, 0.20, 148, 61)
+    snap = ServiceQualitySnapshot(2022, 0.80, 0.050, 20.0, 148, 61)
     expected = 61 / 148 * 100
     assert abs(snap.shock_rate_pct - expected) < 0.01
 
 
-# 8. Shock rate pct zero when no bills
-def test_shock_rate_zero_bills():
-    snap = ServiceQualitySnapshot(2020, 0.85, 0.04, 0.10, 0, 0)
-    assert snap.shock_rate_pct == 0.0
+# 8. Shock rate is NOT MEASURED when there were no bills.
+# This asserted `== 0.0` until 2026-09-02, which pinned the defect: a book with no bills
+# published an incidence of nought -- "no household had a shock" -- from a year where
+# incidence was not measurable at all.
+def test_shock_rate_none_when_no_bills():
+    snap = ServiceQualitySnapshot(2020, 0.85, 0.04, 10.0, 0, 0)
+    assert snap.shock_rate_pct is None
 
 
 # 9. Red years correctly identified
@@ -108,22 +111,22 @@ def test_quality_summary():
 # --- Phase LT depth tests ---
 
 def test_year_stored():
-    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 100, 15)
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 15.0, 100, 15)
     assert snap.year == 2023
 
 
 def test_avg_clarity_stored():
-    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 100, 15)
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 15.0, 100, 15)
     assert snap.avg_clarity == pytest.approx(0.85)
 
 
 def test_bills_count_stored():
-    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 15.0, 200, 30)
     assert snap.bills_count == 200
 
 
 def test_shock_event_count_stored():
-    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 0.15, 200, 30)
+    snap = ServiceQualitySnapshot(2023, 0.85, 0.04, 15.0, 200, 30)
     assert snap.shock_event_count == 30
 
 
@@ -136,12 +139,12 @@ def test_complaint_amber_constant():
 
 
 def test_bill_shock_amber_constant():
-    assert _BILL_SHOCK_AMBER == pytest.approx(0.2)
+    assert _BILL_SHOCK_AMBER_PCT == pytest.approx(20.0)
 
 
 def test_record_returns_snapshot():
     mon = ServiceQualityMonitor()
-    result = mon.record(2022, 0.85, 0.04, 0.15, 100, 15)
+    result = mon.record(2022, 0.85, 0.04, 15.0, 100, 15)
     assert isinstance(result, ServiceQualitySnapshot)
 
 
@@ -151,5 +154,5 @@ def test_get_returns_none_unknown():
 
 
 def test_shock_rate_pct_computed():
-    snap = ServiceQualitySnapshot(2022, 0.85, 0.04, 0.15, 200, 40)
+    snap = ServiceQualitySnapshot(2022, 0.85, 0.04, 15.0, 200, 40)
     assert snap.shock_rate_pct == pytest.approx(20.0)

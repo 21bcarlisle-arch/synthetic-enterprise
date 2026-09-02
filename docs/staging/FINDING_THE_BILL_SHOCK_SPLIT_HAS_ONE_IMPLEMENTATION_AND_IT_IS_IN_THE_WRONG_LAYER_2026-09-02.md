@@ -88,3 +88,53 @@ Make `avg_bill_shock_pct: Optional[float]`, have `bill_shock_rag` return a fourt
 `docs/domain_artefact_library/` or restate them in the docstring as this project's own working
 thresholds with the "Confirmed: no" citation beside them — the way
 `annual_report._SHOCK_BAND_ATTRIBUTION` now does.
+
+---
+
+## DISCHARGED 2026-09-02 — the SECOND finding only. The first is still open.
+
+**The second finding is repaired**, in the same tree, by the delivery seat that filed it. Every
+item on its "The repair" list above landed, plus two the list did not name:
+
+* `avg_bill_shock_pct` is `Optional[float]`, and the field carries what `None` means.
+* `bill_shock_rag` returns a fourth `ServiceQualityRAG.NOT_MEASURED` rather than GREEN.
+* `overall_rag` propagates it, ordered **RED > NOT_MEASURED > AMBER > GREEN**. An unmeasured leg
+  outranks AMBER because the verdict it would have produced could have been RED; it does not
+  outrank RED, because demoting a known RED to "cannot tell" loses information rather than
+  failing closed.
+* `worst_bill_shock_year` skips unmeasured years instead of raising `TypeError` on the `max` key.
+* The three bands are restated in the module docstring as this project's own working thresholds,
+  with the "Confirmed: no" citation beside them.
+
+**NOT ON THE LIST, found while doing it, and the reason to follow a thread rather than route
+around it:**
+
+1. **`shock_rate_pct` had the identical fail-open one property away.** `bills_count == 0` returned
+   `0.0` — publishing "no household had a shock" from a book where incidence was not measurable at
+   all. Now `None`. Fixed as a class, not as the one instance the finding happened to name.
+2. **The complaints figure was not merely unsourced — it counted something else.** Ofgem publishes
+   complaints per 100,000 **accounts** (`docs/market_research/satisfaction_drivers_and_the_three_bill_shocks.md`
+   line 215); this module's quantity is a per-**bill** probability. Different denominators. It also
+   never matched the constants it claimed to describe: the docstring said 2.5% while the code bands
+   at 5% and 6%. The clarity figure has no external referent at all — Ofgem publishes no
+   bill-clarity score, so it could not have been a benchmark against anything.
+3. **The units were the same hundredfold trap one layer down.** `_BILL_SHOCK_AMBER = 0.20  # pct`
+   was a FRACTION carrying a `pct` comment, and the sole caller now speaks percentage points — so
+   43.5 passed in would have banded RED for every year forever. Renamed `_BILL_SHOCK_AMBER_PCT` /
+   `_BILL_SHOCK_RED_PCT`, valued 20.0/30.0, and coupled by test to
+   `annual_report._SHOCK_BAND_AMBER_PCT` / `_SHOCK_BAND_RED_PCT` so the two layers cannot drift.
+
+**The control:** `tests/company/crm/test_an_unmeasured_service_quality_leg_is_not_a_green_one.py`,
+keyed to the property and not to today's answer. Mutation-proven against six separate reversions —
+the original `None → GREEN`, the `0.0` incidence, the RAG ordering, the fraction bands, the
+unguarded `max`, and the reinstated Ofgem attribution — each firing a distinct named test, no
+equivalences.
+
+**FOUR assertions in the two existing test files were pinning the defect** and are rewritten in
+place, because "the test changed too" is the sentence that hides a regression: two asserted
+`shock_rate_pct == 0.0` on an empty book, and the band tests passed fractions against constants
+whose comment said percent.
+
+**THE FIRST FINDING — the split's one implementation living in `tools/generate_dashboard_data.py`
+— IS UNTOUCHED AND STILL OPEN.** It needs the dashboard generator in its pathspec to re-point its
+own call site, which this change did not have either.

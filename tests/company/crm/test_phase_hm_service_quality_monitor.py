@@ -4,8 +4,8 @@ from company.crm.service_quality_monitor import (
     ServiceQualityMonitor,
     ServiceQualityRAG,
     ServiceQualitySnapshot,
-    _BILL_SHOCK_AMBER,
-    _BILL_SHOCK_RED,
+    _BILL_SHOCK_AMBER_PCT,
+    _BILL_SHOCK_RED_PCT,
     _CLARITY_AMBER,
     _CLARITY_RED,
     _COMPLAINT_AMBER,
@@ -13,7 +13,7 @@ from company.crm.service_quality_monitor import (
 )
 
 
-def _snap(year, clarity=0.90, complaint=0.02, shock=0.10, bills=100, shock_n=10):
+def _snap(year, clarity=0.90, complaint=0.02, shock=10.0, bills=100, shock_n=10):
     mon = ServiceQualityMonitor()
     return mon.record(year, clarity, complaint, shock, bills, shock_n)
 
@@ -44,49 +44,50 @@ class TestServiceQualitySnapshot:
         assert s.complaint_rag == ServiceQualityRAG.RED
 
     def test_bill_shock_rag_green(self):
-        s = _snap(2024, shock=0.05)
+        s = _snap(2024, shock=5.0)
         assert s.bill_shock_rag == ServiceQualityRAG.GREEN
 
     def test_bill_shock_rag_amber(self):
-        s = _snap(2024, shock=_BILL_SHOCK_AMBER + 0.01)
+        s = _snap(2024, shock=_BILL_SHOCK_AMBER_PCT + 0.01)
         assert s.bill_shock_rag == ServiceQualityRAG.AMBER
 
     def test_bill_shock_rag_red(self):
-        s = _snap(2024, shock=_BILL_SHOCK_RED + 0.05)
+        s = _snap(2024, shock=_BILL_SHOCK_RED_PCT + 0.05)
         assert s.bill_shock_rag == ServiceQualityRAG.RED
 
     def test_overall_rag_green(self):
-        s = _snap(2024, clarity=0.90, complaint=0.01, shock=0.05)
+        s = _snap(2024, clarity=0.90, complaint=0.01, shock=5.0)
         assert s.overall_rag == ServiceQualityRAG.GREEN
 
     def test_overall_rag_red_from_one_red(self):
-        s = _snap(2024, clarity=0.70, complaint=0.01, shock=0.05)
+        s = _snap(2024, clarity=0.70, complaint=0.01, shock=5.0)
         assert s.overall_rag == ServiceQualityRAG.RED
 
     def test_overall_rag_amber_when_no_red(self):
-        s = _snap(2024, clarity=_CLARITY_RED + 0.005, complaint=0.01, shock=0.05)
+        s = _snap(2024, clarity=_CLARITY_RED + 0.005, complaint=0.01, shock=5.0)
         assert s.overall_rag == ServiceQualityRAG.AMBER
 
     def test_shock_rate_pct(self):
         s = _snap(2024, bills=200, shock_n=10)
         assert s.shock_rate_pct == pytest.approx(5.0)
 
-    def test_shock_rate_pct_zero_bills(self):
+    def test_shock_rate_pct_none_when_no_bills(self):
+        # Was `== 0.0`, which pinned the fail-open: no bills is not an incidence of nought.
         s = _snap(2024, bills=0, shock_n=0)
-        assert s.shock_rate_pct == 0.0
+        assert s.shock_rate_pct is None
 
 
 class TestServiceQualityMonitor:
     def _build(self):
         mon = ServiceQualityMonitor()
-        mon.record(2022, 0.78, 0.08, 0.35, 300, 105)
-        mon.record(2023, 0.82, 0.04, 0.15, 350, 52)
-        mon.record(2024, 0.88, 0.02, 0.10, 400, 40)
+        mon.record(2022, 0.78, 0.08, 35.0, 300, 105)
+        mon.record(2023, 0.82, 0.04, 15.0, 350, 52)
+        mon.record(2024, 0.88, 0.02, 10.0, 400, 40)
         return mon
 
     def test_record_returns_snapshot(self):
         mon = ServiceQualityMonitor()
-        s = mon.record(2024, 0.90, 0.02, 0.10, 100, 10)
+        s = mon.record(2024, 0.90, 0.02, 10.0, 100, 10)
         assert isinstance(s, ServiceQualitySnapshot)
         assert s.year == 2024
 
@@ -137,13 +138,13 @@ class TestServiceQualityMonitor:
 
     def test_is_improving_false(self):
         mon = ServiceQualityMonitor()
-        mon.record(2023, 0.90, 0.02, 0.10, 100, 10)
-        mon.record(2024, 0.85, 0.02, 0.10, 100, 10)
+        mon.record(2023, 0.90, 0.02, 10.0, 100, 10)
+        mon.record(2024, 0.85, 0.02, 10.0, 100, 10)
         assert mon.is_improving() is False
 
     def test_is_improving_single_year(self):
         mon = ServiceQualityMonitor()
-        mon.record(2024, 0.90, 0.02, 0.10, 100, 10)
+        mon.record(2024, 0.90, 0.02, 10.0, 100, 10)
         assert mon.is_improving() is False
 
     def test_quality_summary_not_empty(self):
@@ -159,8 +160,8 @@ class TestServiceQualityMonitor:
 
     def test_overwrite_year_with_new_record(self):
         mon = ServiceQualityMonitor()
-        mon.record(2024, 0.80, 0.05, 0.20, 100, 20)
-        mon.record(2024, 0.90, 0.02, 0.10, 200, 20)
+        mon.record(2024, 0.80, 0.05, 20.0, 100, 20)
+        mon.record(2024, 0.90, 0.02, 10.0, 200, 20)
         assert mon.get(2024).avg_clarity == pytest.approx(0.90)
         assert len(mon.all_snapshots) == 1
 

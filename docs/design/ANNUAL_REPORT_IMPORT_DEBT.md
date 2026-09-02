@@ -15,11 +15,23 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **86** |
+| Test files importing the report | **87** |
 | ...of which reach into private `_section_*` functions | **82** |
 | `saas/reporting/annual_report.py` | **10854 lines** |
 
-Re-measured 2026-09-02: **86 / 82 / 10,854**. The importer count moved 85 → 86 for one file, and
+Re-measured 2026-09-02 (second time that day): **87 / 82 / 10,854**. The importer count moved
+86 → 87 for one file and the other two did not move at all. The new importer is
+`tests/company/crm/test_an_unmeasured_service_quality_leg_is_not_a_green_one.py`, and it is a
+different shape from every entry below it: it does not render anything and it reaches no
+`_section_*` function — which is why the private-reacher count stayed at 82. It imports exactly
+two module constants, `_SHOCK_BAND_AMBER_PCT` and `_SHOCK_BAND_RED_PCT`, to assert that
+`company/crm/service_quality_monitor.py`'s bands hold the same values in the same units. That
+coupling is the entire point: the two layers band one quantity, they used to disagree about
+whether it was a fraction or a percentage, and a test is the only thing allowed to hold both
+sides at once — the monitor may not import the report, and does not. Debt of this shape is worth
+more than the decoupling would be, and unlike the rows below it costs nothing to rebuild.
+
+Before that, earlier the same day: **86 / 82 / 10,854**. The importer count moved 85 → 86 for one file, and
 it is this record's shape again. `tests/saas/reporting/test_a_rendered_shock_figure_is_in_the_units_of_its_own_percent_sign.py`
 asserts that no bill-shock figure the report renders disagrees with the `%` beside it — the defect
 being that `ANNUAL_REPORT.md` published one stored fraction as both "0.58%" and "57.5%". The
