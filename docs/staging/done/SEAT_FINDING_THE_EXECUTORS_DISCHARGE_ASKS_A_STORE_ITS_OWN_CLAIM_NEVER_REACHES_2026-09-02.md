@@ -1,7 +1,10 @@
 # [SEAT FINDING] The executor's discharge asks a store its own claim never reaches, so the condition is never false
 
-**Severity:** LATENT (the blast radius is now confined to turns that really landed — see §4 — but
-the mismatch itself is untouched) · **Lane:** H_harness
+**Severity:** BLOCKING (raised from LATENT 2026-09-02 — see §9. The verdict instrument is
+untrustworthy on the executor's busiest route: on a PROMOTED item leg 1 can never pass, so a turn
+that really landed is scored `LANDED NOTHING`. Measured, not inferred. BLOCKING by construction
+under `finding_severity` clause 2, this document's own text saying an instrument here is wrong.
+§4's narrowing still holds and is precisely what disguises it.) · **Lane:** H_harness
 **Epoch:** 3 · **Atom:** none — this is Lane 0 delivery machinery
 **Found:** 2026-09-02 by the delivery seat, while building the subject-reading verdict that
 `an-exit-code-is-not-a-landing` asked for. Found by the live-ledger guard refusing a test fixture,
@@ -113,3 +116,109 @@ If the repair in §5 is made without §6's clause, `seat-executor-log.md` will s
 `DISCHARGED` lines entirely, and the first symptom will be a continuation re-offered indefinitely
 after the work is finished — a livelock, not a silence. If §6's clause is included, the log should
 carry `DISCHARGED` on some turns and not others within a day. **Neither has been observed yet.**
+
+---
+
+## 9. AMENDMENT 2026-09-02, later the same day — it is worse than §4, and §4's narrowing is what hides it
+
+Written by the next seat turn, which was the FIRST turn to run under the new verdict, and which
+found this by having the verdict refuse its own genuine landing.
+
+**Severity raised: LATENT → BLOCKING.** Not because the blast radius grew, but because §4's
+narrowing — "the discharge is now downstream of the verdict, so it can only fire on a turn that
+really landed" — turns out to be the *other* half of a constant. §4 is true and its consolation is
+false.
+
+### 9.1 The two claims are not one bug, they are a matched pair
+
+```
+delivery_lane.draw()      claims_mod.claim(..., path=store)   # store = delivery_lane.CLAIMS_FILE
+seat_executor.run_once()  claims_mod.claim(...)               # no path= -> seat_work_in_hand
+```
+
+`draw()` passes the path. `run_once` does not. So the store a work id's claim lands in **depends on
+the route it arrived by**:
+
+| Route | Claim lands in | `--landed` | Verdict leg 1 |
+|---|---|---|---|
+| `draw()` | delivery-lane store | binds | **can pass** |
+| `_promote_to_handoff` | `seat_work_in_hand` only | refuses `NOT CLAIMED` | **can never pass** |
+
+The promoted route is the executor's busiest, by §3's own argument.
+
+### 9.2 Measured, on this turn, not inferred
+
+This turn landed `8cb73c627`, promoted it to `origin/main`, and then ran the binding step the
+charter requires:
+
+```
+$ python3 -m background.delivery_lane --landed an-exit-code-is-not-a-landing
+bound NOTHING to an-exit-code-is-not-a-landing: it is NOT CLAIMED -- nothing holds a deadline
+for it, so there is nothing to inform.
+
+.seat_work_in_hand.json    (shared) -> ['an-exit-code-is-not-a-landing']
+.delivery_lane_claims.json (shared) -> []
+```
+
+A real commit, really promoted, whose paths really moved on `origin/main` — and leg 1 cannot see
+it, so the turn is scored `LANDED NOTHING`.
+
+### 9.3 What that makes the new verdict
+
+**A constant, on the promoted route.** R15's fourth shape again, and the mirror of the defect the
+verdict was built to remove: the old verdict could never say *no*, and the new one can never say
+*yes*. `test_the_verdict_is_not_the_exit_code` pins both directions against a FIXTURE, so it is
+green and honest; nothing pins the production claim path, which is where the route decides the
+store. §7 predicted exactly this gap — *"today no test reaches `_still_claimed` with a True
+answer"* — and it is now measured rather than predicted.
+
+It fails in the safe direction: work is re-offered, never falsely consumed. Eleven hours of false
+success is a worse failure than a repeated turn. But an instrument that cannot say yes is not
+reporting on its subject either, and the item churns.
+
+### 9.4 §6's trap now has a proven mechanism, which it did not when this was filed
+
+§6 declined the repair because a child running `--landed`/`--release` from the worktree imports the
+worktree's `delivery_lane` and writes a store `ensure_worktree` wipes next turn.
+
+**That is the same defect, in the same class, as the one this turn just fixed and landed for
+`LOG_FILE` in `8cb73c627`:** a path constant derived from `__file__` resolving to whichever tree
+imported it. The repair there is `_shared_tree_log()` — ask `git rev-parse --git-common-dir` where
+the real tree is, keep an explicit `path=` override so tests still get a fixture, and fall back so
+the resolution can never lose a readable artefact. Mutation-proven, including one guard pair
+established as an equivalence rather than assumed.
+
+So §6's blocker is no longer "we have no way to do this". It is now one design call, stated below.
+
+### 9.5 The design call this leaves, stated so the next turn does not have to re-derive it
+
+Both stores are individually right (§5), and the missing thing is that the executor's own claim is
+invisible to the release channel. Two candidate repairs, and I did not pick one because picking it
+inside this turn would have been the guess §5 correctly refused:
+
+* **A —** `run_once` claims in BOTH stores (add `path=delivery_lane.CLAIMS_FILE`), and the
+  delivery-lane store resolves shared-tree-first by §9.4's mechanism. Smallest diff. Risk: two
+  claims to keep in step, and a partial failure leaves them disagreeing.
+* **B —** `delivery_lane.held()` asks `seat_work_in_hand` as well — one store stays the writer,
+  the reader unions. Risk: it widens what "claimed" means for every other caller of `held()`.
+
+**A is the recommendation**, because the release channel's store should be the one a tick's
+`--release` writes, and B leaves `--landed` still refusing.
+
+### 9.6 The control that settles it, restated with what §7 was missing
+
+§7 asked for a control exercising both branches of the discharge. It needs one more clause: it must
+exercise both **routes**, because the route is what selects the store, and a fixture that claims
+directly will pass whichever repair is chosen. Concretely — a promoted item and a drawn item, each
+taken through a turn that binds a landing, asserting the verdict says *yes* for both.
+
+### 9.7 Prediction, written before the repair, alongside §8's which still stands
+
+If repair A lands with §9.4's shared-tree resolution, `seat-executor-log.md` will carry its **first
+`FINISHED ... bound path(s) moved` line on a promoted item**, and `DISCHARGED` will appear on some
+turns and not others. If A lands *without* it, the log will show `LANDED NOTHING` on every turn
+including ones that landed — indistinguishable at a glance from today, which is the reason to check
+the store contents directly and not the log.
+
+**This turn's own line will be `LANDED NOTHING` for a turn that landed and promoted `8cb73c627`.
+That is the prediction most easily checked, and it is written before the log was read.**
