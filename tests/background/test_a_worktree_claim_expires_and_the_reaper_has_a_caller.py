@@ -236,3 +236,193 @@ def test_the_worktree_reaper_is_actually_called_by_the_cycle():
         "the cycle must call the REAPER, not a second reporter -- the reporter was already there "
         "and reporting is what the director asked us to stop doing on its own"
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# THE REAPER REMOVED A LANDING WORKTREE NINE MINUTES INTO ITS OWN COMMIT GATE (2026-09-02)
+#
+# Every check did its job and the outcome was still wrong. The worktree carried an owner marker,
+# but the marker held the pid of a shell that had already exited — `$$` from a command whose shell
+# did not outlive it — so `worktree_is_live` correctly reported no writer. The gate runs in its own
+# extract, so the worktree itself sat CLEAN and detached at `origin/main`: MERGED, and eligible by
+# every structural rule. It was removed, and `surgical_land` spent thirty-nine more minutes gating
+# against a directory that was no longer there. Publishing was down throughout.
+#
+# The missing question was never "is a process alive" — it was "could this possibly be abandoned
+# yet". A reaper whose purpose is to clear ABANDONED directories has no business deciding that a
+# directory minutes old, with work in flight, is one. `MIN_REAP_AGE_SECONDS` is that floor, and it
+# is keyed to the longest legitimate thing that can be happening inside a worktree — a commit gate,
+# which CLAUDE.md puts at "more than ten minutes" and which was observed at thirty-nine.
+#
+# It does NOT replace liveness. A writer that declares itself is spared at any age. This only stops
+# a young worktree dying because nobody declared one, which is the case that actually happened.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+def _clean_merged_detached(path):
+    return [{"path": path, "branch": None, "head": "c" * 40, "detached": True,
+             "locked": False, "locked_reason": None, "bare": False}]
+
+
+def _reap(path, *, age, live=False):
+    return F.evaluate_worktree_reap(
+        worktrees=_clean_merged_detached(path), branch_states={}, main_path="/repo",
+        enforce=False, dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: live, age_fn=lambda p, m=None: age)
+
+
+def test_a_worktree_minutes_old_is_not_reaped_however_eligible_it_looks():
+    """THE INCIDENT, at its real age. Clean, MERGED, no live writer — eligible by every other rule.
+
+    MUTATION: drop the `MIN_REAP_AGE_SECONDS` branch and this worktree is removed, which is exactly
+    what happened at 19:13 UTC with a commit gate running inside it.
+    """
+    r = _reap("/var/tmp/se-landing", age=9 * 60)
+    assert r["eligible"] == []
+    kept = r["kept"][0]["reason"]
+    assert "too young to be abandoned" in kept and "9 minute(s) ago" in kept
+
+
+def test_an_old_abandoned_worktree_is_still_reaped():
+    """THE FLOOR THAT STOPS THIS BECOMING A PERMANENT EXEMPTION. Accretion is the disease this
+    reaper exists to treat — the H24 gap was worktree dirs climbing 2 to 7 in one session — so a
+    genuinely abandoned directory must still die."""
+    r = _reap("/var/tmp/se-landing", age=10 * 24 * 3600)
+    assert [e["path"] for e in r["eligible"]] == ["/var/tmp/se-landing"]
+
+
+def test_an_unreadable_age_refuses_rather_than_assuming_old():
+    """`fail_closed_on_unreadable_input`: a reaper that cannot tell how old a directory is cannot
+    tell that it was abandoned. "Could not look" and "found it old" are opposite facts."""
+    r = _reap("/var/tmp/se-landing", age=None)
+    assert r["eligible"] == [] and "age is UNKNOWN" in r["kept"][0]["reason"]
+
+
+def test_a_live_writer_is_spared_at_ANY_age():
+    """The floor is additional to liveness, never a replacement: a declared writer's worktree is
+    not abandoned no matter how long the turn has run."""
+    r = _reap("/var/tmp/se-landing", age=10 * 24 * 3600, live=True)
+    assert r["eligible"] == [] and "live writer" in r["kept"][0]["reason"]
+
+
+def test_the_young_refusal_is_classified_as_SPARED_and_not_as_STRANDED():
+    """THE INTERACTION THAT WOULD HAVE MADE IT WORSE, and the reason the classification test above
+    exists at all.
+
+    `advance_stranded` takes the one preserving step on every STRANDED worktree — for a dirty one
+    that means COMMITTING ITS TREE. If "too young" scored as stranded, the reaper would stop
+    deleting young worktrees and start committing into them instead, which is the single
+    irreversible mistake available in this module. Young is a reason to leave alone.
+
+    MUTATION: remove either token from `_LIVE_REFUSALS` and this fails.
+    """
+    young = "created 9 minute(s) ago, younger than the 90 minutes a commit gate can legitimately " \
+            "take -- too young to be abandoned however clean it looks. See MIN_REAP_AGE_SECONDS."
+    unknown = "the worktree's creation time could not be read, so its age is UNKNOWN -- refused"
+    assert not F.refusal_is_stranded(young)
+    assert not F.refusal_is_stranded(unknown)
+    assert F.advance_stranded([{"path": "/var/tmp/se-landing", "reason": young}]) == []
+
+
+def test_the_age_is_read_from_the_admin_entry_and_not_the_directory_mtime(tmp_path):
+    """A BUSY LANDING WRITES FILES CONSTANTLY, so the worktree directory's own mtime is "seconds
+    ago" for as long as work is happening — which would make the floor fire forever and the reaper
+    never run. `git worktree add` writes `<main>/.git/worktrees/<name>/gitdir` once and nothing
+    touches it afterwards, so that is the creation time.
+
+    MUTATION: read `Path(path).stat().st_mtime` instead and this fails.
+    """
+    import os
+    main = tmp_path / "main"
+    admin = main / ".git" / "worktrees" / "wt"
+    admin.mkdir(parents=True)
+    gitdir = admin / "gitdir"
+    gitdir.write_text("x\n")
+    old = 3 * 3600
+    os.utime(gitdir, (gitdir.stat().st_atime, gitdir.stat().st_mtime - old))
+
+    wt = tmp_path / "wt"
+    wt.mkdir()
+    (wt / "just_written.txt").write_text("a landing is writing right now")   # dir mtime = NOW
+
+    age = F.worktree_age_seconds(str(wt), str(main))
+    assert age is not None and age > old - 60, (
+        "the age came from the directory's mtime, which a live landing refreshes constantly")
+
+
+def test_an_absent_admin_entry_reads_as_UNKNOWN_not_as_zero(tmp_path):
+    """Zero would mean "brand new", which is the safe direction here by accident rather than by
+    design — and it is the wrong ANSWER. The main worktree has no admin entry at all."""
+    assert F.worktree_age_seconds(str(tmp_path / "nope"), str(tmp_path)) is None
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# TWO DAEMONS, TWO LIVENESS SIGNALS, AND ONE OF THEM COULD NOT SEE THE OTHER (2026-09-02)
+#
+# After the reaper removed a landing worktree whose owner marker held a dead pid, the landing was
+# switched to `git worktree lock` — which the reaper refuses outright, and which no process death
+# can invalidate. `fork_salvage` then committed into it anyway, because IT asks
+# `seat_executor.worktree_is_live`, and that function knew about markers and not about locks.
+#
+# Not destructive — a salvage commit preserves rather than deletes — but the same class: a claim
+# respected by one sweeper and invisible to the next. Both come through `worktree_is_live`, so
+# teaching that one function about locks covers both, which is the whole reason it is documented as
+# "THE ONE HOME FOR THE QUESTION".
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+def _repo_with_worktree(tmp_path, *, lock_reason=None, marker_pid=None):
+    import subprocess as sp
+    main = tmp_path / "main"
+    main.mkdir()
+    for cmd in (["git", "init", "-q"],
+                ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q",
+                 "--allow-empty", "-m", "base"]):
+        sp.run(cmd, cwd=str(main), capture_output=True, check=True)
+    wt = tmp_path / "wt"
+    sp.run(["git", "worktree", "add", "--detach", "-q", str(wt)], cwd=str(main),
+           capture_output=True, check=True)
+    if lock_reason:
+        sp.run(["git", "worktree", "lock", "--reason", lock_reason, str(wt)], cwd=str(main),
+               capture_output=True, check=True)
+    if marker_pid is not None:
+        from background.seat_executor import OWNER_MARKER
+        (wt / OWNER_MARKER).write_text(str(marker_pid) + "\n")
+    return main, wt
+
+
+def test_a_LOCKED_worktree_reads_as_live_with_no_marker_at_all(tmp_path, monkeypatch):
+    """THE GAP THAT LET `fork_salvage` COMMIT INTO A LOCKED LANDING.
+
+    MUTATION: remove the lock leg from `worktree_is_live` and this returns False -- and every
+    sweeper that asks this question goes back to treating a locked worktree as abandoned.
+    """
+    import background.seat_executor as se
+    main, wt = _repo_with_worktree(tmp_path, lock_reason="landing in progress")
+    monkeypatch.setattr(se, "PROJECT_DIR", main)
+    assert se.worktree_is_live(str(wt)) is True
+
+
+def test_an_unlocked_worktree_with_no_marker_is_not_live(tmp_path, monkeypatch):
+    """The floor. If a bare worktree read as live the reaper would never run and the accretion this
+    module exists to stop would return — the H24 gap, 26 worktrees over 16 days."""
+    import background.seat_executor as se
+    main, wt = _repo_with_worktree(tmp_path)
+    monkeypatch.setattr(se, "PROJECT_DIR", main)
+    assert se.worktree_is_live(str(wt)) is False
+
+
+def test_a_lock_is_honoured_even_though_a_dead_pid_marker_is_not(tmp_path, monkeypatch):
+    """THE EXACT PAIRING FROM THE INCIDENT: a marker naming a process that has exited, and a lock.
+
+    The marker must not rescue it -- that is the leased-claim rule, and five worktrees once spent a
+    day claimed by the tmux server. The LOCK must, because a lock is a deliberate act that nobody
+    leaves behind by crashing: you have to type it.
+    """
+    import background.seat_executor as se
+    main, wt = _repo_with_worktree(tmp_path, lock_reason="landing", marker_pid=999_999)
+    monkeypatch.setattr(se, "PROJECT_DIR", main)
+    assert se.worktree_is_live(str(wt)) is True          # the lock carries it
+
+    import subprocess as sp
+    sp.run(["git", "worktree", "unlock", str(wt)], cwd=str(main), capture_output=True, check=True)
+    assert se.worktree_is_live(str(wt)) is False          # the dead marker alone does not

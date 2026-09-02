@@ -312,7 +312,39 @@ def worktree_is_live(path) -> bool:
     except (OSError, ValueError):
         pass
 
-    # 2. THIS EXECUTOR'S OWN WORKTREE, via the pid file it already keeps. Kept so the executor is
+    # 2. GIT'S OWN LOCK, which is a claim no process death can invalidate.
+    #
+    # ADDED 2026-09-02, after a marker proved untrustworthy in the one way that matters. A landing
+    # worktree's marker held the pid of a shell that had already exited -- `$$` from a command whose
+    # shell did not outlive it -- so leg 1 correctly said "no writer" and the reaper removed the
+    # directory nine minutes into its commit gate. Switching that landing to `git worktree lock`
+    # protected it from the reaper, which refuses a locked worktree outright... and then
+    # `fork_salvage` committed into it anyway, because IT asks this function and this function did
+    # not know about locks. Two daemons, two liveness signals, one of them invisible to the other.
+    #
+    # A lock is the better claim on its own merits: it is git's own mechanism, it is declarative, it
+    # survives any process, and it carries a human-readable reason. Honouring it here is what makes
+    # `git worktree lock` a claim BOTH daemons respect, because both come through this door.
+    #
+    # A LOCK IS A DELIBERATE ACT AND IS NOT LEASED. Unlike a pid, nobody leaves one behind by
+    # crashing -- you have to type it -- so a stale lock is a person's mistake to undo with
+    # `git worktree unlock`, and the reaper's report names it every cycle. The accretion risk this
+    # module worries about is a marker nobody meant to leave; a lock is the opposite.
+    try:
+        locked = subprocess.run(
+            ["git", "-C", str(PROJECT_DIR), "worktree", "list", "--porcelain"],
+            capture_output=True, text=True, timeout=30)
+        if locked.returncode == 0:
+            here = False
+            for line in (locked.stdout or "").splitlines():
+                if line.startswith("worktree "):
+                    here = Path(line.split(" ", 1)[1]).resolve() == resolved
+                elif here and line.startswith("locked"):
+                    return True
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+
+    # 3. THIS EXECUTOR'S OWN WORKTREE, via the pid file it already keeps. Kept so the executor is
     #    covered even on a turn where the marker could not be written.
     try:
         if resolved != WORKTREE.resolve():

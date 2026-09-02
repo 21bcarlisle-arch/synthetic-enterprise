@@ -17,6 +17,16 @@ NOW = 1_000_000.0
 DL = F.FORK_DEADLINE_SECONDS
 
 
+#: EVERY REAP TEST BELOW IS ABOUT THE STRUCTURAL CLASSIFIER, NOT ABOUT AGE.
+#: `MIN_REAP_AGE_SECONDS` (added 2026-09-02, after the reaper removed a landing worktree nine
+#: minutes into its own commit gate) refuses anything younger than 90 minutes, and every
+#: fixture here is seconds old. Injecting an age past the floor keeps these tests asking their
+#: own question; the floor has its own tests, which would be worthless if this helper were
+#: used there too.
+def _old_enough(path, main_path=None):
+    return 10 * 24 * 3600
+
+
 def _b(name, merged, age_s):
     return {"name": name, "merged": merged, "last_commit_ts": NOW - age_s}
 
@@ -447,7 +457,7 @@ def test_evaluate_worktree_reap_report_first_lists_but_removes_nothing():
     wts = [_rwt(MAIN2, "main"), _rwt("/wt/done", "done-w1"), _rwt("/wt/live", "live-w1")]
     states = {"done-w1": "MERGED", "live-w1": "IN_FLIGHT"}
     removed = []
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=states, main_path=MAIN2, enforce=False,
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=states, main_path=MAIN2, enforce=False,
                                  dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
                                  remover=lambda p: removed.append(p))
     assert r["status"] == "WORKTREE_REAP_ELIGIBLE" and r["enforce"] is False
@@ -469,7 +479,7 @@ def test_evaluate_worktree_reap_enforce_removes_only_eligible():
         return {"path": p, "removed": True, "detail": "ok"}
     def fake_dirty(p):
         return p == "/wt/dirty"
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=states, main_path=MAIN2, enforce=True,
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=states, main_path=MAIN2, enforce=True,
                                  dirty_fn=fake_dirty, salvage_tag_fn=lambda b: None, remover=fake_remover)
     assert removed == ["/wt/done"]             # ONLY the merged+clean+unlocked+non-main one
     assert r["status"] == "WORKTREE_REAPED" and r["alarm"] is False
@@ -480,14 +490,14 @@ def test_evaluate_worktree_reap_enforce_removes_only_eligible():
 def test_evaluate_worktree_reap_enforce_reports_failure_as_alarm():
     wts = [_rwt("/wt/done", "done-w1")]
     states = {"done-w1": "MERGED"}
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=states, main_path=MAIN2, enforce=True,
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=states, main_path=MAIN2, enforce=True,
                                  dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
                                  remover=lambda p: {"path": p, "removed": False, "detail": "boom"})
     assert r["status"] == "WORKTREE_REAP_FAILED" and r["alarm"] is True
 
 
 def test_live_evaluate_worktree_reap_is_well_formed_and_defaults_report_first():
-    r = F.evaluate_worktree_reap(enforce=False)     # force report-first regardless of the live flag
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, enforce=False)     # force report-first regardless of the live flag
     assert set(r) >= {"status", "alarm", "detail", "eligible", "kept", "reaped", "enforce"}
     assert r["enforce"] is False and r["reaped"] == []
 
@@ -572,7 +582,7 @@ def test_fixture_merged_clean_worktree_is_reaped_report_then_enforce(fixture_rep
     main_path = str(repo)
 
     # REPORT-FIRST: listed, nothing removed.
-    r_report = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=main_path,
+    r_report = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=main_path,
                                         enforce=False, dirty_fn=F._worktree_dirty,
                                         salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert str(wt_path) in [e["path"] for e in r_report["eligible"]]
@@ -580,7 +590,7 @@ def test_fixture_merged_clean_worktree_is_reaped_report_then_enforce(fixture_rep
     assert wt_path.is_dir()                                # still there -- report-first touches nothing
 
     # ENFORCE: actually removed.
-    r_enforce = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=main_path,
+    r_enforce = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=main_path,
                                          enforce=True, dirty_fn=F._worktree_dirty,
                                          salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert r_enforce["status"] == "WORKTREE_REAPED"
@@ -607,7 +617,7 @@ def test_fixture_locked_worktree_is_NEVER_reaped(fixture_repo, tmp_path, no_op_s
         F._git = orig_git
     branch_states = {"build/locked-w1": "MERGED"}
 
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=str(repo),
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=str(repo),
                                  enforce=True, dirty_fn=F._worktree_dirty,
                                  salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert str(wt_path) not in [e["path"] for e in r["eligible"]]
@@ -633,7 +643,7 @@ def test_fixture_live_unmerged_branch_worktree_is_NEVER_reaped(fixture_repo, tmp
         F._git = orig_git
     branch_states = {"build/live-w1": "IN_FLIGHT"}
 
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=str(repo),
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=str(repo),
                                  enforce=True, dirty_fn=F._worktree_dirty,
                                  salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert str(wt_path) not in [e["path"] for e in r["eligible"]]
@@ -660,7 +670,7 @@ def test_fixture_dirty_worktree_is_NEVER_reaped_even_if_merged(fixture_repo, tmp
         F._git = orig_git
     branch_states = {"build/dirty-w1": "MERGED"}
 
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=str(repo),
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=str(repo),
                                  enforce=True, dirty_fn=F._worktree_dirty,
                                  salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert str(wt_path) not in [e["path"] for e in r["eligible"]]
@@ -680,7 +690,7 @@ def test_fixture_main_worktree_is_NEVER_reaped(fixture_repo, tmp_path, no_op_sha
     assert wts and wts[0]["path"] == str(repo)              # the main worktree itself
     branch_states = {"main": "MERGED"}                       # contrived -- main is normally PROTECTED
 
-    r = F.evaluate_worktree_reap(worktrees=wts, branch_states=branch_states, main_path=str(repo),
+    r = F.evaluate_worktree_reap(age_fn=_old_enough, worktrees=wts, branch_states=branch_states, main_path=str(repo),
                                  enforce=True, dirty_fn=F._worktree_dirty,
                                  salvage_tag_fn=lambda b: None, remover=_reap_in(repo))
     assert str(repo) not in [e["path"] for e in r["eligible"]]
@@ -830,7 +840,7 @@ def _stranded_env(n_dirty=0, n_orphan=0, n_locked=0, n_merged_clean=0):
 
 
 def test_a_standing_stranded_population_ALARMS_instead_of_reporting_clean():
-    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=16, n_orphan=5, n_locked=3))
+    ev = F.evaluate_worktree_reap(age_fn=_old_enough, **_stranded_env(n_dirty=16, n_orphan=5, n_locked=3))
     assert ev["status"] == "WORKTREE_REAP_STRANDED"
     assert ev["alarm"] is True, "a reaper that cannot act on its own population is not CLEAN"
     assert "16 dirty" in ev["detail"] and "5 orphan-branch" in ev["detail"]
@@ -841,19 +851,19 @@ def test_a_standing_stranded_population_ALARMS_instead_of_reporting_clean():
 def test_MUTATION_a_healthy_population_is_still_CLEAN_and_silent():
     """The other way: locked/live/main refusals are the control WORKING. A guard that alarmed on
     every non-empty `kept` would be as useless as one that never alarmed."""
-    ev = F.evaluate_worktree_reap(**_stranded_env(n_locked=3))
+    ev = F.evaluate_worktree_reap(age_fn=_old_enough, **_stranded_env(n_locked=3))
     assert ev["status"] == "WORKTREE_REAP_CLEAN"
     assert ev["alarm"] is False
 
 
 def test_a_couple_of_dirty_forks_midbuild_is_churn_not_an_alarm():
-    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=2))
+    ev = F.evaluate_worktree_reap(age_fn=_old_enough, **_stranded_env(n_dirty=2))
     assert ev["status"] == "WORKTREE_REAP_CLEAN" and ev["alarm"] is False
     assert "2 stranded" in ev["detail"], "still COUNTED, just under the threshold"
 
 
 def test_eligible_work_still_reports_ELIGIBLE_not_stranded():
-    ev = F.evaluate_worktree_reap(**_stranded_env(n_dirty=16, n_merged_clean=1))
+    ev = F.evaluate_worktree_reap(age_fn=_old_enough, **_stranded_env(n_dirty=16, n_merged_clean=1))
     assert ev["status"] == "WORKTREE_REAP_ELIGIBLE", "real work must not be masked by the alarm"
 
 
@@ -1099,6 +1109,7 @@ def _merged_clean_detached_worktree(path=_LIVE_WT):
 def test_the_reaper_refuses_a_live_writers_worktree(tmp_path):
     """MUTATION: drop the `live_writer_fn` branch in `evaluate_worktree_reap` and this fires."""
     report = F.evaluate_worktree_reap(
+        age_fn=_old_enough,
         worktrees=_merged_clean_detached_worktree(),
         branch_states={}, main_path="/repo", enforce=False,
         dirty_fn=lambda p: False,                       # clean -- the dangerous window
@@ -1129,6 +1140,7 @@ def test_a_forks_worktree_IS_eligible_once_its_writer_is_gone(tmp_path):
     Its real subject was always a fork's worktree, so it uses one.
     """
     report = F.evaluate_worktree_reap(
+        age_fn=_old_enough,
         worktrees=_merged_clean_detached_worktree(_FORK_WT),
         branch_states={}, main_path="/repo", enforce=False,
         dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
@@ -1160,6 +1172,7 @@ def test_a_declared_daemon_home_is_spared_even_with_no_writer_in_it():
     homes = F.declared_daemon_homes()
     assert homes, "no daemon declares a home worktree -- this test has lost its subject"
     report = F.evaluate_worktree_reap(
+        age_fn=_old_enough,
         worktrees=_merged_clean_detached_worktree(homes[0]),
         branch_states={}, main_path="/repo", enforce=False,
         dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,

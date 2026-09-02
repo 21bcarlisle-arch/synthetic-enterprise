@@ -372,6 +372,51 @@ def worktree_reap_enabled(flag: Path | None = None) -> bool:
         return False
 
 
+#: A worktree YOUNGER than this cannot be KNOWN to be abandoned, whatever else is true of it.
+#:
+#: MEASURED 2026-09-02, at the cost of forty minutes and a fifteen-hour publish outage. A landing
+#: worktree was created, populated, and had a commit gate running inside it. Nine minutes later the
+#: reaper removed it. **Every check above did its job**: the owner marker held a pid that had
+#: already exited (a shell that did not outlive the command that wrote it), so `worktree_is_live`
+#: correctly said no writer; the gate runs in its own extract, so the worktree itself sat clean and
+#: detached at `origin/main` -- MERGED, and eligible by every rule. The gate then spent thirty-nine
+#: minutes against a directory that was no longer there.
+#:
+#: The missing question is not "is a process alive" but "could this possibly be abandoned yet".
+#: A worktree minutes old with work in flight is not abandoned by any reading, and a reaper whose
+#: purpose is to clear ABANDONED directories has no business deciding otherwise. Keyed to the
+#: property rather than to a number someone liked: the bound is the longest legitimate thing that
+#: can be happening inside a worktree, which is a commit gate, and CLAUDE.md's own figure for that
+#: is "more than ten minutes" -- observed today at thirty-nine under contention.
+#:
+#: This does NOT replace the liveness check. A writer that declares itself is spared at any age;
+#: this only stops a young worktree being reaped because nobody declared one. Belt and braces, and
+#: the belt broke today.
+MIN_REAP_AGE_SECONDS = 90 * 60
+
+
+def worktree_age_seconds(path: str, main_path: str | None = None) -> float | None:
+    """How long ago this worktree was CREATED. `None` when it cannot be established.
+
+    Read from the git admin file `<main>/.git/worktrees/<name>/gitdir`, which `git worktree add`
+    writes once and nothing touches afterwards. The directory's own mtime is not the creation time
+    -- it moves every time a file lands in it, which for a busy landing means "seconds old" forever.
+
+    `None` is a distinct answer from "old", and the caller treats it as "cannot be reaped": a
+    reaper that cannot establish age must not decide that a directory is abandoned
+    (`fail_closed_on_unreadable_input`).
+    """
+    try:
+        name = Path(path).name
+        root = Path(main_path) if main_path else PROJECT_DIR
+        gitdir = root / ".git" / "worktrees" / name / "gitdir"
+        if not gitdir.exists():
+            return None
+        return max(0.0, time.time() - gitdir.stat().st_mtime)
+    except (OSError, ValueError):
+        return None
+
+
 def _worktree_dirty(path: str) -> bool:
     """True if `path` has uncommitted/untracked changes, OR the check itself could not be run.
     Fail-SAFE: an unreadable tree is treated as dirty (never reap on an unknown state), never
@@ -522,8 +567,16 @@ def salvage_detached_head(head: str) -> dict:
 #: `declared home` against a reason saying `a declared daemon's home worktree`, so it matched
 #: nothing and the refusal scored STRANDED. The class control
 #: `test_every_refusal_the_classifier_can_emit_is_deliberately_classified` caught it before it ran.
+#: Refusals that mean the control is WORKING, not stuck. Unlisted means STRANDED, which is what
+#: `advance_stranded` acts on -- so getting a refusal onto the wrong side of this line is how a
+#: preserving step gets taken inside a worktree that did not need one.
+#:
+#: The two age refusals belong HERE and the reason is not cosmetic. A worktree refused as TOO YOUNG
+#: is one where a landing is very likely in flight; treating it as stranded would send
+#: `advance_stranded` in to commit its tree, which is the single irreversible mistake available in
+#: this module. Young is a reason to leave alone, not a reason to tidy.
 _LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "live writer",
-                  "declared daemon")
+                  "declared daemon", "too young to be abandoned", "age is UNKNOWN")
 
 
 def declared_daemon_homes() -> tuple[str, ...]:
@@ -767,7 +820,7 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
                            main_path: str | None = None, now: float | None = None,
                            enforce: bool | None = None, dirty_fn=None, salvage_tag_fn=None,
                            remover=None, reachable_fn=None, detached_tag_fn=None,
-                           live_writer_fn=None, advance=None) -> dict:
+                           live_writer_fn=None, advance=None, age_fn=None) -> dict:
     """REPORT the worktree-DIRECTORY reap state. Report-first by default (list what WOULD be
     removed, remove nothing); enforce (armed by `WORKTREE_REAP_ENFORCE_FLAG`) actually removes each
     eligible worktree dir + prunes, serialized through `shared_tree_lock` (this mutates the SHARED
@@ -813,6 +866,18 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         # eligible. `git worktree remove` on a live writer is the whole turn gone, and the writer
         # was armed this afternoon. Its sibling `fork_salvage` had already collided with it four
         # minutes into the first run, which is what prompted looking here at all.
+        # LIVENESS, THEN THE STRUCTURAL VERDICT, THEN AGE — and the order is only ever about which
+        # REASON a reader is given, since any one of them refusing is enough.
+        #
+        # AGE GOES LAST, applied only where everything else already said eligible. Asking it first
+        # made the MAIN worktree — refused for the most obvious reason there is — report "its age
+        # is UNKNOWN", because main has no `.git/worktrees/<name>` entry to read a creation time
+        # from. True, and a reader would take it as the reaper being unable to see the main tree.
+        # A refusal that names the wrong reason is how the next person debugs the wrong thing.
+        #
+        # LIVENESS STAYS FIRST for the same reason: a declared daemon's home with a writer in it is
+        # refused either way, and "a live writer holds this" is the specific, actionable fact while
+        # the home rule is a standing one.
         if live_writer_fn(wt["path"]):
             result = {"eligible": False,
                       "reason": "a live writer holds this worktree -- never reaped while its "
@@ -820,6 +885,20 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
         else:
             result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
                                             detached_head_state=dstate, declared_homes=homes)
+        if result["eligible"]:
+            age = (age_fn or worktree_age_seconds)(wt["path"], main_path)
+            if age is None:
+                result = {"eligible": False,
+                          "reason": "the worktree's creation time could not be read, so its age "
+                                    "is UNKNOWN -- refused, because a reaper that cannot tell how "
+                                    "old a directory is cannot tell that it was abandoned"}
+            elif age < MIN_REAP_AGE_SECONDS:
+                result = {"eligible": False,
+                          "reason": "created {:.0f} minute(s) ago, younger than the {:.0f} minutes "
+                                    "a commit gate can legitimately take -- too young to be "
+                                    "abandoned however clean it looks. See "
+                                    "MIN_REAP_AGE_SECONDS.".format(
+                                        age / 60.0, MIN_REAP_AGE_SECONDS / 60.0)}
         entry = {"path": wt["path"], "branch": branch, **result}
         (eligible if result["eligible"] else kept).append(entry)
 
