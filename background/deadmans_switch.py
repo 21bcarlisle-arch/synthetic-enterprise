@@ -129,6 +129,7 @@ _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
 _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
 _WORKTREE_REAP_KEY = "deadman_worktree_reap"
+_ORIGIN_FORK_KEY = "deadman_origin_fork"
 _STATUS_STALE_KEY = "deadman_status_stale"
 
 
@@ -631,6 +632,42 @@ def _reap_refusal_is_stranded(reason: str) -> bool:
     return refusal_is_stranded(reason)
 
 
+def _check_origin_fork() -> None:
+    """CLOSE the fork with origin, rather than reporting that one exists.
+
+    Director, 2026-09-02: *"a staged document arriving should never block your landing."* It was
+    doing exactly that — `.last_publish_cause.json` read `behind_origin`, the site was 3.2h stale
+    and five landings sat local-only, all on one condition that a document staged to origin had
+    opened.
+
+    ON THIS CADENCE AND NOT IN THE PUBLISH PATH, which is the objection the publish path's own
+    refusal raises and it is a fair one: a gated merge takes longer than a publish cycle. Here it
+    has as long as it needs, and by the time the publish cycle looks, the refusal has nothing left
+    to refuse.
+
+    Never raises. A reconciler that took the deadman down would trade a stale site for a dead
+    watchdog."""
+    try:
+        from background import origin_reconcile
+        r = origin_reconcile.reconcile()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"origin-reconcile error: {e}")
+        return
+    log(f"ORIGIN FORK ({r['status']}): {r['detail']}")
+    if r["status"] in (origin_reconcile.LEVEL, origin_reconcile.RECONCILED):
+        clear_transition(_ORIGIN_FORK_KEY)
+        return
+    notify(
+        f"[ORIGIN FORK] {r['status']}: {r['detail']} — origin is {r['behind']} commit(s) ahead and "
+        f"the fork could NOT be closed automatically, so landings and publishing stay blocked "
+        f"until someone reconciles.",
+        kind="real_alarm", transition_key=_ORIGIN_FORK_KEY,
+        state=f"{r['status']}:{r['behind']}", re_escalate_after=RE_ESCALATE_SECONDS,
+        # BLOCKED_WORK, not drift: while this stands, nothing this machine does can reach origin.
+        topic_class=_digest_classes().BLOCKED_WORK,
+    )
+
+
 def _check_status_honesty() -> None:
     """Fire a transition-only, LOUD STATUS_STALE alarm when LATEST.md describes a non-running daemon
     or a retired governance model as current (director P0 step 5). The stale narrative, re-stamped
@@ -819,6 +856,7 @@ def run_cycle() -> None:
     _check_fork_lifecycle()
     _check_worktree_reconcile()
     _check_worktree_reap()
+    _check_origin_fork()
     _check_status_honesty()
     _check_repo_not_bare()
     _check_operational_layer_signal()

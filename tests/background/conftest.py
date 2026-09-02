@@ -28,6 +28,7 @@ import pytest
 from background import (
     gap_ledger_reconciler,
     notification_digest,
+    origin_reconcile,
     process_run_complete,
     sim_runner,
     supervisor,
@@ -357,6 +358,21 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     # without sending, whatever the clock says. test_notification_digest.py's `store` fixture sets
     # both paths in its own body, which runs after this one and therefore still wins, so the
     # digest's own R15 tests are untouched.
+    # ORIGIN-FORK RECONCILER (2026-09-02) -- the NINTH instance, and the same shape as the digest
+    # below it. `run_cycle` now calls `_check_origin_fork`, which asks git how far `origin/main` is
+    # ahead. That is a LIVE read of a remote, and in the publish gate's HEAD checkout it answers
+    # differently from the working tree -- the checkout is a materialised repo whose fetch may not
+    # resolve. An UNREADABLE answer pages, and that page landed in all 28 `assert calls == []`
+    # assertions in test_deadmans_switch.py: green standalone, red inside the gate, which is the
+    # exact transient this file exists to stop.
+    #
+    # THE LIVE INPUT IS PINNED, NOT THE CHECK. `commits_behind` is the one thing that reads the
+    # world; stubbing `reconcile` instead would neuter the rung in every test including the ones
+    # written to prove it acts -- the mistake this file's own docstring names. Zero means "no fork",
+    # so the reconciler returns LEVEL and does nothing, and
+    # `test_a_staged_document_no_longer_blocks_every_landing.py` injects `behind_fn` explicitly, so
+    # its own legs are untouched by this pin.
+    monkeypatch.setattr(origin_reconcile, "commits_behind", lambda project=None: 0, raising=False)
     monkeypatch.setattr(
         notification_digest, "QUEUE_FILE",
         tmp_path / "ntfy_digest_queue_absent.jsonl", raising=False,
