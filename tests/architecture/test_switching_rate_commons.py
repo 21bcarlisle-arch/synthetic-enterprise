@@ -36,12 +36,15 @@ from __future__ import annotations
 import ast
 import importlib
 import json
+import re
 import sys
 from pathlib import Path
 
 import pytest
 
 import simulation.departure_level_anchor as anchor_module
+import simulation.departure_risks as departure_risks
+import simulation.market_switching_propensity as propensity
 import tools.departure_population as departure_population
 import tools.measure_departure_level as instrument
 
@@ -417,6 +420,19 @@ def test_the_register_names_the_worlds_own_realised_departure_rate():
     "2021 -5.00pp, 2023 -6.10pp, 2024 -6.20pp. It is held open STRICT so the re-fit that repairs "
     "it breaks this loudly instead of leaving it quietly green, which is the same reason the "
     "marker was written strict the first time. "
+    "AND THE DIRECTION IS SIX ABOVE AND ONE BELOW, ADDED 2026-09-02 -- the seven margins above "
+    "are correct and are UNCHANGED, but they were quoted as bare negatives and a bare negative "
+    "does not say which edge. `band_margins` returns `(value-lo, hi-value)`, so this list is "
+    "whichever element came back negative, and it is the HIGH element in six years and the LOW "
+    "element only in 2023. Measured at this marker's own commit f97c34eb0 and again at HEAD, from "
+    "the same byte-identical capture: 2017 15.12%, 2018 25.77%, 2019 28.10%, 2020 38.89%, 2021 "
+    "23.40%, 2024 22.34% all sit ABOVE their high edge, and only 2023 at 2.81% sits below its "
+    "low edge. THIS IS WHY THE DIRECTION MATTERS MORE THAN THE MAGNITUDE HERE: every surrounding "
+    "narrative in this tree -- the anchor module's docstring, the 3.45x-short framing, the whole "
+    "argument that the block moves the world AGAINST the company -- primes a reader to read "
+    "'-15.90pp' as 15.9pp SHORT of the record. It is 15.9pp OVER it. A re-fit that discharges "
+    "this leg must LOWER the anchor in six years and raise it in one; a reader who took the "
+    "sign on trust would move all seven the wrong way in six cases. "
     "THE CAUSE IS A CAPTURE SWAP, NOT A WORLD DRIFT, AND IT IS ATTRIBUTABLE. On the capture this "
     "control was discharged against (465 rows, b46318106^) all EIGHT comparison years are inside "
     "the band, each sitting exactly on its high endpoint -- the anchor's own fit. b46318106 "
@@ -738,6 +754,134 @@ def test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cau
                 f"refusal a reader cannot attribute to a year is not on the surface in any useful "
                 f"sense."
             )
+
+
+#: The PRESENT-TENSE grammar for a live floor claim inside an `UNFITTED_YEARS` cause. A superseded
+#: claim is quoted in the PAST tense (`floor was X%`) and is deliberately outside this pattern:
+#: the entries keep their own corrected history beside them, and a leg that could not tell a
+#: quotation from a claim would force the history to be deleted to stay green.
+_LIVE_FLOOR_CLAIM = re.compile(r"SVT floor is ([0-9.]+)% against a published ([0-9.]+)%")
+
+
+def _live_svt_floor_pct() -> dict[int, float]:
+    """`{year: SVT-route floor as a % of accounts}`, recomputed under the hazard the world HAS.
+
+    NOT the capture's own `realized_churn_probability` column, and that is the entire point. Those
+    probabilities were produced by whatever hazard ran the day the capture was taken, so a claim
+    checked against them is checked against the code that made it and can never go stale. The
+    inputs -- `sim_years_on_svt`, `sim_segment_days`, `market_year`, `sim_action_propensity` -- are
+    arguments the capture recorded and are NOT functions of the hazard, so re-driving the live
+    `svt_inertia_hazard` across them asks the one question that matters: what would this population
+    do under today's mechanism?
+
+    That is also why this is not the reimplementation `fit_year_level_anchor` refuses to make. It
+    fits nothing and emits no constant; it calls the world's own function on the world's own
+    recorded inputs, as a DIAGNOSTIC, which is exactly the distinction `fit_whole_book`'s docstring
+    draws when it says the SVT contribution must not be recomputed for a FIT.
+    """
+    svt_rows = json.loads(
+        departure_population.svt_sibling(instrument.DEFAULT_TABLE).read_text()
+    )
+    renewal_rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    book = _fit_module().union_by_year(renewal_rows, svt_rows)
+    expected: dict[int, float] = {}
+    for row in svt_rows:
+        year = int(str(row["event_date"])[:4])
+        hazard = departure_risks.svt_inertia_hazard(
+            years_on_svt=float(row["sim_years_on_svt"]),
+            segment_days=float(row["sim_segment_days"]),
+            market_switching_multiplier=propensity.market_switching_multiplier(
+                int(row["market_year"])
+            ),
+        )
+        expected[year] = expected.get(year, 0.0) + hazard * float(row["sim_action_propensity"])
+    return {
+        year: 100.0 * expected.get(year, 0.0) / book[year]["accounts"]
+        for year in book
+        if book[year]["accounts"]
+    }
+
+
+def _fit_module():
+    """`tools.fit_year_level_anchor`, imported here and not at the top of the file.
+
+    It is the only `tools` import in this file that pulls the FIT rather than the instrument, and
+    the fit reaches `simulation` on import. Keeping it out of the module header keeps the rest of
+    this file collectable when the fit is mid-edit in another lane, which is the state the shared
+    tree is in most of the time.
+    """
+    return importlib.import_module("tools.fit_year_level_anchor")
+
+
+def test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually_runs():
+    """A NUMBER A REFUSAL STATES IS A DISCLOSURE, AND A DISCLOSURE CAN GO STALE LIKE A GREEN.
+
+    THE DEFECT THIS EXISTS FOR, measured 2026-09-02. `UNFITTED_YEARS[2022]` declared two
+    independently binding causes, and the one it called *"the reason that is NOT capture-scoped"* --
+    the one a reader is told to trust when the other is scoped away -- was *"its SVT floor is 12.09%
+    against a published 4.30% ceiling ... so NO anchor >= 0 brings 2022 to the record"*. On
+    2026-09-01 `c628cb37d` gave `svt_inertia_hazard` a required `market_switching_multiplier`. The
+    same capture's own rows, re-driven through the new hazard, put that floor at **2.34%** -- BELOW
+    the 4.30% target rather than 7.8pp above it. The unreachability argument had inverted, and a
+    design document written the FOLLOWING DAY restated 12.09% as current and built the defence of
+    2022's declared value on it.
+
+    WHY NOTHING CAUGHT IT, WHICH IS THE PART WORTH KEEPING.
+    `test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cause` above does
+    corroborate 2022's refusal -- against the RENEWAL DECISION COUNT, which is cause (i). Cause (ii)
+    is a different quantity on a different route and no leg in this file read it. A control over a
+    two-cause claim that corroborates one cause reports the OR: the entry stayed green with half of
+    it false. The capture is not what changed, either -- it is byte-identical. The CODE moved under
+    a stored number, which is why this leg recomputes rather than reads a column.
+
+    KEYED TO THE PROPERTY, NOT TO 2.34. The assertion is *every floor a cause states in the present
+    tense reproduces from the committed capture under the live hazard*. A future market term that
+    moves the floor again must go red here and be answered in the entry -- that is the disclosure
+    working, not a pin breaking. What it forbids is a stated figure the mechanism no longer
+    produces.
+
+    AND IT MUST NOT PASS ON AN EMPTY SUBJECT. If every present-tense claim were rewritten away the
+    pattern would match nothing and this would be a green over no subject -- the emptied-subject
+    fail-open this file's coverage leg exists for -- so the absence of any claim is itself a
+    failure, named.
+
+    MUTATION (proven with `python3 -B`): put `2.34%` back to `12.09%` in `UNFITTED_YEARS[2022]` and
+    this fires on the value; drop `market_switching_multiplier` back out of `svt_inertia_hazard`'s
+    reach and it fires on the same leg from the other side.
+    """
+    claims: dict[int, tuple[float, float]] = {}
+    for year, cause in anchor_module.UNFITTED_YEARS.items():
+        found = _LIVE_FLOOR_CLAIM.search(cause)
+        if found:
+            claims[year] = (float(found.group(1)), float(found.group(2)))
+
+    assert claims, (
+        "no year in `UNFITTED_YEARS` states an SVT floor in the present tense, so this leg has no "
+        "subject and its PASS means nothing. 2022's cause carried one until it was edited. If a "
+        "declared cause genuinely no longer rests on a floor, delete this leg in the same commit "
+        "and say so -- do not leave a green over an empty subject."
+    )
+
+    live = _live_svt_floor_pct()
+    for year, (stated_floor, stated_target) in sorted(claims.items()):
+        assert year in live, (
+            f"{year}'s cause states an SVT floor of {stated_floor}%, but the committed capture "
+            f"carries no accounts that year, so the claim cannot be checked at all. A refusal "
+            f"resting on an uncheckable number is the refusal-names-an-unobserved-cause shape."
+        )
+        assert abs(live[year] - stated_floor) <= 0.05, (
+            f"{year}'s declared cause states an SVT floor of {stated_floor}%, and the committed "
+            f"capture's own rows re-driven through today's `svt_inertia_hazard` give "
+            f"{live[year]:.2f}%. The capture has not changed; the MECHANISM has. Correct the "
+            f"stated figure beside its superseded text -- and check whether the CONCLUSION the "
+            f"old figure supported still holds, because in 2026-09-02's case it had inverted."
+        )
+        published_target = 100.0 * propensity.market_departure_rate(year)
+        assert abs(published_target - stated_target) <= 0.05, (
+            f"{year}'s declared cause states a published ceiling of {stated_target}% and the "
+            f"record says {published_target:.2f}%. The comparison the refusal rests on is against "
+            f"a number the commons does not carry."
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════
@@ -1335,6 +1479,22 @@ _HELD_INDIRECTLY: dict[str, str] = {
         "reference year's borrow that ran 1.98x. THAT IS STILL NOT HELD BY THIS FILE and naming it "
         "is not holding it: no anchor >= 0 reaches 2022's band while `build_departure_risks` "
         "leaves `svt_inertia` unscaled, so there is no value for a band control to discriminate. "
+        "THE CONCLUSION IN THAT SENTENCE SURVIVES BUT ITS STATED REASON DOES NOT, corrected "
+        "2026-09-02 beside its own text. The unreachability was attributed to the unscaled "
+        "`svt_inertia` holding 2022 ABOVE the record, and `c628cb37d`'s required "
+        "`market_switching_multiplier` voided that: re-driven through the live hazard the same "
+        "capture's 2022 SVT floor is 2.34% against a 4.30% target -- the year runs SHORT of the "
+        "record, not over it, so the barrier is no longer that an anchor cannot bring it down. "
+        "What still binds is the OTHER cause, one clause earlier in this same entry: ZERO 2022 "
+        "renewal decisions, so the anchor multiplies nothing and floor equals ceiling whatever "
+        "its value. Unreachable for cause (i), not cause (ii). The dated 12.09% two sentences "
+        "above is the pre-multiplier sweep and is kept as the quotation it is; it is NOT the "
+        "level the mechanism produces today. This correction is PROSE and this register is not "
+        "in the read path of the leg that caught the same staleness in `UNFITTED_YEARS` -- "
+        "`test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually_runs` "
+        "scans the DECLARATION, not this file, which is exactly why the void clause survived "
+        "here for a commit after being corrected there. Named as an unheld disclosure rather "
+        "than left to read as a held one. "
         "What IS now held is that the year cannot be dropped quietly -- the declaration is "
         "corroborated against `renewal_engagement.CRISIS_PASSIVE_YEARS` and the fit window by "
         "`test_departure_risks.py::test_a_year_inside_the_published_record_with_no_fitted_anchor_"

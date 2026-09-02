@@ -64,6 +64,28 @@ unidentified. **Two independently binding causes, and the scope of each is state
 
 Not clamped, not interpolated, band not widened.
 
+> **CORRECTION, 2026-09-02, later the same day — cause 2 was already void when this was written, and
+> it is left above rather than edited so the error is visible beside what replaced it.**
+>
+> Cause 2 is **VOID**, and cause 1 is now the only one that binds. On 2026-09-01 `c628cb37d` gave
+> `svt_inertia_hazard` a required `market_switching_multiplier`. Re-driving the *same, byte-identical*
+> capture's own rows through that hazard puts 2022's SVT floor at **2.34%** against the same 4.30%
+> target — **below** it, not 7.8pp above. So the barrier the sentence *"no anchor ≥ 0 brings 2022 to
+> the record"* describes is gone: 2022 now runs **short** of the record, which is the direction an
+> anchor exists to close, and what stops it is only cause 1's absent renewal population.
+>
+> The middle clause survives and was never the issue: the **anchor** still does not reach
+> `svt_inertia`. What moved was the floor, under a stored number, which is why nothing noticed —
+> `test_every_comparison_year_is_either_read_or_refused_with_a_corroborated_cause` corroborates the
+> refusal against the renewal decision **count**, i.e. cause 1 only, and reports the OR of the two.
+> A control over a two-cause claim that checks one cause is green with half the claim false.
+>
+> Held now by
+> `test_switching_rate_commons.py::test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually_runs`,
+> which recomputes rather than reads a column, and is mutation-proven **red against the text this
+> document was written from**. Pre-registration and grading:
+> `docs/staging/WORKER_PREREGISTRATION_WHETHER_2022S_DECLARED_CAUSE_SURVIVES_THE_MARKET_TERM_2026-09-02.md`.
+
 ### The mechanism: a PARTITION, not a binary
 
 Every record year is **fitted**, or **unfitted with a declared cause**. The guard is unchanged in
@@ -86,6 +108,21 @@ The defence is that 2022's whole-book floor is already ~12.09% against a 4.30% c
 runs ~2.8x *above* the record before the anchor touches it; and that the reason for 1.0 is that it is
 the identity, not that it moves toward the record. If that defence fails, the entry is one line and
 it is declared, not buried.
+
+> **THE DEFENCE FAILED, 2026-09-02, and this is the paragraph the correction above is expensive for.**
+> Half of it is void. *"The year runs ~2.8x above the record before the anchor touches it"* was the
+> load-bearing half — it said the flattering direction did not matter because 2022 had departures to
+> spare. At a floor of 2.34% against 4.30% the year runs **0.54x**, i.e. *under* the record, and 1.0
+> is now the flattering value on a year that is already short. **I said the entry was one line and
+> declared rather than buried, and that is the part that held**: the value does not change, because
+> the surviving argument is the one that never depended on the floor — 1.0 is the *identity* of the
+> parameter, the arithmetic form of "no calibration is identified", and cause 1 means there is still
+> no renewal population for any other value to multiply. A number chosen because 2022 needed one
+> would be worse now than it was then.
+>
+> What this does change is the **honest surface**: 2022 is no longer a year the world overshoots and
+> cannot be brought down. It is a year the world undershoots and has no lever to raise, and the
+> discharge is a re-capture that gives it renewal decisions — not a value in this block.
 
 ## Which table is live, and the retired one's unfollowable citation
 
