@@ -217,6 +217,40 @@ def test_a_subject_that_cannot_be_built_reads_UNPROVEN_never_GREEN():
     assert hgc.evaluate(output)["status"] == "UNPROVEN"
 
 
+def _install_fake_register(monkeypatch, fake):
+    """Install `fake` as `background.head_red_register` for BOTH spellings of the import.
+
+    `_record_observation` does `from background import head_red_register as reg`. Once ANY earlier
+    test has imported the real submodule, the `background` PACKAGE holds it as an attribute -- and
+    `from package import submodule` returns that attribute without ever consulting `sys.modules`.
+    So patching `sys.modules` alone installed nothing: the REAL register ran with these tests'
+    fixture payload, its write to the live store was refused, and `_record_observation` swallowed
+    the refusal exactly as its docstring promises it will ("NEVER RAISES INTO THE CENSUS").
+
+    THE CONTROL THAT REFUSED IT IS NAMED CORRECTLY HERE, and the first draft of this docstring
+    named the wrong one. It credited `live_ledger_guard`. `background/head_red_register` does not
+    import `live_ledger_guard` at all; what actually stopped the write is
+    `tests/production_surface_guard` (G-T2), installed by an autouse fixture in
+    `tests/conftest.py`, which patches `pathlib.Path.write_text` for every test and lists
+    `docs/observability` among its protected surfaces. Established by mutation, not by reading: a
+    `guard_live_ledger_write` call was added to `save_observed` and then removed again, and the
+    removal produced `ProductionWriteRefused` from the existing guard at the same call in the same
+    test — which is what proved the new one was a second implementation of a live rule and had to
+    be backed out. Crediting the wrong control is how a protection gets duplicated by the next
+    reader who checks whether it exists.
+
+    THE SHAPE THIS COST, observed 2026-09-02 one commit after the two controls below landed: they
+    passed when their own file ran alone and failed only when the commit gate selected
+    `tests/background/test_red_at_head_has_a_route_into_the_draw.py` beside them -- green in
+    isolation, red in the suite, wedging every commit that touched the register or the store. And
+    the assertion that fired was a bare `KeyError`, which names no cause at all.
+    """
+    import background
+
+    monkeypatch.setitem(sys.modules, "background.head_red_register", fake)
+    monkeypatch.setattr(background, "head_red_register", fake, raising=False)
+
+
 def test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_afterwards(
         tmp_path, monkeypatch):
     """THE DEFECT, observed live on 2026-09-02 against a census that was still running.
@@ -258,10 +292,16 @@ def test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_
         write_register = staticmethod(lambda store, accepted: "register.md")
         owed = staticmethod(lambda store, accepted: [])
 
-    monkeypatch.setitem(sys.modules, "background.head_red_register", _Reg)
+    _install_fake_register(monkeypatch, _Reg)
     hgc._record_observation({"status": "NEW_RED", "failures": ["tests/a.py::x"],
                              "passed": 100, "causes": {}, "subject_head": measured})
 
+    # THE WIRE BEFORE THE VERDICT. `_record_observation` swallows every exception by design, so a
+    # fake that never got installed leaves `recorded` empty and the real assertion below fails as a
+    # bare KeyError -- a control reporting a defect it did not measure. Say which one it is.
+    assert "head" in recorded, (
+        "the fake register was never reached, so this control measured NOTHING: "
+        "`_record_observation` resolved the real module and swallowed its own failure")
     assert recorded["head"] == measured, (
         "the row was labelled with the tree's CURRENT head instead of the commit the suite "
         "actually ran against -- an unattributable measurement wearing an attribution")
@@ -331,9 +371,12 @@ def test_a_run_that_cannot_name_its_subject_records_no_sha_rather_than_todays(mo
         write_register = staticmethod(lambda store, accepted: "register.md")
         owed = staticmethod(lambda store, accepted: [])
 
-    monkeypatch.setitem(sys.modules, "background.head_red_register", _Reg)
+    _install_fake_register(monkeypatch, _Reg)
     hgc._record_observation({"status": "NEW_RED", "failures": ["tests/a.py::x"],
                             "passed": 100, "causes": {}, "subject_head": None})
+    assert "head" in recorded, (
+        "the fake register was never reached, so this control measured NOTHING: "
+        "`_record_observation` resolved the real module and swallowed its own failure")
     assert recorded["head"] is None, "an unattributable run must stay unattributed"
 
 
@@ -586,3 +629,178 @@ def test_raising_the_census_timeout_cannot_turn_a_red_verdict_green():
     assert hgc.verdict(delta, 24000)[0] == "NEW_RED"
     # And the fail-safe the timeout branch relies on: no summary line is UNPROVEN, never green.
     assert hgc.verdict({"new_red": [], "fixed": [], "still_red": []}, None)[0] == "UNPROVEN"
+
+
+# ── THE SUBJECT MUST BE ABLE TO SEE THE MACHINE'S DATA, OR IT IS NOT A CHECKOUT OF HEAD ───────
+#
+# Leg 2 of SEAT_FINDING_THE_CENSUS_OVERLAYS_ITS_LAUNCH_TREES_DATA_2026-09-02. Leg 1 fixed WHERE
+# `_overlay_untracked_data` reads from; nothing checked that it ARRIVED, and the helper is
+# documented never to raise. On 2026-09-02 that silence put at least 29 manufactured reds into the
+# HEAD-red register, where `bc57c8e30`'s route drew them as work HEAD does not owe.
+
+
+def _machine_and_subject(tmp_path, monkeypatch, *, link_to=None, files=("a.json", "b.json")):
+    """A fake machine data dir, and a subject checkout to overlay into. Returns (machine, subject).
+
+    `link_to` is where the subject's `sim/cache` is pointed: None leaves it absent.
+    """
+    from background import process_run_complete as prc
+
+    machine = tmp_path / "machine"
+    (machine / "sim" / "cache").mkdir(parents=True)
+    for name in files:
+        (machine / "sim" / "cache" / name).write_text("{}")
+    monkeypatch.setattr(prc, "_machine_data_dir", lambda: machine)
+    monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+
+    subject = tmp_path / "subject"
+    (subject / "sim").mkdir(parents=True)
+    if link_to is not None:
+        (subject / "sim" / "cache").symlink_to(link_to, target_is_directory=True)
+    return machine, subject
+
+
+def test_a_subject_that_can_see_the_machines_data_reports_no_shortfall(tmp_path, monkeypatch):
+    """THE PASS BRANCH, AND IT HAS TO BE REACHABLE.
+
+    A control whose pass branch cannot execute reports a constant verdict, which is the R15 shape
+    one level up from the one it was written to catch. This is also the leg that pins the check to
+    the PROPERTY rather than to today's answer: the subject sees the machine's directory, and what
+    is in that directory is not this control's business.
+
+    MUTATION (must fire): make `overlay_shortfall` return a reason unconditionally and this fails.
+    """
+    machine, subject = _machine_and_subject(tmp_path, monkeypatch)
+    (subject / "sim" / "cache").symlink_to(machine / "sim" / "cache", target_is_directory=True)
+
+    assert hgc.overlay_shortfall(subject) == []
+    # And it stays silent when the machine's own data changes -- the contents are not the subject.
+    (machine / "sim" / "cache" / "c.json").write_text("{}")
+    assert hgc.overlay_shortfall(subject) == []
+
+
+def test_an_overlay_that_never_arrived_is_named_not_swallowed(tmp_path, monkeypatch):
+    """`_overlay_untracked_data` skips a missing source and swallows OSError, both silently.
+
+    Either path leaves the subject without the data and the suite then fails loudly INSIDE it,
+    which is indistinguishable from a real red -- the finding's own words for why "fails loudly"
+    was the defect and not the mitigation.
+
+    MUTATION (must fire): drop the `if not dst.exists()` branch from `overlay_shortfall`.
+    """
+    _machine_and_subject(tmp_path, monkeypatch, link_to=None)
+    subject = tmp_path / "subject"
+
+    shortfall = hgc.overlay_shortfall(subject)
+    assert len(shortfall) == 1 and "sim/cache" in shortfall[0], shortfall
+    assert "absent" in shortfall[0], "the reason has to name what went wrong, not just that it did"
+
+
+def test_an_overlay_pointing_at_a_FOREIGN_TREE_is_caught_by_where_it_RESOLVES(
+        tmp_path, monkeypatch):
+    """THE DEFECT AS IT ACTUALLY HAPPENED: the symlink existed and pointed somewhere real.
+
+    That is why nothing was ever logged -- the overlay believed it had succeeded. It resolved to
+    `/var/tmp/se-seat-executor/sim/cache`, holding one of the machine's twelve cache files, and 25
+    tests died on the absent `elexon_demand_full.json`.
+
+    STILL REACHABLE AFTER LEG 1, which is what makes this a control and not a re-statement:
+    `_overlay_untracked_data` skips any `dst` that already exists, so a REUSED checkout carries the
+    link an EARLIER process made from an earlier idea of where the data lived.
+
+    MUTATION (must fire): compare `dst.exists()` instead of `dst.resolve() == src.resolve()`.
+    """
+    machine, subject = _machine_and_subject(tmp_path, monkeypatch, link_to=None)
+    foreign = tmp_path / "worktree" / "sim" / "cache"
+    foreign.mkdir(parents=True)
+    (foreign / "a.json").write_text("{}")          # a real directory, and the wrong one
+    (subject / "sim" / "cache").symlink_to(foreign, target_is_directory=True)
+
+    shortfall = hgc.overlay_shortfall(subject)
+    assert len(shortfall) == 1, shortfall
+    assert str(foreign) in shortfall[0] and str(machine / "sim" / "cache") in shortfall[0], (
+        "the reason must name BOTH trees -- which one it got and which one it wanted -- or the "
+        "reader cannot tell a stale worktree from a broken machine: {}".format(shortfall)
+    )
+
+
+def test_a_machine_with_no_data_of_its_own_is_not_a_shortfall(tmp_path, monkeypatch):
+    """FAIL DIRECTION, and the one this control must NOT get wrong.
+
+    If the machine has never populated `sim/cache`, the subject is missing nothing the overlay
+    could ever have supplied. Calling that a shortfall would make the census refuse to run at all
+    on such a box -- a control that fails closed on its own absence rather than on a defect, which
+    turns UNPROVEN from a finding into wallpaper.
+
+    MUTATION (must fire): drop the `if not src.is_dir(): continue` guard.
+    """
+    from background import process_run_complete as prc
+
+    monkeypatch.setattr(prc, "_machine_data_dir", lambda: tmp_path / "empty-machine")
+    monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ("sim/cache",))
+    (tmp_path / "subject").mkdir()
+
+    assert hgc.overlay_shortfall(tmp_path / "subject") == []
+
+
+def test_a_subject_that_cannot_see_the_data_RUNS_NO_SUITE_and_reads_UNPROVEN(
+        tmp_path, monkeypatch):
+    """The whole point: not a warning beside a red list, but no red list at all.
+
+    Reds measured in a subject that is not a checkout of HEAD are not evidence about HEAD, and an
+    UNPROVEN records nothing -- `_record_observation` already refuses it -- so none of them can
+    reach the register or the draw.
+
+    MUTATION (must fire): return the shortfall on `observed` but let `run_suite` carry on. The
+    poisoned `pytest_argv` below fires the moment the suite is launched.
+    """
+    import contextlib
+
+    _machine_and_subject(tmp_path, monkeypatch, link_to=None)
+    subject = tmp_path / "subject"
+
+    @contextlib.contextmanager
+    def _blind_subject():
+        yield subject
+
+    def _must_not_run():
+        raise AssertionError(
+            "the suite was launched against a subject that cannot see the machine's data -- "
+            "every red it finds is manufactured and would be recorded as HEAD's")
+
+    monkeypatch.setattr(hgc, "head_subject_checkout", _blind_subject)
+    monkeypatch.setattr(hgc, "pytest_argv", _must_not_run)
+    monkeypatch.setattr(hgc, "subject_head_sha", lambda s: "cafebabe")
+
+    observed: dict = {}
+    output = hgc.run_suite(observed=observed)
+
+    assert output == "", "a subject that is not HEAD must produce no output to score"
+    assert hgc.evaluate(output)["status"] == "UNPROVEN"
+    assert observed["overlay_shortfall"], "the reason must survive to the caller, not just stderr"
+
+
+def test_the_shortfall_reason_reaches_the_censuss_own_JSON_surface(monkeypatch, capsys):
+    """A fail-closed verdict whose cause no surface carries is the silence this control ends.
+
+    `verdict()` can only say "no pytest summary line", which is true and tells the reader nothing
+    about what to do. The finding asked for the reason on the `--json` surface by name.
+
+    MUTATION (must fire): drop the `overlay_shortfall` block from `main`. The status stays UNPROVEN
+    and the reason reverts to the summary-line wording, so both assertions below fail.
+    """
+    def _fake_run_suite(observed=None, **kw):
+        if observed is not None:
+            observed["overlay_shortfall"] = ["sim/cache: absent from the subject"]
+        return ""
+
+    monkeypatch.setattr(hgc, "run_suite", _fake_run_suite)
+    rc = hgc.main(["--json"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert rc == 0, "UNPROVEN is not NEW_RED -- it must not page as one"
+    assert payload["status"] == "UNPROVEN"
+    assert payload["overlay_shortfall"] == ["sim/cache: absent from the subject"]
+    assert "untracked data" in payload["reason"] and "sim/cache" in payload["reason"], (
+        "the verdict's own sentence must carry the cause: {}".format(payload["reason"])
+    )
