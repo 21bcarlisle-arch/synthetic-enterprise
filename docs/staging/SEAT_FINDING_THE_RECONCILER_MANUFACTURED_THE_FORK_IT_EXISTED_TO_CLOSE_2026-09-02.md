@@ -133,3 +133,49 @@ both lanes', neither reverted.
 **What I have not established:** whether the publish path should hold its own view of HEAD rather
 than testing a tree that other lanes can pin. That is a real question and I am not answering it
 from inside an incident.
+
+## 6. CORRECTED 18:40 UTC: §5's stated cause is spent, and the fork re-opened from the console
+
+§5 said the wedge's second cause was *"a genuinely red test at HEAD ... its fix is already on origin
+and cannot reach HEAD, because the lane that wrote it still holds those two files staged."* **Both
+halves of that are now false, and neither expired the way §5 expected.**
+
+* The two nodes are **not red** any more: `66c4e780b` composed both lanes and `49e840ec6` is
+  origin/main, which defines all five controls — the lane's six overlay tests AND `30adb2b66`'s
+  three recording tests — plus `_install_fake_register`, which is the actual repair.
+* The lane no longer holds the files. **The director committed them himself at 18:34:35 UTC as
+  `5260c6859`**, from the shared tree, onto the stale parent `83c63ac58`.
+
+**That commit is the armed silent revert of §5a, fired — as a commit.** Checked node by node rather
+than assumed: `5260c6859` contains the two wedging tests and the six overlay tests, and does **not**
+contain `test_a_completed_run_lands_a_row_the_REAL_register_accepts`,
+`test_a_log_parsed_after_the_fact_records_no_sha_so_it_cannot_manufacture_a_run` or
+`test_a_census_that_could_not_record_says_so_on_the_channel_he_reads`. Merged naively into origin it
+deletes three landed controls. **Nothing of his is lost by preferring origin**: every test node and
+every function in `5260c6859` already exists at `49e840ec6`, verified by set difference in both
+directions, so origin is a strict content superset and the resolution loses nothing.
+
+### The wedge's remaining cause is the FORK ALONE, and that is a measurement, not a reading
+
+The 18:29 refusal is `origin/main is 31 commit(s) AHEAD of HEAD`. The obvious next question is
+whether the shared tree could even accept those commits, given 564 modified files. **Measured:**
+
+```
+files origin/main changes vs the shared tree's HEAD (5260c6859) :  15
+of those 15, how many are locally modified in the shared tree   :   0
+```
+
+**Zero.** The shared tree is not blocked by its own dirt at all — a fast-forward would touch fifteen
+files it has not edited. It is blocked *only* because `5260c6859` made it 1-ahead, and a 1-ahead
+tree cannot fast-forward. So the whole wedge now rests on one commit that contributes no content.
+
+**The act:** merge `5260c6859` into origin/main from an isolated worktree, resolving both census
+files to origin's superset, so origin becomes a DESCENDANT of his commit. His authorship stays in
+history, the revert is defused permanently (it can never replay), the shared tree goes 0-ahead, and
+`test_when_the_tree_CAN_advance_it_advances_without_making_a_commit` is then the branch that applies
+— the fixed reconciler fast-forwards it without making a commit at all.
+
+**Pre-registered, before running it:** if that merge lands and the shared tree still does not
+publish, the fork was not the remaining cause and this correction is wrong in its turn. The
+falsifiable reading is `.last_content_publish.json`, whose `ts` must move past 04:44 UTC — not the
+log's optimism, and not my expectation of it.

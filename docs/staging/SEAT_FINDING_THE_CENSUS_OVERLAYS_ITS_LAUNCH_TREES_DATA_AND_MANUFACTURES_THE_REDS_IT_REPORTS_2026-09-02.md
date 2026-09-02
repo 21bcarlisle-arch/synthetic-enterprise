@@ -2,6 +2,11 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `unminted`
 **Filed:** 2026-09-02, from a direct reproduction, not from reading.
+**Discharged:** `tests/background/test_publish_gate_subject_is_head.py::test_the_untracked_overlay_reads_the_MACHINES_data_not_the_importing_worktrees`,
+`tests/background/test_publish_gate_subject_is_head.py::test_mutation_resolving_the_overlay_from_the_importing_tree_reds`,
+`tests/tools/test_head_green_census.py::test_an_overlay_pointing_at_a_FOREIGN_TREE_is_caught_by_where_it_RESOLVES`,
+`tests/tools/test_head_green_census.py::test_a_subject_that_cannot_see_the_data_RUNS_NO_SUITE_and_reads_UNPROVEN`,
+`tests/tools/test_head_green_census.py::test_the_shortfall_reason_reaches_the_censuss_own_JSON_surface` — both legs are landed at 49e840ec6. Leg 1 resolves the overlay source to the MACHINE's main worktree, so a linked-worktree launch can no longer symlink its own partial sim/cache into the subject; leg 2, overlay_shortfall, makes the census run NO SUITE and read UNPROVEN when the subject cannot see the machine's data, and carries the reason on its own JSON surface rather than emitting reds that are indistinguishable from real ones.
 
 **At least 29 of the 49 reds in run 2 of the HEAD-green census are artefacts of the tree the
 census was launched from. They are not red at HEAD.** The register drawn from them is asking for
