@@ -270,6 +270,65 @@ def head_subject_checkout():
         shutil.rmtree(str(tmp), ignore_errors=True)
 
 
+def overlay_shortfall(subject) -> list[str]:
+    """What the SUBJECT cannot see of the machine's untracked data. `[]` means it sees all of it.
+
+    LEG 2 OF `SEAT_FINDING_THE_CENSUS_OVERLAYS_ITS_LAUNCH_TREES_DATA_2026-09-02`, and the leg that
+    makes the class un-recurrable rather than the instance fixed. Leg 1 corrected WHERE the overlay
+    reads from (`prc._machine_data_dir`); nothing checked that it ARRIVED. `_overlay_untracked_data`
+    is documented to never raise -- *"a missing overlay makes tests fail loudly"* -- and loudly is
+    precisely the problem here, because a loud failure inside the subject is indistinguishable from
+    a real red. Run 2 of 2026-09-02 reported 49 reds of which at least 29 were one absent cache
+    file, and `bc57c8e30`'s route carried them into the draw as work HEAD does not owe.
+
+    A census that cannot see the machine's data has not measured HEAD, so the answer is UNPROVEN --
+    which this control already knows how to give and which records nothing.
+
+    THE TWO FAILURES IT CATCHES, and it claims no more than these:
+
+      * ABSENT -- the symlink was never made. `_overlay_untracked_data` skips silently when the
+        source is missing and swallows `OSError` when the link cannot be created, so both of its
+        own failure paths land here.
+      * FOREIGN -- the subject's entry resolves somewhere other than the machine's data. Reachable
+        because the overlay skips any `dst` that already exists: a REUSED checkout carries the link
+        an earlier process made, from that process's idea of where the data lived.
+
+    THE FAILURE IT CANNOT CATCH, said plainly because a control whose scope is wider than its claim
+    fails later against a passer-by: if `_machine_data_dir()` itself names the wrong tree, this
+    agrees with it. Two reads of one derivation can only agree. That is leg 1's subject and is held
+    by leg 1's own test; this is not a second opinion on it.
+
+    Nothing here is keyed to today's twelve cache files. A control pinned to the current contents
+    would go red when the machine's data legitimately changed and stay green when the overlay broke.
+    """
+    from background import process_run_complete as prc
+
+    if subject is None:
+        return []
+    source = prc._machine_data_dir()
+    missing = []
+    for rel in prc.UNTRACKED_DATA_OVERLAY:
+        src = source / rel
+        if not src.is_dir():
+            # The machine does not have it either, so the subject is not missing anything the
+            # overlay was ever able to supply. Not a shortfall, and calling it one would make the
+            # census refuse to run on a box that has simply never populated the cache.
+            continue
+        dst = Path(subject) / rel
+        if not dst.exists():
+            missing.append("{}: absent from the subject -- the overlay did not arrive".format(rel))
+            continue
+        try:
+            landed, wanted = dst.resolve(), src.resolve()
+        except OSError as exc:
+            missing.append("{}: unreadable in the subject ({})".format(rel, exc))
+            continue
+        if landed != wanted:
+            missing.append(
+                "{}: resolves to {}, not the machine's {}".format(rel, landed, wanted))
+    return missing
+
+
 #: THE SUITE'S OWN TIMEOUT, and it must be COMFORTABLY LESS than systemd's `TimeoutStartSec`.
 #:
 #: MEASURED 2026-09-02: the nightly run took **58:57** against a 3600s unit limit — sixty-three
@@ -356,6 +415,21 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
         if observed is not None:
             observed["subject_head"] = subject_head_sha(subject)
         if subject is None:
+            return ""
+        # A SUBJECT THAT CANNOT SEE THE MACHINE'S DATA IS NOT A CHECKOUT OF HEAD, so the suite is
+        # not run against it at all -- see `overlay_shortfall`. Returning "" routes it through the
+        # UNPROVEN fail-safe that already exists, so nothing is recorded and no manufactured red
+        # reaches the register. The reason travels on `observed` to the census's own surface,
+        # because an UNPROVEN whose cause is not stated is the silence this control exists to end.
+        shortfall = overlay_shortfall(subject)
+        if shortfall:
+            if observed is not None:
+                observed["overlay_shortfall"] = shortfall
+            sys.stderr.write(
+                "[head-green-census] the subject checkout cannot see the machine's untracked "
+                "data, so it is not a checkout of HEAD -- UNPROVEN, suite not run. {}\n".format(
+                    "; ".join(shortfall)))
+            sys.stderr.flush()
             return ""
         # PYTEST'S TEMP ROOTS GO ON REAL DISK, not on the tmpfs (2026-09-02).
         #
@@ -458,6 +532,16 @@ def main(argv=None) -> int:
     # Stays absent for `--from-log`: a log parsed after the fact cannot name the commit that
     # produced it, and that is exactly how this store's first row came to claim one.
     result["subject_head"] = observed.get("subject_head")
+    # THE REASON, ON THE SURFACE, BEFORE ANYTHING READS IT. `verdict()` can only say "no pytest
+    # summary" -- true, and useless to whoever has to act on it. Composed here rather than
+    # hand-authored a second time downstream, for the reason the notify payload records: one claim
+    # with two authors is how "newly failing" survived its own correction.
+    shortfall = observed.get("overlay_shortfall") or []
+    if shortfall:
+        result["overlay_shortfall"] = shortfall
+        result["reason"] = (
+            "the subject checkout could not see the machine's untracked data, so it was not a "
+            "checkout of HEAD and the suite was not run -- {}".format("; ".join(shortfall)))
     register = _record_observation(result)
 
     if args.json:
