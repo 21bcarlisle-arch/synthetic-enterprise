@@ -586,3 +586,119 @@ def test_raising_the_census_timeout_cannot_turn_a_red_verdict_green():
     assert hgc.verdict(delta, 24000)[0] == "NEW_RED"
     # And the fail-safe the timeout branch relies on: no summary line is UNPROVEN, never green.
     assert hgc.verdict({"new_red": [], "fixed": [], "still_red": []}, None)[0] == "UNPROVEN"
+
+
+# ─────────────────────────────────── can a completed run be RECORDED at all? ──────────────────
+#
+# THE GAP THESE TWO CLOSE (2026-09-02). Every other test that touches `_record_observation`
+# substitutes a FAKE `background.head_red_register` (`monkeypatch.setitem(sys.modules, ...)`), so
+# the real `record()` had never been driven by a real `evaluate()` result. That mattered because
+# `record()` REFUSES a row whose `passed` is None, and `_record_observation` is documented NEVER
+# RAISES -- so a broken seam between the two loses the row and says so only in a journal.
+#
+# It was not hypothetical. The 2026-09-02 04:30 census printed `NEW_RED: 830 test(s) newly
+# failing:` with NO `register:` line -- the line current `main()` prints between the verdict and
+# the causes -- because that run predated `bc57c8e30` and had no recording path at all. The path
+# had therefore never executed once, and its first live exercise was a nightly run that costs an
+# hour and happens once a day.
+
+
+def _complete_pytest_log(tmp_path, *, passed: int = 24204):
+    """A COMPLETE `-q --tb=line` tail: two failures and, crucially, a summary line.
+
+    The node ids are deliberately outside `tests/` reality so no acceptance baseline can ever
+    contain them -- the assertion below is then about the RECORDING seam and not about whatever
+    `head_red_baseline.json` happens to say today.
+    """
+    log = tmp_path / "run.log"
+    log.write_text(
+        "FAILED tests/_seam/test_synthetic.py::test_one - OSError: boom\n"
+        "FAILED tests/_seam/test_synthetic.py::test_two - AssertionError: nope\n"
+        "2 failed, {} passed, 1 skipped, 1122 deselected in 3537.19s\n".format(passed))
+    return log
+
+
+def test_a_completed_run_lands_a_row_the_REAL_register_accepts(tmp_path, monkeypatch):
+    """End to end through the real `record()`: a finished run must store its pass count.
+
+    `passed` is the DENOMINATOR that proves the run reached the end of the suite. Without it the
+    red count cannot be told apart from a partial list, which is exactly what cost a whole day
+    when run 1's row went in as `"passed": null`.
+
+    MUTATION (must fire): have `_record_observation` forward `passed=None` -- or drop `passed`
+    from `evaluate`'s result. `record()` then raises `UnobservedRunRefused`, the NEVER-RAISES
+    handler swallows it, and NO ROW IS WRITTEN. This test goes red; every other test in this
+    module stays green, because every other one fakes the register away.
+    """
+    from background import head_red_register as reg
+
+    monkeypatch.setattr(reg, "OBSERVED_PATH", tmp_path / "head_red_observed.json")
+    monkeypatch.setattr(reg, "REGISTER_PATH", tmp_path / "HEAD_RED_REGISTER.md")
+
+    rc = hgc.main(["--from-log", str(_complete_pytest_log(tmp_path))])
+    assert rc == 1, "two unaccepted reds is NEW_RED, which exits 1"
+
+    assert reg.OBSERVED_PATH.exists(), (
+        "the census finished and recorded NOTHING -- the run happened and the observation did not")
+    runs = json.loads(reg.OBSERVED_PATH.read_text())["runs"]
+    assert len(runs) == 1, "one completed run, one row"
+    assert runs[0]["passed"] == 24204, (
+        "the row carries no pass count, so a completed census is indistinguishable from a "
+        "truncated one -- the defect that made run 1 a floor of unknown depth")
+    assert runs[0]["red"] == 2
+
+
+def test_a_log_parsed_after_the_fact_records_no_sha_so_it_cannot_manufacture_a_run(
+        tmp_path, monkeypatch):
+    """`--from-log` may never fill in the `head` field, and that is a FEATURE.
+
+    A parsed log cannot name the commit that produced it. This is pinned because `--from-log` is
+    the cheap way to exercise this path, and the temptation is to use it to backfill a missing
+    observation -- which is precisely how run 1's row came to claim a commit and drop its pass
+    count. A real observation costs a real `run_suite`.
+
+    MUTATION (must fire): fall back to the live HEAD when `subject_head` is absent.
+    """
+    from background import head_red_register as reg
+
+    monkeypatch.setattr(reg, "OBSERVED_PATH", tmp_path / "head_red_observed.json")
+    monkeypatch.setattr(reg, "REGISTER_PATH", tmp_path / "HEAD_RED_REGISTER.md")
+
+    hgc.main(["--from-log", str(_complete_pytest_log(tmp_path))])
+
+    row = json.loads(reg.OBSERVED_PATH.read_text())["runs"][0]
+    assert row["head"] is None, (
+        "a log parsed after the fact was labelled with a commit it cannot possibly attest to")
+
+
+def test_a_census_that_could_not_record_says_so_on_the_channel_he_reads(tmp_path, monkeypatch):
+    """The recording failure must reach NTFY, not only the journal.
+
+    `_record_observation` NEVER RAISES -- correct, a downstream artefact must not eat the verdict.
+    But its note went only to stdout, and the census's stdout is a systemd journal. The alarm the
+    director actually reads carried the red count and NOTHING about whether the observation
+    survived, so a night that measured 830 reds and stored none of them was indistinguishable, on
+    every surface he sees, from one that stored them all.
+
+    MUTATION (must fire): drop `register` from the notify payload's format arguments.
+    """
+    from background import head_red_register as reg
+
+    monkeypatch.setattr(reg, "OBSERVED_PATH", tmp_path / "head_red_observed.json")
+
+    def _cannot_write(store, accepted, **kw):
+        raise OSError("no space left on device")
+
+    monkeypatch.setattr(reg, "write_register", _cannot_write)
+
+    sent = []
+    import background.notify as notify_mod
+    monkeypatch.setattr(notify_mod, "notify",
+                        lambda body, **kw: sent.append(body) or True)
+
+    hgc.main(["--from-log", str(_complete_pytest_log(tmp_path)), "--notify"])
+
+    assert sent, "a NEW_RED verdict must page"
+    assert "register NOT updated" in sent[0] and "OSError" in sent[0], (
+        "the alarm reported the reds but not that recording them failed -- a verdict published "
+        "without the fate of its own observation")
