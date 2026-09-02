@@ -243,3 +243,43 @@ the correction passed. One correction, two surfaces, one edited. The payload is 
 `result["reason"]`, so the two cannot disagree again, and
 `test_the_alarm_carries_the_verdicts_own_sentence_and_cannot_drift_from_it` fails if either is
 hand-authored back.
+
+---
+
+## A THIRD defect, and it changes what "at a post-fix commit" can mean
+
+Filed in full as
+`docs/staging/done/WORKER_FINDING_THE_CENSUS_LABELS_ITS_ROW_WITH_A_COMMIT_ITS_SUITE_NEVER_RAN_2026-09-02.md`
+and repaired in `378c4d34d`. It belongs here because it bears directly on **"what is owed when it
+returns"** below, which asks for *a second entry at a post-fix commit*.
+
+`_head_sha()` was read **twice** — once to build the subject checkout, once to label the stored row
+— with the whole unscoped suite in between. So the `head` field recorded whatever the shared tree
+had advanced to by the time the suite finished, not the commit the suite ran against.
+
+**That means the phrase "a row at a post-fix commit" was not verifiable.** The field would have
+read post-fix whether or not a single test had run against a post-fix tree, so it could not
+distinguish the two — a done-means satisfiable by a row that lied. It is keyed to the property now.
+
+### AND THE RUN THAT IS PRODUCING RUN 2 IS AFFECTED — read this before grading it
+
+Observed live while the run was in flight:
+
+```
+started            Wed Sep  2 12:52:44 2026   (pid 450950)
+its subject holds  f5b19b43f      <- the commit its suite actually ran
+shared HEAD then   2a84aec8e      <- six commits later
+```
+
+A running process does not re-read its own source, so `378c4d34d` **cannot reach it**.
+
+> **The row written by the 12:52:44 run will name the wrong commit. Its true subject is
+> `f5b19b43f`.** Do not read that row's `head` field; read this line instead. Every other field —
+> `red`, `passed`, `causes`, the node ids — is unaffected, so **C1, C2, C3, C4 and C6 are graded
+> from it exactly as written.** Only the attribution is wrong, and it is corrected here.
+
+Note what this does to the *attribution* caveat already recorded above ("more than one thing
+changed, so a move cannot be attributed to the tmpfs repair alone"). It gets **stronger**, not
+weaker: `f5b19b43f` is post-`2112a1f03` and post-`3a8232eb6`, so the tmpfs repair **is** in this
+run's subject and C1/C2/C6 are live. The clauses can be graded. The commit named on the row simply
+is not the one they were graded at.
