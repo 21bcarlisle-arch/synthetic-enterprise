@@ -7,7 +7,8 @@ clarity penalty — which drives contact propensity, which drives satisfaction a
 
 The established definition says a shock is an INCREASE, for both populations
 (`docs/market_research/what_bill_shock_is.md`): standard credit's three published triggers are
-all upward, and the direct-debit triggers (SLC 27B's ±5% review, Ofgem's >100% escalation cut)
+all upward, and the direct-debit triggers (the ±5% review band -- a modelling convention under the
+SLC 27.15 duty, since there is no SLC 27B -- and Ofgem's >100% escalation cut)
 are about a payment rise. Nothing published describes a household shocked by being asked less.
 
 REUSE: `test_a_published_bill_shock_can_be_recomputed.py` owns the BASELINE and its

@@ -1688,7 +1688,8 @@ def extract_monthly_ops(data):
         "avg_shock_pct_definition_note": (
             "Bill shock is TWO experiences in two populations, not one experience with "
             "three causes (docs/market_research/what_bill_shock_is.md, sourced from Ofgem's "
-            "credit-balance and Direct Debit Market Compliance publications and SLC 27B/21BA). "
+            "credit-balance and Direct Debit Market Compliance publications and SLC 27.15/21BA "
+            "-- there is no SLC 27B). "
             "Which one applies to a household is decided entirely by HOW IT PAYS. For standard "
             "credit ('bill', ~13% of GB households) the shock IS the bill, and the difference "
             "between two bills is the right quantity -- that is what avg_shock_pct now means, "

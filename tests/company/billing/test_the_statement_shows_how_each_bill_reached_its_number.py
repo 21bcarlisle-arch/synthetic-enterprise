@@ -271,3 +271,71 @@ def test_the_event_walk_closes_where_the_ledger_says_it_closes():
             disagree.append((cid, doc["closing_balance_gbp"], doc["ledger_balance_gbp"]))
     assert accounts >= 200, "only {} accounts: an emptied ledger would pass".format(accounts)
     assert not disagree, "closing balance disagrees with the ledger on: {}".format(disagree[:5])
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# A BILL IS MIXED-BASIS, AND I NEARLY FILED THAT AS A DEFECT ACROSS 966 BILLS (2026-09-02)
+#
+# All 966 catch-up bills compute VAT on a base that EXCLUDES the correction. On C1g/41: base
+# £64.32, correction +£31.41, VAT charged £3.22 — where 5% of the corrected supply would be £4.79.
+# Against the published rule (`docs/domain_artefact_library/regulatory/uk_vat_rates.json`, 5% on
+# domestic fuel and power) that reads as a £1.57 undercharge, 966 times over.
+#
+# IT IS NOT ONE. `monthly_bill_assembly._resolve_catchup` builds the delta as
+# `sum(true_total_amount_gbp - total_amount_gbp)` over the estimated run, and `total_amount_gbp` is
+# the VAT-INCLUSIVE total. The correction already carries its own VAT; charging it again would
+# double-count. The four period charges are NET, the VAT line is computed over them, and the
+# catch-up is GROSS — one bill, two bases.
+#
+# What stopped the false finding was asking what the quantity IS before differencing it. These
+# tests exist so a reconstruction cannot make the same mistake silently: a validator that assumed a
+# single basis would "discover" a VAT shortfall on 966 bills on its first run, which is exactly the
+# kind of false positive that discredits an exercise like this before it has found anything real.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+
+def test_the_catchup_line_declares_that_it_is_already_vat_inclusive():
+    """MUTATION: drop `vat_basis` from the line's inputs and this fails -- and the mixed basis
+    becomes something a reconstruction has to rediscover by tracing the biller, which is precisely
+    what a CURTAINED validator is forbidden to do."""
+    doc = sx.bill_document(_inv(catchup_applied=True, catchup_adjustment_gbp=31.41,
+                                total_amount_gbp=106.65))
+    assert doc["lines"][4]["inputs"]["vat_basis"] == sx.VAT_INCLUSIVE
+    assert "VAT-INCLUSIVE" in doc["lines"][4]["basis"]
+
+
+def test_the_four_period_charges_do_not_claim_a_vat_basis():
+    """They are NET and the VAT line is computed over them, so a `vat_basis` on those would be the
+    opposite error -- a reconstruction excluding them from the VAT base."""
+    for line in sx.bill_lines(_inv())[:4]:
+        assert "vat_basis" not in line["inputs"], line["label"]
+
+
+def test_the_vat_charged_on_every_catchup_bill_matches_the_NET_base_across_the_real_book():
+    """THE MEASUREMENT ITSELF, pinned so the claim above cannot rot into a comment.
+
+    966 of 966 catch-up bills, VAT consistent with the base EXCLUDING the correction and with none
+    including it. If that ever flips, either the biller changed basis or the correction stopped
+    being gross -- and both are things a reader of this module must be told, not left to infer.
+    """
+    ledger = _real_ledger()
+    excludes = includes = neither = 0
+    for cid, rec in (ledger.get("customers") or {}).items():
+        expected = 0.20 if rec.get("segment") == "SME" else 0.05
+        for inv in rec.get("invoices") or []:
+            if not inv.get("catchup_applied"):
+                continue
+            net = sum((inv.get(k) or 0.0) for k in
+                      ("commodity_amount_gbp", "non_commodity_amount_gbp", "standing_charge_gbp"))
+            adj = inv.get("catchup_adjustment_gbp") or 0.0
+            vat = inv.get("vat_gbp") or 0.0
+            if abs(vat - expected * net) < 0.02:
+                excludes += 1
+            elif abs(vat - expected * (net + adj)) < 0.02:
+                includes += 1
+            else:
+                neither += 1
+    assert excludes >= 900, "only {} catch-up bills: an emptied ledger would pass".format(excludes)
+    assert includes == 0 and neither == 0, (
+        "{} bills charge VAT on the corrected base and {} on neither -- the catch-up basis is no "
+        "longer uniform, so the reconstruction rule in this module is now wrong".format(
+            includes, neither))

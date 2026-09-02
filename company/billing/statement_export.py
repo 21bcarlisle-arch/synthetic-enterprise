@@ -82,6 +82,22 @@ RESTATEMENT = "RESTATEMENT"
 
 UNAVAILABLE = "UNAVAILABLE"
 
+#: A BILL IS MIXED-BASIS, AND A RECONSTRUCTION THAT DOES NOT KNOW THAT WILL REPORT A FALSE DEFECT
+#: ON EVERY CATCH-UP BILL. The four period charges are NET; the VAT line is computed over them; the
+#: catch-up correction is GROSS.
+#:
+#: Established rather than assumed (2026-09-02). All 966 catch-up bills compute VAT on a base that
+#: EXCLUDES the correction, which looks like a VAT undercharge — on `C1g`/41, £3.22 charged where
+#: 5% of the corrected supply would be £4.79. It is not one. `monthly_bill_assembly._resolve_catchup`
+#: builds the delta as `sum(true_total_amount_gbp - total_amount_gbp)` over the estimated run, and
+#: `total_amount_gbp` is the VAT-INCLUSIVE total, so the correction already carries its own VAT.
+#: Charging VAT on it again would double-count.
+#:
+#: I nearly filed that as a finding across 966 bills. The check that stopped it was asking what the
+#: quantity IS before differencing it — and this constant exists so the next reader does not have to
+#: repeat the trace to find out.
+VAT_INCLUSIVE = "vat_inclusive"
+
 #: Pennies. Two figures agreeing to less than this are the same figure rendered twice; the ledger
 #: stores 2dp, so anything at or above one penny is a real disagreement and not float noise.
 PENNY = 0.005
@@ -141,9 +157,10 @@ def bill_lines(inv: dict) -> list[dict]:
         lines.append(_line(
             "Catch-up correction (bills already issued, restated)",
             "a real read resolved a run of estimates; the correction for "
-            "{}..{} is folded into THIS bill's total".format(
+            "{}..{} is folded into THIS bill's total, VAT-INCLUSIVE".format(
                 inv.get("catchup_period_start"), inv.get("catchup_period_end")),
-            {"catchup_direction": inv.get("catchup_direction"),
+            {"vat_basis": VAT_INCLUSIVE,
+             "catchup_direction": inv.get("catchup_direction"),
              "catchup_periods_covered": inv.get("catchup_periods_covered"),
              "catchup_raw_delta_gbp": inv.get("catchup_raw_delta_gbp"),
              # Ofgem SLC 31A caps what a supplier may recover on an undercharge. Money barred from
