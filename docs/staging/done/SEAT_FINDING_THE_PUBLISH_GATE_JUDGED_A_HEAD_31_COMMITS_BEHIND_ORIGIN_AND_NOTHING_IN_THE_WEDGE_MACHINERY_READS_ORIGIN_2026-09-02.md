@@ -1,4 +1,8 @@
-# [SEAT FINDING] The publish gate judged a HEAD 31 commits behind origin, and nothing in the wedge machinery reads origin
+# [SEAT FINDING] The publish gate judged a HEAD 31 commits behind origin, and the behind-origin refusal sits downstream of the gate that returns before it
+
+*(Filename and the second half of the original title — "nothing in the wedge machinery reads
+origin" — are superseded by the CORRECTION below. The behind-origin check exists; it is
+unreachable in this case. Filename kept because the class register cites it.)*
 
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** `unminted`
 **Filed:** 2026-09-02, from a reproduction and a node-name diff, not from reading.
@@ -38,14 +42,38 @@ strict superset in both changed files.
 
 ## Why nothing noticed
 
-The ruling that made the gate's subject `HEAD` was right, and is not what failed. What failed is
-that **no part of the wedge machinery asks whether `HEAD` is current.** The gate, the episode
-counter, the blocking-tests file, the alarm and the doorbell all reason about `HEAD` as though it
-were the machine's state. None of them fetches, and none compares against `origin/main`.
+> **CORRECTION, made an hour after filing and kept beside the claim it replaces.** The title and
+> this section originally said *"no part of the wedge machinery asks whether `HEAD` is current"*.
+> **That is false, and the truth is worse.** The check exists —
+> `process_run_complete.BEHIND_ORIGIN` / `_divergence_refusal()`, with real-git controls in
+> `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`, built
+> on 2026-09-01 for this exact condition. I found it by reading the test selection of the publish
+> cycle that was running while I filed. The filename is left unchanged because the class register
+> now cites it.
 
-A fork is therefore indistinguishable from a red — and it degrades in exactly the wrong direction:
-the longer the fork lasts, the more confident the alarm becomes (17 consecutive failures reads as
-a deep defect, and is in fact 17 measurements of the same stale commit).
+The ruling that made the gate's subject `HEAD` was right, and is not what failed. Nor is the
+behind-origin refusal missing. **What failed is their ORDER.**
+
+    line 6471   tests_ok, timed_out = run_fast_tests(git_hash)     # the gate: archives local HEAD
+    line 6472   if not tests_ok:  ... return _gate_refusal(...)    # EARLY RETURN -> test_regression
+    ...
+    line 4478   _behind = _divergence_refusal()                    # in the COMMIT path only
+
+`_divergence_refusal()` is only reached once the gate is **green**. So when the tree is behind
+origin *and* the stale `HEAD` is red — which is precisely the wedge this control was written for —
+the gate returns first and the behind-origin refusal can never fire. The control is structurally
+unreachable in its own case.
+
+This is the R15 shape the project already names: a control that cannot fail in the situation it
+exists for. It is invisible because it looks present, is tested, and its tests pass — they
+exercise the commit path, where it does run.
+
+The comment at line 4475 says *"two fail-closed refusals in a row cannot mask each other into
+publishing, so the order is free to be chosen."* True of the **publish verdict**, and it is why
+nothing is being published wrongly. But the order is not free of **classification**: whichever
+refusal fires first is the one that names the cause, and the gate firing first files a fork as a
+`test_regression`. The episode counter then reads 17 consecutive failures as depth, when it is 17
+measurements of one superseded commit.
 
 ## What it cost
 
@@ -62,13 +90,28 @@ test node names between the two sides, and it was only run at merge time.
 
 ## The repair this asks for
 
-Smallest mechanism that can fail: **the wedge alarm must state the fork distance beside the red.**
-A gate failure at a `HEAD` that is behind `origin/main` is not a code red and must not be counted
-into the episode — it is a fork, and the action is to merge, not to diagnose. Keyed to the
-property, not to today's answer: the check is `HEAD` vs `origin/main`, not a pinned sha.
+Smaller than the version I first wrote, because the mechanism is already built and merely sits
+downstream of the thing that returns before it. **Move the existing `_divergence_refusal()` read
+in front of `run_fast_tests()`**, and when origin is ahead, refuse with `BEHIND_ORIGIN` instead of
+running the gate at all.
 
-This is a one-leg check on a path that already exists, and it deletes the whole class: no episode
-of this shape can survive the alarm naming its own distance from origin.
+Three properties it must have, none keyed to today's answer:
+
+1. A gate failure at a `HEAD` behind `origin/main` is classified `behind_origin`, **never**
+   `test_regression`. Different cause, different remedy: merge, not diagnose.
+2. It must not count into the episode. The counter is meant to measure a deepening defect, and
+   17 measurements of one superseded commit is not depth.
+3. The check is `HEAD` vs `origin/main`, not a pinned sha, so it stays true after this fork is
+   reconciled — the same discipline the existing behind-origin controls already chose.
+
+**The control this needs is one the existing test file cannot provide.** Its cases all run the
+commit path, where the refusal already fires. The missing case is *origin ahead AND the gate red*,
+asserting the recorded cause is `behind_origin` — which fails today, and is the mutation that
+proves the reordering did something.
+
+Not fixed in this tick: this is a change to the publish path's ordering while a publish cycle is
+live in the tree, and the drawn work (unwedge, merge, push) is complete. It should be drawn next,
+and it is small.
 
 ## Second, separate defect found on the way
 
