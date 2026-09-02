@@ -469,6 +469,40 @@ def _worktree_claims() -> Path:
     return WORKTREE / "docs" / "observability" / delivery_lane.CLAIMS_FILE.name
 
 
+def _claim_stores() -> tuple[Path, ...]:
+    """EVERY store a turn's claim is written to. ACQUIRE AND RELEASE BOTH ITERATE THIS.
+
+    That is the entire reason this is a function and not a tuple literal written out twice. The
+    claim loop in `run_once` gained a store on 2026-09-02 and `_hand_back` did not, so from that
+    commit the executor wrote three claims per turn and released one. `seat_work_in_hand`'s copy
+    was the orphan, and because it is written with `paths=[]` and `record_landing` only ever binds
+    paths into the DELIVERY-LANE store, its idle clock started at the claim and could never
+    restart -- no matter what the turn landed.
+
+    WHAT THAT COST, measured on the live record rather than reasoned about. Forty-five minutes
+    after each turn (`seat_work_in_hand.STALE_AFTER_SECONDS`) the next unattended writer to call
+    `refuse_if_duplicated` swept the orphan and escalated `[SEAT] <id> was claimed and has not
+    moved`. Three consecutive executor turns of 2026-09-02 are appended to
+    `docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-08-26.md` by that route, and the
+    last of them -- `an-exit-code-is-not-a-landing` -- has a log line reading `1 of 1 bound
+    path(s) moved on the shared tree` for the same turn. Two instruments on one turn disagreeing,
+    and the alarm was the one with no way to be right: it reads the only store the turn's paths
+    never reach.
+
+    The three answer three different questions, which is why they are three files and not one:
+
+      * `seat_work_in_hand` -- the CROSS-LANE PATH GUARD's store (`refuse_if_duplicated`).
+      * the SHARED delivery-lane store -- what `next_item` filters on, so it is what stops a
+        concurrent draw handing this item to a second writer mid-turn.
+      * the WORKTREE's delivery-lane store -- the one the CHILD reaches, because its cwd is the
+        worktree and `python3 -m background.delivery_lane --landed <id>` imports that copy.
+
+    NOT the same list as `_still_claimed` reads, and that asymmetry is deliberate: that function
+    asks whether the TICK released, and a tick can only reach the two delivery-lane stores.
+    """
+    return (delivery_lane.claims_mod.CLAIMS_FILE, delivery_lane.CLAIMS_FILE, _worktree_claims())
+
+
 def _still_claimed(work_id: str) -> bool:
     """Is the lane's claim on this id still held? An unreadable store reads as STILL CLAIMED.
 
@@ -499,7 +533,11 @@ def _still_claimed(work_id: str) -> bool:
 
 
 def _hand_back(work_id: str, claimed_at: float) -> None:
-    """Release the claim THIS turn took on the shared store, and only if it is still ours.
+    """Release the claims THIS turn took, in EVERY store it took them in, and only if still ours.
+
+    IT RELEASED ONE OF THREE UNTIL 2026-09-03 and the orphan alarmed on finished work 45 minutes
+    later. `_claim_stores()` is now the single list both ends read; read its docstring for the
+    measurement. A store added there and released here is one change, not two that can drift.
 
     WHY THE EXECUTOR RELEASES ITS OWN CLAIM AT ALL, and it is the clause that makes claiming in
     this store safe. `delivery_lane.next_item` skips any id in `held()` -- that filter is the
@@ -515,14 +553,17 @@ def _hand_back(work_id: str, claimed_at: float) -> None:
     MATCHED ON `claimed_at`, so this releases what it took rather than whatever is there now. If
     another writer re-claimed the id mid-turn, that claim is theirs and outlives this call.
 
-    Never raises: a turn that has already produced its verdict must not lose it to bookkeeping.
+    Never raises, and PER STORE rather than once around the loop: a turn that has already produced
+    its verdict must not lose it to bookkeeping, and one unreadable store must not cost the release
+    of the two beside it.
     """
-    try:
-        rec = delivery_lane.claims_mod._load(delivery_lane.CLAIMS_FILE).get(work_id)
-        if isinstance(rec, dict) and float(rec.get("claimed_at", 0)) == claimed_at:
-            delivery_lane.claims_mod.release(work_id, path=delivery_lane.CLAIMS_FILE)
-    except Exception:  # noqa: BLE001
-        pass
+    for store in _claim_stores():
+        try:
+            rec = delivery_lane.claims_mod._load(store).get(work_id)
+            if isinstance(rec, dict) and float(rec.get("claimed_at", 0)) == claimed_at:
+                delivery_lane.claims_mod.release(work_id, path=store)
+        except Exception:  # noqa: BLE001
+            continue
 
 
 def seat_continuation_drop(work_id: str) -> bool:
@@ -828,25 +869,15 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         worktree = ensure_worktree(base or "origin/main")
 
         # THE CLAIM GOES IN THREE PLACES AND EACH ONE ANSWERS A DIFFERENT QUESTION. It used to go
-        # in one, and it was the one nothing downstream asked.
-        #
-        #   * `seat_work_in_hand` is the CROSS-LANE PATH GUARD's store: `refuse_if_duplicated`
-        #     reads it so another writer cannot take the same paths.
-        #   * The SHARED delivery-lane store is what `next_item` filters on, so this is what stops
-        #     a concurrent draw handing the same item to a second writer mid-turn. `_hand_back`
-        #     releases it when the turn ends -- read its docstring before removing that call, or
-        #     the item stops being re-offered.
-        #   * The WORKTREE's delivery-lane store is the one the CHILD reaches. Its cwd is the
-        #     worktree, so `python3 -m background.delivery_lane --landed <id>` imports the
-        #     worktree's module; with no claim there `record_landing` refuses outright with
-        #     `NOT CLAIMED`, and a turn that really landed and really promoted scored
-        #     `LANDED NOTHING`. Measured on `8cb73c627`, which this turn's charter required be
-        #     bound and which could not be.
+        # in one, and it was the one nothing downstream asked. `_claim_stores()` names the three
+        # and says what each is for -- and `_hand_back` iterates THE SAME FUNCTION, so a store
+        # added to the acquire is released by construction rather than by remembering. It was two
+        # written-out loops for one day and they had already drifted by the end of it.
         #
         # `claimed_at` is captured because `_hand_back` matches on it: this releases the claim it
         # took, never whatever happens to be there when the turn ends.
         claimed_at = time.time()
-        for store in (None, delivery_lane.CLAIMS_FILE, _worktree_claims()):
+        for store in _claim_stores():
             delivery_lane.claims_mod.claim(
                 work_id, note=str(item.get("what") or "")[:200], paths=[],
                 path=store, now=claimed_at)

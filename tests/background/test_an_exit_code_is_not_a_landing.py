@@ -695,10 +695,21 @@ def routed(tmp_path, monkeypatch):
             return delivery_lane.record_landing("the-item", path=store)
         return run_it
 
+    # WHAT THE STORES HELD WHILE THE TURN WAS STILL RUNNING. Captured at the spawn, which is the
+    # only instant a claim is supposed to be load-bearing -- after the turn it is residue. Without
+    # this, a release could be "proved" by never having claimed at all.
+    mid_turn: dict[str, bool] = {}
+
     def spawn(child=None, returncode: int = 0):
         def fake_run(cmd, **kwargs):
             if cmd[:2] == ["git", "rev-parse"]:
                 return subprocess.CompletedProcess(cmd, 0, stdout="basesha0000\n", stderr="")
+            mid_turn.update(
+                {str(s): "the-item" in delivery_lane.claims_mod._load(s)
+                 for s in seat_executor._claim_stores()},
+                work_in_hand=("the-item" in delivery_lane.claims_mod._load(
+                    seat_executor.seat_work_in_hand.CLAIMS_FILE)),
+            )
             if child is not None:
                 child()
             return subprocess.CompletedProcess(cmd, returncode, stdout="", stderr="")
@@ -707,8 +718,11 @@ def routed(tmp_path, monkeypatch):
     return type("Routed", (), {
         "shared": shared,
         "worktree_store": worktree / "docs" / "observability" / shared.name,
+        "work_in_hand": tmp_path / "work_in_hand.json",
+        "staging": tmp_path / "staging",
         "spawn": staticmethod(spawn),
         "child_binds": staticmethod(child_binds),
+        "mid_turn": mid_turn,
         "dropped": dropped,
         "log": lambda self=None: (tmp_path / "log.md").read_text(),
     })()
@@ -833,5 +847,107 @@ def test_the_hand_back_releases_only_the_claim_THIS_turn_took(routed):
 
     assert "the-item" in delivery_lane.held(path=routed.shared), \
         "the hand-back released a claim this turn did not take"
+
+
+# ------------------------------------------------------------ acquire and release, the SAME list
+#
+# THE RESIDUE THE REPAIR ABOVE LEFT, and it is the shape that repair was itself about.
+#
+# `run_once` was given a THIRD claim store on 2026-09-02 so the child's `--landed` could find the
+# claim. `_hand_back` kept releasing ONE. From that commit the executor wrote three claims a turn
+# and let go of one, and the orphan was `seat_work_in_hand`'s -- the store `record_landing` never
+# binds paths into, so its idle clock starts at the claim and cannot restart however much the turn
+# lands. Forty-five minutes later the next `refuse_if_duplicated` swept it and escalated
+# `[SEAT] <id> was claimed and has not moved` into the director's queue.
+#
+# MEASURED, not inferred: three consecutive executor turns of 2026-09-02 are appended to
+# `docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-08-26.md` by that route, the last
+# being `an-exit-code-is-not-a-landing` -- whose own log line for the same turn reads `1 of 1 bound
+# path(s) moved on the shared tree`. Two instruments on one turn, disagreeing, and the alarm is the
+# one with no way to be right: it reads the only store the turn's paths never reach.
+#
+# These pin the PROPERTY -- acquire and release iterate the same list -- not today's store count.
+
+
+@pytest.mark.parametrize("route", ["promoted", "drawn"])
+def test_a_FINISHED_turn_leaves_no_claim_in_ANY_store_it_took_one_in(routed, route):
+    """BOTH ROUTES, for §9.6's reason: the route picks which store the landing is bound into, and
+    a release covering only the bound one would pass on whichever route was tested.
+
+    Asserted against the STORES, never a return value or a printed line -- the finding's §10.1 is
+    precisely about instruments that report on themselves.
+
+    BOTH ENDS, and the mid-turn half is what stops the release being "proved" by never claiming.
+    The list is read from `_claim_stores()` at run time rather than written out here, so this says
+    *acquire and release agree* rather than *there are three stores*: a fourth added to the acquire
+    is covered the moment it is added.
+
+    MUTATIONS. Release side -- restore `for store in (delivery_lane.CLAIMS_FILE,)` in `_hand_back`,
+    the pre-repair list, and both parametrisations fire on `work_in_hand`; `_claim_stores()[:2]`
+    fires on the worktree store. Acquire side -- drop `claims_mod.CLAIMS_FILE` from
+    `_claim_stores()` and the `work_in_hand` leg below fires. That last mutation SURVIVED the harm
+    test beside this one, and this leg is why it is not left as an equivalence: dropping the store
+    from BOTH ends removes the orphan honestly, but it also removes a live-turn declaration two
+    readers depend on, so the loss had to be named somewhere.
+    """
+    store = routed.worktree_store if route == "promoted" else routed.shared
+    routed.spawn(child=routed.child_binds(store))
+    ran, detail = seat_executor.run_once()
+    assert "LANDED NOTHING" not in detail, detail  # the turn really did land, on this route
+
+    assert routed.mid_turn and all(
+        held for name, held in routed.mid_turn.items() if name != "work_in_hand"), \
+        f"a store in the acquire list held no claim while the turn ran: {routed.mid_turn}"
+    # NAMED SEPARATELY because it is a property with its own readers, not a count: while a turn is
+    # live, `delivery_lane.release_refusal_reason` reads this store to tell a tick its release
+    # could never have found the claim, and `seat_continuity` reads it to say what a seat thought
+    # it was doing. A turn that never declared itself there is invisible to both.
+    assert routed.mid_turn["work_in_hand"], \
+        "the turn never declared itself in the cross-lane store while it was running"
+
+    for left in (routed.work_in_hand, routed.shared, routed.worktree_store):
+        assert "the-item" not in delivery_lane.claims_mod._load(left), \
+            f"a finished turn left its claim standing in {left.name}"
+
+
+def test_the_orphaned_claim_a_finished_turn_used_to_leave_ALARMS_ON_FINISHED_WORK(routed):
+    """THE HARM, driven end to end, because "one store went unreleased" is not by itself a defect.
+
+    What makes it one is that `seat_work_in_hand.sweep` escalates a work item into the director's
+    queue about it -- naming a turn that finished, and in the measured case one whose landing the
+    lane had already confirmed moved on the shared tree. So this runs the real sweep at a real
+    deadline against the real store and asserts NOTHING is filed.
+
+    Keyed to the property and not to the current release list: any future store a turn claims in
+    and does not release fails this, whether or not anyone remembers to add it here.
+
+    MUTATION: restore the pre-repair `_hand_back` (release `delivery_lane.CLAIMS_FILE` alone) and
+    this fires -- the sweep releases `['the-item']` and files
+    `WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_<today>.md`, the same document the three live turns
+    are appended to. Both legs were run under the mutation, separately, rather than the first
+    being allowed to mask the second.
+
+    DROPPING THE STORE FROM `_claim_stores()` ENTIRELY IS AN EQUIVALENCE HERE, established by
+    running it rather than assumed: no claim written is no claim orphaned, so no alarm. It is a
+    real behaviour change all the same -- it removes the live-turn declaration -- and that is
+    caught by the mid-turn leg of the test above, which is where it belongs. Recorded because a
+    surviving mutation is either a missing test or an equivalence and the flattering answer is not
+    the default.
+    """
+    routed.staging.mkdir()
+    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    seat_executor.run_once()
+
+    # Long past `STALE_AFTER_SECONDS`, which is what the next tick's `refuse_if_duplicated` reaches
+    # on a store whose claim was never handed back. `head_time=0.0` keeps git out of it: the claim
+    # carries `paths=[]`, so there was never anything for the sweep to observe in the first place.
+    released = seat_executor.seat_work_in_hand.sweep(
+        path=routed.work_in_hand, now=time.time() + 86_400, head_time=0.0,
+        staging_dir=routed.staging)
+
+    assert released == [], \
+        f"the sweep alarmed on a finished turn and released {released} -- the claim was orphaned"
+    assert list(routed.staging.iterdir()) == [], \
+        "a work item was filed in the director's queue about a turn that had already finished"
 
 
