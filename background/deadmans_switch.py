@@ -228,10 +228,48 @@ def _last_meaningful_commit_epoch() -> float:
     real commit is genuinely older than the whole window, so "very stale" is the
     honest answer and the alarm should fire. No daemon's logging, and no no-op
     publish loop, can move this signal; only real work does."""
+    carried_nothing = _commits_that_changed_nothing()
     for epoch, subject in _recent_commits():
-        if not _is_non_progress_commit(subject):
-            return epoch
+        if _is_non_progress_commit(subject):
+            continue
+        if (epoch, subject) in carried_nothing:
+            continue
+        return epoch
     return 0.0
+
+
+def _commits_that_changed_nothing() -> set:
+    """`(epoch, subject)` of recent commits whose tree equals one of their own parents'.
+
+    THE SECOND LEG, AND THE ONE THAT WOULD HAVE CAUGHT 2026-09-02. `_is_non_progress_commit` is a
+    DENYLIST OF SUBJECT PREFIXES, so it is fail-open on the next no-op class by construction --
+    and the next one arrived. `origin_reconcile` put 29 empty merges on origin over three and a
+    quarter hours, subject *"merge origin/main: automatic reconciliation in an isolated
+    worktree"*, matching no prefix in the list. Every one of them refreshed this clock, so the
+    STALL alarm stayed clear through the whole outage while nothing whatever was happening.
+    Director: *"a daemon producing empty merges lit up every liveness surface you have."*
+
+    A denylist cannot be repaired by adding this one subject to it; the class is "commits that do
+    not change the repository", and `commit_narrative` decides that STRUCTURALLY -- tree against
+    every parent's tree -- so no future message can walk past it.
+
+    BOTH LEGS ARE KEPT because neither implies the other: a `chore(` commit that really does write
+    files is still not forward progress, and an empty commit with a work-like subject is still not
+    forward progress. Only a commit outside both classes moves the clock.
+
+    THE LIMIT, stated rather than discovered: the join is `(epoch, subject)` and not a sha, because
+    `_recent_commits` yields no sha and is pinned by name in eleven tests that supply synthetic
+    rows. Two DIFFERENT commits sharing a second AND a subject line, one of them real work, would
+    let that one be skipped. Unreachable in practice and it fails toward "looks stale", which is
+    the safe direction for a watchdog. Returns an empty set when the history cannot be read, and
+    then the subject leg stands alone exactly as it did before.
+    """
+    try:
+        from background import commit_narrative
+        rows = commit_narrative.read_commits(PROJECT_DIR, limit=200)
+    except Exception:  # noqa: BLE001 - a watchdog must not die of its own instrument
+        return set()
+    return {(float(r["epoch"]), r["subject"]) for r in rows if r["carries_work"] is False}
 
 
 def last_activity_epoch() -> float:
@@ -655,8 +693,13 @@ def _check_origin_fork() -> None:
         return
     log(f"ORIGIN FORK ({r['status']}): {r['detail']}")
     if r["status"] in (origin_reconcile.LEVEL, origin_reconcile.RECONCILED,
-                        origin_reconcile.PUSHED):
+                        origin_reconcile.PUSHED, origin_reconcile.FAST_FORWARDED):
         clear_transition(_ORIGIN_FORK_KEY)
+        return
+    if r["status"] == origin_reconcile.GATE_RUNNING:
+        # NOT A FORK CONDITION AND NOT A CLEARANCE. The gate holds the lock, so nothing was even
+        # looked at; alarming would be reporting a state that was not observed, and clearing would
+        # be reporting agreement that was not observed either. Wait for the next cadence.
         return
     notify(
         f"[ORIGIN FORK] {r['status']}: {r['detail']} — origin is {r['behind']} commit(s) ahead and "
