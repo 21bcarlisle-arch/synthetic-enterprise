@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T03:01:58.586062+00:00",
+  "generated_at": "2026-09-02T04:31:41.654719+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,8 +13,8 @@
     "reserved_changed": 1,
     "reserved_added": 1,
     "reserved_cleared": 0,
-    "daemons_flipped": 2,
-    "daemons_newly_stale": 2,
+    "daemons_flipped": 3,
+    "daemons_newly_stale": 3,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
@@ -22,7 +22,7 @@
   },
   "changes": [
     "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
-    "2 daemon(s) went stale: discovery-daemon, epistemic-verifier",
+    "3 daemon(s) went stale: discovery-daemon, dispatcher, ntfy-responder",
     "total_open_atoms: 55 -> 83"
   ],
   "detail": {
@@ -33,7 +33,8 @@
     "reserved_cleared": [],
     "daemons_newly_stale": [
       "discovery-daemon",
-      "epistemic-verifier"
+      "dispatcher",
+      "ntfy-responder"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
@@ -58,11 +59,11 @@
       "staging-watcher": "live",
       "discovery-daemon": "stale",
       "sim-runner": "live",
-      "dispatcher": "live",
-      "ntfy-responder": "live",
+      "dispatcher": "stale",
+      "ntfy-responder": "stale",
       "autonomous-runner": "retired",
       "background-worker": "live",
-      "epistemic-verifier": "stale",
+      "epistemic-verifier": "live",
       "discovery-agent": "stale",
       "supervisor": "live",
       "sanity-daemon": "live",
@@ -78,8 +79,8 @@
     "open_atoms": 83
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-09-02T02:29:49.696835+00:00",
-    "health_last_updated": "2026-09-02T03:01:50.656828+00:00",
+    "reserved_generated_at": "2026-09-02T04:31:26.417612+00:00",
+    "health_last_updated": "2026-09-02T04:31:34.831042+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
