@@ -5179,6 +5179,37 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
                 result.returncode, len(reds), findings))
         return state
     except Exception as exc:  # noqa: BLE001 -- an observer that can red its subject is a defect
+        # THE CHEAP HALF IS REFRESHED ON THIS PATH TOO, AND UNTIL 2026-09-03 IT WAS NOT.
+        #
+        # The not-due branch above already carries the argument, in its own words: "Findings are
+        # cheap to count, so refresh that half every cycle even when the suite is throttled -- a
+        # stale finding count on a live page is a small lie that costs nothing to avoid." That
+        # branch fires when the hourly throttle says wait. THIS branch fires when the suite runs
+        # and dies, and it recorded nothing at all — so the principle was written down, implemented
+        # on one of the two branches, and missing from the one that actually fires.
+        #
+        # It fires ALWAYS. `_default_remainder_runner` is given whatever the publish path has left,
+        # the suite does not finish in it, and the timeout lands here. 23 times in the two days to
+        # 2026-09-03 and on every cycle that day; the last success was 2026-09-01 05:53Z.
+        #
+        # MEASURED, which is why this is a repair and not a tidy-up: the live banner said
+        # "Published with 55 open findings" while the true count was 16. Frozen at 06:22Z on
+        # 2026-09-01, published continuously for two days, 3.4x the truth. `site/data/
+        # publish_provenance.json` was being rewritten every cycle — 17:54 mtime on the day this
+        # was found — so nothing looked stale; it was the ANNOTATION BLOCK inside a fresh file that
+        # had stopped moving.
+        #
+        # Only the findings half is refreshed. The red count is a property of a TREE and this path
+        # has no tree to name it on, so re-publishing it would be inventing a measurement — the
+        # exact refusal `record_annotation` enforces two modules away. The reds keep their own
+        # `checked_at`, which now reaches the reader (`site/assets/freshness-banner.js`) instead of
+        # sitting in the feed where it has been all along.
+        try:
+            findings = _open_findings_count()
+            if findings is not None:
+                publish_provenance.record_annotation(open_findings=findings)
+        except Exception:  # noqa: BLE001 -- the observer still may not red its subject
+            pass
         log("Remainder annotation skipped (non-fatal): {}".format(exc))
         return None
 

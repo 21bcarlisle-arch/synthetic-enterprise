@@ -459,6 +459,21 @@ def record_annotation(*, open_findings=None, nonblocking_reds=None, measured_on=
         annotation["nonblocking_reds_total"] = len(reds)
         annotation["nonblocking_reds_measured_on"] = {
             f: measured_on[f] for f in MEASURED_ON_FIELDS}
+        # THE RED COUNT'S OWN CLOCK, AND IT MUST NOT BE `checked_at` (2026-09-03).
+        #
+        # The two halves of this annotation have different freshness by construction. Findings
+        # are a directory listing, refreshed every cycle on every path including the failure
+        # one. Reds come from a suite that runs inside whatever the publish path has LEFT and
+        # that has not finished since 2026-09-01. One `checked_at` over both publishes the
+        # cheap half's freshness as though it were the expensive half's — so refreshing the
+        # findings count, which is the honest thing to do, would restamp a two-day-old red
+        # count to now and make its staleness unreportable. That is this repo's own recurring
+        # shape: two quantities, one clock, and a reader who cannot tell which is which.
+        #
+        # Set only on the branch that actually counted reds. Absent therefore means UNRECORDED,
+        # never "now" — the same rule `nonblocking_reds_measured_on` already follows for the
+        # back catalogue, and for the same reason.
+        annotation["nonblocking_reds_checked_at"] = _now_iso(now)
     annotation["checked_at"] = _now_iso(now)
     state["annotation"] = annotation
     return _write(state, path, now)

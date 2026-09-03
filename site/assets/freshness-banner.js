@@ -161,9 +161,43 @@
        the scoped gate means and precisely what a reader should take from it. */
     return "Published with " + findings + " open finding" + (findings === 1 ? "" : "s") +
            (reds ? " and " + reds + " non-blocking test red" + (reds === 1 ? "" : "s") +
-                   redTreeClause(a) : "") +
+                   redTreeClause(a) + redAgeClause(a) : "") +
            " elsewhere in the repository — these are not defects in the figures above; " +
            "the suite that produces and renders them is green.";
+  }
+
+  /* WHEN the red count was taken, on the surface rather than in the JSON (2026-09-03).
+     `checked_at` has been in this feed all along and no reader has ever met it. The count
+     beside it is produced by a suite that runs inside whatever the publish path has left, so
+     when that suite stops finishing, the annotation block simply stops moving — inside a file
+     that is rewritten every cycle, which is what made it invisible. Observed: the live banner
+     carried a red counted at 06:22Z on 2026-09-01 for two full days, next to a provenance file
+     with that afternoon's mtime.
+
+     THE TREE CLAUSE COULD NOT CATCH THIS. It names the commit the count was taken on, and a
+     commit hash does not tell a reader it is two days old — a reader would have to go and look
+     it up, which is the same as not being told. Age is a different question from tree and gets
+     its own clause.
+
+     Silent under a day, deliberately: the count is refreshed hourly at best and a "0 days old"
+     on every page would be noise that trains readers to skip the sentence the one time it
+     matters. An unreadable or absent `checked_at` says so rather than being dropped — this
+     whole clause exists because an absent clock read as a current one. */
+  function redAgeClause(a) {
+    /* `nonblocking_reds_checked_at`, NOT `checked_at`. The two halves of this annotation have
+       different freshness: findings are a directory listing refreshed on every path, reds come
+       from a suite that has not finished since 2026-09-01. `checked_at` moves whenever EITHER
+       half is written, so reading it here would report the cheap half's freshness as the
+       expensive half's and this clause would never fire — which is precisely the defect it was
+       added for, arriving through its own repair. */
+    var at = a && a.nonblocking_reds_checked_at;
+    if (!at) { return " (when it was counted is unrecorded)"; }
+    var t = Date.parse(at);
+    if (isNaN(t)) { return " (when it was counted is unreadable)"; }
+    var days = Math.floor((Date.now() - t) / 86400000);
+    if (days < 1) { return ""; }
+    return " and last counted " + days + " day" + (days === 1 ? "" : "s") +
+           " ago, so it may no longer be true";
   }
 
   /* WHICH TREE THE RED COUNT WAS TAKEN ON, on the surface rather than in the JSON (2026-08-31).

@@ -364,3 +364,96 @@ def test_the_tree_the_reds_were_counted_on_reaches_the_rendered_page():
     assert "nonblocking_reds_measured_on" in js, (
         "the publisher records which tree the reds were counted on and the banner asset does "
         "not mention it at all")
+
+
+def test_a_timed_out_remainder_still_refreshes_the_cheap_half(monkeypatch, tmp_path):
+    """DEFECT: a finding count frozen for two days, published as this cycle's.
+
+    `run_remainder_annotation_step` has two branches that do not run the suite. The NOT-DUE one
+    already refreshed `open_findings`, and says why in its own words -- *"Findings are cheap to
+    count, so refresh that half every cycle even when the suite is throttled -- a stale finding
+    count on a live page is a small lie that costs nothing to avoid."* The FAILURE branch
+    recorded nothing at all. So the principle was written down, implemented on one branch, and
+    missing from the branch that actually fires.
+
+    IT FIRES ALWAYS. `_default_remainder_runner` gets whatever the publish path has left, the
+    suite does not finish inside it, and the timeout lands in that `except`: 23 times in the two
+    days to 2026-09-03 and on every cycle that day, with the last success at 2026-09-01 05:53Z.
+
+    MEASURED on the live banner, which is why this is a repair and not a tidy-up: it said
+    *"Published with 55 open findings"* while the true count was 16 -- 3.4x, frozen since
+    06:22Z on 2026-09-01. `site/data/publish_provenance.json` was rewritten every cycle (17:54
+    mtime the day it was found), so nothing read as stale. It was the ANNOTATION BLOCK inside a
+    fresh file that had stopped moving.
+
+    R15 -- the mutations, each run and reverted:
+      * delete the `record_annotation` call from the `except` -> this reds on the stale 55.
+      * refresh the RED count there too -> `test_a_failed_remainder_never_republishes_a_red_
+        count_it_did_not_take` reds. Reds are a property of a tree this path has none of.
+      * drop `nonblocking_reds_checked_at` and let the reds share `checked_at` again -> the same
+        control reds. That mutation is the SHAPE OF THE FIRST DRAFT OF THIS REPAIR, kept as a
+        mutation rather than forgotten: refreshing the findings half restamped the one shared
+        clock, which would have made a two-day-old red count read as this cycle's and left the
+        banner's new age clause unable to fire in production. Two quantities with different
+        freshness may not share a clock.
+
+    AND THE SECOND MUTATION SURVIVED THE FIRST DRAFT OF THE NULL CONTROL, which is recorded here
+    rather than tidied away: it seeded the annotation and re-read it within the same second, so
+    `before == after` held whatever the code did. A clock test whose two readings cannot differ
+    is not a clock test. It now seeds two days back through `record_annotation(now=...)`.
+    """
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", tmp_path / "rem.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 16)
+    prov.record_annotation(open_findings=55)
+
+    def _timed_out(_argv):
+        raise TimeoutError("timed out after 3503s")
+
+    assert prc.run_remainder_annotation_step("abc", force=True, runner=_timed_out) is None
+    published = prov.read(tmp_path / "prov.json")["annotation"]["open_findings"]
+    assert published == 16, (
+        "the timeout path left the finding count at {} when the true count is 16 -- a number "
+        "nothing measured, published inside a file rewritten every cycle".format(published))
+
+
+def test_a_failed_remainder_never_republishes_a_red_count_it_did_not_take(monkeypatch, tmp_path):
+    """NULL CONTROL, and the reason the repair above refreshes only ONE half.
+
+    A red count is a property of a TREE -- `record_annotation` refuses one without its
+    `measured_on` for exactly that reason. The failure path ran no suite and has no tree to name,
+    so re-stamping the previous reds with a fresh `checked_at` would manufacture a measurement:
+    the same misattribution, arriving through the repair for it. The reds keep their own older
+    clock, and `site/assets/freshness-banner.js` now renders that clock's AGE so a reader meets
+    the staleness instead of inheriting it.
+    """
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", tmp_path / "rem.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 16)
+    # SEEDED TWO DAYS AGO, EXPLICITLY. The first draft of this control seeded and re-read
+    # within the same second, so `before == after` held whatever the code did and the
+    # mutation that republishes the reds SURVIVED it. A clock test whose two readings cannot
+    # differ is not a clock test. `record_annotation` takes `now`, so the age is driven rather
+    # than waited for.
+    import datetime as _dt
+    two_days_ago = _dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=2)
+    prov.record_annotation(open_findings=55, nonblocking_reds=["FAILED tests/x.py::test_y"],
+                           measured_on={"git_commit": "aaaaaaaaa", "tree_state": "commit"},
+                           now=two_days_ago)
+    before = prov.read(tmp_path / "prov.json")["annotation"]["nonblocking_reds_checked_at"]
+
+    def _timed_out(_argv):
+        raise TimeoutError("timed out after 3503s")
+
+    prc.run_remainder_annotation_step("abc", force=True, runner=_timed_out)
+    after = prov.read(tmp_path / "prov.json")["annotation"]
+    assert after["nonblocking_reds"] == ["FAILED tests/x.py::test_y"], (
+        "the failure path rewrote the red list without running a suite")
+    assert after["nonblocking_reds_checked_at"] == before, (
+        "the failure path restamped the red count's clock to now, so a two-day-old measurement "
+        "publishes as this cycle's -- the exact defect the age clause exists to surface")
+    assert after["open_findings"] == 16, (
+        "the cheap half did not move, so this control is passing for the wrong reason")
+    assert after["checked_at"] != before, (
+        "the annotation's write-time clock did not move when the findings half was refreshed, "
+        "so the two halves are sharing one clock again")

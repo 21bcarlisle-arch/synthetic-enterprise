@@ -279,3 +279,97 @@ def test_an_annotation_written_before_this_field_renders_as_unrecorded():
     }))
     assert "counted on an unrecorded tree" in out["text"]
     assert "d1ba6bd46" not in out["text"].split("non-blocking test red")[-1]
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# WHEN the red count was taken, not only which tree (2026-09-03).
+#
+# `checked_at` has been in this feed since the annotation existed and no reader has ever met
+# it. The count is produced by a suite that runs inside whatever the publish path has LEFT, so
+# when that suite stops finishing, the annotation block stops moving — inside a
+# `publish_provenance.json` that is rewritten every cycle, which is exactly what made it
+# invisible. Observed live: a red counted at 06:22Z on 2026-09-01 was still being published on
+# 2026-09-03, beside a provenance file with that afternoon's mtime, and the banner said nothing.
+#
+# The tree clause could not catch it. It names the COMMIT, and a commit hash does not tell a
+# reader the count is two days old.
+
+
+def _aged_annotation(days_old, **over):
+    import datetime as _dt
+    at = (_dt.datetime.now(_dt.timezone.utc)
+          - _dt.timedelta(days=days_old, hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ann = {
+        "nonblocking_reds_checked_at": at,
+        "open_findings": 47,
+        "nonblocking_reds": ["FAILED tests/x.py::test_y"],
+        "nonblocking_reds_total": 66,
+        "nonblocking_reds_measured_on": {"git_commit": "d1ba6bd46", "tree_state": "commit"},
+    }
+    ann.update(over)
+    return ann
+
+
+def test_a_red_count_days_old_says_so_on_the_page():
+    """DEFECT: a two-day-old count is published as though it were this cycle's.
+
+    The age is computed against the reader's own clock rather than against anything in the
+    feed, so a producer that freezes cannot also freeze the thing that would report it.
+    """
+    out = render(prov=_with_annotation(_aged_annotation(2)))
+    assert "last counted 2 days ago" in out["text"], (
+        "a red count taken two days ago reaches the reader with no indication of its age, so a "
+        "frozen annotation inside a freshly-written file is invisible: {!r}".format(out["text"]))
+    assert "may no longer be true" in out["text"]
+
+
+def test_a_count_taken_today_does_not_grow_the_caveat():
+    """NULL CONTROL, and it is the one that matters here. Without it the test above passes on a
+    renderer that appends the age clause unconditionally — and a page that says "may no longer
+    be true" on every visit trains a reader to skip the sentence on the one visit it means
+    something. The count is refreshed hourly at best, so "0 days" is noise by construction."""
+    out = render(prov=_with_annotation(_aged_annotation(0)))
+    assert "last counted" not in out["text"], (
+        "a count taken within the day carries an age caveat, which makes the caveat "
+        "meaningless: {!r}".format(out["text"]))
+    assert "66 non-blocking test reds" in out["text"]
+
+
+def test_an_annotation_with_no_clock_says_the_clock_is_missing():
+    """DEFECT: absent reads as current, which is the failure this whole clause exists for.
+
+    Dropping the clause when `checked_at` is absent would publish an ageless count and let the
+    back catalogue — every artefact written before the field existed — read as fresh.
+    """
+    ann = _aged_annotation(2)
+    del ann["nonblocking_reds_checked_at"]
+    out = render(prov=_with_annotation(ann))
+    assert "when it was counted is unrecorded" in out["text"], (
+        "an annotation with no `checked_at` renders without any age statement, so absent reads "
+        "as current: {!r}".format(out["text"]))
+
+
+def test_an_unparseable_clock_says_unreadable_rather_than_going_quiet():
+    """DEFECT: a malformed timestamp silently drops the caveat.
+
+    `Date.parse` returns NaN and every comparison against NaN is false, so a naive age check
+    falls through to the no-caveat branch — the fail-silent that reads as a fresh count.
+    """
+    out = render(prov=_with_annotation(_aged_annotation(2, nonblocking_reds_checked_at="not-a-date")))
+    assert "when it was counted is unreadable" in out["text"], (
+        "an unparseable `checked_at` renders as though the count were current: {!r}".format(
+            out["text"]))
+
+
+def test_the_age_clause_never_appears_without_a_red_to_qualify():
+    """SCOPE. The clause qualifies the RED count, which is the number produced by the suite that
+    freezes. `open_findings` is a directory listing refreshed every cycle on every path,
+    including the failure path, so attaching an age to it would caveat a number that is not
+    stale and hide that the two halves have different clocks."""
+    out = render(prov=_with_annotation({
+        "nonblocking_reds_checked_at": "2026-09-01T06:22:09Z",
+        "open_findings": 47,
+    }))
+    assert "47 open findings" in out["text"]
+    assert "last counted" not in out["text"]
+    assert "unrecorded" not in out["text"]
