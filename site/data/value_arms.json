@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T19:11:30.116808Z",
+  "generated_at": "2026-09-03T19:09:13.135064Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -42,155 +42,250 @@
   },
   "floor_decomposition": {
     "available": true,
-    "what_this_is": "The selection-figure noise floor cut into the half that a larger settled book buys down and the half it cannot touch, from two extra floor legs that partition one call stream, plus what each remedy would cost.",
+    "what_this_is": "The `value_advantage_gbp` noise floor cut into the half that a larger settled book buys down and the half it cannot touch, from two extra floor legs that partition one call stream, plus what each remedy would cost.",
+    "contrast": "value_advantage_gbp",
+    "world_identity": {
+      "digest": "39a192ce04c1eda8",
+      "anchors": {
+        "2016": 4.259915,
+        "2017": 7.372584,
+        "2018": 2.945347,
+        "2019": 6.637286,
+        "2020": 6.359296,
+        "2021": 5.641346,
+        "2022": 1.0,
+        "2023": 2.033232,
+        "2024": 4.259915,
+        "2025": 4.259915
+      },
+      "fitted_years": [
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2023,
+        2024
+      ],
+      "declared_years": [
+        2016,
+        2022,
+        2025
+      ],
+      "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+      "unavailable_because": null,
+      "agreed_across_legs": [
+        "except",
+        "only",
+        "three_arm",
+        "undecomposed"
+      ]
+    },
     "seeds": 3,
-    "contrast_gbp": 1815.785549000022,
-    "priced_decisions": 20,
-    "renewals_offered": 1369,
-    "undecomposed_sd_gbp": 2577.7951945427617,
-    "priced_side_sd_gbp": 2092.2881458508746,
-    "rest_of_book_sd_gbp": 0.21126602503618658,
-    "priced_share_of_variance": 0.9999999898043168,
-    "reconciliation_ratio": 0.6587887495846588,
-    "reconciliation_reading": "The two legs' variances sum to 0.66x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing.",
-    "share_at_which_a_bigger_book_could_resolve_it": 0.24684195853405466,
+    "contrast_gbp": 2335.867556000012,
+    "priced_decisions": 104,
+    "renewals_offered": 2009,
+    "undecomposed_sd_gbp": 991.4551457388417,
+    "priced_side_sd_gbp": 991.4551387981461,
+    "rest_of_book_sd_gbp": 0.0,
+    "priced_share_of_variance": 1.0,
+    "reconciliation_ratio": 0.9999999859989721,
+    "reconciliation_reading": "The two legs' variances sum to 1.00x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing.",
+    "share_at_which_a_bigger_book_could_resolve_it": -4.550732430750148,
     "share_is_decisive": true,
-    "share_margin_over_threshold": 0.7531580312702622,
+    "share_margin_over_threshold": 5.550732430750148,
     "share_decisive_bar": 0.15,
-    "irreducible_sd_gbp": 0.21126602503618658,
+    "irreducible_sd_gbp": 0.0,
     "larger_settled_book_would_resolve_it": true,
-    "independent_draws_this_book": 10,
-    "priced_decisions_this_book": 20,
+    "independent_draws_this_book": null,
+    "priced_decisions_this_book": 104,
     "elasticity_calls_per_seed": [
-      90,
-      97,
-      103
+      337,
+      338,
+      341
     ],
     "what_each_count_counts": "`independent_draws_this_book` is the number of households whose elasticity the priced leg re-rolled, and it is the ONLY sample size here: the draw is a pure function of (customer_id, seed), so it is what 1/n indexes. `priced_decisions_this_book` counts renewal decisions, and the decisions on one account share one draw. `elasticity_calls_per_seed` counts CALL SITES -- re-reads of the same draws -- and is a sample size for nothing at all. `times_this_book` is invariant across all three; the absolute counts are not.",
-    "times_this_book": 1.3277425829446914,
-    "priced_decisions_needed": 27,
-    "independent_draws_needed": 14,
-    "times_this_book_on_the_published_floor": 2.015429973707313,
-    "priced_decisions_needed_on_the_published_floor": 41,
+    "times_this_book": 0.18015640502867042,
+    "priced_decisions_needed": 19,
+    "independent_draws_needed": null,
+    "times_this_book_on_the_published_floor": 0.1801564075510453,
+    "priced_decisions_needed_on_the_published_floor": 19,
     "which_floor_the_price_is_against": "`times_this_book` prices the remedy against the two legs' summed variance; `times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, which is the +- figure the page states. They differ by exactly the reconciliation ratio's distance from 1.0, so the second is the larger whenever the legs undershoot the whole -- and it is the one to quote, because the bound a reader is shown is the one the remedy has to bring under the contrast.",
     "remedy_price_table": [
       {
         "priced_share_of_variance": 0.1,
-        "irreducible_sd_gbp": 1984.918828796604,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": null,
-        "priced_decisions_needed": null,
-        "times_this_book": null,
-        "renewals_the_world_must_offer": null
+        "irreducible_sd_gbp": 940.5769309441552,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 3,
+        "priced_decisions_needed": 3,
+        "times_this_book": 0.021501989522942803,
+        "renewals_the_world_must_offer": 58
       },
       {
         "priced_share_of_variance": 0.2,
-        "irreducible_sd_gbp": 1871.399418595918,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": null,
-        "priced_decisions_needed": null,
-        "times_this_book": null,
-        "renewals_the_world_must_offer": null
+        "irreducible_sd_gbp": 886.7844347976576,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 5,
+        "priced_decisions_needed": 5,
+        "times_this_book": 0.042098771697908426,
+        "renewals_the_world_must_offer": 97
       },
       {
         "priced_share_of_variance": 0.3,
-        "irreducible_sd_gbp": 1750.533864548469,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 57,
-        "priced_decisions_needed": 113,
-        "times_this_book": 5.64354877882754,
-        "renewals_the_world_must_offer": 7740
+        "irreducible_sd_gbp": 829.5108827342025,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 7,
+        "priced_decisions_needed": 7,
+        "times_this_book": 0.06184633027750947,
+        "renewals_the_world_must_offer": 136
       },
       {
         "priced_share_of_variance": 0.4,
-        "irreducible_sd_gbp": 1620.6794371314934,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 27,
-        "priced_decisions_needed": 53,
-        "times_this_book": 2.611681346741037,
-        "renewals_the_world_must_offer": 3631
+        "irreducible_sd_gbp": 767.9778482153965,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 9,
+        "priced_decisions_needed": 9,
+        "times_this_book": 0.0807961257440429,
+        "renewals_the_world_must_offer": 174
       },
       {
         "priced_share_of_variance": 0.5,
-        "irreducible_sd_gbp": 1479.4711436694913,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 20,
-        "priced_decisions_needed": 40,
-        "times_this_book": 1.9750508303219734,
-        "renewals_the_world_must_offer": 2740
+        "irreducible_sd_gbp": 701.0646518864188,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 11,
+        "priced_decisions_needed": 11,
+        "times_this_book": 0.09899554309309129,
+        "renewals_the_world_must_offer": 213
       },
       {
         "priced_share_of_variance": 0.6,
-        "irreducible_sd_gbp": 1323.279219197736,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 17,
-        "priced_decisions_needed": 34,
-        "times_this_book": 1.6989560750462402,
-        "renewals_the_world_must_offer": 2329
+        "irreducible_sd_gbp": 627.0512872961035,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 13,
+        "priced_decisions_needed": 13,
+        "times_this_book": 0.1164882874555797,
+        "renewals_the_world_must_offer": 251
       },
       {
         "priced_share_of_variance": 0.7,
-        "irreducible_sd_gbp": 1145.993420125276,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 16,
-        "priced_decisions_needed": 31,
-        "times_this_book": 1.5447149469874402,
-        "renewals_the_world_must_offer": 2124
+        "irreducible_sd_gbp": 543.0423442741601,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 14,
+        "priced_decisions_needed": 14,
+        "times_this_book": 0.1333147345121896,
+        "renewals_the_world_must_offer": 271
       },
       {
         "priced_share_of_variance": 0.8,
-        "irreducible_sd_gbp": 935.6997092979589,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 15,
-        "priced_decisions_needed": 29,
-        "times_this_book": 1.4462412909697366,
-        "renewals_the_world_must_offer": 1987
+        "irreducible_sd_gbp": 443.39221739882873,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 16,
+        "priced_decisions_needed": 16,
+        "times_this_book": 0.14951224161433985,
+        "renewals_the_world_must_offer": 309
       },
       {
         "priced_share_of_variance": 0.9,
-        "irreducible_sd_gbp": 661.6396095988679,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 14,
-        "priced_decisions_needed": 28,
-        "times_this_book": 1.3779207218823233,
-        "renewals_the_world_must_offer": 1918
+        "irreducible_sd_gbp": 313.5256436480517,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 18,
+        "priced_decisions_needed": 18,
+        "times_this_book": 0.16511542465791867,
+        "renewals_the_world_must_offer": 348
       },
       {
         "priced_share_of_variance": 0.99,
-        "irreducible_sd_gbp": 209.22881565170292,
-        "independence_unit": "priced_accounts",
-        "priced_accounts_needed": 14,
-        "priced_decisions_needed": 27,
-        "times_this_book": 1.3321527114840028,
-        "renewals_the_world_must_offer": 1850
+        "irreducible_sd_gbp": 99.14551387981466,
+        "independence_unit": "priced_decisions",
+        "priced_accounts_needed": 19,
+        "priced_decisions_needed": 19,
+        "times_this_book": 0.17867673856720886,
+        "renewals_the_world_must_offer": 367
       }
     ],
     "where_the_priced_decisions_come_from": {
       "accounts_the_arm_priced": [
-        "C1",
-        "C1_2",
-        "C2",
         "C3",
-        "C4",
         "C5",
+        "C5_2",
         "C6",
         "C7",
         "C8",
-        "C9"
+        "PROS-2016-0042",
+        "PROS-2016-0099",
+        "PROS-2017-0038",
+        "PROS-2017-0065",
+        "PROS-2017-0130",
+        "PROS-2017-0185",
+        "PROS-2018-0016",
+        "PROS-2018-0039",
+        "PROS-2018-0137",
+        "PROS-2018-0161",
+        "PROS-2018-0223",
+        "PROS-2018-0238",
+        "PROS-2019-0009",
+        "PROS-2019-0024",
+        "PROS-2019-0135",
+        "PROS-2019-0164",
+        "PROS-2019-0190",
+        "PROS-2019-0255",
+        "PROS-2019-0310",
+        "PROS-2020-0032",
+        "PROS-2020-0067",
+        "PROS-2020-0221",
+        "PROS-2020-0249",
+        "PROS-2020-0347",
+        "PROS-2020-0391",
+        "PROS-2021-0029",
+        "PROS-2021-0060",
+        "PROS-2021-0105",
+        "PROS-2021-0133",
+        "PROS-2021-0175",
+        "PROS-2021-0288",
+        "PROS-2021-0324",
+        "PROS-2021-0362",
+        "PROS-2023-0025",
+        "PROS-2024-0110",
+        "SYN-2016-001",
+        "SYN-2016-004",
+        "SYN-2016-007",
+        "SYN-2016-008",
+        "SYN-2016-009",
+        "SYN-2016-015",
+        "SYN-2016-018",
+        "SYN-2016-019",
+        "SYN-2016-020",
+        "SYN-2016-022",
+        "SYN-2016-023",
+        "SYN-2016-026",
+        "SYN-2016-028",
+        "SYN-2016-030",
+        "SYN-2016-032",
+        "SYN-2016-034",
+        "SYN-2016-036",
+        "SYN-2016-042",
+        "SYN-2016-044",
+        "SYN-2016-045",
+        "SYN-2016-048",
+        "SYN-2016-051",
+        "SYN-2016-055",
+        "SYN-2016-057",
+        "SYN-2016-060",
+        "SYN-2016-062"
       ],
-      "of_those_drawn": 0,
-      "of_those_static_roster": 10,
-      "reading": "Every priced decision on this run belongs to the hand-authored static roster; not one belongs to a drawn household. So 'a larger settled book' cannot mean a larger DRAWN book: the drawn households' renewals all stop at `product_not_upliftable` because the world has no standard-variable product for them to be on, and adding more of them enlarges the churn cascade -- the half of the floor no book size shrinks -- while adding no priced decisions at all. The lever is a PRODUCT, not a size."
+      "of_those_drawn": 26,
+      "of_those_static_roster": 41,
+      "reading": "26 of the 67 accounts the arm priced are drawn households, so a larger drawn book does reach this arm."
     },
     "how_to_read_this": "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. False means the rest of the book's churn cascade alone is wider than the contrast, so NO book resolves this comparison and the remedy is not a smaller version of the same thing -- it is a different instrument. That is a finding about the instrument and it belongs on the surface (R12), not in a footnote.",
     "measured_on_this_page_s_book": false,
-    "different_book_caveat": "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`).",
-    "contrast_it_decomposes": null,
-    "measured_on_this_page_s_contrast": false,
-    "different_contrast_caveat": "THE REMEDY'S EVIDENCE DOES NOT SAY WHICH QUANTITY IT SPLITS, so this page cannot show that it describes the figure above. The figure and its bound are stated in `value_advantage_gbp`; a variance split of some other contrast is not a floor under this one. No remedy is stated from it. Declaring the contrast in the artefact is owed work (`tools/run_value_cycle_ab.py --decompose`).",
+    "different_book_caveat": "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`).",
+    "contrast_it_decomposes": "value_advantage_gbp",
+    "measured_on_this_page_s_contrast": true,
+    "different_contrast_caveat": null,
     "book_it_was_measured_on": {
-      "priced_decisions": 20,
-      "renewals_offered": 1369
+      "priced_decisions": 104,
+      "renewals_offered": 2009
     },
     "book_this_page_publishes": {
       "priced_decisions": 120,
@@ -230,26 +325,26 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "7e98114869e9c2ce08cd925ae5f348aa04a12fd4",
+    "publishing_tree_commit": "0b8a8156fe872f4a8e446c0404a2cdac8d01ea73",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 7e9811486 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 0b8a8156f -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
     "superseded": null,
     "live_world": "39a192ce04c1eda8",
     "runs_that_cannot_name_their_world": [
-      "the floor decomposition",
       "the noise floor (2026-08-31T07:05:53Z)",
       "the three-arm run (2026-08-31T03:47:57Z)"
     ],
     "one_world_across_every_figure": false,
     "runs_measured_in_the_live_world": [
       "the current-world noise floor (2026-09-03T19:06:31Z)",
-      "the current-world three-arm run (2026-09-03T10:17:07Z)"
+      "the current-world three-arm run (2026-09-03T10:17:07Z)",
+      "the floor decomposition"
     ],
-    "reason": "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. 3 of the runs behind this page (the floor decomposition, the noise floor (2026-08-31T07:05:53Z), the three-arm run (2026-08-31T03:47:57Z)) predate the world stamp, so this page cannot show that they were measured over the departure level that is live now -- and the level is what decides how much book there is to win or lose. It has moved since: the departure-level anchor was re-fitted twice on 2026-09-02 and 2026-09-03, and on the arms' own capture population that swap moves whole-book expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read every contrast below as measured in the world of its own run date, not in this one. THIS PAGE IS MIXED, NOT UNIFORMLY OLD: the current-world noise floor (2026-09-03T19:06:31Z), the current-world three-arm run (2026-09-03T10:17:07Z) DID run in the live world 39a192ce04c1eda8. So nothing unstamped above bounds it, and it bounds nothing unstamped above -- a spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another.",
+    "reason": "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. 2 of the runs behind this page (the noise floor (2026-08-31T07:05:53Z), the three-arm run (2026-08-31T03:47:57Z)) predate the world stamp, so this page cannot show that they were measured over the departure level that is live now -- and the level is what decides how much book there is to win or lose. It has moved since: the departure-level anchor was re-fitted twice on 2026-09-02 and 2026-09-03, and on the arms' own capture population that swap moves whole-book expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read every contrast below as measured in the world of its own run date, not in this one. THIS PAGE IS MIXED, NOT UNIFORMLY OLD: the current-world noise floor (2026-09-03T19:06:31Z), the current-world three-arm run (2026-09-03T10:17:07Z), the floor decomposition DID run in the live world 39a192ce04c1eda8. So nothing unstamped above bounds it, and it bounds nothing unstamped above -- a spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another.",
     "what_this_costs": "no figure on this page may be read as the company's CURRENT beat over the flat-rule baseline until the arms and both floor legs are re-run in one world and that world is the live one"
   },
   "current_world": {
@@ -310,10 +405,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "7e98114869e9c2ce08cd925ae5f348aa04a12fd4",
+      "publishing_tree_commit": "0b8a8156fe872f4a8e446c0404a2cdac8d01ea73",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 7e9811486 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 0b8a8156f -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -362,11 +457,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "published_run_net_gbp": 138152.772886,
-      "gap_gbp": -7728.653570997762,
-      "statement": "The published run's net margin (\u00a3138,152.77) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a37,728.65. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "checked": false,
+      "same_supplier": null,
+      "published_run_net_gbp": 131289.339938,
+      "dashboard_net_gbp": 138152.77,
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3138,152.77 -- a gap of \u00a36,863.43 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
     }
   },
   "provisioned": {
@@ -1302,5 +1397,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a32,336, measured 2026-09-03T10:17:07Z. That figure CLEARS the \u00a3991 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a SMALLER advantage than the \u00a312,071 below, not a larger one: what moved is the floor, which fell further than the advantage did. Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a32,336, measured 2026-09-03T10:17:07Z. That figure CLEARS the \u00a3991 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a SMALLER advantage than the \u00a312,071 below, not a larger one: what moved is the floor, which fell further than the advantage did. Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
 }

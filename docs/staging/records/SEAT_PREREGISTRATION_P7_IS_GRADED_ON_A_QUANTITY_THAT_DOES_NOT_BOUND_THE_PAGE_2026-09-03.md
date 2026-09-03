@@ -99,9 +99,55 @@ was published on 2026-08-31.
 **And `resolved: True` on n=3 deserves the reader's caution on the surface.** `_resolvable` compares
 a single draw's value against one standard deviation of three re-draws — roughly a one-sigma test,
 reported as "distinguishable from zero". The floor's own `value_advantage_gbp` mean is £1,030.10,
-not £0, so the floor is not a clean null either. Filed separately as
+not £0, so the floor is not a clean null either.
+<!-- CORRECTED 2026-09-03 20:25 BST, after launch 4 landed: £1,030.10 is the `only` leg's mean, and
+     the leg that bounds the page is `all`, whose mean is £1,450.6408. The caution stands and is
+     sharper on the right figure. See
+     SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md -->
+Filed separately as
 `SEAT_FINDING_THE_RESOLVED_VERDICT_IS_A_ONE_SIGMA_TEST_ON_THREE_SEEDS_2026-09-03.md`; it does not
 change P10, which predicts what the code will do, and it does change what the page should be allowed
 to say about it.
 
-**Discharged:** not yet.
+---
+
+## 5. GRADED — both predictions confirmed, and P7 fell exactly where this said it would
+
+*Delivery seat, 2026-09-03 20:25 BST. Launch 4 (`se-floor-all-20260903d`) completed at 20:06:31 BST
+after 2h21m. Graded against its artefact only, after the three identity fields were **asserted**, not
+printed: `redraw_scope.mode` = `all`, `generated_at` = 2026-09-03T19:06:31Z, world digest
+`39a192ce04c1eda8`.*
+
+| | predicted | measured | grade |
+|---|---|---|---|
+| **P9** | `_spread_for(_seed_spreads(all, three), "value_advantage_gbp")["stdev_gbp"]` = 991.4551 ±5%, published `selection_gbp_spread.stdev` ~5,923 | **991.4551457388417** and **5,923.0446166138645** | **CONFIRMED** |
+| **P10** | `_current_world_contrast(...)["resolved"]` is `True` | **`True`**; bound `{n: 3, stdev_gbp: 991.4551457388417}`, `bound_contrast: value_advantage_gbp`, `floor_leg: all` | **CONFIRMED** |
+
+P9 landed on its predicted value **to seven significant figures**, blind — no `all`-mode run had ever
+printed a `value_advantage_gbp` seed row before this one. Neither refutation clause fired: the two
+figures did not come back equal (they are 5.97× apart, as §1 said), and `resolved` was not `False`
+or `None`, so no guard refused the artefact and the bound formed.
+
+**§1 was right on every clause and P7 is refuted on its substance.** P7's literal key
+(`selection_distinguishable_from_zero`, about `selection_gbp`) did come back `false` — so P7 is
+confirmed on the quantity it names and refuted on the claim it makes about the page. Act (d) was
+therefore *"update the headline to the live-world pair and bound"*, exactly as §3 predicted, and the
+rendered `/capabilities/` door now reads: *"IN THE WORLD AS IT IS NOW, the same comparison gives
+£2,336… That figure CLEARS the £991 this same contrast moves across 3 seed re-draws in this same
+world, the first bound this page has held that was measured where the figure was."*
+
+**§4's cautions were honoured.** No figure from this document was published; the headline states only
+that the figure clears its own draw noise, and it states the £2,336 is *smaller* than the £12,071 it
+sits beside. The one-sigma caveat in
+`SEAT_FINDING_THE_RESOLVED_VERDICT_IS_A_ONE_SIGMA_TEST_ON_THREE_SEEDS_2026-09-03.md` stands
+unchanged and is now the live reading of a `resolved: true` page.
+
+**One correction to §2 of this file.** It says the `except` leg returning zero variance on
+`value_advantage_gbp` means the undecomposed leg *"has nothing to add to the priced one"*. Zero
+variance, yes — but the unpriced side adds a **constant +£420.5413** to the mean, so `all` and `only`
+are not the same measurement even though their stdevs agree to seven figures. That is why P9's number
+was reachable from the `only` leg at all, and it is written up in
+`SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md`.
+
+**Discharged:** P9 and P10 both confirmed against launch 4's artefact, and the page now publishes the
+live-world pair and bound.
