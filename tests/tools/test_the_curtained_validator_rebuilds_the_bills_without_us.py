@@ -205,6 +205,32 @@ def _real():
     return rx, json.loads(rx.LEDGER_PATH.read_text())
 
 
+def _declared_invoice_count(ledger: dict) -> int:
+    """THE POPULATION THE LEDGER ITSELF DECLARES, which is what the walks below are checked
+    against instead of the constant they used to carry.
+
+    Both floors here read `>= 11_000` until 2026-09-03 — the book's size on the day they were
+    written. That day the book moved from 11,549 invoices (run 9c1c24f76, 05:57Z) to 10,993 (run
+    1df22e3bd, 14:56Z) across the same 251 customers, and both went red on the population while
+    the reconstruction they exist to check stayed green on every bill. A control keyed to today's
+    answer reds when the world moves and is silent when the claim rots.
+
+    Keying to `meta.invoice_count` is strictly stronger for the stated purpose. An emptied ledger
+    still fails (0 against 10,993), and so does a PARTIAL walk — which is the more likely of the
+    two and which a constant floor could never catch while the book stood above its value.
+
+    DEMONSTRATED, not argued. Take the 2026-09-03 05:57Z book (11,549 invoices declared) and drop
+    500 of them, leaving the meta alone: that is exactly a partial export. The walk reaches 11,049,
+    `>= 11_000` PASSES, and all three re-keyed controls fail on `11049 != 11549`. The constant was
+    not a weaker version of this check; it was blind to the failure it was written for.
+    """
+    declared = (ledger.get("meta") or {}).get("invoice_count")
+    assert declared, (
+        "the ledger's meta declares no invoice_count, so a walk over it cannot be told from a "
+        "walk over nothing -- reported as a failure and never skipped")
+    return declared
+
+
 def test_every_period_in_the_book_rebuilds_to_our_own_energy_and_standing_charge():
     """THE RESULT, with a dated population floor. 11,549 of 11,549 on 2026-09-02.
 
@@ -223,7 +249,10 @@ def test_every_period_in_the_book_rebuilds_to_our_own_energy_and_standing_charge
             if abs(ours - p["reconstructed_subtotal_gbp"]) > 0.011:
                 differ.append("{}/{}: ours {:.2f}, rebuilt {:.2f}".format(
                     cid, inv.get("invoice_number"), ours, p["reconstructed_subtotal_gbp"]))
-    assert periods >= 11_000, "only {} periods: an emptied ledger would pass".format(periods)
+    assert periods == _declared_invoice_count(ledger), (
+        "this walk rebuilt {} period(s) but the ledger declares {} invoice(s) -- an emptied or "
+        "partially walked book passes a constant floor and fails this one".format(
+            periods, _declared_invoice_count(ledger)))
     assert not differ, "{} of {} periods disagree: {}".format(len(differ), periods, differ[:5])
 
 
@@ -241,10 +270,12 @@ def test_every_bills_vat_matches_the_rate_the_PUBLISHED_LAW_says_applies():
     """
     rx, ledger = _real()
     checked = 0
+    periods = 0
     differ = []
     for cid, rec in (ledger.get("customers") or {}).items():
         built = v.rebuild(rx.raw_account(cid, rec))
         for inv, p in zip(rec.get("invoices") or [], built["periods"]):
+            periods += 1
             law = [ln for ln in p["lines"] if ln["label"] == "VAT"][0]["statutory_rate"]
             if law is None:
                 continue
@@ -255,5 +286,15 @@ def test_every_bills_vat_matches_the_rate_the_PUBLISHED_LAW_says_applies():
                 differ.append("{}/{}: charged {}, the law gives {:.2f} at {}".format(
                     cid, inv.get("invoice_number"), inv.get("vat_gbp"),
                     round(law * subtotal, 2), law))
-    assert checked >= 11_000, "only {} bills: an emptied ledger would pass".format(checked)
+    # TWO COUNTS, AND THEY ARE NOT THE SAME QUANTITY. `periods` is the whole book, checked
+    # against what the ledger declares so a partial walk cannot pass. `checked` is the subset the
+    # published law reaches a rate for, and it is asserted separately and NEVER by subtraction:
+    # a bill whose statutory rate is unknown is skipped for a real reason, and folding it into the
+    # population figure would report the skip as coverage.
+    assert periods == _declared_invoice_count(ledger), (
+        "this walk reached {} period(s) but the ledger declares {} invoice(s)".format(
+            periods, _declared_invoice_count(ledger)))
+    assert checked, (
+        "the published law reached a statutory rate for NONE of the {} bills walked, so this "
+        "control checked nothing -- an unavailable check is a failed check".format(periods))
     assert not differ, "{} of {} bills: {}".format(len(differ), checked, differ[:5])
