@@ -368,12 +368,24 @@ def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_a
     assert "is NOT the baseline arm's" in pub["statement"]
     assert "40,000" in pub["statement"], "the divergence is reported without its size"
     assert "IS the baseline" not in pub["statement"]
-    assert not out["headline"].startswith("The comparison below is against"), (
+    # PRESENCE, NOT POSITION, AND BOTH RUNGS MOVED TOGETHER (2026-09-03). Both assertions were
+    # `startswith`, which was a correct proxy for presence only while nothing could precede this
+    # clause. `_world_clause` now can: a run measured in a superseded world is prefixed "READ THIS
+    # AS HISTORY" ahead of every other clause, deliberately, because a reader who meets the figure
+    # first has already taken it as current.
+    #
+    # THE RUNG THAT MATTERED IS THE NEGATIVE ONE, and it is why this is not a one-line repair of
+    # the assertion that went red. `not headline.startswith(...)` would have gone on passing --
+    # trivially, on ANY headline carrying a world prefix, including one that went on to claim the
+    # published supplier is the baseline three clauses later. The rung that reddened was the
+    # honest one; the rung that stayed green was the one that had quietly become a tautology.
+    # Repairing only the red one is how a control survives a composition change with its teeth
+    # removed.
+    assert "The comparison below is against" not in out["headline"], (
         "the headline went on claiming the published supplier is the baseline after they diverged")
     dashboard_agreeing_with(control)
-    assert gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
-                     {"total_net_gbp": control})["headline"].startswith(
-        "The comparison below is against"), (
+    assert "The comparison below is against" in gva.build(
+        _load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})["headline"], (
         "the null rung: while the two DO match, the headline must make the claim -- otherwise the "
         "assertion above passes on a headline that never carries it")
 
@@ -1886,3 +1898,148 @@ def test_the_drop_out_consequence_names_the_class_that_is_ours_to_fix():
     assert gva._widening_consequence({"join": 0, "coverage": 0, "eligibility": 0}) is None
     assert gva._widening_consequence({"join": None, "coverage": 4, "eligibility": 10}) is None
     assert gva._widening_consequence({}) is None
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# WHETHER THE WORLD THESE FIGURES WERE MEASURED IN IS STILL THE WORLD
+#
+# THE DEFECT (2026-09-03). Every leg above asks whether a figure is arithmetically right, whether
+# its clock is declared, whether its bound predates it, whether its book matches. None asked
+# whether the WORLD it was measured in still existed. The published beat -- £12,071 over a
+# flat-rule baseline -- was measured 2026-08-31; `simulation/departure_level_anchor.py` was
+# re-fitted twice afterwards, and on the arms' own capture population that swap moves whole-book
+# expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide.
+# Every artefact read the same and every control stayed green.
+#
+# R15 -- the mutations, each run and reverted:
+#   * return `superseded: False` instead of `None` when no artefact carries a stamp ->
+#     `test_a_run_that_cannot_name_its_world_is_an_absence_not_a_clean_bill` reds. This is the
+#     fail-open shape: a consumer treating the block as a boolean would read "not superseded".
+#   * drop the `unstamped` branch and compare digests only ->
+#     `test_a_run_that_cannot_name_its_world_is_an_absence_not_a_clean_bill` reds, because
+#     every artefact on disk today has no stamp and would compare equal to nothing.
+#   * make `_world_clause` return its sentence unconditionally ->
+#     `test_a_run_in_the_live_world_gets_no_history_clause` reds (the constant-verdict shape:
+#     a clause that always fires is not a reading of the provenance).
+#   * make `_world_clause` return "" unconditionally ->
+#     `test_a_superseded_world_reaches_the_headline_and_not_only_the_payload` reds.
+#   * key the digest to the commit hash rather than the anchor block ->
+#     `test_the_world_digest_tracks_the_departure_level_and_not_the_commit` reds.
+
+
+def _world_stamped(artefact: dict, digest) -> dict:
+    """The artefact with a world stamp, or with none at all when `digest` is None."""
+    out = dict(artefact)
+    if digest is None:
+        out.pop("world_identity", None)
+    else:
+        out["world_identity"] = {"digest": digest, "unavailable_because": None}
+    return out
+
+
+def _live_digest() -> str:
+    from simulation.departure_level_anchor import world_level_identity
+
+    return world_level_identity()["digest"]
+
+
+def test_a_run_that_cannot_name_its_world_is_an_absence_not_a_clean_bill():
+    """An unstamped run must not read as one measured in the live world.
+
+    THIS IS THE STATE EVERY ARTEFACT ON DISK IS IN TODAY, so it is the live branch and not an
+    edge case. `superseded` must be None -- never False -- because a consumer that treats the
+    block as a boolean would otherwise get the flattering branch from an absence.
+
+    Fires on: returning False for "cannot tell", or dropping the unstamped branch so that a
+    missing digest compares equal to nothing and falls through to the clean return.
+    """
+    verdict = gva._world_provenance(
+        ("the three-arm run", _world_stamped(_load(THREE_ARM), None)),
+        ("the noise floor", _world_stamped(_load(NOISE_FLOOR), None)))
+    assert verdict["available"] is False
+    assert verdict["superseded"] is None, (
+        "an artefact that does not say which world it ran in was reported as NOT superseded -- "
+        "an absence rendering as a clean bill of health")
+    assert "DO NOT SAY WHICH WORLD" in verdict["reason"]
+    # The runs are named by the CALLER's label, never by a slice of their own prose.
+    named = verdict["runs_that_cannot_name_their_world"]
+    assert any("the three-arm run" in run for run in named), named
+    assert not any("selection-figure" in run for run in named), (
+        "a run was named by a fragment of its own `what_this_is` prose")
+
+
+def test_a_run_in_the_live_world_gets_no_history_clause():
+    """THE PASS BRANCH MUST BE REACHABLE, or the verdict is a constant.
+
+    A control whose clean branch can never fire reports the same answer forever and would go on
+    printing "read this as history" over a run that IS current -- which trains a reader to skip
+    the one sentence that matters. This drives the live-world case explicitly.
+
+    Fires on: `_world_clause` returning its sentence unconditionally.
+    """
+    live = _live_digest()
+    verdict = gva._world_provenance(
+        ("the three-arm run", _world_stamped(_load(THREE_ARM), live)),
+        ("the noise floor", _world_stamped(_load(NOISE_FLOOR), live)))
+    assert verdict["available"] is True
+    assert verdict["superseded"] is False
+    assert verdict["one_world_across_every_figure"] is True
+    assert verdict["reason"] is None
+    assert gva._world_clause(verdict) == "", (
+        "a run measured in the live world was still prefixed 'READ THIS AS HISTORY' -- the "
+        "clause is a constant, not a reading of the provenance")
+
+
+def test_a_superseded_world_reaches_the_headline_and_not_only_the_payload():
+    """A caveat in the payload that never reaches the sentence a reader reads is not a caveat.
+
+    The headline is where the £12,071 is stated, so it is where the world it was measured in has
+    to be stated too -- ahead of the figure, because a reader who meets the number first has
+    already taken it as current.
+
+    Fires on: `_world_clause` returning "" unconditionally, or the clause being appended after
+    the advantage sentence instead of before it.
+    """
+    stale = _world_stamped(_load(THREE_ARM), "0000000000000000")
+    verdict = gva._world_provenance(("the three-arm run", stale))
+    assert verdict["superseded"] is True
+    assert verdict["live_world"] != "0000000000000000"
+
+    built = gva.build(stale, _world_stamped(_load(NOISE_FLOOR), "0000000000000000"),
+                      _load(RUN_OUTPUT))
+    assert built["world_provenance"]["superseded"] is True
+    assert built["headline"].startswith("READ THIS AS HISTORY"), (
+        "the world caveat did not reach the headline, or reached it after the figure it "
+        "qualifies: " + built["headline"][:120])
+    # The figures themselves are KEPT. Superseded-with-provenance is the correction; deletion
+    # is not -- so the advantage must still be stated, under its caveat.
+    assert "12,071" in built["headline"]
+
+
+def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypatch):
+    """The digest must move when the LEVEL moves, and only then.
+
+    A hash of the commit would differ from HEAD for a docstring edit -- the ordinary case,
+    carrying no signal -- while a re-fit that changed every departure rate on the same commit
+    would pass. Keyed to the property: the digest covers every year the accessor answers for.
+
+    Fires on: digesting anything that is not the anchor block; or excluding the DECLARED years,
+    which would make a change to 2022's `NO_LEVEL_CORRECTION` invisible.
+    """
+    from simulation import departure_level_anchor as dla
+
+    before = dla.world_level_identity()["digest"]
+    assert dla.world_level_identity()["digest"] == before, "the digest is not stable"
+
+    moved = {**dla.YEAR_LEVEL_ANCHOR, 2019: dla.YEAR_LEVEL_ANCHOR[2019] + 0.5}
+    monkeypatch.setattr(dla, "YEAR_LEVEL_ANCHOR", moved)
+    assert dla.world_level_identity()["digest"] != before, (
+        "moving a fitted anchor by 0.5 left the world digest unchanged -- the digest is not "
+        "keyed to the departure level")
+
+    # A DECLARED year counts too: 2022 takes `NO_LEVEL_CORRECTION`, and a change there moves the
+    # world exactly as a fitted year does.
+    monkeypatch.setattr(dla, "YEAR_LEVEL_ANCHOR", dict(dla.YEAR_LEVEL_ANCHOR))
+    monkeypatch.setattr(dla, "NO_LEVEL_CORRECTION", 1.5)
+    assert dla.world_level_identity()["digest"] != before, (
+        "a change to the value a DECLARED year takes left the world digest unchanged")

@@ -42,6 +42,9 @@ and drift that takes one outside it fails. When it fails, re-capture and re-fit 
 """
 from __future__ import annotations
 
+import hashlib
+import json
+
 from simulation.market_switching_propensity import (
     MULTIPLIER_REFERENCE_YEAR,
     _published_departure_rates,
@@ -360,11 +363,70 @@ def anchor_coverage() -> tuple[dict[int, float], dict[int, tuple[float, str]]]:
     return fitted, unfitted
 
 
+def world_level_identity() -> dict:
+    """WHICH WORLD a run executed in, as something a later artefact can be compared against.
+
+    THE DEFECT THIS EXISTS FOR, and it is a class rather than an instance. A run's artefact records
+    `generated_at` and `producing_commit`, and neither answers the only question that matters to a
+    reader six days later: is the world this was measured in still the world? A commit hash is not
+    an answer -- it moves for every reason, so an artefact whose hash differs from HEAD is the
+    normal case and carries no signal at all. The LEVEL is the answer, because departure rate is
+    what decides how much book there is to win or lose, and it is the surface every value figure on
+    the page is measured over.
+
+    MEASURED ON 2026-09-03, and this is why it is a digest of the whole block rather than a version
+    string somebody remembers to bump. `value_cycle_ab_s1_three_arm.json` (2026-08-31) and its two
+    floor artefacts were published as the company's standing beat over a flat-rule baseline. The
+    anchor was re-fitted twice after they were written, and on ONE population -- the capture the
+    arms themselves ran on -- swapping the old block for the live one moves whole-book expected
+    departure by **+19.06pp summed across 2017-2024**, a mean absolute **2.70pp/yr**, up to
+    **+6.23pp in 2019**. Every published band is 0.5-3.6pp wide, so that is several bands' worth.
+    Nothing on the page could notice, because every control in this area asks whether a figure is
+    arithmetically right and none asked whether its world still existed.
+
+    A DIGEST AND NOT A DATE. Two runs an hour apart are the same world; two runs either side of a
+    re-fit are not, however close their stamps. `_staleness_caveat` in
+    `tools/generate_value_arms_data.py` compares two artefacts' timestamps to each other and is
+    right to -- but it can only ever say which of two runs is older, never whether either is
+    current. This says the second thing, and it says it about the quantity rather than the clock.
+
+    KEYED TO THE PROPERTY. The digest covers every year the accessor can answer for, fitted and
+    declared alike, so a re-fit changes it, retiring a year changes it, and a change that moves no
+    departure rate anywhere does not. It names no year and no value, so it cannot go stale: a run
+    in the live world matches whatever the live world happens to be, and there is no number here to
+    update when the block is re-fitted again.
+
+    `fitted` is carried beside the digest because a digest can only ever say SAME or DIFFERENT, and
+    a reader who is told "different" is owed which years and by how much.
+    """
+    record = sorted(_published_departure_rates())
+    anchors = {year: year_level_anchor(year) for year in record}
+    fitted, _ = anchor_coverage()
+    canonical = json.dumps(
+        {str(year): f"{value:.6f}" for year, value in sorted(anchors.items())},
+        sort_keys=True, separators=(",", ":"),
+    )
+    return {
+        "digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16],
+        "anchors": anchors,
+        "fitted_years": sorted(fitted),
+        "declared_years": sorted(year for year in record if year not in fitted),
+        "what_this_identifies": (
+            "the departure LEVEL the world was running at -- `year_level_anchor` for every year "
+            "inside the published switching record, fitted and declared alike. Two runs sharing "
+            "this digest ran over the same departure surface; two that do not are different "
+            "worlds however close their timestamps, and no figure from one bounds a figure from "
+            "the other."
+        ),
+    }
+
+
 __all__ = [
     "FIT_COMPARISON_WINDOW",
     "NO_LEVEL_CORRECTION",
     "UNFITTED_YEARS",
     "YEAR_LEVEL_ANCHOR",
     "anchor_coverage",
+    "world_level_identity",
     "year_level_anchor",
 ]

@@ -2013,3 +2013,93 @@ def test_a_run_that_cannot_reach_git_states_the_absence_rather_than_a_placeholde
     # AND THE HEALTHY CASE STILL SAYS NOTHING, so `unavailable_because` is a signal and not decor.
     if original:
         assert rvca.producing_commit()["unavailable_because"] is None
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+# ONE WORLD ACROSS EVERY LEG, OR NO DECOMPOSITION
+#
+# THE DEFECT (filed as `c30b98048`, 2026-08-31): "the bound that decided 'cannot resolve' was
+# measured in another world, and the new one is wider". A variance measured over one departure
+# level is not a component of a variance measured over another, so legs from two worlds do not
+# partition anything and their ratio is not a reconciliation -- it is two unrelated numbers
+# divided. `decompose_floor` already refuses legs that do not name their own HALF; this is the
+# same refusal for the world, and it is the stronger of the two.
+#
+# R15 -- the mutations, each run and reverted:
+#   * drop the `unstamped` check -> `test_legs_that_cannot_name_their_world_are_refused` reds.
+#     Every floor artefact on disk today is unstamped, so this is the live branch.
+#   * compare `len(set(...)) > 1` on a set built from `.get("digest", "same")` -> the same test
+#     reds, because a default collapses two unknowns into one agreement.
+
+
+def _floor_leg(mode, values, world="w-live"):
+    leg = {"redraw_scope": {"mode": mode},
+           "seeds": [{"seed": 11111 + i, "selection_gbp": v} for i, v in enumerate(values)]}
+    if world is not None:
+        leg["world_identity"] = {"digest": world, "unavailable_because": None}
+    return leg
+
+
+def _three_arm_leg(world="w-live"):
+    leg = {
+        "level_vs_selection": {"selection_gbp": 1500.0},
+        "renewal_funnel": {"value_arm": {"priced": 20, "renewals_the_world_offered": 1369}},
+    }
+    if world is not None:
+        leg["world_identity"] = {"digest": world, "unavailable_because": None}
+    return leg
+
+
+def test_legs_that_cannot_name_their_world_are_refused():
+    """An unstamped leg must not be assumed to share the others' world.
+
+    Unknown provenance on a bound reads as fine unless something says otherwise (FAIL-SILENT),
+    and every floor artefact written before 2026-09-03 is in exactly this state -- so this is the
+    live branch, not an edge case.
+
+    Fires on: dropping the check, or defaulting a missing digest to a shared sentinel.
+    """
+    split = rvca.decompose_floor(
+        _floor_leg("all", [1.0, 2.0, 3.0], world=None),
+        _floor_leg("only", [1.0, 2.0, 3.5]),
+        _floor_leg("except", [1.0, 1.1, 1.2]),
+        _three_arm_leg())
+    assert split["available"] is False
+    assert "do not say which world they ran in" in split["why_not"]
+    assert "undecomposed" in split["why_not"], split["why_not"]
+
+
+def test_legs_from_two_worlds_do_not_partition_one_call_stream():
+    """A reconciliation across two worlds is two unrelated numbers divided.
+
+    Fires on: comparing anything other than the legs' world digests, or reporting the ratio
+    anyway with a caveat -- a caveat under a published ratio is not a refusal.
+    """
+    split = rvca.decompose_floor(
+        _floor_leg("all", [1.0, 2.0, 3.0]),
+        _floor_leg("only", [1.0, 2.0, 3.5], world="w-OLD"),
+        _floor_leg("except", [1.0, 1.1, 1.2]),
+        _three_arm_leg())
+    assert split["available"] is False
+    assert "different worlds" in split["why_not"]
+    assert "w-OLD" in split["why_not"] and "w-live" in split["why_not"]
+
+
+def test_one_world_across_every_leg_decomposes_and_is_stamped():
+    """THE PASS BRANCH, driven explicitly so the refusal above is a reading and not a constant.
+
+    The composed artefact carries the world its legs AGREED on -- not the world of the process
+    that assembled it, which ran nothing and whose level may differ from the one every figure
+    was measured over.
+
+    Fires on: refusing legs that do share a world; or stamping the decomposition at write time.
+    """
+    split = rvca.decompose_floor(
+        _floor_leg("all", [1.0, 2.0, 3.0]),
+        _floor_leg("only", [1.0, 2.0, 3.5]),
+        _floor_leg("except", [1.0, 1.1, 1.2]),
+        _three_arm_leg())
+    assert split["available"] is True, split.get("why_not")
+    assert split["world_identity"]["digest"] == "w-live"
+    assert sorted(split["world_identity"]["agreed_across_legs"]) == [
+        "except", "only", "three_arm", "undecomposed"]
