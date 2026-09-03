@@ -3168,7 +3168,7 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
 
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None) -> dict:
-    """The same three arms, re-run in the world as it is now — published WITHOUT a bound.
+    """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
     BESIDE the old one rather than in place of it", and act (d) is "keep the old figures on the
@@ -3176,14 +3176,24 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     is not". So the 2026-08-31 figures stay exactly where they are, under `_world_provenance`'s
     verdict, and this block is what a reader compares them against.
 
-    THE VERDICT IS REFUSED, ON PURPOSE, AND THAT IS THE POINT OF THE BLOCK. The floor legs that
-    would bound this figure are still running; the only floor on disk was measured in the
-    superseded world. Pricing this contrast against that floor is precisely the defect
-    `c30b98048` was filed for on 2026-08-31 -- "the bound that decided 'cannot resolve' was
-    measured in another world, and the new one is wider" -- so this block publishes the figure and
-    states, on the surface, that nothing on this page bounds it. `resolved` is `None`, never
-    `False`: "we have not measured it" and "we measured it and it did not clear" are different
-    states and only one of them is true here.
+    THE VERDICT IS REFUSED UNTIL A LIVE-WORLD FLOOR IS ON DISK, and admitting one is what two
+    guards decide: `world_identity.digest` must equal the live world, and `redraw_scope.mode` must
+    be `BOUNDING_REDRAW_MODE` -- the undecomposed leg. Either guard failing yields
+    `bound_available: False` with the reason named. Pricing this contrast against a floor from
+    another world is precisely the defect `c30b98048` was filed for on 2026-08-31 -- "the bound
+    that decided 'cannot resolve' was measured in another world, and the new one is wider".
+    `resolved` is `None` and never `False` while unbounded: "we have not measured it" and "we
+    measured it and it did not clear" are different states, and only the refusal branch may say
+    the first.
+
+    CORRECTED 2026-09-03, beside the claim rather than over it. This paragraph used to read "THE
+    VERDICT IS REFUSED, ON PURPOSE, AND THAT IS THE POINT OF THE BLOCK. The floor legs that would
+    bound this figure are still running", and the summary line said "published WITHOUT a bound".
+    Both were true when written and both went stale the moment the `all` leg landed: the function
+    now resolves, and the live feed carries `resolved: true` with a bound of 991.4551 on
+    `value_advantage_gbp`. It is corrected because a comment asserting the code cannot do what the
+    code does is not merely dead -- a continuation item (`current-world-bound-can-never-be-true`)
+    was minted off this exact reading, proposing to build the wiring that already existed.
 
     IT WOULD BE EASY AND WRONG to divide 2,335.87 by the old +/-2,291.07 and print 1.02x. Both
     numbers are correct and their ratio is not a quantity, because they count departures at two
