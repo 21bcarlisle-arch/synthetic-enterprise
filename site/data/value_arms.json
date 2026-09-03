@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T12:48:52.992164Z",
+  "generated_at": "2026-09-03T13:19:25.578220Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -185,6 +185,9 @@
     "how_to_read_this": "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. False means the rest of the book's churn cascade alone is wider than the contrast, so NO book resolves this comparison and the remedy is not a smaller version of the same thing -- it is a different instrument. That is a finding about the instrument and it belongs on the surface (R12), not in a footnote.",
     "measured_on_this_page_s_book": false,
     "different_book_caveat": "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`).",
+    "contrast_it_decomposes": null,
+    "measured_on_this_page_s_contrast": false,
+    "different_contrast_caveat": "THE REMEDY'S EVIDENCE DOES NOT SAY WHICH QUANTITY IT SPLITS, so this page cannot show that it describes the figure above. The figure and its bound are stated in `value_advantage_gbp`; a variance split of some other contrast is not a floor under this one. No remedy is stated from it. Declaring the contrast in the artefact is owed work (`tools/run_value_cycle_ab.py --decompose`).",
     "book_it_was_measured_on": {
       "priced_decisions": 20,
       "renewals_offered": 1369
@@ -227,10 +230,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "1d821e12b73b65eedfee6100f768b7b17105e27b",
+    "publishing_tree_commit": "a70cc11e105a894bffb1ee60d4b229700e175eb1",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 1d821e12b -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from a70cc11e1 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -295,10 +298,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "1d821e12b73b65eedfee6100f768b7b17105e27b",
+      "publishing_tree_commit": "a70cc11e105a894bffb1ee60d4b229700e175eb1",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 1d821e12b -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from a70cc11e1 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {

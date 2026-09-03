@@ -850,6 +850,12 @@ def _decomposition(priced_share: float, resolvable: bool, decisive: bool = True)
         "irreducible_sd_gbp": 1153.0 if resolvable else 2306.0,
         "contrast_gbp": 1815.79,
         "undecomposed_sd_gbp": 2577.80,
+        # THE QUANTITY THE SPLIT IS OF, declared because a well-formed artefact declares it. The
+        # real 2026-08-30 artefact does NOT, which is the defect
+        # `test_a_remedy_that_splits_another_quantity_is_refused_rather_than_restated` exists for;
+        # this fixture is the well-formed case so the OTHER controls here stay about their own
+        # property instead of all reddening on a missing declaration.
+        "contrast": gva.PAGE_FIGURE_CONTRAST,
     }
 
 
@@ -2417,3 +2423,112 @@ def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypa
     monkeypatch.setattr(dla, "NO_LEVEL_CORRECTION", 1.5)
     assert dla.world_level_identity()["digest"] != before, (
         "a change to the value a DECLARED year takes left the world digest unchanged")
+
+
+def test_a_remedy_that_splits_another_quantity_is_refused_rather_than_restated():
+    """THE DEFECT (2026-09-03): the page reconciled the floor decomposition against the run on the
+    BOOK and on the WORLD, and never on the QUANTITY it decomposes. Both passed, their conjunction
+    read as "this evidence describes this figure", and the split published was of `selection_gbp`
+    while the figure it sat beside -- and the bound `_current_world_contrast` puts under it since
+    `a70cc11e1` -- was `value_advantage_gbp`.
+
+    IT IS NOT A ROUNDING DIFFERENCE. On the 08-29 family, the one seed family where all three floor
+    legs exist, the rest-of-book leg's spread is 0.21 on `selection_gbp` and 554.21 on
+    `value_advantage_gbp`: `irreducible_sd_gbp` quoted across the two is out by 2,623x, and
+    `priced_share_of_variance` falls from 1.000000 to 0.359106.
+
+    TWO GUARDS, EACH WITH A SOLE WITNESS, so neither is an equivalence the other covers -- and BOTH
+    witnesses are measured on THIS page's book, so the book reconciliation passes on each and this
+    control is the only thing that can red:
+      * MISSING    -- no `contrast` key at all. This is the real artefact's state.
+      * MISMATCHED -- declares `selection_gbp` against a `value_advantage_gbp` page.
+
+    INDEPENDENT OF THE BOOK CAVEAT ON PURPOSE. `measured_on_this_page_s_book` is false today, so
+    the book guard already withholds the remedy and nothing a reader sees is wrong because of this.
+    The book guard is what MASKS it: re-running the decomposition on the current book is owed work,
+    and the moment it lands the book caveat lifts and the remedy publishes on the wrong quantity
+    with nothing left withholding it. That is why the fixtures here set the books EQUAL.
+
+    R15 -- the mutations, each run and reverted under `python3 -B`:
+      * return `None` unconditionally from `_decomposition_is_the_same_contrast` (the defect as it
+        shipped) -> both the missing and mismatched legs red, the remedy comes back on the wrong
+        quantity.
+      * treat an absent declaration as agreement (`if declared is None: return None`) -> the
+        MISSING leg reds and the MISMATCHED leg does not, which is the FAIL-SILENT half and the
+        state the real artefact is actually in.
+      * infer the contrast from the `what_this_is` prose instead of the declaration -> the MISSING
+        leg reds, because a declaration nobody made is manufactured from a sentence.
+      * drop the `different_contrast` refusal from `_what_would_resolve_it` and leave the keys on
+        the payload -> both legs red, which is the point: a verdict computed and never read by
+        anything that publishes is a fail-silent, not a control.
+    The null rung is `declared`, which must KEEP the remedy: a control that only ever demands the
+    remedy be absent is satisfied by deleting the remedy.
+    """
+    # THE NULL RUNG. A decomposition of this page's own contrast must still price the remedy.
+    declared = _withheld_headline(_decomposition(0.85, resolvable=True))
+    assert "larger SETTLED BOOK" in declared, (
+        "the null rung: a decomposition of this page's own contrast was refused anyway, so this "
+        "control would be satisfied by deleting the remedy entirely: {}".format(declared))
+    assert "DIFFERENT QUANTITY" not in declared and "WHICH QUANTITY" not in declared, (
+        "a decomposition of this page's own contrast was accused of splitting another: {}"
+        .format(declared))
+
+    # SOLE WITNESS 1 -- MISSING. The real artefact's state: same book, no declaration.
+    missing = dict(_decomposition(0.85, resolvable=True))
+    missing.pop("contrast")
+    assert gva._decomposition_is_the_same_book(missing, _load(THREE_ARM)) is None, (
+        "the fixture must pass the BOOK guard, or this control is not the sole reason it reds")
+    missing_headline = _withheld_headline(missing)
+    assert "larger SETTLED BOOK" not in missing_headline, (
+        "a remedy whose evidence never said which quantity it splits was restated as though it "
+        "described this page's figure -- the defect as it shipped: {}".format(missing_headline))
+    assert "WHICH QUANTITY" in missing_headline and "has not been established" in missing_headline, (
+        "the refusal must NAME its reason and leave the remedy explicitly unestablished; a "
+        "silently dropped remedy reads as a question nobody asked: {}".format(missing_headline))
+
+    # SOLE WITNESS 2 -- MISMATCHED. Same book, a declaration, and it is the wrong quantity.
+    mismatched = dict(_decomposition(0.85, resolvable=True), contrast="selection_gbp")
+    assert gva._decomposition_is_the_same_book(mismatched, _load(THREE_ARM)) is None, (
+        "the fixture must pass the BOOK guard, or this control is not the sole reason it reds")
+    assert gva._decomposition_contrast(mismatched) == "selection_gbp", (
+        "the mismatched witness must CARRY a declaration, or it is a second copy of the missing "
+        "one and one of these two legs is an equivalence")
+    mismatched_headline = _withheld_headline(mismatched)
+    assert "larger SETTLED BOOK" not in mismatched_headline, (
+        "a remedy priced on a quantity this page does not publish was restated as though it "
+        "described the one it does: {}".format(mismatched_headline))
+    assert "DIFFERENT QUANTITY" in mismatched_headline, (
+        "the refusal must name that the quantity differs: {}".format(mismatched_headline))
+    assert ("selection_gbp" in mismatched_headline
+            and gva.PAGE_FIGURE_CONTRAST in mismatched_headline), (
+        "the refusal states neither quantity, so a reader cannot check the comparison it refuses "
+        "on: {}".format(mismatched_headline))
+
+
+def test_the_contrast_reconciliation_is_published_beside_the_book_one_not_folded_into_it():
+    """The two reconciliations must reach the payload as SEPARATE verdicts.
+
+    THE DEFECT THIS WOULD CATCH. Folding the quantity question into `measured_on_this_page_s_book`
+    would make re-running the decomposition on the current book -- which is owed, and which this
+    lane is doing -- clear BOTH, and the cross-contrast read would ship the moment the book caveat
+    lifted. Two questions, two answers, on the surface.
+
+    R15: merge the two caveats into one key -> this reds. Publish the contrast verdict but stop
+    reading it in `_what_would_resolve_it` -> the sibling test above reds.
+    """
+    art = _load(THREE_ARM)
+    same_book_wrong_contrast = dict(_decomposition(0.85, resolvable=True),
+                                    contrast="selection_gbp")
+    block = gva.build(art, _floor_with_spread(2577.80), _load(RUN_OUTPUT),
+                      same_book_wrong_contrast)["floor_decomposition"]
+    assert block["measured_on_this_page_s_book"] is True, (
+        "the fixture is on this page's book; if this is False the sole-witness property is gone")
+    assert block["measured_on_this_page_s_contrast"] is False, (
+        "the page published a decomposition of another quantity without saying so")
+    assert block["contrast_it_decomposes"] == "selection_gbp", (
+        "the page does not say which quantity the split below it is of")
+    assert block["different_book_caveat"] is None, (
+        "the book caveat fired on a same-book fixture, so the two verdicts are not independent")
+    assert block["different_contrast_caveat"], (
+        "the contrast verdict was computed and left empty -- a verdict nothing publishes is a "
+        "fail-silent, not a control")

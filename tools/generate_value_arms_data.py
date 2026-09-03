@@ -873,6 +873,78 @@ def _decomposition_is_the_same_book(decomposition: dict | None,
     ).format(tp=theirs[0], tr=theirs[1], op=ours[0], or_=ours[1])
 
 
+#: The quantity this page states its headline figure and its bound in. `_current_world_contrast`
+#: reads it too, so the remedy reconciliation below and the bound cannot drift apart into two
+#: literals that agree today and disagree after one edit.
+PAGE_FIGURE_CONTRAST = "value_advantage_gbp"
+
+
+def _decomposition_contrast(decomposition: dict | None) -> str | None:
+    """Which quantity the floor decomposition splits, as the artefact DECLARES it. `None` = it does not.
+
+    PROSE IS NOT PARSED, DELIBERATELY. Today's artefact names its contrast in exactly one place --
+    the sentence in `what_this_is` ("The selection-figure noise floor ...") -- and carries no
+    machine-readable declaration at all: `value_advantage`, `selection_gbp` and `level_advantage`
+    each occur zero times as data in it. Regexing that sentence would manufacture a declaration the
+    producer never made, and the first rewording of the prose would silently change which figure
+    the page believes it is describing. An absent declaration is reported as absent.
+
+    The producer-side stamp is owed exactly as the book-side one is -- see
+    `_decomposition_is_the_same_book`, which records the identical debt for `generated_at`.
+    """
+    declared = (decomposition or {}).get("contrast")
+    return declared if isinstance(declared, str) and declared else None
+
+
+def _decomposition_is_the_same_contrast(decomposition: dict | None) -> str | None:
+    """Whether the remedy's evidence decomposes the quantity this page publishes. `None` = yes.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-03). The page reconciled this artefact against the run on
+    the BOOK (`_decomposition_is_the_same_book`) and on the WORLD (`_world_provenance`), and never
+    on the QUANTITY. Book passed, world passed, and their conjunction read as "this evidence
+    describes this figure" -- while the split published was of `selection_gbp` and the figure it
+    sat beside, bounded by `_current_world_contrast` since `a70cc11e1`, was `value_advantage_gbp`.
+
+    IT IS NOT A ROUNDING DIFFERENCE. On the 08-29 family -- the one seed family where all three
+    legs exist -- the rest-of-book leg's spread is 0.21 on `selection_gbp` and 554.21 on
+    `value_advantage_gbp`. So `irreducible_sd_gbp` published against this page's figure is wrong by
+    a factor of 2,623, and `priced_share_of_variance` falls from 1.000000 to 0.359106.
+
+    INDEPENDENT OF THE BOOK CAVEAT, AND THAT IS THE POINT. `measured_on_this_page_s_book` is false
+    today, so the remedy is already withheld for a different reason and nothing a reader sees is
+    wrong because of this. The book guard is what MASKS it: re-running the decomposition on the
+    current book is owed work, and the moment it lands the book caveat lifts and the remedy
+    publishes -- still on the wrong quantity, with nothing left withholding it. A guard whose
+    clearing arms a second defect is not coverage of that defect, so this refusal is composed
+    alongside rather than instead.
+
+    FAIL CLOSED ON AN ABSENT DECLARATION, for the reason the book guard fails closed on absent
+    counts: an artefact that cannot show it describes this figure is not thereby describing it, and
+    unknown provenance under a remedy reads as fine unless something says otherwise.
+    """
+    declared = _decomposition_contrast(decomposition)
+    if declared is None:
+        return (
+            "THE REMEDY'S EVIDENCE DOES NOT SAY WHICH QUANTITY IT SPLITS, so this page cannot show "
+            "that it describes the figure above. The figure and its bound are stated in "
+            "`{ours}`; a variance split of some other contrast is not a floor under this one. No "
+            "remedy is stated from it. Declaring the contrast in the artefact is owed work "
+            "(`tools/run_value_cycle_ab.py --decompose`)."
+        ).format(ours=PAGE_FIGURE_CONTRAST)
+    if declared == PAGE_FIGURE_CONTRAST:
+        return None
+    return (
+        "THE REMEDY'S EVIDENCE SPLITS A DIFFERENT QUANTITY, so no remedy is stated from it. The "
+        "decomposition below is of `{theirs}`; the figure above and the bound on it are "
+        "`{ours}`. These are different quantities measured over the same seeds, not two "
+        "readings of one -- on the one seed family where all three floor legs exist, the "
+        "rest-of-book half is 0.21 on `{theirs}` and 554.21 on `{ours}`, so an irreducible floor "
+        "quoted across them is wrong by a factor of 2,623 and the priced share falls from "
+        "1.000000 to 0.359106. A split of the variance in one contrast is not a price for "
+        "resolving another."
+    ).format(theirs=declared, ours=PAGE_FIGURE_CONTRAST)
+
+
 def _what_would_resolve_it(decomposition: dict | None,
                            three_arm: dict | None = None) -> str:
     """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
@@ -899,6 +971,15 @@ def _what_would_resolve_it(decomposition: dict | None,
     different_book = _decomposition_is_the_same_book(decomposition, three_arm)
     if different_book:
         return different_book + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
+    # AND BEFORE ANY FIGURE IS READ OUT OF IT, FOR THE SAME REASON ONE QUESTION OVER. The book
+    # refusal above and this one are ANDed rather than merged: the book question clears the moment
+    # the decomposition is re-run on this book, which is owed work, and a merged guard would clear
+    # the quantity question with it. Refused here rather than caveated below because a split of a
+    # different contrast is not a weaker remedy either -- `irreducible_sd_gbp` read across the two
+    # is out by 2,623x on the one family where both can be measured.
+    different_contrast = _decomposition_is_the_same_contrast(decomposition)
+    if different_contrast:
+        return different_contrast + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
     # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
     # two degrees of freedom, and the producer says whether the split cleared that.
     if not decomposition.get("share_is_decisive"):
@@ -3066,7 +3147,7 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
             "THE FLOOR MEASURED IN THIS WORLD CARRIES NO TIMESTAMP, so it is a refusal or a "
             "partial write rather than a completed run, and this page reads no bound from it.")}
     spreads = _seed_spreads(floor_current, current)
-    spread = _spread_for(spreads, "value_advantage_gbp")
+    spread = _spread_for(spreads, PAGE_FIGURE_CONTRAST)
     if spread is None:
         return {"bound_available": False, "why_no_bound": (
             "THE FLOOR MEASURED IN THIS WORLD CARRIES NO USABLE SPREAD for this contrast, so no "
@@ -3078,7 +3159,7 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
         "floor_leg": mode,
         "floor_generated_at": floor_current.get("generated_at"),
         "bound": spread,
-        "bound_contrast": "value_advantage_gbp",
+        "bound_contrast": PAGE_FIGURE_CONTRAST,
         "bound_is_of_the_same_contrast": (
             "The spread below is this contrast's own across the seed re-draws -- not the floor's "
             "published `selection_gbp_spread`, which measures a different quantity."),
@@ -3425,6 +3506,17 @@ def build(three_arm: dict | None, floor: dict | None,
                                       decomposition, three_arm) is None,
                                   different_book_caveat=_decomposition_is_the_same_book(
                                       decomposition, three_arm),
+                                  # THE THIRD QUESTION, asked because the first two passing read
+                                  # as "this evidence describes this figure" and never established
+                                  # it. Composed ALONGSIDE the book caveat, not instead of it: the
+                                  # book guard is what withholds the remedy today, so folding this
+                                  # into it would make clearing the book reconciliation clear this
+                                  # one too -- and clearing the book reconciliation is owed work.
+                                  contrast_it_decomposes=_decomposition_contrast(decomposition),
+                                  measured_on_this_page_s_contrast=(
+                                      _decomposition_is_the_same_contrast(decomposition) is None),
+                                  different_contrast_caveat=_decomposition_is_the_same_contrast(
+                                      decomposition),
                                   book_it_was_measured_on=dict(zip(
                                       ("priced_decisions", "renewals_offered"),
                                       _decomposition_book(decomposition))),
