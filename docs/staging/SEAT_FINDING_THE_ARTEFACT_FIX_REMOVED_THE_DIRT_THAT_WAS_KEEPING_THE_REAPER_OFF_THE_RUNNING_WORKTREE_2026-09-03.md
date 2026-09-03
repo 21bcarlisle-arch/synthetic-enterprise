@@ -127,4 +127,50 @@ Not built in this turn: the measurement was the drawn work and relaunching it wa
 clock on it. Filed here so the next turn can take it with the mechanism already established rather
 than rediscovering it from a third dead run.
 
-**Discharged:** not yet.
+## 7. Built at `06c9f1869`, and verified against the run that is still in flight (2026-09-03 18:4x)
+
+The leg §6 recommended was built in the very next turn, exactly as specified — a property, not a
+declaration; on the caller's side of the purity line; `classify_worktree_reap` untouched and still
+I/O-free. This section records the verification, because §6 being right is not the same fact as §6
+being live.
+
+**Both doors ask, and the third path knows the answer.** `_live_cwd_default` reads `/proc/*/cwd`,
+counts a descendant, and treats an unreadable entry as not-found per-process. It is wired into
+`evaluate_worktree_reap` (the batch scanner) AND `reap_one_worktree` (the by-hand single-path
+door) — the second mattering most, since an operator reaching for it by hand is exactly when a long
+compute run is on the other end. `"is some pid's cwd"` is also registered in `_LIVE_REFUSALS`, so
+`advance_stranded` scores the new refusal as correctly-spared rather than STRANDED; had that been
+missed, the cwd refusal would have read as a lifecycle hole and alarmed forever, which is the
+`_LIVE_REFUSALS`-was-wrong-for-a-day defect this document's §4 already names once.
+
+**Measured against the live worktree, not reasoned about.** `/var/tmp/se-floorrun-20260903d`, with
+`se-floor-all-20260903d` active and pid 3730923 inside it:
+
+    _live_cwd_default   -> True      # the new leg, on a real running process
+    _live_writer_default-> True      # declaration; also true here
+    _worktree_dirty     -> True
+    reap_one_worktree   -> REFUSED   # "a live writer holds this worktree"
+
+Four independent refusals now stand where the third launch had none: `locked`, `dirty`, declaration,
+and cwd. The refusal actually returned is the writer one because liveness is asked first — the cwd
+leg is second in line here and its own sole-witness coverage is what proves it, not this reading.
+
+**Mutation-covered, four legs, each naming a mutation it alone catches:**
+`test_the_reaper_refuses_a_worktree_that_is_a_live_processs_cwd`,
+`test_BOTH_reap_doors_refuse_a_worktree_that_is_a_live_processs_cwd`,
+`test_the_cwd_leg_does_NOT_become_a_permanent_exemption` (the fail-safe direction — it releases when
+the process exits, so it cannot become the permanent exemption a stale declaration would be), and
+`test_the_cwd_probe_sees_a_real_process_and_a_descendant_counts`, which exercises the real `/proc`
+probe rather than an injected stub — the other three inject `live_cwd_fn` and would all pass over a
+probe that always returned True. 135 green across the reaper, continuation and delivery-lane suites.
+
+**Discharged:** `tests/background/test_fork_reconciler.py::test_the_reaper_refuses_a_worktree_that_is_a_live_processs_cwd`,
+`tests/background/test_fork_reconciler.py::test_BOTH_reap_doors_refuse_a_worktree_that_is_a_live_processs_cwd`,
+`tests/background/test_fork_reconciler.py::test_the_cwd_leg_does_NOT_become_a_permanent_exemption`,
+`tests/background/test_fork_reconciler.py::test_the_cwd_probe_sees_a_real_process_and_a_descendant_counts`,
+`background/fork_reconciler.py` at
+`06c9f1869` — the cwd liveness leg is built at both reap doors, registered in `_LIVE_REFUSALS`,
+covered by four sole-witness mutations, and confirmed refusing on the live 2h15m run this document
+was written about. What remains open is not this leg but the age threshold §2 names: a run longer
+than `MIN_REAP_AGE_SECONDS` is still scheduled to be reaped the moment it goes quiet and undeclared,
+and cwd is what now stands between that schedule and the run.

@@ -136,3 +136,48 @@ clock in the way `_superseded_ids` refuses. The filter is the property; the prom
 Not measured: whether any **other** reader of `focus` carries the same twin. `next_item` is the one
 that feeds ticks, so it is the one that was costing turns, but the two-store split is now known to
 exist and nothing has swept for a third consumer.
+
+## The sweep for a third consumer, done (2026-09-03, later tick)
+
+`unreachable_focus` has exactly **three** production consumers — the sweep this document said
+nothing had done:
+
+| consumer | filters retired? | can it resurrect? |
+|---|---|---|
+| `delivery_lane.next_item` (the draw) | yes, since `c9032443b` | no |
+| `delivery_lane.hand_off_focus` (lookup by explicit id) | **no** | no — see below |
+| `seat_executor._promote_to_handoff` | via `hand_off_focus` | no — and cannot be reached |
+
+**The unfiltered one cannot resurrect, and the reason is the shape this document is about.**
+Retirement is not a flag on the retired entry; it is a fact **declared by the superseding entry**,
+which `hand_off` never touches when re-writing some other id. So re-writing a retired id back into
+the store leaves it retired. Measured on a scratch store rather than argued:
+
+    live before promo: ['pick-up-the-relaunch']
+    hand_off('land-the-artefact')          # the promotion route, on the RETIRED id
+    live after  promo: ['pick-up-the-relaunch']
+    superseded ids   : ['land-the-artefact']
+
+**`seat_executor` cannot reach it at all**: `work_id` comes from the draw (`seat_executor.py:828`,
+`item["id"]`), and the draw now filters retired — so the twin never becomes a promotion candidate.
+
+**No control was added, and that is the finding.** A test here would be an **equivalence**, not a
+missing leg: the property is held by `live()`'s supersession filter, which already carries its own
+mutation-proven control, and a second test over the same subject would fire only when that one does.
+Recorded rather than shipped, because *"a mutation that does not fire is either a missing test or an
+equivalence — establish which"* and the flattering answer would have been to ship it.
+
+One asymmetry worth leaving visible: the `next_item` fix made the twin *more* eligible for
+promotion, not less, because `hand_off_focus` requires an item be **draw-unreachable** and filtering
+the twin at the draw is what made it so. That is harmless today for the reason measured above — it
+would stop being harmless if retirement ever became a property of the retired entry instead of a
+fact declared by its successor.
+
+**Discharged:** `tests/background/test_seat_continuation.py::test_a_retired_entrys_FOCUS_TWIN_is_not_offered_once_the_CORRECTION_is_CLAIMED`,
+`tests/background/test_seat_continuation.py::test_a_RESTAMP_of_the_superseding_entry_does_not_RESURRECT_what_it_retired`,
+`background/delivery_lane.py`, `background/seat_continuation.py`
+at `ea1ba2a03` and `c9032443b` — both halves fixed
+(the `focus` twin filtered at the draw; `hand_off` unioning the replaced entry's supersedes so a
+re-stamp cannot erase a retirement), each with a verified mutation, and the residue this section
+names now measured rather than assumed. 135 green across the reaper, continuation and delivery-lane
+suites.
