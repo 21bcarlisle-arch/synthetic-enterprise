@@ -55,6 +55,30 @@ def _git_mv(src: Path, dst: Path, *, dry_run: bool) -> str:
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dry_run:
         return f"WOULD MOVE {src.name} -> {dst.parent.name}/"
+    # AN OCCUPIED DESTINATION IS A REFUSAL, NOT A MOVE, and until 2026-09-03 it was neither:
+    # `Path.rename` overwrites silently on POSIX, so a move onto an existing document destroyed
+    # it and reported `MOVED`. It happened on that day's run — the alarm collapse renamed a
+    # survivor onto a same-family document already in the root and archived a folded one onto a
+    # same-named file already in `done/`, and the only trace was this tool's own file-count
+    # arithmetic coming out two short. The count caught it; the move did not, and a count that
+    # notices a deletion AFTER it has happened is a receipt, not a control.
+    #
+    # BYTE-IDENTICAL IS ALLOWED THROUGH, because a half-finished move re-run is the ordinary way
+    # this tool is used and refusing there would make it un-restartable — the shape a wall with no
+    # door for a state it forbids has. Anything else refuses and names both paths, because only a
+    # reader can say which of the two documents is the one to keep.
+    if dst.exists() and dst.resolve() != src.resolve():
+        try:
+            same = dst.read_bytes() == src.read_bytes()
+        except OSError as exc:
+            return f"REFUSED {src.name}: destination exists and could not be compared ({exc})"
+        if not same:
+            return (
+                f"REFUSED {src.name} -> {dst.parent.name}/: a DIFFERENT document already sits at "
+                f"{dst}. Nothing here overwrites; decide which one survives and move it by hand."
+            )
+        src.unlink()
+        return f"DEDUPED {src.name} -> {dst.parent.name}/ (identical copy already there)"
     r = subprocess.run(["git", "mv", str(src), str(dst)], cwd=REPO_ROOT,
                        capture_output=True, text=True)
     if r.returncode != 0:
@@ -76,6 +100,13 @@ def relocate(staging: Path = STAGING, *, dry_run: bool = False) -> list[str]:
         if room is None:
             continue
         out.append(_git_mv(p, staging / room / p.name, dry_run=dry_run))
+    # STEP 3: RECORDED FINDINGS INTO THE ARCHIVE. Not a room decision and so not `room_for`'s,
+    # which answers from the name alone; RECORDED is what is OWED on a document and only its body
+    # says so. `staging_rooms.recorded_findings` reads it, fails toward work on anything it cannot
+    # parse, and is the same reader the draw now uses -- so a document the queue has stopped
+    # offering is the same document this moves, and the two cannot come apart.
+    for p in rooms.recorded_findings(staging):
+        out.append(_git_mv(p, staging / rooms.ARCHIVE_DIRNAME / p.name, dry_run=dry_run))
     return out
 
 

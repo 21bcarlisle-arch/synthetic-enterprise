@@ -222,10 +222,14 @@ def test_MUTATION_a_room_that_EMPTIES_is_LOUD(tmp_path):
     """The population floor. Five emptied subjects were found in one day by floors of this
     shape: without one, a scanner reports 'nothing found' identically whether its subject is
     clean or gone."""
-    (tmp_path / sr.REFERENCE_DIRNAME).mkdir()
-    (tmp_path / sr.CONSOLE_DIRNAME).mkdir()
+    # KEYED TO THE FLOORS AND NOT TO TWO. This asserted `== 2` and went red on 2026-09-03 when
+    # `records/` became the third floored room -- i.e. it failed because the control got WIDER,
+    # which is the pinned-to-today's-answer shape this file's own subject exists to catch. Every
+    # floored room must be loud, however many there are.
+    for room in sr.POPULATION_FLOORS:
+        (tmp_path / room).mkdir()
     violations = sr.population_floor_violations(tmp_path)
-    assert len(violations) == 2
+    assert len(violations) == len(sr.POPULATION_FLOORS)
     assert all("POPULATION FLOOR" in v for v in violations)
 
 
@@ -234,7 +238,7 @@ def test_MUTATION_a_room_that_VANISHES_is_LOUD_too(tmp_path):
     renamed. `iterdir()` on a missing directory raises or returns nothing depending on how it
     is written, and 'returns nothing' is silence."""
     out = sr.population_floor_violations(tmp_path)
-    assert len(out) == 2 and all("ROOM MISSING" in v for v in out)
+    assert len(out) == len(sr.POPULATION_FLOORS) and all("ROOM MISSING" in v for v in out)
 
 
 def test_a_full_room_passes(tmp_path):

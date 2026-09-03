@@ -86,6 +86,29 @@ REFERENCE_DIRNAME = "reference"
 #: 25-51KB apiece it is the largest thing in the folder and the least drawable.
 CONSOLE_DIRNAME = "console"
 
+#: The room a PRE-REGISTRATION lives in. Director, 2026-09-03, on a root that had reached 168
+#: tracked documents of which 55 were pre-registrations: *"Pre-registrations are records, not
+#: work — a prediction made before a measurement belongs beside the result, not in a queue.
+#: Move them out of the work channel entirely."*
+#:
+#: THIS IS D2 AGAIN, ONE KIND FURTHER ON, and that it recurred is the interesting part. D2's
+#: argument was that a document with NO EXIT cannot sit in a queue, because a queue holding one
+#: can never reach zero and therefore can never signal "drained". A pre-registration has no exit
+#: EITHER, and for a reason that is stronger than a register's rather than weaker: it is a
+#: prediction filed BEFORE its measurement, and its whole evidential value is that it was written
+#: when the answer was unknown. It cannot be actioned, because acting on it would be running the
+#: measurement it predicts — which is a different document's work. It cannot be revised, because a
+#: prediction edited after the answer is not a prediction. All it can do is be GRADED, beside the
+#: result, in the finding that reports it. Nothing about that belongs in a work queue.
+#:
+#: `records/` and not `done/`, and that distinction is load-bearing. `done/` means dispositioned
+#: and out of the way; `staging_archive_policy` may fold an archived document once it is old and
+#: unreferenced. A pre-registration must stay READABLE for exactly as long as the claim it graded
+#: is published, because it is the only evidence the experiment was designed before its answer was
+#: known — the property CLAUDE.md calls "a prediction filed after the answer is not a prediction".
+#: Filing it as done would put the machine's own falsifiability record on an archive path.
+RECORDS_DIRNAME = "records"
+
 #: Rooms that exist already and are not this module's to redesign. Named so that
 #: `work_queue()` can state what it did NOT read, which is the half of a scan that usually
 #: goes unsaid.
@@ -142,6 +165,9 @@ KIND_ALARM = "alarm"
 KIND_DIRECTIVE = "directive"
 #: A finding a worker turn wrote about the system.
 KIND_FINDING = "finding"
+#: A prediction filed BEFORE the measurement it predicts. A RECORD, never work — see
+#: `RECORDS_DIRNAME` for why it has no exit and therefore cannot sit in a queue.
+KIND_PREREGISTRATION = "preregistration"
 #: A minted work batch awaiting consumption.
 KIND_MINT = "mint"
 #: Kind could not be determined. Fail-safe: an unrecognised file is WORK, and it is drawn
@@ -191,7 +217,7 @@ ORDER: dict[str, int] = {
 #: which room the file is sitting in, so a CLASS register that has not yet been moved is
 #: already out of the queue — the classification does the work, the move only makes it
 #: legible to a reader.
-NOT_WORK = frozenset({KIND_REFERENCE, KIND_CONSOLE, KIND_DOORBELL})
+NOT_WORK = frozenset({KIND_REFERENCE, KIND_CONSOLE, KIND_DOORBELL, KIND_PREREGISTRATION})
 
 _ALARM_PREFIX = "WORKER_FINDING_REPEATING_ALARM_"
 _CLASS_PREFIX = "CLASS_"
@@ -204,7 +230,26 @@ _MINT_PREFIX = "PLANNER_MINTED_"
 _FROM_RICH_PREFIX = "from_rich_"
 _DOORBELL_PREFIXES = ("run_complete_", "run_pending_")
 _DIRECTIVE_PREFIXES = ("DIRECTOR_", "ADVISOR_", "BOARD_")
-_FINDING_PREFIXES = ("WORKER_FINDING_", "WORKER_ALARM_")
+#: A TOKEN AND NOT A PREFIX, for the same reason as `_PREREGISTRATION_TOKEN` below and found the
+#: same day. The tuple was `("WORKER_FINDING_", "WORKER_ALARM_")`, written when the worker turn was
+#: the only channel that filed findings. The delivery seat then started writing its own, named
+#: `SEAT_FINDING_`, and on 2026-09-03 all SIXTEEN of them in the root — plus one bare `FINDING_` —
+#: classified as `KIND_UNKNOWN` and drew at rank 50, BELOW every finding and above every alarm,
+#: under the comment "unrecognised, so treated as a real ask until shown otherwise". Nothing was
+#: lost, because UNKNOWN fails safe toward work; what was lost was the ORDER, silently, for as long
+#: as the seat has been filing. A new channel adopting an existing document kind must not have to
+#: remember to edit a tuple.
+_FINDING_TOKEN = "FINDING_"
+_FINDING_PREFIXES = ("WORKER_ALARM_",)
+#: A SUBSTRING AND NOT A PREFIX, and that is the whole reason this classifies anything. The 55
+#: pre-registrations in the root on 2026-09-03 carried FOUR different name shapes —
+#: `SEAT_PREREGISTRATION_`, `WORKER_PREREGISTRATION_`, `SEAT_PREREGISTRATION_WHETHER_`, and a
+#: `PREREG_` written by a third channel. A prefix tuple would have caught whichever ones the
+#: author of the tuple happened to have in front of them and left the rest in the work channel,
+#: reading as "pre-registrations are handled" — the shape this repository has already paid for
+#: under `controls keyed to a structure that moved`. The kind is what the document IS, and every
+#: one of those four says so in its own name.
+_PREREGISTRATION_TOKEN = "PREREG"
 
 
 def kind_of(name: str) -> str:
@@ -230,6 +275,13 @@ def kind_of(name: str) -> str:
         # `work_queue`. Keeping the room decision here and the rank decision there is what stops a
         # register migrating between folders as its state changes.
         return KIND_REFERENCE
+    if _PREREGISTRATION_TOKEN in name.upper():
+        # BEFORE THE FINDING AND DIRECTIVE TESTS, for the same reason `DIRECTOR_CONSOLE_` is
+        # tested before `DIRECTOR_`: `SEAT_PREREGISTRATION_...` and `WORKER_PREREGISTRATION_...`
+        # both begin with strings that classify as work, and `DIRECTOR_` is a live prefix too. A
+        # pre-registration reaching either of those tests first is exactly the state the director
+        # found — 55 records sitting in the work channel because their names start like work.
+        return KIND_PREREGISTRATION
     if name.startswith(_DOORBELL_PREFIXES):
         return KIND_DOORBELL
     if name.startswith(_FROM_RICH_PREFIX):
@@ -240,7 +292,9 @@ def kind_of(name: str) -> str:
         return KIND_MINT
     if name.startswith(_DIRECTIVE_PREFIXES):
         return KIND_DIRECTIVE
-    if name.startswith(_FINDING_PREFIXES):
+    if name.startswith(_FINDING_PREFIXES) or _FINDING_TOKEN in name.upper():
+        # AFTER the alarm test above, which is what keeps `WORKER_FINDING_REPEATING_ALARM_` an
+        # alarm: a repeating alarm carries the finding token in its name and is not a finding.
         return KIND_FINDING
     return KIND_UNKNOWN
 
@@ -256,6 +310,8 @@ def room_for(kind: str) -> str | None:
         return REFERENCE_DIRNAME
     if kind == KIND_CONSOLE:
         return CONSOLE_DIRNAME
+    if kind == KIND_PREREGISTRATION:
+        return RECORDS_DIRNAME
     return None
 
 
@@ -395,6 +451,32 @@ def stamp_chain(text: str, *, lane: str, epoch: int | str, atom: str,
 # ---------------------------------------------------------------------------
 
 
+def _is_recorded(path: Path) -> bool:
+    """Is this document graded RECORDED — landed, with nothing owed?
+
+    FAILS TOWARD WORK, and that direction is the whole safety of reading a body at all. An
+    unreadable document, an absent header, a severity that cannot be parsed: every one of them
+    returns False and the document stays in the queue. The harmful mistake here is dropping a
+    live finding because its file could not be read, and this is the shape that cannot make it.
+    """
+    try:
+        from background.finding_severity import parse_severity_file
+
+        return parse_severity_file(path).severity == "RECORDED"
+    except Exception:
+        return False
+
+
+def recorded_findings(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Path]:
+    """Findings in the root that are graded RECORDED, i.e. archivable rather than drawable."""
+    root = Path(root)
+    if not root.is_dir():
+        return []
+    return sorted(p for p in root.iterdir()
+                  if p.is_file() and p.suffix == ".md"
+                  and kind_of(p.name) == KIND_FINDING and _is_recorded(p))
+
+
 @dataclass(frozen=True)
 class QueueItem:
     path: Path
@@ -437,6 +519,22 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
             continue
         kind = kind_of(p.name)
         if kind in NOT_WORK:
+            continue
+        if kind == KIND_FINDING and _is_recorded(p):
+            # A RECORDED FINDING HAS NOTHING OWED, and that is `finding_severity`'s own
+            # definition of the word, not a reading of it: RECORDED is what a document is graded
+            # once its repair has landed. `finding_classes.derive_memberships` already drops
+            # RECORDED from consolidation for exactly this reason — "a landed record with
+            # nothing owed has no repair to argue and no cost to add" — so the work channel was
+            # the ONE place in the pipeline still treating them as work. Eleven of the thirty-six
+            # findings in the root on 2026-09-03 were RECORDED: a third of the queue was reports
+            # of things already fixed, ranked among things that are not.
+            #
+            # HERE AND NOT IN `kind_of`, deliberately, and it is the same split the class
+            # registers take one function down: the KIND is what a document is and comes from
+            # its name; the SEVERITY is what is owed on it and can only come from its body. A
+            # kind that had to read the file would go UNKNOWN — which ranks as work — the moment
+            # the disk misbehaved.
             continue
         try:
             mtime = p.stat().st_mtime
@@ -591,10 +689,116 @@ def reference_documents(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Path]:
 #: `reference` — six CLASS registers existed on 2026-08-28 and a register is never deleted,
 #: so this can only rise. A drop means a register was lost or the room moved.
 #: `console`   — the two transcripts migrated on 2026-08-28. Same argument.
+#: `records`   — 38 pre-registrations migrated on 2026-09-03. A pre-registration is never deleted
+#:               and never archived (see `RECORDS_DIRNAME`), so this can only rise. A drop means
+#:               the machine's own falsifiability record is being tidied away, which is the one
+#:               thing in this folder that must never happen quietly.
 POPULATION_FLOORS: dict[str, int] = {
     REFERENCE_DIRNAME: 6,
     CONSOLE_DIRNAME: 2,
+    RECORDS_DIRNAME: 38,
 }
+
+
+#: The window the root's own growth is read over. SEVEN DAYS is not a tuned number: it is the
+#: span of the director's own measurement (*"up from 15 on 28 August"*, read on 2026-09-03), and
+#: reading a growth rate over a window shorter than the one the problem was noticed in would
+#: report a quiet afternoon as health.
+GROWTH_WINDOW_DAYS = 7
+
+
+def root_flow(root: Path | str = DEFAULT_STAGING_ROOT, *, days: int = GROWTH_WINDOW_DAYS) -> dict:
+    """How many documents ENTERED the staging root against how many LEFT it, over `days`.
+
+    THE MEASURE IS FLOW AND NOT SIZE, and that is the whole design. A size cap is a threshold,
+    and a threshold gets raised the first time it is inconvenient — this repository has watched
+    exactly that happen to a settlement ceiling. Flow needs no number to be picked: the director
+    stated the mechanism himself — *"filing is free and dispositioning isn't"* — and a queue in
+    which filing outruns dispositioning grows without bound whatever its current size. The
+    comparison is against ONE, which is not a target but an identity: a queue is drained when as
+    much leaves as arrives.
+
+    READ FROM GIT AND NOT FROM DISK, deliberately. The 89 stranded archive moves found on
+    2026-09-03 were dispositioned on disk days earlier and never committed, so a disk reading
+    would have scored them as drained while every count taken from the record still saw them.
+    Whether a document has LEFT the queue is a fact about the committed record, because that is
+    the only copy other lanes and the next session can see.
+
+    UNRESOLVABLE IS ITS OWN ANSWER: if git cannot be asked, this reports that and does not
+    return a flow, because "I could not measure the growth" must not read as "it is not growing".
+    """
+    import subprocess
+
+    root = Path(root)
+    prefix = "docs/staging/"
+    try:
+        proc = subprocess.run(
+            # `--no-renames` IS LOAD-BEARING AND THE FIRST DRAFT DID NOT HAVE IT. An archive
+            # move IS a rename, so with rename detection on, git reports
+            # `R100 docs/staging/X.md docs/staging/done/X.md` — which `--diff-filter=AD` drops
+            # entirely. The first run of this scored the 89 archive moves landed minutes earlier
+            # as 6 dispositions, i.e. it reported the queue as draining almost not at all at the
+            # exact moment it had just drained by half. Turning renames off makes each move the
+            # delete-and-add pair the root actually experiences, which is the thing being counted.
+            ["git", "log", f"--since={days}.days.ago", "--diff-filter=AD", "--no-renames",
+             "--name-status", "--format=", "--", prefix],
+            cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {"readable": False, "why": f"git could not be asked ({exc!r})"}
+    if proc.returncode != 0:
+        return {"readable": False,
+                "why": f"git log exited {proc.returncode}: {proc.stderr.strip()[:200]}"}
+    filed: set[str] = set()
+    left: set[str] = set()
+    for line in proc.stdout.splitlines():
+        status, _, path = line.partition("\t")
+        path = path.strip()
+        if not path.startswith(prefix):
+            continue
+        rest = path[len(prefix):]
+        # THE ROOT ONLY. A document written straight into `done/` never entered the queue, and a
+        # document moved between two sub-rooms never left it. Counting either would make the flow
+        # a measure of staging activity rather than of the queue.
+        if "/" in rest or not rest.endswith(".md"):
+            continue
+        (filed if status.startswith("A") else left).add(rest)
+    # A DOCUMENT BOTH ADDED AND REMOVED INSIDE THE WINDOW IS NOT SEDIMENT. It arrived and it was
+    # dispositioned; counting it on both sides is correct and counting it on neither would hide a
+    # channel that files and clears at high volume. It is left in both sets on purpose.
+    return {
+        "readable": True,
+        "days": days,
+        "filed": len(filed),
+        "dispositioned": len(left),
+        "net": len(filed) - len(left),
+    }
+
+
+def sediment_violations(root: Path | str = DEFAULT_STAGING_ROOT) -> list[str]:
+    """The root's own alarm: is more arriving than leaving?
+
+    Director, 2026-09-03: *"put a check on the root itself: if it can grow eleven-fold in six
+    days with nothing reading it, that's the sediment alarm firing on you."* Every other control
+    in this module reads the documents; none of them read the FOLDER, so the folder could go from
+    15 to 168 without anything in the tree having an opinion about it.
+    """
+    flow = root_flow(root)
+    if not flow.get("readable"):
+        return [
+            "ROOT FLOW UNREADABLE: {}. Whether the work queue is growing could not be "
+            "established, which is not evidence that it is not.".format(flow.get("why"))
+        ]
+    if flow["net"] <= 0:
+        return []
+    return [
+        "SEDIMENT: {} document(s) filed into the staging root in {} day(s) and {} "
+        "dispositioned out of it -- a net {:+d}. Filing is free and dispositioning is not, so a "
+        "queue where the first outruns the second grows without bound whatever its size today. "
+        "The remedy is not a bigger folder: it is fewer channels that file, or a disposition "
+        "route for the ones that do.".format(
+            flow["filed"], flow["days"], flow["dispositioned"], flow["net"])
+    ]
 
 
 def population_floor_violations(root: Path | str = DEFAULT_STAGING_ROOT) -> list[str]:
@@ -651,6 +855,22 @@ def render(root: Path | str = DEFAULT_STAGING_ROOT) -> str:
     lines.append(f"Population floors: {len(violations)} violation(s)")
     for v in violations:
         lines.append(f"  ! {v}")
+    lines.append("")
+    recorded = recorded_findings(root)
+    lines.append(f"RECORDED findings in the root (archivable, not drawable): {len(recorded)}")
+    for p in recorded:
+        lines.append(f"  - {p.name}")
+    lines.append("")
+    flow = root_flow(root)
+    if flow.get("readable"):
+        lines.append("Root flow over {} day(s): {} filed, {} dispositioned, net {:+d}".format(
+            flow["days"], flow["filed"], flow["dispositioned"], flow["net"]))
+    else:
+        lines.append(f"Root flow: UNREADABLE -- {flow.get('why')}")
+    sediment = sediment_violations(root)
+    lines.append(f"Sediment: {len(sediment)} violation(s)")
+    for v in sediment:
+        lines.append(f"  ! {v}")
     return "\n".join(lines)
 
 
@@ -660,10 +880,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(DEFAULT_STAGING_ROOT))
     parser.add_argument("--check", action="store_true",
-                        help="exit non-zero on a population-floor violation")
+                        help="exit non-zero on a population-floor or sediment violation")
     args = parser.parse_args(argv)
     print(render(args.root))
-    if args.check and population_floor_violations(args.root):
+    if args.check and (population_floor_violations(args.root) or sediment_violations(args.root)):
         return 1
     return 0
 

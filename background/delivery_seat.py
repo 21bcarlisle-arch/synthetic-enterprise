@@ -282,6 +282,23 @@ def findings_now() -> dict:
             "blocking": by_sev.get("BLOCKING", []), "unclassified": by_sev.get("UNCLASSIFIED", [])}
 
 
+def staging_flow() -> dict:
+    """Is the work queue draining or silting up? The FOLDER, not the documents in it.
+
+    `findings_now()` above reads what is in the staging root and every other control here reads
+    the documents; on 2026-09-03 the root was found at 168 tracked documents, up from 15 six days
+    earlier, with nothing in the tree ever having read the folder's own size. Fail-soft like every
+    other brief field — a brief that cannot be assembled is worse than one missing a line.
+    """
+    try:
+        from background.staging_rooms import root_flow, sediment_violations, work_queue
+
+        return {"flow": root_flow(), "sediment": sediment_violations(),
+                "work_queue_len": len(work_queue())}
+    except Exception as exc:
+        return {"available": False, "why": repr(exc)}
+
+
 def levels_recorded_since(since: datetime) -> list[dict]:
     """Level moves RECORDED IN THE LEDGER during the stretch.
 
@@ -443,6 +460,14 @@ def build_brief(now: datetime | None = None) -> dict:
         "levels_recorded": levels_recorded_since(since),
         "publish": publish_state(),
         "director_inputs": director_inputs(since),
+        # THE FOLDER, NOT ITS DOCUMENTS. `findings_now()` above reads what is IN the staging root;
+        # nothing read the root ITSELF, so it went from 15 documents to 168 in six days without a
+        # single control having an opinion about it. Director, 2026-09-03: *"if it can grow
+        # eleven-fold in six days with nothing reading it, that's the sediment alarm firing on
+        # you."* Reported in the brief and NOT wired into `is_material`: a queue that is growing is
+        # the normal state of a machine that files as it works, and orienting on it every three
+        # hours would make every stretch material and tell the seat nothing.
+        "staging_flow": staging_flow(),
         "previous_focus": list(prev_focus),
         # THE SELF-AUDIT'S CORRECTION LEG WAS UNFED BY CONSTRUCTION. The seat is required to write
         # `corrected: true|false` against every error, and the brief handed it `previous_focus` --

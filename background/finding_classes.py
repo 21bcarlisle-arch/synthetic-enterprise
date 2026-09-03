@@ -70,6 +70,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -1071,13 +1072,82 @@ def _write_class_documents(root: Path) -> list[Path]:
     return written
 
 
+def consolidate(root: Path | str = DEFAULT_STAGING_ROOT, *, apply: bool = False) -> list[str]:
+    """Move every consolidated member out of the work channel and into the archive.
+
+    THE STEP THIS MODULE WAS BUILT AROUND AND NEVER TOOK. Every other part of the mechanism is
+    here and has been since 2026-08-12: `derive_memberships` picks the members, the lane guard
+    refuses the ones it may not supersede, `render_class_document` writes them into the register
+    as an instance list, `archived_instances` reads them back out of `done/`, `instance_paths`
+    spans both rooms so the register says the same thing before and after, and `check()` verifies
+    the whole thing holds. The class document's own printed text says the members are
+    *"archived, not deleted, in docs/staging/done/"*. **Nothing moved them.** So every classed
+    finding was named as an instance in a register AND left sitting in the root as a document,
+    and the register — the artefact built to let one argument win a draw instead of twenty
+    siblings losing it separately — became a second copy of the pile rather than a replacement
+    for it.
+
+    Director, 2026-09-03: *"Findings that share a class go to the class register as instances,
+    not to the root as documents; the register already exists for exactly that."* It does. This
+    is the four lines that make the sentence true.
+
+    RENDER BEFORE MOVE, ALWAYS, and the order is not cosmetic. `derive_memberships` reads the
+    LIVE root; move first and the register would be re-rendered from an empty membership and
+    would forget the instances it had just lost — the exact "the record is the population"
+    mistake `ClassMembership.archived` exists to refuse, committed by the tool that maintains it.
+
+    REFUSALS ARE NOT MOVED and are not silent. A member refused out of lane, an externally
+    authored ask, a self-clearing alarm and a RECORDED document are all excluded upstream by
+    `derive_memberships`, which is why this function has no opinion about them: they never appear
+    in `members`. What it does report is anything it declined to move HERE — a destination that is
+    already occupied by a different document — because a consolidation that quietly overwrote an
+    archived instance would destroy the evidence the register cites.
+    """
+    root = Path(root)
+    archive = root / ARCHIVE_DIRNAME
+    out: list[str] = []
+    if apply:
+        for doc in _write_class_documents(root):
+            out.append(f"rendered {doc.name}")
+    for membership in derive_memberships(root).values():
+        for path in list(membership.members):
+            dst = archive / path.name
+            verb = "CONSOLIDATE" if apply else "WOULD CONSOLIDATE"
+            if dst.exists() and dst.read_bytes() != path.read_bytes():
+                out.append(
+                    f"REFUSED {path.name}: a DIFFERENT document of that name is already in "
+                    f"{ARCHIVE_DIRNAME}/. The register cites the archived copy; overwriting it "
+                    f"would destroy the evidence. Resolve by hand."
+                )
+                continue
+            out.append(f"{verb} [{membership.finding_class.id}] {path.name}")
+            if apply:
+                archive.mkdir(parents=True, exist_ok=True)
+                moved = subprocess.run(["git", "mv", str(path), str(dst)],
+                                       cwd=str(root.parent.parent),
+                                       capture_output=True, text=True)
+                if moved.returncode != 0:
+                    path.replace(dst)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", default=str(DEFAULT_STAGING_ROOT))
     parser.add_argument("--list", action="store_true", help="print every document's class")
     parser.add_argument("--render", action="store_true", help="(re)write every class doc")
     parser.add_argument("--check", action="store_true", help="verify the consolidation holds")
+    parser.add_argument("--consolidate", action="store_true",
+                        help="move consolidated members into done/ (dry run without --apply)")
+    parser.add_argument("--apply", action="store_true", help="with --consolidate, actually move")
     args = parser.parse_args(argv)
+
+    if args.consolidate:
+        for line in consolidate(args.root, apply=args.apply):
+            print(line)
+        if not args.apply:
+            print("\n(dry run -- re-run with --apply to move)")
+        return 0
 
     root = Path(args.root)
     memberships = derive_memberships(root)
