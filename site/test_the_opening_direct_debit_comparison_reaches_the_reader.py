@@ -199,17 +199,57 @@ def test_the_reader_is_told_why_no_headline_figure_moved(live):
     assert rendered, "the explanation element rendered nothing at all"
 
 
-def test_the_unreached_information_sources_reach_the_reader_as_zeros(live):
-    """DEFECT: publishing only the source that WAS used hides that three of four are unreachable.
+def test_every_information_source_reaches_the_reader_and_a_zero_is_never_a_refusal(live):
+    """DEFECT: a rung the supplier CANNOT consult is rendered as a count of zero.
 
-    SLC 27.15 orders four sources best-first. This book reaches exactly one, and a split that
-    printed only the non-zero row would present a precedence as if it had been exercised.
+    Two different failures, and this control holds both apart.
+
+    Publishing only the source that WAS used would present a precedence as if it had been
+    exercised, so every rung the feed names must reach the page. But the repair for that
+    was, until 2026-09-03, to print a count against all four — and when the company
+    narrowed the precedence to the two rungs an OPENING account can actually reach, the
+    page went on rendering `our own meter reads 0`. A zero is a MEASUREMENT: it says the
+    supplier looked and found none. The truth is that the account is being opened, there
+    is nothing of ours to look at, and no field will ever change that.
+
+    So an unreachable rung must arrive carrying its REASON and never a count. Mutating
+    `basis_precedence_view` to publish the excluded rungs inside `walked` with
+    `n_accounts: 0` turns this red — which is precisely the state the page shipped in.
+
+    (Renamed from `test_the_unreached_information_sources_reach_the_reader_as_zeros`. The
+    old name asserted the defect as if it were the requirement; nothing cited the node.)
     """
     rendered = live["ddopen-basis"]
-    for phrase in ("meter reads", "customer told us", "typical values"):
-        assert phrase in rendered, (
-            "the unreached source '{}' is not named on the page, so its zero is invisible".format(
-                phrase))
+    feed = _live_feed()
+    precedence = feed.get("basis_precedence") or {}
+    walked = precedence.get("walked") or []
+    excluded = precedence.get("excluded") or []
+    assert walked and excluded, (
+        "the feed publishes no split between the rungs this company walks and the rungs it "
+        "cannot reach, so the page cannot tell a reader which is which")
+
+    # Every rung, of either kind, is named to the reader.
+    for row in walked + excluded:
+        assert row["label"] in rendered, (
+            "the source '{}' is not named on the page, so its absence is invisible".format(
+                row["label"]))
+
+    # A walked rung carries its count; an excluded one carries its reason and is stated as
+    # unreachable rather than as a number.
+    for row in walked:
+        assert str(row["n_accounts"]) in rendered, (
+            "walked rung '{}' reaches the page without how many accounts it carried".format(
+                row["label"]))
+    for row in excluded:
+        assert "cannot be reached" in rendered, (
+            "unreachable rung '{}' is not declared unreachable on the page".format(row["label"]))
+        # A distinctive clause of the rung's OWN reason, so one boilerplate line covering
+        # both exclusions cannot satisfy this.
+        opening_clause = row["reason"].split(":")[0].strip().lower()
+        assert opening_clause in rendered.lower(), (
+            "unreachable rung '{}' reaches the page without its own reason -- the two "
+            "exclusions are of different kinds and one shared line loses that".format(
+                row["label"]))
 
 
 def test_the_money_on_this_page_carries_its_clock(live):

@@ -1264,20 +1264,45 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       $("ddopen-refused").innerHTML = "<strong>What the supplier refused to guess.</strong> "
         + prose((d.refused || {}).statement || "");
 
-      var bs = d.basis_split || {};
-      var order = ["metered_history", "registry_eac", "customer_declared", "tdcv_typical"];
-      var names = {
-        metered_history: "our own meter reads",
-        registry_eac: "the industry EAC/AQ handed over at registration",
-        customer_declared: "what the customer told us",
-        tdcv_typical: "Ofgem's published typical values"
-      };
-      var parts = order.map(function (k) {
-        return esc(names[k]) + " " + esc(bs[k] || 0);
-      });
-      $("ddopen-basis").innerHTML = "<strong>Which information the estimate came from.</strong> "
-        + "The law orders these sources best-first, and this book reaches only one of them: "
-        + parts.join("; ") + ". " + prose(d.basis_note || "");
+      /* WHICH RUNGS EXIST IS THE FEED'S TO SAY, NOT THIS PAGE'S. This block used to
+         carry its own four-name order and print a count against each one. When the
+         company narrowed the precedence to the two rungs an OPENING account can
+         actually reach, this page went on rendering "our own meter reads 0" — which
+         tells a reader the supplier looked and found none, when the truth is that the
+         account is being opened and there is nothing to look at. An unreachable rung
+         is an ABSENCE WITH A REASON and a walked rung is a COUNT; rendering both as a
+         number is what made the two indistinguishable. Everything below is derived
+         from ../data/dd_opening_arms.json, which derives it from the company module. */
+      var bp = d.basis_precedence;
+      if (!bp) {
+        $("ddopen-basis").innerHTML = "<strong>Which information the estimate came from.</strong> "
+          + "This publish carries no precedence block, so which sources the supplier could "
+          + "consult is unread here rather than reported as none.";
+      } else {
+        var walked = (bp.walked || []).map(function (r) {
+          return esc(r.label) + " &mdash; " + esc(r.n_accounts) + " account"
+            + (r.n_accounts === 1 ? "" : "s");
+        });
+        /* Each unreachable rung gets its own line and its own reason, because the
+           reasons are of different KINDS: one is definitional and permanent, one is a
+           world gap that lifts the day the registration flow carries a declaration.
+           One shared "no data" row would lose exactly that distinction. */
+        var excluded = (bp.excluded || []).map(function (r) {
+          return '<li style="margin:6px 0;"><strong>' + esc(r.label)
+            + "</strong> &mdash; cannot be reached at all. " + prose(r.reason) + "</li>";
+        }).join("");
+        var stray = bp.unaccounted_for || {};
+        var strayKeys = Object.keys(stray);
+        $("ddopen-basis").innerHTML = "<strong>Which information the estimate came from.</strong> "
+          + prose(bp.statement || "")
+          + (walked.length ? " Walked: " + walked.join("; ") + "." : "")
+          + (excluded ? '<ul style="margin:8px 0 0;padding-left:18px;">' + excluded + "</ul>" : "")
+          + (strayKeys.length
+             ? '<p style="margin:8px 0 0;"><strong>Unaccounted for.</strong> This run resolved '
+               + "accounts to " + esc(strayKeys.join(", ")) + ", which the declared precedence "
+               + "does not name &mdash; the organ and its own contract disagree.</p>"
+             : "");
+      }
 
       $("ddopen-note").textContent =
         "Clock: " + (d.clock || "unstated") + ". " + (d.clock_note || "")
