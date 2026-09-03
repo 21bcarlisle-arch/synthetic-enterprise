@@ -659,23 +659,44 @@ git merge-base --is-ancestor d832149bb origin/main     ->  yes (it is the origin
 grep -c 'HANDOFF STANDS' <shared tree>/background/seat_executor.py  ->  0
 ```
 
-`d832149bb` landed the two reason lines and was pushed, but the shared tree never fast-forwarded to
-it, and `seat-executor.service` is `ExecStart=… -m background.seat_executor --once` — a fresh
+`d832149bb` landed the two reason lines and was pushed, but as of this reading the shared tree had
+not yet taken it (it did at 00:13:47 UTC — see the correction below), and `seat-executor.service`
+is `ExecStart=… -m background.seat_executor --once` — a fresh
 process per timer tick, importing from the shared tree's `WorkingDirectory`. So every tick since
 has run `4e8770f70`'s writer, which has only the `DISCHARGED` arm. **The repair for a silence was
 itself silent, for the same reason the repair before it was: pushed is not imported.** §13.4's
 closing claim — "it makes the *next* one gradable from the log alone" — was true of the code and
 false of production, and the distinction is exactly the one `2635bf7fe` exists to force.
 
-Acted on rather than filed: the shared tree is fast-forwarded to `origin/main` as part of this
-turn. A pure fast-forward creates no tree and so cannot be refused by the whole-tree ratchet, and
-none of the three paths differing between `4e8770f70` and `d832149bb` is dirty on the shared tree,
-which was checked before moving it. It does **not** change this turn's own lines: this turn's
-parent imported `4e8770f70` at 00:08:18 UTC, before the move, so the executor's next tick is the
-first that can emit either reason line.
+**Correction, written beside the claim rather than over it.** The paragraph that stood here said
+this turn would fast-forward the shared tree, having checked the three differing paths were clean.
+**It did not, and the fast-forward was not needed** — re-reading divergence immediately before
+acting, which is the only reason this was caught, found the tree had moved under the measurement:
 
-**P5 — pre-registered here, before the answer is available.** On the tick after the fast-forward,
-`RUNNING … on <sha>` will name a commit at or after `d832149bb`, and from that tick on every
+```
+00:06:14 UTC  merge origin/main: Fast-forward   -> 4e8770f70   (shared tree acquires the PRE-emitter writer)
+00:08:18 UTC  seat-executor --once starts       -> imports 4e8770f70
+00:11:30 UTC  the measurement above is taken    -> 0/1 behind, emitter absent, all true as printed
+00:13:47 UTC  merge origin/main (another lane)  -> a043ad67b    (d832149bb arrives; emitter IS in production)
+```
+
+So the emitter reached production at **00:13:47 UTC**, carried in by another lane's `surgical_land`
+merge, not by anything this turn did. The measurement stands exactly as printed — it was true at
+00:11:30 — and the conclusion drawn from it stands too: **every tick from the repair landing until
+00:13:47 ran a writer that could only say `DISCHARGED`**, so the two reason lines had no chance to
+appear and their absence graded nothing. What changes is only the remedy's authorship.
+
+Two things worth keeping. First, the shared tree's reflog shows it takes code **only** when a lane
+merges or fast-forwards it — eight such entries in ninety minutes, none automatic. "Pushed is not
+imported" is not an occasional slip here, it is the standing condition, and any repair whose
+evidence is a log line is invisible until some unrelated lane happens to move the tree. Second,
+this turn's own lines are unaffected either way: its parent imported `4e8770f70` at 00:08:18 UTC,
+five minutes before the emitter arrived, so the executor's **next** tick is still the first that
+can emit either reason line — which is what P5 below is written against, and it is now properly
+armed rather than waiting on an act.
+
+**P5 — pre-registered here, before the answer is available.** On the first tick whose parent starts
+after 00:13:47 UTC — the instant the shared tree took `d832149bb` — every
 `FINISHED` line will be preceded by exactly one of the three arms — `DISCHARGED`, `HANDOFF STANDS`
 or `NO HANDOFF TO DROP`. I predict **YES**, and the first non-`DISCHARGED` arm to appear will be
 `NO HANDOFF TO DROP`, on a **drawn** item, because a draw writes no continuation record while the
