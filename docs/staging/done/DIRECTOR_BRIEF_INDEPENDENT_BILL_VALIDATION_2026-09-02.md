@@ -71,3 +71,50 @@ The only things not open are the properties in §4.
 6. A plain statement of what the design cannot catch, and where the director's review still sits.
 
 — Director brief, 2026-09-02, drafted with the advisor. Arithmetic checked only against itself is not checked. This makes the company auditable, which is what a real supplier is.
+
+---
+
+## Disposition — CLOSED 2026-09-03, delivery seat
+
+**All six canonical work items are delivered, and each line below is a path that exists in this
+commit rather than a claim.** This brief has been rank 1 in the draw since it was filed; a completed
+instruction that nothing dispositions is re-offered every tick forever, which is why the close is an
+act and not an inference.
+
+| item | delivered by | its control |
+|---|---|---|
+| 1. raw export, nothing derived | `company/billing/raw_account_export.py` | `tests/company/billing/test_the_raw_export_carries_nothing_derived.py` |
+| 2. statement export, calculation shown, balance over time | `company/billing/statement_export.py` | `tests/company/billing/test_the_statement_shows_how_each_bill_reached_its_number.py` |
+| 3. curtained validator, curtain proved | `tools/independent_bill_validator.py` | `tests/tools/…without_us.py::test_a_repository_import_BREACHES_the_curtain` and `::test_the_curtain_is_asserted_at_the_ENTRY_POINT_not_only_in_a_test` |
+| 4. the comparison, filing every difference | `tools/bill_validation_comparison.py` (`d886b0114`) | §4.3's order is enforced in code — the reconstruction is digested before the statement is fetched — and driven by a statement source that raises if reached early |
+| 5. every account, every run, scheduled | `background/bill-validation.{service,timer}`, hourly, `Persistent` | declared in `schedule_manifest.yaml`; `schedule_reconciler` 0 drift / 19 OK |
+| 6. what the design cannot catch | `docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md` | prose by nature, and §3 of this brief asked for exactly that |
+
+**Item 5 was verified from the journal, not from the unit file**, per R1: `journalctl --user -u
+bill-validation.service` shows nine firings between 09:04:52 and 17:03:11 on 2026-09-03. That is
+what makes "it runs every cycle" a fact rather than a configuration.
+
+**And it is what found the one thing that was still broken.** The FIRST unattended firing, 09:04:52,
+was the only one with a delta to report — disagreements 295 → 293 — and it died on
+`TypeError: notify() missing 1 required keyword-only argument: 'kind'`. The eight firings after it
+were silent for the honest reason (no delta), so nothing looked wrong. Item 5 had been landed and
+armed and could not tell anybody what it found. Repaired and landed at `f67415d62`, together with a
+static control over all 93 `notify` call sites in the tree so the class cannot recur, and with the
+second live instance it turned up: `background/delivery_seat.py::_notify`, the seat's own escalation
+route to the director, which had swallowed two escalations in a month.
+
+**What this brief BOUGHT, stated because a delivered programme should say what it found.** The first
+full run compared 69,294 claims and filed 310 differences, every one of them exactly one penny, and
+every one of them the validator's own fault — banker's rounding inherited from the language default,
+float subtraction, then float multiplication, each found only by fixing the previous one. Fifteen of
+fifteen line differences fell in the biller's favour, about 1 in 33,000 under a fair coin, which is
+what made them worth chasing rather than reporting. The biller's arithmetic survived its first
+independent audit; the auditor did not, three times.
+
+**Still owed, and NOT held against this brief.** §5 invited improvement on the residual risk in §3 —
+a domain assumption the validator might share with the biller. Nothing here reduces it, and
+`WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md` says so plainly rather than claiming an independence the
+design does not have. A second reconstruction by a different route remains the obvious next move and
+is not started.
+
+Archived to `done/` in the commit that carries this note.
