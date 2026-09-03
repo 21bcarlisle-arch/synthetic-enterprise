@@ -1178,6 +1178,12 @@ def test_a_declared_daemon_home_is_spared_even_with_no_writer_in_it():
         dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
         reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
         live_writer_fn=lambda p: False,                 # idle between turns, not abandoned
+        # AND NO PROCESS IN IT EITHER, stated rather than left to the real `/proc`. The subject
+        # here is the declared-home rule, and `homes[0]` is this executor's own worktree -- which
+        # is the cwd of whatever is running these tests, so the real probe would refuse it on
+        # LIVENESS and this test would pass on the wrong branch. Both liveness legs are pinned
+        # False so the only thing that can spare it is the rule under test.
+        live_cwd_fn=lambda p: False,
     )
     assert report["eligible"] == []
     assert "declared daemon" in report["kept"][0]["reason"]
@@ -1196,6 +1202,7 @@ def test_both_reap_doors_spare_a_declared_daemon_home():
         dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
         reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
         live_writer_fn=lambda p: False,
+        live_cwd_fn=lambda p: False,   # see the sibling test: pinned so the RULE is the witness
         remover=lambda p: pytest.fail("removed a declared daemon's home worktree"),
     )
     assert r["refused"] is True and "declared daemon" in r["reason"]
@@ -1222,6 +1229,116 @@ def test_BOTH_reap_doors_refuse_a_live_writer(tmp_path):
     assert result["removed"] is False
     assert "live writer" in result["reason"]
     assert removed == [], "the remover was called on a worktree with a live process in it"
+
+
+_UNDECLARED_RUN_WT = "/var/tmp/se-floorrun-undeclared"   # a compute run's tree: nothing declared it
+
+
+def test_the_reaper_refuses_a_worktree_that_is_a_live_processs_cwd(tmp_path):
+    """THE DEFECT: a 2h15m measurement reaped out from under itself at 1h34m.
+
+    `se-floor-all-20260903c` ran the undecomposed noise-floor leg in `/var/tmp/se-floorrun-20260903`,
+    launched by a bounded tick that exited minutes later. Nothing held an `OWNER_MARKER` lease, so
+    `live_writer_fn` correctly answered False; the tree was detached-MERGED, unlocked, past
+    `MIN_REAP_AGE_SECONDS` (90 min, against a run needing ~135), and CLEAN. The reaper removed the
+    directory and the process died on a relative-path write having written nothing.
+
+    THE SUBJECT IS SOLE-WITNESS FOR THIS BRANCH. `live_writer_fn` is pinned False and the path is
+    not a declared home, so the ONLY thing that can spare it is the cwd leg -- otherwise this would
+    pass on the declaration branch and prove nothing.
+
+    MUTATION: drop the `live_cwd_fn` branch in `evaluate_worktree_reap` and this fires alone.
+    """
+    report = F.evaluate_worktree_reap(
+        age_fn=_old_enough,
+        worktrees=_merged_clean_detached_worktree(_UNDECLARED_RUN_WT),
+        branch_states={}, main_path="/repo", enforce=False,
+        dirty_fn=lambda p: False,                       # the artefact now writes OUTSIDE the tree
+        salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True,                    # MERGED
+        detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,                 # nothing declared it -- the actual case
+        live_cwd_fn=lambda p: p == _UNDECLARED_RUN_WT,  # but a process is running in it
+    )
+    assert report["eligible"] == []
+    assert "cwd" in report["kept"][0]["reason"]
+    # The control WORKING, not the reaper stuck: it releases itself when the process exits, so it
+    # must never count toward the stranded alarm.
+    assert F.refusal_is_stranded(report["kept"][0]["reason"]) is False
+
+
+def test_BOTH_reap_doors_refuse_a_worktree_that_is_a_live_processs_cwd():
+    """A rule enforced at one door and not the other is a rule with a way round it, and
+    `reap_one_worktree` is the door an operator calls by hand -- which is if anything the likelier
+    one to be aimed at a long-running job's directory.
+
+    MUTATION: remove the check from `reap_one_worktree` and this fires alone.
+    """
+    result = F.reap_one_worktree(
+        _UNDECLARED_RUN_WT,
+        worktrees=_merged_clean_detached_worktree(_UNDECLARED_RUN_WT),
+        branch_states={}, main_path="/repo",
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,
+        live_cwd_fn=lambda p: True,
+        remover=lambda p: pytest.fail("removed a worktree with a live process working in it"),
+    )
+    assert result["refused"] is True and result["removed"] is False
+    assert "cwd" in result["reason"]
+
+
+def test_the_cwd_leg_does_NOT_become_a_permanent_exemption():
+    """THE LEG THAT STOPS LIVENESS BECOMING ACCRETION, for the new probe.
+
+    The same argument `test_a_forks_worktree_IS_eligible_once_its_writer_is_gone` makes about the
+    declaration leg: a directory spared while busy must become reapable the moment it is not, or
+    this is a path exemption wearing a probe's clothes. A cwd cannot outlive its process, which is
+    exactly why it is safe -- and this pins that, so a future `live_cwd_fn` that cached or
+    remembered would fail here rather than quietly immortalising every tree it ever saw.
+    """
+    report = F.evaluate_worktree_reap(
+        age_fn=_old_enough,
+        worktrees=_merged_clean_detached_worktree(_UNDECLARED_RUN_WT),
+        branch_states={}, main_path="/repo", enforce=False,
+        dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+        reachable_fn=lambda h: True, detached_tag_fn=lambda h: None,
+        live_writer_fn=lambda p: False,
+        live_cwd_fn=lambda p: False,                    # the run has finished
+    )
+    assert [e["path"] for e in report["eligible"]] == [_UNDECLARED_RUN_WT]
+
+
+def test_the_cwd_probe_sees_a_real_process_and_a_descendant_counts(tmp_path):
+    """THE PROBE ITSELF, against the real `/proc` rather than an injected lambda.
+
+    Everything above injects `live_cwd_fn`, so all of it would pass over a probe that always
+    returned False. This is the leg that makes the default answer real.
+
+    A DESCENDANT COUNTS because `git worktree remove` takes the whole tree either way, and a
+    process sitting in a subdirectory is just as much working in it. That is the half most likely
+    to be dropped by a future simplification, so it gets its own witness.
+    """
+    import subprocess
+    import sys
+
+    sub = tmp_path / "nested"
+    sub.mkdir()
+    # A real child process parked in the SUBDIRECTORY, so only the descendant rule can find it.
+    proc = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()"],
+                            cwd=str(sub), stdin=subprocess.PIPE)
+    try:
+        assert F._live_cwd_default(str(tmp_path)) is True, (
+            "the probe missed a live process whose cwd is a subdirectory of the worktree")
+        assert F._live_cwd_default(str(tmp_path / "no-such-sibling")) is False, (
+            "the probe claimed a directory nothing is running in")
+    finally:
+        proc.stdin.close()
+        proc.wait(timeout=10)
+    # And it releases: same path, process gone.
+    assert F._live_cwd_default(str(tmp_path)) is False, (
+        "the probe still reports a live cwd after the process exited -- it would immortalise "
+        "every directory it ever saw")
 
 
 def test_the_default_liveness_answer_comes_from_the_module_that_owns_it():
