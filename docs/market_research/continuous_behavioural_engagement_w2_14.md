@@ -350,6 +350,15 @@ distribution rather than fixed as a point estimate in any future build, per R10:
 6. **Engagement × price-sensitivity as a calibrated ELASTICITY multiplier** (§3a) — the
    directional coupling is supported (81%→93%), but converting "% citing price as important" into
    an elasticity coefficient is an unanchored modelling choice.
+   **THIS GAP IS DECLARED IN TWO OTHER PLACES AND UNTIL 2026-09-03 NONE OF THE THREE POINTED AT
+   ANY OTHER.** Its single home is now
+   `docs/market_research/household_switching_response_amplitude.md`, which went at the two closest
+   published sources and found neither settles it; the third declaration is the *Customer lifetime
+   / churn* row of `docs/institutional/knowledge_map.md` ("no published per-supplier or
+   per-customer-type loss rates"). **And the obvious route out of this item is closed:** the Ofgem
+   Consumer Survey's *engagement* segmentation is DEFINED on the switching outcome ("P12M engaged —
+   switched supplier, tariff, or compared in the past 12 months"), so an engaged-vs-disengaged
+   switching ratio taken from it is infinite by construction. Do not reach for it.
 7. **Any engagement effect at incomes materially above the CMA's ~2014/15 "£36,000+" top band**
    (§3b) — genuinely untested territory, not evidenced either for or against a downturn.
 8. **Per-stage (2/3/4) population shares in the CMA's own 4-stage funnel** (§1) — only Stage 1's
@@ -373,6 +382,12 @@ distribution rather than fixed as a point estimate in any future build, per R10:
 - **Ofgem Consumer Survey (annual, 2017-2025 waves)** — not located/fetched this session; the CMA
   2016 survey (Appendix 9.1) was used instead as it was directly reachable, but it predates the
   2021-22 crisis entirely and is now a 2014/15-vintage data point.
+  **CLOSED 2026-09-03: the 2021 wave's Engagement report IS now fetched and parsed** (Ipsos for
+  Ofgem, n=4,037, online, fieldwork 19 Aug – 17 Sep 2021 — still pre-crisis), and read in
+  `docs/market_research/household_switching_response_amplitude.md` §2. It carries self-reported
+  P12M supplier switching by age, social grade, tenure, income and financial position, and the
+  widest ratio between any two published groups is 1.94×. It does NOT carry the engagement
+  dispersion this lead was chased for; see §2.3 there for why it cannot.
 - **Citizens Advice supplier star ratings / switching-after-complaint research** — site returned
   404/empty search this session; not found via the routes tried.
 - **Ombudsman Services energy annual report** — not attempted this session (named as a lead only).

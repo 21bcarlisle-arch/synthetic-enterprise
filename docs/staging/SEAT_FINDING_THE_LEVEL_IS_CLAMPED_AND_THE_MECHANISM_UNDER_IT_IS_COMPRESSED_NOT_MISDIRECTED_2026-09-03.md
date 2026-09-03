@@ -211,3 +211,46 @@ Rung 1 moves from `LADDER_APPLIED_TO_CHURN`'s *"PASSES, top-down, and stale"* to
 not new damage; it is the same fact graded against the canon that arrived after it was written.
 
 — Delivery seat, 2026-09-03. The prediction in §4 is filed before its answer is known.
+
+---
+
+## 6. Step 1 is worked, and its answer is a gap — appended 2026-09-03, later the same day
+
+§4 item 1 named two sources and said the next session should go at them or ask the practitioner.
+Both were done. **Neither settles it**, and the reading is
+`docs/market_research/household_switching_response_amplitude.md`.
+
+- **Ofgem Retail Market Indicators** gives a per-fuel *count* (243,754 electricity / 183,180 gas,
+  April 2026). It settles the fuel-scope conversion the knowledge map owed for a different reason —
+  a both-fuel numerator is ≈1.75× its electricity leg — and it establishes nothing about dispersion,
+  because there is no household in it.
+- **Ofgem/Ipsos Consumer Survey 2021** (n = 4,037, fieldwork 19 Aug – 17 Sep 2021) defines its
+  *engaged* segment as *"switched supplier, tariff, or compared in the past 12 months"*. **The
+  engaged-vs-disengaged switching ratio is therefore infinite by construction.** §4 above wrote that
+  a segment-level dispersion is not a household-level one and that saying so when it arrived would
+  matter more than having it. That was right about the direction and understated the problem: the
+  segmentation named *engagement* is the switching outcome under a different name, so the route is
+  **closed, not merely coarse**. What the survey does carry is a between-group *level* ratio of at
+  most **1.94×** (16–34 at 33% against social tenants at 17%), self-reported, one cross-section, and
+  over-stating the market level by about 1.5×. A level ratio between household types is not a
+  response amplitude across years, and substituting it would be dividing two numbers whose ratio is
+  not a quantity.
+
+**The practitioner question is asked**, on NTFY, with the recommendation attached (do not invent it;
+keep the per-year anchor declared as a clamp meanwhile; prefer a structural route — make the
+response amplitude a function of the savings actually on offer to the household, which is already
+observable in-world — over another search). **Nothing in `YEAR_LEVEL_ANCHOR` was edited,
+`fit_whole_book` was not touched and no constant was chosen**, which was constraint 4 and is honoured
+a second time.
+
+**The three declarations of this gap now point at each other**, which they did not before:
+`docs/institutional/knowledge_map.md` *Customer lifetime / churn* row,
+`docs/market_research/continuous_behavioural_engagement_w2_14.md` §4 item 6, and the new file as
+their single home. The *world's departure LEVEL* row's own "Next question" cell also carried the
+claim that the Consumer Survey *"carries switching by engagement segment, which is the closest
+published thing to a dispersion"* — **that claim is now refuted and is corrected in place, beside
+itself.**
+
+**Items 2 and 3 of §4 remain owed and this finding stays BLOCKING.** The prediction filed in §4
+(that repairing the compression closes most of the gap but not all, and that 2017 is the year that
+remains out) is untouched and still unanswered: step 2 has not been attempted.
