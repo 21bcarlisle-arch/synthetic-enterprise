@@ -47,7 +47,17 @@ def _no_cleanup(project, path):
 def test_a_fork_is_closed_automatically(tmp_path):
     """THE DIRECTOR'S CASE. One document on origin, and the machine reconciles itself.
 
-    MUTATION: make `reconcile` return without merging when `behind > 0` and this fails.
+    MUTATION: make `reconcile` return without merging when `behind > 0` and `ahead > 0`, and this
+    fails.
+
+    BOTH LEGS ARE STATED, and the mutation names both, because on 2026-09-02 a merge stopped being
+    a function of `behind` alone: with nothing of ours to contribute the honest move is to advance,
+    not to commit, and `ahead == 0` now returns `NOT_ADVANCED` before the worktree is ever built
+    (`test_the_reconciler_manufactured_the_fork_it_existed_to_close.py`). This test named only
+    `behind_fn`, so `ahead` fell through to the directory fixture's `fork_state` pin of `(0, 0)` --
+    a fixture that had been a neutral default right up until the value `0` became a decision. It
+    then asserted a merge against a state that forbids one, and this leg and four below went red
+    for the branch working correctly.
     """
     seen = {}
 
@@ -60,7 +70,7 @@ def test_a_fork_is_closed_automatically(tmp_path):
         return _proc(0)
 
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 1,
-                      runner=_merge, pusher=_push)
+                      ahead_fn=lambda p: 1, runner=_merge, pusher=_push)
     assert r["status"] == orc.RECONCILED and r["pushed"] is True
     assert seen == {"merged": True, "pushed": True}
 
@@ -94,9 +104,13 @@ def test_a_conflict_still_refuses_and_is_never_pushed(tmp_path):
     isolation and a caller, and no new way to commit.
 
     MUTATION: treat a non-zero merge as retryable, or push anyway, and this fails.
+
+    `ahead_fn` is explicit for the reason given on `test_a_fork_is_closed_automatically`: reaching
+    the merge at all needs work of ours to contribute.
     """
     pushed = []
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 2,
+                      ahead_fn=lambda p: 1,
                       runner=lambda w: _proc(1, "[surgical-land] REFUSED: MERGE CONFLICT between "
                                                 "a and b -- 1 conflicted path(s): docs/x.md"),
                       pusher=lambda w: pushed.append(1) or _proc(0))
@@ -109,6 +123,7 @@ def test_a_red_gate_refuses_and_is_told_apart_from_a_conflict(tmp_path):
     """Different things to a reader: a conflict wants a decision, a red gate is a defect and
     merging it would publish a regression. Neither is retried."""
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 1,
+                      ahead_fn=lambda p: 1,
                       runner=lambda w: _proc(1, "[surgical-land] REFUSED: GATE RED on the "
                                                 "resulting tree (rc=1)"),
                       pusher=lambda w: _proc(0))
@@ -117,6 +132,7 @@ def test_a_red_gate_refuses_and_is_told_apart_from_a_conflict(tmp_path):
 
 def test_a_failed_push_is_never_reported_as_reconciled(tmp_path):
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 1,
+                      ahead_fn=lambda p: 1,
                       runner=lambda w: _proc(0, "landed"),
                       pusher=lambda w: _proc(1, "", "! [rejected] non-fast-forward"))
     assert r["status"] == orc.ERROR and r["pushed"] is False
@@ -128,7 +144,7 @@ def test_it_never_raises_into_the_cadence(tmp_path):
         raise OSError("git vanished")
 
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 1,
-                      runner=_boom, pusher=lambda w: _proc(0))
+                      ahead_fn=lambda p: 1, runner=_boom, pusher=lambda w: _proc(0))
     assert r["status"] == orc.ERROR and "OSError" in r["detail"]
 
 
