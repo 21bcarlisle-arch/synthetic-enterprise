@@ -1,6 +1,6 @@
 # [SEAT FINDING] The reconciler manufactured the fork it existed to close, and every liveness surface read 29 empty commits as health
 
-**Severity:** BLOCKING (the loop is stopped and the mechanism is fixed; publishing is still wedged behind a second, separate cause named in §5)
+**Severity:** RECORDED (the loop is stopped and the mechanism is fixed. §5's cause is spent per §6, and §13's cause — five legs of this finding's OWN sibling test file, red at HEAD because the fix promoted `ahead` into a decision — is spent too: it was BLOCKING until a gate run whose subject carried the repair reported green, and §14 records that run. Nothing is owed.)
 **Lane:** H_harness · **Epoch:** 3 · **Atom:** unminted
 **Found:** 2026-09-02 by the director, from the commit list: *"Twelve commits in the last hour, every
 one 'merge origin/main: automatic reconciliation', one every six minutes, no real work among them."*
@@ -603,3 +603,151 @@ lines, every section header present and each exactly once. This is the second ti
 that the correct move was **compose, not pick a side** — §5a's three-way merge of the census tests was
 the first, and both arose from the same root: *a tree that cannot advance grows a second copy of the
 truth, and the copies then differ in both directions at once.*
+
+## 13. 2026-09-03 00:35 UTC: the FOURTH cause is this finding's own fix, and the five reds are the branch working correctly
+
+§5 said the second cause was `test_head_green_census.py`; §6 said that cause was spent. Neither
+named what has actually wedged the gate for the last ~980 minutes and 24 consecutive failures.
+Measured rather than assumed, from `docs/observability/.last_gate_blocking_tests.json`
+(`census: complete`, `total_red: 5`, `git_hash: 6d18107c7`):
+
+    tests/background/test_a_staged_document_no_longer_blocks_every_landing.py
+      ::test_a_fork_is_closed_automatically
+      ::test_a_conflict_still_refuses_and_is_never_pushed
+      ::test_a_red_gate_refuses_and_is_told_apart_from_a_conflict
+      ::test_a_failed_push_is_never_reported_as_reconciled
+      ::test_it_never_raises_into_the_cadence
+
+**One file, five legs, one cause — not a stack of five defects.** The doorbell called it a STACK and
+told the drawn worker to fix them together; they are together because they are the same line.
+
+### What the cause actually is
+
+The repair in §2–§4 — *a merge requires something of ours, so `ahead == 0` returns `NOT_ADVANCED`
+before the worktree is ever built* — is correct and is not being reverted. But it **promoted
+`ahead` from a value nobody read into the value that decides whether `reconcile` merges at all.**
+
+These five legs each pinned `behind_fn=lambda p: 1` and said nothing about `ahead`. So `ahead` fell
+through to `state_fn or fork_state`, which `tests/background/conftest.py` pins to `(0, 0)`. That
+pin had been a correct, neutral default for as long as `ahead` was unread. The instant `ahead == 0`
+became a decision, the same pin started asserting *"this machine has nothing to land"* — and the
+five legs then asserted a merge against the one state that forbids one.
+
+Verified rather than reasoned about. `background/origin_reconcile.py` and
+`tests/background/conftest.py` are byte-identical between HEAD `c1e24f4bb` and the working tree, so
+nothing but the test file is in question. Running HEAD's copy of the test file against the tree's
+module reproduces the census exactly:
+
+    5 failed, 15 passed          <- HEAD's test file; the 5 are the census node_ids, node for node
+    20 passed in 0.10s           <- the tree's test file
+
+**They were red for the branch working correctly.** `NOT_ADVANCED` is the right answer to
+`(behind=1, ahead=0)`; the test was asking the wrong question. The fix is to pin `ahead_fn` on each
+of the five legs and say in the docstring why the pin is load-bearing — which is what the repair
+does, and it is why `test_a_fork_is_closed_automatically`'s stated MUTATION now names **both** legs.
+
+### The part worth generalising
+
+> **A fix that promotes a previously-unread field into a decision turns every test relying on that
+> field's fixture default red — and those tests fail for the code being right.** The fixture is not
+> at fault and neither is the new branch; what changed is that a neutral default became an
+> assertion. Nothing on this machine can distinguish that from a regression, and the failure
+> presents as the fix breaking five things.
+
+This is the same family as §5a's silent revert: in both, a value that was safe to leave unstated
+stopped being safe, and nothing was watching the moment it changed.
+
+### Why it sat unlanded for 24 cycles
+
+**The repair was already written and already correct — staged in the shared index and never
+committed.** The gate's subject is a clean checkout of HEAD
+(`DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09`), so a fix that is green in the working tree and
+absent from HEAD is invisible to it, cycle after cycle. Every one of those 24 failures re-measured
+the same unrepaired commit.
+
+*Green in the tree, red at HEAD, and the gate only ever looks at HEAD.* That is not a new class —
+it is `uncommitted_and_orphaned_work` — but this is the first time it has held the publish gate
+itself shut, which is why it cost 24 cycles rather than one.
+
+### Attribution note for the next reader
+
+The gate run in flight while this was diagnosed (`process_run_complete.py` PID 1770237, started
+00:22 UTC) is measuring `c1e24f4bb` — **the pre-fix commit**. Its failure is the 25th of this
+episode and is *not* evidence against this repair, which is not in its subject. Discriminate by
+`git_hash`, as `test_publish_gate_subject_is_head.py` requires: the first run that can grade this
+fix is the first one whose subject is the commit that carries it.
+
+### 13a. The second blocker, disposed of in the same commit: §10's orphan
+
+Committing the repair above was **refused**, and not by a test — the gate's own selection ran
+`test_a_staged_document_no_longer_blocks_every_landing.py` among 15 files and reported **367
+passed**. What refused was §10's whole-tree orphan ratchet, still naming `tools.artefact_rerun_diff`
+three days after §10 recorded it. It blocks every lane's commit, not just this one, so it is the
+same wedge and is disposed of here.
+
+**It was not deletable and not dormant.** Read rather than assumed: the module is a real repair of
+an inline `strip()` + `==` determinism check that returned a wrong verdict in *both* directions on
+its first live use; `tests/tools/test_artefact_rerun_diff.py` gives **17 passed**; and the wiring
+was already written and staged —
+`exec python3 -m tools.artefact_rerun_diff "${OLD}" "${NEW}" --check-shape` in
+`tools/run_arms_with_the_skill_funnel_20260830.sh`. A complete, tested, wired payload, orphaned in
+the index when its lane died.
+
+**So why did the ratchet still call it an orphan?** Its entrypoint globs are
+`background/*.service|timer|path`, `tools/git-hooks/*`, `.claude/hooks/*.py` and
+`.github/workflows/*`. **`tools/*.sh` is not among them, and that is correct** — a hand-invoked
+script is the `__main__` case the module docstring excludes on purpose. The caller is real; it is
+just not a *schedule*, which is precisely what the baseline claims to measure.
+
+That distinction is what made `--freeze` honest here rather than the falsehood the ratchet's own
+comment warns against (*"`--freeze` as 'deliberately dormant' ... a control whose false positive is
+cleared by lying is worse than the gap it was closing"*). This module is **not** deliberately
+dormant, and the commit message does not say it is. It is *unreachable from the committed schedule*
+— the baseline's stated criterion, word for word — because its only caller is hand-run. Frozen with
+that reason on the record, per the baseline's own rule that *growing it requires saying why in the
+commit that grows it*. `orphans now: 378 | baseline: 377` before, `378 | 378` after: exactly one
+entry, nothing else swept.
+
+The lane's payload is landed rather than deleted — module, test and shell wiring together — because
+it is finished work and *"not yours to delete"* was already the standing instruction in
+`site/data/delivery.json`.
+
+**One thing this does not fix, and it is §10's real lesson.** The classifier in
+`background/process_run_complete.py` reads pytest `FAILED` lines only, so this non-test refusal
+logged *"REFUSED with no FAILED/ERROR summary -- recording NO blocking test"* and left
+`.publish_gate_state.json` still naming five tests. A reader was then pointed at five tests that
+were green in the tree — which is how an earlier seat measured `20 passed in 0.11s`, concluded the
+register was stale, and moved on. **Both readings were half right: the register named the right
+tests and the wrong cause.** The tests really were red at HEAD; the orphan really was what refused
+the commit. An unnameable refusal must read as unnameable, and that repair is not in this commit.
+
+## 14. Discharged 2026-09-03 (worker tick): §13's condition is met, measured not assumed
+
+§13 set one condition to leave BLOCKING: *"a gate run whose subject is the commit carrying that
+repair reports green; a run at c1e24f4bb cannot grade it."* It is met, and the chain is here so a
+later reader does not have to rebuild it.
+
+**Discharged:** the repair landed at 9fee270a4 against an unchanged `background/origin_reconcile.py`, and the gate then went green on a commit carrying it -- proved by `tests/background/test_a_staged_document_no_longer_blocks_every_landing.py::test_a_fork_is_closed_automatically`.
+
+*Five legs went red for the branch working correctly, and the gate could never see the fix.*
+
+| link | evidence |
+|---|---|
+| the repair reached HEAD | 9fee270a4 pins ahead_fn on the five legs; the file is clean in the tree, and HEAD's copy carries twelve occurrences |
+| it is under the graded commit | git merge-base --is-ancestor 9fee270a4 19f226e46 -> true |
+| a gate-green content publish carries it | 19f226e46 is an ancestor of b6b3c3fa8, the 02:55 publish stamped git=19f226e46 |
+| the census agrees | docs/observability/.last_gate_blocking_tests.json is GONE -- cleared by the publisher's own clear-on-green path, not by hand |
+| the legs pass where a reader would run them | 20 passed in 0.09s at HEAD |
+
+The three surfaces that were the subject of §5a and §13 now agree rather than disagreeing: the
+publish state file reads total_red 0 with an empty blocking list, publish freshness reads live,
+and origin carries a content publish later than the repair. The distinguishing point is that they
+agree **for the reason the finding predicted** -- the fix being visible to the gate at last -- and
+not because the state was cleared out from under them.
+
+**Severity drops to RECORDED.** The loop is stopped, the mechanism is fixed, §5's cause is spent,
+and §13's cause is now spent too. Nothing here is owed. The generalisation §13 named -- a fix that
+promotes a previously-unread field into a decision turns every test relying on that field's
+fixture default red, and they fail for the code being right -- is the part worth carrying forward,
+and it is now load-bearing in a second place: the sibling instrument landed this tick deliberately
+refuses to promote queue depth into a verdict for exactly this reason.

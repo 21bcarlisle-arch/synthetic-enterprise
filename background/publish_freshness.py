@@ -40,6 +40,18 @@ origin twice in that window -- once at 02:12 and once at 18:55 -- because an unr
 commit happened to sweep the regenerated file along with it. Content moving by luck is not a
 publishing pipeline, and a single blended number would have read those two accidents as health.
 
+AND A QUEUE, WHICH IS NOT A CLOCK AT ALL
+----------------------------------------
+Both ages are about RECENCY. Neither is about THROUGHPUT, and on 2026-09-02/03 that gap ran for
+nine hours: 62 run markers produced, 27 consumed, and this module said `live` throughout because
+the publish path WAS landing -- just not the backlog behind it. `queue_depth` and
+`queue_oldest_age_seconds` are that third subject. They are OBSERVATIONS carried on the line and
+deliberately NOT folded into `state`: the queue is a stack rather than a FIFO, so a burst is
+cleared by retiring superseded markers, and the property worth paging on (no PROGRESS on the
+oldest across cycles) already belongs to `background_worker._check_zero_progress`. Reporting the
+numbers costs nothing and duplicates no verdict; a second threshold over the same subject would
+have alarmed on the drain working correctly.
+
 FAIL-SILENT IS THE FAILURE MODE HERE (R15), so an unavailable answer is None and NEVER 0. A
 freshness module that reports "0 seconds since publish" when it cannot find its own state file
 would manufacture exactly the false all-clear it exists to end. Every caller must treat None as
@@ -60,10 +72,16 @@ from __future__ import annotations
 import json
 import subprocess
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".last_content_publish.json"
+
+#: Where the publisher's input queue lives. Completed sim runs land here as `run_complete_*.md`
+#: and leave when `background_worker.process_leftover_run_markers` either publishes or retires
+#: them, so the count is the depth of the queue BEHIND the publisher.
+STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 
 #: The paths whose movement IS a content publish. Deliberately a short list of the surfaces a
 #: visitor actually reads, not the full commit pathspec: adding every generated file would make
@@ -126,6 +144,68 @@ def last_committed_ts(*, _run=None) -> float | None:
         return float(out[0]) if out else None
     except ValueError:
         return None
+
+
+def queue_depth() -> int | None:
+    """How many completed runs are queued BEHIND the publisher. None if uncountable (= UNKNOWN).
+
+    THE THIRD NUMBER, and the one neither clock can carry. Both ages answer "how long since
+    something moved"; neither answers "is the pipeline keeping up with its input". On
+    2026-09-02/03 those questions had different answers for nine hours: the runner produced 62
+    markers, the processor consumed 27, and `describe()` said `live -- figures reached origin
+    0.7h ago` throughout. That line was TRUE. It was true about the wrong subject, which is the
+    same failure this module's own docstring was written to end, reached from the other side.
+
+    Reported as an OBSERVATION and deliberately NOT folded into `state`. Depth alone is not a
+    fault: the queue is a stack, not a FIFO (every marker describes the same world after a run,
+    so the newest strictly dominates), and `background_worker.process_leftover_run_markers`
+    clears a deep queue by RETIRING the superseded ones -- 17/17 at 2026-09-03 01:56Z. A
+    threshold here would therefore alarm on a burst that the drain handles by design, and the
+    property that actually matters -- no PROGRESS on the oldest marker across cycles -- already
+    has a control that pages, `background_worker._check_zero_progress`. A second verdict over the
+    same subject would be a control guarding a control, and turning a previously-unread field
+    into a decision is what reddened five tests on 2026-09-02. So this reports the number and
+    lets the existing alarm keep the verdict.
+
+    None and never 0 when the directory cannot be read: a queue we failed to count must not read
+    as a queue that is empty.
+    """
+    try:
+        return sum(1 for _ in STAGING_DIR.glob("run_complete_*.md"))
+    except OSError:
+        return None
+
+
+def queue_oldest_age_seconds(now: float | None = None) -> float | None:
+    """How long the OLDEST queued run has waited. None if the queue is empty or uncountable.
+
+    The count alone cannot tell a burst from a stall: 35 markers minted in the last ten minutes
+    is a busy runner, and 3 markers whose oldest has waited nine hours is a pipeline that is not
+    reaching its input. On 2026-09-02/03 it was the second -- oldest `20260902T160532Z`, measured
+    at 01:07Z.
+
+    THE STAMP IS READ FROM THE NAME, NEVER FROM THE MTIME. `sim_runner` names markers in UTC and
+    this box runs local BST, so differencing a filename against an mtime manufactures an hour of
+    phantom wait -- and the retirement path REWRITES mtimes, which would reset the age of a marker
+    that has not moved. The name is the only clock that describes when the RUN finished.
+
+    An unparseable name contributes no age rather than an age of zero: this must never report a
+    fresh queue because it failed to read one.
+    """
+    now = time.time() if now is None else float(now)
+    try:
+        names = [p.name for p in STAGING_DIR.glob("run_complete_*.md")]
+    except OSError:
+        return None
+    ages = []
+    for name in names:
+        stamp = Path(name).stem[len("run_complete_"):]
+        try:
+            ts = datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+        except ValueError:
+            continue
+        ages.append(max(0.0, now - ts))
+    return max(ages) if ages else None
 
 
 def _age(ts: float | None, now: float) -> float | None:
@@ -195,6 +275,13 @@ def snapshot(now: float | None = None, *, _run=None) -> dict:
         "committed_but_unpublished": bool(
             pub_age is not None and com_age is not None and pub_age - com_age > STALE_AFTER_SECONDS
         ),
+        # Additive and outside the verdict on purpose -- see `queue_depth`. Consumers read
+        # `state` via .get() and none enumerate this dict, so a new observation cannot change
+        # an existing answer; it can only give a reader something the two clocks never had.
+        "queue_depth": queue_depth(),
+        "queue_oldest_age_seconds": (
+            None if (_o := queue_oldest_age_seconds(now)) is None else round(_o, 1)
+        ),
     }
 
 
@@ -224,8 +311,14 @@ def describe(snap: dict | None = None) -> str:
     com_age = snap.get("committed_age_seconds")
     worst = max([a for a in (age, com_age) if a is not None] or [0])
     hours = worst / 3600.0
+    # THE BACKLOG RIDES ON THE `live` LINE TOO, and that is the whole point of carrying it. A
+    # reader who is told publishing is live has been given the answer to the question they asked
+    # and no hint that 35 completed runs are queued behind it, which is exactly how the
+    # 2026-09-02/03 shortfall stayed unread while this line was quoted in three places.
+    depth = snap.get("queue_depth")
+    queued = f" -- {depth} completed run(s) queued behind the publisher" if depth else ""
     if state == "stale":
         extra = " (content is still being committed -- the PUBLISH PATH is what stopped)" \
             if snap.get("committed_but_unpublished") else ""
-        return f"content publishing: DOWN -- figures last moved {hours:.1f}h ago{extra}"
-    return f"content publishing: live -- figures reached origin {hours:.1f}h ago"
+        return f"content publishing: DOWN -- figures last moved {hours:.1f}h ago{extra}{queued}"
+    return f"content publishing: live -- figures reached origin {hours:.1f}h ago{queued}"
