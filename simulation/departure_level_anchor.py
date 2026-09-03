@@ -117,14 +117,41 @@ NO_LEVEL_CORRECTION = 1.0
 #: property of the thing and not a defect in the fit: raising the level changes the book, so the
 #: population the following year is not the one the anchor was solved against. The iteration is
 #: capture -> fit -> capture; the band is what says when it has converged.
+#: RE-FITTED 2026-09-03, AND THE PREVIOUS BLOCK WAS FITTED IN THE WRONG DIRECTION'S EVIDENCE.
+#: The block this replaces was solved against a reading taken off `c2_departure_factors.json`,
+#: whose SVT half is in no commit and whose 2022 SVT rows ran at the retired reference-year borrow
+#: of 3.053619 against a live `NO_LEVEL_CORRECTION` of 1.0. That reading said the world departed
+#: HARDER than the record in 8 of 8 years; the committed capture says it departs LESS hard in six
+#: of eight. `5554c2910` repointed the instrument and added the two refusals that make a capture
+#: prove it ran under the live block before a band verdict can be read off it.
+#:
+#: FITTED ON `docs/reports/c4_whole_book_departure_factors.json` + its SVT sibling — 156 renewal
+#: and 1,373 SVT decisions, both halves tracked, both executed under the block above this one — by
+#: `tools/fit_year_level_anchor.fit_whole_book`, which solves
+#: `(expected departures on BOTH routes) / (accounts on the book) == published rate` by bisection.
+#: Six anchors rise and 2020 falls, which is what
+#: `SEAT_PREREGISTRATION_WHETHER_REPOINTING_THE_INSTRUMENT_AT_THE_COMMITTED_CAPTURE_HOLDS_2026-09-03.md`
+#: predicted per year, before the fit was run, and it is graded in that file.
+#:
+#: WHAT IT MOVED, ON A ONE-VARIABLE PAIR. Two captures of the same book at the same seed differing
+#: only in this block: mean distance OUTSIDE the published band falls 0.875pp -> 0.425pp, the worst
+#: year 2.40pp -> 1.30pp, and years in band 1 of 8 -> 2 of 8. SIX YEARS ARE STILL OUT, so this is a
+#: convergence step and not an arrival — the iteration is capture -> fit -> capture, and one pass
+#: of it does not land a world inside a band.
+#:
+#: AND IT MOVED AGAINST THE COMPANY, which is the direction a baseline change has to be able to go.
+#: Net margin GBP 126,487.72 -> GBP 120,932.62 (-4.4%), gross GBP 401,580.43 -> GBP 386,196.20
+#: (-3.8%). No headline improved, so §8 prediction 3 of `gb_switching_rate_denominators.md` — "any
+#: headline company result improving after the change is a defect in the change" — did not fire,
+#: and it was deliberately NOT inverted beforehand despite the drawn instruction to invert it.
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
-    2017: 4.547299,
-    2018: 2.882178,
-    2019: 4.803900,
-    2020: 6.412007,
-    2021: 4.488202,
-    2023: 0.364038,
-    2024: 3.053619,
+    2017: 7.249189,
+    2018: 3.249206,
+    2019: 5.253168,
+    2020: 5.477177,
+    2021: 5.268609,
+    2023: 2.053916,
+    2024: 4.120424,
 }
 
 #: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the

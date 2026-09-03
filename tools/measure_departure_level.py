@@ -72,7 +72,18 @@ COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_dome
 #: THE DEFAULT IS NOT WHAT MAKES THIS SAFE. A pointer can go stale again the moment the next
 #: capture lands; the refusals are what make a stale one fail, and they name no capture. This
 #: constant only decides which capture is read when a caller names none.
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c4_whole_book_departure_factors.json"
+#: REPOINTED AGAIN 2026-09-03, AND THE TABLE ABOVE IS NOW HISTORY RATHER THAN THE CHOICE.
+#: The re-fit landed in the same commit, so `c4` — which ran under the anchors the re-fit
+#: replaced — now FAILS `stale_anchor_refusal` exactly as `c2` did before it. That is the
+#: control working, not a regression: a capture may only judge the world that produced it,
+#: and the world moved. `c5_refitted_departure_factors.json` is the capture of the re-fitted
+#: world: 139 renewal and 1,338 SVT decisions, both halves committed here, both executed
+#: under the block this commit lands.
+#:
+#: THE PAIR IS WHY THE MOVE IS ATTRIBUTABLE. `c4` and a control arm run today at the same
+#: seed with nothing injected came out BYTE-IDENTICAL in both halves, so `c4` IS the control
+#: and the two captures differ in the anchor block and in nothing else.
+DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c5_refitted_departure_factors.json"
 
 #: Active domestic electricity accounts per year in the live run, from the opening finding's own
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the
