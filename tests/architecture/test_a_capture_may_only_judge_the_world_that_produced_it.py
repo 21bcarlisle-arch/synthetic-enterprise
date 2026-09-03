@@ -251,3 +251,95 @@ def test_the_FIT_is_not_gated_by_this_because_fitting_on_the_previous_anchors_is
     assert "stale_anchor_refusal" not in source and "untracked_capture_refusal" not in source, (
         "the fit must be able to read a capture taken under the anchors it is replacing"
     )
+
+
+# --------------------------------------------------------------------------- #
+# The PAGE must refuse on the same grounds as the CONTROL                      #
+# --------------------------------------------------------------------------- #
+
+
+def test_the_printed_page_refuses_on_the_same_grounds_as_the_band_control(monkeypatch, capsys):
+    """A refusal the control honours and the printed page ignores is not a refusal.
+
+    THE DEFECT, 2026-09-03, and it is this file's own subject reproduced inside the repair for it.
+    The three refusals above were added to `world_book_rate_pct` -- which the band control reads --
+    and `main`, which is what a HUMAN reads, went on applying `account_denominator_refusal` alone.
+    So when the re-fit landed the same day and made the default capture stale in 9 of its 10 years,
+    the control correctly refused and the tool went on printing eight confident whole-book rows with
+    `inside` at 2024 and no warning anywhere on the surface.
+
+    THAT PRINTED TABLE IS WHERE THE ORIGINAL WRONG PREMISE CAME FROM. "The world departs 1.3x
+    harder than the GB record in every year" was read off this page, not off the control, and it
+    reached a direction file as a first-ranked item instructing a re-fit in the wrong direction.
+    CLAUDE.md: "Fail closed, and say so on the surface. 'We cannot tell' is a result. It belongs on
+    the page, not in a footnote."
+
+    KEYED TO THE PROPERTY: names no capture, no year and no anchor value. It moves the LIVE block
+    out from under whatever the default capture is, which is the one thing guaranteed to make any
+    capture stale, in either direction of error.
+
+    MUTATION (must fire): narrow `main`'s gate back to `account_denominator_refusal` alone, or drop
+    `stale_anchor_refusal` from `book_reading_refusal`.
+    """
+    import simulation.departure_level_anchor as anchor_module
+
+    real = anchor_module.year_level_anchor
+    # Displace the live block from whatever produced the default capture. `stale_anchor_refusal`
+    # imports the accessor INSIDE its body, so patching the module attribute reaches it.
+    monkeypatch.setattr(anchor_module, "year_level_anchor", lambda year: real(year) + 1.0)
+
+    rc = measure.main(["measure_departure_level.py", str(measure.DEFAULT_TABLE)])
+    printed = capsys.readouterr().out
+
+    assert rc == 0, "the instrument must still run and report, not crash, on a stale capture"
+    assert "THE WHOLE BOOK" not in printed, (
+        "the page printed a whole-book band verdict off a capture that did not run under the live "
+        "anchor block -- the exact reading that reached a direction file with the sign inverted"
+    )
+    assert "superseded level anchor" in printed, (
+        "the page dropped the whole-book table without saying why; a silent omission is how a "
+        "reader concludes the section was never there rather than that it was refused"
+    )
+
+
+def test_the_page_and_the_control_take_their_verdict_from_one_gate():
+    """The two must not be able to drift apart again, and on 2026-09-03 they had.
+
+    The parity above is behavioural, but a future edit could satisfy it by copying the refusal trio
+    into `main` -- which is how the two came apart in the first place, and is this repo's VAT shape:
+    one requirement, several implementations, one of them repaired and the others left live.
+
+    MUTATION (must fire): re-inline the refusal sequence in either caller.
+
+    IT READS CALLS FROM THE AST AND NOT NAMES FROM THE TEXT, and the first draft of this test did
+    the latter and was FAIL-OPEN on its own mutation: narrowing `main`'s gate back to
+    `account_denominator_refusal` left the word `book_reading_refusal` sitting in the explanatory
+    comment one line above, and a substring check counted that as the call. A control a comment can
+    satisfy is the catalogued tautology.
+    """
+    import ast
+    import inspect
+    import textwrap
+
+    def _calls(func) -> set[str]:
+        tree = ast.parse(textwrap.dedent(inspect.getsource(func)))
+        return {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+
+    gate = _calls(measure.book_reading_refusal)
+    for name in ("account_denominator_refusal", "stale_anchor_refusal", "untracked_capture_refusal"):
+        assert name in gate, f"{name} is not CALLED by the shared gate, so one caller can miss it"
+
+    for caller in (measure.main, measure.world_book_rate_pct):
+        called = _calls(caller)
+        assert "book_reading_refusal" in called, (
+            f"{caller.__name__} does not CALL the shared gate"
+        )
+        assert not called & {"stale_anchor_refusal", "untracked_capture_refusal",
+                            "account_denominator_refusal"}, (
+            f"{caller.__name__} re-inlines a refusal instead of taking the shared gate, which is "
+            f"how the page and the control came apart on 2026-09-03"
+        )

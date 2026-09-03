@@ -297,22 +297,50 @@ def world_book_rate_pct(table_path: Path | None = None) -> tuple[dict[int, float
     path = table_path or DEFAULT_TABLE
     rows = json.loads(path.read_text())
     svt_rows, _ = load_svt_decisions(path)
-    # THREE REFUSALS, IN THIS ORDER, AND EACH NAMES A DIFFERENT DEFECT. Can this capture carry an
-    # account denominator at all; did it run under the world that is live now; and would another
-    # reader at this commit get the same answer. The second and third were added 2026-09-03 after
-    # a whole-book verdict of "out of band, HIGH, in 8 of 8" -- read off a capture whose SVT half
-    # was in no commit and whose 2022 rows ran under a retired anchor -- reached a direction file
-    # and was very nearly acted on by re-fitting in the opposite direction to the error.
-    for refusal in (account_denominator_refusal(rows, svt_rows),
-                    stale_anchor_refusal(rows, svt_rows),
-                    untracked_capture_refusal(path)):
-        if refusal is not None:
-            return {}, refusal
+    refusal = book_reading_refusal(path, rows, svt_rows)
+    if refusal is not None:
+        return {}, refusal
     return {
         year: v["expected_rate_pct"]
         for year, v in union_by_year(rows, svt_rows).items()
         if not v["partial_year"] and v["expected_rate_pct"] is not None
     }, None
+
+
+def book_reading_refusal(
+    path: Path, rows: list[dict], svt_rows: list[dict] | None
+) -> str | None:
+    """Why no whole-book reading may be taken off this capture, or `None` if one may.
+
+    THREE REFUSALS, IN THIS ORDER, AND EACH NAMES A DIFFERENT DEFECT. Can this capture carry an
+    account denominator at all; did it run under the world that is live now; and would another
+    reader at this commit get the same answer. The second and third were added 2026-09-03 after a
+    whole-book verdict of "out of band, HIGH, in 8 of 8" -- read off a capture whose SVT half was
+    in no commit and whose 2022 rows ran under a retired anchor -- reached a direction file and was
+    very nearly acted on by re-fitting in the opposite direction to the error.
+
+    ONE FUNCTION BECAUSE THE CONTROL AND THE PRINTED PAGE MUST REFUSE ON THE SAME GROUNDS, and
+    until this commit they did not. The trio went into `world_book_rate_pct` -- which the band
+    control reads -- and `main`, which is what a HUMAN reads, kept applying
+    `account_denominator_refusal` alone.
+
+    THAT WAS NOT THEORETICAL AND IT WAS OBSERVED. Re-fitting the anchor block makes whatever
+    capture the tree carries stale by construction; on 2026-09-03 that left `world_book_rate_pct`
+    correctly returning a refusal while the same module, in the same process, went on printing
+    eight confident whole-book rows and a verdict of `inside`. The premise the whole Lane 0 item
+    was drawn on -- "the world departs 1.3x harder than the GB record in every year" -- was read
+    off that printed page, not off the control.
+
+    CLAUDE.md: "Fail closed, and say so on the surface. 'We cannot tell' is a result. It belongs on
+    the page, not in a footnote." Keyed to the property: this names no capture, no year and no
+    value, so a fresh capture passes and a stale one fails in EITHER direction of error.
+    """
+    for refusal in (account_denominator_refusal(rows, svt_rows),
+                    stale_anchor_refusal(rows, svt_rows),
+                    untracked_capture_refusal(path)):
+        if refusal is not None:
+            return refusal
+    return None
 
 
 def reading_population(table_path: Path | None = None) -> dict:
@@ -343,7 +371,10 @@ def main(argv: list[str]) -> int:
     readings, refusals = realised_rate_coverage(table_path)
     decl = declare(table_path, rows)
     svt_rows, _ = load_svt_decisions(table_path)
-    book_refusal = account_denominator_refusal(rows, svt_rows)
+    # THE SAME GATE THE BAND CONTROL TAKES, and until this commit this line applied one of its
+    # three refusals. See `book_reading_refusal` for what that cost: the page kept printing a
+    # whole-book verdict off a capture the control had already refused.
+    book_refusal = book_reading_refusal(table_path, rows, svt_rows)
     book = {} if book_refusal else union_by_year(rows, svt_rows)
     print(banner(decl))
     print()
