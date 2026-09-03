@@ -1015,8 +1015,8 @@ def test_the_register_names_the_route_its_principal_subject_can_see():
     "gave svt_inertia_hazard a required market_switching_multiplier; its NUMBERS are c2's, and c2 "
     "is the superseded capture above. "
     "See docs/staging/done/WORKER_FINDING_THE_BAND_CONTROL_IS_GREEN_ON_A_POPULATION_THE_BAND_IS_"
-    "NOT_ABOUT_2026-08-31.md and docs/staging/SEAT_FINDING_THE_INSTRUMENT_JUDGES_THE_WORLD_ON_A_"
-    "SUPERSEDED_CAPTURE_WHOSE_SVT_HALF_IS_IN_NO_COMMIT_2026-09-03.md."
+    "NOT_ABOUT_2026-08-31.md and docs/staging/done/SEAT_FINDING_THE_INSTRUMENT_JUDGES_THE_WORLD_"
+    "ON_A_SUPERSEDED_CAPTURE_WHOSE_SVT_HALF_IS_IN_NO_COMMIT_2026-09-03.md."
 ))
 def test_the_whole_book_departure_level_is_inside_the_published_band():
     """THE VERDICT THE BAND WAS ALWAYS ABOUT, held open until it can be taken.
