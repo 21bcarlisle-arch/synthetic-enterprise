@@ -114,6 +114,43 @@ establishes that the plumbing admits the shape, and nothing else.*
 `docs/observability/value_cycle_ab_s1_noise_floor_20260903.json`, so **step (c) is a file copy, not a
 code change.**
 
+### How P6 must be graded — filed 2026-09-03 17:12 BST, before this run's artefact exists
+
+**The digits cannot tell the two legs apart in this world, so grading on them is unsafe.** The
+journal for the deleted leg B (`redraw mode all`) and the `only` leg on disk agree on every figure
+either one printed:
+
+| | leg B journal, `mode all`, 15:18:37 | `..._only_20260903.json`, on disk |
+|---|---|---|
+| seed 11111 | `+2,349.68` | `2349.683596000017` |
+| seed 22222 | `+700.32` | `700.3180280000088` |
+| seed 33333 | `-8,634.09` | `-8634.087115000002` |
+| sd / range | `5,923.04` / `10,983.77` | `5923.0446166138645` / `10983.77071100002` |
+
+That is P6's premise doing exactly what P6 says it should: `except` contributes zero variance, so
+the undecomposed leg has nothing to add to the priced one. **It also means a grader who opens the
+wrong file gets the right number.** So P6 and P4 are graded by pasting, from the artefact this run
+writes, `redraw_scope.mode` (must be `all`), `generated_at` (must be after 16:07 BST today), and
+the `--out` path it was read from — *and only then* the figures. A grading that quotes digits
+without those three has not distinguished the legs and does not count.
+
+> **P8 — this run reproduces leg B's seed rows.**
+> **Predicted:** `selection_gbp_spread.stdev` = `5923.0446166138645` and the three seed
+> `selection_gbp` values equal the `only` leg's to full precision.
+> **Refuted if:** any seed row differs at all — which would mean the floor is not deterministic
+> given seed and world, and would put every floor figure on this page back in question.
+> **This prediction is NOT blind and must not be scored as if it were.** It is retrodiction from
+> leg B's console output, which is in the journal. Its only value is as a determinism check; it is
+> not evidence for P6, and P6's own grade stands on its originally-filed ±5% band.
+
+**The leg guard is contingent, not redundant — do not "simplify" it when this lands.**
+`_current_world_bound` is about to admit an artefact whose numbers are identical to the `only`
+leg it refuses. The next reader will see a guard rejecting a file for carrying the same figures as
+one it accepts and read it as pedantry. It is not: the identity holds *because* the unpriced side
+happened to contribute zero variance in this world, which is a measured result of the `except` leg
+and not a property of the instrument. In a world where `except` is non-zero the two legs diverge
+and the guard is the only thing standing between the page and a bound 1.4x too narrow.
+
 ### The decompose command, in full
 
     python3 -m tools.run_value_cycle_ab --decompose \

@@ -17,8 +17,26 @@ nothing, and it is in no commit and no git object in either tree.
 
 **The doorbell was not wrong when it was written.** It cites `generated 2026-09-03T14:18:37Z`,
 `world_identity.digest 39a192ce04c1eda8`, and a stdev of `5,923.0446` — four decimal places. The
-journal only ever printed `sd 5,923.04`, so the fourth decimal could only have been read out of
-the JSON. The file existed and was read. Then it was destroyed.
+file existed and was read. Then it was destroyed.
+
+> **Correction, 2026-09-03 17:12 BST, beside the claim it corrects.** As first written, the
+> sentence above continued: *"The journal only ever printed `sd 5,923.04`, so the fourth decimal
+> could only have been read out of the JSON."* **That inference is false and is withdrawn.**
+> `5923.0446166138645` is also the stdev of `value_cycle_ab_s1_noise_floor_only_20260903.json`,
+> which was never deleted and is on disk right now — so the fourth decimal could have been read
+> out of the surviving `only` leg, and the precision establishes nothing about which leg was
+> opened. The claim was checkable and nobody opened the other file to check it.
+>
+> **The conclusion survives, on better evidence that was available the whole time.** The unit
+> journal for `se-noise-floor-all-20260903b.service` ends, at 15:18:37, with `redraw mode all`,
+> the three seed rows, `sd 5,923.04 range 10,983.77`, `DISTINGUISHABLE FROM ZERO? NO`, and the
+> producer's own last line: `wrote docs/observability/value_cycle_ab_s1_noise_floor_20260903.json`.
+> `main()` writes before it prints, so the write is attested by the printout that follows it. The
+> run succeeded and the artefact existed; only the argument for it was wrong.
+>
+> Recording this because the withdrawn sentence is the recurring shape, not a slip: a citation
+> that reasons from a figure's *precision* to the *identity of the file it came from* has made a
+> checkable claim about a second file, and here the second file was one directory away.
 
 ## The timeline, from the worktree's own reflog and the unit journal
 
