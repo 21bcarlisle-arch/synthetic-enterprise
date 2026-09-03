@@ -445,6 +445,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        reading, and the question "may this gap be quoted as evidence the company knows something"
        is at its sharpest on a run that carries none. Separate element, separate lifetime. -->
   <div id="arms-inference"></div>
+  <!-- THE MEASUREMENT OF THE INFERENCE ITSELF, as opposed to whether one may be claimed. The two
+       elements above ask if a gap MAY be read as evidence the company knows something; this is
+       the company's belief scored directly against the world's own hazard on one population, on
+       the route carrying 61% of this book's departures. Its own element and its own lifetime for
+       `arms-inference`'s reason: this reading exists whether or not any run artefact carries a
+       method-skill figure, and it is at its sharpest on a run that carries none. -->
+  <div id="arms-svt-belief"></div>
   <p id="arms-note" class="stamp" style="margin-top:12px;"></p>
 </section>
 <script>
@@ -1087,6 +1094,89 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
                 + prose(ic.why) + "</p>");
       }
+
+      /* CAN THE COMPANY ORDER WHO LEAVES? The measurement, beside the ceiling, with the null.
+         The whole thesis is that the advantage comes from INFERENCE and never from ACCESS, and
+         this is the one population on which that sentence can be tested: a belief formed after
+         the roll, on a route it did not seed, graded against the world's own hazard on the same
+         rows. Until 2026-08-31 it reached no reader — the reading lived in two staging documents
+         and a design note while this site carried only a superseded figure inside a lane claim.
+
+         THE CEILING IS RENDERED BEFORE THE BELIEF, and that ordering is the point rather than a
+         layout choice: the belief's number means nothing without the one a perfect reader of
+         this world would reach. A belief at 0.548 is a failure against a ceiling of 0.609 that
+         clears, and would look like a success beside nothing at all.
+
+         THE VERDICT COLUMN IS WHAT THE BLOCK EXISTS FOR, exactly as in `arms-departure` above:
+         a reading and an interval side by side with nothing saying whether one is inside the
+         other is a table, not a bound. The sentence is taken verbatim from the feed, which
+         derives it in `tools/inference_claim.cannot_tell_sentence` from the three numbers — this
+         page does not decide "we cannot tell" for itself. */
+      var sv = d.svt_drift_belief || {};
+      var svRows = (sv.available && sv.arms ? sv.arms : []).map(function (a) {
+        var v = a.inside_the_null;
+        return '<tr><td style="padding:1px 10px 1px 0;">'
+          + (a.is_the_belief ? "<strong>" + esc(a.label) + "</strong>" : esc(a.label))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + (a.per_exposure_day === null || a.per_exposure_day === undefined
+              ? "&mdash;" : Number(a.per_exposure_day).toFixed(4))
+          + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+          + (a.null_95_low === null || a.null_95_low === undefined
+              ? "&mdash;"
+              : Number(a.null_95_low).toFixed(4) + "&ndash;" + Number(a.null_95_high).toFixed(4))
+          + '</td><td style="padding:1px 0;white-space:nowrap;">'
+          /* AN UNKNOWN VERDICT IS ITS OWN THIRD STATE. `null` means the arm carried no interval,
+             which is not the same as clearing one, and a two-branch ternary would have printed
+             the flattering reading of a missing bound. */
+          + (v === null || v === undefined
+              ? '<span style="color:var(--muted);">no interval</span>'
+              : (v ? '<span style="color:var(--amber);font-weight:600;">we cannot tell</span>'
+                   : '<span style="color:var(--green);">orders who leaves</span>'))
+          + "</td></tr>";
+      }).join("");
+      $("arms-svt-belief").innerHTML =
+        '<p style="margin:14px 0 4px;font-size:13px;"><strong>Can the company tell who will '
+        + "leave?</strong> "
+        + (sv.available
+            ? prose(sv.what_it_is)
+            : "This reading could not be produced for this publish.")
+        + "</p>"
+        + '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;color:'
+        + (sv.available && sv.arms && sv.arms.length && sv.arms[0].inside_the_null === false
+            ? "var(--green);" : "var(--amber);")
+        + '">' + prose(sv.sentence || "") + "</p>"
+        + (sv.available
+            ? '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + '<th style="text-align:left;padding:1px 10px 1px 0;font-weight:600;">Reading</th>'
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">Per '
+              + "exposure-day</th>"
+              + '<th style="text-align:right;padding:1px 10px 1px 0;font-weight:600;">A signal '
+              + "with no information reaches</th>"
+              + '<th style="text-align:left;padding:1px 0;font-weight:600;">Verdict</th></tr>'
+              + '<tr><td style="padding:1px 10px 1px 0;">The world’s own hazard '
+              + "(the ceiling)</td>"
+              + '<td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (sv.ceiling === null || sv.ceiling === undefined
+                  ? "&mdash;" : Number(sv.ceiling).toFixed(4))
+              + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+              + (sv.ceiling_null_low === null || sv.ceiling_null_low === undefined
+                  ? "&mdash;"
+                  : Number(sv.ceiling_null_low).toFixed(4) + "&ndash;"
+                    + Number(sv.ceiling_null_high).toFixed(4))
+              + '</td><td style="padding:1px 0;white-space:nowrap;">'
+              + (sv.ceiling_clears
+                  ? '<span style="color:var(--green);">the signal is there</span>'
+                  : '<span style="color:var(--muted);">no signal established</span>')
+              + "</td></tr>" + svRows + "</table></div>"
+              + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">'
+              + prose(sv.why_per_exposure_day || "") + " Measured on "
+              + esc(String(sv.decisions)) + " decisions and " + esc(String(sv.departures))
+              + " departures from " + prose(sv.route || "") + ", one capture, one population."
+              + "</p>"
+            /* FAIL-CLOSED, ON THE SURFACE — the reason, never an omitted paragraph. */
+            : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+              + prose(sv.why || "") + "</p>");
 
       /* THE SENTENCE THIS PAGE WITHDREW, beside the reading that replaced it. A correction a
          reader cannot see is one they cannot check, and the page's whole claim on anyone's trust

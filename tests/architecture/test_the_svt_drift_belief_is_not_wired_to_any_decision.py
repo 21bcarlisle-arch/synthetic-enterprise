@@ -87,6 +87,13 @@ DECLARED = {
         "event and never read back -- which "
         "`test_the_recording_site_writes_the_belief_and_never_reads_it` checks rather than trusts"
     ),
+    "tools/generate_value_arms_data.py": (
+        "the PUBLISHING site. It reads the grading instrument's artefact and renders the reading "
+        "to /capabilities/ beside the ceiling and the null; it consumes the number into no "
+        "decision and nothing downstream reads its output back. Publishing a refusal is as much "
+        "the opposite of acting on it as measuring one -- and the block this feeds exists "
+        "precisely to put a belief that reads INSIDE ITS NULL in front of a reader as such"
+    ),
     "tools/measure_churn_heterogeneity.py": (
         "the GRADING instrument. It scores the belief against the outcome and publishes the "
         "refusal; measuring a belief is the opposite of acting on it"

@@ -123,7 +123,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
-from tools.inference_claim import cannot_tell_sentence, inference_claim
+from tools.inference_claim import CANNOT_TELL, cannot_tell_sentence, inference_claim
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -1280,6 +1280,154 @@ def _skill_drop_out(method_skill: dict) -> dict:
         "consequence": _widening_consequence(by_class),
         "reconciliation": drop.get("reconciliation"),
         "reading": drop.get("reading"),
+    }
+
+
+#: The instrument's own artefact for the route carrying most of this book's departures. Written by
+#: `tools/measure_churn_heterogeneity --out=`, which is the ONLY producer of these figures.
+SVT_BELIEF_GRADE = PROJECT / "docs" / "observability" / "svt_drift_belief_grade.json"
+
+#: The three arms, in the order a reader needs them: the belief, then the two decomposition legs
+#: that make its movement attributable. `(field, label, what_it_is)`.
+_SVT_ARMS = (
+    ("company_svt_drift_estimate", "The belief",
+     "years on SVT, cap-period length, and the company's own payment record"),
+    ("company_svt_drift_estimate_calendar_only", "Held-out arm",
+     "the same belief with the payment record withheld — what v1 read, re-derived on these "
+     "same rows rather than quoted from an earlier run"),
+    ("company_svt_drift_estimate_payment_only", "Payment record alone",
+     "the new term on its own, with the calendar band held out"),
+)
+
+
+def _svt_drift_belief() -> dict:
+    """WHETHER THE COMPANY CAN ORDER WHO LEAVES, on the route carrying 61% of its departures.
+
+    WHY THIS EXISTS. On 2026-08-31 the SVT belief was re-graded with a household observable and
+    the reading moved 0.4691 -> 0.5482 per exposure-day against a ceiling of 0.6091 that clears.
+    That reading is the strongest evidence this project has about its own central claim -- the
+    advantage must come from INFERENCE and never from ACCESS -- and it reached NO published
+    surface. It sat in two staging documents and a design note; `site/` carried the superseded
+    0.4691 inside a lane-claim string and nothing else. This is the same class as
+    `_inference_claim` above and the same sentence applies: a fail-closed guard that publishes
+    nothing is a guard nobody is held by.
+
+    THE READING IS TAKEN FROM `exposure_offset` AND THE UNCORRECTED KEY IS REFUSED, which is the
+    load-bearing line in this function. The artefact carries BOTH: a bare `belief_auc` of 0.6220
+    that CLEARS its null and reads "the belief orders who leaves", and the per-exposure-day
+    reading of 0.5482 that does not. On a route where cap segments run 1-92 days, the bare figure
+    credits the belief with what the billing calendar was doing. This project has already
+    published that mistake once -- `delivery.json.what_it_got_wrong` records the uncorrected
+    0.6054 sitting where the offset 0.4691 belonged -- so the arm's own
+    `belief_auc_superseded_by` pointer is CHECKED here rather than trusted to point at the key
+    this function happens to read. An arm whose pointer names something other than the offset
+    reading is refused outright, because that means the artefact's idea of the quotable figure
+    and this function's have diverged, and a reader cannot see which one won.
+
+    THE WORDS COME FROM `cannot_tell_sentence`, not from the artefact's own `verdict` string.
+    The three numbers are the subject; a verdict field is one more thing that can go stale
+    against them, and the director's instruction was that the page says "we cannot tell" in those
+    words whenever the reading sits inside its null.
+
+    FAIL-CLOSED, AND VISIBLY -- a missing or unreadable artefact renders the absence and its
+    reason, never an omitted paragraph, for `_inference_claim`'s reason: an absent caveat and a
+    discharged one look identical to a reader.
+    """
+    def _unavailable(why: str) -> dict:
+        return {
+            "available": False,
+            "why": why,
+            "sentence": ("On whether the company can order who leaves the standard variable "
+                         "tariff, {}: {}".format(CANNOT_TELL, why)),
+            "arms": [],
+            "ceiling": None,
+        }
+
+    try:
+        route = (json.loads(SVT_BELIEF_GRADE.read_text(encoding="utf-8"))
+                 .get("per_route") or {}).get("svt_segment") or {}
+    except Exception as exc:  # noqa: BLE001 - any failure here is an absence on the page, by design
+        return _unavailable("the belief grade artefact could not be read ({}: {}). Rebuild it "
+                            "with `python3 -m tools.measure_churn_heterogeneity "
+                            "--out=docs/observability/svt_drift_belief_grade.json`".format(
+                                type(exc).__name__, str(exc)[:160]))
+
+    ceiling_offset = route.get("exposure_offset") or {}
+    ceiling = _f(ceiling_offset.get("oracle_auc_per_exposure_day"))
+    if ceiling is None:
+        return _unavailable("the artefact carries no per-exposure-day ceiling, so there is "
+                            "nothing to read the belief against")
+
+    by_field = {b.get("field"): b for b in (route.get("company_belief") or [])
+                if isinstance(b, dict)}
+    arms = []
+    for field, label, what_it_is in _SVT_ARMS:
+        arm = by_field.get(field) or {}
+        if not arm.get("available"):
+            continue
+        # THE REFUSAL DESCRIBED ABOVE. The artefact names its own quotable key; if that is not
+        # the one read below, the two have diverged and neither may be published.
+        pointer = arm.get("belief_auc_superseded_by")
+        if pointer not in (None, "exposure_offset.belief_auc_per_exposure_day"):
+            return _unavailable(
+                "the artefact says the quotable reading for `{}` is `{}`, which is not the "
+                "per-exposure-day reading this surface publishes. Refused rather than "
+                "guessed".format(field, pointer))
+        offset = arm.get("exposure_offset") or {}
+        observed = _f(offset.get("belief_auc_per_exposure_day"))
+        null = offset.get("null") or {}
+        low, high = _f(null.get("low")), _f(null.get("high"))
+        arms.append({
+            "field": field,
+            "label": label,
+            "what_it_is": what_it_is,
+            # THE DECOMPOSITION LEGS ARE MARKED AS SUCH. Only the first row is a belief the
+            # company ships; the other two exist to make its movement attributable, and a reader
+            # who takes them for three competing beliefs has been misled by the layout.
+            "is_the_belief": field == "company_svt_drift_estimate",
+            "per_exposure_day": observed,
+            "null_95_low": low,
+            "null_95_high": high,
+            "inside_the_null": None if None in (observed, low, high) else low <= observed <= high,
+            "cannot_tell": cannot_tell_sentence(
+                subject="whether this reading orders who leaves",
+                observed=observed, null_low=low, null_high=high,
+                n=arm.get("decisions")),
+            "mean_believed": _f(arm.get("mean_believed")),
+            "realised_rate": _f(arm.get("realised_rate")),
+        })
+
+    if not arms or arms[0]["field"] != "company_svt_drift_estimate":
+        return _unavailable("the artefact carries no graded reading for the SVT drift belief "
+                            "itself, so the decomposition legs are not publishable on their own")
+
+    belief = arms[0]
+    return {
+        "available": True,
+        "why": None,
+        "route": "the standard variable tariff",
+        "decisions": route.get("decisions"),
+        "departures": route.get("departures"),
+        "ceiling": ceiling,
+        "ceiling_null_low": _f((ceiling_offset.get("null") or {}).get("low")),
+        "ceiling_null_high": _f((ceiling_offset.get("null") or {}).get("high")),
+        "ceiling_clears": ceiling_offset.get("clears_the_null"),
+        "arms": arms,
+        # THE SENTENCE IS THE PAYLOAD, exactly as in `_inference_claim`. Derived from the belief
+        # arm's own three numbers, so the prose and the table beside it cannot disagree.
+        "sentence": belief["cannot_tell"] or (
+            "The company's belief about who leaves the standard variable tariff clears the "
+            "interval a signal carrying no information reaches."),
+        "what_it_is": (
+            "Whether the company's belief about departures from the standard variable tariff "
+            "ORDERS them — does it put the accounts that left above the ones that stayed. "
+            "The ceiling is the world's own hazard scored the same way on the same rows: it is "
+            "what a perfect reader of this world would get, so the gap between the two is how "
+            "much of this world's signal the company is not finding."),
+        "why_per_exposure_day": (
+            "Cap segments run from 1 to 92 days, so a belief that simply ran longer would "
+            "appear to discriminate. Every figure here is divided by the days it was exposed "
+            "for; the uncorrected readings in the artefact are superseded and are not quoted."),
     }
 
 
@@ -3011,6 +3159,12 @@ def build(three_arm: dict | None, floor: dict | None,
         # `_inference_claim`: computed live rather than read from a run, because this is a rule
         # applied to today's code and not a measurement of that run.
         inference_claim=_inference_claim(),
+        # THE ONE READING THAT TESTS THE THESIS DIRECTLY, and until now it reached no reader.
+        # `inference_claim` above says whether a gap MAY be quoted as evidence of inference;
+        # this is the measurement of the inference itself, on the route carrying 61% of this
+        # book's departures, beside the ceiling a perfect reader of this world would reach.
+        # See `_svt_drift_belief` for why the per-exposure-day key is the only quotable one.
+        svt_drift_belief=_svt_drift_belief(),
         # THE OTHER SIDE OF THE ARMS ABOVE. Published in the same payload as the net margins,
         # keyed by the same arm keys, so the surface can render one row per arm with both
         # columns on it -- see `_household`.

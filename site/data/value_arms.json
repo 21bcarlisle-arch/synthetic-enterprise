@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T10:08:42.976386Z",
+  "generated_at": "2026-09-03T11:44:51.026746Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -226,10 +226,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "dda5a27b27498f7e31c3d10c93d4136b4373976a",
+    "publishing_tree_commit": "86c3f489d65c4bc2763e5516fabd9627b07d2b1c",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from dda5a27b2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 86c3f489d -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -268,10 +268,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "dda5a27b27498f7e31c3d10c93d4136b4373976a",
+      "publishing_tree_commit": "86c3f489d65c4bc2763e5516fabd9627b07d2b1c",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from dda5a27b2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 86c3f489d -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -587,6 +587,61 @@
       "clause": "The company's acted belief sits outside the published band in 4 of 6 years, by up to 16.5pp. That distance is NOT an accuracy reading: the company's acted belief is this BOOK's departure hazard and the published band is the GB MARKET's switching rate, which are two different quantities. A supplier that retains better than average sits far outside the band without being wrong about anything, and the update carries no term separating how competitive the market is from how retainable this book is. It is not evidence of insight either -- the two numbers count different populations, so nothing about whether the company knows anything can be read off how far apart they are."
     },
     "what_it_is": "Whether the gap between what the company believed about departures and what the world delivered may be quoted as evidence that the company INFERRED something. Two necessary legs: the two sides arrived at independently, AND the method's own ranking clearing the interval a random signal produces."
+  },
+  "svt_drift_belief": {
+    "available": true,
+    "why": null,
+    "route": "the standard variable tariff",
+    "decisions": 1266,
+    "departures": 50,
+    "ceiling": 0.6091441315862838,
+    "ceiling_null_low": 0.4159464733760803,
+    "ceiling_null_high": 0.585029272372456,
+    "ceiling_clears": true,
+    "arms": [
+      {
+        "field": "company_svt_drift_estimate",
+        "label": "The belief",
+        "what_it_is": "years on SVT, cap-period length, and the company's own payment record",
+        "is_the_belief": true,
+        "per_exposure_day": 0.5482297184276554,
+        "null_95_low": 0.4124616671313075,
+        "null_95_high": 0.5865625871201561,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.548 sits inside the 0.412\u20130.587 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.034606398104265405,
+        "realised_rate": 0.03949447077409163
+      },
+      {
+        "field": "company_svt_drift_estimate_calendar_only",
+        "label": "Held-out arm",
+        "what_it_is": "the same belief with the payment record withheld \u2014 what v1 read, re-derived on these same rows rather than quoted from an earlier run",
+        "is_the_belief": false,
+        "per_exposure_day": 0.46912461667131305,
+        "null_95_low": 0.4164343462503485,
+        "null_95_high": 0.5833565653749652,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.469 sits inside the 0.416\u20130.583 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.03326903633491311,
+        "realised_rate": 0.03949447077409163
+      },
+      {
+        "field": "company_svt_drift_estimate_payment_only",
+        "label": "Payment record alone",
+        "what_it_is": "the new term on its own, with the calendar band held out",
+        "is_the_belief": false,
+        "per_exposure_day": 0.5114998606077502,
+        "null_95_low": 0.4130889322553666,
+        "null_95_high": 0.5824505157513242,
+        "inside_the_null": true,
+        "cannot_tell": "On whether this reading orders who leaves, we cannot tell: 0.511 sits inside the 0.413\u20130.582 a signal carrying no information reaches on 1266 decisions.",
+        "mean_believed": 0.03905315955766193,
+        "realised_rate": 0.03949447077409163
+      }
+    ],
+    "sentence": "On whether this reading orders who leaves, we cannot tell: 0.548 sits inside the 0.412\u20130.587 a signal carrying no information reaches on 1266 decisions.",
+    "what_it_is": "Whether the company's belief about departures from the standard variable tariff ORDERS them \u2014 does it put the accounts that left above the ones that stayed. The ceiling is the world's own hazard scored the same way on the same rows: it is what a perfect reader of this world would get, so the gap between the two is how much of this world's signal the company is not finding.",
+    "why_per_exposure_day": "Cap segments run from 1 to 92 days, so a belief that simply ran longer would appear to discriminate. Every figure here is divided by the days it was exposed for; the uncorrected readings in the artefact are superseded and are not quoted."
   },
   "household": {
     "available": true,

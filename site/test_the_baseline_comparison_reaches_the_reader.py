@@ -52,7 +52,7 @@ DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
-          "arms-market", "arms-sample", "arms-departure")
+          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief")
 
 
 def _text(fragment: str) -> str:
@@ -2017,3 +2017,178 @@ def test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_
     assert "MORE than flat rules" in rendered, (
         "the superseded comparison was removed rather than dated -- deletion is not the "
         "correction, and a reader can no longer size what the world change cost")
+
+
+# ── can the company order who leaves ─────────────────────────────────────────────────────────
+#
+# THE READING THE WHOLE THESIS TURNS ON, and until 2026-08-31 it reached no reader. The claim
+# under test is that the advantage comes from INFERENCE and never from ACCESS; the SVT route is
+# the one population where that sentence is measurable, because the belief is formed after the
+# roll, on a route it does not seed, and the world's own hazard is scored on the same rows. The
+# reading moved 0.4691 -> 0.5482 per exposure-day against a ceiling of 0.6091 that clears, and
+# it lived in two staging documents and a design note while `site/` carried only the superseded
+# figure inside a lane-claim string.
+#
+# R15 -- the mutations, each run and reverted:
+#   * publish `belief_auc` instead of `exposure_offset.belief_auc_per_exposure_day` ->
+#     `test_the_superseded_uncorrected_reading_never_reaches_the_reader` reds. This is the one
+#     that matters: the uncorrected figure CLEARS its null and reads "the belief orders who
+#     leaves", and this project has already published that mistake once.
+#   * drop the ceiling row from the render -> `test_the_belief_reaches_the_reader_beside_its
+#     _ceiling_and_never_alone` reds.
+#   * render `inside_the_null` with a two-branch ternary -> `test_an_arm_with_no_interval_renders
+#     _unknown_and_never_the_flattering_reading` reds.
+#   * return early when `svt_drift_belief.available` is false ->
+#     `test_an_unavailable_reading_renders_its_reason_and_never_an_empty_block` reds.
+# The null rung is `test_a_reading_that_clears_its_null_is_not_reported_as_cannot_tell`: it must
+# stay green throughout, because every mutation above is about what a reader meets and none of
+# them is about a belief that actually works.
+
+
+def _svt(feed: dict) -> dict:
+    block = feed.get("svt_drift_belief") or {}
+    if not block.get("available"):
+        pytest.fail("the live feed carries no SVT belief reading ({}), reported as a failure "
+                    "and never skipped".format(block.get("why")))
+    return block
+
+
+def test_the_belief_reaches_the_reader_beside_its_ceiling_and_never_alone(live):
+    """A belief's AUC means nothing without the one a perfect reader of this world would reach.
+
+    0.548 looks like a result on its own and is a failure against a ceiling of 0.609 that clears.
+    Both figures, on the page, or the reading is not published.
+
+    Fires on: dropping the ceiling row, or rendering the arms without it.
+    """
+    block = _svt(_live_feed())
+    rendered = live["arms-svt-belief"]
+    belief = block["arms"][0]
+
+    assert "{:.4f}".format(belief["per_exposure_day"]) in rendered, (
+        "the company's belief about the route carrying most of its departures is not on the page")
+    assert "{:.4f}".format(block["ceiling"]) in rendered, (
+        "the belief is published without the ceiling it is a failure against, so a reader cannot "
+        "tell a shortfall from a result")
+    assert "{:.4f}".format(block["ceiling_null_low"]) in rendered, (
+        "the ceiling is published without the interval that makes it a signal rather than a "
+        "number")
+
+
+def test_the_reading_inside_its_null_says_we_cannot_tell_where_a_reader_sees_it(live):
+    """The director's words, on the surface, not in a footnote.
+
+    "If the concordance sits inside its null, the page says we cannot tell, in those words."
+    The belief reads 0.5482 inside [0.4125, 0.5866], so the page must say so.
+
+    Fires on: rendering the table without the sentence, or softening the phrase.
+    """
+    block = _svt(_live_feed())
+    rendered = live["arms-svt-belief"]
+
+    assert block["arms"][0]["inside_the_null"] is True, (
+        "this control assumes the belief still cannot be told from chance; if that changed, the "
+        "reading is a FINDING and this test must be rewritten deliberately rather than deleted")
+    assert "we cannot tell" in rendered.lower(), (
+        "the belief sits inside its null and the page does not say we cannot tell, in those words")
+
+
+def test_the_superseded_uncorrected_reading_never_reaches_the_reader(live):
+    """THE MISTAKE THIS PROJECT HAS ALREADY MADE ONCE, and the reason the offset key is the only
+    quotable one.
+
+    The artefact carries a bare `belief_auc` of 0.6220 that CLEARS its null and reads "the belief
+    orders who leaves", beside a per-exposure-day reading of 0.5482 that does not. Cap segments
+    run 1-92 days, so the bare figure credits the belief with what the billing calendar was
+    doing. `delivery.json.what_it_got_wrong` records the uncorrected 0.6054 having been published
+    where the offset 0.4691 belonged.
+
+    Fires on: publishing `belief_auc` in place of the offset reading.
+    """
+    rendered = live["arms-svt-belief"]
+    route = (json.loads(
+        (SITE.parent / "docs" / "observability" / "svt_drift_belief_grade.json")
+        .read_text(encoding="utf-8")).get("per_route") or {}).get("svt_segment") or {}
+    for arm in route.get("company_belief") or []:
+        if not arm.get("available") or arm.get("belief_auc") is None:
+            continue
+        assert "{:.4f}".format(arm["belief_auc"]) not in rendered, (
+            "the SUPERSEDED uncorrected reading for `{}` is on the page. It clears its null and "
+            "the quotable one does not, so a reader meets the flattering half of a figure the "
+            "artefact itself withdrew".format(arm.get("field")))
+
+
+def test_an_arm_with_no_interval_renders_unknown_and_never_the_flattering_reading():
+    """A missing bound is a third state, not a pass.
+
+    An arm whose null could not be computed has not cleared anything. A two-branch ternary would
+    print "orders who leaves" for it, which is the fail-open direction on the one figure this
+    page exists to bound.
+
+    Fires on: rendering `inside_the_null` with `v ? ... : ...`.
+    """
+    feed = copy.deepcopy(_live_feed())
+    _svt(feed)["arms"][0]["inside_the_null"] = None
+    feed["svt_drift_belief"]["arms"][0]["null_95_low"] = None
+    feed["svt_drift_belief"]["arms"][0]["null_95_high"] = None
+
+    rendered = _render(feed)["arms-svt-belief"]
+
+    assert "no interval" in rendered.lower(), (
+        "an arm carrying no null renders no third state, so a reader cannot tell an unbounded "
+        "reading from a bounded one")
+    assert "orders who leaves" not in rendered.split("no interval")[-1].lower(), (
+        "an arm with no interval is reported as having cleared one -- the fail-open reading")
+
+
+def test_an_unavailable_reading_renders_its_reason_and_never_an_empty_block():
+    """THE NULL RUNG FOR THE ABSENCE. An unavailable check is a failed check.
+
+    A publish that could not produce the reading must say so with its reason. An omitted
+    paragraph and a discharged caveat look identical to a reader, which is exactly how this
+    reading went unpublished for a day in the first place.
+
+    Fires on: returning early when `available` is false.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["svt_drift_belief"] = {
+        "available": False,
+        "why": "the belief grade artefact could not be read for this publish",
+        "sentence": ("On whether the company can order who leaves the standard variable tariff, "
+                     "we cannot tell: the artefact could not be read."),
+        "arms": [],
+        "ceiling": None,
+    }
+
+    rendered = _render(feed)["arms-svt-belief"]
+
+    assert "we cannot tell" in rendered.lower(), (
+        "an unproducible reading renders no verdict at all, so the page falls silent instead of "
+        "failing closed")
+    assert "could not be read" in rendered.lower(), (
+        "the page reports an absence without its reason, so a reader cannot tell a broken "
+        "producer from a belief nobody has built")
+
+
+def test_a_reading_that_clears_its_null_is_not_reported_as_cannot_tell():
+    """THE NULL RUNG. This block must be able to report a SUCCESS.
+
+    A control that can only ever say "we cannot tell" is pinned to today's answer, not to the
+    property -- it would stay green while the belief became genuinely good and go red for the
+    right reason never. Driven with an arm moved above its own interval.
+    """
+    feed = copy.deepcopy(_live_feed())
+    arm = _svt(feed)["arms"][0]
+    arm["per_exposure_day"] = 0.7100
+    arm["inside_the_null"] = False
+    arm["cannot_tell"] = None
+    feed["svt_drift_belief"]["sentence"] = (
+        "The company's belief about who leaves the standard variable tariff clears the interval "
+        "a signal carrying no information reaches.")
+
+    rendered = _render(feed)["arms-svt-belief"]
+
+    assert "0.7100" in rendered, "a belief that cleared its null does not reach the page"
+    assert "orders who leaves" in rendered.lower(), (
+        "a belief that clears its null is not reported as clearing it, so this block cannot "
+        "publish a success and its failures mean nothing")
