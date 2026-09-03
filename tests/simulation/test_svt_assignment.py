@@ -363,3 +363,99 @@ def test_the_engagement_probabilities_the_assignment_reads_are_the_anchored_ones
     assert PASSIVE_RENEWAL_RATE == 0.35, (
         "the anchored population-wide active-renewal rate moved; the assignment reads it and "
         "every generated fixed/SVT share moves with it")
+
+
+def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_records):
+    """A CRISIS YEAR'S EMPTY RENEWAL POPULATION IS STRUCTURAL, AND NOTHING SAID SO IN CODE.
+
+    THE DEFECT THIS EXISTS FOR, and it cost a Lane 0 direction. `departure_level_anchor`'s
+    `UNFITTED_YEARS[2022]` cause said the empty renewal population was CAPTURE-SCOPED and named a
+    committed artefact as proof — *"`c3_shown_price_departure_factors.json` carries 53 renewal rows
+    in 2022 under the retired ten-year block, so a re-capture CAN close this one"*. It cannot. The
+    forcing in `rolls_active_renewal` is unconditional in a crisis year and the divert in
+    `build_renewal_schedule` is unconditional on a passive roll, so their COMPOSITION is that no
+    fixed term can start in such a year — at any seed, for any household, under any engagement
+    archetype. A re-capture reproduces the absence exactly.
+
+    Each half was already held on its own (`test_renewal_engagement` for the forcing,
+    `..._an_always_active_household_never_reaches_the_svt_product` for the divert, which excludes
+    the crisis year from its assertion and says why). NEITHER HELD THE COMPOSITION, which is the
+    claim a reader of the anchor actually needs, and the register above it therefore carried a
+    false locator for two days with every leg green.
+
+    KEYED TO `CRISIS_PASSIVE_YEARS`, NOT TO 2022. Adding a crisis year brings it into the subject;
+    emptying the set empties the subject and the floor below fails rather than passing quietly.
+
+    THE FLOOR IS LOAD-BEARING AND IS NOT THE SAME ASSERTION AS THE VERDICT. "No fixed term starts
+    in a crisis year" is satisfied for free by a schedule with no crisis-year boundary at all, so
+    the floor demands that a term actually STARTS in one — i.e. that the world reached the year at
+    all, rather than never arriving.
+
+    AND THE FLOOR IS DELIBERATELY PRODUCT-BLIND, WHICH IS A CORRECTION TO ITS FIRST DRAFT. That
+    draft asked for an SVT STINT to begin in the crisis year, which is the same fact the verdict
+    tests, from the other side. Under the mutation below no household rolls to SVT at all, so the
+    floor emptied and fired FIRST: a true red, reported as a scope failure instead of the
+    substantive one, which is this repository's catalogued *scope guard before the verdict*.
+    Counting boundaries of EITHER product keeps the floor satisfied under the mutation and lets the
+    verdict speak.
+
+    MUTATIONS (`python3 -B`), observed rather than intended:
+      * drop the `CRISIS_PASSIVE_YEARS` branch from `rolls_active_renewal` -> **1 red, this leg
+        alone, on the VERDICT**, naming `C3@2022-12-30`, `C1@2022-12-30`, `SYN-2016-003@2022-12-30`.
+        Nothing else in this file moves, which is the point: the two halves are each already held
+        and only their composition is new.
+      * remove the passive divert entirely, i.e. restore the pre-C1b world in which a passive roll
+        was settled as a fixed term -> **6 reds, this leg among them**. That is the second half of
+        the claim: the 53 rows `UNFITTED_YEARS[2022]` cites are recoverable only by re-introducing
+        the defect C1b removed.
+      * make the divert unconditional on EVERY year -> **2 reds, and NEITHER is this leg.** An
+        EQUIVALENCE for this control, stated rather than left flattering: the first term is always
+        fixed, so `off_crisis_fixed` survives. This leg does not hold the divert's SCOPE; its
+        siblings `..._always_active_household_never_reaches_the_svt_product` and
+        `..._leaves_the_fixed_product_and_can_come_back` do, and they fire.
+    """
+    from simulation import renewals as renewals_module
+    from simulation.renewal_engagement import CRISIS_PASSIVE_YEARS
+
+    crisis_fixed_starts: list[str] = []
+    crisis_boundaries: list[str] = []
+    off_crisis_fixed = 0
+    checked = 0
+    for level in EngagementLevel:
+        cid = _a_household_with(level)
+        # p = 1.0 is the SOLE WITNESS for the forcing: a household the world says shops at every
+        # renewal is the only one whose crisis-year SVT stint cannot be explained by its own
+        # archetype. Without it the verdict would also pass on a world with no forcing at all,
+        # because a passive household rolls to SVT in every year anyway.
+        original = renewals_module.active_renewal_probability_for_customer
+        renewals_module.active_renewal_probability_for_customer = lambda _h: 1.0
+        try:
+            schedule = _schedule(cid, "2016-01-01", price_records)
+        finally:
+            renewals_module.active_renewal_probability_for_customer = original
+
+        for term in schedule:
+            product = term.get("tariff_type") or "fixed"
+            start = term["acquisition_date"]
+            if start[:4] in CRISIS_PASSIVE_YEARS:
+                crisis_boundaries.append(start)
+            if product == "fixed":
+                if start[:4] in CRISIS_PASSIVE_YEARS:
+                    crisis_fixed_starts.append(f"{cid}@{start}")
+                else:
+                    off_crisis_fixed += 1
+        checked += 1
+
+    assert checked, "no roster household reached this control; its PASS means nothing"
+    assert crisis_boundaries, (
+        f"no term of ANY product starts in {sorted(CRISIS_PASSIVE_YEARS)} across {checked} "
+        f"households, so the world never reached a crisis-year boundary and the verdict below is "
+        f"vacuous — the emptied-subject fail-open, not a pass")
+    assert off_crisis_fixed, (
+        "no fixed term starts in ANY year, so the verdict below would hold for a world in which "
+        "the fixed product had disappeared entirely rather than one that withdraws it in a crisis")
+    assert not crisis_fixed_starts, (
+        f"a fixed term STARTS in a crisis year: {crisis_fixed_starts[:5]}. Then the renewal roll "
+        f"can fire there, the empty renewal population is not structural, and the cause in "
+        f"`departure_level_anchor.UNFITTED_YEARS` that says a capture can never carry one is "
+        f"wrong. Fix the cause or the code — do not widen this control.")

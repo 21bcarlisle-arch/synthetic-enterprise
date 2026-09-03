@@ -42,6 +42,9 @@ and drift that takes one outside it fails. When it fails, re-capture and re-fit 
 """
 from __future__ import annotations
 
+import hashlib
+import json
+
 from simulation.market_switching_propensity import (
     MULTIPLIER_REFERENCE_YEAR,
     _published_departure_rates,
@@ -205,12 +208,29 @@ UNFITTED_YEARS: dict[int, str] = {
     ),
     2022: (
         "2022 is INSIDE the comparison window and is UNIDENTIFIED. ONE cause binds, and until "
-        "2026-09-02 this entry said two did. (i) THE ONE THAT BINDS, and it is CAPTURE-SCOPED: "
-        "2022 is 100% crisis-forced-passive (`renewal_engagement.CRISIS_PASSIVE_YEARS`), C1b "
-        "routes every passive roll to the SVT segment table, and the `c2`/`ladder`/native capture "
-        "family therefore carries ZERO 2022 renewal decisions, so the anchor multiplies nothing "
-        "and floor equals ceiling. `c3_shown_price_departure_factors.json` carries 53 renewal rows "
-        "in 2022 under the retired ten-year block, so a re-capture CAN close this one. (ii) THE "
+        "2026-09-02 this entry said two did. (i) THE ONE THAT BINDS, and it is STRUCTURAL -- until "
+        "2026-09-03 this entry called it capture-scoped and pointed the next reader at a "
+        "re-capture that cannot work: 2022 is 100% crisis-forced-passive "
+        "(`renewal_engagement.CRISIS_PASSIVE_YEARS`), C1b routes every passive roll to the SVT "
+        "segment table, and the capture family therefore carries ZERO 2022 renewal decisions, so "
+        "the anchor multiplies nothing and floor equals ceiling. NO CAPTURE OF THE LIVE WORLD CAN "
+        "CARRY ONE, at any seed and for any household: the forcing is unconditional in "
+        "`rolls_active_renewal` and the divert is unconditional in `renewals.build_renewal_"
+        "schedule`, so no fixed term can START in a crisis year and no renewal roll can fire. THE "
+        "SENTENCE THIS REPLACES READ: 'c3_shown_price_departure_factors.json carries 53 renewal "
+        "rows in 2022 under the retired ten-year block, so a re-capture CAN close this one.' The "
+        "row count is right and the inference is wrong, and it is kept here rather than deleted "
+        "because a Lane 0 direction was drawn on it. ALL 53 OF THOSE ROWS CARRY "
+        "`passive_churn_cap = 0.1`: every one is a forced-passive roll that the pre-C1b world "
+        "settled as a fixed term anyway, which is the exact defect C1b was landed to remove. They "
+        "are not a population a re-capture restores -- restoring them means re-introducing the "
+        "defect. WHAT CLOSES THIS IS A CHANGE TO THE WORLD, not to the capture, and the smallest "
+        "one that reaches the anchor is on the SVT route rather than the renewal route: "
+        "`run_phase2b` builds every SVT segment's risks with `bill_shock_base=0.0`, "
+        "`price_response=0.0` and `dissatisfaction_response=0.0`, and those three are the only "
+        "hazards `level_anchor` multiplies. In 2022 the whole book is on SVT, so the year has no "
+        "calibration lever of any kind -- which is what `NO_LEVEL_CORRECTION` here actually "
+        "records. (ii) THE "
         "SECOND CAUSE WAS VOIDED BY THE MARKET TERM AND IS KEPT HERE RATHER THAN DELETED, because "
         "a refusal whose superseded reason is erased takes the evidence that it was ever checked "
         "with it. It read: 'its SVT floor was 12.09% against a published 4.30% ceiling, and "
@@ -343,11 +363,70 @@ def anchor_coverage() -> tuple[dict[int, float], dict[int, tuple[float, str]]]:
     return fitted, unfitted
 
 
+def world_level_identity() -> dict:
+    """WHICH WORLD a run executed in, as something a later artefact can be compared against.
+
+    THE DEFECT THIS EXISTS FOR, and it is a class rather than an instance. A run's artefact records
+    `generated_at` and `producing_commit`, and neither answers the only question that matters to a
+    reader six days later: is the world this was measured in still the world? A commit hash is not
+    an answer -- it moves for every reason, so an artefact whose hash differs from HEAD is the
+    normal case and carries no signal at all. The LEVEL is the answer, because departure rate is
+    what decides how much book there is to win or lose, and it is the surface every value figure on
+    the page is measured over.
+
+    MEASURED ON 2026-09-03, and this is why it is a digest of the whole block rather than a version
+    string somebody remembers to bump. `value_cycle_ab_s1_three_arm.json` (2026-08-31) and its two
+    floor artefacts were published as the company's standing beat over a flat-rule baseline. The
+    anchor was re-fitted twice after they were written, and on ONE population -- the capture the
+    arms themselves ran on -- swapping the old block for the live one moves whole-book expected
+    departure by **+19.06pp summed across 2017-2024**, a mean absolute **2.70pp/yr**, up to
+    **+6.23pp in 2019**. Every published band is 0.5-3.6pp wide, so that is several bands' worth.
+    Nothing on the page could notice, because every control in this area asks whether a figure is
+    arithmetically right and none asked whether its world still existed.
+
+    A DIGEST AND NOT A DATE. Two runs an hour apart are the same world; two runs either side of a
+    re-fit are not, however close their stamps. `_staleness_caveat` in
+    `tools/generate_value_arms_data.py` compares two artefacts' timestamps to each other and is
+    right to -- but it can only ever say which of two runs is older, never whether either is
+    current. This says the second thing, and it says it about the quantity rather than the clock.
+
+    KEYED TO THE PROPERTY. The digest covers every year the accessor can answer for, fitted and
+    declared alike, so a re-fit changes it, retiring a year changes it, and a change that moves no
+    departure rate anywhere does not. It names no year and no value, so it cannot go stale: a run
+    in the live world matches whatever the live world happens to be, and there is no number here to
+    update when the block is re-fitted again.
+
+    `fitted` is carried beside the digest because a digest can only ever say SAME or DIFFERENT, and
+    a reader who is told "different" is owed which years and by how much.
+    """
+    record = sorted(_published_departure_rates())
+    anchors = {year: year_level_anchor(year) for year in record}
+    fitted, _ = anchor_coverage()
+    canonical = json.dumps(
+        {str(year): f"{value:.6f}" for year, value in sorted(anchors.items())},
+        sort_keys=True, separators=(",", ":"),
+    )
+    return {
+        "digest": hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16],
+        "anchors": anchors,
+        "fitted_years": sorted(fitted),
+        "declared_years": sorted(year for year in record if year not in fitted),
+        "what_this_identifies": (
+            "the departure LEVEL the world was running at -- `year_level_anchor` for every year "
+            "inside the published switching record, fitted and declared alike. Two runs sharing "
+            "this digest ran over the same departure surface; two that do not are different "
+            "worlds however close their timestamps, and no figure from one bounds a figure from "
+            "the other."
+        ),
+    }
+
+
 __all__ = [
     "FIT_COMPARISON_WINDOW",
     "NO_LEVEL_CORRECTION",
     "UNFITTED_YEARS",
     "YEAR_LEVEL_ANCHOR",
     "anchor_coverage",
+    "world_level_identity",
     "year_level_anchor",
 ]

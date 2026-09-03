@@ -130,6 +130,53 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 PRODUCING_COMMIT: str | None = current_head()
 PRODUCING_COMMIT_RESOLVED_AT: str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
+def world_identity() -> dict:
+    """WHICH WORLD this run executed in, beside the commit that built it, on every artefact.
+
+    A COMMIT HASH DOES NOT ANSWER THIS AND THAT IS WHY THIS FIELD EXISTS. `producing_commit` above
+    moves for every reason -- a docstring, a test, another lane's page -- so an artefact whose hash
+    differs from HEAD is the ordinary case and carries no signal. What a reader six days later
+    needs to know is whether the DEPARTURE LEVEL these figures were measured over is still the
+    live one, because that is the surface the whole comparison sits on: how much book there is to
+    lose is how much book the per-customer arm has to win back.
+
+    THE DEFECT, MEASURED (2026-09-03). The 2026-08-31 three-arm run and its two floor artefacts
+    were published as the standing beat over a flat-rule baseline. `simulation/
+    departure_level_anchor.py` was re-fitted twice afterwards, and on the arms' OWN capture
+    population the swap moves whole-book expected departure +19.06pp summed over 2017-2024 (mean
+    absolute 2.70pp/yr, +6.23pp at 2019) against published bands 0.5-3.6pp wide. Every artefact
+    read the same, every control stayed green, and no reader could tell.
+
+    RESOLVED AT IMPORT for the same reason `PRODUCING_COMMIT` is: this run takes hours and the tree
+    moves under it, so a digest taken at artefact assembly would name a world the figures were not
+    measured in -- the precise error the constant above exists to prevent, one field over.
+
+    Fails closed rather than omitting the key: a run that could not read the world's level block
+    says so, because a consumer that cannot tell "no world stamp" from "some world stamp" is the
+    fail-open shape this field replaces.
+    """
+    return dict(WORLD_IDENTITY)
+
+
+def _resolve_world_identity() -> dict:
+    try:
+        from simulation.departure_level_anchor import world_level_identity
+
+        return dict(world_level_identity(), unavailable_because=None)
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "the world's departure-level block could not be read in this process ({}), so "
+                "this run cannot name the world it ran in".format(exc)),
+        }
+
+
+#: The departure LEVEL this process bound, resolved once at import so every artefact the run
+#: writes names ONE world. See `world_identity`.
+WORLD_IDENTITY: dict = _resolve_world_identity()
+
 OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
 #: The noise-floor mode's own artefact. A SEPARATE file on purpose: it is the error bar ON
 #: `value_cycle_ab.json`, and writing it over the thing it qualifies would leave the published
@@ -2874,6 +2921,10 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # WHICH CODE MADE THIS, above every figure it made, because `generated_at` is the one
         # timestamp on this artefact that is guaranteed NOT to be when the numbers were decided.
         "producing_commit": producing_commit(),
+        # WHICH WORLD, beside which code. The commit says what was built; this says what departure
+        # level it was built over -- and that is the quantity a later reader has to compare, not
+        # the hash. See `world_identity`.
+        "world_identity": world_identity(),
         "report_end": report_end,
         # EVERY CLOCK USED IN THIS FILE, defined once and above every figure. `clock_audit`
         # resolves each figure's label against this and refuses a label that is not in it.
@@ -3270,6 +3321,10 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "producing_commit": producing_commit(),
+        # WHICH WORLD THIS BOUND WAS EARNED IN, and on a floor it is load-bearing rather than
+        # informational: a spread measured over one departure level is not an error bar on a point
+        # estimate measured over another. See `world_identity`.
+        "world_identity": world_identity(),
         "report_end": report_end,
         "what_this_is": (
             "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
@@ -3507,6 +3562,34 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                     "why_not": ("expected a floor with `redraw_scope.mode == {!r}` and got {!r}; "
                                 "refusing to decompose legs that do not name their own half"
                                 .format(expected, _mode(floor)))}
+
+    # ONE WORLD ACROSS ALL FOUR LEGS, OR NO DECOMPOSITION. This is the same refusal as the mode
+    # check above and for a stronger reason: a variance measured over one departure level is not a
+    # component of a variance measured over another, so legs from two worlds do not partition
+    # anything and their ratio is not a reconciliation. `c30b98048` (2026-08-31) is the filed
+    # instance of exactly this -- "the bound that decided 'cannot resolve' was measured in another
+    # world, and the new one is wider". Absence refuses too: a leg that cannot name its world
+    # cannot be shown to share one, and unknown provenance on a bound reads as fine unless
+    # something says otherwise.
+    worlds = {
+        name: ((leg or {}).get("world_identity") or {}).get("digest")
+        for name, leg in (("undecomposed", undecomposed), ("only", priced_only),
+                          ("except", priced_except), ("three_arm", three_arm))
+    }
+    unstamped = sorted(name for name, digest in worlds.items() if not digest)
+    if unstamped:
+        return {"available": False,
+                "why_not": ("these legs do not say which world they ran in ({}), so they cannot be "
+                            "shown to share one departure level; a variance measured over one "
+                            "level is not a component of a variance measured over another"
+                            .format(", ".join(unstamped)))}
+    if len(set(worlds.values())) > 1:
+        return {"available": False,
+                "why_not": ("these legs ran in {} different worlds ({}), so their variances do not "
+                            "partition one call stream and their ratio is not a reconciliation"
+                            .format(len(set(worlds.values())),
+                                    ", ".join(f"{n}={d}" for n, d in sorted(worlds.items()))))}
+
     # THE UNDECOMPOSED LEG MAY PREDATE THE KEY, AND ONLY THAT LEG. Every floor run before
     # 2026-08-29 re-drew the whole book because no other mode existed, so a missing `redraw_scope`
     # on this slot is provably `all` rather than ambiguous -- and this slot is used for ONE thing,
@@ -3600,6 +3683,12 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
             "The selection-figure noise floor cut into the half that a larger settled book buys "
             "down and the half it cannot touch, from two extra floor legs that partition one "
             "call stream, plus what each remedy would cost."),
+        # THE WORLD ALL FOUR LEGS AGREED ON. Composed, not resolved at write time: this artefact
+        # runs nothing, so stamping the world of the process that assembled it would name a world
+        # none of its figures were measured in. The refusal above is what makes one value correct
+        # here rather than a choice among four.
+        "world_identity": dict((three_arm.get("world_identity") or {}),
+                               agreed_across_legs=sorted(worlds)),
         "seeds": n_seeds,
         "contrast_gbp": contrast,
         "priced_decisions": priced,
