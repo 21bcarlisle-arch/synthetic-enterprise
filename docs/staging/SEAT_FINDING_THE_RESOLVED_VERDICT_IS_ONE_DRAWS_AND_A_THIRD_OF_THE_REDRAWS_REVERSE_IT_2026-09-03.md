@@ -93,3 +93,28 @@ estimate resolves and the re-draw mean does not — asserting that the page does
 `resolved: True` off it. The live artefacts are that subject: `value_advantage_gbp` on
 `value_cycle_ab_s1_noise_floor_20260903.json` straddles £991.46 at seed 33333 already, so this needs
 no new compute leg.
+
+---
+
+## Actioned 2026-09-03 — option 2, scoped to the current-world block
+
+**Discharged:** `tests/tools/test_generate_value_arms_data.py::test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it`, `tests/tools/test_generate_value_arms_data.py::test_MUTATION_the_stability_guard_fails_on_its_own_witness_and_only_there`, `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved` — the page no longer states a verdict its own floor's re-draws reverse, and the range that reverses it is in the headline.
+
+`_verdict_stability` re-asks the page's own rule of each seed's value through `_resolvable` — the
+same function that decides the published verdict, never a second implementation of it — and a split
+withholds in either direction. `_resolvable` itself is unchanged and its five other call sites are
+untouched, so no figure outside this block moved; that was pre-registered as P5 and graded in
+`docs/staging/records/SEAT_PREREGISTRATION_WHAT_WITHHOLDING_THE_ONE_DRAW_VERDICT_DOES_TO_THE_PAGE_2026-09-03.md`.
+
+**The third state is named, not folded in.** `resolved: None` previously meant only "no bound was
+read". It can now mean two things, so the withheld case keeps `bound_available: true` and carries
+`verdict_withheld_because`; three states a reader can tell apart, which is the conflation this file
+refuses elsewhere.
+
+**Two witnesses, because one is an equivalence.** The straddling floor alone is satisfied by a
+function that withholds unconditionally. The unanimous floor is the sole witness that the
+withholding is a judgement — and it is the mutation that would otherwise have survived.
+
+**What this does NOT do.** It does not settle whether the advantage is real; it stops the page
+claiming it is. Whether n=3 is enough seeds to state any verdict is untouched and is the next
+measurement — the "what would refute the whole approach" section above stands open.

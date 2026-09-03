@@ -2305,8 +2305,14 @@ def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world()
     assert bounded["bound_available"] is True, (
         "no subject reaches the bounding branch, so `bound_available` is still a constant and the "
         "floor leg now running cannot ever reach the page")
-    assert bounded["resolved"] in (True, False), (
-        "a bound was read and no verdict came of it, which is the state the block was in before")
+    # THE BOUND IS CONSUMED, in one of the two ways that are not silence. Keyed to the property
+    # and not to "a verdict is stated": on 2026-09-03 this block began WITHHOLDING a verdict its
+    # own floor's re-draws reverse, which is strictly more honest, and an assertion pinned to
+    # today's answer would have gone red for the page improving. What must never happen is a
+    # bound read and nothing said off it -- that is the state the block was in before.
+    assert bounded["resolved"] in (True, False) or bounded["verdict_withheld_because"], (
+        "a bound was read and neither a verdict nor a named reason for withholding one came of "
+        "it, which is the state the block was in before")
     assert bounded["bound_contrast"] == "value_advantage_gbp"
 
     # THE BOUND IS THIS CONTRAST'S OWN SPREAD, never the floor's published `selection_gbp_spread`.
@@ -2357,7 +2363,12 @@ def test_the_generator_reads_the_current_world_floor_from_its_own_constant(tmp_p
     assert cw["bound_available"] is True, (
         "`generate()` did not read the current-world floor from its own constant, so the page "
         "stays unbounded however many floor legs land: " + str(cw.get("why_no_bound"))[:200])
-    assert cw["resolved"] is not None
+    # Either a verdict or a named withholding -- see the sibling control for why this is not
+    # `resolved is not None`. The wiring defect this test exists for is the floor never being
+    # READ, and both outcomes prove it was.
+    assert cw["resolved"] is not None or cw["verdict_withheld_because"], (
+        "the floor was read and the block neither stated a verdict nor named why it withheld "
+        "one, so nothing downstream can tell a bound from no bound")
 
 
 def test_MUTATION_the_leg_guard_and_the_world_guard_each_fail_alone():
@@ -2394,6 +2405,120 @@ def test_MUTATION_the_leg_guard_and_the_world_guard_each_fail_alone():
         "witness the removal of the leg guard")
     assert gva._current_world_bound(only_leg, current, live)["bound_available"] is False, (
         "the leg guard is not what refuses the `only` leg")
+
+
+def _floor_with_advantages(floor: dict, values: list) -> dict:
+    """The same floor with its per-seed `value_advantage_gbp` replaced, and nothing else touched.
+
+    The bound is DERIVED from these rows, so substituting them moves the spread as well as the
+    verdicts -- which is the point: a witness has to be a floor that could really have been
+    measured, not a spread pasted next to values that never produced it.
+    """
+    seeds = [dict(seed, value_advantage_gbp=value)
+             for seed, value in zip(floor["seeds"], values)]
+    return dict(floor, seeds=seeds)
+
+
+def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
+    """A verdict is stated only if it survives being asked of a different draw of the quantity.
+
+    THE DEFECT IT PREVENTS. `value_advantage_gbp` is a SINGLE realisation; the bound beside it is
+    how far that same quantity moves across the floor's re-draws. Comparing the two answers "did
+    this draw land more than a spread from zero", not "is this figure distinguishable from zero".
+    On the live world the answer moves with the seed -- £1,467.23 and £2,433.70 clear £991.46 and
+    £450.99 does not -- so the page published `resolved: True` off a verdict a third of the
+    re-draws reverse, with the number that reverses it two lines below in the same payload.
+
+    WHY EVERY EARLIER CONTROL MISSED IT. Five mutation-proven guards sit on this block and all
+    five ask whether the bound is the RIGHT bound: right world, right leg, right contrast, real
+    timestamp, real seed rows. Every one is about the denominator's provenance. Nothing asked what
+    the NUMERATOR is, so a correct bound correctly attached to a single draw passes all of them.
+
+    TWO SUBJECTS, AND THE SECOND IS THE ONE THAT MAKES THIS A CONTROL. The straddling floor alone
+    would be satisfied by a function that withheld unconditionally -- "never state a verdict"
+    passes any assertion that no verdict was stated. The unanimous floor is the sole witness that
+    the withholding is a JUDGEMENT and not a constant, and it is the direct analogue of the world
+    and leg guards' sole witnesses in the sibling control.
+
+    Fires on: withholding unconditionally; withholding only the unflattering direction; folding
+    the withheld state into `bound_available: False` so a reader cannot tell "never measured"
+    from "one draw's"; or dropping the range from the reason.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
+                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                                      mode=gva.BOUNDING_REDRAW_MODE))
+
+    # WITNESS A -- the re-draws straddle the bound they generate. These are the live artefact's
+    # own three rows, which is why this needs no new compute leg.
+    straddling = _floor_with_advantages(admitted, [1467.230551, 2433.696987, 450.9949])
+    withheld = gva._current_world_contrast(current, superseded, straddling)
+    assert withheld["bound_available"] is True, (
+        "the straddling floor was refused outright, so this subject is witnessing the world or "
+        "leg guard rather than the stability one: " + str(withheld.get("why_no_bound"))[:160])
+    assert withheld["resolved"] is None, (
+        "the page stated a verdict off a floor whose own re-draws reverse it -- the verdict is a "
+        "property of which draw the three-arm run made, not of the company")
+    assert withheld["verdict_withheld_because"], (
+        "the verdict was withheld with no reason, so `resolved: None` now means both 'never "
+        "measured' and 'one draw's' and a reader cannot tell them apart")
+    # THE RANGE THAT REVERSES IT REACHES THE READER, not just the fact of withholding.
+    for edge in ("£451", "£2,434"):
+        assert edge in withheld["verdict_withheld_because"], (
+            "the reason withheld the range that reverses the verdict: "
+            + withheld["verdict_withheld_because"])
+
+    # WITNESS B -- SOLE WITNESS THAT THE WITHHOLDING IS A JUDGEMENT. Every re-draw clears its own
+    # spread by two orders of magnitude, so there is nothing unstable to find and a verdict is due.
+    unanimous = _floor_with_advantages(admitted, [10000.0, 10100.0, 10200.0])
+    stated = gva._current_world_contrast(current, superseded, unanimous)
+    assert stated["bound_available"] is True, (
+        "the unanimous floor was refused, so it cannot witness that withholding is conditional")
+    assert stated["resolved"] in (True, False), (
+        "no verdict was stated off a floor whose every re-draw agrees, so the block withholds "
+        "unconditionally and the guard above is an equivalence")
+    assert stated["verdict_withheld_because"] is None, (
+        "a reason for withholding was published beside a stated verdict")
+
+
+def test_MUTATION_the_stability_guard_fails_on_its_own_witness_and_only_there():
+    """Removing the stability guard must red on the straddling floor and change nothing else.
+
+    Run rather than argued: this block's history is a control that asserted a constant, and a
+    constant satisfies any assertion written against it. The mutation modelled here is the
+    well-meaning one -- "the bound is the right bound, so the verdict follows" -- which is exactly
+    the reasoning that shipped `resolved: True` on 2026-09-03.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
+                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                                      mode=gva.BOUNDING_REDRAW_MODE))
+    straddling = _floor_with_advantages(admitted, [1467.230551, 2433.696987, 450.9949])
+    unanimous = _floor_with_advantages(admitted, [10000.0, 10100.0, 10200.0])
+
+    # THE MUTANT'S ANSWER, computed the way the block did before the guard existed: the raw
+    # comparison of the point estimate to the spread, with no question asked of its stability.
+    bound = gva._current_world_bound(straddling, current, live)
+    unguarded = gva._resolvable(current["level_vs_selection"]["value_advantage_gbp"],
+                                bound.get("bound"))
+    assert unguarded is True, (
+        "the straddling floor does not resolve even without the guard, so it cannot witness the "
+        "guard's removal -- this subject proves nothing")
+    assert gva._current_world_contrast(current, superseded, straddling)["resolved"] is None, (
+        "the stability guard is not what withholds the verdict on the straddling floor")
+
+    # AND THE GUARD IS SILENT WHERE IT SHOULD BE. Same mutation, unanimous witness, no change --
+    # which is what stops the guard being "withhold everything" wearing a reason.
+    assert gva._verdict_stability(unanimous, gva._current_world_bound(
+        unanimous, current, live).get("bound"))["stable"] is True, (
+        "the guard reports the unanimous floor unstable, so it fires on every subject and its "
+        "red on the straddling one carries no information")
+    assert gva._current_world_contrast(current, superseded, unanimous)["resolved"] is not None, (
+        "the guard withheld a verdict on a floor whose re-draws all agree")
 
 
 def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypatch):

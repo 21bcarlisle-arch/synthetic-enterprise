@@ -2079,9 +2079,36 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         "cannot tell how current 'current' is")
 
     if cw.get("bound_available"):
-        # The page may state a verdict only once a bound measured in THIS world exists.
-        assert cw.get("resolved") is not None, (
-            "the feed claims a bound for the current world and states no verdict from it")
+        # A BOUND BUYS A VERDICT *OR* A NAMED REASON THERE IS NONE -- never silence, and never a
+        # bare verdict. This rung asserted `resolved is not None` outright until 2026-09-03, which
+        # was keyed to TODAY'S ANSWER ("a bound implies a verdict") rather than to the property.
+        # It went red the day the page became MORE honest -- withholding a verdict its own floor's
+        # re-draws reverse -- which is this project's own named backwards-control shape. The
+        # property is that the reader is never left to infer the verdict's absence.
+        withheld = cw.get("verdict_withheld_because")
+        assert cw.get("resolved") is not None or withheld, (
+            "the feed claims a bound for the current world, states no verdict from it, and gives "
+            "no reason -- 'no bound', 'did not clear' and 'the verdict is one draw's' are three "
+            "different states and a reader meets them as one")
+        if withheld:
+            # THE WITHHOLDING MUST REACH THE READER, with the range that reverses it. A payload
+            # that withholds while the page still prints CLEARS is the fail-open this whole rung
+            # exists for, pointed the other way.
+            assert "STATES NO VERDICT" in rendered, (
+                "the feed withheld the verdict ({}) and the page did not tell the reader"
+                .format(withheld[:120]))
+            assert "CLEARS" not in rendered, (
+                "the feed withheld the verdict and the page still states one")
+            stability = cw.get("verdict_stability") or {}
+            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+                figure = stability.get(edge)
+                assert isinstance(figure, (int, float)), (
+                    "the verdict was withheld for a range the feed does not carry, so the reason "
+                    "is unfalsifiable")
+                assert "£{:,.0f}".format(figure) in rendered, (
+                    "the page withheld the verdict without showing {} -- the reader is told there "
+                    "is no verdict and not what reverses it".format(edge))
+            return
         # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
         # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"
         # under a figure the site has in fact bounded.

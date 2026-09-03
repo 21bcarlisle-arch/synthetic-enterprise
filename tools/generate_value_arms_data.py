@@ -3178,6 +3178,53 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
     }
 
 
+def _verdict_stability(floor_current: dict | None, spread: dict | None) -> dict:
+    """Would the verdict survive being asked of a DIFFERENT draw of the same quantity?
+
+    THE DEFECT THIS REMOVES. `_current_world_bound` establishes that the bound is the right bound
+    -- this world, this leg, this contrast, a real timestamp, real seed rows. Five guards, each
+    mutation-proven, and every one of them is about the DENOMINATOR's provenance. Nothing asked
+    what the NUMERATOR is. It is `value_advantage_gbp` from the three-arm run, which made its own
+    single elasticity draw; the denominator is the dispersion of that same quantity across the
+    floor's re-draws. So `abs(value) > stdev` does not answer "is this figure distinguishable from
+    zero" -- it answers "did this particular draw land more than one spread from zero", and on the
+    live world the answer moves with the seed: 1,467.23 and 2,433.70 clear GBP 991.46 and 450.99
+    does not. One of three re-draws of the same quantity reverses the published verdict.
+
+    THE TEST IS THE PAGE'S OWN RULE, RE-ASKED -- never a second implementation of it. Each seed's
+    value goes through `_resolvable`, the same function that decides the published verdict, so
+    this cannot drift into answering a subtly different question than the one it guards. That
+    matters more than it looks: one legal rule with five implementations, fixed in one of them and
+    live in another a month later, is the defect class this repository names in its own CLAUDE.md.
+
+    UNANIMITY IN EITHER DIRECTION IS STABLE. A split withholds whichever way the point estimate
+    fell. Withholding only the flattering direction would make the asymmetry itself a bias, and
+    "we measured it and it did not clear" is as much a verdict as its opposite.
+
+    NOT A BOUND ON THE BOUND. This says nothing about whether n=3 is enough seeds; it says the
+    verdict in hand is one draw's. A larger seed family could collapse the range and let a verdict
+    be stated -- that is a measurement nobody has run, and this function must not be read as
+    having ruled on it.
+    """
+    stdev = _f((spread or {}).get("stdev_gbp"))
+    seeds = [s for s in ((floor_current or {}).get("seeds") or []) if isinstance(s, dict)]
+    values = [_f(seed.get(PAGE_FIGURE_CONTRAST)) for seed in seeds]
+    if stdev is None or len(values) < 2 or any(value is None for value in values):
+        return {"checked": False, "why_not": (
+            "the floor carries no usable seed rows for `{}`, so whether the verdict survives a "
+            "re-draw was not testable".format(PAGE_FIGURE_CONTRAST))}
+    verdicts = [_resolvable(value, spread) for value in values]
+    return {
+        "checked": True,
+        "n": len(values),
+        "redraw_values_gbp": values,
+        "redraw_resolving": sum(1 for verdict in verdicts if verdict is True),
+        "redraw_min_gbp": min(values),
+        "redraw_max_gbp": max(values),
+        "stable": len(set(verdicts)) == 1,
+    }
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
@@ -3258,9 +3305,35 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # larger claim, because the advantage itself collapsed from £12,071 to £2,336 between worlds.
     resolved = (_resolvable(advantage, bound.get("bound"))
                 if bound.get("bound_available") else None)
+    # AND THE VERDICT MUST SURVIVE A RE-DRAW BEFORE IT IS STATED. `resolved` above compares a
+    # SINGLE realisation to the dispersion of realisations; where the floor's own seed rows
+    # straddle the bound, that comparison is a property of which draw the three-arm run happened
+    # to make. The page then states no binary verdict and shows the range instead -- the figure
+    # and its bound both stay, because withholding a verdict is not withholding the measurement.
+    stability = (_verdict_stability(floor_current, bound.get("bound"))
+                 if bound.get("bound_available") else {"checked": False, "why_not": (
+                     "no bound was read in this world, so there was no verdict to re-draw")})
+    # A THIRD STATE, NAMED. Before this, `resolved: None` meant exactly one thing -- no bound was
+    # read. It can now mean two, so the withheld case carries its own reason and keeps
+    # `bound_available` true: "we never measured it" and "we measured it and one draw of three
+    # reverses it" are different states, and a reader who cannot tell them apart has been handed
+    # the conflation this file refuses everywhere else.
+    verdict_withheld_because = None
+    if resolved is not None and stability.get("checked") and not stability.get("stable"):
+        verdict_withheld_because = (
+            "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
+            "bound beside it is how far that same quantity moves across {n} re-draws of it. "
+            "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
+            "page could state a direction depends on which draw the run happened to make. It "
+            "states none. The re-draws themselves span £{lo:,.0f} to £{hi:,.0f}."
+        ).format(n=stability.get("n"), res=stability.get("redraw_resolving"),
+                 lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"))
+        resolved = None
     return {
         "available": True,
         "resolved": resolved,
+        "verdict_withheld_because": verdict_withheld_because,
+        "verdict_stability": stability,
         "live_world": live,
         "ran_in_world": ran_in,
         "generated_at": current.get("generated_at"),
@@ -3330,6 +3403,22 @@ def _current_world_clause(current_world: dict) -> str:
     # advantage did. A verdict that lets a reader take a collapse for a win is worse than none.
     stdev = _f((current_world.get("bound") or {}).get("stdev_gbp"))
     seeds = (current_world.get("bound") or {}).get("n")
+    # WITHHELD BEATS BOUNDED. A bound measured in the right world on the right leg still does not
+    # license a direction when the floor's own re-draws straddle it -- see `_verdict_stability`.
+    # The reader gets the range that reverses the verdict, in the headline, rather than a "CLEARS"
+    # whose stability they would have to reconstruct from `bound.min_gbp` further down the feed.
+    stability = current_world.get("verdict_stability") or {}
+    if current_world.get("verdict_withheld_because"):
+        return (opening + (
+            "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
+            "contrast re-drawn {n} times in this same world spans £{lo:,.0f} to £{hi:,.0f} "
+            "against a £{sd:,.0f} spread -- {res} of the {n} re-draws clear that spread and the "
+            "rest do not, so a direction here would be a property of which draw was made rather "
+            "than of the company. The figure and its bound are both published; the verdict is "
+            "withheld until it survives a re-draw. "
+        )).format(adv=advantage, when=when, sd=stdev if stdev is not None else 0,
+                  n=stability.get("n"), res=stability.get("redraw_resolving"),
+                  lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"))
     verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
                "same world" if current_world.get("resolved") else
                "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "
