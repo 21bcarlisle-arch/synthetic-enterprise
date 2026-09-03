@@ -268,3 +268,118 @@ Grade P4, P6 and P7 here against the landed artefact; update the `/capabilities/
 live-world pair and bound, **or state plainly that the floor still contains the contrast** — P7
 predicts it does; and grade P5's substantive clause on the digests, not on the `producing_commit`
 proxy §4 of the sibling pre-registration already flagged as the worse test.
+
+---
+
+## §3 SUPERSEDED — the unit is `d`, and the ETA above is calibrated on a CRASH
+
+*Delivery seat, 2026-09-03 18:45 BST, claim `pick-up-the-relaunched-undecomposed-floor-leg`.
+Measured from the running unit's own journal, not assumed. The §3 table above names
+`se-floor-all-20260903c`, which **failed** at 17:41 after 1h34m with exit 1 and wrote nothing; its
+worktree was reaped out from under it and it died on a relative-path write. §3 is kept because a
+superseded instruction beside its correction is the record; it is not actionable.*
+
+### The leg that is actually running
+
+| | |
+|---|---|
+| unit | `se-floor-all-20260903d.service` — **LAUNCH 4** |
+| started | 2026-09-03 17:45:25 BST, pid 3730923, ppid 382 (detached under user systemd) |
+| worktree | `/var/tmp/se-floorrun-20260903d` at commit `1d821e12b` — **`git worktree list` confirms `locked` at 18:42** |
+| `--out` | `/var/tmp/se-floor-artefacts/value_cycle_ab_s1_noise_floor_20260903.json` — outside every worktree |
+
+### The ETA is ~20:05 BST, not ~19:20 — and the difference is what launches a fifth run
+
+The doorbell commissioning this turn implies completion around 19:20 BST, which is 1h35m after
+launch. **That is launch 3's time-to-CRASH, not any leg's time-to-COMPLETE.** Calibrating a deadline
+on a failed run's duration is the phantom-outage shape §3 already recorded once through a stale unit
+name, arriving a second time through a stale clock: a seat that checks at 19:20, finds no artefact
+and concludes the leg died would launch the fifth run this claim explicitly forbids — and would kill
+a healthy 2h20m measurement to do it.
+
+Measured instead, from the journal of the unit that is running:
+
+* **The leg is 9 full-window passes, not 3.** `run_value_cycle_ab.py:3229` loops `for seed in seeds`
+  over the three noise-floor seeds, and each iteration calls `run_value_cycle_ab(level_arm=True)`,
+  which runs three arms — control, value, level. 3 seeds x 3 arms = 9.
+* **Cadence, from `=== SURVIVED full window` timestamps:** 18:06:26, 18:21:20, 18:34:01 — so
+  ~16, ~15 and ~13 minutes per pass, and the first pass began at 17:50:26 after ~5 minutes of data
+  loading. Seed 1's three arms took 17:50:26 -> 18:34:01, **43m35s per seed**.
+* **Therefore:** 3 seeds x ~43.5 min + ~5 min load = **~2h16m, finishing ~20:01–20:10 BST.**
+
+This agrees with the ~2h24m-per-floor-leg figure in the 2026-08-29 log that §3 of the sibling
+pre-registration already cites, and disagrees only with the doorbell.
+
+**Do not read an absent artefact as failure before ~20:15 BST.** The one question that settles it
+costs nothing and does not depend on any clock in this document:
+
+    systemctl --user is-active se-floor-all-20260903d
+
+`active` means running. Only `failed`/`inactive` with no artefact at `--out` is a dead leg, and even
+then the journal states the cause. **Do not launch a fifth run** on the strength of a timestamp.
+
+### Memory is the binding constraint while this runs — do not start a suite beside it
+
+At 18:36 BST `background.resource_headroom.sample()` returned **7,927.8 MB available** against the
+unit's **6.5 GB peak** (`systemctl show ... Memory: 4.4G (peak: 6.5G)`). An earlier leg of this same
+measurement was **OOM-killed** (`ExecMainStatus=9`). A full pytest run beside it is what turns a
+2h16m measurement into a fourth lost artefact, and the loss is silent — an OOM-killed leg writes
+nothing, which is indistinguishable from still-running. **Keep this turn to reads until the artefact
+lands.**
+
+### The grading procedure, ready to run
+
+Every guard in `_current_world_bound` was confirmed armed at 18:38 by reading the module, and
+`CURRENT_WORLD_NOISE_FLOOR_PATH` already points at
+`docs/observability/value_cycle_ab_s1_noise_floor_20260903.json` — so step (c) remains a file copy,
+not a code change. Copy the artefact there first, then grade with the real functions rather than by
+eye. **Print the three identity fields before any figure**: the `only` leg on disk carries the same
+digits, so a grader who opens the wrong file gets the right number.
+
+    import json, sys
+    from pathlib import Path
+    import tools.generate_value_arms_data as gva
+    from simulation.departure_level_anchor import world_level_identity
+
+    floor = json.loads(Path("docs/observability/"
+                            "value_cycle_ab_s1_noise_floor_20260903.json").read_text())
+    three = json.loads(gva.CURRENT_WORLD_THREE_ARM_PATH.read_text())
+    live  = world_level_identity()["digest"]
+
+    # IDENTITY FIRST -- mode must be 'all', generated_at after 17:45 BST, digest 39a192ce04c1eda8
+    print((floor.get("redraw_scope") or {}).get("mode"), floor.get("generated_at"),
+          (floor.get("world_identity") or {}).get("digest"))
+
+    spreads = gva._seed_spreads(floor, three)          # per-contrast, DERIVED from seed rows
+    print(gva._spread_for(spreads, gva.PAGE_FIGURE_CONTRAST))   # P9: ~991.4551, band 942-1041
+    print(gva._current_world_bound(floor, three, live))
+    print(gva._current_world_contrast(three, None, floor)["resolved"])   # P10: expected True
+
+Then grade, and **grade each prediction against the quantity it actually names**:
+
+| | predicted | read from | note |
+|---|---|---|---|
+| **P4** | `selection_gbp_spread.stdev` > 3776.27 | published scalar | |
+| **P6** | same stdev in 5,600–6,250; range ~10,983.77 | published scalar | blind, ±5% as filed |
+| **P7** | `selection_distinguishable_from_zero` is `false` | producer key, about `selection_gbp` | **its supporting arithmetic is wrong** — see below |
+| **P8** | seed rows reproduce the `only` leg exactly | seed rows | retrodiction, determinism check ONLY |
+| **P9** | `value_advantage_gbp` seed stdev = 991.4551 ±5% | **derived**, not published | blind |
+| **P10** | `_current_world_contrast(...)["resolved"]` is `True` | the page's own function | `None` = plumbing refusal, NOT a world result |
+
+**P7 and P10 predict opposite outcomes about the page, and P10 is the one keyed to the page's own
+quantity.** P7 divides `value_advantage_gbp` (£2,335.87) by the floor's published
+`selection_gbp_spread` (~£5,923) to get 0.39x and reads it as "comfortably inside". Those two figures
+count different things: `_current_world_bound` bounds the page on `value_advantage_gbp`'s **own**
+spread across the seed rows, which is ~£991.46 on the live-world `only` leg — **5.97x apart**, and in
+the direction that flips the verdict. `_current_world_bound`'s docstring names this exact
+substitution as the thing it was written to stop. Fully worked in
+`SEAT_PREREGISTRATION_P7_IS_GRADED_ON_A_QUANTITY_THAT_DOES_NOT_BOUND_THE_PAGE_2026-09-03.md`, which
+files P9 and P10 to replace it. So act (d) is most likely **"update the headline to the live-world
+pair and bound"**, not "state plainly that the floor still contains the contrast" — but that is
+P10's prediction and not a licence: read it off the artefact.
+
+**If P10 confirms, the headline may say the figure clears its own draw noise and nothing more.**
+`_resolvable` is a one-sigma test on three seeds, and the floor's own `value_advantage_gbp` mean is
+£1,030.10 rather than £0, so the floor is not a clean null. The advantage also collapsed from
+£12,071 to £2,336 between worlds. A resolved verdict says the figure clears its noise; it does not
+say the figure is large, durable, or the one published on 2026-08-31.
