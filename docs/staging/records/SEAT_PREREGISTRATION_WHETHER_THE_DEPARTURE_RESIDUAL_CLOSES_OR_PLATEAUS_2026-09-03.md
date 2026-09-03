@@ -143,10 +143,200 @@ To be completed **beside** these predictions, in this file, whichever way each g
 
 | | prediction | outcome |
 |---|---|---|
-| Q1 | mean distance outside does not halve again (≥0.215pp) | *pending* |
-| Q2 | at most 4 of 8 years in band | *pending* |
-| Q3 | 2017 or 2024 falls OUT of band | *pending* |
-| Q4 | 2017 or 2023 moves >0.50pp on a ~2% anchor move | *pending* |
-| Q5 | both margins fall, by less than pass 1 | *pending* |
-| Q6 | band unwidened | *pending* |
-| Q7 | anchor and capture in one commit | *pending* |
+| Q1 | mean distance outside does not halve again (≥0.215pp) | **REFUTED** — 0.4300 → **0.0663pp** |
+| Q2 | at most 4 of 8 years in band | **REFUTED** — 2 of 8 → **6 of 8** |
+| Q3 | 2017 or 2024 falls OUT of band | **REFUTED** — both stayed in |
+| Q4 | 2017 or 2023 moves >0.50pp on a ~2% anchor move | **REFUTED** — 0.13pp and 0.16pp |
+| Q5 | both margins fall, by less than pass 1 | **CONFIRMED** — −2.0% and −1.9%, on an established one-variable pair |
+| Q6 | band unwidened | **HELD** |
+| Q7 | anchor and capture in one commit | **HELD** |
+| Q8 | land only if the residual does not worsen | **LAND** — 0.0663 ≤ 0.4300 |
+
+---
+
+# GRADED, 2026-09-03 — I PREDICTED A PLATEAU AND GOT CONVERGENCE, ON ALL FOUR COUNTS
+
+Four predictions about the world, four refutations, and they were not close. The pass-2 block took
+the world from **2 of 8 years in band to 6 of 8**, cut the mean distance outside the band by **6.5×**,
+and did it while moving the company's headlines **against** it.
+
+## The measurement
+
+Capture: `docs/reports/c6_second_pass_departure_factors.json`, 133 renewal and 1,313 SVT
+decisions. **That is not the file this grading was originally taken on, and the difference is the
+most interesting thing in this document — see the replication section at the end.**
+
+| year | published | `c5` (pass-1) | `c6` (pass-2) | move | verdict |
+|---|---|---|---|---|---|
+| 2017 | 13.5–14.0 | 13.87 inside | **14.00** | +0.13 | inside → inside |
+| 2018 | 19.5–20.0 | 20.84 high 0.84 | **20.00** | −0.84 | **out → IN** |
+| 2019 | 20.7–21.3 | 19.38 low 1.32 | **21.30** | +1.92 | **out → IN** |
+| 2020 | 22.5–23.0 | 21.78 low 0.72 | **22.97** | +1.19 | **out → IN** |
+| 2021 | 17.9–18.4 | 17.79 low 0.11 | **18.53** | +0.74 | out → out (**high by 0.13**) |
+| 2022 |  2.9–4.3  |  2.51 low 0.39 |  **2.50** | −0.01 | out → out (low by 0.40) |
+| 2023 |  8.9–12.5 | 12.56 high 0.06 | **12.40** | −0.16 | **out → IN** |
+| 2024 | 12.5–16.1 | 15.82 inside | **15.96** | +0.14 | inside → inside |
+
+**In band 2 → 6. Mean distance outside 0.4300pp → 0.0663pp. Worst year 1.32pp (2019) → 0.40pp (2022).**
+
+## The pair is one-variable, and this time that had to be established rather than argued
+
+**Nine commits from other lanes landed between the run that produced `c5` and the run that produced
+`c6`.** "Same seed, same driver" was therefore not available as an argument, and pass 1's
+established control could not simply be cited across that gap.
+
+A control arm was run at this head with the pass-1 block still in place. It came out **byte-identical
+to `c5` in both halves** — md5 `bb671977a59be26887e14e893733c8af` on the renewal half, and `cmp`
+clean on the 669,959-byte SVT half. So those nine commits did not move the world, `c5` IS the
+control, and `c5`-vs-`c6` differs in the anchor block and in nothing else.
+
+Without that arm, every number above would have been two runs compared across a gap.
+
+## Why I was wrong, which is worth more than the result
+
+**I read the noise floor off the wrong denominator.** The whole file's reasoning rested on one
+sentence: *"the per-year renewal counts say why it would: 13 to 21 renewal decisions per year. A
+year's rate estimated off 17 draws carries several points of binomial noise."*
+
+The quantity being fitted is **not** estimated off 17 draws. It is the whole book: the denominator
+is accounts (41–59 a year) and roughly half its departures arrive on the SVT route, which carries
+**1,313 decisions**. I took the noise base from the renewal route — the sub-population the
+instrument's own banner warns is 51% of the departures — and applied it to a quantity computed over
+the book. A per-year `n` an order of magnitude too small made a converging sequence look like a
+random walk.
+
+**Q4 is the prediction that shows the error most cleanly, and it refuted itself in one line.** It
+said 2017 and 2023 — whose anchors moved ×1.017 and ×0.990, under 2% — would nonetheless swing more
+than 0.50pp, because capture noise would swamp the anchor signal. They moved **0.13pp and 0.16pp**.
+Years whose anchors barely moved barely moved. That is the *opposite* of noise domination: the
+anchor-to-outcome relation is tight, and the capture is far quieter than I assumed.
+
+**The round trips I built the plateau case on were not noise either.** 2020 went ×0.854 then ×1.161
+and 2018 ×1.127 then ×0.906, and I read those as a fit chasing its own sampling error. They were the
+fit correcting a pass-1 overshoot — and both years' whole-book rates moved decisively the right way
+in `c6` (2020 out → in, 2018 out → in). An oscillating *parameter* and an oscillating *outcome* are
+different things, and I inferred the second from the first without checking.
+
+## Q5 — CONFIRMED, and the trap detector did not fire
+
+Measured on the one-variable pair above:
+
+| | `c5` (control) | `c6` (treatment) | move |
+|---|---|---|---|
+| gross margin | £386,196.20 | £378,553.66 | **−2.0%** |
+| net margin | £120,932.62 | £118,614.39 | **−1.9%** |
+
+Both fall, as predicted, and both fall by **less** than pass 1's −3.8% and −4.4%, as predicted —
+which is what an eighth-the-size anchor nudge should do. **No headline improved**, so §8 prediction 3
+of `gb_switching_rate_denominators.md` did not fire, and the pre-committed reading rule for an
+improvement (>1% = detector firing; <1% = ambiguous) did not have to be used.
+
+§8 prediction 3 remains **unedited**, for the second tick running, against a drawn instruction in
+act (d) to invert it. Pass 1 established the instruction was written from the superseded capture's
+sign; pass 2 confirms the direction again — the correcting move raises departures and makes the book
+harder to hold.
+
+## Q6 — HELD, discharged by reading the artefacts rather than by recalling my conduct
+
+```
+$ git diff --stat HEAD -- docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json
+(empty)
+```
+
+`published_bands` in `tools/measure_departure_level.py` is untouched by this commit's diff; the
+edits to that file are the `DEFAULT_TABLE` repoint and its provenance comment, and no band value
+moves. The band was not widened, 2022 was not excluded, and the xfail was not re-keyed to "six of
+eight" — all three of which would have bought a green while the claim stayed false.
+
+## What this does NOT establish
+
+- **Not** that the world is in band. Six of eight is not eight of eight and the strict xfail stays
+  on. It is doing exactly what it was built for.
+- **Not** that 2021 is genuinely high. It is out by **0.13pp** on a book of ~53 accounts. Reporting
+  that in the same breath as 2019's old 1.32pp would be the verdict-not-margin error this
+  instrument's own banner warns about, twice.
+- **Not** that a third pass closes the last two years. **2022 cannot be closed by any fit**: it has
+  zero renewal decisions and the anchor has no path into `svt_inertia`. The knowledge map's standing
+  question — *"if it plateaus, the remaining gap is a mechanism question and not a calibration one"*
+  — is answered in an order it did not anticipate. It did **not** plateau; it converged, and the
+  residue that survived convergence is the mechanism question all along.
+- **Not** that the fit is exact going forward. It is exact on the population it was solved against
+  and approximate on the next, which is why `c6` is a re-capture and not the fit's own output.
+
+---
+
+## Q8 — the LANDING RULE, fixed before the capture is run
+
+Added 2026-09-03 immediately after this file was committed and **before**
+`tools/capture_departure_factors.py` was invoked for `c6`. The ordering is checkable: the commit
+carrying this file precedes `c6`'s mtime, and `c6` did not exist when this was written.
+
+It has to be fixed now because after the numbers are in it would be arguable either way, and
+"we ran a pass and kept whichever block looked better" is fitting to the answer.
+
+**I land the pass-2 block only if the residual does not WORSEN** — mean distance outside the
+published band on `c6` must be less than or equal to `c5`'s 0.43pp.
+
+- **Residual improves or holds** → land the pass-2 block with its capture, grade Q1–Q7.
+- **Residual worsens** → the live (pass-1) block STAYS, `c6` is landed as evidence and nothing
+  else, and the plateau is reported as measured rather than as predicted. A worsening pass is the
+  strongest possible evidence for Q1 and Q2 and it must not be buried by reverting quietly.
+
+Either branch is a result. Neither is a reason to run a third pass looking for a better draw —
+that is the fit-to-the-answer this rule exists to prevent.
+
+**Q8 GRADED: LAND.** `c6`'s mean distance outside the band is **0.0663pp** against `c5`'s
+**0.4300pp**. The residual improved by 6.5x, so the first branch applies and the pass-2 block lands
+with its capture. The "do not land" branch was never reached and is kept above rather than deleted,
+because a rule that is only ever read in the branch it took is not evidence that the other branch
+existed.
+
+---
+
+## THE REPLICATION — this pass was run TWICE, by two seats, in two worktrees, and the artefacts are byte-identical
+
+Everything above was measured in an isolated worktree on a capture this seat took and named
+`c6_pass2_departure_factors.json`. While it ran, **another seat drew the same Lane 0 item and did
+the same pass independently**, landing first at `8242dcc25` with a capture named
+`c6_second_pass_departure_factors.json`. Neither seat could see the other's work: origin showed
+nothing until the losing seat tried to promote.
+
+That is a duplicate, and duplicates are waste. It is written up here rather than quietly dropped
+because of what fell out of it — **an unplanned, genuinely independent replication of the whole
+pass**, which is a stronger form of evidence than either seat could have produced alone.
+
+| | this seat | the seat that landed | agree? |
+|---|---|---|---|
+| fitted 2017 anchor | 7.372584 | 7.372584 | **yes** |
+| fitted 2018–2024 anchors | 2.945347 / 6.637286 / 6.359296 / 5.641346 / 2.033232 / 4.259915 | identical | **yes** |
+| capture, renewal half | md5 `3c56848b7ba64b6761efaa730e61bc73` | md5 `3c56848b7ba64b6761efaa730e61bc73` | **BYTE-IDENTICAL** |
+| years in band | 2 of 8 → 6 of 8 | 2 of 8 → 6 of 8 | **yes** |
+| mean distance outside | 0.4300 → 0.0663pp | 0.425 → 0.066pp | yes (rounding) |
+| gross margin | £386,196.20 → £378,553.66 | identical | **yes** |
+| net margin | £120,932.62 → £118,614.39 | identical | **yes** |
+| control arm | byte-identical to `c5` in both halves | reproduced pass 1 "to the penny" | **yes** |
+
+**Two seats, two worktrees, two control arms, one answer to the byte.** The determinism the whole
+comparison rests on — that a re-run with nothing injected reproduces the prior capture exactly — has
+now been established four separate times across three days, twice today by writers who did not know
+the other existed.
+
+**And the two pre-registrations were NOT the same, which is the part worth keeping.** The other
+seat's (`SEAT_PREREGISTRATION_WHAT_THE_SECOND_REFIT_PASS_ON_C5_MUST_MOVE_2026-09-03.md`) predicted
+the pass would move the world in. **This one predicted a plateau, on four counts, and all four were
+refuted.** Two independent priors, opposite in direction, graded against one shared result — and the
+one that was wrong is this one. A record that kept only the correct prediction would be evidence of
+nothing.
+
+**What was adopted and what was kept.** The other seat's anchor block, capture, instrument repoint
+and xfail rewrite are on origin and this seat's duplicates of all four were discarded rather than
+merged — identical values, so there was nothing to reconcile and no case for a second capture of the
+same run sitting in `docs/reports/` under a second name, in a thread whose entire subject is
+instruments reading the wrong capture. The discarded commit is preserved at
+`refs/preserved/duplicate-pass2-040dbbff0` rather than deleted. What is kept is what only this lane
+has: this grading, and the finding on `capture_departure_factors.DEFAULT_OUT`.
+
+**The process defect this exposes, stated plainly:** two seats spent a full turn each on one item
+because a Lane 0 claim was drawn twice, and the claim store showed it held. Roughly thirty minutes of
+compute and two world runs bought a replication nobody asked for. Worth having once; not worth
+having by accident again.
