@@ -1,6 +1,33 @@
 {
   "available": true,
-  "basis_note": "Which of SLC 27.15's four sources each estimate actually came from. Three of the four are unreached by the live call site, which passes the registration EAC and nothing else \u2014 so the precedence this organ implements is exercised at one value.",
+  "basis_precedence": {
+    "excluded": [
+      {
+        "basis": "metered_history",
+        "label": "our own meter reads",
+        "reason": "DEFINITIONAL, and it will never lift by adding a field: the account is being opened. The supplier has issued no bill and taken no read on this supply point, so it holds no completed period of its own metering to annualise. SLC 27.15 puts this rung first because it IS first at an annual REVIEW -- and the review path here sizes from actual annual SPEND (company/billing/dd_review._recommended_monthly), not from a consumption estimate, so it does not enter through this module either. Measured 2026-09-03 across the whole live book of 257 supply points: 0 hold prior metering of ours at their acquisition date. Not 'most' -- none."
+      },
+      {
+        "basis": "customer_declared",
+        "label": "what the customer told us",
+        "reason": "A WORLD GAP, not a definitional one: a real supplier DOES collect a declared annual consumption at sign-up where the customer offers one, so unlike metered history this rung is reachable in principle and absent in fact. No supply point this world draws carries a declaration -- measured 2026-09-03 over the live and successor books, 0 of 257 -- so a parameter for it would have been a branch that could never execute. It returns to BASIS_ORDER on the day the registration flow carries a declaration and not before, and that is a fidelity decision for the world side, taken blind to company results like every other."
+      }
+    ],
+    "statement": "SLC 27.15 orders the information a supplier must size a direct debit from, best first. At the instant an account OPENS this company can walk 2 of those rungs; 2 it cannot reach at all, and those are not zeros \u2014 they are absences with reasons, given below.",
+    "unaccounted_for": {},
+    "walked": [
+      {
+        "basis": "registry_eac",
+        "label": "the industry EAC/AQ handed over at registration",
+        "n_accounts": 142
+      },
+      {
+        "basis": "tdcv_typical",
+        "label": "Ofgem's published typical values",
+        "n_accounts": 0
+      }
+    ]
+  },
   "basis_split": {
     "registry_eac": 142
   },

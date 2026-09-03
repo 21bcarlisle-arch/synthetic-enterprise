@@ -44,6 +44,7 @@ USAGE
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import date
 from pathlib import Path
@@ -114,6 +115,17 @@ def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
     These are the two INDEPENDENT ways the estimate arm can decline, and reporting
     only the combined `None` count would fuse them: an account can have a perfectly
     good EAC and still be refused because no price cap existed before January 2019.
+
+    THIS CALL PASSES ONLY WHAT THE OPENING INSTANT REACHES, and it is written that
+    way because it once was not. Until 2026-09-03 it also passed
+    ``metered_annual_kwh=None`` and ``declared_annual_kwh=None``; `4e1502524`
+    narrowed `estimate_annual_consumption` to the two rungs the live route walks and
+    removed both parameters, two hours after this module landed. From that commit
+    until the repair, EVERY invocation of this instrument died on a `TypeError` —
+    while its own six controls stayed green, because not one of them reached `run()`.
+    Do not re-add a keyword here to make a signature "match": the door is the
+    authority on which rungs exist, and a caller that names an excluded rung is
+    asserting the opening instant can reach it.
     """
     from company.billing.annual_consumption_estimate import estimate_annual_consumption
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
@@ -130,9 +142,7 @@ def _basis_and_rate_by_customer(customers: list[dict]) -> dict[str, dict]:
         est = estimate_annual_consumption(
             as_of=as_of,
             commodity=commodity,
-            metered_annual_kwh=None,
             registry_eac_kwh=float(eac) if eac else None,
-            declared_annual_kwh=None,
             band="MEDIUM" if not eac else None,
         )
         out[cid] = {
@@ -425,6 +435,21 @@ def run(run_output_path: Path) -> dict:
     return {
         "clock": {
             "substrate": str(run_output_path.relative_to(REPO_ROOT)),
+            # WHICH run output, not just which PATH. `run_output_latest.json` is a
+            # moving name -- it is rewritten every publish -- so a comparison that
+            # cites only the filename cannot be checked against the book it was
+            # actually measured over, and a reader re-running it a week later gets
+            # different numbers with no way to tell that the substrate moved.
+            #
+            # THIS FIELD WAS ALREADY BEING PUBLISHED AND HAD NO PRODUCER. The live
+            # feed at `site/data/dd_opening_arms.json` carried `substrate_sha256`
+            # while no code anywhere in the tree emitted it: some lane computed it in
+            # an uncommitted `publish_view` and landed the OUTPUT without the code.
+            # The value was correct -- it reproduces byte for byte here -- which is
+            # exactly what made it dangerous: the next honest republish would have
+            # deleted a true provenance field and looked like the removal was
+            # deliberate.
+            "substrate_sha256": hashlib.sha256(run_output_path.read_bytes()).hexdigest(),
             "n_bills": len(bills),
             "basis": "one-seed, two-arm; both arms are pure functions of these bills",
         },
@@ -450,6 +475,81 @@ def run(run_output_path: Path) -> dict:
 #: the ledger -- so `billed` is the only honest label, and it is the reason none of
 #: them can be reconciled against a settled-realised headline.
 PUBLISHED_CLOCK = "billed"
+
+#: Reader-facing names for the rungs of SLC 27.15's ordering. A LOOKUP, not a list:
+#: nothing here decides which rungs exist or in what order — `BASIS_ORDER` and
+#: `NOT_REACHABLE_AT_OPENING` in the company module are the only authority on that,
+#: and a rung with no entry here is published under its own machine name rather than
+#: dropped. That fail-open-to-visible direction is deliberate: an unlabelled rung on
+#: the page is untidy, a silently missing one is a false statement about what the
+#: supplier considered.
+BASIS_READER_NAMES: Mapping[str, str] = {
+    "metered_history": "our own meter reads",
+    "registry_eac": "the industry EAC/AQ handed over at registration",
+    "customer_declared": "what the customer told us",
+    "tdcv_typical": "Ofgem's published typical values",
+}
+
+
+def basis_precedence_view(basis_split: Mapping[str, int]) -> dict:
+    """The precedence as the reader meets it: which rungs this company WALKS, with
+    how many accounts each one carried, and which it CANNOT walk, with why.
+
+    DERIVED FROM THE COMPANY MODULE, never authored here, and that is the whole point
+    of the function. The block this replaced was a prose sentence reading "SLC 27.15's
+    four sources … three of the four are unreached", and the page beside it rendered a
+    hard-coded four-row split. When `4e1502524` narrowed the precedence to the two
+    rungs the opening instant can actually reach, both went silently false and stayed
+    published: the reader was shown `our own meter reads 0`, which says the supplier
+    LOOKED AND FOUND NONE, when the truth is that the account is being opened and
+    there is nothing to look at. A control keyed to today's count would have rotted
+    the same way, so there is no count here to key to.
+
+    **An excluded rung is not a zero.** They are rendered as separate things with
+    separate reasons because their reasons are of different KINDS — one definitional
+    and permanent, one a world gap that lifts the day the registration flow carries a
+    declaration — and collapsing them into one "no data" row is the distinction
+    `NOT_REACHABLE_AT_OPENING` exists to keep.
+    """
+    from company.billing.annual_consumption_estimate import (
+        BASIS_ORDER,
+        NOT_REACHABLE_AT_OPENING,
+    )
+
+    walked = [
+        {
+            "basis": b.value,
+            "label": BASIS_READER_NAMES.get(b.value, b.value),
+            "n_accounts": int(basis_split.get(b.value, 0)),
+        }
+        for b in BASIS_ORDER
+    ]
+    excluded = [
+        {
+            "basis": x.basis.value,
+            "label": BASIS_READER_NAMES.get(x.basis.value, x.basis.value),
+            "reason": x.reason,
+        }
+        for x in NOT_REACHABLE_AT_OPENING
+    ]
+    # Anything the run resolved to that the declared precedence does not name. Should
+    # be empty; published rather than dropped, because a basis appearing in the data
+    # and not in the order is a disagreement between the organ and its own contract,
+    # and silently discarding it is how that disagreement stays invisible.
+    named = {b.value for b in BASIS_ORDER} | {x.basis.value for x in NOT_REACHABLE_AT_OPENING}
+    unaccounted = {k: v for k, v in basis_split.items() if k not in named}
+    return {
+        "walked": walked,
+        "excluded": excluded,
+        "unaccounted_for": unaccounted,
+        "statement": (
+            "SLC 27.15 orders the information a supplier must size a direct debit from, best "
+            "first. At the instant an account OPENS this company can walk {n_walked} of those "
+            "rungs; {n_excluded} it cannot reach at all, and those are not zeros — they are "
+            "absences with reasons, given below.".format(
+                n_walked=len(walked), n_excluded=len(excluded))
+        ),
+    }
 
 
 def publish_view(result: dict | None) -> dict:
@@ -494,6 +594,11 @@ def publish_view(result: dict | None) -> dict:
             "billed clock and cannot be reconciled against a settled-realised headline."
         ),
         "substrate": (result.get("clock") or {}).get("substrate"),
+        # Carried through from the artefact rather than recomputed: `publish_view` is
+        # handed a parsed result and never the substrate file, so hashing here would
+        # be hashing whatever `run_output_latest.json` says TODAY and attributing it
+        # to a measurement made when it said something else.
+        "substrate_sha256": (result.get("clock") or {}).get("substrate_sha256"),
         "n_bills": (result.get("clock") or {}).get("n_bills"),
         "headline": (
             "Sizing the opening direct debit from an annualised estimate instead of from the "
@@ -545,11 +650,12 @@ def publish_view(result: dict | None) -> dict:
             ),
         },
         "basis_split": pa.get("basis_split_of_estimated_accounts") or {},
-        "basis_note": (
-            "Which of SLC 27.15's four sources each estimate actually came from. Three of the "
-            "four are unreached by the live call site, which passes the registration EAC and "
-            "nothing else — so the precedence this organ implements is exercised at one value."
-        ),
+        # DERIVED from `BASIS_ORDER` and `NOT_REACHABLE_AT_OPENING`, so returning a rung
+        # to the precedence changes this page and nobody edits this page. What was here
+        # before was a sentence counting to four, and it went false two hours after it
+        # was published without anything noticing.
+        "basis_precedence": basis_precedence_view(
+            pa.get("basis_split_of_estimated_accounts") or {}),
     }
 
 
