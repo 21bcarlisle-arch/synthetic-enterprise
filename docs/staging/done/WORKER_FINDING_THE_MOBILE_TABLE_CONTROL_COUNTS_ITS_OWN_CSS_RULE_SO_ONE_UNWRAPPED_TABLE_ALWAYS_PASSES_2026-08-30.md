@@ -95,3 +95,60 @@ R15 for the repair, when it lands: delete one wrapper from `explore` (9 tables, 
 leaves 8 real wrappers and 9 occurrences). The shipped control passes; the repaired one reds.
 That door is the right subject precisely because it has enough tables for the off-by-one to be
 invisible on it.
+
+---
+
+## DISCHARGED 2026-08-30 — repaired, with the mutation this document specified
+
+**Severity: LATENT → RECORDED.** The repair landed as directed by
+`DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30`, item (d).
+
+### What replaced the count
+
+Not "count the wrapper openings" as this document proposed, but the property under it:
+**adjacency**. `unwrapped_tables(html)` in `site/test_expert_doors_mobile.py` returns the source
+offset of every `<table` **not opened immediately inside** `<div class="table-scroll">`, after
+JS string-concatenation glue (`' + '`) is removed so one rule reads both the hand-written and the
+built shapes.
+
+Counting openings would have fixed the off-by-one and kept two weaknesses this document had
+already half-spotted. A count still cannot tell **one table wrapped twice** from **two tables
+wrapped once**; and it still measures totals rather than tables, so a page could satisfy it with
+its wrappers in the wrong places. Adjacency has no slack at all, because each `<table` is judged
+on its own — the CSS rule and the comment can never satisfy it, so neither needs excluding.
+
+The failure message now names the **source line** of each loose table instead of reporting a
+shortfall in a total.
+
+### The mutation this document prescribed, run
+
+> *"delete one wrapper from `explore` (9 tables, so one deletion leaves 8 real wrappers and 9
+> occurrences). The shipped control passes; the repaired one reds."*
+
+```
+explore, one wrapper deleted -> 9 tables, 9 `table-scroll` occurrences, 8 real wrappers
+
+  REPAIRED: explore: 1 of 9 table(s) not opened inside <div class="table-scroll">
+            (near source line(s) [327]) -- a wide table there scrolls the whole body   FAIL
+  OLD     : 9 >= 9                                                                     PASS (blind)
+```
+
+Prediction met exactly. Also run on `harness` (1 table, CSS rule left in place): repaired FAILs,
+old PASSes. Both doors restored and the restore verified clean against HEAD.
+
+### The comment wrinkle, closed
+
+This document noted that the repair commit's own code comment mentioning `table-scroll` inflated
+capabilities' counter further — *"a control that a comment can move is measuring the file, not the
+page"*. Confirmed at 7 occurrences against 5 tables, so the slack there was **two**, not one. Under
+adjacency the comment is inert: it is not an element, so it cannot open around anything.
+
+### Proof the repair itself can fail
+
+`test_the_table_scroll_check_can_fail` carries the blind spots as fixtures — a lone table beside
+the CSS rule; capabilities' comment-plus-rule shape (expects exactly 2); one wrapped and one bare
+(expects exactly 1); a wrapper that wraps something *else* not covering a later bare table; and the
+honest shapes staying green, including across the `' + '` join.
+
+**Exposure remains zero** — all three table-rendering doors are genuinely covered — but the control
+now enforces what it says, rather than "at most one table may be missing its container".

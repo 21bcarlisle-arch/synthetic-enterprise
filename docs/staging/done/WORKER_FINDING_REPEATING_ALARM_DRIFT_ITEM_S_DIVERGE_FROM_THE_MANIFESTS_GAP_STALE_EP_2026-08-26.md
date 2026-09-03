@@ -42,6 +42,9 @@ files a fresh document, because that is a new episode and an R3 two-strike signa
 ## Still live
 - **2026-08-27** — still live. 13 repeats over 10.8h without the state changing. No second document filed: this condition already has one.
 - **2026-08-28** — still live. 41 repeats over 35.1h without the state changing. No second document filed: this condition already has one.
-
+- **2026-08-29** — still live. 3 repeats over 2.0h without the state changing. No second document filed: this condition already has one.
+- **2026-08-30** — still live. 26 repeats over 26.6h without the state changing. No second document filed: this condition already has one.
+- **2026-08-31** — still live. 15 repeats over 13.5h without the state changing. No second document filed: this condition already has one.
 ## Instances seen
 - `drift — # item(s) diverge from the manifests: ✗ [gap:stale] ep#_clv_three_horizon ✗ [gap:stale] pb#_book_growth_as_earne` (first seen 2026-08-28)
+- `drift — # item(s) diverge from the manifests: ✗ [gap:stale] ep#_clv_three_horizon ✗ [gap:measured_not_landed] pb#_book_g` (first seen 2026-08-30)

@@ -213,4 +213,131 @@ the ceiling must stop being invisible in the published figures.
 
 Recorded as its own item rather than fixed here (SELF_INTERRUPT_DISCIPLINE).
 
+## THE RULING, 2026-08-28 — delivery seat, and it is NEITHER of the two options
+
+**Landed with the founder book.** The ruling is in the code it rules on
+(`net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET`) rather than only here, because a ruling a
+reader of the module cannot find is a ruling that will be re-litigated.
+
+**The question could not be answered as posed, and the reason is measured rather than argued.**
+I ran it, one variable at a time, at the same seed:
+
+| | founders 13 | founders 80 |
+|---|---|---|
+| quotes paid for | 1,066 | 2,089 |
+| wins the FUNNEL gave | 200 | 380 |
+| wins BOOKED | 200 | 45 |
+| wins refused by THIS MACHINE | 0 | **335** |
+| **funnel conversion** | **18.8%** | **18.2%** |
+
+**There was no supplier marketing past its capacity.** The company converts at the same rate on a
+book six times deeper; 335 of the 380 wins (88%) were won and then refused a place on the book by
+an engineering ceiling that does not exist in the modelled world. The 2.6% was quotes over BOOKED
+wins, and the seat note above was right that this mixes a commercial class with a harness one.
+
+**So the director's reading is refuted on its first clause and delivered on its second.** His
+direction was *"my reading, to act on unless the evidence says otherwise: it is a company defect —
+the growth desk should stop paying for leads it has no capacity to serve — but the behaviour must
+remain OBSERVABLE."* The evidence says otherwise on the defect: making the growth desk stop quoting
+would have tuned the company to hide a machine limit, and would have put that limit into a
+commercial decision. The observability clause stands verbatim and is what shipped.
+
+**What WAS a defect is a wall breach, and it is fixed.** The refused wins were being fed back to
+the company's own planner, so its `realised_win_rate` read 1.7% instead of 17.9% and its quote
+budget went from 135 to 2,000: it bought 2,826 quotes (£62,812) to book 45 accounts. A supplier
+responding rationally to a number the harness made up. It now plans on `funnel_wins` — what its own
+funnel converted, which is the only thing it can actually know — and buys 2,089 (£46,408). **At 13
+founders the fix changes nothing at all (1,066/200/200, byte-identical)**, which is what says it is
+aimed at the artefact and not at the answer, and it means no currently-published figure moves
+because of it.
+
+### What shipped
+
+- `funnel_wins` and `wins_refused_by_settlement_budget` on every `by_year` row and as campaign
+  totals, with `funnel_wins == wins + refused` asserted on each row and against the spend ledger.
+- The settlement note carries the COUNT of refused wins, not just the first prospect's id.
+- `wins_to_date` feeds the planner the funnel's verdict, not the book's.
+- Four controls: the split, its null control (nothing refused → zero, and no note), the wall test
+  on a fixture where booked and funnel wins actually differ, and the 29-February class below.
+- The four red tests re-baselined WITH the cause split and attributed in the header: +1,023 quotes
+  from the deeper book (more opening capital), −737 from the wall fix.
+
+### One thing the founder book exposed that nobody predicted
+
+**A term starting 29 February crashed the whole run.** `d.replace(year=d.year - 1)` raises
+`ValueError` on a leap day; the 80 founders are dated across 2016 and one landed on the 29th, so
+`run_phase2b._company_eac_estimate` took the run down. Fixed as a class
+(`simulation.customer_events.twelve_month_window_open`, 1 March, matching the convention
+`fit_legacy_register` already had inlined) with a sweep over a whole leap cycle. Four other call
+sites share the shape and are NOT fixed here — `customer_events` and `run_phase2b` were the two
+that could reach a leap day in this run. **Queued, not fixed on sight.**
+
+### What is NOT discharged and stays open
+
+Items 3 and 4 of WORK THIS CREATES: everything downstream re-runs against a different supplier, and
+the priced menu still needs its two corrections carried back. And the item another lane appended
+above — that from 2018 the published book is the settlement ceiling rather than the funnel's
+verdict — is now MEASURED (380 funnel wins, 45 booked) and reportable, but not resolved.
+
 ## Still live
+
+## 2026-08-28, AFTER THE LANDING — the founders were charged for and never delivered
+
+The ruling above is sound and stands. What none of it checked is whether the director's act
+delivered the thing it was bought for, and it did not: **67 of the 80 founders never reached the
+served book.**
+
+**The two sides are different functions.** `_pre_growth_book` — what the campaign PLANS against —
+read `founder_book(seed)`. `live_population` — what the company SERVES, bills and publishes —
+rebuilt its opening book from the 13-account `CUSTOMERS` literal. So the campaign committed 800 of
+its 1,200 customer-years to 80 founders, refused 335 of its own funnel wins to pay for them, and
+then 67 of those founders existed nowhere a reader could see.
+
+Measured at the run's own seed (20260724), one variable at a time:
+
+| | founders 13 | founders 80, as landed | founders 80, fixed |
+|---|---|---|---|
+| campaign plans against | 15 | 82 | 82 |
+| **published book** | **398** | **100** | **167** |
+| founders in the published book | 13/13 | **13/80** | **80/80** |
+| accounts with ≥5 renewals | 92 | 98 | **165** |
+
+**As landed, the act bought to make the book deeper made it four times shallower** — 398 to 100 —
+for six extra deep accounts. Fixed, it does what it was bought for: 92 → 165.
+
+**Why the shipped tests all passed.** `test_the_opening_book_reaches_the_growth_plan` pins
+`_pre_growth_book`, the planning side. Nothing pinned the served side. A count would not have
+caught it either — 13 static + 2 trickle + 85 won = 100 looks like a book, and the campaign's own
+wins made up the difference. The new control asserts the founders are present **by id**.
+
+### What shipped with the fix
+
+- `live_population` builds its opening book from `founder_book(seed)`; drawn founders are
+  registered as supply points as the trickle and the wins already were.
+- **The draw flag now gates founders in one place** (`founder_book`), so the planned and served
+  books cannot disagree again. This restores the flag-off byte-identical guarantee the seam tests
+  assert.
+- `_gas_aq_kwh` extracted from `_gas_leg_for`: a drawn founder can BE a gas account (22 of 80
+  were), unlike a campaign win, which is always won on electricity. Its record carried no
+  `aq_kwh`, so the first one took `run_phase2b.TOTAL_GAS_AQ` down with the identical `KeyError`
+  `net_new_acquisition.ELECTRICITY_ONLY` had already named. Fail-closed and skipped, never
+  defaulted — the draw has headroom, so the director's number is still met without inventing an AQ.
+- `live_premises` registers founders' dwellings from the SAME draw as the book (B12:
+  `build_properties` raises `DwellingNotDrawn` otherwise). One draw, so the register cannot hold a
+  founder the book lacks.
+- Three seam controls had their SUBJECT split rather than their bounds widened: two draws now
+  share the `SYN-` prefix, and the trickle's "≤15, not the 200-pool" guard would have been
+  destroyed by raising it to swallow 80 founders.
+- The 13-founder run is byte-identical across the whole fix (398 accounts, 92 deep), which is what
+  says it is aimed at the artefact and not the answer.
+
+### Still open, and item 3 above is now bigger
+
+**Every published figure moves again**, and further than the landing implied — the book is 167,
+not the 100 the tree published between these two commits and not the 127 the correction quoted.
+The A/B, the ladder, the method skill and the site all need re-running against it.
+
+**The priced menu's corrections are carried back** (item 4, discharged): the premise had already
+expired — 92 accounts carried 5+ renewals before the act, not the 37 P9 was argued from, because
+R1's sourced costs made quotes cheap enough for the campaign to win its own depth. The act is still
+worth its place, but as an improvement on a working book rather than the rescue of a broken one.

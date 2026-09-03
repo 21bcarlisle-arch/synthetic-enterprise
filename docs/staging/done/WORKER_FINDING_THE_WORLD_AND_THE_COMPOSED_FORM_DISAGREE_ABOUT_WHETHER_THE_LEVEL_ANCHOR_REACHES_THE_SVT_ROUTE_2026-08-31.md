@@ -90,3 +90,66 @@ invalidates a cached `.pyc` on **(mtime, size)** — both matched, so the second
 flattering answer**, which is a control that cannot fail, one level up from the controls it is
 grading. Re-run under `python3 -B` with `PYTHONDONTWRITEBYTECODE=1`, all seven fire. Any future
 mutation pass in this repo should disable bytecode caching by default rather than remember this.
+---
+
+## Correction, appended 2026-08-31 by the delivery seat: LATENT expired, and the prediction came true
+
+**The severity above was keyed to a fact that stopped being true three commits later, and nothing
+noticed.** The reasoning was *"the wrong line is unreachable — `build_departure_risks` defaults
+`svt_inertia` to 0.0 and no production caller passes it"*, and it was correct when written.
+
+`6db30a350` ("the SVT belief can finally tell two households apart") landed the SVT roll. At HEAD
+`fd8c78303`, `simulation/run_phase2b.py:1567` reads:
+
+    _svt_risks = build_departure_risks(
+        ...
+        level_anchor=year_level_anchor(int(term_start_str[:4])),
+        svt_inertia=_svt_hazard,
+    )
+
+and `simulation/departure_risks.py:291` at that same HEAD still read
+`_clip_hazard(level_anchor * svt_inertia * action_propensity)`. **Both halves in one call.** The
+paragraph above predicted, in its own words, that *"the first commit to wire the SVT roll through
+`build_departure_risks` would silently triple the world's SVT departure rate"*. It did, and it was
+live for three commits. The prediction is confirmed by the thing it predicted, which is the only
+respect in which this went well.
+
+**Measured, not asserted.** Across the committed anchor range 1.5241–4.5973 the SVT hazard moves
+0.076206 → 0.229866 for the same household, and a year of drift recomposes to **46–92%/yr against
+a published 10–20%/yr**.
+
+### Why nothing went red, which is the transferable part
+
+The only guard was `tools/fit_year_level_anchor.svt_composition_refusal` — and it fires at **FIT**
+time, on a **capture**, after a run. Between the world running wrong and anything refusing sat a
+whole capture→fit cycle that nobody had run yet. A control downstream of an artefact cannot catch a
+world that has not been captured since it broke.
+
+**And the severity itself was the fail-open.** "LATENT because no caller passes it" is a verdict
+about *today's call graph*, not about the property, and it expires silently the moment a caller
+appears — the shape CLAUDE.md names as *key a control to the property, not to today's answer*,
+arriving through a severity field instead of an assertion. The finding did the right thing by
+naming the future commit that would break it; what it could not do was make that commit notice.
+
+### What landed with this correction
+
+1. **The repair**, adopted from the working tree where it had been left uncommitted:
+   `level_anchor *` is gone from the `CAUSE_SVT_INERTIA` line. The finding said the repair
+   *"belongs in the commit that lands the SVT roll"*; that commit came and went without it, so it
+   belongs here instead.
+2. **A control keyed to the property, not to the call graph** —
+   `tests/simulation/test_departure_risks.py::test_the_level_anchor_scales_the_response_risks_and_never_the_svt_route`.
+   Three legs, each mutation-proven in an isolated `/tmp` copy under `python3 -B` (a full suite
+   sweep and a live `process_run_complete` were reading the shared tree):
+
+   | mutation | leg that fired |
+   |---|---|
+   | reinstate `level_anchor *` on the SVT line | (a) SVT invariance — reported 46–92%/yr |
+   | strip `level_anchor *` from the three response lines | (b) the anti-fail-open leg |
+   | scale SVT by a **constant** 1.5 instead | (c) real-input recomposition — 28.8% vs 20% |
+
+   Leg (b) is the one that matters structurally: without it, leg (a) passes on code where
+   `level_anchor` reaches nothing at all, which is the same fail-open one level up.
+
+**Still owed and NOT closed by this**: the `population_anchor._churn_by_year` missing-row item
+below, which needs the consumer sweep first.

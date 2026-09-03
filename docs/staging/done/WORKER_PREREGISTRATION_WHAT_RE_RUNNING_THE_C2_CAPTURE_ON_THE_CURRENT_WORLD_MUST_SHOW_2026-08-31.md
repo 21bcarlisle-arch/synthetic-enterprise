@@ -72,3 +72,38 @@ believe there is none, but the run is what settles it.
   departure route to see.
 
 Either way the honest `None` on the page is not touched by a number picked to fill it.
+---
+
+## THE RESULT, 2026-08-31, and the prediction above was WRONG
+
+**P2 is refuted, and with it the whole of reading (B).** `capture_departure_factors` on the current
+world writes `c2_departure_factors_svt_segment_decisions.json` with **1,221 SVT segment decisions,
+49 of them `churned` with `departure_cause: svt_inertia`** — not the empty list this file predicted,
+and no `⚠ NO SVT SEGMENT DECISIONS CAPTURED` line. P3 falls with it: the recorder is wired and
+`run_phase2b` returns the key. P4's named test does not exist under that name, so the leg that was
+supposed to corroborate (B) could not have been read either way — I should have checked that the
+test existed before resting a prediction on its colour.
+
+So the draw's premise was right and mine was wrong: **the data was not missing, it was under
+another capture's name.** I filed the alternative because a comment at
+`tests/architecture/test_churn_carries_per_customer_signal.py:19-26` asserted it in prose, and I
+wrote in this file that a comment is not a control — then treated it as evidence strong enough to
+build a whole branch on anyway. The ten minutes this pre-registration was meant to buy were spent
+on the wrong ten minutes: the capture itself was the cheap check, not the reading of it.
+
+**What (A) confirmed meant in practice**, per the plan above: capture, re-fit, republish. Done. The
+mix now declares `covers_svt_route: true`, `routes_readable: ['renewal', 'svt_segment']`,
+`share_of_departures_visible: 0.4167`, `causes_not_observable: []` — every field earned by a file
+that exists, none of it touched by hand.
+
+**P5 was right about the mechanism and it still matters.** `declare_rows` does compute
+`covers_svt = svt_rows is not None`, so an empty-and-reasoned sibling would still certify the
+renewal route as seeing 100% of departures. That fail-open was not reached today because the
+sibling came back populated — it was not repaired, and it is not this atom's to repair. It is the
+one thing from this file worth carrying forward.
+
+**And the re-fit exposed what the draw could not have known.** With both routes declared, three
+controls and two prose sentences turned out to have been keyed to the *state* of
+`c2_departure_factors.json` rather than to their property, and went red or false for the capture
+becoming more honest — including the null control inside the very file whose docstring forbids
+exactly that. Repaired in the same commit; the detail is in the commit message.

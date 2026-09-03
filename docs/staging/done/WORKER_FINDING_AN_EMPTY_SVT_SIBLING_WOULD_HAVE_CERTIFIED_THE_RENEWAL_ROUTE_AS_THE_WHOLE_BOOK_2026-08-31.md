@@ -10,6 +10,49 @@ Subject: `tools/capture_departure_factors.py`, `tools/departure_population.py`,
 
 ---
 
+## CORRECTION, 2026-08-31, later the same day: the diagnosis below is SUPERSEDED, the mechanism is NOT
+
+Everything from here to "What is still owed" was written against a tree in which the SVT departure
+route did not exist. **It does now, and it is committed**, so the two headline claims below are
+wrong at this HEAD and are left standing only because a wrong prediction kept beside its result is
+the only evidence the reasoning came before the answer.
+
+What was re-measured, not re-read:
+
+| claim below | status at this HEAD | how it was settled |
+|---|---|---|
+| "the data is missing" / "the premise is false" | **REFUTED** | `docs/reports/c2_departure_factors_svt_segment_decisions.json` holds **1,221 SVT segment decisions, 49 of them `departure_cause: svt_inertia`** — real per-customer rows, not a fixture |
+| P3: `svt_decisions` is not among `run_phase2b`'s keys | **REFUTED** | `simulation/run_phase2b.py:3182` returns it; populated at 1358 and 1595, all at HEAD |
+| P4: `test_no_account_is_on_the_svt_product_yet` is green | **UNREADABLE** — that test no longer exists | replaced by `test_an_account_on_the_svt_product_can_leave_it`, because C1b assigns mid-tenure and the old roster scan would have stayed green through it |
+| `simulation/svt_product.py` "nothing is assigned to it" | **stale quotation** | `inertia_hazard_for_term` is at `simulation/svt_product.py:123`, at HEAD |
+
+The probe this finding rests on saw **460 renewal rows and 0 SVT rows**; the capture that was
+actually published saw **148 renewal and 1,221 SVT**. Those are two different worlds, and the
+difference is the C1b departure route landing in between. So the lane draw's premise — *"the data is
+not missing, it is under another capture's name"* — was **right**, and the declaration was moved by
+making it true, exactly as the draw required.
+
+**AND THE REPAIR THIS FINDING DESCRIBES IN THE PAST TENSE WAS NEVER LANDED.** There is no
+`emit_svt_sibling`, in this tree or at HEAD; `tools/capture_departure_factors.py:124` still reads
+`result.get("svt_decisions", [])`. `test_a_run_with_no_svt_recorder_writes_no_sibling_rather_than_an_empty_one`
+does not exist, so the three mutations tabulated below as "each run and each proven to fire" cannot
+have been. That is this repository's own *a cut recorded as EXECUTED may never have been committed*
+shape, and it is why the section headed "The repair" is now retitled as owed.
+
+**P5 survives all of it, and it is the reason this finding stays open.** Re-measured at this HEAD
+against the real 148-row renewal table:
+
+```
+EMPTY sibling (unwired recorder) -> covers_svt_route=True   share_of_departures_visible=1.0   warning=None
+NO sibling                       -> covers_svt_route=False  share_of_departures_visible=None  warning=SVT_BLIND_WARNING
+```
+
+An unwired recorder would still certify the renewal route as seeing **100%** of the book's
+departures. That fail-open was not reached today only because the sibling came back populated —
+luck, not construction. It is live, unrepaired, and named as owed at the end of this file.
+
+---
+
 ## The instruction, and why carrying it out would have been the defect
 
 Lane 0 drew: *"Re-run `tools/capture_departure_factors` … so the sibling
@@ -130,7 +173,7 @@ machine-readable fields beside it said opposite things, and it is the fields tha
 `c2_reason_mix_interval.json` and the page. A warning contradicted by the artefact it is embedded in
 is not a control; the reader quotes the number.
 
-## The repair
+## The repair — OWED, NOT DONE. Written below in the past tense; none of it is in the tree.
 
 Not "flip the assertion". The test's counter-argument is right as far as it goes: an empty sibling
 that is genuinely a measurement must stay a measurement, and reporting it as blind would discard a
@@ -153,10 +196,13 @@ repair carries it through instead.
 **`[] → covers_svt_route: true` is left exactly as it was, and is now true by construction rather
 than true by luck.**
 
-## The control, and the mutations that prove it
+## The control, and the mutations that prove it — ALSO OWED. This test does not exist.
 
-`test_a_run_with_no_svt_recorder_writes_no_sibling_rather_than_an_empty_one`, three legs, each run
-and each proven to fire (2026-08-31, `python3 -B`):
+The table below describes mutations against a control that was never written. It is kept as the
+DESIGN for the control, which is still the right design; it is not evidence, and nothing in it was
+run. Read it as a specification:
+
+`test_a_run_with_no_svt_recorder_writes_no_sibling_rather_than_an_empty_one`, three legs:
 
 | mutation | leg that fires |
 |---|---|
@@ -168,21 +214,29 @@ Leg 2 is the one that stops this repair becoming its own opposite. It is keyed t
 to today's world: nothing asserts that the recorder is missing, so the day the SVT route lands, leg
 2 does the work and leg 1 becomes vacuous-but-correct.
 
-## What is still owed, and it is not a capture
+## What is still owed — REWRITTEN 2026-08-31 after the correction above
 
-**The C2 reason mix cannot be given its SVT route from this tree.** The blocker is the world, not
-the artefact, and the queue entry should say so. In order, from `simulation/svt_product.py`'s own
-list:
+The four-step list this section used to carry is **discharged, and not by this finding**. Steps 1–3
+(the inertia hazard, behaviour-generated assignment, the segment-boundary roll and the
+`svt_decisions` recorder) are all at HEAD; step 4 — the capture, the re-fit and the republish — is
+the commit this file lands in. The declaration moved because the world made it true, which is the
+only condition under which the draw permitted it to move.
 
-1. an inertia hazard — `simulation.departure_risks.svt_inertia_hazard` **already exists** and is
-   reached by nothing in `simulation/`; only `tools/` and `company/` call it;
-2. assignment generated from behaviour, so accounts actually sit on the product;
-3. the departure roll at the segment boundary, plus an `svt_decisions` recorder on
-   `run_phase2b`'s return;
-4. *then* the capture, the re-fit, and the republish the draw asked for — at which point the
-   declaration becomes true because the world made it true.
+So what this section used to say — *"`covers_svt_route: false` … **must not be moved**"* — is
+withdrawn. It was right when written and would now hold the page at a `null` the world can answer,
+which is the same defect one direction over: an honest `null` stops being honest the moment the
+measurement exists.
 
-Until then `covers_svt_route: false`, `causes_not_observable: ['svt_inertia']` and
-`share_of_departures_visible: null` are the correct published values and **must not be moved**. An
-honest `null` with a named reason is worth more than a plausible number, because the number will be
-read as established and the `null` cannot be.
+**One thing is owed, and it is the mechanism, not the reading:**
+
+1. **`capture_departure_factors.py:124` still defaults a missing `svt_decisions` key to `[]`**, and
+   `declare_rows` computes `covers_svt = svt_rows is not None`. Together, an unwired recorder writes
+   an empty sibling that certifies the renewal route as 100% of departures and silences
+   `SVT_BLIND_WARNING` — re-measured live at this HEAD, in the correction block at the top of this
+   file. Today's capture came back populated, so nothing was published wrongly; the guard is absent
+   either way. The design is in "The repair" and the control's specification is in "The control"
+   above, both marked owed.
+
+That repair is deliberately **not** bundled into this commit: it needs its own mutation proof and a
+ten-minute world run to exercise the producer, and bundling it would put an unproven control in the
+same commit as the reading it guards. This finding stays open on that one leg.

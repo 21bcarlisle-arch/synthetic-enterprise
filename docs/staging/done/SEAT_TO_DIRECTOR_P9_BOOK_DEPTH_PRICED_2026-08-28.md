@@ -170,3 +170,45 @@ deliberately: the DECISION is yours, and the priced menu you need in order to ta
 to produce. Parking the atom on your answer would have made the thing you are waiting for
 unbuildable — which is how a real reserved-class item and a permission ceremony end up looking
 identical.
+
+---
+
+## CORRECTION 2026-08-28 — the menu above was wrong on both columns, and the act was executed anyway
+
+Written after landing the decision, beside the claim rather than in place of it. **Both numbers
+you chose on were wrong, and the premise had already expired.** Measured at the run's own seed
+(20260724) on the tree that landed the founder book:
+
+| | menu said | measured |
+|---|---|---|
+| book at 2025-12, 13 founders | 264 | **398** |
+| book at 2025-12, 80 founders | ~180 | **167** |
+| accounts ≥5 renewals, 13 founders | 37 | **92** |
+| accounts ≥5 renewals, 80 founders | ~95 | **165** |
+
+**1. The premise had expired before the decision was executed.** P9 said *"only 37 accounts carry
+five or more renewals, so nothing can compound."* True when written; false by the time it was
+acted on. R1's sourced acquisition costs cut the price of a quote to roughly a third of the
+invented one, so the campaign won its own way to 92 deep accounts with no curriculum act at all.
+**The act still earns its place — 92 → 165 — but it is an improvement on a working book, not the
+rescue of a broken one, and I sold it to you as the second.**
+
+**2. The "measured 127" I corrected the menu with was also wrong.** It was measured honestly
+against a tree in which `live_population` never held the drawn founders: `_pre_growth_book` (what
+the campaign PLANS against) read the founder book, and `live_population` (what the company
+SERVES) rebuilt its opening book from the 13-account `CUSTOMERS` literal. So the campaign
+committed 800 of its 1,200 customer-years to 80 founders — refusing 335 of its own funnel wins to
+pay for them — and 67 of those founders reached no served book at all. **The act you bought to
+make the book deeper was making it four times shallower (398 → 100) for six extra deep accounts.**
+Fixed in this commit; the figure with the founders actually in the book is 167.
+
+**3. The mechanism line was wrong too.** The menu said *"raise `accounts_held_at_start`, the
+parameter already exists and is already threaded through."* It is a derived argument
+(`len(book)`), not a knob. Building the parameter was the work — which is why none of the numbers
+above should have been trusted as priced.
+
+**What I am not doing is re-opening your decision.** "Take the 80 founders" stands and is landed;
+the depth it was bought for is delivered and then some. What you should know is that the trade is
+steeper than I quoted — the book gives up 231 accounts rather than the ~84 I said — and that if
+width matters more to you than depth now that 92 deep accounts exist without the act, that is a
+different answer and it is one word away.

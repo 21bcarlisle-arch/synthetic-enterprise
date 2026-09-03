@@ -34,3 +34,10 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
+- **2026-08-28** — still live. 3 repeats over 2.2h without the state changing. No second document filed: this condition already has one.
+- **2026-08-29** — still live. 3 repeats over 3.0h without the state changing. No second document filed: this condition already has one.
+- **2026-08-30** — still live. 15 repeats over 22.9h without the state changing. No second document filed: this condition already has one.
+- **2026-08-31** — still live. 30 repeats over 47.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-01** — still live. 51 repeats over 71.1h without the state changing. No second document filed: this condition already has one.
+## Instances seen
+- `[new low] net margin £# -- business survived the full #-# window including the #-# crisis. net margin £# (#% of total re` (first seen 2026-08-28)

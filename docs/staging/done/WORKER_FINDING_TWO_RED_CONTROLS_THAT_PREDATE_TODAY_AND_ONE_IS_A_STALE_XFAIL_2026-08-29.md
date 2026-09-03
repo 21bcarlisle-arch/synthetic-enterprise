@@ -7,6 +7,44 @@ suspect list because I had just doubled the published book, and **neither is min
 counterfactual rather than by argument, which is the only thing that separates these two cases from
 the ones I did cause.
 
+---
+
+## CORRECTION 2026-08-29 10:55Z — item 1 was not a stale marker; it was a marker with no stable subject
+
+**Item 1's diagnosis is wrong and the original filing is kept unedited below it.** I re-measured
+before acting and could not reproduce "it passes". Same control, same code, within one hour:
+
+```
+committed blob (HEAD:docs/reports/run_output_latest.json)   step-up x0.05   FAIL -> xfail
+working tree   docs/reports/run_output_latest.json          step-up x1.08   FAIL -> xfail
+the filing above                                            step-up x1.28   PASS -> XPASS, suite red
+```
+
+Three answers, one control. `run_output_latest.json` is tracked but **every simulation run rewrites
+it in place**, and no commit had touched it in 24h. So the grade tracked whichever producer wrote
+last. The marker was not stale on arrival — it was **armed by a concurrent write**. The filing's own
+counterfactual (`d5d58da62`, byte-identical x1.28) is not evidence the marker is stale; it is
+evidence that both readings came from the same unversioned artefact, which is the defect.
+
+This is the trap `64eaa102f` had just paid for two commits earlier — a producer-rewritten file at a
+fixed absolute path read as if it were a fact — and I walked into it from the other direction.
+
+**Repaired, mutation-proven** (`tests/company/compliance/test_crisis_bad_debt_validator.py`): the
+grade now reads the committed blob and refuses, naming why, when the subject cannot be established.
+A strict marker must never be armed by an unversioned artefact. New control
+`test_the_strict_marker_is_not_armed_by_the_working_tree_copy` fails when the grader is reverted to
+the file read (verified: red on mutation, green on repair).
+
+**What this does NOT resolve, and item 1's real question survives intact:** the xfail is still red,
+so nothing here claims the crisis step-up is real, and W2_4 still owns the substantive decision.
+Item 1's second paragraph — *what produces a 1.28x step-up in a model not supposed to produce one* —
+is now sharper, because x1.28 was one particular run's output and no one knows which run.
+
+**Items 2 and 3 below are untouched and still open.** The non-domestic bound is unbuilt and its
+control is red at 5.3% of 150 — reproduced today, not inherited from this correction.
+
+---
+
 ## 1. `test_live_run_output_shows_crisis_step_up_headline` — a stale strict xfail
 
 Marked `xfail(strict=True)` with this reason:
