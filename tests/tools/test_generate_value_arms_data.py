@@ -39,6 +39,7 @@ all five.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -1967,6 +1968,18 @@ def test_a_run_that_cannot_name_its_world_is_an_absence_not_a_clean_bill():
     assert not any("selection-figure" in run for run in named), (
         "a run was named by a fragment of its own `what_this_is` prose")
 
+    # AN ABSENCE IS NOT A DISAGREEMENT, and this is the sole witness for that. This branch sets no
+    # `one_world_across_every_figure` at all, so a mixed-world test keyed on FALSINESS rather than
+    # `is False` would read the missing key as "these legs disagree" and tell a reader the figure
+    # and its bound came from different worlds -- a specific false claim, made where the honest
+    # verdict is that we cannot tell. Mutation-checked: without this the falsiness variant
+    # survives the whole file.
+    clause = gva._world_clause(verdict)
+    assert "DIFFERENT WORLDS" not in clause, (
+        "runs that cannot name their world were reported as having named two different ones: "
+        + clause[:160])
+    assert clause.startswith("READ THIS AS HISTORY"), clause[:160]
+
 
 def test_a_run_in_the_live_world_gets_no_history_clause():
     """THE PASS BRANCH MUST BE REACHABLE, or the verdict is a constant.
@@ -2014,6 +2027,83 @@ def test_a_superseded_world_reaches_the_headline_and_not_only_the_payload():
     # The figures themselves are KEPT. Superseded-with-provenance is the correction; deletion
     # is not -- so the advantage must still be stated, under its caveat.
     assert "12,071" in built["headline"]
+
+
+def test_a_superseded_run_that_names_its_world_still_puts_its_date_in_the_clause():
+    """The date must survive the branch where every artefact IS stamped.
+
+    SOLE WITNESS FOR THE UNIFORM-SUPERSEDED BRANCH: both legs carry the SAME non-live digest, so
+    `one_world_across_every_figure` is True and the mixed branch below cannot also satisfy this.
+
+    THE DEFECT. `_world_clause` harvested its date by regexing
+    `runs_that_cannot_name_their_world` -- a key only the UNSTAMPED branch sets. Every artefact on
+    disk today predates the world stamp, so that branch is the live one and its coverage read as
+    coverage of both; the moment stamped artefacts go stale, the clause rendered "READ THIS AS
+    HISTORY" with no date at all, contradicting `_world_clause`'s own docstring and the drawn
+    direction's done-condition ("the date each figure was measured is on the surface a reader
+    sees").
+
+    Fires on: dropping `runs_measured_in_a_superseded_world` from `_world_provenance`, or
+    reverting `_world_clause` to harvest dates from the unstamped key alone.
+    """
+    verdict = gva._world_provenance(
+        ("the three-arm run", _world_stamped(_load(THREE_ARM), "0000000000000000")),
+        ("the noise floor", _world_stamped(_load(NOISE_FLOOR), "0000000000000000")))
+    assert verdict["superseded"] is True
+    assert verdict["one_world_across_every_figure"] is True, (
+        "this subject must witness the UNIFORM branch, or it grades the mixed one by accident")
+    named = verdict["runs_measured_in_a_superseded_world"]
+    assert any("the three-arm run" in run for run in named), named
+    assert any("the noise floor" in run for run in named), named
+
+    clause = gva._world_clause(verdict)
+    assert clause.startswith("READ THIS AS HISTORY")
+    assert re.search(r"\d{4}-\d{2}-\d{2}", clause), (
+        "the history clause named no date, so a reader is told these figures are old and given "
+        "nothing to place them by: " + clause[:160])
+
+
+def test_a_live_figure_bounded_by_a_stale_spread_is_not_reported_as_history():
+    """Mixed worlds get their own verdict, because the remedy differs.
+
+    SOLE WITNESS FOR THE MIXED BRANCH: the three-arm leg carries the LIVE digest and the floor
+    leg does not, so `one_world_across_every_figure` is False and the uniform branch above cannot
+    also satisfy this.
+
+    THE DEFECT. Both branches collapsed into "READ THIS AS HISTORY ... these figures were measured
+    over a departure level that is no longer the one this world runs at" -- FALSE about the leg
+    that is current, and false in the direction that stops a reader asking WHICH figure is stale,
+    when which figure is stale is the whole question. A point estimate in this world bounded by a
+    spread from another is `c30b98048`, filed 2026-08-31 on this very artefact. The verdict that
+    separates them, `one_world_across_every_figure`, was computed and read by nothing that
+    publishes.
+
+    Fires on: `_world_clause` losing its mixed branch; `_world_provenance` reporting one reason for
+    both states; keying the mixed branch on falsiness rather than `is False`, which would drag the
+    unstamped branch (no such key) onto the mixed sentence.
+    """
+    live = _live_digest()
+    verdict = gva._world_provenance(
+        ("the three-arm run", _world_stamped(_load(THREE_ARM), live)),
+        ("the noise floor", _world_stamped(_load(NOISE_FLOOR), "0000000000000000")))
+    assert verdict["superseded"] is True
+    assert verdict["one_world_across_every_figure"] is False, (
+        "this subject must witness the MIXED branch, or it grades the uniform one by accident")
+    assert any("the noise floor" in run
+               for run in verdict["runs_measured_in_a_superseded_world"])
+    assert any("the three-arm run" in run
+               for run in verdict["runs_measured_in_the_live_world"])
+    assert "DIFFERENT WORLDS" in verdict["reason"]
+
+    clause = gva._world_clause(verdict)
+    assert "DIFFERENT WORLDS" in clause, (
+        "a figure measured in the live world and a bound measured in another rendered as the "
+        "undifferentiated history caveat: " + clause[:160])
+    assert "READ THIS AS HISTORY" not in clause, (
+        "the page told a reader that a run measured in the LIVE world was history")
+    assert re.search(r"\d{4}-\d{2}-\d{2}", clause), (
+        "the mixed clause named no date, so a reader cannot tell which leg is the stale one: "
+        + clause[:160])
 
 
 def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypatch):

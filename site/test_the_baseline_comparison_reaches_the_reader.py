@@ -1996,11 +1996,18 @@ def test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_
             "not a reading of the run's own world stamp")
         return
 
-    assert "READ THIS AS HISTORY" in rendered, (
+    # KEYED TO THE PROPERTY, NOT TO THE SENTENCE. There are two ways not to be current and they
+    # get different words: every leg stale in ONE world is history, whereas a live figure bounded
+    # by a spread from another world is `c30b98048` and must NOT be called history. Pinning this
+    # rung to the history wording alone would go red on the day the page became more precise --
+    # exactly backwards, and the failure this file already records one rung above.
+    lead = ("THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS"
+            if wp.get("one_world_across_every_figure") is False else "READ THIS AS HISTORY")
+    assert lead in rendered, (
         "the feed says these figures were not measured in the live world ({}), and a reader met "
-        "no such statement".format(wp.get("reason", "")[:160]))
+        "no such statement".format(str(wp.get("reason", ""))[:160]))
     # POSITION IS THE CLAIM. The caveat must precede the money, or it is a footnote.
-    caveat_at = rendered.index("READ THIS AS HISTORY")
+    caveat_at = rendered.index(lead)
     money = re.search(r"£[\d,]{4,}", rendered)
     assert money is not None, "the headline states no figure at all -- the deletion branch"
     assert caveat_at < money.start(), (
