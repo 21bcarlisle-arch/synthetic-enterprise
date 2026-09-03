@@ -88,13 +88,21 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_STAGING_ROOT = REPO_ROOT / "docs" / "staging"
 ARCHIVE_DIRNAME = "done"
 PARKED_DIRNAME = "in_progress"
+RECORDS_DIRNAME = "records"
 
-#: The three rooms a staged document can occupy, and the ONE claim each makes about it:
+#: The four rooms a staged document can occupy, and the ONE claim each makes about it:
 #: the root says LIVE (it rings the doorbell and wins draws), `done/` says CONSUMED,
-#: `in_progress/` says PARKED-WITH-AN-OPEN-SUB-ITEM. The claims are mutually exclusive,
-#: so one name in two rooms is a contradiction whichever pair it is — and the doorbell
-#: reads the loudest copy, which is always the root's.
-ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME)
+#: `in_progress/` says PARKED-WITH-AN-OPEN-SUB-ITEM, `records/` says THIS IS NOT WORK AND
+#: NEVER WAS. The claims are mutually exclusive, so one name in two rooms is a contradiction
+#: whichever pair it is — and the doorbell reads the loudest copy, which is always the root's.
+#:
+#: `records/` WAS ADDED THE DAY IT WAS NEEDED AND ONE COMMIT LATE. It landed in
+#: `staging_rooms` on 2026-09-03 and this tuple was not updated, so when the migration that
+#: created it left 37 pre-registrations in BOTH the root and `records/`, `room_collisions`
+#: reported nothing and `check()` printed PASS — a collision detector blind to the room that
+#: had just been created, which is `controls keyed to a structure that moved` committed by the
+#: hand that moved the structure. A new room is not a new room until this tuple knows about it.
+ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME, RECORDS_DIRNAME)
 
 #: Class documents live in the staging root beside the findings they supersede — they are
 #: the artefact that wins a draw, so parking them in an archive would defeat the ruling.

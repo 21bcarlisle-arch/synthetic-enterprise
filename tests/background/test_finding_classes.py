@@ -603,9 +603,15 @@ def test_mutation_e_narrowing_the_population_to_listed_instances_kills_those_tes
     to `done/` (i.e. drop `in_progress/`, which is what rule 3 knew about) and the two
     collisions involving a parked copy vanish while the checker still reports PASS. This
     is the state that shipped and drew at rung 1c."""
+    # THE ANCHOR IS THE WHOLE TUPLE AND IT GREW ON 2026-09-03, when `records/` became the
+    # fourth room. That is the right reason for this line to change and the wrong reason for
+    # the test to go red: `_load_mutant` asserts its anchor is UNIQUE precisely so a stale
+    # one fails loudly instead of mutating nothing and passing. It did its job. The anchor is
+    # updated rather than loosened to a prefix match — a prefix would have kept passing while
+    # silently mutating a line that no longer says what the test thinks it says.
     mutant = _load_mutant(
         tmp_path,
-        'ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME)',
+        'ROOM_DIRNAMES = (ARCHIVE_DIRNAME, PARKED_DIRNAME, RECORDS_DIRNAME)',
         'ROOM_DIRNAMES = (ARCHIVE_DIRNAME,)',
         "fc_mutant_e",
     )
