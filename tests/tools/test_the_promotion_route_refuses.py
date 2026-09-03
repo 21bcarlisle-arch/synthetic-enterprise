@@ -214,6 +214,76 @@ def test_MACHINE_EXHAUST_from_the_gate_is_not_unfinished_work(worktree):
     assert any(str(p).startswith("docs/") for p in SHARED_BY_DESIGN)
 
 
+def test_a_simulation_run_does_not_make_a_worktree_unpromotable(worktree):
+    """The gate's own exhaust was one layer in; a RUN's exhaust is the same defect one layer out.
+
+    Found on 2026-09-03 by the Lane 0 arms re-run. Three floor legs were running in the seat's own
+    worktree, and `sim/risk_committee.py` rewrites `docs/context-handshake-latest.md` on every
+    risk-committee wake-up — about once a minute. So for the whole ~2h24 of each leg the worktree
+    held a dirty tracked file that no writer authored, and the promotion route refused every
+    landing with "this landing is not the whole of what was done". **The seat could not land the
+    work the run existed to produce, for as long as the run took**, and committing the churn to get
+    past it would race the next write and lose.
+
+    Three legs, because the widening must not sever the guard it widens:
+      1. handshake churn ALONE does not refuse — MUTATION: drop the entry from
+         `SHARED_BY_DESIGN` and this fires;
+      2. unfinished work OUTSIDE `docs/` is still refused alongside it;
+      3. unfinished work INSIDE `docs/` but outside the exempt set is still refused — MUTATION:
+         exempt `docs/` wholesale instead of the one file and this leg fires. Leg 2 does NOT
+         catch that mutation (`CLAUDE.md` is not under `docs/`), which is why leg 3 is here and
+         is not a restatement of it: the first draft of this test claimed leg 2 caught it and the
+         mutation run said otherwise.
+    """
+    import tools.promote_worktree_landing as mod
+
+    _git(worktree, "commit", "-q", "--allow-empty", "--no-verify", "-m", "a landing")
+    handshake = worktree / "docs" / "context-handshake-latest.md"
+    assert handshake.exists(), "fixture assumption: the handshake artefact is tracked"
+    handshake.write_text(handshake.read_text() + "\n## Risk Committee Wake-Up — mid-run\n")
+
+    assert mod._refuse_if_dirty(worktree) is None, (
+        "a simulation run's own exhaust was read as the writer leaving work uncommitted, which is "
+        "what made a worktree unpromotable for the length of any run inside it"
+    )
+
+    unfinished = worktree / "CLAUDE.md"
+    unfinished.write_text(unfinished.read_text() + "\n# genuinely unfinished\n")
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    assert "CLAUDE.md" in str(exc.value), "the widening severed the guard it was widening"
+    assert "context-handshake" not in str(exc.value), "run exhaust reported as unfinished work"
+
+    under_docs = worktree / "docs" / "PROJECT_OVERVIEW.md"
+    assert under_docs.exists(), "fixture assumption: an authored doc outside the exempt set"
+    under_docs.write_text(under_docs.read_text() + "\n<!-- genuinely unfinished -->\n")
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    assert "PROJECT_OVERVIEW.md" in str(exc.value), (
+        "authored work under `docs/` stopped being refused, so the exemption is reading as a "
+        "directory when it names one file"
+    )
+
+
+def test_the_handshake_exemption_still_names_the_file_the_simulation_writes():
+    """The exemption is a LITERAL in another package; a rename there would silently re-open it.
+
+    `SHARED_BY_DESIGN` cannot import `sim/` — `background/` sits under the epistemic wall and this
+    constant is read by the promotion route on every landing. So the literal is checked against the
+    writer's own constant HERE instead, and a rename disconnects LOUDLY rather than quietly
+    restoring the two-hour unpromotable window.
+
+    MUTATION: change either constant without the other and this fires.
+    """
+    from background.seat_work_in_hand import SHARED_BY_DESIGN
+    from sim.risk_committee import HANDSHAKE_FILE
+
+    assert HANDSHAKE_FILE in SHARED_BY_DESIGN, (
+        f"the simulation writes {HANDSHAKE_FILE!r} but the promotion route exempts "
+        f"{SHARED_BY_DESIGN!r}. A worktree running a simulation is unpromotable again."
+    )
+
+
 # ── A PUSH PROMOTES A RANGE, NOT A TIP (2026-08-31) ──────────────────────────────────────────────
 # Found by the first live run of the seat executor. Four minutes after it started its first
 # unattended turn, `background/fork_salvage.py` -- a daemon that sweeps worktrees for uncommitted

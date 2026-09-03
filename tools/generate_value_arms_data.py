@@ -114,6 +114,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import statistics
 from datetime import datetime, timezone
 from pathlib import Path
@@ -2647,6 +2648,156 @@ def _departure_statement(world_mean: float, published_mean: float, inside: int, 
     return (measured + ", and {} of {} sit OUTSIDE it -- {}".format(outside, total, direction))
 
 
+def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
+    """Whether the world these figures were measured in is still the world. FAILS CLOSED.
+
+    THE DEFECT, AND IT IS THE ONE THIS PAGE HAD NO LEG FOR. Every control in this file asks whether
+    a figure is arithmetically right, whether its clock is declared, whether its bound predates it,
+    whether its book matches. Not one asked whether the WORLD it was measured in still exists --
+    and that is the question the whole comparison rests on, because the published beat is a beat
+    over a flat-rule baseline and departure rate is what decides how much book there is to re-win.
+
+    MEASURED 2026-09-03, and it is why this is a leg and not a sentence. The three artefacts this
+    page publishes were written 2026-08-30/31. `simulation/departure_level_anchor.py` was re-fitted
+    twice afterwards (`a621edb15`, `712ae5323`). Swapping the block the arms ran under for the live
+    one, on the arms' OWN capture population and changing nothing else, moves whole-book expected
+    departure by **+19.06pp summed across 2017-2024** -- mean absolute 2.70pp/yr, +6.23pp at 2019,
+    against published bands 0.5-3.6pp wide. The world got HARDER to hold, not easier.
+
+    IT IS ALREADY VISIBLE ON THIS PAGE AND POINTING THE WRONG WAY. `_world_departure_level` below
+    measures the departure level AT PUBLISH TIME, from the live capture, and publishes it as the
+    bound on figures measured six days and two re-fits earlier. So the page states a departure
+    level from one world beside an advantage from another and presents them as one reading. The
+    fix is not to move that block back -- a live level is the right thing to show -- it is to say
+    on the surface when the two are not the same world.
+
+    A DIGEST, NOT A DATE, AND NOT A COMMIT. `_staleness_caveat` compares two artefacts' timestamps
+    to EACH OTHER; it can say which of two runs is older and can never say whether either is
+    current. `_producing_commit` compares hashes, and a hash moves for a docstring -- so a
+    difference there is the ordinary case and carries no signal. `world_level_identity` digests the
+    departure level itself: a run in the live world matches whatever the live world happens to be,
+    and a re-fit that moves no rate anywhere does not trip it. Keyed to the property, so it names
+    no year and no value and cannot go stale.
+
+    ABSENCE REFUSES. An artefact written before the stamp existed cannot be shown to be current,
+    and unknown provenance on a published beat reads as fine unless something says so (FAIL-
+    SILENT). Every artefact on disk today is in exactly that state, which is the correct verdict
+    and not a bug in this leg: they genuinely do not say which world they ran in.
+
+    Returns `superseded: None` -- never `False` -- when it cannot tell, so a consumer that treats
+    the block as a boolean gets an honest absence rather than the flattering branch.
+    """
+    try:
+        from simulation.departure_level_anchor import world_level_identity
+
+        live = world_level_identity()
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        return {
+            "available": False,
+            "superseded": None,
+            "reason": ("the live world's departure level could not be read ({}), so this page "
+                       "cannot say whether these figures were measured in it".format(exc)),
+        }
+
+    # NAMED BY THE CALLER, not derived from the artefact's own prose. The first draft here keyed
+    # on `generated_at` and fell back to the first 40 characters of `what_this_is` -- which put
+    # the string "The selection-figure noise floor cut int" into a published refusal as though it
+    # were the name of a run. The decomposition carries no timestamp at all (it runs nothing), so
+    # that fallback was not an edge case, it was the live branch for one artefact in three.
+    stamps = {}
+    for name, artefact in artefacts:
+        if not isinstance(artefact, dict) or not artefact:
+            continue
+        stamped = artefact.get("generated_at")
+        stamps["{} ({})".format(name, stamped) if stamped else name] = (
+            (artefact.get("world_identity") or {}).get("digest"))
+    if not stamps:
+        return {"available": False, "superseded": None,
+                "reason": "no artefact was readable, so no world can be named for these figures"}
+
+    unstamped = sorted(key for key, digest in stamps.items() if not digest)
+    if unstamped:
+        return {
+            "available": False,
+            "superseded": None,
+            "live_world": live["digest"],
+            "runs_that_cannot_name_their_world": unstamped,
+            "reason": (
+                "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. {n} of the runs "
+                "behind this page ({runs}) predate the world stamp, so this page cannot show that "
+                "they were measured over the departure level that is live now -- and the level is "
+                "what decides how much book there is to win or lose. It has moved since: the "
+                "departure-level anchor was re-fitted twice on 2026-09-02 and 2026-09-03, and on "
+                "the arms' own capture population that swap moves whole-book expected departure "
+                "+19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read "
+                "every contrast below as measured in the world of its own run date, not in this "
+                "one."
+            ).format(n=len(unstamped), runs=", ".join(unstamped)),
+            "what_this_costs": (
+                "no figure on this page may be read as the company's CURRENT beat over the "
+                "flat-rule baseline until the arms and both floor legs are re-run in one world "
+                "and that world is the live one"),
+        }
+
+    superseded = sorted({d for d in stamps.values() if d != live["digest"]})
+    # THE RUNS ARE NAMED ON THIS BRANCH TOO, and they were not. `_world_clause` harvests the date
+    # for its headline by regexing `runs_that_cannot_name_their_world` -- a key ONLY the unstamped
+    # branch above sets -- so this branch rendered "READ THIS AS HISTORY" with no date at all,
+    # contradicting that function's own docstring ("the date IS in the clause, because 'a
+    # superseded world' is not something a reader can place and 'measured on 2026-08-31' is").
+    # It had never been caught because every artefact on disk predates the world stamp, so the
+    # unstamped branch is the live one and its neighbour's coverage read as coverage of both.
+    # The labels already carry each run's `generated_at` -- see `stamps` above -- so naming them
+    # is what puts the date back on the surface.
+    stale_runs = sorted(name for name, digest in stamps.items() if digest != live["digest"])
+    live_runs = sorted(name for name, digest in stamps.items() if digest == live["digest"])
+    one_world = len(set(stamps.values())) == 1
+    return {
+        "available": True,
+        "superseded": bool(superseded),
+        "live_world": live["digest"],
+        "worlds_these_figures_were_measured_in": sorted(set(stamps.values())),
+        "one_world_across_every_figure": one_world,
+        "runs_measured_in_a_superseded_world": stale_runs,
+        "runs_measured_in_the_live_world": live_runs,
+        # `None` on the clean branch rather than a reassuring sentence, and the `.format` is
+        # INSIDE the conditional: the first draft had it outside, so the live-world branch -- the
+        # only one in which this page is a claim about today -- raised `NoneType has no attribute
+        # format`. A crash on the PASS branch is the shape where a control is only ever exercised
+        # by its own failure, and the reachable-PASS test above is what caught it.
+        #
+        # MIXED IS ITS OWN VERDICT, because "all of this is old" and "your error bar is from
+        # another world" are different states with different remedies, and the second is the one
+        # `c30b98048` was filed for on 2026-08-31 -- "the bound that decided 'cannot resolve' was
+        # measured in another world, and the new one is wider". Collapsing them told a reader that
+        # a run measured in the LIVE world was history, which is both false and the direction that
+        # hides WHICH figure is the stale one.
+        "reason": (
+            None if not superseded else
+            ("THE WORLD THESE FIGURES WERE MEASURED IN IS NOT THE WORLD THAT IS LIVE. The runs "
+             "behind this page ({runs}) ran over departure level {was}; the live level is {now}. "
+             "Departure rate is the surface the whole comparison sits on, so these figures are an "
+             "honest reading of a world that has since changed, and not a statement about this one."
+             ).format(runs=", ".join(stale_runs), was=", ".join(superseded), now=live["digest"])
+            if one_world else
+            ("THE FIGURES ON THIS PAGE AND THE BOUND ON THEM WERE MEASURED IN DIFFERENT WORLDS. "
+             "{stale} ran over departure level {was}; {current} ran over {now}, which is the live "
+             "one. A spread measured where customers leave at one rate is not a confidence "
+             "interval on a figure measured where they leave at another, so nothing here bounds "
+             "anything else and no contrast below may have its direction read. This is the defect "
+             "`c30b98048` was filed for on 2026-08-31; the remedy is to re-run every leg in one "
+             "world, never to quote whichever leg is current."
+             ).format(stale=", ".join(stale_runs), was=", ".join(superseded),
+                      current=", ".join(live_runs) or "no run on this page",
+                      now=live["digest"])),
+        "what_this_costs": (
+            None if not superseded else
+            "no figure on this page may be read as the company's CURRENT beat over the flat-rule "
+            "baseline until every leg is re-run in one world and that world is the live one"),
+        "what_this_identifies": live["what_this_identifies"],
+    }
+
+
 def _world_departure_level() -> dict:
     """What the world's own departure LEVEL was, beside the published record it is judged against.
 
@@ -2793,6 +2944,14 @@ def build(three_arm: dict | None, floor: dict | None,
     # payload as the sentence it gates so a reader can check the gate rather than take it, and so
     # the surface can never render a direction whose bound is not on the page with it.
     spreads = _seed_spreads(floor, three_arm)
+    # WHETHER THE WORLD THESE FIGURES WERE MEASURED IN IS STILL THE WORLD. Resolved before the
+    # headline is composed, because it is a prefix on that sentence and not a footnote under it --
+    # a reader who meets the advantage first has already formed the impression. See
+    # `_world_provenance`.
+    world_provenance = _world_provenance(
+        ("the three-arm run", three_arm),
+        ("the noise floor", floor),
+        ("the floor decomposition", decomposition))
     return dict(
         base,
         available=True,
@@ -2826,6 +2985,11 @@ def build(three_arm: dict | None, floor: dict | None,
         # WHICH CODE MADE THE RUN, in the payload rather than the commit message, and above the
         # counts it decides the fate of. See `_producing_commit`.
         producing_commit=provenance,
+        # WHICH WORLD IT MADE THEM IN, which the commit above cannot answer. See
+        # `_world_provenance`. Every artefact this page reads is passed, because the question is
+        # about the panel and not about one figure: a contrast from one world bounded by a floor
+        # from another is the defect, and it is invisible to a check that looks at either alone.
+        world_provenance=world_provenance,
         book=_book(three_arm, provenance),
         realised=realised,
         provisioned=provisioned,
@@ -2853,14 +3017,78 @@ def build(three_arm: dict | None, floor: dict | None,
         household=_household(three_arm),
         decisions=_decisions(three_arm, provenance),
         headline=(
+            # THE WORLD COMES FIRST, AHEAD OF EVERY OTHER CLAUSE. Not for emphasis -- because a
+            # reader who meets "GBP 12,071 better" and learns two paragraphs later that it was
+            # measured over a departure level the world no longer runs at has already taken the
+            # figure as current. This clause is the one that stops the sentence being read as a
+            # statement about today, so it goes before the sentence rather than after it. Silent
+            # when the run IS the live world, which is the only state in which the headline is a
+            # claim about now.
+            _world_clause(world_provenance)
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check
             # exists: this sentence is a claim about the supplier the rest of the site publishes,
             # so it may only be made while the published run and the baseline arm are the same run.
-            ("The comparison below is against the very supplier this site publishes. " if
-             (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
+            + ("The comparison below is against the very supplier this site publishes. " if
+               (realised.get("is_the_published_supplier") or {}).get("same_supplier") else "")
             + _headline_reading(realised, provisioned, spreads, decomposition, three_arm)
             + _coverage_clause(three_arm)),
     )
+
+
+def _world_clause(world_provenance: dict) -> str:
+    """The headline's leading clause when these figures describe a world that has since moved.
+
+    DERIVED FROM THE LEG, NEVER WRITTEN DOWN, for the reason `_staleness_caveat` was rewritten:
+    a hand-authored "measured on 2026-08-31" sentence is true when typed and cannot notice the
+    next re-fit. This says whatever `_world_provenance` says and goes silent when it goes clean.
+
+    THE DATE IS IN THE CLAUSE, because "a superseded world" is not something a reader can place and
+    "measured on 2026-08-31, before two re-fits" is. The direction this was built for asks for
+    exactly that: the date each figure was measured, on the surface a reader sees.
+
+    EMPTY STRING WHEN THE RUN IS THE LIVE WORLD, and that is the only branch in which the headline
+    below is a claim about now. It is deliberately not "measured in the current world" -- a
+    reassurance printed on every clean render is noise, and noise is what a reader learns to skip
+    past on the one day it changes.
+    """
+    if not isinstance(world_provenance, dict):
+        return ""
+    if world_provenance.get("available") and not world_provenance.get("superseded"):
+        return ""
+    # BOTH NON-CLEAN BRANCHES NAME THEIR RUNS, and only one of them used to. Harvesting dates from
+    # `runs_that_cannot_name_their_world` alone meant the superseded branch -- every artefact
+    # stamped, at least one stale -- rendered this clause with no date, which is the one thing the
+    # docstring above says it exists to carry.
+    runs = list(world_provenance.get("runs_that_cannot_name_their_world") or [])
+    runs += list(world_provenance.get("runs_measured_in_a_superseded_world") or [])
+    dates = sorted({match.group() for run in runs
+                    if (match := re.search(r"\d{4}-\d{2}-\d{2}", str(run)))})
+    when = (" The runs behind it are dated {}. ".format(" and ".join(dates))
+            if dates else " ")
+    # MIXED IS NOT HISTORY. When one leg IS the live world, "read this as history" is false about
+    # that leg, and the falsehood runs in the direction that stops a reader asking which figure is
+    # the stale one -- when which figure is stale is the entire question. `is False` and not
+    # falsiness: the unstamped branch omits this key, and an absent verdict must not select the
+    # more specific sentence.
+    if world_provenance.get("one_world_across_every_figure") is False:
+        return (
+            "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS.{when}A "
+            "spread measured where customers leave at one rate is not a confidence interval on a "
+            "figure measured where they leave at another, so nothing here bounds anything else "
+            "and no contrast below may have its direction read as resolved. Departure rate is how "
+            "much book there is to win or lose, so it is the surface this whole comparison sits "
+            "on. Every leg is kept with its own date rather than deleted; the remedy is to re-run "
+            "all of them in one world, never to quote whichever leg is current. "
+        ).format(when=when)
+    return (
+        "READ THIS AS HISTORY, NOT AS TODAY.{when}These figures were measured over a departure "
+        "level that is no longer the one this world runs at: the level anchor has been re-fitted "
+        "since, and on the arms' own capture population that swap moves whole-book expected "
+        "departure by +19.06pp summed across 2017-2024, against published bands 0.5-3.6pp wide. "
+        "Departure rate is how much book there is to win or lose, so it is the surface this whole "
+        "comparison sits on. The figures below were honestly measured and are kept with their "
+        "date rather than deleted; they are not a statement about the world as it is now. "
+    ).format(when=when)
 
 
 def _coverage_clause(three_arm: dict) -> str:

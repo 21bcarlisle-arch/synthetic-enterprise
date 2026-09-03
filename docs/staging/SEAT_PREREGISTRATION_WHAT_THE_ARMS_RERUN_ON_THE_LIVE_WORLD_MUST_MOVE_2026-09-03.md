@@ -155,3 +155,81 @@ duplicate whatever that seat lands.
 If it did not, the launch is
 `systemd-run --user --unit=arms-rerun-20260903 tools/run_arms_rerun_detached.sh` with the stamp
 changed — never a bare background job, which dies with the tick's cgroup.
+
+---
+
+## 4. Grading, 2026-09-03 — three-arm leg in, floor legs still running
+
+*Appended by the next turn of the same claim. The three-arm leg landed as `416e829c7`
+(`value_cycle_ab_s1_three_arm_20260903.json`, `generated_at` 2026-09-03T10:17:07Z, producing commit
+`ace28fa44`, `world_identity.digest` `39a192ce04c1eda8`). §2 above is untouched — the predictions
+are graded beside themselves, not revised.*
+
+### The measurement
+
+| quantity | old, 2026-08-31 | new, 2026-09-03 | move |
+|---|---|---|---|
+| `control_arm.total_net_gbp` | 145,881.43 | 138,152.77 | **−5.30%** |
+| `value_arm.total_net_gbp` | 157,952.50 | 140,488.64 | **−11.06%** |
+| `level_arm.total_net_gbp` | 155,378.13 | 138,311.98 | **−10.98%** |
+| `value_advantage_gbp` | 12,071.08 | **2,335.87** | **−80.65%** |
+| `level_advantage_gbp` | 9,496.70 | **159.21** | **−98.32%** |
+| `selection_gbp` | 2,574.37 | 2,176.66 | −15.45% |
+| `level_share_of_advantage` | 78.67% | 6.82% | |
+| `level_gbp_per_mwh` | 54.25 | 48.25 | −11.06% |
+| renewals offered (value arm) | 1,953 | 2,009 | +2.87% |
+| **priced decisions (value arm)** | **120** | **104** | **−13.33%** |
+| priced share of renewals | 6.14% | 5.18% | |
+
+### P1 — CONFIRMED
+
+Predicted: all three arms' net margin falls, each by 3–12%. Realised: −5.30%, −11.06%, −10.98%.
+All three fell; all three inside the band. Refutation condition (any arm rising) did not fire.
+
+### P2 — REFUTED, and in the UNFLATTERING direction
+
+Predicted `value_advantage_gbp` rises 12,071.08 → **13,000–14,500**. Realised **2,335.87**, a fall of
+80.65%. The stated refutation condition — *"refuted if it falls below £12,071.08"* — fired.
+
+**The mechanism was wrong, and the specific error is nameable.** P2 reasoned that the advantage is
+earned on renewals the flat rule loses and the per-customer arm holds, so a book shedding 14.6% more
+households offers proportionally more such decisions. Departures did rise and renewals offered did
+rise (+2.87%) — but **the quantity the arm's advantage is actually earned on is priced decisions,
+and those FELL 120 → 104 (−13.33%)**. Renewals offered is not the surface; priced is. P2 differenced
+the wrong denominator, which is this project's recurring shape (*"before dividing two numbers, say
+out loud what each one counts"*) appearing once more, in the prediction rather than in the result.
+
+Note also what P2 got right and could not use: the draw's own premise ("the world got easier, so the
+advantage shrinks") reached the correct DIRECTION through a mechanism §1 measured as false. §1's
+refutation of the draw stands — the world got harder, +2.049pp mean, expected departures +14.6% —
+and P2's inference from that correct measurement was still wrong. **A correct measurement does not
+make the next inference from it correct**, and this is the cleanest example of that the record holds.
+
+### P3 — CONFIRMED on the leg that is in; the priced-count clause is PENDING
+
+`selection_gbp` 2,574.37 → 2,176.66. It remains far smaller than the old floor's own ±3,776.27
+spread. `priced_decisions` in the three-arm run is 104, but P3's 15–25 band was written about the
+DECOMPOSITION's book (20 priced of 1,369), which is a different and smaller book than the three-arm
+run's (104 priced of 2,009) — that non-comparability is the `withdrawn_claim` the feed already
+carries. **The clause is gradeable only against the re-run decomposition, which is still running.**
+
+### P4 — PENDING. P5 — PENDING, with one clause already at risk
+
+The three floor legs are in flight as transient units `se-noise-floor-20260903`,
+`se-floor-only-20260903`, `se-floor-except-20260903` (started 10:18/10:23Z, ~2h24 each).
+
+P5's substantive clause — one world on both sides — is testable and is the one that matters:
+`world_identity.digest` must read `39a192ce04c1eda8` on all four legs. **P5's literal clause ("more
+than one `producing_commit`") is already at risk and should be graded honestly rather than
+generously**: the three-arm leg bound its modules at 09:43Z and the floor legs at 10:18/10:23Z, so
+they are near-certainly different commits. If the digests match, the legs are one world and the
+comparison is sound; the commit clause was a proxy for that test and a worse one. Say which test was
+passed, not that "P5 passed".
+
+### The bound that must NOT be quoted until the floor legs land
+
+£2,335.87 sits about 1.02× the OLD floor's ±£2,291.07 on `value_advantage_gbp`, where £12,071 sat at
+5.27×. **That ratio must not be published, or used to decide "resolved", because it prices a new
+world's figure against an old world's bound — the exact defect `c30b98048` was filed for and the one
+act (b) exists to prevent.** It is written here only to record that the question is now live, and it
+is answered by the new floor or not at all.
