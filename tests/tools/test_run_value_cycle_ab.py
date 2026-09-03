@@ -2103,3 +2103,129 @@ def test_one_world_across_every_leg_decomposes_and_is_stamped():
     assert split["world_identity"]["digest"] == "w-live"
     assert sorted(split["world_identity"]["agreed_across_legs"]) == [
         "except", "only", "three_arm", "undecomposed"]
+
+
+# ---------------------------------------------------------------------------
+# A REFUSED FLOOR RUN LEAVES THE REFUSAL WHERE THE FLOOR WOULD HAVE BEEN
+#
+# `floor_run_headroom_refusal` was landed on 2026-09-03 because the undecomposed leg was
+# OOM-killed at 1h 09m and wrote nothing. The filed reason was not the lost hour: it was that "an
+# absent artefact reads exactly like a run still in progress". The refusal removed the OOM as a
+# CAUSE of that absence and left the absence itself -- `print(...); return 2` writes no file. These
+# legs are driven through `main()` on purpose. A refusal wired into the helper and not into the
+# entry point is this repo's filed FAIL-OPEN shape, and asserting on `floor_refusal_artefact`
+# alone would pass while `main` still returned 2 in silence.
+# ---------------------------------------------------------------------------
+
+
+def _refuse_floor(monkeypatch, reason="no headroom on this guest"):
+    """Force the refusal branch without needing a machine that is actually short of memory."""
+    monkeypatch.setattr(rvca, "floor_run_headroom_refusal", lambda *a, **k: reason)
+    monkeypatch.setattr(rvca, "noise_floor", _never_runs)
+
+
+def _never_runs(*args, **kwargs):
+    raise AssertionError("the floor run must not start once the headroom check has refused it")
+
+
+def test_a_REFUSED_floor_run_writes_the_refusal_where_the_artefact_would_have_been(
+        tmp_path, monkeypatch):
+    """The defect: refused and still-running are the same thing on disk.
+
+    Fires on: `main` returning 2 without writing; on writing somewhere other than `--out`, which
+    would leave the path the next session looks at still absent.
+    """
+    out = tmp_path / "value_cycle_ab_s1_noise_floor_20260903.json"
+    _refuse_floor(monkeypatch)
+
+    rc = rvca.main(["--level-arm", "--noise-floor-seeds", "11111,22222,33333",
+                    "--redraw-mode", "all", "--out", str(out)])
+
+    assert rc == 2
+    assert out.exists(), "the refusal left the path absent, which reads as a run still in progress"
+    written = json.loads(out.read_text(encoding="utf-8"))
+    assert written["available"] is False
+    assert written[rvca.FLOOR_REFUSAL_MARKER] is True
+    assert "no headroom on this guest" in written["why_not"], (
+        "the refusal must carry the reason it refused, not merely that it did")
+
+
+def test_the_refusal_carries_NO_generated_at_so_nothing_reads_it_as_a_fresh_floor(
+        tmp_path, monkeypatch):
+    """`generated_at` is what every consumer keys freshness off.
+
+    A refusal stamped with it would be the NEWEST artefact on disk and the most misleading, because
+    nothing was measured. Fires on: adding `generated_at` to the refusal artefact.
+    """
+    out = tmp_path / "floor.json"
+    _refuse_floor(monkeypatch)
+    rvca.main(["--noise-floor-seeds", "11111", "--out", str(out)])
+
+    written = json.loads(out.read_text(encoding="utf-8"))
+    assert "generated_at" not in written
+    assert written["refused_at"], "the refusal still has to say WHEN it refused"
+
+
+def test_a_refusal_NEVER_overwrites_a_floor_run_that_succeeded(tmp_path, monkeypatch):
+    """These legs are re-run at the same `--out` across worlds.
+
+    A refused re-run that clobbered the good floor would fail the page closed for a reason that has
+    nothing to do with the figures -- the overwrite class already filed against this repo's capture
+    tooling. Fires on: writing the refusal unconditionally.
+    """
+    out = tmp_path / "floor.json"
+    real = {"generated_at": "2026-09-03T12:00:00Z",
+            "selection_gbp_spread": {"stdev": 3776.27, "n": 3}}
+    out.write_text(json.dumps(real), encoding="utf-8")
+    _refuse_floor(monkeypatch)
+
+    assert rvca.main(["--noise-floor-seeds", "11111", "--out", str(out)]) == 2
+    assert json.loads(out.read_text(encoding="utf-8")) == real, (
+        "a refusal replaced a measured floor with its own excuse")
+
+
+def test_a_refusal_MAY_replace_an_earlier_refusal(tmp_path, monkeypatch):
+    """THE PASS BRANCH, so the no-clobber leg above is a reading and not a constant verdict.
+
+    Fires on: a guard keyed to the path existing at all, which would make the first refusal
+    permanent and every later one silent.
+    """
+    out = tmp_path / "floor.json"
+    out.write_text(json.dumps(rvca.floor_refusal_artefact("an earlier refusal")),
+                   encoding="utf-8")
+    _refuse_floor(monkeypatch, reason="the reason this time")
+
+    rvca.main(["--noise-floor-seeds", "11111", "--out", str(out)])
+
+    assert "the reason this time" in json.loads(out.read_text(encoding="utf-8"))["why_not"]
+
+
+def test_an_artefact_that_cannot_be_read_is_not_overwritten(tmp_path, monkeypatch):
+    """Fail closed: if we cannot SHOW it is a refusal, it may be a measurement.
+
+    Fires on: treating an unparseable file as clobberable, which is the flattering assumption.
+    """
+    out = tmp_path / "floor.json"
+    out.write_text("{not json", encoding="utf-8")
+    _refuse_floor(monkeypatch)
+
+    rvca.main(["--noise-floor-seeds", "11111", "--out", str(out)])
+
+    assert out.read_text(encoding="utf-8") == "{not json"
+
+
+def test_the_refusal_artefact_is_refused_by_the_decomposition_rather_than_split(tmp_path,
+                                                                               monkeypatch):
+    """The refusal must not become a leg. It names a world, so the world check alone passes it.
+
+    Fires on: a refusal shaped so `decompose_floor` reads it as a floor with a zero spread, which
+    would publish a decomposition off a run that never happened.
+    """
+    monkeypatch.setattr(rvca, "world_identity", lambda: {"digest": "w-live"})
+    refusal = rvca.floor_refusal_artefact("no headroom")
+
+    split = rvca.decompose_floor(refusal, _floor_leg("only", [1.0, 2.0, 3.5]),
+                                 _floor_leg("except", [1.0, 1.1, 1.2]), _three_arm_leg())
+
+    assert split["available"] is False
+    assert split["why_not"]

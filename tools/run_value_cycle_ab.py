@@ -3661,6 +3661,73 @@ def _headroom_sample() -> dict:
     return sample()
 
 
+#: Set on an artefact written INSTEAD of a floor run, never on one written by a floor run.
+FLOOR_REFUSAL_MARKER = "floor_run_refused"
+
+
+def floor_refusal_artefact(reason: str) -> dict:
+    """The artefact a REFUSED floor run leaves behind, so the refusal is visible where the floor
+    would have been.
+
+    THE DEFECT THIS SERVES, and it is the one the headroom refusal above half-fixed. That refusal
+    was landed because the undecomposed leg was OOM-killed at 1h 09m and wrote nothing, and the
+    filed reason was not the lost hour -- it was that "an absent artefact reads exactly like a run
+    still in progress", so the next session waits, or relaunches and loses another hour. The
+    refusal removed the OOM as a CAUSE of that absence and left the absence itself untouched:
+    `print(...); return 2` puts the reason on a stdout nobody reads an hour later, and `--out` is
+    still not there. Same silence, same misreading, one cause earlier. So the refusal writes.
+
+    IT CARRIES NO `generated_at`, AND THAT IS THE POINT rather than an omission. Every consumer
+    keys freshness off that field; `generate_value_arms_data._staleness_caveat` reads it to decide
+    whether the bound and the point estimate describe one world. A refusal that stamped itself
+    `generated_at` would be read as a floor measured NOW -- the newest artefact on disk, and the
+    most misleading, because nothing was measured. Withholding it makes the caveat fail closed on
+    its own existing branch ("one of these two runs carries no timestamp"). `refused_at` records
+    when the refusal happened without claiming anything was measured then.
+
+    It carries `world_identity` because that is honest and useful -- the world the run WOULD have
+    measured -- and it is safe: `decompose_floor` refuses it twice over anyway, once on seeds and
+    once on the absent spread, both with named reasons.
+    """
+    return {
+        "available": False,
+        FLOOR_REFUSAL_MARKER: True,
+        "what_this_is": (
+            "NOT A MEASUREMENT. A floor run was asked for at this path and refused before it "
+            "started, so this file stands where the floor would have been. It exists so that "
+            "'refused' and 'still running' are different things on disk."),
+        "why_not": reason,
+        "refused_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "producing_commit": producing_commit(),
+        "world_identity": world_identity(),
+        "how_to_read_this": (
+            "No spread was measured, so no bound can be quoted from this file and every consumer "
+            "reads it as unavailable. Re-run the leg when the machine can hold it; this file is "
+            "overwritten by the run that succeeds."),
+    }
+
+
+def floor_refusal_would_clobber(out: Path) -> bool:
+    """True when `out` already holds a real floor and a refusal must not be written over it.
+
+    WHY THIS GUARD EXISTS. The obvious implementation writes the refusal unconditionally, and it
+    would destroy a measurement: these legs are re-run at the SAME `--out` path across worlds, so
+    a refused re-run would replace a good floor with its own excuse and fail the page closed for a
+    reason that has nothing to do with the figures. That is the class already filed on this repo's
+    capture tooling on 2026-09-03 -- a default that overwrites the artefact another instrument
+    reads. A refusal may replace a refusal; it may never replace a run.
+
+    Unreadable or unparseable is treated as CLOBBERABLE-NOT: if we cannot show the file is a
+    refusal, we do not overwrite it.
+    """
+    if not out.exists():
+        return False
+    try:
+        return json.loads(out.read_text(encoding="utf-8")).get(FLOOR_REFUSAL_MARKER) is not True
+    except Exception:  # noqa: BLE001 -- cannot establish it is a refusal, so do not overwrite it
+        return True
+
+
 def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                     three_arm: dict) -> dict:
     """Split the selection floor into the priced households' half and the rest of the book's.
@@ -3979,15 +4046,27 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.noise_floor_seeds:
         seeds = [int(s) for s in args.noise_floor_seeds.split(",") if s.strip()]
+        # RESOLVED BEFORE THE REFUSAL, because the refusal writes to the same path the run would
+        # have, and filling that absence is the whole point of writing it.
+        out = args.out if args.out != OUTPUT_PATH else NOISE_FLOOR_OUTPUT_PATH
         refusal = floor_run_headroom_refusal()
         if refusal and not args.ignore_headroom:
             print("noise floor REFUSED: {}".format(refusal))
+            if floor_refusal_would_clobber(out):
+                print("  {} already holds a floor run and was NOT overwritten -- the refusal is "
+                      "on this stream only, and that artefact is from an earlier run".format(out))
+            else:
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(floor_refusal_artefact(refusal), indent=2),
+                               encoding="utf-8")
+                print("  wrote the REFUSAL to {} -- an absent artefact reads as a run still in "
+                      "progress, so the refusal stands where the floor would have been".format(
+                          out))
             return 2
         accounts = (None if args.redraw_mode == "all"
                     else priced_accounts_from(args.redraw_accounts_from))
         floor = noise_floor(seeds, report_end=report_end,
                             redraw_accounts=accounts, redraw_mode=args.redraw_mode)
-        out = args.out if args.out != OUTPUT_PATH else NOISE_FLOOR_OUTPUT_PATH
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(floor, indent=2), encoding="utf-8")
         sel = floor["selection_gbp_spread"]
