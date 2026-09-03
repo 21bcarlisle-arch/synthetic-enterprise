@@ -1,0 +1,104 @@
+atom_id: SITE13_the_baseline_comparison_carries_its_bound
+simplifications:
+- '2026-09-03 L0->L2 SELF-CERTIFIED (worker tick, drawn as lane-0 delivery rather than by atom id;
+  ledger row in docs/observability/gate_authorizations.jsonl). THE DRAWN FINDING WAS HALF WRONG AND
+  THE WRONG HALF IS THE MORE USEFUL ONE. The item said `site/capabilities/index.html` contains zero
+  occurrences of "could not react", "cannot react" or "two internal policies" and concluded the page
+  publishes the baseline comparison unbounded. The grep is exactly right and the conclusion does not
+  follow: THE BOUND IS NOT MARKUP. It is composed clause-by-clause by
+  `tools/generate_value_arms_data.py::_reaction_sentence` from `_market_reaction`, which drives
+  `simulation/competitor_reference.py` at three real dates, ships in `value_arms.json`, and is
+  assigned into `#arms-market` by the door''s own script. MEASURED, not reasoned: fetching
+  https://poesys.net/capabilities/ and its four live feeds and driving the door''s own boot path with
+  them renders, today, "What the world could do about either arm. These are two of our own pricing
+  policies, run through the same world... The market DOES defend... Nothing contests the ceiling...
+  Read the comparison as an internal one." That is C2''s bound, on the deployed surface, and it has
+  been there since the probe landed on 2026-08-28. The atom sat at level 0 for two consecutive
+  stretches against work that had already met its page half, because the cell was being graded by a
+  grep of static HTML against a sentence the page composes at runtime.
+
+  WHAT WAS GENUINELY MISSING is the half the atom''s own gain clause calls binding -- "R11 binds
+  hardest here: done means fetching the LIVE deployed surface and asserting the sentence renders" --
+  a control that goes RED if it stops. Neither existing control is it, and both were checked rather
+  than assumed. (1) `site/test_the_baseline_comparison_reaches_the_reader.py` asserts the property
+  well and its subject is the REPO door driven with the REPO feed; it is green on a tree that
+  deploys nothing and green while the edge serves a stale copy, which is the outage
+  `live_pixel_verify.cache_bust` documents at eight hours and climbing. (2) `site/live_pixel_verify.py`
+  DOES fetch the live surface and structurally cannot see this defect: `verify_door` grades with
+  `if not text: continue`, so an element the door left empty leaves the checked population before any
+  assertion runs. `site/test_door_render_functions_are_wired.py:18` already records that shape in
+  terms -- "grades only elements the page''s script WROTE... fail-open for PARTIAL render" -- and an
+  `#arms-market` that renders nothing is precisely a partial render. So the one live control we own
+  would have reported the door OK while the comparison went out unbounded.
+
+  BUILT: `site/test_the_published_bound_reaches_the_live_reader.py`. It fetches the deployed door,
+  reads the feed urls out of the bytes the host actually served, fetches those, drives the door''s own
+  boot path (`site/_live_harness.mjs`) and judges `#arms-market`. The judgement is factored into a
+  pure `_judge(rendered, reaction)` so it can be mutated with no network at all -- a judge only
+  exercisable through a fetch could only be proven able to fail by breaking the live site.
+
+  KEYED TO THE PROPERTY, NEVER TO TODAY''S SENTENCE, and this atom is the reason that rule exists.
+  C2''s own wording was HALF FALSE within half an hour of the director writing it, when
+  `simulation/competitor_reference.py` landed and gave the market a defence. Putting the drawn
+  item''s literal string on the page TODAY would have published a correction to a defect the world
+  had already half fixed. So what is asserted is that the reader is told the comparison is internal,
+  and that every clause the page states about what the world could do AGREES leg by leg with the
+  live feed''s own probe. Both legs can flip -- the ceiling leg is unbuilt and will land -- and
+  nothing needs editing when they do.
+
+  R15, MUTATION-PROVEN AGAINST THE BYTES POESYS.NET ACTUALLY SERVED, not against a fixture: took the
+  served html, replaced `$("arms-market").innerHTML =` with a dead assignment, re-drove the door, and
+  `_judge` returned "#arms-market rendered NOTHING on the deployed page..." (unmutated: CLEAN). Second
+  live mutation: stripped `market_reaction` from the served feed -- the door correctly rendered its
+  stated-absence fallback and `_judge` still returned a defect, because a bound nobody could establish
+  is not a bound anybody has checked. FAIL-CLOSED proven by pointing `CANONICAL_HOST` at an
+  unresolvable host: `Failed: the deployed door could not be reached... reported as a FAILURE and
+  never skipped`. Four further mutations run offline against the pure judge (empty panel; the word
+  "internal" removed; C2''s original stale wording served while the probe reports a defending market;
+  an unavailable probe), each red, with `test_the_mutation_subject_is_itself_clean` as the vacuity
+  guard so none of them can pass for the wrong reason. 7 passed at this commit.
+
+  THE COST IS STATED RATHER THAN HIDDEN. `live_pixel_verify` declined to be a test on the ground that
+  "a network-dependent control in the commit path would wedge every offline commit". That argument was
+  weighed, not inherited: it was made for a crawler over twelve doors and every feed each fetches,
+  where a blip costs the whole gate. This is one door, one panel, four feeds, and the atom it
+  discharges says a live check that passes when the network is down discharges nothing. The reversal,
+  if it starts wedging offline work, is written into the module docstring: move the two live rungs
+  behind an opt-in and leave `_judge` and its mutation rungs where they are.
+
+  FILE_SCOPE CORRECTED IN THE SAME LANDING, and it is the finding in miniature. The scope named
+  `tools/generate_capabilities_door.py` and `tests/tools/`; neither produces or verifies the bound.
+  A file_scope pointing away from the code is how an atom sits at 0 beside work that has already met
+  it -- the same reading error as the grep. Now: `site/capabilities/`,
+  `tools/generate_value_arms_data.py` and the two door tests under `site/`.
+
+  HELD AT 2 AND NOT PROPOSED HIGHER, with the residuals named rather than absorbed:
+  (a) THE FAIL-OPEN IN `live_pixel_verify.verify_door` IS UNFIXED. `if not text: continue` still drops
+      every empty element on all twelve doors; this landing covers ONE panel on ONE door by naming it.
+      Fixing it at the class needs the blast radius measured first -- doors legitimately leave
+      `querySelector` stubs empty -- so it is filed, not absorbed. That is R10 debt and it is the next
+      thing anyone reading this should pick up.
+  (b) The two live rungs are the only network-dependent pytest in the tree. If the gate''s selection
+      picks them up on an offline machine they will red, correctly and inconveniently.
+  (c) The bound is verified; the FIGURES it bounds are separately known stale -- the arms ran
+      2026-08-31 and the departure level anchor has been re-fitted twice since. That is the lane-0
+      item 1 this one was sequenced ahead of, deliberately, because a page with fresh figures and no
+      bound is worse than today''s. It remains open.'
+map_notes:
+  name: The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react
+map_records:
+  evidence:
+  - 'https://poesys.net/capabilities/ #arms-market, fetched and driven through site/_live_harness.mjs
+    2026-09-03: renders the composed bound in full. The atom''s page half was already met.'
+  - 'https://poesys.net/data/value_arms.json market_reaction: available true, defends true,
+    contests_the_ceiling false, probed at 2019-04-01 / 2022-04-01 / 2024-04-01'
+  - site/test_the_published_bound_reaches_the_live_reader.py (this landing; 7 passed)
+  - 'R15 live mutation: the served html with the #arms-market assignment killed -> _judge returns the
+    empty-panel defect; unmutated -> CLEAN'
+  - 'R15 fail-closed: CANONICAL_HOST pointed at an unresolvable host -> Failed, never skipped'
+  - tools/generate_value_arms_data.py::_market_reaction / _reaction_sentence (the producer, landed 2026-08-28)
+  - 'site/live_pixel_verify.py::verify_door `if not text: continue` -- the fail-open this control
+    routes around and does not fix (residual (a))'
+  - site/test_door_render_functions_are_wired.py:18-21 -- the same fail-open, already recorded in-repo
+    since 2026-08-11 and never closed
+  - docs/observability/gate_authorizations.jsonl SITE13 self-certified L2 2026-09-03

@@ -1576,14 +1576,35 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  notes_rehomed: [name]
+  records_rehomed: [evidence]
+  simplifications_count: 1
+  # 2026-09-03 L0->L2. The page half was ALREADY TRUE and had been since 2026-08-28: the bound is
+  # not markup, it is composed by `_reaction_sentence` from a probe of the world's own competitor
+  # reference and assigned into `#arms-market` by the door's script, so the grep that held this
+  # cell at 0 was reading the wrong subject. What was genuinely missing is the half this atom's own
+  # gain clause calls binding -- a control over the DEPLOYED surface -- and `live_pixel_verify`
+  # could not be it: `verify_door` drops empty elements before grading, so an `#arms-market` that
+  # stopped rendering reported the door OK. Ledger: docs/design/simplifications/SITE13_*.yaml.
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 1
   provenance: director_ruling
   depends_on: []
   couples_with: [B10_competitor_switching_response, A45_the_canon_is_a_standing_subject]
-  file_scope: ['site/capabilities/', 'tools/generate_capabilities_door.py', 'tests/tools/']
+  # CORRECTED 2026-09-03, and the correction is the finding in miniature. The old scope named
+  # `tools/generate_capabilities_door.py` and `tests/tools/`, and NEITHER produces or verifies the
+  # bound. A file_scope that points away from the code is how an atom sits at level 0 beside work
+  # that has already met it. What is left is the door, the live control, and the live-fetch
+  # machinery it reuses -- whose empty-element fail-open is this atom's named residual, so it is
+  # where the next work on SITE13 lands. The PRODUCER (`tools/generate_value_arms_data.py`,
+  # `_market_reaction`/`_reaction_sentence`) is named in the ledger's evidence and deliberately NOT
+  # here: it landed on 2026-08-28, it is not what this level rests on, and it is edited by other
+  # lanes most days -- a scope entry like that makes an atom's level unmovable for reasons that
+  # have nothing to do with the atom.
+  file_scope: ['site/capabilities/', 'site/test_the_published_bound_reaches_the_live_reader.py',
+               'site/live_pixel_verify.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a backtest published with its own assumption stated on the same page -- 'this result assumes the market does not react to our trades' -- rather than in a methodology appendix nobody opens, because the assumption is the difference between a result and an artefact"
 - id: C30_advice_reaches_a_household
