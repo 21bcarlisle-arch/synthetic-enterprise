@@ -132,7 +132,28 @@ Specifically owed, in order:
 
 1. **The published evidence for the household-level amplitude of switching response.** Market-level
    switching rates are already in the commons; what is missing is the individual-level dispersion
-   that produces them.
+   that produces them. **CHECKED THE SAME DAY, BEFORE ASSUMING IT WAS A SEARCH: it is not a search,
+   it is a GAP THIS PROJECT HAS ALREADY DECLARED TWICE, and neither declaration pointed at the
+   other.** `docs/institutional/knowledge_map.md`, the *Customer lifetime / churn* row: *"No
+   published per-supplier or per-customer-type loss rates"*. And
+   `docs/market_research/continuous_behavioural_engagement_w2_14.md` §3a, item 6: converting the
+   engagement measure into an elasticity multiplier is *"an unanchored modelling choice"* with *"no
+   direct anchor"*. So the market-level series is settled to H confidence and the individual-level
+   dispersion that must generate it is established nowhere — which is precisely why a per-year
+   scalar ended up carrying it. The next session should not re-run this search; it should either
+   go at the two named sources below or ask the practitioner.
+
+   The closest published things that might actually settle it, named so the next attempt starts
+   somewhere rather than in a browser: Ofgem's **Retail Market Indicators** switching series taken
+   *from the table, per fuel* (the knowledge map's *UK household switching volumes* row already
+   owes this and for a different reason), and the **Ofgem Consumer Survey**, which reports
+   switching by engagement segment — a segment-level dispersion is not a household-level one, and
+   saying so when it arrives will matter more than having it.
+
+   **And this is the third side of the knowledge rule, not the first two.** CLAUDE.md: a
+   practitioner knows what is *too obvious to anyone in the industry to be written down anywhere*.
+   How much more likely an engaged household is to switch than a disengaged one in the same year
+   is exactly that shape of question. Asking is cheap and a wrong frame compounds.
 2. **Then** the mechanism's compression repaired against that evidence, measured by the same
    one-constant sweep in §3 — which is now a repeatable instrument, not an argument.
 3. **Then and only then** the per-year table retired, with the band restored to being a red check.
