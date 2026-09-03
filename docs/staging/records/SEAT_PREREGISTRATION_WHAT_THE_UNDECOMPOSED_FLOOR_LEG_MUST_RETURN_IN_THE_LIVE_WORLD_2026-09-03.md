@@ -438,3 +438,81 @@ in full"* above is correct.
 £1,030.10 rather than £0, so the floor is not a clean null. The advantage also collapsed from
 £12,071 to £2,336 between worlds. A resolved verdict says the figure clears its noise; it does not
 say the figure is large, durable, or the one published on 2026-08-31.
+
+---
+
+## §3d AMENDED — the ETA is calibrated on ONE seed of three, and the seed it omits is slower
+
+*Delivery seat, 2026-09-03 19:47 BST, claim `pick-up-the-relaunched-undecomposed-floor-leg`. The
+leg is `active`, pid 3730923, 1h54m in, six of nine passes complete. Measured from the running
+unit's own journal. §3d does not supersede §3-SUPERSEDED's substance — the unit, worktree, `--out`
+path and "do not launch a fifth run" all stand. It corrects one number in it, and that number is
+the one a seat acts on.*
+
+### What the journal actually shows
+
+Every `=== Processing terms chronologically ===` → `=== SURVIVED full window ===` pair, in order:
+
+| pass | seed | start | end | duration |
+|---|---|---|---|---|
+| 1 | 11111 | 17:50:26 | 18:06:26 | 16m00s |
+| 2 | 11111 | 18:06:26 | 18:21:20 | 14m54s |
+| 3 | 11111 | 18:21:20 | 18:34:01 | 12m41s |
+| — | *inter-seed redraw* | 18:34:01 | 18:37:15 | **3m14s** |
+| 4 | 22222 | 18:37:15 | 18:53:00 | 15m45s |
+| 5 | 22222 | 18:53:00 | 19:09:00 | 16m00s |
+| 6 | 22222 | 19:09:00 | 19:24:38 | 15m38s |
+| 7 | 33333 | 19:24:38 | *running* | — |
+
+**Seed 1 took 43m35s. Seed 2 took 50m37s.** §3-SUPERSEDED extrapolated "3 seeds x ~43.5 min" from
+seed 1, which was the only seed measured when it was written. Applying seed 2's observed cadence to
+seed 3: 19:24:38 + 50m37s = **~20:15 BST**, and at seed 1's cadence ~20:08. So the band is
+**~20:08–20:17 BST**, not ~20:01–20:10.
+
+### Why this is worth a correction and not a shrug
+
+§3-SUPERSEDED's operative sentence is *"Do not read an absent artefact as failure before ~20:15
+BST."* That instant is now the **middle of the projected finish**, not a margin beyond it. A seat
+that follows the document literally — checks at 20:15, finds no artefact, and takes the document's
+own authorisation to conclude the leg is dead — would kill a healthy 2h30m measurement at the
+likeliest minute for it to be mid-write, and would launch the fifth run this claim forbids.
+
+That is the phantom-outage shape arriving a **third** time in one document: first through a stale
+unit name (§3, `...20260903b`), then through a clock calibrated on a crash (§3-SUPERSEDED, 1h35m was
+launch 3's time-to-CRASH), and now through a cadence calibrated on the one seed that is not
+representative. Each correction fixed the instance and left the generator: **a deadline in this
+document has been wrong every time it has been written, and the failure mode is always that the
+seat concludes death from an absence.**
+
+**So the deadline is not the control and must stop being treated as one.** The question that
+settles it costs nothing and depends on no clock in this file:
+
+    systemctl --user is-active se-floor-all-20260903d
+
+`active` means running, at 20:15 and at 21:00 alike. Only `failed`/`inactive` **with** no artefact
+at `--out` is a dead leg, and the journal then names the cause. Set no new numeric deadline in place
+of this one; if a number is wanted for a waiter, `python3 -m tools.wait_for --pid 3730923` names its
+subject and cannot outlive it.
+
+### Why seed 2 was slower — NOT attributed, deliberately
+
+Two things differ between the seeds and I cannot separate them from this evidence:
+
+1. **Seed 2 paid a 3m14s inter-seed redraw gap that seed 1 never paid.** Seed 1's setup was the
+   initial ~5m data load, which §3-SUPERSEDED counted as a separate one-off addend. So the
+   per-seed figure derived from seed 1 structurally omits a cost every later seed pays — that part
+   is not noise, it is an under-count by construction.
+2. **Seed 2's three passes were themselves slower** — 47m23s of pass time against seed 1's 43m35s.
+   That could be a larger redrawn book, or machine load, or both.
+
+(1) alone does not close the 7m gap and (2) is unattributed, so the honest statement is that the
+band is empirical and seed 3 may fall outside it in either direction. **That is exactly why the
+`is-active` probe replaces the deadline rather than the deadline being re-tuned.**
+
+### Unchanged
+
+Memory is still the binding constraint (10,140 MB available at 18:38Z against the unit's 6.5 GB
+peak; an earlier leg of this measurement was OOM-killed and wrote nothing, which is
+indistinguishable from still-running). **Keep any turn holding this claim to reads until the
+artefact lands.** Grading procedure, the three identity assertions, the decompose command and the
+`--out` trap in §3-SUPERSEDED are all still operative as written.
