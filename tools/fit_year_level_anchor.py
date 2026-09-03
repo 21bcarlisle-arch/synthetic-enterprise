@@ -43,6 +43,7 @@ import statistics
 import sys
 from pathlib import Path
 
+import tools.measure_departure_level as _instrument
 from simulation.departure_risks import (
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
@@ -65,7 +66,20 @@ from tools.departure_population import (
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
+
+#: THE FITTER AND THE INSTRUMENT THAT JUDGES IT MUST READ THE SAME CAPTURE, so this is IMPORTED and
+#: not a second copy of the path. `5554c2910` repointed `measure_departure_level` at the committed
+#: pair and left this default naming `c2_departure_factors.json` -- so on 2026-09-03 the tool that
+#: SOLVES the anchor and the tool that JUDGES it were reading different worlds, and a re-fit run the
+#: documented way (`python3 -m tools.fit_year_level_anchor`, no argument) would have been solved
+#: against the superseded capture and then graded against the committed one. Nothing would have
+#: said so: both exit zero and both print a plausible table.
+#:
+#: That is this repo's VAT shape -- one requirement, several implementations, one of them repaired
+#: and the others left live -- so the repair is an IMPORT rather than a second correct string. A
+#: future repoint now cannot reach one tool and miss the other. Safe in this direction:
+#: `measure_departure_level` does not import this module, so there is no cycle.
+DEFAULT_TABLE = _instrument.DEFAULT_TABLE
 
 
 def _mean_probability(rows: list[dict], anchor: float) -> float:

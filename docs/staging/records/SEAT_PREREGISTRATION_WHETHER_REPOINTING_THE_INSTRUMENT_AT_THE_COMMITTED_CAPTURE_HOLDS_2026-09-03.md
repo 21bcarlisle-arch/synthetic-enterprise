@@ -108,16 +108,16 @@ graded somewhere else is a prediction the next reader cannot check.
 | P0 | §8 pred 3 needs no inversion | **CONFIRMED** — graded below; the fit came out above the live block in 6 of 7 |
 | P1 | six anchors up, 2020 down | **CONFIRMED, all seven** — graded below |
 | P2 | 2022 does not move | **CONFIRMED** — 2022 is absent from the fitted block, as `UNFITTED_YEARS` says |
-| P3 | renewal move 2–3× the book move | **OPEN** — needs the re-capture; the fit alone cannot show it |
-| P4 | net margin and EV both fall | **OPEN** — needs the re-capture and a published run |
+| P3 | renewal move 2–3× the book move | **SPLIT** — inequality held (renewal moved more), the 2–3× range did **not**: observed **4.4×** |
+| P4 | net margin and EV both fall | **OPEN** — needs a published run under the new anchors |
 | P5 | band unwidened | **HELD**, graded below — neither the repoint nor the re-fit widened anything |
 | P6 | control reds on c2 for two reasons, greens on c4 | **CONFIRMED**, graded below |
 
-The re-fit HAS now been run (2026-09-03, second tick). P0, P1 and P2 are settled below. P3 and P4
-stay open for a stated reason rather than a missing one: **both are quantities of the NEXT run, and
-the re-fit changes what the next run is.** Grading them off `c4` would be grading the new anchors
-against the population they were solved from, which is the fit's own fixed point and would confirm
-itself by construction.
+The re-fit HAS now been run and its re-capture has landed (2026-09-03). P0, P1, P2 and P5 are
+settled below; P3 grades SPLIT on the re-capture. **P4 alone stays open, for a stated reason rather
+than a missing one:** it is a quantity of a *published* run, and no auto-process run under the new
+anchors has been published yet. Grading it off the last published figures would be grading the new
+anchors against a run that predates them.
 
 ### P6 — CONFIRMED, and for the two independent reasons it named
 
@@ -370,3 +370,64 @@ defect in the fit.
 **And the world is still not GB.** Everything the company has published about its own advantage was
 measured inside a world whose departure level sat outside the record in every year. It is closer
 now. It is not inside.
+
+---
+
+## The re-capture landed, and P3 grades SPLIT
+
+**Who landed what, stated plainly.** This tick ran the fit and observed the reds above; the anchor
+block and its re-capture were landed by a **concurrent lane** at `712ae5323` while this tick was
+running, with **byte-identical fitted values** to the ones computed here independently. Two fits
+from the same committed capture agreeing to six decimals is a reproducibility result and is
+recorded as one, not as a claim that this tick landed them. What this tick landed is the
+refusal-parity repair below and the fitter's own stale default.
+
+### The world after the re-fit, on `c5_refitted_departure_factors.json` (139 renewal / 1,338 SVT)
+
+| year | published | before (c4) | after (c5) | before | after |
+|---|---|---|---|---|---|
+| 2017 | 13.5–14.0 | 11.09 | **13.87** | low −2.41 | **inside** |
+| 2018 | 19.5–20.0 | 18.97 | 20.84 | low −0.53 | high +0.84 |
+| 2019 | 20.7–21.3 | 20.48 | 19.38 | low −0.22 | low −1.32 |
+| 2020 | 22.5–23.0 | 24.62 | 21.78 | high +1.62 | low −0.72 |
+| 2021 | 17.9–18.4 | 16.96 | 17.79 | low −0.94 | low −0.11 |
+| 2022 | 2.9–4.3 | 2.54 | 2.51 | low −0.36 | low −0.39 |
+| 2023 | 8.9–12.5 | 7.92 | 12.56 | low −0.98 | high +0.06 |
+| 2024 | 12.5–16.1 | 13.84 | **15.82** | inside | **inside** |
+
+**In band 1 → 2. Mean 14.55% → 15.57%, against a published midpoint of 15.50%.** Six years are
+still outside, and the honest reading is the margin, not the count: 2023 went −0.98 → +0.06 and
+2021 −0.94 → −0.11, which is the band being approached from below and slightly overshot in one
+case, not a world still 1.3× out. **2019 is the one that got worse** (−0.22 → −1.32) and is not
+explained by this change; it is flagged rather than absorbed.
+
+### P3 — SPLIT, and the split is the honest answer
+
+- Renewal-route mean E[depart]: **21.87% → 26.37%**, +4.50pp.
+- Whole-book mean: **14.55% → 15.57%**, +1.02pp.
+- Ratio **4.4×**.
+
+P3's stated refutation condition was *"refuted if the renewal-route move is smaller than the
+whole-book move"*. It was larger, so P3 is **not refuted on its own condition** — the anchor does
+not reach the SVT route, exactly as predicted. But P3's **heading** claimed "roughly 2–3×", and 4.4×
+is outside that. Graded as SPLIT rather than CONFIRMED, because a prediction's heading claiming more
+than its refutation clause covers is a shape this project has paid for before.
+
+**AND THE 4.4× IS NOT CLEANLY ATTRIBUTABLE, which matters more than the number.** `c4` and `c5` are
+different draws — 156 renewal decisions against 139, different accounts, different years' books. So
+**two things changed at once**: the anchor block and the population. The ratio therefore carries an
+unknown amount of sampling noise and cannot be attributed to the anchor alone. Under this project's
+own rule — *when a result moves and more than one thing changed, you cannot attribute it* — the
+correct statement is: the direction is established and the magnitude is not. A one-variable version
+would re-run the capture at the OLD anchors on the SAME seed, and that has not been done.
+
+### P4 — still OPEN, and not because it was forgotten
+
+P4 predicts headline net margin and enterprise value both fall. Those come from a published
+auto-process run, and no run under the new anchors has been published yet: the last one on record
+(`a298e7a9f`) is `net=£149,156` at `git=9c1c24f76`, which predates the re-fit entirely.
+
+**This is the trap detector and it must be graded on the first published run after `712ae5323`, in
+its original uninverted direction: if any headline company result IMPROVES, the change is the
+defect.** Left open here rather than guessed, and named as the next thing this pre-registration is
+owed.
