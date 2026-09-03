@@ -266,12 +266,33 @@ def test_volume_basis_is_declared_so_it_survives_the_leak_check():
 
 
 def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
-    """AGAINST THE WHOLE BOOK, with a dated population floor.
+    """AGAINST THE WHOLE BOOK, over the population the ledger itself declares.
 
     Measured 2026-09-02 before the change was made: `closing_read_kwh - opening_read_kwh` equals
     `consumption_kwh` on 11,549 of 11,549 bills, so the readings are genuine cumulative indices and
     not a second derived pair. If that ever stops being true, the readings have become something
     else and this export is no longer raw.
+
+    THE FLOOR IS THE LEDGER'S OWN `meta.invoice_count`, NOT A CONSTANT, and that is a repair.
+    Until 2026-09-03 it read `periods >= 11_000` — the book's size on the day it was written. On
+    2026-09-03 the book moved from 11,549 invoices (run 9c1c24f76, 05:57Z) to 10,993 (run
+    1df22e3bd, 14:56Z) over the same 251 customers, and all three floors of this shape went red
+    while the substantive assertion beside them stayed green. A control pinned to today's answer
+    goes red when the world legitimately moves and says nothing when the claim rots, which is
+    exactly backwards.
+
+    The declared count is a STRICTLY STRONGER key for the thing this floor exists to catch. An
+    emptied ledger still fails it — 0 periods against a meta that says 10,993. So does a PARTIAL
+    export, which is the likelier failure of the two and which no constant could ever catch: a
+    walk that silently visited half the customers passed `>= 11_000` for as long as the book was
+    above the floor. `meta.invoice_count` is written by the exporter's producer and this walk
+    counts the periods it actually reached, so the two are independent counts of one population
+    and their disagreement is the defect.
+
+    DEMONSTRATED, not argued. Take the 2026-09-03 05:57Z book (11,549 invoices declared), drop 500
+    invoices and leave the meta alone — a partial export. The walk reaches 11,049, `>= 11_000`
+    PASSES, and this control fails on `11049 != 11549`. The constant was not a weaker version of
+    this check; it was blind to the failure it was written for.
     """
     if not rx.LEDGER_PATH.exists():
         pytest.skip("no billing ledger on this box")
@@ -290,5 +311,13 @@ def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
             if abs(got - (inv.get("consumption_kwh") or 0.0)) >= 0.005:
                 wrong.append("{}/{}: reads give {} but the bill used {}".format(
                     cid, inv.get("invoice_number"), round(got, 2), inv.get("consumption_kwh")))
-    assert periods >= 11_000, "only {} periods: an emptied ledger would pass".format(periods)
+    declared = (ledger.get("meta") or {}).get("invoice_count")
+    assert declared, (
+        "the ledger's meta declares no invoice_count, so this walk has nothing to be checked "
+        "against and cannot tell a complete export from an empty one -- a FAILED check, never a "
+        "skip")
+    assert periods == declared, (
+        "this walk reached {} period(s) but the ledger declares {} invoice(s) -- an emptied or "
+        "partially exported ledger passes any constant floor and fails this one".format(
+            periods, declared))
     assert not wrong, "{} of {} periods: {}".format(len(wrong), periods, wrong[:5])

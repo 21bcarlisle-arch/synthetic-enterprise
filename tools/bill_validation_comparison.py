@@ -470,7 +470,23 @@ def main(argv=None) -> int:
         try:
             from background.notify import notify
 
-            notify("bill validation: " + "; ".join(notes))
+            # THE FIRST UNATTENDED RUN CAUGHT THIS CALL BEING WRONG, which is the argument for the
+            # `except` below rather than an embarrassment about it. `notify()` requires `kind`
+            # (G-N2: an untyped page is forbidden) and this passed none, so the timer's first
+            # firing at 09:04:52 raised TypeError -- and the delta it had correctly detected
+            # ("disagreements 295 -> 293") went to the journal instead of being lost, because a
+            # page that cannot be sent must not take the finding with it.
+            #
+            # `real_alarm` and `divergence`: a difference between what we billed and what an
+            # independent reconstruction says we should have billed is a divergence, which is a
+            # DEFERRABLE class -- it is batched into the periodic digest rather than paging him at
+            # 04:00 over a penny. A difference larger than a penny would be the first of its kind
+            # on record and is left in the same class deliberately: it belongs in his reading, not
+            # in his night, and the artefact is written either way.
+            notify("bill validation: " + "; ".join(notes),
+                   kind="real_alarm", topic_class="divergence",
+                   transition_key="bill_validation_delta",
+                   state="; ".join(notes))
         except Exception as exc:  # a page that cannot be sent must not lose the report
             print("NOTIFY FAILED ({!r}); the delta was: {}".format(exc, "; ".join(notes)))
     elif args.notify and not args.quiet:

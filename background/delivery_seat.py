@@ -698,7 +698,7 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
                     "focus": list(before.focus_keys()) if before else []})
         _log(f"REFUSED the session's direction record: {problems}")
         _notify("delivery seat: the orienting session's direction record was refused -- "
-                + "; ".join(problems[:2]))
+                + "; ".join(problems[:2]), topic_class="blocked_work")
         direction_mod.append_decision(row)
         return row
 
@@ -734,19 +734,35 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     _log(f"oriented: focus={row['focus']} ({commit_detail})")
     if row["for_the_director"]:
         _notify("delivery seat: something is genuinely yours -- "
-                + "; ".join(row["for_the_director"][:2]))
+                + "; ".join(row["for_the_director"][:2]), topic_class="decision_waiting")
     return row
 
 
-def _notify(message: str) -> None:
+def _notify(message: str, *, topic_class: str) -> None:
     """Through `background.notify.notify`, never `send_ntfy` directly -- the notify contract, and
     a test enumerates new direct callers. The seat pages RARELY: only when its own record was
-    refused, or when something is genuinely the director's."""
+    refused, or when something is genuinely the director's.
+
+    IT PAGED TWICE IN A MONTH AND NEITHER PAGE WAS SENT. Until 2026-09-03 this passed no `kind`,
+    which `notify()` has required since G-N2 ("an untyped page is forbidden"), so every call
+    raised TypeError -- into an `except Exception` that logged and returned. `docs/observability/
+    delivery-seat-log.md` carries both: 2026-08-28 08:31:31Z, P9 book depth priced and returned
+    as a curriculum question; and 2026-08-30 23:30:30Z, which route the world takes past 2025 AND
+    "whether YEAR_LEVEL_ANCHOR should aim at the published band's MIDPOINT instead of its high
+    endpoint". Both are the reserved class -- a director's decision, not a seat's -- and both went
+    to a log file nobody reads instead of to him. The second one names the exact defect the level
+    fit was still carrying four days later.
+
+    So the `except` stays (a page that cannot be sent must not take its message with it) and the
+    reason it was firing is gone. `topic_class` is REQUIRED rather than defaulted: this function's
+    two callers mean different things to him -- a refused record is blocked work, a decision that
+    is genuinely his is a decision waiting -- and a default here would pick one of them silently.
+    """
     try:
         from background.notify import notify
-        notify(message)
-    except Exception:
-        _log(f"notify failed, message was: {message}")
+        notify(message, kind="real_alarm", topic_class=topic_class)
+    except Exception as exc:
+        _log(f"notify failed ({exc!r}), message was: {message}")
 
 
 def main(argv=None) -> int:
