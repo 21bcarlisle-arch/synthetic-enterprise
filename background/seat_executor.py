@@ -87,6 +87,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background import delivery_lane, seat_work_in_hand  # noqa: E402
+from background.fork_salvage import salvage_worktree  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.seat_work_in_hand import DuplicateWork  # noqa: E402
 from tools.wait_for import pid_is_alive  # noqa: E402
@@ -725,8 +726,31 @@ def ensure_worktree(base: str) -> Path:
     """The executor's own worktree at `base`, created if absent and reset to it if present.
 
     RESET, not merge: this worktree holds no history worth keeping between turns. Anything it
-    landed was promoted at the end of the turn that landed it, and anything it did not land was not
-    finished — carrying that forward would hand the next turn a tree it did not build.
+    landed was promoted at the end of the turn that landed it.
+
+    THE SENTENCE THAT USED TO FINISH THAT PARAGRAPH WAS FALSE, AND IT COST A 2h25m MEASUREMENT.
+    It read: *"anything it did not land was not finished — carrying that forward would hand the
+    next turn a tree it did not build."* That is true of a turn's scratch and false of a DETACHED
+    background job, which is the one thing here deliberately built to outlive the turn that
+    launched it. A `systemd-run --user` unit is the sanctioned way to run a measurement longer
+    than a bounded invocation; it keeps writing into this worktree for HOURS after its launching
+    turn is gone. On 2026-09-03 `se-noise-floor-all-20260903b.service` finished at 15:18:37 and
+    wrote `docs/observability/value_cycle_ab_s1_noise_floor_20260903.json` — the undecomposed
+    floor leg, the last input the published live-world bound was waiting on. The next call to this
+    function, at 15:35:25, reset and then `git clean -qfd`'d it away 17 minutes later. Untracked
+    and never added, it went to no commit and no object: `find / -xdev` returns nothing.
+
+    THE HARM IS THE MISREADING, NOT THE HOUR. `-qfd` is silent, so an absent `--out` path is the
+    only trace — and an absent artefact is exactly what a run STILL IN PROGRESS looks like. That
+    is the third distinct cause of one absence: the OOM kill, then the headroom refusal that
+    returned 2 without writing, and now this. Both earlier fixes are still correct and neither
+    could have caught this one, because here the run SUCCEEDED and printed its answer.
+
+    SO: SALVAGE, THEN RESET. `fork_salvage.salvage_worktree` is the reuse — it is fail-safe, never
+    raises, and already commits untracked work to the worktree's own (here detached) HEAD, which
+    is how the 15:14:18 salvage commit was still recoverable from the reflog after this same
+    reset. Scratch still gets discarded from the working tree; the difference is that it is
+    discarded INTO an object that can be dug back out, instead of into nothing.
     """
     if not (WORKTREE / ".git").exists():
         WORKTREE.parent.mkdir(parents=True, exist_ok=True)
@@ -737,6 +761,7 @@ def ensure_worktree(base: str) -> Path:
     else:
         subprocess.run(["git", "fetch", "--quiet", "origin"],
                        cwd=str(WORKTREE), capture_output=True, timeout=300)
+        salvage_worktree({"path": str(WORKTREE), "branch": None})
         subprocess.run(["git", "reset", "--hard", "-q", base],
                        cwd=str(WORKTREE), check=True, capture_output=True, timeout=300)
         subprocess.run(["git", "clean", "-qfd"],
