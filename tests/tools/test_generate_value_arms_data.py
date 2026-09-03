@@ -2222,8 +2222,172 @@ def test_a_current_world_block_refuses_a_run_that_names_another_world():
         "no subject reaches the admitting branch, so the refusals above prove nothing")
     assert admitted["resolved"] is None, (
         "a figure with no same-world bound was reported as resolved; `None` is the honest state")
+    # NO CURRENT-WORLD FLOOR WAS SUPPLIED, so there is no bound. Keyed to the ARGUMENT, not to
+    # today's disk: this stays true when the live-world floor lands, because this call still
+    # passes none.
     assert admitted["bound_available"] is False
     assert "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD" in admitted["why_no_bound"]
+
+
+#: THE LEG WHOSE SPREAD DOES NOT BOUND THE PUBLISHED FIGURE, and which is on disk in the live
+#: world while the undecomposed one is still being measured. Sole witness for the leg guard.
+NOISE_FLOOR_ONLY_LIVE = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_only_20260903.json")
+
+
+def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world():
+    """A bound is admitted on the floor's WORLD and its LEG, and each guard has a sole witness.
+
+    THE DEFECT IT PREVENTS, and it is two defects that look like one. The page states a verdict on
+    the current-world contrast only from a floor measured in that world -- and only from the
+    UNDECOMPOSED leg, because `only` and `except` partition that variance between them and neither
+    half bounds the whole. Both wrong subjects exist today: the superseded floor is the right leg
+    with no world, and the `only` leg is the right world with the wrong leg. Admitting either
+    publishes a verdict priced against a spread that does not bound the figure, in the flattering
+    direction both times -- the `only` leg's variance was about half the undecomposed one's on the
+    single seed family where all three legs have been measured.
+
+    SOLE WITNESSES, so neither guard is an equivalence the other covers for. No subject here
+    satisfies both alternations: `NOISE_FLOOR` is mode `all` and names no world; the `only` leg
+    names the live world and is the wrong mode. Drop the world check and the first is admitted;
+    drop the leg check and the second is.
+
+    Fires on: dropping either guard; reading a bound from the superseded `floor` argument;
+    admitting a refusal stub with no `generated_at`; or bounding the contrast with the floor's
+    published `selection_gbp_spread` instead of this contrast's own spread.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+
+    # SOLE WITNESS FOR THE WORLD GUARD: the undecomposed leg, naming no world.
+    assert (superseded.get("redraw_scope") or {}).get("mode") == gva.BOUNDING_REDRAW_MODE, (
+        "this subject no longer isolates the WORLD guard -- it must be the right leg so that only "
+        "the world check can refuse it")
+    stale = gva._current_world_contrast(current, superseded, superseded)
+    assert stale["bound_available"] is False, (
+        "a floor from the superseded world bounded a figure measured in this one -- the "
+        "c30b98048 defect, and the ratio it forms is not a quantity")
+    assert stale["resolved"] is None
+
+    # SOLE WITNESS FOR THE LEG GUARD: the live world, and the half that does not bound the whole.
+    assert ((only_leg.get("world_identity") or {}).get("digest")) == live, (
+        "this subject no longer isolates the LEG guard -- it must name the live world so that "
+        "only the mode check can refuse it")
+    wrong_leg = gva._current_world_contrast(current, superseded, only_leg)
+    assert wrong_leg["bound_available"] is False, (
+        "the `only` leg bounded the published contrast; it re-draws the priced roster alone and "
+        "its spread is half the undecomposed floor's, so the verdict would be too confident")
+    assert wrong_leg["resolved"] is None
+    assert "WRONG LEG" in wrong_leg["why_no_bound"] and "only" in wrong_leg["why_no_bound"], (
+        "the refusal did not name which leg it got, so a reader cannot tell it apart from the "
+        "world refusal: " + wrong_leg["why_no_bound"])
+
+    # A DEAD RUN IS NOT A FLOOR. The leg has been OOM-killed once; a refusal written at `--out`
+    # parses and carries no timestamp.
+    stub = {k: v for k, v in only_leg.items() if k != "generated_at"}
+    stub["redraw_scope"] = dict(only_leg["redraw_scope"], mode=gva.BOUNDING_REDRAW_MODE)
+    assert gva._current_world_contrast(current, superseded, stub)["bound_available"] is False, (
+        "a refusal stub with no `generated_at` was read as a completed floor")
+
+    # THE PASS BRANCH IS REACHABLE, or every refusal above is graded by a function that can only
+    # refuse -- the constant-verdict shape this whole control was written to remove.
+    admitted = dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
+                                                mode=gva.BOUNDING_REDRAW_MODE))
+    bounded = gva._current_world_contrast(current, superseded, admitted)
+    assert bounded["bound_available"] is True, (
+        "no subject reaches the bounding branch, so `bound_available` is still a constant and the "
+        "floor leg now running cannot ever reach the page")
+    assert bounded["resolved"] in (True, False), (
+        "a bound was read and no verdict came of it, which is the state the block was in before")
+    assert bounded["bound_contrast"] == "value_advantage_gbp"
+
+    # THE BOUND IS THIS CONTRAST'S OWN SPREAD, never the floor's published `selection_gbp_spread`.
+    # The two differ by 2.6x on the 2026-08-29 family, and reaching for the scalar the producer
+    # happens to publish is the cross-contrast pairing this page exists to keep off the surface.
+    published_selection = (only_leg.get("selection_gbp_spread") or {}).get("stdev")
+    assert bounded["bound"]["stdev_gbp"] != pytest.approx(published_selection), (
+        "the contrast was bounded by the floor's SELECTION spread, which counts a different "
+        "quantity -- two correct numbers whose ratio is not one")
+
+
+def test_the_generator_reads_the_current_world_floor_from_its_own_constant(tmp_path, monkeypatch):
+    """`generate()` must actually READ the live-world floor, not merely accept one as an argument.
+
+    THE DEFECT IT PREVENTS, and it is the one that produced this whole claim twice. A refusal
+    added to the control and not to `main()` leaves the printed page failing open: every guard in
+    `_current_world_bound` can be perfect and the page still publishes "no bound was measured in
+    this world" forever, because nothing hands it the artefact. That is exactly what happened to
+    the contrast itself -- the arms were re-run, landed, and `generate()` did not read them -- and
+    the commit that repaired it moved the three-arm path and left the floor path beside it.
+
+    ASSERTED THROUGH THE DEFAULT, which is the branch the site runs. Passing the path explicitly
+    would prove only that the parameter exists; the fail-open is in what `None` resolves to. So
+    the module's own constant is redirected and `generate()` called with no path at all.
+
+    Fires on: dropping the `_read(CURRENT_WORLD_NOISE_FLOOR_PATH ...)` argument; passing `None`
+    for it; or reading it into a variable `build` never receives.
+    """
+    live = _live_digest()
+    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+    # THE LEG THE PAGE IS WAITING FOR, synthesised. The real one is still being measured; this
+    # control is about the WIRING and must not wait on a run to be able to fail.
+    undecomposed = dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
+                                                    mode=gva.BOUNDING_REDRAW_MODE))
+    floor_path = tmp_path / "floor_all_live_world.json"
+    floor_path.write_text(json.dumps(undecomposed), encoding="utf-8")
+    monkeypatch.setattr(gva, "CURRENT_WORLD_NOISE_FLOOR_PATH", floor_path)
+
+    three_arm_path = tmp_path / "three_arm_live.json"
+    three_arm_path.write_text(
+        json.dumps(_world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)),
+        encoding="utf-8")
+    monkeypatch.setattr(gva, "CURRENT_WORLD_THREE_ARM_PATH", three_arm_path)
+
+    data = gva.generate(out_path=tmp_path / "value_arms.json")
+    cw = data["current_world"]
+    assert cw["available"] is True, "the synthesised current-world run was not admitted at all"
+    assert cw["bound_available"] is True, (
+        "`generate()` did not read the current-world floor from its own constant, so the page "
+        "stays unbounded however many floor legs land: " + str(cw.get("why_no_bound"))[:200])
+    assert cw["resolved"] is not None
+
+
+def test_MUTATION_the_leg_guard_and_the_world_guard_each_fail_alone():
+    """Each guard must red on its own witness when removed, or it is not a control.
+
+    Run here rather than trusted: the previous version of this block asserted a constant, and a
+    constant satisfies any assertion written against it. These two mutations are the ones a
+    well-meaning edit makes -- "the artefact on disk is the live world, so the digest check is
+    redundant", and "we only ever write one floor, so the mode check is redundant" -- and each is
+    true of one subject and false of the other.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+
+    # MUTATION 1: the world guard drops. The superseded floor -- right leg, no world -- is the
+    # only subject that tells the mutated function from the real one.
+    world_blind = gva._current_world_bound(
+        dict(superseded, world_identity={"digest": live}), current, live)
+    assert world_blind["bound_available"] is True, (
+        "the superseded floor does not become admissible when its digest is faked to the live "
+        "one, so it cannot witness the removal of the world guard")
+    assert gva._current_world_bound(superseded, current, live)["bound_available"] is False, (
+        "the world guard is not what refuses the superseded floor")
+
+    # MUTATION 2: the leg guard drops. The `only` leg -- live world, wrong mode -- is the only
+    # subject that tells that mutation from the real function.
+    leg_blind = gva._current_world_bound(
+        dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
+                                         mode=gva.BOUNDING_REDRAW_MODE)), current, live)
+    assert leg_blind["bound_available"] is True, (
+        "the `only` leg does not become admissible when its mode is relabelled, so it cannot "
+        "witness the removal of the leg guard")
+    assert gva._current_world_bound(only_leg, current, live)["bound_available"] is False, (
+        "the leg guard is not what refuses the `only` leg")
 
 
 def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypatch):

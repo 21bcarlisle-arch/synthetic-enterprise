@@ -2082,6 +2082,27 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         # The page may state a verdict only once a bound measured in THIS world exists.
         assert cw.get("resolved") is not None, (
             "the feed claims a bound for the current world and states no verdict from it")
+        # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
+        # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"
+        # under a figure the site has in fact bounded.
+        assert "STATES NO VERDICT" not in rendered, (
+            "the feed holds a bound measured in this world and the page still tells the reader it "
+            "has none")
+        stdev = (cw.get("bound") or {}).get("stdev_gbp")
+        assert isinstance(stdev, (int, float)), (
+            "the feed claims a bound and carries no spread to show, so the verdict is unfalsifiable")
+        assert "£{:,.0f}".format(stdev) in rendered, (
+            "the verdict rendered without the spread it was decided against, so a reader must "
+            "take the gate on trust rather than check it")
+        assert ("CLEARS" in rendered) is bool(cw.get("resolved")), (
+            "the rendered verdict disagrees with the feed's `resolved`")
+        # THE SMALLER CLAIM IS SAID OUT LOUD. This figure can clear its floor while being a fifth
+        # of the superseded one, because the floor fell further than the advantage did. A bare
+        # "clears" lets a reader take a collapse for a win, which is the direction's own warning
+        # about a result that moves the flattering way.
+        assert "SMALLER advantage" in rendered, (
+            "the current-world verdict rendered without saying the advantage SHRANK between "
+            "worlds, so a page that resolved a collapsed figure reads as the company improving")
         return
 
     # NO BOUND MEANS NO VERDICT, AND THE PAGE MUST SAY SO BESIDE THE FIGURE -- not below it, and

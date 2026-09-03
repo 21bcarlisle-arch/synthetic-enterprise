@@ -139,6 +139,26 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 CURRENT_WORLD_THREE_ARM_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260903.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
+#: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
+#: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
+#: arms were re-taken and the floor beside it was not, so `_current_world_contrast` read a floor
+#: from the superseded world, could only ever refuse, and would have gone on refusing -- in the
+#: same words -- on the day the live-world leg landed. Admitted on its DIGEST and its LEG, never
+#: on its filename; see `_current_world_bound`.
+CURRENT_WORLD_NOISE_FLOOR_PATH = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260903.json")
+#: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
+#: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
+#: floor, and the only mode whose spread bounds the published figure directly".
+#:
+#: WHY THIS IS A GUARD AND NOT A COMMENT. The `only` and `except` legs PARTITION that variance for
+#: the decomposition; neither half bounds the whole. On the 2026-08-29 seed family -- the one world
+#: where all three legs have been measured -- the two halves' variances summed to 0.49x the
+#: undecomposed leg's on `value_advantage_gbp`, so the priced half alone would have published a
+#: bound 1.4x too narrow and a verdict too confident in the flattering direction. Both partition
+#: legs are on disk in the live world RIGHT NOW while the undecomposed one is still running, which
+#: makes "point the constant at the floor that exists" the cheap wrong repair this guard refuses.
+BOUNDING_REDRAW_MODE = "all"
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
 #: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so
 #: rather than defaulting to the encouraging branch.
@@ -2983,7 +3003,90 @@ def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
     }
 
 
-def _current_world_contrast(current: dict | None, floor: dict | None) -> dict:
+def _current_world_bound(floor_current: dict | None, current: dict | None, live: str) -> dict:
+    """The bound on the current-world contrast, or a refusal that names which leg it wanted.
+
+    WHAT THIS EXISTS TO MAKE REACHABLE. Until this function, `_current_world_contrast` returned
+    `bound_available: False` as a LITERAL on its only admitting branch -- no input made it true,
+    so the block published a constant verdict and the floor leg commissioned to bound it could
+    have landed with the page unmoved and its "the floor legs are still running" prose still
+    reading as true. A publication whose resolved branch is unreachable is the same defect as a
+    control whose pass branch is: it reports the same thing whatever the world does.
+
+    TWO INDEPENDENT GUARDS, AND EACH HAS A SOLE WITNESS ON DISK. A floor is admitted only if it
+    names the live world AND is the undecomposed leg.
+      * WORLD -- sole witness `value_cycle_ab_s1_noise_floor.json`: mode `all`, names no world at
+        all. Satisfies the leg guard and must still be refused.
+      * LEG -- sole witness `value_cycle_ab_s1_noise_floor_only_20260903.json`: the live world,
+        finished, on disk, and the wrong half. Satisfies the world guard and must still be
+        refused.
+    Neither subject satisfies both, which is what stops each guard being an equivalence the other
+    one covers for.
+
+    THE BOUND IS THE SAME CONTRAST'S OWN SPREAD, never a neighbour's. The figure this bounds is
+    `value_advantage_gbp`, so the spread is `value_advantage_gbp`'s across the seed rows. Pairing
+    it with the floor's published `selection_gbp_spread` -- the block the producer happens to
+    publish as a scalar, and therefore the easy reach -- would divide two numbers that count
+    different things: on the 2026-08-29 family they differ by 2.6x (990.45 against 2,577.80).
+    That pairing was written into this claim's own pre-registration as the support for a
+    prediction, which is how cheap it is to make.
+
+    A DEAD RUN IS NOT A FLOOR. The leg that produces this artefact has been OOM-killed once
+    already, and a refusal written at `--out` is a file that exists, parses, and carries no
+    `generated_at`. Requiring the timestamp and two seed rows keeps a stub from being read as a
+    measurement -- absence must refuse, and a refusal stub is absence wearing a filename.
+    """
+    if not isinstance(floor_current, dict) or not floor_current:
+        return {"bound_available": False, "why_no_bound": (
+            "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. No noise floor re-run over this "
+            "world was readable, so this page states no verdict on whether the figure below is "
+            "distinguishable from zero -- in either direction.")}
+    ran_in = ((floor_current.get("world_identity") or {}).get("digest"))
+    if ran_in != live:
+        return {"bound_available": False, "floor_ran_in_world": ran_in, "why_no_bound": (
+            "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. The noise floor offered as this "
+            "world's was measured in {ran}, and this contrast in {live}. A spread measured where "
+            "customers leave at one rate is not a confidence interval on a figure measured where "
+            "they leave at another, so no verdict is stated -- in either direction. Dividing the "
+            "one by the other would give a number, and that number would not be a quantity."
+        ).format(ran=ran_in or "a world it does not name", live=live)}
+    mode = ((floor_current.get("redraw_scope") or {}).get("mode"))
+    if mode != BOUNDING_REDRAW_MODE:
+        return {"bound_available": False, "floor_leg": mode, "why_no_bound": (
+            "THE FLOOR MEASURED IN THIS WORLD IS THE WRONG LEG. It re-draws `{mode}`, and only "
+            "the undecomposed leg -- every household re-drawn -- has a spread that bounds this "
+            "figure. The `only` and `except` legs partition that variance between them for the "
+            "decomposition, and neither half bounds the whole: on the one seed family where all "
+            "three have been measured their variances summed to about half the undecomposed "
+            "leg's. Publishing this one because it is the leg that finished is the same move as "
+            "publishing the old world's floor because it is the one on disk."
+        ).format(mode=mode or "a scope it does not name")}
+    if not floor_current.get("generated_at"):
+        return {"bound_available": False, "why_no_bound": (
+            "THE FLOOR MEASURED IN THIS WORLD CARRIES NO TIMESTAMP, so it is a refusal or a "
+            "partial write rather than a completed run, and this page reads no bound from it.")}
+    spreads = _seed_spreads(floor_current, current)
+    spread = _spread_for(spreads, "value_advantage_gbp")
+    if spread is None:
+        return {"bound_available": False, "why_no_bound": (
+            "THE FLOOR MEASURED IN THIS WORLD CARRIES NO USABLE SPREAD for this contrast, so no "
+            "verdict is stated from it: {}".format(
+                spreads.get("reason") or "its seed rows do not yield one"))}
+    return {
+        "bound_available": True,
+        "floor_ran_in_world": ran_in,
+        "floor_leg": mode,
+        "floor_generated_at": floor_current.get("generated_at"),
+        "bound": spread,
+        "bound_contrast": "value_advantage_gbp",
+        "bound_is_of_the_same_contrast": (
+            "The spread below is this contrast's own across the seed re-draws -- not the floor's "
+            "published `selection_gbp_spread`, which measures a different quantity."),
+    }
+
+
+def _current_world_contrast(current: dict | None, floor: dict | None,
+                            floor_current: dict | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — published WITHOUT a bound.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -3038,14 +3141,23 @@ def _current_world_contrast(current: dict | None, floor: dict | None) -> dict:
                 "why_not": ("the current-world run carries no arm contrast, so there is no "
                             "figure here to publish")}
     funnel = (current.get("renewal_funnel") or {}).get("value_arm") or {}
-    # THE BOUND'S ABSENCE, NAMED WITH THE WORLD IT WOULD HAVE COME FROM. `floor` is read for its
-    # date and its world ONLY -- never for a number. A block that took a spread from here would be
-    # the defect this docstring names, written by the function that documents it.
+    # THE SUPERSEDED FLOOR IS STILL READ FOR ITS DATE AND ITS WORLD ONLY -- never for a number.
+    # A block that took a spread from `floor` would be the defect this docstring names, written by
+    # the function that documents it. The bound, when there is one, comes from `floor_current` and
+    # only after `_current_world_bound` has established it is this world AND this leg.
     floor_world = ((floor or {}).get("world_identity") or {}).get("digest")
+    bound = _current_world_bound(floor_current, current, live)
+    advantage = contrast.get("value_advantage_gbp")
+    # WHAT THE VERDICT IS ALLOWED TO BE. `None` whenever no same-world undecomposed floor has been
+    # read -- "not measured" and "measured and did not clear" are different states and only the
+    # second is a verdict. Once one HAS been read, the answer is whatever it says, including the
+    # flattering one: a bound that resolves this figure is not a licence to restate it as a
+    # larger claim, because the advantage itself collapsed from £12,071 to £2,336 between worlds.
+    resolved = (_resolvable(advantage, bound.get("bound"))
+                if bound.get("bound_available") else None)
     return {
         "available": True,
-        # NOT `False`. Nothing has been measured that could resolve this either way.
-        "resolved": None,
+        "resolved": resolved,
         "live_world": live,
         "ran_in_world": ran_in,
         "generated_at": current.get("generated_at"),
@@ -3059,18 +3171,12 @@ def _current_world_contrast(current: dict | None, floor: dict | None) -> dict:
         "clock": contrast.get("clock"),
         "priced_decisions": funnel.get("priced"),
         "renewals_offered": funnel.get("renewals_the_world_offered"),
-        "bound_available": False,
-        "why_no_bound": (
-            "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. The only noise floor on disk ran in "
-            "{floor_world}, and this contrast ran in {live}. A spread measured where customers "
-            "leave at one rate is not a confidence interval on a figure measured where they leave "
-            "at another, so this page states no verdict on whether the figure below is "
-            "distinguishable from zero -- in either direction. Dividing it by the older floor "
-            "would give a number, and that number would not be a quantity."
-        ).format(floor_world=floor_world or "a world it does not name", live=live),
+        "superseded_floor_ran_in_world": floor_world,
+        **bound,
         "what_would_answer_it": (
-            "the three noise-floor legs (all / only / except) re-run over this same world and "
-            "seed family, which is what the contrast above must be priced against before any "
+            None if bound.get("bound_available") else
+            "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world "
+            "and seed family, which is what the contrast above must be priced against before any "
             "direction is read from it"),
         "how_to_read_this": (
             "The same book, the same three arms and the same code as the figures above, re-run "
@@ -3103,13 +3209,32 @@ def _current_world_clause(current_world: dict) -> str:
     if not isinstance(advantage, (int, float)):
         return ""
     when = current_world.get("generated_at") or "an unstated date"
-    return (
-        "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "
-        "THIS PAGE STATES NO VERDICT ON THAT FIGURE: every bound it holds was measured in the "
-        "superseded world, and a spread from one departure level is not a confidence interval on "
-        "a figure from another. It is published unbounded and labelled unbounded rather than "
-        "withheld, and the older figures below are kept with their own date beside it. "
-    ).format(adv=advantage, when=when)
+    opening = "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "
+    if not current_world.get("bound_available"):
+        return (opening + (
+            "THIS PAGE STATES NO VERDICT ON THAT FIGURE: every bound it holds was measured in the "
+            "superseded world, and a spread from one departure level is not a confidence interval "
+            "on a figure from another. It is published unbounded and labelled unbounded rather "
+            "than withheld, and the older figures below are kept with their own date beside it. "
+        )).format(adv=advantage, when=when)
+    # BOUNDED IN ITS OWN WORLD. The verdict is stated only from here, and the sentence carries the
+    # spread it was decided against so a reader can check the gate rather than take it.
+    #
+    # THE SMALLER CLAIM IS SAID OUT LOUD, in the same breath as the verdict it qualifies. This
+    # figure clears its floor while being a FIFTH of the superseded one, so a bare "clears" would
+    # read as the company improving when what improved is the instrument: fewer households leave
+    # in this world, so each seed re-draw moves the book less and the floor falls further than the
+    # advantage did. A verdict that lets a reader take a collapse for a win is worse than none.
+    stdev = _f((current_world.get("bound") or {}).get("stdev_gbp"))
+    seeds = (current_world.get("bound") or {}).get("n")
+    verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
+               "same world" if current_world.get("resolved") else
+               "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "
+               "in this same world, so its direction cannot be stated")
+    return (opening + "That figure " + verdict + ", the first bound this page has held that was "
+            "measured where the figure was. It is a SMALLER advantage than the £12,071 below, not "
+            "a larger one: what moved is the floor, which fell further than the advantage did. ")\
+        .format(adv=advantage, when=when, sd=stdev if stdev is not None else 0, n=seeds)
 
 
 def _world_departure_level() -> dict:
@@ -3211,7 +3336,7 @@ def _world_departure_level() -> dict:
 
 def build(three_arm: dict | None, floor: dict | None,
           published_run: dict | None = None, decomposition: dict | None = None,
-          current_three_arm: dict | None = None) -> dict:
+          current_three_arm: dict | None = None, current_floor: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -3273,11 +3398,15 @@ def build(three_arm: dict | None, floor: dict | None,
         ("the three-arm run", three_arm),
         ("the current-world three-arm run", current_three_arm),
         ("the noise floor", floor),
+        # ON THE PANEL BECAUSE ITS NUMBERS ARE ON THE PAGE. The moment a bound is read from this
+        # artefact it is one of the worlds the reader is being shown, and a provenance verdict
+        # that omitted it would be answering for fewer figures than the page publishes.
+        ("the current-world noise floor", current_floor),
         ("the floor decomposition", decomposition))
     # THE FIGURE FROM THE WORLD THAT IS LIVE, published beside the superseded one and explicitly
     # unbounded. See `_current_world_contrast` for why its verdict is refused rather than taken
     # from the floor that is on disk.
-    current_world = _current_world_contrast(current_three_arm, floor)
+    current_world = _current_world_contrast(current_three_arm, floor, current_floor)
     return dict(
         base,
         available=True,
@@ -3642,14 +3771,21 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              noise_floor_path: Path | None = None,
              published_run_path: Path | None = None,
              decomposition_path: Path | None = None,
-             current_three_arm_path: Path | None = None) -> dict:
+             current_three_arm_path: Path | None = None,
+             current_noise_floor_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
                        else decomposition_path),
                  _read(CURRENT_WORLD_THREE_ARM_PATH if current_three_arm_path is None
-                       else current_three_arm_path))
+                       else current_three_arm_path),
+                 # THE STEP WHOSE OMISSION IS THE WHOLE FINDING. `_current_world_bound` can refuse
+                 # perfectly and the printed page still fails open if the artefact never reaches
+                 # it -- which is exactly the state this module was in: a contrast path moved to
+                 # the re-run, the floor path beside it left behind.
+                 _read(CURRENT_WORLD_NOISE_FLOOR_PATH if current_noise_floor_path is None
+                       else current_noise_floor_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

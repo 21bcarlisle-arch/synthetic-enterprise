@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T12:18:08.848615Z",
+  "generated_at": "2026-09-03T12:48:52.992164Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -227,10 +227,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "783a9fcd5d39dfdaa1bad060f44c648f2ab64945",
+    "publishing_tree_commit": "1d821e12b73b65eedfee6100f768b7b17105e27b",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 783a9fcd5 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 1d821e12b -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -264,9 +264,10 @@
     "clock": "settled-realised",
     "priced_decisions": 104,
     "renewals_offered": 2009,
+    "superseded_floor_ran_in_world": null,
     "bound_available": false,
-    "why_no_bound": "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. The only noise floor on disk ran in a world it does not name, and this contrast ran in 39a192ce04c1eda8. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so this page states no verdict on whether the figure below is distinguishable from zero -- in either direction. Dividing it by the older floor would give a number, and that number would not be a quantity.",
-    "what_would_answer_it": "the three noise-floor legs (all / only / except) re-run over this same world and seed family, which is what the contrast above must be priced against before any direction is read from it",
+    "why_no_bound": "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. No noise floor re-run over this world was readable, so this page states no verdict on whether the figure below is distinguishable from zero -- in either direction.",
+    "what_would_answer_it": "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world and seed family, which is what the contrast above must be priced against before any direction is read from it",
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-08-31 run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision."
   },
   "book": {
@@ -294,10 +295,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "783a9fcd5d39dfdaa1bad060f44c648f2ab64945",
+      "publishing_tree_commit": "1d821e12b73b65eedfee6100f768b7b17105e27b",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 783a9fcd5 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 1d821e12b -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
