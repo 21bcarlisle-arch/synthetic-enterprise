@@ -191,30 +191,53 @@ def sweep_stale(now: float | None = None, path: Path | None = None) -> list[str]
         return []
 
 
+def _git(*args: str) -> str | None:
+    """`git args...` stdout, or None if git will not answer. The single subprocess seam here."""
+    try:
+        out = subprocess.run(("git",) + args, cwd=PROJECT_DIR,
+                             capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out.stdout if out.returncode == 0 else None
+
+
 def _commit_facts(commit: str) -> tuple[float, list[str]]:
     """(commit time as a UTC epoch, repo-relative paths it touched) for `commit`.
 
-    `(0.0, [])` for anything git will not answer — an unknown ref, a merge with no first-parent
-    diff, an empty commit. An unreadable commit binds NOTHING, which leaves the claim exactly as
-    it was and lets the deadline run: an unavailable check is a failed check (R15), and the safe
-    direction here is the work going back in the pool.
+    `(0.0, [])` for anything git will not answer — an unknown ref, an empty commit. An
+    unreadable commit binds NOTHING, which leaves the claim exactly as it was and lets the
+    deadline run: an unavailable check is a failed check (R15), and the safe direction here is
+    the work going back in the pool.
+
+    A MERGE IS NOT UNREADABLE, and reading it as if it were is what this function got wrong.
+    `git show` prints a combined diff for a merge — files that differ from EVERY parent — so a
+    clean merge lists nothing and this returned `(when, [])`, which `record_landing` cannot tell
+    from an empty commit. `tools.surgical_land --merge` is the route CLAUDE.md sanctions when a
+    dirty shared tree makes `git merge` unsafe, so the sanctioned way to land a divergence
+    produced exactly the commits this lane could not see, and the work went back in the pool
+    however much had landed. The paths a merge DELIVERED are `first-parent..commit`: what the
+    branch gained that it did not already have. Still straight out of git, never the caller's —
+    a caller free-typing paths is the 2026-08-21 shared-tree hole and stays closed.
     """
-    try:
-        out = subprocess.run(
-            ["git", "show", "--no-renames", "--pretty=format:%ct", "--name-only", commit],
-            cwd=PROJECT_DIR, capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
+    parents = _git("rev-list", "--parents", "-n", "1", commit)
+    if parents is None or not parents.split():
         return 0.0, []
-    if out.returncode != 0:
-        return 0.0, []
-    lines = [ln.strip() for ln in out.stdout.splitlines()]
-    if not lines or not lines[0]:
+    stamp = _git("show", "-s", "--format=%ct", commit)
+    if stamp is None or not stamp.strip():
         return 0.0, []
     try:
-        when = float(lines[0])
+        when = float(stamp.split()[0])
     except ValueError:
         return 0.0, []
-    return when, sorted({ln for ln in lines[1:] if ln})
+
+    ancestry = parents.split()          # <commit> <parent>...
+    if len(ancestry) > 2:               # a merge: diff what it brought in, against parent one
+        names = _git("diff", "--no-renames", "--name-only", ancestry[1], commit)
+    else:
+        names = _git("show", "--no-renames", "--format=", "--name-only", commit)
+    if names is None:
+        return 0.0, []
+    return when, sorted({ln.strip() for ln in names.splitlines() if ln.strip()})
 
 
 def _ledger_path(store: Path) -> Path:
