@@ -131,6 +131,13 @@ PROJECT = Path(__file__).resolve().parent.parent
 #: the reader assume one tree.
 PUBLISHING_TREE_COMMIT: str | None = current_head()
 THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.json"
+#: The SAME three arms re-run in the world as it is now. Published BESIDE the run above, never in
+#: place of it: the older figures were honestly measured and what makes them misleading is being
+#: presented as current, so superseded-with-provenance is the correction and deletion is not.
+#: Read for its figures ONLY when its own `world_identity` matches the live world -- see
+#: `_current_world_contrast`, which refuses rather than reaching for the nearest artefact.
+CURRENT_WORLD_THREE_ARM_PATH = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260903.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
 #: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so
@@ -2864,12 +2871,35 @@ def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
                 "reason": "no artefact was readable, so no world can be named for these figures"}
 
     unstamped = sorted(key for key, digest in stamps.items() if not digest)
+    # COMPUTED BEFORE THE UNSTAMPED RETURN, because that return is the branch that needs it. See
+    # the `one_world_across_every_figure` comment inside it.
+    live_named = sorted(key for key, digest in stamps.items() if digest == live["digest"])
     if unstamped:
         return {
             "available": False,
             "superseded": None,
             "live_world": live["digest"],
             "runs_that_cannot_name_their_world": unstamped,
+            # THIS BRANCH CAN BE MIXED TOO, and until 2026-09-03 only the all-stamped branch below
+            # could say so. A run stamped with the LIVE digest sitting beside a run that predates
+            # the stamp is mixed in exactly the sense that branch's own comment describes -- "when
+            # one leg IS the live world, 'read this as history' is false about that leg" -- but it
+            # arrives here, because the test above fires on the presence of ANY unstamped artefact
+            # and returns before the mixed test is reached. `_world_clause` then found no
+            # `one_world_across_every_figure` key and fell through to "READ THIS AS HISTORY",
+            # which is false about the one figure on the page that is current, and false in the
+            # direction that stops a reader asking WHICH figure is the stale one.
+            #
+            # It had never fired because every artefact on disk predated the stamp, so this was
+            # the only reachable branch and its neighbour's coverage read as coverage of both --
+            # the same shape, one layer up, as the defect the comment below records.
+            #
+            # `available` stays False: a page that cannot name one of its worlds still cannot be
+            # shown to be current. What changes is only that the verdict stops calling a live
+            # figure history. No new sentence is written -- the existing mixed verdict is made
+            # reachable from the state that can actually produce it.
+            "one_world_across_every_figure": (False if live_named else None),
+            "runs_measured_in_the_live_world": live_named,
             "reason": (
                 "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. {n} of the runs "
                 "behind this page ({runs}) predate the world stamp, so this page cannot show that "
@@ -2879,8 +2909,15 @@ def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
                 "the arms' own capture population that swap moves whole-book expected departure "
                 "+19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read "
                 "every contrast below as measured in the world of its own run date, not in this "
-                "one."
-            ).format(n=len(unstamped), runs=", ".join(unstamped)),
+                "one.{mixed}"
+            ).format(n=len(unstamped), runs=", ".join(unstamped),
+                     mixed=("" if not live_named else
+                            " THIS PAGE IS MIXED, NOT UNIFORMLY OLD: {live} DID run in the live "
+                            "world {digest}. So nothing unstamped above bounds it, and it bounds "
+                            "nothing unstamped above -- a spread measured where customers leave "
+                            "at one rate is not a confidence interval on a figure measured where "
+                            "they leave at another.".format(
+                                live=", ".join(live_named), digest=live["digest"]))),
             "what_this_costs": (
                 "no figure on this page may be read as the company's CURRENT beat over the "
                 "flat-rule baseline until the arms and both floor legs are re-run in one world "
@@ -2944,6 +2981,135 @@ def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
             "baseline until every leg is re-run in one world and that world is the live one"),
         "what_this_identifies": live["what_this_identifies"],
     }
+
+
+def _current_world_contrast(current: dict | None, floor: dict | None) -> dict:
+    """The same three arms, re-run in the world as it is now — published WITHOUT a bound.
+
+    WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
+    BESIDE the old one rather than in place of it", and act (d) is "keep the old figures on the
+    page with their date and their world -- superseded-with-provenance is the correction, deletion
+    is not". So the 2026-08-31 figures stay exactly where they are, under `_world_provenance`'s
+    verdict, and this block is what a reader compares them against.
+
+    THE VERDICT IS REFUSED, ON PURPOSE, AND THAT IS THE POINT OF THE BLOCK. The floor legs that
+    would bound this figure are still running; the only floor on disk was measured in the
+    superseded world. Pricing this contrast against that floor is precisely the defect
+    `c30b98048` was filed for on 2026-08-31 -- "the bound that decided 'cannot resolve' was
+    measured in another world, and the new one is wider" -- so this block publishes the figure and
+    states, on the surface, that nothing on this page bounds it. `resolved` is `None`, never
+    `False`: "we have not measured it" and "we measured it and it did not clear" are different
+    states and only one of them is true here.
+
+    IT WOULD BE EASY AND WRONG to divide 2,335.87 by the old +/-2,291.07 and print 1.02x. Both
+    numbers are correct and their ratio is not a quantity, because they count departures at two
+    different rates. That ratio is the single thing this function exists to keep off the page.
+
+    ABSENCE REFUSES, and it refuses on the WORLD, not on the file. An artefact that exists but
+    whose `world_identity` is missing, or is any digest other than the live one, yields
+    `available: False` with the reason named -- because "the current-world run" that is not
+    actually the current world is the flattering reading of a stale file, and it is the reading a
+    reader would take without being told.
+    """
+    try:
+        from simulation.departure_level_anchor import world_level_identity
+
+        live = world_level_identity()["digest"]
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        return {"available": False, "resolved": None,
+                "why_not": ("the live world's departure level could not be read ({}), so no run "
+                            "can be shown to be the current one".format(exc))}
+    if not isinstance(current, dict) or not current:
+        return {"available": False, "resolved": None, "live_world": live,
+                "why_not": ("no re-run of the arms in the current world was readable, so this "
+                            "page states no figure for the world as it is now")}
+    ran_in = ((current.get("world_identity") or {}).get("digest"))
+    if ran_in != live:
+        return {
+            "available": False, "resolved": None, "live_world": live, "ran_in_world": ran_in,
+            "why_not": (
+                "the run offered as the current-world one names world {ran}, and the live world "
+                "is {live}, so it is not a statement about now either".format(
+                    ran=ran_in or "no world at all", live=live)),
+        }
+    contrast = current.get("level_vs_selection") or {}
+    if not contrast.get("available"):
+        return {"available": False, "resolved": None, "live_world": live,
+                "why_not": ("the current-world run carries no arm contrast, so there is no "
+                            "figure here to publish")}
+    funnel = (current.get("renewal_funnel") or {}).get("value_arm") or {}
+    # THE BOUND'S ABSENCE, NAMED WITH THE WORLD IT WOULD HAVE COME FROM. `floor` is read for its
+    # date and its world ONLY -- never for a number. A block that took a spread from here would be
+    # the defect this docstring names, written by the function that documents it.
+    floor_world = ((floor or {}).get("world_identity") or {}).get("digest")
+    return {
+        "available": True,
+        # NOT `False`. Nothing has been measured that could resolve this either way.
+        "resolved": None,
+        "live_world": live,
+        "ran_in_world": ran_in,
+        "generated_at": current.get("generated_at"),
+        "producing_commit": (current.get("producing_commit") or {}).get("commit"),
+        "value_advantage_gbp": contrast.get("value_advantage_gbp"),
+        "level_advantage_gbp": contrast.get("level_advantage_gbp"),
+        "selection_gbp": contrast.get("selection_gbp"),
+        "control_net_gbp": contrast.get("control_net_gbp"),
+        "value_arm_net_gbp": contrast.get("value_arm_net_gbp"),
+        "level_arm_net_gbp": contrast.get("level_arm_net_gbp"),
+        "clock": contrast.get("clock"),
+        "priced_decisions": funnel.get("priced"),
+        "renewals_offered": funnel.get("renewals_the_world_offered"),
+        "bound_available": False,
+        "why_no_bound": (
+            "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. The only noise floor on disk ran in "
+            "{floor_world}, and this contrast ran in {live}. A spread measured where customers "
+            "leave at one rate is not a confidence interval on a figure measured where they leave "
+            "at another, so this page states no verdict on whether the figure below is "
+            "distinguishable from zero -- in either direction. Dividing it by the older floor "
+            "would give a number, and that number would not be a quantity."
+        ).format(floor_world=floor_world or "a world it does not name", live=live),
+        "what_would_answer_it": (
+            "the three noise-floor legs (all / only / except) re-run over this same world and "
+            "seed family, which is what the contrast above must be priced against before any "
+            "direction is read from it"),
+        "how_to_read_this": (
+            "The same book, the same three arms and the same code as the figures above, re-run "
+            "over the departure level this world runs at TODAY. It is published beside the "
+            "2026-08-31 run rather than instead of it, because those figures were honestly "
+            "measured and their fault is only being read as current. Compare the two as two "
+            "worlds, not as a revision."),
+    }
+
+
+def _current_world_clause(current_world: dict) -> str:
+    """The current-world figure IN the headline, with its refusal attached to it.
+
+    IT GOES IN THE HEADLINE BECAUSE THE READER MEETS THE HEADLINE. A page that holds the only
+    figure measured in the live world, and says it three blocks down under a heading, is a page
+    whose reader has already taken the 2026-08-31 number as the answer -- which is the exact
+    failure `_world_clause` was written for, one step along.
+
+    THE FIGURE AND ITS REFUSAL ARE ONE SENTENCE, never two. A current figure published first and
+    bounded later reads as resolved for however long it takes the reader to reach the second
+    sentence, and most readers do not.
+
+    SILENT WHEN THERE IS NO CURRENT-WORLD RUN, rather than reassuring. `_current_world_contrast`
+    already publishes its own `why_not`; a headline that recited it on every stale render is the
+    noise a reader learns to skip on the one day it changes.
+    """
+    if not isinstance(current_world, dict) or not current_world.get("available"):
+        return ""
+    advantage = current_world.get("value_advantage_gbp")
+    if not isinstance(advantage, (int, float)):
+        return ""
+    when = current_world.get("generated_at") or "an unstated date"
+    return (
+        "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "
+        "THIS PAGE STATES NO VERDICT ON THAT FIGURE: every bound it holds was measured in the "
+        "superseded world, and a spread from one departure level is not a confidence interval on "
+        "a figure from another. It is published unbounded and labelled unbounded rather than "
+        "withheld, and the older figures below are kept with their own date beside it. "
+    ).format(adv=advantage, when=when)
 
 
 def _world_departure_level() -> dict:
@@ -3044,7 +3210,8 @@ def _world_departure_level() -> dict:
 
 
 def build(three_arm: dict | None, floor: dict | None,
-          published_run: dict | None = None, decomposition: dict | None = None) -> dict:
+          published_run: dict | None = None, decomposition: dict | None = None,
+          current_three_arm: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -3056,6 +3223,7 @@ def build(three_arm: dict | None, floor: dict | None,
         "not_a_target": NOT_A_TARGET,
         "sources": [
             "docs/observability/value_cycle_ab_s1_three_arm.json",
+            "docs/observability/value_cycle_ab_s1_three_arm_20260903.json",
             "docs/observability/value_cycle_ab_s1_noise_floor.json",
             "docs/observability/value_cycle_ab_floor_decomposition.json",
         ],
@@ -3096,10 +3264,20 @@ def build(three_arm: dict | None, floor: dict | None,
     # headline is composed, because it is a prefix on that sentence and not a footnote under it --
     # a reader who meets the advantage first has already formed the impression. See
     # `_world_provenance`.
+    #
+    # THE CURRENT-WORLD RUN IS PASSED IN TOO, and that is what makes the verdict honest rather
+    # than uniform. With it on the panel the page holds one leg that names the live world and
+    # three that name none, which is MIXED -- see the branch inside `_world_provenance`. Left out,
+    # the page would publish a live figure under a "read this as history" headline.
     world_provenance = _world_provenance(
         ("the three-arm run", three_arm),
+        ("the current-world three-arm run", current_three_arm),
         ("the noise floor", floor),
         ("the floor decomposition", decomposition))
+    # THE FIGURE FROM THE WORLD THAT IS LIVE, published beside the superseded one and explicitly
+    # unbounded. See `_current_world_contrast` for why its verdict is refused rather than taken
+    # from the floor that is on disk.
+    current_world = _current_world_contrast(current_three_arm, floor)
     return dict(
         base,
         available=True,
@@ -3138,6 +3316,10 @@ def build(three_arm: dict | None, floor: dict | None,
         # about the panel and not about one figure: a contrast from one world bounded by a floor
         # from another is the defect, and it is invisible to a check that looks at either alone.
         world_provenance=world_provenance,
+        # THE SAME ARMS IN THE WORLD THAT IS LIVE, beside the run above rather than replacing it.
+        # Carries its own refusal of a bound, because the floor legs for this world are still
+        # running -- see `_current_world_contrast`.
+        current_world=current_world,
         book=_book(three_arm, provenance),
         realised=realised,
         provisioned=provisioned,
@@ -3179,6 +3361,10 @@ def build(three_arm: dict | None, floor: dict | None,
             # when the run IS the live world, which is the only state in which the headline is a
             # claim about now.
             _world_clause(world_provenance)
+            # AND THEN THE FIGURE THAT IS CURRENT, before any of the superseded ones. The world
+            # clause above tells a reader the figures below are old; without this, the page has
+            # told them that and withheld the one number that is not. See `_current_world_clause`.
+            + _current_world_clause(current_world)
             # The prefix is CONDITIONAL on the check below, and it is the whole reason the check
             # exists: this sentence is a claim about the supplier the rest of the site publishes,
             # so it may only be made while the published run and the baseline arm are the same run.
@@ -3455,12 +3641,15 @@ def _read(path: Path):
 def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              noise_floor_path: Path | None = None,
              published_run_path: Path | None = None,
-             decomposition_path: Path | None = None) -> dict:
+             decomposition_path: Path | None = None,
+             current_three_arm_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
-                       else decomposition_path))
+                       else decomposition_path),
+                 _read(CURRENT_WORLD_THREE_ARM_PATH if current_three_arm_path is None
+                       else current_three_arm_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

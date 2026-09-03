@@ -233,3 +233,76 @@ passed, not that "P5 passed".
 world's figure against an old world's bound — the exact defect `c30b98048` was filed for and the one
 act (b) exists to prevent.** It is written here only to record that the question is now live, and it
 is answered by the new floor or not at all.
+
+---
+
+## 5. 2026-09-03, later — the current-world figure is now ON the page, unbounded and labelled so
+
+*Appended by the next turn of the same claim. §2 is still untouched; P4 and P5 are still pending and
+are graded when the floor legs land, not before.*
+
+### What changed
+
+The live-world three-arm run was landed on 2026-09-03 and **the page did not read it**. So the
+repository held the one figure measured in the world that is live and published only the 2026-08-31
+ones, under a "READ THIS AS HISTORY" headline. Withholding is not the correction; dating is.
+
+`/capabilities/` now leads with the mixed-world verdict, then the current figure and its refusal,
+then the superseded run kept with its own date:
+
+> THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are
+> dated 2026-08-31. […] **IN THE WORLD AS IT IS NOW, the same comparison gives £2,336, measured
+> 2026-09-03T10:17:07Z. THIS PAGE STATES NO VERDICT ON THAT FIGURE**: every bound it holds was
+> measured in the superseded world […] It is published unbounded and labelled unbounded rather than
+> withheld, and the older figures below are kept with their own date beside it. Running the same
+> book through the per-customer decision engine earned £12,071 MORE than flat rules […]
+
+`current_world` in the feed carries every figure, its world digest, its producing commit, and
+`resolved: None` — never `False`, because "not measured" and "measured and did not clear" are
+different states and only the first is true.
+
+### The £2,336 / £2,291 ratio is refused in code, not in prose
+
+§4 recorded that the new contrast sits about 1.02× the OLD floor and that the ratio must not be
+published. That was a note to the reader; it is now a control. `_current_world_contrast` reads the
+floor for its world and its date and **never for a number**, and the door rung greps the rendered
+text after the figure for a `Nx` multiple and reds on one. A page that printed it would look more
+rigorous and be less true, which is why it is asserted rather than left to review.
+
+### A defect found in the process, and it was one branch from being published
+
+Wiring the live-world run into the page exposed that `_world_provenance`'s mixed verdict — the whole
+point of which is *"when one leg IS the live world, 'read this as history' is false about that leg"*
+— was implemented for only one of the two ways a page can be mixed. A live leg beside an
+**unstamped** one took the early return, which sets no `one_world_across_every_figure` key, and
+`_world_clause` read the absent key with `is False` and fell through to the history sentence. It had
+never fired because until today every artefact predated the stamp. Filed as
+`SEAT_FINDING_THE_MIXED_WORLD_VERDICT_HAS_NO_BRANCH_FOR_A_LIVE_LEG_BESIDE_AN_UNSTAMPED_ONE_2026-09-03.md`
+and repaired by making the existing verdict reachable, not by writing a second sentence.
+
+### Mutation record — six run and reverted, under `python3 -B`
+
+| mutation | red |
+|---|---|
+| drop `_current_world_clause` from the headline | door rung |
+| unstamped branch stops naming the mixed verdict | `..._a_live_leg_beside_an_UNSTAMPED_one...` |
+| mixed verdict becomes a constant `False` | `..._a_run_that_cannot_name_its_world...` |
+| `resolved` reports `False` instead of `None` | door rung |
+| current-world block skips the world-digest check | `..._refuses_a_run_that_names_another_world` |
+| `why_no_bound` drops the world it would have come from | same |
+
+Two of these first SURVIVED and were established as a tautology and an equivalence rather than
+assumed to be either. The mixed-verdict mutation survived because the only rung watching it read the
+same feed key it asserted, so both moved together; the digest mutation survived because the artefact
+on disk genuinely IS the live world, so removing the check changes nothing for that subject. Each
+now has a sole-witness subject that no other rung can satisfy.
+
+### What is still owed, and it is the whole of P4 and P5's substantive clause
+
+The floor legs. `only` and `except` have been running since 10:23Z; the `all` leg was **OOM-killed at
+11:27Z with `ExecMainStatus=9` and wrote nothing**, and is re-queued as `se-noise-floor-all-20260903b`
+behind the other two. Until all three land with `world_identity.digest` `39a192ce04c1eda8`, the page
+states no verdict on the current figure — which is the correct verdict and not a gap in the leg.
+
+**P4 and P5 remain ungraded. Nothing in this turn touched them, and the ratio that would settle
+"resolved" is exactly the one now refused in code.**

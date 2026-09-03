@@ -2019,6 +2019,128 @@ def test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_
         "correction, and a reader can no longer size what the world change cost")
 
 
+def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved(live):
+    """The current-world contrast must render, and it must render UNBOUNDED and say so.
+
+    THE DEFECT (2026-09-03). The arms were re-run over the departure level this world runs at
+    today (`value_cycle_ab_s1_three_arm_20260903.json`, world `39a192ce04c1eda8`), and the page
+    published only the 2026-08-31 figures under a "read this as history" headline. So the page
+    held the one figure that WAS current and told the reader nothing about it -- withholding is
+    not the correction, dating is.
+
+    AND THE OPPOSITE FAILURE IS WORSE. The floor legs for this world are still running, so the
+    only noise floor on disk was measured in the superseded world. Publishing the new contrast
+    with the old bound -- or with any verdict derived from it -- is `c30b98048` exactly: "the
+    bound that decided 'cannot resolve' was measured in another world". £2,335.87 over the old
+    ±£2,291.07 is 1.02x, and that ratio is not a quantity, because the two numbers count
+    departures at two different rates. **A page that printed it would look more rigorous and be
+    less true**, which is why the refusal is asserted here and not left to review.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. The figure is read from the feed, never typed,
+    so this rung does not go red when the arms are re-run again. `bound_available` drives which
+    branch is asserted, so the day the floor legs land in this world and the page states a real
+    verdict, this rung follows the feed rather than reddening on a page that became MORE
+    resolved. And when no current-world run exists at all, it asserts the page makes no claim
+    about now -- the fail-closed leg, which is the state the page was in before this landed.
+
+    Fires on: dropping `_current_world_clause` from the headline; publishing the current figure
+    without its refusal; deriving a "clears / does not clear" verdict for it from the superseded
+    floor; or deleting the superseded figures instead of dating them.
+    """
+    feed = _live_feed()
+    cw = feed.get("current_world") or {}
+    rendered = live["arms-headline"]
+    assert rendered.strip(), "the door rendered nothing where the headline goes"
+
+    if not cw.get("available"):
+        # FAIL CLOSED. No run in the live world means the page may not speak about now at all.
+        assert "IN THE WORLD AS IT IS NOW" not in rendered, (
+            "the page made a statement about the world as it is now while the feed says no run "
+            "in that world was readable ({})".format(cw.get("why_not")))
+        return
+
+    advantage = cw.get("value_advantage_gbp")
+    assert isinstance(advantage, (int, float)), (
+        "the current-world block is available and carries no advantage figure, so the page has "
+        "nothing to state and the availability flag is fail-open")
+    # READ FROM THE FEED, NEVER TYPED. A hardcoded "£2,336" is true when written and cannot
+    # notice the next re-run -- the shape this whole claim exists to remove.
+    money = "£{:,.0f}".format(advantage)
+    assert money in rendered, (
+        "the feed carries a contrast measured in the LIVE world ({} at {}) and a reader met no "
+        "such figure; the page published only the superseded run".format(
+            money, cw.get("generated_at")))
+
+    # THE DATE IS ON THE SURFACE, because "the world as it is now" is not something a reader can
+    # place and "measured 2026-09-03" is. This is the direction's own done-condition.
+    when = cw.get("generated_at")
+    assert when and when in rendered, (
+        "the current-world figure rendered without the date it was measured on, so a reader "
+        "cannot tell how current 'current' is")
+
+    if cw.get("bound_available"):
+        # The page may state a verdict only once a bound measured in THIS world exists.
+        assert cw.get("resolved") is not None, (
+            "the feed claims a bound for the current world and states no verdict from it")
+        return
+
+    # NO BOUND MEANS NO VERDICT, AND THE PAGE MUST SAY SO BESIDE THE FIGURE -- not below it, and
+    # not only in the feed. An unbounded figure published bare reads as resolved.
+    assert "STATES NO VERDICT" in rendered, (
+        "the current-world figure rendered with no bound and no statement that it has none, so "
+        "a reader meets it as though it were resolved")
+    assert cw.get("resolved") is None, (
+        "the feed states a verdict on a figure it holds no same-world bound for; `resolved` must "
+        "be None -- 'not measured' and 'measured and did not clear' are different states")
+    # THE RATIO THAT MUST NEVER BE FORMED. Both numbers are correct and their ratio is not a
+    # quantity. Asserted on the rendered text because that is where it would do the damage.
+    head, _, tail = rendered.partition(money)
+    del head
+    stated = tail[:400]
+    assert not re.search(r"\d+(\.\d+)?\s*(x|×)\b", stated), (
+        "the page priced the current-world figure as a multiple of a bound -- the only bound it "
+        "holds was measured in the superseded world, which is the c30b98048 defect: " + stated[:180])
+
+    # SUPERSEDED-WITH-PROVENANCE, NOT DELETION, and the current figure comes FIRST. The older run
+    # stays on the page with its date; a reader who meets it first has taken it as the answer.
+    assert "MORE than flat rules" in rendered, (
+        "the superseded comparison was deleted rather than kept beside the current one")
+    assert rendered.index(money) < rendered.index("MORE than flat rules"), (
+        "the superseded figure rendered ahead of the one measured in the live world")
+
+
+def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
+    """The rung above must red when the refusal is stripped from the clause but the figure stays.
+
+    This is the mutation that matters, because it is the shape a well-meaning edit produces: the
+    figure is the news, the caveat is long, and a page that keeps one and drops the other looks
+    tidier and is the fail-open. Run against the builder rather than the door so it needs no
+    browser, and asserted on the composed headline, which is what the door renders.
+    """
+    from tools import generate_value_arms_data as gvad
+
+    # THE MODULE'S OWN PATHS, not a second copy of them here. A path written down twice is a path
+    # that goes stale in one place, and this rung would then measure a file the page never reads.
+    three_arm = json.loads(gvad.THREE_ARM_PATH.read_text(encoding="utf-8"))
+    current = json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
+    floor = json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8"))
+    built = gvad.build(three_arm, floor, None, None, current)
+    headline = built["headline"]
+    cw = built["current_world"]
+    assert cw["available"], "the committed current-world artefact no longer names the live world"
+    money = "£{:,.0f}".format(cw["value_advantage_gbp"])
+    assert money in headline and "STATES NO VERDICT" in headline, (
+        "the live builder does not put the current figure and its refusal in the headline "
+        "together, so the rung above cannot be failed by separating them")
+
+    # THE MUTATION: keep the figure, drop the refusal. The rung above must not survive it.
+    mutated = headline.replace("THIS PAGE STATES NO VERDICT ON THAT FIGURE:", "")
+    assert money in mutated, "the mutation removed the figure too, so it tests nothing"
+    assert "STATES NO VERDICT" not in mutated, (
+        "the refusal survived its own removal -- the assertion in the rung above is satisfied by "
+        "some other sentence, which makes it an equivalence rather than a control")
+
+
 # ── can the company order who leaves ─────────────────────────────────────────────────────────
 #
 # THE READING THE WHOLE THESIS TURNS ON, and until 2026-08-31 it reached no reader. The claim

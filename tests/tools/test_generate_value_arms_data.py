@@ -2106,6 +2106,126 @@ def test_a_live_figure_bounded_by_a_stale_spread_is_not_reported_as_history():
         + clause[:160])
 
 
+def test_a_live_leg_beside_an_UNSTAMPED_one_is_mixed_and_never_history():
+    """The OTHER way a page is mixed, and until 2026-09-03 nothing could say so.
+
+    SOLE WITNESS: the three-arm leg carries the LIVE digest and the floor carries NO
+    `world_identity` at all. That combination reaches the unstamped early return, not the
+    all-stamped branch the rung above witnesses -- so neither of the two existing subjects can
+    satisfy this one, and this one cannot be graded by accident.
+
+    THE DEFECT. `_world_provenance` returned from the unstamped branch without setting
+    `one_world_across_every_figure`, and `_world_clause` reads that key with `is False`; an absent
+    key therefore selected "READ THIS AS HISTORY". So a run measured in the LIVE world, published
+    beside a floor that predates the world stamp, was announced to the reader as history. It had
+    never fired because every artefact on disk predated the stamp, making this branch uniformly
+    old and its neighbour's coverage read as coverage of both.
+
+    IT IS ALSO THE STATE THE PAGE IS ACTUALLY IN. The arms were re-run in the live world on
+    2026-09-03; the floor legs for that world are still running. So this is not a hypothetical
+    combination -- it is the live one.
+
+    Fires on: the unstamped branch dropping `one_world_across_every_figure`; setting it to a bare
+    `False` when NO leg is live (which would call a uniformly-old page mixed); or `available`
+    turning True, which would claim a page that cannot name one of its worlds is current.
+    """
+    live = _live_digest()
+    unstamped_floor = {k: v for k, v in _load(NOISE_FLOOR).items() if k != "world_identity"}
+    verdict = gva._world_provenance(
+        ("the three-arm run", _world_stamped(_load(THREE_ARM), live)),
+        ("the noise floor", unstamped_floor))
+
+    # STILL AN ABSENCE. A page that cannot name one of its worlds cannot be shown to be current,
+    # so the fix must not buy a clean bill -- it buys only an honest verdict.
+    assert verdict["available"] is False, (
+        "a page holding a leg that names no world at all was reported as able to name its world")
+    assert verdict["superseded"] is None, "an unknown world must not resolve to a boolean"
+    assert verdict["one_world_across_every_figure"] is False, (
+        "a live leg beside an unstamped one is MIXED, and this branch reported no verdict at all")
+    assert any("the three-arm run" in run
+               for run in verdict["runs_measured_in_the_live_world"])
+    assert any("the noise floor" in run
+               for run in verdict["runs_that_cannot_name_their_world"])
+    assert "MIXED, NOT UNIFORMLY OLD" in verdict["reason"], (
+        "the reason did not say which leg is current: " + verdict["reason"][:200])
+
+    clause = gva._world_clause(verdict)
+    assert "DIFFERENT WORLDS" in clause, (
+        "a live figure beside an unstamped bound rendered as the undifferentiated history "
+        "caveat: " + clause[:160])
+    assert "READ THIS AS HISTORY" not in clause, (
+        "the page told a reader that a run measured in the LIVE world was history")
+
+
+def test_an_all_unstamped_page_is_still_history_and_not_called_mixed():
+    """The complement, so the fix above cannot have bought its verdict by always saying MIXED.
+
+    SOLE WITNESS: NO leg carries a `world_identity`, so `runs_measured_in_the_live_world` is empty
+    and the page is uniformly old rather than mixed. Without this rung, setting
+    `one_world_across_every_figure` to a constant `False` on the unstamped branch would pass the
+    rung above and silently retire the history verdict for every page that deserves it.
+    """
+    strip = lambda art: {k: v for k, v in art.items() if k != "world_identity"}  # noqa: E731
+    verdict = gva._world_provenance(
+        ("the three-arm run", strip(_load(THREE_ARM))),
+        ("the noise floor", strip(_load(NOISE_FLOOR))))
+    assert verdict["available"] is False
+    assert verdict["one_world_across_every_figure"] is None, (
+        "a page with no live leg at all was reported as MIXED, which tells a reader some figure "
+        "here is current when none is")
+    assert verdict["runs_measured_in_the_live_world"] == []
+    assert "MIXED" not in verdict["reason"]
+    assert "READ THIS AS HISTORY" in gva._world_clause(verdict)
+
+
+def test_a_current_world_block_refuses_a_run_that_names_another_world():
+    """The current-world figure is admitted on its DIGEST, never on its filename.
+
+    SOLE WITNESS FOR THE REFUSAL. The artefact committed at the path the page reads happens to BE
+    the live world today, so removing the digest check changes nothing about the published feed --
+    an equivalence, not a passing control. These subjects are the only ones that can tell the two
+    apart: one stamped with a foreign digest, one carrying no stamp at all.
+
+    THE DEFECT IT PREVENTS. `current_world` is the block that says "in the world as it is now", so
+    a stale artefact admitted here is not a wrong number, it is a wrong number wearing the label
+    that stops a reader checking. The flattering reading of a file at a path called
+    `..._20260903.json` is that it is current; only the digest can refuse it.
+
+    Fires on: dropping the `ran_in != live` guard; comparing dates or commits instead of the
+    digest; or returning `available: True` with a `why_not` beside it.
+    """
+    live = _live_digest()
+    current = _load(THREE_ARM)
+
+    foreign = gva._current_world_contrast(_world_stamped(current, "0000000000000000"), None)
+    assert foreign["available"] is False, (
+        "a run measured in another world was published as the figure for the world as it is now")
+    assert foreign["resolved"] is None
+    assert "0000000000000000" in foreign["why_not"] and live in foreign["why_not"], (
+        "the refusal named neither the world the run was in nor the live one, so a reader cannot "
+        "tell how far off it is: " + foreign["why_not"])
+
+    unstamped = gva._current_world_contrast(
+        {k: v for k, v in current.items() if k != "world_identity"}, None)
+    assert unstamped["available"] is False, (
+        "a run that names NO world was accepted as the current-world one, which is the "
+        "fail-silent branch: unknown provenance reads as fine unless something says so")
+
+    missing = gva._current_world_contrast(None, None)
+    assert missing["available"] is False and missing["resolved"] is None
+    assert missing["why_not"], "an absent run refused without saying why"
+
+    # THE PASS BRANCH IS REACHABLE, or every assertion above is graded by a function that can only
+    # ever refuse -- the constant-verdict shape this file records elsewhere.
+    admitted = gva._current_world_contrast(_world_stamped(current, live), None)
+    assert admitted["available"] is True, (
+        "no subject reaches the admitting branch, so the refusals above prove nothing")
+    assert admitted["resolved"] is None, (
+        "a figure with no same-world bound was reported as resolved; `None` is the honest state")
+    assert admitted["bound_available"] is False
+    assert "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD" in admitted["why_no_bound"]
+
+
 def test_the_world_digest_tracks_the_departure_level_and_not_the_commit(monkeypatch):
     """The digest must move when the LEVEL moves, and only then.
 
