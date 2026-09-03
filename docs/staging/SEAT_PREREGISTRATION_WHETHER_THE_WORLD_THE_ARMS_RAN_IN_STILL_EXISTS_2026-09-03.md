@@ -246,8 +246,61 @@ reason. Pasted rather than recalled:
 
 Neither is a value-arm artefact. The §4 constraint holds.
 
-### Acts (b) and (c) — NOT YET GRADED
+### Act (b), headline arm — graded 2026-09-03
 
-The three-arm re-run is in flight at the time of this commit and will not finish inside this turn.
-P-C1, P-C2 and P-C3 stand ungraded and are **not** to be read as discharged. They were filed before
-act (a)'s table was printed and must be graded against the re-run's artefacts when those land.
+`docs/observability/value_cycle_ab_s1_three_arm_20260903.json`, `generated_at`
+**2026-09-03T10:17:07Z**, `world_identity.digest` **39a192ce04c1eda8** — which **equals the live
+digest**. This is the first value-arm artefact in the repository that can say which world it ran in.
+
+| figure | 2026-08-31 (superseded world) | 2026-09-03 (live world) | move |
+|---|---|---|---|
+| control net | £145,881.43 | £138,152.77 | −£7,728.66 |
+| value-arm net | £157,952.50 | £140,488.64 | −£17,463.86 |
+| level-arm net | £155,378.13 | £138,311.98 | −£17,066.15 |
+| **`value_advantage_gbp`** | **£12,071.08** | **£2,335.87** | **−£9,735.21** |
+| `level_advantage_gbp` | £9,496.70 | £159.21 | −£9,337.49 |
+| `selection_gbp` | £2,574.37 | £2,176.66 | −£397.71 |
+| `level_share_of_advantage` | 0.787 | **0.068** | −0.719 |
+| renewals priced / offered | 120 / 1,953 | 104 / 2,009 | more offered, fewer priced |
+
+**P-C1 — CONFIRMED.** I predicted the advantage would move by **more than one seed spread
+(>£2,291.07)** and explicitly declined to predict the sign. It moved **£9,735.21 — 4.25 seed
+spreads**. The refusal to call the sign was the right call and is the reason this grade is worth
+anything: had I written "it shrinks", I would now be claiming a correct prediction for a guess.
+
+**The drawn direction reached the right outcome by reasoning that act (a) refutes, and that
+distinction must not be lost.** The direction predicted the advantage would shrink *because* "the
+world got easier to hold … less book to re-win". The advantage did shrink. **The world got
+harder** — +19.06pp of expected departure across 2017-2024 — and the direction's stated mechanism
+is refuted by its own act (a). A premise that is wrong and a conclusion that is right is the most
+expensive combination available here, because the conclusion is what gets quoted and the premise is
+what gets reused. What actually happened is visible in the table: **every arm lost money** in the
+harder world, and the control lost the *least* (−£7.7k against −£17.5k). More departures did not
+hand the per-customer arm more to win; they cost it more than they cost the flat rule.
+
+**P-C2 — REGISTERED AND DID NOT FIRE.** The trap was "advantage RISES and selection RISES → defect
+in the re-run". `value_advantage_gbp` fell and `selection_gbp` fell. The detector stands unused and
+uninverted, exactly as filed.
+
+**The largest single movement is one nobody predicted, including me.**
+`level_share_of_advantage` **0.787 → 0.068**. The page currently publishes *"the price level
+accounts for 79% of the per-customer arm's advantage"*; in the live world it accounts for **7%**.
+That is a qualitative reversal of the page's central reading, not a re-scaling of it, and it is
+**unbounded until the floor lands** — `level_advantage_gbp` of £159.21 against an old-world spread
+of £1,486.83 is indistinguishable from zero, and the new world's spread is not yet measured. **No
+direction is claimed from it here.**
+
+### Act (b), floor legs — IN FLIGHT, and the artefact is deliberately NOT promoted
+
+The same-world noise floor is running now to
+`value_cycle_ab_s1_noise_floor_20260903.json`. **The new three-arm artefact is committed at its
+dated path and is NOT promoted to the canonical path the page reads**, and that is a decision rather
+than an omission: promoting it would put a live-world contrast beside an 08-31 floor, which is
+precisely the cross-world pairing this whole item exists to remove. The superseded pair on the page
+is at least internally consistent and is now correctly labelled as history. **One world on both
+sides, or it is not a comparison** — and that applies to the intermediate state too.
+
+**P-C3 — UNGRADED.** It predicts the floor's `selection_gbp` stdev widens beyond **3776.27**. The
+priced count *fell* (120 → 104), which cuts against my stated reasoning ("more accounts reach a
+priced decision"), so this one may well be refuted on a premise I can already see is shaky. Recorded
+now, before the floor returns, rather than quietly amended.
