@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-09-03T19:06:31Z",
+  "producing_commit": {
+    "commit": "1d821e12b73b65eedfee6100f768b7b17105e27b",
+    "resolved_at": "2026-09-03T16:45:29Z",
+    "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
+    "unavailable_because": null,
+    "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
+  },
+  "world_identity": {
+    "digest": "39a192ce04c1eda8",
+    "anchors": {
+      "2016": 4.259915,
+      "2017": 7.372584,
+      "2018": 2.945347,
+      "2019": 6.637286,
+      "2020": 6.359296,
+      "2021": 5.641346,
+      "2022": 1.0,
+      "2023": 2.033232,
+      "2024": 4.259915,
+      "2025": 4.259915
+    },
+    "fitted_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2023,
+      2024
+    ],
+    "declared_years": [
+      2016,
+      2022,
+      2025
+    ],
+    "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+    "unavailable_because": null
+  },
+  "report_end": null,
+  "what_this_is": "The three-arm A/B re-run once per seed with ONLY the per-household elasticity assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the figure the level-vs-selection split publishes.",
+  "clock": "settled-realised",
+  "redraw_scope": {
+    "mode": "all",
+    "accounts": [],
+    "accounts_in_roster": 0,
+    "means": "every household re-drawn -- the undecomposed floor, and the only mode whose spread bounds the published figure directly"
+  },
+  "symbol_patched": "simulation.population_draw.price_elasticity_for_customer",
+  "symbol_resolution": "read from `simulation.customer_events`'s own import statement, not written down here, so a rename disconnects this tool LOUDLY instead of silently returning a spread of zero",
+  "seeds": [
+    {
+      "seed": 11111,
+      "elasticity_draws": 356,
+      "elasticity_redrawn": 356,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 71,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 47.0,
+      "value_advantage_gbp": 1467.230551000015,
+      "level_advantage_gbp": -882.453045000002,
+      "selection_gbp": 2349.683596000017,
+      "level_share_of_advantage": -0.6014412965968788
+    },
+    {
+      "seed": 22222,
+      "elasticity_draws": 352,
+      "elasticity_redrawn": 352,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 72,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 45.75,
+      "value_advantage_gbp": 2433.696987000003,
+      "level_advantage_gbp": 1733.3789589999942,
+      "selection_gbp": 700.3180280000088,
+      "level_share_of_advantage": 0.7122410753101664
+    },
+    {
+      "seed": 33333,
+      "elasticity_draws": 353,
+      "elasticity_redrawn": 353,
+      "elasticity_held_fixed": 0,
+      "accounts_redrawn": 71,
+      "clock": "settled-realised",
+      "level_gbp_per_mwh": 47.5,
+      "value_advantage_gbp": 450.9948999999906,
+      "level_advantage_gbp": 9085.082014999993,
+      "selection_gbp": -8634.087115000002,
+      "level_share_of_advantage": 20.144533818453784
+    }
+  ],
+  "selection_gbp_spread": {
+    "n": 3,
+    "mean": -1861.3618303333253,
+    "stdev": 5923.0446166138645,
+    "min": -8634.087115000002,
+    "max": 2349.683596000017,
+    "range": 10983.77071100002
+  },
+  "level_share_spread": {
+    "n": 3,
+    "mean": 6.7517778657223575,
+    "stdev": 11.617051017819975,
+    "min": -0.6014412965968788,
+    "max": 20.144533818453784,
+    "range": 20.745975115050662
+  },
+  "selection_sem_gbp": 3419.6714038241785,
+  "selection_distinguishable_from_zero": false,
+  "how_to_read_this": "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection instrument cannot yet resolve the question being asked of it, and every reading built on it carries that caveat. That is a finding about the INSTRUMENT and not about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."
+}

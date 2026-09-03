@@ -439,6 +439,13 @@ in full"* above is correct.
 £12,071 to £2,336 between worlds. A resolved verdict says the figure clears its noise; it does not
 say the figure is large, durable, or the one published on 2026-08-31.
 
+<!-- CORRECTED 2026-09-03 20:25 BST, after launch 4 landed: £1,030.10 above is the `only` leg's mean.
+     The leg that bounds the page is `all`, whose mean is £1,450.6408 -- higher by the constant
+     £420.54 the unpriced side shifts. The caution stands and is SHARPER on the right figure: the
+     floor's own mean is 62% of the advantage it bounds, not 44%. See
+     SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md -->
+
+
 ---
 
 ## §3d AMENDED — the ETA is calibrated on ONE seed of three, and the seed it omits is slower
@@ -516,3 +523,125 @@ peak; an earlier leg of this measurement was OOM-killed and wrote nothing, which
 indistinguishable from still-running). **Keep any turn holding this claim to reads until the
 artefact lands.** Grading procedure, the three identity assertions, the decompose command and the
 `--out` trap in §3-SUPERSEDED are all still operative as written.
+
+---
+
+## GRADED — the leg landed, and every prediction is scored against it
+
+*Delivery seat, 2026-09-03 20:20 BST, claim `pick-up-the-relaunched-undecomposed-floor-leg`.
+Launch 4 completed. `systemctl --user is-active se-floor-all-20260903d` returns `inactive` with the
+unit gone (transient), **and the artefact is at `--out`** — which is the pair of facts §3d says
+distinguishes a finished leg from a dead one. It did not need the deadline, and the deadline was
+wrong for a fourth time: the band was ~20:08–20:17 and it finished at **20:06:31 BST**, just
+outside the early edge. The `is-active`-plus-artefact probe is what settled it, as §3d prescribed.*
+
+### Identity first — the three fields, before any figure
+
+Read from `docs/observability/value_cycle_ab_s1_noise_floor_20260903.json`, copied from
+`/var/tmp/se-floor-artefacts/value_cycle_ab_s1_noise_floor_20260903.json`:
+
+| field | value | required |
+|---|---|---|
+| `redraw_scope.mode` | **`all`** | `all` ✓ |
+| `generated_at` | **2026-09-03T19:06:31Z** (20:06:31 BST) | ≥ 16:45Z ✓ |
+| `world_identity.digest` | **`39a192ce04c1eda8`** | live digest ✓ |
+| `producing_commit` | `1d821e12b` | the worktree launch 4 ran from |
+
+Run duration 17:45:25 → 20:06:31 BST = **2h21m06s**. All three assertions were executed, not eyed.
+
+### The scores
+
+| | predicted | measured | grade |
+|---|---|---|---|
+| **P4** | `selection_gbp_spread.stdev` > 3,776.27 | **5,923.0446166138645** | **CONFIRMED** |
+| **P6** | stdev in 5,600–6,250; range ~10,983.77; `except`/`all` still reconcile to `only` | stdev **5,923.0446**, range **10,983.77071100002**, `except` stdev **0.00**, decomposition reconciliation **1.00×** | **CONFIRMED** |
+| **P7** | `selection_distinguishable_from_zero` is `false` | **`false`** | **SPLIT — see below** |
+| **P8** | stdev = 5923.0446166138645 and the three `selection_gbp` seed values equal `only` to full precision | **bit-identical, all four figures** | **SPLIT — see below** |
+| **P9** | `value_advantage_gbp` seed stdev = 991.4551 ±5% (942–1,041) | **991.4551457388417** | **CONFIRMED** |
+| **P10** | `_current_world_contrast(...)["resolved"]` is `True` | **`True`** | **CONFIRMED** |
+
+P9 landed on its predicted value to seven significant figures, blind. P10 confirmed, so **act (d) is
+"update the headline to the live-world pair and bound"** — done, and the rendered door is green
+(`site/test_the_baseline_comparison_reaches_the_reader.py`, 78 passed / 1 skipped).
+
+### P7 is SPLIT, and the split is the one its sibling predicted
+
+P7's literal verdict key — the producer's `selection_distinguishable_from_zero`, about
+`selection_gbp` — came back `false`, so **on the quantity it names, P7 is confirmed**. Its
+substantive claim, that the page cannot resolve the contrast, is **refuted**: the page resolves.
+Both halves are exactly what `SEAT_PREREGISTRATION_P7_IS_GRADED_ON_A_QUANTITY_THAT_DOES_NOT_BOUND_
+THE_PAGE_2026-09-03.md` said would happen. P7's supporting arithmetic (£2,335.87 ÷ £5,923.04 =
+0.39×, "comfortably inside") divides two numbers that count different things; on the page's own
+contrast it is £2,335.87 ÷ £991.46 = **2.36×, outside**. The sibling was right on every clause.
+
+### P8 is SPLIT, and grading only its heading would have hidden a real result
+
+P8's **predicted sentence** is confirmed without qualification: the stdev matches to all 17 digits
+and the three `selection_gbp` seed values are bit-identical to the `only` leg. Determinism given
+seed and world is established, and established across *two different launches on two different
+worktrees* — which also means **the 5,923.0446 figure the retired doorbell quoted from the deleted
+artefact was reproducible after all.** §"Grading constraint on P4" was right to refuse to grade
+against it, and it is now superseded by a figure that stands on its own artefact.
+
+But P8's **heading** ("this run reproduces leg B's seed rows") and its refutation trigger ("any seed
+row differs at all") are wider than its predicted sentence, and on that wider reading **P8 fires**:
+
+| seed | contrast | `all` | `only` | difference |
+|---|---|---|---|---|
+| 11111 | `selection_gbp` | 2349.683596000017 | 2349.683596000017 | **0** |
+| 11111 | `value_advantage_gbp` | 1467.230551000015 | 1046.6892320000043 | **+420.541319** |
+| 11111 | `level_advantage_gbp` | −882.453045000002 | −1302.9943640000129 | **+420.541319** |
+| 22222 | `value_advantage_gbp` | 2433.696987000003 | 2013.155654000002 | **+420.541333** |
+| 33333 | `value_advantage_gbp` | 450.9948999999906 | 30.45358099997975 | **+420.541319** |
+
+The two legs are **not** the same measurement. They differ by a near-constant **+£420.5413** on both
+`value_advantage_gbp` and `level_advantage_gbp`, which cancels exactly in their difference — and
+`selection_gbp` *is* that difference. That is why the leg P8 was checking looked identical.
+
+The offset is not a coincidence and it is not noise. The `all` leg redraws **71/72/71** accounts
+against `only`'s 66/67/66 — 15 more elasticity draws — and the unpriced households it adds shift the
+level by exactly what the `except` leg measures:
+
+    `except` value_advantage_gbp  = 2756.4088749999937  (identical on all three seeds, stdev 0)
+    live three-arm value_advantage = 2335.867556000012
+    difference                     =  420.54131899998174   <- the offset, to 11 decimal places
+
+`all` = `only` + (`except` − base) holds per seed to floating-point residue (2.9e-11, 2.9e-11,
+1.4e-05). **The decomposition is exactly additive**, which is a stronger result than the
+reconciliation ratio of 1.00× reports.
+
+### What this changes — filed as a finding, and one document figure is wrong
+
+The unpriced side contributes **zero variance and a non-zero constant**. Both prereg documents state
+only the first half. The consequence is live in this file:
+
+* §"If P10 confirms" and the sibling's §4 both caution that *"the floor's own `value_advantage_gbp`
+  mean is £1,030.10 rather than £0, so the floor is not a clean null."* **£1,030.10 is the `only`
+  leg's mean.** The `all` leg's — the leg that bounds the page — is **£1,450.6408**. The caution is
+  right and its figure is the wrong leg's, by the same £420.54.
+* The corrected figure makes the caution **sharper, not weaker**: £1,450.64 against a £2,335.87
+  advantage is a floor whose own mean is 62% of the figure it is bounding.
+* Checked: **£1,030.10 appears nowhere outside these two records** — not in `site/`, not in
+  `tools/`, not in any published feed. Nothing customer-facing carries it.
+
+**And the leg guard did not change the published bound.** Because the offset is constant, `stdev` is
+blind to it: the `only` leg's `value_advantage_gbp` stdev is 991.4551388 against the `all` leg's
+991.4551457 — agreeing to seven significant figures. A grader who opened the wrong file would have
+published the right bound. §"The leg guard is contingent, not redundant" is therefore **correct in
+its conclusion and wrong in its stated reason**: the contingency is not that `except` has zero
+variance, it is that the unpriced side's contribution is *constant across seeds*. Keep the guard —
+but the thing that would break it is a world where that shift varies by seed, and no control
+anywhere currently watches for that. Written up in
+`SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md`.
+
+### Steps (a)–(d), all four done
+
+| step | result |
+|---|---|
+| (a) grade P4/P6/P7 (+P8/P9/P10) against **this** run only | above — 4 confirmed, 2 split |
+| (b) `run_value_cycle_ab.py --decompose` | run with `--contrast value_advantage_gbp`, no `--out`; reconciliation **1.00×**, priced share **100.0%**, rest of book **0.00** |
+| (c) `_current_world_contrast` + regenerate `site/data/value_arms.json` | confirmed `bound_available: true`, `floor_leg: all`, `resolved: true`; feed regenerated |
+| (d) `/capabilities/` headline | now reads *"IN THE WORLD AS IT IS NOW, the same comparison gives £2,336… That figure **CLEARS** the £991 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was."* Rendered, not grepped. |
+
+**Discharged:** graded against launch 4's artefact; P4, P6, P9, P10 confirmed, P7 and P8 split with
+both halves recorded above.
