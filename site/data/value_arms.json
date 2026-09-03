@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T04:44:33.325779Z",
+  "generated_at": "2026-09-03T06:15:33.865764Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -226,10 +226,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "316c220e4fb86c6465311740c4d99670faf69fd1",
+    "publishing_tree_commit": "43d5e0c3bcecb66c0842a9e246e97fdf78e4946d",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 316c220e4 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 43d5e0c3b -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "book": {
     "served_segments": [
@@ -256,10 +256,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "316c220e4fb86c6465311740c4d99670faf69fd1",
+      "publishing_tree_commit": "43d5e0c3bcecb66c0842a9e246e97fdf78e4946d",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 316c220e4 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 43d5e0c3b -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -423,78 +423,78 @@
     "years": [
       {
         "year": 2017,
-        "world_pct": 15.12,
+        "world_pct": 15.3,
         "band_lo_pct": 13.5,
         "band_hi_pct": 14.0,
         "inside_band": false,
-        "share_of_the_band": 3.241,
+        "share_of_the_band": 3.591,
         "renewals": 20
       },
       {
         "year": 2018,
-        "world_pct": 25.77,
+        "world_pct": 22.97,
         "band_lo_pct": 19.5,
         "band_hi_pct": 20.0,
         "inside_band": false,
-        "share_of_the_band": 12.536,
-        "renewals": 20
+        "share_of_the_band": 6.934,
+        "renewals": 21
       },
       {
         "year": 2019,
-        "world_pct": 28.1,
+        "world_pct": 26.98,
         "band_lo_pct": 20.7,
         "band_hi_pct": 21.3,
         "inside_band": false,
-        "share_of_the_band": 12.328,
+        "share_of_the_band": 10.47,
         "renewals": 16
       },
       {
         "year": 2020,
-        "world_pct": 38.89,
+        "world_pct": 40.32,
         "band_lo_pct": 22.5,
         "band_hi_pct": 23.0,
         "inside_band": false,
-        "share_of_the_band": 32.789,
+        "share_of_the_band": 35.639,
         "renewals": 18
       },
       {
         "year": 2021,
-        "world_pct": 23.4,
+        "world_pct": 21.74,
         "band_lo_pct": 17.9,
         "band_hi_pct": 18.4,
         "inside_band": false,
-        "share_of_the_band": 10.996,
+        "share_of_the_band": 7.683,
         "renewals": 23
       },
       {
         "year": 2023,
-        "world_pct": 2.81,
+        "world_pct": 2.9,
         "band_lo_pct": 8.9,
         "band_hi_pct": 12.5,
         "inside_band": false,
-        "share_of_the_band": -1.691,
-        "renewals": 17
+        "share_of_the_band": -1.666,
+        "renewals": 20
       },
       {
         "year": 2024,
-        "world_pct": 22.34,
+        "world_pct": 22.87,
         "band_lo_pct": 12.5,
         "band_hi_pct": 16.1,
         "inside_band": false,
-        "share_of_the_band": 2.732,
-        "renewals": 17
+        "share_of_the_band": 2.881,
+        "renewals": 19
       }
     ],
     "years_inside_the_band": 0,
     "years_compared": 7,
     "all_inside_the_band": false,
-    "world_mean_pct": 22.35,
+    "world_mean_pct": 21.87,
     "published_midpoint_mean_pct": 17.2,
-    "mean_share_of_the_band": 10.419,
+    "mean_share_of_the_band": 9.362,
     "denominator": "EXTERNAL changes of supplier on a GB domestic electricity meter point, over all GB domestic electricity accounts. Both sides count the same pair; a per-renewal denominator is a different quantity and reads about a third high.",
     "measured_by": "tools/measure_departure_level.py",
     "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
-    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 22.35% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.30x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor."
+    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 21.87% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.27x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor."
   },
   "method_skill": {
     "available": true,
