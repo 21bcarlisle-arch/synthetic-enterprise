@@ -237,7 +237,7 @@ def test_every_information_source_reaches_the_reader_and_a_zero_is_never_a_refus
     # A walked rung carries its count; an excluded one carries its reason and is stated as
     # unreachable rather than as a number.
     for row in walked:
-        assert str(row["n_accounts"]) in rendered, (
+        assert str(row["n_resolved"]) in rendered, (
             "walked rung '{}' reaches the page without how many accounts it carried".format(
                 row["label"]))
     for row in excluded:
@@ -250,6 +250,59 @@ def test_every_information_source_reaches_the_reader_and_a_zero_is_never_a_refus
             "unreachable rung '{}' reaches the page without its own reason -- the two "
             "exclusions are of different kinds and one shared line loses that".format(
                 row["label"]))
+
+
+def test_a_rung_the_estimate_used_never_reaches_the_reader_as_a_zero():
+    """DEFECT: the page rendered `Ofgem's published typical values — 0`, and it had fired.
+
+    Three accounts (C7, C8, C9) carry no EAC, so the estimate came from Ofgem's TDCV
+    fallback for all three, exactly as SLC 27.15 intends. All three were acquired in 2016,
+    so all three then lost their opening amount to the SECOND, INDEPENDENT refusal — this
+    company holds no published GB rate before January 2019. The published split was built
+    by iterating the accounts that came out with an amount, so the rung that had just done
+    its job reached the reader as `0`: *the supplier looked and found none*. `28865ab63`
+    abolished that exact reading for the two rungs that cannot be reached at all and left
+    it standing on the one that can.
+
+    DRIVEN OFF A SYNTHETIC FEED, NOT THE LIVE ONE, deliberately. Keyed to today's live
+    numbers this control would go green the day the population stops containing an
+    EAC-less account — which is when the page becomes honest, not when it breaks. The
+    property is: *if a rung fired, the reader is told how often, and if fewer accounts got
+    a payment than used the rung, the reader is told that too, with the cause.*
+
+    R15 — the mutation: render `esc(r.n_with_opening_amount)` as the rung's count (i.e.
+    revert to the survivors-only split). The first assertion reds. `test_every_information
+    _source_reaches_the_reader_and_a_zero_is_never_a_refusal` stays green through it,
+    because `"0"` satisfies its substring check — which is why that control could not
+    catch this and this one exists.
+    """
+    feed = json.loads(FEED.read_text(encoding="utf-8"))
+    precedence = feed["basis_precedence"]
+    walked = [dict(r) for r in precedence["walked"]]
+    assert len(walked) >= 2, "the fixture needs two walked rungs to tell them apart"
+    # One rung loses every account downstream; the other loses none. A control whose
+    # subject satisfies only one branch makes the other an equivalence.
+    walked[0]["n_resolved"] = 41
+    walked[0]["n_with_opening_amount"] = 41
+    walked[1]["n_resolved"] = 3
+    walked[1]["n_with_opening_amount"] = 0
+    feed["basis_precedence"] = {**precedence, "walked": walked}
+    rendered = _render(feed)["ddopen-basis"]
+
+    assert "3 accounts" in rendered, (
+        "a rung the estimate actually came from for 3 accounts does not reach the reader "
+        "with that count -- published as a zero, it says the supplier never needed it")
+    assert "0 got an opening payment" in rendered, (
+        "the reader is not told that none of those accounts got a payment out of the rung")
+    assert "no published rate" in rendered, (
+        "the gap between 'we used this source' and 'the customer got a payment' reaches "
+        "the reader without its cause, so it reads as the source having failed")
+    # The sole-witness rung: one that lost nobody must NOT grow the caveat, or the
+    # sentence is boilerplate and carries no information.
+    assert "41 accounts, of which" not in rendered, (
+        "a rung that lost no account downstream is given the refusal caveat anyway")
+    assert "41 accounts" in rendered, (
+        "the rung that carried every one of its accounts through does not reach the reader")
 
 
 def test_the_money_on_this_page_carries_its_clock(live):

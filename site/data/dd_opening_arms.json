@@ -19,16 +19,22 @@
       {
         "basis": "registry_eac",
         "label": "the industry EAC/AQ handed over at registration",
-        "n_accounts": 142
+        "n_resolved": 254,
+        "n_with_opening_amount": 142
       },
       {
         "basis": "tdcv_typical",
         "label": "Ofgem's published typical values",
-        "n_accounts": 0
+        "n_resolved": 3,
+        "n_with_opening_amount": 0
       }
     ]
   },
-  "basis_split": {
+  "basis_split_resolved": {
+    "registry_eac": 254,
+    "tdcv_typical": 3
+  },
+  "basis_split_with_opening_amount": {
     "registry_eac": 142
   },
   "clock": "billed",

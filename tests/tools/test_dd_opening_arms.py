@@ -154,7 +154,7 @@ def test_an_unreachable_rung_is_published_as_a_reason_and_never_as_a_zero():
     Mutating `basis_precedence_view` to fold `excluded` into `walked` with `n_accounts:
     0`, or to drop the `reason`, turns this red.
     """
-    view = basis_precedence_view({"registry_eac": 142})
+    view = basis_precedence_view({"registry_eac": 142}, {"registry_eac": 142})
 
     walked_names = [r["basis"] for r in view["walked"]]
     excluded_names = [r["basis"] for r in view["excluded"]]
@@ -166,7 +166,7 @@ def test_an_unreachable_rung_is_published_as_a_reason_and_never_as_a_zero():
         assert row.get("reason"), (
             "excluded rung {} is published without the reason it cannot be "
             "reached".format(row["basis"]))
-        assert "n_accounts" not in row, (
+        assert "n_resolved" not in row and "n_with_opening_amount" not in row, (
             "excluded rung {} carries a count, which is exactly the zero that reads as a "
             "measurement".format(row["basis"]))
     # The reasons are DISTINCT. One boilerplate reason repeated over both rungs would
@@ -193,7 +193,7 @@ def test_the_published_precedence_is_derived_and_not_a_count_someone_typed():
         NOT_REACHABLE_AT_OPENING,
     )
 
-    view = basis_precedence_view({})
+    view = basis_precedence_view({}, {})
     assert [r["basis"] for r in view["walked"]] == [b.value for b in BASIS_ORDER], (
         "the published precedence is not the one the company module declares, or is not "
         "in its order -- best-first is the whole content of SLC 27.15's instruction")
@@ -203,9 +203,61 @@ def test_the_published_precedence_is_derived_and_not_a_count_someone_typed():
     # A basis the run resolved to that the declared precedence does not name is a
     # disagreement between the organ and its contract, and must surface rather than be
     # quietly dropped on the floor.
-    stray = basis_precedence_view({"registry_eac": 3, "some_future_rung": 7})
+    stray = basis_precedence_view({"registry_eac": 3, "some_future_rung": 7},
+                                  {"registry_eac": 3, "some_future_rung": 7})
     assert stray["unaccounted_for"] == {"some_future_rung": 7}, (
         "a basis outside the declared precedence was discarded silently")
+    # A stray rung that RESOLVED and never produced an amount is the case the
+    # survivors-only count hid. Checking only the amount split would drop it again.
+    hidden = basis_precedence_view({"registry_eac": 3, "some_future_rung": 7},
+                                   {"registry_eac": 3})
+    assert hidden["unaccounted_for"] == {"some_future_rung": 7}, (
+        "a basis that resolved but produced no opening amount is invisible to the "
+        "unaccounted-for check, which is the same blindness one rung down")
+
+
+def test_a_rung_that_fired_is_never_published_as_a_zero():
+    """DEFECT: `tdcv_typical` fired for three accounts and the page rendered it as 0.
+
+    `estimate_annual_consumption` resolving a rung and `opening_monthly_amount` returning
+    a number are separated by a SECOND, INDEPENDENT refusal — whether this company holds
+    a published rate for that date. C7, C8 and C9 carry no EAC, so all three resolve
+    through Ofgem's TDCV fallback exactly as SLC 27.15 intends; all three were acquired in
+    2016, so all three then lose their amount to the pre-2019 rate gap. The split that
+    reached the reader was built by iterating the accounts that came out with an AMOUNT,
+    so the rung that had just done its job published nothing.
+
+    A rendered zero is a MEASUREMENT. It told the reader the supplier never needed the
+    fallback. `28865ab63` abolished exactly this reading for the two rungs that CANNOT be
+    reached and left it standing on the one that can.
+
+    THE MUTATION, run and reverted: `basis_precedence_view` reads `with_amount_split` for
+    `n_resolved` — the single-split shape it had before today. This test reds on
+    `assert 0 == 3`; the other ten controls in this file stay green. The door suite was
+    graded separately, by driving the REAL page off the pre-repair feed: it stayed green
+    on it, because the walked-rung leg over there is a substring check and `"0"` satisfies
+    it against almost any page carrying a money figure.
+    """
+    # The rung was used by 3 accounts and not one of them got a payment out of it.
+    view = basis_precedence_view({"registry_eac": 142, "tdcv_typical": 3},
+                                 {"registry_eac": 142, "tdcv_typical": 0})
+    by_basis = {r["basis"]: r for r in view["walked"]}
+
+    assert by_basis["tdcv_typical"]["n_resolved"] == 3, (
+        "a rung the estimate actually came from is published as though it had never "
+        "fired, which is the zero that reads as 'the supplier looked and found none'")
+    assert by_basis["tdcv_typical"]["n_with_opening_amount"] == 0, (
+        "the count of accounts that got a payment out of the rung is wrong")
+    # The two are DIFFERENT KEYS. One number covering both is the defect wearing a
+    # longer name: the reader cannot tell 'never used' from 'used and then refused'.
+    assert (by_basis["tdcv_typical"]["n_resolved"]
+            != by_basis["tdcv_typical"]["n_with_opening_amount"]), (
+        "the two counts collapsed into one value, so the second refusal is invisible")
+    # ...and the rung where nothing was lost downstream still reports them equal, so
+    # this control cannot be satisfied by always making the two differ.
+    assert (by_basis["registry_eac"]["n_resolved"]
+            == by_basis["registry_eac"]["n_with_opening_amount"] == 142), (
+        "a rung that lost no account downstream is reported as though it had")
 
 
 def test_the_substrate_fingerprint_reaches_the_reader_and_is_not_recomputed():
@@ -233,7 +285,8 @@ def test_the_substrate_fingerprint_reaches_the_reader_and_is_not_recomputed():
         "per_account": {
             "window0_end_balance_drift_matched_population": {"n_matched_accounts": 2},
             "unestimated": {"estimate_n": 0},
-            "basis_split_of_estimated_accounts": {"registry_eac": 2},
+            "basis_split_resolved": {"registry_eac": 2},
+            "basis_split_with_opening_amount": {"registry_eac": 2},
         },
     }
     block = publish_view(result)

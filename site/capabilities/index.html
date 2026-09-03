@@ -1279,9 +1279,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + "This publish carries no precedence block, so which sources the supplier could "
           + "consult is unread here rather than reported as none.";
       } else {
+        /* A WALKED RUNG CARRIES TWO COUNTS AND THEY ARE DIFFERENT EVENTS. The estimate
+           came FROM this rung for n_resolved accounts; n_with_opening_amount of those
+           went on to get a direct debit out of it. Until 2026-09-03 only the second was
+           published, under the first one's name, so Ofgem's typical values reached the
+           reader as "0" when in fact the fallback fired for three accounts and every one
+           of them then lost its amount to the pre-2019 rate gap. The two are never
+           summed and never shown as one: "we used this source" and "the customer got a
+           payment out of it" are separated by a second, independent refusal, and the
+           sentence below names that refusal wherever the counts differ. */
         var walked = (bp.walked || []).map(function (r) {
-          return esc(r.label) + " &mdash; " + esc(r.n_accounts) + " account"
-            + (r.n_accounts === 1 ? "" : "s");
+          var used = esc(r.n_resolved) + " account" + (r.n_resolved === 1 ? "" : "s");
+          if (r.n_resolved === r.n_with_opening_amount) {
+            return esc(r.label) + " &mdash; " + used;
+          }
+          return esc(r.label) + " &mdash; " + used + ", of which "
+            + esc(r.n_with_opening_amount) + " got an opening payment (the rest had no "
+            + "published rate to annualise against)";
         });
         /* Each unreachable rung gets its own line and its own reason, because the
            reasons are of different KINDS: one is definitional and permanent, one is a
