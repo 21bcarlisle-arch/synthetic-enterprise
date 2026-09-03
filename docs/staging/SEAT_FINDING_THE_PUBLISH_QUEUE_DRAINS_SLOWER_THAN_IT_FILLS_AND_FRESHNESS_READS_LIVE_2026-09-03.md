@@ -100,3 +100,32 @@ it every existing signal reads `live` while more than half of all completed runs
 unpublished. Sizing the drain to the fill (or collapsing a backlog to its newest member, which is
 the only marker whose figures anyone wants) is the *fix*; measuring the gap is the precondition,
 and it is what this seat did not have time to land.
+
+## Re-measured after the wedge cleared (worker tick, 2026-09-03 01:38 UTC)
+
+The drain half of the mechanism was measured **while the gate was wedged**, and the wedge is the
+thing that has since cleared. Re-measured at `eb0fae2fc`, it does not survive in that form:
+
+- `sim-runner-log.md` records `[01:26 UTC] [process_run] Publish gate recovered -- cleared wedge
+  state, re-armed alarm.` In the **same minute**, 20 markers landed in `docs/staging/done/`
+  (`stat` mtimes, 20 files at `02:26` BST = `01:26` UTC). One cycle drained twenty, not one.
+- So "a cycle takes ~15 min and drains exactly one marker" describes a cycle spending its time
+  being *refused*, not the drain. The 00:10→00:25 observation behind it sits inside the wedge
+  window. The healthy-state drain rate is **not yet measured** — one recovery burst is not a rate.
+- Queue depth fell 35 → 17 across that instant. **That fall is the bulk archive, not a drain
+  outpacing the fill**, and reading it as recovery is the mirror this finding's own class warns
+  about. The doorbell's done-condition "the count of `run_complete_*.md` is falling" is satisfied
+  and means less than it appears to.
+- Fill is unchanged and healthy: `sim_runner` (pid 495) alive, ~4 markers/h by filename hour,
+  newest `20260903T011355Z` produced 12 min before this reading.
+
+**The instrumentation half stands, and is untouched by the above.** At this reading
+`publish_freshness.describe()` says `live -- figures reached origin 1.2h ago` while 17 completed
+runs sit unpublished, the oldest produced `20260902T212239Z` — **4.3 hours** before the "live"
+verdict. `snapshot()` still computes `state` from `pub_age` and `com_age` only, so backlog depth
+remains an input to no signal. That is what "What is owed next" asks for and it is still owed.
+
+**Not graded here, deliberately:** whether drain exceeds fill *in the healthy state* is now an
+open question rather than a confirmed mechanism, and it needs a window that starts after 01:26 UTC.
+This note corrects the claim; it does not re-file the finding, which stays BLOCKING on the
+instrumentation half alone.
