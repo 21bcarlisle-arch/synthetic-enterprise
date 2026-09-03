@@ -275,12 +275,30 @@ def kind_of(name: str) -> str:
         # `work_queue`. Keeping the room decision here and the rank decision there is what stops a
         # register migrating between folders as its state changes.
         return KIND_REFERENCE
-    if _PREREGISTRATION_TOKEN in name.upper():
+    if any(seg.startswith(_PREREGISTRATION_TOKEN) for seg in name.upper().split("_")[:2]):
         # BEFORE THE FINDING AND DIRECTIVE TESTS, for the same reason `DIRECTOR_CONSOLE_` is
         # tested before `DIRECTOR_`: `SEAT_PREREGISTRATION_...` and `WORKER_PREREGISTRATION_...`
         # both begin with strings that classify as work, and `DIRECTOR_` is a live prefix too. A
         # pre-registration reaching either of those tests first is exactly the state the director
         # found — 55 records sitting in the work channel because their names start like work.
+        #
+        # AND IN THE KIND POSITION, NOT ANYWHERE IN THE NAME (2026-09-03). This read
+        # `_PREREGISTRATION_TOKEN in name.upper()` — a substring, tested ahead of the finding
+        # rule — so a FINDING WHOSE SUBJECT IS A PRE-REGISTRATION classified as one.
+        # `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_
+        # BEFORE_THE_TURN_READ_IT_2026-09-03.md` is live work about a real defect, and it routed
+        # to `records/` — the room whose whole claim is THIS IS NOT WORK AND NEVER WAS. Out of the
+        # queue, undrawable, and filed as a record of something that never happened.
+        #
+        # That is the same laundering shape the lane guard in `finding_classes` exists to stop,
+        # arriving through a name rather than through a lane, and it is worse here because
+        # `records/` has no exit: a document filed there is never archived, so nothing ever
+        # revisits it.
+        #
+        # The first two underscore-segments are the document's declaration of its own kind
+        # (`SEAT_PREREGISTRATION_…`, `WORKER_PREREGISTRATION_…`, or a bare `PREREGISTRATION_…`);
+        # a token deeper than that is describing the SUBJECT. Every case the paragraph above names
+        # is still caught, because every one of them carries the token in position 0 or 1.
         return KIND_PREREGISTRATION
     if name.startswith(_DOORBELL_PREFIXES):
         return KIND_DOORBELL

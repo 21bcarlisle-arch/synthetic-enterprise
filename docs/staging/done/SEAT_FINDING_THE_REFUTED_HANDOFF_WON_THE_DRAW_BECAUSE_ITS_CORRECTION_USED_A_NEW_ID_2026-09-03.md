@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 
 # The refuted handoff won the draw because its correction was written under a new id
 
@@ -7,6 +7,26 @@
 `land-the-live-world-undecomposed-floor-leg`
 **Subject:** `background/seat_continuation.py::hand_off` — the de-duplication keyed to the id
 string — and `live()`'s oldest-first ordering.
+
+## Class registration
+
+*Lane corrected from `W2_customer_generator` to `H_harness` on filing, 2026-09-03. The old value was the lane the SEAT was working in when it found this; the lane of a finding is the lane of its SUBJECT, and this one's is `background/seat_continuation.py`. The mismatch was not cosmetic: `finding_classes` refuses to consolidate a member whose lane differs from its class document's, so with `W2_customer_generator` on the header this document could be declared into its class and still never be listed in it -- archived and belonging to nothing, which is the state the lane guard exists to prevent and which filing it carelessly produced for about a minute. Safe to correct here because the severity is LATENT either way, so no lane loses a blocker.*
+
+Belongs to `controls_that_cannot_fail`.
+
+**This is an instance, not a new class.** As above, the header named the class in prose and the
+classifier could not read it, so this filed as `unclassed` and rang as new.
+
+It is squarely the class's own shape, and the register's subtitle states it: *vacuous, fail-open,
+or blind to their own subject*. `hand_off`'s de-duplication promises in its docstring that a
+refinement "does not leave two versions competing", and is keyed to the id STRING -- so it is blind
+to the one case that matters, a correction written as a different act under a different id. The
+guard did not fail loudly; it reported success on a tree where both versions were live, and
+`live()`'s oldest-first order then served the refuted one first, deterministically, every tick.
+
+The secondary match, `figures_on_a_superseded_clock`, is recorded and not filed: that class is
+about a summary frozen before the rows beneath it moved, and the subject here is a guard, not a
+figure.
 
 ## What was found
 

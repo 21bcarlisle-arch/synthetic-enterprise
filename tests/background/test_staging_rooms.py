@@ -312,3 +312,52 @@ def test_the_LIVE_queue_carries_no_reference_or_console_WORK():
     which room the file is sitting in."""
     kinds = {i.kind for i in sr.work_queue()}
     assert sr.KIND_REFERENCE not in kinds and sr.KIND_CONSOLE not in kinds
+
+
+def test_a_finding_about_a_preregistration_is_a_finding():
+    """DEFECT: a live finding is filed into the room that means "this was never work".
+
+    `kind_of` tested `"PREREG" in name.upper()` — a substring, anywhere in the name — ahead of
+    the finding rule, and the ordering is right for the reason its own comment gives:
+    `SEAT_PREREGISTRATION_…` begins with a prefix that classifies as work. But the SUBSTRING
+    reached further than the ordering needed. A finding WHOSE SUBJECT IS a pre-registration
+    carries the token deep in its name and classified as one, so it routed to `records/` —
+    whose entire claim is THIS IS NOT WORK AND NEVER WAS, and which has no exit: nothing
+    archives out of it, so nothing ever revisits what is filed there.
+
+    Two such documents existed in the tree on 2026-09-03, out of 7,414. Both are real defects
+    somebody has to act on:
+      * `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE…`
+      * `WORKER_FINDING_A_PREREGISTERED_WITHDRAWAL_TRIGGER_KEYED_TO_TWO_NULL_VERDICTS…`
+
+    R15 — the mutations, each run and reverted:
+      * restore the bare `in name.upper()` substring test -> the first two cases red.
+      * widen the kind position from the first two underscore-segments to the first three ->
+        `SEAT_FINDING_A_PREREGISTRATION_…` reds, because `A` then `PREREGISTRATION` puts the
+        token back in scope.
+      * narrow it to the first segment only -> every real `SEAT_PREREGISTRATION_…` reds, which
+        is the other direction and is the failure the original ordering existed to prevent.
+    """
+    # The kind position — the document declaring its own kind — stays a pre-registration.
+    for name in (
+        "SEAT_PREREGISTRATION_WHETHER_THE_YEAR_ANCHOR_RE_EXPRESSES_THE_MECHANISM_2026-09-03.md",
+        "WORKER_PREREGISTRATION_WHAT_THE_BALANCED_GAS_LEVEL_CEILING_MUST_SHOW_2026-09-03.md",
+        "DIRECTOR_PREREGISTRATION_ANYTHING_2026-09-03.md",
+    ):
+        assert sr.kind_of(name) == sr.KIND_PREREGISTRATION, (
+            "{} is a pre-registration and no longer classifies as one -- the ordering that keeps "
+            "records out of the work channel has been narrowed too far".format(name))
+
+    # The token describing the SUBJECT does not.
+    for name in (
+        "SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE"
+        "_BEFORE_THE_TURN_READ_IT_2026-09-03.md",
+        "WORKER_FINDING_A_PREREGISTERED_WITHDRAWAL_TRIGGER_KEYED_TO_TWO_NULL_VERDICTS_FIRED"
+        "_2026-08-29.md",
+    ):
+        assert sr.kind_of(name) == sr.KIND_FINDING, (
+            "{} is a FINDING about a pre-registration and classifies as a pre-registration, so "
+            "it files into records/ -- out of the queue, undrawable, and recorded as something "
+            "that was never work".format(name))
+        assert sr.room_for(sr.kind_of(name)) is None, (
+            "a finding is work and belongs in the staging ROOT, not in a room")

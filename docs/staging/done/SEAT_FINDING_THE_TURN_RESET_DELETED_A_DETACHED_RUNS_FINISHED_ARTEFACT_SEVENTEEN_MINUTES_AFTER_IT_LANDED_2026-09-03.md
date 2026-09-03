@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 
 # The turn reset deleted a detached run's finished artefact seventeen minutes after it landed
 
@@ -7,6 +7,27 @@
 `land-the-live-world-undecomposed-floor-leg`
 **Subject:** `background/seat_executor.py::ensure_worktree` — the `git reset --hard` / `git clean
 -qfd` pair, and the docstring sentence that licensed it.
+
+## Class registration
+
+*Lane corrected from `W2_customer_generator` to `H_harness` on filing, 2026-09-03. The old value was the lane the SEAT was working in when it found this; the lane of a finding is the lane of its SUBJECT, and this one's is `background/seat_executor.py`. The mismatch was not cosmetic: `finding_classes` refuses to consolidate a member whose lane differs from its class document's, so with `W2_customer_generator` on the header this document could be declared into its class and still never be listed in it -- archived and belonging to nothing, which is the state the lane guard exists to prevent and which filing it carelessly produced for about a minute. Safe to correct here because the severity is LATENT either way, so no lane loses a blocker.*
+
+Belongs to `uncommitted_and_orphaned_work`.
+
+**This is an instance, not a new class.** The header above already said so in prose -- `**Class:**
+`uncommitted_and_orphaned_work` (primary)` -- and the machine could not read it: the classifier
+resolves a declaration only under this heading, so the document sat in the staging root reading
+`unclassed` and ringing the doorbell as though it were the first of its kind. It is the 22nd.
+
+The class is *finished work that never became part of the tree*, and the only unusual thing here is
+the direction: the artefact was not left uncommitted by an author who forgot, it was DELETED by the
+next turn's `ensure_worktree` seventeen minutes after it landed. That is the same class arriving
+from the opposite side, and filing it as a fresh finding would have hidden the 22nd instance of a
+class whose register already carries the argument for why it keeps happening.
+
+The secondary match, `controls_that_cannot_fail`, is recorded and not filed: `classify_file`
+resolves one class and prints the rest as `also_matched`, and a document filed twice is a document
+counted twice in two registers' costs.
 
 ## What was found
 
