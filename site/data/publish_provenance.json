@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-01T06:22:09Z",
+    "checked_at": "2026-09-03T19:24:13Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,7 +9,7 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 55
+    "open_findings": 14
   },
   "last_verified": {
     "generated_at": "2026-09-03T18:23:05Z",
@@ -23,8 +23,8 @@
     "run_retained": true,
     "verified_at": "2026-09-03T18:23:05Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=36dccc5b7; blocking tests: FAILED tests/background/test_suite_duration_watch.py::test_the_cadence_is_read_from_a_measurement_not_an_aspiration",
+  "paused_since": "2026-09-03T19:58:51Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-09-03T18:23:05Z",
@@ -38,6 +38,6 @@
     "run_retained": true,
     "verified_at": "2026-09-03T18:23:05Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-03T18:23:05Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-03T19:58:51Z"
 }
