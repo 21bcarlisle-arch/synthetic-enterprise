@@ -167,6 +167,31 @@ def validate(record) -> list[str]:
         for i, item in enumerate(not_now):
             if not isinstance(item, dict) or not item.get("what") or not item.get("why"):
                 problems.append(f"not_now[{i}] needs a what and a why")
+    wrong = record.get("wrong")
+    if wrong is not None and not isinstance(wrong, list):
+        problems.append("wrong is not a list")
+    else:
+        # AN EMPTY SELF-AUDIT ROW IS THE ONE FAILURE THIS SECTION CANNOT SURVIVE, and until
+        # 2026-09-03 it was the only section of the record with no clause here at all. `focus` and
+        # `not_now` are both checked field by field; `wrong` was accepted in any shape, so five
+        # rows of `{}` would have validated, been recorded, been published, and read from outside
+        # exactly like five errors honestly declared. The director reported seeing that shape. He
+        # had not -- twenty consecutive committed records carry a populated `what` in every row --
+        # but nothing in this tree could have told him apart from a human reading the file, which
+        # is the same thing as the control not existing. `corrected` is required as a BOOLEAN and
+        # not merely present: it is the field that makes the seat correctable, and a missing one
+        # reads as "not corrected" while an absent one reads as nothing at all.
+        for i, item in enumerate(wrong or []):
+            if not isinstance(item, dict) or not str(item.get("what") or "").strip():
+                problems.append(
+                    f"wrong[{i}] has no what -- an empty self-audit row is indistinguishable "
+                    "from an honest one and records nothing"
+                )
+            elif not isinstance(item.get("corrected"), bool):
+                problems.append(
+                    f"wrong[{i}] needs corrected: true|false -- an error with no correction "
+                    "state cannot be graded next stretch"
+                )
     forbidden = sorted(_forbidden_keys_in(record))
     if forbidden:
         problems.append(
@@ -362,3 +387,25 @@ def read_decisions(limit: int = 50, path: Path | None = None) -> list[dict]:
         except json.JSONDecodeError:
             continue
     return rows
+
+
+def wrong_rows(row: dict) -> list[dict]:
+    """One recorded orientation's self-audit, as `{what, corrected}`, in BOTH stored shapes.
+
+    THE SHAPE CHANGED ON 2026-09-03 AND THE OLD ROWS ARE NOT MIGRATED. Until then the seat wrote
+    `wrong` as a list of bare strings, dropping `corrected` at the first hop out of
+    `DIRECTION.yaml`; 69 recorded orientations carry that shape and they are an append-only
+    record, so they are read rather than rewritten. A legacy row's correction state is genuinely
+    unknown -- not false -- and this returns `None` for it, because "we did not record whether
+    this was fixed" and "this was not fixed" are different claims and only one of them is true.
+    """
+    out: list[dict] = []
+    for item in row.get("wrong") or []:
+        if isinstance(item, dict):
+            what = str(item.get("what") or "").strip()
+            corrected = item.get("corrected")
+            out.append({"what": what,
+                        "corrected": corrected if isinstance(corrected, bool) else None})
+        elif isinstance(item, str) and item.strip():
+            out.append({"what": item.strip(), "corrected": None})
+    return out

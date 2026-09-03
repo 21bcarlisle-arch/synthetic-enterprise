@@ -169,6 +169,20 @@ def test_an_empty_WHAT_IT_GOT_WRONG_says_WHICH_kind_of_empty_it_is(rendered):
             "the panel has {} recorded mistake(s) and does not carry the first one's text -- a "
             "reader is being told the number and not the finding".format(len(entries))
         )
+        # AND WHETHER IT WAS FIXED. Until 2026-09-03 the seat declared `corrected: true|false` on
+        # every error, the field was dropped one hop out of `DIRECTION.yaml`, and this panel
+        # served 212 mistakes with no correction state on any of them -- which reads from outside
+        # as a machine that lists its faults and never repairs one. The three states are kept
+        # apart on the surface because "we did not record whether this was fixed" is a different
+        # claim from "this was not fixed", and only one of them is true of the older rows.
+        for entry in entries:
+            expected = {True: "corrected", False: "still open"}.get(
+                entry.get("corrected"), "correction not recorded")
+            assert expected in body, (
+                "an entry recorded as {!r} does not say so on the rendered page".format(
+                    entry.get("corrected"))
+            )
+            break
         return
     assert "not that nothing went wrong" in body or "no orientation has recorded" in body, (
         "the panel is EMPTY and does not say which kind of empty: a machine that found no "

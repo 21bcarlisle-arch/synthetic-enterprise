@@ -503,9 +503,29 @@ function renderDeliveryWrong(d) {
   /* ALLOWED TO BE EMPTY, NOT ALLOWED TO BE ABSENT. A machine reporting no mistakes is either not
      looking or not saying, and those read identically from outside -- so an empty panel states
      WHICH of the two it is instead of showing nothing. */
+  /* AND WHETHER IT WAS FIXED, which this panel could not say until 2026-09-03. The seat declared
+     a correction state on every error it recorded and the field was dropped one hop downstream,
+     so a reader met 212 mistakes with no way to tell a live defect from a closed one -- which
+     reads as a machine that lists its faults and never repairs them. "not recorded" is kept
+     distinct from "not corrected": the rows written before the field survived cannot be graded
+     and are not going to be guessed at. */
+  var graded = items.filter(function (x) { return x.corrected === true || x.corrected === false; });
+  var tally = graded.length
+    ? '<div class="note"><strong>' + n(w.outstanding || 0) + " still open, " +
+      n(w.corrected || 0) + " corrected</strong>" +
+      ((w.correction_not_recorded || 0)
+        ? ". " + n(w.correction_not_recorded) + " older entries predate the correction state " +
+          "being kept and are shown without one — not recorded, which is not the same as " +
+          "not corrected."
+        : ".") + "</div>"
+    : "";
   $("delivery-wrong").innerHTML = items.length
-    ? items.map(function (x) {
-        return '<div class="card"><div class="meta">' + dt(x.at) + "</div><p>" + esc(x.what) + "</p></div>";
+    ? tally + items.map(function (x) {
+        var mark = x.corrected === true ? " &middot; corrected"
+          : x.corrected === false ? " &middot; still open"
+          : " &middot; correction not recorded";
+        return '<div class="card"><div class="meta">' + dt(x.at) + mark + "</div><p>" +
+          esc(x.what) + "</p></div>";
       }).join("")
     : '<div class="note">' + esc(w.empty_means || "Nothing recorded.") + "</div>";
   if ((w.refused_own_records || []).length) {

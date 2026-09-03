@@ -131,13 +131,23 @@ def what_it_got_wrong() -> dict:
     rows = direction_mod.read_decisions(limit=40)
     wrong = []
     for row in rows:
-        for item in row.get("wrong") or []:
-            wrong.append({"at": row.get("at"), "what": item})
+        # THE CORRECTION STATE IS HALF THE RECORD AND WAS SERVED ON NONE OF IT until 2026-09-03.
+        # `direction_mod.wrong_rows` reads both stored shapes and returns `corrected: None` for
+        # the rows written before the field survived the hop -- and `None` is published as
+        # "not recorded", never folded into "not corrected", because a panel that reports an
+        # unknown as a failure is making a claim the record does not carry.
+        for item in direction_mod.wrong_rows(row):
+            wrong.append({"at": row.get("at"), "what": item["what"],
+                          "corrected": item["corrected"]})
     refused = [{"at": r.get("at"), "problems": r.get("problems") or []}
                for r in rows if r.get("outcome") == "refused"]
+    graded = [w for w in wrong if w["corrected"] is not None]
     return {
         "entries": wrong,
         "refused_own_records": refused,
+        "outstanding": sum(1 for w in graded if not w["corrected"]),
+        "corrected": sum(1 for w in graded if w["corrected"]),
+        "correction_not_recorded": len(wrong) - len(graded),
         "empty_means": (
             "no orientation has recorded an error yet" if not wrong and rows else
             "nothing has been recorded here at all, which means the seat has not run -- not that "

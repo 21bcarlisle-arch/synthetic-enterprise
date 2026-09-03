@@ -138,6 +138,12 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     a measurement inside a `why` is fine and is what good direction looks like.
   * `not_now` MUST be non-empty. A direction that rejected nothing recorded no judgement, and the
     rejections are the half the director reviews.
+  * `wrong` IS GRADED, NOT WRITTEN FROM MEMORY. The brief hands you `previous_wrong` -- last
+    stretch's errors with the correction state you gave them. Every row there that is still
+    uncorrected must appear in your `wrong` again, either still `corrected: false` or now `true`
+    with the evidence in `thesis_read`. An uncorrected error that silently stops being listed has
+    not been fixed; it has been forgotten, and that is the failure this section exists to catch.
+    A row with an empty `what`, or with `corrected` missing or non-boolean, is REFUSED outright.
   * `for_the_director` is for what genuinely needs HIM: spending real money, contacting real
     people, an irretractable public claim in the company's name, a real person's safety -- or a
     genuine CHANGE OF DIRECTION that is his to make and not yours. Everything else is yours to
@@ -438,6 +444,15 @@ def build_brief(now: datetime | None = None) -> dict:
         "publish": publish_state(),
         "director_inputs": director_inputs(since),
         "previous_focus": list(prev_focus),
+        # THE SELF-AUDIT'S CORRECTION LEG WAS UNFED BY CONSTRUCTION. The seat is required to write
+        # `corrected: true|false` against every error, and the brief handed it `previous_focus` --
+        # never the previous errors. So every `corrected` value in the record was RECONSTRUCTED
+        # from whatever the orienting session happened to notice, not GRADED against the list it
+        # was actually asked about, and an error nobody remembered simply left the record with no
+        # verdict at all. Handing the rows back is what turns the field from a declaration into a
+        # grade, and it is the same shape as `previous_focus_drawn`: the seat measures whether its
+        # own last steer took, and now whether its own last errors were fixed.
+        "previous_wrong": direction_mod.wrong_rows(previous),
         "atoms_drawn": atoms_drawn_since(since),
         "previous_focus_drawn": direction_mod.focus_was_drawn(
             prev_focus, focus_drawn_since(since), atom_ids=set(levels)),
@@ -518,8 +533,37 @@ def _prompt(brief: dict) -> str:
         rendered = "THE COMMIT STRETCH COULD NOT BE READ ({}) -- so its shape was NOT checked, " \
                    "and nothing below should be taken as evidence that it is sound.".format(
                        shape.get("why", "unknown"))
+    # AND SO DOES THE LIST BEING GRADED, for the same reason and it is not a second instance of
+    # the same lesson so much as the first one not being finished. `previous_wrong` is the
+    # THIRTEENTH key of the brief, behind `commits` and behind `shape.rendered`, so on a long
+    # stretch the seat would be told to grade a list that had been truncated off the end of its
+    # own prompt -- and would then do exactly what it did before this field existed: write the
+    # errors it happened to remember. An input that a truncation can silently remove is not an
+    # input.
+    prior = brief.get("previous_wrong") or []
+    if prior:
+        open_rows = [r for r in prior if r.get("corrected") is False]
+        graded = (
+            "\n\nWHAT YOU SAID WAS WRONG LAST STRETCH, and your verdict on each. THIS IS A LIST "
+            "TO GRADE, NOT A LIST TO REPLACE: every row still marked open must appear in your "
+            "`wrong` again -- still `corrected: false`, or `corrected: true` with the evidence in "
+            "`thesis_read`. An open error that quietly stops being listed has not been fixed, it "
+            "has been forgotten.\n\n"
+            + "\n".join(
+                "- [{}] {}".format(
+                    {True: "corrected", False: "STILL OPEN"}.get(r.get("corrected"),
+                                                                 "no verdict recorded"),
+                    r.get("what", ""))
+                for r in prior)
+            + "\n\n{} of {} still open.".format(len(open_rows), len(prior))
+        )
+    else:
+        graded = ("\n\nNO PREVIOUS SELF-AUDIT ROWS were recorded, so there is nothing to grade. "
+                  "That is either a clean stretch or a seat that stopped looking, and only you "
+                  "can say which.")
     return (
         CHARTER
+        + graded
         + "\n\nTHE LAST STRETCH OF COMMITS, as a person would read them. `!!` marks a commit whose "
           "tree is identical to one of its own parents -- it changed NOTHING. A run of those, or a "
           "run of identical subjects, is a finding about the MACHINE and outranks whatever else "
@@ -641,7 +685,15 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         "ran": ran,
         "focus": list(parsed.focus_keys()) if parsed else [],
         "not_now": [r.get("what") for r in (parsed.not_now if parsed else ())],
-        "wrong": [r.get("what") for r in (parsed.wrong if parsed else ())],
+        # `corrected` TRAVELS WITH THE ERROR, and until 2026-09-03 it did not. The seat was asked
+        # to write `corrected: true|false` on every self-audit row, wrote it faithfully into
+        # `DIRECTION.yaml` for twenty consecutive records, and then this line threw it away -- so
+        # the append-only record, `site/data/delivery.json` and the published panel all carried
+        # 212 declared errors with no correction state on any of them, and NOTHING in the tree
+        # read the field. A self-audit whose correction half is discarded one hop downstream is a
+        # list of complaints, not an audit.
+        "wrong": [{"what": r.get("what"), "corrected": bool(r.get("corrected"))}
+                  for r in (parsed.wrong if parsed else ())],
         "for_the_director": [r.get("what") for r in (parsed.for_the_director if parsed else ())],
         "thesis_read": parsed.thesis_read if parsed else "",
         "out_of_scope_writes": out_of_scope_writes(),
