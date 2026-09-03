@@ -1122,6 +1122,175 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     });
 })();
 </script>
+<!-- THE OPENING DIRECT DEBIT, AGAINST THE RULE IT REPLACED.
+     Same requirement as the arm comparison above and the same reason for existing: an organ
+     landed, and the eight headline figures either side of it were identical to the penny, which
+     was read as "it does nothing". It was not. It moves three of the 104 figures this run
+     publishes and every one of them was, until this section, unreadable by anybody. The
+     comparison is against the rule the organ DISPLACED -- the opening direct debit set from the
+     first issued bill -- because a baseline sitting in the code you replaced is the cheapest
+     baseline there will ever be. Every figure is fetched from ../data/dd_opening_arms.json;
+     none is authored here. -->
+<section id="dd-opening" style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
+  <h2 class="sec">Does estimating the direct debit beat guessing it?</h2>
+  <p class="sec-lede">A direct debit is one of the few numbers a customer can quote back at you,
+  and it is only as good as the estimated annual consumption behind it: when that estimate is
+  wrong the account drifts into credit or debit, and the correction arrives later as a change
+  nobody expected. Until September this supplier did not estimate anything &mdash; it opened every
+  account's monthly payment at whatever their <em>first bill</em> happened to be, which makes the
+  payment an accident of the month they joined in. Both rules are run over the same book below.</p>
+  <p id="ddopen-headline" style="margin:0 0 10px;font-weight:600;"></p>
+  <!-- WHY THE HEADLINE FIGURES ON THIS SITE DO NOT MOVE, above the tables and not below them.
+       A reader who meets two identical net-margin figures first has already concluded the organ
+       is inert, and an explanation met afterwards does not undo it. -->
+  <p id="ddopen-why" style="margin:0 0 16px;font-size:13px;"></p>
+  <div id="ddopen-amounts"></div>
+  <!-- THE HOUSEHOLD'S SIDE. Credit and debit are rendered as two rows and never as one average:
+       a household £77 in credit and one £200 in debit are two different experiences with two
+       different remedies, and the mean of the two is a quantity nobody has. -->
+  <div id="ddopen-drift"></div>
+  <p id="ddopen-paired" style="margin:14px 0 0;"></p>
+  <!-- WHAT THE SUPPLIER REFUSED TO GUESS. Published as a count with its cause, not hidden:
+       a fail-closed organ whose refusals are invisible reads exactly like one that had nothing
+       to refuse. -->
+  <p id="ddopen-refused" style="margin:14px 0 0;font-size:13px;"></p>
+  <p id="ddopen-basis" style="margin:10px 0 0;font-size:13px;"></p>
+  <p id="ddopen-note" class="stamp" style="margin-top:12px;"></p>
+</section>
+<script>
+/* Its own fetch and its own IIFE, same discipline as the arm comparison above. On any failure
+   every figure is ABSENT with a stated reason, never zero: "the two arms could not be told
+   apart" and "nobody looked" are the two readings this section exists to keep apart, and for one
+   publish this project could not. */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  };
+  var prose = function (s) { return esc(s).replace(/ -- /g, " &mdash; "); };
+  var gbp = function (v) {
+    if (v === null || v === undefined || isNaN(v)) return null;
+    var n = Number(v);
+    return (n < 0 ? "-£" : "£") + Math.abs(n).toFixed(2);
+  };
+  /* A MEAN AND ITS BOUND ARE ONE STRING, never two cells a layout could separate. A point
+     estimate that can be read without its interval is the figure the basis gate exists to
+     refuse, and a sample that cannot bound itself says so in words rather than printing a
+     zero-width interval that reads as certainty. */
+  var withBound = function (stat) {
+    if (!stat || !stat.n) return "&mdash;";
+    var m = gbp(stat.mean_gbp);
+    var ci = stat.ci95_gbp || [];
+    if (ci[0] === null || ci[0] === undefined) {
+      return esc(m) + " <span style=\"color:var(--muted)\">(n=" + esc(stat.n)
+        + ", too few to bound)</span>";
+    }
+    return esc(m) + " <span style=\"color:var(--muted)\">(95% " + esc(gbp(ci[0])) + " to "
+      + esc(gbp(ci[1])) + ", n=" + esc(stat.n) + ")</span>";
+  };
+  /* Opened inside `table-scroll` like every other table on this door: a two-arm comparison is
+     wide, and a wide table outside that wrapper scrolls the whole body on a phone. Held by
+     site/test_expert_doors_mobile.py, which reads the source and not the render. */
+  var rows = function (caption, body) {
+    return '<div class="table-scroll">'
+      + '<table style="width:100%;border-collapse:collapse;margin:16px 0 0;font-size:13px;">'
+      + '<caption style="text-align:left;font-weight:600;padding-bottom:6px;">' + caption
+      + '</caption>' + body + '</table></div>';
+  };
+  var row = function (label, a, b) {
+    return '<tr><td style="padding:4px 8px 4px 0;">' + label
+      + '</td><td style="padding:4px 8px;text-align:right;">' + a
+      + '</td><td style="padding:4px 0 4px 8px;text-align:right;">' + b + '</td></tr>';
+  };
+
+  fetch("../data/dd_opening_arms.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.available) {
+        $("ddopen-note").textContent =
+          "The opening direct-debit comparison is not available, so it is absent rather than "
+          + "empty. " + (d.reason || "");
+        return;
+      }
+      $("ddopen-headline").innerHTML = prose(d.headline);
+      $("ddopen-why").innerHTML = "<strong>Why nothing above this section moved.</strong> "
+        + prose(d.why_no_headline_moves);
+
+      var oa = d.opening_amount || {};
+      $("ddopen-amounts").innerHTML = rows(
+        "The monthly payment each rule opened the account at",
+        row("<em></em>", "<strong>First bill</strong>", "<strong>Annualised estimate</strong>")
+        + row("Mean opening payment", withBound(oa.flat), withBound(oa.estimate))
+        + row("Median", esc(gbp((oa.flat || {}).median_gbp)),
+              esc(gbp((oa.estimate || {}).median_gbp)))
+        + row("Accounts opened", esc((oa.flat || {}).n), esc((oa.estimate || {}).n))
+        + row("Openings the two rules agreed on, to the penny",
+              esc(oa.n_agreeing_to_the_penny), esc(oa.n_agreeing_to_the_penny)));
+
+      var dr = d.year_one_drift_matched || {};
+      var f = dr.flat || {}, e = dr.estimate || {};
+      $("ddopen-drift").innerHTML = rows(
+        "Where the account stood at the end of its first year &mdash; the "
+          + esc(dr.n_matched_accounts) + " households both rules could open",
+        row("<em></em>", "<strong>First bill</strong>", "<strong>Annualised estimate</strong>")
+        + row("Ended the year <strong>in credit</strong> (money we owe them)",
+              withBound(f.in_credit), withBound(e.in_credit))
+        + row("&nbsp;&nbsp;how many households", esc((f.in_credit || {}).n),
+              esc((e.in_credit || {}).n))
+        + row("Ended the year <strong>in debit</strong> (money they owe us)",
+              withBound(f.in_debit), withBound(e.in_debit))
+        + row("&nbsp;&nbsp;how many households", esc((f.in_debit || {}).n),
+              esc((e.in_debit || {}).n)))
+        + '<p style="margin:8px 0 0;font-size:12px;color:var(--muted);">'
+        + prose(dr.population_note || "") + '</p>';
+
+      /* THE PAIRED RESULT -- the only statistic here that answers "did it help THIS household",
+         because it is the same household under both rules. Rendered with its interval inline for
+         the same reason the table is. */
+      var ci = dr.mean_change_in_abs_drift_ci95_gbp || [];
+      $("ddopen-paired").innerHTML = ci[0] === null || ci[0] === undefined
+        ? "<strong>Household by household.</strong> The change per household could not be "
+          + "bounded on this sample, so it is not quoted as a result."
+        : "<strong>Household by household.</strong> Taking the same account under both rules, the "
+          + "estimate ends the first year closer to square for "
+          + esc(dr.n_estimate_closer_to_zero) + " of " + esc(dr.n_matched_accounts)
+          + " households, and the typical distance from square falls by "
+          + esc(gbp(Math.abs(dr.mean_change_in_abs_drift_gbp)))
+          + " (95% " + esc(gbp(Math.abs(ci[1]))) + " to " + esc(gbp(Math.abs(ci[0])))
+          + "). The interval excludes zero, so this is a difference and not noise.";
+
+      $("ddopen-refused").innerHTML = "<strong>What the supplier refused to guess.</strong> "
+        + prose((d.refused || {}).statement || "");
+
+      var bs = d.basis_split || {};
+      var order = ["metered_history", "registry_eac", "customer_declared", "tdcv_typical"];
+      var names = {
+        metered_history: "our own meter reads",
+        registry_eac: "the industry EAC/AQ handed over at registration",
+        customer_declared: "what the customer told us",
+        tdcv_typical: "Ofgem's published typical values"
+      };
+      var parts = order.map(function (k) {
+        return esc(names[k]) + " " + esc(bs[k] || 0);
+      });
+      $("ddopen-basis").innerHTML = "<strong>Which information the estimate came from.</strong> "
+        + "The law orders these sources best-first, and this book reaches only one of them: "
+        + parts.join("; ") + ". " + prose(d.basis_note || "");
+
+      $("ddopen-note").textContent =
+        "Clock: " + (d.clock || "unstated") + ". " + (d.clock_note || "")
+        + " Measured over " + (d.n_bills || "an unknown number of")
+        + " issued bills from " + (d.substrate || "an unnamed run") + ".";
+    })
+    .catch(function (err) {
+      $("ddopen-note").textContent =
+        "The opening direct-debit comparison could not be loaded (" + err
+        + "). The figures are absent, not zero.";
+    });
+})();
+</script>
 <section style="max-width:760px;margin:0 auto;padding:0 24px 48px;">
   <h2 style="font-size:15px;margin:32px 0 10px;">The supplier's own operating detail</h2>
   <p style="margin-bottom:14px;">

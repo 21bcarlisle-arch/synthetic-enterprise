@@ -30,6 +30,15 @@ OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
 # generate_world_data.py already reads for the same purpose.
 SIM_DATA_PATH = PROJECT / "site" / "data" / "sim_data.json"
 
+# THE TWO-ARM DIRECT-DEBIT COMPARISON. The measurement is expensive (it rebuilds
+# both DD books over a whole run's issued bills), so the publisher READS the
+# committed artefact rather than re-running it -- `python3 -m tools.dd_opening_arms
+# --json <this path> --publish <the feed>` is what refreshes it. The feed is written
+# here, on the publish path, so the block a reader meets and the block this generator
+# computed cannot be two different things.
+DD_ARMS_ARTEFACT = PROJECT / "docs" / "reports" / "dd_opening_arms.json"
+DD_ARMS_FEED = PROJECT / "site" / "data" / "dd_opening_arms.json"
+
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
@@ -2214,6 +2223,13 @@ def generate(run_json_path=None):
     # are reported rather than gating, and what would put them back.
     consistency_ok = population_ok and mix_claim_ok
 
+    # THE OPENING DIRECT DEBIT, BOTH ARMS. Written on the publish path rather than
+    # composed into `dashboard` because the block is a comparison of two runs of one
+    # organ, not a figure of this run -- and because a fail-closed block belongs in a
+    # feed the page fetches, so an absent artefact renders a stated absence on screen
+    # instead of a key the renderer silently skips.
+    _write_dd_opening_arms_feed()
+
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
         json.dump(dashboard, f, separators=(",", ":"))
@@ -2337,6 +2353,29 @@ _BASIS_DECLARED_UNLABELLED = {
     ),
     "net_after_cts_gbp": "computed FROM net_margin_gbp and cost_to_serve_gbp, so it cannot carry a cleaner basis than the latter",
 }
+
+
+def _write_dd_opening_arms_feed():
+    """Publish the two-arm opening-direct-debit comparison, or a named absence.
+
+    `tools.dd_opening_arms.publish_view` decides what a reader meets; this function
+    only decides WHEN. A missing or unparseable artefact is handed to it as `None`,
+    which is why there is no path here that writes an empty block: an absent
+    comparison and a comparison that found nothing must not render the same, and
+    this feed was created because for one publish they did.
+    """
+    from tools.dd_opening_arms import publish_view
+
+    result = None
+    if DD_ARMS_ARTEFACT.is_file():
+        try:
+            result = json.loads(DD_ARMS_ARTEFACT.read_text())
+        except (json.JSONDecodeError, OSError):
+            result = None
+    block = publish_view(result)
+    DD_ARMS_FEED.parent.mkdir(parents=True, exist_ok=True)
+    DD_ARMS_FEED.write_text(json.dumps(block, indent=2, sort_keys=True) + "\n")
+    print(f"Wrote {DD_ARMS_FEED} (available={block.get('available')})")
 
 
 def _basis_required_portfolio_keys(portfolio):

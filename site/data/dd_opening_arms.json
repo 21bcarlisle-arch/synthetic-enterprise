@@ -1,0 +1,109 @@
+{
+  "available": true,
+  "basis_note": "Which of SLC 27.15's four sources each estimate actually came from. Three of the four are unreached by the live call site, which passes the registration EAC and nothing else \u2014 so the precedence this organ implements is exercised at one value.",
+  "basis_split": {
+    "registry_eac": 142
+  },
+  "clock": "billed",
+  "clock_note": "Every figure below is derived from the company's own ISSUED BILLS, so it is on the billed clock and cannot be reconciled against a settled-realised headline.",
+  "headline": "Sizing the opening direct debit from an annualised estimate instead of from the first issued bill moves 3 of 104 figures this run publishes \u2014 and not one of them is a figure a reader could previously see.",
+  "keys_moved": [
+    "annual_dd_review",
+    "dd_balance_book",
+    "dd_level_collection_book"
+  ],
+  "keys_unmoved_count": 101,
+  "n_bills": 10906,
+  "opening_amount": {
+    "clock": "billed",
+    "estimate": {
+      "ci95_gbp": [
+        57.38,
+        63.65
+      ],
+      "max_abs_gbp": 135.47,
+      "mean_gbp": 60.46,
+      "median_gbp": 56.44,
+      "n": 142
+    },
+    "flat": {
+      "ci95_gbp": [
+        30.53,
+        42.9
+      ],
+      "max_abs_gbp": 308.36,
+      "mean_gbp": 36.31,
+      "median_gbp": 28.5,
+      "n": 178
+    },
+    "n_agreeing_to_the_penny": 0
+  },
+  "refused": {
+    "cause_no_consumption_basis": 0,
+    "cause_no_published_rate": 82,
+    "n": 82,
+    "statement": "82 accounts get NO opening amount under the estimate, every one of them because this company holds no published GB rate before the price cap began in January 2019 and therefore has nothing to annualise against. None failed for want of a consumption estimate. They carry no direct debit rather than one invented to fill the gap."
+  },
+  "substrate": "docs/reports/run_output_latest.json",
+  "why_no_headline_moves": "The published treasury is a running total of net margin (simulation/run_phase2b.py: treasury += net_margin), so it is a profit accumulator wearing a cash name. No direct-debit arrangement whatsoever can move it, and the seven other headline figures are profit and loss. The comparison below is the only place the difference exists.",
+  "year_one_drift_matched": {
+    "clock": "billed",
+    "estimate": {
+      "exactly_zero": 0,
+      "in_credit": {
+        "ci95_gbp": [
+          59.32,
+          95.3
+        ],
+        "max_abs_gbp": 278.14,
+        "mean_gbp": 77.28,
+        "median_gbp": 70.67,
+        "n": 40
+      },
+      "in_debit": {
+        "ci95_gbp": [
+          -262.92,
+          -147.0
+        ],
+        "max_abs_gbp": 1108.68,
+        "mean_gbp": -199.74,
+        "median_gbp": -116.74,
+        "n": 56
+      },
+      "n_accounts": 96
+    },
+    "flat": {
+      "exactly_zero": 0,
+      "in_credit": {
+        "ci95_gbp": [
+          58.67,
+          396.36
+        ],
+        "max_abs_gbp": 1459.6,
+        "mean_gbp": 193.19,
+        "median_gbp": 84.62,
+        "n": 14
+      },
+      "in_debit": {
+        "ci95_gbp": [
+          -438.78,
+          -316.82
+        ],
+        "max_abs_gbp": 1346.46,
+        "mean_gbp": -377.53,
+        "median_gbp": -310.08,
+        "n": 82
+      },
+      "n_accounts": 96
+    },
+    "mean_change_in_abs_drift_ci95_gbp": [
+      -257.57,
+      -143.5
+    ],
+    "mean_change_in_abs_drift_gbp": -201.93,
+    "n_estimate_closer_to_zero": 80,
+    "n_flat_closer_to_zero": 16,
+    "n_matched_accounts": 96,
+    "population_note": "The same 96 households under both rules. Credit and debit are reported separately and never netted: a household in credit and one in debit are two different experiences with two different remedies."
+  }
+}

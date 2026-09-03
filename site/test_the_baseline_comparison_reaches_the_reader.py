@@ -46,6 +46,7 @@ DOOR = SITE / "capabilities" / "index.html"
 FEED = SITE / "data" / "value_arms.json"
 GROWTH = SITE / "data" / "book_growth.json"
 CAPS = SITE / "data" / "capabilities_door.json"
+DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 
 #: The elements this section renders into. All of them, so a section that renders half of itself
 #: is a red rather than a silently thinner page.
@@ -77,6 +78,11 @@ def _render(feed: dict, growth: dict | None = None) -> dict:
                     "unavailable check is a FAILED check (R15)")
     payload = {
         "../data/value_arms.json": feed,
+        # The door gained a FOURTH feed on 2026-09-03 (the opening direct-debit
+        # comparison). Same reason as the line above: the harness rejects a url the
+        # caller did not supply, so every feed the door fetches has to be supplied here
+        # or this control reds on a page that is fine.
+        "../data/dd_opening_arms.json": json.loads(DD_ARMS.read_text(encoding="utf-8")),
         "../data/book_growth.json": (
             json.loads(GROWTH.read_text(encoding="utf-8")) if growth is None else growth),
         "../data/capabilities_door.json": json.loads(CAPS.read_text(encoding="utf-8")),
