@@ -105,10 +105,65 @@ graded somewhere else is a prediction the next reader cannot check.
 
 | | prediction | outcome |
 |---|---|---|
-| P0 | §8 pred 3 needs no inversion | *not yet run* |
-| P1 | six anchors up, 2020 down | *not yet run* |
-| P2 | 2022 does not move | *not yet run* |
-| P3 | renewal move 2–3× the book move | *not yet run* |
-| P4 | net margin and EV both fall | *not yet run* |
-| P5 | band unwidened | *not yet run* |
-| P6 | control reds on c2 for two reasons, greens on c4 | *not yet run* |
+| P0 | §8 pred 3 needs no inversion | *awaits the re-fit* — but the half that could be checked HELD: §8 prediction 3 is unedited at `5554c2910` |
+| P1 | six anchors up, 2020 down | *awaits the re-fit* |
+| P2 | 2022 does not move | *awaits the re-fit* |
+| P3 | renewal move 2–3× the book move | *awaits the re-fit* |
+| P4 | net margin and EV both fall | *awaits the re-fit* |
+| P5 | band unwidened | **HELD so far**, graded below — the repoint widened nothing |
+| P6 | control reds on c2 for two reasons, greens on c4 | **CONFIRMED**, graded below |
+
+The re-fit has not been run. P1–P4 cannot be graded until it is, and saying so is the whole point
+of grading in place: a reader who finds five rows still open is looking at work that stopped, not
+at a prediction quietly dropped. What the repoint itself could settle is settled here.
+
+### P6 — CONFIRMED, and for the two independent reasons it named
+
+Measured 2026-09-03 from the landed commit `5554c2910`, calling both refusals directly on both
+captures:
+
+| capture | renewal/SVT rows | `stale_anchor_refusal` | `untracked_capture_refusal` |
+|---|---|---|---|
+| `c2_departure_factors` | 148 / 1221 | **REFUSES** — *"ran under a superseded level anchor in 1 year(s) of 10 — 2022: ran at 3.05362, live block says 1 (187 row(s))"* | **REFUSES** — *"1 of this capture's two halves are in no commit (`c2_departure_factors_svt_segment_decisions.json`)"* |
+| `c4_whole_book_departure_factors` | 156 / 1373 | passes (`None`) | passes (`None`) |
+
+Two reds on `c2`, from two causes neither of which is the other, and two passes on `c4`. Not
+refuted. The reason the two-reason requirement was written down is now load-bearing: had only the
+untracked leg existed, committing that stale sibling — an obvious, well-meant tidy-up — would have
+turned the control green while leaving the 2022 anchor of `3.053619` reading a band verdict off a
+world the live block retired.
+
+**187 rows, not the whole capture.** The refusal names one year of ten, and that is the honest
+size of it: `c2`'s renewal half agrees with the live block everywhere. This is a capture whose two
+halves disagree with *each other*, which is why the refusal reads both and why a reading of either
+half alone would have passed.
+
+### P5 — held for this commit, and the discharge is the artefact, not my recollection
+
+P5 asked to be discharged by reading the artefact. `5554c2910` touches three files:
+
+```
+tests/architecture/test_a_capture_may_only_judge_the_world_that_produced_it.py | 253 +++++
+tools/departure_population.py                                                  | 135 +++++
+tools/measure_departure_level.py                                               |  38 +++-
+```
+
+`git diff --stat 5554c2910^ 5554c2910 -- docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json`
+returns empty — the commons band file is untouched. `published_bands` is byte-identical between
+`5554c2910^` and `5554c2910`. Nothing was widened to make anything pass.
+
+This is **not** the full discharge P5 asked for, which covers the re-fit as well. It is the half
+that exists, recorded now so the next tick grades only what is still open.
+
+### P0 — the half that could be checked, and it is the half act (d) would have broken
+
+P0 predicted §8 prediction 3 would still be the right detector and would not have been edited.
+`docs/market_research/gb_switching_rate_denominators.md` is not in `5554c2910`'s pathspec and is
+unedited. The full prediction still needs the fitted anchors to come out *above* the live block in
+a majority of the seven leverable years; that is the re-fit's to settle.
+
+Worth restating because a future tick will read the drawn direction before it reads this file:
+**act (d) instructed inverting a detector that is correct.** The instruction was written from
+`c2`'s reading that the world departs *harder* than the record; on the committed capture it departs
+*less* hard in six of eight years. Inverted as instructed, the detector would have been pointed at
+the wrong tail and would have passed a change that flattered the book.
