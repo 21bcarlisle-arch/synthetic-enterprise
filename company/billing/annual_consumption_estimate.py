@@ -33,23 +33,39 @@ below is that ordering made executable. The full establishment — including wha
 the published record does NOT settle — is
 ``docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md``.
 
+THE INSTANT THIS MODULE ESTIMATES AT
+------------------------------------
+**Account opening, and only account opening.** That scope is not a convenience;
+it is what decides which of SLC 27.15's rungs can be walked at all, and it was
+settled by measurement on 2026-09-03 — see ``NOT_REACHABLE_AT_OPENING`` below.
+
+The other instant a supplier sizes a direct debit is the ANNUAL REVIEW, and this
+module is not on that path: ``company/billing/dd_review.py::_recommended_monthly``
+sizes the reviewed amount from the customer's actual annual **spend in pounds**,
+which the supplier billed and the customer paid, and never estimates a
+consumption at all. If a review-time consumption estimate is ever wanted, it is a
+different function with a different reachable set — not a fifth argument here.
+
 THE EPISTEMIC WALL
 ------------------
-Every input here is something a real supplier holds:
+Every input here is something a real supplier holds AT REGISTRATION:
 
-  * ``metered_annual_kwh`` — the supplier's OWN meter reads. It billed them.
   * ``registry_eac_kwh`` — the EAC (electricity, D0019 flow from the Data
     Collector) or AQ (gas, Xoserve) handed over ON REGISTRATION. This is an
     estimate carrying error, forecast from the last D0010 read — it is NOT the
     household's realised annual usage, and the error it carries is precisely
     the thing that causes the drift the director described.
-  * ``declared_annual_kwh`` — what the customer said at sign-up.
   * TDCV — Ofgem's published typical values, the explicit published fallback.
 
 **The household's ground-truth annual consumption is not a parameter of any
 function in this module and must never become one.** If a caller finds itself
 with true usage and no estimate, the answer is ``None`` with a reason, not the
 truth wearing an estimate's name.
+
+Both surviving inputs are numbers *handed to* the company, which is a real limit
+on this atom and is stated rather than hidden: neither is an inference. The rung
+the company would have had to reason from is the one the opening instant cannot
+reach, and saying so is the point of ``NOT_REACHABLE_AT_OPENING``.
 
 WHAT IS DELIBERATELY NOT HERE
 -----------------------------
@@ -77,12 +93,84 @@ class ConsumptionBasis(str, Enum):
     UNAVAILABLE = "unavailable"              # nothing reachable -- an honest None
 
 
-#: The SLC 27.15 precedence, executable. Best first.
+#: The SLC 27.15 precedence AS THIS COMPANY CAN WALK IT AT ACCOUNT OPENING,
+#: executable, best first. Every rung here is entered by real accounts on the
+#: live route; nothing here is decorative.
+#:
+#: THIS TUPLE USED TO NAME FOUR RUNGS AND THE LIVE ROUTE WALKED TWO. Until
+#: 2026-09-03 it opened with ``METERED_HISTORY`` and carried ``CUSTOMER_DECLARED``
+#: third, and the sole production caller
+#: (``simulation/run_phase4c_on_phase2b.py::_opening_dd_by_customer``, through the
+#: ``company/interfaces/dd_review_outcome.py`` door) passed neither. A precedence
+#: that reads four deep and walks two reports a constant verdict for its top
+#: branch, which is this repository's most-catalogued control failure; the two
+#: absent rungs are now absent BY CONSTRUCTION, with their reasons beside them in
+#: ``NOT_REACHABLE_AT_OPENING``, and there is no parameter left to pass them
+#: through. The equality is held by
+#: ``tests/company/billing/test_the_declared_precedence_is_the_walked_one.py``.
 BASIS_ORDER: tuple[ConsumptionBasis, ...] = (
-    ConsumptionBasis.METERED_HISTORY,
     ConsumptionBasis.REGISTRY_EAC,
-    ConsumptionBasis.CUSTOMER_DECLARED,
     ConsumptionBasis.TDCV_TYPICAL,
+)
+
+
+@dataclass(frozen=True)
+class ExcludedBasis:
+    """A rung SLC 27.15's ordering names that this company cannot walk when it
+    sizes an OPENING direct debit, and why.
+
+    ``input_parameter`` is the argument name that WOULD have carried it. It is
+    recorded so the exclusion can be checked as an absence rather than asserted
+    in prose: a control reads it and fails if that parameter reappears on
+    ``estimate_annual_consumption`` or on the seam door. A rung excluded by a
+    parameter that is still accepted and quietly ignored is not excluded — it is
+    a refusal keyed to a signature, and this codebase has watched one of those
+    lift before.
+    """
+
+    basis: ConsumptionBasis
+    input_parameter: str
+    reason: str
+
+
+#: The rungs of SLC 27.15's ordering that the OPENING instant cannot reach, each
+#: with the reason it cannot — and the two reasons are of DIFFERENT KINDS, which
+#: is why they are written out separately rather than collapsed into one
+#: "no data" line. One is definitional and will never lift; the other is a world
+#: gap and lifts the day the registration flow carries a declaration.
+NOT_REACHABLE_AT_OPENING: tuple[ExcludedBasis, ...] = (
+    ExcludedBasis(
+        basis=ConsumptionBasis.METERED_HISTORY,
+        input_parameter="metered_annual_kwh",
+        reason=(
+            "DEFINITIONAL, and it will never lift by adding a field: the account "
+            "is being opened. The supplier has issued no bill and taken no read "
+            "on this supply point, so it holds no completed period of its own "
+            "metering to annualise. SLC 27.15 puts this rung first because it IS "
+            "first at an annual REVIEW -- and the review path here sizes from "
+            "actual annual SPEND (company/billing/dd_review._recommended_monthly), "
+            "not from a consumption estimate, so it does not enter through this "
+            "module either. Measured 2026-09-03 across the whole live book of 257 "
+            "supply points: 0 hold prior metering of ours at their acquisition "
+            "date. Not 'most' -- none."
+        ),
+    ),
+    ExcludedBasis(
+        basis=ConsumptionBasis.CUSTOMER_DECLARED,
+        input_parameter="declared_annual_kwh",
+        reason=(
+            "A WORLD GAP, not a definitional one: a real supplier DOES collect a "
+            "declared annual consumption at sign-up where the customer offers "
+            "one, so unlike metered history this rung is reachable in principle "
+            "and absent in fact. No supply point this world draws carries a "
+            "declaration -- measured 2026-09-03 over the live and successor "
+            "books, 0 of 257 -- so a parameter for it would have been a branch "
+            "that could never execute. It returns to BASIS_ORDER on the day the "
+            "registration flow carries a declaration and not before, and that is "
+            "a fidelity decision for the world side, taken blind to company "
+            "results like every other."
+        ),
+    ),
 )
 
 
@@ -207,16 +295,20 @@ def estimate_annual_consumption(
     *,
     as_of: date,
     commodity: str,
-    metered_annual_kwh: Optional[float] = None,
     registry_eac_kwh: Optional[float] = None,
-    declared_annual_kwh: Optional[float] = None,
     band: Optional[str] = None,
 ) -> AnnualConsumptionEstimate:
-    """The best annual-consumption estimate a supplier can make on ``as_of``.
+    """The best annual-consumption estimate a supplier can make ON OPENING an
+    account on ``as_of``.
 
     Walks ``BASIS_ORDER`` -- SLC 27.15's "best and most current information
-    available (or which reasonably ought to be available)" -- and returns the
-    first source that establishes a figure, saying which one it was.
+    available (or which reasonably ought to be available)", restricted to the
+    rungs the opening instant can actually reach -- and returns the first source
+    that establishes a figure, saying which one it was.
+
+    **The declared order and the walked order are the same tuple, and the rungs
+    that are not in it have no parameter here to arrive through.** What is
+    missing and why is ``NOT_REACHABLE_AT_OPENING``; it is not silence.
 
     Every argument is something a real supplier holds. The household's true
     annual usage is NOT among them and must not be passed as any of them.
@@ -230,20 +322,10 @@ def estimate_annual_consumption(
     def _usable(v: Optional[float]) -> bool:
         return v is not None and v > 0.0
 
-    if _usable(metered_annual_kwh):
-        return AnnualConsumptionEstimate(
-            kwh=float(metered_annual_kwh),  # type: ignore[arg-type]
-            basis=ConsumptionBasis.METERED_HISTORY,
-        )
     if _usable(registry_eac_kwh):
         return AnnualConsumptionEstimate(
             kwh=float(registry_eac_kwh),  # type: ignore[arg-type]
             basis=ConsumptionBasis.REGISTRY_EAC,
-        )
-    if _usable(declared_annual_kwh):
-        return AnnualConsumptionEstimate(
-            kwh=float(declared_annual_kwh),  # type: ignore[arg-type]
-            basis=ConsumptionBasis.CUSTOMER_DECLARED,
         )
     if band is not None:
         typical = tdcv_kwh(commodity, band, as_of)
@@ -255,17 +337,17 @@ def estimate_annual_consumption(
             kwh=None,
             basis=ConsumptionBasis.UNAVAILABLE,
             reason=(
-                f"no metered history, registry EAC or declaration, and Ofgem "
-                f"publishes no TDCV for commodity={commodity!r} band={band!r} "
-                f"as at {as_of.isoformat()}"
+                f"no registry EAC, and Ofgem publishes no TDCV for "
+                f"commodity={commodity!r} band={band!r} as at "
+                f"{as_of.isoformat()}"
             ),
         )
     return AnnualConsumptionEstimate(
         kwh=None,
         basis=ConsumptionBasis.UNAVAILABLE,
         reason=(
-            "no metered history, no registry EAC, no customer declaration, and "
-            "no consumption band from which to reach a published TDCV"
+            "no registry EAC and no consumption band from which to reach a "
+            "published TDCV"
         ),
     )
 

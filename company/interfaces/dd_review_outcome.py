@@ -114,9 +114,7 @@ def opening_monthly_amount(
     *,
     as_of_iso: str,
     commodity: str,
-    metered_annual_kwh: float | None = None,
     registry_eac_kwh: float | None = None,
-    declared_annual_kwh: float | None = None,
     band: str | None = None,
 ) -> float | None:
     """The standing monthly Direct Debit the supplier SET when the account
@@ -129,9 +127,18 @@ def opening_monthly_amount(
 
     WHAT CROSSES, PRECISELY
     -----------------------
-    In: REGISTRATION FACTS ONLY — the date, the fuel, and whichever of the
-    industry EAC/AQ, the customer's declaration or our own metered history
-    exists. Every one of them is something both parties already have.
+    In: REGISTRATION FACTS ONLY — the date, the fuel, the industry EAC/AQ where
+    the flow carried one, and the consumption band where it did not. Both are
+    something the two parties already have.
+
+    THIS DOOR USED TO ACCEPT FOUR SOURCES AND CARRY TWO (2026-09-03). It took
+    `metered_annual_kwh` and `declared_annual_kwh` as well, and no caller ever
+    passed either, because neither exists at the instant an account opens —
+    reasons in `company/billing/annual_consumption_estimate.
+    NOT_REACHABLE_AT_OPENING`. They are gone from the signature rather than
+    documented as unused: a door whose parameters advertise sources the routine
+    behind it cannot reach tells the world something false about the supplier,
+    which is the one thing a seam exists to prevent.
 
     Out: one number, the opening monthly amount.
 
@@ -175,9 +182,7 @@ def opening_monthly_amount(
     estimate = estimate_annual_consumption(
         as_of=as_of,
         commodity=commodity,
-        metered_annual_kwh=metered_annual_kwh,
         registry_eac_kwh=registry_eac_kwh,
-        declared_annual_kwh=declared_annual_kwh,
         band=band,
     )
     return opening_monthly_dd_gbp(
