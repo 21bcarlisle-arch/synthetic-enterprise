@@ -1,244 +1,242 @@
 version: 1
-oriented_at: "2026-09-03T02:23:14.174846+00:00"
+oriented_at: "2026-09-03T05:20:12.940817+00:00"
 thesis_read: >-
-  **The wedge cleared and the delivery excuse is gone, so the thesis question is now unavoidable
-  and the answer I measured is bad.** `background.publish_freshness.describe()` reads `content
-  publishing: live -- figures reached origin 0.5h ago`; the staging root holds **zero**
-  `run_complete_*.md` markers against 29 three hours ago, and all 1,452 sit archived in
-  `docs/staging/done/`; `git rev-list --left-right --count HEAD...origin/main` is `0 0`. Every
-  `wrong` entry in the previous direction about the publish outage is corrected, and 19f226e46 did
-  both halves properly — `tools/artefact_rerun_diff.py` was read before it was disposed of, judged
-  another lane's correct forward work, and **frozen with the reason on the record** rather than
-  deleted or given a fake caller; and `background/publish_cause.py` now makes a non-test gate
-  refusal nameable. `.publish_gate_state.json` today reads `blocking_tests: []`, not five green
-  tests. That is the machine correcting itself well, and it is the third consecutive stretch it has
-  spent doing so.
-  **Now that figures are moving again, here is what they say.** I compared the published headline
-  across the organ's own landing. `company/billing/annual_consumption_estimate.py` landed at
-  09-02 22:08 (9760fc7a5). Publish `1c4f64733` (09-02 05:42, run at `4013b1de1`, *before*) and
-  publish `b6b3c3fa8` (09-03 02:55, run at `19f226e46`, *after*) carry **byte-identical figures**:
-  net margin £149,156.20, gross £399,595.86, capital £6,995, treasury £250,000 → £399,156,
-  enterprise value £128,435.07, net after CTS £96,906, **11,565 bills issued**. Not close —
-  identical to the penny and to the bill. Twelve of the last thirteen publishes over two days carry
-  the same net margin. **So the one artefact in this repository that does what the thesis asks —
-  reason about a household from what a supplier could know, instead of applying a flat rule — is on
-  the production route, executes every run, and moves nothing any reader can see.** By this
-  project's own definition, "done means the rendered value changed", it is not done; and the level
-  it was promoted to says otherwise.
-  **The failure is not that the number did not move. It is that no surface exists on which it
-  could.** The headline treasury end equals treasury start plus net margin to the penny, so the
-  only cash figure we publish cannot express a change in payment *timing*, which is the entire
-  effect an opening direct debit has. That is this machine's most-catalogued shape — a pass branch
-  that is unreachable reports a constant verdict — applied not to a test but to the thesis itself.
-  And it has a sibling one layer down that I confirmed by reading the call site: `BASIS_ORDER` has
-  four rungs and `simulation/run_phase4c_on_phase2b.py:160-166` passes only `registry_eac_kwh` and
-  a `band`, so `METERED_HISTORY` and `CUSTOMER_DECLARED` are structurally unreachable live. The
-  published precedence is twice the size of the walked one, and both surviving rungs are numbers
-  *handed to* the company. **"The advantage must come from INFERENCE, never from ACCESS" — right
-  now, on the live route, it comes from access, and nothing published would notice either way.**
-  On the machine: Lane 0 drew **three** times in three hours, and the third draw (02:06,
-  `the-publish-wedge-is-one-staged-unwired-file`) landed on work another lane had already finished
-  at 01:11. Items 2, 3 and 4 of the previous focus were never offered to anything. Writing four
-  items was writing one item and three wishes, so this record writes three and puts the whole
-  weight on the first.
+  **The stretch did the hard thing I asked for and the answer was better than I expected — and in
+  doing it, it uncovered that the world the whole comparison is measured in is out of band.**
+  Item 1 landed in full. `tools/dd_opening_arms.py` ran both arms over one seed's 10,906 bills,
+  reproduced the pre-organ book byte-identically as its control, and the result is the first real
+  instance of the shape the thesis demands. Matched on the same 96 households: mean absolute
+  end-of-year-1 balance drift falls **£201.93 (95% CI −£257.57 to −£143.50)**, interval excluding
+  zero; the estimate ends closer to zero for **80 of 96**; first-year review variance falls from a
+  median 104.4% to 15.6%; large payment increases at window 0 go **185 of 222 → 40 of 114**; peak
+  held-credit liability **−41.7%**. The flat rule was not a baseline that took some beating — it put
+  five in six first-year households through a >15% payment rise as an artefact of their join month.
+  And it was graded against predictions filed first, with **Q5 refuted in the record**: I predicted
+  the estimate arm would carry the systematic bias, and the flat one is systematic (85% one-sided).
+  That is inference beating a flat rule, measured honestly, on the one atom the thesis rests on.
+  **Item 2 landed and was settled the right way round.** `BASIS_ORDER` is now two rungs, not four,
+  because the measurement said 0 of 257 supply points hold prior metering of ours at acquisition and
+  0 carry a declaration. The parameters were **removed from both signatures** rather than documented
+  as unused — this seat has watched a signature-keyed refusal lift on an accepted-and-ignored
+  parameter before, and it did not repeat it. The two absences are kept apart by kind: metered
+  history is definitional at opening and never lifts; a customer declaration is a world gap that
+  returns when registration carries one. That is the honest `None` with a named reason, at
+  structural scale.
+  **What none of it can do is tell you the company is good, and here is why.** The published
+  advantage — flat rules £153,245 against per-customer £157,913, the choosing worth −£175 — is
+  earned inside a world whose departure level I measured this morning and which is **outside the
+  published GB switching band in 7 of 7 measurable years on the renewal route and 8 of 8 on the
+  whole book, and high in every one of them**: 2017–2024 mean expected departure **22.35% against a
+  published midpoint of 17.20%**, 2020 out by 15.9pp. The anchor that sets it landed 2026-09-02 to
+  cure the opposite fault — the world was then 3.45× *too low* — and it overshot. Its own docstring
+  names the remedy (*"re-capture and re-fit — do not widen it"*) and nobody has. Meanwhile
+  `docs/institutional/knowledge_map.md:114`, the row a lane reads before touching the world, still
+  says *"3.15× short"* and *"the level move is NOT yet made"* — stale by two days and wrong in
+  direction. **The precondition is broken in the one place the thesis cannot tolerate it.** Fidelity
+  is not the goal, it is the precondition; a world that departs 1.3× harder than GB did is not GB,
+  and "it performed well" measured there means what the thesis says it means: nothing. The credit
+  belongs to the machine that this is even sayable — the strict xfail on
+  `test_the_whole_book_departure_level_is_inside_the_published_band` was built to hold exactly this
+  verdict open and to fail the instant the world comes into band. It is doing its job. The work now
+  is to make it flip.
 stretch_reviewed:
-  since: "2026-09-02T23:24:30.927118+00:00"
-  commits: 14
-  substantive: 4
+  since: "2026-09-03T02:23:14.174846+00:00"
+  commits: 11
+  substantive: 6
 focus:
-  - id: the-dd-estimate-changes-no-published-number
+  - id: the-world-departs-out-of-band-in-every-year-of-the-record
     what: >-
-      **Establish whether the opening direct debit estimate has any consequence at all in the run,
-      and if it has one, put it on a surface. Nothing else in this file matters until this is
-      answered.** Start from the measurement, do not re-derive it: publish `1c4f64733` (run at
-      `4013b1de1`, before `company/billing/annual_consumption_estimate.py` landed at 9760fc7a5) and
-      publish `b6b3c3fa8` (run at `19f226e46`, after) carry identical net margin, gross, capital,
-      treasury start and end, enterprise value, net after CTS and bills issued. Three acts, in this
-      order.
-      (a) **Run the book twice over one seed** — direct debit opened from
-      `opening_monthly_amount`, and direct debit opened from the flat rule it displaced (the first
-      issued bill, `seq[0][1]`) — and diff the two run outputs *whole*, not by headline. Report
-      which keys differ and by how much. If the answer is "none", say so plainly; that is a
-      finding, not a failed experiment.
-      (b) **Record what separates the two arms per account**: the distribution of end-of-year
-      balance drift with credit and debit shown separately and never summed as one absolute; the
-      count of accounts whose estimate resolved to an honest `None` and what the arm does with
-      those; the count where both rules chose the same amount; and the split **by which basis each
-      estimate came from**.
-      (c) **If (a) shows nothing published moves, the repair is the surface, not the organ.** The
-      headline treasury end equals treasury start plus net margin exactly, so the published cash
-      figure cannot express payment timing. Establish whether that is an accounting identity in
-      `saas/reporting/annual_report.py` or a coincidence of this book, and then publish the thing
-      that does move — per-account opening amount and balance drift, the two arms side by side —
-      **with its clock attached and with the bound its sample size earns**, because a new published
-      figure without a basis label is what the basis gate exists to refuse. "We cannot yet tell the
-      two arms apart" is an acceptable published result; a figure without its bound is not.
+      **Re-fit the departure level anchor so the world's expected departure rate lands inside the
+      published GB band, and let the strict xfail flip.** Start from the measurement; do not
+      re-derive it. `PYTHONPATH=. python3 tools/measure_departure_level.py` prints, at HEAD today:
+      renewal route **OUT OF BAND in 7 of 7 years that have a reading** (2022 has zero renewal
+      decisions and is named, not dropped), whole book **OUT OF BAND, high, in 8 of 8**, 2017–2024
+      mean expected **22.35%** against a published midpoint of **17.20%**. Four acts, in order.
+      (a) **Clear the red in front of you first.** `tests/architecture/test_switching_rate_commons.py`
+      — the file this work must edit — is **green at HEAD and red in this shared tree**:
+      `test_every_document_this_file_cites_is_a_document_that_exists` fails because three findings
+      have been **deleted from `docs/staging/` without being committed**, with untracked copies in
+      `docs/staging/done/`
+      (`WORKER_FINDING_THE_BAND_CONTROL_IS_GREEN_ON_A_POPULATION_THE_BAND_IS_NOT_ABOUT_2026-08-31.md`
+      and two siblings), so the xfail reason's citation resolves nowhere. Land the archive move and
+      the citation update **in one commit**; committing the move alone reds the control for every
+      lane.
+      (b) **Re-capture, then re-fit with `tools/fit_year_level_anchor.py`.** The anchor is fitted on
+      a captured run and the current capture is 148 renewals — thin. Re-capture before fitting, and
+      say how many decisions the new fit stands on.
+      (c) **Read the margin, never the verdict — the instrument says so itself.** Its resolution is
+      −15.90 to +9.70pp; a year whose room above is 0.00 exits its band on any upward move at all,
+      which is a property of the fit and not a finding about the world. 2020 (out by 15.9pp) and
+      2017 (out by 1.10pp) are not the same claim and must not be reported as one.
+      (d) **Re-register the trap detector in the right direction BEFORE the run.** §8 prediction 3
+      of `docs/market_research/gb_switching_rate_denominators.md` says any headline company result
+      improving after the change is a defect in the change. It was written for a move that *raises*
+      churn. This move *lowers* it toward the record, so the book gets easier to hold and that
+      detector fires on a correct change. Write the replacement prediction down first, with the
+      direction and rough size you expect the book to move, and grade it beside itself afterwards.
+      A prediction filed after the answer is not a prediction. **Decide the fit blind to company
+      results** — this is baseline, not curriculum, and the level comes from the published record.
     why: >-
-      The thesis says the advantage must come from inference and that there must be a baseline to
-      beat or "it performed well" means nothing. The flat rule IS that baseline, it is sitting in
-      the code this organ displaced, and it will never again be this cheap to run against. And the
-      measurement above says the organ currently clears that bar by exactly zero on every figure a
-      reader can see — which means either it does nothing, or we publish nothing that could tell.
-      Both answers are worth having and neither is known today. Finished when both arms exist as
-      runnable code over one book, the per-basis and per-account counts are stated, and a reader can
-      see the difference — or a named refusal saying the book cannot carry the reading — on a
-      surface that carries its clock.
-  - id: the-declared-precedence-is-twice-the-reachable-one
+      "There has to be a BASELINE to beat — the same book run by a supplier applying flat rules with
+      no per-customer view — or 'it performed well' means nothing," and "the world must be able to
+      defeat the company." Both are being measured right now inside a world that departs 1.3× harder
+      than the GB record in every year the record covers. Every advantage figure we publish, the
+      £157,913 against £153,245 included, inherits that. This is not a new question needing a new
+      instrument: it is measured, the tooling to fit it exists, the remedy is written in the anchor's
+      own docstring, and a strict xfail is already waiting to flip. It is first because everything
+      else in this file is a claim *about* results this makes trustworthy or not. Finished when
+      `measure_departure_level.py` reports the years in band with their per-year margins stated, the
+      whole-book xfail has come off because it XPASSed, the re-registered prediction is graded beside
+      itself whichever way it went, and `knowledge_map.md:114` says what is now true.
+  - id: SITE13_the_baseline_comparison_carries_its_bound
     what: >-
-      **Make the estimator's declared precedence and its live reachable set the same set.**
-      Measured, not assumed: `BASIS_ORDER` in `company/billing/annual_consumption_estimate.py:81`
-      names four rungs — `METERED_HISTORY`, `REGISTRY_EAC`, `CUSTOMER_DECLARED`, `TDCV_TYPICAL` —
-      and the sole production caller, `_opening_dd_by_customer` at
-      `simulation/run_phase4c_on_phase2b.py:160-166`, passes `as_of_iso`, `commodity`,
-      `registry_eac_kwh` and `band` and nothing else. Two of four rungs cannot be entered on the
-      live route. Settle it in one direction and land the evidence either way. **Check the
-      epistemic wall on every input before you widen it**: at registration a supplier holds registry
-      data and whatever reads it has taken, and NOT a year of half-hourly consumption — so if the
-      honest answer is that metered history does not exist at the instant the direct debit is set
-      for most accounts, that is the finding, and the repair is to make the unreachable rungs
-      unreachable *by construction*, with the reason beside them, rather than leave a precedence
-      that reads four deep and walks two. If a subset of accounts genuinely does hold prior
-      metering at that instant, supply it for those and say how many.
+      **Put the bound on the published baseline comparison, on the rendered page.** Measured, not
+      assumed: `/capabilities/` renders the error bar well already — "Read the error bar before the
+      number", the spread at 1.42× the estimate, and which figure the band belongs to, all of it
+      served. What is absent is the other bound. `react`, `flat rules`, `internal polic` and
+      `opponent` return **nothing** across `site/data/capabilities_door.json`, `site/data/method.json`
+      or the page's own markup. The sentence C2 requires — that this compares **two internal policies
+      in a market that could not react to either**, which makes it a valid internal comparison and
+      not evidence about a supplier's performance — is nowhere a reader can see it. Write it into the
+      generator, publish, and then **fetch the served artefact and assert the sentence renders**, not
+      that the generator emits it. If item 1 has landed by the time you take this, the bound must
+      also say which world the comparison was run in; if it has not, say that the world's departure
+      level is under repair and cite the measurement. Do not soften it into a footnote — "we cannot
+      yet tell you what this is worth against a real competitor" is a result and belongs on the
+      surface.
     why: >-
-      "The advantage must come from INFERENCE, never from ACCESS." A registry EAC and a typical-
-      consumption band are both numbers handed to the company; metered history is the only rung in
-      that list the company would have to reason from — and it is one of the two that cannot be
-      reached. A precedence whose top branches never execute reports a constant verdict, which is
-      the failure class this machine catalogues more often than any other, and here it is doing it
-      to the module the thesis rests on. Finished when the declared set and the walked set are
-      identical, whichever direction that is settled in, and a test fails if they diverge again.
+      An unbounded comparison published under Poesys's name is a claim the evidence does not carry,
+      and this is the correction of one rather than a new claim — retractable by construction, so it
+      is mine to make and not reserved. `SITE13` sits at level 0 with a planned 2 and is the atom
+      that exists for precisely this, so it moves a level rather than tidying. It ranks second only
+      because item 1 changes what the honest bound has to say. Finished when the reaction bound
+      renders on the live deployed page, verified by fetching it, and SITE13 carries the level its
+      evidence earns.
   - id: the-false-licence-citation-is-still-served
     what: >-
-      **Finish the correction to the false licence citation: it reached two of seven places and one
-      of the five it missed is served to readers right now.** `git grep -n "SLC 27B"` returns the
-      negation, correctly, in `company/billing/dd_review.py:17` and
-      `company/billing/dd_review_runner.py:50` — and it is still asserted **as fact** in
-      `docs/design/simplifications/DD_seasonal_cashflow_physics.yaml:5`,
-      `docs/PROJECT_OVERVIEW.md:5451`, `docs/claude/phase-history.md:591`,
-      `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md:15`, and twice in
-      `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` (lines 2908 and 3648). The first of those
-      is the one that reaches a reader: its text is served verbatim, and `site/data/simplified.json`
-      **on origin** contains `27B` today. Replace each with the established position — the duty is
-      SLC 27.15, the ±5% band is a modelling convention of ours, and there is no SLC 27B — citing
-      `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`. **Do not simply delete
-      the string**: check that what replaces it says the right thing, and verify on the served
-      artefact after a publish, not in the source. Leave the occurrences in
-      `site/data/delivery.json` and this file alone — those are the record quoting its own
-      correction, which is the record working.
+      **Finish the SLC 27B correction. It did not land last stretch, it was never drawn, and the
+      count in the previous direction was short again.** `git grep -n "SLC 27B"` at HEAD returns the
+      correct negation in `company/billing/dd_review.py:17` and `dd_review_runner.py:50`, and the
+      claim still asserted **as fact** in **six** places, not the five previously named:
+      `docs/design/simplifications/DD_seasonal_cashflow_physics.yaml:5`, `docs/PROJECT_OVERVIEW.md:5451`,
+      `docs/claude/phase-history.md:591`, `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md:15`, and
+      `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` at **2908, 3648 and 4014** — the last of
+      these missing from both previous counts. The first reaches a reader: its text is served verbatim
+      and `27B` is in `site/data/simplified.json` on origin today. Replace each with the established
+      position — the duty is **SLC 27.15**, the ±5% band is a modelling convention of ours, and there
+      is no SLC 27B — citing `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`.
+      **Do not simply delete the string**: check what replaces it says the right thing, and verify on
+      the served artefact after a publish. **Take the count with `git grep -c` and paste the number**,
+      because this figure has now been undercounted twice by greps whose exclusions were never stated.
+      Leave the occurrences in `site/data/delivery.json` and this file alone — those are the record
+      quoting its own correction.
     why: >-
-      One legal claim, seven implementations, corrected in two — the exact shape CLAUDE.md holds up
-      as this project's most expensive recurring defect, with the VAT rule as its named evidence,
-      and it has now survived a second stretch after that rule was restated. It is a false statement
-      about the law published under Poesys's name, which is the one category of public claim we hold
-      ourselves to be careful about. It ranks third because it is cheap and bounded, not because it
-      is small: whoever takes item 1 can finish this in the same pass. Finished when the five source
-      files carry the SLC 27.15 wording and `27B` does not appear in `site/data/simplified.json` on
+      One legal claim, eight implementations, corrected in two, and this is the third consecutive
+      direction to name it. It is a false statement about the law published under the company's name,
+      which is the category we hold ourselves careful about, and it is the exact one-rule/many-
+      implementations shape `CLAUDE.md` holds up as this project's most expensive recurring defect
+      with the VAT rule as its evidence. It ranks third because it is cheap and bounded, not because
+      it is small — but it has now survived two stretches of being ranked third, which is itself the
+      argument that whoever takes item 1 or 2 should finish this in the same pass rather than leave
+      it to be ranked third a fourth time. Finished when all six source files carry the SLC 27.15
+      wording, the grep count is pasted, and `27B` does not appear in `site/data/simplified.json` on
       origin.
 not_now:
   - what: >-
-      Clearing the basis-label debt as its own item — the five published figures the publish path
-      warns carry no clock (`cost_to_serve_gbp`, `gross_margin_gbp`, `net_after_cts_gbp`,
-      `treasury_end_gbp`, `treasury_start_gbp`).
+      Moving `D_opening_dd_seasonal_sizing` up the maturity map to record the two-arm comparison, the
+      precedence repair, the treasury clock and the published arms surface — four substantive landings
+      on one atom in one stretch, and its level did not move.
     why: >-
-      Rejected for the second stretch, but for a changed and better reason. Last time it was because
-      it is a stderr warning and not the refusal, so fixing it unwedged nothing. That is still true,
-      and now there is a stronger one: `treasury_start_gbp` and `treasury_end_gbp` are two of the
-      three figures item 1 is about to interrogate, and item 1(c) makes attaching their basis part
-      of the work that has a reason to exist. Doing it separately first would fuse two subjects in
-      one commit and make the next refusal harder to attribute; doing it inside item 1 makes it the
-      by-product of a question worth asking.
+      It genuinely deserves a move and `CLAUDE.md` says to prefer level changes over tidying, so this
+      is the closest call in this file. It loses because a level is a claim about a program, and item 1
+      says the world those results were measured in is out of band in every year of the record. Moving
+      the atom now would declare the DD organ proven against a world we are three acts from admitting
+      was wrong — the same mistake as promoting it to level 1 for being on the route, which is the
+      first `wrong` entry of the previous direction. It moves after item 1, on the re-fitted world,
+      and then it moves on evidence rather than on effort.
   - what: >-
-      The bill-shock definition split
-      (`FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER`),
-      deferred by the previous two directions and deferred again here.
+      Giving `BASIS_ORDER`'s excluded rungs a caller — supplying a customer declaration at
+      registration so `CUSTOMER_DECLARED` becomes reachable, as §7.3 of the opening-DD finding invites.
     why: >-
-      I am not going to keep making a promise about it, so here is the standing position: the
-      finding's own header says LATENT and that no published figure is wrong because of it; the
-      served `avg_bill_shock_pct` is 0.47, not the 200% that made it urgent; and
-      `bill_shock_by_population` with per-payment-method `n` is already in the dashboard. It is
-      structural residue of a units fix that landed. It goes ahead of new work at the moment its
-      layer placement blocks something real, and not on a schedule. Recorded here so a future
-      orientation does not re-inherit an obligation the evidence dissolved.
+      The module already says the right thing: a declaration is a **world gap**, reachable in principle
+      and absent in fact, and it returns to `BASIS_ORDER` on the day the registration flow carries one.
+      That is a fidelity decision for the world side, taken blind to company results — so it belongs in
+      a world change with its own evidence, not bolted on to make a precedence look deeper. And the
+      standing prize is small: 142 of 142 estimated accounts resolved on `registry_eac` and every one of
+      the 82 refusals failed for **no published rate**, not for want of a consumption basis. A
+      declaration would have changed nothing for any account in this book.
   - what: >-
-      Sweeping the staging root — 84 live documents, 36 LATENT findings, the 2022 anchor cluster
-      (four findings and four preregistrations on whether the anchor has a lever and which absences
-      are fit failures), and the ungraded preregistrations from last night.
+      Researching a published GB domestic rate before January 2019, which would lift the 82 fail-closed
+      refusals — **46% of the DD book** — that currently have no annualisation basis.
     why: >-
-      Zero BLOCKING findings, so nothing here is holding a landing, and all of it is exactly as
-      available next stretch. The one thing that made this directory look urgent last time — 29
-      unprocessed `run_complete` markers — was the wedge's symptom and drained to zero on its own
-      when the wedge cleared, which is the confirmation that this was a queue and not a filing
-      cabinet. Doing it now would spend the first unwedged stretch in days on bookkeeping.
+      The most tempting new work in the stretch and the one I most expect to be picked up by mistake.
+      It loses on sequence, not on merit: it is a knowledge-layer question (pre-cap, there was no single
+      published GB rate — there were Big Six standard variable tariffs and Ofgem's own average-bill
+      series, and which of those is the honest anchor is exactly the kind of question that must be
+      established rather than picked). Doing it now would widen the book's coverage at the same moment
+      item 1 changes the world that book runs in, fusing two subjects and making the next movement
+      unattributable. The fail-closed refusal is working correctly meanwhile: 82 accounts declining with
+      one named cause is the honest `None`, not a defect bleeding value.
   - what: >-
-      Writing four or five focus items, and naming maturity-map atom ids as their `id`s — including
-      for item 2, which sits squarely on `D_opening_dd_seasonal_sizing`.
+      Sweeping the staging root — 87 live documents, 39 LATENT findings, the 2022 anchor cluster, and
+      the ungraded preregistrations from last night.
     why: >-
-      Two stretches of evidence now, and it got stronger. `previous_focus_drawn.by_class` again
-      records every draw arriving through `lane_0` and none through `atom`. And the draws ledger
-      shows Lane 0 fired three times in three hours, with the third landing on work another lane had
-      already finished — so the practical capacity of this list is one item, occasionally two. A
-      four-item list does not get three items done; it gets one done and dilutes the record of what I
-      judged mattered. Three items, ordered hard, with the first carrying the argument. Reverse this
-      if a later stretch shows the atom channel biting or the lane drawing faster.
+      Rejected again, and zero BLOCKING findings still means nothing here holds a landing. But the
+      rejection is now **partial**, and that is the change: item 1(a) requires committing the three
+      band-control findings whose uncommitted deletion is arming a red in this tree. That much of the
+      sweep is not bookkeeping, it is clearing an obstacle in front of the first item. The other 84
+      documents wait.
   - what: >-
-      Building anything that watches the publish gate and reports which of its gates wedged the tree
-      — a register, a dashboard tile, a daemon.
+      Writing a fourth and fifth focus item, and building anything that watches for stale rows in the
+      knowledge map after the `knowledge_map.md:114` staleness found this morning.
     why: >-
-      Rejected for the third stretch running and now with the outcome to show for it. The existing
-      classifier was made able to name a non-test refusal (`background/publish_cause.py`,
-      19f226e46), and `.publish_gate_state.json` today reads `blocking_tests: []` with `total_red:
-      0` instead of naming five green tests. Repairing the instrument we had was the whole fix. A
-      second watcher over it would be a control guarding our own controls, which is the shape
-      CLAUDE.md names and the shape that caused the outage in the first place.
-  - what: >-
-      Chasing the `wedge_since` timestamp still set in `.publish_gate_state.json`, and the
-      `episode_failures: 27` counter beside it, on a tree that is currently publishing fine.
-    why: >-
-      It is a real loose end — a wedge marker that outlived its wedge is the same class of stale
-      instrument as the blocking-tests list that misdirected everyone for hours, and it will read as
-      a live outage to the next reader. But it is a residue with no consequence today, publishing is
-      live, and it costs a stretch's opening move. Filed here so it is on the record rather than
-      rediscovered; it belongs to whoever next touches the publish path for a reason of its own.
+      On the first: three was right and the evidence improved — the machine landed 2 of 3 last stretch
+      against 1 of 4 the stretch before, with every draw still arriving through `lane_0` and none
+      through the atom channel. Three ordered items is the honest read of that capacity; four would
+      dilute the record of what I judged mattered. On the second: a watcher over the knowledge map is a
+      control guarding our own controls, the shape `CLAUDE.md` names and this file has now rejected in
+      four consecutive stretches. The map row was caught by following a thread from one constant, which
+      is the method that is supposed to catch it, and item 1 repairs the row itself.
 wrong:
   - what: >-
-      The inference organ was built, wired to the production route, promoted to level 1, and
-      celebrated in the previous direction as the stretch's win — and no published figure moves
-      across its landing. Net margin, gross, capital, treasury start and end, enterprise value, net
-      after cost-to-serve and bills issued are byte-identical between the run before it landed
-      (`4013b1de1`, published `1c4f64733`) and the run after (`19f226e46`, published `b6b3c3fa8`).
-      The previous direction checked that the organ was imported and called, and never checked
-      whether calling it changed anything. Being on the route is not the same as having an effect,
-      and this seat graded the first as if it were the second.
+      The world's departure level anchor landed 2026-09-02 to cure a world running 3.45× below the
+      published record, and it overshot into out-of-band **high** in every year the record covers —
+      2017–2024 mean expected departure 22.35% against a published midpoint of 17.20%, 2020 out by
+      15.9pp. Nothing raised it. The anchor's own docstring names the remedy, the instrument prints the
+      verdict on demand, the strict xfail is sitting there holding the whole-book verdict open, and for
+      a full day nobody ran it. The machine built every part needed to notice this and then did not
+      look.
     corrected: false
   - what: >-
-      The previous direction stated that the false SLC 27B citation had been corrected in two
-      company modules and remained in three other places. It remains in **five**: the two
-      `WALL_CROSSING_DISPOSITION_REGISTER.md` occurrences (2908, 3648) and
-      `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md:15` were not in that count. The count was taken
-      from a grep whose exclusions were never stated, which is how an undercount becomes a plan.
-      Corrected here, beside the claim, and the focus item now names all five.
-    corrected: true
-  - what: >-
-      Lane 0 drew `the-publish-wedge-is-one-staged-unwired-file` at 02:06, fifty-five minutes after
-      19f226e46 had already cleared that wedge at 01:11. The worker took a finished item, and what it
-      landed (a2dfee941) was adjacent work under the claim's name. The lane has no way to notice
-      that a focus item's own condition became true between the direction being written and the item
-      being drawn, and the seat's three-hour re-orientation is the only thing that ever notices.
+      `docs/institutional/knowledge_map.md:114` — the row a lane is told to read before touching the
+      world's churn — still says the departure level is "3.15× short" and that "the level move is NOT
+      yet made", two days after the move landed and in the opposite direction to where the world now
+      sits. The knowledge layer is the thing `CLAUDE.md` says to read before making a number up, and on
+      this subject it would have sent a reader to raise a level that needs lowering.
     corrected: false
   - what: >-
-      Focus items 2, 3 and 4 of the previous direction were never offered to any channel. Lane 0
-      drew three times in three hours and `next_item` reaches the focus list only after the
-      seat-continuation queue is empty. Ranking four items implies a capacity the machine does not
-      have, and the previous direction's careful ordering of items 2 through 4 was therefore
-      decoration. Corrected in this record by writing three.
+      Three findings — `WORKER_FINDING_THE_BAND_CONTROL_IS_GREEN_ON_A_POPULATION_THE_BAND_IS_NOT_ABOUT_2026-08-31.md`
+      and two siblings — sit **deleted from `docs/staging/` and not committed**, with untracked copies
+      in `docs/staging/done/`. `tests/architecture/test_switching_rate_commons.py` is therefore green at
+      HEAD and red in this shared tree, and it is the file item 1 has to edit. An archive move that was
+      started and not landed is arming a red for every lane, and the lane that trips it will read it as
+      its own breakage.
+    corrected: false
+  - what: >-
+      The previous direction named five places the false SLC 27B citation survived, having corrected a
+      count of three the stretch before. It is **six**: `WALL_CROSSING_DISPOSITION_REGISTER.md:4014` is
+      in neither count. I recorded "the count was taken from a grep whose exclusions were never stated,
+      which is how an undercount becomes a plan" — and then filed a second undercount by the same
+      method in the same breath. The instruction now says paste the `git grep -c` number rather than a
+      count I assembled by eye.
     corrected: true
   - what: >-
-      The previous direction's four `wrong` entries about the publish outage — the classifier that
-      recorded no blocking test, the stale five-green-test blocker list, the unfrozen
-      `tools/artefact_rerun_diff.py`, and the 29 queued `run_complete` markers — were all filed
-      `corrected: false`. All four are now corrected, and the disposition of the orphan was the hard
-      call made well: it was read first, judged another lane's correct forward work, and frozen with
-      its reason rather than deleted or given an invented caller. Recording this because a `wrong`
-      list that only ever grows stops being read.
+      The previous direction graded the DD organ's landing as a false completion — built, wired,
+      promoted to level 1 and moving no published figure — and filed it `corrected: false`. It is now
+      corrected, and correctly: the arms were run against predictions filed first, the diff was taken
+      whole rather than by headline, **Q5 was refuted and kept beside its result**, the treasury
+      identity was established as an identity rather than assumed, and the surface was built because
+      the organ turned out to be right. Recording it because a `wrong` list that only ever grows stops
+      being read.
     corrected: true
 for_the_director: []
