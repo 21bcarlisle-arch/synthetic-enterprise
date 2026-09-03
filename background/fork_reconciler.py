@@ -575,8 +575,13 @@ def salvage_detached_head(head: str) -> dict:
 #: is one where a landing is very likely in flight; treating it as stranded would send
 #: `advance_stranded` in to commit its tree, which is the single irreversible mistake available in
 #: this module. Young is a reason to leave alone, not a reason to tidy.
+#: `is some pid's cwd` is a LIVE refusal, not a stranded one, and the distinction is the one this
+#: tuple exists to make: the control is WORKING when it fires, and it needs no advancing step in
+#: `advance_stranded` because it releases itself the moment the process exits. That is precisely
+#: what makes it safe to add here -- an exemption that cannot expire would belong on the other side.
 _LIVE_REFUSALS = ("main worktree", "bare worktree", "locked", "IN_FLIGHT", "live writer",
-                  "declared daemon", "too young to be abandoned", "age is UNKNOWN")
+                  "declared daemon", "too young to be abandoned", "age is UNKNOWN",
+                  "is some pid's cwd")
 
 
 def declared_daemon_homes() -> tuple[str, ...]:
@@ -730,6 +735,63 @@ def _live_writer_default(path: str) -> bool:
     return worktree_is_live(path)
 
 
+def _live_cwd_default(path: str) -> bool:
+    """Is any live process WORKING IN this directory? Read off `/proc`, not declared by anyone.
+
+    WHY A SECOND LIVENESS LEG, 2026-09-03. `_live_writer_default` above asks the executor whether a
+    writer has CLAIMED this worktree -- an `OWNER_MARKER` holding a live pid within its lease. That
+    is the right question for a writer and it is the wrong question for a long compute run, because
+    the only two places that write the marker (`seat_executor`, `origin_reconcile`) write it for
+    THEIR OWN worktree with THEIR OWN pid. Nothing declares a worktree on behalf of a detached job.
+
+    WHAT IT COST. `se-floor-all-20260903c` -- the undecomposed noise-floor leg, a ~2h15m
+    measurement -- was launched by a bounded tick into `/var/tmp/se-floorrun-20260903` and the tick
+    exited minutes later, leaving nobody to hold a lease. At 1h34m37s this reaper removed the
+    directory out from under the running process, which then died on a RELATIVE-path write
+    (`FileNotFoundError: docs/context-handshake-latest.md`) having computed seven of its passes and
+    written nothing. Every gate had passed: unlocked, detached-MERGED, older than
+    `MIN_REAP_AGE_SECONDS`, undeclared -- and CLEAN, which is the one that changed. Until `ff8e27ce3`
+    the run wrote its artefact INTO the worktree, and that untracked file made `dirty` true. The run
+    was being protected by its own output litter, incidentally, and the fix that stopped
+    `ensure_worktree` deleting the artefact removed the protection with it. See
+    `docs/staging/SEAT_FINDING_THE_ARTEFACT_FIX_REMOVED_THE_DIRT_THAT_WAS_KEEPING_THE_REAPER_OFF_THE_RUNNING_WORKTREE_2026-09-03.md`.
+
+    A PROPERTY, NOT A DECLARATION, which is the whole point and why this does not simply widen
+    `worktree_is_live`. A cwd cannot be forgotten by the thing it protects, needs no cooperation
+    from a process that may not know it is in a worktree, and releases itself the instant that
+    process exits -- so it cannot become the permanent exemption that `test_a_forks_worktree_IS_
+    eligible_once_its_writer_is_gone` exists to forbid. The two legs are independent in both
+    directions: a writer idle between edits has claimed a worktree with no process in it, and this
+    job had a process in a worktree it never claimed. Neither implies the other, so neither is an
+    equivalence for the other.
+
+    A DESCENDANT COUNTS. A process whose cwd is a subdirectory is just as much working in the
+    worktree, and `git worktree remove` takes the whole tree either way.
+
+    UNREADABLE MEANS NOT-FOUND, per-process and deliberately: a pid that exits mid-scan, or one
+    belonging to another user, is skipped rather than treated as a hit. Same convention as
+    `_live_writer_default` above -- this reaper must not stop working because one `/proc` entry is
+    unreadable, and `dirty`, `locked` and the declaration leg all still stand behind it.
+    """
+    proc = Path("/proc")
+    if not proc.is_dir():          # not Linux: no such evidence available, and say so by abstaining
+        return False
+    try:
+        here = Path(path).resolve()
+    except (OSError, ValueError):
+        return False
+    for entry in proc.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            cwd = (entry / "cwd").resolve()
+        except (OSError, ValueError, PermissionError):
+            continue           # exited mid-scan, or another user's -- absence of evidence, skipped
+        if cwd == here or here in cwd.parents:
+            return True
+    return False
+
+
 def _why_stranded(stranded: list[dict]) -> str:
     """The tally of WHY the reaper is stuck, as one phrase. One implementation because both modes
     ask the same question and a status that differs by mode is how the enforce branch came to print
@@ -820,7 +882,8 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
                            main_path: str | None = None, now: float | None = None,
                            enforce: bool | None = None, dirty_fn=None, salvage_tag_fn=None,
                            remover=None, reachable_fn=None, detached_tag_fn=None,
-                           live_writer_fn=None, advance=None, age_fn=None) -> dict:
+                           live_writer_fn=None, advance=None, age_fn=None,
+                           live_cwd_fn=None) -> dict:
     """REPORT the worktree-DIRECTORY reap state. Report-first by default (list what WOULD be
     removed, remove nothing); enforce (armed by `WORKTREE_REAP_ENFORCE_FLAG`) actually removes each
     eligible worktree dir + prunes, serialized through `shared_tree_lock` (this mutates the SHARED
@@ -846,6 +909,9 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
     # An unimportable executor reads as "no live writer": this reaper must not stop working because
     # a module it does not depend on is broken, and the DIRTY check still stands behind it.
     live_writer_fn = live_writer_fn or _live_writer_default
+    # THE SECOND LIVENESS LEG, injectable on the same footing. See `_live_cwd_default` for the
+    # 2h15m measurement this reaper destroyed while `live_writer_fn` correctly reported False.
+    live_cwd_fn = live_cwd_fn or _live_cwd_default
     homes = declared_daemon_homes()
 
     eligible, kept = [], []
@@ -882,6 +948,11 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
             result = {"eligible": False,
                       "reason": "a live writer holds this worktree -- never reaped while its "
                                 "process is alive; it is in use, not abandoned"}
+        elif live_cwd_fn(wt["path"]):
+            result = {"eligible": False,
+                      "reason": "a live process is working in this worktree (it is some pid's "
+                                "cwd) -- never reaped while that process is alive; it is in use, "
+                                "not abandoned, whether or not anything declared it"}
         else:
             result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
                                             detached_head_state=dstate, declared_homes=homes)
@@ -1012,7 +1083,7 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
                       branch_states: dict | None = None, main_path: str | None = None,
                       now: float | None = None, dirty_fn=None, salvage_tag_fn=None,
                       remover=None, reachable_fn=None, detached_tag_fn=None,
-                      live_writer_fn=None) -> dict:
+                      live_writer_fn=None, live_cwd_fn=None) -> dict:
     """Reap ONE worktree by path -- the ONLY sanctioned way to do this (never call raw
     `git worktree remove --force` directly). Runs the EXISTING `classify_worktree_reap` for `path`
     and refuses LOUDLY (never calls the remover, never raises) unless it says eligible: not a
@@ -1039,6 +1110,10 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
     # An unimportable executor reads as "no live writer": this reaper must not stop working because
     # a module it does not depend on is broken, and the DIRTY check still stands behind it.
     live_writer_fn = live_writer_fn or _live_writer_default
+    # BOTH DOORS ASK BOTH LIVENESS QUESTIONS. A rule enforced at one door and not the other is a
+    # rule with a way round it, and this door is the one an operator calls by hand -- which is
+    # exactly when a long compute run is most likely to be the thing on the other end.
+    live_cwd_fn = live_cwd_fn or _live_cwd_default
 
     wt = next((w for w in worktrees if w["path"] == path), None)
     if wt is None:
@@ -1058,6 +1133,11 @@ def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
         result = {"eligible": False,
                   "reason": "a live writer holds this worktree -- never reaped while its process "
                             "is alive; it is in use, not abandoned"}
+    elif live_cwd_fn(path):
+        result = {"eligible": False,
+                  "reason": "a live process is working in this worktree (it is some pid's cwd) -- "
+                            "never reaped while that process is alive; it is in use, not "
+                            "abandoned, whether or not anything declared it"}
     else:
         result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag,
                                         detached_head_state=dstate,
