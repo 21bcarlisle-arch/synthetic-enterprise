@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T20:46:36.078979Z",
+  "generated_at": "2026-09-03T22:16:07.681226Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -325,10 +325,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "7304bbe512ce636bf7977c7d1e02e1b98ae92363",
+    "publishing_tree_commit": "4cc098ee7a337f86b6928477ef7366eab4c6bb2a",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 7304bbe51 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 4cc098ee7 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -419,10 +419,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "7304bbe512ce636bf7977c7d1e02e1b98ae92363",
+      "publishing_tree_commit": "4cc098ee7a337f86b6928477ef7366eab4c6bb2a",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 7304bbe51 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 4cc098ee7 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -471,11 +471,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
-      "published_run_net_gbp": 131289.339938,
-      "dashboard_net_gbp": 138152.77,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3138,152.77 -- a gap of \u00a36,863.43 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "checked": true,
+      "same_supplier": false,
+      "published_run_net_gbp": 138152.772886,
+      "gap_gbp": -7728.653570997762,
+      "statement": "The published run's net margin (\u00a3138,152.77) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a37,728.65. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {

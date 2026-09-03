@@ -12,32 +12,32 @@
     "open_findings": 14
   },
   "last_verified": {
-    "generated_at": "2026-09-03T18:23:05Z",
-    "git_commit": "79af956b1",
+    "generated_at": "2026-09-03T22:26:18Z",
+    "git_commit": "36dccc5b7",
     "population": {
       "accounts": 251,
       "bills": 11008,
       "total_revenue_gbp": 681725.49
     },
-    "run_id": "run_output_79af956b1_20260903T175542Z.json",
+    "run_id": "run_output_36dccc5b7_20260903T192514Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-03T18:23:05Z"
+    "verified_at": "2026-09-03T22:26:18Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=7b2406ea1; blocking tests: FAILED tests/background/test_suite_duration_watch.py::test_the_cadence_is_read_from_a_measurement_not_an_aspiration",
-  "paused_since": "2026-09-03T19:58:51Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-03T18:23:05Z",
-    "git_commit": "79af956b1",
+    "generated_at": "2026-09-03T22:26:18Z",
+    "git_commit": "36dccc5b7",
     "population": {
       "accounts": 251,
       "bills": 11008,
       "total_revenue_gbp": 681725.49
     },
-    "run_id": "run_output_79af956b1_20260903T175542Z.json",
+    "run_id": "run_output_36dccc5b7_20260903T192514Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-03T18:23:05Z"
+    "verified_at": "2026-09-03T22:26:18Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-03T22:10:47Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-03T22:26:18Z"
 }
