@@ -2,6 +2,12 @@
 
 **Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 
+**Discharged:** `tests/architecture/test_a_capture_may_only_judge_the_world_that_produced_it.py::test_the_LIVE_DEFAULT_passes_both_refusals_whatever_it_is_pointed_at`, `tests/architecture/test_a_capture_may_only_judge_the_world_that_produced_it.py::test_the_BAND_VERDICT_refuses_rather_than_reporting_a_number_off_a_stale_capture`, `tools/departure_population.py`, `tools/measure_departure_level.py`, `simulation/departure_level_anchor.py` — the two refusals this document asked for landed at 5554c2910 and the re-fit with its capture at 712ae5323. The instrument's default is now a capture whose two halves are both committed and which executed under the live anchor block; a stale one is refused rather than read, in either direction of error, and the first leg named above asserts that of whatever the default is pointed at rather than of any named capture. Discharged 2026-09-03 by the delivery seat, which landed the repair this document specified.
+
+*A commit sha and a symbol name are deliberately NOT in backticks above: the discharge parser reads every backticked token on that line as an artefact path and fails closed on one that does not resolve — correctly, and it refused this document's first draft for exactly that. The line carries artefacts; the prose carries everything else.*
+
+*Discharged, not deleted: this document is the reason a whole-book verdict that had reached a direction file as "out of band, HIGH, in 8 of 8" was not acted on in the wrong direction, and the reasoning below is the evidence that the sign was checked rather than assumed.*
+
 BLOCKING by construction, not by choice: this document's own claim is that a measuring instrument
 in this area is untrustworthy, and clause 2 of `background/finding_severity` says a finding of that
 shape may not grade itself down. `tools/measure_departure_level.py` returns a whole-book verdict
