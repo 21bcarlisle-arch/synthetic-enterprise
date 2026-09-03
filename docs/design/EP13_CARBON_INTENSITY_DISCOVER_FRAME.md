@@ -935,3 +935,121 @@ atom's next candidate has looked easier rather than harder.
 `docs/observability/ep13_ccgt_swap_ceiling.json`. Controls:
 `tests/tools/test_ep13_ccgt_swap_ceiling.py`. Preregistration and its scorecard, one confirmed of
 five: `docs/staging/WORKER_PREREGISTRATION_WHAT_THE_CCGT_SWAP_CEILING_MUST_SHOW_2026-08-31.md`.
+
+---
+
+## 16. 2026-09-03 — THE BALANCED LEVEL CEILING: it cannot be built inside the shipped merit order
+
+§15 named the daily and seasonal LEVEL of gas as the next candidate and owed two things before it
+could be a target: **a proper ceiling on it, with the residual re-decided so the energy balance
+holds**, and a check that it is publishable. This pass built the first. **The answer is that the
+ceiling §15 specified cannot be constructed inside the shipped model**, and that is a finding about
+the method rather than about the world.
+
+### What was built
+
+`tools/ep13_ccgt_level_ceiling.py` imposes truth's daily gas level and re-splits the shipped
+dispatch around it — coal and the peaker band take what gas no longer serves, at their shipped
+factors — so the substitution moves *which* units ran and not *how much* energy ran. With no
+override it reduces to `gci.build_shape` exactly: re-implementation drift **0.0**.
+
+### THE ANCHOR IS NOT `thermal_mw`, AND THE OBVIOUS READING OF §15 IS WRONG
+
+The natural reading of "the energy balance holds" is `gas + coal + peaker == thermal_mw`. **The
+SHIPPED model does not satisfy that.** Whenever the residual exceeds the CCGT fleet (30,000 MW) plus
+the peaker headroom (7,000 MW) the stack truncates and serves less than it demanded — at demand
+50,000 MW with 3,000 MW of renewables it is 2,000 MW short, with no override anywhere near it.
+
+A control keyed to `thermal_mw` would have reported **the shipped model's truncation as this
+substitution's imbalance**, in every high-demand half hour: a control going red for the world rather
+than for the instrument, this project's own named failure shape, freshly minted in the very pass
+whose subject is an unattributable number. Caught by a four-line smoke test at real inputs *before
+the instrument was run*, and corrected beside the claim in the preregistration rather than over it.
+
+### THE RESULT: NO YEAR HAS A READABLE CEILING
+
+| year | baseline | balanced | unbalanced | difference | cap share |
+|---|---|---|---|---|---|
+| 2019 | 0.8819 | −0.0025 | −0.0635 | +0.0610 | **0.831** |
+| 2020 | 0.8737 | +0.0056 | −0.0781 | +0.0837 | **0.813** |
+| 2021 | 0.9078 | −0.0046 | −0.0394 | +0.0348 | **0.837** |
+| 2022 | 0.8697 | −0.0228 | +0.0071 | −0.0299 | **0.852** |
+| 2023 | 0.7973 | −0.1070 | +0.0646 | −0.1716 | **0.726** |
+| 2024 | 0.7425 | −0.1523 | +0.1151 | −0.2674 | **0.531** |
+
+`the_caps_are_not_carrying_the_rung` is **RED in all six years**. Conserving energy means gas can
+only be raised as far as coal and the peakers were actually running, and where the residual sits
+below the CCGT fleet that headroom is exactly **zero** — so the rung is pinned to the baseline on
+every half hour of every day whose true gas level runs above the model's. That is roughly half of
+them by construction, and 83% in 2019 where §15 measured the model running 13% LOW.
+
+**The negative numbers are not the ceiling and are not quoted as one.** A rung pinned to its own
+baseline on most of its population is measuring the pin.
+
+### THE CONTROL THAT SAYS SO WAS FAIL-OPEN IN THE FIRST DRAFT, AND THIS IS THE PART TO READ
+
+`control_bound_share` counted the fleet clamps and a non-zero balance. It read **0.000–0.050** and
+passed every year. It did not count `capped_to_served` — binding **117,510** times run-wide against
+the clamps' **1,293** — and it *could not*, because **the cap restores the balance**, so a
+balance-derived share is blind to it by construction. Corrected, the share is 0.531–0.852 and the
+control is red everywhere.
+
+**Uncorrected, this pass would have published a confident sixth retirement with six negative numbers
+behind it**, and the retirement would have been wrong. A control that exists to refuse a rung its
+caps are carrying, and that does not count the cap actually carrying it, does not merely fail to
+fire — it certifies the opposite.
+
+### WHAT IS AND IS NOT ESTABLISHED
+
+**Established:** a ceiling on the daily gas level cannot be built by re-splitting the shipped
+dispatch, because the model has no other dispatchable source for gas to trade against in the
+majority of half hours. §15's `ccgt_level` +0.116 remains unquotable, and is now unquotable for a
+second reason as well.
+
+**NOT established, and the tempting reading:** *"five of six years negative, so the level is worth
+nothing — retire it."* **The daily and seasonal gas level is NOT the sixth retired candidate.**
+Two independent reasons: the cap control refuses every year, and the discrimination leg fails in
+four of six (in 2022–2024 scrambled day levels score *better* than correct ones, which by control
+6's own logic makes a bare negative unreadable). The candidate is **undecided**, not retired — the
+first time on this atom that a pass has ended without moving one either way, and the honest place
+to leave it.
+
+**The publishability check §15 owed stays un-run**, now because it is premature rather than moot.
+
+### WHAT WOULD DECIDE IT
+
+The construction needs an absorber that is not the OCGT peaker band. Every downward level correction
+here is met by the dirtiest unit in the stack, so the rung charges a carbon penalty for a change
+that in the real world was met by imports, embedded generation or lower demand. Naming what should
+absorb a gas-level correction is the question this pass leaves, and it is a different question from
+the one §15 asked.
+
+### R15 — EIGHTEEN TESTS, TWO SURVIVORS ON THE FIRST BATTERY, ONE OF THEM AN EQUIVALENCE
+
+Twelve mutations run, ten red immediately. Both survivors were the load-bearing pair, which is the
+uncomfortable finding and not the flattering one.
+
+**`remaining_mw = thermal_mw - ccgt_mw` — established an EQUIVALENCE, by argument rather than by
+assumption.** `thermal_mw` and `served_baseline_mw` differ only where the peaker band saturates, and
+in exactly those half hours `remaining_mw` is already past the saturation point under both
+readings — so coal and peaker take identical values and no emissions figure moves. The anchor choice
+*is* load-bearing, but in `balance_mw`, not in the dispatch split; mutating it there
+(`− served_baseline_mw` → `− thermal_mw`) fires four tests.
+
+**The second survivor was a MALFORMED MUTATION of my own** — a partial revert that is a no-op
+wherever coal capacity is zero. The clean form (the balanced branch not re-deciding at all, which is
+§15's defect reinstated) fires two tests. Recorded rather than quietly re-run, because a mutation
+that survives because it was badly written reads in a log exactly like one that survives because the
+control is weak.
+
+**A wall guard that could not fail, caught by its own negative leg.** The first draft imported
+`ceiling_is_unreachable_from` from `ep13_ccgt_swap_ceiling`. That function derives its subject from
+`Path(__file__).stem`, which binds to the module where it is *defined* — so it asked "does the
+published feed import the SWAP ceiling?", answered truthfully about the wrong module, and would have
+reported this module unreachable no matter what imported it. The four other EP13 bounds each define
+their own copy for exactly this reason; the reuse was the novel mistake.
+
+**No level move. LAW A.** Reproduce: `python3 -m tools.ep13_ccgt_level_ceiling` →
+`docs/observability/ep13_ccgt_level_ceiling.json`. Controls:
+`tests/tools/test_ep13_ccgt_level_ceiling.py`. Preregistration, its pre-run correction and its
+scorecard: `docs/staging/done/WORKER_PREREGISTRATION_WHAT_THE_BALANCED_GAS_LEVEL_CEILING_MUST_SHOW_2026-09-03.md`.
