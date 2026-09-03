@@ -152,12 +152,24 @@ CURRENT_WORLD_NOISE_FLOOR_PATH = (
 #: floor, and the only mode whose spread bounds the published figure directly".
 #:
 #: WHY THIS IS A GUARD AND NOT A COMMENT. The `only` and `except` legs PARTITION that variance for
-#: the decomposition; neither half bounds the whole. On the 2026-08-29 seed family -- the one world
-#: where all three legs have been measured -- the two halves' variances summed to 0.49x the
+#: the decomposition; neither half bounds the whole. On the 2026-08-29 seed family -- then the one
+#: world where all three legs had been measured -- the two halves' variances summed to 0.49x the
 #: undecomposed leg's on `value_advantage_gbp`, so the priced half alone would have published a
 #: bound 1.4x too narrow and a verdict too confident in the flattering direction. Both partition
 #: legs are on disk in the live world RIGHT NOW while the undecomposed one is still running, which
 #: makes "point the constant at the floor that exists" the cheap wrong repair this guard refuses.
+#:
+#: THAT 1.4x DID NOT SURVIVE THE LIVE WORLD, AND THE GUARD IS STILL RIGHT. The undecomposed leg
+#: landed 2026-09-03T19:06Z and the live triple (39a192ce, seeds 11111/22222/33333) reads: `all`
+#: stdev 991.455146, `only` 991.455139, `except` EXACTLY 0. `all` minus `only` is 420.5413 on every
+#: seed -- a CONSTANT SHIFT, and a standard deviation is invariant to one. So the cheap wrong repair
+#: would here have published a bound 1.0000000x too narrow, not 1.4x, and the same verdict. Keep
+#: this guard anyway: it is keyed to WHICH LEG BOUNDS THE FIGURE, not to today's gap between them,
+#: and a control pinned to the current gap would lift the moment the unpriced side regains variance
+#: it is supposed to have. What is withdrawn is the 1.4x offered as its justification -- the reason
+#: to refuse the `only` leg is that its spread is not the whole's, which stays true at a gap of zero.
+#: Recorded rather than deleted: a prediction kept beside its result is the only evidence it was
+#: made before the answer. See `docs/staging/records/SEAT_PREREGISTRATION_WHAT_THE_LIVE_WORLD_BOUND_MAKES_THE_PAGE_SAY_2026-09-03.md` (P8/P9).
 BOUNDING_REDRAW_MODE = "all"
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
 #: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so

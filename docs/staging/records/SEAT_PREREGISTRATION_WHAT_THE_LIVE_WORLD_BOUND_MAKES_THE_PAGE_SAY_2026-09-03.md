@@ -100,3 +100,55 @@ placed there for that reason rather than symmetrically.
 When the leg lands: rebuild the feed, read `current_world.bound_available`, `resolved` and the spread
 it used, and record the outcome **beside** P8 and P9 above, refutation kept. If the leg OOMs again
 and writes nothing, that is recorded here as *ungraded*, not as either answer.
+
+---
+
+## 6. GRADED, 2026-09-03, when the leg landed
+
+`value_cycle_ab_s1_noise_floor_20260903.json` landed at 19:06:31Z (`producing_commit`
+`1d821e12b`), world `39a192ce04c1eda8`, `redraw_scope.mode` `all`, three seed rows. The feed was
+rebuilt from the module's own default constants -- the branch the site runs -- and read back.
+
+**The live triple, `value_advantage_gbp`, n=3, seeds 11111/22222/33333:**
+
+| leg | mean | `stdev_gbp` |
+|---|---:|---:|
+| `all` | 1,450.6408 | **991.455146** |
+| `only` | 1,030.0995 | **991.455139** |
+| `except` | 2,756.4089 | **0.000000** |
+
+**P8 — CONFIRMED, mechanism REFUTED.** Predicted £990–£1,450, central £1,150; actual **£991.46**,
+inside the band and against its floor. The stated direction holds: 991.46/2,291.07 = **0.433x**, less
+than half the old world's bound, as predicted. But P8 got there by predicting `all` would come in
+**wider than `only` by 1.0–1.43x**, called sampling noise at n=3. The actual ratio is
+**1.0000000071x**. That is not a narrow win inside the band — it is exact agreement, and exact
+agreement is not what sampling noise produces. The cause is structural and now measured: `all` minus
+`only` is **420.5413 on every one of the three seeds**, and `except` is the same 2,756.4089 on every
+seed. The unpriced side contributes **a constant shift and no variance at all**, and a standard
+deviation is invariant to a constant. P8's number was right for a reason P8 did not hold.
+
+**P9 — CONFIRMED.** `current_world.bound_available` is `True`, `current_world.resolved` is `True`,
+`floor_leg` `all`, `floor_ran_in_world` `39a192ce04c1eda8`, `bound.stdev_gbp` £991.46 keyed to
+`value_advantage_gbp`. £2,335.87 > £991.46. The mechanism predicted for it also holds: the advantage
+did not grow, it collapsed from £12,071 to £2,336, and it clears only because the bound collapsed
+further. **A smaller advantage that resolves is a smaller claim.**
+
+**§4's second constraint — the leg guard — is upheld and its stated consequence is WITHDRAWN.**
+"The priced half alone would have published a bound 1.4x too narrow and a verdict too confident"
+was measured in the world it was predicting: the priced half alone publishes a bound **1.0000000x**
+too narrow and **the same verdict**. In this world the leg guard is, with respect to the published
+number, an equivalence. It is kept — it is keyed to which leg bounds the figure, not to today's gap,
+and it goes on refusing correctly if the unpriced side ever regains the variance it should have —
+but nothing the page currently prints depends on it, and the mutation that proves it fires against a
+constructed subject, not against this world. Recorded because the flattering reading is that the
+guard was vindicated; it was not, it was untested by the only world that has run through it.
+
+**What was NOT predicted and is the finding this grading produced:** `_resolvable` compares a
+*single* draw (£2,335.87, from the three-arm run's own elasticity draw) against the *dispersion* of
+draws (£991.46). Substituting each floor seed for the point estimate: 11111 -> £1,467.23 resolves,
+22222 -> £2,433.70 resolves, 33333 -> **£450.99 does not**. The published verdict is one draw's, and
+one of three re-draws of the same quantity reverses it. The mean of the re-draws is £1,450.64 with
+SEM £572.42, t = 2.53 on 2 df — which does not clear a conventional threshold at all. Filed as
+`SEAT_FINDING_THE_RESOLVED_VERDICT_IS_ONE_DRAWS_AND_A_THIRD_OF_THE_REDRAWS_REVERSE_IT_2026-09-03.md`.
+Not repaired in this commit: the fix is a decision about what `_resolvable` should compare, and it is
+shared by every contrast on this page, so it is a design change and not a wiring one.
