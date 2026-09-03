@@ -915,6 +915,92 @@ def test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually
         )
 
 
+#: A cause's claim about the rows a NAMED capture holds for the year it refuses. The grammar is
+#: `<file>.json ... ALL <n> OF THOSE ROWS CARRY \`passive_churn_cap = <v>\``, and the file must be
+#: named before the claim in the same cause.
+_CITED_ROWS_CLAIM = re.compile(
+    r"(?P<capture>[a-z0-9_]+\.json).{0,900}?ALL (?P<rows>\d+) OF THOSE ROWS CARRY "
+    r"`passive_churn_cap = (?P<cap>[0-9.]+)`",
+    re.S,
+)
+
+
+def test_a_capture_a_refusal_cites_for_its_rows_is_read_for_what_those_rows_actually_are():
+    """A CITED ARTEFACT IS A DISCLOSURE TOO, AND THE INFERENCE DRAWN FROM IT CAN BE THE WRONG ONE.
+
+    THE DEFECT THIS EXISTS FOR, measured 2026-09-03. `UNFITTED_YEARS[2022]` cited
+    `c3_shown_price_departure_factors.json` as carrying *"53 renewal rows in 2022 under the retired
+    ten-year block, so a re-capture CAN close this one"*. The row COUNT was right and was checkable;
+    the INFERENCE was not checked by anything, and it is false. All 53 of those rows carry
+    `passive_churn_cap = 0.1` — every one is a forced-passive roll that the pre-C1b world settled as
+    a fixed term anyway, which is the precise defect C1b was landed to remove. So the artefact cited
+    as evidence that a re-capture restores the population is evidence of the retired defect, and
+    "re-capture" as a repair means re-introducing it.
+
+    IT COST A LANE 0 DIRECTION. The item *give 2022 a renewal population* was drawn on that sentence
+    and would have spent a ten-minute capture proving the absence it was sent to remove. The
+    composition that makes the absence structural is now held directly, in
+    `tests/simulation/test_svt_assignment.py::test_no_household_can_reach_a_renewal_decision_in_a
+    _crisis_year`; this leg holds the historical claim the entry makes about the artefact.
+
+    WHY IT SURVIVED. `..._every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually
+    _runs` above holds the FLOOR figure in the same entry, and `..._every_comparison_year_is_either
+    _read_or_refused_with_a_corroborated_cause` holds the DECISION COUNT. Neither reads a capture a
+    cause NAMES, so a cause could cite any file in the tree for any property and nothing would open
+    it — the same mixed-subject OR that let half of this entry be false for two days.
+
+    KEYED TO THE GRAMMAR, NOT TO 2022 OR TO 53. Any cause that names a capture and states what its
+    rows for that year are gets opened and checked. Deleting the claim empties the subject and the
+    floor below fires rather than passing quietly.
+
+    MUTATION (`python3 -B`): change `ALL 53` to `ALL 54` in `UNFITTED_YEARS[2022]` -> fires on the
+    count; change the cap to `0.2` -> fires on the cap; point the citation at
+    `c5_refitted_departure_factors.json` (which carries no 2022 rows at all) -> fires on the
+    zero-row leg, which is the case where a re-capture claim would be checked against nothing.
+    """
+    claims: list[tuple[int, str, int, float]] = []
+    for year, cause in anchor_module.UNFITTED_YEARS.items():
+        found = _CITED_ROWS_CLAIM.search(cause)
+        if found:
+            claims.append((year, found.group("capture"), int(found.group("rows")),
+                           float(found.group("cap"))))
+
+    assert claims, (
+        "no `UNFITTED_YEARS` cause states what a named capture's rows for its refused year "
+        "actually are, so this leg has no subject and its PASS means nothing. 2022's cause carried "
+        "one. If the claim is genuinely gone, delete this leg in the same commit and say so — do "
+        "not leave a green over an empty subject."
+    )
+
+    reports = Path(__file__).resolve().parents[2] / "docs" / "reports"
+    for year, capture, stated_rows, stated_cap in claims:
+        path = reports / capture
+        assert path.exists(), (
+            f"{year}'s cause cites `{capture}` for what its rows are, and no such file is in "
+            f"`docs/reports/`. A refusal resting on an artefact nobody can open is the "
+            f"refusal-names-an-unobserved-cause shape."
+        )
+        rows = [r for r in json.loads(path.read_text())
+                if str(r.get("event_date", ""))[:4] == str(year)]
+        assert rows, (
+            f"{year}'s cause cites `{capture}` as carrying {stated_rows} rows for {year}, and that "
+            f"file carries NONE. The claim is checked against nothing."
+        )
+        assert len(rows) == stated_rows, (
+            f"{year}'s cause states `{capture}` carries {stated_rows} rows for {year}; it carries "
+            f"{len(rows)}. Correct the stated figure beside its superseded text."
+        )
+        off = [r for r in rows if r.get("passive_churn_cap") != stated_cap]
+        assert not off, (
+            f"{year}'s cause states ALL {stated_rows} rows in `{capture}` carry "
+            f"`passive_churn_cap = {stated_cap}`, and {len(off)} do not "
+            f"(e.g. {off[0].get('customer_id')}@{off[0].get('event_date')} at "
+            f"{off[0].get('passive_churn_cap')}). If some of those rows are ACTIVE renewals then "
+            f"they are not all the retired defect, and the conclusion the entry draws from them "
+            f"— that only a change to the world can close this year — has to be re-argued."
+        )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # (b2) THE POPULATION THE VERDICT ABOVE WAS TAKEN ON — added 2026-08-31
 #
@@ -1003,7 +1089,18 @@ def test_the_register_names_the_route_its_principal_subject_can_see():
     "capture family carries ZERO 2022 renewal decisions -- 2022 is 100% crisis-forced-passive and "
     "C1b routes every passive roll to the SVT table, so the anchor multiplies nothing there. "
     "2.50% is what the SVT route alone produces. THIS IS THE THING THAT HAS TO CHANGE for this "
-    "marker to come off, and it is a capture-population question, not a calibration one. "
+    "marker to come off, and IT IS NOT A CAPTURE-POPULATION QUESTION -- this reason said it was "
+    "until 2026-09-03 and so did the register entry it read. NO CAPTURE OF THE LIVE WORLD CAN "
+    "CARRY A 2022 RENEWAL DECISION: the forcing and the divert are both unconditional, held by "
+    "tests/simulation/test_svt_assignment.py::test_no_household_can_reach_a_renewal_decision_in_a_"
+    "crisis_year. What closes it is a change to the WORLD, and the smallest one that reaches the "
+    "anchor is on the SVT route: run_phase2b builds every SVT segment with bill_shock_base=0.0, "
+    "price_response=0.0 and dissatisfaction_response=0.0, and those three are the only hazards "
+    "level_anchor multiplies -- so in a year whose whole book is on SVT there is no lever at all, "
+    "and a cap that went 1,277 -> 1,971 -> 3,549 is priced at zero shock. That repair moves every "
+    "year and needs the full capture -> fit -> capture loop; scoping it to 2022 would be a "
+    "carve-out fitted to this band. See SEAT_FINDING_THE_ARTEFACT_CITED_AS_PROOF_2022_CAN_BE_"
+    "RECAPTURED_IS_PROOF_OF_THE_RETIRED_DEFECT_2026-09-03.md. "
     "THE PROGRESSION, so a reader can see the loop converging rather than a verdict flipping: on "
     "c4 1 of 8 was in band, on c5 2 of 8, on c6 6 of 8; mean distance outside the band 0.875pp -> "
     "0.425pp -> 0.066pp; worst year 2.40pp -> 1.32pp -> 0.40pp. "
