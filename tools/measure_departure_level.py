@@ -83,7 +83,16 @@ COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_dome
 #: THE PAIR IS WHY THE MOVE IS ATTRIBUTABLE. `c4` and a control arm run today at the same
 #: seed with nothing injected came out BYTE-IDENTICAL in both halves, so `c4` IS the control
 #: and the two captures differ in the anchor block and in nothing else.
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c5_refitted_departure_factors.json"
+#:
+#: REPOINTED A THIRD TIME 2026-09-03, SECOND RE-FIT PASS, AND FOR THE SAME MECHANICAL REASON.
+#: The second whole-book fit was solved on `c5` and lands in this commit, so `c5` — which ran
+#: under the anchors that fit replaces — now fails `stale_anchor_refusal` in its turn, exactly
+#: as `c4` did and `c2` before it. That sequence is the loop working, not a pointer that keeps
+#: rotting: the anchor and its capture are ONE commit because landing either alone leaves the
+#: other judging a world it did not come from. `c6_second_pass_departure_factors.json` is the
+#: capture of the twice-fitted world — 133 renewal and 1,313 SVT decisions, both halves tracked
+#: in this commit, both executed under the block this commit lands.
+DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c6_second_pass_departure_factors.json"
 
 #: Active domestic electricity accounts per year in the live run, from the opening finding's own
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the

@@ -144,14 +144,47 @@ NO_LEVEL_CORRECTION = 1.0
 #: (-3.8%). No headline improved, so §8 prediction 3 of `gb_switching_rate_denominators.md` — "any
 #: headline company result improving after the change is a defect in the change" — did not fire,
 #: and it was deliberately NOT inverted beforehand despite the drawn instruction to invert it.
+#:
+#: ─────────────────────────────────────────────────────────────────────────────────────────────
+#: SECOND PASS, RE-FITTED 2026-09-03 ON `c5`. The block above is kept in place because the values
+#: below replace it and the reader has to be able to see which way one iteration of the loop
+#: moved; everything above this line describes the FIRST pass and is now history.
+#:
+#: FITTED ON `docs/reports/c5_refitted_departure_factors.json` + its SVT sibling — **139 renewal
+#: and 1,338 SVT decisions**, both halves tracked, both executed under the block this replaces —
+#: by `tools/fit_year_level_anchor.fit_whole_book`. That is a THIN capture and it is stated rather
+#: than hidden: the seven fitted years stand on 13 to 21 renewal decisions each (2019 is the
+#: thinnest at 13, 2021 the fattest at 21) against 113 to 205 SVT decisions each. The SVT route is
+#: where the denominator is, and the renewal route is where the anchor does its work, so a year's
+#: anchor is solved off a dozen-odd rows. A move of a few tenths of a point in such a year is not
+#: distinguishable from the draw.
+#:
+#: WHAT IT MOVED, AND THE SIGN WAS PRE-REGISTERED PER YEAR BEFORE THE FIT WAS RUN, in
+#: `SEAT_PREREGISTRATION_WHAT_THE_SECOND_REFIT_PASS_ON_C5_MUST_MOVE_2026-09-03.md` (P1). Five
+#: anchors rise and two fall, matching the sign of each year's gap between where `c5` sat and the
+#: published rate the fit aims at:
+#:
+#:     2017  7.249189 -> 7.372584   2018  3.249206 -> 2.945347   2019  5.253168 -> 6.637286
+#:     2020  5.477177 -> 6.359296   2021  5.268609 -> 5.641346   2023  2.053916 -> 2.033232
+#:     2024  4.120424 -> 4.259915
+#:
+#: AND THE NET MOVE IS UPWARD, WHICH IS WHY §8 PREDICTION 3 IS STILL UNINVERTED. On `c5` five of
+#: the seven fitted years sat BELOW their target and two above, summing to +3.26pp of expected
+#: departures across the window. So this pass makes the book HARDER to hold, not easier, and the
+#: trap detector — "any headline company result improving after the change is a defect in the
+#: change" — stands exactly as written. The drawn instruction for this pass asserted the opposite
+#: ("this move *lowers* churn toward the record") and told the seat to invert the detector; that
+#: premise was read off the RENEWAL-ROUTE table, which is 7-of-7 out and high, and the whole book
+#: is the comparable quantity. Inverting it would have disarmed the detector in the one direction
+#: it can fire.
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
-    2017: 7.249189,
-    2018: 3.249206,
-    2019: 5.253168,
-    2020: 5.477177,
-    2021: 5.268609,
-    2023: 2.053916,
-    2024: 4.120424,
+    2017: 7.372584,
+    2018: 2.945347,
+    2019: 6.637286,
+    2020: 6.359296,
+    2021: 5.641346,
+    2023: 2.033232,
+    2024: 4.259915,
 }
 
 #: `{year inside the published record with no fitted anchor: WHY}`. This is the half of the
