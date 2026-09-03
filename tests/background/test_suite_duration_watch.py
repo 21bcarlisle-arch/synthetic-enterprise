@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import subprocess
 
 import pytest
 
@@ -600,7 +601,18 @@ def test_the_cadence_is_read_from_a_measurement_not_an_aspiration():
     So the bound is recomputed from the markers on disk. It still fails on an aspiration — a
     round 60 or 300 is far below any real inter-arrival — and it now also fails if the constant
     drifts ABOVE the world, which is the silencing direction and the one that matters most.
+
+    SUBJECT ADDED 2026-09-03, and it is why this test wedged publishing for four gate runs. The
+    measurement reads the tree it was IMPORTED from, and the publish gate imports it from a
+    `git archive HEAD` checkout whose `docs/staging/` holds only COMMITTED markers. Working
+    tree: 1,470 markers, median 1,685.5s, constant in band. Gate checkout of the SAME HEAD:
+    1,305 markers (3.5h stale), median 3,009s, and `1500 >= 3009 * 0.5` fails by 4.5 seconds.
+    Two different series, graded as one. `cadence_measurement_subject` now refuses a tree that
+    cannot see the machine, so this skips with that reason instead of failing on a snapshot.
     """
+    roots, reason = sdw.cadence_measurement_subject()
+    if roots is None:
+        pytest.skip(reason)
     measured = sdw.measure_publish_cadence_seconds()
     if measured is None:
         pytest.skip("fewer than three usable marker gaps on disk; nothing to measure against")
@@ -610,6 +622,87 @@ def test_the_cadence_is_read_from_a_measurement_not_an_aspiration():
     assert sdw.PUBLISH_CADENCE_SECONDS >= measured * 0.5, (
         f"cadence {sdw.PUBLISH_CADENCE_SECONDS}s is far below the measured {measured:.0f}s — "
         "an aspiration used as a bound is what wedged publishing twice on 2026-08-21")
+
+
+def _snapshot_tree(root):
+    """A committed-snapshot marker set: plenty of markers, so the "too few gaps" branch can never
+    be what refuses these trees. Only the SUBJECT check can."""
+    done = root / "docs" / "staging" / "done"
+    done.mkdir(parents=True)
+    for hour in range(10):
+        (done / "run_complete_20260903T{:02d}0000Z.md".format(hour)).write_text("x")
+    return done
+
+
+def test_a_standalone_gate_checkout_refuses_to_measure_a_cadence(tmp_path, monkeypatch):
+    """THE SECOND THROWAWAY SHAPE, and it refused this very change's first landing attempt.
+
+    `tools/surgical_land._make_standalone_repo` extracts its gate subject and then runs `git init`
+    on it, so that tests asking git a question get an answer instead of `fatal: not a git
+    repository`. A guard keying on repo-ness therefore covers `process_run_complete`'s `git
+    archive` subject and MISSES this one — measured 2026-09-03, the landing gate died on the
+    identical `1500 >= 3009.0 * 0.5` this whole change exists to fix.
+
+    The separating property is OWNERSHIP: a throwaway checkout is standalone and has no `origin`;
+    the live tree and every linked worktree share this repository's config and do.
+
+    MUTATION: drop the `remote.origin.url` branch from `cadence_measurement_subject` and this
+    dies — the tree below is a perfectly good git repo, so nothing else refuses it.
+    """
+    _snapshot_tree(tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=str(tmp_path), check=True)
+    monkeypatch.setattr(sdw, "PROJECT_DIR", tmp_path)
+
+    roots, reason = sdw.cadence_measurement_subject()
+    assert roots is None, (
+        "a standalone `git init` gate checkout was accepted as the machine's marker series; that "
+        "is the landing-gate refusal of 2026-09-03 exactly")
+    assert "no `origin`" in reason, "a refusal must name its reason"
+    assert sdw.measure_publish_cadence_seconds() is None
+
+    # NULL CONTROL: give the same tree an `origin` and it is a worktree of this repository again,
+    # so it MEASURES. The refusal must key on ownership, not on the tree being temporary.
+    subprocess.run(["git", "remote", "add", "origin", "https://example.invalid/x.git"],
+                   cwd=str(tmp_path), check=True)
+    assert sdw.cadence_measurement_subject()[0] is not None
+    assert sdw.measure_publish_cadence_seconds() == 3600.0
+
+
+def test_a_tree_that_cannot_see_the_machine_refuses_to_measure_a_cadence(tmp_path, monkeypatch):
+    """THE DEFECT THIS NAMES, measured on 2026-09-03: the publish gate ran a checkout of HEAD
+    holding a 3.5-hour-stale COMMITTED subset of the marker series, measured 3,009s off it, and
+    failed `PUBLISH_CADENCE_SECONDS` — a constant calibrated on the working tree's 1,685.5s — by
+    4.5 seconds. Four consecutive gate failures, all publishing blocked, because the two sides of
+    the comparison were never the same series and nothing said so.
+
+    A `git archive HEAD` checkout is not a git repository, which is what makes it decidable: a
+    tree that cannot name its own main worktree cannot be the machine, so the cadence is not
+    observable from there and the answer is a refusal, never a number.
+
+    MUTATION: drop the `if not common` branch from `cadence_measurement_subject` (or have it
+    fall back to `PROJECT_DIR`, which is exactly the old behaviour) and this returns a confident
+    3,009-shaped median off the snapshot below — both assertions die.
+    """
+    snapshot = tmp_path / "docs" / "staging" / "done"
+    snapshot.mkdir(parents=True)
+    # A committed-snapshot marker set: plenty of markers, so the "too few gaps" branch cannot be
+    # what refuses this. Only the SUBJECT check can.
+    for hour in range(10):
+        (snapshot / "run_complete_20260903T{:02d}0000Z.md".format(hour)).write_text("x")
+    monkeypatch.setattr(sdw, "PROJECT_DIR", tmp_path)
+
+    roots, reason = sdw.cadence_measurement_subject()
+    assert roots is None, (
+        "a non-git throwaway checkout was accepted as the machine's marker series; that is the "
+        "publish-gate wedge of 2026-09-03 exactly")
+    assert "not a git repository" in reason, "a refusal must name its reason"
+    assert sdw.measure_publish_cadence_seconds() is None, (
+        "the measurement reported a number for a tree that cannot observe the machine")
+
+    # NULL CONTROL: the refusal must key on the SUBJECT being unknowable, not on the markers
+    # being unreadable. Name the same directory explicitly and it measures, because a caller
+    # naming its own subject has already answered the question.
+    assert sdw.measure_publish_cadence_seconds(markers_dir=snapshot) == 3600.0
 
 
 def test_a_killed_run_is_not_certified_as_inside_the_cadence():

@@ -174,6 +174,79 @@ TREND_WINDOW = 5
 PUBLISH_CADENCE_SECONDS = 1500
 
 
+def cadence_measurement_subject(markers_dir=None):
+    """WHOSE marker set the cadence is measured from — `(roots, reason)`, exactly one non-None.
+
+    THE SUBJECT HAS TO BE NAMED BECAUSE IT IS NOT ALWAYS THE MACHINE. `PROJECT_DIR` is the tree
+    this module was imported FROM, and the publish gate imports it from a `git archive HEAD`
+    throwaway checkout (`process_run_complete._head_checkout`, director ruling
+    DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09). In that tree `docs/staging/done/` holds
+    only the markers that happen to be COMMITTED — a lagging snapshot, not the live series.
+
+    MEASURED 2026-09-03, the wedge this fixes. The working tree held 1,470 markers (newest
+    21:28:50Z) and measured a 1,685.5s median; the gate's checkout of the same HEAD held 1,305
+    (newest 17:55:42Z, ~3.5h stale) and measured 3,009s. `PUBLISH_CADENCE_SECONDS` was
+    re-measured on 2026-08-26 from the WORKING tree, so the gate was grading a constant
+    calibrated on one population against a different one, and failed it by 4.5 seconds:
+    `1500 >= 3009 * 0.5` is `1500 >= 1504.5`. Four consecutive publish-gate failures, all
+    publishing blocked, on a control whose two sides were never the same series.
+
+    So this is the `process_run_complete._machine_data_dir()` doctrine — "the MAIN worktree,
+    never the importing tree" — applied to the one data set that helper does not cover. Where
+    the tree belongs to this repository, a linked worktree resolves to the main tree and the
+    measurement is the machine's. Where it does not, the answer is a REFUSAL WITH A NAMED REASON
+    rather than a confident number taken off a stale snapshot.
+
+    THERE ARE TWO THROWAWAY SHAPES AND THE FIRST FIX ONLY CAUGHT ONE — recorded because the
+    second one refused the very commit that landed the first. `process_run_complete` builds its
+    subject with `git archive HEAD`, which is not a git repository at all; `tools/surgical_land`
+    builds its subject with `git archive` AND THEN `git init` (`_make_standalone_repo`, so that
+    tests asking git a question get an answer), which IS one. A guard keying on "is this a git
+    repo" therefore refuses the publish gate and sails straight into the landing gate — measured,
+    on this change's own first landing attempt: `1500 >= 3009.0 * 0.5`, the identical failure.
+
+    The property that actually separates them is OWNERSHIP, not repo-ness: a throwaway checkout
+    is standalone and has no `origin`, while the live tree and every linked worktree share this
+    repository's config and do. Verified on all four shapes on 2026-09-03 — main tree and both
+    `/var/tmp/se-*` worktrees carry `origin` and resolve to `/home/rich/synthetic-enterprise`;
+    the `git init` checkout carries none; the `git archive` extract is not a repo.
+
+    An explicit `markers_dir` is always honoured: a caller naming its own subject has already
+    answered the question this helper exists to ask.
+    """
+    import pathlib as _pathlib
+    import subprocess as _subprocess
+
+    if markers_dir:
+        return [_pathlib.Path(markers_dir)], None
+
+    def _git(*args):
+        try:
+            proc = _subprocess.run(["git", *args], cwd=str(PROJECT_DIR),
+                                   capture_output=True, text=True, timeout=30)
+        except (OSError, _subprocess.SubprocessError):
+            return ""
+        return (proc.stdout or "").strip() if proc.returncode == 0 else ""
+
+    common = _git("rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not common:
+        return None, (
+            "{} is not a git repository, so it is a throwaway checkout whose `docs/staging/` is "
+            "a committed snapshot rather than the machine's live marker series — the publish "
+            "cadence is not observable from here".format(PROJECT_DIR))
+    if not _git("config", "--get", "remote.origin.url"):
+        return None, (
+            "{} is a standalone git repository with no `origin`, so it is a throwaway gate "
+            "checkout rather than a worktree of this repository, and its `docs/staging/` is a "
+            "committed snapshot rather than the machine's live marker series".format(PROJECT_DIR))
+    main_worktree = _pathlib.Path(common).parent
+    if not main_worktree.is_dir():
+        return None, "git named {} as the main worktree and it is not a directory".format(
+            main_worktree)
+    return [main_worktree / "docs" / "staging" / "done",
+            main_worktree / "docs" / "staging"], None
+
+
 def measure_publish_cadence_seconds(markers_dir=None, window: int = 200):
     """Re-measure the publish cadence from the `run_complete_*` markers on disk.
 
@@ -182,21 +255,22 @@ def measure_publish_cadence_seconds(markers_dir=None, window: int = 200):
     that goes stale silently — which is exactly what happened between 2026-08-21 and today.
 
     Returns the median inter-arrival in seconds over the last `window` markers, or None when
-    there are fewer than three usable gaps. Gaps above two hours are dropped as run outages
-    rather than cadence, the same shape as the original measurement's own bounds.
+    there are fewer than three usable gaps OR when the tree cannot see the machine's marker
+    series at all (`cadence_measurement_subject` above carries that reason). Gaps above two
+    hours are dropped as run outages rather than cadence, the same shape as the original
+    measurement's own bounds.
 
     NOT wired into the constant on purpose. A cadence that recomputed itself every call would
     drift upward silently, which is the silencing move in a slower costume: the number has to
     MOVE IN A COMMIT, with a dated log line and a reader able to disagree.
     """
     import datetime as _dt
-    import pathlib as _pathlib
     import re as _re
     import statistics as _statistics
 
-    roots = ([_pathlib.Path(markers_dir)] if markers_dir
-             else [PROJECT_DIR / "docs" / "staging" / "done",
-                   PROJECT_DIR / "docs" / "staging"])
+    roots, _reason = cadence_measurement_subject(markers_dir)
+    if roots is None:
+        return None
     stamps = []
     for root in roots:
         if not root.is_dir():

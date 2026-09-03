@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 57 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 58 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 57 instances
+## The 58 instances
 
 - `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md` — LATENT
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
@@ -47,6 +47,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — RECORDED
 - `WORKER_FINDING_THE_PRODUCER_IS_NOT_DEAD_IT_IS_OOM_KILLED_TWELVE_TIMES_TODAY_2026-08-24.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_DISCOVERS_AN_OVER_BUDGET_SCOPE_BY_TIMING_OUT_A_CYCLE_2026-08-21.md` — LATENT
+- `WORKER_FINDING_THE_PUBLISH_GATE_GRADES_A_LIVE_CONSTANT_AGAINST_A_COMMITTED_SNAPSHOT_2026-09-03.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_HAS_NEVER_COMPLETED_ABOVE_1666_SECONDS_AND_ITS_CEILING_IS_3800_2026-08-21.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_TESTS_THE_WORKTREE_BUT_THE_COMMIT_TAKES_THE_INDEX_2026-08-27.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_WEDGE_TWO_DOCSTRINGS_CITE_HAS_NEVER_EXISTED_2026-08-18.md` — LATENT
@@ -70,7 +71,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**333.9 recorded episode-hours** across 16 of the 57 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
+**333.9 recorded episode-hours** across 16 of the 58 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -96,6 +97,14 @@ This document supersedes the individual findings listed below, which are **archi
 1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
+
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_FINDING_THE_LAST_PUBLISH_WEDGE_WAS_ONE_UNSTAGED_FILE_2026-09-02.md` — lane `D_billing_metering`
+- `SEAT_FINDING_THE_LEG_THAT_PRODUCES_THE_PUBLISHED_BOUND_WAS_OOM_KILLED_AND_WROTE_NOTHING_2026-09-03.md` — lane `W2_customer_generator`
+- `SEAT_FINDING_THE_OOM_FIX_REMOVED_ONE_CAUSE_OF_THE_ABSENT_ARTEFACT_AND_LEFT_THE_ABSENCE_2026-09-03.md` — lane `W2_customer_generator`
 
 ## Disposition
 
