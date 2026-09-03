@@ -6,6 +6,7 @@
 **Filed:** 2026-09-03, delivery seat, Lane 0, executing
 `SEAT_FINDING_THE_SIX_FILE_DIVERGENCE_MOVED_NO_ANCHOR_AND_ONE_CONTROL_WAS_BUILT_TWICE_2026-09-03.md`
 **Subject:** the reconciliation itself — landed as `06ce91bc9` (merge) and `ef9c801e3` (nine paths).
+**Discharged:** `site/capabilities/index.html`, `tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py`, `docs/observability/svt_drift_belief_grade.json` — all three of the paths this census added beyond the parent's six are now tracked and clean against origin, so none of them is a revert still armed and none is green on this machine only. The second armed revert is disarmed on the evidence rather than on the merge having happened: the capabilities page carries the precedence block and the superseded split renderer appears in it zero times, which is the direction that matters, a page that became more honest rather than one that merely changed. Every backtick above is read as a claimed artefact, so this prose carries none.
 
 ---
 
