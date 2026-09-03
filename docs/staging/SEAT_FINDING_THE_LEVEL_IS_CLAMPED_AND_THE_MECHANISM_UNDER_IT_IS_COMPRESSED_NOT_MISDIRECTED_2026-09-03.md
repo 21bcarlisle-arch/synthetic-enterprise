@@ -163,6 +163,39 @@ of the gap but not all of it, and 2017 will be the year that remains out — it 
 the emergent ordering and the published ordering disagree by more than one rank (published rank 2,
 emergent rank 1) and its published band is the narrowest in the record at 0.5pp.
 
+## 4a. A correction I owe to the control I named, made after reading it properly
+
+This document's severity header says BLOCKING, and the ruling's definition of BLOCKING is *"a
+control or instrument in this area is untrustworthy, or a published figure may be wrong"*. When I
+graded it I had `tests/architecture/test_switching_rate_commons.py::test_the_worlds_realised_
+departure_rate_is_inside_the_published_band` in mind as the untrustworthy control, and the commit
+message that landed this finding says it asserts containment against a band the world is bisected
+onto. That sentence is true and the implication I left hanging — that the control is unaware of it
+— is not. **Its own docstring says so, at length, and got there before I did:**
+
+> *"NOW IT IS A DRIFT DETECTOR, AND THAT IS NOT A TAUTOLOGY. The anchor is fitted, so of course the
+> run it was fitted to sits in the band — the question this asks is whether it STILL does."*
+
+and, on the asymmetry:
+
+> *"So this control answers 'is the world still on its anchor' and reads as though it answered 'is
+> the world still lawful'. Those are different questions."*
+
+It also records that room ABOVE the level is 0.00pp in every year because of the ceiling tie-break,
+that room BELOW runs 0.50pp to 3.60pp and is set by the calendar rather than by anything meaningful,
+and that a red is a threshold crossing and not a magnitude. It is currently **xfail-strict and
+xfailing**, held open deliberately rather than left green or quietly widened.
+
+So the control is honest and does the job it claims. **What was untrustworthy was the READING of it
+one layer up** — `docs/institutional/knowledge_map.md` opened this variable's row with *"In band in
+6 of the 8 full years"* at confidence M-H, which is the drift detector's output presented as a
+lawfulness verdict, in the row a session reads before touching anything here. That is corrected at
+`b59a844d8`.
+
+The BLOCKING grade stands, on the other limb of the definition rather than the first: the world's
+departure level is clamped, and it is published. But it is not this control's fault, and a finding
+that let a reader think it was would be doing to that file what the map row did to this one.
+
 ## 5. Where this variable stands on the ladder
 
 The canon requires every world variable to say this. The departure level says:
