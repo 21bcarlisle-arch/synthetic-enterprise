@@ -711,3 +711,40 @@ def test_the_leg_census_does_not_count_the_process_asking_the_question(tmp_path)
         "the census counted the process asking the question, so an idle guest reports a floor leg "
         "that does not exist: " + repr(census))
     assert census[0][1] == pytest.approx(8.0)
+
+
+def test_the_leg_census_does_not_count_a_sibling_shell_quoting_the_command(tmp_path):
+    """A shell carries the whole pipeline as ONE argv element, and it is nobody's ancestor.
+
+    SOLE WITNESS FOR THE TOKEN TEST, distinct from the self/ancestor exclusion above: this entry
+    is neither this process nor an ancestor of it, so only the argv-token discriminator can reject
+    it.
+
+    FOUND BY RUNNING THE REFUSAL, NOT BY READING IT. On its first live invocation the census
+    reported THREE legs on a machine running two -- the third being the shell of the very command
+    asking. Over-counting is the dangerous direction: it refuses floor runs that would have
+    fitted, so the bound can never be re-measured, which is the failure the refusal exists to
+    prevent. Same class as `pgrep -f` matching the agent whose prompt quotes the subject.
+
+    Fires on: matching `--noise-floor-seeds` as a substring of the joined cmdline rather than as
+    its own argv token.
+    """
+    from tools.run_value_cycle_ab import running_floor_legs
+
+    entries = {
+        999002: ["bash", "-c",
+                 "timeout 300 python3 -m tools.run_value_cycle_ab --level-arm "
+                 "--noise-floor-seeds 11111,22222 --out /tmp/x.json | grep -v WARNING"],
+        999003: ["python3", "-m", "tools.run_value_cycle_ab", "--level-arm",
+                 "--noise-floor-seeds", "11111,22222"],
+    }
+    for pid, argv in entries.items():
+        d = tmp_path / str(pid)
+        d.mkdir()
+        (d / "cmdline").write_bytes(("\x00".join(argv) + "\x00").encode())
+        (d / "status").write_text("PPid:\t1\nVmRSS:\t4096 kB\n", encoding="utf-8")
+
+    census = running_floor_legs(proc_root=tmp_path)
+    assert [pid for pid, _ in census] == [999003], (
+        "a sibling shell quoting the command was counted as a running floor leg, so the refusal "
+        "fires on a guest that has room: " + repr(census))

@@ -3567,8 +3567,20 @@ def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float]]
         if not entry.name.isdigit() or int(entry.name) in mine:
             continue
         try:
-            cmd = (entry / "cmdline").read_bytes().decode("utf-8", "replace")
-            if "run_value_cycle_ab" not in cmd or "--noise-floor-seeds" not in cmd:
+            argv = [tok for tok in (entry / "cmdline").read_bytes()
+                    .decode("utf-8", "replace").split("\x00") if tok]
+            # TOKENS, NEVER A SUBSTRING OF THE WHOLE LINE. Excluding self and ancestors is not
+            # enough: a SIBLING shell carries the full pipeline as ONE argv element, so a
+            # substring test matches `bash -c "python3 -m tools.run_value_cycle_ab
+            # --noise-floor-seeds ..."` and counts a leg that does not exist. Found by running
+            # the refusal rather than by reading it -- it reported three legs on a machine with
+            # two, the third being this very command's own shell. Over-counting is the dangerous
+            # direction: it refuses runs that would have fitted, which makes the bound
+            # unmeasurable, which is the failure this refusal exists to prevent.
+            # A real leg has `--noise-floor-seeds` as its OWN token; a shell has it inside one.
+            if "--noise-floor-seeds" not in argv:
+                continue
+            if not any("run_value_cycle_ab" in tok for tok in argv):
                 continue
             rss_kb = next(int(ln.split()[1]) for ln in
                           (entry / "status").read_text(encoding="utf-8").splitlines()
