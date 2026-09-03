@@ -142,25 +142,72 @@ def test_every_published_money_or_carbon_figure_is_either_labelled_or_declared()
     assert escaped == [], f"published with no clock and no declaration: {escaped}"
 
 
-def test_the_superseded_allowlist_was_blind_to_five_live_figures():
-    """Observed-with-evidence (R9), and the reason this was promoted to a class
-    fix: on the real portfolio the old two-name tuple left five money figures
-    unchecked. Pinning the count means a future pass can see the debt shrink."""
+#: The five money figures the superseded two-name allowlist left unchecked on the
+#: real portfolio. A historical measurement (R9), so it is a frozen tuple and not
+#: re-derived: re-deriving it from today's portfolio would grade the past against
+#: the present and could only ever agree with itself.
+_ORIGINALLY_UNSEEN = (
+    "cost_to_serve_gbp",
+    "gross_margin_gbp",
+    "net_after_cts_gbp",
+    "treasury_end_gbp",
+    "treasury_start_gbp",
+)
+
+
+def test_every_figure_the_old_allowlist_missed_is_accounted_for_and_the_debt_can_shrink():
+    """THE DEFECT THIS NAMES IS ITS OWN PREDECESSOR'S. This assertion used to be
+    `set(unseen_by_old_rule) == set(_BASIS_DECLARED_UNLABELLED)` under the name
+    `test_the_superseded_allowlist_was_blind_to_five_live_figures`, whose docstring
+    said the pin existed so "a future pass can see the debt shrink" -- while the
+    equality made shrinking the debt IMPOSSIBLE without a red. On 2026-09-03
+    `treasury_end_gbp` was given the clock it had been denied for a reason three
+    other modules had already discharged, the debt went 5 -> 4, and this test went
+    red for the code becoming MORE honest. That is R15's "control pinned to today's
+    answer": red when the claim improves, green while it rots.
+
+    Re-keyed to the property the equality was reaching for -- every figure the old
+    rule was blind to is ACCOUNTED FOR, as a label or as declared debt, never as
+    silence -- which is true before the repair, after it, and after the remaining
+    four are repaired too.
+
+    What this test deliberately no longer asserts: that the set of suffixed keys is
+    exactly those five. A new money figure must be labelled, and
+    `test_every_published_money_or_carbon_figure_is_either_labelled_or_declared`
+    plus the direction-1 tests already red if one escapes. Asserting it twice, in a
+    form that also reds on a properly-labelled addition, is what over-pinned this.
+    """
     portfolio = _real_portfolio()
-    suffixed = {
-        k for k in portfolio
-        if isinstance(k, str) and k.endswith(_BASIS_REQUIRED_SUFFIXES)
-    }
-    unseen_by_old_rule = sorted(suffixed - set(_SUPERSEDED_ALLOWLIST))
-    assert unseen_by_old_rule == [
-        "cost_to_serve_gbp",
-        "gross_margin_gbp",
-        "net_after_cts_gbp",
-        "treasury_end_gbp",
-        "treasury_start_gbp",
-    ]
-    # ... and each is now visible, as declared debt rather than as silence.
-    assert set(unseen_by_old_rule) == set(_BASIS_DECLARED_UNLABELLED)
+    basis = portfolio.get("basis", {}) or {}
+
+    # The historical measurement still describes live figures, not figures the
+    # portfolio stopped emitting -- otherwise the tuple above is a stale excuse.
+    vanished = sorted(k for k in _ORIGINALLY_UNSEEN if k not in portfolio)
+    assert vanished == [], f"pinned as unseen-by-the-old-rule but no longer published: {vanished}"
+
+    # ...and the old allowlist really was blind to each of them.
+    assert not set(_ORIGINALLY_UNSEEN) & set(_SUPERSEDED_ALLOWLIST)
+
+    # THE PROPERTY: accounted for by exactly one of the two mechanisms.
+    unaccounted = sorted(
+        k for k in _ORIGINALLY_UNSEEN
+        if k not in basis and k not in _BASIS_DECLARED_UNLABELLED
+    )
+    assert unaccounted == [], (
+        "published with neither a clock nor a written declaration -- the silence "
+        f"the derived rule exists to end: {unaccounted}"
+    )
+
+    # THE RATCHET, in the only direction that is a defect: the grandfathered debt
+    # may shrink to nothing, but it may not GROW. A figure minted tomorrow is not
+    # on the historical tuple, so declaring it as debt rather than labelling it
+    # fails here -- which is what "NON-GROWABLE" in the register's own comment
+    # promised and no assertion previously held it to.
+    grown = sorted(set(_BASIS_DECLARED_UNLABELLED) - set(_ORIGINALLY_UNSEEN))
+    assert grown == [], (
+        "new entries in the declared-unlabelled register: the register grandfathers "
+        f"pre-existing debt and is not a place to put new figures: {grown}"
+    )
 
 
 def test_the_declared_debt_is_printed_not_swallowed(capsys):

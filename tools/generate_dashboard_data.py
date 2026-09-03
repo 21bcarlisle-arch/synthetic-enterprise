@@ -422,6 +422,50 @@ def extract_portfolio(data):
                     "reconciliation bridge."
                 ),
             },
+            # THE TREASURY IS NOT AN INDEPENDENT CASH FACT, and until 2026-09-03
+            # this figure was published beside net margin with no clock at all,
+            # on a register entry whose stated reason was that its clock "is
+            # 'banked'" and that the banked-clock definition "has not been
+            # written down anywhere a reader can check". Both halves were false
+            # by then. `simulation/run_phase2b.py:2618` is `treasury +=
+            # net_margin_gbp` and nothing else moves it;
+            # `saas/reporting/annual_report.py:964-967` refuses the 'banked'
+            # label BY NAME as "a label invented for a clock this world does not
+            # have"; and `simulation/settlement_clocks.py`'s
+            # `reconcile_published_run_output` already runs a control on
+            # `starting + total_net == final`, which is the definition being
+            # called unwritten. So the register was withholding a label for a
+            # reason three other modules had already discharged, and nothing in
+            # the repository could notice -- the one-rule/many-implementations
+            # class CLAUDE.md names.
+            #
+            # WHY THIS IS A CLOCK AND NOT AN ASSERTION: treasury_end moves if
+            # and only if settled net margin moves, so it carries exactly the
+            # parent's clock and cost basis -- measured, not assumed
+            # (residual `end - start - net` = 0.0 on the live portfolio,
+            # 2.9e-11 through extract_portfolio on the real run output).
+            # `_check_derived_basis_parentage` above now holds that claim to the
+            # parent, so if net margin's basis moves and this does not, the
+            # publish fails rather than the page quietly disagreeing with itself.
+            #
+            # `treasury_start_gbp` is deliberately NOT given a clock beside it:
+            # it is a run input at t0 and nothing settled to produce it. It stays
+            # in the declared-debt register with a corrected reason.
+            "treasury_end_gbp": {
+                "clock": "settled",
+                "provisional": True,
+                "derived_from": "net_margin_gbp",
+                "cost_basis": "net_of_all_costs",
+                "note": (
+                    "Not an independent cash figure: the treasury is a running "
+                    "total of settled net margin, so treasury_end equals "
+                    "treasury_start plus net_margin_gbp exactly. It therefore "
+                    "cannot express payment timing -- no direct-debit or "
+                    "collection arrangement can move it. Read it as cumulative "
+                    "settled net margin over the opening balance, not as cash "
+                    "held on a date."
+                ),
+            },
             "enterprise_value_gbp": {
                 "clock": "settled",
                 "provisional": True,
@@ -2341,12 +2385,23 @@ _BASIS_DECLARED_UNLABELLED = {
         "basis entry; inherits that line's settled/billed divergence and would need "
         "its own bridge row before a clock could be asserted honestly"
     ),
+    # REASON REPLACED 2026-09-03, and the old one is quoted here because it is
+    # the finding: it said "its clock is 'banked', but the banked-clock
+    # definition for opening/closing balances has not been written down anywhere
+    # a reader can check". There is no banked clock for this figure --
+    # `saas/reporting/annual_report.py:964-967` refuses that label by name -- and
+    # the definition WAS written down, in
+    # `simulation/settlement_clocks.reconcile_published_run_output`. The entry
+    # withheld a label for a reason that had been discharged elsewhere. Its
+    # closing side, `treasury_end_gbp`, is now labelled and has left this
+    # register; this opening side stays, for a reason that is true.
     "treasury_start_gbp": (
-        "a treasury BALANCE, not a margin -- its clock is 'banked', but the "
-        "banked-clock definition for opening/closing balances has not been written "
-        "down anywhere a reader can check, so stating it here would be an assertion"
+        "a run INPUT at t0, not a derived figure -- nothing settled to produce it, so it "
+        "carries none of the settlement clocks the other figures here do, and the only "
+        "honest label would be one invented for it. Unlike treasury_end_gbp (now labelled, "
+        "clock 'settled', derived_from net_margin_gbp) this side of the balance genuinely "
+        "has no clock to state"
     ),
-    "treasury_end_gbp": "same as treasury_start_gbp -- the closing side of the same unwritten balance clock",
     "cost_to_serve_gbp": (
         "activity-derived (G11_activity_cost_utilisation), whose own coverage limit is "
         "an open finding; a clock label would imply a completeness this figure does not have"
