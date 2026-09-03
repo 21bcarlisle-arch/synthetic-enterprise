@@ -404,6 +404,35 @@ files P9 and P10 to replace it. So act (d) is most likely **"update the headline
 pair and bound"**, not "state plainly that the floor still contains the contrast" — but that is
 P10's prediction and not a licence: read it off the artefact.
 
+### Steps (c) and (d) are both regeneration — verified 2026-09-03 18:50 BST, no code change in either
+
+**(d) is not an edit to `/capabilities/index.html`.** A grep of that page for `current_world`,
+`bound_available` or `why_no_bound` returns **nothing**, and that reading is wrong — the block is not
+unread, it is composed in the generator. `_current_world_clause` folds the verdict into `d.headline`
+and the page renders it with `prose(d.headline)`, so it is invisible to a markup grep and moves the
+moment the feed is regenerated. Both branches are already written:
+
+* unbounded → *"THIS PAGE STATES NO VERDICT ON THAT FIGURE…"*
+* bounded → *"That figure CLEARS / DOES NOT CLEAR the £X this same contrast moves across N seed
+  re-draws in this same world"*, reading `bound.stdev_gbp` and `bound.n`.
+
+So act (d) is: regenerate `site/data/value_arms.json`, then **render the door and read the sentence**
+rather than grepping for it. The control that fires if the clause is dropped from the headline is
+`site/test_the_baseline_comparison_reaches_the_reader.py:2046`.
+
+**Do NOT pass `--out` to `--decompose`.** `run_value_cycle_ab.py:4042` is
+`out = args.out if args.out != OUTPUT_PATH else DECOMPOSITION_OUTPUT_PATH` — so the decomposition
+lands on the path the generator reads *only when `--out` is omitted*. Confirmed equal at 18:50:
+writer `DECOMPOSITION_OUTPUT_PATH` and reader `generate_value_arms_data.DECOMPOSITION_PATH` both
+resolve to `docs/observability/value_cycle_ab_floor_decomposition.json`. The trap is that every
+other command in this whole exercise carries an explicit `--out`, so carrying it over here is the
+natural motion, and it would write a correct decomposition to a path nothing reads — a silent
+no-op on the page, with an exit code of 0 and a full summary table printed to the console.
+
+The four positional paths were checked against the argparse (`nargs=4`, order
+`ALL_FLOOR ONLY_FLOOR EXCEPT_FLOOR THREE_ARM`); the command as written in *"The decompose command,
+in full"* above is correct.
+
 **If P10 confirms, the headline may say the figure clears its own draw noise and nothing more.**
 `_resolvable` is a one-sigma test on three seeds, and the floor's own `value_advantage_gbp` mean is
 £1,030.10 rather than £0, so the floor is not a clean null. The advantage also collapsed from
