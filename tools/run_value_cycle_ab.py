@@ -3529,6 +3529,126 @@ def where_the_priced_decisions_come_from(three_arm: dict) -> dict:
     }
 
 
+#: WHAT ONE FLOOR LEG ACTUALLY TOOK, from the kill that established it rather than from a guess.
+#: systemd's own accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, seeds
+#: 11111,22222,33333): "Consumed 1h 9min 7.465s CPU time over 1h 9min 35.554s wall clock time,
+#: 6.4G memory peak, 895.8M memory swap peak" -- and that run was OOM-killed at 90% of the way
+#: through, so 6.4G is a floor on the requirement and not its peak. Rounded DOWN to 6,400 MB
+#: deliberately: this number exists to refuse, and a requirement set above the true one refuses
+#: runs that would have finished.
+FLOOR_RUN_PEAK_MB = 6400.0
+
+
+def running_floor_legs(proc_root: Path | None = None) -> list[tuple[int, float]]:
+    """Every OTHER floor leg on this machine, as `(pid, current_rss_mb)`.
+
+    NOT `pgrep -f`. The pattern that identifies a floor leg is the exact string an agent's own
+    prompt or shell command quotes when it talks about one, so a cmdline grep matches the process
+    ASKING the question and reports a leg that does not exist. This reads `/proc` directly and
+    drops this process and its ancestors, which is the same exclusion `tools/wait_for.py` makes
+    and for the same reason.
+    """
+    proc_root = proc_root or Path("/proc")
+    mine = {os.getpid()}
+    pid = os.getpid()
+    for _ in range(32):  # bounded: a cycle in ppid would otherwise hang the refusal
+        try:
+            stat = (proc_root / str(pid) / "status").read_text(encoding="utf-8")
+            pid = int(next(ln for ln in stat.splitlines()
+                           if ln.startswith("PPid:")).split()[1])
+        except Exception:  # noqa: BLE001 -- an unreadable ancestor just stops the walk
+            break
+        if pid <= 0 or pid in mine:
+            break
+        mine.add(pid)
+
+    legs = []
+    for entry in proc_root.iterdir():
+        if not entry.name.isdigit() or int(entry.name) in mine:
+            continue
+        try:
+            cmd = (entry / "cmdline").read_bytes().decode("utf-8", "replace")
+            if "run_value_cycle_ab" not in cmd or "--noise-floor-seeds" not in cmd:
+                continue
+            rss_kb = next(int(ln.split()[1]) for ln in
+                          (entry / "status").read_text(encoding="utf-8").splitlines()
+                          if ln.startswith("VmRSS:"))
+        except Exception:  # noqa: BLE001 -- a process that exited mid-read is not a leg
+            continue
+        legs.append((int(entry.name), rss_kb / 1024.0))
+    return legs
+
+
+def floor_run_headroom_refusal(sample_fn=None, legs_fn=None) -> str | None:
+    """Refuse a floor run this machine cannot hold, BEFORE it spends an hour proving it.
+
+    THE DEFECT THIS SERVES. On 2026-09-03 three floor legs were launched concurrently as transient
+    units. Each grows to ~6.4 GB against a guest of ~24 GB that was already carrying two other
+    seats; the undecomposed leg -- the one that produces the PUBLISHED bound -- was OOM-killed
+    after 1h 09m and wrote no artefact at all. The failure was SILENT in the only place anyone
+    looks: the output file simply never appeared, and `--out` had named it an hour earlier. A run
+    that dies at 90 minutes with no file is indistinguishable from one still running, which is why
+    the next session repeats it.
+
+    WHY FREE MEMORY AT LAUNCH IS THE WRONG QUESTION, and the first draft of this asked it. A floor
+    leg starts small and GROWS over its hour. When the third leg launched, the first two held about
+    a gigabyte each and MemAvailable looked ample -- so a check against free memory now would have
+    waved all three through and changed nothing. What has to be compared is the PEAK the legs are
+    collectively heading for against what the guest can ever offer them. So: every running leg is
+    counted at its measured peak, its current RSS is added back because the sample already counts
+    it as used, and the caller's own peak is added on top.
+
+    Arithmetic on the numbers that actually occurred: at the third launch, two legs at ~1 GB RSS
+    with ~15 GB available needs 3 x 6.4 = 19.2 GB against 15 + 2 = 17 GB -- REFUSED, correctly.
+    One leg alone on an idle guest needs 6.4 GB against ~18 GB -- allowed, so the PASS branch is
+    reachable and this is not a constant verdict.
+
+    FAILS CLOSED AND NAMES ITS REASON. An unreadable `/proc/meminfo` refuses rather than assuming
+    room; "we cannot tell" is a result. The guest's own size is READ and never quoted, because it
+    moves.
+    """
+    sample_fn = sample_fn or _headroom_sample
+    legs_fn = legs_fn or running_floor_legs
+    try:
+        obs = sample_fn()
+    except Exception as exc:  # noqa: BLE001 -- any failure is "cannot establish", not "fine"
+        return ("this machine's memory could not be read ({}), so it cannot be shown to hold a "
+                "floor run's measured {:,.0f} MB peak; refusing rather than being OOM-killed an "
+                "hour in".format(exc, FLOOR_RUN_PEAK_MB))
+    available = obs.get("available_mb")
+    if available is None:
+        return ("this machine reported no MemAvailable, so it cannot be shown to hold a floor "
+                "run's measured {:,.0f} MB peak".format(FLOOR_RUN_PEAK_MB))
+
+    legs = legs_fn()
+    held_now = sum(rss for _, rss in legs)
+    # Every leg that is running plus this one, each at the peak one of them was measured to reach.
+    required = FLOOR_RUN_PEAK_MB * (len(legs) + 1)
+    headroom = float(available) + held_now
+    if headroom >= required:
+        return None
+    return (
+        "a floor leg peaked at {need:,.0f} MB when it was measured, {n} other leg(s) are already "
+        "running (pids {pids}, holding {held:,.0f} MB and still growing), so this guest needs "
+        "{req:,.0f} MB to see them all through and can offer {have:,.0f} MB "
+        "({avail:,.0f} available + {held:,.0f} already held, of {total:,.0f} total; swap free "
+        "{swap:,.0f} MB). The 2026-09-03 run that established the peak was OOM-killed after "
+        "1h 09m and wrote NOTHING -- an absent artefact reads exactly like a run still in "
+        "progress. Run the legs one at a time, or pass --ignore-headroom if this guest grew."
+    ).format(need=FLOOR_RUN_PEAK_MB, n=len(legs),
+             pids=", ".join(str(p) for p, _ in legs) or "none",
+             held=held_now, req=required, have=headroom, avail=float(available),
+             total=float(obs.get("total_mb") or 0.0),
+             swap=float(obs.get("swap_free_mb") or 0.0))
+
+
+def _headroom_sample() -> dict:
+    """Imported at call time, so this module stays importable where `background/` is not."""
+    from background.resource_headroom import sample
+
+    return sample()
+
+
 def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                     three_arm: dict) -> dict:
     """Split the selection floor into the priced households' half and the rest of the book's.
@@ -3793,6 +3913,11 @@ def main(argv: list[str] | None = None) -> int:
               "The two halves partition one call stream, so their variances should sum to the "
               "`all` variance -- run all three and check, or the split is two unrelated runs."))
     ap.add_argument(
+        "--ignore-headroom", action="store_true",
+        help=("start a floor run even when this machine cannot be shown to hold its measured "
+              "peak. The refusal exists because an OOM-killed leg writes no artefact and reads "
+              "like one still running; override only when the guest has actually grown."))
+    ap.add_argument(
         "--decompose", nargs=4, metavar=("ALL_FLOOR", "ONLY_FLOOR", "EXCEPT_FLOOR", "THREE_ARM"),
         type=Path,
         help=("DECOMPOSE mode: read three floors already run (`all`, `only`, `except`) and the "
@@ -3842,6 +3967,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.noise_floor_seeds:
         seeds = [int(s) for s in args.noise_floor_seeds.split(",") if s.strip()]
+        refusal = floor_run_headroom_refusal()
+        if refusal and not args.ignore_headroom:
+            print("noise floor REFUSED: {}".format(refusal))
+            return 2
         accounts = (None if args.redraw_mode == "all"
                     else priced_accounts_from(args.redraw_accounts_from))
         floor = noise_floor(seeds, report_end=report_end,

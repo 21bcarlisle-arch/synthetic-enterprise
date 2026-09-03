@@ -322,14 +322,27 @@ def test_the_held_half_keeps_the_runs_own_seed_and_not_a_third_world():
 # 6. THE VERDICT THE PAGE'S REMEDY SENTENCE TURNS ON
 # ---------------------------------------------------------------------------
 
-def _leg(mode, values, seeds=(11111, 22222, 33333)):
+#: ONE WORLD, SO THAT THESE FIXTURES REACH THEIR OWN SUBJECT. `decompose_floor` grew a
+#: world-identity refusal (`dda5a27b2`) that runs BEFORE the mode, seed and reconciliation
+#: verdicts. These fixtures predate the stamp, so every one of them was answered "these legs do
+#: not say which world they ran in" and six controls below silently stopped measuring what they
+#: name -- a scope guard ahead of the verdict turning a substantive red into a procedural one.
+#: The production path was never affected: real legs have carried the stamp since the same commit.
+#: Fixtures that mean to exercise the world refusal set their digests EXPLICITLY and do not use
+#: this default.
+_ONE_WORLD = "39a192ce04c1eda8"
+
+
+def _leg(mode, values, seeds=(11111, 22222, 33333), world=_ONE_WORLD):
     """A floor artefact carrying exactly `values` as its per-seed selection figures."""
     return {"redraw_scope": {"mode": mode},
+            "world_identity": {"digest": world, "unavailable_because": None},
             "seeds": [{"seed": s, "selection_gbp": v} for s, v in zip(seeds, values)]}
 
 
-def _three_arm(contrast, priced=20, accounts=("C1", "C2")):
+def _three_arm(contrast, priced=20, accounts=("C1", "C2"), world=_ONE_WORLD):
     return {"level_vs_selection": {"selection_gbp": contrast},
+            "world_identity": {"digest": world, "unavailable_because": None},
             "renewal_funnel": {"value_arm": {
                 "priced": priced, "renewals_the_world_offered": 1369,
                 "priced_share_of_renewals_offered": 0.0146,
@@ -599,3 +612,102 @@ def test_the_split_publishes_the_MARGIN_and_the_BAR_not_only_the_boolean():
     assert margin == pytest.approx(abs(
         split["priced_share_of_variance"]
         - split["share_at_which_a_bigger_book_could_resolve_it"]))
+
+
+def _obs(available_mb, total_mb=24032.1, swap_free_mb=149.4):
+    return {"total_mb": total_mb, "available_mb": available_mb, "swap_free_mb": swap_free_mb}
+
+
+def test_a_floor_run_is_refused_when_the_legs_already_running_cannot_all_peak():
+    """The 2026-09-03 OOM, as arithmetic, on the numbers that actually occurred.
+
+    SOLE WITNESS FOR THE REFUSE BRANCH. Two legs already running and holding ~1 GB each, with
+    ~15 GB available -- the state at the third launch. Three legs at the measured 6.4 GB peak need
+    19.2 GB and this guest can offer 17 GB, so the third must not start. It did, and the
+    undecomposed leg -- the one that produces the PUBLISHED bound -- was OOM-killed after 1h 09m
+    having written no artefact at all.
+
+    THE FREE-MEMORY QUESTION IS THE WRONG ONE and this is what pins that. `available_mb` here is
+    15,000 -- more than twice a single leg's peak -- so a refusal keyed to free memory at launch
+    would wave this through, which is exactly what happened.
+
+    Fires on: counting only the caller's own peak instead of every running leg's; dropping the
+    running-leg term; keying the comparison to free memory alone.
+    """
+    from tools.run_value_cycle_ab import floor_run_headroom_refusal
+
+    refusal = floor_run_headroom_refusal(
+        sample_fn=lambda: _obs(15000.0),
+        legs_fn=lambda: [(101, 1000.0), (102, 1000.0)])
+    assert refusal is not None, (
+        "a third floor leg was allowed to start beside two that were already growing -- the "
+        "launch that cost 1h 09m of compute and produced no artefact")
+    assert "19,200" in refusal and "OOM-killed" in refusal, refusal
+
+
+def test_a_lone_floor_run_on_an_idle_guest_is_allowed():
+    """THE PASS BRANCH MUST BE REACHABLE, or the refusal is a constant that stops all floor work.
+
+    SOLE WITNESS FOR THE PASS BRANCH: no other leg running, ample memory. A guard that refused
+    here would make the noise floor unrunnable and would be discovered only as "the bound can
+    never be re-measured", which is indistinguishable from the defect it exists to prevent.
+
+    Fires on: returning a refusal unconditionally; requiring headroom for a leg that is not there.
+    """
+    from tools.run_value_cycle_ab import floor_run_headroom_refusal
+
+    assert floor_run_headroom_refusal(sample_fn=lambda: _obs(18000.0),
+                                      legs_fn=lambda: []) is None
+
+
+def test_a_machine_that_cannot_report_its_memory_refuses_rather_than_assuming_room():
+    """ABSENCE REFUSES. "We cannot tell" is a result, and a guard that treats an unreadable
+    /proc/meminfo as a clean bill of health fails open on exactly the loaded machine where the
+    reading is most likely to fail.
+
+    Fires on: swallowing the exception and returning None; treating a missing `available_mb` as
+    unlimited.
+    """
+    from tools.run_value_cycle_ab import floor_run_headroom_refusal
+
+    def _boom():
+        raise OSError("/proc/meminfo is not readable")
+
+    assert floor_run_headroom_refusal(sample_fn=_boom, legs_fn=lambda: []) is not None
+    assert floor_run_headroom_refusal(sample_fn=lambda: _obs(None),
+                                      legs_fn=lambda: []) is not None
+
+
+def test_the_leg_census_does_not_count_the_process_asking_the_question(tmp_path):
+    """A cmdline grep matches the agent whose own prompt quotes the subject.
+
+    The string that identifies a floor leg is the string a session writes when it talks about one,
+    so `pgrep -f` reports a leg that does not exist and the refusal then fires forever on an idle
+    guest -- making the bound unmeasurable, which is indistinguishable from the defect the refusal
+    exists to prevent.
+
+    DRIVEN ON A FAKE /proc, because the real one cannot witness this. The first version of this
+    test asserted `os.getpid()` was absent from the census on the live /proc and claimed in its
+    docstring that this process's command line contains the pattern. It does not -- pytest's
+    cmdline carries neither `run_value_cycle_ab` nor `--noise-floor-seeds` -- so the assertion was
+    vacuous and the mutation that drops the exclusion survived it. Here this process's own entry
+    is written to MATCH, which is the only way the exclusion is the thing being measured.
+
+    Fires on: dropping the self/ancestor exclusion from `running_floor_legs`.
+    """
+    import os
+
+    from tools.run_value_cycle_ab import running_floor_legs
+
+    matching = "python3\x00-m\x00tools.run_value_cycle_ab\x00--noise-floor-seeds\x0011111\x00"
+    for pid, rss in ((os.getpid(), 4096), (999001, 8192)):
+        d = tmp_path / str(pid)
+        d.mkdir()
+        (d / "cmdline").write_bytes(matching.encode())
+        (d / "status").write_text("PPid:\t1\nVmRSS:\t{} kB\n".format(rss), encoding="utf-8")
+
+    census = running_floor_legs(proc_root=tmp_path)
+    assert [pid for pid, _ in census] == [999001], (
+        "the census counted the process asking the question, so an idle guest reports a floor leg "
+        "that does not exist: " + repr(census))
+    assert census[0][1] == pytest.approx(8.0)
