@@ -96,6 +96,36 @@ and it is why the claim is called out in the test body rather than left as setup
 MUTATION (verified): drop `and item["id"] not in retired` and the leg fires —
 `the tick was handed 'land-the-artefact'`. Restored: 16 passed.
 
+## A second defect, found by triggering it (18:20)
+
+With the above landed at `c9032443b`, the run's own handoff needed re-stamping: it named
+`se-floor-all-20260903c`, which had failed, while the live run was launch 4 (`…d`). Re-stamping
+under the **same id** is the correct act — a new id is the defect `ea1ba2a03` fixed. Doing it
+**resurrected the retired entry**: `land-the-live-world-undecomposed-floor-leg` went from `RETIRED`
+straight back to `LIVE`, minutes after a fix landed specifically to stop it reaching a tick.
+
+`_superseded_ids` promises *"once superseded, always superseded"*, and that promise is weaker than
+it reads: the fact is **derived from the entries present in the store**, so it holds only while the
+declaring entry keeps declaring it. `hand_off` replaces by id (line 183), so a re-stamp that does
+not repeat `--supersedes` erases the retirement.
+
+The trap is on the **sanctioned path**. Re-stamping the same id is precisely what the id-keyed
+dedup exists to encourage, and `--supersedes`'s own help text tells you to use it "whenever the new
+instruction refutes an earlier one under a different id" — which does not describe a re-stamp. So
+the correct-looking act silently withdraws a judgement.
+
+**Fix:** `hand_off` now unions the replaced entry's `supersedes` into the new one. Refreshing an
+instruction's FACTS is not a withdrawal of its JUDGEMENT. A retirement is never revoked here — if a
+superseded instruction becomes right again it is new work with a new id, not a resurrection of text
+a seat already disproved.
+
+`test_a_RESTAMP_of_the_superseding_entry_does_not_RESURRECT_what_it_retired`. MUTATION (verified):
+drop the `inherited` union → *"re-stamping the correction erased the retirement it declared"*.
+
+That this was found by *doing* it, on the sanctioned path, minutes after landing the first fix, is
+the finding's own argument: both halves are cases of a supersession fact living in one place and
+being read from another.
+
 ## What this does not fix
 
 The twin still exists in `focus`. This filters it at the draw rather than preventing the promotion,

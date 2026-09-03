@@ -324,6 +324,40 @@ def test_a_retired_entrys_FOCUS_TWIN_is_not_offered_once_the_CORRECTION_is_CLAIM
     )
 
 
+def test_a_RESTAMP_of_the_superseding_entry_does_not_RESURRECT_what_it_retired(store):
+    """Refreshing an instruction's FACTS must not withdraw its JUDGEMENT.
+
+    `_superseded_ids` promises "once superseded, always superseded", but it derives that from the
+    entries PRESENT in the store — so it holds only while the declaring entry keeps declaring it.
+    `hand_off` replaces by id, so a re-stamp that omits `supersedes` erases the retirement.
+
+    OBSERVED LIVE, 2026-09-03 18:20, doing exactly this: re-stamping
+    `pick-up-the-relaunched-undecomposed-floor-leg` to correct which service was running flipped the
+    refuted `land-the-live-world-undecomposed-floor-leg` from RETIRED back to LIVE — minutes after
+    `c9032443b` landed to stop that entry reaching a tick. Re-stamping is the ONE thing the id-keyed
+    dedup exists to encourage, so the trap is on the sanctioned path.
+
+    MUTATION: drop the `inherited` union from `hand_off` and this fires — the refuted entry is live
+    again and, being older, is offered first.
+    """
+    _hand(store, "refuted", what="git add the file that already exists")
+    _hand(store, "correction", what="the artefact was deleted; the re-run is in flight",
+          now=1_000_500.0, supersedes=["refuted"])
+    assert [i["id"] for i in seat_continuation.superseded(path=store)] == ["refuted"]
+
+    # The re-stamp: same id, corrected facts, and NO --supersedes -- the natural way to do it.
+    _hand(store, "correction", what="the re-run is launch 4, not launch 3", now=1_000_900.0)
+
+    assert [i["id"] for i in seat_continuation.superseded(path=store)] == ["refuted"], (
+        "re-stamping the correction erased the retirement it declared; the refuted instruction is "
+        "offerable again because a session corrected a FACT in the entry that retired it"
+    )
+    ids = [i["id"] for i in seat_continuation.live(now=1_001_000.0, path=store)]
+    assert ids == ["correction"], (
+        f"live() offers {ids} — the resurrected instruction is older, so it is drawn FIRST"
+    )
+
+
 def test_a_RETIRED_entry_is_REPORTED_and_not_silently_filtered(store):
     """A record dropped from every surface is indistinguishable from a lost write.
 

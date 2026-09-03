@@ -168,6 +168,9 @@ def hand_off(
     So the replacement is now DECLARED rather than inferred from the id: `supersedes` names the
     ids this entry retires. Nothing here guesses at subject overlap -- an inferred supersession
     would silently bury a live instruction, which is worse than the defect.
+
+    AND A RE-STAMP INHERITS WHAT IT RETIRED, because the id-keyed replacement above is exactly what
+    would otherwise erase it -- see the note at the union below.
     """
     fields = {"id": work_id, "what": what, "why": why, "done_means": done_means}
     missing = [k for k, v in fields.items() if not (v or "").strip()]
@@ -180,7 +183,29 @@ def hand_off(
         supersedes = [supersedes]
     retires = [str(i) for i in supersedes if str(i).strip()]
     stamped = time.time() if now is None else now
-    items = [i for i in _load(path) if i.get("id") != work_id]
+    loaded = _load(path)
+    items = [i for i in loaded if i.get("id") != work_id]
+    # A RE-STAMP INHERITS WHAT THE ENTRY IT REPLACES RETIRED (2026-09-03).
+    # `_superseded_ids` says "once superseded, always superseded", but it derives that fact from the
+    # entries PRESENT in the store, so it only holds while the declaring entry keeps declaring it.
+    # Re-recording the same id drops the old entry, and a re-stamp that does not repeat
+    # `--supersedes` therefore ERASES the retirement and RESURRECTS the refuted instruction.
+    #
+    # Observed live at 18:20, re-stamping `pick-up-the-relaunched-...` to correct which service was
+    # running: the refuted `land-the-...` entry went from RETIRED straight back to LIVE, minutes
+    # after a fix landed specifically to stop it being offered. Refreshing an instruction's FACTS is
+    # not a withdrawal of its JUDGEMENT, so the union is the honest reading of the intent.
+    #
+    # A retirement is never REVOKED here. That is deliberate and matches `_superseded_ids`'s own
+    # rule: if a superseded instruction becomes right again it is a NEW piece of work with a new
+    # id, not a resurrection of the text a seat already disproved.
+    inherited = [
+        str(d) for i in loaded if i.get("id") == work_id
+        for d in (
+            [i["supersedes"]] if isinstance(i.get("supersedes"), str) else (i.get("supersedes") or ())
+        )
+    ]
+    retires = [d for d in dict.fromkeys([*inherited, *retires]) if d != work_id]
     entry = {**fields, "written_at": stamped}
     if retires:
         entry["supersedes"] = retires
