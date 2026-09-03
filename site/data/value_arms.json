@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T18:12:47.203076Z",
+  "generated_at": "2026-09-03T19:11:30.116808Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -230,10 +230,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "49b92498989be7f4810ff184e034f29f67c5e5ee",
+    "publishing_tree_commit": "7e98114869e9c2ce08cd925ae5f348aa04a12fd4",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 49b924989 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 7e9811486 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -246,14 +246,15 @@
     ],
     "one_world_across_every_figure": false,
     "runs_measured_in_the_live_world": [
+      "the current-world noise floor (2026-09-03T19:06:31Z)",
       "the current-world three-arm run (2026-09-03T10:17:07Z)"
     ],
-    "reason": "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. 3 of the runs behind this page (the floor decomposition, the noise floor (2026-08-31T07:05:53Z), the three-arm run (2026-08-31T03:47:57Z)) predate the world stamp, so this page cannot show that they were measured over the departure level that is live now -- and the level is what decides how much book there is to win or lose. It has moved since: the departure-level anchor was re-fitted twice on 2026-09-02 and 2026-09-03, and on the arms' own capture population that swap moves whole-book expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read every contrast below as measured in the world of its own run date, not in this one. THIS PAGE IS MIXED, NOT UNIFORMLY OLD: the current-world three-arm run (2026-09-03T10:17:07Z) DID run in the live world 39a192ce04c1eda8. So nothing unstamped above bounds it, and it bounds nothing unstamped above -- a spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another.",
+    "reason": "THESE FIGURES DO NOT SAY WHICH WORLD THEY WERE MEASURED IN. 3 of the runs behind this page (the floor decomposition, the noise floor (2026-08-31T07:05:53Z), the three-arm run (2026-08-31T03:47:57Z)) predate the world stamp, so this page cannot show that they were measured over the departure level that is live now -- and the level is what decides how much book there is to win or lose. It has moved since: the departure-level anchor was re-fitted twice on 2026-09-02 and 2026-09-03, and on the arms' own capture population that swap moves whole-book expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide. Read every contrast below as measured in the world of its own run date, not in this one. THIS PAGE IS MIXED, NOT UNIFORMLY OLD: the current-world noise floor (2026-09-03T19:06:31Z), the current-world three-arm run (2026-09-03T10:17:07Z) DID run in the live world 39a192ce04c1eda8. So nothing unstamped above bounds it, and it bounds nothing unstamped above -- a spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another.",
     "what_this_costs": "no figure on this page may be read as the company's CURRENT beat over the flat-rule baseline until the arms and both floor legs are re-run in one world and that world is the live one"
   },
   "current_world": {
     "available": true,
-    "resolved": null,
+    "resolved": true,
     "live_world": "39a192ce04c1eda8",
     "ran_in_world": "39a192ce04c1eda8",
     "generated_at": "2026-09-03T10:17:07Z",
@@ -268,9 +269,20 @@
     "priced_decisions": 104,
     "renewals_offered": 2009,
     "superseded_floor_ran_in_world": null,
-    "bound_available": false,
-    "why_no_bound": "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. No noise floor re-run over this world was readable, so this page states no verdict on whether the figure below is distinguishable from zero -- in either direction.",
-    "what_would_answer_it": "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world and seed family, which is what the contrast above must be priced against before any direction is read from it",
+    "bound_available": true,
+    "floor_ran_in_world": "39a192ce04c1eda8",
+    "floor_leg": "all",
+    "floor_generated_at": "2026-09-03T19:06:31Z",
+    "bound": {
+      "n": 3,
+      "stdev_gbp": 991.4551457388417,
+      "mean_gbp": 1450.6408126666695,
+      "min_gbp": 450.9948999999906,
+      "max_gbp": 2433.696987000003
+    },
+    "bound_contrast": "value_advantage_gbp",
+    "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
+    "what_would_answer_it": null,
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, re-run over the departure level this world runs at TODAY. It is published beside the 2026-08-31 run rather than instead of it, because those figures were honestly measured and their fault is only being read as current. Compare the two as two worlds, not as a revision."
   },
   "book": {
@@ -298,10 +310,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "49b92498989be7f4810ff184e034f29f67c5e5ee",
+      "publishing_tree_commit": "7e98114869e9c2ce08cd925ae5f348aa04a12fd4",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 49b924989 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 7e9811486 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -1290,5 +1302,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a32,336, measured 2026-09-03T10:17:07Z. THIS PAGE STATES NO VERDICT ON THAT FIGURE: every bound it holds was measured in the superseded world, and a spread from one departure level is not a confidence interval on a figure from another. It is published unbounded and labelled unbounded rather than withheld, and the older figures below are kept with their own date beside it. Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a32,336, measured 2026-09-03T10:17:07Z. That figure CLEARS the \u00a3991 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a SMALLER advantage than the \u00a312,071 below, not a larger one: what moved is the floor, which fell further than the advantage did. Running the same book through the per-customer decision engine earned \u00a312,071 MORE than flat rules, clearing the \u00b1\u00a32,291 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two -- INSIDE the \u00b1\u00a33,776 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 79% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 20 of 1,369 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
 }

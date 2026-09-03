@@ -516,3 +516,108 @@ peak; an earlier leg of this measurement was OOM-killed and wrote nothing, which
 indistinguishable from still-running). **Keep any turn holding this claim to reads until the
 artefact lands.** Grading procedure, the three identity assertions, the decompose command and the
 `--out` trap in §3-SUPERSEDED are all still operative as written.
+
+---
+
+## GRADED — the `all` leg landed at 19:06:31Z, and P4, P6 and P7 are all CONFIRMED
+
+*Delivery seat, 2026-09-03 ~20:08 BST, claim `pick-up-the-relaunched-undecomposed-floor-leg`.
+Launch 4 (`se-floor-all-20260903d`, pid 3730923) ran 2h21m and exited clean. Graded against
+**this run's artefact only**, as §"Grading constraint on P4" requires. Landed at
+`docs/observability/value_cycle_ab_s1_noise_floor_20260903.json`.*
+
+### Identity first — this is the same world the predictions were written about
+
+| | artefact | §1's legs | match |
+|---|---|---|---|
+| `world_identity.digest` | `39a192ce04c1eda8` | `39a192ce04c1eda8` | yes |
+| `redraw_scope.mode` | `all` | — | the undecomposed leg, not a leg-swap |
+| `producing_commit` | `1d821e12b` | `1d821e12b` | yes |
+| `clock` | `settled-realised` | `settled-realised` | yes |
+
+### The grades
+
+| | predicted | returned | grade |
+|---|---|---|---|
+| **P4** | `selection_gbp_spread.stdev` > 3,776.27 | **5,923.0446166138645** | **CONFIRMED** |
+| **P6** | stdev in 5,600–6,250; range ~10,983.77 | stdev **5,923.0446166138645**, range **10,983.77071100002** | **CONFIRMED** |
+| **P7** | `selection_distinguishable_from_zero` stays `false` | **`false`** (mean −1,861.36, SEM 3,419.67) | **CONFIRMED** |
+
+### P6 did better than its band, and that is the substantive result
+
+P6 was filed with a ±5% band because it was blind. It did not need one: the `all` leg returned the
+`only` leg's stdev and range **to every digit printed** — 5,923.0446166138645 and 10,983.77071100002
+against §1's 5,923.04 and 10,983.77. That is the old world's structure reproduced in the live world,
+which is what P6 was actually asking. The decomposition's premise — the unpriced side contributes no
+variance, so the undecomposed leg has nothing to add to the priced one — is therefore a **property
+of the instrument**, not an artefact of the old world's particular draw. P6's "if refuted" branch
+(re-derive the decomposition rather than re-run it) does not open.
+
+### A correction to this document's own grading constraint
+
+§"Grading constraint on P4" says the **5,923.0446** figure "came from the artefact `ensure_worktree`
+deleted", is "not recoverable evidence", and that nothing may be graded against it. The first clause
+is wrong on the arithmetic: 5,923.04 is also §1's **live `only` leg**, which was on disk the whole
+time — so the doorbell that quoted it was reading a leg that existed, not only the one that was
+deleted. The *instruction* was still right and was followed: this grading uses this run's artefact
+and nothing else. But the reason given for it was not, and the deleted number turns out to have been
+recoverable by the ordinary route — the run is deterministic in its seeds and its world digest, so
+re-running it at the same commit reproduces it exactly. **"Not recoverable" was a claim about an
+artefact and was read as a claim about a quantity.** Kept here beside the constraint rather than
+edited into it.
+
+### What this does NOT settle
+
+- **P7's supporting arithmetic is still the wrong quantity.** The key it predicts is confirmed, but
+  the £2,335.87 ÷ £5,923 = 0.39× reasoning under it is the division
+  `SEAT_PREREGISTRATION_P7_IS_GRADED_ON_A_QUANTITY_THAT_DOES_NOT_BOUND_THE_PAGE_2026-09-03.md`
+  already refused. The grade above rests on the producer key `selection_distinguishable_from_zero`
+  alone, which is computed from this artefact's own three seeds and needs no cross-world ratio.
+- **The floor still contains the contrast, and that is now measured on the leg that bounds it.**
+  `selection_gbp` mean is **−1,861.36** with a **±3,419.67** SEM across three seeds, spanning
+  −8,634.09 to +2,349.68 — the sign is not established, let alone the size.
+  `level_share_of_advantage` runs **−0.60 to +20.14** over the same three seeds. Any
+  `/capabilities/` headline that reports a level-vs-selection split as a resolved quantity is
+  reporting noise. Per §"Then", this is the **"state plainly that the floor still contains the
+  contrast"** branch, not the "update to the live-world pair and bound" branch.
+- **n = 3.** Every figure above is a three-seed spread and carries that bound on its face.
+
+### CORRECTION to the block immediately above — I wrote it before I ran it
+
+*Same turn, ~20:15 BST, beside the claim rather than over it.*
+
+The bullet above says **"the floor still contains the contrast"** and that any `/capabilities/`
+headline reporting a resolved quantity "is reporting noise". **That is wrong as written, and it is
+wrong in this project's most-named way: it states one verdict over two different quantities.** I
+wrote it from `selection_distinguishable_from_zero` — P7's key — and then generalised it to the
+page, without running the page's own function first. Running it takes four seconds and I should
+have done it before writing the sentence, not after.
+
+Measured, with the landed floor at `CURRENT_WORLD_NOISE_FLOOR_PATH`:
+
+| quantity | figure | its own same-world bound (n=3) | verdict |
+|---|---|---|---|
+| `value_advantage_gbp` — **what the page publishes** | **£2,335.87** | **±£991.46** stdev | **RESOLVED** |
+| `selection_gbp` — the level-vs-selection **split** | −£1,861.36 mean | ±£3,419.67 SEM | **NOT resolved** |
+
+`_current_world_contrast` now returns `available: true`, **`resolved: true`**, `bound_available:
+true`, `floor_leg: all`, `floor_ran_in_world: 39a192ce04c1eda8`. The refusal that block was written
+to keep in place has correctly **lifted**, because the thing it was waiting for — a floor that names
+this world AND is the undecomposed leg — is now on disk.
+
+**Both rows are true at once and they are different questions.** Whether the value arm beats control
+resolves; how that advantage splits between level and selection does not. `_current_world_bound`'s
+own docstring is explicit that the bound must be `value_advantage_gbp`'s spread across the seed rows
+and never the floor's published `selection_gbp_spread` — "two numbers that count different things".
+My bullet reached for the published scalar, which is the easy reach that docstring names, and it is
+the same reach the earlier pre-registration was filed against.
+
+**So §"Then" takes BOTH branches, one per quantity, and neither alone:**
+- **Update the `/capabilities/` headline to the live-world pair and bound** — £2,335.87 ± £991.46,
+  n=3, world `39a192ce04c1eda8`, floor leg `all`, floor stamped 2026-09-03T19:06:31Z.
+- **State plainly that the floor still contains the SPLIT** — the level-vs-selection decomposition
+  is not resolved and must not be published as a quantity.
+
+P4, P6 and P7 all stand as CONFIRMED above; P7's key is about `selection_gbp` and this correction
+does not touch it. What changes is only my own gloss on what P7 implied for the page, which claimed
+more than P7's clause covers.
