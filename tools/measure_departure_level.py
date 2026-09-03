@@ -45,12 +45,34 @@ from tools.departure_population import (
     banner,
     declare,
     load_svt_decisions,
+    stale_anchor_refusal,
     union_by_year,
+    untracked_capture_refusal,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
 COMMONS = PROJECT / "docs" / "domain_artefact_library" / "regulatory" / "gb_domestic_switching_rate.json"
-DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
+#: THE CAPTURE THIS INSTRUMENT JUDGES ON, and it is the ONE on disk that passes the two refusals
+#: `world_book_rate_pct` now applies. Measured 2026-09-03 across every capture in `docs/reports/`,
+#: both halves of each pair:
+#:
+#:   capture                          renewal/SVT rows   both halves tracked   ran under live block
+#:   c4_whole_book_departure_factors      156 / 1373            yes                   YES
+#:   c2_departure_factors                 148 / 1221     NO (SVT untracked)    renewal yes, SVT NO
+#:   ladder_churn_factors                 144 / 1266            yes            no -- retired block
+#:   c3_shown_price_departure_factors     459 / none            n/a            no -- retired block
+#:
+#: `c2` was the default until this commit, and the two halves of that one file DISAGREE WITH EACH
+#: OTHER: its renewal rows match the live anchors and its SVT rows carry `3.053619` at 2022 against
+#: a live `1.0`. That single stale year produced +8.53pp at 2022 and carried the whole of the
+#: apparent whole-book excess -- the reading that reached a direction file as "the world departs
+#: 1.3x harder than the GB record in every year", which is the opposite sign to what the committed
+#: capture says. Strip 2022 and c2's own remaining spread is +0.26 to +1.09pp.
+#:
+#: THE DEFAULT IS NOT WHAT MAKES THIS SAFE. A pointer can go stale again the moment the next
+#: capture lands; the refusals are what make a stale one fail, and they name no capture. This
+#: constant only decides which capture is read when a caller names none.
+DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c4_whole_book_departure_factors.json"
 
 #: Active domestic electricity accounts per year in the live run, from the opening finding's own
 #: table. NOT re-derived here: the factor table holds renewals, not the active book, so the
@@ -264,9 +286,17 @@ def world_book_rate_pct(table_path: Path | None = None) -> tuple[dict[int, float
     path = table_path or DEFAULT_TABLE
     rows = json.loads(path.read_text())
     svt_rows, _ = load_svt_decisions(path)
-    refusal = account_denominator_refusal(rows, svt_rows)
-    if refusal is not None:
-        return {}, refusal
+    # THREE REFUSALS, IN THIS ORDER, AND EACH NAMES A DIFFERENT DEFECT. Can this capture carry an
+    # account denominator at all; did it run under the world that is live now; and would another
+    # reader at this commit get the same answer. The second and third were added 2026-09-03 after
+    # a whole-book verdict of "out of band, HIGH, in 8 of 8" -- read off a capture whose SVT half
+    # was in no commit and whose 2022 rows ran under a retired anchor -- reached a direction file
+    # and was very nearly acted on by re-fitting in the opposite direction to the error.
+    for refusal in (account_denominator_refusal(rows, svt_rows),
+                    stale_anchor_refusal(rows, svt_rows),
+                    untracked_capture_refusal(path)):
+        if refusal is not None:
+            return {}, refusal
     return {
         year: v["expected_rate_pct"]
         for year, v in union_by_year(rows, svt_rows).items()

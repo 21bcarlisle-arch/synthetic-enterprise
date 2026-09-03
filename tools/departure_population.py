@@ -220,8 +220,143 @@ ACCOUNT_DENOMINATOR_PROPERTIES = (
 )
 
 
+#: How far a recorded anchor may sit from the live one and still be the same number. The captures
+#: record six decimal places, so this is a float-representation tolerance and nothing else -- it is
+#: NOT a band inside which a stale anchor is tolerated.
+ANCHOR_AGREEMENT_TOLERANCE = 1e-6
+
+
 def _year(row: dict) -> int:
     return int(str(row.get("event_date", "0000"))[:4])
+
+
+def stale_anchor_refusal(
+    renewal_rows: list[dict], svt_rows: list[dict] | None
+) -> str | None:
+    """Why this capture cannot be judged against the published band, or `None` if it can.
+
+    THE PROPERTY: A CAPTURE MAY ONLY JUDGE THE WORLD THAT PRODUCED IT. Every row records the level
+    anchor it executed under in `sim_level_anchor`. If that disagrees with what
+    `departure_level_anchor.year_level_anchor` returns today, the capture ran under a block that is
+    no longer live, and reading a band verdict off it reports the world as it was two code changes
+    ago. Keyed to the property and not to today's answer: this names no capture, no year and no
+    value, so a fresh capture passes and a stale one fails IN EITHER DIRECTION -- which matters,
+    because the stale reading here was HIGH and the live one is LOW, and a control written against
+    the sign of the error we happened to have would have certified the opposite one.
+
+    WHAT IT WOULD HAVE CAUGHT, measured 2026-09-03 across every capture on disk. Both halves are
+    checked, and the two halves of the same file DO NOT AGREE: `c2_departure_factors`'s 148 renewal
+    rows all match the live block, while its 1221 SVT rows carry `3.053619` at 2022 against a live
+    `1.0` -- the reference year's anchor borrowed on the record's LOWEST year, which is the exact
+    borrow the live block's own docstring says is wrong. That single stale year is what produced
+    c2's +8.53pp at 2022, and 2022 carried the whole of the apparent whole-book excess: strip it
+    and c2's remaining spread is +0.26 to +1.09pp. **A reading of one half would have passed.**
+
+    IT MUST NOT BE APPLIED TO THE FIT. `tools/fit_year_level_anchor.py` exists to read a capture
+    taken under the PREVIOUS anchors and solve the next ones -- the iteration the anchor's own
+    docstring states is capture -> fit -> capture. A refusal wired into the fit would forbid the
+    only act that clears it. This is a refusal on the BAND VERDICT, which is the thing that must
+    not be read off a world that has moved.
+    """
+    if svt_rows is None:
+        # NOT THIS FUNCTION'S SUBJECT. `account_denominator_refusal` already names the unreadable
+        # SVT route with the warning a reader needs, and a second refusal on the same cause would
+        # send whoever hit it looking for a stale anchor that is not there.
+        return None
+    from simulation.departure_level_anchor import year_level_anchor
+
+    rows = list(renewal_rows) + list(svt_rows)
+    recorded = [r for r in rows if r.get("sim_level_anchor") is not None]
+    if not recorded:
+        return (
+            f"no row of this capture's {len(rows)} record `sim_level_anchor`, so there is no way "
+            f"to establish which level anchor produced it. A band verdict off a capture that "
+            f"cannot say which world it ran in is not a reading of this world."
+        )
+    disagreeing: dict[int, tuple[float, float, int]] = {}
+    for row in recorded:
+        year = row.get("market_year")
+        if year is None:
+            continue
+        year = int(year)
+        was, live = float(row["sim_level_anchor"]), year_level_anchor(year)
+        if abs(was - live) > ANCHOR_AGREEMENT_TOLERANCE:
+            seen = disagreeing.get(year)
+            disagreeing[year] = (was, live, (seen[2] if seen else 0) + 1)
+    if not disagreeing:
+        return None
+    detail = "; ".join(
+        f"{year}: ran at {was:g}, live block says {live:g} ({count} row(s))"
+        for year, (was, live, count) in sorted(disagreeing.items())
+    )
+    return (
+        f"this capture ran under a superseded level anchor in {len(disagreeing)} year(s) of "
+        f"{len({int(r['market_year']) for r in recorded if r.get('market_year') is not None})} "
+        f"-- {detail}. Re-capture before reading a band verdict off it; the fit reads it happily, "
+        f"because fitting on the previous anchors is what a fit is."
+    )
+
+
+def untracked_capture_refusal(table_path: Path | str) -> str | None:
+    """Why this capture's verdict is not reproducible, or `None` if it is.
+
+    SAME COMMIT, SAME COMMAND, TWO ANSWERS. `c2_departure_factors.json` is tracked and its SVT
+    sibling was not, so with the sibling present on disk the whole-book reading returned eight
+    years and at a clean checkout of the same commit it returned a refusal -- and the eight-year
+    reading is the one that reached a direction file as *"out of band, high, in 8 of 8"*. A verdict
+    that depends on which working tree the reader is standing in is not a published verdict, and
+    the pair is what has to be tracked because either half alone certifies nothing (see
+    `stale_anchor_refusal` above: on `c2` the halves disagree with each other).
+
+    UNRESOLVABLE IS ITS OWN ANSWER AND IS NOT SILENCE. If git cannot be asked, this says so and
+    refuses, because "I could not check whether this is reproducible" is not evidence that it is.
+    The blast radius is bounded on purpose: it refuses one band verdict, in a repository where
+    every gate already shells git, and it leaves the renewal-route reading and its whole banner
+    untouched.
+    """
+    import subprocess
+
+    base = Path(table_path)
+    halves = [base, svt_sibling(base)]
+    # OUTSIDE THE REPOSITORY IS DEFINITIONALLY UNTRACKED, and asking git first gets the RIGHT
+    # ANSWER FOR THE WRONG REASON: `git ls-files -- <path outside the worktree>` exits 128, so the
+    # first draft of this refused a capture in /tmp while telling the reader git was unavailable.
+    # A refusal naming a cause the checker never observed is the catalogued shape, and it is worse
+    # here than a fail-open would be obvious -- the control still fires, so nothing ever corrects
+    # the sentence.
+    outside = [h for h in halves if not h.resolve().is_relative_to(PROJECT)]
+    if outside:
+        return (
+            "{} of this capture's two halves are in no commit ({}), because they are outside the "
+            "repository altogether. A verdict read off a file no commit can carry is not "
+            "reproducible by anyone else.".format(
+                len(outside), ", ".join(str(h) for h in outside))
+        )
+    try:
+        listed = subprocess.run(
+            ["git", "ls-files", "-z", "--", *(str(h) for h in halves)],
+            cwd=str(PROJECT), capture_output=True, text=True, timeout=30, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        return (
+            f"whether this capture is committed could not be established ({exc!r}), so its "
+            f"verdict cannot be shown to be reproducible outside this working tree."
+        )
+    if listed.returncode != 0:
+        return (
+            f"whether this capture is committed could not be established (git ls-files exited "
+            f"{listed.returncode}), so its verdict cannot be shown to be reproducible outside "
+            f"this working tree."
+        )
+    tracked = {p for p in listed.stdout.split("\0") if p}
+    missing = [_rel(h) for h in halves if _rel(h) not in tracked]
+    if not missing:
+        return None
+    return (
+        "{} of this capture's two halves are in no commit ({}), so the same command at the same "
+        "commit answers differently depending on whose tree it runs in. Land the capture before "
+        "reading a band verdict off it.".format(len(missing), ", ".join(missing))
+    )
 
 
 def account_denominator_refusal(
