@@ -170,6 +170,11 @@ through the flag added to fix it.
 
 ### Bind the landing to THIS claim id — the doorbell names one that is claimed nowhere
 
+> **REFUTED 2026-09-03 17:40 BST, by the turn this section was written to steer. Do not follow it.**
+> The operative instruction is the correction immediately below this block. This text is kept
+> because a wrong prediction beside its result is the only evidence the check was designed before
+> its answer was known — not because any of it is still actionable.
+
 *Filed 2026-09-03 17:35 BST, while the leg is still running, so it is in front of the turn that
 lands rather than behind it.*
 
@@ -206,6 +211,56 @@ already fired, not a predictor. Called speculatively on a healthy id it falls th
 diagnosable causes and returns the residual string `the claims store refused the write`, which
 reads as a fourth refusal and is not one. That is what it returns for the live id here — meaning
 bindable, not broken.*
+
+### CORRECTION — bind to the doorbell's id. The block above is refuted on its own central fact.
+
+*Measured 2026-09-03 17:40 BST, by the turn that picks the leg up. This supersedes the block above
+in full; where the two conflict, this one is the measurement.*
+
+The block above says `pick-up-the-relaunched-undecomposed-floor-leg` is "claimed nowhere", "absent
+from `.delivery_lane_claims.json`", and that "a grep of the whole tree returns no occurrence of the
+string outside the doorbell itself". All three are false at the moment a turn acts on them:
+
+    $ cat docs/observability/.delivery_lane_claims.json
+    {"pick-up-the-relaunched-undecomposed-floor-leg": {
+       "claimed_at": 1788453389.855696,          # 2026-09-03 17:36:29 BST
+       "note": "The undecomposed floor leg is RUNNING as se-floor-all-20260903c.service ...",
+       "paths": []}}
+
+It is the **only** entry in that store. And it is not merely claimed — it has already had work bound
+to it, which settles the bindability question the block above answers by inference:
+
+    $ docs/observability/.delivery_lane_claims.draws.json
+    "pick-up-the-relaunched-undecomposed-floor-leg": {
+      "first_drawn_at": 1788449732.25,   # 16:55 BST
+      "last_landing_at": 1788451990.0,   # 17:13 BST -- a landing that BOUND two paths
+      "last_landing_paths": [ ...THE_TURN_RESET_DELETED..., ...THIS PRE-REGISTRATION... ]}
+
+**The block above was landed by the very commit that proves it wrong.** Its own filename is in
+`last_landing_paths` for the id it calls unclaimed, bound 22 minutes before it was written.
+
+Meanwhile `the-baseline-was-beaten-in-a-world-that-no-longer-exists` — the id it directs the landing
+to — is **not in the claims store at all**. It appears only in the *draws* ledger, which is a history
+of past draws and landings, not a register of what is held. Binding to it is what would have exited
+non-zero and logged `LANDED NOTHING`: the block above prescribes the exact failure it was written to
+prevent, with the ids transposed.
+
+**The operative command is the doorbell's, unmodified:**
+
+    python3 -m background.delivery_lane --landed pick-up-the-relaunched-undecomposed-floor-leg
+
+No id is being minted by this — the executor claimed it at turn start, 89 seconds after the block
+above was filed. That is the whole mechanism of the error and it is not carelessness: **a claim
+store is a live ledger, and a reading of it goes stale exactly the way a green test does.** The
+block above was measured correctly at 17:35 and was false at 17:36:29 without anything being wrong
+with the measurement. A pre-registration may fix a *prediction* in advance; it may not fix an
+observation of mutable state in advance, and the two are different kinds of sentence sharing one
+document. Filed as `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_
+FALSE_BEFORE_THE_TURN_READ_IT_2026-09-03.md`.
+
+**Check the store, do not quote this paragraph either.** It carries the same expiry as the one it
+corrects — `cat docs/observability/.delivery_lane_claims.json` costs nothing and is the only thing
+that answers the question at the instant you need it answered.
 
 ### Then
 
