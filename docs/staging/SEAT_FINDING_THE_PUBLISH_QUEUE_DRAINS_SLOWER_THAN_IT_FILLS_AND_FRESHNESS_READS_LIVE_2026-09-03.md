@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # The publish queue drains slower than it fills, and every freshness instrument reads `live`
 
@@ -129,3 +129,41 @@ remains an input to no signal. That is what "What is owed next" asks for and it 
 open question rather than a confirmed mechanism, and it needs a window that starts after 01:26 UTC.
 This note corrects the claim; it does not re-file the finding, which stays BLOCKING on the
 instrumentation half alone.
+
+## The owed instrument landed (worker tick, 2026-09-03)
+
+**Discharged:** the two numbers this finding said were owed are on the freshness surface in `background/publish_freshness.py`, proved by `tests/background/test_publish_freshness.py::test_a_live_line_names_the_queue_behind_the_publisher` and `tests/background/test_publish_freshness.py::test_the_oldest_queued_run_is_aged_from_its_utc_name_not_its_mtime`.
+
+The count of queued run markers and the age of the oldest, with four mutation-proved legs:
+
+- **queue_depth()** -- count of the publisher's input queue. None, never 0, when uncountable.
+- **queue_oldest_age_seconds()** -- aged from the marker's UTC NAME, never its mtime. The names are
+  UTC and this box runs local BST, and the retirement path rewrites mtimes, so an mtime-based age
+  would both gain a phantom hour and reset the clock on a marker that had not moved.
+- Both ride the line a human reads, including the `live` branch -- which is the whole point, since
+  the failure was a reader being told `live` with 35 completed runs queued behind it.
+
+**And one half of this finding is REFUTED, recorded beside the claim rather than quietly dropped.**
+The heading says *every* freshness instrument reads `live`. That is too strong. The backlog WAS
+observed and WAS paged on, by `background_worker._check_zero_progress`, which alarms when the
+oldest marker survives three sweeps and NTFYs through the one contract. The worker log carries it
+firing and closing episodes right through the window, including `[2026-09-03 01:26 UTC] ... episode
+CLOSED` and `[01:56] Retired 17/17 superseded run_complete marker(s)`. The queue measured 35 is
+now **0**.
+
+So the true residue is narrower than the heading: `publish_freshness` -- the module three surfaces
+quote -- had no backlog input, so a reader consulting it got a true statement about the wrong
+subject. That is what landed. What did NOT land, and is deliberately not built:
+
+**No new verdict and no new threshold.** Depth is an OBSERVATION. The queue is a stack, not a FIFO
+-- every marker describes the same world after a run, so the drain clears a burst by RETIRING the
+superseded ones -- so a depth threshold would alarm on the mechanism working correctly. And the
+property worth paging on already has an owner. A second control over the same subject would be a
+control guarding a control, which this project's own rule says is usually not worth having; the
+leg `test_a_deep_queue_does_not_change_the_publish_verdict` exists to keep it that way, and fails
+if a later hand folds depth into `state`.
+
+**Severity drops to LATENT.** The instrument gap is closed and the queue is drained. What remains
+is not an untrustworthy instrument but an open question: whether drain capacity is sized to fill
+rate, which the wedge made unmeasurable (a rate measured inside a wedge times a refusal, not a
+drain). That needs a clean window, and it is nobody's emergency now that the depth is visible.

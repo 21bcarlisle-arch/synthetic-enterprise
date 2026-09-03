@@ -1,9 +1,93 @@
 {
- "generated_at": "2026-09-02T23:30:22.201577+00:00",
+ "generated_at": "2026-09-03T02:27:52.089152+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "a2dfee941",
+    "at": "2026-09-03T03:17:43+01:00",
+    "subject": "the freshness line now carries the queue behind the publisher, and two findings are graded",
+    "substantive": true
+   },
+   {
+    "sha": "b6b3c3fa8",
+    "at": "2026-09-03T02:55:13+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=19f226e46, net=\u00a3149,156)",
+    "substantive": false
+   },
+   {
+    "sha": "15709e9e8",
+    "at": "2026-09-03T02:40:10+01:00",
+    "subject": "the queue's drain rate was measured under the wedge, and the wedge is what cleared",
+    "substantive": false
+   },
+   {
+    "sha": "eb0fae2fc",
+    "at": "2026-09-03T02:13:06+01:00",
+    "subject": "the publish queue drains slower than it fills, and every freshness instrument reads live",
+    "substantive": false
+   },
+   {
+    "sha": "19f226e46",
+    "at": "2026-09-03T02:11:11+01:00",
+    "subject": "the refusal that named five green tests now names the gate, and the orphan it was is frozen",
+    "substantive": true
+   },
+   {
+    "sha": "a082be80b",
+    "at": "2026-09-03T01:25:51+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=9d841e7c3, net=\u00a3149,156)",
+    "substantive": false
+   },
+   {
+    "sha": "f4127ff17",
+    "at": "2026-09-03T01:18:40+01:00",
+    "subject": "merge origin/main: converging the five-leg fixture repair onto a fast-moving tree",
+    "substantive": false
+   },
+   {
+    "sha": "506f21bd5",
+    "at": "2026-09-03T01:15:58+01:00",
+    "subject": "merge origin/main: the graded discharge line meets the five-leg fixture repair",
+    "substantive": false
+   },
+   {
+    "sha": "b32105048",
+    "at": "2026-09-03T01:15:42+01:00",
+    "subject": "the tree moved between the measurement and the remedy, so the remedy is corrected beside the claim",
+    "substantive": false
+   },
+   {
+    "sha": "a043ad67b",
+    "at": "2026-09-03T01:13:47+01:00",
+    "subject": "merge origin/main: the discharge-naming fix meets the five-leg fixture repair",
+    "substantive": false
+   },
+   {
+    "sha": "59f1b83c4",
+    "at": "2026-09-03T01:13:32+01:00",
+    "subject": "the discharge line and the missing alarm are both graded, and the repair for a silence was itself silent",
+    "substantive": false
+   },
+   {
+    "sha": "9fee270a4",
+    "at": "2026-09-03T01:11:29+01:00",
+    "subject": "five legs went red for the branch working correctly, and the gate could never see the fix",
+    "substantive": true
+   },
+   {
+    "sha": "d832149bb",
+    "at": "2026-09-03T00:57:36+01:00",
+    "subject": "a missing discharge went silent in three different ways, so it now names which",
+    "substantive": true
+   },
+   {
+    "sha": "4e8770f70",
+    "at": "2026-09-03T00:43:08+01:00",
+    "subject": "the repaired writer claimed all three stores on a promoted item, so the last open clause is graded and one grade is split",
+    "substantive": false
+   },
    {
     "sha": "c1e24f4bb",
     "at": "2026-09-03T00:18:13+01:00",
@@ -159,90 +243,6 @@
     "at": "2026-09-02T19:46:35+01:00",
     "subject": "merge origin/main: the fork closed by another route while this lane measured it",
     "substantive": false
-   },
-   {
-    "sha": "1ea5dfdfb",
-    "at": "2026-09-02T19:44:39+01:00",
-    "subject": "discharge the census overlay finding, whose second leg has been landed and uncited since 66c4e780b",
-    "substantive": false
-   },
-   {
-    "sha": "59d70e9a1",
-    "at": "2026-09-02T19:43:32+01:00",
-    "subject": "correct the fork finding: the behind-origin check exists and is unreachable, which is worse",
-    "substantive": false
-   },
-   {
-    "sha": "6cecb32ef",
-    "at": "2026-09-02T19:41:15+01:00",
-    "subject": "file the wedge that was a fork, and the row that names the wrong commit",
-    "substantive": false
-   },
-   {
-    "sha": "17e40f7b7",
-    "at": "2026-09-02T19:37:26+01:00",
-    "subject": "merge origin/main: the census overlay work had already been salvaged there, so ours is superseded",
-    "substantive": false
-   },
-   {
-    "sha": "5260c6859",
-    "at": "2026-09-02T19:34:35+01:00",
-    "subject": "the two wedging tests were green alone and red beside the register's own test",
-    "substantive": true
-   },
-   {
-    "sha": "49e840ec6",
-    "at": "2026-09-02T19:33:03+01:00",
-    "subject": "a mint was invisible as drawable and alarming as blocked, because two readers saw 600 bytes",
-    "substantive": true
-   },
-   {
-    "sha": "66c4e780b",
-    "at": "2026-09-02T19:30:14+01:00",
-    "subject": "salvage the census lane's orphaned overlay check, which its own working copy would have reverted",
-    "substantive": true
-   },
-   {
-    "sha": "4087d2073",
-    "at": "2026-09-02T19:19:45+01:00",
-    "subject": "reconcile only when there is something of ours to land, and read commits instead of counting them",
-    "substantive": true
-   },
-   {
-    "sha": "f2b773569",
-    "at": "2026-09-02T19:01:11+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "d9704d6de",
-    "at": "2026-09-02T18:54:52+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "8fb1331bc",
-    "at": "2026-09-02T18:48:24+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "b012c5de6",
-    "at": "2026-09-02T18:42:05+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "fc7219540",
-    "at": "2026-09-02T18:35:47+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "83c63ac58",
-    "at": "2026-09-02T18:30:26+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
    }
   ],
   "substantive": 15,
@@ -251,57 +251,52 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-02T23:24:30.927118+00:00",
+  "oriented_at": "2026-09-03T02:23:14.174846+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "**The last stretch did the thing the previous direction asked and did it well: the inference organ landed, the level moved, and the instrument that had been lying about landings was repaired and then caught itself lying.** All three of the previous focus items that were reachable are measurably finished, and I checked each rather than reading the commit subjects. `git ls-tree origin/main company/billing/annual_consumption_estimate.py` is non-empty. `python3 -B tools/level_promotion_gate.py` exits 0. `git rev-list --left-right --count HEAD...origin/main` is `0 0`. `D_opening_dd_seasonal_sizing` is `level_current: 1` with the move recorded, and the organ is genuinely on the production route \u2014 `simulation/run_phase4c_on_phase2b.py:146` imports `opening_monthly_amount` and `_opening_dd_by_customer` feeds it into `annual_dd_review_view` at line 320. The false SLC 27B citation is gone from both company modules; origin's copies now carry its negation. **And the executor's repair proved itself on its own subject.** At 21:51 the seat executor logged the first `LANDED NOTHING: an-exit-code-is-not-a-landing, bound paths unchanged since 6d18107c7 (rc=0)` and did NOT discharge the claim; at 22:36 it logged the first true `FINISHED ... 1 of 1 bound path(s) moved on the shared tree`. That is a control that can fail, failing correctly, on the first live application. The previous direction predicted routing this item to the executor would report rc=0 and change nothing; that prediction is REFUTED in mechanism and stands beside this line. **So nothing intellectual is drifting. What is drifting is that none of it can be seen.** `background.publish_freshness.describe()` says `content publishing: DOWN -- figures last moved 18.7h ago`. The live site serves commit `1c4f64733` from 05:42 \u2014 net \u00a3149,156 from run `4013b1de1`. Meanwhile `site/data/dashboard.json` in this tree was generated at 23:22 from run `6d18107c7`, and **29** `run_complete_*.md` markers sit unprocessed in the staging root, one every ~13 minutes since 16:05, each printing an \"Action required\" nobody performed. The figures are computed. They are refused at the commit. **The refusal has exactly one cause and it is printed verbatim in our own log, which then says it could not be found.** `docs/observability/background-worker-log.md:10694-10717`: the site suite passes 527/31s, then `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS. tools. artefact_rerun_diff` \u2014 and two lines later, `Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- recording NO blocking test.` The classifier greps for test failures and this was a non-test gate, so `.publish_gate_state.json` still names five tests in `test_a_staged_document_no_longer_blocks_every_landing.py` as blocking. **I ran them: 20 passed in 0.11s.** The register has pointed every reader at five green tests for hours while the actual cause \u2014 `tools/artefact_rerun_diff.py`, staged `A `, written 2026-08-31 09:37, imported by nothing but its own test, never frozen \u2014 sat unread. It is already written down: the BLOCKING finding names it at line 342, three hours before this brief, and nothing acted. **Against the thesis: the inference side moved forward for the first time in days and the evidence side went backwards.** \"Done means the rendered value changed\" is this project's own definition, and by it the DD organ is not done \u2014 29 runs have executed against it and no reader can see one of them. This is the third consecutive stretch whose binding constraint is delivery rather than epistemics, and the second where the cause was a single file left unfinished in the shared tree by a lane that had already moved on.",
+  "thesis_read": "**The wedge cleared and the delivery excuse is gone, so the thesis question is now unavoidable and the answer I measured is bad.** `background.publish_freshness.describe()` reads `content publishing: live -- figures reached origin 0.5h ago`; the staging root holds **zero** `run_complete_*.md` markers against 29 three hours ago, and all 1,452 sit archived in `docs/staging/done/`; `git rev-list --left-right --count HEAD...origin/main` is `0 0`. Every `wrong` entry in the previous direction about the publish outage is corrected, and 19f226e46 did both halves properly \u2014 `tools/artefact_rerun_diff.py` was read before it was disposed of, judged another lane's correct forward work, and **frozen with the reason on the record** rather than deleted or given a fake caller; and `background/publish_cause.py` now makes a non-test gate refusal nameable. `.publish_gate_state.json` today reads `blocking_tests: []`, not five green tests. That is the machine correcting itself well, and it is the third consecutive stretch it has spent doing so. **Now that figures are moving again, here is what they say.** I compared the published headline across the organ's own landing. `company/billing/annual_consumption_estimate.py` landed at 09-02 22:08 (9760fc7a5). Publish `1c4f64733` (09-02 05:42, run at `4013b1de1`, *before*) and publish `b6b3c3fa8` (09-03 02:55, run at `19f226e46`, *after*) carry **byte-identical figures**: net margin \u00a3149,156.20, gross \u00a3399,595.86, capital \u00a36,995, treasury \u00a3250,000 \u2192 \u00a3399,156, enterprise value \u00a3128,435.07, net after CTS \u00a396,906, **11,565 bills issued**. Not close \u2014 identical to the penny and to the bill. Twelve of the last thirteen publishes over two days carry the same net margin. **So the one artefact in this repository that does what the thesis asks \u2014 reason about a household from what a supplier could know, instead of applying a flat rule \u2014 is on the production route, executes every run, and moves nothing any reader can see.** By this project's own definition, \"done means the rendered value changed\", it is not done; and the level it was promoted to says otherwise. **The failure is not that the number did not move. It is that no surface exists on which it could.** The headline treasury end equals treasury start plus net margin to the penny, so the only cash figure we publish cannot express a change in payment *timing*, which is the entire effect an opening direct debit has. That is this machine's most-catalogued shape \u2014 a pass branch that is unreachable reports a constant verdict \u2014 applied not to a test but to the thesis itself. And it has a sibling one layer down that I confirmed by reading the call site: `BASIS_ORDER` has four rungs and `simulation/run_phase4c_on_phase2b.py:160-166` passes only `registry_eac_kwh` and a `band`, so `METERED_HISTORY` and `CUSTOMER_DECLARED` are structurally unreachable live. The published precedence is twice the size of the walked one, and both surviving rungs are numbers *handed to* the company. **\"The advantage must come from INFERENCE, never from ACCESS\" \u2014 right now, on the live route, it comes from access, and nothing published would notice either way.** On the machine: Lane 0 drew **three** times in three hours, and the third draw (02:06, `the-publish-wedge-is-one-staged-unwired-file`) landed on work another lane had already finished at 01:11. Items 2, 3 and 4 of the previous focus were never offered to anything. Writing four items was writing one item and three wishes, so this record writes three and puts the whole weight on the first.",
   "focus": [
    {
-    "id": "the-publish-wedge-is-one-staged-unwired-file",
-    "what": "**Dispose of `tools/artefact_rerun_diff.py` and make the publish-gate classifier able to name a non-test refusal. Do this before anything else in this file.** (a) `python3 -B tools/orphan_ratchet.py` prints exactly one name: `tools.artefact_rerun_diff`. The file is `A ` in the shared index, written 2026-08-31 09:37, and `git grep artefact_rerun_diff` outside `docs/` returns only `tests/tools/test_artefact_rerun_diff.py`. Decide, in one act and in the same commit: either wire it to something that actually runs, or `python3 tools/orphan_ratchet.py --freeze` it with the reason on the record. **Read the module before choosing** \u2014 it is another lane's forward work, not yours to delete, and the previous stretch's \"superseded draft\" prediction was graded REFUTED for exactly this reason. (b) The classifier in `background/process_run_complete.py` that emits `Publish commit REFUSED with no FAILED/ERROR summary ... recording NO blocking test` had the answer in the output it was reading. Make it record the named gate that refused \u2014 the orphan-ratchet banner, the consolidation gate, the write-time gate \u2014 not only pytest FAILED lines, and make `.publish_gate_state.json` stop carrying a `blocking_tests` list that a later run has proven green. An unnameable refusal must read as unnameable in the register, not as five tests. **Verify the whole thing by the subject, never by an exit code** \u2014 the lesson this machine just paid for: finished when `background.publish_freshness.describe()` no longer says DOWN, `git log -1 -- site/data/` on origin names a content publish later than `1c4f64733`, and the count of `docs/staging/run_complete_*.md` is falling. If clearing this reveals the next gate rather than a green publish, that is the expected shape \u2014 five wedge causes fell yesterday and each revealed the next \u2014 so name it and clear that one too.",
-    "why": "Everything the last stretch built is invisible. The site serves 05:42 figures while this tree holds 23:22 figures and 29 completed runs are queued behind one file that nobody finished. \"Done means the rendered value changed\" is our own definition of done, and by it the DD inference organ \u2014 the only artefact that does what the thesis asks \u2014 is not done. The classifier half matters as much as the file: a register that names five green tests as the blocker is worse than one that says nothing, because it sends every reader to the wrong place and it did so for hours."
+    "id": "the-dd-estimate-changes-no-published-number",
+    "what": "**Establish whether the opening direct debit estimate has any consequence at all in the run, and if it has one, put it on a surface. Nothing else in this file matters until this is answered.** Start from the measurement, do not re-derive it: publish `1c4f64733` (run at `4013b1de1`, before `company/billing/annual_consumption_estimate.py` landed at 9760fc7a5) and publish `b6b3c3fa8` (run at `19f226e46`, after) carry identical net margin, gross, capital, treasury start and end, enterprise value, net after CTS and bills issued. Three acts, in this order. (a) **Run the book twice over one seed** \u2014 direct debit opened from `opening_monthly_amount`, and direct debit opened from the flat rule it displaced (the first issued bill, `seq[0][1]`) \u2014 and diff the two run outputs *whole*, not by headline. Report which keys differ and by how much. If the answer is \"none\", say so plainly; that is a finding, not a failed experiment. (b) **Record what separates the two arms per account**: the distribution of end-of-year balance drift with credit and debit shown separately and never summed as one absolute; the count of accounts whose estimate resolved to an honest `None` and what the arm does with those; the count where both rules chose the same amount; and the split **by which basis each estimate came from**. (c) **If (a) shows nothing published moves, the repair is the surface, not the organ.** The headline treasury end equals treasury start plus net margin exactly, so the published cash figure cannot express payment timing. Establish whether that is an accounting identity in `saas/reporting/annual_report.py` or a coincidence of this book, and then publish the thing that does move \u2014 per-account opening amount and balance drift, the two arms side by side \u2014 **with its clock attached and with the bound its sample size earns**, because a new published figure without a basis label is what the basis gate exists to refuse. \"We cannot yet tell the two arms apart\" is an acceptable published result; a figure without its bound is not.",
+    "why": "The thesis says the advantage must come from inference and that there must be a baseline to beat or \"it performed well\" means nothing. The flat rule IS that baseline, it is sitting in the code this organ displaced, and it will never again be this cheap to run against. And the measurement above says the organ currently clears that bar by exactly zero on every figure a reader can see \u2014 which means either it does nothing, or we publish nothing that could tell. Both answers are worth having and neither is known today. Finished when both arms exist as runnable code over one book, the per-basis and per-account counts are stated, and a reader can see the difference \u2014 or a named refusal saying the book cannot carry the reading \u2014 on a surface that carries its clock."
    },
    {
-    "id": "dd-estimate-against-the-flat-rule-baseline",
-    "what": "**Run the same book twice \u2014 DD opened from `annual_consumption_estimate` and DD opened from the flat rule it replaced (`seq[0][1]`, the first issued bill) \u2014 and record per account what separates them.** This item was named in the previous direction and never drawn by any channel; it is unstarted, not stale. Not a headline: the per-account distribution of end-of-year balance drift with credit and debit shown separately and never summed as one absolute; the count of accounts whose estimate resolved to an honest absence and what the arm does with those; the count where both rules chose the same amount; and **which basis each account's estimate came from**. That last one is load-bearing and I have measured a correction to the previous direction on it: `BASIS_ORDER` has **four** rungs, not three, and the production call site (`simulation/run_phase4c_on_phase2b.py:146-167`) supplies only `registry_eac_kwh` and a `band`, so `METERED_HISTORY` and `CUSTOMER_DECLARED` are **structurally unreachable on the live route** \u2014 two of four. Report the split by basis and say so plainly. Publish with the bound the sample size earns and with its clock.",
-    "why": "The thesis says the advantage must come from inference and that there has to be a baseline to beat or \"it performed well\" means nothing \u2014 and the flat rule this organ replaced IS that baseline, sitting in the code it displaced, which will never again be this cheap to measure against. The basis split is what tells us whether we have built inference or a registry lookup with a precedence comment on it, and that answer decides whether the next item is worth building at all. Finished when both arms exist as runnable code over one book, the per-basis counts are stated, and the difference is on a surface with its basis attached. A refusal that says the sample cannot carry the reading is an acceptable finish; an unbounded figure is not."
+    "id": "the-declared-precedence-is-twice-the-reachable-one",
+    "what": "**Make the estimator's declared precedence and its live reachable set the same set.** Measured, not assumed: `BASIS_ORDER` in `company/billing/annual_consumption_estimate.py:81` names four rungs \u2014 `METERED_HISTORY`, `REGISTRY_EAC`, `CUSTOMER_DECLARED`, `TDCV_TYPICAL` \u2014 and the sole production caller, `_opening_dd_by_customer` at `simulation/run_phase4c_on_phase2b.py:160-166`, passes `as_of_iso`, `commodity`, `registry_eac_kwh` and `band` and nothing else. Two of four rungs cannot be entered on the live route. Settle it in one direction and land the evidence either way. **Check the epistemic wall on every input before you widen it**: at registration a supplier holds registry data and whatever reads it has taken, and NOT a year of half-hourly consumption \u2014 so if the honest answer is that metered history does not exist at the instant the direct debit is set for most accounts, that is the finding, and the repair is to make the unreachable rungs unreachable *by construction*, with the reason beside them, rather than leave a precedence that reads four deep and walks two. If a subset of accounts genuinely does hold prior metering at that instant, supply it for those and say how many.",
+    "why": "\"The advantage must come from INFERENCE, never from ACCESS.\" A registry EAC and a typical- consumption band are both numbers handed to the company; metered history is the only rung in that list the company would have to reason from \u2014 and it is one of the two that cannot be reached. A precedence whose top branches never execute reports a constant verdict, which is the failure class this machine catalogues more often than any other, and here it is doing it to the module the thesis rests on. Finished when the declared set and the walked set are identical, whichever direction that is settled in, and a test fails if they diverge again."
    },
    {
-    "id": "the-27b-correction-reached-one-of-five-places",
-    "what": "**The correction to the false licence citation landed in the two company modules and nowhere else. Finish it in the other three, and check the served artefact rather than the source.** `git grep -n \"SLC 27B\"` still returns it asserted as fact in `docs/design/simplifications/DD_seasonal_cashflow_physics.yaml:5` (\"Ofgem SLC 27B +/-5pct variance\"), `docs/claude/phase-history.md:591` (\"Ofgem SLC 27B.\"), and `docs/PROJECT_OVERVIEW.md:5451` (\"**Fidelity delta:** Ofgem SLC 27B requires suppliers to review all domestic DD amounts at least annually\"). The first of those three is the one that reaches a reader: its text is served verbatim inside `site/data/simplified.json` today. Replace each with the established position \u2014 the DUTY is SLC 27.15, the \u00b15% band is a modelling convention, and there is no SLC 27B \u2014 citing `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`. **Do not simply delete the string**: check that what replaces it says the right thing, and check it in `site/data/simplified.json` after a publish, not in the source. Ignore the `27B` occurrences inside `site/data/delivery.json` and this file \u2014 those are the record quoting the correction itself, which is the record working.",
-    "why": "This is one legal claim with five implementations, corrected in two of them \u2014 the exact shape CLAUDE.md holds up as this project's most expensive recurring defect, with the VAT rule as its named evidence, and it has now happened again inside twenty-four hours of that rule being restated. It is a claim about the law published under Poesys's name and it is false. It ranks below the two above only because it is cheap, not because it is small: the seat that takes item 1 can finish this in the same pass. Finished when the three source files carry the SLC 27.15 wording and `grep -c 27B site/data/simplified.json` is zero on the served artefact."
-   },
-   {
-    "id": "give-the-dd-estimate-a-metered-history-rung-on-the-live-route",
-    "what": "**Only after item 2 has answered.** If the basis split shows the live route resolving through `REGISTRY_EAC` and `TDCV_TYPICAL` alone, supply the top rung: pass the supplier's own meter history into `opening_monthly_amount` from `_opening_dd_by_customer`, for the accounts where a real supplier would hold it at the point the DD is set. Check the epistemic wall on every input first \u2014 at registration a supplier holds registry data and whatever reads it has taken, and NOT a full year of half-hourly consumption; if the honest answer is that metered history does not exist at that instant for most accounts, **that is the finding, and the right repair is to make the unreachable rungs unreachable by construction rather than to leave a precedence that reads as four-deep and behaves as two.** Re-run item 2's comparison after and say whether the top rung moved the drift distribution at all.",
-    "why": "\"The advantage must come from INFERENCE, never from ACCESS.\" A registry EAC is a number handed to us; metered history is a number we reason from \u2014 and right now the organ's own documentation claims a precedence its production caller cannot walk. Either the rung is reachable and we should reach it, or it is not and the code should say so, but a control whose pass branch is unreachable reports a constant verdict, and that is the failure class this machine catalogues most often. Finished when the live route's reachable bases and the module's declared precedence are the same set, whichever direction that is settled in."
+    "id": "the-false-licence-citation-is-still-served",
+    "what": "**Finish the correction to the false licence citation: it reached two of seven places and one of the five it missed is served to readers right now.** `git grep -n \"SLC 27B\"` returns the negation, correctly, in `company/billing/dd_review.py:17` and `company/billing/dd_review_runner.py:50` \u2014 and it is still asserted **as fact** in `docs/design/simplifications/DD_seasonal_cashflow_physics.yaml:5`, `docs/PROJECT_OVERVIEW.md:5451`, `docs/claude/phase-history.md:591`, `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md:15`, and twice in `docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md` (lines 2908 and 3648). The first of those is the one that reaches a reader: its text is served verbatim, and `site/data/simplified.json` **on origin** contains `27B` today. Replace each with the established position \u2014 the duty is SLC 27.15, the \u00b15% band is a modelling convention of ours, and there is no SLC 27B \u2014 citing `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`. **Do not simply delete the string**: check that what replaces it says the right thing, and verify on the served artefact after a publish, not in the source. Leave the occurrences in `site/data/delivery.json` and this file alone \u2014 those are the record quoting its own correction, which is the record working.",
+    "why": "One legal claim, seven implementations, corrected in two \u2014 the exact shape CLAUDE.md holds up as this project's most expensive recurring defect, with the VAT rule as its named evidence, and it has now survived a second stretch after that rule was restated. It is a false statement about the law published under Poesys's name, which is the one category of public claim we hold ourselves to be careful about. It ranks third because it is cheap and bounded, not because it is small: whoever takes item 1 can finish this in the same pass. Finished when the five source files carry the SLC 27.15 wording and `27B` does not appear in `site/data/simplified.json` on origin."
    }
   ],
   "not_now": [
    {
-    "what": "Discharging the one BLOCKING finding, `SEAT_FINDING_THE_RECONCILER_MANUFACTURED_THE_FORK_IT_EXISTED_TO_CLOSE_2026-09-02.md`, as a document \u2014 archiving it, re-rendering its class, closing its atom.",
-    "why": "Its mechanism is already fixed and mutation-proven (\u00a72's three branches; restoring the `ahead == 0` fall-through fails three tests). Its one still-open leg is the publish wedge named in its \u00a75, which IS focus item 1. Archiving the document is bookkeeping that follows the repair; doing it first would move a severity label and change nothing about the tree."
+    "what": "Clearing the basis-label debt as its own item \u2014 the five published figures the publish path warns carry no clock (`cost_to_serve_gbp`, `gross_margin_gbp`, `net_after_cts_gbp`, `treasury_end_gbp`, `treasury_start_gbp`).",
+    "why": "Rejected for the second stretch, but for a changed and better reason. Last time it was because it is a stderr warning and not the refusal, so fixing it unwedged nothing. That is still true, and now there is a stronger one: `treasury_start_gbp` and `treasury_end_gbp` are two of the three figures item 1 is about to interrogate, and item 1(c) makes attaching their basis part of the work that has a reason to exist. Doing it separately first would fuse two subjects in one commit and make the next refusal harder to attribute; doing it inside item 1 makes it the by-product of a question worth asking."
    },
    {
-    "what": "The bill-shock definition split (`FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER`), which the previous direction deferred with an explicit promise that it would go first once the DD organ landed. The organ has landed. I am deferring it again and this is the reason.",
-    "why": "I measured it before deciding, and the case for it is weaker than when that promise was made. The finding's own header says LATENT and \"no published figure is wrong as a result of either half below\" \u2014 it is structural residue of a units fix that has already landed. The served artefact now carries `avg_bill_shock_pct: 0.47`, not the 200% that made this urgent, and `bill_shock_by_population` with per-payment-method `n` is already in `site/data/dashboard.json`. A promise made against a 200% published figure does not survive that figure being corrected. It goes ahead of new work the moment its layer placement blocks something real."
+    "what": "The bill-shock definition split (`FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER`), deferred by the previous two directions and deferred again here.",
+    "why": "I am not going to keep making a promise about it, so here is the standing position: the finding's own header says LATENT and that no published figure is wrong because of it; the served `avg_bill_shock_pct` is 0.47, not the 200% that made it urgent; and `bill_shock_by_population` with per-payment-method `n` is already in the dashboard. It is structural residue of a units fix that landed. It goes ahead of new work at the moment its layer placement blocks something real, and not on a schedule. Recorded here so a future orientation does not re-inherit an obligation the evidence dissolved."
    },
    {
-    "what": "Sweeping the staging root \u2014 ~90 live documents, 40 LATENT findings, the 2022 anchor cluster (four findings and four preregistrations on whether the anchor has a lever and which absences are fit failures), and the ungraded preregistrations from yesterday.",
-    "why": "All real, none blocked, and exactly as available next stretch. The 29 unprocessed `run_complete` markers in that same directory are not a filing problem \u2014 they are item 1's symptom, and they will drain when the wedge clears rather than when the queue is tidied."
+    "what": "Sweeping the staging root \u2014 84 live documents, 36 LATENT findings, the 2022 anchor cluster (four findings and four preregistrations on whether the anchor has a lever and which absences are fit failures), and the ungraded preregistrations from last night.",
+    "why": "Zero BLOCKING findings, so nothing here is holding a landing, and all of it is exactly as available next stretch. The one thing that made this directory look urgent last time \u2014 29 unprocessed `run_complete` markers \u2014 was the wedge's symptom and drained to zero on its own when the wedge cleared, which is the confirmation that this was a queue and not a filing cabinet. Doing it now would spend the first unwedged stretch in days on bookkeeping."
    },
    {
-    "what": "Clearing the BASIS-LABEL DEBT the publish path prints beside its refusal: five published figures carrying no clock \u2014 `cost_to_serve_gbp`, `gross_margin_gbp`, `net_after_cts_gbp`, `treasury_end_gbp`, `treasury_start_gbp`.",
-    "why": "Real, and it is one of the enforced rules in CLAUDE.md's own table. But I read the output rather than assuming: it is emitted as a WARNING on stderr, not as the refusal \u2014 the refusal is the orphan-ratchet. Fixing it unwedges nothing, and doing it inside item 1's commit would fuse two subjects and make the next refusal harder to attribute. It is the natural first item once figures are moving again."
-   },
-   {
-    "what": "Naming maturity-map atom ids as the `id` of these focus items, as the brief's mechanism invites and as the previous direction did for `D_opening_dd_seasonal_sizing`.",
-    "why": "The evidence from one stretch is that the two channels are not equal. `previous_focus_drawn.by_class` records `atom: {drawn: [], steered: false}` and `lane_0: {drawn: [an-exit-code-is-not-a-landing], steered: true}` \u2014 the atom-class steer biased a draw that never came, and every item that actually moved arrived through Lane 0. So all four items here are kebab keys, deliberately, including item 4 which sits squarely on `D_opening_dd_seasonal_sizing`. If a later stretch shows the atom channel biting, this decision should be reversed."
+    "what": "Writing four or five focus items, and naming maturity-map atom ids as their `id`s \u2014 including for item 2, which sits squarely on `D_opening_dd_seasonal_sizing`.",
+    "why": "Two stretches of evidence now, and it got stronger. `previous_focus_drawn.by_class` again records every draw arriving through `lane_0` and none through `atom`. And the draws ledger shows Lane 0 fired three times in three hours, with the third landing on work another lane had already finished \u2014 so the practical capacity of this list is one item, occasionally two. A four-item list does not get three items done; it gets one done and dilutes the record of what I judged mattered. Three items, ordered hard, with the first carrying the argument. Reverse this if a later stretch shows the atom channel biting or the lane drawing faster."
    },
    {
     "what": "Building anything that watches the publish gate and reports which of its gates wedged the tree \u2014 a register, a dashboard tile, a daemon.",
-    "why": "Rejected for the second stretch running, and the evidence got stronger rather than weaker. `.publish_gate_state.json` IS that instrument and it is precisely what misdirected every reader for hours by naming five green tests. The repair in item 1(b) makes the existing classifier able to say a true thing; a second watcher over it would be a control guarding our own controls, which is the shape CLAUDE.md names and the shape that caused this."
+    "why": "Rejected for the third stretch running and now with the outcome to show for it. The existing classifier was made able to name a non-test refusal (`background/publish_cause.py`, 19f226e46), and `.publish_gate_state.json` today reads `blocking_tests: []` with `total_red: 0` instead of naming five green tests. Repairing the instrument we had was the whole fix. A second watcher over it would be a control guarding our own controls, which is the shape CLAUDE.md names and the shape that caused the outage in the first place."
+   },
+   {
+    "what": "Chasing the `wedge_since` timestamp still set in `.publish_gate_state.json`, and the `episode_failures: 27` counter beside it, on a tree that is currently publishing fine.",
+    "why": "It is a real loose end \u2014 a wedge marker that outlived its wedge is the same class of stale instrument as the blocking-tests list that misdirected everyone for hours, and it will read as a live outage to the next reader. But it is a residue with no consequence today, publishing is live, and it costs a stretch's opening move. Filed here so it is on the record rather than rediscovered; it belongs to whoever next touches the publish path for a reason of its own."
    }
   ],
   "for_the_director": [],
@@ -311,6 +306,26 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-03T02:23:14.174846+00:00",
+    "what": "The inference organ was built, wired to the production route, promoted to level 1, and celebrated in the previous direction as the stretch's win \u2014 and no published figure moves across its landing. Net margin, gross, capital, treasury start and end, enterprise value, net after cost-to-serve and bills issued are byte-identical between the run before it landed (`4013b1de1`, published `1c4f64733`) and the run after (`19f226e46`, published `b6b3c3fa8`). The previous direction checked that the organ was imported and called, and never checked whether calling it changed anything. Being on the route is not the same as having an effect, and this seat graded the first as if it were the second."
+   },
+   {
+    "at": "2026-09-03T02:23:14.174846+00:00",
+    "what": "The previous direction stated that the false SLC 27B citation had been corrected in two company modules and remained in three other places. It remains in **five**: the two `WALL_CROSSING_DISPOSITION_REGISTER.md` occurrences (2908, 3648) and `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md:15` were not in that count. The count was taken from a grep whose exclusions were never stated, which is how an undercount becomes a plan. Corrected here, beside the claim, and the focus item now names all five."
+   },
+   {
+    "at": "2026-09-03T02:23:14.174846+00:00",
+    "what": "Lane 0 drew `the-publish-wedge-is-one-staged-unwired-file` at 02:06, fifty-five minutes after 19f226e46 had already cleared that wedge at 01:11. The worker took a finished item, and what it landed (a2dfee941) was adjacent work under the claim's name. The lane has no way to notice that a focus item's own condition became true between the direction being written and the item being drawn, and the seat's three-hour re-orientation is the only thing that ever notices."
+   },
+   {
+    "at": "2026-09-03T02:23:14.174846+00:00",
+    "what": "Focus items 2, 3 and 4 of the previous direction were never offered to any channel. Lane 0 drew three times in three hours and `next_item` reaches the focus list only after the seat-continuation queue is empty. Ranking four items implies a capacity the machine does not have, and the previous direction's careful ordering of items 2 through 4 was therefore decoration. Corrected in this record by writing three."
+   },
+   {
+    "at": "2026-09-03T02:23:14.174846+00:00",
+    "what": "The previous direction's four `wrong` entries about the publish outage \u2014 the classifier that recorded no blocking test, the stale five-green-test blocker list, the unfrozen `tools/artefact_rerun_diff.py`, and the 29 queued `run_complete` markers \u2014 were all filed `corrected: false`. All four are now corrected, and the disposition of the orphan was the hard call made well: it was read first, judged another lane's correct forward work, and frozen with its reason rather than deleted or given an invented caller. Recording this because a `wrong` list that only ever grows stops being read."
+   },
    {
     "at": "2026-09-02T23:24:30.927118+00:00",
     "what": "The publish path printed its own refusal verbatim \u2014 `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS. tools.artefact_rerun_diff` \u2014 and then logged, two lines later, `Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- recording NO blocking test`. The classifier reads only pytest FAILED lines, so a non-test gate refusal reads as an absent cause. Publishing stayed down 18.7h with the answer in the log."
@@ -1134,26 +1149,6 @@
    {
     "at": "2026-08-29T05:24:29.342620+00:00",
     "what": "I have named five focus items in each of the last two directions and the draw took three lane-0 items each time. Position four and position five are not priority statements, they are decisions that the work does not happen, and I have taken that decision about `/capabilities/` eight times while describing it as a judgement about importance. The evidence was in my own record and I wrote \"it is fifth because a disclosed hole is still a hole\" rather than counting the draws."
-   },
-   {
-    "at": "2026-08-29T02:22:47.338789+00:00",
-    "what": "I read the founder-book finding's own headline \u2014 \"**the bigger finding this exposes, and it outranks the one this document was opened for**: from 2018 onward the published book is not a commercial outcome at all\" \u2014 and put it in no focus item. R6 then filed the same thing independently as \"**this is the top item**\". Two lanes named the binding constraint on the entire board before any direction did, and the measurement (380 funnel wins, 45 booked, 335 refused by a constant) was on disk the whole time. That is the miss of the stretch: not a wrong call between options, but a first-rank item I never put on the list."
-   },
-   {
-    "at": "2026-08-29T02:22:47.338789+00:00",
-    "what": "Seven consecutive directions have named the settlement-clocks pair and it has never been done. Last night I wrote in this file that it \"moves to third tonight\" as if identifying the ordering defect repaired it; third was never reached, the pair is still untracked, and the same two consumers are still modified-unstaged importing it. A ten-minute item that loses seven times is not losing on priority."
-   },
-   {
-    "at": "2026-08-29T02:22:47.338789+00:00",
-    "what": "My instruction asked for the competitive-pressure hunks and the leap-year fix to land as two attributable commits, in that order. They landed inside `c5641b12f`, a commit about the collateral desk, carried along by its pathspec. The channel is live in HEAD, which was the point, but the two-lane attribution is not recoverable and a reader looking for when the company started inferring competitive pressure will find it in a commit about margin calls."
-   },
-   {
-    "at": "2026-08-29T02:22:47.338789+00:00",
-    "what": "The annual report has been publishing a \"SIM ground truth vs company CRM\" reconciliation whose Match column is structurally incapable of reading mismatch \u2014 an empty company CRM reconciles as \"yes\" against a world that churned every account \u2014 under a section headed as the company's record and sourced from the world's. Found by the guard sweep this stretch, filed and not fixed. The published claim is false today."
-   },
-   {
-    "at": "2026-08-29T02:22:47.338789+00:00",
-    "what": "The bound sentence on `/capabilities/` has now been named in seven directions at position four or five and rendered zero times. Naming a piece of work last, repeatedly, is deciding it never happens; I have stopped listing it separately and folded it into the page's own re-run pass, which is the only version of it that has a chance of being done."
    }
   ],
   "refused_own_records": [],
@@ -1161,12 +1156,38 @@
  },
  "what_next": {
   "focus": [
-   "the-publish-wedge-is-one-staged-unwired-file",
-   "dd-estimate-against-the-flat-rule-baseline",
-   "the-27b-correction-reached-one-of-five-places",
-   "give-the-dd-estimate-a-metered-history-rung-on-the-live-route"
+   "the-dd-estimate-changes-no-published-number",
+   "the-declared-precedence-is-twice-the-reachable-one",
+   "the-false-licence-citation-is-still-served"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-publish-wedge-is-one-staged-unwired-file"
+      ],
+      "focus": [
+       "the-publish-wedge-is-one-staged-unwired-file",
+       "dd-estimate-against-the-flat-rule-baseline",
+       "the-27b-correction-reached-one-of-five-places",
+       "give-the-dd-estimate-a-metered-history-rung-on-the-live-route"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-publish-wedge-is-one-staged-unwired-file"
+    ],
+    "focus": [
+     "the-publish-wedge-is-one-staged-unwired-file",
+     "dd-estimate-against-the-flat-rule-baseline",
+     "the-27b-correction-reached-one-of-five-places",
+     "give-the-dd-estimate-a-metered-history-rung-on-the-live-route"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "by_class": {
      "atom": {
@@ -1272,35 +1293,6 @@
      "D_opening_dd_seasonal_sizing",
      "the-830-red-second-observation-must-be-recordable",
      "bill-validation-the-curtain",
-     "the-slc-27b-citation-does-not-exist-and-is-published"
-    ],
-    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
-    "steered": false
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "D_opening_dd_seasonal_sizing"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [],
-      "focus": [
-       "the-830-red-was-diagnosed-and-never-re-measured",
-       "independent-bill-validation-first-slice",
-       "the-slc-27b-citation-does-not-exist-and-is-published"
-      ],
-      "steered": false
-     }
-    },
-    "drawn": [],
-    "focus": [
-     "D_opening_dd_seasonal_sizing",
-     "the-830-red-was-diagnosed-and-never-re-measured",
-     "independent-bill-validation-first-slice",
      "the-slc-27b-citation-does-not-exist-and-is-published"
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",

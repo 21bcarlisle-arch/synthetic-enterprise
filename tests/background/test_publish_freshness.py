@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import types
+from datetime import datetime, timezone
 
 import pytest
 
@@ -210,3 +211,118 @@ def test_both_clocks_fresh_still_reads_as_publishing(monkeypatch):
     snap = pf.snapshot(now=now)
     assert snap["state"] == "publishing"
     assert pf.is_publishing_down(snap) is False
+
+
+# ── THE THIRD NUMBER: the queue behind the publisher (2026-09-03) ──────────────────────────────
+# Both clocks answer "how long since something moved". Neither answers "is the pipeline keeping
+# up with its input", and for nine hours on 2026-09-02/03 those had different answers: 62 markers
+# produced, 27 consumed, and `describe()` said `live` the whole way through. Every leg below pins
+# STAGING_DIR -- an unpinned real-disk read would make these pass or fail on whatever the actual
+# queue happens to hold when the suite runs.
+
+def _markers(d, n):
+    """n queued run markers in `d`, named the way sim_runner names them (UTC stamps)."""
+    for i in range(n):
+        (d / f"run_complete_202609030{i:02d}000Z.md").write_text("x")
+    return d
+
+
+def test_a_live_line_names_the_queue_behind_the_publisher(monkeypatch, tmp_path):
+    """DEFECT: `content publishing: live -- figures reached origin 0.7h ago` was quoted in three
+    places while 35 completed runs sat unpublished behind it. The line was true; it was true
+    about the wrong subject. A reader given the freshness verdict must also be given the depth.
+
+    MUTATION: drop the `queued` clause from `describe`'s live branch (or make `queue_depth`
+    return 0) and this leg fails -- it is the only one asserting the count reaches the line a
+    human actually reads.
+    """
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "STAGING_DIR", _markers(tmp_path, 35))
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 60)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 120)
+    line = pf.describe(pf.snapshot(now=now))
+    assert "live" in line, line
+    assert "35 completed run(s) queued behind the publisher" in line, line
+
+
+def test_an_uncountable_queue_reads_unknown_and_never_empty(monkeypatch, tmp_path):
+    """FAIL-SILENT (R15), the same discipline the two clocks already keep: a queue we could not
+    count must not be reported as a queue that is empty. `0` here would manufacture the all-clear
+    this field exists to end.
+
+    MUTATION: `except OSError: return 0` in `queue_depth` -- this leg is the sole witness.
+    """
+    import background.publish_freshness as pf
+
+    class _Boom:
+        def glob(self, _pat):
+            raise OSError("staging unreadable")
+
+    monkeypatch.setattr(pf, "STAGING_DIR", _Boom())
+    assert pf.queue_depth() is None
+    assert pf.snapshot(now=1_000_000.0)["queue_depth"] is None
+
+
+def test_a_deep_queue_does_not_change_the_publish_verdict(monkeypatch, tmp_path):
+    """The depth is an OBSERVATION and must stay one. The queue is a stack, not a FIFO -- the
+    drain clears a burst by RETIRING superseded markers (17/17 at 2026-09-03 01:56Z) -- so a
+    threshold here would alarm on the mechanism working, and `_check_zero_progress` already pages
+    on the property that matters (no progress on the oldest marker across cycles). Promoting a
+    previously-unread field into a decision is what turned five tests red on 2026-09-02.
+
+    MUTATION: fold depth into `state` (e.g. `backlogged` when depth > N) and this leg fails.
+    """
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "STAGING_DIR", _markers(tmp_path, 200))
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 60)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 120)
+    snap = pf.snapshot(now=now)
+    assert snap["state"] == "publishing"
+    assert pf.is_publishing_down(snap) is False
+    assert snap["queue_depth"] == 200
+
+
+def test_an_empty_queue_adds_nothing_to_the_line(monkeypatch, tmp_path):
+    """The control must not be always-on: a drained queue leaves the line exactly as it was, so
+    the clause means something when it appears."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 60)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 120)
+    assert "queued behind" not in pf.describe(pf.snapshot(now=now))
+
+
+def test_the_oldest_queued_run_is_aged_from_its_utc_name_not_its_mtime(monkeypatch, tmp_path):
+    """DEFECT: the count cannot tell a burst from a stall -- 35 markers minted in ten minutes is a
+    busy runner; 3 whose oldest has waited nine hours is a pipeline not reaching its input. And
+    the age must come from the NAME: sim_runner stamps UTC, this box runs local BST, and the
+    retirement path rewrites mtimes -- so an mtime-based age both gains a phantom hour and resets
+    on a marker that has not moved.
+
+    MUTATION: age from `p.stat().st_mtime` instead of the parsed stamp; the file is written now,
+    so the measured age collapses to ~0 and this leg fails.
+    """
+    import background.publish_freshness as pf
+    # 20260902T160532Z, the real oldest member of the measured backlog, read at 01:07Z next day.
+    (tmp_path / "run_complete_20260902T160532Z.md").write_text("x")
+    monkeypatch.setattr(pf, "STAGING_DIR", tmp_path)
+    now = datetime(2026, 9, 3, 1, 7, 0, tzinfo=timezone.utc).timestamp()
+    age = pf.queue_oldest_age_seconds(now)
+    assert age is not None and 9.0 < age / 3600.0 < 9.1, age
+
+
+def test_an_empty_or_unparseable_queue_reports_no_age_rather_than_zero(monkeypatch, tmp_path):
+    """FAIL-SILENT again: `0.0` would read as "the oldest run has waited no time at all", i.e. a
+    perfectly fresh queue, which is the all-clear this field exists to withhold.
+
+    MUTATION: `return max(ages) if ages else 0.0` -- this leg is the sole witness.
+    """
+    import background.publish_freshness as pf
+    monkeypatch.setattr(pf, "STAGING_DIR", tmp_path)
+    assert pf.queue_oldest_age_seconds(1_000_000.0) is None
+    (tmp_path / "run_complete_NOT_A_STAMP.md").write_text("x")
+    assert pf.queue_oldest_age_seconds(1_000_000.0) is None
+    assert pf.queue_depth() == 1  # counted, but contributing no age
