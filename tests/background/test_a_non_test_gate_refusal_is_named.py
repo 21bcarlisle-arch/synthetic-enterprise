@@ -103,11 +103,31 @@ def test_an_unnameable_refusal_says_so_and_warns_off_the_stale_list():
         "nothing warns the reader off the record that is about to mislead them")
 
 
-def test_the_first_banner_in_the_chains_order_wins():
+#: The test gate's consolidation refusal, verbatim from `tools/pre_commit_test_gate.py`.
+#: `tools/git-hooks/pre-commit` runs that gate at line 24 and the orphan ratchet at line 111, so
+#: when both banners are in one buffer the TEST GATE is what refused.
+TEST_GATE_CONSOLIDATION_OUTPUT = (
+    "\n[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED.\n"
+    "  a class doc is in the staging root\n"
+)
+
+
+def test_the_first_gate_in_the_chains_order_wins():
     """Defect: the chain short-circuits, so a later banner is downstream noise. Naming the
-    last match would report a gate that never got to run."""
-    both = ORPHAN_RATCHET_OUTPUT + "\nFINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED\n"
-    assert prc._parse_refusing_gate(both) == "orphan-ratchet"
+    last match would report a gate that never got to run.
+
+    CORRECTED 2026-09-03, and the correction is the point. This leg used to assert that
+    `orphan-ratchet` won over the consolidation banner -- the old table's order, which was not
+    the chain's. It passed for two compounding wrong reasons: the table listed the ratchet
+    first, and the fixture's second banner lacked the `❌` the gate actually prints, so it could
+    not have matched in either order. A control keyed to the wrong answer, agreeing with itself.
+    Both sides are now taken from the gates' own source and ordered by `pre-commit`'s line
+    numbers."""
+    both = TEST_GATE_CONSOLIDATION_OUTPUT + ORPHAN_RATCHET_OUTPUT
+    assert prc._parse_refusing_gate(both) == "finding-class consolidation"
+    # ...and the ratchet alone still names the ratchet, so the line above is order and not a
+    # blanket preference for one row.
+    assert prc._parse_refusing_gate(ORPHAN_RATCHET_OUTPUT) == "orphan-ratchet"
 
 
 # ── THE CAUSE: a non-test gate judged nothing, and the vocabulary must say so ────────────────

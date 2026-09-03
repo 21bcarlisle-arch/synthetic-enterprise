@@ -2979,14 +2979,69 @@ def _parse_failed_node_ids(out):
 #
 # ORDER IS THE CHAIN'S ORDER. The chain short-circuits, so when more than one banner is present
 # the FIRST matching entry is the one that refused; the rest are downstream noise or a replay.
+#
+# ── THE 2026-09-03 CORRECTION: FIVE OF THE SEVEN ENTRIES MATCHED NOTHING ANY GATE PRINTS ─────
+#
+# The paragraph above is right about the DIRECTION of the risk and was wrong that the risk was
+# in the future. It argues a reworded banner degrades safely to UNNAMED. True — and the table it
+# was defending had already degraded, at birth, for five of its seven rows. Measured against the
+# strings the gates actually emit:
+#
+#   WRITE-TIME GATE  the gate prints `[write-time-gate] ❌ COMMIT REFUSED`. The table's uppercase
+#                    spaced form appears in the module's LINE-1 DOCSTRING and nowhere else, so a
+#                    grep for it in the source says PRESENT and the process prints it never.
+#   LEVEL PROMOTION  the gate prints `[level-gate] ❌ COMMIT REFUSED`. Nothing prints this.
+#   LIVE LEDGER      the guard RAISES `LiveLedgerWriteUnderTest`; it prints no banner at all, and
+#                    it is not a hook-chain gate — it is a runtime write guard. Dropped, not
+#                    re-worded: an entry for a gate that cannot refuse a commit is noise.
+#   FINDING SEVERITY the refusal is the test gate's, and its words are the STAGING-DOCUMENT line
+#                    below. Nothing anywhere prints this pair of words.
+#   I001             ruff's code, and the pre-commit chain does not invoke ruff. Four characters
+#                    is also far too short to be evidence of anything. Dropped.
+#
+# So a level-promotion refusal — the SECOND gate in the chain, the one most likely to stop a
+# publish after the test gate — reported "no gate banner this classifier knows", i.e. UNNAMEABLE,
+# about a refusal that names itself on the very next line. That is the defect this block was
+# written to end, surviving inside the fix for it.
+#
+# WHY IT SURVIVED: the table was checked by fixtures the test file supplies, so both sides of
+# every leg were written from the same guess about what a gate prints. Nothing compared the
+# table to a gate. `tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py`
+# is that comparison, and it is keyed to the PROPERTY (every needle is a non-docstring string
+# literal in the file named as its emitter) rather than to today's wording — so a gate that
+# rewords goes RED HERE instead of quietly unnameable in the register.
+#
+# NEEDLES ARE ALL-OF, NOT ONE SUBSTRING. `write-time gate` is why: it assembles its line as
+# f"[write-time-gate] {head}", where `head` is `❌ COMMIT REFUSED` in gate mode and
+# `⚠️  WARN ONLY` in warn mode. Matching the prefix alone would name it as the refuser on a run
+# where it deliberately did NOT refuse — the false-positive direction, which is not fail-safe and
+# is the one the original comment did not consider.
+#
+# ORDER, NOW ACTUALLY THE CHAIN'S. pre-commit runs the test gate, then level-promotion, then
+# (five gates this table does not name) the orphan ratchet; commit-msg runs the write-time gate
+# only after all of pre-commit passed. The old table had orphan-ratchet first and level-promotion
+# fourth, which is backwards. Write-time is LAST on purpose: it is the only entry whose needles
+# could co-occur with an earlier gate's refusal, and last means the earlier gate wins.
+#
+# COVERAGE IS PARTIAL AND SAYS SO. The chain has 15 gates; these name 4 of them plus the
+# write-time gate. The other eleven still report UNNAMED — honestly, as "we cannot tell", which
+# is the fail-safe reading. Named in the finding rather than papered over with a guessed banner
+# per gate: a needle invented without reading the gate that prints it is what produced the five
+# dead rows above.
+#
+# Each entry is (name, needles, emitter) — `emitter` is the file that PRINTS the needles and is
+# what the control checks against.
 _REFUSING_GATE_BANNERS = (
-    ("orphan-ratchet", "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS"),
-    ("finding-class consolidation", "FINDING-CLASS CONSOLIDATION BROKEN"),
-    ("write-time gate", "WRITE-TIME GATE"),
-    ("level-promotion gate", "LEVEL PROMOTION"),
-    ("live-ledger guard", "LIVE LEDGER"),
-    ("finding-severity gate", "FINDING SEVERITY"),
-    ("import-order (ruff I001)", "I001"),
+    ("finding-class consolidation",
+     ("❌ FINDING-CLASS CONSOLIDATION BROKEN",), "tools/pre_commit_test_gate.py"),
+    ("finding-severity gate",
+     ("❌ A STAGING DOCUMENT THIS COMMIT WRITES HAS NO PARSEABLE SEVERITY HEADER",),
+     "tools/pre_commit_test_gate.py"),
+    ("level-promotion gate", ("[level-gate] ❌",), "tools/level_promotion_gate.py"),
+    ("orphan-ratchet",
+     ("orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS",), "tools/orphan_ratchet.py"),
+    ("write-time gate",
+     ("[write-time-gate] ", "❌ COMMIT REFUSED"), "tools/write_time_gate.py"),
 )
 
 
@@ -2994,10 +3049,13 @@ def _parse_refusing_gate(text):
     """The NAME of the non-test gate whose banner is in the hook chain's output, or None.
 
     None means "the output named no gate this parser knows", which is a fact a reader can act
-    on -- it says look at the hook output itself -- and never a guess at a gate."""
+    on -- it says look at the hook output itself -- and never a guess at a gate.
+
+    ALL of an entry's needles must be present. One needle that happens to appear is not evidence
+    the gate refused; see the `write-time gate` warn-mode case in the block above."""
     hay = text or ""
-    for name, banner in _REFUSING_GATE_BANNERS:
-        if banner in hay:
+    for name, needles, _emitter in _REFUSING_GATE_BANNERS:
+        if all(needle in hay for needle in needles):
             return name
     return None
 

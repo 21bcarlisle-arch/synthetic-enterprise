@@ -1,0 +1,145 @@
+**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+
+# The gate-naming table matched nothing five of its seven gates print
+
+Grades `PREREG_WHETHER_THE_REFUSING_GATE_BANNER_TABLE_STILL_MATCHES_ITS_GATES_2026-09-03.md`,
+written before any of the measurements below.
+
+**CLASS:** controls_that_cannot_fail
+
+## What was drawn, and why this is not it
+
+The drawn brief was "dispose of `tools/artefact_rerun_diff.py` and make the publish-gate
+classifier able to name a non-test refusal". **Both halves were already landed** by another seat
+at `19f226e46`, with follow-ups at `eb0fae2fc` and `15709e9e8`. This seat adopted rather than
+rebuilt, and verified by the subject exactly as the brief demanded — all three done-conditions
+hold on the shared tree:
+
+| Done-condition | Reading, 2026-09-03T02:09Z |
+|---|---|
+| `publish_freshness.describe()` not DOWN | `live -- figures reached origin 0.2h ago` |
+| origin `site/data/` later than `1c4f64733` | `b6b3c3fa8`, 2026-09-03 02:55 +0100 |
+| `run_complete_*.md` falling | **0** queued, 1452 in `done/` (was 35) |
+
+`python3 -B tools/orphan_ratchet.py` prints nothing, rc=0. The brief said *"if clearing this
+reveals the next gate rather than a green publish, name it and clear that one too."* It revealed
+a green publish. So this finding is about the thing the fix itself left broken.
+
+## The defect
+
+`background/process_run_complete.py:_REFUSING_GATE_BANNERS` is the table that names the non-test
+gate which refused a publish commit — the whole point being that a reader is not sent to a suite
+that was never the problem. It shipped with seven rows. **Five matched nothing any gate prints.**
+
+Measured against the strings the gates actually emit:
+
+| Row | What the gate really prints | Verdict |
+|---|---|---|
+| `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS` | same | live |
+| `FINDING-CLASS CONSOLIDATION BROKEN` | `[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN` | live |
+| `WRITE-TIME GATE` | `[write-time-gate] ❌ COMMIT REFUSED` | **dead** |
+| `LEVEL PROMOTION` | `[level-gate] ❌ COMMIT REFUSED` | **dead** |
+| `LIVE LEDGER` | raises `LiveLedgerWriteUnderTest`; not a chain gate at all | **dead** |
+| `FINDING SEVERITY` | the words occur nowhere in this repository | **dead** |
+| `I001` | ruff's code; `tools/git-hooks/pre-commit` never invokes ruff | **dead** |
+
+Run against the gates' real refusal lines, `_parse_refusing_gate` returned `None` for the
+level-promotion gate, the write-time gate and the live-ledger guard. So a **level-promotion
+refusal — the second gate in the chain** — reported `UNNAMEABLE` about a refusal that names
+itself on the very next line of the buffer being parsed.
+
+That is the same defect the table was written to end, alive inside the fix for it. The original
+cost 18.7 hours of publishing down.
+
+## Why its own R15 suite could not see it
+
+`tests/background/test_a_non_test_gate_refusal_is_named.py` is a good suite and every leg passed.
+Its fixtures are strings **the test file supplies**. The table and its control were therefore
+written from one guess about what a gate prints, and a shared wrong guess is invisible to both
+sides. Nothing in the tree reached a gate.
+
+This is the tautology killer wearing fixture clothes, and it is worth stating as a rule:
+
+> **A control whose fixture and whose subject were authored in the same act by the same author
+> can only test that the author was self-consistent.** It cannot test that either matched the
+> world. The fixture must be taken from the thing being described, or something must compare
+> them.
+
+One further trap, and it is the reason `git grep` is the wrong instrument here: `WRITE-TIME GATE`
+**is** in `tools/write_time_gate.py` — it is line 1 of the module docstring. Source-presence says
+PRESENT; the process prints it never. Presence in source and presence in output are two different
+questions and only one of them matters.
+
+## The repair, landed in the same commit
+
+1. **The table is rebuilt from the gates' own source**, in the order `tools/git-hooks/pre-commit`
+   actually runs them. Each row is now `(name, needles, emitter)`.
+2. **Needles are ALL-OF, not one substring.** The write-time gate assembles its line as
+   `f"[write-time-gate] {head}"`, where `head` is `❌ COMMIT REFUSED` in gate mode and
+   `⚠️  WARN ONLY` in warn mode. Matching the prefix alone would name it as the refuser of a
+   commit it deliberately let through — the false-positive direction, which is *not* fail-safe.
+3. **`tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py`** is the
+   comparison that did not exist. Keyed to the property — *every needle is a non-docstring
+   string literal in the file named as its emitter* — not to today's wording. Rows may be added,
+   dropped or reworded freely; what cannot happen is a row that no gate prints. A gate that
+   rewords now goes **RED here**, named, instead of quietly unnameable in the register.
+4. **The order leg is corrected, and the correction is itself the evidence.**
+   `test_the_first_banner_in_the_chains_order_wins` asserted that `orphan-ratchet` beat the
+   consolidation banner. `pre-commit` runs the test gate at line 24 and the ratchet at line 111,
+   so that was backwards — and it passed anyway, for two compounding wrong reasons: the table
+   listed the ratchet first, and the fixture's second banner lacked the `❌` the gate actually
+   prints, so it could not have matched in either order. A control agreeing with itself.
+
+Mutation-proved, four legs, each firing on its own subject (`python3 -B`, so no stale `.pyc`):
+
+| Mutation | Leg that went RED |
+|---|---|
+| restore the dead `WRITE-TIME GATE` needle | `test_every_needle_is_a_string_its_named_emitter_actually_prints[write-time gate]` |
+| `all()` → `any()` in `_parse_refusing_gate` | `test_all_of_a_rows_needles_are_required_not_any_of_them` |
+| move the write-time row to the front | `test_the_table_is_ordered_by_the_chain_that_actually_runs_the_gates` |
+| count docstrings as printed | `test_a_needle_that_only_appears_in_a_docstring_is_rejected` |
+
+21 pass across the two files; the tree restores green after each mutation.
+
+## The prereg, graded
+
+- **P1 — "at least one first-party banner does not appear literally in the source of the gate it
+  names": CONFIRMED, and it splits in a way the prediction did not anticipate.** Four of six were
+  absent. But source-presence turned out to be the wrong instrument, and it erred in **both**
+  directions: `FINDING-CLASS CONSOLIDATION BROKEN` was absent from `finding_classes.py` and is
+  genuinely printed — by `tools/pre_commit_test_gate.py`, so the *emitter* was misfiled and the
+  row was live (a false fail); `WRITE-TIME GATE` was present in `write_time_gate.py` and is
+  printed by nothing, because it is a docstring (a false pass). Graded against printed output
+  instead, the count is **5 of 7 dead**, worse than predicted.
+- **P2 — "at least one banner is short enough to match a line that is not a refusal": REFUTED as
+  stated, and its mechanism then found live in my own repair.** I predicted the four bare
+  uppercase fragments would produce false positives. They cannot: they match nothing at all, so
+  they can never fire in either direction. The prediction was wrong about the original table.
+  The mechanism it describes is real, and I walked into it — the obvious repair for the
+  write-time row is the bare prefix `[write-time-gate]`, which matches warn mode. Having written
+  P2 down first is the only reason I looked, and it is why needles are ALL-OF above. **Recording
+  this as a refutation and not as a hit**, because the subject I named was wrong even though the
+  shape I named was right.
+- **P3 — "no control in the tree relates the table to the gates": CONFIRMED.** The only
+  references outside `process_run_complete.py` were five calls in the test file, all against
+  fixtures it supplies itself.
+
+## What is owed next, stated rather than papered over
+
+**Coverage is partial and the code now says so.** `tools/git-hooks/pre-commit` invokes **15**
+gates; the table names four of them, plus the write-time gate from `commit-msg`. The other eleven
+— `site_lane_gate`, `moap_coherence_gate`, `ruling_archive_question_gate`, `consolidation_rhythm`,
+`size_ratchet_gate`, `company_network_isolation`, `file_scope_generated_paths`,
+`annual_report_import_ratchet`, `half_hourly_dependency_ratchet`, `running_total_order`,
+`scope_evidence_ratchet` — still report `UNNAMED`, which reads honestly as "we cannot tell".
+
+That gap is deliberate and is **not** closed by guessing. A needle invented without reading the
+gate that prints it is precisely what produced the five dead rows this finding is about, and
+authoring eleven more from module names would reproduce the defect at scale while turning the
+control green. `test_the_table_does_not_silently_claim_to_cover_the_whole_chain` holds the
+disclosure so a later reader cannot mistake `UNNAMED` for "not a gate".
+
+**Why this stays BLOCKING:** by `finding_severity` clause 2 a finding whose plain text says an
+instrument was wrong is BLOCKING by construction, and that is not the filer's to soften. The
+half repaired here is closed; the eleven-gate coverage gap is what remains open, and it is an
+instrument that answers "cannot tell" for eleven of fifteen real refusal causes.
