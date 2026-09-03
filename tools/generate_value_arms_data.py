@@ -3221,6 +3221,18 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None) -> dict:
         "redraw_resolving": sum(1 for verdict in verdicts if verdict is True),
         "redraw_min_gbp": min(values),
         "redraw_max_gbp": max(values),
+        # THE MEAN IS WHAT SAYS WHERE IN THE RANGE THE PUBLISHED DRAW FELL, and without it the
+        # range is the flattering reading one layer along. "£2,336, and the same quantity spans
+        # £451 to £2,434" reads as "somewhere in there"; "£2,336 against a £1,451 mean of those
+        # re-draws" says the run made a HIGH draw. Withholding the binary verdict and leaving the
+        # reader unable to place the surviving point estimate within its own family is the same
+        # defect this function was written for, pointed at the number that survived it.
+        #
+        # It is the arithmetic mean of these same rows, so it is `bound.mean_gbp` to the bit --
+        # asserted, not assumed, because a second route to a number is how one legal rule became
+        # five implementations here. It is computed from `values` rather than read from the spread
+        # so that this block cannot report a centre for a family it did not measure.
+        "redraw_mean_gbp": sum(values) / len(values),
         "stable": len(set(verdicts)) == 1,
     }
 
@@ -3320,14 +3332,26 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # the conflation this file refuses everywhere else.
     verdict_withheld_because = None
     if resolved is not None and stability.get("checked") and not stability.get("stable"):
+        # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
+        # the same breath as the range because the range on its own is the flattering reading:
+        # a reader who meets "£2,336, and this moves between £451 and £2,434" has no way to tell
+        # that £2,336 is near the TOP of that span rather than its middle. Composed from the
+        # comparison rather than hard-coded, because the next run's draw may be the low one and a
+        # sentence that only knows how to say "above" would then be false on the page.
+        mean = _f(stability.get("redraw_mean_gbp"))
+        point = _f(advantage)
+        where = ("ABOVE" if point > mean else "BELOW" if point < mean else "exactly AT")
         verdict_withheld_because = (
             "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
             "bound beside it is how far that same quantity moves across {n} re-draws of it. "
             "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
             "page could state a direction depends on which draw the run happened to make. It "
-            "states none. The re-draws themselves span £{lo:,.0f} to £{hi:,.0f}."
+            "states none. The re-draws themselves span £{lo:,.0f} to £{hi:,.0f} and average "
+            "£{mean:,.0f}, so the figure above sits {where} the centre of its own family -- "
+            "which the range alone would not have told you."
         ).format(n=stability.get("n"), res=stability.get("redraw_resolving"),
-                 lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"))
+                 lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"),
+                 mean=mean, where=where)
         resolved = None
     return {
         "available": True,
@@ -3409,16 +3433,23 @@ def _current_world_clause(current_world: dict) -> str:
     # whose stability they would have to reconstruct from `bound.min_gbp` further down the feed.
     stability = current_world.get("verdict_stability") or {}
     if current_world.get("verdict_withheld_because"):
+        # THE MEAN OF THE RE-DRAWS IS IN THE HEADLINE, beside the range, because withholding the
+        # binary and then leaving the surviving point estimate unplaced within its own family is
+        # the flattering reading one step along -- see `_verdict_stability`. A reader who is told
+        # the quantity spans £451 to £2,434 still takes £2,336 as the answer; told the same family
+        # averages £1,451, they can see the published run drew high.
         return (opening + (
             "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
             "contrast re-drawn {n} times in this same world spans £{lo:,.0f} to £{hi:,.0f} "
             "against a £{sd:,.0f} spread -- {res} of the {n} re-draws clear that spread and the "
             "rest do not, so a direction here would be a property of which draw was made rather "
-            "than of the company. The figure and its bound are both published; the verdict is "
-            "withheld until it survives a re-draw. "
+            "than of the company. Those re-draws average £{mean:,.0f} -- the range alone does not "
+            "say where in it this draw fell and the mean does. The figure and its bound are both "
+            "published; the verdict is withheld until it survives a re-draw. "
         )).format(adv=advantage, when=when, sd=stdev if stdev is not None else 0,
                   n=stability.get("n"), res=stability.get("redraw_resolving"),
-                  lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"))
+                  lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"),
+                  mean=stability.get("redraw_mean_gbp"))
     verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
                "same world" if current_world.get("resolved") else
                "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "

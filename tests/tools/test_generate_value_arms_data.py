@@ -2469,6 +2469,34 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
         assert edge in withheld["verdict_withheld_because"], (
             "the reason withheld the range that reverses the verdict: "
             + withheld["verdict_withheld_because"])
+    # AND THE CENTRE OF THE FAMILY, WHICH IS WHAT PLACES THE SURVIVING POINT ESTIMATE IN IT. A
+    # range says how far the quantity moves; only the mean says the published £2,336 is the high
+    # end of its own re-draws rather than their middle. Withholding the binary and leaving that
+    # unsaid is the flattering reading one layer along.
+    stability = withheld["verdict_stability"]
+    assert stability["redraw_mean_gbp"] == pytest.approx(
+        (1467.230551 + 2433.696987 + 450.9949) / 3), (
+        "the reported centre is not the mean of the rows it claims to summarise")
+    assert "£1,451" in withheld["verdict_withheld_because"], (
+        "the reason gave the range without the mean, so a reader cannot tell whether the figure "
+        "published above is the middle of its family or its favourable end: "
+        + withheld["verdict_withheld_because"])
+    # THE DIRECTION IS COMPOSED, NOT HARD-CODED. £2,335.87 is above the £1,450.64 mean, so this
+    # subject must say ABOVE -- and the low-draw subject below is the sole witness that the
+    # sentence is capable of saying the unflattering thing about a DIFFERENT draw. Without it,
+    # "ABOVE" is a constant that happens to be true of today's artefact.
+    assert "ABOVE" in withheld["verdict_withheld_because"], (
+        "the published draw sits above its family's mean and the reason did not say so")
+    # £1,200 is chosen to clear the £991 spread (so the withheld branch is still REACHED -- a
+    # subject that failed `_resolvable` would exit through `resolved: None` and witness nothing)
+    # while sitting under the £1,451 mean. Both margins are ~£200, not ~£9.
+    low_draw = dict(current, level_vs_selection=dict(
+        current["level_vs_selection"], value_advantage_gbp=1200.0))
+    low = gva._current_world_contrast(low_draw, superseded, straddling)
+    assert low["verdict_withheld_because"] and "BELOW" in low["verdict_withheld_because"], (
+        "a draw of £1,200 sits below the £1,451 mean of the same family and the page still said "
+        "ABOVE, so the placement is hard-coded to today's artefact rather than measured: "
+        + str(low.get("verdict_withheld_because")))
 
     # WITNESS B -- SOLE WITNESS THAT THE WITHHOLDING IS A JUDGEMENT. Every re-draw clears its own
     # spread by two orders of magnitude, so there is nothing unstable to find and a verdict is due.
