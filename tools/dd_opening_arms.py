@@ -348,11 +348,40 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
         elif not info["has_published_rate"]:
             no_rate.append(cid)
 
-    basis_split: dict[str, int] = {}
+    # TWO SPLITS, AND THEY ARE NOT THE SAME QUANTITY. Until 2026-09-03 there was one,
+    # built by iterating `est_open` -- the accounts that came out with an AMOUNT -- and
+    # `publish_view` handed it to `basis_precedence_view` under the name `basis_split`,
+    # which is documented as the split of THE PRECEDENCE. It is not: it is the split of
+    # the survivors.
+    #
+    # The difference is not academic. `estimate_annual_consumption` resolving a rung and
+    # `opening_monthly_amount` returning a number are two events separated by a second,
+    # independent refusal -- whether this company holds a published rate for that date.
+    # Three accounts (C7, C8, C9, all acquired in 2016, none carrying an EAC) resolve
+    # through TDCV_TYPICAL exactly as SLC 27.15's fallback intends, and then lose their
+    # amount to the pre-2019 rate gap. Under one split they vanished, and the page
+    # rendered "Ofgem's published typical values -- 0" to a reader. A rendered zero is a
+    # MEASUREMENT: it said the supplier never needed the fallback. It needed it three
+    # times and used it three times.
+    #
+    # So both are counted, separately, and neither is derived from the other by
+    # subtraction: a count nobody computed is a count nobody can check.
+    basis_resolved: dict[str, int] = {}
+    basis_with_amount: dict[str, int] = {}
+    basis_resolved_without_amount: dict[str, int] = {}
+    for cid, info in basis.items():
+        key = info["basis"]
+        basis_resolved[key] = basis_resolved.get(key, 0) + 1
+        target = basis_with_amount if cid in est_open else basis_resolved_without_amount
+        target[key] = target.get(key, 0) + 1
+    # An account holding an opening amount that the basis pass never saw would mean the
+    # two passes disagree about who is in the population. Counted rather than dropped.
     for cid in est_open:
-        info = basis.get(cid)
-        key = info["basis"] if info else "not_in_population"
-        basis_split[key] = basis_split.get(key, 0) + 1
+        if cid not in basis:
+            basis_with_amount["not_in_population"] = (
+                basis_with_amount.get("not_in_population", 0) + 1)
+            basis_resolved["not_in_population"] = (
+                basis_resolved.get("not_in_population", 0) + 1)
 
     return {
         "n_customers_with_opening": {"flat": len(flat_open), "estimate": len(est_open)},
@@ -370,7 +399,13 @@ def per_account_comparison(flat_arm: dict, est_arm: dict,
             "estimate_cause_not_in_population_list": len(not_in_population),
             "estimate_ids_sample": est_unestimated[:20],
         },
-        "basis_split_of_estimated_accounts": basis_split,
+        # Named for what each one COUNTS. The old single key was
+        # `basis_split_of_estimated_accounts`, which was an honest name for the
+        # survivors-only count -- and `publish_view` then renamed it to `basis_split`
+        # and published it as the split of the precedence.
+        "basis_split_resolved": basis_resolved,
+        "basis_split_with_opening_amount": basis_with_amount,
+        "basis_split_resolved_without_opening_amount": basis_resolved_without_amount,
         "window0_end_balance_drift": {
             "flat": _split_credit_debit(
                 [w[0] for w in flat_w.values() if 0 in w]),
@@ -491,9 +526,20 @@ BASIS_READER_NAMES: Mapping[str, str] = {
 }
 
 
-def basis_precedence_view(basis_split: Mapping[str, int]) -> dict:
+def basis_precedence_view(resolved_split: Mapping[str, int],
+                          with_amount_split: Mapping[str, int]) -> dict:
     """The precedence as the reader meets it: which rungs this company WALKS, with
     how many accounts each one carried, and which it CANNOT walk, with why.
+
+    TWO COUNTS PER WALKED RUNG, AND THE SECOND IS NOT OPTIONAL. `resolved_split` counts
+    the accounts whose estimate CAME FROM this rung; `with_amount_split` counts those
+    that went on to get an opening direct debit out of it. They differ whenever the
+    rate refusal fires after the consumption estimate succeeds, and the whole reason
+    this function takes two arguments is that it used to take one and publish it as
+    though it were the other -- `tdcv_typical` fired for three accounts and reached the
+    page as `0`. The second argument is positional and required rather than defaulted,
+    because a default would let an old caller go on publishing one count under both
+    names and the page would read exactly as it did before, with nothing red.
 
     DERIVED FROM THE COMPANY MODULE, never authored here, and that is the whole point
     of the function. The block this replaced was a prose sentence reading "SLC 27.15's
@@ -520,7 +566,12 @@ def basis_precedence_view(basis_split: Mapping[str, int]) -> dict:
         {
             "basis": b.value,
             "label": BASIS_READER_NAMES.get(b.value, b.value),
-            "n_accounts": int(basis_split.get(b.value, 0)),
+            # The estimate CAME FROM this rung for this many accounts.
+            "n_resolved": int(resolved_split.get(b.value, 0)),
+            # ...and this many of those ended up with a direct debit. The gap is the
+            # rate refusal, which is a different refusal for a different reason and is
+            # never folded into the rung's own count.
+            "n_with_opening_amount": int(with_amount_split.get(b.value, 0)),
         }
         for b in BASIS_ORDER
     ]
@@ -537,7 +588,14 @@ def basis_precedence_view(basis_split: Mapping[str, int]) -> dict:
     # and not in the order is a disagreement between the organ and its own contract,
     # and silently discarding it is how that disagreement stays invisible.
     named = {b.value for b in BASIS_ORDER} | {x.basis.value for x in NOT_REACHABLE_AT_OPENING}
-    unaccounted = {k: v for k, v in basis_split.items() if k not in named}
+    # Over BOTH splits: a stray basis that resolved but never produced an amount is
+    # exactly the case the survivors-only count hid, so checking only one of them
+    # reinstates the defect at the level above.
+    unaccounted = {
+        k: int(resolved_split.get(k, 0) or with_amount_split.get(k, 0))
+        for k in set(resolved_split) | set(with_amount_split)
+        if k not in named
+    }
     return {
         "walked": walked,
         "excluded": excluded,
@@ -649,13 +707,18 @@ def publish_view(result: dict | None) -> dict:
                 "invented to fill the gap.".format(n=unest.get("estimate_n"))
             ),
         },
-        "basis_split": pa.get("basis_split_of_estimated_accounts") or {},
+        # BOTH SPLITS REACH THE FEED, under names that say what each one counts. The
+        # single `basis_split` that used to be here carried the survivors-only count
+        # under a name that promised the precedence.
+        "basis_split_resolved": pa.get("basis_split_resolved") or {},
+        "basis_split_with_opening_amount": pa.get("basis_split_with_opening_amount") or {},
         # DERIVED from `BASIS_ORDER` and `NOT_REACHABLE_AT_OPENING`, so returning a rung
         # to the precedence changes this page and nobody edits this page. What was here
         # before was a sentence counting to four, and it went false two hours after it
         # was published without anything noticing.
         "basis_precedence": basis_precedence_view(
-            pa.get("basis_split_of_estimated_accounts") or {}),
+            pa.get("basis_split_resolved") or {},
+            pa.get("basis_split_with_opening_amount") or {}),
     }
 
 
