@@ -168,6 +168,45 @@ different quantity from the one the page publishes and label it as the page's �
 *"the decomposition never said which contrast it split, and always split the wrong one"*, reappearing
 through the flag added to fix it.
 
+### Bind the landing to THIS claim id — the doorbell names one that is claimed nowhere
+
+*Filed 2026-09-03 17:35 BST, while the leg is still running, so it is in front of the turn that
+lands rather than behind it.*
+
+The scheduled-tick doorbell commissioning this work ends with an explicit instruction, twice:
+
+> `python3 -m background.delivery_lane --landed pick-up-the-relaunched-undecomposed-floor-leg`
+> … it is the ONLY way this lane can see your work moving. Skip it and the claim is swept back
+> into the pool in 100 minutes however much you landed.
+
+**`pick-up-the-relaunched-undecomposed-floor-leg` is claimed nowhere.** It is absent from
+`.delivery_lane_claims.json`, absent from `.seat_work_in_hand.json` (which is `{}`), and a grep of
+the whole tree returns no occurrence of the string outside the doorbell itself. Asked directly:
+
+    pick-up-the-relaunched-undecomposed-floor-leg
+      -> 'it is NOT CLAIMED -- nothing holds a deadline for it, so there is nothing to inform'
+
+So the instructed command binds nothing and exits non-zero, and the turn that spends the 2h25m
+measurement is logged `LANDED NOTHING` and has the item re-offered — the failure the instruction is
+quoted above trying to prevent, caused by following it literally.
+
+**The live claim is `the-baseline-was-beaten-in-a-world-that-no-longer-exists`.** It is what holds
+the paths (`tools/generate_value_arms_data.py`, `tools/run_value_cycle_ab.py`,
+`site/data/value_arms.json`), it is the claim every 2026-09-03 seat finding and pre-registration —
+including this one, in its own header — is filed under, and it is the id the landing must bind:
+
+    python3 -m background.delivery_lane --landed the-baseline-was-beaten-in-a-world-that-no-longer-exists
+
+Do **not** mint the doorbell's id to make the instruction true. The work is already claimed, and a
+second id over one subject is `SEAT_FINDING_A_SECOND_DRAW_RE_OFFERED_A_RECONCILIATION_ALREADY_
+LANDED_UNDER_A_DIFFERENT_CLAIM_ID_2026-09-03.md` — the defect, not the repair.
+
+*One trap when checking this by hand: `refusal_reason` is a post-hoc explainer for a refusal that
+already fired, not a predictor. Called speculatively on a healthy id it falls through its three
+diagnosable causes and returns the residual string `the claims store refused the write`, which
+reads as a fourth refusal and is not one. That is what it returns for the live id here — meaning
+bindable, not broken.*
+
 ### Then
 
 Grade P4, P6 and P7 here against the landed artefact; update the `/capabilities/` headline to the
