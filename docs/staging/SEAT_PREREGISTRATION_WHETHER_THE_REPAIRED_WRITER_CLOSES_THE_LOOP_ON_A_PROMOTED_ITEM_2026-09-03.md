@@ -89,3 +89,26 @@ and it is graded by the same hand-off as P3.
 * **Anything measured on a turn whose writer generation is ambiguous.** The tick at 22:36 UTC
   started within ~2 seconds of the shared tree fast-forwarding to `ff563798b`; I cannot say which
   `run_once` it imported and will not use it in either direction.
+
+---
+
+## 4. GRADED 2026-09-03 00:11 UTC, by the next turn
+
+All four predictions **CONFIRMED**. P1 and P2 were graded by the filing turn itself and are
+recorded in §13.5 of the finding. P3 and P4 could not be — the parent writes both lines after the
+child exits — and are graded in **§13.6** of
+`docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md`
+by the turn `read-this-turns-own-discharge-line-and-close-p3-and-p4`, with the evidence:
+
+* **P3** — `DISCHARGED grade-the-repaired-writer-on-a-real-executor-turn` sits immediately before
+  that turn's `FINISHED` line, at 00:08 UTC, on the branch fixed in advance above. Promoted route,
+  repaired writer, `--release` the only free variable: the discriminating case §13.2 lacked.
+* **P4** — the id appears nowhere in `WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-08-26.md`,
+  and the absence is not fail-silent: the sweep ran three minutes before the reading, the id is
+  gone from all three claim stores, and the same document was appended to at 22:53 UTC for
+  `an-exit-code-is-not-a-landing` — finished at 22:36 and alarmed on anyway, under the pre-fix
+  `_hand_back`. Same writer, same sweep, opposite outcome one tick apart.
+
+The forward-looking clause the sibling prereg
+(`SEAT_PREREGISTRATION_WHETHER_THE_UNRELEASED_THIRD_CLAIM_ALARMS_ON_FINISHED_WORK_2026-09-03.md`,
+*"What is NOT claimed"*) left ungraded is closed by the same P4 reading.
