@@ -2100,7 +2100,14 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             assert "CLEARS" not in rendered, (
                 "the feed withheld the verdict and the page still states one")
             stability = cw.get("verdict_stability") or {}
-            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+            # THE RANGE **AND ITS CENTRE**. `redraw_mean_gbp` joined this list on 2026-09-03: the
+            # range says how far the quantity moves, and only the mean says where in it the
+            # figure the page still publishes actually fell. A reader shown £2,336 spanning
+            # £451-£2,434 takes £2,336 as the answer; shown that the family averages £1,451, they
+            # can see the run drew high. Withholding the binary verdict and leaving the surviving
+            # point estimate unplaced is the flattering reading one layer along, which is the
+            # exact shape the withholding was built for.
+            for edge in ("redraw_min_gbp", "redraw_max_gbp", "redraw_mean_gbp"):
                 figure = stability.get(edge)
                 assert isinstance(figure, (int, float)), (
                     "the verdict was withheld for a range the feed does not carry, so the reason "
