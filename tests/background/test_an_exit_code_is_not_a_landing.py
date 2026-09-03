@@ -951,3 +951,72 @@ def test_the_orphaned_claim_a_finished_turn_used_to_leave_ALARMS_ON_FINISHED_WOR
         "a work item was filed in the director's queue about a turn that had already finished"
 
 
+
+
+# ---------------------------------------------------------------------------------------------
+# A MISSING DISCHARGE NAMES WHICH SILENCE IT IS (2026-09-03)
+#
+# Found while GRADING the finding's own §9.7 prediction -- "DISCHARGED will appear on some turns
+# and not others" -- against the live log, and finding it ungradable. The clause held as written,
+# and meant nothing: the one absence available was a DRAWN item, and a drawn item has no
+# `seat_continuation` record, so `seat_continuation_drop` returns False and the line is missing
+# whatever `_still_claimed` answered. One silence, three causes, and no way to tell them apart
+# from the artefact the prediction was written against.
+#
+# That is the same complaint this whole file makes about the positive result, arriving through the
+# negative one. So the two reachable silences now say which they are. These are the controls that
+# stop the reasons drifting apart from the branches that emit them -- and they assert on the
+# BRANCH's own observable (`routed.dropped`) as well as the line, so a reason attached to the wrong
+# branch fails rather than reading plausibly.
+#
+# §13.2 of docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md
+
+
+def test_a_turn_whose_TICK_DID_NOT_RELEASE_says_so_instead_of_going_quiet(routed):
+    """The unfinished-work silence, named. The handoff STANDS and the log now says that.
+
+    This is the same turn as `test_the_executors_OWN_hand_back_is_not_read_as_the_tick_releasing`
+    -- lands, never releases -- read for what it PUBLISHES rather than for what it refrained from
+    doing. That test pins the absence of `DISCHARGED`; an absence is not a reading.
+
+    MUTATION: delete the `if not tick_released:` arm (fall through to the `elif`) and this fires --
+    the turn goes silent again, exactly as it did on 2026-09-02.
+    """
+    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    ran, detail = seat_executor.run_once()
+    assert "LANDED NOTHING" not in detail, detail
+
+    assert routed.dropped == [], "the handoff was consumed by a tick that never said it was done"
+    assert "HANDOFF STANDS the-item" in routed.log(), \
+        "a turn that landed and did not discharge left no record of WHY it did not"
+    assert "DISCHARGED" not in routed.log()
+
+
+def test_a_DRAWN_items_missing_discharge_is_not_read_as_the_tick_holding_on(routed, monkeypatch):
+    """THE ONE THAT MADE §9.7 UNGRADABLE, pinned so it cannot happen twice.
+
+    Here the tick DID release -- `_still_claimed` is False, the discharge condition is satisfied --
+    and there is simply no continuation record to drop, which is true of every drawn item. The old
+    code emitted nothing, indistinguishable from the test above, and a reader grading the live log
+    had to reconstruct the route from a separate draw ledger to tell which had happened.
+
+    MUTATION: return the `elif` arm to a bare `seat_continuation_drop(work_id)` call with no `else`
+    reason and this fires, while the test above stays green -- the two silences separate, so each
+    is witnessed by a subject only it satisfies rather than one subject satisfying both.
+    """
+    monkeypatch.setattr(seat_executor, "seat_continuation_drop", lambda wid: False)
+
+    def lands_then_releases():
+        routed.child_binds(routed.worktree_store)()
+        assert delivery_lane.claims_mod.release("the-item", path=routed.worktree_store) is True
+
+    routed.spawn(child=lands_then_releases)
+    ran, detail = seat_executor.run_once()
+    assert "LANDED NOTHING" not in detail, detail
+
+    assert "NO HANDOFF TO DROP the-item" in routed.log(), \
+        "a released tick with no continuation record was silent, so its silence reads as a tick " \
+        "that never released -- the ambiguity §9.7 could not be graded through"
+    assert "HANDOFF STANDS" not in routed.log(), \
+        "the released tick was reported as still holding its claim"
+    assert "DISCHARGED" not in routed.log()
