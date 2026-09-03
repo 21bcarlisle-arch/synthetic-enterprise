@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-03T03:13:42Z",
- "git_commit": "964def09f2e059264698bc97df5bc47299634bb0",
+ "generated_at": "2026-09-03T04:44:19Z",
+ "git_commit": "316c220e4fb86c6465311740c4d99670faf69fd1",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -586,8 +586,8 @@
   }
  ],
  "wall": {
-  "live_crossings": 6,
-  "direct": 4,
+  "live_crossings": 7,
+  "direct": 5,
   "indirect": 2,
   "examined": 91,
   "cut": 85,
@@ -600,7 +600,7 @@
     "value": 164,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-03T01:44:19Z"
+    "as_of": "2026-09-03T03:13:49Z"
    },
    {
     "value": 249,

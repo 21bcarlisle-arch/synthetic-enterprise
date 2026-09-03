@@ -45,6 +45,7 @@
     "statement": "82 accounts get NO opening amount under the estimate, every one of them because this company holds no published GB rate before the price cap began in January 2019 and therefore has nothing to annualise against. None failed for want of a consumption estimate. They carry no direct debit rather than one invented to fill the gap."
   },
   "substrate": "docs/reports/run_output_latest.json",
+  "substrate_sha256": "214e79d39daaff1a619012629e85d336ac5764b02d8c63ce4d03dad59362e96a",
   "why_no_headline_moves": "The published treasury is a running total of net margin (simulation/run_phase2b.py: treasury += net_margin), so it is a profit accumulator wearing a cash name. No direct-debit arrangement whatsoever can move it, and the seven other headline figures are profit and loss. The comparison below is the only place the difference exists.",
   "year_one_drift_matched": {
     "clock": "billed",
