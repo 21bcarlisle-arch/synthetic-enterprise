@@ -229,3 +229,121 @@ def test_the_live_list_is_untouched_by_the_join(tmp_path, monkeypatch):
     sc.hand_off("fresh", what="w", why="y", done_means="d")
     assert [i["id"] for i in sc.live()] == ["fresh"]
     assert "drawn_at" not in sc.live()[0]
+
+
+# ── A REFINEMENT UNDER A NEW ID LEFT THE REFUTED VERSION WINNING (2026-09-03) ────────────────────
+# `hand_off` promised that a session refining its handoff "does not leave two versions competing".
+# The guard is keyed to the ID STRING, so it only fires when the refinement reuses the id.
+#
+# On 2026-09-03 the seat wrote `land-the-live-world-undecomposed-floor-leg` ("the file already
+# exists at <path>, the only thing standing between this and done is a git add"). Its artefact was
+# then deleted by `ensure_worktree`'s `git clean -qfd` and the measurement relaunched, so the seat
+# wrote the correction as a NEW id, `pick-up-the-relaunched-undecomposed-floor-leg`. Both stayed
+# live, `live()` returns oldest first, and the 16:23 tick was handed the REFUTED one --
+# deterministically, not by luck. It spent its orientation proving the cited file did not exist.
+#
+# So supersession is DECLARED. Nothing infers subject overlap: an inferred supersession would bury
+# a live instruction, which is worse than the defect it fixes.
+
+def test_a_refinement_under_a_NEW_id_RETIRES_the_refuted_one_rather_than_LOSING_to_it(
+    store, monkeypatch, tmp_path
+):
+    """The refuted entry must not be offered, and oldest-first means it does not merely tie.
+
+    MUTATION: drop the `_superseded_ids` filter from `live()` and this fires — the refuted entry
+    comes back and, being older, is returned FIRST and drawn by the tick.
+    """
+    _hand(store, "land-the-artefact", what="the file already exists; just git add it")
+    _hand(store, "pick-up-the-relaunch", what="the artefact was deleted; the re-run is in flight",
+          now=1_000_500.0, supersedes=["land-the-artefact"])
+
+    ids = [i["id"] for i in seat_continuation.live(now=1_000_600.0, path=store)]
+    assert "land-the-artefact" not in ids, (
+        "the refuted instruction is still offerable; a tick will be told to git add a file that "
+        "no longer exists"
+    )
+    assert ids == ["pick-up-the-relaunch"]
+
+    # And the draw itself, because `live()` being right is not the property that matters.
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus", lambda *a, **k: [])
+    item = delivery_lane.next_item(now=1_000_600.0, path=tmp_path / "claims.json")
+    assert item is not None and item["id"] == "pick-up-the-relaunch", (
+        f"the tick was handed {item and item['id']!r} — the correction must reach the draw, not "
+        "the instruction it corrected"
+    )
+
+
+def test_a_RETIRED_entry_is_REPORTED_and_not_silently_filtered(store):
+    """A record dropped from every surface is indistinguishable from a lost write.
+
+    A superseded entry inside its window is in neither `live()` nor `expired()`. If it printed
+    nowhere, this module would hide a retirement exactly as it once hid a success.
+
+    MUTATION: make `superseded()` return `[]`, or drop its loop in `main()`, and this fires.
+    """
+    _hand(store, "refuted")
+    _hand(store, "correction", now=1_000_500.0, supersedes=["refuted"])
+
+    assert [i["id"] for i in seat_continuation.live(now=1_000_600.0, path=store)] == ["correction"]
+    assert [i["id"] for i in seat_continuation.expired(now=1_000_600.0, path=store)] == []
+
+    retired = seat_continuation.superseded(path=store)
+    assert [i["id"] for i in retired] == ["refuted"], (
+        "a retired continuation appears on no surface at all — a supersession now reads exactly "
+        "like the store having lost a write"
+    )
+    assert retired[0]["superseded_by"] == ["correction"], (
+        "the retirement does not name what retired it, so a reader cannot check the judgement"
+    )
+
+
+def test_an_EXPIRED_correction_does_not_RESURRECT_the_instruction_it_retired(store):
+    """Supersession is a fact about the SUBJECT, not about the clock.
+
+    The realistic path: `seat_executor` promotes focus items to continuations automatically, so a
+    retired id can be RE-STAMPED fresh by a derivation that never knew it was refuted. If the
+    retirement were keyed to the correction still being live, the refuted instruction would return
+    the moment its correction aged out — and it would return as the OLDEST live entry, i.e. first.
+
+    MUTATION: filter `_superseded_ids` to entries inside the window and this fires.
+    """
+    _hand(store, "correction", now=1_000_000.0, supersedes=["refuted"])
+    # The auto-promoter re-derives the refuted item from the tree and stamps it fresh, hours later.
+    _hand(store, "refuted", now=1_000_000.0 + 7 * 3600)
+    now = 1_000_000.0 + 7 * 3600 + 60
+
+    assert seat_continuation.live(now=now, path=store) == [], (
+        "a refuted instruction came back to life because its correction aged out — the retirement "
+        "must outlive the entry that recorded it"
+    )
+    assert [i["id"] for i in seat_continuation.expired(now=now, path=store)] == ["correction"], (
+        "the correction should age out as an ordinary continuation; only the RETIRED entry is "
+        "excluded from the drag report"
+    )
+
+
+def test_an_entry_naming_ITSELF_is_still_offered(store):
+    """A self-reference must be ignored, not honoured.
+
+    Otherwise a single mistyped id erases the seat's own judgement and `superseded()` reports the
+    entry as retired by itself, which explains nothing to the reader.
+
+    MUTATION: remove the `dead != item.get("id")` guard from `_superseded_ids` and this fires.
+    """
+    _hand(store, "only-item", supersedes=["only-item"])
+    assert [i["id"] for i in seat_continuation.live(now=1_000_100.0, path=store)] == ["only-item"], (
+        "an entry naming its own id deleted itself from the queue"
+    )
+    assert seat_continuation.superseded(path=store) == []
+
+
+def test_a_handoff_with_no_supersedes_stores_NO_such_key(store):
+    """Blast radius: the store is read by `delivery_lane` and printed to the director.
+
+    MUTATION: always write `supersedes` and this fires — every historical entry grows an empty
+    field and the diff on a live observability ledger stops being readable.
+    """
+    item = _hand(store, "plain")
+    assert "supersedes" not in item
+    assert "supersedes" not in json.loads(store.read_text())[0]

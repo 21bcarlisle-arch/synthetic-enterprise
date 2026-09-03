@@ -113,12 +113,36 @@ def _save(items: list[dict], path: Path | None = None) -> None:
     store.write_text(json.dumps(items, indent=1) + "\n")
 
 
+def _superseded_ids(items: list[dict]) -> set[str]:
+    """Every id some other entry declares it replaces.
+
+    ONCE SUPERSEDED, ALWAYS SUPERSEDED -- this does not ask whether the superseding entry is itself
+    still live. Supersession is a fact about the SUBJECT ("that instruction was refuted"), not a
+    fact about the clock, and keying it to the clock would resurrect a refuted instruction the
+    moment its correction aged out. That is the "key a control to the property, not to today's
+    answer" rule applied to this store.
+
+    A self-reference is IGNORED rather than honoured: an entry naming its own id would otherwise
+    erase itself and the seat's judgement would vanish with no record of why.
+    """
+    out: set[str] = set()
+    for item in items:
+        raw = item.get("supersedes") or ()
+        if isinstance(raw, str):  # a single id written unwrapped, not a set of characters
+            raw = [raw]
+        for dead in raw:
+            if dead and dead != item.get("id"):
+                out.add(str(dead))
+    return out
+
+
 def hand_off(
     work_id: str,
     what: str,
     why: str,
     done_means: str,
     *,
+    supersedes: tuple[str, ...] | list[str] | str = (),
     now: float | None = None,
     path: Path | None = None,
 ) -> dict:
@@ -130,6 +154,20 @@ def hand_off(
 
     Re-recording the same `work_id` REPLACES it and restamps the clock, so a session that refines
     what it is handing over does not leave two versions competing.
+
+    THAT LAST SENTENCE WAS WRONG FOR AS LONG AS IT STOOD ALONE, AND IT COST A TICK (2026-09-03).
+    The de-duplication is keyed to the ID STRING, so it only fires when the refinement reuses the
+    id. A session that refines the SAME SUBJECT under a NEW id -- which is the natural thing to do
+    when the new instruction is a different act, e.g. `land-the-...-floor-leg` superseded by
+    `pick-up-the-relaunched-...-floor-leg` -- leaves exactly the two competing versions this
+    promised to prevent. And `live()` returns them oldest first, so the REFUTED one is drawn first,
+    deterministically. The 16:23 tick was handed an instruction to `git add` an artefact that
+    `ensure_worktree` had deleted at 15:35 and whose re-run was already in flight; it spent its
+    orientation establishing that, having been told the file "already exists".
+
+    So the replacement is now DECLARED rather than inferred from the id: `supersedes` names the
+    ids this entry retires. Nothing here guesses at subject overlap -- an inferred supersession
+    would silently bury a live instruction, which is worse than the defect.
     """
     fields = {"id": work_id, "what": what, "why": why, "done_means": done_means}
     missing = [k for k, v in fields.items() if not (v or "").strip()]
@@ -138,22 +176,40 @@ def hand_off(
             f"a continuation must carry {', '.join(REQUIRED_FIELDS)}; missing or empty: "
             f"{', '.join(missing)}. A tick handed a topic writes a restatement of it."
         )
+    if isinstance(supersedes, str):
+        supersedes = [supersedes]
+    retires = [str(i) for i in supersedes if str(i).strip()]
     stamped = time.time() if now is None else now
     items = [i for i in _load(path) if i.get("id") != work_id]
-    items.append({**fields, "written_at": stamped})
+    entry = {**fields, "written_at": stamped}
+    if retires:
+        entry["supersedes"] = retires
+    items.append(entry)
     _save(items, path)
     return items[-1]
 
 
 def live(now: float | None = None, path: Path | None = None) -> list[dict]:
-    """Continuations still inside their window, oldest first, in the order they were written.
+    """Continuations still inside their window and not superseded, in the order they were written.
 
     Order is the seat's order for the same reason `delivery_lane.next_item` walks `focus` in
     order: the session that wrote them knew which mattered first, and re-sorting here would
     substitute this module's judgement for the seat's.
+
+    A SUPERSEDED ENTRY IS NOT OFFERED, and that is the same property the expiry carries rather
+    than a second one: an instruction whose subject has moved must stop competing with the
+    judgement that moved it. Expiry catches the tree moving under a continuation; supersession
+    catches the SEAT ITSELF refuting one. Both were needed -- see `hand_off` for the tick this
+    cost. Because order is oldest-first, a refuted entry left in the store does not merely compete,
+    it WINS.
     """
     cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
-    return [i for i in _load(path) if float(i.get("written_at") or 0.0) >= cutoff]
+    items = _load(path)
+    dead = _superseded_ids(items)
+    return [
+        i for i in items
+        if float(i.get("written_at") or 0.0) >= cutoff and i.get("id") not in dead
+    ]
 
 
 def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
@@ -174,10 +230,45 @@ def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
     `delivery_lane` already knew. `DRAW_LEDGER_FILE` records `first_drawn_at` per id and has since
     it was built; nothing read it from this side. So this is not new information, it is a join
     nobody had made — the shape the end-to-end canon exists for.
+
+    A SUPERSEDED ENTRY IS NOT REPORTED HERE, for that same reason one level on: it aged out because
+    the seat had already replaced it, so printing it as "written and never taken" would report a
+    correction as a drag. `superseded()` is where it goes instead.
     """
     cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
-    stale = [i for i in _load(path) if float(i.get("written_at") or 0.0) < cutoff]
+    items = _load(path)
+    dead = _superseded_ids(items)
+    stale = [
+        i for i in items
+        if float(i.get("written_at") or 0.0) < cutoff and i.get("id") not in dead
+    ]
     return [dict(i, drawn_at=_first_drawn(i.get("id"))) for i in stale]
+
+
+def superseded(path: Path | None = None) -> list[dict]:
+    """The entries another continuation declares it replaced, each naming WHICH one replaced it.
+
+    THIS EXISTS SO THE FILTER CANNOT BE SILENT. A superseded entry is dropped from `live()` and
+    from `expired()`, and one that is superseded while still inside its window would otherwise
+    appear in NEITHER -- a record vanishing from every surface that reports on it. This store's own
+    history is the argument: the one surface built to say whether the handoff works spent a day
+    reporting its only success as its defining failure, and that was a JOIN nobody had made rather
+    than new information. A retired instruction is a fact about the seat's reasoning and it stays
+    readable.
+    """
+    items = _load(path)
+    by_id: dict[str, list[str]] = {}
+    for item in items:
+        raw = item.get("supersedes") or ()
+        if isinstance(raw, str):
+            raw = [raw]
+        for dead in raw:
+            if dead and dead != item.get("id"):
+                by_id.setdefault(str(dead), []).append(str(item.get("id")))
+    return [
+        dict(i, superseded_by=by_id[str(i.get("id"))])
+        for i in items if str(i.get("id")) in by_id
+    ]
 
 
 def _first_drawn(work_id) -> float | None:
@@ -213,15 +304,22 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
                     help="record the next piece for a tick to take")
     ap.add_argument("--list", action="store_true", help="print live and expired continuations")
     ap.add_argument("--drop", metavar="ID", help="remove one continuation")
+    ap.add_argument("--supersedes", nargs="*", default=[], metavar="ID",
+                    help="ids this handoff RETIRES. Use this whenever the new instruction refutes "
+                         "an earlier one under a different id -- the id-equality replacement in "
+                         "--hand-off cannot see that, and live() offers oldest first, so the "
+                         "refuted entry is drawn FIRST.")
     args = ap.parse_args(argv)
 
     if args.hand_off:
         try:
-            item = hand_off(*args.hand_off)
+            item = hand_off(*args.hand_off, supersedes=args.supersedes)
         except ValueError as exc:
             print(f"REFUSED: {exc}", file=sys.stderr)
             return 2
         print(f"handed off {item['id']}")
+        if item.get("supersedes"):
+            print(f"  retires {', '.join(item['supersedes'])}")
         return 0
     if args.drop:
         print("dropped" if drop(args.drop) else "not found")
@@ -230,6 +328,12 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
     for item in live():
         age = (time.time() - float(item["written_at"])) / 3600.0
         print(f"  LIVE     {item['id']}  ({age:.1f}h old)\n           {item['what'][:110]}")
+    for item in superseded():
+        # NOT SILENT. This entry is in neither live() nor expired(); if it printed nowhere, a
+        # retired instruction would simply disappear and nobody could tell a supersession from a
+        # store that had lost a write.
+        print(f"  RETIRED  {item['id']}  — superseded by "
+              f"{', '.join(item['superseded_by'])}; not offered")
     for item in expired():
         # TWO OUTCOMES, NOT ONE. An expiry after a draw is the mechanism working; an expiry with
         # no draw is the drag. Printing both as the second turned this module's only success into
