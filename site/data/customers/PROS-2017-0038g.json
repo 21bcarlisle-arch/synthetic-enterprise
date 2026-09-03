@@ -62,7 +62,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2017-0038g-INV875",
+      "id": "PROS-2017-0038g-INV735",
       "date": "2017-01-31",
       "period_start": "2017-01-27",
       "period_end": "2017-01-31",
@@ -103,7 +103,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV876",
+      "id": "PROS-2017-0038g-INV736",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -144,7 +144,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV877",
+      "id": "PROS-2017-0038g-INV737",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -185,7 +185,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV878",
+      "id": "PROS-2017-0038g-INV738",
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
@@ -226,7 +226,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV879",
+      "id": "PROS-2017-0038g-INV739",
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
@@ -267,7 +267,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV880",
+      "id": "PROS-2017-0038g-INV740",
       "date": "2017-06-30",
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
@@ -308,7 +308,7 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2017-0038g-INV881",
+      "id": "PROS-2017-0038g-INV741",
       "date": "2017-07-31",
       "period_start": "2017-07-01",
       "period_end": "2017-07-31",
@@ -349,7 +349,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV882",
+      "id": "PROS-2017-0038g-INV742",
       "date": "2017-08-31",
       "period_start": "2017-08-01",
       "period_end": "2017-08-31",
@@ -390,7 +390,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV883",
+      "id": "PROS-2017-0038g-INV743",
       "date": "2017-09-30",
       "period_start": "2017-09-01",
       "period_end": "2017-09-30",
@@ -431,7 +431,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV884",
+      "id": "PROS-2017-0038g-INV744",
       "date": "2017-10-31",
       "period_start": "2017-10-01",
       "period_end": "2017-10-31",
@@ -472,7 +472,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV885",
+      "id": "PROS-2017-0038g-INV745",
       "date": "2017-11-30",
       "period_start": "2017-11-01",
       "period_end": "2017-11-30",
@@ -513,7 +513,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV886",
+      "id": "PROS-2017-0038g-INV746",
       "date": "2017-12-31",
       "period_start": "2017-12-01",
       "period_end": "2017-12-31",
@@ -554,7 +554,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2017-0038g-INV887",
+      "id": "PROS-2017-0038g-INV747",
       "date": "2018-01-26",
       "period_start": "2018-01-01",
       "period_end": "2018-01-26",
@@ -601,17 +601,17 @@
       {
         "date": "2017-02-02",
         "type": "invoice_raised",
-        "invoice_number": 875,
+        "invoice_number": 735,
         "amount_gbp": 10.21,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV875 raised",
+        "description": "Invoice INV735 raised",
         "running_balance_gbp": 10.21
       },
       {
         "date": "2017-02-16",
         "type": "payment_received",
-        "invoice_number": 875,
+        "invoice_number": 735,
         "amount_gbp": -10.21,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -621,17 +621,17 @@
       {
         "date": "2017-03-04",
         "type": "invoice_raised",
-        "invoice_number": 876,
+        "invoice_number": 736,
         "amount_gbp": 53.0,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV876 raised",
+        "description": "Invoice INV736 raised",
         "running_balance_gbp": 53.0
       },
       {
         "date": "2017-03-18",
         "type": "payment_received",
-        "invoice_number": 876,
+        "invoice_number": 736,
         "amount_gbp": -53.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -641,17 +641,17 @@
       {
         "date": "2017-04-02",
         "type": "invoice_raised",
-        "invoice_number": 877,
+        "invoice_number": 737,
         "amount_gbp": 53.39,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV877 raised",
+        "description": "Invoice INV737 raised",
         "running_balance_gbp": 53.39
       },
       {
         "date": "2017-04-16",
         "type": "payment_received",
-        "invoice_number": 877,
+        "invoice_number": 737,
         "amount_gbp": -53.39,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -661,17 +661,17 @@
       {
         "date": "2017-05-03",
         "type": "invoice_raised",
-        "invoice_number": 878,
+        "invoice_number": 738,
         "amount_gbp": 42.09,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV878 raised",
+        "description": "Invoice INV738 raised",
         "running_balance_gbp": 42.09
       },
       {
         "date": "2017-05-17",
         "type": "payment_received",
-        "invoice_number": 878,
+        "invoice_number": 738,
         "amount_gbp": -42.09,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -681,17 +681,17 @@
       {
         "date": "2017-06-02",
         "type": "invoice_raised",
-        "invoice_number": 879,
+        "invoice_number": 739,
         "amount_gbp": 49.81,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV879 raised",
+        "description": "Invoice INV739 raised",
         "running_balance_gbp": 49.81
       },
       {
         "date": "2017-06-23",
         "type": "payment_received",
-        "invoice_number": 879,
+        "invoice_number": 739,
         "amount_gbp": -49.81,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -701,17 +701,17 @@
       {
         "date": "2017-07-07",
         "type": "invoice_raised",
-        "invoice_number": 880,
+        "invoice_number": 740,
         "amount_gbp": 3.23,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV880 raised",
+        "description": "Invoice INV740 raised",
         "running_balance_gbp": 3.23
       },
       {
         "date": "2017-07-21",
         "type": "payment_received",
-        "invoice_number": 880,
+        "invoice_number": 740,
         "amount_gbp": -3.23,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -721,17 +721,17 @@
       {
         "date": "2017-08-02",
         "type": "invoice_raised",
-        "invoice_number": 881,
+        "invoice_number": 741,
         "amount_gbp": 17.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV881 raised",
+        "description": "Invoice INV741 raised",
         "running_balance_gbp": 17.76
       },
       {
         "date": "2017-08-16",
         "type": "payment_received",
-        "invoice_number": 881,
+        "invoice_number": 741,
         "amount_gbp": -17.76,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -741,17 +741,17 @@
       {
         "date": "2017-09-01",
         "type": "invoice_raised",
-        "invoice_number": 882,
+        "invoice_number": 742,
         "amount_gbp": 17.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV882 raised",
+        "description": "Invoice INV742 raised",
         "running_balance_gbp": 17.76
       },
       {
         "date": "2017-09-15",
         "type": "payment_received",
-        "invoice_number": 882,
+        "invoice_number": 742,
         "amount_gbp": -17.76,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -761,17 +761,17 @@
       {
         "date": "2017-10-02",
         "type": "invoice_raised",
-        "invoice_number": 883,
+        "invoice_number": 743,
         "amount_gbp": 21.4,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV883 raised",
+        "description": "Invoice INV743 raised",
         "running_balance_gbp": 21.4
       },
       {
         "date": "2017-10-16",
         "type": "payment_received",
-        "invoice_number": 883,
+        "invoice_number": 743,
         "amount_gbp": -21.4,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -781,17 +781,17 @@
       {
         "date": "2017-10-31",
         "type": "invoice_raised",
-        "invoice_number": 884,
+        "invoice_number": 744,
         "amount_gbp": 35.57,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV884 raised",
+        "description": "Invoice INV744 raised",
         "running_balance_gbp": 35.57
       },
       {
         "date": "2017-11-14",
         "type": "payment_received",
-        "invoice_number": 884,
+        "invoice_number": 744,
         "amount_gbp": -35.57,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -801,17 +801,17 @@
       {
         "date": "2017-11-30",
         "type": "invoice_raised",
-        "invoice_number": 885,
+        "invoice_number": 745,
         "amount_gbp": 48.35,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV885 raised",
+        "description": "Invoice INV745 raised",
         "running_balance_gbp": 48.35
       },
       {
         "date": "2017-12-14",
         "type": "payment_received",
-        "invoice_number": 885,
+        "invoice_number": 745,
         "amount_gbp": -48.35,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -821,17 +821,17 @@
       {
         "date": "2018-01-02",
         "type": "invoice_raised",
-        "invoice_number": 886,
+        "invoice_number": 746,
         "amount_gbp": 62.11,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV886 raised",
+        "description": "Invoice INV746 raised",
         "running_balance_gbp": 62.11
       },
       {
         "date": "2018-01-16",
         "type": "payment_received",
-        "invoice_number": 886,
+        "invoice_number": 746,
         "amount_gbp": -62.11,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -841,17 +841,17 @@
       {
         "date": "2018-01-26",
         "type": "invoice_raised",
-        "invoice_number": 887,
+        "invoice_number": 747,
         "amount_gbp": 53.97,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV887 raised",
+        "description": "Invoice INV747 raised",
         "running_balance_gbp": 53.97
       },
       {
         "date": "2018-02-09",
         "type": "payment_received",
-        "invoice_number": 887,
+        "invoice_number": 747,
         "amount_gbp": -53.97,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -939,9 +939,9 @@
       "customer_id": "PROS-2017-0038",
       "date": "2018-01-27",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 14% churn risk at decision time, SIM realized probability was 15%.",
-      "company_belief": 0.14,
-      "sim_truth": 0.146,
+      "description": "Renewal outcome: CHURNED -- company believed 19% churn risk at decision time, SIM realized probability was 15%.",
+      "company_belief": 0.191,
+      "sim_truth": 0.149,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

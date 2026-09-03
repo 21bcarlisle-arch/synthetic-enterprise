@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-03T06:11:01Z",
+    "generated_at": "2026-09-03T18:08:20Z",
     "git_commit": "unknown",
     "household_count": 164,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
@@ -8,7 +8,7 @@
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "153 timeline + reaction-chain entries on record",
+      "headline": "155 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "PROS-2017-0065",
       "base_account_id": "PROS-2017-0065",
@@ -21,7 +21,7 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "89.6 percentage points apart at the 2023 renewal (sim 2.7% vs company 92.2%)",
+      "headline": "79.6 percentage points apart at the 2023 renewal (sim 14.6% vs company 94.2%)",
       "wall_side": "sim",
       "account_id": "C8",
       "base_account_id": "C8",
@@ -37,20 +37,6 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "PROS-2018-0016",
-      "base_account_id": "PROS-2018-0016",
-      "segment": "resi",
-      "commodity": "electricity",
-      "link": {
-        "acc": "PROS-2018-0016",
-        "tab": "timeline",
-        "year": 2025
-      }
-    },
-    {
-      "category": "Heaviest arrears cascade",
-      "headline": "10 debt write-off event(s) in the arrears cascade",
-      "wall_side": "company",
       "account_id": "SYN-2016-001",
       "base_account_id": "SYN-2016-001",
       "segment": "resi",
@@ -58,7 +44,21 @@
       "link": {
         "acc": "SYN-2016-001",
         "tab": "timeline",
-        "year": 2017
+        "year": 2021
+      }
+    },
+    {
+      "category": "Heaviest arrears cascade",
+      "headline": "16 debt write-off event(s) in the arrears cascade",
+      "wall_side": "company",
+      "account_id": "SYN-2016-048",
+      "base_account_id": "SYN-2016-048",
+      "segment": "resi",
+      "commodity": "electricity",
+      "link": {
+        "acc": "SYN-2016-048",
+        "tab": "timeline",
+        "year": 2019
       }
     },
     {

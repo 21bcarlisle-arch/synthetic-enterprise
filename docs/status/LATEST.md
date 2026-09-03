@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-09-03T06:27:02Z
+Last updated: 2026-09-03T18:23:06Z
 
 **H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
 PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
@@ -695,7 +695,7 @@ files** (16 of 88 now cut; level deliberately still 0 at 18% paid). (1) The **pr
 import went first, as B4 says it should — `dd_balance_book` imported `dd_review._recommended_monthly`,
 a dependency on a routine the company may rename without notice; the world is now *told* the standing
 monthly amount through `company/interfaces/dd_review_outcome.py` (the number on the customer's letter)
-while the SLC 27B band, the increase/decrease/maintain call and the rounding stay behind the door.
+while the ±5% band (ours, under the SLC 27.15 duty — there is no SLC 27B), the increase/decrease/maintain call and the rounding stay behind the door.
 (2) The world **stopped operating the company's SLC 14 process** — it used to open a `CreditRefundBook`,
 classify the trigger, pay the record and read the breach verdict back out; it now reports the closure,
 the credit and the date the money *arrived*, and the trigger is classified **behind** the door rather
@@ -2474,11 +2474,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (804s / 13 min):
-- Net margin: £149,156.20 | Gross: £399,595.86 | Capital: £6,995
-- Treasury: £250,000 → £399,156 | 0 committee interventions | 11565 bills issued
-- Enterprise value: £128,435.07 | Net after CTS: £96,906
-- Retention: 45 offers, 32/45 retained | 23 no-offer churns | 74 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (730s / 12 min):
+- Net margin: £138,152.77 | Gross: £376,948.15 | Capital: £6,650
+- Treasury: £250,000 → £388,153 | 0 committee interventions | 11008 bills issued
+- Enterprise value: £122,874.03 | Net after CTS: £88,442
+- Retention: 56 offers, 40/56 retained | 26 no-offer churns | 80 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -2590,6 +2590,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1645.2h across 71 sized atom(s) (12 of 83 below-target atoms still unsized).
+- Remaining effort: ~1599.5h across 70 sized atom(s) (12 of 82 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); D_billing_metering: est 10.5h vs actual 11.6h (+1.1h, underestimated); H_harness: est 8.6h vs actual 45.7h (+37.1h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
