@@ -350,10 +350,36 @@ digits, so a grader who opens the wrong file gets the right number.
     print((floor.get("redraw_scope") or {}).get("mode"), floor.get("generated_at"),
           (floor.get("world_identity") or {}).get("digest"))
 
+    # AND REFUSE ON THOSE THREE FIELDS -- printing them and trusting the reader is not a control.
+    assert (floor.get("redraw_scope") or {}).get("mode") == "all"
+    assert (floor.get("world_identity") or {}).get("digest") == "39a192ce04c1eda8"
+    assert floor.get("generated_at", "") >= "2026-09-03T16:45:00Z"   # launch 4, 17:45:25 BST
+
     spreads = gva._seed_spreads(floor, three)          # per-contrast, DERIVED from seed rows
     print(gva._spread_for(spreads, gva.PAGE_FIGURE_CONTRAST))   # P9: ~991.4551, band 942-1041
     print(gva._current_world_bound(floor, three, live))
     print(gva._current_world_contrast(three, None, floor)["resolved"])   # P10: expected True
+
+**Those three assertions are not belt-and-braces, and this was measured rather than supposed.** Run
+without them against `value_cycle_ab_s1_noise_floor_only_20260903.json` — the wrong leg, sitting on
+disk right now — the grading above reports **P4, P6, P8 and P9 all CONFIRMED** on entirely plausible
+digits, because that leg carries the same numbers. Only P10 comes back refused, and it refuses with
+`resolved=None`, which is the *plumbing-failure* signal rather than a world result, so even the one
+true negative reads as the wrong kind of problem. A grader that prints the identity fields and
+leaves a human to check them is fail-open in the flattering direction: it produces four confirmed
+predictions from an artefact it should never have opened.
+
+With the assertions in, the two artefacts on disk are refused for two *different* reasons, which is
+what keeps each check from being an equivalence the other covers for:
+
+| subject on disk | mode | world | refused on |
+|---|---|---|---|
+| `..._noise_floor_only_20260903.json` | `only` | live | **the mode** — sole witness for the leg guard |
+| `..._noise_floor.json` (2026-08-31) | `all` | `None` | **the world** — sole witness for the world guard |
+
+That is the same two-guard, sole-witness structure `_current_world_bound` already uses on the same
+two files, which is the point: **the grader must refuse exactly what the page refuses**, or the
+grade and the publication disagree about what the subject was.
 
 Then grade, and **grade each prediction against the quantity it actually names**:
 
