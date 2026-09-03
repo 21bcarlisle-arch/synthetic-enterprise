@@ -12,32 +12,32 @@
     "open_findings": 55
   },
   "last_verified": {
-    "generated_at": "2026-09-02T06:11:39Z",
-    "git_commit": "62dfe74b5",
+    "generated_at": "2026-09-03T00:25:50Z",
+    "git_commit": "9d841e7c3",
     "population": {
       "accounts": 251,
       "bills": 11565,
       "total_revenue_gbp": 718261.61
     },
-    "run_id": "run_output_62dfe74b5_20260902T054436Z.json",
+    "run_id": "run_output_9d841e7c3_20260902T210757Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-02T06:11:39Z"
+    "verified_at": "2026-09-03T00:25:50Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=67c2e51dc; blocking tests: FAILED tests/background/test_publish_scope.py::test_the_supervisor_does_not_import_the_publish_path, FAILED tests/controls/test_daemon_loop_mutation.py::test_dms_isolated_accounts_for_every_check_run_cycle_calls, FAILED tests/controls/test_daemon_loop_mutation.py::test_stall_alarm_fires_when_commit_stale_and_work_queued, FAILED tests/",
-  "paused_since": "2026-09-02T07:54:59Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-02T06:11:39Z",
-    "git_commit": "62dfe74b5",
+    "generated_at": "2026-09-03T00:25:50Z",
+    "git_commit": "9d841e7c3",
     "population": {
       "accounts": 251,
       "bills": 11565,
       "total_revenue_gbp": 718261.61
     },
-    "run_id": "run_output_62dfe74b5_20260902T054436Z.json",
+    "run_id": "run_output_9d841e7c3_20260902T210757Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-02T06:11:39Z"
+    "verified_at": "2026-09-03T00:25:50Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-02T11:24:17Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-03T00:25:50Z"
 }

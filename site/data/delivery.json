@@ -1,312 +1,307 @@
 {
- "generated_at": "2026-09-02T17:30:25.944182+00:00",
+ "generated_at": "2026-09-02T23:30:22.201577+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
    {
-    "sha": "6c44b2109",
-    "at": "2026-09-02T15:26:22+01:00",
+    "sha": "c1e24f4bb",
+    "at": "2026-09-03T00:18:13+01:00",
+    "subject": "the claim loop gained a store and its release did not, so the sweep alarmed on finished work",
+    "substantive": true
+   },
+   {
+    "sha": "2635bf7fe",
+    "at": "2026-09-02T23:39:56+01:00",
+    "subject": "pushed is not imported: the repaired writer reached production only when the shared tree fast-forwarded",
+    "substantive": false
+   },
+   {
+    "sha": "ff563798b",
+    "at": "2026-09-02T23:35:00+01:00",
+    "subject": "the verdict said yes for the first time, so the record stops saying it has not been observed",
+    "substantive": false
+   },
+   {
+    "sha": "b095fadf8",
+    "at": "2026-09-02T23:33:01+01:00",
+    "subject": "the verdict could never say YES on the promoted route, and buying that yes naively costs the re-offer",
+    "substantive": true
+   },
+   {
+    "sha": "551d1aadf",
+    "at": "2026-09-02T23:11:47+01:00",
+    "subject": "the release message was the third instrument reporting on itself",
+    "substantive": true
+   },
+   {
+    "sha": "9cf0aff2b",
+    "at": "2026-09-02T22:50:39+01:00",
+    "subject": "--release reports success unconditionally, which is the other end of the false discharge",
+    "substantive": false
+   },
+   {
+    "sha": "8360a2bf8",
+    "at": "2026-09-02T22:48:39+01:00",
+    "subject": "the new verdict can never say yes on the executor's busiest route",
+    "substantive": false
+   },
+   {
+    "sha": "8cb73c627",
+    "at": "2026-09-02T22:44:50+01:00",
+    "subject": "the drawn channel read the log from whichever tree imported it",
+    "substantive": true
+   },
+   {
+    "sha": "6d18107c7",
+    "at": "2026-09-02T22:21:45+01:00",
+    "subject": "an exit code is not a landing: the seat executor now reports on its subject",
+    "substantive": true
+   },
+   {
+    "sha": "3705eca79",
+    "at": "2026-09-02T22:17:59+01:00",
+    "subject": "brief item 3: the curtained validator, and the first check of our arithmetic against anything outside itself",
+    "substantive": true
+   },
+   {
+    "sha": "19f0cd683",
+    "at": "2026-09-02T22:15:02+01:00",
+    "subject": "the reaper deleted a landing worktree nine minutes into its own commit gate, and every check was right",
+    "substantive": true
+   },
+   {
+    "sha": "c04dd0af6",
+    "at": "2026-09-02T22:09:36+01:00",
+    "subject": "merge origin/main: carry the DD/EAC salvage onto the lane that expanded the fork finding",
+    "substantive": false
+   },
+   {
+    "sha": "9760fc7a5",
+    "at": "2026-09-02T22:08:15+01:00",
+    "subject": "[SALVAGED] the direct debit is set from an estimate now \u2014 landed for a lane that died holding it",
+    "substantive": true
+   },
+   {
+    "sha": "9d841e7c3",
+    "at": "2026-09-02T21:45:59+01:00",
+    "subject": "record the third fork closure, and compose back the four incident sections that were never landed",
+    "substantive": false
+   },
+   {
+    "sha": "380b86207",
+    "at": "2026-09-02T21:16:38+01:00",
+    "subject": "merge origin/main: re-gate the false-citation and publish-wedge repairs onto the director's mothball-audit addendum",
+    "substantive": false
+   },
+   {
+    "sha": "55513c99e",
+    "at": "2026-09-02T21:11:02+01:00",
+    "subject": "the false licence citation that reached the site, and the one file that was actually the publish wedge",
+    "substantive": true
+   },
+   {
+    "sha": "d2c86f8c2",
+    "at": "2026-09-02T20:46:36+01:00",
+    "subject": "[DIRECTOR-RULING][ADVISOR-STAGED] Mothball audit third addendum: deterministic-before-judgement test for each control; conversion candidates and eye-caught gaps recorded",
+    "substantive": false
+   },
+   {
+    "sha": "38fbe2853",
+    "at": "2026-09-02T20:05:04+01:00",
+    "subject": "compose the census finding: origin's structured discharge and this lane's leg-2 evidence, both kept",
+    "substantive": false
+   },
+   {
+    "sha": "2dacf1d9d",
+    "at": "2026-09-02T20:02:18+01:00",
+    "subject": "merge origin/main: carry the census discharge, the raw-export repair and the statement export onto the lane's fork correction",
+    "substantive": false
+   },
+   {
+    "sha": "33cb8c70e",
+    "at": "2026-09-02T19:54:00+01:00",
+    "subject": "merge origin/main: carry the census discharge and the graded fork prediction (round 1)",
+    "substantive": false
+   },
+   {
+    "sha": "40e32e1d9",
+    "at": "2026-09-02T19:52:32+01:00",
+    "subject": "grade the last open clause: closing the fork did NOT publish, and the next gate is the level gate",
+    "substantive": false
+   },
+   {
+    "sha": "99f6af378",
+    "at": "2026-09-02T19:51:40+01:00",
+    "subject": "merge origin/main: carry the census discharge and its graded prediction onto a base that moved three times",
+    "substantive": false
+   },
+   {
+    "sha": "2ce85c045",
+    "at": "2026-09-02T19:50:52+01:00",
+    "subject": "the raw export called a subtraction a meter reading, and the unit check could not see it",
+    "substantive": true
+   },
+   {
+    "sha": "e853fd051",
+    "at": "2026-09-02T19:48:37+01:00",
+    "subject": "brief item 2: the statement export, and the 966 bills I nearly accused",
+    "substantive": true
+   },
+   {
+    "sha": "95b967ba7",
+    "at": "2026-09-02T19:47:40+01:00",
+    "subject": "grade the fork prediction against a fork that closed by someone else's hand, and say so",
+    "substantive": false
+   },
+   {
+    "sha": "826de6263",
+    "at": "2026-09-02T19:46:35+01:00",
+    "subject": "merge origin/main: the fork closed by another route while this lane measured it",
+    "substantive": false
+   },
+   {
+    "sha": "1ea5dfdfb",
+    "at": "2026-09-02T19:44:39+01:00",
+    "subject": "discharge the census overlay finding, whose second leg has been landed and uncited since 66c4e780b",
+    "substantive": false
+   },
+   {
+    "sha": "59d70e9a1",
+    "at": "2026-09-02T19:43:32+01:00",
+    "subject": "correct the fork finding: the behind-origin check exists and is unreachable, which is worse",
+    "substantive": false
+   },
+   {
+    "sha": "6cecb32ef",
+    "at": "2026-09-02T19:41:15+01:00",
+    "subject": "file the wedge that was a fork, and the row that names the wrong commit",
+    "substantive": false
+   },
+   {
+    "sha": "17e40f7b7",
+    "at": "2026-09-02T19:37:26+01:00",
+    "subject": "merge origin/main: the census overlay work had already been salvaged there, so ours is superseded",
+    "substantive": false
+   },
+   {
+    "sha": "5260c6859",
+    "at": "2026-09-02T19:34:35+01:00",
+    "subject": "the two wedging tests were green alone and red beside the register's own test",
+    "substantive": true
+   },
+   {
+    "sha": "49e840ec6",
+    "at": "2026-09-02T19:33:03+01:00",
+    "subject": "a mint was invisible as drawable and alarming as blocked, because two readers saw 600 bytes",
+    "substantive": true
+   },
+   {
+    "sha": "66c4e780b",
+    "at": "2026-09-02T19:30:14+01:00",
+    "subject": "salvage the census lane's orphaned overlay check, which its own working copy would have reverted",
+    "substantive": true
+   },
+   {
+    "sha": "4087d2073",
+    "at": "2026-09-02T19:19:45+01:00",
+    "subject": "reconcile only when there is something of ours to land, and read commits instead of counting them",
+    "substantive": true
+   },
+   {
+    "sha": "f2b773569",
+    "at": "2026-09-02T19:01:11+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "d9704d6de",
+    "at": "2026-09-02T18:54:52+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "8fb1331bc",
+    "at": "2026-09-02T18:48:24+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "b012c5de6",
+    "at": "2026-09-02T18:42:05+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "fc7219540",
+    "at": "2026-09-02T18:35:47+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "83c63ac58",
+    "at": "2026-09-02T18:30:26+01:00",
     "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "859c529f7",
-    "at": "2026-09-02T14:53:02+01:00",
-    "subject": "the census overlaid its launch tree's data and manufactured 29 of the 49 reds it reported",
-    "substantive": true
-   },
-   {
-    "sha": "e3830f542",
-    "at": "2026-09-02T14:13:21+01:00",
-    "subject": "prereg: record the head-attribution defect beside the clause it invalidates, and name run 2's true subject",
-    "substantive": false
-   },
-   {
-    "sha": "378c4d34d",
-    "at": "2026-09-02T14:12:13+01:00",
-    "subject": "the census stored a commit its suite never ran a test against",
-    "substantive": true
-   },
-   {
-    "sha": "2a84aec8e",
-    "at": "2026-09-02T14:03:27+01:00",
-    "subject": "merge origin/main: compose both legs of the countless-row defect",
-    "substantive": false
-   },
-   {
-    "sha": "4618826c6",
-    "at": "2026-09-02T14:02:01+01:00",
-    "subject": "the store refuses a run row no completed census could have written",
-    "substantive": true
-   },
-   {
-    "sha": "38fecc31e",
-    "at": "2026-09-02T14:00:06+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "8002c1e6c",
-    "at": "2026-09-02T13:48:15+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "9e30211ea",
-    "at": "2026-09-02T13:44:36+01:00",
-    "subject": "the 830 was a COMPLETE list from a run that finished, and the alarm never said so",
-    "substantive": true
-   },
-   {
-    "sha": "f5b19b43f",
-    "at": "2026-09-02T12:36:29+01:00",
-    "subject": "unwedge publish: cut the register's edge onto the publish path, and account for the fork check",
-    "substantive": true
-   },
-   {
-    "sha": "4c169d40d",
-    "at": "2026-09-02T12:29:05+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "9d0d22f35",
-    "at": "2026-09-02T12:24:18+01:00",
-    "subject": "chore(provenance): verification paused banner (git=67c2e51dc) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "a068b3259",
-    "at": "2026-09-02T11:48:48+01:00",
-    "subject": "chore(provenance): verification paused banner (git=734b79c4b) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "67c2e51dc",
-    "at": "2026-09-02T11:25:29+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "d082c66b9",
-    "at": "2026-09-02T11:19:05+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "1fbbb27a7",
-    "at": "2026-09-02T11:12:43+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "47c685f5b",
-    "at": "2026-09-02T11:06:22+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "d62fbe119",
-    "at": "2026-09-02T10:59:59+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "a1a91509b",
-    "at": "2026-09-02T10:53:29+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "1bfed77ff",
-    "at": "2026-09-02T10:42:58+01:00",
-    "subject": "the census bound was fixed BELOW the run it had just measured, and nothing could say so",
-    "substantive": true
-   },
-   {
-    "sha": "846d673e9",
-    "at": "2026-09-02T10:19:03+01:00",
-    "subject": "chore(provenance): verification paused banner (git=9b2474c59) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
-    "substantive": false
-   },
-   {
-    "sha": "145d48345",
-    "at": "2026-09-02T09:49:57+01:00",
-    "subject": "the raw export, and a check that refuses a derived field by its UNIT",
-    "substantive": true
-   },
-   {
-    "sha": "b7aa75e1c",
-    "at": "2026-09-02T09:43:05+01:00",
-    "subject": "file the conflict-door finding, and what the door was used on",
-    "substantive": false
-   },
-   {
-    "sha": "e3730c4e9",
-    "at": "2026-09-02T09:41:40+01:00",
-    "subject": "merge origin/main: the first resolved conflict to go through the front door",
-    "substantive": false
-   },
-   {
-    "sha": "908726d24",
-    "at": "2026-09-02T09:40:48+01:00",
-    "subject": "the conflict door: a resolution that may only settle a real disagreement",
-    "substantive": true
-   },
-   {
-    "sha": "9b2474c59",
-    "at": "2026-09-02T09:34:32+01:00",
-    "subject": "an arriving document chains itself, because it was never carelessness",
-    "substantive": true
-   },
-   {
-    "sha": "b7ac8f73d",
-    "at": "2026-09-02T09:28:03+01:00",
-    "subject": "[DIRECTOR-BRIEF][ADVISOR-STAGED] CORRECTED on the seat's objection: issued bills moved from raw to statement export (a bill is the calculation); severity header added.",
-    "substantive": false
-   },
-   {
-    "sha": "7921b4539",
-    "at": "2026-09-02T09:25:52+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "cdac6ea53",
-    "at": "2026-09-02T09:13:17+01:00",
-    "subject": "reconcile means BOTH directions, and I shipped it meaning one",
-    "substantive": true
-   },
-   {
-    "sha": "a78879ed7",
-    "at": "2026-09-02T09:07:16+01:00",
-    "subject": "close the fork with origin automatically, in a worktree, so a staged document stops blocking everything",
-    "substantive": true
-   },
-   {
-    "sha": "b9b59fa21",
-    "at": "2026-09-02T08:55:04+01:00",
-    "subject": "merge origin/main: the director's brief meets the census, register and disk-guard work",
-    "substantive": false
-   },
-   {
-    "sha": "e7ffcc81a",
-    "at": "2026-09-02T08:52:41+01:00",
-    "subject": "chain the director's bill-validation brief so it stops refusing every lane's commit",
-    "substantive": false
-   },
-   {
-    "sha": "36c8ea3ab",
-    "at": "2026-09-02T08:45:15+01:00",
-    "subject": "[DIRECTOR-BRIEF][ADVISOR-STAGED] INDEPENDENT BILL VALIDATION - arithmetic checked only against itself is not checked. Two exports kept apart (raw, nothing derived; statement, calculation shown and balance over time), a validator behind a curtain that cannot import billing code, every difference filed, validator wins by default. Honest about what a shared domain error can evade. Delivery seat invited to improve or replace the design; only the six properties are fixed.",
-    "substantive": false
-   },
-   {
-    "sha": "2112a1f03",
-    "at": "2026-09-02T08:36:37+01:00",
-    "subject": "the census ran at 98% of its own timeout, so a slow night produced no verdict at all",
-    "substantive": true
-   },
-   {
-    "sha": "3a8232eb6",
-    "at": "2026-09-02T08:32:59+01:00",
-    "subject": "the disk guard was in PRESSURE and reported \"nothing reapable\" over 3.4GB",
-    "substantive": true
-   },
-   {
-    "sha": "734b79c4b",
-    "at": "2026-09-02T08:00:55+01:00",
-    "subject": "a class fixed on sight twenty times has happened twenty times",
-    "substantive": true
-   },
-   {
-    "sha": "bc57c8e30",
-    "at": "2026-09-02T07:41:21+01:00",
-    "subject": "red at HEAD gets a route into the draw, and \"newly failing\" was never a delta",
-    "substantive": true
-   },
-   {
-    "sha": "a621edb15",
-    "at": "2026-09-02T07:11:03+01:00",
-    "subject": "the floor leg's capture pair is committed now, and the whole-book re-capture that makes it possible",
-    "substantive": true
-   },
-   {
-    "sha": "35750ea46",
-    "at": "2026-09-02T06:54:16+01:00",
-    "subject": "merge origin/main: the band leg's denominator work and the 2022 refusal correction are disjoint",
-    "substantive": false
-   },
-   {
-    "sha": "f753f6252",
-    "at": "2026-09-02T06:53:10+01:00",
-    "subject": "the band leg's subject is a renewal-decision mean and the record's denominator is every account",
     "substantive": false
    }
   ],
-  "substantive": 16,
-  "mechanical": 24,
+  "substantive": 15,
+  "mechanical": 25,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-02T17:24:03.900996+00:00",
+  "oriented_at": "2026-09-02T23:24:30.927118+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "**The brief handed me a stretch of one non-substantive commit and it was wrong in both directions: more landed than it could see, and less was true than it reported.** The first thing I ran was `git rev-list --left-right --count HEAD...origin/main` and it returned **`0 24`** \u2014 the main working tree is twenty-four commits BEHIND origin. Twenty-three of those are one daemon re-merging the same change (`274 insertions(+), 2 deletions(-)`, identically, twenty-three times) and the twenty-fourth, `30adb2b66`, is real work: *\"the census could record a complete row but could not say when it had not\"*, +116 lines of tests and +14 of source on the census. The stretch review read HEAD and was structurally blind to all of it. **That is not a reporting nuisance, it is the live defect.** `git diff origin/main -- tools/head_green_census.py tests/tools/test_head_green_census.py` shows this tree carries leg 2 of the BLOCKING finding (`overlay_shortfall`, 40 passed, written and mutation-documented) **and simultaneously deletes the three recording controls `30adb2b66` landed** plus the `register NOT updated` line from the notify payload. `git show :tests/tools/test_head_green_census.py | grep -c test_a_completed_run_lands_a_row_the_REAL_register_accepts` returns **0** while origin returns **3**. A pathspec commit of this tree right now is an armed silent revert of work that is already on origin \u2014 the newer-table-older-function shape, live, in the index. **And it is the same object as the publish wedge, which I can now name exactly.** `.publish_gate_state.json` has `wedge_since` 07:13:20 UTC, `episode_failures: 14`, and `.last_gate_blocking_tests.json` (the live one, `ts` 17:10, `git_hash` `6c44b2109`) names two reds: `test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_afterwards` and `test_a_run_that_cannot_name_its_subject_records_no_sha_rather_than_todays`. **I ran both under `python3 -B`: 2 passed in 0.06s.** They are green ONLY in the uncommitted working tree \u2014 the repair is the `_install_fake_register` helper sitting unstaged here, and both HEAD and origin still carry the version where the fake register is never installed and the assertion dies as a bare `KeyError`. So the gate, which grades the tree the commit *would* create, has refused every publish for **ten hours** on a defect this tree has already fixed and never landed. My predecessor's level-gate diagnosis is **refuted by its own stated refutation test**: the `LEVEL_UP` was recorded at 14:59:39 UTC, `tools/level_promotion_gate.py` now exits `rc=0`, and publishing did not recover. Content last moved at **04:44 UTC**. **The steer itself did work, and the instrument that reports on it lied about that too.** `previous_focus_drawn` says `drawn: []`. `docs/observability/seat-executor-log.md` says `RUNNING land-the-dd-inference-organ-and-unwedge-every-lanes-publish` at **15:36 and 16:35**, and `FINISHED ... rc=0` after each. The non-atom id fixed the routing exactly as intended. What it bought was two more discharges that landed nothing \u2014 **six now** \u2014 and the reason is structural and was in the executor's own docstring the whole time: `background/seat_executor.py` **writes no code to the shared tree by contract**, held by `test_the_executor_writes_no_code_to_the_shared_tree`. The DD payload is staged in the MAIN tree's index. **I ranked work first that the channel it routes to is forbidden to do, and the channel reported success six times.** **Against the thesis.** The company's first genuine per-customer inference organ, `company/billing/annual_consumption_estimate.py`, is still in no commit \u2014 `git log --all` on the path returns nothing \u2014 after roughly ten hours. Nothing has rendered for thirteen. The epistemic side is the only thing that moved and it moved on origin, where nobody here was looking. **The binding constraint this stretch was not thinking, priorities or the director: it was three instruments each reporting success or absence without ever checking their own subject** \u2014 the executor's `rc=0`, the direction's `drawn: []`, and a stretch review that reads HEAD in a tree whose HEAD is behind. That is one class, it is R15's fail-silent killer, and it is now ranked.",
+  "thesis_read": "**The last stretch did the thing the previous direction asked and did it well: the inference organ landed, the level moved, and the instrument that had been lying about landings was repaired and then caught itself lying.** All three of the previous focus items that were reachable are measurably finished, and I checked each rather than reading the commit subjects. `git ls-tree origin/main company/billing/annual_consumption_estimate.py` is non-empty. `python3 -B tools/level_promotion_gate.py` exits 0. `git rev-list --left-right --count HEAD...origin/main` is `0 0`. `D_opening_dd_seasonal_sizing` is `level_current: 1` with the move recorded, and the organ is genuinely on the production route \u2014 `simulation/run_phase4c_on_phase2b.py:146` imports `opening_monthly_amount` and `_opening_dd_by_customer` feeds it into `annual_dd_review_view` at line 320. The false SLC 27B citation is gone from both company modules; origin's copies now carry its negation. **And the executor's repair proved itself on its own subject.** At 21:51 the seat executor logged the first `LANDED NOTHING: an-exit-code-is-not-a-landing, bound paths unchanged since 6d18107c7 (rc=0)` and did NOT discharge the claim; at 22:36 it logged the first true `FINISHED ... 1 of 1 bound path(s) moved on the shared tree`. That is a control that can fail, failing correctly, on the first live application. The previous direction predicted routing this item to the executor would report rc=0 and change nothing; that prediction is REFUTED in mechanism and stands beside this line. **So nothing intellectual is drifting. What is drifting is that none of it can be seen.** `background.publish_freshness.describe()` says `content publishing: DOWN -- figures last moved 18.7h ago`. The live site serves commit `1c4f64733` from 05:42 \u2014 net \u00a3149,156 from run `4013b1de1`. Meanwhile `site/data/dashboard.json` in this tree was generated at 23:22 from run `6d18107c7`, and **29** `run_complete_*.md` markers sit unprocessed in the staging root, one every ~13 minutes since 16:05, each printing an \"Action required\" nobody performed. The figures are computed. They are refused at the commit. **The refusal has exactly one cause and it is printed verbatim in our own log, which then says it could not be found.** `docs/observability/background-worker-log.md:10694-10717`: the site suite passes 527/31s, then `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS. tools. artefact_rerun_diff` \u2014 and two lines later, `Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- recording NO blocking test.` The classifier greps for test failures and this was a non-test gate, so `.publish_gate_state.json` still names five tests in `test_a_staged_document_no_longer_blocks_every_landing.py` as blocking. **I ran them: 20 passed in 0.11s.** The register has pointed every reader at five green tests for hours while the actual cause \u2014 `tools/artefact_rerun_diff.py`, staged `A `, written 2026-08-31 09:37, imported by nothing but its own test, never frozen \u2014 sat unread. It is already written down: the BLOCKING finding names it at line 342, three hours before this brief, and nothing acted. **Against the thesis: the inference side moved forward for the first time in days and the evidence side went backwards.** \"Done means the rendered value changed\" is this project's own definition, and by it the DD organ is not done \u2014 29 runs have executed against it and no reader can see one of them. This is the third consecutive stretch whose binding constraint is delivery rather than epistemics, and the second where the cause was a single file left unfinished in the shared tree by a lane that had already moved on.",
   "focus": [
    {
-    "id": "compose-with-origin-and-land-the-census-repair-that-is-the-publish-wedge",
-    "what": "**Merge origin/main into the MAIN worktree, COMPOSE the census files rather than letting either side win, and land \u2014 that single act unwedges publishing and discharges the BLOCKING finding. Do not touch the DD payload in this commit; it is rank two and a different pathspec.**\n**The measurements, all re-run at `6c44b2109` this orientation. Do not re-derive them, verify them.** `git rev-list --left-right --count HEAD...origin/main` \u2192 **`0 24`**. `.publish_gate_state.json`: `wedge_since` **07:13:20 UTC**, `episode_failures: 14`. `.last_gate_blocking_tests.json` (`ts` 17:10, live \u2014 never read `red_census` from the wedge doorbell instead): the two reds are `tests/tools/test_head_green_census.py::test_the_recorded_head_is_the_commit_the_SUITE_RAN_not_the_one_HEAD_reached_afterwards` and `::test_a_run_that_cannot_name_its_subject_records_no_sha_rather_than_todays`. Both **pass in this working tree** (`python3 -B -m pytest ... -q` \u2192 2 passed in 0.06s) and are red at HEAD and at origin. The repair is the unstaged `_install_fake_register` helper, which installs the fake for both spellings of `from background import head_red_register` \u2014 a `sys.modules` setitem alone installs nothing once the package holds the submodule as an attribute.\n**THE COMPOSE, and this is the whole job.** `git diff origin/main -- tools/head_green_census.py tests/tools/test_head_green_census.py` shows this tree **adds** leg 2 (`overlay_shortfall`, its `run_suite` fail-closed branch, its `main --json` reason block, six named tests) and **deletes** `30adb2b66`'s three recording controls \u2014 `test_a_completed_run_lands_a_row_the_REAL_register_accepts`, `test_a_log_parsed_after_the_fact_records_no_sha_so_it_cannot_manufacture_a_run`, `test_a_census_that_could_not_record_says_so_on_the_channel_he_reads` \u2014 and the `register` argument from the NTFY payload, which is the \"did the observation survive\" line the third-finding-of-the-day put there. **Both sides are wanted. Neither `git checkout --theirs` nor landing this pathspec is correct**; `git merge origin/main` then hand-compose the two census files so all nine controls and the `register` line coexist. Preserve the pre-merge tree first \u2014 `git update-ref refs/preserved/dd-census-2026-09-02 $(git stash create)` or an equivalent that survives a bad merge \u2014 and **never `git stash` or `git checkout <path>`**. After the merge run `git diff HEAD --stat` and confirm the worktree is not behind HEAD; a merge that advances HEAD past the worktree arms a silent revert of exactly the thing you just composed.\n**Then discharge the BLOCKING finding.** `docs/staging/SEAT_FINDING_THE_CENSUS_OVERLAYS_ITS_LAUNCH_TREES_DATA_AND_MANUFACTURES_THE_REDS_IT_REPORTS_2026-09-02.md` is the tree's only BLOCKING finding and leg 2 is what it asked for and is already written here. Give it a structured `**Discharged:**` line naming a node the filesystem can resolve \u2014 free text releases nothing. **`background/finding_severity` currently reports a FALSE-DISCHARGE against `SEAT_PREREGISTRATION_WHETHER_THE_CENSUS_CAN_RECORD_A_COMPLETE_ROW_2026-09-02.md`; that report is an artefact of this tree being behind origin, not a real false discharge** \u2014 the three nodes it cannot resolve exist at origin and not at HEAD. Re-run it after the merge and expect it to clear itself; **if it does not, that refutes me \u2014 say so and name the real cause rather than editing the prereg.**\n**Done means:** `git rev-list --left-right --count HEAD...origin/main` is `0 0`; `git show HEAD:tests/tools/test_head_green_census.py` defines **both** the leg-2 controls and `30adb2b66`'s three recording controls; the notify payload still carries `register`; `background/finding_severity` reports **zero BLOCKING and zero FALSE-DISCHARGE**; and the next `process_run_complete` cycle **publishes** \u2014 read `.last_publish_cause.json` and `.last_content_publish.json` for a `ts` later than 04:44 UTC, not the log's optimism. **If publishing still does not recover, that refutes my diagnosis in full** \u2014 read the new `cause` and `git_hash`, name the next gate, and do not run a second suite beside a live one.",
-    "why": "Ten hours of a refused publisher, thirteen of a site serving 04:44's snapshot, and the cause is a two-line repair that has been sitting green and uncommitted in this tree the whole time \u2014 \"done means the rendered value changed\" failing continuously, by our own hand, for the second consecutive day. It is ranked first over the mission work because it is also the armed silent revert: every other lane's pathspec commit against these files right now deletes three landed controls, and every hour it stays armed is another chance somebody fires it. It closes the tree's only BLOCKING finding on the way past, and it is the one item where merging with origin is unavoidable \u2014 which is what makes rank two safe to attempt at all."
+    "id": "the-publish-wedge-is-one-staged-unwired-file",
+    "what": "**Dispose of `tools/artefact_rerun_diff.py` and make the publish-gate classifier able to name a non-test refusal. Do this before anything else in this file.** (a) `python3 -B tools/orphan_ratchet.py` prints exactly one name: `tools.artefact_rerun_diff`. The file is `A ` in the shared index, written 2026-08-31 09:37, and `git grep artefact_rerun_diff` outside `docs/` returns only `tests/tools/test_artefact_rerun_diff.py`. Decide, in one act and in the same commit: either wire it to something that actually runs, or `python3 tools/orphan_ratchet.py --freeze` it with the reason on the record. **Read the module before choosing** \u2014 it is another lane's forward work, not yours to delete, and the previous stretch's \"superseded draft\" prediction was graded REFUTED for exactly this reason. (b) The classifier in `background/process_run_complete.py` that emits `Publish commit REFUSED with no FAILED/ERROR summary ... recording NO blocking test` had the answer in the output it was reading. Make it record the named gate that refused \u2014 the orphan-ratchet banner, the consolidation gate, the write-time gate \u2014 not only pytest FAILED lines, and make `.publish_gate_state.json` stop carrying a `blocking_tests` list that a later run has proven green. An unnameable refusal must read as unnameable in the register, not as five tests. **Verify the whole thing by the subject, never by an exit code** \u2014 the lesson this machine just paid for: finished when `background.publish_freshness.describe()` no longer says DOWN, `git log -1 -- site/data/` on origin names a content publish later than `1c4f64733`, and the count of `docs/staging/run_complete_*.md` is falling. If clearing this reveals the next gate rather than a green publish, that is the expected shape \u2014 five wedge causes fell yesterday and each revealed the next \u2014 so name it and clear that one too.",
+    "why": "Everything the last stretch built is invisible. The site serves 05:42 figures while this tree holds 23:22 figures and 29 completed runs are queued behind one file that nobody finished. \"Done means the rendered value changed\" is our own definition of done, and by it the DD inference organ \u2014 the only artefact that does what the thesis asks \u2014 is not done. The classifier half matters as much as the file: a register that names five green tests as the blocker is worse than one that says nothing, because it sends every reader to the wrong place and it did so for hours."
    },
    {
-    "id": "land-the-dd-organ-by-a-route-the-executor-is-actually-permitted-to-use",
-    "what": "**Land `company/billing/annual_consumption_estimate.py` and its payload. The previous instruction was unexecutable by the channel it was given to; this is the route that works. Do rank one first \u2014 this commit needs a tree level with origin.**\n**Why six discharges exited `rc=0` having landed nothing, and it is not the worker's fault.** `background/seat_executor.py`'s own docstring: *\"It writes no CODE there at all\"* \u2014 every edit is made in `/var/tmp/se-seat-executor`, an isolated detached worktree, and integration is `surgical_land` then `tools/promote_worktree_landing.py`. The list of shared-tree files it may write is pinned by `test_the_executor_writes_no_code_to_the_shared_tree`. The last direction told it to run `git -C /home/rich/synthetic-enterprise` and commit from the main tree. **That is forbidden by construction**, so the item was undoable by its own channel and the channel said `rc=0` anyway (15:36 and 16:35, `seat-executor-log.md`).\n**THE ROUTE. Reading the shared tree is not writing to it.** From the executor's worktree: `git -C /home/rich/synthetic-enterprise diff --cached -- <pathspec> > /var/tmp/dd.patch`, `git apply` it in the worktree, land through `python3 -m tools.surgical_land`, integrate through `tools/promote_worktree_landing.py`. **Fetch origin before you start and again before you land** \u2014 an isolated worktree is exactly where a whole item gets duplicated against a lane that landed concurrently; if origin already has any of it, **ADOPT, do not rebuild or merge a rival**. If an interactive seat lands it first, that is a success: verify and stand down.\n**The pathspec, by name, never `-A`** \u2014 three other lanes have work in this index: `company/billing/annual_consumption_estimate.py`, `company/billing/dd_review_runner.py`, `company/billing/dd_review.py`, `company/interfaces/dd_review.py`, `company/interfaces/dd_review_outcome.py`, `simulation/dd_balance_book.py`, `tests/company/billing/test_dd_review_runner.py`, `tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py`, `tests/company/interfaces/test_dd_review_seam.py`, `tests/company/interfaces/test_dd_review_outcome_seam.py`, `tests/simulation/test_dd_balance_book.py`, `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`, `docs/institutional/knowledge_map.md`, `docs/design/maturity_map.yaml`. **Do not include `tools/head_green_census.py` or its test file \u2014 those are rank one's and composing them is rank one's job.**\n**The level move is already recorded and needs no repeat.** `gate_authorizations.jsonl` carries `LEVEL_UP_SELF_CERTIFIED` for `D_opening_dd_seasonal_sizing` at 14:59:39 UTC and `tools/level_promotion_gate.py` exits `rc=0` at this commit. The map at origin still reads `level_current: 0`; the staged `0 -> 1` in this tree is what carries it. **Do not unstage it** and do not record it a second time.\n**Fix the false citation in the two interface files you are carrying.** `company/interfaces/dd_review.py` and `company/interfaces/dd_review_outcome.py` cite **\"SLC 27B\"**, which does not exist. Cite **SLC 27.15** for the duty and name the \u00b15% as a modelling convention, not a licence requirement. Landing a false citation into a file whose own sibling research page refutes it is worse than not landing.\n**The commit message is drafted** at the untracked `docs/observability/.dd_estimate_commit_msg.txt` \u2014 read it, re-run `python3 tools/write_time_gate.py --explain company/billing/annual_consumption_estimate.py` and keep the REUSE block honest, and use `git commit -F <file>`, never `-m` with backticks in it. Pre-run the cheap gates in their fixed order: `background/finding_classes --check`, `background/finding_severity`, `ruff check --select I001`, `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`.\n**Done means:** `git log --all -- company/billing/annual_consumption_estimate.py` returns a commit; the map reads `level_current: 1` for this atom **on origin**; neither interface file says \"27B\"; and `HEAD...origin/main` is `0 0` with the work in it. **If the route above is also forbidden, say that in the log, file it as a finding, and hand the item back UNFINISHED** \u2014 six exits of `rc=0` having landed nothing is what an honest unfinished is worth more than.",
-    "why": "This is the mission item and the only thing on this list the thesis is actually about: the company's first per-customer inference organ, an estimate of what a household will consume, built from what a supplier can see. It has existed as working code in one machine's index for ten hours and in no commit, so it cannot be built on, judged, or beaten by a baseline. It is ranked second and not first only because rank one is what makes any commit in this tree safe, and because landing this against a tree twenty-four behind origin is how the same work gets duplicated a second time."
+    "id": "dd-estimate-against-the-flat-rule-baseline",
+    "what": "**Run the same book twice \u2014 DD opened from `annual_consumption_estimate` and DD opened from the flat rule it replaced (`seq[0][1]`, the first issued bill) \u2014 and record per account what separates them.** This item was named in the previous direction and never drawn by any channel; it is unstarted, not stale. Not a headline: the per-account distribution of end-of-year balance drift with credit and debit shown separately and never summed as one absolute; the count of accounts whose estimate resolved to an honest absence and what the arm does with those; the count where both rules chose the same amount; and **which basis each account's estimate came from**. That last one is load-bearing and I have measured a correction to the previous direction on it: `BASIS_ORDER` has **four** rungs, not three, and the production call site (`simulation/run_phase4c_on_phase2b.py:146-167`) supplies only `registry_eac_kwh` and a `band`, so `METERED_HISTORY` and `CUSTOMER_DECLARED` are **structurally unreachable on the live route** \u2014 two of four. Report the split by basis and say so plainly. Publish with the bound the sample size earns and with its clock.",
+    "why": "The thesis says the advantage must come from inference and that there has to be a baseline to beat or \"it performed well\" means nothing \u2014 and the flat rule this organ replaced IS that baseline, sitting in the code it displaced, which will never again be this cheap to measure against. The basis split is what tells us whether we have built inference or a registry lookup with a precedence comment on it, and that answer decides whether the next item is worth building at all. Finished when both arms exist as runnable code over one book, the per-basis counts are stated, and the difference is on a surface with its basis attached. A refusal that says the sample cannot carry the reading is an acceptable finish; an unbounded figure is not."
    },
    {
-    "id": "an-instrument-that-reports-success-without-checking-its-subject",
-    "what": "**Make the executor's `rc=0` and the direction's `drawn` field mean what they say. One class, two instances, and both were load-bearing this stretch.**\n**Instance one, and it cost six discharges.** `background/seat_executor.py` logged `FINISHED <id>: rc=0` six times for work that landed nothing \u2014 `land-the-dd-inference-organ-and-unwedge-every-lanes-publish` at 15:36 and 16:35, and four earlier under its atom id. A bounded session that produced no commit and no filed finding exited zero, and the downstream register read that as done. **The executor must verify its own subject before it reports.** Key the control to the property \u2014 *a discharge names what it landed, or it is unfinished* \u2014 never to today's item ids or to a list of expected paths. The honest exits are: a commit sha it can name, a finding it filed saying why not, or a non-zero rc. **Prove it by mutation under `python3 -B`** (never a stale `.pyc`): an edit that lets a no-op discharge report `rc=0` must red a named test whose message says which of the three outcomes was missing.\n**Instance two, same shape, one level up.** `previous_focus_drawn` reported `drawn: []` while `seat-executor-log.md` showed the exact id `RUNNING` twice in the window. It is now the fifth consecutive stretch of that false negative, and this time it did real damage: it hid that the non-atom-id fix had **worked**, and my predecessor spent a `wrong` entry on a routing problem that was already solved. Make the field read the executor log for the window it covers. **Also make it refuse a focus id that is a maturity-map atom** \u2014 `delivery_lane.next_item` builds from `direction.unreachable_focus(_atom_ids())` and excludes every atom by construction, so an atom id routes work to the weakest channel there is and says nothing.\n**Done means:** a source mutation on each instance reds its own named test with its own stated reason; a no-op executor discharge exits non-zero or files a finding; `drawn` reflects the executor log; and a focus id that is an atom is refused at write time with a message naming why. Prefer one leg that fires over a register that watches \u2014 if a one-leg check catches it, ship the leg and delete the register you were about to write.",
-    "why": "Three instruments reported success or absence without checking their subject this stretch, and together they are the entire reason nothing landed: the executor's `rc=0`, the direction's `drawn: []`, and a stretch review that reads HEAD in a tree twenty-four commits behind it. That is R15's fail-silent killer with three live instances in one afternoon, and it is the class that makes every other item on this list unverifiable \u2014 including whether ranks one and two actually got done. It sits behind them because they are bleeding now and this stops the bleeding recurring; it sits ahead of everything else because without it the next orientation cannot tell whether they happened."
+    "id": "the-27b-correction-reached-one-of-five-places",
+    "what": "**The correction to the false licence citation landed in the two company modules and nowhere else. Finish it in the other three, and check the served artefact rather than the source.** `git grep -n \"SLC 27B\"` still returns it asserted as fact in `docs/design/simplifications/DD_seasonal_cashflow_physics.yaml:5` (\"Ofgem SLC 27B +/-5pct variance\"), `docs/claude/phase-history.md:591` (\"Ofgem SLC 27B.\"), and `docs/PROJECT_OVERVIEW.md:5451` (\"**Fidelity delta:** Ofgem SLC 27B requires suppliers to review all domestic DD amounts at least annually\"). The first of those three is the one that reaches a reader: its text is served verbatim inside `site/data/simplified.json` today. Replace each with the established position \u2014 the DUTY is SLC 27.15, the \u00b15% band is a modelling convention, and there is no SLC 27B \u2014 citing `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`. **Do not simply delete the string**: check that what replaces it says the right thing, and check it in `site/data/simplified.json` after a publish, not in the source. Ignore the `27B` occurrences inside `site/data/delivery.json` and this file \u2014 those are the record quoting the correction itself, which is the record working.",
+    "why": "This is one legal claim with five implementations, corrected in two of them \u2014 the exact shape CLAUDE.md holds up as this project's most expensive recurring defect, with the VAT rule as its named evidence, and it has now happened again inside twenty-four hours of that rule being restated. It is a claim about the law published under Poesys's name and it is false. It ranks below the two above only because it is cheap, not because it is small: the seat that takes item 1 can finish this in the same pass. Finished when the three source files carry the SLC 27.15 wording and `grep -c 27B site/data/simplified.json` is zero on the served artefact."
    },
    {
-    "id": "bill-validation-the-curtain",
-    "what": "**Build the curtain, before anything reconstructs a bill against the export that already landed.**\n`company/billing/raw_account_export.py` landed at `145d48345` with a check that refuses a derived field **by its unit**. That is leg two of the director's brief (`docs/staging/DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02.md`) and it arrived before leg one. **There is still no validation package and no curtain in this tree.** That ordering is the risk: a validator built against this export and walled afterwards has already inherited a shared concept, and no later control can un-inherit it.\nBuild a validation package that **structurally cannot import `company/` or `saas/`**, enforced the way the socket wall is enforced \u2014 refused by construction, not by approval. Reuse the existing import-graph machinery rather than minting a new one: `background/publish_scope.py` already walks an import graph and `tests/architecture/` already holds layer controls. Run `python3 tools/write_time_gate.py --explain` before writing any new module and put what it returned in the REUSE block. **Mutation-prove it under `python3 -B`**: an edit that lets the package peek must red a *named* test. Key the control to the property \u2014 *this package may not reach the billing code* \u2014 never to today's list of imports. Watch for the shape that has already caught us here: a `tools/` import can drag `simulation.*` onto the graph transitively, so assert on the resolved graph and not on the written import lines.\nThen start \u00a76, the plain statement of what this cannot catch, **as you go and not at the end**. Put the worked example in it by name: the first direct debit set from a half-month stub, measured correctly, sourced correctly, and wholly wrong in frame until a practitioner said so.\n**Done means:** the curtain exists, a source mutation against it reds a named test, and \u00a76 names the residual risk with that example. Leave the statement export and the one-account reconstruction for the next stretch \u2014 and if you conclude the two-export shape is wrong, say so and build the better one; the director explicitly invited that and it is a finding either way.",
-    "why": "This is the director's newest direction, delegated for sequencing and not for approval, and it is what makes every other figure in this file checkable: our arithmetic has never been tested against anything outside itself, which is the exact pattern that produced a rate spanning thirteen periods of money over one of volume. The export landed without its wall, so the wall is the thing that decays while it waits. It carries over from the last direction unchanged and un-drawn, and I am ranking it fourth rather than dropping it: three items above it are a refused publisher, an unlanded inference organ and the instrument class that hid both, and all three are bleeding today."
-   },
-   {
-    "id": "the-slc-27b-citation-does-not-exist-and-is-published",
-    "what": "**Correct the \"SLC 27B\" attribution in the sites rank two does not reach, and close the class rather than the instance.**\n`docs/staging/SEAT_FINDING_THE_DD_REVIEW_BAND_CITES_A_LICENCE_CONDITION_THAT_DOES_NOT_EXIST_2026-09-02.md` establishes from Ofgem's own material that **there is no SLC 27B**: the direct-debit provisions are 27.13\u201327.16 inside SLC 27, the nearby lettered conditions are 27A and 28A/28AD, and no \u00b15% band appears in the licence at all. I re-grepped the tree this orientation and it now reaches **twenty files**, not the four the finding records \u2014 including `saas/bill_generator.py`, `simulation/run_phase4c_on_phase2b.py`, `tools/generate_dashboard_data.py`, `docs/PROJECT_OVERVIEW.md`, `docs/institutional/knowledge_map.md`, `docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md`, `docs/status/LATEST.md`, and `docs/market_research/what_bill_shock_is.md`. **Correct that count inside the finding, beside the original claim**, not quietly. `tools/generate_dashboard_data.py` is the one to look at first: if the string reaches a rendered surface from there, this is published and not merely internal.\n**The \u00b15% is not fabricated and must not be deleted** \u2014 it is a real and widely used supplier review convention and the code applying it behaves sensibly. What is wrong is a modelling convention wearing a regulation's clothes. Cite **SLC 27.15** for the duty, declare the \u00b15% as a convention with its own origin under `tools/domain_constant_origins.py`, and state on the surface that the licence names no numeric trigger. If nothing published establishes it as a convention either, that is the honest answer and it goes on the page as a `None` with a named reason.\n**Then close the class.** `docs/staging/WORKER_FINDING_THE_STANDING_CHARGE_IS_FOUR_DECLARATIONS_AND_A_CITATION_THAT_CANNOT_BE_CHECKED_2026-08-31.md` is the same shape and still staged. Two instances is a class, and the rule that should have caught both \u2014 *a money constant citing a source must be reached* \u2014 is prose where it needs to be a refusal. **A cited authority that cannot be resolved in the commons is a refusal, not a comment.** Key the control to that property, never to today's list of bad citations, or it goes green the moment someone invents a new fictional condition.\n**Done means:** no file in the tree cites SLC 27B; the \u00b15% carries a declared origin as a convention; the finding's own count is corrected in place from four to what you measure; and a mutation-proven control refuses an unresolvable citation as a class.",
-    "why": "A number sourced to a condition that does not exist can never be verified and will never be corrected, and this one has spread from four files to twenty since the finding was written, including pages we serve to readers as research. It is the second instance of a class that already has a written rule, and the rule caught neither \u2014 the definition of a control that cannot fail. Ranked last because it corrects an attribution rather than a behaviour: the \u00b15% produces the same decisions tomorrow either way, whereas everything above it is a refused publisher, unlanded mission code, an instrument class that reports false success, and the wall that makes our arithmetic checkable."
+    "id": "give-the-dd-estimate-a-metered-history-rung-on-the-live-route",
+    "what": "**Only after item 2 has answered.** If the basis split shows the live route resolving through `REGISTRY_EAC` and `TDCV_TYPICAL` alone, supply the top rung: pass the supplier's own meter history into `opening_monthly_amount` from `_opening_dd_by_customer`, for the accounts where a real supplier would hold it at the point the DD is set. Check the epistemic wall on every input first \u2014 at registration a supplier holds registry data and whatever reads it has taken, and NOT a full year of half-hourly consumption; if the honest answer is that metered history does not exist at that instant for most accounts, **that is the finding, and the right repair is to make the unreachable rungs unreachable by construction rather than to leave a precedence that reads as four-deep and behaves as two.** Re-run item 2's comparison after and say whether the top rung moved the drift distribution at all.",
+    "why": "\"The advantage must come from INFERENCE, never from ACCESS.\" A registry EAC is a number handed to us; metered history is a number we reason from \u2014 and right now the organ's own documentation claims a precedence its production caller cannot walk. Either the rung is reachable and we should reach it, or it is not and the code should say so, but a control whose pass branch is unreachable reports a constant verdict, and that is the failure class this machine catalogues most often. Finished when the live route's reachable bases and the module's declared precedence are the same set, whichever direction that is settled in."
    }
   ],
   "not_now": [
    {
-    "what": "Repeating the previous direction's rank one verbatim \u2014 \"land the DD payload from the main worktree, `git -C /home/rich/synthetic-enterprise`, run `surgical_land` there\" \u2014 for a seventh attempt.",
-    "why": "Because I now know it is **unexecutable by the channel a focus item routes to**. `seat_executor` writes no code to the shared tree by contract, held by `test_the_executor_writes_no_code_to_the_shared_tree`, so six ticks took the item, could not do the one thing it demanded, and exited zero. Re-ranking the same instruction would buy a seventh `rc=0`. Rank two keeps the goal and replaces the route with one the contract permits \u2014 read the main index as a patch, apply and land in the isolated worktree, promote \u2014 and says explicitly to hand the item back unfinished if that is forbidden too. Changing the route rather than the rank is the whole judgement here."
+    "what": "Discharging the one BLOCKING finding, `SEAT_FINDING_THE_RECONCILER_MANUFACTURED_THE_FORK_IT_EXISTED_TO_CLOSE_2026-09-02.md`, as a document \u2014 archiving it, re-rendering its class, closing its atom.",
+    "why": "Its mechanism is already fixed and mutation-proven (\u00a72's three branches; restoring the `ahead == 0` fall-through fails three tests). Its one still-open leg is the publish wedge named in its \u00a75, which IS focus item 1. Archiving the document is bookkeeping that follows the repair; doing it first would move a severity label and change nothing about the tree."
    },
    {
-    "what": "Ranking the publish wedge as its own item separate from the census merge, since content has not moved since 04:44 UTC and the director's ruling makes unwedging priority zero.",
-    "why": "Because they are one object and I can prove it this time rather than assert it. The live `.last_gate_blocking_tests.json` names two census tests; both pass in this tree and are red at HEAD and origin; the repair is the unstaged `_install_fake_register` helper. Landing the composed census file IS the unwedge. Splitting them would put two lanes on one pathspec and invite the sweep-and-redraw that has already cost this project a whole item. Rank one carries an explicit refutation test if I am wrong again \u2014 my predecessor's level-gate diagnosis had one too, and it is what let me refute it in ten minutes instead of a stretch."
+    "what": "The bill-shock definition split (`FINDING_THE_BILL_SHOCK_SPLIT_HAS_ONE_IMPLEMENTATION_AND_IT_IS_IN_THE_WRONG_LAYER`), which the previous direction deferred with an explicit promise that it would go first once the DD organ landed. The organ has landed. I am deferring it again and this is the reason.",
+    "why": "I measured it before deciding, and the case for it is weaker than when that promise was made. The finding's own header says LATENT and \"no published figure is wrong as a result of either half below\" \u2014 it is structural residue of a units fix that has already landed. The served artefact now carries `avg_bill_shock_pct: 0.47`, not the 200% that made this urgent, and `bill_shock_by_population` with per-payment-method `n` is already in `site/data/dashboard.json`. A promise made against a 200% published figure does not survive that figure being corrected. It goes ahead of new work the moment its layer placement blocks something real."
    },
    {
-    "what": "Chasing the twenty-three identical `merge origin/main: automatic reconciliation in an isolated worktree` commits on origin \u2014 one daemon that has re-landed the same `274 insertions(+), 2 deletions(-)` twenty-three times in three hours and is still going.",
-    "why": "It is loud and it is not currently costing correctness: the merges are idempotent and origin's content is right. I believe it is a symptom of the main tree sitting twenty-four behind \u2014 the reconciler keeps finding the same divergence because nothing here ever merges \u2014 and rank one merges. **That is a prediction and it is falsifiable:** if the same merges are still accumulating after rank one lands, the cause is in the daemon and it earns a rank next orientation. Spending a rank now would fix a symptom and destroy the evidence."
+    "what": "Sweeping the staging root \u2014 ~90 live documents, 40 LATENT findings, the 2022 anchor cluster (four findings and four preregistrations on whether the anchor has a lever and which absences are fit failures), and the ungraded preregistrations from yesterday.",
+    "why": "All real, none blocked, and exactly as available next stretch. The 29 unprocessed `run_complete` markers in that same directory are not a filing problem \u2014 they are item 1's symptom, and they will drain when the wedge clears rather than when the queue is tidied."
    },
    {
-    "what": "The inference atoms the thesis is actually about \u2014 `C29_decisions_stop_being_lookup_tables`, `C30_advice_reaches_a_household`, `C31_time_is_the_currency_that_does_not_exist` \u2014 all drawn again this stretch and none advanced.",
-    "why": "These are the mission and I am deferring them a second time with the cost stated plainly. C29 and C30 are where per-customer inference becomes a decision and then an outcome, and rank two is the first organ they would consume \u2014 which is why it has to be *landed* before they are worth starting. Building more decisions on arithmetic never checked outside itself is how we got a rate over the wrong volume. If ranks one and two land and rank four's curtain stands, these take rank one next, and if they do not I have to explain a third deferral."
+    "what": "Clearing the BASIS-LABEL DEBT the publish path prints beside its refusal: five published figures carrying no clock \u2014 `cost_to_serve_gbp`, `gross_margin_gbp`, `net_after_cts_gbp`, `treasury_end_gbp`, `treasury_start_gbp`.",
+    "why": "Real, and it is one of the enforced rules in CLAUDE.md's own table. But I read the output rather than assuming: it is emitted as a WARNING on stderr, not as the refusal \u2014 the refusal is the orphan-ratchet. Fixing it unwedges nothing, and doing it inside item 1's commit would fuse two subjects and make the next refusal harder to attribute. It is the natural first item once figures are moving again."
    },
    {
-    "what": "Working the ninety-seven staged findings and the eighteen repeating alarm documents, including the 302 KB `WORKER_FINDING_REPEATING_ALARM_SEAT_CONTINUITY_2026-08-26.md`.",
-    "why": "One BLOCKING, 49 LATENT, 47 RECORDED \u2014 and the one BLOCKING is discharged inside rank one. Most of the repeating alarms are symptoms of the refused publisher and the unlanded index above; `.publish_gate_state.json` cites five findings that are all downstream of the same wedge. Clearing them by hand first would destroy the evidence that fixing the causes stopped them."
+    "what": "Naming maturity-map atom ids as the `id` of these focus items, as the brief's mechanism invites and as the previous direction did for `D_opening_dd_seasonal_sizing`.",
+    "why": "The evidence from one stretch is that the two channels are not equal. `previous_focus_drawn.by_class` records `atom: {drawn: [], steered: false}` and `lane_0: {drawn: [an-exit-code-is-not-a-landing], steered: true}` \u2014 the atom-class steer biased a draw that never came, and every item that actually moved arrived through Lane 0. So all four items here are kebab keys, deliberately, including item 4 which sits squarely on `D_opening_dd_seasonal_sizing`. If a later stretch shows the atom channel biting, this decision should be reversed."
    },
    {
-    "what": "Re-running the whole-book recapture to judge the 2022 anchor block and grading `SEAT_PREREGISTRATION_WHAT_A_WHOLE_BOOK_RECAPTURE_MUST_MOVE_2026-09-02.md`.",
-    "why": "The director outranked it explicitly, it has produced a better-specified \"we cannot tell\" five stretches running, and it is a heavy run on a box that already has a nightly census at 03:34 and a publish gate that has failed fourteen times today. The twenty-nine manufactured reds came from exactly this kind of overlap. It comes back when the census is clean and there is a machine free."
+    "what": "Building anything that watches the publish gate and reports which of its gates wedged the tree \u2014 a register, a dashboard tile, a daemon.",
+    "why": "Rejected for the second stretch running, and the evidence got stronger rather than weaker. `.publish_gate_state.json` IS that instrument and it is precisely what misdirected every reader for hours by naming five green tests. The repair in item 1(b) makes the existing classifier able to say a true thing; a second watcher over it would be a control guarding our own controls, which is the shape CLAUDE.md names and the shape that caused this."
    }
   ],
   "for_the_director": [],
@@ -316,6 +311,54 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "The publish path printed its own refusal verbatim \u2014 `orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS. tools.artefact_rerun_diff` \u2014 and then logged, two lines later, `Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- recording NO blocking test`. The classifier reads only pytest FAILED lines, so a non-test gate refusal reads as an absent cause. Publishing stayed down 18.7h with the answer in the log."
+   },
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "`.publish_gate_state.json` has carried five tests in `tests/background/test_a_staged_document_no_longer_blocks_every_landing.py` as `blocking_tests` since 08:33. I ran that file: 20 passed in 0.11s. A stale blocker list is not merely useless \u2014 it actively routed readers away from the real cause for the whole outage."
+   },
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "`tools/artefact_rerun_diff.py` was written 2026-08-31 09:37, left staged `A ` with no caller and no freeze, and has refused every publish commit in this tree since. It was already identified, by name and by status, at line 342 of the BLOCKING finding filed hours before this orientation, and nothing acted on it. Finding it a second time cost more than finishing it once would have."
+   },
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "The previous direction stated that `BASIS_ORDER` \"has three rungs\". It has four (`METERED_HISTORY`, `REGISTRY_EAC`, `CUSTOMER_DECLARED`, `TDCV_TYPICAL`), and the production call site supplies inputs for only two of them, so the precedence a reader sees is not the precedence the live route walks. Corrected here, beside the claim, before it was published as a property of the organ."
+   },
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "The previous direction predicted that routing `an-exit-code-is-not-a-landing` to the seat executor would \"discharge the claim, report rc=0, and change nothing \u2014 for the fifth time.\" It was routed there and the prediction is REFUTED in mechanism: the executor's 21:36 turn logged `LANDED NOTHING ... bound paths unchanged since 6d18107c7` and left the claim unreleased, and its 22:05 turn logged the first `1 of 1 bound path(s) moved on the shared tree`. The repair caught its own channel failing on the first live application. The code itself was written from the shared tree, so the prediction was right about who writes and wrong about what the executor reports \u2014 graded SPLIT, not simply refuted."
+   },
+   {
+    "at": "2026-09-02T23:24:30.927118+00:00",
+    "what": "29 `run_complete_*.md` markers accumulated in the staging root, one every ~13 minutes since 16:05, each carrying an \"Action required\" list nobody performed, while the machine kept starting fresh simulation runs. Nothing anywhere treats a growing queue of finished-but- unpublished runs as a signal in its own right."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "`background/seat_executor.py` logged `FINISHED ... rc=0` four times for `land-the-dd-inference-organ-and-unwedge-every-lanes-publish` and discharged the claim each time, while the organ remained in no commit. `rc` is the agent process's exit status and was never evidence about the subject."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "The stretch brief and `previous_focus_drawn` reported `drawn: []` for all five focus ids while `docs/observability/seat-executor-log.md` recorded seven RUNNING/FINISHED pairs for those same ids. The brief's own note then invited the seat to conclude the steer was a no-op, which would have been the wrong repair to the wrong mechanism."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "`background/origin_reconcile.py` committed five identical empty merges on a 381s timer, four of which changed nothing, lighting every liveness surface with a tree that had not moved."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "The seat pre-registered that the last wedging file was a superseded draft and acted toward reverting it; it was forward work carrying a sourced `VAT_INCLUSIVE` constant. Graded REFUTED beside the claim before anything was destroyed \u2014 a commit subject naming a file is not evidence about which version of it that commit carried."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "Two seats adopted the same orphaned DD payload and the first did not notice for ninety minutes; \"the lane is dead\" was true when measured and false when acted on."
+   },
+   {
+    "at": "2026-09-02T20:21:16.889095+00:00",
+    "what": "The level gate's refusal named four files; three had been landed by intervening merges and only `company/billing/statement_export.py` was still live. A refusal enumerates its subject at the instant it fires and over-states the work every hour thereafter."
+   },
    {
     "at": "2026-09-02T17:24:03.900996+00:00",
     "what": "**I ranked work first that the channel it routes to is contractually forbidden to do, and the channel reported success six times.** A focus item goes to lane 0, which is `background/seat_executor.py`, which writes no code to the shared tree \u2014 its own docstring says so and `test_the_executor_writes_no_code_to_the_shared_tree` holds it. My rank one told it to commit from the main worktree. It ran at 15:36 and 16:35, exited `rc=0` both times, and landed nothing; four earlier discharges under the atom id did the same. Six bounded sessions spent on an item that was undoable by its own channel. Corrected in this file: rank two replaces the route with patch-out-of-the-main-index, apply-in-the-worktree, `surgical_land`, promote \u2014 and rank three makes a no-op discharge unable to report `rc=0`."
@@ -1111,54 +1154,6 @@
    {
     "at": "2026-08-29T02:22:47.338789+00:00",
     "what": "The bound sentence on `/capabilities/` has now been named in seven directions at position four or five and rendered zero times. Naming a piece of work last, repeatedly, is deciding it never happens; I have stopped listing it separately and folded it into the page's own re-run pass, which is the only version of it that has a chance of being done."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "My own instruction. I wrote focus item one's done-condition as \"report whether `believed_p_leave` now differs between the two worlds and by how much\", and that is exactly what came back: a measurement, a finding, and a channel that is inert at HEAD because the two hunks that fill its numerator are uncommitted. Direction that asks for a number gets a number. A focus item whose subject is a behaviour must define done as the behaviour being reachable from a clean export of HEAD, not as a table in a document."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "The first measurement of the competitive-pressure channel was an artefact and moved in the flattering direction. `run_phase4c_on_phase2b.main` calls `run_phase2b()` with no `sim_interface`, so every `notify_churn` sat behind `if sim_interface is not None`, the ledger filled its denominator and left its numerator at zero, and read no-reporting as no-departures during a run that churned 16 accounts in one arm and 12 in the other. It appeared to collapse the published over-prediction gap from 20.7\u201328.7pp to 1.1\u201314.9pp. All sixteen tests were green; it was caught by a contradiction the artefacts stated plainly."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "The channel's first weight formula was not monotone in the thing it observes. Using the Wald variance evaluated at the realised proportion, 200 decisions predicting 0.30 gave 0.542 on 30 observed losses and 0.594 on zero \u2014 a belief reading MORE competitive pressure from FEWER departures. Caught by printing the table across real sample sizes before shipping the formula, not by thinking about it; evaluating under the null fixes it."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "A control written for the no-departures window could not fail: it asserted finite-and-below- prior, and deleting the continuity correction it was written to catch yields exactly 0.0, which is both. Zero means no customer can ever leave at any price \u2014 the captive floor `_apply_market_conditions` was rewritten in survival space to remove, arrived at from the other side."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "One test module that could not be imported blinded the entire operational layer, and R3's earlier pass left it behind. The commit gate selects tests, so a collection error costs the whole suite rather than one file."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "Last direction I recorded that `docs/design/held/README.md` claimed the founder book had landed while it was only staged \u2014 a completion claim written in the working tree about the working tree. It landed at `3d83edffb`, so the record and the code now agree; the claim was premature rather than false, which is the distinction worth keeping."
-   },
-   {
-    "at": "2026-08-28T23:22:14.091405+00:00",
-    "what": "Six consecutive directions have named the settlement-clocks pair in last or near-last place and it has never been done, while the hazard grew from staged to untracked. That is a defect in my ordering, not in the lane: a ten-minute decision placed below two multi-hour builds is a decision I have declined to make six times. It moves to third tonight."
-   },
-   {
-    "at": "2026-08-28T20:24:51.890173+00:00",
-    "what": "`docs/design/held/README.md` states the founder book \"Landed in HEAD\" and ends \"Nothing is currently held\", while `docs/design/FOUNDER_BOOK.yaml` and `tests/simulation/test_founder_book.py` do not exist in HEAD and are sitting staged in the shared index. A completion claim written in the working tree about the working tree is self-refuting, and this one deleted the held artefacts on the strength of it \u2014 so if the gate refuses the commit, the patch that was the fallback is gone."
-   },
-   {
-    "at": "2026-08-28T20:24:51.890173+00:00",
-    "what": "My previous direction asked for seed replication on the price-ladder pair. That was the wrong instrument: `realized_churn_probability` is computed before the roll and the roll never enters it, so replicating seeds would have published an error bar on a quantity whose variance from that source is structurally zero \u2014 a misleading bar, not a conservative one. The worker refused the ask and said why, which is the behaviour the refusal rule exists to produce."
-   },
-   {
-    "at": "2026-08-28T20:24:51.890173+00:00",
-    "what": "An intermediate reading of the morning's ladder artefacts had the chase effect DECAYING with price and a one-sided-mechanism story assembled to explain it. The fresh controlled pair shows it growing monotonically with the rung. The two pairs ran on different trees, so the difference is unattributable and was not attributed; the discarded story is recorded beside the result so it is not re-derived from the stale artefacts."
-   },
-   {
-    "at": "2026-08-28T20:24:51.890173+00:00",
-    "what": "The direction mechanism handed a lane-0 tick a brief to do work that had been at HEAD for fourteen minutes, and will keep doing so: `record_landing` refuses a commit older than the claim, and a re-draw makes that commit permanently unbindable. Diagnosed and filed at `73759660f`; the repair is not built."
-   },
-   {
-    "at": "2026-08-28T20:24:51.890173+00:00",
-    "what": "I read the brief's `previous_focus_drawn: {drawn: [], steered: false}` as evidence the steer was not biting, and last direction I wrote that four of five items were unreachable. The binding half of that diagnosis was right; the reachability half was not \u2014 items ARE reaching lane-0 ticks and being worked. The lane cannot see the landings, which is a different and smaller problem than the one I described."
    }
   ],
   "refused_own_records": [],
@@ -1166,13 +1161,70 @@
  },
  "what_next": {
   "focus": [
-   "compose-with-origin-and-land-the-census-repair-that-is-the-publish-wedge",
-   "land-the-dd-organ-by-a-route-the-executor-is-actually-permitted-to-use",
-   "an-instrument-that-reports-success-without-checking-its-subject",
-   "bill-validation-the-curtain",
-   "the-slc-27b-citation-does-not-exist-and-is-published"
+   "the-publish-wedge-is-one-staged-unwired-file",
+   "dd-estimate-against-the-flat-rule-baseline",
+   "the-27b-correction-reached-one-of-five-places",
+   "give-the-dd-estimate-a-metered-history-rung-on-the-live-route"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [],
+      "focus": [
+       "D_opening_dd_seasonal_sizing"
+      ],
+      "steered": false
+     },
+     "lane_0": {
+      "drawn": [
+       "an-exit-code-is-not-a-landing"
+      ],
+      "focus": [
+       "an-exit-code-is-not-a-landing",
+       "dd-estimate-against-the-flat-rule-baseline",
+       "the-served-site-still-cites-a-licence-condition-that-does-not-exist"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "an-exit-code-is-not-a-landing"
+    ],
+    "focus": [
+     "D_opening_dd_seasonal_sizing",
+     "an-exit-code-is-not-a-landing",
+     "dd-estimate-against-the-flat-rule-baseline",
+     "the-served-site-still-cites-a-licence-condition-that-does-not-exist"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "compose-with-origin-and-land-the-census-repair-that-is-the-publish-wedge",
+       "land-the-dd-organ-by-a-route-the-executor-is-actually-permitted-to-use",
+       "an-instrument-that-reports-success-without-checking-its-subject",
+       "bill-validation-the-curtain",
+       "the-slc-27b-citation-does-not-exist-and-is-published"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "compose-with-origin-and-land-the-census-repair-that-is-the-publish-wedge",
+     "land-the-dd-organ-by-a-route-the-executor-is-actually-permitted-to-use",
+     "an-instrument-that-reports-success-without-checking-its-subject",
+     "bill-validation-the-curtain",
+     "the-slc-27b-citation-does-not-exist-and-is-published"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
    {
     "by_class": {
      "lane_0": {
@@ -1250,52 +1302,6 @@
      "the-830-red-was-diagnosed-and-never-re-measured",
      "independent-bill-validation-first-slice",
      "the-slc-27b-citation-does-not-exist-and-is-published"
-    ],
-    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
-    "steered": false
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [],
-      "focus": [
-       "the-direct-debit-is-set-from-the-first-bill-and-nothing-estimates-what-it-should-be",
-       "no-capture-can-judge-the-live-anchor-block-and-the-module-primes-its-reader-backwards",
-       "the-sanctioned-merge-route-must-name-the-paths-it-left-behind",
-       "land-the-finished-control-and-attribute-every-remaining-staged-path"
-      ],
-      "steered": false
-     }
-    },
-    "drawn": [],
-    "focus": [
-     "the-direct-debit-is-set-from-the-first-bill-and-nothing-estimates-what-it-should-be",
-     "no-capture-can-judge-the-live-anchor-block-and-the-module-primes-its-reader-backwards",
-     "the-sanctioned-merge-route-must-name-the-paths-it-left-behind",
-     "land-the-finished-control-and-attribute-every-remaining-staged-path"
-    ],
-    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
-    "steered": false
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [],
-      "focus": [
-       "union-the-departure-routes-and-declare-the-denominator",
-       "the-direct-debit-has-no-estimate-behind-it-so-definition-a-cannot-be-measured",
-       "two-pieces-of-finished-work-are-staged-in-the-shared-index-and-in-no-commit",
-       "the-bill-shock-split-has-one-implementation-and-it-is-in-the-wrong-layer"
-      ],
-      "steered": false
-     }
-    },
-    "drawn": [],
-    "focus": [
-     "union-the-departure-routes-and-declare-the-denominator",
-     "the-direct-debit-has-no-estimate-behind-it-so-definition-a-cannot-be-measured",
-     "two-pieces-of-finished-work-are-staged-in-the-shared-index-and-in-no-commit",
-     "the-bill-shock-split-has-one-implementation-and-it-is-in-the-wrong-layer"
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
     "steered": false
