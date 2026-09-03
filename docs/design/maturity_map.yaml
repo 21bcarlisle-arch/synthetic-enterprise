@@ -832,7 +832,25 @@
   # ImportError at HEAD in a module 200+ files import -- the whole suite, not a selection.
   # RE-DECLARE THIS AS 2 IN THE SAME SEAT COMMIT THAT CARRIES ITS SOURCE. The L2 work itself was
   # never in question and nothing about it is retracted here.
-  level_current: 0
+  #
+  # RE-DECLARED 2 ON 2026-09-03, AND THE BACK-OUT'S OWN CONDITION IS WHAT CLEARED IT. The
+  # instruction above says "in the same seat commit that carries its source"; the source landed
+  # in ANOTHER lane's commit instead, which satisfies the intent -- the level no longer declares
+  # a program no commit contains -- so this commit carries the map alone. Re-measured at HEAD
+  # rather than inferred from the note: `DEPARTURE_OCCASION_SVT_SEGMENT` is at
+  # `simulation/customer_events.py:66` and `inertia_hazard_for_term` at `simulation/svt_product.py:124`,
+  # both at HEAD, and `git status --porcelain` over this atom's whole file_scope is EMPTY, so the
+  # gate's second control passes on the fact and not on the claim. The four exit legs were re-run,
+  # not recalled: tests/simulation/test_net_new_acquisition.py 54 passed (b1 and b2 with their
+  # named MUTATION controls and the b1 null control), tests/tools/test_couple_pb3_book_growth.py
+  # 20 passed (d), tests/simulation/test_opening_book_subset.py 29 passed. Authorised by the
+  # EXISTING ledger row -- no new authority was minted for this; `gate_authorizations.jsonl` has
+  # carried a valid `level: 2` self-certification for this atom since 2026-08-25.
+  # THE LESSON, because it cost three ticks: a back-out comment states a cause, and a cause can be
+  # CURED by a lane that never reads the comment. This note went stale the moment the C1b branch
+  # landed, and every draw of PB3 after that re-derived a wedge that no longer existed. A blocker
+  # note is a measurement and goes stale exactly like a green -- re-run it before believing it.
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -847,6 +865,28 @@
   # leakage. A book whose down is a rival supplier and whose up is nobody is not yet won and lost
   # against the SAME market. That import, and the re-run of every published book figure behind it,
   # is what carries this atom to L3.
+  #
+  # HALF OF THAT RESIDUE IS NOW CLOSED, and saying which half is the point (2026-09-03).
+  # THE IMPORT LANDED. `simulation/acquisition_funnel.py:176` calls `offer_position_multiplier`
+  # from `simulation.market_switching_propensity` inside `_quote_to_application_rate`, and
+  # `simulation/live_population.py:971` binds `price_differential_pct=PRICE_DIFFERENTIAL_PCT` into
+  # `run_acquisition_funnel` -- the SAME run parameter `customer_events` has been handing the
+  # retention side since Phase NS. So the win side is no longer blind to our price, and
+  # `test_b1_the_win_side_reads_the_SAME_elasticity_the_loss_side_does` is the control that says up
+  # and down are the same contest rather than two mechanisms pointed opposite ways.
+  # WHAT IS STILL OPEN, and it is why this is 2 and not 3:
+  #   1. THE RE-RUN. The clause "and the re-run of every published book figure behind it" is NOT
+  #      discharged. No one has shown the published book figures were regenerated behind that
+  #      import, and an unverified re-run is exactly the "done means the rendered value changed"
+  #      failure this project keeps paying for. Measure it; do not assume it.
+  #   2. NO RIVAL TAKES THE CUSTOMER. `simulation/competitor_field.py` does not exist. The win side
+  #      reads our position against a market AVERAGE, not against a named rival's counter-offer --
+  #      `simulation/net_new_acquisition.py:66` still says so in its own docstring, and that line is
+  #      accurate. B10's own closed-map note names the same hole one layer down: "§5 component 1
+  #      (the ceiling gap) is unbuilt -- the company still has no observation of the cheapest rival
+  #      price."
+  # Both must be discharged by MEASUREMENT before this atom is 3. Neither is discharged by reading
+  # this comment, which is the mistake the note above records.
   simplifications_count: 3
   file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py,
     simulation/market_switching_propensity.py, simulation/acquisition_funnel.py, simulation/live_population.py]
