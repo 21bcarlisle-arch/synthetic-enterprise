@@ -1,0 +1,27 @@
+[Unit]
+Description=Synthetic Enterprise independent bill validation — every account, every run
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# Work item 5 of DIRECTOR_BRIEF_INDEPENDENT_BILL_VALIDATION_2026-09-02: "one account first, then
+# every account on every run, scheduled". There is deliberately no --limit here and no sampling
+# mode in the tool's normal path: a validator with a coverage dial is one whose coverage becomes a
+# decision somebody makes under time pressure, and the slow part is always what gets dialled down.
+# It is not slow — 251 accounts and 11,549 bills in under two seconds — so there is nothing to
+# trade away.
+#
+# --notify pages on a DELTA and never on a cycle. Every difference on record is exactly one penny;
+# the first one that is not pages on its first occurrence, and a count or claim-mix change pages in
+# EITHER direction, because a silent drop is how a control gets quietly disarmed. A run that finds
+# what the last run found says nothing to anyone.
+#
+# NOT --fail-on-difference. 295 differences are known, filed and understood; exiting non-zero on
+# them would make this unit permanently red, and a unit that is always red is a unit nobody reads.
+# The report is the artefact; the page is the delta.
+ExecStart=/usr/bin/python3 -m tools.bill_validation_comparison --notify --quiet
+# Report-only (G-R4): it writes docs/reports/bill_validation_comparison.json and changes nothing
+# else. It never touches the ledger it reads.
+TimeoutStartSec=600

@@ -1,0 +1,17 @@
+[Unit]
+Description=Synthetic Enterprise bill validation timer — hourly, the whole book
+
+[Timer]
+# HOURLY, AND THE CADENCE IS SET BY WHAT CHANGES rather than by taste. The billing ledger moves
+# when a simulation run completes, which happens several times a day and not on a fixed clock, so
+# the honest choice is a cadence short enough that a stale verdict is never more than an hour old.
+# The run costs under two seconds over the whole book, so there is no cost argument for anything
+# slower and no accuracy argument for anything faster.
+OnCalendar=hourly
+RandomizedDelaySec=5min
+# A box that was off does not get to skip the check: the whole point of item 5 is that this needs
+# nobody present.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

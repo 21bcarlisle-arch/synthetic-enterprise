@@ -268,3 +268,30 @@ systemd_units:
       entirely. Persistent, so a box that was asleep still captures once when it wakes. Declared
       here 2026-08-20 after being found installed and armed but UNDECLARED — the reconciler was
       right to call it drift, and this manifest is the reason it could.
+
+  - name: bill-validation.service
+    unit_file: background/bill-validation.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — compares the whole book and EXITS; inactive is correct
+    reason: >-
+      Work item 5 of the independent-bill-validation brief (2026-09-02): "one account first, then
+      every account on every run, scheduled ... and needs nobody present". Runs
+      `tools.bill_validation_comparison` over every account in the billing ledger — 251 accounts,
+      11,549 bills, under two seconds — comparing the curtained validator's reconstruction against
+      the statement export and filing every difference. There is no sampling mode on its normal
+      path on purpose: a validator with a coverage dial is one whose coverage becomes a decision
+      somebody makes under time pressure. Report-only (G-R4): it writes one artefact under
+      docs/reports/ and never touches the ledger it reads. Not enabled/active itself (the .timer
+      drives it); flagging a oneshot down would be wrong.
+
+  - name: bill-validation.timer
+    unit_file: background/bill-validation.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — an unscheduled validator is item 5 not done (R15)
+    reason: >-
+      Hourly, Persistent. The cadence is set by what moves: the billing ledger changes when a
+      simulation run completes, which is several times a day and not on a fixed clock, so an hour
+      bounds how stale the verdict can be. Declared here in the same commit that creates the unit,
+      because the reconciler is what makes "item 5 is done" checkable rather than claimed — a
+      validator that runs once is a demonstration and one that runs every cycle is a control, and
+      the difference between them is entirely whether this timer is armed.

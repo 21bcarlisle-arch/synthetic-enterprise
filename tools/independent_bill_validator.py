@@ -62,6 +62,7 @@ from __future__ import annotations
 
 import ast
 import json
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -75,6 +76,60 @@ UNCHECKABLE = "UNCHECKABLE"
 RATE_CHECKED = "RATE_CHECKED"
 
 PENNY = 0.005
+
+#: HOW MONEY IS ROUNDED, DECLARED, because the comparison found that neither side had declared it
+#: and they differed (2026-09-03).
+#:
+#: WHAT WAS MEASURED. The first full comparison filed 310 differences over 11,549 bills. Every one
+#: was exactly ONE PENNY, and the 15 on the two reconstructible money lines were 15 out of 15 in
+#: the biller's favour -- a one-sidedness that reads like a systematic overcharge and is not one.
+#: Every single instance sits on an exact half-penny (38.735, 11.625, ...), where Python's builtin
+#: `round()` applies BANKER'S rounding and goes to the even penny. The validator was wrong, not the
+#: biller: `saas/money.quantize_gbp` states ROUND_HALF_UP in `Decimal` and gives the reason --
+#: *"Python's builtin round() is banker's rounding"* -- and it was right.
+#:
+#: THIS IS THE §4.4 CASE THE BRIEF ANTICIPATED: *"Where the validator is shown to be wrong, that is
+#: itself a finding -- about the published rules, the export's completeness, or an ambiguity in a
+#: concept."* The concept is HOW MONEY IS ROUNDED. **No published artefact in the commons states
+#: one**, and the raw export carries no rounding rule either, so each side silently inherited
+#: whatever its language did. That is a gap in the knowledge layer and it is filed as one.
+#:
+#: AND THE CONVENTION IS DECLARED HERE RATHER THAN IMPORTED, which is the curtain doing its job in
+#: the awkward direction. `saas/money` has exactly this function and this module may not import it.
+#: Copying the RULE (half-up to the penny, the ordinary commercial convention) is legitimate;
+#: importing the implementation would make the reconstruction agree with the biller by construction
+#: on every boundary, which is the tautology the whole exercise exists to avoid. If the rule itself
+#: is wrong, both sides are wrong together and this module cannot catch it -- see
+#: `docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md`.
+ROUNDING = "ROUND_HALF_UP to the penny"
+ROUNDING_SOURCE = (
+    "DECLARED BY THIS MODULE, NOT READ FROM A PUBLISHED RECORD. No artefact in "
+    "docs/domain_artefact_library/regulatory/ states a rounding convention for a domestic energy "
+    "bill, so this is the ordinary commercial half-up rule written down rather than a rule "
+    "fetched. It is the one input to this reconstruction that is a convention of ours."
+)
+
+
+def _dec(value) -> Decimal:
+    """A decimal number as the decimal number a human sees, never as its binary approximation.
+
+    `Decimal(0.1)` is 0.1000000000000000055511151231257827021181583404541015625; `Decimal("0.1")`
+    is 0.1. Every quantity on a bill -- a meter reading, a unit rate, a daily standing charge --
+    is a decimal printed to a stated number of places, so `str()` is the faithful reading and the
+    float constructor is the lossy one.
+    """
+    return Decimal(str(value))
+
+
+def round_money(value: float) -> float:
+    """Quantize GBP to the penny, ROUND_HALF_UP -- see `ROUNDING` for why not `round()`.
+
+    Via `Decimal(str(value))` and not `Decimal(value)`: the latter reads the binary float's exact
+    value, so 38.735 arrives as 38.73499999999999943... and rounds DOWN under half-up too,
+    reproducing the banker's-rounding answer through a different door. `str()` reads the decimal
+    number a human sees, which is what a printed bill is.
+    """
+    return float(Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
 class CurtainBreached(Exception):
@@ -184,7 +239,19 @@ def _volume_from_reads(period: dict) -> tuple[float | None, str]:
     opening, closing = reads[0].get("read_kwh"), reads[1].get("read_kwh")
     if opening is None or closing is None:
         return None, "a reading has no value"
-    return closing - opening, ""
+    # SUBTRACTED IN DECIMAL, AND THE COMPARISON IS WHAT FOUND OUT WHY (2026-09-03). A meter
+    # reading is a decimal number printed on a bill, and `8303.3 - 8090.8` is exactly 212.5 kWh.
+    # In binary float it is 212.4999999999991, which at 19.08p/kWh makes the energy line
+    # GBP 40.544999999999824 instead of exactly GBP 40.545 -- so it falls a hair BELOW the
+    # half-penny boundary and rounds down, against a biller that gets 40.55. One bill in 11,549
+    # differed for that reason and for no other, and no test in this tree would ever have found
+    # it: the inputs are ordinary, the arithmetic is right, and the answer is a penny out.
+    #
+    # `Decimal(str(x))` reads the number a human sees rather than the binary approximation, which
+    # is the same reason `round_money` uses it. The float is returned because every caller wants a
+    # float; what must not happen in float is the SUBTRACTION.
+    volume = Decimal(str(closing)) - Decimal(str(opening))
+    return float(volume), ""
 
 
 def rebuild_period(period: dict, *, segment: str) -> dict:
@@ -199,9 +266,16 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
         lines.append({"label": "Energy", "status": UNCHECKABLE,
                       "why": why_not or "no unit rate in the raw export"})
     else:
-        amount = volume * rate_p / 100.0
+        # IN DECIMAL ALL THE WAY TO THE PENNY, and fixing only the subtraction was not enough --
+        # measured, twice, on the same run. `212.5 * 19.08 / 100` in float is
+        # 40.544999999999995, a hair BELOW the exact 40.545, so it rounds down and disagrees by a
+        # penny; and repairing the subtraction alone moved a SECOND bill from agreeing-by-luck
+        # (its float volume happened to land ABOVE its boundary) to disagreeing. A decimal
+        # quantity times a decimal rate has to stay decimal until it is quantized, or
+        # `Decimal(str(...))` faithfully reads back the error the float multiply just introduced.
+        amount = float(_dec(volume) * _dec(rate_p) / 100)
         lines.append({"label": "Energy", "status": RECONSTRUCTED,
-                      "amount_gbp": round(amount, 2), "amount_gbp_unrounded": amount,
+                      "amount_gbp": round_money(amount), "amount_gbp_unrounded": amount,
                       "volume_kwh": volume,
                       "how": "({} - {}) kWh x {} p/kWh / 100".format(
                           (period.get("reads") or [{}])[-1].get("read_kwh"),
@@ -211,9 +285,9 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
         lines.append({"label": "Standing charge", "status": UNCHECKABLE,
                       "why": "the raw export carries no day count or no daily rate"})
     else:
-        amount = days * sc_day
+        amount = float(_dec(days) * _dec(sc_day))
         lines.append({"label": "Standing charge", "status": RECONSTRUCTED,
-                      "amount_gbp": round(amount, 2), "amount_gbp_unrounded": amount,
+                      "amount_gbp": round_money(amount), "amount_gbp_unrounded": amount,
                       "how": "{} days x GBP {}/day".format(days, sc_day)})
 
     lines.append({
@@ -234,9 +308,10 @@ def rebuild_period(period: dict, *, segment: str) -> dict:
 
     return {"period_start": period.get("period_start"), "period_end": period.get("period_end"),
             "lines": lines,
-            "reconstructed_subtotal_gbp": round(sum(
+            "rounding": ROUNDING,
+            "reconstructed_subtotal_gbp": round_money(sum(
                 ln.get("amount_gbp_unrounded", 0.0) for ln in lines
-                if ln["status"] == RECONSTRUCTED), 2)}
+                if ln["status"] == RECONSTRUCTED))}
 
 
 def rebuild(raw_export: dict) -> dict:
