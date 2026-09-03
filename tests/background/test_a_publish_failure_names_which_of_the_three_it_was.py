@@ -109,9 +109,19 @@ def test_every_outcome_that_exits_77_maps_to_exactly_one_cause():
     assert not unmapped, (
         "these outcomes exit 77 and would be recorded with no cause, so their failures read as "
         "unattributed: {}".format(sorted(unmapped)))
-    assert set(prc.PUBLISH_CAUSE_FOR_REASON.values()) == set(pc.CAUSES), (
-        "the mapping and the cause vocabulary must be the same closed set in both directions -- "
-        "a cause nothing can produce is a branch no reader will ever see")
+    # BOTH PRODUCTION ROUTES, because as of 2026-09-02 there are two (see
+    # `PUBLISH_CAUSE_OVERRIDES`). The table is keyed by OUTCOME and one outcome -- COMMIT_REFUSED
+    # -- covers two experiences the publisher can tell apart only at the branch: the hook chain
+    # named reds, or a non-test gate refused ahead of the test gate and nothing was judged.
+    # Widening this to the UNION rather than dropping it keeps the property that matters: a cause
+    # NEITHER route can produce is still a branch no reader will ever see, and still reds here.
+    producible = set(prc.PUBLISH_CAUSE_FOR_REASON.values()) | set(prc.PUBLISH_CAUSE_OVERRIDES)
+    assert producible == set(pc.CAUSES), (
+        "the two production routes and the cause vocabulary must be the same closed set in both "
+        "directions -- a cause nothing can produce is a branch no reader will ever see")
+    assert not (set(prc.PUBLISH_CAUSE_OVERRIDES) & set(prc.PUBLISH_CAUSE_FOR_REASON.values())), (
+        "a cause produced by BOTH routes makes the override unfalsifiable: the table would "
+        "supply it anyway, so deleting the branch that overrides would not red anything")
 
 
 def test_a_cause_outside_the_closed_set_is_refused_rather_than_stored(tmp_path):

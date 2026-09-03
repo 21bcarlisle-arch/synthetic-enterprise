@@ -2959,6 +2959,49 @@ def _parse_failed_node_ids(out):
     return node_ids
 
 
+# ── NAMING THE GATE THAT REFUSED, WHEN NO TEST DID (2026-09-02, 18.7h of publishing down) ────
+#
+# WHY. `_parse_failed_node_ids` above answers "which tests went red". The pre-commit chain runs
+# several gates BEFORE the test gate, each able to short-circuit it, and on those cycles the
+# honest answer to that question is "none" -- which the publisher already logged, in those
+# words, while `.publish_gate_state.json` went on naming five tests an earlier cycle had left
+# behind. The refusing gate's own banner was in the same buffer the classifier was reading.
+#
+# WHAT THIS IS NOT. It is not a second opinion about test failure: it runs ONLY when
+# `_parse_failed_node_ids` returned nothing, so the two parsers can never disagree about a red.
+# It answers the different question the reader actually has -- "then what DID refuse?"
+#
+# THE BANNERS ARE MATCHED, NOT THE EXIT CODES. Each gate prints a distinctive line; an rc is a
+# number several gates share. Keyed to the banner means a gate that changes its wording goes
+# UNNAMED (which reads as unnameable, the honest answer) rather than misattributed to whichever
+# gate happened to sit first in a table -- the fail-safe direction, and the same one
+# `publish_cause.read_cause` takes.
+#
+# ORDER IS THE CHAIN'S ORDER. The chain short-circuits, so when more than one banner is present
+# the FIRST matching entry is the one that refused; the rest are downstream noise or a replay.
+_REFUSING_GATE_BANNERS = (
+    ("orphan-ratchet", "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS"),
+    ("finding-class consolidation", "FINDING-CLASS CONSOLIDATION BROKEN"),
+    ("write-time gate", "WRITE-TIME GATE"),
+    ("level-promotion gate", "LEVEL PROMOTION"),
+    ("live-ledger guard", "LIVE LEDGER"),
+    ("finding-severity gate", "FINDING SEVERITY"),
+    ("import-order (ruff I001)", "I001"),
+)
+
+
+def _parse_refusing_gate(text):
+    """The NAME of the non-test gate whose banner is in the hook chain's output, or None.
+
+    None means "the output named no gate this parser knows", which is a fact a reader can act
+    on -- it says look at the hook output itself -- and never a guess at a gate."""
+    hay = text or ""
+    for name, banner in _REFUSING_GATE_BANNERS:
+        if banner in hay:
+            return name
+    return None
+
+
 def _log_gate_failure_payload(result, git_hash="unknown", census=None):
     """Log WHICH tests blocked the publish, not just THAT they did.
 
@@ -3266,9 +3309,19 @@ def _record_commit_refusal_reds(stdout, stderr, git_hash="unknown"):
             "no blocking test recorded.".format(type(exc).__name__, exc))
         return []
     if not node_ids:
+        # THE ANSWER WAS IN THE BUFFER THIS FUNCTION ALREADY HELD (2026-09-02). Saying only
+        # "no blocking test" is true and useless: it leaves the reader with the stale list a
+        # previous cycle wrote. Name the gate when its banner is here, and say plainly that
+        # nothing named it when it is not -- unnameable must read as unnameable.
+        gate = _parse_refusing_gate("{}\n{}".format(stdout or "", stderr or ""))
         log("Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- "
-            "recording NO blocking test. The refusal was a non-test gate (or the output carried "
-            "no summary); an absent answer must read as absent, never as a guess.")
+            "recording NO blocking test. {} An absent answer must read as absent, never as a "
+            "guess.".format(
+                "The gate that refused is the {}: running the test suite will not clear "
+                "it.".format(gate) if gate else
+                "No gate banner this classifier knows was in the output either, so the refusal "
+                "is UNNAMEABLE from here -- read the hook output itself, and do not read an "
+                "earlier cycle's blocking list as this cycle's cause."))
         return []
     log("Publish commit REFUSED by the hook chain -- blocking test(s): {}".format(
         "; ".join(node_ids[:GATE_MAX_CITED_BLOCKING_TESTS])))
@@ -3989,6 +4042,19 @@ PUBLISH_CAUSE_FOR_REASON = {
     PROVENANCE_REFUSED: publish_cause.PROVENANCE_REFUSED,
     BEHIND_ORIGIN: publish_cause.BEHIND_ORIGIN,
 }
+#: The cause a COMMIT_REFUSED cycle records when the hook chain named NO red test (2026-09-02).
+#: NOT in the table above, and that is the content of this constant rather than an omission: the
+#: table is keyed by OUTCOME, and this process takes the same outcome either way -- the commit was
+#: refused, the cycle retries. The split is in the OBSERVATION only (did the chain name a red?),
+#: which is known at exactly one branch, so the override is read there and the name lives here so
+#: it is greppable and so the closed-set control below can see both routes.
+NON_TEST_REFUSAL_CAUSE = publish_cause.NON_TEST_GATE_REFUSAL
+#: Every cause produced by an explicit override at the branch that observed it, rather than by the
+#: outcome table. Held equal to the vocabulary WITH the table by a control -- a cause that neither
+#: route can produce is a branch no reader will ever see, and that property is what the control
+#: protects. This set is load-bearing (the refusal branch reads `NON_TEST_REFUSAL_CAUSE` itself),
+#: never a list written beside the code that could drift from it.
+PUBLISH_CAUSE_OVERRIDES = frozenset({NON_TEST_REFUSAL_CAUSE})
 
 
 def publish_exit_code(reason):
@@ -4233,15 +4299,24 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     PUBLISH_CAUSE_FILE): this function is the ONE funnel every publish outcome passes through,
     so the cause record is written in exactly one place and no future branch can name an
     outcome without passing through the write."""
-    def _outcome(reason, value, evidence=None):
+    def _outcome(reason, value, evidence=None, cause=None):
         if outcome is not None:
             outcome["reason"] = reason
         # The observation that decided it, recorded WHERE IT WAS OBSERVED. A reason with no
         # evidence writes nothing rather than an empty attribution -- `publish_cause` maps only
         # the four rc=77 reasons, so the retryable outcomes and TREE_LOCK_UNAVAILABLE (which
         # carries its own exit code and its own alarm text) fall through silently by design.
+        #
+        # `cause` OVERRIDES the reason->cause table for the one outcome whose reason is not
+        # fine-grained enough to carry its own answer (2026-09-02). COMMIT_REFUSED is a single
+        # OUTCOME -- this process does the same thing next either way -- covering two distinct
+        # EXPERIENCES: the test gate judged and named reds, or a non-test gate refused ahead of
+        # it and nothing was judged at all. The table maps outcomes, and it is still the only
+        # writer; the split belongs to the observation at the branch that made it, which is the
+        # only place the red count is known. See `publish_cause.NON_TEST_GATE_REFUSAL`.
         if evidence is not None:
-            publish_cause.record_cause(PUBLISH_CAUSE_FILE, PUBLISH_CAUSE_FOR_REASON.get(reason),
+            publish_cause.record_cause(PUBLISH_CAUSE_FILE,
+                                       cause or PUBLISH_CAUSE_FOR_REASON.get(reason),
                                        evidence, git_hash)
         return value
 
@@ -4624,14 +4699,27 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 # naming no test" is what a non-test gate (orphan-ratchet, finding-class,
                 # level-promotion) looks like, and saying so is what stops the reader running
                 # the suite. Zero reds here is a fact about the refusal, not a missing answer.
+                # WHICH REFUSAL THIS WAS, decided by the observation and not by the exit code:
+                # zero reds means no test returned a verdict, so the cause must be the one
+                # `publish_cause.no_test_was_judged` answers True for -- otherwise the stale
+                # blocking list from an earlier cycle survives into the record every reader
+                # quotes. That is the 18.7h wedge of 2026-09-02, where five GREEN tests were
+                # named as the blockers of an orphan-ratchet refusal.
+                _gate = _parse_refusing_gate("{}\n{}".format(
+                    getattr(result, "stdout", None) or "", getattr(result, "stderr", None) or ""))
                 return _outcome(
                     COMMIT_REFUSED, False,
+                    cause=None if _reds else NON_TEST_REFUSAL_CAUSE,
                     evidence="`git commit` returned rc={} and the pre-commit hook chain named "
                              "{} red test(s){}".format(
                                  result.returncode, len(_reds),
-                                 " -- so the refusal came from a NON-TEST gate; read the hook "
-                                 "output in docs/observability/sim-runner-log.md rather than "
-                                 "running the suite" if not _reds
+                                 (" -- so the refusal came from a NON-TEST gate, {}. No test was "
+                                  "judged, so no blocking list describes this cycle; read the "
+                                  "hook output in docs/observability/sim-runner-log.md rather "
+                                  "than running the suite".format(
+                                      "namely the {}".format(_gate) if _gate else
+                                      "and no banner this classifier knows named which one")
+                                  ) if not _reds
                                  else " -- recorded in .last_gate_blocking_tests.json against "
                                       "this same commit"))
             return _outcome(NOTHING_TO_COMMIT, False)

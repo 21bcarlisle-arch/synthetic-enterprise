@@ -50,6 +50,10 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
     monkeypatch.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp_path / ".blocking.json")
     monkeypatch.setattr(prc, "WEDGE_SUSPECT_HIT_RATE_FILE", tmp_path / ".hit_rate.json")
+    # ORIGIN IS LEVEL. The publish path reads origin before staging (2026-09-01,
+    # `_divergence_refusal`) and this file's scratch tree is not a git repository, so without
+    # this the subject under test becomes the divergence refusal rather than the lost tree lock.
+    monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     import background.action_needed as an
     monkeypatch.setattr(an, "REGISTER_PATH", tmp_path / "action_needed_register.json")
@@ -241,3 +245,68 @@ def test_the_runner_does_not_send_the_reader_after_a_pending_marker():
     src = inspect.getsource(sim_runner.auto_process_marker)
     assert "elif rc == EXIT_PUBLISH_DID_NOT_LAND:" in src
     assert "Marker already archived" in src
+
+
+# ── CONTENTION IS AN OUTCOME, NOT A TRACEBACK (2026-08-30) ───────────────────────────────
+# THE DEFECT, observed live: `git_commit_push` entered `tree_lock()` OUTSIDE its own try, so
+# when another writer held the lock for the full 60s the TreeLockTimeout propagated out of
+# `main()` as an uncaught traceback. That is rc=1 -- the generic code -- which the wedge
+# detector reads as `test_regression`. The 2026-08-30 episode recorded two such failures with
+# `blocking_tests: []` and `total_red: 0` while the log for the same cycle read "Tests skipped
+# -- already passed": the suite had not been run at all, and the RUNG-1 draw sent to diagnose
+# the wedge went looking for a red test that did not exist.
+
+def test_a_lost_tree_lock_is_a_named_outcome_and_not_an_uncaught_traceback(tmp_path, monkeypatch):
+    """MUTATION: put `tree_lock()` back in a bare `with` and this raises instead of returning,
+    which is exactly the shape that became rc=1.
+
+    The assertion is deliberately BOTH halves -- that it does not raise, AND that it names
+    TREE_LOCK_UNAVAILABLE. Catching the timeout and filing it as COMMIT_REFUSED would satisfy
+    the first alone while still pointing the reader at a hook chain that never ran.
+    """
+    import background.process_run_complete as prc
+    from background.tree_lock import TreeLockTimeout
+
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+
+    def _held(*a, **k):
+        raise TreeLockTimeout("Could not acquire tree lock (x) within 60.0s")
+
+    monkeypatch.setattr(prc, "tree_lock", _held)
+
+    outcome = {}
+    result = prc.git_commit_push("abc1234", 1000.0, outcome)
+
+    assert result is False, "a cycle that never got the lock did not publish"
+    assert outcome["reason"] == prc.TREE_LOCK_UNAVAILABLE, (
+        "the lost lock is filed as {!r} -- the reader is sent to the wrong subject".format(
+            outcome.get("reason"))
+    )
+    # And the code the process actually exits with is the named one, not the generic 77 that
+    # tells the reader to go and read a hook chain that never ran.
+    assert prc.publish_exit_code(outcome["reason"]) == prc.EXIT_TREE_LOCK_UNAVAILABLE
+
+
+def test_the_guard_covers_acquisition_only_so_a_nested_deadlock_still_surfaces(tmp_path, monkeypatch):
+    """A TreeLockTimeout raised from INSIDE the lock body is a different fact -- the nested
+    re-acquisition documented at `_git_add_or_refuse`, i.e. a deadlock in our own code, not
+    contention with another writer. Mislabelling that as contention would tell the reader to
+    wait for a lock that will never be released.
+
+    MUTATION: widen the guard to an outer `try` around the whole `with` and this stops raising.
+    """
+    import inspect
+
+    import background.process_run_complete as prc
+
+    src = inspect.getsource(prc.git_commit_push)
+    assert "stack.enter_context(tree_lock())" in src, (
+        "the lock is no longer acquired through a guarded ExitStack -- re-check that a "
+        "TreeLockTimeout from the BODY is still distinguishable from one at acquisition"
+    )
+    assert "with tree_lock():" not in src, (
+        "a bare `with tree_lock():` is back: an acquisition timeout escapes as a traceback"
+    )

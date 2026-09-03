@@ -70,6 +70,34 @@ behind. Naming nobody beats naming the innocent.
 `gate_refusal` is deliberately NOT in that set: there the hook chain did judge, and
 `_record_commit_refusal_reds` writes its reds against the same git hash in the same moment.
 
+ONE NAME OVER TWO EXPERIENCES — THE 2026-09-02/03 CORRECTION
+-------------------------------------------------------------
+The paragraph above was right about the cause it described and wrong about the set of cycles
+that reach it, and the correction stands here beside the claim rather than replacing it. "The
+hook chain did judge" is true only when the gate that refused WAS the test gate. The chain runs
+several gates before it, each able to short-circuit the whole thing: the orphan ratchet, the
+finding-class consolidation gate, the write-time gate, the level-promotion gate. When one of
+those refuses, `git commit` returns non-zero having run NO test — and `gate_refusal` was
+recorded anyway, which told every reader the opposite of what happened.
+
+OBSERVED, and it is the reason this exists (2026-09-02, 18.7 hours of publishing down):
+`tools/artefact_rerun_diff.py` sat staged and unfrozen, so the orphan ratchet refused every
+publish commit in the tree. The publisher's own log printed the banner verbatim —
+`orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS` — and two lines later recorded
+`Publish commit REFUSED with no FAILED/ERROR summary ... recording NO blocking test`. Because
+the cause was `gate_refusal`, `no_test_was_judged` answered False, the suppression below never
+fired, and `.publish_gate_state.json` went on naming five tests in
+`test_a_staged_document_no_longer_blocks_every_landing.py` as the blockers. Those five were
+GREEN — 20 passed in 0.09s — and had been left behind by an earlier cycle at a different commit.
+For hours the register sent every reader to run a suite that was never the problem, while the
+answer sat in the line above it.
+
+So the split is by the OBSERVATION, exactly like the other five: did the hook chain's output
+name a red test, or did it name a gate? `NON_TEST_GATE_REFUSAL` is the second, it belongs in
+this set because nothing was judged on it, and the gate's own name travels in the evidence line
+so the record points at the thing that actually refused. A register that names five green tests
+is worse than one that says nothing, because it is confidently wrong about where to look.
+
 REUSE: background/publish_cause.py
 CLASS: CUSTOM
 INDEX: searched "publish cause", "gate failure kind", "attribution record" — the closest row is
@@ -90,8 +118,14 @@ from pathlib import Path
 
 from background.live_ledger_guard import guard_live_ledger_write
 
-#: The publish COMMIT was refused — by git itself or by a pre-commit gate. A red MAY exist.
+#: The publish COMMIT was refused by the pre-commit hook chain AND the hook chain named at least
+#: one red test. The named reds are evidence about THIS commit.
 GATE_REFUSAL = "gate_refusal"
+#: The publish COMMIT was refused by a NAMED NON-TEST gate — the orphan ratchet, the finding-class
+#: consolidation gate, the write-time gate, the level-promotion gate. Those gates run BEFORE the
+#: test gate in the chain and short-circuit it, so no test returned a verdict. See the docstring
+#: section below: this is the half of `GATE_REFUSAL` that was wrongly assumed to have judged.
+NON_TEST_GATE_REFUSAL = "non_test_gate_refusal"
 #: The pre-commit hook chain outran the publisher's deadline and was killed. Nothing was judged.
 DEADLINE_KILL = "deadline_kill"
 #: The commit landed locally and origin did not move. Verified against the remote ref.
@@ -108,14 +142,14 @@ UNATTRIBUTED = "unattributed"
 
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
-CAUSES = frozenset({GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED,
-                    BEHIND_ORIGIN})
+CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
+                    PROVENANCE_REFUSED, BEHIND_ORIGIN})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
 #: See the module docstring. `GATE_REFUSAL`'s absence is the content of this set, not an
 #: oversight — that is the one cause where a named red is real evidence about THIS cycle.
-NO_TEST_JUDGED_CAUSES = frozenset({DEADLINE_KILL, PUSH_NEVER_LANDED, PROVENANCE_REFUSED,
-                                   BEHIND_ORIGIN})
+NO_TEST_JUDGED_CAUSES = frozenset({NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
+                                   PROVENANCE_REFUSED, BEHIND_ORIGIN})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held

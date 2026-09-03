@@ -438,3 +438,96 @@ def test_an_exoneration_naming_a_path_that_does_not_exist_does_not_suppress(tmp_
          "modules": ["background/staging_archive_policy.py"]},
         staging_dir=staging, repo_root=repo)
     assert cited == ["WORKER_FINDING_CENSUS_2026-08-12.md"]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# THE UNJUDGED KINDS — an alarm must not accuse a test that never ran
+# (2026-08-30, WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION)
+#
+# The named defect, observed live: `git_commit_push` entered `tree_lock()` outside its own
+# try, so a 60s contention timeout escaped `main()` as an uncaught traceback -> rc=1 ->
+# `_classify_gate_failure` called it a `test_regression`. Two of the seven failures of the
+# 2026-08-30 wedge episode were this, the state file recorded `blocking_tests: []` with
+# `total_red: 0`, and the RUNG-1 draw was sent hunting a red test that did not exist. The
+# module had already paid for this exact defect twice (the caller's deadline, then the gate's
+# own clock) -- so the control below is keyed to the CLASS, not to today's two members.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def test_an_unjudged_kind_never_sends_the_reader_after_a_test():
+    """MUTATION: drop a kind from UNJUDGED_GATE_KINDS, or let its payload fall through to the
+    standing 'run that test at HEAD' clause, and this reds by name.
+
+    Parametrised over the SET rather than over a literal list, so a third carve-out added
+    later inherits the assertion instead of quietly shipping without one. (It cannot hide a
+    scope SHRINK -- that is what the membership assertions in the two tests below are for.)
+    """
+    for i, kind in enumerate(sorted(prc.UNJUDGED_GATE_KINDS)):
+        # The streak state and the alarm COOLDOWN are both durable, so each kind needs a fresh
+        # file -- without this the second kind is suppressed as a re-page of the first and the
+        # loop silently asserts nothing about it.
+        prc.PUBLISH_GATE_STATE_FILE.unlink(missing_ok=True)
+        sink = _Sink()
+        for t in (0, 1, 2):
+            prc.record_publish_gate_failure(
+                "unjudged", rc=1, now=i * 10_000 + t, send_ntfy_fn=sink, kind=kind)
+        assert sink.messages, kind
+        msg = sink.messages[0]
+        assert "NO TEST WAS JUDGED" in msg, (
+            "{}: the payload does not say the suite returned no verdict".format(kind))
+        assert "run that test at HEAD" not in msg, (
+            "{}: the payload sends the reader after a test that never ran".format(kind))
+        assert "Blocking test" not in msg, (
+            "{}: a stale earlier cycle's blocking test is named on an unjudged kind".format(kind))
+
+
+def test_a_tree_lock_timeout_is_not_recorded_as_a_test_regression():
+    """The instance the class was found by. `tree_lock_unavailable` must be IN the set (a
+    membership assertion, so removing it reds here and not only in the loop above), its label
+    must deny both wrong subjects a reader would otherwise go and read, and it must still
+    keep the wedge streak -- contention is a FAILED publish (R15: an unavailable check is a
+    failed check); what changes is what the alarm says, never whether it fires."""
+    assert "tree_lock_unavailable" in prc.UNJUDGED_GATE_KINDS
+    label = prc._gate_failure_label("tree_lock_unavailable")
+    assert "NOT a test failure" in label
+    assert "NOT a hook refusal" in label, (
+        "the label must also deny the OTHER wrong subject -- rc=77's hook-chain output, which "
+        "on a lock timeout never ran either"
+    )
+
+    sink = _Sink()
+    for t in (0, 1, 2):
+        res = prc.record_publish_gate_failure(
+            "tree lock held", rc=prc.EXIT_TREE_LOCK_UNAVAILABLE, now=t,
+            send_ntfy_fn=sink, kind="tree_lock_unavailable")
+    assert sink.messages, "contention still wedges publishing, so it must still alarm"
+    assert res["count"] == 3, res
+    # NOT `"regression" not in msg`: the label DENIES a regression in those words, so a bare
+    # substring check passes for the wrong reason and would keep passing if the denial were
+    # deleted. The property is that the alarm does not carry the test_regression LABEL.
+    assert prc._gate_failure_label("test_regression") not in sink.messages[0], (
+        "a lock timeout is being described to the director as a possible code regression"
+    )
+    assert "fuser" in sink.messages[0], (
+        "the payload must name the ONE thing worth looking at -- who holds the lock"
+    )
+
+
+def test_the_tree_lock_outcome_reports_its_own_exit_code_and_never_a_silent_zero():
+    """The two halves the wedge detector reads. A named exit code must not buy the outcome a
+    rc=0: `publish_exit_code` consults RETRYABLE_PUBLISH_OUTCOMES FIRST, so an outcome that
+    published nothing can never report success by naming a code.
+
+    MUTATION: put TREE_LOCK_UNAVAILABLE in RETRYABLE_PUBLISH_OUTCOMES and the second
+    assertion reds -- which is the fingerprint bug that froze the pipeline on 2026-08-13.
+    """
+    assert prc.publish_exit_code(prc.TREE_LOCK_UNAVAILABLE) == prc.EXIT_TREE_LOCK_UNAVAILABLE
+    assert prc.publish_exit_code(prc.TREE_LOCK_UNAVAILABLE) != 0
+    assert prc.TREE_LOCK_UNAVAILABLE not in prc.RETRYABLE_PUBLISH_OUTCOMES, (
+        "contention must NOT fingerprint the cycle as a genuine no-op -- the whole point is "
+        "that the next cycle retries and gets the lock"
+    )
+    # The generic fail-closed default is untouched by adding a named code.
+    assert prc.publish_exit_code("an_outcome_nobody_has_written_yet") == prc.EXIT_PUBLISH_DID_NOT_LAND
+    assert prc.EXIT_TREE_LOCK_UNAVAILABLE not in prc.NO_PUBLISH_EXIT_CODES, (
+        "a publish that did not happen is evidence of a FAILURE and must reach the detector"
+    )
