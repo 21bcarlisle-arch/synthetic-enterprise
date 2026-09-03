@@ -736,6 +736,28 @@ def main(argv: list[str] | None = None) -> int:
     print("FLAT ARM REPRODUCES THE PUBLISHED PRE-ORGAN BOOK:")
     for k, v in result["flat_arm_reproduces_the_published_pre_organ_book"].items():
         print(f"  {k}: {'YES' if v else 'NO'}")
+
+    # A bare NO cannot tell the reader WHICH failure they are looking at, and the two have
+    # opposite repairs: a wrong reconstruction means this module's numbers are void, while a
+    # substrate that has merely moved on means the numbers are fine and the SUBSTRATE is the
+    # thing that is not what it was. Naming which one costs a digest comparison, so it is
+    # never left to be inferred from the NO.
+    now = (result.get("clock") or {}).get("substrate_sha256")
+    if DEFAULT_ARTEFACT.exists() and now:
+        was = (json.loads(DEFAULT_ARTEFACT.read_text()).get("clock") or {}).get(
+            "substrate_sha256")
+        if was is None:
+            print(f"\n  SUBSTRATE: {now[:12]} -- the published artefact beside this one "
+                  f"records no digest, so whether it was read from this same substrate "
+                  f"CANNOT BE ESTABLISHED from the artefact alone.")
+        elif was != now:
+            print(f"\n  SUBSTRATE HAS MOVED since the published artefact was written: "
+                  f"{was[:12]} -> {now[:12]}. Any NO above is about the SUBSTRATE, not "
+                  f"about the reconstruction.")
+        else:
+            print(f"\n  SUBSTRATE: {now[:12]}, unchanged since the published artefact. "
+                  f"Any NO above is about the RECONSTRUCTION.")
+
     d = result["whole_run_output_diff"]
     print(f"\nWHOLE RUN-OUTPUT DIFF: {len(d['moved_keys'])} of "
           f"{len(d['moved_keys']) + len(d['unmoved_keys'])} keys moved")
