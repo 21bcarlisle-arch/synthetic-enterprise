@@ -20,6 +20,7 @@ from background import action_needed as action_needed_module
 from background import agenda as agenda_module
 from background import delivery_lane as delivery_lane_module
 from background import direction as direction_module
+from background import seat_continuation as seat_continuation_module
 from background import supervisor
 
 
@@ -148,6 +149,17 @@ def _isolate(tmp_path, monkeypatch):
     # fixture. The lane itself is proven both ways in test_delivery_lane.py.
     monkeypatch.setattr(direction_module, "DIRECTION_PATH", tmp_path / "DIRECTION.yaml")
     monkeypatch.setattr(delivery_lane_module, "CLAIMS_FILE", tmp_path / "delivery_claims.json")
+    # LANE 0's SECOND SOURCE -- THE INTERACTIVE SEAT'S CONTINUATION (2026-08-31, 87709c617).
+    # `delivery_lane.next_item` now offers a live `seat_continuation` handoff AHEAD of `focus`,
+    # and reads it from the module's own STORE, not from either path isolated above. So the two
+    # lines above stopped being sufficient the moment that source landed: a real handoff written
+    # by an interactive session at 15:36 made 16 "nothing is open" find_work tests draw LANE 0,
+    # the operational-layer signal went persistent-red, and the alarm named a daemon-lifecycle
+    # regression that did not exist. Same rule as every block above, third time it has been paid
+    # for (feedback_new_draw_rung_needs_fixture_isolation): a new SOURCE inside an already-
+    # isolated lane needs its own line here, because isolating the lane does not isolate what the
+    # lane reads. The continuation-first ordering itself is proven in test_delivery_lane.py.
+    monkeypatch.setattr(seat_continuation_module, "STORE", tmp_path / ".seat_continuation.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
     yield
@@ -1144,6 +1156,71 @@ def test_format_atom_draw_matches_prior_single_atom_message_format():
         "X1_test_atom -- Test atom (lane=X_test_lane, dial=3, "
         "level 0->2, loop_stage=build)"
     )
+
+
+def _held_atom(**over):
+    atom = {
+        "id": "X2_held_atom", "name": "Held atom", "lane": "X_test_lane",
+        "dial_inherited": 3, "level_current": 2, "level_target": 3, "loop_stage": "build",
+    }
+    atom.update(over)
+    return atom
+
+
+def test_a_drawn_atom_whose_level_was_held_says_so_on_its_own_draw_line():
+    """DEFECT: the draw hands a bounded BUILD lane an atom under its MINT-TIME
+    brief with no sign that a prior pass already built it and recorded why the
+    level did not move -- so the fork rebuilds what exists. Live on 2026-09-03
+    with EP13_adapter_carbon_intensity, ten passes deep, brief still reading
+    'today has no real feed behind it'."""
+    line = supervisor._format_atom_draw(_held_atom(level_hold_note="x" * 1234))
+    assert "[LEVEL HELD BEFORE" in line, line
+    assert "1,234 B" in line, "the warning must size the record it points at"
+    assert "2->3 did not follow" in line, "it must name the move that was held"
+    assert "notes_for_atom('X2_held_atom')" in line, (
+        "the warning must be actionable -- the exact hydration call, since the "
+        "note is rehomed out of the map and costs a call the lane won't guess"
+    )
+
+
+def test_an_atom_with_no_hold_note_draws_exactly_the_unchanged_line():
+    """SOLE WITNESS for the dark branch. Without this, the assertion above is
+    satisfied by a suffix appended unconditionally, and every atom in the map
+    would carry a LEVEL HELD warning that means nothing."""
+    line = supervisor._format_atom_draw(_held_atom(level_hold_note=""))
+    assert line == (
+        "X2_held_atom -- Held atom (lane=X_test_lane, dial=3, "
+        "level 2->3, loop_stage=build)"
+    ), line
+    assert "LEVEL HELD" not in line
+
+
+def test_a_hold_note_living_only_in_the_rehomed_store_still_reaches_the_draw(monkeypatch):
+    """THE ACTUAL DEFECT'S SHAPE: no live atom carries `level_hold_note` inline
+    -- it was drained to docs/design/simplifications/<id>.yaml. A formatter that
+    reads only the inline key is GREEN on the fixture above and blind on every
+    real atom. Sole witness for the hydration seam."""
+    atom = _held_atom()
+    assert "level_hold_note" not in atom
+    monkeypatch.setattr(
+        supervisor._atom_store, "notes_for_atom",
+        lambda aid, *a, **k: {"level_hold_note": "y" * 99},
+    )
+    line = supervisor._format_atom_draw(atom)
+    assert "[LEVEL HELD BEFORE" in line, line
+    assert "99 B" in line, line
+
+
+def test_an_unreadable_note_store_still_hands_out_the_work(monkeypatch):
+    """A draw that dies on a malformed note file hands out NO work, which is
+    worse than handing out work without its warning. Fails closed on the
+    warning, open on the draw."""
+    def _boom(aid, *a, **k):
+        raise OSError("store gone")
+    monkeypatch.setattr(supervisor._atom_store, "notes_for_atom", _boom)
+    line = supervisor._format_atom_draw(_held_atom())
+    assert line.startswith("X2_held_atom -- Held atom (")
+    assert "LEVEL HELD" not in line
 
 
 def test_self_refill_draw_single_atom_message_unchanged():

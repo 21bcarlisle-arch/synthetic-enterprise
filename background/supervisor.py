@@ -754,17 +754,64 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
     return _format_atom_draw(atoms_drawn[0]) if atoms_drawn else None
 
 
+def _atom_level_hold_note(atom: dict) -> str:
+    """One atom's `level_hold_note`, wherever it now lives -- the record of what
+    PRIOR passes already built on this atom and why the level did not move.
+
+    Same one-seam rule and same inline-wins convention as `_atom_evidence`, and
+    it fails the same way if a reader is added that does not route through here.
+    Degrades to `""` (never raises) because the draw's own contract is graceful
+    degradation on a missing/unreadable store -- a draw that dies because a note
+    file is malformed hands out no work at all, which is strictly worse than a
+    draw that hands out work without its warning."""
+    if "level_hold_note" in atom:
+        return str(atom.get("level_hold_note") or "")
+    aid = atom.get("id")
+    if not aid:
+        return ""
+    try:
+        return str(_atom_store.notes_for_atom(str(aid)).get("level_hold_note") or "")
+    except Exception:
+        return ""
+
+
 def _format_atom_draw(atom: dict) -> str:
     """Shared formatting for one drawn atom's summary line -- factored out
     so both the single-atom message (_maturity_map_draw's own return, kept
     unchanged above) and the new multi-atom concurrent message below use
-    the identical format."""
-    return (
+    the identical format.
+
+    The `[LEVEL HELD BEFORE]` suffix is the SAME defect `_atom_name` exists to
+    prevent, one field over, and it was live: on 2026-09-03 this line handed a
+    bounded BUILD lane `EP13_adapter_carbon_intensity` under its MINT-TIME brief
+    -- "Feeds E5_carbon_three_ledger, which today has no real feed behind it" --
+    when every path in that atom's `file_scope` was already on disk, ten build
+    passes deep, with 30,261 B recorded on WHY 2->3 still did not follow. A fork
+    dispatched on that text rebuilds an adapter that exists. The note is rehomed
+    out of the map, so seeing it costs a hydration call the bounded lane has no
+    reason to make and the draw line gave it no reason to.
+
+    Keyed to the PROPERTY (a hold note exists at all), never to today's answer:
+    it lights for any atom whose level was held with a reason on file, and goes
+    dark by itself when that note is retired. One atom in 83 carries one today,
+    so this is a signal and not decoration -- and if that count ever climbs, the
+    suffix is measuring the thing that made it climb."""
+    line = (
         f"{atom['id']} -- {_atom_name(atom) or '?'} "
         f"(lane={atom.get('lane', '?')}, dial={atom.get('dial_inherited', '?')}, "
         f"level {atom['level_current']}->{atom['level_target']}, "
         f"loop_stage={atom.get('loop_stage', '?')})"
     )
+    hold = _atom_level_hold_note(atom)
+    if hold:
+        line += (
+            f" [LEVEL HELD BEFORE -- {len(hold):,} B of recorded reason why "
+            f"{atom['level_current']}->{atom['level_target']} did not follow last time. "
+            f"READ IT BEFORE BUILDING: simplifications_store.notes_for_atom"
+            f"({str(atom['id'])!r})['level_hold_note']. The brief above is the "
+            f"MINT-TIME one and may name as missing work that is already built.]"
+        )
+    return line
 
 
 def _atom_file_scope(atom: dict) -> frozenset | None:
