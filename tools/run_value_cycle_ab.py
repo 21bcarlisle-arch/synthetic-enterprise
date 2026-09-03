@@ -3728,9 +3728,17 @@ def floor_refusal_would_clobber(out: Path) -> bool:
         return True
 
 
+#: The three quantities a leg's own seed rows carry (see `level_vs_selection` and the noise-floor
+#: seed schema). `decompose_floor` can split any one of them; which one it is told to is what
+#: `SEAT_FINDING_THE_REMEDY_IS_RECONCILED_ON_BOOK_AND_WORLD_AND_NEVER_ON_THE_QUANTITY_2026-09-03`
+#: found missing -- the function always split `selection_gbp` while the page it feeds has bounded
+#: on `value_advantage_gbp` since `a70cc11e1`, silently.
+DECOMPOSABLE_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_gbp")
+
+
 def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
-                    three_arm: dict) -> dict:
-    """Split the selection floor into the priced households' half and the rest of the book's.
+                    three_arm: dict, contrast_field: str = "selection_gbp") -> dict:
+    """Split `contrast_field`'s floor into the priced households' half and the rest of the book's.
 
     THE RECONCILIATION IS THE CONTROL, not the two numbers. Two legs run separately could differ
     for any reason -- a different roster, a different window, a runner that drifted between them.
@@ -3743,9 +3751,15 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     That is wide enough that this decomposition can say which half DOMINATES only when the split is
     lopsided, and `share_is_decisive` says whether it was. A borderline split is reported as
     borderline; it is not rounded into a verdict.
+
+    `contrast_field` NAMES ITSELF IN THE OUTPUT (`"contrast"`), MACHINE-READABLE, so a consumer
+    can check it against the figure it is about to caveat rather than trust the prose above. The
+    default stays `selection_gbp` for every caller that predates this parameter -- the leg files
+    have always carried it, so this is not a behaviour change, only a declaration of one that was
+    already true and previously unstated.
     """
     def _variance(floor: dict):
-        vals = [_num(row.get("selection_gbp")) for row in (floor.get("seeds") or [])]
+        vals = [_num(row.get(contrast_field)) for row in (floor.get("seeds") or [])]
         vals = [v for v in vals if v is not None]
         return (statistics.variance(vals) if len(vals) > 1 else None), len(vals)
 
@@ -3811,17 +3825,18 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     v_except, _ = _variance(priced_except)
     if None in (v_all, v_only, v_except) or v_only + v_except <= 0:
         return {"available": False,
-                "why_not": "a leg produced no selection spread, so there is nothing to split"}
+                "why_not": "a leg produced no `{}` spread, so there is nothing to split"
+                           .format(contrast_field)}
 
     split = (three_arm.get("level_vs_selection") or {})
-    contrast = _num(split.get("selection_gbp"))
+    contrast = _num(split.get(contrast_field))
     funnel = ((three_arm.get("renewal_funnel") or {}).get("value_arm") or {})
     priced = funnel.get("priced")
     offered = funnel.get("renewals_the_world_offered")
     if contrast is None or not isinstance(priced, int) or priced <= 0:
         return {"available": False,
-                "why_not": ("the three-arm run carries no selection contrast or no priced count, "
-                            "so there is no figure to price a remedy against")}
+                "why_not": ("the three-arm run carries no `{}` contrast or no priced count, so "
+                            "there is no figure to price a remedy against").format(contrast_field)}
 
     # THE IRREDUCIBLE FLOOR IS MEASURED, NOT SCALED. It is the `except` leg's own spread and
     # nothing else: the rest of the book's churn cascade landing in the same net, present at any
@@ -3879,9 +3894,14 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     return {
         "available": True,
         "what_this_is": (
-            "The selection-figure noise floor cut into the half that a larger settled book buys "
-            "down and the half it cannot touch, from two extra floor legs that partition one "
-            "call stream, plus what each remedy would cost."),
+            "The `{}` noise floor cut into the half that a larger settled book buys down and the "
+            "half it cannot touch, from two extra floor legs that partition one call stream, plus "
+            "what each remedy would cost.").format(contrast_field),
+        # THE MACHINE-READABLE HALF OF THE SENTENCE ABOVE. A consumer that needs to know which
+        # figure this artefact is a floor UNDER reads this key, never the prose -- see
+        # `_decomposition_contrast` in `tools/generate_value_arms_data.py`, which refuses to parse
+        # `what_this_is` for exactly that reason.
+        "contrast": contrast_field,
         # THE WORLD ALL FOUR LEGS AGREED ON. Composed, not resolved at write time: this artefact
         # runs nothing, so stamping the world of the process that assembled it would name a world
         # none of its figures were measured in. The refusal above is what makes one value correct
@@ -4000,8 +4020,15 @@ def main(argv: list[str] | None = None) -> int:
         "--decompose", nargs=4, metavar=("ALL_FLOOR", "ONLY_FLOOR", "EXCEPT_FLOOR", "THREE_ARM"),
         type=Path,
         help=("DECOMPOSE mode: read three floors already run (`all`, `only`, `except`) and the "
-              "three-arm run they bound, and write the split of the selection floor into the half "
-              "a larger settled book buys down and the half it cannot. Runs nothing."))
+              "three-arm run they bound, and write the split of `--contrast`'s floor into the "
+              "half a larger settled book buys down and the half it cannot. Runs nothing."))
+    ap.add_argument(
+        "--contrast", choices=DECOMPOSABLE_CONTRASTS, default="selection_gbp",
+        help=("which of the three-arm run's own contrasts `--decompose` splits. Defaults to "
+              "`selection_gbp` for continuity with every artefact on disk before this flag "
+              "existed; the page's headline figure and bound are `value_advantage_gbp` "
+              "(`generate_value_arms_data.PAGE_FIGURE_CONTRAST`), and a decomposition of a "
+              "different contrast is caveated, never silently substituted, on the page it feeds."))
     ap.add_argument(
         "--redraw-accounts-from", type=Path, default=ARMS_ARTEFACT.parent / "value_cycle_ab.json",
         help=("the three-arm artefact whose `renewal_funnel.value_arm.accounts_the_arm_priced` "
@@ -4011,7 +4038,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.decompose:
         legs = [json.loads(p.read_text(encoding="utf-8")) for p in args.decompose]
-        split = decompose_floor(*legs)
+        split = decompose_floor(*legs, contrast_field=args.contrast)
         out = args.out if args.out != OUTPUT_PATH else DECOMPOSITION_OUTPUT_PATH
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(split, indent=2), encoding="utf-8")
@@ -4019,8 +4046,8 @@ def main(argv: list[str] | None = None) -> int:
             print("floor decomposition UNAVAILABLE: {}".format(split["why_not"]))
             print("  wrote {}".format(out))
             return 1
-        print("value cycle A/B -- SELECTION FLOOR DECOMPOSITION over {} seeds".format(
-            split["seeds"]))
+        print("value cycle A/B -- `{}` FLOOR DECOMPOSITION over {} seeds".format(
+            split["contrast"], split["seeds"]))
         print("  contrast                    {:+,.2f} GBP over {} priced decisions".format(
             split["contrast_gbp"], split["priced_decisions"]))
         print("  undecomposed floor (sd)     {:,.2f} GBP".format(split["undecomposed_sd_gbp"]))

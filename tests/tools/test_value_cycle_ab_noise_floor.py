@@ -333,15 +333,16 @@ def test_the_held_half_keeps_the_runs_own_seed_and_not_a_third_world():
 _ONE_WORLD = "39a192ce04c1eda8"
 
 
-def _leg(mode, values, seeds=(11111, 22222, 33333), world=_ONE_WORLD):
-    """A floor artefact carrying exactly `values` as its per-seed selection figures."""
+def _leg(mode, values, seeds=(11111, 22222, 33333), world=_ONE_WORLD, field="selection_gbp"):
+    """A floor artefact carrying exactly `values` as its per-seed `field` figures."""
     return {"redraw_scope": {"mode": mode},
             "world_identity": {"digest": world, "unavailable_because": None},
-            "seeds": [{"seed": s, "selection_gbp": v} for s, v in zip(seeds, values)]}
+            "seeds": [{"seed": s, field: v} for s, v in zip(seeds, values)]}
 
 
-def _three_arm(contrast, priced=20, accounts=("C1", "C2"), world=_ONE_WORLD):
-    return {"level_vs_selection": {"selection_gbp": contrast},
+def _three_arm(contrast, priced=20, accounts=("C1", "C2"), world=_ONE_WORLD,
+              field="selection_gbp"):
+    return {"level_vs_selection": {field: contrast},
             "world_identity": {"digest": world, "unavailable_because": None},
             "renewal_funnel": {"value_arm": {
                 "priced": priced, "renewals_the_world_offered": 1369,
@@ -428,6 +429,71 @@ def test_legs_that_do_not_name_their_own_half_are_refused():
                               _leg("except", (-900.0, 0.0, 900.0)),
                               _leg("except", (-400.0, 0.0, 400.0)), _three_arm(1000.0))
     assert swapped["available"] is False and "only" in swapped["why_not"]
+
+
+def test_decompose_floor_declares_and_splits_the_contrast_it_was_told_to():
+    """THE GAP `SEAT_FINDING_THE_REMEDY_IS_RECONCILED_ON_BOOK_AND_WORLD_AND_NEVER_ON_THE_QUANTITY`
+    found: `decompose_floor` always split `selection_gbp` while the page it feeds has bounded on
+    `value_advantage_gbp` since `a70cc11e1`, and the artefact never said which one it had done --
+    `tools/generate_value_arms_data._decomposition_contrast` reads a `contrast` key that nothing
+    wrote. `contrast_field` is the repair: it selects which of a leg's own per-seed figures is
+    decomposed, and the output NAMES it, machine-readably, rather than in prose nobody parses.
+
+    ONE FIXTURE, TWO CONTRASTS. Each leg below carries a different value under `selection_gbp`
+    and `value_advantage_gbp`, so a caller reading the wrong field would not merely mislabel this
+    result -- it would compute a DIFFERENT NUMBER, which is what makes this a fair test of which
+    field decomposition actually reads.
+
+    R15 -- the mutations, each run and reverted:
+      * ignore `contrast_field` in `_variance` and always read `selection_gbp` -> the second
+        assertion block (the `value_advantage_gbp` split) reds, reproducing the defect as it
+        shipped.
+      * omit `"contrast": contrast_field` from the return dict -> both `["contrast"]` assertions
+        red, which is the fail-silent half: a caller could not tell what it received.
+    The default-argument call (no `contrast_field` at all) is the null rung: every caller written
+    before this parameter existed must keep splitting `selection_gbp` with no code change.
+    """
+    from tools.run_value_cycle_ab import decompose_floor
+
+    def _two_field_leg(mode, selection_values, advantage_values):
+        seeds = (11111, 22222, 33333)
+        return {"redraw_scope": {"mode": mode},
+                "world_identity": {"digest": _ONE_WORLD, "unavailable_because": None},
+                "seeds": [{"seed": s, "selection_gbp": sv, "value_advantage_gbp": av}
+                          for s, sv, av in zip(seeds, selection_values, advantage_values)]}
+
+    def _two_field_three_arm(selection_contrast, advantage_contrast):
+        return {"level_vs_selection": {"selection_gbp": selection_contrast,
+                                       "value_advantage_gbp": advantage_contrast},
+                "world_identity": {"digest": _ONE_WORLD, "unavailable_because": None},
+                "renewal_funnel": {"value_arm": {
+                    "priced": 20, "renewals_the_world_offered": 1369,
+                    "priced_share_of_renewals_offered": 0.0146,
+                    "accounts_the_arm_priced": ["C1", "C2"]}}}
+
+    undecomposed = _two_field_leg("all", (-1400.0, 0.0, 1400.0), (-200.0, 0.0, 200.0))
+    only = _two_field_leg("only", (-1300.0, 0.0, 1300.0), (-190.0, 0.0, 190.0))
+    except_ = _two_field_leg("except", (-500.0, 0.0, 500.0), (-40.0, 0.0, 40.0))
+    three_arm = _two_field_three_arm(selection_contrast=1000.0, advantage_contrast=150.0)
+
+    # DEFAULT: no `contrast_field` supplied -- every pre-existing caller's behaviour is unchanged.
+    default = decompose_floor(undecomposed, only, except_, three_arm)
+    assert default["contrast"] == "selection_gbp", (
+        "the undeclared default drifted away from `selection_gbp`, which breaks every caller "
+        "written before this parameter existed")
+    assert default["contrast_gbp"] == 1000.0
+    assert default["undecomposed_sd_gbp"] == pytest.approx(1400.0, rel=1e-6)
+
+    # EXPLICIT: `value_advantage_gbp` reads the OTHER column and a DIFFERENT contrast figure.
+    advantage = decompose_floor(undecomposed, only, except_, three_arm,
+                                contrast_field="value_advantage_gbp")
+    assert advantage["contrast"] == "value_advantage_gbp", (
+        "the artefact did not declare which quantity it split -- a consumer cannot tell this "
+        "result apart from the selection-figure one without re-deriving it")
+    assert advantage["contrast_gbp"] == 150.0
+    assert advantage["undecomposed_sd_gbp"] == pytest.approx(200.0, rel=1e-6), (
+        "`value_advantage_gbp` was requested and `selection_gbp`'s spread came back -- the field "
+        "selection did not reach `_variance`")
 
 
 def test_legs_run_on_DIFFERENT_seeds_are_not_a_decomposition():
