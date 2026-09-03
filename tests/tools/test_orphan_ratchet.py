@@ -19,6 +19,7 @@ misreading of the tree, never bad arithmetic.
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -287,3 +288,79 @@ def test_path_annotated_callers_are_normalised(caller, expected):
     """The bug that reported 550 orphans: `"x (by path)" in imports` is False for every module,
     so every subprocess edge was silently discarded."""
     assert orat._caller_module(caller) == expected
+
+
+# ------------------------------------------- THE SUBJECT IS WHAT A COMMIT CAN ADD
+# Added 2026-09-03, the day it cost a publish cycle. `ci.build_rows` walks the
+# filesystem, so an untracked `.py` written by one lane into the shared working tree
+# was reported as a new orphan and refused EVERY commit in that tree -- including the
+# publisher's, which does not contain it. The gate's own message is "THIS COMMIT ADDS
+# WORK THAT NOTHING RUNS", and for an untracked file no commit adds anything.
+#
+# It stayed invisible because the two landing doors disagreed. `tools/surgical_land`
+# runs this same hook chain against a clean extract of the tree the commit would
+# CREATE, where untracked files do not exist, so three landings passed within the hour
+# while the publisher's `git commit` in the dirty tree was refused. One commit, two
+# verdicts, and neither door was wrong about what it was looking at.
+
+
+def _git_repo(tmp_path: Path, *, unit: str, modules: dict[str, str]) -> Path:
+    """`_repo`, then `git init`. The plain fixture is NOT a git repo, so `git ls-files`
+    fails there and the filter is disabled -- which is why every test above still
+    measures exactly what it measured before this filter existed."""
+    root = _repo(tmp_path, unit=unit, modules=modules)
+    subprocess.run(["git", "init", "-q"], cwd=str(root), check=True)
+    return root
+
+
+def test_an_untracked_module_is_not_something_a_commit_adds(tmp_path):
+    """DEFECT: one lane's untracked scratch refuses every other lane's commit.
+
+    The mutation: drop the `r["path"] in known` clause. This reds, and the tree it reds
+    on is the one the publisher was refused in on 2026-09-03 at 16:56Z.
+    """
+    root = _git_repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/scratch.py": "def helper():\n    pass\n",
+    })
+    subprocess.run(["git", "add", "background/runner.py", "background/demo.service"],
+                   cwd=str(root), check=True)
+    assert "background.scratch" not in _orphans(root), (
+        "an UNTRACKED module is reported as a new orphan, so it refuses every commit in a "
+        "shared tree while being part of none of them")
+
+
+def test_a_staged_module_nothing_runs_is_still_an_orphan(tmp_path):
+    """DEFECT: the filter above is a hole a real new orphan walks through.
+
+    This is the other half and it is the one that matters: `git ls-files` reads the INDEX,
+    so the moment a genuinely new module is staged -- which is the moment the commit
+    adding it exists -- it is back in scope. Nothing can be smuggled past by leaving it
+    untracked, because leaving it untracked is exactly not committing it.
+    """
+    root = _git_repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/scratch.py": "def helper():\n    pass\n",
+    })
+    subprocess.run(["git", "add", "-A"], cwd=str(root), check=True)
+    assert "background.scratch" in _orphans(root), (
+        "a STAGED module that nothing runs is not reported, so the ratchet no longer fires "
+        "on the only thing it exists for")
+
+
+def test_an_unreadable_git_filters_nothing_rather_than_everything(tmp_path):
+    """DEFECT: git fails, the orphan set empties, and the tree is certified clean.
+
+    An under-reporting orphan check does not merely miss things -- it AUTHORISES what it
+    exists to prevent. So when `git ls-files` cannot answer, the filter is skipped
+    entirely and every walked module stays in scope. The fixture is a plain directory
+    with no `.git`, which is exactly that condition.
+    """
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/scratch.py": "def helper():\n    pass\n",
+    })
+    assert not orat._git_known_paths(root), "the fixture is unexpectedly a git repo"
+    assert "background.scratch" in _orphans(root), (
+        "with git unreadable the orphan set was filtered anyway, so a git failure would "
+        "certify any tree as clean")

@@ -261,6 +261,27 @@ def _tracked_py_count(root: Path) -> int:
                 if ln.strip() and not ci.is_evidence_file(ln.strip())])
 
 
+def _git_known_paths(root: Path) -> set[str]:
+    """Every path git knows about — tracked in HEAD **or** staged in the index.
+
+    `git ls-files` lists the INDEX, so a file that a commit is about to add is already here the
+    moment it is staged. That is precisely the population this ratchet is about, and it excludes
+    the one it is not about: a file sitting untracked in the shared working tree.
+
+    Returns an empty set on any git failure, and `compute` treats that as "cannot tell" and
+    filters nothing — fail-closed, because a git error must not silently empty the orphan set and
+    certify the tree as clean.
+    """
+    try:
+        out = subprocess.run(["git", "ls-files"], cwd=str(root),
+                             capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    if out.returncode != 0:
+        return set()
+    return {ln.strip() for ln in out.stdout.splitlines() if ln.strip()}
+
+
 def compute(root: Path | None = None) -> dict:
     """The orphan set plus the two fail-closed guards. Never silently degrades."""
     base = root or ROOT
@@ -290,9 +311,44 @@ def compute(root: Path | None = None) -> dict:
                 len(rows), tracked, MIN_COVERAGE_RATIO))
 
     reached = reachable_from(entry, rows)
+
+    # THE SUBJECT IS WHAT A COMMIT CAN ADD, AND AN UNTRACKED FILE IS NOT THAT.
+    #
+    # `ci.build_rows` walks the filesystem, so before 2026-09-03 this set included every untracked
+    # `.py` in the shared working tree. This gate's own message says "THIS COMMIT ADDS WORK THAT
+    # NOTHING RUNS", and for an untracked file no commit adds anything: the file is another lane's
+    # scratch, sitting in a tree several writers share by design.
+    #
+    # MEASURED, the day it bit. A tools/ module for the EP13 gas-level ceiling was written
+    # untracked at
+    # 17:23 BST by a lane still working on it -- named here WITHOUT its path, deliberately: this
+    # index counts a path reference as an EDGE, so writing the filename into this comment wired
+    # the orphan to a reachable module and silenced the very gate being repaired. Caught by
+    # re-running with the module staged and getting a pass that the repair could not explain.
+    # From the next cycle the publish was refused with
+    # `non_test_gate_refusal` and zero red tests, and it would have gone on being refused every
+    # cycle until that lane landed, deleted or froze a file the publish does not contain. It cost
+    # the 16:56Z cycle outright, arriving underneath a ten-hour outage that had just been cleared.
+    #
+    # THE TWO DOORS DISAGREED, which is how it stayed invisible. `tools/surgical_land` runs the
+    # hook chain against a clean extract of the tree the commit would CREATE, where untracked
+    # files do not exist, so three landings went through this same gate within the hour while the
+    # publisher's `git commit` in the dirty working tree was refused by it. One commit, two
+    # verdicts, and neither door was wrong about what it was looking at.
+    #
+    # The control is not weakened. `git ls-files` reads the INDEX, so a genuinely new module is in
+    # this set from the moment it is staged — which is the moment the commit that adds it exists.
+    # Nothing can be smuggled past by leaving it untracked, because leaving it untracked is
+    # exactly not committing it.
+    known = _git_known_paths(base)
     orphans = sorted(r["module"] for r in rows
-                     if r["module"] not in reached and not ci.is_evidence_file(r["path"]))
-    return {"orphans": orphans, "entrypoints": sorted(entry),
+                     if r["module"] not in reached
+                     and not ci.is_evidence_file(r["path"])
+                     # Empty `known` means git could not answer. Filter nothing rather than
+                     # everything: an unreadable git must not empty the orphan set and certify
+                     # the tree as clean.
+                     and (not known or r["path"] in known))
+    return {"orphans": orphans, "entrypoints": sorted(entry), "git_known": len(known),
             "module_count": len(rows), "tracked_py": tracked, "problems": problems}
 
 
