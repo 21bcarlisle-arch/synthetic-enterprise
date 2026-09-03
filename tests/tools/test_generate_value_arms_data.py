@@ -667,12 +667,20 @@ def _floor_with_spread(stdev: float) -> dict:
     the number written at the call site and not one arrived at by arithmetic the reader of this
     test cannot see. The published spread block agrees with the rows by construction -- disagreeing
     with them is its own test below.
+
+    IT CARRIES A WORLD STAMP FOR THE SAME REASON IT CARRIES A LATE TIMESTAMP (2026-09-04). Since
+    `_seed_spreads` refuses every bound whose floor names no world, an unstamped fixture here
+    would witness the WORLD guard on every one of the seven tests below -- each of which is about
+    the DIRECTION gate, and each of which would go green for the wrong reason the day the
+    direction gate broke. The digest is deliberately not the live one: this helper's subject is
+    the superseded panel, whose bounds are admitted on naming a world and not on naming THIS one.
     """
     values = (-stdev, 0.0, stdev)
     return {
         # Later than any real three-arm run, so these tests exercise the direction gate and never
         # trip the separate staleness caveat.
         "generated_at": "2999-01-01T00:00:00Z",
+        "world_identity": {"digest": "fixture-world", "unavailable_because": None},
         "seeds": [{"seed": 11111 + i, "value_advantage_gbp": v, "level_advantage_gbp": v,
                    "selection_gbp": v} for i, v in enumerate(values)],
         "selection_gbp_spread": {"n": 3, "stdev": stdev, "mean": 0.0,
@@ -2685,3 +2693,155 @@ def test_the_contrast_reconciliation_is_published_beside_the_book_one_not_folded
     assert block["different_contrast_caveat"], (
         "the contrast verdict was computed and left empty -- a verdict nothing publishes is a "
         "fail-silent, not a control")
+
+
+def _floor_with_selection(floor: dict, values: list) -> dict:
+    """The same floor with its per-seed `selection_gbp` replaced AND the published
+    `selection_gbp_spread` recomputed from those rows.
+
+    BOTH, because `_seed_spreads` admits no bound on the page unless its own reading of the seed
+    rows reproduces the producer's published scalar to the penny. A witness that moved only the
+    rows would be witnessing that reconciliation guard rather than the one under test -- the same
+    trap `_floor_with_advantages` avoids by not needing to touch the block at all.
+    """
+    seeds = [dict(seed, selection_gbp=value) for seed, value in zip(floor["seeds"], values)]
+    mean = sum(values) / len(values)
+    stdev = (sum((v - mean) ** 2 for v in values) / (len(values) - 1)) ** 0.5
+    return dict(floor, seeds=seeds,
+                selection_gbp_spread={"n": len(values), "stdev": stdev, "mean": mean,
+                                      "min": min(values), "max": max(values)})
+
+
+def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantages():
+    """THE DEFECT (2026-09-04): `selection_gbp` reached the reader as a bare point estimate.
+
+    `value_advantage_gbp` is level PLUS selection, and a level advantage is a price charged --
+    it moves value, it does not make any. `selection_gbp` is the only leg on this page that could
+    be value CREATED, so it is the thesis itself. It was published at +£2,177 with no bound, while
+    the only selection spread anywhere on the page was ±£3,776 from the floor that names no world
+    -- under a headline declaring that world dead. The floor measured IN this world centres the
+    same quantity at -£1,861 across -£8,634 to +£2,350, and one of its three re-draws clears.
+
+    WHY THE SIBLING CONTROLS MISSED IT. Every guard on this block -- world, leg, timestamp, seed
+    rows, re-draw stability, five of them, each mutation-proven -- was written against the module
+    constant `PAGE_FIGURE_CONTRAST`. All five are correct and all five answer for one leg. The
+    repair that bounded the advantage in `a70cc11e1` is the same repair this leg needed, and it
+    could not reach here because it was written against a constant instead of a parameter.
+
+    FOUR SUBJECTS, EACH SOLE WITNESS TO ONE THING:
+      * LIVE      -- the real artefacts. The bound exists, in this world, on this leg.
+      * BORROWED  -- the advantage leg's own bound, asserted DIFFERENT. £991.46 against £5,923.04
+        is 6.0x, so a leg that reached for the neighbour's spread would state a verdict the
+        neighbour earned. This is the sole witness that the two are separately derived.
+      * WORLD     -- the floor stamped into another world. The leg must refuse, which is what
+        stops the parameterisation quietly dropping the guard it inherited.
+      * UNANIMOUS -- selection rows that all clear their own spread. The verdict must come BACK,
+        which is what stops every assertion above being satisfied by "never state a verdict".
+    """
+    live = _live_digest()
+    current = _load(gva.CURRENT_WORLD_THREE_ARM_PATH)
+    superseded = _load(NOISE_FLOOR)
+    floor_live = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    assert ((current.get("world_identity") or {}).get("digest")) == live, (
+        "the committed current-world run no longer names the live world, so this control's "
+        "subject is gone -- re-run the arms rather than re-pointing the constant")
+
+    block = gva._current_world_contrast(current, superseded, floor_live)
+    leg = block["selection_leg"]
+
+    # LIVE. The creation leg is bounded, in the world it was measured in, on its own contrast.
+    assert leg["bound_available"] is True, (
+        "the creation leg carries no bound in the live world: " + str(leg.get("why_no_bound")))
+    assert leg["bound_contrast"] == gva.SELECTION_CONTRAST
+    assert leg["floor_ran_in_world"] == live
+    assert leg["figure_gbp"] == block["selection_gbp"], (
+        "the leg block bounds a different number than the one the payload publishes beside it")
+
+    # BORROWED. The two legs' spreads must not be the same number.
+    whole = leg["bound"]["stdev_gbp"], block["bound"]["stdev_gbp"]
+    assert abs(whole[0] - whole[1]) > 1.0, (
+        "the creation leg's bound equals the whole advantage's ({} against {}) -- a spread "
+        "measured on one quantity published as a bound on another".format(*whole))
+
+    # THE CENTRE, THE RANGE AND THE COUNT REACH THE READER, in the headline and not only the
+    # payload. The centre is the half a range alone will not tell you: this draw is +£2,177 and
+    # its own family averages BELOW zero.
+    headline = gva.build(_load(THREE_ARM), superseded, _load(RUN_OUTPUT), None,
+                         current, floor_live)["headline"]
+    assert leg["verdict_withheld_because"], (
+        "a verdict was stated on a leg whose own re-draws reverse it, or withheld with no reason")
+    for shown in ("-£8,634", "£2,350", "-£1,861", "1 of the 3"):
+        assert shown in headline, (
+            "the creation leg's {} is not on the surface -- the reader meets the point estimate "
+            "and cannot place it in its own family".format(shown))
+
+    # WORLD. The inherited guard still bites on the parameterised leg.
+    elsewhere = gva._current_world_contrast(
+        current, superseded, _world_stamped(floor_live, "another-world"))["selection_leg"]
+    assert elsewhere["bound_available"] is False and elsewhere["resolved"] is None, (
+        "a floor from another world bounded the creation leg -- the world guard did not survive "
+        "being given a contrast parameter")
+
+    # UNANIMOUS. The null rung: a leg whose re-draws agree gets its verdict back.
+    agreeing = gva._current_world_contrast(
+        current, superseded,
+        _floor_with_selection(floor_live, [8000.0, 9000.0, 10000.0]))["selection_leg"]
+    assert agreeing["resolved"] is not None, (
+        "the creation leg withheld a verdict on a floor whose re-draws all agree, so every "
+        "assertion above is satisfied by a block that never states one")
+
+
+def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_the_reader():
+    """THE DEFECT (2026-09-04): the page contradicted itself inside one paragraph.
+
+    The headline led with "no contrast below may have its direction read as resolved" -- derived
+    from `_world_provenance` -- and then, two sentences later, stated "£12,071 MORE than flat
+    rules, clearing the ±£2,291 this figure moves across 3 seed re-draws". Both sentences were
+    derived; neither was wrong about its own input; and the second took its bound from a floor
+    whose `world_identity` is null. Every guard on `_seed_spreads` was about the BOOK -- whether
+    the floor predates the point estimate, whether its rows reproduce its published spread. None
+    could see the world, so an unstamped spread licensed a direction on the one page whose whole
+    purpose is to be able to return an unflattering answer.
+
+    A DIGEST IS REQUIRED, NOT THE LIVE ONE. This block bounds the SUPERSEDED panel, which is
+    published on purpose beside the live one -- demanding equality with the live world here would
+    refuse a pairing the page makes deliberately. `_current_world_bound` is where equality is
+    demanded, and it still is.
+
+    TWO SUBJECTS. The real superseded floor is the sole witness that the refusal fires; the same
+    floor with any digest at all is the null rung, and it must put the direction BACK -- otherwise
+    this is a control satisfied by a feed that refuses everything for ever.
+    """
+    floor = _load(NOISE_FLOOR)
+    assert ((floor.get("world_identity") or {}).get("digest")) is None, (
+        "the superseded floor now names a world, so this control has lost its witness -- the "
+        "refusal it guards can no longer be reached from the real artefact")
+
+    refused = gva._seed_spreads(floor, _load(THREE_ARM))
+    assert refused["available"] is False, (
+        "bounds were published from a floor that names no world it was measured in")
+    assert refused["world_measured_in"] is None
+    assert "world" in refused["reason"], (
+        "the refusal does not name its cause, so a reader is sent to re-run a floor that has "
+        "already been run rather than to stamp the one on disk")
+
+    # AND IT REACHES THE PAGE, not just the payload. A refusal computed and never rendered is a
+    # fail-silent: the direction would still be on the surface with the block below saying no.
+    headline = gva.build(_load(THREE_ARM), floor, _load(RUN_OUTPUT))["headline"]
+    for claim in _DIRECTIONAL_CLAIMS:
+        assert claim not in headline, (
+            "the headline still states a direction off an unstamped bound: " + claim)
+    assert "names no world it was measured in" in headline
+
+    # THE NULL RUNG. Stamp it -- any world -- and the direction comes back with nothing else
+    # edited, which is what proves the guard is the world and not a machine for refusing.
+    stamped = gva._seed_spreads(_world_stamped(floor, "any-world"), _load(THREE_ARM))
+    assert stamped["available"] is True, str(stamped.get("reason"))[:200]
+    assert stamped["world_measured_in"] == "any-world", (
+        "the admitting branch does not publish which world these bounds describe, so the pairing "
+        "is checkable only from a docstring")
+    back = gva.build(_load(THREE_ARM), _world_stamped(floor, "any-world"),
+                     _load(RUN_OUTPUT))["headline"]
+    assert any(claim in back for claim in _DIRECTIONAL_CLAIMS), (
+        "a stamped floor still states no direction, so this guard refuses regardless of its "
+        "subject and its red above carries no information")

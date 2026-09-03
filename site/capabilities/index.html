@@ -833,6 +833,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
                 + prose(eb.staleness_caveat) + "</span>"
               : "")
+          /* WHICH WORLD THIS BAR WAS MEASURED IN, rendered on the same footing as the staleness
+             caveat above and NOT folded into it. They are different failures: staleness compares
+             two timestamps and goes quiet whenever the floor is the newer of the two, which is
+             exactly the state this floor is in while naming no departure level at all. This is
+             the only spread the page renders in full -- min, max, stdev, ratio -- and until
+             2026-09-04 it was the one bound here with no world on it. */
+          + (eb.world_caveat
+              ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
+                + prose(eb.world_caveat) + "</span>"
+              : "")
         : "No spread has been measured for this reading yet, so the figure above is a point "
           + "estimate with no error bar. " + prose(eb.reason || "");
 

@@ -239,6 +239,22 @@ def _f(value):
     return None if v != v or v in (float("inf"), float("-inf")) else v
 
 
+def _gbp(value) -> str:
+    """A sterling amount with the sign OUTSIDE the symbol: `-£8,634`, never `£-8,634`.
+
+    WRITTEN THE DAY THE SELECTION LEG REACHED THE HEADLINE (2026-09-04). Every figure this page
+    had ever put in a sentence was either positive or passed through `abs()` with the direction
+    said in words, so `"£{:,.0f}".format(v)` was correct by accident everywhere it was used. The
+    selection leg's own re-draw family in the live world centres BELOW zero and spans it, and its
+    range cannot be `abs()`-ed away -- the sign is the finding. `£-8,634` is the shape a reader
+    skims past as a typo, on the one number that says the creation leg may be worth nothing.
+    """
+    v = _f(value)
+    if v is None:
+        return "an unstated amount"
+    return "{}£{:,.0f}".format("-" if v < 0 else "", abs(v))
+
+
 def _arm(key: str, net_gbp, advantage_gbp=None, absent_reason: str | None = None) -> dict:
     meaning = ARM_MEANING[key]
     return {
@@ -669,6 +685,22 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # clock caveat because they are different failures: one is a basis label, the other is a
         # different WORLD, and a reader shown only the first would take the spread for current.
         "staleness_caveat": _staleness_caveat(floor, three_arm or {}),
+        # WHICH WORLD THE BAR WAS MEASURED IN, on the same footing as which CLOCK and which FIGURE.
+        # A third distinct failure and therefore a third key: the staleness caveat compares two
+        # TIMESTAMPS and goes quiet when the floor is the newer of the two, which says nothing
+        # about whether either names a departure level at all. This floor names none, so the one
+        # spread the page renders in full -- min, max, stdev, ratio -- was the only bound here with
+        # no world on it. See `_seed_spreads`, which refuses outright for the same reason; this
+        # block states rather than refuses because it is the SUPERSEDED panel's own bar on the
+        # superseded panel's own figure, and that pairing is published on purpose.
+        "world_measured_in": ((floor or {}).get("world_identity") or {}).get("digest"),
+        "world_caveat": (
+            None if ((floor or {}).get("world_identity") or {}).get("digest") else
+            "THIS SPREAD NAMES NO WORLD. The run it was measured on carries no departure-level "
+            "identity, so it cannot be shown to describe the same world as any figure on this "
+            "page -- including the one it is printed beside. Read it as the size of this "
+            "instrument's seed sensitivity on the run it came from, never as a confidence "
+            "interval on the current-world figures in the headline."),
         "elasticity_draws_min": min(draws) if draws and all(
             isinstance(d, int) for d in draws) else None,
         # No range restated here: the surface renders the min and max in its own sentence, and a
@@ -889,6 +921,14 @@ def _decomposition_is_the_same_book(decomposition: dict | None,
 #: reads it too, so the remedy reconciliation below and the bound cannot drift apart into two
 #: literals that agree today and disagree after one edit.
 PAGE_FIGURE_CONTRAST = "value_advantage_gbp"
+
+#: The leg of that advantage that could be value CREATED rather than value MOVED, and therefore
+#: the one the mission's first sentence turns on. `value_advantage_gbp` is level PLUS selection;
+#: a level advantage is a price charged, and a selection advantage is the per-customer choosing
+#: earning something a flat rule at the same level could not. Named as a constant beside the
+#: figure above because both legs are now bounded by the same machinery and a key repeated at
+#: four call sites is how the two of them drift apart.
+SELECTION_CONTRAST = "selection_gbp"
 
 
 def _decomposition_contrast(decomposition: dict | None) -> str | None:
@@ -1175,7 +1215,28 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
     above, and for the same reason: the failure it is looking for (reading the wrong rows, or a
     seeds list that is not the one the spread was computed over) would not confine itself to one
     key. A floor carrying no published spread at all is the same refusal: nothing to check against.
+
+    AND SINCE 2026-09-04 THE BLOCK STATES THE WORLD IT WAS MEASURED IN, OR IT STATES NOTHING.
+    Every guard above is about the BOOK -- whether the floor predates the point estimate, whether
+    the rows reproduce the published spread. None of them could see the world. The floor on disk
+    carries `world_identity: null`, so the page published `±£3,776` on the selection leg and
+    `±£2,291` on the advantage, took a DIRECTION from the second of them, and led the same
+    paragraph with "no contrast below may have its direction read as resolved" -- a headline
+    contradicting itself two sentences later, because the sentence that refused was derived from
+    `_world_provenance` and the sentence that resolved was derived from here.
+
+    A digest is required and NOT equality with the live world, because those are different claims
+    and this block is the weaker one: it bounds the superseded panel, which is published on
+    purpose beside the live one. An unnamed world cannot be shown to be either. `world_measured_in`
+    is published on the admitting branch so the pairing is checkable from the artefact rather than
+    from this docstring -- the same move `_error_bar.bounds_figure_gbp` made for the clock.
     """
+    world = ((floor or {}).get("world_identity") or {}).get("digest")
+    if not world:
+        return {"available": False, "world_measured_in": None, "reason": (
+            "the noise floor these bounds would come from names no world it was measured in, and "
+            "a spread whose departure level is unknown cannot be shown to bound a figure from any "
+            "particular one -- so no contrast on this page takes its direction from it")}
     stale = _staleness_caveat(floor or {}, three_arm or {}) if three_arm is not None else None
     if stale:
         return {"available": False, "reason": stale,
@@ -1212,6 +1273,10 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
     return {
         "available": True,
         "seeds": len(seeds),
+        # WHICH WORLD THESE BOUNDS DESCRIBE, published rather than left to be inferred from which
+        # panel they happen to sit under. A reader comparing this block against `current_world`
+        # can now see whether the two are the same departure surface without taking anyone's word.
+        "world_measured_in": world,
         "what_was_re_drawn": (
             "The same three arms re-run on the same world once per seed, with only the "
             "per-household price-sensitivity draw changed. Nothing about the company moved."),
@@ -3096,8 +3161,18 @@ def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
     }
 
 
-def _current_world_bound(floor_current: dict | None, current: dict | None, live: str) -> dict:
+def _current_world_bound(floor_current: dict | None, current: dict | None, live: str,
+                         contrast: str = PAGE_FIGURE_CONTRAST) -> dict:
     """The bound on the current-world contrast, or a refusal that names which leg it wanted.
+
+    THE CONTRAST IS A PARAMETER, AND THAT IS THE 2026-09-04 REPAIR. It was `PAGE_FIGURE_CONTRAST`
+    throughout, so the whole apparatus below -- four provenance guards, the same-contrast spread,
+    the re-draw stability that follows -- served exactly one of the three legs this page carries.
+    The one it served is `value_advantage_gbp`, which is the WHOLE advantage: level plus
+    selection. The leg that decides whether any of it is value CREATED rather than moved is
+    `selection_gbp`, and it reached the reader as a bare point estimate with no bound at all.
+    Copying this function for the second leg is how one legal rule becomes two implementations,
+    so it takes the key instead.
 
     WHAT THIS EXISTS TO MAKE REACHABLE. Until this function, `_current_world_contrast` returned
     `bound_available: False` as a LITERAL on its only admitting branch -- no input made it true,
@@ -3159,26 +3234,38 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
             "THE FLOOR MEASURED IN THIS WORLD CARRIES NO TIMESTAMP, so it is a refusal or a "
             "partial write rather than a completed run, and this page reads no bound from it.")}
     spreads = _seed_spreads(floor_current, current)
-    spread = _spread_for(spreads, PAGE_FIGURE_CONTRAST)
+    spread = _spread_for(spreads, contrast)
     if spread is None:
         return {"bound_available": False, "why_no_bound": (
-            "THE FLOOR MEASURED IN THIS WORLD CARRIES NO USABLE SPREAD for this contrast, so no "
+            "THE FLOOR MEASURED IN THIS WORLD CARRIES NO USABLE SPREAD for `{}`, so no "
             "verdict is stated from it: {}".format(
-                spreads.get("reason") or "its seed rows do not yield one"))}
+                contrast, spreads.get("reason") or "its seed rows do not yield one"))}
     return {
         "bound_available": True,
         "floor_ran_in_world": ran_in,
         "floor_leg": mode,
         "floor_generated_at": floor_current.get("generated_at"),
         "bound": spread,
-        "bound_contrast": PAGE_FIGURE_CONTRAST,
+        "bound_contrast": contrast,
+        # SAID PER CONTRAST, because the sentence that is true of one is false of the other. The
+        # advantage leg's spread is derived here and has no published counterpart, so the claim is
+        # that it was NOT borrowed from the scalar the producer happens to publish. The selection
+        # leg's spread IS that scalar's quantity, and `_seed_spreads` refuses every bound on this
+        # page unless its own reading of the rows reproduces it -- a stronger statement, and
+        # printing the first one over it would tell a reader the opposite of what happened.
         "bound_is_of_the_same_contrast": (
+            "The spread below is this contrast's own across the seed re-draws, and it is the "
+            "quantity the floor publishes as `selection_gbp_spread`: this feed's reading of the "
+            "seed rows had to reproduce that scalar to the penny before any bound on this page "
+            "was admitted."
+            if contrast == SELECTION_CONTRAST else
             "The spread below is this contrast's own across the seed re-draws -- not the floor's "
             "published `selection_gbp_spread`, which measures a different quantity."),
     }
 
 
-def _verdict_stability(floor_current: dict | None, spread: dict | None) -> dict:
+def _verdict_stability(floor_current: dict | None, spread: dict | None,
+                       contrast: str = PAGE_FIGURE_CONTRAST) -> dict:
     """Would the verdict survive being asked of a DIFFERENT draw of the same quantity?
 
     THE DEFECT THIS REMOVES. `_current_world_bound` establishes that the bound is the right bound
@@ -3208,11 +3295,11 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None) -> dict:
     """
     stdev = _f((spread or {}).get("stdev_gbp"))
     seeds = [s for s in ((floor_current or {}).get("seeds") or []) if isinstance(s, dict)]
-    values = [_f(seed.get(PAGE_FIGURE_CONTRAST)) for seed in seeds]
+    values = [_f(seed.get(contrast)) for seed in seeds]
     if stdev is None or len(values) < 2 or any(value is None for value in values):
         return {"checked": False, "why_not": (
             "the floor carries no usable seed rows for `{}`, so whether the verdict survives a "
-            "re-draw was not testable".format(PAGE_FIGURE_CONTRAST))}
+            "re-draw was not testable".format(contrast))}
     verdicts = [_resolvable(value, spread) for value in values]
     return {
         "checked": True,
@@ -3235,6 +3322,71 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None) -> dict:
         "redraw_mean_gbp": sum(values) / len(values),
         "stable": len(set(verdicts)) == 1,
     }
+
+
+def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, live: str,
+                       contrast: str) -> dict:
+    """One contrast's bound, its re-draw stability and its verdict -- the whole apparatus, once.
+
+    WHY THIS IS A FUNCTION AND NOT A SECOND COPY. The three steps below have to happen in this
+    order and with these exact interlocks: no bound means `None` and never `False`; a bound that
+    exists but whose own re-draws straddle it means `None` WITH a reason and `bound_available`
+    still true. Written inline for the advantage leg, the obvious way to bound the selection leg
+    was to write it inline again -- and the second copy is where the interlock rots, because the
+    two are edited on different days for different reasons. This repository's own CLAUDE.md names
+    that shape by its cost: one VAT rule, five implementations, fixed in one of them in July and
+    still live in another in August.
+
+    IT IS THE SAME FUNCTION FOR BOTH LEGS AND THAT IS CHECKABLE, not asserted here: the verdict on
+    each is `_resolvable`, the page's one gate, and each leg publishes the spread and the seed
+    family it was decided against.
+    """
+    bound = _current_world_bound(floor_current, current, live, contrast)
+    # WHAT THE VERDICT IS ALLOWED TO BE. `None` whenever no same-world undecomposed floor has been
+    # read -- "not measured" and "measured and did not clear" are different states and only the
+    # second is a verdict. Once one HAS been read, the answer is whatever it says, including the
+    # flattering one: a bound that resolves this figure is not a licence to restate it as a
+    # larger claim, because the advantage itself collapsed from £12,071 to £2,336 between worlds.
+    resolved = (_resolvable(point, bound.get("bound"))
+                if bound.get("bound_available") else None)
+    # AND THE VERDICT MUST SURVIVE A RE-DRAW BEFORE IT IS STATED. `resolved` above compares a
+    # SINGLE realisation to the dispersion of realisations; where the floor's own seed rows
+    # straddle the bound, that comparison is a property of which draw the three-arm run happened
+    # to make. The page then states no binary verdict and shows the range instead -- the figure
+    # and its bound both stay, because withholding a verdict is not withholding the measurement.
+    stability = (_verdict_stability(floor_current, bound.get("bound"), contrast)
+                 if bound.get("bound_available") else {"checked": False, "why_not": (
+                     "no bound was read in this world, so there was no verdict to re-draw")})
+    # A THIRD STATE, NAMED. Before this, `resolved: None` meant exactly one thing -- no bound was
+    # read. It can now mean two, so the withheld case carries its own reason and keeps
+    # `bound_available` true: "we never measured it" and "we measured it and one draw of three
+    # reverses it" are different states, and a reader who cannot tell them apart has been handed
+    # the conflation this file refuses everywhere else.
+    verdict_withheld_because = None
+    if resolved is not None and stability.get("checked") and not stability.get("stable"):
+        # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
+        # the same breath as the range because the range on its own is the flattering reading:
+        # a reader who meets "£2,336, and this moves between £451 and £2,434" has no way to tell
+        # that £2,336 is near the TOP of that span rather than its middle. Composed from the
+        # comparison rather than hard-coded, because the next run's draw may be the low one and a
+        # sentence that only knows how to say "above" would then be false on the page.
+        mean = _f(stability.get("redraw_mean_gbp"))
+        where = ("ABOVE" if _f(point) > mean else "BELOW" if _f(point) < mean else "exactly AT")
+        verdict_withheld_because = (
+            "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
+            "bound beside it is how far that same quantity moves across {n} re-draws of it. "
+            "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
+            "page could state a direction depends on which draw the run happened to make. It "
+            "states none. The re-draws themselves span {lo} to {hi} and average "
+            "{mean}, so the figure above sits {where} the centre of its own family -- "
+            "which the range alone would not have told you."
+        ).format(n=stability.get("n"), res=stability.get("redraw_resolving"),
+                 lo=_gbp(stability.get("redraw_min_gbp")),
+                 hi=_gbp(stability.get("redraw_max_gbp")),
+                 mean=_gbp(mean), where=where)
+        resolved = None
+    return {"resolved": resolved, "verdict_withheld_because": verdict_withheld_because,
+            "verdict_stability": stability, **bound}
 
 
 def _current_world_contrast(current: dict | None, floor: dict | None,
@@ -3308,56 +3460,20 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # the function that documents it. The bound, when there is one, comes from `floor_current` and
     # only after `_current_world_bound` has established it is this world AND this leg.
     floor_world = ((floor or {}).get("world_identity") or {}).get("digest")
-    bound = _current_world_bound(floor_current, current, live)
     advantage = contrast.get("value_advantage_gbp")
-    # WHAT THE VERDICT IS ALLOWED TO BE. `None` whenever no same-world undecomposed floor has been
-    # read -- "not measured" and "measured and did not clear" are different states and only the
-    # second is a verdict. Once one HAS been read, the answer is whatever it says, including the
-    # flattering one: a bound that resolves this figure is not a licence to restate it as a
-    # larger claim, because the advantage itself collapsed from £12,071 to £2,336 between worlds.
-    resolved = (_resolvable(advantage, bound.get("bound"))
-                if bound.get("bound_available") else None)
-    # AND THE VERDICT MUST SURVIVE A RE-DRAW BEFORE IT IS STATED. `resolved` above compares a
-    # SINGLE realisation to the dispersion of realisations; where the floor's own seed rows
-    # straddle the bound, that comparison is a property of which draw the three-arm run happened
-    # to make. The page then states no binary verdict and shows the range instead -- the figure
-    # and its bound both stay, because withholding a verdict is not withholding the measurement.
-    stability = (_verdict_stability(floor_current, bound.get("bound"))
-                 if bound.get("bound_available") else {"checked": False, "why_not": (
-                     "no bound was read in this world, so there was no verdict to re-draw")})
-    # A THIRD STATE, NAMED. Before this, `resolved: None` meant exactly one thing -- no bound was
-    # read. It can now mean two, so the withheld case carries its own reason and keeps
-    # `bound_available` true: "we never measured it" and "we measured it and one draw of three
-    # reverses it" are different states, and a reader who cannot tell them apart has been handed
-    # the conflation this file refuses everywhere else.
-    verdict_withheld_because = None
-    if resolved is not None and stability.get("checked") and not stability.get("stable"):
-        # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
-        # the same breath as the range because the range on its own is the flattering reading:
-        # a reader who meets "£2,336, and this moves between £451 and £2,434" has no way to tell
-        # that £2,336 is near the TOP of that span rather than its middle. Composed from the
-        # comparison rather than hard-coded, because the next run's draw may be the low one and a
-        # sentence that only knows how to say "above" would then be false on the page.
-        mean = _f(stability.get("redraw_mean_gbp"))
-        point = _f(advantage)
-        where = ("ABOVE" if point > mean else "BELOW" if point < mean else "exactly AT")
-        verdict_withheld_because = (
-            "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
-            "bound beside it is how far that same quantity moves across {n} re-draws of it. "
-            "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
-            "page could state a direction depends on which draw the run happened to make. It "
-            "states none. The re-draws themselves span £{lo:,.0f} to £{hi:,.0f} and average "
-            "£{mean:,.0f}, so the figure above sits {where} the centre of its own family -- "
-            "which the range alone would not have told you."
-        ).format(n=stability.get("n"), res=stability.get("redraw_resolving"),
-                 lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"),
-                 mean=mean, where=where)
-        resolved = None
+    bound = _leg_in_this_world(advantage, floor_current, current, live, PAGE_FIGURE_CONTRAST)
+    # THE CREATION LEG, BOUNDED BY THE SAME MACHINERY AND NOT BY A SECOND COPY OF IT. Until
+    # 2026-09-04 `selection_gbp` was published here as a bare number: the only leg on this page
+    # that could be value CREATED rather than value MOVED, and the one leg with no bound at all.
+    # The only selection spread the page carried was ±£3,776 from the floor that names no world,
+    # under a headline declaring that world dead -- while the floor measured IN this world centres
+    # the same quantity at -£1,861 across -£8,634 to +£2,350. Same omission as the advantage leg's,
+    # one leg down, and it survived the repair that fixed the advantage because that repair was
+    # written against a constant instead of a parameter.
+    selection = _leg_in_this_world(contrast.get("selection_gbp"), floor_current, current, live,
+                                   SELECTION_CONTRAST)
     return {
         "available": True,
-        "resolved": resolved,
-        "verdict_withheld_because": verdict_withheld_because,
-        "verdict_stability": stability,
         "live_world": live,
         "ran_in_world": ran_in,
         "generated_at": current.get("generated_at"),
@@ -3373,8 +3489,19 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "renewals_offered": funnel.get("renewals_the_world_offered"),
         "superseded_floor_ran_in_world": floor_world,
         **bound,
+        # NESTED, NOT SPREAD, because the two legs have the same key names and flattening the
+        # second over the first is how a page ends up bounding one figure with another's spread.
+        "selection_leg": dict(
+            selection,
+            figure_gbp=contrast.get("selection_gbp"),
+            what_this_leg_is=(
+                "What the per-customer CHOOSING was worth once one flat margin at the same price "
+                "LEVEL is credited with everything a level alone would have earned. The other leg "
+                "of the advantage is the level itself, which is a price charged rather than a "
+                "value made -- so this is the only figure on this page that could be value "
+                "created instead of value moved.")),
         "what_would_answer_it": (
-            None if bound.get("bound_available") else
+            None if bound.get("bound_available") and selection.get("bound_available") else
             "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world "
             "and seed family, which is what the contrast above must be priced against before any "
             "direction is read from it"),
@@ -3409,55 +3536,93 @@ def _current_world_clause(current_world: dict) -> str:
     if not isinstance(advantage, (int, float)):
         return ""
     when = current_world.get("generated_at") or "an unstated date"
-    opening = "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "
-    if not current_world.get("bound_available"):
-        return (opening + (
-            "THIS PAGE STATES NO VERDICT ON THAT FIGURE: every bound it holds was measured in the "
-            "superseded world, and a spread from one departure level is not a confidence interval "
-            "on a figure from another. It is published unbounded and labelled unbounded rather "
-            "than withheld, and the older figures below are kept with their own date beside it. "
-        )).format(adv=advantage, when=when)
+    opening = "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "\
+        .format(adv=advantage, when=when)
+    whole = _leg_clause(current_world, opening, resolved_tail=(
+        ", the first bound this page has held that was measured where the figure was. It is a "
+        "SMALLER advantage than the £12,071 below, not a larger one: what moved is the floor, "
+        "which fell further than the advantage did. "))
+    # AND THEN THE LEG THAT DECIDES WHETHER ANY OF IT IS VALUE CREATED. The figure above is level
+    # PLUS selection, and a level advantage is a price charged: it moves value, it does not make
+    # any. A reader who meets only the whole has met the number that cannot answer the question
+    # this page exists to ask. Second rather than first because the whole is what the arms were
+    # run to compare; second rather than absent because it is the thesis.
+    selection = current_world.get("selection_leg") or {}
+    point = _f(selection.get("figure_gbp"))
+    if point is None:
+        return whole
+    lead = (
+        "OF THAT, £{sel:,.0f} IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the "
+        "per-customer choosing was worth once one flat margin at the same price LEVEL is credited "
+        "with everything a level alone would have earned; the rest is the level, which is a price "
+        "charged. ").format(sel=point)
+    return whole + _leg_clause(selection, lead, resolved_tail=(
+        ", measured in the world the figure was measured in. "))
+
+
+def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
+    """One leg's figure and its verdict, in one sentence -- the SAME grammar for both legs.
+
+    THE FIGURE AND ITS REFUSAL ARE NEVER TWO SENTENCES A READER COULD MEET SEPARATELY, which is
+    the rule `_current_world_clause` was written for and the reason this is shared rather than
+    written twice: the selection leg is the one a reader is most likely to quote, so it is the
+    leg whose bound must be hardest to lose.
+
+    THE NO-BOUND BRANCH RECITES THE REFUSAL IT WAS GIVEN rather than a cause it assumed. It used
+    to say "every bound it holds was measured in the superseded world" unconditionally -- one of
+    five reasons `_current_world_bound` can refuse for, printed for all of them. A page naming a
+    cause nobody observed sends its reader to fix the wrong thing, and on the day the floor is
+    present-but-the-wrong-leg it would have said the opposite of what happened.
+    """
+    if not leg.get("bound_available"):
+        return lead + "THIS PAGE STATES NO VERDICT ON THAT FIGURE. {why} ".format(
+            why=leg.get("why_no_bound") or (
+                "No bound on it was measured in this world, so it is published unbounded and "
+                "labelled unbounded rather than withheld."))
     # BOUNDED IN ITS OWN WORLD. The verdict is stated only from here, and the sentence carries the
     # spread it was decided against so a reader can check the gate rather than take it.
     #
-    # THE SMALLER CLAIM IS SAID OUT LOUD, in the same breath as the verdict it qualifies. This
-    # figure clears its floor while being a FIFTH of the superseded one, so a bare "clears" would
-    # read as the company improving when what improved is the instrument: fewer households leave
-    # in this world, so each seed re-draw moves the book less and the floor falls further than the
-    # advantage did. A verdict that lets a reader take a collapse for a win is worse than none.
-    stdev = _f((current_world.get("bound") or {}).get("stdev_gbp"))
-    seeds = (current_world.get("bound") or {}).get("n")
+    # THE SMALLER CLAIM IS SAID OUT LOUD, in the same breath as the verdict it qualifies. The
+    # advantage clears its floor while being a FIFTH of the superseded one, so a bare "clears"
+    # would read as the company improving when what improved is the instrument: fewer households
+    # leave in this world, so each seed re-draw moves the book less and the floor falls further
+    # than the advantage did. A verdict that lets a reader take a collapse for a win is worse than
+    # none.
+    stdev = _f((leg.get("bound") or {}).get("stdev_gbp"))
+    seeds = (leg.get("bound") or {}).get("n")
     # WITHHELD BEATS BOUNDED. A bound measured in the right world on the right leg still does not
     # license a direction when the floor's own re-draws straddle it -- see `_verdict_stability`.
     # The reader gets the range that reverses the verdict, in the headline, rather than a "CLEARS"
     # whose stability they would have to reconstruct from `bound.min_gbp` further down the feed.
-    stability = current_world.get("verdict_stability") or {}
-    if current_world.get("verdict_withheld_because"):
+    stability = leg.get("verdict_stability") or {}
+    if leg.get("verdict_withheld_because"):
         # THE MEAN OF THE RE-DRAWS IS IN THE HEADLINE, beside the range, because withholding the
         # binary and then leaving the surviving point estimate unplaced within its own family is
         # the flattering reading one step along -- see `_verdict_stability`. A reader who is told
         # the quantity spans £451 to £2,434 still takes £2,336 as the answer; told the same family
-        # averages £1,451, they can see the published run drew high.
-        return (opening + (
+        # averages £1,451, they can see the published run drew high. On the selection leg that
+        # centre is NEGATIVE while the published draw is positive, which is the whole finding.
+        clearing = stability.get("redraw_resolving")
+        return lead + (
             "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
-            "contrast re-drawn {n} times in this same world spans £{lo:,.0f} to £{hi:,.0f} "
-            "against a £{sd:,.0f} spread -- {res} of the {n} re-draws clear that spread and the "
+            "contrast re-drawn {n} times in this same world spans {lo} to {hi} "
+            "against a {sd} spread -- {res} of the {n} re-draws {verb} that spread and the "
             "rest do not, so a direction here would be a property of which draw was made rather "
-            "than of the company. Those re-draws average £{mean:,.0f} -- the range alone does not "
+            "than of the company. Those re-draws average {mean} -- the range alone does not "
             "say where in it this draw fell and the mean does. The figure and its bound are both "
             "published; the verdict is withheld until it survives a re-draw. "
-        )).format(adv=advantage, when=when, sd=stdev if stdev is not None else 0,
-                  n=stability.get("n"), res=stability.get("redraw_resolving"),
-                  lo=stability.get("redraw_min_gbp"), hi=stability.get("redraw_max_gbp"),
-                  mean=stability.get("redraw_mean_gbp"))
+        ).format(sd=_gbp(stdev if stdev is not None else 0),
+                 n=stability.get("n"), res=clearing,
+                 verb="clears" if clearing == 1 else "clear",
+                 lo=_gbp(stability.get("redraw_min_gbp")),
+                 hi=_gbp(stability.get("redraw_max_gbp")),
+                 mean=_gbp(stability.get("redraw_mean_gbp")))
     verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
-               "same world" if current_world.get("resolved") else
+               "same world" if leg.get("resolved") else
                "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "
                "in this same world, so its direction cannot be stated")
-    return (opening + "That figure " + verdict + ", the first bound this page has held that was "
-            "measured where the figure was. It is a SMALLER advantage than the £12,071 below, not "
-            "a larger one: what moved is the floor, which fell further than the advantage did. ")\
-        .format(adv=advantage, when=when, sd=stdev if stdev is not None else 0, n=seeds)
+    return lead + ("That figure " + verdict + resolved_tail).format(
+        sd=stdev if stdev is not None else 0, n=seeds)
 
 
 def _world_departure_level() -> dict:
@@ -3938,8 +4103,17 @@ def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) ->
     withheld_because = (spreads or {}).get("reason") if not (spreads or {}).get(
         "available", True) else None
     if _f((spread or {}).get("stdev_gbp")) is None and withheld_because:
+        # THE REASON IS TERMINATED HERE AND NOT AT ITS AUTHOR. `_seed_spreads` composes these as
+        # clauses -- "...so no contrast is bounded from them" -- and this is the one place they
+        # become a sentence with another sentence after them. Without this the headline read
+        # "...takes its direction from it Once one flat margin at the same price LEVEL...", two
+        # claims fused into one line at exactly the point a reader is being told something was
+        # withheld. Added here rather than by punctuating each reason, so a reason written next
+        # month cannot reintroduce it.
         return ("{size}. Its DIRECTION is not stated here, and the reason is not that no floor "
-                "has been run: {why}".format(size=size_clause, why=withheld_because))
+                "has been run: {why}{stop}".format(
+                    size=size_clause, why=withheld_because,
+                    stop="" if withheld_because.rstrip().endswith((".", "!", "?")) else "."))
     if _f((spread or {}).get("stdev_gbp")) is None:
         return ("{size}. No seed spread has been measured for that contrast on this clock, so its "
                 "DIRECTION is not stated here: on a comparison this size an unbounded sign is a "

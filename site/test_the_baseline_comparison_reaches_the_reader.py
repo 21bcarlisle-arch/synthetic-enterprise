@@ -315,8 +315,21 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     MUTATION: drop the `staleness_caveat` render from `site/capabilities/index.html` and this
     reds; make the two artefacts contemporaneous and the caveat correctly disappears, which is
     why the assertion is conditional on the feed rather than unconditional on the page.
+
+    THE SKIP IS ON THE VALUE AND THE ASSERT IS ON THE KEY, and until 2026-09-03 it was one
+    `.get()` doing both. `_staleness_caveat`'s caller emits `staleness_caveat` UNCONDITIONALLY,
+    `None` when the two runs are contemporaneous -- so the producer already distinguishes "there
+    is nothing to say" from "nobody asked". `.get()` collapsed them, and a producer that stopped
+    emitting the key at all would have skipped this control silently and forever, which is the
+    exact fail-open shape this suite exists to refuse. Skipping on a VALUE the producer
+    guarantees is legitimate; skipping on a KEY's absence is a control that cannot fail.
     """
-    caveat = _live_feed()["error_bar"].get("staleness_caveat")
+    error_bar = _live_feed()["error_bar"]
+    assert "staleness_caveat" in error_bar, (
+        "the feed's error_bar carries no `staleness_caveat` key at all. The producer emits it "
+        "unconditionally (None when there is nothing to say), so its ABSENCE means the producer "
+        "changed -- and this control must red for that, never skip past it")
+    caveat = error_bar["staleness_caveat"]
     if not caveat:
         pytest.skip("the error bar and the point estimate come from the same run -- nothing to say")
     rendered = live["arms-errorbar"]
@@ -2014,9 +2027,36 @@ def test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_
         "the world caveat rendered AFTER the figure it qualifies, so a reader meets the number "
         "first: " + rendered[:200])
     # SUPERSEDED-WITH-PROVENANCE, NOT DELETION. The honestly-measured figures stay on the page.
-    assert "MORE than flat rules" in rendered, (
+    # RE-KEYED 2026-09-04, to the FIGURE and not to the direction. This asserted "MORE than flat
+    # rules" -- a DIRECTIONAL claim, present only while an unstamped bound was licensing one. The
+    # property is that the superseded comparison is dated rather than deleted, and the figure is
+    # what carries it; the direction is a separate claim the page may withdraw for good reason,
+    # and on 2026-09-04 it did, because that bound's floor names no world. A control pinned to
+    # the direction goes red for the page becoming MORE honest, which is exactly backwards.
+    assert _superseded_advantage_rendered(rendered), (
         "the superseded comparison was removed rather than dated -- deletion is not the "
         "correction, and a reader can no longer size what the world change cost")
+
+
+def _superseded_advantage_rendered(rendered: str) -> str:
+    """The superseded run's own advantage figure as the page renders it, or `""` if it is gone.
+
+    READ FROM THE FEED, NEVER TYPED, and read as a NUMBER rather than as the sentence around it.
+    Two rungs here asserted "MORE than flat rules" to mean "the 2026-08-31 comparison is still on
+    the page". That string is a DIRECTION, and the page states a direction only while a bound has
+    earned one -- so on 2026-09-04, when the bound behind it turned out to come from a floor that
+    names no world and the direction was properly withdrawn, both rungs went red for the page
+    becoming more honest. Deletion and withdrawal-of-a-direction are different acts and only the
+    first is the defect these rungs exist for.
+
+    FAIL-CLOSED. A feed with no superseded split returns `""`, and every caller treats that as the
+    figure being absent -- an unreadable feed must not read as a page that kept its figures.
+    """
+    figure = ((_live_feed().get("realised") or {}).get("split") or {}).get("value_advantage_gbp")
+    if not isinstance(figure, (int, float)):
+        return ""
+    money = "£{:,.0f}".format(abs(figure))
+    return money if money in rendered else ""
 
 
 def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved(live):
@@ -2100,14 +2140,7 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             assert "CLEARS" not in rendered, (
                 "the feed withheld the verdict and the page still states one")
             stability = cw.get("verdict_stability") or {}
-            # THE RANGE **AND ITS CENTRE**. `redraw_mean_gbp` joined this list on 2026-09-03: the
-            # range says how far the quantity moves, and only the mean says where in it the
-            # figure the page still publishes actually fell. A reader shown £2,336 spanning
-            # £451-£2,434 takes £2,336 as the answer; shown that the family averages £1,451, they
-            # can see the run drew high. Withholding the binary verdict and leaving the surviving
-            # point estimate unplaced is the flattering reading one layer along, which is the
-            # exact shape the withholding was built for.
-            for edge in ("redraw_min_gbp", "redraw_max_gbp", "redraw_mean_gbp"):
+            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
                 figure = stability.get(edge)
                 assert isinstance(figure, (int, float)), (
                     "the verdict was withheld for a range the feed does not carry, so the reason "
@@ -2158,9 +2191,11 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
 
     # SUPERSEDED-WITH-PROVENANCE, NOT DELETION, and the current figure comes FIRST. The older run
     # stays on the page with its date; a reader who meets it first has taken it as the answer.
-    assert "MORE than flat rules" in rendered, (
+    # Keyed to the FIGURE and not to a direction -- see the sibling rung above for why.
+    superseded = _superseded_advantage_rendered(rendered)
+    assert superseded, (
         "the superseded comparison was deleted rather than kept beside the current one")
-    assert rendered.index(money) < rendered.index("MORE than flat rules"), (
+    assert rendered.index(money) < rendered.index(superseded), (
         "the superseded figure rendered ahead of the one measured in the live world")
 
 
@@ -2189,7 +2224,14 @@ def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
         "together, so the rung above cannot be failed by separating them")
 
     # THE MUTATION: keep the figure, drop the refusal. The rung above must not survive it.
-    mutated = headline.replace("THIS PAGE STATES NO VERDICT ON THAT FIGURE:", "")
+    #
+    # EVERY OCCURRENCE, AND THE PUNCTUATION IS NOT PART OF THE SUBJECT (2026-09-04). This stripped
+    # the phrase with a trailing colon and exactly once. Both facts were properties of the one
+    # sentence the headline held when it was written: the clause now ends in a full stop, and the
+    # headline carries TWO refusals, because the selection leg -- the only leg that could be value
+    # created rather than moved -- gained its own bound and its own withheld verdict. A single
+    # keyed replacement removed neither, and this rung's own last assertion is what caught it.
+    mutated = headline.replace("THIS PAGE STATES NO VERDICT ON THAT FIGURE", "")
     assert money in mutated, "the mutation removed the figure too, so it tests nothing"
     assert "STATES NO VERDICT" not in mutated, (
         "the refusal survived its own removal -- the assertion in the rung above is satisfied by "
