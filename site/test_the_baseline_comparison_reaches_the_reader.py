@@ -1958,3 +1958,55 @@ def test_the_verdict_SURVIVES_a_run_that_carries_no_method_skill_reading():
         assert _text(clause) in rendered, (
             "a run with no method-skill artefact loses the standing rule's verdict as well, so "
             "the page falls silent about what it may claim precisely when it can claim least")
+
+
+def test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_number(live):
+    """The world caveat must reach the RENDERED page, ahead of the advantage it qualifies.
+
+    THE DEFECT (2026-09-03). The published beat -- the per-customer arm earning £12,071 more than
+    flat rules -- was measured 2026-08-31. `simulation/departure_level_anchor.py` has been
+    re-fitted twice since, and on the arms' own capture population that swap moves whole-book
+    expected departure +19.06pp summed across 2017-2024 against published bands 0.5-3.6pp wide.
+    Departure rate is how much book there is to win or lose, so it is the surface the whole
+    comparison sits on. Every control on the feed passed; none could express "the world this was
+    measured in is not the world".
+
+    THE SUBJECT IS THE DOM AND POSITION IS PART OF THE CLAIM. A reader who meets £12,071 and
+    learns three paragraphs later that it describes a superseded world has already taken the
+    figure as current -- so this asserts the caveat renders BEFORE the advantage, not merely
+    that it renders. Same shape, and same reason, as the error-bar rung above.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It reads the feed's own verdict and asserts
+    whichever case that verdict is in, so the day the arms are re-run in the live world this goes
+    green on the ABSENCE of the caveat rather than reddening on a page that became more honest --
+    the failure `test_the_error_bar_says_the_instrument_cannot_resolve_it` above records.
+
+    Fires on: dropping the clause from the headline; appending it after the advantage instead of
+    before it; or rendering the feed's `world_provenance` refusal as silence.
+    """
+    feed = _live_feed()
+    wp = feed.get("world_provenance") or {}
+    rendered = live["arms-headline"]
+    assert rendered.strip(), "the door rendered nothing where the headline goes"
+
+    current = wp.get("available") is True and wp.get("superseded") is False
+    if current:
+        assert "READ THIS AS HISTORY" not in rendered, (
+            "the page told a reader to read a CURRENT run as history -- the caveat is a constant, "
+            "not a reading of the run's own world stamp")
+        return
+
+    assert "READ THIS AS HISTORY" in rendered, (
+        "the feed says these figures were not measured in the live world ({}), and a reader met "
+        "no such statement".format(wp.get("reason", "")[:160]))
+    # POSITION IS THE CLAIM. The caveat must precede the money, or it is a footnote.
+    caveat_at = rendered.index("READ THIS AS HISTORY")
+    money = re.search(r"£[\d,]{4,}", rendered)
+    assert money is not None, "the headline states no figure at all -- the deletion branch"
+    assert caveat_at < money.start(), (
+        "the world caveat rendered AFTER the figure it qualifies, so a reader meets the number "
+        "first: " + rendered[:200])
+    # SUPERSEDED-WITH-PROVENANCE, NOT DELETION. The honestly-measured figures stay on the page.
+    assert "MORE than flat rules" in rendered, (
+        "the superseded comparison was removed rather than dated -- deletion is not the "
+        "correction, and a reader can no longer size what the world change cost")
