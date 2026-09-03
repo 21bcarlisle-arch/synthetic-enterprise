@@ -56,6 +56,7 @@ from simulation.departure_risks import (
 from simulation.market_switching_propensity import (
     market_departure_rate,
     market_switching_multiplier,
+    published_departure_band,
 )
 from tools.departure_population import (
     account_denominator_refusal,
@@ -331,6 +332,77 @@ def fit_whole_book(
     return out
 
 
+def emergent_level_sweep(
+    renewal_rows: list[dict], svt_rows: list[dict], anchors: list[float] | None = None
+) -> dict:
+    """What the world's level would BE at one constant anchor for every year, instead of seven.
+
+    THE COUNTERFACTUAL THE LADDER ASKS FOR, AND IT IS THE OPPOSITE QUESTION TO `fit_whole_book`.
+    That function asks "what scalar makes this year hit the published rate"; this one asks "if no
+    scalar were fitted per year, where would the level land". `DIRECTOR_CANON_WORLD_VALIDATION_
+    LADDER_2026-08-31` requires the second question to be answerable — aggregates are meant to
+    emerge from individuals and be CHECKED against the band, and a world that can only report the
+    fitted answer cannot tell whether it has a mechanism or only a solver.
+
+    Reported per year against the band's TWO endpoints, never against `market_departure_rate`
+    alone. That function returns the high end by the director's 2026-08-30 tie-break, and asking
+    whether an emergent level "hits" a single endpoint would re-import the very point-target this
+    measurement exists to get away from. Containment is the property; the endpoint is not.
+
+    Measured 2026-09-03 on `c6_second_pass_departure_factors.json`: the best single constant is
+    k≈2.8 and it puts **2 of 7 fitted years inside their bands**, against 7 of 7 for the per-year
+    fit — where 7 of 7 is true by construction and carries no information. Ordering of the emergent
+    level against the record is rho +0.68 (n=7, p=0.11: suggestive, not established), while the
+    emergent spread is 9.1–19.6 against a record spread of 12.5–23.0. The mechanism is COMPRESSED,
+    roughly twofold, rather than pointed the wrong way — which is a rung 2 magnitude question and
+    is where the repair goes.
+
+    Returns `{"bands": {...}, "sweep": [{"anchor": k, "achieved_pct": {...}, "in_band": n}, ...],
+    "best": {...}}`. It emits no constant and never writes one: this is an instrument that reports
+    where an unfitted world stands, and a caller that turned its `best` into a new world constant
+    would have re-introduced the clamp under a longer name.
+    """
+    bands = published_departure_band()
+    book = union_by_year(renewal_rows, svt_rows)
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    svt_expected: dict[int, float] = collections.defaultdict(float)
+    for row in svt_rows:
+        svt_expected[int(str(row["event_date"])[:4])] += float(row["realized_churn_probability"])
+
+    # The fitted years only. Pulling in a year `fit_whole_book` refuses would compare an emergent
+    # level against a band the fit itself declines to solve on, which is choosing the population
+    # after seeing the answer.
+    years = sorted(
+        y for y, (anchor, _r, _d) in fit_whole_book(renewal_rows, svt_rows).items()
+        if anchor is not None and y in bands
+    )
+    if anchors is None:
+        anchors = [round(0.2 * i, 1) for i in range(5, 46)]      # 1.0 .. 9.0
+
+    sweep = []
+    for k in anchors:
+        achieved = {
+            y: 100.0 * (svt_expected[y] + _sum_probability(by_year[y], k)) / book[y]["accounts"]
+            for y in years
+        }
+        sweep.append({
+            "anchor": k,
+            "achieved_pct": achieved,
+            "in_band": sum(1 for y in years if bands[y][0] <= achieved[y] <= bands[y][1]),
+        })
+    best = max(sweep, key=lambda row: (row["in_band"], -row["anchor"]))
+    return {
+        "years": years,
+        "bands": {y: bands[y] for y in years},
+        "sweep": sweep,
+        "best": best,
+        "n_years": len(years),
+    }
+
+
 def _sum_probability(rows: list[dict], anchor: float) -> float:
     """Expected departures over these renewal rows at one anchor. A SUM, not a mean.
 
@@ -529,6 +601,35 @@ def main(argv: list[str]) -> int:
                 print(f"  {year}: NOT FITTED — {result[year][1]}")
         fitted_book = {y: a for y, (a, _r, _d) in result.items() if a is not None}
         print()
+
+        # THE FITTED ANSWER MAY NEVER BE PRINTED WITHOUT THE UNFITTED ONE BESIDE IT.
+        #
+        # Every `achieved %` in the table above equals its `record %` to four decimals, in every
+        # fitted year, because that is what the bisection solves for. Read alone it looks like a
+        # world passing a check; it is a world clamped onto one. `DIRECTOR_CANON_WORLD_VALIDATION_
+        # LADDER_2026-08-31`: *"The one move that is always wrong: clamping an aggregate to pass a
+        # check."* This block is the cheapest thing that stops the clamped number travelling on
+        # its own, and it is here rather than in a separate tool for exactly that reason — a
+        # report a reader has to go and ask for is one they will not ask for.
+        sweep = emergent_level_sweep(all_rows, svt_rows)
+        best = sweep["best"]
+        print("── IF NO SCALAR WERE FITTED PER YEAR: where the level would land ──")
+        print()
+        print(f"{'year':>6} {'band lo':>9} {'band hi':>9} {'emergent %':>11}   at one constant "
+              f"anchor k={best['anchor']:.1f}")
+        for year in sweep["years"]:
+            lo, hi = sweep["bands"][year]
+            got = best["achieved_pct"][year]
+            mark = "  in band" if lo <= got <= hi else ("  LOW" if got < lo else "  HIGH")
+            print(f"{year:>6} {lo:>9.1f} {hi:>9.1f} {got:>11.2f}{mark}")
+        print()
+        print(f"  {best['in_band']} of {sweep['n_years']} fitted years land inside their band at "
+              f"the best single constant, against {sweep['n_years']} of {sweep['n_years']} above.")
+        print("  The table above is 7/7 BY CONSTRUCTION and carries no information about the")
+        print("  mechanism. This one does. A gap between them is rung 1 debt, and the canon's")
+        print("  repair for it goes to the individual model -- never to the target.")
+        print()
+
         # THE DIAGNOSTIC TABLE ABOVE ALWAYS PRINTS AND THE CONSTANT BELOW DOES NOT. A measurement
         # withheld is a measurement nobody can argue with, so the per-year fit stays visible; what
         # is refused is the block a reader would paste into the world.

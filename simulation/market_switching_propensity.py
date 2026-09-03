@@ -152,6 +152,34 @@ def _published_departure_rates() -> dict[int, float]:
     return {int(r["year"]): float(r["rate_pct_hi"]) / 100.0 for r in raw["rates"]}
 
 
+@functools.lru_cache(maxsize=1)
+def published_departure_band() -> dict[int, tuple[float, float]]:
+    """`{year: (lo_pct, hi_pct)}` — BOTH endpoints of each year's published band, as percentages.
+
+    `_published_departure_rates` above returns the HIGH end because a world that must sit on one
+    number has to choose one, and the director's anti-flattering tie-break chose that one. But a
+    CHECK does not need a point and must not be given one: rung 1 of
+    `DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31` asks whether the world's level is inside
+    the band, and a check written against the high end alone would call a world sitting happily in
+    the middle of the record a failure.
+
+    That distinction is not hypothetical here. The whole-book fit solves onto the high endpoint in
+    all eight years, so every fitted year lands on the ceiling to four decimals and the band it is
+    checked against cannot fail. Any measurement of where an UNFITTED level would land needs the
+    two endpoints, and reaching for `market_departure_rate` instead would quietly re-import the
+    point target.
+
+    Parsed from the same commons object as the rates above, deliberately: a second parse of the
+    same publication is a second artefact that can drift from the first.
+    """
+    raw = json.loads(_COMMONS.read_text())
+    return {
+        int(r["year"]): (float(r["rate_pct_lo"]), float(r["rate_pct_hi"]))
+        for r in raw["rates"]
+        if r.get("rate_pct_lo") is not None and r.get("rate_pct_hi") is not None
+    }
+
+
 def _curve_rate(year: int) -> float:
     """The savings curve's own answer for a year, before any level correction."""
     savings = MARKET_SAVINGS_BY_YEAR.get(year, 150.0)
