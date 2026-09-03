@@ -505,6 +505,26 @@ def doorbell(item: dict) -> str:
              key=item.get("id"))
 
 
+def _retired_ids() -> set[str]:
+    """Ids some continuation declares it replaced, for filtering the OTHER store that holds them.
+
+    NOT keyed to the clock, because `seat_continuation._superseded_ids` is not: "once superseded,
+    always superseded". A `focus` twin outlives its correction's window by design -- `focus` is
+    re-derived every three hours -- so an expiring correction must not resurrect the instruction it
+    refuted here either.
+
+    NEVER RAISES, and an unreadable store reads as NOTHING RETIRED. That is the fail-OPEN direction
+    and it is chosen deliberately: the conservative direction would be to offer no focus work at
+    all, and a lane that silently stops delivering is the defect this module was built around
+    (`draw`'s six-day walkover). A re-offered stale item is visible to the tick that reads it; an
+    empty lane is visible to nobody.
+    """
+    try:
+        return {str(i.get("id")) for i in seat_continuation.superseded() if i.get("id")}
+    except Exception:
+        return set()
+
+
 def next_item(now: float | None = None, path: Path | None = None) -> dict | None:
     """The highest-ranked focus item that is not an atom and not already claimed, or None.
 
@@ -515,6 +535,20 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     store = path or CLAIMS_FILE
     sweep_stale(now=now, path=store)
     taken = held(store)
+    # SUPERSESSION IS A FACT ABOUT THE INSTRUCTION, AND IT IS HELD IN TWO STORES (2026-09-03).
+    # `live()` retires a refuted continuation, so the loop below inherits the filter for free. The
+    # `focus` loop does NOT: `seat_executor` promotes a continuation into `focus` at derivation, so
+    # a retired entry survives there as a twin that never learned it was refuted, and `focus` is
+    # walked precisely when the continuation loop declines.
+    #
+    # THE CLAIM IS WHAT UNMASKS IT, WHICH IS WHY IT READ AS FIXED. While the correction is
+    # unclaimed it is returned by the first loop and the twin is unreachable. The moment a seat
+    # CLAIMS the correction -- i.e. for exactly as long as the real work is in flight -- the first
+    # loop skips it, the second returns the refuted twin, and every tick is handed the instruction
+    # the seat already disproved. Measured: at 17:59 this returned
+    # `land-the-live-world-undecomposed-floor-leg`, whose own text says to `git add` a file deleted
+    # four hours earlier, while the relaunched measurement was running.
+    retired = _retired_ids()
     # THE INTERACTIVE SEAT'S OWN CONTINUATION FIRST, AND ONLY WHILE IT IS FRESH (2026-08-31).
     # The periodic seat RE-DERIVES focus from the state of the tree every three hours; it does not
     # inherit what a session that just did four hours of work already knew. That judgement used to
@@ -534,7 +568,7 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     except Exception:
         pass
     for item in direction_mod.unreachable_focus(_atom_ids()):
-        if item.get("id") and item["id"] not in taken:
+        if item.get("id") and item["id"] not in taken and item["id"] not in retired:
             return item
     return None
 

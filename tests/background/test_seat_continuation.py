@@ -274,6 +274,56 @@ def test_a_refinement_under_a_NEW_id_RETIRES_the_refuted_one_rather_than_LOSING_
     )
 
 
+def test_a_retired_entrys_FOCUS_TWIN_is_not_offered_once_the_CORRECTION_is_CLAIMED(
+    store, monkeypatch, tmp_path
+):
+    """The refuted instruction came back through the OTHER store, and a claim is what unmasks it.
+
+    `seat_executor` promotes a continuation into `focus` at derivation, so a refuted entry exists
+    TWICE: once in the continuation store, where `live()` retires it, and once in `focus`, which
+    never learned about supersession. `next_item` walks `focus` exactly when the continuation loop
+    declines — and it declines when the correction is CLAIMED, i.e. for precisely as long as the
+    corrected work is actually being done.
+
+    The leg above cannot see this: it stubs `unreachable_focus` to `[]`, deleting the store the
+    twin lives in, and leaves the correction unclaimed so the first loop answers. Both conditions
+    are inverted in production. Measured 2026-09-03 17:59 — with the relaunched floor run in
+    flight, the tick was handed `land-the-live-world-undecomposed-floor-leg`, whose text instructs
+    it to `git add` an artefact `git clean -qfd` had deleted at 15:35.
+
+    MUTATION: drop `and item["id"] not in retired` from the `focus` loop in `next_item` and this
+    fires, returning the refuted twin.
+    """
+    _hand(store, "land-the-artefact", what="the file already exists; just git add it")
+    _hand(store, "pick-up-the-relaunch", what="the artefact was deleted; the re-run is in flight",
+          now=1_000_500.0, supersedes=["land-the-artefact"])
+
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    # The twin, exactly as `seat_executor` promotes it -- same id, no idea it was refuted.
+    monkeypatch.setattr(
+        delivery_lane.direction_mod, "unreachable_focus",
+        lambda *a, **k: [{"id": "land-the-artefact",
+                          "what": "the file already exists; just git add it",
+                          "why": "promoted into focus at derivation"}],
+    )
+
+    claims = tmp_path / "claims.json"
+    # The correction is CLAIMED -- a seat is doing the corrected work right now. Claiming is an
+    # explicit act (`draw` does it, `next_item` does not), so reading the item is not enough to
+    # reach the `focus` loop: without this the first loop keeps answering and the twin stays
+    # unreachable, which is how the leg above passes while production fails.
+    first = delivery_lane.next_item(now=1_000_600.0, path=claims)
+    assert first is not None and first["id"] == "pick-up-the-relaunch"
+    delivery_lane.claims_mod.claim("pick-up-the-relaunch", paths=[], path=claims, now=1_000_600.0)
+
+    item = delivery_lane.next_item(now=1_000_650.0, path=claims)
+    assert item is None or item["id"] != "land-the-artefact", (
+        f"the tick was handed {item and item['id']!r} — the refuted instruction returned through "
+        "`focus` the moment its correction was claimed, so every tick taken while the corrected "
+        "work is in flight is told to do the thing the seat already disproved"
+    )
+
+
 def test_a_RETIRED_entry_is_REPORTED_and_not_silently_filtered(store):
     """A record dropped from every surface is indistinguishable from a lost write.
 
