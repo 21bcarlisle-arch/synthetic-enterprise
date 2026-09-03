@@ -70,9 +70,70 @@ because neither is the undecomposed one.
 
 ## 3. What is owed next
 
-`se-noise-floor-all-20260903b` — queued behind the two legs above, ~2h24, started after they exited
-at 12:23Z. When it lands with digest `39a192ce04c1eda8`: grade P4, P6 and P7 here; re-run
-`decompose_floor` (which needs all three legs and refuses any that do not share one world); wire the
-live-world floor into `_current_world_contrast` so the page states a verdict; and grade P5's
-substantive clause on the digests, not on the `producing_commit` proxy §4 of the sibling
-pre-registration already flagged as the worse test.
+*Rewritten 2026-09-03 16:38 BST. The unit named below is the THIRD launch of this leg; §3 as first
+written named `se-noise-floor-all-20260903b`, which is dead. Probing that name now returns
+`inactive` and reads as "the leg died again" when the live leg is running normally — the phantom-
+outage shape, from a stale document rather than a clock.*
+
+### The leg that is actually running
+
+| | |
+|---|---|
+| unit | `se-floor-all-20260903c.service` — **check `systemctl --user is-active` before concluding anything** |
+| started | 2026-09-03 16:07:03 BST, ~2h25m, expect ~18:32 BST |
+| worktree | `/var/tmp/se-floorrun-20260903` at commit `1d821e12b` |
+| `--out` | `/var/tmp/se-floor-artefacts/value_cycle_ab_s1_noise_floor_20260903.json` |
+
+**The `--out` path is outside every git worktree on purpose.** Leg A *succeeded* at 15:18:37 BST and
+`ensure_worktree` deleted its artefact at 15:35:25 with `git clean -qfd`, 17 minutes later. Fixed at
+`ff8e27ce3`; the number was not recoverable. **An absent artefact is exactly what a run still in
+progress looks like** — do not read absence as failure, and do not launch a fourth run.
+
+### Grading constraint on P4
+
+The **5,923.0446** stdev quoted in earlier doorbells came from the artefact `ensure_worktree`
+deleted. It is not recoverable evidence and nothing may be graded against it. **Grade P4, P6 and P7
+against this run's artefact only.** §1's table above stands — it was measured from the `only` and
+`except` legs, which are on disk.
+
+### The chain is already armed — do not re-audit it
+
+Checked 2026-09-03 16:35 BST by feeding `_current_world_bound` the live-world `only` leg twice: once
+as it is, and once with `redraw_scope.mode` set to `all` as a **shape** stand-in for what the running
+leg will write. The real `only` leg is refused on the leg guard (`floor_leg: only`); the stand-in is
+admitted and yields a bound on `value_advantage_gbp` with `n=3`. So the artefact's schema clears
+every guard in `_current_world_bound`, including the last one — `_seed_spreads` / `_spread_for`,
+which is downstream of all the others and is the guard that could have let a 2h25m run land without
+moving the page.
+
+*No number from that stand-in is a measurement of anything and none may be published: it is the
+`only` leg wearing an `all` label, which is the exact leg-swap this claim exists to stop. It
+establishes that the plumbing admits the shape, and nothing else.*
+
+`CURRENT_WORLD_NOISE_FLOOR_PATH` already points at
+`docs/observability/value_cycle_ab_s1_noise_floor_20260903.json`, so **step (c) is a file copy, not a
+code change.**
+
+### The decompose command, in full
+
+    python3 -m tools.run_value_cycle_ab --decompose \
+      docs/observability/value_cycle_ab_s1_noise_floor_20260903.json \
+      docs/observability/value_cycle_ab_s1_noise_floor_only_20260903.json \
+      docs/observability/value_cycle_ab_s1_noise_floor_except_20260903.json \
+      docs/observability/value_cycle_ab_s1_three_arm_20260903.json \
+      --contrast value_advantage_gbp
+
+**`--contrast` is not optional in practice and the instruction that commissioned this work omits
+it.** It defaults to `selection_gbp` for continuity with the artefacts written before the flag
+existed, while the page's headline figure and bound are `value_advantage_gbp`
+(`generate_value_arms_data.PAGE_FIGURE_CONTRAST`). Running the bare `--decompose` would split a
+different quantity from the one the page publishes and label it as the page's — which is `1df22e3bd`,
+*"the decomposition never said which contrast it split, and always split the wrong one"*, reappearing
+through the flag added to fix it.
+
+### Then
+
+Grade P4, P6 and P7 here against the landed artefact; update the `/capabilities/` headline to the
+live-world pair and bound, **or state plainly that the floor still contains the contrast** — P7
+predicts it does; and grade P5's substantive clause on the digests, not on the `producing_commit`
+proxy §4 of the sibling pre-registration already flagged as the worse test.
