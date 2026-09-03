@@ -149,9 +149,16 @@ def test_the_table_is_ordered_by_the_chain_that_actually_runs_the_gates():
     # Only the rows whose gate is invoked by pre-commit itself can be ordered against it. The
     # write-time gate runs from commit-msg, i.e. strictly after all of pre-commit passed, so it
     # is last by construction and is asserted as such rather than looked up here.
+    #
+    # SIX OF THE FOURTEEN are invoked as `python3 -m tools.x`, which contains no `x.py`, so
+    # looking up the filename alone silently skipped them and the order claim covered eight rows
+    # while reading as if it covered all of them. Both forms are tried.
     positions = []
     for name, _needles, emitter in prc._REFUSING_GATE_BANNERS:
-        at = chain_line(pathlib.Path(emitter).name)
+        stem = pathlib.Path(emitter).stem
+        at = chain_line(stem + ".py")
+        if at is None:
+            at = chain_line("tools." + stem)
         if at is not None:
             positions.append((name, at))
 
@@ -165,14 +172,51 @@ def test_the_table_is_ordered_by_the_chain_that_actually_runs_the_gates():
         "with an earlier gate's refusal, and last is what makes the earlier gate win")
 
 
+def _chain_modules():
+    """Every `tools/` module the hook invokes with `|| exit 1`, as a bare stem."""
+    stems = []
+    for ln in PRE_COMMIT.read_text(encoding="utf-8").splitlines():
+        if "|| exit 1" not in ln or ln.lstrip().startswith("#"):
+            continue
+        for token in ln.split():
+            if token.startswith("tools/") and token.endswith(".py"):
+                stems.append(pathlib.Path(token).stem)
+            elif token.startswith("tools."):
+                stems.append(token.split(".", 1)[1])
+    return stems
+
+
+def test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable():
+    """Defect: the previous form of this leg compared len(invoked) to len(table) -- a count of
+    hook LINES against a count of ROWS, which are not the same quantity (one gate may hold two
+    rows, one module may host two gates). It therefore went RED for coverage IMPROVING, which is
+    exactly backwards, and it could never have named WHICH gate was missing.
+
+    Keyed to the property instead: a gate the chain runs is either named by a row or listed in
+    `_UNNAMEABLE_REFUSAL_PATHS` with a reason. Adding a gate to the hook and forgetting the row
+    fires this, named."""
+    named = {pathlib.Path(e).stem for _n, _needles, e in prc._REFUSING_GATE_BANNERS}
+    declared = {pathlib.Path(where).stem for _what, where, _why in prc._UNNAMEABLE_REFUSAL_PATHS}
+
+    stems = _chain_modules()
+    assert len(stems) >= 10, "the chain scrape found almost nothing -- this leg has gone blind"
+
+    missing = [s for s in stems if s not in named and s not in declared]
+    assert not missing, (
+        f"gate(s) {missing} are run by the chain but neither named by a banner row nor declared "
+        f"unnameable, so a refusal by one of them reports UNNAMED with nothing saying why")
+
+
 def test_the_table_does_not_silently_claim_to_cover_the_whole_chain():
     """Defect: 'no gate banner this classifier knows' is honest only while the reader knows the
-    table is partial. The chain has far more gates than the table names, and a future reader
-    treating UNNAMED as 'not a gate' would repeat the 18.7-hour misdiagnosis."""
-    chain = PRE_COMMIT.read_text(encoding="utf-8")
-    invoked = [ln for ln in chain.splitlines()
-               if "|| exit 1" in ln and not ln.lstrip().startswith("#")]
+    table is partial. A future reader treating UNNAMED as 'not a gate' would repeat the
+    18.7-hour misdiagnosis, so the residue must be declared and must carry its reason."""
+    assert prc._UNNAMEABLE_REFUSAL_PATHS, (
+        "coverage is claimed to be total. If every refusal path really is nameable, say so here "
+        "deliberately rather than leaving UNNAMED undisclosed")
 
-    assert len(invoked) > len(prc._REFUSING_GATE_BANNERS), (
-        "coverage is no longer partial -- if the table now names every gate, delete this leg "
-        "and say so, rather than leaving a control that cannot fail")
+    for what, where, why in prc._UNNAMEABLE_REFUSAL_PATHS:
+        assert (PROJECT_DIR / where).exists(), f"{what}: declared emitter {where} does not exist"
+        assert len(why) > 40, (
+            f"{what}: an unnameable path must carry the REASON it resists a needle, or the next "
+            f"reader cannot tell 'we looked and it cannot be done' from 'nobody looked'")

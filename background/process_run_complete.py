@@ -3023,11 +3023,16 @@ def _parse_failed_node_ids(out):
 # fourth, which is backwards. Write-time is LAST on purpose: it is the only entry whose needles
 # could co-occur with an earlier gate's refusal, and last means the earlier gate wins.
 #
-# COVERAGE IS PARTIAL AND SAYS SO. The chain has 15 gates; these name 4 of them plus the
-# write-time gate. The other eleven still report UNNAMED — honestly, as "we cannot tell", which
-# is the fail-safe reading. Named in the finding rather than papered over with a guessed banner
-# per gate: a needle invented without reading the gate that prints it is what produced the five
-# dead rows above.
+# COVERAGE, 2026-09-03: the eleven gates that used to report UNNAMED now have rows, each needle
+# read from the refusal branch of the gate that prints it (never from a module name — inventing
+# one is what produced the five dead rows above). Two refusal paths remain unnameable and are
+# declared in `_UNNAMEABLE_REFUSAL_PATHS` below rather than guessed at.
+#
+# A GATE MAY HOLD MORE THAN ONE ROW. Needles are ALL-OF, so a gate with two unrelated refusal
+# messages cannot be expressed as one row: `half-hourly-dependency` refuses both for a NEW read
+# and for a frozen read that is GONE, and those share no literal that a passing run does not also
+# print. Two rows under one name is the honest form; `_parse_refusing_gate` returns the first
+# match, and both carry the same name, so the reader sees one gate either way.
 #
 # Each entry is (name, needles, emitter) — `emitter` is the file that PRINTS the needles and is
 # what the control checks against.
@@ -3038,10 +3043,52 @@ _REFUSING_GATE_BANNERS = (
      ("❌ A STAGING DOCUMENT THIS COMMIT WRITES HAS NO PARSEABLE SEVERITY HEADER",),
      "tools/pre_commit_test_gate.py"),
     ("level-promotion gate", ("[level-gate] ❌",), "tools/level_promotion_gate.py"),
+    ("site-lane gate", ("[site-lane] ❌",), "tools/site_lane_gate.py"),
+    ("moap-coherence gate",
+     ("[moap-coherence] ❌ COMMIT REFUSED",), "tools/moap_coherence_gate.py"),
+    ("ruling-archive-question gate",
+     ("[archive-question-gate] ❌ COMMIT REFUSED",), "tools/ruling_archive_question_gate.py"),
+    ("consolidation-rhythm gate",
+     ("COMMIT REFUSED -- this commit closes epoch(s)",), "tools/consolidation_rhythm.py"),
+    # ONLY the unavailable path. The violation path prints f"[{tag}] ..." where `tag` is
+    # SIZE-RATCHET or SIZE-RATCHET WARN, so the token that separates a refusal from warn mode is
+    # built by interpolation and is not a literal anything can check — and the same prefix is
+    # printed on a return-0 override path. Declared unnameable below instead of half-matched.
+    ("size-ratchet gate",
+     ("[SIZE-RATCHET] CHECK UNAVAILABLE -- refusing:",), "tools/size_ratchet_gate.py"),
     ("orphan-ratchet",
      ("orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS",), "tools/orphan_ratchet.py"),
+    ("company-network-isolation gate",
+     ("company-network-isolation: COMMIT REFUSED.",), "tools/company_network_isolation.py"),
+    ("file-scope-generated-paths gate",
+     ("file-scope-generated-paths: COMMIT REFUSED.",), "tools/file_scope_generated_paths.py"),
+    ("annual-report-import ratchet",
+     ("annual-report-import-ratchet: COMMIT REFUSED.",), "tools/annual_report_import_ratchet.py"),
+    ("half-hourly-dependency ratchet",
+     ("half-hourly-dependency: A NEW HALF-HOURLY READ OF THE RETAINED BOOK.",),
+     "tools/half_hourly_dependency_ratchet.py"),
+    ("half-hourly-dependency ratchet",
+     ("frozen read(s) are gone -- re-freeze to lower the ",),
+     "tools/half_hourly_dependency_ratchet.py"),
+    ("running-total-order gate",
+     ("running-total-order: COMMIT REFUSED.",), "tools/running_total_order.py"),
+    ("scope-evidence ratchet", ("[scope-evidence] ❌",), "tools/scope_evidence_ratchet.py"),
     ("write-time gate",
      ("[write-time-gate] ", "❌ COMMIT REFUSED"), "tools/write_time_gate.py"),
+)
+
+# THE REFUSALS THAT STILL CANNOT BE NAMED, and why each one resists a needle rather than merely
+# lacking one. This exists so `UNNAMED` keeps reading as "we cannot tell" and never as "not a
+# gate" — the 18.7-hour misdiagnosis. Each entry is (what refuses, where, why it has no needle).
+_UNNAMEABLE_REFUSAL_PATHS = (
+    ("status-honesty", "tools/git-hooks/pre-commit",
+     "the banner is echoed by the SHELL HOOK; background/status_honesty.py itself prints only "
+     "JSON. The control reads Python source for printed literals, so a shell emitter has no "
+     "checkable string and a row for it could not be verified against anything."),
+    ("size-ratchet gate, violation path", "tools/size_ratchet_gate.py",
+     "the refusal and the warn-only pass differ by an INTERPOLATED tag, not by any literal, and "
+     "the shared prefix is also printed on a return-0 override path. A needle on the prefix "
+     "would name it as the refuser of commits it let through."),
 )
 
 

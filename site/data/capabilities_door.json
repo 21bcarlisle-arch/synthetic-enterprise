@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-03T01:44:13Z",
- "git_commit": "15709e9e8a1bf24d24b3a85cc743f97739a30604",
+ "generated_at": "2026-09-03T03:13:42Z",
+ "git_commit": "964def09f2e059264698bc97df5bc47299634bb0",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -600,7 +600,7 @@
     "value": 164,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-09-03T00:14:58Z"
+    "as_of": "2026-09-03T01:44:19Z"
    },
    {
     "value": 249,
@@ -619,7 +619,7 @@
    "plan": {
     "planned": true,
     "items": 1,
-    "started": 0,
+    "started": 1,
     "drawable_now": true,
     "when": "being worked on now",
     "waiting_on_count": 0

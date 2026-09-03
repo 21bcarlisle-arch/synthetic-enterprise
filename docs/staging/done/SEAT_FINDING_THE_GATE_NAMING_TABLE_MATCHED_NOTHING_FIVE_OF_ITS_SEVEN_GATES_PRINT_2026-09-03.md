@@ -1,4 +1,8 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED (read down from BLOCKING 2026-09-03T03:2xZ by §"The open half, closed",
+which supplies the eleven-gate coverage the filer left open and states the two refusal paths that
+still resist a needle, with the reason each resists. The instrument no longer answers "cannot
+tell" for eleven of fifteen causes; it answers for fourteen and declares the residue. Mutation-
+proven in both directions.) · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # The gate-naming table matched nothing five of its seven gates print
 
@@ -143,3 +147,101 @@ disclosure so a later reader cannot mistake `UNNAMED` for "not a gate".
 instrument was wrong is BLOCKING by construction, and that is not the filer's to soften. The
 half repaired here is closed; the eleven-gate coverage gap is what remains open, and it is an
 instrument that answers "cannot tell" for eleven of fifteen real refusal causes.
+
+---
+
+# The open half, closed (2026-09-03, autonomous worker, at `964def09f`)
+
+Grades `WORKER_PREREGISTRATION_WHETHER_THE_ELEVEN_UNNAMED_GATES_CAN_EACH_BE_GIVEN_AN_HONEST_NEEDLE_2026-09-03.md`,
+written before any measurement below.
+
+**First, the shared tree was two commits behind origin.** The repair above was pushed but the
+shared worktree had not fast-forwarded, so every daemon reading this tree was still running the
+five-dead-row table. Pure fast-forward `b06af4336` → `964def09f`; two untracked staging files
+byte-identical to origin's were what blocked it. *Pushed is not imported.*
+
+## What was done
+
+All eleven needles read from the refusal branch of the gate that prints them, never from a module
+name. The table goes 5 rows → 17, covering **14 of 14** `|| exit 1` gates in the chain.
+
+Two shapes the filer's framing had no slot for, both found by reading rather than predicted:
+
+1. **A gate may need two ROWS, not two needles.** `half-hourly-dependency` refuses both for a NEW
+   half-hourly read and for a frozen read that is GONE. The messages share no literal that its
+   PASS lines do not also print, and needles are ALL-OF, so one row cannot express the disjunction.
+   Two rows under one name is the honest form.
+2. **The unnameable unit is a refusal PATH, not a gate.** `size_ratchet_gate` has two: the
+   CHECK UNAVAILABLE path has a clean literal and now has a row; the violation path does not and
+   cannot get one — it prints `f"[{tag}] ..."` where `tag` is `SIZE-RATCHET` or `SIZE-RATCHET WARN`,
+   so the token separating a refusal from a warn-mode pass is **interpolated, not a literal**, and
+   the shared prefix is also printed on a `return 0` override path. A needle there would name it as
+   the refuser of commits it let through.
+
+`_UNNAMEABLE_REFUSAL_PATHS` now carries that residue with the reason each entry resists a needle,
+so `UNNAMED` still reads as "we cannot tell" and never as "not a gate".
+
+## A second dead control, found while fixing the first
+
+`test_the_table_is_ordered_by_the_chain_that_actually_runs_the_gates` looked its rows up by
+filename. **Six of the fourteen gates are invoked `python3 -m tools.x`, which contains no `x.py`** —
+so those six were silently skipped and the order claim covered eight rows while reading as though
+it covered all of them. Same family as the defect above: a control that answers about a subset it
+never says it narrowed to. Now tries both forms.
+
+That this matters is not asserted, it is measured: with the scope-evidence row moved to the front
+of the table (it runs LAST, at hook line 251), the order leg **passes** without the `-m` lookup and
+**fails** with it. Sole witness.
+
+## The disclosure leg was itself the shape it guards against
+
+It asserted `len(invoked) > len(_REFUSING_GATE_BANNERS)` — a count of hook LINES against a count of
+ROWS. Those are not the same quantity: one gate may hold two rows, one module may host two gates.
+It would have gone RED for coverage **improving**, which is exactly backwards, and it could never
+have named which gate was missing. Replaced by the property — every gate the chain runs is either
+named by a row or declared unnameable with a reason — which fires, named, when a gate is added to
+the hook and its row is forgotten.
+
+## Mutation-proved, `python3 -B` throughout
+
+| Mutation | Leg that went RED |
+|---|---|
+| move the scope-evidence row to the front | `test_the_table_is_ordered_by_the_chain_that_actually_runs_the_gates` |
+| delete the running-total-order row | `test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable` |
+| empty `_UNNAMEABLE_REFUSAL_PATHS` | `test_the_table_does_not_silently_claim_to_cover_the_whole_chain` |
+
+22 pass in this file (was 12), 34 across both (was 21); the tree restores green after each.
+
+## The prereg, graded — two of three refuted
+
+- **P1 — "at least two of the eleven cannot be given an honest needle at all": REFUTED.** Zero of
+  the eleven. Every one got at least one row. The prediction's *unit* was wrong: the thing that
+  resists a needle is a refusal PATH, and the one that resists belongs to a gate that is otherwise
+  perfectly nameable. Predicting per-gate could not have expressed the answer.
+- **P2 — "at least one banner also appears on a non-refusal path": CONFIRMED in the hazard,
+  REFUTED in the remedy.** `size_ratchet_gate` is exactly that case. But I predicted the fix would
+  be the write-time gate's two-needle ALL-OF shape, and it is not — ALL-OF cannot help when the
+  distinguishing token is never a literal at all. The path had to be declared unnameable instead.
+  **Recording this as a refutation, not a hit**: naming the hazard correctly while being wrong
+  about what it forces is not a successful prediction.
+- **P3 — "the chain is not fifteen gates; status-honesty's banner is the hook's": CONFIRMED.**
+  Fourteen `|| exit 1` module invocations; `status_honesty` is invoked `|| { ... }` and its banner
+  is echoed by the SHELL HOOK — `background/status_honesty.py` prints only JSON. The filer's
+  arithmetic (15 = 4 named + 11 remaining) was self-consistent, but status-honesty sat in neither
+  group, and it is the one gate that **structurally cannot** have a row: the control reads Python
+  source for printed literals, so a shell emitter has no checkable string.
+
+## What is owed next, stated rather than papered over
+
+- **`size_ratchet_gate`'s violation path should stop being unnameable at the source.** The honest
+  repair is in that gate, not in this table: print the state as a literal rather than interpolating
+  a tag. Not done here — it is a different lane's file and this turn had no measurement of what
+  reads its output.
+- **`status_honesty` likewise**, if its banner moves from the hook into the module.
+
+Both are recorded in `_UNNAMEABLE_REFUSAL_PATHS`, so neither can be mistaken for "not a gate".
+
+**Discharged: the eleven-gate coverage gap this finding held open.** The table names fourteen of
+fourteen chain gates, the residue is two declared refusal paths each carrying its reason, and the
+two controls that could not fail for the defects present are keyed to the property and
+mutation-proven. Severity read down to RECORDED.
