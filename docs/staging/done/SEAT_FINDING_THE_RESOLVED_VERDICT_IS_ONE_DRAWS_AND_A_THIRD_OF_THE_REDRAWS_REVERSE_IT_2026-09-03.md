@@ -118,3 +118,35 @@ withholding is a judgement — and it is the mutation that would otherwise have 
 **What this does NOT do.** It does not settle whether the advantage is real; it stops the page
 claiming it is. Whether n=3 is enough seeds to state any verdict is untouched and is the next
 measurement — the "what would refute the whole approach" section above stands open.
+
+---
+
+## Closed 2026-09-03 — verified at the reader's end, not at the commit's
+
+The section above was written the hour the repair landed, so its evidence was the tree's. The
+repair was re-verified from the consumer's side before this file was archived, because a landed
+generator is not a published page: the preceding commit in this lane records the publish daemon
+regenerating the page from the shared tree, which is exactly how a correct fix stays unpublished.
+
+- **The generator's fix is on `origin/main`,** not merely local — HEAD is an ancestor of
+  `origin/main` and the withholding branch is present in `origin/main`'s own copy of the file.
+- **The live site serves the withheld verdict.** `https://poesys.net/data/value_arms.json` fetched
+  200 and its `current_world` carries `resolved: null` with the reason and the range, against
+  `bound.min_gbp` £450.99 under `stdev_gbp` £991.46. The flattering `true` is gone from what a
+  reader actually receives, which is the claim this finding made and the only place it could be
+  settled.
+- **The rendered door agrees with the feed.** The site control drives the real page through
+  `site/_live_harness.mjs` and passes on the withholding branch, so "states no verdict" and both
+  re-draw edges reach the DOM — not just the JSON. A grep of the markup would have been blind to
+  this, since the page composes the sentence at runtime.
+- **The scope constraint held.** `_resolvable` is untouched by the repair commit — its body is
+  still the bare `abs(value) > stdev` with the strict-inequality note — so the five other contrasts
+  it gates did not move, and no figure outside this block changed without a prediction covering it.
+
+**Why this is archived and not left open.** What remains in this file is a measurement question
+(is n=3 enough seeds to state any verdict at all), not an unactioned repair. It is a different
+subject from the defect recorded here, which was that the page stated a binary verdict its own
+floor's re-draws reverse. That defect is fixed, published and controlled. Leaving the document in
+the queue root to carry the open measurement would re-offer the finished repair on every tick —
+the shape where a landed disposition is re-drawn indefinitely because the document specifying it
+was never discharged. The open question is handed on separately.
