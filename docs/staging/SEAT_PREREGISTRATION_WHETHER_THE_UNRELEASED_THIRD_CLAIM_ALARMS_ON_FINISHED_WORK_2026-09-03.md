@@ -178,3 +178,16 @@ I ran `git checkout <path>` on the test file to undo a scratch mutation and it r
 control I had just written along with it. CLAUDE.md names that command as one never to use here
 and the reason is exactly this. Re-applied from context and re-proven from scratch — the mutation
 table above is the second run, not the first.
+
+---
+
+## GRADED 2026-09-03 00:11 UTC — *"What is NOT claimed"* is now claimed
+
+The forward-looking clause above ("the live log's next `FINISHED` line is not evidence for this
+until a real turn runs under the repair and the sweep is reached 45 minutes later") is **closed,
+and the prediction holds.** The real turn was `grade-the-repaired-writer-on-a-real-executor-turn`:
+claimed 23:36 UTC in all three stores by one loop, released at 00:08, and absent from all three
+stores when read at 00:11 — so the 00:21 deadline was never armed and no `seat-claim:` alarm can
+fire for it. Evidence, including the check that the alarm writer was live and the pre-fix contrast
+case at 22:53 UTC, is in §13.6 of
+`docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md`.

@@ -594,4 +594,95 @@ nothing was mirrored by hand — which is precisely what §12.6 said it could no
 Owed, and handed off with its exact reading: this turn's own `DISCHARGED`/`FINISHED` pair, which
 the parent writes after the child exits and which no turn can read about itself, plus the sibling
 prereg's P4 — that no `seat-claim:` alarm fires for this id, now that `_hand_back` releases all
-three stores.
+three stores. **Both are graded in §13.6.**
+
+### 13.6 P3 and P4 — GRADED from the next turn, and both CONFIRMED
+
+Written by the executor turn `read-this-turns-own-discharge-line-and-close-p3-and-p4`, which is the
+turn §13.5 handed the reading to. It can grade them because it is a different process: the two
+lines are written by the *parent* after the child exits, so §13.5's item was not an unfinished
+piece of work but a measurement that structurally had to be taken from outside.
+
+**P3 — CONFIRMED.** The pre-registration fixed the branch in advance — `--release` would be run,
+therefore the log must carry `DISCHARGED` immediately before `FINISHED`. Read from the shared
+tree's `docs/observability/seat-executor-log.md`, lines 188–190, consecutive and unedited:
+
+```
+[2026-09-02 23:36 UTC] RUNNING    grade-the-repaired-writer-on-a-real-executor-turn … on c1e24f4bb
+[2026-09-03 00:08 UTC] DISCHARGED grade-the-repaired-writer-on-a-real-executor-turn: the tick
+                                  released its claim, so the handoff is done and will not be re-offered
+[2026-09-03 00:08 UTC] FINISHED   grade-the-repaired-writer-on-a-real-executor-turn: rc=0 --
+                                  3 of 3 bound path(s) moved on the shared tree
+```
+
+This is what §13.2 said it lacked and could not manufacture: a **promoted** item (so a continuation
+record existed and `seat_continuation_drop` could return True), under the repaired writer (so
+`_still_claimed` read both delivery-lane stores), with the child's `--release` as the only free
+variable — and the branch written down before the answer was visible. Causes 1 and 3 of §13.2's
+three silences are excluded by construction here, so the line is attributable to the discharge
+condition and to nothing else. **§9.7 clause 2 now has the discriminating case §13.2 said it was
+one tick short of.** It does not retrospectively upgrade §13.2's split grade — that grade stands as
+written — it supplies the leg the split was missing.
+
+**P4 — CONFIRMED.** No `grade-the-repaired-writer-on-a-real-executor-turn` line appears in
+`docs/staging/WORKER_FINDING_REPEATING_ALARM_SEAT_CLAIM_2026-08-26.md`; the id list ends at
+`an-exit-code-is-not-a-landing`.
+
+**The absence is not fail-silent, and that was checked rather than assumed** — an absent alarm and
+a dead alarm-writer look identical, which is this finding's own recurring complaint:
+
+* the sweep is **live**: `reconcile-watch.timer` (5-minute cadence, `reconcile_watch.py:167`
+  calls `_seat.sweep()`) last ran 00:08:25 UTC, three minutes before this reading;
+* the sweep **cannot** reach this id: it is ABSENT from all three claim stores, read at
+  00:11:30 UTC. `stale_claims` iterates the store, so a released record is not "not yet stale",
+  it is unreachable. The prediction's stated mechanism — the turn ends inside the 45-minute
+  window, at 32 minutes — is what was observed, and the deadline at 00:21 UTC was never armed;
+* the alarm writer **was working within the hour**: the same document's mtime is 22:53:23 UTC,
+  when it appended `an-exit-code-is-not-a-landing`.
+
+That last line is the contrast case and it is one tick earlier in the same file. `an-exit-code-…`
+claimed at 22:05 UTC and logged `DISCHARGED`/`FINISHED` at 22:36 UTC — **finished work** — and was
+alarmed on anyway at 22:53, because the pre-fix `_hand_back` released fewer stores than the claim
+loop took. That is `c1e24f4bb`'s subject exactly. So P4 is not merely a nothing-happened: the same
+document, the same sweep and the same live writer produced a false alarm one tick before, and did
+not for the tick that ran under the three-store release.
+
+**The check §13.4 handed forward is NOT YET GRADABLE, and the cause is `2635bf7fe`'s, again.**
+This turn was also asked whether `HANDOFF STANDS` or `NO HANDOFF TO DROP` had appeared anywhere in
+the log. Neither string appears — and that is uninformative, because neither string is in
+production:
+
+```
+shared tree /home/rich/synthetic-enterprise   HEAD 4e8770f70
+git rev-list --left-right --count HEAD...origin/main  ->  0   1
+git merge-base --is-ancestor d832149bb origin/main     ->  yes (it is the origin/main tip)
+grep -c 'HANDOFF STANDS' <shared tree>/background/seat_executor.py  ->  0
+```
+
+`d832149bb` landed the two reason lines and was pushed, but the shared tree never fast-forwarded to
+it, and `seat-executor.service` is `ExecStart=… -m background.seat_executor --once` — a fresh
+process per timer tick, importing from the shared tree's `WorkingDirectory`. So every tick since
+has run `4e8770f70`'s writer, which has only the `DISCHARGED` arm. **The repair for a silence was
+itself silent, for the same reason the repair before it was: pushed is not imported.** §13.4's
+closing claim — "it makes the *next* one gradable from the log alone" — was true of the code and
+false of production, and the distinction is exactly the one `2635bf7fe` exists to force.
+
+Acted on rather than filed: the shared tree is fast-forwarded to `origin/main` as part of this
+turn. A pure fast-forward creates no tree and so cannot be refused by the whole-tree ratchet, and
+none of the three paths differing between `4e8770f70` and `d832149bb` is dirty on the shared tree,
+which was checked before moving it. It does **not** change this turn's own lines: this turn's
+parent imported `4e8770f70` at 00:08:18 UTC, before the move, so the executor's next tick is the
+first that can emit either reason line.
+
+**P5 — pre-registered here, before the answer is available.** On the tick after the fast-forward,
+`RUNNING … on <sha>` will name a commit at or after `d832149bb`, and from that tick on every
+`FINISHED` line will be preceded by exactly one of the three arms — `DISCHARGED`, `HANDOFF STANDS`
+or `NO HANDOFF TO DROP`. I predict **YES**, and the first non-`DISCHARGED` arm to appear will be
+`NO HANDOFF TO DROP`, on a **drawn** item, because a draw writes no continuation record while the
+executor is currently consuming continuations. *Refuted by:* a `FINISHED` line with none of the
+three arms before it (the branch is unreachable in production, not merely unlanded), or by
+`HANDOFF STANDS` appearing first, which would mean `_still_claimed` answers True more often than
+the discharge path is reached and would be a more interesting result than the one predicted.
+
+Note the shape being avoided: the arms are not being graded by the turn that landed them, and not
+from the code. §13.4 mutation-proved the branch; only the log can show it firing.
