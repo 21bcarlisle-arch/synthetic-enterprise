@@ -7,6 +7,7 @@
 `the-baseline-was-beaten-in-a-world-that-no-longer-exists`
 **Subject:** the shared tree at `/home/rich/synthetic-enterprise`, 8 behind `origin/main`
 (`5d804d671` vs `c2e7921c3`), with six large uncommitted drafts blocking the fast-forward.
+**Discharged:** `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_world_these_figures_were_measured_in_reaches_the_reader_before_the_number`, `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_belief_reaches_the_reader_beside_its_ceiling_and_never_alone`, `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_superseded_uncorrected_reading_never_reaches_the_reader`, `tools/generate_value_arms_data.py` — the recommended disposition below was carried out at 06ce91bc9 and ef9c801e3, and re-measured at HEAD equal to origin with all six subject paths clean against it. Four conditions hold rather than one: the shared tree is at origin, the world provenance lineage reaches the feed as a named fail-closed refusal rather than as silence, the SVT drift belief publishing half survives with its door legs green, and the discarded draft symbol now appears in no code anywhere in the tree. The section below headed that it was not done in that bounded tick was true when filed, and is exactly why the next scheduled tick re-read a landed reconciliation as open work and re-derived the whole alarm; this line is what closes that loop. Every backtick above is read as a claimed artefact, so this prose carries none.
 
 ---
 
