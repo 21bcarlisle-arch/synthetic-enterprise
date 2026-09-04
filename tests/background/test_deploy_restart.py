@@ -207,18 +207,51 @@ def test_hosting_a_session_does_not_by_itself_make_a_unit_busy(monkeypatch, tmp_
     assert not busy, "a session host with a cold heartbeat is a turn boundary, not busy: " + why
 
 
-def test_a_job_in_flight_makes_the_seat_host_busy_even_with_a_cold_heartbeat(monkeypatch, tmp_path):
-    """The other half: a cold heartbeat is not enough if the unit is actually running something."""
+def test_the_hosts_resting_process_count_does_not_make_it_busy(monkeypatch, tmp_path):
+    """THE SECOND CORRECTION, pinned so neither version of the bug can return.
+
+    Having separated hosting from busy, the first repair used `unit_is_mid_work` as the busy
+    signal — "more than one process in the cgroup". That is right for a daemon that spawns a child
+    per job and WRONG for a session host, whose RESTING state is already two processes: the tmux
+    server and the seat, both of which persist between turns. So it returned busy forever and the
+    deferred branch stayed exactly as unreachable as before. One trap, entered twice, by two doors.
+
+    MUTATION: reinstate the `unit_is_mid_work` call in `unit_has_working_seat` and this fires.
+
+    For a session host the heartbeat is the whole answer: a job running in a host unit IS the
+    seat's work, so there is no third thing the process count could catch."""
     monkeypatch.setattr(dr, "unit_is_mid_work",
-                        lambda unit: (True, "3 process(es) in the cgroup, so a job is in flight"))
+                        lambda unit: (True, "2 process(es) in the cgroup, so a job is in flight"))
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    hb = obs / ".seat_heartbeat.json"
+    hb.write_text("{}")
+    import os
+    old_t = os.stat(hb).st_mtime - (dr._SEAT_IDLE_S + 60)
+    os.utime(hb, (old_t, old_t))
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
-    assert busy and "in flight" in why
+    assert not busy, (
+        "the host's resting tmux-server-plus-seat pair was read as work, so the deferred restart "
+        "can never fire: " + why
+    )
+
+
+def test_a_warm_heartbeat_is_what_makes_a_host_busy(monkeypatch, tmp_path):
+    """The live direction, and the null control's partner: warm heartbeat -> busy, so the pair
+    proves the signal discriminates rather than always answering one way."""
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    (obs / ".seat_heartbeat.json").write_text("{}")   # just written = warm
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+    busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
+    assert busy and "heartbeat moved" in why
 
 
 def test_an_unreadable_heartbeat_reads_as_busy(monkeypatch, tmp_path):
     """MUTATION: treat an unreadable heartbeat as idle and this fires. 'I could not tell' must
     never authorise a restart that costs a turn."""
-    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
     monkeypatch.setattr(dr, "_REPO", tmp_path)  # no heartbeat file exists under here
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert busy and "unreadable" in why

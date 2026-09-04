@@ -387,9 +387,20 @@ def unit_has_working_seat(unit: str, drift_free: bool = False) -> tuple[bool, st
     `worker_seat.py` is a seed-by-id create-or-resume manager whose stated job is to bring the seat
     back, which is why this is a turn boundary rather than a shutdown.
     """
-    mid_work, why = unit_is_mid_work(unit)
-    if mid_work:
-        return True, why or "a job is in flight"
+    # THE PROCESS COUNT IS USELESS FOR THIS UNIT CLASS, and using it was the SECOND version of
+    # this bug (2026-09-04, corrected within the hour of the first correction). `unit_is_mid_work`
+    # reads "more than one process in the cgroup", which is right for a daemon that spawns a child
+    # per job -- and a session host's RESTING state is already two: the tmux server plus the seat
+    # process, both of which persist between turns. So it returned busy forever, and the deferred
+    # branch stayed exactly as unreachable as it had been when the test was `unit in hosting`.
+    # I separated hosting from busy and then picked a busy signal whose baseline, for hosts, is
+    # indistinguishable from work.
+    #
+    # FOR A SESSION HOST THE HEARTBEAT IS THE WHOLE ANSWER, and it is the one the director's phrase
+    # points at: "never mid-work" means not mid-TURN. The heartbeat carries the live seat's own
+    # session_id and is rewritten on every tool call, so it is warm exactly while a seat is working.
+    # A job running in a host unit IS the seat's work, so the heartbeat covers it -- there is no
+    # third thing for the process count to catch here.
     heartbeat = _REPO / "docs" / "observability" / ".seat_heartbeat.json"
     try:
         age = time.time() - heartbeat.stat().st_mtime
