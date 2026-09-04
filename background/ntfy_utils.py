@@ -223,7 +223,7 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # CLOSE CONDITION: `delivered`, i.e. ntfy returned a server-assigned message id for
     # this POST. It is the strongest evidence this channel can produce and it comes from
     # the SERVER's response body, never from this state file (R15 anti-tautology).
-    from background.episode_monotonic import guard_episode
+    from background.episode_monotonic import guard_episode, recorded_instant_seconds
     state = guard_episode(
         previous,
         {
@@ -245,8 +245,17 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # independently a flap could low-water the epoch back while the string restamped to now,
     # and the two surfaces would describe one episode with two starts -- the defect
     # `episode_age_seconds` exists to prevent, one field over.
-    _guarded_epoch = state.get("since_epoch")
-    if isinstance(_guarded_epoch, (int, float)) and not isinstance(_guarded_epoch, bool):
+    # ...and the SAME screen the carrier's own module states (2026-09-04). The guard screens the
+    # PRIOR side of a low-water field; it does not screen the PROPOSAL, by design -- and the
+    # proposal here is `previous.get("since_epoch", now)`, echoed straight off disk. So a persisted
+    # `0` is re-proposed, wins by default because the prior was screened out, and renders
+    # "1970-01-01T00:00:00Z" as the deafness episode's start on the director's ONLY channel: the
+    # landed zero-episode-start finding, one file over. `NaN` is worse than wrong -- `time.gmtime`
+    # RAISES on it, inside `send_ntfy`, on the path that exists to report that the channel is
+    # broken. Leaving `since` as the guard returned it is the honest branch: an unrecordable epoch
+    # is no episode start, and the derived string must not assert one.
+    _guarded_epoch = recorded_instant_seconds(state.get("since_epoch"))
+    if _guarded_epoch is not None:
         state["since"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_guarded_epoch))
     try:
         DELIVERY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)

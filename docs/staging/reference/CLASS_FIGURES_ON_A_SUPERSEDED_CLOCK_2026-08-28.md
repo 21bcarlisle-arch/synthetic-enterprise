@@ -18,6 +18,12 @@ This document supersedes the individual findings listed below, which are **archi
 
 **0 hours traced** across 3 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `WORKER_FINDING_THE_LIVE_SITE_PUBLISHES_A_200_PERCENT_AVERAGE_BILL_SHOCK_2026-09-01.md` — lane `D_billing_metering`
+
 ## Disposition
 
 **Decision:** OPEN

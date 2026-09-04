@@ -17,12 +17,13 @@ The window-trim root cause is covered too: `alerted_at`/`failures` alone cap the
 60 min for a live wedge, so `wedge_since` (persistent, un-trimmed) is what makes ">60 min" provable.
 """
 import json
+import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
 from background import supervisor
-
 
 HOUR = 60 * 60
 
@@ -1073,3 +1074,143 @@ def test_the_publishers_kinds_and_the_supervisors_set_have_not_drifted():
             "producer that has moved")
     worker = (Path(supervisor.__file__).parent / "background_worker.py").read_text()
     assert 'kind="deadline_kill"' in worker, "the OUTER caller's kind has moved"
+
+
+# ───────────── EVERY TIMESTAMP GOES THROUGH ONE SCREEN (2026-09-04) ─────────────
+#
+# THE DEFECT. The age block admitted any `isinstance(v, (int, float))` from three sources --
+# `failures[].ts`, `wedge_since`, `alerted_at` -- with no positivity, bool or finiteness screen,
+# and then took a `min()` over them. On a MIN the error is not proportional: ONE unrecorded stamp
+# beside any number of honest ones wins outright and dates the wedge to 1970, older than any
+# threshold, so RUNG 1 fires permanently at priority zero on a gate that is fine.
+#
+# WHY THESE CONTROLS AND NOT ONE PER VALUE. CLAUDE.md: a guard that refuses EVERYTHING passes
+# every refusal test. So the partition is asserted whole -- the honest case must still DRAW, and
+# the honest case must still draw WITH THE POISON PRESENT -- before any refusal is asserted.
+# `failures[].ts` is covered on its own evidence and not by extension from `wedge_since`: it is
+# the instant a failure was OBSERVED, and a non-positive one means the stamp is MISSING, not that
+# a failure happened in 1970. Same verdict, different argument. See
+# `episode_monotonic.recorded_instant_seconds`, which carries both.
+
+#: Values that reach the detector from a FILE and name no instant any clock here could produce.
+#: `NaN`/`Infinity` are in this list because `json.loads` parses the bare tokens -- these are not
+#: hypothetical caller errors, they are decodable file contents.
+_NOT_AN_INSTANT = [0, 0.0, -1.0, -1_000_000.0, True, False,
+                   float("nan"), float("inf"), float("-inf"),
+                   "yesterday", None, [], {}]
+
+
+def _three_honest_signals(now, age=90 * 60):
+    """A wedge whose age is attested INDEPENDENTLY by all three sources, each at `age`.
+
+    Needed because the obvious fixture is a trap, and it caught this control's own first draft:
+    `_wedged_state` puts its failures inside the trimmed 1h window and takes its >60min age from
+    `wedge_since` ALONE. Poisoning `wedge_since` there does not test the screen -- it deletes the
+    only evidence of age, and the resulting `None` is the detector correctly reporting that it
+    cannot tell. With three attestations, removing any one leaves two, so a refusal to draw is
+    unambiguously the screen eating a wedge it should have measured."""
+    state = _wedged_state(now, wedge_since_age=age, alerted_age=age)
+    state["failures"][0]["ts"] = now - age
+    return state
+
+
+def _drawn_age_min(msg):
+    """The `~N min` the draw published, or None if it did not draw."""
+    if msg is None:
+        return None
+    m = re.search(r"FAILING for ~(\d+) min", msg)
+    assert m, f"the draw no longer publishes an age this control can read: {msg[:200]}"
+    return int(m.group(1))
+
+
+def test_the_honest_wedge_still_draws_and_reports_its_real_age(tmp_path, monkeypatch):
+    """REACHABILITY FIRST (the null control). Everything below asserts a refusal, and a screen that
+    ate the wedge entirely would satisfy all of them. This is the one that says the positive branch
+    is still attainable AND still correct: 90 minutes of honest timestamps -> a draw reading ~90."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now, wedge_since_age=90 * 60, alerted_age=20 * 60))
+    assert _drawn_age_min(supervisor._publish_gate_wedge_active(now=now)) == 90
+
+
+@pytest.mark.parametrize("poison", _NOT_AN_INSTANT, ids=repr)
+@pytest.mark.parametrize("where", ["failure_ts", "wedge_since", "alerted_at"])
+def test_an_unrecorded_stamp_cannot_date_the_wedge_to_1970(tmp_path, monkeypatch, poison, where):
+    """THE DEFECT ITSELF, over the whole cross-product of value and source.
+
+    An honest 90-minute wedge, with ONE unrecorded stamp added. Before the screen, every
+    non-positive entry here won the `min()` and published ~29,000,000 min; the draw then fired on
+    every tick forever, at priority zero, above all product work. The age must be unmoved."""
+    now = 1_800_000_000.0
+    state = _three_honest_signals(now)
+    if where == "failure_ts":
+        state["failures"][0]["ts"] = poison
+    else:
+        state[where] = poison
+    _write(tmp_path, monkeypatch, state)
+    assert _drawn_age_min(supervisor._publish_gate_wedge_active(now=now)) == 90, (
+        f"a {poison!r} in {where} moved the measured wedge age -- it names no instant, so it is "
+        "not evidence about when anything happened")
+
+
+@pytest.mark.parametrize("poison", _NOT_AN_INSTANT, ids=repr)
+def test_the_detector_never_raises_into_the_draw_ladder(tmp_path, monkeypatch, poison):
+    """THE PROMISE IN THE DOCSTRING, KEPT. `_self_refill_draw_ladder` does NOT catch, so anything
+    raised here kills the WHOLE ladder -- every rung, not one -- and the tick goes silent. That is
+    strictly worse than the wedge this rung draws: a permanent fire is loud, a dead ladder is the
+    2026-07-23/24 stall. `NaN` reached `int(age // 60)` and raised `ValueError`.
+
+    BOTH ORDERINGS, deliberately. `min([nan, 5.0])` is `nan` and `min([5.0, nan])` is `5.0`, so
+    with the poison in only one slot this control would have been a coin flip on list order --
+    green half the time while the crash stood."""
+    now = 1_800_000_000.0
+    for slot in (0, -1):
+        state = _three_honest_signals(now)
+        state["failures"][slot]["ts"] = poison
+        _write(tmp_path, monkeypatch, state)
+        assert _drawn_age_min(supervisor._publish_gate_wedge_active(now=now)) == 90
+
+
+def test_a_wedge_with_no_orderable_timestamp_at_all_is_unknown_not_old(tmp_path, monkeypatch):
+    """FAIL DIRECTION when the screen removes EVERYTHING. Three failures and not one readable
+    stamp: the age is UNKNOWN, and unknown is not "older than 60 minutes". Same direction as the
+    unreadable state file above -- a phantom priority-zero draw off no evidence is the failure
+    this whole detector is built to avoid."""
+    now = 1_800_000_000.0
+    state = _wedged_state(now, wedge_since_age=90 * 60)
+    for f in state["failures"]:
+        f["ts"] = 0
+    state["wedge_since"] = 0
+    state["alerted_at"] = -1
+    _write(tmp_path, monkeypatch, state)
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+def test_the_screen_is_the_shared_one_and_not_a_fourth_hand_rolled_copy(tmp_path, monkeypatch):
+    """ANTI-DRIFT (R10), keyed to the PROPERTY, not to today's answer: this block must ASK
+    `episode_monotonic`, not re-implement its verdict. A future `v > 0` written back in here passes
+    every OTHER control in this section -- measured, not assumed: mutating the block to a
+    hand-rolled positivity test leaves 127 of 129 green, and the only two reds are this and
+    `test_an_iso_stamp_is_read_rather_than_discarded`. Without them the hand-roll comes back
+    invisibly, dropping the ISO signal and admitting `+Infinity`.
+
+    Proven by substituting the shared screen for one that refuses everything: if this block calls
+    it, the honest wedge stops drawing. A local copy would keep drawing and this goes red."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now, wedge_since_age=90 * 60))
+    assert supervisor._publish_gate_wedge_active(now=now) is not None, "reachable before we break it"
+    monkeypatch.setattr(supervisor, "_recorded_instant", lambda v: None)
+    assert supervisor._publish_gate_wedge_active(now=now) is None, (
+        "the age block is not reading `episode_monotonic.recorded_instant_seconds` -- it has a "
+        "private copy of the screen, which is the defect this repair removed")
+
+
+def test_an_iso_stamp_is_read_rather_than_discarded(tmp_path, monkeypatch):
+    """A WIDENING the shared screen brings, stated so it is a decision and not an accident. The
+    guard writes an episode start back in ITS OWN representation, so an ISO `wedge_since` is a
+    thing this file can legitimately hold -- and the old `isinstance(v, (int, float))` dropped it
+    on the floor, measuring the wedge from the failures alone."""
+    now = 1_800_000_000.0
+    state = _wedged_state(now, alerted_age=20 * 60)
+    state["wedge_since"] = datetime.fromtimestamp(now - 90 * 60, timezone.utc).isoformat()
+    _write(tmp_path, monkeypatch, state)
+    assert _drawn_age_min(supervisor._publish_gate_wedge_active(now=now)) == 90

@@ -653,7 +653,12 @@ RUFF_BASELINE: dict[str, int] = {
     #             `tests/simulation/test_dd_balance_book.py` (`datetime.date`, the estimator),
     #             and each file's from-import block was already unsorted. Attributed per-file:
     #             both reported 1 I001 at `git show HEAD:` and report 0 now. SHRINK-ONLY.
-    "I001": 1331,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
+    # 2026-09-04  I001 1331 -> 1330. `tests/background/test_publish_gate_wedge_draw.py` gained
+    #             `re` and `datetime` when the wedge detector's timestamp screen got its controls,
+    #             and its import block was ALREADY unsorted at clean HEAD. Attributed per-file
+    #             against `git archive HEAD`: that file reported 1 I001 there and reports 0 now,
+    #             and no other file in the landing moved. SHRINK-ONLY: the floor moves DOWN.
+    "I001": 1330,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -679,7 +684,10 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2313  # was 2315; -2 (I001) on 2026-09-02 from the two files named on the
+RUFF_BASELINE_TOTAL = 2312  # was 2313; -1 (I001) on 2026-09-04 from
+                            # tests/background/test_publish_gate_wedge_draw.py, attributed
+                            # per-file: 1 at `git archive HEAD`, 0 now. See the dated I001 note.
+                            # Before that it was 2315; -2 (I001) on 2026-09-02 from the two files named on the
                             # I001 entry above (atom `D_opening_dd_seasonal_sizing`).
                             # Before that it was 2317; -2 (W293) on 2026-09-02 from `tools/population_anchor.py`,
                             # attributed per-file: that file reported 2 W293 at `git show HEAD:`
