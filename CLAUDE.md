@@ -268,7 +268,11 @@ serially, and each refusal costs a full cycle:
 `pytest tests/design/ tests/architecture/test_static_quality_ratchet.py`.
 
 **Commit by pathspec, never `-A`.** Other lanes have work staged in this tree; the pathspec, not the
-tree lock, is what stops you sweeping it.
+tree lock, is what stops you sweeping it — but only for other FILES. A pathspec stages the
+**working-tree copy**, so a file another lane has edited *in place* carries their work inside yours.
+Never wait for them: `tools/isolate_hunks.py` builds HEAD-plus-your-hunks-only, and
+`surgical_land --content` lands those bytes without reading the file. A refusal names the contested
+path itself.
 
 **A new module needs a REUSE block in the commit message** naming what the index returned and why
 you wrote new code anyway. `tools/write_time_gate.py --explain` prints the live matches.

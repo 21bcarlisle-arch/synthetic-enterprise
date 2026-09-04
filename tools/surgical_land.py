@@ -1387,6 +1387,45 @@ def verify(root: Path, commit: str) -> tuple[int, str]:
         commit, actual_tree[:9], len(actual_files), receipt.get("gate-rc"))
 
 
+def name_the_contested_paths(paths, supplied=None, root=None, out=None) -> list[str]:
+    """A refusal on a file another lane is editing IN PLACE looks exactly like a refusal on your
+    own bug, and the difference cost two full gate cycles on 2026-09-04 before anyone looked.
+
+    A pathspec stages the WORKING-TREE copy, so their unfinished work is inside the extract that
+    was just judged. This says so at the moment of the refusal, because a route nobody is
+    pointed at is a route nobody takes -- `--content` was here the whole time and the seat waited
+    hours for the other lane instead.
+
+    Advisory only, and swallows everything: a diagnostic that can raise turns a refusal with a
+    reason into a traceback without one.
+    """
+    root = ROOT if root is None else root
+    out = sys.stderr if out is None else out
+    named = []
+    try:
+        from tools import isolate_hunks
+    except Exception:  # noqa: BLE001
+        return named
+    for path in paths:
+        if supplied and path in supplied:
+            continue  # already landed by supplied bytes; not contested by definition
+        try:
+            base = isolate_hunks.head_lines(path, root=root)
+            work = (root / path).read_text().splitlines(keepends=True)
+            _ops, groups = isolate_hunks.group_opcodes(base, work)
+        except (Exception, SystemExit):  # SystemExit too: head_lines is a CLI helper and raises it
+            continue
+        if len(groups) > 1:
+            named.append(path)
+            out.write(
+                "[surgical-land] {} carries {} separate hunks against HEAD. If any is another "
+                "lane's, it is in the tree that was just gated:\n"
+                "    python3 -m tools.isolate_hunks --survey {}\n".format(
+                    path, len(groups), path))
+    out.flush()
+    return named
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="surgical_land",
@@ -1479,6 +1518,7 @@ def main(argv: list[str] | None = None) -> int:
                    resolutions=resolutions or None)
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
+        name_the_contested_paths(args.paths, content)
         return 1
     if args.merge:
         print("[surgical-land] landed MERGE {} ({} into HEAD)".format(sha[:9], args.merge))
