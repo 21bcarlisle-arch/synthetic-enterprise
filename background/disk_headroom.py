@@ -260,6 +260,70 @@ def _git_dir_may_hold_work(git_path: Path) -> bool:
     return bool(refs.stdout.strip()) or bool(head.stdout.strip())
 
 
+def _owner_pid_from_name(name: str) -> int | None:
+    """The pid a scratch directory's NAME records, or None if it records none.
+
+    THE TTL IS A PROXY FOR A QUESTION IT CANNOT ASK (2026-09-04). `REPO_COPY_TTL` exists because
+    *"a probe that is still running is not abandoned"* — six hours, chosen against a multi-hour
+    KNIFE or EP6 lane. But the population that actually fills this filesystem is `git archive HEAD`
+    extracts from finished seat turns: ~288 MB each, no `.git`, and **dead within the hour**. The
+    module reported *"nothing reapable (all scratch in use or within TTL)"* while `/tmp` — a 12 GB
+    **tmpfs, i.e. RAM on this box** — sat at 83%, and the DISK CRITICAL alarm said it needed a
+    person. 2.0 GB was then freed by hand. On a machine where an OOM kill has already destroyed a
+    published bound, that is memory pressure, not housekeeping.
+
+    So where the owner is RECORDED, ask it directly instead of waiting out a proxy. The only place
+    it is recorded is the directory name (`bisect_daemon_1563179`), so this reads a trailing digit
+    run after a `-` or `_` separator.
+
+    NOT A NUMBER PICKED TO MAKE THIS WORK. The upper bound is the kernel's own `pid_max`: a
+    trailing number above it cannot be a pid, so it is not an owner claim and the directory keeps
+    its TTL. Nothing here loosens the TTL, which is the move that would make the measurement come
+    out and teach nothing.
+
+    THE FAILURE DIRECTION IS UNCHANGED — uncertainty spares:
+      * no trailing digits           -> None -> TTL applies, exactly as before.
+      * a recycled pid, now some other process -> reads ALIVE -> spared.
+      * `/proc` unreadable           -> reads ALIVE -> spared (`_pid_is_alive`).
+      * a number that is not a pid but is below `pid_max` and matches no live process -> reaped
+        early. Bounded by every exclusion above it: it must ALSO be a content-identified copy of
+        this repository, carry no `.git`, and have no live process anywhere inside it.
+
+    WHAT THIS DOES NOT REACH, stated because a silent cap reads as coverage: three of the four
+    extracts measured on 2026-09-04 (`headext`, `headx`, `prereg_3d36`, ~865 MB) record no owner in
+    their names, so they still wait out the full six hours. The residue is the absence of any record
+    of who made them — a separate decision, filed, not something to fix by moving the TTL.
+    """
+    stem = name.rstrip("0123456789")
+    digits = name[len(stem):]
+    if not digits or not stem or stem[-1] not in "-_":
+        return None
+    try:
+        pid = int(digits)
+    except ValueError:               # unreachable via the slice above; kept fail-closed
+        return None
+    if pid <= 0 or pid > _pid_max():
+        return None
+    return pid
+
+
+def _pid_max() -> int:
+    """The kernel's pid ceiling. Unreadable -> 0, which makes every candidate 'not a pid' and
+    hands the whole population back to the TTL. Failing to read a bound may never widen it."""
+    try:
+        return int(Path("/proc/sys/kernel/pid_max").read_text().strip())
+    except (OSError, ValueError):
+        return 0
+
+
+def _pid_is_alive(pid: int) -> bool:
+    """FAIL-CLOSED: anything that stops us establishing death reads as alive, and alive spares."""
+    try:
+        return Path(f"/proc/{pid}").exists()
+    except OSError:
+        return True
+
+
 def repo_copy_scratch(now: float | None = None,
                       roots: tuple[Path, ...] = REAP_ROOTS,
                       project_dir: Path = PROJECT_DIR) -> list[dict]:
@@ -317,10 +381,13 @@ def repo_copy_scratch(now: float | None = None,
                 age = now - path.stat().st_mtime
             except OSError:
                 continue
-            if age < REPO_COPY_TTL:
+            owner = _owner_pid_from_name(path.name)
+            dead_owner = owner is not None and not _pid_is_alive(owner)
+            if age < REPO_COPY_TTL and not dead_owner:
                 continue
             out.append({"path": str(path), "age_h": round(age / 3600, 1),
-                        "ttl_h": REPO_COPY_TTL // 3600, "kind": "repo-copy"})
+                        "ttl_h": REPO_COPY_TTL // 3600, "kind": "repo-copy",
+                        "reason": f"dead-owner pid {owner}" if dead_owner else "past-ttl"})
     return out
 
 

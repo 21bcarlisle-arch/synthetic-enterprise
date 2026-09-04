@@ -99,6 +99,36 @@ def test_the_frozen_constant_is_not_the_mutable_one(monkeypatch, tmp_path):
     assert action_needed.REGISTER_PATH != action_needed._REAL_REGISTER_PATH
 
 
+def test_the_sink_refuses_the_director_feed_whatever_writes_it():
+    """THE SAME DEFECT ONE LEVEL DOWN (2026-09-04). Every other control in this file guards the
+    CALLER, and `tests/production_surface_guard`'s whole argument is that the caller is never
+    where this class dies -- *"a guard list only protects the paths somebody thought of"*, and
+    the mirror was written by somebody who had thought of it.
+
+    So the path joins `PROTECTED_FILES` and this asserts the sink actually refuses, by any
+    primitive, from any writer that has not been thought of yet.
+
+    `site/data/` stays FILE-scoped: that 2026-08-10 blast radius (generator tests legitimately
+    rewrite `site/data/*.json`) was re-measured rather than quoted, and it does not reach this
+    path -- `_mirror_reserved_to_site` is its only writer, and `generate_director_data` reads it
+    and writes `DELTA_NAME`.
+    """
+    from tests import production_surface_guard as guard
+
+    target = "site/data/director_reserved.json"
+    assert target in guard.PROTECTED_FILES, (
+        "the director's reserved queue is not a protected sink -- a mirror of a human decision "
+        "queue is not a regenerable generator output")
+    assert str(action_needed.SITE_RESERVED_PATH.resolve()) in guard.protected_targets(), (
+        "the tuple entry and the path the mirror actually writes have drifted apart")
+
+    with pytest.raises(RuntimeError, match="G-T2"):
+        action_needed.SITE_RESERVED_PATH.write_text("{}")
+    with pytest.raises(RuntimeError, match="G-T2"):
+        with open(action_needed.SITE_RESERVED_PATH, "a") as fh:   # the `open(..., "a")` hole
+            fh.write("{}")
+
+
 def test_the_real_site_feed_is_untouched_by_this_module(tmp_path, monkeypatch):
     """The whole-file control: run the defect's exact reproduction with the mirror output NOT
     redirected, and assert the real file on disk is byte-identical afterwards.

@@ -150,6 +150,27 @@ PROTECTED_FILES = (
     # docstring: that blast radius was measured, and protecting the directory reds the generator
     # tests that legitimately rewrite `site/data/*.json` for nothing.
     "site/data/publish_provenance.json",            # the published freshness/provenance claim
+    # A MIRROR OF A HUMAN DECISION QUEUE, NOT A GENERATOR OUTPUT (2026-09-04, caught in the act).
+    # The `site/data/` file-scoping above is sound for REGENERABLE artefacts: a generator test that
+    # rewrites one costs nothing, because the next generator run overwrites it anyway. This file is
+    # not that. It is the mirror of `docs/observability/action_needed_register.json` — the items
+    # RESERVED FOR THE DIRECTOR, the four classes nothing here may decide — and the only thing that
+    # can restore it is the register write that produced it.
+    #
+    # MEASURED BEFORE ADDING, because the 2026-08-10 blast radius is the reason `site/data/` is
+    # file-scoped and it deserved checking rather than quoting: this path has exactly ONE writer,
+    # `background/action_needed._mirror_reserved_to_site`. `tools/generate_director_data.py` names
+    # `director_reserved.json` in `FEED_FILES`, but `load_feeds` only READS it and that generator's
+    # single `out_path.write_text` writes `DELTA_NAME`. The generator argument does not reach this
+    # path, so protecting it costs nothing it was raised to protect.
+    #
+    # WHY THE SINK IS NEEDED WHEN THE CALLER WAS JUST FIXED. 33b54b3ee repaired the mirror's own
+    # guard, which had compared two values a test controls and so mirrored a FIXTURE alarm into the
+    # real feed, EVICTING the director's live one-way-door escalation (the mirror replaces the item
+    # list) while the publish daemon stood ready to commit `site/`. That fix is at the caller, and
+    # this module's whole argument is that the caller is never where this class dies. This is the
+    # sink for the same defect.
+    "site/data/director_reserved.json",             # the director's reserved queue, mirrored
 )
 
 _WRITE_MODES = ("w", "a", "x", "+")
