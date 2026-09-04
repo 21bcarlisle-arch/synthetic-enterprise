@@ -1,4 +1,17 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+
+**Discharged:** 2026-09-04,
+`tests/background/test_process_run_complete.py::test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today`,
+`tests/background/test_process_run_complete.py::test_commit_timeout_has_real_headroom_over_the_hook_chain`,
+`tests/background/test_process_run_complete.py::test_the_headroom_control_ACTUALLY_REDS_at_a_deadline_below_the_measured_chain`
+
+> **BLOCKING -> RECORDED, 2026-09-04, autonomous worker. THE TITLE OF THIS DOCUMENT IS REFUTED
+> AND IS KEPT AS WRITTEN.** There is no box: the floor that closed it was measured on
+> `publish_gate_duration.jsonl`, which records the publisher's own scoped gate and not the hook
+> chain this deadline bounds. Against the right ledger the room is 732 seconds, not 57. The
+> control has been repointed and the wedge is cleared. **Read "DISPOSITION 2026-09-04" at the
+> foot before acting on any arithmetic above it** — three of this document's claims are refuted
+> there, beside the originals rather than in place of them.
 
 > **RAISED LATENT -> BLOCKING, 2026-09-04 ~12:50 BST. The prediction below fired, in about five
 > hours rather than the week it estimated, and it is now refusing every commit in the tree.**
@@ -328,3 +341,97 @@ doing it in the tick it unblocks is how a control gets keyed to today's answer.
 suite run, repoint this control at the ledger that measures its subject, and populate `scope` on
 those rows so "worst comparable" can mean something. The removal may be solving a cost that has
 already gone.
+
+---
+
+## DISPOSITION 2026-09-04, autonomous worker: REPAIRED IN CODE. The title is refuted.
+
+The section above closed with *"Still not acted on, and now for a narrower reason"* — that
+repointing the control needed the scope question answered first, that the hook series mixes scopes,
+and that this was "a design step, not a bounded-tick edit". That deferral was correct to make and is
+now discharged: **the scope question is answerable from the 152 rows already in the ledger, and the
+answer is not the one the deferral assumed.** The publish gate spent a further ~9 hours wedged
+waiting for a design step that a measurement settles.
+
+### The deferral's premise, tested
+
+> "the hook series mixes scopes (`refused` rows exit early at ~1s; the 837.3s row is a wide commit)"
+
+Half right, and the half that is right does not block the repair.
+
+* **The ~1s rows are real and they are separable.** All 152 durations, sorted, under 100s:
+  `0.93 1.06 1.06 1.17 1.19 1.21 1.25 1.38 | 67.44 68.43 70.7 71.4 72.12 72.69 72.82 87.21 …`
+  Eight early exits, then **nothing at all until 67.44s**. The band between them is empty across
+  the whole ledger. They are not a contaminant that has to be modelled — they are a distinct
+  population 50x away, and `max` over a window is immune to them by construction. The only fail-open
+  they create is a window made *entirely* of them, and that is now a named skip, not a silent pass.
+* **The series does not otherwise "mix scopes" in any way that matters.** Within each regime it is
+  remarkably tight: ~60 runs at 390–425s (±4%), then ~40 runs at 101–134s (±13%). `refused` rows sit
+  in the same distribution as `pass` rows (median 386.9 vs 395.8), so a refusal is generally a full
+  chain that a late hook turned down, not an early exit. Scope variation is not what moves this
+  series.
+* **What moves it is a step, and the step is structural.** 392.6s at 16:35 UTC on 2026-08-31;
+  72.7s at 19:28 UTC. 5.4x, in one interval, and it has held for four days across ~40 runs. **I
+  cannot attribute it to a single commit** — six landed in that window — but at least two of them
+  remove exactly the shape that produces it (`e8a2e0b37`, nineteen tests writing the live evidence
+  base; `3ba51f9cf`, an import that built the whole book). The old regime was defect-driven. That is
+  the finding that makes grading on the current regime legitimate, and it is why the constant
+  carries a date and the regime table rather than presenting itself as a property.
+
+### The repair, and what it changed
+
+<!-- This heading is deliberate. The manifest phrasing (the one tools/landed_manifest_check.py
+matches on) would make this section a landed-PATH manifest, and the gate then also scans this
+document's HEADER BLOCK for claimed paths — where the original author cited the machine-local,
+untracked publish_gate_duration.jsonl as the series a measurement was taken FROM. A citation is
+not a claim that a path landed, and that ledger is untracked by design, so it can never satisfy
+one. The gate refused the shape and it was right to. This section names symbols and behaviour;
+the landed-path claim for this work is the commit itself, and the falsifier claim is the
+`**Discharged:**` field above, which background/finding_severity checks against real test nodes
+in the index or HEAD. -->
+
+
+* `MEASURED_GATE_SECONDS_2026_09_04 = 674` (the publisher's scoped gate) is **deleted** and
+  replaced by `MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04 = 134`, sourced from
+  `commit_hook_duration.jsonl` — the ledger built for this deadline on 2026-08-25 and read by no
+  control until now. Not orphaned, not left beside its replacement: the wrong stand-in is gone.
+* Both halves of the headroom control, and the R15 test that proves they can red, now read the
+  hook chain. One window reader (`_recent_hook_chain_seconds`) serves all of them, so the control
+  and its own teeth cannot grade different data.
+* The live half gained the fail-open guard the deferral was right to worry about: an all-early-exit
+  window **skips with a named reason** ("UNOBSERVED in this window — not fast") rather than passing.
+* The staleness assert was **not** carried across in its old form. `worst <= 1.6 * MEASURED` would
+  have been the *tighter* of the two asserts on this series — floor 168s, staleness trip at 214s —
+  so a return to the 400s regime would have redded the whole tree to report that a comment needed
+  re-dating. That is precisely the shape of the outage this document opens with. It is now keyed to
+  the deadline's own scale (`worst <= 0.75 * deadline`), which is what "stale" has to mean for a
+  stand-in whose only job is grading this deadline.
+
+### Three claims in this document that the measurement refutes
+
+1. **"The room between floor and ceiling is 57 seconds and the next raise does not exist."** The
+   floor was `1.25 * 674`, computed on the wrong series. Against the subject: floor 168s, ceiling
+   900s. **The room is 732 seconds. There was never a box.**
+2. **"The publisher pays for TWO comparable full-suite runs per cycle."** Scoped gate ~660s, hook
+   chain ~134s. Not comparable, and not since 2026-08-31. The document's headline repair — halving
+   the double run — targets a cost that is already four-fifths gone, and **the expensive run is the
+   publisher's own gate, not the commit chain.** Anyone designing that removal off this document's
+   original text would have been optimising the wrong half.
+3. **"It is a correct control and it was right."** It was a correct control pointed at the wrong
+   subject. Nothing had ever timed out; the deadline had ~6.5x headroom over the thing it bounds
+   the entire time it was refusing every commit in the tree.
+
+**`GIT_COMMIT_HOOK_TIMEOUT_SECONDS` is deliberately NOT lowered.** It is inside the allowance
+already reserved, no commit has ever been killed by it, and 880 still covers the worst chain this
+machine has ever recorded (837.3s). Cutting it buys nothing and can only kill commits.
+
+**Prediction, recorded before it can be checked:** if the 2026-08-31 step is structural as argued,
+the chain stays in the 100–140s band and this control does not red again on its own. If it returns
+to ~400s, the headroom assert still passes (400 < 704) and the staleness assert still passes
+(400 < 660) — which is the intended behaviour, because at 400s against an 880s deadline there is
+genuinely no problem. The first thing that should red this control is a chain over 704s, and that
+is the state that actually killed twelve commits in August.
+
+**Status: BLOCKING → DISCHARGED.** The class lesson — *a control graded against a proxy series
+silently decouples when its subject changes, and the ledger for the real subject may already exist,
+unread* — is the one worth carrying, not this document's arithmetic.

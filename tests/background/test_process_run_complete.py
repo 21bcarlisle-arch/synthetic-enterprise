@@ -1571,27 +1571,41 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
     watched it happen and stayed green, because it graded against a number that had stopped
     moving.
 
-    Two halves now, and they fail differently:
-      * the COMMITTED half runs everywhere, including a fresh clone and the gate's own HEAD
-        checkout, against `MEASURED_GATE_SECONDS_2026_09_04` -- whose date is in its NAME, so a
-        stale measurement is visible in every diff rather than in a comment nobody re-reads;
-      * the LIVE half runs where there is publish history, against the worst of the last twenty
-        recorded runs, so it grows exactly as the suite does.
+    AND THEN BOTH HALVES GRADED THE WRONG SERIES (2026-09-04, the second incident). They were
+    keyed to `publish_gate_duration.jsonl` -- the publisher's OWN scoped gate, a different suite
+    run under a different deadline (3800s). That was a fair stand-in in August, when the two moved
+    together. On 2026-08-31 the hook chain fell 5.4x and the gate did not, and nothing noticed,
+    because the ledger built for this deadline on 2026-08-25 was read by no control. The stand-in
+    then demanded 894s of an 880s deadline and refused every commit in the tree for ~9 hours --
+    grading a number that nothing here bounds. BOTH HALVES NOW READ THE HOOK CHAIN'S OWN LEDGER.
 
-    MUTATION (must fire): drop the deadline back to 600 -- proven in the test below.
+    Two halves, and they fail differently:
+      * the COMMITTED half runs everywhere, including a fresh clone and the gate's own HEAD
+        checkout, against `MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04` -- whose date is in its
+        NAME, so a stale measurement is visible in every diff rather than in a comment nobody
+        re-reads;
+      * the LIVE half runs where there is hook history, against the worst of the last twenty
+        recorded chains, so it grows exactly as the chain does.
+
+    MUTATION (must fire): drop the deadline to 150 -- proven in the test below, which also
+    records why 600 no longer fires it and why that is the correction, not a loss of teeth.
     """
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= (
-        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_09_04), (
-        "the commit deadline has under {:.0%} headroom over the last measured gate cost "
-        "({}s)".format(prc.COMMIT_DEADLINE_HEADROOM - 1, prc.MEASURED_GATE_SECONDS_2026_09_04))
+        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04), (
+        "the commit deadline has under {:.0%} headroom over the last measured hook chain "
+        "({}s)".format(prc.COMMIT_DEADLINE_HEADROOM - 1,
+                       prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04))
 
 
-def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today():
-    """The live half. `publish_gate_duration.jsonl` is machine-local and untracked, so it is
-    ABSENT in a fresh clone and in the gate's own HEAD checkout -- and that is INAPPLICABLE, not
-    unavailable. A tree with no publish history cannot be graded against a machine it has never
-    run on, and failing closed there would make a first commit impossible. Where the history
-    exists, this is the half with teeth: it grows as the suite grows.
+def _recent_hook_chain_seconds():
+    """The last twenty pre-commit HOOK CHAIN durations this machine actually recorded.
+
+    ONE READER, shared by the live half of the headroom control and by the R15 test that proves
+    that half can red. Two copies of this window would let the control and its own teeth grade
+    different data, which is the exact class of defect being repaired here.
+
+    Skips -- never returns a degenerate window -- when the chain's cost is UNOBSERVED, which is
+    not the same as small. Callers get either a real window or no test.
     """
     import json as _json
     from pathlib import Path as _Path
@@ -1599,10 +1613,10 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
     # THE REAL REPO, not `prc.PROJECT_DIR`: this directory's conftest isolates that to a tmp tree
     # so no test can write the live one.
     series = (_Path(__file__).resolve().parents[2] / "docs" / "observability"
-              / "publish_gate_duration.jsonl")
+              / "commit_hook_duration.jsonl")
     if not series.is_file():
-        pytest.skip("no publish history on this tree -- the deadline cannot be graded against a "
-                    "machine that has never run the gate; the committed half above still applies")
+        pytest.skip("no hook-chain history on this tree -- the deadline cannot be graded against "
+                    "a machine that has never run it; the committed half still applies")
     rows = []
     for line in series.read_text(encoding="utf-8").splitlines():
         line = line.strip()
@@ -1615,20 +1629,63 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
         if isinstance(row.get("duration_seconds"), (int, float)):
             rows.append(float(row["duration_seconds"]))
     if not rows:
-        pytest.skip("the publish history holds no readable duration")
+        pytest.skip("the hook-chain history holds no readable duration")
     recent = rows[-20:]
+
+    # AN EARLY-EXIT ROW IS A LOWER BOUND, NOT A MEASUREMENT, and a window made only of them would
+    # make the control vacuously green -- the fail-open that matters here. A hook that refuses
+    # BEFORE the test gate returns in about a second; one that actually runs the gate cannot.
+    # The discriminator sits in empty space rather than at a picked number: across all 152 rows
+    # recorded to 2026-09-04 the eight early exits span 0.93-1.38s and the next observation is
+    # 67.44s, with NOTHING between them. A quarter of the committed measurement (33.5s) is 24x
+    # above every early exit and 2x below every real chain.
+    floor_of_a_real_chain = prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04 / 4.0
+    if max(recent) < floor_of_a_real_chain:
+        pytest.skip(
+            "every one of the last {} commits short-circuited before the test gate (worst {:.1f}s "
+            "against a real chain's {:.0f}s floor), so this machine's chain cost is UNOBSERVED in "
+            "this window -- not fast. The committed half still applies.".format(
+                len(recent), max(recent), floor_of_a_real_chain))
+    return recent
+
+
+def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today():
+    """The live half. `commit_hook_duration.jsonl` is machine-local and untracked, so it is
+    ABSENT in a fresh clone and in the gate's own HEAD checkout -- and that is INAPPLICABLE, not
+    unavailable. A tree with no hook history cannot be graded against a machine it has never run
+    on, and failing closed there would make a first commit impossible. Where the history exists,
+    this is the half with teeth: it grows as the chain grows.
+
+    THE SERIES THIS READS IS THE WHOLE POINT (repointed 2026-09-04). It used to read
+    `publish_gate_duration.jsonl`, which records the publisher's OWN scoped gate under its OWN
+    3800s deadline. `prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS` bounds neither of those things: it
+    bounds the pre-commit hook chain inside `git commit`. Before dividing or comparing two
+    numbers, say what each one counts -- this assert compared a deadline over here against a
+    measurement of something over there, was right for a month while the two happened to move
+    together, and refused every commit in the tree for ~9 hours when they stopped.
+    """
+    recent = _recent_hook_chain_seconds()
     worst = max(recent)
 
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= prc.COMMIT_DEADLINE_HEADROOM * worst, (
-        "the commit deadline is {}s against a worst recent comparable gate of {:.0f}s -- under "
+        "the commit deadline is {}s against a worst recent HOOK CHAIN of {:.0f}s -- under "
         "{:.0%} headroom, which on 2026-08-25 meant every publish commit died on machine load. "
         "Recent: {}".format(prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, worst,
                             prc.COMMIT_DEADLINE_HEADROOM - 1, [round(r) for r in recent[-5:]]))
-    assert worst <= 1.6 * prc.MEASURED_GATE_SECONDS_2026_09_04, (
-        "the gate now costs {:.0f}s against a committed measurement of {}s -- the committed half "
-        "of this control has gone stale and must be RE-MEASURED (and renamed with today's date), "
-        "or it will start passing while reality moves again".format(
-            worst, prc.MEASURED_GATE_SECONDS_2026_09_04))
+    # STALENESS, KEYED TO THE DEADLINE'S OWN SCALE, NOT TO A TIGHT MULTIPLE OF THE MEASUREMENT.
+    # The obvious form -- `worst <= 1.6 * MEASURED` -- is what this control used to carry, and on
+    # this series it would be the tighter of the two asserts and the one that reds: the chain has
+    # a PROVEN 5.4x regime step in it (2026-08-31), so a return to the old regime would red the
+    # whole tree to report that a comment needs re-dating. That is the shape that caused the
+    # outage this control is being repaired from. The committed half only has to be a fair
+    # stand-in FOR GRADING THIS DEADLINE, so it goes stale when the live worst gets close to the
+    # deadline while the committed figure still says there is room.
+    assert worst <= 0.75 * prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, (
+        "the hook chain now costs {:.0f}s against a {}s deadline and a committed measurement of "
+        "{}s -- the committed half of this control has gone stale and must be RE-MEASURED (and "
+        "renamed with today's date), or it will keep reporting room that is no longer there"
+        .format(worst, prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04))
 
 
 # --- R10 class closure for the ~4.5h publish wedge: the stub-contract guard -------------------
@@ -2116,23 +2173,47 @@ def test_no_publish_path_git_add_goes_unchecked(tmp_path, monkeypatch):
     assert any(f.name == "_git_add_or_refuse" for f in functions)
 
 
-def test_the_headroom_control_ACTUALLY_REDS_at_the_deadline_that_wedged_publishing(monkeypatch):
+def test_the_headroom_control_ACTUALLY_REDS_at_a_deadline_below_the_measured_chain(monkeypatch):
     """R15 ON THE CONTROL ITSELF. The version this replaced passed at 600s against a real chain
-    that was exceeding it, so "the control is green" has to be shown to mean something. Put the
-    old deadline back and the control must red.
+    that was exceeding it, so "the control is green" has to be shown to mean something.
 
-    Measured on the live series 2026-09-04: worst recent comparable gate 674s, so the 880s
-    deadline gives 1.31x and 600 gives 0.89x against a 1.25x floor. (When this first landed the
-    same figures were 557s / 1.51x / 1.08x -- the margin has halved in ten days, which is the
-    control doing its job rather than a reason to relax it.)
+    WHY THIS NO LONGER PINS 600 (2026-09-04). It used to assert `600 < floor` against a floor of
+    1.25 * 674 = 843. That floor was computed from the publisher's scoped gate, which this
+    deadline does not bound; against the chain's own ledger the floor is 1.25 * 134 = 168, and
+    600 sits comfortably above it. The honest reading is NOT that the control lost its teeth --
+    it is that 600 was never the number that mattered, and pinning it was pinning today's answer.
+    600 killed twelve commits in August because the chain then cost 837s; at 134s it would not.
+    The property is "a deadline under the measured chain reds this control", so that is what is
+    asserted, with the deadline DERIVED FROM THE LIVE SERIES rather than transcribed. If the
+    chain moves again this control moves with it instead of going quietly wrong.
+
+    Both halves are exercised THROUGH THE REAL CONTROL, not re-implemented here: a hand-built
+    comparison would prove that `>=` works, not that the module's assert can fail.
     """
-    floor = prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_09_04
+    committed_floor = (prc.COMMIT_DEADLINE_HEADROOM
+                       * prc.MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04)
+    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= committed_floor, (
+        "the control is not green as shipped")
 
-    assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= floor, "the control is not green as shipped"
-    assert 600 < floor, (
-        "the deadline that wedged publishing for 12.2 hours would still pass this control, so "
-        "the control has no teeth -- floor {:.0f}s".format(floor)
-    )
+    # THE COMMITTED HALF must red when the deadline drops below its floor.
+    monkeypatch.setattr(prc, "GIT_COMMIT_HOOK_TIMEOUT_SECONDS", int(committed_floor) - 1)
+    with pytest.raises(AssertionError):
+        test_commit_timeout_has_real_headroom_over_the_hook_chain()
+
+    # THE LIVE HALF must red at a deadline under the worst chain THIS MACHINE has recorded.
+    # Derived, not transcribed -- and skipped rather than faked where there is no history, which
+    # is the same "inapplicable, not unavailable" the control itself draws.
+    try:
+        monkeypatch.setattr(prc, "GIT_COMMIT_HOOK_TIMEOUT_SECONDS", 880)
+        test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
+    except pytest.skip.Exception:
+        pytest.skip("no gradeable hook history on this tree -- the live half is inapplicable "
+                    "here, so its teeth cannot be shown; the committed half above was proven")
+
+    worst = max(_recent_hook_chain_seconds())
+    monkeypatch.setattr(prc, "GIT_COMMIT_HOOK_TIMEOUT_SECONDS", int(worst) - 1)
+    with pytest.raises(AssertionError):
+        test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
 
 
 def test_the_hook_chain_duration_is_RECORDED_against_its_own_deadline():
