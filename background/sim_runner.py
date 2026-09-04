@@ -68,7 +68,51 @@ FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish
 #:     detector's artefact-age limb does not depend on this file at all.
 PRODUCER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_producer_state.json"
 
-BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
+#: THE PRODUCER MUST NOT OUTRUN THE CONSUMER (measured 2026-09-04, lane 0 throughput).
+#:
+#: A 60-second pause meant "run flat out", and it made the run_complete queue structurally
+#: undrainable: markers arrived every 13.2 min (median) while a publish cycle that actually
+#: published completed every 88.9 min, so ~3.9 markers accumulated per hour and `pending == 0`
+#: was never observed. The episode that watches for a drained queue therefore could never close,
+#: and the alarm on it read a working publisher as a five-hour outage.
+#:
+#: The two figures below are MEASURED, not chosen, and the pause is DERIVED from them rather
+#: than picked -- so when either side moves, the derivation moves with it and the control below
+#: is what notices.
+#:
+#: THE COST OF THE OLD CADENCE WAS ALREADY BEING PAID AND THROWN AWAY. Of 272 markers minted
+#: since 2026-08-28, 152 (55.9%) were retired `## Superseded (not published)` -- overtaken
+#: before the publisher could reach them; all-time it is 972/1504 (64.6%). Those runs cost full
+#: simulation compute and reached no reader. Slowing the producer to the consumer's measured
+#: rate does not cost the reader one published figure: it returns the compute that was being
+#: discarded, on a machine where OOM kills have already destroyed a published bound.
+#:
+#: NOT a fix for a slow publisher. This closes the gap from the producer's side because the
+#: consumer's cycle is floored by controls that must not be removed (a 616s scoped gate and a
+#: ~110s commit hook are only 12 min of it). Shortening the gate -- the candidate this direction
+#: named as "the only lever with headroom" -- was measured and REFUSED: it can return at most
+#: ~5 min of a ~90-min cycle and cannot bridge 4.55/h arrivals against 0.66/h service.
+#:
+#: CORRECTION, recorded beside the claim it replaces. The first derivation here used the median
+#: gap over 2026-09-04 alone (39 min) and produced a 1608s pause at exactly rho = 1.0 -- parity,
+#: which is not drainage: a queue at rho = 1 random-walks and never reliably empties. That
+#: median was skewed by a run of FAILING cycles, which abort early and cost ~27 min. Separating
+#: by outcome over two days is what the number had to be: a cycle following a PASSING gate costs
+#: 88.9 min (p50, n=22), so the real oversupply was 6.8x, not the 3x first stated.
+#: Gap between publish-gate completions FOLLOWING A PASS -- the cycle a real publish actually
+#: costs -- docs/observability/publish_gate_duration.jsonl, n=22 over 2026-09-03..04.
+#: p90 rather than p50 DELIBERATELY: the distribution is tight (p50 88.9, p90 90.3 min), so p90
+#: buys a real margin for ~1.5 min and makes nine cycles in ten finish strictly inside one
+#: producer period. That margin is what leaves a window in which `pending == 0` is observable,
+#: rather than a queue that merely stops growing.
+PUBLISHER_CYCLE_P90_SECONDS = 5417
+#: Median marker interarrival (13.2 min) less the 60s pause that produced it -- i.e. how long a
+#: simulation run itself takes, from docs/staging/ marker stamps, 28 runs since 06:00Z.
+SIM_RUN_DURATION_P50_SECONDS = 732
+#: Derived: the pause that makes one producer period cover one consumer cycle. The `max` floor
+#: keeps a degenerate measurement from producing a busy-loop; it is NOT what binds today (see
+#: the reachability control in tests/background/test_sim_runner.py).
+BETWEEN_RUN_PAUSE_SECONDS = max(60, PUBLISHER_CYCLE_P90_SECONDS - SIM_RUN_DURATION_P50_SECONDS)
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background import publisher_budget  # noqa: E402
