@@ -103,6 +103,16 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #: needed. What is missing is an observation of a directory URL going live at all, so what this
 #: file does instead is make the refusal NAME which of the two worlds it is in (below), so the
 #: next red carries the evidence a bound could be set from.
+#:
+#: CORRECTED 2026-09-04 12:30, and the paragraph above is left standing because the correction
+#: is the point: the clock is not the subject at all, so that missing observation would not have
+#: settled anything. Red run 33858118312 printed `serving the deployed bytes after 0s` for TWO
+#: assets of the same push whose third asset never arrived in 467s -- one deployment, one edge.
+#: **No window explains 0s and >467s together**, and that line was in the log of the run that
+#: failed, on both occasions the clock was blamed. What fits is a path-resolved route serving a
+#: cached resolution while direct-file routes are already new. `ATTEMPTS` stays untouched, now
+#: for a better reason than the absent distribution: it is not the variable.
+#: Full workings: docs/staging/SEAT_FINDING_TWO_ASSETS_OF_ONE_PUSH_ARRIVED_AT_0S_...md
 ATTEMPTS = 32
 GAP_SECONDS = 15
 
@@ -162,23 +172,52 @@ def bytes_at(ref: str, path: str) -> bytes | None:
     return out.stdout if out.returncode == 0 else None
 
 
-def classify(url: str, want: str, path: str, base: str | None) -> str:
+def classify(
+    url: str, want: str, path: str, base: str | None, deployment_is_live: bool = False
+) -> str:
     """Why is this URL still not the deployed bytes? Name it, rather than implying one.
 
-    A timeout collapses two worlds that need different responses, and printing one sentence
-    for both is what made ten red deploys unreadable:
+    A timeout collapses worlds that need different responses, and printing one sentence for
+    all of them is what made ten red deploys unreadable:
 
       * REPLACED -- the edge is serving exactly the bytes this push overwrote. That is the
         defect this control was built for: the deploy landed and readers still have the old
         page. It is a statement about the reader, and it is actionable immediately.
-      * UNCONFIRMED -- the edge is serving neither the new bytes nor the old ones, or could
-        not be read at all. This control cannot tell what happened, and saying so is a
-        result. On 2026-09-04 every one of the ten reds was of this kind, on a directory
-        URL, while the bytes were in fact correct when checked by hand minutes later.
+      * STALE -- the edge is serving neither, AND some other asset from THIS SAME PUSH was
+        confirmed live here. See `deployment_is_live` below: that makes it a statement about
+        the reader too, where on its own it would not be.
+      * UNCONFIRMED -- the edge is serving neither, and nothing from this push has been
+        confirmed live, so this control cannot separate "the deploy has not arrived" from
+        "this route is stale". Saying so is a result.
+      * RESOLVED -- it arrived after the clock; the window is the suspect, not the deploy.
 
-    The exit code does NOT depend on which one it is: an unproven deploy stays red either
-    way. Only the sentence changes, because a refusal that names its reason is how the
-    refusal itself gets found to be wrong -- and this one was.
+    `deployment_is_live` is the evidence this control was already collecting and throwing
+    away. MEASURED 2026-09-04 from the logs of red run 33865355906's predecessor
+    `33858118312` (head `b0bceffae`, base `1b98c836…`), which changed three served assets:
+
+        serving the deployed bytes after 0s: https://poesys.net/data/proof.json
+        serving the deployed bytes after 0s: https://poesys.net/harness/test_the_...py
+        FAILED: ... https://poesys.net/harness/            (never, in 467s)
+
+    Two assets of that push were served NEW on the FIRST attempt, immediately after wrangler
+    exited; the third never arrived. One push, one deployment, one edge. **A window cannot
+    explain 0s and >467s for the same deployment**, which is what the 2026-08-20 remedy
+    (widen the clock) and the 2026-09-04 reading of it both assumed. What it does explain is
+    a path-resolved route serving a cached resolution while direct-file routes are already
+    new -- the same Pages asset cache that kept eight deleted pages alive through eight
+    deployments on 2026-08-20.
+
+    So a confirmed sibling is a sound premise, in the one direction that survives a cache:
+    NEW bytes cannot come from a copy stored before they existed, so if any asset of this
+    push is being served here, this push IS live at this edge. A route that is then not
+    serving it is stale -- and the reader is on neither this push nor the one it overwrote.
+
+    It defaults False, which is the conservative direction: with no sibling confirmed, the
+    verdict stays UNCONFIRMED and claims nothing about the reader.
+
+    The exit code does NOT depend on which verdict it is: an unproven deploy stays red in
+    every case. Only the sentence changes, because a refusal that names its reason is how
+    the refusal itself gets found to be wrong -- and this one was, twice.
     """
     try:
         got = hashlib.sha256(fetch(url, "classify")).hexdigest()
@@ -190,6 +229,11 @@ def classify(url: str, want: str, path: str, base: str | None) -> str:
         previous = bytes_at(base, path)
         if previous is not None and hashlib.sha256(previous).hexdigest() == got:
             return "REPLACED -- the edge is still serving the bytes this push overwrote"
+    if deployment_is_live:
+        return (
+            "STALE -- another asset of this same push is being served here, so this push is "
+            "live at this edge and this route is not serving it"
+        )
     return "UNCONFIRMED (serving neither the new bytes nor the ones this push overwrote)"
 
 
@@ -260,8 +304,11 @@ def main() -> int:
         if attempt < ATTEMPTS - 1:
             time.sleep(GAP_SECONDS)
 
+    # Whether ANY asset of this push reached the edge is the difference between a verdict
+    # about the reader and a shrug, and it was being computed and dropped. See `classify`.
+    deployment_is_live = len(outstanding) < len(wanted)
     named = [
-        f"{url}\n    {classify(url, outstanding[url], source[url], base)}"
+        f"{url}\n    {classify(url, outstanding[url], source[url], base, deployment_is_live)}"
         for url in sorted(outstanding)
     ]
     print(

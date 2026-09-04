@@ -7,6 +7,25 @@ ever served stale bytes — all 19 directory-index pages were verified byte-iden
 is broken is the one signal that would tell us if they had been, which is why this cannot be left
 merely recorded.
 
+> **CORRECTED 2026-09-04 12:30 by the next seat turn.** Three claims below are wrong and are left
+> standing with this note beside them, because the pair is the evidence. See
+> `SEAT_FINDING_TWO_ASSETS_OF_ONE_PUSH_ARRIVED_AT_0S_AND_A_THIRD_NEVER_DID_SO_THE_WINDOW_WAS_NEVER_THE_CAUSE_2026-09-04.md`.
+>
+> 1. **"No reader was ever served stale bytes" is not established.** The hand-check ran at 10:20Z,
+>    **57 minutes after** the 09:23Z deploy; it cannot speak to the window in which the control was
+>    red. This sentence carried the LATENT grade, and the grade rested on it. The reader-facing
+>    question is **open**, not closed.
+> 2. **"the window is too short, not the deploy" is refuted.** Red run `33858118312` printed
+>    `serving the deployed bytes after 0s` for two assets of the same push whose third never
+>    arrived in 467s. One deployment, one edge — no clock explains both. So **"Owed next: an
+>    observation of a directory URL promoting at all"** is aimed at a number that would not have
+>    settled anything.
+> 3. **"every one of the ten reds was of this kind [UNCONFIRMED]" was never observed.** `classify`
+>    landed in `b02b0c13c` at 11:22, *after* all ten reds, and has never executed on one.
+>
+> What survives intact: the asymmetry itself, the 50/10 census, that the upload never failed, and
+> that the refusal had been asserting something about the reader it had not established.
+
 Filed 2026-09-04 ~10:25Z by the delivery seat, working the Lane 0 direction
 *"the figures stopped reaching the reader and no direction ever named the path"*.
 

@@ -132,11 +132,11 @@ def test_an_uncomputable_diff_fails_closed(monkeypatch, tmp_path):
 # supposed to mean the figures stopped reaching them. One sentence for two
 # worlds is what made the reds unreadable.
 # --------------------------------------------------------------------------
-def _classify(monkeypatch, served, want_body, previous=None, base="BASE"):
+def _classify(monkeypatch, served, want_body, previous=None, base="BASE", live=False):
     monkeypatch.setattr(A, "fetch", lambda url, nonce: served)
     monkeypatch.setattr(A, "bytes_at", lambda ref, path: previous)
     want = hashlib.sha256(want_body).hexdigest()
-    return A.classify("https://poesys.net/x/", want, "site/x/index.html", base)
+    return A.classify("https://poesys.net/x/", want, "site/x/index.html", base, live)
 
 
 def test_the_timeout_says_REPLACED_when_the_reader_still_has_the_overwritten_page(monkeypatch):
@@ -173,7 +173,43 @@ def test_a_late_arrival_is_named_as_the_window_being_short_not_the_deploy_being_
     assert verdict.startswith("RESOLVED"), verdict
 
 
-def test_all_three_verdicts_are_reachable(monkeypatch):
+def test_a_confirmed_sibling_turns_cannot_tell_into_a_statement_about_the_reader(monkeypatch):
+    """MEASURED 2026-09-04 from red run 33858118312 (head `b0bceffae`): two assets of that
+    push were served NEW on the FIRST attempt -- `after 0s` -- and `/harness/` never arrived
+    in 467s. One push, one deployment, one edge. New bytes cannot come from a copy stored
+    before they existed, so a confirmed sibling PROVES this push is live at this edge, and a
+    route not serving it is then stale rather than unproven.
+
+    MUTATION: ignore `deployment_is_live` and this fires -- which is exactly what the code
+    did for ten reds, while holding the evidence."""
+    verdict = _classify(monkeypatch, served=b"<html>third thing</html>",
+                        want_body=b"<html>today</html>", previous=None, live=True)
+    assert verdict.startswith("STALE"), verdict
+
+
+def test_the_same_bytes_stay_UNCONFIRMED_when_no_sibling_was_confirmed(monkeypatch):
+    """The FAIL-CLOSED half, and the reason the pair is written together: identical served
+    bytes, and only the sibling evidence differs. Without it the control cannot separate
+    'the deploy has not arrived' from 'this route is stale', and must claim neither.
+
+    A `deployment_is_live` wired to a constant True passes the test above and fails here."""
+    verdict = _classify(monkeypatch, served=b"<html>third thing</html>",
+                        want_body=b"<html>today</html>", previous=None, live=False)
+    assert verdict.startswith("UNCONFIRMED"), verdict
+    assert "STALE" not in verdict
+
+
+def test_REPLACED_outranks_STALE_because_it_says_more_about_the_reader(monkeypatch):
+    """PRECEDENCE, not composition. Both premises hold here -- a sibling is live AND the
+    edge is serving exactly the overwritten bytes -- and the more specific verdict is the
+    one worth printing: it names WHICH page the reader has, not merely that it is wrong."""
+    old = b"<html>YESTERDAY</html>"
+    verdict = _classify(monkeypatch, served=old, want_body=b"<html>today</html>",
+                        previous=old, live=True)
+    assert verdict.startswith("REPLACED"), verdict
+
+
+def test_all_four_verdicts_are_reachable(monkeypatch):
     """REACHABILITY, over the whole partition rather than a leg per branch. A classifier
     that returned UNCONFIRMED unconditionally would pass every test above except this one,
     and would read exactly like the mechanism working."""
@@ -182,8 +218,10 @@ def test_all_three_verdicts_are_reachable(monkeypatch):
         _classify(monkeypatch, served=old, want_body=today, previous=old).split()[0],
         _classify(monkeypatch, served=b"other", want_body=today, previous=old).split()[0],
         _classify(monkeypatch, served=today, want_body=today, previous=old).split()[0],
+        _classify(monkeypatch, served=b"other", want_body=today, previous=None,
+                  live=True).split()[0],
     }
-    assert verdicts == {"REPLACED", "UNCONFIRMED", "RESOLVED"}, verdicts
+    assert verdicts == {"REPLACED", "UNCONFIRMED", "RESOLVED", "STALE"}, verdicts
 
 
 def test_the_failure_message_carries_the_reason_not_just_the_url(monkeypatch, tmp_path, capsys):
@@ -196,3 +234,37 @@ def test_the_failure_message_carries_the_reason_not_just_the_url(monkeypatch, tm
                  {"https://poesys.net/": b"<html>YESTERDAY</html>"})
     assert rc == 1, "an unproven deploy must still be red"
     assert "REPLACED" in capsys.readouterr().err
+
+
+def test_the_live_deployment_premise_is_DERIVED_from_a_confirmed_sibling(monkeypatch, tmp_path,
+                                                                        capsys):
+    """The classify tests above all HAND the premise in, so every one of them would pass with
+    `deployment_is_live` wired to a constant at the call site. This is the only leg that
+    exercises the derivation, and it injects the branch through `main()` on the exact shape
+    that has gone red ten times: a mixed push where one route confirms and another does not.
+
+    MUTATION: pass a literal `False` at the call site and this fires while the four verdict
+    tests stay green."""
+    new_a, new_b = b"<html>A-today</html>", b"<html>B-today</html>"
+    rc, _ = _run(monkeypatch, tmp_path,
+                 {"site/index.html": new_a, "site/x/index.html": new_b},
+                 {"https://poesys.net/": new_a,                    # the sibling, live at 0s
+                  "https://poesys.net/x/": b"<html>SOMETHING ELSE</html>"})
+    assert rc == 1, "a route not serving this push must still be red"
+    assert "STALE" in capsys.readouterr().err
+
+
+def test_a_push_where_NOTHING_reached_the_edge_claims_nothing_about_the_reader(monkeypatch,
+                                                                               tmp_path, capsys):
+    """The partner injection, and the fail-closed direction of the derivation: same
+    unconfirmed route, but no sibling ever confirmed, so the deploy itself may simply not
+    have arrived. Claiming staleness here would manufacture a reader incident out of a
+    deploy that never landed -- and a constant-True premise does exactly that."""
+    rc, _ = _run(monkeypatch, tmp_path,
+                 {"site/index.html": b"<html>A-today</html>",
+                  "site/x/index.html": b"<html>B-today</html>"},
+                 {"https://poesys.net/x/": b"<html>SOMETHING ELSE</html>"})
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "STALE" not in err, err
+    assert "UNCONFIRMED" in err, err
