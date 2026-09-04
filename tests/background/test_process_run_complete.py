@@ -1573,7 +1573,7 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
 
     Two halves now, and they fail differently:
       * the COMMITTED half runs everywhere, including a fresh clone and the gate's own HEAD
-        checkout, against `MEASURED_GATE_SECONDS_2026_08_25` -- whose date is in its NAME, so a
+        checkout, against `MEASURED_GATE_SECONDS_2026_09_04` -- whose date is in its NAME, so a
         stale measurement is visible in every diff rather than in a comment nobody re-reads;
       * the LIVE half runs where there is publish history, against the worst of the last twenty
         recorded runs, so it grows exactly as the suite does.
@@ -1581,9 +1581,9 @@ def test_commit_timeout_has_real_headroom_over_the_hook_chain():
     MUTATION (must fire): drop the deadline back to 600 -- proven in the test below.
     """
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= (
-        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_08_25), (
+        prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_09_04), (
         "the commit deadline has under {:.0%} headroom over the last measured gate cost "
-        "({}s)".format(prc.COMMIT_DEADLINE_HEADROOM - 1, prc.MEASURED_GATE_SECONDS_2026_08_25))
+        "({}s)".format(prc.COMMIT_DEADLINE_HEADROOM - 1, prc.MEASURED_GATE_SECONDS_2026_09_04))
 
 
 def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today():
@@ -1624,11 +1624,11 @@ def test_the_deadline_has_headroom_over_what_THIS_MACHINE_actually_costs_today()
         "{:.0%} headroom, which on 2026-08-25 meant every publish commit died on machine load. "
         "Recent: {}".format(prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, worst,
                             prc.COMMIT_DEADLINE_HEADROOM - 1, [round(r) for r in recent[-5:]]))
-    assert worst <= 1.6 * prc.MEASURED_GATE_SECONDS_2026_08_25, (
+    assert worst <= 1.6 * prc.MEASURED_GATE_SECONDS_2026_09_04, (
         "the gate now costs {:.0f}s against a committed measurement of {}s -- the committed half "
         "of this control has gone stale and must be RE-MEASURED (and renamed with today's date), "
         "or it will start passing while reality moves again".format(
-            worst, prc.MEASURED_GATE_SECONDS_2026_08_25))
+            worst, prc.MEASURED_GATE_SECONDS_2026_09_04))
 
 
 # --- R10 class closure for the ~4.5h publish wedge: the stub-contract guard -------------------
@@ -2121,10 +2121,12 @@ def test_the_headroom_control_ACTUALLY_REDS_at_the_deadline_that_wedged_publishi
     that was exceeding it, so "the control is green" has to be shown to mean something. Put the
     old deadline back and the control must red.
 
-    Measured on the live series when this landed: worst recent comparable gate 557s, so 840 gives
-    1.51x and 600 gives 1.08x against a 1.25x floor.
+    Measured on the live series 2026-09-04: worst recent comparable gate 674s, so the 880s
+    deadline gives 1.31x and 600 gives 0.89x against a 1.25x floor. (When this first landed the
+    same figures were 557s / 1.51x / 1.08x -- the margin has halved in ten days, which is the
+    control doing its job rather than a reason to relax it.)
     """
-    floor = prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_08_25
+    floor = prc.COMMIT_DEADLINE_HEADROOM * prc.MEASURED_GATE_SECONDS_2026_09_04
 
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= floor, "the control is not green as shipped"
     assert 600 < floor, (
