@@ -10,8 +10,23 @@ import pathlib
 # shell that hasn't loaded it. Must run before any test module imports
 # background.ntfy_utils, so it lives here at conftest.py's top level, not
 # inside a fixture (fixtures run too late for collection-time imports).
-os.environ.setdefault("SE_NTFY_TOPIC", "pytest-fallback-topic-not-a-real-secret")
-os.environ.setdefault("SE_WAKE_HMAC_KEY", "pytest-fallback-hmac-key-not-a-real-secret")
+#
+# PRESENT-BUT-EMPTY IS NOT SET, and `setdefault` cannot tell the difference. Measured 2026-09-04:
+# this seat's own tmux environment exports `SE_WAKE_HMAC_KEY=` (empty), which is exactly what a
+# partially-loaded `.env.ntfy` leaves behind. `setdefault` saw the name present, did nothing, and
+# `ntfy_utils` captured `''` at import — falsy, so `sign_wake_message` raised and four tests failed.
+#
+# THE COST: every `surgical_land --merge` in the tree was refused for hours, and the publisher's
+# commit with it, so nothing reached the site. It hid because a path-scoped commit never selects
+# `tests/background/test_ntfy_utils.py` — only a MERGE runs the whole suite — so it read as "merges
+# are broken" rather than "an empty secret is not a secret".
+#
+# So the fallback is keyed to USABILITY, not to presence. `or` also covers the absent case, so this
+# strictly replaces `setdefault` rather than sitting beside it.
+os.environ["SE_NTFY_TOPIC"] = (
+    os.environ.get("SE_NTFY_TOPIC") or "pytest-fallback-topic-not-a-real-secret")
+os.environ["SE_WAKE_HMAC_KEY"] = (
+    os.environ.get("SE_WAKE_HMAC_KEY") or "pytest-fallback-hmac-key-not-a-real-secret")
 
 import numpy as np
 import pandas as pd
