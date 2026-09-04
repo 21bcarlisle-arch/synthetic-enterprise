@@ -40,29 +40,46 @@ def test_a_fresh_publish_reads_as_publishing():
     assert not pf.is_publishing_down(snap)
 
 
+# ── SCENARIOS ARE EXPRESSED RELATIVE TO THE CADENCE, NOT IN ABSOLUTE HOURS ───────────────────────
+#
+# Every incident below was measured under a HALF-HOURLY publishing cadence, where 18 and 20.8 hours
+# were self-evidently frozen. On 2026-09-04 the director moved numbers and runs to a WEEKLY cadence
+# for cost, so those same absolute figures are now a site doing exactly what it was told.
+#
+# The PROPERTY each test owns is unchanged and is not about hours: a freeze that EXCEEDS THE
+# DECLARED CADENCE reads as stale, a healthy tick cannot make it look fresh, and the verdict quotes
+# the clock it rests on. Re-expressing the scenarios against `pf.STALE_AFTER_SECONDS` keeps every
+# one of those properties and makes them survive the next cadence change too -- which is the
+# difference between a control keyed to a property and one keyed to today's answer.
+#
+# `FROZEN` is one hour past whatever the current threshold is; `WELL_FROZEN` is a day past it.
+FROZEN = pf.STALE_AFTER_SECONDS + 3600
+WELL_FROZEN = pf.STALE_AFTER_SECONDS + 24 * 3600
+
+
 def test_the_eighteen_hour_freeze_reads_as_stale():
     """The incident itself, as a measurement: the last verified publish is 18h old.
 
     MUTATION: widen STALE_AFTER_SECONDS past 18h, or make `snapshot` read the TICK's clock
     instead of the publish clock, and this fails.
     """
-    eighteen_hours = 18 * 3600
-    pf.record_published(now=NOW - eighteen_hours)
-    snap = pf.snapshot(now=NOW, _run=_git(ct=NOW - eighteen_hours))
+    pf.record_published(now=NOW - FROZEN)
+    snap = pf.snapshot(now=NOW, _run=_git(ct=NOW - FROZEN))
     assert snap["state"] == "stale"
     assert pf.is_publishing_down(snap)
     assert "DOWN" in pf.describe(snap)
-    assert "18.0h" in pf.describe(snap)
+    assert f"{FROZEN / 3600:.1f}h" in pf.describe(snap), (
+        "the summary must quote the age the verdict rests on, whatever the cadence is")
 
 
 def test_a_healthy_tick_does_not_make_a_frozen_publish_look_fresh():
     """THE WHOLE POINT (director, 2026-08-13): 'alive-but-unchanged and alive-and-publishing must
     not look the same'. The freshness answer must be derived from the publish clock alone, so no
     amount of tick activity can move it."""
-    pf.record_published(now=NOW - 18 * 3600)
+    pf.record_published(now=NOW - FROZEN)
     # Time passes, ticks keep running, the heartbeat keeps landing -- and this does not move.
     for later in (NOW, NOW + 600, NOW + 3600):
-        assert pf.snapshot(now=later, _run=_git(ct=NOW - 18 * 3600))["state"] == "stale"
+        assert pf.snapshot(now=later, _run=_git(ct=NOW - FROZEN))["state"] == "stale"
 
 
 def test_content_moving_by_luck_is_not_a_publishing_pipeline():
@@ -72,7 +89,7 @@ def test_content_moving_by_luck_is_not_a_publishing_pipeline():
     twice in that window, swept along by unrelated worker commits. A blended freshness number
     would have read those two accidents as health, so the disagreement gets its own field and its
     own sentence."""
-    pf.record_published(now=NOW - 20 * 3600)
+    pf.record_published(now=NOW - WELL_FROZEN)
     snap = pf.snapshot(now=NOW, _run=_git(ct=NOW - 60))   # committed a minute ago, by someone else
     assert snap["state"] == "stale"
     assert snap["committed_but_unpublished"] is True
@@ -170,11 +187,16 @@ def test_the_heartbeat_carries_the_freshness_block(tmp_path, monkeypatch):
 # The cross-check was already computed and already in the snapshot. It just was not consulted.
 
 def test_a_recent_push_does_not_mask_figures_that_have_not_moved(monkeypatch):
-    """THE INCIDENT. Push clock 13 minutes old (a banner commit), figures 20.8 hours old."""
+    """THE INCIDENT. Push clock 13 minutes old (a banner commit), figures frozen past the cadence.
+
+    Measured at 20.8 hours under the half-hourly cadence; expressed against the threshold so the
+    property -- a fresh PUSH must never mask frozen FIGURES -- survives the cadence change that
+    made 20.8 hours unremarkable."""
     import background.publish_freshness as pf
     now = 1_000_000.0
+    frozen = pf.STALE_AFTER_SECONDS + 3600
     monkeypatch.setattr(pf, "last_published_ts", lambda: now - 780)          # banner, 13 min
-    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 74_988)   # figures, 20.8h
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - frozen)   # figures, past cadence
     snap = pf.snapshot(now=now)
     assert snap["state"] == "stale", (
         "a push that moved no figures reported publishing as live -- this is the 28-hour outage"
@@ -186,10 +208,11 @@ def test_the_summary_quotes_the_number_that_made_the_verdict(monkeypatch):
     """"DOWN -- last published 0.2h ago" argues against itself and reads as a glitch."""
     import background.publish_freshness as pf
     now = 1_000_000.0
+    frozen = pf.STALE_AFTER_SECONDS + 3600      # past the cadence, whatever the cadence is
     monkeypatch.setattr(pf, "last_published_ts", lambda: now - 780)
-    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 74_988)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - frozen)
     line = pf.describe(pf.snapshot(now=now))
-    assert "DOWN" in line and "20.8h" in line, line
+    assert "DOWN" in line and f"{frozen / 3600:.1f}h" in line, line
 
 
 def test_an_unavailable_cross_check_is_not_evidence_of_freshness(monkeypatch):
@@ -326,3 +349,82 @@ def test_an_empty_or_unparseable_queue_reports_no_age_rather_than_zero(monkeypat
     (tmp_path / "run_complete_NOT_A_STAMP.md").write_text("x")
     assert pf.queue_oldest_age_seconds(1_000_000.0) is None
     assert pf.queue_depth() == 1  # counted, but contributing no age
+
+
+# ── the cadence is the single source of truth, and two questions keep two clocks ─────────────────
+
+def test_the_staleness_threshold_follows_the_declared_cadence():
+    """THE PROPERTY, not today's number. An alarm calibrated for a cadence the site no longer keeps
+    is the shape that had correct controls refusing correct work all week: at a weekly cadence a
+    three-hour threshold reads "PUBLISHING IS DOWN" six days in seven while the machine does exactly
+    what it was told.
+
+    MUTATION: hard-code STALE_AFTER_SECONDS back to a constant and this fires -- the threshold stops
+    moving when the cadence does.
+    """
+    import background.publish_freshness as pf
+
+    assert pf.STALE_AFTER_SECONDS == pf.PUBLISH_CADENCE_SECONDS + pf.PUBLISH_GRACE_SECONDS
+    assert pf.STALE_AFTER_SECONDS > pf.PUBLISH_CADENCE_SECONDS, (
+        "a site that publishes exactly on cadence must never read as stale for doing so")
+
+
+def test_a_site_publishing_on_cadence_is_not_stale(monkeypatch):
+    """THE NULL CONTROL, and the whole point of the change: six days after a weekly publish the site
+    is healthy, not broken. MUTATION: keep the old three-hour horizon and this fires."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    six_days = 6 * 24 * 3600
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - six_days)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - six_days)
+    snap = pf.snapshot(now=now)
+    assert snap["state"] == "publishing", "a site on cadence was called broken"
+    assert pf.is_publishing_down(snap) is False
+
+
+def test_a_missed_publishing_window_is_still_caught(monkeypatch):
+    """The other direction, so the widened threshold is not a blindfold. MUTATION: widen the grace
+    to a second cadence and this fires."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    overdue = pf.STALE_AFTER_SECONDS + 3600
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - overdue)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - overdue)
+    assert pf.snapshot(now=now)["state"] == "stale"
+
+
+def test_a_stuck_push_is_judged_on_its_own_short_clock(monkeypatch):
+    """TWO QUESTIONS, TWO CLOCKS, and conflating them is what this separates.
+
+    "Is the weekly publish overdue?" is answered on the cadence. "Is content being committed
+    locally and never reaching origin?" is a different fault with a different fix, and nothing about
+    a weekly cadence makes a stuck push less broken. If `committed_but_unpublished` had inherited
+    the eight-day threshold it would have gone quiet for a week at a time.
+
+    MUTATION: key `committed_but_unpublished` to STALE_AFTER_SECONDS and this fires.
+    """
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - (pf.PUSH_LAG_AFTER_SECONDS + 3600))
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 60)   # committed a minute ago
+    snap = pf.snapshot(now=now)
+    assert snap["committed_but_unpublished"] is True, (
+        "content is being committed and not pushed, and the weekly clock hid it")
+
+
+def test_the_snapshot_carries_the_as_at_date_from_the_content_clock(monkeypatch):
+    """The banner cannot state an as-at date it is not given, and it must be the age of the FIGURES,
+    never of the last push -- the reader is asking how old the numbers are.
+
+    MUTATION: derive `as_at_utc` from `published_age_seconds` and this fires, because a liveness
+    heartbeat pushed minutes ago would date week-old figures to today.
+    """
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 60)            # pushed a minute ago
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 3 * 86400)  # figures 3 days old
+    snap = pf.snapshot(now=now)
+    from datetime import datetime, timezone
+    expected = datetime.fromtimestamp(now - 3 * 86400, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    assert snap["as_at_utc"] == expected, "the as-at date came from the push clock, not the figures"
+    assert snap["cadence_seconds"] == pf.PUBLISH_CADENCE_SECONDS

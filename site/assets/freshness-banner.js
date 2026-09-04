@@ -117,7 +117,22 @@
   function stalenessSentence(hb) {
     var cp = (hb && hb.content_publish) || null;
     if (!cp || !cp.state) { return ""; }
-    if (cp.state === "publishing") { return ""; }
+    if (cp.state === "publishing") {
+      /* SILENCE IMPLIES CURRENCY, AND AT A WEEKLY CADENCE THAT IS A FALSE IMPRESSION.
+         Director, 2026-09-04: "the staleness banner matters more, not less: a week-old site saying
+         'as at Monday' is honest, one that implies currency is not." This returned "" — defensible
+         when the site republished every half hour, and a lie the moment it publishes weekly, because
+         a figure with nothing said about its age reads as now.
+         So the healthy state now STATES the as-at date rather than saying nothing. It is not an
+         alarm and must not look like one: the caller renders it in the ordinary state, and only the
+         `stale` branch below carries the outage wording. */
+      if (!cp.as_at_utc) { return ""; }
+      var everyDays = Math.round((cp.cadence_seconds || 0) / 86400);
+      return "Figures as at " + cp.as_at_utc.replace("T", " ") +
+             (everyDays >= 1
+               ? " — numbers and runs publish every " + (everyDays === 7 ? "week" : everyDays + " days") + "."
+               : ".");
+    }
     if (cp.state === "unknown") {
       return "Publishing status unknown — the age of these figures could not be measured.";
     }
@@ -222,9 +237,21 @@
            ", which carried uncommitted work — so the count is not a property of that commit";
   }
 
+  /* THE VERDICT COMES FROM THE STATE, NEVER FROM WHETHER A SENTENCE WAS RENDERED.
+     Until 2026-09-04 the caller used the truthiness of `stalenessSentence(...)` as the verdict:
+     any sentence at all meant "stale". That held only while the healthy branch returned "", and it
+     broke the moment the healthy branch had something honest to say -- an as-at date turned a
+     perfectly healthy weekly publish into a rendered outage. A verdict derived from a presentation
+     artefact is not a verdict; the state is the fact and the sentence is how it reads. */
+  function isStalePublish(hb) {
+    var cp = (hb && hb.content_publish) || null;
+    return !!cp && (cp.state === "stale" || cp.state === "unpublished" || cp.state === "unknown");
+  }
+
   function render(d, unknown, hb) {
     var noFigures = carriesNoFigures();
     var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
+    var publishIsDown = !(unknown || noFigures) && isStalePublish(hb);
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
     /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks
@@ -233,7 +260,7 @@
     bar.setAttribute("data-freshness-state",
       unknown ? "unknown"
               : (noFigures ? "reference"
-                           : (stale ? "stale" : ((d && d.verification_state) || "paused"))));
+                           : (publishIsDown ? "stale" : ((d && d.verification_state) || "paused"))));
     bar.setAttribute("role", "status");
 
     var line = unknown

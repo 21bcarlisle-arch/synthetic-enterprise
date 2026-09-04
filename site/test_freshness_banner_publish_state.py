@@ -51,7 +51,8 @@ VERIFIED_PROVENANCE = {
 }
 
 
-def _heartbeat(state, age_hours=0.0, committed_but_unpublished=False):
+def _heartbeat(state, age_hours=0.0, committed_but_unpublished=False, *,
+               as_at_utc=None, cadence_seconds=None):
     return {
         "ts_iso": "2026-08-13T17:52:31Z",
         "verdict": "drew",                      # the tick was healthy the entire time
@@ -59,6 +60,10 @@ def _heartbeat(state, age_hours=0.0, committed_but_unpublished=False):
             "state": state,
             "published_age_seconds": age_hours * 3600,
             "committed_but_unpublished": committed_but_unpublished,
+            # Carried since 2026-09-04 so a healthy banner can STATE its as-at date rather than
+            # saying nothing -- see test_a_healthy_weekly_banner_states_its_as_at_date.
+            **({"as_at_utc": as_at_utc} if as_at_utc else {}),
+            **({"cadence_seconds": cadence_seconds} if cadence_seconds else {}),
         },
     }
 
@@ -373,3 +378,36 @@ def test_the_age_clause_never_appears_without_a_red_to_qualify():
     assert "47 open findings" in out["text"]
     assert "last counted" not in out["text"]
     assert "unrecorded" not in out["text"]
+
+
+def test_a_healthy_weekly_banner_states_its_as_at_date():
+    """SILENCE IMPLIES CURRENCY, AND AT A WEEKLY CADENCE THAT IS A FALSE IMPRESSION.
+
+    Director, 2026-09-04, moving numbers and runs to a weekly cadence: *"the staleness banner
+    matters more, not less: a week-old site saying 'as at Monday' is honest, one that implies
+    currency is not."*
+
+    The healthy branch returned `""`. That was defensible while the site republished every half
+    hour -- nothing to say, because everything was minutes old -- and it becomes a lie the moment
+    the same silence sits beside figures that are six days old. A number with nothing said about
+    its age reads as now.
+
+    MUTATION: return "" for the publishing state again and this fires.
+    """
+    out = render(heartbeat=_heartbeat("publishing", 0.2,
+                                      as_at_utc="2026-09-01T07:00Z", cadence_seconds=7 * 86400))
+
+    assert "Figures as at 2026-09-01 07:00Z" in out["text"], out["text"]
+    assert "every week" in out["text"], "the reader is not told what cadence to expect"
+    assert "PUBLISHING IS DOWN" not in out["text"], (
+        "a site publishing exactly on cadence was rendered as an outage")
+    assert out["state"] != "stale"
+
+
+def test_a_healthy_banner_with_no_as_at_date_says_nothing_rather_than_guessing():
+    """FAIL-CLOSED on the sentence, not on the page. If the snapshot could not date the figures,
+    the banner must not invent a date -- and must not print a half-sentence either. MUTATION:
+    render the cadence clause without the date and this fires."""
+    out = render(heartbeat=_heartbeat("publishing", 0.2))
+    assert "Figures as at" not in out["text"]
+    assert "every week" not in out["text"]

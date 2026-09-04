@@ -92,12 +92,36 @@ CONTENT_PATHS = (
     "docs/reports/ANNUAL_REPORT.md",
 )
 
-#: How stale a published content surface may get before it is a fault rather than a quiet spell.
-#: The sim runs every ~6 minutes and the push throttle is 30, so a healthy at-rest cycle
-#: republishes well inside this. Set at 3h: comfortably above any legitimate quiet spell
-#: (including a long red-gate pause, which has its OWN banner and is not this alarm's subject),
-#: and far below the eighteen hours it took a director to notice by eye.
-STALE_AFTER_SECONDS = 3 * 60 * 60
+#: THE DECLARED PUBLISHING CADENCE. Director, 2026-09-04: *"The site publishes numbers and runs
+#: once a week, thoroughly and robustly, not every half hour ... The reason is cost. Three of the
+#: last five days had multi-hour publish outages, and fixing them has taken more of your time than
+#: the content ever has ... Nearly all of it exists to sustain a cadence nobody reads at."*
+#:
+#: This is the SINGLE SOURCE OF TRUTH for that cadence: the producer's period and the staleness
+#: verdict both derive from it, so changing the cadence moves the alarm with it rather than leaving
+#: an alarm calibrated for the old one. An alarm keyed to a cadence it no longer describes is the
+#: shape that had a correct control refusing correct work all week.
+PUBLISH_CADENCE_SECONDS = 7 * 24 * 60 * 60
+
+#: DERIVED, not picked: one full cadence plus one day of retry opportunity. The worker sweeps every
+#: 30 minutes, so a day is 48 attempts; if none of 48 landed, the publisher is down rather than
+#: unlucky. Keeping the grace explicit is what stops the next reader "just bumping" the threshold.
+PUBLISH_GRACE_SECONDS = 24 * 60 * 60
+
+#: How stale the published CONTENT may get before it is a fault rather than the cadence working.
+#:
+#: WAS 3 HOURS, AND THAT WAS RIGHT FOR THE OLD CADENCE AND IS WRONG FOR THIS ONE. At a weekly
+#: cadence a three-hour threshold means the banner reads "PUBLISHING IS DOWN" for six days out of
+#: seven while the machine does exactly what it was told. An alarm that is correct once a week and
+#: wrong the rest of the time is not a signal; it is the thing readers learn to ignore.
+STALE_AFTER_SECONDS = PUBLISH_CADENCE_SECONDS + PUBLISH_GRACE_SECONDS
+
+#: A SECOND CLOCK FOR A SECOND QUESTION, and separating them is the point. "Is the weekly publish
+#: overdue?" is answered on the cadence above. "Is content being committed locally and never
+#: reaching origin?" is a different fault with a different fix (the push, not the schedule) and it
+#: is just as urgent at a weekly cadence as it was at a half-hourly one. It keeps the old horizon,
+#: because nothing about the publishing cadence makes a stuck push less broken.
+PUSH_LAG_AFTER_SECONDS = 3 * 60 * 60
 
 
 def record_published(now: float | None = None) -> None:
@@ -268,12 +292,22 @@ def snapshot(now: float | None = None, *, _run=None) -> dict:
         "published_age_seconds": None if pub_age is None else round(pub_age, 1),
         "committed_age_seconds": None if com_age is None else round(com_age, 1),
         "stale_after_seconds": STALE_AFTER_SECONDS,
+        # THE AS-AT DATE, CARRIED SO THE PAGE CAN STATE IT. Director, 2026-09-04: *"the staleness
+        # banner matters more, not less: a week-old site saying 'as at Monday' is honest, one that
+        # implies currency is not."* The banner previously said NOTHING while `state == publishing`,
+        # which was defensible at a half-hourly cadence and is a false impression at a weekly one:
+        # silence beside a figure reads as "this is current". Derived from the CONTENT clock, never
+        # the push clock -- the reader is asking how old the FIGURES are, not when a file last moved.
+        "as_at_utc": (
+            None if com_age is None
+            else datetime.fromtimestamp(now - com_age, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")),
+        "cadence_seconds": PUBLISH_CADENCE_SECONDS,
         # The disagreement, named rather than left for a reader to spot: content is being
         # COMMITTED while the publish path is not landing it. Its own fault and its own fix --
         # either the push is not reaching origin, or (2026-08-13) the publisher's commit is dying
         # and the figures only travel when another writer happens to sweep them along.
         "committed_but_unpublished": bool(
-            pub_age is not None and com_age is not None and pub_age - com_age > STALE_AFTER_SECONDS
+            pub_age is not None and com_age is not None and pub_age - com_age > PUSH_LAG_AFTER_SECONDS
         ),
         # Additive and outside the verdict on purpose -- see `queue_depth`. Consumers read
         # `state` via .get() and none enumerate this dict, so a new observation cannot change
