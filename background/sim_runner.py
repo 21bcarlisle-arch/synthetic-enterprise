@@ -124,7 +124,7 @@ from background.child_diagnostics import (  # noqa: E402
     failure_detail,
     stderr_tail,
 )
-from background.episode_monotonic import guard_episode  # noqa: E402
+from background.episode_monotonic import guard_episode, recorded_instant_seconds  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 
@@ -201,11 +201,19 @@ def record_run_outcome(
         # pinned near zero and the rung would never reach its threshold. That is the
         # fail-silent shape this whole mechanism exists to remove, so it is spelled out
         # here and pinned by `test_the_streak_start_is_not_restamped_by_later_failures`.
+        # ...and the adoption test ASKS the carrier's own module rather than re-implementing it
+        # (2026-09-04). `isinstance(first, (int, float))` waved through the two values that are not
+        # start times: `0` (a truncated or half-written state file) and `True` (an int in Python).
+        # Both were then adopted, persisted, and read by RUNG 1d's `outage` as an outage of 496,815
+        # hours -- which clears the 30-minute bar on its own, so a producer that had failed three
+        # times in two minutes paged as a PRIORITY ZERO starvation. Measured, before this line
+        # changed. `recorded_instant_seconds` is the one definition; a fourth hand-roll here is how
+        # four copies of one question came to give three different answers.
         first = previous.get("first_failure_ts") if streak else None
         state = {
             "last_result": "failed",
             "consecutive_failures": streak + 1,
-            "first_failure_ts": first if isinstance(first, (int, float)) else stamp,
+            "first_failure_ts": first if recorded_instant_seconds(first) is not None else stamp,
             "last_failure_ts": stamp,
             "last_success_ts": previous.get("last_success_ts"),
             "detail": detail,

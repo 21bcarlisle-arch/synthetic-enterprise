@@ -223,17 +223,27 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # CLOSE CONDITION: `delivered`, i.e. ntfy returned a server-assigned message id for
     # this POST. It is the strongest evidence this channel can produce and it comes from
     # the SERVER's response body, never from this state file (R15 anti-tautology).
+    # AND THE PROPOSAL IS SCREENED BEFORE IT IS OFFERED (2026-09-04). `previous.get("since_epoch",
+    # now)` echoed the persisted value straight back, so a `0` on disk was re-proposed every write
+    # and -- because `since_fields` is LOW-water and `0` is the earliest instant orderable -- would
+    # have beaten a real start too. Adopting only a RECORDED instant, and stamping `now` when there
+    # is none, is exactly what the sibling carrier does
+    # (`process_run_complete.record_publish_gate_failure`), and calling the same function is what
+    # keeps the two answers one answer. `now` rather than `None` because a start we cannot recover
+    # still has to be a start: the episode is demonstrably open (the failure streak is rising), and
+    # a lower bound that grows correctly from here beats "unknown" forever.
     from background.episode_monotonic import guard_episode, recorded_instant_seconds
+    _persisted_epoch = previous.get("since_epoch")
+    _carry_epoch = (
+        _persisted_epoch if recorded_instant_seconds(_persisted_epoch) is not None else now
+    )
     state = guard_episode(
         previous,
         {
             "delivered": delivered,
             "reason": None if delivered else safe_detail[:500],
             "since": ts if transition or was_delivered is None else previous.get("since", ts),
-            "since_epoch": (
-                now if transition or was_delivered is None
-                else previous.get("since_epoch", now)
-            ),
+            "since_epoch": now if transition or was_delivered is None else _carry_epoch,
             "last_checked": ts,
             "consecutive_failures": failures,
         },
@@ -245,18 +255,32 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # independently a flap could low-water the epoch back while the string restamped to now,
     # and the two surfaces would describe one episode with two starts -- the defect
     # `episode_age_seconds` exists to prevent, one field over.
-    # ...and the SAME screen the carrier's own module states (2026-09-04). The guard screens the
-    # PRIOR side of a low-water field; it does not screen the PROPOSAL, by design -- and the
-    # proposal here is `previous.get("since_epoch", now)`, echoed straight off disk. So a persisted
-    # `0` is re-proposed, wins by default because the prior was screened out, and renders
-    # "1970-01-01T00:00:00Z" as the deafness episode's start on the director's ONLY channel: the
-    # landed zero-episode-start finding, one file over. `NaN` is worse than wrong -- `time.gmtime`
-    # RAISES on it, inside `send_ntfy`, on the path that exists to report that the channel is
-    # broken. Leaving `since` as the guard returned it is the honest branch: an unrecordable epoch
-    # is no episode start, and the derived string must not assert one.
+    # ...and the SAME screen the carrier's own module states (2026-09-04). `NaN` is worse than
+    # wrong -- `time.gmtime` RAISES on it, inside `send_ntfy`, on the path that exists to report
+    # that the channel is broken.
+    #
+    # THE DERIVATION IS NOW UNCONDITIONAL, and the first draft of this block was wrong about why
+    # (corrected here, beside the claim). It said "leaving `since` as the guard returned it is the
+    # honest branch: an unrecordable epoch is no episode start, and the derived string must not
+    # assert one". But `since`'s own proposal is ALSO echoed off disk -- `previous.get("since",
+    # ts)` -- so leaving it alone did not decline to assert a start, it re-published whatever
+    # string was beside the bad epoch. Measured: a persisted `{since_epoch: 0, since:
+    # "1970-01-01T00:00:00Z"}` survived a failure write with both fields intact. ONE NAME, ONE
+    # NUMBER means the rendered string is derived from the carrier or is `None`; it may never be
+    # inherited.
+    #
+    # The `None` leg is a BACKSTOP and today's data cannot reach it -- the proposal above is
+    # screened, so the guard can only return a recorded instant. Established rather than assumed: a
+    # mutation flipping that `else` back to `state.get("since")` SURVIVED the whole suite, which
+    # said equivalence, not missing test. So the condition is INJECTED instead
+    # (`test_the_ntfy_rendered_string_refuses_to_assert_a_start_the_carrier_does_not_have`): if an
+    # upstream regression ever hands this line an unrecordable carrier, the rendered field goes
+    # absent rather than inheriting a start from disk.
     _guarded_epoch = recorded_instant_seconds(state.get("since_epoch"))
-    if _guarded_epoch is not None:
-        state["since"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_guarded_epoch))
+    state["since"] = (
+        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(_guarded_epoch))
+        if _guarded_epoch is not None else None
+    )
     try:
         DELIVERY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         DELIVERY_STATE_FILE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")

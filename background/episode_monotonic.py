@@ -52,11 +52,19 @@ check is a FAILED check. Two changes, and the split between them is the whole de
     as an epoch float into a banner that prints it verbatim would be this finding's own defect
     wearing the other coat.
 
-A NON-POSITIVE PRIOR IS NOT A START (2026-09-04, closing the half of
-SEAT_FINDING_A_ZERO_START_TIME_RENDERED_AS_AN_ESTABLISHED_1970_EPISODE... that its own author left
-open). `0` passed `_is_num`, so on a LOW-water field it beat every later value forever -- and the
-repair at the writer that stopped ADOPTING a persisted zero was, measured, a complete no-op,
-because this guard wrote the zero straight back. `_is_start_to_remember` states the screen once.
+A NON-POSITIVE VALUE IS NOT A START, ON EITHER SIDE (2026-09-04, in two passes). `0` passed
+`_is_num`, so on a LOW-water field it beat every later value forever -- and the repair at the
+writer that stopped ADOPTING a persisted zero was, measured, a complete no-op, because this guard
+wrote the zero straight back. `_is_start_to_remember` states the screen once.
+
+The first pass screened the PRIOR only, and left the PROPOSAL as today on the stated ground that
+screening it "could turn a data-dependent value into a silent field-clear". Measured, that ground
+was backwards: because `since_fields` is LOW-water, an unrecordable proposal is the EARLIEST value
+orderable, so it did not survive the guard, it WON -- `guard_episode({"t": 1.7e9}, {"t": 0})`
+returned `0`, dating a live 2026 episode to 1970 in one write. Screening the proposal is therefore
+the opposite of a clear: with a start on the prior side the prior now stands. `_asserts_no_start`
+carries the full argument and the measurements. The asymmetry that remains, and that is still the
+point, is about ORDER: the proposal is type-checked first and a misdeclared field still raises.
 
 Pure functions only -- no I/O, no imports from the modules it guards (the census audits those).
 Used by: `process_run_complete._write_publish_gate_state`.
@@ -109,10 +117,11 @@ def _episode_key(v: Any) -> tuple[str, float] | None:
 def _is_start_to_remember(key: tuple[str, float] | None) -> bool:
     """Does this key name an instant an episode could actually have STARTED at?
 
-    Asked of the PRIOR side only, and the asymmetry is the point (2026-09-04). The two sides are
-    asked different questions. Of the proposal the guard asks *can I order this?* -- a property of
-    the call site, and a misdeclared field must still raise. Of the prior it asks *is there an
-    episode start here to remember?* -- and an instant at or before the epoch answers **no**. It is
+    Asked of BOTH sides, and the asymmetry that remains is only about what happens next
+    (2026-09-04, second pass -- see `_asserts_no_start`). The two sides are asked different
+    questions in this order. Of the proposal the guard asks first *can I order this?* -- a property
+    of the call site, and a misdeclared field must still raise. Of both sides it then asks *is
+    there an episode start here?* -- and an instant at or before the epoch answers **no**. It is
     the same fact as `None`: nobody recorded a start. Screening it here rather than in
     `_episode_key` keeps `_refuse` firing on genuine type errors alone, so this cannot raise inside
     the failure path of the pipeline it monitors.
@@ -186,6 +195,52 @@ def _absent(v: Any) -> bool:
     return v is None
 
 
+def _asserts_no_start(v: Any) -> bool:
+    """Does this PROPOSED value assert that no episode start is recorded?
+
+    Two values assert it and the guard used to hear only one. `None` says it in words. A
+    non-positive epoch -- or a `1970-01-01` ISO string, which is the same instant in the other
+    representation -- says it in numbers, because no writer in this repository has a clock that
+    could mean an instant at or before 1970. `episode_age_seconds` has answered `None` to both
+    since the read side was screened; this is the write side finally agreeing with the read side.
+
+    WHY THE PROPOSAL NEEDED THIS AND NOT JUST THE PRIOR (2026-09-04, closing the half the
+    timestamp-screen sweep deliberately left out). Screening only the prior read as the lax half of
+    a safe asymmetry. It was not lax, it was inverted: `since_fields` is LOW-water, so `0` is the
+    EARLIEST instant orderable and therefore *wins*. Measured, before the change:
+
+        guard_episode({"t": 1.7e9}, {"t": 0},                    ...) -> {"t": 0}
+        guard_episode({"t": "2026-09-04T10:00:00"},
+                      {"t": "1970-01-01T00:00:00"},              ...) -> {"t": "1970-01-01..."}
+
+    A single bad write did not merely survive the guard; the guard PREFERRED it over a healthy
+    2026 start and dated a live episode to 1970. The three carriers that echo their own proposal
+    off disk (`ntfy_utils.since_epoch`, `sim_runner.first_failure_ts`,
+    `process_run_complete.wedge_since`) then re-proposed it forever.
+
+    WHY TREATING IT AS ABSENT CANNOT UNDER-REPORT, which is the failure mode this whole class
+    exists to cure. The value declined is one that dates the episode to before anything here ran,
+    and the two outcomes are the two the absent case already has:
+
+      * with a start on the prior side, the PRIOR STANDS -- strictly more remembering than today,
+        where the unrecordable proposal took the field.
+      * with no start on the prior side, the field is written as the `None` it means. Nothing
+        rendered changes: `episode_age_seconds` and `recorded_instant_seconds` already answer
+        "no start recorded" to `0`. What changes is that the carrier stops re-proposing a value
+        that reads as an established 1970 episode to the next hand-rolled `isinstance` test that
+        meets it -- and there were three of those, one of them on a PRIORITY ZERO page.
+
+    AND WHY IT IS NOT A REFUSAL. `_refuse` fires exactly where it fired before: this screen is
+    asked only of values `_episode_key` could already order, so a misdeclared field still raises
+    and a data-dependent value still cannot raise into the failure path being monitored.
+    `bool` and `NaN` are not in this set at all -- they are unorderable, and were already refused.
+    """
+    if _absent(v):
+        return True
+    key = _episode_key(v)
+    return key is not None and not _is_start_to_remember(key)
+
+
 def _refuse(field: str, side: str, value: Any) -> None:
     raise EpisodeFieldTypeError(
         f"episode field {field!r}: the {side} value {value!r} ({type(value).__name__}) is not an "
@@ -207,7 +262,10 @@ def guard_episode(
     `since_fields`  -- episode START timestamps. LOW-water: once set, they may only move earlier.
     `streak_fields` -- episode COUNTERS. HIGH-water: they may only go up.
     `episode_closed` -- the caller asserts, on evidence, that the episode has genuinely ended.
-                        This is the ONLY way a start clears or a counter resets.
+                        This is the ONLY way a RECORDED start clears or a counter resets. A start
+                        nobody recorded -- `None`, or an epoch at/before 1970, which is the same
+                        fact spelled in numbers -- needs no close to go, because there is nothing
+                        there to close (`_asserts_no_start`).
 
     A start may be an epoch number OR an ISO-8601 string; the two may not be mixed within one
     field, and the winner is returned in its own representation.
@@ -229,12 +287,18 @@ def guard_episode(
         old, proposed = prev.get(field), out.get(field)
         old_key = _episode_key(old)
         if not _is_start_to_remember(old_key):
-            continue                      # no episode was open, an unreadable prior, or a start
-                                          # at/before the epoch -- which is the same fact as no
-                                          # start at all. Nothing to remember, so `new` stands.
-        if _absent(proposed):
-            out[field] = old              # a failure tried to CLEAR an open episode
+            # No episode was open, an unreadable prior, or a start at/before the epoch -- which is
+            # the same fact as no start at all. Nothing to remember, so `new` stands... except that
+            # a proposal asserting no start is written as the `None` it means rather than persisted
+            # as a number the next reader will mistake for one. Both sides say "nobody recorded a
+            # start"; the field should say it too.
+            if _asserts_no_start(proposed):
+                out[field] = None
             continue
+        if _asserts_no_start(proposed):
+            out[field] = old              # a failure tried to CLEAR an open episode -- in words
+            continue                      # (`None`) or in numbers (a 1970 epoch). Same assertion,
+                                          # same answer: the recorded start stands.
         new_key = _episode_key(proposed)
         if new_key is None:
             _refuse(field, "proposed", proposed)

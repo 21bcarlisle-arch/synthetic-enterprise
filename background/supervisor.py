@@ -135,7 +135,10 @@ from background.coupled_triad import (  # noqa: E402
 from background.coupled_triad import (  # noqa: E402
     world_l3_blocked as _coupled_world_l3_blocked,
 )
-from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
+from background.episode_monotonic import (  # noqa: E402  (PW4)
+    guard_episode,
+    recorded_instant_seconds,
+)
 from background.episode_monotonic import (  # noqa: E402  (PW4, one screen for every timestamp)
     recorded_instant_seconds as _recorded_instant,
 )
@@ -4378,7 +4381,16 @@ def _producer_starved_active(
             streak = 0
         first_ts = state.get("first_failure_ts")
         last_ts = state.get("last_failure_ts")
-        outage = (now - first_ts) if isinstance(first_ts, (int, float)) else 0.0
+        # THE FIFTH HAND-ROLL OF ONE QUESTION, and the one on a PRIORITY ZERO page (2026-09-04).
+        # `isinstance(first_ts, (int, float))` accepted the two values that are not start times --
+        # `0` and `True` -- and both then produced `outage = now`, i.e. 496,815 hours, measured.
+        # The harm is not the silly figure in the prose. It is the LINE BELOW: `outage >
+        # PRODUCER_STARVED_MIN_AGE_SECONDS` is satisfied by an unrecordable stamp alone, so a
+        # producer that had failed three times in two minutes cleared the 30-minute bar and paged
+        # the director at priority zero. Falling back to 0.0 is the right direction and it is what
+        # an unrecordable stamp now gets: an outage nobody recorded is not an outage over the bar.
+        started = recorded_instant_seconds(first_ts)
+        outage = (now - started) if started is not None else 0.0
         # INDEPENDENCE (anti-tautology): a run artefact NEWER than the newest recorded
         # failure means a run has since succeeded, so the counter is stale and this
         # returns None without anyone clearing state by hand. Keyed on the child's
