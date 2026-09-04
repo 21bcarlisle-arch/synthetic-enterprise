@@ -712,6 +712,77 @@ def run_session(brief: dict) -> tuple[bool, str]:
     return proc.returncode == 0, f"rc={proc.returncode}"
 
 
+def _push_direction_or_say_why(*, pusher=None, ahead_fn=None) -> dict:
+    """Send the direction commit to origin, ONCE, and say what became of it. Never raises.
+
+    Returns `{"pushed": bool, "reason": str}` -- deliberately the shape of
+    `process_run_complete._advance_to_origin_or_say_why`, because this is the same question asked
+    at the other end of the same fork, and a sibling that merely LOOKS like it forks the fix
+    history (CLAUDE.md, and the note on `_git_add_or_refuse`).
+
+    WHY AN UNPUSHED COMMIT HERE IS NOT A HARMLESS ONE (2026-09-04). `commit_direction` has always
+    committed and never pushed, and nothing else pushes it: `origin_reconcile.commits_ahead`'s
+    docstring is explicit that *"nothing else pushes a `surgical_land` landing"*, and the publish
+    path only carries other commits along when a publish happens to succeed. So one orientation
+    left the shared tree one commit AHEAD of origin, indefinitely.
+
+    That single commit is what disables the mechanical advance landed the same day. Measured, from
+    `docs/observability/sim-runner-log.md` at 2026-09-04 19:59Z, verbatim:
+
+        Liveness heartbeat is behind origin (...). Advance attempt: this tree holds 1 commit(s)
+        of its own, so the fork is REAL and closing it is a judgement
+
+    The advance is RIGHT to refuse -- `ahead > 0` genuinely needs the gated merge door. But the
+    `ahead` it refuses on was manufactured here, by a commit nobody was ever going to push, and
+    `origin_reconcile` (which owns that case) stands down for the running gate. Two mechanisms
+    each correctly standing down, and the tree stays behind. Removing the cause is cheaper than
+    teaching either of them a new exception.
+
+    ONE ATTEMPT, NEVER A RETRY, and the asymmetry is the whole safety argument -- inherited from
+    `_divergence_refusal`, which exists because a rejected push was re-attempted identically and
+    every attempt widened the fork. Being behind origin is a STATE, not a moment. A rejected push
+    creates nothing and costs one round trip; re-running it is the 2026-09-01 incident.
+
+    NO TREE LOCK, and that is not an oversight: a push reads refs and writes neither the working
+    tree nor the index, so it cannot sweep a concurrent lane's work the way a merge could.
+
+    IT MAY CARRY ANOTHER LANE'S GATED LANDING TO ORIGIN, and that is the point rather than a side
+    effect. `origin_reconcile.reconcile` already does exactly this ("pushed N gated landing(s)
+    that were sitting local-only") for the same reason: a landing that never leaves the machine
+    reads as landed and is not.
+
+    SUCCESS IS GROUND TRUTH, never the push's own rc -- `_push_reached_origin`'s lesson, a phantom
+    "Everything up-to-date" recorded as a publish for 3.5h. The question asked afterwards is the
+    one the defect is actually about: does this tree still hold a commit of its own? `commits_ahead`
+    reads the tracking ref, which `git push` updates in both directions; a ref too stale to have
+    learned anything degrades to "still local-only", which is the safe direction.
+    """
+    from background import origin_reconcile
+
+    try:
+        # REUSED, NOT RESTATED: `_push` centralises the remote, the branch and the timeout.
+        push = (pusher or origin_reconcile._push)(PROJECT_DIR)
+    except Exception as exc:  # noqa: BLE001 -- a push that failed to run must not lose the record
+        return {"pushed": False,
+                "reason": f"the push could not be run ({type(exc).__name__}: {exc}), so the "
+                          f"direction commit is LOCAL-ONLY and origin_reconcile owns it"}
+    ahead = (ahead_fn or origin_reconcile.commits_ahead)(PROJECT_DIR)
+    if ahead is None:
+        return {"pushed": False,
+                "reason": f"the push reported rc={push.returncode} and whether this tree still "
+                          f"holds commits of its own could NOT be established -- recorded as "
+                          f"LOCAL-ONLY, because an unreadable answer must not read as a push"}
+    if ahead == 0:
+        return {"pushed": True,
+                "reason": "pushed to origin/main; this tree holds no commit of its own, so the "
+                          "publisher's mechanical advance is not blocked by this seat"}
+    return {"pushed": False,
+            "reason": f"the direction commit is LOCAL-ONLY (push rc={push.returncode}; this tree "
+                      f"still holds {ahead} commit(s) of its own), which is what refuses the "
+                      f"publisher's mechanical advance. NOT retried -- behind-origin is a state, "
+                      f"and `background/origin_reconcile` is what closes it"}
+
+
 def commit_direction() -> tuple[bool, str]:
     """Commit ONLY `direction.WRITE_SCOPE`. THE PATHSPEC IS THE CONTROL, not a promise: anything
     the session touched outside it is left where it is, so this seat cannot become a writer on
@@ -731,7 +802,13 @@ def commit_direction() -> tuple[bool, str]:
     commit = subprocess.run(
         ["git", "commit", "-m", "delivery seat: direction for the next stretch", "--", *present],
         cwd=str(PROJECT_DIR), capture_output=True, text=True)
-    return commit.returncode == 0, f"commit rc={commit.returncode}"
+    if commit.returncode != 0:
+        return False, f"commit rc={commit.returncode}"
+    # AND THEN SEND IT. `ok` stays keyed to the COMMIT and never to the push: the direction record
+    # exists once the commit lands, and reporting `committed: false` for a rejected push would
+    # make the row lie about the thing it names. The push outcome rides out in the detail, which
+    # is what `orient` logs.
+    return True, f"commit rc=0; {_push_direction_or_say_why()['reason']}"
 
 
 def out_of_scope_writes() -> list[str]:

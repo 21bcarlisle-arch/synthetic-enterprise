@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -317,6 +318,116 @@ def test_the_seat_COMMITS_only_its_write_scope():
 
     assert "direction_mod.WRITE_SCOPE" in source
     assert "-A" not in source and "--all" not in source
+
+
+# --------------------------------------------------------------------------- #
+# The direction commit was never PUSHED, and that is what refused the advance   #
+# --------------------------------------------------------------------------- #
+#
+# 2026-09-04. `commit_direction` committed and stopped, and nothing else pushes it. The one
+# commit it left on the shared tree is verbatim what `_advance_to_origin_or_say_why` refused on
+# at 19:59Z ("this tree holds 1 commit(s) of its own, so the fork is REAL") -- the advance landed
+# hours earlier, under the claim this seat was working, and could not fire while this seat kept
+# manufacturing the state it correctly refuses.
+
+
+def _push_rc(code):
+    """A stand-in for `origin_reconcile._push`'s CompletedProcess, counting its own calls."""
+    calls = []
+
+    def pusher(project):
+        calls.append(project)
+        return SimpleNamespace(returncode=code)
+
+    return pusher, calls
+
+
+def test_every_push_verdict_is_REACHABLE_and_they_say_DIFFERENT_things():
+    """THE PARTITION, in one control rather than a leg per branch. A `_push_direction_or_say_why`
+    that returned the same refusal for every input would pass each of the tests below separately;
+    only asking the whole partition at once can see that. CLAUDE.md's rule, learned by entering
+    the same trap three times in one afternoon.
+
+    MUTATION (must fire): collapse any two branches onto one reason string.
+    """
+    pusher, _ = _push_rc(0)
+    reasons = {
+        state: seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p, a=ahead: a)
+        for state, ahead in (("pushed", 0), ("local_only", 1), ("unreadable", None))
+    }
+
+    assert reasons["pushed"]["pushed"] is True
+    assert reasons["local_only"]["pushed"] is False
+    assert reasons["unreadable"]["pushed"] is False
+    assert len({r["reason"] for r in reasons.values()}) == 3
+
+
+def test_a_PHANTOM_rc0_that_left_the_commit_LOCAL_is_not_reported_as_pushed():
+    """SUCCESS IS GROUND TRUTH, never the push's own rc -- `_push_reached_origin`'s lesson, which
+    cost a 3.5h origin freeze recorded as a series of successful publishes. Here the rc is 0 and
+    the tree still holds its own commit, which is the state the publisher's advance refuses on:
+    calling that a push would republish exactly the defect this function exists to remove.
+
+    MUTATION (must fire): `return {"pushed": push.returncode == 0, ...}`.
+    """
+    pusher, _ = _push_rc(0)
+
+    verdict = seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p: 1)
+
+    assert verdict["pushed"] is False
+    assert "LOCAL-ONLY" in verdict["reason"]
+
+
+def test_a_REJECTED_push_is_attempted_ONCE_and_never_retried():
+    """THE RETRY IS THE THING THAT WIDENS THE FORK (`_divergence_refusal`, 2026-09-01: three local
+    commits, 23 behind, because a rejected push was re-attempted identically). Being behind origin
+    is a STATE. This function may cost one round trip and must never cost a loop.
+
+    MUTATION (must fire): wrap the push in `for _ in range(3)`.
+    """
+    pusher, calls = _push_rc(1)
+
+    verdict = seat._push_direction_or_say_why(pusher=pusher, ahead_fn=lambda _p: 1)
+
+    assert len(calls) == 1
+    assert verdict["pushed"] is False
+    # It names the owner of the case it is declining, so the reader is not left to guess which
+    # mechanism closes a real fork.
+    assert "origin_reconcile" in verdict["reason"]
+
+
+def test_a_push_that_could_not_RUN_loses_neither_the_record_nor_the_reason():
+    """A recovery attempt may only ever cost the refusal that would have happened anyway --
+    `_advance_to_origin_or_say_why`'s argument for its own broad except, inherited. An exception
+    here must not take down the orientation whose record has already been committed.
+
+    MUTATION (must fire): remove the `try`/`except` around the push.
+    """
+    def explode(_project):
+        raise OSError("git is not on the path")
+
+    verdict = seat._push_direction_or_say_why(pusher=explode, ahead_fn=lambda _p: 0)
+
+    assert verdict["pushed"] is False
+    assert "OSError" in verdict["reason"] and "git is not on the path" in verdict["reason"]
+
+
+def test_the_direction_commit_is_PUSHED_and_the_row_still_reports_the_COMMIT():
+    """Source-level for the same reason the sibling above gives -- the alternative is running a
+    commit inside a test. Two properties, and the second is the one worth stating: `ok` is keyed
+    to the commit rc and NOT to the push, because the direction record exists once the commit
+    lands and a row reading `committed: false` after a rejected push would lie about the thing it
+    names.
+
+    MUTATION (must fire): delete the `_push_direction_or_say_why` call, or `and` the push verdict
+    into the returned bool.
+    """
+    import inspect
+
+    source = inspect.getsource(seat.commit_direction)
+
+    assert "_push_direction_or_say_why" in source
+    assert "return True, f\"commit rc=0;" in source
 
 
 def test_out_of_scope_writes_are_REPORTED_and_never_reverted():

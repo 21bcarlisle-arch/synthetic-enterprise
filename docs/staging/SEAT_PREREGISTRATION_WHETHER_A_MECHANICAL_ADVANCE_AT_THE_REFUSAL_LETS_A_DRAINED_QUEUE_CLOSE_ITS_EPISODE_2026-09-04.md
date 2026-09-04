@@ -69,3 +69,66 @@ today; a stale page after this lands is not evidence about this change until the
 Any seat reading this after 2026-09-04 22:00Z: read the three artefacts named above, write the
 answer beside each prediction in this file, and file the correction next to the claim rather than
 revising it. A refuted prediction kept is worth more than a quiet edit.
+
+---
+
+# THE ANSWERS, read at 2026-09-04 20:36Z
+
+**Read 84 minutes BEFORE the window this file set, and that is stated rather than rounded away.**
+P1 and P2 are therefore *open*, not confirmed — and I am recording them now because the reason
+they are open is itself established, and is a defect rather than a wait. Anything below marked
+OPEN should be re-read after 22:00Z.
+
+## P1 — the advance fires and clears the refusal at least once: **NOT YET TESTED. Zero attempts.**
+
+`grep "Publish path is behind origin" docs/observability/sim-runner-log.md` → **no occurrences.**
+The publish-site advance has never run. It was not refuted; it was never reached, for two causes,
+both established:
+
+1. **The one publish cycle that could have exercised it predates the code by 3.5 minutes.**
+   `ab6240611` committed 18:56:52Z; the last behind-origin publish refusal is 19:00:26Z
+   (`.publish_gate_state.json`, `ts 1788548426` → 19:00:26Z, `git_hash fa6ea8c7d`) and carries no
+   advance line. PUSHED IS NOT IMPORTED: the daemon had already imported the module.
+2. **From ~20:30Z it is guaranteed to refuse**, and not by luck. The shared tree holds
+   `b096b2389 "delivery seat: direction for the next stretch"` — one commit of its own — so
+   `_advance_to_origin_or_say_why` correctly returns *"the fork is REAL"*. Filed and repaired as
+   `SEAT_FINDING_THE_SEAT_THAT_ORIENTS_COMMITS_WITHOUT_PUSHING_AND_THAT_ONE_COMMIT_DISABLES_THE_PUBLISHERS_ADVANCE_2026-09-04.md`.
+
+**The prediction's own stated most-likely refutation was half right and for the wrong reason.** It
+said P1 would most likely fail on the untracked lossless twin — *"the OTHER lane's repair, not
+mine"*. The twins were removed and `paths_blocking_fast_forward()` returns `[]`. But the ff was
+still refused, twice, at 19:19Z and 19:49Z, with *"Your local changes to the following files would
+be overwritten by merge"* — a **tracked** collision, not the untracked twin. So the guess "another
+lane's uncommitted state defeats it" was right in kind and wrong in mechanism, which is exactly
+what a pre-registration is for and would not have survived being written afterwards.
+
+**Not carried over as a new prediction.** The advance's next real trial is a publish cycle under
+a tree that is behind-and-not-ahead, and no such tree exists right now.
+
+## P2 — `last_clean_publish` becomes non-null: **OPEN. Still `null`.**
+
+`episode_clean_publishes: 0`, `episode_failures: 1`, `last_clean_publish: null`, one recorded
+failure with `cause: behind_origin` at 19:00:26Z. P2 is strictly weaker than P1 and P1 has not
+been tested, so P2 carries no information about this change yet.
+
+## P3 — the fork does NOT get wider: **HOLDS. And its refutation condition was mis-specified.**
+
+`origin/main..HEAD` went **0 → 1**, which is literally the refutation condition this file wrote:
+*"a rising count, which would mean this path is creating unpushable commits"*. **Do not revert.**
+The count rose, and the publish path did not create the commit:
+
+```
+b096b2389  docs/direction/DIRECTION.yaml | docs/direction/decisions.jsonl | site/data/delivery.json
+           background/delivery_seat.py:732 — "delivery seat: direction for the next stretch"
+```
+
+No `Auto-process run complete` commit exists on the local side of the fork. **P3's subject holds
+and P3's instrument was wrong**: `origin/main..HEAD` counts commits by *any* writer, and I keyed a
+revert trigger to it as though this path were the only one that could move it. A control that had
+been wired to that number would have reverted a correct repair on another component's ordinary
+behaviour — this project's "before dividing two numbers, say what each one counts", arrived at
+from the other direction. The honest instrument is the count **filtered to commits this path
+authors**, and it reads 0.
+
+*Recorded rather than edited: the mis-specification is the finding.*
+
