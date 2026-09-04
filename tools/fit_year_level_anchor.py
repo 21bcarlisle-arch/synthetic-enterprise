@@ -51,6 +51,10 @@ from simulation.departure_risks import (
     CAUSE_PRICE_POSITION,
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
+    SVT_INERTIA_ANNUAL_LONG_STAYER,
+    SVT_INERTIA_ANNUAL_RECENT,
+    SVT_INERTIA_BASE_WINDOW,
+    SVT_LONG_STAYER_YEARS,
     WORLD_MAX_CHURN_PROBABILITY,
     build_departure_risks,
     svt_inertia_base_multiplier,
@@ -721,6 +725,286 @@ def route_amplitude_attribution(renewal_rows: list[dict], svt_rows: list[dict]) 
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# WHICH LEG OF THE SVT ROUTE IS SHORT
+#
+# `route_amplitude_attribution` above establishes that the SVT route carries the record's
+# year-to-year SHAPE (relative slope +0.99) at about half its LEVEL, and that no amount of the
+# repair prescribed for the renewal route can supply the rest. That leaves one question and it had
+# never been asked: the SVT route's own level is a product of three factors, and nobody had measured
+# which of them is short.
+#
+# THE FINDING THAT COMMISSIONED THIS NAMED THREE CANDIDATES -- "the hazard per SVT decision, the size
+# of the SVT population, or the assignment that decides who reaches which route". Two of those three
+# are the same quantity on a capture (an account reaches the SVT route in a year exactly when it is
+# on the SVT product in that year), and there is a third factor nobody named: how much OF the year an
+# SVT account actually spends exposed to the route. So the decomposition below is the arithmetic one
+# and not the named one, and it says so.
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Where the shortfall decomposition is written. Same discipline and same reason as
+#: `EMERGENT_VERDICT` and `ROUTE_ATTRIBUTION`: a reading that lives on a terminal cannot go stale
+#: loudly, and cannot be a check.
+SVT_SHORTFALL = PROJECT / "docs" / "reports" / "svt_route_shortfall_decomposition.json"
+
+#: The three factors whose product IS the SVT route's contribution to the book's departure rate,
+#: with the arithmetic ceiling each one can never pass. Declared as data rather than written out
+#: three times below, because the whole reading is "which of these has the headroom" and a factor
+#: whose ceiling lived in prose beside the loop would be the one nobody re-checked.
+#:
+#:   `reach`     accounts that take an SVT decision in the year, over accounts on the book. The
+#:               finding's "size of the SVT population" AND its "assignment that decides who reaches
+#:               which route" -- one quantity, and the ceiling is the whole book.
+#:   `exposure`  SVT segment-days per reached account over a year. The factor nobody named. The
+#:               ceiling is a household on the SVT product every day of the year.
+#:   `hazard`    expected departures per SVT-account-YEAR of exposure. The finding's "hazard per SVT
+#:               decision", re-expressed per account-year so it is comparable with the published
+#:               annual rate the world derives it from. The ceiling is the world's churn ceiling.
+_SVT_FACTOR_CEILINGS = {
+    "reach": 1.0,
+    "exposure": 1.0,
+    "hazard": WORLD_MAX_CHURN_PROBABILITY,
+}
+
+
+def _svt_factors(svt_rows_for_year: list[dict], accounts: int) -> dict[str, float]:
+    """The three factors for one year, and the contribution they multiply out to.
+
+    EXPOSURE IS MEASURED IN SEGMENT-DAYS AND NOT IN DECISIONS, and that is the whole reason this is
+    a separate factor rather than a decision count. Cap periods are not equal -- the capture's
+    segments run from 1 to 92 days, because a household's first segment starts the day it arrives --
+    so "decisions per account" would charge a 3-day segment the same as a 92-day one and would move
+    when the cap calendar changed cadence rather than when the world's exposure changed. Days over a
+    year is the quantity `svt_inertia_hazard` itself converts against.
+    """
+    reached = {row["customer_id"] for row in svt_rows_for_year}
+    days: dict[str, float] = collections.defaultdict(float)
+    for row in svt_rows_for_year:
+        days[row["customer_id"]] += float(row["sim_segment_days"])
+    expected = sum(float(row["realized_churn_probability"]) for row in svt_rows_for_year)
+    reach = len(reached) / accounts
+    exposure = statistics.fmean(days.values()) / 365.25
+    return {
+        "reach": reach,
+        "exposure": exposure,
+        # Expected departures per account-YEAR of SVT exposure. `expected / len(reached)` is the
+        # per-account expectation over whatever exposure that account happened to have; dividing by
+        # the exposure carries it to a full year, which is the unit `SVT_INERTIA_ANNUAL_RECENT` is
+        # published in and therefore the only unit in which the two can be compared at all.
+        "hazard": expected / len(reached) / exposure,
+        "pp_of_book": 100.0 * expected / accounts,
+    }
+
+
+def svt_route_shortfall_decomposition(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
+    """Which of the SVT route's three factors is short of the record, measured as a BOUND.
+
+    MEASURED AT `NO_LEVEL_CORRECTION` for the reason the attribution beside it is: the per-year
+    anchor acts on the renewal route, so the residual this reading asks the SVT route to cover would
+    otherwise be the residual left after the solver had already closed the gap -- which is zero by
+    construction, and would report the SVT route as not short at all.
+
+    THE IDENTITY, exact and checked by `test_the_shortfall_decomposition_multiplies_out`:
+
+        svt_pp_of_book  =  100 x reach x exposure x hazard
+
+    THE QUESTION IS NOT "WHICH FACTOR IS SMALL" BUT "WHICH FACTOR HAS THE HEADROOM", and those are
+    different questions with different answers. Every one of the three is below what the record
+    needs. Only one of them can get there:
+
+      * **reach** is already 0.67-0.98 of the book. Its ceiling is 1.0 -- every account on the SVT
+        product -- which is a multiple of 1.02 to 1.49 against a required 1.48 to 2.14. It closes
+        **1 year of 7**, and that year is 2023, whose band is the widest in the record.
+      * **exposure** is already 0.64-0.81 of the year. Its ceiling is 1.0 -- every reached account
+        on SVT every day -- a multiple of 1.24 to 1.55. It closes **1 of 7**, the same year.
+      * **hazard** is 0.094-0.197 per account-year against a ceiling of
+        `WORLD_MAX_CHURN_PROBABILITY`, a multiple of 4.8 to 10.2. It closes **7 of 7**.
+
+    `bounded_factor_saturation` is what makes that decisive rather than suggestive, and it is the
+    same shape of argument as the attribution's ceiling rung. Take BOTH bounded factors to their
+    ceilings at once: the entire book on the SVT product, every day of the year. That world has no
+    renewal population left, so the renewal route contributes nothing and the SVT route must carry
+    the whole band on its own -- and at the hazard this world runs it reaches the band's LOW endpoint
+    in **1 year of 7**. The two factors the finding named cannot close rung 1 between them, at any
+    value they are capable of taking, and that does not depend on how the residual is apportioned.
+
+    SO THE LEG IS THE HAZARD PER SVT-ACCOUNT-YEAR, and `required_hazard` says by how much. Holding
+    reach and exposure where the world has them, the record needs 0.109 to 0.346 departures per
+    SVT-account-year against the 0.094 to 0.197 the world produces. **Nothing here picks that
+    number.** It is published as the size of a gap, and the gap's own units are the units of
+    `SVT_INERTIA_ANNUAL_RECENT` = 0.20 / `SVT_INERTIA_ANNUAL_LONG_STAYER` = 0.10 so that the next
+    session can take it to the published record rather than to a slot.
+
+    WHERE THE COMPARISON IS CLEANEST, AND IT IS NOT EVERY YEAR. `svt_inertia_hazard` re-references
+    the published pair by `market_switching_multiplier / svt_inertia_base_multiplier()`, and that
+    divisor is the MEAN of the multiplier over `SVT_INERTIA_BASE_WINDOW` -- so the factor is 1.0
+    ACROSS the window and not within each of its years: 0.962 at 2019 and 1.040 at 2020, against
+    0.56 to 0.90 everywhere else. Inside the window the world is therefore running the published
+    0.20 / 0.10 to within 4%, and its tenure mix there is 0% and 16% long-stayer so almost every
+    decision is on the 0.20 branch. `base_window_comparison` reports that pair alone, and reports
+    the ratio BOTH ways -- against the published rate and against the re-referenced rate the world
+    actually ran -- because the two differ by that 4% and quoting one as the other is the shape this
+    repo pays for. The record needs **1.6x to 1.7x** either way. That is a question for the source,
+    and the source itself calls the pair a structural inference at confidence M whose own band tops
+    out at 20% -- which is exactly the sourcing this reading exists to aim, and NOT a constant to
+    move.
+    """
+    bands = published_departure_band()
+    book = union_by_year(renewal_rows, svt_rows)
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    svt_by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in svt_rows:
+        svt_by_year[int(str(row["event_date"])[:4])].append(row)
+    years = sorted(
+        y for y, (anchor, _r, _d) in fit_whole_book(renewal_rows, svt_rows).items()
+        if anchor is not None and y in bands
+    )
+
+    per_year: dict[str, dict] = {}
+    closes: dict[str, list[int]] = {name: [] for name in _SVT_FACTOR_CEILINGS}
+    saturation_reaches: list[int] = []
+    for year in years:
+        accounts = book[year]["accounts"]
+        factors = _svt_factors(svt_by_year[year], accounts)
+        renewal_pp = 100.0 * _sum_probability(by_year[year], NO_LEVEL_CORRECTION) / accounts
+        lo, hi = bands[year]
+        # THE REQUIRED MULTIPLE IS TAKEN AT THE BAND'S LOW ENDPOINT AND NOT ITS MIDPOINT, which is
+        # the opposite of the attribution's choice and deliberate. The attribution REGRESSES against
+        # the band and wants its centre; this asks whether a factor can POSSIBLY close the gap, and
+        # the honest form of "possibly" is the least the record will accept. All three endpoints are
+        # published below so a reader can see the ordering does not turn on the choice.
+        required = {
+            "at_band_low": (lo - renewal_pp) / factors["pp_of_book"],
+            "at_band_midpoint": ((lo + hi) / 2.0 - renewal_pp) / factors["pp_of_book"],
+            "at_band_high": (hi - renewal_pp) / factors["pp_of_book"],
+        }
+        headroom = {
+            name: _SVT_FACTOR_CEILINGS[name] / factors[name] for name in _SVT_FACTOR_CEILINGS
+        }
+        for name, room in headroom.items():
+            if room >= required["at_band_low"]:
+                closes[name].append(year)
+        # BOTH BOUNDED FACTORS AT ONCE, AND THE RENEWAL ROUTE GOES TO ZERO WITH THEM. A world where
+        # every account is on the SVT product every day of the year has no renewal decision left to
+        # price, so leaving the renewal contribution in the sum would credit this counterfactual
+        # with departures it has just abolished.
+        saturated_pp = 100.0 * factors["hazard"]
+        if saturated_pp >= lo:
+            saturation_reaches.append(year)
+        per_year[str(year)] = {
+            "accounts": accounts,
+            "svt_pp_of_book": round(factors["pp_of_book"], 4),
+            "renewal_pp_of_book": round(renewal_pp, 4),
+            "band_pct": [lo, hi],
+            "factors": {name: round(factors[name], 6) for name in _SVT_FACTOR_CEILINGS},
+            "required_multiple": {k: round(v, 4) for k, v in required.items()},
+            "headroom_to_ceiling": {k: round(v, 4) for k, v in headroom.items()},
+            "required_hazard": {
+                k: round(factors["hazard"] * v, 6) for k, v in required.items()
+            },
+            "saturated_pp_of_book": round(saturated_pp, 4),
+            "saturation_reaches_band": saturated_pp >= lo,
+        }
+
+    base_window = sorted(set(SVT_INERTIA_BASE_WINDOW) & set(years))
+    return {
+        "what_this_is": (
+            "which of the three factors under the SVT route's LEVEL is short of the published "
+            "record, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. "
+            "`departure_level_route_attribution.json` beside this file establishes that the SVT "
+            "route carries the record's year-to-year shape at about half its level and that the "
+            "renewal route cannot supply the rest; this says which leg of the SVT route the level "
+            "is missing from. The reading is a BOUND on each factor's ceiling, not a fit, and "
+            "nothing here chooses a value."
+        ),
+        "measured_at_anchor": NO_LEVEL_CORRECTION,
+        "capture": str(_instrument.DEFAULT_TABLE.relative_to(PROJECT)),
+        "world_level_digest": world_level_identity()["digest"],
+        "years": [str(y) for y in years],
+        "identity": (
+            "svt_pp_of_book == 100 x reach x exposure x hazard, exactly. `reach` is accounts "
+            "taking an SVT decision over accounts on the book; `exposure` is SVT segment-days per "
+            "reached account over 365.25; `hazard` is expected departures per SVT-account-YEAR of "
+            "exposure, which is the unit `SVT_INERTIA_ANNUAL_RECENT` is published in."
+        ),
+        "on_the_three_the_finding_named": (
+            "the finding asked for 'the hazard per SVT decision, the size of the SVT population, or "
+            "the assignment that decides who reaches which route'. On a capture the last two are ONE "
+            "quantity -- an account reaches the SVT route in a year exactly when it is on the SVT "
+            "product in that year -- and the factor they leave out is EXPOSURE, how much of the "
+            "year a reached account spends on the product. So this decomposes the arithmetic three "
+            "and not the named three."
+        ),
+        "ceilings": dict(_SVT_FACTOR_CEILINGS),
+        "years_a_factor_could_close_alone": {
+            name: {
+                "years": [str(y) for y in closes[name]],
+                "of": len(years),
+                "ceiling": _SVT_FACTOR_CEILINGS[name],
+            }
+            for name in _SVT_FACTOR_CEILINGS
+        },
+        "bounded_factor_saturation": {
+            "what_this_is": (
+                "reach AND exposure both at 1.0 -- the entire book on the SVT product every day of "
+                "the year -- with the renewal route at zero, because that world has no renewal "
+                "decision left to price. The SVT route then carries the whole band alone at the "
+                "hazard this world runs. This is the two named factors at the most they can ever do."
+            ),
+            "reaches_band_low_in": len(saturation_reaches),
+            "of": len(years),
+            "years_reached": [str(y) for y in saturation_reaches],
+        },
+        "base_window_comparison": {
+            "what_this_is": (
+                "`svt_inertia_hazard` re-references the published pair by "
+                "`market_switching_multiplier / svt_inertia_base_multiplier()`. That divisor is the "
+                "MEAN of the multiplier over `SVT_INERTIA_BASE_WINDOW`, so the factor is 1.0 ACROSS "
+                "the window and not within each of its years -- see `re_referencing_factor` per "
+                "year below. Inside the window the world runs the published rate to within a few "
+                "per cent; everywhere else the factor is 0.56 to 0.90 and a ratio quoted against "
+                "the published rate would be measuring the re-referencing instead of the source. "
+                "Both ratios are given because they differ, and quoting one as the other is how "
+                "two correct figures become a quantity that is not one."
+            ),
+            "window": [str(y) for y in base_window],
+            "published_annual_recent": SVT_INERTIA_ANNUAL_RECENT,
+            "published_annual_long_stayer": SVT_INERTIA_ANNUAL_LONG_STAYER,
+            "window_mean_re_referencing_factor": 1.0,
+            "years": {
+                str(y): {
+                    "re_referencing_factor": round(
+                        market_switching_multiplier(y) / svt_inertia_base_multiplier(), 4
+                    ),
+                    "world_hazard": per_year[str(y)]["factors"]["hazard"],
+                    "required_hazard_at_band_low": per_year[str(y)]["required_hazard"]["at_band_low"],
+                    "required_over_published_recent": round(
+                        per_year[str(y)]["required_hazard"]["at_band_low"]
+                        / SVT_INERTIA_ANNUAL_RECENT, 4
+                    ),
+                    "required_over_re_referenced_recent": round(
+                        per_year[str(y)]["required_hazard"]["at_band_low"]
+                        / (SVT_INERTIA_ANNUAL_RECENT
+                           * market_switching_multiplier(y) / svt_inertia_base_multiplier()), 4
+                    ),
+                    "share_of_decisions_on_the_long_stayer_branch": round(
+                        sum(
+                            1 for row in svt_by_year[y]
+                            if row["sim_years_on_svt"] >= SVT_LONG_STAYER_YEARS
+                        ) / len(svt_by_year[y]), 4
+                    ),
+                }
+                for y in base_window
+            },
+        },
+        "per_year": per_year,
+        "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --svt-shortfall",
+    }
+
+
 def _renewal_risks(row: dict, anchor: float) -> dict[str, float]:
     """`{cause: hazard}` for one captured renewal decision at one anchor.
 
@@ -1087,6 +1371,62 @@ def _route_attribution_main(table_path: Path) -> int:
     return 0
 
 
+def _svt_shortfall_main(table_path: Path) -> int:
+    """`--svt-shortfall`: measure which leg of the SVT route is short, print it, and WRITE it.
+
+    WRITES ON THE REFUSED OUTCOME TOO, for the reason the two mains above do.
+    """
+    all_rows = json.loads(table_path.read_text())
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    refusal = (
+        svt_reason if svt_rows is None
+        else svt_composition_refusal(svt_rows)
+        or account_denominator_refusal(all_rows, svt_rows)
+    )
+    if refusal is not None:
+        SVT_SHORTFALL.write_text(json.dumps({
+            "refused": refusal,
+            "capture": str(table_path.relative_to(PROJECT)),
+            "what_this_is": (
+                "no SVT shortfall decomposition could be measured from this capture. The refusal "
+                "is written rather than withheld: a missing file reads as 'nobody ran it', and a "
+                "stale one left in place reads as current."
+            ),
+            "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --svt-shortfall",
+        }, indent=2) + "\n")
+        print(f"REFUSED — no SVT shortfall decomposition from {table_path.name}: {refusal}")
+        return 1
+    reading = svt_route_shortfall_decomposition(all_rows, svt_rows)
+    SVT_SHORTFALL.write_text(json.dumps(reading, indent=2) + "\n")
+    print("── WHICH LEG OF THE SVT ROUTE IS SHORT ──")
+    print()
+    print(f"  {reading['identity']}")
+    print()
+    print(f"{'year':>6} {'reach':>7} {'exposure':>9} {'hazard':>8} {'svt pp':>8} "
+          f"{'needs x':>8}   headroom: reach / exposure / hazard")
+    for year in reading["years"]:
+        row = reading["per_year"][year]
+        f, h = row["factors"], row["headroom_to_ceiling"]
+        print(f"{year:>6} {f['reach']:>7.3f} {f['exposure']:>9.3f} {f['hazard']:>8.4f} "
+              f"{row['svt_pp_of_book']:>8.3f} {row['required_multiple']['at_band_low']:>8.3f}   "
+              f"{h['reach']:>5.2f} / {h['exposure']:>5.2f} / {h['hazard']:>5.2f}")
+    print()
+    for name, closed in reading["years_a_factor_could_close_alone"].items():
+        print(f"  {name:>9}: closes {len(closed['years'])} of {closed['of']} years alone "
+              f"(ceiling {closed['ceiling']})")
+    sat = reading["bounded_factor_saturation"]
+    print()
+    print(f"  BOTH bounded factors at their ceiling, renewal route abolished with them: reaches "
+          f"the band's low endpoint in {sat['reaches_band_low_in']} of {sat['of']} years.")
+    for year, cmp_ in reading["base_window_comparison"]["years"].items():
+        print(f"  {year} (published rate unmodified): world {cmp_['world_hazard']:.4f}/acct-yr, "
+              f"record needs {cmp_['required_hazard_at_band_low']:.4f} = "
+              f"{cmp_['required_over_published_recent']:.2f}x the published "
+              f"{reading['base_window_comparison']['published_annual_recent']}")
+    print(f"  written to {SVT_SHORTFALL.relative_to(PROJECT)}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     table_path = Path(args[0]) if args else DEFAULT_TABLE
@@ -1094,6 +1434,8 @@ def main(argv: list[str]) -> int:
         return _emergent_verdict_main(table_path)
     if "--route-attribution" in argv[1:]:
         return _route_attribution_main(table_path)
+    if "--svt-shortfall" in argv[1:]:
+        return _svt_shortfall_main(table_path)
     all_rows = json.loads(table_path.read_text())
     rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)

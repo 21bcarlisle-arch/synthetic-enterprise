@@ -2834,3 +2834,335 @@ def test_mutation_n_a_stale_or_edited_attribution_is_caught():
         "an interval widened past 1.0 reads as unchanged, so the claim that it EXCLUDES "
         "record-proportionality is not held by anything"
     )
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# WHICH LEG OF THE SVT ROUTE IS SHORT
+#
+# `route_amplitude_attribution` above moved the rung-1 repair off the renewal route and onto the SVT
+# route: the SVT route carries the record's year-to-year SHAPE at about half its LEVEL, and no value
+# of the household-amplitude gap can supply the rest. That left the level unattributed WITHIN the SVT
+# route, and the finding that commissioned the attribution named three candidates without measuring
+# any of them.
+#
+# `svt_route_shortfall_decomposition` measures the three. Two of the named three are one quantity on
+# a capture, there is a fourth nobody named (exposure), and the answer is a BOUND: the two bounded
+# factors cannot close rung 1 between them at the most they can ever take, so the hazard per
+# SVT-account-year is the leg. These legs hold that reading to the world.
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+
+
+def _declared_shortfall() -> dict:
+    """The committed SVT shortfall decomposition, or a hard fail naming which state it is in.
+
+    The same three states and the same reason as `_declared_attribution`: absent, refused, or a
+    reading. The middle one is a result and is reported rather than skipped.
+    """
+    assert fitter.SVT_SHORTFALL.exists(), (
+        f"{fitter.SVT_SHORTFALL.name} is missing. The tree then carries an attribution that says "
+        f"the SVT route is the leg to repair, and nothing saying WHICH PART of it is short -- "
+        f"which is the state the attribution was written to end. Run "
+        f"`python3 -m tools.fit_year_level_anchor --svt-shortfall`."
+    )
+    declared = json.loads(fitter.SVT_SHORTFALL.read_text())
+    assert "refused" not in declared, (
+        f"the SVT shortfall decomposition is a REFUSAL and not a reading: {declared['refused']}. "
+        f"Which leg of the SVT route carries the rung-1 miss is currently unknown, and the next "
+        f"repair would be aimed by guess -- which is the failure the attribution beside it exists "
+        f"to have stopped."
+    )
+    return declared
+
+
+def test_the_shortfall_decomposition_multiplies_out():
+    """MUTATION: perturb any one of the three factors and this fires.
+
+    THE PROPERTY, AND IT CANNOT GO STALE. It asserts nothing about which factor is short, by how
+    much, or which one has the headroom -- all three are free to move the day the mechanism is
+    repaired, and a leg keyed to any of them would red for the world becoming more honest. What it
+    holds is that the three factors ARE the contribution: `reach x exposure x hazard` must multiply
+    out to the SVT route's own published pp-of-book.
+
+    This is the leg that makes "which factor is short" a question with an answer. A decomposition
+    whose parts do not reconstruct its whole has a fourth factor nobody named -- which is precisely
+    what the finding's own three-way split turned out to have -- and every headroom below it would
+    then be a bound on a quantity that is not the one being bounded.
+    """
+    declared = _declared_shortfall()
+    for year, row in declared["per_year"].items():
+        f = row["factors"]
+        assert set(f) == {"reach", "exposure", "hazard"}, (
+            f"{year}: the decomposition names factors {sorted(f)}. The identity below is stated "
+            f"over exactly three, and a fourth would make every headroom a bound on something else."
+        )
+        product = 100.0 * f["reach"] * f["exposure"] * f["hazard"]
+        assert product == pytest.approx(row["svt_pp_of_book"], abs=5e-4), (
+            f"{year}: the three factors multiply out to {product:.4f}pp and the SVT route "
+            f"contributes {row['svt_pp_of_book']:.4f}pp. The decomposition does not reconstruct "
+            f"the thing it decomposes, so there is a factor in the route that it cannot see."
+        )
+
+
+def test_a_factor_closes_a_year_only_if_its_own_ceiling_reaches_that_years_requirement():
+    """MUTATION: claim a year for a factor whose headroom is under the requirement, and this fires.
+
+    THE WHOLE READING IS THIS ONE COMPARISON and it is the one a reader would take on trust. Every
+    published sentence -- "reach closes 1 of 7", "the hazard is the leg" -- is `headroom >= required`
+    evaluated per factor per year, and if the counts were ever written from anything else the
+    conclusion would be unfalsifiable in exactly the way §8 of the finding says the guess it replaced
+    was.
+
+    KEYED TO THE INEQUALITY AND NOT TO TODAY'S COUNTS. It names no factor, no year and no total: if
+    the world's exposure rises until exposure alone can close five years, this stays green and the
+    counts move with it. What it forbids is the file claiming a closure its own numbers refuse.
+    """
+    declared = _declared_shortfall()
+    claimed = declared["years_a_factor_could_close_alone"]
+    for name, block in claimed.items():
+        assert block["of"] == len(declared["years"]), (
+            f"{name}: the closure count is stated out of {block['of']} years and the reading covers "
+            f"{len(declared['years'])}."
+        )
+        for year, row in declared["per_year"].items():
+            room = row["headroom_to_ceiling"][name]
+            need = row["required_multiple"]["at_band_low"]
+            reaches = room >= need
+            listed = year in block["years"]
+            assert reaches == listed, (
+                f"{name} in {year}: headroom to its ceiling is x{room:.3f}, the record's least "
+                f"demanding endpoint needs x{need:.3f}, and the file "
+                f"{'omits' if reaches else 'claims'} the year. The published count of which factor "
+                f"can close rung 1 is then not a reading of the factors."
+            )
+
+
+def test_the_saturation_bound_abolishes_the_renewal_route_it_saturates_away():
+    """MUTATION: leave the renewal contribution inside the saturated level and this fires.
+
+    THE BOUND IS ONLY DECISIVE IF IT IS HONEST ABOUT WHAT IT ASSUMES. Taking reach and exposure to
+    1.0 means every account on the SVT product every day of the year -- a world with no renewal
+    decision left to price. Crediting that world with the renewal route's 1.2-3.1pp as well would
+    let the two bounded factors close years by keeping departures the counterfactual has just
+    abolished, and the resulting "they still cannot do it" would be a weaker claim dressed as a
+    stronger one.
+
+    So the saturated level must be the SVT hazard ALONE, at 100 x hazard: reach and exposure are
+    both 1.0 by construction there, and the identity above then makes the level exactly the hazard.
+    """
+    declared = _declared_shortfall()
+    reached = []
+    for year, row in declared["per_year"].items():
+        expected = 100.0 * row["factors"]["hazard"]
+        assert row["saturated_pp_of_book"] == pytest.approx(expected, abs=5e-4), (
+            f"{year}: the saturated level is published as {row['saturated_pp_of_book']:.4f}pp and "
+            f"reach=exposure=1.0 at this hazard gives {expected:.4f}pp. The difference is a "
+            f"contribution from a route this counterfactual has abolished."
+        )
+        assert row["saturated_pp_of_book"] > row["svt_pp_of_book"], (
+            f"{year}: saturating both bounded factors LOWERED the SVT route's level. Whatever the "
+            f"published figure is, it is not those two factors taken to their ceilings."
+        )
+        if row["saturated_pp_of_book"] >= row["band_pct"][0]:
+            reached.append(year)
+    sat = declared["bounded_factor_saturation"]
+    assert sorted(reached) == sorted(sat["years_reached"]), (
+        f"the saturation block claims {sat['years_reached']} and the per-year figures say "
+        f"{sorted(reached)}."
+    )
+    assert sat["reaches_band_low_in"] == len(reached) and sat["of"] == len(declared["years"])
+
+
+def test_the_shortfall_is_measured_on_the_world_the_fit_did_not_touch():
+    """MUTATION: measure the shortfall under a fitted anchor and this fires.
+
+    STRONGER HERE THAN ANYWHERE ELSE IN THIS FILE, because of what the quantity is. The residual the
+    SVT route is asked to cover is the band less the RENEWAL route's contribution, and the per-year
+    anchor exists to make exactly that residual zero. Run under the fit, `required_multiple` would
+    come out at or below 1.0 in every year, every factor's headroom would clear it, and the reading
+    would report the SVT route as not short at all -- with the same arithmetic, and looking entirely
+    reasonable. The identity anchor is what makes the shortfall a fact about the mechanism.
+    """
+    declared = _declared_shortfall()
+    assert declared["measured_at_anchor"] == anchor_module.NO_LEVEL_CORRECTION, (
+        f"the shortfall was measured at an anchor of {declared['measured_at_anchor']}. Any value "
+        f"but the identity puts the solver's per-year compensation into the renewal route, which "
+        f"is the term subtracted from the band to get the residual this whole reading is about."
+    )
+    assert declared["measured_at_anchor"] not in set(anchor_module.YEAR_LEVEL_ANCHOR.values()), (
+        "the shortfall's anchor is one of the FITTED values"
+    )
+    assert declared["capture"] == str(
+        instrument.DEFAULT_TABLE.relative_to(instrument.PROJECT)
+    ), (
+        f"the shortfall was measured on {declared['capture']} and the live capture is "
+        f"{instrument.DEFAULT_TABLE.name}. Two readings of two worlds, shown as one page."
+    )
+
+
+def test_the_published_rate_comparison_is_restricted_to_the_window_where_it_is_a_comparison():
+    """MUTATION: extend the published comparison past the base window and this fires.
+
+    THE ONE SENTENCE IN THIS READING THAT COULD REACH A CONSTANT is "the record needs 1.7x the
+    published 0.20", and it is only a statement ABOUT THE SOURCE in the years where the world runs
+    the source close to unmodified. `svt_inertia_hazard` re-references the pair by
+    `market_switching_multiplier / svt_inertia_base_multiplier()`, whose divisor is the MEAN of the
+    multiplier over `SVT_INERTIA_BASE_WINDOW` -- so the factor is 1.0 ACROSS the window and NOT
+    within each of its years. That distinction is not pedantry: the first draft of this leg asserted
+    the per-year factor was 1.0, it is 0.962 at 2019, and the leg went red on its own first run.
+    What holds is that the window's factors average to 1.0 and that outside the window they do not
+    come near it. A ratio quoted in 2023, where the world runs 0.56 x 0.20, would read as "the
+    published rate is 2x short" when what it measures is the re-referencing -- two correct figures
+    whose ratio is not a quantity.
+
+    Keyed to the window the world declares, so moving `SVT_INERTIA_BASE_WINDOW` moves this with it.
+    """
+    declared = _declared_shortfall()
+    block = declared["base_window_comparison"]
+    covered = {int(y) for y in declared["years"]}
+    expected = {str(y) for y in departure_risks.SVT_INERTIA_BASE_WINDOW if y in covered}
+    assert set(block["window"]) == expected and set(block["years"]) == expected, (
+        f"the published-rate comparison covers {sorted(block['years'])} and the window where the "
+        f"world runs the published pair unmodified is {sorted(expected)}. Outside it the ratio "
+        f"measures the re-referencing and not the source."
+    )
+    assert block["published_annual_recent"] == departure_risks.SVT_INERTIA_ANNUAL_RECENT
+    assert block["published_annual_long_stayer"] == departure_risks.SVT_INERTIA_ANNUAL_LONG_STAYER
+
+    def _factor(year: int) -> float:
+        return (
+            propensity.market_switching_multiplier(year)
+            / departure_risks.svt_inertia_base_multiplier()
+        )
+
+    window = departure_risks.SVT_INERTIA_BASE_WINDOW
+    mean_factor = sum(_factor(y) for y in window) / len(window)
+    assert mean_factor == pytest.approx(1.0, abs=1e-9), (
+        f"the re-referencing factor averages {mean_factor} over the declared base window, not 1.0. "
+        f"The window is what makes the published rate the rate the world runs, and it does not."
+    )
+    assert block["window_mean_re_referencing_factor"] == pytest.approx(1.0, abs=1e-9)
+    # THE PROPERTY AND NOT A TOLERANCE. What earns the window its place is that every year in it is
+    # nearer the published rate than every year outside it -- so a record whose shape moved would
+    # move this leg with it, and no distance from 1.0 is written down to go stale.
+    outside = [abs(_factor(int(y)) - 1.0) for y in declared["years"] if int(y) not in window]
+    for year, row in block["years"].items():
+        distance = abs(_factor(int(year)) - 1.0)
+        assert row["re_referencing_factor"] == pytest.approx(_factor(int(year)), abs=1e-4)
+        assert not outside or distance < min(outside), (
+            f"{year} is inside the declared base window and its re-referencing factor sits "
+            f"{distance:.4f} from 1.0, further than some year outside the window. The window is "
+            f"then not where the world runs the published rate, and the ratio below is a reading "
+            f"of the re-referencing rather than of the source."
+        )
+        assert row["required_over_published_recent"] == pytest.approx(
+            row["required_hazard_at_band_low"] / departure_risks.SVT_INERTIA_ANNUAL_RECENT,
+            abs=1e-3,
+        ), f"{year}: the published ratio is not the required rate over the published rate."
+        assert row["required_over_re_referenced_recent"] == pytest.approx(
+            row["required_hazard_at_band_low"]
+            / (departure_risks.SVT_INERTIA_ANNUAL_RECENT * _factor(int(year))),
+            abs=1e-3,
+        ), (
+            f"{year}: the re-referenced ratio is not the required rate over the rate the world "
+            f"actually ran. The two ratios differ and publishing one as the other is the defect "
+            f"this block was split in two to avoid."
+        )
+
+
+def test_the_committed_shortfall_still_reproduces_on_the_live_world():
+    """MUTATION: perturb the declared file, or move the world under it, and this fires.
+
+    A DRIFT DETECTOR OVER A DECLARATION, and it reds IN EITHER DIRECTION. The day somebody raises
+    the SVT hazard toward what the record needs, this goes red -- correctly, because the tree's
+    written account of where the rung-1 miss lives would have stopped being true and every finding
+    resting on it needs re-reading. The repair is to re-run the tool and land the file, never to
+    relax the leg.
+    """
+    declared = _declared_shortfall()
+    svt_rows, reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    assert svt_rows is not None, (
+        f"the live capture has no SVT half ({reason}), so the shortfall cannot be checked."
+    )
+    live = fitter.svt_route_shortfall_decomposition(
+        json.loads(instrument.DEFAULT_TABLE.read_text()), svt_rows
+    )
+    disagreements: list[str] = []
+    if declared["years"] != live["years"]:
+        disagreements.append(f"years: declared {declared['years']}, live {live['years']}")
+    for key in ("years_a_factor_could_close_alone", "bounded_factor_saturation",
+                "base_window_comparison", "per_year", "ceilings"):
+        if declared.get(key) != live.get(key):
+            disagreements.append(f"{key} no longer reproduces")
+    assert not disagreements, (
+        "the committed SVT shortfall decomposition no longer reproduces on the live world:\n  "
+        + "\n  ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land it. If the HAZARD factor has moved "
+        f"toward what the record needs, that is the mechanism repair landing and the findings that "
+        f"rest on this reading must be re-read, not the leg relaxed."
+    )
+
+
+def test_mutation_o_the_shortfall_is_wired_to_the_world_and_not_to_the_file(monkeypatch):
+    """MUTATION: scale the anchor the shortfall is taken at; the required multiple must FALL.
+
+    THE HOLE THIS CLOSES is the one `test_mutation_m` closes for the attribution, and the direction
+    is the discriminating part. Raising the anchor raises the RENEWAL route's contribution, which is
+    subtracted from the band to get the residual the SVT route must cover -- so every required
+    multiple must go DOWN. A reading that took its residual from a cached column, or that had lost
+    its renewal term altogether, would leave the multiples flat while every other leg above kept
+    passing.
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    baseline = fitter.svt_route_shortfall_decomposition(rows, svt_rows)
+    monkeypatch.setattr(fitter, "NO_LEVEL_CORRECTION", 3.0)
+    moved = fitter.svt_route_shortfall_decomposition(rows, svt_rows)
+    assert moved["measured_at_anchor"] == 3.0
+    for year in baseline["years"]:
+        was = baseline["per_year"][year]
+        now = moved["per_year"][year]
+        assert now["renewal_pp_of_book"] > was["renewal_pp_of_book"], (
+            f"{year}: tripling the anchor left the renewal route at "
+            f"{now['renewal_pp_of_book']}pp against {was['renewal_pp_of_book']}pp."
+        )
+        assert now["required_multiple"]["at_band_low"] < was["required_multiple"]["at_band_low"], (
+            f"{year}: the renewal route absorbed more of the band and the SVT route is still "
+            f"required to cover x{now['required_multiple']['at_band_low']}. The residual is not "
+            f"being taken from the renewal contribution."
+        )
+        assert now["factors"] == was["factors"], (
+            f"{year}: the SVT factors moved when the RENEWAL anchor changed. The anchor does not "
+            f"scale the SVT route -- `svt_composition_refusal` is what establishes that -- so a "
+            f"factor that moved with it is being recomputed rather than read from the capture."
+        )
+
+
+def test_mutation_p_a_stale_or_edited_shortfall_is_caught():
+    """The comparator's own mutation, from both sides, as `test_mutation_n` does for the attribution.
+
+    The edits exercised are the ones somebody would actually make: crediting `reach` with a year it
+    cannot close, so the composition question reads as the repair after all; and lifting the hazard
+    ceiling's headroom, so the one factor with room reads as having none. If either passed, the
+    reading would be a claim nothing checks and its bound would be reversible by editing a file.
+    """
+    declared = _declared_shortfall()
+    same = json.loads(json.dumps(declared))
+    assert same["years_a_factor_could_close_alone"] == declared["years_a_factor_could_close_alone"], (
+        "the comparator disagrees with itself"
+    )
+
+    flattered = json.loads(json.dumps(declared))
+    flattered["years_a_factor_could_close_alone"]["reach"]["years"] = declared["years"]
+    assert flattered["years_a_factor_could_close_alone"] != \
+        declared["years_a_factor_could_close_alone"], (
+        "reach was credited with every year and the comparison reads as unchanged -- which is the "
+        "bound this reading exists to state, reversed by hand"
+    )
+
+    starved = json.loads(json.dumps(declared))
+    first = declared["years"][0]
+    starved["per_year"][first]["headroom_to_ceiling"]["hazard"] = 1.0
+    assert starved["per_year"] != declared["per_year"], (
+        "the hazard's headroom was cut to nothing and the comparison reads as unchanged, so the "
+        "claim that it is the only factor with room is not held by anything"
+    )

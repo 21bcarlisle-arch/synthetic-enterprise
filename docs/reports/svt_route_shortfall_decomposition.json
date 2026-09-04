@@ -1,0 +1,307 @@
+{
+  "what_this_is": "which of the three factors under the SVT route's LEVEL is short of the published record, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. `departure_level_route_attribution.json` beside this file establishes that the SVT route carries the record's year-to-year shape at about half its level and that the renewal route cannot supply the rest; this says which leg of the SVT route the level is missing from. The reading is a BOUND on each factor's ceiling, not a fit, and nothing here chooses a value.",
+  "measured_at_anchor": 1.0,
+  "capture": "docs/reports/c6_second_pass_departure_factors.json",
+  "world_level_digest": "39a192ce04c1eda8",
+  "years": [
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2023",
+    "2024"
+  ],
+  "identity": "svt_pp_of_book == 100 x reach x exposure x hazard, exactly. `reach` is accounts taking an SVT decision over accounts on the book; `exposure` is SVT segment-days per reached account over 365.25; `hazard` is expected departures per SVT-account-YEAR of exposure, which is the unit `SVT_INERTIA_ANNUAL_RECENT` is published in.",
+  "on_the_three_the_finding_named": "the finding asked for 'the hazard per SVT decision, the size of the SVT population, or the assignment that decides who reaches which route'. On a capture the last two are ONE quantity -- an account reaches the SVT route in a year exactly when it is on the SVT product in that year -- and the factor they leave out is EXPOSURE, how much of the year a reached account spends on the product. So this decomposes the arithmetic three and not the named three.",
+  "ceilings": {
+    "reach": 1.0,
+    "exposure": 1.0,
+    "hazard": 0.95
+  },
+  "years_a_factor_could_close_alone": {
+    "reach": {
+      "years": [
+        "2023"
+      ],
+      "of": 7,
+      "ceiling": 1.0
+    },
+    "exposure": {
+      "years": [
+        "2023"
+      ],
+      "of": 7,
+      "ceiling": 1.0
+    },
+    "hazard": {
+      "years": [
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2023",
+        "2024"
+      ],
+      "of": 7,
+      "ceiling": 0.95
+    }
+  },
+  "bounded_factor_saturation": {
+    "what_this_is": "reach AND exposure both at 1.0 -- the entire book on the SVT product every day of the year -- with the renewal route at zero, because that world has no renewal decision left to price. The SVT route then carries the whole band alone at the hazard this world runs. This is the two named factors at the most they can ever do.",
+    "reaches_band_low_in": 1,
+    "of": 7,
+    "years_reached": [
+      "2023"
+    ]
+  },
+  "base_window_comparison": {
+    "what_this_is": "`svt_inertia_hazard` re-references the published pair by `market_switching_multiplier / svt_inertia_base_multiplier()`. That divisor is the MEAN of the multiplier over `SVT_INERTIA_BASE_WINDOW`, so the factor is 1.0 ACROSS the window and not within each of its years -- see `re_referencing_factor` per year below. Inside the window the world runs the published rate to within a few per cent; everywhere else the factor is 0.56 to 0.90 and a ratio quoted against the published rate would be measuring the re-referencing instead of the source. Both ratios are given because they differ, and quoting one as the other is how two correct figures become a quantity that is not one.",
+    "window": [
+      "2019",
+      "2020"
+    ],
+    "published_annual_recent": 0.2,
+    "published_annual_long_stayer": 0.1,
+    "window_mean_re_referencing_factor": 1.0,
+    "years": {
+      "2019": {
+        "re_referencing_factor": 0.9616,
+        "world_hazard": 0.197192,
+        "required_hazard_at_band_low": 0.333955,
+        "required_over_published_recent": 1.6698,
+        "required_over_re_referenced_recent": 1.7364,
+        "share_of_decisions_on_the_long_stayer_branch": 0.0
+      },
+      "2020": {
+        "re_referencing_factor": 1.0384,
+        "world_hazard": 0.191026,
+        "required_hazard_at_band_low": 0.341823,
+        "required_over_published_recent": 1.7091,
+        "required_over_re_referenced_recent": 1.646,
+        "share_of_decisions_on_the_long_stayer_branch": 0.163
+      }
+    }
+  },
+  "per_year": {
+    "2017": {
+      "accounts": 58,
+      "svt_pp_of_book": 5.7386,
+      "renewal_pp_of_book": 1.2105,
+      "band_pct": [
+        13.5,
+        14.0
+      ],
+      "factors": {
+        "reach": 0.672414,
+        "exposure": 0.643325,
+        "hazard": 0.13266
+      },
+      "required_multiple": {
+        "at_band_low": 2.1415,
+        "at_band_midpoint": 2.1851,
+        "at_band_high": 2.2287
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.4872,
+        "exposure": 1.5544,
+        "hazard": 7.1612
+      },
+      "required_hazard": {
+        "at_band_low": 0.284098,
+        "at_band_midpoint": 0.289877,
+        "at_band_high": 0.295656
+      },
+      "saturated_pp_of_book": 13.266,
+      "saturation_reaches_band": false
+    },
+    "2018": {
+      "accounts": 50,
+      "svt_pp_of_book": 11.1701,
+      "renewal_pp_of_book": 3.1483,
+      "band_pct": [
+        19.5,
+        20.0
+      ],
+      "factors": {
+        "reach": 0.84,
+        "exposure": 0.696848,
+        "hazard": 0.190827
+      },
+      "required_multiple": {
+        "at_band_low": 1.4639,
+        "at_band_midpoint": 1.4863,
+        "at_band_high": 1.5086
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.1905,
+        "exposure": 1.435,
+        "hazard": 4.9783
+      },
+      "required_hazard": {
+        "at_band_low": 0.279348,
+        "at_band_midpoint": 0.283619,
+        "at_band_high": 0.28789
+      },
+      "saturated_pp_of_book": 19.0827,
+      "saturation_reaches_band": false
+    },
+    "2019": {
+      "accounts": 41,
+      "svt_pp_of_book": 11.248,
+      "renewal_pp_of_book": 1.6509,
+      "band_pct": [
+        20.7,
+        21.3
+      ],
+      "factors": {
+        "reach": 0.707317,
+        "exposure": 0.806439,
+        "hazard": 0.197192
+      },
+      "required_multiple": {
+        "at_band_low": 1.6936,
+        "at_band_midpoint": 1.7202,
+        "at_band_high": 1.7469
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.4138,
+        "exposure": 1.24,
+        "hazard": 4.8176
+      },
+      "required_hazard": {
+        "at_band_low": 0.333955,
+        "at_band_midpoint": 0.339215,
+        "at_band_high": 0.344474
+      },
+      "saturated_pp_of_book": 19.7192,
+      "saturation_reaches_band": false
+    },
+    "2020": {
+      "accounts": 46,
+      "svt_pp_of_book": 11.3923,
+      "renewal_pp_of_book": 2.1145,
+      "band_pct": [
+        22.5,
+        23.0
+      ],
+      "factors": {
+        "reach": 0.782609,
+        "exposure": 0.762035,
+        "hazard": 0.191026
+      },
+      "required_multiple": {
+        "at_band_low": 1.7894,
+        "at_band_midpoint": 1.8113,
+        "at_band_high": 1.8333
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.2778,
+        "exposure": 1.3123,
+        "hazard": 4.9731
+      },
+      "required_hazard": {
+        "at_band_low": 0.341823,
+        "at_band_midpoint": 0.346015,
+        "at_band_high": 0.350207
+      },
+      "saturated_pp_of_book": 19.1026,
+      "saturation_reaches_band": false
+    },
+    "2021": {
+      "accounts": 51,
+      "svt_pp_of_book": 8.313,
+      "renewal_pp_of_book": 1.959,
+      "band_pct": [
+        17.9,
+        18.4
+      ],
+      "factors": {
+        "reach": 0.784314,
+        "exposure": 0.749418,
+        "hazard": 0.141431
+      },
+      "required_multiple": {
+        "at_band_low": 1.9176,
+        "at_band_midpoint": 1.9477,
+        "at_band_high": 1.9777
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.275,
+        "exposure": 1.3344,
+        "hazard": 6.7171
+      },
+      "required_hazard": {
+        "at_band_low": 0.271207,
+        "at_band_midpoint": 0.275461,
+        "at_band_high": 0.279714
+      },
+      "saturated_pp_of_book": 14.1431,
+      "saturation_reaches_band": false
+    },
+    "2023": {
+      "accounts": 53,
+      "svt_pp_of_book": 6.7521,
+      "renewal_pp_of_book": 2.8201,
+      "band_pct": [
+        8.9,
+        12.5
+      ],
+      "factors": {
+        "reach": 0.981132,
+        "exposure": 0.735639,
+        "hazard": 0.09355
+      },
+      "required_multiple": {
+        "at_band_low": 0.9004,
+        "at_band_midpoint": 1.167,
+        "at_band_high": 1.4336
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.0192,
+        "exposure": 1.3594,
+        "hazard": 10.155
+      },
+      "required_hazard": {
+        "at_band_low": 0.084237,
+        "at_band_midpoint": 0.109176,
+        "at_band_high": 0.134115
+      },
+      "saturated_pp_of_book": 9.355,
+      "saturation_reaches_band": true
+    },
+    "2024": {
+      "accounts": 57,
+      "svt_pp_of_book": 6.9433,
+      "renewal_pp_of_book": 2.2479,
+      "band_pct": [
+        12.5,
+        16.1
+      ],
+      "factors": {
+        "reach": 0.77193,
+        "exposure": 0.785141,
+        "hazard": 0.114562
+      },
+      "required_multiple": {
+        "at_band_low": 1.4766,
+        "at_band_midpoint": 1.7358,
+        "at_band_high": 1.995
+      },
+      "headroom_to_ceiling": {
+        "reach": 1.2955,
+        "exposure": 1.2737,
+        "hazard": 8.2925
+      },
+      "required_hazard": {
+        "at_band_low": 0.169157,
+        "at_band_midpoint": 0.198856,
+        "at_band_high": 0.228555
+      },
+      "saturated_pp_of_book": 11.4562,
+      "saturation_reaches_band": false
+    }
+  },
+  "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --svt-shortfall"
+}

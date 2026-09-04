@@ -425,3 +425,109 @@ each fire the leg that owns them.
 changed is that the repair is now aimed at the leg that carries the defect.
 
 — Delivery seat, 2026-09-04.
+
+## 9. The SVT route's level is short in the HAZARD, and the other two legs cannot reach it — 2026-09-04
+
+§8 re-aimed the repair at the SVT route and named three candidates under it — *"the hazard per SVT
+decision, the size of the SVT population, or the assignment that decides who reaches which route"* —
+and said they must be measured before they are guessed at. **They are now measured.**
+`tools/fit_year_level_anchor.svt_route_shortfall_decomposition`, committed at
+`docs/reports/svt_route_shortfall_decomposition.json`, at `NO_LEVEL_CORRECTION` on
+`c6_second_pass_departure_factors.json`.
+
+**§8's three were not the right three, and that is the first result.** On a capture, "the size of the
+SVT population" and "the assignment that decides who reaches which route" are ONE quantity — an
+account reaches the SVT route in a year exactly when it is on the SVT product in that year — and the
+factor the pair leaves out is **exposure**: how much *of* the year a reached account spends on the
+product. The arithmetic decomposition is exact:
+
+> `svt_pp_of_book  =  100 × reach × exposure × hazard`
+
+`reach` = accounts taking an SVT decision over accounts on the book. `exposure` = SVT segment-days
+per reached account over 365.25. `hazard` = expected departures per SVT-account-**year** of exposure,
+which is the unit `SVT_INERTIA_ANNUAL_RECENT` is published in and therefore the only unit in which
+the world and its own source can be compared at all.
+
+| year | reach | exposure | hazard | SVT pp | needs × | headroom: reach / exposure / hazard |
+|---|---|---|---|---|---|---|
+| 2017 | 0.672 | 0.643 | 0.1327 | 5.74 | 2.14 | 1.49 / 1.55 / 7.16 |
+| 2018 | 0.840 | 0.697 | 0.1908 | 11.17 | 1.46 | 1.19 / 1.44 / 4.98 |
+| 2019 | 0.707 | 0.806 | 0.1972 | 11.25 | 1.69 | 1.41 / 1.24 / 4.82 |
+| 2020 | 0.783 | 0.762 | 0.1910 | 11.39 | 1.79 | 1.28 / 1.31 / 4.97 |
+| 2021 | 0.784 | 0.749 | 0.1414 | 8.31 | 1.92 | 1.27 / 1.33 / 6.72 |
+| 2023 | 0.981 | 0.736 | 0.0935 | 6.75 | 0.90 | 1.02 / 1.36 / 10.15 |
+| 2024 | 0.772 | 0.785 | 0.1146 | 6.94 | 1.48 | 1.30 / 1.27 / 8.29 |
+
+`needs ×` is taken at the band's **LOW** endpoint — the least the record will accept — because the
+question is whether a factor can *possibly* close the gap and the honest form of "possibly" is the
+most generous one. All three endpoints are in the artefact and the ordering does not turn on the
+choice.
+
+**The question is not which factor is small. All three are. It is which factor has the HEADROOM.**
+
+- **reach** is already 0.67–0.98 of the book. Its ceiling is 1.0. **Closes 1 year of 7** — 2023,
+  whose band is the widest in the record.
+- **exposure** is already 0.64–0.81 of the year. Its ceiling is 1.0. **Closes 1 of 7**, the same year.
+- **hazard** is 0.094–0.197 per account-year against a ceiling of `WORLD_MAX_CHURN_PROBABILITY`.
+  **Closes 7 of 7.**
+
+**The bound that makes this decisive rather than suggestive**, and it is the same shape as §8's
+ceiling counterfactual. Take BOTH bounded factors to their ceilings at once: the entire book on the
+SVT product, every day of the year. That world has no renewal decision left to price, so the renewal
+route contributes nothing and the SVT route must carry the whole band alone — and at the hazard this
+world runs it reaches the band's low endpoint in **1 year of 7**. *The two factors §8 named cannot
+close rung 1 between them, at any value they are capable of taking.* That does not depend on how the
+residual is apportioned, and it does not depend on what the composition question's answer turns out
+to be.
+
+**So the leg is the hazard per SVT-account-year, and the gap is 1.6×–1.7× against the world's own
+published source.** `svt_inertia_hazard` re-references the published 0.20 recent / 0.10 long-stayer
+pair by `market_switching_multiplier / svt_inertia_base_multiplier()`. That divisor is the *mean* of
+the multiplier over `SVT_INERTIA_BASE_WINDOW`, so the factor is 1.0 **across** the window and not
+within each of its years — 0.962 at 2019 and 1.040 at 2020, against 0.56–0.90 everywhere else. In
+those two years the world is running the published rate to within 4%, and its tenure mix there is 0%
+and 16% long-stayer, so almost every decision is on the 0.20 branch. The record needs **0.334 at 2019
+and 0.342 at 2020**, against a published 0.20: **1.67× and 1.71×**. Both ratios are published — against
+the published rate and against the re-referenced rate the world actually ran — because they differ by
+that 4% and quoting one as the other is the shape this repo pays for.
+
+*(The first draft of the control on that block asserted the per-year re-referencing factor was 1.0,
+which is what the constant's own docstring reads like. It is 0.962 at 2019 and the leg went red on
+its own first run. The claim above is the corrected one; the control now holds the property that is
+actually true — the window's factors average to 1.0 and every year in it is nearer 1.0 than any year
+outside it — rather than a distance from 1.0 written down to go stale.)*
+
+**Nothing here picks a number.** No constant was edited, no solver target was moved, no anchor was
+touched; §4's constraint 4 is honoured a fifth time. The gap is published in the units of the
+constant that would have to move, so the next session can take it to the published record rather than
+to a slot. And the source itself says what that next step is: `svt_rates_active_passive_2016_2025.md`
+§4 calls the pair a **structural inference at confidence M**, states plainly that *"direct published
+SVT vs fixed churn rates by tariff type are not available"*, and its own band for the recent-SVT
+segment tops out at 20% — the value the world took. A rate 1.7× that is outside what the source can
+supply, so the question is not "raise the constant" but **whether 0.20 is the right published quantity
+for what this hazard models at all**: the hazard is drift off the SVT *product*, and the band it is
+being asked to reproduce is external change of *supplier*. Those are not the same event, and nobody
+has established the relation.
+
+**What this does to the composition question.** §8 sent the next session to source what share of the
+GB domestic book sat on a default/SVT tariff each year — the same question as focus item
+`the-arms-reach-is-a-missing-world-product-not-a-company-choice`. That sourcing is still worth doing
+and its answer is still owed, **and it is now known in advance not to repair rung 1**: `reach` is the
+factor it would move, `reach` closes 1 year of 7 at its arithmetic ceiling, and this world's reach is
+0.67–0.98 — already at or above any published default-tariff share. If the sourcing comes back saying
+the real share was lower, the world's reach is too HIGH and the hazard gap widens. The composition
+question is a fidelity question with its own worth; it is not this repair.
+
+**Six legs in `tests/architecture/test_switching_rate_commons.py`, all six mutation-proven on disk:**
+a perturbed factor breaking the identity, a factor credited with a year its own ceiling cannot reach,
+the renewal route left inside the saturation bound it abolishes, the reading taken under a fitted
+anchor, the published-rate comparison extended past the window where it is a comparison, and the
+committed file drifting from the live world. `test_mutation_o` additionally requires the *required
+multiple* to FALL when the renewal anchor rises — the one direction that distinguishes a residual
+taken from the renewal route from a cached column.
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published. What changed
+is that the repair is now aimed at a single named quantity, with the size of its gap measured and the
+sourcing question that governs it stated.
+
+— Delivery seat, 2026-09-04.
