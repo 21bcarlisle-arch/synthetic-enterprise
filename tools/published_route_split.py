@@ -158,17 +158,28 @@ def svt_segment_churn_band() -> dict[str, tuple[float, float]]:
     }
 
 
-def _corners(year: int, basis: str) -> list[tuple[float, float]] | None:
+def _corners(
+    year: int, basis: str, *, at_share: float | None = None
+) -> list[tuple[float, float]] | None:
     """`[(R_fraction, s_fraction), ...]` over both published bands' endpoints, or None on a gap.
 
     The identity is BILINEAR in `(s, H_svt)`, so over a box its extrema are attained at corners and
     enumerating them is exact. Doing it by hand -- "s is increasing so take the high end" -- gets
     the sign wrong whenever `H_svt` and `H_fixed` swap order, which they do between 2019 and 2022.
+
+    `at_share` PINS `s` TO ONE VALUE instead of sweeping the published pair, and it exists for one
+    caller: the joint reading, which derives a hazard AT a named share endpoint and must then judge
+    it at THAT endpoint. Sweeping both would compare a hazard solved at one share against an
+    interval taken over two, which is the mixed-pair defect the joint reading exists to correct.
+    The year's gap check still runs: an `at_share` for a year with no published figure is still a
+    refusal, because the band `R` is what makes the corner and the year's absence is not about `s`.
     """
     share = default_tariff_share(year, basis)
     band = published_departure_band().get(year)
     if share is None or band is None:
         return None
+    if at_share is not None:
+        share = (at_share,)  # type: ignore[assignment]
     return list(itertools.product((band[0] / 100.0, band[1] / 100.0), share))
 
 
@@ -199,7 +210,9 @@ def forward_composition(
     }
 
 
-def admissible_svt_churn(year: int, basis: str) -> dict | None:
+def admissible_svt_churn(
+    year: int, basis: str, *, at_share: float | None = None
+) -> dict | None:
     """The interval of `H_svt` the published record admits, as `phi` ranges over [0, 1].
 
     `H_svt = (R - (1 - s) * FIXED_ACTIVE_RENEWAL_SHARE * phi) / s`, which is DECREASING in `phi`:
@@ -213,8 +226,11 @@ def admissible_svt_churn(year: int, basis: str) -> dict | None:
     whole published band, so the record REFUSES `phi = 1` in that year. Clipping it to 0.0 would
     turn a refusal into a boundary and hide the only place this identity constrains `phi` from
     above.
+
+    `at_share` pins `s`; see `_corners`. Passing it NARROWS the interval, because part of the width
+    here is the published share's own band and not `phi`.
     """
-    corners = _corners(year, basis)
+    corners = _corners(year, basis, at_share=at_share)
     if corners is None:
         return None
     at_1 = [(r - (1.0 - s) * FIXED_ACTIVE_RENEWAL_SHARE) / s for r, s in corners]
@@ -227,7 +243,9 @@ def admissible_svt_churn(year: int, basis: str) -> dict | None:
     }
 
 
-def phi_admitting(year: int, basis: str, h_svt: float) -> list[float] | None:
+def phi_admitting(
+    year: int, basis: str, h_svt: float, *, at_share: float | None = None
+) -> list[float] | None:
     """The `phi` interval the record needs if the SVT segment ran at `h_svt`, or None on a gap.
 
     `phi = (R - s * h_svt) / ((1 - s) * FIXED_ACTIVE_RENEWAL_SHARE)`. Values outside [0, 1] are
@@ -235,8 +253,11 @@ def phi_admitting(year: int, basis: str, h_svt: float) -> list[float] | None:
     it would need the fixed route to contribute negative departures, and above 1 means the record
     would need more external switching from fixed households than the published active-renewal
     share can supply. Both are results and neither is clipped.
+
+    `at_share` pins `s`; see `_corners`. The joint reading MUST pass it: a `phi` taken over both
+    published share endpoints, for a hazard solved at one of them, is not the same question.
     """
-    corners = _corners(year, basis)
+    corners = _corners(year, basis, at_share=at_share)
     if corners is None:
         return None
     phis = [
@@ -298,6 +319,261 @@ def where_the_worlds_point_falls() -> dict | None:
         "source": str(SHORTFALL_ARTEFACT.relative_to(PROJECT)),
         "measured_at_anchor": shortfall["measured_at_anchor"],
         "world_level_digest": shortfall["world_level_digest"],
+        "per_year": rows,
+    }
+
+
+#: The composition counterfactual this joins §9's reading to. Committed artefact, never re-derived.
+COMPOSITION_ARTEFACT = PROJECT / "docs" / "reports" / "svt_composition_vs_published.json"
+
+#: The accountings §10 publishes, headline first. Both are carried here for the reason §10 carries
+#: them: a verdict that depends on which one you pick is a verdict about the pick.
+ACCOUNTINGS = ("renewal_rescaled", "renewal_held")
+
+#: The published share endpoints §10 evaluates at. The joint reading is computed at each SEPARATELY
+#: and judged at the SAME one, which is the whole point of it.
+SHARE_ENDPOINTS = ("at_published_low", "at_published_high")
+
+
+def intersect_spans(spans: list[list[float]]) -> dict:
+    """`[lo, hi]` common to every span, and whether that is a real interval or an empty one.
+
+    A MODULE-LEVEL PURE FUNCTION AND NOT A CLOSURE, on purpose. Both intersections this reading
+    publishes are currently EMPTY, so a verdict frozen to `False` reproduces the artefact exactly
+    and a control over the artefact alone cannot tell a derivation from a constant -- which is what
+    happened: the first draft of `test_the_one_phi_question_is_asked_of_the_unrepaired_world_too`
+    stayed green when `is_non_empty` was replaced by `False`. Lifting the rule out here makes the
+    non-empty branch reachable from a control with spans it constructs itself, so both branches are
+    exercised whatever the world happens to say this week.
+
+    An empty intersection is returned with its endpoints CROSSED (`lo > hi`) rather than as `None`:
+    the amount by which they cross is how far apart the years are, and that is the reading.
+    """
+    lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
+    return {"intersection": [round(lo, 6), round(hi, 6)], "is_non_empty": lo <= hi}
+
+
+def _provenance(path: Path) -> str:
+    """The path a reading names as its source: repo-relative inside the tree, absolute outside it.
+
+    An artefact read from outside the repo -- which is what a control does when it perturbs one --
+    must still be NAMED. Raising instead would make the source field the reason the reading cannot
+    be tested, and silently printing a bare filename would let an out-of-tree input read as the
+    committed one.
+    """
+    try:
+        return str(path.relative_to(PROJECT))
+    except ValueError:
+        return str(path)
+
+
+def where_the_worlds_joint_point_falls() -> dict | None:
+    """§9's hazard and §10's share moved TOGETHER, judged against the record at that same share.
+
+    THE SECOND THING §11 LEFT OWED, and the one that is not a sourcing job. §11 said the two
+    readings must be re-run jointly; the step it took was a MIXED pair and this is the correction.
+
+    `where_the_worlds_point_falls` computes `phi_admitting_required` by feeding §9's
+    `required_hazard` -- solved holding the world's OWN, lower, SVT share fixed, and therefore sized
+    to close the entire gap on the SVT route alone -- into a composition evaluated at the PUBLISHED
+    share. That is not "both repairs land". It is one repair sized to do all the work, applied on
+    top of another repair that has already done part of it, and it DOUBLE-COUNTS by construction.
+    §11's result 2 -- *"the record refuses the pair"* -- is that double-count.
+
+    The self-consistent quantity is already published by §10 and nobody had multiplied it out:
+
+        H_joint  =  world_hazard  x  hazard_multiple_still_required_at_band_low
+
+    where the multiple is taken at a named published share endpoint on a named basis under a named
+    accounting, with the renewal route already moved to its complement. `H_joint` is then judged
+    against `admissible_svt_churn` and `phi_admitting` **pinned to that same share** -- not swept
+    over the published pair, which is the mixed comparison one level down and would re-introduce the
+    defect while claiming to have fixed it.
+
+    NO WORLD IS OPENED HERE EITHER. Both inputs are committed artefacts and a missing one returns a
+    declared `None` rather than crashing the published reading that does not need them.
+
+    THE DIRECTION IS FORCED AND THE VERDICT IS NOT. `H_joint < required_hazard` always, by roughly
+    the composition multiple, because composition supplies departures the hazard then does not have
+    to. Whether the smaller number is ADMISSIBLE is a question about the record, and it is the one
+    that flips 2017.
+    """
+    if not (SHORTFALL_ARTEFACT.exists() and COMPOSITION_ARTEFACT.exists()):
+        return None
+    shortfall = json.loads(SHORTFALL_ARTEFACT.read_text())
+    composition = json.loads(COMPOSITION_ARTEFACT.read_text())
+
+    rows: dict[str, dict] = {}
+    for year_s in sorted(composition["years_measurable"]):
+        comp = composition["per_year"][year_s]
+        short = shortfall["per_year"].get(year_s)
+        if short is None:  # pragma: no cover - the two readings share their fitted-year set
+            continue
+        year = int(year_s)
+        world_hazard = short["factors"]["hazard"]
+        entry: dict = {
+            "world_hazard": world_hazard,
+            # §9's number, carried so the two can be read side by side and the gap between them
+            # is visible rather than asserted. It is NOT the joint requirement.
+            "required_hazard_holding_the_worlds_share_fixed": short["required_hazard"]["at_band_low"],
+            "world_svt_account_day_share": comp["world_svt_account_day_share"],
+            "band_pct": comp["band_pct"],
+        }
+        for basis in BASES:
+            if basis not in comp["bases"]:  # pragma: no cover - both bases are always present
+                continue
+            per_endpoint: dict = {}
+            for endpoint in SHARE_ENDPOINTS:
+                cell = comp["bases"][basis][endpoint]
+                share = cell["published_svt_account_day_share"]
+                admissible = admissible_svt_churn(year, basis, at_share=share)
+                if admissible is None:  # pragma: no cover - measurable years have a share
+                    continue
+                lo, hi = admissible["admissible"]
+                accountings: dict = {}
+                for accounting in ACCOUNTINGS:
+                    multiple = cell[accounting]["hazard_multiple_still_required_at_band_low"]
+                    if multiple is None:  # pragma: no cover - svt_pp is positive in every year
+                        continue
+                    # ROUNDED BEFORE phi IS TAKEN FROM IT, not after. A reader who recomputes phi
+                    # from the hazard this artefact publishes must get the number this artefact
+                    # publishes; taking phi off the unrounded value leaves the two differing in the
+                    # last place and the reading not reproducible from its own printed inputs.
+                    joint = round(world_hazard * multiple, 6)
+                    phi = phi_admitting(year, basis, joint, at_share=share)
+                    accountings[accounting] = {
+                        "hazard_multiple_still_required": multiple,
+                        "joint_required_hazard": joint,
+                        "joint_hazard_is_admissible": lo <= joint <= hi,
+                        "phi_admitting_joint": phi,
+                        # A phi interval entirely below zero is the record REFUSING the pair: it
+                        # would need the fixed route to contribute negative departures. Above 1 is
+                        # the other refusal and it is a different sentence, so both are named.
+                        "record_refuses_the_joint_pair": phi is not None and phi[1] < 0.0,
+                        "record_needs_more_than_the_fixed_route_can_supply": (
+                            phi is not None and phi[0] > 1.0
+                        ),
+                    }
+                per_endpoint[endpoint] = {
+                    "published_svt_account_day_share": share,
+                    "composition_multiple": cell["composition_multiple"],
+                    "admissible_svt_churn_at_this_share": [lo, hi],
+                    # THE UNREPAIRED WORLD AT THE SAME SHARE, so that anything the joint point is
+                    # blamed for can be checked against what was already true before the repair.
+                    # Without it, a property of this world's shape reads as a property of the
+                    # repair, which is the attribution error this whole finding keeps paying for.
+                    "phi_admitting_the_worlds_current_hazard": phi_admitting(
+                        year, basis, world_hazard, at_share=share
+                    ),
+                    "accountings": accountings,
+                }
+            entry[basis] = per_endpoint
+        rows[year_s] = entry
+
+    def _refused(basis: str) -> list[str]:
+        """Years the record refuses on EVERY endpoint and accounting -- a robust refusal."""
+        return [
+            y for y, row in rows.items()
+            if row.get(basis)
+            and all(
+                acc["record_refuses_the_joint_pair"]
+                for ep in row[basis].values()
+                for acc in ep["accountings"].values()
+            )
+        ]
+
+    def _flipped(basis: str) -> list[str]:
+        """Years the MIXED pair was refused in and the JOINT pair is admitted in everywhere.
+
+        This is the set §11's result 2 named and this reading corrects. It is derived from the two
+        verdicts rather than written down, so it cannot say "flipped" about a year that was never
+        refused in the first place.
+        """
+        mixed = where_the_worlds_point_falls() or {"per_year": {}}
+        out = []
+        for y, row in rows.items():
+            was = mixed["per_year"].get(y, {}).get(basis, {}).get("phi_admitting_required")
+            if not (was and was[1] < 0.0):
+                continue
+            if row.get(basis) and all(
+                not acc["record_refuses_the_joint_pair"]
+                for ep in row[basis].values()
+                for acc in ep["accountings"].values()
+            ):
+                out.append(y)
+        return out
+
+    def _phi_intersection(basis: str, accounting: str, key: str) -> dict:
+        """Is there ONE phi the record admits in every comparable year at once?
+
+        phi is a single behavioural quantity -- the external share of active fixed-term renewals --
+        and it may move year to year, but it is one quantity per year and the years are supposed to
+        be describing one market. So the per-year intervals having an EMPTY intersection is a
+        statement about the world, and it is derived here rather than read off by eye.
+
+        Taken as a UNION over the two share endpoints per year, which is the most generous reading:
+        an empty intersection under the generous union is empty under any of them. Computed for the
+        world's current hazard as well as the joint one, because an emptiness that was already there
+        before the repair is not evidence about the repair.
+        """
+        los, his, per_year_phi = [], [], {}
+        for year_s, row in rows.items():
+            if basis not in row or not row[basis]:
+                continue
+            spans = [
+                ep[key] if key in ep else ep["accountings"][accounting]["phi_admitting_joint"]
+                for ep in row[basis].values()
+            ]
+            spans = [s for s in spans if s is not None]
+            if not spans:
+                continue
+            lo_y, hi_y = min(s[0] for s in spans), max(s[1] for s in spans)
+            los.append(lo_y)
+            his.append(hi_y)
+            per_year_phi[year_s] = [round(lo_y, 6), round(hi_y, 6)]
+        if not los:  # pragma: no cover - every measurable year yields a span
+            return {"years": {}, "intersection": None, "is_non_empty": None}
+        return {"years": per_year_phi, **intersect_spans(list(per_year_phi.values()))}
+
+    return {
+        "what_this_is": (
+            "§9's required hazard and §10's published share applied TOGETHER and judged against "
+            "the record at that same share. The correction to `where_the_worlds_point_falls`, "
+            "which pairs a hazard solved at the world's share with a composition at the published "
+            "one and so double-counts the repair."
+        ),
+        "identity": (
+            "H_joint = world_hazard x hazard_multiple_still_required_at_band_low, where the "
+            "multiple already has the renewal route moved to the complement of the published "
+            "share. H_joint is then judged at THAT share and no other."
+        ),
+        "sources": {
+            "hazard_and_required": _provenance(SHORTFALL_ARTEFACT),
+            "share_and_still_required_multiple": _provenance(COMPOSITION_ARTEFACT),
+        },
+        "measured_at_anchor": shortfall["measured_at_anchor"],
+        "world_level_digest": shortfall["world_level_digest"],
+        "headline_accounting": composition["headline_accounting"],
+        "years_measurable": sorted(rows),
+        "years_refused": composition["years_refused"],
+        "years_the_record_refuses_the_joint_pair": {b: _refused(b) for b in BASES},
+        # NOT PRE-REGISTERED. Derived after the per-year numbers were seen, and labelled so rather
+        # than presented as though it had been predicted. `at_the_worlds_current_hazard` is the
+        # control on it: if that is empty too, the emptiness is a property of this world's shape and
+        # not of the repair, and nothing here may be said about the repair on the strength of it.
+        "one_phi_for_every_year": {
+            "status": "derived after the fact; not a graded prediction",
+            "at_the_joint_hazard": {
+                b: {a: _phi_intersection(b, a, "_joint") for a in ACCOUNTINGS} for b in BASES
+            },
+            "at_the_worlds_current_hazard": {
+                b: _phi_intersection(b, ACCOUNTINGS[0], "phi_admitting_the_worlds_current_hazard")
+                for b in BASES
+            },
+        },
+        "years_the_mixed_pair_refused_and_the_joint_pair_admits": {
+            b: _flipped(b) for b in BASES
+        },
         "per_year": rows,
     }
 
@@ -385,6 +661,10 @@ def published_route_split() -> dict:
         },
         "per_year": per_year,
         "where_the_worlds_point_falls": where_the_worlds_point_falls(),
+        # The correction to the section above it, and it is published BESIDE it rather than
+        # replacing it: a reader who sees only the joint reading cannot tell that the mixed one was
+        # ever taken, and §11's result 2 was drawn from the mixed one.
+        "where_the_worlds_joint_point_falls": where_the_worlds_joint_point_falls(),
         "how_to_regenerate": "python3 -m tools.published_route_split --write",
     }
 
@@ -426,6 +706,48 @@ def main(argv: list[str]) -> int:
     print("  The admissible interval is WIDE because phi is unestablished, not because the")
     print("  arithmetic is loose. The record cannot settle SVT_INERTIA_ANNUAL_RECENT until it is.")
     print()
+    joint = reading["where_the_worlds_joint_point_falls"]
+    if joint is None:
+        print("  JOINT READING UNAVAILABLE: a committed world artefact is absent. Regenerate with")
+        print("  `python3 -m tools.fit_year_level_anchor --svt-shortfall --composition`.")
+        print()
+    else:
+        mixed = reading["where_the_worlds_point_falls"] or {"per_year": {}}
+        acc = joint["headline_accounting"]
+        print(f"  THE JOINT PAIR — §9's hazard and §10's share moved together, accounting = {acc}")
+        print("  (`required` is §9's, solved at the WORLD's share and so sized to do all the work;")
+        print("   `H_joint` is what is left after composition has done its part. Both are the same")
+        print("   world; only the mixed one is compared against a share it was not solved at.)")
+        print()
+        for basis in BASES:
+            print(f"  basis = {basis}   (published share at its HIGH endpoint)")
+            print(f"  {'year':>6} {'required':>9} {'H_joint':>9} {'admissible H_svt':>21} "
+                  f"{'in?':>4} {'phi (joint)':>19} {'phi (mixed, §11)':>19}")
+            for year_s, row in joint["per_year"].items():
+                ep = row.get(basis, {}).get("at_published_high")
+                if ep is None or acc not in ep["accountings"]:
+                    continue
+                cell = ep["accountings"][acc]
+                lo, hi = ep["admissible_svt_churn_at_this_share"]
+                was = mixed["per_year"].get(year_s, {}).get(basis, {}).get("phi_admitting_required")
+                phi = cell["phi_admitting_joint"]
+                print(
+                    f"  {year_s:>6} "
+                    f"{row['required_hazard_holding_the_worlds_share_fixed']:>9.4f} "
+                    f"{cell['joint_required_hazard']:>9.4f} "
+                    f"{lo:>9.4f}–{hi:<10.4f} "
+                    f"{('YES' if cell['joint_hazard_is_admissible'] else 'no'):>4} "
+                    f"{phi[0]:>8.3f}–{phi[1]:<9.3f} "
+                    f"{(f'{was[0]:>8.3f}–{was[1]:<9.3f}' if was else ' ' * 18)}"
+                )
+            refused = joint["years_the_record_refuses_the_joint_pair"][basis]
+            flipped = joint["years_the_mixed_pair_refused_and_the_joint_pair_admits"][basis]
+            print(f"    record refuses the joint pair in: {refused or 'no year'}")
+            print(f"    mixed pair refused, joint pair admitted: {flipped or 'no year'}")
+            print()
+        for year_s, reason in joint["years_refused"].items():
+            print(f"  JOINT REFUSED {year_s}: {reason}")
+        print()
     if "--write" in argv:
         ARTEFACT.write_text(json.dumps(reading, indent=1) + "\n")
         print(f"  wrote {ARTEFACT.relative_to(PROJECT)}")

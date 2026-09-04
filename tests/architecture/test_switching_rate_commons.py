@@ -3759,10 +3759,356 @@ def test_the_committed_route_split_still_reproduces():
             "years_scored", "n_years_scored", "years_refused", "per_year",
             "published_svt_segment_churn", "published_fixed_active_renewal_share",
             "years_above_the_band_on_every_tenure_mix", "the_unestablished_quantity",
+            # The joint section drifts for its own reasons -- either committed world artefact
+            # being regenerated moves it -- and a section left out of this list is a published
+            # figure with no drift detector on it at all.
+            "where_the_worlds_joint_point_falls",
         )
         if declared.get(key) != live.get(key)
     ]
     assert not disagreements, (
         "the committed published route split no longer reproduces: " + ", ".join(disagreements)
         + f"\nRe-run `{declared['how_to_regenerate']}` and land it."
+    )
+
+
+# ---------------------------------------------------------------------------------------------
+# §12 -- the JOINT reading. §9's hazard and §10's share moved together, judged at the same share.
+# ---------------------------------------------------------------------------------------------
+
+
+def _joint() -> dict:
+    reading = _split_module().where_the_worlds_joint_point_falls()
+    assert reading is not None, (
+        "the joint reading returned None, which means a committed world artefact is absent. "
+        "Regenerate with `python3 -m tools.fit_year_level_anchor --svt-shortfall --composition`."
+    )
+    return reading
+
+
+def test_the_pinned_share_is_used_and_not_merely_accepted():
+    """MUTATION: make `_corners` ignore `at_share` and this fires.
+
+    THE DEFECT THIS EXISTS FOR is a refusal keyed to a signature that lifts on a parameter which is
+    accepted and ignored. `at_share` is the entire mechanism by which the joint reading avoids the
+    mixed comparison it was written to correct; a version that takes the argument and sweeps the
+    published pair anyway would produce a plausible artefact, a green suite, and exactly the defect
+    §11 shipped. So the parameter is checked at the corner enumeration itself and not through a
+    caller that might not be reading it.
+    """
+    split = _split_module()
+    year, basis = 2017, "as_published"
+    swept = split._corners(year, basis)
+    pinned = split._corners(year, basis, at_share=0.59)
+    assert pinned is not None and swept is not None
+    assert {s for _r, s in pinned} == {0.59}, (
+        "`at_share` was accepted and ignored: the pinned corners still carry more than one share."
+    )
+    assert len({s for _r, s in swept}) == 2, (
+        "the unpinned corners no longer sweep two published share endpoints, so this leg cannot "
+        "tell a pinned enumeration from an unpinned one and is asserting nothing."
+    )
+    assert pinned != swept
+    # A year with no published share is still refused WITH a share pinned: the gap is about the
+    # band's year, not about `s`, and letting `at_share` manufacture a corner would score 2020.
+    assert split._corners(2020, basis, at_share=0.75) is None, (
+        "pinning a share scored a year the published series declares a gap in."
+    )
+
+
+def test_the_joint_hazard_is_judged_at_the_share_that_produced_it():
+    """MUTATION: drop `at_share=share` from either reader and this fires.
+
+    THIS IS THE WHOLE CORRECTION. §11's `phi_admitting_required` feeds a hazard solved at the
+    world's share into a composition swept over both published share endpoints, and that mixture is
+    what produced its "the record refuses the pair". A joint reading that repeated the mixture one
+    level down -- deriving `H_joint` at `at_published_high` and then judging it over both endpoints
+    -- would be the same defect wearing the fix's name, and would still be wrong in the flattering
+    direction, because the swept interval is strictly wider.
+
+    Held longhand rather than by calling the same helper the reading calls: a leg that recomputes
+    with the module's own pinned call would stay green on a mutation that unpinned both of them.
+    """
+    split = _split_module()
+    joint = _joint()
+    band = split.published_departure_band()
+    narrowed = 0
+    for year_s, row in joint["per_year"].items():
+        year = int(year_s)
+        lo_r, hi_r = band[year][0] / 100.0, band[year][1] / 100.0
+        for basis in split.BASES:
+            for endpoint, cell in row[basis].items():
+                s = cell["published_svt_account_day_share"]
+                at_1 = [(r - (1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE) / s for r in (lo_r, hi_r)]
+                at_0 = [r / s for r in (lo_r, hi_r)]
+                assert cell["admissible_svt_churn_at_this_share"] == [
+                    round(min(at_1), 6), round(max(at_0), 6)
+                ], (
+                    f"{year_s}/{basis}/{endpoint}: the admissible interval was not computed at the "
+                    f"share {s} that produced the joint hazard."
+                )
+                for accounting, acc in cell["accountings"].items():
+                    phis = [
+                        (r - s * acc["joint_required_hazard"])
+                        / ((1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE)
+                        for r in (lo_r, hi_r)
+                    ]
+                    assert acc["phi_admitting_joint"] == [
+                        round(min(phis), 6), round(max(phis), 6)
+                    ], (
+                        f"{year_s}/{basis}/{endpoint}/{accounting}: phi was not taken at the share "
+                        f"the hazard was solved at."
+                    )
+                swept = split.admissible_svt_churn(year, basis)
+                if swept["admissible"] != cell["admissible_svt_churn_at_this_share"]:
+                    narrowed += 1
+    assert narrowed, (
+        "pinning the share never narrowed the admissible interval anywhere in the reading, so this "
+        "leg cannot distinguish the pinned computation from the swept one it exists to refuse. "
+        "Either the published shares have collapsed to a point in every year or the pin is inert."
+    )
+
+
+def test_the_joint_reading_never_crosses_a_basis():
+    """MUTATION: judge one basis's hazard against the other basis's interval and this fires.
+
+    The two bases are two different published POPULATIONS -- Ofgem's headline default share excludes
+    prepayment and the restored one does not -- and §10 left which of them this world belongs to
+    deliberately open. Taking the requirement from one and the admissible interval from the other
+    would be comparing a world against a record it was not measured on, silently, and in a reading
+    whose entire subject is a comparison that was mixed.
+    """
+    split = _split_module()
+    joint = _joint()
+    from tools.published_tariff_mix import default_tariff_share
+
+    crossed = 0
+    for year_s, row in joint["per_year"].items():
+        year = int(year_s)
+        for basis in split.BASES:
+            published = default_tariff_share(year, basis)
+            for endpoint, cell in row[basis].items():
+                idx = split.SHARE_ENDPOINTS.index(endpoint)
+                assert cell["published_svt_account_day_share"] == published[idx], (
+                    f"{year_s}/{basis}/{endpoint}: the share is not this basis's {endpoint}."
+                )
+            other = [b for b in split.BASES if b != basis][0]
+            if default_tariff_share(year, other) != published:
+                crossed += 1
+    assert crossed, (
+        "the two bases carry identical shares in every year, so a crossed basis would be "
+        "undetectable here and this leg is asserting nothing. The prepayment restoration that "
+        "makes them differ has been dropped."
+    )
+
+
+def test_a_year_the_mixed_pair_never_refused_cannot_be_reported_as_a_flip():
+    """MUTATION: report every admitted year as a flip and this fires.
+
+    `years_the_mixed_pair_refused_and_the_joint_pair_admits` is the set §12 uses to withdraw §11's
+    result 2, and a set that credited the joint reading with years the mixed reading never refused
+    would be the "counterfactual crediting itself with a year it inherited" shape that §10's own
+    controls exist over. It is DERIVED from the two sections here, longhand, so it cannot be
+    written down.
+    """
+    split = _split_module()
+    reading = split.published_route_split()
+    joint, mixed = reading["where_the_worlds_joint_point_falls"], reading["where_the_worlds_point_falls"]
+    for basis in split.BASES:
+        claimed = joint["years_the_mixed_pair_refused_and_the_joint_pair_admits"][basis]
+        for year_s in claimed:
+            was = mixed["per_year"][year_s][basis]["phi_admitting_required"]
+            assert was is not None and was[1] < 0.0, (
+                f"{year_s}/{basis} is reported as a flip and the mixed pair never refused it: "
+                f"phi_admitting_required = {was}."
+            )
+            assert all(
+                not acc["record_refuses_the_joint_pair"]
+                for ep in joint["per_year"][year_s][basis].values()
+                for acc in ep["accountings"].values()
+            ), f"{year_s}/{basis} is reported as a flip and the joint pair is refused somewhere."
+        recomputed = [
+            y for y, row in joint["per_year"].items()
+            if (mixed["per_year"].get(y, {}).get(basis, {}).get("phi_admitting_required") or [0, 0])[1] < 0.0
+            and all(
+                not acc["record_refuses_the_joint_pair"]
+                for ep in row[basis].values() for acc in ep["accountings"].values()
+            )
+        ]
+        assert claimed == recomputed, (
+            f"{basis}: the flip set disagrees with the two verdicts it is the intersection of."
+        )
+
+
+def test_a_joint_phi_above_one_is_not_reported_as_a_refusal():
+    """MUTATION: flag `phi[1] > 1` as a refusal, or clip phi into [0, 1], and this fires.
+
+    THE RECORD REFUSES THE PAIR IN TWO DIFFERENT SENTENCES AND THEY ARE NOT THE SAME FINDING. A phi
+    interval entirely below zero says the fixed route would have to contribute negative departures.
+    A phi interval entirely above one says the record needs more external switching from fixed
+    households than the published active-renewal share can supply. Collapsing them into one boolean
+    would make §12's "the record refuses the pair in no year" unreadable -- and 2023 and 2024 carry
+    phi intervals whose UPPER end exceeds 1.0 while their lower end does not, which is neither
+    refusal and would be miscounted as one under either collapse.
+    """
+    joint = _joint()
+    split = _split_module()
+    straddles_one = 0
+    for year_s, row in joint["per_year"].items():
+        for basis in split.BASES:
+            for endpoint, cell in row[basis].items():
+                for accounting, acc in cell["accountings"].items():
+                    lo, hi = acc["phi_admitting_joint"]
+                    where = f"{year_s}/{basis}/{endpoint}/{accounting}"
+                    assert acc["record_refuses_the_joint_pair"] == (hi < 0.0), (
+                        f"{where}: the refusal flag is not 'the whole phi interval is negative'."
+                    )
+                    assert acc["record_needs_more_than_the_fixed_route_can_supply"] == (lo > 1.0), (
+                        f"{where}: the over-supply flag is not 'the whole phi interval exceeds 1'."
+                    )
+                    assert not (
+                        acc["record_refuses_the_joint_pair"]
+                        and acc["record_needs_more_than_the_fixed_route_can_supply"]
+                    ), f"{where}: both refusals are flagged at once, which no interval can be."
+                    if lo <= 1.0 < hi:
+                        straddles_one += 1
+    assert straddles_one, (
+        "no phi interval straddles 1.0 anywhere in the reading, so a flag that fired on 'phi "
+        "reaches above 1' would be indistinguishable from one that fires on 'phi exceeds 1' and "
+        "this leg is asserting nothing."
+    )
+
+
+def test_the_joint_reading_is_wired_to_the_two_readings_and_not_to_a_column(tmp_path, monkeypatch):
+    """MUTATION: return §9's required hazard as the joint one, or cache the column, and this fires.
+
+    THE ONE DIRECTION THAT SEPARATES A RECOMPUTED READING FROM A CACHED ONE. Moving the composition
+    artefact's still-required multiple must move `joint_required_hazard` proportionally and must
+    leave `required_hazard_holding_the_worlds_share_fixed` -- which comes from the OTHER artefact --
+    exactly where it was. A joint hazard copied from §9's column would fail the first half; one
+    frozen into the committed file would fail both.
+
+    2018 on the all-domestic basis is why this is held by perturbation and not by asserting the two
+    hazards DIFFER: there the published share equals the world's to three decimals, the composition
+    multiple is 1.000, and the joint hazard is legitimately identical to §9's. A leg asserting
+    inequality would have been an equivalence in one year and a false red in the next world.
+
+    The absent-artefact branch is held here too: a published reading that needs no world must not
+    crash when the world's files are missing, and `None` is the declared result.
+    """
+    split = _split_module()
+    before = split.where_the_worlds_joint_point_falls()
+
+    perturbed = json.loads(split.COMPOSITION_ARTEFACT.read_text())
+    for row in perturbed["per_year"].values():
+        for basis in row["bases"].values():
+            for endpoint in basis.values():
+                for accounting in ("renewal_rescaled", "renewal_held"):
+                    endpoint[accounting]["hazard_multiple_still_required_at_band_low"] *= 1.5
+    moved = tmp_path / "composition.json"
+    moved.write_text(json.dumps(perturbed))
+    monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", moved)
+    after = split.where_the_worlds_joint_point_falls()
+
+    for year_s, row in before["per_year"].items():
+        assert (
+            after["per_year"][year_s]["required_hazard_holding_the_worlds_share_fixed"]
+            == row["required_hazard_holding_the_worlds_share_fixed"]
+        ), f"{year_s}: §9's required hazard moved when only §10's artefact was perturbed."
+        for basis in split.BASES:
+            for endpoint, cell in row[basis].items():
+                for accounting, acc in cell["accountings"].items():
+                    now = after["per_year"][year_s][basis][endpoint]["accountings"][accounting]
+                    # abs, not rel: both sides are published to six decimals and one of them is
+                    # then multiplied, so the tolerance is TWO units in that last place. Every
+                    # mutation this leg exists to catch -- §9's column copied in, or the reading
+                    # frozen against the file -- moves the value by 1e-2 or more, four orders up.
+                    assert now["joint_required_hazard"] == pytest.approx(
+                        acc["joint_required_hazard"] * 1.5, abs=2e-6
+                    ), (
+                        f"{year_s}/{basis}/{endpoint}/{accounting}: the joint hazard did not follow "
+                        f"the composition multiple. It is a cached column or it is §9's number."
+                    )
+
+    monkeypatch.setattr(split, "COMPOSITION_ARTEFACT", tmp_path / "absent.json")
+    assert split.where_the_worlds_joint_point_falls() is None, (
+        "the joint reading did not return a declared None with its world artefact absent."
+    )
+    assert split.published_route_split()["per_year"], (
+        "the published reading, which needs no world at all, stopped producing one when a world "
+        "artefact went missing."
+    )
+
+
+def test_the_one_phi_question_is_asked_of_the_unrepaired_world_too():
+    """MUTATION: drop the current-hazard companion, or write the intersection down, and this fires.
+
+    `one_phi_for_every_year` is EMPTY at the joint hazard, and §12 would have been entitled to call
+    that a fact about the repair -- except that it is empty at the world's CURRENT hazard as well,
+    which makes it a fact about the world's shape that predates every repair in this finding. That
+    companion reading is the only thing standing between §12 and an attribution error, so it is held
+    here: the field must be present, derived from the same per-year spans, and computed for both.
+
+    THE LEG IS KEYED TO THE DERIVATION AND NOT TO TODAY'S EMPTINESS. If a future world made either
+    intersection non-empty, `is_non_empty` flips and this stays green -- which is right, because the
+    property being held is that the question is asked of both worlds and answered from the spans,
+    not that the answer is the one §12 happened to get.
+    """
+    split = _split_module()
+    joint = _joint()
+    block = joint["one_phi_for_every_year"]
+    assert "derived after the fact" in block["status"], (
+        "the post-hoc label has gone. It is what stops a derivation made after the numbers were "
+        "seen being read as a prediction that survived them."
+    )
+    for basis in split.BASES:
+        companion = block["at_the_worlds_current_hazard"][basis]
+        assert companion["years"], f"{basis}: the unrepaired world's companion reading is empty."
+        for accounting in split.ACCOUNTINGS:
+            cell = block["at_the_joint_hazard"][basis][accounting]
+            assert set(cell["years"]) == set(companion["years"]), (
+                f"{basis}/{accounting}: the joint and current-hazard readings cover different "
+                f"years, so the comparison §12 draws from them is not like-for-like."
+            )
+            for name, section, key in (
+                ("joint", cell, None),
+                ("current", companion, "phi_admitting_the_worlds_current_hazard"),
+            ):
+                for year_s, span in section["years"].items():
+                    spans = [
+                        ep["accountings"][accounting]["phi_admitting_joint"] if key is None
+                        else ep[key]
+                        for ep in joint["per_year"][year_s][basis].values()
+                    ]
+                    assert span == [
+                        round(min(s[0] for s in spans), 6), round(max(s[1] for s in spans), 6)
+                    ], f"{year_s}/{basis}/{accounting}/{name}: the span is not the union over the "
+                    "two share endpoints it claims to be."
+                lo_i = max(s[0] for s in section["years"].values())
+                hi_i = min(s[1] for s in section["years"].values())
+                assert section["intersection"] == [round(lo_i, 6), round(hi_i, 6)], (
+                    f"{basis}/{accounting}/{name}: the intersection was written down, not derived "
+                    f"from the per-year spans."
+                )
+                assert section["is_non_empty"] == (lo_i <= hi_i), (
+                    f"{basis}/{accounting}/{name}: the emptiness verdict disagrees with the "
+                    f"interval it is supposed to be read off."
+                )
+
+    # BOTH BRANCHES, ON SPANS THIS LEG CONSTRUCTS. Every intersection in the live reading is
+    # currently EMPTY, so the checks above are satisfied by `is_non_empty = False` written as a
+    # constant -- and the first draft of this leg was, and stayed green under exactly that
+    # mutation. The rule is a module-level pure function so the reachable-True branch can be
+    # exercised here regardless of what the world says this week.
+    assert split.intersect_spans([[0.1, 0.4], [0.2, 0.9], [0.15, 0.5]]) == {
+        "intersection": [0.2, 0.4], "is_non_empty": True
+    }, "overlapping spans did not intersect. The non-empty branch is not reachable."
+    assert split.intersect_spans([[0.06, 0.10], [0.22, 0.25]]) == {
+        "intersection": [0.22, 0.1], "is_non_empty": False
+    }, (
+        "disjoint spans did not report an empty intersection with CROSSED endpoints. The crossing "
+        "is how far apart the years are and clipping it would delete the reading."
+    )
+    assert split.intersect_spans([[0.3, 0.3], [0.3, 0.3]])["is_non_empty"], (
+        "spans touching at a single point read as empty; the intersection is closed."
     )
