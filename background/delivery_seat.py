@@ -176,6 +176,65 @@ def _git(*args: str) -> str:
         return ""
 
 
+def _upstream() -> str | None:
+    """`origin/main` if this checkout has one, else None. A tree with no remote is a legitimate
+    state (a worktree cut for an isolated run, a fresh clone mid-fetch) and must degrade to a
+    HEAD-only reading that SAYS it is HEAD-only, never to a phantom divergence.
+
+    A `_git_or_none` variant was written first, on the reasoning that `_git` collapses failure and
+    a clean empty answer into the same "". Mutating it back to "" did not fire a single test, and
+    the mutation was right: NEITHER call here can distinguish them. `rev-parse --verify -q` prints
+    a sha on success, so "" is unambiguous; and the fail-closed leg below is the DIGIT PARSE, not
+    the return type. It was deleted rather than kept as unfalsifiable machinery."""
+    return "origin/main" if _git("rev-parse", "--verify", "-q", "origin/main").strip() else None
+
+
+def branch_divergence() -> dict:
+    """HEAD against `origin/main`, stated as a fact rather than assumed away.
+
+    WHY THIS EXISTS. Every judgement in this module -- the stretch, the substantive count, the
+    `wrong` grades the orienting session is handed -- was measured with `git log` in the local
+    checkout with NO revision argument, which means HEAD and only HEAD. A commit that is on
+    `origin/main` and not yet in this checkout was, to the seat, a commit that had not happened.
+    The seat then graded the stretch as quiet and skipped orienting, and the skip was recorded with
+    a reason that was true of HEAD and false of the work.
+
+    That this had not yet produced a wrong brief was luck, not structure: the shared tree is
+    usually level when the timer fires. `WORKER_FINDING_REPEATING_ALARM_PUBLISH_REFUSED_ORIGIN_
+    AHEAD_ORIGIN_MAIN_IS_COMMIT_S_AHEAD_2026-09-03.md` is the condition firing for real.
+
+    The count is `--left-right` over the symmetric difference, so `ahead` is what only HEAD has and
+    `behind` is what only origin/main has; both can be non-zero at once and that is the case the
+    old reading could not represent at all. Never raises."""
+    upstream = _upstream()
+    if upstream is None:
+        return {"available": False, "why": "no origin/main in this checkout",
+                "says": "HEAD-ONLY READING: there is no origin/main here, so the stretch below "
+                        "covers this checkout alone and cannot speak for the shared branch."}
+    raw = _git("rev-list", "--left-right", "--count", f"HEAD...{upstream}")
+    parts = raw.split()
+    if len(parts) != 2 or not all(p.isdigit() for p in parts):
+        return {"available": False, "why": f"unreadable rev-list output: {raw!r}",
+                "says": "HEAD-ONLY READING: the divergence between HEAD and origin/main could not "
+                        "be measured, so the stretch below cannot be said to cover the branch."}
+    ahead, behind = int(parts[0]), int(parts[1])
+    if not ahead and not behind:
+        says = "HEAD and origin/main are level, so the stretch below is the whole branch."
+    else:
+        says = (
+            "HEAD AND origin/main HAVE DIVERGED: {} commit(s) are on HEAD only and {} are on "
+            "origin/main only. The stretch below covers BOTH sides, so it is the same work "
+            "either way -- but a divergence is itself a fact about the machine: {}".format(
+                ahead, behind,
+                "this checkout has not fast-forwarded, so daemons running from it are executing "
+                "code the branch has moved past" if behind else
+                "work is committed here and not pushed, so nothing downstream of origin can see "
+                "it")
+        )
+    return {"available": True, "ahead": ahead, "behind": behind,
+            "diverged": bool(ahead or behind), "upstream": upstream, "says": says}
+
+
 # --------------------------------------------------------------------------- #
 # Reading the stretch                                                          #
 # --------------------------------------------------------------------------- #
@@ -206,7 +265,15 @@ def commits_since(since: datetime) -> list[dict]:
     except Exception:
         def _is_substantive_file(_f):  # noqa: ANN001 - fail-soft: nothing reads as mechanical
             return True
-    raw = _git("log", f"--since={since.isoformat()}", "--pretty=format:%H%x00%s", "--name-only")
+    # THE REVISION ARGUMENT IS THE WHOLE POINT, and its absence was the defect. `git log` with no
+    # revision means HEAD, so the stretch was the local checkout's stretch and a commit sitting on
+    # `origin/main` un-fast-forwarded was invisible to every grade in the brief. Naming both refs
+    # makes the range the UNION reachable from either (git de-duplicates), so the answer is the
+    # same whether or not this checkout happens to have caught up -- which is the property, not
+    # today's zero-zero divergence.
+    revs = [r for r in ("HEAD", _upstream()) if r]
+    raw = _git("log", f"--since={since.isoformat()}", "--pretty=format:%H%x00%s", "--name-only",
+               *revs)
     commits: list[dict] = []
     current: dict | None = None
     for line in raw.splitlines():
@@ -252,7 +319,12 @@ def commit_shape(since: datetime, now: datetime | None = None) -> dict:
         return {"available": False, "why": repr(exc)}
     try:
         hours = max(0.25, ((now or datetime.now(timezone.utc)) - since).total_seconds() / 3600.0)
-        state = commit_narrative.narrative(since_hours=hours, limit=200)
+        # BOTH SIDES, for the same reason `commits_since` reads both: the shape reader is the leg
+        # `is_material` trusts to call a stretch a machine fault, and a run of empty merges pushed
+        # to origin that this checkout has not caught up to is exactly the case it exists for.
+        state = commit_narrative.narrative(
+            since_hours=hours, limit=200,
+            revs=tuple(r for r in ("HEAD", _upstream()) if r))
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "why": repr(exc)}
     return {
@@ -440,6 +512,7 @@ def focus_drawn_since(since: datetime) -> list[str]:
 def build_brief(now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     since = stretch_since(now)
+    divergence = branch_divergence()
     commits = commits_since(since)
     previous = last_orientation() or {}
     prev_levels = previous.get("map_levels") or {}
@@ -451,6 +524,11 @@ def build_brief(now: datetime | None = None) -> dict:
     return {
         "now": now.isoformat(),
         "since": since.isoformat(),
+        # FIRST, AND BEFORE `commits`, ON PURPOSE. The brief reaches the orienting session as
+        # `json.dumps(...)[:60_000]` -- a truncation whose victim is whatever sorts last -- and the
+        # statement that the reading covers both sides of a divergence is worth nothing if the
+        # commit list can push it off the end.
+        "divergence": divergence,
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
@@ -505,6 +583,17 @@ def is_material(brief: dict) -> tuple[bool, str]:
             "nothing at all -- a machine fault, not a quiet stretch".format(
                 kinds, shape.get("count"), shape.get("carrying_work"),
                 shape.get("changed_nothing")))
+    # A CHECKOUT THAT IS BEHIND ITS OWN BRANCH IS A MACHINE FAULT, and it is placed here with the
+    # other machine fault rather than with the "did something happen" clauses. `behind` means the
+    # daemons running from this tree are executing code the branch has moved past -- pushed is not
+    # imported -- and it is precisely the state in which every OTHER clause below is least able to
+    # be trusted. `ahead` alone is NOT listed: work committed here and not yet pushed is the normal
+    # condition of a lane mid-turn, and orienting on it would fire on the seat's own commit.
+    div = brief.get("divergence") or {}
+    if div.get("available") and div.get("behind"):
+        return True, (
+            "this checkout is {} commit(s) behind origin/main, so anything running from it is on "
+            "code the branch has moved past".format(div["behind"]))
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -594,6 +683,10 @@ def _prompt(brief: dict) -> str:
           "run of identical subjects, is a finding about the MACHINE and outranks whatever else "
           "this brief says is due.\n\n"
         + rendered
+        + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
+          "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
+          "together, so it does not change with whether this checkout has fast-forwarded:\n\n"
+        + (brief.get("divergence") or {}).get("says", "the divergence was not measured at all")
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"
         + json.dumps(brief, indent=1)[:60_000]
