@@ -166,5 +166,26 @@ order is wrong**: that measurement *is* answered (the starvation question is set
 of 165 in the sibling finding), so `records/` is where it belongs — *after* the fast-forward makes
 the root copy tracked and the move a real one. Re-doing it before then just refuels the restore.
 
+**That last sentence was a prediction when I wrote it, and it was observed 8 minutes later.** The
+gate went red again on the same path, and the mtimes distinguish which half of the cycle ran:
+
+```
+docs/staging/records/<P>   mtime 23:44   PRESERVED  → a MOVE (of the copy I restored at 23:44)
+docs/staging/<P>           mtime 23:52   FRESH      → a RESTORE, after that move
+```
+
+A lane moved root→`records/`, something restored the root copy behind it, and both rooms existed
+again. **Neither removal is stable from this tree**: clear `records/` and a lane re-moves it; clear
+the root and the fast-forward brings it back, because origin holds it there. I cleared `records/` a
+second time (hashes verified equal to both the root copy and origin's root blob) to leave the gate
+green rather than leave every lane's commit refused — but the state is *wedged*, not fixed.
+
+**And it is wedged behind the same single file as everything else in this finding.** The move
+becomes landable the moment the shared tree fast-forwards; the fast-forward is refused by
+`background/process_run_complete.py`. The advance, the reconciler's `NOT_ADVANCED`, the discarded
+publish cycles and this two-rooms loop are one blockage with four symptoms, and the `FF_MODIFIED`
+path is it. *That convergence is the argument for treating one lane's uncommitted file as a
+shared-tree problem rather than that lane's business.*
+
 *Filed by the delivery seat, 2026-09-04 22:39Z, from the scheduled re-read rather than from an
 incident.*
