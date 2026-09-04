@@ -70,7 +70,13 @@ import time
 from pathlib import Path
 from typing import Mapping
 
-from background.episode_prior import ABSENT, READABLE, UNREADABLE, prior_unreadable
+from background.episode_prior import (
+    ABSENT,
+    READABLE,
+    UNREADABLE,
+    preserve_unreadable,
+    prior_unreadable,
+)
 from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -196,16 +202,7 @@ def _preserve_unreadable_store(path: Path | None = None) -> str | None:
     best-effort, because a hand-off that cannot keep the old bytes is still better than no hand-off.
     """
     store = guard_live_ledger_write(path or STORE, writer="seat_continuation._preserve")
-    for suffix in ("", *(f".{n}" for n in range(1, 10))):
-        target = store.with_name(f"{store.name}.unreadable{suffix}")
-        if target.exists():
-            continue
-        try:
-            store.rename(target)
-        except OSError:
-            return None
-        return target.name
-    return None
+    return preserve_unreadable(store)
 
 
 def _superseded_ids(items: list[dict]) -> set[str]:

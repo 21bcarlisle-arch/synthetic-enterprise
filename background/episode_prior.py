@@ -69,7 +69,7 @@ from typing import Any, Mapping
 
 __all__ = ["ABSENT", "READABLE", "UNREADABLE", "PRIOR_VERDICTS",
            "classify_prior", "load_episode_prior", "prior_unreadable",
-           "classify_list_prior", "load_list_prior"]
+           "classify_list_prior", "load_list_prior", "preserve_unreadable"]
 
 ABSENT = "absent"
 READABLE = "readable"
@@ -184,3 +184,43 @@ def prior_unreadable(verdict: str) -> bool:
     """Named rather than inlined as `== UNREADABLE`, so every carrier asks the question one way and
     a grep for the question finds all of them."""
     return verdict == UNREADABLE
+
+
+#: How many preserved copies of one state file we will keep before giving up on the next loss.
+#: Bounded because the alternative is an unbounded litter of sidecars beside a live state file;
+#: 10 is enough that a repeating corruption is obvious in a directory listing.
+MAX_PRESERVED_COPIES = 10
+
+
+def preserve_unreadable(path: Path | str) -> str | None:
+    """Move an unreadable state file aside so the rebuild that follows cannot destroy it.
+
+    Returns the name it went to, or `None` if the bytes could not be kept. BEST-EFFORT ON PURPOSE:
+    every caller of this is a daemon that must still start, and a carrier that refuses to run
+    because it could not archive a corrupt file has turned a lost suppression into an outage --
+    which is the failure the whole sweep is about, one level up.
+
+    NEVER OVERWRITES AN EARLIER PRESERVED COPY. The FIRST loss is the one that still holds the
+    real record; a second corruption an hour later would otherwise write over the only evidence of
+    the first.
+
+    CENTRALISED 2026-09-04, AND THE COUNT IS THE REASON. Five modules had hand-written this same
+    loop -- `ntfy_utils._preserve_unreadable_sent_ids`, `dispatcher._preserve_unreadable_seen`,
+    `staging_watcher._preserve_unreadable_seen`, `seat_continuation._preserve_unreadable_store`,
+    `weekly_rhythm._preserve_unreadable_baton` -- each written beside a different loader repair,
+    each correct, and every one of them a place a future fix has to be remembered separately. A
+    sixth copy for `ntfy_responder` was the point at which the copies cost more than the seam, so
+    the loop lives here, beside the classification it always follows, and the five keep their own
+    names as thin wrappers because their docstrings carry per-carrier judgement this cannot.
+    """
+    source = Path(path)
+    for suffix in ("", *(f".{n}" for n in range(1, MAX_PRESERVED_COPIES))):
+        target = source.with_name(f"{source.name}.unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            source.replace(target)
+        except OSError:
+            return None
+        return target.name
+    return None

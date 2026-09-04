@@ -90,6 +90,7 @@ from background.agent_status import update_agent_status  # noqa: E402
 # this, on the first full-suite run after the guard was wired in.
 from background import inbound_secret_redaction  # noqa: E402
 from background.notify import notify  # noqa: E402
+from background.episode_prior import load_list_prior, preserve_unreadable, prior_unreadable  # noqa: E402,E501
 from background.ntfy_utils import NTFY_AUTH_TOKEN, NTFY_TOPIC, sent_ids_unreadable, was_sent_by_us  # noqa: E402,E501
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
@@ -252,18 +253,60 @@ def acquire_singleton_lock():
     return handle
 
 
-def _load_seen_hashes() -> list[str]:
-    if SEEN_HASHES_FILE.exists():
-        try:
-            return json.loads(SEEN_HASHES_FILE.read_text())
-        except (json.JSONDecodeError, ValueError):
-            pass
-    return []
+def _load_seen_hashes() -> tuple[list[str], str]:
+    """`(hashes, verdict)`. The verdict is `episode_prior`'s -- absent, readable or unreadable.
+
+    FOUR MEMBERS OF THE PARTITION WEDGED THE RESPONDER PERMANENTLY (measured 2026-09-04, sweep of
+    the census rows never asked the loader question). The old body was
+    `json.loads(...)` under `except (json.JSONDecodeError, ValueError)` with a `-> list[str]`
+    annotation, and `json.loads` accepts `null`, a mapping and a bare string, so none of those
+    ever reached the except. Measured against a live prior of three hashes, following the value
+    into `check_once`'s `set(seen_hashes)` and `seen_hashes.append(h)`:
+
+        prior             loaded          set()       'h1' seen?  append      file after save
+        LIVE (control)    [h1,h2,h3]      ok          True        ok          [h1,h2,h3,h_new]
+        missing file      []              ok          False       ok          [h_new]        correct
+        empty file        []              ok          False       ok          [h_new]        ALL LOST
+        truncated         []              ok          False       ok          [h_new]        ALL LOST
+        json null         None            TypeError   --          Attr.Error  !! save raised
+        mapping           {'h1': 1}       ok          True(KEYS)  Attr.Error  !! save raised
+        bare string       'h1h2h3'        ok          SUBSTRING   Attr.Error  ["h1h2h3"]
+        [1, 2, 3]         [1,2,3]         ok          False       ok          [1,2,3,"h_new"]
+        ["h1", 2]         ['h1',2]        ok          True        ok          ["h1",2,"h_new"]
+
+    The bottom five are the ones that matter and they do not look like the top three. `main()`
+    binds `seen_hashes` ONCE and passes the same object every cycle, so the TypeError at
+    `set(None)` is raised inside `check_once` on EVERY poll that returns anything, caught by
+    `main`'s bare `except Exception`, logged, and retried forever against the same value -- and a
+    restart re-reads the same file. The responder stays up, keeps polling, answers nothing, and
+    `since` never advances. That is the director's own channel going deaf with the daemon alive
+    and its log scrolling, which is the self-clearing shape this census exists to enumerate.
+
+    The two quiet ones are the read-modify-write half: an empty or truncated file loses the whole
+    dedup record and `_save_seen_hashes` writes the loss back one cycle later, so the evidence is
+    gone before anyone can look. `["h1", 2]` is worse than junk -- it answers "seen" off a record
+    already known to be corrupt, and persists the corrupt member.
+
+    ABSENT AND UNREADABLE TAKE THE SAME ACTION AND ARE NOT THE SAME ANSWER. Starting with an empty
+    dedup list is right for both: a lost list cannot tell us what we already answered, and the
+    responder must keep answering. But absent is a normal first run, and unreadable is a record
+    that existed and cannot be read -- so the verdict comes back separately, `main` logs it as its
+    own line and the bytes are preserved instead of being overwritten by the rebuild.
+    """
+    return load_list_prior(SEEN_HASHES_FILE)
 
 
 def _save_seen_hashes(hashes: list[str]) -> None:
+    """Atomic: tmp + `os.replace`, matching `ntfy_utils.record_sent_id`.
+
+    A plain `write_text` over the live path is how this file becomes the truncated member of the
+    partition above -- the loader repair handles that state, and this stops manufacturing it. Both
+    halves are needed: removing one cause of a silent absence does not remove the absence.
+    """
     SEEN_HASHES_FILE.parent.mkdir(parents=True, exist_ok=True)
-    SEEN_HASHES_FILE.write_text(json.dumps(hashes[-MAX_SEEN_HASHES:]))
+    tmp_path = SEEN_HASHES_FILE.with_name(SEEN_HASHES_FILE.name + ".tmp")
+    tmp_path.write_text(json.dumps(hashes[-MAX_SEEN_HASHES:]))
+    os.replace(tmp_path, SEEN_HASHES_FILE)
 
 
 def _latest_run_log() -> Path | None:
@@ -769,7 +812,16 @@ def main() -> None:
         return
 
     since = _load_since()
-    seen_hashes = _load_seen_hashes()
+    seen_hashes, seen_verdict = _load_seen_hashes()
+    if prior_unreadable(seen_verdict):
+        # Logged, not paged, and the asymmetry with the provenance guard below is the judgement:
+        # an unreadable SENT-IDS record can stage a fabricated `from_rich` carrying the director's
+        # authority, so it pages and quarantines; an unreadable SEEN-HASHES record can at worst
+        # answer one replayed message twice, and the claim ledger still holds at-most-once
+        # EXECUTION. Paging on that would spend the channel's attention on a duplicate ack.
+        preserved = preserve_unreadable(SEEN_HASHES_FILE)
+        log(f"Seen-hash record present but UNREADABLE -- starting with an empty dedup list. "
+            f"Bytes preserved as {preserved!r} (a replayed message may be answered twice).")
     log("NTFY responder started")
     while True:
         try:
