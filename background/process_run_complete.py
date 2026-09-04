@@ -4280,6 +4280,40 @@ def _commit_pathspec(files, extra_relative=()):
     return spec
 
 
+def _clear_two_rooms_before_commit() -> dict:
+    """Clear a staging duplicate that appeared DURING this run, immediately before committing.
+
+    THE REPAIR ALREADY EXISTED AND ALREADY RAN. It ran too early to help.
+    `background_worker` calls `staging_two_rooms_repair.observe()` once at the TOP of its cycle
+    and then spends the rest of that cycle inside this publish, which routinely takes forty-five
+    minutes. `finding_classes --check` is a pre-commit gate, so the refusal is evaluated at the
+    FAR END of that interval. The window in which a duplicate can wedge a publish is therefore
+    exactly the window in which the repairer cannot get another turn — and the next turn only
+    comes after the publish it would have saved has already been refused.
+
+    Measured, 2026-09-04: the sweep sat clean at 12:30, two preregistrations were written into
+    both the root and `records/` at 13:01 and 13:06, and the commit at the end of that same cycle
+    was refused on them. `staging_two_rooms_repair.classify` graded BOTH `redundant` — the repair
+    was one function call away for the whole 45 minutes and structurally could not be reached.
+
+    So the repair moves to the point of use. This is the same shape as re-reading a fork
+    measurement immediately before acting on it rather than at the top of the turn: a check whose
+    subject can change under you is worth only as much as its recency at the moment of decision.
+
+    NOT a replacement for the worker's sweep, which still catches duplicates that appear while no
+    publish is running. Two call sites of one repair, because they cover different intervals.
+
+    Never raises. A publish must not die of its own housekeeping — the failure this fixes is a
+    refused commit, and turning that into a crashed publisher would be a worse outage than the
+    one it prevents.
+    """
+    try:
+        from background import staging_two_rooms_repair
+        return staging_two_rooms_repair.repair(staging=PROJECT_DIR / "docs" / "staging")
+    except Exception as exc:  # noqa: BLE001
+        return {"repaired": [], "conflicts": [], "error": str(exc)}
+
+
 COMMIT_HOOK_DURATION_PATH = (
     PROJECT_DIR / "docs" / "observability" / "commit_hook_duration.jsonl")
 
@@ -4788,6 +4822,21 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 # no-op, so the run would never be published again. An empty pathspec is a
                 # broken state, and the next cycle must really retry it.
                 return _outcome(COMMIT_REFUSED, False)
+            # A staging duplicate written WHILE this run was going refuses the commit below,
+            # and the worker's own sweep ran before this run started. Repair at the point of
+            # use -- see `_clear_two_rooms_before_commit` for the 45-minute blind window.
+            _rooms = _clear_two_rooms_before_commit()
+            if _rooms.get("repaired"):
+                log("Cleared {} redundant staging duplicate(s) that would have refused this "
+                    "publish commit: {}".format(len(_rooms["repaired"]),
+                                                ", ".join(_rooms["repaired"])))
+            if _rooms.get("conflicts"):
+                # Said BEFORE the refusal rather than after it, so the log reads as a diagnosis
+                # rather than a surprise. This branch cannot fix itself: the repairer is timid by
+                # construction and will not delete a copy that carries text the other room lacks.
+                log("TWO ROOMS, not safely repairable, so the commit below is expected to be "
+                    "REFUSED and every other commit in the tree with it: {} -- resolve by hand."
+                    .format(", ".join(_rooms["conflicts"])))
             _hook_started = time.monotonic()
             result = subprocess.run(["git", "commit", "-m", msg, "--"] + pathspec,
                                     cwd=str(PROJECT_DIR),
