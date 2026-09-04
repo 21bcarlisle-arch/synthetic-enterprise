@@ -155,20 +155,12 @@ def record_sent_id(msg_id: str) -> None:
 def _preserve_unreadable_sent_ids() -> str | None:
     """Move an unreadable sent-ids file aside so the rebuild cannot destroy it. Where it went.
 
-    Called with the flock already held. Never overwrites an earlier preserved copy -- the FIRST
-    loss is the one that still has the ids in it -- and it is best-effort, because a send that
-    cannot keep the old bytes is still better than a send that does not go.
+    Called with the flock already held. The retention rule (never overwrite an earlier copy;
+    best-effort) now lives once in `episode_prior.preserve_unreadable` -- this and its two
+    siblings were byte-identical copies until 2026-09-04.
     """
-    for suffix in ("", *(f".{n}" for n in range(1, 10))):
-        target = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + f".unreadable{suffix}")
-        if target.exists():
-            continue
-        try:
-            SENT_IDS_FILE.replace(target)
-        except OSError:
-            return None
-        return target.name
-    return None
+    from background.episode_prior import preserve_unreadable
+    return preserve_unreadable(SENT_IDS_FILE)
 
 
 def sent_ids_unreadable() -> bool:

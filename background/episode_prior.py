@@ -69,7 +69,7 @@ from typing import Any, Mapping
 
 __all__ = ["ABSENT", "READABLE", "UNREADABLE", "PRIOR_VERDICTS",
            "classify_prior", "load_episode_prior", "prior_unreadable",
-           "classify_list_prior", "load_list_prior"]
+           "classify_list_prior", "load_list_prior", "preserve_unreadable"]
 
 ABSENT = "absent"
 READABLE = "readable"
@@ -178,6 +178,34 @@ def load_list_prior(path: Path | str, item_type: type = str) -> tuple[list[Any],
         return [], ABSENT
     except OSError:
         return [], UNREADABLE
+
+
+def preserve_unreadable(path: Path | str) -> str | None:
+    """Move an unreadable state file aside so the rebuild that follows cannot destroy it.
+
+    Returns the NAME it went to, or None if it could not be kept. Never overwrites an earlier
+    preserved copy: the FIRST loss is the one that still holds the record. Best-effort by
+    design -- a carrier that cannot keep the old bytes must still start, because a daemon that
+    refuses to start is the failure most of these repairs are about.
+
+    CENTRALISED 2026-09-04 as the FOURTH call site was about to be written. `ntfy_utils`,
+    `staging_watcher` and `dispatcher` each carried a byte-identical private copy, two of them
+    with a comment saying "same shape as" the first -- which is a fork of the fix history wearing
+    a cross-reference. They now delegate here, so a change to the retention rule reaches all of
+    them. It belongs in this module because the caller is always one branch away from
+    `prior_unreadable(verdict)`, and that is the only condition under which it is ever right.
+    """
+    p = Path(path)
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = p.with_name(p.name + f".unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            p.replace(target)
+        except OSError:
+            return None
+        return target.name
+    return None
 
 
 def prior_unreadable(verdict: str) -> bool:

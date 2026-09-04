@@ -86,11 +86,13 @@
     },
     ".ntfy_responder_seen_hashes.json": {
       "verdict": "benign",
-      "why": "A dedupe set of inbound message hashes. Append-only; no episode-scoped field."
+      "why": "A dedupe set of inbound message hashes. Append-only; no episode-scoped field.",
+      "loader": "SWEPT 2026-09-04 and it left the daemon ALIVE AND DEAF. `_load_seen_hashes` was annotated `-> list[str]` under `except (json.JSONDecodeError, ValueError)`, and `null` returned None while `{\"other\": 1}` returned a dict -- both PARSE, so the except-clause never saw them. `check_once` opens with `set(seen_hashes)` on every successful poll, ahead of any message filtering: None raised TypeError there, `main`'s loop caught every Exception and logged it, and the responder went on polling every 20 seconds forever without advancing the watermark or processing a single message. A mapping survived `set()` and raised AttributeError on `seen_hashes.append(h)` instead -- i.e. only at the moment a real message finally arrived. The two list members did not raise at all: every hash missed and `_save_seen_hashes` wrote the wrong things BACK, which is why this row outranked the rest -- it is a read-modify-write, so an unreadable record is a WIPED record and not a lost suppression. Repaired via `episode_prior.load_list_prior`; `main` preserves the bytes before the first save. ABSENT and UNREADABLE take the same ACTION (empty dedup set) and are DIFFERENT ANSWERS: losing the set costs a replayed body being acked twice, bounded by `claim_message`'s at-most-once EXECUTION claim, and never costs a message. `[]` stays READABLE -- an empty record is a fact, an empty FILE is not. Control: tests/background/test_the_inbound_channels_three_loaders.py"
     },
     ".ntfy_responder_since.json": {
       "verdict": "benign",
-      "why": "A poll watermark ({\"since\": ts}). Advancing it is the mechanism; no alarm derives severity from its age."
+      "why": "A poll watermark ({\"since\": ts}). Advancing it is the mechanism; no alarm derives severity from its age.",
+      "loader": "SWEPT 2026-09-04 and it was the WORST of the three, because it stopped the daemon STARTING. `_load_since` did `json.loads(...)[\"since\"]` under `except (json.JSONDecodeError, KeyError)`; `null`, `[1, 2, 3]` and `[\"x\", 2]` all parse, so the subscript one line later raised TypeError, uncaught. That call is the FIRST statement of `main()` with no try above it, so a half-written watermark did not cost one poll -- the only inbound route the director has into this machine was simply absent, the `.sim_next_run_not_before.json` shape moved onto the channel. Repaired via `episode_prior.load_episode_prior`, and the partition gained a FOURTH answer: a mapping that parses but carries no `since` is `readable_without_watermark`, distinct from both absent and unreadable, because unreadable bytes are worth preserving and that record is not. UNREADABLE still resumes from now, argued not defaulted: looking BACK on a lost watermark re-enters `_register_inbound_and_detect_flood` and quarantines the very messages the lookback was for, so the ACTION is the cold-start one and the ANSWER is not -- `main` alarms and preserves the bytes so an operator can read the watermark back out. Control: tests/background/test_the_inbound_channels_three_loaders.py"
     },
     ".sent_ntfy_ids.json": {
       "verdict": "benign",
@@ -107,7 +109,8 @@
     },
     ".last_processed_fingerprint.json": {
       "verdict": "benign",
-      "why": "The fingerprint of the last processed run, for idempotence (don't republish an unchanged run). Latest-value by design; no severity derived."
+      "why": "The fingerprint of the last processed run, for idempotence (don't republish an unchanged run). Latest-value by design; no severity derived.",
+      "loader": "SWEPT 2026-09-04 and it is SOUND IN EVERY DIRECTION -- recorded because a row nobody asked is a gap, and an honest pass is worth exactly as much as a repair here. The direction named this as one of the four read-modify-write carriers to rank first; it is not one. `_write_last_fingerprint` overwrites with a freshly COMPUTED value and never reads the file, so nothing on disk can be carried into what replaces it. Measured over the whole partition against a live prior of `{\"date\": \"2026-09-01\"}`: missing/empty/truncated/`null` -> None, `[1, 2, 3]`/`{\"other\": 1}`/`[\"x\", 2]` -> the parsed junk. No member raises, and every one of them compares unequal to the freshly built fingerprint, so the branch taken is REPUBLISH -- the safe direction, since the cost is one redundant publish and the alternative is a stale site. The absent/unreadable conflation is real and costs only the reason: `_read_last_fingerprint` returns None for both. Left unrepaired deliberately rather than folded in -- the two answers drive the SAME branch and no caller distinguishes them, so a verdict here would be a control watching nothing. If a caller is ever added that treats a missing fingerprint as evidence rather than as absence, this row is wrong and needs the split."
     },
     ".reconcile_watch_state.json": {
       "verdict": "benign",
