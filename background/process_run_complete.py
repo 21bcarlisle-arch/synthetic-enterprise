@@ -6171,9 +6171,37 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # The attribution is a third, finer answer to "what happened", so it gets its own field
         # and every existing reader is untouched.
         cause = cause if cause else publish_cause.UNATTRIBUTED
+        # A REFUSAL TO ATTRIBUTE MUST NAME ITS REASON, ON EVERY BRANCH (2026-09-04). Only the
+        # rc=77 caller passes a cause, because only it consults `read_cause` -- which by contract
+        # ALWAYS returns a sentence, on the attribution and on the refusal alike. Every other
+        # branch (rc=78, rc=79, and the generic fall-through that catches rc=1) passed neither,
+        # so `str(cause_evidence or "")` stored the empty string and the record read
+        # `"cause": "unattributed", "cause_evidence": ""` -- "we cannot tell" with no reason,
+        # which is the one shape this project's rule on refusals forbids.
+        #
+        # OBSERVED, not inferred: `.publish_gate_state.json` at 2026-09-04 11:18:50Z carried
+        # exactly that pair for `process_run_complete rc=1 on run_complete_20260904T104410Z.md`,
+        # and the reader it was written for -- the RUNG-1 draw, and the seat brief quoting it --
+        # got a verdict with nothing behind it. The prose in `_fire_publish_gate_alert` already
+        # falls back to "no cause record was available"; the RECORD did not, and that module's
+        # own comment says why that is the wrong way round: the record is the thing that gets
+        # quoted.
+        #
+        # THE CAUSE IS NOT INVENTED HERE, only the reason for its absence. Reading
+        # `PUBLISH_CAUSE_FILE` on these branches would attribute from the exit status -- the
+        # publisher reaches them precisely when it did NOT observe one of the five named causes,
+        # so any record at this hash is a different cycle's. That is the inference
+        # `publish_cause` exists to refuse; the honest `unattributed` stands and now says why.
+        evidence = str(cause_evidence or "").strip()
+        if not evidence:
+            evidence = ("recorded with no observation attached (rc={}, kind={}) -- {}".format(
+                rc, kind,
+                "this exit path names no cause, so which one it was is NOT established here"
+                if str(cause) == publish_cause.UNATTRIBUTED
+                else "the cause beside it was named without the observation that decided it"))
         failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind,
                          "git_hash": git_hash, "cause": str(cause),
-                         "cause_evidence": str(cause_evidence or "")})
+                         "cause_evidence": evidence})
         count = len(failures)
         # PERSISTENT wedge-start (2026-07-24): preserve the existing streak start; only stamp `now`
         # when the streak is starting (no prior wedge_since). Survives the 1h window trim above so a

@@ -327,3 +327,65 @@ def test_the_alarm_prose_carries_the_attribution_not_just_the_field(archived_mar
     assert "ATTRIBUTED CAUSE" in msg and pc.PUSH_NEVER_LANDED in msg
     assert "origin/main still at d7d1b07b6" in msg, (
         "the observation that decided it must reach the phone, not only the label")
+
+
+# ── A refusal to attribute names its reason, on EVERY branch ─────────────────────────────────
+
+def test_no_failure_branch_records_an_unattributed_verdict_with_no_reason(archived_marker,
+                                                                          monkeypatch):
+    """ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch.
+
+    THE DEFECT, observed (R9). `.publish_gate_state.json` at 2026-09-04 11:18:50Z:
+
+        {"cause": "unattributed", "cause_evidence": "", "git_hash": "3d369242c",
+         "kind": "test_regression", "rc": 1,
+         "reason": "process_run_complete rc=1 on run_complete_20260904T104410Z.md"}
+
+    "We cannot tell", with nothing at all saying why -- and that record is what the RUNG-1 draw
+    and the delivery seat's own brief quote. The null control above
+    (`test_an_unattributed_failure_says_so_rather_than_guessing`) already held this property, but
+    ONLY for `EXIT_PUBLISH_DID_NOT_LAND`: that is the one branch whose caller consults
+    `read_cause`, which by contract always returns a sentence. The three branches beside it
+    passed no evidence at all, so the property was true where it was tested and false everywhere
+    else -- this repo's own "a fix that removes one cause of a silent absence leaves the absence"
+    shape, and the reason it is worth one control over all four rather than a fifth row.
+
+    REACHABILITY BEFORE VERDICT. The partition assertion runs FIRST and is the point: a mutation
+    that routed every rc through the rc=77 branch would make the evidence non-empty on all four
+    and pass the rest of this test while deleting three distinct diagnoses. Four rcs must still
+    produce four DISTINCT kinds, because three other readers switch on `kind`.
+
+    MUTATION: restore `"cause_evidence": str(cause_evidence or "")` and this reds on rc=78,
+    rc=79 and rc=1 -- three rows, not one, which is what tells you the property was partial
+    rather than absent.
+    """
+    # Nothing may leave the machine: four failures in one window meets the alert threshold, and
+    # the default send path is the real NTFY.
+    import background.notify as notify_mod
+    monkeypatch.setattr(notify_mod, "notify", lambda *a, **k: "stub-id")
+
+    branches = (prc.EXIT_PUBLISH_DID_NOT_LAND, prc.EXIT_GATE_TIMED_OUT,
+                prc.EXIT_TREE_LOCK_UNAVAILABLE, 1)
+    kinds = {}
+    for rc in branches:
+        assert prc.record_publish_gate_outcome(str(archived_marker), rc) == "failure", (
+            "rc={} must reach a failure record, or this row proves nothing about it".format(rc))
+        kinds[rc] = _last_failure()["kind"]
+
+    assert len(set(kinds.values())) == len(branches), (
+        "the four failure branches must stay distinguishable -- collapsing them would satisfy "
+        "every assertion below while destroying the diagnosis: {}".format(kinds))
+
+    for entry in _state()["failures"]:
+        rc, kind = entry["rc"], entry["kind"]
+        assert entry["cause_evidence"].strip(), (
+            "rc={} ({}) recorded `cause` = {!r} with an EMPTY reason -- a refusal that does not "
+            "say why is the one shape the rule on refusals forbids, and this record is what the "
+            "RUNG-1 draw quotes".format(rc, kind, entry["cause"]))
+        assert entry["cause_evidence"].strip() != entry["cause"], (
+            "rc={} ({}) restated the label as its own evidence -- a cause is not an "
+            "observation".format(rc, kind))
+        if entry["cause"] == pc.UNATTRIBUTED:
+            assert "NOT established" in entry["cause_evidence"], (
+                "an unattributed row must say the cause is NOT established, in words a reader "
+                "can act on -- rc={} said {!r}".format(rc, entry["cause_evidence"]))
