@@ -19,6 +19,7 @@ named cause of one of the 2026-08-09/10 wedges.
 """
 from __future__ import annotations
 
+import json
 import subprocess as _sp
 
 import pytest
@@ -457,3 +458,88 @@ def test_a_failed_remainder_never_republishes_a_red_count_it_did_not_take(monkey
     assert after["checked_at"] != before, (
         "the annotation's write-time clock did not move when the findings half was refreshed, "
         "so the two halves are sharing one clock again")
+
+
+# ── the throttle must bound ATTEMPTS, not successes ─────────────────────────────────────────────
+
+def test_a_timed_out_annotation_still_stamps_the_throttle(tmp_path, monkeypatch):
+    """THE DEFECT THIS OWNS, measured on the live box 2026-09-04.
+
+    `_remainder_due` reads `last_run_ts`, and that key was written ONLY on the success path. The
+    remainder suite cannot finish inside what the publish path leaves it -- four attempts in the
+    log window, four timeouts (3490s, 3800s, 3800s, 3664s) -- so the clock had not moved for 76.4
+    hours and the step came due again on every single publish cycle. Each one spent ~an hour of
+    held run lock and produced nothing. With `sim_runner` minting a marker every 13.3 minutes,
+    that hour is why the queue could not keep up and the site ran hours behind.
+
+    An interval bounds how often a step is ATTEMPTED. Keying it to success makes a
+    permanently-failing step a permanent tax, and hides it: each cycle logs an honest, isolated
+    "skipped (non-fatal)" and nothing anywhere counts them.
+
+    MUTATION: remove the stamp from the failure path -- the shape as found -- and this fires.
+    """
+    state = tmp_path / "rem.json"
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 3)
+
+    def always_times_out(argv):
+        raise _sp.TimeoutExpired(cmd="pytest", timeout=3800)
+
+    assert prc._remainder_due() is True, "precondition: with no state file the step is due"
+    assert prc.run_remainder_annotation_step("abc1234", runner=always_times_out) is None
+    assert state.is_file(), "a timed-out attempt left no clock, so it is due again immediately"
+    assert prc._remainder_due() is False, (
+        "the step is due again on the very next cycle, which is the hour-per-cycle tax itself"
+    )
+
+
+def test_a_failed_attempt_never_records_a_red_count_it_did_not_measure(tmp_path, monkeypatch):
+    """THE FAIL-SILENT THIS MUST NOT TRADE FOR. Stamping the clock is a fact about this process;
+    a red count would be a fact about a tree nothing looked at. An empty `reds` reaching the page
+    is "0 non-blocking reds" next to a suite that never ran.
+
+    MUTATION: write `"reds": []` alongside the clock and this fires."""
+    state = tmp_path / "rem.json"
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 0)
+
+    def always_times_out(argv):
+        raise _sp.TimeoutExpired(cmd="pytest", timeout=3800)
+
+    prc.run_remainder_annotation_step("abc1234", runner=always_times_out)
+    written = json.loads(state.read_text())
+    assert "reds" not in written, "a run that measured no tree published a red count"
+    assert written["rc"] is None and written["outcome"] == "unavailable"
+    assert written["last_run_ts"] > 0
+
+
+def test_every_outcome_of_the_annotation_step_is_reachable(tmp_path, monkeypatch):
+    """THE REACHABILITY LEG: not-due, ran, and failed-but-throttled must each be producible. A
+    version that could only ever take one of them passes every leg above -- and the shape as
+    found was exactly that: the failure path existed, ran constantly, and could never reach the
+    state the other two write."""
+    state = tmp_path / "rem.json"
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 1)
+
+    class _Ok:
+        returncode = 0
+        stdout = ""
+
+    ran = prc.run_remainder_annotation_step("abc1234", runner=lambda argv: _Ok())
+    assert ran is not None and json.loads(state.read_text())["rc"] == 0
+
+    not_due = prc.run_remainder_annotation_step("abc1234", runner=lambda argv: _Ok())
+    assert json.loads(state.read_text())["rc"] == 0, "a throttled cycle re-ran the suite"
+
+    state.unlink()
+
+    def boom(argv):
+        raise _sp.TimeoutExpired(cmd="pytest", timeout=10)
+
+    failed = prc.run_remainder_annotation_step("abc1234", runner=boom)
+    assert failed is None and json.loads(state.read_text())["outcome"] == "unavailable"
+    assert (ran, not_due, failed) != (None, None, None)

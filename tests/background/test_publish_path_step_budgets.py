@@ -43,6 +43,7 @@ correctly in it. A hand list would have had to get both of those right by hand, 
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 
 import pytest
@@ -323,8 +324,29 @@ def test_the_exhausted_skip_never_publishes_a_false_all_clear(monkeypatch, tmp_p
 
     assert "nonblocking_reds" not in recorded, (
         "a skipped annotation published a reds list -- an all-clear for a suite that never ran")
-    assert not state_file.exists(), (
-        "a skipped annotation wrote an annotation state, which the page reads as a result")
+
+    # NARROWED 2026-09-04, and the reason it was too wide is the defect it caused. This used to
+    # assert `not state_file.exists()`, "which the page reads as a result". The page does not read
+    # it: the annotation the reader sees comes from `publish_provenance.PROVENANCE_FILE`
+    # (site/data/publish_provenance.json) via `record_annotation`, asserted above. Grepped
+    # 2026-09-04 -- nothing under site/ or tools/ names this file, and inside
+    # process_run_complete the ONLY reader is `_remainder_due`, which reads `last_run_ts`.
+    #
+    # Keying the control to the FILE rather than to the CLAIM made the throttle unable to bound a
+    # step that always fails: the clock was written only on the success path, the remainder suite
+    # cannot finish in what the publish path leaves it (four attempts, four timeouts), so it came
+    # due on every publish cycle for 76 hours and spent ~an hour of held run lock each time.
+    #
+    # So the property is what may be PUBLISHED, not whether a private clock exists.
+    written = json.loads(state_file.read_text()) if state_file.exists() else {}
+    assert "reds" not in written, (
+        "a skipped annotation recorded a reds list -- the all-clear, one file further back")
+    assert written.get("rc") is None and written.get("outcome") == "unavailable", (
+        "a skipped annotation recorded an outcome indistinguishable from a real run")
+    assert written.get("last_run_ts"), (
+        "no clock was stamped, so a permanently-failing step is due again on the next cycle -- "
+        "which is the hour-per-cycle tax this narrowing exists to stop"
+    )
 
 
 # ────────────────────────────────────────────── the shared primitive stayed shared

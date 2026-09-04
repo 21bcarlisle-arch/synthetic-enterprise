@@ -5225,7 +5225,32 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
                 publish_provenance.record_annotation(open_findings=findings)
         except Exception:  # noqa: BLE001 -- the observer still may not red its subject
             pass
-        log("Remainder annotation skipped (non-fatal): {}".format(exc))
+        # STAMP THE ATTEMPT, NOT THE SUCCESS. The throttle's clock was written only on the path
+        # above, so a step that ALWAYS fails was never throttled: it came due again on the very
+        # next publish cycle, spent the whole remaining budget, timed out, and left the clock
+        # where it was. Measured 2026-09-04 -- last stamp 76.4 hours old, four attempts in the
+        # log window and four timeouts (3490s, 3800s, 3800s, 3664s), so for three days every
+        # publish cycle paid an hour of held run lock for nothing. With a marker arriving every
+        # 13.3 minutes, that hour is the whole reason the queue could not keep up.
+        #
+        # An interval bounds how often a step is ATTEMPTED, not how often it succeeds. Keying it
+        # to success makes a permanently-failing step a permanent tax and hides it, because each
+        # cycle's log line is an honest, isolated "skipped (non-fatal)".
+        #
+        # WHAT IS DELIBERATELY NOT WRITTEN: `reds`. A run that produced no transcript measured no
+        # tree, and `record_annotation` two modules away refuses an invented measurement for this
+        # exact reason. The clock is a fact about this process; a red count would be a fact about
+        # a tree nothing here looked at.
+        try:
+            REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
+                {"last_run_ts": time.time(), "rc": None, "git_hash": git_hash,
+                 "outcome": "unavailable", "reason": str(exc)[:400]}, indent=2) + "\n")
+        except Exception:  # noqa: BLE001 -- the observer still may not red its subject
+            pass
+        log("Remainder annotation skipped (non-fatal): {} -- throttle clock stamped anyway, so "
+            "this cannot run again for {:.0f} min.".format(
+                exc, REMAINDER_ANNOTATION_INTERVAL_SECONDS / 60))
         return None
 
 
