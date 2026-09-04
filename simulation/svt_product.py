@@ -43,33 +43,50 @@ Before 2019 there was no cap and the series holds a supplier-set midpoint with a
 band. The segmentation is the same; only the confidence in the number differs, and that is the
 anchor's own caveat, not this module's.
 
-WHAT THIS DELIBERATELY DOES NOT DO YET, AND WHY NO ACCOUNT IS ASSIGNED TO IT
----------------------------------------------------------------------------
-**An account on this product cannot currently leave.** The renewal decision is the only place
-`run_phase2b` rolls for a departure, and this product correctly has no renewal decision. So a
-household moved onto SVT today would become immortal, and a book of immortal households earns
-more than a real one.
+ACCOUNTS ARE ASSIGNED TO THIS PRODUCT, AND THEY CAN LEAVE IT
+------------------------------------------------------------
+**This section used to say the opposite, and said it for eleven days after it stopped being
+true.** It read *"WHAT THIS DELIBERATELY DOES NOT DO YET, AND WHY NO ACCOUNT IS ASSIGNED TO IT"*,
+stated that *"an account on this product cannot currently leave"* and that *"the product exists
+and settles, and nothing is assigned to it"*, and cited
+`test_svt_product.py::test_no_account_is_on_the_svt_product_yet` as holding it there. Corrected
+2026-09-04, beside the claim rather than over it, because `site/data/value_arms.json` sends a
+reader to THIS FILE as the evidence for refusing 1,223 renewals at the product gate — and the
+file was telling them nothing was on the product.
 
-That is a change in the company's favour, made blind to nothing, and R13 forbids it. **So the
-product exists and settles, and nothing is assigned to it.** `build_renewal_schedule` routes
-here only for a customer record that says `tariff_type: "svt"`, and no roster writes that
-value — which `test_svt_product.py::test_no_account_is_on_the_svt_product_yet` asserts, so the
-day someone assigns one, the control that says the inertia hazard is missing fires first.
+All three things that were owed before assignment are built:
 
-What is owed before assignment, in order:
-  * an **inertia hazard** — the published SVT churn rate is roughly 10–15%/yr and the world
-    already holds the anchored figure as `renewal_engagement.PASSIVE_CHURN_CAP = 0.10`, the
-    ceiling on a passive roller's realised churn. Converted to a per-segment hazard it is
-    `1 - (1 - 0.10) ** 0.25 = 0.0260` a quarter, which recomposes to 0.100 over four. A
-    departure from SVT has no term structure and must be able to land in any quarter.
-  * **assignment generated from behaviour**: never engaged; a fixed term ended and the household
-    did not act; or a home move onto the incumbent. The third does not exist in the world at all
-    (`docs/design/CHOICE_AND_CHANNEL_ROADMAP.md`, C6), so the generated SVT share will come out
-    LOW against the published one — the direction that leaves more of the book priceable than
-    reality would, and therefore an upper bound on the company's honest in-scope surface.
+  * the **inertia hazard** — `inertia_hazard_for_term` (below), delegating to
+    `departure_risks.svt_inertia_hazard`. The anchored ceiling is still
+    `renewal_engagement.PASSIVE_CHURN_CAP = 0.10` on a passive roller's realised churn, and a
+    departure can land in any quarter because an SVT stint has no term structure.
+  * **assignment generated from behaviour** — the C1b branch in `simulation/renewals.py`. At each
+    non-first resi fixed boundary `rolls_active_renewal` decides whether the household shops or
+    rolls onto the cap, at the anchored 35% population active-renewal rate with a per-household
+    engagement archetype. It assigns MID-TENURE and never touches the roster, which is why the
+    old interlock — a scanner over `ELEC_CUSTOMERS` for `tariff_type: "svt"` — would have stayed
+    green through exactly the change it existed to catch. It was retired and re-keyed to the
+    property, as `test_an_account_on_the_svt_product_can_leave_it`.
   * the **published year-by-year fixed/SVT split** printed beside the result as a CHECK. Never
     an input: if the split has to be set to land in range, the behaviour is wrong and setting it
-    hides that.
+    hides that. The report is `tools/svt_generated_share_check.py`, and the band it reads lives
+    in `tools/published_tariff_mix.py` — which nothing in `simulation/` may import, held as a
+    control by `test_the_published_check_band_cannot_be_read_by_the_world_it_judges`. Both of
+    those files quote this bullet's rule as this module's own words; it is kept verbatim here so
+    that their attributions stay resolvable.
+
+WHAT THE CHECK SAYS, AND THAT IT IS NOT YET CLOSED
+--------------------------------------------------
+Run at `8b6c12e5a` on 2026-09-04, basis `all_domestic`: every one of the eight years carrying a
+published band is OUT, all in the same direction — the world holds MORE households on a fixed
+deal than the published record does, so **too few households roll and the world under-states how
+much of a domestic book sits on the default tariff**. 2016 is a burn-in artefact of the window's
+start (every account opens on a fixed term and cannot reach SVT before its first anniversary)
+and must not be fitted; 2017–2025 is the behaviour. Filed as
+`docs/staging/SEAT_FINDING_THE_WORLDS_FIXED_DEAL_SHARE_IS_OUTSIDE_THE_PUBLISHED_BAND_IN_EVERY_YEAR_2026-09-04.md`,
+LATENT. Closing it moves MORE households onto SVT, which SHRINKS the value arm's reachable
+surface and costs the company measured margin — recorded here before the fit, per R13, so that
+"the fit made things worse" cannot later be read as a reason to abandon it.
 
 REUSE
 -----

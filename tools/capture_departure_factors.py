@@ -45,7 +45,10 @@ the population, not the hazard.
 BUT "ONE RUN" IS NOT "IN GIT", AND THE SECOND HALF OF THAT REPAIR IS STILL OWED (2026-09-01, third
 pass). The RECORDER is committed at `6db30a350`. What is missing is what puts an account ON the SVT
 product, so that the recorder has anything to record: at this HEAD `simulation/svt_product.py` still
-says in its own docstring that *"no roster writes that"*. So whether this tool writes a populated
+says in its own docstring that *"no roster writes that"*. (That phrase was removed from
+`svt_product.py` on 2026-09-04 because it had stopped being true; this paragraph is kept as the
+dated observation it was, and the quotation is no longer expected to resolve.) So whether this tool
+writes a populated
 sibling or an empty one is decided by the WORKING TREE, not by the commit: run it on a clean checkout
 of this HEAD and `emit_svt_sibling` prints `THE SVT RECORDER RAN AND RECORDED NOTHING`. Record the
 tree state you ran on; do not read a populated sibling as evidence that the route is in git. Finding:
@@ -232,11 +235,25 @@ def emit_svt_sibling(result: object, out_path: Path) -> int:
 
     if svt is None:
         # NO SIBLING IS WRITTEN, AND NOT WRITING IT IS THE REPAIR. An absent sibling is what makes
-        # `departure_population.declare` report `covers_svt_route: false` with a named reason — and
-        # that is TRUE of this world. `simulation/svt_product.py` says the product exists, that no
-        # roster assigns it, and that *"an account on this product cannot currently leave"*;
-        # `test_svt_product.py::test_no_account_is_on_the_svt_product_yet` holds it there. Writing
-        # `[]` instead would flip every downstream declaration to `covers_svt_route: true`,
+        # `departure_population.declare` report `covers_svt_route: false` with a named reason.
+        #
+        # THE REASON CHANGED UNDER THIS BRANCH AND THE BRANCH DID NOT (2026-09-04). It used to read
+        # that `simulation/svt_product.py` says no roster assigns the product and that *"an account
+        # on this product cannot currently leave"*, held there by
+        # `test_svt_product.py::test_no_account_is_on_the_svt_product_yet` — so an absent sibling
+        # was a FACT ABOUT THE WORLD. All three clauses are now false: C1b
+        # (`simulation/renewals.py`) assigns mid-tenure from the household's own engagement roll
+        # and never touches the roster, `svt_product.inertia_hazard_for_term` gives the product a
+        # departure hazard, and that interlock was retired and re-keyed to
+        # `test_an_account_on_the_svt_product_can_leave_it`. Most of this book now lives on SVT and
+        # can leave it.
+        #
+        # So the refusal stands and its meaning has inverted: a missing `svt_decisions` key is a
+        # RECORDER GAP in this run, not a world with nothing to record. `covers_svt_route: false`
+        # is still the honest declaration — but a reader who hits it should now go looking for why
+        # the recorder did not run, rather than concluding the route is empty by construction.
+        #
+        # Writing `[]` instead would flip every downstream declaration to `covers_svt_route: true`,
         # `share_of_departures_visible: 1.0`, `causes_not_observable: []` and `warning: null` — the
         # renewal route certifying its own blind spot as the whole book, off a file that measured
         # nothing.
