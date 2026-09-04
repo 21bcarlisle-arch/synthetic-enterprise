@@ -427,3 +427,35 @@ def test_a_document_that_will_not_move_is_left_not_deleted(rhythm, monkeypatch):
                         lambda self, target: (_ for _ in ()).throw(OSError("read-only")))
     wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))
     assert staged[0].is_file(), "a document that could not be archived was lost instead"
+
+
+def test_the_rhythms_documents_are_drawable_work_and_sit_below_findings(tmp_path):
+    """THE ASSUMPTION THE WHOLE RHYTHM RESTS ON, pinned here because it is currently INCIDENTAL.
+
+    `staging_rooms.kind_of` classifies `WEEKLY_RHYTHM_*` as `unknown` — it is not a prefix anyone
+    chose for it. Unknown happens not to be in `NOT_WORK` today, so the document is drawn; the day
+    someone tightens unknown into NOT_WORK (an entirely reasonable change — unknown filenames are
+    usually noise) the rhythm would go invisible overnight while still arming itself and still
+    filing documents. The step would never be drawn and its finding would fire every week for ever.
+
+    So this asserts the two properties the rhythm needs, keyed to the property and not to the
+    prefix: its documents are WORK, and they rank BELOW findings — which is the director's own
+    band, "overdue outranks new features ... I don't want a stale audit beating a live defect".
+
+    MUTATION: add `unknown` to `NOT_WORK`, or rank the rhythm above findings, and this fires.
+    """
+    from background import staging_rooms
+
+    step = "WEEKLY_RHYTHM_MONDAY_RANKING_2026-09-07.md"
+    finding = "SEAT_FINDING_SOMETHING_IS_BROKEN_2026-08-01.md"
+    (tmp_path / step).write_text("# monday\n")
+    (tmp_path / finding).write_text("**Severity:** LATENT\n# a live defect\n")
+
+    assert staging_rooms.kind_of(step) not in staging_rooms.NOT_WORK, (
+        "the rhythm's own document is not drawable work, so nothing will ever draw the step — it "
+        "would arm itself, file documents and be invisible"
+    )
+    order = [i.name for i in staging_rooms.work_queue(tmp_path)]
+    assert order == [finding, step], (
+        f"the rhythm must sit below a live defect and be drawn at all; got {order}"
+    )
