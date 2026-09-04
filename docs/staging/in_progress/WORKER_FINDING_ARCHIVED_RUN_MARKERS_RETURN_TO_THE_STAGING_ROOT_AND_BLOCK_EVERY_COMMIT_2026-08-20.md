@@ -181,3 +181,62 @@ there.**
 
 Same lesson as the 504 incident earlier today, which cost four theories before someone
 partitioned the observations instead of reasoning about mechanisms.
+
+---
+
+## 2026-09-04: the repairer runs hourly, and NOTHING COMMITS WHAT IT STAGES
+
+*Added by the delivery seat while clearing a four-hour publish wedge (`eda700b3d`). This is not a
+new cause and does not claim to be one — it is the reason a cause that IS already understood goes
+on costing whole publish stretches.*
+
+**The specimen.** `SEAT_PREREGISTRATION_..._INTERNAL_RECONTRACT_ROUTE_2026-09-04.md` sat in the
+root AND in `records/`. `finding_classes --check` refused every commit in the tree on it; the
+publisher's own scoped suite was GREEN and its failure was recorded as `non_test_gate_refusal`,
+so no blocking-test list described the cycle and `blocking_tests` was `[]`. Thirteen finished runs
+queued behind it. The doorbell was still naming the PREVIOUS wedge (an untracked site-lane
+control, landed hours earlier in `ded79e205`) — worth knowing, because the state file said
+`total_red: 0` the whole time and the wedge was never a red test at all.
+
+**`staging_two_rooms_repair` had already run and had already won.** Its deletion of the root copy
+was staged in the index at 10:07. At 10:26 the root copy was back on disk, byte-identical, blob
+`ca9fd84de` — the same blob as `HEAD:docs/staging/<name>`. Restored from HEAD, because the path
+was still tracked there. Timestamped before theorising, per the section above.
+
+**The gap is that the repair has no committing half.** `background_worker.py` calls
+`staging_two_rooms_repair.observe()` on its loop; `repair()` calls `_git_rm`, which stages. The
+module's own docstring already knows this is not enough — *"it stopped reappearing once its
+deletion was COMMITTED rather than merely made in the working tree"* — but nothing in the loop
+can commit, and CLAUDE.md forbids `-A`, so no ordinary pathspec commit from any lane will ever
+carry that path. **A staged deletion is therefore load-bearing and permanent: it clears the
+detector in the working tree, so the alarm goes quiet, while HEAD keeps the ammunition for the
+next restore.** The repairer reports success, hourly, correctly, and the wedge returns.
+
+That is the fail-silent shape from R15 one level out from where the module already caught it: the
+2026-09-04 entry in `OTHER_ROOMS` fixed the repairer's verdict being unable to say *"I cleared the
+half I can see"*; this is the verdict being unable to say *"I cleared it in the only place that
+does not last"*.
+
+**A second cost the timidity hides.** The archived copies were UNTRACKED. Eight further
+preregistrations were in the same state — root copy cleared by the repairer, `records/` copy in no
+commit at all. Had any lane committed those staged deletions without also adding the archive
+copies, the documents would have left the repository entirely: predictions filed before their
+measurements, which is the one thing a preregistration exists to be. `_git_rm`'s unlink fallback
+for an untracked path is what puts a document into that state, and it is silent about it.
+
+**What was actually done, and what is still open.** The deletion plus all nine archive copies were
+committed together in `eda700b3d`, which is what makes this instance stick — the root path is out
+of HEAD, so there is nothing left to restore it from. **Still open: the repair remains
+stage-only.** The next duplicate re-enters this exact state and waits for a seat. Two candidate
+shapes, neither built here and neither obviously right:
+
+  * give `repair()` a committing half over its own two paths (deletion + archive copy) via
+    `surgical_land`, so the fix is durable where it is made — a daemon that commits, which is a
+    real behavioural change and wants its own argument; or
+  * leave the repair timid and make the ALARM name the durability gap, so the quiet is not
+    mistaken for a clear tree — cheaper, and it still costs a seat a turn each time.
+
+The check that would have caught this in seconds, and the one worth keeping: a staged deletion
+whose path is still present on disk is `git status --porcelain docs/staging/ | grep -E '^D  '`
+alongside a `??` for the same name — the `AD`/`RD` question two sections up, asked of the room
+rather than the index.
