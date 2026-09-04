@@ -5024,5 +5024,160 @@
   },
   "what_stays_none_whatever_this_says": "EXTERNAL_SHARE_OF_ACTIVE_RENEWALS. A second tenure observation constrains the SVT side of the identity and says nothing about the external share of active fixed-term renewals. The owed sourcing question is unchanged: one cross-tabulation of Ofgem's Consumer Impacts of Market Conditions survey, separating 'switched supplier' from 'switched tariff with the same supplier' on one base."
  },
+ "whether_the_survey_split_identifies_phi": {
+  "what_this_is": "Ofgem Consumer Impacts of Market Conditions, question C4, six waves on one base, reported behaviour over the past six months. The instrument the finding has asked for since \u00a711. It separates external from internal switching and it does NOT identify phi.",
+  "source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+  "per_wave": [
+   {
+    "wave": 1,
+    "fieldwork": "March 2022",
+    "recall_window_years": [
+     2021,
+     2022
+    ],
+    "base_unweighted": 2944,
+    "external_rate_of_all_households": 0.093243,
+    "internal_rate_of_all_households": 0.131816,
+    "phi_survey": 0.423728,
+    "both_actions_overlap_weighted": 14.3821,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2022
+     ],
+     "years_with_no_established_fixed_share": [
+      2021
+     ],
+     "most_generous_fixed_share": 0.2,
+     "ceiling": 0.07
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 1.8831
+   },
+   {
+    "wave": 2,
+    "fieldwork": "July 2022",
+    "recall_window_years": [
+     2022
+    ],
+    "base_unweighted": 2984,
+    "external_rate_of_all_households": 0.082973,
+    "internal_rate_of_all_households": 0.124771,
+    "phi_survey": 0.399401,
+    "both_actions_overlap_weighted": 0.0,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2022
+     ],
+     "years_with_no_established_fixed_share": [],
+     "most_generous_fixed_share": 0.2,
+     "ceiling": 0.07
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 1.7824
+   },
+   {
+    "wave": 3,
+    "fieldwork": "November/December 2022",
+    "recall_window_years": [
+     2022
+    ],
+    "base_unweighted": 3457,
+    "external_rate_of_all_households": 0.073019,
+    "internal_rate_of_all_households": 0.144883,
+    "phi_survey": 0.3351,
+    "both_actions_overlap_weighted": 0.0,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2022
+     ],
+     "years_with_no_established_fixed_share": [],
+     "most_generous_fixed_share": 0.2,
+     "ceiling": 0.07
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 2.0698
+   },
+   {
+    "wave": 4,
+    "fieldwork": "July 2023",
+    "recall_window_years": [
+     2023
+    ],
+    "base_unweighted": 3434,
+    "external_rate_of_all_households": 0.045963,
+    "internal_rate_of_all_households": 0.110427,
+    "phi_survey": 0.293899,
+    "both_actions_overlap_weighted": 0.0,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2023
+     ],
+     "years_with_no_established_fixed_share": [],
+     "most_generous_fixed_share": 0.2,
+     "ceiling": 0.07
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 1.5775
+   },
+   {
+    "wave": 5,
+    "fieldwork": "January 2024",
+    "recall_window_years": [
+     2023,
+     2024
+    ],
+    "base_unweighted": 3439,
+    "external_rate_of_all_households": 0.055822,
+    "internal_rate_of_all_households": 0.115861,
+    "phi_survey": 0.325145,
+    "both_actions_overlap_weighted": 0.0,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2023,
+      2024
+     ],
+     "years_with_no_established_fixed_share": [],
+     "most_generous_fixed_share": 0.2,
+     "ceiling": 0.07
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 1.6552
+   },
+   {
+    "wave": 6,
+    "fieldwork": "January/February 2025",
+    "recall_window_years": [
+     2024,
+     2025
+    ],
+    "base_unweighted": 3458,
+    "external_rate_of_all_households": 0.052888,
+    "internal_rate_of_all_households": 0.170192,
+    "phi_survey": 0.23708,
+    "both_actions_overlap_weighted": -0.0001,
+    "renewal_route_internal_ceiling": {
+     "years_considered": [
+      2024,
+      2025
+     ],
+     "years_with_no_established_fixed_share": [],
+     "most_generous_fixed_share": 0.36,
+     "ceiling": 0.126
+    },
+    "internal_exceeds_the_renewal_routes_ceiling": true,
+    "multiple_of_the_ceiling": 1.3507
+   }
+  ],
+  "phi_survey_span": [
+   0.23708,
+   0.423728
+  ],
+  "phi_survey_is_not_phi": "phi_survey is external over ALL reported switching, on a base of all households. phi is external over ACTIVE RENEWALS AT A FIXED-TERM END. The survey's base contains the SVT route, which contributes to both of its rows, so phi_survey is a route mixture. Two different populations; the ratio of the survey's two rows is not phi.",
+  "why_the_survey_cannot_close_it": "I = s*J_svt + (1-s)*0.35*(1-phi) introduces J_svt, the SVT segment's INTERNAL move rate, which nothing published establishes. One new equation, one new unknown.",
+  "internal_exceeds_the_renewal_routes_ceiling_in_every_judged_wave": true,
+  "judged_waves": 6,
+  "what_that_means": "internal switching is already larger than the ENTIRE fixed-term active-renewal population, at the most generous published fixed share and with no annualisation. So most internal switching originates from default/SVT households moving onto a fix with their existing supplier -- and `simulation/renewals.py` has no such move at all. This is the published half of the question \u00a79 raised and could not settle: the world's SVT hazard is calibrated as drift off the SVT PRODUCT and graded against a band of EXTERNAL changes of supplier, and those differ by exactly this route.",
+  "the_constant_is_still": null
+ },
  "how_to_regenerate": "python3 -m tools.published_route_split --write"
 }
