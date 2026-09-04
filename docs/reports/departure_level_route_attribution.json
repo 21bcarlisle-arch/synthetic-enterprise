@@ -1,0 +1,188 @@
+{
+  "what_this_is": "which of the world's two departure routes supplies the year-to-year AMPLITUDE the published record has, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. The rung-1 verdict beside this file says the unclamped level fails the band in six years of seven and does not say where the miss comes from; this says. `relative_slope` is dimensionless and taken at the means: 1.0 is a route that tracks the record proportionally, 0.0 is a route that does not move with it at all. Neither is a target and nothing here is fitted.",
+  "measured_at_anchor": 1.0,
+  "capture": "docs/reports/c6_second_pass_departure_factors.json",
+  "world_level_digest": "39a192ce04c1eda8",
+  "years": [
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2023",
+    "2024"
+  ],
+  "regressor": "the published band's MIDPOINT per year. A regressor, not a target -- see `regressor_robustness` for the same attribution against both endpoints.",
+  "emergent_pp_of_book": {
+    "2017": 6.9491,
+    "2018": 14.3184,
+    "2019": 12.8989,
+    "2020": 13.5069,
+    "2021": 10.272,
+    "2023": 9.5722,
+    "2024": 9.1911
+  },
+  "routes": {
+    "renewal_route": {
+      "pp_of_book": {
+        "2017": 1.2105,
+        "2018": 3.1483,
+        "2019": 1.6509,
+        "2020": 2.1145,
+        "2021": 1.959,
+        "2023": 2.8201,
+        "2024": 2.2479
+      },
+      "decisions": {
+        "2017": 20,
+        "2018": 17,
+        "2019": 13,
+        "2020": 13,
+        "2021": 20,
+        "2023": 19,
+        "2024": 16
+      },
+      "relative_slope": -0.0778,
+      "interval_95": {
+        "available": true,
+        "lo": -0.4473,
+        "hi": 0.3082,
+        "resamples": 4000,
+        "seed": 20260904
+      },
+      "share_of_emergent_level": {
+        "2017": 0.1742,
+        "2018": 0.2199,
+        "2019": 0.128,
+        "2020": 0.1566,
+        "2021": 0.1907,
+        "2023": 0.2946,
+        "2024": 0.2446
+      }
+    },
+    "svt_route": {
+      "pp_of_book": {
+        "2017": 5.7386,
+        "2018": 11.1701,
+        "2019": 11.248,
+        "2020": 11.3923,
+        "2021": 8.313,
+        "2023": 6.7521,
+        "2024": 6.9433
+      },
+      "decisions": {
+        "2017": 118,
+        "2018": 143,
+        "2019": 113,
+        "2020": 135,
+        "2021": 150,
+        "2023": 193,
+        "2024": 170
+      },
+      "relative_slope": 0.9936,
+      "interval_95": {
+        "available": true,
+        "lo": 0.8763,
+        "hi": 1.1049,
+        "resamples": 4000,
+        "seed": 20260904
+      },
+      "share_of_emergent_level": {
+        "2017": 0.8258,
+        "2018": 0.7801,
+        "2019": 0.872,
+        "2020": 0.8434,
+        "2021": 0.8093,
+        "2023": 0.7054,
+        "2024": 0.7554
+      }
+    }
+  },
+  "household_amplification_counterfactual": {
+    "what_this_is": "the world re-measured with the two opportunity-scaled hazards (bill shock and price position) multiplied by each factor, at the identity anchor. This is the repair `SEAT_FINDING_THE_LEVEL_IS_CLAMPED_...` \u00a74 item 2 prescribes, walked past any value the household-amplitude gap could supply. The level rises without bound and the relative slope FALLS, because the renewal route contributes a near-constant and adding a constant to a proportional quantity dilutes its proportionality.",
+    "ladder": [
+      {
+        "amplification": 1.0,
+        "emergent_pp_of_book": {
+          "2017": 6.9491,
+          "2018": 14.3184,
+          "2019": 12.8989,
+          "2020": 13.5069,
+          "2021": 10.272,
+          "2023": 9.5722,
+          "2024": 9.1911
+        },
+        "relative_slope": 0.782,
+        "in_band": 1
+      },
+      {
+        "amplification": 2.0,
+        "emergent_pp_of_book": {
+          "2017": 7.7322,
+          "2018": 16.9473,
+          "2019": 14.1366,
+          "2020": 15.2473,
+          "2021": 11.7214,
+          "2023": 11.908,
+          "2024": 11.0648
+        },
+        "relative_slope": 0.6655,
+        "in_band": 1
+      },
+      {
+        "amplification": 4.0,
+        "emergent_pp_of_book": {
+          "2017": 9.271,
+          "2018": 21.9542,
+          "2019": 16.5597,
+          "2020": 18.6219,
+          "2021": 14.5386,
+          "2023": 16.52,
+          "2024": 14.7099
+        },
+        "relative_slope": 0.5035,
+        "in_band": 1
+      },
+      {
+        "amplification": 8.0,
+        "emergent_pp_of_book": {
+          "2017": 12.2389,
+          "2018": 30.4807,
+          "2019": 21.1966,
+          "2020": 23.7628,
+          "2021": 19.8463,
+          "2023": 25.505,
+          "2024": 21.5913
+        },
+        "relative_slope": 0.2595,
+        "in_band": 1
+      }
+    ],
+    "ceiling_rung": {
+      "what_this_is": "both opportunity hazards at `departure_risks.WORLD_MAX_CHURN_PROBABILITY` for every renewal household in every year -- the upper bound on what amplifying this leg can do to the world, not a world anybody proposes.",
+      "emergent_pp_of_book": {
+        "2017": 40.1362,
+        "2018": 45.0862,
+        "2019": 42.877,
+        "2020": 39.5834,
+        "2021": 47.4318,
+        "2023": 42.5127,
+        "2024": 34.9441
+      },
+      "relative_slope": 0.0947,
+      "in_band": 0
+    },
+    "reading": "no amplification of the household opportunity response moves the relative slope toward 1.0 -- it falls monotonically, and at the world's own churn ceiling, which is the most this leg can ever do, the world's amplitude is essentially gone while its level overshoots every band. So the household-level amplitude gap -- however it is eventually answered -- is not what is holding rung 1."
+  },
+  "regressor_robustness": {
+    "band_low_endpoint": {
+      "renewal_route": -0.1163,
+      "svt_route": 0.8205
+    },
+    "band_high_endpoint": {
+      "renewal_route": -0.0007,
+      "svt_route": 1.1922
+    }
+  },
+  "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --route-attribution"
+}

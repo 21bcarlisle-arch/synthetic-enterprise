@@ -1533,6 +1533,14 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
     "simulation.market_switching_propensity:_PARITY_RATE":
         "the curve evaluated at zero savings; a scalar reference point for the offer-position "
         "multiplier, not an annual market level.",
+    # --- the route attribution's own vocabulary, not readings of anything ---
+    "tools.fit_year_level_anchor:_OPPORTUNITY_SCALED_CAUSES":
+        "a frozenset of CAUSE NAMES -- the two hazards `build_departure_risks` scales by "
+        "`market_opportunity` -- naming which legs the amplification counterfactual may touch. It "
+        "carries no rate, no ratio and no year. It is caught here because it sits in the module "
+        "that owns the level fit, and it is named rather than filtered because a cause list that "
+        "silently lost a member would leave the counterfactual measuring one leg and reporting it "
+        "as both.",
     # --- per-household / per-account model parameters, not market levels ---
     "company.crm.churn_model:CRISIS_PASSIVE_YEARS":
         "a frozenset of year LABELS selecting a behavioural regime; it carries no rate.",
@@ -2623,3 +2631,206 @@ def test_mutation_l_the_live_rung_1_measurement_is_wired_to_the_world_and_not_to
             f"{y}'s emergent level did not RISE when every hazard was scaled up. The anchor is "
             f"reaching this measurement with the wrong sign, or not reaching it at all."
         )
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# RUNG 2: WHICH ROUTE CARRIES THE AMPLITUDE
+#
+# The section above establishes that the unclamped world fails the band in six years of seven and
+# does not say WHERE the miss is. `SEAT_FINDING_THE_LEVEL_IS_CLAMPED_...` §4 item 2 guessed --
+# "`market_switching_multiplier` and `market_opportunity` ... move them too little" -- and sent the
+# tree after the household-level amplitude of switching response so that leg could be amplified
+# against evidence. Three declarations of that gap now point at each other and the question is with
+# the director.
+#
+# `route_amplitude_attribution` measures the guess instead of extending it, and refutes it: the
+# route where `market_opportunity` acts supplies NO year-to-year amplitude (relative slope -0.08,
+# interval excluding 1.0) and the route it cannot reach supplies essentially all of it (+0.99,
+# interval containing 1.0). These legs hold that reading to the world.
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+
+
+def _declared_attribution() -> dict:
+    """The committed route attribution, or a hard fail naming which of the three states it is in.
+
+    Same three states and the same reason as `_declared_rung1`: absent, refused, or a reading. The
+    middle one is a result and is reported rather than skipped.
+    """
+    assert fitter.ROUTE_ATTRIBUTION.exists(), (
+        f"{fitter.ROUTE_ATTRIBUTION.name} is missing. The tree then carries the rung-1 FAILURE "
+        f"with no attribution beside it, and the only written account of where the miss comes "
+        f"from is the guess in §4 of the finding -- which this measurement refutes. Run "
+        f"`python3 -m tools.fit_year_level_anchor --route-attribution`."
+    )
+    declared = json.loads(fitter.ROUTE_ATTRIBUTION.read_text())
+    assert "refused" not in declared, (
+        f"the route attribution is a REFUSAL and not a reading: {declared['refused']}. Which route "
+        f"carries the record's amplitude is currently unknown, and the finding's prescribed repair "
+        f"is unrefuted rather than confirmed."
+    )
+    return declared
+
+
+def test_the_route_attribution_partitions_the_level_it_attributes():
+    """MUTATION: drop either route from the sum and this fires.
+
+    THE PROPERTY, AND IT CANNOT GO STALE. It asserts nothing about which route is responsive, by
+    how much, or which way the counterfactual goes -- every one of those is free to move the day
+    the mechanism is repaired, and a leg keyed to any of them would red for the world becoming more
+    honest. What it holds is that the two routes ADD UP to the level being attributed: an
+    attribution whose parts do not sum to its whole has a third route nobody named, or is
+    double-counting one, and either way the shares it publishes are not shares of anything.
+
+    This is the leg that would have caught the defect the attribution exists to correct, one layer
+    up: the reason nobody knew the renewal route was flat is that the level and the amplitude had
+    never been separated, and a decomposition that does not reconcile is how that stays true.
+    """
+    declared = _declared_attribution()
+    routes = declared["routes"]
+    assert set(routes) == {"renewal_route", "svt_route"}, (
+        f"the attribution names routes {sorted(routes)}. The world has two departure routes and "
+        f"the shares below are taken over them; a third would make every published share wrong."
+    )
+    for year, emergent in declared["emergent_pp_of_book"].items():
+        parts = sum(routes[name]["pp_of_book"][year] for name in routes)
+        assert parts == pytest.approx(emergent, abs=5e-4), (
+            f"{year}: the routes contribute {parts:.4f}pp and the emergent level is "
+            f"{emergent:.4f}pp. The decomposition does not reconcile with the thing it decomposes."
+        )
+        shares = sum(routes[name]["share_of_emergent_level"][year] for name in routes)
+        assert shares == pytest.approx(1.0, abs=1e-3), (
+            f"{year}: the published route shares sum to {shares:.4f}, not 1.0."
+        )
+
+
+def test_the_committed_route_attribution_still_reproduces_on_the_live_world():
+    """MUTATION: perturb the declared file, or move the world under it, and this fires.
+
+    A DRIFT DETECTOR OVER A DECLARATION, the shape this file already uses twice. It reds IN EITHER
+    DIRECTION and that is the point: the day somebody wires the record's movement into the renewal
+    route, the renewal slope leaves -0.08 and this goes red -- correctly, because the tree's
+    written account of why rung 1 fails would have stopped being true and the finding built on it
+    needs re-reading. The repair is to re-run the tool and land the file, never to relax the leg.
+
+    THE INTERVAL IS PART OF THE SUBJECT. It is bootstrapped at a committed seed, so it reproduces
+    exactly; an interval that wandered between runs would make this flaky and teach a reader to
+    re-run until green, which is how a control stops being read at all.
+    """
+    declared = _declared_attribution()
+    svt_rows, reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    assert svt_rows is not None, (
+        f"the live capture has no SVT half ({reason}), so the route attribution cannot be checked."
+    )
+    live = fitter.route_amplitude_attribution(
+        json.loads(instrument.DEFAULT_TABLE.read_text()), svt_rows
+    )
+    disagreements: list[str] = []
+    if declared["years"] != live["years"]:
+        disagreements.append(
+            f"years: declared {declared['years']}, live {live['years']}"
+        )
+    for name in sorted(set(declared["routes"]) | set(live["routes"])):
+        was, now = declared["routes"].get(name), live["routes"].get(name)
+        if was is None or now is None:
+            disagreements.append(f"{name}: present in one reading and not the other")
+            continue
+        for key in ("relative_slope", "pp_of_book", "decisions", "interval_95"):
+            if was.get(key) != now.get(key):
+                disagreements.append(f"{name}.{key}: declared {was.get(key)!r}, live {now.get(key)!r}")
+    if declared["household_amplification_counterfactual"]["ladder"] != \
+            live["household_amplification_counterfactual"]["ladder"]:
+        disagreements.append("the amplification ladder no longer reproduces")
+    if declared["household_amplification_counterfactual"]["ceiling_rung"] != \
+            live["household_amplification_counterfactual"]["ceiling_rung"]:
+        disagreements.append("the ceiling rung no longer reproduces")
+    assert not disagreements, (
+        "the committed route attribution no longer reproduces on the live world:\n  "
+        + "\n  ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land it. If the RENEWAL route has "
+        f"stopped being flat, that is the mechanism repair landing and the finding that rests on "
+        f"this reading must be re-read, not the leg relaxed."
+    )
+
+
+def test_the_attribution_is_measured_on_the_world_the_fit_did_not_touch():
+    """MUTATION: measure the attribution under a fitted anchor and this fires.
+
+    THE SAME PROPERTY `test_the_rung_1_verdict_is_measured_on_the_world_the_fit_did_not_touch`
+    holds, for a reason specific to this measurement and stronger than there. The per-year anchor
+    acts on the RENEWAL ROUTE ONLY. So an attribution taken under the fit would read the renewal
+    route carrying exactly the year-to-year movement the solver put there to close the gap -- it
+    would report the opposite conclusion, with the same arithmetic, and look entirely reasonable.
+    The identity anchor is what makes the renewal route's flatness a fact about the mechanism
+    rather than an artefact of which anchor the reader happened to run under.
+    """
+    declared = _declared_attribution()
+    assert declared["measured_at_anchor"] == anchor_module.NO_LEVEL_CORRECTION, (
+        f"the attribution was measured at an anchor of {declared['measured_at_anchor']}. Any "
+        f"value but the identity puts the solver's per-year compensation inside the renewal "
+        f"route's series, and the attribution then measures the fit rather than the world."
+    )
+    assert declared["measured_at_anchor"] not in set(anchor_module.YEAR_LEVEL_ANCHOR.values()), (
+        "the attribution's anchor is one of the FITTED values"
+    )
+    assert declared["capture"] == str(
+        instrument.DEFAULT_TABLE.relative_to(instrument.PROJECT)
+    ), (
+        f"the attribution was measured on {declared['capture']} and the live capture is "
+        f"{instrument.DEFAULT_TABLE.name}. Two readings of two worlds, shown as one page."
+    )
+
+
+def test_mutation_m_the_attribution_is_wired_to_the_hazards_and_not_to_the_file(monkeypatch):
+    """MUTATION: scale the anchor the attribution is taken at; every route level must move UP.
+
+    THE HOLE THIS CLOSES is the one `test_mutation_l_...` closes for the rung-1 verdict, and it is
+    live here for an extra reason: this reading has a per-route structure, so it can come loose one
+    route at a time. If the SVT series were ever taken from a cached column rather than the
+    capture, the renewal route would keep responding, the leg above would keep passing, and the
+    published shares would drift silently. Requiring BOTH routes to move is what makes that
+    impossible -- and the SVT route must move too, because the anchor reaches it through the
+    capture's recorded probabilities being combined with hazards that scale.
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    baseline = fitter.route_amplitude_attribution(rows, svt_rows)
+    monkeypatch.setattr(fitter, "NO_LEVEL_CORRECTION", 3.0)
+    moved = fitter.route_amplitude_attribution(rows, svt_rows)
+    assert moved["measured_at_anchor"] == 3.0
+    for year in baseline["years"]:
+        was = baseline["routes"]["renewal_route"]["pp_of_book"][year]
+        now = moved["routes"]["renewal_route"]["pp_of_book"][year]
+        assert now > was, (
+            f"{year}: tripling the anchor left the renewal route at {now}pp against {was}pp. "
+            f"Whatever this series is, it is not a reading of the world's renewal hazards."
+        )
+        assert moved["emergent_pp_of_book"][year] > baseline["emergent_pp_of_book"][year], (
+            f"{year}: the emergent level did not rise when every renewal hazard was scaled up."
+        )
+
+
+def test_mutation_n_a_stale_or_edited_attribution_is_caught():
+    """The comparator's own mutation, from both sides, as `test_mutation_k` does for rung 1.
+
+    The edit exercised is the one somebody would actually make: moving the renewal route's slope to
+    1.0 so the prescribed household repair reads as on-target after all. If that passed, the
+    attribution would be a claim nothing checks, and the refutation it carries would be reversible
+    by editing a file.
+    """
+    declared = _declared_attribution()
+    same = json.loads(json.dumps(declared))
+    assert same["routes"] == declared["routes"], "the comparator disagrees with itself"
+
+    flattered = json.loads(json.dumps(declared))
+    flattered["routes"]["renewal_route"]["relative_slope"] = 1.0
+    assert flattered["routes"] != declared["routes"], (
+        "the renewal route's slope moved from flat to record-proportional and the comparison "
+        "reads as unchanged -- which is the finding's refuted guess reinstated by hand"
+    )
+
+    widened = json.loads(json.dumps(declared))
+    widened["routes"]["renewal_route"]["interval_95"]["hi"] = 2.0
+    assert widened["routes"] != declared["routes"], (
+        "an interval widened past 1.0 reads as unchanged, so the claim that it EXCLUDES "
+        "record-proportionality is not held by anything"
+    )

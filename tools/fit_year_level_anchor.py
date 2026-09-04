@@ -39,6 +39,7 @@ from __future__ import annotations
 import collections
 import inspect
 import json
+import random
 import statistics
 import sys
 from pathlib import Path
@@ -46,6 +47,8 @@ from pathlib import Path
 import tools.measure_departure_level as _instrument
 from simulation.departure_level_anchor import NO_LEVEL_CORRECTION, world_level_identity
 from simulation.departure_risks import (
+    CAUSE_BILL_SHOCK,
+    CAUSE_PRICE_POSITION,
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
     WORLD_MAX_CHURN_PROBABILITY,
@@ -91,23 +94,14 @@ def _mean_probability(rows: list[dict], anchor: float) -> float:
     holds it there: the quantity being anchored is `realized_churn_probability`, captured BEFORE
     any retention offer, so including the offer would fit a post-intervention level to a
     pre-intervention record.
+
+    THE HAZARD CONSTRUCTION LIVES IN ONE PLACE AND THIS DELEGATES TO IT. `_renewal_probabilities`
+    below builds the same call for the route-attribution block, and this module having two copies
+    of it is the repo's VAT shape in miniature -- one requirement, two implementations, and a
+    correction that reaches whichever one the next session happens to open. The fitter and the
+    attribution must read the same world or the attribution is describing a world nobody fitted.
     """
-    return statistics.fmean(
-        total_departure_probability(
-            build_departure_risks(
-                bill_shock_base=r["sim_bill_shock_base"],
-                price_response=r["sim_price_response"],
-                dissatisfaction_response=r["sim_dissatisfaction_response"],
-                market_opportunity=r["sim_market_opportunity"],
-                action_propensity=r["sim_action_propensity"],
-                retention_offer_retained_fraction=1.0,
-                sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
-                shock_weight=DECLARED_SHOCK_WEIGHT,
-                level_anchor=anchor,
-            )
-        )
-        for r in rows
-    )
+    return statistics.fmean(_renewal_probabilities(rows, anchor))
 
 
 def fit_year_anchor(rows: list[dict], target: float) -> float:
@@ -498,6 +492,373 @@ def _sum_probability(rows: list[dict], anchor: float) -> float:
     return _mean_probability(rows, anchor) * len(rows) if rows else 0.0
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# WHICH ROUTE CARRIES THE YEAR-TO-YEAR AMPLITUDE
+#
+# `emergent_level_verdict` above says the world's unclamped level fails the band in six years of
+# seven, all of them LOW. It does not say WHERE the miss comes from, and the finding that
+# commissioned it guessed -- `SEAT_FINDING_THE_LEVEL_IS_CLAMPED_...` §4 item 2 reads
+# "`market_switching_multiplier` and `market_opportunity` already move the hazards year to year;
+# they move them too little", and sent the next session to establish the household-level amplitude
+# of switching response so that leg could be amplified against evidence.
+#
+# THAT GUESS IS WRONG AND THIS BLOCK IS WHAT MEASURES IT. The two routes are separable -- the
+# renewal route is where `market_opportunity` acts, the SVT route is where it does not reach at
+# all -- so the question "which one supplies the record's year-to-year movement" is arithmetic
+# rather than argument. It had never been asked, because the level and the amplitude had never
+# been separated: a world short on both looks like a world with one problem.
+# ═══════════════════════════════════════════════════════════════════════════
+
+#: Where the route attribution is written. Same discipline as `EMERGENT_VERDICT` and for the same
+#: reason: a measurement that lives on a terminal cannot go stale loudly and cannot be a check.
+ROUTE_ATTRIBUTION = PROJECT / "docs" / "reports" / "departure_level_route_attribution.json"
+
+#: Resamples and seed for the interval below. FIXED, and the seed is committed rather than drawn:
+#: an interval that moves between two runs of the same world is not a bound, and a control keyed to
+#: one would be flaky in exactly the way that teaches a reader to re-run until green.
+_ATTRIBUTION_RESAMPLES = 4000
+_ATTRIBUTION_SEED = 20260904
+
+
+def _relative_slope(xs: list[float], ys: list[float]) -> float | None:
+    """Slope of y on x, expressed at the means so it is DIMENSIONLESS. `None` if undefined.
+
+    WHY RELATIVE AND NOT THE RAW SLOPE. The two routes contribute levels an order of magnitude
+    apart -- the SVT route 5.7-11.4pp, the renewal route 1.2-3.1pp -- so their raw slopes are not
+    comparable and a reader shown both would read the bigger route as the more responsive one by
+    arithmetic rather than by behaviour. Dividing by the ratio of the means gives the quantity the
+    question actually asks for: **a point of record movement produces how many points of this
+    route's own level**. 1.0 is "this route tracks the record proportionally"; 0.0 is "this route
+    does not move with the record at all". Those two values are what the claims below are made
+    against, and neither is a target.
+    #
+    # `tools/run_price_ladder._ols_slope` is the same least-squares arithmetic and is deliberately
+    # NOT imported: its refusals are price-ladder ones ("every rung landed at the same price"), it
+    # returns a raw slope this block cannot use, and reaching it drags `simulation.run_phase2b`
+    # onto this module's import graph for six lines of algebra.
+    """
+    n = len(xs)
+    if n < 2:
+        return None
+    mx, my = statistics.fmean(xs), statistics.fmean(ys)
+    sxx = sum((x - mx) ** 2 for x in xs)
+    if sxx <= 1e-12 or abs(my) <= 1e-12:
+        return None
+    slope = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx
+    return slope * mx / my
+
+
+def _route_series(
+    per_year_values: dict[int, list[float]], accounts: dict[int, int], years: list[int]
+) -> list[float]:
+    """One route's contribution, in percentage points OF THE BOOK, per year.
+
+    The denominator is accounts on the book and never the route's own decisions. A route's mean
+    hazard per decision and its contribution to the book's departure rate are different quantities,
+    and the second is the one the band is stated in -- so it is the only one that can be regressed
+    against the band without dividing two numbers whose ratio is not a quantity.
+    """
+    return [100.0 * sum(per_year_values[y]) / accounts[y] for y in years]
+
+
+def _bootstrap_interval(
+    per_year_values: dict[int, list[float]], accounts: dict[int, int],
+    years: list[int], xs: list[float],
+) -> dict:
+    """A 95% interval for one route's relative slope, resampling DECISIONS WITHIN EACH YEAR.
+
+    THE BOUND THIS SAMPLE SIZE EARNS, AND IT IS NOT DECORATION. The renewal route stands on 13 to
+    20 decisions per year. A slope through seven such points can look flat because the route is
+    flat or because the route is thin, and the whole reading below turns on telling those apart --
+    so the interval is published beside the point estimate and the two claims that matter are
+    stated as "the interval excludes 1.0" and "the interval excludes 0.0" rather than as the point
+    estimates, which on their own would be figures without the bound their sample size earns.
+
+    Resampling is WITHIN the year and not across years: the seven years are the record and are not
+    a sample of anything, so resampling them would be bootstrapping the GB switching history. What
+    is uncertain is which households the capture happened to catch inside each year.
+    """
+    rng = random.Random(_ATTRIBUTION_SEED)
+    draws: list[float] = []
+    for _ in range(_ATTRIBUTION_RESAMPLES):
+        resampled = {
+            y: [vals[rng.randrange(len(vals))] for _ in range(len(vals))]
+            for y, vals in ((y, per_year_values[y]) for y in years)
+        }
+        rel = _relative_slope(xs, _route_series(resampled, accounts, years))
+        if rel is not None:
+            draws.append(rel)
+    if not draws:
+        return {"available": False, "why_not": "no resample produced a defined slope"}
+    draws.sort()
+    return {
+        "available": True,
+        "lo": round(draws[int(0.025 * len(draws))], 4),
+        "hi": round(draws[int(0.975 * len(draws))], 4),
+        "resamples": _ATTRIBUTION_RESAMPLES,
+        "seed": _ATTRIBUTION_SEED,
+    }
+
+
+def route_amplitude_attribution(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
+    """Which of the world's two departure routes supplies the record's year-to-year movement.
+
+    MEASURED AT `NO_LEVEL_CORRECTION`, for the same reason `emergent_level_verdict` is: the fitted
+    per-year anchor acts on the renewal route alone, so any attribution taken under it would be
+    reading the solver's compensation and calling it the mechanism. At the identity there is
+    nothing to read but the hazards.
+
+    THE ANSWER, on `c6_second_pass_departure_factors.json`, and it inverts the finding that
+    commissioned it:
+
+      * **SVT route** -- relative slope **+0.99**, 95% interval [+0.88, +1.11]. It tracks the
+        record PROPORTIONALLY. The interval excludes 0.0 and contains 1.0, which is as close to
+        "this route has the right amplitude" as seven years of record can say. It also carries
+        70.5% to 87.2% of the emergent level.
+      * **Renewal route** -- relative slope **-0.08**, 95% interval [-0.45, +0.31]. It supplies no
+        year-to-year amplitude at all: the interval contains 0.0 and EXCLUDES 1.0. It contributes a
+        near-constant 1.2-3.1pp whatever the record did.
+
+    THE POINT ESTIMATES ARE NOT WHERE THE WEIGHT IS, and neither is 1.0 to three decimals: on
+    seven years the SVT slope reads +0.82, +0.99 and +1.19 against the band's low endpoint, its
+    midpoint and its high endpoint respectively (`regressor_robustness`). What survives all three,
+    and survives the interval, is the ORDERING -- one route near 1 and the other near 0 -- and
+    that is the whole claim. A reader taking +0.99 for a calibrated fact would be reading a
+    precision this sample cannot support.
+
+    So the world's rung-1 miss is not a compressed market response. The route that carries the
+    response has the right shape and about half the level; the route the repair was aimed at is
+    flat, and `market_opportunity` -- which acts only there -- cannot be the amplitude mechanism
+    because the leg it multiplies does not move with the record however hard it is multiplied.
+
+    `household_amplification_counterfactual` is what makes that decisive rather than descriptive:
+    it re-measures the world with the two opportunity-scaled hazards scaled by a ladder of factors,
+    up to and including the world's own churn ceiling. The level goes anywhere -- 6.9pp to 47pp --
+    and the relative slope goes DOWN, because adding a flat quantity to a proportional one dilutes
+    it. **No value of the household amplitude gap closes rung 1**, which is a statement about the
+    mechanism's shape and does not depend on what the gap's answer turns out to be.
+
+    `regressor_robustness` re-runs the whole attribution against the band's LOW and HIGH endpoints
+    instead of its midpoint. The midpoint is a regressor here and emphatically not a target -- the
+    canon's objection is to aiming at a point, and nothing in this function aims -- but a
+    conclusion that only holds at one of three defensible choices of x is a conclusion about the
+    choice, so all three are reported and the reader can see they agree.
+    """
+    bands = published_departure_band()
+    book = union_by_year(renewal_rows, svt_rows)
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    svt_by_year: dict[int, list[float]] = collections.defaultdict(list)
+    for row in svt_rows:
+        svt_by_year[int(str(row["event_date"])[:4])].append(
+            float(row["realized_churn_probability"])
+        )
+    years = sorted(
+        y for y, (anchor, _r, _d) in fit_whole_book(renewal_rows, svt_rows).items()
+        if anchor is not None and y in bands
+    )
+    accounts = {y: book[y]["accounts"] for y in years}
+
+    renewal = {y: _renewal_probabilities(by_year[y], NO_LEVEL_CORRECTION) for y in years}
+    svt = {y: list(svt_by_year[y]) for y in years}
+    mids = [(bands[y][0] + bands[y][1]) / 2.0 for y in years]
+
+    routes = {}
+    for name, values in (("renewal_route", renewal), ("svt_route", svt)):
+        series = _route_series(values, accounts, years)
+        routes[name] = {
+            "pp_of_book": {str(y): round(v, 4) for y, v in zip(years, series)},
+            "decisions": {str(y): len(values[y]) for y in years},
+            "relative_slope": round(_relative_slope(mids, series), 4),
+            "interval_95": _bootstrap_interval(values, accounts, years, mids),
+        }
+    emergent = _route_series(
+        {y: renewal[y] + svt[y] for y in years}, accounts, years
+    )
+    for name in routes:
+        routes[name]["share_of_emergent_level"] = {
+            str(y): round(routes[name]["pp_of_book"][str(y)] / e, 4)
+            for y, e in zip(years, emergent)
+        }
+
+    return {
+        "what_this_is": (
+            "which of the world's two departure routes supplies the year-to-year AMPLITUDE the "
+            "published record has, measured at `departure_level_anchor.NO_LEVEL_CORRECTION`. The "
+            "rung-1 verdict beside this file says the unclamped level fails the band in six years "
+            "of seven and does not say where the miss comes from; this says. `relative_slope` is "
+            "dimensionless and taken at the means: 1.0 is a route that tracks the record "
+            "proportionally, 0.0 is a route that does not move with it at all. Neither is a "
+            "target and nothing here is fitted."
+        ),
+        "measured_at_anchor": NO_LEVEL_CORRECTION,
+        "capture": str(_instrument.DEFAULT_TABLE.relative_to(PROJECT)),
+        "world_level_digest": world_level_identity()["digest"],
+        "years": [str(y) for y in years],
+        "regressor": (
+            "the published band's MIDPOINT per year. A regressor, not a target -- see "
+            "`regressor_robustness` for the same attribution against both endpoints."
+        ),
+        "emergent_pp_of_book": {str(y): round(v, 4) for y, v in zip(years, emergent)},
+        "routes": routes,
+        "household_amplification_counterfactual": _amplification_counterfactual(
+            renewal_rows, svt_rows, years, accounts, svt, mids, bands
+        ),
+        "regressor_robustness": {
+            edge: {
+                name: round(_relative_slope(
+                    [bands[y][i] for y in years],
+                    _route_series({"renewal_route": renewal, "svt_route": svt}[name],
+                                  accounts, years),
+                ), 4)
+                for name in ("renewal_route", "svt_route")
+            }
+            for i, edge in ((0, "band_low_endpoint"), (1, "band_high_endpoint"))
+        },
+        "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --route-attribution",
+    }
+
+
+def _renewal_risks(row: dict, anchor: float) -> dict[str, float]:
+    """`{cause: hazard}` for one captured renewal decision at one anchor.
+
+    THE ONE PLACE THIS MODULE TURNS A CAPTURED ROW INTO HAZARDS. The fitter, the emergent sweep,
+    the route attribution and the counterfactual all reach the world through here, so a correction
+    to how a row is read cannot land in some of them and miss the others -- which is the failure
+    `DEFAULT_TABLE`'s own note records this module already had once, in a different form.
+    """
+    return build_departure_risks(
+        bill_shock_base=row["sim_bill_shock_base"],
+        price_response=row["sim_price_response"],
+        dissatisfaction_response=row["sim_dissatisfaction_response"],
+        market_opportunity=row["sim_market_opportunity"],
+        action_propensity=row["sim_action_propensity"],
+        retention_offer_retained_fraction=1.0,
+        sensitivity_scale=DECLARED_SENSITIVITY_SCALE,
+        shock_weight=DECLARED_SHOCK_WEIGHT,
+        level_anchor=anchor,
+    )
+
+
+def _renewal_probabilities(rows: list[dict], anchor: float, amplify: float = 1.0) -> list[float]:
+    """Per-household departure probability on the renewal route, one value per decision.
+
+    `amplify` scales the two OPPORTUNITY-SCALED hazards and nothing else -- it is the counterfactual
+    the finding's prescribed repair amounts to, applied at the only place that repair could act.
+    Dissatisfaction is deliberately untouched: `build_departure_risks` does not scale it by
+    `market_opportunity` on purpose, and amplifying it here would be measuring a different repair
+    from the one being tested.
+    """
+    out = []
+    for r in rows:
+        risks = _renewal_risks(r, anchor)
+        if amplify != 1.0:
+            risks = {
+                cause: (min(h * amplify, WORLD_MAX_CHURN_PROBABILITY)
+                        if cause in _OPPORTUNITY_SCALED_CAUSES else h)
+                for cause, h in risks.items()
+            }
+        out.append(total_departure_probability(risks))
+    return out
+
+
+#: The two hazards `build_departure_risks` scales by `market_opportunity`, and therefore the only
+#: two a household-amplitude repair could reach. Named from the module that defines them rather
+#: than spelled as strings, so a cause renamed there cannot leave this counterfactual silently
+#: measuring one leg.
+_OPPORTUNITY_SCALED_CAUSES = frozenset({CAUSE_BILL_SHOCK, CAUSE_PRICE_POSITION})
+
+#: The amplification ladder. Doubling, because the question is which way the slope MOVES and a
+#: ladder fine enough to argue about would invite reading a preferred rung off it. The bound the
+#: argument actually rests on is `ceiling_rung` below, not the top of this ladder.
+_AMPLIFICATION_LADDER = (1.0, 2.0, 4.0, 8.0)
+
+
+def _amplification_counterfactual(
+    renewal_rows: list[dict], svt_rows: list[dict], years: list[int],
+    accounts: dict[int, int], svt: dict[int, list[float]], xs: list[float],
+    bands: dict[int, tuple[float, float]],
+) -> dict:
+    """What amplifying the household opportunity response does to the level and to the amplitude.
+
+    THE POINT OF THIS BLOCK IS A NEGATIVE RESULT AND IT IS THE USEFUL ONE. The finding's owed item
+    2 is "repair the mechanism's compression", and the gap it is blocked on is the household-level
+    amplitude of switching response. This walks that repair up to and past any value that gap could
+    return, and reports that the relative slope FALLS the whole way while the level overshoots.
+    A repair that cannot reach the defect it was prescribed for is worth knowing about before the
+    evidence for it arrives, not after.
+    """
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    rungs = []
+    for amplify in _AMPLIFICATION_LADDER:
+        renewal = {
+            y: _renewal_probabilities(by_year[y], NO_LEVEL_CORRECTION, amplify) for y in years
+        }
+        series = _route_series({y: renewal[y] + svt[y] for y in years}, accounts, years)
+        rungs.append({
+            "amplification": amplify,
+            "emergent_pp_of_book": {str(y): round(v, 4) for y, v in zip(years, series)},
+            "relative_slope": round(_relative_slope(xs, series), 4),
+            "in_band": sum(
+                1 for y, v in zip(years, series) if _instrument.inside_band(v, *bands[y])
+            ),
+        })
+    # THE BOUND, AND IT IS WHAT MAKES THIS A REFUTATION RATHER THAN A TREND. Every opportunity
+    # hazard of every renewal household in every year set to the world's own churn ceiling: not a
+    # plausible world, deliberately, because it is the MOST this leg can do by construction. A
+    # ladder shows a direction and a reader may always suppose the next rung turns it round; a
+    # ceiling cannot be argued past.
+    ceiling = {
+        y: [
+            total_departure_probability({
+                **_renewal_risks(r, NO_LEVEL_CORRECTION),
+                CAUSE_BILL_SHOCK: WORLD_MAX_CHURN_PROBABILITY,
+                CAUSE_PRICE_POSITION: WORLD_MAX_CHURN_PROBABILITY,
+            })
+            for r in by_year[y]
+        ]
+        for y in years
+    }
+    ceiling_series = _route_series({y: ceiling[y] + svt[y] for y in years}, accounts, years)
+    return {
+        "what_this_is": (
+            "the world re-measured with the two opportunity-scaled hazards (bill shock and price "
+            "position) multiplied by each factor, at the identity anchor. This is the repair "
+            "`SEAT_FINDING_THE_LEVEL_IS_CLAMPED_...` §4 item 2 prescribes, walked past any value "
+            "the household-amplitude gap could supply. The level rises without bound and the "
+            "relative slope FALLS, because the renewal route contributes a near-constant and "
+            "adding a constant to a proportional quantity dilutes its proportionality."
+        ),
+        "ladder": rungs,
+        "ceiling_rung": {
+            "what_this_is": (
+                "both opportunity hazards at `departure_risks.WORLD_MAX_CHURN_PROBABILITY` for "
+                "every renewal household in every year -- the upper bound on what amplifying this "
+                "leg can do to the world, not a world anybody proposes."
+            ),
+            "emergent_pp_of_book": {
+                str(y): round(v, 4) for y, v in zip(years, ceiling_series)
+            },
+            "relative_slope": round(_relative_slope(xs, ceiling_series), 4),
+            "in_band": sum(
+                1 for y, v in zip(years, ceiling_series) if _instrument.inside_band(v, *bands[y])
+            ),
+        },
+        "reading": (
+            "no amplification of the household opportunity response moves the relative slope "
+            "toward 1.0 -- it falls monotonically, and at the world's own churn ceiling, which is "
+            "the most this leg can ever do, the world's amplitude is essentially gone while its "
+            "level overshoots every band. So the household-level amplitude gap -- however it is "
+            "eventually answered -- is not what is holding rung 1."
+        ),
+    }
+
+
 #: Parameter names through which the market could reach `svt_inertia_hazard`. The check below is
 #: STRUCTURAL -- does the function have a route for the market year to arrive at all -- rather than
 #: a comparison against today's hazard values. A control keyed to the current numbers would go red
@@ -675,11 +1036,64 @@ def _emergent_verdict_main(table_path: Path) -> int:
     return 0
 
 
+def _route_attribution_main(table_path: Path) -> int:
+    """`--route-attribution`: measure which route carries the amplitude, print it, and WRITE it.
+
+    WRITES ON THE REFUSED OUTCOME TOO, for the reason `_emergent_verdict_main` above does: a
+    producer whose only failure mode is to write nothing leaves the previous run's file looking
+    current, and this repo has been bitten by that absence twice.
+    """
+    all_rows = json.loads(table_path.read_text())
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    refusal = (
+        svt_reason if svt_rows is None
+        else svt_composition_refusal(svt_rows)
+        or account_denominator_refusal(all_rows, svt_rows)
+    )
+    if refusal is not None:
+        ROUTE_ATTRIBUTION.write_text(json.dumps({
+            "refused": refusal,
+            "capture": str(table_path.relative_to(PROJECT)),
+            "what_this_is": (
+                "no route attribution could be measured from this capture. The refusal is written "
+                "rather than withheld: a missing file reads as 'nobody ran it', and a stale one "
+                "left in place reads as current."
+            ),
+            "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --route-attribution",
+        }, indent=2) + "\n")
+        print(f"REFUSED — no route attribution from {table_path.name}: {refusal}")
+        return 1
+    att = route_amplitude_attribution(all_rows, svt_rows)
+    ROUTE_ATTRIBUTION.write_text(json.dumps(att, indent=2) + "\n")
+    print("── WHICH ROUTE CARRIES THE RECORD'S YEAR-TO-YEAR AMPLITUDE ──")
+    print()
+    print(f"{'route':>16} {'rel. slope':>11} {'95% interval':>20} {'n decisions':>12}")
+    for name, route in att["routes"].items():
+        iv = route["interval_95"]
+        shown = f"[{iv['lo']:+.3f}, {iv['hi']:+.3f}]" if iv["available"] else iv["why_not"]
+        print(f"{name:>16} {route['relative_slope']:>+11.4f} {shown:>20} "
+              f"{sum(route['decisions'].values()):>12}")
+    print()
+    print("  1.0 = tracks the record proportionally.  0.0 = does not move with the record.")
+    print()
+    print(f"{'amplify':>9} {'rel. slope':>11} {'in band':>9}   the prescribed household repair, "
+          f"walked past any value its gap could supply")
+    for rung in att["household_amplification_counterfactual"]["ladder"]:
+        print(f"{rung['amplification']:>9.1f} {rung['relative_slope']:>+11.4f} "
+              f"{rung['in_band']:>4}/{len(att['years'])}")
+    print()
+    print(f"  {att['household_amplification_counterfactual']['reading']}")
+    print(f"  written to {ROUTE_ATTRIBUTION.relative_to(PROJECT)}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     table_path = Path(args[0]) if args else DEFAULT_TABLE
     if "--emergent-verdict" in argv[1:]:
         return _emergent_verdict_main(table_path)
+    if "--route-attribution" in argv[1:]:
+        return _route_attribution_main(table_path)
     all_rows = json.loads(table_path.read_text())
     rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)

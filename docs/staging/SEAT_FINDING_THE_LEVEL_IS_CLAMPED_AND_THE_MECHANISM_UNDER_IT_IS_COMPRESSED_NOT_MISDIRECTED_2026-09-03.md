@@ -342,3 +342,86 @@ document because the parked class already covers it
 checkable against something, which it was not this morning.
 
 — Delivery seat, 2026-09-04.
+
+## 8. The diagnosis in §3 was wrong about WHICH LEG, and the measurement is beside it — 2026-09-04
+
+§7 landed the rung-1 verdict: six years of seven, all LOW. It did not say where the miss comes
+from. §3 and §4 did, and **they guessed**:
+
+> *"`market_switching_multiplier` and `market_opportunity` already move the hazards year to year;
+> they move them too little."*
+
+That sentence sent this project after the household-level amplitude of switching response, which
+§6 then established is a gap declared in three places and settled by nothing — and put to the
+director as a practitioner question. **The guess is now measured, and it is refuted.**
+`tools/fit_year_level_anchor.route_amplitude_attribution`, committed at
+`docs/reports/departure_level_route_attribution.json`:
+
+| route | relative slope vs the record | 95% interval | decisions | share of the level |
+|---|---|---|---|---|
+| **SVT route** | **+0.99** | [+0.88, +1.11] | 1,022 | 70.5%–87.2% |
+| **renewal route** | **−0.08** | [−0.45, +0.31] | 118 | 12.8%–29.5% |
+
+Relative slope is dimensionless and taken at the means: **1.0 is a route that tracks the record
+proportionally, 0.0 is a route that does not move with it at all.** The SVT route's interval
+excludes 0.0 and contains 1.0. The renewal route's interval contains 0.0 and **excludes 1.0**.
+
+**The route where `market_opportunity` acts is the flat one.** It contributes a near-constant
+1.2–3.1pp whatever the record did. `market_opportunity` reaches the bill-shock and price-position
+hazards and nothing else, so no value of the household amplitude gap can move an amplitude that
+leg does not carry — and the counterfactual says so as a bound rather than a trend. Scaling both
+opportunity hazards by 2, 4 and 8 takes the world's relative slope from +0.78 **down** to +0.26;
+setting them to `WORLD_MAX_CHURN_PROBABILITY` for every renewal household in every year — the most
+that leg can ever do — leaves **relative slope +0.09 and 0 of 7 years in band**, at levels of 35pp
+to 47pp. Adding a constant to a proportional quantity dilutes it. The repair §4 prescribed makes
+the amplitude monotonically worse all the way to its ceiling.
+
+**Why nobody could see this.** The level and the amplitude had never been separated, and a world
+short on both looks like a world with one problem. §3 read the emergent spread (9.1–19.6 against a
+record spread of 12.5–23.0), correctly called it compressed, and attributed the compression to the
+only year-to-year mechanism anyone had in mind. The compression is real; it is `0.49 × record +
+2.39`, and the 0.49 is the SVT route delivering the right SHAPE at about half the level while the
+renewal route adds a flat intercept. The 2026-09-01 repair that wired `market_switching_multiplier`
+into `svt_inertia_hazard` (see `svt_market_invariance_refusal`, discharged) worked, and worked
+well — the route it fixed is the one now carrying the record's movement almost exactly.
+
+**§4's prediction, graded, beside itself.** It said repairing the compression would close most of
+the gap but not all, and that 2017 would be the year that remains out. **REFUTED for the repair it
+was filed against**: the ceiling counterfactual is that repair at its maximum, it closes none of the
+gap, and 2017 is not distinguished — all seven years leave the band, high. It stays *unanswered*
+for the repair that now looks binding, because that repair has not been attempted and its subject
+is a different leg. A prediction filed against a route that turned out not to exist cannot be
+collected either way, and it is not quietly retired here.
+
+**What this does and does not change in what is owed.**
+
+- **§4 item 1 / §6's gap is still a real gap and is no longer on rung 1's critical path.** The
+  household-level amplitude of switching response is unestablished, three declarations point at
+  each other, and the question is with the director. Nothing here withdraws it. What is withdrawn
+  is the claim that supplying it repairs the level — it does not, whatever its answer.
+- **§4 item 2 is re-aimed, not discharged.** The mechanism's debt is the SVT route's LEVEL: it
+  carries 41%–56% of the record's departures per year with a year-to-year shape that is right. The
+  next question is which of the three things under that is short — the hazard per SVT decision, the
+  size of the SVT population, or the routing that decides who reaches which route — and it must be
+  measured before it is guessed at, which is what §3 did not do.
+- **The question to research changed shape and got easier.** It is no longer a household-level
+  dispersion nobody publishes. It is a COMPOSITION question — what share of GB domestic switches
+  originate from default/SVT households against households reaching a fixed-term contract end —
+  and Ofgem publishes both a default-tariff share and switching by tariff type. That is a search
+  worth running, and it is the one this finding should have asked for.
+
+**Nothing in `YEAR_LEVEL_ANCHOR` was edited, no solver target was moved and no constant was
+chosen.** §4's constraint 4 is honoured a fourth time. The attribution is measured at the
+multiplicative identity for a reason specific to it: the per-year anchor acts on the renewal route
+alone, so the same arithmetic run under the fit would show the renewal route carrying exactly the
+movement the solver put there, report the opposite conclusion and look entirely reasonable.
+`test_the_attribution_is_measured_on_the_world_the_fit_did_not_touch` refuses that by construction.
+
+Five legs in `tests/architecture/test_switching_rate_commons.py`, four of them mutation-proven on
+disk: a perturbed slope, a fitted anchor declared, a broken partition, and the artefact deleted
+each fire the leg that owns them.
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published. What
+changed is that the repair is now aimed at the leg that carries the defect.
+
+— Delivery seat, 2026-09-04.
