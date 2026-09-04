@@ -543,3 +543,93 @@ def test_every_outcome_of_the_annotation_step_is_reachable(tmp_path, monkeypatch
     failed = prc.run_remainder_annotation_step("abc1234", runner=boom)
     assert failed is None and json.loads(state.read_text())["outcome"] == "unavailable"
     assert (ran, not_due, failed) != (None, None, None)
+
+
+# ── a step that cannot finish at any budget it can be given ─────────────────────────────────────
+
+def test_the_remainder_is_not_attempted_when_its_budget_cannot_finish_it(tmp_path, monkeypatch):
+    """THE DEFECT THIS OWNS, measured 2026-09-04 from this module's own constants and the worker log.
+
+    `remainder_budget_seconds` is capped at GATE_SUITE_TIMEOUT_SECONDS = 3800. The four recorded
+    attempts timed out at 3800, 3800, 3664 and 3528 -- TWO AT THE CAP EXACTLY. The remainder is the
+    whole suite, so it needs more than the maximum this path is allowed to give it, and the cap may
+    not grow (director, 2026-08-21: no gate budget grows here). It is not occasionally unlucky; it
+    cannot finish, and each attempt spends ~an hour of held publish lock producing nothing.
+
+    Skipping costs nothing that was ever delivered -- it has not completed once in the log's
+    history -- and the clock is stamped so the skip is not re-decided every cycle.
+
+    MUTATION: drop the pre-flight and this fires; the default runner is entered with a budget the
+    record says is insufficient.
+    """
+    state = tmp_path / "rem.json"
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 4)
+    entered = []
+    monkeypatch.setattr(prc, "_default_remainder_runner",
+                        lambda *a, **k: entered.append(True))
+    monkeypatch.setattr(prc, "remainder_budget_seconds",
+                        lambda *a, **k: float(prc.REMAINDER_OBSERVED_INSUFFICIENT_SECONDS))
+
+    assert prc.run_remainder_annotation_step("abc1234", force=True) is None
+    assert not entered, "the suite was started with a budget the record says cannot finish it"
+    written = json.loads(state.read_text())
+    assert written["outcome"] == "unavailable" and written["last_run_ts"] > 0
+    assert "reds" not in written, "a skip that never ran recorded a red count"
+
+
+def test_the_remainder_still_runs_when_it_is_given_a_budget_it_can_finish_in(tmp_path, monkeypatch):
+    """THE REACHABILITY CONTROL, and it is owed because the branch above does not fire in
+    production today: on this machine the budget is always exactly the cap, so the RUN branch is
+    currently unreachable there. That is stated in the code rather than left for a reader.
+
+    The guard is keyed to the COMPARISON, not to today's answer -- give the remainder a budget
+    larger than any observed-insufficient attempt (a faster suite, a narrower selection, its own
+    timer outside this path) and it runs again with no edit. MUTATION: skip unconditionally and
+    this fires, which is the permanent no-op this repo has paid for repeatedly.
+    """
+    state = tmp_path / "rem.json"
+    monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / "prov.json")
+    monkeypatch.setattr(prc, "_open_findings_count", lambda: 0)
+
+    class _Green:
+        returncode = 0
+        stdout = "142 passed in 12.00s\n"
+        stderr = ""
+
+    entered = []
+    monkeypatch.setattr(prc, "_default_remainder_runner",
+                        lambda *a, **k: entered.append(True) or _Green())
+    monkeypatch.setattr(prc, "remainder_budget_seconds",
+                        lambda *a, **k: float(prc.REMAINDER_OBSERVED_INSUFFICIENT_SECONDS) + 1.0)
+
+    result = prc.run_remainder_annotation_step("abc1234", force=True)
+    assert entered, "no budget can reach the suite -- the run branch is a permanent no-op"
+    assert result is not None and json.loads(state.read_text())["rc"] == 0
+
+
+def test_the_skip_and_the_timeout_stamp_the_clock_the_same_way(tmp_path, monkeypatch):
+    """One writer for both non-completing paths. Two copies of "stamp the clock but never the reds"
+    is the duplication that lets one drift into publishing an all-clear for a suite that never ran
+    -- this project's most expensive recurring shape. MUTATION: give the skip its own inline write
+    and this fires the day the two disagree."""
+    for label, budget, runner in (
+        ("skip", float(prc.REMAINDER_OBSERVED_INSUFFICIENT_SECONDS), None),
+        ("timeout", float(prc.REMAINDER_OBSERVED_INSUFFICIENT_SECONDS) + 1.0,
+         lambda _a: (_ for _ in ()).throw(_sp.TimeoutExpired(cmd="pytest", timeout=3800))),
+    ):
+        state = tmp_path / f"rem_{label}.json"
+        monkeypatch.setattr(prc, "REMAINDER_ANNOTATION_STATE_FILE", state)
+        monkeypatch.setattr(prov, "PROVENANCE_FILE", tmp_path / f"prov_{label}.json")
+        monkeypatch.setattr(prc, "_open_findings_count", lambda: 1)
+        monkeypatch.setattr(prc, "remainder_budget_seconds", lambda *a, **k: budget)
+        monkeypatch.setattr(prc, "_default_remainder_runner",
+                            runner or (lambda *a, **k: None))
+
+        prc.run_remainder_annotation_step("abc1234", force=True)
+        written = json.loads(state.read_text())
+        assert set(written) == {"last_run_ts", "rc", "git_hash", "outcome", "reason"}, (
+            f"the {label} path wrote a different shape from its sibling")
+        assert written["rc"] is None and written["outcome"] == "unavailable"
