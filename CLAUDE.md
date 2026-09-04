@@ -119,6 +119,13 @@ filed after the answer is not a prediction.
 **A mutation that does not fire is either a missing test or an equivalence — establish which.**
 Never leave that to the reader, and never assume it is the flattering one.
 
+**When a branch exists to be taken rarely, assert it CAN be taken before asserting what it does.**
+Every test of a guard asks "does it refuse correctly" — and a guard that refuses *everything* passes
+all of them. Write one control over the whole partition (`assert plan["restart"] and plan["defer"]
+and plan["hold"]`) rather than a leg per branch. *Learned by entering the same trap three times in
+one afternoon through three different doors, each fix correct and each leaving the rare branch
+unreachable another way, with a log that read exactly like the mechanism working.*
+
 **Key a control to the property, not to today's answer.** A control pinned to the current state goes
 red when the code becomes *more* honest and stays green when the claim rots. That is exactly
 backwards, and it has happened here repeatedly.

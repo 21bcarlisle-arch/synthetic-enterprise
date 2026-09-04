@@ -10,6 +10,7 @@ The plan is PURE and the restarter is INJECTABLE, so nothing here touches a real
 from __future__ import annotations
 
 import json
+import os
 
 import pytest
 
@@ -313,7 +314,7 @@ def test_the_report_carries_both_ages_for_every_daemon(monkeypatch):
     report = dr.daemon_deployment_report(drift=drift, now=5000.0)
 
     row = report["daemons"][0]
-    for field in ("running_age_s", "loaded_code_age_s", "behind_s", "modules_behind"):
+    for field in ("running_age_s", "loaded_code_age_s", "unincorporated_for_s", "modules_behind"):
         assert field in row, f"the one place does not carry {field}"
     assert row["running_age_s"] == 4000.0
     assert row["loaded_code_age_s"] == 4100.0
@@ -332,6 +333,96 @@ def test_the_report_is_json_serialisable_because_it_is_written_to_disk(monkeypat
 @pytest.mark.parametrize("seconds,expected", [(None, "?"), (30, "0m"), (5400, "1.5h"), (172800, "2.0d")])
 def test_the_age_reads_as_a_person_would_say_it(seconds, expected):
     assert dr._hms(seconds) == expected
+
+
+# ── the time column and the verdict column must have ONE subject ────────────────────────────────
+
+def test_the_time_column_cannot_disagree_with_the_verdict(monkeypatch, tmp_path):
+    """THE DEFECT THIS OWNS, live on 2026-09-04 in the reading the director ordered:
+
+        deadmans-switch   behind 0m    5 changed module(s) it imports
+        dispatcher        behind 2.7h  current
+
+    The verdict counts imports differing from the WORKING TREE; the old time figure was HEAD's
+    commit time minus the boot SHA's, whose subject is COMMITTED HISTORY. On a tree several lanes
+    hold uncommitted work in, those never agree, so the column a reader takes for severity pointed
+    the opposite way to the verdict beside it.
+
+    MUTATION (the exact code deleted): restore `head_epoch - booted_epoch` and this fires on the
+    green daemon, which then reports a positive time behind while holding nothing that changed.
+    """
+    (tmp_path / "old.py").write_text("x")
+    os.utime(tmp_path / "old.py", (1000.0, 1000.0))
+    drift = {"head": "abc1234", "unresolved": {}, "vacuous": False,
+             "population": ["red-one", "green-one"],
+             # SAME boot sha for both -- which is why the old figure was identical on every row and
+             # per-daemon on none of them.
+             "stale_detail": {"red-one": ["old.py"]}}
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 10.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    rows = {r["session"]: r for r in
+            dr.daemon_deployment_report(drift=drift, now=5000.0)["daemons"]}
+
+    assert rows["green-one"]["unincorporated_for_s"] == 0.0, (
+        "a daemon holding nothing that changed reported time behind -- the column disagrees with "
+        "its own verdict"
+    )
+    assert rows["red-one"]["unincorporated_for_s"] == 4000.0
+    for row in rows.values():
+        assert bool(row["unincorporated_for_s"]) == bool(row["modules_behind"]), (
+            "the time column and the verdict column parted company on {}".format(row["session"])
+        )
+
+
+def test_the_time_behind_is_per_daemon_and_not_a_property_of_the_commit(tmp_path):
+    """The old column gave eleven rows two distinct values, both properties of a SHA rather than of
+    any process. MUTATION: return a constant and this fires -- two daemons booted at the same
+    commit, holding different unincorporated code, must read differently."""
+    (tmp_path / "a.py").write_text("a")
+    (tmp_path / "b.py").write_text("b")
+    os.utime(tmp_path / "a.py", (1000.0, 1000.0))
+    os.utime(tmp_path / "b.py", (4000.0, 4000.0))
+    older = dr.unincorporated_for_s(["a.py"], now=5000.0, repo=tmp_path)
+    newer = dr.unincorporated_for_s(["b.py"], now=5000.0, repo=tmp_path)
+    assert older == 4000.0 and newer == 1000.0
+    assert older != newer
+
+
+def test_the_oldest_unincorporated_change_is_the_one_reported(tmp_path):
+    """Not the newest and not the mean: the figure answers "how long has this daemon been running
+    without code that is on the disk", and the honest answer is the longest such interval."""
+    (tmp_path / "a.py").write_text("a")
+    (tmp_path / "b.py").write_text("b")
+    os.utime(tmp_path / "a.py", (1000.0, 1000.0))
+    os.utime(tmp_path / "b.py", (4900.0, 4900.0))
+    assert dr.unincorporated_for_s(["a.py", "b.py"], now=5000.0, repo=tmp_path) == 4000.0
+
+
+def test_every_state_of_the_time_column_is_reachable(tmp_path):
+    """THE RULE THIS REPO PAID FOR THREE TIMES IN ONE AFTERNOON (restart_plan's defer branch):
+    when a branch exists to be taken rarely, assert it CAN be taken before asserting what it does.
+
+    Here the rare branch is the third state -- behind, but undatable. Without this leg a version
+    that could only ever return 0.0 or a number would pass every other test in this block, and the
+    undatable case would silently render as "0m", which is the fail-open answer.
+    """
+    (tmp_path / "there.py").write_text("x")
+    os.utime(tmp_path / "there.py", (1000.0, 1000.0))
+    nothing_behind = dr.unincorporated_for_s([], now=5000.0, repo=tmp_path)
+    datable = dr.unincorporated_for_s(["there.py"], now=5000.0, repo=tmp_path)
+    undatable = dr.unincorporated_for_s(["deleted.py"], now=5000.0, repo=tmp_path)
+
+    assert nothing_behind == 0.0
+    assert datable and datable > 0
+    assert undatable is None, (
+        "a daemon whose missing code is a DELETED file is behind and undatable; None prints '?' "
+        "and 0.0 prints '0m', and only one of those is true"
+    )
+    assert len({nothing_behind, datable, undatable}) == 3
 
 
 # ── never mid-work ──────────────────────────────────────────────────────────────────────────────

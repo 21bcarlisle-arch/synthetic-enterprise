@@ -255,6 +255,51 @@ def _commit_epoch(sha: str) -> float | None:
         return None
 
 
+def unincorporated_for_s(changed_paths, now: float, repo=None) -> float | None:
+    """How long code this daemon does NOT have has been sitting on the disk it loads from.
+
+    THE DEFECT THIS OWNS, live on 2026-09-04 in the reading the director asked for. The verdict
+    column and the time column were measured against DIFFERENT SUBJECTS and therefore disagreed:
+
+        deadmans-switch   behind 0m    5 changed module(s) it imports    <- red, and "0m behind"
+        dispatcher        behind 2.7h  current                           <- green, and "2.7h behind"
+
+    `modules_behind` counts the daemon's imports that differ from the WORKING TREE (`boot_sha.
+    changed_paths_since` -- deliberately the working tree, because a daemon loads files off a disk
+    and an uncommitted edit is genuinely code it does not have). The old time figure was
+    `HEAD's commit time - the boot SHA's commit time`, whose subject is COMMITTED HISTORY. In a
+    tree several lanes hold uncommitted work in permanently, those two never agree, and the column
+    a reader takes for severity anti-correlated with the verdict beside it.
+
+    It was not per-daemon either: every daemon booted at the same SHA got the same number, so the
+    column carried no information about any individual daemon at all. Eleven rows, two distinct
+    values, both properties of a commit rather than of a process.
+
+    So the clock is now taken on the SAME SET the verdict is: the files the daemon imports that
+    changed, aged by their mtime on the disk it loads from -- when this tree ACQUIRED the version
+    the daemon has not got, which is exactly the interval "it has been running without this".
+
+    Three states, and the third is the one worth the code:
+      * no changed imports          -> 0.0   (nothing unincorporated; agrees with a green verdict)
+      * changed imports, datable    -> the OLDEST of them, > 0 (agrees with a red verdict)
+      * changed imports, none datable (all deletions) -> None, which prints "?" and never "0".
+        A daemon whose missing code is a DELETED file is behind and undatable; rendering that as
+        zero is the fail-open answer this whole reading exists to stop.
+    """
+    if not changed_paths:
+        return 0.0
+    root = _REPO if repo is None else Path(repo)
+    ages = []
+    for rel in changed_paths:
+        try:
+            ages.append(now - (root / rel).stat().st_mtime)
+        except OSError:
+            continue  # the change is a deletion: real, and undatable from the tree
+    if not ages:
+        return None
+    return round(max(ages), 1)
+
+
 def daemon_deployment_report(drift: dict | None = None, now: float | None = None) -> dict:
     """THE ONE PLACE: every daemon's loaded-code age beside its running age.
 
@@ -264,8 +309,9 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
       * LOADED-CODE AGE is how old the code it holds is, taken from the commit time of the SHA it
         booted from. A daemon that restarted an hour ago onto a stale checkout has a small running
         age and a large loaded-code age, and only this pair can tell you so.
-      * BEHIND_S is the gap between them and disk: HEAD's commit time minus the boot SHA's. It is
-        the number that makes "ten of eleven are stale" a reading rather than a discovery.
+      * UNINCORPORATED_FOR_S is how long the code it does not have has been on the disk. Measured
+        on the same set as the verdict -- see `unincorporated_for_s`, which carries the defect the
+        HEAD-commit-time version had.
 
     `modules_behind` stays the ACTIONABLE figure and is not replaced by any of the above: a daemon
     can be days behind in time and hold nothing that changed, which is GREEN and must read as green.
@@ -293,8 +339,7 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
             "boot_sha": sha,
             "running_age_s": running_age,
             "loaded_code_age_s": None if booted_epoch is None else round(now - booted_epoch, 1),
-            "behind_s": (None if (booted_epoch is None or head_epoch is None)
-                         else round(head_epoch - booted_epoch, 1)),
+            "unincorporated_for_s": unincorporated_for_s(changed, now),
             "modules_behind": len(changed),
             "modules": sorted(changed)[:20],
             "unresolved": (drift.get("unresolved") or {}).get(session),
@@ -457,9 +502,9 @@ def main(argv: list[str]) -> int:
         (report.get("head") or "?")[:9], s["observed"], s["stale"], s["unresolved"],
         s["session_hosting"]))
     for row in report["daemons"]:
-        print("  {:22s} running {:>7s}  code {:>7s}  behind {:>7s}  modules {:>4d}{}{}".format(
+        print("  {:22s} running {:>7s}  code {:>7s}  without {:>7s}  modules {:>4d}{}{}".format(
             row["session"], _hms(row["running_age_s"]), _hms(row["loaded_code_age_s"]),
-            _hms(row["behind_s"]), row["modules_behind"],
+            _hms(row["unincorporated_for_s"]), row["modules_behind"],
             ("  SEAT-HOST" if row["session_hosting"] else "")
             + ("  MID-WORK" if row["mid_work"] else ""),
             "  UNRESOLVED:" + row["unresolved"] if row["unresolved"] else ""))
