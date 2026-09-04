@@ -1,0 +1,1164 @@
+{
+ "what_this_is": "what the PUBLISHED record can and cannot bear about the split of GB domestic departures between the SVT route and the fixed-term route. Three published series composed against each other, with no world in the reading except the clearly labelled `where_the_worlds_point_falls`. Nothing here is fitted and nothing here picks a value.",
+ "identity": "R = s * H_svt + (1 - s) * H_fixed, where R is GB domestic ELECTRICITY changes of supplier over all GB domestic electricity accounts, s is the published default-tariff account share, and H_svt / H_fixed are external changes of supplier per account-year WITHIN each segment. One equation, two unknowns: the record admits a line.",
+ "the_unestablished_quantity": {
+  "name": "phi -- the external share of active fixed-term renewals",
+  "value": null,
+  "why_it_is_none": "`svt_rates_active_passive_2016_2025.md` \u00a74's ~35% counts households actively renewing onto a NEW FIXED DEAL, which includes staying with the same supplier. The published numerator counts external changes of supplier only. Nothing published establishes the split.",
+  "what_would_close_it": "a domestic instrument separating 'switched supplier' from 'switched tariff with the same supplier' on one base. Ofgem's Consumer Impacts of Market Conditions survey fields both and publishes them combined -- `gb_switching_rate_denominators.md` \u00a77 already records wave 6 being FURTHER from an adjacent question for exactly this reason."
+ },
+ "published_svt_segment_churn": {
+  "tenure_composed": [
+   0.094231,
+   0.144231
+  ],
+  "mix_free_envelope": [
+   0.05,
+   0.2
+  ],
+  "long_stayer_share_of_svt": [
+   0.557692,
+   0.557692
+  ]
+ },
+ "published_fixed_active_renewal_share": 0.35,
+ "bases": [
+  "as_published",
+  "all_domestic"
+ ],
+ "years_scored": [
+  "2016",
+  "2017",
+  "2018",
+  "2019",
+  "2022",
+  "2023",
+  "2024",
+  "2025"
+ ],
+ "n_years_scored": 8,
+ "years_refused": {
+  "2020": "no established default-tariff share; ('2020', '2021') are declared gaps in tools.published_tariff_mix and are NOT interpolated -- the interval spans the crisis",
+  "2021": "no established default-tariff share; ('2020', '2021') are declared gaps in tools.published_tariff_mix and are NOT interpolated -- the interval spans the crisis"
+ },
+ "years_above_the_band_on_every_tenure_mix": {
+  "as_published": [
+   "2017",
+   "2022"
+  ],
+  "all_domestic": [
+   "2017",
+   "2022"
+  ]
+ },
+ "per_year": {
+  "2016": {
+   "band_pct": [
+    17.0,
+    17.6
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.66,
+     0.74
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.077273,
+      0.114865
+     ],
+     "at_phi_0": [
+      0.22973,
+      0.266667
+     ],
+     "admissible": [
+      0.077273,
+      0.266667
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      16.0731,
+      21.4192
+     ],
+     "band_pct": [
+      17.0,
+      17.6
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      12.8,
+      25.1
+     ],
+     "band_pct": [
+      17.0,
+      17.6
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.905946,
+      1.167792
+     ],
+     [
+      0.628635,
+      0.761198
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.66,
+     0.74
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.077273,
+      0.114865
+     ],
+     "at_phi_0": [
+      0.22973,
+      0.266667
+     ],
+     "admissible": [
+      0.077273,
+      0.266667
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      16.0731,
+      21.4192
+     ],
+     "band_pct": [
+      17.0,
+      17.6
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      12.8,
+      25.1
+     ],
+     "band_pct": [
+      17.0,
+      17.6
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.905946,
+      1.167792
+     ],
+     [
+      0.628635,
+      0.761198
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2017": {
+   "band_pct": [
+    13.5,
+    14.0
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.57,
+     0.59
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      -0.027193,
+      -0.005932
+     ],
+     "at_phi_0": [
+      0.228814,
+      0.245614
+     ],
+     "admissible": [
+      -0.027193,
+      0.245614
+     ],
+     "record_refuses_phi_1": true
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      19.9096,
+      23.2712
+     ],
+     "band_pct": [
+      13.5,
+      14.0
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      17.3,
+      26.45
+     ],
+     "band_pct": [
+      13.5,
+      14.0
+     ],
+     "verdict": "above"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.540122,
+      0.588179
+     ],
+     [
+      0.347761,
+      0.383976
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.6195,
+     0.6365
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.002946,
+      0.020071
+     ],
+     "at_phi_0": [
+      0.212097,
+      0.225989
+     ],
+     "admissible": [
+      0.002946,
+      0.225989
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      18.7203,
+      22.2526
+     ],
+     "band_pct": [
+      13.5,
+      14.0
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      15.905,
+      25.7075
+     ],
+     "band_pct": [
+      13.5,
+      14.0
+     ],
+     "verdict": "above"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.575362,
+      0.62898
+     ],
+     [
+      0.339532,
+      0.380318
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2018": {
+   "band_pct": [
+    19.5,
+    20.0
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.53,
+     0.53
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.057547,
+      0.066981
+     ],
+     "at_phi_0": [
+      0.367925,
+      0.377358
+     ],
+     "admissible": [
+      0.057547,
+      0.377358
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      21.4442,
+      24.0942
+     ],
+     "band_pct": [
+      19.5,
+      20.0
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      19.1,
+      27.05
+     ],
+     "band_pct": [
+      19.5,
+      20.0
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.881809,
+      0.912204
+     ],
+     [
+      0.720715,
+      0.75111
+     ]
+    ],
+    "verdict_is_mix_dependent": true
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.5855,
+     0.5855
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.085269,
+      0.093809
+     ],
+     "at_phi_0": [
+      0.333049,
+      0.341588
+     ],
+     "admissible": [
+      0.085269,
+      0.341588
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      20.0247,
+      22.9522
+     ],
+     "band_pct": [
+      19.5,
+      20.0
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      17.435,
+      26.2175
+     ],
+     "band_pct": [
+      19.5,
+      20.0
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.963831,
+      0.998296
+     ],
+     [
+      0.762039,
+      0.796504
+     ]
+    ],
+    "verdict_is_mix_dependent": true
+   }
+  },
+  "2019": {
+   "band_pct": [
+    20.7,
+    21.3
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.51,
+     0.53
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.069608,
+      0.091509
+     ],
+     "at_phi_0": [
+      0.390566,
+      0.417647
+     ],
+     "admissible": [
+      0.069608,
+      0.417647
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      21.4442,
+      24.5058
+     ],
+     "band_pct": [
+      20.7,
+      21.3
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      19.1,
+      27.35
+     ],
+     "band_pct": [
+      20.7,
+      21.3
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.926777,
+      0.991231
+     ],
+     [
+      0.778089,
+      0.830137
+     ]
+    ],
+    "verdict_is_mix_dependent": true
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.5685,
+     0.5855
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.098461,
+      0.116012
+     ],
+     "at_phi_0": [
+      0.353544,
+      0.37467
+     ],
+     "admissible": [
+      0.098461,
+      0.37467
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      20.0247,
+      23.302
+     ],
+     "band_pct": [
+      20.7,
+      21.3
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      17.435,
+      26.4725
+     ],
+     "band_pct": [
+      20.7,
+      21.3
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      1.015922,
+      1.087905
+     ],
+     [
+      0.827709,
+      0.886112
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2022": {
+   "band_pct": [
+    2.9,
+    4.3
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.8,
+     0.9
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      -0.05125,
+      0.008889
+     ],
+     "at_phi_0": [
+      0.032222,
+      0.05375
+     ],
+     "admissible": [
+      -0.05125,
+      0.05375
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      11.9808,
+      18.5385
+     ],
+     "band_pct": [
+      2.9,
+      4.3
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      8.0,
+      23.0
+     ],
+     "band_pct": [
+      2.9,
+      4.3
+     ],
+     "verdict": "above"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      -1.594511,
+      -0.46264
+     ],
+     [
+      -2.880226,
+      -1.034069
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.8,
+     0.9
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      -0.05125,
+      0.008889
+     ],
+     "at_phi_0": [
+      0.032222,
+      0.05375
+     ],
+     "admissible": [
+      -0.05125,
+      0.05375
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      11.9808,
+      18.5385
+     ],
+     "band_pct": [
+      2.9,
+      4.3
+     ],
+     "verdict": "above"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      8.0,
+      23.0
+     ],
+     "band_pct": [
+      2.9,
+      4.3
+     ],
+     "verdict": "above"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      -1.594511,
+      -0.46264
+     ],
+     [
+      -2.880226,
+      -1.034069
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2023": {
+   "band_pct": [
+    8.9,
+    12.5
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.8,
+     0.9
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.02375,
+      0.1
+     ],
+     "at_phi_0": [
+      0.098889,
+      0.15625
+     ],
+     "admissible": [
+      0.02375,
+      0.15625
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      11.9808,
+      18.5385
+     ],
+     "band_pct": [
+      8.9,
+      12.5
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      8.0,
+      23.0
+     ],
+     "band_pct": [
+      8.9,
+      12.5
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.119774,
+      1.148346
+     ],
+     [
+      -1.16594,
+      0.13736
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.8,
+     0.9
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.02375,
+      0.1
+     ],
+     "at_phi_0": [
+      0.098889,
+      0.15625
+     ],
+     "admissible": [
+      0.02375,
+      0.15625
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      11.9808,
+      18.5385
+     ],
+     "band_pct": [
+      8.9,
+      12.5
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      8.0,
+      23.0
+     ],
+     "band_pct": [
+      8.9,
+      12.5
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.119774,
+      1.148346
+     ],
+     [
+      -1.16594,
+      0.13736
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2024": {
+   "band_pct": [
+    12.5,
+    16.1
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.8,
+     0.86
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.06875,
+      0.130233
+     ],
+     "at_phi_0": [
+      0.145349,
+      0.20125
+     ],
+     "admissible": [
+      0.06875,
+      0.20125
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      13.0039,
+      18.5385
+     ],
+     "band_pct": [
+      12.5,
+      16.1
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      9.2,
+      23.0
+     ],
+     "band_pct": [
+      12.5,
+      16.1
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.708789,
+      1.631864
+     ],
+     [
+      0.019619,
+      0.754313
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.8,
+     0.86
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.06875,
+      0.130233
+     ],
+     "at_phi_0": [
+      0.145349,
+      0.20125
+     ],
+     "admissible": [
+      0.06875,
+      0.20125
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      13.0039,
+      18.5385
+     ],
+     "band_pct": [
+      12.5,
+      16.1
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      9.2,
+      23.0
+     ],
+     "band_pct": [
+      12.5,
+      16.1
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.708789,
+      1.631864
+     ],
+     [
+      0.019619,
+      0.754313
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  },
+  "2025": {
+   "band_pct": [
+    14.3,
+    17.9
+   ],
+   "as_published": {
+    "default_tariff_share": [
+     0.64,
+     0.7
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.026563,
+      0.105714
+     ],
+     "at_phi_0": [
+      0.204286,
+      0.279687
+     ],
+     "admissible": [
+      0.026563,
+      0.279687
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      17.0962,
+      21.8308
+     ],
+     "band_pct": [
+      14.3,
+      17.9
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      14.0,
+      25.4
+     ],
+     "band_pct": [
+      14.3,
+      17.9
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.656287,
+      1.076555
+     ],
+     [
+      0.400365,
+      0.743222
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   },
+   "all_domestic": {
+    "default_tariff_share": [
+     0.64,
+     0.7
+    ],
+    "admissible_svt_churn": {
+     "at_phi_1": [
+      0.026563,
+      0.105714
+     ],
+     "at_phi_0": [
+      0.204286,
+      0.279687
+     ],
+     "admissible": [
+      0.026563,
+      0.279687
+     ],
+     "record_refuses_phi_1": false
+    },
+    "forward_at_phi_1": {
+     "composed_pct": [
+      17.0962,
+      21.8308
+     ],
+     "band_pct": [
+      14.3,
+      17.9
+     ],
+     "verdict": "overlaps"
+    },
+    "forward_at_phi_1_mix_free": {
+     "composed_pct": [
+      14.0,
+      25.4
+     ],
+     "band_pct": [
+      14.3,
+      17.9
+     ],
+     "verdict": "overlaps"
+    },
+    "phi_admitting_published_svt_band": [
+     [
+      0.656287,
+      1.076555
+     ],
+     [
+      0.400365,
+      0.743222
+     ]
+    ],
+    "verdict_is_mix_dependent": false
+   }
+  }
+ },
+ "where_the_worlds_point_falls": {
+  "source": "docs/reports/svt_route_shortfall_decomposition.json",
+  "measured_at_anchor": 1.0,
+  "world_level_digest": "39a192ce04c1eda8",
+  "per_year": {
+   "2017": {
+    "world_hazard": 0.13266,
+    "required_hazard_at_band_low": 0.284098,
+    "as_published": {
+     "admissible_svt_churn": [
+      -0.027193,
+      0.245614
+     ],
+     "phi_admitting_world": [
+      0.394577,
+      0.430178
+     ],
+     "phi_admitting_required": [
+      -0.227302,
+      -0.145753
+     ]
+    },
+    "all_domestic": {
+     "admissible_svt_churn": [
+      0.002946,
+      0.225989
+     ],
+     "phi_admitting_world": [
+      0.396599,
+      0.436722
+     ],
+     "phi_admitting_required": [
+      -0.360215,
+      -0.270311
+     ]
+    }
+   },
+   "2018": {
+    "world_hazard": 0.190827,
+    "required_hazard_at_band_low": 0.279348,
+    "as_published": {
+     "admissible_svt_churn": [
+      0.057547,
+      0.377358
+     ],
+     "phi_admitting_world": [
+      0.570588,
+      0.600983
+     ],
+     "phi_admitting_required": [
+      0.285383,
+      0.315778
+     ]
+    },
+    "all_domestic": {
+     "admissible_svt_churn": [
+      0.085269,
+      0.341588
+     ],
+     "phi_admitting_world": [
+      0.573984,
+      0.608449
+     ],
+     "phi_admitting_required": [
+      0.216728,
+      0.251192
+     ]
+    }
+   },
+   "2019": {
+    "world_hazard": 0.197192,
+    "required_hazard_at_band_low": 0.333955,
+    "as_published": {
+     "admissible_svt_churn": [
+      0.069608,
+      0.417647
+     ],
+     "phi_admitting_world": [
+      0.620595,
+      0.659503
+     ],
+     "phi_admitting_required": [
+      0.182394,
+      0.24888
+     ]
+    },
+    "all_domestic": {
+     "admissible_svt_churn": [
+      0.098461,
+      0.37467
+     ],
+     "phi_admitting_world": [
+      0.628349,
+      0.67237
+     ],
+     "phi_admitting_required": [
+      0.079058,
+      0.153263
+     ]
+    }
+   },
+   "2020": {
+    "world_hazard": 0.191026,
+    "required_hazard_at_band_low": 0.341823,
+    "as_published": {
+     "admissible_svt_churn": null,
+     "phi_admitting_world": null,
+     "phi_admitting_required": null
+    },
+    "all_domestic": {
+     "admissible_svt_churn": null,
+     "phi_admitting_world": null,
+     "phi_admitting_required": null
+    }
+   },
+   "2021": {
+    "world_hazard": 0.141431,
+    "required_hazard_at_band_low": 0.271207,
+    "as_published": {
+     "admissible_svt_churn": null,
+     "phi_admitting_world": null,
+     "phi_admitting_required": null
+    },
+    "all_domestic": {
+     "admissible_svt_churn": null,
+     "phi_admitting_world": null,
+     "phi_admitting_required": null
+    }
+   },
+   "2023": {
+    "world_hazard": 0.09355,
+    "required_hazard_at_band_low": 0.084237,
+    "as_published": {
+     "admissible_svt_churn": [
+      0.02375,
+      0.15625
+     ],
+     "phi_admitting_world": [
+      0.137286,
+      1.165857
+     ],
+     "phi_admitting_required": [
+      0.30872,
+      1.405334
+     ]
+    },
+    "all_domestic": {
+     "admissible_svt_churn": [
+      0.02375,
+      0.15625
+     ],
+     "phi_admitting_world": [
+      0.137286,
+      1.165857
+     ],
+     "phi_admitting_required": [
+      0.30872,
+      1.405334
+     ]
+    }
+   },
+   "2024": {
+    "world_hazard": 0.114562,
+    "required_hazard_at_band_low": 0.169157,
+    "as_published": {
+     "admissible_svt_churn": [
+      0.06875,
+      0.20125
+     ],
+     "phi_admitting_world": [
+      0.476434,
+      1.275034
+     ],
+     "phi_admitting_required": [
+      -0.417858,
+      0.366777
+     ]
+    },
+    "all_domestic": {
+     "admissible_svt_churn": [
+      0.06875,
+      0.20125
+     ],
+     "phi_admitting_world": [
+      0.476434,
+      1.275034
+     ],
+     "phi_admitting_required": [
+      -0.417858,
+      0.366777
+     ]
+    }
+   }
+  }
+ },
+ "how_to_regenerate": "python3 -m tools.published_route_split --write"
+}

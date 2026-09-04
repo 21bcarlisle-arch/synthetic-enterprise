@@ -1497,6 +1497,16 @@ def discover_switching_level_candidates(root: Path = _REPO_ROOT, scope=_SCOPE) -
 #: from here and from every register above makes the census leg fire -- which is the whole point:
 #: "absent" and "checked" look identical to a register, so absence is made load-bearing.
 _NOT_A_LEVEL_READING: dict[str, str] = {
+    # --- tools/published_route_split: a WITHIN-SEGMENT hazard, not a book level ---
+    "tools.published_route_split:admissible_svt_churn":
+        "external changes of supplier per SVT-ACCOUNT-year -- a hazard inside one segment of the "
+        "book, not a rate over the book. Registering it would hold it to the published band, and "
+        "the band's denominator is ALL GB domestic electricity accounts: the two differ by the "
+        "SVT share and comparing them is the before-you-divide defect this file exists over. It "
+        "is already held, and held harder, by "
+        "`test_the_route_split_identity_closes_at_every_corner`, which recomputes it longhand from "
+        "the band and the share it is derived from. It also returns an INTERVAL over an "
+        "unestablished quantity rather than a value, so there is no level in it to hold.",
     # --- the level's DENOMINATOR and its neighbours in the same module ---
     "company.market.market_report:_UK_DOMESTIC_ACCOUNTS_M":
         "the DENOMINATOR the switching rate is expressed over, not the rate. It is caught here "
@@ -3463,4 +3473,296 @@ def test_the_committed_composition_still_reproduces_on_the_live_world():
         + f"\nRe-run `{declared['how_to_regenerate']}` and land it. If the world's SVT share has "
         f"moved toward the published one, that is a fidelity repair landing and the findings that "
         f"rest on this reading must be re-read, not the leg relaxed."
+    )
+
+
+# ---------------------------------------------------------------------------------------------
+# THE PUBLISHED ROUTE SPLIT — `tools/published_route_split.py`, finding §11.
+#
+# The readings above all take a captured run as their subject. This one takes three PUBLISHED
+# series and composes them against each other, so its legs guard a different failure: not "did the
+# world move", but "did the reading quietly acquire a number the record does not supply". The
+# unestablished quantity is `phi`, the external share of active fixed-term renewals, and the whole
+# reading exists to publish an interval over it rather than a value in it. A leg that let `phi`
+# become a float would retire the finding by accident.
+# ---------------------------------------------------------------------------------------------
+
+
+def _split_module():
+    return importlib.import_module("tools.published_route_split")
+
+
+def _declared_route_split() -> dict:
+    return json.loads((_REPO_ROOT / "docs" / "reports" / "published_route_split.json").read_text())
+
+
+def test_the_route_split_identity_closes_at_every_corner():
+    """MUTATION: drop a corner from `_corners`, or compose `s * H_fixed` instead of `(1 - s) * H`.
+
+    THE IDENTITY IS BILINEAR, so its extrema over the two published bands sit at corners and
+    enumerating them is exact. Doing it by hand -- "s is increasing, take the high end" -- gets the
+    sign wrong whenever `H_svt` and `H_fixed` swap order, and they do swap between 2019 and 2022.
+    This recomputes the composition longhand from the two published bands and requires the module's
+    reported envelope to be exactly the min and max of it.
+
+    THE INVERSION IS CHECKED HERE TOO, AND THAT IS NOT TIDINESS. `forward_composition` never reads
+    the departure band's endpoints -- it composes from `s` and `H_svt` alone and only compares
+    against the band afterwards -- so dropping a departure-band corner from `_corners` is an
+    EQUIVALENCE for the forward leg and was measured to be one: the first draft of this test stayed
+    green under exactly that mutation, and only the artefact drift detector fired, which would
+    itself go quiet the moment somebody regenerated. `admissible_svt_churn` DOES read both
+    endpoints, so recomputing it longhand here is what makes the corner enumeration load-bearing.
+    """
+    split = _split_module()
+    band = split.svt_segment_churn_band()["tenure_composed"]
+    for year in sorted(set(split.published_departure_band()) & set(
+        split.years_with_an_established_figure()
+    )):
+        for basis in split.BASES:
+            share = split.default_tariff_share(year, basis)
+            record = split.published_departure_band()[year]
+            longhand = [
+                100.0 * (s * h + (1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE * 1.0)
+                for s in share for h in band
+            ]
+            got = split.forward_composition(year, basis, 1.0, svt_band=band)
+            assert got["composed_pct"][0] == pytest.approx(min(longhand), abs=1e-4), (
+                f"{year}/{basis}: composed low end does not match the identity recomputed longhand."
+            )
+            assert got["composed_pct"][1] == pytest.approx(max(longhand), abs=1e-4)
+            assert got["band_pct"] == list(record)
+
+            at_1 = [
+                (r / 100.0 - (1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE) / s
+                for r in record for s in share
+            ]
+            at_0 = [r / 100.0 / s for r in record for s in share]
+            admissible = split.admissible_svt_churn(year, basis)
+            assert admissible["at_phi_1"] == [
+                pytest.approx(min(at_1), abs=1e-6), pytest.approx(max(at_1), abs=1e-6)
+            ], f"{year}/{basis}: the phi=1 endpoint does not span both departure-band corners."
+            assert admissible["at_phi_0"] == [
+                pytest.approx(min(at_0), abs=1e-6), pytest.approx(max(at_0), abs=1e-6)
+            ]
+            assert admissible["admissible"] == [
+                pytest.approx(min(at_1), abs=1e-6), pytest.approx(max(at_0), abs=1e-6)
+            ]
+
+
+def test_the_admissible_svt_churn_falls_as_the_external_share_rises():
+    """MUTATION: flip the sign on the `(1 - s) * FIXED_ACTIVE_RENEWAL_SHARE` term and this fires.
+
+    THE ONE DIRECTION THAT SEPARATES A COMPUTED READING FROM A CACHED COLUMN, and it is the same
+    shape as `test_mutation_o` and `test_mutation_q` for the capture-backed readings. Every
+    departure the fixed route is credited with is one the SVT route no longer has to supply, so
+    `H_svt` must FALL as `phi` rises. A reading that had frozen its numbers would satisfy every
+    other leg here and not this one, because this one sweeps an argument nothing is cached against.
+    """
+    split = _split_module()
+    for year in split.years_with_an_established_figure():
+        for basis in split.BASES:
+            if split.admissible_svt_churn(year, basis) is None:
+                continue
+            swept = [
+                split.phi_admitting(year, basis, h) for h in (0.05, 0.10, 0.20, 0.30)
+            ]
+            lows = [interval[0] for interval in swept]
+            assert lows == sorted(lows, reverse=True), (
+                f"{year}/{basis}: the phi the record needs must FALL as the SVT hazard rises; "
+                f"got {lows}. A rising series means the fixed term carries the wrong sign."
+            )
+            admissible = split.admissible_svt_churn(year, basis)
+            assert admissible["at_phi_1"][1] <= admissible["at_phi_0"][1] + 1e-9, (
+                f"{year}/{basis}: giving the fixed route its ceiling must not RAISE the SVT "
+                f"churn the record admits."
+            )
+
+
+def test_a_negative_admissible_endpoint_is_reported_and_never_clipped():
+    """MUTATION: wrap `at_phi_1` in `max(0.0, ...)` and this fires on 2017 and 2022.
+
+    A CLIP TURNS A REFUSAL INTO A BOUNDARY. Where `H_svt` at `phi = 1` comes out negative, the
+    record is saying the fixed route alone at its published ceiling already exceeds the whole
+    published band -- so the record REFUSES `phi = 1` in that year, which is the only place this
+    identity constrains `phi` from above at all. Clipped to 0.0 it reads as "the SVT route
+    contributes nothing", which is a different and much weaker statement, and the reader cannot
+    tell the two apart. At least one scored year must carry the refusal or this leg is asserting
+    nothing.
+    """
+    split = _split_module()
+    refusing = [
+        (year, basis)
+        for year in split.years_with_an_established_figure()
+        for basis in split.BASES
+        if (row := split.admissible_svt_churn(year, basis)) is not None
+        and row["at_phi_1"][0] < 0.0
+    ]
+    assert refusing, (
+        "no scored year reports a negative admissible endpoint. Either the record stopped "
+        "refusing phi=1 anywhere -- which is a finding and this leg should be re-read, not "
+        "relaxed -- or an endpoint is being clipped and the refusal has been hidden."
+    )
+    for year, basis in refusing:
+        row = split.admissible_svt_churn(year, basis)
+        assert row["record_refuses_phi_1"] == (row["at_phi_1"][1] < 0.0), (
+            f"{year}/{basis}: `record_refuses_phi_1` must be derived from the interval's HIGH "
+            f"end -- the record only refuses phi=1 when NO corner admits it."
+        )
+
+
+def test_the_route_split_refuses_every_year_with_no_published_share():
+    """MUTATION: interpolate 2020/2021, or score them off the band alone, and this fires.
+
+    THE SAME REFUSAL `test_a_year_with_no_published_share_is_refused_and_never_interpolated` holds
+    for the composition counterfactual, re-asserted here because this reading has its own
+    denominator and a second consumer is a second place the gap can be filled by accident. The
+    denominator is reported as what it is: `n_years_scored` must equal the years actually scored,
+    never the years the band covers.
+    """
+    split = _split_module()
+    reading = split.published_route_split()
+    established = set(split.years_with_an_established_figure())
+    for year in sorted(set(split.published_departure_band()) - established):
+        assert str(year) not in reading["per_year"], (
+            f"{year} has no established default-tariff share and must not be scored."
+        )
+        assert str(year) in reading["years_refused"], f"{year} is dropped silently, not refused."
+        for basis in split.BASES:
+            assert split.admissible_svt_churn(year, basis) is None
+            assert split.phi_admitting(year, basis, 0.2) is None
+    assert reading["n_years_scored"] == len(reading["per_year"]) == len(reading["years_scored"])
+    assert set(reading["years_refused"]) == {"2020", "2021"}
+
+
+def test_the_external_share_of_active_renewals_stays_a_declared_gap():
+    """MUTATION: set `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS = 0.5` and this fires.
+
+    THIS IS THE FINDING, AND A NUMBER HERE WOULD RETIRE IT SILENTLY. The published ~35% counts
+    households actively renewing onto a new FIXED DEAL, which includes staying with the same
+    supplier; the published numerator counts external changes of supplier only. Nothing published
+    establishes the split. A float in this slot would be read as established within a week and be
+    unattributable within a month, and every interval this module publishes would collapse to a
+    point that looks like a measurement.
+
+    Keyed to the PROPERTY (the slot is empty and the artefact says why), not to today's answer: if
+    somebody sources it, this leg goes red, and the correct repair is to rewrite the leg around the
+    citation -- which is the red a control is supposed to produce.
+    """
+    split = _split_module()
+    assert split.EXTERNAL_SHARE_OF_ACTIVE_RENEWALS is None, (
+        "phi has acquired a value. If it was sourced, cite it here and re-aim this leg at the "
+        "citation; if it was picked because a number was needed, it is the defect CLAUDE.md's "
+        "knowledge-first rule exists for."
+    )
+    declared = split.published_route_split()["the_unestablished_quantity"]
+    assert declared["value"] is None
+    assert declared["why_it_is_none"].strip() and declared["what_would_close_it"].strip(), (
+        "a gap must carry its reason and its route to closing it, or it is indistinguishable "
+        "from an oversight."
+    )
+
+
+def test_the_route_split_does_not_read_the_worlds_clipped_constants():
+    """MUTATION: import `SVT_INERTIA_ANNUAL_RECENT` into the split and compose with it.
+
+    `simulation/departure_risks.py` holds the TOP of each published band clipped to a point, wired
+    as a world INPUT under the director's anti-flattering tie-break. That is a defensible choice
+    for a world and an inadmissible one for a check: composing the record against the world's own
+    choice of where to sit inside the record would make the check agree with the world by
+    construction. The bands are re-declared in the split from the same source section, and this
+    leg holds both directions -- the split may not read the world, and the world may not read the
+    split.
+    """
+    split_path = _REPO_ROOT / "tools" / "published_route_split.py"
+    tree = ast.parse(split_path.read_text())
+    read_from_world: list[str] = []
+    for node in ast.walk(tree):
+        names = []
+        if isinstance(node, ast.Import):
+            names = [a.name for a in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            names = [node.module or ""]
+        if any(n.startswith("simulation.departure_risks") for n in names):
+            read_from_world.append(f"published_route_split.py:{node.lineno}")
+    assert not read_from_world, (
+        "the published check imports the world's clipped constants: "
+        + ", ".join(read_from_world)
+        + ". The check would then agree with the world wherever the world chose its endpoint."
+    )
+    split = _split_module()
+    assert split.SVT_CHURN_RECENT == (0.15, 0.20) and split.SVT_CHURN_LONG_STAYER == (0.05, 0.10), (
+        "the split must carry the published BANDS, not a point inside them."
+    )
+    offenders: list[str] = []
+    for path in sorted((_REPO_ROOT / "simulation").rglob("*.py")):
+        for node in ast.walk(ast.parse(path.read_text())):
+            names = []
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                names = [node.module or ""]
+            if any(n.startswith("tools.published_route_split") for n in names):
+                offenders.append(f"{path.relative_to(_REPO_ROOT)}:{node.lineno}")
+    assert not offenders, "the world imports the split it is judged against: " + ", ".join(offenders)
+
+
+def test_a_verdict_that_turns_on_the_one_tenure_survey_says_so():
+    """MUTATION: hard-code `verdict_is_mix_dependent` to False and this fires on 2018.
+
+    THE TENURE SPLIT IS ONE SURVEY YEAR CARRIED ACROSS NINE. A verdict that holds only at the 2018
+    mix is a verdict about 2018, and the honest form is to say which years those are rather than to
+    widen every band until nothing can be said. 2018's own overshoot is mix-dependent -- it is
+    `above` at the composed band and `overlaps` at the mix-free envelope -- which is not what the
+    leg was written expecting, and is exactly why the flag is DERIVED from the two verdicts here
+    rather than copied from the artefact.
+    """
+    split = _split_module()
+    reading = split.published_route_split()
+    for year, row in reading["per_year"].items():
+        for basis in split.BASES:
+            cell = row[basis]
+            assert cell["verdict_is_mix_dependent"] == (
+                cell["forward_at_phi_1"]["verdict"] != cell["forward_at_phi_1_mix_free"]["verdict"]
+            ), f"{year}/{basis}: the mix-dependence flag is not derived from the two verdicts."
+        robust = reading["years_above_the_band_on_every_tenure_mix"]
+        for basis in split.BASES:
+            above_both = (
+                row[basis]["forward_at_phi_1"]["verdict"] == "above"
+                and row[basis]["forward_at_phi_1_mix_free"]["verdict"] == "above"
+            )
+            assert (year in robust[basis]) == above_both, (
+                f"{year}/{basis}: the mix-independent overshoot set disagrees with the two "
+                f"verdicts it is supposed to be the intersection of."
+            )
+    assert any(
+        row[basis]["verdict_is_mix_dependent"]
+        for row in reading["per_year"].values() for basis in split.BASES
+    ), (
+        "no year's verdict depends on the tenure mix. Either the two bands stopped differing -- "
+        "which would mean the envelope is no longer wider than the composed band and this leg is "
+        "asserting nothing -- or the flag has been frozen."
+    )
+
+
+def test_the_committed_route_split_still_reproduces():
+    """MUTATION: perturb the declared file, or move any of the three published series under it.
+
+    A DRIFT DETECTOR THAT REDS IN EITHER DIRECTION, as its siblings over the shortfall and the
+    composition do. If the commons band is corrected, or a default-tariff share is sourced for 2020,
+    this goes red -- correctly, because the tree's written account of what the record can bear would
+    have stopped being true. The repair is to re-run and land, never to relax the leg.
+    """
+    declared = _declared_route_split()
+    live = _split_module().published_route_split()
+    disagreements = [
+        key for key in (
+            "years_scored", "n_years_scored", "years_refused", "per_year",
+            "published_svt_segment_churn", "published_fixed_active_renewal_share",
+            "years_above_the_band_on_every_tenure_mix", "the_unestablished_quantity",
+        )
+        if declared.get(key) != live.get(key)
+    ]
+    assert not disagreements, (
+        "the committed published route split no longer reproduces: " + ", ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land it."
     )

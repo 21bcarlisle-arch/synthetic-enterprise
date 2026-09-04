@@ -45,6 +45,7 @@ import sys
 from pathlib import Path
 
 import tools.measure_departure_level as _instrument
+import tools.published_route_split as published_route_split
 from simulation.departure_level_anchor import NO_LEVEL_CORRECTION, world_level_identity
 from simulation.departure_risks import (
     CAUSE_BILL_SHOCK,
@@ -1672,6 +1673,34 @@ def _svt_shortfall_main(table_path: Path) -> int:
               f"{cmp_['required_over_published_recent']:.2f}x the published "
               f"{reading['base_window_comparison']['published_annual_recent']}")
     print(f"  written to {SVT_SHORTFALL.relative_to(PROJECT)}")
+
+    # THE REQUIRED HAZARD IS PRINTED BESIDE WHAT THE RECORD ADMITS, and that pairing is the
+    # finding's §11 second owed item rather than a decoration. `required_hazard` above is
+    # conditional on the world's OWN SVT share, which the composition counterfactual then measured
+    # as BELOW the published one -- so a reader who sees "the record needs 0.334" and nothing else
+    # will read it as a repair to apply, and at 2017 applying it alongside the share correction
+    # OVERSHOOTS the record. Each of those two readings holds the other's subject fixed by
+    # construction, so neither can say so. This is the only place they are printed together.
+    print()
+    print("── AND WHAT THE PUBLISHED RECORD ADMITS FOR IT (tools.published_route_split) ──")
+    print()
+    print(f"{'year':>6} {'world':>8} {'needs':>8}   admissible H_svt, phi in [0,1] (all-domestic)")
+    for year in reading["years"]:
+        row = reading["per_year"][year]
+        admissible = published_route_split.admissible_svt_churn(int(year), "all_domestic")
+        needs = row["required_hazard"]["at_band_low"]
+        head = f"{year:>6} {row['factors']['hazard']:>8.4f} {needs:>8.4f}   "
+        if admissible is None:
+            print(head + "REFUSED — no published default-tariff share for this year")
+            continue
+        lo, hi = admissible["admissible"]
+        verdict = "admits it" if lo <= needs <= hi else "REFUSES the required hazard"
+        print(head + f"{lo:>7.3f} – {hi:<7.3f}  {verdict}")
+    print()
+    print("  The interval is wide because phi -- the external share of active fixed-term renewals")
+    print("  -- is UNESTABLISHED, not because the arithmetic is loose. Where it contains both the")
+    print("  published 0.20 and the required value, the record cannot tell them apart, and that")
+    print("  is a result. See finding §11 and docs/reports/published_route_split.json.")
     return 0
 
 

@@ -654,3 +654,162 @@ measured, sourced and out of the way, and it is a fidelity debt in its own right
 repair.
 
 — Delivery seat, 2026-09-04.
+
+## 11. The published record cannot adjudicate the hazard, and it says which quantity would — 2026-09-04
+
+§9 and §10 both closed on the same sentence: *"the question is not 'raise the constant' but whether
+0.20 is the right published quantity for what this hazard models at all."* **That question has now
+been asked of the record directly, and the record's answer is "I cannot tell you, and here is
+exactly what would."** `tools/published_route_split.py`, committed at
+`docs/reports/published_route_split.json`. **There is no world in this reading** — three published
+series composed against each other — except one labelled section that reads §9's committed artefact.
+
+The pre-registration is
+`SEAT_PREREGISTRATION_WHETHER_THE_PUBLISHED_SEGMENT_RATES_COMPOSE_TO_THE_PUBLISHED_BAND_2026-09-04.md`,
+filed before the module existed. All five are graded below, beside the result.
+
+### The identity, and why it admits a line rather than a point
+
+> `R(y)  =  s(y) · H_svt(y)  +  (1 − s(y)) · H_fixed(y)`
+
+`R` is the commons' band — GB domestic **electricity changes of supplier** over all GB domestic
+electricity accounts, whose own numerator field says *"NOT tariff switches within the same supplier,
+which Ofgem's survey instruments do count and which are a different quantity."* `s` is §10's
+published default-tariff share. One equation, two unknowns.
+
+**And `H_fixed` is not 0.35.** `svt_rates_active_passive_2016_2025.md` §4's *"fixed at expiry →
+active switch ~35%"* counts households actively renewing onto **a new fixed deal**, of whom an
+unestablished share stay with their existing supplier. So `H_fixed = 0.35 · φ`, and **φ — the
+external share of active fixed-term renewals — is the quantity nothing published establishes.**
+`EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is `None` in the tree and
+`test_the_external_share_of_active_renewals_stays_a_declared_gap` keeps it `None`.
+
+### The result: the admissible interval contains both candidate answers
+
+| year | band % | published share (all-dom.) | admissible `H_svt`, φ∈[0,1] | world's required (§9) |
+|---|---|---|---|---|
+| 2017 | 13.5–14.0 | 0.620–0.636 | **0.003 – 0.226** | 0.2841 — **REFUSED** |
+| 2018 | 19.5–20.0 | 0.586 | 0.085 – 0.342 | 0.2793 ✓ |
+| 2019 | 20.7–21.3 | 0.569–0.586 | 0.098 – 0.375 | 0.3340 ✓ |
+| 2022 | 2.9–4.3 | 0.800–0.900 | **−0.051 – 0.054** | not a fitted year |
+| 2023 | 8.9–12.5 | 0.800–0.900 | 0.024 – 0.156 | 0.0842 ✓ |
+| 2024 | 12.5–16.1 | 0.800–0.860 | 0.069 – 0.201 | 0.1692 ✓ |
+
+*2016 and 2025 are scored and omitted from this table only because they are not fitted years; they
+are in the artefact. **2020 and 2021 are REFUSED**, not scored — §10's declared gaps, still not
+interpolated. The denominator is 8 scored of 10 banded, and 5 of 7 fitted.*
+
+**At 2019 the record admits everything from 0.098 to 0.375. The published 0.20 is inside it. The
+world's required 0.334 is inside it. The record cannot tell them apart**, and the width is not
+looseness in the arithmetic — it is φ sweeping [0, 1]. **This is a "we cannot tell", and it is the
+result.** §9's gap of 1.67× is real and it is not, by itself, evidence that the source is wrong.
+
+### Three things the record does say, none of them predicted
+
+1. **The record REFUSES φ = 1 at 2017 and 2022.** Where `H_svt` at φ = 1 comes out negative, the
+   fixed route at its published ceiling *alone* already exceeds the whole published band. That is
+   the only place published evidence constrains φ from above at all, and it is why the endpoint is
+   reported negative rather than clipped to zero —
+   `test_a_negative_admissible_endpoint_is_reported_and_never_clipped` holds that, because a clip
+   turns a refusal into a boundary and the reader cannot tell the two apart.
+
+2. **The two repairs are not additive, and 2017 is where that shows.** §9's `required_hazard` was
+   computed holding the world's *own* SVT share fixed — and §10 then measured that share as **below**
+   the published one. So "raise the hazard to what §9 requires" and "correct the share to published"
+   are not two independent repairs that can both land: applied together at 2017 they **overshoot the
+   record**, needing φ of −0.227 to −0.146 (as-published) or −0.360 to −0.270 (all-domestic). The
+   record refuses the pair. Nothing said this before, because §9 and §10 each held the other's
+   subject fixed, and this is the interconnection question the seat is the only place able to ask.
+
+3. **2022 binds the constant hard and nobody had noticed.** Admissible `H_svt` there is
+   −0.051 to 0.054 — **`SVT_INERTIA_ANNUAL_RECENT = 0.20` is refused by the record at 2022 by
+   roughly a factor of four.** 2022 is not a fitted year so this does not bear on rung 1, but it is a
+   published constraint on a live world constant and it is filed here rather than acted on.
+
+### The pre-registration, graded
+
+- **P1 — REFUTED**, and filed weak on purpose because I had hand-derived its direction. Predicted
+  the published pair at φ=1 would overshoot in **every** comparable year on both bases. It overshoots
+  robustly — on *every* tenure mix — in **2 of 8**: 2017 and 2022. At the one published tenure mix it
+  overshoots in 4 of 8 (as-published) and 3 of 8 (all-domestic), and **overlaps** the band elsewhere.
+  The cause of my error is the substitution this module exists to refuse: I composed at
+  `H_svt ≈ 0.17`, which is the *world's* near-0.20 value, instead of the published tenure-composed
+  **0.0942–0.1442**. A hand check that borrows the world's number to test the world is not a check,
+  and it produced the flattering answer here exactly as it did in §9.
+- **P2 — CONFIRMED, and narrowly enough that it should not be counted as skill.** Predicted the φ
+  admitting the world's required `H_svt(2019) = 0.334` would be below 0.25. It is **0.182–0.249** on
+  the as-published basis — inside by 0.001 — and **0.079–0.153** on the all-domestic basis. One
+  rounding in the share and the as-published half of this reads the other way.
+- **P3 — CONFIRMED, in all 8 scored years on both bases.** The record's lower bound on `H_svt`,
+  taken at φ = 1, is below 0.20 everywhere: 0.077, 0.003, 0.085, 0.098, −0.051, 0.024, 0.069, 0.027
+  (all-domestic). **The published 0.20 is not a floor the record insists on**, so "the world needs
+  1.7× its own source" is not by itself evidence against the source.
+- **P4 — CONFIRMED.** φ is established nowhere in this tree. And the adjacent record was already
+  here: `gb_switching_rate_denominators.md` §7 notes Ofgem's CIM wave 6 is *further* from the
+  reason-split question *"because its population includes internal tariff switches"* — the same
+  instrument, the same shortcoming, written down weeks ago and never connected to this question.
+  That is the §10 shape again, one degree weaker: not a duplicated number this time, but a known
+  limitation of a known instrument that nobody had pointed at the question it settles.
+- **P5 — CONFIRMED.** No constant edited, no solver aim point moved, `YEAR_LEVEL_ANCHOR` untouched,
+  `emergent_level_verdict` still six of seven outside their bands. §4's constraint 4, a seventh time.
+
+### A verdict that turns on one survey year says so
+
+The SVT segment's composed band rests on a single published tenure split (Ofgem CES 2018: 29% on SVT
+3+ years, 23% under 3). Carrying one survey across nine years is a real weakness, so every forward
+verdict is computed twice — at that mix and at the **mix-free envelope**, the value the segment could
+take under any mix — and `verdict_is_mix_dependent` is derived per year from the two.
+**2018's and 2019's overshoots are mix-dependent; 2017's and 2022's are not.** That was not the
+answer the leg was written expecting, which is why the flag is computed rather than asserted.
+
+### Controls
+
+Eight legs in `tests/architecture/test_switching_rate_commons.py`, all eight mutation-proven on
+disk: a dropped departure-band corner, the fixed-route term with its sign flipped, the negative
+endpoint clipped to zero, the gap years scored instead of refused, φ acquiring a value, the check
+importing the world's clipped constants (and the world importing the check), the mix-dependence flag
+frozen, and the committed artefact drifting from the live record.
+
+**One of them was measured to be an equivalence first and was repaired rather than recorded as one.**
+The identity leg's first draft stayed green when a departure-band corner was dropped, because
+`forward_composition` never reads the band's endpoints — it composes from the share and the segment
+band and only compares against the record afterwards. Only the drift detector fired, and a drift
+detector goes quiet the moment somebody regenerates the artefact. The leg now recomputes
+`admissible_svt_churn` longhand as well, which is the half that does read both endpoints.
+
+`admissible_svt_churn` is registered in `_NOT_A_LEVEL_READING` with its reason: it is a hazard
+**within one segment**, and the published band's denominator is **all** GB domestic electricity
+accounts. Holding it to that band would be dividing two numbers whose ratio is not a quantity, which
+is the defect this whole control file exists over.
+
+### Where this leaves the repair
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published, and rung 1
+is unmoved. What changed is that the repair is no longer aimed at a constant at all:
+
+> **The binding unestablished quantity is φ — the external share of active fixed-term renewals — and
+> until it is sourced the published record cannot say whether `SVT_INERTIA_ANNUAL_RECENT = 0.20` is
+> right, too low, or too high.**
+
+What would close it: a domestic instrument separating *"switched supplier"* from *"switched tariff
+with the same supplier"* on one base. Ofgem's Consumer Impacts of Market Conditions survey fields
+both events and publishes them combined; the cross-tabulation is in the underlying data tables and
+was not reachable this pass. **That is the next sourcing, and it is a narrower question than any
+this finding has asked so far** — one cross-tabulation of one survey, against the household-level
+dispersion §6 went looking for and the composition series §10 reconciled.
+
+And the second thing owed, which is not a sourcing job: **§9's and §10's readings must be re-run
+jointly, not separately.** Result 2 above is only visible when the hazard and the share move
+together, and each of those readings holds the other's subject fixed by construction.
+
+**The first leg of that is landed here rather than left as a note.**
+`tools/fit_year_level_anchor --svt-shortfall` now prints the admissible interval beside its own
+`required_hazard`, per year, with 2017 marked *REFUSES the required hazard* and 2020/2021 marked
+refused for want of a published share. That pairing exists because a reader who sees *"the record
+needs 0.334"* and nothing else will read it as a repair to apply — which is what §9 invited, and
+what result 2 says is wrong. It is also the wiring that keeps this module out of the no-caller
+class: the orphan ratchet refused the first landing of this work, and the honest answer to that
+refusal was to make the reading reachable from something that runs, not to declare it dormant and
+freeze it beside `svt_generated_share_check`.
+
+— Delivery seat, 2026-09-04.
