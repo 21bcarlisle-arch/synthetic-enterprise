@@ -1897,7 +1897,11 @@ def _method_skill(three_arm: dict) -> dict:
             .get("retained"),
             (((three_arm or {}).get("belief_vs_outcome") or {}).get("auc_population") or {})
             .get("left"),
-            ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
+            ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc"),
+            # THE WORLD THE OBSERVED VALUE WAS MEASURED IN, read from the run that produced it and
+            # never from the live world: the question is which departure level THIS figure saw, and
+            # a page that answered it with today's digest would stamp a superseded run as current.
+            measured_in_world=((three_arm or {}).get("world_identity") or {}).get("digest")),
         "what_it_is": (
             "Does the arm's own per-customer price rank the value JOINTLY created -- what the "
             "household kept plus what we kept, over what the household would have paid on the "
@@ -2241,8 +2245,34 @@ _POLARITY_SHIFT_MARGIN = 0.10
 _EXACT_NULL_PAIR_CAP = 4000
 
 
-def _auc_null(retained: int, left: int, observed: float | None) -> dict:
+def _auc_null(retained: int, left: int, observed: float | None,
+              measured_in_world: str | None = None) -> dict:
     """What a signal carrying NO information scores on a population this size, and where 0.13 sits.
+
+    AND SINCE 2026-09-04 IT NAMES THE WORLD THE COMPARISON WAS MADE IN, or it states no direction.
+    The interval below is COMBINATORIAL -- a function of `retained` and `left` and of nothing else
+    -- which is exactly why this block survived the walk that stamped every other bound on this
+    page. It reads as world-invariant and it is. The COMPARISON is not: `observed` is how much
+    churn signal exists at a particular departure level, and the departure level is the thing that
+    moved. `world_provenance` puts the size of that move on the same page -- +19.06pp of whole-book
+    expected departure against published bands 0.5-3.6pp wide -- while naming the three-arm run
+    both call sites read from in `runs_that_cannot_name_their_world`.
+
+    So the page rendered "the belief carried real information about who stays" (two-sided p 0.009,
+    in the amber it reserves for a figure that clears its null) two paragraphs under a headline
+    whose first sentence is "no contrast below may have its direction read as resolved". Same
+    self-contradiction `_seed_spreads` documents one block over, and fail-open in the flattering
+    direction on the one question that asks whether the company knows anything.
+
+    THE ASYMMETRY IS `_svt_drift_belief`'S AND IS NOT RE-INVENTED HERE. Only a RESOLVED direction
+    needs a world: `inside_the_null` true says "we cannot tell", which cannot mislead upward, and
+    withholding a refusal because its world is unknown would replace a caveat with a silence. So
+    the withholding is keyed to the branch that CLEARS, and a run whose figure moves back inside
+    its null goes on saying "we cannot tell" with nobody editing this function.
+
+    EVERY NUMBER STAYS. The interval, the point null, the p-value and the basis are what was
+    measured; only the direction read off them is withheld. That is `_leg_in_this_world`'s grammar
+    -- a figure and its bound are a measurement, and a verdict is a separate claim.
 
     THE FIGURE WENT OUT UNBOUNDED. `discrimination_auc` was published with a reading that called
     it "worse than a coin flip" and nothing beside it said what a coin flip's own spread is on ten
@@ -2310,6 +2340,14 @@ def _auc_null(retained: int, left: int, observed: float | None) -> dict:
     p_two_sided = min(1.0, 2.0 * min(below, at_or_above))
     lo = next(u for u in range(pairs + 1) if cumulative[u] > 0.025)
     hi = next(u for u in range(pairs, -1, -1) if 1.0 - cumulative[u - 1] > 0.025) if pairs else 0
+    inside = lo / pairs <= obs <= hi / pairs
+    # THE DIRECTION IS THE ONLY THING THE WORLD GATES. `inside` true is "we cannot tell" and goes
+    # out whatever the world; `inside` false is "this figure CLEARS its null", which is a claim
+    # about how much signal a particular departure level leaves to find, and it is withheld when
+    # the run cannot say which level it ran at. Composed from `inside` rather than from a flag set
+    # elsewhere, so the day the observed value moves back inside its interval the refusal comes
+    # back on its own.
+    withheld = (not inside) and not measured_in_world
     return {
         "available": True,
         "retained": retained,
@@ -2319,7 +2357,26 @@ def _auc_null(retained: int, left: int, observed: float | None) -> dict:
         "null_95_low": lo / pairs,
         "null_95_high": hi / pairs,
         "p_two_sided": p_two_sided,
-        "inside_the_null": lo / pairs <= obs <= hi / pairs,
+        # TRI-STATE, and every reader of this key must have three branches. `None` is "the
+        # comparison resolved and its world is unknown", which is neither of the other two -- see
+        # `_auc_reading`, whose two-branch `if` would otherwise send this case down the falsy edge
+        # and print the very sentence being withheld.
+        "inside_the_null": None if withheld else inside,
+        # WHICH WORLD THE COMPARISON WAS MADE IN, on the same footing as the interval itself, so a
+        # reader can place it against `current_world.live_world` without taking anyone's word.
+        "measured_in_world": measured_in_world,
+        "verdict_withheld_because": None if not withheld else (
+            "THIS COMPARISON NAMES NO WORLD. The interval beside it is combinatorial -- it depends "
+            "on {ret} retained and {left} departed renewals and on nothing else -- but whether the "
+            "observed value CLEARS it is a statement about how much churn signal a particular "
+            "departure level leaves to be found, and the run this figure came from carries no "
+            "departure-level identity. The departure level has moved since: this page's own "
+            "`world_provenance` measures the swap at +19.06pp of whole-book expected departure "
+            "against published bands 0.5-3.6pp wide. The interval, the p-value and the observed "
+            "value are published because they are what was measured; the direction read off them "
+            "is not stated here, in either direction. Re-running the three arms in a tree that "
+            "stamps `world_identity` restores it."
+        ).format(ret=retained, left=left),
         "basis": ("exact Mann-Whitney null over all {} arrangements of {} retained and {} departed "
                   "renewals; ties are not modelled, which widens the interval and enlarges the "
                   "p-value rather than shrinking either".format(total, retained, left)),
@@ -2569,7 +2626,13 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
     belief = belief or {}
     population = belief.get("auc_population") or {}
     bound = _auc_null(population.get("retained"), population.get("left"),
-                      belief.get("discrimination_auc"))
+                      belief.get("discrimination_auc"),
+                      # SAME RUN, SAME STAMP as `_method_skill.churn_auc_null` -- these two blocks
+                      # publish the same null over the same population a few hundred pixels apart,
+                      # and one of them naming its world while the other did not would be the
+                      # one-rule-two-implementations shape this file keeps paying for.
+                      measured_in_world=((three_arm or {}).get("world_identity") or {}).get(
+                          "digest"))
     roster = ((three_arm or {}).get("churn_roster_diff") or {}).get("only_in_value_arm") or []
     only_value = sorted({str(row.get("account")) for row in roster
                          if isinstance(row, dict) and row.get("account")})
@@ -2696,7 +2759,17 @@ def _auc_reading(belief: dict, attribution: dict) -> str:
                 a=priced if isinstance(priced, int) else "an unrecorded number of",
                 lo=bound["null_95_low"], hi=bound["null_95_high"]))
 
-    if bound.get("inside_the_null"):
+    # THREE BRANCHES, BECAUSE THERE ARE THREE STATES, and the missing one was the fail-open
+    # (2026-09-04). `inside_the_null` became a tri-state when `_auc_null` started withholding the
+    # direction of a comparison whose world is unknown; this test was a two-branch `if`, so `None`
+    # fell down the falsy edge into the `observed >= 0.5` arm below and printed "the belief carried
+    # real information about who stays" -- the exact sentence being withheld, printed BECAUSE it
+    # was withheld. Same shape `_error_bar` records against itself for 2026-08-29, on a different
+    # tri-state, in this same file.
+    if bound.get("inside_the_null") is None:
+        body = (" " + str(bound.get("verdict_withheld_because")
+                          or "The direction is withheld and no reason was recorded."))
+    elif bound.get("inside_the_null"):
         body = (" The observed value is INSIDE that interval, so this run does not distinguish "
                 "the belief from a coin flip in either direction. That is a statement about how "
                 "few decisions there are, not about the belief.")

@@ -1362,8 +1362,23 @@ def test_a_census_present_but_unavailable_is_not_read_as_agreement():
 
 
 def _belief(auc, retained, left):
-    """A `belief_vs_outcome` block at a chosen AUC and population, everything else held."""
-    art = _load(THREE_ARM)
+    """A `belief_vs_outcome` block at a chosen AUC and population, everything else held.
+
+    AND IT NAMES A WORLD (2026-09-04). Every control built on this fixture is about the composer's
+    DIRECTIONAL branches -- does a figure outside its null above the point get reported as clearing,
+    does one below it get reported as backwards, is the endogeneity clause ungated. Since
+    `_auc_null` began withholding a direction whose departure level is unknown, an unstamped
+    fixture makes all of those branches unreachable, and the reds it produced were procedural
+    rather than substantive: `test_a_figure_OUTSIDE_its_null_ABOVE_the_point_is_not_reported_as_a
+    _failure` went red saying `None is False` about a composer that had not changed.
+
+    The stamp goes HERE and not in those tests because the reachability property they assert is
+    meant to be one "no world change can take away" -- their own words, at the `backwards` witness
+    below. The world guard's own witness is the REAL unstamped artefact, in
+    `test_an_auc_null_from_a_run_that_names_no_world_withholds_its_direction_and_keeps_its_numbers`,
+    which is where a fixture that quietly stopped exercising the refusal would be caught.
+    """
+    art = _world_stamped(_load(THREE_ARM), "fixture-world")
     art["belief_vs_outcome"] = dict(
         art["belief_vs_outcome"],
         discrimination_auc=auc,
@@ -3166,3 +3181,146 @@ def test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload():
     assert "CHANGES SIGN" in clause, (
         "the share's refusal never reaches the sentence a reader meets")
     assert "may not be read as the company having got better or worse" in clause
+
+
+def test_an_auc_null_from_a_run_that_names_no_world_withholds_its_direction_and_keeps_its_numbers():
+    """THE DEFECT (2026-09-04): the last unstamped bound on this page, and it was the flattering one.
+
+    The 2026-09-04 walk of "no bound on that page is unstamped" reached `contrast_bounds`, the
+    error bar, all three `current_world` legs and `_svt_drift_belief`. It missed the two AUC nulls
+    because an AUC null is COMBINATORIAL -- a function of `retained` and `left` alone -- so it
+    reads as world-invariant and it is. The COMPARISON is not: the observed 0.655 is how much churn
+    signal exists at a particular departure level. So the page rendered, in the amber it reserves
+    for a figure that clears its null, "the belief carried real information about who stays"
+    (two-sided p 0.009) from the one run `world_provenance` lists in
+    `runs_that_cannot_name_their_world`, two paragraphs under a headline whose first sentence is
+    "no contrast below may have its direction read as resolved".
+
+    THE ASYMMETRY IS THE PROPERTY, and it is what this control is keyed to -- not to today's
+    answer. A refusal ("we cannot tell") needs no world and must survive; a direction needs one.
+    A guard that withheld both would replace a caveat with a silence, which is the failure
+    `_svt_drift_belief` names when it deliberately leaves its arms' `inside_the_null` alone.
+
+    FOUR WITNESSES, and the last two are what stop this being a machine for refusing:
+      A -- the real three-arm run on disk: names no world, clears its null. Direction withheld.
+      B -- THE SENTENCE. The refusal must reach `_auc_reading`, whose two-branch `if` sent the
+           withheld case down the falsy edge and printed the exact claim being withheld.
+      C -- the same run stamped with any world at all: the direction must come BACK.
+      D -- a run that names no world and does NOT clear its null: "we cannot tell" must still go
+           out. This is the branch a guard keyed to the world alone would wrongly silence.
+    """
+    three_arm = _load(THREE_ARM)
+    assert ((three_arm.get("world_identity") or {}).get("digest")) is None, (
+        "the three-arm run now names a world, so this control has lost its witness -- the refusal "
+        "it guards can no longer be reached from the real artefact")
+
+    population = ((three_arm.get("belief_vs_outcome") or {}).get("auc_population") or {})
+    observed = (three_arm.get("belief_vs_outcome") or {}).get("discrimination_auc")
+    retained, left = population.get("retained"), population.get("left")
+
+    # WITNESS A -- the real artefact. Its figure clears its null, and its world is unknown.
+    withheld = gva._auc_null(retained, left, observed)
+    assert withheld["available"] is True, str(withheld.get("reason"))[:200]
+    assert withheld["inside_the_null"] is None, (
+        "a direction was read off a comparison whose departure level is unknown")
+    assert withheld["measured_in_world"] is None
+    assert "NAMES NO WORLD" in withheld["verdict_withheld_because"]
+    # EVERY NUMBER STAYS. Withholding the measurement as well as the verdict would be the page
+    # deleting evidence rather than declining to read a direction off it.
+    for key in ("null_95_low", "null_95_high", "null_point", "p_two_sided", "basis"):
+        assert withheld.get(key) is not None, (
+            "the withheld branch dropped `{}`, so a verdict's refusal took the measurement with "
+            "it".format(key))
+
+    # WITNESS B -- IT REACHES THE SENTENCE. `_auc_reading` is what the page renders as
+    # `auc_reading`; a refusal that stopped at the payload would leave the claim on the surface.
+    reading = gva._auc_reading(three_arm.get("belief_vs_outcome") or {},
+                               {"null_bound": withheld, "priced_accounts": 0})
+    assert "carried real information about who stays" not in reading, (
+        "the withheld direction is still printed in the sentence a reader meets -- the tri-state "
+        "fell down a two-branch `if`: " + reading[:300])
+    assert "NAMES NO WORLD" in reading
+
+    # WITNESS C -- THE NULL RUNG. Stamp it, any world, nothing else edited: the direction returns.
+    stamped = gva._auc_null(retained, left, observed, measured_in_world="any-world")
+    assert stamped["inside_the_null"] is False, (
+        "a stamped run still states no direction, so this guard refuses regardless of its subject "
+        "and its red above carries no information")
+    assert stamped["measured_in_world"] == "any-world"
+    assert stamped["verdict_withheld_because"] is None
+    assert "carried real information about who stays" in gva._auc_reading(
+        three_arm.get("belief_vs_outcome") or {},
+        {"null_bound": stamped, "priced_accounts": 0})
+
+    # WITNESS D -- A REFUSAL NEEDS NO WORLD. An observed value sitting inside its own interval says
+    # "we cannot tell", and that must go out unstamped: withholding it would silence the one
+    # reading that cannot mislead upward. `null_point` is inside every two-sided 95% interval by
+    # construction, so this subject cannot drift into the clearing branch.
+    cannot_tell = gva._auc_null(retained, left, withheld["null_point"])
+    assert cannot_tell["inside_the_null"] is True, (
+        "the world guard swallowed a refusal as well as a direction, so an unstamped run that "
+        "cannot tell now says nothing at all")
+    assert cannot_tell["verdict_withheld_because"] is None
+    assert "INSIDE that interval" in gva._auc_reading(
+        {"discrimination_auc": withheld["null_point"], "auc_population": population},
+        {"null_bound": cannot_tell, "priced_accounts": 0})
+
+
+def test_both_auc_nulls_on_the_page_name_the_same_world_as_the_run_they_came_from():
+    """One rule, two call sites, and they publish the same null a few hundred pixels apart.
+
+    `method_skill.churn_auc_null` and `decisions.auc_attribution.null_bound` are the SAME exact
+    null over the SAME population, read from the same run. One naming its world while the other did
+    not is the one-legal-rule-many-implementations shape this repository's own CLAUDE.md prices --
+    and it is the shape that let the selection leg go unbounded while the advantage beside it was
+    bounded, in this same file, last stretch.
+
+    KEYED TO AGREEMENT WITH THE RUN, not to today's `None`. When the arms are re-run in a tree that
+    stamps `world_identity`, both blocks must pick the stamp up and this control stays green.
+
+    THE SUBJECT IS STAMPED, AND THE FIRST DRAFT OF THIS CONTROL WAS NOT -- it read the real
+    artefact, whose digest is `None`, so `block["measured_in_world"] == ran_in` compared `None` to
+    `None` and PASSED with one call site's kwarg deleted. A control whose two sides are both the
+    absent value proves nothing about the wiring between them; it is this file's own "two correct
+    figures whose ratio is not a quantity" one layer up, and it was caught by mutating the call
+    site rather than by reading the assertion. The unstamped case is a separate witness below,
+    where the claim is that BOTH withhold rather than that both name a world.
+    """
+    stamped = _world_stamped(_load(THREE_ARM), "one-world")
+    ran_in = ((stamped.get("world_identity") or {}).get("digest"))
+    assert ran_in, "the stamped subject lost its stamp, so the equality below is vacuous"
+    feed = gva.build(stamped, _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+
+    blocks = {
+        "method_skill.churn_auc_null": (feed.get("method_skill") or {}).get("churn_auc_null") or {},
+        "decisions.auc_attribution.null_bound": (
+            ((feed.get("decisions") or {}).get("auc_attribution") or {}).get("null_bound") or {}),
+    }
+    for name, block in blocks.items():
+        if not block.get("available"):
+            continue
+        assert "measured_in_world" in block, (
+            "`{}` publishes a null with no world key at all, so a reader cannot place it against "
+            "`current_world.live_world`".format(name))
+        assert block["measured_in_world"] == ran_in, (
+            "`{}` names world {} and the run it was read from names {}".format(
+                name, block["measured_in_world"], ran_in))
+        # AND THE TWO AGREE WITH EACH OTHER, which is the half that catches one call site being
+        # wired and the other left behind -- exactly how this defect was born one leg down.
+        assert block["inside_the_null"] == blocks[
+            "method_skill.churn_auc_null"]["inside_the_null"], (
+            "the two renderings of one null disagree on their verdict")
+
+    # THE UNSTAMPED CASE, as its own witness. Here the claim is not that both name a world -- there
+    # is none to name -- but that both WITHHOLD. One call site wired and the other not shows up as
+    # one block refusing while its twin, over the same population, states a direction.
+    bare = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    both = [(bare.get("method_skill") or {}).get("churn_auc_null") or {},
+            ((bare.get("decisions") or {}).get("auc_attribution") or {}).get("null_bound") or {}]
+    for block in both:
+        if not block.get("available"):
+            continue
+        assert block["measured_in_world"] is None
+        assert block["inside_the_null"] is None, (
+            "one of the two renderings of the same unstamped null still states a direction while "
+            "the other withholds it")
