@@ -1054,7 +1054,10 @@ from background.child_diagnostics import (  # noqa: E402  (H30)
     failure_detail,
     stderr_tail,
 )
-from background.episode_monotonic import guard_episode  # noqa: E402  (PW2)
+from background.episode_monotonic import (  # noqa: E402  (PW2)
+    guard_episode,
+    recorded_instant_seconds,  # one screen for every timestamp this file reads
+)
 from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402
 
 
@@ -5697,8 +5700,17 @@ def _is_episode_start(v):
 
     Positive, not merely non-zero: the wall clock here is 2026 and the simulation is 2016-2025, so
     there is no instant at or before the epoch that any writer in this repository could mean.
+
+    AND IT ASKS RATHER THAN RE-IMPLEMENTS (2026-09-04). "ONE definition, called by every side of
+    the field" was true of this file and false of the repository: `episode_monotonic` already held
+    the same screen, and the version here was the third of four hand-rolls -- of which the
+    supervisor's had no positivity test at all and `_episode_phrase`'s had no `bool` test, so the
+    four copies of one question gave three different answers. Delegating also picks up ISO-8601,
+    which this numeric form silently refused: `guard_episode` returns the winner in its own
+    representation, so an ISO start is a value the adoption side can legitimately be handed, and
+    refusing it restamped a live episode to `now` -- the exact under-report the guard exists for.
     """
-    return isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+    return recorded_instant_seconds(v) is not None
 
 
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
@@ -6007,14 +6019,21 @@ def suspect_hit_rate_phrase(path=None):
 
 
 def _paths_changed_since(since, project_dir=None):
-    """Repo paths touched by commits landed since `since` (epoch seconds).
+    """Repo paths touched by commits landed since `since` (an episode start — epoch or ISO-8601).
 
     None means UNMEASURABLE (no start time, git unavailable) — which the scorer records as an
-    unmeasured episode, never as a hit. A self-measurement that fails open flatters itself."""
-    if not isinstance(since, (int, float)):
+    unmeasured episode, never as a hit. A self-measurement that fails open flatters itself.
+
+    ASKED THROUGH THE SHARED SCREEN (2026-09-04), for the widening's sake and not only for tidiness.
+    Once `_is_episode_start` accepts an ISO value, this is the one consumer that would have taken it
+    and quietly answered "unmeasurable" — a value the adoption side calls a real episode start, and
+    which this would then decline to measure from. That degradation is fail-SAFE, which is exactly
+    why nothing would have reported it: the hit-rate record would simply have thinned."""
+    since = recorded_instant_seconds(since)
+    if since is None:
         return None
     root = Path(project_dir) if project_dir is not None else PROJECT_DIR
-    stamp = datetime.fromtimestamp(float(since), timezone.utc).isoformat()
+    stamp = datetime.fromtimestamp(since, timezone.utc).isoformat()
     try:
         res = subprocess.run(
             ["git", "log", "--no-merges", "--since={}".format(stamp), "--name-only",
@@ -6127,10 +6146,23 @@ def _episode_phrase(wedge_since, episode_failures, now,
     # Degrading to the same string `None` gets is the whole fix: the two cases are the same
     # fact — this alarm cannot bound its episode — and the reader must not be able to tell a
     # value we never recorded from one we did.
-    if not isinstance(wedge_since, (int, float)) or wedge_since <= 0:
+    # ...AND `True` IS NOT ONE EITHER, WHICH THE HAND-ROLL ABOVE COULD NOT SAY (2026-09-04, the
+    # timestamp-screen sweep). `isinstance(True, (int, float))` is True and `True <= 0` is False,
+    # so a boolean walked straight through the guard written to stop exactly this and rendered
+    # "wedged since 1970-01-01T00:00 UTC -- 499999h59m" -- the published absurdity this comment is
+    # about, reachable through a door the fix did not cover. `_is_episode_start`, TWELVE HUNDRED
+    # LINES UP IN THIS FILE, already refused `bool` for that reason; the two copies of one question
+    # disagreed, and only the adoption side was right. Both now ASK rather than re-implement.
+    #
+    # The widening is deliberate and is the guard's own contract: `guard_episode` returns the
+    # winner in ITS OWN representation, so an ISO-8601 `wedge_since` is a value this file can
+    # legitimately be handed -- and both hand-rolls dropped it, degrading a REAL episode start to
+    # "unrecorded". Under-reporting an episode is the failure this whole class exists to cure.
+    started = recorded_instant_seconds(wedge_since)
+    if started is None:
         return "EPISODE: start time unrecorded (this alarm cannot bound the episode)."
-    age_min = int(max(0.0, now - float(wedge_since)) // 60)
-    since_iso = datetime.fromtimestamp(float(wedge_since), timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
+    age_min = int(max(0.0, now - started) // 60)
+    since_iso = datetime.fromtimestamp(started, timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
     if isinstance(clean_publishes, int) and clean_publishes > 0:
         if isinstance(last_clean_publish, (int, float)):
             last_iso = datetime.fromtimestamp(
