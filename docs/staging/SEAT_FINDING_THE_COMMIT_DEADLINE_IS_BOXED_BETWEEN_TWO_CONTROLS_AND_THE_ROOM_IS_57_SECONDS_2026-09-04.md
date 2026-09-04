@@ -164,3 +164,85 @@ first was diagnosed in
 The repair is unchanged and is the one this document already named: **remove the second full suite
 run per publish cycle.** It touches the commit gate, which is a wall, so it needs its own design and
 its own controls. It is not a bounded-tick change and this tick did not attempt it.
+
+---
+
+## THE ONE-VARIABLE VERSION HAPPENED — 2026-09-04 14:50 UTC, autonomous worker
+
+This document asked for exactly one thing it could not have:
+
+> The one-variable version is the next gate cycle that runs with no seat activity on the box, and
+> it has not happened yet.
+
+**Four of them have now run.** Recorded in the same series, after the contaminated 714.57 row and
+with no seat pytest batch on the box:
+
+| ts (UTC) | git | duration | outcome |
+|---|---|---|---|
+| 13:05:15 | `239c40605` | 664.3s | pass |
+| 13:21:28 | `e340cefd8` | 649.6s | pass |
+| 13:51:31 | `5952aaa4e` | 672.4s | pass |
+| 14:27:03 | `b0ba91858` | 651.1s | pass |
+
+Worst 672.4s, mean 659.3s. **None approaches 714.6.**
+
+### What this settles, and what it does not
+
+**Settled: the control is red on a measurement, not on the property it protects.**
+
+```
+floor on ALL admissible data   : 1.25 x 672.4 = 840.5s   vs deadline 880s -> HOLDS, ~40s spare
+floor on the last-20 EXCLUDING
+  the contaminated point       : 1.25 x 674.4 = 843.0s   vs deadline 880s -> HOLDS
+floor as the control computes it: 1.25 x 714.6 = 893.2s  vs deadline 880s -> RED by 13.2s
+```
+
+Every reading that excludes the one row the previous section already ruled inadmissible passes
+with room. The publish path is therefore being refused by a single observation that this document
+itself established must not be used to set a constant — and grading the control against it is the
+same error as setting the deadline from it.
+
+**NOT settled: the drift is real and the box is still closing.** Successive five-run windows:
+
+```
+2026-09-03 22:01  mean 574.9  max 640.5
+2026-09-04 04:19  mean 600.6  max 631.7
+2026-09-04 07:50  mean 599.3  max 674.4
+2026-09-04 11:47  mean 670.4  max 714.6
+```
+
+The body moved ~575s -> ~660s in sixteen hours. The forecast in this document is not refuted by the
+above; only the claim that the floor has *already crossed* the deadline is. **The named repair
+stands unchanged and is still the only one with headroom in it.**
+
+### The wedge is self-clearing, and the cost of waiting is measured
+
+The contaminated row sits 5th from the end of the series. `rows[-20:]` drops it after **15 more
+recorded cycles**. Refused cycles DO append (the 13:51 and 14:27 rows are both refused publishes),
+so the window advances without publishing — but at the observed ~35 min cadence that is **roughly 9
+to 15 hours of refused publishing**, every cycle of it regenerating surfaces that never land.
+
+That is the real cost of doing nothing, stated so it can be weighed rather than discovered.
+
+### What this tick did NOT do, deliberately
+
+**No constant, control or data row was changed.** Three separate stopgaps were available and each
+was declined:
+
+1. **Raise the deadline** — declined for the reason this document already gives: ~895 leaves 6.75s
+   for a push that costs ~20s. Green control, guaranteed dead push.
+2. **Widen or re-key the control** (max -> a quantile, or a longer window) — that is weakening a
+   control in the same tick it refuses me, which is this project's most expensive recurring shape.
+3. **Delete or flag the contaminated row** — defensible on the evidence, and still declined: there
+   is no mechanism to mark an observation inadmissible with its reason, and inventing a hand-lever
+   that silences inconvenient measurements, on the tick where it unblocks the person building it,
+   is how that lever gets used next time.
+
+**The recommendation, which is the director's to weigh because his 2026-08-21 ruling sets the
+ceiling:** authorise the named repair — remove the second full suite run per publish cycle — as the
+next design item. It is the only move that is not keyed to today's answer. If publishing is wanted
+back before that lands, the honest stopgap is to mark the 11:47:09 row inadmissible **with its
+reason recorded in the series**, never to raise the deadline.
+
+Filed rather than acted on, because every action available inside a bounded tick turns a red
+control green in the same tick that it blocks the actor.

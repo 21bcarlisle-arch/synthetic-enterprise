@@ -4039,6 +4039,39 @@ def _wedge_superseded_hash_clause(failures, head, is_ancestor=None) -> str:
     )
 
 
+def _runs_the_publisher(args: str) -> bool:
+    """Is this `ps` line a python interpreter RUNNING the publisher, or one merely QUOTING it?
+
+    THE SUBJECT IS ARGV POSITION, NOT SUBSTRING PRESENCE (2026-09-04). The test was
+    `"process_run_complete.py" not in line`, and on this box the biggest writer of that substring
+    is not the publisher -- it is a `claude -p` agent, whose ENTIRE PROMPT is its argv. Every
+    autonomous turn about the publish wedge quotes the path it is sent to repair, so the wedge
+    draw reliably found a "gate run in flight" that was the worker reading about the gate.
+
+    Measured, 2026-09-04 14:14 UTC: the RUNG-1 doorbell announced "process_run_complete.py PID
+    2251405, running ~38 min" and PID 2251405 was `claude -p`, holding a LANE 0 prompt containing
+    "(background/process_run_complete.py ~L6323)". The real publisher was PID 2432754, and it was
+    NOT the one reported -- the clause takes `max(elapsed_s)` and the agent was older.
+
+    That is the harmful direction the caller's own docstring names: the clause does not merely
+    inform, it SUSPENDS the diagnostic instruction in words, so a false positive tells a worker to
+    stand down and wait for the outcome of a process that will never write a publish outcome.
+
+    A python interpreter's script argument is the discriminator: the path must be the token
+    immediately after `python*`. What this still cannot tell apart is a prompt quoting the launch
+    command verbatim -- `... python3 background/process_run_complete.py ...` inside an argv would
+    read as a run. That is a far narrower hole than any mention of the filename, and it is left
+    open rather than closed with a `claude`-shaped exclusion, which would break the moment the
+    next writer of that substring is not claude."""
+    tokens = args.split()
+    for i, tok in enumerate(tokens):
+        if Path(tok).name != "process_run_complete.py" or i == 0:
+            continue
+        if Path(tokens[i - 1]).name.startswith("python"):
+            return True
+    return False
+
+
 def _live_publish_gate_runs(ps_fn=None) -> list[dict]:
     """Live `process_run_complete.py` processes as [{pid, elapsed_s}], newest-agnostic.
 
@@ -4058,10 +4091,12 @@ def _live_publish_gate_runs(ps_fn=None) -> list[dict]:
         return []
     runs = []
     for line in (out or "").splitlines():
-        if "process_run_complete.py" not in line or "grep" in line:
-            continue
         parts = line.split()
-        if len(parts) < 2:
+        if len(parts) < 3:
+            continue
+        # `pid,etimes,args` -- judge the ARGS, so a process that merely names the publisher
+        # (a `claude -p` prompt, a `pgrep` pattern, a grep) is not read as running it.
+        if not _runs_the_publisher(" ".join(parts[2:])):
             continue
         try:
             runs.append({"pid": int(parts[0]), "elapsed_s": int(parts[1])})

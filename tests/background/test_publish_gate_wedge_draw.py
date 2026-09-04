@@ -688,6 +688,38 @@ def test_live_gate_runs_is_empty_when_ps_is_unavailable():
     assert _REAL_LIVE_GATE_RUNS(_boom) == []
 
 
+def test_an_agent_whose_PROMPT_QUOTES_the_publisher_is_not_a_gate_run():
+    """THE DEFECT (2026-09-04): a `claude -p` argv IS its prompt, so every autonomous turn sent to
+    repair the publish wedge quotes `background/process_run_complete.py` -- and the old substring
+    test read that as a live gate run. Verbatim from `ps` at 14:14 UTC: the doorbell announced
+    "PID 2251405, running ~38 min" and 2251405 was the WORKER READING ABOUT THE GATE.
+
+    Both directions in one control, because a filter that rejects EVERYTHING passes the negative
+    leg on its own: the real publisher (2432754, live at the same instant) must still be found,
+    and the agent, the `pgrep` waiter watching for it, and a plain grep must not."""
+    out = (
+        "    PID ELAPSED COMMAND\n"
+        # THE REAL PUBLISHER -- the branch must remain reachable.
+        "2432754     645 /usr/bin/python3 /home/rich/synthetic-enterprise/background/"
+        "process_run_complete.py /home/rich/synthetic-enterprise/docs/staging/"
+        "run_complete_20260904T135847Z.md\n"
+        # The agent, OLDER -- so `max(elapsed_s)` picked it, not the publisher.
+        "2251405    2334 /home/rich/.nvm/versions/node/v24.16.0/bin/claude -p "
+        "--dangerously-skip-permissions --model claude-opus-5 WORK: record_publish_gate_failure "
+        "adopts a persisted wedge_since with the same isinstance-accepts-0 shape the renderer "
+        "just had fixed (background/process_run_complete.py ~L6323): a zero that reaches "
+        ".publish_gate_state.json is KEPT as the episode start\n"
+        # The same doorbell also cites the argv builder by symbol.
+        "2440520    1200 /home/rich/.nvm/versions/node/v24.16.0/bin/claude -p run the exact gate "
+        "SIM_FAST_MODE=1 python3 -m pytest tests/ (see background/process_run_complete.py::"
+        "publish_gate_pytest_argv)\n"
+        # The waiter that watches for the publisher by pattern.
+        "2253699      30 /bin/bash -c pgrep -f \"process_run_complete.py docs/staging/"
+        "run_complete\"\n"
+    )
+    assert _REAL_LIVE_GATE_RUNS(lambda: out) == [{"pid": 2432754, "elapsed_s": 645}]
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # THE CACHE MUST AGREE WITH THE RECORD, NOT SUBSTITUTE FOR IT
 # (2026-08-20, WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_KNOW_
