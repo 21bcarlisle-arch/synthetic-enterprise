@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-09-04T04:04:17Z",
-    "git_commit": "unknown",
+    "generated_at": "2026-09-04T10:35:44Z",
+    "git_commit": "8c5b18ca1",
     "customer_count": 251,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -2340,14 +2340,14 @@
       "smart_meter": null,
       "dual_fuel": false,
       "acquisition_date": "2016-04-01",
-      "lifetime_revenue_gbp": 25018.8,
-      "lifetime_gross_gbp": 14979.45,
-      "lifetime_net_gbp": 4879.54,
-      "cost_to_serve_gbp": 505.43,
-      "lifetime_net_after_cts_gbp": 4374.11,
-      "clv_gbp": 3371.25,
-      "latest_churn_probability": 0.35,
-      "expected_lifetime_periods": 12.42,
+      "lifetime_revenue_gbp": 20233.02,
+      "lifetime_gross_gbp": 12159.78,
+      "lifetime_net_gbp": 3820.65,
+      "cost_to_serve_gbp": 426.49,
+      "lifetime_net_after_cts_gbp": 3394.16,
+      "clv_gbp": null,
+      "latest_churn_probability": 0.38,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -2366,7 +2366,7 @@
         {
           "year": 2018,
           "gross_gbp": 977.48,
-          "net_gbp": 77.85,
+          "net_gbp": -151.46,
           "tariff_min_gbp_per_mwh": 95.52,
           "tariff_max_gbp_per_mwh": 191.53
         },
@@ -2380,44 +2380,30 @@
         {
           "year": 2020,
           "gross_gbp": 1201.88,
-          "net_gbp": 206.82,
+          "net_gbp": 228.91,
           "tariff_min_gbp_per_mwh": 92.65,
           "tariff_max_gbp_per_mwh": 211.4
         },
         {
           "year": 2021,
           "gross_gbp": 1374.83,
-          "net_gbp": 267.96,
+          "net_gbp": -58.35,
           "tariff_min_gbp_per_mwh": 92.65,
           "tariff_max_gbp_per_mwh": 349.43
         },
         {
           "year": 2022,
           "gross_gbp": 2154.49,
-          "net_gbp": 968.71,
+          "net_gbp": 1023.54,
           "tariff_min_gbp_per_mwh": 194.71,
           "tariff_max_gbp_per_mwh": 867.89
         },
         {
           "year": 2023,
-          "gross_gbp": 3504.71,
-          "net_gbp": 2126.39,
-          "tariff_min_gbp_per_mwh": 231.52,
+          "gross_gbp": 3652.37,
+          "net_gbp": 2255.59,
+          "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
-        },
-        {
-          "year": 2024,
-          "gross_gbp": 1977.17,
-          "net_gbp": 517.08,
-          "tariff_min_gbp_per_mwh": 159.52,
-          "tariff_max_gbp_per_mwh": 442.0
-        },
-        {
-          "year": 2025,
-          "gross_gbp": 990.18,
-          "net_gbp": 192.32,
-          "tariff_min_gbp_per_mwh": 159.52,
-          "tariff_max_gbp_per_mwh": 372.9
         }
       ],
       "renewal_events": [
@@ -2464,39 +2450,6 @@
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 117.91465196927433
-        },
-        {
-          "event_date": "2023-03-31",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1457,
-          "company_churn_estimate": 0.9419,
-          "churn_estimate_error_pct": 5.4647,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 294.66539369212154
-        },
-        {
-          "event_date": "2024-03-30",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.3894,
-          "company_churn_estimate": 0.1457,
-          "churn_estimate_error_pct": -0.6258,
-          "retention_offered": false,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 203.02332535758939
-        },
-        {
-          "event_date": "2025-03-30",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.4616,
-          "company_churn_estimate": 0.2353,
-          "churn_estimate_error_pct": -0.4903,
-          "retention_offered": false,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 248.6
         }
       ],
       "basis_risk_by_term": [
@@ -2608,23 +2561,30 @@
         {
           "commodity": "electricity",
           "term_start": "2023-03-31",
-          "company_fwd_gbp_per_mwh": 191.9496,
+          "company_fwd_gbp_per_mwh": 150.1596,
           "sim_fwd_gbp_per_mwh": 150.1596,
-          "tariff_error_pct": 0.2783
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
-          "term_start": "2024-03-30",
-          "company_fwd_gbp_per_mwh": 81.6757,
-          "sim_fwd_gbp_per_mwh": 73.7227,
-          "tariff_error_pct": 0.1079
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 149.5485,
+          "sim_fwd_gbp_per_mwh": 149.5485,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
-          "term_start": "2025-03-30",
-          "company_fwd_gbp_per_mwh": 149.8094,
-          "sim_fwd_gbp_per_mwh": 112.53,
-          "tariff_error_pct": 0.3313
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
         }
       ],
       "churn_accuracy_by_renewal": [
@@ -2663,33 +2623,6 @@
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 117.91465196927433,
           "rate_vs_svt_pct": -33.79
-        },
-        {
-          "term_start": "2023-03-31",
-          "sim_churn_probability": 0.1457,
-          "company_churn_estimate": 0.9419,
-          "churn_estimate_error_pct": 5.4647,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 294.66539369212154,
-          "rate_vs_svt_pct": -56.02
-        },
-        {
-          "term_start": "2024-03-30",
-          "sim_churn_probability": 0.3894,
-          "company_churn_estimate": 0.1457,
-          "churn_estimate_error_pct": -0.6258,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 203.02332535758939,
-          "rate_vs_svt_pct": -25.9
-        },
-        {
-          "term_start": "2025-03-30",
-          "sim_churn_probability": 0.4616,
-          "company_churn_estimate": 0.2353,
-          "churn_estimate_error_pct": -0.4903,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 248.6,
-          "rate_vs_svt_pct": 0.0
         }
       ],
       "income_stress_trajectory": [
@@ -2751,26 +2684,14 @@
         {
           "year": 2020,
           "satisfaction_score": 0.7
-        },
-        {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
-          "year": 2024,
-          "satisfaction_score": 0.7
-        },
-        {
-          "year": 2025,
-          "satisfaction_score": 0.65
         }
       ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
-          "on_time_rate": 0.9459459459459459,
-          "late_rate": 0.02702702702702703,
-          "dd_fail_rate": 0.02702702702702703
+          "on_time_rate": 0.956989247311828,
+          "late_rate": 0.03225806451612903,
+          "dd_fail_rate": 0.010752688172043012
         }
       },
       "payment_miss_trajectory": [
@@ -2821,24 +2742,9 @@
           "late": 2,
           "dd_failed": 0,
           "total": 12
-        },
-        {
-          "year": 2024,
-          "late": 0,
-          "dd_failed": 1,
-          "total": 12
-        },
-        {
-          "year": 2025,
-          "late": 0,
-          "dd_failed": 1,
-          "total": 6
         }
       ],
-      "bill_shock_history": [
-        "2023-03-31",
-        "2025-03-30"
-      ],
+      "bill_shock_history": [],
       "feedback_survey_history": [
         {
           "term_start": "2017-04-01",
@@ -2871,39 +2777,9 @@
           "csat_score_0_10": null,
           "nps_responded": false,
           "nps_score_0_10": null
-        },
-        {
-          "term_start": "2023-03-31",
-          "true_satisfaction": 0.6089,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2024-03-30",
-          "true_satisfaction": 0.6089,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": true,
-          "nps_score_0_10": 4
-        },
-        {
-          "term_start": "2025-03-30",
-          "true_satisfaction": 0.5089,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
         }
       ],
-      "reputation_events": [
-        {
-          "date": "2023-03-31",
-          "event_type": "complaint_resolved_on_time",
-          "days_to_resolve": 7
-        }
-      ],
+      "reputation_events": [],
       "nudge_physics_history": [],
       "data_status": {
         "financial": "complete",
@@ -5098,8 +4974,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.2257,
-          "company_churn_estimate": 0.525,
-          "churn_estimate_error_pct": 1.3261,
+          "company_churn_estimate": 0.6101,
+          "churn_estimate_error_pct": 1.7031,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 223.2453407369699
@@ -5109,8 +4985,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3518,
-          "company_churn_estimate": 0.3082,
-          "churn_estimate_error_pct": -0.1239,
+          "company_churn_estimate": 0.341,
+          "churn_estimate_error_pct": -0.0307,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 240.2034159710139
@@ -5296,8 +5172,8 @@
         {
           "term_start": "2024-02-15",
           "sim_churn_probability": 0.2257,
-          "company_churn_estimate": 0.525,
-          "churn_estimate_error_pct": 1.3261,
+          "company_churn_estimate": 0.6101,
+          "churn_estimate_error_pct": 1.7031,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 223.2453407369699,
           "rate_vs_svt_pct": -18.52
@@ -5305,8 +5181,8 @@
         {
           "term_start": "2025-02-14",
           "sim_churn_probability": 0.3518,
-          "company_churn_estimate": 0.3082,
-          "churn_estimate_error_pct": -0.1239,
+          "company_churn_estimate": 0.341,
+          "churn_estimate_error_pct": -0.0307,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 240.2034159710139,
           "rate_vs_svt_pct": -3.38
@@ -6141,11 +6017,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2017-04-21",
-      "lifetime_revenue_gbp": 4304.12,
-      "lifetime_gross_gbp": 3119.0,
-      "lifetime_net_gbp": 1651.35,
+      "lifetime_revenue_gbp": 4304.49,
+      "lifetime_gross_gbp": 3119.37,
+      "lifetime_net_gbp": 1651.72,
       "cost_to_serve_gbp": 447.42,
-      "lifetime_net_after_cts_gbp": 1203.92,
+      "lifetime_net_after_cts_gbp": 1204.29,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -6208,10 +6084,10 @@
         },
         {
           "year": 2025,
-          "gross_gbp": 221.44,
-          "net_gbp": 112.46,
+          "gross_gbp": 221.81,
+          "net_gbp": 112.83,
           "tariff_min_gbp_per_mwh": 189.64,
-          "tariff_max_gbp_per_mwh": 385.18
+          "tariff_max_gbp_per_mwh": 391.93
         }
       ],
       "renewal_events": [
@@ -7891,11 +7767,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2018-01-12",
-      "lifetime_revenue_gbp": 6614.03,
-      "lifetime_gross_gbp": 3932.26,
-      "lifetime_net_gbp": 244.76,
-      "cost_to_serve_gbp": 384.9,
-      "lifetime_net_after_cts_gbp": -140.13,
+      "lifetime_revenue_gbp": 7464.68,
+      "lifetime_gross_gbp": 4863.4,
+      "lifetime_net_gbp": 1944.37,
+      "cost_to_serve_gbp": 407.34,
+      "lifetime_net_after_cts_gbp": 1537.03,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -7910,7 +7786,7 @@
         {
           "year": 2019,
           "gross_gbp": 562.41,
-          "net_gbp": 191.41,
+          "net_gbp": 243.45,
           "tariff_min_gbp_per_mwh": 135.39,
           "tariff_max_gbp_per_mwh": 176.32
         },
@@ -7924,37 +7800,37 @@
         {
           "year": 2021,
           "gross_gbp": 315.92,
-          "net_gbp": -110.61,
+          "net_gbp": -38.02,
           "tariff_min_gbp_per_mwh": 126.28,
           "tariff_max_gbp_per_mwh": 163.31
         },
         {
           "year": 2022,
           "gross_gbp": 631.02,
-          "net_gbp": 231.73,
+          "net_gbp": 219.39,
           "tariff_min_gbp_per_mwh": 126.28,
           "tariff_max_gbp_per_mwh": 492.95
         },
         {
           "year": 2023,
-          "gross_gbp": 556.97,
-          "net_gbp": -467.76,
-          "tariff_min_gbp_per_mwh": 267.9,
+          "gross_gbp": 1175.13,
+          "net_gbp": 691.36,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
-          "gross_gbp": 853.69,
-          "net_gbp": 136.27,
+          "gross_gbp": 847.86,
+          "net_gbp": 343.92,
           "tariff_min_gbp_per_mwh": 212.42,
-          "tariff_max_gbp_per_mwh": 278.04
+          "tariff_max_gbp_per_mwh": 260.3
         },
         {
           "year": 2025,
-          "gross_gbp": 19.71,
-          "net_gbp": -113.68,
+          "gross_gbp": 338.53,
+          "net_gbp": 106.86,
           "tariff_min_gbp_per_mwh": 236.17,
-          "tariff_max_gbp_per_mwh": 236.17
+          "tariff_max_gbp_per_mwh": 256.79
         }
       ],
       "renewal_events": [
@@ -7968,28 +7844,6 @@
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 126.28259530759198
-        },
-        {
-          "event_date": "2023-01-11",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1428,
-          "company_churn_estimate": 0.725,
-          "churn_estimate_error_pct": 4.077,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 267.8984163348457
-        },
-        {
-          "event_date": "2025-01-10",
-          "commodity": "electricity",
-          "event_type": "churned",
-          "sim_churn_probability": 0.4082,
-          "company_churn_estimate": 0.1225,
-          "churn_estimate_error_pct": -0.6999,
-          "retention_offered": false,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 236.18327685621762
         }
       ],
       "basis_risk_by_term": [
@@ -8115,9 +7969,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-01-11",
-          "company_fwd_gbp_per_mwh": 164.7794,
+          "company_fwd_gbp_per_mwh": 190.3795,
           "sim_fwd_gbp_per_mwh": 190.3795,
-          "tariff_error_pct": -0.1345
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -8157,9 +8039,16 @@
         {
           "commodity": "electricity",
           "term_start": "2025-01-10",
-          "company_fwd_gbp_per_mwh": 114.8241,
+          "company_fwd_gbp_per_mwh": 111.0244,
           "sim_fwd_gbp_per_mwh": 111.0244,
-          "tariff_error_pct": 0.0342
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2025-04-01",
+          "company_fwd_gbp_per_mwh": 100.0929,
+          "sim_fwd_gbp_per_mwh": 100.0929,
+          "tariff_error_pct": 0
         }
       ],
       "churn_accuracy_by_renewal": [
@@ -8171,24 +8060,6 @@
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 126.28259530759198,
           "rate_vs_svt_pct": -26.54
-        },
-        {
-          "term_start": "2023-01-11",
-          "sim_churn_probability": 0.1428,
-          "company_churn_estimate": 0.725,
-          "churn_estimate_error_pct": 4.077,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 267.8984163348457,
-          "rate_vs_svt_pct": -60.02
-        },
-        {
-          "term_start": "2025-01-10",
-          "sim_churn_probability": 0.4082,
-          "company_churn_estimate": 0.1225,
-          "churn_estimate_error_pct": -0.6999,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 236.18327685621762,
-          "rate_vs_svt_pct": -4.99
         }
       ],
       "income_stress_trajectory": [
@@ -8251,22 +8122,14 @@
         {
           "year": 2021,
           "satisfaction_score": 0.7
-        },
-        {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
-          "year": 2025,
-          "satisfaction_score": 0.7
         }
       ],
       "payment_behaviour_analytics": {
-        "score": "FAIR",
+        "score": "GOOD",
         "metrics": {
-          "on_time_rate": 0.7411764705882353,
-          "late_rate": 0.2,
-          "dd_fail_rate": 0.058823529411764705
+          "on_time_rate": 0.8,
+          "late_rate": 0.15555555555555556,
+          "dd_fail_rate": 0.044444444444444446
         }
       },
       "payment_miss_trajectory": [
@@ -8302,8 +8165,8 @@
         },
         {
           "year": 2023,
-          "late": 9,
-          "dd_failed": 2,
+          "late": 5,
+          "dd_failed": 1,
           "total": 12
         },
         {
@@ -8314,34 +8177,16 @@
         },
         {
           "year": 2025,
-          "late": 0,
+          "late": 1,
           "dd_failed": 0,
-          "total": 1
+          "total": 6
         }
       ],
-      "bill_shock_history": [
-        "2023-01-11"
-      ],
+      "bill_shock_history": [],
       "feedback_survey_history": [
         {
           "term_start": "2021-01-11",
           "true_satisfaction": 0.7621,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2023-01-11",
-          "true_satisfaction": 0.7021,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2025-01-10",
-          "true_satisfaction": 0.7021,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -8380,11 +8225,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2018-01-12",
-      "lifetime_revenue_gbp": 5156.71,
-      "lifetime_gross_gbp": 1529.09,
-      "lifetime_net_gbp": 408.27,
-      "cost_to_serve_gbp": 385.0,
-      "lifetime_net_after_cts_gbp": 23.27,
+      "lifetime_revenue_gbp": 5630.26,
+      "lifetime_gross_gbp": 1740.57,
+      "lifetime_net_gbp": 512.67,
+      "cost_to_serve_gbp": 407.45,
+      "lifetime_net_after_cts_gbp": 105.22,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -8440,9 +8285,9 @@
         },
         {
           "year": 2025,
-          "gross_gbp": 21.95,
-          "net_gbp": 12.51,
-          "tariff_min_gbp_per_mwh": 67.25,
+          "gross_gbp": 233.42,
+          "net_gbp": 116.92,
+          "tariff_min_gbp_per_mwh": 62.72,
           "tariff_max_gbp_per_mwh": 67.25
         }
       ],
@@ -8496,6 +8341,13 @@
           "company_fwd_gbp_per_mwh": 49.3325,
           "sim_fwd_gbp_per_mwh": 32.4007,
           "tariff_error_pct": 0.5226
+        },
+        {
+          "commodity": "gas",
+          "term_start": "2025-01-10",
+          "company_fwd_gbp_per_mwh": 47.9147,
+          "sim_fwd_gbp_per_mwh": 38.8902,
+          "tariff_error_pct": 0.232
         }
       ],
       "churn_accuracy_by_renewal": [],
@@ -8555,9 +8407,9 @@
       "payment_behaviour_analytics": {
         "score": "FAIR",
         "metrics": {
-          "on_time_rate": 0.6470588235294118,
-          "late_rate": 0.2823529411764706,
-          "dd_fail_rate": 0.07058823529411765
+          "on_time_rate": 0.6333333333333333,
+          "late_rate": 0.28888888888888886,
+          "dd_fail_rate": 0.07777777777777778
         }
       },
       "payment_miss_trajectory": [
@@ -8605,9 +8457,9 @@
         },
         {
           "year": 2025,
-          "late": 0,
-          "dd_failed": 0,
-          "total": 1
+          "late": 2,
+          "dd_failed": 1,
+          "total": 6
         }
       ],
       "bill_shock_history": [],
@@ -8644,11 +8496,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2018-01-31",
-      "lifetime_revenue_gbp": 2430.14,
-      "lifetime_gross_gbp": 1548.61,
-      "lifetime_net_gbp": 643.84,
-      "cost_to_serve_gbp": 274.92,
-      "lifetime_net_after_cts_gbp": 368.93,
+      "lifetime_revenue_gbp": 4095.65,
+      "lifetime_gross_gbp": 2802.14,
+      "lifetime_net_gbp": 1449.17,
+      "cost_to_serve_gbp": 404.48,
+      "lifetime_net_after_cts_gbp": 1044.69,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -8663,7 +8515,7 @@
         {
           "year": 2019,
           "gross_gbp": 266.47,
-          "net_gbp": 87.96,
+          "net_gbp": 118.11,
           "tariff_min_gbp_per_mwh": 144.74,
           "tariff_max_gbp_per_mwh": 156.34
         },
@@ -8690,10 +8542,24 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 88.29,
-          "net_gbp": 0.89,
-          "tariff_min_gbp_per_mwh": 636.5,
+          "gross_gbp": 652.75,
+          "net_gbp": 427.26,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
+        },
+        {
+          "year": 2024,
+          "gross_gbp": 484.92,
+          "net_gbp": 251.95,
+          "tariff_min_gbp_per_mwh": 219.22,
+          "tariff_max_gbp_per_mwh": 260.3
+        },
+        {
+          "year": 2025,
+          "gross_gbp": 204.16,
+          "net_gbp": 96.85,
+          "tariff_min_gbp_per_mwh": 219.22,
+          "tariff_max_gbp_per_mwh": 240.63
         }
       ],
       "renewal_events": [
@@ -8709,15 +8575,26 @@
           "unit_rate_gbp_per_mwh": 156.3429436010755
         },
         {
-          "event_date": "2023-01-30",
+          "event_date": "2024-01-30",
           "commodity": "electricity",
-          "event_type": "churned",
-          "sim_churn_probability": 0.1512,
-          "company_churn_estimate": 0.7528,
-          "churn_estimate_error_pct": 3.9788,
+          "event_type": "renewed",
+          "sim_churn_probability": 0.3445,
+          "company_churn_estimate": 0.4505,
+          "churn_estimate_error_pct": 0.3077,
           "retention_offered": true,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0
+          "unit_rate_gbp_per_mwh": 219.2242115596672
+        },
+        {
+          "event_date": "2025-01-29",
+          "commodity": "electricity",
+          "event_type": "renewed",
+          "sim_churn_probability": 0.4279,
+          "company_churn_estimate": 0.1835,
+          "churn_estimate_error_pct": -0.5712,
+          "retention_offered": false,
+          "is_active_renewal": true,
+          "unit_rate_gbp_per_mwh": 240.6255
         }
       ],
       "basis_risk_by_term": [
@@ -8843,9 +8720,51 @@
         {
           "commodity": "electricity",
           "term_start": "2023-01-30",
-          "company_fwd_gbp_per_mwh": 326.1135,
+          "company_fwd_gbp_per_mwh": 179.4628,
           "sim_fwd_gbp_per_mwh": 179.4628,
-          "tariff_error_pct": 0.8172
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-30",
+          "company_fwd_gbp_per_mwh": 98.1206,
+          "sim_fwd_gbp_per_mwh": 77.6096,
+          "tariff_error_pct": 0.2643
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2025-01-29",
+          "company_fwd_gbp_per_mwh": 120.782,
+          "sim_fwd_gbp_per_mwh": 111.7084,
+          "tariff_error_pct": 0.0812
         }
       ],
       "churn_accuracy_by_renewal": [
@@ -8859,13 +8778,22 @@
           "rate_vs_svt_pct": -5.36
         },
         {
-          "term_start": "2023-01-30",
-          "sim_churn_probability": 0.1512,
-          "company_churn_estimate": 0.7528,
-          "churn_estimate_error_pct": 3.9788,
+          "term_start": "2024-01-30",
+          "sim_churn_probability": 0.3445,
+          "company_churn_estimate": 0.4505,
+          "churn_estimate_error_pct": 0.3077,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0,
-          "rate_vs_svt_pct": -49.25
+          "unit_rate_gbp_per_mwh": 219.2242115596672,
+          "rate_vs_svt_pct": -19.99
+        },
+        {
+          "term_start": "2025-01-29",
+          "sim_churn_probability": 0.4279,
+          "company_churn_estimate": 0.1835,
+          "churn_estimate_error_pct": -0.5712,
+          "is_active_renewal": true,
+          "unit_rate_gbp_per_mwh": 240.6255,
+          "rate_vs_svt_pct": -3.21
         }
       ],
       "income_stress_trajectory": [
@@ -8926,16 +8854,20 @@
           "satisfaction_score": 0.7
         },
         {
-          "year": 2023,
+          "year": 2024,
           "satisfaction_score": 0.65
+        },
+        {
+          "year": 2025,
+          "satisfaction_score": 0.7
         }
       ],
       "payment_behaviour_analytics": {
-        "score": "GOOD",
+        "score": "FAIR",
         "metrics": {
-          "on_time_rate": 0.9344262295081968,
-          "late_rate": 0.04918032786885246,
-          "dd_fail_rate": 0.01639344262295082
+          "on_time_rate": 0.8,
+          "late_rate": 0.14444444444444443,
+          "dd_fail_rate": 0.05555555555555555
         }
       },
       "payment_miss_trajectory": [
@@ -8971,13 +8903,25 @@
         },
         {
           "year": 2023,
-          "late": 0,
+          "late": 3,
+          "dd_failed": 2,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 5,
           "dd_failed": 0,
-          "total": 1
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 2,
+          "dd_failed": 2,
+          "total": 6
         }
       ],
       "bill_shock_history": [
-        "2023-01-30"
+        "2024-01-30"
       ],
       "feedback_survey_history": [
         {
@@ -8989,12 +8933,20 @@
           "nps_score_0_10": null
         },
         {
-          "term_start": "2023-01-30",
-          "true_satisfaction": 0.5541,
+          "term_start": "2024-01-30",
+          "true_satisfaction": 0.5542,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
           "nps_score_0_10": null
+        },
+        {
+          "term_start": "2025-01-29",
+          "true_satisfaction": 0.5542,
+          "csat_responded": false,
+          "csat_score_0_10": null,
+          "nps_responded": true,
+          "nps_score_0_10": 7
         }
       ],
       "reputation_events": [],
@@ -9029,11 +8981,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2018-01-31",
-      "lifetime_revenue_gbp": 1659.89,
-      "lifetime_gross_gbp": 536.87,
-      "lifetime_net_gbp": 173.48,
-      "cost_to_serve_gbp": 275.0,
-      "lifetime_net_after_cts_gbp": -101.52,
+      "lifetime_revenue_gbp": 3252.62,
+      "lifetime_gross_gbp": 1319.17,
+      "lifetime_net_gbp": 664.65,
+      "cost_to_serve_gbp": 404.59,
+      "lifetime_net_after_cts_gbp": 260.06,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -9075,10 +9027,24 @@
         },
         {
           "year": 2023,
-          "gross_gbp": -33.54,
-          "net_gbp": -44.79,
+          "gross_gbp": 276.46,
+          "net_gbp": 156.09,
           "tariff_min_gbp_per_mwh": 40.7,
-          "tariff_max_gbp_per_mwh": 40.7
+          "tariff_max_gbp_per_mwh": 103.2
+        },
+        {
+          "year": 2024,
+          "gross_gbp": 325.62,
+          "net_gbp": 205.76,
+          "tariff_min_gbp_per_mwh": 58.68,
+          "tariff_max_gbp_per_mwh": 103.2
+        },
+        {
+          "year": 2025,
+          "gross_gbp": 146.69,
+          "net_gbp": 84.54,
+          "tariff_min_gbp_per_mwh": 58.68,
+          "tariff_max_gbp_per_mwh": 63.4
         }
       ],
       "renewal_events": [],
@@ -9117,6 +9083,27 @@
           "company_fwd_gbp_per_mwh": 124.6991,
           "sim_fwd_gbp_per_mwh": 85.7572,
           "tariff_error_pct": 0.4541
+        },
+        {
+          "commodity": "gas",
+          "term_start": "2023-01-30",
+          "company_fwd_gbp_per_mwh": 96.1483,
+          "sim_fwd_gbp_per_mwh": 72.152,
+          "tariff_error_pct": 0.3326
+        },
+        {
+          "commodity": "gas",
+          "term_start": "2024-01-30",
+          "company_fwd_gbp_per_mwh": 40.5873,
+          "sim_fwd_gbp_per_mwh": 29.8154,
+          "tariff_error_pct": 0.3613
+        },
+        {
+          "commodity": "gas",
+          "term_start": "2025-01-29",
+          "company_fwd_gbp_per_mwh": 48.9559,
+          "sim_fwd_gbp_per_mwh": 40.0287,
+          "tariff_error_pct": 0.223
         }
       ],
       "churn_accuracy_by_renewal": [],
@@ -9174,11 +9161,11 @@
       ],
       "satisfaction_score_trajectory": null,
       "payment_behaviour_analytics": {
-        "score": "FAIR",
+        "score": "POOR",
         "metrics": {
-          "on_time_rate": 0.6885245901639344,
-          "late_rate": 0.22950819672131148,
-          "dd_fail_rate": 0.08196721311475409
+          "on_time_rate": 0.5111111111111111,
+          "late_rate": 0.35555555555555557,
+          "dd_fail_rate": 0.13333333333333333
         }
       },
       "payment_miss_trajectory": [
@@ -9214,9 +9201,21 @@
         },
         {
           "year": 2023,
-          "late": 1,
+          "late": 6,
+          "dd_failed": 4,
+          "total": 12
+        },
+        {
+          "year": 2024,
+          "late": 8,
+          "dd_failed": 3,
+          "total": 12
+        },
+        {
+          "year": 2025,
+          "late": 5,
           "dd_failed": 0,
-          "total": 1
+          "total": 6
         }
       ],
       "bill_shock_history": [],
@@ -11394,9 +11393,9 @@
           "event_date": "2024-08-11",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.3883,
-          "company_churn_estimate": 0.1628,
-          "churn_estimate_error_pct": -0.5807,
+          "sim_churn_probability": 0.3872,
+          "company_churn_estimate": 0.2014,
+          "churn_estimate_error_pct": -0.4799,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 202.25189265967646
@@ -11558,9 +11557,9 @@
         },
         {
           "term_start": "2024-08-11",
-          "sim_churn_probability": 0.3883,
-          "company_churn_estimate": 0.1628,
-          "churn_estimate_error_pct": -0.5807,
+          "sim_churn_probability": 0.3872,
+          "company_churn_estimate": 0.2014,
+          "churn_estimate_error_pct": -0.4799,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 202.25189265967646,
           "rate_vs_svt_pct": -9.55
@@ -11991,11 +11990,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2019-01-12",
-      "lifetime_revenue_gbp": 3951.15,
-      "lifetime_gross_gbp": 2483.04,
-      "lifetime_net_gbp": 1106.54,
-      "cost_to_serve_gbp": 352.36,
-      "lifetime_net_after_cts_gbp": 754.18,
+      "lifetime_revenue_gbp": 3150.44,
+      "lifetime_gross_gbp": 2055.01,
+      "lifetime_net_gbp": 993.27,
+      "cost_to_serve_gbp": 274.92,
+      "lifetime_net_after_cts_gbp": 718.34,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -12010,57 +12009,50 @@
         {
           "year": 2020,
           "gross_gbp": 362.99,
-          "net_gbp": 188.78,
+          "net_gbp": 199.43,
           "tariff_min_gbp_per_mwh": 162.91,
           "tariff_max_gbp_per_mwh": 169.19
         },
         {
           "year": 2021,
           "gross_gbp": 289.18,
-          "net_gbp": 101.26,
+          "net_gbp": 99.45,
           "tariff_min_gbp_per_mwh": 163.31,
           "tariff_max_gbp_per_mwh": 213.81
         },
         {
           "year": 2022,
           "gross_gbp": 385.55,
-          "net_gbp": 168.95,
+          "net_gbp": 87.24,
           "tariff_min_gbp_per_mwh": 223.38,
           "tariff_max_gbp_per_mwh": 492.95
         },
         {
           "year": 2023,
-          "gross_gbp": 384.23,
-          "net_gbp": 134.03,
-          "tariff_min_gbp_per_mwh": 267.9,
+          "gross_gbp": 708.73,
+          "net_gbp": 468.67,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
-          "gross_gbp": 546.69,
-          "net_gbp": 282.19,
-          "tariff_min_gbp_per_mwh": 212.42,
-          "tariff_max_gbp_per_mwh": 267.9
-        },
-        {
-          "year": 2025,
-          "gross_gbp": 223.48,
-          "net_gbp": 101.87,
-          "tariff_min_gbp_per_mwh": 236.17,
-          "tariff_max_gbp_per_mwh": 256.79
+          "gross_gbp": 17.65,
+          "net_gbp": 9.01,
+          "tariff_min_gbp_per_mwh": 260.3,
+          "tariff_max_gbp_per_mwh": 260.3
         }
       ],
       "renewal_events": [
         {
-          "event_date": "2023-01-11",
+          "event_date": "2024-01-11",
           "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1897,
-          "company_churn_estimate": 0.4825,
-          "churn_estimate_error_pct": 1.5435,
+          "event_type": "churned",
+          "sim_churn_probability": 0.41,
+          "company_churn_estimate": 0.464,
+          "churn_estimate_error_pct": 0.1317,
           "retention_offered": true,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 267.8984163348457
+          "unit_rate_gbp_per_mwh": 232.14164815288783
         }
       ],
       "basis_risk_by_term": [
@@ -12179,69 +12171,55 @@
         {
           "commodity": "electricity",
           "term_start": "2023-01-11",
-          "company_fwd_gbp_per_mwh": 164.7794,
+          "company_fwd_gbp_per_mwh": 190.3795,
           "sim_fwd_gbp_per_mwh": 190.3795,
-          "tariff_error_pct": -0.1345
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
           "term_start": "2024-01-11",
-          "company_fwd_gbp_per_mwh": 80.1657,
+          "company_fwd_gbp_per_mwh": 111.2326,
           "sim_fwd_gbp_per_mwh": 80.1657,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-04-01",
-          "company_fwd_gbp_per_mwh": 67.3664,
-          "sim_fwd_gbp_per_mwh": 67.3664,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-07-01",
-          "company_fwd_gbp_per_mwh": 72.5254,
-          "sim_fwd_gbp_per_mwh": 72.5254,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-10-01",
-          "company_fwd_gbp_per_mwh": 74.6881,
-          "sim_fwd_gbp_per_mwh": 74.6881,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2025-01-01",
-          "company_fwd_gbp_per_mwh": 91.6941,
-          "sim_fwd_gbp_per_mwh": 91.6941,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2025-01-10",
-          "company_fwd_gbp_per_mwh": 111.0244,
-          "sim_fwd_gbp_per_mwh": 111.0244,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2025-04-01",
-          "company_fwd_gbp_per_mwh": 100.0929,
-          "sim_fwd_gbp_per_mwh": 100.0929,
-          "tariff_error_pct": 0
+          "tariff_error_pct": 0.3875
         }
       ],
       "churn_accuracy_by_renewal": [
         {
-          "term_start": "2023-01-11",
-          "sim_churn_probability": 0.1897,
-          "company_churn_estimate": 0.4825,
-          "churn_estimate_error_pct": 1.5435,
+          "term_start": "2024-01-11",
+          "sim_churn_probability": 0.41,
+          "company_churn_estimate": 0.464,
+          "churn_estimate_error_pct": 0.1317,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 267.8984163348457,
-          "rate_vs_svt_pct": -60.02
+          "unit_rate_gbp_per_mwh": 232.14164815288783,
+          "rate_vs_svt_pct": -15.28
         }
       ],
       "income_stress_trajectory": [
@@ -12289,16 +12267,16 @@
       "life_event_history": [],
       "satisfaction_score_trajectory": [
         {
-          "year": 2023,
+          "year": 2024,
           "satisfaction_score": 0.65
         }
       ],
       "payment_behaviour_analytics": {
         "score": "FAIR",
         "metrics": {
-          "on_time_rate": 0.8333333333333334,
-          "late_rate": 0.10256410256410256,
-          "dd_fail_rate": 0.0641025641025641
+          "on_time_rate": 0.8032786885245902,
+          "late_rate": 0.13114754098360656,
+          "dd_fail_rate": 0.06557377049180328
         }
       },
       "payment_miss_trajectory": [
@@ -12335,23 +12313,17 @@
         {
           "year": 2024,
           "late": 1,
-          "dd_failed": 1,
-          "total": 12
-        },
-        {
-          "year": 2025,
-          "late": 0,
           "dd_failed": 0,
-          "total": 6
+          "total": 1
         }
       ],
       "bill_shock_history": [
-        "2023-01-11"
+        "2024-01-11"
       ],
       "feedback_survey_history": [
         {
-          "term_start": "2023-01-11",
-          "true_satisfaction": 0.6817,
+          "term_start": "2024-01-11",
+          "true_satisfaction": 0.7017,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -12390,11 +12362,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2019-01-12",
-      "lifetime_revenue_gbp": 3212.75,
-      "lifetime_gross_gbp": 1118.38,
-      "lifetime_net_gbp": 484.7,
-      "cost_to_serve_gbp": 352.45,
-      "lifetime_net_after_cts_gbp": 132.25,
+      "lifetime_revenue_gbp": 2291.77,
+      "lifetime_gross_gbp": 592.96,
+      "lifetime_net_gbp": 149.58,
+      "cost_to_serve_gbp": 275.0,
+      "lifetime_net_after_cts_gbp": -125.42,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -12436,17 +12408,10 @@
         },
         {
           "year": 2024,
-          "gross_gbp": 382.11,
-          "net_gbp": 251.91,
-          "tariff_min_gbp_per_mwh": 67.29,
+          "gross_gbp": 12.18,
+          "net_gbp": 5.02,
+          "tariff_min_gbp_per_mwh": 103.2,
           "tariff_max_gbp_per_mwh": 103.2
-        },
-        {
-          "year": 2025,
-          "gross_gbp": 155.5,
-          "net_gbp": 88.24,
-          "tariff_min_gbp_per_mwh": 62.75,
-          "tariff_max_gbp_per_mwh": 67.29
         }
       ],
       "renewal_events": [],
@@ -12485,20 +12450,6 @@
           "company_fwd_gbp_per_mwh": 94.5066,
           "sim_fwd_gbp_per_mwh": 81.4564,
           "tariff_error_pct": 0.1602
-        },
-        {
-          "commodity": "gas",
-          "term_start": "2024-01-11",
-          "company_fwd_gbp_per_mwh": 49.3325,
-          "sim_fwd_gbp_per_mwh": 32.4007,
-          "tariff_error_pct": 0.5226
-        },
-        {
-          "commodity": "gas",
-          "term_start": "2025-01-10",
-          "company_fwd_gbp_per_mwh": 47.9147,
-          "sim_fwd_gbp_per_mwh": 38.8902,
-          "tariff_error_pct": 0.232
         }
       ],
       "churn_accuracy_by_renewal": [],
@@ -12547,11 +12498,11 @@
       "life_event_history": [],
       "satisfaction_score_trajectory": null,
       "payment_behaviour_analytics": {
-        "score": "FAIR",
+        "score": "GOOD",
         "metrics": {
-          "on_time_rate": 0.8333333333333334,
-          "late_rate": 0.11538461538461539,
-          "dd_fail_rate": 0.05128205128205128
+          "on_time_rate": 0.8524590163934426,
+          "late_rate": 0.09836065573770492,
+          "dd_fail_rate": 0.04918032786885246
         }
       },
       "payment_miss_trajectory": [
@@ -12588,14 +12539,8 @@
         {
           "year": 2024,
           "late": 0,
-          "dd_failed": 1,
-          "total": 12
-        },
-        {
-          "year": 2025,
-          "late": 3,
           "dd_failed": 0,
-          "total": 6
+          "total": 1
         }
       ],
       "bill_shock_history": [],
@@ -12632,11 +12577,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2019-01-29",
-      "lifetime_revenue_gbp": 6184.18,
-      "lifetime_gross_gbp": 3688.42,
-      "lifetime_net_gbp": 1032.75,
-      "cost_to_serve_gbp": 329.92,
-      "lifetime_net_after_cts_gbp": 702.83,
+      "lifetime_revenue_gbp": 6628.69,
+      "lifetime_gross_gbp": 4234.45,
+      "lifetime_net_gbp": 1686.1,
+      "cost_to_serve_gbp": 349.8,
+      "lifetime_net_after_cts_gbp": 1336.3,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -12671,24 +12616,24 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 894.37,
-          "net_gbp": 102.46,
-          "tariff_min_gbp_per_mwh": 340.0,
+          "gross_gbp": 1157.65,
+          "net_gbp": 683.8,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
-          "gross_gbp": 852.36,
-          "net_gbp": 388.3,
+          "gross_gbp": 858.13,
+          "net_gbp": 369.32,
           "tariff_min_gbp_per_mwh": 244.24,
-          "tariff_max_gbp_per_mwh": 340.0
+          "tariff_max_gbp_per_mwh": 260.3
         },
         {
           "year": 2025,
-          "gross_gbp": 66.62,
-          "net_gbp": 26.11,
-          "tariff_min_gbp_per_mwh": 244.24,
-          "tariff_max_gbp_per_mwh": 244.24
+          "gross_gbp": 343.6,
+          "net_gbp": 117.1,
+          "tariff_min_gbp_per_mwh": 236.34,
+          "tariff_max_gbp_per_mwh": 256.79
         }
       ],
       "renewal_events": [
@@ -12715,37 +12660,15 @@
           "unit_rate_gbp_per_mwh": 150.05862795092557
         },
         {
-          "event_date": "2023-01-28",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1547,
-          "company_churn_estimate": 0.914,
-          "churn_estimate_error_pct": 4.9082,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0
-        },
-        {
           "event_date": "2024-01-28",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.406,
-          "company_churn_estimate": 0.1356,
-          "churn_estimate_error_pct": -0.666,
-          "retention_offered": false,
+          "sim_churn_probability": 0.384,
+          "company_churn_estimate": 0.7034,
+          "churn_estimate_error_pct": 0.8318,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 244.24240381971617
-        },
-        {
-          "event_date": "2025-01-27",
-          "commodity": "electricity",
-          "event_type": "churned",
-          "sim_churn_probability": 0.467,
-          "company_churn_estimate": 0.1018,
-          "churn_estimate_error_pct": -0.782,
-          "retention_offered": false,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 241.0169688790101
         }
       ],
       "basis_risk_by_term": [
@@ -12808,9 +12731,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-01-28",
-          "company_fwd_gbp_per_mwh": 288.9952,
+          "company_fwd_gbp_per_mwh": 181.9092,
           "sim_fwd_gbp_per_mwh": 181.9092,
-          "tariff_error_pct": 0.5887
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -12822,9 +12773,16 @@
         {
           "commodity": "electricity",
           "term_start": "2025-01-27",
-          "company_fwd_gbp_per_mwh": 123.6122,
+          "company_fwd_gbp_per_mwh": 113.2624,
           "sim_fwd_gbp_per_mwh": 113.2624,
-          "tariff_error_pct": 0.0914
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2025-04-01",
+          "company_fwd_gbp_per_mwh": 100.0929,
+          "sim_fwd_gbp_per_mwh": 100.0929,
+          "tariff_error_pct": 0
         }
       ],
       "churn_accuracy_by_renewal": [
@@ -12847,31 +12805,13 @@
           "rate_vs_svt_pct": -12.71
         },
         {
-          "term_start": "2023-01-28",
-          "sim_churn_probability": 0.1547,
-          "company_churn_estimate": 0.914,
-          "churn_estimate_error_pct": 4.9082,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0,
-          "rate_vs_svt_pct": -49.25
-        },
-        {
           "term_start": "2024-01-28",
-          "sim_churn_probability": 0.406,
-          "company_churn_estimate": 0.1356,
-          "churn_estimate_error_pct": -0.666,
+          "sim_churn_probability": 0.384,
+          "company_churn_estimate": 0.7034,
+          "churn_estimate_error_pct": 0.8318,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 244.24240381971617,
           "rate_vs_svt_pct": -10.86
-        },
-        {
-          "term_start": "2025-01-27",
-          "sim_churn_probability": 0.467,
-          "company_churn_estimate": 0.1018,
-          "churn_estimate_error_pct": -0.782,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 241.0169688790101,
-          "rate_vs_svt_pct": -3.05
         }
       ],
       "income_stress_trajectory": [
@@ -12927,24 +12867,16 @@
           "satisfaction_score": 0.7
         },
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
           "year": 2024,
-          "satisfaction_score": 0.7
-        },
-        {
-          "year": 2025,
-          "satisfaction_score": 0.7
+          "satisfaction_score": 0.65
         }
       ],
       "payment_behaviour_analytics": {
         "score": "GOOD",
         "metrics": {
-          "on_time_rate": 0.9178082191780822,
-          "late_rate": 0.0684931506849315,
-          "dd_fail_rate": 0.0136986301369863
+          "on_time_rate": 0.9230769230769231,
+          "late_rate": 0.0641025641025641,
+          "dd_fail_rate": 0.01282051282051282
         }
       },
       "payment_miss_trajectory": [
@@ -12988,11 +12920,11 @@
           "year": 2025,
           "late": 0,
           "dd_failed": 0,
-          "total": 1
+          "total": 6
         }
       ],
       "bill_shock_history": [
-        "2023-01-28"
+        "2024-01-28"
       ],
       "feedback_survey_history": [
         {
@@ -13012,23 +12944,7 @@
           "nps_score_0_10": null
         },
         {
-          "term_start": "2023-01-28",
-          "true_satisfaction": 0.6144,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
           "term_start": "2024-01-28",
-          "true_satisfaction": 0.6344,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2025-01-27",
           "true_satisfaction": 0.6344,
           "csat_responded": false,
           "csat_score_0_10": null,
@@ -13068,11 +12984,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2019-01-29",
-      "lifetime_revenue_gbp": 5096.68,
-      "lifetime_gross_gbp": 1486.1,
-      "lifetime_net_gbp": 346.68,
-      "cost_to_serve_gbp": 330.0,
-      "lifetime_net_after_cts_gbp": 16.68,
+      "lifetime_revenue_gbp": 5551.74,
+      "lifetime_gross_gbp": 1684.76,
+      "lifetime_net_gbp": 440.74,
+      "cost_to_serve_gbp": 349.89,
+      "lifetime_net_after_cts_gbp": 90.85,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -13121,10 +13037,10 @@
         },
         {
           "year": 2025,
-          "gross_gbp": 63.15,
-          "net_gbp": 35.09,
+          "gross_gbp": 261.81,
+          "net_gbp": 129.15,
           "tariff_min_gbp_per_mwh": 61.03,
-          "tariff_max_gbp_per_mwh": 61.03
+          "tariff_max_gbp_per_mwh": 63.4
         }
       ],
       "renewal_events": [],
@@ -13170,6 +13086,13 @@
           "company_fwd_gbp_per_mwh": 43.0151,
           "sim_fwd_gbp_per_mwh": 30.0373,
           "tariff_error_pct": 0.4321
+        },
+        {
+          "commodity": "gas",
+          "term_start": "2025-01-27",
+          "company_fwd_gbp_per_mwh": 48.8716,
+          "sim_fwd_gbp_per_mwh": 39.931,
+          "tariff_error_pct": 0.2239
         }
       ],
       "churn_accuracy_by_renewal": [],
@@ -13229,9 +13152,9 @@
       "payment_behaviour_analytics": {
         "score": "POOR",
         "metrics": {
-          "on_time_rate": 0.589041095890411,
-          "late_rate": 0.2465753424657534,
-          "dd_fail_rate": 0.1643835616438356
+          "on_time_rate": 0.6025641025641025,
+          "late_rate": 0.24358974358974358,
+          "dd_fail_rate": 0.15384615384615385
         }
       },
       "payment_miss_trajectory": [
@@ -13273,9 +13196,9 @@
         },
         {
           "year": 2025,
-          "late": 1,
+          "late": 2,
           "dd_failed": 0,
-          "total": 1
+          "total": 6
         }
       ],
       "bill_shock_history": [],
@@ -14249,11 +14172,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2019-05-06",
-      "lifetime_revenue_gbp": 5297.7,
-      "lifetime_gross_gbp": 3575.47,
-      "lifetime_net_gbp": 1563.26,
+      "lifetime_revenue_gbp": 5208.06,
+      "lifetime_gross_gbp": 3566.89,
+      "lifetime_net_gbp": 1549.26,
       "cost_to_serve_gbp": 335.19,
-      "lifetime_net_after_cts_gbp": 1228.07,
+      "lifetime_net_after_cts_gbp": 1214.07,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -14288,17 +14211,17 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 968.98,
-          "net_gbp": 584.02,
-          "tariff_min_gbp_per_mwh": 224.68,
+          "gross_gbp": 967.9,
+          "net_gbp": 579.05,
+          "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
         {
           "year": 2024,
-          "gross_gbp": 708.26,
-          "net_gbp": 306.99,
+          "gross_gbp": 700.76,
+          "net_gbp": 297.96,
           "tariff_min_gbp_per_mwh": 160.8,
-          "tariff_max_gbp_per_mwh": 444.16
+          "tariff_max_gbp_per_mwh": 390.45
         },
         {
           "year": 2025,
@@ -14321,24 +14244,13 @@
           "unit_rate_gbp_per_mwh": 145.83273387659148
         },
         {
-          "event_date": "2023-05-05",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.2051,
-          "company_churn_estimate": 0.6873,
-          "churn_estimate_error_pct": 2.351,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 296.1091427518673
-        },
-        {
           "event_date": "2024-05-04",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.2821,
-          "company_churn_estimate": 0.1118,
-          "churn_estimate_error_pct": -0.6037,
-          "retention_offered": false,
+          "sim_churn_probability": 0.3117,
+          "company_churn_estimate": 0.4512,
+          "churn_estimate_error_pct": 0.4475,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 204.6496582704914
         }
@@ -14431,9 +14343,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-05-05",
-          "company_fwd_gbp_per_mwh": 189.1838,
+          "company_fwd_gbp_per_mwh": 113.5262,
           "sim_fwd_gbp_per_mwh": 113.5262,
-          "tariff_error_pct": 0.6664
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-04-01",
+          "company_fwd_gbp_per_mwh": 67.3664,
+          "sim_fwd_gbp_per_mwh": 67.3664,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -14461,19 +14401,10 @@
           "rate_vs_svt_pct": -23.04
         },
         {
-          "term_start": "2023-05-05",
-          "sim_churn_probability": 0.2051,
-          "company_churn_estimate": 0.6873,
-          "churn_estimate_error_pct": 2.351,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 296.1091427518673,
-          "rate_vs_svt_pct": -1.62
-        },
-        {
           "term_start": "2024-05-04",
-          "sim_churn_probability": 0.2821,
-          "company_churn_estimate": 0.1118,
-          "churn_estimate_error_pct": -0.6037,
+          "sim_churn_probability": 0.3117,
+          "company_churn_estimate": 0.4512,
+          "churn_estimate_error_pct": 0.4475,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 204.6496582704914,
           "rate_vs_svt_pct": -16.47
@@ -14528,12 +14459,8 @@
           "satisfaction_score": 0.7
         },
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
           "year": 2024,
-          "satisfaction_score": 0.7
+          "satisfaction_score": 0.65
         }
       ],
       "payment_behaviour_analytics": {
@@ -14589,20 +14516,12 @@
         }
       ],
       "bill_shock_history": [
-        "2023-05-05"
+        "2024-05-04"
       ],
       "feedback_survey_history": [
         {
           "term_start": "2021-05-05",
           "true_satisfaction": 0.7167,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2023-05-05",
-          "true_satisfaction": 0.6566,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -14896,11 +14815,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2019-06-05",
-      "lifetime_revenue_gbp": 2848.19,
-      "lifetime_gross_gbp": 2028.78,
-      "lifetime_net_gbp": 1014.55,
+      "lifetime_revenue_gbp": 3014.94,
+      "lifetime_gross_gbp": 2187.39,
+      "lifetime_net_gbp": 1169.39,
       "cost_to_serve_gbp": 330.67,
-      "lifetime_net_after_cts_gbp": 683.88,
+      "lifetime_net_after_cts_gbp": 838.73,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -14935,23 +14854,23 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 538.29,
-          "net_gbp": 341.98,
-          "tariff_min_gbp_per_mwh": 171.92,
+          "gross_gbp": 587.14,
+          "net_gbp": 389.42,
+          "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
         {
           "year": 2024,
-          "gross_gbp": 400.67,
-          "net_gbp": 195.73,
-          "tariff_min_gbp_per_mwh": 134.67,
-          "tariff_max_gbp_per_mwh": 328.21
+          "gross_gbp": 476.43,
+          "net_gbp": 270.19,
+          "tariff_min_gbp_per_mwh": 166.9,
+          "tariff_max_gbp_per_mwh": 390.45
         },
         {
           "year": 2025,
-          "gross_gbp": 166.96,
-          "net_gbp": 73.56,
-          "tariff_min_gbp_per_mwh": 134.67,
+          "gross_gbp": 200.97,
+          "net_gbp": 106.5,
+          "tariff_min_gbp_per_mwh": 185.56,
           "tariff_max_gbp_per_mwh": 385.18
         }
       ],
@@ -14977,28 +14896,6 @@
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 147.8677618832725
-        },
-        {
-          "event_date": "2023-06-04",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1209,
-          "company_churn_estimate": 0.3941,
-          "churn_estimate_error_pct": 2.2597,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 218.8066560261404
-        },
-        {
-          "event_date": "2024-06-03",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.2036,
-          "company_churn_estimate": 0.3144,
-          "churn_estimate_error_pct": 0.5442,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 171.39410926018252
         }
       ],
       "basis_risk_by_term": [
@@ -15061,16 +14958,72 @@
         {
           "commodity": "electricity",
           "term_start": "2023-06-04",
-          "company_fwd_gbp_per_mwh": 102.0362,
+          "company_fwd_gbp_per_mwh": 88.8496,
           "sim_fwd_gbp_per_mwh": 88.8496,
-          "tariff_error_pct": 0.1484
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-04-01",
+          "company_fwd_gbp_per_mwh": 67.3664,
+          "sim_fwd_gbp_per_mwh": 67.3664,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
           "term_start": "2024-06-03",
-          "company_fwd_gbp_per_mwh": 49.0591,
+          "company_fwd_gbp_per_mwh": 69.2402,
           "sim_fwd_gbp_per_mwh": 69.2402,
-          "tariff_error_pct": -0.2915
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-07-01",
+          "company_fwd_gbp_per_mwh": 72.5254,
+          "sim_fwd_gbp_per_mwh": 72.5254,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-10-01",
+          "company_fwd_gbp_per_mwh": 74.6881,
+          "sim_fwd_gbp_per_mwh": 74.6881,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2025-01-01",
+          "company_fwd_gbp_per_mwh": 91.6941,
+          "sim_fwd_gbp_per_mwh": 91.6941,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2025-04-01",
+          "company_fwd_gbp_per_mwh": 100.0929,
+          "sim_fwd_gbp_per_mwh": 100.0929,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -15098,24 +15051,6 @@
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 147.8677618832725,
           "rate_vs_svt_pct": -21.97
-        },
-        {
-          "term_start": "2023-06-04",
-          "sim_churn_probability": 0.1209,
-          "company_churn_estimate": 0.3941,
-          "churn_estimate_error_pct": 2.2597,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 218.8066560261404,
-          "rate_vs_svt_pct": -27.31
-        },
-        {
-          "term_start": "2024-06-03",
-          "sim_churn_probability": 0.2036,
-          "company_churn_estimate": 0.3144,
-          "churn_estimate_error_pct": 0.5442,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 171.39410926018252,
-          "rate_vs_svt_pct": -30.04
         }
       ],
       "income_stress_trajectory": [
@@ -15182,14 +15117,6 @@
         {
           "year": 2021,
           "satisfaction_score": 0.65
-        },
-        {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
-          "year": 2024,
-          "satisfaction_score": 0.7
         }
       ],
       "payment_behaviour_analytics": {
@@ -15245,8 +15172,7 @@
         }
       ],
       "bill_shock_history": [
-        "2021-06-04",
-        "2023-06-04"
+        "2021-06-04"
       ],
       "feedback_survey_history": [
         {
@@ -15260,22 +15186,6 @@
         {
           "term_start": "2021-06-04",
           "true_satisfaction": 0.6018,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2023-06-04",
-          "true_satisfaction": 0.3918,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
-          "term_start": "2024-06-03",
-          "true_satisfaction": 0.4117,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -19445,11 +19355,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2020-02-27",
-      "lifetime_revenue_gbp": 6689.38,
-      "lifetime_gross_gbp": 3894.68,
-      "lifetime_net_gbp": 1339.04,
+      "lifetime_revenue_gbp": 6565.45,
+      "lifetime_gross_gbp": 4025.57,
+      "lifetime_net_gbp": 1460.45,
       "cost_to_serve_gbp": 290.45,
-      "lifetime_net_after_cts_gbp": 1048.59,
+      "lifetime_net_after_cts_gbp": 1170.0,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -19477,17 +19387,17 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 1163.77,
-          "net_gbp": 623.11,
-          "tariff_min_gbp_per_mwh": 267.14,
+          "gross_gbp": 1293.66,
+          "net_gbp": 744.19,
+          "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
         {
           "year": 2024,
-          "gross_gbp": 850.74,
-          "net_gbp": 283.49,
+          "gross_gbp": 851.74,
+          "net_gbp": 283.82,
           "tariff_min_gbp_per_mwh": 162.11,
-          "tariff_max_gbp_per_mwh": 510.0
+          "tariff_max_gbp_per_mwh": 390.45
         },
         {
           "year": 2025,
@@ -19499,24 +19409,13 @@
       ],
       "renewal_events": [
         {
-          "event_date": "2023-02-26",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1909,
-          "company_churn_estimate": 0.9426,
-          "churn_estimate_error_pct": 3.9377,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0
-        },
-        {
           "event_date": "2024-02-26",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.4182,
-          "company_churn_estimate": 0.0813,
-          "churn_estimate_error_pct": -0.8056,
-          "retention_offered": false,
+          "sim_churn_probability": 0.389,
+          "company_churn_estimate": 0.5958,
+          "churn_estimate_error_pct": 0.5316,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 206.3224643822703
         },
@@ -19525,8 +19424,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5102,
-          "company_churn_estimate": 0.154,
-          "churn_estimate_error_pct": -0.6982,
+          "company_churn_estimate": 0.1725,
+          "churn_estimate_error_pct": -0.6619,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 222.59187956397417
@@ -19613,9 +19512,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-02-26",
-          "company_fwd_gbp_per_mwh": 245.4906,
+          "company_fwd_gbp_per_mwh": 164.0897,
           "sim_fwd_gbp_per_mwh": 164.0897,
-          "tariff_error_pct": 0.4961
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -19634,19 +19561,10 @@
       ],
       "churn_accuracy_by_renewal": [
         {
-          "term_start": "2023-02-26",
-          "sim_churn_probability": 0.1909,
-          "company_churn_estimate": 0.9426,
-          "churn_estimate_error_pct": 3.9377,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0,
-          "rate_vs_svt_pct": -49.25
-        },
-        {
           "term_start": "2024-02-26",
-          "sim_churn_probability": 0.4182,
-          "company_churn_estimate": 0.0813,
-          "churn_estimate_error_pct": -0.8056,
+          "sim_churn_probability": 0.389,
+          "company_churn_estimate": 0.5958,
+          "churn_estimate_error_pct": 0.5316,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 206.3224643822703,
           "rate_vs_svt_pct": -24.7
@@ -19654,8 +19572,8 @@
         {
           "term_start": "2025-02-25",
           "sim_churn_probability": 0.5102,
-          "company_churn_estimate": 0.154,
-          "churn_estimate_error_pct": -0.6982,
+          "company_churn_estimate": 0.1725,
+          "churn_estimate_error_pct": -0.6619,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 222.59187956397417,
           "rate_vs_svt_pct": -10.46
@@ -19706,12 +19624,8 @@
       "life_event_history": [],
       "satisfaction_score_trajectory": [
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
           "year": 2024,
-          "satisfaction_score": 0.7
+          "satisfaction_score": 0.65
         },
         {
           "year": 2025,
@@ -19765,17 +19679,9 @@
         }
       ],
       "bill_shock_history": [
-        "2023-02-26"
+        "2024-02-26"
       ],
       "feedback_survey_history": [
-        {
-          "term_start": "2023-02-26",
-          "true_satisfaction": 0.6479,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
         {
           "term_start": "2024-02-26",
           "true_satisfaction": 0.6679,
@@ -20903,11 +20809,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2020-06-10",
-      "lifetime_revenue_gbp": 2751.62,
-      "lifetime_gross_gbp": 1915.52,
-      "lifetime_net_gbp": 1079.06,
+      "lifetime_revenue_gbp": 2752.24,
+      "lifetime_gross_gbp": 1916.14,
+      "lifetime_net_gbp": 1079.68,
       "cost_to_serve_gbp": 274.78,
-      "lifetime_net_after_cts_gbp": 804.28,
+      "lifetime_net_after_cts_gbp": 804.9,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -20935,8 +20841,8 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 569.63,
-          "net_gbp": 383.01,
+          "gross_gbp": 570.24,
+          "net_gbp": 383.63,
           "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
@@ -22098,10 +22004,10 @@
           "event_date": "2024-07-25",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.322,
-          "company_churn_estimate": 0.2625,
-          "churn_estimate_error_pct": -0.1848,
-          "retention_offered": false,
+          "sim_churn_probability": 0.3209,
+          "company_churn_estimate": 0.3198,
+          "churn_estimate_error_pct": -0.0034,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 196.12296883146564
         }
@@ -22211,9 +22117,9 @@
         },
         {
           "term_start": "2024-07-25",
-          "sim_churn_probability": 0.322,
-          "company_churn_estimate": 0.2625,
-          "churn_estimate_error_pct": -0.1848,
+          "sim_churn_probability": 0.3209,
+          "company_churn_estimate": 0.3198,
+          "churn_estimate_error_pct": -0.0034,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 196.12296883146564,
           "rate_vs_svt_pct": -12.29
@@ -23106,8 +23012,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.318,
-          "company_churn_estimate": 0.3324,
-          "churn_estimate_error_pct": 0.0453,
+          "company_churn_estimate": 0.4002,
+          "churn_estimate_error_pct": 0.2585,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 216.20467890468893
@@ -23200,8 +23106,8 @@
         {
           "term_start": "2024-11-13",
           "sim_churn_probability": 0.318,
-          "company_churn_estimate": 0.3324,
-          "churn_estimate_error_pct": 0.0453,
+          "company_churn_estimate": 0.4002,
+          "churn_estimate_error_pct": 0.2585,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 216.20467890468893,
           "rate_vs_svt_pct": -11.75
@@ -23679,8 +23585,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.5217,
-          "company_churn_estimate": 0.3271,
-          "churn_estimate_error_pct": -0.373,
+          "company_churn_estimate": 0.3942,
+          "churn_estimate_error_pct": -0.2444,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 230.33433979680936
@@ -23792,8 +23698,8 @@
         {
           "term_start": "2024-12-24",
           "sim_churn_probability": 0.5217,
-          "company_churn_estimate": 0.3271,
-          "churn_estimate_error_pct": -0.373,
+          "company_churn_estimate": 0.3942,
+          "churn_estimate_error_pct": -0.2444,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 230.33433979680936,
           "rate_vs_svt_pct": -5.99
@@ -24221,12 +24127,12 @@
           "event_date": "2025-01-25",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.4824,
-          "company_churn_estimate": 0.6685,
-          "churn_estimate_error_pct": 0.3858,
+          "sim_churn_probability": 0.4809,
+          "company_churn_estimate": 0.7126,
+          "churn_estimate_error_pct": 0.4818,
           "retention_offered": true,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 242.97376843885405
+          "unit_rate_gbp_per_mwh": 242.75131833582506
         }
       ],
       "basis_risk_by_term": [
@@ -24353,12 +24259,12 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2025-01-25",
-          "sim_churn_probability": 0.4824,
-          "company_churn_estimate": 0.6685,
-          "churn_estimate_error_pct": 0.3858,
+          "sim_churn_probability": 0.4809,
+          "company_churn_estimate": 0.7126,
+          "churn_estimate_error_pct": 0.4818,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 242.97376843885405,
-          "rate_vs_svt_pct": -2.26
+          "unit_rate_gbp_per_mwh": 242.75131833582506,
+          "rate_vs_svt_pct": -2.35
         }
       ],
       "income_stress_trajectory": [
@@ -24708,11 +24614,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2021-02-25",
-      "lifetime_revenue_gbp": 5358.58,
-      "lifetime_gross_gbp": 3260.88,
-      "lifetime_net_gbp": 1393.32,
+      "lifetime_revenue_gbp": 5155.41,
+      "lifetime_gross_gbp": 3302.39,
+      "lifetime_net_gbp": 1431.66,
       "cost_to_serve_gbp": 235.61,
-      "lifetime_net_after_cts_gbp": 1157.71,
+      "lifetime_net_after_cts_gbp": 1196.05,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -24733,46 +24639,46 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 1038.34,
-          "net_gbp": 573.91,
-          "tariff_min_gbp_per_mwh": 340.0,
+          "gross_gbp": 1155.79,
+          "net_gbp": 683.69,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
-          "gross_gbp": 836.62,
-          "net_gbp": 345.32,
-          "tariff_min_gbp_per_mwh": 212.42,
-          "tariff_max_gbp_per_mwh": 340.0
+          "gross_gbp": 765.76,
+          "net_gbp": 277.76,
+          "tariff_min_gbp_per_mwh": 204.9,
+          "tariff_max_gbp_per_mwh": 260.3
         },
         {
           "year": 2025,
-          "gross_gbp": 320.8,
-          "net_gbp": 94.47,
-          "tariff_min_gbp_per_mwh": 234.14,
-          "tariff_max_gbp_per_mwh": 236.17
+          "gross_gbp": 315.72,
+          "net_gbp": 90.59,
+          "tariff_min_gbp_per_mwh": 204.9,
+          "tariff_max_gbp_per_mwh": 234.14
         }
       ],
       "renewal_events": [
         {
-          "event_date": "2023-02-25",
+          "event_date": "2024-02-25",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.1502,
-          "company_churn_estimate": 0.7981,
-          "churn_estimate_error_pct": 4.3136,
+          "sim_churn_probability": 0.2862,
+          "company_churn_estimate": 0.4829,
+          "churn_estimate_error_pct": 0.6873,
           "retention_offered": true,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0
+          "unit_rate_gbp_per_mwh": 204.89828984571136
         },
         {
           "event_date": "2025-02-24",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.4186,
-          "company_churn_estimate": 0.1996,
-          "churn_estimate_error_pct": -0.5232,
-          "retention_offered": false,
+          "sim_churn_probability": 0.4143,
+          "company_churn_estimate": 0.3654,
+          "churn_estimate_error_pct": -0.118,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 234.13746717079667
         }
@@ -24823,44 +24729,44 @@
         {
           "commodity": "electricity",
           "term_start": "2023-02-25",
-          "company_fwd_gbp_per_mwh": 249.4135,
+          "company_fwd_gbp_per_mwh": 164.6354,
           "sim_fwd_gbp_per_mwh": 164.6354,
-          "tariff_error_pct": 0.5149
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
           "term_start": "2024-02-25",
-          "company_fwd_gbp_per_mwh": 68.1543,
+          "company_fwd_gbp_per_mwh": 83.5789,
           "sim_fwd_gbp_per_mwh": 68.1543,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-04-01",
-          "company_fwd_gbp_per_mwh": 67.3664,
-          "sim_fwd_gbp_per_mwh": 67.3664,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-07-01",
-          "company_fwd_gbp_per_mwh": 72.5254,
-          "sim_fwd_gbp_per_mwh": 72.5254,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-10-01",
-          "company_fwd_gbp_per_mwh": 74.6881,
-          "sim_fwd_gbp_per_mwh": 74.6881,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2025-01-01",
-          "company_fwd_gbp_per_mwh": 91.6941,
-          "sim_fwd_gbp_per_mwh": 91.6941,
-          "tariff_error_pct": 0
+          "tariff_error_pct": 0.2263
         },
         {
           "commodity": "electricity",
@@ -24872,19 +24778,19 @@
       ],
       "churn_accuracy_by_renewal": [
         {
-          "term_start": "2023-02-25",
-          "sim_churn_probability": 0.1502,
-          "company_churn_estimate": 0.7981,
-          "churn_estimate_error_pct": 4.3136,
+          "term_start": "2024-02-25",
+          "sim_churn_probability": 0.2862,
+          "company_churn_estimate": 0.4829,
+          "churn_estimate_error_pct": 0.6873,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0,
-          "rate_vs_svt_pct": -49.25
+          "unit_rate_gbp_per_mwh": 204.89828984571136,
+          "rate_vs_svt_pct": -25.22
         },
         {
           "term_start": "2025-02-24",
-          "sim_churn_probability": 0.4186,
-          "company_churn_estimate": 0.1996,
-          "churn_estimate_error_pct": -0.5232,
+          "sim_churn_probability": 0.4143,
+          "company_churn_estimate": 0.3654,
+          "churn_estimate_error_pct": -0.118,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 234.13746717079667,
           "rate_vs_svt_pct": -5.82
@@ -24940,8 +24846,8 @@
       ],
       "satisfaction_score_trajectory": [
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
+          "year": 2024,
+          "satisfaction_score": 0.7
         },
         {
           "year": 2025,
@@ -24988,13 +24894,11 @@
           "total": 6
         }
       ],
-      "bill_shock_history": [
-        "2023-02-25"
-      ],
+      "bill_shock_history": [],
       "feedback_survey_history": [
         {
-          "term_start": "2023-02-25",
-          "true_satisfaction": 0.5906,
+          "term_start": "2024-02-25",
+          "true_satisfaction": 0.7106,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -25002,7 +24906,7 @@
         },
         {
           "term_start": "2025-02-24",
-          "true_satisfaction": 0.6306,
+          "true_satisfaction": 0.7306,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -25243,11 +25147,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2021-04-05",
-      "lifetime_revenue_gbp": 4346.11,
-      "lifetime_gross_gbp": 2745.72,
-      "lifetime_net_gbp": 1204.32,
+      "lifetime_revenue_gbp": 4311.33,
+      "lifetime_gross_gbp": 2835.07,
+      "lifetime_net_gbp": 1288.62,
       "cost_to_serve_gbp": 229.74,
-      "lifetime_net_after_cts_gbp": 974.58,
+      "lifetime_net_after_cts_gbp": 1058.88,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -25268,17 +25172,17 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 920.57,
-          "net_gbp": 525.02,
-          "tariff_min_gbp_per_mwh": 221.55,
+          "gross_gbp": 981.4,
+          "net_gbp": 581.65,
+          "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
         {
           "year": 2024,
-          "gross_gbp": 634.46,
-          "net_gbp": 220.86,
+          "gross_gbp": 662.98,
+          "net_gbp": 248.53,
           "tariff_min_gbp_per_mwh": 150.07,
-          "tariff_max_gbp_per_mwh": 422.95
+          "tariff_max_gbp_per_mwh": 390.45
         },
         {
           "year": 2025,
@@ -25290,23 +25194,12 @@
       ],
       "renewal_events": [
         {
-          "event_date": "2023-04-05",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.1292,
-          "company_churn_estimate": 0.4776,
-          "churn_estimate_error_pct": 2.6966,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 281.96641703400223
-        },
-        {
           "event_date": "2024-04-04",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.1845,
-          "company_churn_estimate": 0.1828,
-          "churn_estimate_error_pct": -0.0092,
+          "sim_churn_probability": 0.1985,
+          "company_churn_estimate": 0.2773,
+          "churn_estimate_error_pct": 0.397,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 190.99840489776125
@@ -25315,9 +25208,9 @@
           "event_date": "2025-04-04",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.3671,
-          "company_churn_estimate": 0.3324,
-          "churn_estimate_error_pct": -0.0945,
+          "sim_churn_probability": 0.3636,
+          "company_churn_estimate": 0.367,
+          "churn_estimate_error_pct": 0.0094,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 262.81820745363154
@@ -25369,9 +25262,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-04-05",
-          "company_fwd_gbp_per_mwh": 166.1472,
+          "company_fwd_gbp_per_mwh": 134.8839,
           "sim_fwd_gbp_per_mwh": 134.8839,
-          "tariff_error_pct": 0.2318
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-04-01",
+          "company_fwd_gbp_per_mwh": 67.3664,
+          "sim_fwd_gbp_per_mwh": 67.3664,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -25390,28 +25311,19 @@
       ],
       "churn_accuracy_by_renewal": [
         {
-          "term_start": "2023-04-05",
-          "sim_churn_probability": 0.1292,
-          "company_churn_estimate": 0.4776,
-          "churn_estimate_error_pct": 2.6966,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 281.96641703400223,
-          "rate_vs_svt_pct": -6.32
-        },
-        {
           "term_start": "2024-04-04",
-          "sim_churn_probability": 0.1845,
-          "company_churn_estimate": 0.1828,
-          "churn_estimate_error_pct": -0.0092,
+          "sim_churn_probability": 0.1985,
+          "company_churn_estimate": 0.2773,
+          "churn_estimate_error_pct": 0.397,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 190.99840489776125,
           "rate_vs_svt_pct": -22.04
         },
         {
           "term_start": "2025-04-04",
-          "sim_churn_probability": 0.3671,
-          "company_churn_estimate": 0.3324,
-          "churn_estimate_error_pct": -0.0945,
+          "sim_churn_probability": 0.3636,
+          "company_churn_estimate": 0.367,
+          "churn_estimate_error_pct": 0.0094,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 262.81820745363154,
           "rate_vs_svt_pct": -2.77
@@ -25467,10 +25379,6 @@
       ],
       "satisfaction_score_trajectory": [
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
           "year": 2024,
           "satisfaction_score": 0.7
         },
@@ -25520,21 +25428,12 @@
         }
       ],
       "bill_shock_history": [
-        "2023-04-05",
         "2025-04-04"
       ],
       "feedback_survey_history": [
         {
-          "term_start": "2023-04-05",
-          "true_satisfaction": 0.5753,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
           "term_start": "2024-04-04",
-          "true_satisfaction": 0.5953,
+          "true_satisfaction": 0.6953,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -25542,9 +25441,9 @@
         },
         {
           "term_start": "2025-04-04",
-          "true_satisfaction": 0.5152,
+          "true_satisfaction": 0.6152,
           "csat_responded": true,
-          "csat_score_0_10": 5.1,
+          "csat_score_0_10": 6.1,
           "nps_responded": false,
           "nps_score_0_10": null
         }
@@ -25783,11 +25682,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2021-05-01",
-      "lifetime_revenue_gbp": 4753.47,
-      "lifetime_gross_gbp": 3088.38,
-      "lifetime_net_gbp": 1353.86,
+      "lifetime_revenue_gbp": 4753.33,
+      "lifetime_gross_gbp": 3088.25,
+      "lifetime_net_gbp": 1353.72,
       "cost_to_serve_gbp": 225.82,
-      "lifetime_net_after_cts_gbp": 1128.04,
+      "lifetime_net_after_cts_gbp": 1127.9,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -25808,8 +25707,8 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 1097.16,
-          "net_gbp": 645.72,
+          "gross_gbp": 1097.02,
+          "net_gbp": 645.58,
           "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
@@ -25833,9 +25732,9 @@
           "event_date": "2025-04-30",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.4933,
-          "company_churn_estimate": 0.4224,
-          "churn_estimate_error_pct": -0.1437,
+          "sim_churn_probability": 0.4935,
+          "company_churn_estimate": 0.4628,
+          "churn_estimate_error_pct": -0.0622,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 229.77455821079056
@@ -25965,9 +25864,9 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2025-04-30",
-          "sim_churn_probability": 0.4933,
-          "company_churn_estimate": 0.4224,
-          "churn_estimate_error_pct": -0.1437,
+          "sim_churn_probability": 0.4935,
+          "company_churn_estimate": 0.4628,
+          "churn_estimate_error_pct": -0.0622,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 229.77455821079056,
           "rate_vs_svt_pct": -14.99
@@ -26320,11 +26219,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2021-06-08",
-      "lifetime_revenue_gbp": 3562.69,
-      "lifetime_gross_gbp": 2400.8,
-      "lifetime_net_gbp": 1184.94,
+      "lifetime_revenue_gbp": 3561.16,
+      "lifetime_gross_gbp": 2399.28,
+      "lifetime_net_gbp": 1183.41,
       "cost_to_serve_gbp": 220.09,
-      "lifetime_net_after_cts_gbp": 964.84,
+      "lifetime_net_after_cts_gbp": 963.32,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -26345,8 +26244,8 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 848.64,
-          "net_gbp": 525.73,
+          "gross_gbp": 847.12,
+          "net_gbp": 524.21,
           "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
@@ -26370,9 +26269,9 @@
           "event_date": "2025-06-07",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.3164,
-          "company_churn_estimate": 0.3149,
-          "churn_estimate_error_pct": -0.0047,
+          "sim_churn_probability": 0.3165,
+          "company_churn_estimate": 0.3482,
+          "churn_estimate_error_pct": 0.1002,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.9113832441992
@@ -26502,9 +26401,9 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2025-06-07",
-          "sim_churn_probability": 0.3164,
-          "company_churn_estimate": 0.3149,
-          "churn_estimate_error_pct": -0.0047,
+          "sim_churn_probability": 0.3165,
+          "company_churn_estimate": 0.3482,
+          "churn_estimate_error_pct": 0.1002,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 203.9113832441992,
           "rate_vs_svt_pct": -24.56
@@ -26861,11 +26760,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2021-07-08",
-      "lifetime_revenue_gbp": 3906.18,
-      "lifetime_gross_gbp": 2584.42,
-      "lifetime_net_gbp": 1219.92,
+      "lifetime_revenue_gbp": 3906.52,
+      "lifetime_gross_gbp": 2584.76,
+      "lifetime_net_gbp": 1220.26,
       "cost_to_serve_gbp": 215.57,
-      "lifetime_net_after_cts_gbp": 1004.35,
+      "lifetime_net_after_cts_gbp": 1004.69,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -26886,8 +26785,8 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 923.75,
-          "net_gbp": 556.07,
+          "gross_gbp": 924.09,
+          "net_gbp": 556.41,
           "tariff_min_gbp_per_mwh": 204.52,
           "tariff_max_gbp_per_mwh": 954.75
         },
@@ -27341,11 +27240,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2021-08-14",
-      "lifetime_revenue_gbp": 3461.92,
-      "lifetime_gross_gbp": 2285.68,
-      "lifetime_net_gbp": 1105.98,
+      "lifetime_revenue_gbp": 3462.09,
+      "lifetime_gross_gbp": 2285.84,
+      "lifetime_net_gbp": 1106.14,
       "cost_to_serve_gbp": 210.0,
-      "lifetime_net_after_cts_gbp": 895.98,
+      "lifetime_net_after_cts_gbp": 896.15,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -27366,8 +27265,8 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 843.75,
-          "net_gbp": 520.58,
+          "gross_gbp": 843.91,
+          "net_gbp": 520.75,
           "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
@@ -27856,9 +27755,9 @@
           "event_date": "2023-09-18",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.144,
+          "sim_churn_probability": 0.1427,
           "company_churn_estimate": 0.211,
-          "churn_estimate_error_pct": 0.4653,
+          "churn_estimate_error_pct": 0.4786,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 209.1338692821505
@@ -27867,9 +27766,9 @@
           "event_date": "2024-09-17",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.3595,
-          "company_churn_estimate": 0.129,
-          "churn_estimate_error_pct": -0.6412,
+          "sim_churn_probability": 0.3588,
+          "company_churn_estimate": 0.1603,
+          "churn_estimate_error_pct": -0.5532,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 188.95872751119055
@@ -27936,18 +27835,18 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2023-09-18",
-          "sim_churn_probability": 0.144,
+          "sim_churn_probability": 0.1427,
           "company_churn_estimate": 0.211,
-          "churn_estimate_error_pct": 0.4653,
+          "churn_estimate_error_pct": 0.4786,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 209.1338692821505,
           "rate_vs_svt_pct": -30.52
         },
         {
           "term_start": "2024-09-17",
-          "sim_churn_probability": 0.3595,
-          "company_churn_estimate": 0.129,
-          "churn_estimate_error_pct": -0.6412,
+          "sim_churn_probability": 0.3588,
+          "company_churn_estimate": 0.1603,
+          "churn_estimate_error_pct": -0.5532,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 188.95872751119055,
           "rate_vs_svt_pct": -15.49
@@ -28827,9 +28726,9 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.3861,
-          "company_churn_estimate": 0.2631,
-          "churn_estimate_error_pct": -0.3186,
-          "retention_offered": false,
+          "company_churn_estimate": 0.3204,
+          "churn_estimate_error_pct": -0.1702,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 200.01647017482227
         }
@@ -28905,8 +28804,8 @@
         {
           "term_start": "2024-11-22",
           "sim_churn_probability": 0.3861,
-          "company_churn_estimate": 0.2631,
-          "churn_estimate_error_pct": -0.3186,
+          "company_churn_estimate": 0.3204,
+          "churn_estimate_error_pct": -0.1702,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 200.01647017482227,
           "rate_vs_svt_pct": -18.36
@@ -29729,11 +29628,11 @@
       "smart_meter": false,
       "dual_fuel": true,
       "acquisition_date": "2022-01-18",
-      "lifetime_revenue_gbp": 2196.44,
-      "lifetime_gross_gbp": 1457.65,
-      "lifetime_net_gbp": 760.03,
+      "lifetime_revenue_gbp": 2197.85,
+      "lifetime_gross_gbp": 1459.06,
+      "lifetime_net_gbp": 761.44,
       "cost_to_serve_gbp": 186.34,
-      "lifetime_net_after_cts_gbp": 573.69,
+      "lifetime_net_after_cts_gbp": 575.1,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -29761,8 +29660,8 @@
         },
         {
           "year": 2025,
-          "gross_gbp": 203.05,
-          "net_gbp": 101.61,
+          "gross_gbp": 204.47,
+          "net_gbp": 103.02,
           "tariff_min_gbp_per_mwh": 236.17,
           "tariff_max_gbp_per_mwh": 256.79
         }
@@ -30161,11 +30060,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2022-02-17",
-      "lifetime_revenue_gbp": 4668.51,
-      "lifetime_gross_gbp": 2420.19,
-      "lifetime_net_gbp": 507.93,
+      "lifetime_revenue_gbp": 4528.08,
+      "lifetime_gross_gbp": 2598.79,
+      "lifetime_net_gbp": 683.5,
       "cost_to_serve_gbp": 181.82,
-      "lifetime_net_after_cts_gbp": 326.11,
+      "lifetime_net_after_cts_gbp": 501.68,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -30179,37 +30078,37 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 872.34,
-          "net_gbp": 291.51,
+          "gross_gbp": 1161.21,
+          "net_gbp": 571.73,
           "tariff_min_gbp_per_mwh": 163.43,
-          "tariff_max_gbp_per_mwh": 510.0
+          "tariff_max_gbp_per_mwh": 1145.7
         },
         {
           "year": 2024,
-          "gross_gbp": 979.93,
-          "net_gbp": 361.06,
-          "tariff_min_gbp_per_mwh": 166.9,
-          "tariff_max_gbp_per_mwh": 510.0
+          "gross_gbp": 877.28,
+          "net_gbp": 262.57,
+          "tariff_min_gbp_per_mwh": 159.86,
+          "tariff_max_gbp_per_mwh": 390.45
         },
         {
           "year": 2025,
-          "gross_gbp": 395.3,
-          "net_gbp": 110.51,
-          "tariff_min_gbp_per_mwh": 185.56,
+          "gross_gbp": 387.69,
+          "net_gbp": 104.34,
+          "tariff_min_gbp_per_mwh": 159.86,
           "tariff_max_gbp_per_mwh": 385.18
         }
       ],
       "renewal_events": [
         {
-          "event_date": "2023-02-17",
+          "event_date": "2024-02-17",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.0558,
-          "company_churn_estimate": 0.5988,
-          "churn_estimate_error_pct": 9.7312,
+          "sim_churn_probability": 0.4746,
+          "company_churn_estimate": 0.3659,
+          "churn_estimate_error_pct": -0.229,
           "retention_offered": true,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0
+          "unit_rate_gbp_per_mwh": 203.45310529545822
         }
       ],
       "basis_risk_by_term": [
@@ -30223,44 +30122,44 @@
         {
           "commodity": "electricity",
           "term_start": "2023-02-17",
-          "company_fwd_gbp_per_mwh": 229.2541,
+          "company_fwd_gbp_per_mwh": 172.895,
           "sim_fwd_gbp_per_mwh": 172.895,
-          "tariff_error_pct": 0.326
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-04-01",
+          "company_fwd_gbp_per_mwh": 135.9531,
+          "sim_fwd_gbp_per_mwh": 135.9531,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
           "term_start": "2024-02-17",
-          "company_fwd_gbp_per_mwh": 70.3045,
+          "company_fwd_gbp_per_mwh": 82.112,
           "sim_fwd_gbp_per_mwh": 70.3045,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-04-01",
-          "company_fwd_gbp_per_mwh": 67.3664,
-          "sim_fwd_gbp_per_mwh": 67.3664,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-07-01",
-          "company_fwd_gbp_per_mwh": 72.5254,
-          "sim_fwd_gbp_per_mwh": 72.5254,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2024-10-01",
-          "company_fwd_gbp_per_mwh": 74.6881,
-          "sim_fwd_gbp_per_mwh": 74.6881,
-          "tariff_error_pct": 0
-        },
-        {
-          "commodity": "electricity",
-          "term_start": "2025-01-01",
-          "company_fwd_gbp_per_mwh": 91.6941,
-          "sim_fwd_gbp_per_mwh": 91.6941,
-          "tariff_error_pct": 0
+          "tariff_error_pct": 0.1679
         },
         {
           "commodity": "electricity",
@@ -30279,13 +30178,13 @@
       ],
       "churn_accuracy_by_renewal": [
         {
-          "term_start": "2023-02-17",
-          "sim_churn_probability": 0.0558,
-          "company_churn_estimate": 0.5988,
-          "churn_estimate_error_pct": 9.7312,
+          "term_start": "2024-02-17",
+          "sim_churn_probability": 0.4746,
+          "company_churn_estimate": 0.3659,
+          "churn_estimate_error_pct": -0.229,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 340.0,
-          "rate_vs_svt_pct": -49.25
+          "unit_rate_gbp_per_mwh": 203.45310529545822,
+          "rate_vs_svt_pct": -25.75
         }
       ],
       "income_stress_trajectory": [
@@ -30333,8 +30232,8 @@
       "life_event_history": [],
       "satisfaction_score_trajectory": [
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
+          "year": 2024,
+          "satisfaction_score": 0.7
         }
       ],
       "payment_behaviour_analytics": {
@@ -30371,13 +30270,11 @@
           "total": 6
         }
       ],
-      "bill_shock_history": [
-        "2023-02-17"
-      ],
+      "bill_shock_history": [],
       "feedback_survey_history": [
         {
-          "term_start": "2023-02-17",
-          "true_satisfaction": 0.6368,
+          "term_start": "2024-02-17",
+          "true_satisfaction": 0.7568,
           "csat_responded": false,
           "csat_score_0_10": null,
           "nps_responded": false,
@@ -31286,8 +31183,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1588,
-          "company_churn_estimate": 0.0508,
-          "churn_estimate_error_pct": -0.6801,
+          "company_churn_estimate": 0.0639,
+          "churn_estimate_error_pct": -0.5976,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 222.14455350680828
@@ -31296,12 +31193,12 @@
           "event_date": "2025-01-20",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.5508,
-          "company_churn_estimate": 0.1831,
-          "churn_estimate_error_pct": -0.6676,
+          "sim_churn_probability": 0.5514,
+          "company_churn_estimate": 0.2089,
+          "churn_estimate_error_pct": -0.6211,
           "retention_offered": false,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 238.29997295962946
+          "unit_rate_gbp_per_mwh": 239.8843713433091
         }
       ],
       "basis_risk_by_term": [
@@ -31331,20 +31228,20 @@
         {
           "term_start": "2024-01-21",
           "sim_churn_probability": 0.1588,
-          "company_churn_estimate": 0.0508,
-          "churn_estimate_error_pct": -0.6801,
+          "company_churn_estimate": 0.0639,
+          "churn_estimate_error_pct": -0.5976,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 222.14455350680828,
           "rate_vs_svt_pct": -18.93
         },
         {
           "term_start": "2025-01-20",
-          "sim_churn_probability": 0.5508,
-          "company_churn_estimate": 0.1831,
-          "churn_estimate_error_pct": -0.6676,
+          "sim_churn_probability": 0.5514,
+          "company_churn_estimate": 0.2089,
+          "churn_estimate_error_pct": -0.6211,
           "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 238.29997295962946,
-          "rate_vs_svt_pct": -4.14
+          "unit_rate_gbp_per_mwh": 239.8843713433091,
+          "rate_vs_svt_pct": -3.51
         }
       ],
       "income_stress_trajectory": [
@@ -32686,11 +32583,11 @@
       "smart_meter": true,
       "dual_fuel": true,
       "acquisition_date": "2023-06-20",
-      "lifetime_revenue_gbp": 1133.55,
-      "lifetime_gross_gbp": 864.95,
-      "lifetime_net_gbp": 463.63,
+      "lifetime_revenue_gbp": 1133.2,
+      "lifetime_gross_gbp": 864.6,
+      "lifetime_net_gbp": 463.28,
       "cost_to_serve_gbp": 108.33,
-      "lifetime_net_after_cts_gbp": 355.3,
+      "lifetime_net_after_cts_gbp": 354.95,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -32711,9 +32608,9 @@
         },
         {
           "year": 2025,
-          "gross_gbp": 200.41,
-          "net_gbp": 106.78,
-          "tariff_min_gbp_per_mwh": 186.17,
+          "gross_gbp": 200.07,
+          "net_gbp": 106.44,
+          "tariff_min_gbp_per_mwh": 185.56,
           "tariff_max_gbp_per_mwh": 385.18
         }
       ],
@@ -34821,8 +34718,8 @@
           "commodity": "electricity",
           "event_type": "renewed",
           "sim_churn_probability": 0.1623,
-          "company_churn_estimate": 0.2163,
-          "churn_estimate_error_pct": 0.3327,
+          "company_churn_estimate": 0.2411,
+          "churn_estimate_error_pct": 0.4855,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 248.6
@@ -34848,8 +34745,8 @@
         {
           "term_start": "2025-02-02",
           "sim_churn_probability": 0.1623,
-          "company_churn_estimate": 0.2163,
-          "churn_estimate_error_pct": 0.3327,
+          "company_churn_estimate": 0.2411,
+          "churn_estimate_error_pct": 0.4855,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 248.6,
           "rate_vs_svt_pct": 0.0
@@ -35742,9 +35639,9 @@
           "event_date": "2025-04-11",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.1498,
-          "company_churn_estimate": 0.2654,
-          "churn_estimate_error_pct": 0.7717,
+          "sim_churn_probability": 0.1506,
+          "company_churn_estimate": 0.2947,
+          "churn_estimate_error_pct": 0.9568,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 242.08859498643517
@@ -35769,9 +35666,9 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2025-04-11",
-          "sim_churn_probability": 0.1498,
-          "company_churn_estimate": 0.2654,
-          "churn_estimate_error_pct": 0.7717,
+          "sim_churn_probability": 0.1506,
+          "company_churn_estimate": 0.2947,
+          "churn_estimate_error_pct": 0.9568,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 242.08859498643517,
           "rate_vs_svt_pct": -10.44
@@ -41446,11 +41343,11 @@
       "smart_meter": false,
       "dual_fuel": false,
       "acquisition_date": "2016-01-17",
-      "lifetime_revenue_gbp": 8966.92,
-      "lifetime_gross_gbp": 5880.06,
-      "lifetime_net_gbp": 2383.05,
+      "lifetime_revenue_gbp": 8942.55,
+      "lifetime_gross_gbp": 5855.69,
+      "lifetime_net_gbp": 2358.68,
       "cost_to_serve_gbp": 516.73,
-      "lifetime_net_after_cts_gbp": 1866.32,
+      "lifetime_net_after_cts_gbp": 1841.95,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -41506,10 +41403,10 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 1219.8,
-          "net_gbp": 728.07,
+          "gross_gbp": 1195.43,
+          "net_gbp": 703.7,
           "tariff_min_gbp_per_mwh": 260.3,
-          "tariff_max_gbp_per_mwh": 662.5
+          "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
@@ -43718,11 +43615,11 @@
       "smart_meter": false,
       "dual_fuel": false,
       "acquisition_date": "2016-02-20",
-      "lifetime_revenue_gbp": 5046.95,
-      "lifetime_gross_gbp": 2901.46,
-      "lifetime_net_gbp": 2046.11,
+      "lifetime_revenue_gbp": 5050.55,
+      "lifetime_gross_gbp": 2905.18,
+      "lifetime_net_gbp": 2049.76,
       "cost_to_serve_gbp": 511.73,
-      "lifetime_net_after_cts_gbp": 1534.38,
+      "lifetime_net_after_cts_gbp": 1538.04,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -43778,17 +43675,17 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 651.77,
-          "net_gbp": 519.76,
-          "tariff_min_gbp_per_mwh": 125.4,
+          "gross_gbp": 654.66,
+          "net_gbp": 522.6,
+          "tariff_min_gbp_per_mwh": 125.88,
           "tariff_max_gbp_per_mwh": 164.25
         },
         {
           "year": 2024,
-          "gross_gbp": 383.86,
-          "net_gbp": 255.14,
+          "gross_gbp": 384.7,
+          "net_gbp": 255.96,
           "tariff_min_gbp_per_mwh": 53.14,
-          "tariff_max_gbp_per_mwh": 125.4
+          "tariff_max_gbp_per_mwh": 125.88
         },
         {
           "year": 2025,
@@ -49338,11 +49235,11 @@
       "smart_meter": false,
       "dual_fuel": false,
       "acquisition_date": "2016-04-14",
-      "lifetime_revenue_gbp": 7235.73,
-      "lifetime_gross_gbp": 4671.52,
-      "lifetime_net_gbp": 1334.92,
+      "lifetime_revenue_gbp": 7227.53,
+      "lifetime_gross_gbp": 4771.91,
+      "lifetime_net_gbp": 1433.07,
       "cost_to_serve_gbp": 494.88,
-      "lifetime_net_after_cts_gbp": 840.04,
+      "lifetime_net_after_cts_gbp": 938.19,
       "clv_gbp": null,
       "latest_churn_probability": null,
       "expected_lifetime_periods": null,
@@ -49398,22 +49295,22 @@
         },
         {
           "year": 2023,
-          "gross_gbp": 974.29,
-          "net_gbp": 120.5,
-          "tariff_min_gbp_per_mwh": 272.43,
+          "gross_gbp": 1043.42,
+          "net_gbp": 185.24,
+          "tariff_min_gbp_per_mwh": 260.3,
           "tariff_max_gbp_per_mwh": 636.5
         },
         {
           "year": 2024,
-          "gross_gbp": 681.7,
-          "net_gbp": 190.77,
+          "gross_gbp": 712.96,
+          "net_gbp": 224.83,
           "tariff_min_gbp_per_mwh": 192.01,
-          "tariff_max_gbp_per_mwh": 272.43
+          "tariff_max_gbp_per_mwh": 260.3
         },
         {
           "year": 2025,
           "gross_gbp": 194.62,
-          "net_gbp": 79.84,
+          "net_gbp": 79.19,
           "tariff_min_gbp_per_mwh": 192.01,
           "tariff_max_gbp_per_mwh": 192.01
         }
@@ -49442,24 +49339,13 @@
           "unit_rate_gbp_per_mwh": 119.49707663669462
         },
         {
-          "event_date": "2023-04-13",
-          "commodity": "electricity",
-          "event_type": "renewed",
-          "sim_churn_probability": 0.2017,
-          "company_churn_estimate": 0.8072,
-          "churn_estimate_error_pct": 3.002,
-          "retention_offered": true,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 272.4308716138144
-        },
-        {
           "event_date": "2024-04-12",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.3271,
-          "company_churn_estimate": 0.0813,
-          "churn_estimate_error_pct": -0.7515,
-          "retention_offered": false,
+          "sim_churn_probability": 0.3272,
+          "company_churn_estimate": 0.569,
+          "churn_estimate_error_pct": 0.739,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 192.00661111377286
         },
@@ -49467,10 +49353,10 @@
           "event_date": "2025-04-12",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.5259,
-          "company_churn_estimate": 0.2911,
-          "churn_estimate_error_pct": -0.4465,
-          "retention_offered": false,
+          "sim_churn_probability": 0.556,
+          "company_churn_estimate": 0.3225,
+          "churn_estimate_error_pct": -0.42,
+          "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 254.00534455576334
         }
@@ -49640,9 +49526,37 @@
         {
           "commodity": "electricity",
           "term_start": "2023-04-13",
-          "company_fwd_gbp_per_mwh": 156.4681,
+          "company_fwd_gbp_per_mwh": 124.8746,
           "sim_fwd_gbp_per_mwh": 124.8746,
-          "tariff_error_pct": 0.253
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-07-01",
+          "company_fwd_gbp_per_mwh": 91.8214,
+          "sim_fwd_gbp_per_mwh": 91.8214,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2023-10-01",
+          "company_fwd_gbp_per_mwh": 82.8914,
+          "sim_fwd_gbp_per_mwh": 82.8914,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-01-01",
+          "company_fwd_gbp_per_mwh": 80.2182,
+          "sim_fwd_gbp_per_mwh": 80.2182,
+          "tariff_error_pct": 0
+        },
+        {
+          "commodity": "electricity",
+          "term_start": "2024-04-01",
+          "company_fwd_gbp_per_mwh": 67.3664,
+          "sim_fwd_gbp_per_mwh": 67.3664,
+          "tariff_error_pct": 0
         },
         {
           "commodity": "electricity",
@@ -49679,28 +49593,19 @@
           "rate_vs_svt_pct": -32.9
         },
         {
-          "term_start": "2023-04-13",
-          "sim_churn_probability": 0.2017,
-          "company_churn_estimate": 0.8072,
-          "churn_estimate_error_pct": 3.002,
-          "is_active_renewal": true,
-          "unit_rate_gbp_per_mwh": 272.4308716138144,
-          "rate_vs_svt_pct": -9.49
-        },
-        {
           "term_start": "2024-04-12",
-          "sim_churn_probability": 0.3271,
-          "company_churn_estimate": 0.0813,
-          "churn_estimate_error_pct": -0.7515,
+          "sim_churn_probability": 0.3272,
+          "company_churn_estimate": 0.569,
+          "churn_estimate_error_pct": 0.739,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 192.00661111377286,
           "rate_vs_svt_pct": -21.63
         },
         {
           "term_start": "2025-04-12",
-          "sim_churn_probability": 0.5259,
-          "company_churn_estimate": 0.2911,
-          "churn_estimate_error_pct": -0.4465,
+          "sim_churn_probability": 0.556,
+          "company_churn_estimate": 0.3225,
+          "churn_estimate_error_pct": -0.42,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 254.00534455576334,
           "rate_vs_svt_pct": -6.03
@@ -49759,16 +49664,12 @@
           "satisfaction_score": 0.7
         },
         {
-          "year": 2023,
-          "satisfaction_score": 0.65
-        },
-        {
           "year": 2024,
-          "satisfaction_score": 0.7
+          "satisfaction_score": 0.65
         },
         {
           "year": 2025,
-          "satisfaction_score": 0.65
+          "satisfaction_score": 0.62
         }
       ],
       "payment_behaviour_analytics": {
@@ -49842,7 +49743,7 @@
         }
       ],
       "bill_shock_history": [
-        "2023-04-13",
+        "2024-04-12",
         "2025-04-12"
       ],
       "feedback_survey_history": [
@@ -49863,14 +49764,6 @@
           "nps_score_0_10": 8
         },
         {
-          "term_start": "2023-04-13",
-          "true_satisfaction": 0.6938,
-          "csat_responded": false,
-          "csat_score_0_10": null,
-          "nps_responded": false,
-          "nps_score_0_10": null
-        },
-        {
           "term_start": "2024-04-12",
           "true_satisfaction": 0.6938,
           "csat_responded": false,
@@ -49889,9 +49782,9 @@
       ],
       "reputation_events": [
         {
-          "date": "2023-04-13",
-          "event_type": "complaint_resolved_on_time",
-          "days_to_resolve": 3
+          "date": "2024-04-12",
+          "event_type": "complaint_resolved_late",
+          "days_to_resolve": 35
         }
       ],
       "nudge_physics_history": [],
@@ -54775,9 +54668,9 @@
           "event_date": "2024-06-18",
           "commodity": "electricity",
           "event_type": "churned",
-          "sim_churn_probability": 0.2489,
-          "company_churn_estimate": 0.6912,
-          "churn_estimate_error_pct": 1.777,
+          "sim_churn_probability": 0.249,
+          "company_churn_estimate": 0.7739,
+          "churn_estimate_error_pct": 2.108,
           "retention_offered": true,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 175.89001087401374
@@ -55047,9 +54940,9 @@
       "churn_accuracy_by_renewal": [
         {
           "term_start": "2024-06-18",
-          "sim_churn_probability": 0.2489,
-          "company_churn_estimate": 0.6912,
-          "churn_estimate_error_pct": 1.777,
+          "sim_churn_probability": 0.249,
+          "company_churn_estimate": 0.7739,
+          "churn_estimate_error_pct": 2.108,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 175.89001087401374,
           "rate_vs_svt_pct": -28.21
@@ -57505,9 +57398,9 @@
           "event_date": "2023-08-03",
           "commodity": "electricity",
           "event_type": "renewed",
-          "sim_churn_probability": 0.1505,
+          "sim_churn_probability": 0.1496,
           "company_churn_estimate": 0.2365,
-          "churn_estimate_error_pct": 0.5714,
+          "churn_estimate_error_pct": 0.5809,
           "retention_offered": false,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 210.33863672905787
@@ -57732,9 +57625,9 @@
         },
         {
           "term_start": "2023-08-03",
-          "sim_churn_probability": 0.1505,
+          "sim_churn_probability": 0.1496,
           "company_churn_estimate": 0.2365,
-          "churn_estimate_error_pct": 0.5714,
+          "churn_estimate_error_pct": 0.5809,
           "is_active_renewal": true,
           "unit_rate_gbp_per_mwh": 210.33863672905787,
           "rate_vs_svt_pct": -30.12
