@@ -1,0 +1,83 @@
+{
+  "what_this_is": "the world's departure LEVEL measured with NO per-year level anchor fitted -- every year at `departure_level_anchor.NO_LEVEL_CORRECTION`, the multiplicative identity -- against the published GB domestic switching band. This is rung 1 of DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31: a check the world can fail. The fitted per-year table in `simulation/departure_level_anchor.py` achieves the published rate to four decimals in every fitted year by construction and therefore answers a different question -- whether the world has DRIFTED off its anchor, not whether its mechanism produces the record's level.",
+  "measured_at_anchor": 1.0,
+  "capture": "docs/reports/c6_second_pass_departure_factors.json",
+  "world_level_digest": "39a192ce04c1eda8",
+  "years": {
+    "2017": {
+      "band_pct": [
+        13.5,
+        14.0
+      ],
+      "emergent_pct": 6.9491,
+      "pp_outside_band": -6.6,
+      "verdict": "LOW"
+    },
+    "2018": {
+      "band_pct": [
+        19.5,
+        20.0
+      ],
+      "emergent_pct": 14.3184,
+      "pp_outside_band": -5.2,
+      "verdict": "LOW"
+    },
+    "2019": {
+      "band_pct": [
+        20.7,
+        21.3
+      ],
+      "emergent_pct": 12.8989,
+      "pp_outside_band": -7.8,
+      "verdict": "LOW"
+    },
+    "2020": {
+      "band_pct": [
+        22.5,
+        23.0
+      ],
+      "emergent_pct": 13.5069,
+      "pp_outside_band": -9.0,
+      "verdict": "LOW"
+    },
+    "2021": {
+      "band_pct": [
+        17.9,
+        18.4
+      ],
+      "emergent_pct": 10.272,
+      "pp_outside_band": -7.6,
+      "verdict": "LOW"
+    },
+    "2023": {
+      "band_pct": [
+        8.9,
+        12.5
+      ],
+      "emergent_pct": 9.5722,
+      "pp_outside_band": 0.0,
+      "verdict": "IN BAND"
+    },
+    "2024": {
+      "band_pct": [
+        12.5,
+        16.1
+      ],
+      "emergent_pct": 9.1911,
+      "pp_outside_band": -3.3,
+      "verdict": "LOW"
+    }
+  },
+  "years_failing": [
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2024
+  ],
+  "in_band": 1,
+  "n_years": 7,
+  "worst_pp_outside": -9.0,
+  "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --emergent-verdict"
+}

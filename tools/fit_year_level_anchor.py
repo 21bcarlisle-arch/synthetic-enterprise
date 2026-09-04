@@ -44,6 +44,7 @@ import sys
 from pathlib import Path
 
 import tools.measure_departure_level as _instrument
+from simulation.departure_level_anchor import NO_LEVEL_CORRECTION, world_level_identity
 from simulation.departure_risks import (
     DECLARED_SENSITIVITY_SCALE,
     DECLARED_SHOCK_WEIGHT,
@@ -403,6 +404,90 @@ def emergent_level_sweep(
     }
 
 
+#: Where the rung-1 verdict is written, and it is committed rather than printed.
+#:
+#: WHY AN ARTEFACT AND NOT A PRINTED TABLE. `emergent_level_sweep` above has printed this since
+#: 2026-09-03 and nothing in the tree could read it. A measurement that only exists on somebody's
+#: terminal cannot go stale loudly, cannot be cited, and cannot be a check -- which left the world's
+#: ONLY standing band verdict the one taken off the fitted anchors, where achieved equals published
+#: to four decimals in every fitted year BY CONSTRUCTION. The canon
+#: (`DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31`, rung 1) requires the band to be a check the
+#: world can FAIL. This file is what it fails.
+EMERGENT_VERDICT = PROJECT / "docs" / "reports" / "departure_level_rung1_verdict.json"
+
+
+def emergent_level_verdict(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
+    """The world's rung-1 verdict: where the level lands with NO per-year scalar fitted at all.
+
+    THE ANCHOR HERE IS `NO_LEVEL_CORRECTION` AND THAT IS NOT A CONSTANT CHOSEN TO FILL A SLOT. It
+    is 1.0, the multiplicative IDENTITY -- `departure_level_anchor` already establishes it as "the
+    arithmetic form of 'no calibration is identified'", and `build_departure_risks` already carries
+    it as the default. So this measurement invents nothing. That distinction is the whole reason
+    this function exists rather than a table fitted at some better constant: the finding
+    `SEAT_FINDING_THE_LEVEL_IS_CLAMPED_...` establishes that the best single constant (k≈2.8) puts
+    2 of 7 years in band against 1 of 7 here -- but 2.8 is a number nobody has a source for, and
+    swapping seven fitted scalars for one invented one is trading a clamp for a placeholder. The
+    identity is the only anchor value on offer that is not a claim.
+
+    SO THIS IS THE MECHANISM'S OWN ANSWER, unscaled: the hazards say what they say, the SVT route
+    contributes what the capture recorded, and the band is asked whether it contains the result. It
+    can say no, and it does -- which is the property `test_the_worlds_realised_departure_rate_is_
+    inside_the_published_band` structurally cannot have, because its subject ran under the fit.
+
+    WHAT IT IS NOT: it is not a proposal to set the world's anchor to 1.0. The per-year table stays
+    where it is and stays declared as a clamp; this is the reading BESIDE it, and the gap between
+    the two is the rung-1 debt stated as a number instead of an argument.
+
+    Distances are signed and in percentage points: negative is below the band's low edge, positive
+    above its high edge, 0.0 inside. Judged through the instrument's own `inside_band`, at the
+    precision the commons publishes its endpoints to, so this verdict and the fitted one cannot
+    disagree at a band edge for a reason that is only rounding.
+    """
+    sweep = emergent_level_sweep(renewal_rows, svt_rows, anchors=[NO_LEVEL_CORRECTION])
+    achieved = sweep["sweep"][0]["achieved_pct"]
+    years: dict[str, dict] = {}
+    for year in sweep["years"]:
+        lo, hi = sweep["bands"][year]
+        got = achieved[year]
+        below, above = _instrument.band_margins(got, lo, hi)
+        if _instrument.inside_band(got, lo, hi):
+            outside, verdict = 0.0, "IN BAND"
+        elif below < 0.0:
+            outside, verdict = below, "LOW"
+        else:
+            outside, verdict = -above, "HIGH"
+        years[str(year)] = {
+            "band_pct": [lo, hi],
+            "emergent_pct": round(got, 4),
+            "pp_outside_band": round(outside, 4),
+            "verdict": verdict,
+        }
+    failing = sorted(int(y) for y, v in years.items() if v["verdict"] != "IN BAND")
+    return {
+        "what_this_is": (
+            "the world's departure LEVEL measured with NO per-year level anchor fitted -- every "
+            "year at `departure_level_anchor.NO_LEVEL_CORRECTION`, the multiplicative identity -- "
+            "against the published GB domestic switching band. This is rung 1 of "
+            "DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31: a check the world can fail. The "
+            "fitted per-year table in `simulation/departure_level_anchor.py` achieves the "
+            "published rate to four decimals in every fitted year by construction and therefore "
+            "answers a different question -- whether the world has DRIFTED off its anchor, not "
+            "whether its mechanism produces the record's level."
+        ),
+        "measured_at_anchor": NO_LEVEL_CORRECTION,
+        "capture": str(_instrument.DEFAULT_TABLE.relative_to(PROJECT)),
+        "world_level_digest": world_level_identity()["digest"],
+        "years": years,
+        "years_failing": failing,
+        "in_band": sweep["n_years"] - len(failing),
+        "n_years": sweep["n_years"],
+        "worst_pp_outside": (
+            min((years[str(y)]["pp_outside_band"] for y in failing), default=0.0)
+        ),
+        "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --emergent-verdict",
+    }
+
+
 def _sum_probability(rows: list[dict], anchor: float) -> float:
     """Expected departures over these renewal rows at one anchor. A SUM, not a mean.
 
@@ -545,9 +630,56 @@ def emission_refusal(decl: dict) -> str | None:
     return None
 
 
+def _emergent_verdict_main(table_path: Path) -> int:
+    """`--emergent-verdict`: measure the unfitted level, print it, and WRITE it.
+
+    IT WRITES ON EVERY OUTCOME, including the refused one, and that is deliberate. A tool whose
+    only failure mode is to write nothing leaves the previous run's file on disk looking current --
+    the absence is silent and the reader sees a verdict from a world that no longer exists. So a
+    refusal is a verdict too, and it lands in the same place under the same name.
+    """
+    all_rows = json.loads(table_path.read_text())
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    refusal = (
+        svt_reason if svt_rows is None
+        else svt_composition_refusal(svt_rows)
+        or account_denominator_refusal(all_rows, svt_rows)
+    )
+    if refusal is not None:
+        EMERGENT_VERDICT.write_text(json.dumps({
+            "refused": refusal,
+            "capture": str(table_path.relative_to(PROJECT)),
+            "what_this_is": (
+                "no rung-1 verdict could be measured from this capture. The refusal is written "
+                "rather than withheld: a missing file reads as 'nobody ran it', and a stale one "
+                "left in place reads as current."
+            ),
+            "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --emergent-verdict",
+        }, indent=2) + "\n")
+        print(f"REFUSED — no rung-1 verdict from {table_path.name}: {refusal}")
+        return 1
+    verdict = emergent_level_verdict(all_rows, svt_rows)
+    EMERGENT_VERDICT.write_text(json.dumps(verdict, indent=2) + "\n")
+    print(f"── RUNG 1: the level with NO per-year anchor fitted (k={NO_LEVEL_CORRECTION}) ──")
+    print()
+    print(f"{'year':>6} {'band lo':>9} {'band hi':>9} {'emergent %':>11} {'pp outside':>11}  verdict")
+    for year in sorted(verdict["years"], key=int):
+        row = verdict["years"][year]
+        lo, hi = row["band_pct"]
+        print(f"{year:>6} {lo:>9.1f} {hi:>9.1f} {row['emergent_pct']:>11.4f} "
+              f"{row['pp_outside_band']:>11.4f}  {row['verdict']}")
+    print()
+    print(f"  {verdict['in_band']} of {verdict['n_years']} years inside their band; "
+          f"{len(verdict['years_failing'])} fail, worst {verdict['worst_pp_outside']:+.2f}pp.")
+    print(f"  written to {EMERGENT_VERDICT.relative_to(PROJECT)}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     args = [a for a in argv[1:] if not a.startswith("--")]
     table_path = Path(args[0]) if args else DEFAULT_TABLE
+    if "--emergent-verdict" in argv[1:]:
+        return _emergent_verdict_main(table_path)
     all_rows = json.loads(table_path.read_text())
     rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)

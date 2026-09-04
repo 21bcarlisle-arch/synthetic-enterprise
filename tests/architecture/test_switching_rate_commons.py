@@ -46,6 +46,7 @@ import simulation.departure_level_anchor as anchor_module
 import simulation.departure_risks as departure_risks
 import simulation.market_switching_propensity as propensity
 import tools.departure_population as departure_population
+import tools.fit_year_level_anchor as fitter
 import tools.measure_departure_level as instrument
 
 #: ONE READER OF THE COMMONS, and it is the instrument rather than this file. A test that parses
@@ -2388,3 +2389,237 @@ def test_band_margins_are_signed_distances_and_go_negative_outside_the_band():
     below, above = instrument.band_margins(11.0, 12.5, 16.1)
     assert below < 0.0, "a level BELOW the band must report negative room below, not a distance"
     assert above > 0.0
+
+
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+# RUNG 1: THE BAND AS A CHECK THE WORLD CAN FAIL
+#
+# Every leg above this line judges the world as it ran UNDER THE FITTED PER-YEAR ANCHOR. That
+# anchor is solved by bisection onto the published rate, so `achieved == published` to four
+# decimals in every fitted year BY CONSTRUCTION -- which makes those legs drift detectors (their
+# own docstrings say so, at length, and got there before this section did) and NOT a verdict on
+# whether the mechanism produces the record's level. `DIRECTOR_CANON_WORLD_VALIDATION_LADDER_
+# 2026-08-31` rung 1 requires the second question to have an answer the world can fail.
+#
+# These legs hold that answer. Their subject is `docs/reports/departure_level_rung1_verdict.json`,
+# measured at the multiplicative IDENTITY -- no fitted scalar and no invented one -- and the world
+# fails it in six years of seven.
+# ═════════════════════════════════════════════════════════════════════════════════════════════
+
+
+def _declared_rung1() -> dict:
+    """The committed rung-1 verdict, or a hard fail naming which of the three states it is in.
+
+    THREE STATES AND NOT TWO, because the third is how this goes quietly fail-open. The file can be
+    ABSENT (nobody has run the tool -- and an absent artefact is exactly what an OOM-killed or
+    never-wired producer leaves behind, which this repo has now been bitten by twice), it can carry
+    a REFUSAL (the capture could not be judged, which is a result and must be read as one rather
+    than skipped past), or it can carry a verdict. Only the third is a subject.
+    """
+    assert fitter.EMERGENT_VERDICT.exists(), (
+        f"{fitter.EMERGENT_VERDICT.name} is missing. The world's only band check that is not "
+        f"solved onto its own target does not exist on disk, so rung 1 has no verdict at all -- "
+        f"which reads from every other green in this file as though the level were established. "
+        f"Run `python3 -m tools.fit_year_level_anchor --emergent-verdict`."
+    )
+    declared = json.loads(fitter.EMERGENT_VERDICT.read_text())
+    assert "refused" not in declared, (
+        f"the rung-1 verdict is a REFUSAL and not a reading: {declared['refused']}. A refusal is a "
+        f"result and it is reported here rather than skipped -- the world currently has no "
+        f"unclamped level verdict, and no figure measured over its departure surface is bounded."
+    )
+    return declared
+
+
+def _rung1_disagreements(declared: dict, live: dict) -> list[str]:
+    """Every way the committed verdict and a fresh measurement of the live world differ.
+
+    A LIST AND NOT A BOOL, and every year is checked rather than the first mismatch returned: a
+    comparator that short-circuits reports the cheapest disagreement, and the reader then repairs
+    that one and runs again. This is the same reason `fit_whole_book` collects every applicable
+    refusal cause instead of the first.
+    """
+    out: list[str] = []
+    declared_years, live_years = set(declared["years"]), set(live["years"])
+    for year in sorted(declared_years - live_years):
+        out.append(f"{year}: declared, and the live measurement does not carry it at all")
+    for year in sorted(live_years - declared_years):
+        out.append(
+            f"{year}: the live measurement carries it and the committed verdict does not -- a "
+            f"year that entered the subject silently is a year nobody has read"
+        )
+    for year in sorted(declared_years & live_years):
+        was, now = declared["years"][year], live["years"][year]
+        for key in ("band_pct", "emergent_pct", "pp_outside_band", "verdict"):
+            if was[key] != now[key]:
+                out.append(f"{year}.{key}: declared {was[key]!r}, live {now[key]!r}")
+    if declared.get("years_failing") != live["years_failing"]:
+        out.append(
+            f"years_failing: declared {declared.get('years_failing')!r}, "
+            f"live {live['years_failing']!r}"
+        )
+    return out
+
+
+def test_the_rung_1_verdict_is_measured_on_the_world_the_fit_did_not_touch():
+    """MUTATION: point `emergent_level_verdict` at a fitted anchor and this fires.
+
+    THE PROPERTY, AND IT CANNOT GO STALE. This says nothing about which years pass, how many do, or
+    how far outside the failures sit -- all three are allowed to move the day the mechanism is
+    repaired, and a leg keyed to any of them would go red for the world becoming more honest. What
+    it says is that the check's SUBJECT is the unclamped world: the anchor the verdict was measured
+    at is the multiplicative identity, and identically not one of the values the solver produced.
+
+    WHY THAT IS THE THING WORTH HOLDING. The failure this whole section exists for is a check
+    solved onto its own target. A future session repairing the compression will be tempted to
+    re-measure "the emergent level" at the best single constant, because 2 of 7 reads better than 1
+    of 7 -- and k=2.8 is a number with no source, so that would be trading a clamp for a
+    placeholder and calling it a rung-1 pass. This leg refuses it by construction rather than by
+    anybody remembering the argument.
+    """
+    declared = _declared_rung1()
+    assert declared["measured_at_anchor"] == anchor_module.NO_LEVEL_CORRECTION, (
+        f"the rung-1 verdict was measured at an anchor of {declared['measured_at_anchor']}, and "
+        f"`NO_LEVEL_CORRECTION` is {anchor_module.NO_LEVEL_CORRECTION}. Any other value is a "
+        f"scalar somebody chose, and a level measured at a chosen scalar is the clamp again under "
+        f"a different name -- whether it was fitted per year or picked once for all of them."
+    )
+    fitted = set(anchor_module.YEAR_LEVEL_ANCHOR.values())
+    assert declared["measured_at_anchor"] not in fitted, (
+        f"the rung-1 verdict's anchor is one of the FITTED values {sorted(fitted)}. A verdict "
+        f"measured at the anchor that was solved onto the published rate cannot fail the band."
+    )
+    assert declared["capture"] == str(
+        instrument.DEFAULT_TABLE.relative_to(instrument.PROJECT)
+    ), (
+        f"the rung-1 verdict was measured on {declared['capture']} and the instrument's live "
+        f"capture is {instrument.DEFAULT_TABLE.name}. Two band verdicts read off two different "
+        f"captures are two different worlds, and the reader is shown one page."
+    )
+
+
+def test_the_committed_rung_1_verdict_still_reproduces_and_names_every_year_it_fails():
+    """MUTATION: perturb any year in the committed verdict, or move the world under it, and this
+    fires -- both are exercised below, because they are different wirings and only one of them is
+    the comparator.
+
+    THIS IS A DRIFT DETECTOR OVER A DECLARATION, the same shape as
+    `test_every_declared_svt_floor_reproduces_under_the_hazard_the_world_actually_runs`. The tree
+    states which years the world's unclamped level fails the band in and by how much; this
+    re-derives it from the live code and the live capture and refuses a declaration that has
+    stopped being true. It fires IN EITHER DIRECTION -- a mechanism repair that brings 2019 into
+    band reds this exactly as hard as a regression that pushes 2023 out, and that is correct: the
+    record is wrong in both cases and the repair in both cases is to re-run the tool and land the
+    file. A record of failures nobody updates is worth less than no record, because it is read as
+    current.
+
+    WHAT IT IS NOT: it is not an assertion that the world PASSES rung 1. It does not. Six of seven
+    years are outside their band, by 3.3pp to 9.0pp, all of them LOW, and this leg is green with
+    that written down. The canon's repair goes to the individual model's hazards -- never to the
+    band, never to the target, and never by fitting a scalar to close the gap.
+    """
+    declared = _declared_rung1()
+    svt_rows, reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    assert svt_rows is not None, (
+        f"the live capture has no SVT half ({reason}), so the whole-book level cannot be measured "
+        f"and the committed verdict cannot be checked against anything."
+    )
+    live = fitter.emergent_level_verdict(
+        json.loads(instrument.DEFAULT_TABLE.read_text()), svt_rows
+    )
+    disagreements = _rung1_disagreements(declared, live)
+    assert not disagreements, (
+        "the committed rung-1 verdict no longer reproduces on the live world:\n  "
+        + "\n  ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land the artefact with whatever moved "
+        f"it. Do NOT edit the file by hand and do NOT reach for the band."
+    )
+
+    # THE PARTITION, CHECKED SEPARATELY FROM THE REPRODUCTION. Both sides above could agree
+    # perfectly while `years_failing` disagreed with the per-year verdicts it summarises -- a
+    # summary that has come loose from its own rows is how a page reports zero failures over a
+    # subject that has six.
+    from_rows = sorted(
+        int(y) for y, row in declared["years"].items() if row["verdict"] != "IN BAND"
+    )
+    assert declared["years_failing"] == from_rows, (
+        f"the verdict's headline list of failing years is {declared['years_failing']} and its own "
+        f"per-year rows say {from_rows}. The summary and the rows have come apart."
+    )
+    assert declared["in_band"] + len(from_rows) == declared["n_years"], (
+        f"{declared['in_band']} in band plus {len(from_rows)} failing does not account for all "
+        f"{declared['n_years']} years -- a year in neither side has left the subject silently."
+    )
+    for year, row in declared["years"].items():
+        lo, hi = _bands()[int(year)]
+        assert row["band_pct"] == [lo, hi], (
+            f"{year}'s verdict was taken against a band of {row['band_pct']} and the commons "
+            f"publishes {[lo, hi]}. The band moved under the verdict."
+        )
+        inside = instrument.inside_band(row["emergent_pct"], lo, hi)
+        assert inside == (row["verdict"] == "IN BAND"), (
+            f"{year} is recorded {row['verdict']} at {row['emergent_pct']}% against {lo}-{hi}%, "
+            f"and the instrument's own containment test says {'inside' if inside else 'outside'}."
+        )
+
+
+def test_mutation_k_a_stale_rung_1_declaration_is_caught():
+    """The comparator's own mutation, and it holds the leg above from both sides.
+
+    A verdict edited to hide a failure and a verdict left behind by a world that moved are the same
+    defect to a reader, so both are exercised: one year's distance nudged, and one year moved from
+    LOW to IN BAND. If either passed, the declaration would be a claim nothing checks.
+    """
+    declared = _declared_rung1()
+    live = json.loads(json.dumps(declared))
+    assert not _rung1_disagreements(declared, live), "the comparator disagrees with itself"
+
+    year = str(declared["years_failing"][0])
+    nudged = json.loads(json.dumps(live))
+    nudged["years"][year]["pp_outside_band"] += 0.5
+    assert _rung1_disagreements(declared, nudged), (
+        "a declared distance moved by half a percentage point -- more than most of these bands are "
+        "wide -- reads as reproducing"
+    )
+
+    hidden = json.loads(json.dumps(live))
+    hidden["years"][year]["verdict"] = "IN BAND"
+    hidden["years_failing"] = [y for y in hidden["years_failing"] if str(y) != year]
+    assert _rung1_disagreements(declared, hidden), (
+        "a failing year quietly relabelled IN BAND reads as reproducing -- which is the clamp "
+        "arriving by editing the report instead of the solver"
+    )
+
+
+def test_mutation_l_the_live_rung_1_measurement_is_wired_to_the_world_and_not_to_the_file(
+    monkeypatch,
+):
+    """MUTATION: move the anchor the verdict is measured at, and the live reading must move with it.
+
+    THE HOLE THIS CLOSES. The leg above compares a committed file against a fresh call. If that
+    call had drifted loose from the world -- reading a cached artefact, or an anchor constant that
+    no longer reaches the hazards -- the comparison would keep passing forever while measuring
+    nothing, which is this repo's catalogued *a control whose PASS branch is unreachable reports a
+    constant verdict*. So: scale the anchor the measurement is taken at and require the answer to
+    change. It is the cheapest thing that proves the reading is a reading.
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    baseline = fitter.emergent_level_verdict(rows, svt_rows)
+    monkeypatch.setattr(fitter, "NO_LEVEL_CORRECTION", 3.0)
+    moved = fitter.emergent_level_verdict(rows, svt_rows)
+    assert moved["measured_at_anchor"] == 3.0
+    changed = [
+        y for y in baseline["years"]
+        if moved["years"][y]["emergent_pct"] != baseline["years"][y]["emergent_pct"]
+    ]
+    assert len(changed) == len(baseline["years"]), (
+        f"tripling the anchor moved the emergent level in only {len(changed)} of "
+        f"{len(baseline['years'])} years. The years it did not move are not being measured -- "
+        f"whatever this reports for them, it is not a reading of the world's hazards."
+    )
+    for y in changed:
+        assert moved["years"][y]["emergent_pct"] > baseline["years"][y]["emergent_pct"], (
+            f"{y}'s emergent level did not RISE when every hazard was scaled up. The anchor is "
+            f"reaching this measurement with the wrong sign, or not reaching it at all."
+        )

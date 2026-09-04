@@ -254,3 +254,91 @@ itself.**
 **Items 2 and 3 of §4 remain owed and this finding stays BLOCKING.** The prediction filed in §4
 (that repairing the compression closes most of the gap but not all, and that 2017 is the year that
 remains out) is untouched and still unanswered: step 2 has not been attempted.
+
+## 7. The band is now a check the world can fail, and it fails it — landed 2026-09-04
+
+The drawn direction's *"finished when"* was: **the band is a check the world can fail and the record
+says plainly which years it fails.** That half is landed. The mechanism repair under it (§4 item 2)
+is not, and is still gated on the gap §6 established.
+
+**What the reading was missing, and it was not the measurement.** §3 measured the emergent level and
+§4 called the one-constant sweep *"a repeatable instrument, not an argument"*. It was neither, quite:
+`emergent_level_sweep` printed a table inside `tools/fit_year_level_anchor.main` and **nothing in the
+tree could read it**. A measurement that exists only on a terminal cannot go stale loudly, cannot be
+cited and cannot be a check — so the world's only standing band verdict remained the one taken off
+the fitted anchors, where `achieved == published` to four decimals by construction. The gap between
+"we have measured this" and "the tree carries it as a check" is the whole of what landed here.
+
+**What is on disk now.**
+
+- `tools/fit_year_level_anchor.emergent_level_verdict` — the rung-1 verdict at
+  `NO_LEVEL_CORRECTION`. That anchor choice is the load-bearing one: 1.0 is the multiplicative
+  IDENTITY and this tree already establishes it as *"the arithmetic form of 'no calibration is
+  identified'"*, so the measurement **invents nothing**. The best single constant (k≈2.8) reads
+  better — 2 of 7 rather than 1 of 7 — and is a number with no source, so it is deliberately not
+  what the verdict is taken at. Swapping seven fitted scalars for one invented one is trading a
+  clamp for a placeholder.
+- `docs/reports/departure_level_rung1_verdict.json`, committed, written by
+  `python3 -m tools.fit_year_level_anchor --emergent-verdict` — which writes on the **refused**
+  outcome too, because a producer whose only failure mode is to write nothing leaves the previous
+  run's file looking current. That is the catalogued *a fix that removes one cause of a silent
+  absence leaves the absence*, avoided at the site rather than discovered later.
+- Three legs in `tests/architecture/test_switching_rate_commons.py` and two mutations.
+
+**The verdict, on `c6_second_pass_departure_factors.json`:**
+
+| year | band | emergent % | pp outside |
+|---|---|---|---|
+| 2017 | 13.5–14.0 | 6.95 | **−6.6** |
+| 2018 | 19.5–20.0 | 14.32 | **−5.2** |
+| 2019 | 20.7–21.3 | 12.90 | **−7.8** |
+| 2020 | 22.5–23.0 | 13.51 | **−9.0** |
+| 2021 | 17.9–18.4 | 10.27 | **−7.6** |
+| 2023 | 8.9–12.5 | 9.57 | in band |
+| 2024 | 12.5–16.1 | 9.19 | **−3.3** |
+
+**Six of seven, every one of them LOW, by 3.3pp to 9.0pp.** Against 7 of 7 in band under the fit.
+That is the same fact §3 established; what is new is that it is now the tree's own answer rather
+than this document's, and `simulation/departure_level_anchor.py` carries it beside
+`YEAR_LEVEL_ANCHOR` with the block declared as a clamp in as many words.
+
+**The controls, and what each is keyed to** — deliberately split, because they fail for different
+reasons and a reader must be able to tell which:
+
+1. `test_the_rung_1_verdict_is_measured_on_the_world_the_fit_did_not_touch` — **cannot go stale.**
+   It asserts nothing about which years pass or how many; only that the verdict's anchor is the
+   identity and identically not one of the solver's outputs. It exists because the next session
+   repairing the compression will be tempted to re-measure "the emergent level" at the best
+   constant, since 2/7 reads better than 1/7 — and that is the clamp returning under a longer name.
+2. `test_the_committed_rung_1_verdict_still_reproduces_and_names_every_year_it_fails` — a drift
+   detector over a **declaration**, the shape `test_every_declared_svt_floor_reproduces_under_the_
+   hazard_the_world_actually_runs` already uses here. It reds **in either direction**: a repair that
+   brings 2019 in reds exactly as hard as a regression that pushes 2023 out, because the record has
+   stopped being true in both cases. Mutation-proven on disk, not by argument — perturbing 2024's
+   declared level to 13.0 fires it with the live 9.1911 in the message.
+3. `test_mutation_l_...wired_to_the_world_and_not_to_the_file` — scales the anchor the live reading
+   is taken at and requires **every** year to move, and to move UP. Without it the leg above could
+   compare a committed file against a reading that had come loose from the world and pass forever,
+   which is the catalogued *a control whose PASS branch is unreachable reports a constant verdict*.
+
+**What this does NOT claim.** It does not claim rung 1 passes — it does not. It does not touch
+`YEAR_LEVEL_ANCHOR`, move a solver target, or choose a constant, so §4's constraint 4 is honoured a
+third time. The clamp is still the world's live level and is still what every arm comparison sits
+on; what changed is that it can no longer travel without its unclamped reading beside it, and the
+six failures are now a fact the tree asserts rather than a paragraph in a staged document.
+
+**Noticed while running the suite, and it is not this finding's subject.**
+`docs/reports/c2_departure_factors_svt_segment_decisions.json` is **untracked** in the shared tree.
+`tests/architecture/test_a_departure_reading_declares_its_population.py` passes at clean HEAD and
+fails in the working tree because of it — `declare()` finds the sibling, so the file chosen as the
+one-route fixture reads as two-route and the null control's two arms collapse. That is this repo's
+*green at HEAD, red in the shared tree* shape arriving from an artefact nobody committed, and it is
+exactly what `untracked_capture_refusal` exists to name. Recorded here rather than minted as its own
+document because the parked class already covers it
+(`CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`).
+
+**Still owed, unchanged:** §4 items 2 and 3, both gated on the amplitude gap in §6. The §4 prediction
+(most of the gap closes, 2017 remains out) is still filed and still unanswered — and it is now
+checkable against something, which it was not this morning.
+
+— Delivery seat, 2026-09-04.

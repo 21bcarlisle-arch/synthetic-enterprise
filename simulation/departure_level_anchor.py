@@ -180,6 +180,46 @@ NO_LEVEL_CORRECTION = 1.0
 #: premise was read off the RENEWAL-ROUTE table, which is 7-of-7 out and high, and the whole book
 #: is the comparable quantity. Inverting it would have disarmed the detector in the one direction
 #: it can fire.
+#:
+#: ─────────────────────────────────────────────────────────────────────────────────────────────
+#: THIS BLOCK IS A CLAMP, IT IS DECLARED AS ONE, AND THE BAND IS NOT A CHECK ON IT. Added
+#: 2026-09-04 on `DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31` rung 1.
+#:
+#: Each value below is bisected onto that year's published departure rate, so a run under it
+#: achieves the record to four decimal places in every fitted year BY CONSTRUCTION. Whatever else
+#: is true of this table, "the world's level is inside the published band" is not a finding about
+#: the world -- it is the definition of the solver. Every control in this tree that reads a band
+#: verdict off a capture taken under this block is therefore asking whether the world has DRIFTED
+#: off its anchor, which is a real and useful question and a different one.
+#:
+#: THE QUESTION THOSE CONTROLS CANNOT ASK IS ANSWERED IN
+#: `docs/reports/departure_level_rung1_verdict.json`, measured at `NO_LEVEL_CORRECTION` -- no
+#: fitted scalar and no invented one -- and it is a check the world can fail. IT FAILS IT. Measured
+#: 2026-09-04 on `c6_second_pass_departure_factors.json`:
+#:
+#:     2017  -6.6pp    2018  -5.2pp    2019  -7.8pp    2020  -9.0pp
+#:     2021  -7.6pp    2023  IN BAND   2024  -3.3pp
+#:
+#: **Six of seven fitted years are outside their band, every one of them LOW, by 3.3pp to 9.0pp.**
+#: Held live by `tests/architecture/test_switching_rate_commons.py::test_the_committed_rung_1_
+#: verdict_still_reproduces_and_names_every_year_it_fails`, which reds in EITHER direction -- a
+#: repair that brings a year in reds exactly as hard as a regression that pushes one out, because
+#: in both cases the record here has stopped being true.
+#:
+#: WHY THE CLAMP IS STILL HERE RATHER THAN DELETED, AND IT IS NOT AN OVERSIGHT. The canon repairs a
+#: rung 1 failure DOWNWARD, into the individual model's hazards, never sideways into a different
+#: scalar. The failure's shape is known: the mechanism's ordering of the years is roughly right
+#: (rho +0.68 to +0.79, n=7, suggestive and not established) and its SPREAD is compressed about
+#: twofold, 9.1-19.6 against a record 12.5-23.0. The repair is to give the hazards their own
+#: year-to-year amplitude -- and the household-level amplitude of switching response is a GAP THIS
+#: PROJECT HAS DECLARED THREE TIMES AND ESTABLISHED NOWHERE
+#: (`docs/market_research/household_switching_response_amplitude.md` is its single home; the Ofgem
+#: Consumer Survey route is closed, not merely coarse, because its "engaged" segment is the
+#: switching outcome under another name). Replacing seven fitted scalars with one invented constant
+#: would trade a clamp for a placeholder, which is the failure CLAUDE.md's knowledge-first rule
+#: exists to stop. So the clamp stays, DECLARED, until the mechanism under it has a source -- and
+#: the verdict file is what stops the clamped number travelling alone in the meantime.
+#: ─────────────────────────────────────────────────────────────────────────────────────────────
 YEAR_LEVEL_ANCHOR: dict[int, float] = {
     2017: 7.372584,
     2018: 2.945347,
