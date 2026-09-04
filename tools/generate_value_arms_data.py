@@ -3795,8 +3795,16 @@ def _current_world_clause(current_world: dict) -> str:
     if not isinstance(advantage, (int, float)):
         return ""
     when = current_world.get("generated_at") or "an unstated date"
-    opening = "IN THE WORLD AS IT IS NOW, the same comparison gives £{adv:,.0f}, measured {when}. "\
-        .format(adv=advantage, when=when)
+    # THROUGH `_gbp`, LIKE THE RANGE UNDER IT. Both leads here published a SIGNED sterling amount
+    # through a bare `£{:,.0f}`, which renders a negative as `£-1,861` -- the shape `_gbp` was
+    # written on 2026-09-04 to prevent, and written for these two figures by name. The re-draw
+    # range beneath them got it in the same landing and the point estimates above them did not,
+    # so the half of the sentence a reader quotes was the half still able to print it. Neither
+    # figure is a magnitude: the advantage's own re-draws in this world span £451 to £2,434 and
+    # the creation leg's CENTRE on the same three draws is -£1,861. `£-` reads as a typo on the
+    # one number that says the creation leg may be worth nothing.
+    opening = "IN THE WORLD AS IT IS NOW, the same comparison gives {adv}, measured {when}. "\
+        .format(adv=_gbp(advantage), when=when)
     whole = _leg_clause(current_world, opening, resolved_tail=(
         ", the first bound this page has held that was measured where the figure was. It is a "
         "SMALLER advantage than the £12,071 below, not a larger one: what moved is the floor, "
@@ -3811,10 +3819,10 @@ def _current_world_clause(current_world: dict) -> str:
     if point is None:
         return whole
     lead = (
-        "OF THAT, £{sel:,.0f} IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the "
+        "OF THAT, {sel} IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the "
         "per-customer choosing was worth once one flat margin at the same price LEVEL is credited "
         "with everything a level alone would have earned; the rest is the level, which is a price "
-        "charged. ").format(sel=point)
+        "charged. ").format(sel=_gbp(point))
     clause = whole + _leg_clause(selection, lead, resolved_tail=(
         ", measured in the world the figure was measured in. "))
     # AND THE SPLIT BETWEEN THEM, REFUSED IN THE HEADLINE RATHER THAN QUALIFIED THREE BLOCKS DOWN.

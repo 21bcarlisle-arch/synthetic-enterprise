@@ -38,6 +38,7 @@ all five.
 """
 from __future__ import annotations
 
+import copy
 import json
 import re
 from pathlib import Path
@@ -2894,6 +2895,71 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
     assert agreeing["resolved"] is not None, (
         "the creation leg withheld a verdict on a floor whose re-draws all agree, so every "
         "assertion above is satisfied by a block that never states one")
+
+
+#: Every sterling amount this page composes carries its sign OUTSIDE the symbol. Asserted as the
+#: shape and not as a list of figures, so a lead written next month is covered without editing
+#: this control -- `£-` can only ever be produced by a bare `"£{:,.0f}"` over a signed quantity.
+SIGN_INSIDE_THE_SYMBOL = "£-"
+
+
+def test_a_negative_leg_in_the_headline_puts_its_sign_outside_the_pound():
+    """THE DEFECT (2026-09-04, LATENT): the two point estimates a reader quotes could print `£-`.
+
+    `_gbp` was written the day the creation leg reached the headline, and its docstring names
+    these two figures as the reason: the leg's own re-draw family in this world centres BELOW
+    zero and its range cannot be `abs()`-ed away, so the sign is the finding. It reached the
+    RANGE under each lead and NEITHER LEAD -- `_current_world_clause` formatted both point
+    estimates through a bare `£{:,.0f}`. So on the day either draw comes out negative the
+    sentence reads `£-1,861` while the range three clauses later reads `-£8,634` correctly: two
+    renderings of one quantity's sign, inside one sentence, and the wrong one on the half a
+    reader quotes.
+
+    NEITHER FIGURE IS A MAGNITUDE, WHICH IS WHY THIS IS NOT PEDANTRY. Every other sterling amount
+    on this page is either a spread (non-negative) or passed through `abs()` with the direction
+    said in words. These two are signed by construction: the advantage's own re-draws in this
+    world span £451 to £2,434 and the creation leg's CENTRE across the same three draws is
+    -£1,861 -- the page already prints that figure, so the negative branch is measured, not
+    hypothetical.
+
+    LATENT, AND THAT IS EXACTLY WHY IT NEEDS A CONTROL RATHER THAN AN EYE. Today's published
+    draws are both positive, so the repair moves no rendered value and no amount of looking at
+    the live page could reach the branch.
+
+    THE NULL RUNG IS THE SECOND HALF. A control that only demands `£-` be absent is satisfied by
+    deleting the figures, so both leads must still CARRY their amount, in `_gbp`'s rendering.
+
+    Fires on: reverting either lead in `_current_world_clause` to `£{:,.0f}`.
+    """
+    block = gva._current_world_contrast(
+        _load(gva.CURRENT_WORLD_THREE_ARM_PATH), _load(NOISE_FLOOR),
+        _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+    assert block.get("available"), (
+        "there is no live-world block to render, so this control has no subject: {}".format(
+            block.get("why_not")))
+
+    # THE REAL BLOCK WITH TWO SIGNS FLIPPED, never a hand-built stub: every other key stays
+    # exactly what the live artefacts produced, so what this renders is the sentence the page
+    # would compose on the day the draw came out the other way and nothing else.
+    negative = copy.deepcopy(block)
+    negative["value_advantage_gbp"] = -abs(block["value_advantage_gbp"])
+    negative["selection_leg"]["figure_gbp"] = -abs(block["selection_leg"]["figure_gbp"])
+    clause = gva._current_world_clause(negative)
+
+    assert SIGN_INSIDE_THE_SYMBOL not in clause, (
+        "a negative amount reached the headline with its sign inside the pound: {}".format(
+            clause[:400]))
+    for figure in (negative["value_advantage_gbp"], negative["selection_leg"]["figure_gbp"]):
+        assert gva._gbp(figure) in clause, (
+            "the lead dropped its own amount rather than rendering it -- {} is not in the "
+            "clause, so the assertion above is satisfied by a sentence with no figure in "
+            "it".format(gva._gbp(figure)))
+
+    # AND THE POSITIVE CASE IS UNCHANGED. `_gbp` emits no leading `+`, so the live page's own
+    # wording must not have moved -- a sign fix that silently restyled the published sentence
+    # would be a different change wearing this one's name.
+    assert gva._gbp(block["value_advantage_gbp"]) in gva._current_world_clause(block), (
+        "the published positive draw stopped rendering in the words it was published in")
 
 
 def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_the_reader():
