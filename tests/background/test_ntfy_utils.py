@@ -471,3 +471,39 @@ def test_trailing_status_split_tolerates_a_body_with_no_status():
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+def test_an_empty_wake_key_still_yields_a_usable_one_under_pytest():
+    """THE SEAT'S PERMANENT CONDITION, pinned so the fallback cannot regress to `setdefault`.
+
+    `worker_seat._seed_env_flags()` spawns the seat with `tmux new-session -e SE_WAKE_HMAC_KEY=` —
+    an explicit EMPTY override, because tmux inherits the server's environment and `-e` can set but
+    not unset. That is a security control working exactly as designed: a model-facing seat may SEND
+    but must never hold the key to SIGN.
+
+    So every pytest run inside a seat sees the name PRESENT and EMPTY, forever. `os.environ
+    .setdefault` cannot tell that from "already configured", so it did nothing, `ntfy_utils` captured
+    `''` at import — falsy — and four signing tests failed. That refused every `surgical_land
+    --merge` in the tree for hours on 2026-09-04, and it hid because only a MERGE runs the whole
+    suite; a path-scoped commit never selects this file.
+
+    RUN IN A SUBPROCESS, against THIS repo's own conftest, because this process has already imported
+    `ntfy_utils` and already resolved the fallback — asserting on the module here would test the
+    state this test exists to create. One node id, not the file, so it cannot recurse into itself.
+
+    MUTATION: change `tests/conftest.py` back to `setdefault` and this fires.
+    """
+    import os as _os
+    import subprocess as _subprocess
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    repo = _Path(__file__).resolve().parents[2]
+    node = "tests/background/test_ntfy_utils.py::test_sign_wake_message_round_trips"
+    proc = _subprocess.run(
+        [_sys.executable, "-B", "-m", "pytest", node, "-q", "-p", "no:cacheprovider"],
+        cwd=str(repo), env=dict(_os.environ, SE_WAKE_HMAC_KEY=""),
+        capture_output=True, text=True, timeout=300)
+    assert proc.returncode == 0, (
+        "with SE_WAKE_HMAC_KEY empty — the seat's permanent condition — the pytest fallback did not "
+        "produce a usable key:\n" + (proc.stdout or "")[-1500:])
