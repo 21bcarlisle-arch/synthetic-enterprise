@@ -1772,3 +1772,45 @@ the fifth time it was right about a mechanism the tree contains and a source-not
 tree already held on both sides.
 
 — Delivery seat, 2026-09-04.
+
+### 16a. The constant §16 hands on was replaced while §16 was being written — 2026-09-04
+
+`792a35d3c` landed §16 above. `origin/main` had meanwhile moved to `16a646e81`, and `8c5b18ca1`
+in it — *"the forcing was a calendar year and the record's boundary is mid-year"* — **replaced the
+constant §16's first owed item names.** The correction belongs beside the claim, not over it.
+
+**What changed.** `CRISIS_PASSIVE_YEARS = frozenset({"2022"})` is no longer a home for anything: it
+is now a derived VIEW of `FTC_WITHDRAWAL_WINDOW = (2022-01-01, 2023-06-30)`, sourced from Ofgem's
+State of the Market April 2025 statement about the *re-emergence of FTCs in the second half of
+2023*. So the forcing is a supply-side availability window with dates, and it runs **six months
+longer** than the calendar year §16 measured under.
+
+**What that does to §16, and it is not a retraction.**
+
+- **The measurement is unaffected.** Every number in §16 is taken on
+  `c6_second_pass_departure_factors.json`, a capture committed on 2026-09-03 and unchanged by this
+  landing. The drift detector reads the same capture and stays green. Nothing in the reading
+  imports the forcing.
+- **The substantive claim is strengthened, not weakened.** §16 found that the forcing forbids an
+  event the record shows at its series high — CIM's internal row **rises** to 14.49% in Nov/Dec 2022
+  while its external row falls. The window now forbids that event for six months more, across W4's
+  July-2023 fieldwork, where the record's internal rate is 11.04%. A world that ran the record's
+  external collapse correctly and its internal peak as a flat zero now does so over a longer window.
+- **Owed item 1 is re-aimed, not discharged.** Its subject is `FTC_WITHDRAWAL_WINDOW`, not
+  `CRISIS_PASSIVE_YEARS`, and the question is sharper for it: the window is sourced from statements
+  about **availability of fixed deals to switch INTO**, which is exactly right for the external
+  move and is the wrong subject for the internal one. A household re-contracting with its existing
+  supplier in 2022 was taking whatever that supplier offered — including, on the record's own
+  evidence, a great deal of it. Availability of a *market* fix does not bound an *incumbent* offer,
+  and one window is currently carrying both.
+- **§16's 2023 spike of 0.3396 will move, and in a knowable direction.** It is the 2022 cohort's
+  anniversaries arriving at once; extending the forcing to 2023-06-30 pushes that cohort's first
+  active draw into H2 2023 and later. The next capture will show it, and §16's per-year table is
+  therefore a reading of a world one commit old. **That is stated here rather than left for a reader
+  to discover from a re-run**, and it is the reason the reading names its capture in every section.
+
+Nothing was edited to accommodate this: no constant, no window, no anchor. `PASSIVE_RENEWAL_RATE` is
+still 0.35 and its unsourced second use — the finding §16 actually turns on — is untouched by
+`8c5b18ca1` and remains exactly as §16 states it.
+
+— Delivery seat, 2026-09-04.
