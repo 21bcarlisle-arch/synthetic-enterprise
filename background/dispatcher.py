@@ -59,9 +59,7 @@ OLLAMA_MODEL = "qwen3:14b"
 sys.path.insert(0, str(PROJECT_DIR))
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
-from background.episode_prior import (  # noqa: E402
-    load_episode_prior, preserve_unreadable, prior_unreadable,
-)
+from background.episode_prior import load_episode_prior, preserve_unreadable, prior_unreadable  # noqa: E402,E501
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the dispatcher
 # NO LONGER types URGENT messages into the live 'claude' pane. Keystroke
@@ -122,8 +120,9 @@ def _save_seen(seen: dict[str, str]) -> None:
 def _preserve_unreadable_seen() -> str | None:
     """Move an unreadable seen-map aside before the rebuild writes over it. Where it went.
 
-    The retention rule lives once in `episode_prior.preserve_unreadable` (centralised 2026-09-04);
-    this was a byte-identical copy of `ntfy_utils._preserve_unreadable_sent_ids`.
+    Never overwrites an earlier copy, because the FIRST loss is the one that still holds the
+    classifications. That loop is `episode_prior.preserve_unreadable` since 2026-09-04 -- five
+    modules had written it out separately and a sixth caller was one copy too many.
     """
     return preserve_unreadable(_SEEN_FILE)
 

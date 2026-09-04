@@ -155,9 +155,11 @@ def record_sent_id(msg_id: str) -> None:
 def _preserve_unreadable_sent_ids() -> str | None:
     """Move an unreadable sent-ids file aside so the rebuild cannot destroy it. Where it went.
 
-    Called with the flock already held. The retention rule (never overwrite an earlier copy;
-    best-effort) now lives once in `episode_prior.preserve_unreadable` -- this and its two
-    siblings were byte-identical copies until 2026-09-04.
+    Called with the flock already held -- which is why this stays a named function here rather
+    than a bare call at the site: the lock discipline is this module's, not the helper's. Never
+    overwrites an earlier preserved copy (the FIRST loss still has the ids in it) and best-effort,
+    because a send that cannot keep the old bytes is still better than a send that does not go;
+    both live in `episode_prior.preserve_unreadable` since 2026-09-04.
     """
     from background.episode_prior import preserve_unreadable
     return preserve_unreadable(SENT_IDS_FILE)
@@ -166,7 +168,9 @@ def _preserve_unreadable_sent_ids() -> str | None:
 def sent_ids_unreadable() -> bool:
     """True when the sent-ids file EXISTS and cannot be trusted -- i.e. we cannot tell whose a
     message is. Named rather than inlined so a caller that wants to fail closed can ask, and so
-    the question is greppable. See `was_sent_by_us` for the judgement that is still open."""
+    the question is greppable. The judgement it was written for is SETTLED and this pointer was
+    stale (2026-09-04): `ntfy_responder.check_once` asks THIS above `was_sent_by_us` and refuses to
+    classify at all. Read that branch before adding a caller with a different fail direction."""
     if not SENT_IDS_FILE.is_file():
         return False
     try:

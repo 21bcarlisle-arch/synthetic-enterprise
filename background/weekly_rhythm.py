@@ -57,6 +57,7 @@ from background.episode_prior import (
     READABLE,
     UNREADABLE,
     load_episode_prior,
+    preserve_unreadable,
     prior_unreadable,
 )
 
@@ -299,17 +300,7 @@ def _preserve_unreadable_baton(path: Path | None = None) -> str | None:
     -- a rebuild that cannot keep the old bytes is still better than a tick that dies -- and it
     never overwrites an earlier preserved copy, because the FIRST loss is the one worth keeping.
     """
-    source = Path(path or BATON)
-    for suffix in ("", *(f".{n}" for n in range(1, 10))):
-        target = source.with_name(f"{source.name}.unreadable{suffix}")
-        if target.exists():
-            continue
-        try:
-            source.rename(target)
-        except OSError:
-            return None
-        return target.name
-    return None
+    return preserve_unreadable(Path(path or BATON))
 
 
 def write_baton(record: dict, path: Path | None = None) -> None:

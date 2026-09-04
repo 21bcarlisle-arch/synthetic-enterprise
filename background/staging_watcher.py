@@ -132,9 +132,7 @@ INSTRUCTION_STALE_SECONDS = 48 * 3600
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
-from background.episode_prior import (  # noqa: E402
-    READABLE, load_list_prior, preserve_unreadable, prior_unreadable,
-)
+from background.episode_prior import READABLE, load_list_prior, preserve_unreadable, prior_unreadable  # noqa: E402,E501
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the staging
 # watcher NO LONGER types a wake into the live 'claude' pane. Keystroke
@@ -231,9 +229,10 @@ def save_seen(seen: set[str]) -> None:
 def _preserve_unreadable_seen() -> str | None:
     """Move an unreadable seen-set aside so the reseed cannot destroy it. Where it went.
 
-    The retention rule lives once in `episode_prior.preserve_unreadable` (centralised 2026-09-04);
-    this was a byte-identical copy of `ntfy_utils._preserve_unreadable_sent_ids`. Resolved at CALL
-    time off the module global so a test's monkeypatch of STATE_FILE still redirects it.
+    Never overwrites an earlier preserved copy -- the FIRST loss is the one that still has the
+    filenames in it. Best-effort: a watcher that cannot keep the old bytes must still start,
+    because a watcher that refuses to start is the failure this whole repair is about. The loop is
+    `episode_prior.preserve_unreadable` since 2026-09-04, where both properties are stated once.
     """
     return preserve_unreadable(STATE_FILE)
 
