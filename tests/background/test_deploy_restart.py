@@ -182,6 +182,56 @@ def test_an_unreadable_proc_restarts_nothing(tmp_path):
 
 # ── the turn boundary ───────────────────────────────────────────────────────────────────────────
 
+def test_a_live_seat_in_ANOTHER_unit_does_not_make_this_one_busy(monkeypatch, tmp_path):
+    """THE LATENT DEFECT, found 2026-09-04 by asking whether the deferred branch had ever fired in
+    PRODUCTION rather than whether it was reachable in a test.
+
+    There is ONE heartbeat file for the machine and the busy test read it for EVERY unit -- `unit`
+    appeared nowhere but the message string. A second deferred host, with no seat in it at all,
+    would be marked busy by whatever seat happened to be working elsewhere, and would stay stale
+    for ever.
+
+    WHAT THIS IS NOT, recorded because I got it wrong first: it is NOT why the branch had fired
+    zero times in 48 ticks. Measured, the deferred unit held this interactive session's own live
+    `claude` process, so busy was the correct answer and restarting would have killed the seat
+    mid-turn. Eight hours of zero fires is explained by eight hours of a working seat.
+
+    MUTATION: drop the `unit in live` scoping and fall back to the global heartbeat -- this fires.
+    """
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    (obs / ".seat_heartbeat.json").write_text("{}")   # warm: someone is working RIGHT NOW
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+    monkeypatch.setattr(dr, "units_holding_a_live_seat",
+                        lambda *a, **k: frozenset({"worker-tick.service"}))
+
+    busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
+    assert not busy, "another unit's live seat marked this one busy: " + why
+    assert "worker-tick.service" in why and "not worker-seat-manager.service" in why
+
+    # ...and the same call for the unit that DOES hold the seat must still say busy, or the
+    # scoping has simply turned the signal off.
+    busy_here, why_here = dr.unit_has_working_seat("worker-tick.service")
+    assert busy_here and "live in worker-tick.service" in why_here
+
+
+def test_a_live_seat_process_is_read_from_proc_not_from_the_heartbeats_pid(tmp_path):
+    """The first draft attributed the heartbeat through the `pid` it records. That pid belongs to
+    the PreToolUse HOOK that writes it -- a subprocess that has exited before any reader looks --
+    so every attribution returned None and every call fell into the fail-closed branch while
+    looking like a measurement. A field that can only ever answer 'cannot tell' is worse than no
+    field. MUTATION: resolve the heartbeat pid instead and this fires, because the pid is dead."""
+    root = _proc(tmp_path, {
+        50: ("claude", f"{_USER}/app.slice/worker-tick.service", 1),
+        51: ("tmux: server", f"{_USER}/app.slice/worker-seat-manager.service", 1),
+        52: ("python3", f"{_USER}/app.slice/sim-runner.service", 1),
+    })
+    live = dr.units_holding_a_live_seat(root)
+    assert live == frozenset({"worker-tick.service"}), (
+        "a tmux server or a plain daemon was counted as a live seat, or the live one was missed"
+    )
+
+
 def test_hosting_a_session_does_not_by_itself_make_a_unit_busy(monkeypatch, tmp_path):
     """THE CORRECTION, kept as a control so it cannot come back.
 
@@ -197,6 +247,7 @@ def test_hosting_a_session_does_not_by_itself_make_a_unit_busy(monkeypatch, tmp_
     monkeypatch.setattr(dr, "session_hosting_units",
                         lambda *a, **k: (frozenset({"worker-seat-manager.service"}), None))
     monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     obs = tmp_path / "docs" / "observability"
     obs.mkdir(parents=True)
     hb = obs / ".seat_heartbeat.json"
@@ -225,6 +276,7 @@ def test_the_hosts_resting_process_count_does_not_make_it_busy(monkeypatch, tmp_
     seat's work, so there is no third thing the process count could catch."""
     monkeypatch.setattr(dr, "unit_is_mid_work",
                         lambda unit: (True, "2 process(es) in the cgroup, so a job is in flight"))
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     obs = tmp_path / "docs" / "observability"
     obs.mkdir(parents=True)
     hb = obs / ".seat_heartbeat.json"
@@ -248,14 +300,16 @@ def test_a_warm_heartbeat_is_what_makes_a_host_busy(monkeypatch, tmp_path):
     obs.mkdir(parents=True)
     (obs / ".seat_heartbeat.json").write_text("{}")   # just written = warm
     monkeypatch.setattr(dr, "_REPO", tmp_path)
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
-    assert busy and "heartbeat moved" in why
+    assert busy and "no seat process could be placed" in why
 
 
 def test_an_unreadable_heartbeat_reads_as_busy(monkeypatch, tmp_path):
     """MUTATION: treat an unreadable heartbeat as idle and this fires. 'I could not tell' must
     never authorise a restart that costs a turn."""
     monkeypatch.setattr(dr, "_REPO", tmp_path)  # no heartbeat file exists under here
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert busy and "unreadable" in why
 
@@ -263,6 +317,7 @@ def test_an_unreadable_heartbeat_reads_as_busy(monkeypatch, tmp_path):
 def test_a_quiet_unit_with_a_cold_heartbeat_is_a_turn_boundary(monkeypatch, tmp_path):
     """The only path that lets a session host restart. Both signals must say idle."""
     monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     obs = tmp_path / "docs" / "observability"
     obs.mkdir(parents=True)
     hb = obs / ".seat_heartbeat.json"
@@ -273,7 +328,7 @@ def test_a_quiet_unit_with_a_cold_heartbeat_is_a_turn_boundary(monkeypatch, tmp_
     monkeypatch.setattr(dr, "_REPO", tmp_path)
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert not busy, why
-    assert "heartbeat is" in why
+    assert "between turns" in why
 
 
 # ── the act ─────────────────────────────────────────────────────────────────────────────────────
@@ -616,5 +671,6 @@ def test_the_turn_boundary_is_reachable_for_a_session_host(monkeypatch, tmp_path
     monkeypatch.setattr(dr, "_REPO", tmp_path)
     monkeypatch.setattr(dr, "session_hosting_units",
                         lambda *a, **k: (frozenset({"worker-seat-manager.service"}), None))
+    monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert not busy, "a session host has no state in which it is idle: " + why
