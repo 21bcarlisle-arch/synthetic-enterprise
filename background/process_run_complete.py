@@ -309,45 +309,71 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # and records it against THIS deadline, so the hook chain's cost is observed rather than inferred
 # from the publisher's separate gate. Twelve timeouts happened with nothing recording how long the
 # thing that timed out actually took.
-#: The worst comparable full-suite gate run measured on this machine, WITH THE DATE IN THE NAME.
+#: The worst pre-commit HOOK CHAIN measured on this machine, WITH THE DATE IN THE NAME.
 #: The constant this replaces was `measured_hook_chain_seconds = 30  # ... 2026-08-03`, and its
 #: date sat in a comment nobody re-read while the real cost grew twentyfold. A date in the
 #: IDENTIFIER is visible at every call site and in every diff.
-#: Source: `docs/observability/publish_gate_duration.jsonl`, worst of the last twenty runs on
-#: 2026-09-04 (674s; the same series read 557s on 2026-08-25, so the chain grew 21% in ten days).
-#: RE-MEASURED 2026-09-04 because the live half of the control had gone red, not because the
-#: staleness assert tripped: `worst <= 1.6 * MEASURED` was still green at 674/557 = 1.21x. The
-#: number was re-taken while it could still be taken calmly.
-MEASURED_GATE_SECONDS_2026_09_04 = 674
+#:
+#: THIS CONSTANT REPLACES `MEASURED_GATE_SECONDS_2026_09_04 = 674`, WHICH MEASURED A DIFFERENT
+#: SUBJECT. That figure was the worst of `publish_gate_duration.jsonl` -- the publisher's OWN
+#: SCOPED GATE, bounded by `GATE_SUITE_TIMEOUT_SECONDS` (3800s) and running at headroom_ratio
+#: 0.82, entirely healthy. It was a stand-in for the hook chain, taken when "the commit runs a
+#: comparable chain again" was true. It stopped being true and nothing noticed, because no
+#: control read the hook chain's own ledger. On 2026-09-04 the stand-in demanded 1.25 * 715 =
+#: 894s of a deadline set to 880 and refused every commit in the tree for ~9 hours -- on a
+#: measurement of something this number does not bound.
+#:
+#: Source: `docs/observability/commit_hook_duration.jsonl`, written by
+#: `_record_commit_hook_duration` for exactly this purpose on 2026-08-25 and read by nothing
+#: until now. Worst of the last twenty rows on 2026-09-04: 134.3s.
+#:
+#: THE REGIME IS PART OF THE MEASUREMENT, so it is recorded here rather than left for the next
+#: reader to rediscover (n=152, 2026-08-25 -> 2026-09-04):
+#:   * 2026-08-25          837s, 674s   -- the incident this control exists for, machine loaded
+#:   * 2026-08-26 -> 08-31 390-425s     -- ~60 runs, +-4%
+#:   * 2026-08-31 19:28 -> 101-134s     -- ~40 runs over four days, +-13%
+#: The step is SHARP (392.6s at 16:35 UTC, 72.7s at 19:28 UTC) and it has HELD. I cannot
+#: attribute it to a single commit: six landed in that window, and at least two remove exactly
+#: the shape that would cause it (`e8a2e0b37` stopped nineteen tests writing the live evidence
+#: base; `3ba51f9cf` removed an import that built the whole book). The old regime was
+#: defect-driven, so grading against the current one is right -- but a 5.4x step in one interval
+#: is why this number is a MEASUREMENT WITH A DATE and not a property.
+MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04 = 134
 
 #: How much room the deadline must have over measured reality. 1.25 rather than the old 5x: a
 #: large multiple over a small stale number is what made the previous control unable to fail.
 COMMIT_DEADLINE_HEADROOM = 1.25
 
-# THIS IS THE LAST RAISE THAT FITS. 880 IS NOT A ROUND NUMBER, IT IS THE CEILING MINUS THE PUSH.
+# 880s, AND THE BOX THIS WAS SAID TO SIT IN WAS MEASURED ON THE WRONG SERIES.
 #
-# 840 (14 min) went red on 2026-09-04: 1.25 * 674 = 843, so the deadline was three seconds under
-# its own floor and every publish commit was refused by the control rather than by a hook. Four
-# hours of publishing, fourteen queued runs.
+# WHAT THIS COMMENT SAID UNTIL 2026-09-04, CORRECTED BESIDE ITS REPLACEMENT because the reasoning
+# was load-bearing and wrong, not merely stale: *"THIS IS THE LAST RAISE THAT FITS ... FLOOR 843s
+# ... the room between floor and ceiling is now 57 seconds, and the next raise does not exist."*
+# Both walls were said to be "measured, not asserted", and the floor was measured against
+# `publish_gate_duration.jsonl` -- the publisher's separate scoped gate, which this deadline does
+# not bound. Against the ledger that DOES measure this deadline's subject:
 #
-# THE BOX THIS NUMBER NOW SITS IN, both walls measured, not asserted:
-#   * FLOOR   843s -- COMMIT_DEADLINE_HEADROOM * MEASURED_GATE_SECONDS_2026_09_04, rising with
-#     the suite. At the observed +21%/10d it reaches 880 in roughly a week.
+#   * FLOOR   168s -- COMMIT_DEADLINE_HEADROOM * MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04.
 #   * CEILING 900s -- PUBLISH_PATH_ALLOWANCE_SECONDS. `test_the_deadline_leaves_room_for_the_
 #     publish_path_after_the_gate` requires slack >= this deadline, and the allowance may not
 #     grow: the director ruled on 2026-08-21 that no gate budget grows here ("A 75-minute gate is
 #     absurd on its face and neither of us said so"). GATE_SUITE_TIMEOUT_SECONDS stays 3800 and
 #     PUBLISH_PATH_TIMEOUT_SECONDS stays 4700.
-# 880 leaves the 20s the post-gate push actually costs. The room between floor and ceiling is now
-# 57 seconds, and the next raise does not exist.
 #
-# SO THE NEXT READER DOES NOT GO LOOKING FOR ONE: when this reds again, raising it is not
-# available and neither is growing the allowance. The repair is the one the 2026-08-25 note above
-# already named and deferred -- the publisher pays for TWO comparable full-suite runs per cycle,
-# its own scoped gate and then the hook chain again inside `git commit`. Halving that is the only
-# move that creates room. It touches the commit gate, which is a wall, so it needs its own design
-# and its own controls. Filed: docs/staging/SEAT_FINDING_THE_COMMIT_DEADLINE_IS_BOXED_BETWEEN_TWO
-# _CONTROLS_AND_THE_ROOM_IS_57_SECONDS_2026-09-04.md.
+# The room is 732 seconds, not 57. There was never a box.
+#
+# 880 IS NOT LOWERED, and that is a decision rather than an oversight. It is inside the allowance
+# already reserved, no commit has ever been killed by it, and the all-time worst chain this
+# machine has recorded is 837.3s (2026-08-25, under the old regime) -- 880 covers even that.
+# Cutting it would buy nothing and can only kill commits.
+#
+# AND THE REPAIR THIS COMMENT USED TO NAME IS PROBABLY ALREADY DONE. It said the publisher pays
+# for "TWO comparable full-suite runs per cycle" and that halving them was the only move left.
+# Measured: the publisher's scoped gate costs ~660s and the hook chain ~134s. The second run is a
+# fifth of the first. They are not comparable and have not been since 2026-08-31. The expensive
+# run is the publisher's own gate. Nobody should design that removal off the old claim.
+# Filed: docs/staging/SEAT_FINDING_THE_COMMIT_DEADLINE_IS_BOXED_BETWEEN_TWO_CONTROLS_AND_THE_
+# ROOM_IS_57_SECONDS_2026-09-04.md (whose title is now the refuted claim; disposition at its foot).
 GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 880
 
 
