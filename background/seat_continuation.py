@@ -72,7 +72,54 @@ from pathlib import Path
 from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-STORE = PROJECT_DIR / "docs" / "observability" / ".seat_continuation.json"
+
+
+def shared_tree_dir(project_dir: Path | None = None) -> Path:
+    """The MAIN worktree, which is the only tree a tick ever reads.
+
+    A HAND-OFF WRITTEN FROM AN ISOLATED WORKTREE WENT TO A STORE NOBODY READS (2026-09-04).
+    `STORE` was `PROJECT_DIR / ...`, and `PROJECT_DIR` is this FILE's parent — so in a linked
+    worktree it resolved to the worktree's own copy. The store is **untracked**, so it is not
+    carried by a commit either: `--hand-off` there created a second file, in a tree that is
+    deleted when the turn ends, and `delivery_lane.next_item` went on reading the shared one.
+
+    MEASURED, not inferred: `/home/rich/synthetic-enterprise/docs/observability/
+    .seat_continuation.json` — 14 KB, written the same day — while the executor worktree had **no
+    such file at all**. The failure is silent in the worst possible way: `--hand-off` reports
+    success, the JSON is valid, and the next piece of work simply never arrives. This is the exact
+    continuity the mechanism was built to provide, and the seats that most need it (the isolated
+    executor turns) are the only ones structurally unable to get it.
+
+    RESOLVING BEATS TRACKING, which was the other option. Tracking the store would make every
+    hand-off a committed file three lanes merge, and it would still not help: a worktree's commit
+    is invisible to a tick until it lands AND the shared tree fast-forwards, which nothing does
+    automatically. The store is runtime state; it should be written where its reader looks.
+
+    FAIL-CLOSED TO TODAY'S BEHAVIOUR. Every uncertainty — a normal repo, an unreadable `.git`, a
+    pointer that does not name a `.git` directory, a resolved tree that does not look like this
+    project — returns `project_dir` unchanged, so the worst case is the behaviour that already
+    exists rather than a hand-off written somewhere new and wrong.
+    """
+    base = project_dir or PROJECT_DIR
+    dot_git = base / ".git"
+    try:
+        if not dot_git.is_file():
+            return base                      # a normal checkout IS the shared tree
+        pointer = dot_git.read_text(encoding="utf-8").strip()
+    except OSError:
+        return base
+    if not pointer.startswith("gitdir:"):
+        return base
+    gitdir = Path(pointer.split(":", 1)[1].strip())
+    # `.../<main tree>/.git/worktrees/<name>` -> `<main tree>`
+    for parent in gitdir.parents:
+        if parent.name == ".git":
+            main = parent.parent
+            return main if (main / "docs" / "observability").is_dir() else base
+    return base
+
+
+STORE = shared_tree_dir() / "docs" / "observability" / ".seat_continuation.json"
 
 #: How long a written continuation stays offerable. Six hours: long enough to survive a session
 #: ending and a couple of tick cycles, short enough that it cannot outlive the tree it reasoned

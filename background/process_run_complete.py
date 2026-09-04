@@ -6095,7 +6095,23 @@ def _episode_phrase(wedge_since, episode_failures, now,
     The unbroken-outage branch is UNCHANGED and still says "consecutive" — that is the null
     control (`test_alarm_carries_the_episode_not_just_the_window` already pins it), so a "fix"
     that merely deleted the word from every path would go red rather than pass silently."""
-    if not isinstance(wedge_since, (int, float)):
+    # A NON-POSITIVE START TIME IS NOT A START TIME (2026-09-04). The guard above was
+    # `not isinstance(wedge_since, (int, float))` alone: it refuses `None` correctly and
+    # **accepts 0**, because 0 is an int. A zero start time therefore rendered as
+    # "wedged since 1970-01-01T00:00 UTC -- 0h00m", which is not a degraded reading — it is a
+    # confident one. Observed on the DIRECTOR'S OWN RESERVED SURFACE (`site/data/
+    # director_reserved.json`, the finding landed in 33b54b3ee): a whole alarm quoting an epoch
+    # date and a plausible age, in the queue reserved for things only he can decide.
+    #
+    # "0h00m" beside 1970 is the tell, and it is worth reading: the age is `now - wedge_since`,
+    # so an epoch start against a REAL clock would have said ~500,000h. Both fields being zero
+    # means the CLOCK was zero too — the state was built by a fixture, not stamped by a live
+    # publisher (established below, and in the finding beside this commit).
+    #
+    # Degrading to the same string `None` gets is the whole fix: the two cases are the same
+    # fact — this alarm cannot bound its episode — and the reader must not be able to tell a
+    # value we never recorded from one we did.
+    if not isinstance(wedge_since, (int, float)) or wedge_since <= 0:
         return "EPISODE: start time unrecorded (this alarm cannot bound the episode)."
     age_min = int(max(0.0, now - float(wedge_since)) // 60)
     since_iso = datetime.fromtimestamp(float(wedge_since), timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
