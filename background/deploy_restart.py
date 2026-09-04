@@ -300,6 +300,54 @@ def unincorporated_for_s(changed_paths, now: float, repo=None) -> float | None:
     return round(max(ages), 1)
 
 
+def unincorporated_since_start(changed_paths, running_age_s, now: float, repo=None):
+    """The subset of `changed_paths` the process genuinely does NOT have, and whether we could tell.
+
+    THE DEFECT THIS OWNS, live on 2026-09-04 and costing three daemons a restart every ten minutes.
+    `boot_sha.changed_paths_since` diffs the daemon's boot COMMIT against the WORKING TREE, and
+    deliberately so: an uncommitted edit to a module a daemon imports IS code the daemon lacks. But
+    only if the edit reached the disk AFTER the process started. A daemon loads its modules off the
+    disk at start, so a file whose bytes were last written 27 hours ago was already in that state
+    when a process that started ten minutes ago imported it. That process holds today's content and
+    is not behind on it at all.
+
+    Three modules had carried uncommitted edits in the shared tree for 27.4h. Six daemons import
+    them. `restart_plan` restarts anything `stale`, and restarting stamps `boot_sha := HEAD` while
+    leaving the working tree exactly as it was -- so the daemon was stale again the instant it came
+    up. **The remedy could not clear the condition that triggered it**, which is a permanent loop by
+    construction rather than by timing: journalctl has deadmans-switch, naive-organ and
+    staging-watcher stopping and starting at 10:18:30, 10:28:31, 10:38:31. The stall alarm this
+    project relies on had never been up for more than ten minutes.
+
+    So the subject is dated from the PROCESS, not from the commit: keep the paths whose mtime on the
+    loading disk is newer than `now - running_age_s`.
+
+    FAILS CLOSED IN BOTH DIRECTIONS, which is the whole reason this is a function and not a filter
+    inline:
+      * running age unknown -> we cannot date the start, so nothing is dropped and `resolved` is
+        False. An undatable process is not a current one.
+      * a path that will not stat (a deletion) is undatable and is KEPT. Dropping it would be a
+        silent shrink of a staleness set, which is the fail-open this reading exists to stop.
+
+    mtime is a PROXY for "the disk content changed since start" -- a touch with no content change
+    reads as a change. That direction over-reports staleness, which is the correct way to be wrong.
+    """
+    if not changed_paths:
+        return [], True
+    if running_age_s is None:
+        return sorted(changed_paths), False
+    started_at = now - running_age_s
+    root = _REPO if repo is None else Path(repo)
+    kept = []
+    for rel in sorted(changed_paths):
+        try:
+            if (root / rel).stat().st_mtime > started_at:
+                kept.append(rel)
+        except OSError:
+            kept.append(rel)  # undatable, and unknown is never green
+    return kept, True
+
+
 def daemon_deployment_report(drift: dict | None = None, now: float | None = None) -> dict:
     """THE ONE PLACE: every daemon's loaded-code age beside its running age.
 
@@ -315,6 +363,15 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
 
     `modules_behind` stays the ACTIONABLE figure and is not replaced by any of the above: a daemon
     can be days behind in time and hold nothing that changed, which is GREEN and must read as green.
+
+    THE SET BOTH ARE TAKEN ON is dated from the PROCESS (`unincorporated_since_start`), not from the
+    boot commit. Before that, six of eleven published rows carried a time-behind LARGER THAN THE
+    ROW'S OWN RUNNING AGE -- 27 hours against processes ten minutes old -- which is impossible under
+    the meaning the column claims, and six of them carried the SAME figure to the tenth of a second
+    because `max()` kept landing on one long-uncommitted file they all import. That is the
+    not-per-daemon defect `unincorporated_for_s` says it retired, back by a different route: it had
+    stopped being a property of a commit and become a property of a FILE. `predates_start` publishes
+    what the dating removed, because a staleness set that shrinks silently is the fail-open case.
     """
     from background import boot_sha
     from background.process_reconciler import evaluate_boot_sha_drift
@@ -332,7 +389,11 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
         running_age = _unit_running_age_s(unit, now)
         mid_work, mid_work_reason = unit_is_mid_work(unit)
         booted_epoch = _commit_epoch(sha) if sha else None
-        changed = (drift.get("stale_detail") or {}).get(session) or []
+        since_boot_sha = (drift.get("stale_detail") or {}).get(session) or []
+        # DATED FROM THE PROCESS, NOT THE COMMIT. A file already on disk when this process started
+        # is code it HAS. See `unincorporated_since_start` for the ten-minute restart loop that
+        # taught this. The count it removes is published beside it rather than silently dropped.
+        changed, start_dated = unincorporated_since_start(since_boot_sha, running_age, now)
         rows.append({
             "session": session,
             "unit": unit,
@@ -342,6 +403,9 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
             "unincorporated_for_s": unincorporated_for_s(changed, now),
             "modules_behind": len(changed),
             "modules": sorted(changed)[:20],
+            # Differs from the boot SHA but predates this process: content it already loaded.
+            "predates_start": len(since_boot_sha) - len(changed),
+            "start_dated": start_dated,
             "unresolved": (drift.get("unresolved") or {}).get(session),
             "session_hosting": unit in hosting,
             "mid_work": mid_work,
