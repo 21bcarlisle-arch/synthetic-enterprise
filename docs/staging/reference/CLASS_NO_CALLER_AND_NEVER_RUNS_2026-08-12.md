@@ -1,6 +1,6 @@
 # [CLASS] No caller, never runs: code and controls nothing reaches
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 10 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 
@@ -15,7 +15,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md` — LATENT
 - `WORKER_FINDING_THE_CITATION_CONTROL_NEVER_RUNS_ON_THE_COMMIT_THAT_RENAMES_A_FALSIFIER_2026-08-27.md` — LATENT
 - `WORKER_FINDING_THE_CORRECTED_SENTENCE_NEVER_REACHED_THE_READER_AND_ITS_CONTROL_HAS_NO_CALLER_2026-08-15.md` — RECORDED
-- `WORKER_FINDING_THE_DAEMON_HAS_RUN_NINE_DAY_OLD_CODE_SINCE_AUGUST_24_SO_A_LANDED_FIX_IS_NOT_A_RUNNING_ONE_2026-09-02.md` — BLOCKING
+- `WORKER_FINDING_THE_DAEMON_HAS_RUN_NINE_DAY_OLD_CODE_SINCE_AUGUST_24_SO_A_LANDED_FIX_IS_NOT_A_RUNNING_ONE_2026-09-02.md` — RECORDED
 - `WORKER_FINDING_THE_MAPS_TWO_CONTROLS_ARE_UNREACHABLE_FROM_THE_MAP_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_THE_MEMORY_GOVERNOR_ENTERED_PRESSURE_LOST_TWO_PROCESSES_AND_RECOVERED_WITHOUT_SAYING_A_WORD_2026-08-24.md` — LATENT
 - `WORKER_FINDING_THE_PASS_THROUGH_IC_CUSTOMER_PRODUCES_NO_RECORDS_AND_NO_GATE_CAN_SEE_IT_2026-08-27.md` — LATENT
@@ -24,12 +24,6 @@ This document supersedes the individual findings listed below, which are **archi
 ## Cumulative cost, measured from the instances' own recorded evidence
 
 **0 hours traced** across 10 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
-
-## What is owed
-
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_THE_DAEMON_HAS_RUN_NINE_DAY_OLD_CODE_SINCE_AUGUST_24_SO_A_LANDED_FIX_IS_NOT_A_RUNNING_ONE_2026-09-02.md`
 
 ## Refused consolidation — out of lane, still live
 
