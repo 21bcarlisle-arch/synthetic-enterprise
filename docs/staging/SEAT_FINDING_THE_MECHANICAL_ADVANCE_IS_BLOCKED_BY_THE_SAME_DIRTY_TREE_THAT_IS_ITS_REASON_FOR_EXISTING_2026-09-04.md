@@ -105,6 +105,39 @@ A `Fork closed by fast-forward` line from the **publisher's** advance while
 them after all and the table above is wrong. Cheap to watch, and keyed to the property (does the
 publisher's advance clear twins?) rather than to today's count of zero.
 
+## Confirmed 25 minutes later by the owning component, unprompted
+
+A live `origin_reconcile` run at 23:05Z reproduced this through a different code path, and its own
+verdict names the residue this finding predicted:
+
+```
+NOT_ADVANCED: the merge gated clean and was pushed, but the shared tree did NOT advance and is
+still 4 commit(s) behind. Refused by 2 path(s): background/process_run_complete.py (modified here,
+and origin changes it too); docs/staging/SEAT_FINDING_THE_RECONCILER_IS_NOT_STARVED...md (untracked
+here, and origin adds its own copy). This is NOT a closed fork -- origin moved and this tree did
+not, which is precisely the state that loops if it is retried on a cadence.
+advance: 1 of 2 blocking path(s) are NOT byte-identical to what origin brings, so clearing the 1
+that are would delete files and still not advance. Nothing was removed.
+Held by: background/process_run_complete.py
+```
+
+Three things this settles, none of which were assumed above:
+
+1. **`advance_shared_tree`'s all-or-nothing rule fired in production and was right** — one twin
+   clearable, one `FF_MODIFIED` not, so it removed nothing. The twin repair is working exactly as
+   designed and is *not* what is holding this tree.
+2. **The residue is a single dirty tracked file**, named by the module itself and not inferred by
+   me: `background/process_run_complete.py`. One lane's uncommitted work is holding the shared
+   tree 4 commits behind origin.
+3. **The loop is live, not historical.** The merge gated clean *and pushed* — so origin moved and
+   this tree did not, which is the precise `NOT_ADVANCED` shape the sibling finding measured over
+   24h. The next publish cycle will read `behind_origin` and discard a completed cycle again.
+
+**This is the strongest form the evidence could take**: the component that owns the state, running
+on its own cadence, arriving independently at the path this finding named. It also means the
+one-line reuse repair above would *not* have helped here either — a second reason to land it with
+the third lane's work rather than ahead of it.
+
 ## Addendum: an archive that cannot be landed from this tree, and the gate that catches it
 
 Restoring the twins surfaced a **pre-existing** `finding_classes` TWO ROOMS failure on
