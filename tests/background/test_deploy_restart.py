@@ -784,3 +784,62 @@ def test_the_turn_boundary_is_reachable_for_a_session_host(monkeypatch, tmp_path
     monkeypatch.setattr(dr, "units_holding_a_live_seat", lambda *a, **k: frozenset())
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert not busy, "a session host has no state in which it is idle: " + why
+
+
+def test_the_mtime_proxy_cannot_override_the_exact_content_answer(monkeypatch):
+    """THE FINDING OF THE PREREGISTERED ARMS (2026-09-04, four arms over eleven daemons).
+
+    Two lanes fixed the ten-minute restart loop two minutes apart and both mechanisms went live in
+    one merge: CONTENT (`boot_sha.dirty_blobs` — what the daemon actually loaded) and MTIME
+    (`unincorporated_since_start` — when the disk last changed). Both are REMOVAL filters, so
+    composing them removes a path if EITHER removes it, and the pair is then no better at catching
+    real staleness than MTIME alone. Measured: arm C (mtime only) equalled arm A (both) on every
+    one of eleven rows.
+
+    That is not a tie, because MTIME's false NEGATIVE is reachable here. `cp -p` preserves mtime,
+    so content that genuinely changed can look untouched — and this session used `cp -p` a dozen
+    times restoring files during mutation testing. Composing let the proxy override the exact
+    answer in exactly the direction that leaves stale code serving.
+
+    MUTATION: apply `unincorporated_since_start` unconditionally — the pre-finding composition —
+    and this fires, because the mtime filter then drops a path the content stamp says is missing.
+    """
+    drift = {"head": "abc1234", "population": ["stamped"], "unresolved": {}, "vacuous": False,
+             "stale_detail": {"stamped": ["changed_with_old_mtime.py"]}}
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 60.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    # the stamp CAN answer exactly: this path's content differs from what the daemon loaded
+    monkeypatch.setattr("background.boot_sha.read_boot_blobs", lambda s: {"a.py": "hash"})
+    # ...and the proxy would drop it, because `cp -p` left the mtime older than the process start
+    monkeypatch.setattr(dr, "unincorporated_since_start", lambda paths, age, now, repo=None: ([], True))
+
+    row = dr.daemon_deployment_report(drift=drift, now=5000.0)["daemons"][0]
+    assert row["modules_behind"] == 1, (
+        "the mtime proxy removed a path the content stamp says the daemon is missing — the pair is "
+        "then no better than the proxy alone, in the direction that leaves stale code serving"
+    )
+
+
+def test_the_proxy_still_covers_a_daemon_whose_stamp_predates_the_content_field(monkeypatch):
+    """THE NULL CONTROL, and the reason the proxy is kept rather than deleted. A stamp written
+    before `dirty_blobs` existed cannot answer, and on the arms that was the difference between
+    sim-runner reading 5 and reading 10. MUTATION: skip the dating whenever blobs are absent too
+    and this fires."""
+    drift = {"head": "abc1234", "population": ["unstamped-tree"], "unresolved": {}, "vacuous": False,
+             "stale_detail": {"unstamped-tree": ["old.py", "new.py"]}}
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 60.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    monkeypatch.setattr("background.boot_sha.read_boot_blobs", lambda s: None)  # cannot answer
+    monkeypatch.setattr(dr, "unincorporated_since_start",
+                        lambda paths, age, now, repo=None: (["new.py"], True))
+
+    row = dr.daemon_deployment_report(drift=drift, now=5000.0)["daemons"][0]
+    assert row["modules_behind"] == 1 and row["predates_start"] == 1, (
+        "the proxy was skipped for a daemon whose stamp cannot answer, which is the whole loop back"
+    )

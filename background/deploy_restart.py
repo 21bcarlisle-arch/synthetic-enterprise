@@ -404,7 +404,27 @@ def daemon_deployment_report(drift: dict | None = None, now: float | None = None
         # DATED FROM THE PROCESS, NOT THE COMMIT. A file already on disk when this process started
         # is code it HAS. See `unincorporated_since_start` for the ten-minute restart loop that
         # taught this. The count it removes is published beside it rather than silently dropped.
-        changed, start_dated = unincorporated_since_start(since_boot_sha, running_age, now)
+        #
+        # ...BUT ONLY WHERE THE EXACT ANSWER IS UNAVAILABLE, and that clause is the finding of the
+        # preregistered arms (2026-09-04). Two lanes fixed the loop two minutes apart and both
+        # mechanisms went live in one merge: CONTENT (the boot stamp records what the daemon
+        # loaded) and MTIME (this dating). Both are REMOVAL filters, so composing them removes a
+        # path if EITHER removes it — and the pair is then no better at catching real staleness
+        # than MTIME alone. Measured across eleven daemons, C (mtime only) equalled A (both) on
+        # every single row, which is exactly that.
+        #
+        # It is not a tie. MTIME's own docstring calls itself a proxy, and its false NEGATIVE is
+        # reachable on this machine: `cp -p` preserves mtime, so content that changed can look
+        # untouched — and this session used `cp -p` to restore files a dozen times while mutation
+        # testing. Composing them let that false negative override the exact answer.
+        #
+        # So the exact answer wins where it exists, and the proxy covers only what it cannot reach:
+        # a daemon whose stamp predates the content field (`dirty_blobs`). On the arms that is the
+        # difference between sim-runner reading 5 and reading 10.
+        if boot_sha.read_boot_blobs(session) is not None:
+            changed, start_dated = list(since_boot_sha), True
+        else:
+            changed, start_dated = unincorporated_since_start(since_boot_sha, running_age, now)
         rows.append({
             "session": session,
             "unit": unit,
