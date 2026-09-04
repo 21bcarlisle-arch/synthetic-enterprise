@@ -342,16 +342,23 @@ def restart_plan(report: dict, self_unit: str | None = None) -> dict:
                           "unanswered question is acting on absence".format(row["unresolved"]))
         elif not row.get("stale"):
             hold[unit] = "holds no changed module it imports, so it is current whatever its age"
-        elif row.get("mid_work"):
-            hold[unit] = "a job is in flight ({}); never restart mid-work".format(
-                row.get("mid_work_reason") or "reason unrecorded")
         elif self_unit and unit == self_unit:
             hold[unit] = "this is the caller's own unit; restarting it would kill the restarter"
         elif blocked:
             hold[unit] = "session-hosting set is unresolved ({}), so nothing is restarted".format(
                 blocked)
         elif row.get("session_hosting"):
+            # SESSION-HOSTING IS TESTED BEFORE MID-WORK, and the order is the whole repair
+            # (2026-09-04, third instance of one trap in one afternoon). `mid_work` counts
+            # processes in the cgroup, and a session host's RESTING state is already two -- the
+            # tmux server and the seat. Tested first, it held the host permanently and `defer`
+            # stayed empty on the only unit deferral exists for. A host's timing is decided at
+            # FIRE time by `unit_has_working_seat`, off the seat heartbeat, which is the signal
+            # that can actually tell a working seat from an idle one.
             defer.append(unit)
+        elif row.get("mid_work"):
+            hold[unit] = "a job is in flight ({}); never restart mid-work".format(
+                row.get("mid_work_reason") or "reason unrecorded")
         else:
             restart.append(unit)
     return {"restart": sorted(restart), "defer": sorted(defer), "hold": hold}

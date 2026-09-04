@@ -421,3 +421,70 @@ def test_an_unreadable_uptime_gives_no_age_rather_than_a_plausible_one(monkeypat
     monkeypatch.setattr(dr, "_sh", lambda *a, **k: "60000000")
     monkeypatch.setattr(dr, "_uptime_s", lambda: None)
     assert dr._unit_running_age_s("any.service") is None
+
+
+# ── every disposition must be REACHABLE ─────────────────────────────────────────────────────────
+
+def test_a_session_host_with_a_job_in_flight_is_deferred_not_held():
+    """MUTATION: test `mid_work` before `session_hosting` in `restart_plan` and this fires.
+
+    THE THIRD INSTANCE OF ONE TRAP IN ONE AFTERNOON, and the reason the reachability control below
+    exists. `mid_work` counts processes in the unit's cgroup, and a session host's RESTING state is
+    already two — the tmux server and the seat. Tested first, it holds the host permanently and
+    `defer` stays EMPTY on the only unit deferral exists for, while the log prints a plausible
+    hold reason every ten minutes.
+
+    A host's timing is decided at FIRE time by `unit_has_working_seat`, off the seat heartbeat,
+    which is the only signal that distinguishes a working seat from an idle one."""
+    row = _row("worker-seat-manager", session_hosting=True, mid_work=True,
+               mid_work_reason="2 process(es) in the cgroup")
+    plan = dr.restart_plan(_report([row]))
+    assert plan["defer"] == ["worker-seat-manager.service"], (
+        "the seat host was held rather than deferred, so the deferred restart can never fire: "
+        + repr(plan["hold"])
+    )
+
+
+def test_every_disposition_is_reachable():
+    """THE STRUCTURAL CONTROL, and it is worth more than any leg above.
+
+    Three separate defects this afternoon all had the same shape: a branch that could never be
+    taken, whose log read exactly like the mechanism working. Each was caught by hand, one at a
+    time, after the previous fix. A partition with an unreachable outcome is not a partition — so
+    this asserts that over a representative population EVERY outcome is produced, and it would have
+    caught all three at once rather than none.
+
+    MUTATION: make any branch unreachable — reorder the plan so `mid_work` precedes
+    `session_hosting`, or restore the hosting test inside `unit_has_working_seat` — and the
+    corresponding bucket empties, firing this."""
+    rows = [
+        _row("idle-and-stale"),                                     # -> restart
+        _row("seat-host", session_hosting=True, mid_work=True),     # -> defer
+        _row("busy", mid_work=True, mid_work_reason="2 in cgroup"),  # -> hold
+        _row("current", stale=False),                                # -> hold
+        _row("unknown", unresolved="unstamped"),                     # -> hold
+    ]
+    plan = dr.restart_plan(_report(rows), self_unit="deploy-restart.service")
+    assert plan["restart"], "no input can reach RESTART -- the mechanism can never act"
+    assert plan["defer"], "no input can reach DEFER -- the seat host would never be restarted"
+    assert plan["hold"], "no input can reach HOLD -- nothing can ever be protected"
+    assert plan["restart"] == ["idle-and-stale.service"]
+    assert plan["defer"] == ["seat-host.service"]
+    assert set(plan["hold"]) == {"busy.service", "current.service", "unknown.service"}
+
+
+def test_the_turn_boundary_is_reachable_for_a_session_host(monkeypatch, tmp_path):
+    """The companion at the FIRE-time end: a deferred unit must have some state in which it is not
+    busy, or deferral is a permanent hold wearing a different word."""
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    hb = obs / ".seat_heartbeat.json"
+    hb.write_text("{}")
+    import os
+    cold = os.stat(hb).st_mtime - (dr._SEAT_IDLE_S + 60)
+    os.utime(hb, (cold, cold))
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+    monkeypatch.setattr(dr, "session_hosting_units",
+                        lambda *a, **k: (frozenset({"worker-seat-manager.service"}), None))
+    busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
+    assert not busy, "a session host has no state in which it is idle: " + why
