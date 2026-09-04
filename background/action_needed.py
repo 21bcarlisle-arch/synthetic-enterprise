@@ -35,6 +35,26 @@ SITE_RESERVED_PATH = (
     / "site" / "data" / "director_reserved.json"
 )
 
+#: The real register path, frozen at IMPORT so a test cannot move it.
+#:
+#: `save_register`'s mirror guard used to read `if path == REGISTER_PATH`, and a test controls
+#: BOTH SIDES of that comparison. `_resolve_path`'s own docstring, ten lines below, tells tests
+#: to redirect the register with `monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path)`
+#: -- and after that monkeypatch `path` IS `REGISTER_PATH`, both tmp, so the guard reads True and
+#: mirrors the fixture register straight into the real `site/data/director_reserved.json`. The
+#: guard was keyed to a value its adversary had already replaced, so it stopped only the tests
+#: that passed `path=` explicitly and waved through the idiom this module documents.
+#:
+#: MEASURED, 2026-09-04: the shared tree's `director_reserved.json` held a fixture alarm
+#: ("wedged since 1970-01-01T00:00 UTC", `git=dead`) where HEAD held the director's real
+#: one-way-door escalation `executor-wall_escalated-f13e76f1` awaiting his PIN. `open_count` is 1
+#: and the mirror REPLACES the list, so the fixture did not sit beside his item -- it evicted it.
+#: The publish daemon commits `site/`, so the next clean publish would have served it to him.
+#:
+#: A module-level constant is the fix precisely BECAUSE it is not injectable: the one thing this
+#: comparison must not accept is a value chosen by the caller.
+_REAL_REGISTER_PATH = REGISTER_PATH
+
 RE_PING_SECONDS = 24 * 60 * 60  # daily, per the director's own rule
 
 
@@ -93,10 +113,11 @@ def save_register(register: dict[str, dict], path: Path | None = None) -> None:
     path = _resolve_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(register, indent=2, sort_keys=True))
-    # Only mirror to the site feed when writing the REAL register -- a test
-    # passing a tmp_path must not touch site/data (test-isolation; same guard
-    # rationale as _resolve_path's call-time lookup).
-    if path == REGISTER_PATH:
+    # Only mirror to the site feed when writing the REAL register -- a test must not touch
+    # site/data. Compared against `_REAL_REGISTER_PATH` (frozen at import), NOT `REGISTER_PATH`:
+    # a test monkeypatches the latter, which made this guard compare tmp to tmp and fire OPEN on
+    # exactly the redirection idiom `_resolve_path` documents. See `_REAL_REGISTER_PATH`.
+    if path == _REAL_REGISTER_PATH:
         _mirror_reserved_to_site(register)
 
 
