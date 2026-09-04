@@ -83,6 +83,7 @@ verdict rather than sitting beside it, so a sentence cannot disagree with the fl
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -262,6 +263,263 @@ def cannot_tell_sentence(*, subject: str, observed, null_low, null_high,
                 "information reaches{}.").format(subject, CANNOT_TELL, observed,
                                                  null_low, null_high, span)
     return None
+
+
+#: The multiples of the run's own sample the published curve is drawn at. Multiples rather than
+#: absolute counts so the curve always brackets the sample it describes: a fixed ladder of round
+#: numbers would sit entirely above or entirely below a small n and the reader could not place the
+#: run on its own curve.
+CURVE_MULTIPLES = (1, 2, 4, 8)
+
+#: The departures from 0.5 the floor is quoted at. Fixed, and NOT derived from the observed
+#: value: a ladder keyed to today's answer moves every run and stops being a scale a reader can
+#: hold. The observed departure is added to this ladder as one more row, labelled.
+FLOOR_EXCESSES = (0.15, 0.10, 0.05, 0.03, 0.02)
+
+#: Scored decisions come from settled account-terms, so the book that would supply more of them is
+#: the SETTLED book, and its ceiling is a memory budget on this machine rather than anything about
+#: the world's housing stock. Named here so the attainability verdict says which kind of ceiling
+#: it hit.
+CEILING_SOURCE = "simulation.premise_population.settled_book_ceiling(years=1)"
+
+
+def _sqrt_n_law_note(n: int, k: float) -> str:
+    return (
+        "The half-width of the permutation null falls as {k:.3f} / sqrt(n). The constant is "
+        "MEASURED, not assumed: it is half this run's own permuted interval times sqrt({n}), so "
+        "the curve passes through the run's own reading by construction and the permutation is "
+        "the only source. The 1/sqrt(n) law itself is checked by permutation at four sample "
+        "sizes under the run's own seed in "
+        "`tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the "
+        "constant is taken at n={n} it carries that sample's own small-n inflation, so every "
+        "decision count below is an UPPER bound on what would be needed."
+    ).format(k=k, n=n)
+
+
+def settled_book_ceiling_accounts() -> dict:
+    """How many accounts the settled book can hold at all, or an explicit refusal.
+
+    LAZY IMPORT ON PURPOSE. This module is imported by the publishing lane, and a top-level
+    `simulation` import here would put the world's package on that lane's import graph for a
+    number only one function needs.
+
+    The ceiling is an UPPER bound -- `settled_book_ceiling` documents both of its per-unit costs
+    as floors -- which is the direction that makes an "unattainable" verdict safe: the real
+    affordable book is smaller than this, so a floor this ceiling cannot reach is a floor no
+    attainable book reaches either.
+    """
+    try:
+        from simulation.premise_population import settled_book_ceiling
+        ceiling = settled_book_ceiling(years=1)
+    except Exception as exc:  # noqa: BLE001 -- any failure here is one answer: we cannot tell
+        return {"available": False,
+                "reason": "the settled-book ceiling could not be read ({}: {})".format(
+                    type(exc).__name__, exc)}
+    accounts = ceiling.get("max_customers")
+    if not isinstance(accounts, int) or accounts <= 0:
+        return {"available": False,
+                "reason": "the settled-book ceiling returned no usable customer count"}
+    return {
+        "available": True,
+        "accounts": accounts,
+        "source": CEILING_SOURCE,
+        "bound_kind": ceiling.get("bound_kind"),
+        "what_binds": (
+            "the settlement path's memory budget on this machine, not the world's housing stock "
+            "-- the world has homes to spare and the settled book is what cannot be grown"),
+        "why_it_is_safe_to_cite": (
+            "both per-unit costs behind it are measured floors, so the affordable book is "
+            "SMALLER than this number and never larger"),
+    }
+
+
+def detectability(*, observed, null_low, null_high, n, accounts=None,
+                  ceiling: dict | None = None) -> dict:
+    """WHAT THIS READING COULD HAVE DETECTED, beside what it did.
+
+    WHY THIS EXISTS. `cannot_tell_sentence` above publishes that the concordance sits inside its
+    null. That is half a result. A null result from an instrument that had no power to return
+    anything else is not evidence of no effect -- it is evidence of no instrument, and the two
+    read identically on the page. The flagship figure was published for four days as
+    "0.517, inside 0.429-0.572, we cannot tell" with nothing anywhere saying that 0.572 was the
+    SMALLEST value the run could ever have called, so no reader could tell a flat method from an
+    unresolvable one.
+
+    NOT A SECOND MEASUREMENT OF THE NULL. Every number here is arithmetic on the interval the run
+    already permuted and published: the detectable departure IS half that interval, and the scale
+    constant IS that half-width times sqrt(n). There is no second permutation and therefore
+    nothing that can drift away from the figure it qualifies -- which is the objection that made
+    `_method_skill` read the spread rather than recompute it.
+
+    THE FLOOR IS A DIAGNOSTIC AND NEVER A TARGET (R12). A book grown to clear this floor would be
+    the failure this arm exists to be able to report. "No attainable book on this world reads an
+    effect this small" is a complete answer and it is published in those words.
+    """
+    if observed is None or null_low is None or null_high is None or not n or n < 3:
+        return {"available": False,
+                "reason": ("this run carries no permuted interval and no sample size, so what it "
+                           "could have detected is undecidable rather than wide")}
+    half_width = (null_high - null_low) / 2.0
+    if half_width <= 0:
+        return {"available": False,
+                "reason": "the permuted interval has no width, so no scale constant can be read"}
+    k = half_width * math.sqrt(n)
+    observed_excess = abs(observed - 0.5)
+    per_account = (n / accounts) if accounts else None
+
+    def decisions_for(excess):
+        """How many scored decisions before a departure of `excess` clears the null."""
+        return int(math.ceil((k / excess) ** 2)) if excess and excess > 0 else None
+
+    def accounts_for(decisions):
+        return (int(math.ceil(decisions / per_account))
+                if decisions is not None and per_account else None)
+
+    ceiling = settled_book_ceiling_accounts() if ceiling is None else ceiling
+    ceiling_accounts = ceiling.get("accounts") if ceiling.get("available") else None
+    ceiling_decisions = (int(ceiling_accounts * per_account)
+                         if ceiling_accounts and per_account else None)
+    ceiling_excess = (k / math.sqrt(ceiling_decisions)
+                      if ceiling_decisions and ceiling_decisions >= 3 else None)
+
+    def within_ceiling(needed_accounts):
+        """TRI-STATE. None is "we cannot tell", and it is the verdict whenever either side is
+        missing -- an unreadable ceiling must not read as room to grow."""
+        if needed_accounts is None or ceiling_accounts is None:
+            return None
+        return needed_accounts <= ceiling_accounts
+
+    curve = []
+    for multiple in CURVE_MULTIPLES:
+        size = n * multiple
+        excess = k / math.sqrt(size)
+        curve.append({
+            "decisions_scored": size,
+            "multiple_of_this_run": multiple,
+            "detectable_excess": excess,
+            "detectable_concordance": 0.5 + excess,
+            "accounts_needed": accounts_for(size),
+            "is_this_run": multiple == 1,
+        })
+    if ceiling_decisions and ceiling_decisions not in {row["decisions_scored"] for row in curve}:
+        curve.append({
+            "decisions_scored": ceiling_decisions,
+            "multiple_of_this_run": ceiling_decisions / n,
+            "detectable_excess": ceiling_excess,
+            "detectable_concordance": 0.5 + ceiling_excess,
+            "accounts_needed": ceiling_accounts,
+            "is_this_run": False,
+            "is_the_ceiling": True,
+        })
+    curve.sort(key=lambda row: row["decisions_scored"])
+
+    floor = []
+    rows = [(excess, False) for excess in FLOOR_EXCESSES]
+    if observed_excess > 0:
+        rows.append((observed_excess, True))
+    for excess, is_observed in sorted(rows, key=lambda row: -row[0]):
+        needed = decisions_for(excess)
+        needed_accounts = accounts_for(needed)
+        floor.append({
+            "excess_over_no_information": excess,
+            "concordance": 0.5 + excess,
+            "decisions_needed": needed,
+            "accounts_needed": needed_accounts,
+            "within_the_settled_book_ceiling": within_ceiling(needed_accounts),
+            "is_the_observed_effect": is_observed,
+        })
+
+    observed_needed = decisions_for(observed_excess) if observed_excess > 0 else None
+    observed_accounts = accounts_for(observed_needed)
+    attainable = within_ceiling(observed_accounts)
+    return {
+        "available": True,
+        "decisions_scored": n,
+        "accounts": accounts,
+        "scored_decisions_per_account": per_account,
+        # THE HEADLINE, and the only number a reader has to carry: the smallest departure from
+        # 0.5 this run could ever have called. Measured, not modelled -- it is half the interval
+        # the run permuted.
+        "detectable_excess": half_width,
+        "detectable_concordance": 0.5 + half_width,
+        "observed_excess": observed_excess,
+        # How far short the reading fell of being callable AT ALL. Reported as a ratio because
+        # the two are the same quantity on the same scale, which is the test this project keeps
+        # failing before dividing.
+        "observed_share_of_what_was_detectable": (
+            observed_excess / half_width if half_width else None),
+        "scale_constant": k,
+        "curve": curve,
+        "floor": floor,
+        "the_book_this_would_need": {
+            "decisions_needed_for_the_observed_effect": observed_needed,
+            "accounts_needed_for_the_observed_effect": observed_accounts,
+            "settled_book_ceiling": ceiling,
+            "scored_decisions_at_the_ceiling": ceiling_decisions,
+            "detectable_excess_at_the_ceiling": ceiling_excess,
+            "detectable_concordance_at_the_ceiling": (
+                0.5 + ceiling_excess if ceiling_excess is not None else None),
+            "the_observed_effect_is_attainable": attainable,
+            "accounts_short": (
+                observed_accounts - ceiling_accounts
+                if attainable is False and observed_accounts and ceiling_accounts else None),
+            # WHY A LARGER BOOK IS THE ONLY LEVER. The funnel already published beside this says
+            # the 32 unscored decisions are eligibility, not a join we failed to make: the world
+            # never billed under the price that was chosen, so no code we write recovers them.
+            "why_only_a_larger_book": (
+                "the drop-out funnel classes the unscored decisions as eligibility -- the world "
+                "billed nothing under the price that was chosen -- so no widening of the join "
+                "and no sourcing work adds a decision here. Only a larger settled book does."),
+        },
+        "method": _sqrt_n_law_note(n, k),
+        "it_is_a_diagnostic": (
+            "R12. This floor is a bound on what the instrument can see and NEVER a book size to "
+            "grow towards. A book enlarged until this arm returns a direction is the failure "
+            "this arm was built to be able to report."),
+        "sentence": _detectability_sentence(
+            half_width=half_width, observed=observed, observed_excess=observed_excess, n=n,
+            needed=observed_needed, needed_accounts=observed_accounts,
+            ceiling_accounts=ceiling_accounts, ceiling_decisions=ceiling_decisions,
+            ceiling_excess=ceiling_excess, attainable=attainable),
+    }
+
+
+def _detectability_sentence(*, half_width, observed, observed_excess, n, needed, needed_accounts,
+                            ceiling_accounts, ceiling_decisions, ceiling_excess,
+                            attainable) -> str:
+    """The words, derived from the verdict rather than sitting beside it.
+
+    Three sentences, and the third is the one the director asked for: whether any book this world
+    can supply reaches the floor. It is composed from `attainable`, so a prose claim of
+    unattainability cannot survive the arithmetic saying otherwise.
+    """
+    head = (
+        "On the {n} decisions it had, the smallest departure from 0.5 this instrument could have "
+        "called is {hw:.3f} — a concordance of {hi:.3f} or {lo:.3f}. It read {obs:.3f}, a "
+        "departure of {oe:.3f}, about {share:.0%} of that."
+    ).format(n=n, hw=half_width, hi=0.5 + half_width, lo=0.5 - half_width, obs=observed,
+             oe=observed_excess, share=(observed_excess / half_width) if half_width else 0)
+    if needed is None:
+        return head + (" The reading sits exactly on no-information, so there is no departure to "
+                       "size a book against.")
+    body = (" Reading a departure that small needs about {needed:,} scored decisions{acc}."
+            ).format(needed=needed,
+                     acc="" if not needed_accounts else
+                         " — roughly {:,} settled accounts at this run's rate".format(
+                             needed_accounts))
+    if attainable is None:
+        return head + body + (" Whether this world can supply them we cannot tell: the settled "
+                              "book's own ceiling could not be read.")
+    if attainable:
+        return head + body + (
+            " The settled book can hold {c:,} accounts, so a book this world can supply does "
+            "reach it — and that is a statement about the instrument, never a plan.".format(
+                c=ceiling_accounts))
+    return head + body + (
+        " The settled book tops out at {c:,} accounts — about {cd:,} scored decisions, which "
+        "resolves {ce:.3f} at best. No attainable book on this world can read an effect the size "
+        "of the one measured."
+    ).format(c=ceiling_accounts, cd=ceiling_decisions, ce=ceiling_excess)
 
 
 def inference_claim(provenance: dict | None, skill: dict | None = None) -> dict:
