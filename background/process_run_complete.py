@@ -5070,6 +5070,13 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
 # _tier` is the same defect one layer down, and it is the reason this function exists at all
 # rather than the scoping landing on its own.
 REMAINDER_ANNOTATION_INTERVAL_SECONDS = 60 * 60
+
+#: The largest budget an attempt has been observed to be INSUFFICIENT at, from the worker log:
+#: 3800, 3800, 3664, 3528 -- four attempts, four timeouts, two of them at
+#: `GATE_SUITE_TIMEOUT_SECONDS` exactly. This is a floor read off the record, not a guess at how
+#: long the suite takes: what is known is that 3800s is not enough, and 3800s is the most this path
+#: is allowed to give. Raise it only by re-measuring, never to make a branch reachable.
+REMAINDER_OBSERVED_INSUFFICIENT_SECONDS = 3800
 REMAINDER_ANNOTATION_STATE_FILE = (
     PROJECT_DIR / "docs" / "observability" / ".remainder_annotation.json")
 # What the page says when the remainder run failed but its transcript could not be read (see
@@ -5183,6 +5190,21 @@ def _annotation_measured_on(git_hash):
     return {"git_commit": git_hash, "tree_state": tree_state}
 
 
+def _stamp_remainder_attempt(git_hash, reason: str) -> None:
+    """Record that an attempt HAPPENED, without recording a result it did not produce.
+
+    One writer for both non-completing paths -- the pre-flight skip and the timeout -- because two
+    copies of "stamp the clock but never the reds" is the duplication that lets one of them drift
+    into publishing an all-clear for a suite that never ran."""
+    try:
+        REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
+            {"last_run_ts": time.time(), "rc": None, "git_hash": git_hash,
+             "outcome": "unavailable", "reason": str(reason)[:400]}, indent=2) + "\n")
+    except Exception:  # noqa: BLE001 -- the observer still may not red its subject
+        pass
+
+
 def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
     """Run the NON-BLOCKING remainder and record its reds into the published banner.
 
@@ -5197,6 +5219,45 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
             # suite is throttled -- a stale finding count on a live page is a small lie that
             # costs nothing to avoid.
             return _prov.record_annotation(open_findings=findings) if findings is not None else None
+
+        # A STEP THAT CANNOT FINISH AT ANY BUDGET IT CAN BE GIVEN MUST NOT BE ATTEMPTED.
+        #
+        # Measured 2026-09-04, from this module's own constants and the worker log, not inferred:
+        # `remainder_budget_seconds` is capped at `GATE_SUITE_TIMEOUT_SECONDS` = 3800, and the four
+        # recorded attempts timed out at 3800, 3800, 3664 and 3528 -- TWO OF THEM AT THE CAP
+        # EXACTLY. The remainder is the whole suite (`pytest tests/`), so it needs more than the
+        # maximum this path is allowed to give it, and the cap may not grow: the director ruled on
+        # 2026-08-21 that no gate budget grows here.
+        #
+        # So it is not occasionally unlucky, it is STRUCTURALLY incapable of completing in this
+        # path, and every attempt spends ~an hour of held publish lock to produce nothing. Skipping
+        # costs nothing that was ever delivered -- the annotation has not completed once in the
+        # log's history -- and the page already carries the reds' own `checked_at`, so the staleness
+        # it leaves is visible rather than silent.
+        #
+        # KEYED TO THE COMPARISON, NOT TO TODAY'S ANSWER. The day the remainder is given a budget
+        # larger than an attempt has been observed to need -- a faster suite, a narrower selection,
+        # or its own timer outside this path -- it runs again with no edit here. AND THE RUN BRANCH
+        # DOES NOT FIRE IN PRODUCTION TODAY, which is said plainly rather than left for a reader to
+        # discover: on this machine the budget is always exactly the cap. The reachability control
+        # is `test_the_remainder_still_runs_when_it_is_given_a_budget_it_can_finish_in`.
+        # ONLY FOR THE DEFAULT RUNNER, and that is the guard's actual subject rather than a test
+        # convenience: the cost being avoided is `_default_remainder_runner` spawning a real
+        # whole-suite pytest inside the publish path's own budget. A caller that SUPPLIES a runner
+        # is supplying the work and spends none of that budget, so the pre-flight does not apply to
+        # it. In production `runner` is always None, so the guard always applies there.
+        budget = remainder_budget_seconds()
+        if runner is None and budget <= REMAINDER_OBSERVED_INSUFFICIENT_SECONDS:
+            _stamp_remainder_attempt(
+                git_hash,
+                "skipped before starting: {:.0f}s of budget against attempts that have needed more "
+                "than {:.0f}s (4 of 4 timed out, two at the cap). Running it here spends the "
+                "publish lock to produce nothing.".format(
+                    budget, REMAINDER_OBSERVED_INSUFFICIENT_SECONDS))
+            log("Remainder annotation NOT ATTEMPTED: {:.0f}s budget cannot finish a suite that has "
+                "needed more than {:.0f}s in every recorded attempt. Throttle clock stamped.".format(
+                    budget, REMAINDER_OBSERVED_INSUFFICIENT_SECONDS))
+            return None
 
         result = (runner or _default_remainder_runner)(_remainder_argv())
         reds = _parse_failed_node_ids(getattr(result, "stdout", "") or "")
@@ -5252,29 +5313,18 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
                 publish_provenance.record_annotation(open_findings=findings)
         except Exception:  # noqa: BLE001 -- the observer still may not red its subject
             pass
-        # STAMP THE ATTEMPT, NOT THE SUCCESS. The throttle's clock was written only on the path
-        # above, so a step that ALWAYS fails was never throttled: it came due again on the very
-        # next publish cycle, spent the whole remaining budget, timed out, and left the clock
-        # where it was. Measured 2026-09-04 -- last stamp 76.4 hours old, four attempts in the
-        # log window and four timeouts (3490s, 3800s, 3800s, 3664s), so for three days every
-        # publish cycle paid an hour of held run lock for nothing. With a marker arriving every
-        # 13.3 minutes, that hour is the whole reason the queue could not keep up.
+        # STAMP THE ATTEMPT, NOT THE SUCCESS. The throttle's clock was written only on the
+        # success path, so a step that ALWAYS fails was never throttled: it came due again on the
+        # very next publish cycle, spent the whole remaining budget, timed out, and left the clock
+        # where it was. Measured 2026-09-04 -- last stamp 76.4 hours old, four attempts in the log
+        # window and four timeouts, so for three days every publish cycle paid an hour of held run
+        # lock for nothing. An interval bounds how often a step is ATTEMPTED, not how often it
+        # succeeds; keying it to success makes a permanently-failing step a permanent tax and hides
+        # it behind an honest, isolated "skipped (non-fatal)" every cycle.
         #
-        # An interval bounds how often a step is ATTEMPTED, not how often it succeeds. Keying it
-        # to success makes a permanently-failing step a permanent tax and hides it, because each
-        # cycle's log line is an honest, isolated "skipped (non-fatal)".
-        #
-        # WHAT IS DELIBERATELY NOT WRITTEN: `reds`. A run that produced no transcript measured no
-        # tree, and `record_annotation` two modules away refuses an invented measurement for this
-        # exact reason. The clock is a fact about this process; a red count would be a fact about
-        # a tree nothing here looked at.
-        try:
-            REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-            REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
-                {"last_run_ts": time.time(), "rc": None, "git_hash": git_hash,
-                 "outcome": "unavailable", "reason": str(exc)[:400]}, indent=2) + "\n")
-        except Exception:  # noqa: BLE001 -- the observer still may not red its subject
-            pass
+        # NO `reds` IS WRITTEN. A run that produced no transcript measured no tree, and an empty
+        # list reaches the page as "0 non-blocking reds" beside a suite that never ran.
+        _stamp_remainder_attempt(git_hash, exc)
         log("Remainder annotation skipped (non-fatal): {} -- throttle clock stamped anyway, so "
             "this cannot run again for {:.0f} min.".format(
                 exc, REMAINDER_ANNOTATION_INTERVAL_SECONDS / 60))
