@@ -271,6 +271,17 @@ def unincorporated_for_s(changed_paths, now: float, repo=None) -> float | None:
     tree several lanes hold uncommitted work in permanently, those two never agree, and the column
     a reader takes for severity anti-correlated with the verdict beside it.
 
+    CORRECTED THE SAME DAY, BESIDE THE CLAIM (d7d658284, another lane, hours after this landed).
+    The paragraph below said this figure had stopped being a property of a commit and become a
+    property of a process. It had not: it became a property of a FILE. Six of eleven published rows
+    carried the identical 97646.4 because `max()` kept landing on `head_red_register.py`, which all
+    six import, and six rows showed a time-behind LARGER than the row's own running age -- 27 hours
+    against processes ten minutes old. Third time this column was wrong, and the first two fixes,
+    this one included, each corrected the REDUCER without asking what the SET was.
+    `unincorporated_since_start` dates the set from the process, which is what makes the claim below
+    true rather than merely intended. The claim is kept, not rewritten, so the correction can be
+    read against it.
+
     It was not per-daemon either: every daemon booted at the same SHA got the same number, so the
     column carried no information about any individual daemon at all. Eleven rows, two distinct
     values, both properties of a commit rather than of a process.
