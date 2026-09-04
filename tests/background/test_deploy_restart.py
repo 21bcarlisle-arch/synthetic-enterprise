@@ -362,7 +362,11 @@ def test_the_time_column_cannot_disagree_with_the_verdict(monkeypatch, tmp_path)
              "stale_detail": {"red-one": ["old.py"]}}
     monkeypatch.setattr(dr, "_REPO", tmp_path)
     monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
-    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 10.0)
+    # RUNNING SINCE t=0, so old.py (mtime 1000) genuinely landed after this process started. The
+    # fixture used to say 10.0, which described a process alive for ten seconds and behind on a
+    # file written 4000s earlier -- impossible, and the state the restart loop was built on. The
+    # assertions below are unchanged; only the world they run in is now one that can exist.
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 5000.0)
     monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
     monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
     monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
@@ -462,6 +466,112 @@ def test_every_state_of_the_time_column_is_reachable(tmp_path):
         "and 0.0 prints '0m', and only one of those is true"
     )
     assert len({nothing_behind, datable, undatable}) == 3
+
+
+def test_a_change_already_on_disk_when_the_process_started_is_code_it_HAS(tmp_path):
+    """THE DEFECT THIS OWNS: three daemons restarted every ten minutes for hours on 2026-09-04.
+
+    `changed_paths_since` diffs the boot COMMIT against the WORKING TREE, so three modules carrying
+    uncommitted edits 27h old marked six daemons stale. `restart_plan` restarts anything stale, and
+    a restart stamps `boot_sha := HEAD` WITHOUT touching the working tree -- so the daemon was stale
+    again the moment it came up. The remedy could not clear its own trigger.
+
+    MUTATION: drop the mtime comparison and this fires. A file written before the process started is
+    a file the process loaded.
+    """
+    (tmp_path / "long_uncommitted.py").write_text("x")
+    os.utime(tmp_path / "long_uncommitted.py", (1000.0, 1000.0))
+    kept, resolved = dr.unincorporated_since_start(
+        ["long_uncommitted.py"], running_age_s=600.0, now=5000.0, repo=tmp_path)
+    assert resolved and kept == [], (
+        "a process that started at t=4400 was reported behind on a file written at t=1000, which "
+        "is the loop: restarting cannot change either number"
+    )
+
+
+def test_a_change_that_landed_after_the_process_started_is_still_behind(tmp_path):
+    """THE OTHER SIDE, and the one that stops the fix being a fail-open. MUTATION: return [] always
+    and this fires. worker-seat-manager is the live instance -- up 10.8 days, holding a module
+    rewritten 60h ago, and it must stay red when the other six go green."""
+    (tmp_path / "landed_after.py").write_text("x")
+    os.utime(tmp_path / "landed_after.py", (4800.0, 4800.0))
+    kept, resolved = dr.unincorporated_since_start(
+        ["landed_after.py"], running_age_s=600.0, now=5000.0, repo=tmp_path)
+    assert resolved and kept == ["landed_after.py"]
+
+
+def test_every_state_of_the_start_dating_is_reachable(tmp_path):
+    """The partition, over one control rather than a leg per branch — a filter that dropped
+    EVERYTHING would pass the first leg above and every other test in this block.
+
+    Four states and each names a different world: nothing changed; changed but already loaded;
+    changed after start; and undatable. The last two both fail CLOSED, and that is the property.
+    """
+    (tmp_path / "before.py").write_text("x")
+    os.utime(tmp_path / "before.py", (1000.0, 1000.0))
+    (tmp_path / "after.py").write_text("x")
+    os.utime(tmp_path / "after.py", (4800.0, 4800.0))
+
+    nothing = dr.unincorporated_since_start([], 600.0, now=5000.0, repo=tmp_path)
+    already_had = dr.unincorporated_since_start(["before.py"], 600.0, now=5000.0, repo=tmp_path)
+    genuinely = dr.unincorporated_since_start(["after.py"], 600.0, now=5000.0, repo=tmp_path)
+    both = dr.unincorporated_since_start(
+        ["before.py", "after.py"], 600.0, now=5000.0, repo=tmp_path)
+    deleted = dr.unincorporated_since_start(["gone.py"], 600.0, now=5000.0, repo=tmp_path)
+    undatable_start = dr.unincorporated_since_start(["before.py"], None, now=5000.0, repo=tmp_path)
+
+    assert nothing == ([], True)
+    assert already_had == ([], True)
+    assert genuinely == (["after.py"], True)
+    assert both == (["after.py"], True), "the mixed set must keep exactly the half it lacks"
+    assert deleted == (["gone.py"], True), (
+        "a change that will not stat is a DELETION -- undatable, and dropping it would silently "
+        "shrink a staleness set, which is the fail-open this reading exists to stop"
+    )
+    assert undatable_start == (["before.py"], False), (
+        "with no running age the process start cannot be dated, so nothing may be dropped; an "
+        "undatable process is not a current one"
+    )
+
+
+def test_no_published_time_behind_can_exceed_the_rows_own_running_age(monkeypatch, tmp_path):
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. At HEAD on 2026-09-04 six of eleven published
+    rows broke this — up to 27 hours of 'time behind' on processes ten minutes old — which is
+    impossible under the meaning the column claims ("the interval it has been running without
+    this"). Once the set is dated from the process the bound holds by construction, so this control
+    goes red if the subject ever drifts back off the process, whatever the numbers are that day.
+    """
+    (tmp_path / "old.py").write_text("x")
+    os.utime(tmp_path / "old.py", (1000.0, 1000.0))
+    (tmp_path / "recent.py").write_text("x")
+    os.utime(tmp_path / "recent.py", (4900.0, 4900.0))
+    drift = {"head": "abc1234", "unresolved": {}, "vacuous": False,
+             "population": ["short-lived", "long-lived"],
+             "stale_detail": {"short-lived": ["old.py"], "long-lived": ["old.py", "recent.py"]}}
+    ages = {"short-lived.service": 600.0, "long-lived.service": 5000.0}
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: ages[unit])
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    rows = {r["session"]: r for r in
+            dr.daemon_deployment_report(drift=drift, now=5000.0)["daemons"]}
+
+    for row in rows.values():
+        behind = row["unincorporated_for_s"]
+        if isinstance(behind, (int, float)) and row["running_age_s"] is not None:
+            assert behind <= row["running_age_s"], (
+                "{} publishes {}s behind against a process alive for {}s -- the column is measuring "
+                "a file's age, not this daemon's".format(
+                    row["session"], behind, row["running_age_s"])
+            )
+    # NOT A CONSTANT-GREEN: the two rows must still differ, or the bound was bought by zeroing.
+    assert rows["short-lived"]["modules_behind"] == 0
+    assert rows["long-lived"]["modules_behind"] == 2
+    assert rows["short-lived"]["predates_start"] == 1, (
+        "what the dating removed must be published, or a staleness set shrinks silently"
+    )
 
 
 # ── never mid-work ──────────────────────────────────────────────────────────────────────────────
