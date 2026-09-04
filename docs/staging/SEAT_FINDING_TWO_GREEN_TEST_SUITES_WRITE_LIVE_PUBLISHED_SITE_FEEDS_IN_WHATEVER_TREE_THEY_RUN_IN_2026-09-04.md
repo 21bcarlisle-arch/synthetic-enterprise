@@ -1,4 +1,9 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
+
+> **CORRECTED ON THE SAME DAY, BY ME, ONE COMMIT LATER — read the correction at the bottom
+> before acting on anything above. The observations hold; the FINDING does not. `site/data/`
+> being writable by tests is a measured and deliberate decision from 2026-08-10, and I filed
+> this without looking for it. Downgraded LATENT → RECORDED.**
 
 # FINDING — two green test suites write LIVE published site feeds in whatever tree they run in
 
@@ -130,3 +135,75 @@ live ledgers, and its ratchet is what caught the 75th observability writer. `sit
 Not attempted in this turn: it needs a decision about whether the guard refuses or redirects under
 pytest, which changes behaviour for every suite on the publish path, and that is more than can be
 gated and landed safely alongside an unrelated repair. **Filed rather than half-built.**
+
+
+---
+
+# CORRECTION — this re-litigates a settled measurement, and I should have found it first
+
+**Written 2026-09-04, by the seat that filed the above, ~20 minutes after landing it, before any
+other lane had to spend time on it.** Kept beside the claim rather than deleted: a finding whose
+withdrawal is visible is worth more than one quietly removed, and the reason it was filed is the
+more useful half.
+
+## What refutes it
+
+`tests/production_surface_guard.py` — THE SINK GUARD, written to the director's own instruction
+*"the tests-writing-into-production-surfaces class ... that's three instances I know of. Fix the
+class."* Its docstring answers this document directly:
+
+> **`site/data/` stays file-scoped, on purpose.** The 2026-08-10 entry measured the blast radius
+> and found that several generator tests legitimately rewrite `site/data/*.json`; protecting the
+> directory would red them for nothing. That measurement still holds and is not re-litigated
+> here — `publish_provenance.json` remains the one file in there that is a public claim rather
+> than a regenerable artefact.
+
+So the central recommendation above — guard `site/data/` as a surface, the way `docs/staging/` and
+`docs/status/` are guarded — **is the exact option that was measured and deliberately rejected**,
+with the blast radius counted. Not an oversight; a decision.
+
+## Which specific claims die
+
+- **"The catalogued shape / one sibling fixed, three left live."** Wrong, and unfairly so. The
+  siblings were not missed. `generate_dashboard_json` is mocked in that suite because
+  `site/data/dashboard.json`'s guard status differs, and the others are left live because the
+  measurement said leaving them live is correct. I read a deliberate boundary as an incomplete fix.
+- **"What stopped it was arrangement, not a control."** Wrong. `tests/production_surface_guard.py`
+  IS the control, it is closed over primitives (`builtins.open`, `os.open`, `os.replace`,
+  `shutil.*`, the three `Path` methods), and `site/data/` is outside it by measurement.
+- **The recommended repair.** Withdrawn entirely.
+
+## What still stands, and it is only this
+
+The *observations* are reproduced and correct: those two suites do rewrite those files, the
+promote refusal does name them, and the `git=abc1234` / epoch-0 payload is really what lands in
+the worktree copy. All of that is **known and expected behaviour**, not a defect. The operational
+consequence is already recorded as such: run broad suites BEFORE `surgical_land`, not between
+landing and promoting.
+
+## The one question I am leaving open, stated as a question
+
+`_PROTECTED_WRITE_PATHS` protects `publish_provenance.json` in `site/data/` because it is *"a
+public claim rather than a regenerable artefact"*. `director_reserved.json` carries what is
+waiting on the director, and what a test writes into it is not a regenerated view of real data —
+it is a **fabricated alarm** (`git=abc1234`, wedged since `1970-01-01`, two innocent test node ids
+named as blockers). That may put it on the public-claim side of the same line the existing rule
+already draws.
+
+I am **not** filing that as a finding. I have not shown it can reach a reader, the shared tree and
+HEAD are both clean of it, and the honest move is to extend an existing measurement rather than
+open a second front on a question that already has one. If a lane picks it up, the subject is one
+line in `_PROTECTED_WRITE_PATHS`, not a new guard.
+
+## Why it happened, which is the part worth keeping
+
+`CLAUDE.md`: *"Look for the parked atom before minting a new one. The thing you are about to file
+is usually already on the map."* I did not. I found the behaviour by accident mid-landing,
+reproduced it cleanly, and went straight from a good measurement to a filed finding without ever
+asking whether the question was already answered — and it was answered, in a module whose
+docstring names this exact directory and this exact reason.
+
+**The reproduction was not wasted; the framing was.** Measuring first is right and I would do it
+again. What I skipped was the cheap step between measuring and filing: grep for who already owns
+the question. Roughly ten seconds, against a finding that would have cost another lane an hour to
+re-refute.
