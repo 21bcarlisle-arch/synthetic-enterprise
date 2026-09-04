@@ -170,3 +170,51 @@ Per MAKE IT STICK, this determination is enforced rather than exhorted:
 settlement behaviour above and **ratchets against the unanchored repair** — it
 fails if the drawn population is given a blanket upliftable label, and passes for
 an anchored distribution. R15 mutation recorded in that file's docstring.
+
+---
+
+## Addendum, 2026-08-30 — the census re-measured, and one thing it could not see
+
+Re-measured on the roster `simulation.run_phase2b` binds today, because the census in
+section (a) is now stale in its counts and — more importantly — was taken over the
+**electricity book only**, which is exactly where the defect is uniform and therefore
+where it looks like one fact rather than two.
+
+| population | electricity legs | `.get("tariff_type", "fixed")` | gas legs | `.get(...)` |
+|---|---|---|---|---|
+| won by the funnel (`net_new_won`) | 90 | key **present**, `None` | 86 | key **absent** → `"fixed"` |
+| drawn by the curriculum (`synthetic_draw`) | 51 | key **present**, `None` | 18 | key **present**, `None` |
+| founder, hand-authored | 9 (+6 successors) | key **absent** → `"fixed"` | 4 | key **absent** → `"fixed"` |
+
+Two readings follow, and the second is new.
+
+**The ruling above is confirmed and is now measured rather than argued.** All 141
+electricity legs the company found — every one of the 90 it won and the 51 it drew —
+resolve to `None` and are refused at `UPLIFTABLE_TARIFF_TYPES`; all 15 founder
+electricity legs omit the field, take the `"fixed"` default and are admitted. The gate
+is a property of the record shape, so **no book size opens it**: the first won household
+is not priced at any book size, only at a world that gives it a product. That sentence
+is on the live arms page, and its premise is now published beside it as
+`renewal_funnel.product_label_by_account_class` rather than asserted in prose
+(`tools/run_value_cycle_ab.py`, controls in `tests/tools/test_the_renewal_funnel.py`).
+
+**A won account's two legs disagree about whether its product was ever decided.** The
+electricity leg carries the key present and `None`; the gas leg omits it and takes
+`"fixed"`. 86 billing accounts, one per won dual-fuel customer, because the two legs are
+minted by different paths — the electricity leg through
+`population_draw.to_customer_dict`, which renders the key unconditionally, and the gas
+leg by a constructor that never mentions it. Section (a) could not see this: it censused
+one commodity, and within that commodity the answer is uniform.
+
+It is **latent, not active**. The commodity guard refuses gas one stage earlier
+(`not_the_arms_commodity`, 429 renewals), so nothing today reads the gas leg's label. It
+becomes live the moment any writer prices gas — at which point 86 won gas legs would be
+priced as a *fixed* product on the strength of a default nobody chose, while their own
+electricity legs record that the product was never decided. **The repair is the same one
+this determination already registered as owed** — a product distribution the world
+actually draws — and it must cover both legs of an account, not the electricity book
+that happened to be censused first.
+
+Recorded here rather than as its own finding because it is the same defect as the one
+ruled on above, seen at a second call site: a default defeated by one minting path and
+relied on by another, in one account.

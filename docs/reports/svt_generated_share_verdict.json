@@ -1,0 +1,135 @@
+{
+  "basis": "all_domestic",
+  "status": "out_of_band",
+  "years": [
+    {
+      "year": 2016,
+      "total_account_days": 13739,
+      "fixed_share": 0.9998544289977437,
+      "svt_share": 0.00014557100225635054,
+      "published_fixed_band": [
+        0.26,
+        0.34
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2017,
+      "total_account_days": 21708,
+      "fixed_share": 0.5736134144094344,
+      "svt_share": 0.4263865855905657,
+      "published_fixed_band": [
+        0.3635,
+        0.3805
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2018,
+      "total_account_days": 24183,
+      "fixed_share": 0.4526733655873961,
+      "svt_share": 0.5473266344126039,
+      "published_fixed_band": [
+        0.4145,
+        0.4145
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2019,
+      "total_account_days": 27717,
+      "fixed_share": 0.4466572861420789,
+      "svt_share": 0.5533427138579211,
+      "published_fixed_band": [
+        0.4145,
+        0.4315
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2020,
+      "total_account_days": 32594,
+      "fixed_share": 0.41753083389580903,
+      "svt_share": 0.582469166104191,
+      "published_fixed_band": null,
+      "verdict": "cannot_tell",
+      "why_no_verdict": "no established published figure for this year; `published_tariff_mix` carries it as an explicit gap rather than interpolating across the crisis"
+    },
+    {
+      "year": 2021,
+      "total_account_days": 36588,
+      "fixed_share": 0.4196184541379687,
+      "svt_share": 0.5803815458620313,
+      "published_fixed_band": null,
+      "verdict": "cannot_tell",
+      "why_no_verdict": "no established published figure for this year; `published_tariff_mix` carries it as an explicit gap rather than interpolating across the crisis"
+    },
+    {
+      "year": 2022,
+      "total_account_days": 40015,
+      "fixed_share": 0.2154691990503561,
+      "svt_share": 0.7845308009496439,
+      "published_fixed_band": [
+        0.1,
+        0.2
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2023,
+      "total_account_days": 42444,
+      "fixed_share": 0.08995382150598435,
+      "svt_share": 0.9100461784940156,
+      "published_fixed_band": [
+        0.1,
+        0.2
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2024,
+      "total_account_days": 47208,
+      "fixed_share": 0.4180435519403491,
+      "svt_share": 0.5819564480596509,
+      "published_fixed_band": [
+        0.14,
+        0.2
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    },
+    {
+      "year": 2025,
+      "total_account_days": 22023,
+      "fixed_share": 0.4655587340507651,
+      "svt_share": 0.5344412659492349,
+      "published_fixed_band": [
+        0.3,
+        0.36
+      ],
+      "verdict": "out_of_band",
+      "why_no_verdict": null
+    }
+  ],
+  "years_out_of_band": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "years_with_no_established_figure": [
+    2020,
+    2021
+  ],
+  "years_judged": 8
+}

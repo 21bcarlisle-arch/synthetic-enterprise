@@ -21,6 +21,18 @@ account-days settled at all in that year, and both count the same entity.
 The schedules are built without running settlement, which is what makes this cheap enough to run
 beside a change rather than only after a full decade run.
 
+THE VERDICT IS THE EXIT CODE, AND IT DID NOT USED TO BE. This tool printed `OUT` beside eight of
+eight judged years and `main()` ended `return 0`, so the only check over the world's product mix
+reported PASS to anything that could have consumed it while displaying its own refutation --
+`SEAT_FINDING_THE_WORLDS_FIXED_DEAL_SHARE_IS_OUTSIDE_THE_PUBLISHED_BAND_IN_EVERY_YEAR` records that
+nothing read it, which is why the gap went unnoticed. Now: `0` in band, `1` out of band, `2` could
+not measure, and `--out` writes the per-year verdict as JSON **including on a refusal**, so an
+absent measurement cannot be mistaken for a passing one or a stale file read as today's.
+
+None of that pins a year to a share. The comparison is `lo <= share <= hi` against whatever
+`published_tariff_mix` establishes, so this goes green on its own when the world is repaired, and a
+year the record does not establish is a THIRD STATE (`cannot_tell`) rather than a quiet pass.
+
 REUSE
 -----
 REUSE: tools/svt_generated_share_check.py
@@ -39,11 +51,23 @@ INDEX: searched "svt", "share", "split", "fixed", "tariff mix", "check", "popula
 from __future__ import annotations
 
 import argparse
+import json
 from collections import defaultdict
 from datetime import date, timedelta
+from pathlib import Path
 
 from simulation.run_phase2b import REPORT_END, REPORT_START
 from tools.published_tariff_mix import fixed_share
+
+
+class CannotMeasure(RuntimeError):
+    """The generated share could not be built at all, so there is no share to judge.
+
+    A named exception rather than a bare `SystemExit` because `main()` has to be able to tell
+    "measured, and it is out of band" from "could not measure" and write BOTH at `--out`. A
+    refusal that writes nothing is indistinguishable from a run that never happened, and the
+    consumer then reads a stale artefact as today's verdict.
+    """
 
 #: The published fixed-deal band now comes from `tools/published_tariff_mix.py`, which is the one
 #: home for this series. THIS FILE USED TO CARRY ITS OWN COPY and that copy was wrong in a way
@@ -78,7 +102,7 @@ def generated_fixed_share_by_year(report_end: str = REPORT_END) -> dict[int, dic
     )
     price_records = get_cached_prices(fetch_start, report_end)
     if price_records is None:
-        raise SystemExit(
+        raise CannotMeasure(
             "no cached SSP records for the window; this tool deliberately does not fetch -- run "
             "the sim once to warm the cache, or narrow --report-end"
         )
@@ -118,9 +142,70 @@ def generated_fixed_share_by_year(report_end: str = REPORT_END) -> dict[int, dic
     return out
 
 
+#: The three things a year can be. `CANNOT_TELL` is a THIRD STATE and not a flavour of pass: a year
+#: the published record does not establish has not been checked, and rolling it into `IN_BAND` would
+#: let the check report conformance it never measured. 2020 and 2021 are both of these today.
+IN_BAND, OUT_OF_BAND, CANNOT_TELL = "in_band", "out_of_band", "cannot_tell"
+
+
+def build_verdict(rows: dict[int, dict], basis: str) -> dict:
+    """Judge each year's generated share against its published band. Pure — no run, no I/O.
+
+    Keyed to the BAND and never to today's numbers: the only thing asserted anywhere is
+    `lo <= share <= hi` against whatever `published_tariff_mix` currently establishes. When the
+    world moves into range this returns `IN_BAND` on its own, and when the published series is
+    corrected the verdict follows the correction. Nothing here pins a year to a figure, which is
+    what `tests/simulation/test_svt_product.py` says a control over this subject must not do.
+    """
+    years, out_of_band, cannot_tell = [], [], []
+    for year, row in rows.items():
+        band = fixed_share(year, basis)
+        share = row["fixed_share"]
+        if band is None or share is None:
+            verdict = CANNOT_TELL
+            cannot_tell.append(year)
+        else:
+            verdict = IN_BAND if band[0] <= share <= band[1] else OUT_OF_BAND
+            if verdict == OUT_OF_BAND:
+                out_of_band.append(year)
+        years.append({
+            "year": year,
+            "total_account_days": row["total_account_days"],
+            "fixed_share": share,
+            "svt_share": row["svt_share"],
+            "published_fixed_band": list(band) if band else None,
+            "verdict": verdict,
+            "why_no_verdict": None if band else (
+                "no established published figure for this year; `published_tariff_mix` carries it "
+                "as an explicit gap rather than interpolating across the crisis"
+            ),
+        })
+    judged = [y for y in years if y["verdict"] != CANNOT_TELL]
+    # Fails closed on an empty subject: nothing judged is `CANNOT_TELL`, never `IN_BAND`.
+    if out_of_band:
+        status = OUT_OF_BAND
+    elif judged:
+        status = IN_BAND
+    else:
+        status = CANNOT_TELL
+    return {
+        "basis": basis,
+        "status": status,
+        "years": years,
+        "years_out_of_band": out_of_band,
+        "years_with_no_established_figure": cannot_tell,
+        "years_judged": len(judged),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--report-end", default=REPORT_END)
+    ap.add_argument(
+        "--out", type=Path, default=None,
+        help="write the verdict as JSON here. Written on a REFUSAL too, so that a consumer can "
+             "never mistake 'could not measure' for 'did not run' or read a stale file as today.",
+    )
     ap.add_argument(
         "--basis", default="all_domestic", choices=PUBLISHED_BASES,
         help="which published population to judge against. 'as_published' is Ofgem's own figure, "
@@ -131,23 +216,54 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    rows = generated_fixed_share_by_year(args.report_end)
+    def emit(payload: dict) -> None:
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(payload, indent=2) + "\n")
+
+    try:
+        rows = generated_fixed_share_by_year(args.report_end)
+    except CannotMeasure as exc:
+        # The refusal is a RESULT and it goes to the artefact, not only to stderr.
+        emit({"basis": args.basis, "status": CANNOT_TELL, "refused": str(exc), "years": []})
+        print(f"REFUSED: {exc}")
+        return 2
+
+    report = build_verdict(rows, args.basis)
+    emit(report)
+
     print(f"published fixed-deal band on basis: {args.basis}")
     print(f"{'year':>6} {'acct-days':>10} {'fixed':>8} {'svt':>8} {'other':>8}  published fixed")
-    for year, row in rows.items():
+    for row, judged in zip(rows.values(), report["years"]):
         other = 1.0 - (row["fixed_share"] or 0.0) - (row["svt_share"] or 0.0)
-        band = fixed_share(year, args.basis)
+        band = judged["published_fixed_band"]
         if band is None:
             verdict = "(no established figure)"
         else:
-            lo, hi = band
-            inside = lo <= (row["fixed_share"] or 0.0) <= hi
-            verdict = f"{lo:.0%}-{hi:.0%}  {'IN' if inside else 'OUT'}"
+            verdict = (
+                f"{band[0]:.0%}-{band[1]:.0%}  "
+                f"{'IN' if judged['verdict'] == IN_BAND else 'OUT'}"
+            )
         print(
-            f"{year:>6} {row['total_account_days']:>10,} "
+            f"{judged['year']:>6} {row['total_account_days']:>10,} "
             f"{row['fixed_share']:>8.1%} {row['svt_share']:>8.1%} {other:>8.1%}  {verdict}"
         )
-    return 0
+
+    if report["years_with_no_established_figure"]:
+        print(
+            f"\n{len(report['years_with_no_established_figure'])} year(s) carry no established "
+            f"figure and were NOT judged: {report['years_with_no_established_figure']}. "
+            "They are not evidence of conformance."
+        )
+    if report["status"] == OUT_OF_BAND:
+        print(
+            f"\nOUT OF BAND in {len(report['years_out_of_band'])} of {report['years_judged']} "
+            f"judged years: {report['years_out_of_band']}. The published split is a CHECK and "
+            "never an input -- the repair is to the behaviour, not to the share."
+        )
+    # The verdict is the exit code. This used to `return 0` whatever it printed, so every consumer
+    # of this check read PASS while it printed OUT in eight of eight judged years.
+    return 0 if report["status"] == IN_BAND else 1
 
 
 if __name__ == "__main__":
