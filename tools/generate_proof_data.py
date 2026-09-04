@@ -1652,6 +1652,60 @@ def _corrections():
     ]
 
 
+DEPLOYMENT_PATH = PROJECT / "docs" / "observability" / "daemon_deployment.json"
+
+
+def _deployment():
+    """WHICH DAEMONS ARE RUNNING WHICH CODE, as a reading rather than a discovery.
+
+    Director, 2026-09-04: "every daemon's loaded-code age against its running age, in one place, so
+    'ten of eleven are stale' is a reading and not a discovery." On that morning ten of eleven
+    daemons held changed modules, `sim-runner` 146 of them, and the only way anyone learned it was
+    by going and asking.
+
+    READ FROM THE ARTEFACT, NOT BY IMPORTING THE PRODUCER. `background.deploy_restart` pulls in the
+    process reconciler and the import-closure walker, and a publishing tool that imports its way
+    into that graph is the shape this repo has already been bitten by. The artefact is a seam; the
+    producer writes it every ten minutes from its own timer.
+
+    FAIL-CLOSED AND SAYS WHICH. An absent or unreadable artefact publishes `available: false` with
+    a reason. A page that silently omits the block reads as "no daemon is stale", which is the one
+    thing this must never say by accident.
+    """
+    try:
+        raw = json.loads(DEPLOYMENT_PATH.read_text())
+    except Exception as exc:  # noqa: BLE001 -- the reason is the payload
+        return {"available": False,
+                "unavailable_because": (
+                    "docs/observability/daemon_deployment.json could not be read ({!r}). No claim "
+                    "is made about whether any daemon is running stale code.".format(exc))}
+    rows = [{
+        "session": r.get("session"),
+        "running_age_s": r.get("running_age_s"),
+        "loaded_code_age_s": r.get("loaded_code_age_s"),
+        "behind_s": r.get("behind_s"),
+        "modules_behind": r.get("modules_behind"),
+        "stale": r.get("stale"),
+        "mid_work": r.get("mid_work"),
+        "session_hosting": r.get("session_hosting"),
+        "unresolved": r.get("unresolved"),
+    } for r in (raw.get("daemons") or [])]
+    return {
+        "available": True,
+        "measured_at_s": raw.get("generated_at_s"),
+        "head": raw.get("head"),
+        "summary": raw.get("summary") or {},
+        "daemons": rows,
+        "what_the_two_ages_mean": (
+            "RUNNING AGE is how long the process has been up; LOADED-CODE AGE is how old the code "
+            "it holds is, from the commit it booted at. They answer different questions -- a "
+            "daemon restarted an hour ago onto a stale checkout has a small running age and a "
+            "large loaded-code age, and only the pair can say so. MODULES BEHIND stays the "
+            "verdict: a daemon days behind in time that holds nothing which changed is current."
+        ),
+    }
+
+
 def generate():
     try:
         dashboard = json.loads(DASHBOARD_PATH.read_text())
@@ -1678,6 +1732,7 @@ def generate():
         principles=_principles(),
         not_proven=_not_proven(),
         corrections=_corrections(),
+        deployment=_deployment(),
     )
     # MAJOR-7: re-point every evidence citation at where the artefact lives now,
     # so an archived staging directive stays walkable instead of silently 404ing.

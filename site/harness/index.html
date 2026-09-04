@@ -187,6 +187,23 @@ a { color: var(--teal); }
   </section>
 
   <section>
+    <h2>What code each daemon is actually running</h2>
+    <p class="sub">
+      A green test proves the code is right. It proves nothing whatever about the code being
+      <em>loaded</em>: a long-lived process holds whatever it imported when it started, and on
+      2026-09-04 ten of eleven daemons here were running code up to eleven days behind the
+      repository — one of them holding 146 changed modules — while every liveness surface called
+      them healthy. Two ages are shown because they answer different questions. <b>Running age</b>
+      is how long the process has been up, and long is not wrong. <b>Loaded-code age</b> is how old
+      the code it holds is. A daemon restarted an hour ago onto a stale checkout has a small
+      running age and a large loaded-code age, and only the pair can tell you so. The verdict is
+      neither: it is whether any module the daemon <em>imports</em> has changed since it booted, so
+      a daemon days behind in time that holds nothing which moved is current, and reads as current.
+    </p>
+    <div id="deployment"></div>
+  </section>
+
+  <section>
     <h2>Where belief and truth diverge</h2>
     <p class="sub">
       The company inside the simulation cannot see the world it lives in — it infers. This is the
@@ -345,6 +362,50 @@ function renderStamp(d) {
     '<span class="chk"><i class="dot ' + cls + '"></i>' + esc(txt) + "</span>";
 }
 
+function ageStr(sec) {
+  if (sec === null || sec === undefined) return "?";
+  var v = Number(sec);
+  if (isNaN(v)) return "?";
+  if (v < 3600) return Math.round(v / 60) + "m";
+  if (v < 86400) return (v / 3600).toFixed(1) + "h";
+  return (v / 86400).toFixed(1) + "d";
+}
+
+function renderDeployment(d) {
+  var dep = d.deployment;
+  /* FAIL CLOSED AND SAY SO. An absent block must never render as an empty table, which reads as
+     "no daemon is stale" -- the one sentence this section exists to stop being said by accident. */
+  if (!dep || !dep.available) {
+    $("deployment").innerHTML = '<div class="card"><div class="meta">unavailable</div>' +
+      "<h3>Which code each daemon is running cannot be established</h3><p>" +
+      esc((dep && dep.unavailable_because) ||
+          "the deployment reading is absent, so no claim is made about any daemon.") + "</p></div>";
+    return;
+  }
+  var rows = dep.daemons || [], s = dep.summary || {};
+  var stale = Number(s.stale || 0), obs = Number(s.observed || rows.length);
+  var head = stale === 0
+    ? "All " + obs + " observed daemons are running current code."
+    : stale + " of " + obs + " observed daemons are running code behind the repository.";
+  var body = rows.map(function (r) {
+    var verdict = r.unresolved
+      ? '<span class="dot unknown"></span>cannot tell: ' + esc(r.unresolved)
+      : (r.stale ? '<span class="dot bad"></span>' + n(r.modules_behind) + " changed module(s) it imports"
+                 : '<span class="dot"></span>current');
+    var flags = (r.session_hosting ? " <b>hosts a session</b>" : "") +
+                (r.mid_work ? " <b>mid-work</b>" : "");
+    return "<tr><td>" + esc(r.session) + "</td><td>" + ageStr(r.running_age_s) +
+      "</td><td>" + ageStr(r.loaded_code_age_s) + "</td><td>" + ageStr(r.behind_s) +
+      "</td><td>" + verdict + flags + "</td></tr>";
+  }).join("");
+  $("deployment").innerHTML =
+    "<p><b>" + esc(head) + "</b> Daemons holding changed code are restarted automatically; one " +
+    "that hosts a live session, or has a job in flight, is left alone until it is idle.</p>" +
+    '<div class="table-scroll"><table class="tbl"><thead><tr><th>daemon</th>' +
+    "<th>running age</th><th>loaded-code age</th>" +
+    "<th>behind</th><th>verdict</th></tr></thead><tbody>" + body + "</tbody></table></div>";
+}
+
 function renderNotProven(d) {
   var items = d.not_proven || [];
   $("not-proven").innerHTML = items.length ? items.map(function (x) {
@@ -431,7 +492,7 @@ function renderControls(d) {
 }
 
 fetch("../data/proof.json").then(function (r) { return r.json(); }).then(function (d) {
-  renderStamp(d); renderNotProven(d); renderGaps(d);
+  renderStamp(d); renderNotProven(d); renderGaps(d); renderDeployment(d);
   renderCorrections(d); renderRules(d); renderControls(d);
 }).catch(function () {
   $("stamp").innerHTML = "The record behind this page could not be loaded, so no figures are shown.";
