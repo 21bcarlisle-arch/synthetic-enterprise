@@ -175,10 +175,20 @@ def delivery_state() -> dict:
     Exists so 'am I deaf?' is answerable WITHOUT sending on the channel under
     test -- the finding established that the channel cannot be probed cheaply,
     so the only honest design is to make every real send observable."""
-    try:
-        return json.loads(DELIVERY_STATE_FILE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
+    return delivery_state_classified()[0]
+
+
+def delivery_state_classified() -> tuple[dict, str]:
+    """`(state, verdict)` -- ABSENT and PRESENT-BUT-UNREADABLE are opposite facts.
+
+    See background/episode_prior.py. This returned `{}` for both, so a truncated file made
+    `delivered` read as None -- the cold-start branch -- and a multi-hour deafness episode
+    restamped `since_epoch` at now. And `null`/`[1, 2, 3]` parse, so they escaped the
+    except-clause and raised AttributeError at `previous.get("delivered")` on EVERY ntfy send,
+    including the send carrying the failure this channel exists to report."""
+    from background.episode_prior import load_episode_prior
+
+    return load_episode_prior(DELIVERY_STATE_FILE)
 
 
 def record_delivery_outcome(delivered: bool, detail: str) -> None:
@@ -195,7 +205,7 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     ):
         return
 
-    previous = delivery_state()
+    previous, _prior = delivery_state_classified()
     was_delivered = previous.get("delivered")
     failures = 0 if delivered else int(previous.get("consecutive_failures") or 0) + 1
     transition = was_delivered is not None and bool(was_delivered) != delivered
@@ -233,6 +243,7 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     # still has to be a start: the episode is demonstrably open (the failure streak is rising), and
     # a lower bound that grows correctly from here beats "unknown" forever.
     from background.episode_monotonic import guard_episode, recorded_instant_seconds
+    from background.episode_prior import prior_unreadable as _prior_unreadable
     _persisted_epoch = previous.get("since_epoch")
     _carry_epoch = (
         _persisted_epoch if recorded_instant_seconds(_persisted_epoch) is not None else now
@@ -246,6 +257,12 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
             "since_epoch": now if transition or was_delivered is None else _carry_epoch,
             "last_checked": ts,
             "consecutive_failures": failures,
+            # ABSENT vs PRESENT-BUT-UNREADABLE (2026-09-04). `was_delivered is None` above means
+            # "cold start, stamp now" -- and an unreadable file produced exactly that reading, so a
+            # deafness episode of unknown length restarted at zero on a file nobody could parse.
+            # There is no earlier value to recover, so `now` stands; what changes is that the
+            # record no longer CLAIMS a cold start it never observed.
+            "prior_unreadable": _prior_unreadable(_prior),
         },
         since_fields=("since_epoch",),
         streak_fields=("consecutive_failures",),

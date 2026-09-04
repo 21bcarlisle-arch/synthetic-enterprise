@@ -142,6 +142,7 @@ from background.episode_monotonic import (  # noqa: E402  (PW4)
 from background.episode_monotonic import (  # noqa: E402  (PW4, one screen for every timestamp)
     recorded_instant_seconds as _recorded_instant,
 )
+from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
@@ -5941,12 +5942,17 @@ def _stuck_key(reason: str) -> str:
 
 
 def _load_stuck_state() -> dict:
-    if not STUCK_STATE_FILE.exists():
-        return {}
-    try:
-        return json.loads(STUCK_STATE_FILE.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {}
+    """The stuck-episode prior. See `_load_stuck_state_classified` for why there are two."""
+    return _load_stuck_state_classified()[0]
+
+
+def _load_stuck_state_classified() -> tuple[dict, str]:
+    """`(state, verdict)` -- ABSENT and UNREADABLE are opposite facts (background/episode_prior.py).
+
+    This used to return `{}` for a missing file AND for a corrupt one, and to return a LIST or
+    `None` for a file holding `[1, 2, 3]` or `null` -- which parse, so they escaped the
+    except-clause and left through a `-> dict` annotation into `state.get(...)` at line 6013."""
+    return load_episode_prior(STUCK_STATE_FILE)
 
 
 def _save_stuck_state(state: dict) -> None:
@@ -6010,14 +6016,26 @@ def _check_stuck_escalation(reason: str) -> None:
     clock must not re-arm the page either, or one stall would page repeatedly (R5)."""
     key = _stuck_key(reason)
     episode_key = _stuck_episode_key(reason)
-    state = _load_stuck_state()
+    state, prior = _load_stuck_state_classified()
     now = time.time()
-    episode_closed = state.get("episode_key") != episode_key
+    # AN UNREADABLE PRIOR IS NOT AN EVIDENCED CLOSE (2026-09-04). `episode_closed` is a caller's
+    # ASSERTION and episode_monotonic is explicit that asserting it from a path that did not
+    # demonstrate a close is still a defect. A corrupt or truncated state file demonstrates
+    # nothing: it reads here as `{}`, so `episode_key` compares unequal, so a stall that had been
+    # running for hours closed its own episode and re-stamped `first_seen_at` at now -- silently,
+    # on evidence nobody had. Absent is the opposite fact and keeps today's behaviour: with no file
+    # on disk nothing was ever recorded, so a new episode genuinely starts here.
+    lost = prior_unreadable(prior)
+    episode_closed = (not lost) and state.get("episode_key") != episode_key
     proposed = {
         "key": key,
         "episode_key": episode_key,
         "first_seen_at": now,
         "escalated": False if episode_closed else bool(state.get("escalated")),
+        # ON THE SURFACE, not in a footnote: the next reader of this file, and any alarm deriving
+        # severity from it, must be able to see that the episode's memory was LOST rather than
+        # that a new episode began. "We cannot tell" is a result.
+        "prior_unreadable": lost,
     }
     state = guard_episode(state, proposed, since_fields=STUCK_SINCE_FIELDS,
                           episode_closed=episode_closed)
@@ -6136,12 +6154,12 @@ def _atom_fingerprint_progressed(old: str | None, new: str) -> bool:
 
 
 def _load_atom_stall_state() -> dict:
-    if not ATOM_STALL_STATE_FILE.exists():
-        return {}
-    try:
-        return json.loads(ATOM_STALL_STATE_FILE.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {}
+    return _load_atom_stall_state_classified()[0]
+
+
+def _load_atom_stall_state_classified() -> tuple[dict, str]:
+    """`(state, verdict)` -- see `_load_stuck_state_classified`. Same defect, same shape."""
+    return load_episode_prior(ATOM_STALL_STATE_FILE)
 
 
 def _save_atom_stall_state(state: dict) -> None:
@@ -6169,16 +6187,24 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[b
     (never permanently exclude -- a later fingerprint change resets the
     count and clears the flag naturally, since a fresh count of 1 is well
     under threshold) an atom the draw keeps reselecting for no new reason."""
-    state = _load_atom_stall_state()
+    state, prior = _load_atom_stall_state_classified()
     entry = state.get(atom_id, {})
+    entry = entry if isinstance(entry, dict) else {}   # a per-atom row can be unreadable on its own
     # PW4: the episode closes on PROGRESS, not on any fingerprint difference (see
     # _atom_fingerprint_progressed).
-    episode_closed = _atom_fingerprint_progressed(entry.get("fingerprint"), fingerprint)
+    # ...AND AN UNREADABLE PRIOR IS NOT PROGRESS (2026-09-04, the absent-vs-unreadable sweep).
+    # A corrupt tracker read as `{}`, so every atom's `fingerprint` came back None, so
+    # _atom_fingerprint_progressed said "moved" for every atom at once and the whole stall register
+    # reset to 1 -- the livelock detector clearing itself on a file it could not read.
+    lost = prior_unreadable(prior)
+    episode_closed = (not lost) and _atom_fingerprint_progressed(
+        entry.get("fingerprint"), fingerprint)
     count = 1 if episode_closed else entry.get("consecutive_unchanged", 0) + 1
     proposed = {
         "fingerprint": fingerprint,
         "consecutive_unchanged": count,
         "last_drawn_at": time.time(),
+        "prior_unreadable": lost,   # the count below is a FLOOR, not the episode -- see above
     }
     proposed = guard_episode(entry, proposed, streak_fields=ATOM_STALL_STREAK_FIELDS,
                              episode_closed=episode_closed)

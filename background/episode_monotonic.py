@@ -104,7 +104,21 @@ wired into either carrier meets this guard with `prev=None` on its first write, 
 missing KEY was covered; a missing FILE was not, and the missing file is the earlier state.
 
 Pure functions only -- no I/O, no imports from the modules it guards (the census audits those).
-Used by: `process_run_complete._write_publish_gate_state`.
+
+USED BY (2026-09-04 -- the line here said `process_run_complete._write_publish_gate_state` and
+nothing else, which was true when it was written and had been wrong for weeks; a stale "used by"
+is worse than none, because it tells the next reader the blast radius of a change is one call
+site). Eighteen call sites across six modules: `background/supervisor.py`,
+`background/background_worker.py`, `background/sim_runner.py`, `background/ntfy_utils.py`,
+`background/process_run_complete.py`, `background/publish_cause.py`. The list that cannot go
+stale is the grep, so run it rather than trusting this paragraph:
+
+    grep -rnE 'guard_episode|episode_age_seconds|recorded_instant_seconds' background/ tools/
+
+WHAT LOADS THE PRIOR THIS GUARD REPAIRS: `background/episode_prior.py`. It exists because the
+ABSENT/UNREADABLE distinction this module argues and turns on was being erased one level ABOVE it
+-- every carrier's loader answered a corrupt state file exactly as it answered no state file, so
+the degrade door below was unreachable from five of the eight call sites that could have used it.
 """
 from __future__ import annotations
 

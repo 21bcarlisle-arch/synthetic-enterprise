@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background import publisher_budget  # noqa: E402
 from background.child_diagnostics import child_output_excerpt  # noqa: E402
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
+from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
 
 PEAK_START = 16  # 4pm GMT
 PEAK_END = 19    # 7pm GMT
@@ -165,10 +166,17 @@ def retire_superseded_marker(marker: Path, newest_published: str, done_dir: Path
 
 
 def _load_sweep_state() -> dict:
-    try:
-        return json.loads(SWEEP_STATE_FILE.read_text())
-    except Exception:
-        return {}
+    return _load_sweep_state_classified()[0]
+
+
+def _load_sweep_state_classified() -> tuple[dict, str]:
+    """`(state, verdict)` -- ABSENT and UNREADABLE are opposite facts (background/episode_prior.py).
+
+    The bare `except Exception: return {}` here answered a truncated state file exactly as it
+    answered no state file, so an eight-cycle zero-progress episode restarted at 1 whenever this
+    file could not be read; and `null`/`[1, 2, 3]` PARSE, so they left through a `-> dict`
+    annotation and raised AttributeError at `state.get("cycles")` below."""
+    return load_episode_prior(SWEEP_STATE_FILE)
 
 
 def _save_sweep_state(state: dict):
@@ -246,7 +254,8 @@ def _check_zero_progress(pending):
     oldest N sweeps running, nothing is draining, whatever the per-marker log
     lines say. R5: fires ONCE on the transition into the stalled state and
     stays quiet until the oldest marker actually changes."""
-    state = _load_sweep_state()
+    state, prior = _load_sweep_state_classified()
+    lost = prior_unreadable(prior)
     oldest = pending[0].name if pending else None
     if oldest is None:
         if state.get("stalled_on"):
@@ -280,6 +289,12 @@ def _check_zero_progress(pending):
         "stalled_on": oldest if (fire or already_alarmed) else None,
         "last_outcome": state.get("last_outcome"),
         "last_outcome_marker": state.get("last_outcome_marker"),
+        # ABSENT vs PRESENT-BUT-UNREADABLE (2026-09-04). Both used to arrive here as `{}` and both
+        # wrote `cycles: 1`. They are opposite facts: with no file on disk nothing was ever
+        # recorded and 1 is the truth; with a truncated one an episode of unknown length just lost
+        # its memory and 1 is a FLOOR. The counter cannot be recovered -- but the alarm reading it
+        # for severity can at least be told the difference, which it could not before.
+        "prior_unreadable": lost,
     })
     if fire:
         # R9 APPLIED TO A CONTROL (EPISODE4 item 2, 2026-08-09). This alarm used to end

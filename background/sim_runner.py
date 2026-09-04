@@ -187,6 +187,7 @@ from background.child_diagnostics import (  # noqa: E402
     stderr_tail,
 )
 from background.episode_monotonic import guard_episode, recorded_instant_seconds  # noqa: E402
+from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 
@@ -235,12 +236,14 @@ def record_run_outcome(
 
     path = Path(state_path) if state_path is not None else PRODUCER_STATE_FILE
     stamp = time.time() if now is None else now
-    try:
-        previous = json.loads(path.read_text())
-        if not isinstance(previous, dict):
-            previous = {}
-    except (OSError, ValueError):
-        previous = {}
+    # ABSENT vs PRESENT-BUT-UNREADABLE (2026-09-04). This block used to answer both with `{}`, and
+    # the guard comment below claims protection against "a truncated read" -- measured, it had
+    # none, because the truncated read never reached the guard AS a prior. It arrived as an absent
+    # one, so `first_failure_ts` re-stamped at now and `consecutive_failures` reset to 1: a
+    # ten-hour outage read as a fresh failure, which is the 2026-08-09 shape the census exists to
+    # enumerate. The guard's own argued degrade door was unreachable from this call site.
+    previous, _prior = load_episode_prior(path)
+    _prior_lost = prior_unreadable(_prior)
 
     if ok:
         state = {
@@ -281,6 +284,10 @@ def record_run_outcome(
             "detail": detail,
             "git": head,
             "elapsed_s": round(elapsed) if elapsed is not None else None,
+            # RUNG 1d reads `first_failure_ts` and `consecutive_failures` for SEVERITY. When the
+            # prior was unreadable both are floors, not the episode, and the rung can now be told
+            # so instead of being handed a fresh outage it has no evidence for.
+            "prior_unreadable": _prior_lost,
         }
 
     # EPISODE GUARD (PW2 self-clearing-alarm census, 2026-08-17). This file carries BOTH shapes
