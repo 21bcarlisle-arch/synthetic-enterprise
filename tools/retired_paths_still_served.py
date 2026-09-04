@@ -75,6 +75,11 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from background.episode_prior import load_episode_prior  # noqa: E402
+
 SITE = ROOT / "site"
 CAPTURE = ROOT / "docs" / "observability" / "edge_traffic.jsonl"
 STATE = ROOT / "docs" / "observability" / "retired_paths_served.json"
@@ -332,14 +337,30 @@ def report(current: dict[str, dict], changes: list[str], brief: bool = False) ->
     return "\n".join(lines)
 
 
+def _load_previous_state() -> dict:
+    """Last run's verdicts, for `transitions` to difference against.
+
+    `except ValueError` caught the truncated file and not `[1, 2, 3]` or `"abc"`, which parse --
+    `transitions`' `(previous or {}).get` then raised AttributeError (measured 2026-09-05, census
+    loader sweep). `null` did NOT raise, because `None or {}` is `{}`, and that is the trap: one
+    member of the partition answered correctly by accident and made the other two look impossible.
+
+    A NAMED FUNCTION RATHER THAN FOUR LINES INSIDE `run` BECAUSE OF WHAT `run` NEEDS. `run` starts
+    with `verdicts(load_rows())`, which refuses outright unless a real site checkout is present, so
+    a test written against `run` cannot reach this load at all -- and the alternative, a test that
+    calls `load_episode_prior` itself, passes whatever this function does. That test was written
+    first here and SURVIVED the mutation restoring the old inline read: it was asserting the
+    helper, not the caller. The seam exists so the control has this module as its subject.
+
+    No preserve is earned: `current` is recomputed in full from the edge rows, so the write that
+    follows loses nothing. An unreadable prior costs one re-report of every live ghost."""
+    previous, _verdict = load_episode_prior(STATE)
+    return previous
+
+
 def run(write_state: bool = True) -> tuple[dict[str, dict], list[str]]:
     current = verdicts(load_rows())
-    previous = {}
-    if STATE.is_file():
-        try:
-            previous = json.loads(STATE.read_text(encoding="utf-8"))
-        except ValueError:
-            previous = {}
+    previous = _load_previous_state()
     changes = transitions(previous, current)
     if write_state:
         STATE.parent.mkdir(parents=True, exist_ok=True)

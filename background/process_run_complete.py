@@ -1097,6 +1097,11 @@ from background.episode_monotonic import (  # noqa: E402  (PW2)
     guard_episode,
     recorded_instant_seconds,  # one screen for every timestamp this file reads
 )
+from background.episode_prior import (  # noqa: E402  (the census loader sweep)
+    load_episode_prior,
+    preserve_unreadable,
+    prior_unreadable,
+)
 from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402
 
 
@@ -6229,9 +6234,19 @@ def _load_suspect_hit_rate(path=None):
 
 
 def _append_suspect_outcome(entry, path=None):
-    """Append one closed episode's outcome, bounded. Never raises."""
+    """Append one closed episode's outcome, bounded. Never raises.
+
+    READ-MODIFY-WRITE OVER A FAIL-OPEN LOADER (2026-09-05 census loader sweep). `_load_suspect_
+    hit_rate` answers [] for every unreadable shape -- correctly, since it must never render a
+    flattering score -- and this function then wrote a ONE-episode record over it: measured
+    against a live prior of 20 episodes, all seven unreadable states left exactly 1. H42's own
+    evidence that the wedge suspect list works is the thing destroyed, and it is destroyed
+    silently, reading afterwards as "not yet measured" rather than as a loss. Preserve first: the
+    bytes are the only copy of a series nothing else recomputes."""
     p = Path(path) if path is not None else WEDGE_SUSPECT_HIT_RATE_FILE
     try:
+        if prior_unreadable(load_episode_prior(p)[1]):
+            preserve_unreadable(p)
         eps = _load_suspect_hit_rate(p)
         eps.append(entry)
         p.parent.mkdir(parents=True, exist_ok=True)
