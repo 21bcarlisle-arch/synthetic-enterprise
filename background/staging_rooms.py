@@ -275,7 +275,14 @@ def kind_of(name: str) -> str:
         # `work_queue`. Keeping the room decision here and the rank decision there is what stops a
         # register migrating between folders as its state changes.
         return KIND_REFERENCE
-    if any(seg.startswith(_PREREGISTRATION_TOKEN) for seg in name.upper().split("_")[:2]):
+    _segments = name.upper().split("_")
+    _prereg_at = next(
+        (i for i, seg in enumerate(_segments) if seg.startswith(_PREREGISTRATION_TOKEN)), None
+    )
+    _finding_at = next(
+        (i for i, seg in enumerate(_segments) if seg.startswith(_FINDING_TOKEN.rstrip("_"))), None
+    )
+    if _prereg_at is not None and (_finding_at is None or _prereg_at < _finding_at):
         # BEFORE THE FINDING AND DIRECTIVE TESTS, for the same reason `DIRECTOR_CONSOLE_` is
         # tested before `DIRECTOR_`: `SEAT_PREREGISTRATION_...` and `WORKER_PREREGISTRATION_...`
         # both begin with strings that classify as work, and `DIRECTOR_` is a live prefix too. A
@@ -295,10 +302,21 @@ def kind_of(name: str) -> str:
         # `records/` has no exit: a document filed there is never archived, so nothing ever
         # revisits it.
         #
-        # The first two underscore-segments are the document's declaration of its own kind
-        # (`SEAT_PREREGISTRATION_…`, `WORKER_PREREGISTRATION_…`, or a bare `PREREGISTRATION_…`);
-        # a token deeper than that is describing the SUBJECT. Every case the paragraph above names
-        # is still caught, because every one of them carries the token in position 0 or 1.
+        # BY PRECEDENCE, NOT BY POSITION (2026-09-04). The fix above was first written as "the
+        # token must be in one of the first two segments", on the reasoning that the first two
+        # segments are the document's declaration of its own kind and anything deeper describes
+        # the SUBJECT. That reasoning was wrong in the same way the prefix tuple it replaced was
+        # wrong: it assumes every channel names itself in one segment, so
+        # `SOME_NEW_CHANNEL_PREREGISTRATION_OF_SOMETHING` fell through to UNKNOWN and drew as
+        # WORK — a positional tuple wearing an offset instead of a list, and the very thing this
+        # docstring says a new channel must not have to remember.
+        #
+        # What actually separates the two cases is ORDER, not depth: a document is whichever kind
+        # its FIRST type token names. `SEAT_FINDING_A_PREREGISTRATION_FIXED_...` carries FINDING at
+        # segment 1 and PREREG at segment 3, so it is a finding about a pre-registration; a name
+        # carrying PREREG and no FINDING token at all is a pre-registration whatever its channel
+        # prefix looks like. Both cases the paragraph above names are still caught, and they are
+        # caught by the property that distinguishes them rather than by a count that happened to.
         return KIND_PREREGISTRATION
     if name.startswith(_DOORBELL_PREFIXES):
         return KIND_DOORBELL

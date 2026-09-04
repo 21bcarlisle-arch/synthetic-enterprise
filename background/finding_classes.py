@@ -75,6 +75,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from background import staging_rooms
 from background.finding_severity import (
     BLOCKING,
     DOORBELL_PREFIXES,
@@ -921,6 +922,38 @@ def room_collisions(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[str, 
             for name in sorted(rooms[left] & rooms[right]):
                 collisions.append((name, left, right))
     return sorted(collisions)
+
+
+def self_refuelling_root_documents(tracked_root_names: list[str]) -> list[str]:
+    """Names TRACKED in the staging root whose own kind sends them to a room the root contradicts.
+
+    THE LOOP THIS NAMES, and why removing the duplicate never ends it. A disposition moves the
+    document into the room `staging_rooms.room_for` says it belongs in; the root path is still
+    tracked, so the next operation that restores a tracked-but-deleted path brings it straight
+    back; `room_collisions` then sees both rooms and refuses the commit. Two mechanisms, each
+    individually right, composing into a loop whose cadence is a few minutes. `4a4ac598b` proved
+    it from the mtime column (the records copy kept arriving carrying the ROOT copy's PREVIOUS
+    mtime — a rewrite carries a fresh clock, a move preserves it) and untracked the one path it
+    had in front of it. Fifty-six minutes later `197261a2d` committed a NEW preregistration into
+    the tracked root and the identical wedge came back, because the fix was to an instance and
+    the class had no control. This is that control's subject.
+
+    SCOPED TO THE ROOMS THE COLLISION GATE TREATS AS EXCLUSIVE, and deliberately not to every
+    room `room_for` can name. A root-tracked document only becomes publish-gate fuel when
+    `room_collisions` can see the pair, and that walk covers `ROOM_DIRNAMES` alone — so a console
+    or reference document tracked in the root is a different (real, and separately filed) defect
+    that cannot wedge a commit. Keying to `ROOM_DIRNAMES` rather than to today's list means a new
+    room added to that tuple widens this control on the same commit, instead of leaving it
+    silently narrow the way the `records/` omission left `room_collisions` blind for a day.
+
+    THE SUBJECT IS WHAT IS TRACKED, NOT WHAT IS ON DISK. A working-tree sweep is exactly the
+    repair that has been performed and undone repeatedly; only the tracked path is fuel.
+    """
+    return sorted(
+        name
+        for name in tracked_root_names
+        if staging_rooms.room_for(staging_rooms.kind_of(name)) in ROOM_DIRNAMES
+    )
 
 
 def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
