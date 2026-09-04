@@ -150,3 +150,49 @@ floor's re-draws reverse. That defect is fixed, published and controlled. Leavin
 the queue root to carry the open measurement would re-offer the finished repair on every tick —
 the shape where a landed disposition is re-drawn indefinitely because the document specifying it
 was never discharged. The open question is handed on separately.
+
+---
+
+## Re-verified 2026-09-03 23:41 UTC — the CENTRE, which the closure above does not cover
+
+The section above is sound and its evidence stands, but it attests a **narrower** claim than a
+reader of this file would take from it, and the gap is a matter of clock rather than of judgement.
+It was written at 21:41 UTC and its live-site bullet names the reason and the RANGE. The re-draw
+MEAN did not exist then: it landed at 22:47 UTC in `a3fa61ef4`, an hour after this file was
+archived, under its own pre-registration
+(`docs/staging/records/SEAT_PREREGISTRATION_WHAT_PUBLISHING_THE_REDRAW_MEAN_MUST_AND_MUST_NOT_MOVE_2026-09-03.md`).
+That pre-registration graded P1–P4 against the local door and the mutants; it did **not** re-fetch
+the deployed feed, because publishing is a different lane's clock and the page had not regenerated
+yet. So the centre — the half that places the surviving £2,336 inside its own family — was landed,
+mutation-proven and locally rendered, and never once confirmed at the reader's end.
+
+That is the project's most-repeated shape pointed at its own closure record: a landed generator is
+not a published page, and a closure that says "verified at the reader's end" ages into a claim
+about figures it never saw.
+
+**Re-fetched now, from the deployed site, not from this tree.** `https://poesys.net/data/value_arms.json`
+returned HTTP 200 (81,555 bytes). Its `current_world` carries:
+
+| what a reader receives | value | covered by the 21:41 closure? |
+|---|---|---|
+| `resolved` | `null` | yes |
+| `verdict_stability.redraw_min_gbp` / `max` | 450.99 / 2433.70 | yes |
+| `verdict_stability.redraw_mean_gbp` | **1450.6408126666695** | **no — this row is the addition** |
+| reason names £451 and £2,434 | present | yes |
+| reason names **£1,451** | **present** | **no — this row is the addition** |
+| reason names the placement **ABOVE** | **present** | **no — this row is the addition** |
+
+So the centre reaches the reader, and the flattering reading one layer along — a withheld binary
+above an unplaced point estimate — is closed on the deployed artefact and not merely in the tree.
+The deployed feed's `generated_at` is still `2026-09-03T10:17:07Z` and its `producing_commit`
+`ace28fa444c505db44984cdc8f94a4dff8636bbf`: the narrative sentence is composed by the generator and
+served as a string in the feed, so the publish daemon regenerating from the shared tree is what
+carries it, and the shared tree is at `24b7dc6c1`, which has `a3fa61ef4` as an ancestor and whose
+own copy of `tools/generate_value_arms_data.py` contains `redraw_mean_gbp`. Landed, regenerated,
+served, and now read back.
+
+**Nothing was rebuilt to establish this.** The repair, both controls and the discharge were already
+correct; this section adds only the measurement the closure could not have made because its subject
+did not exist yet. Recorded beside the original closure rather than by editing it, because a closure
+silently widened after the fact is not evidence that it was verified — it is evidence that someone
+later wished it had been.
