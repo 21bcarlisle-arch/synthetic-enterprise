@@ -1090,6 +1090,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
                 + 'color:var(--amber);">' + prose(msk.cannot_tell) + "</p>"
               : "")
+          /* AND WHAT IT COULD HAVE DETECTED — the other half of "we cannot tell". A null result
+             from an instrument with no power to return anything else produces exactly the line
+             above, and for four days this page carried "0.517 sits inside 0.429–0.572" with
+             nothing saying 0.572 was the SMALLEST value the run could ever have called. A reader
+             could not tell a flat method from an unresolvable one. The feed derives this from the
+             same interval, so it cannot disagree with the sentence it follows; when the reading
+             clears its null there is no `cannot_tell` above it and this still reads correctly on
+             its own. Amber, not muted: it qualifies the headline rather than footnoting it. */
+          + (msk.what_it_could_have_detected && msk.what_it_could_have_detected.available
+              ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+                + 'color:var(--amber);">'
+                + prose(msk.what_it_could_have_detected.sentence) + "</p>"
+              : (msk.what_it_could_have_detected
+                  ? '<p style="margin:0 0 6px;font-size:12.5px;color:var(--amber);">'
+                    + "What this reading could have detected: "
+                    + prose(msk.what_it_could_have_detected.reason) + "</p>"
+                  : ""))
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
           /* WHY THE FIGURE RESTS ON FEWER DECISIONS THAN THE ARM PRICED. This page shows

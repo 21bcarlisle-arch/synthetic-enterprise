@@ -1828,6 +1828,69 @@ def test_a_reading_INSIDE_its_null_says_WE_CANNOT_TELL_where_a_reader_sees_it(li
     assert "{:.3f}".format(msk["null_95_low"]) in rendered
 
 
+def test_the_page_says_what_the_concordance_COULD_have_detected_beside_what_it_did(live):
+    """THE OTHER HALF OF "WE CANNOT TELL", and without it the phrase is unreadable.
+
+    An instrument with no power to return anything but "we cannot tell" produces exactly the same
+    page as a method with no skill. The reader cannot separate them, and this surface published
+    "0.517 sits inside 0.429-0.572" for four days with nothing anywhere saying that 0.572 was the
+    SMALLEST value the run could ever have called. That is the Spearman defect -- a null result
+    from an instrument that had no power -- arriving at the flagship figure.
+
+    THE NUMBERS ARE ASSERTED AGAINST THE FEED'S OWN BLOCK, not against literals: a fixture copy
+    of 0.072 here would be a second source for the figure and would go green while the page rotted.
+
+    Fires on: dropping the render, or rendering the block's sentence for an unavailable block.
+    """
+    msk = _live_feed().get("method_skill") or {}
+    if not msk.get("available"):
+        pytest.skip("the live feed carries no method-skill reading to qualify")
+    block = msk.get("what_it_could_have_detected") or {}
+    assert block.get("available") is True, (
+        "the feed publishes a null concordance and cannot say what it could have detected: "
+        + str(block.get("reason")))
+
+    rendered = live["arms-method"]
+    assert "smallest departure" in rendered, (
+        "the page states the reading sits inside its null and never states what departure the "
+        "run could have called, so a flat method and an unresolvable one read identically")
+    assert "{:.3f}".format(block["detectable_excess"]) in rendered
+    # The book side of it: the floor is priced against a book this world can actually supply, and
+    # the verdict -- either way -- is on the surface rather than in the artefact.
+    attainable = block["the_book_this_would_need"]["the_observed_effect_is_attainable"]
+    if attainable is False:
+        assert "No attainable book" in rendered, (
+            "the arithmetic says no book this world can supply reads an effect this size and the "
+            "page does not say so in those words")
+    elif attainable is True:
+        assert "does reach it" in rendered
+
+
+def test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet():
+    """FAIL-CLOSED, ON THE SURFACE. A missing bound is a result and it belongs on the page.
+
+    The dangerous branch is not "the block is wrong" -- it is the block silently vanishing, which
+    returns the page to exactly the state this pair was built to end: a null result with no power
+    reading beside it, and nothing telling the reader anything is absent.
+
+    Fires on: rendering the qualifier only when available and emitting nothing otherwise.
+    """
+    feed = copy.deepcopy(_live_feed())
+    msk = feed.get("method_skill") or {}
+    if not msk.get("available"):
+        pytest.skip("the live feed carries no method-skill reading to drive")
+    msk["what_it_could_have_detected"] = {
+        "available": False, "reason": "this run carries no permuted interval and no sample size"}
+
+    rendered = _render(feed)["arms-method"]
+
+    assert "could have detected" in rendered, (
+        "the power reading is absent and the page says nothing about its absence")
+    assert "no permuted interval" in rendered
+    assert "smallest departure" not in rendered, (
+        "the unavailable branch rendered the sentence it exists to withhold")
+
+
 def test_a_reading_that_CLEARS_its_null_does_not_say_it():
     """THE OTHER HALF OF THE NULL. A caveat that renders unconditionally is a constant, and a
     constant caveat teaches a reader to skip the one that matters.

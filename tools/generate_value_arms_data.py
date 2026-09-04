@@ -123,7 +123,12 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
-from tools.inference_claim import CANNOT_TELL, cannot_tell_sentence, inference_claim
+from tools.inference_claim import (
+    CANNOT_TELL,
+    cannot_tell_sentence,
+    detectability,
+    inference_claim,
+)
 from tools.product_gate_refusal import refusal_breakdown
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -2014,6 +2019,17 @@ def _method_skill(three_arm: dict) -> dict:
             null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
             null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
             n=ms.get("decisions_scored")),
+        # AND WHAT IT COULD HAVE DETECTED, which `cannot_tell` alone does not say. An instrument
+        # that had no power to return anything but "we cannot tell" produces exactly this page,
+        # and until 2026-09-04 nothing here distinguished that from a method with no skill. Every
+        # number in the block is arithmetic on the interval two lines above -- there is no second
+        # permutation, so nothing here can drift away from the figure it qualifies.
+        "what_it_could_have_detected": detectability(
+            observed=_f(ms.get("concordance")),
+            null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
+            null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
+            n=ms.get("decisions_scored"),
+            accounts=ms.get("accounts")),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
         # THE FUNNEL BETWEEN THE TWO COUNTS THIS PAGE SHOWS. `decisions.value_arm_priced` says 20

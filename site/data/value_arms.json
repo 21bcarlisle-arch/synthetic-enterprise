@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T10:40:08.776700Z",
+  "generated_at": "2026-09-04T12:19:04.976231Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "00f308ad4209723f3219d6638b8f7ae51596271c",
+    "publishing_tree_commit": "239c4060580fc11da23b2b7aba7539a682c5b61e",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 00f308ad4 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 239c40605 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -472,10 +472,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "00f308ad4209723f3219d6638b8f7ae51596271c",
+      "publishing_tree_commit": "239c4060580fc11da23b2b7aba7539a682c5b61e",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 00f308ad4 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 239c40605 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -723,6 +723,131 @@
     "p_two_sided": 0.64525,
     "inside_the_null": true,
     "cannot_tell": "On whether this method carries any information, we cannot tell: 0.517 sits inside the 0.429\u20130.572 a signal carrying no information reaches on 86 decisions.",
+    "what_it_could_have_detected": {
+      "available": true,
+      "decisions_scored": 86,
+      "accounts": 46,
+      "scored_decisions_per_account": 1.8695652173913044,
+      "detectable_excess": 0.07154582763337897,
+      "detectable_concordance": 0.5715458276333789,
+      "observed_excess": 0.017099863201094356,
+      "observed_share_of_what_was_detectable": 0.2390057361376667,
+      "scale_constant": 0.6634887104164509,
+      "curve": [
+        {
+          "decisions_scored": 86,
+          "multiple_of_this_run": 1,
+          "detectable_excess": 0.07154582763337897,
+          "detectable_concordance": 0.5715458276333789,
+          "accounts_needed": 46,
+          "is_this_run": true
+        },
+        {
+          "decisions_scored": 172,
+          "multiple_of_this_run": 2,
+          "detectable_excess": 0.05059053988516615,
+          "detectable_concordance": 0.5505905398851662,
+          "accounts_needed": 92,
+          "is_this_run": false
+        },
+        {
+          "decisions_scored": 344,
+          "multiple_of_this_run": 4,
+          "detectable_excess": 0.03577291381668948,
+          "detectable_concordance": 0.5357729138166895,
+          "accounts_needed": 184,
+          "is_this_run": false
+        },
+        {
+          "decisions_scored": 688,
+          "multiple_of_this_run": 8,
+          "detectable_excess": 0.025295269942583076,
+          "detectable_concordance": 0.525295269942583,
+          "accounts_needed": 368,
+          "is_this_run": false
+        },
+        {
+          "decisions_scored": 1181,
+          "multiple_of_this_run": 13.732558139534884,
+          "detectable_excess": 0.019306724025351805,
+          "detectable_concordance": 0.5193067240253518,
+          "accounts_needed": 632,
+          "is_this_run": false,
+          "is_the_ceiling": true
+        }
+      ],
+      "floor": [
+        {
+          "excess_over_no_information": 0.15,
+          "concordance": 0.65,
+          "decisions_needed": 20,
+          "accounts_needed": 11,
+          "within_the_settled_book_ceiling": true,
+          "is_the_observed_effect": false
+        },
+        {
+          "excess_over_no_information": 0.1,
+          "concordance": 0.6,
+          "decisions_needed": 45,
+          "accounts_needed": 25,
+          "within_the_settled_book_ceiling": true,
+          "is_the_observed_effect": false
+        },
+        {
+          "excess_over_no_information": 0.05,
+          "concordance": 0.55,
+          "decisions_needed": 177,
+          "accounts_needed": 95,
+          "within_the_settled_book_ceiling": true,
+          "is_the_observed_effect": false
+        },
+        {
+          "excess_over_no_information": 0.03,
+          "concordance": 0.53,
+          "decisions_needed": 490,
+          "accounts_needed": 263,
+          "within_the_settled_book_ceiling": true,
+          "is_the_observed_effect": false
+        },
+        {
+          "excess_over_no_information": 0.02,
+          "concordance": 0.52,
+          "decisions_needed": 1101,
+          "accounts_needed": 589,
+          "within_the_settled_book_ceiling": true,
+          "is_the_observed_effect": false
+        },
+        {
+          "excess_over_no_information": 0.017099863201094356,
+          "concordance": 0.5170998632010944,
+          "decisions_needed": 1506,
+          "accounts_needed": 806,
+          "within_the_settled_book_ceiling": false,
+          "is_the_observed_effect": true
+        }
+      ],
+      "the_book_this_would_need": {
+        "decisions_needed_for_the_observed_effect": 1506,
+        "accounts_needed_for_the_observed_effect": 806,
+        "settled_book_ceiling": {
+          "available": true,
+          "accounts": 632,
+          "source": "simulation.premise_population.settled_book_ceiling(years=1)",
+          "bound_kind": "upper_bound",
+          "what_binds": "the settlement path's memory budget on this machine, not the world's housing stock -- the world has homes to spare and the settled book is what cannot be grown",
+          "why_it_is_safe_to_cite": "both per-unit costs behind it are measured floors, so the affordable book is SMALLER than this number and never larger"
+        },
+        "scored_decisions_at_the_ceiling": 1181,
+        "detectable_excess_at_the_ceiling": 0.019306724025351805,
+        "detectable_concordance_at_the_ceiling": 0.5193067240253518,
+        "the_observed_effect_is_attainable": false,
+        "accounts_short": 174,
+        "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+      },
+      "method": "The half-width of the permutation null falls as 0.663 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(86), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=86 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
+      "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
+      "sentence": "On the 86 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.072 \u2014 a concordance of 0.572 or 0.428. It read 0.517, a departure of 0.017, about 24% of that. Reading a departure that small needs about 1,506 scored decisions \u2014 roughly 806 settled accounts at this run's rate. The settled book tops out at 632 accounts \u2014 about 1,181 scored decisions, which resolves 0.019 at best. No attainable book on this world can read an effect the size of the one measured."
+    },
     "decisions_scored": 86,
     "accounts": 46,
     "drop_out": {
