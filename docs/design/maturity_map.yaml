@@ -268,7 +268,11 @@
   level_target: 3
   loop_stage: build   # 2026-08-19: the 2026-07-20 "no in-scope BUILD increment" park reason was STALE and is deleted. It was true of the rungs it considered (SAVED feed, SPENT emitter) but the atom's own 2026-07-29 FRAME had already named a third increment that is factor-agnostic and values-call-free -- the absent-feed fail-open and the R14 labels dropped at aggregation -- and that increment was BUILT this tick without touching a single values-call. REMAINING build IS values-call/trajectory-gated as before: SAVED needs the unbuilt per-household cost-and-carbon trajectory; the SPENT emitter needs the emissions-factor SET, which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). Lesson worth keeping: a park reason that names the gated rungs is not the same as proving the atom has no ungated work.
   frame_saturated: true   # 2026-07-29 RE-CLOSED by the Lane-3 DISCOVER/FRAME fork that delivered BOTH director-named widened-scope items (observables-only trajectory + the carbon clock/basis triple) in docs/design/E5_CARBON_THREE_LEDGER_FRAME.md. Re-opens automatically when loop_stage flips off idle. PRIOR RE-OPEN NOTE RETAINED:   # 2026-07-29 RE-OPENED (director from_rich_20260729_173731, "put all eleven backlog items into the map as real unfinished work items"). This atom IS BACKLOG.md item B9 (BACKLOG says so explicitly: "B9 IS the existing map atom E5_carbon_three_ledger, NOT a new atom" -- do not mint a duplicate). It was in the map but INVISIBLE to the picker: H23 hard-skips FRAME-saturated atoms, so E5 contributed nothing to the draw. The 2026-07-20 saturation was honest FOR THE SCOPE THEN FRAMED (data model + counterfactual comparison + emissions-factor register) -- B9 WIDENED the scope past it, and the widened part is genuinely un-FRAMEd: how a per-household cost-and-carbon trajectory is derived FROM OBSERVABLES ONLY (the wall), and how the site's £/tCO2e figure carries its clock/basis (R14) plus the plain-language working. Those two are the drawable FRAME work now. UNCHANGED WALL: the emissions-factor SET and the counterfactual METHOD stay director values-calls (carbon is the mission = category 6), and the "not yet instrumented" site disclaimer comes off only when the LIVE rendered figure is asserted (R11).
-  dial_inherited: 4
+  dial_inherited: 45    # R3 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: proposal
   file_scope: [company/carbon, tests/company/test_carbon_ledger.py, tests/company/test_carbon_not_a_target.py, tests/company/test_carbon_cannot_reach_the_sim.py]
   depends_on: []
@@ -727,7 +731,11 @@
   level_current: 2
   level_target: 3
   loop_stage: build
-  dial_inherited: 3
+  dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -763,7 +771,11 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 3
+  dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -780,7 +792,11 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 3
+  dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: []
@@ -912,7 +928,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -929,7 +948,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -947,7 +969,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -965,7 +990,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -982,7 +1010,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3). NOTE: the SANDBOX is free and involves no real money and no real people; a move to direct Bacs (sponsoring bank, SUN) would touch reserved class 1 and is deliberately NOT in this atom's scope."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -999,7 +1030,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1070,7 +1104,10 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
+  #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
+  #   because typing an interface changes how the two sides speak, not what the company
+  #   faces or how hard its world is. These now rank BELOW R1-R5 (§2), by weight not by block.
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
@@ -1126,7 +1163,11 @@
   level_target: 3
   loop_stage: idle
   block_reason: "director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 6 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work."
-  dial_inherited: 3
+  dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: ['EP16_anchored_generators']
   couples_with: []
@@ -1507,7 +1548,11 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  dial_inherited: 3
+  dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: [B10_competitor_switching_response, B8_discovered_price_sensitivity_holdout, PB5_pounds_or_percent_resolved]
@@ -1523,7 +1568,11 @@
   level_current: 0
   level_target: 2
   loop_stage: build
-  dial_inherited: 2
+  dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   depends_on: []
   couples_with: [PB4_engagement_separated_from_elasticity, B10_competitor_switching_response]
@@ -1551,7 +1600,11 @@
   level_current: 1
   level_target: 2
   loop_stage: build
-  dial_inherited: 1
+  dial_inherited: 45    # R5 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: null   # NOT blocked. The DECISION is R13 curriculum and is the director's; the PRICED MENU he needs to take it is this atom's own deliverable and is drawable now. Parking the atom on his answer would make the thing he is waiting for unbuildable -- which is how a real reserved-class item and a permission ceremony end up looking the same.
@@ -1569,7 +1622,11 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 3
+  dial_inherited: 45    # R2 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   block_reason: "Sequencing, not permission. depends_on B10 (a world that can react) and the two household atoms (variation with a channel and a scale). A decision surface widened against a flat world produces a better-instrumented null -- measured, not assumed: the current surface is nine accounts wide and the choosing is worth -£175 against an error bar 25x that. DISCOVER and FRAME on this atom are drawable NOW."
   blocked_on: null
@@ -1640,7 +1697,11 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 3
+  dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: "Sequencing, and the director's own instruction to note rather than fix. An advice channel delivered into a world where nothing responds (C2), scored by an objective with no household-side term (A47), produces a capability that cannot be measured -- the same argument that parks C29. DISCOVER and FRAME on this atom are drawable NOW."
@@ -1658,7 +1719,11 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  dial_inherited: 3
+  dial_inherited: 45    # R4 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.
+  #   Derived, not picked: 45 gives the eleven R1-R5 atoms 75% of a dial-weighted draw
+  #   against the other 71 drawable atoms' total weight of 163. One draw in four still
+  #   goes elsewhere, which is what keeps a broken machine fixable without it becoming
+  #   the week. A change of WEIGHTS, not of machinery (§5).
   provenance: director_ruling
   blocked_on: null
   block_reason: "Sequencing, and the director's own instruction to note rather than fix. Time cannot be SAVED before there is a household model of what things COST in attention, and that model belongs behind the wall with the other hidden traits -- so it sits behind the household atoms (PB4/PB5) and the two-sided objective (A47). DISCOVER and FRAME on this atom are drawable NOW."

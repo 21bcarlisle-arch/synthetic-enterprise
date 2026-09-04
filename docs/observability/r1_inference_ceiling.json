@@ -1,0 +1,220 @@
+{
+  "any_full_power_feature_clears_the_null": false,
+  "base_seed": 20260724,
+  "best_pair": {
+    "held_out": 0.5661,
+    "in_sample": 0.1724,
+    "n": 71,
+    "null": 0.2762,
+    "null_mean": 0.1428,
+    "x": "perceived_bill_saving_gbp",
+    "y": "portfolio_premium_pct"
+  },
+  "ceiling_clears_the_null": true,
+  "cells_per_axis": 2,
+  "constant_fields_refused": [
+    "unit_rate_gbp_per_mwh: degenerate fit: every household in one cell",
+    "resentment_score: degenerate fit: every household in one cell",
+    "discount_pct: degenerate fit: every household in one cell"
+  ],
+  "controls": {
+    "cells_are_populations": true,
+    "held_out_is_disjoint_from_fit": true,
+    "households_per_cell": 8.9,
+    "no_ground_truth_in_features": true,
+    "trait_spread": 0.57572,
+    "traits_are_the_worlds": true
+  },
+  "full_coverage_households": 214,
+  "households": 214,
+  "null_floor_abs_max": 0.5019,
+  "observable_fields_used": [
+    "unit_rate_gbp_per_mwh",
+    "svt_rate_gbp_per_mwh",
+    "rate_vs_svt_pct",
+    "company_eac_kwh",
+    "company_churn_estimate",
+    "resentment_score",
+    "perceived_bill_saving_gbp",
+    "expected_term_margin_gbp",
+    "mean_recent_margin_rate",
+    "portfolio_premium_pct"
+  ],
+  "pairs_scored": 45,
+  "run_output": "run_output_1beec7215_20260904T163914Z.json",
+  "single_feature_ceilings": [
+    {
+      "clears": false,
+      "feature": "mean_recent_margin_rate",
+      "held_out": 0.0874,
+      "in_sample": 0.184,
+      "n": 214,
+      "null": 0.1829,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "portfolio_premium_pct",
+      "held_out": 0.1506,
+      "in_sample": 0.128,
+      "n": 214,
+      "null": 0.2057,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "unit_rate_gbp_per_mwh",
+      "held_out": null,
+      "in_sample": null,
+      "n": 102,
+      "null": null,
+      "refused": "degenerate fit: every household in one cell"
+    },
+    {
+      "clears": false,
+      "feature": "svt_rate_gbp_per_mwh",
+      "held_out": -0.1594,
+      "in_sample": 0.2086,
+      "n": 71,
+      "null": 0.3479,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "rate_vs_svt_pct",
+      "held_out": 0.2619,
+      "in_sample": 0.1053,
+      "n": 71,
+      "null": 0.3775,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "company_eac_kwh",
+      "held_out": -0.0558,
+      "in_sample": 0.1324,
+      "n": 71,
+      "null": 0.232,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "company_churn_estimate",
+      "held_out": 0.4581,
+      "in_sample": 0.1197,
+      "n": 71,
+      "null": 0.498,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "resentment_score",
+      "held_out": null,
+      "in_sample": null,
+      "n": 71,
+      "null": null,
+      "refused": "degenerate fit: every household in one cell"
+    },
+    {
+      "clears": true,
+      "feature": "perceived_bill_saving_gbp",
+      "held_out": 0.4291,
+      "in_sample": 0.1566,
+      "n": 71,
+      "null": 0.3163,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "expected_term_margin_gbp",
+      "held_out": -0.0521,
+      "in_sample": 0.1932,
+      "n": 64,
+      "null": 0.3989,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "discount_pct",
+      "held_out": null,
+      "in_sample": null,
+      "n": 45,
+      "null": null,
+      "refused": "degenerate fit: every household in one cell"
+    }
+  ],
+  "top_pairs": [
+    {
+      "held_out": 0.5661,
+      "in_sample": 0.1724,
+      "n": 71,
+      "null": 0.2762,
+      "null_mean": 0.1428,
+      "x": "perceived_bill_saving_gbp",
+      "y": "portfolio_premium_pct"
+    },
+    {
+      "held_out": 0.5093,
+      "in_sample": 0.1197,
+      "n": 71,
+      "null": 0.4107,
+      "null_mean": 0.1855,
+      "x": "company_churn_estimate",
+      "y": "resentment_score"
+    },
+    {
+      "held_out": 0.5022,
+      "in_sample": 0.1665,
+      "n": 71,
+      "null": 0.3561,
+      "null_mean": 0.1016,
+      "x": "rate_vs_svt_pct",
+      "y": "perceived_bill_saving_gbp"
+    },
+    {
+      "held_out": 0.4864,
+      "in_sample": 0.1242,
+      "n": 71,
+      "null": 0.4543,
+      "null_mean": 0.1758,
+      "x": "company_churn_estimate",
+      "y": "portfolio_premium_pct"
+    },
+    {
+      "held_out": 0.4699,
+      "in_sample": 0.1384,
+      "n": 71,
+      "null": 0.5019,
+      "null_mean": 0.1639,
+      "x": "rate_vs_svt_pct",
+      "y": "company_churn_estimate"
+    },
+    {
+      "held_out": 0.4154,
+      "in_sample": 0.1566,
+      "n": 71,
+      "null": 0.3625,
+      "null_mean": 0.1421,
+      "x": "resentment_score",
+      "y": "perceived_bill_saving_gbp"
+    },
+    {
+      "held_out": 0.4142,
+      "in_sample": 0.2649,
+      "n": 71,
+      "null": 0.2409,
+      "null_mean": 0.1126,
+      "x": "perceived_bill_saving_gbp",
+      "y": "mean_recent_margin_rate"
+    },
+    {
+      "held_out": 0.411,
+      "in_sample": 0.2213,
+      "n": 71,
+      "null": 0.3937,
+      "null_mean": 0.1728,
+      "x": "company_churn_estimate",
+      "y": "mean_recent_margin_rate"
+    }
+  ]
+}
