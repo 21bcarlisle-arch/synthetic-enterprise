@@ -1006,8 +1006,81 @@ def _decomposition_is_the_same_contrast(decomposition: dict | None) -> str | Non
     ).format(theirs=declared, ours=PAGE_FIGURE_CONTRAST)
 
 
+def _decomposition_prices_a_withheld_leg(decomposition: dict | None,
+                                         withheld_contrasts: tuple) -> str | None:
+    """Whether the remedy splits a leg the sentence it is attached to actually WITHHELD. `None` = yes.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-04). `_selection_sentence` appends this remedy when
+    `withheld` is true, and that flag is an `any(...)` over TWO contrasts -- the advantage and the
+    selection leg. The quantity guard beside it, `_decomposition_is_the_same_contrast`, asks
+    whether the split is of ONE: the module constant `PAGE_FIGURE_CONTRAST`. So the two do not
+    have to be talking about the same leg, and on the run this page's own null-rung fixture uses
+    they are not: the advantage is £12,071 against a ±£2,578 floor and CLEARS it, the selection
+    leg is £1,816 against the same floor and does not. Only the selection leg is withheld, and the
+    page states "it takes about 54 priced renewals against this book's 120 to bring the bar under
+    the gap" -- a price computed from a decomposition of `value_advantage_gbp`, attached to a
+    refusal about `selection_gbp`, with "the gap" left to the reader to resolve.
+
+    IT IS THE SAME MISPAIRING ONE GENERATION ON, AND NOT A NEW CLASS. `_decomposition_is_the_same_contrast`
+    was written on 2026-09-03 against a page that bounded exactly one figure, so "is this the
+    page's figure?" and "is this the withheld figure?" were the same question and asking either
+    answered both. `5ce6b0f9b` and `074a2c2db` gave the selection and level legs bounds of their
+    own; the page now states three, each able to be withheld on its own, and a guard that asks
+    about the page's figure answers for a third of the page. That is the R15 shape "a control over
+    a mixed subject reports the OR" -- `withheld` ORs two legs and the guard verifies one.
+
+    ANDed WITH THE PAGE-FIGURE GUARD, NEVER MERGED, for the reason that guard is ANDed with the
+    book one: they clear on different work. The page-figure question clears when a decomposition
+    of `value_advantage_gbp` exists; this one clears when the leg it splits is the leg that failed
+    to earn a direction. Merging them would let either clear both.
+
+    FAIL CLOSED ON AN EMPTY WITHHELD SET. A caller that cannot say which legs it withheld has not
+    thereby withheld the one this splits -- and the only route to this function is a caller that
+    withheld something, so an empty tuple is a wiring fault and reads as one rather than as
+    permission.
+    """
+    declared = _decomposition_contrast(decomposition)
+    if declared is not None and declared in (withheld_contrasts or ()):
+        return None
+    withheld = ", ".join("`{}`".format(c) for c in (withheld_contrasts or ())) or "none of them"
+    return (
+        "THE REMEDY'S EVIDENCE PRICES A LEG THIS PAGE DID NOT WITHHOLD, so no remedy is stated "
+        "from it. The split below is of `{theirs}`; what could not be given a direction above is "
+        "{withheld}. A price for resolving one leg is not a price for resolving another -- the "
+        "legs carry their own floors, and on the one seed family where all three exist they "
+        "differ by more than 2.5x -- so quoting this one here would tell a reader what it costs "
+        "to answer a question the page has already answered."
+    ).format(theirs=declared or "a quantity it does not declare", withheld=withheld)
+
+
+def _which_leg_this_remedy_prices(decomposition: dict | None,
+                                  withheld_contrasts: tuple) -> str:
+    """The leg the price below is for, NAMED, and the withheld legs it does not price.
+
+    THE DEFECT THIS EXISTS FOR. Every admitting branch of `_what_would_resolve_it` says "this
+    spread" and "the gap" and names no quantity at all, so a price that is correct for one leg
+    arrives beside three published figures with nothing saying which. Naming it is what makes the
+    guard above checkable from the page rather than from this docstring.
+
+    SILENT WHEN THERE IS ONLY ONE LEG TO NAME AND IT IS THE ONE PRICED, because a sentence
+    disambiguating a single subject is noise, and noise is what a reader learns to skip past on
+    the one day it matters.
+    """
+    declared = _decomposition_contrast(decomposition)
+    unpriced = [c for c in (withheld_contrasts or ()) if c != declared]
+    if not unpriced:
+        return ""
+    return ("The price below is for `{theirs}` and for that leg alone. {rest} was withheld on "
+            "this page too and no decomposition of it exists, so nothing here says what "
+            "resolving {that} would cost. ".format(
+                theirs=declared,
+                rest=" and ".join("`{}`".format(c) for c in unpriced),
+                that="either of them" if len(unpriced) > 1 else "it"))
+
+
 def _what_would_resolve_it(decomposition: dict | None,
-                           three_arm: dict | None = None) -> str:
+                           three_arm: dict | None = None,
+                           withheld_contrasts: tuple = ()) -> str:
     """The remedy sentence, DERIVED from the measured split of the floor -- or the refusal.
 
     THE PROPERTY, NOT TODAY'S WORDING. The clause claiming a larger settled book is the remedy
@@ -1041,11 +1114,23 @@ def _what_would_resolve_it(decomposition: dict | None,
     different_contrast = _decomposition_is_the_same_contrast(decomposition)
     if different_contrast:
         return different_contrast + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " " + MORE_SEEDS_WOULD_NOT
+    # AND THE THIRD QUANTITY QUESTION, which the two above cannot ask between them. They establish
+    # that the split is of the quantity the PAGE states its figure in; this asks whether it is the
+    # quantity the sentence this remedy is stapled to actually WITHHELD. Those were one question
+    # while the page bounded one figure and are three questions now that it bounds three -- see
+    # `_decomposition_prices_a_withheld_leg`. ANDed, for the reason the one above is.
+    not_the_withheld_leg = _decomposition_prices_a_withheld_leg(decomposition, withheld_contrasts)
+    if not_the_withheld_leg:
+        return (not_the_withheld_leg + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " "
+                + MORE_SEEDS_WOULD_NOT)
+    # WHICH LEG THE PRICE IS FOR, ahead of the price, because every branch below says "this
+    # spread" and names no quantity -- and the page now publishes three of them.
+    leg = _which_leg_this_remedy_prices(decomposition, withheld_contrasts)
     # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
     # two degrees of freedom, and the producer says whether the split cleared that.
     if not decomposition.get("share_is_decisive"):
-        return ("The spread HAS now been split -- {:.0%} of it is the priced households' own draw "
-                "and the rest is the wider book's churn cascade -- but at {} seeds that split is "
+        return leg + ("The spread HAS now been split -- {:.0%} of it is the priced households' "
+                "own draw and the rest is the wider book's churn cascade -- but at {} seeds that split is "
                 "too close to the {:.0%} it would have to clear to say whether a larger settled "
                 "book would resolve this at all. ".format(
                     decomposition.get("priced_share_of_variance") or 0.0,
@@ -1055,7 +1140,7 @@ def _what_would_resolve_it(decomposition: dict | None,
     if decomposition.get("larger_settled_book_would_resolve_it"):
         needed = decomposition.get("priced_decisions_needed")
         priced = decomposition.get("priced_decisions")
-        return ("What would resolve it is a larger SETTLED BOOK -- more renewals actually priced "
+        return leg + ("What would resolve it is a larger SETTLED BOOK -- more renewals actually priced "
                 "by the arm -- and the price is now measured: {:.0%} of this spread is the priced "
                 "households' own draw, so it takes about {:,} priced renewals against this book's "
                 "{} to bring the bar under the gap. ".format(
@@ -1064,7 +1149,7 @@ def _what_would_resolve_it(decomposition: dict | None,
                                        _is_the_lever_reachable(decomposition),
                                        _how_narrowly_the_split_cleared(decomposition),
                                        MORE_SEEDS_WOULD_NOT) if p))
-    return ("A larger settled book would not resolve it either, and that is the finding: only "
+    return leg + ("A larger settled book would not resolve it either, and that is the finding: only "
             "{:.0%} of this spread is the priced households' own draw. The rest is the wider "
             "book's churn cascade landing in the same net, which does not shrink however many "
             "renewals the arm prices -- on its own it is £{:,.0f} against a £{:,.0f} gap. This "
@@ -4262,12 +4347,22 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # resolved would read as an apology for a figure that earned its sign.
     # A contrast the run never reported is not a book-size problem, so it does not summon the
     # book-size remedy -- only a figure that EXISTS and did not clear its floor does.
-    withheld = any(_f(value) is not None and _resolvable(value, spread) is not True
-                   for value, spread in ((advantage, advantage_spread),
-                                         (selection, selection_spread)))
+    # WHICH LEGS, NOT WHETHER ANY. This was an `any(...)` over the two contrasts until 2026-09-04,
+    # and the remedy it summoned is priced on ONE quantity -- so an OR here and a single-quantity
+    # guard there let the page attach the advantage leg's price to a refusal about the selection
+    # leg. That is not hypothetical: on the canonical run the advantage is £12,071 against a
+    # ±£2,578 floor and clears it while the selection leg is £1,816 against the same floor and
+    # does not, so the OR was true for the leg the price was NOT for. The tuple is passed down so
+    # `_decomposition_prices_a_withheld_leg` can ask the question this flag was destroying.
+    withheld_contrasts = tuple(
+        contrast for contrast, value, spread in (
+            (PAGE_FIGURE_CONTRAST, advantage, advantage_spread),
+            (SELECTION_CONTRAST, selection, selection_spread))
+        if _f(value) is not None and _resolvable(value, spread) is not True)
     return "{} {}{}{}".format(
         opening, body, share_clause,
-        " " + _what_would_resolve_it(decomposition, three_arm).strip() if withheld else "")
+        " " + _what_would_resolve_it(decomposition, three_arm, withheld_contrasts).strip()
+        if withheld_contrasts else "")
 
 
 def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) -> str:
