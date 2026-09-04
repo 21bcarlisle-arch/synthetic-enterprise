@@ -346,3 +346,84 @@ def test_mondays_document_carries_a_place_for_the_ranking(rhythm):
     assert "FOCUS_MAX_AGE_HOURS" in body, (
         "the document must say why the ranking is not in DIRECTION.yaml, or the next reader moves it "
         "there and it expires by Monday evening")
+
+
+def test_the_rhythm_ticks_even_when_the_note_returns_early(monkeypatch, tmp_path):
+    """THE DEFECT THIS OWNS, found an hour after the rhythm landed, by asking what the wire depends
+    on rather than whether it exists.
+
+    The tick sat AFTER `already_ran_today`'s early return and after `render_note`/`publish`. So on
+    any day the note had already run — or failed — the rhythm silently did not tick. And because
+    the rhythm is what FILES the finding about a step not firing, that failure would have HIDDEN
+    ITSELF: a step nobody took and nobody reported, which is precisely the prose ritual it replaces.
+
+    MUTATION: move the call back below the early return and this fires.
+    """
+    from background import daily_self_note
+
+    called = []
+    monkeypatch.setattr(daily_self_note, "already_ran_today", lambda now: True)   # the early return
+    monkeypatch.setattr(wr, "tick", lambda *a, **k: called.append("ticked") or {"action": "WAITING"})
+
+    assert daily_self_note.run() == "already_ran_today"
+    assert called, "the note returned early and took the rhythm with it"
+
+
+def test_the_rhythm_ticks_even_when_the_note_itself_fails(monkeypatch, tmp_path):
+    """The other half: a note that raises must not suppress the rhythm either. The rhythm may never
+    take the note down (asserted elsewhere) and the note may never take the RHYTHM down — the two
+    directions are separate properties and only one of them was covered when this landed.
+
+    MUTATION: move the call below `render_note` and this fires."""
+    from background import daily_self_note
+
+    called = []
+    monkeypatch.setattr(daily_self_note, "already_ran_today", lambda now: False)
+    monkeypatch.setattr(daily_self_note, "render_note",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("the note is broken")))
+    monkeypatch.setattr(wr, "tick", lambda *a, **k: called.append("ticked") or {"action": "WAITING"})
+
+    with pytest.raises(RuntimeError, match="the note is broken"):
+        daily_self_note.run(_runner=lambda *a: ("abc", ""))
+    assert called, "a broken note silently suppressed the rhythm, and the rhythm files its own alarm"
+
+
+def test_the_rhythm_disposes_of_everything_it_files(rhythm):
+    """THE SEDIMENT RULE, and the rhythm owes it. `staging_rooms --check` measures the staging root
+    as a FLOW — 219 filed against 183 dispositioned in seven days, net +36 — and names the only two
+    remedies: fewer channels that file, or a disposition route for the ones that do. This is a new
+    channel filing two documents a week plus the occasional finding.
+
+    THE CLOSE DOES IT, NOT A SENTENCE ASKING SOMEONE TO. The first draft ended each document with
+    "close it in the same act that archives this file", which is an exhortation — the exact form the
+    director's instruction says decays, and the reason he asked for a mechanism at all.
+
+    MUTATION: drop the `archive_step_documents` call from `close()` and this fires — the root keeps
+    both documents and the rhythm becomes another channel that only files.
+    """
+    wr.tick(now=_at(2026, 9, 4))
+    wr.tick(now=_at(2026, 9, 7))       # stages the step document
+    wr.tick(now=_at(2026, 9, 8))       # ...and its finding, one day late
+    root = rhythm / "staging"
+    assert len(list(root.glob("*.md"))) == 2, "precondition: both documents are in the queue root"
+
+    wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 8))
+
+    assert not list(root.glob("*.md")), "the rhythm left its own documents in the queue root"
+    assert len(list((root / "done").glob("*.md"))) == 2, "they must be archived, never deleted"
+
+
+def test_a_document_that_will_not_move_is_left_not_deleted(rhythm, monkeypatch):
+    """R10: never close a backlog defect by deleting the backlog. If the archive move fails, the
+    document stays in the queue where a reader can still find it. MUTATION: unlink on failure and
+    this fires."""
+    wr.tick(now=_at(2026, 9, 4))
+    wr.tick(now=_at(2026, 9, 7))
+    root = rhythm / "staging"
+    staged = list(root.glob("*.md"))
+    assert len(staged) == 1
+
+    monkeypatch.setattr(wr.Path, "rename",
+                        lambda self, target: (_ for _ in ()).throw(OSError("read-only")))
+    wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))
+    assert staged[0].is_file(), "a document that could not be archived was lost instead"

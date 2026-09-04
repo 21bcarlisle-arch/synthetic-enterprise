@@ -496,6 +496,27 @@ def run(force: bool = False, now: datetime | None = None, *, send=None,
         _runner=_run_git) -> str:
     """Entry point (systemd oneshot). Idempotent per day unless force=True. Returns a status word."""
     now = now or datetime.now(timezone.utc)
+    # THE WEEKLY RHYTHM'S ONE CLOCK (director, 2026-09-04), AND IT RUNS FIRST.
+    #
+    # This timer is `OnCalendar=*-*-* 07:00:00` with `Persistent=true`, which is already the
+    # director's LOCAL morning and already replays a tick the machine slept through — so the rhythm
+    # needs no timer of its own, and a second one would be a second thing to keep alive.
+    #
+    # FIRST, AND NOT AFTER THE NOTE, which is where it was when it landed an hour ago. Down there
+    # it sat behind `already_ran_today`'s early return AND behind `render_note`/`publish`, so a
+    # broken note silently suppressed the rhythm — and because the rhythm is what FILES the finding
+    # about a step not firing, the failure would have hidden itself. A step nobody took and nobody
+    # reported is exactly the prose ritual this replaces. `tick()` is idempotent (it writes each
+    # document once and files each finding once), so running it on every invocation, including the
+    # ones that return early, costs a file read and cannot double-fire.
+    #
+    # Still a passenger, still wrapped: the note is the product, and a passenger may never take the
+    # vehicle down.
+    try:
+        from background import weekly_rhythm
+        weekly_rhythm.tick()
+    except Exception:  # noqa: BLE001 — the rhythm is a passenger on this tick, never a gate on it
+        pass
     if already_ran_today(now) and not force:
         return "already_ran_today"
     note = render_note(now.isoformat(timespec="minutes"), _runner=_runner)
@@ -510,19 +531,6 @@ def run(force: bool = False, now: datetime | None = None, *, send=None,
         record_gap(measured_at=now.isoformat(timespec="minutes"),
                    run_git_commit=(sha or "").strip() or None)
     except Exception:  # noqa: BLE001 — the ledger is history, never a gate on publishing
-        pass
-    # THE WEEKLY RHYTHM'S ONE CLOCK (director, 2026-09-04). This timer is `OnCalendar=*-*-*
-    # 07:00:00` with `Persistent=true`, which is already the director's LOCAL morning and already
-    # replays a tick the machine slept through — so the rhythm needs no timer of its own, and a
-    # second one would be a second thing to keep alive. `weekly_rhythm.tick()` decides for itself
-    # whether anything is due; on six days out of seven it reads a file and returns WAITING.
-    #
-    # Fail-closed the same way as the ledger above: the note is the product, the rhythm is a
-    # passenger, and a passenger may never take the vehicle down.
-    try:
-        from background import weekly_rhythm
-        weekly_rhythm.tick()
-    except Exception:  # noqa: BLE001 — the rhythm is a passenger on this tick, never a gate on it
         pass
     return "published"
 
