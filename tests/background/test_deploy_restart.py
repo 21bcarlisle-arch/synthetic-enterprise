@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+from pathlib import Path
 
 import pytest
 
@@ -400,6 +402,43 @@ def test_the_oldest_unincorporated_change_is_the_one_reported(tmp_path):
     os.utime(tmp_path / "a.py", (1000.0, 1000.0))
     os.utime(tmp_path / "b.py", (4900.0, 4900.0))
     assert dr.unincorporated_for_s(["a.py", "b.py"], now=5000.0, repo=tmp_path) == 4000.0
+
+
+def test_the_publisher_reads_only_keys_this_report_actually_emits(monkeypatch):
+    """THE DEFECT THIS OWNS, and it was live at HEAD for the minutes between two commits.
+
+    The producer's field was renamed here; `tools/generate_proof_data.py::_deployment` and the page
+    it feeds still asked for the old name. Nothing linked them, so both sides were green, both
+    suites passed, and the published column rendered "?" on every one of eleven rows -- which is
+    the exact symptom that started this repair. A rename across an artefact seam is invisible to
+    every control that only looks at one side of it.
+
+    The seam is a JSON file on disk, deliberately (a publishing tool that imports the producer
+    drags the process reconciler onto its graph). The cost of a seam is that the compiler cannot
+    see across it, so a control must. Read as TEXT, not imported, for the same reason.
+
+    MUTATION: ask for any key the report does not emit and this fires.
+    """
+    source = (Path(dr.__file__).resolve().parents[1]
+              / "tools" / "generate_proof_data.py").read_text()
+    body = source.split("def _deployment(")[1].split("\ndef ")[0]
+    asked = set(re.findall(r'r\.get\("([^"]+)"\)', body))
+    assert asked, "no artefact keys found -- the control is reading the wrong function"
+
+    drift = {"head": "abc1234", "population": ["sim-runner"], "unresolved": {}, "vacuous": False,
+             "stale_detail": {"sim-runner": ["x.py"]}}
+    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "_unit_running_age_s", lambda unit, now=None: 1.0)
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    monkeypatch.setattr(dr, "_commit_epoch", lambda sha: 900.0)
+    monkeypatch.setattr("background.boot_sha.read_boot_sha", lambda s: "deadbee")
+    emitted = set(dr.daemon_deployment_report(drift=drift, now=5000.0)["daemons"][0])
+
+    assert asked <= emitted, (
+        "the publisher asks this artefact for {}, which it does not emit -- the page will render "
+        "those columns empty on every row and both suites will stay green".format(
+            sorted(asked - emitted))
+    )
 
 
 def test_every_state_of_the_time_column_is_reachable(tmp_path):

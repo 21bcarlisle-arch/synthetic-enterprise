@@ -70,7 +70,17 @@ def test_the_live_feed_renders_every_daemon_with_both_ages():
     )
     for row in dep["daemons"]:
         assert row["session"] in html, f"{row['session']} is missing from the rendered table"
-    assert "behind" in html
+
+    # THE SEAM LEG. The page reads the feed BY KEY NAME, so a rename on the producing side leaves
+    # both suites green and every cell empty -- which is exactly what happened at HEAD on
+    # 2026-09-04 for the minutes between two commits, and is the symptom that started this repair.
+    # Asserting the COLUMN EXISTS is not enough; assert a row that carries a number renders one.
+    numbered = [r for r in dep["daemons"] if isinstance(r.get("unincorporated_for_s"), (int, float))]
+    assert numbered, "no row in the live feed carries a time-behind figure at all"
+    assert html.count("<td>?</td>") < len(dep["daemons"]), (
+        "every cell of a column rendered '?' -- the page is asking the feed for a key it does not "
+        "carry, and no control on either side of the seam can see that alone"
+    )
 
 
 def test_the_headline_states_the_count_a_reader_would_quote():
@@ -109,7 +119,7 @@ def test_a_stale_daemon_and_a_current_one_do_not_render_the_same():
     """THE NULL CONTROL. Without it every leg above is satisfied by a section that prints one fixed
     thing regardless of the world — a constant verdict, which is this repo's most expensive control
     shape."""
-    base = {"running_age_s": 600, "loaded_code_age_s": 900, "behind_s": 300,
+    base = {"running_age_s": 600, "loaded_code_age_s": 900, "unincorporated_for_s": 300,
             "session_hosting": False, "mid_work": False, "unresolved": None}
     stale = _render({"deployment": {"available": True, "summary": {"stale": 1, "observed": 1},
                                     "daemons": [dict(base, session="alpha", stale=True,
@@ -127,7 +137,7 @@ def test_a_daemon_that_cannot_be_judged_says_so_rather_than_reading_as_current()
     current, and this is the row where that distinction is cheapest to lose."""
     html = _render({"deployment": {"available": True, "summary": {"stale": 0, "observed": 1},
                                    "daemons": [{"session": "ghost", "running_age_s": 60,
-                                                "loaded_code_age_s": 60, "behind_s": 0,
+                                                "loaded_code_age_s": 60, "unincorporated_for_s": 0,
                                                 "modules_behind": 0, "stale": False,
                                                 "mid_work": False, "session_hosting": False,
                                                 "unresolved": "unstamped"}]}})["innerHTML"]

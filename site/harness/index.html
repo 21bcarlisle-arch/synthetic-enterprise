@@ -395,7 +395,7 @@ function renderDeployment(d) {
     var flags = (r.session_hosting ? " <b>hosts a session</b>" : "") +
                 (r.mid_work ? " <b>mid-work</b>" : "");
     return "<tr><td>" + esc(r.session) + "</td><td>" + ageStr(r.running_age_s) +
-      "</td><td>" + ageStr(r.loaded_code_age_s) + "</td><td>" + ageStr(r.behind_s) +
+      "</td><td>" + ageStr(r.loaded_code_age_s) + "</td><td>" + ageStr(r.unincorporated_for_s) +
       "</td><td>" + verdict + flags + "</td></tr>";
   }).join("");
   $("deployment").innerHTML =
@@ -403,7 +403,7 @@ function renderDeployment(d) {
     "that hosts a live session, or has a job in flight, is left alone until it is idle.</p>" +
     '<div class="table-scroll"><table class="tbl"><thead><tr><th>daemon</th>' +
     "<th>running age</th><th>loaded-code age</th>" +
-    "<th>behind</th><th>verdict</th></tr></thead><tbody>" + body + "</tbody></table></div>";
+    "<th>without it for</th><th>verdict</th></tr></thead><tbody>" + body + "</tbody></table></div>";
 }
 
 function renderNotProven(d) {
