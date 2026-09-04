@@ -141,3 +141,43 @@ BLOCKING, which is where the two items above that are NOT repaired — the unide
 
 The live wedge itself was cleared by hand at 13:19 local, before any of this landed; that is what
 let the queued runs move at all.
+
+## Addendum, 13:31 local — the writer, narrowed by mtime
+
+The section above says the writer is unidentified. It is still not named, but it is no longer
+shapeless, and the evidence is a clock rather than a guess. I cleared
+`SEAT_PREREG_WAS_THE_NAMED_BLOCKING_TEST_ACTUALLY_RED_...` three times in twelve minutes and
+watched what came back:
+
+| observed | root copy mtime | `records/` copy mtime |
+|---|---|---|
+| 13:19 (before clear #1) | 13:06:08 | 13:04:00 |
+| 13:27 (after clear #1)  | **13:21:03** | **13:06:08** |
+| 13:30 (after clear #2)  | **13:29:37** | **13:21:03** |
+
+**The `records/` copy always carries the root copy's PREVIOUS mtime.** That is not a rewrite —
+a rewrite carries a fresh clock. It is a MOVE, preserving the file's timestamp, of the root copy
+into `records/`, which is the room `staging_rooms.room_for(KIND_PREREGISTRATION)` says a
+preregistration belongs in. Something is dispositioning the file correctly.
+
+The duplicate is what happens next: **the root path is TRACKED at HEAD**, so every operation that
+restores a tracked-but-deleted path brings the root copy back with a fresh mtime, and the
+disposition moves it again. Two mechanisms, each individually right, composing into a loop that
+re-refuses every commit in the tree on a cadence of a few minutes.
+
+That is the same shape `staging_two_rooms_repair`'s own docstring reached in August and declined
+to name — *"consistent with something restoring a tracked-but-deleted path from HEAD"* — and the
+mtime column is the evidence it did not have.
+
+**So the loop's fix is not a repair at all: it is to stop the root path being tracked.** Landed
+here as the move `docs/staging/<name>` → `docs/staging/records/<name>`, which is where
+`room_for` says it belongs and where the disposition was trying to put it. With HEAD no longer
+holding a root copy, there is nothing for a restore to resurrect and the cycle has no fuel.
+
+This does not retire the commit-time repair landed above. That covers the general case — any
+duplicate, any cause, appearing inside the publish window. This removes one specific, live,
+self-refuelling source of them.
+
+**Still not established:** which operation performs the restore. Three candidates were ruled out by
+reading rather than assuming in the August note, and I have not re-run that elimination against
+the current tree. Naming one now would be exactly the invented cause this project keeps paying for.
