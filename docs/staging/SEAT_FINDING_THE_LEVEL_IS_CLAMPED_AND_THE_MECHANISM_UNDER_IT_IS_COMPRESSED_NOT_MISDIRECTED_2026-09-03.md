@@ -1174,3 +1174,193 @@ the record refuses a constant φ or admits 0.62–0.85 of one, and it is the hig
 question this chain has produced.
 
 — Delivery seat, 2026-09-04.
+
+---
+
+## 14. The second tenure observation was already in the tree, and it refutes §13's dichotomy — 2026-09-04
+
+§13 closed by naming its own binding weak input and asking for exactly one thing:
+
+> *"**a second tenure split for the SVT segment in any year other than 2018.** One more observation
+> of that one quantity decides whether the record refuses a constant φ or admits 0.62–0.85 of one,
+> and it is the highest-leverage sourcing question this chain has produced."*
+
+**It was in this tree when §13 asked for it, cited, dated and load-bearing since 2026-07-22.**
+`docs/market_research/ASSUMPTIONS.md` L176 carries Ofgem's Retail Market Indicators October-2025
+default-tariff stock split — the R13 ruling on the engagement mix turns on it — and
+`continuous_behavioural_engagement_w2_14.md` §1a cross-validates the same figure against CMA
+Appendix 9.1. Nothing pointed either of them at the segment band. That is §10's shape for the
+**fourth** time in this one chain, and the structural fix is the one `published_tariff_mix` applied
+to the share series: one home. `SVT_TENURE_OBSERVATIONS` in `tools/published_route_split.py` is now
+that home, and it is a register of observations with their instruments rather than a pair of
+percentages. Reading:
+`whether_the_constant_phi_verdict_turns_on_one_survey_year`, committed in
+`docs/reports/published_route_split.json`. Pre-registration:
+`SEAT_PREREGISTRATION_WHETHER_THE_CONSTANT_PHI_REFUSAL_SURVIVES_A_SECOND_TENURE_OBSERVATION_2026-09-04.md`,
+filed before the register existed. All eight graded below.
+
+### The two observations disagree by 19 points, and they are not a trend
+
+| | instrument | population | within-SVT long-stayer | composed band |
+|---|---|---|---|---|
+| Ofgem CES **2018** | consumer survey, self-report | GB domestic, PPM included | 29/(29+23) = **0.5577** | [0.0942, 0.1442] |
+| Ofgem RMI **Oct-2025** | supplier-returned stock | GB domestic electricity, **non-PPM** | 20.3/(20.3+34.6) = **0.3698** | [0.1130, 0.1630] |
+
+One is a survey and one is administrative stock; one includes prepayment and one does not. **Two
+points on two instruments over two populations are not a series**, so the reading interpolates
+nothing and extrapolates nothing — it takes the **hull**, [0.0942, 0.1630], which is every mix
+between the two and needs neither assumption. The 2025 row's exclusion is carried as a **direction
+and never a factor**: `published_tariff_mix` already establishes that prepayment is ~15% of domestic
+accounts and >90% of it sits on a default tariff, so restoring it can only move that share **up,
+toward 2018's**. 0.3698 is a lower bound, which is the direction that makes the hull an upper bound
+on the disagreement.
+
+### The headline: the record refuses at every mix anything has observed
+
+| band | implies a segment | as_published | all_domestic |
+|---|---|---|---|
+| `tenure_composed` (2018) | 0.558 long-stayer | REFUSES | REFUSES |
+| `tenure_composed_2025` | 0.370 long-stayer | **REFUSES** | **REFUSES** |
+| `observed_mix_hull` | 0.558 → 0.370 | **REFUSES** | **REFUSES** |
+| `mix_free_envelope` | **1.000 → 0.000** | ADMITS φ ∈ [0.612, 0.770] | ADMITS φ ∈ [0.618, 0.850] |
+
+*Fitted years and the headline set (2022 excluded by name) agree; every scored year refuses at all
+four bands because 2022 does.*
+
+`refuses_at_every_observed_mix` is **True** on both bases, and
+`admits_only_outside_every_observed_mix` is **True** with it. **§13's dichotomy has no slot for
+that result.** The record does not refuse *or* admit 0.62–0.85 of a constant φ — it refuses at
+every mix any instrument has seen, and admits only in the gap between the observed hull and the
+mix-free envelope.
+
+**And that gap now has a name, which is the part worth keeping.** Inverting the composition at each
+band's endpoints says what segment each one describes: the mix-free envelope's low end is a segment
+that is **entirely long-stayer** and its high end one with **no long-stayers at all**. Anything
+observed sits between 0.370 and 0.558. So §13's `[0.618, 0.850]` is not an interval the record
+allows for φ — it is an interval the record allows *if* the SVT segment's tenure composition is
+something no instrument supports, and it is **weaker evidence after this reading than before it**.
+`EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is still `None` and has one more reason to be.
+
+### Three results nobody predicted, one of them a new refusal
+
+**The 2025 mix makes 2023 refuse against the pre-crisis years.** New minimal refusing pairs appear
+that the 2018 mix does not produce: **2019/2023** on both bases and **2018/2023** on `all_domestic`.
+The higher band pushes the post-crisis years' φ intervals down far enough to separate them from
+2018's and 2019's, which the 2018 mix does not. The refusal is not merely preserved by the second
+observation — it is broader under it.
+
+**At the hull the binding pair is 2017/2019, not 2017/2018.** The pre-registration hand-derived the
+2017/2018 crossing at −0.057 and got it exactly; the *set* crossing is **−0.128** (`all_domestic`)
+and −0.134 (`as_published`), carried by 2017/2019. Widening the band from 0.0500 to 0.0688 narrows
+the 2017/2018 gap and leaves 2017/2019 wide.
+
+**The share series reaches LESS at the 2025 mix, not more, and the reason refutes P5's arithmetic
+rather than its claim.** `dV = (s₂ − s₁)·(H_svt − 0.35φ)`; for a pair where the default share
+*falls*, `Δs` is negative and the reachable maximum is `|Δs|·(0.35 − H_lo)` — it is set by the
+band's **LOW** end, not by its width. So 2018→2019's maximum reach is **0.435pp at both the 2018 mix
+and the hull** (identical, because they share a low end) and **0.403pp at the 2025 mix**, against a
+record step of 0.70–1.80pp. Raising the hazard band lowers what composition can supply.
+
+### The pre-registration, graded, all eight
+
+- **P1 — CONFIRMED on the claim and on the pair; one arithmetic slip, and the set crossing was not
+  predicted.** The 2025 mix REFUSES on both bases. Hand-derived 2017's high end at 0.5389 against
+  an actual **0.5350** — a calculator slip of 0.004 in my own working, not in the module — and
+  2018's low end at **0.6862**, exact. The 2017/2018 crossing goes −0.1330 → **−0.1512** (predicted
+  −0.147, off by the same slip). I predicted a *pair* crossing and quoted it as if it were the set's:
+  the fitted-set crossing is **−0.222**, carried by 2017/2019, and I did not predict it. The OPEN
+  half — *"whether any new pair joins them"* — is answered **yes**, and that is the section's most
+  substantive unpredicted result.
+- **P2 — CONFIRMED, including the number, and the open half is answered against my expectation.**
+  The hull REFUSES on both bases. Hand-derived 2017/2018 crossing −0.057; actual **−0.0572**. The
+  binding pair is **2017/2019**, which I explicitly flagged as uncomputed.
+- **P3 — CONFIRMED exactly.** `mix_free_envelope` is unchanged: [0.6122, 0.7700] `as_published`,
+  [0.6178, 0.8503] `all_domestic`. Held by a control that mutates the register and requires it not
+  to move, so this is a property and not an observation.
+- **P4 — CONFIRMED exactly.** The constant-pair sweep is unmoved: 0 of 4,001 on both bases, widest
+  slack −0.3093 at H = 0.0685 and −0.3374 at H = 0.0542.
+- **P5 — CONFIRMED on the claim, REFUTED on the arithmetic, and the refutation is the useful half.**
+  0 of 4 judged pairs carried at `tenure_composed_2025` and at `observed_mix_hull`, on both bases.
+  I predicted 2018→2019's reach at the hull would land in **0.55–0.70pp** on the reasoning that the
+  reach scales with the band's width. It is **0.435pp** — identical to the 2018 mix's. My reasoning
+  was wrong about which endpoint binds, as set out above. The two `record_requires_a_move: false`
+  pairs are still flagged and still excluded at both new bands.
+- **P6 — CONFIRMED, including the mechanism.** 2022's φ high end at the hull is exactly −0.46264,
+  the same figure as at the 2018 mix because the two bands share a low end, and at the 2025 mix it
+  falls to −0.6774. Entirely negative at both.
+- **P7 — CONFIRMED.** §13's sentence is refuted as posed: the second observation decides neither
+  branch of the dichotomy it offered.
+- **P8 — CONFIRMED on the property, and its stated FORM was wrong.** No existing value in
+  `published_route_split.json` changed, no key was removed, and the only additions are the four
+  named new ones — verified by a structural walk over the parsed JSON. But I predicted the artefact's
+  **diff** would be *"insertions only"* and it is not: 375 lines read as removals, because two dicts
+  gained trailing commas and because git realigns repeated JSON blocks. **A line diff was the wrong
+  instrument for the claim** and I filed it as the evidence. The claim was about values; the check
+  has to be over values. `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is `None`, `YEAR_LEVEL_ANCHOR` is
+  untouched, no solver aim point moved, and `emergent_level_verdict` is still six of seven outside
+  their bands. §4's constraint 4, a tenth time.
+
+### Two defects this reading's own machinery caught, both in the first draft
+
+**A register keyed by tuple position.** `svt_segment_churn_band` read
+`SVT_TENURE_OBSERVATIONS[1]` — a register that cannot lose a row or gain one in the middle. It was
+found by the isolation control handing the module a one-row register, which raised `IndexError`
+rather than reporting anything. The bands are now keyed by the observation's **year**, and the hull
+always includes the historical observation so an emptied register produces a reading rather than a
+crash.
+
+**A control whose docstring claimed a mutation it did not catch.** The composition leg said in terms
+that it caught the units error — reading `29%` where the within-segment ratio `0.5577` belongs — and
+it did not: `long_stayer_pct / 100` survived every assertion, because 0.29 is as valid a share as
+0.5577 and composes to a band still between the two published rows. That is this file's own
+recurring shape and it was caught by running the mutation rather than by re-reading the docstring.
+The property that separates them needs no reference to today's numbers: **both published rows are
+fractions of the whole account base and the SVT segment is a strict subset, so the within-segment
+share must be strictly larger than the raw percentage read as a fraction.** A second survivor —
+dropping the per-observation bands, leaving only the hull — was also a missing test, not an
+equivalence: a hull refusing says nothing about its interior, so §14's claim that the record refuses
+at *each* observed mix needed each mix scored on its own.
+
+### Controls
+
+Five legs in `tests/architecture/test_switching_rate_commons.py`, all mutation-proven on disk under
+`python3 -B` across twelve mutations: the register collapsed to one observation, a population
+blanked, the exclusion direction blanked, the within-segment ratio replaced by the raw percentage,
+the two published churn rows swapped in `compose_at_mix`, the observed hull replaced by the mix-free
+envelope, `refuses_at_every_observed_mix` frozen True, `the_verdict_is_the_same_at_every_observed_mix`
+frozen True, `mix_free_envelope` admitted into the observed-mix band list, the endpoint inversion
+replaced by the endpoint itself, the per-observation bands dropped from the verdict, and the
+historical observation duplicated into the register.
+
+**The reachability leg injects its missing branch rather than asserting a derivation.** All three
+§14 flags are constant across today's data — the record refuses at every observed mix on both bases
+and in every year set — so a leg that recomputed them from the same dict would be testing `all()`
+and one that merely read them would pass against a written-down `True`. So the branch is
+manufactured: two observations are injected at an all-long-stayer and an all-recent segment, which
+are the only mixes whose hull reaches the mix-free envelope. The hull then ADMITS while both real
+observations still refuse, and all three flags must flip. No published number is touched — only the
+register. The exclusion-direction leg carries its own correction beside it: its first draft banned
+every digit and fired on the citation *"2018"*, which would have pushed the provenance out of the
+field to keep a control green; it now forbids a magnitude and permits a year.
+
+### Where this leaves the repair
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published, and rung 1
+is unmoved. What changed:
+
+> **§13's binding weak input is discharged, and the admission it protected is relocated rather than
+> confirmed.** The tenure split is no longer one survey year carried across nine: there are two
+> observations on two instruments, they disagree by 19 points of within-segment share, and the
+> record refuses a constant φ at both of them and at every mix between them. The `[0.618, 0.850]`
+> interval survives only at a segment composition that is entirely long-stayer at one end and has no
+> long-stayers at the other, and **nothing has observed either.** The binding unestablished quantity
+> is φ, alone, with no weak input standing behind it.
+
+One thing owed, and it is now the only one: **the φ cross-tabulation from Ofgem's Consumer Impacts
+of Market Conditions survey** — one cross-tabulation of one survey, separating "switched supplier"
+from "switched tariff with the same supplier" on one base. Unchanged since §11, and it is no longer
+competing with a sourcing question about tenure. Before sourcing it externally, **look in this tree
+first**: that instruction has now been right four times in this chain, and the fourth time it was
+right about a figure a director ruling had already turned on.
+
+— Delivery seat, 2026-09-04.

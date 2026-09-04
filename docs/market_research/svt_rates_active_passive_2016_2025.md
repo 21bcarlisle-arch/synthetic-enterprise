@@ -51,6 +51,20 @@ Source: electricityprices.org.uk, Ofgem cap press releases, cross-checked Energy
 - **CMA 2016**: 70%+ Big Six domestic customers on SVT — had never switched or rolled back after fix expired. (H)
 - **Ofgem Sep 2017**: ~57% of non-PPM accounts at 10 largest suppliers on SVT; declined only 2pp despite record switching. (H)
 - **Ofgem Consumer Engagement Survey 2018**: 29% on SVT 3+ years; 23% on SVT under 3 years; 60%+ switched once or never. (H)
+- **Ofgem Retail Market Indicators, October 2025 stock** (non-prepayment domestic *electricity*
+  accounts): 54.9% on default tariffs, split **20.3% held 3+ years** and 34.6% held under 3.
+  Gas: 54.6% default, 23.1% / 31.5%. Fetched 2026-07-08; see `ASSUMPTIONS.md` L176, which is where
+  the R13 engagement-mix ruling of 2026-07-22 anchors. (H)
+
+**THE TENURE SPLIT HAS ONE HOME AND IT IS NOT THIS FILE.**
+`tools.published_route_split.SVT_TENURE_OBSERVATIONS` is the register, and it carries each
+observation's instrument and population because **the two above are not a series**: one is a
+consumer survey over all domestic customers including prepayment, the other is supplier-returned
+stock over non-prepayment electricity accounts. Within the SVT segment they give long-stayer shares
+of **0.5577 (2018)** and **0.3698 (2025)** — a 19-point disagreement — and finding §14 records what
+the published record says at each. Prepayment's exclusion from the 2025 row means 0.3698 is a
+**lower** bound. Do not difference these two as a trend, and do not compose a segment band from
+either one alone: §13 did, on 2018, and the verdict it produced was a verdict about 2018.
 - **Ofgem Consumer Engagement Survey 2019**: 49% never switched or switched once (down from 61% prior year). (H)
 
 The "35/65" framing is inferred from the inverse of the 57–65% SVT share; no Ofgem document states it explicitly in those terms. (M)
