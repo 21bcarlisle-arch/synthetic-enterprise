@@ -185,7 +185,7 @@
   loop_stage: idle
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["company/crm/property_model.py", "company/crm/property_discovery.py", "company/crm/home_registry.py", "company/crm/onboarding_journey.py", "company/crm/decarb_recommender.py"]
+  file_scope: ["company/crm/property_model.py", "company/crm/property_discovery.py", "company/crm/home_registry.py", "company/crm/onboarding_journey.py", "company/crm/decarb_recommender.py", "tests/company/crm/test_c2_discovery_wired.py", "tests/company/crm/test_c2_wall_read_enforcement.py"]
   simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier only learns a property's true attributes via meter install/survey/customer disclosure"
@@ -248,7 +248,7 @@
   loop_stage: harden
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["saas/ledger.py", "saas/reporting/annual_report.py"]
+  file_scope: ["saas/ledger.py", "saas/reporting/annual_report.py", "tests/saas/reporting/test_e3_unbilled_revenue_accrual.py"]
   simplifications_count: 3
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "period-end accrual + prior-period restatement in real supplier accounts"
@@ -1156,7 +1156,7 @@
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
-  file_scope: []
+  file_scope: [tests/test_c10_self_rationing_detection.py]
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
@@ -1174,7 +1174,7 @@
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
-  file_scope: []
+  file_scope: [tests/test_c7_life_event_detection.py]
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
@@ -1728,7 +1728,7 @@
   dial_inherited: 3
   provenance: director
   records_rehomed: [evidence]
-  file_scope: [saas/reporting/css_statement.py, saas/reporting/annual_report.py]
+  file_scope: [saas/reporting/css_statement.py, saas/reporting/annual_report.py, tests/saas/test_e4_css_reconciliation_control.py, tests/saas/test_e4_css_statement.py]
   simplifications_count: 9
 - id: H24_worktree_dir_autoreap
   notes_rehomed: [name]
@@ -1841,7 +1841,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source]
   records_rehomed: [evidence]
-  file_scope: ['tools/couple_w2_11_d5.py', 'background/gap_metric.py', 'tools/couple_w2_9_c11.py', 'tests/test_gap_metric_misapplication_class.py']
+  file_scope: ['tools/couple_w2_11_d5.py', 'background/gap_metric.py', 'tools/couple_w2_9_c11.py', 'tests/test_gap_metric_misapplication_class.py', 'tools/d6_ageing_metric_oracle.py', 'tests/tools/test_d6_ageing_metric_shape.py']
 - id: D7_ageing_gap_metric_reshape
   notes_rehomed: [build_note, name, origin_note]
   lane: D_billing_metering
@@ -1855,7 +1855,7 @@
   depends_on: [D6_payment_ageing_gap_validity]
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source]
   records_rehomed: [evidence]
-  file_scope: ['tools/couple_w2_11_d5.py', 'background/gap_metric.py', 'tests/tools/test_d6_ageing_metric_shape.py']
+  file_scope: ['tools/couple_w2_11_d5.py', 'background/gap_metric.py', 'tests/tools/test_d6_ageing_metric_shape.py', 'tests/tools/test_d7_ageing_measures.py']
 - id: D8_ambiguous_remittance_misdating
   notes_rehomed: [build_note, discover_note, name, origin_note]
   lane: D_billing_metering

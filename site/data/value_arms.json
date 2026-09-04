@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T00:51:50.098529Z",
+  "generated_at": "2026-09-04T01:19:57.231492Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "09009c236c1788c134de12df7504889e6800b75c",
+    "publishing_tree_commit": "074a2c2dbb4eac5fd9ba1a6f66f44f36a11d51ec",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 09009c236 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 074a2c2db -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -472,10 +472,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "09009c236c1788c134de12df7504889e6800b75c",
+      "publishing_tree_commit": "074a2c2dbb4eac5fd9ba1a6f66f44f36a11d51ec",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 09009c236 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 074a2c2db -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -803,7 +803,9 @@
     "ceiling": 0.6091441315862838,
     "ceiling_null_low": 0.4159464733760803,
     "ceiling_null_high": 0.585029272372456,
-    "ceiling_clears": true,
+    "ceiling_clears": null,
+    "measured_in_world": null,
+    "ceiling_verdict_withheld_because": "THIS GRADE NAMES NO WORLD. The artefact it is read from carries no departure-level identity and no run date, so it cannot be shown to have been measured over the world that is live now -- and the departure level is what decides how much signal there is to find. The ceiling and its interval are published because they are what was measured; whether the ceiling CLEARS that interval is a direction, and a direction whose world is unknown is not stated here. Re-run `python3 -m tools.measure_churn_heterogeneity --out=docs/observability/svt_drift_belief_grade.json` from a tree that stamps `world_identity` to restore it.",
     "arms": [
       {
         "field": "company_svt_drift_estimate",
