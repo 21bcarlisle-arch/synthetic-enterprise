@@ -68,7 +68,11 @@ because the failure is invisible when it happens. `--landed` should:
 Option 1 is smaller and is the recommendation. **I am not building it in this turn** — it is
 `background/`'s, another lane is actively editing `background/delivery_seat.py` (that is what
 `cbbeb99d3` is), and landing a concurrent change to the neighbouring module in the same file family
-is how two lanes' work gets swept. It is filed here, at MAJOR, with a reproduction.
+is how two lanes' work gets swept. It is filed here, at LATENT, with a reproduction.
+
+*(Filed first as MAJOR, which `background/finding_severity` refuses — the vocabulary is
+BLOCKING/LATENT/RECORDED. LATENT is the right one on its own terms: the defect is live and silent,
+and it has a known workaround a session can apply on the spot.)*
 
 ## What is NOT claimed
 
