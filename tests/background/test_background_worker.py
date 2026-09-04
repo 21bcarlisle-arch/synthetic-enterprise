@@ -350,7 +350,19 @@ def test_processing_order_is_deterministic_sorted(monkeypatch):
     background_worker.process_leftover_run_markers()
 
     processed_order = [Path(c).name for c in calls]
-    assert processed_order == sorted(names, reverse=True)
+    # NARROWED 2026-09-04 to what this test's own docstring claims: DETERMINISM AND DIRECTION.
+    # It used to assert all three were handed to the publisher, which pinned something else
+    # entirely -- the sweep WALKING BACKWARDS through the queue after a failure, publishing
+    # progressively older snapshots at a full expensive cycle each. Observed live at 10:35 that
+    # day: the frontier refused and the sweep immediately started an older marker. The success
+    # branch has always returned after the first marker; the failure branch now does too, so the
+    # only order this sweep can express is WHICH ONE IT TRIES FIRST -- and that is the direction
+    # the docstring argues for.
+    # MUTATION: drop the `reversed()` and the oldest is attempted instead. FIRES.
+    assert processed_order == [sorted(names)[-1]], (
+        "the sweep must attempt the NEWEST marker, and only that one: every older marker is a "
+        "staler snapshot of the same thing"
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -456,7 +468,10 @@ def test_no_published_run_yet_retires_nothing():
                         lambda *a, **k: _record_publisher(calls)(*a, **k) or MagicMock(returncode=1, stderr="")):
         background_worker.process_leftover_run_markers()
 
-    assert len(calls) == 3
+    # NARROWED 2026-09-04 to this test's own stated property (RETIRES NOTHING). `len(calls) == 3`
+    # asserted the backwards walk, which was never this test's subject and is now removed -- the
+    # markers all still stay pending, which is the fail-safe direction it exists to pin.
+    assert len(calls) == 1, "the sweep attempts the frontier only"
     for mk in markers:
         assert mk.exists(), "no frontier and no publish means nothing may be retired"
     assert not list((background_worker.STAGING_DIR / "done").glob("*.md"))
@@ -800,3 +815,46 @@ def test_the_zero_progress_alarm_reports_what_it_saw_not_a_cause_it_inferred(mon
     )
     assert "rc=1" in msg, "the alarm must carry the OBSERVED publisher outcome"
     assert "publish gate" in msg.lower(), "it must point the reader at the real place to look"
+
+
+def test_a_failed_frontier_ends_the_sweep_instead_of_publishing_ever_older_snapshots(monkeypatch):
+    """THE DEFECT THIS OWNS, observed live 2026-09-04 10:35.
+
+    `run_complete_20260904T085811Z` refused (commit_refused) after a 71-minute cycle, and the very
+    next thing the sweep started was `...T084511Z` -- an OLDER marker, at another full expensive
+    cycle, to publish a staler snapshot. The success branch ends the sweep precisely to stop that
+    ("publishing an older snapshot AFTER a newer one has published is the clock-rewind this
+    ordering exists to stop"); the failure branch walked on. The queue grew 15 -> 17 while every
+    log line said "will retry next cycle".
+
+    RETENTION IS NOT THE FIX AND MUST NOT BE TRADED FOR IT. The first draft retired the queue
+    behind the failed frontier and three existing controls caught it -- a red gate that ate its
+    own backlog would leave the wedge detector reading an empty queue as health. Every marker
+    stays pending here; only the walk stops.
+
+    MUTATION: remove the `return` from the frontier-failure branch and this fires, naming the
+    older markers the sweep went on to attempt.
+    """
+    names = ["run_complete_20260904T084511Z.md",
+             "run_complete_20260904T085811Z.md",
+             "run_complete_20260904T091113Z.md"]
+    for name in names:
+        (background_worker.STAGING_DIR / name).write_text("# Simulation Run Complete\n")
+
+    calls = []
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: _record_publisher(calls)(*a, **k)
+                        or MagicMock(returncode=1, stderr="", stdout="commit_refused"))
+
+    background_worker.process_leftover_run_markers()
+
+    attempted = [Path(c).name for c in calls]
+    assert attempted == ["run_complete_20260904T091113Z.md"], (
+        "the sweep walked backwards after the frontier failed and attempted {} -- each of those "
+        "is a full publish cycle spent on a staler snapshot than the one that just refused"
+        .format(attempted[1:])
+    )
+    # ...and the fail-safe the first draft broke: the backlog is the evidence the publish is
+    # stuck, so it must survive the failure intact.
+    assert sorted(p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md")) \
+        == sorted(names), "a failed frontier retired markers -- a red gate must not eat its queue"

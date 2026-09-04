@@ -500,6 +500,36 @@ def process_leftover_run_markers():
             # Publishing an older snapshot AFTER a newer one has published is the clock-rewind
             # this ordering exists to stop, so the sweep ends here rather than walking on.
             return
+        elif position == 0:
+            # THE FRONTIER FAILED, AND THE SWEEP USED TO WALK BACKWARDS FROM HERE. Observed live
+            # 2026-09-04 10:35: `run_complete_20260904T085811Z` refused (commit_refused), and the
+            # next thing the sweep started was `...T084511Z` — an OLDER marker, at a full
+            # expensive cycle, publishing a progressively older snapshot. That is precisely the
+            # clock-rewind the success branch above ends the sweep to prevent, reached through
+            # the failure branch, and it is why the queue grew (15 -> 17) while every individual
+            # log line said "will retry next cycle".
+            #
+            # NOTHING IS RETIRED HERE, AND THE FIRST DRAFT OF THIS BRANCH GOT THAT WRONG. Retiring
+            # the queue behind a FAILED frontier was caught by three controls that already exist —
+            # `test_a_red_gate_retires_nothing_and_keeps_the_whole_backlog`,
+            # `..._a_crashed_publisher_is_not_a_publish_and_retires_nothing`,
+            # `..._a_lock_skipped_newest_does_not_retire_the_queue_behind_it` — and they are right:
+            # retirement is justified by a marker having PUBLISHED, and a red gate that ate its own
+            # queue would leave the wedge detector reading an empty backlog as health. The depth of
+            # this queue IS the evidence that publishing is stuck, and it must survive.
+            #
+            # WHAT IS FIXED IS THE WALK, WHICH IS SEPARABLE FROM THE RETENTION. Every marker stays
+            # pending, exactly as those controls require; the sweep simply stops instead of
+            # attempting each older one in turn. The next sweep re-globs and starts from the newest
+            # marker on disk, which at a marker every 13.3 minutes is newer than the one that just
+            # failed. Walking on could only ever publish something staler than what already
+            # refused, at a full expensive cycle each.
+            _record_publish_gate_outcome(marker, result.returncode)
+            log(f"Failed to process {marker.name} (rc={result.returncode}) — the sweep ends here "
+                f"and the NEXT one retries from the newest marker on disk. The publisher's own "
+                f"verdict is on STDOUT:\n"
+                + ((result.stdout or "").strip()[-2000:] or "(publisher printed nothing)"))
+            return
         else:
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next "
                 f"cycle. The publisher's own verdict is on STDOUT:\n"
