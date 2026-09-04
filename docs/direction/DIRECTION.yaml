@@ -1,65 +1,79 @@
 version: 1
-oriented_at: "2026-09-04T14:24:15.144671+00:00"
+oriented_at: "2026-09-04T17:23:56.737282+00:00"
 
 thesis_read: >-
-  This stretch produced the first honest answer this project has ever given to the thesis question,
-  and it is a negative one. `74ee388d3` landed the detection floor on the flagship arm, so the page
-  no longer just says "we cannot tell": concordance 0.517 sits inside a 0.429-0.572 permutation null
-  on 86 scored decisions, the smallest departure that instrument could have called is 0.072, the
-  observed departure is 0.017 - about 24% of it - and reading an effect that small needs roughly
-  1,506 scored decisions, about 806 settled accounts. The scale constant is measured from this run's
-  own permuted interval rather than assumed, and `tests/tools/test_the_concordance_curve_says_what_
-  it_could_have_seen.py` holds it. So the claim that the advantage comes from INFERENCE is not
-  merely unproven; the instrument now states the size of book that could prove it, and reports
-  `the_observed_effect_is_attainable: false` against a settled-book ceiling of 632. That closes my
-  oldest open error and it is the whole of this stretch's progress. Now the part that changes what
-  to do next, and it came from reading the ceiling rather than accepting it: that ceiling's own
-  field says what binds it is "the settlement path's memory budget on this machine, not the world's
-  housing stock", and `settled_book_ceiling` adds `settlement_build` at 363.5 B/record to
-  `run_output_serialization` at 411.4 B/record because the probe takes the second baseline while the
-  first working set is still held. Over half the per-record cost of the bound on our central
-  scientific claim is a double count in our own serializer. Against that, everything else went
-  backwards. Blocking findings went from one to nine and eight of the nine are the machine's own
-  apparatus; thirteen of fourteen substantive commits were apparatus; no level has moved for seven
-  stretches (60 atoms at 0, 8 at 1, 15 at 2, and 82 of 83 below where they are meant to be).
-  Publishing is DOWN again as I write - 3.5 hours, the last three failures `behind_origin` - and the
-  cause is that this shared tree is three commits behind origin on its OWN lane's work and cannot
-  fast-forward, because `background/process_run_complete.py` is dirty and an untracked twin of a
-  file origin adds sits beside it. I graded transport CORRECTED last stretch on the strength of one
-  successful publish; it regressed inside the same stretch, so that grade is withdrawn below. And
-  the world underneath every figure above is still fitted onto its own check: the departure level
-  solves to the published rate to four decimal places in all seven fitted years, which is rung 1's
-  stated symptom rather than a validation result. One further fact about the steering itself: the
-  brief reports that NONE of my four previous focus items was drawn, and that is false - item one
-  was worked, in `74ee388d3`, which is the commit I am reading the good news off. The `drawn`
-  instrument has now under-reported for three consecutive stretches, and I have graded this stretch
-  by reading the commits by hand for the third time.
+  Against the thesis this stretch went backwards, and the reason is not the one I have written into
+  the last three of these files. Twelve substantive commits, all twelve on the machine's own
+  apparatus, none on the thesis. Blocking findings went 9 to 12. No level has moved for eight
+  stretches - 60 atoms at 0, 8 at 1, 15 at 2, and 82 of 83 below where they are meant to be, with
+  `SITE13_the_baseline_comparison_carries_its_bound` the single exception. The staging root took in
+  234 documents in seven days and let out 187, a net +47, and the work queue went 58 to 63. On the
+  one thing that did improve: the tree is level with origin (0 ahead, 0 behind) and figures reached
+  origin 0.9h ago, and the cause was found rather than the instance patched - `d6da8f76d`, an empty
+  wake secret that `setdefault` could not tell from an absent one, refusing every merge in the tree
+  for hours. I am still not grading that corrected, for the reason in `wrong`. Now the part that
+  matters, and it took reading the working tree rather than the commit log. THE STEER DID REACH AND
+  THE WORK DIED BEFORE IT BECAME A COMMIT. `background/origin_reconcile.py` carries 89 uncommitted
+  lines, last written 15:36 UTC - about an hour after the direction that asked for them - and they
+  are exactly last stretch's item 4: `blocking_paths` and a `_blocking_clause` on both `NOT_ADVANCED`
+  returns, naming the paths that refused an advance. `git log -S"blocking_paths"` on that file
+  returns nothing: the leg is in no commit and never has been. And it is not alone - 1,393
+  uncommitted insertions across 24 code files in this shared tree, among them 226 lines in
+  `tools/settlement_ceiling_probe.py` and 93 in `tools/fit_departure_hazards.py`, which are the two
+  instruments focus items 1 and 2 name, both last written 2026-09-03 and in no commit since. So for
+  three orientations I have concluded "the steer does not reach" from a brief that reads only
+  committed history, and the true statement is that the steer reaches, the work gets done, and it
+  does not land. That also revises my grade of the `drawn` instrument: it is keyed to landings, and
+  a stretch where the item was worked and never committed is a stretch where reporting zero is
+  correct. Two further readings, both mine to own. First, the direction itself churns: across 80
+  recorded orientations there have been 319 focus slots and 234 distinct ids, 196 of them appearing
+  exactly once, and only 25% of items survive to the next orientation - against work that takes
+  longer than three hours. A focus item is meant to disappear when it is finished; three quarters of
+  them disappear because the next seat re-derived a fresh set. So items 1, 2 and 3 below are last
+  stretch's, carried forward with their ids intact and their evidence re-read, and that persistence
+  is itself the experiment. Second, of four items handed over, the one that was worked was the
+  apparatus one - third stretch running that whatever I rank, the apparatus item is what gets drawn.
+  I am ranking item 4 last and bounding it again, and PRE-REGISTERING the prediction: item 4 will be
+  drawn first and 1-3 will again be untouched. If that happens, ranking has no effect on selection,
+  and the next direction must carry no apparatus item at all. The figures under the thesis are
+  unchanged and still wrong in the two ways they were three hours ago: `settled_book_ceiling` is 632
+  accounts whose own `what_binds` field says the binding constraint is "the settlement path's memory
+  budget on this machine, not the world's housing stock", against a detection floor needing about
+  806; and `floor_decomposition` still publishes
+  `share_at_which_a_bigger_book_could_resolve_it: -4.5507` graded `share_is_decisive: true`, telling
+  a reader 19 priced decisions would resolve a spread on a book that already has 104, on the same
+  page whose other panel says no affordable book can.
 
 stretch_reviewed:
-  since: "2026-09-04T11:24:27.898586+00:00"
-  commits: 34
-  substantive: 14
+  since: "2026-09-04T14:24:15.144671+00:00"
+  commits: 31
+  substantive: 12
 
 focus:
   - id: the-books-ceiling-is-our-serializer-and-not-the-world
     what: >-
-      In `simulation/premise_population.settled_book_ceiling`, `bytes_per_record` ADDS
-      `settlement_build` (363.5 B) to `run_output_serialization` (411.4 B) - and the docstring says
-      why: `tools/scale_probe_10k.py` takes the serialization baseline AFTER `run_settlement`
-      returns, while the settlement working set is still held, so a single-process
-      build-then-serialize pays both. Change the path so one working set is paid once - stream
-      records out and free them as they are written, or split build from serialize across the
-      process boundary - then RE-RUN the scale probe and let the ceiling fall out of the new
-      measurement. Do not edit the number, and do not touch the 1/sqrt(n) curve or the null: the
-      bound must still be derived from measured floors so it stays an upper bound.
+      START BY READING THE 226 UNCOMMITTED LINES ALREADY IN `tools/settlement_ceiling_probe.py`
+      (`git diff HEAD -- tools/settlement_ceiling_probe.py`, last written 2026-09-03, in no commit).
+      Decide whether that is finished work or an abandoned attempt, say which in the commit message,
+      and land it or discard it before writing anything new - do not write a second probe beside it.
+      Then the work itself, unchanged from last stretch: in
+      `simulation/premise_population.settled_book_ceiling`, `bytes_per_record` ADDS
+      `settlement_build` (363.5 B) to `run_output_serialization` (411.4 B), and the docstring says
+      why - the serialization baseline is taken AFTER `run_settlement` returns, while the settlement
+      working set is still held, so a single-process build-then-serialize pays both. Change the path
+      so one working set is paid once (stream records out and free them as they are written, or
+      split build from serialize across the process boundary), then RE-RUN the probe and let the
+      ceiling fall out of the new measurement. Do not edit the number, and do not touch the
+      1/sqrt(n) curve or the null: the bound must stay derived from measured floors so it remains an
+      upper bound.
     why: >-
-      The bound on this project's central claim is currently set by our own serializer. The page
-      reports `the_observed_effect_is_attainable: false` against 632 accounts, and that field's own
-      `what_binds` says the binding constraint is this machine's memory budget rather than the
-      world - so a reader takes a statement about our RSS accounting as a statement about whether
-      per-customer inference can be detected at all. At an 8.58 GB budget and 17,520 records per
-      customer-year, removing the double count moves the bound to roughly 1,190 accounts by
-      arithmetic alone. THIS IS NOT GROWING A BOOK UNTIL THE ARM WINS - R12 forbids that, the feed
+      The bound on this project's central claim is set by our own serializer. The page reports
+      `the_observed_effect_is_attainable: false` against 632 accounts while the detection floor needs
+      about 806, and the field's own `what_binds` says the constraint is this machine's memory
+      budget rather than the world - so a reader takes our RSS accounting for a statement about
+      whether per-customer inference is detectable at all. At an 8.58 GB budget and 17,520 records
+      per customer-year, removing the double count moves the bound to roughly 1,190 accounts by
+      arithmetic alone. THIS IS NOT GROWING A BOOK UNTIL THE ARM WINS - R12 forbids it, the feed
       says so in `it_is_a_diagnostic`, and it stays forbidden; the arm reading "cannot tell" again
       afterwards is a complete result and must be published as one. Finished when the ceiling is
       re-derived from a re-run probe and the published bound's binding constraint is the world or
@@ -67,43 +81,45 @@ focus:
 
   - id: the-worlds-departure-level-is-fitted-onto-its-own-check
     what: >-
-      Work steps 1 and 2 of `docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_
-      IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`, which names both. Step 1 is knowledge, not
-      code: establish what published evidence gives for the HOUSEHOLD-level amplitude of switching
-      response, going at the two sources that finding already named - Ofgem Retail Market Indicators
-      read FROM THE DATA TABLES, PER FUEL, and the Ofgem Consumer Survey's switching-by-engagement
-      -segment breakdown - and file the result in `docs/market_research/` whether or not it settles,
-      because "a segment-level dispersion is not a household-level one" IS the finding if that is
-      what the tables give. Do not re-run the generic search: the finding records that this gap is
-      already declared twice, in `docs/institutional/knowledge_map.md` and in
-      `docs/market_research/continuous_behavioural_engagement_w2_14.md` §3a. If the published record
-      does not settle it, send ONE NTFY question to the director as the practitioner side, carrying
-      a recommended default - never invent the constant. Step 2 is then repairing the compression in
-      `market_switching_multiplier` / `market_opportunity` against whatever was established, measured
-      by re-running the one-constant sweep in §3 of that finding, which is now a repeatable
-      instrument. Step 3, retiring the per-year anchor table, is explicitly OUT of scope here.
+      SAME FIRST ACT: `tools/fit_departure_hazards.py` carries 93 uncommitted lines from 2026-09-03
+      that are in no commit. Read them, say whether they are finished or abandoned, land or discard
+      before adding to them. Then work steps 1 and 2 of
+      `docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_
+      MISDIRECTED_2026-09-03.md`. Step 1 is knowledge, not code: establish what published evidence
+      gives for the HOUSEHOLD-level amplitude of switching response, at the two sources that finding
+      already names - Ofgem Retail Market Indicators read FROM THE DATA TABLES, PER FUEL, and the
+      Ofgem Consumer Survey's switching-by-engagement-segment breakdown - and file the result in
+      `docs/market_research/` whether or not it settles, because "a segment-level dispersion is not
+      a household-level one" IS the finding if that is what the tables give. Do not re-run the
+      generic search: the gap is already declared twice, in `docs/institutional/knowledge_map.md`
+      and in `docs/market_research/continuous_behavioural_engagement_w2_14.md` §3a. If the published
+      record does not settle it, send ONE NTFY question to the director as the practitioner side,
+      carrying a recommended default - never invent the constant. Step 2 is then repairing the
+      compression in `market_switching_multiplier` / `market_opportunity` against whatever was
+      established, measured by re-running the one-constant sweep in §3 of that finding. Step 3,
+      retiring the per-year anchor table, is explicitly OUT of scope.
     why: >-
-      This is the only one of nine BLOCKING findings that is about the world rather than about the
-      machine, it has been open since 2026-09-03, and nothing touched it this stretch. The world's
-      departure level equals the published rate to four decimal places in all seven fitted years by
-      construction, so the band cannot fail and rung 1 of the director's validation ladder is not
-      passed; and the mechanism beneath it is compressed roughly two-fold, spanning 9.1-19.6 where
-      the record spans 12.5-23.0, with the best single constant putting only 2 of 7 years in band.
+      This is the only one of twelve BLOCKING findings that is about the world rather than the
+      machine, it has been open since 2026-09-03, and nothing has touched it in two stretches. The
+      world's departure level equals the published rate to four decimal places in all seven fitted
+      years by construction, so the band cannot fail and rung 1 of the validation ladder is not
+      passed; the mechanism beneath it is compressed roughly two-fold, spanning 9.1-19.6 where the
+      record spans 12.5-23.0, with the best single constant putting only 2 of 7 years in band.
       Fidelity is the precondition for telling value CREATED from value TRANSFERRED, so every arm
-      figure - including the one item 1 is unbottling - rests on a world that is currently fitted to
-      pass its own check. Finished when the evidence is filed with its confidence stated (including
-      an honest "not established" with its reason), the sweep has been re-run against it, and the
-      prediction already filed beside that finding - most of the gap closes and 2017 is the year
-      that remains out - is graded in the record next to itself, whichever way it falls.
+      figure - including the one item 1 unbottles - rests on a world currently fitted to pass its
+      own check. Finished when the evidence is filed with its confidence stated (including an honest
+      "not established" with its reason), the sweep is re-run against it, and the prediction already
+      filed beside that finding - most of the gap closes and 2017 is the year that remains out - is
+      graded in the record next to itself, whichever way it falls.
 
   - id: one-page-answers-would-a-bigger-book-help-in-both-directions
     what: >-
-      `site/data/value_arms.json` publishes `share_at_which_a_bigger_book_could_resolve_it` as
-      -4.5507 and grades it `share_is_decisive: true` with `share_margin_over_threshold` 5.5507 over
-      a bar of 0.15, so `tools/generate_value_arms_data.py` takes the branch that tells the reader a
-      larger SETTLED BOOK is what would resolve the spread and that 19 priced decisions are needed -
-      on a run that already has 104. The `method_skill` panel on the same page says the observed
-      effect is not attainable at any book this machine can hold. Make the producer REFUSE a share
+      Re-read from the live feed before changing anything, then fix it.
+      `site/data/value_arms.json` still publishes `floor_decomposition.
+      share_at_which_a_bigger_book_could_resolve_it` as -4.5507, grades it `share_is_decisive: true`
+      with a margin of 5.5507 over a bar of 0.15, and reports `priced_decisions_needed: 19` on a
+      book that already priced 104 - so `tools/generate_value_arms_data.py` takes the branch telling
+      the reader a larger settled book is what resolves the spread. Make the producer REFUSE a share
       outside [0, 1] rather than grading it, and make it say plainly that a partition whose
       `rest_of_book_sd_gbp` is exactly 0.0 and whose `priced_share_of_variance` is exactly 1.0 has
       not been shown to be two halves of one call stream. Then discharge
@@ -112,155 +128,164 @@ focus:
     why: >-
       A negative share published as decisive is a quantity nobody defined being differenced and then
       graded, which is this project's most expensive recurring shape, and it is on the flagship page
-      now. Worse than the nonsense itself is the disagreement: one panel tells a reader a bigger
-      book resolves this and names a book smaller than the one already run, and the panel beside it
-      says no affordable book can. Only the seat sees that, because each panel is correct inside its
-      own bounded invocation. It also sits directly across item 1 - if the ceiling moves, the wrong
-      one of these two answers gets louder. Finished when no share outside [0, 1] can reach the
-      page, the exact-zero partition is stated as unestablished rather than reported as a clean
-      split, and that finding is dispositioned out of the staging root.
+      right now, three orientations after I first named it. Worse than the nonsense is the
+      disagreement: one panel tells a reader a bigger book resolves this and names a book smaller
+      than the one already run, and the panel beside it says no affordable book can. Only the seat
+      sees that, because each panel is correct inside its own bounded invocation. It also sits
+      directly across item 1 - if the ceiling moves, the wrong one of these two answers gets louder.
+      Finished when no share outside [0, 1] can reach the page, the exact-zero partition is stated as
+      unestablished rather than reported as a clean split, and that finding is dispositioned out of
+      the staging root.
 
-  - id: the-shared-tree-cannot-fast-forward-so-nothing-publishes
+  - id: finished-work-is-dying-in-the-working-tree-before-it-becomes-a-commit
     what: >-
-      Reconcile this shared tree: it is 3 commits behind origin on its own lane's work
-      (`f77705819`, `0f4efdf7a`, `d831f7153`) and the fast-forward is refused by exactly two paths -
-      `background/process_run_complete.py`, dirty in both index and worktree, and an untracked twin
-      of `docs/staging/SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_
-      HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md`, which origin also adds. Use
-      `tools/isolate_hunks.py --survey` on the first and `git hash-object` against `git rev-parse
-      origin/main:<path>` on the second; the sanctioned route is `python3 -m tools.surgical_land
-      --merge origin/main` and hook-bypass is a wall. Then add ONE leg to
-      `background/origin_reconcile.py`: when it reports `NOT_ADVANCED`, name the paths that refused
-      the advance and which of those two kinds each one is.
+      This shared tree carries 1,393 uncommitted insertions and 379 deletions across 24 code files.
+      Run `git diff --stat HEAD` over `background/ tools/ simulation/ company/ saas/ tests/`, and
+      for EACH file write one line saying which of three it is: finished work that must land, an
+      abandoned attempt that must be reverted, or another lane's live edit that must be left alone
+      (`tools/isolate_hunks.py --survey` tells you the third from the first two - never wait for
+      another lane, and never `git stash` or `git checkout <path>`). File that list as one finding in
+      `docs/staging/`. Then land exactly one thing yourself: the 89 lines in
+      `background/origin_reconcile.py` - `blocking_paths` plus `_blocking_clause` on both
+      `NOT_ADVANCED` returns - which are last stretch's item 4, written at 15:36 UTC on 2026-09-04
+      and in no commit; verify with `git log -S"blocking_paths" -- background/origin_reconcile.py`
+      returning nothing before you start and your own sha after. Land it by
+      `python3 -m tools.surgical_land`, by pathspec, with `--content` if another lane has touched
+      the file in place. THE BOUND IS PART OF THIS ITEM: one survey document and one landing. If it
+      grows past that, stop and go back to items 1-3 - the other 22 files' verdicts are for their
+      own lanes to act on, not for you to land in a sweep, and I have three consecutive stretches on
+      the record of the apparatus eating everything.
     why: >-
-      Publishing has been down 3.5 hours at this orientation and the last three recorded publish
-      failures are `behind_origin` at `239c40605` and `e340cefd8` and a non-test gate refusal at
-      `5952aaa4e`. Items 1-3 all end in a figure whose only value is being read, and none of them
-      reaches a reader through a tree that cannot advance. I graded transport corrected last stretch
-      on one successful publish; it regressed within the same stretch because what was repaired was
-      a merge and not the condition - a permanently dirty shared tree can never fast-forward, and
-      `origin_reconcile` correctly declines to force it while reporting a verdict that names no
-      cause a reader can act on. THE BOUND IS PART OF THIS ITEM AND NOT A NOTE ELSEWHERE: this is
-      one commit's worth of work. If it grows beyond the reconcile plus the one reporting leg, park
-      it and go back to items 1-3 - I spent an entire stretch on the apparatus on exactly this
-      argument, and it is ranked fourth for that reason. Finished when the shared tree is level with
-      origin and a refused advance names its own refusing paths.
+      For three orientations I read "none of the focus was drawn" and concluded the steer does not
+      reach. It does: item 4 was worked within an hour and the work is still sitting in the working
+      tree, invisible to a brief that reads commits and to every gate whose subject is HEAD. That
+      makes this the mechanism by which the last three directions produced nothing visible, and it
+      is upstream of items 1 and 2 - both of whose instruments carry uncommitted diffs of their own,
+      which is why each of those items opens by reading its own. It is ranked LAST anyway, and
+      deliberately: the apparatus item is the one that gets drawn every time, and if that happens
+      again while 1-3 stay untouched, the next direction carries no apparatus item at all. Finished
+      when the survey names a verdict for every file and the reconcile leg is in a commit.
 
 not_now:
   - what: >-
-      Repairing the `drawn` instrument in `background/delivery_lane.py` that reports which focus
-      items were worked - deferred for the fifth time, and this stretch it told the director that
-      NONE of four items was drawn when `74ee388d3` demonstrably worked item one.
+      Repairing the `drawn` instrument in `background/delivery_lane.py`, which reported an empty
+      list again this stretch - deferred a sixth time, and this time with my own grading of it
+      partly withdrawn.
     why: >-
-      It costs me one hand-read of the commit log per orientation, which I have now done three times
-      and which is cheap; it costs the thesis nothing. What it does cost is a false sentence about
-      his own steering reaching the director, and that is why it stays on the wrong list rather than
-      being dropped. But it is apparatus, I have two apparatus-heavy stretches on the record, and I
-      have already put one apparatus item in this direction. A second would repeat the exact error I
-      am carrying open at the top of `wrong`.
+      Reading the working tree changed the verdict. `drawn` is keyed to LANDINGS, and last stretch's
+      item 4 was worked and never committed, so an empty list is a defensible report rather than an
+      under-count. The under-report I proved was `74ee388d3` the stretch before, which did land. So
+      the instrument is now at most half the problem and item 4 above addresses the other half at
+      its cause. It stays off focus because it is apparatus, and because I would rather spend the
+      one apparatus slot on the 89 lines that are actually lost.
 
   - what: >-
-      The other seven BLOCKING apparatus findings - the hand-off written from an isolated worktree,
+      The eleven other BLOCKING apparatus findings - the hand-off written from an isolated worktree,
       the TTL that cannot bound dead scratch, the 57-second commit deadline, the staleness signal
       that cannot be cleared by the restart it triggers, the two test suites that write live
       published feeds, the note declaration committed without its content, the zero start time
-      rendered as a 1970 episode.
+      rendered as a 1970 episode, the nine-day-stale committed grid feed, and the rest.
     why: >-
-      Every one is real and I am not disputing any of them. But nine blocking findings is what a
-      stretch spent entirely on the machine produces, not what it cures, and none of these seven
-      stops a figure reaching a reader - the one that does is item 4, scoped to a single commit.
-      Fixing seven instances would consume a third consecutive stretch on the delivery apparatus
-      while the world under every published figure stays fitted to its own check.
+      Every one is real. But twelve blocking findings is what two stretches spent entirely on the
+      machine PRODUCED, not what they cured - the count went 1, then 9, then 12 while apparatus work
+      was all that landed. None of these stops a figure reaching a reader now that the tree is level
+      with origin and publishing is live. Fixing instances would buy a fourth consecutive apparatus
+      stretch while the world under every published figure stays fitted to its own check.
 
   - what: >-
-      Draining the staging root as a programme - 227 documents filed and 185 dispositioned in seven
-      days, a net +42, with a work queue 58 deep.
+      Cutting the direction's own churn structurally - making the periodic orientation carry
+      unfinished focus forward rather than re-derive it, given that only 25% of focus items survive
+      to the next orientation and 196 of 234 distinct ids across 80 orientations appear exactly once.
     why: >-
-      The sediment reading is right that filing is free and dispositioning is not, and a folder that
-      grows without bound is a real signal. But the remedy it names is fewer channels that file, not
-      a tidying pass, and a tidying pass is exactly the work CLAUDE.md calls building the thing that
-      watches the work. Items 2 and 3 each discharge a specific finding as a by-product of doing the
-      work it describes, which is the only disposition route that has ever held here.
+      It is a real defect and I am fixing it this turn by hand instead: items 1, 2 and 3 are carried
+      forward with their ids intact, which is the whole remedy applied once. Whether persistence
+      alone is enough is now testable at the next orientation at zero cost, and if it is enough the
+      mechanism is unnecessary. Building the mechanism first would be building the thing that
+      watches the work before knowing the work needs watching - and it would be a second apparatus
+      item, in a direction whose central finding is that the apparatus item is the one that always
+      gets drawn.
 
   - what: >-
-      Recording a level move on any atom this stretch, for the seventh stretch running, with 60
-      atoms at level 0 and 82 of 83 below where they are meant to be.
+      Draining the staging root as a programme - 234 documents filed and 187 dispositioned in seven
+      days, a net +47, with a work queue 63 deep and growing.
     why: >-
-      I am aware this is the strongest argument against the direction I have written and I am making
-      the trade knowingly. The atoms nearest a move are the ones whose figures items 1 and 3 are
-      repairing, and certifying a level on a figure whose bound is contaminated by our own serializer
+      The sediment reading is right that filing is free and dispositioning is not. But the remedy it
+      names is fewer channels that file, not a tidying pass, and a tidying pass is exactly the work
+      CLAUDE.md calls building the thing that watches the work. Items 2 and 3 each discharge a
+      specific finding as a by-product of doing what it describes, and item 4 files one rather than
+      four - that is the only disposition route that has ever held here.
+
+  - what: >-
+      Recording a level move on any atom, for the eighth stretch running, with 60 atoms at level 0
+      and 82 of 83 below where they are meant to be.
+    why: >-
+      This is the strongest argument against the direction I have written and I am making the trade
+      knowingly for the second time. The atoms nearest a move are the ones whose figures items 1 and
+      3 repair, and certifying a level on a figure whose bound is contaminated by our own serializer
       or whose share is published outside [0, 1] would record precisely the wrong thing at precisely
       the wrong moment. A level is a record, never an authorisation. If items 1 and 3 land, the move
-      is available next stretch on evidence rather than on patience.
+      is available next stretch on evidence rather than on patience. If they do not land again, the
+      argument for holding off has run out and I will say so rather than repeat this paragraph.
 
   - what: >-
-      Retiring the per-year `YEAR_LEVEL_ANCHOR` table now and letting the band go back to being a
-      red check - step 3 of the clamped-level finding.
+      Retiring the per-year `YEAR_LEVEL_ANCHOR` table now and letting the band go back to being a red
+      check - step 3 of the clamped-level finding.
     why: >-
-      It is the step everyone will want to take first and it is third for a reason the finding
-      already argues: replacing seven fitted scalars with one invented constant swaps a clamp for a
-      number picked because a number was needed. An honest 2-of-7 with a named gap beats a 7-of-7
-      that is true by construction, but only once the mechanism under it has a source.
+      It is the step everyone wants to take first and it is third for the reason the finding already
+      argues: replacing seven fitted scalars with one invented constant swaps a clamp for a number
+      picked because a number was needed. An honest 2-of-7 with a named gap beats a 7-of-7 that is
+      true by construction - but only once the mechanism under it has a source, which is step 1 of
+      item 2.
 
 wrong:
   - what: >-
-      I ranked the delivery apparatus first, did not bound it, and it consumed the stretch - and
-      then it happened again, worse. Thirteen of this stretch's fourteen substantive commits
-      repaired the machine's own apparatus and one touched the thesis. Blocking findings went from
-      one to nine and eight of the nine are apparatus. No level has moved or been recorded for seven
-      stretches. Last time I wrote that the bound was in `not_now` as a judgement I had to remember,
-      and named that as the shape this project keeps paying for - and then I remembered it exactly
-      as well as that predicted, which is to say not at all. Still open, but the tactic has changed
-      rather than the exhortation being reissued: the bound now lives INSIDE focus item 4, in the
-      text the worker reads, naming what parks it and what it is parked below. Whether that works is
-      gradeable next stretch and the previous formulation was not.
+      I ranked the delivery apparatus first, did not bound it, and it consumed the stretch; then it
+      happened again, worse; and this stretch it happened a third time, with all twelve substantive
+      commits on apparatus and none on the thesis. Last time I moved the bound INSIDE focus item 4,
+      on the argument that a bound in `not_now` was one I had to remember and would not. The bound
+      held - item 4 was one item's worth of work - and the stretch was still 100% apparatus, because
+      the apparatus work does not arrive through focus at all; it arrives as autonomous findings the
+      direction has no purchase on. So the bound was on the wrong lever and the diagnosis under it
+      was wrong. What is new and gradeable: of four items handed over, the ONE that was worked was
+      the apparatus one, third stretch running. I have pre-registered in `thesis_read` that item 4
+      will be drawn first again and 1-3 untouched, and that if so, the next direction carries no
+      apparatus item at all. Still open.
     corrected: false
 
   - what: >-
-      I graded the transport error CORRECTED last stretch and that grade is WITHDRAWN. It was true
-      of one publish cycle and false of the condition: publishing is down 3.5 hours again at this
-      orientation, the last three failures are `behind_origin`, and the shared tree is three commits
-      behind origin on its own lane's work because a permanently dirty tree can never fast-forward.
-      What I graded was an instance dressed as a cure, which is the same class of mistake as the row
-      above it. Reopened, with the specific repair and its bound in focus item 4.
+      I graded the transport error CORRECTED two stretches ago on the strength of one successful
+      publish, it regressed inside the same stretch, and I withdrew the grade. It is better now than
+      it has been: HEAD and origin are level at 0/0, figures reached origin 0.9h ago, and the cause
+      was named rather than the instance patched - `d6da8f76d` found that an empty wake secret is not
+      an absent one and that `setdefault` cannot tell the difference, which is what had been refusing
+      every merge in the tree for hours. I am STILL NOT GRADING IT CORRECTED, because that is exactly
+      the shape of evidence I accepted last time. It becomes true when two consecutive orientations
+      find the tree level with no hand reconciliation in between. Recorded here so the next seat can
+      grade it on that condition rather than on another good afternoon.
     corrected: false
 
   - what: >-
-      I have twice written a focus item asserting perishable state as established fact, most
-      recently telling the director the world's fixed-deal share was outside the published band in
-      all eight banded years when 2023 sits at 9.0% UNDER a 10-20% band. No new instance this
-      stretch - every figure in this file was read from the tree immediately before writing it, and
-      the two that contradicted the brief handed to me are named in `thesis_read` as contradictions
-      rather than silently adopted. But the class finding
+      I have twice written a focus item asserting perishable state as established fact. No new
+      instance this stretch - every figure in this file was read from the tree or the live feed
+      immediately before writing it, and where the brief and the tree disagreed I read the tree: the
+      brief's `drawn: []` and its "12 substantive commits, all apparatus" are both true of committed
+      history and both false of what actually happened, which is why `thesis_read` says so rather
+      than adopting either. But the class finding
       `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_BEFORE_
-      THE_TURN_READ_IT_2026-09-03.md` is STILL undispositioned in the staging root, fourth stretch,
-      so the class is unrepaired and only my own care stands between it and a fifth instance.
+      THE_TURN_READ_IT_2026-09-03.md` is still undispositioned in the staging root, fifth stretch, so
+      the class is unrepaired and only my own care stands between it and a fourth instance.
     corrected: false
 
   - what: >-
-      I have read the previous steer's non-draw as benign four times and it is the instrument, not
-      the steer. Graded again: of four items, item one was worked in `74ee388d3` - the detection
-      floor, the largest result of the stretch - and `drawn` reported an empty list. Three
-      consecutive stretches of under-reporting is a trend, and this stretch it reported zero when
-      the true count was one. Deferred a fifth time, deliberately, with the trade written out in
-      `not_now`, and graded by hand-reading the commit log instead. If the next brief again reports
-      zero drawn against a stretch where an item visibly moved, the instrument outranks the work.
+      I read the previous steer's non-draw as benign four times, then said the instrument outranked
+      the work, and that grade is now PARTLY WITHDRAWN in the other direction. `drawn` is keyed to
+      landings; last stretch's item 4 was worked at 15:36 UTC and never committed, so reporting zero
+      was defensible this time. The under-report I actually proved was `74ee388d3` the stretch
+      before, which did land and was still reported empty - that half stands and is uncorrected. What
+      I got wrong is bigger than the instrument: for three orientations I diagnosed "the steer does
+      not reach" from a brief that reads only committed history, when the steer reached within an
+      hour and the work died in the working tree. I would have seen it at any point by running
+      `git diff --stat HEAD` and I never did. Open, and the half that is mine to fix is item 4.
     corrected: false
-
-  - what: >-
-      I filed a pre-registration whose own constraint named the trap and then chose a statistic that
-      could only fall into it - Spearman on seven fitted years, needing |rho| >= 0.75 against the
-      exact permutation null and returning +0.32 - and the defect had become the flagship, with
-      `method_skill` publishing a concordance inside its own null and nothing anywhere saying what
-      86 decisions could have detected. CORRECTED this stretch, at the place it cost most rather
-      than as a sixth reissue of the general rule: `74ee388d3` landed
-      `what_it_could_have_detected` on the published feed - the smallest callable departure (0.072),
-      the observed one (0.017) as a share of it (24%), the book that would be needed (about 1,506
-      scored decisions, 806 accounts), and `the_observed_effect_is_attainable: false` against the
-      measured ceiling - with the scale constant taken from this run's own permuted interval rather
-      than assumed, `it_is_a_diagnostic` carrying R12 on the page, and
-      `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py` holding it. Reading
-      that bound is what produced focus item 1.
-    corrected: true
 
 for_the_director: []
