@@ -4508,7 +4508,10 @@ def _divergence_refusal():
                 "established -- refusing rather than creating one that may be rejected")
     return ("origin/main is {} commit(s) AHEAD of HEAD, so a commit created here could only be "
             "rejected non-fast-forward and would widen the fork by one more. Reconcile first: "
-            "`python3 -m tools.surgical_land --merge origin/main`".format(ahead))
+            "`python3 -m background.origin_reconcile`, which does the gated merge in an ISOLATED "
+            "worktree. Do NOT run `surgical_land --merge origin/main` in the shared tree: it "
+            "opens the shared index, and this refusal's own reason for existing is that routinely "
+            "three lanes have uncommitted work in it".format(ahead))
 
 
 #: How long a fast-forward of this checkout may take. Generous for a ~130 MB tree on a machine
@@ -4618,10 +4621,12 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
         if ahead > 0:
             return {"advanced": False,
                     "reason": "this tree holds {} commit(s) of its own, so the fork is REAL and "
-                              "closing it is a judgement: it needs the gated merge door "
-                              "(`python3 -m tools.surgical_land --merge origin/main`), which is "
-                              "longer than a publish cycle. Left to origin_reconcile on the "
-                              "deadman cadence, which is where it belongs".format(ahead)}
+                              "closing it is a judgement: it needs the gated merge door, which is "
+                              "longer than a publish cycle. OWNED BY `python3 -m "
+                              "background.origin_reconcile` on the deadman cadence, which merges "
+                              "in an ISOLATED worktree -- measured 2026-09-04, it closed 41 real "
+                              "forks unaided, so this is a state with an owner and not a state "
+                              "waiting on a reader".format(ahead)}
         # THE LOCK, BECAUSE THIS WRITES THE SHARED WORKING TREE -- and taken and RELEASED here
         # rather than held into the commit below, which acquires it again. `tree_lock` is an
         # flock and a nested acquisition from one process deadlocks (see `_git_add_or_refuse`).
@@ -4978,8 +4983,10 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         notify(
             "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
             "not one wider than it was. The mechanical advance was tried first and did not clear "
-            "it: {}. Nothing is wrong with the run or the suite; the tree needs "
-            "reconciling.".format(_behind, _why_not),
+            "it: {}. Nothing is wrong with the run or the suite, and this is NOT a call to "
+            "action: `background/origin_reconcile` owns a real fork and closes it in an isolated "
+            "worktree on the deadman cadence. If it CANNOT, the deadman pages separately "
+            "([ORIGIN FORK]) and that is the alarm to act on.".format(_behind, _why_not),
             kind="real_alarm",
         )
         return _outcome(BEHIND_ORIGIN, False,
