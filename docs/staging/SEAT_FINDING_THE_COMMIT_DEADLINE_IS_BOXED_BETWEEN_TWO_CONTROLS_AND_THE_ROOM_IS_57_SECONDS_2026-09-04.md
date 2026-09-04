@@ -246,3 +246,85 @@ reason recorded in the series**, never to raise the deadline.
 
 Filed rather than acted on, because every action available inside a bounded tick turns a red
 control green in the same tick that it blocks the actor.
+
+### CORRECTION, beside the claim it replaces — same tick, 2026-09-04 14:55 UTC
+
+I wrote above: *"Refused cycles DO append (the 13:51 and 14:27 rows are both refused publishes), so
+the window advances without publishing"*, and put ~9–15h on it. **That is wrong, and wrong in the
+direction that made the situation sound self-limiting.**
+
+The 14:44 cycle was also a refused publish and appended **no row**. Its `Running fast test suite`
+line is in the log at 14:44 and its `Provenance` line is at 14:44 — the step completed inside a
+minute, against a real gate cost of ~660s, so the scoped gate did not run. 13:51 and 14:27 each ran
+at a fresh git hash (`5952aaa4e`, `b0ba91858`); a cycle that re-attempts an unchanged tree does not.
+
+So the window advances **once per distinct gated tree, not once per publish cycle** — driven by
+other lanes landing, not by the publish cadence. With publishing wedged and the tree quiet it may
+not advance at all. **No hours figure is honest here and I should not have given one.**
+
+## THE CONTROL IS GRADING THE DEADLINE AGAINST A SERIES THAT DOES NOT MEASURE IT
+
+This is the finding that changes the repair, and it was found by asking what each of the two numbers
+in the assert actually counts.
+
+```
+assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS >= prc.COMMIT_DEADLINE_HEADROOM * worst
+       └─ bounds the pre-commit HOOK CHAIN          └─ worst of publish_gate_duration.jsonl,
+          inside `git commit`                          which records the publisher's OWN SCOPED GATE
+```
+
+Those are two different suite runs under two different deadlines. The publisher's scoped gate is
+bounded by `GATE_SUITE_TIMEOUT_SECONDS` (3800s) and is running at `headroom_ratio: 0.82`, entirely
+healthy. **A dedicated ledger for the hook chain already exists** —
+`docs/observability/commit_hook_duration.jsonl`, written by `_record_commit_hook_duration`, whose
+own docstring names this exact confusion as the defect it was built to end:
+
+> THE THING THAT TIMES OUT WAS THE ONE THING UNMEASURED. `publish_gate_duration.jsonl` records the
+> publisher's OWN scoped gate and grades its headroom against `GATE_SUITE_TIMEOUT_SECONDS` (3800s)
+> [...] while the commit that runs a comparable chain was being killed at 600s. Two deadlines
+> differing by a factor of six, and the one the instrument grades against is not the one that binds.
+
+The ledger was built. **The control was never repointed at it.**
+
+### What the hook chain actually costs, measured (n=152, 2026-08-25 → 2026-09-04)
+
+```
+                                    hook chain (the subject)   scoped gate (what is graded)
+worst of last 20                            134.3s                      714.6s
+1.25x that                                  167.9s                      893.2s
+against deadline 880s                    GREEN, 6.5x spare           RED by 13.2s
+median (all time)                           395.8s
+max PASS (all time)                         837.3s  (2026-08-25, the incident this control exists for)
+```
+
+**The proxy was once sound and has silently decoupled.** In August the two moved together — hook
+chain 640–837s beside a ~650s gate — which is why "the commit runs a comparable chain again" was a
+fair assumption and why the control was keyed to the gate series. The last twenty hook chains run
+**107–134s**. The second chain is roughly a fifth of what it was, because the pre-commit test gate
+selects by changed path and a publish commit (site data and docs) selects narrowly.
+
+### What this does to the diagnosis in this document
+
+1. **The red is not evidence that the box is closing.** The deadline has ~6.5x headroom over the
+   thing it bounds. What was measured as a thinning margin is a proxy drifting away from its subject.
+2. **The named repair may be substantially already done.** This document's central claim is *"the
+   publisher pays for TWO full suite runs per cycle [...] halving that is the fix with headroom in
+   it."* The second run now costs ~134s against the first's ~660s. That should be confirmed against
+   the hook's own scope before anyone designs the removal — **the expensive run is the publisher's
+   own scoped gate, not the commit chain.**
+3. **The honest repair is to point the live half at `commit_hook_duration.jsonl`** — completing a
+   repair that was designed, half-landed, and left with its consumer unmoved.
+
+### Still not acted on, and now for a narrower reason
+
+Not because the evidence is thin — it is the strongest in this document — but because the deadline
+must have headroom over the **worst commit scope**, not the publisher's narrow one, and the hook
+series mixes scopes (`refused` rows exit early at ~1s; the 837.3s row is a wide commit). Repointing
+the control needs the scope question answered first, and `scope`/`comparable` are exactly the fields
+this repo's duration rows carry **unpopulated**. That is a design step, not a bounded-tick edit, and
+doing it in the tick it unblocks is how a control gets keyed to today's answer.
+
+**Revised recommendation, replacing the one above:** before authorising the removal of the second
+suite run, repoint this control at the ledger that measures its subject, and populate `scope` on
+those rows so "worst comparable" can mean something. The removal may be solving a cost that has
+already gone.
