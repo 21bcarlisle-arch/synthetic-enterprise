@@ -65,6 +65,7 @@ from saas.reporting.annual_report import (
     extract_report_data,
     generate_annual_report,
 )
+from simulation.departure_level_anchor import world_level_identity
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.settlement_clocks import reconcile_published_run_output
 
@@ -95,15 +96,46 @@ def _run_and_extract(report_end: str | None = None) -> dict:
     return extract_report_data(run_output)
 
 
-def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
-    """Reduce `run_output` via `annual_report.extract_report_data()` and
-    persist it to `docs/reports/run_output_latest.json` plus a versioned
-    copy stamped with the current git commit hash and UTC timestamp.
+def reconcile_and_stamp(data: dict) -> dict:
+    """Refuse a run output that does not add up, then stamp WHICH COMMIT and WHICH WORLD made it.
 
-    Returns (latest_path, versioned_path).
+    ONE FUNCTION BECAUSE THERE ARE TWO WRITERS AND ONLY ONE OF THEM WAS DOING ANY OF THIS
+    (2026-09-04). Everything below used to live inside `save_run_output_json()`, whose only
+    caller is `tools/run_phase4c_pipeline.py`. The path a PUBLISHED run actually takes is
+    `background/sim_runner.py` -> `python3 -m tools.run_annual_report --save-json ...` ->
+    `main()`, and `main()` wrote the reduced dict straight to disk. So:
+
+      * the reconciliation refusal below -- which "RAISES rather than warning" because "the
+        failure mode this replaces was two silent days" -- had never once run on a published
+        run output; and
+      * `_cache_meta` was absent from all 131 September run outputs, so its three consumers
+        (`tools/generate_dashboard_data`, `tools/generate_customer_sample`,
+        `saas/reporting/annual_report`) had been silently taking their fallback branch for as
+        long as those fallbacks have existed.
+
+    The dashboard one is not benign. `generate_dashboard_data` reads
+    `cache_meta.get("git_commit") or _git_head()`, so with the first branch dead the site's
+    published provenance names the commit HEAD happened to be at when the DASHBOARD was
+    generated -- not the commit the RUN executed at. On 2026-09-04 the page said
+    `git_commit = cbbeb99d3` and no simulation run has ever been produced at that commit. The
+    comment guarding that line says "Real HEAD, or the honest string 'unknown' -- never a
+    filename fragment dressed as a SHA"; it closed one fail-open and the dead branch above it
+    opened a quieter one, because a real SHA that belongs to a different thing satisfies every
+    presence check exactly as well as a fake one did.
+
+    NO INSTANCE OF THE RECONCILIATION FAILING WAS FOUND. All 131 September artefacts pass the
+    identity when it is applied to them retrospectively. This is a control that could not fire,
+    not a defect it failed to catch, and it is recorded as the former.
+
+    WHY THE WORLD IDENTITY IS HERE AND NOT ONLY ON THE VALUE-ARMS PAGE. `world_level_identity()`
+    was built (`dda5a27b2`) for exactly the question a run output could not answer -- "is this
+    figure from the same world as the last one?" -- and was wired to `/capabilities/` alone. The
+    headline figures never got it, and the cost is concrete: net margin fell GBP 149,156 ->
+    GBP 138,153 across the 2026-09-03 outage because the departure anchor was re-fitted twice
+    underneath it, and nothing on the publish path could say so. A commit hash cannot answer it
+    (it moves for every reason) and a timestamp cannot answer it (two runs an hour apart either
+    side of a re-fit are different worlds). The digest answers it about the quantity.
     """
-    data = extract_report_data(run_output)
-
     # THE PAGE MUST ADD UP BEFORE IT IS WRITTEN (2026-08-28, class
     # `figures_on_a_superseded_clock`, R14). `run_output_latest.json` is what
     # `site/data/supplier.json` and `site/data/agent_status.json` are built from, so a figure on
@@ -124,12 +156,40 @@ def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
             + "\n  - ".join(unreconciled)
         )
 
-    commit_hash = _git_commit_hash()
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     data["_cache_meta"] = {
-        "git_commit": commit_hash,
-        "generated_at_utc": timestamp,
+        "git_commit": _git_commit_hash(),
+        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
+        # Fail-closed and NAMED. A run output that cannot say which world it ran in must say
+        # that, in the slot a reader looks in -- an absent key reads as "nobody asked".
+        "world_level": _world_level_or_reason(),
     }
+    return data
+
+
+def _world_level_or_reason() -> dict:
+    try:
+        return world_level_identity()
+    except Exception as exc:  # noqa: BLE001 -- the reason is the payload
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "`simulation.departure_level_anchor.world_level_identity()` raised "
+                "{!r}, so this run cannot say which departure world it executed in and no "
+                "figure in it may be compared with a figure from another run".format(exc)
+            ),
+        }
+
+
+def save_run_output_json(run_output: dict) -> tuple[Path, Path]:
+    """Reduce `run_output` via `annual_report.extract_report_data()` and
+    persist it to `docs/reports/run_output_latest.json` plus a versioned
+    copy stamped with the current git commit hash and UTC timestamp.
+
+    Returns (latest_path, versioned_path).
+    """
+    data = reconcile_and_stamp(extract_report_data(run_output))
+    commit_hash = data["_cache_meta"]["git_commit"]
+    timestamp = data["_cache_meta"]["generated_at_utc"]
 
     RUN_OUTPUT_VERSIONED_DIR.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(data, indent=2)
@@ -172,7 +232,10 @@ def main() -> None:
         print(f"[TRUNCATED] Simulation window truncated to {report_end}.")
 
     raw_output = run_phase4c_on_phase2b(report_end=report_end)
-    data = extract_report_data(raw_output)
+    # THE SAME DISCIPLINE AS `save_run_output_json`, AND THIS IS THE PATH THAT PUBLISHES.
+    # It raises before anything is written, so a run that does not add up leaves no artefact
+    # for the publisher to pick up -- see `reconcile_and_stamp` for what used to happen here.
+    data = reconcile_and_stamp(extract_report_data(raw_output))
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(json.dumps(data, indent=2))
 
