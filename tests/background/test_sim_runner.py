@@ -91,8 +91,34 @@ def test_run_simulation_updates_latest_json(tmp_path, monkeypatch):
     assert '"headline": "test"' in latest.read_text()
 
 
-def test_between_run_pause_is_60():
-    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS == 60
+def test_one_producer_period_covers_one_publisher_cycle():
+    """THE DEFECT: the producer mints markers faster than the publisher can consume them, so
+    the run_complete queue never reaches zero and the episode watching for a drained queue can
+    never close. Measured 2026-09-03..04: 13.2 min marker interarrival against an 88.9 min
+    cycle for a publish that actually published (p50, n=22, gaps following a passing gate).
+
+    Keyed to the PROPERTY, not to today's answer. The predecessor asserted
+    `BETWEEN_RUN_PAUSE_SECONDS == 60`, which stayed green for the whole period the queue was
+    undrainable and would have gone red on the fix -- exactly backwards. This one goes red if
+    anyone shortens the pause back, AND if the publisher's measured cycle grows without the
+    cadence following it."""
+    period = sim_runner.BETWEEN_RUN_PAUSE_SECONDS + sim_runner.SIM_RUN_DURATION_P50_SECONDS
+    assert period >= sim_runner.PUBLISHER_CYCLE_P90_SECONDS, (
+        f"producer period {period}s does not cover the publisher's measured "
+        f"{sim_runner.PUBLISHER_CYCLE_P90_SECONDS}s cycle -- the queue cannot drain"
+    )
+
+
+def test_the_busy_loop_floor_is_not_what_sets_the_pause():
+    """The reachability null for the `max(60, ...)` above.
+
+    Without this, a degenerate measurement collapsing the derivation to the 60s floor would
+    restore the original defect while the property control above still passed on the floor.
+    Asserts the DERIVED limb is the live one -- that the branch can be, and is, taken."""
+    derived = (sim_runner.PUBLISHER_CYCLE_P90_SECONDS
+               - sim_runner.SIM_RUN_DURATION_P50_SECONDS)
+    assert derived > 60, "derivation collapsed to the busy-loop floor"
+    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS == derived
 
 
 def test_git_head_returns_string(monkeypatch):
