@@ -5,6 +5,8 @@ clause, and grading it LATENT to keep the lane open is the anti-pattern `finding
 in its own docstring. REPAIRED in the commit that files this, which is the release condition the
 same clause gives; the residual it does not close is named at the end.*
 
+**Discharged:** `tests/tools/test_generate_value_arms_data.py::test_an_auc_null_from_a_run_that_names_no_world_withholds_its_direction_and_keeps_its_numbers`, `tools/generate_value_arms_data.py` — the repair this document describes is landed at HEAD and its falsifier runs green: the null takes the world it was measured in, withholds the direction with a named reason when the comparison resolves and the world is unknown, and the reading grew the third branch so the withheld case no longer falls through to the sentence it withholds. The residual named at the end is NOT discharged by this line and does not need to be: it is a re-run of the superseded panel in a world-stamping tree, which is a change of world, not an open defect in this code.
+
 # The two AUC nulls state a resolved direction from the one run the page says cannot name its world
 
 **Class:** `figures_on_a_superseded_clock` (primary), `controls_that_cannot_fail` (secondary)

@@ -1071,10 +1071,25 @@ def _run_fingerprint(data):
     same fingerprint would regenerate byte-identical business surfaces, so the
     second is pure burn. Includes the UTC date so a new calendar day always
     processes at least once (carrying that day's live-decision / rolling-fetch
-    advance), even if the sim result itself is unchanged."""
+    advance), even if the sim result itself is unchanged.
+
+    AND INCLUDES WHICH WORLD IT RAN IN (2026-09-04). "Byte-identical business surfaces" was the
+    whole justification for skipping, and it was measured over headline FIGURES only. A re-fit of
+    the departure level that moved the world without moving those figures past their rounding
+    would have been skipped as pure burn -- so the first publish carrying the new world's
+    disclosure would never have happened, and the page would go on claiming a world that no
+    longer existed. That is the residual named at the end of instance 10 of
+    `no_caller_and_never_runs`, and it could not be closed until the stamp existed to key to.
+
+    `None` on every run written before that stamp, which is the correct behaviour and not a
+    fail-open: an absent world matches an absent world, so the gate behaves exactly as it did
+    before for old artefacts, and starts discriminating the moment runs can answer."""
     ret_log = data.get("retention_log", [])
     return {
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "world_level_digest": (
+            ((data.get("_cache_meta") or {}).get("world_level") or {}).get("digest")
+        ),
         "total_net_gbp": round(data.get("total_net_gbp", 0), 2),
         "total_gross_gbp": round(data.get("total_gross_gbp", 0), 2),
         "enterprise_value_gbp": round(data.get("enterprise_value_gbp", 0), 2),

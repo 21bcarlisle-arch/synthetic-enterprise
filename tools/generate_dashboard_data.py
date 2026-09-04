@@ -61,6 +61,38 @@ def _git_head():
         return None
 
 
+#: A versioned run output names its commit in its own filename:
+#: `run_output_<short sha>_<utc timestamp>.json`. `run_output_latest.json` does not, and the
+#: pattern refuses it rather than yielding "latest" -- which is the exact fail-open the comment
+#: at the call site was written about.
+_RUN_OUTPUT_COMMIT = re.compile(r"^run_output_([0-9a-f]{7,40})_\d{8}T\d{6}Z\.json$")
+
+
+def _run_provenance_commit(cache_meta, run_json_path):
+    """WHICH COMMIT THE RUN EXECUTED AT, and where that answer came from.
+
+    Returns `(commit, source)`. `source` is published beside the commit because the three tiers
+    are not equally good and a reader is owed which one they got:
+
+      * `"run_stamp"`   -- the run said so itself (`_cache_meta.git_commit`). Authoritative.
+      * `"run_filename"` -- the artefact's own name says so. Weaker, and it is a real answer:
+        the daemon builds that name from `git rev-parse --short HEAD` at the moment the run
+        STARTS, so it names the run's commit and not the publisher's.
+      * `"unavailable"` -- neither, so the page says "unknown" and says why.
+
+    THE GENERATOR'S OWN HEAD IS DELIBERATELY NOT A TIER. It is a different quantity that looks
+    exactly like this one, and publishing it here is how the site spent months naming a commit at
+    which no run had ever been produced.
+    """
+    stamped = (cache_meta or {}).get("git_commit")
+    if stamped:
+        return stamped, "run_stamp"
+    match = _RUN_OUTPUT_COMMIT.match(Path(run_json_path).name)
+    if match:
+        return match.group(1), "run_filename"
+    return "unknown", "unavailable"
+
+
 def _resolve_book():
     """Resolve the customer book through the single ``live_population()`` seam.
 
@@ -2192,7 +2224,25 @@ def generate(run_json_path=None):
     # never contradict a claim, breaking the audit chain at its root while
     # looking populated (cold-eyes Expert Hour 2026-07-29). Real HEAD, or the
     # honest string "unknown" -- never a filename fragment dressed as a SHA.
-    git_commit = cache_meta.get("git_commit") or _git_head() or "unknown"
+    #
+    # AND `_git_head()` WAS THE SECOND FAIL-OPEN, IN THE SLOT THE FIRST ONE VACATED (2026-09-04).
+    # `_cache_meta` was absent from all 131 September run outputs, because the publish path did
+    # not write it (see `tools/run_annual_report.reconcile_and_stamp`). So this line ALWAYS took
+    # the middle branch, and the middle branch is a different fact: HEAD when THIS GENERATOR ran,
+    # not the commit the RUN executed at. Those differ by every commit that lands between a run
+    # finishing and the site being rebuilt -- twelve hours' worth, on 2026-09-03.
+    #
+    # The page said so about itself and nothing read it back: `meta.git_commit` was
+    # `cbbeb99d38...`, at which no run output has ever been produced, while `meta.source_file`
+    # one line below named `run_output_c9ac07327_...json`. The right answer was in the adjacent
+    # field. A real SHA belonging to a different thing satisfies a presence check exactly as well
+    # as the literal "latest" did, so this is the same defect the comment above closed, arriving
+    # by the escape hatch that closing it installed.
+    #
+    # THREE TIERS, EACH NAMING ITS SOURCE, AND HEAD IS NOT ONE OF THEM. The generator's HEAD is
+    # publishable -- under its own name, as a different quantity -- but it is not the run's
+    # provenance and must never stand in for it.
+    git_commit, git_commit_source = _run_provenance_commit(cache_meta, run_json_path)
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     build_phase, build_test_count, build_modules = _load_build_info()
@@ -2203,7 +2253,19 @@ def generate(run_json_path=None):
         "meta": {
             "generated_at": generated_at,
             "git_commit": git_commit,
+            # Which of the three tiers answered. A reader comparing `git_commit` with
+            # `source_file` and finding they agree learns nothing unless they know whether the
+            # first was DERIVED from the second.
+            "git_commit_source": git_commit_source,
             "source_file": run_json_path.name,
+            # WHICH WORLD, not just which commit. `world_level.digest` moves when the departure
+            # anchor moves and not otherwise, so two publishes that share it are comparable and
+            # two that do not are different worlds however close their timestamps. Absent on
+            # every run output written before 2026-09-04, and absent is published as such --
+            # `null` here means "this run could not say", never "the world did not move".
+            "world_level_digest": ((data.get("_cache_meta") or {}).get("world_level") or {}).get(
+                "digest"
+            ),
             "spot_monthly_count": len(spot_monthly),
         },
         "portfolio": portfolio,
