@@ -346,3 +346,43 @@ def test_mondays_document_carries_a_place_for_the_ranking(rhythm):
     assert "FOCUS_MAX_AGE_HOURS" in body, (
         "the document must say why the ranking is not in DIRECTION.yaml, or the next reader moves it "
         "there and it expires by Monday evening")
+
+
+def test_the_rhythm_ticks_even_when_the_note_returns_early(monkeypatch, tmp_path):
+    """THE DEFECT THIS OWNS, found an hour after the rhythm landed, by asking what the wire depends
+    on rather than whether it exists.
+
+    The tick sat AFTER `already_ran_today`'s early return and after `render_note`/`publish`. So on
+    any day the note had already run — or failed — the rhythm silently did not tick. And because
+    the rhythm is what FILES the finding about a step not firing, that failure would have HIDDEN
+    ITSELF: a step nobody took and nobody reported, which is precisely the prose ritual it replaces.
+
+    MUTATION: move the call back below the early return and this fires.
+    """
+    from background import daily_self_note
+
+    called = []
+    monkeypatch.setattr(daily_self_note, "already_ran_today", lambda now: True)   # the early return
+    monkeypatch.setattr(wr, "tick", lambda *a, **k: called.append("ticked") or {"action": "WAITING"})
+
+    assert daily_self_note.run() == "already_ran_today"
+    assert called, "the note returned early and took the rhythm with it"
+
+
+def test_the_rhythm_ticks_even_when_the_note_itself_fails(monkeypatch, tmp_path):
+    """The other half: a note that raises must not suppress the rhythm either. The rhythm may never
+    take the note down (asserted elsewhere) and the note may never take the RHYTHM down — the two
+    directions are separate properties and only one of them was covered when this landed.
+
+    MUTATION: move the call below `render_note` and this fires."""
+    from background import daily_self_note
+
+    called = []
+    monkeypatch.setattr(daily_self_note, "already_ran_today", lambda now: False)
+    monkeypatch.setattr(daily_self_note, "render_note",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("the note is broken")))
+    monkeypatch.setattr(wr, "tick", lambda *a, **k: called.append("ticked") or {"action": "WAITING"})
+
+    with pytest.raises(RuntimeError, match="the note is broken"):
+        daily_self_note.run(_runner=lambda *a: ("abc", ""))
+    assert called, "a broken note silently suppressed the rhythm, and the rhythm files its own alarm"
