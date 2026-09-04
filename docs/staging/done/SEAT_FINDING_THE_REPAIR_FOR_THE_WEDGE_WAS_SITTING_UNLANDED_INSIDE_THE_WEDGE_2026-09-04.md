@@ -116,3 +116,35 @@ queue from sixteen to roughly zero, and the live site's figures move.**
 If instead the next cycle fails on a *different* control, this finding's §1 attribution is
 incomplete and the deadline was one of several causes — record that here beside the prediction
 rather than in a new file.
+
+## 7. The prediction graded, beside itself: CONFIRMED on cause, REFUTED on magnitude
+
+The next cycle after `13a8dd379` reached HEAD ran 10:40→10:53 UTC and **committed**:
+
+    [10:51 UTC] Committing and pushing (net=£141,132)
+    [10:53 UTC] Done
+    [10:53 UTC] Publish gate recovered -- cleared wedge state, re-armed alarm.
+
+Landed as `75f2614d8` on `origin/main`. The reader's figure moved: portfolio net margin
+**£138,152.77 → £141,132.21**, bills 11,008 → 11,034, `generated_at` 07:52Z → 10:35Z. §1's
+attribution is CONFIRMED — the deadline was the whole cause, and nothing else refused.
+
+Two things worth having beside it:
+
+**Cycle time collapsed as well, and that was the other lane's fix, not mine.** 70 minutes to 13.
+`83435c633` (stamping the annotation clock on the ATTEMPT rather than on success) is what did that.
+Landing the deadline alone would have unwedged publishing at one cycle per 70 minutes, which with
+a marker arriving every ~13 minutes never converges. **Neither fix was sufficient alone** and I
+should say so plainly: I landed one of the two, and the queue only drains because both are in.
+
+**"Roughly zero" was wrong — REFUTED.** Queue went 18 → **7**, not to zero. The error is in my
+model of the sweep: `order[position + 1:]` retires what the processed marker overtakes, and the
+marker processed was `084511Z`, an OLD one — so it retired the eleven older than itself and left
+everything newer. A cycle does not collapse the queue; it collapses the queue *behind the marker it
+happens to take*. Another lane had already found the governing half of this and landed it as
+`3d369242c` while I was writing §6 — the sweep "walked BACKWARDS on a failed one, so a wedged
+publish cost a full cycle per queued marker and published ever-staler snapshots." Had I read
+`origin/main` before predicting rather than after, §6 would have been right.
+
+Residual at close: 7 markers, no publisher running, gate recovered and re-armed. The remaining 7
+drain at one per cycle as sim runs land; the path is open, which is what the item was.
