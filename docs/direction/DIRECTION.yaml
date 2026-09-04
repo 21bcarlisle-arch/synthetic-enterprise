@@ -114,6 +114,19 @@ focus:
       the director reads and decided on the record alone. Do not touch the arm's pricing rules, its
       uplift bounds or its churn model, and do not look at what the change does to the margin
       before deciding it.
+      **THE SOURCING IS DONE, 2026-09-04, by the other item — do NOT re-source it.**
+      `docs/market_research/gb_domestic_default_tariff_share_2016_2025.md` is the write-up and
+      `tools/published_tariff_mix.DEFAULT_TARIFF_SHARE` is the one code home. Three things this item
+      needs to absorb before it starts. (1) TWO SENTENCES ABOVE ARE NOW STALE: SVT does NOT exist
+      "only as a comparison benchmark" — `simulation/svt_product.py` settles it and accounts ARE
+      assigned, since ~2026-08-31, and `tools/svt_generated_share_check` measures the resulting
+      share. What is short is the SHARE, not the product. (2) The world sits BELOW the published
+      share in every comparable year — 42.6% against ~62% in 2017, 55.0% against 80-86% in 2024 —
+      so this item's own direction of travel is confirmed and its size is measured. (3) Ofgem's
+      headline figure for 2017-2019 EXCLUDES PREPAYMENT and this world models no prepayment meter,
+      so decide which published population the book is meant to be before settling terms at a
+      share; the two bases differ by ~6pp and disagree about the SIGN of the 2018 and 2019 gap.
+      2020 and 2021 have NO established figure and must not be interpolated.
     why: >-
       Every "cannot tell" on that page is a sample-size statement, and the largest single cause of
       the small sample is a product most of the real GB book was on and this world does not have.

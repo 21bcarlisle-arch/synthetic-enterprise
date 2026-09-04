@@ -3166,3 +3166,301 @@ def test_mutation_p_a_stale_or_edited_shortfall_is_caught():
         "the hazard's headroom was cut to nothing and the comparison reads as unchanged, so the "
         "claim that it is the only factor with room is not held by anything"
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# The composition counterfactual, and the published series it stands on.
+# `tools/published_tariff_mix.py` replaced three uncoordinated copies of the same Ofgem series.
+# These legs hold the properties that made consolidating it worth doing, not the values it holds.
+# ---------------------------------------------------------------------------------------------
+
+
+def _declared_composition() -> dict:
+    """The committed composition counterfactual, or a hard fail naming which state it is in.
+
+    Same three states and same reason as `_declared_shortfall`: absent, refused, or a reading.
+    """
+    assert fitter.COMPOSITION_COUNTERFACTUAL.exists(), (
+        f"{fitter.COMPOSITION_COUNTERFACTUAL.name} is missing. The tree then carries a "
+        f"decomposition saying reach and exposure cannot close rung 1 AT THEIR CEILINGS, and "
+        f"nothing saying what happens at the value the record actually published -- which is the "
+        f"smaller, likelier move a reader would ask about next. Run "
+        f"`python3 -m tools.fit_year_level_anchor --composition`."
+    )
+    declared = json.loads(fitter.COMPOSITION_COUNTERFACTUAL.read_text())
+    assert "refused" not in declared, (
+        f"the composition counterfactual is a REFUSAL and not a reading: {declared['refused']}."
+    )
+    return declared
+
+
+def test_the_counterfactual_credits_itself_with_no_year_it_inherited():
+    """MUTATION: report `years_newly_closed` as the raw `closes` set and this fires.
+
+    THE DEFECT THIS EXISTS FOR is a headline that reads "composition reaches the band in 1 of 5
+    years" when the one year it names was ALREADY in band before the counterfactual ran. That is
+    this repo's recurring misleading-ratio shape -- two correct figures whose difference is not the
+    quantity being claimed -- and here it would reverse the finding's conclusion, because "closes
+    1 of 5" and "closes 0 of 5" are opposite answers to the question the reading was run to settle.
+
+    THE PROPERTY DOES NOT GO STALE. It says nothing about how many years composition closes. The
+    day a world change makes composition close three of them, `years_newly_closed` may hold three
+    and this still passes; what it may never hold is a year that needed no help.
+    """
+    declared = _declared_composition()
+    already = set(declared["years_already_reaching_band"])
+    for year in already:
+        row = declared["per_year"][year]
+        assert row["world_total_pp_of_book"] >= row["band_pct"][0], (
+            f"{year} is listed as already reaching the band, but the world puts "
+            f"{row['world_total_pp_of_book']}pp against a band low of {row['band_pct'][0]}pp."
+        )
+    for accounting, by_basis in declared["years_newly_closed_by_composition"].items():
+        for basis, years in by_basis.items():
+            closed = set(declared["closes_rung1_at_published_high"][accounting][basis])
+            assert set(years) == closed - already, (
+                f"{accounting}/{basis}: newly-closed is {sorted(years)} but the years reaching the "
+                f"band are {sorted(closed)} and {sorted(already)} were there already. The "
+                f"counterfactual is being credited with a year it inherited."
+            )
+
+
+def test_a_year_with_no_published_share_is_refused_and_never_interpolated():
+    """MUTATION: fill 2020 or 2021 by interpolation and this fires from both ends.
+
+    WHY THESE TWO YEARS AND NOT ANY TWO. The gap runs 2019 to 2022 and that interval CONTAINS THE
+    CRISIS -- the one stretch of this record known to have moved fast and non-monotonically. An
+    interpolated share there is not a slightly-wrong number, it is a manufactured reading in
+    precisely the years the world is hardest to check, and it would then be indistinguishable from
+    a sourced one in every artefact downstream.
+
+    The leg holds both halves: the series must return None, AND the counterfactual must exclude the
+    year from its own denominator rather than scoring it. A reading that refused the year and then
+    counted it out of seven would be understating its own coverage in the other direction.
+    """
+    mix = importlib.import_module("tools.published_tariff_mix")
+    declared = _declared_composition()
+    for year in (2020, 2021):
+        assert mix.default_tariff_share(year) is None, (
+            f"{year} now has a published default-tariff share. If that is a real source, it "
+            f"belongs in the series with its population named; if it was interpolated across the "
+            f"crisis, it is a manufactured reading wearing a source's clothes."
+        )
+        assert str(year) in declared["years_refused"], (
+            f"{year} has no established share and is not in `years_refused`, so the counterfactual "
+            f"scored it somehow."
+        )
+        assert str(year) not in declared["per_year"], f"{year} was refused and also measured."
+    assert set(declared["years_measurable"]) | set(declared["years_refused"]) == set(
+        declared["fitted_years"]
+    ), (
+        "the measurable and refused years do not partition the fitted years, so the counterfactual "
+        "is silently dropping or inventing a year."
+    )
+
+
+def test_the_two_published_bases_differ_exactly_where_prepayment_was_excluded():
+    """MUTATION: drop the prepayment restoration, or apply it to a row that never excluded PPM.
+
+    THE CORRECTION THIS LOCKS IN, and it is the reason the module exists. Ofgem's headline
+    default-tariff share for 2017-2019 is published over a population with PREPAYMENT REMOVED, and
+    more than 90% of prepayment customers are on a default tariff. All three of the in-tree copies
+    this module replaced dropped that qualifier and read the figure as the domestic share. The
+    verdict for 2018 and 2019 turns on it: on the as-published basis this world's SVT share reads
+    ABOVE the record, and on the restored basis it reads BELOW it.
+
+    THE PROPERTY IS THE RELATION, NOT THE VALUES. It asserts that a row which excludes prepayment
+    is restored UPWARD and a row which does not is returned unchanged -- both directions -- so
+    correcting any individual band leaves it green and dropping the mechanism does not.
+    """
+    mix = importlib.import_module("tools.published_tariff_mix")
+    checked = 0
+    for year, row in mix.DEFAULT_TARIFF_SHARE.items():
+        as_pub = row.on_basis("as_published")
+        restored = row.on_basis("all_domestic")
+        if as_pub is None:
+            assert restored is None, f"{year}: no published figure, but a restored one appeared."
+            continue
+        checked += 1
+        if row.excludes_prepayment:
+            assert all(r > p for r, p in zip(restored, as_pub)), (
+                f"{year}: the source excludes prepayment and the restored band {restored} is not "
+                f"above the published one {as_pub}. Prepayment is ~15% of domestic accounts and "
+                f">90% of it is on a default tariff, so restoring it can only raise the share."
+            )
+        else:
+            assert restored == as_pub, (
+                f"{year}: this figure is already published over the whole domestic book and was "
+                f"restored anyway, to {restored} from {as_pub} -- prepayment added twice."
+            )
+        assert row.population and row.source, (
+            f"{year}: a published band with no population or no source is a number whose "
+            f"denominator nobody can check."
+        )
+    assert checked >= 5, f"only {checked} years carry a figure; the series has been emptied."
+
+
+def test_the_complement_band_keeps_its_endpoints_ordered():
+    """MUTATION: write `fixed_share` as `(1 - lo, 1 - hi)` and this fires.
+
+    A SILENT ALWAYS-FAIL, not a crash, which is why it needs a leg of its own. `1 - (lo, hi)` is
+    `(1 - hi, 1 - lo)`. Get it backwards and every `lo <= x <= hi` check downstream reads as "no
+    value is ever inside the band" -- so the share check would report OUT for every year of a world
+    that had just been made correct, and the red would be read as evidence against the repair.
+    """
+    mix = importlib.import_module("tools.published_tariff_mix")
+    for year in mix.years_with_an_established_figure():
+        for basis in ("as_published", "all_domestic"):
+            lo, hi = mix.fixed_share(year, basis)
+            default = mix.default_tariff_share(year, basis)
+            assert lo <= hi, f"{year}/{basis}: fixed-share band ({lo}, {hi}) is inverted."
+            assert lo == pytest.approx(1.0 - default[1], abs=1e-9)
+            assert hi == pytest.approx(1.0 - default[0], abs=1e-9)
+
+
+def test_the_published_check_band_cannot_be_read_by_the_world_it_judges():
+    """MUTATION: import `published_tariff_mix` from anywhere in `simulation/` and this fires.
+
+    THE RULE IS `simulation/svt_product.py`'s OWN, in its own words: the published split is *"a
+    CHECK. Never an input: if the split has to be set to land in range, the behaviour is wrong and
+    setting it hides that."* A world that could read its own check band could be tuned to it, and
+    the generated share would stop being evidence of anything.
+
+    Scanned as imports rather than as text, so a mention in a comment or docstring -- which is how
+    the rule gets explained -- does not fire it, and `import tools.published_tariff_mix as x` does.
+    """
+    offenders: list[str] = []
+    for path in sorted((_REPO_ROOT / "simulation").rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            names = []
+            if isinstance(node, ast.Import):
+                names = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                names = [node.module or ""]
+            if any(n.startswith("tools.published_tariff_mix") for n in names):
+                offenders.append(f"{path.relative_to(_REPO_ROOT)}:{node.lineno}")
+    assert not offenders, (
+        "the world imports the published band it is judged against: "
+        + ", ".join(f"{o}" for o in offenders)
+        + ". The check would then be reachable from the thing being checked."
+    )
+
+
+def test_mutation_q_the_composition_reading_is_wired_to_the_world_and_not_to_the_file(monkeypatch):
+    """MUTATION: scale the anchor the counterfactual is taken at; the renewal route must RISE.
+
+    THE HOLE THIS CLOSES is the one `test_mutation_o` closes for the shortfall. Every number in the
+    reading could be a cached column copied off the decomposition, and every leg above would still
+    pass, because they all check the file against itself. This one moves the WORLD underneath and
+    requires the reading to follow: raising the anchor raises the renewal route's contribution, and
+    both accountings must carry it. The SVT factors must NOT move with it -- the anchor does not
+    scale that route -- which is what distinguishes "recomputed from the world" from "recomputed
+    from the wrong thing".
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    baseline = fitter.published_composition_counterfactual(rows, svt_rows)
+    monkeypatch.setattr(fitter, "NO_LEVEL_CORRECTION", 3.0)
+    moved = fitter.published_composition_counterfactual(rows, svt_rows)
+    assert moved["measured_at_anchor"] == 3.0
+    assert moved["years_measurable"] == baseline["years_measurable"]
+    for year in baseline["years_measurable"]:
+        was, now = baseline["per_year"][year], moved["per_year"][year]
+        assert now["world_renewal_pp_of_book"] > was["world_renewal_pp_of_book"], (
+            f"{year}: tripling the anchor left the renewal route at "
+            f"{now['world_renewal_pp_of_book']}pp against {was['world_renewal_pp_of_book']}pp."
+        )
+        assert now["world_svt_account_day_share"] == was["world_svt_account_day_share"], (
+            f"{year}: the SVT account-day share moved when the RENEWAL anchor changed. The anchor "
+            f"does not scale that route, so a share that followed it is being recomputed wrongly."
+        )
+        for basis, endpoints in now["bases"].items():
+            for name, end in endpoints.items():
+                before = was["bases"][basis][name]
+                assert end["svt_pp_of_book"] == pytest.approx(before["svt_pp_of_book"], abs=5e-4), (
+                    f"{year}/{basis}/{name}: the SVT leg of the counterfactual moved with the "
+                    f"renewal anchor."
+                )
+                assert end["renewal_rescaled"]["renewal_pp_of_book"] > \
+                    before["renewal_rescaled"]["renewal_pp_of_book"], (
+                    f"{year}/{basis}/{name}: the renewal route absorbed more of the level and the "
+                    f"rescaled accounting did not follow. It is reading a cached column."
+                )
+
+
+def test_the_counterfactual_moves_both_routes_together_because_they_are_complements():
+    """MUTATION: hold the renewal route fixed in the rescaled accounting and this fires.
+
+    AN ACCOUNT-DAY PUT ONTO SVT IS AN ACCOUNT-DAY TAKEN OFF A FIXED TERM, and the renewal decisions
+    priced on those days go with it. A counterfactual that raised the SVT share while keeping every
+    renewal decision would be adding a population to the book rather than moving one across it, and
+    it would credit composition with departures from accounts that no longer exist in that world --
+    which is the flattering direction, and the direction that would have made composition look like
+    the repair.
+
+    THE PROPERTY IS THE INEQUALITY AND ITS DEGENERATE CASE: wherever the published share exceeds
+    the world's, the rescaled renewal contribution must be strictly SMALLER than the held one; and
+    where the two shares coincide, the two accountings must agree exactly. The second half is what
+    stops the leg passing on a constant offset.
+    """
+    declared = _declared_composition()
+    compared = 0
+    for year, row in declared["per_year"].items():
+        world = row["world_svt_account_day_share"]
+        for basis, endpoints in row["bases"].items():
+            for name, end in endpoints.items():
+                rescaled = end["renewal_rescaled"]["renewal_pp_of_book"]
+                held = end["renewal_held"]["renewal_pp_of_book"]
+                published = end["published_svt_account_day_share"]
+                assert held == pytest.approx(row["world_renewal_pp_of_book"], abs=5e-4), (
+                    f"{year}/{basis}/{name}: the held accounting moved the renewal route."
+                )
+                if published > world:
+                    compared += 1
+                    assert rescaled < held, (
+                        f"{year}/{basis}/{name}: the SVT share rises from {world} to {published} "
+                        f"and the renewal route stays at {rescaled}pp against {held}pp. The two "
+                        f"routes are complements and this one is not moving."
+                    )
+                elif published == pytest.approx(world, abs=1e-9):
+                    assert rescaled == pytest.approx(held, abs=5e-4), (
+                        f"{year}/{basis}/{name}: the composition is unchanged and the two "
+                        f"accountings still disagree, so the rescaling is an offset."
+                    )
+    assert compared >= 3, (
+        f"only {compared} endpoints have the published share above the world's, so this leg is "
+        f"nearly vacuous -- check the series has not been emptied."
+    )
+
+
+def test_the_committed_composition_still_reproduces_on_the_live_world():
+    """MUTATION: perturb the declared file, or move the world under it, and this fires.
+
+    A DRIFT DETECTOR THAT REDS IN EITHER DIRECTION, as its sibling over the shortfall does. The day
+    somebody settles more of the book onto the SVT product, this goes red -- correctly, because the
+    tree's written account of what composition can and cannot do would have stopped being true.
+    The repair is to re-run and land, never to relax the leg.
+    """
+    declared = _declared_composition()
+    svt_rows, reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    assert svt_rows is not None, (
+        f"the live capture has no SVT half ({reason}), so the counterfactual cannot be checked."
+    )
+    live = fitter.published_composition_counterfactual(
+        json.loads(instrument.DEFAULT_TABLE.read_text()), svt_rows
+    )
+    disagreements = [
+        key for key in (
+            "fitted_years", "years_measurable", "years_refused", "years_already_reaching_band",
+            "closes_rung1_at_published_high", "years_newly_closed_by_composition", "per_year",
+        )
+        if declared.get(key) != live.get(key)
+    ]
+    assert not disagreements, (
+        "the committed composition counterfactual no longer reproduces on the live world: "
+        + ", ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land it. If the world's SVT share has "
+        f"moved toward the published one, that is a fidelity repair landing and the findings that "
+        f"rest on this reading must be re-read, not the leg relaxed."
+    )

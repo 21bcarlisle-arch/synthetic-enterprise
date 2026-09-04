@@ -43,19 +43,19 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from simulation.run_phase2b import REPORT_END, REPORT_START
+from tools.published_tariff_mix import fixed_share
 
-#: `DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` §(b), verbatim rows. Domestic GB, share on a
-#: FIXED deal. Read here and never written: a band is a thing to be judged against, and this table
-#: is the judge. Years the determination does not report are absent rather than interpolated.
-PUBLISHED_DOMESTIC_FIXED_SHARE: dict[int, tuple[float, float]] = {
-    2016: (0.00, 0.30),   # CMA 2016, Big Six domestic: fixed <30%
-    2017: (0.40, 0.46),   # Ofgem Sep 2017, non-PPM, 10 largest suppliers: ~43%
-    2019: (0.44, 0.46),
-    2020: (0.44, 0.46),
-    2022: (0.10, 0.20),   # fixed deals withdrawn; ~29m on SVT by Apr 2023
-    2023: (0.10, 0.20),
-    2025: (0.30, 0.36),   # Ofgem State of the Market, Jan 2026: ~33%
-}
+#: The published fixed-deal band now comes from `tools/published_tariff_mix.py`, which is the one
+#: home for this series. THIS FILE USED TO CARRY ITS OWN COPY and that copy was wrong in a way
+#: worth recording rather than quietly deleting: it rendered Ofgem's 2017 and 2019 readings as the
+#: DOMESTIC fixed share when both are published over a population with **prepayment removed**, and
+#: more than 90% of prepayment customers are on a default tariff. The old table also carried a 2020
+#: band copied from 2019 with no source of its own. See that module's docstring for the correction
+#: and `docs/market_research/gb_domestic_default_tariff_share_2016_2025.md` for the sourcing.
+#:
+#: The basis is named at every call site rather than defaulted, because this world models no
+#: prepayment meter and so matches NEITHER published population exactly — see `--basis`.
+PUBLISHED_BASES = ("all_domestic", "as_published")
 
 
 def generated_fixed_share_by_year(report_end: str = REPORT_END) -> dict[int, dict]:
@@ -121,15 +121,24 @@ def generated_fixed_share_by_year(report_end: str = REPORT_END) -> dict[int, dic
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--report-end", default=REPORT_END)
+    ap.add_argument(
+        "--basis", default="all_domestic", choices=PUBLISHED_BASES,
+        help="which published population to judge against. 'as_published' is Ofgem's own figure, "
+             "which for 2017-2019 EXCLUDES prepayment; 'all_domestic' restores prepayment at the "
+             "published PPM share and default-tariff rate. This world models no prepayment meter, "
+             "so neither is an exact comparator and the two disagree by ~6pp on the pre-crisis "
+             "years -- which is enough to flip the 2018 and 2019 verdicts.",
+    )
     args = ap.parse_args()
 
     rows = generated_fixed_share_by_year(args.report_end)
+    print(f"published fixed-deal band on basis: {args.basis}")
     print(f"{'year':>6} {'acct-days':>10} {'fixed':>8} {'svt':>8} {'other':>8}  published fixed")
     for year, row in rows.items():
         other = 1.0 - (row["fixed_share"] or 0.0) - (row["svt_share"] or 0.0)
-        band = PUBLISHED_DOMESTIC_FIXED_SHARE.get(year)
+        band = fixed_share(year, args.basis)
         if band is None:
-            verdict = "(not reported)"
+            verdict = "(no established figure)"
         else:
             lo, hi = band
             inside = lo <= (row["fixed_share"] or 0.0) <= hi

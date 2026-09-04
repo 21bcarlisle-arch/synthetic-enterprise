@@ -1,0 +1,486 @@
+{
+  "what_this_is": "The world's SVT account-day share moved to the published GB domestic default-tariff share, hazards untouched, measured against the same rung-1 band the verdict uses. `reach x exposure` is rescaled because that product IS the published statistic's quantity; the renewal route moves with it because the two are complements.",
+  "measured_at_anchor": 1.0,
+  "why_this_anchor": "the per-year anchor acts on the renewal route, so a composition counterfactual run under the fit would be moving a route the solver had already been paid to correct.",
+  "published_series": "tools/published_tariff_mix.DEFAULT_TARIFF_SHARE",
+  "headline_accounting": "renewal_rescaled",
+  "fitted_years": [
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2023",
+    "2024"
+  ],
+  "years_measurable": [
+    "2017",
+    "2018",
+    "2019",
+    "2023",
+    "2024"
+  ],
+  "years_refused": {
+    "2020": "no established published default-tariff share for 2020; NOT interpolated between 2019 and 2022. The interval spans the crisis, which is the one stretch of this record known to have moved fast and non-monotonically, so an interpolated value would be a manufactured reading in exactly the years the world is hardest to check. Ofgem's per-supplier data portal series may settle it and has not been read.",
+    "2021": "no established published default-tariff share for 2021; Ofgem's SotM chart 'Electricity share of customers on each tariff type' STARTS at April 2021 and would settle this, but its values are in an image and are not in the PDF's text layer. Recorded as a gap with a named route to closing it rather than read off a chart by eye."
+  },
+  "years_already_reaching_band": [
+    "2023"
+  ],
+  "closes_rung1_at_published_high": {
+    "renewal_rescaled": {
+      "all_domestic": [
+        "2023"
+      ],
+      "as_published": [
+        "2023"
+      ]
+    },
+    "renewal_held": {
+      "all_domestic": [
+        "2023"
+      ],
+      "as_published": [
+        "2023"
+      ]
+    }
+  },
+  "years_newly_closed_by_composition": {
+    "renewal_rescaled": {
+      "all_domestic": [],
+      "as_published": []
+    },
+    "renewal_held": {
+      "all_domestic": [],
+      "as_published": []
+    }
+  },
+  "per_year": {
+    "2017": {
+      "accounts": 58,
+      "band_pct": [
+        13.5,
+        14.0
+      ],
+      "world_svt_account_day_share": 0.4326,
+      "world_svt_pp_of_book": 5.7386,
+      "world_renewal_pp_of_book": 1.2105,
+      "world_total_pp_of_book": 6.9491,
+      "bases": {
+        "all_domestic": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.6195,
+            "composition_multiple": 1.4321,
+            "svt_pp_of_book": 8.2183,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.8117,
+              "total_pp_of_book": 9.03,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.5439
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.2105,
+              "total_pp_of_book": 9.4288,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4954
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.6365,
+            "composition_multiple": 1.4714,
+            "svt_pp_of_book": 8.4438,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.7755,
+              "total_pp_of_book": 9.2193,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.507
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.2105,
+              "total_pp_of_book": 9.6543,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4554
+            }
+          }
+        },
+        "as_published": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.57,
+            "composition_multiple": 1.3177,
+            "svt_pp_of_book": 7.5616,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.9173,
+              "total_pp_of_book": 8.479,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.664
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.2105,
+              "total_pp_of_book": 8.7721,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6252
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.59,
+            "composition_multiple": 1.3639,
+            "svt_pp_of_book": 7.827,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.8747,
+              "total_pp_of_book": 8.7016,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6131
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.2105,
+              "total_pp_of_book": 9.0374,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.5702
+            }
+          }
+        }
+      }
+    },
+    "2018": {
+      "accounts": 50,
+      "band_pct": [
+        19.5,
+        20.0
+      ],
+      "world_svt_account_day_share": 0.5854,
+      "world_svt_pp_of_book": 11.1701,
+      "world_renewal_pp_of_book": 3.1483,
+      "world_total_pp_of_book": 14.3184,
+      "bases": {
+        "all_domestic": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.5855,
+            "composition_multiple": 1.0003,
+            "svt_pp_of_book": 11.1729,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 3.1472,
+              "total_pp_of_book": 14.3201,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4636
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 3.1483,
+              "total_pp_of_book": 14.3212,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4635
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.5855,
+            "composition_multiple": 1.0003,
+            "svt_pp_of_book": 11.1729,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 3.1472,
+              "total_pp_of_book": 14.3201,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4636
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 3.1483,
+              "total_pp_of_book": 14.3212,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.4635
+            }
+          }
+        },
+        "as_published": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.53,
+            "composition_multiple": 0.9054,
+            "svt_pp_of_book": 10.1138,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 3.5685,
+              "total_pp_of_book": 13.6824,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.5752
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 3.1483,
+              "total_pp_of_book": 13.2621,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6168
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.53,
+            "composition_multiple": 0.9054,
+            "svt_pp_of_book": 10.1138,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 3.5685,
+              "total_pp_of_book": 13.6824,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.5752
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 3.1483,
+              "total_pp_of_book": 13.2621,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6168
+            }
+          }
+        }
+      }
+    },
+    "2019": {
+      "accounts": 41,
+      "band_pct": [
+        20.7,
+        21.3
+      ],
+      "world_svt_account_day_share": 0.5704,
+      "world_svt_pp_of_book": 11.248,
+      "world_renewal_pp_of_book": 1.6509,
+      "world_total_pp_of_book": 12.8989,
+      "bases": {
+        "all_domestic": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.5685,
+            "composition_multiple": 0.9967,
+            "svt_pp_of_book": 11.2104,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.6583,
+              "total_pp_of_book": 12.8686,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6986
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.6509,
+              "total_pp_of_book": 12.8613,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6992
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.5855,
+            "composition_multiple": 1.0265,
+            "svt_pp_of_book": 11.5456,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.5929,
+              "total_pp_of_book": 13.1385,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6549
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.6509,
+              "total_pp_of_book": 13.1965,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.6499
+            }
+          }
+        },
+        "as_published": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.51,
+            "composition_multiple": 0.8941,
+            "svt_pp_of_book": 10.0568,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.8831,
+              "total_pp_of_book": 11.9399,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.8711
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.6509,
+              "total_pp_of_book": 11.7077,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.8941
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.53,
+            "composition_multiple": 0.9292,
+            "svt_pp_of_book": 10.4512,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.8062,
+              "total_pp_of_book": 12.2574,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.8078
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 1.6509,
+              "total_pp_of_book": 12.1021,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.8227
+            }
+          }
+        }
+      }
+    },
+    "2023": {
+      "accounts": 53,
+      "band_pct": [
+        8.9,
+        12.5
+      ],
+      "world_svt_account_day_share": 0.7218,
+      "world_svt_pp_of_book": 6.7521,
+      "world_renewal_pp_of_book": 2.8201,
+      "world_total_pp_of_book": 9.5722,
+      "bases": {
+        "all_domestic": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.8,
+            "composition_multiple": 1.1084,
+            "svt_pp_of_book": 7.484,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 2.0271,
+              "total_pp_of_book": 9.5111,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.9183
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.8201,
+              "total_pp_of_book": 10.3041,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.8124
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.9,
+            "composition_multiple": 1.247,
+            "svt_pp_of_book": 8.4195,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.0136,
+              "total_pp_of_book": 9.4331,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.9367
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.8201,
+              "total_pp_of_book": 11.2396,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.7221
+            }
+          }
+        },
+        "as_published": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.8,
+            "composition_multiple": 1.1084,
+            "svt_pp_of_book": 7.484,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 2.0271,
+              "total_pp_of_book": 9.5111,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.9183
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.8201,
+              "total_pp_of_book": 10.3041,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.8124
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.9,
+            "composition_multiple": 1.247,
+            "svt_pp_of_book": 8.4195,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.0136,
+              "total_pp_of_book": 9.4331,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.9367
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.8201,
+              "total_pp_of_book": 11.2396,
+              "reaches_band_low": true,
+              "hazard_multiple_still_required_at_band_low": 0.7221
+            }
+          }
+        }
+      }
+    },
+    "2024": {
+      "accounts": 57,
+      "band_pct": [
+        12.5,
+        16.1
+      ],
+      "world_svt_account_day_share": 0.6061,
+      "world_svt_pp_of_book": 6.9433,
+      "world_renewal_pp_of_book": 2.2479,
+      "world_total_pp_of_book": 9.1911,
+      "bases": {
+        "all_domestic": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.8,
+            "composition_multiple": 1.32,
+            "svt_pp_of_book": 9.1649,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.1413,
+              "total_pp_of_book": 10.3062,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.2394
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.2479,
+              "total_pp_of_book": 11.4128,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.1186
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.86,
+            "composition_multiple": 1.419,
+            "svt_pp_of_book": 9.8523,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.7989,
+              "total_pp_of_book": 10.6512,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.1877
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.2479,
+              "total_pp_of_book": 12.1002,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.0406
+            }
+          }
+        },
+        "as_published": {
+          "at_published_low": {
+            "published_svt_account_day_share": 0.8,
+            "composition_multiple": 1.32,
+            "svt_pp_of_book": 9.1649,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 1.1413,
+              "total_pp_of_book": 10.3062,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.2394
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.2479,
+              "total_pp_of_book": 11.4128,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.1186
+            }
+          },
+          "at_published_high": {
+            "published_svt_account_day_share": 0.86,
+            "composition_multiple": 1.419,
+            "svt_pp_of_book": 9.8523,
+            "renewal_rescaled": {
+              "renewal_pp_of_book": 0.7989,
+              "total_pp_of_book": 10.6512,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.1877
+            },
+            "renewal_held": {
+              "renewal_pp_of_book": 2.2479,
+              "total_pp_of_book": 12.1002,
+              "reaches_band_low": false,
+              "hazard_multiple_still_required_at_band_low": 1.0406
+            }
+          }
+        }
+      }
+    }
+  },
+  "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --composition"
+}

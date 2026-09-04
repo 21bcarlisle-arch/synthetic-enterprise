@@ -1005,6 +1005,254 @@ def svt_route_shortfall_decomposition(renewal_rows: list[dict], svt_rows: list[d
     }
 
 
+COMPOSITION_COUNTERFACTUAL = (
+    PROJECT / "docs" / "reports" / "svt_composition_vs_published.json"
+)
+
+
+def published_composition_counterfactual(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
+    """What rung 1 does if the world's SVT share is moved to the PUBLISHED one, and nothing else.
+
+    THIS IS THE COMPOSITION QUESTION, MEASURED RATHER THAN SOURCED-AND-ARGUED. The decomposition
+    beside this one showed that `reach` and `exposure` cannot close rung 1 at their ARITHMETIC
+    ceilings of 1.0. That is a bound and bounds can be vacuous: 1.0 is a world with the entire book
+    on SVT every day, which nobody claims is the record. The question a reader is entitled to ask
+    next is what happens at the value the record ACTUALLY published, which is a smaller move, and
+    whether the ceiling result was doing any work. It was, and this says by how much.
+
+    THE COUNTERFACTUAL IS ON COMPOSITION ONLY. `reach x exposure` is the SVT account-day share --
+    the same quantity the published statistic counts, which is why it and not `reach` is the thing
+    rescaled here. Both routes move together because they are COMPLEMENTS: an account-day put onto
+    the SVT product is an account-day taken off a fixed term, and the renewal decisions priced on
+    those days go with it. The hazards are untouched, no constant is edited and no anchor moves.
+
+    TWO ACCOUNTINGS ARE PUBLISHED, so that the verdict cannot be picked by choosing one:
+
+      * `renewal_rescaled` scales the renewal route by `(1 - published) / (1 - world)`. This is the
+        consistent one and it is the headline. You cannot move a third of the book onto SVT and
+        keep the renewal decisions those accounts were going to make.
+      * `renewal_held` leaves the renewal route where it is. It is arithmetically incoherent and it
+        is reported because it is the MOST GENEROUS thing composition could possibly do -- the same
+        reason the decomposition takes its required multiple at the band's low endpoint.
+
+    THE RESULT, AND THE FIRST DRAFT OF THIS DOCSTRING GOT IT WRONG. It predicted 2024 would reach
+    the band on `renewal_held` and miss on `renewal_rescaled`, from arithmetic done by hand against
+    the SCHEDULE-derived SVT share (0.55) rather than the capture-derived one (0.606) this reading
+    actually rescales. Run at real inputs, 2024 misses on both -- 12.10 and 10.65 against a band low
+    of 12.5. The claim is corrected here rather than in a footnote.
+
+    So: `years_newly_closed` is EMPTY on both accountings and on both published bases. The only year
+    that reaches the band after the counterfactual is 2023, and 2023 was already reaching it before
+    the counterfactual -- its `required_multiple.at_band_low` in the decomposition is 0.90, i.e.
+    below 1. **Composition at the published share closes nothing that was not already closed.**
+    `years_already_reaching_band` is published alongside `closes_rung1_at_published_high` precisely
+    so that "1 of 5" cannot be read as composition having done that work.
+
+    WHAT IS DELIBERATELY NOT DONE: 2020 and 2021 have no established published figure and are
+    REFUSED rather than interpolated (`tools/published_tariff_mix` carries the reason). They are two
+    of the seven fitted years, so the denominator here is 5 and not 7, and it is reported as 5 --
+    a counterfactual that quietly renumbered itself to a fuller-looking 7 would be claiming coverage
+    it does not have.
+    """
+    from tools.published_tariff_mix import DEFAULT_TARIFF_SHARE, default_tariff_share
+
+    bands = published_departure_band()
+    book = union_by_year(renewal_rows, svt_rows)
+    by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        if row.get("sim_bill_shock_base") is not None:
+            by_year[int(row["event_date"][:4])].append(row)
+    svt_by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in svt_rows:
+        svt_by_year[int(str(row["event_date"])[:4])].append(row)
+    fitted = sorted(
+        y for y, (anchor, _r, _d) in fit_whole_book(renewal_rows, svt_rows).items()
+        if anchor is not None and y in bands
+    )
+
+    per_year: dict[str, dict] = {}
+    refused: dict[str, str] = {}
+    for year in fitted:
+        published = default_tariff_share(year, "all_domestic")
+        if published is None:
+            refused[str(year)] = (
+                f"no established published default-tariff share for {year}; "
+                f"{DEFAULT_TARIFF_SHARE[year].note if year in DEFAULT_TARIFF_SHARE else 'year absent from the series'}"
+            )
+            continue
+        accounts = book[year]["accounts"]
+        factors = _svt_factors(svt_by_year[year], accounts)
+        world_share = factors["reach"] * factors["exposure"]
+        renewal_pp = 100.0 * _sum_probability(by_year[year], NO_LEVEL_CORRECTION) / accounts
+        lo, hi = bands[year]
+
+        bases: dict[str, dict] = {}
+        for basis in ("all_domestic", "as_published"):
+            band = default_tariff_share(year, basis)
+            if band is None:  # pragma: no cover - guarded by the refusal above
+                continue
+            endpoints: dict[str, dict] = {}
+            for name, target in (("at_published_low", band[0]), ("at_published_high", band[1])):
+                # A share above 1.0 is not a world, and clamping silently would report a
+                # counterfactual that the arithmetic cannot produce as though it had been run.
+                if not 0.0 < target <= 1.0:  # pragma: no cover - published bands are shares
+                    raise ValueError(f"published share {target} for {year} is not a share")
+                svt_pp = factors["pp_of_book"] * (target / world_share)
+                rescaled = renewal_pp * (1.0 - target) / (1.0 - world_share)
+                endpoints[name] = {
+                    "published_svt_account_day_share": round(target, 4),
+                    "composition_multiple": round(target / world_share, 4),
+                    "svt_pp_of_book": round(svt_pp, 4),
+                    "renewal_rescaled": {
+                        "renewal_pp_of_book": round(rescaled, 4),
+                        "total_pp_of_book": round(svt_pp + rescaled, 4),
+                        "reaches_band_low": svt_pp + rescaled >= lo,
+                        # What the hazard would STILL have to be multiplied by, after composition
+                        # has done all it can. 1.0 or below means composition alone got there.
+                        "hazard_multiple_still_required_at_band_low": (
+                            round((lo - rescaled) / svt_pp, 4) if svt_pp > 0 else None
+                        ),
+                    },
+                    "renewal_held": {
+                        "renewal_pp_of_book": round(renewal_pp, 4),
+                        "total_pp_of_book": round(svt_pp + renewal_pp, 4),
+                        "reaches_band_low": svt_pp + renewal_pp >= lo,
+                        "hazard_multiple_still_required_at_band_low": (
+                            round((lo - renewal_pp) / svt_pp, 4) if svt_pp > 0 else None
+                        ),
+                    },
+                }
+            bases[basis] = endpoints
+
+        per_year[str(year)] = {
+            "accounts": accounts,
+            "band_pct": [lo, hi],
+            "world_svt_account_day_share": round(world_share, 4),
+            "world_svt_pp_of_book": round(factors["pp_of_book"], 4),
+            "world_renewal_pp_of_book": round(renewal_pp, 4),
+            "world_total_pp_of_book": round(factors["pp_of_book"] + renewal_pp, 4),
+            "bases": bases,
+        }
+
+    measurable = sorted(per_year)
+    # A YEAR THAT WAS ALREADY IN BAND IS NOT A YEAR COMPOSITION CLOSED. Reporting "reaches the band
+    # in 1 of 5" without this set would credit the counterfactual with a year it inherited, which is
+    # the same shape as a ratio whose numerator and denominator count different things.
+    already = [
+        y for y in measurable
+        if per_year[y]["world_total_pp_of_book"] >= per_year[y]["band_pct"][0]
+    ]
+
+    def _closes(accounting: str, basis: str) -> list[str]:
+        return [
+            y for y in measurable
+            if per_year[y]["bases"][basis]["at_published_high"][accounting]["reaches_band_low"]
+        ]
+
+    def _newly(accounting: str, basis: str) -> list[str]:
+        return [y for y in _closes(accounting, basis) if y not in already]
+
+    return {
+        "what_this_is": (
+            "The world's SVT account-day share moved to the published GB domestic "
+            "default-tariff share, hazards untouched, measured against the same rung-1 band the "
+            "verdict uses. `reach x exposure` is rescaled because that product IS the published "
+            "statistic's quantity; the renewal route moves with it because the two are complements."
+        ),
+        "measured_at_anchor": NO_LEVEL_CORRECTION,
+        "why_this_anchor": (
+            "the per-year anchor acts on the renewal route, so a composition counterfactual run "
+            "under the fit would be moving a route the solver had already been paid to correct."
+        ),
+        "published_series": "tools/published_tariff_mix.DEFAULT_TARIFF_SHARE",
+        "headline_accounting": "renewal_rescaled",
+        "fitted_years": [str(y) for y in fitted],
+        "years_measurable": measurable,
+        "years_refused": refused,
+        "years_already_reaching_band": already,
+        "closes_rung1_at_published_high": {
+            "renewal_rescaled": {
+                basis: _closes("renewal_rescaled", basis) for basis in ("all_domestic", "as_published")
+            },
+            "renewal_held": {
+                basis: _closes("renewal_held", basis) for basis in ("all_domestic", "as_published")
+            },
+        },
+        "years_newly_closed_by_composition": {
+            "renewal_rescaled": {
+                basis: _newly("renewal_rescaled", basis) for basis in ("all_domestic", "as_published")
+            },
+            "renewal_held": {
+                basis: _newly("renewal_held", basis) for basis in ("all_domestic", "as_published")
+            },
+        },
+        "per_year": per_year,
+        "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --composition",
+    }
+
+
+def _composition_main(table_path: Path) -> int:
+    """`--composition`: the published-composition counterfactual, printed and WRITTEN.
+
+    WRITES ON THE REFUSED OUTCOME TOO, for the reason its three siblings do: an absent artefact
+    reads as "nobody ran it" and a stale one reads as current.
+    """
+    all_rows = json.loads(table_path.read_text())
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    refusal = (
+        svt_reason if svt_rows is None
+        else svt_composition_refusal(svt_rows)
+        or account_denominator_refusal(all_rows, svt_rows)
+    )
+    if refusal is not None:
+        COMPOSITION_COUNTERFACTUAL.write_text(json.dumps({
+            "refused": refusal,
+            "capture": str(table_path.relative_to(PROJECT)),
+            "what_this_is": "no composition counterfactual could be measured from this capture.",
+            "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --composition",
+        }, indent=2) + "\n")
+        print(f"REFUSED — no composition counterfactual from {table_path.name}: {refusal}")
+        return 1
+    reading = published_composition_counterfactual(all_rows, svt_rows)
+    COMPOSITION_COUNTERFACTUAL.write_text(json.dumps(reading, indent=2) + "\n")
+    print("── THE WORLD'S SVT SHARE MOVED TO THE PUBLISHED ONE, HAZARDS UNTOUCHED ──")
+    print()
+    print(f"{'year':>6} {'world':>7} {'published':>10} {'x':>6} {'band low':>9} "
+          f"{'rescaled':>9} {'held':>7}")
+    for year in reading["years_measurable"]:
+        row = reading["per_year"][year]
+        end = row["bases"]["all_domestic"]["at_published_high"]
+        print(
+            f"{year:>6} {row['world_svt_account_day_share']:>7.3f} "
+            f"{end['published_svt_account_day_share']:>10.3f} "
+            f"{end['composition_multiple']:>6.2f} {row['band_pct'][0]:>9.1f} "
+            f"{end['renewal_rescaled']['total_pp_of_book']:>9.2f}"
+            f"{'*' if end['renewal_rescaled']['reaches_band_low'] else ' '} "
+            f"{end['renewal_held']['total_pp_of_book']:>6.2f}"
+            f"{'*' if end['renewal_held']['reaches_band_low'] else ' '}"
+        )
+    print()
+    for year, why in reading["years_refused"].items():
+        print(f"  {year}: REFUSED — {why.split(';')[0]}")
+    closes = reading["closes_rung1_at_published_high"]
+    print()
+    print(f"  reaches the band's low endpoint, consistent accounting: "
+          f"{len(closes['renewal_rescaled']['all_domestic'])} of "
+          f"{len(reading['years_measurable'])} measurable years "
+          f"{closes['renewal_rescaled']['all_domestic']}")
+    print(f"  ... on the most generous accounting composition can have: "
+          f"{len(closes['renewal_held']['all_domestic'])} of "
+          f"{len(reading['years_measurable'])} "
+          f"{closes['renewal_held']['all_domestic']}")
+    newly = reading["years_newly_closed_by_composition"]
+    print(f"  ALREADY in band before the counterfactual: {reading['years_already_reaching_band']}")
+    print(f"  NEWLY closed by composition: consistent "
+          f"{newly['renewal_rescaled']['all_domestic']}, generous "
+          f"{newly['renewal_held']['all_domestic']}")
+    print(f"  written to {COMPOSITION_COUNTERFACTUAL.relative_to(PROJECT)}")
+    return 0
+
+
 def _renewal_risks(row: dict, anchor: float) -> dict[str, float]:
     """`{cause: hazard}` for one captured renewal decision at one anchor.
 
@@ -1436,6 +1684,8 @@ def main(argv: list[str]) -> int:
         return _route_attribution_main(table_path)
     if "--svt-shortfall" in argv[1:]:
         return _svt_shortfall_main(table_path)
+    if "--composition" in argv[1:]:
+        return _composition_main(table_path)
     all_rows = json.loads(table_path.read_text())
     rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)

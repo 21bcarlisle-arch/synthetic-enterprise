@@ -531,3 +531,126 @@ is that the repair is now aimed at a single named quantity, with the size of its
 sourcing question that governs it stated.
 
 — Delivery seat, 2026-09-04.
+
+## 10. The composition question is sourced, and it closes nothing — 2026-09-04
+
+§8 sent the next session to source what share of the GB domestic book sat on a default/SVT tariff
+each year, and §9 said in advance what it expected that to do. **It is now sourced, the world is
+measured against it, and both of §9's statements about it were wrong in the same way.** The sourcing
+is `docs/market_research/gb_domestic_default_tariff_share_2016_2025.md`, its numbers have one home in
+`tools/published_tariff_mix.py`, and the counterfactual is committed at
+`docs/reports/svt_composition_vs_published.json`, measured at `NO_LEVEL_CORRECTION` on the same
+capture as §9.
+
+The pre-registration for this is
+`SEAT_PREREGISTRATION_WHETHER_THE_WORLDS_SVT_ACCOUNT_DAY_SHARE_SITS_ABOVE_OR_BELOW_THE_PUBLISHED_ONE_2026-09-04.md`,
+filed before the sourcing. It is graded here, all four, beside the result.
+
+### The headline: composition at the published share closes nothing
+
+| year | world SVT share | published | ×  | band low | rescaled | held |
+|---|---|---|---|---|---|---|
+| 2017 | 0.433 | 0.636 | 1.47 | 13.5 | 9.22 | 9.65 |
+| 2018 | 0.585 | 0.586 | 1.00 | 19.5 | 14.32 | 14.32 |
+| 2019 | 0.570 | 0.586 | 1.03 | 20.7 | 13.14 | 13.20 |
+| 2023 | 0.722 | 0.900 | 1.25 | 8.9 | **9.43 ✓** | **11.24 ✓** |
+| 2024 | 0.606 | 0.860 | 1.42 | 12.5 | 10.65 | 12.10 |
+
+*2020 and 2021 are REFUSED, not scored: no published figure is established for either and the gap
+spans the crisis, so interpolating it would manufacture a reading in the two years the world is
+hardest to check. The denominator here is 5 of 7 and is reported as 5.*
+
+One of five reaches the band — and **2023 was already reaching it before the counterfactual ran**
+(its `required_multiple.at_band_low` in §9 is 0.90, below 1). `years_newly_closed_by_composition` is
+**empty on both accountings and on both published bases**. Two accountings are published because the
+choice could otherwise pick the verdict: `renewal_rescaled` moves the renewal route down as the SVT
+route moves up, which is the consistent one and the headline, because an account-day put onto SVT is
+an account-day taken off a fixed term; `renewal_held` is arithmetically incoherent and is reported
+because it is the most generous thing composition could possibly do. Neither closes a year.
+
+**This confirms §9 and strengthens it.** §9's bound was at the arithmetic ceiling — the whole book on
+SVT every day — and a ceiling bound can be vacuous. This is the same conclusion at the value the
+record actually published, which is a much smaller move and a real one. The hazard per
+SVT-account-year is still the leg.
+
+### §9 was wrong about the direction, and about which quantity to compare
+
+§9 said: *"this world's reach is 0.67–0.98 — already at or above any published default-tariff share.
+If the sourcing comes back saying the real share was lower, the world's reach is too HIGH and the
+hazard gap widens."* **Both halves are refuted.** The published share is *higher* than §9 assumed,
+and the world's share is *below* it in every year that can be compared — the opposite sign.
+
+The cause is a defect this repo has a rule about. `reach` is decisions over accounts; the published
+statistic is a **stock**, the share of accounts on a default tariff on a given day. Those are not the
+same quantity, and their ratio is not one either. The comparable figure is `reach × exposure` —
+account-days over account-days — which is **0.43–0.72**, not 0.67–0.98. §9 divided before saying what
+each number counted, and the flattering reading is the one it got.
+
+### The sourcing's own first result: it was already in the tree, three times
+
+The item read as a research task and was mostly a reconciliation task. The same Ofgem series was
+already held as prose in `svt_rates_active_passive_2016_2025.md` §2–3, as a table in
+`DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md` §(b), and as a Python dict in
+`svt_generated_share_check.PUBLISHED_DOMESTIC_FIXED_SHARE`. None cited the others; this finding cited
+none of them; and two focus items were each about to source it again. That is the VAT shape, and the
+note on the focus item that exists to prevent it was written *after* it had already happened.
+
+**And the copies were wrong in a way that matters.** Ofgem's headline default share for 2017–2019
+excludes prepayment; >90% of prepayment customers are on a default tariff and prepayment was ~15% of
+GB customers. All three copies dropped the qualifier. Restoring it moves 2019 from 53% to ~59% — and
+**it reverses this world's verdict for 2018 and 2019**, which read *above* the record on the
+as-published basis and *below* it on the restored one. Which basis is right is not settled and is
+deliberately left open: this world models no prepayment meter, so its book is neither published
+population. Both bases are carried and every caller names which it used.
+
+### The pre-registration, graded
+
+- **P1 — CONFIRMED, and for the reason it predicted.** §9's sentence is refuted, and refuted because
+  it compared `reach` against a stock. Predicted the world would be below published in at least four
+  of seven fitted years and that the sentence would survive only for 2019 and 2020: it survives for
+  **2018 and 2019 on the as-published basis only**, and survives nowhere on the all-domestic basis.
+  The year-naming was half right — 2019 yes, 2020 has no published figure at all and could not have
+  been graded either way, which the prediction should have anticipated and did not.
+- **P2 — CONFIRMED.** `simulation/svt_product.py`'s docstring predicted the generated SVT share would
+  come out low against the published one, before any of it was measured. It does, in every comparable
+  year. This is the first time that sentence has been checked against a number.
+- **P3 — REFUTED for 2024, and by a long way.** Predicted 65–80%; the sourced figure is 80–86%,
+  derived from Ofgem's explicit "twice the proportion recorded in July of the previous year" against
+  ~one-third at July 2025. 2024 is the worst year in the whole comparison, at −25 to −31pp, and the
+  interpolation would have hidden that. 2018 (predicted 52–60%, sourced ~59%) is inside; 2021 could
+  not be graded because it is a declared gap.
+- **P4 — CONFIRMED.** No new published series was needed for 2016–2023 or 2025; the deliverable is
+  the reconciliation and the control, as predicted. One genuinely new figure was found (2024) and one
+  genuine correction (prepayment), neither of which P4 anticipated — it was right that the answer was
+  in the tree and wrong that nothing new would come of looking.
+
+### A correction to the docstring I shipped this reading with
+
+The first draft of `published_composition_counterfactual`'s docstring stated that 2024 would reach
+the band on the generous accounting and miss on the consistent one. That was hand arithmetic against
+the *schedule*-derived SVT share (0.55) rather than the *capture*-derived one (0.606) the reading
+actually rescales. Run at real inputs it misses on both, 12.10 and 10.65 against 12.5. Corrected in
+the docstring itself rather than in a footnote, and caught by printing the table before shipping the
+prose — which is the only reason it was caught at all.
+
+### Controls
+
+Seven legs added to `tests/architecture/test_switching_rate_commons.py`, all seven mutation-proven on
+disk: a counterfactual crediting itself with a year it inherited; a refused year filled by
+interpolation; the prepayment restoration dropped (and applied twice); a complement band with its
+endpoints inverted, which is a silent always-fail rather than a crash; `simulation/` importing the
+check band it is judged against; the rescaled accounting holding the renewal route fixed; and the
+committed reading drifting from the live world. `test_mutation_q` additionally moves the anchor and
+requires the renewal route to rise while the SVT share does not — the one direction that separates a
+reading recomputed from the world from a cached column.
+
+**Nothing here picks a number.** No constant was edited, no solver target moved, no anchor touched;
+§4's constraint 4 is honoured a sixth time.
+
+**This finding stays BLOCKING**, and the repair is where §9 left it: the hazard per SVT-account-year,
+and the question of whether `SVT_INERTIA_ANNUAL_RECENT = 0.20` — drift off the SVT *product* — is the
+right published quantity for a band made of external changes of *supplier*. Composition is now
+measured, sourced and out of the way, and it is a fidelity debt in its own right rather than this
+repair.
+
+— Delivery seat, 2026-09-04.
