@@ -724,6 +724,47 @@ def test_fingerprint_stable_and_sensitive():
     assert a["retained"] == 14 and a["offers"] == 14
 
 
+def test_a_world_change_alone_breaks_the_fingerprint():
+    """THE DEFECT: the skip gate's justification is "byte-identical business surfaces", and it was
+    measured over headline FIGURES only.
+
+    A re-fit of the departure level moves the world. If it moves no headline figure past its
+    rounding, the identical-run gate would archive the marker and publish nothing -- so the first
+    page carrying the new world's disclosure would never be written, and the site would go on
+    stating a world that no longer existed.
+
+    MUTATION: drop `world_level_digest` from `_run_fingerprint` and this fires.
+
+    The two payloads below differ in NOTHING a reader of the figures could see. If they
+    fingerprint the same, a world change is invisible to the publisher."""
+    same_world = _sample_data()
+    same_world["_cache_meta"] = {"world_level": {"digest": "aaaaaaaaaaaaaaaa"}}
+    moved_world = _sample_data()
+    moved_world["_cache_meta"] = {"world_level": {"digest": "bbbbbbbbbbbbbbbb"}}
+
+    for key in ("total_net_gbp", "total_gross_gbp", "bills_total"):
+        assert same_world.get(key) == moved_world.get(key), "the fixture moved a figure"
+
+    assert prc._run_fingerprint(same_world) != prc._run_fingerprint(moved_world), (
+        "two runs in different departure worlds fingerprint the same, so the second is skipped "
+        "as 'pure burn' and its world never reaches a page"
+    )
+
+
+def test_an_unstamped_run_fingerprints_exactly_as_it_did_before():
+    """THE NULL CONTROL, and it is what makes the leg above meaningful rather than tautological.
+
+    Every run output written before 2026-09-04 carries no stamp. If adding the world key changed
+    their behaviour at all -- made two identical old runs differ, say -- the repair would have
+    broken the skip gate for the entire back catalogue while looking like caution."""
+    a = _sample_data()
+    b = _sample_data()
+    assert prc._run_fingerprint(a) == prc._run_fingerprint(b)
+    assert prc._run_fingerprint(a)["world_level_digest"] is None, (
+        "an unstamped run must record the absence, not invent a world for it"
+    )
+
+
 def test_fingerprint_roundtrip():
     assert prc._read_last_fingerprint() is None
     fp = prc._run_fingerprint(_sample_data())
