@@ -52,6 +52,12 @@ check is a FAILED check. Two changes, and the split between them is the whole de
     as an epoch float into a banner that prints it verbatim would be this finding's own defect
     wearing the other coat.
 
+A NON-POSITIVE PRIOR IS NOT A START (2026-09-04, closing the half of
+SEAT_FINDING_A_ZERO_START_TIME_RENDERED_AS_AN_ESTABLISHED_1970_EPISODE... that its own author left
+open). `0` passed `_is_num`, so on a LOW-water field it beat every later value forever -- and the
+repair at the writer that stopped ADOPTING a persisted zero was, measured, a complete no-op,
+because this guard wrote the zero straight back. `_is_start_to_remember` states the screen once.
+
 Pure functions only -- no I/O, no imports from the modules it guards (the census audits those).
 Used by: `process_run_complete._write_publish_gate_state`.
 """
@@ -97,6 +103,33 @@ def _episode_key(v: Any) -> tuple[str, float] | None:
             parsed = parsed.replace(tzinfo=timezone.utc)
         return ("iso", parsed.timestamp())
     return None
+
+
+def _is_start_to_remember(key: tuple[str, float] | None) -> bool:
+    """Does this key name an instant an episode could actually have STARTED at?
+
+    Asked of the PRIOR side only, and the asymmetry is the point (2026-09-04). The two sides are
+    asked different questions. Of the proposal the guard asks *can I order this?* -- a property of
+    the call site, and a misdeclared field must still raise. Of the prior it asks *is there an
+    episode start here to remember?* -- and an instant at or before the epoch answers **no**. It is
+    the same fact as `None`: nobody recorded a start. Screening it here rather than in
+    `_episode_key` keeps `_refuse` firing on genuine type errors alone, so this cannot raise inside
+    the failure path of the pipeline it monitors.
+
+    WHY IT NEEDED SAYING. `_is_num` already refuses `bool` because `True` "would silently become
+    1970 and read as a 56-year episode" -- and `0` walked through the branch written to stop
+    exactly that. A persisted `wedge_since: 0.0` therefore beat every honest restamp: this is a
+    LOW-water field, `0.0 <= anything`, so the guard wrote the zero back forever and the repair at
+    the writer (`process_run_complete.record_publish_gate_failure`) was a measured no-op without
+    this. See PREREG_WHETHER_THE_FIXTURE_PIN_IS_ACTUALLY_THE_BLOCKER_ON_THE_ZERO_ADOPTION_2026-09-04.
+
+    Positive, not merely non-zero: the wall clock is 2026 and the simulation is 2016-2025, so no
+    writer in this repository can mean an instant at or before 1970-01-01.
+
+    This cannot under-report an episode, which is the failure mode the class exists to cure: the
+    only value it declines to remember is one that dates the episode to before anything here ran.
+    """
+    return key is not None and key[1] > 0
 
 
 def _absent(v: Any) -> bool:
@@ -146,9 +179,10 @@ def guard_episode(
     for field in since_fields:
         old, proposed = prev.get(field), out.get(field)
         old_key = _episode_key(old)
-        if old_key is None:
-            continue                      # no episode was open, or an unreadable prior: nothing
-                                          # to remember, so whatever `new` says stands
+        if not _is_start_to_remember(old_key):
+            continue                      # no episode was open, an unreadable prior, or a start
+                                          # at/before the epoch -- which is the same fact as no
+                                          # start at all. Nothing to remember, so `new` stands.
         if _absent(proposed):
             out[field] = old              # a failure tried to CLEAR an open episode
             continue
@@ -186,8 +220,14 @@ def episode_age_seconds(state: Mapping[str, Any], since_field: str, now: float) 
     described as 10h by one surface and 14min by another (feedback: one name, two numbers).
 
     Reads the same two representations `guard_episode` orders -- a read side that could not see an
-    ISO start would report the guarded episode as no episode at all."""
+    ISO start would report the guarded episode as no episode at all.
+
+    It applies the SAME `_is_start_to_remember` screen as the write side (2026-09-04), for the same
+    reason the two live in one module: a reader that answered "500,000 hours" to a non-positive
+    start would be publishing a confident figure from a value nobody recorded, which is the defect
+    this screen was added to close. `None` here means what the first line says -- no start is
+    recorded -- and that is precisely what a zero is."""
     key = _episode_key(state.get(since_field))
-    if key is None:
+    if not _is_start_to_remember(key):
         return None
     return max(0.0, float(now) - key[1])

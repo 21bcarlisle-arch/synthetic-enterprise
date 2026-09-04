@@ -127,6 +127,57 @@ def test_bool_is_not_a_timestamp():
     assert out["wedge_since"] == 5000.0
 
 
+def test_a_zero_prior_is_not_a_start_to_remember():
+    """THE DEFECT `test_bool_is_not_a_timestamp` was written to stop, walking through the door
+    beside it (2026-09-04).
+
+    `_is_num` refuses `True` because it "would silently become 1970". `0.0` is refused by nothing
+    and means the same thing -- and on a LOW-water field it is the WORST possible value, because
+    `0.0 <= anything` makes it beat every honest start forever. Measured, not argued: repairing
+    `record_publish_gate_failure` to stop ADOPTING a persisted zero changed the persisted value
+    not at all until this screen existed. See
+    docs/staging/records/PREREG_WHETHER_THE_FIXTURE_PIN_IS_ACTUALLY_THE_BLOCKER_ON_THE_ZERO_ADOPTION_2026-09-04.md
+    """
+    out = guard_episode({"wedge_since": 0.0}, {"wedge_since": 5000.0}, since_fields=SINCE)
+    assert out["wedge_since"] == 5000.0, (
+        "a zero prior beat an honest start -- the low-water rule is remembering a 1970 nobody "
+        "recorded, and no writer downstream can ever escape it")
+
+
+def test_a_negative_prior_is_not_a_start_to_remember():
+    """Keyed to the PROPERTY (a start is a positive instant), never to the observed value 0."""
+    out = guard_episode({"wedge_since": -1.0}, {"wedge_since": 5000.0}, since_fields=SINCE)
+    assert out["wedge_since"] == 5000.0
+
+
+def test_an_epoch_dated_iso_prior_is_refused_in_the_other_representation_too():
+    """The screen is on the INSTANT, not on how it is spelled. `paused_since` in
+    `site/data/publish_provenance.json` is an ISO string, so a representation-only fix would leave
+    the identical defect live on the banner half of this same class."""
+    out = guard_episode({"wedge_since": "1970-01-01T00:00:00+00:00"},
+                        {"wedge_since": "2026-09-04T10:00:00+00:00"}, since_fields=SINCE)
+    assert out["wedge_since"] == "2026-09-04T10:00:00+00:00"
+
+
+def test_the_screen_did_not_swallow_the_guard_it_lives_in():
+    """REACHABILITY / null control, over the whole partition in ONE place.
+
+    `_is_start_to_remember` returning False unconditionally passes every leg above while deleting
+    the entire PW2 guarantee -- an episode start would become freely forwardable, which is the
+    10h26m-as-14min defect this module exists to cure. So assert the three outcomes are distinct
+    and each attainable: a positive prior is REMEMBERED, a non-positive prior is DROPPED, and an
+    earlier proposal still WINS.
+    """
+    remembered = guard_episode({"wedge_since": 1000.0}, {"wedge_since": 5000.0}, since_fields=SINCE)
+    dropped = guard_episode({"wedge_since": 0.0}, {"wedge_since": 5000.0}, since_fields=SINCE)
+    earlier = guard_episode({"wedge_since": 5000.0}, {"wedge_since": 1000.0}, since_fields=SINCE)
+
+    assert remembered["wedge_since"] == 1000.0, "the low-water guard no longer remembers anything"
+    assert dropped["wedge_since"] == 5000.0
+    assert earlier["wedge_since"] == 1000.0
+    assert remembered["wedge_since"] != dropped["wedge_since"]
+
+
 # --------------------------------------------------------------------------- SILENT
 
 def test_an_evidenced_close_still_clears():
@@ -160,6 +211,23 @@ def test_a_missing_or_corrupt_prior_never_shortens_and_never_raises():
 
     assert episode_age_seconds({}, "wedge_since", 100.0) is None
     assert episode_age_seconds({"wedge_since": "nope"}, "wedge_since", 100.0) is None
+
+
+def test_the_reader_answers_unknown_to_a_non_positive_start_rather_than_500000_hours():
+    """The read side takes the SAME screen as the write side, or the fix is half a fix.
+
+    An unscreened reader answers `now - 0` -- ~500,000h against a real clock -- and that is a
+    CONFIDENT figure derived from a value nobody recorded, which is worse than no figure. The
+    null control is the second pair: a real start must still measure.
+    """
+    now = 1_800_000_000.0
+    assert episode_age_seconds({"wedge_since": 0.0}, "wedge_since", now) is None
+    assert episode_age_seconds({"wedge_since": -1.0}, "wedge_since", now) is None
+    assert episode_age_seconds({"wedge_since": "1970-01-01T00:00:00+00:00"},
+                               "wedge_since", now) is None
+
+    assert episode_age_seconds({"wedge_since": now - 3600}, "wedge_since", now) == 3600.0, (
+        "the reader no longer measures a real episode -- the screen swallowed its own subject")
 
 
 def test_untouched_fields_pass_through():

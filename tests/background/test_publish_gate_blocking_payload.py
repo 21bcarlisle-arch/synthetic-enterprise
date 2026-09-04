@@ -22,6 +22,7 @@ R15, both directions, driven rather than asserted:
     must never do is look confident when it does not know.
 """
 import json
+import time
 import types
 
 import pytest
@@ -103,23 +104,43 @@ def test_the_state_the_supervisor_draw_reads_carries_the_blocking_test(tmp_path)
     the file would sweep it. So this asserts the contract at the seam the two halves share, and
     the draw-text half is filed for the H41 lane's landing rather than smuggled through here.
     """
+    # THE CLOCK IS A POSSIBLE CLOCK (2026-09-04). This fixture used to open the episode at
+    # `wedge_since: 0.0` against `now=1800`, and pin `persisted["wedge_since"] == 0.0` as the
+    # "not disturbed" half. But `0.0` is 1970, the wall clock here is 2026 and the simulation is
+    # 2016-2025, so no writer in this repository can stamp it -- and a control whose fixture
+    # states an impossible value teaches the next reader that it is possible. It did: that zero
+    # reached `site/data/director_reserved.json` and rendered as an established episode on the
+    # director's own surface (SEAT_FINDING_A_ZERO_START_TIME_RENDERED_AS_AN_ESTABLISHED_1970_
+    # EPISODE_ON_THE_DIRECTORS_OWN_SURFACE_2026-09-04.md), and a persisted zero is now RESTAMPED
+    # rather than adopted.
+    #
+    # What this test is actually about -- the blocking node id surviving into the state file the
+    # RUNG-1 draw reads -- is untouched by that. The episode half keeps its meaning and gains a
+    # start the writer could really have written, so it now asserts "an open episode is not
+    # disturbed" instead of "an impossible value is preserved".
+    # The clock is `time.time()` and not a chosen constant, because the OTHER half of this test
+    # is age-bounded: `last_blocking_tests` compares the payload's real recording time against
+    # `now`, and any fixed future clock ages the node id out and empties the assertion above. The
+    # small fake clocks elsewhere in this file only survive that bound by going NEGATIVE.
+    now = time.time()
+    episode_start = now - 1800                 # three failures, all inside the 1h window
     state = {
-        "failures": [{"ts": float(t), "reason": "rc=1 on a marker", "rc": 1,
+        "failures": [{"ts": episode_start + t, "reason": "rc=1 on a marker", "rc": 1,
                       "kind": "test_regression", "git_hash": "abc1234"}
                      for t in (0, 600, 1200)],
-        "alerted_at": 0.0, "wedge_since": 0.0, "episode_failures": 91,
+        "alerted_at": episode_start, "wedge_since": episode_start, "episode_failures": 91,
         "cited_findings": ["WORKER_FINDING_IRRELEVANT_2026-08-09.md"],
     }
     node_id = ("FAILED tests/background/test_forward_attachment_register.py"
                "::test_live_rendering_is_current")
     prc.PUBLISH_GATE_STATE_FILE.write_text(json.dumps(state))
     prc._log_gate_failure_payload(_gate_result(1, RED_OUTPUT), git_hash="abc1234")
-    prc.record_publish_gate_failure("rc=1 on a marker", rc=1, now=1800, send_ntfy_fn=_Sink())
+    prc.record_publish_gate_failure("rc=1 on a marker", rc=1, now=now, send_ntfy_fn=_Sink())
 
     persisted = json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())
     assert node_id in persisted["blocking_tests"]
     # The episode fields the draw also reads are not disturbed by carrying the new one.
-    assert persisted["wedge_since"] == 0.0
+    assert persisted["wedge_since"] == episode_start
     assert persisted["episode_failures"] >= 91
 
 

@@ -5685,6 +5685,22 @@ def _read_publish_gate_state():
                 "state_unavailable": True}
 
 
+def _is_episode_start(v):
+    """Is `v` an instant an episode could actually have started at?
+
+    ONE definition, called by every side of the field (2026-09-04). A non-positive epoch is NOT a
+    start time: it is the same fact as `None` -- nobody recorded one -- and the whole reason it
+    needs saying is that `isinstance(0, (int, float))` is `True`, so every hand-rolled
+    `isinstance` test in this file waved a zero through and rendered 1970 as an established
+    reading. `bool` is refused for the reason `episode_monotonic._is_num` already gives about it:
+    `True` sails through a numeric test as the number 1, which is 1970 again.
+
+    Positive, not merely non-zero: the wall clock here is 2026 and the simulation is 2016-2025, so
+    there is no instant at or before the epoch that any writer in this repository could mean.
+    """
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0
+
+
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
 #: Both are high-water marks scoped to the episode, so both get the PW2 monotonic guard: a
 #: failure write proposes neither and must not be able to forget either. `episode_clean_publishes`
@@ -6336,7 +6352,7 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # when the streak is starting (no prior wedge_since). Survives the 1h window trim above so a
         # long wedge's true age stays measurable. Cleared to None by record_publish_gate_success.
         prev_wedge_since = state.get("wedge_since")
-        wedge_since = prev_wedge_since if isinstance(prev_wedge_since, (int, float)) else now
+        wedge_since = prev_wedge_since if _is_episode_start(prev_wedge_since) else now
         # EPISODE MEMORY: counts the whole streak, so it keeps rising after the window trim
         # drops older entries from `failures`. Cleared only by record_publish_gate_success.
         prev_episode = state.get("episode_failures")

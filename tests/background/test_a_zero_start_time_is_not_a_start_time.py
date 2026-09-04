@@ -37,11 +37,18 @@ levels rather than one: the caller (33b54b3ee), the sink (`site/data/director_re
 to `tests/production_surface_guard.PROTECTED_FILES` in this commit), and here — the renderer, which
 must not present a non-positive epoch as an established start whatever wrote it.
 
-THE ONE THING NOT FIXED HERE, named rather than left for the reader: `record_publish_gate_failure`
-carries the same `isinstance`-accepts-0 shape when it ADOPTS a persisted `wedge_since`, so a zero
-that reaches the state file is kept rather than restamped. That is a live control's pinned
-behaviour (`test_publish_gate_blocking_payload` asserts `persisted["wedge_since"] == 0.0`), so
-changing it is a decision with a cost and not a free repair. Filed as a finding beside this commit.
+THE ONE THING NOT FIXED HERE -- CLOSED 2026-09-04, in the second half of this file. The original
+note said `record_publish_gate_failure` carried the same accepts-0 shape when it ADOPTS a persisted
+`wedge_since`, and that the cost was a pinned fixture in `test_publish_gate_blocking_payload`.
+
+**That account was wrong and the correction is kept here beside it**, because a prediction filed
+after the answer is not a prediction. The pinned fixture was never the blocker: repairing the
+adoption clause alone left the persisted value at `0.0`, and that fixture GREEN. The real blocker
+was `episode_monotonic.guard_episode`, which treats an episode start as LOW-water -- so a persisted
+`0.0` beat every honest restamp forever, and the writer-side repair measured as a complete no-op.
+Two changes are load-bearing (the writer's screen and the guard's), and each is dead without the
+other. Pre-registered before the measurement, with what would refute it:
+`docs/staging/records/PREREG_WHETHER_THE_FIXTURE_PIN_IS_ACTUALLY_THE_BLOCKER_ON_THE_ZERO_ADOPTION_2026-09-04.md`
 """
 from __future__ import annotations
 
@@ -146,27 +153,140 @@ def test_the_whole_partition_is_reachable():
 # --------------------------------------------------------------------------- #
 # The surface: the sentence that actually reached the director
 # --------------------------------------------------------------------------- #
-def test_a_persisted_zero_does_not_reach_the_alarm_text(monkeypatch):
-    """END TO END, in the exact shape observed: a state file carrying `wedge_since: 0.0` is
-    ADOPTED by `record_publish_gate_failure` (its own guard has the same accepts-0 shape), so the
-    renderer is the last thing standing between a fixture's zero and the director's page.
-
-    This is the leg that would have caught the live defect, and it is deliberately driven through
-    the real writer rather than by calling `_episode_phrase` again.
-    """
-    prc.PUBLISH_GATE_STATE_FILE.write_text(json.dumps({
-        "failures": [{"ts": float(t), "reason": "rc=1 on a marker", "rc": 1,
+def _wedged_state(wedge_since, now):
+    """A three-failure open episode ending at `now`, carrying `wedge_since` verbatim."""
+    return json.dumps({
+        "failures": [{"ts": float(now - 1800 + t), "reason": "rc=1 on a marker", "rc": 1,
                       "kind": "test_regression", "git_hash": "abc1234"}
                      for t in (0, 600, 1200)],
-        "alerted_at": None, "wedge_since": 0.0, "episode_failures": 3,
-    }))
+        "alerted_at": None, "wedge_since": wedge_since, "episode_failures": 3,
+    })
+
+
+def test_a_persisted_zero_does_not_reach_the_alarm_text():
+    """END TO END, in the exact shape observed, and now closed one level EARLIER than it was.
+
+    When this file was written the writer ADOPTED the persisted zero and the renderer was the last
+    thing standing. It is not any more (see the restamp legs below), so this leg asserts the
+    OUTCOME rather than which layer produced it: whatever the state file carries, no epoch date
+    reaches the director. That is the property; which layer catches it is an implementation detail
+    and pinning it here would be keying a control to today's answer.
+
+    Driven through the real writer, on a REAL clock -- the original used `now=1800`, so an honest
+    restamp of a fake clock rendered an honest `1970-01-01T00:30` and the leg failed for a reason
+    that had nothing to do with the defect. A fixture's clock has to be a possible clock.
+    """
+    prc.PUBLISH_GATE_STATE_FILE.write_text(_wedged_state(0.0, REAL_WEDGE))
     sink = _Sink()
 
     prc.record_publish_gate_failure("rc=1 on a marker", rc=1, git_hash="abc1234",
-                                    now=1800, send_ntfy_fn=sink)
+                                    now=REAL_WEDGE, send_ntfy_fn=sink)
 
     assert sink.messages, "premise: the alarm must have fired, or this control proves nothing"
     msg = sink.messages[-1]
     assert "1970" not in msg, (
         f"the epoch date reached the alarm the director reads: {msg}")
-    assert UNRECORDED in msg, msg
+
+
+# --------------------------------------------------------------------------- #
+# The writer: a zero must not SURVIVE in the state file either
+# --------------------------------------------------------------------------- #
+# The renderer above stops the bad value being READ. It does nothing about the bad value being
+# KEPT, and `.publish_gate_state.json` has other consumers -- `supervisor.
+# _publish_gate_wedge_active` reads `wedge_since` with its own `isinstance` test and would date a
+# wedge to 1970, i.e. always older than any threshold. Every new consumer inherits it until the
+# writer stops persisting it.
+#
+# MEASURED, NOT ASSUMED, and the finding that filed this got it wrong: the blocker was never the
+# pinned fixture in `test_publish_gate_blocking_payload`. Repairing the adoption clause alone left
+# `persisted["wedge_since"] == 0.0` exactly as it was, because `episode_monotonic.guard_episode`
+# treats the start as LOW-water and `0.0 <= anything` wins forever. Two changes are load-bearing
+# and each is dead without the other. Pre-registered before the run:
+# docs/staging/records/PREREG_WHETHER_THE_FIXTURE_PIN_IS_ACTUALLY_THE_BLOCKER_ON_THE_ZERO_ADOPTION_2026-09-04.md
+
+def _persisted_after_failure(wedge_since, now=REAL_WEDGE):
+    prc.PUBLISH_GATE_STATE_FILE.write_text(_wedged_state(wedge_since, now))
+    prc.record_publish_gate_failure("rc=1 on a marker", rc=1, git_hash="abc1234",
+                                    now=now, send_ntfy_fn=_Sink())
+    return json.loads(prc.PUBLISH_GATE_STATE_FILE.read_text())["wedge_since"]
+
+
+def test_a_persisted_zero_is_restamped_rather_than_adopted():
+    """THE DEFECT. `wedge_since = prev if isinstance(prev, (int, float)) else now` accepted 0."""
+    assert _persisted_after_failure(0.0) == REAL_WEDGE, (
+        "the zero survived the write -- it is now this episode's permanent start, and every "
+        "consumer of the state file inherits a 1970 nobody recorded")
+
+
+def test_a_persisted_negative_is_restamped_too():
+    """Keyed to the PROPERTY -- a start is a positive instant -- not to the observed value 0."""
+    assert _persisted_after_failure(-1.0) == REAL_WEDGE
+
+
+def test_a_persisted_true_is_not_a_start_time():
+    """`True` is an int and `True > 0`, so a bare positivity test would adopt it as epoch+1s.
+    `episode_monotonic._is_num` already refuses bools for exactly this reason; the writer's own
+    screen must agree with the guard's, or the two disagree about what a start is."""
+    assert _persisted_after_failure(True) == REAL_WEDGE
+
+
+def test_a_real_persisted_start_is_still_remembered():
+    """REACHABILITY / null control, and the one that matters most here.
+
+    `wedge_since = now` unconditionally passes all three legs above and DELETES the PW2 episode
+    guarantee -- every failure would restamp the clock and a 10h outage would page as a fresh
+    minute, which is the 2026-08-09 defect the whole monotonic guard exists to cure. Restamping
+    must be reachable ONLY for values that were never start times.
+    """
+    real_start = REAL_WEDGE - 7 * 3600
+    assert _persisted_after_failure(real_start) == real_start, (
+        "a real episode start was restamped to now -- the episode clock is forwardable again")
+
+
+def test_the_whole_writer_partition_is_reachable():
+    """ONE control over the partition: restamped and remembered must be DIFFERENT outcomes."""
+    restamped = _persisted_after_failure(0.0)
+    remembered = _persisted_after_failure(REAL_WEDGE - 7 * 3600)
+    cold = _persisted_after_failure(None)
+
+    assert restamped == cold == REAL_WEDGE
+    assert remembered != restamped
+
+
+def test_the_alarm_text_reports_the_open_episodes_real_age_not_a_fresh_one():
+    """FOUND BY MUTATION, and it was a MISSING TEST rather than an equivalence (2026-09-04).
+
+    Replacing the writer's whole adoption clause with `wedge_since = now` left all ten legs above
+    GREEN, because the PERSISTED field has a second guard: `episode_monotonic.guard_episode` is
+    LOW-water and restores the real start. So the state file is protected twice.
+
+    THE ALARM TEXT IS PROTECTED ONCE. `_episode_phrase` is handed the writer's LOCAL variable, not
+    the guarded persisted one, so under that mutation a seven-hour wedge pages as:
+
+        EPISODE: wedged since 2027-01-15T08:00 UTC -- 0h00m and 4 consecutive failures
+
+    That is the 2026-08-09 defect verbatim -- a 10h26m outage reading as 14 minutes -- on the one
+    path where a person acts on the number, and every control in this repository walked past it.
+    The legs above assert what is WRITTEN; this one asserts what is SENT, and they are different
+    values from different variables.
+    """
+    start = REAL_WEDGE - 7 * 3600
+    prc.PUBLISH_GATE_STATE_FILE.write_text(json.dumps({
+        # The failures sit inside the 1h trim window; the episode START is seven hours older.
+        # That gap IS the subject: it is the only thing `wedge_since` exists to carry.
+        "failures": [{"ts": REAL_WEDGE - t, "reason": "rc=1 on a marker", "rc": 1,
+                      "kind": "test_regression", "git_hash": "abc1234"}
+                     for t in (1500, 900, 300)],
+        "alerted_at": None, "wedge_since": start, "episode_failures": 3,
+    }))
+    sink = _Sink()
+
+    prc.record_publish_gate_failure("rc=1 on a marker", rc=1, git_hash="abc1234",
+                                    now=REAL_WEDGE, send_ntfy_fn=sink)
+
+    assert sink.messages, "premise: the alarm must have fired, or this control proves nothing"
+    msg = sink.messages[-1]
+    assert "7h00m" in msg, (
+        "the alarm reported a FRESH episode inside a seven-hour-old one -- the writer restamped "
+        f"the local start the phrase is built from: {msg}")
+    assert "0h00m" not in msg, msg
