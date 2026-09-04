@@ -4,6 +4,26 @@
 
 **Class:** `figures_on_a_superseded_clock` (primary)
 
+**Discharged:** `tools/generate_value_arms_data.py`, `site/data/value_arms.json`,
+`tests/tools/test_generate_value_arms_data.py::test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantages`,
+`tests/tools/test_generate_value_arms_data.py::test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_the_reader`
+— clauses 1 and 2 of "What follows" are landed and published. The floor legs this document was
+waiting on are in, the live world's floor is admitted on its own digest, and the headline now
+carries the COMPOSITION rather than a re-numbered beat: the reader meets the creation leg's own
+centre of minus 1,861, its range of minus 8,634 to 2,350, and one of three re-draws clearing,
+beside the single-draw figure of 2,177. Every bound on the page is stamped with the world it was
+measured in or refuses and names why. **Verified by regeneration, not by reading the commit that
+claims it:** the generator was re-run into a scratch path and the committed feed reproduced to the
+byte except its own publishing-tree pointer, so the sentence above is what the page composes today
+and not what a message said it would. **Clause 3 is NOT discharged** — nothing on the page yet
+says that an advantage which is 79 percent price level in one world and 7 percent in another is a
+reading of the world's price-response calibration at least as much as of the company. That residue
+is recorded here and stays drawable; it is the LEVEL leg's question, not the creation leg's, and it
+is adjacent to but not the same as
+`docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`,
+which is about how the departure level is fitted rather than about what its share of the advantage
+tells a reader.
+
 *Delivery seat, 2026-09-03, claim `the-baseline-was-beaten-in-a-world-that-no-longer-exists`.
 Measured from `value_cycle_ab_s1_three_arm_20260903.json` (world `39a192ce04c1eda8`) against
 `value_cycle_ab_s1_three_arm.json` (2026-08-31). The three floor legs re-running the bound are still
