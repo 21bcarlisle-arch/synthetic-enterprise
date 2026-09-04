@@ -90,22 +90,81 @@ class TestTheGeneratorHonoursIt:
             pytest.skip("git unavailable in this environment -- None is the correct answer")
         assert is_honest_provenance(head), f"_git_head returned a non-SHA: {head!r}"
 
-    def test_the_old_filename_fallback_is_gone(self):
-        """REGRESSION, pinned to the mechanism not the symptom: the generator must
-        no longer derive provenance from the run filename. Re-introducing
-        `run_json_path.stem.split("_")` for git_commit revives the whole class."""
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "run_output_latest.json",              # THE artefact that produced the literal "latest"
+            "run_output_latest_phase6a_fwdA.json",  # split("_")[2] -> "latest" again
+            "run_output_naked_kwh_only.json",       # split("_")[2] -> "naked"
+            "run_output_segments_latest.json",      # split("_")[2] -> "segments"
+            "not_a_run_output_at_all.json",
+        ],
+    )
+    def test_the_old_filename_fallback_is_gone(self, name):
+        """REGRESSION, RE-KEYED TO THE PROPERTY after the mechanism moved (2026-09-04).
+
+        This guard used to read the generator's SOURCE TEXT: find the line starting
+        `git_commit = ` and assert the run filename was not on it. On 2026-09-04 the
+        resolver moved into `_run_provenance_commit()` and the assignment became a tuple
+        unpack, so no such line exists -- and the guard fired on its own "did the
+        generator change shape?" branch. A TRUE RED FOR A PROCEDURAL REASON, which is
+        how it wedged all publishing for ~108 minutes while naming nothing wrong with
+        the code. That is this project's own R15 failure: a control keyed to today's
+        SHAPE rather than to the property it owns.
+
+        Worse than brittle, its assertion had also become FALSE BY DESIGN. The run
+        filename IS now a named provenance tier (`run_filename`): the daemon builds
+        `run_output_<sha>_<ts>.json` from `git rev-parse --short HEAD` at the moment the
+        run STARTS, so it names the run's own commit. Reading the filename is not the
+        defect; reading it LOOSELY is.
+
+        So what survives is the property, asserted against the real resolver instead of
+        against source text: a filename that does not encode a commit must yield the
+        honest "unknown", never a fragment of itself dressed as a SHA.
+        """
         from pathlib import Path
 
-        src = Path("tools/generate_dashboard_data.py").read_text()
-        # Find the git_commit assignment and assert it does not read the filename.
-        assign = [ln for ln in src.splitlines() if ln.strip().startswith("git_commit = ")]
-        assert assign, "git_commit assignment not found -- did the generator change shape?"
-        for ln in assign:
-            assert "run_json_path" not in ln, (
-                "git_commit is being derived from the run filename again: " + ln.strip()
-            )
-            assert "stem" not in ln, (
-                "git_commit is being derived from a filename stem again: " + ln.strip()
+        from tools.generate_dashboard_data import _run_provenance_commit
+
+        commit, source = _run_provenance_commit({}, Path(name))
+        assert (commit, source) == (_HONEST_UNKNOWN, "unavailable"), (
+            f"{name!r} was read as naming a commit and published {commit!r} as provenance "
+            f"(source {source!r}) -- this is the 2026-07-29 fail-open, by name"
+        )
+
+    def test_the_gate_this_file_defines_is_applied_to_what_the_generator_returns(self):
+        """THE WIRING THIS FILE NEVER HAD: it defined `is_honest_provenance`, tested it as
+        a pure function, and never once handed it a value the generator actually produces.
+        A gate with no subject cannot fail, which is why it stayed green through a
+        mechanism rewrite.
+
+        WHY THE STANDARD ASSERTED HERE IS NOT `is_honest_provenance` ITSELF. That gate says
+        40-hex-or-"unknown" and lists `"4d1e899"` among its fakes. Production does not meet
+        it and never has: every commit stamp in this repo is minted by
+        `git rev-parse --short HEAD` (`background/sim_runner.py`, `tools/run_annual_report`),
+        so the published value is a 9-hex abbreviation. The 40-hex rule is the standard the
+        MINTERS should meet, and it is left unweakened here on purpose -- relaxing a gate to
+        clear a red is how a gate stops being one. The standard below is what the mechanism
+        in force can actually satisfy, and it still refuses every fake in the list above:
+        "latest", "main", "HEAD", "v1.2.3" and "output" are not hex.
+        """
+        from pathlib import Path
+
+        from tools.generate_dashboard_data import _run_provenance_commit
+
+        abbreviated_or_full_sha = re.compile(r"^[0-9a-f]{7,40}$")
+        cases = [
+            ({"git_commit": "b83ec58ec"}, "run_output_b83ec58ec_20260904T062230Z.json"),
+            ({}, "run_output_c9ac07327_20260904T035205Z.json"),
+            ({}, "run_output_latest.json"),
+            (None, "run_output_latest.json"),
+            ({"git_commit": ""}, "anything_at_all.json"),
+        ]
+        for cache_meta, name in cases:
+            commit, _source = _run_provenance_commit(cache_meta, Path(name))
+            assert commit == _HONEST_UNKNOWN or abbreviated_or_full_sha.match(commit), (
+                f"the generator published {commit!r} as provenance for {name!r}: it is "
+                "neither a commit nor the honest admission that there is none"
             )
 
 

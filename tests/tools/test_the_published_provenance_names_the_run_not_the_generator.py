@@ -35,13 +35,58 @@ _SENTINEL_HEAD = "f" * 40
 
 
 def test_a_stamped_run_is_believed_and_says_so():
-    """MUTATION: drop the `_cache_meta` tier and this fires. The run's own stamp is the only
-    authoritative tier -- everything below it is an inference from a filename."""
+    """MUTATION: drop the `_cache_meta` tier and this fires. The run's own stamp is the
+    authoritative tier -- everything below it is an inference from a filename.
+
+    THE FIXTURE WAS REWRITTEN (2026-09-04, second sitting). It used to prove precedence with a
+    pair that DISAGREED -- stamp `abc1234` against filename `deadbee` -- and so it also asserted
+    that a stamp beats a filename it contradicts. That turned out to be the wrong ruling: the
+    stamp was read at the END of the run and the filename at the START, so a contradiction meant
+    the stamp named a commit that landed mid-flight. See
+    `test_a_contradiction_inside_one_artefact_is_settled_by_the_filename` below. This leg now
+    proves precedence on the only shape a correct run can produce -- an agreeing pair -- so it
+    tests tier order and nothing else.
+    """
     commit, source = gdd._run_provenance_commit(
-        {"git_commit": "abc1234"}, Path("run_output_deadbee_20260904T000000Z.json")
+        {"git_commit": "deadbee42"}, Path("run_output_deadbee_20260904T000000Z.json")
     )
-    assert commit == "abc1234"
+    assert commit == "deadbee42", "the run's own stamp was not believed"
     assert source == "run_stamp"
+
+
+def test_a_contradiction_inside_one_artefact_is_settled_by_the_filename(monkeypatch):
+    """MUTATION: restore the plain `if stamped: return stamped, "run_stamp"` precedence and this
+    fires.
+
+    THE DEFECT, measured on disk 2026-09-04: `run_output_fbd2970c6_20260904T060810Z.json` carries
+    `_cache_meta.git_commit = "b83ec58ec"`. One artefact, two commits, because the producer read
+    HEAD after a 13-minute run and the daemon had named the file before it. The code that
+    computed the numbers is the code the process imported, so the filename is the better answer
+    -- and the reader is told the answer was contested rather than being handed a quiet winner.
+    """
+    monkeypatch.setattr(gdd, "_git_head", lambda: _SENTINEL_HEAD)
+    commit, source = gdd._run_provenance_commit(
+        {"git_commit": "b83ec58ec"}, Path("run_output_fbd2970c6_20260904T060810Z.json")
+    )
+    assert commit == "fbd2970c6", (
+        "the mid-flight commit was published as the provenance of a run whose code predates it"
+    )
+    assert source == "run_filename_over_contradicting_stamp", (
+        "the page must say the two fields disagreed, not silently pick one"
+    )
+
+
+def test_shas_of_different_lengths_naming_one_commit_are_not_a_contradiction():
+    """The two fields are `git rev-parse --short` output and nothing guarantees equal length, so
+    the comparison is by prefix. MUTATION: compare with `!=` and this fires -- and it fires as a
+    FALSE contradiction, which would demote a perfectly good `run_stamp` on every artefact whose
+    two abbreviations differ in length."""
+    commit, source = gdd._run_provenance_commit(
+        {"git_commit": "08e7f7de57a3b82dd3fcbf814f7a0a08048b05b7"},
+        Path("run_output_08e7f7de5_20260904T072726Z.json"),
+    )
+    assert source == "run_stamp"
+    assert commit == "08e7f7de57a3b82dd3fcbf814f7a0a08048b05b7"
 
 
 def test_an_unstamped_run_is_named_by_its_own_filename_not_by_head(monkeypatch):
@@ -111,7 +156,12 @@ def test_head_is_never_the_answer_for_any_input(monkeypatch):
             "`{}` with cache_meta={!r} published the generator's HEAD as the run's "
             "provenance".format(name, cache_meta)
         )
-        assert source in {"run_stamp", "run_filename", "unavailable"}
+        assert source in {
+            "run_stamp",
+            "run_filename",
+            "run_filename_over_contradicting_stamp",
+            "unavailable",
+        }
 
 
 def test_the_published_dashboard_provenance_agrees_with_the_run_it_names():

@@ -74,23 +74,52 @@ def _run_provenance_commit(cache_meta, run_json_path):
     Returns `(commit, source)`. `source` is published beside the commit because the three tiers
     are not equally good and a reader is owed which one they got:
 
-      * `"run_stamp"`   -- the run said so itself (`_cache_meta.git_commit`). Authoritative.
+      * `"run_stamp"`   -- the run said so itself (`_cache_meta.git_commit`), and its own
+        filename agrees. Authoritative.
       * `"run_filename"` -- the artefact's own name says so. Weaker, and it is a real answer:
         the daemon builds that name from `git rev-parse --short HEAD` at the moment the run
         STARTS, so it names the run's commit and not the publisher's.
+      * `"run_filename_over_contradicting_stamp"` -- the artefact names TWO commits and they are
+        not the same one. See below; the filename wins and the reader is told it was a choice.
       * `"unavailable"` -- neither, so the page says "unknown" and says why.
 
     THE GENERATOR'S OWN HEAD IS DELIBERATELY NOT A TIER. It is a different quantity that looks
     exactly like this one, and publishing it here is how the site spent months naming a commit at
     which no run had ever been produced.
+
+    WHY A CONTRADICTION IS NOT SETTLED BY TIER ORDER (2026-09-04, second sitting). Until this
+    afternoon `reconcile_and_stamp()` read HEAD at the END of the run while the filename was
+    minted at the START of it, so the two fields inside a single artefact named different
+    commits on every run that spanned one -- which, at ~13 minutes a run and several lanes
+    landing per hour, was most of them:
+
+        run_output_fbd2970c6_20260904T060810Z.json   _cache_meta.git_commit = b83ec58ec
+        run_output_b83ec58ec_20260904T062230Z.json   _cache_meta.git_commit = e94442a37
+
+    Believing the stamp published the commit HEAD reached while the run was in flight, not the
+    commit whose code computed the numbers. The producer is fixed (`tools/run_annual_report`),
+    which is what stops NEW artefacts contradicting themselves. This branch is for the 131 that
+    already do: for them the filename is the better answer, because the code a process runs is
+    the code it imported at launch. Preferring the tier that is right in general over the tier
+    that is right about THIS artefact is how a provenance field goes on being wrong politely.
     """
     stamped = (cache_meta or {}).get("git_commit")
+    match = _RUN_OUTPUT_COMMIT.match(Path(run_json_path).name)
+    named = match.group(1) if match else None
+    if stamped and named and not _same_commit(stamped, named):
+        return named, "run_filename_over_contradicting_stamp"
     if stamped:
         return stamped, "run_stamp"
-    match = _RUN_OUTPUT_COMMIT.match(Path(run_json_path).name)
-    if match:
-        return match.group(1), "run_filename"
+    if named:
+        return named, "run_filename"
     return "unknown", "unavailable"
+
+
+def _same_commit(a, b) -> bool:
+    """Do two commit strings name the same commit? They are `git rev-parse --short` output of
+    possibly different lengths, so the comparison is by prefix and never by equality."""
+    a, b = str(a), str(b)
+    return a.startswith(b) or b.startswith(a)
 
 
 def _resolve_book():

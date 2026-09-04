@@ -96,8 +96,14 @@ def _run_and_extract(report_end: str | None = None) -> dict:
     return extract_report_data(run_output)
 
 
-def reconcile_and_stamp(data: dict) -> dict:
+def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     """Refuse a run output that does not add up, then stamp WHICH COMMIT and WHICH WORLD made it.
+
+    `code_commit` IS THE COMMIT THE RUN'S CODE WAS LOADED AT, captured by the caller BEFORE the
+    run starts. It is a parameter and not a call to `_git_commit_hash()` here because this
+    function executes at the END of a run, and HEAD at the end of a run is a different fact from
+    HEAD at the start of one -- see the 2026-09-04 note below. When it is None the old
+    end-of-run reading is used, which is correct only for a caller that has not run anything.
 
     ONE FUNCTION BECAUSE THERE ARE TWO WRITERS AND ONLY ONE OF THEM WAS DOING ANY OF THIS
     (2026-09-04). Everything below used to live inside `save_run_output_json()`, whose only
@@ -156,8 +162,28 @@ def reconcile_and_stamp(data: dict) -> dict:
             + "\n  - ".join(unreconciled)
         )
 
+    # THE STAMP NAMES THE CODE THAT RAN, NOT HEAD WHEN THE STAMPING HAPPENED (2026-09-04).
+    #
+    # This line read `_git_commit_hash()`, evaluated here -- after the simulation. The versioned
+    # filename beside it is minted by `background/sim_runner.run_simulation()` from
+    # `git rev-parse --short HEAD` at the moment the run STARTS. A full run takes ~13 minutes and
+    # several lanes land commits into this tree every hour, so the two disagreed on any run that
+    # spanned a commit. Measured, on the artefacts on disk:
+    #
+    #   run_output_fbd2970c6_20260904T060810Z.json   _cache_meta.git_commit = b83ec58ec
+    #   run_output_b83ec58ec_20260904T062230Z.json   _cache_meta.git_commit = e94442a37
+    #
+    # One artefact, two commits, and `tools/generate_dashboard_data` believes the stamp over the
+    # filename -- so the published page named a commit whose code had not been loaded when the
+    # numbers were computed. That is the SAME defect the tier system was built to close on
+    # 2026-09-04 ("the page named the commit the GENERATOR ran at"), arriving one layer down and
+    # with a 13-minute window instead of a 12-hour one. A real SHA belonging to a different
+    # instant satisfies every presence check exactly as well as the literal "latest" did.
+    #
+    # The code that produced these numbers is the code the process IMPORTED, so the answer is
+    # HEAD at launch, which is precisely what the caller already captured to build the filename.
     data["_cache_meta"] = {
-        "git_commit": _git_commit_hash(),
+        "git_commit": code_commit or _git_commit_hash(),
         "generated_at_utc": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
         # Fail-closed and NAMED. A run output that cannot say which world it ran in must say
         # that, in the slot a reader looks in -- an absent key reads as "nobody asked".
@@ -231,11 +257,16 @@ def main() -> None:
     if report_end:
         print(f"[TRUNCATED] Simulation window truncated to {report_end}.")
 
+    # CAPTURED BEFORE THE RUN, because this is the commit whose code the process imported and
+    # therefore the commit that produces every number below. Reading it after the run reads a
+    # different fact -- see the stamping block in `reconcile_and_stamp`.
+    code_commit = _git_commit_hash()
+
     raw_output = run_phase4c_on_phase2b(report_end=report_end)
     # THE SAME DISCIPLINE AS `save_run_output_json`, AND THIS IS THE PATH THAT PUBLISHES.
     # It raises before anything is written, so a run that does not add up leaves no artefact
     # for the publisher to pick up -- see `reconcile_and_stamp` for what used to happen here.
-    data = reconcile_and_stamp(extract_report_data(raw_output))
+    data = reconcile_and_stamp(extract_report_data(raw_output), code_commit=code_commit)
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(json.dumps(data, indent=2))
 
