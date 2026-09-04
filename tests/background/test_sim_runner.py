@@ -110,15 +110,59 @@ def test_one_producer_period_covers_one_publisher_cycle():
 
 
 def test_the_busy_loop_floor_is_not_what_sets_the_pause():
-    """The reachability null for the `max(60, ...)` above.
+    """The reachability null for the `max(...)` limbs.
 
-    Without this, a degenerate measurement collapsing the derivation to the 60s floor would
-    restore the original defect while the property control above still passed on the floor.
-    Asserts the DERIVED limb is the live one -- that the branch can be, and is, taken."""
-    derived = (sim_runner.PUBLISHER_CYCLE_P90_SECONDS
-               - sim_runner.SIM_RUN_DURATION_P50_SECONDS)
-    assert derived > 60, "derivation collapsed to the busy-loop floor"
-    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS == derived
+    Without this, a degenerate measurement collapsing the derivation to the 60s floor would restore
+    the original defect while the property control above still passed on the floor.
+
+    RE-EXPRESSED 2026-09-04, when the director declared a WEEKLY cadence. The pause is now the
+    largest of three named limbs and the CADENCE is the one that binds; the predecessor asserted
+    equality with the consumer limb, which was "which limb is live" written as today's answer. This
+    asserts the same property -- a real limb is live, never the floor -- and says which, so the day
+    the cadence changes again the control moves with it.
+    """
+    floor = 60
+    consumer = (sim_runner.PUBLISHER_CYCLE_P90_SECONDS
+                - sim_runner.SIM_RUN_DURATION_P50_SECONDS)
+    cadence = int(sim_runner._declared_cadence_seconds()) - sim_runner.SIM_RUN_DURATION_P50_SECONDS
+
+    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS == max(floor, consumer, cadence)
+    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS > floor, "derivation collapsed to the busy-loop floor"
+    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS == cadence, (
+        "the DECLARED cadence is what should set the period now; if the consumer's measured cycle "
+        "has overtaken a week, that is a finding about the publisher, not a cadence to accept")
+
+
+def test_the_declared_cadence_never_runs_faster_than_the_consumer_costs():
+    """The floor the old derivation existed to enforce, kept as a floor rather than deleted.
+
+    A declaration cannot make the publisher cheaper. If someone ever declares a cadence SHORTER
+    than one measured publish cycle, the queue stops draining again -- the exact defect the
+    consumer-derived pause was written for. MUTATION: drop the `PUBLISHER_CYCLE_P90_SECONDS` limb
+    from the `max` and this fires whenever the declared cadence is the shorter of the two.
+    """
+    # EXERCISED AT A CADENCE WHERE THE FLOOR CAN ACTUALLY BIND. At the declared weekly cadence the
+    # consumer limb is unreachable, so asserting on the live value cannot tell an enforced floor
+    # from an absent one -- proven by mutation: deleting the limb left every leg green. A pure
+    # `pause_for_cadence` makes the property testable at any cadence, including a reckless one.
+    reckless = 15 * 60.0          # shorter than one measured publish cycle
+    period = sim_runner.pause_for_cadence(reckless) + sim_runner.SIM_RUN_DURATION_P50_SECONDS
+    assert period >= sim_runner.PUBLISHER_CYCLE_P90_SECONDS, (
+        "a declared cadence shorter than one publish cycle was accepted -- the queue stops draining "
+        "again, which is the defect the consumer-derived pause was written for")
+    # ...and the live value still satisfies it, so the floor is a floor and not a ceiling.
+    live = sim_runner.BETWEEN_RUN_PAUSE_SECONDS + sim_runner.SIM_RUN_DURATION_P50_SECONDS
+    assert live >= sim_runner.PUBLISHER_CYCLE_P90_SECONDS
+
+
+def test_the_cadence_is_imported_not_copied():
+    """One declaration, read by both ends. `publish_freshness` owns the cadence; the producer's
+    period and the staleness alarm both derive from it, so moving it moves them together.
+
+    MUTATION: hard-code a week here and this fires the moment the two disagree -- which is exactly
+    how `PRODUCER_ARTEFACT_STALE_SECONDS` spent weeks claiming to be a number it had copied."""
+    from background import publish_freshness as pf
+    assert sim_runner._declared_cadence_seconds() == float(pf.PUBLISH_CADENCE_SECONDS)
 
 
 def test_git_head_returns_string(monkeypatch):

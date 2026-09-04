@@ -112,7 +112,51 @@ SIM_RUN_DURATION_P50_SECONDS = 732
 #: Derived: the pause that makes one producer period cover one consumer cycle. The `max` floor
 #: keeps a degenerate measurement from producing a busy-loop; it is NOT what binds today (see
 #: the reachability control in tests/background/test_sim_runner.py).
-BETWEEN_RUN_PAUSE_SECONDS = max(60, PUBLISHER_CYCLE_P90_SECONDS - SIM_RUN_DURATION_P50_SECONDS)
+#: THE CADENCE IS NOW DECLARED, NOT DERIVED FROM THE CONSUMER (2026-09-04). Director: *"The site
+#: publishes numbers and runs once a week, thoroughly and robustly, not every half hour ... The
+#: reason is cost. Three of the last five days had multi-hour publish outages, and fixing them has
+#: taken more of your time than the content ever has ... Nearly all of it exists to sustain a
+#: cadence nobody reads at."*
+#:
+#: Everything above this line stays true and stays load-bearing -- it is why the pause exists at all
+#: and why it is persisted across restarts. What changes is which term SETS it. The old derivation
+#: chased the publisher's measured cycle, which is the right answer to "how fast may the producer
+#: run before the queue stops draining" and the wrong answer to "how often should the site publish".
+#: The cadence is now the director's declaration, read from its single source of truth
+#: (`publish_freshness.PUBLISH_CADENCE_SECONDS`), and the publisher's cycle survives as a FLOOR: the
+#: period may never fall below what the consumer measurably costs, whatever anyone declares.
+#:
+#: So the three terms are ordered, largest wins, and each is named:
+#:   1. the declared cadence  -- what the director asked for
+#:   2. the consumer's cycle  -- the queue-drainage property the old derivation protected
+#:   3. the 60s busy-loop floor -- a degenerate-measurement guard, never what binds
+def _declared_cadence_seconds() -> float:
+    """The publishing cadence, imported rather than copied. Falls back to the consumer-derived
+    period if the freshness module cannot be read -- the direction that keeps the OLD, faster
+    behaviour rather than silently pausing a producer for a week on an import error."""
+    try:
+        from background.publish_freshness import PUBLISH_CADENCE_SECONDS
+        return float(PUBLISH_CADENCE_SECONDS)
+    except Exception:  # noqa: BLE001
+        return float(PUBLISHER_CYCLE_P90_SECONDS)
+
+
+def pause_for_cadence(cadence_seconds: float) -> int:
+    """The pause a given declared cadence implies, as a PURE function of it.
+
+    Extracted so the floor is testable at a cadence other than today's. At a weekly declaration the
+    consumer limb cannot bind, so a control written against the live value cannot tell whether the
+    floor is enforced or merely unreachable -- which is the survived-mutation shape this repo keeps
+    paying for. This makes the floor exercisable directly.
+    """
+    return max(
+        60,
+        PUBLISHER_CYCLE_P90_SECONDS - SIM_RUN_DURATION_P50_SECONDS,
+        int(cadence_seconds) - SIM_RUN_DURATION_P50_SECONDS,
+    )
+
+
+BETWEEN_RUN_PAUSE_SECONDS = pause_for_cadence(_declared_cadence_seconds())
 
 #: THE PAUSE IS NOW LONGER THAN THIS DAEMON LIVES, so it has to outlive the process.
 #:

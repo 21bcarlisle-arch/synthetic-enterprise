@@ -355,24 +355,50 @@ OPERATIONAL_RED_DRAWABLE_THRESHOLD = 3   # director: persistent-RED = >3 consecu
 # Detector: _producer_starved_active(); wired as RUNG 1d of _self_refill_draw and mirrored in
 # _is_drained_and_gated. R15-proven both ways in test_producer_starvation_draw.py.
 SIM_PRODUCER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_producer_state.json"
+def _publish_cadence_seconds() -> float:
+    """The declared publishing cadence, from its single source of truth.
+
+    Imported rather than copied, and read through a function so a supervisor import cannot be
+    wedged by a failure in the freshness module: the fallback is the old half-hourly-era value,
+    which is the FAIL-LOUD direction for a starvation alarm (it fires sooner, never later)."""
+    try:
+        from background.publish_freshness import PUBLISH_CADENCE_SECONDS
+        return float(PUBLISH_CADENCE_SECONDS)
+    except Exception:  # noqa: BLE001
+        return 30 * 60.0
+
+
+def _publish_stale_after_seconds() -> float:
+    """`publish_freshness.STALE_AFTER_SECONDS`, imported rather than duplicated -- see the note at
+    `PRODUCER_ARTEFACT_STALE_SECONDS`, whose comment claimed this for weeks while holding a copy."""
+    try:
+        from background.publish_freshness import STALE_AFTER_SECONDS
+        return float(STALE_AFTER_SECONDS)
+    except Exception:  # noqa: BLE001
+        return 3 * 60 * 60.0
+
+
 SIM_RUNNER_HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold"
 SIM_RUN_OUTPUT_DIR = PROJECT_DIR / "docs" / "reports"
 SIM_RUN_OUTPUT_GLOB = "run_output_*.json"
 PRODUCER_STARVED_MIN_FAILURES = 3          # sustained, not a lone flake (mirrors rung 1's bar)
-PRODUCER_STARVED_MIN_AGE_SECONDS = 30 * 60  # 5 lost cycles at the p50 cadence, on the DIAGNOSED limb only
-# The UNDIAGNOSED limb's threshold is MEASURED, not guessed. It was first written as 45 min on the
-# reasoning "a cycle is ~6 min, so 45 is seven lost cycles" -- which was wrong because it sized
-# against the RUN and the real cycle is run + publish. Measured over the 2,977 inter-completion gaps
-# in sim-runner-log.md: p50 9 min, p90 20, p95 32, p99 67. A 45-min bar sits between p95 and p99 and
-# would have fired on 2.79% of gaps -- roughly 31 phantom PRIORITY-ZERO draws a week on a healthy
-# pipeline, which is how a rung earns itself a kill flag. 3h is p99.7-ish, and the tail beyond it is
-# dominated by genuine outages (today's was 3.0h) rather than slow publishes.
-# It is also NOT a fresh arbitrary number: it is `publish_freshness.STALE_AFTER_SECONDS`, this
-# project's existing definition of "the live site has gone stale", which is the consequence this
-# rung exists to prevent. The two ends of the pipeline now use one staleness clock.
-# The sharp instrument is the DIAGNOSED limb at 30 min; this limb is the backstop for a runner that
-# writes no counter at all, where hours of latency is the correct trade against phantom draws.
-PRODUCER_ARTEFACT_STALE_SECONDS = 3 * 60 * 60
+# BOTH LIMBS ARE NOW DERIVED FROM THE DECLARED CADENCE (2026-09-04). The director moved numbers and
+# runs to a weekly publish for cost; a producer alarm calibrated for the old half-hourly cadence
+# fires at PRIORITY ZERO every thirty minutes on a machine doing exactly what it was told, and a
+# rung that cries wolf is how a rung earns itself a kill flag.
+#
+# The DIAGNOSED limb (a runner that writes a failure counter) fires at ONE MISSED WINDOW: the
+# corroborating failure count is what makes it sharp, so it does not also need a long clock.
+PRODUCER_STARVED_MIN_AGE_SECONDS = _publish_cadence_seconds()
+# The UNDIAGNOSED limb -- a runner that writes no counter at all -- is the backstop, where latency is
+# the correct trade against phantom draws. Its own comment has always said it IS
+# `publish_freshness.STALE_AFTER_SECONDS`, "this project's existing definition of 'the live site has
+# gone stale' ... The two ends of the pipeline now use one staleness clock."
+#
+# IT WAS A HARD-CODED COPY OF THAT NUMBER, and the moment the cadence moved the copy stayed at three
+# hours while the original became eight days -- so the sentence claiming one clock became false on
+# the commit that changed the other end. Imported now, which is what the comment always described.
+PRODUCER_ARTEFACT_STALE_SECONDS = _publish_stale_after_seconds()
 
 # RUNG 4b -- STALE PUBLISHED GAP MEASUREMENTS (H_GAP_fabric_belief_truth_gap residual (d), 2026-08-10).
 # The gap-ledger reconcile is report-only and had no consumer that could ACT on it, so five

@@ -38,6 +38,23 @@ import pytest
 from background import supervisor as sv
 
 HOUR = 3600.0
+
+# ── AGES ARE EXPRESSED AGAINST THE THRESHOLDS, NOT IN ABSOLUTE HOURS ─────────────────────────────
+#
+# Every scenario below was measured under a HALF-HOURLY publishing cadence, where an artefact three
+# hours old was self-evidently a dead producer. On 2026-09-04 the director moved numbers and runs to
+# a WEEKLY cadence for cost, and both producer thresholds now derive from it -- so three hours is a
+# producer doing exactly what it was told, and a rung that fires at PRIORITY ZERO on that would
+# hijack the draw every thirty minutes.
+#
+# The PROPERTY each test owns never mentioned hours: a producer whose last output is older than its
+# threshold draws, one inside it does not, and the diagnosed limb is sharper than the undiagnosed
+# one. Writing the ages against `sv.PRODUCER_*` keeps all three and makes them survive the next
+# cadence change -- the same repair the freshness controls took in bfd48d4f5.
+PAST_DIAGNOSED = sv.PRODUCER_STARVED_MIN_AGE_SECONDS + HOUR
+PAST_UNDIAGNOSED = sv.PRODUCER_ARTEFACT_STALE_SECONDS + HOUR
+#: Comfortably INSIDE both thresholds -- a healthy producer between runs.
+WITHIN_CADENCE = 300.0
 NOW = 1_786_000_000.0
 
 #: The failure detail as `child_diagnostics.failure_detail` rendered it that day.
@@ -65,14 +82,21 @@ _EVERY_OTHER_REST_RUNG = (
 
 
 def _state(**overrides) -> dict:
-    """The producer state as sim_runner would have written it at 17:17Z on
-    2026-08-17: nine consecutive failures, the streak beginning at 15:59Z."""
+    """The producer state as sim_runner would have written it at 17:17Z on 2026-08-17: nine
+    consecutive failures, the streak beginning at 15:59Z -- 78 minutes.
+
+    THE STREAK IS NOW SCALED TO THE THRESHOLD (2026-09-04). The DIAGNOSED limb's clock is the
+    streak's own duration (`outage = now - first_failure_ts`), not the artefact age, and that
+    threshold now derives from the weekly cadence. 78 minutes was nine lost runs when runs were
+    13 minutes apart; against a weekly cadence it is not yet one missed window. The property --
+    a sustained failure streak that has outlived its threshold draws at PRIORITY ZERO -- is
+    unchanged, and the 2026-08-17 shape (nine failures, a success before them) is preserved."""
     base = {
         "last_result": "failed",
         "consecutive_failures": 9,
-        "first_failure_ts": NOW - 78 * 60,
+        "first_failure_ts": NOW - PAST_DIAGNOSED,
         "last_failure_ts": NOW - 60,
-        "last_success_ts": NOW - 3 * HOUR,
+        "last_success_ts": NOW - PAST_DIAGNOSED - HOUR,
         "detail": REAL_DETAIL,
         "git": "4b36dc08a",
         "elapsed_s": 215,
@@ -134,7 +158,7 @@ class TestItFiresOnTheRealOutage:
 
     def test_the_recorded_2026_08_17_state_draws(self, env):
         env.write(_state())
-        env.artefact(3 * HOUR)          # last success was 3h ago, before the streak
+        env.artefact(PAST_DIAGNOSED)          # last success was 3h ago, before the streak
         draw = env.detect()
         assert draw, "the nine-failure outage did not produce a draw"
         assert "PRIORITY ZERO" in draw
@@ -144,7 +168,7 @@ class TestItFiresOnTheRealOutage:
         """R9: a draw that says 'the producer is down' without saying what it died
         of sends the next turn to re-derive what the runner already captured."""
         env.write(_state())
-        env.artefact(3 * HOUR)
+        env.artefact(PAST_DIAGNOSED)
         draw = env.detect()
         assert REAL_DETAIL in draw
         assert "sim-runner-log.md" in draw, "the full traceback's location is not named"
@@ -160,7 +184,7 @@ class TestItFiresOnTheRealOutage:
         `test_oom_watch.py`). What the draw owes the reader is that it fired and that the
         question is OPEN, so what is asserted here now is the firing, not the wrong half of
         a disjunction the two inputs cannot decide between."""
-        env.artefact(4 * HOUR)          # no state file written at all
+        env.artefact(PAST_UNDIAGNOSED)          # no state file written at all
         draw = env.detect()
         assert draw, "a silent dead producer drew nothing"
         assert "PRODUCER SILENT" in draw
@@ -168,7 +192,7 @@ class TestItFiresOnTheRealOutage:
 
     def test_self_refill_returns_it_above_the_product_lanes(self, env, monkeypatch):
         env.write(_state())
-        env.artefact(3 * HOUR)
+        env.artefact(PAST_DIAGNOSED)
         drawn = env.detect()
         _silence_the_live_log(monkeypatch)
         monkeypatch.setattr(sv, "_publish_gate_wedge_active", lambda *a, **k: None)
@@ -196,7 +220,7 @@ class TestItFiresOnTheRealOutage:
         With the rest of the ladder drained, the producer rung is the ONLY thing that
         can refuse rest, so deleting the mirror makes this fail."""
         env.write(_state())
-        env.artefact(3 * HOUR)
+        env.artefact(PAST_DIAGNOSED)
         drawn = env.detect()
         _silence_the_live_log(monkeypatch)
         for name in _EVERY_OTHER_REST_RUNG:
@@ -241,7 +265,7 @@ class TestItStaysSilentWhenItShould:
         `test_a_single_failure_with_no_output_for_hours_is_still_starvation`)."""
         env.write(_state(consecutive_failures=1, first_failure_ts=NOW - 600,
                          last_failure_ts=NOW - 600))
-        env.artefact(700)
+        env.artefact(WITHIN_CADENCE)
         assert env.detect() is None
 
     def test_a_single_failure_with_no_output_for_hours_is_still_starvation(self, env):
@@ -250,7 +274,7 @@ class TestItStaysSilentWhenItShould:
         The filesystem is the one that cannot be wrong about whether output happened."""
         env.write(_state(consecutive_failures=1, first_failure_ts=NOW - 600,
                          last_failure_ts=NOW - 600))
-        env.artefact(4 * HOUR)
+        env.artefact(PAST_UNDIAGNOSED)
         draw = env.detect()
         assert draw and "PRODUCER SILENT" in draw
 
@@ -258,14 +282,14 @@ class TestItStaysSilentWhenItShould:
         """Sustained, not immediate: three failures inside five minutes is a bad run,
         not a 70-minute outage."""
         env.write(_state(consecutive_failures=3, first_failure_ts=NOW - 300))
-        env.artefact(400)
+        env.artefact(WITHIN_CADENCE)
         assert env.detect() is None
 
     def test_a_director_hold_is_not_starvation(self, env):
         """A control that fires for as long as a deliberate hold stands is a phantom
         every tick, and a phantom that cannot drain gets deleted."""
         env.write(_state())
-        env.artefact(6 * HOUR)          # both limbs would otherwise fire
+        env.artefact(PAST_UNDIAGNOSED)  # both limbs would otherwise fire
         env.hold_it()
         assert env.detect() is None
 
@@ -298,7 +322,7 @@ class TestTheIndependenceLimb:
 
     def test_an_artefact_older_than_the_failures_does_not_supersede_them(self, env):
         env.write(_state())
-        env.artefact(3 * HOUR)
+        env.artefact(PAST_DIAGNOSED)
         assert env.detect(), "an artefact PREDATING the streak was treated as a pass"
 
     def test_the_artefact_age_helper_reads_the_newest_not_the_first(self, env):
@@ -456,7 +480,7 @@ class TestTheUndiagnosedLimbIsSizedAgainstRealCADENCE:
 
     def test_a_genuine_multi_hour_silence_still_draws(self, env):
         """...and the backstop must still work. Today's real outage was 3.0h."""
-        env.artefact(4 * HOUR)
+        env.artefact(PAST_UNDIAGNOSED)
         draw = env.detect()
         assert draw and "PRODUCER SILENT" in draw
 
