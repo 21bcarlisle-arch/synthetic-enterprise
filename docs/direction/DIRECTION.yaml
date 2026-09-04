@@ -1,181 +1,239 @@
 version: 1
-oriented_at: "2026-09-03T23:22:57.150032+00:00"
+oriented_at: "2026-09-04T02:23:11.901114+00:00"
 thesis_read: >-
-  The thesis has a baseline and it now has a decomposition, and this stretch turned that
-  decomposition against us in a way worth more than the advantage it removed. In the live world
-  (digest 39a192ce04c1eda8) the per-customer arm beats flat rules by £2,336; the flat-at-the-same-
-  level control takes £159 of it, leaving £2,177 as what per-customer CHOOSING is worth — the only
-  leg in this comparison that can be creation rather than transfer. Last stretch's first error is
-  closed on evidence: the live-world floor is committed and wired, and the page no longer states
-  `resolved: true` off one draw — `current_world.resolved` is null, with the re-draw range £451–
-  £2,434 and the centre £1,451 both published. But the creation leg itself is published with no
-  live bound at all. The only selection spread on the page is ±£3,776 from the 2026-08-31 world;
-  the live-world floor has been on disk since 19:06 today reading centre −£1,861, spread ±£5,923,
-  range −£8,634 to +£2,350 over the same three seeds, and `generate_value_arms_data` reads that
-  very file for the value leg's bound while carrying nothing from it for the selection leg. Read
-  against its own live floor, the surviving creation leg sits near the top of a re-draw family
-  whose centre is negative. That is not evidence against the thesis; it is the honest statement
-  that on creation we still cannot tell — and the page does not make it. Every inference reading
-  agrees: concordance 0.517 against a 0.429–0.572 null on 86 decisions, churn ordering inside its
-  null, all three SVT-drift belief arms inside theirs. So: the baseline exists and works; the
-  transfer leg has been correctly identified and has collapsed (£9,497 → £159) the moment the
-  world lets customers respond to price, which is the mission's first consequence arriving as a
-  measurement rather than an argument; and the inference leg is unmeasured rather than disproved,
-  on 104 priced decisions out of 2,009 renewals offered. Underneath all of it the world is
-  clamped — `fit_whole_book` bisects `year_level_anchor` until achieved equals published to four
-  decimals in all seven fitted years, which is rung 1's stated symptom in the director's own
-  validation ladder, so the departure surface every one of these comparisons stands on cannot
-  fail its own check. Fidelity is the precondition, not the backdrop. Of my four steers, two were
-  delivered and disappear from focus (the withheld verdict, the departure-amplitude gap); the
-  brief's own instrument reported one of those two as drawn, so it is half-honest rather than
-  blind, and its subject is still the shared tree's HEAD and not the branch work lands to.
+  This stretch went sideways on the thesis and decisively forward on whether we could ever tell,
+  and the second is worth more than the first. Last stretch's first error is closed on evidence:
+  `site/data/value_arms.json` now states the creation leg with its own live-world floor beside it —
+  centre −£1,861, range −£8,634 to +£2,350, 1 of 3 re-draws clearing a £5,923 spread — against the
+  single draw of +£2,177 the page publishes, with the verdict withheld in the same grammar the
+  advantage leg already used. The fifth error closes with it: the level leg's share is now refused
+  because its numerator changes sign (−£882 to £9,085) rather than published as 6.8%, and
+  `contrast_bounds` refuses outright with the reason on the page because the floor it would come
+  from names no world. Four controls carry it (`test_the_creation_leg_carries_its_own_live_world_
+  bound_and_not_the_advantages`, `..._level_leg_carries_its_own_bound_measured_in_this_world`,
+  `..._level_share_is_refused_when_its_numerator_has_no_sign`, `..._bound_whose_floor_names_no_
+  world_is_refused_and_the_refusal_reaches_the_reader`). What that honesty now says out loud is
+  that the leg carrying the thesis — per-customer CHOOSING, the only leg that can be creation
+  rather than transfer — is a single draw sitting near the top of a re-draw family whose centre is
+  negative. That is not evidence against the thesis. It is the statement that at 3 seeds and 120
+  priced decisions out of 1,953 renewals offered — 6.1% — we cannot tell, and the page finally says
+  so where a reader sees it. The transfer leg is settled in the other direction and stays settled:
+  £9,497 collapsed to £159 the moment the world lets customers respond to price, which is the
+  mission's first consequence arriving as a measurement. The departure surface all of this sits on
+  moved too, and only halfway. `docs/reports/departure_level_rung1_verdict.json` now measures the
+  world at `NO_LEVEL_CORRECTION` — no fitted anchor at all — and it fails: 6 of 7 fitted years LOW
+  by 3.3pp to 9.0pp, 1 in band, where the fit achieves the published rate to four decimals in all
+  seven by construction. So the band is at last a check the world can fail, and the world fails it;
+  what the fitted per-year scalar has been carrying is 3 to 9 percentage points of departure the
+  household mechanism does not produce. That is the reading half of the steer, delivered. The
+  repair half is owed and is a knowledge question before it is a code one, which is why it is
+  first below and why it must not be answered with a constant. Of my four steers, one was fully
+  delivered and one half; `drawn` reported one of them, so the instrument is still under-reporting
+  at the same rate as last stretch, and it still grades the local checkout rather than the branch
+  work lands to — `background/delivery_seat.py` line 172 runs every git call at `cwd=str(PROJECT_
+  DIR)` and `grep -n origin` over the module still returns nothing, a fifth stretch open. Eleven
+  commits, six substantive, none empty; the machine's shape is not the finding this time. Where
+  this leaves the thesis: the apparatus is now trustworthy enough that the next real gain cannot
+  come from the page. It has to come from the world — a departure level that emerges from
+  households instead of a solver, and a book that contains the standard-variable product 62.6% of
+  our unpriced renewals are missing.
 stretch_reviewed:
-  since: "2026-09-03T20:21:29.350123+00:00"
-  commits: 12
-  substantive: 4
+  since: "2026-09-03T23:22:57.150032+00:00"
+  commits: 11
+  substantive: 6
 focus:
-  - id: selection-leg-carries-its-live-world-floor
+  - id: departure-level-emerges-from-the-household-not-the-solver
     what: >-
-      In `tools/generate_value_arms_data.py`, read
-      `docs/observability/value_cycle_ab_s1_noise_floor_20260903.json` and compare its
-      `world_identity.digest` with the world the current-world run reports; if they match, publish
-      that floor's `selection_gbp` centre, range and how many of its re-draws clear, beside
-      `current_world.selection_gbp`, in the same withheld-verdict grammar `value_advantage_gbp`
-      already uses, and if they do not match say that on the page instead. In the same change make
-      the top-level `contrast_bounds` block state the world digest it was measured in, and refuse
-      with the reason on the page when the artefact it came from carries none.
+      Read §4 of
+      `docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`
+      and take its owed item 1, which is a knowledge question: establish from the published record
+      the HOUSEHOLD-level amplitude of switching response — how much more likely one GB household
+      is to leave in a high-switching year than a low one — starting at the two sources that
+      finding already names (Ofgem Retail Market Indicators switching series read per fuel from the
+      table, and the Ofgem Consumer Survey's switching by engagement segment) rather than in a
+      fresh search. Then branch on what you find. If it establishes a household-level dispersion,
+      wire it into the individual hazard, re-run the one-constant sweep in §3, and re-measure
+      `docs/reports/departure_level_rung1_verdict.json` at `NO_LEVEL_CORRECTION`. If it establishes
+      only a segment-level one, say that on the artefact in as many words and do not convert it
+      into a household figure. If nothing establishes it, file the gap against the two places that
+      already declare it half-blind (`docs/institutional/knowledge_map.md`'s customer-lifetime row
+      and `docs/market_research/continuous_behavioural_engagement_w2_14.md` §3a item 6) and put the
+      question to the director on NTFY with your recommendation attached — he is the third side of
+      the knowledge rule and this is exactly its shape. Do not pick a constant, do not move the
+      solver's aim point, and do not edit `YEAR_LEVEL_ANCHOR` to make a number look better.
     why: >-
-      `selection_gbp` is the only leg here that could be value creation rather than transfer, so it
-      is the thesis itself. The page states it as +£2,177 while the only selection spread it carries
-      is ±£3,776 from a world the same page has declared dead, and the live floor on disk centres at
-      −£1,861 across −£8,634 to +£2,350. This is the identical omission repaired for the value leg
-      last stretch, one leg down and unchecked. Finished when a reader can see the creation leg's
-      own centre and range in the live world, and no bound on that page is unstamped.
-  - id: departure-level-stops-being-fitted-to-its-own-check
-    what: >-
-      Discharge the tree's only BLOCKING finding,
-      `docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`,
-      by the route `DIRECTOR_CANON_WORLD_VALIDATION_LADDER_2026-08-31` rung 1 names: stop solving
-      `year_level_anchor` onto the published switching rate in `fit_whole_book`, repair downward
-      into the individual model's attributes and rationale, then measure the emergent level against
-      the band and record which years fall outside it and by how much. Do not move the solver to a
-      different point in the band and do not escalate the choice of one — that recommendation is
-      recorded in the finding's own section 0 as already ruled out by canon.
-    why: >-
-      Achieved equals published to four decimal places in all seven fitted years by construction, so
-      the band cannot fail and the world cannot press back on the surface that every arm comparison
-      sits on. A world fitted to its own check cannot tell value created from value transferred,
-      which is the precondition the whole enterprise rests on. Finished when the band is a check the
-      world can fail and the record says plainly which years it fails.
+      The tree's only BLOCKING finding, and the surface every arm comparison in this company stands
+      on. At anchor 1.0 the world produces 3.3pp to 9.0pp less departure than the record in six of
+      seven fitted years, so a per-year scalar is silently supplying the difference and the band
+      cannot press back. Fidelity is the precondition, not the backdrop: a world fitted to its own
+      check cannot distinguish value created from value transferred, which is the whole point of
+      the comparison. Finished when the emergent level moves because a household attribute changed
+      and the rung-1 verdict is re-measured against the band — including, and especially, if it
+      still fails.
   - id: orientation-grades-the-branch-work-lands-to
     what: >-
-      Read `background/delivery_seat.py` first — as of this orientation every git call runs at
-      `cwd=PROJECT_DIR` and `grep -n origin` over the module returns nothing, so confirm that before
-      changing anything. Then make the stretch the brief grades include what has landed on
-      `origin/main` and is not in the shared tree's HEAD, and when the two diverge make the brief
-      say so rather than silently grading one of them.
+      Read `background/delivery_seat.py` yourself first: check what `grep -n origin` returns over
+      the module and what the `cwd=` argument of `_git` (around line 170) is set to. If it still
+      measures only the local checkout, make the stretch assembled around line 209 cover commits
+      reachable from `origin/main` as well as from HEAD, and when
+      `git rev-list --left-right --count HEAD...origin/main` is non-zero on either side, make the
+      brief state that divergence on its face instead of silently grading one of the two.
     why: >-
-      Open for a fourth stretch. This brief's 12 commits are right only because
-      `git rev-list --left-right --count HEAD...origin/main` returned `0 0` at the moment I measured
-      it, the same luck as the previous three, while
+      Open for a fifth stretch and it is the instrument every judgement in this file is made on,
+      including the grades in `wrong` above. It has been ranked below the thesis work every time,
+      which is precisely why it is still here, so it goes second and not fourth — it is small.
       `WORKER_FINDING_REPEATING_ALARM_PUBLISH_REFUSED_ORIGIN_AHEAD_ORIGIN_MAIN_IS_COMMIT_S_AHEAD_2026-09-03.md`
-      sits in the staging root from the condition firing for real. Every judgement in this file is
-      made on that instrument. Finished when a stretch measured while origin is ahead reports the
-      same work as one measured while it is not.
+      sits in the staging root from the condition firing for real, so the luck that has held four
+      times is not structural. Finished when a stretch measured while origin is ahead reports the
+      same work as one measured while it is level.
+  - id: the-arms-reach-is-a-missing-world-product-not-a-company-choice
+    what: >-
+      Read `decisions.why_the_rest_were_not_priced` in `site/data/value_arms.json` — as published it
+      attributes 1,223 of 1,953 renewals (62.6%) to `product_not_upliftable` because the term's
+      `tariff_type` is `None`, and `docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`
+      settles that this is an honest silence about a product the world lacks: `build_renewal_
+      schedule` settles fixed, flex, deemed and pass-through, and SVT exists only as a comparison
+      benchmark. Establish from the published record what share of the GB domestic book actually
+      sat on a standard-variable or default tariff in each year 2016–2025, then make the world
+      settle an SVT product at that sourced share, recorded as a versioned world change in the file
+      the director reads and decided on the record alone. Do not touch the arm's pricing rules, its
+      uplift bounds or its churn model, and do not look at what the change does to the margin
+      before deciding it.
+    why: >-
+      Every "cannot tell" on that page is a sample-size statement, and the largest single cause of
+      the small sample is a product most of the real GB book was on and this world does not have.
+      I ruled this out last stretch on the wrong ground — I read "widen the arm's reach" as tuning
+      the company until it wins, which the `not_a_target` note rightly forbids, when the actual
+      cause published beside it is a world fidelity gap and changing the world for fidelity reasons
+      is not only allowed but required. Finished when the world settles SVT terms at a sourced
+      share and the arm's reach is re-measured, whatever that does to the margin — including if the
+      creation leg gets worse.
   - id: a-prereg-states-what-it-could-have-detected
     what: >-
-      Change the pre-registration format under `docs/staging/records/` so a prediction must state,
-      before the run, the smallest effect its chosen statistic could distinguish at the n it will
-      actually have, and so the write-up grades that clause beside the prediction. Apply it to the
-      two cases already in the tree rather than to a hypothetical one — the Spearman over seven
-      fitted years, and any selection-leg reading taken at three seeds.
+      Change the pre-registration format used in `docs/staging/records/` and by this seat so a
+      prediction must state, before the run, the smallest effect its chosen statistic could
+      distinguish at the n it will actually have, and so the write-up grades that clause beside the
+      prediction rather than only the prediction. Where a prediction is categorical rather than
+      statistical — as the 2026-09-04 remedy-clause one in the staging root is — the clause says so
+      and says why detectability is not at issue, so dodging the class is visible as dodging it.
+      Apply it to the two statistical cases already in the tree rather than to a hypothetical one:
+      the Spearman over seven fitted years, and any selection-leg reading taken at three seeds.
     why: >-
       This project files predictions honestly and then measures them with instruments that could not
-      have refuted them: the Spearman's exact permutation null needed |rho| at least 0.75 and
-      returned +0.32, and the live selection leg is a £2,177 figure carrying a £3,420 standard error
-      at n=3. Both are from this stretch and one of them is the thesis's own leg, so this is not
-      hygiene. Finished when a pre-registration that cannot detect its own effect is visible as such
-      before it runs rather than in its own grading.
+      have refuted them. The Spearman's exact permutation null needed |rho| at least 0.75 and the
+      measurement returned +0.32; the live creation leg is a £2,177 figure carrying a £5,923 spread
+      at n=3. Both are ours, one is the thesis's own leg, and focus items 1 and 3 above will both
+      produce readings that want pre-registering — so this is worth having before them rather than
+      after. Finished when a pre-registration that cannot detect its own effect is visible as such
+      before it runs, instead of in its own grading.
 not_now:
   - what: >-
-      Cutting the staging sediment — 64 documents in the root, a 52-item work queue, net +5 over
-      seven days, and 10 `run_complete_*.md` filed by the publisher today alone into a queue meant
-      for ranked human work.
+      Re-running the floor decomposition on the current book — work the page itself names as owed
+      (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`), because the
+      decomposition was measured where the arm priced 104 of 2,009 renewals and the run published
+      above priced 120 of 1,953.
     why: >-
-      It is real and it compounds, a finding already names it, and the remedy is a channel change
-      rather than a bigger folder. But it costs attention, not correctness, and it loses to a
-      published claim about the thesis and to the only BLOCKING finding in the tree. If it is still
-      growing at the next orientation it takes a slot.
+      It is genuinely owed, but the page already refuses to state a remedy from the wrong book and
+      says why on its face, so no reader is currently misled — the cost of leaving it is zero and
+      the cost of doing it is hours of compute. And both focus items 1 and 3 change the book or the
+      world it runs in, which would make any decomposition bought now stale before it is read.
+      Buy it once, after the world stops moving.
+  - what: >-
+      Cutting the staging sediment: 52 findings in the root, a 52-item work queue, and 216 filed
+      against 211 dispositioned over seven days.
+    why: >-
+      I set the condition myself last stretch — it takes a slot if it is still growing — and on the
+      measurement I can actually defend it is not: 53 tracked `.md` in the root at the previous
+      orientation's commit, 52 now. Flat, not growing. Honouring my own condition matters more than
+      acting on the impulse, and the flow's net +5 is a filing-rate problem whose remedy is fewer
+      channels that file, which is a change to other lanes rather than work in this one. It costs
+      attention, not correctness, and loses to a BLOCKING world defect.
   - what: >-
       Giving a promoted focus item its own continuation id so the seat's own delivery route becomes
       visible to `focus_drawn_since`.
     why: >-
-      It reported 1 of the 2 items I actually delivered this stretch, against 0 of 5 last stretch,
-      so its remaining fault is under-reporting. Under-reporting makes the seat re-rank work already
-      in hand, which is wasteful; grading the wrong branch entirely makes every judgement in this
-      file unsound, and that is the same module. One of the two gets the slot and it is the branch.
+      It reported 1 of the 2 items that actually got work this stretch, the same rate as last, so
+      its fault is still under-reporting — which makes me re-rank work already in hand and wastes a
+      little. Grading the wrong branch entirely makes every judgement in this file unsound. Same
+      module, one slot, and it goes to the branch again.
   - what: >-
-      Re-running the three arms over more seeds to narrow the floor before publishing anything.
+      Widening the arm's own pricing rules — relaxing the uplift bounds or the churn support bound
+      — to price more than 6.1% of renewals.
     why: >-
-      Hours per leg, and it answers nothing while the page still cannot state the creation leg's
-      centre at all. Measure what is already on disk before buying more of it. The floor
-      decomposition's own remedy price (19 priced decisions needed against 104 already priced) is
-      computed on `value_advantage_gbp` and not on the selection leg, so what more seeds would even
-      buy for the leg that needs them is not currently known.
+      This one really is the shape `not_a_target` forbids: changing the company's behaviour to move
+      a measurement of the company. Focus item 3 changes the WORLD, on the published record, blind
+      to what it does to the margin, and that is the legitimate version of the same lever. The
+      distinction is the whole baseline/curriculum split and it is worth stating rather than
+      blurring.
   - what: >-
-      Widening the arm's reach — 104 priced decisions against 2,009 renewals offered is a 5.2% share
-      and the obvious explanation for every "cannot tell" on the page.
+      Buying more seeds on the three arms to narrow the creation leg's floor before anything else.
     why: >-
-      Changing the company's behaviour to move a measurement is the exact shape the `not_a_target`
-      note on that same page exists to forbid, and the reach is endogenous to the arm's own price.
-      It is a diagnostic to explain first. Once the creation leg has a live bound, why the arm
-      declines 95% of the renewals it is offered becomes a real question with a real answer, and it
-      is a strong candidate for the next stretch.
+      Re-drawing the dice measures the spread again, it does not shrink it — the page says as much
+      already. What shrinks it is more independent priced decisions, which is focus item 3, so the
+      seeds are worth buying after the reach moves and not before.
 wrong:
   - what: >-
       The same turn that published the value leg's centre left the creation leg quoting a dead
-      world's spread. `generate_value_arms_data` reads
-      `value_cycle_ab_s1_noise_floor_20260903.json` for `value_advantage_gbp`'s bound and takes
-      nothing from it for `selection_gbp`, whose only published spread is the 2026-08-31 floor's
-      ±£3,776 — in the same file, in the same commit, on the leg that carries the thesis. The live
-      floor landed at 19:06 and the page was regenerated at 22:42 with none of it. My finding at
-      11:41 correctly said the floor legs were still in flight; nothing re-read it when they landed.
-    corrected: false
+      world's spread — `generate_value_arms_data` read the live floor for `value_advantage_gbp`'s
+      bound and took nothing from it for `selection_gbp`, in the same file and the same commit, on
+      the leg that carries the thesis. CORRECTED this stretch: the creation leg now publishes its
+      own live-world centre (−£1,861), range (−£8,634 to +£2,350) and clearing count (1 of 3), and
+      `contrast_bounds` refuses with its reason on the page when the floor names no world.
+    corrected: true
   - what: >-
       The orientation brief grades a stretch on the shared tree's own HEAD, not on the branch the
-      work lands to. Open for a fourth stretch and verified again by reading the code: every git
-      call in `background/delivery_seat.py` runs at `cwd=PROJECT_DIR` and the module contains no
-      reference to `origin` at all. This brief's 12 commits are right only because HEAD and
-      `origin/main` happened to be level when I measured, while the publish-refused-origin-ahead
-      alarm document sits in the staging root from the condition firing.
+      work lands to. Open for a fifth stretch and verified again by reading the code rather than
+      recalling it: `_git` at `background/delivery_seat.py:172` runs every call at
+      `cwd=str(PROJECT_DIR)`, the stretch is assembled from a bare `git log --since` at line 209,
+      and `grep -n origin` over the module returns nothing. This brief's 11 commits are right only
+      because `git rev-list --left-right --count HEAD...origin/main` returned `0 0` when I measured
+      it, the same luck as the previous four.
     corrected: false
   - what: >-
-      I wrote a focus item asserting perishable state as established fact, and the class is still
-      live even though my instance is closed:
+      I wrote a focus item asserting perishable state as established fact. The class is still live:
       `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_BEFORE_THE_TURN_READ_IT_2026-09-03.md`
-      is still undispositioned in the staging root. My half of the repair is repeated here: every
-      `what` above is a check-then-branch over state the worker reads for itself, and none of them
-      asserts a file is already in a particular condition.
+      is still undispositioned in the staging root. My half of the repair is repeated a second time
+      here: every `what` above opens by having the worker read the state for itself and branch on
+      what it finds, and none of them asserts a file is already in a particular condition.
     corrected: false
   - what: >-
-      I read the previous steer's non-draw as benign twice, and it was the instrument. Now graded
-      precisely rather than argued either way: two of four items were delivered this stretch and
-      `drawn` reported one of them, so the mechanism has gone from blind to half-honest and it still
-      under-reports. A steer that is biting on the seat's own route is still not fully
-      distinguishable from one that is not.
+      I read the previous steer's non-draw as benign twice, and it was the instrument. Graded again
+      rather than argued: one of four items was fully delivered this stretch and one half, `drawn`
+      reported one, so the mechanism is reporting at the same rate as last stretch and has not
+      improved. A steer that is biting on the seat's own route is still not distinguishable from
+      one that is not.
     corrected: false
   - what: >-
-      I built five mutation-proven controls on the current-world block and every one asked about the
-      denominator. The instance is repaired — the numerator is now interrogated for
-      `value_advantage_gbp` and `resolved: true` is off the page. The grade stays false because I
-      fixed the leg I was looking at and never checked its sibling: `selection_gbp` sits in the same
-      block, in the same file, with no numerator control and no live bound, which is focus item 1.
+      I built five mutation-proven controls on the current-world block and every one asked about
+      the denominator, then fixed the numerator for the leg I was looking at and never checked its
+      sibling. CORRECTED this stretch: `selection_gbp` now carries a live bound and a control that
+      keeps it distinct from the advantage's, and the level leg's share is refused because its
+      numerator changes sign rather than published as one draw's arithmetic.
+    corrected: true
+  - what: >-
+      I filed a pre-registration whose own constraint named the trap and then chose a statistic
+      that could only fall into it — Spearman on seven fitted years, where the exact permutation
+      null needed |rho| at least 0.75 and the measurement returned +0.32. Nothing stops the next
+      one doing the same: the format states what a prediction predicts and never what its
+      measurement could detect, and this stretch's new pre-registration sidestepped the class by
+      being categorical rather than fixing it.
     corrected: false
   - what: >-
-      I filed a pre-registration whose own constraint named the trap and then chose a statistic that
-      could only fall into it — Spearman on seven fitted years, where the exact permutation null
-      needed |rho| at least 0.75 and the measurement returned +0.32. The grading was honest;
-      nothing stops the next one doing the same, because a pre-registration here states what it
-      predicts and never what its measurement could detect.
-    corrected: false
+      I rejected widening the arm's reach on the wrong ground. I called it the shape `not_a_target`
+      forbids, when the cause published on the same page is that 62.6% of unpriced renewals carry
+      no `tariff_type` because the world has no standard-variable product at all. Changing the
+      company to move a measurement is forbidden; changing the world to match the record is
+      required. I conflated them and delayed the largest available lever on the thesis's sample
+      size by a stretch. Corrected here: it is focus item 3, scoped to the world and explicitly
+      barred from touching the arm.
+    corrected: true
+  - what: >-
+      I set a trip-wire on the staging sediment — "if it is still growing at the next orientation
+      it takes a slot" — against a count of 64 whose counting rule I never wrote down. Today the
+      root holds 52 `.md`, 53 files and 63 entries including directories, so I could have justified
+      any verdict I liked. I graded it on tracked `.md` at both commits (53 → 52) because that is
+      the one comparison where both sides count the same thing, but the trip-wire was unfalsifiable
+      as written. This is the project's own "say what each number counts before you compare them"
+      failure, committed by the seat that keeps writing it down.
+    corrected: true
 for_the_director: []
