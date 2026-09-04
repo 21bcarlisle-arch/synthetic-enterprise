@@ -4511,6 +4511,108 @@ def _divergence_refusal():
             "`python3 -m tools.surgical_land --merge origin/main`".format(ahead))
 
 
+#: How long a fast-forward of this checkout may take. Generous for a ~130 MB tree on a machine
+#: also running a gate; bounded because it sits inside a publish cycle that has to finish.
+FORK_ADVANCE_TIMEOUT_SECONDS = 300
+
+
+def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
+    """Close a fork the publish path just found, when closing it is MECHANICAL. Never raises.
+
+    Returns `{"advanced": bool, "reason": str}`. `advanced` is claimed only when git itself
+    reported the fast-forward -- never inferred from the absence of an error.
+
+    WHY THIS IS NOT THE MERGE `_divergence_refusal` ARGUES AGAINST. That refusal is right and is
+    not what changes; but both of its objections are objections to a MERGE, and neither survives
+    contact with a fast-forward:
+
+      * *"a gated merge takes longer than a publish cycle"* -- a `--ff-only` advance creates no
+        commit and no new tree. It moves HEAD onto a commit that is ALREADY on origin, gated by
+        whoever landed it. ~1s here, against a measured 672s publish cycle.
+      * *"a daemon that merged unattended would be deciding to move other people's work"* -- a
+        fast-forward cannot sweep anything into a commit because it makes none, and git refuses it
+        outright when an incoming path is modified or untracked in this tree. Git's own refusal is
+        the guard, exactly as `origin_reconcile` already relies on it against this same tree.
+
+    WHAT IT WILL NOT DO. If this machine holds commits of its own (`ahead > 0`) the fork is REAL,
+    and integrating it needs the gated merge door -- a judgement, and longer than a cycle. That
+    case refuses here and stays with `origin_reconcile` on the deadman cadence, untouched.
+
+    WHY HERE AND NOT ON A TIMER. A timer was considered and refused in
+    `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE...`: it cannot win a race whose median
+    gap (3.8 min, n=61) is shorter than a cycle. This is not a timer. It runs at the one instant
+    the answer is wanted, after a full simulation and a 672s gate have already been spent on work
+    that is otherwise thrown away at the door.
+
+    ONE ATTEMPT, DELIBERATELY. `surgical_land`'s lost-the-race retry re-gates because its subject
+    is a tree it builds; this one's subject is a ref, and the move is ~1s against a 3.8-minute
+    median arrival. A second attempt would buy a fraction of a percent and cost a second network
+    round trip inside a cycle that must finish. Losing the race in that ~1s window is a real
+    refusal and is reported as one by the caller's re-read.
+    """
+    project = Path(project) if project is not None else PROJECT_DIR
+
+    def _run(argv, timeout):
+        if runner is not None:
+            return runner(argv, timeout)
+        return subprocess.run(argv, cwd=str(project), capture_output=True, text=True,
+                              timeout=timeout)
+
+    try:
+        fetched = _run(["git", "fetch", "--quiet", "origin", "main"],
+                       DIVERGENCE_FETCH_TIMEOUT_SECONDS)
+        if fetched.returncode != 0:
+            return {"advanced": False,
+                    "reason": "origin could not be fetched (rc={}), so the ref this would advance "
+                              "onto was never read: {}".format(
+                                  fetched.returncode, stderr_tail(fetched.stderr))}
+        # REUSED, NOT RESTATED. `origin_reconcile.commits_ahead` is this exact question, and its
+        # docstring carries the incident that put it there ("landed in the tree, reported as
+        # landed, not pushed"). A second implementation here would fork that history.
+        from background.origin_reconcile import commits_ahead
+        ahead = (ahead_fn or commits_ahead)(project)
+        if ahead is None:
+            return {"advanced": False,
+                    "reason": "how far this tree is AHEAD of origin could not be established, so "
+                              "whether the fork is mechanical was never observed -- not advancing "
+                              "on a state nobody read"}
+        if ahead > 0:
+            return {"advanced": False,
+                    "reason": "this tree holds {} commit(s) of its own, so the fork is REAL and "
+                              "closing it is a judgement: it needs the gated merge door "
+                              "(`python3 -m tools.surgical_land --merge origin/main`), which is "
+                              "longer than a publish cycle. Left to origin_reconcile on the "
+                              "deadman cadence, which is where it belongs".format(ahead)}
+        # THE LOCK, BECAUSE THIS WRITES THE SHARED WORKING TREE -- and taken and RELEASED here
+        # rather than held into the commit below, which acquires it again. `tree_lock` is an
+        # flock and a nested acquisition from one process deadlocks (see `_git_add_or_refuse`).
+        with tree_lock():
+            ff = _run(["git", "merge", "--ff-only", "origin/main"], FORK_ADVANCE_TIMEOUT_SECONDS)
+        if ff.returncode == 0:
+            return {"advanced": True,
+                    "reason": "fast-forwarded the shared tree onto origin/main -- no commit was "
+                              "created and origin was not touched, so this cycle's completed work "
+                              "is publishable rather than discarded"}
+        return {"advanced": False,
+                "reason": "git REFUSED the fast-forward (rc={}), which is the guard working and "
+                          "not a fault: {}".format(ff.returncode, stderr_tail(ff.stderr))}
+    except TreeLockTimeout as exc:
+        return {"advanced": False,
+                "reason": "another writer held the tree lock ({}), so nothing was moved; the next "
+                          "cycle retries".format(exc)}
+    except Exception as exc:  # noqa: BLE001 -- see below; the breadth is the point
+        # BROAD, AND IT IS NOT THE FAIL-SILENT SHAPE. This function is a pure recovery attempt: the
+        # only thing its failure may cost is the refusal that would have happened anyway. Taking
+        # the publish cycle down instead -- an uncaught exception here is rc=1, which the wedge
+        # classifier reads as a red test -- would turn a recovery into a fault, and this pipeline
+        # has already paid for that once (`subprocess.TimeoutExpired` at the commit, 2026-08-03).
+        # The exception's type and message ride out in the reason and reach the refusal's evidence
+        # and the ntfy, so nothing is swallowed; only the crash is.
+        return {"advanced": False,
+                "reason": "the advance could not be run ({}: {}), so the tree is exactly where it "
+                          "was found".format(type(exc).__name__, exc)}
+
+
 def git_commit_push(git_hash, net_margin, outcome=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -4774,16 +4876,49 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # the order is free to be chosen, and the cheap LOCAL check belongs in front of the one that
     # opens a network round trip with a 60s timeout to answer a question we no longer need asked.
     _behind = _divergence_refusal()
+    # AND WHEN IT REFUSES, TRY TO EARN THE COMMIT BEFORE DROPPING THE CYCLE (2026-09-04). The
+    # refusal above was evaluated 672s (median) after this cycle started, against a remote whose
+    # commits arrive every 3.8 min -- so ~2.9 arrive DURING a cycle and the check passes only by
+    # luck. Measured all afternoon on 2026-09-04: 13:05, 14:27, 15:48, every one after a GREEN
+    # gate and a verified provenance, "Done, but THE PUBLISH DID NOT LAND (outcome:
+    # behind_origin)". A full simulation and a full scoped gate, discarded at the door.
+    #
+    # And the reconciler that exists to close the fork out of band stands down for THIS gate
+    # (`origin_reconcile.gate_is_running`), correctly, while this path stands down for the fork,
+    # correctly -- so the only window left to it is the gap between cycles, which each cycle
+    # re-opens. Nobody is wrong and the tree stays behind. See
+    # SEAT_FINDING_THE_RECONCILER_AND_THE_PUBLISHER_EACH_STAND_DOWN_FOR_THE_OTHER...
+    #
+    # `_advance_to_origin_or_say_why` breaks that stand-off ONLY where it is mechanical -- a
+    # fast-forward, no commit, nothing of ours to land, git's own refusal as the guard. Its
+    # docstring carries why that is not the merge this refusal argues against.
+    _advance = None
     if _behind is not None:
+        _advance = _advance_to_origin_or_say_why()
+        log("Publish path is behind origin ({}). Advance attempt: {}".format(
+            _behind, _advance["reason"]))
+        if _advance["advanced"]:
+            # RE-READ THE SUBJECT AFTER ACTING, never assume the act had its effect -- the rule
+            # `origin_reconcile` paid 29 empty merges to learn. A commit landing on origin during
+            # the ~1s advance leaves us behind again, and that is a real refusal.
+            _behind = _divergence_refusal()
+            if _behind is None:
+                log("Fork closed by fast-forward; this cycle's completed work is publishable "
+                    "after all and continues to the commit.")
+    if _behind is not None:
+        _why_not = _advance["reason"] if _advance else "the advance was never attempted"
         log("Publish commit REFUSED before staging: {}.".format(_behind))
         from background.notify import notify
         notify(
             "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
-            "not one wider than it was. Nothing is wrong with the run or the suite; the tree "
-            "needs reconciling.".format(_behind),
+            "not one wider than it was. The mechanical advance was tried first and did not clear "
+            "it: {}. Nothing is wrong with the run or the suite; the tree needs "
+            "reconciling.".format(_behind, _why_not),
             kind="real_alarm",
         )
-        return _outcome(BEHIND_ORIGIN, False, evidence=_behind)
+        return _outcome(BEHIND_ORIGIN, False,
+                        evidence="{} -- and the mechanical advance was attempted before this "
+                                 "refusal: {}".format(_behind, _why_not))
 
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
