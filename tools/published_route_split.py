@@ -82,6 +82,7 @@ from __future__ import annotations
 import itertools
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from simulation.market_switching_propensity import published_departure_band
@@ -100,15 +101,80 @@ SHORTFALL_ARTEFACT = PROJECT / "docs" / "reports" / "svt_route_shortfall_decompo
 SVT_CHURN_RECENT = (0.15, 0.20)
 SVT_CHURN_LONG_STAYER = (0.05, 0.10)
 
-#: Ofgem Consumer Engagement Survey 2018, via the same §2: 29% of customers on SVT 3+ years, 23% on
-#: SVT under 3 years. Within the SVT segment that is 29/(29+23) long-stayer.
+@dataclass(frozen=True)
+class TenureObservation:
+    """One published observation of the SVT segment's tenure split, with its instrument named.
+
+    THE FIELD THAT EARNS THIS A DATACLASS IS `population`. The two observations in the register are
+    NOT the same measurement taken twice: one is a consumer survey over all domestic customers and
+    one is supplier-returned stock over non-prepayment accounts. A bare pair of percentages would
+    let the next reader difference them as a trend, and they are not a trend.
+    """
+
+    year: int
+    long_stayer_pct: float
+    recent_pct: float
+    instrument: str
+    population: str
+    source: str
+    #: Which way restoring the population's exclusions would move `long_stayer_share`, or "" when
+    #: nothing is excluded. NEVER a correction factor: the correction is not established and a
+    #: number here would be read as one. The DIRECTION is established and it is what bounds.
+    restoring_the_excluded_moves_the_long_stayer_share: str
+
+    @property
+    def long_stayer_share(self) -> float:
+        """The long-stayer share WITHIN the SVT segment, which is what composes the segment band.
+
+        Both observations publish their two rows over the whole account base, so the segment share
+        is the ratio and not the first figure -- reading 0.203 off the 2025 row would be composing
+        the segment band with the share of ALL accounts that are long-stayer defaulters.
+        """
+        return self.long_stayer_pct / (self.long_stayer_pct + self.recent_pct)
+
+
+#: EVERY published observation of this quantity that the tree holds, and the register exists because
+#: §13 of the finding asked for a second one and it was already here -- in `ASSUMPTIONS.md` L176 and
+#: in `continuous_behavioural_engagement_w2_14.md` §1a, cited and dated, load-bearing for the R13
+#: ruling since 2026-07-22. That is this repository's VAT shape a fourth time in one chain, so the
+#: fix is the same structural one `published_tariff_mix` applied to the share series: ONE home.
 #:
-#: IT IS ONE YEAR'S READING AND IT IS CARRIED ACROSS ALL OF THEM, which is a real weakness and the
-#: reason `svt_segment_churn_band` also returns `mix_free_envelope`. The envelope is the two rows'
-#: outer hull -- every tenure mix that could exist -- and every verdict below is checked to be the
-#: same on both. A conclusion that held only at the 2018 mix would be a conclusion about 2018.
-SVT_TENURE_SURVEY_LONG_STAYER_PCT = 29.0
-SVT_TENURE_SURVEY_RECENT_PCT = 23.0
+#: The two disagree by 19 points of within-segment share, which is the finding. The 2018 row is
+#: retained as the historical one and is NOT replaced: a register that overwrote it would lose the
+#: disagreement, and the disagreement is the whole result.
+SVT_TENURE_OBSERVATIONS: tuple[TenureObservation, ...] = (
+    TenureObservation(
+        year=2018,
+        long_stayer_pct=29.0,
+        recent_pct=23.0,
+        instrument="consumer survey, self-reported tariff type and tenure",
+        population="GB domestic customers, prepayment included",
+        source="Ofgem Consumer Engagement Survey 2018, via "
+               "docs/market_research/svt_rates_active_passive_2016_2025.md §2",
+        restoring_the_excluded_moves_the_long_stayer_share="",
+    ),
+    TenureObservation(
+        year=2025,
+        long_stayer_pct=20.3,
+        recent_pct=34.6,
+        instrument="supplier-returned administrative stock",
+        population="GB domestic ELECTRICITY accounts, NON-PREPAYMENT",
+        source="Ofgem Retail Market Indicators data portal, default-tariff panel, October 2025 "
+               "stock, fetched 2026-07-08; carried in docs/market_research/ASSUMPTIONS.md L176 "
+               "and cross-validated in continuous_behavioural_engagement_w2_14.md §1a",
+        # `published_tariff_mix` establishes both halves: prepayment is ~15% of domestic accounts
+        # and >90% of it is on a default tariff, and it is the segment least likely to have moved
+        # tariff recently. So the excluded population is disproportionately long-stayer DEFAULT and
+        # restoring it can only raise this share -- toward 2018's, never away from it. 0.3698 is
+        # therefore a LOWER BOUND, and every verdict below is also taken at `observed_mix_hull`,
+        # which contains every mix between the two observations whatever the true correction is.
+        restoring_the_excluded_moves_the_long_stayer_share="up, toward the 2018 observation",
+    ),
+)
+
+#: The observation the ORIGINAL reading composed with, kept named so the sections §13 published at
+#: it stay identifiable. `tenure_composed` is still this one and still means 2018.
+_HISTORICAL_OBSERVATION = SVT_TENURE_OBSERVATIONS[0]
 
 #: `svt_rates_active_passive_2016_2025.md` §4: *"Fixed at expiry -> active switch ~35%"*.
 #: THIS IS NOT A CHANGE-OF-SUPPLIER RATE. It counts households who actively renew onto a new fixed
@@ -128,34 +194,99 @@ EXTERNAL_SHARE_OF_ACTIVE_RENEWALS: float | None = None
 BASES = ("as_published", "all_domestic")
 
 
-def svt_segment_churn_band() -> dict[str, tuple[float, float]]:
-    """The published SVT segment's external churn band, composed and mix-free.
+def compose_at_mix(long_share: float) -> tuple[float, float]:
+    """The SVT segment's external churn band at a named within-segment long-stayer share.
 
-    `tenure_composed` weights the two published rows by the one published tenure split. It is the
-    best available reading and it rests on a single survey year.
-
-    `mix_free_envelope` is `(min of the low ends, max of the high ends)` -- the value the segment
-    could take under ANY tenure mix, including mixes nobody has measured. It is strictly wider and
-    it is what a verdict has to survive to be a verdict about the record rather than about 2018.
+    A FREE FUNCTION AND NOT A CLOSURE OVER THE REGISTER, so a control can hand it a mix nobody
+    observed and check the composition is monotone -- the property that makes `observed_mix_hull`
+    a hull rather than a pair of unrelated bands.
     """
-    long_share = SVT_TENURE_SURVEY_LONG_STAYER_PCT / (
-        SVT_TENURE_SURVEY_LONG_STAYER_PCT + SVT_TENURE_SURVEY_RECENT_PCT
-    )
-    composed = tuple(
+    return tuple(  # type: ignore[return-value]
         round(long_share * long_end + (1.0 - long_share) * recent_end, 6)
         for long_end, recent_end in (
             (SVT_CHURN_LONG_STAYER[0], SVT_CHURN_RECENT[0]),
             (SVT_CHURN_LONG_STAYER[1], SVT_CHURN_RECENT[1]),
         )
     )
+
+
+def svt_segment_churn_band() -> dict[str, tuple[float, float]]:
+    """The published SVT segment's external churn band, at each observed mix and mix-free.
+
+    `tenure_composed` weights the two published rows by the 2018 survey's tenure split. It is what
+    §11-§13 read, it is retained under its original name and value, and it rests on one survey year.
+
+    `mix_free_envelope` is `(min of the low ends, max of the high ends)` -- the value the segment
+    could take under ANY tenure mix, including mixes nobody has measured. It is strictly wider and
+    it is what a verdict has to survive to be a verdict about the record rather than about 2018.
+
+    `tenure_composed_2025` is the same composition at the SECOND observation, and
+    `observed_mix_hull` is the hull of every mix BETWEEN the two -- which is the band a verdict has
+    to survive to be a verdict about mixes anything has actually seen. It sits strictly inside
+    `mix_free_envelope`, and the gap between those two is the space in which the mix-free
+    envelope's admission lives. See §14 of the finding: the admission lives entirely in that gap.
+
+    ORDER IS LOAD-BEARING IN THE RETURNED DICT. The two new keys are appended AFTER the three §13
+    published, so every value §13's artefact carries keeps its place and its bytes, and a reader
+    diffing the two artefacts sees additions rather than a rewrite.
+    """
     return {
-        "tenure_composed": composed,  # type: ignore[dict-item]
+        "tenure_composed": compose_at_mix(_HISTORICAL_OBSERVATION.long_stayer_share),
         "mix_free_envelope": (
             min(SVT_CHURN_LONG_STAYER[0], SVT_CHURN_RECENT[0]),
             max(SVT_CHURN_LONG_STAYER[1], SVT_CHURN_RECENT[1]),
         ),
-        "long_stayer_share_of_svt": (round(long_share, 6), round(long_share, 6)),
+        "long_stayer_share_of_svt": (
+            round(_HISTORICAL_OBSERVATION.long_stayer_share, 6),
+            round(_HISTORICAL_OBSERVATION.long_stayer_share, 6),
+        ),
+        # ONE BAND PER OBSERVATION, NAMED BY ITS YEAR AND NOT BY ITS POSITION. The first draft read
+        # `SVT_TENURE_OBSERVATIONS[1]`, which is a register that cannot lose a row and cannot gain
+        # one in the middle -- `test_a_second_tenure_observation_cannot_move_the_mix_free_envelope_
+        # or_the_constant_pair` caught it by handing the module a one-row register. The historical
+        # observation is already published as `tenure_composed` and is not repeated here.
+        **{
+            f"tenure_composed_{o.year}": compose_at_mix(o.long_stayer_share)
+            for o in SVT_TENURE_OBSERVATIONS
+            if o.year != _HISTORICAL_OBSERVATION.year
+        },
+        "observed_mix_hull": _observed_mix_hull(),
     }
+
+
+def _observed_mix_hull() -> tuple[float, float]:
+    """Every mix BETWEEN the observations, as one band. Falls back to the historical one alone.
+
+    A hull over an EMPTY register would be `min()` of nothing, which raises -- and a reading that
+    crashes when its register is emptied cannot report that its register was emptied. The
+    historical observation is always in the hull for that reason, and the control that empties the
+    register is what found it.
+    """
+    composed = [compose_at_mix(o.long_stayer_share) for o in SVT_TENURE_OBSERVATIONS]
+    composed.append(compose_at_mix(_HISTORICAL_OBSERVATION.long_stayer_share))
+    return (min(c[0] for c in composed), max(c[1] for c in composed))
+
+
+#: The bands every phi verdict below is taken at, in one place because it was written out twice and
+#: a third caller was about to write it a third time. The two §13 published come FIRST so their
+#: entries keep their position in the committed artefact.
+def phi_verdict_bands() -> dict[str, tuple[float, float]]:
+    """The four segment bands the constant-phi question is asked at, named and ordered."""
+    svt = svt_segment_churn_band()
+    ordered = ["tenure_composed", "mix_free_envelope"]
+    ordered += [k for k in svt if k.startswith("tenure_composed_")]
+    ordered.append("observed_mix_hull")
+    return {k: svt[k] for k in ordered}
+
+
+def observed_mix_bands() -> tuple[str, ...]:
+    """The bands built from a tenure mix something has OBSERVED, as against one nobody has measured.
+
+    THE DISTINCTION IS THE WHOLE OF §14 and it is derived here rather than inferred at each caller,
+    because the one band that must NOT be in it -- `mix_free_envelope` -- is the one whose
+    inclusion would make every §14 flag read the way §13 expected.
+    """
+    return tuple(b for b in phi_verdict_bands() if b != "mix_free_envelope")
 
 
 def _corners(
@@ -351,6 +482,455 @@ def intersect_spans(spans: list[list[float]]) -> dict:
     """
     lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
     return {"intersection": [round(lo, 6), round(hi, 6)], "is_non_empty": lo <= hi}
+
+
+#: The years the rung-1 verdict fits. The constant-phi question is asked over these FIRST, because
+#: they are the set the repair is judged on, and then over every scored year so that a verdict which
+#: turns on the fitted subset cannot be mistaken for one about the whole record.
+FITTED_YEARS = (2017, 2018, 2019, 2023, 2024)
+
+#: A year excluded from the constant-phi intersection with its reason, NOT dropped. 2022 is the one
+#: stretch of this record where the market itself stopped offering the product the identity's fixed
+#: route is made of: there were no fixed deals to renew onto for most of it. Asking a constant phi
+#: to span that is asking one behavioural parameter to describe two markets, and the arithmetic
+#: agrees loudly -- at the tenure-composed band 2022's whole phi interval is NEGATIVE. It is
+#: reported in its own field, at both bands, rather than filtered out of the headline in silence.
+STRUCTURAL_BREAK_YEARS: dict[int, str] = {
+    2022: "the crisis year. Fixed-term offers were withdrawn across the market for most of it, so "
+          "the identity's fixed route -- households actively renewing onto a NEW fixed deal -- is "
+          "describing a product that was largely not for sale. A phi held constant across it is "
+          "one parameter over two markets. EXCLUDED FROM THE HEADLINE INTERSECTION AND REPORTED "
+          "SEPARATELY, with its own phi interval at both bands, so the exclusion is checkable "
+          "rather than assumed.",
+}
+
+
+def phi_span_at_a_segment_band(
+    year: int, basis: str, svt_band: tuple[float, float]
+) -> list[float] | None:
+    """The phi interval the record admits when `H_svt` may be ANYWHERE in `svt_band`, or None.
+
+    THE NO-WORLD COMPANION TO `one_phi_for_every_year`. §12 took its phi intervals at the world's
+    per-year hazard -- a POINT -- and read the empty intersection as *"a statement about the
+    world"*. That inference needs a non-empty result to have been attainable, and nothing had
+    checked whether it was. This is the same intersection with the world's hazard replaced by a
+    PUBLISHED band, so the question can be asked of the record on its own.
+
+    `phi = (R - s·H) / ((1 - s)·0.35)` is strictly DECREASING in `H` for any `s` in (0, 1), so over
+    the box its extremes sit at the band's endpoints: the low end of phi at `H = band_hi` and the
+    high end at `H = band_lo`. Enumerating the two endpoints is therefore exact and not a sample.
+    Getting that direction backwards inverts the interval into a silent always-empty, which is a
+    fail-closed that reads exactly like a finding --
+    `test_the_phi_span_widens_with_the_segment_band` holds it.
+
+    Values outside [0, 1] are returned as they fall, for the reason `phi_admitting` gives: a span
+    entirely below zero is the record REFUSING that segment band in that year, and clipping turns a
+    refusal into a boundary the reader cannot distinguish from one.
+    """
+    at_hi = phi_admitting(year, basis, svt_band[1])
+    at_lo = phi_admitting(year, basis, svt_band[0])
+    if at_hi is None or at_lo is None:
+        return None
+    return [at_hi[0], at_lo[1]]
+
+
+def whether_a_constant_phi_survives_the_record_alone() -> dict:
+    """Does the PUBLISHED record admit one constant phi? Asked with no world in it at all.
+
+    §12 handed on one question -- *"a mismatch here can live in the share series as easily as in
+    the hazard ... which of the two moves is the next question"* -- and left one premise unchecked:
+    that an empty phi intersection is *"a statement about the world"*. Both are answered here from
+    three published series and nothing else.
+
+    THREE NESTED QUESTIONS, EACH LOOSER THAN THE LAST, because the answer changes between them and
+    which one you asked is the whole verdict:
+
+    1. **A constant PAIR** -- one `H_svt` and one phi, both fixed across years. `constant_pair`
+       sweeps `H` and reports whether any value admits a common phi.
+    2. **`H_svt` free per year inside `tenure_composed`, phi constant.** The best available reading
+       of the segment, and it rests on one survey year.
+    3. **`H_svt` free per year inside `mix_free_envelope`, phi constant.** The value the segment
+       could take under ANY tenure mix. A verdict has to survive this to be about the record rather
+       than about 2018 -- which is the distinction §11 built `verdict_is_mix_dependent` for and
+       which §12's one-phi reading never applied to itself.
+
+    WHAT A NON-EMPTY INTERSECTION IS AND IS NOT. It is an interval phi COULD take if phi were
+    constant over the years intersected. The record does not supply that constancy and neither does
+    this module: `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` stays `None` and
+    `test_the_external_share_of_active_renewals_stays_a_declared_gap` keeps it there. The interval
+    is published as `conditional_interval` under an `assumption` field for exactly that reason -- an
+    interval written into a slot reads as an established figure inside a week.
+    """
+    scored = sorted(set(published_departure_band()) & set(years_with_an_established_figure()))
+    bands = phi_verdict_bands()
+
+    per_year: dict[str, dict] = {}
+    for year in scored:
+        per_year[str(year)] = {
+            "band_pct": list(published_departure_band()[year]),
+            "is_a_structural_break": year in STRUCTURAL_BREAK_YEARS,
+            **{
+                basis: {
+                    band_name: phi_span_at_a_segment_band(year, basis, band)
+                    for band_name, band in bands.items()
+                }
+                for basis in BASES
+            },
+        }
+
+    headline_years = [y for y in scored if y not in STRUCTURAL_BREAK_YEARS]
+    year_sets = {
+        "fitted_years": [y for y in FITTED_YEARS if y in scored],
+        "every_scored_year": scored,
+        "every_scored_year_less_structural_breaks": headline_years,
+    }
+
+    verdicts: dict[str, dict] = {}
+    for basis in BASES:
+        by_band: dict[str, dict] = {}
+        for band_name in bands:
+            by_set: dict[str, dict] = {}
+            for set_name, years in year_sets.items():
+                spans = [per_year[str(y)][basis][band_name] for y in years]
+                result = intersect_spans(spans)
+                # The pairs that would refuse on their own. A refusal carried by ONE pair is a
+                # different fact from one that needs all seven years, and a reader given only the
+                # crossed endpoints cannot tell which they have.
+                refusing = [
+                    [a, b]
+                    for i, a in enumerate(years)
+                    for b in years[i + 1:]
+                    if not intersect_spans(
+                        [per_year[str(a)][basis][band_name], per_year[str(b)][basis][band_name]]
+                    )["is_non_empty"]
+                ]
+                by_set[set_name] = {
+                    "n_years": len(years),
+                    "years": [str(y) for y in years],
+                    **result,
+                    "minimal_refusing_pairs": refusing,
+                }
+            by_band[band_name] = by_set
+        # THE FLAG §11 BUILT AND §12 DID NOT USE. Computed per year-set, never asserted: the leg
+        # that froze it was written expecting the answer it did not get in §11 either.
+        by_band["verdict_is_mix_dependent"] = {
+            set_name: (
+                by_band["tenure_composed"][set_name]["is_non_empty"]
+                != by_band["mix_free_envelope"][set_name]["is_non_empty"]
+            )
+            for set_name in year_sets
+        }
+        # §14. THE DISTINCTION `verdict_is_mix_dependent` CANNOT MAKE, and it is not a second
+        # version of it. That flag compares ONE observed mix against a mix nobody has measured, so
+        # a True there means "the verdict depends on the tenure mix" and cannot say whether it
+        # depends on the 2018 SURVEY specifically. With two observations it can: this asks whether
+        # the verdict is the same at every mix anything has actually observed.
+        by_band["the_verdict_is_the_same_at_every_observed_mix"] = {
+            set_name: len({
+                by_band[b][set_name]["is_non_empty"] for b in observed_mix_bands()
+            }) == 1
+            for set_name in year_sets
+        }
+        verdicts[basis] = by_band
+
+    return {
+        "what_this_is":
+            "whether ONE constant phi reconciles the published departure band with the published "
+            "default-tariff share, at a published SVT segment band. THREE PUBLISHED SERIES AND NO "
+            "WORLD. The no-world companion to §12's `one_phi_for_every_year`, which took the same "
+            "intersection at the world's per-year hazard and read its emptiness as a statement "
+            "about the world.",
+        "identity": "R(y) = s(y)·H_svt(y) + (1 - s(y))·0.35·phi, with phi constant across the "
+                    "years intersected and H_svt free per year inside the named segment band.",
+        "the_assumption_that_is_not_the_records":
+            "phi CONSTANT across years. The record does not supply that and this module does not "
+            "adopt it: an intersection is what phi could be IF it were constant, and its emptiness "
+            "is equally a statement that phi moved. Which is why `EXTERNAL_SHARE_OF_ACTIVE_"
+            "RENEWALS` stays None whatever this returns.",
+        "published_segment_bands": {k: list(v) for k, v in bands.items()},
+        "year_sets": {k: [str(y) for y in v] for k, v in year_sets.items()},
+        "structural_breaks": {str(y): r for y, r in STRUCTURAL_BREAK_YEARS.items()},
+        "years_refused": _refused_years(),
+        "per_year": per_year,
+        "verdicts": verdicts,
+        "constant_pair": _whether_any_constant_pair_admits_a_common_phi(),
+    }
+
+
+def _long_stayer_share_implying(h_lo: float, h_hi: float) -> dict[str, float]:
+    """What within-segment long-stayer share each end of a segment band implies, inverting the mix.
+
+    `compose_at_mix` is affine and strictly decreasing in the long-stayer share at BOTH ends -- a
+    long-stayer churns less -- so each endpoint inverts to exactly one mix. This is what turns "the
+    mix-free envelope admits a constant phi" into a sentence about a segment nobody has observed:
+    the envelope's low end is a segment that is ENTIRELY long-stayer and its high end is one with
+    NO long-stayers, and the two observations sit at 0.37 and 0.56.
+    """
+    lo_span = SVT_CHURN_RECENT[0] - SVT_CHURN_LONG_STAYER[0]
+    hi_span = SVT_CHURN_RECENT[1] - SVT_CHURN_LONG_STAYER[1]
+    return {
+        "implied_by_the_bands_low_end": round((SVT_CHURN_RECENT[0] - h_lo) / lo_span, 6),
+        "implied_by_the_bands_high_end": round((SVT_CHURN_RECENT[1] - h_hi) / hi_span, 6),
+    }
+
+
+def whether_the_constant_phi_verdict_turns_on_one_survey_year() -> dict:
+    """§13 asked for a second tenure observation. Here is what the record says with it. NO WORLD.
+
+    §13 closed by naming its own binding weak input -- *"the single Ofgem CES 2018 tenure split,
+    which is carried across nine years and is what separates a record that refuses constancy from
+    one that admits it"* -- and asked for **one more observation of that one quantity**, saying it
+    *"decides whether the record refuses a constant phi or admits 0.62-0.85 of one"*.
+
+    THE SECOND OBSERVATION WAS ALREADY IN THE TREE, and the sentence it was asked to settle turns
+    out to be the wrong dichotomy. This function is the reading that shows which, and it is built so
+    that the answer §13 expected is fully reportable: `the_verdict_is_the_same_at_every_observed_mix`
+    is derived from the verdicts and never written down, so a run where the two observations
+    disagreed would say so here in the same field.
+
+    WHAT IT ADDS THAT `whether_a_constant_phi_survives_the_record_alone` DOES NOT. That function now
+    reports four bands, which is the mechanism. This one reports the QUESTION: whether the refusal
+    is a property of the record or of one survey, and -- when the two observed mixes agree and the
+    mix-free envelope does not -- what tenure mix the envelope's admission actually requires. A
+    reader given four bands and no such field would have to do that inversion themselves, and the
+    inversion is the finding.
+    """
+    verdicts = whether_a_constant_phi_survives_the_record_alone()
+    bands = phi_verdict_bands()
+    observed = [b for b in observed_mix_bands() if b in bands]
+
+    per_basis: dict[str, dict] = {}
+    for basis in BASES:
+        by_set: dict[str, dict] = {}
+        for set_name in verdicts["year_sets"]:
+            at_band = {
+                band: verdicts["verdicts"][basis][band][set_name] for band in bands
+            }
+            same_at_every_observed = len({at_band[b]["is_non_empty"] for b in observed}) == 1
+            refuses_everywhere_observed = all(
+                not at_band[b]["is_non_empty"] for b in observed
+            )
+            by_set[set_name] = {
+                "is_non_empty_by_band": {b: at_band[b]["is_non_empty"] for b in bands},
+                "intersection_by_band": {b: at_band[b]["intersection"] for b in bands},
+                "the_verdict_is_the_same_at_every_observed_mix": same_at_every_observed,
+                "refuses_at_every_observed_mix": refuses_everywhere_observed,
+                # The result §13's dichotomy has no slot for: the record can refuse at every mix
+                # anything has SEEN and still admit somewhere in the mix-free envelope. That is
+                # neither "refuses" nor "admits 0.62-0.85" -- it is the admission being relocated
+                # to a segment composition no instrument supports.
+                "admits_only_outside_every_observed_mix": (
+                    refuses_everywhere_observed
+                    and at_band["mix_free_envelope"]["is_non_empty"]
+                ),
+                "minimal_refusing_pairs_by_band": {
+                    b: at_band[b]["minimal_refusing_pairs"] for b in bands
+                },
+            }
+        per_basis[basis] = by_set
+
+    return {
+        "what_this_is":
+            "whether the constant-phi refusal is a property of the published record or of the one "
+            "2018 survey year the segment band was composed with. §13 asked for a second "
+            "observation of the SVT tenure split; this is the record read with it. Three published "
+            "series and no world.",
+        "what_section_13_asked_for": (
+            "a second tenure split for the SVT segment in any year other than 2018. §13 called it "
+            "'the highest-leverage sourcing question this chain has produced' and said one more "
+            "observation would decide 'whether the record refuses a constant phi or admits "
+            "0.62-0.85 of one'."
+        ),
+        "where_it_was_found": (
+            "IN THIS TREE, cited and dated, and load-bearing since 2026-07-22. "
+            "docs/market_research/ASSUMPTIONS.md L176 carries Ofgem's Retail Market Indicators "
+            "October-2025 default-tariff stock split and the R13 ruling turns on it; "
+            "continuous_behavioural_engagement_w2_14.md §1a cross-validates the same figure "
+            "against CMA Appendix 9.1. Nothing pointed either of them at the segment band. That is "
+            "the shape §10 recorded -- 'it was already in the tree, three times' -- for the fourth "
+            "time in this one chain, and the structural fix is the register above: one home."
+        ),
+        "observations": [
+            {
+                "year": o.year,
+                "long_stayer_pct": o.long_stayer_pct,
+                "recent_pct": o.recent_pct,
+                "long_stayer_share_of_svt": round(o.long_stayer_share, 6),
+                "composed_band": list(compose_at_mix(o.long_stayer_share)),
+                "instrument": o.instrument,
+                "population": o.population,
+                "source": o.source,
+                "restoring_the_excluded_moves_the_long_stayer_share":
+                    o.restoring_the_excluded_moves_the_long_stayer_share,
+            }
+            for o in SVT_TENURE_OBSERVATIONS
+        ],
+        "the_two_observations_disagree_by": round(
+            max(o.long_stayer_share for o in SVT_TENURE_OBSERVATIONS)
+            - min(o.long_stayer_share for o in SVT_TENURE_OBSERVATIONS),
+            6,
+        ),
+        "they_are_not_a_trend": (
+            "one is a consumer survey over all domestic customers and one is supplier-returned "
+            "stock over non-prepayment electricity accounts. Two points on two instruments over "
+            "two populations are not a series, and this reading does not interpolate between them "
+            "or extrapolate beyond them -- it takes the HULL, which is every mix between the two "
+            "and needs neither assumption."
+        ),
+        "bands": {k: list(v) for k, v in bands.items()},
+        "observed_mix_bands": list(observed),
+        # The inversion that makes the mix-free envelope's admission a sentence about a segment
+        # rather than a number. Published for BOTH bands so the observed hull's own implied mixes
+        # sit beside it and the reader can see the envelope is asking for something else entirely.
+        "what_each_bands_endpoints_imply_about_the_segment": {
+            band: _long_stayer_share_implying(*bands[band]) for band in bands
+        },
+        "the_observed_range_of_the_long_stayer_share": [
+            round(min(o.long_stayer_share for o in SVT_TENURE_OBSERVATIONS), 6),
+            round(max(o.long_stayer_share for o in SVT_TENURE_OBSERVATIONS), 6),
+        ],
+        "by_basis": per_basis,
+        "what_stays_none_whatever_this_says": (
+            "EXTERNAL_SHARE_OF_ACTIVE_RENEWALS. A second tenure observation constrains the SVT "
+            "side of the identity and says nothing about the external share of active fixed-term "
+            "renewals. The owed sourcing question is unchanged: one cross-tabulation of Ofgem's "
+            "Consumer Impacts of Market Conditions survey, separating 'switched supplier' from "
+            "'switched tariff with the same supplier' on one base."
+        ),
+    }
+
+
+#: The `H_svt` grid the constant-pair sweep runs over, and its step. 0 to 0.40 covers every value
+#: the published rows, the world's constants and the world's own required hazards can take
+#: (§9's largest is 0.334); the step is fine enough that a slack of -0.31 cannot be a grid artefact.
+_CONSTANT_PAIR_H_MAX = 0.40
+_CONSTANT_PAIR_H_STEP = 0.0001
+
+
+def _whether_any_constant_pair_admits_a_common_phi() -> dict:
+    """Is there ONE `H_svt` and ONE phi, both constant, that the record admits in every year?
+
+    The tightest of the three questions and the one that needs no segment band at all -- `H` sweeps
+    freely, so the published rows are not an input and the reading cannot inherit their weakness.
+
+    THE SLACK IS PUBLISHED, NOT JUST THE VERDICT. `widest_slack` is the largest `hi - lo` over the
+    grid, negative when every `H` refuses. A bare `False` cannot be told apart from a sweep that
+    never ran, and the MARGIN is what says whether the refusal is a rounding away from admitting.
+    """
+    out: dict[str, dict] = {}
+    for basis in BASES:
+        years = [y for y in FITTED_YEARS if default_tariff_share(y, basis) is not None]
+        admitting: list[float] = []
+        widest: tuple[float, float, float, float] | None = None
+        steps = int(round(_CONSTANT_PAIR_H_MAX / _CONSTANT_PAIR_H_STEP)) + 1
+        for i in range(steps):
+            h = round(i * _CONSTANT_PAIR_H_STEP, 6)
+            spans = [phi_admitting(y, basis, h) for y in years]
+            lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)  # type: ignore[index]
+            if widest is None or (hi - lo) > widest[1]:
+                widest = (h, hi - lo, lo, hi)
+            # phi is a SHARE, so admitting also means the common interval reaches [0, 1] at all.
+            if lo <= hi and lo <= 1.0 and hi >= 0.0:
+                admitting.append(h)
+        assert widest is not None  # the grid is never empty
+        out[basis] = {
+            "years": [str(y) for y in years],
+            "h_svt_grid": [0.0, _CONSTANT_PAIR_H_MAX, _CONSTANT_PAIR_H_STEP],
+            "n_h_values_admitting_a_common_phi": len(admitting),
+            "any_constant_pair_admitted": bool(admitting),
+            "widest_slack": {
+                "at_h_svt": round(widest[0], 6),
+                "slack": round(widest[1], 6),
+                "crossed_phi_interval": [round(widest[2], 6), round(widest[3], 6)],
+            },
+        }
+    return out
+
+
+def how_much_of_the_records_move_the_share_series_can_carry() -> dict:
+    """WHICH OF THE TWO MOVES — the published share series, or behaviour. A bound, not a trend.
+
+    §12's handover. Hold `H_svt` and phi at ANY constants across a pair of years and the composed
+    departure rate moves by exactly
+
+        dV = (s2 - s1)·(H_svt - 0.35·phi)
+
+    so the share series' movement, on its own, can supply an interval of moves and no more. Put
+    that interval beside the move the record actually made. Where they do not intersect, **the
+    share series cannot have carried that step whatever the two behavioural parameters are**, and
+    the movement is behavioural. Bilinear over a box, so the corners are exact.
+
+    THE TRAP THIS READING WALKED INTO ON ITS FIRST RUN, and the reason `record_requires_a_move`
+    exists. Two of the seven pairs come out `share_can_carry = True`, and in both the record's own
+    move interval CONTAINS ZERO -- its bands are wide enough that no move is required at all, so
+    anything carries it, including nothing. Counting those as evidence that composition works would
+    be a pass branch that cannot fail. They are flagged and excluded from the denominator, and the
+    denominator is reported as what it is.
+
+    `spans_a_gap` marks 2019->2022, which is three years and not a step: 2020 and 2021 have no
+    published share and are still not interpolated.
+    """
+    bands = phi_verdict_bands()
+    band_r = published_departure_band()
+    scored = sorted(set(band_r) & set(years_with_an_established_figure()))
+
+    out: dict[str, dict] = {}
+    for band_name, h_band in bands.items():
+        by_basis: dict[str, dict] = {}
+        for basis in BASES:
+            pairs: dict[str, dict] = {}
+            for y1, y2 in zip(scored, scored[1:]):
+                s1 = default_tariff_share(y1, basis)
+                s2 = default_tariff_share(y2, basis)
+                if s1 is None or s2 is None:  # pragma: no cover - scored years all have a share
+                    continue
+                r1, r2 = band_r[y1], band_r[y2]
+                record_move = [round(r2[0] - r1[1], 6), round(r2[1] - r1[0], 6)]
+                # (H_svt - 0.35·phi) over H in the segment band and phi in [0, 1].
+                k = (h_band[0] - FIXED_ACTIVE_RENEWAL_SHARE, h_band[1])
+                d_s = (s2[0] - s1[1], s2[1] - s1[0])
+                products = [100.0 * a * b for a, b in itertools.product(d_s, k)]
+                reachable = [round(min(products), 6), round(max(products), 6)]
+                requires = not (record_move[0] <= 0.0 <= record_move[1])
+                pairs[f"{y1}->{y2}"] = {
+                    "record_move_pp": record_move,
+                    "share_reachable_move_pp": reachable,
+                    "record_requires_a_move": requires,
+                    "spans_a_gap": (y2 - y1) != 1,
+                    "share_can_carry": not (
+                        reachable[1] < record_move[0] or record_move[1] < reachable[0]
+                    ),
+                }
+            judged = {
+                k: v for k, v in pairs.items()
+                if v["record_requires_a_move"] and not v["spans_a_gap"]
+            }
+            by_basis[basis] = {
+                "pairs": pairs,
+                "n_pairs_judged": len(judged),
+                "n_pairs_the_share_series_can_carry": sum(
+                    1 for v in judged.values() if v["share_can_carry"]
+                ),
+                "pairs_excluded_because_the_record_requires_no_move": [
+                    k for k, v in pairs.items() if not v["record_requires_a_move"]
+                ],
+                "pairs_excluded_because_they_span_a_gap": [
+                    k for k, v in pairs.items() if v["spans_a_gap"]
+                ],
+            }
+        out[band_name] = by_basis
+    return {
+        "what_this_is":
+            "the largest step the PUBLISHED SHARE SERIES can produce on its own, with both "
+            "behavioural parameters held at any constants, against the step the record made. "
+            "§12's handover question, answered as a bound.",
+        "identity": "dV = (s2 - s1)·(H_svt - 0.35·phi), bilinear over the box, corners exact.",
+        "why_a_denominator_is_reported":
+            "a pair whose record move interval contains zero requires no move, so `share_can_carry` "
+            "is True there for a reason that is not evidence. Those pairs are named and excluded, "
+            "and so is the one that spans the 2020-2021 gap.",
+        "by_band": out,
+    }
 
 
 def _provenance(path: Path) -> str:
@@ -665,6 +1245,20 @@ def published_route_split() -> dict:
         # replacing it: a reader who sees only the joint reading cannot tell that the mixed one was
         # ever taken, and §11's result 2 was drawn from the mixed one.
         "where_the_worlds_joint_point_falls": where_the_worlds_joint_point_falls(),
+        # §13. The two readings that need NO world, published beside the ones that do, because
+        # §12's premise -- that an empty phi intersection is a statement about the world -- can only
+        # be checked by asking the record the same question on its own.
+        "whether_a_constant_phi_survives_the_record_alone":
+            whether_a_constant_phi_survives_the_record_alone(),
+        "how_much_of_the_records_move_the_share_series_can_carry":
+            how_much_of_the_records_move_the_share_series_can_carry(),
+        # §14. The question §13 handed on, answered with the second observation it asked for.
+        # Published as its own section rather than folded into the one above it, because the
+        # sections above answer "what does the record admit" and this one answers "and does that
+        # answer belong to the record or to one survey year" -- which is a different question and
+        # has a different failure mode.
+        "whether_the_constant_phi_verdict_turns_on_one_survey_year":
+            whether_the_constant_phi_verdict_turns_on_one_survey_year(),
         "how_to_regenerate": "python3 -m tools.published_route_split --write",
     }
 
@@ -748,6 +1342,102 @@ def main(argv: list[str]) -> int:
         for year_s, reason in joint["years_refused"].items():
             print(f"  JOINT REFUSED {year_s}: {reason}")
         print()
+    const = reading["whether_a_constant_phi_survives_the_record_alone"]
+    print("  DOES THE RECORD ADMIT ONE CONSTANT phi? — no world in this section at all")
+    print("  (H_svt free per year inside the named segment band; phi held constant across years.)")
+    print()
+    for basis in BASES:
+        pair = const["constant_pair"][basis]
+        print(f"  basis = {basis}")
+        for band_name in const["published_segment_bands"]:
+            band = const["published_segment_bands"][band_name]
+            print(f"    H_svt in {band[0]:.4f}–{band[1]:.4f}  ({band_name})")
+            for set_name in const["year_sets"]:
+                cell = const["verdicts"][basis][band_name][set_name]
+                lo, hi = cell["intersection"]
+                refusing = ", ".join(f"{a}/{b}" for a, b in cell["minimal_refusing_pairs"])
+                print(
+                    f"      {set_name:>42}  n={cell['n_years']}  "
+                    f"phi = [{lo:>7.4f}, {hi:>7.4f}]  "
+                    f"{'ADMITS' if cell['is_non_empty'] else 'REFUSES'}"
+                    + (f"   refused by: {refusing}" if refusing else "")
+                )
+        print(f"    a constant PAIR (one H_svt AND one phi, H swept freely): "
+              f"{'ADMITTED' if pair['any_constant_pair_admitted'] else 'REFUSED'} — "
+              f"widest slack {pair['widest_slack']['slack']:+.4f} at H_svt="
+              f"{pair['widest_slack']['at_h_svt']:.4f}")
+        mix_dep = const["verdicts"][basis]["verdict_is_mix_dependent"]
+        print(f"    verdict_is_mix_dependent: "
+              f"{ {k: v for k, v in mix_dep.items()} }")
+        print()
+    for year_s, reason in const["structural_breaks"].items():
+        row = const["per_year"][year_s]
+        print(f"  STRUCTURAL BREAK {year_s} — excluded from the headline, phi span "
+              f"{row['all_domestic']['tenure_composed']} (tenure-composed, all_domestic)")
+        print(f"    {reason.split('.')[0]}.")
+    print()
+    carry = reading["how_much_of_the_records_move_the_share_series_can_carry"]
+    print("  WHICH OF THE TWO MOVES — the published share series, or behaviour")
+    print("  (largest step the share series can supply with BOTH behavioural parameters constant.)")
+    print()
+    for band_name, by_basis in carry["by_band"].items():
+        for basis, cell in by_basis.items():
+            print(f"  {band_name} | {basis}: the share series can carry "
+                  f"{cell['n_pairs_the_share_series_can_carry']} of {cell['n_pairs_judged']} "
+                  f"pairs where the record requires a move")
+            for name, pair in cell["pairs"].items():
+                flags = " ".join(
+                    f for f, on in (
+                        ("NO-MOVE-REQUIRED", not pair["record_requires_a_move"]),
+                        ("SPANS-GAP", pair["spans_a_gap"]),
+                    ) if on
+                )
+                print(
+                    f"    {name:>12}  record [{pair['record_move_pp'][0]:>7.3f},"
+                    f"{pair['record_move_pp'][1]:>7.3f}]pp   share can reach "
+                    f"[{pair['share_reachable_move_pp'][0]:>7.3f},"
+                    f"{pair['share_reachable_move_pp'][1]:>7.3f}]pp   "
+                    f"{'carries' if pair['share_can_carry'] else 'CANNOT':>7}  {flags}"
+                )
+            print()
+    turns = reading["whether_the_constant_phi_verdict_turns_on_one_survey_year"]
+    print("  DOES THAT VERDICT BELONG TO THE RECORD, OR TO ONE SURVEY YEAR? — §13's question")
+    print()
+    for obs in turns["observations"]:
+        band = obs["composed_band"]
+        print(f"    {obs['year']}  long-stayer {obs['long_stayer_pct']:>4.1f}% / recent "
+              f"{obs['recent_pct']:>4.1f}%  ->  within-segment "
+              f"{obs['long_stayer_share_of_svt']:.4f}  ->  band "
+              f"{band[0]:.4f}–{band[1]:.4f}")
+        print(f"          {obs['instrument']}; {obs['population']}")
+        if obs["restoring_the_excluded_moves_the_long_stayer_share"]:
+            print("          restoring the excluded population moves this share "
+                  f"{obs['restoring_the_excluded_moves_the_long_stayer_share']}")
+    print(f"    the two observations disagree by {turns['the_two_observations_disagree_by']:.4f} "
+          "of within-segment share")
+    print()
+    for band_name, implied in turns["what_each_bands_endpoints_imply_about_the_segment"].items():
+        band = turns["bands"][band_name]
+        seen = "OBSERVED" if band_name in turns["observed_mix_bands"] else "not observed"
+        print(f"    {band_name:>22} {band[0]:.4f}–{band[1]:.4f}  implies a segment "
+              f"{implied['implied_by_the_bands_low_end']:.3f}–"
+              f"{implied['implied_by_the_bands_high_end']:.3f} long-stayer   [{seen}]")
+    lo, hi = turns["the_observed_range_of_the_long_stayer_share"]
+    print(f"    anything observed sits between {lo:.4f} and {hi:.4f}")
+    print()
+    for basis, by_set in turns["by_basis"].items():
+        for set_name, cell in by_set.items():
+            same = cell["the_verdict_is_the_same_at_every_observed_mix"]
+            print(f"    {basis:>13} | {set_name:>42}  "
+                  f"same at every observed mix: {'YES' if same else 'NO'}   "
+                  f"refuses at every observed mix: "
+                  f"{'YES' if cell['refuses_at_every_observed_mix'] else 'no'}   "
+                  f"admits ONLY outside them: "
+                  f"{'YES' if cell['admits_only_outside_every_observed_mix'] else 'no'}")
+    print()
+    print(f"  phi is still {EXTERNAL_SHARE_OF_ACTIVE_RENEWALS}. An interval an intersection admits")
+    print("  is what phi COULD be if phi were constant; the record does not say that it is.")
+    print()
     if "--write" in argv:
         ARTEFACT.write_text(json.dumps(reading, indent=1) + "\n")
         print(f"  wrote {ARTEFACT.relative_to(PROJECT)}")

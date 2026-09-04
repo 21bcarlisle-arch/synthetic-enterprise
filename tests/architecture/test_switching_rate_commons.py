@@ -3763,6 +3763,11 @@ def test_the_committed_route_split_still_reproduces():
             # being regenerated moves it -- and a section left out of this list is a published
             # figure with no drift detector on it at all.
             "where_the_worlds_joint_point_falls",
+            # §13's two no-world readings. They cannot move when a world artefact is regenerated,
+            # so drift here is always a published series having moved -- which is exactly the
+            # event the tree's account of the record needs to go red on.
+            "whether_a_constant_phi_survives_the_record_alone",
+            "how_much_of_the_records_move_the_share_series_can_carry",
         )
         if declared.get(key) != live.get(key)
     ]
@@ -4112,3 +4117,688 @@ def test_the_one_phi_question_is_asked_of_the_unrepaired_world_too():
     assert split.intersect_spans([[0.3, 0.3], [0.3, 0.3]])["is_non_empty"], (
         "spans touching at a single point read as empty; the intersection is closed."
     )
+
+
+# ---------------------------------------------------------------------------------------------
+# §13 -- the same question asked of the RECORD ALONE. No world in any of these legs.
+# ---------------------------------------------------------------------------------------------
+
+
+def _constant_phi() -> dict:
+    return _split_module().whether_a_constant_phi_survives_the_record_alone()
+
+
+def _carrying() -> dict:
+    return _split_module().how_much_of_the_records_move_the_share_series_can_carry()
+
+
+def test_the_phi_span_widens_with_the_segment_band():
+    """MUTATION: swap the endpoints in `phi_span_at_a_segment_band` and this fires.
+
+    `phi` is DECREASING in `H_svt`, so the span's low end comes from the band's HIGH endpoint and
+    its high end from the band's LOW one. Taking them the other way round inverts every interval
+    into `lo > hi`, and an inverted interval intersects with nothing: every verdict in §13 would
+    read REFUSES, which is a fail-closed that is indistinguishable from a finding. That is the
+    exact shape this file's catalogue calls a silent always-fail, so the direction is held rather
+    than trusted to a docstring.
+
+    Held as a PROPERTY and not against today's numbers: a strictly wider band must give a span at
+    least as wide, in every year and on both bases, whatever the published series say this week.
+    """
+    split = _split_module()
+    bands = split.svt_segment_churn_band()
+    narrow, wide = bands["tenure_composed"], bands["mix_free_envelope"]
+    assert wide[0] < narrow[0] and wide[1] > narrow[1], (
+        "the mix-free envelope is no longer strictly wider than the tenure-composed band, so this "
+        "leg is comparing a band with itself and asserts nothing."
+    )
+    checked = 0
+    for year in sorted(split.published_departure_band()):
+        for basis in split.BASES:
+            n = split.phi_span_at_a_segment_band(year, basis, narrow)
+            w = split.phi_span_at_a_segment_band(year, basis, wide)
+            if n is None or w is None:
+                continue
+            checked += 1
+            assert n[0] <= n[1], (
+                f"{year}/{basis}: the tenure-composed phi span is INVERTED ({n}). The band's "
+                f"endpoints are being read in the wrong order and every verdict below is a "
+                f"fail-closed rather than a reading."
+            )
+            assert w[0] <= n[0] and w[1] >= n[1], (
+                f"{year}/{basis}: the wider segment band gave a NARROWER phi span "
+                f"({w} against {n}). phi is decreasing in H_svt, so this is the endpoints "
+                f"crossed."
+            )
+    assert checked >= 12, (
+        f"only {checked} year/basis cells were reachable; there were 16 when this was written and "
+        f"a leg that has quietly stopped finding its subject reports a constant PASS."
+    )
+
+
+def test_the_constant_phi_verdict_is_recomputed_from_the_published_series():
+    """MUTATION: write any intersection down, drop a band, or key a verdict to today's answer.
+
+    THE LEG THAT HOLDS §13's HEADLINE. Every verdict is recomputed longhand here from
+    `published_departure_band`, `default_tariff_share` and the segment band -- not by calling the
+    module's own helper, which is how §12's phi-rounding defect got through its first control.
+
+    AND BOTH BRANCHES ARE LIVE TODAY, which is why this is a control and not a drift detector:
+    the tenure-composed band REFUSES a constant phi over the fitted years and the mix-free envelope
+    ADMITS one. A leg that only ever saw REFUSES could be satisfied by `is_non_empty = False`
+    written as a constant -- the equivalence §12 found in its own first draft -- and here it cannot
+    be, because a constant would break the other band in the same run.
+    """
+    split = _split_module()
+    reading = _constant_phi()
+    seen_verdicts = set()
+    for basis in split.BASES:
+        for band_name, band in reading["published_segment_bands"].items():
+            for set_name, years in reading["year_sets"].items():
+                cell = reading["verdicts"][basis][band_name][set_name]
+                assert cell["years"] == years, (
+                    f"{basis}/{band_name}/{set_name}: the intersected year set is not the one the "
+                    f"reading declares it is."
+                )
+                spans = []
+                for year_s in years:
+                    year = int(year_s)
+                    r_lo, r_hi = split.published_departure_band()[year]
+                    s_band = split.default_tariff_share(year, basis)
+                    phis = [
+                        (r / 100.0 - s * h)
+                        / ((1.0 - s) * split.FIXED_ACTIVE_RENEWAL_SHARE)
+                        for r in (r_lo, r_hi) for s in s_band for h in band
+                    ]
+                    longhand = [round(min(phis), 6), round(max(phis), 6)]
+                    assert reading["per_year"][year_s][basis][band_name] == longhand, (
+                        f"{year_s}/{basis}/{band_name}: the published phi span is not the one the "
+                        f"identity gives at the corners of the two published bands."
+                    )
+                    spans.append(longhand)
+                lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
+                assert cell["intersection"] == [round(lo, 6), round(hi, 6)], (
+                    f"{basis}/{band_name}/{set_name}: the intersection was written down rather "
+                    f"than taken over the per-year spans."
+                )
+                assert cell["is_non_empty"] == (lo <= hi), (
+                    f"{basis}/{band_name}/{set_name}: the verdict disagrees with the interval it "
+                    f"is read off."
+                )
+                seen_verdicts.add(cell["is_non_empty"])
+                for a, b in cell["minimal_refusing_pairs"]:
+                    pa = reading["per_year"][str(a)][basis][band_name]
+                    pb = reading["per_year"][str(b)][basis][band_name]
+                    assert max(pa[0], pb[0]) > min(pa[1], pb[1]), (
+                        f"{basis}/{band_name}/{set_name}: {a}/{b} is listed as a refusing pair and "
+                        f"its two spans overlap."
+                    )
+    assert seen_verdicts == {True, False}, (
+        f"only {seen_verdicts} appears across every band, basis and year set. One of the two "
+        f"branches is unreachable, and a control whose pass branch cannot be reached reports a "
+        f"constant verdict."
+    )
+
+
+def test_a_structural_break_is_excluded_by_name_and_still_reported():
+    """MUTATION: drop 2022 from the scored set, or from `STRUCTURAL_BREAK_YEARS`, and this fires.
+
+    Excluding a year from a headline is a judgement, and this repository's rule for one is that it
+    is NAMED with its reason and its own number published beside it -- the discipline 2020 and 2021
+    already get for having no share at all. 2022's exclusion is a stronger claim than theirs
+    (the record HAS a figure and it is being set aside), so the bar is higher: the year must still
+    appear in `per_year` with its span, its reason must be present, and the headline set must be
+    exactly the scored set less the named breaks.
+    """
+    split = _split_module()
+    reading = _constant_phi()
+    breaks = reading["structural_breaks"]
+    assert breaks, "the structural-break register is empty; an exclusion with no reason is a drop."
+    scored = reading["year_sets"]["every_scored_year"]
+    headline = reading["year_sets"]["every_scored_year_less_structural_breaks"]
+    assert headline == [y for y in scored if y not in breaks], (
+        "the headline year set is not the scored set less exactly the NAMED breaks. Either a year "
+        "is being excluded without a reason or a named break is still in the headline."
+    )
+    for year_s, reason in breaks.items():
+        assert year_s in reading["per_year"], (
+            f"{year_s} is excluded from the headline and its own reading is not published. An "
+            f"exclusion the reader cannot check is an assertion."
+        )
+        assert reading["per_year"][year_s]["is_a_structural_break"], (
+            f"{year_s} is in the break register and its own row does not say so."
+        )
+        assert len(reason) > 80 and "." in reason, (
+            f"{year_s}'s exclusion reason is too short to be one."
+        )
+        for basis in split.BASES:
+            span = reading["per_year"][year_s][basis]["tenure_composed"]
+            assert span is not None, f"{year_s}/{basis}: the excluded year has no published span."
+    # AND THE EXCLUSION HAS TO MATTER. If the break years did not change the verdict there would be
+    # nothing to justify, and a register nobody's answer turns on is a register that will rot.
+    changed = [
+        (basis, band)
+        for basis in split.BASES
+        for band in reading["published_segment_bands"]
+        if reading["verdicts"][basis][band]["every_scored_year"]["is_non_empty"]
+        != reading["verdicts"][basis][band]["every_scored_year_less_structural_breaks"][
+            "is_non_empty"
+        ]
+    ]
+    assert changed, (
+        "excluding the structural break changes no verdict on any band or basis. Either the "
+        "exclusion is doing nothing and should go, or the year sets have been wired to the same "
+        "list."
+    )
+
+
+def test_the_mix_dependence_flag_is_derived_and_not_frozen():
+    """MUTATION: freeze `verdict_is_mix_dependent`, either way, and this fires.
+
+    §11 built this flag and §12's one-phi reading never applied it to itself. §13's headline turns
+    on it entirely: the record refuses a constant phi at the tenure-composed band and admits one at
+    the mix-free envelope, so the refusal is a statement about ONE 2018 survey and not about the
+    record. A frozen flag would let that distinction disappear silently.
+
+    BOTH VALUES ARE LIVE TODAY -- True for the fitted and headline sets, False for every scored
+    year, where 2022 refuses on both bands -- so a constant of either polarity breaks this.
+    """
+    split = _split_module()
+    reading = _constant_phi()
+    seen = set()
+    for basis in split.BASES:
+        flags = reading["verdicts"][basis]["verdict_is_mix_dependent"]
+        assert set(flags) == set(reading["year_sets"]), (
+            f"{basis}: the mix-dependence flag does not cover every year set."
+        )
+        for set_name, flag in flags.items():
+            expected = (
+                reading["verdicts"][basis]["tenure_composed"][set_name]["is_non_empty"]
+                != reading["verdicts"][basis]["mix_free_envelope"][set_name]["is_non_empty"]
+            )
+            assert flag == expected, (
+                f"{basis}/{set_name}: the mix-dependence flag disagrees with the two verdicts it "
+                f"is supposed to be derived from. It has been written down."
+            )
+            seen.add(flag)
+    assert seen == {True, False}, (
+        f"the mix-dependence flag takes only {seen} across every basis and year set, so a frozen "
+        f"constant would satisfy every assertion above."
+    )
+
+
+def test_the_constant_pair_sweep_reports_its_slack_and_not_only_its_verdict():
+    """MUTATION: return the verdict without the slack, or collapse the grid, and this fires.
+
+    A bare `any_constant_pair_admitted: False` cannot be told apart from a sweep that never ran,
+    and it does not say whether the refusal is a rounding away from admitting. The MARGIN is the
+    reading: at -0.31 to -0.34 the record is refusing a constant pair by a third of phi's whole
+    range, and that is a different sentence from refusing it by 0.001.
+
+    THE SLACK IS RECOMPUTED HERE at the grid point the module names, longhand from the published
+    series, so a cached number cannot satisfy it.
+    """
+    split = _split_module()
+    reading = _constant_phi()
+    for basis in split.BASES:
+        pair = reading["constant_pair"][basis]
+        lo_g, hi_g, step = pair["h_svt_grid"]
+        assert step > 0 and (hi_g - lo_g) / step >= 1000, (
+            f"{basis}: the constant-pair grid has {(hi_g - lo_g) / step:.0f} points. A coarse grid "
+            f"turns a real admitting interval into a REFUSED, which is the flattering direction "
+            f"for a finding that wants the record to refuse."
+        )
+        assert pair["years"], f"{basis}: the constant-pair sweep covers no years."
+        widest = pair["widest_slack"]
+        h = widest["at_h_svt"]
+        assert lo_g <= h <= hi_g, f"{basis}: the widest-slack point {h} is outside its own grid."
+        spans = [split.phi_admitting(int(y), basis, h) for y in pair["years"]]
+        lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)
+        assert widest["crossed_phi_interval"] == [round(lo, 6), round(hi, 6)], (
+            f"{basis}: the widest-slack interval is not the one the identity gives at the H_svt "
+            f"the reading names. It is a cached column."
+        )
+        assert widest["slack"] == round(hi - lo, 6), (
+            f"{basis}: the reported slack is not the width of the interval beside it."
+        )
+        assert pair["any_constant_pair_admitted"] == (
+            pair["n_h_values_admitting_a_common_phi"] > 0
+        ), f"{basis}: the constant-pair verdict disagrees with its own count."
+
+
+def test_a_pair_the_record_requires_no_move_from_is_not_counted_as_carried():
+    """MUTATION: count every pair in the denominator and this fires.
+
+    THE PASS BRANCH THAT COULD NOT FAIL, caught on this reading's first run and repaired rather
+    than recorded. Two of the seven year pairs come out `share_can_carry = True`, and in BOTH the
+    record's own move interval contains zero -- the published bands are wide enough that no move is
+    required, so anything carries it, including nothing at all. Counting those as evidence that the
+    share series can supply the record's movement is a control keyed to an answer that is true by
+    construction.
+
+    So the denominator is held, not the verdict: a pair requiring no move must be excluded, must be
+    named in the exclusion list, and the count must be over what is left.
+    """
+    split = _split_module()
+    carrying = _carrying()
+    vacuous_seen = False
+    for band_name, by_basis in carrying["by_band"].items():
+        for basis in split.BASES:
+            cell = by_basis[basis]
+            pairs = cell["pairs"]
+            for name, pair in pairs.items():
+                lo, hi = pair["record_move_pp"]
+                requires = not (lo <= 0.0 <= hi)
+                assert pair["record_requires_a_move"] == requires, (
+                    f"{band_name}/{basis}/{name}: `record_requires_a_move` disagrees with whether "
+                    f"the record's own move interval {pair['record_move_pp']} contains zero."
+                )
+                if not requires:
+                    vacuous_seen = True
+                    assert name in cell["pairs_excluded_because_the_record_requires_no_move"], (
+                        f"{band_name}/{basis}/{name}: the record requires no move here and the "
+                        f"pair is not in the exclusion list. It will be counted as carried."
+                    )
+            judged = {
+                k: v for k, v in pairs.items()
+                if v["record_requires_a_move"] and not v["spans_a_gap"]
+            }
+            assert cell["n_pairs_judged"] == len(judged), (
+                f"{band_name}/{basis}: the denominator is not the set of pairs the record requires "
+                f"a move from and which do not span the 2020-2021 gap."
+            )
+            assert cell["n_pairs_the_share_series_can_carry"] == sum(
+                1 for v in judged.values() if v["share_can_carry"]
+            ), (
+                f"{band_name}/{basis}: the numerator counts pairs the denominator excludes, which "
+                f"is how a vacuous carry becomes evidence."
+            )
+            assert cell["n_pairs_the_share_series_can_carry"] <= cell["n_pairs_judged"]
+    assert vacuous_seen, (
+        "no pair in the whole reading has a record move interval containing zero, so the exclusion "
+        "this leg holds is never exercised and a denominator over every pair would pass it."
+    )
+
+
+def test_the_share_carrying_bound_is_recomputed_longhand_from_the_published_series():
+    """MUTATION: flip the sign in `(H_svt - 0.35·phi)`, drop a corner, or cache the interval.
+
+    `dV = (s2 - s1)·(H_svt - 0.35·phi)` is bilinear over the box, so the reachable interval is the
+    extremes over the four corners and nothing else. Getting the second factor's sign wrong makes
+    the bound symmetric about zero and the verdict much more generous -- the direction that would
+    quietly let the share series carry steps it cannot.
+
+    The gap pair is held by name too: 2019->2022 is three years, not a step, and a bound over three
+    years read as a year-to-year one would be the only pair in the reading whose subject is not
+    what the field says it is.
+    """
+    split = _split_module()
+    carrying = _carrying()
+    bands = split.svt_segment_churn_band()
+    band_r = split.published_departure_band()
+    for band_name, by_basis in carrying["by_band"].items():
+        h_band = bands[band_name]
+        for basis in split.BASES:
+            cell = by_basis[basis]
+            assert cell["pairs"], f"{band_name}/{basis}: the carrying reading has no pairs."
+            for name, pair in cell["pairs"].items():
+                y1, y2 = (int(p) for p in name.split("->"))
+                s1 = split.default_tariff_share(y1, basis)
+                s2 = split.default_tariff_share(y2, basis)
+                r1, r2 = band_r[y1], band_r[y2]
+                assert pair["record_move_pp"] == [
+                    round(r2[0] - r1[1], 6), round(r2[1] - r1[0], 6)
+                ], f"{band_name}/{basis}/{name}: the record's move is not the two bands' difference."
+                reach = [
+                    100.0 * ds * k
+                    for ds in (s2[0] - s1[1], s2[1] - s1[0])
+                    for k in (h_band[0] - split.FIXED_ACTIVE_RENEWAL_SHARE, h_band[1])
+                ]
+                assert pair["share_reachable_move_pp"] == [
+                    round(min(reach), 6), round(max(reach), 6)
+                ], (
+                    f"{band_name}/{basis}/{name}: the share-reachable interval is not the corner "
+                    f"extremes of (s2 - s1)·(H_svt - 0.35·phi)."
+                )
+                r_lo, r_hi = pair["record_move_pp"]
+                v_lo, v_hi = pair["share_reachable_move_pp"]
+                assert pair["share_can_carry"] == (not (v_hi < r_lo or r_hi < v_lo)), (
+                    f"{band_name}/{basis}/{name}: the carry verdict is not whether the two "
+                    f"intervals meet."
+                )
+                assert pair["spans_a_gap"] == ((y2 - y1) != 1), (
+                    f"{band_name}/{basis}/{name}: the gap flag disagrees with the years in the "
+                    f"pair's own name."
+                )
+            assert any(p["spans_a_gap"] for p in cell["pairs"].values()), (
+                f"{band_name}/{basis}: no pair spans the 2020-2021 gap, so either the gap has been "
+                f"filled -- which would be a sourcing event this leg should announce -- or the "
+                f"consecutive-pair walk has stopped crossing it."
+            )
+
+
+# ---------------------------------------------------------------------------------------------
+# §14 — THE SECOND TENURE OBSERVATION.
+#
+# §13 named the single Ofgem CES 2018 tenure split as its binding weak INPUT and asked for one
+# more observation of that quantity, saying it would decide "whether the record refuses a constant
+# phi or admits 0.62-0.85 of one". It was already in the tree. These legs guard the three ways
+# that reading can go wrong: the register losing the DISAGREEMENT between the two instruments, the
+# hull quietly widening into the mix-free envelope, and the observed-mix verdict becoming a
+# constant that reads as a finding.
+# ---------------------------------------------------------------------------------------------
+
+
+def _turns_on_one_survey() -> dict:
+    return _split_module().whether_the_constant_phi_verdict_turns_on_one_survey_year()
+
+
+def test_the_tenure_register_holds_two_instruments_and_names_what_each_one_excludes():
+    """MUTATION: drop the 2025 observation, blank a `population`, or blank the exclusion direction.
+
+    THE REGISTER'S WHOLE VALUE IS THAT THE TWO OBSERVATIONS DISAGREE, and the disagreement is only
+    readable if each one says what it measured. CES 2018 is a consumer survey over all domestic
+    customers; RMI October-2025 is supplier-returned stock over NON-PREPAYMENT electricity
+    accounts. Two points on two instruments over two populations are not a series, and a register
+    that carried four bare percentages would invite the next session to difference them as a trend
+    -- which is this project's most expensive recurring shape, and the reason §13's own weakness
+    was a single survey year carried across nine.
+
+    THE EXCLUSION DIRECTION IS HELD, AND A CORRECTION FACTOR IS FORBIDDEN. `published_tariff_mix`
+    establishes that prepayment is ~15% of domestic accounts and >90% of it sits on a default
+    tariff, so restoring it can only move the 2025 long-stayer share UP. That DIRECTION bounds the
+    reading; a number would be read as established and nothing publishes one.
+    """
+    split = _split_module()
+    obs = split.SVT_TENURE_OBSERVATIONS
+    assert len(obs) >= 2, (
+        f"the tenure register holds {len(obs)} observation(s). §13's entire finding was that ONE "
+        f"observation cannot tell a refusal about the record from a refusal about 2018, and with "
+        f"one row back in the register every §14 verdict below is about one survey year again."
+    )
+    assert len({o.year for o in obs}) == len(obs), (
+        "two observations share a year, so the register is carrying the same reading twice and "
+        "the 'observed range' it publishes is narrower than it looks."
+    )
+    for o in obs:
+        assert o.instrument and o.population and o.source, (
+            f"{o.year}: an observation with no instrument, population or source is a pair of "
+            f"percentages nobody can check the base of."
+        )
+        assert 0.0 < o.long_stayer_share < 1.0, (
+            f"{o.year}: within-segment long-stayer share {o.long_stayer_share} is not a share. "
+            f"Reading the raw percentage instead of the ratio composes the segment band with the "
+            f"share of ALL accounts that are long-stayer defaulters, which is a different quantity."
+        )
+    populations = {o.population for o in obs}
+    assert len(populations) > 1, (
+        "every observation declares the same population, so either the register has lost the "
+        "distinction that makes the two instruments incomparable, or a population string was "
+        "copied. Either way `they_are_not_a_trend` is now unsupported by the register itself."
+    )
+    excluding = [o for o in obs if "NON-PREPAYMENT" in o.population.upper()]
+    assert excluding, (
+        "no observation declares a population exclusion. The 2025 row is non-prepayment and that "
+        "is what makes its long-stayer share a LOWER bound; without it the hull is being read as "
+        "if both ends were unbiased."
+    )
+    for o in excluding:
+        direction = o.restoring_the_excluded_moves_the_long_stayer_share
+        assert direction, (
+            f"{o.year}: the population excludes a segment and nothing says which way restoring it "
+            f"would move the share. A bound with no direction is not a bound."
+        )
+        assert direction.split(",")[0].strip() in ("up", "down"), (
+            f"{o.year}: the exclusion direction is {direction!r} and does not begin with a named "
+            f"direction. A bound whose sign the reader has to infer from prose is not a bound."
+        )
+        # A YEAR IS A CITATION AND A MAGNITUDE IS A CORRECTION FACTOR, and only the second is
+        # forbidden -- the first draft of this leg banned every digit and fired on "2018", which
+        # would have pushed the provenance out of the field to keep a control green.
+        assert "%" not in direction and not re.search(r"\d+\.\d", direction), (
+            f"{o.year}: the exclusion direction carries a MAGNITUDE ({direction!r}). The direction "
+            f"is established and the correction factor is not -- a figure here would be read as an "
+            f"established one inside a week, which is the failure "
+            f"`EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` exists to avoid."
+        )
+
+
+def test_composing_at_a_mix_is_monotone_and_reaches_both_published_rows():
+    """MUTATION: swap the two published rows in `compose_at_mix`, or read pct instead of the ratio.
+
+    HELD AS A PROPERTY OVER MIXES THE REGISTER DOES NOT CONTAIN, which is what makes it a control
+    over the composition rather than over today's two observations. A long-stayer churns LESS than
+    a recent switcher, so the composed band must fall as the long-stayer share rises, at both
+    endpoints, everywhere on [0, 1] -- and must land exactly on the long-stayer row at 1 and the
+    recent row at 0.
+
+    THE UNIT ERROR THIS CATCHES IS NOT HYPOTHETICAL. `long_stayer_share` is a RATIO within the
+    segment (29/(29+23)), not the published percentage (29%). Reading the percentage gives 0.29
+    where the ratio is 0.5577, which shifts the composed band by nearly 3pp of hazard and would
+    have moved §14's verdict without changing a single published input.
+    """
+    split = _split_module()
+    assert split.compose_at_mix(1.0) == split.SVT_CHURN_LONG_STAYER, (
+        "a segment that is entirely long-stayer does not compose to the published long-stayer "
+        "row. The two rows are the wrong way round."
+    )
+    assert split.compose_at_mix(0.0) == split.SVT_CHURN_RECENT, (
+        "a segment with no long-stayers does not compose to the published recent row."
+    )
+    grid = [i / 20.0 for i in range(21)]
+    for lower, higher in zip(grid, grid[1:]):
+        a, b = split.compose_at_mix(lower), split.compose_at_mix(higher)
+        assert b[0] < a[0] and b[1] < a[1], (
+            f"raising the long-stayer share from {lower} to {higher} did not lower the composed "
+            f"band ({a} -> {b}). A long-stayer churns less than a recent switcher, so this is the "
+            f"two rows crossed and every band in §14 is composed backwards."
+        )
+    for o in split.SVT_TENURE_OBSERVATIONS:
+        band = split.compose_at_mix(o.long_stayer_share)
+        assert split.SVT_CHURN_LONG_STAYER[0] <= band[0] <= split.SVT_CHURN_RECENT[0], (
+            f"{o.year}: composed low end {band[0]} is outside the two published low ends. A "
+            f"weighted average of two numbers cannot be outside them, so the weight is not a share."
+        )
+        # THE MUTATION THE PARAGRAPH ABOVE CLAIMED AND THE FIRST DRAFT DID NOT CATCH. Returning
+        # `long_stayer_pct / 100` survived every assertion above, because 0.29 is as valid a share
+        # as 0.5577 and composes to a band that is still between the two published rows. The
+        # property that separates them is that BOTH published rows are fractions of the whole
+        # account base and the SVT segment is a strict subset of it -- so the within-segment share
+        # must be strictly LARGER than the raw percentage read as a fraction. That is the unit
+        # error's own signature and it needs no reference to today's numbers.
+        assert o.long_stayer_pct + o.recent_pct < 100.0, (
+            f"{o.year}: the two rows sum to {o.long_stayer_pct + o.recent_pct}% of the account "
+            f"base, so the SVT segment is the whole book. Either the base has changed -- which "
+            f"this leg should announce -- or the two rows are already within-segment and "
+            f"re-normalising them divides the mix by itself."
+        )
+        assert o.long_stayer_share > o.long_stayer_pct / 100.0, (
+            f"{o.year}: the within-segment long-stayer share ({o.long_stayer_share}) is not above "
+            f"the published percentage read as a fraction ({o.long_stayer_pct / 100.0}). The two "
+            f"rows are shares of the WHOLE account base and the segment is a subset, so this is "
+            f"the raw percentage being used where the ratio belongs -- a ~3pp shift in the "
+            f"composed hazard band with no published input having moved."
+        )
+
+
+def test_the_observed_hull_is_the_observations_hull_and_not_the_mix_free_envelope():
+    """MUTATION: set `observed_mix_hull` to `mix_free_envelope`, or to one observation's band.
+
+    THE ONE SUBSTITUTION THAT WOULD REVERSE §14's FINDING SILENTLY. The finding is that the record
+    refuses a constant phi at every mix anything has OBSERVED and admits one only in the gap
+    between the observed hull and the mix-free envelope. Widen the hull to the envelope and
+    `refuses_at_every_observed_mix` flips to False and `admits_only_outside_every_observed_mix`
+    flips with it -- the whole section reads as §13 stood, and nothing else in the artefact moves.
+
+    Held as the RELATION, not the values: the hull must contain every observation's composed band,
+    must equal the tightest such interval, and must sit strictly inside the mix-free envelope for
+    as long as no observation reaches an all-long-stayer or all-recent segment.
+    """
+    split = _split_module()
+    bands = split.svt_segment_churn_band()
+    hull, envelope = bands["observed_mix_hull"], bands["mix_free_envelope"]
+    composed = [split.compose_at_mix(o.long_stayer_share) for o in split.SVT_TENURE_OBSERVATIONS]
+    assert hull == (min(c[0] for c in composed), max(c[1] for c in composed)), (
+        f"the observed hull {hull} is not the hull of the observed composed bands {composed}. It "
+        f"has been written down, or widened to a band no observation supports."
+    )
+    for c in composed:
+        assert hull[0] <= c[0] and hull[1] >= c[1], (
+            f"the hull {hull} does not contain the observed band {c}, so a verdict taken at the "
+            f"hull is not a verdict over every observed mix."
+        )
+    assert envelope[0] < hull[0] and envelope[1] > hull[1], (
+        f"the observed hull {hull} is no longer strictly inside the mix-free envelope "
+        f"{envelope}. Either an observation now reaches an all-long-stayer or all-recent segment "
+        f"-- which would be a sourcing event this leg should announce -- or the hull has been "
+        f"replaced by the envelope, which reverses §14's finding without touching a number."
+    )
+    # EVERY OBSERVATION MUST GET ITS OWN BAND IN THE VERDICT, and not only be folded into the hull.
+    # Dropping the per-observation bands survived the first draft of this leg: the hull still
+    # spanned both observations, so nothing noticed that the 2025 mix had stopped being scored on
+    # its own. §14's claim is that the record refuses at EACH observed mix, which a hull-only
+    # reading cannot support -- a hull refusing says nothing about its interior.
+    verdict_bands = split.phi_verdict_bands()
+    for o in split.SVT_TENURE_OBSERVATIONS:
+        own = [n for n, b in verdict_bands.items() if b == split.compose_at_mix(o.long_stayer_share)]
+        assert own, (
+            f"{o.year}: no band in the phi verdict composes to this observation's mix "
+            f"{o.long_stayer_share}. It is inside the hull and scored nowhere on its own, so "
+            f"`refuses_at_every_observed_mix` is really 'refuses at the hull', which is weaker."
+        )
+    assert set(split.observed_mix_bands()) == set(verdict_bands) - {"mix_free_envelope"}, (
+        "the observed-mix band list has drifted from the verdict bands. If `mix_free_envelope` "
+        "were in it, every §14 flag would read the way §13 expected and the finding would reverse."
+    )
+
+    implied = _turns_on_one_survey()["what_each_bands_endpoints_imply_about_the_segment"]
+    for band_name, band in split.phi_verdict_bands().items():
+        low, high = implied[band_name].values()
+        assert split.compose_at_mix(low)[0] == pytest.approx(band[0], abs=1e-9), (
+            f"{band_name}: the mix implied by the band's low end does not compose back to it, so "
+            f"the inversion published beside the mix-free admission is not an inverse."
+        )
+        assert split.compose_at_mix(high)[1] == pytest.approx(band[1], abs=1e-9), (
+            f"{band_name}: the mix implied by the band's high end does not compose back to it."
+        )
+
+
+def test_the_observed_mix_verdict_flips_when_an_observation_that_would_flip_it_is_injected(
+    monkeypatch,
+):
+    """MUTATION: freeze any of §14's three flags, either way, and this fires.
+
+    THE REACHABILITY LEG, AND IT INJECTS THE MISSING BRANCH RATHER THAN ASSERTING THE DERIVATION.
+    All three flags are constant across today's data -- the record refuses at every observed mix on
+    both bases and in every year set -- so a leg that only recomputed them from the same dict would
+    be testing Python's `all()`, and a leg that only read them would pass against a written-down
+    `True`. This file's own catalogue names that failure twice.
+
+    So the branch is MANUFACTURED: two observations are injected at an all-long-stayer and an
+    all-recent segment, which are the only mixes whose hull reaches the mix-free envelope. The hull
+    then ADMITS while the two real observations still refuse, and all three flags must flip. No
+    published number is touched -- only the register -- so a flag that does not move is a flag that
+    is not derived from the verdicts it claims to summarise.
+    """
+    split = _split_module()
+    live = _turns_on_one_survey()["by_basis"]
+    for basis, by_set in live.items():
+        cell = by_set["fitted_years"]
+        assert cell["refuses_at_every_observed_mix"] is True, (
+            f"{basis}: the record no longer refuses at every observed mix over the fitted years. "
+            f"That is §14's headline and it has moved -- report it, do not adjust this leg."
+        )
+        assert cell["admits_only_outside_every_observed_mix"] is True, (
+            f"{basis}: the mix-free envelope no longer admits where every observed mix refuses."
+        )
+        assert cell["the_verdict_is_the_same_at_every_observed_mix"] is True
+
+    extreme = tuple(split.SVT_TENURE_OBSERVATIONS) + (
+        split.TenureObservation(
+            year=9001, long_stayer_pct=100.0, recent_pct=0.0,
+            instrument="INJECTED BY A CONTROL", population="INJECTED BY A CONTROL",
+            source="tests/architecture/test_switching_rate_commons.py",
+            restoring_the_excluded_moves_the_long_stayer_share="",
+        ),
+        split.TenureObservation(
+            year=9002, long_stayer_pct=0.0, recent_pct=100.0,
+            instrument="INJECTED BY A CONTROL", population="INJECTED BY A CONTROL",
+            source="tests/architecture/test_switching_rate_commons.py",
+            restoring_the_excluded_moves_the_long_stayer_share="",
+        ),
+    )
+    monkeypatch.setattr(split, "SVT_TENURE_OBSERVATIONS", extreme)
+    widened = _turns_on_one_survey()
+    assert widened["bands"]["observed_mix_hull"] == widened["bands"]["mix_free_envelope"], (
+        "injecting an all-long-stayer and an all-recent observation did not widen the hull to the "
+        "mix-free envelope, so this leg is not exercising the branch it claims to."
+    )
+    for basis, by_set in widened["by_basis"].items():
+        cell = by_set["fitted_years"]
+        assert cell["is_non_empty_by_band"]["observed_mix_hull"] is True, (
+            f"{basis}: the widened hull still refuses, so the injection did not reach the "
+            f"admitting branch and the flags below prove nothing."
+        )
+        assert cell["refuses_at_every_observed_mix"] is False, (
+            f"{basis}: an observed mix now ADMITS and `refuses_at_every_observed_mix` is still "
+            f"True. The flag is frozen, and §14's headline could not fail."
+        )
+        assert cell["the_verdict_is_the_same_at_every_observed_mix"] is False, (
+            f"{basis}: the observed mixes now disagree with each other and the sameness flag is "
+            f"still True."
+        )
+        assert cell["admits_only_outside_every_observed_mix"] is False, (
+            f"{basis}: the admission is now INSIDE an observed mix and the flag still says it is "
+            f"only outside one."
+        )
+
+
+def test_a_second_tenure_observation_cannot_move_the_mix_free_envelope_or_the_constant_pair():
+    """MUTATION: compose the envelope from the register, or let a band reach the constant-pair sweep.
+
+    THE ISOLATION LEG. The mix-free envelope is the outer hull of the two PUBLISHED CHURN ROWS and
+    has no tenure mix in it at all; the constant-pair sweep reads no segment band whatsoever, which
+    is exactly what makes it the tightest of §13's three questions. If either could move when the
+    tenure register gains a row, then §14's comparison is circular -- the band that is supposed to
+    be the fixed comparator would be shifting with the thing being compared -- and the finding's
+    claim that phi's [0.618, 0.850] interval is UNCHANGED by the second observation would be false.
+
+    Held by mutating the register to something absurd and requiring both to be identical.
+    """
+    split = _split_module()
+    before_envelope = split.svt_segment_churn_band()["mix_free_envelope"]
+    before_pair = _constant_phi()["constant_pair"]
+    before_admission = {
+        basis: _constant_phi()["verdicts"][basis]["mix_free_envelope"]["fitted_years"]
+        for basis in split.BASES
+    }
+
+    absurd = (
+        split.TenureObservation(
+            year=9003, long_stayer_pct=1.0, recent_pct=99.0,
+            instrument="INJECTED BY A CONTROL", population="INJECTED BY A CONTROL",
+            source="tests/architecture/test_switching_rate_commons.py",
+            restoring_the_excluded_moves_the_long_stayer_share="",
+        ),
+    )
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(split, "SVT_TENURE_OBSERVATIONS", absurd)
+        assert split.svt_segment_churn_band()["mix_free_envelope"] == before_envelope, (
+            "the mix-free envelope moved when the tenure register changed. It is the outer hull "
+            "of the two published churn rows and has no tenure mix in it; if it composes from the "
+            "register then §14 is comparing a band against itself."
+        )
+        assert _constant_phi()["constant_pair"] == before_pair, (
+            "the constant-pair sweep moved when the tenure register changed. It sweeps H_svt "
+            "freely and reads no segment band -- that independence is the whole reason §13 called "
+            "it the tightest of the three questions."
+        )
+        for basis in split.BASES:
+            assert (
+                _constant_phi()["verdicts"][basis]["mix_free_envelope"]["fitted_years"]
+                == before_admission[basis]
+            ), (
+                f"{basis}: the mix-free envelope's phi admission moved when the tenure register "
+                f"changed. §14 reports that interval as unchanged by the second observation and "
+                f"that report would be false."
+            )
