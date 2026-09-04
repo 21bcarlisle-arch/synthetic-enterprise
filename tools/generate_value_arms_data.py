@@ -930,6 +930,15 @@ PAGE_FIGURE_CONTRAST = "value_advantage_gbp"
 #: four call sites is how the two of them drift apart.
 SELECTION_CONTRAST = "selection_gbp"
 
+#: The OTHER leg -- the one that is value MOVED. A level advantage is a price charged: it is
+#: transfer, not creation. It is named here for the same reason the two above are, and it was the
+#: last of the three to get a bound: until 2026-09-04 `_current_world_contrast` bounded the whole
+#: and the selection leg and published this one as a bare number, which is the identical omission
+#: repaired twice already, one leg further down. It matters most on the leg that looks safest --
+#: across the live world's three re-draws this figure runs -£882 to +£9,085 and CHANGES SIGN, so
+#: the leg the page implicitly treats as the solid one is the least determined of the three.
+LEVEL_CONTRAST = "level_advantage_gbp"
+
 
 def _decomposition_contrast(decomposition: dict | None) -> str | None:
     """Which quantity the floor decomposition splits, as the artefact DECLARES it. `None` = it does not.
@@ -3389,8 +3398,112 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
             "verdict_stability": stability, **bound}
 
 
+def _composition_in_this_world(contrast: dict, floor_current: dict | None,
+                               superseded_share, live: str) -> dict:
+    """How the advantage SPLITS between the two legs -- and why that split may not be read.
+
+    THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
+    reader can see: an advantage that is 79% price LEVEL in one world and 7% in another is a
+    reading of the world's price-response calibration at least as much as of the company. The
+    page carried both numbers -- 78.7% in the superseded panel, 6.8% derivable from
+    `current_world` and stated nowhere -- and nothing beside either of them said so.
+
+    THE SHARE IS READ, NEVER DIVIDED HERE. `run_value_cycle_ab` already computes
+    `level_share_of_advantage` behind its own undefined-when-the-denominator-is-noise guard.
+    Dividing the two figures again in this file would be that one legal rule getting its second
+    implementation, and the two would be edited on different days -- this repository's named
+    defect class. If the producer withheld the share, so does this block, for the producer's
+    reason.
+
+    THE REFUSAL IS KEYED TO A PROPERTY, NOT TO TODAY'S ANSWER. What makes this share unreadable
+    is not that it is currently small: it is that across the floor's own re-draws -- the same
+    world, the same book, the same code, only the per-household price-sensitivity draw moved --
+    the NUMERATOR changes sign. `level_advantage_gbp` runs -£882.45 to +£9,085.08 over three
+    seeds, so the level leg is not even determined in direction, and a ratio whose numerator has
+    no sign has no reading. The share itself spans -60.1% to +2,014.5% across those same three
+    draws. If the mechanism is ever repaired so the level leg is sign-stable, this refusal lifts
+    on its own -- which is what keying to the property rather than the magnitude buys.
+
+    AND THE TWO PANELS' SHARES ARE NOT A REVISION, which is stated whether or not the refusal
+    above fires. More than one thing differs between the two runs -- the world, the date, and the
+    producing commit -- so the movement from 78.7% to 6.8% cannot be attributed to any one of
+    them, and it certainly cannot be read as the company having got better at choosing. "I cannot
+    yet say" is the result, and the one-variable version has not been run.
+    """
+    share = _f(contrast.get("level_share_of_advantage"))
+    if share is None:
+        return {"available": False, "reason": (
+            "the run withheld its own level share -- {} -- so this page states none either"
+            .format(contrast.get("share_undefined_reason")
+                    or "its denominator was too near zero to divide by"))}
+    seeds = [s for s in ((floor_current or {}).get("seeds") or []) if isinstance(s, dict)]
+    numerators = [_f(seed.get(LEVEL_CONTRAST)) for seed in seeds]
+    shares = [_f(seed.get("level_share_of_advantage")) for seed in seeds]
+    measured = [n for n in numerators if n is not None]
+    # THE PROPERTY: is the leg on top of the ratio even determined in SIGN across re-draws of the
+    # same quantity? Two or more rows are needed before the question can be asked at all, and not
+    # being able to ask it is its own state -- never a licence to read the share.
+    sign_stable = (len(measured) >= 2
+                   and (all(n > 0 for n in measured) or all(n < 0 for n in measured)))
+    block = {
+        "available": True,
+        "level_share_of_advantage": share,
+        "level_share_measured_in": live,
+        "what_each_part_counts": (
+            "The numerator is `level_advantage_gbp` -- what one FLAT margin at the same price "
+            "level earned over flat rules, which is a price charged and therefore value MOVED. "
+            "The denominator is `value_advantage_gbp`, that plus the per-customer choosing. Both "
+            "come from the same run and the same clock, so their ratio is a quantity; what is at "
+            "issue below is not the arithmetic but whether the quantity can be READ."),
+        "superseded_panel_share": superseded_share,
+        "readable": None,
+    }
+    # "NOT ASKED" IS ITS OWN STATE AND IT COMES FIRST. Written after the sign test it was both
+    # unreachable -- `sign_stable` is already False when there are no rows to test -- and a crash,
+    # because the refusal below formats the range of an empty list. A floor with no level-leg rows
+    # is not a floor that proved the share unreadable; it is one that could not be asked, and
+    # `readable` stays None so the two cannot be confused. Caught by this file's own suite on the
+    # foreign-world subject, where the block is built with no admitted floor at all.
+    if len(measured) < 2:
+        block["why_not_readable"] = (
+            "No floor measured in this world carries two or more re-draws of the level leg, so "
+            "whether this share is even determined in sign has not been tested. That is 'not "
+            "asked', not 'fine', and no reading of the share is licensed by it.")
+    elif not sign_stable:
+        block["readable"] = False
+        block["why_not_readable"] = (
+            "THIS SHARE HAS NO READING, AND THE REASON IS ITS NUMERATOR. Across {n} re-draws of "
+            "the same quantity in this same world -- same book, same code, only the per-household "
+            "price-sensitivity draw moved -- the level leg runs {lo} to {hi} and CHANGES SIGN. A "
+            "leg that is not determined in direction cannot be expressed as a share of anything, "
+            "so this world's single draw of that share -- {pct} -- is one draw's arithmetic and "
+            "not a composition. The share itself spans {slo} to {shi} over those same draws."
+        ).format(n=len(measured), lo=_gbp(min(measured)), hi=_gbp(max(measured)),
+                 pct="{:.1%}".format(share),
+                 slo=("{:.1%}".format(min(s for s in shares if s is not None))
+                      if any(s is not None for s in shares) else "an unstated low"),
+                 shi=("{:.1%}".format(max(s for s in shares if s is not None))
+                      if any(s is not None for s in shares) else "an unstated high"))
+    else:
+        block["readable"] = True
+    # SAID ON EVERY BRANCH, because it is true whether or not the refusal above fires and it is
+    # the sentence the discharge named as missing.
+    block["against_the_superseded_panel"] = (
+        "The panel below states {old} for the same quantity. That figure and this one were "
+        "measured in DIFFERENT WORLDS, on different dates, by different commits -- more than one "
+        "thing changed -- so the difference between them cannot be attributed to any one of them "
+        "and may not be read as the company having got better or worse at choosing. What a share "
+        "of the advantage is mostly reads is how much book there is to win or lose, which is the "
+        "world's departure level and its price response, not the company's skill. The "
+        "one-variable version of this comparison has not been run."
+        .format(old=("{:.1%}".format(superseded_share)
+                     if superseded_share is not None else "a share it does not define")))
+    return block
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
-                            floor_current: dict | None = None) -> dict:
+                            floor_current: dict | None = None,
+                            superseded_split: dict | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -3472,6 +3585,15 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # written against a constant instead of a parameter.
     selection = _leg_in_this_world(contrast.get("selection_gbp"), floor_current, current, live,
                                    SELECTION_CONTRAST)
+    # AND THE THIRD LEG, ON THE SAME MACHINERY AGAIN. The 2026-09-04 repair made the contrast a
+    # parameter so the selection leg could reach the apparatus; it left `level_advantage_gbp`
+    # published as a bare number one line below, which is the same omission a third time. It is
+    # not the safe leg it looks: on this world's floor it runs -£882.45 to +£9,085.08 across three
+    # re-draws and changes sign, against a point estimate of £159.21 -- the least determined of
+    # the three, and the one a reader is most likely to take for granted because "a price charged"
+    # sounds like something a company controls.
+    level = _leg_in_this_world(contrast.get("level_advantage_gbp"), floor_current, current, live,
+                               LEVEL_CONTRAST)
     return {
         "available": True,
         "live_world": live,
@@ -3500,8 +3622,25 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                 "of the advantage is the level itself, which is a price charged rather than a "
                 "value made -- so this is the only figure on this page that could be value "
                 "created instead of value moved.")),
+        # THE THIRD LEG, NESTED FOR THE SAME REASON -- three legs now share these key names, and
+        # flattening any over another is how a page bounds one figure with another's spread. The
+        # three are deliberately the same shape: same function, same grammar, same gate, so a
+        # reader comparing them compares measurements rather than prose.
+        "level_leg": dict(
+            level,
+            figure_gbp=contrast.get("level_advantage_gbp"),
+            what_this_leg_is=(
+                "What ONE FLAT margin at the same price level earned over flat rules, with no "
+                "per-customer choosing in it at all. This is value MOVED and not made -- a price "
+                "charged transfers value from the household to the company rather than creating "
+                "any. It is published bounded because it looks like the safe half and is not: "
+                "its own re-draws in this world change its sign.")),
+        "composition": _composition_in_this_world(
+            contrast, floor_current,
+            _f((superseded_split or {}).get("level_share_of_advantage")), live),
         "what_would_answer_it": (
-            None if bound.get("bound_available") and selection.get("bound_available") else
+            None if bound.get("bound_available") and selection.get("bound_available")
+            and level.get("bound_available") else
             "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world "
             "and seed family, which is what the contrast above must be priced against before any "
             "direction is read from it"),
@@ -3556,8 +3695,19 @@ def _current_world_clause(current_world: dict) -> str:
         "per-customer choosing was worth once one flat margin at the same price LEVEL is credited "
         "with everything a level alone would have earned; the rest is the level, which is a price "
         "charged. ").format(sel=point)
-    return whole + _leg_clause(selection, lead, resolved_tail=(
+    clause = whole + _leg_clause(selection, lead, resolved_tail=(
         ", measured in the world the figure was measured in. "))
+    # AND THE SPLIT BETWEEN THEM, REFUSED IN THE HEADLINE RATHER THAN QUALIFIED THREE BLOCKS DOWN.
+    # A reader who meets "£159 of it is the level" has been handed a composition, and the number
+    # that makes a composition meaningful -- whether the level leg even has a sign -- is not on
+    # the same screen. This is the residue `09009c236` named as unwritten: a share that is 79% in
+    # one world and 7% in another is a reading of the world, not of the company.
+    composition = current_world.get("composition") or {}
+    if composition.get("available") and composition.get("readable") is False:
+        clause += "{why} {against} ".format(
+            why=composition.get("why_not_readable"),
+            against=composition.get("against_the_superseded_panel"))
+    return clause
 
 
 def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
@@ -3794,7 +3944,12 @@ def build(three_arm: dict | None, floor: dict | None,
     # THE FIGURE FROM THE WORLD THAT IS LIVE, published beside the superseded one and explicitly
     # unbounded. See `_current_world_contrast` for why its verdict is refused rather than taken
     # from the floor that is on disk.
-    current_world = _current_world_contrast(current_three_arm, floor, current_floor)
+    # THE SUPERSEDED PANEL'S OWN SHARE GOES IN, so the two can be named beside each other rather
+    # than left for a reader to difference across three screens. It is passed rather than re-read
+    # for the reason `_provisioned` gives about clocks: the block that publishes a figure is the
+    # block that must decide what it is, and a second read is a second chance to read it wrong.
+    current_world = _current_world_contrast(current_three_arm, floor, current_floor,
+                                            superseded_split=(realised or {}).get("split"))
     return dict(
         base,
         available=True,

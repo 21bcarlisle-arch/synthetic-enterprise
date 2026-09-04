@@ -2845,3 +2845,153 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
     assert any(claim in back for claim in _DIRECTIONAL_CLAIMS), (
         "a stamped floor still states no direction, so this guard refuses regardless of its "
         "subject and its red above carries no information")
+
+
+def _floor_with_level_legs(floor: dict, values: list) -> dict:
+    """The same floor with its per-seed level leg replaced, and the share it implies moved with it.
+
+    THE SHARE MOVES TOO, ON PURPOSE. `level_share_of_advantage` is the level leg over the whole
+    advantage in the SAME row, so a fixture that changed the numerator and left the share alone
+    would be a floor that could never have been measured -- and the control would then pass on a
+    subject the producer cannot emit. The denominator is left exactly as the live artefact has it.
+    """
+    seeds = []
+    for seed, value in zip(floor["seeds"], values):
+        whole = seed["value_advantage_gbp"]
+        seeds.append(dict(seed, level_advantage_gbp=value,
+                          level_share_of_advantage=value / whole,
+                          selection_gbp=whole - value))
+    return dict(floor, seeds=seeds)
+
+
+def _admitted_live_floor() -> dict:
+    """The live-world floor relabelled to the bounding leg -- the subject the world/leg guards pass."""
+    only_live = _load(NOISE_FLOOR_ONLY_LIVE)
+    return dict(only_live,
+                redraw_scope=dict(only_live["redraw_scope"], mode=gva.BOUNDING_REDRAW_MODE))
+
+
+def test_the_level_leg_carries_its_own_bound_measured_in_this_world():
+    """The THIRD leg reaches the bound apparatus, instead of being published as a bare number.
+
+    THE DEFECT IT SERVES. `a70cc11e1` bounded `value_advantage_gbp`. The 2026-09-04 repair made
+    the contrast a parameter so `selection_gbp` could reach the same machinery. Both times
+    `level_advantage_gbp` was left one line below as a bare point estimate -- the identical
+    omission, a third time, on the leg a reader is LEAST likely to question because "a price
+    charged" sounds like something the company controls.
+
+    IT IS NOT THE SAFE LEG. On this world's own floor the level leg runs -£882.45 to +£9,085.08
+    across three re-draws and changes sign, against a point estimate of £159.21: the least
+    determined of the three figures on the page.
+
+    Fires on: dropping the leg; flattening it over `selection_leg` (the two share key names, so a
+    spread would silently bound the wrong figure); or reaching for a bound the world/leg guards
+    would have refused.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    block = gva._current_world_contrast(current, _load(NOISE_FLOOR), _admitted_live_floor())
+
+    leg = block["level_leg"]
+    assert leg["bound_available"] is True, (
+        "the level leg reaches no bound: " + str(leg.get("why_no_bound"))[:200])
+    assert leg["bound_contrast"] == gva.LEVEL_CONTRAST, (
+        "the level leg is bounded by another contrast's spread -- the exact defect nesting the "
+        "legs exists to prevent")
+    assert leg["figure_gbp"] == current["level_vs_selection"]["level_advantage_gbp"]
+    # AND IT IS NOT THE SELECTION LEG'S BOUND WEARING ITS NAME.
+    assert leg["bound"]["stdev_gbp"] != block["selection_leg"]["bound"]["stdev_gbp"], (
+        "the level and selection legs report an identical spread, so one is being bounded by the "
+        "other's -- which is what flattening these blocks would produce")
+
+
+def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
+    """A share whose numerator changes sign across re-draws of it is not a composition.
+
+    THE DEFECT IT SERVES, and it is the residue `09009c236` named as still unwritten. The page
+    published 78.7% in the superseded panel and left 6.8% derivable from `current_world` and
+    stated nowhere, with nothing beside either saying that a share of the advantage mostly reads
+    how much book there is to win or lose -- the world's departure level and price response --
+    rather than the company's skill.
+
+    KEYED TO THE PROPERTY, NEVER TO TODAY'S ANSWER. The refusal fires on the level leg not being
+    sign-determined across the floor's own re-draws, not on the share being small. Repair the
+    mechanism so the leg holds a sign and the refusal lifts by itself -- which is the direction a
+    control is supposed to move in.
+
+    TWO SUBJECTS, AND THE SECOND IS WHAT MAKES THIS A CONTROL. The live floor alone would be
+    satisfied by a block that refused unconditionally; the sign-stable floor is the sole witness
+    that the refusal is a judgement. Its rows are the live artefact's own, shifted by a constant
+    large enough to put every draw on one side of zero and nothing else touched.
+
+    Fires on: refusing unconditionally; reading the share as a composition; dropping the
+    two-worlds sentence from either branch; or re-dividing the two figures here instead of
+    reading the share the producer already computed behind its own guard.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = _admitted_live_floor()
+
+    # WITNESS A -- the live artefact's own rows: -882.45, +1,733.38, +9,085.08. No sign.
+    refused = gva._current_world_contrast(current, superseded, admitted,
+                                          superseded_split={"level_share_of_advantage": 0.7867})
+    comp = refused["composition"]
+    assert comp["available"] is True, str(comp.get("reason"))[:200]
+    assert comp["readable"] is False, (
+        "the page read a share whose numerator changes sign across its own re-draws")
+    assert "CHANGES SIGN" in comp["why_not_readable"]
+    assert comp["level_share_of_advantage"] == pytest.approx(
+        current["level_vs_selection"]["level_share_of_advantage"]), (
+        "the share was re-derived here instead of read from the run, so the producer's "
+        "undefined-denominator guard now has a second implementation")
+
+    # WITNESS B -- the sole witness that the refusal is a judgement. Same rows, shifted so every
+    # draw is positive; nothing else edited.
+    stable = _floor_with_level_legs(admitted, [1_000.0, 1_733.378959, 9_085.082015])
+    allowed = gva._current_world_contrast(current, superseded, stable,
+                                          superseded_split={"level_share_of_advantage": 0.7867})
+    assert allowed["composition"]["readable"] is True, (
+        "a floor whose level leg holds one sign is still refused, so this block refuses "
+        "regardless of its subject and its red above carries no information: "
+        + str(allowed["composition"].get("why_not_readable"))[:200])
+
+    # WITNESS C -- THE THIRD STATE, NAMED. A floor with no level-leg rows has not shown the share
+    # unreadable; it could not be asked. Folding that into `readable: False` would tell a reader
+    # "we measured it and it has no sign" when nothing was measured -- and written after the sign
+    # test it was an unreachable branch that crashed on an empty range, which this file's own
+    # suite caught on the foreign-world subject.
+    unasked = gva._current_world_contrast(current, superseded, dict(admitted, seeds=[]),
+                                          superseded_split={"level_share_of_advantage": 0.7867})
+    assert unasked["composition"]["readable"] is None, (
+        "a floor that could not be asked is reported as an answer")
+    assert "not asked" in unasked["composition"]["why_not_readable"]
+
+    # THE TWO-WORLDS SENTENCE IS ON EVERY BRANCH, because it is true whichever way the refusal
+    # above fell and it is the sentence the discharge named as missing.
+    for block in (comp, allowed["composition"], unasked["composition"]):
+        assert "78.7%" in block["against_the_superseded_panel"]
+        assert "DIFFERENT WORLDS" in block["against_the_superseded_panel"]
+        assert "more than one thing changed" in block["against_the_superseded_panel"]
+
+
+def test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload():
+    """A refusal computed and never rendered is a fail-silent.
+
+    THE DEFECT IT SERVES. `site/capabilities/index.html` renders the composed `headline` and the
+    superseded split's own `level_share_of_advantage` -- so a reader meets 78.7% on the page. A
+    refusal that lived only in `current_world.composition` would leave that number on the surface
+    with the correction three blocks down, which is the failure `_current_world_clause` was
+    written for, one figure along.
+
+    Fires on: computing the refusal and not composing it; or composing it without the
+    two-worlds sentence, which is the half that says the movement is not the company's doing.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    clause = gva._current_world_clause(
+        gva._current_world_contrast(current, _load(NOISE_FLOOR), _admitted_live_floor(),
+                                    superseded_split={"level_share_of_advantage": 0.7867}))
+    assert "CHANGES SIGN" in clause, (
+        "the share's refusal never reaches the sentence a reader meets")
+    assert "may not be read as the company having got better or worse" in clause
