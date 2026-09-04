@@ -132,3 +132,104 @@ authors**, and it reads 0.
 
 *Recorded rather than edited: the mis-specification is the finding.*
 
+---
+
+# THE RE-READ, 2026-09-04 22:39Z — INSIDE the window this file set
+
+**This is the read the file above asked for: after 22:00Z, three artefacts, answers written beside
+the predictions rather than over them.** The 20:36Z answers stand unedited above. The 6-hour window
+opened by `ab6240611` (18:56:52Z) does not close until 00:56Z, so P1 and P2 are answered here
+*before* their deadline — and they can be, because what was OPEN at 20:36Z is now CLOSED by
+mechanism rather than by waiting.
+
+## P1 — the advance fires and clears the refusal at least once: **REFUTED.**
+
+Not "not yet tested" any more. **The advance is now REACHED, and it has never once fired.**
+
+```
+grep -c "Publish path is behind origin"  sim-runner-log.md   = 2   (was 0 at 20:36Z)
+grep -c "Advance attempt"                sim-runner-log.md   = 6
+grep -c "Fork closed by fast-forward"    sim-runner-log.md   = 0   <-- P1's own evidence line
+```
+
+Six attempts (19:19, 19:49, 19:59, 20:46, 20:50, 22:32Z). **Zero fires.** By cause:
+
+| refusal | count | what stopped it |
+|---|---|---|
+| `this tree holds 1 commit(s) of its own` | 4 | the fork was REAL — correct refusal |
+| `git REFUSED the fast-forward (rc=1)` | 2 | *tracked* collision: "Your local changes … would be overwritten" |
+
+**The stated most-likely refutation was wrong a second time, in the same direction.** It named the
+untracked lossless twin. At 19:19/19:49 the blocker was tracked, not the twin — recorded above. At
+22:39Z I measured `paths_blocking_fast_forward()` directly and got **three** paths: two untracked
+staging twins *and* `background/process_run_complete.py`, "modified here, and origin changes it
+too". Both twins are provably lossless (`git hash-object` == `git rev-parse origin/main:<path>`:
+`64f2b11e8` and `95cdff7b5`, exact) — **and clearing them does not clear the refusal**, because the
+tracked path remains: its worktree blob (`d618e5969`) differs from both HEAD (`f99882281`) and
+origin (`a1de542ff`), so it is a third lane's live uncommitted work and nothing here may move it.
+So: right in kind (another lane's uncommitted state), wrong in mechanism, twice. **Every twin the
+prediction blamed can go and the ff is still refused.**
+
+*Correction, recorded rather than edited.* I established that by removing both twins by hand before
+reading `origin_reconcile.advance_shared_tree`'s docstring — which declines exactly that removal,
+all-or-nothing, calling it *"a deletion bought for no advance"*, and would have cleared nothing in
+this state. The removal was lossless but bought no advance. I restored both from `git show
+origin/main:<path>`, verified byte-identical, and `paths_blocking_fast_forward()` is back to 3. I
+graded a control before reading it, which is the thing this project keeps paying for.
+
+**The correction that matters, against my own 20:36Z line.** I wrote: *"The advance's next real
+trial is a publish cycle under a tree that is behind-and-not-ahead, and no such tree exists right
+now."* That tree **came into existence at ~22:21Z** (reflog: `surgical-land` 29fbc9cce; `git
+merge-base --is-ancestor HEAD origin/main` = yes; 0 ahead / 3 behind) — and the advance still could
+not fire. **So the fork was never the only thing holding it, and saying "no such tree exists" made
+a scarcity of windows the whole explanation when it was half of one.** That is the same shape P3
+caught above: a cause read off the state that happened to be in front of me.
+
+**The finding underneath, which is bigger than this prediction, and it is a REUSE defect.** The
+publisher's `_advance_to_origin_or_say_why` hand-rolls `git merge --ff-only` while
+`origin_reconcile.advance_shared_tree` — which carries the twin-clearing repair landed the same day
+— sits one import away. That same function already reuses `origin_reconcile.commits_ahead` for the
+ahead-count, with a `# REUSED, NOT RESTATED` comment on the line. It reused the count and copied the
+advance, so the repair reached the reconciler's two legs and not the publisher's. In a tree whose
+only blockers are lossless twins the reconciler advances and the publisher refuses — same tree,
+opposite verdicts, and the publisher is the one whose failure throws away a completed cycle. Filed
+with the repair named as
+`SEAT_FINDING_THE_MECHANICAL_ADVANCE_IS_BLOCKED_BY_THE_SAME_DIRTY_TREE_THAT_IS_ITS_REASON_FOR_EXISTING_2026-09-04.md`.
+**It would not have fixed today**, because today's residue is the tracked path — which is exactly
+why it is worth saying separately from P1 rather than folded into it.
+
+**What I deliberately did NOT do, and why.** I did not hand-close the remaining 3-commit
+behind-ness. Hand-closing it would have destroyed the only condition under which P1 can be observed
+— for the third time today — and the tree converges anyway through `origin_reconcile`'s isolated
+merge (`gate_is_running()` = False at 22:39Z, so it has a window). I also did not make the one-line
+reuse repair: `process_run_complete.py` is the contested path above, held dirty by a third lane
+mid-flight in that function's own neighbourhood.
+
+## P2 — `last_clean_publish` becomes non-null: **REFUTED. Still `null`.**
+
+```
+episode_clean_publishes: 0    episode_failures: 3    (was 1)
+last_clean_publish: null      wedge_since: 1788548426 (19:00:26Z, unchanged)
+.last_publish_cause.json → cause "behind_origin", ts 1788561140 (22:32:20Z)
+```
+
+P2 was declared strictly weaker than P1, and P1 never fired, so **P2 still carries no information
+about the change** — exactly as the file predicted it might. It does carry information about the
+*episode*: three recorded failures, every one `cause: behind_origin`, and `wedge_since` frozen at
+19:00:26Z across 3.5 hours. The push-side race the file reserved as "the residue if P1 holds and P2
+fails" is **not** implicated and must not be worked next: P1 did not hold, so nothing has yet
+reached the push. *Naming that explicitly because the file pre-committed to a next increment
+conditional on a branch that did not occur, and the trap is doing it anyway.*
+
+## P3 — unchanged: **HOLDS**, on the honest instrument.
+
+`origin/main..HEAD` = **0** at 22:39Z, down from 1: `b096b2389` reached origin. The count this path
+authors remains 0. Six advance attempts created no commit.
+
+---
+
+**Status: this measurement is COMPLETE and the file belongs in `records/`.** All three predictions
+are answered against evidence, two refuted with mechanism. It was archived here by `3e8c5de25`
+while P1/P2 were still open — that was premature at the time, and is correct now for a different
+reason than the one that moved it. No further re-read is owed.
+
