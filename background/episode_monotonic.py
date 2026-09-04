@@ -81,6 +81,28 @@ file is not an edge case for a just-wired field -- it is the definition of one, 
 run surfaces it" was never true of the run that mattered. `_check_proposal_is_orderable` now runs
 at the top of BOTH loops and the sentence above is finally a description of the code.
 
+...AND THE HOIST LANDED ONE STATE SHORT OF THE RUN IT NAMED (2026-09-04, fourth pass, closing the
+half a concurrent lane's fix left open -- both were in flight against the same defect and this is
+the remainder, not a re-litigation). The check went in at the top of the two LOOPS, and both loops
+sit below `if not isinstance(prev, Mapping): return out`. So:
+
+    guard_episode({},   {"t": "banana"}, since_fields=("t",))   -> RAISES     (fixed above)
+    guard_episode(None, {"t": "banana"}, since_fields=("t",))   -> {"t": "banana"}, still silent
+
+`None` was grouped with a non-Mapping prior as "a door that skips the loops entirely". It is not
+the same thing, and the difference is the one this module already turns on everywhere else:
+
+  * a prior that is not a Mapping is PRESENT AND UNREADABLE -- data the guard cannot know, and the
+    fail direction says degrade rather than crash the monitored pipeline. That door stays.
+  * `None` is ABSENT: there is no state file at all. Nothing came off disk, so nothing can be an
+    echo, and the fail direction protects nothing by staying quiet there.
+
+It is also, precisely, the run the correction above is about. `sim_runner.record_run_outcome`
+passes `previous or None` and `process_run_complete._write_publish_gate_state` passes
+`_read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None` -- so a field newly
+wired into either carrier meets this guard with `prev=None` on its first write, not with `{}`. A
+missing KEY was covered; a missing FILE was not, and the missing file is the earlier state.
+
 Pure functions only -- no I/O, no imports from the modules it guards (the census audits those).
 Used by: `process_run_complete._write_publish_gate_state`.
 """
@@ -335,8 +357,13 @@ def guard_episode(
     out = dict(new)
     if episode_closed:
         return out
+    if prev is None:
+        prev = {}                     # NO STATE FILE is the coldest start there is, not an
+                                      # unreadable prior, and it is the state both live carriers
+                                      # are in on a newly wired field's first write. Module
+                                      # docstring, fourth pass, carries the argument.
     if not isinstance(prev, Mapping):
-        return out
+        return out                    # a prior that is not even a mapping IS unreadable: degrade.
 
     for field in since_fields:
         old, proposed = prev.get(field), out.get(field)
