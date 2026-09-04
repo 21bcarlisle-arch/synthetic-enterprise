@@ -2180,3 +2180,146 @@ def test_the_commit_call_is_TIMED_on_both_paths():
 
     assert source.count("_record_commit_hook_duration(") >= 2
     assert '"timeout"' in source
+
+
+# ── the two-rooms repair runs at the COMMIT, not a cycle upstream of it ───────────────────
+#
+# THE DEFECT (2026-09-04, measured). `background_worker` runs
+# `staging_two_rooms_repair.observe()` once at the TOP of its cycle, then spends the rest of that
+# cycle inside `git_commit_push`, which routinely takes forty-five minutes. `finding_classes
+# --check` is a PRE-COMMIT gate, so the TWO ROOMS refusal is evaluated at the FAR END of that
+# interval. The window in which a duplicate can wedge a publish is therefore exactly the window in
+# which the repairer cannot get another turn.
+#
+# Live: the sweep sat clean at 12:30; two preregistrations were written into both the root and
+# `records/` at 13:01 and 13:06; the commit at the end of that same cycle was refused on them.
+# `staging_two_rooms_repair.classify` graded BOTH `redundant` -- the repair was one function call
+# away for the whole 45 minutes and structurally could not be reached. Eleven run markers queued
+# and the published figures did not move for hours.
+#
+# MUTATION SENSITIVITY (R15) -- proven by reverting the fix, not asserted:
+#   * delete the `_clear_two_rooms_before_commit()` call from `git_commit_push` ->
+#     `test_a_duplicate_written_during_the_run_is_gone_by_the_time_the_commit_runs` red.
+#   * make `_clear_two_rooms_before_commit` return without calling the repairer ->
+#     the same test red.
+#   * make `classify` return SAFE unconditionally ->
+#     `test_a_conflicting_pair_is_shouted_about_and_never_deleted` red.
+
+class TestTheTwoRoomsRepairRunsAtTheCommitRatherThanACycleEarlier:
+    """An ORDERING control: the two orders must produce DIFFERENT answers.
+
+    Asserting only that the duplicate is absent at commit time would pass just as well against a
+    fixture that never had a duplicate in it -- the reachability trap this project has entered
+    repeatedly. So the no-op leg is asserted too, and it is the leg that carries the evidence:
+    it shows the fixture CAN show the duplicate present, which is what makes the first leg mean
+    anything.
+    """
+
+    DUP = "SEAT_PREREG_A_DUPLICATE_WRITTEN_MID_RUN_2026-09-04.md"
+
+    def _wire(self, tmp_path, monkeypatch, *, root_text, records_text):
+        """A publish surface with a staging duplicate already in both rooms.
+
+        Returns (observed, logged). `observed` is appended to by the fake `git commit` and
+        records whether the ROOT copy still existed AT COMMIT TIME -- the only instant that
+        matters, because that is when the gate reads it.
+        """
+        from contextlib import nullcontext
+
+        _make_resident(tmp_path / "home", monkeypatch)
+        monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+
+        # The publish surface, so `_commit_pathspec` is non-empty and the commit is attempted.
+        (tmp_path / "docs" / "reports").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "docs" / "reports" / "ANNUAL_REPORT.md").write_text("# report\n")
+        latest = tmp_path / "docs" / "status" / "LATEST.md"
+        latest.parent.mkdir(parents=True, exist_ok=True)
+        latest.write_text("# latest\n")
+        monkeypatch.setattr(prc, "LATEST_MD", latest)
+
+        # The duplicate, in BOTH rooms. `records/` is the room a preregistration belongs in.
+        staging = tmp_path / "docs" / "staging"
+        (staging / "records").mkdir(parents=True, exist_ok=True)
+        root_copy = staging / self.DUP
+        root_copy.write_text(root_text)
+        (staging / "records" / self.DUP).write_text(records_text)
+
+        monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: nullcontext())
+        monkeypatch.setattr(prc, "_divergence_refusal", lambda *a, **k: None)
+        monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
+        monkeypatch.setattr(prc, "_record_commit_hook_duration", lambda *a, **k: None)
+        # Returns the list of reds it parsed -- `[]` is "no test was judged", which is exactly
+        # the shape a TWO ROOMS (non-test gate) refusal produces.
+        monkeypatch.setattr(prc, "_record_commit_refusal_reds", lambda *a, **k: [])
+        monkeypatch.setattr(prc, "publish_cause", MagicMock())
+
+        logged = []
+        monkeypatch.setattr(prc, "log", lambda m, *a, **k: logged.append(str(m)))
+
+        observed = []
+
+        def fake_run(argv, **kwargs):
+            if argv[:2] == ["git", "commit"]:
+                # THE OBSERVATION, taken at the instant the real gate would read the tree.
+                observed.append(root_copy.exists())
+                return type("R", (), {"returncode": 1, "stdout": "", "stderr": ""})()
+            return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+
+        monkeypatch.setattr(prc.subprocess, "run", fake_run)
+        return observed, logged
+
+    def test_a_duplicate_written_during_the_run_is_gone_by_the_time_the_commit_runs(
+            self, tmp_path, monkeypatch):
+        """The fix. The root copy is redundant, so it is cleared BEFORE the gate reads it."""
+        observed, logged = self._wire(
+            tmp_path, monkeypatch, root_text="prediction\n", records_text="prediction\n")
+
+        prc.git_commit_push("abc1234", 1000.0)
+
+        assert observed == [False], (
+            "the redundant root copy was still present when the commit ran, so the TWO ROOMS "
+            "gate would have refused this publish -- the repair did not reach the point of use")
+        assert any("Cleared 1 redundant staging duplicate" in m for m in logged), logged
+
+    def test_without_the_repair_the_same_fixture_shows_the_duplicate_PRESENT(
+            self, tmp_path, monkeypatch):
+        """THE DISCRIMINATING LEG. Without this, the test above passes on an empty fixture.
+
+        This is the state the publisher was actually in for the whole of 2026-09-04 12:30-13:19:
+        a repairable duplicate, sitting in front of a commit, with nothing between them.
+        """
+        observed, logged = self._wire(
+            tmp_path, monkeypatch, root_text="prediction\n", records_text="prediction\n")
+        monkeypatch.setattr(prc, "_clear_two_rooms_before_commit",
+                            lambda: {"repaired": [], "conflicts": []})
+
+        prc.git_commit_push("abc1234", 1000.0)
+
+        assert observed == [True], (
+            "the duplicate vanished with the repair stubbed out, so something OTHER than "
+            "`_clear_two_rooms_before_commit` is clearing it and the control above proves "
+            "nothing about this fix")
+        assert not any("Cleared" in m for m in logged), logged
+
+    def test_a_conflicting_pair_is_shouted_about_and_never_deleted(self, tmp_path, monkeypatch):
+        """Timidity is load-bearing: a root copy carrying text the other room lacks is REPORTED.
+
+        The commit is still refused -- this branch cannot fix itself -- but the log says so
+        BEFORE the refusal rather than leaving the reader to infer it from a gate banner.
+        """
+        observed, logged = self._wire(
+            tmp_path, monkeypatch,
+            root_text="prediction PLUS a correction the archive never saw\n",
+            records_text="prediction\n")
+
+        prc.git_commit_push("abc1234", 1000.0)
+
+        assert observed == [True], "a CONFLICT pair must never be deleted"
+        assert any("not safely repairable" in m for m in logged), logged
+        assert any(self.DUP in m for m in logged), "the shout must name the file"
+
+    def test_the_repair_never_takes_the_publish_down(self, tmp_path, monkeypatch):
+        """A publish must not die of its own housekeeping -- the failure being fixed is a
+        REFUSED commit, and a crashed publisher is the worse outage."""
+        monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path / "does" / "not" / "exist")
+        assert prc._clear_two_rooms_before_commit() == {"repaired": [], "conflicts": []}
