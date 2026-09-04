@@ -6,6 +6,7 @@ import importlib
 import inspect
 import json
 import os
+import re
 import subprocess
 import sys
 import types
@@ -35,6 +36,57 @@ _PIPELINE_OUTPUT_WRITERS = (
     ("simulation.publish_consumption_data", "publish_consumption", "output_path",
      "docs/market_data/consumption_feed.json"),
 )
+
+# THE SAME LEAK ONE PUBLISH STAGE FURTHER OUT (2026-09-04). Four more collaborators take their
+# destination as an OPTIONAL keyword that DEFAULTS TO None and fall back to a module constant
+# (`dest = OUT_PATH if out_path is None else out_path`). Neither registry above reaches that
+# shape: there is no attribute prc owns to re-root, and the def-time default is `None`, not a
+# path -- so the assertion in _PIPELINE_OUTPUT_WRITERS would not even have fired. The five tests
+# here that drive main()/_process() end to end were therefore rewriting four TRACKED files in the
+# real tree on every run, and `grid_intensity_feed.json` LOST 2027 of its 2314 lines each time,
+# because the regeneration runs against whatever the test environment can reach rather than the
+# record the committed file holds. A shorter feed is not an obviously-broken feed; it is a
+# plausible one, and the publish daemon commits generated site output it finds in the tree.
+# (module, function, output keyword, module constant holding the real destination, repo-relative)
+_PIPELINE_OUTPUT_FALLBACK_WRITERS = (
+    ("tools.generate_grid_intensity_feed", "generate", "out_path", "OUT_PATH",
+     "docs/market_data/grid_intensity_feed.json"),
+    ("tools.couple_value_based_pricing", "generate", "out_path", "OUT_PATH",
+     "docs/observability/value_based_pricing_arms.json"),
+    ("tools.generate_explore_carbon", "generate", "out_path", "OUT_PATH",
+     "site/data/explore_carbon.json"),
+    ("tools.fetch_weather_data", "generate_weather_data", "output_path", "WEATHER_JSON",
+     "site/data/weather.json"),
+)
+
+# Every module the publish block imports, and what makes it safe to run here. This set is
+# compared against the LIVE source of _process()/_run_weather_data() by the control below, so
+# wiring a new collaborator into the publish block reds this file until someone says which of
+# the two it is -- which is the only moment isolating it is cheap. It is a signature of the
+# publish block, not a rulebook: the reasons are read by the next person, the equality is what
+# has teeth.
+_PUBLISH_BLOCK_COLLABORATORS = {
+    "background": "staging_archive_policy -- read-only classification",
+    "background.agent_status": "isolated by _PIPELINE_OUTPUT_PATHS",
+    "background.notify": "writes only its own transitions file, under a re-rooted PROJECT_DIR",
+    "background.tree_lock": "neutralised directory-wide by _isolate_project_dir",
+    "simulation.publish_consumption_data": "isolated by _PIPELINE_OUTPUT_WRITERS",
+    "simulation.publish_market_feed": "isolated by _PIPELINE_OUTPUT_WRITERS",
+    "tools": "merge_atom_status -- folds an inbox that does not exist in the sandbox",
+    "tools.couple_value_based_pricing": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
+    "tools.fetch_weather_data": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
+    "tools.generate_explore_carbon": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
+    "tools.generate_grid_intensity_feed": "isolated by _PIPELINE_OUTPUT_FALLBACK_WRITERS",
+    "tools.generate_insights": "written through RUN_INSIGHTS_PATH/RUN_HISTORY_PATH, which prc "
+                               "owns and _isolate_project_dir re-roots",
+    "tools.revenue_sanity_check": "reads the run payload; writes nothing",
+}
+
+
+def _imported_modules(source):
+    """The module names a block of source imports. Kept a plain function so the control over it
+    can be handed a source string it built itself -- see the reachability leg below."""
+    return set(re.findall(r"^\s*from ([\w.]+) import", source, re.M))
 
 
 # A STUB THAT MODELS ONLY THE RETURN CODE IS LYING ABOUT THE REST (2026-08-09, R10 class
@@ -175,6 +227,24 @@ def _isolate_project_dir(tmp_path_factory, monkeypatch):
         assert str(default).endswith(relative), (
             "{}.{}({}=) now defaults to {!r}, not {!r} -- this fixture is no longer "
             "isolating it".format(module_name, function_name, keyword, str(default), relative)
+        )
+        target = sandbox / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(module, function_name,
+                            functools.partial(original, **{keyword: target}))
+    for module_name, function_name, keyword, constant, relative in _PIPELINE_OUTPUT_FALLBACK_WRITERS:
+        module = importlib.import_module(module_name)
+        original = getattr(module, function_name)
+        default = inspect.signature(original).parameters[keyword].default
+        assert default is None, (
+            "{}.{}({}=) now defaults to {!r}, not None -- it no longer falls back to {}, so this "
+            "fixture is redirecting the wrong thing".format(
+                module_name, function_name, keyword, default, constant)
+        )
+        current = getattr(module, constant)  # AttributeError here = renamed away, isolation lost
+        assert str(current).endswith(relative), (
+            "{}.{} now points at {!r}, not {!r} -- this fixture is no longer isolating it".format(
+                module_name, constant, str(current), relative)
         )
         target = sandbox / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -924,12 +994,102 @@ def test_pending_inboxes_folded_before_the_gate_runs():
     reconciled map, not a fork/fold-race transient (an unfolded W1_8 inbox wedged the
     gate). Structural R15 guard: merge_atom_status.merge() is invoked, and it appears
     BEFORE the run_fast_tests call in main() — revert the ordering and this fails."""
-    import inspect
-    from background import process_run_complete as prc
     src = inspect.getsource(prc._process)  # main() delegates the real pipeline to _process()
     assert "merge_atom_status" in src and ".merge()" in src, "pre-gate inbox fold missing"
     assert src.index("_mas.merge()") < src.index("run_fast_tests("), \
         "the inbox fold must run BEFORE the test gate (reconcile, then test)"
+
+
+# ── THE PUBLISH BLOCK'S COLLABORATORS MUST NOT REACH THE REAL TREE (2026-09-04) ──
+# Five tests here drive main()/_process() end to end, and for months four of the generators
+# that block calls wrote their real committed artefacts: two site feeds, the pricing-arm
+# ledger, and grid_intensity_feed.json — that last one TRUNCATED from 2314 lines to 293,
+# because the regeneration ran against whatever the test environment could reach. It refused
+# landings (promote_worktree_landing reads a tracked change outside the machine-churn
+# directories as "this landing is not the whole of what was done"), and the publish daemon
+# commits generated site output it finds in the tree, so a test-truncated feed had a route to
+# land as data with no source change beside it to make anyone look.
+#
+# _isolate_project_dir now redirects all four. The control below is about the FIFTH: per-test
+# and per-registry wiring is opt-in and invisible when omitted, which is the same objection
+# that fixture's own docstring makes about the incident before it. So the module list is
+# derived from LIVE source and compared for equality — a collaborator wired into the publish
+# block reds this file until it is declared, which is the one moment isolating it is cheap.
+
+def test_every_module_the_publish_block_imports_is_declared_here():
+    src = inspect.getsource(prc._process) + inspect.getsource(prc._run_weather_data)
+    found = _imported_modules(src)
+    undeclared = found - set(_PUBLISH_BLOCK_COLLABORATORS)
+    assert not undeclared, (
+        "the publish block imports {} and nothing here says whether it writes into the real "
+        "tree. Add it to _PUBLISH_BLOCK_COLLABORATORS: either isolate its output through one of "
+        "the three registries at the top of this file, or state why it writes nothing under the "
+        "repo root of its own accord.".format(sorted(undeclared))
+    )
+    gone = set(_PUBLISH_BLOCK_COLLABORATORS) - found
+    assert not gone, (
+        "_PUBLISH_BLOCK_COLLABORATORS still declares {}, which the publish block no longer "
+        "imports — a stale entry here is a reason nobody re-read".format(sorted(gone))
+    )
+
+
+def test_a_collaborator_declared_isolated_is_actually_in_the_registry_it_names():
+    """The declaration above and the three registries are checked AGAINST EACH OTHER, because
+    each is otherwise free to be the only thing that knows. Deleting an entry from a registry
+    would silently delete its own parametrised case below — a control that stops testing what
+    it stopped covering. Here the claim survives the deletion and reds instead."""
+    registries = {
+        "_PIPELINE_OUTPUT_PATHS": {e[0] for e in _PIPELINE_OUTPUT_PATHS},
+        "_PIPELINE_OUTPUT_WRITERS": {e[0] for e in _PIPELINE_OUTPUT_WRITERS},
+        "_PIPELINE_OUTPUT_FALLBACK_WRITERS": {e[0] for e in _PIPELINE_OUTPUT_FALLBACK_WRITERS},
+    }
+    claimed = 0
+    for module_name, reason in _PUBLISH_BLOCK_COLLABORATORS.items():
+        for registry_name, members in registries.items():
+            if registry_name in reason:
+                claimed += 1
+                assert module_name in members, (
+                    "{} is declared 'isolated by {}' and is not in it — the declaration is the "
+                    "only thing still saying its real output is redirected".format(
+                        module_name, registry_name)
+                )
+    assert claimed == sum(len(m) for m in registries.values()), (
+        "a registry entry exists that no collaborator declaration points at, so deleting it "
+        "would cost nothing"
+    )
+
+
+def test_the_declaration_control_ACTUALLY_REDS_on_an_undeclared_collaborator():
+    """Reachability leg (CONTROLS_THAT_CANNOT_FAIL): the extraction above is handed a source
+    block it did not come from, so the failing branch is shown to exist rather than assumed.
+    Without this, a regex that matched nothing would pass the control forever."""
+    assert _imported_modules("    from tools.brand_new_generator import generate\n") == {
+        "tools.brand_new_generator"}
+    assert "tools.brand_new_generator" not in _PUBLISH_BLOCK_COLLABORATORS
+
+
+@pytest.mark.parametrize(
+    "module_name,function_name,keyword,constant,relative", _PIPELINE_OUTPUT_FALLBACK_WRITERS,
+    ids=[e[4] for e in _PIPELINE_OUTPUT_FALLBACK_WRITERS])
+def test_the_optional_output_writers_are_bound_away_from_their_real_destination(
+        module_name, function_name, keyword, constant, relative):
+    """The redirection is asserted at the destination a call would actually receive, not at the
+    fixture's intent: `dest = OUT_PATH if out_path is None else out_path` means an unbound
+    keyword writes the committed artefact, so the property is that the bound value is a real
+    path and is NOT the module's own constant."""
+    module = importlib.import_module(module_name)
+    bound = getattr(module, function_name)
+    assert isinstance(bound, functools.partial), (
+        "{}.{} is not redirected — _isolate_project_dir did not reach it".format(
+            module_name, function_name))
+    destination = Path(bound.keywords[keyword])
+    real_root = Path(prc.__file__).resolve().parent.parent
+    assert destination == prc.PROJECT_DIR / relative, (
+        "redirected to {}, which is not this test's sandbox".format(destination))
+    with pytest.raises(ValueError):
+        destination.resolve().relative_to(real_root)  # i.e. it is outside the real repo
+    assert str(getattr(module, constant)).endswith(relative), (
+        "the real destination this is standing in for has moved")
 
 
 # ── SELF-VERIFYING PUSH (R15 both-ways) — the 3.5h origin-freeze incident, 2026-07-24 ──

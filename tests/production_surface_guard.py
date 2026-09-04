@@ -171,6 +171,32 @@ PROTECTED_FILES = (
     # this module's whole argument is that the caller is never where this class dies. This is the
     # sink for the same defect.
     "site/data/director_reserved.json",             # the director's reserved queue, mirrored
+    # A TEST WRITE HERE IS INDISTINGUISHABLE FROM THE DAEMON'S (2026-09-04, caught in the act,
+    # and the reason it stayed uncaught for nine days is the whole argument for listing it).
+    # `tests/background/test_process_run_complete.py` drove the real publish path in five tests,
+    # so the generator wrote this file for real. What it wrote was not corrupt and not obviously
+    # a fixture: it was EXACTLY what the live publish daemon writes on every cycle, because it is
+    # the same generator reading the same tree. There is no `abc1234`, no epoch-0 stamp, nothing
+    # in the content that says a test made it.
+    #
+    # That is what defeats the `site/data/` file-scoping reasoning here. That scoping is sound and
+    # rests on a real property — a rewritten REGENERABLE artefact costs nothing because the next
+    # generator run overwrites it anyway. But this path is not covered by the `site/data/*.json`
+    # commit glob, so it is NOT rewritten by the publisher on its way past: the committed copy is
+    # a hand-landed record, and the only thing standing between a test's write and a committed
+    # change to published data is whether a seat happens to look at a dirty tracked file.
+    #
+    # MEASURED BEFORE ADDING, to the same standard the entry above set. Six test files name this
+    # feed: five READ it (`INTENSITY_FEED`/`FEED` constants) or assert on generator SOURCE, and
+    # `tests/tools/test_grid_intensity_feed_and_explore_carbon.py` calls `generate()` with its own
+    # `out_path`. Exactly one wrote the real path, and it is now redirected at the fixture. So
+    # this protects a surface no legitimate test writes, which is what the 2026-08-10 blast-radius
+    # measurement asks of any addition here.
+    #
+    # WHY THE SINK WHEN THE CALLER WAS JUST FIXED: the fixture redirect is a registry, and a
+    # registry only covers the generators somebody enumerated. This module's whole argument is
+    # that the caller is never where this class dies.
+    "docs/market_data/grid_intensity_feed.json",    # published, and outside the publisher's glob
 )
 
 _WRITE_MODES = ("w", "a", "x", "+")

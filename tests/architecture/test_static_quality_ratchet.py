@@ -658,7 +658,15 @@ RUFF_BASELINE: dict[str, int] = {
     #             and its import block was ALREADY unsorted at clean HEAD. Attributed per-file
     #             against `git archive HEAD`: that file reported 1 I001 there and reports 0 now,
     #             and no other file in the landing moved. SHRINK-ONLY: the floor moves DOWN.
-    "I001": 1330,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
+    # 2026-09-04  I001 1330 -> 1329. `tests/background/test_process_run_complete.py` had a
+    #             FUNCTION-LOCAL `import inspect` / `from background import process_run_complete
+    #             as prc` inside `test_pending_inboxes_folded_before_the_gate_runs`, unsorted at
+    #             clean HEAD, and both names are already bound at module scope. The publish-block
+    #             isolation work deleted the block rather than sorting it, which is the stronger
+    #             remedy. Attributed per-file against a `git archive HEAD` extract: that file
+    #             reported 1 I001 there and reports 0 now, and no other file in the landing moved
+    #             (`tests/production_surface_guard.py` reported 0 in both). SHRINK-ONLY.
+    "I001": 1329,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -684,7 +692,12 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2312  # was 2313; -1 (I001) on 2026-09-04 from
+RUFF_BASELINE_TOTAL = 2311  # was 2312; -1 (I001) on 2026-09-04 from
+                            # tests/background/test_process_run_complete.py, whose function-local
+                            # import block went with the publish-block isolation repair.
+                            # Attributed per-file: 1 at `git archive HEAD`, 0 now. See the dated
+                            # I001 note.
+                            # Before that it was 2313; -1 (I001) on 2026-09-04 from
                             # tests/background/test_publish_gate_wedge_draw.py, attributed
                             # per-file: 1 at `git archive HEAD`, 0 now. See the dated I001 note.
                             # Before that it was 2315; -2 (I001) on 2026-09-02 from the two files named on the
