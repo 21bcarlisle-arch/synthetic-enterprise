@@ -109,16 +109,22 @@ def _trees(project: Path, shas: list[str]) -> dict[str, str]:
 
 
 def read_commits(project: Path | None = None, *, since_hours: float | None = None,
-                 limit: int = 40) -> list[dict]:
+                 limit: int = 40, revs: tuple[str, ...] | None = None) -> list[dict]:
     """The stretch, as rows: sha, when, author, subject, parents, and whether it CARRIES WORK.
 
     `carries_work` is None -- not False -- when a parent's tree could not be resolved (a shallow
     clone, a pruned object). A control that cannot read its subject must say so rather than report
     the reassuring answer; this project has paid for the other choice three times in one day
     (`fail_closed_on_unreadable_input`).
+
+    `revs` names what to read. It defaults to HEAD -- git's own default, and what every caller got
+    before the argument existed -- but a caller judging the BRANCH rather than its own checkout
+    must pass both sides, because a commit on `origin/main` that this checkout has not
+    fast-forwarded to is otherwise not a commit at all as far as this reader is concerned. Several
+    refs give the union reachable from any of them, de-duplicated by git.
     """
     project = project or PROJECT_DIR
-    argv = ["log", "--format=%H%x00%P%x00%ct%x00%an%x00%s", "-n", str(limit)]
+    argv = ["log", "--format=%H%x00%P%x00%ct%x00%an%x00%s", "-n", str(limit), *(revs or ())]
     if since_hours is not None:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=since_hours)
         argv.insert(1, "--since={}".format(cutoff.isoformat()))
@@ -254,7 +260,7 @@ def findings(rows: list[dict]) -> list[dict]:
 
 
 def narrative(project: Path | None = None, *, since_hours: float | None = None,
-              limit: int = 40) -> dict:
+              limit: int = 40, revs: tuple[str, ...] | None = None) -> dict:
     """The stretch and what is wrong with its shape, in the form a caller records.
 
     `quiet` and a NO_WORK finding are DELIBERATELY DIFFERENT ANSWERS. No commits at all has its own
@@ -262,7 +268,7 @@ def narrative(project: Path | None = None, *, since_hours: float | None = None,
     would make this instrument cry wolf on every idle stretch, which is how an instrument gets
     ignored before the one time it is right.
     """
-    rows = read_commits(project, since_hours=since_hours, limit=limit)
+    rows = read_commits(project, since_hours=since_hours, limit=limit, revs=revs)
     found = findings(rows)
     worked = [r for r in rows if r["carries_work"] is True]
     return {
