@@ -130,9 +130,13 @@ def build_renewal_schedule(
         # NO NEW RULE AND NO NEW CONSTANT. Same function, same seed grammar
         # (`{household}_{term_index}`, and `len(terms)` is that index because `run_phase2b`
         # counts every term this builder appends), same per-household engagement archetype and
-        # the same anchored 35% population rate. The 2022 crisis-year forcing comes along
-        # unchanged and is the reason the generated fixed share collapses that year, which is
-        # what the published record does too.
+        # the same anchored 35% population rate. The crisis forcing comes along and is the reason
+        # the generated fixed share collapses in 2022, which is what the published record does
+        # too. THAT FORCING IS NO LONGER A CALENDAR YEAR: 2026-09-04 replaced
+        # `CRISIS_PASSIVE_YEARS = {"2022"}` with `renewal_engagement.FTC_WITHDRAWAL_WINDOW`,
+        # ending 2023-06-30 on Ofgem's own "re-emergence of FTCs in the second half of 2023".
+        # A stint forced at the end of that window runs to the household's next anniversary, so
+        # the withdrawal's effect reaches into H1 2024 without anything here saying 2024.
         #
         # WHY A PASSIVE STINT IS BOUNDED BY THE ANNIVERSARY AND NOT ABSORBING. An SVT has no term
         # and this does not give it one: no notice is served, no rate is struck and no offer is

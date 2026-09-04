@@ -33,31 +33,57 @@ def test_company_event_log_entries_have_required_fields(sim_result_2017):
         assert entry["event_type"] in ("churn", "acquisition")
 
 
-def test_every_churned_account_appears_in_the_event_log(sim_result_2017):
+def test_every_churned_account_appears_in_a_departure_record(sim_result_2017):
     """Set equality BOTH WAYS between the run's two projections of one departure.
 
     This replaces `test_sim_interface_churn_notifications_match_churned_accounts`,
     which asserted the same property across a seam that no production run plumbed.
     Both sides here share a writer (`run_phase2b` books `churned_billing_accounts` and
-    the `"churned"` event eight lines apart), so this is an INTERNAL CONSISTENCY check
+    the departure record a few lines apart), so this is an INTERNAL CONSISTENCY check
     between two SIM projections and is NOT a company-vs-world reconciliation -- the
     annual report published one of those for two months and it could not fail
     (see `tests/saas/reporting/test_crm_section_cannot_mirror_itself.py`).
 
     Symmetric on purpose: the old one-sided `for cba in churned: assert cba in notified`
     could not see an event log carrying a departure the run never booked.
+
+    KEYED TO THE PROPERTY, NOT TO ONE ROUTE (re-keyed 2026-09-04, and it was RED on main
+    when this was written). It read only `company_event_log`, and it was named
+    `..._appears_in_the_event_log` after that one list. C1b (2026-08-30) added a SECOND way
+    to leave -- the SVT inertia hazard at `run_phase2b:1706` -- which books the account into
+    `churned_billing_accounts` and files its record in `svt_departures` DELIBERATELY, because
+    an SVT segment had no renewal decision and so carries none of the renewal-decision fields
+    (`churn_probability` above all, which twelve consumers index unguarded). The separation is
+    correct and `run_phase2b`'s own return states the contract: *"A reader whose subject is
+    departures unions the two."* This control's subject IS departures, so not unioning them
+    made it read a correct world as a defect: three 2017 SVT departures, every one of them
+    booked and recorded exactly as designed.
+
+    IT IS THE SAME FAILURE C1b ALREADY FIXED ONCE AND MISSED HERE.
+    `test_no_account_is_on_the_svt_product_yet` scanned the ROSTER for `tariff_type: "svt"`
+    and was re-keyed to a property because C1b assigns mid-tenure and never touches the
+    roster. One control keyed to a route was found; its sibling was not.
+
+    STILL ABLE TO FAIL, ON BOTH ROUTES AND IN BOTH DIRECTIONS. Dropping either
+    `churned_billing_accounts.add` or either record append leaves one side short and this
+    goes red. The union is not asserted non-empty per route on purpose: requiring an SVT
+    departure in this window would pin the control to today's world and go red the day the
+    hazard legitimately produces none.
     """
     result = sim_result_2017
     churned = set(result.get("churned_billing_accounts", []))
-    logged = {
+    # Both routes out of the book. A departure is recorded on exactly one of them.
+    recorded = {
         e["customer_id"] for e in result["company_event_log"]
         if e["event_type"] == "churn"
+    } | {
+        e["customer_id"] for e in result.get("svt_departures", [])
     }
     # Fail-open guard: an empty window would make the equality vacuous.
     assert churned, "truncated window produced no churn -- this test would pass vacuously"
-    assert churned == logged, (
-        f"only in churned_billing_accounts: {sorted(churned - logged)}; "
-        f"only in company_event_log: {sorted(logged - churned)}"
+    assert churned == recorded, (
+        f"only in churned_billing_accounts: {sorted(churned - recorded)}; "
+        f"only in a departure record: {sorted(recorded - churned)}"
     )
 
 

@@ -13,12 +13,15 @@ WHAT EACH TEST HERE NAMES AS ITS OWN DEFECT (CONTROLS_THAT_CANNOT_FAIL):
   * `test_svt_is_gated_out_of_the_renewal_decision` — the defect where a segment boundary is
     read as a term end, so the world offers a renewal on a tariff that has none and rolls for a
     departure at a moment no household is deciding anything.
-  * `test_no_account_is_on_the_svt_product_yet` — THE IMPORTANT ONE. An account on this product
-    cannot leave, because the renewal decision is the only place `run_phase2b` rolls a departure
-    and this product correctly has none. A book of immortal households earns more than a real
-    one, which is a move in the company's favour and is what R13 exists to stop. This test is
-    the interlock: assign an account to SVT before the inertia hazard exists and it reds, naming
-    the hazard as what is owed.
+  * `test_an_account_on_the_svt_product_can_leave_it` — THE IMPORTANT ONE, and it is the
+    interlock `test_no_account_is_on_the_svt_product_yet` used to be. An account on this product
+    cannot leave unless something gives it a hazard, because the renewal decision is the only
+    place `run_phase2b` rolls a departure and this product correctly has none. A book of immortal
+    households earns more than a real one, which is a move in the company's favour and is what
+    R13 exists to stop. The old form scanned the ROSTER for `tariff_type: "svt"` and would have
+    stayed green through C1b, which assigns mid-tenure from the household's own engagement roll
+    and never touches the roster — a control keyed to one route while the work arrived by
+    another. Re-keyed to the property; see the test's own docstring.
   * `test_the_inertia_hazard_recomposes_to_the_published_annual_rate` — the defect where a
     quarterly hazard is set to the annual figure, giving four times the intended churn. Driven
     with real numbers rather than reasoned about, per the standing rule.
@@ -50,6 +53,7 @@ from simulation.svt_product import (
     CAP_PERIOD_START_MONTHS,
     SVT_TARIFF_TYPE,
     build_svt_schedule,
+    inertia_hazard_for_term,
 )
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
@@ -150,27 +154,36 @@ def test_svt_is_gated_out_of_the_renewal_decision():
         "moment no household is deciding anything")
 
 
-def test_no_account_is_on_the_svt_product_yet():
-    """THE INTERLOCK. Nothing may be assigned to SVT until it can leave one.
+def test_an_account_on_the_svt_product_can_leave_it():
+    """THE INTERLOCK, DISCHARGED AND RE-KEYED (C1b, 2026-08-30).
 
-    An SVT account has no renewal decision -- correctly -- and the renewal decision is the only
-    place `run_phase2b` rolls a departure. So an account moved here today never churns, and a
-    book of immortal households earns more than a real one. That is a change in the company's
-    favour and R13 forbids making it blind.
+    It read `test_no_account_is_on_the_svt_product_yet` and scanned `ELEC_CUSTOMERS` for a roster
+    field, because at the time the only route onto the product was a roster declaration. C1b
+    assigns mid-tenure instead -- from the household's own engagement roll, inside
+    `build_renewal_schedule` -- so the roster still says `fixed` for every account that spends
+    most of its life on SVT. **The old control would have stayed green through exactly the change
+    it was built to interlock**, which is the fail-open shape: a scanner keyed to one route, and
+    the work arriving by another.
 
-    When this reds, the fix is NOT to delete it. The fix is the inertia hazard named in
-    `simulation/svt_product.py`, and the published fixed/SVT split printed beside the result as
-    a check. Then this test is replaced by one that asserts the generated split lands in the
-    published range.
+    Re-keyed to the PROPERTY it was always about -- an SVT segment must carry a departure hazard,
+    because the renewal decision is the only other place a departure is rolled and this product
+    correctly has none. A book of immortal households earns more than a real one, and R13 forbids
+    making that change blind.
+
+    The generated-versus-published split is the other half of what `svt_product.py` said was
+    owed; it is a printed report (`tools/svt_generated_share_check.py`) and not an assertion,
+    because a control that pinned a year's share would be keyed to today's answer.
     """
     from simulation.run_phase2b import ELEC_CUSTOMERS
 
-    on_svt = [c["customer_id"] for c in ELEC_CUSTOMERS
-              if c.get("tariff_type") == SVT_TARIFF_TYPE]
-    assert not on_svt, (
-        f"{len(on_svt)} account(s) are on the SVT product and it has no inertia hazard yet, so "
-        f"they can never leave: {on_svt[:5]}. See simulation/svt_product.py, 'what is owed "
-        f"before assignment'.")
+    segment = {
+        "customer_id": "C1", "acquisition_date": "2020-01-01", "term_end": "2020-04-01",
+        "tariff_type": SVT_TARIFF_TYPE, "notice_date": "2020-01-01",
+    }
+    assert inertia_hazard_for_term(segment, stint_start="2020-01-01") > 0.0, (
+        "an SVT segment carries no departure hazard, so an account assigned here is immortal: "
+        "the renewal decision is the only other place run_phase2b rolls a departure, and this "
+        "product correctly has none")
 
     # POPULATION FLOOR, dated 2026-08-30, measured at 150 electricity legs -- 90 won by the
     # funnel, 51 drawn by the curriculum, 9 founder, per the addendum to

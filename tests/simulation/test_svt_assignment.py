@@ -204,13 +204,18 @@ def test_an_always_active_household_never_reaches_the_svt_product(price_records)
     hash of the customer id. Such a rule would put households on SVT that the world says shopped
     every single year, and the engagement archetype would stop being the thing that decides.
 
-    2022 IS EXCLUDED FROM THE ASSERTION AND THAT IS THE POINT, NOT A LOOPHOLE:
-    `CRISIS_PASSIVE_YEARS` forces every renewal passive because fixed deals were withdrawn, so
-    even a p=1.0 household rolls onto SVT that year. The published record does the same thing --
-    domestic fixed share fell to 10-20% -- and a control that demanded otherwise would be
-    asserting the world stay wrong.
+    THE FTC WITHDRAWAL WINDOW IS EXCLUDED FROM THE ASSERTION AND THAT IS THE POINT, NOT A
+    LOOPHOLE: `FTC_WITHDRAWAL_WINDOW` forces every renewal inside it passive because fixed deals
+    were withdrawn, so even a p=1.0 household rolls onto SVT there. The published record does the
+    same thing -- domestic fixed share fell to 10-20% -- and a control that demanded otherwise
+    would be asserting the world stay wrong.
+
+    KEYED TO THE PREDICATE, NOT TO A YEAR SET. This read `stint_start[:4] not in
+    CRISIS_PASSIVE_YEARS` until 2026-09-04, when the window gained a partial year (H1 2023). A
+    year-string test would have called that half-year's forced stints a defect -- the exclusion
+    has to follow the window's own dates or it goes red for the world becoming more faithful.
     """
-    from simulation.renewal_engagement import CRISIS_PASSIVE_YEARS
+    from simulation.renewal_engagement import ftc_withdrawn_at
 
     cid = _a_household_with(EngagementLevel.ACTIVE)
 
@@ -233,7 +238,7 @@ def test_an_always_active_household_never_reaches_the_svt_product(price_records)
         if product == SVT_TARIFF_TYPE:
             if previous != SVT_TARIFF_TYPE:
                 stint_start = term["acquisition_date"]
-            if stint_start[:4] not in CRISIS_PASSIVE_YEARS:
+            if not ftc_withdrawn_at(stint_start):
                 off_crisis_svt.append(term)
         previous = product
     assert not off_crisis_svt, (
@@ -383,8 +388,10 @@ def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_record
     claim a reader of the anchor actually needs, and the register above it therefore carried a
     false locator for two days with every leg green.
 
-    KEYED TO `CRISIS_PASSIVE_YEARS`, NOT TO 2022. Adding a crisis year brings it into the subject;
-    emptying the set empties the subject and the floor below fails rather than passing quietly.
+    KEYED TO `FTC_WITHDRAWAL_WINDOW`, NOT TO 2022. Widening the window brings more boundaries into
+    the subject; emptying it empties the subject and the floor below fails rather than passing
+    quietly. This was keyed to `CRISIS_PASSIVE_YEARS` (a set of year strings) until 2026-09-04,
+    when the window gained a partial year and a year-string key stopped being able to express it.
 
     THE FLOOR IS LOAD-BEARING AND IS NOT THE SAME ASSERTION AS THE VERDICT. "No fixed term starts
     in a crisis year" is satisfied for free by a schedule with no crisis-year boundary at all, so
@@ -400,7 +407,7 @@ def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_record
     verdict speak.
 
     MUTATIONS (`python3 -B`), observed rather than intended:
-      * drop the `CRISIS_PASSIVE_YEARS` branch from `rolls_active_renewal` -> **1 red, this leg
+      * drop the withdrawal-window branch from `rolls_active_renewal` -> **1 red, this leg
         alone, on the VERDICT**, naming `C3@2022-12-30`, `C1@2022-12-30`, `SYN-2016-003@2022-12-30`.
         Nothing else in this file moves, which is the point: the two halves are each already held
         and only their composition is new.
@@ -415,7 +422,7 @@ def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_record
         `..._leaves_the_fixed_product_and_can_come_back` do, and they fire.
     """
     from simulation import renewals as renewals_module
-    from simulation.renewal_engagement import CRISIS_PASSIVE_YEARS
+    from simulation.renewal_engagement import FTC_WITHDRAWAL_WINDOW, ftc_withdrawn_at
 
     crisis_fixed_starts: list[str] = []
     crisis_boundaries: list[str] = []
@@ -437,10 +444,10 @@ def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_record
         for term in schedule:
             product = term.get("tariff_type") or "fixed"
             start = term["acquisition_date"]
-            if start[:4] in CRISIS_PASSIVE_YEARS:
+            if ftc_withdrawn_at(start):
                 crisis_boundaries.append(start)
             if product == "fixed":
-                if start[:4] in CRISIS_PASSIVE_YEARS:
+                if ftc_withdrawn_at(start):
                     crisis_fixed_starts.append(f"{cid}@{start}")
                 else:
                     off_crisis_fixed += 1
@@ -448,7 +455,7 @@ def test_no_household_can_reach_a_renewal_decision_in_a_crisis_year(price_record
 
     assert checked, "no roster household reached this control; its PASS means nothing"
     assert crisis_boundaries, (
-        f"no term of ANY product starts in {sorted(CRISIS_PASSIVE_YEARS)} across {checked} "
+        f"no term of ANY product starts inside {FTC_WITHDRAWAL_WINDOW} across {checked} "
         f"households, so the world never reached a crisis-year boundary and the verdict below is "
         f"vacuous — the emptied-subject fail-open, not a pass")
     assert off_crisis_fixed, (

@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import importlib
 import os
+from datetime import timedelta
 
 import pytest
 
@@ -63,6 +64,13 @@ def _pre_cut_is_active_renewal(term_start_str, seed, active_probability=None):
     return _rnd.Random(f"active_renewal_{seed}").random() < threshold
 
 
+# 2023 IS ABSENT FROM THIS LIST AND THE ABSENCE IS NAMED, NOT SILENT. The identity claim is
+# about the KNIFE cut — that moving the physics across the wall moved no number — and it is
+# still true of every year here. It stopped being true of H1 2023 on 2026-09-04, when the world
+# replaced the 2022 calendar-year forcing with `FTC_WITHDRAWAL_WINDOW` for a published fidelity
+# reason the company's ESTIMATE has not followed. Adding "2023" here would go red, and it SHOULD:
+# pinning it would restore in the suite exactly the coupling the cut removes (R12 — drift is a
+# finding, never something the suite holds shut).
 @pytest.mark.parametrize("year", ["2016", "2019", "2022", "2025"])
 def test_the_worlds_roll_reproduces_the_pre_cut_draw(year):
     seeds = [f"C{i}_{i % 4}" for i in range(400)]
@@ -82,6 +90,70 @@ def test_the_worlds_roll_reproduces_the_pre_cut_draw_with_a_threaded_probability
 def test_crisis_years_force_every_renewal_passive_regardless_of_probability():
     for yr in world.CRISIS_PASSIVE_YEARS:
         assert world.rolls_active_renewal(f"{yr}-04-01", "C1", active_probability=1.0) is False
+
+
+def test_the_withdrawal_window_forces_both_its_endpoints_and_neither_day_outside_it():
+    """The forcing is the window's own dates, and it STOPS. Keyed to the constant, not to 2023.
+
+    THE DEFECT THIS EXISTS FOR, and it is the one that was live until 2026-09-04: the forcing was
+    `year in {"2022"}`, so it could only ever be expressed in whole calendar years. The published
+    record's own boundary is *"the re-emergence of FTCs in the second half of 2023"* -- a mid-year
+    date -- and a year-string branch is structurally unable to carry it, which is why the world sat
+    26.9% fixed in 2023 against a published 10-20%.
+
+    BOTH ENDPOINTS AND BOTH SIDES. An off-by-one at either end is a silent half-year of the wrong
+    physics and neither end is checked by the other: the low end open by a day would force a
+    boundary the record says had supply, the high end closed a day early would release one it says
+    did not. The `p=1.0` household is the sole witness -- a passive household rolls to SVT anyway,
+    so a control run on one would pass on a world with no forcing at all.
+
+    THE DAY-OUTSIDE LEGS ARE WHAT MAKE IT NON-VACUOUS. Without them "forced" would be satisfied by
+    a function that returns False always, which is exactly the mutation the C1b composition leg in
+    `test_svt_assignment.py` catches from the other side.
+    """
+    lo, hi = world.FTC_WITHDRAWAL_WINDOW
+    assert lo < hi, "the window is inverted, so `lo <= d <= hi` is empty and forces nothing"
+
+    for edge in (lo, hi):
+        assert world.rolls_active_renewal(edge.isoformat(), "C1", active_probability=1.0) is False, (
+            f"{edge} is inside the withdrawal window and a household with nowhere to fix was "
+            f"allowed an active renewal")
+
+    for outside in (lo - timedelta(days=1), hi + timedelta(days=1)):
+        assert world.ftc_withdrawn_at(outside.isoformat()) is False, (
+            f"{outside} is outside the window and the forcing did not stop; a window that never "
+            f"ends is the always-passive world, not this one")
+
+
+def test_the_fully_withdrawn_year_set_is_derived_and_omits_a_partial_year():
+    """`CRISIS_PASSIVE_YEARS` is a VIEW of the window, and a half-covered year is not in it.
+
+    THE DEFECT: leaving the year set declared beside the window as a second home for one fact.
+    They would then be free to disagree, and every control still keyed to the set would be
+    asserting a year the window no longer covers -- or missing one it does.
+
+    The partial-year leg is the load-bearing half. A derivation that rounded a part-year UP would
+    make every "no fixed term starts in a fully-withdrawn year" control demand no fixed term start
+    in H2 2023, when the record says FTCs had re-emerged by then. That control would go red for
+    the world being RIGHT.
+    """
+    lo, hi = world.FTC_WITHDRAWAL_WINDOW
+    assert world.CRISIS_PASSIVE_YEARS == world.fully_withdrawn_years()
+
+    for yr in world.CRISIS_PASSIVE_YEARS:
+        assert world.ftc_withdrawn_at(f"{yr}-01-01") and world.ftc_withdrawn_at(f"{yr}-12-31"), (
+            f"{yr} is reported fully withdrawn and one of its endpoints is outside the window")
+
+    partial = [
+        y for y in range(lo.year, hi.year + 1)
+        if not (world.ftc_withdrawn_at(f"{y}-01-01") and world.ftc_withdrawn_at(f"{y}-12-31"))
+    ]
+    assert partial, (
+        "the window covers only whole calendar years, so this control cannot tell a derived set "
+        "from a declared one and its subject is empty")
+    for y in partial:
+        assert str(y) not in world.CRISIS_PASSIVE_YEARS, (
+            f"{y} is only partly inside the window and was reported as fully withdrawn")
 
 
 def test_the_roll_is_deterministic_for_one_customer_term():
