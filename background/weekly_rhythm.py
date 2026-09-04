@@ -52,6 +52,14 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from background.episode_prior import (
+    ABSENT,
+    READABLE,
+    UNREADABLE,
+    load_episode_prior,
+    prior_unreadable,
+)
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BATON = PROJECT_DIR / "docs" / "observability" / ".weekly_rhythm.json"
 STAGING = PROJECT_DIR / "docs" / "staging"
@@ -246,11 +254,62 @@ def _blank(step: str, due_on: date, armed_by: str) -> dict:
 
 
 def read_baton(path: Path | None = None) -> dict | None:
-    try:
-        record = json.loads((path or BATON).read_text())
-    except Exception:  # noqa: BLE001 -- an unreadable baton is rebuilt, never a finding
-        return None
-    return record if isinstance(record, dict) and record.get("step") in STEPS else None
+    """The baton, or None if there is not a usable one. Kept for callers that only need the record.
+
+    `read_baton_with_verdict` is the same read with the half this signature cannot carry: WHY the
+    answer is None. Both callers that DECIDE on it use that one.
+    """
+    return read_baton_with_verdict(path)[0]
+
+
+def read_baton_with_verdict(path: Path | None = None) -> tuple[dict | None, str]:
+    """The baton and where it came from: ABSENT (no file) or UNREADABLE (a file we cannot trust).
+
+    THESE ARE OPPOSITE FACTS AND `read_baton` COLLAPSED THEM (2026-09-04). Both returned None, and
+    `tick` answers None by BOOTSTRAPPING -- which overwrites the baton with a blank step armed for
+    the next Monday. Measured against a prior holding a step opened 2026-09-01 and three days late:
+
+        OPEN EPISODE (control)  -> FINDING   due_on=2026-09-01 days_late=3
+        missing file            -> BOOTSTRAP due_on=2026-09-07   (correct: nothing was recorded)
+        corrupt/truncated       -> BOOTSTRAP due_on=2026-09-07   (the open step is GONE)
+        null / [1, 2, 3]        -> BOOTSTRAP due_on=2026-09-07   (both parse; neither is a baton)
+
+    `due_on` is an episode start and `days_late` is the severity read off it, so an unreadable
+    baton moved the start FORWARD and reset the lateness to zero -- the 2026-08-09 self-clearing
+    shape, and here the write also destroys the evidence it was wrong. A step nobody took and
+    nobody reported is the exact prose ritual this module replaces.
+
+    A MAPPING WITH NO USABLE STEP IS UNREADABLE, NOT ABSENT: it parsed, so a file was there, and
+    the file being there is the evidence something was written to lose.
+    """
+    state, verdict = load_episode_prior(path or BATON)
+    if verdict == ABSENT:
+        return None, ABSENT
+    if prior_unreadable(verdict) or state.get("step") not in STEPS:
+        return None, UNREADABLE
+    return state, READABLE
+
+
+def _preserve_unreadable_baton(path: Path | None = None) -> str | None:
+    """Move an unreadable baton aside so the rebuild does not destroy it. Returns where it went.
+
+    A SIDECAR AND NOT A STAGED DOCUMENT, deliberately: this module's rule is that it never files a
+    finding about itself, and the staging root is a work queue whose flow is measured. The bytes go
+    next to the baton, where whoever asks what happened to a step can still read them. Best-effort
+    -- a rebuild that cannot keep the old bytes is still better than a tick that dies -- and it
+    never overwrites an earlier preserved copy, because the FIRST loss is the one worth keeping.
+    """
+    source = Path(path or BATON)
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = source.with_name(f"{source.name}.unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            source.rename(target)
+        except OSError:
+            return None
+        return target.name
+    return None
 
 
 def write_baton(record: dict, path: Path | None = None) -> None:
@@ -445,12 +504,27 @@ def tick(now: datetime | None = None, path: Path | None = None, staging: Path | 
     """
     today = london_today(now)
     staging_dir = staging or STAGING
-    record = read_baton(path)
+    record, verdict = read_baton_with_verdict(path)
     if record is None:
+        # ABSENT and UNREADABLE both rebuild -- the rhythm must keep running, and this module's
+        # own rule is that it never mints a document about itself. But they are not the same news,
+        # and the difference has to survive somewhere a reader will reach. It cannot be the return
+        # value alone: `daily_self_note` calls `tick()` as a passenger, discards what it returns
+        # and swallows what it raises, so a report that lives only there reaches nobody. So the
+        # flag goes ON THE REBUILT BATON, where `--status` prints it, and the bytes we could not
+        # read are kept beside it rather than overwritten. "We cannot tell" is a result.
         record = _blank(MONDAY_STEP, next_weekday_after(today - timedelta(days=1), MONDAY),
                         "bootstrap")
+        kept = _preserve_unreadable_baton(path) if prior_unreadable(verdict) else None
+        if kept is not None:
+            record["prior_unreadable"] = True
+            record["prior_bytes_kept_at"] = kept
         write_baton(record, path)
-        return {"action": "BOOTSTRAP", "step": record["step"], "due_on": record["due_on"]}
+        out = {"action": "BOOTSTRAP", "step": record["step"], "due_on": record["due_on"]}
+        if kept is not None:
+            out["prior_unreadable"] = True
+            out["prior_bytes_kept_at"] = kept
+        return out
 
     step, due_on = record["step"], date.fromisoformat(record["due_on"])
     if record.get("closed_at"):

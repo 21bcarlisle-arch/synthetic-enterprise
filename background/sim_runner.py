@@ -187,7 +187,7 @@ from background.child_diagnostics import (  # noqa: E402
     stderr_tail,
 )
 from background.episode_monotonic import guard_episode, recorded_instant_seconds  # noqa: E402
-from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
+from background.episode_prior import ABSENT, load_episode_prior, prior_unreadable  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 
@@ -674,23 +674,33 @@ def pause_owed_from_a_previous_process(*, now=None, path=None) -> tuple[float, s
     those are not symmetric. The clamp below is the same argument applied to the upper end -- a
     far-future deadline (a clock step, a hand edit, a half-written file) can delay one run by at
     most one whole pause, never park the producer indefinitely.
-    """
-    import json
 
+    "IN EVERY DIRECTION" WAS FALSE FOR TWO OF THEM UNTIL 2026-09-04, and the reason it was false is
+    the reason this file had no census row: the parse was hand-rolled here. `json.loads` ACCEPTS
+    `null` and `[1, 2, 3]`, a list is truthy, so `(raw or {}).get(...)` reached `.get` on a list
+    and raised `AttributeError`. That call is the FIRST statement of `main()` and is outside every
+    `try` in this module, so a one-line non-mapping in this file did not cost one early run -- it
+    stopped the producer daemon from starting at all. Measured across the partition, before:
+
+        missing file      -> (0.0, 'no deadline was recorded by a previous process')
+        corrupt/truncated -> (0.0, 'the recorded deadline file is not readable JSON')
+        [1, 2, 3]         -> AttributeError: 'list' object has no attribute 'get'
+        present, unreadable (a directory, a permission error)
+                          -> (0.0, 'no deadline was recorded by a previous process')   <- FALSE
+
+    The last one is the conflation this sweep is about, and it is in the sentence an operator
+    reads. The decision is genuinely the same for both -- that asymmetry argument stands -- but a
+    present file reported as "no deadline was recorded" tells them the cadence file is missing when
+    it is sitting there unreadable. Same answer, and now actually separate reasons.
+    """
     p = Path(path) if path is not None else NEXT_RUN_FILE
     when = time.time() if now is None else now
-    # A MISSING file and a CORRUPT one are the same decision and DIFFERENT news: the first is
-    # the ordinary cold start, the second means something wrote garbage where the cadence lives
-    # and is worth seeing in the log. Same answer, separate reasons.
-    try:
-        text = p.read_text()
-    except OSError:
+    state, verdict = load_episode_prior(p)
+    if verdict == ABSENT:
         return 0.0, "no deadline was recorded by a previous process"
-    try:
-        raw = json.loads(text)
-    except ValueError:
-        return 0.0, "the recorded deadline file is not readable JSON"
-    deadline = recorded_instant_seconds((raw or {}).get("next_run_not_before"))
+    if prior_unreadable(verdict):
+        return 0.0, "the recorded deadline file is present and cannot be read"
+    deadline = recorded_instant_seconds(state.get("next_run_not_before"))
     if deadline is None:
         return 0.0, "the recorded deadline is not an instant"
     owed = deadline - when

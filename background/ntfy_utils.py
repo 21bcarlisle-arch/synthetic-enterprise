@@ -124,12 +124,25 @@ def record_sent_id(msg_id: str) -> None:
     with open(lock_path, "w") as lock_f:
         fcntl.flock(lock_f, fcntl.LOCK_EX)
         try:
+            # ABSENT AND UNREADABLE ARE OPPOSITE FACTS HERE, AND THIS TREATED THEM AS ONE
+            # (2026-09-04). No file means nothing was ever sent, so starting a fresh list is
+            # right. An unreadable file means ids WERE recorded and cannot be read -- and
+            # `ids = []` then wrote a ONE-ENTRY list over them, destroying the only record that
+            # our own outbound was ours. Measured, against a prior of three sent ids: truncated,
+            # empty and a mapping all left `['id_new']` and turned `was_sent_by_us('id1')` False.
+            # That is the echo-loop this file exists to prevent, and the flock above only ever
+            # protected against a race losing ONE id. `null` and `{"a": 1}` were worse: they
+            # PARSE, so `ids.append` raised AttributeError inside the lock, on the send path.
             ids: list[str] = []
             if SENT_IDS_FILE.is_file():
                 try:
-                    ids = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-                except json.JSONDecodeError:
-                    ids = []
+                    loaded = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, ValueError):
+                    loaded = None
+                if isinstance(loaded, list) and all(isinstance(i, str) for i in loaded):
+                    ids = loaded
+                else:
+                    _preserve_unreadable_sent_ids()
             ids.append(msg_id)
             ids = ids[-MAX_SENT_IDS:]
             tmp_path = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + ".tmp")
@@ -139,13 +152,62 @@ def record_sent_id(msg_id: str) -> None:
             fcntl.flock(lock_f, fcntl.LOCK_UN)
 
 
+def _preserve_unreadable_sent_ids() -> str | None:
+    """Move an unreadable sent-ids file aside so the rebuild cannot destroy it. Where it went.
+
+    Called with the flock already held. Never overwrites an earlier preserved copy -- the FIRST
+    loss is the one that still has the ids in it -- and it is best-effort, because a send that
+    cannot keep the old bytes is still better than a send that does not go.
+    """
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + f".unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            SENT_IDS_FILE.replace(target)
+        except OSError:
+            return None
+        return target.name
+    return None
+
+
+def sent_ids_unreadable() -> bool:
+    """True when the sent-ids file EXISTS and cannot be trusted -- i.e. we cannot tell whose a
+    message is. Named rather than inlined so a caller that wants to fail closed can ask, and so
+    the question is greppable. See `was_sent_by_us` for the judgement that is still open."""
+    if not SENT_IDS_FILE.is_file():
+        return False
+    try:
+        loaded = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, ValueError):
+        return True
+    return not (isinstance(loaded, list) and all(isinstance(i, str) for i in loaded))
+
+
 def was_sent_by_us(msg_id: str | None) -> bool:
-    """True if `msg_id` was recorded by a prior `send_ntfy()` call."""
+    """True if `msg_id` was recorded by a prior `send_ntfy()` call.
+
+    THE ANSWER FOR AN UNREADABLE FILE IS UNCHANGED AND THE JUDGEMENT IS OPEN, stated here rather
+    than buried: absent and unreadable both give False, and the two are NOT the same fact. Absent
+    means nothing was ever sent, so False is simply true. Unreadable means we cannot tell whose a
+    message is, and False there says "not ours" -- which is how `ntfy_responder` comes to capture
+    our own outbound as INBOUND and stage a bogus `from_rich`, a message carrying the director's
+    authority that he never sent. The other answer is no better by default: True would suppress a
+    real message from him. Which way this should fail is a per-control decision about the RESPONDER,
+    not a detail of this loader, so it is handed off with the measurement rather than guessed here.
+    `sent_ids_unreadable()` makes the third state askable in the meantime.
+
+    What IS fixed: a non-list prior no longer decides this by accident. `json.loads` accepts
+    `"abc"`, and `msg_id in "abc"` is a SUBSTRING test, so a corrupt file could answer True for an
+    id nobody sent; `null` raised TypeError on the `in`; a mapping tested its keys.
+    """
     if not msg_id or not SENT_IDS_FILE.is_file():
         return False
     try:
         ids = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, ValueError):
+        return False
+    if not isinstance(ids, list):
         return False
     return msg_id in ids
 

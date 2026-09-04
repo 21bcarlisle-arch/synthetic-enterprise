@@ -68,7 +68,9 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Mapping
 
+from background.episode_prior import ABSENT, READABLE, UNREADABLE, prior_unreadable
 from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -142,12 +144,37 @@ def _load(path: Path | None = None) -> list[dict]:
     `delivery_lane.draw` documents that a lane which can throw takes every other lane down with it.
     An unreadable continuation store must cost the seat its handoff, never the machine its tick.
     """
+    return _load_with_verdict(path)[0]
+
+
+def _load_with_verdict(path: Path | None = None) -> tuple[list[dict], str]:
+    """The entries, and whether the store was ABSENT, READABLE or present-but-UNREADABLE.
+
+    THE READER DEGRADING TO `[]` IS RIGHT AND IS NOT WHAT WAS WRONG (2026-09-04). What was wrong is
+    that `[]` was the whole answer, so `hand_off` -- which is `_load()`, append, `_save()` -- could
+    not tell "nothing was ever handed over" from "I could not read what was handed over", and
+    wrote a one-entry store over the second. Measured against a prior holding two live entries:
+
+        LIVE PRIOR (control)  -> _load=2 live=2  after hand_off: ['alpha', 'beta', 'gamma']
+        missing file          -> _load=0 live=0  after hand_off: ['gamma']   (correct)
+        corrupt / null        -> _load=0 live=0  after hand_off: ['gamma']   (two DESTROYED)
+        [1, 2, 3]             -> AttributeError: 'int' object has no attribute 'get'
+
+    THE LAST LINE IS THIS FILE'S OWN `isinstance` CHECK BEING TOO SHALLOW: a JSON list of
+    non-mappings IS a list, so it passed, and `live()` then called `.get` on an int. A store is a
+    list OF MAPPINGS or it is unreadable, and checking only the outer type is what let a shape the
+    module cannot use through as if it were data.
+    """
     store = path or STORE
     try:
         raw = json.loads(store.read_text())
+    except FileNotFoundError:
+        return [], ABSENT
     except (OSError, ValueError):
-        return []
-    return raw if isinstance(raw, list) else []
+        return [], UNREADABLE
+    if not isinstance(raw, list) or not all(isinstance(i, Mapping) for i in raw):
+        return [], UNREADABLE
+    return [dict(i) for i in raw], READABLE
 
 
 def _save(items: list[dict], path: Path | None = None) -> None:
@@ -158,6 +185,27 @@ def _save(items: list[dict], path: Path | None = None) -> None:
     store = guard_live_ledger_write(path or STORE, writer="seat_continuation._save")
     store.parent.mkdir(parents=True, exist_ok=True)
     store.write_text(json.dumps(items, indent=1) + "\n")
+
+
+def _preserve_unreadable_store(path: Path | None = None) -> str | None:
+    """Move an unreadable store aside so the next hand-off does not write over it. Where it went.
+
+    Through `guard_live_ledger_write` for the same reason `_save` is: renaming the live store is a
+    write to it, and a test process must not do that to the real one. Never overwrites an earlier
+    preserved copy -- the FIRST loss is the one that still has the entries in it -- and it is
+    best-effort, because a hand-off that cannot keep the old bytes is still better than no hand-off.
+    """
+    store = guard_live_ledger_write(path or STORE, writer="seat_continuation._preserve")
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = store.with_name(f"{store.name}.unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            store.rename(target)
+        except OSError:
+            return None
+        return target.name
+    return None
 
 
 def _superseded_ids(items: list[dict]) -> set[str]:
@@ -230,7 +278,17 @@ def hand_off(
         supersedes = [supersedes]
     retires = [str(i) for i in supersedes if str(i).strip()]
     stamped = time.time() if now is None else now
-    loaded = _load(path)
+    loaded, verdict = _load_with_verdict(path)
+    if prior_unreadable(verdict):
+        # THE WRITE IS WHERE ABSENT AND UNREADABLE STOP BEING THE SAME DECISION. `_load` is right
+        # to hand a reader `[]` either way; what it must not do is let this function write that
+        # `[]` back. Over nothing, one entry is the store. Over a store we could not parse, one
+        # entry DESTROYS however many live continuations were in it -- and this is the only copy.
+        # So the bytes are moved aside first and the handoff still records: the seat keeps its
+        # hand-off, nothing is deleted, and where it went is on the entry.
+        kept = _preserve_unreadable_store(path)
+        if kept is not None:
+            fields["prior_store_unreadable_kept_at"] = kept
     items = [i for i in loaded if i.get("id") != work_id]
     # A RE-STAMP INHERITS WHAT THE ENTRY IT REPLACES RETIRED (2026-09-03).
     # `_superseded_ids` says "once superseded, always superseded", but it derives that fact from the
