@@ -132,6 +132,7 @@ INSTRUCTION_STALE_SECONDS = 48 * 3600
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.episode_prior import READABLE, load_list_prior, prior_unreadable  # noqa: E402
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the staging
 # watcher NO LONGER types a wake into the live 'claude' pane. Keystroke
@@ -187,15 +188,62 @@ def current_files() -> set[str]:
             if p.is_file() and p.name not in IGNORED_NAMES and not _is_artifact(p.name)}
 
 
-def load_seen() -> set[str]:
-    if STATE_FILE.exists():
-        return set(json.loads(STATE_FILE.read_text()))
-    return None
+def load_seen() -> tuple[set[str] | None, str]:
+    """`(seen, verdict)`. `None` means COLD START -- seed and notify nothing. See `main`.
+
+    THIS RAISED ON THREE MEMBERS OF THE PARTITION AND `main()` CALLS IT FIRST (2026-09-04 sweep).
+    Measured before the repair, against a live prior of two filenames:
+
+        missing file      -> None                  cold start, correct
+        empty file        -> !! JSONDecodeError     watcher cannot start
+        truncated         -> !! JSONDecodeError     watcher cannot start
+        json null         -> !! TypeError           watcher cannot start
+        [1, 2, 3]         -> {1, 2, 3}              resumes; every real name reads as NEW
+        ["x", 2]          -> {'x', 2}               resumes; every real name reads as NEW
+        {"other": 1}      -> {'other'}              resumes; every real name reads as NEW
+
+    There was no `try` at all, so a half-written state file killed the daemon silently at startup
+    and the only symptom was staging going quiet -- which is indistinguishable from an empty queue.
+    The three that did NOT raise are worse in a quieter way: `files - seen` then makes the entire
+    staging backlog "new" and notifies all of it, which is the exact harm the cold-start seed
+    branch was written to prevent.
+
+    UNREADABLE TAKES THE COLD-START ACTION AND IS NOT THE COLD-START ANSWER, and the difference is
+    the point. Seeding is right for both -- a lost seen-set cannot tell us which files we already
+    announced, and announcing the backlog is the loud failure -- but ABSENT is a normal first run
+    and UNREADABLE is state that existed and was destroyed. So the verdict comes back separately,
+    `main` logs and alarms on it, and the bytes are preserved rather than overwritten by the
+    reseed. Returning one value for both is how this stops being noticeable.
+    """
+    seen, verdict = load_list_prior(STATE_FILE)
+    if verdict == READABLE:
+        return set(seen), verdict
+    return None, verdict
 
 
 def save_seen(seen: set[str]) -> None:
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(sorted(seen)))
+
+
+def _preserve_unreadable_seen() -> str | None:
+    """Move an unreadable seen-set aside so the reseed cannot destroy it. Where it went.
+
+    Same shape as `ntfy_utils._preserve_unreadable_sent_ids`, and never overwrites an earlier
+    preserved copy -- the FIRST loss is the one that still has the filenames in it. Best-effort:
+    a watcher that cannot keep the old bytes must still start, because a watcher that refuses to
+    start is the failure this whole repair is about.
+    """
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = STATE_FILE.with_name(STATE_FILE.name + f".unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            STATE_FILE.replace(target)
+        except OSError:
+            return None
+        return target.name
+    return None
 
 
 def _run(cmd: list[str], timeout: int = 30) -> tuple[int, str, str]:
@@ -703,13 +751,33 @@ def check_once(seen: set[str]) -> set[str]:
 
 
 def main() -> None:
-    seen = load_seen()
+    seen, verdict = load_seen()
     if seen is None:
-        # First run: seed with whatever\'s already there so we don\'t notify
+        # PRESERVE BEFORE RESEEDING. The reseed's save_seen() would write the whole set over the
+        # file, so on UNREADABLE the only copy of what we had already announced is destroyed by
+        # the recovery itself -- and then nothing can ever say whether the backlog was announced.
+        preserved = _preserve_unreadable_seen() if prior_unreadable(verdict) else None
+        # First run: seed with whatever's already there so we don't notify
         # about a backlog that predates the watcher.
         seen = current_files()
         save_seen(seen)
-        log(f"Staging watcher started — seeded with {len(seen)} existing file(s), no notification sent for these")
+        if prior_unreadable(verdict):
+            # Said on the surface, not in a footnote: this is a LOSS, not a first run. Everything
+            # already in staging is now marked announced whether or not it ever was.
+            log(f"Staging watcher started — the seen-set was PRESENT AND UNREADABLE, so "
+                f"{len(seen)} existing file(s) have been reseeded as already-announced and any "
+                f"un-announced file among them will never be notified. Old bytes kept at "
+                f"{preserved or '(could not be preserved)'}.")
+            notify(
+                f"[STAGING WATCHER] The seen-set state file was unreadable at startup. Reseeded "
+                f"from the {len(seen)} file(s) now in docs/staging/; anything staged but not yet "
+                f"announced will not be notified. Old bytes: {preserved or 'not preserved'}. "
+                f"Poll docs/staging/ directly rather than waiting to be told.",
+                kind="real_alarm",
+                headers={"X-Priority": "4", "X-Tags": "rotating_light"},
+            )
+        else:
+            log(f"Staging watcher started — seeded with {len(seen)} existing file(s), no notification sent for these")
     else:
         log("Staging watcher started — resuming from saved state")
 

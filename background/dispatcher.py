@@ -59,6 +59,7 @@ OLLAMA_MODEL = "qwen3:14b"
 sys.path.insert(0, str(PROJECT_DIR))
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the dispatcher
 # NO LONGER types URGENT messages into the live 'claude' pane. Keystroke
@@ -82,18 +83,56 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def _load_seen() -> dict[str, str]:
-    if _SEEN_FILE.exists():
-        try:
-            return json.loads(_SEEN_FILE.read_text())
-        except (json.JSONDecodeError, Exception):
-            pass
-    return {}
+def _load_seen() -> tuple[dict[str, str], str]:
+    """`(seen, verdict)` over the classification memory. See `background/episode_prior.py`.
+
+    MEASURED 2026-09-04, against a live prior of two classified filenames. The old body was
+    `json.loads` under `except (json.JSONDecodeError, Exception)` -- which is just
+    `except Exception` -- returning `{}` on the way out:
+
+        missing file      -> {}                    correct
+        empty file        -> {}                    every classification lost
+        truncated         -> {}                    every classification lost
+        json null         -> None                  from a function annotated -> dict[str, str]
+        [1, 2, 3]         -> [1, 2, 3]             likewise, a list
+        ["x", 2]          -> ['x', 2]              likewise
+        {"other": 1}      -> {'other': 1}          a mapping that is not this record
+
+    `null` and the two lists PARSE, so the except-clause never saw them, and the next thing the
+    caller does is `seen[path.name] = classification` -- TypeError on a list, and the `.get`
+    paths raise AttributeError on None. The dispatcher runs on every staged file.
+
+    The `{}` rows are the destructive half and the reason this carrier was ranked first: this is
+    a read-modify-write, so `{}` is not merely a lost suppression -- the very next `_save_seen`
+    writes that `{}` back over the file. Every from_rich the dispatcher had already classified
+    and routed becomes unseen, is re-classified, and is re-routed and re-notified. That is the
+    stale-from_rich re-jam the archive-on-answer mechanism in staging_watcher exists to stop,
+    arriving by a different door.
+    """
+    return load_episode_prior(_SEEN_FILE)
 
 
 def _save_seen(seen: dict[str, str]) -> None:
     _SEEN_FILE.parent.mkdir(parents=True, exist_ok=True)
     _SEEN_FILE.write_text(json.dumps(seen, indent=2))
+
+
+def _preserve_unreadable_seen() -> str | None:
+    """Move an unreadable seen-map aside before the rebuild writes over it. Where it went.
+
+    Same shape as `ntfy_utils._preserve_unreadable_sent_ids`; never overwrites an earlier copy,
+    because the FIRST loss is the one that still holds the classifications.
+    """
+    for suffix in ("", *(f".{n}" for n in range(1, 10))):
+        target = _SEEN_FILE.with_name(_SEEN_FILE.name + f".unreadable{suffix}")
+        if target.exists():
+            continue
+        try:
+            _SEEN_FILE.replace(target)
+        except OSError:
+            return None
+        return target.name
+    return None
 
 
 def _call_qwen(prompt: str, max_tokens: int = 100) -> str:
@@ -246,7 +285,16 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
 
 def main() -> None:
     log("Dispatcher started")
-    seen = _load_seen()
+    seen, verdict = _load_seen()
+    if prior_unreadable(verdict):
+        # PRESERVE BEFORE THE FIRST _save_seen, which is a whole-map overwrite and would destroy
+        # the only record of what had already been classified and routed. Said on the surface:
+        # every staged from_rich is about to be treated as new, so the director may be re-notified
+        # about messages he has already had an answer to.
+        preserved = _preserve_unreadable_seen()
+        log(f"Dispatcher started with a PRESENT AND UNREADABLE seen-map, not an absent one: "
+            f"every already-classified staged file will be re-classified and may be re-routed. "
+            f"Old bytes kept at {preserved or '(could not be preserved)'}.")
 
     while True:
         try:

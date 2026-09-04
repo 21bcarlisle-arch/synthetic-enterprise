@@ -76,11 +76,13 @@
     },
     ".dispatcher_seen.json": {
       "verdict": "benign",
-      "why": "A seen-set keyed by filename. Append-only in effect -- entries are added, never used to measure how long anything has been failing."
+      "why": "A seen-set keyed by filename. Append-only in effect -- entries are added, never used to measure how long anything has been failing.",
+      "loader": "SWEPT 2026-09-04. `_load_seen` was annotated `-> dict[str, str]` under `except (json.JSONDecodeError, Exception)` -- which is only `except Exception` -- and returned `None` for `null` and a LIST for `[1, 2, 3]`; both PARSE, so the except-clause never saw them, and the caller's next line is `seen[path.name] = classification`. The `{}` rows are the destructive half and why this row was ranked first: it is a read-modify-write, so `{}` is not a lost suppression -- the next `_save_seen` writes it back and every from_rich already classified and routed becomes unseen, is re-classified and is re-routed and re-notified. That is the stale-from_rich re-jam arriving by a different door. Repaired via `episode_prior.load_episode_prior`; `main` preserves the bytes before the first save. A mapping with unknown keys stays READABLE deliberately -- a seen-map's keys are arbitrary filenames, so there is no schema to violate. Control: tests/background/test_the_two_read_modify_write_seen_carriers.py"
     },
     ".staging_watcher_seen.json": {
       "verdict": "benign",
-      "why": "A seen-set of staged filenames. Same shape as .dispatcher_seen.json."
+      "why": "A seen-set of staged filenames. Same shape as .dispatcher_seen.json.",
+      "loader": "SWEPT 2026-09-04 and it was the worst of the read-modify-write rows. `load_seen` had NO `try` at all, and `main()` calls it as its FIRST act: an empty file, a truncated one and `null` each raised, so a half-written state file killed the watcher at startup and the only symptom was staging going quiet -- indistinguishable from an empty queue. The members that did NOT raise are quieter and worse: `[1, 2, 3]`, `[\"x\", 2]` and `{\"other\": 1}` all became a set of the wrong things and took the RESUME branch, making `files - seen` the entire staging backlog, which is the exact harm the cold-start seed branch exists to prevent. Repaired via `episode_prior.load_list_prior`. ABSENT and UNREADABLE take the same ACTION (seed, announce nothing) and are DIFFERENT ANSWERS, argued not assumed: a lost seen-set cannot say which files were already announced, and announcing the backlog is the loud failure -- so `main` alarms on UNREADABLE and preserves the bytes before the reseed overwrites them. `[]` stays READABLE; an empty RECORD is a fact, an empty FILE is not. Control: tests/background/test_the_two_read_modify_write_seen_carriers.py"
     },
     ".ntfy_responder_seen_hashes.json": {
       "verdict": "benign",
