@@ -79,16 +79,28 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from background.finding_classes import ROOM_DIRNAMES
+
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 DONE_DIR = STAGING_DIR / "done"
 
-#: The rooms that are not the root. Kept in step with `finding_classes.ARCHIVE_DIRNAME` /
-#: `PARKED_DIRNAME` -- the detector refuses on all three pairings, so a repairer that knows
-#: fewer rooms than the detector can only ever clear part of what the detector refuses on.
-ARCHIVE_DIRNAME = "done"
-PARKED_DIRNAME = "in_progress"
-OTHER_ROOMS = (ARCHIVE_DIRNAME, PARKED_DIRNAME)
+#: The rooms that are not the root, TAKEN FROM THE DETECTOR RATHER THAN RE-DECLARED.
+#:
+#: "Kept in step with `finding_classes`" is what the previous two lines said, and keeping a
+#: duplicated tuple in step by hand is what failed. `records/` landed in `finding_classes` on
+#: 2026-09-03 -- whose own comment there says "a new room is not a new room until this tuple
+#: knows about it" -- and this module's copy was not touched. On 2026-09-04 eight preregistrations
+#: sat in BOTH the root and `records/`, the detector refused every commit in the tree on them
+#: (including the publisher's, wedging the published figures for hours), and `repair()` walked
+#: the two rooms it knew, found nothing, and reported "0 duplicate(s)" -- a clean bill from the
+#: one component whose entire job is to clear that refusal.
+#:
+#: Importing removes the failure rather than re-detecting it: this can no longer know fewer rooms
+#: than the thing it exists to satisfy, whatever room is added next and by whichever hand. An
+#: ImportError is deliberately fatal here -- if the detector cannot be read, there is no refusal
+#: to clear and a repairer guessing at the room list is the defect above wearing a fallback.
+OTHER_ROOMS = tuple(ROOM_DIRNAMES)
 
 SAFE = "redundant"
 CONFLICT = "conflicts"
@@ -112,21 +124,29 @@ def duplicates(staging: Path | None = None) -> list[tuple[str, Path, Path]]:
 
 
 def unrepairable_pairings(staging: Path | None = None) -> list[str]:
-    """Names present in `done/` AND `in_progress/` but NOT in the root.
+    """Names present in TWO NON-ROOT rooms but NOT in the root.
 
-    The third pairing. There is no root copy to remove, so nothing here is deletable by a
+    The rootless pairings. There is no root copy to remove, so nothing here is deletable by a
     repairer this timid -- but the detector refuses every commit in the tree on it, so it is
     carried into `conflicts` to be shouted. Passing over it silently is what makes a repair
     report indistinguishable from a clean tree.
+
+    EVERY PAIR OF NON-ROOT ROOMS, not `done/`-vs-`in_progress/` alone. This used to name those
+    two directly, so it was blind for the same reason `OTHER_ROOMS` was: with three non-root
+    rooms there are three rootless pairings, and a hand-written one covers one of them. The
+    pairs are derived from `OTHER_ROOMS`, which is the detector's own tuple, so a room added
+    there is a room this shouts about without anyone editing this function.
     """
     root_dir = Path(staging) if staging is not None else STAGING_DIR
-    done_dir, parked_dir = root_dir / ARCHIVE_DIRNAME, root_dir / PARKED_DIRNAME
-    if not (done_dir.is_dir() and parked_dir.is_dir()):
-        return []
-    return sorted(
-        p.name for p in done_dir.glob("*.md")
-        if (parked_dir / p.name).is_file() and not (root_dir / p.name).is_file()
-    )
+    rooms = [r for r in OTHER_ROOMS if (root_dir / r).is_dir()]
+    found: set[str] = set()
+    for i, left in enumerate(rooms):
+        for right in rooms[i + 1:]:
+            found.update(
+                p.name for p in (root_dir / left).glob("*.md")
+                if (root_dir / right / p.name).is_file() and not (root_dir / p.name).is_file()
+            )
+    return sorted(found)
 
 
 def classify(root_copy: Path, archived: Path) -> str:

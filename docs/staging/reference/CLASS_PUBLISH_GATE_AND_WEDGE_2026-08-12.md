@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 58 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 59 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 58 instances
+## The 59 instances
 
 - `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md` — LATENT
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
@@ -31,6 +31,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md` — LATENT
 - `WORKER_FINDING_SEVEN_REDS_LIVE_AT_HEAD_BENEATH_A_SCOPED_GATE_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_COMMIT_GATE_SELECTS_TESTS_BUT_AN_IMPORTERROR_COSTS_THE_WHOLE_SUITE_2026-08-28.md` — LATENT
+- `WORKER_FINDING_THE_CONTROL_ON_THE_REPAIRERS_ROOM_SET_FROZE_THE_ANSWER_AND_A_NEW_ROOM_WEDGED_EVERY_COMMIT_2026-09-04.md` — LATENT
 - `WORKER_FINDING_THE_DURATION_SERIES_RECORDS_ABORTED_RUNS_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_EPISODE_CLOSES_ON_AN_EMPTY_QUEUE_THAT_CANNOT_EMPTY_2026-08-12.md` — LATENT
@@ -71,7 +72,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**333.9 recorded episode-hours** across 16 of the 58 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
+**337.9 recorded episode-hours** across 17 of the 59 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -88,6 +89,7 @@ This document supersedes the individual findings listed below, which are **archi
 - **11 hours** — `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md`: …wedge doorbell --- ## What happened The publish gate was red for ~11h on two nodes in `tests/tools/test_head_green_census.py`. The episode…
 - **10 hours** — `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md`: …) **Severity:** LATENT · **Lane:** H_harness **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`…
 - **7 hours** — `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md`: …he episode* (23:17 UTC). So: * it is **not** a cause of the observed 7-hour episode (inferred-free: the timestamps do not overlap), and * it **…
+- **4 hours** — `WORKER_FINDING_THE_CONTROL_ON_THE_REPAIRERS_ROOM_SET_FROZE_THE_ANSWER_AND_A_NEW_ROOM_WEDGED_EVERY_COMMIT_2026-09-04.md`: …worker, while draining the publish wedge that had held the site for ~4 hours with ten `run_complete_*` markers queued. Reproduced and mutation-pro…
 - **3 hours** — `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md`: …separately and is why the exhaustion loop still > closes: the drain's 3h age bound is longer than the ~80-minute fill, so restored reach > rec…
 - **3 hours** — `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md`: …**0** were older than the sweep's `STALE_HEAD_CHECKOUT_AGE_SECONDS` = 3h bound, so a live sweep still frees nothing. Measured fill rate over…
 - **2 hours** — `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md`: …ere quiet only by accident of arithmetic — they need `since_commit >= 2h` and the stall tests pin their gap at ~46 min. Latent, not isolated.…

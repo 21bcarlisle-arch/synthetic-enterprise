@@ -239,9 +239,56 @@ def test_the_repairers_room_set_matches_the_DETECTORS(tmp_path):
     """Independence, stated as the invariant that was actually violated. `finding_classes`
     decides what refuses a commit; this decides what can be cleared automatically. A repairer
     knowing fewer rooms than the detector can only ever clear part of what the detector refuses
-    on -- which is the whole finding, so it is asserted rather than left to the next reader."""
+    on -- which is the whole finding, so it is asserted rather than left to the next reader.
+
+    THIS CONTROL WAS KEYED TO TODAY'S ANSWER AND SO IT NEVER FIRED (fixed 2026-09-04). It read
+    `== {finding_classes.ARCHIVE_DIRNAME, finding_classes.PARKED_DIRNAME}` -- naming the two
+    rooms that existed the day it was written, on BOTH sides. When the detector gained
+    `records/` on 2026-09-03 the property it claims to assert became false and this stayed
+    green, because the right-hand side was a frozen literal wearing the detector's attribute
+    names. Its own docstring described the invariant correctly the whole time; only the
+    assertion was pinned. Eight preregistrations then wedged every commit in the tree, the
+    publisher included, and the repairer reported "0 duplicate(s)".
+
+    Now it reads the detector's ROOM TUPLE, so it is keyed to the property rather than to the
+    room list of the day: add a fourth room to `finding_classes.ROOM_DIRNAMES` alone and this
+    goes red, which is the one moment it needs to.
+    """
     from background import finding_classes
-    assert set(tr.OTHER_ROOMS) == {finding_classes.ARCHIVE_DIRNAME, finding_classes.PARKED_DIRNAME}
+    assert set(tr.OTHER_ROOMS) == set(finding_classes.ROOM_DIRNAMES), (
+        "the repairer walks {} while the detector refuses commits on {} -- every room the "
+        "detector knows and this does not is a refusal nothing can clear automatically".format(
+            sorted(tr.OTHER_ROOMS), sorted(finding_classes.ROOM_DIRNAMES))
+    )
+
+
+def test_MUTATION_a_duplicate_in_records_is_a_duplicate(tmp_path):
+    """THE INSTANCE THE FROZEN CONTROL ABOVE LET THROUGH, driven as its own leg.
+
+    `records/` says THIS IS NOT WORK AND NEVER WAS; the root says LIVE. Both at once is the
+    contradiction the detector refuses on, and until 2026-09-04 `duplicates()` could not see it.
+    MUTATION: pin `OTHER_ROOMS` back to ("done", "in_progress") and this fires.
+    """
+    root = tmp_path / "staging"
+    (root / "records").mkdir(parents=True)
+    (root / "done").mkdir()
+    name = "SEAT_PREREGISTRATION_X.md"
+    (root / name).write_text("the preregistration", encoding="utf-8")
+    (root / "records" / name).write_text("the preregistration", encoding="utf-8")
+    assert [n for n, _, _ in tr.duplicates(root)] == [name]
+
+
+def test_MUTATION_a_rootless_pairing_in_records_is_SHOUTED_not_missed(tmp_path):
+    """The rootless half of the same blindness. `unrepairable_pairings` named `done/` and
+    `in_progress/` directly, so a doc sitting in `records/` and `done/` with no root copy was a
+    refusal it reported as nothing. MUTATION: hard-code the pair back and this fires."""
+    root = tmp_path / "staging"
+    for room in ("records", "done", "in_progress"):
+        (root / room).mkdir(parents=True)
+    name = "SEAT_PREREGISTRATION_Y.md"
+    (root / "records" / name).write_text("x", encoding="utf-8")
+    (root / "done" / name).write_text("x", encoding="utf-8")
+    assert tr.unrepairable_pairings(root) == [name]
 
 
 def test_a_doc_in_ALL_THREE_rooms_is_repaired_ONCE(tmp_path):
