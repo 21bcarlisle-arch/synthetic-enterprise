@@ -1,6 +1,18 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery
 · **Class:** publish_gate_and_wedge
 
+> **THE REPAIR LANDED. "NOT LANDED" BELOW IS STALE AND IS KEPT AS WRITTEN, 2026-09-04 16:15Z,
+> delivery seat.** Both halves are on `origin/main`: the module change is in
+> `background/process_run_complete.py` (`episode_clean_publishes`, `last_clean_publish`,
+> `PUBLISH_GATE_STREAK_FIELDS`) and its control is the TRACKED file
+> `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py`.
+> **Do not go looking for the hunks in the shared working tree — they are not there, because they
+> were committed.** The section headed *"WHERE THE REPAIR IS — do not rebuild it"* now sends its
+> reader to an empty `git diff` and reads as if the work were lost; it is not, and the deadline red
+> that blocked it is itself discharged (that finding's own header records the control repointed,
+> 732s of room rather than 57). Corrected here, at the place it is READ, because this file is the
+> one a future seat opens.
+
 # FINDING: a clean publish inside an open episode left no trace, so a backlog read as an outage
 
 Filed 2026-09-04 by the delivery seat, working the Lane 0 direction *"the figures stopped reaching
@@ -62,6 +74,11 @@ header printed over a selection: a small lie in a diagnostic costs the reader th
 diagnostic is for.
 
 ## The repair — AUTHORED AND MUTATION-PROVEN, **NOT LANDED**
+
+> **SUPERSEDED 2026-09-04 16:15Z: it LANDED, both halves, and is at `origin/main`.** The heading and
+> the section under it are kept exactly as written, because a prediction kept beside its outcome is
+> the evidence the work was described before it was known to have survived. Everything below about
+> *where to find the uncommitted hunks* is now false — see the correction at the head of this file.
 
 **Read this before believing the section below.** The code repair is written, green, and its five
 mutations are each proven to red. It is **not in the tree**, because
