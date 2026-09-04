@@ -353,6 +353,303 @@ def intersect_spans(spans: list[list[float]]) -> dict:
     return {"intersection": [round(lo, 6), round(hi, 6)], "is_non_empty": lo <= hi}
 
 
+#: The years the rung-1 verdict fits. The constant-phi question is asked over these FIRST, because
+#: they are the set the repair is judged on, and then over every scored year so that a verdict which
+#: turns on the fitted subset cannot be mistaken for one about the whole record.
+FITTED_YEARS = (2017, 2018, 2019, 2023, 2024)
+
+#: A year excluded from the constant-phi intersection with its reason, NOT dropped. 2022 is the one
+#: stretch of this record where the market itself stopped offering the product the identity's fixed
+#: route is made of: there were no fixed deals to renew onto for most of it. Asking a constant phi
+#: to span that is asking one behavioural parameter to describe two markets, and the arithmetic
+#: agrees loudly -- at the tenure-composed band 2022's whole phi interval is NEGATIVE. It is
+#: reported in its own field, at both bands, rather than filtered out of the headline in silence.
+STRUCTURAL_BREAK_YEARS: dict[int, str] = {
+    2022: "the crisis year. Fixed-term offers were withdrawn across the market for most of it, so "
+          "the identity's fixed route -- households actively renewing onto a NEW fixed deal -- is "
+          "describing a product that was largely not for sale. A phi held constant across it is "
+          "one parameter over two markets. EXCLUDED FROM THE HEADLINE INTERSECTION AND REPORTED "
+          "SEPARATELY, with its own phi interval at both bands, so the exclusion is checkable "
+          "rather than assumed.",
+}
+
+
+def phi_span_at_a_segment_band(
+    year: int, basis: str, svt_band: tuple[float, float]
+) -> list[float] | None:
+    """The phi interval the record admits when `H_svt` may be ANYWHERE in `svt_band`, or None.
+
+    THE NO-WORLD COMPANION TO `one_phi_for_every_year`. §12 took its phi intervals at the world's
+    per-year hazard -- a POINT -- and read the empty intersection as *"a statement about the
+    world"*. That inference needs a non-empty result to have been attainable, and nothing had
+    checked whether it was. This is the same intersection with the world's hazard replaced by a
+    PUBLISHED band, so the question can be asked of the record on its own.
+
+    `phi = (R - s·H) / ((1 - s)·0.35)` is strictly DECREASING in `H` for any `s` in (0, 1), so over
+    the box its extremes sit at the band's endpoints: the low end of phi at `H = band_hi` and the
+    high end at `H = band_lo`. Enumerating the two endpoints is therefore exact and not a sample.
+    Getting that direction backwards inverts the interval into a silent always-empty, which is a
+    fail-closed that reads exactly like a finding --
+    `test_the_phi_span_widens_with_the_segment_band` holds it.
+
+    Values outside [0, 1] are returned as they fall, for the reason `phi_admitting` gives: a span
+    entirely below zero is the record REFUSING that segment band in that year, and clipping turns a
+    refusal into a boundary the reader cannot distinguish from one.
+    """
+    at_hi = phi_admitting(year, basis, svt_band[1])
+    at_lo = phi_admitting(year, basis, svt_band[0])
+    if at_hi is None or at_lo is None:
+        return None
+    return [at_hi[0], at_lo[1]]
+
+
+def whether_a_constant_phi_survives_the_record_alone() -> dict:
+    """Does the PUBLISHED record admit one constant phi? Asked with no world in it at all.
+
+    §12 handed on one question -- *"a mismatch here can live in the share series as easily as in
+    the hazard ... which of the two moves is the next question"* -- and left one premise unchecked:
+    that an empty phi intersection is *"a statement about the world"*. Both are answered here from
+    three published series and nothing else.
+
+    THREE NESTED QUESTIONS, EACH LOOSER THAN THE LAST, because the answer changes between them and
+    which one you asked is the whole verdict:
+
+    1. **A constant PAIR** -- one `H_svt` and one phi, both fixed across years. `constant_pair`
+       sweeps `H` and reports whether any value admits a common phi.
+    2. **`H_svt` free per year inside `tenure_composed`, phi constant.** The best available reading
+       of the segment, and it rests on one survey year.
+    3. **`H_svt` free per year inside `mix_free_envelope`, phi constant.** The value the segment
+       could take under ANY tenure mix. A verdict has to survive this to be about the record rather
+       than about 2018 -- which is the distinction §11 built `verdict_is_mix_dependent` for and
+       which §12's one-phi reading never applied to itself.
+
+    WHAT A NON-EMPTY INTERSECTION IS AND IS NOT. It is an interval phi COULD take if phi were
+    constant over the years intersected. The record does not supply that constancy and neither does
+    this module: `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` stays `None` and
+    `test_the_external_share_of_active_renewals_stays_a_declared_gap` keeps it there. The interval
+    is published as `conditional_interval` under an `assumption` field for exactly that reason -- an
+    interval written into a slot reads as an established figure inside a week.
+    """
+    svt = svt_segment_churn_band()
+    scored = sorted(set(published_departure_band()) & set(years_with_an_established_figure()))
+    bands = {"tenure_composed": svt["tenure_composed"], "mix_free_envelope": svt["mix_free_envelope"]}
+
+    per_year: dict[str, dict] = {}
+    for year in scored:
+        per_year[str(year)] = {
+            "band_pct": list(published_departure_band()[year]),
+            "is_a_structural_break": year in STRUCTURAL_BREAK_YEARS,
+            **{
+                basis: {
+                    band_name: phi_span_at_a_segment_band(year, basis, band)
+                    for band_name, band in bands.items()
+                }
+                for basis in BASES
+            },
+        }
+
+    headline_years = [y for y in scored if y not in STRUCTURAL_BREAK_YEARS]
+    year_sets = {
+        "fitted_years": [y for y in FITTED_YEARS if y in scored],
+        "every_scored_year": scored,
+        "every_scored_year_less_structural_breaks": headline_years,
+    }
+
+    verdicts: dict[str, dict] = {}
+    for basis in BASES:
+        by_band: dict[str, dict] = {}
+        for band_name in bands:
+            by_set: dict[str, dict] = {}
+            for set_name, years in year_sets.items():
+                spans = [per_year[str(y)][basis][band_name] for y in years]
+                result = intersect_spans(spans)
+                # The pairs that would refuse on their own. A refusal carried by ONE pair is a
+                # different fact from one that needs all seven years, and a reader given only the
+                # crossed endpoints cannot tell which they have.
+                refusing = [
+                    [a, b]
+                    for i, a in enumerate(years)
+                    for b in years[i + 1:]
+                    if not intersect_spans(
+                        [per_year[str(a)][basis][band_name], per_year[str(b)][basis][band_name]]
+                    )["is_non_empty"]
+                ]
+                by_set[set_name] = {
+                    "n_years": len(years),
+                    "years": [str(y) for y in years],
+                    **result,
+                    "minimal_refusing_pairs": refusing,
+                }
+            by_band[band_name] = by_set
+        # THE FLAG §11 BUILT AND §12 DID NOT USE. Computed per year-set, never asserted: the leg
+        # that froze it was written expecting the answer it did not get in §11 either.
+        by_band["verdict_is_mix_dependent"] = {
+            set_name: (
+                by_band["tenure_composed"][set_name]["is_non_empty"]
+                != by_band["mix_free_envelope"][set_name]["is_non_empty"]
+            )
+            for set_name in year_sets
+        }
+        verdicts[basis] = by_band
+
+    return {
+        "what_this_is":
+            "whether ONE constant phi reconciles the published departure band with the published "
+            "default-tariff share, at a published SVT segment band. THREE PUBLISHED SERIES AND NO "
+            "WORLD. The no-world companion to §12's `one_phi_for_every_year`, which took the same "
+            "intersection at the world's per-year hazard and read its emptiness as a statement "
+            "about the world.",
+        "identity": "R(y) = s(y)·H_svt(y) + (1 - s(y))·0.35·phi, with phi constant across the "
+                    "years intersected and H_svt free per year inside the named segment band.",
+        "the_assumption_that_is_not_the_records":
+            "phi CONSTANT across years. The record does not supply that and this module does not "
+            "adopt it: an intersection is what phi could be IF it were constant, and its emptiness "
+            "is equally a statement that phi moved. Which is why `EXTERNAL_SHARE_OF_ACTIVE_"
+            "RENEWALS` stays None whatever this returns.",
+        "published_segment_bands": {k: list(v) for k, v in bands.items()},
+        "year_sets": {k: [str(y) for y in v] for k, v in year_sets.items()},
+        "structural_breaks": {str(y): r for y, r in STRUCTURAL_BREAK_YEARS.items()},
+        "years_refused": _refused_years(),
+        "per_year": per_year,
+        "verdicts": verdicts,
+        "constant_pair": _whether_any_constant_pair_admits_a_common_phi(),
+    }
+
+
+#: The `H_svt` grid the constant-pair sweep runs over, and its step. 0 to 0.40 covers every value
+#: the published rows, the world's constants and the world's own required hazards can take
+#: (§9's largest is 0.334); the step is fine enough that a slack of -0.31 cannot be a grid artefact.
+_CONSTANT_PAIR_H_MAX = 0.40
+_CONSTANT_PAIR_H_STEP = 0.0001
+
+
+def _whether_any_constant_pair_admits_a_common_phi() -> dict:
+    """Is there ONE `H_svt` and ONE phi, both constant, that the record admits in every year?
+
+    The tightest of the three questions and the one that needs no segment band at all -- `H` sweeps
+    freely, so the published rows are not an input and the reading cannot inherit their weakness.
+
+    THE SLACK IS PUBLISHED, NOT JUST THE VERDICT. `widest_slack` is the largest `hi - lo` over the
+    grid, negative when every `H` refuses. A bare `False` cannot be told apart from a sweep that
+    never ran, and the MARGIN is what says whether the refusal is a rounding away from admitting.
+    """
+    out: dict[str, dict] = {}
+    for basis in BASES:
+        years = [y for y in FITTED_YEARS if default_tariff_share(y, basis) is not None]
+        admitting: list[float] = []
+        widest: tuple[float, float, float, float] | None = None
+        steps = int(round(_CONSTANT_PAIR_H_MAX / _CONSTANT_PAIR_H_STEP)) + 1
+        for i in range(steps):
+            h = round(i * _CONSTANT_PAIR_H_STEP, 6)
+            spans = [phi_admitting(y, basis, h) for y in years]
+            lo, hi = max(s[0] for s in spans), min(s[1] for s in spans)  # type: ignore[index]
+            if widest is None or (hi - lo) > widest[1]:
+                widest = (h, hi - lo, lo, hi)
+            # phi is a SHARE, so admitting also means the common interval reaches [0, 1] at all.
+            if lo <= hi and lo <= 1.0 and hi >= 0.0:
+                admitting.append(h)
+        assert widest is not None  # the grid is never empty
+        out[basis] = {
+            "years": [str(y) for y in years],
+            "h_svt_grid": [0.0, _CONSTANT_PAIR_H_MAX, _CONSTANT_PAIR_H_STEP],
+            "n_h_values_admitting_a_common_phi": len(admitting),
+            "any_constant_pair_admitted": bool(admitting),
+            "widest_slack": {
+                "at_h_svt": round(widest[0], 6),
+                "slack": round(widest[1], 6),
+                "crossed_phi_interval": [round(widest[2], 6), round(widest[3], 6)],
+            },
+        }
+    return out
+
+
+def how_much_of_the_records_move_the_share_series_can_carry() -> dict:
+    """WHICH OF THE TWO MOVES — the published share series, or behaviour. A bound, not a trend.
+
+    §12's handover. Hold `H_svt` and phi at ANY constants across a pair of years and the composed
+    departure rate moves by exactly
+
+        dV = (s2 - s1)·(H_svt - 0.35·phi)
+
+    so the share series' movement, on its own, can supply an interval of moves and no more. Put
+    that interval beside the move the record actually made. Where they do not intersect, **the
+    share series cannot have carried that step whatever the two behavioural parameters are**, and
+    the movement is behavioural. Bilinear over a box, so the corners are exact.
+
+    THE TRAP THIS READING WALKED INTO ON ITS FIRST RUN, and the reason `record_requires_a_move`
+    exists. Two of the seven pairs come out `share_can_carry = True`, and in both the record's own
+    move interval CONTAINS ZERO -- its bands are wide enough that no move is required at all, so
+    anything carries it, including nothing. Counting those as evidence that composition works would
+    be a pass branch that cannot fail. They are flagged and excluded from the denominator, and the
+    denominator is reported as what it is.
+
+    `spans_a_gap` marks 2019->2022, which is three years and not a step: 2020 and 2021 have no
+    published share and are still not interpolated.
+    """
+    svt = svt_segment_churn_band()
+    bands = {"tenure_composed": svt["tenure_composed"], "mix_free_envelope": svt["mix_free_envelope"]}
+    band_r = published_departure_band()
+    scored = sorted(set(band_r) & set(years_with_an_established_figure()))
+
+    out: dict[str, dict] = {}
+    for band_name, h_band in bands.items():
+        by_basis: dict[str, dict] = {}
+        for basis in BASES:
+            pairs: dict[str, dict] = {}
+            for y1, y2 in zip(scored, scored[1:]):
+                s1 = default_tariff_share(y1, basis)
+                s2 = default_tariff_share(y2, basis)
+                if s1 is None or s2 is None:  # pragma: no cover - scored years all have a share
+                    continue
+                r1, r2 = band_r[y1], band_r[y2]
+                record_move = [round(r2[0] - r1[1], 6), round(r2[1] - r1[0], 6)]
+                # (H_svt - 0.35·phi) over H in the segment band and phi in [0, 1].
+                k = (h_band[0] - FIXED_ACTIVE_RENEWAL_SHARE, h_band[1])
+                d_s = (s2[0] - s1[1], s2[1] - s1[0])
+                products = [100.0 * a * b for a, b in itertools.product(d_s, k)]
+                reachable = [round(min(products), 6), round(max(products), 6)]
+                requires = not (record_move[0] <= 0.0 <= record_move[1])
+                pairs[f"{y1}->{y2}"] = {
+                    "record_move_pp": record_move,
+                    "share_reachable_move_pp": reachable,
+                    "record_requires_a_move": requires,
+                    "spans_a_gap": (y2 - y1) != 1,
+                    "share_can_carry": not (
+                        reachable[1] < record_move[0] or record_move[1] < reachable[0]
+                    ),
+                }
+            judged = {
+                k: v for k, v in pairs.items()
+                if v["record_requires_a_move"] and not v["spans_a_gap"]
+            }
+            by_basis[basis] = {
+                "pairs": pairs,
+                "n_pairs_judged": len(judged),
+                "n_pairs_the_share_series_can_carry": sum(
+                    1 for v in judged.values() if v["share_can_carry"]
+                ),
+                "pairs_excluded_because_the_record_requires_no_move": [
+                    k for k, v in pairs.items() if not v["record_requires_a_move"]
+                ],
+                "pairs_excluded_because_they_span_a_gap": [
+                    k for k, v in pairs.items() if v["spans_a_gap"]
+                ],
+            }
+        out[band_name] = by_basis
+    return {
+        "what_this_is":
+            "the largest step the PUBLISHED SHARE SERIES can produce on its own, with both "
+            "behavioural parameters held at any constants, against the step the record made. "
+            "§12's handover question, answered as a bound.",
+        "identity": "dV = (s2 - s1)·(H_svt - 0.35·phi), bilinear over the box, corners exact.",
+        "why_a_denominator_is_reported":
+            "a pair whose record move interval contains zero requires no move, so `share_can_carry` "
+            "is True there for a reason that is not evidence. Those pairs are named and excluded, "
+            "and so is the one that spans the 2020-2021 gap.",
+        "by_band": out,
+    }
+
+
 def _provenance(path: Path) -> str:
     """The path a reading names as its source: repo-relative inside the tree, absolute outside it.
 
@@ -665,6 +962,13 @@ def published_route_split() -> dict:
         # replacing it: a reader who sees only the joint reading cannot tell that the mixed one was
         # ever taken, and §11's result 2 was drawn from the mixed one.
         "where_the_worlds_joint_point_falls": where_the_worlds_joint_point_falls(),
+        # §13. The two readings that need NO world, published beside the ones that do, because
+        # §12's premise -- that an empty phi intersection is a statement about the world -- can only
+        # be checked by asking the record the same question on its own.
+        "whether_a_constant_phi_survives_the_record_alone":
+            whether_a_constant_phi_survives_the_record_alone(),
+        "how_much_of_the_records_move_the_share_series_can_carry":
+            how_much_of_the_records_move_the_share_series_can_carry(),
         "how_to_regenerate": "python3 -m tools.published_route_split --write",
     }
 
@@ -748,6 +1052,67 @@ def main(argv: list[str]) -> int:
         for year_s, reason in joint["years_refused"].items():
             print(f"  JOINT REFUSED {year_s}: {reason}")
         print()
+    const = reading["whether_a_constant_phi_survives_the_record_alone"]
+    print("  DOES THE RECORD ADMIT ONE CONSTANT phi? — no world in this section at all")
+    print("  (H_svt free per year inside the named segment band; phi held constant across years.)")
+    print()
+    for basis in BASES:
+        pair = const["constant_pair"][basis]
+        print(f"  basis = {basis}")
+        for band_name in ("tenure_composed", "mix_free_envelope"):
+            band = const["published_segment_bands"][band_name]
+            print(f"    H_svt in {band[0]:.4f}–{band[1]:.4f}  ({band_name})")
+            for set_name in const["year_sets"]:
+                cell = const["verdicts"][basis][band_name][set_name]
+                lo, hi = cell["intersection"]
+                refusing = ", ".join(f"{a}/{b}" for a, b in cell["minimal_refusing_pairs"])
+                print(
+                    f"      {set_name:>42}  n={cell['n_years']}  "
+                    f"phi = [{lo:>7.4f}, {hi:>7.4f}]  "
+                    f"{'ADMITS' if cell['is_non_empty'] else 'REFUSES'}"
+                    + (f"   refused by: {refusing}" if refusing else "")
+                )
+        print(f"    a constant PAIR (one H_svt AND one phi, H swept freely): "
+              f"{'ADMITTED' if pair['any_constant_pair_admitted'] else 'REFUSED'} — "
+              f"widest slack {pair['widest_slack']['slack']:+.4f} at H_svt="
+              f"{pair['widest_slack']['at_h_svt']:.4f}")
+        mix_dep = const["verdicts"][basis]["verdict_is_mix_dependent"]
+        print(f"    verdict_is_mix_dependent: "
+              f"{ {k: v for k, v in mix_dep.items()} }")
+        print()
+    for year_s, reason in const["structural_breaks"].items():
+        row = const["per_year"][year_s]
+        print(f"  STRUCTURAL BREAK {year_s} — excluded from the headline, phi span "
+              f"{row['all_domestic']['tenure_composed']} (tenure-composed, all_domestic)")
+        print(f"    {reason.split('.')[0]}.")
+    print()
+    carry = reading["how_much_of_the_records_move_the_share_series_can_carry"]
+    print("  WHICH OF THE TWO MOVES — the published share series, or behaviour")
+    print("  (largest step the share series can supply with BOTH behavioural parameters constant.)")
+    print()
+    for band_name, by_basis in carry["by_band"].items():
+        for basis, cell in by_basis.items():
+            print(f"  {band_name} | {basis}: the share series can carry "
+                  f"{cell['n_pairs_the_share_series_can_carry']} of {cell['n_pairs_judged']} "
+                  f"pairs where the record requires a move")
+            for name, pair in cell["pairs"].items():
+                flags = " ".join(
+                    f for f, on in (
+                        ("NO-MOVE-REQUIRED", not pair["record_requires_a_move"]),
+                        ("SPANS-GAP", pair["spans_a_gap"]),
+                    ) if on
+                )
+                print(
+                    f"    {name:>12}  record [{pair['record_move_pp'][0]:>7.3f},"
+                    f"{pair['record_move_pp'][1]:>7.3f}]pp   share can reach "
+                    f"[{pair['share_reachable_move_pp'][0]:>7.3f},"
+                    f"{pair['share_reachable_move_pp'][1]:>7.3f}]pp   "
+                    f"{'carries' if pair['share_can_carry'] else 'CANNOT':>7}  {flags}"
+                )
+            print()
+    print(f"  phi is still {EXTERNAL_SHARE_OF_ACTIVE_RENEWALS}. An interval an intersection admits")
+    print("  is what phi COULD be if phi were constant; the record does not say that it is.")
+    print()
     if "--write" in argv:
         ARTEFACT.write_text(json.dumps(reading, indent=1) + "\n")
         print(f"  wrote {ARTEFACT.relative_to(PROJECT)}")

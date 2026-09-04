@@ -990,3 +990,187 @@ constraint that no constant φ can reconcile this world's SVT route with the rec
 which was already true before any repair was attempted and which nothing has yet attributed.
 
 — Delivery seat, 2026-09-04.
+
+## 13. "Empty" was not a verdict, because nobody named the tenure mix — and the share series is not what moves — 2026-09-04
+
+§12 closed owing two things. One is the φ sourcing, still owed and untouched here. The other was
+its handover question, and it came with a premise nothing had checked:
+
+> *"A mismatch here can live in the share series as easily as in the hazard … **Which of the two
+> moves is the next question**."*
+> *"φ is one behavioural quantity per year describing one market, so the per-year intervals having
+> an empty intersection is a **statement about the world**."*
+
+**Both are answered here from three published series with no world in them at all.**
+`tools.published_route_split.whether_a_constant_phi_survives_the_record_alone` and
+`…how_much_of_the_records_move_the_share_series_can_carry`, committed in
+`docs/reports/published_route_split.json`. Pre-registration:
+`SEAT_PREREGISTRATION_WHETHER_A_CONSTANT_PHI_SURVIVES_THE_PUBLISHED_RECORD_WITH_NO_WORLD_IN_IT_2026-09-04.md`,
+filed before the module existed. All six graded below.
+
+### The premise is refuted, and the reason is a flag §11 built two sections earlier
+
+Ask §12's intersection of the record on its own — `H_svt` free per year inside a **published**
+segment band, φ constant — and the answer depends entirely on which band, which is the distinction
+§11 invented `verdict_is_mix_dependent` for and which §12's one-φ reading never applied to itself.
+
+| `H_svt` free inside | as_published | all_domestic |
+|---|---|---|
+| `tenure_composed` 0.0942–0.1442 | **REFUSES** — refused by 2017/2018 and 2017/2019 alone | **REFUSES** — same two pairs |
+| `mix_free_envelope` 0.0500–0.2000 | **ADMITS** φ ∈ **[0.612, 0.770]** | **ADMITS** φ ∈ **[0.618, 0.850]** |
+
+*Seven scored years, 2022 excluded by name (below). 2020 and 2021 stay refused for want of a
+published share and are still not interpolated.*
+
+**So an empty φ intersection is not distinctive to this world** — the record's own best segment
+estimate produces one too — **and it is not forced either.** Widen `H_svt` to what the segment could
+take under any tenure mix and the record admits a constant φ over every scored year but the crisis.
+`verdict_is_mix_dependent` is **True** for the fitted set and for the headline set, and False only
+where 2022 refuses on both bands.
+
+**The whole refusal rests on one survey year.** `tenure_composed` weights the two published churn
+rows by Ofgem CES 2018's single tenure split (29% on SVT 3+ years, 23% under 3), carried across nine
+years. §11 already called that "a real weakness" and computed the mix-free companion for its own
+forward verdict. §12 then shipped a verdict with no mix companion at all. That is not a new class of
+defect in this repository — it is the VAT shape one degree weaker again: a control built, sitting in
+the same module, not applied to the next reading that needed it.
+
+### And a constant PAIR is refused outright, by a third of φ's range
+
+The tightest form of the question needs no segment band, so it cannot inherit the tenure survey's
+weakness: is there **one** `H_svt` and **one** φ, both constant, that the record admits in all five
+fitted years? Sweeping `H_svt` across [0, 0.40] at a step of 0.0001 — 4,001 points:
+
+| basis | H values admitting a common φ | widest slack | at |
+|---|---|---|---|
+| as_published | **0 of 4,001** | −0.3093 | H = 0.0685 |
+| all_domestic | **0 of 4,001** | −0.3374 | H = 0.0542 |
+
+The margin is published and not just the verdict, because a bare `False` cannot be told apart from a
+sweep that never ran. At −0.31 the record is refusing constancy in both parameters by a third of
+φ's whole range — not by a rounding.
+
+### 2022 is excluded by name, and its own numbers are published beside the exclusion
+
+Its φ interval at the tenure-composed band is **[−2.880, −0.463]**: entirely negative on both bases,
+which is the record refusing the whole published segment band there, extending §11's result 3 from
+`SVT_INERTIA_ANNUAL_RECENT = 0.20` to the band's low end as well. At the mix-free envelope it is
+**[−4.314, +0.043]** — not a refusal but a near-zero ceiling on the external share, which is what a
+market with no fixed-term offers on sale actually looks like. Excluding it is a judgement and it
+gets the discipline a judgement gets here: named in `STRUCTURAL_BREAK_YEARS` with its reason, its
+own span published in `per_year`, and a control requiring the exclusion to change some verdict —
+because a register nobody's answer turns on is one that will rot.
+
+### Which of the two moves: the share series cannot carry the record's steps
+
+Hold **both** behavioural parameters at any constants and the composed rate moves by exactly
+`dV = (s₂ − s₁)·(H_svt − 0.35φ)`. That bounds what the published share series can supply on its own.
+All-domestic, tenure-composed:
+
+| step | record moved | share series can reach | |
+|---|---|---|---|
+| 2016→2017 | −4.10 to −3.00 pp | −1.74 to +3.08 pp | **cannot** |
+| 2017→2018 | +5.50 to +6.50 pp | −0.74 to +1.30 pp | **cannot** |
+| 2018→2019 | +0.70 to +1.80 pp | −0.25 to **+0.44** pp | **cannot** |
+| 2022→2023 | +4.60 to +9.60 pp | −2.56 to +2.56 pp | **cannot** |
+| 2023→2024 | 0.00 to +7.20 pp | −1.54 to +2.56 pp | *no move required* |
+| 2024→2025 | −1.80 to +5.40 pp | −3.17 to +5.63 pp | *no move required* |
+| 2019→2022 | −18.40 to −16.40 pp | −8.48 to +4.78 pp | *spans the 2020–21 gap* |
+
+**0 of 4 judged pairs on three of the four band/basis grids, and 1 of 4 on the fourth** (mix-free ×
+as-published, 2016→2017 only). At 2018→2019 — the step §12's disjoint φ intervals turn on — the
+share series reaches at most **0.44pp of a step the record puts at 0.70–1.80pp**. **The movement is
+behavioural. It is not composition.**
+
+**A pass branch that could not fail, caught on this reading's own first run.** Two pairs came out
+`share_can_carry = True`, and in both the record's move interval *contains zero* — the published
+bands are wide enough that no move is required, so anything carries it including nothing. Counting
+those as evidence would have been a control keyed to an answer true by construction. They are
+flagged `record_requires_a_move: false`, excluded from the denominator, and the denominator is
+reported as what it is. `test_a_pair_the_record_requires_no_move_from_is_not_counted_as_carried`
+holds it, and requires such a pair to exist so the exclusion is exercised.
+
+### An interval for φ falls out of this, and it is NOT going into the constant
+
+`[0.618, 0.850]` (all-domestic) is the first published-evidence-derived interval for φ in this tree.
+It is **conditional on φ being constant across 2016–2025 excluding 2022** — an assumption the record
+does not supply and this reading does not adopt. `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is still `None`
+and `test_the_external_share_of_active_renewals_stays_a_declared_gap` still keeps it there.
+
+Worth reading beside §12 rather than instead of it: that interval sits **entirely above** §12's
+per-year joint φ intervals for 2017 [0.061, 0.100], 2018 [0.217, 0.251] and 2019 [0.110, 0.151], and
+inside 2023's and 2024's. The cause is mechanical and not a second finding — the mix-free envelope
+admits `H_svt` down to 0.05, and a lower SVT hazard needs a higher external renewal share to reach
+the same band. It is the same trade the identity has made throughout.
+
+### The pre-registration, graded, all six
+
+- **P1 — CONFIRMED, and one pair short.** The tenure-composed band refuses a constant φ over the
+  fitted years on both bases. Predicted **{2017, 2018}** as a minimal refusing pair: it is one, on
+  both bases. **{2017, 2019} is also one and I did not predict it.** The other half holds: no
+  minimal refusing pair in the fitted set involves 2022, 2023 or 2024.
+- **P2 — CONFIRMED, and unusually precisely.** Predicted the mix-free envelope would rescue
+  2017/2018, come out non-empty on `all_domestic`, land inside φ ∈ [0.55, 0.90], and be bound by
+  2019's low end and 2017's high end. It is **[0.6178, 0.8503]**, and those two years are exactly
+  the binding constraints. Predicted `as_published` would also admit, at a **lower** interval,
+  because its shares are smaller: **[0.6122, 0.7700]**, lower at both ends.
+- **P3 — SPLIT, and the refuted half is the better result.** Predicted 2022's φ interval would come
+  out entirely negative "on both bands". **CONFIRMED at `tenure_composed`** on both bases.
+  **REFUTED at `mix_free_envelope`**, where it is [−4.314, **+0.043**] — not a refusal but a ceiling
+  of a 4.3% external share. That is a more useful sentence than the one I predicted: the record does
+  not say the crisis year is impossible, it says almost nobody left a fixed deal for another
+  supplier's, which is what the crisis was.
+- **P4 — CONFIRMED on the claim, REFUTED on the years, SPLIT on the arithmetic.** The share series
+  fails to carry the record's move in 4 of 4 judged pairs on three grids and 3 of 4 on the fourth —
+  the majority claim, and stronger than predicted. **The named years are refuted:** I predicted the
+  crisis-crossing pairs (2019→2022, 2022→2023) would be the ones it *can* carry, and both are
+  `cannot` on every grid; the two that "carry" are 2023→2024 and 2024→2025 and they carry only
+  because the record requires no move at all. My reasoning was that a big move in both series would
+  let one explain the other, and it ignored that the share series' *reachable* interval scales with
+  `|Δs|` while the record's band width does not. On the numbers: predicted the share series' maximum
+  2018→2019 contribution at under 70% of the record's minimum move and under 30% of its maximum.
+  **CONFIRMED on all-domestic** (62.1% and 24.2%). **REFUTED on as-published** (73.1% and 28.4%) —
+  the first half misses by 3.1pp, and I filed one number across two bases §10 had already shown
+  differ.
+- **P5 — CONFIRMED.** φ is still `None`; the interval is published with its assumption named beside
+  it. One deviation recorded rather than glossed: I said the field would be called
+  `conditional_interval` under an `assumption` key and it is `the_assumption_that_is_not_the_records`
+  beside the intersections themselves. The commitment was the refusal and the naming, and both hold.
+- **P6 — CONFIRMED.** No constant edited, no solver aim point moved, `YEAR_LEVEL_ANCHOR` untouched,
+  `emergent_level_verdict` still six of seven outside their bands. The committed artefact's diff is
+  **insertions only** — every world-derived section in it is byte-identical, which is what a reading
+  with no world in it should do. §4's constraint 4, a ninth time.
+
+### Controls
+
+Seven legs in `tests/architecture/test_switching_rate_commons.py`, all mutation-proven on disk under
+`python3 -B` across eight mutations: the φ span's band endpoints swapped (a silent always-empty that
+reads as a finding), an intersection written down instead of derived, the structural break excluded
+without being named, the mix-dependence flag frozen, the constant-pair slack blanked, its grid
+collapsed to 40 points (which would turn a real admitting interval into a REFUSED — the flattering
+direction), the carrying denominator taken over every pair, and the sign flipped in
+`(H_svt − 0.35φ)`. Both branches of the constant-φ verdict are live in the same run — the
+tenure-composed band refuses and the mix-free envelope admits — so a frozen `is_non_empty` of either
+polarity breaks the leg, which is what §12's own first draft could not manage. The drift detector
+gains both sections.
+
+### Where this leaves the repair
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published, and rung 1
+is unmoved. What changed:
+
+> **§12's `one_phi_for_every_year` emptiness is withdrawn as evidence about this world.** It is a
+> reading whose verdict turns on a tenure mix nobody named, and at the mix-free envelope the record
+> admits a constant φ. The share series is measured out as the thing that moves. **The binding
+> unestablished quantity is still φ, and the binding weak INPUT is now the single Ofgem CES 2018
+> tenure split**, which is carried across nine years and is what separates a record that refuses
+> constancy from one that admits it.
+
+Two things owed, and they are narrower than anything this finding has asked before. First, still,
+the φ cross-tabulation from Ofgem's Consumer Impacts of Market Conditions survey — one
+cross-tabulation of one survey, unchanged from §11. Second, and new: **a second tenure split for the
+SVT segment in any year other than 2018.** One more observation of that one quantity decides whether
+the record refuses a constant φ or admits 0.62–0.85 of one, and it is the highest-leverage sourcing
+question this chain has produced.
+
+— Delivery seat, 2026-09-04.

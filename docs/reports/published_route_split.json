@@ -2166,5 +2166,1130 @@
    }
   }
  },
+ "whether_a_constant_phi_survives_the_record_alone": {
+  "what_this_is": "whether ONE constant phi reconciles the published departure band with the published default-tariff share, at a published SVT segment band. THREE PUBLISHED SERIES AND NO WORLD. The no-world companion to \u00a712's `one_phi_for_every_year`, which took the same intersection at the world's per-year hazard and read its emptiness as a statement about the world.",
+  "identity": "R(y) = s(y)\u00b7H_svt(y) + (1 - s(y))\u00b70.35\u00b7phi, with phi constant across the years intersected and H_svt free per year inside the named segment band.",
+  "the_assumption_that_is_not_the_records": "phi CONSTANT across years. The record does not supply that and this module does not adopt it: an intersection is what phi could be IF it were constant, and its emptiness is equally a statement that phi moved. Which is why `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` stays None whatever this returns.",
+  "published_segment_bands": {
+   "tenure_composed": [
+    0.094231,
+    0.144231
+   ],
+   "mix_free_envelope": [
+    0.05,
+    0.2
+   ]
+  },
+  "year_sets": {
+   "fitted_years": [
+    "2017",
+    "2018",
+    "2019",
+    "2023",
+    "2024"
+   ],
+   "every_scored_year": [
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2022",
+    "2023",
+    "2024",
+    "2025"
+   ],
+   "every_scored_year_less_structural_breaks": [
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2023",
+    "2024",
+    "2025"
+   ]
+  },
+  "structural_breaks": {
+   "2022": "the crisis year. Fixed-term offers were withdrawn across the market for most of it, so the identity's fixed route -- households actively renewing onto a NEW fixed deal -- is describing a product that was largely not for sale. A phi held constant across it is one parameter over two markets. EXCLUDED FROM THE HEADLINE INTERSECTION AND REPORTED SEPARATELY, with its own phi interval at both bands, so the exclusion is checkable rather than assumed."
+  },
+  "years_refused": {
+   "2020": "no established default-tariff share; ('2020', '2021') are declared gaps in tools.published_tariff_mix and are NOT interpolated -- the interval spans the crisis",
+   "2021": "no established default-tariff share; ('2020', '2021') are declared gaps in tools.published_tariff_mix and are NOT interpolated -- the interval spans the crisis"
+  },
+  "per_year": {
+   "2016": {
+    "band_pct": [
+     17.0,
+     17.6
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.628635,
+      1.167792
+     ],
+     "mix_free_envelope": [
+      0.241758,
+      1.527473
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.628635,
+      1.167792
+     ],
+     "mix_free_envelope": [
+      0.241758,
+      1.527473
+     ]
+    }
+   },
+   "2017": {
+    "band_pct": [
+     13.5,
+     14.0
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.347761,
+      0.588179
+     ],
+     "mix_free_envelope": [
+      0.118467,
+      0.770035
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.339532,
+      0.62898
+     ],
+     "mix_free_envelope": [
+      0.060523,
+      0.850265
+     ]
+    }
+   },
+   "2018": {
+    "band_pct": [
+     19.5,
+     20.0
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.720715,
+      0.912204
+     ],
+     "mix_free_envelope": [
+      0.541033,
+      1.054711
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.762039,
+      0.998296
+     ],
+     "mix_free_envelope": [
+      0.536964,
+      1.176805
+     ]
+    }
+   },
+   "2019": {
+    "band_pct": [
+     20.7,
+     21.3
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.778089,
+      0.991231
+     ],
+     "mix_free_envelope": [
+      0.612245,
+      1.133739
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.827709,
+      1.087905
+     ],
+     "mix_free_envelope": [
+      0.617779,
+      1.266414
+     ]
+    }
+   },
+   "2022": {
+    "band_pct": [
+     2.9,
+     4.3
+    ],
+    "is_a_structural_break": true,
+    "as_published": {
+     "tenure_composed": [
+      -2.880226,
+      -0.46264
+     ],
+     "mix_free_envelope": [
+      -4.314286,
+      0.042857
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      -2.880226,
+      -0.46264
+     ],
+     "mix_free_envelope": [
+      -4.314286,
+      0.042857
+     ]
+    }
+   },
+   "2023": {
+    "band_pct": [
+     8.9,
+     12.5
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      -1.16594,
+      1.148346
+     ],
+     "mix_free_envelope": [
+      -2.6,
+      2.285714
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      -1.16594,
+      1.148346
+     ],
+     "mix_free_envelope": [
+      -2.6,
+      2.285714
+     ]
+    }
+   },
+   "2024": {
+    "band_pct": [
+     12.5,
+     16.1
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.019619,
+      1.631864
+     ],
+     "mix_free_envelope": [
+      -0.959184,
+      2.408163
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.019619,
+      1.631864
+     ],
+     "mix_free_envelope": [
+      -0.959184,
+      2.408163
+     ]
+    }
+   },
+   "2025": {
+    "band_pct": [
+     14.3,
+     17.9
+    ],
+    "is_a_structural_break": false,
+    "as_published": {
+     "tenure_composed": [
+      0.400365,
+      1.076555
+     ],
+     "mix_free_envelope": [
+      0.028571,
+      1.371429
+     ]
+    },
+    "all_domestic": {
+     "tenure_composed": [
+      0.400365,
+      1.076555
+     ],
+     "mix_free_envelope": [
+      0.028571,
+      1.371429
+     ]
+    }
+   }
+  },
+  "verdicts": {
+   "as_published": {
+    "tenure_composed": {
+     "fitted_years": {
+      "n_years": 5,
+      "years": [
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024"
+      ],
+      "intersection": [
+       0.778089,
+       0.588179
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ]
+      ]
+     },
+     "every_scored_year": {
+      "n_years": 8,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2022",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.778089,
+       -0.46264
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2016,
+        2017
+       ],
+       [
+        2016,
+        2022
+       ],
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2019,
+        2022
+       ],
+       [
+        2022,
+        2024
+       ],
+       [
+        2022,
+        2025
+       ]
+      ]
+     },
+     "every_scored_year_less_structural_breaks": {
+      "n_years": 7,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.778089,
+       0.588179
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2016,
+        2017
+       ],
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ]
+      ]
+     }
+    },
+    "mix_free_envelope": {
+     "fitted_years": {
+      "n_years": 5,
+      "years": [
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024"
+      ],
+      "intersection": [
+       0.612245,
+       0.770035
+      ],
+      "is_non_empty": true,
+      "minimal_refusing_pairs": []
+     },
+     "every_scored_year": {
+      "n_years": 8,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2022",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.612245,
+       0.042857
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2016,
+        2022
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2019,
+        2022
+       ]
+      ]
+     },
+     "every_scored_year_less_structural_breaks": {
+      "n_years": 7,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.612245,
+       0.770035
+      ],
+      "is_non_empty": true,
+      "minimal_refusing_pairs": []
+     }
+    },
+    "verdict_is_mix_dependent": {
+     "fitted_years": true,
+     "every_scored_year": false,
+     "every_scored_year_less_structural_breaks": true
+    }
+   },
+   "all_domestic": {
+    "tenure_composed": {
+     "fitted_years": {
+      "n_years": 5,
+      "years": [
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024"
+      ],
+      "intersection": [
+       0.827709,
+       0.62898
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ]
+      ]
+     },
+     "every_scored_year": {
+      "n_years": 8,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2022",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.827709,
+       -0.46264
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2016,
+        2022
+       ],
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2019,
+        2022
+       ],
+       [
+        2022,
+        2024
+       ],
+       [
+        2022,
+        2025
+       ]
+      ]
+     },
+     "every_scored_year_less_structural_breaks": {
+      "n_years": 7,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.827709,
+       0.62898
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2017,
+        2018
+       ],
+       [
+        2017,
+        2019
+       ]
+      ]
+     }
+    },
+    "mix_free_envelope": {
+     "fitted_years": {
+      "n_years": 5,
+      "years": [
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024"
+      ],
+      "intersection": [
+       0.617779,
+       0.850265
+      ],
+      "is_non_empty": true,
+      "minimal_refusing_pairs": []
+     },
+     "every_scored_year": {
+      "n_years": 8,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2022",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.617779,
+       0.042857
+      ],
+      "is_non_empty": false,
+      "minimal_refusing_pairs": [
+       [
+        2016,
+        2022
+       ],
+       [
+        2017,
+        2022
+       ],
+       [
+        2018,
+        2022
+       ],
+       [
+        2019,
+        2022
+       ]
+      ]
+     },
+     "every_scored_year_less_structural_breaks": {
+      "n_years": 7,
+      "years": [
+       "2016",
+       "2017",
+       "2018",
+       "2019",
+       "2023",
+       "2024",
+       "2025"
+      ],
+      "intersection": [
+       0.617779,
+       0.850265
+      ],
+      "is_non_empty": true,
+      "minimal_refusing_pairs": []
+     }
+    },
+    "verdict_is_mix_dependent": {
+     "fitted_years": true,
+     "every_scored_year": false,
+     "every_scored_year_less_structural_breaks": true
+    }
+   }
+  },
+  "constant_pair": {
+   "as_published": {
+    "years": [
+     "2017",
+     "2018",
+     "2019",
+     "2023",
+     "2024"
+    ],
+    "h_svt_grid": [
+     0.0,
+     0.4,
+     0.0001
+    ],
+    "n_h_values_admitting_a_common_phi": 0,
+    "any_constant_pair_admitted": false,
+    "widest_slack": {
+     "at_h_svt": 0.0685,
+     "slack": -0.309322,
+     "crossed_phi_interval": [
+      1.003294,
+      0.693972
+     ]
+    }
+   },
+   "all_domestic": {
+    "years": [
+     "2017",
+     "2018",
+     "2019",
+     "2023",
+     "2024"
+    ],
+    "h_svt_grid": [
+     0.0,
+     0.4,
+     0.0001
+    ],
+    "n_h_values_admitting_a_common_phi": 0,
+    "any_constant_pair_admitted": false,
+    "widest_slack": {
+     "at_h_svt": 0.0542,
+     "slack": -0.337357,
+     "crossed_phi_interval": [
+      1.16661,
+      0.829253
+     ]
+    }
+   }
+  }
+ },
+ "how_much_of_the_records_move_the_share_series_can_carry": {
+  "what_this_is": "the largest step the PUBLISHED SHARE SERIES can produce on its own, with both behavioural parameters held at any constants, against the step the record made. \u00a712's handover question, answered as a bound.",
+  "identity": "dV = (s2 - s1)\u00b7(H_svt - 0.35\u00b7phi), bilinear over the box, corners exact.",
+  "why_a_denominator_is_reported": "a pair whose record move interval contains zero requires no move, so `share_can_carry` is True there for a reason that is not evidence. Those pairs are named and excluded, and so is the one that spans the 2020-2021 gap.",
+  "by_band": {
+   "tenure_composed": {
+    "as_published": {
+     "pairs": {
+      "2016->2017": {
+       "record_move_pp": [
+        -4.1,
+        -3.0
+       ],
+       "share_reachable_move_pp": [
+        -2.451927,
+        4.348073
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2017->2018": {
+       "record_move_pp": [
+        5.5,
+        6.5
+       ],
+       "share_reachable_move_pp": [
+        -0.865386,
+        1.534614
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2018->2019": {
+       "record_move_pp": [
+        0.7,
+        1.8
+       ],
+       "share_reachable_move_pp": [
+        -0.288462,
+        0.511538
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2019->2022": {
+       "record_move_pp": [
+        -18.4,
+        -16.4
+       ],
+       "share_reachable_move_pp": [
+        -9.974991,
+        5.625009
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": true,
+       "share_can_carry": false
+      },
+      "2022->2023": {
+       "record_move_pp": [
+        4.6,
+        9.6
+       ],
+       "share_reachable_move_pp": [
+        -2.55769,
+        2.55769
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2023->2024": {
+       "record_move_pp": [
+        0.0,
+        7.2
+       ],
+       "share_reachable_move_pp": [
+        -1.534614,
+        2.55769
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      },
+      "2024->2025": {
+       "record_move_pp": [
+        -1.8,
+        5.4
+       ],
+       "share_reachable_move_pp": [
+        -3.173082,
+        5.626918
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      }
+     },
+     "n_pairs_judged": 4,
+     "n_pairs_the_share_series_can_carry": 0,
+     "pairs_excluded_because_the_record_requires_no_move": [
+      "2023->2024",
+      "2024->2025"
+     ],
+     "pairs_excluded_because_they_span_a_gap": [
+      "2019->2022"
+     ]
+    },
+    "all_domestic": {
+     "pairs": {
+      "2016->2017": {
+       "record_move_pp": [
+        -4.1,
+        -3.0
+       ],
+       "share_reachable_move_pp": [
+        -1.737984,
+        3.082016
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2017->2018": {
+       "record_move_pp": [
+        5.5,
+        6.5
+       ],
+       "share_reachable_move_pp": [
+        -0.735578,
+        1.304422
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2018->2019": {
+       "record_move_pp": [
+        0.7,
+        1.8
+       ],
+       "share_reachable_move_pp": [
+        -0.245193,
+        0.434807
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2019->2022": {
+       "record_move_pp": [
+        -18.4,
+        -16.4
+       ],
+       "share_reachable_move_pp": [
+        -8.478742,
+        4.781258
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": true,
+       "share_can_carry": false
+      },
+      "2022->2023": {
+       "record_move_pp": [
+        4.6,
+        9.6
+       ],
+       "share_reachable_move_pp": [
+        -2.55769,
+        2.55769
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2023->2024": {
+       "record_move_pp": [
+        0.0,
+        7.2
+       ],
+       "share_reachable_move_pp": [
+        -1.534614,
+        2.55769
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      },
+      "2024->2025": {
+       "record_move_pp": [
+        -1.8,
+        5.4
+       ],
+       "share_reachable_move_pp": [
+        -3.173082,
+        5.626918
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      }
+     },
+     "n_pairs_judged": 4,
+     "n_pairs_the_share_series_can_carry": 0,
+     "pairs_excluded_because_the_record_requires_no_move": [
+      "2023->2024",
+      "2024->2025"
+     ],
+     "pairs_excluded_because_they_span_a_gap": [
+      "2019->2022"
+     ]
+    }
+   },
+   "mix_free_envelope": {
+    "as_published": {
+     "pairs": {
+      "2016->2017": {
+       "record_move_pp": [
+        -4.1,
+        -3.0
+       ],
+       "share_reachable_move_pp": [
+        -3.4,
+        5.1
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      },
+      "2017->2018": {
+       "record_move_pp": [
+        5.5,
+        6.5
+       ],
+       "share_reachable_move_pp": [
+        -1.2,
+        1.8
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2018->2019": {
+       "record_move_pp": [
+        0.7,
+        1.8
+       ],
+       "share_reachable_move_pp": [
+        -0.4,
+        0.6
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2019->2022": {
+       "record_move_pp": [
+        -18.4,
+        -16.4
+       ],
+       "share_reachable_move_pp": [
+        -11.7,
+        7.8
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": true,
+       "share_can_carry": false
+      },
+      "2022->2023": {
+       "record_move_pp": [
+        4.6,
+        9.6
+       ],
+       "share_reachable_move_pp": [
+        -3.0,
+        3.0
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2023->2024": {
+       "record_move_pp": [
+        0.0,
+        7.2
+       ],
+       "share_reachable_move_pp": [
+        -2.0,
+        3.0
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      },
+      "2024->2025": {
+       "record_move_pp": [
+        -1.8,
+        5.4
+       ],
+       "share_reachable_move_pp": [
+        -4.4,
+        6.6
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      }
+     },
+     "n_pairs_judged": 4,
+     "n_pairs_the_share_series_can_carry": 1,
+     "pairs_excluded_because_the_record_requires_no_move": [
+      "2023->2024",
+      "2024->2025"
+     ],
+     "pairs_excluded_because_they_span_a_gap": [
+      "2019->2022"
+     ]
+    },
+    "all_domestic": {
+     "pairs": {
+      "2016->2017": {
+       "record_move_pp": [
+        -4.1,
+        -3.0
+       ],
+       "share_reachable_move_pp": [
+        -2.41,
+        3.615
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2017->2018": {
+       "record_move_pp": [
+        5.5,
+        6.5
+       ],
+       "share_reachable_move_pp": [
+        -1.02,
+        1.53
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2018->2019": {
+       "record_move_pp": [
+        0.7,
+        1.8
+       ],
+       "share_reachable_move_pp": [
+        -0.34,
+        0.51
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2019->2022": {
+       "record_move_pp": [
+        -18.4,
+        -16.4
+       ],
+       "share_reachable_move_pp": [
+        -9.945,
+        6.63
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": true,
+       "share_can_carry": false
+      },
+      "2022->2023": {
+       "record_move_pp": [
+        4.6,
+        9.6
+       ],
+       "share_reachable_move_pp": [
+        -3.0,
+        3.0
+       ],
+       "record_requires_a_move": true,
+       "spans_a_gap": false,
+       "share_can_carry": false
+      },
+      "2023->2024": {
+       "record_move_pp": [
+        0.0,
+        7.2
+       ],
+       "share_reachable_move_pp": [
+        -2.0,
+        3.0
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      },
+      "2024->2025": {
+       "record_move_pp": [
+        -1.8,
+        5.4
+       ],
+       "share_reachable_move_pp": [
+        -4.4,
+        6.6
+       ],
+       "record_requires_a_move": false,
+       "spans_a_gap": false,
+       "share_can_carry": true
+      }
+     },
+     "n_pairs_judged": 4,
+     "n_pairs_the_share_series_can_carry": 0,
+     "pairs_excluded_because_the_record_requires_no_move": [
+      "2023->2024",
+      "2024->2025"
+     ],
+     "pairs_excluded_because_they_span_a_gap": [
+      "2019->2022"
+     ]
+    }
+   }
+  }
+ },
  "how_to_regenerate": "python3 -m tools.published_route_split --write"
 }
