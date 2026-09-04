@@ -124,6 +124,30 @@ origin/main have 3). It is a stale draft of work that already landed properly on
 
 It is **not imminent** — the publish commit is pathspec-scoped (`_commit_pathspec`) and will not
 carry it — but it is what the daemon **imports on next restart**, and any lane committing that
-path would revert the repair. HEAD is 0 ahead / 3 behind origin/main, so the correct resolution is
-a **pure fast-forward**, not a hand edit. Not done here: a publisher was live in this tree
-(pid 2153582) for the whole tick and a checkout under it is not a bounded-tick act.
+path would revert the repair (a pathspec stages the *working-tree* copy).
+
+**UPDATE after the merge below, and this is the part that makes it actionable.** Re-measured at
+`cfe9a0982`:
+
+```
+git diff HEAD --stat -- background/process_run_complete.py
+  background/process_run_complete.py | 49 ------------------------
+  1 file changed, 49 deletions(-)
+```
+
+**0 insertions.** The worktree copy contains nothing HEAD does not already have — it is exactly
+HEAD minus the 49-line repair. The `episode_clean_publishes` work it was carrying is now in HEAD
+anyway, via origin's 79e009c81. So restoring that path from HEAD **cannot destroy any lane's
+uncommitted work**, which is the entire reason the "never `git checkout <path>`" rule exists.
+Whoever takes this has that proof; re-run the one-line diff first, because it is only true while
+the insertion count is zero.
+
+**Deliberately NOT done by this tick.** Restoring it means writing the shared worktree *and* the
+shared index (the deletion is staged, `INDEX: 0`), and a bounded tick that mutates the shared
+index under a daemon that may restart at any moment is how several of the findings in this folder
+were created. Escalated rather than actioned.
+
+**Bounded blast radius, stated so the next reader does not over-rate it:** the two-rooms repair
+has *two* call sites by design — `background_worker`'s top-of-cycle sweep still runs. What the
+worktree copy loses is only the point-of-use call, i.e. protection during the ~45-minute window
+*inside* a publish. Degraded, not absent.
