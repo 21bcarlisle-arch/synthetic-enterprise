@@ -1547,3 +1547,228 @@ supplier-returned series carrying, and unlike φ it names a mechanism the world 
 than a constant the world would have to be given.
 
 — Delivery seat, 2026-09-04.
+
+---
+
+## 16. The world already runs the route §15 says it lacks, and the tenure mix §14 sourced was never pointed at §9 — 2026-09-04
+
+§15 closed with a result and an owed item, and the result carried a claim about this world that
+nobody had checked against this world:
+
+> *"the dominant internal-switching route in the GB record is default/SVT households re-contracting
+> with their own supplier — **a route `simulation/renewals.py` does not model at all**"*
+>
+> *"One thing owed, and it has changed identity: **not φ, but `J_svt`** … unlike φ it names a
+> mechanism the world is missing rather than a constant the world would have to be given."*
+
+**The route is modelled. §15 grepped for a label and concluded about a mechanism.**
+`simulation/renewals.py` L150–L168 bounds a passive stint at the household's next anniversary and
+then re-enters its own term loop, so an active draw at that anniversary builds a fixed term **with
+this same supplier**. The comment block says so in terms — *"WHY A PASSIVE STINT IS BOUNDED BY THE
+ANNIVERSARY AND NOT ABSORBING … with no route back, the fixed share decays to 12% by the second
+renewal"*. §15's grep for `same_supplier` was correct and is not withdrawn; the conclusion drawn
+from it is. Reading:
+`tools/fit_year_level_anchor.svt_internal_return_and_tenure`, committed at
+`docs/reports/svt_internal_return_and_tenure.json`, at `NO_LEVEL_CORRECTION` on
+`c6_second_pass_departure_factors.json` — the same capture since §9. Pre-registration:
+`SEAT_PREREGISTRATION_WHETHER_THE_WORLD_ALREADY_RUNS_THE_INTERNAL_RECONTRACT_ROUTE_2026-09-04.md`,
+filed before the module existed. All six graded below.
+
+### What the route does: 125 stints, three fates, and a rate half the constant it draws at
+
+| | stints | |
+|---|---|---|
+| **returned to a fixed term with us** | **49** | the route §15 said did not exist |
+| departed | 38 | the external switch the whole chain has been measuring |
+| still on SVT at the window's end | 38 | censored, and reported as censored |
+
+**`J_world` = 0.1859 returns per SVT account-year, against a drawn `PASSIVE_RENEWAL_RATE = 0.35` —
+0.53× the constant.** The gap is not a bug: `active_renewal_probability_for_customer` threads a
+**persistent** per-household engagement archetype through the draw, so the households that reach the
+SVT product are the disengaged tail and the population rate does not describe them. Nothing said so.
+The code comment at the call site says the anniversary uses *"the anchored 35% population
+active-renewal rate"*, which is what it draws and not what it gets.
+
+| year | SVT acct-yrs | returned | departed | J / acct-yr | of the book | long-stayer share |
+|---|---|---|---|---|---|---|
+| 2017 | 25.09 | 1 | 2 | 0.0399 | 0.0172 | 0.000 |
+| 2018 | 29.27 | 9 | 8 | 0.3075 | 0.1800 | 0.000 |
+| 2019 | 23.39 | 2 | 8 | 0.0855 | 0.0488 | 0.000 |
+| 2020 | 27.43 | 2 | 4 | 0.0729 | 0.0435 | 0.202 |
+| 2021 | 29.98 | 9 | 2 | 0.3002 | 0.1765 | 0.336 |
+| 2022 | 40.11 | 0 | 2 | 0.0000 | 0.0000 | 0.274 |
+| 2023 | 38.25 | 18 | 5 | 0.4705 | 0.3396 | 0.325 |
+| 2024 | 34.55 | 3 | 6 | 0.0868 | 0.0526 | 0.426 |
+| 2025 | 15.53 | 5 | 1 | 0.3219 | 0.0962 | 0.362 |
+
+### The constant is sourced for a different event, and this is the fifth time in this chain
+
+`PASSIVE_RENEWAL_RATE = 0.35` is published as
+`svt_rates_active_passive_2016_2025.md` §4 row 6: *"Fixed at expiry → active switch | ~35% |
+Inverse of SVT rollover share at expiry"*. **A rate defined at a fixed-term EXPIRY.** The world
+draws it at an SVT anniversary, where `simulation/svt_product.py`'s own docstring says there is
+*"No term boundary … A segment ending is a price change, not an expiry: nothing is renewed, nothing
+is offered, and the household makes no decision."*
+
+One published anchor, two events, and **nothing in the tree sources the second use** — which is the
+use that decides how long an account stays on the SVT product, and therefore §9's `exposure` factor.
+That is the VAT shape for the fifth time in this one chain, and it is the first time the duplicate
+use is a *different event* rather than a duplicated number.
+
+### Against the record: the LEVEL was the wrong question and the SHAPE is the answer
+
+Ofgem CIM question C4's internal row, §15's own register, six waves — compared in §15's conservative
+direction, the world's **full year** against the record's **six-month** recall:
+
+| wave | fieldwork | record / 6mo | world / yr | |
+|---|---|---|---|---|
+| W1 | March 2022 | 0.1318 | 0.1765 | above |
+| W2 | July 2022 | 0.1248 | **0.0000** | BELOW |
+| W3 | Nov/Dec 2022 | 0.1449 | **0.0000** | BELOW |
+| W4 | July 2023 | 0.1104 | 0.3396 | above |
+| W5 | January 2024 | 0.1159 | 0.3396 | above |
+| W6 | Jan/Feb 2025 | 0.1702 | **0.0962** | BELOW |
+
+**Below in 3 of 6, above in 3 of 6, and the count says nothing.** The result is the one derived
+beside it: *the record's six waves span 0.1104–0.1702 — a factor of 1.54, across the crisis and
+after it — and this world sits inside that span in **0 of the 5 years those waves touch**.* The
+record's internal route is remarkably stable; this world's runs from 0.0000 to 0.3396 and is at its
+minimum in exactly the year the record is near its maximum.
+
+**The cause of the zero is `CRISIS_PASSIVE_YEARS = {2022}`, and its stated reason is refuted for
+this event by the instrument §15 sourced.** The constant's comment reads *"no fixed deals available
+— ALL renewals are forced passive, because suppliers withdrew fixed tariffs."* That is right about
+the EXTERNAL move: CIM's external row falls 9.32% → 8.30% → 7.30% across 2022. It is wrong about the
+INTERNAL one, which **rises** to its series high of 14.49% in November/December 2022. Households did
+re-contract with their own supplier through the crisis, in numbers, and this world forbids all of it.
+One constant carrying two events, again — and the 2023 spike to 0.3396 is the 2022 cohort's
+anniversaries arriving all at once, which is a forcing artefact and not a behaviour.
+
+**A caveat this reading does not resolve and does not route around.** C4's internal code is
+*"switched tariff with the same supplier"* as the household reports it, and a fixed term expiring
+ONTO the default tariff is also a tariff change with the same supplier. §15 read the row as
+re-contracting onto a fix. If some of it is the opposite move, the record's internal row overstates
+the quantity this world's return route models. Nothing published separates the two directions; it is
+in the artefact, and it bears on §15's `J_svt ≥ 0` ceiling as well as on this section.
+
+### The result that bears on the repair: §14's tenure mix was never pointed at §9's headline
+
+§14 put two published observations of the SVT segment's within-segment long-stayer share into the
+tree — Ofgem CES 2018 at 0.5577 and Ofgem RMI Oct-2025 at 0.3698 — to compose the published churn
+band for the φ question. **Nothing compared them with the world's own mix.**
+
+This world's long-stayer share of SVT account-days is **0.000 in 2017–2019**, reaching 0.426 by 2024.
+It is **below every published observation in 9 of the 10 years in the capture**; only 2024 is inside.
+
+That lands on §9's headline. §9 divided the record's required hazard by the flat published
+`SVT_INERTIA_ANNUAL_RECENT = 0.20` — the RECENT segment's upper endpoint — in the two base-window
+years where the market re-referencing factor is ~1.0. Both choices were argued and both were right
+about what they said. What §9 could not see is that its denominator is a band endpoint **at a tenure
+mix nothing has observed**:
+
+| year | world's mix | §9 said | at the observed hull [0.0942, 0.1630] |
+|---|---|---|---|
+| 2019 | 0.000 | 1.67× | **2.05× – 3.54×** |
+| 2020 | 0.202 | 1.71× | **2.10× – 3.63×** |
+
+**§9's gap is understated, not overstated.** This is a second, independent route to §15's
+conclusion — arriving from the tenure mix rather than from the internal/external split — and the two
+do not share an assumption. `test_the_headline_at_the_observed_mix_is_larger_than_section_9s_and_
+not_pinned_to_it` holds it as a property of the composition (the hull's high end is strictly below
+the recent endpoint, so the multiple must be strictly larger) rather than as today's four numbers.
+
+### The pre-registration, graded, all six
+
+- **P1 — CONFIRMED on the claim, REFUTED on the number, and the number is the more useful half.**
+  The route exists and §15's mechanism sentence is refuted. I predicted **more than 100** returns;
+  there are **49**, across 125 spells on 107 accounts — 93 of those accounts have exactly one spell,
+  38 spells are still running when the window ends, and the longest single spell is **8.3 years**.
+  So the route is open and hardly used: the world's SVT product is **close to absorbing in
+  practice**, which is the state `renewals.py`'s comment says it was rebuilt to avoid — the comment
+  is about the mechanism and was never checked against the output. I over-predicted because I
+  reasoned from the 0.35 draw and not from who is drawn against.
+- **P2 — REFUTED on the interval, CONFIRMED on 2022.** Predicted [0.28, 0.42]; measured **0.1859**,
+  0.53× the drawn rate. The selection effect I named as the reason it "need not centre on 0.35" is
+  the reason, and I still put the interval around 0.35 — a hedge written into the prose and not into
+  the prediction. 2022 is exactly 0.0, so the crisis forcing does reach this call site.
+- **P3 — REFUTED, and its framing was the error.** Predicted the world below the record in at least
+  4 of 6 waves. It is below in 3, and below in only 1 of the 3 waves that do not touch 2022 — even
+  taking the window's **highest** world year, which is the choice that argues against the finding.
+  The world is not systematically short; it is systematically the wrong SHAPE, which "above or
+  below" cannot express. The reading now derives the span comparison instead, and that is a
+  correction to the instrument I filed, not to its answer.
+- **P4 — CONFIRMED.** The three fates are exhaustive and `build_svt_schedule` has exactly two call
+  sites, both in `simulation/renewals.py`: the internal return is the only way a surviving account
+  leaves the SVT product in this world.
+- **P5 — CONFIRMED, and it was filed to be visible rather than collected.** This does not close
+  rung 1. The internal return is a mechanism *inside* §9's `exposure`, and §9's saturation bound put
+  reach and exposure at their ceilings together — abolishing the renewal route with them — and
+  reached the band's low endpoint in 1 year of 7. `emergent_level_verdict` is unmoved: six of seven
+  outside their bands, `years_failing` = [2017, 2018, 2019, 2020, 2021, 2024].
+- **P6 — CONFIRMED.** No constant edited (`PASSIVE_RENEWAL_RATE` is still 0.35 and the finding that
+  its second use is unsourced is a finding, not a licence), no solver aim point moved,
+  `YEAR_LEVEL_ANCHOR` untouched, `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` still `None`. §4's constraint
+  4, a **twelfth** time. Verified structurally: every existing artefact under `docs/reports/` is
+  byte-identical to `HEAD` and the only addition is one new file — §14's P8 lesson applied, not
+  restated.
+
+### Two defects this reading's own machinery caught
+
+**The whole-book denominator was the wrong population and printed a rate above 1.** The first draft
+took `len(union_by_year(...))` — the number of YEARS, not the accounts in one — and 2023 came out at
+1.6364 internal switches per account. Caught by printing the table at real inputs before writing any
+prose, which is the only reason it was caught: every downstream verdict would have been directionally
+unchanged and the artefact would have carried an impossible number.
+
+**A leg that could not fire in two of ten years.** `test_the_two_internal_rates_are_different_
+quantities_with_different_denominators` first required the two rates to differ in every year. In a
+year with no returns both are zero whatever the denominator is, so 2016 and 2022 could never satisfy
+it — and 2022 is the year this section says the most about. The leg now counts only years with
+returns and requires the separation in all of them, so it is a property rather than a threshold.
+
+### Controls
+
+**Eight legs in `tests/architecture/test_switching_rate_commons.py`, all eight mutation-proven on
+disk under `python3 -B` across thirteen mutations:** the stint splitter cutting at every segment and
+at none; a return credited beyond its own stint's interval; a departure read as a return; the
+whole-book rate taken over the SVT-reached count; an uncoverable wave scored `False` instead of
+refused, and its refusal stripped of the years it names; the recall window taken at its minimum; the
+§9 comparison composed against the mix-free envelope; the hull's endpoints swapped; the realised rate
+recomputed from the drawn constant; the long-stayer share cut loose from the tenure column; and the
+committed artefact edited away from the live world.
+
+**Two branches are INJECTED rather than asserted, because neither runs on today's data.** Every
+stint that has a later renewal also has one inside its own interval, so widening the horizon
+reproduces the reading exactly — an equivalence, not a control — and the two-stint account whose only
+renewal follows the *second* stint is built in the leg. All six real waves fall inside the capture's
+window, so the refusal branch is reached by injecting a wave whose recall window is 1999; `False`
+there would read as *"checked, and the world was not below"* when nothing was checked.
+
+### Where this leaves the repair
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published, and rung 1
+is unmoved. What changed:
+
+> **§15's owed item is not a mechanism to build — the mechanism is there, running at 0.53× the
+> constant it draws, on a constant published for a different event.** What is owed is `J_svt` as a
+> **check on a route the world already has**, and the world's own realised 0.1859 is now the figure
+> that check would be against. And §9's headline gap, which is where the repair has been aimed since
+> §9, is **wider than §9 stated** — 2.05×–3.63× at the observed tenure mix against 1.67×–1.71× at a
+> mix nothing has seen.
+
+Two things owed, and they are separable:
+
+1. **`CRISIS_PASSIVE_YEARS` forbids an event the record shows at its series high.** The constant's
+   justification is sound for the external move and refuted for the internal one, by an instrument
+   already in this tree. That is a world attribute with a published contradiction against it, and it
+   is the nearest thing this chain has produced to a repair that is a mechanism rather than a number.
+   **It is not attempted here** and no constant is touched: the 2023 spike says the forcing's
+   downstream effects run a year past it, so this needs its own reading and its own pre-registration.
+2. **`J_svt` as published rate, still owed since §15**, now with the world's realised figure to check
+   it against and with the C4-direction caveat above standing in front of it.
+
+**Look in this tree first.** That instruction has now been right **five** times in this chain, and
+the fifth time it was right about a mechanism the tree contains and a source-note contradiction the
+tree already held on both sides.
+
+— Delivery seat, 2026-09-04.

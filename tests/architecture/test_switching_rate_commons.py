@@ -4995,3 +4995,365 @@ def test_the_ceiling_verdict_is_taken_on_the_un_annualised_recall_window():
                 / cell["renewal_route_internal_ceiling"]["ceiling"],
                 rel=1e-3,
             )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# §16 — THE WORLD ALREADY RUNS THE INTERNAL RE-CONTRACT ROUTE §15 SAID IT LACKED
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# §15 concluded that a default/SVT household re-contracting with its EXISTING supplier is "a route
+# `simulation/renewals.py` does not model at all". That was a grep for `same_supplier`, and the grep
+# was right. `simulation/renewals.py` bounds a passive stint at the household's next anniversary and
+# re-enters its own term loop there, so an active draw at that anniversary builds a fixed term with
+# this same supplier. The route is modelled, it was unnamed, and until §16 it was unmeasured.
+#
+# These legs hold the three things that measurement turns on and that a later session could quietly
+# lose: that a stint boundary is a real move and not a recorder artefact, that a return is credited
+# to the stint it belongs to, and that the two rates the reading publishes are different quantities
+# with different denominators. The two comparisons against the record get one leg each.
+
+
+def _declared_internal_return() -> dict:
+    """The committed internal-return reading, or a hard fail naming which state it is in.
+
+    The same three states and the same reason as `_declared_shortfall`: absent, refused, or a
+    reading. The middle one is a result and is reported rather than skipped.
+    """
+    assert fitter.INTERNAL_RETURN.exists(), (
+        f"{fitter.INTERNAL_RETURN.name} is missing. The tree then carries §15's claim that the "
+        f"world has no internal re-contract route and nothing measuring the route it does have. "
+        f"Run `python3 -m tools.fit_year_level_anchor --internal-return`."
+    )
+    declared = json.loads(fitter.INTERNAL_RETURN.read_text())
+    assert "refused" not in declared, (
+        f"the internal-return reading is a REFUSAL and not a reading: {declared['refused']}. "
+        f"Whether the world runs the route at all is then unestablished, which is the state §16 "
+        f"was written to end."
+    )
+    return declared
+
+
+def _live_internal_return() -> dict:
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    return fitter.svt_internal_return_and_tenure(rows, svt_rows)
+
+
+def test_a_stint_boundary_is_a_move_and_not_a_recorder_artefact():
+    """MUTATION: split a stint at every segment instead of at the tenure reset.
+
+    THE PROPERTY, and it needs no reference to today's counts: a boundary between two stints must
+    carry a DATE GAP -- the account was somewhere else in between -- and two segments INSIDE one
+    stint must be contiguous. A splitter that cut everywhere would satisfy neither half, and a
+    splitter that cut nowhere would produce one stint per account and no boundaries to check, which
+    the second assertion below rules out by requiring the capture to contain at least one of each.
+
+    This is the leg that says the reset means what §16 reads it to mean. Without it the whole
+    section rests on an inference from one field.
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    stints = fitter._svt_stints(svt_rows)
+    boundaries = contiguous = 0
+    for account, spells in stints.items():
+        for spell in spells:
+            for earlier, later in zip(spell, spell[1:]):
+                gap = (
+                    _date(later["event_date"]) - _date(earlier["event_date"])
+                ).days - int(earlier["sim_segment_days"])
+                assert gap <= 1, (
+                    f"{account}: two segments INSIDE one stint are {gap} days apart. The stint "
+                    f"splitter has merged two separate spells on the product."
+                )
+                contiguous += 1
+        for spell, following in zip(spells, spells[1:]):
+            gap = (_date(following[0]["event_date"]) - fitter._stint_end(spell)).days
+            assert gap > 1, (
+                f"{account}: a stint boundary with a {gap}-day gap. The account did not leave the "
+                f"product, so the boundary is an artefact of the recorder and not a move."
+            )
+            boundaries += 1
+    assert boundaries > 0 and contiguous > 0, (
+        f"the capture carries {boundaries} stint boundaries and {contiguous} within-stint pairs. "
+        f"Both must be non-zero or this leg is checking one branch of a two-branch property and "
+        f"the other could be anything."
+    )
+
+
+def _date(iso: str):
+    import datetime as _dt
+    return _dt.date.fromisoformat(iso)
+
+
+def test_a_return_is_credited_only_to_the_stint_it_belongs_to():
+    """MUTATION: credit a stint with ANY later renewal instead of one inside its own interval.
+
+    THE BRANCH IS INJECTED, NOT ASSERTED, and it has to be. On this capture every stint that has a
+    later renewal also has one inside its own interval, so widening the horizon to `date.max`
+    reproduces the reading exactly and a leg run over the real rows would be testing nothing --
+    an equivalence, not a control. So the account is built here: two stints, and the only renewal
+    falls after the SECOND one. The first stint must read CENSORED. Under the unscoped rule it
+    would read RETURNED, one household's single move would be counted twice, and the world's
+    internal rate would be overstated by exactly the number of multi-stint accounts.
+    """
+    first = [{"customer_id": "X", "event_date": "2018-01-01", "sim_segment_days": 365,
+             "sim_years_on_svt": 0.0, "event_type": "stayed", "market_year": 2018}]
+    second = [{"customer_id": "X", "event_date": "2021-01-01", "sim_segment_days": 365,
+               "sim_years_on_svt": 0.0, "event_type": "stayed", "market_year": 2021}]
+    only_renewal = [_date("2022-06-01")]
+
+    assert fitter._stint_fate(first, second, only_renewal) == fitter.STINT_CENSORED, (
+        "a stint whose only later renewal falls after the NEXT stint was credited with a return. "
+        "The horizon is not being applied, and every multi-stint account's move is counted once "
+        "per stint."
+    )
+    assert fitter._stint_fate(second, None, only_renewal) == fitter.STINT_RETURNED, (
+        "the stint the renewal actually follows was NOT credited with it, so the horizon has been "
+        "tightened into a rule that finds nothing -- the opposite failure and equally silent."
+    )
+    departed = [dict(second[0], event_type="churned")]
+    assert fitter._stint_fate(departed, None, only_renewal) == fitter.STINT_DEPARTED, (
+        "an account that DEPARTED was credited with an internal return. Departure and re-contract "
+        "are opposite events and a reading that confuses them inverts its own conclusion."
+    )
+
+
+def test_the_two_internal_rates_are_different_quantities_with_different_denominators():
+    """MUTATION: divide the whole-book rate by the SVT-reached count instead of the account book.
+
+    `per_svt_account_year` and `of_the_whole_book` are the reading's two published rates and they
+    answer different questions -- the first is comparable with `PASSIVE_RENEWAL_RATE`, the second
+    with Ofgem CIM's all-respondents base. A reading that used one denominator for both would
+    publish two names for one number, which is this file's own recurring defect.
+
+    Keyed to the identity each rate must satisfy against the stint counts, not to today's values,
+    and it requires the two to actually DIFFER so the leg cannot be satisfied by a capture in which
+    they coincide.
+    """
+    reading = _live_internal_return()
+    differed = 0
+    for year in reading["years"]:
+        row = reading["per_year"][year]
+        returns = row["stint_fates"][fitter.STINT_RETURNED]
+        rates = row["internal_return_rate"]
+        if row["svt_account_years"]:
+            assert rates["per_svt_account_year"] == pytest.approx(
+                returns / row["svt_account_years"], rel=1e-3
+            ), f"{year}: the per-account-year rate is not returns over SVT account-years."
+        if row["accounts_on_book"]:
+            assert rates["of_the_whole_book"] == pytest.approx(
+                returns / row["accounts_on_book"], rel=1e-3
+            ), (
+                f"{year}: the whole-book rate is not returns over accounts on the book. If it is "
+                f"over the SVT-reached count instead, it is not comparable with CIM's base and the "
+                f"comparison against the record is between two different populations."
+            )
+            # A YEAR WITH NO RETURNS CANNOT SEPARATE THE TWO -- both rates are zero whatever the
+            # denominator is -- so it is excluded from the count rather than allowed to satisfy it.
+            # 2022 is such a year in this world, and it is the year the section says most about.
+            if returns and rates["per_svt_account_year"] != rates["of_the_whole_book"]:
+                differed += 1
+    with_returns = sum(
+        1 for year in reading["years"]
+        if reading["per_year"][year]["stint_fates"][fitter.STINT_RETURNED]
+    )
+    assert with_returns and differed == with_returns, (
+        f"the two rates coincide in {with_returns - differed} of the {with_returns} years that "
+        f"have any returns at all, so one denominator is standing in for both and this leg cannot "
+        f"tell a correct reading from a collapsed one."
+    )
+
+
+def test_a_wave_the_capture_cannot_cover_is_refused_and_leaves_the_denominator_alone():
+    """MUTATION: score an uncoverable wave as `False` (world not below) instead of refusing it.
+
+    INJECTED, because all six real waves fall inside the capture's window and the `None` branch
+    never runs on today's data -- a leg that only read the six would be testing `all()` over a
+    constant. So a wave whose recall window is 1999 is injected. The reading must REFUSE it, must
+    NAME the missing year, must leave `world_internal_rate_year` as `None`, and must not count it
+    among the scored. `False` there would read as "checked, and the world was not below" when
+    nothing was checked, which is the fail-open shape.
+    """
+    reading = _live_internal_return()
+    before = reading["against_the_record"]
+
+    split = _split_module()
+    unreachable = split.SwitcherSplitObservation(
+        wave=99, fieldwork="injected", recall_window_years=(1999,),
+        base_unweighted=1000, base_weighted=1000.0,
+        external_weighted=100.0, internal_weighted=150.0, net_switched_weighted=240.0,
+    )
+    original = split.SWITCHER_SPLIT_OBSERVATIONS
+    try:
+        split.SWITCHER_SPLIT_OBSERVATIONS = original + (unreachable,)
+        after = fitter._internal_return_vs_record(reading["per_year"])
+    finally:
+        split.SWITCHER_SPLIT_OBSERVATIONS = original
+
+    injected = [wave for wave in after["waves"] if wave["wave"] == 99]
+    assert len(injected) == 1, "the uncoverable wave was silently dropped rather than refused."
+    cell = injected[0]
+    assert cell["refused"] is not None and "1999" in cell["refused"], (
+        f"the refusal does not NAME the year the capture is missing: {cell['refused']!r}. A "
+        f"refusal that cannot be audited is a shrug."
+    )
+    assert cell["world_internal_rate_year"] is None, (
+        "an uncoverable wave was given a world rate. That is a number invented to fill a slot."
+    )
+    assert cell["world_below_record"] is None, (
+        "`world_below_record` is False rather than None for a wave nothing could judge, which "
+        "reads as a checked verdict."
+    )
+    assert after["waves_scored"] == before["waves_scored"], (
+        "the refused wave entered the scored denominator."
+    )
+
+
+def test_the_record_comparison_takes_the_windows_highest_world_year():
+    """MUTATION: take the window's MINIMUM world year instead of its maximum.
+
+    The maximum is the choice that argues AGAINST the reading's own direction: where §16 says the
+    world is below the record it is below at the most generous year in the wave's recall window.
+    The minimum would manufacture "below" verdicts out of the window's worst year.
+
+    Non-vacuous on this capture: at least one scored wave has a two-year window whose years differ,
+    and the leg requires that to be true rather than assuming it.
+    """
+    reading = _live_internal_return()
+    per_year = reading["per_year"]
+    multi = 0
+    for wave in reading["against_the_record"]["waves"]:
+        if wave["refused"] is not None:
+            continue
+        window = wave["recall_window_years"]
+        rates = [per_year[year]["internal_return_rate"]["of_the_whole_book"] for year in window]
+        assert wave["world_internal_rate_year"] == pytest.approx(max(rates), rel=1e-6), (
+            f"wave {wave['wave']}: the world rate reported is not the window's highest year. "
+            f"Taking anything lower flatters the finding that the world is short."
+        )
+        if len(set(rates)) > 1:
+            multi += 1
+    assert multi > 0, (
+        "no scored wave has a window whose years differ, so max and min agree everywhere and this "
+        "leg cannot fire."
+    )
+
+
+def test_the_headline_at_the_observed_mix_is_larger_than_section_9s_and_not_pinned_to_it():
+    """MUTATION: compose §9's denominator against the mix-free envelope instead of the observed hull.
+
+    THE PROPERTY, keyed to the composition and not to today's multiples: the observed hull's high
+    end is a band composed at a mix with long-stayers in it, so it is strictly BELOW the published
+    RECENT endpoint §9 divided by. A larger required multiple must follow, in every base-window
+    year and at both ends of the hull. The mix-free envelope's high end IS the recent endpoint, so
+    a reading that reached for the envelope would reproduce §9 exactly and §16's direction claim
+    would silently become "unchanged".
+
+    This is the leg that stops §16's most consequential sentence -- that §9's gap is understated,
+    not overstated -- from being prose beside a number that no longer supports it.
+    """
+    reading = _live_internal_return()
+    section = reading["tenure_mix_vs_the_published_observations"]
+    headline = section["what_this_does_to_section_9s_headline"]
+    hull_low, hull_high = headline["observed_mix_hull"]
+    recent = headline["published_recent_endpoint"]
+
+    assert hull_high < recent, (
+        f"the hull's high end ({hull_high}) is not below the published recent endpoint ({recent}), "
+        f"so the reading is composing against the mix-free envelope and §9's denominator is "
+        f"unchanged in all but name."
+    )
+    assert hull_low < hull_high, "the hull is inverted or a point, so it is not a hull."
+    assert headline["years"], "the base-window comparison is empty, so the direction claim is void."
+    for year, row in headline["years"].items():
+        over = row["multiple_over_the_observed_mix_hull"]
+        assert over["at_the_hulls_high_end"] > row["section_9_multiple_over_published_recent"], (
+            f"{year}: the multiple at the hull's most generous end is not larger than §9's. The "
+            f"direction §16 publishes -- that §9's gap is understated -- is then unsupported."
+        )
+        assert over["at_the_hulls_low_end"] > over["at_the_hulls_high_end"], (
+            f"{year}: the hull's endpoints are the wrong way round, so the generous and alarming "
+            f"readings have been swapped and the leading figure is the alarming one."
+        )
+        assert row["world_long_stayer_share"] < min(section["observed_long_stayer_share"]), (
+            f"{year}: the world's tenure mix is no longer below every published observation. If "
+            f"the world's SVT population has aged into the observed range, §16's premise has "
+            f"changed and the section must be re-read, not this leg relaxed."
+        )
+
+
+def test_mutation_r_the_internal_return_reading_is_measured_and_the_drawn_rate_is_read():
+    """MUTATION: move `PASSIVE_RENEWAL_RATE`; the REALISED rate must not move, the ratio must.
+
+    THE DISCRIMINATING DIRECTION. `realised_over_drawn` is the section's headline -- the world
+    returns accounts to a fixed term at about half the rate the code draws at -- and it is a ratio
+    between something MEASURED on the capture and something READ from a constant. If the realised
+    rate moved with the constant, the reading would be recomputing the world from the constant
+    rather than counting what the world did, and the ratio would be pinned at 1.0 forever.
+
+    The tenure half is mutated the other way: `SVT_LONG_STAYER_YEARS` is what selects the
+    long-stayer branch, so raising it must LOWER the long-stayer share. A share that did not move
+    would be read from somewhere other than the capture's tenure column.
+    """
+    svt_rows, _reason = departure_population.load_svt_decisions(instrument.DEFAULT_TABLE)
+    rows = json.loads(instrument.DEFAULT_TABLE.read_text())
+    baseline = fitter.svt_internal_return_and_tenure(rows, svt_rows)
+
+    original_rate = fitter.PASSIVE_RENEWAL_RATE
+    try:
+        fitter.PASSIVE_RENEWAL_RATE = original_rate * 2
+        moved = fitter.svt_internal_return_and_tenure(rows, svt_rows)
+    finally:
+        fitter.PASSIVE_RENEWAL_RATE = original_rate
+
+    assert moved["totals"]["internal_return_rate_per_svt_account_year"] == pytest.approx(
+        baseline["totals"]["internal_return_rate_per_svt_account_year"]
+    ), (
+        "doubling the DRAWN rate moved the REALISED one. The realised rate is being computed from "
+        "the constant instead of counted from the capture, and the section's headline ratio is "
+        "then an identity rather than a measurement."
+    )
+    assert moved["the_draw_that_produces_it"]["realised_over_drawn"] == pytest.approx(
+        # `abs` and not `rel`: the artefact publishes six decimal places, so halving a rounded
+        # ratio and re-rounding disagrees in the last place with the ratio computed then rounded.
+        baseline["the_draw_that_produces_it"]["realised_over_drawn"] / 2, abs=1e-6
+    ), "the ratio did not follow the drawn rate, so the constant is not the one being reported."
+
+    original_years = fitter.SVT_LONG_STAYER_YEARS
+    try:
+        fitter.SVT_LONG_STAYER_YEARS = original_years + 3.0
+        aged = fitter.svt_internal_return_and_tenure(rows, svt_rows)
+    finally:
+        fitter.SVT_LONG_STAYER_YEARS = original_years
+
+    moved_years = [
+        year for year in baseline["years"]
+        if aged["per_year"][year]["long_stayer_share_of_svt_account_days"]
+        < baseline["per_year"][year]["long_stayer_share_of_svt_account_days"]
+    ]
+    assert moved_years, (
+        "raising the long-stayer threshold by three years left every year's long-stayer share "
+        "unchanged. The share is not being taken from the capture's tenure column."
+    )
+
+
+def test_the_committed_internal_return_reading_reproduces_on_the_live_world():
+    """The drift detector, and it is keyed to the property rather than to today's answer.
+
+    A published reading whose committed copy nobody re-derives is a claim nothing checks. If this
+    goes red because the world's internal return rate has MOVED, that is the mechanism changing and
+    the finding must be re-read -- not this leg relaxed.
+    """
+    declared = _declared_internal_return()
+    live = _live_internal_return()
+    disagreements = []
+    if declared["years"] != live["years"]:
+        disagreements.append(f"years: declared {declared['years']}, live {live['years']}")
+    for key in ("per_year", "totals", "against_the_record",
+                "tenure_mix_vs_the_published_observations", "the_draw_that_produces_it"):
+        if declared.get(key) != live.get(key):
+            disagreements.append(f"{key} no longer reproduces")
+    assert not disagreements, (
+        "the committed internal-return reading no longer reproduces on the live world:\n  "
+        + "\n  ".join(disagreements)
+        + f"\nRe-run `{declared['how_to_regenerate']}` and land it."
+    )
